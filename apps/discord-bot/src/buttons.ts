@@ -18,8 +18,8 @@ import { attributeRoll } from './commands/rollAttribution'
 import type { ContainerData } from './container'
 import { toContainer } from './container'
 import { decodeRollRequest, parseCustomId } from './customId'
-import { d20ForTable } from './dice'
-import { entityFromKey, parseViewPayload, patternPeek } from './lookupCard'
+import { dieForTable } from './dice'
+import { entityCard, entityFromKey, patternOf, viewPayloadKey } from './lookupCard'
 
 /**
  * A `su:lookup` payload: an entry key (`schemaName::slug`, from "Post to
@@ -28,9 +28,7 @@ import { entityFromKey, parseViewPayload, patternPeek } from './lookupCard'
 function lookupFromPayload(payload: string): LookupMessage {
   if (!payload.includes('::')) return buildTableLookupMessage(payload)
   const hit = entityFromKey(payload)
-  return hit
-    ? buildLookupMessage(hit.entity, hit.schemaName)
-    : { error: 'That entry is no longer in the reference.' }
+  return hit ? buildLookupMessage(hit) : { error: 'That entry is no longer in the reference.' }
 }
 
 export async function handleButtonInteraction(
@@ -69,29 +67,30 @@ export async function handleButtonInteraction(
     return
   }
 
-  // A tab or a page redraws the card it sits on, for everyone who sees it:
-  // the same entry, another view of it. Nothing new is posted.
+  // An older message's tab or page: the lookup has no tabs now, so it redraws
+  // the entry's one card, for everyone who sees it. Nothing new is posted.
   if (parsed.action === 'view') {
-    const target = parseViewPayload(parsed.payload)
-    const hit = target ? entityFromKey(target.key) : null
-    if (!target || !hit) {
+    const key = viewPayloadKey(parsed.payload)
+    const hit = key ? entityFromKey(key) : null
+    if (!hit) {
       await interaction.reply({
         content: 'That entry is no longer in the reference.',
         flags: MessageFlags.Ephemeral,
       })
       return
     }
-    const { data: _data, ...payload } = buildLookupMessage(hit.entity, hit.schemaName, target.view)
+    const { data: _data, ...payload } = buildLookupMessage(hit)
     await interaction.update(payload)
     return
   }
 
-  // The pattern picker: the picked pattern's Peek, privately — read-only and
-  // terminal, so it carries no controls of its own.
+  // An older message's pattern picker: the picked pattern's own card, privately
+  // — read-only and terminal, so it carries no controls of its own.
   if (parsed.action === 'peek') {
     const hit = entityFromKey(parsed.payload)
-    const peek =
-      hit && interaction.values[0] ? patternPeek(hit.entity, interaction.values[0]) : null
+    const pattern =
+      hit && interaction.values[0] ? patternOf(hit.entity, interaction.values[0]) : null
+    const peek = hit && pattern ? entityCard({ ...hit, pattern }) : null
     if (!peek) {
       await interaction.reply({
         content: 'That pattern is no longer in the reference.',
@@ -136,7 +135,7 @@ export async function handleButtonInteraction(
     ? buildRollMessage(
         request.tableName,
         roller,
-        await d20ForTable(request.tableName),
+        await dieForTable(request.tableName),
         // A re-roll shares its first roll's status: private stays private.
         request.isPrivate,
         interaction.user.id

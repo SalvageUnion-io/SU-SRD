@@ -39,6 +39,12 @@ export type ReferenceEntityControl = {
   onClick?: () => void
   /** Required for button controls (omit for the item variants above). */
   ariaLabel?: string
+  /** A DISCLOSURE button's state (`aria-expanded`) — a folded card's chevron. */
+  ariaExpanded?: boolean
+  /** The id of the element the disclosure shows or hides (`aria-controls`).
+   * On a card's rail the card wrapper itself takes this id: the fold chevron
+   * controls the whole card (`resolveCardInteraction`). */
+  ariaControls?: string
   /** Tooltip text (the `title` attribute). Defaults to `ariaLabel` when unset —
    * set it when you want a richer hover hint than the concise accessible name. */
   title?: string
@@ -57,7 +63,9 @@ export type ReferenceEntityControl = {
   /** When true, the button is not rendered but still participates in header click behavior */
   hidden?: boolean
   /** When true, this control's onClick makes the entire card clickable (any mode).
-   * The card gains a hover enlarge effect. If multiple controls set cardClick, the last one wins. */
+   * A VISIBLE control stays the one keyboard path and the card a pointer
+   * convenience only (no role or tab stop); a `hidden` one makes the card
+   * itself the button. If multiple controls set cardClick, the last one wins. */
   cardClick?: boolean
   /**
    * The control that RESOLVES the action this card is (the Dashboard): it

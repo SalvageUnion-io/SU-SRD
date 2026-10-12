@@ -57,6 +57,9 @@ export type EntityDomain = 'pilot' | 'mech' | 'crawler' | 'actor' | 'gear' | 'gl
 /** The three kinds of pilot class. */
 export type ClassKind = 'BASE' | 'HYBRID' | 'NON-ADVANCEABLE'
 
+/** The two kinds of crawler bay: on every Union Crawler, or added in play. */
+export type BayKind = 'Standard' | 'Expansion'
+
 /** A labelled group of nested entities ("Grants", "Systems"). */
 export type EntityChildGroup = { key: string; label: string; items: EntityRef[] }
 

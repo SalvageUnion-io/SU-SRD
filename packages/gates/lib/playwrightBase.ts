@@ -8,7 +8,11 @@
  *   app's own `wrangler.jsonc`, so the specs run against the Worker, the
  *   `not_found_handling` mode and the `_headers` production serves, in workerd.
  *   An existing `dist/` is reused (the PR jobs have just built it). Locally
- *   the running dev server on the same port is reused.
+ *   the running dev server on the same port is reused. srd passes its
+ *   checkout's own port (`ports.ts`: offset in a linked worktree), so a
+ *   worktree's suite boots and reuses its own server, never another
+ *   checkout's; ITUN's stays on 5173, where its local Convex backend expects
+ *   it.
  * - `E2E_BASE_URL` runs the same suite against a deployed origin and boots
  *   nothing; per-test budgets widen to `external` there, because every test
  *   pays real network round trips.
@@ -32,7 +36,7 @@ import { defineConfig, devices } from '@playwright/test'
 type Budget = { timeout: number; expect: number }
 
 export type AppE2E = {
-  /** The port the app's dev server and `preview` listen on. */
+  /** The port the app's dev server listens on (and `preview`, in CI). */
   port: number
   /**
    * The path the app is served under, when not the root (ITUN's `/build/`,

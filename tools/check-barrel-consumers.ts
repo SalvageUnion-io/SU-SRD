@@ -3,7 +3,7 @@
  * check-barrel-consumers — component-lib exports what the apps render, and
  * holds no app's own compositions.
  *
- * `docs/ARCHITECTURE.md#areas` says code only one app renders lives in
+ * `docs/ARCHITECTURE.md#component-lib` says code only one app renders lives in
  * that app. Audit 4 (#1168) found that rule was prose that nothing enforced:
  * roughly half the barrel was rendered by one app, and the wizard shell, the
  * sheet edit controls, the masthead and its menu, the roster row and the about

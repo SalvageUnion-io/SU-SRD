@@ -6,9 +6,9 @@
  *   { variant, name, strip, back, condense, renderBody, syncStats }
  *
  * App bar (poster `.appbar`, design source clean-pilot.html): back + overflow
- * are bordered 38px icon buttons either side of the SU cargo mark. At rest the
- * bar is a slim interactive strip (back + actions only); the entity name lives
- * once, in the poster hero below.
+ * are bordered square icon buttons, `.su-page-action` high, either side of the
+ * SU cargo mark. At rest the bar is a slim interactive strip (back + actions
+ * only); the entity name lives once, in the poster hero below.
  *
  * Condense (S11 — binding): the top bar is sticky; when the hero scrolls out
  * of view (IntersectionObserver simple threshold — NOT the prototype's
@@ -296,7 +296,7 @@ export function LiveSheet({
       <header className="su-sheet-gutter" style={condensed ? BAR_SEAMED : BAR_AT_REST}>
         {back && (
           <>
-            {/* Back — a bordered 38px icon button (poster `.iconbtn`), icon
+            {/* Back — a bordered square icon button (poster `.iconbtn`), icon
                 only; the accessible name carries the destination. */}
             <AppLink
               href={back.href}
@@ -390,7 +390,10 @@ export function LiveSheet({
                 <span
                   key={segment.key}
                   aria-current="page"
-                  className={buttonVariants({ variant: 'default', size: 'compact' })}
+                  className={cn(
+                    buttonVariants({ variant: 'default', size: 'compact' }),
+                    'su-page-action'
+                  )}
                   style={{ ...SEGMENT, ...ACTIVE_SEGMENT }}
                 >
                   {segment.label}
@@ -399,7 +402,10 @@ export function LiveSheet({
                 <AppLink
                   key={segment.key}
                   href={segment.href}
-                  className={buttonVariants({ variant: 'default', size: 'compact' })}
+                  className={cn(
+                    buttonVariants({ variant: 'default', size: 'compact' }),
+                    'su-page-action'
+                  )}
                   style={SEGMENT}
                 >
                   {segment.label}

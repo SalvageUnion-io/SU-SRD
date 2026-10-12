@@ -9,6 +9,7 @@ import {
   queryCalls,
   setQueryAnswers,
 } from '../../components/__tests__/convexMock'
+import { npcFixture } from '../../components/__tests__/fixtures'
 
 // Module scope, before the import below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks()
@@ -22,6 +23,32 @@ describe('the public sheet route', () => {
     render(<PublicSheetView kind="pilot" appId="anything" />)
     // `getByText` throws when absent, so this asserts presence twice over.
     expect(screen.getByText(/isn['’]t available/i)).toBeTruthy()
+  })
+
+  test('a built NPC shared by link is its own read-only page, credited to its maker', () => {
+    setQueryAnswers({
+      'publicSheet:get': {
+        kind: 'npc',
+        body: npcFixture({ id: 'npc-1', name: 'Old Mags' }),
+        madeBy: 'Rosa',
+        links: [],
+        linked: [],
+        withheld: [],
+      },
+    })
+    render(<PublicSheetView kind="npc" appId="npc-1" />)
+    expect(screen.getAllByText('Old Mags').length).toBeGreaterThan(0)
+    expect(screen.getByText('Made by Rosa')).toBeTruthy()
+    expect(screen.getByText(/a shared NPC, read-only/i)).toBeTruthy()
+    // Read-only: no Share, no Delete.
+    expect(screen.queryByRole('button', { name: /share old mags/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /delete old mags/i })).toBeNull()
+  })
+
+  test('a private NPC is not available, as any private thing is', () => {
+    setQueryAnswers({ 'publicSheet:get': null })
+    render(<PublicSheetView kind="npc" appId="npc-1" />)
+    expect(screen.getByText(/this NPC isn['’]t available/i)).toBeTruthy()
   })
 
   test('an unknown kind gets the same page, not a server round trip', () => {

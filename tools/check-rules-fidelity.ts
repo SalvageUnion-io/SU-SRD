@@ -32,6 +32,17 @@
  * Unverified is recorded, not blocked: the lock is a ledger of what has been
  * checked, and the drift in it is a to-do list for prose fixes.
  *
+ * ## Stat blocks
+ *
+ * The numbers get the same treatment (`gates/lib/statFidelity.ts`): every
+ * chassis, pattern, System, Module, drone, NPC and Squad stat block and every
+ * action's stat line (Ability costs among them) is read from the Core Book's
+ * content-stream layer by a per-schema extractor and compared field by field.
+ * Its lock key ends `@stat`; its verdict is `verbatim` when every field
+ * matches, `unverified stat-mismatch` when one differs, `unverified no-match`
+ * when the extractor cannot find the block, and `unverified-source` when the
+ * block's own citation is a book with no extractor yet (every expansion).
+ *
  * ## Matching
  *
  * Each book is read in two text layers (see `extract-rules.ts`): poppler's
@@ -52,6 +63,7 @@
  * Run:  bun tools/check-rules-fidelity.ts            # verify; report what the lock would change
  *       bun tools/check-rules-fidelity.ts --update   # ... and rewrite the lock
  *       bun tools/check-rules-fidelity.ts --show=paraphrase,omission   # list those, with diffs
+ *       bun tools/check-rules-fidelity.ts --show=stat-mismatch          # stat blocks that differ
  *       bun tools/check-rules-fidelity.ts --summary  # drift summary as markdown (no book text)
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -68,7 +80,9 @@ import {
   VERDICTS,
   writeLockFile,
 } from 'gates/lib/proseFidelity'
-import type { ProseRuleId } from '../packages/salvageunion-reference/lib/proseDeviations'
+import type { StatResult } from 'gates/lib/statFidelity'
+import { collectStats, parsePages, statContext, statVerdict } from 'gates/lib/statFidelity'
+import type { ProseRuleId } from 'salvageunion-reference/proseDeviations'
 import {
   BOILERPLATE_MIN_REPEATS,
   BOOK_TYPOS,
@@ -77,7 +91,7 @@ import {
   NAME_DEVIATIONS,
   OWNER_SUFFIX,
   TRAIT_MARKUP,
-} from '../packages/salvageunion-reference/lib/proseDeviations'
+} from 'salvageunion-reference/proseDeviations'
 import type { Layer } from './extract-rules'
 import { findExtractDir, LAYER_DIR } from './extract-rules'
 
@@ -979,6 +993,20 @@ function printSummary(results: Result[]) {
   }
 }
 
+/** Stat verdicts by schema, in the same shape as the prose summary. */
+function printStatSummary(results: StatResult[]) {
+  const kind = (r: StatResult) =>
+    `${r.item.kind}${r.item.path.startsWith('.actions[') ? ' action' : ''}`
+  console.log('\nStat blocks (verbatim / stat-mismatch / no-match / unverified-source)')
+  for (const [k] of countBy(results, kind).sort((a, b) => a[0].localeCompare(b[0]))) {
+    const rs = results.filter((r) => kind(r) === k)
+    const n = (f: (r: StatResult) => boolean) => rs.filter(f).length
+    console.log(
+      `  ${k.padEnd(18)} ${String(rs.length).padStart(5)}  ${n((r) => r.verdict === 'verbatim')}/${n((r) => r.reason === 'stat-mismatch')}/${n((r) => r.reason === 'no-match')}/${n((r) => r.verdict === 'unverified-source')}`
+    )
+  }
+}
+
 /** Escape text for a markdown table or list: backslashes first, then pipes. */
 function mdEscape(s: string): string {
   return s.replace(/\\/g, '\\\\').replace(/\|/g, '\\|')
@@ -989,7 +1017,11 @@ function excerpt(s: string, n = 90): string {
 }
 
 /** Markdown drift summary for a PR body. Data text only — never book text. */
-function markdownSummary(results: Result[], editions: Record<string, string>): string {
+function markdownSummary(
+  results: Result[],
+  stats: StatResult[],
+  editions: Record<string, string>
+): string {
   const out: string[] = []
   const unv = results.filter((r) => r.verdict === 'unverified')
   out.push(`Verified ${results.length} prose strings against:`)
@@ -1019,6 +1051,21 @@ function markdownSummary(results: Result[], editions: Record<string, string>): s
     for (const r of rs.slice(0, 8))
       out.push(
         `- \`${r.item.file}\` **${r.item.entityName}** \`${r.item.path}\`${r.book ? ` (nearest: ${r.book} p.${r.page}${r.score !== undefined ? `, score ${r.score}` : ''})` : ''} — “${mdEscape(excerpt(r.item.text))}”`
+      )
+    out.push('', '</details>')
+  }
+  const statDrift = stats.filter((r) => r.verdict === 'unverified')
+  out.push(
+    '',
+    `**Stat blocks: ${stats.length}**, ${stats.filter((r) => r.verdict === 'verbatim').length} verbatim, ${statDrift.length} unverified, ${stats.filter((r) => r.verdict === 'unverified-source').length} with no extractor for their book.`
+  )
+  for (const reason of ['stat-mismatch', 'no-match'] as const) {
+    const rs = statDrift.filter((r) => r.reason === reason)
+    if (rs.length === 0) continue
+    out.push('', `<details><summary><code>${reason}</code>: ${rs.length}</summary>`, '')
+    for (const r of rs)
+      out.push(
+        `- \`${r.item.file}\` **${r.item.entityName}**${r.item.name ? ` ${mdEscape(r.item.name)}` : ''} \`${r.item.path || '(own)'}\`: ${mdEscape(r.item.text)}`
       )
     out.push('', '</details>')
   }
@@ -1078,11 +1125,22 @@ async function main() {
   const t0 = performance.now()
   const items = collectProse()
   const results = verify(lib, items)
+  // Stat blocks read the Core Book's content-stream layer unfiltered: the
+  // layout digits that the prose search drops are the stats.
+  const core = [...files].find(([spec]) => spec.id === 'Core Book')?.[1][0]
+  const corePath = core && join(dir, LAYER_DIR.raw, core)
+  const ctx =
+    corePath && existsSync(corePath)
+      ? statContext(parsePages(readFileSync(corePath, 'utf8')))
+      : undefined
+  const statItems = collectStats()
+  const stats = statItems.map((i) => statVerdict(ctx, i))
   console.log(
-    `Rules fidelity: ${items.length} strings against ${files.size} books (${dir}), ${Math.round(performance.now() - t0)} ms`
+    `Rules fidelity: ${items.length} strings and ${statItems.length} stat blocks against ${files.size} books (${dir}), ${Math.round(performance.now() - t0)} ms`
   )
   for (const [k, v] of Object.entries(editions)) console.log(`  ${k.padEnd(26)} ${v}`)
   printSummary(results)
+  printStatSummary(stats)
 
   if (show) {
     for (const r of results.filter((r) => show.includes(r.reason ?? r.verdict))) {
@@ -1093,13 +1151,22 @@ async function main() {
       console.log(`  data: ${JSON.stringify(excerpt(r.item.text, 160))}`)
       if (r.diff) console.log(`  diff: ${r.diff}`)
     }
+    for (const r of stats.filter((r) => show.includes(r.reason ?? r.verdict))) {
+      const a = r.item.anchors[0]
+      console.log(
+        `\n${label(r)}  ${r.item.key}  "${r.item.entityName}"${r.item.name ? ` ${r.item.name}` : ''}`
+      )
+      console.log(`  cited ${a ? `${a.source}:${a.page ?? '?'}` : '-'}`)
+      console.log(`  data: ${r.item.text}`)
+      if (r.diff) console.log(`  diff: ${r.diff}`)
+    }
   }
-  if (summary) console.log(`\n${markdownSummary(results, editions)}`)
+  if (summary) console.log(`\n${markdownSummary(results, stats, editions)}`)
 
   const lock: Lock = {
     editions,
     entries: new Map(
-      results.map((r) => [
+      [...results, ...stats].map((r) => [
         r.item.key,
         {
           hash: proseHash(r.item.text),
@@ -1120,8 +1187,8 @@ async function main() {
     process.exitCode = 1
     return
   }
-  const diff = compareWithLock(items, committed)
-  const changed = results.filter((r) => {
+  const diff = compareWithLock([...items, ...statItems], committed)
+  const changed = [...results, ...stats].filter((r) => {
     const e = diff.entries.get(r.item.key)
     return e && e.hash === proseHash(r.item.text) && label(e) !== label(r)
   })

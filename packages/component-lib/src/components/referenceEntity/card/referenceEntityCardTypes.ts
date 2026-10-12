@@ -222,9 +222,16 @@ export type ReferenceEntityCardProps = {
   /** Overrides the header's top-right flavor slot. */
   rightContent?: ReactNode
   className?: string
-  /** SEO: render the title as an `h1` (item pages) instead of the default `span`. */
-  titleAs?: 'span' | 'h1'
+  /**
+   * The title's element: `h1` for the entity an item page names, `h2` for a
+   * card stacked on a page with no band above it (`stackedTitleLevel`), `h3`
+   * for a card nested in a page's section (`nestedTitleLevel`), else `span`.
+   */
+  titleAs?: CardTitleTag
 }
+
+/** The element a card's title renders as: an item page's `h1`, a nested card's `h2`/`h3` on a page. */
+export type CardTitleTag = 'span' | 'h1' | 'h2' | 'h3'
 
 /** Write-layer: which already-rendered sections to suppress (additive guards). */
 export type ReferenceEntityCardHideConfig = {

@@ -115,6 +115,15 @@ describe('toEntityModel', () => {
     expect(npcs.items[0]?.id.startsWith(`${crawler.id}/`)).toBe(true)
   })
 
+  test('every guide leads with prose, from its first step when it has no preamble', () => {
+    for (const guide of SalvageUnionReference.Guides.all()) {
+      expect(toEntityModel(guide).lead, `no lead for "${guide.name}"`).toBeTruthy()
+    }
+    const salvaging = need(SalvageUnionReference.Guides.getByName('Salvaging'), 'Salvaging')
+    expect(salvaging.content ?? []).toEqual([])
+    expect(toEntityModel(salvaging).lead).toStartWith('Area Salvaging represents scouring')
+  })
+
   test("an instance changes identity only where a player's copy does", () => {
     const mule = need(SalvageUnionReference.Chassis.getByName('Mule'), 'Mule')
     const model = toEntityModel(mule, {

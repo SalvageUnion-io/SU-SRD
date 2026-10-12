@@ -40,7 +40,9 @@ tokens, secrets or environment values into a body: it is permanent history.
 ## Opening it
 
 Validate first: `bun run check:fast` at least, `bun run check` for anything
-cross-package. Push the branch, then open the PR as a **draft**:
+cross-package. Push the branch, then open the PR as a **draft** against the
+base `bun packages/gates/lib/baseBranch.ts` prints (a branch cut from
+`design-refresh` targets it, not `main`):
 
 - **Locally:** `gh pr create --draft --title … --body-file …`.
 - **Cloud session:** `gh` answers REST only, so `gh pr create` gets 403. Use

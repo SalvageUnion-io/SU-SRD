@@ -15,7 +15,9 @@ import {
   crawlerIsKept,
   crawlerReading,
   kicker,
+  linkChip,
   mechChips,
+  npcChips,
   patternChips,
   patternReading,
   pilotChips,
@@ -133,6 +135,29 @@ describe('a unit’s chips', () => {
         crawlerChips({ crawler: crawlerFixture({ id: 'c1', gameId: 'g1' }), games: GAMES })
       )
     ).toEqual(['Reclamation of the Wastes'])
+  })
+})
+
+describe('shared by link', () => {
+  test('a pilot, mech or crawler anyone with the link may read says so', () => {
+    expect(chipLabels(linkChip(['p1'], 'p1'))).toEqual(['Shared by link'])
+    expect(linkChip(['p1'], 'p2')).toEqual([])
+    expect(linkChip(undefined, 'p1')).toEqual([])
+  })
+
+  test('an NPC says who can see it: by link first, else where it is', () => {
+    const shelf = { gameId: null }
+    const inGame = { gameId: 'g1' }
+    expect(chipLabels(npcChips({ npc: shelf, games: GAMES }))).toEqual(['Only me'])
+    expect(chipLabels(npcChips({ npc: inGame, games: GAMES }))).toEqual([
+      'Shared with Reclamation of the Wastes',
+    ])
+    expect(chipLabels(npcChips({ npc: shelf, games: GAMES, sharedByLink: true }))).toEqual([
+      'Shared by link',
+    ])
+    expect(chipLabels(npcChips({ npc: inGame, games: GAMES, sharedByLink: true }))).toEqual([
+      'Shared by link',
+    ])
   })
 })
 

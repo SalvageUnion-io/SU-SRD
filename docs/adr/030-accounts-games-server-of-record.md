@@ -14,7 +14,7 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 30, which
 and the partial is the important word: §1 promises Solo mode — not signed in,
 IndexedDB as the source of truth — "must keep working forever", and **that one
 guarantee is withdrawn**. Persistence requires an account, and since the D9
-decision ([spike](../spikes/d9-offline-cache.md)) nothing is kept on the device
+decision ([no device cache](../ARCHITECTURE.md#no-device-cache)) nothing is kept on the device
 at all: no IndexedDB cache. Everything else here — Games,
 memberships, roles, ownership, the two containers, Convex as server of record —
 stands, so citing this ADR remains correct for all of it.
@@ -26,7 +26,7 @@ backend, no auth). **Amends [ADR-022](../ARCHITECTURE.md#decisions)**
 altering any of its enforcement modes.
 
 The operational reference (deployments, env vars, secrets, rotation) is
-[accounts and Games operations](../ARCHITECTURE.md#areas) and the
+[accounts and Games operations](../ARCHITECTURE.md#deployments) and the
 `convex-ops` skill.
 
 **2026-10-06 — the Games pages are folded into the Roster hub.** §6's surfaces
@@ -115,7 +115,7 @@ alerts and a live table are the point — not an add-on.
 
 This produces **three modes**, and every surface must be legible in all three.
 The current table — Solo is signed out and read-only, Connected writes to
-Convex, Disconnected keeps what is on screen, read-only — is [data flow](../ARCHITECTURE.md#areas) and
+Convex, Disconnected keeps what is on screen, read-only — is [data flow](../ARCHITECTURE.md#data-flow) and
 [`apps/itun/CLAUDE.md`](../../apps/itun/CLAUDE.md). A **NOT CONNECTED** banner and
 read-only state are the honest cost of choosing a server of record, and only a
 signed-in user offline ever pays it.

@@ -124,7 +124,12 @@ async function openMenu(name: string): Promise<HTMLElement> {
 
 beforeEach(async () => {
   // Shelves, with no Games, no invitations and no shared patterns.
-  setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [], 'shelf:patternSharing': [] })
+  setQueryAnswers({
+    'games:listMine': [],
+    'invites:forMe': [],
+    'shelf:patternSharing': [],
+    'shelf:sharedByLink': [],
+  })
   // The NPC shelf also lists encounter NPCs; an earlier file in the same
   // process can leave some in memory, so every store starts empty.
   resetStores()
@@ -151,7 +156,7 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
       render(<Roster />)
     })
 
-    expect(screen.getByRole('heading', { level: 1, name: 'In The Union Now' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'In the Union now' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sign in to build' })).toBeTruthy()
     expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Import' })).toBeNull()

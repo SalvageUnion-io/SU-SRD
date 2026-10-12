@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useContext, useState } from 'react'
+import { useContext, useId, useState } from 'react'
 import type {
   EntityInstance,
   SURefEntity,
@@ -353,10 +353,10 @@ function ReferenceEntityCardInner({
   scalingParent,
   expand,
 }: ReferenceEntityCardProps) {
-  // Section bands become real headings only when this card IS the page — see
-  // `sectionHeadingLevel` for why, and for what deliberately stays a span.
-  // A PAGE is the page whatever `titleAs` says: its title is the page's h1, in
-  // the chapter band. Only a top-level card takes the page presentation.
+  // Section bands are h2s (their nested cards' titles h3s) only when this card
+  // IS the page — see `sectionHeadingLevel`. A PAGE is the page whatever
+  // `titleAs` says: its title is the page's h1, in the chapter band. Only a
+  // top-level card takes the page presentation.
   const onPage = presentation === 'page' && !inline && depthProp === 0
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
@@ -1202,9 +1202,12 @@ export type ReferenceEntityCardWrapperProps = Omit<
    * only) and back. Collapsed is the DEFAULT: a long collection reads as a
    * scannable list of names and stats, and the reader opens the one they want.
    *
-   * Costs nothing when absent — the whole affordance is expressed through
-   * existing `controls`: collapsed adds a hidden `cardClick` control (so the
-   * whole card is the expand target), expanded adds a ghost chevron.
+   * Costs nothing when absent — the whole affordance is ONE `controls` entry:
+   * a visible chevron with `aria-expanded` and `aria-controls`. Folded, it is
+   * also a `cardClick` control, so a pointer click anywhere on the card opens
+   * it; the card itself stays a plain element (no role, tab stop or name), and
+   * its stats and traits stay readable. The card wrapper takes the id the
+   * chevron's `aria-controls` names (`resolveCardInteraction`).
    */
   collapsible?: boolean
   /** Start folded. Only meaningful with `collapsible`; defaults to true. */
@@ -1230,6 +1233,7 @@ export function ReferenceEntityCard({
   // Hook before the nullable-data guard — a conditional hook would break the
   // rules of hooks the first time a caller passed `undefined`.
   const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed)
+  const surfaceId = useId()
   if (!data) return null
 
   const folded = collapsible && collapsed
@@ -1240,29 +1244,24 @@ export function ReferenceEntityCard({
   const label = getReferenceEntityName(data)
   const foldControls: ReferenceEntityControl[] = !collapsible
     ? []
-    : folded
-      ? [
-          {
-            key: '__expand',
-            // A VISIBLE chevron: the whole-card click alone left nothing on a
-            // folded listing saying it opens. Both fold handlers are idempotent
-            // setters, so the chevron's click bubbling to the card is harmless.
-            icon: ChevronDown,
-            variant: 'ghost',
-            cardClick: true,
-            ariaLabel: `Expand ${label}`,
-            onClick: () => setCollapsed(false),
-          },
-        ]
-      : [
-          {
-            key: '__collapse',
-            icon: ChevronUp,
-            variant: 'ghost',
-            ariaLabel: `Collapse ${label}`,
-            onClick: () => setCollapsed(true),
-          },
-        ]
+    : [
+        {
+          key: '__fold',
+          // THE fold control: a disclosure button whose name stays put while
+          // `aria-expanded` carries the state. Folded, it is also the card's
+          // pointer target (`cardClick`): its own click stops propagation, so
+          // the two never both fire.
+          icon: folded ? ChevronDown : ChevronUp,
+          variant: 'ghost',
+          className: 'su-card-fold',
+          ...(folded ? { cardClick: true } : {}),
+          ariaLabel: `${label} details`,
+          title: folded ? 'Expand' : 'Collapse',
+          ariaExpanded: !folded,
+          ariaControls: surfaceId,
+          onClick: () => setCollapsed((c) => !c),
+        },
+      ]
 
   const card = (
     <ReferenceEntityCardInner
@@ -1270,9 +1269,6 @@ export function ReferenceEntityCard({
       size={display.size}
       extent={display.extent}
       controls={foldControls.length > 0 ? [...(controls ?? []), ...foldControls] : controls}
-      // A folded card's whole surface is the expand target, so it needs an
-      // accessible name saying what activating it does.
-      {...(folded ? { cardClickLabel: `Expand ${label}` } : {})}
       {...rest}
     />
   )

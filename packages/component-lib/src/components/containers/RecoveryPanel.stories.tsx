@@ -1,4 +1,5 @@
 import { borderWidth, color, fontSize, radius, space } from '../../design/tokens'
+import { PRODUCT } from '../../product'
 import type { Story } from '../../stories/_harness'
 import { RecoveryPanel } from './RecoveryPanel'
 
@@ -22,7 +23,7 @@ export const Default: Story = () => (
 export const BlockedUpgrade: Story = () => (
   <RecoveryPanel
     title="Close the other tab"
-    message="In the Union Now is open in another browser tab running an older version, which is blocking this one from loading. Close every other In the Union Now tab, then reload. Your saved data is safe."
+    message={`${PRODUCT.name} is open in another browser tab running an older version, which is blocking this one from loading. Close every other ${PRODUCT.name} tab, then reload. Your saved data is safe.`}
     action={{ label: 'Reload', onClick: noop }}
   />
 )

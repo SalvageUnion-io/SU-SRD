@@ -44,7 +44,7 @@ describe('deriveLabel', () => {
     for (const table of SalvageUnionReference.RollTables.all()) {
       for (let roll = 1; roll <= 20; roll++) {
         const outcome = rollOnTable(table.table, () => roll)
-        if (!outcome.success) continue
+        if (!outcome.success || outcome.kind === 'no-effect') continue
         const out = deriveLabel(outcome.value)
         if (out === undefined) continue
         expect(outcome.value.startsWith(out.label)).toBe(true)

@@ -86,11 +86,12 @@ test('publish the live public sheet and open it with no account', async ({ page,
   // Snapshots are retired: nothing in the dialog mints one.
   await expect(dialog.getByRole('button', { name: /snapshot/i })).toHaveCount(0)
 
-  await dialog.getByRole('button', { name: /publish live sheet/i }).click()
+  // Who can see it: the same control every player thing opens.
+  await dialog.getByRole('radio', { name: /anyone with the link/i }).check()
 
   // The link appears only once the server has the sheet as public.
   await expect(
-    dialog.getByRole('button', { name: /copy public sheet link/i }),
+    dialog.getByRole('button', { name: /copy public link/i }),
     'The copy control appears only once publicSheet.setPublic succeeded.'
   ).toBeVisible()
   const link = (await dialog.locator('code').first().innerText()).trim()

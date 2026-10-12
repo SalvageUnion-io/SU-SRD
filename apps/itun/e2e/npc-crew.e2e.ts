@@ -13,7 +13,7 @@ import { expect, test } from './fixtures'
 
 /** Open the Med Bay card on the crawler sheet that is showing, and return its crew inset. */
 async function medBayCrew(page: import('@playwright/test').Page) {
-  const expand = page.getByRole('button', { name: 'Expand Med Bay' })
+  const expand = page.getByRole('button', { name: 'Med Bay details', expanded: false })
   if (await expand.count()) await expand.first().click()
   return page.getByRole('group', { name: 'Med Bay crew lead' })
 }
@@ -27,7 +27,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await gotoStable(page, '/npcs/new')
   await waitForReady(page)
   await expect(page.getByRole('heading', { level: 1, name: /Design an NPC/i })).toBeVisible()
-  await page.getByRole('button', { name: 'Start from Veteran' }).click()
+  await page.getByRole('checkbox', { name: 'Start from Veteran' }).check()
   await page.getByRole('button', { name: 'Next: Stats' }).click()
   await expect(page.getByLabel(/Hit points/)).toHaveValue('9')
   await page.getByRole('button', { name: 'Next: Actions & traits' }).click()

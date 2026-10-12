@@ -29,10 +29,10 @@
   # the Sentry org id.
   # script-src carries NO 'unsafe-inline' and NO hashes. With 'unsafe-inline',
   # an injected <script> executes and CSP's primary XSS control is gone. srd
-  # emits no executable inline script at all — the no-JS fallback is hidden by
-  # an `@media (scripting: enabled)` rule, and the /about and /greembeem scripts
-  # load by URL from public/ — so this list is literal and cannot drift. An
-  # inline <script> added later is BLOCKED by this policy: load it by URL.
+  # emits no executable inline script at all — the /about and /greembeem
+  # scripts load by URL from public/ — so this list is literal and cannot
+  # drift. An inline <script> added later is BLOCKED by this policy: load it
+  # by URL.
   #
   # 'inline-speculation-rules' covers <script type="speculationrules">, which is
   # gated by script-src but cannot be hashed. Browsers that don't know the

@@ -2,7 +2,7 @@ import type { ElementType, ReactNode } from 'react'
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Slab } from '../../atoms/Slab'
-import { cardKey } from './cardHelpers'
+import { cardKey, nestedTitleLevel } from './cardHelpers'
 import type { NestedCardHost } from './NestedCards'
 import { PatternLoadout } from './PatternLoadout'
 import type { NestedGroup } from './resolveNestedEntities'
@@ -52,6 +52,8 @@ export function PatternSection({
               size="medium"
               depth={host.depth + 1}
               hostDown={host.isDown}
+              // On a page, a heading under the "Pattern Actions" band's h2.
+              titleAs={nestedTitleLevel(host.onPage)}
               hostName={host.entityName}
               chassisName={host.chassisName}
             />

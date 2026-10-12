@@ -16,19 +16,17 @@ From `git log origin/design-refresh`; one squash-merged PR each unless noted.
 7. **PL** Compact-card listings grouped as the book prints them, censor marks for missing art, one-screen roll tables — no PR: 8 direct commits (`6044219`…`58692ee`).
 8. **EDL** ([entity-display-language.md](entity-display-language.md)) — phases 1 model (`18bb05f`), 2 Row + Token (`0223974`), 3 Mention + Peek (`c49a5ef`) merged without PRs.
    Remaining: 4 Card + Hold, 5 Page + instruments, 6 delete `ReferenceEntityCard` and add the E15 lint.
-9. **DB** The Discord bot on the shared card, and Component Embeds on SRD pages ([discord-bot-refresh.md](../architecture/discord-bot-refresh.md)) — direct commits.
+9. **DB** The Discord bot on the shared card, and Component Embeds on SRD pages ([discord-bot](../ARCHITECTURE.md#discord-bot)) — direct commits.
 
 ## Refit fleet
 
 The [SURef Refit Ledger](https://claude.ai/artifact/HCbph3uwU4uCH6v1pxkpAY) drives it: one PR per ticked item into `design-refresh`, titled `… [refit <ID>]`. Ids: B beauty, S sites, A agents, E efficiency, D delete, T standardize, O organization.
 
-1. **Merged** — A1 #1361, A8 #1359, A10 #1346, B1 #1356, B3 #1349, B5 #1350, B6 #1365, B8 #1357, S4 #1354, S6 #1362 + #1366, E2 #1364, E7 #1348, D4 #1352, D5 #1358, D10 #1347.
-2. **Draft, owner's call** — A6 #1360 (subagents), B9 #1363 (Catalog default; amends EDL E2), D8 #1355 and D12 #1351 (spikes). **Paused** — O6 #1353 (ADR split).
-3. **In progress** — the full Tailwind cutover (ledger item D2) as items TW-a…TW-i. Other ticked items: queued or building; the ledger artifact carries live status.
+Status is git, not this page: `git log origin/design-refresh --oneline --grep '\[refit'` lists every merged refit (`[refit <ID>]` and Refit II's `[refit2 <ID>]`); the ledger artifact carries what is queued or building.
 
 ## Design artifacts
 
-claude.ai pages a local agent cannot open; text snapshot of 2026-10-12. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) wins, then [ruleset.md](ruleset.md).
+claude.ai pages; an agent reads one with the Artifact tool's `read` action, not a web fetch. Summaries as of 2026-10-12. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) wins, then [ruleset.md](ruleset.md).
 
 1. **[Salvage Union Brand Refresh](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm)** — the origin: the board canvas below.
 2. **[Entity Display Language](https://claude.ai/artifact/5Wf8KGHCjgcMzJV7zY381C)** — one model, five forms, modes, nesting, rules E1–E17, six-phase migration; codified in entity-display-language.md.

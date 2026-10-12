@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { scanPages } from 'gates/lib/a11yScan'
+import { scanPages } from 'gates/a11y'
 
 /**
  * WCAG 2.2 AA on every page in `PAGES`, at desktop and as a Pixel 7
@@ -12,6 +12,8 @@ const PAGES = [
   '/about/',
   '/api/',
   '/discord/',
+  '/bot/terms/',
+  '/bot/privacy/',
   '/search/',
   '/schema/chassis/',
   '/schema/chassis/item/aegis/',

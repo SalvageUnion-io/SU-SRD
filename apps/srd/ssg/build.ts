@@ -33,6 +33,7 @@ import { build as viteBuild } from 'vite'
 // ahead of the css-stub plugin below.
 import type { BuildAssets } from './document'
 import { outputPathFor } from './outputPath'
+import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const distDir = join(appRoot, 'dist')
@@ -202,6 +203,9 @@ async function main(): Promise<void> {
   // route whose pattern collides with an existing one — and the only symptom
   // would be a page quietly serving the wrong content. Refuse instead.
   const written = new Map<string, string>()
+  // Raw `[[markup]]` is checked on each page as it renders (see ./rawMarkup):
+  // the corpus is drawn once, here, and never again by a test.
+  const rawMarkup: string[] = []
   for (const registration of routes) {
     for (const { route, render } of registration.resolve()) {
       const outputPath = outputPathFor(route)
@@ -214,7 +218,10 @@ async function main(): Promise<void> {
         )
       }
       written.set(outputPath, route)
-      await writeOutput(outputPath, render(assets))
+      const html = render(assets)
+      const raw = findRawMarkup(html)
+      if (raw !== undefined) rawMarkup.push(`${route}: ${raw}`)
+      await writeOutput(outputPath, html)
       if (registration.sitemap) sitemapRoutes.push(route)
       count += 1
     }
@@ -229,6 +236,7 @@ async function main(): Promise<void> {
   if (count === 0) {
     throw new Error('[ssg] refusing to finish: the route registry rendered 0 pages.')
   }
+  assertNoRawMarkup(rawMarkup)
 
   await writeEndpoints()
   await writeSitemap(sitemapRoutes)

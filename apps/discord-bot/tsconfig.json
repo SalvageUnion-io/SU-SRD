@@ -3,6 +3,7 @@
   "include": ["src/**/*.ts", "worker-configuration.d.ts"],
   "exclude": ["node_modules"],
   "references": [
+    { "path": "../../packages/component-lib" },
     { "path": "../../packages/itun-domain" },
     { "path": "../../packages/observability" },
     { "path": "../../packages/salvageunion-reference" }

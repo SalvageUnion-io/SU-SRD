@@ -69,6 +69,12 @@ describe('ogMetaFor', () => {
   it('takes the theme colour from the band, as a literal a meta tag can carry', () => {
     expect(meta.themeColor).toBe(tokens.color.mech)
   })
+
+  it('titles a lower-case glossary name as the book prints it', () => {
+    const bioTitan = SalvageUnionReference.Keywords.getByName('bio-titan')
+    if (!bioTitan) throw new Error('no bio-titan keyword')
+    expect(ogMetaFor(ogCardFor('keywords', 'bio-titan', bioTitan)).ogTitle).toBe('Bio-Titan')
+  })
 })
 
 describe('ogImagePath', () => {

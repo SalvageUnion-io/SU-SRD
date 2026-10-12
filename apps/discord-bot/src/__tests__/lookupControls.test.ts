@@ -17,7 +17,7 @@ const textOf = (arg: { components?: readonly unknown[] } | undefined): string =>
     .join('\n')
 
 describe('su:view', () => {
-  test('a tab redraws the same message on that tab', async () => {
+  test('an older message’s tab redraws it as the entry’s one card', async () => {
     const { handle, replies, updates } = buttonInteractionHandlerFor(
       'su:view:chassis::mule|patterns'
     )
@@ -25,13 +25,14 @@ describe('su:view', () => {
     expect(replies).toHaveLength(0)
     expect(updates).toHaveLength(1)
     expect(updates[0]?.flags).toBe(MessageFlags.IsComponentsV2)
-    expect(textOf(updates[0])).toContain('-# PATTERNS (6) · PAGE 1 OF 3')
+    expect(textOf(updates[0])).toContain('## [Mule](')
+    expect(textOf(updates[0])).not.toContain('PATTERNS (')
   })
 
-  test('a page redraws that page', async () => {
-    const { handle, updates } = buttonInteractionHandlerFor('su:view:chassis::mule|patterns|2')
+  test('an older page button redraws the same card', async () => {
+    const { handle, updates } = buttonInteractionHandlerFor('su:view:chassis::mule|patterns|2|i')
     await handle()
-    expect(textOf(updates[0])).toContain('PAGE 3 OF 3')
+    expect(textOf(updates[0])).toContain('## [Mule](')
   })
 
   test('an entry that is gone answers privately rather than redrawing', async () => {

@@ -1,6 +1,7 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import { PRODUCT } from '../../product'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
 
@@ -9,7 +10,7 @@ import { Speckle } from '../atoms/Speckle'
  * "One union, two tools"; origin board 05). The SRD `SiteHeader` and the ITUN
  * `AppHeader` are thin presets over it.
  *
- * One lockup (the SU mark and "SalvageUnion.io"), then the **Reference | Build**
+ * One lockup (the SU mark and the `PRODUCT.wordmark`), then the **Reference | Build**
  * product switcher, then the product's own nav, the search slot, "Buy the
  * game" and the app's account controls. Crossing products is a tab on the same
  * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
@@ -143,6 +144,11 @@ const WORDMARK = {
 } satisfies CSSProperties
 
 const WORDMARK_ACCENT = { color: color.paper60 } satisfies CSSProperties
+
+/** The wordmark drawn in two tones: the name, then its quieter top-level domain. */
+const WORDMARK_DOT = PRODUCT.wordmark.lastIndexOf('.')
+const WORDMARK_NAME = PRODUCT.wordmark.slice(0, WORDMARK_DOT)
+const WORDMARK_TLD = PRODUCT.wordmark.slice(WORDMARK_DOT)
 
 const SWITCH = {
   borderColor: color.paper30,
@@ -307,7 +313,8 @@ export function AppBar({
               style={MARK}
             />
             <span aria-hidden="true" className="su-union-bar__wordmark" style={WORDMARK}>
-              SalvageUnion<span style={WORDMARK_ACCENT}>.io</span>
+              {WORDMARK_NAME}
+              <span style={WORDMARK_ACCENT}>{WORDMARK_TLD}</span>
             </span>
           </LinkComponent>
 

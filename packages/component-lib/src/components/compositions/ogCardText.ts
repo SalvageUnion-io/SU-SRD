@@ -171,7 +171,7 @@ export function ogTitleSize(printed: string): number {
 
 /**
  * The reference foot's room for the address, in px: the card less its gutters,
- * the mark, the SalvageUnion.io wordmark and the gap, measured in the real
+ * the mark, the `PRODUCT.wordmark` and the gap, measured in the real
  * face. ITUN's shorter wordmark leaves it more.
  */
 const REFERENCE_ADDRESS_ROOM = 672

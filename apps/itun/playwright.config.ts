@@ -1,4 +1,4 @@
-import { e2eConfig } from 'gates/lib/playwrightBase'
+import { e2eConfig } from 'gates/playwright'
 import { SITE } from './src/lib/site'
 
 /**

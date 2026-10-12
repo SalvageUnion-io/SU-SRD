@@ -15,7 +15,7 @@ import {
 } from '../../design/tokens'
 import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
-import { d20ForTable, rollD20 } from '../../utils/dice'
+import { dieForTable, rollD20 } from '../../utils/dice'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
@@ -782,9 +782,9 @@ function StandardRollTable({
   const handleRoll = () => {
     setHighlightedKey(null)
     setRollAnnouncement('')
-    // A named table rolls through @randsum/salvageunion (d20ForTable); the row
+    // A named table rolls through @randsum/salvageunion (dieForTable); the row
     // is still read from this table's own data, by the same total.
-    const die = tableName === undefined ? Promise.resolve(rollD20) : d20ForTable(tableName)
+    const die = tableName === undefined ? Promise.resolve(rollD20) : dieForTable(tableName)
     void die.then((d20) => {
       const { key } = resultForTable(table as SURefObjectTable, d20())
       setTimeout(() => {

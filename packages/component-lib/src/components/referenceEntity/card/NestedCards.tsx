@@ -12,7 +12,7 @@ import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import { cardKey } from './cardHelpers'
+import { cardKey, stackedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type {
   NestedCard,
@@ -139,6 +139,8 @@ export function NestedCardList({
         hostDown={host.isDown}
         data={nested}
         parentSeal={seal}
+        // On a page, a section heading of its own: no band stands above it.
+        titleAs={stackedTitleLevel(host.onPage)}
         hostName={host.entityName}
         chassisName={host.chassisName}
         shownProse={host.shownProse}
@@ -240,6 +242,7 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
       // block it rides on ('Big Brother Drone') still supplies every stat,
       // trait and content block below.
       titleOverride={droneInfo.instanceName}
+      titleAs={stackedTitleLevel(host.onPage)}
       droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
     />
   ))

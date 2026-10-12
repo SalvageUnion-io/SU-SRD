@@ -16,7 +16,7 @@ the specific overrides are listed under [Supersession](#supersession--precedence
 Wizard enforces Guided Creation hard on the create path, the Dashboard ships at
 `/dashboard/$pilotId`, and ADR-022's Change Log is live). The living, authoritative
 placement table is the matrix in
-[rules and ITUN surfaces](../ARCHITECTURE.md#areas) — keep
+[rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) — keep
 placements in sync **there**, not by re-editing the summary below. This ADR
 records _why_ the taxonomy exists; the arch doc records _what goes where_.
 
@@ -67,7 +67,7 @@ procedure.
 | **Adjudicate**      | Encounter (→ future Mediator layer)          | Mediator tooling; surfaces rules, enforces nothing on player sheets. |
 
 **Rule placement** (full matrix in
-[rules and ITUN surfaces](../ARCHITECTURE.md#areas)):
+[rules and ITUN surfaces](../ARCHITECTURE.md#surfaces)):
 
 - **Lifecycle transactions** (use a system → EP/Heat/uses, Push, Scrap/TP costs,
   Downtime, craft, salvage, repair, upgrade, advancement) — **enforced +
@@ -104,7 +104,7 @@ This ADR is the top of the stack for **rules enforcement and surface behavior**.
 Concretely it overrides:
 
 - The enforcement framing of the former _Rules Engine Boundary_ doc — rewritten as
-  [rules and ITUN surfaces](../ARCHITECTURE.md#areas) around
+  [rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) around
   this model.
 - Any assumption that ITUN has a single, app-wide enforcement stance. Enforcement
   is per-mode.

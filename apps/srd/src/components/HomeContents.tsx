@@ -1,13 +1,16 @@
 import type { ChapterTone } from 'component-lib'
 import { buttonVariants, CHAPTER_BAND_COLOR } from 'component-lib'
+import { PRODUCT } from 'component-lib/product'
 
 /**
  * The home page as the manual's Contents page (board 06): the book's chapters
- * as an index, each headed by a band in its colour with its real entry count,
- * then the rules a table reaches for under an ink band, set as CSS columns (a
- * masonry that leaves no hole under a short chapter); and the "New to the
- * Union?" path and the Discord bot in a right-hand sidebar, which leads the
- * stack on a phone. Server-rendered and static: every row is a plain link.
+ * as an index, each opened by a band in its colour and, where the chapter has
+ * one, a piece of its artwork, then its name and real entry count; then the
+ * rules a table reaches for under an ink band, set as CSS columns (a masonry
+ * that leaves no hole under a short chapter); and the "New to the Union?" path
+ * and the Discord bot in a right-hand sidebar. On a phone "New to the Union?"
+ * leads the stack and the Discord bot follows the index. Server-rendered and
+ * static: every row is a plain link.
  *
  * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
  * repo's touch floor, ruleset §4.6) — `global.css`'s `.srd-contents__row`.
@@ -16,6 +19,16 @@ import { buttonVariants, CHAPTER_BAND_COLOR } from 'component-lib'
 /** One row of the index: an entry and, for a chapter's catalog, its count. */
 export type ContentsRow = { label: string; href: string; count?: number }
 
+/** A chapter opener's artwork: an su-assets master and its width candidates. */
+export type ContentsArt = { src: string; srcSet?: string }
+
+/**
+ * The art plate's `sizes`. The plate is 10rem tall and the openers' artwork is
+ * portrait or near-square, so `object-fit: contain` never draws it wider than
+ * the plate is tall: 440w covers it up to a 2x display, 880w beyond.
+ */
+const ART_SIZES = '10rem'
+
 type ContentsChapterProps = {
   id: string
   title: string
@@ -23,10 +36,15 @@ type ContentsChapterProps = {
   tone: ChapterTone | 'ink'
   rows: ContentsRow[]
   total?: number
+  /** The chapter opener's artwork, under the band. Decorative: the heading names the chapter. */
+  art?: ContentsArt
 }
 
-/** One section of the index: its colour band, its name and count, its rows. */
-export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapterProps) {
+/**
+ * One section of the index: its colour band and, given one, its artwork; its
+ * name and count; its rows.
+ */
+export function ContentsChapter({ id, title, tone, rows, total, art }: ContentsChapterProps) {
   const headingId = `${id}-heading`
   return (
     <section id={id} className="srd-contents__chapter" aria-labelledby={headingId}>
@@ -35,6 +53,18 @@ export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapte
         className="srd-contents__band"
         style={{ backgroundColor: tone === 'ink' ? 'var(--color-ink)' : CHAPTER_BAND_COLOR[tone] }}
       />
+      {art && (
+        <div className="srd-contents__art">
+          <img
+            src={art.src}
+            srcSet={art.srcSet}
+            sizes={art.srcSet ? ART_SIZES : undefined}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      )}
       <h2 id={headingId} className="srd-contents__heading">
         <span>{title}</span>
         {total !== undefined && <span className="srd-contents__total">{total}</span>}
@@ -94,7 +124,7 @@ export function NewToTheUnion({ steps, buildHref }: NewToTheUnionProps) {
         ))}
       </ol>
       <div className="srd-panel__foot">
-        <p>Ready to build? In The Union Now turns these pages into a live sheet for your crew.</p>
+        <p>Ready to build? {PRODUCT.name} turns these pages into a live sheet for your crew.</p>
         <a
           href={buildHref}
           className={`${buttonVariants({ variant: 'primary', size: 'full' })} srd-panel__cta`}
