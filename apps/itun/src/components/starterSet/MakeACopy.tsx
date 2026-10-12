@@ -38,6 +38,7 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
         label="Sign in to make a copy"
         redirectTo={`/starter/${kind}/${templateId}`}
         size="full"
+        className="su-page-action"
       />
     )
   }
@@ -47,6 +48,7 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
     <Button
       variant="primary"
       size="full"
+      className="su-page-action"
       onClick={() =>
         confirm({
           title: `Make a copy of ${name}?`,

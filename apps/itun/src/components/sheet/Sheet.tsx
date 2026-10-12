@@ -319,7 +319,7 @@ export function Sheet({
           type="button"
           aria-label={`Share this ${kind}`}
           onClick={() => setShareOpen(true)}
-          className={cn(buttonVariants({ size: 'compact' }), 'su-sheet-share')}
+          className={cn(buttonVariants({ size: 'compact' }), 'su-page-action')}
         >
           Share
         </button>

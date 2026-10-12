@@ -1,5 +1,5 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { buttonVariants, ChapterBand } from 'component-lib'
+import { buttonVariants, ChapterBand, cn } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { PageFoot } from '../../ssg/types'
 import type { BuildLink } from '../lib/buildLink'
@@ -85,7 +85,10 @@ export function EntityPageFrame({
           <div className="srd-entity__build">
             <a
               href={build.href}
-              className={buttonVariants({ variant: 'primary', size: 'compact' })}
+              className={cn(
+                buttonVariants({ variant: 'primary', size: 'compact' }),
+                'su-page-action'
+              )}
             >
               {build.label}
             </a>

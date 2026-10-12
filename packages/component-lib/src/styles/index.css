@@ -557,6 +557,18 @@ body {
   width: 36px;
 }
 
+/*
+ * A show page's top controls, one height in both apps: the srd entity page's
+ * "Build with this", the ITUN sheet bar's back, Share, "⋯" and phone switch,
+ * and the sheet band's Read | Edit and "Make a copy". Each was sized by its
+ * own rung (a compact link, a 38px square, a 40px toggle, a full button), so a
+ * row of them stepped. Height only: each keeps its own padding and type. Under
+ * a coarse pointer the 44px floor lifts them all alike.
+ */
+.su-page-action {
+  height: var(--space-40);
+}
+
 /* ══ The entity card's cost pennant as the action button ════════════════════
  *
  * In the Dashboard the pennant on an action's ink banner IS the action button
