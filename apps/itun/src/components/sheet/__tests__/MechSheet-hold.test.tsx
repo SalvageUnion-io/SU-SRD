@@ -1,5 +1,5 @@
 /**
- * MechSheet — The Hold (StorageManifest side='mech', plan 4.5/4.7).
+ * MechSheet — The Hold (StorageManifest side='mech').
  *
  * The hold renders the mech's cargo lots over the useCargo boundary:
  *   - Stow → moves a whole lot to the linked crawler's hold.

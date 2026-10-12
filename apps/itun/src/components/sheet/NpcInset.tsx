@@ -1,7 +1,7 @@
 /**
  * NpcInset — crew-lead card rendered inside a crawler bay card's `expand`
- * slot (design-spec §2.10 `.npc`, plan 4.6). Each bay is run by its own crew
- * lead (rules C11: name, keepsake, detail, 4 HP).
+ * slot (`.npc`). Each bay is run by its own crew
+ * lead (name, keepsake, detail, 4 HP).
  *
  * Composes the shared `Inset` (style-unification pass §3 — the boxed
  * sub-panel: 1.5px ink frame on paper, ink head bar): a pink 'CREW' tag +

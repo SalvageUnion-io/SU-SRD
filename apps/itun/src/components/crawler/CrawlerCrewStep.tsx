@@ -53,7 +53,7 @@ function npcOf(entity: SURefEntity): ResolvedNpc | undefined {
 
 /**
  * Step 4 · Name your Crew (Union Crawler p.213) — the bay roster, restyled to
- * the poster idiom (wizard-refresh Phase 5): the 10 base bays auto-seed (not
+ * the poster idiom: the 10 base bays auto-seed (not
  * choosable, not removable; expansion bays never appear) and each renders as
  * its SRD entity card (the universal entity-card rule), header-only until its
  * row expands into the sheets' IdentityFields for the NPC's four crew facts

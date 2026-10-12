@@ -4,7 +4,7 @@
  *   - NO sheet has a global top-bar Edit toggle (redesign: unified edit
  *     language — editing is per-section; each Identity panel owns its own
  *     Edit button).
- *   - The segmented Pilot/Mech/Crawler switch (design §3.7) renders only on
+ *   - The segmented Pilot/Mech/Crawler switch renders only on
  *     wired compositions: one segment per present counterpart, the viewed
  *     kind marked active (aria-current, rust fill), the others linking to
  *     their wired counterpart's sheet.
@@ -134,7 +134,7 @@ describe('Sheet — top-bar Edit action', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Mobile segment switch (design §3.7)
+// Mobile segment switch
 // ---------------------------------------------------------------------------
 
 describe('Sheet — mobile segment switch', () => {

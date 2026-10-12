@@ -1,5 +1,5 @@
 /**
- * entityStore integrity tests (plan 2.7, gap 9):
+ * entityStore integrity tests:
  *   - deleting a pilot/mech/crawler prunes every SoftLink referencing it
  *   - updateCrawlerBay merges a single bay entry onto the record held in
  *     memory right now (per-bay merge, no whole-array clobber)

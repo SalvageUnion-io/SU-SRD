@@ -84,7 +84,7 @@ function Loz({ label, value, action }: { label: string; value: number; action?: 
 }
 
 /**
- * CREW-LEAD inset — the crawler-bay crew lead (rules C11): a crawler-pink CREW
+ * CREW-LEAD inset — the crawler-bay crew lead: a crawler-pink CREW
  * tag + the lead's name over a 4-HP tracker beside a quiet keepsake/motto
  * readout. Crew leads are 4 HP.
  */

@@ -6,7 +6,7 @@ import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from '
 import { itun, respondWithItun } from './itunReply'
 
 /**
- * `/su game bind | unbind | info` — the channel↔Game link (ADR-030 Phase 6).
+ * `/su game bind | unbind | info` — the channel↔Game link (ADR-030).
  *
  * The first **subcommand group** on `/su`; Discord allows a command's options
  * to mix plain subcommands and groups, so `/su roll` and `/su game bind` coexist

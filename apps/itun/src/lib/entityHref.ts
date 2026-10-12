@@ -3,7 +3,7 @@ import { getEntitySlug } from 'salvageunion-reference'
 import { deepLinkTo, hasSRDPage } from './srd-deep-link'
 
 /**
- * ITUN's entity href builder for nested reference-entity links (gap 35).
+ * ITUN's entity href builder for nested reference-entity links.
  * ITUN has no in-app SRD item routes, so nested "View Details" links resolve
  * to the srd SRD show page via deepLinkTo (slugs, never UUIDs).
  * Supplied app-wide through `EntityHrefProvider` in routes/__root.tsx.

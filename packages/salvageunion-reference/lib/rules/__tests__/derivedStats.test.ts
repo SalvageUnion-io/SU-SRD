@@ -1,6 +1,6 @@
 /**
- * Unit tests for derivedStats.ts — derived maxima for all three entities
- * (plan 2.5). The pilot max-HP derivation is rules-critical and pinned:
+ * Unit tests for derivedStats.ts — derived maxima for all three entities.
+ * The pilot max-HP derivation is rules-critical and pinned:
  *
  *   maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
  *           − Σ(minor injury: 1, major injury: 2)

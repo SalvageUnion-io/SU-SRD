@@ -13,7 +13,7 @@
  * works synchronously in Sheet.tsx.
  *
  * Unknown kinds throw TanStack's notFound() and render the styled
- * SheetKindNotFound component (plan 2.8) instead of an unstyled router error.
+ * SheetKindNotFound component instead of an unstyled router error.
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'

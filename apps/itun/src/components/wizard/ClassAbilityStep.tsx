@@ -26,8 +26,8 @@ type ClassAbilityStepProps = {
 }
 
 /**
- * Step 2 · Choose your Pilot and your first Ability (Pilot Bay p.18, merged
- * per plan §4.1) — master-detail in one pane, mockup Screen 01: pick 1 of the
+ * Step 2 · Choose your Pilot and your first Ability (Pilot Bay p.18, merged)
+ * — master-detail in one pane, mockup Screen 01: pick 1 of the
  * six CORE classes (SelCard entity cards, radio semantics), which reveals the
  * Level-1 ability picker for that class's trees. Only LEGAL abilities render
  * (package `legalCreationAbilities`: level 1 ∧ tree ∈ coreTrees — the

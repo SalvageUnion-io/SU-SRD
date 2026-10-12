@@ -102,7 +102,7 @@ const trackerValueStyle: CSSProperties = {
 }
 
 /**
- * Black tracker tab (wizard-refresh mockup `.tracker`): condensed-caps label
+ * Black tracker tab (mockup `.tracker`): condensed-caps label
  * with an amber value, hosted in the WizShell action pill. Phase 2 chrome —
  * values reflect today's wizard state; real budget math lands in Phases 3–5.
  */
@@ -474,8 +474,8 @@ const hudContentStyle: CSSProperties = {
 }
 
 /**
- * Shared wizard skeleton, reskinned as a poster sibling (wizard-refresh
- * Phase 2, mockup Screens 01/02): the `.sheet--{kind}` tone context on the
+ * Shared wizard skeleton, reskinned as a poster sibling (mockup
+ * Screens 01/02): the `.sheet--{kind}` tone context on the
  * `var(--ground)` page, a tone band banner up top, the manual's connector-pipe
  * stepper rail (196px) and a flex-1 main pane
  * headed by an ink-stamp 'STEP n OF N · {title}' h1 with a floating ink

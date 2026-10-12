@@ -1,5 +1,5 @@
 /**
- * Pilot hero on the LiveSheet shell (plan 4.4, design §4.2)
+ * Pilot hero on the LiveSheet shell
  *
  * Replaces the old PilotSheet-editable body-stat tests: HP/AP/TP now live as
  * hero StatBlock trackers wired straight to the entity store.
@@ -170,7 +170,7 @@ describe('Pilot hero — TP tracker', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Used-toggles in the identity block (rules A8–A10)
+// Used-toggles in the identity block
 // ---------------------------------------------------------------------------
 
 describe('Pilot hero — identity used-toggles', () => {
@@ -222,7 +222,7 @@ describe('Pilot hero — identity used-toggles', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Dead state (rules A2: derived max HP ≤ 0)
+// Dead state (derived max HP ≤ 0)
 // ---------------------------------------------------------------------------
 
 const DEAD_INJURIES: Pilot['injuries'] = [

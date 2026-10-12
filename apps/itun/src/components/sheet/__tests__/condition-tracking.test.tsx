@@ -121,8 +121,8 @@ const fakePilotWithConditions: Pilot = {
 // Mech system condition tests
 // ---------------------------------------------------------------------------
 
-describe('MechSheet — system status badge (REQ-011 #240, plan 4.5)', () => {
-  // Item condition now cycles via the card status badge (design §4.5):
+describe('MechSheet — system status badge (#240)', () => {
+  // Item condition now cycles via the card status badge:
   // aria label is `Status: <Label> — click to change`.
   test('clicking a system status badge calls store.update with systemConditions patch', async () => {
     const updateSpy = mock(async () => fakeMech)
@@ -180,7 +180,7 @@ describe('MechSheet — system status badge (REQ-011 #240, plan 4.5)', () => {
 // Mech module condition tests
 // ---------------------------------------------------------------------------
 
-describe('MechSheet — module status badge (REQ-011 #240, plan 4.5)', () => {
+describe('MechSheet — module status badge (#240)', () => {
   test('clicking a module status badge calls store.update with moduleConditions patch', async () => {
     const updateSpy = mock(async () => fakeMech)
     const mech: Mech = { ...fakeMech, systems: [] } // one badge only
@@ -209,7 +209,7 @@ describe('MechSheet — module status badge (REQ-011 #240, plan 4.5)', () => {
 // ---------------------------------------------------------------------------
 
 describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
-  // Equipment condition now cycles via the card status badge (design §4.5):
+  // Equipment condition now cycles via the card status badge:
   // aria label is `Status: <Label> — click to change`.
   test('clicking an equipment status badge calls store.update with equipmentConditions patch', async () => {
     const updateSpy = mock(async () => fakePilot)

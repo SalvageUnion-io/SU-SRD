@@ -1,5 +1,5 @@
 /**
- * Crawler wizard form-state contract + entity mappers (plan 3.1).
+ * Crawler wizard form-state contract + entity mappers.
  *
  * CrawlerWizardFormState is the layout-agnostic seam between the wizard UI
  * and the persisted Crawler entity:
@@ -58,9 +58,9 @@ export type CrawlerWizardFormState = {
    * crawler-type's special NPC). Captured in the wizard's Crew step.
    */
   crew: Record<string, CrewNpcForm>
-  /** Shared party scrap pool, TL-bucketed (rules C5). */
+  /** Shared party scrap pool, TL-bucketed. */
   scrapPool: ScrapPoolForm
-  /** Upgrade Pool progress (rules C4). */
+  /** Upgrade Pool progress. */
   upgradePool: number
 }
 

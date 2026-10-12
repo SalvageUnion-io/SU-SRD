@@ -1,6 +1,6 @@
 /**
  * mechItems — pure helpers for the mech sheet's per-item action economy
- * (plan 4.5, S12; rules B10–B13 and Repair: "damaged → Intact for half
+ * (Repair: "damaged → Intact for half
  * Salvage Value in Scrap (min 1, Scrap TL ≥ item)").
  *
  * Everything here is pure (no React, no store): the MechSheet wires the
@@ -111,11 +111,11 @@ const FLAG_LABELS = ['shutdown', 'vulnerable', 'destroyed'] as const
 type FlagLabel = (typeof FLAG_LABELS)[number]
 
 /**
- * Patch for the unified mech conditions editor (plan 2.3 / gap 21): the
+ * Patch for the unified mech conditions editor: the
  * editor edits the `unifiedMechConditions()` list, and this maps the edited
  * list back onto the two storage forms — removing a flag-backed label
  * ('Shutdown' / 'Vulnerable' / 'Destroyed') clears the automation-written
- * boolean flag (the manual clear, gap 8); every other label lands in
+ * boolean flag (the manual clear); every other label lands in
  * `conditions[]`. Labels still backed by a true flag are kept OUT of
  * `conditions[]` so the two forms never double-store one condition.
  */

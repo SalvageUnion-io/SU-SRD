@@ -230,7 +230,7 @@ export function buildHeaderStats(options: {
  * marked "modified". The facets and their order are the entity model's
  * (`facetCells`, E17); this shapes them for the sub-header.
  *
- * CHOICE PLACEMENT: EVERYTHING INLINE (choice-plan Stage 7) — every choice
+ * CHOICE PLACEMENT: EVERYTHING INLINE — every choice
  * renders in the BODY, at its prose, in both modes; no choice is ever hoisted
  * to this row.
  */

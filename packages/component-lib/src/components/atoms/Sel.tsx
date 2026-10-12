@@ -14,7 +14,7 @@ type SelProps = {
   /** Accessible name for the toggle (e.g. the wrapped card's title) */
   ariaLabel?: string
   /**
-   * Radio semantics for exactly-one pickers (wizard-refresh Phase 4): the
+   * Radio semantics for exactly-one pickers: the
    * wrapper is a `RadioCard` (`role="radio"` + `aria-checked`) instead of the
    * default button + `aria-pressed`. Put it in a `RadioCardGroup` (or
    * MasonryColumns' `radio`) for the arrow keys.

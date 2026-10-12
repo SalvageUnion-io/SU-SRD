@@ -1,5 +1,5 @@
 /**
- * Tests for the pure cargoTransfer reducer (plan 4.1/4.7):
+ * Tests for the pure cargoTransfer reducer:
  * stow whole-lot, cap-checked load, bulk split minting a new lot, honest
  * over-capacity reporting, and the rules-major SCRAP TL pool bucket
  * round-trip across the crawler boundary.

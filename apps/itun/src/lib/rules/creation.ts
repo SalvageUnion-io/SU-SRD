@@ -1,6 +1,6 @@
 /**
- * Pilot + mech + crawler creation step gates (wizard-refresh Phases 3–5,
- * plan §5.1 app half).
+ * Pilot + mech + crawler creation step gates (the app
+ * half; the predicates are the package's).
  *
  * THIN ADAPTER only: destructures wizard form state into neutral inputs
  * (resolved reference records narrowed to primitives + counts) and calls the
@@ -182,7 +182,7 @@ function callsignGate(form: PilotWizardFormState): StepGateResult {
 }
 
 /**
- * Next-gating for the pilot CREATE flow (guided mode is HARD — plan §5.3).
+ * Next-gating for the pilot CREATE flow (guided mode is HARD).
  * The wizard's `canAdvance()` is a call into this; the `reason` renders in
  * the WizShell footerNote beside the locked CTA.
  */
@@ -230,7 +230,7 @@ function equipmentName(slug: string): string {
 }
 
 /**
- * Deterministic clamp for a restored create-mode draft (plan §5.3): a draft
+ * Deterministic clamp for a restored create-mode draft: a draft
  * written before the hard-enforcement regime (or hand-edited) may violate the
  * creation rules. Violations resolve deterministically —
  *   - an illegal class (specialisation / unresolvable) is cleared along with
@@ -293,7 +293,7 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
 }
 
 // ---------------------------------------------------------------------------
-// Mech Workshop (pp.94–95 — wizard-refresh Phase 4)
+// Mech Workshop (pp.94–95)
 // ---------------------------------------------------------------------------
 
 /** Book-order mech wizard step ids (Mech Workshop pp.94–95 + Review). */
@@ -314,7 +314,7 @@ function chassisSVOf(chassisRef: string): number {
 }
 
 /**
- * The 20-Scrap creation budget for the live form (plan §4.2 step 1): the
+ * The 20-Scrap creation budget for the live form (step 1): the
  * chassis + every installed copy resolved to their Salvage Values (the
  * primitives the package calculator reads). Unresolvable refs price at 0 —
  * they can't be costed, and the TL-legality gates catch them separately.
@@ -382,7 +382,7 @@ function mechBudgetGate(form: MechWizardFormState): StepGateResult {
 }
 
 /**
- * Next-gating for the mech CREATE flow (guided mode is HARD — plan §5.3).
+ * Next-gating for the mech CREATE flow (guided mode is HARD).
  * Briefing/derived steps (scrap, stats) and the optional crafting + flavor
  * steps never block; the chassis and the pattern name are required; Review
  * re-checks everything including the 20-Scrap and slot invariants (which are
@@ -415,7 +415,7 @@ export function mechCreationStepGate(
   }
 }
 
-/** Result of the deterministic mech draft clamp (plan §5.3). */
+/** Result of the deterministic mech draft clamp. */
 export type MechDraftClampResult = {
   form: MechWizardFormState
   /** Human-readable names of everything removed (for the restore toast). */
@@ -447,8 +447,8 @@ function budgetViolationsOf(form: MechWizardFormState): BudgetViolations {
 }
 
 /**
- * Deterministic clamp for a restored mech create-mode draft (plan §5.3 —
- * KNAPSACK, not truncation): a draft written before the hard-enforcement
+ * Deterministic clamp for a restored mech create-mode draft (KNAPSACK,
+ * not truncation): a draft written before the hard-enforcement
  * regime may violate the creation rules. Resolution order:
  *   - an illegal chassis (non-Tech-1 / unresolvable) is cleared along with
  *     the pattern and the whole loadout (nothing can be costed without it),
@@ -534,7 +534,7 @@ export function clampMechCreationDraft(form: MechWizardFormState): MechDraftClam
 }
 
 // ---------------------------------------------------------------------------
-// Union Crawler (pp.212–213 — wizard-refresh Phase 5)
+// Union Crawler (pp.212–213)
 // ---------------------------------------------------------------------------
 
 /** Book-order crawler wizard step ids (Union Crawler pp.212–213 + Review). */
@@ -612,7 +612,7 @@ function crawlerNameGate(form: CrawlerWizardFormState): StepGateResult {
 }
 
 /**
- * Next-gating for the crawler CREATE flow (guided mode is HARD — plan §5.3).
+ * Next-gating for the crawler CREATE flow (guided mode is HARD).
  * The Statistics briefing and the optional Crew step never block; the type
  * pick, the minimum-1 Tech-1 weapon mount (capped at the type's slots), and
  * the name are required; Review re-checks everything.
@@ -641,7 +641,7 @@ export function crawlerCreationStepGate(
   }
 }
 
-/** Result of the deterministic crawler draft clamp (plan §5.3). */
+/** Result of the deterministic crawler draft clamp. */
 export type CrawlerDraftClampResult = {
   form: CrawlerWizardFormState
   /** Human-readable names of everything removed (for the restore toast). */
@@ -653,7 +653,7 @@ function crawlerWeaponName(ref: string): string {
 }
 
 /**
- * Deterministic clamp for a restored crawler create-mode draft (plan §5.3):
+ * Deterministic clamp for a restored crawler create-mode draft:
  * a draft written before the hard-enforcement regime may violate the creation
  * rules. Resolution order —
  *   - an unresolvable type ref is cleared (its crew entry with it),

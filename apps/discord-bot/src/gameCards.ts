@@ -33,7 +33,7 @@ import type {
 } from './itun/types'
 
 /**
- * Card builders for the ITUN Game commands (ADR-030 Phase 6).
+ * Card builders for the ITUN Game commands (ADR-030).
  *
  * Pure `data → ContainerData` through `entityCard`, the same render layer
  * `lookupCard.ts` uses: every one of these is unit-testable without a Discord
@@ -58,7 +58,7 @@ import type {
 const NEUTRAL = NEUTRAL_ACCENT
 
 /**
- * The one sanctioned deviation from rust (see the plan, §7 rule 4).
+ * The one sanctioned deviation from rust.
  *
  * Reused rather than invented: `theme.css` states that damaged/destroyed state
  * and the bot's roll outcomes share ONE warm ramp, and `cascade` is its

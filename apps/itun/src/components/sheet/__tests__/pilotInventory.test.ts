@@ -1,5 +1,5 @@
 /**
- * pilotInventory — truthful slot + uses math (plan 4.4, rules A13/A14).
+ * pilotInventory — truthful slot + uses math.
  *
  * Uses real reference data: Rifle (1 slot), Rocket Launcher (Heavy → 2 slots,
  * Uses 3), First Aid Kit (1 slot, Uses 3).
@@ -87,7 +87,7 @@ describe('pilotInventoryUsed / pilotInventoryCapacity', () => {
     expect(pilotInventoryCapacity()).toBe(6)
   })
 
-  test('capacity adds maxInventorySlotsModifier (Beefcake +4, rules A13)', () => {
+  test('capacity adds maxInventorySlotsModifier (Beefcake +4)', () => {
     expect(pilotInventoryCapacity({ maxInventorySlotsModifier: 4 })).toBe(10)
     expect(pilotInventoryCapacity({ maxInventorySlotsModifier: -10 })).toBe(0)
     expect(pilotInventoryCapacity({})).toBe(6)

@@ -1,9 +1,9 @@
 /**
- * MechConditionsEditor — unified conditions vocabulary (plan 4.5, gap 21).
+ * MechConditionsEditor — unified conditions vocabulary.
  *
  * The editor renders ONE list (conditions[] + automation flags merged via
  * unifiedMechConditions) and maps edits back: removing a flag chip clears
- * the boolean flag (gap 8 manual clear), adds/removes round-trip
+ * the boolean flag (the manual clear), adds/removes round-trip
  * conditions[]. readOnly renders plain chips.
  */
 

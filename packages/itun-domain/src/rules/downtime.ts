@@ -18,11 +18,11 @@
  *   AP restores through Downtime rest regardless (the damage clause blocks
  *   only HP + injuries).
  * - "Train your Pilot" (p.228): +1 Training Point per pilot per Downtime.
- * - Uses (X) counters recharge after Downtime (rules A14/B13). The Orbital
+ * - Uses (X) counters recharge after Downtime. The Orbital
  *   Lance Controller explicitly never regains uses — it stays hand-managed.
  * - Once-per-Downtime bookkeeping resets: used pilot abilities and the
- *   Background/Keepsake/Motto 'Used' toggles (rules A8-A10).
- * - Upkeep (p.227, rules C3): 5 Scrap of the crawler's Tech Level per
+ *   Background/Keepsake/Motto 'Used' toggles.
+ * - Upkeep (p.227): 5 Scrap of the crawler's Tech Level per
  *   Downtime. Paying it is a separate economy action (a later package) —
  *   this module only names the cost for the prompt.
  *
@@ -81,7 +81,7 @@ export function allDowntimeSteps(): DowntimeSteps {
   }
 }
 
-/** Upkeep cost: 5 Scrap of the crawler's Tech Level per Downtime (rules C3). */
+/** Upkeep cost: 5 Scrap of the crawler's Tech Level per Downtime. */
 export const DOWNTIME_UPKEEP_SCRAP = 5
 
 /**
@@ -312,7 +312,7 @@ export function downtimeMechPatch(
   }
 
   if (steps.rechargeUses && Object.keys(mech.itemUses ?? {}).length > 0) {
-    // Absent key = full uses (rules B13) — clearing the map recharges everything.
+    // Absent key = full uses — clearing the map recharges everything.
     patch.itemUses = {}
   }
 
@@ -390,7 +390,7 @@ export function downtimePilotPatch(
     const uses = pilot.equipmentUses ?? {}
     const kept = Object.fromEntries(Object.entries(uses).filter(([ref]) => isNeverRecharge(ref)))
     if (Object.keys(kept).length !== Object.keys(uses).length) {
-      // Absent key = full uses (rules A14); never-recharge items keep their count.
+      // Absent key = full uses; never-recharge items keep their count.
       patch.equipmentUses = kept
     }
   }

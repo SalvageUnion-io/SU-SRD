@@ -1,5 +1,5 @@
 /**
- * StorageManifest — The Hold panel (design §2.12, plan 4.5/4.7).
+ * StorageManifest — The Hold panel.
  *
  * One component, two sides of the mech ⇄ crawler boundary:
  *   - side='mech' (mech sheet): capacity strip (used/cap + the canonical

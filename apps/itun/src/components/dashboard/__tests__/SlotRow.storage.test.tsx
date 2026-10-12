@@ -1,5 +1,5 @@
 /**
- * Tests for the Phase-7 cargo-hold overlay on the Mech Major: the Storage button
+ * Tests for the cargo-hold overlay on the Mech Major: the Storage button
  * opens a hold listing the mech's cargo lots, and Jettison writes a cargoLots
  * patch with that lot removed (the explicit player-confirmed discard, ADR-007).
  */

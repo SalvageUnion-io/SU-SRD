@@ -1,6 +1,6 @@
 /**
- * Unit tests for the app-side pilot creation step gates + draft clamp
- * (wizard-refresh Phase 3, plan §5.1 app half). The module is a THIN ADAPTER
+ * Unit tests for the app-side pilot creation step gates + draft clamp.
+ * The module is a THIN ADAPTER
  * over the package predicates in salvageunion-reference/rules — these tests
  * pin the destructuring + reason copy, not the rule math (that lives beside
  * the package module).
@@ -201,7 +201,7 @@ describe('clampPilotCreationDraft', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Mech Workshop (Phase 4)
+// Mech Workshop
 // ---------------------------------------------------------------------------
 
 function slugOf(
@@ -371,7 +371,7 @@ describe('clampMechCreationDraft (knapsack, not truncation)', () => {
     expect(result.removed.length).toBeGreaterThanOrEqual(3) // chassis + 2 installs
   })
 
-  it('clears pre-Phase-4 starting cargo (guided create grants none)', () => {
+  it('clears legacy starting cargo (guided create grants none)', () => {
     const result = clampMechCreationDraft({
       ...legalMechForm(),
       cargoLots: [
@@ -393,7 +393,7 @@ describe('clampMechCreationDraft (knapsack, not truncation)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Crawler (Union Crawler pp.212–213 — wizard-refresh Phase 5)
+// Crawler (Union Crawler pp.212–213)
 // ---------------------------------------------------------------------------
 
 function crawlerForm(overrides: Partial<CrawlerWizardFormState> = {}): CrawlerWizardFormState {

@@ -1,5 +1,5 @@
 /**
- * Integration tests for MechWizard (wizard-refresh Phase 4): the Mech
+ * Integration tests for MechWizard: the Mech
  * Workshop's 8 book steps + Review (pp.94–95) with HARD 20-Scrap + slot
  * enforcement.
  *
@@ -69,7 +69,7 @@ function moduleByName(name: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Interaction helpers (WizShell skeleton, Phase-4 layout)
+// Interaction helpers (WizShell skeleton)
 // ---------------------------------------------------------------------------
 
 /** Chassis / pattern picks are radio Sel rings named by the entity. */
@@ -228,7 +228,7 @@ describe('MechWizard — hard creation enforcement', () => {
     await clickNext() // → Stats
     await clickNext() // → Systems
 
-    // ZERO systems does not block (plan Q11) — the footer says so.
+    // ZERO systems does not block — the footer says so.
     expect(getNextButton().disabled).toBe(false)
     expect(screen.getByText(/Systems are optional/i)).toBeTruthy()
     await clickNext() // → Modules

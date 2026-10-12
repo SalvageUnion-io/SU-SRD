@@ -1,6 +1,6 @@
 /**
- * useCargo — store-backed wrapper around the pure `cargoTransfer` reducer
- * (plan 4.1/4.7). Owns persistence only: state is derived from the passed
+ * useCargo — store-backed wrapper around the pure `cargoTransfer` reducer.
+ * Owns persistence only: state is derived from the passed
  * entities on every render, an action runs the reducer, and on success the
  * changed sides are written back through the entity store (mech `cargoLots`;
  * crawler `cargoLots` + `scrapPool`).
@@ -150,7 +150,7 @@ export function useCargo({
 
     // Both sides of the boundary commit together, in one server mutation, so a
     // refusal or a crash between two sequential writes cannot vanish or
-    // duplicate the moved lot (audit item 2).
+    // duplicate the moved lot.
     const updates: Parameters<typeof storeState.transfer>[0]['updates'] = []
     if (result.changed.carrier) {
       updates.push({ type: 'mech', id: mech.id, patch: { cargoLots: result.state.carrierLots } })

@@ -1,6 +1,6 @@
 /**
  * resolveSheetComposition — the SoftLink composition-mode resolver, ported
- * from the pre-Header-C Sheet.tsx (plan 4.0: "ported, not discarded") as a
+ * from the pre-Header-C Sheet.tsx (ported, not discarded) as a
  * pure function so the LiveSheet shell, the rail, and tests all share it.
  *
  * Every relationship is ONE hop over the SoftLink graph (ADR-037):

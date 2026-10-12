@@ -111,7 +111,7 @@ function PatternSelCard({
 
 /**
  * Step 2 · Craft your Mech Chassis (Mech Workshop p.94) — exactly one, radio
- * semantics, enforced HARD (plan §4.2): only Tech 1 chassis render
+ * semantics, enforced HARD: only Tech 1 chassis render
  * (package `isLegalCreationChassis` — higher TLs are never shown), each card
  * foot shows its crafting cost (`COSTS n SCRAP`), and picking one debits the
  * 20-Scrap budget. Below the pick, a "Start from a pattern?" strip offers

@@ -13,7 +13,7 @@
  *
  * The combobox logic (debounce, category+entity blending, keyboard
  * selection, ARIA wiring) lives in component-lib's useSearchCombobox — shared
- * with srd's SearchIsland (audit item 11). This shell owns what's
+ * with srd's SearchIsland. This shell owns what's
  * ITUN-specific:
  *
  * - **Results hang below the input**, best match first; ↓ moves down the list.
@@ -189,7 +189,7 @@ export function GlobalSearch({
   const { control: detailControl, modal: detailModal } = useDetailModal(detailEntity)
 
   // The Page opener every result Row reads (entity display language §2): until
-  // the Page drawer (phase 5) it is the detail modal.
+  // the Page drawer it is the detail modal.
   const openEntity = useCallback(
     (entity: SURefEntity) => {
       onOpenChange(false)

@@ -113,7 +113,7 @@ export const MechSchema = z
     /** Slugs of mech module items installed */
     modules: z.array(z.string()),
 
-    /** Cargo lots carried in the mech (design §2.12). */
+    /** Cargo lots carried in the mech. */
     cargoLots: z.array(CargoLotSchema),
 
     /** Optional: name of the paint/visual pattern applied */
@@ -135,7 +135,7 @@ export const MechSchema = z
     conditions: z.array(z.string()),
 
     // ---------------------------------------------------------------------------
-    // Manual adjustments (plan 2.3, rules B2/B4/B6/B14).
+    // Manual adjustments.
     //
     // A signed amount the player entered by hand that CONTRIBUTES to the derived
     // maximum: derived = chassis stat + Σ contributions + adjustment
@@ -243,7 +243,7 @@ export const MechSchema = z
 
     /**
      * Per-installed-item Uses (X) counters covering BOTH systems and modules
-     * (rules B13, trait glossary "Uses (X)"). Keyed by the installed item's
+     * (trait glossary "Uses (X)"). Keyed by the installed item's
      * stable key — the item slug today, the loadout instance id once installed
      * items gain instance ids. Value = uses remaining. When absent or a key is
      * missing, the display layer falls back to the item's full Uses value.

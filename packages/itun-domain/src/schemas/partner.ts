@@ -106,7 +106,7 @@ export const PartnerInstanceSchema = z
     /** Per-installed-module condition (slug → Intact/Damaged/Destroyed). */
     moduleConditions: ItemConditionMapSchema.optional(),
 
-    /** Uses remaining per installed item slug (absent = full, rules B13). */
+    /** Uses remaining per installed item slug (absent = full). */
     itemUses: z.record(z.string(), z.number().int().min(0)).optional(),
 
     /** Partner-level conditions, mirroring mech.conditions. */

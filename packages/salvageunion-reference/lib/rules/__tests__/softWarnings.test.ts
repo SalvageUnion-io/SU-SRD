@@ -1,6 +1,6 @@
 /**
  * Unit tests for softWarnings.ts — non-blocking rule violation detection
- * (REQ-012; advancement prerequisites per plan S5 / 3.3–3.4).
+ * (advancement prerequisites).
  *
  * All tests use hand-crafted fixtures — soft warnings are intentionally
  * independent of salvageunion-reference data so they can be tested in
@@ -229,7 +229,7 @@ describe('evaluatePilotWarnings — class prerequisite', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Pilot warnings — ability count soft cap (plan 2.2: schema caps lifted)
+// Pilot warnings — ability count soft cap (the schema does not cap)
 // ---------------------------------------------------------------------------
 
 describe('evaluatePilotWarnings — ability count cap', () => {

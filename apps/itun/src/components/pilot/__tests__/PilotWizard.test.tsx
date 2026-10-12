@@ -1,6 +1,6 @@
 /**
  * Integration tests for PilotWizard on the WizShell skeleton, in the Pilot
- * Bay's book order (wizard-refresh Phase 3):
+ * Bay's book order:
  *
  *   Stats → Class & Ability (merged) → Equipment → Callsign → Background →
  *   Motto → Keepsake → Appearance → Review → submit
@@ -330,7 +330,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Draft persistence (audit item 3): unmount → remount restores the session
+// Draft persistence: unmount → remount restores the session
 // draft; a confirmed Cancel discards it.
 // ---------------------------------------------------------------------------
 

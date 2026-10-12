@@ -1,6 +1,6 @@
 /**
  * cargoTransfer — the single pure reducer for cargo crossing the CARRIER⇄DEPOT
- * boundary (design §2.12, plan 4.1/4.7). The prototype's nested-setState
+ * boundary. The prototype's nested-setState
  * transfer logic is reimplemented here as one reducer over both lot lists plus
  * the depot scrap pool; `useCargo` wraps it and persists through the stores.
  *
@@ -25,7 +25,7 @@
  * - **Over-capacity is enforced on inbound transfers only** — existing
  *   over-capacity is displayed honestly (red pips), never clamped away.
  *
- * Scrap (rules-major, S7/[rules C5, §12]): SCRAP-cat lots crossing the
+ * Scrap (rules-major): SCRAP-cat lots crossing the
  * crawler boundary deposit/withdraw the matching TL pool bucket —
  * - Stowing a SCRAP lot converts it INTO the pool (`scrapPool.tl{n} += qty`);
  *   it does not appear as a crawler cargo lot.

@@ -7,7 +7,7 @@ import { bodyAppId, mutation, parseBody } from './model/entities'
 import { NotAuthorized, requireMediator, requireUser } from './model/permissions'
 
 /**
- * The Mediator surface's server layer (ADR-030 §6, Phase 3).
+ * The Mediator surface's server layer (ADR-030 §6).
  *
  * ## The NPC tray is the one genuinely secret thing
  *

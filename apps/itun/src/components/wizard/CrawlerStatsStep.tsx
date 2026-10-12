@@ -30,7 +30,7 @@ type CrawlerStatsStepProps = {
  * A new crawler is FIXED at Tech Level 1 (a Hamlet Crawler): no input exists.
  * Max SP renders through the derived-at-read arithmetic (`crawlerMaxSPParts`)
  * so a Battle crawler shows its breakdown — `20 + 5 type bonus = 25` — while
- * the RECORD stores only the bare tech-level value (wizard-refresh Phase 5).
+ * the RECORD stores only the bare tech-level value.
  * The Upgrade Pool starts at 0 (no input — it accumulates in play) and every
  * bay starts Intact. Nothing to choose — Next always enabled.
  */

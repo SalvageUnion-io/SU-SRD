@@ -8,7 +8,7 @@ import type { ItunResult } from '../itun/types'
 import type { CommandExecuteInteraction } from './interactions'
 
 /**
- * The shared spine of every ITUN Game command (ADR-030 Phase 6).
+ * The shared spine of every ITUN Game command (ADR-030).
  *
  * Three things are identical across all of them and are therefore in one place
  * rather than six:

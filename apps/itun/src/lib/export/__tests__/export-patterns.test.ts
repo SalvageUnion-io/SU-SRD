@@ -1,5 +1,5 @@
 /**
- * Export/import coverage for mech patterns (plan 2.6, gap 6) and the
+ * Export/import coverage for mech patterns and the
  * additive `.default([])` arrays on import.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'

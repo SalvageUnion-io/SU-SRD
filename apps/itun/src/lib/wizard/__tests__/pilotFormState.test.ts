@@ -1,4 +1,4 @@
-/** Unit tests for the pilot wizard form-state mappers (plan 3.1). */
+/** Unit tests for the pilot wizard form-state mappers. */
 
 import { describe, expect, it } from 'bun:test'
 import { pilotMaxHP } from 'salvageunion-reference/rules'

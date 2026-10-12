@@ -1,6 +1,6 @@
 /**
  * Integration tests for CrawlerBuilder on the WizShell skeleton, in the
- * Union Crawler's book order (wizard-refresh Phase 5, pp.212–213):
+ * Union Crawler's book order (pp.212–213):
  *
  *   Choose a Crawler Type (radio entity cards) → Note your Crawler
  *   Statistics (display-only) → Arm the Armament Bay (Tech-1

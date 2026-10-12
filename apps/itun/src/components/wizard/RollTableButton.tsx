@@ -30,7 +30,7 @@ type RollTableButtonProps = (
 
 /**
  * Fires the appropriate roll table and passes the result string to onRoll
- * (design §3.2 '⚄ Roll'). Silently no-ops when the table is unavailable
+ * ('⚄ Roll'). Silently no-ops when the table is unavailable
  * (pre-load race).
  */
 export function RollTableButton({

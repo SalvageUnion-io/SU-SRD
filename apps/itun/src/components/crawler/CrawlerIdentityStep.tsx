@@ -43,7 +43,7 @@ function parseCount(raw: string): number {
  * Step 5 · Name your Crawler (Union Crawler p.212): the sheets' IdentityField
  * idiom (the wizard previews exactly the live sheet) with a d20 Crawler Names
  * Table assist (p.226) — the roll writes into the field and stays editable.
- * The Scrap Pool relocates here (wizard-refresh Phase 5): an explicit,
+ * The Scrap Pool relocates here: an explicit,
  * OPTIONAL numeric input — the manual landing spot for the group's banked
  * Scrap, including whatever Pilots didn't spend on their Mechs (the mech
  * wizard's banking callout is text-only; this is where the number lands).

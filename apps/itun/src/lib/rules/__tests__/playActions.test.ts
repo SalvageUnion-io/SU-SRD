@@ -1,7 +1,7 @@
 /**
  * Tests for playActions — the Dashboard's pure patch builders. Each function is
  * driven with an injected deterministic `Roll` and asserted on the exact
- * `Partial<Mech>` / `Partial<Pilot>` it produces, so the Phase-5 button/action
+ * `Partial<Mech>` / `Partial<Pilot>` it produces, so the button/action
  * handlers can't drift from the rules engine (ADR-006/ADR-007).
  *
  * buildMechActions touches the reference ORM, so preload('all') runs once.

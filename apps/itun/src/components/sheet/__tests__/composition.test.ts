@@ -1,6 +1,6 @@
 /**
  * Tests for resolveSheetComposition — the ported SoftLink composition-mode
- * resolver (plan 4.0). Pure-function tests: snapshot lookups, full link list.
+ * resolver. Pure-function tests: snapshot lookups, full link list.
  */
 
 import { describe, expect, test } from 'bun:test'

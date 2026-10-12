@@ -23,8 +23,8 @@ const ruleStyle: CSSProperties = {
 }
 
 /**
- * RuleBrief — the "THE RULE" callout heading every wizard step (wizard-refresh
- * Phase 2, mockup Screens 01/02 `.rulebrief`). Composes SheetSectionCard (the
+ * RuleBrief — the "THE RULE" callout heading every wizard step
+ * (mockup Screens 01/02 `.rulebrief`). Composes SheetSectionCard (the
  * poster `.dcard` frame) so the wizard inherits the live sheets' section
  * language verbatim: black THE RULE stamp in a `var(--tone)` header band, the
  * rule text on paper behind the deep-tone left rule, and the citation in the

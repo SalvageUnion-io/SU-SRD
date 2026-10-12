@@ -6,7 +6,7 @@ import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from '
 import { itun, respondWithItun } from './itunReply'
 
 /**
- * `/su crew` and `/su sheet` — the table's read surfaces (ADR-030 Phase 6).
+ * `/su crew` and `/su sheet` — the table's read surfaces (ADR-030).
  *
  * `/su crew` is **public**: a crew board only pays for itself if the table sees
  * it, which is the whole reason to render vitals in chat rather than ask

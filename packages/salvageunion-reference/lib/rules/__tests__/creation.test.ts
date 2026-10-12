@@ -1,10 +1,10 @@
 /**
  * Unit tests for creation.ts — Pilot Bay creation legality (Core Book
- * pp.18–19, wizard-refresh Phase 3).
+ * pp.18–19).
  *
  * Uses REAL data from salvageunion-reference so the legality predicates are
  * verified against the actual class/ability/equipment catalog — including the
- * plan's explicit Salvager assertion: the legal creation pool is EXACTLY the
+ * explicit Salvager assertion: the legal creation pool is EXACTLY the
  * 15 core-tree Level-1 abilities.
  */
 import { describe, expect, it } from 'bun:test'
@@ -273,7 +273,7 @@ describe('mechCreationBudget (20 Tech 1 Scrap, on scrapCostFor)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Union Crawler (Core Book pp.212–213 — wizard-refresh Phase 5)
+// Union Crawler (Core Book pp.212–213)
 // ---------------------------------------------------------------------------
 
 describe('isLegalCreationCrawlerWeapon (Tech 1 only, p.213)', () => {

@@ -1,8 +1,8 @@
 /**
- * CrawlerSheet — per-bay crew lead (NpcInset) tests (plan 4.6, design §4.4).
+ * CrawlerSheet — per-bay crew lead (NpcInset) tests.
  *
  * Each bay card's `expand` slot renders the crew lead as an NpcInset with
- * editable name / HP (max 4) / keepsake / detail / facts (rules C11).
+ * editable name / HP (max 4) / keepsake / detail / facts.
  *
  * Asserts that:
  *   1. Name, detail (description) and facts persist via the store-level

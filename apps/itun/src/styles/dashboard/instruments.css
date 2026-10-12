@@ -158,7 +158,7 @@
 .su-dash-bay[data-nogauge] .su-dash-btn-grid {
   margin-top: 0;
 }
-/* ---- Resolve overlay: roll readouts + player-confirmed steps (Phase 5) ---- */
+/* ---- Resolve overlay: roll readouts + player-confirmed steps ---- */
 .su-dash-band {
   position: relative;
 }

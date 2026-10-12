@@ -38,7 +38,7 @@ type CrawlerReviewStepProps = {
 }
 
 /**
- * Review (Union Crawler pp.212–213 + wizard-refresh Phase 5): kv-panel recap
+ * Review (Union Crawler pp.212–213): kv-panel recap
  * of type / ability / weapon(s) / stat block / scrap pool / crew on the left;
  * the chosen type and weapon entity cards stacked on the right (the universal
  * entity-card rule — fresh weapons carry an 'Intact' badge). Structure Points

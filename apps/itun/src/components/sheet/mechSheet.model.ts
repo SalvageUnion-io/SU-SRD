@@ -97,7 +97,7 @@ export function useMechSheetModel({
   const chassis = resolveChassis(mech, chassisOverride)
   const cargo = useCargo({ mech, crawler, store, readOnly, crawlerReadOnly, pilotAbilities })
 
-  // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
+  // Derived maxima: chassis stat + hand-edited modifiers.
   // Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo,
   // so a mech's maxima cannot be derived from the mech alone (ADR-029).
   const piloting = pilotingContext(mech, pilotAbilities)

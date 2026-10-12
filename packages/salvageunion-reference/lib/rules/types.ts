@@ -125,7 +125,7 @@ export type SoftWarning = {
 }
 
 /**
- * Tier of an ability tree (advancement rules, plan S5):
+ * Tier of an ability tree (advancement rules):
  * - core: a class's three core trees (Salvager: any core tree)
  * - advanced: an Advanced/Hybrid specialisation tree (2 TP, gated on 6 core)
  * - legendary: a Legendary tree (3 TP, gated on 6 core + 3 advanced; max one)

@@ -1,6 +1,6 @@
 /**
- * CrawlerSheet — the crawler variant BODY for the LiveSheet shell (design
- * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
+ * CrawlerSheet — the crawler variant BODY for the LiveSheet shell, in the
+ * poster layout.
  *
  * The body OWNS the identity band now (Workshop-Manual crawler sheet):
  * This body renders `SheetHero` as its first region.
@@ -27,11 +27,11 @@
  * Bays stay ONE unified grid (no crew/functional split — redesign
  * refinement; the poster's homebrew/custom-bay split is blocked on a
  * data-model flag, #403 — leave unified) as compact entity cards (max 2
- * columns), each with Intact/Damaged status (rules C8), its crew lead as an
+ * columns), each with Intact/Damaged status, its crew lead as an
  * NpcInset, a "Docks <mech>" one-liner on the Mech Bay, and a
  * function/Repair action pair. Repair decrements 5 Scrap from the
  * crawler-TL pool bucket, spilling into higher buckets — a short pool is
- * advisory, never a block (S12).
+ * advisory, never a block.
  *
  * Armament Bay Weapons — collection section (unified edit language
  * archetype B): always-available '+ Add' opening the existing weapons
@@ -215,7 +215,7 @@ export function CrawlerSheet({
   // self-manage for now.
   const [systemsModalOpen, setSystemsModalOpen] = useState(false)
   // Identity is a FIELD section (unified edit language archetype A): its own
-  // Edit/Done toggle, rendered in the SheetSectionCard header (Phase 2).
+  // Edit/Done toggle, rendered in the SheetSectionCard header.
 
   /**
    * Persist a partial patch on this crawler (fire-and-forget write). The
@@ -234,7 +234,7 @@ export function CrawlerSheet({
   const intactBays = bays.filter((b) => (b.condition ?? 'intact') === 'intact').length
   const pool = crawler.scrapPool ?? {}
 
-  // Repair affordability is advisory only — TL+ buckets count (S12).
+  // Repair affordability is advisory only — TL+ buckets count.
   const repairable = poolAvailableAtOrAbove(pool, tl)
   const repairShortfall = Math.max(0, BAY_REPAIR_COST - repairable)
 
@@ -242,7 +242,7 @@ export function CrawlerSheet({
    * Repair a damaged bay: decrement 5 Scrap starting at the crawler-TL
    * bucket, spilling into higher buckets, then flip the bay Intact. A short
    * pool still repairs — the shortfall is surfaced on the button, never a
-   * block (S12).
+   * block.
    *
    * Tagged `LIVE_SHEET_TXN`: Scrap leaves the pool by a rule, so the Change Log
    * should not call it a hand edit. One of the three sanctioned Live-Sheet
@@ -328,8 +328,8 @@ export function CrawlerSheet({
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */
   const storageContents = (
     <div style={STACK_16}>
-      {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (rules
-          S12; the bucket bay-repair spends). Per-tech-level `Stat` steppers let
+      {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (the
+          bucket bay-repair spends). Per-tech-level `Stat` steppers let
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       <div>

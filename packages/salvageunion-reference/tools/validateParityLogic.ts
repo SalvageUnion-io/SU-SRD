@@ -119,7 +119,7 @@ export const PARITY_EXEMPTIONS: Record<string, string> = {
  * The remaining backlog — records that state a change, are not exempt, and are
  * not yet encodable.
  *
- * Both need the SAME missing capability, and it is not the one the plan assumed.
+ * Both need the SAME missing capability, and it is not the one first assumed.
  * The plan called for "effects declarable directly on a system/ability" (C3),
  * but declaring them is not the blocker: `ChoiceEffectSchema` has no TARGET, and
  * neither of these effects lands on the record that declares it.

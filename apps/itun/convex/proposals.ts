@@ -9,7 +9,7 @@ import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
 
 /**
- * Proposals and alerts (ADR-030 §4, Phase 4).
+ * Proposals and alerts (ADR-030 §4).
  *
  * This is the mechanism that lets a Mediator reach a player's sheet without
  * ever writing it. They push a **proposal**; the player applies or declines it.

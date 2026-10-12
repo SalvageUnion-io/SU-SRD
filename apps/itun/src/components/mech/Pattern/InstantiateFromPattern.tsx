@@ -7,7 +7,7 @@
  * came from in `sourcePattern` (issue 401), which the pattern page counts. The db
  * layer gives it a fresh id and timestamps.
  *
- * Enforcement regime: NONE, deliberately (wizard-refresh plan §5.2) —
+ * Enforcement regime: NONE, deliberately —
  * instantiate is a Blank-family shortcut and its write path is untouched.
  * Phase 4 adds PRESENTATION only: saved MechPatterns carry no stored
  * `legalStarting` data tag (the flag is never computed — project data

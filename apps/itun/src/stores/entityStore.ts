@@ -18,7 +18,7 @@
  * which merges a single bay entry onto the record as held right now instead
  * of replacing the whole array from a caller's possibly-stale copy.
  *
- * Integrity (plan 2.7): deleting a pilot/mech/crawler/NPC also prunes every
+ * Integrity: deleting a pilot/mech/crawler/NPC also prunes every
  * SoftLink whose `from` or `to` endpoint references it — no more orphaned
  * "Unknown pilot (id)" rows.
  *
@@ -638,7 +638,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
 
   async updateCrawlerBay(crawlerId, bayRef, patch, index, meta) {
     // Read the record as held right now, not the caller's copy, so the merge
-    // lands on the latest bays (plan 2.7).
+    // lands on the latest bays.
     const fresh = get().get('crawler', crawlerId)
     if (fresh === null) {
       throw new Error(`[itun-store] Cannot update bay: crawler id="${crawlerId}" not found`)
@@ -680,7 +680,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
       })
     }
 
-    // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9), in
+    // Cascade: deleting an entity prunes its SoftLinks, in
     // the same set() as the entity, so no orphaned link is ever shown.
     if (type !== 'softLink') {
       // Commit the cascaded link deletes BEFORE the local delete, and read

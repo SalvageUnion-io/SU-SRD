@@ -1,7 +1,7 @@
 /**
  * CrawlerBuilder responsive layout tests.
  *
- * The builder sits on the shared WizShell skeleton (design §3.2): a 196px
+ * The builder sits on the shared WizShell skeleton: a 196px
  * stepper rail beside the panes on desktop (lg:flex-row), stacked full-width
  * with a horizontal stepper on mobile. Asserts the responsive scaffolding is
  * present on initial render.

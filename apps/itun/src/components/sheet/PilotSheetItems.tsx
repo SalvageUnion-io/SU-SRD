@@ -1,7 +1,7 @@
 /**
  * PilotSheetItems — the pilot sheet's per-item building blocks (abilities,
- * equipment, generic entries, injuries), extracted from PilotSheet.tsx
- * (audit item 19). Purely presentational and callback-driven — PilotSheet
+ * equipment, generic entries, injuries), extracted from PilotSheet.tsx.
+ * Purely presentational and callback-driven — PilotSheet
  * owns all persistence.
  */
 
@@ -146,7 +146,7 @@ const ADDER_LABEL = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** Per-item condition cycle (design §4.5: Intact → Damaged → Destroyed → Intact). */
+/** Per-item condition cycle (Intact → Damaged → Destroyed → Intact). */
 const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
   intact: 'damaged',
   damaged: 'destroyed',
@@ -257,7 +257,7 @@ type PilotEquipmentItemProps = {
    */
   seedSelections: ChoiceSelections | undefined
   condition: ItemCondition
-  /** Uses remaining for this item; undefined = full (rules A14). */
+  /** Uses remaining for this item; undefined = full. */
   usesLeft: number | undefined
   onConditionChange: (slug: string, next: ItemCondition) => void
   onUsesChange: (slug: string, next: number) => void
@@ -426,7 +426,7 @@ export function PilotEquipmentItem({
 }
 
 // ---------------------------------------------------------------------------
-// Inventory — generic entries (plan S7: Scrap at slotCost 3, etc.)
+// Inventory — generic entries (Scrap at slotCost 3, etc.)
 // ---------------------------------------------------------------------------
 
 type GenericEntryCardProps = {

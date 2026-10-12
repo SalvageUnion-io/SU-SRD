@@ -2,7 +2,7 @@ import { z } from 'salvageunion-reference/zod'
 
 /**
  * CargoLot — the unified cargo model shared by mechs, mech patterns, and
- * crawlers (design §2.12, plan 2.3).
+ * crawlers.
  *
  * Shape: `{ id, kind: 'bulk' | 'unit', name, cat, tl?, qty?, units, code }`
  *   - `kind: 'bulk'`  — arbitrary ×N quantity, splittable when moved (qty set).

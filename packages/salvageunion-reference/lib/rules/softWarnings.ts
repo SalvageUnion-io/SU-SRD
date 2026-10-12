@@ -30,7 +30,7 @@ function warn(code: string, message: string): SoftWarning {
 }
 
 // ---------------------------------------------------------------------------
-// Pilot warning checks (advancement prerequisites, plan S5 / 3.3–3.4)
+// Pilot warning checks (advancement prerequisites)
 //
 // All checks are tier/tree-driven and evaluate the AFTER state — they need an
 // enriched snapshot (enrichPilotSnapshot resolves tree/level/tier from
@@ -160,7 +160,7 @@ function checkClassPrerequisite(before: PilotSnapshot, after: PilotSnapshot): So
 }
 
 /**
- * The pilot ability soft cap (plan 2.2): 10 abilities, 12 for Salvager.
+ * The pilot ability soft cap: 10 abilities, 12 for Salvager.
  * The schema does not cap the array — exceeding the rules cap is a soft
  * warning, never a parse failure or a blocked save.
  *
@@ -259,7 +259,7 @@ function checkTechLevelDowngrade(context: SoftWarningContext): SoftWarning[] {
 /**
  * Evaluate soft warnings for a pilot edit.
  *
- * Documented cases (all advisory, never blocking — plan 3.3/3.4):
+ * Documented cases (all advisory, never blocking):
  * - Tree order violated (level n taken without the levels below it)
  * - Advanced/Hybrid ability without the 6-core gate
  * - Legendary ability without 6 core + 3 advanced; more than one Legendary

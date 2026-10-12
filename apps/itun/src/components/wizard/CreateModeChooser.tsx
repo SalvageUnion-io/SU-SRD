@@ -1,6 +1,6 @@
 /**
  * CreateModeChooser — the "which door?" screen every /new opens on
- * (wizard-refresh Phase 1, mockup Screen 04).
+ * (mockup Screen 04).
  *
  * Two manual-style doors under a poster band: GUIDED (primary — the existing
  * step wizard) and BLANK (the escape hatch — an empty sheet, no steps, no

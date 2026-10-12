@@ -74,7 +74,7 @@ export function mechMaxima(
 }
 
 export type PilotStatus = {
-  /** Derived max HP at or below 0 (rules A2). */
+  /** Derived max HP at or below 0. */
   dead: boolean
   /** Carrying at least one injury. */
   injured: boolean

@@ -6,7 +6,7 @@ import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * Crew-wide Downtime (Phase 5).
+ * Crew-wide Downtime.
  *
  * The two properties worth the most here are the ones that made per-player
  * Downtime unworkable in the first place: **upkeep charged once rather than

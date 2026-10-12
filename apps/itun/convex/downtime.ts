@@ -9,7 +9,7 @@ import { NotAuthorized, requireMediator, requireMember } from './model/permissio
 import { loadReferenceData } from './model/referenceData'
 
 /**
- * Crew-wide Downtime (ADR-030, Phase 5).
+ * Crew-wide Downtime (ADR-030).
  *
  * Downtime is the one procedure in Salvage Union the whole crew performs **in
  * step**, which is why the phase is Game state advanced by the Mediator rather

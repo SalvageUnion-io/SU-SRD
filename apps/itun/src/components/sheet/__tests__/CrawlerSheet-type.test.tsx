@@ -1,5 +1,5 @@
 /**
- * Crawler type card + special NPC tests (redesign phase 3: the type card
+ * Crawler type card + special NPC tests (the type card
  * lives in the hero's CrawlerIdentityPanel now, not a body slab).
  *
  * When `crawler.type` is set, the identity panel renders the type's special
