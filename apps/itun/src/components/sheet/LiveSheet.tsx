@@ -1,8 +1,8 @@
 /**
- * LiveSheet — the Header C shared sheet shell (design §4.1, plan 4.1).
+ * LiveSheet — the Header C shared sheet shell.
  * One shell, three variants, "so the three screens cannot drift apart".
  *
- * Render-prop contract (binding, plan 4.1):
+ * Render-prop contract (binding):
  *   { variant, name, strip, back, condense, renderBody, syncStats }
  *
  * App bar (poster `.appbar`, design source clean-pilot.html): back + overflow
@@ -75,7 +75,7 @@ type LiveSheetProps = {
   strip?: LiveSheetStripItem[]
   back?: { href: string; label: string }
   /**
-   * Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — rendered as a
+   * Mobile segmented Pilot/Mech/Crawler switch — rendered as a
    * full-width row of flex-1 sm btns under the top-bar controls, visible only
    * below the sm breakpoint (the 390 endpoint). Provided by the caller for
    * wired compositions; omit to hide.
@@ -378,7 +378,7 @@ export function LiveSheet({
           <div style={BAR_ACTIONS}>{actions}</div>
         </div>
 
-        {/* Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — full-width
+        {/* Mobile segmented Pilot/Mech/Crawler switch — full-width
             second row inside the sticky bar so it stays thumb-reachable. The
             active segment is the sheet being viewed (an ink plate, never rust: a
             here-state is ink);

@@ -313,7 +313,7 @@ export const STARTER_MECHS: readonly Mech[] = CREW.map((c) => ({
 const STARTER_CRAWLER_ID = 'starter-crawler-tenacity'
 
 /**
- * Each base bay's crew NPC (rules C11). The name is structured live-play state
+ * Each base bay's crew NPC. The name is structured live-play state
  * (`crawlerBays[].npcName`); the Keepsake/Motto are freeform choice selections
  * persisted in `bayChoices`, keyed by the bay slug then the NPC’s Keepsake/Motto
  * choice id (from the reference bay's `npc.choices`). The seed test asserts each

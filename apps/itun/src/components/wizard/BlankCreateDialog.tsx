@@ -1,7 +1,7 @@
 /**
  * BlankCreateDialog — collects ONLY the Zod-required fields (plus the
  * optional escape-valve pick) for a Blank create, then persists via
- * createBlank and hands the new id back to the route (wizard-refresh Phase 1).
+ * createBlank and hands the new id back to the route.
  *
  *   Pilot:   Name*, Callsign*, optional class (UNFILTERED — all classes
  *            including specialisations).

@@ -1,6 +1,6 @@
 /**
- * MechSheet — the mech variant BODY for the LiveSheet shell (design §4.3,
- * plan 4.5; redesigned to the poster layout, Phase 2).
+ * MechSheet — the mech variant BODY for the LiveSheet shell, in the
+ * poster layout.
  *
  * The body OWNS the identity band (Workshop-Manual mech sheet): it renders
  * `SheetHero` as its first region. Region order mirrors the
@@ -237,7 +237,7 @@ export function MechSheet({
   // language archetype B; always available, never rule-gated for now).
   // Identity / Quirk+Appearance are FIELD sections (unified edit language
   // archetype A): their own Edit/Done toggle, rendered in the
-  // SheetSectionCard header (Phase 2).
+  // SheetSectionCard header.
   // Quirk & Appearance now live inside the identity card, so they follow ITS
   // Edit toggle — a second Edit button inside the same frame would have been
   // two switches for one section.

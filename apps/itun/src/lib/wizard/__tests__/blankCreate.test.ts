@@ -1,5 +1,5 @@
 /**
- * createBlank — the Blank escape hatch (wizard-refresh Phase 1).
+ * createBlank — the Blank escape hatch.
  *
  * Contract per kind: yields a COMMITTED, schema-valid entity (the store's
  * strict Zod parse is the only gate), with and without the optional

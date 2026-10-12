@@ -19,7 +19,7 @@ type FlavorStepProps = {
 
 /**
  * Featherweight optional-flavor step (Pilot Bay steps 6–8: Motto, Keepsake,
- * Appearance — plan §4.1/Q10): one field + its d20 roll-table assist. Nothing
+ * Appearance): one field + its d20 roll-table assist. Nothing
  * is enforced — flavor is optional, Next is always enabled — and the roll
  * result stays editable (roll is an assist, never a commitment).
  */

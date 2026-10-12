@@ -1,13 +1,13 @@
 /**
- * CrawlerSheet — bay action economy tests (plan 4.6; Phase 2 poster layout).
+ * CrawlerSheet — bay action economy tests (poster layout).
  *
  * The SP/Bays trackers moved into the body's economy band (SheetCrawler,
  * Phase 2); this file covers the Bays section's interactive surface:
  *   1. Bay status: Intact bays lead with their function action; a Damaged bay
- *      disables the function and promotes Repair (design §4.4 / pattern 8).
+ *      disables the function and promotes Repair.
  *   2. Repair decrements 5 Scrap from the crawler-TL pool bucket, spilling
- *      into higher buckets, and flips the bay Intact (S12).
- *   3. A short pool is advisory — Repair still proceeds, never blocks (S12).
+ *      into higher buckets, and flips the bay Intact.
+ *   3. A short pool is advisory — Repair still proceeds, never blocks.
  *   4. readOnly suppresses every edit affordance.
  *   5. The Storage Bay's Scrap Pool steppers hand-edit `crawler.scrapPool`
  *      (Free Edit) — a crawler can stow arbitrary scrap by tech level.
@@ -102,7 +102,7 @@ function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEnti
 // Bay action economy
 // ---------------------------------------------------------------------------
 
-describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () => {
+describe('CrawlerSheet — bay function/Repair actions', () => {
   let restore: () => void
   afterEach(() => {
     restore?.()

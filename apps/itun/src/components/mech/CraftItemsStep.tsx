@@ -27,7 +27,7 @@ type CraftItemsStepProps = {
 
 /**
  * Steps 4–5 · Craft your Systems / Modules (Mech Workshop p.95) — create
- * mode, HARD (plan §4.2): only Tech 1 items render (package
+ * mode, HARD: only Tech 1 items render (package
  * `isLegalCreationSystem`/`isLegalCreationModule`); each copy costs its SV
  * from the shared 20-Scrap pool and its `slotsRequired` from this step's
  * slot budget. Duplicates are allowed via the SelCard count-stepper; a `+`

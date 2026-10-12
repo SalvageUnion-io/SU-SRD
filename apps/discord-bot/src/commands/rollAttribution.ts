@@ -6,7 +6,7 @@ import type { EditReplyPayload } from './interactions'
 import { itun } from './itunReply'
 
 /**
- * Recording a Discord roll against the bound Game (ADR-030 Phase 6).
+ * Recording a Discord roll against the bound Game (ADR-030).
  *
  * This is issue #623's exit criterion — *"a roll in Discord appears on the
  * table's Dashboard, attributed to the right player"* — and it is deliberately

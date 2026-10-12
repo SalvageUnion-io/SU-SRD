@@ -4,7 +4,7 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 import { getMembership, NotAuthorized, requireOrganizerAs } from './permissions'
 
 /**
- * Shared logic for the Discord bot as a Game participant (ADR-030 Phase 6).
+ * Shared logic for the Discord bot as a Game participant (ADR-030).
  *
  * The caller is `botClient.ts`, reached over HTTP with a bot credential. There
  * is no Convex auth token, so the actor is resolved from a linked Discord id

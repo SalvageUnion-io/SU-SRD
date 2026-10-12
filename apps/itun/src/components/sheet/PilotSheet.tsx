@@ -317,7 +317,7 @@ export function PilotSheet({
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available, never rule-gated for now).
   // Identity is a FIELD section (unified edit language archetype A): its own
-  // Edit/Done toggle, rendered in the SheetSectionCard header (Phase 2).
+  // Edit/Done toggle, rendered in the SheetSectionCard header.
   const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
 
   const model = usePilotSheetModel({ pilot, storeState, picker })
@@ -357,7 +357,7 @@ export function PilotSheet({
       className="sheet-section"
       style={BODY}
     >
-      {/* Dead state (rules A2: max HP 0 = death). Display-only — the record
+      {/* Dead state (max HP 0 = death). Display-only — the record
           stays editable so an erroneous injury can be removed. */}
       {model.dead && (
         <div role="alert" style={DEAD}>

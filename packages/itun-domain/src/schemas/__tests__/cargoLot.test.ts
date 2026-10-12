@@ -1,5 +1,5 @@
 /**
- * CargoLotSchema tests (plan 2.3, design §2.12) — the rules-critical bit is
+ * CargoLotSchema tests — the rules-critical bit is
  * that SCRAP-category lots MUST carry a tech level (`tl`) so they can
  * deposit/withdraw the matching crawler scrap-pool bucket.
  */

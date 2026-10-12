@@ -1,8 +1,8 @@
 /**
- * PilotIdentityPanel — the pilot poster's IDENTITY card body (redesign Phase
- * 2): the poster's labeled fields — Name / Callsign / Class / Appearance
+ * PilotIdentityPanel — the pilot poster's IDENTITY card body: the poster's
+ * labeled fields — Name / Callsign / Class / Appearance
  * (left) and Motto / Keepsake / Background with their once-per-Downtime USED
- * toggles (rules A8–A10) on the right, plus a folded-in Bio field (#409 — the
+ * toggles on the right, plus a folded-in Bio field (#409 — the
  * dropped live-play Bio section's data still needs a home) — rendered via the
  * shared IdentityField primitive.
  *
@@ -96,7 +96,7 @@ const PICKER_ACTIONS = {
 } satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
-// Used chip (once-per-Downtime toggles, rules A8–A10) — live-play control,
+// Used chip (once-per-Downtime toggles) — live-play control,
 // always available while editable (not gated behind the section edit).
 // ---------------------------------------------------------------------------
 

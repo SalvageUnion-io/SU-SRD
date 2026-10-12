@@ -1,16 +1,15 @@
 /**
- * pilotInventory — truthful pilot inventory slot + uses math (plan 4.4,
- * rules A13/A14).
+ * pilotInventory — truthful pilot inventory slot + uses math.
  *
  * Slot accounting:
  *   - reference equipment: 1 slot, 2 when Heavy/Portable (ORM getInventorySlots)
  *   - unresolved slugs: counted at 1 so the total never lies low
- *   - generic entries: explicit slotCost × qty (Scrap = 3 per unit, plan S7)
+ *   - generic entries: explicit slotCost × qty (Scrap = 3 per unit)
  *   - capacity: derived by `pilotMaxInventorySlots` (base 6 +
- *     maxInventorySlotsModifier + ability contributions like Beefcake +4,
- *     rules A13), honouring the absolute maxInventorySlotsOverride pin
+ *     maxInventorySlotsModifier + ability contributions like Beefcake +4),
+ *     honouring the absolute maxInventorySlotsOverride pin
  *
- * Uses accounting (rules A14): an item's max uses come from its `uses` trait
+ * Uses accounting: an item's max uses come from its `uses` trait
  * (on the equipment record or its matching action). `equipmentUses[slug]`
  * stores uses REMAINING; an absent key means full.
  *
@@ -29,7 +28,7 @@ export function resolveEquipment(slug: string): SURefEquipment | null {
 
 /**
  * Inventory slots one equipment item occupies: 1, or 2 when it carries the
- * Heavy/Portable trait (rules A13). Unresolved items count 1.
+ * Heavy/Portable trait. Unresolved items count 1.
  */
 export function equipmentSlotCost(equipment: SURefEquipment | null): number {
   if (!equipment) return 1
@@ -37,7 +36,7 @@ export function equipmentSlotCost(equipment: SURefEquipment | null): number {
 }
 
 /**
- * Max uses for an equipment item from its `uses` trait (rules A14), or null
+ * Max uses for an equipment item from its `uses` trait, or null
  * when the item has no uses counter (no trait / variable amount).
  */
 export function equipmentMaxUses(equipment: SURefEquipment | null): number | null {
@@ -75,7 +74,7 @@ type PilotCapacityInput = Pick<Pilot, 'maxInventorySlotsModifier'> &
   Partial<Pick<Pilot, 'abilities' | 'maxInventorySlotsOverride'>>
 
 /**
- * Inventory capacity (rules A13: 6 base) plus the hand-edited passive bonus
+ * Inventory capacity (6 base) plus the hand-edited passive bonus
  * (`maxInventorySlotsModifier`) PLUS any ability contributions (Beefcake +4),
  * and the absolute `maxInventorySlotsOverride` pin when one is set. Never
  * below 0.

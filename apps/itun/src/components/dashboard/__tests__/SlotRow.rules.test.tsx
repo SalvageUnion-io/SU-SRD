@@ -1,5 +1,5 @@
 /**
- * Tests for the Phase-5 rules buttons in the Major slot — a stub store captures
+ * Tests for the rules buttons in the Major slot — a stub store captures
  * every `update(...)` so we can assert the exact patch each handler writes
  * (deterministic controls only: Vent, Shutdown toggle, and self-declared SP/HP
  * damage; the d20-driven Push / Heat Check / Critical rolls are exercised in

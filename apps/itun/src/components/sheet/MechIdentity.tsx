@@ -1,6 +1,6 @@
 /**
- * MechIdentityPanel — the mech poster's IDENTITY card body (redesign Phase 2,
- * the mech sibling of PilotIdentityPanel). The PATTERN NAME is the prominent
+ * MechIdentityPanel — the mech poster's IDENTITY card body (the
+ * mech sibling of PilotIdentityPanel). The PATTERN NAME is the prominent
  * identity field — a mech's name and its pattern name are the same field
  * (redesign refinement), so the field displays the canonical `mech.name` and
  * saving writes `name` and `patternName` in lockstep. The chassis and Tech

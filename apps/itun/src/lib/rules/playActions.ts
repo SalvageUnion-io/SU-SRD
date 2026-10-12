@@ -104,7 +104,7 @@ export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll
  * Emergency Vent: dump Heat to 0 and become Vulnerable (dashboard.md §5.1 — Vent and
  * Shutdown are distinct Reactor-bay controls: Vent sets Heat→0 + `vulnerable`,
  * Shutdown toggles the flag). NB the tabletop rule folds a full shutdown into
- * venting; the Dashboard keeps them separate per the plan — hit Shutdown too for
+ * venting; the Dashboard keeps them separate — hit Shutdown too for
  * the strict-SRD sequence.
  */
 export const VENT_PATCH: Partial<Mech> = {

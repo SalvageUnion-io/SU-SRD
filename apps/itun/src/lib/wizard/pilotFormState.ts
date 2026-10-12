@@ -1,5 +1,5 @@
 /**
- * Pilot wizard form-state contract + entity mappers (plan 3.1).
+ * Pilot wizard form-state contract + entity mappers.
  *
  * WizardFormState is the layout-agnostic seam between the wizard UI and the
  * persisted Pilot entity:

@@ -4,7 +4,7 @@ import { httpAction } from './_generated/server'
 import { isFresh, isSignedByDiscord } from './model/discordInteraction'
 
 /**
- * The bot's HTTP door (ADR-030 Phase 6).
+ * The bot's HTTP door (ADR-030).
  *
  * The Discord bot runs as a worker with no Convex auth token, so it cannot
  * reach a normal query or mutation. It posts here instead, presenting a bearer

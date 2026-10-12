@@ -31,8 +31,8 @@ type MechFlavorStepProps = {
 
 /**
  * Featherweight mech flavor step (Mech Workshop steps 6–8: Quirk, Appearance,
- * Pattern Name — plan §4.2): the sheets' IdentityField (Phase-3 review minor
- * (ii) — the wizard previews exactly the live sheet's identity idiom) plus a
+ * Pattern Name): the sheets' IdentityField (the wizard previews exactly the
+ * live sheet's identity idiom) plus a
  * d20 roll-table assist. The roll result writes into the field and stays
  * editable — roll is an assist, never a commitment.
  */

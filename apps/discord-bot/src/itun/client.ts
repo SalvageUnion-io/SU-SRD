@@ -16,7 +16,7 @@ import type {
 } from './types'
 
 /**
- * The bot's client for the ITUN Convex deployment (ADR-030 Phase 6).
+ * The bot's client for the ITUN Convex deployment (ADR-030).
  *
  * Deliberately built on `fetch` and nothing else. The `convex` package would
  * buy a websocket and reactive subscriptions, which the bot needs exactly once

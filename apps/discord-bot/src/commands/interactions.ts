@@ -41,7 +41,7 @@ export type CommandChoice = { name: string; value: string }
  * What `execute` handlers read off a chat-input interaction.
  *
  * `user`, `channelId` and the defer/edit pair were added for the ITUN Game
- * commands (ADR-030 Phase 6): the Discord user id IS the account key, the
+ * commands (ADR-030): the Discord user id IS the account key, the
  * channel decides which Game a command speaks for, and a round trip to Convex
  * does not reliably fit inside Discord's 3-second acknowledgement window, so
  * every Game subcommand defers first.

@@ -155,7 +155,7 @@ export function usePilotSheetActions({
     if (changed) write(changed, LIVE_SHEET_OVERRIDE)
   }
 
-  /** Toggle one of the once-per-Downtime used flags (rules A8–A10). */
+  /** Toggle one of the once-per-Downtime used flags. */
   function toggleUsed(key: UsedToggleKey, next: boolean) {
     const prev = freshPilot().usedToggles ?? {}
     write({ usedToggles: { ...prev, [key]: next } })

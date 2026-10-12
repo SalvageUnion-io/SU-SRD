@@ -1,6 +1,6 @@
 /**
  * Blank create — the escape hatch that skips the wizard and ALL creation-rule
- * limits (wizard-refresh Phase 1).
+ * limits.
  *
  * `createBlank` builds a minimal create() payload through the EXISTING pure
  * form mappers (pilotFormState / mechFormState / crawlerFormState) and calls

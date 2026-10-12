@@ -30,7 +30,7 @@ const AUGMENTED_CRAWLER_ID = '8bffb508-8c8f-418d-b6ce-f24f7266e41b'
 /**
  * Step 1 · Choose a Crawler Type (Union Crawler p.212) — exactly one of the
  * five types, radio semantics, each rendered as the SRD entity card inside a
- * SelCard (the universal entity-card rule; wizard-refresh Phase 5). A type's
+ * SelCard (the universal entity-card rule). A type's
  * stored `mutations` surface as footMeta badges (Battle: 2 weapon slots ·
  * +5 max SP — read from the data, never string-matched). The selected type's
  * FULL card renders below the grid — its unique Ability, its special NPC, and

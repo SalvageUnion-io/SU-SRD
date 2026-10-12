@@ -1,6 +1,6 @@
 /**
- * Sheet — root live-sheet component on the Header C LiveSheet shell (plan
- * 4.1–4.3). Resolves the entity + its SoftLink composition (the ported
+ * Sheet — root live-sheet component on the Header C LiveSheet shell. Resolves
+ * the entity + its SoftLink composition (the ported
  * resolver in composition.ts), then dispatches to ONE per-kind view
  * (SheetPilot / SheetMech / SheetCrawler — audit item 19):
  * hero = entity-card-writ-large with live trackers, linked entities as rail
@@ -235,7 +235,7 @@ export function Sheet({
 
   if (!resolved) {
     // Styled not-found with an exit path — this is the most-visited surface
-    // in the app; a bare one-liner stranded the user (audit item 7).
+    // in the app; a bare one-liner stranded the user.
     return (
       <NotFoundPanel
         title={`${kind} not found`}
@@ -334,7 +334,7 @@ export function Sheet({
     </div>
   ) : undefined
 
-  // Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — wired sheets
+  // Mobile segmented Pilot/Mech/Crawler switch — wired sheets
   // only; each present counterpart gets a segment, the viewed kind is active.
   // A counterpart with nowhere to go (`hrefFor` → undefined) gets no segment.
   let segments: LiveSheetSegment[] | undefined

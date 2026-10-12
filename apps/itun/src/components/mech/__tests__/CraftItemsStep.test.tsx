@@ -1,5 +1,5 @@
 /**
- * Unit tests for CraftItemsStep (wizard-refresh Phase 4): the create-mode
+ * Unit tests for CraftItemsStep: the create-mode
  * Craft your Systems / Modules grid. Pins the two enforcement mechanics —
  * the per-copy `+` clamp (maxCount from the SHARED scrap pool + the step's
  * slot budget) and the dimmed-with-reason card (mockup Screen 02) — plus the

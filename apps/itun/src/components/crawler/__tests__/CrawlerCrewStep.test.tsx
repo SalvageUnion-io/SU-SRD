@@ -1,6 +1,6 @@
 /**
  * Unit tests for CrawlerCrewStep — the wizard's crew/NPC roster step
- * (wizard-refresh Phase 5: entity-card rows expanding to IdentityFields).
+ * (entity-card rows expanding to IdentityFields).
  *
  * Renders the 10 crewed base bays (the 4 expansion bays carry no NPC →
  * excluded) plus the selected crawler type's special NPC HEADING the list.

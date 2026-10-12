@@ -1,6 +1,6 @@
 /**
- * NewEntityScreen — the mode switch behind every /new route (wizard-refresh
- * Phase 1). Router-agnostic so the three routes stay thin and the routing
+ * NewEntityScreen — the mode switch behind every /new route.
+ * Router-agnostic so the three routes stay thin and the routing
  * behaviour is testable without a RouterProvider:
  *
  *   mode absent   → CreateModeChooser (Guided vs Blank doors)

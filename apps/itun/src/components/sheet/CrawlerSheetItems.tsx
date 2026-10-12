@@ -1,6 +1,6 @@
 /**
  * CrawlerSheetItems — the crawler sheet's building blocks (bay cards, the
- * crawler-type NPC card), extracted from CrawlerSheet.tsx (audit item 19).
+ * crawler-type NPC card), extracted from CrawlerSheet.tsx.
  * Presentational + callback-driven — CrawlerSheet owns all persistence.
  */
 
@@ -21,7 +21,7 @@ import { NpcInset } from './NpcInset'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
-/** Each bay's function-action verb, by bay slug (design §4.4 — Dock/Craft/Heal/Mount…). */
+/** Each bay's function-action verb, by bay slug (Dock/Craft/Heal/Mount…). */
 
 const BAY_FUNCTIONS: Record<string, string> = {
   'command-bay': 'Scan',
@@ -230,7 +230,7 @@ export function CrawlerBayCard({
   const maxHP = npc?.hitPoints ?? 0
 
   function patchEntry(patch: Partial<CrawlerBayEntry>) {
-    // Per-bay merge at the store level (plan 2.7): updateCrawlerBay re-reads
+    // Per-bay merge at the store level: updateCrawlerBay re-reads
     // the freshest persisted record and patches only this entry, so
     // concurrent edits to different bays don't clobber each other. index
     // disambiguates duplicate bayRefs.
@@ -239,7 +239,7 @@ export function CrawlerBayCard({
     )
   }
 
-  /** Bays are Intact/Damaged ONLY — never Destroyed (rules C8). */
+  /** Bays are Intact/Damaged ONLY — never Destroyed. */
   function toggleCondition() {
     patchEntry({ condition: damaged ? 'intact' : 'damaged' })
   }
@@ -316,8 +316,8 @@ export function CrawlerBayCard({
     ...(damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []),
   ]
 
-  // Damaged disables the function action and promotes Repair (design §4.4 /
-  // interaction pattern 8). Both ride the standard controls overlay — no footer.
+  // Damaged disables the function action and promotes Repair. Both ride the
+  // standard controls overlay — no footer.
   const controls: ReferenceEntityControl[] = [
     {
       key: 'function',
@@ -346,7 +346,7 @@ export function CrawlerBayCard({
   ]
 
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
-  // expand inset instead (design §4.4) — and without the "when damaged" clause,
+  // expand inset instead — and without the "when damaged" clause,
   // which is held back until it applies (see WHEN_DAMAGED).
   const { normal } = splitBayContent(bay.content)
   const damagedText =
@@ -417,7 +417,7 @@ type CrawlerTypeCardProps = {
    */
   ability?: ReactNode
   /**
-   * Compact identity-band placement (redesign phase 3): renders the card
+   * Compact identity-band placement: renders the card
    */
   /** The built NPC filling the type's NPC slot (ADR-044); see CrawlerBayCard. */
   assigned?: CrewAssignment

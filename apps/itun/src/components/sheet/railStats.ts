@@ -116,7 +116,7 @@ export function crawlerRailItems(crawler: Crawler): RailStat[] {
   ]
 }
 
-/** Bay conditions as StatBlock pip states (Intact/Damaged only, rules C8). */
+/** Bay conditions as StatBlock pip states (Intact/Damaged only). */
 export function bayStates(crawler: Crawler): StatState[] {
   return (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')
 }

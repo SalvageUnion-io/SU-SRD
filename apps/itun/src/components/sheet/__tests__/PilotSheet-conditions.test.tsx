@@ -1,7 +1,7 @@
 /**
- * Pilot conditions tests (W2-3, #254 — plan 4.4)
+ * Pilot conditions tests (#254)
  *
- * Conditions live in the pilot hero as the Conditions inset (design §4.2), so
+ * Conditions live in the pilot hero as the Conditions inset, so
  * these tests render the full Sheet (pilot branch) rather than the body-only
  * PilotSheet.
  *

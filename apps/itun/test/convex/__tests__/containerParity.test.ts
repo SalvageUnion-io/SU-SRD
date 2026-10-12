@@ -55,11 +55,10 @@ describe('container parity — every local store can reach the server', () => {
    * weeks while three stores never reached the server.
    *
    * The check above asks only "does a Convex table exist with this name". Both
-   * `mechPatterns` and `encounterNpcs` passed it from P0 onward while every
-   * client write went to the device and stopped there — the tables existed and
-   * nothing wrote to them except the bulk claim at sign-in. The gate agreed
-   * with the plan's `done`, and the plan's own body said the work was still
-   * outstanding.
+   * `mechPatterns` and `encounterNpcs` passed it while every client write went
+   * to the device and stopped there — the tables existed and nothing wrote to
+   * them except the bulk claim at sign-in. The gate was green while the work
+   * was still outstanding.
    *
    * So this asserts the other half: for every store that has a table, some
    * client code must actually commit to it. Deliberately a source scan rather

@@ -33,7 +33,7 @@ import { liveDiscordInvite, mintInvite } from './model/invites'
 import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permissions'
 
 /**
- * The Discord bot as a Game participant — **bot-facing half** (ADR-030 Phase 6).
+ * The Discord bot as a Game participant — **bot-facing half** (ADR-030).
  *
  * Every function here is `internal`, which is the security boundary that
  * matters: an internal function is **not reachable from any client**, only from

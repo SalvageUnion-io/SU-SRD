@@ -58,7 +58,7 @@ const HEAD = { flexWrap: 'wrap', marginBottom: space[12] } satisfies CSSProperti
 
 const ICON = { height: '28px', width: '28px' } satisfies CSSProperties
 
-/** Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7). */
+/** Mobile-endpoint segmented Pilot/Mech/Crawler switch. */
 export function SegmentSwitch({
   active,
   onChange,

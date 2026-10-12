@@ -5,7 +5,7 @@ import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * The Discord bot as a Game participant (Phase 6).
+ * The Discord bot as a Game participant.
  *
  * The old #165 called for a service-role key and RLS policies — a bot that can
  * act as anybody. These tests exist to prove this one cannot: every path

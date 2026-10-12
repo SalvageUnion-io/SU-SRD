@@ -1,5 +1,5 @@
 /**
- * RuleBrief render tests (wizard-refresh Phase 2): the "THE RULE" poster
+ * RuleBrief render tests: the "THE RULE" poster
  * callout heading every wizard step — black stamp, rule text, and the accent
  * footer citation, all composed through SheetSectionCard.
  */

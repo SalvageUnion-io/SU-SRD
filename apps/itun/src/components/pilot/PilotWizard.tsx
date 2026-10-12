@@ -31,7 +31,7 @@ import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
 import '../../styles/wizard.css'
 
-/** Book-order steps (Pilot Bay pp.18–19 + Review — plan §4.1). */
+/** Book-order steps (Pilot Bay pp.18–19 + Review). */
 const STEPS: readonly PilotWizardStepId[] = [
   'stats',
   'classAbility',
@@ -106,8 +106,8 @@ type PilotWizardProps = {
 
 /**
  * Multi-step pilot wizard on the shared WizShell skeleton, restructured to
- * the Pilot Bay's 8 book steps + Review (wizard-refresh Phase 3, plan §4.1,
- * mockup Screen 01) with HARD creation enforcement (§5):
+ * the Pilot Bay's 8 book steps + Review (mockup
+ * Screen 01) with HARD creation enforcement (§5):
  *
  *   - illegal options are FILTERED OUT (core classes only, legal Level-1
  *     abilities only, Tech 1 equipment only) — never rendered;

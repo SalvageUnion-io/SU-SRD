@@ -1,5 +1,5 @@
 /**
- * Mech wizard form-state contract + entity mappers (plan 3.1).
+ * Mech wizard form-state contract + entity mappers.
  *
  * MechWizardFormState is the layout-agnostic seam between the wizard UI and
  * the persisted Mech entity:
@@ -82,7 +82,7 @@ export function mechFormToPartners(form: MechWizardFormState) {
 
 /**
  * Create payload for a fresh mech. Fresh mechs start at full SP/EP from the
- * chassis and Heat 0 (plan 2.3, gap 7) — never Heat-at-capacity.
+ * chassis and Heat 0 — never Heat-at-capacity.
  *
  * Drones granted by the chassis ability (and kitted by the pattern) are seeded
  * here: they are part of the machine being built, not something the player adds

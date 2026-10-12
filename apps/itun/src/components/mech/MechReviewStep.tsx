@@ -28,7 +28,7 @@ type MechReviewStepProps = {
 }
 
 /**
- * Review step (design §3.2 Review — undrawn for mechs; reuses the pilot
+ * Review step (undrawn for mechs; reuses the pilot
  * pattern): kv-panel of the build's fields on the left (with Save-as-pattern
  * below it), the chosen system + module cards stacked on the right (fresh
  * installs carry an 'Intact' status badge).

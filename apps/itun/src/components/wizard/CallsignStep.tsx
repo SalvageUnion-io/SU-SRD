@@ -16,7 +16,7 @@ type CallsignStepProps = {
  * Step 4 · Choose your Callsign (Pilot Bay p.19). Callsign gets the d20
  * roller on the p.88 Callsign Table (roll is an assist — the result stays
  * editable). Name rides on this step: it is the record's required field with
- * no book step of its own (plan §4.1). Next is gated on both being non-empty.
+ * no book step of its own. Next is gated on both being non-empty.
  */
 export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignStepProps) {
   return (

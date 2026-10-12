@@ -42,7 +42,7 @@ import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 
-/** The Upgrade pool's cap (rules C4). */
+/** The Upgrade pool's cap. */
 const UPGRADE_POOL_MAX = 30
 
 export function SheetCrawler({
@@ -101,11 +101,11 @@ export function SheetCrawler({
       : []),
   ]
 
-  // Tech LVL / UPKEEP / UPGRADE-pool / TRADE / CREW lozenges (design §4.4,
-  // poster `.lozrow`): upkeep is 5 Scrap of crawler TL per Downtime (rules
-  // C3); the Upgrade Pool fills toward 30× TL (rules C4); the Trading Bay
-  // sources TL+1 wares (p.223); crew leads = one per installed bay (rules
-  // C11). On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
+  // Tech LVL / UPKEEP / UPGRADE-pool / TRADE / CREW lozenges (poster
+  // `.lozrow`): upkeep is 5 Scrap of crawler TL per Downtime;
+  // the Upgrade Pool fills toward 30× TL; the Trading Bay
+  // sources TL+1 wares (p.223); crew leads = one per installed bay.
+  // On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
   // are the R-4 action entry points (CrawlerEconomyControl); Tech LVL and
   // Crew are read-only readouts.
   const trading = bayGate(crawler, 'trading-bay')

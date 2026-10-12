@@ -210,7 +210,7 @@ export async function clickNavLink(page: Page, name: RegExp | string): Promise<v
 }
 
 // ---------------------------------------------------------------------------
-// Entity builders — drive the Phase-3 WizShell wizards end to end.
+// Entity builders — drive the WizShell wizards end to end.
 // Each returns once the dashboard redirect lands (the server write is
 // complete), so subsequent steps can rely on the entity existing.
 // ---------------------------------------------------------------------------

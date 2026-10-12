@@ -1,5 +1,5 @@
 /**
- * PilotSheet — Inventory slab (plan 4.4, design §4.2)
+ * PilotSheet — Inventory slab
  *
  * Asserts that:
  *   1. The slab count shows truthful slot math (equipment 1 / Heavy 2,
@@ -62,7 +62,7 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
 // Slot math
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — inventory slot math (rules A13)', () => {
+describe('PilotSheet — inventory slot math', () => {
   test('counts equipment 1 / Heavy 2 / Scrap 3 against capacity 6', () => {
     // Rifle 1 + Rocket Launcher (Heavy) 2 + Scrap 3 = 6
     const pilot = makePilot({
@@ -90,10 +90,10 @@ describe('PilotSheet — inventory slot math (rules A13)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Uses counters (rules A14)
+// Uses counters
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — per-item uses counters (rules A14)', () => {
+describe('PilotSheet — per-item uses counters', () => {
   test('shows uses remaining out of the trait max', () => {
     const pilot = makePilot({
       equipment: ['first-aid-kit'],
@@ -171,10 +171,10 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Generic entries (plan S7)
+// Generic entries
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — generic inventory entries (plan S7)', () => {
+describe('PilotSheet — generic inventory entries', () => {
   test('+ Scrap quick-adds a 3-slot Scrap entry', async () => {
     const pilot = makePilot()
     const updateSpy = mock(async () => pilot)

@@ -2,7 +2,7 @@ import { assignPilotOnMechSheet, buildMech, buildPilot, openSheetFor } from './_
 import { expect, test } from './fixtures'
 
 /**
- * Mobile segment switch (design §3.7, plan 4.8) — at the 390 endpoint a
+ * Mobile segment switch — at the 390 endpoint a
  * wired sheet stitches a segmented Pilot/Mech/Crawler switch into the sticky
  * top bar: one flex-1 sm btn per wired counterpart, the viewed kind active
  * (rust fill, aria-current="page"), the others navigating to their sheets.

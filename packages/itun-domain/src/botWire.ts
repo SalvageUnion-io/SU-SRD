@@ -1,5 +1,5 @@
 /**
- * The wire shapes `botClient.ts` returns to the Discord bot (ADR-030 Phase 6).
+ * The wire shapes `botClient.ts` returns to the Discord bot (ADR-030).
  *
  * ONE declaration, two readers. `botClient.ts` annotates every handler's
  * success payload with these types, so changing what a handler returns without

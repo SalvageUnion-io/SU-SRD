@@ -1,5 +1,5 @@
 /**
- * MechSheet — readOnly prop tests (#242, plan 4.5; Phase 2 poster regions)
+ * MechSheet — readOnly prop tests (#242; poster regions)
  *
  * When readOnly is true (e.g. in PublicSheet), the body suppresses every
  * edit affordance: no Identity/Quirk-Appearance Edit buttons, no Vitals gauge

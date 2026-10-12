@@ -1,6 +1,6 @@
 /**
- * NewEntityScreen + CreateModeChooser + BlankCreateDialog (wizard-refresh
- * Phase 1): mode routing renders chooser vs wizard vs blank dialog, the
+ * NewEntityScreen + CreateModeChooser + BlankCreateDialog: mode
+ * routing renders chooser vs wizard vs blank dialog, the
  * chooser doors fire their callbacks, and the Blank dialog persists a
  * schema-valid entity through createBlank.
  *

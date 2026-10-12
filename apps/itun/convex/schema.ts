@@ -667,7 +667,7 @@ export default defineSchema({
     .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
   /**
-   * Which Discord channel a Game is bound to (ADR-030, Phase 6).
+   * Which Discord channel a Game is bound to (ADR-030).
    *
    * The bot authenticates as a **participant**, not an admin. A binding says "rolls in this channel
    * belong to this Game", and the actor is resolved from the Discord user id
@@ -687,7 +687,7 @@ export default defineSchema({
     .index('by_game', ['gameId']),
 
   /**
-   * Crew-wide Downtime state (ADR-030, Phase 5).
+   * Crew-wide Downtime state (ADR-030).
    *
    * Downtime is the one procedure the whole crew performs in step, so the phase
    * is **Game state advanced by the Mediator** rather than something each

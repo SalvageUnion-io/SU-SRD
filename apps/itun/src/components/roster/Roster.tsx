@@ -105,7 +105,7 @@ function GamePage({ gameId }: { gameId: string | null }) {
   const { mode } = useConnection()
   const activeContainer = useActiveContainer()
   const showContainer = useShowContainer()
-  /** Mobile-endpoint segmented switch (design §3.7) — which column shows ≤ md */
+  /** Mobile-endpoint segmented switch — which column shows ≤ md */
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
   return (

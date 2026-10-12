@@ -1,6 +1,5 @@
 /**
- * MechConditionsEditor — the mech's unified conditions editor (plan 4.5,
- * gap 21 + gap 8).
+ * MechConditionsEditor — the mech's unified conditions editor.
  *
  * Renders ONE list — `unifiedMechConditions()` (free-form `conditions[]`
  * merged with the automation-written shutdown/vulnerable/destroyed flags) —

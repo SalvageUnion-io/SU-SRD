@@ -5,7 +5,7 @@ import { photoFields } from './photo'
 import { ChoiceSelectionsSchema } from './pilot'
 
 /**
- * The party's shared scrap pool, bucketed by tech level (rules C5: "the party
+ * The party's shared scrap pool, bucketed by tech level ("the party
  * economy — 6 numbers"). Salvage deposits in; upkeep/craft/repair/trade
  * withdraw. SCRAP cargo lots crossing the crawler boundary deposit/withdraw
  * the matching bucket. Absent buckets read as 0.
@@ -24,7 +24,7 @@ export type ScrapPool = z.infer<typeof ScrapPoolSchema>
 
 /**
  * Per-NPC live state shared by crawler-bay crew leads and the crawler-type's
- * special NPC (rules C11). Extracted from the inline `crawlerBays` entry so the
+ * special NPC. Extracted from the inline `crawlerBays` entry so the
  * type NPC (`typeNpc`) reuses the same shape. The NPC's freeform identity
  * fields (Keepsake/Motto) persist in the crawler's `bayChoices` map, NOT here —
  * this schema holds only the structured live-play state.
@@ -48,7 +48,7 @@ export const CrawlerNpcStateSchema = z
      */
     npcFacts: z.array(z.string()).optional(),
     /**
-     * NPC condition (rules C8). Intact/Damaged ONLY — never Destroyed. Absent
+     * NPC condition. Intact/Damaged ONLY — never Destroyed. Absent
      * reads as 'intact'.
      */
     condition: z.enum(['intact', 'damaged']).optional(),
@@ -136,24 +136,24 @@ export const CrawlerSchema = z
     /** Current structure points */
     currentSP: z.number().int().min(0).optional(),
     // ---------------------------------------------------------------------------
-    // Shared party economy + cargo (plan 2.4, rules C4/C5/C6).
+    // Shared party economy + cargo.
     // All additive-optional — absent reads as the documented default.
     // ---------------------------------------------------------------------------
     /** Shared scrap pool bucketed by TL 1–6. Absent = all buckets 0. */
     scrapPool: ScrapPoolSchema.optional(),
     /**
-     * Upgrade Pool progress (rules C4): paid Upkeep accumulates here plus
+     * Upgrade Pool progress: paid Upkeep accumulates here plus
      * voluntary scrap; upgrade at 30× TL. Absent = 0.
      */
     upgradePool: z.number().int().min(0).optional(),
     /**
-     * Cargo lots in the crawler's hold. Unlimited capacity (Storage Bay,
-     * rules C6) — no cap math, unlike mech cargoLots. Absent = empty.
+     * Cargo lots in the crawler's hold. Unlimited capacity (Storage Bay)
+     * — no cap math, unlike mech cargoLots. Absent = empty.
      */
     cargoLots: z.array(CargoLotSchema).optional(),
     /**
      * Hand-edited bonus to max SP on top of the tech-level base — the Battle
-     * Crawler type's +5 Max SP (rules C1) lives here. Derived max SP =
+     * Crawler type's +5 Max SP lives here. Derived max SP =
      * tech-level structurePoints + this (lib/rules/derivedStats.ts). Absent = 0.
      */
     maxSpModifier: z.number().int().optional(),

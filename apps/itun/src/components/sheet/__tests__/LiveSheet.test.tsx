@@ -1,5 +1,5 @@
 /**
- * Tests for the LiveSheet shell (plan 4.1, S11 binding):
+ * Tests for the LiveSheet shell (the binding):
  * - condense = sticky bar + MiniStat strip, fade-in driven by an
  *   IntersectionObserver threshold with aria-hidden + pointer-events gating
  * - syncStats overlays derived values onto strip items by key

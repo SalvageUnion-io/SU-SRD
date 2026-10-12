@@ -41,7 +41,7 @@ export const ExportBundleSchema = z.object({
   }),
   softLinks: z.array(SoftLinkSchema),
   /**
-   * Saved mech patterns (gap 6: export is the ONLY backup path for work that is
+   * Saved mech patterns (export is the ONLY backup path for work that is
    * not in an account — omitting patterns silently loses them). Defaulted so bundles
    * written before this field existed still import.
    */

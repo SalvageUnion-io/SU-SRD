@@ -20,8 +20,8 @@ type EquipmentStepProps = {
 }
 
 /**
- * Step 3 · Choose your Equipment (Pilot Bay p.19), enforced HARD (plan
- * §4.1): only Tech 1 equipment renders (package `isLegalCreationEquipment` —
+ * Step 3 · Choose your Equipment (Pilot Bay p.19), enforced HARD:
+ * only Tech 1 equipment renders (package `isLegalCreationEquipment` —
  * higher TLs are never shown), exactly `budget` (2) picks via per-card
  * count-steppers, DUPLICATES ALLOWED; at the budget every `+` disables (cards
  * stay legible, never dimmed).

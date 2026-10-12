@@ -27,7 +27,7 @@ type ReviewStepProps = {
 }
 
 /**
- * Review step (design §3.2 Review): kv-panel of the build's fields on the
+ * Review step: kv-panel of the build's fields on the
  * left, the chosen ability + equipment cards stacked on the right (equipment
  * carries an 'Intact' status badge — fresh gear).
  */

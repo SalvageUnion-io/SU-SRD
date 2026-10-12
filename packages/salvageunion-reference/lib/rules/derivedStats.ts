@@ -1,5 +1,5 @@
 /**
- * Derived maxima for all three entities (plan 2.5, gap 11).
+ * Derived maxima for all three entities.
  *
  * "Many maxima are derived, not fixed" (rules digest): store modifiers,
  * compute totals. This module is the single source for those computations.
@@ -9,8 +9,8 @@
  *            maxAP = 5 + 1×(crawler tech − 1) + maxApModifier
  *   Mech:    max{SP,EP,Heat,Cargo} = chassis stat + max*Modifier
  *   Crawler: maxSP = tech-level structurePoints (ORM) + the chosen TYPE's
- *            `max_sp_bonus` mutations (Battle +5, applied at read —
- *            wizard-refresh Phase 5) + maxSpModifier (a pure hand-edit)
+ *            `max_sp_bonus` mutations (Battle +5, applied at
+ *            read) + maxSpModifier (a pure hand-edit)
  *
  * All functions are pure — no side effects, no async, no React. Parameter
  * types are small structural shapes (not full persisted records) — a
@@ -110,7 +110,7 @@ export function resolveGauge(current: number | undefined, max?: number): number 
   return max === undefined ? value : Math.min(value, max)
 }
 
-/** A single pilot injury (rules A11): minor −1 max HP, major −2. */
+/** A single pilot injury: minor −1 max HP, major −2. */
 type Injury = { severity: 'minor' | 'major'; note: string }
 
 type PilotDerivationInput = {
@@ -136,7 +136,7 @@ type PilotDerivationInput = {
   maxInventorySlotsOverride?: number
 }
 
-/** Total max-HP penalty from injuries: minor −1, major −2 (rules A2/A11). */
+/** Total max-HP penalty from injuries: minor −1, major −2. */
 export function injuryMaxHpPenalty(injuries: Injury[] | undefined): number {
   return (injuries ?? []).reduce((sum, injury) => sum + (injury.severity === 'major' ? 2 : 1), 0)
 }
@@ -186,7 +186,7 @@ function pilotStatTrainingContributions(
 
 /**
  * Derived max HP. Can legitimately reach 0 or below — that is the dead state
- * (rules A2: "if Max HP reaches 0 the Pilot dies") and is surfaced by
+ * ("if Max HP reaches 0 the Pilot dies") and is surfaced by
  * isPilotDead(), not clamped away here.
  */
 export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
@@ -205,8 +205,8 @@ export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
     pilot.maxHpOverride,
     hpSources
   )
-  // Max HP may legitimately reach 0 or below — that is the dead state
-  // (rules A2), surfaced by isPilotDead() rather than clamped away. Recompute
+  // Max HP may legitimately reach 0 or below — that is the dead state,
+  // surfaced by isPilotDead() rather than clamped away. Recompute
   // unfloored so a lethal injury total is not hidden behind breakdownOf's floor.
   if (parts.overridden) return parts
   const unfloored =
@@ -231,7 +231,7 @@ export function pilotMaxAP(pilot: PilotDerivationInput): number {
 }
 
 /**
- * Derived pilot inventory capacity (rules A13: 6 base) + the hand-edited
+ * Derived pilot inventory capacity (6 base) + the hand-edited
  * `maxInventorySlotsModifier` + ability contributions (Beefcake +4), with the
  * same absolute `maxInventorySlotsOverride` pin HP and AP already honour.
  *
@@ -418,7 +418,7 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
 /**
  * Derived mech maxima: chassis stat + hand-edited modifier + every declared
  * `contribution` from the pilot's abilities and the mech's installed
- * systems/modules (heat sinks, capacitance banks, holds — rules B2/B4/B6/B14),
+ * systems/modules (heat sinks, capacitance banks, holds),
  * each counted per installed copy and attributed by name. Pass a pre-resolved
  * `chassis` to avoid repeated ORM lookups; floored at 0 so a negative total
  * never produces a negative maximum. `contributions` is the only numeric
@@ -551,7 +551,7 @@ export function mechMaxCargo(
 }
 
 /**
- * The unified read-time conditions vocabulary for a mech (plan 2.3): the
+ * The unified read-time conditions vocabulary for a mech: the
  * free-form `conditions[]` merged with the automation-written boolean flags
  * (shutdown → 'Shutdown', vulnerable → 'Vulnerable', destroyed → 'Destroyed'),
  * deduplicated case-insensitively. Display layers render THIS list so the
@@ -581,8 +581,8 @@ type CrawlerDerivationInput = {
   /**
    * Chosen crawler-type slug — the type's stored
    * `max_sp_bonus` mutations (Battle +5) apply AT READ, so the record keeps
-   * the BARE tech-level value and type swaps re-derive in both directions
-   * (wizard-refresh Phase 5). Absent/unresolvable = no type bonus.
+   * the BARE tech-level value and type swaps re-derive in both directions.
+   * Absent/unresolvable = no type bonus.
    */
   type?: string
   maxSpModifier?: number

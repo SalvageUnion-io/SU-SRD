@@ -1,6 +1,6 @@
 /**
  * MechItemCard — ONE installed system/module as an EntityGridRow'd COMPACT entity card
- * (design §4.3, plan 4.5; redesign phase 2: compact listing cards, max 2-up).
+ * (compact listing cards, max 2-up).
  *
  * Every affordance rides the card's controls overlay (no footer actions), and
  * the card carries NO `footMeta`: a sheet card is the SRD reference card plus
@@ -16,9 +16,9 @@
  *     "wire the disabled state, not just the pill" (§4.3).
  *   - Repair (Damaged only, danger control): shows the half-SV scrap cost and
  *     opens a MODAL confirm offering an OPTIONAL crawler scrap-pool deduction.
- *     The no-deduction path is always available — advisory, never blocks (S12),
+ *     The no-deduction path is always available — advisory, never blocks,
  *     but never a silent free flip either: the cost is on the control.
- *   - Uses stepper: manual ± counter for systems AND modules (rules B13).
+ *   - Uses stepper: manual ± counter for systems AND modules.
  *   - Remove (✕): per-card uninstall — always available on editable sheets
  *     (unified edit language archetype B, never gated behind a mode).
  *

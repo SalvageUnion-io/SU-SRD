@@ -1,4 +1,4 @@
-/** Unit tests for the crawler wizard form-state mappers (plan 3.1). */
+/** Unit tests for the crawler wizard form-state mappers. */
 import { describe, expect, it } from 'bun:test'
 import { CrawlerSchema } from 'itun-domain/schemas/crawler'
 import { SalvageUnionReference } from 'salvageunion-reference'

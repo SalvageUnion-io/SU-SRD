@@ -459,7 +459,7 @@ describe('the Dashboard reads mount from the seat', () => {
   })
 })
 
-describe("the Dashboard's display: the deck, the tabs and the table (plan layer 6)", () => {
+describe("the Dashboard's display: the deck, the tabs and the table", () => {
   async function renderDashboard() {
     let view: ReturnType<typeof render> | null = null
     await act(async () => {

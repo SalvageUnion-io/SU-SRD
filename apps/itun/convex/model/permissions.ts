@@ -83,7 +83,7 @@ export async function getMembership(
  *
  * Every check below comes in two forms: one that reads the actor from the
  * Convex auth token, and one taking the actor explicitly. They exist for the
- * Discord bot (ADR-030 Phase 6), which authenticates over HTTP with a bot
+ * Discord bot (ADR-030), which authenticates over HTTP with a bot
  * credential and resolves its actor from a linked Discord id — so it has a
  * `userId` in hand but no token for `getAuthUserId` to read.
  *

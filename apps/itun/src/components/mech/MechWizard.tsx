@@ -26,7 +26,7 @@ import { MechChassisStep } from './MechChassisStep'
 import { MechReviewStep } from './MechReviewStep'
 import { MechStatsStep } from './MechStatsStep'
 
-/** Book-order steps (Mech Workshop pp.94–95 + Review — plan §4.2). */
+/** Book-order steps (Mech Workshop pp.94–95 + Review). */
 const STEPS: readonly MechWizardStepId[] = [
   'scrap',
   'chassis',
@@ -85,8 +85,8 @@ function slotPips(used: number, max: number): string {
 
 /**
  * Multi-step mech wizard on the shared WizShell skeleton, restructured to
- * the Mech Workshop's 8 book steps + Review (wizard-refresh Phase 4, plan
- * §4.2, mockup Screen 02) with the 20-Scrap economy enforced HARD (§5):
+ * the Mech Workshop's 8 book steps + Review (mockup Screen 02) with the
+ * 20-Scrap economy enforced HARD (§5):
  *
  *   - illegal options are FILTERED OUT (Tech 1 chassis/systems/modules only;
  *     only `legalStarting` patterns in the prefill strip) — never rendered;
@@ -94,7 +94,7 @@ function slotPips(used: number, max: number): string {
  *     on scrapCostFor) and the per-step slot budgets (computeMechCapacity);
  *     a `+` that would overspend disables, an unaffordable card dims with a
  *     reason chip — visible, never hidden;
- *   - exactly 1 chassis (radio); systems/modules are OPTIONAL (plan Q11);
+ *   - exactly 1 chassis (radio); systems/modules are OPTIONAL;
  *     the pattern name is required — Next is gated by `mechCreationStepGate`
  *     and the unmet requirement renders in the footerNote;
  *   - chassis change refunds + wipes the loadout with a toast; draft-restore
@@ -200,7 +200,7 @@ export function MechWizard({
   }
 
   /**
-   * Canonical starting-pattern prefill (create step 2, plan §4.2): fills
+   * Canonical starting-pattern prefill (create step 2): fills
    * steps 4–5 from the pattern (expanding per-entry `count`) and debits the
    * budget accordingly. The arithmetic stays enforced on the prefilled state
    * — `legalStarting` patterns fit by data, and the Review gate re-checks.
@@ -394,7 +394,7 @@ export function MechWizard({
     }
   })()
 
-  // Systems/modules are OPTIONAL (plan Q11) — say so where a player might
+  // Systems/modules are OPTIONAL — say so where a player might
   // expect a block; otherwise surface the gate reason on a locked Next.
   const footerNote = !gate.ok
     ? gate.reason

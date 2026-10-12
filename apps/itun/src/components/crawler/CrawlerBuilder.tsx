@@ -46,7 +46,7 @@ import '../../styles/wizard.css'
 /** The RuleBrief's muted aside (the saved pilot/mech count). */
 const MUTED: CSSProperties = { color: tokens.color.wkMuted }
 
-/** Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). */
+/** Book-order steps (Union Crawler pp.212–213 + Review). */
 const STEPS: readonly CrawlerWizardStepId[] = [
   'type',
   'stats',
@@ -96,8 +96,8 @@ function slotPips(used: number, max: number): string {
 
 /**
  * Multi-step crawler wizard on the shared WizShell skeleton, restructured to
- * the Union Crawler's 5 book steps + Review (wizard-refresh Phase 5, plan
- * §4.3, mockup Screen 03 — magenta band, peach step card) with the crawler
+ * the Union Crawler's 5 book steps + Review (mockup Screen 03 — magenta band,
+ * peach step card) with the crawler
  * creation rules enforced HARD (§5):
  *
  *   - exactly 1 of 5 types (radio, entity cards); the type's stored
@@ -135,7 +135,7 @@ export function CrawlerBuilder({
   const allBays = useMemo<SURefEntity[]>(() => SalvageUnionReference.CrawlerBays.all(), [])
   const types = useMemo<SURefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
 
-  // Advisory prelude context (plan §4.3 step 0): a gentle count of the pilots
+  // Advisory prelude context (step 0): a gentle count of the pilots
   // and mechs saved here — surfaced in step 1's RuleBrief, NEVER a blocker
   // (the whole table's state can't be verified).
   const pilotCount = usePilots().length
@@ -266,7 +266,7 @@ export function CrawlerBuilder({
     .filter((s): s is SURefSystem & { schemaName: string } => s !== null)
 
   // The Armament-Bay cap comes from the type's STORED `mutations` rows
-  // (weapon_slots; Battle = 2) — plan §4.3. Selection clamps at this.
+  // (weapon_slots; Battle = 2). Selection clamps at this.
   const weaponSlots = crawlerWeaponSlotsFor(form.type)
   const installedWeaponCount = form.systems.filter((slug) => {
     const system = resolveSystemRef(slug)

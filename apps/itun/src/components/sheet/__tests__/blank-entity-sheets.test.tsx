@@ -1,6 +1,6 @@
 /**
- * Blank entities render on their live sheets (wizard-refresh Phase 1,
- * Open Question 4): a blank pilot (classRef ''), blank mech (chassisRef '')
+ * Blank entities render on their live sheets: a blank pilot (classRef ''),
+ * blank mech (chassisRef '')
  * and blank crawler (TL only, no type) — exactly what createBlank persists —
  * must render /sheet/{kind}/{id} without crashing.
  *

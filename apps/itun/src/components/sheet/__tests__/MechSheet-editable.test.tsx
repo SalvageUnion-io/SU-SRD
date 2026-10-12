@@ -1,5 +1,5 @@
 /**
- * MechSheet — per-item action economy (plan 4.5, S12).
+ * MechSheet — per-item action economy.
  *
  * Stat editing moved to the hero trackers (Sheet.tsx); the body's edit
  * surface is the per-card action economy:
@@ -7,7 +7,7 @@
  *   - Damaged DISABLES Use and promotes Repair to primary, showing the
  *     half-SV scrap cost.
  *   - Repair flips the item to Intact; the crawler scrap-pool deduction is
- *     optional and never blocks (S12) — both paths covered.
+ *     optional and never blocks — both paths covered.
  *   - Uses steppers persist per-item counters for systems AND modules.
  *   - Chassis ability Use spends EP and is blocked while shut down.
  *
@@ -193,7 +193,7 @@ describe('MechSheet — Damaged promotes Repair (S12)', () => {
   })
 })
 
-describe('MechSheet — per-item uses counters (rules B13)', () => {
+describe('MechSheet — per-item uses counters', () => {
   test('the stepper decrements the per-item uses counter', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech({

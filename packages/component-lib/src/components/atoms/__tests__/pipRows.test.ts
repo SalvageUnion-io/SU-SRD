@@ -26,7 +26,7 @@ describe('statBlockRows — ≤6 per row, extras to LAST rows (ruleset §4.5)', 
   })
 })
 
-describe('pipClickValue — click-to-set semantics (design §4.5)', () => {
+describe('pipClickValue — click-to-set semantics', () => {
   test('clicking a lit pip turns it and everything above off', () => {
     // value 5, click pip index 2 (lit) → value 2
     expect(pipClickValue(2, 5)).toBe(2)

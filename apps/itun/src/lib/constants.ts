@@ -14,8 +14,8 @@ import {
 /**
  * Starting ability picks at character creation — exactly 1 per the Pilot Bay
  * ("Your Pilot starts with 1 Ability of your choice", Core Book p.18).
- * Corrected from the previous house-rule 3 (wizard-refresh Phase 3, plan Q1 —
- * the strict-book reading; the Blank create path is the escape hatch).
+ * Corrected from the previous house-rule 3 (the
+ * strict-book reading; the Blank create path is the escape hatch).
  * Re-exported from the package predicate module so the budget and the
  * legality gates can never drift.
  */
