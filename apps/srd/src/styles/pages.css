@@ -13,8 +13,9 @@
 
 /*
  * The home page — the manual's Contents page (board 06, `index.page.tsx` and
- * `components/HomeContents.tsx`). A 1360px measure. First-timer content
- * first: the title, the search, "New to the Union?", then the index.
+ * `components/HomeContents.tsx`). A 1360px measure: the index in columns and
+ * the "Getting started" sidebar at its right; on a phone, the title, the
+ * search, "New to the Union?", then the index.
  */
 .srd-home__lede {
   display: flex;
@@ -67,18 +68,34 @@
   }
 }
 
-/* The sections in one flow: up to four columns of at least 16rem, filled
-   down then across and balanced, so no column ends on a hole; one column on
-   a phone. Multi-column has no row gap, so each section carries its own. */
+/* The aside, then the index: one stack on a phone, the aside first so a
+   first-timer meets "New to the Union?" before the index. */
 .srd-home__body {
-  column-gap: var(--space-28);
-  columns: 4 16rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
   margin-inline: auto;
   padding: var(--space-24) var(--space-16) var(--space-32);
   width: 100%;
 }
 
-.srd-home__body > * {
+.srd-home__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  min-width: 0;
+}
+
+/* The index's sections in one flow: up to three columns of at least 16rem,
+   filled down then across and balanced, so no column ends on a hole. Multi-
+   column has no row gap, so each section carries its own. */
+.srd-home__index {
+  column-gap: var(--space-28);
+  columns: 3 16rem;
+  min-width: 0;
+}
+
+.srd-home__index > * {
   break-inside: avoid;
   margin-block-end: var(--space-24);
 }
@@ -86,6 +103,26 @@
 @media (min-width: 40rem) {
   .srd-home__body {
     padding-inline: var(--space-24);
+  }
+}
+
+/* A desktop pins the aside to a 20rem sidebar at the right of the index. */
+@media (min-width: 64rem) {
+  .srd-home__body {
+    align-items: start;
+    column-gap: var(--space-28);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+
+  .srd-home__aside {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .srd-home__index {
+    grid-column: 1;
+    grid-row: 1;
   }
 }
 
