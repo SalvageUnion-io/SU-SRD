@@ -8,7 +8,7 @@
  */
 
 import { z } from '../../zod'
-import { NonNegativeIntegerSchema, TechLevelSchema } from '../common'
+import { NameSchema, NonNegativeIntegerSchema, TechLevelSchema } from '../common'
 import { DamageTypeSchema } from '../enums'
 
 /**
@@ -71,6 +71,18 @@ export const ChassisStatsSchema = StatsSchema.required({
   techLevel: true,
   salvageValue: true,
 }).describe('Statistics specific to chassis — all stats required')
+
+/**
+ * A head of a multi-headed chassis — its own full stat block, crafted and
+ * repaired separately and mounting its own Systems and Modules (the Cerberus,
+ * Rainmaker p.72–74). A pattern places an item on a head with
+ * `PatternSystemModuleSchema.head`; an item with no head sits on the chassis.
+ */
+export const ChassisHeadSchema = ChassisStatsSchema.extend({
+  name: NameSchema.describe('Name of this head'),
+})
+  .strict()
+  .describe('A separately-crafted head of a multi-headed chassis, with its own stats')
 
 /**
  * Entity that can perform actions and has traits

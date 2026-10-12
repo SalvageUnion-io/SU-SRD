@@ -23,8 +23,12 @@
  *   bun-version   the root `packageManager` is the one Bun pin: the root
  *                 `bun-types` matches it, no workflow pins Bun by hand
  *                 instead of using `./.github/actions/setup-bun` (which reads
- *                 it), and the Bun running this is the pinned one (a mismatched
- *                 Bun cannot read bun.lock, and `bun why` exits 0 while saying so).
+ *                 it), and in CI the Bun running this is the pinned one (a
+ *                 mismatched Bun cannot read bun.lock, and `bun why` exits 0
+ *                 while saying so). CI only: setup-bun installs exactly the pin
+ *                 there, while an agent shell runs whatever Bun its image or
+ *                 PATH gives it (the SessionStart hook's PATH fix reaches the
+ *                 main shell, not every subshell), and that is no change's fault.
  *   convex-guard  `deploy-cloudflare.yml` still runs `convex deploy` and still
  *                 fails a production deploy with no CONVEX_DEPLOY_KEY. Without
  *                 it, production ran a four-day-stale backend in 2026-08 with
@@ -83,7 +87,7 @@ export type WorkflowContext = {
   manifests: Map<string, Manifest>
   /** Package name -> the bins bun.lock records for it. */
   lockBins: Map<string, string[]>
-  /** The Bun running this, or null to skip that comparison (tests). */
+  /** The Bun running this, or null to skip that comparison (outside CI, tests). */
   runningBun: string | null
   exists: (repoRelPath: string) => boolean
 }
@@ -832,6 +836,17 @@ export const WORKFLOW_CHECKS: readonly WorkflowCheck[] = [
   { id: 'secrets-env', label: 'Environment secrets', run: (ctx) => checkSecretsEnv(ctx) },
 ]
 
+/**
+ * The running Bun the bun-version check compares, or null to skip it. CI only:
+ * setup-bun installs the pin there, and an agent shell's Bun is the image's.
+ */
+export function runningBunToCompare(
+  env: Readonly<Record<string, string | undefined>>,
+  version: string
+): string | null {
+  return env.CI ? version : null
+}
+
 /** Read the real repo into a context. */
 export function loadContext(root: string, runningBun: string | null): WorkflowContext {
   const files: WorkflowFile[] = []
@@ -903,7 +918,10 @@ function main(argv: readonly string[]): void {
     )
     process.exit(2)
   }
-  const ctx = loadContext(join(import.meta.dir, '..'), Bun.version)
+  const ctx = loadContext(
+    join(import.meta.dir, '..'),
+    runningBunToCompare(process.env, Bun.version)
+  )
   let failed = false
   for (const check of WORKFLOW_CHECKS) {
     if (only && !only.includes(check.id)) continue

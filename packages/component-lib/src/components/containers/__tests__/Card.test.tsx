@@ -280,6 +280,36 @@ describe('Card', () => {
     expect(clicked).toBe(true)
   })
 
+  test('a VISIBLE cardClick control is the one control; the card is a pointer convenience', () => {
+    let clicks = 0
+    const { container } = render(
+      <Card
+        headerBg="bg-mech"
+        headerContent={<span>Row</span>}
+        size="medium"
+        extent="head"
+        controls={[
+          makeTestControl({
+            cardClick: true,
+            onClick: () => {
+              clicks += 1
+            },
+          }),
+        ]}
+      />
+    )
+    const wrapper = rootEl(container)
+    // No role, tab stop or key handler on the card: one button, one tab stop.
+    expect(wrapper.getAttribute('role')).toBeNull()
+    expect(wrapper.getAttribute('tabindex')).toBeNull()
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+    // A pointer click anywhere still lands, and the button's own click fires once.
+    fireEvent.click(wrapper)
+    expect(clicks).toBe(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Test' }))
+    expect(clicks).toBe(2)
+  })
+
   test('non-cardClick control does not make card clickable', () => {
     const { container } = render(
       <Card

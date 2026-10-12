@@ -14,6 +14,8 @@
  */
 
 import { roll } from '@randsum/roller'
+import type { TableDice } from 'salvageunion-reference'
+import { d20ForTable } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 
 /** One die of `sides` faces, from 1 to `sides`, rolled by @randsum/roller. */
@@ -27,15 +29,11 @@ export function rollD20(): number {
 /** A d20 for one table: called once per roll on it. */
 export type TableDie = () => number
 
-type SalvageUnionTables = {
-  names: readonly string[]
-  rollTotal: (tableName: string) => number
-}
-
-let loading: Promise<SalvageUnionTables> | undefined
+let loading: Promise<TableDice> | undefined
 
 /**
- * @randsum/salvageunion, loaded on first use.
+ * The dice a table rolls on: @randsum/salvageunion's named tables, loaded on
+ * first use, and Randsum's plain d20.
  *
  * Dynamic on purpose, twice over. The package resolves to the workspace
  * `salvageunion-reference` (root `overrides`), and its module scope reads
@@ -43,13 +41,14 @@ let loading: Promise<SalvageUnionTables> | undefined
  * which throws until `roll-tables` is loaded — so it can only be imported
  * after that preload. And no page pays for it until someone rolls.
  */
-function loadSalvageUnionTables(): Promise<SalvageUnionTables> {
+function loadTableDice(): Promise<TableDice> {
   loading ??= import('salvageunion-reference')
     .then(({ SalvageUnionReference }) => SalvageUnionReference.preload(['roll-tables']))
     .then(() => import('@randsum/salvageunion'))
     .then(({ SALVAGE_UNION_TABLE_NAMES, rollTable }) => ({
       names: SALVAGE_UNION_TABLE_NAMES,
-      rollTotal: (tableName: string): number => rollTable(tableName).total,
+      rollTable,
+      rollD20,
     }))
     .catch((error: unknown) => {
       // A failed chunk load must not poison every later roll.
@@ -60,17 +59,17 @@ function loadSalvageUnionTables(): Promise<SalvageUnionTables> {
 }
 
 /**
- * The d20 for a roll on `tableName`: `rollTable(tableName)` when it is a named
- * Salvage Union table, Randsum's plain d20 otherwise (a table an entity owns).
+ * The die for a roll on `tableName`: salvageunion-reference's `d20ForTable`
+ * over these dice — `rollTable(tableName)` when it is a named Salvage Union
+ * table, Randsum's plain d20 otherwise (a table an entity owns).
  */
-export async function d20ForTable(tableName: string): Promise<TableDie> {
-  const { names, rollTotal } = await loadSalvageUnionTables()
-  return names.includes(tableName) ? () => rollTotal(tableName) : rollD20
+export async function dieForTable(tableName: string): Promise<TableDie> {
+  return d20ForTable(tableName, await loadTableDice())
 }
 
 /**
  * A rules `Roll` (salvageunion-reference/rules) for one action that rolls on
- * `tableName`: its d20s come from `d20ForTable(tableName)`, any other die (a
+ * `tableName`: its d20s come from `dieForTable(tableName)`, any other die (a
  * random Bay) from `rollDie`.
  *
  * `plainD20s` leading d20s are not on the table and stay plain: a Heat Check's
@@ -81,7 +80,7 @@ export async function rollForTable(
   tableName: string,
   { plainD20s = 0 }: { plainD20s?: number } = {}
 ): Promise<Roll> {
-  const d20 = await d20ForTable(tableName)
+  const d20 = await dieForTable(tableName)
   let plain = plainD20s
   return (sides) => {
     if (sides !== 20) return rollDie(sides)

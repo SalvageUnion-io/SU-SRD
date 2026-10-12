@@ -14,13 +14,18 @@
  *
  * Handler absence is the read-only encoding, as on `NpcInset`: a crewmate's
  * NPC, read live from the Game's listing, renders the same page with no edit
- * affordances and a note saying why.
+ * affordances and a note saying why. So does a shared one at `/p/npc/:id`.
+ *
+ * Its owner shares it from here, with the Share button every player thing
+ * carries: the same "Who can see it" dialog a pilot's sheet opens
+ * (`ShareStatusDialog`).
  */
 
 import { Badge, Button, ChapterBand, Slab, Text, tokens, UserMadeStamp } from 'component-lib'
 import type { Npc } from 'itun-domain/schemas/npc'
 import type { CrewSlot } from 'itun-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import { isNpcDown, npcCurrentHP, slotPhrase } from '../../lib/npcs/npcModel'
 import { npcTemplateArt } from '../../lib/photos/defaultArt'
@@ -31,6 +36,7 @@ import { MoveToContainerControl } from '../container/MoveToContainerControl'
 import { AppLink } from '../shared/AppLink'
 import { EntityPhoto } from '../shared/EntityPhoto'
 import type { Confirm } from '../shared/useConfirm'
+import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import { NpcInset } from '../sheet/NpcInset'
 import { NpcCard } from './NpcCard'
 
@@ -111,6 +117,8 @@ type NpcSheetProps = {
   onDeleted?: () => void
   /** Where the breadcrumb's first step goes: the shelves, or the crew. */
   back?: { href: string; label: string }
+  /** Why a read-only page cannot be changed; a crewmate's NPC by default. */
+  readOnlyNote?: string
 }
 
 export function NpcSheet({
@@ -121,7 +129,9 @@ export function NpcSheet({
   confirm,
   onDeleted,
   back = { href: '/', label: 'Shelves' },
+  readOnlyNote = 'You are reading a crewmate’s NPC. Only whoever made it can change it.',
 }: NpcSheetProps) {
+  const [shareOpen, setShareOpen] = useState(false)
   const view: NpcView = npc
   const down = isNpcDown(view)
   const editable = !readOnly
@@ -237,6 +247,9 @@ export function NpcSheet({
 
           {editable ? (
             <div style={ROW}>
+              <Button onClick={() => setShareOpen(true)} aria-label={`Share ${npc.name}`}>
+                Share
+              </Button>
               {confirm && (
                 <MoveToContainerControl
                   entityType="npc"
@@ -251,11 +264,21 @@ export function NpcSheet({
             </div>
           ) : (
             <p role="note" style={NOTE}>
-              You are reading a crewmate&rsquo;s NPC. Only whoever made it can change it.
+              {readOnlyNote}
             </p>
           )}
         </section>
       </div>
+      {editable && (
+        <ShareStatusDialog
+          kind="npc"
+          id={npc.id}
+          name={npc.name}
+          gameId={npc.gameId ?? null}
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+        />
+      )}
     </main>
   )
 }

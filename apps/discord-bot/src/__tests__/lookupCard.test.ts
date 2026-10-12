@@ -1,17 +1,18 @@
 /**
- * The `/su lookup` card: the shared Discord card (`discordCardParts`, from the
- * entity model) plus the bot's tabs, pages, pattern picker and roll buttons.
+ * The `/su lookup` card: an entry's one Discord card (`discordEntryCard`, the
+ * SRD's Component Embed too), plus its Roll buttons.
  *
- * The load-bearing test is the exhaustive pass: EVERY entity in EVERY schema,
- * on every tab and page it has, goes through lookupCard, and the container
- * guard must have nothing to shed. We can't see replies in Discord, so this is
- * what proves a lookup arrives whole across every schema, not the few we'd
- * pick by hand. The guard sheds whole blocks from the end, so an overrun would
- * leave a reply that is only its heading (#1124).
+ * The load-bearing tests are the exhaustive passes: EVERY entry in EVERY
+ * schema, and every pattern, goes through lookupCard. The container guard must
+ * have nothing to shed, and the card must be, block for block, the card a
+ * pasted salvageunion.io link draws. We can't see replies in Discord, so this
+ * is what proves a lookup arrives whole and matches the link, not the few we'd
+ * pick by hand.
  */
 import { describe, expect, test } from 'bun:test'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import {
+  discordEntryCard,
   findEntityBySlug,
   getDataMaps,
   getPatterns,
@@ -22,7 +23,8 @@ import {
 import type { ButtonSpec, ContainerData } from '../container'
 import { enforceContainerLimits } from '../container'
 import { NEUTRAL_ACCENT } from '../format'
-import { buyLink, lookupCard, parseViewPayload, patternPeek } from '../lookupCard'
+import type { LookupHit } from '../lookupCard'
+import { buyLink, entityFromKey, lookupCard, lookupKey, viewPayloadKey } from '../lookupCard'
 import { cardText } from './cardText'
 
 type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
@@ -38,44 +40,62 @@ function entity(schemaName: SURefEnumSchemaName, slug: string): Entity {
   return { ...found, schemaName }
 }
 
+const hit = (schemaName: SURefEnumSchemaName, slug: string): LookupHit => ({
+  schemaName,
+  entity: entity(schemaName, slug),
+})
+
 const buttonsOf = (data: ContainerData): ButtonSpec[] =>
   data.blocks.flatMap((block) => (block.kind === 'buttons' ? block.buttons : []))
 
 const labels = (data: ContainerData): string[] => buttonsOf(data).map((button) => button.label)
 
-describe('lookupCard — exhaustive validity across the whole dataset', () => {
-  test('every entity, on every tab and page, renders whole and never in rust', () => {
+/** The card without its controls: what the Component Embed draws. */
+const content = (data: ContainerData) => data.blocks.filter((block) => block.kind !== 'buttons')
+
+describe('lookupCard — exhaustive across the whole dataset', () => {
+  test('every entry and every pattern renders whole, never in rust, and IS its pasted link’s card', () => {
     const schemas = getSchemaCatalog().schemas.filter((s) => !s.meta)
     const { dataMap } = getDataMaps()
-    let checked = 0
+    let entries = 0
+    let patterns = 0
     for (const schema of schemas) {
-      if (!isSchemaName(schema.id)) throw new Error(`non-canonical schema id: ${schema.id}`)
-      const entities = (dataMap[schema.id] as SURefEntity[] | undefined) ?? []
-      for (const raw of entities) {
-        const withSchema: Entity = { ...raw, schemaName: schema.id }
-        const overview = lookupCard(withSchema, schema.id)
-        assertFits(overview, `${schema.id}/${raw.id}`)
-        // Rust means action, and only action (ruleset §3.1).
-        expect(overview.accent).not.toBe(NEUTRAL_ACCENT)
-        expect(cardText(overview)).not.toContain('[[')
-        const pages = Math.ceil((getPatterns(raw)?.length ?? 0) / 2)
-        for (let page = 0; page < pages; page++) {
-          assertFits(
-            lookupCard(withSchema, schema.id, { tab: 'patterns', page }),
-            `${schema.id}/${raw.id} patterns ${page}`
-          )
+      const schemaName = schema.id
+      if (!isSchemaName(schemaName)) throw new Error(`non-canonical schema id: ${schemaName}`)
+      for (const raw of (dataMap[schemaName] as SURefEntity[] | undefined) ?? []) {
+        const withSchema: Entity = { ...raw, schemaName }
+        const hits: LookupHit[] = [
+          { schemaName, entity: withSchema },
+          ...(getPatterns(raw) ?? []).map((pattern) => ({
+            schemaName,
+            entity: withSchema,
+            pattern,
+          })),
+        ]
+        for (const one of hits) {
+          const label = `${schemaName}/${raw.id}${one.pattern ? ` pattern ${one.pattern.name}` : ''}`
+          const card = lookupCard(one)
+          assertFits(card, label)
+          // Rust means action, and only action (ruleset §3.1).
+          expect(card.accent).not.toBe(NEUTRAL_ACCENT)
+          expect(cardText(card)).not.toContain('[[')
+          // The pasted link's card, block for block.
+          const embed = discordEntryCard(withSchema as SURefMetaEntity, one.pattern)
+          expect(content(card), `${label}: differs from its Component Embed`).toEqual(embed.blocks)
+          if (one.pattern) patterns++
+          else entries++
         }
-        checked++
       }
     }
     // Guard against the loop silently checking nothing (accessor drift).
-    expect(checked).toBeGreaterThan(800)
+    expect(entries).toBeGreaterThan(800)
+    expect(patterns).toBeGreaterThan(100)
   })
 })
 
 describe('lookupCard — the card', () => {
   test('a chassis wears its tone and prints the book stat column', () => {
-    const card = lookupCard(entity('chassis', 'goliath'), 'chassis')
+    const card = lookupCard(hit('chassis', 'goliath'))
     expect(card.accent).toBe(0x7a978a)
     const text = cardText(card)
     expect(text).toContain(
@@ -86,7 +106,7 @@ describe('lookupCard — the card', () => {
   })
 
   test('a weapon system prints its facets as cells and its traits as links', () => {
-    const text = cardText(lookupCard(entity('systems', '50-cal-machine-gun'), 'systems'))
+    const text = cardText(lookupCard(hit('systems', '50-cal-machine-gun')))
     expect(text).toContain(
       '## [.50 Cal Machine Gun](https://salvageunion.io/schema/systems/item/50-cal-machine-gun)'
     )
@@ -96,102 +116,127 @@ describe('lookupCard — the card', () => {
   })
 
   test('an owner strips the redundant " (Owner)" suffix from its own actions', () => {
-    const text = cardText(lookupCard(entity('systems', 'multi-function-repair-arm'), 'systems'))
+    const text = cardText(lookupCard(hit('systems', 'multi-function-repair-arm')))
     expect(text).toContain('Chassis Repair')
     expect(text).not.toContain('(Multi-Function Repair Arm)')
   })
 
   test('chassis ability text never leaks the [(CHASSIS)] placeholder', () => {
     for (const chassis of SalvageUnionReference.Chassis.all()) {
-      const text = cardText(lookupCard({ ...chassis, schemaName: 'chassis' }, 'chassis'))
+      const text = cardText(
+        lookupCard({ schemaName: 'chassis', entity: { ...chassis, schemaName: 'chassis' } })
+      )
       expect(text, `${chassis.name} leaks the placeholder`).not.toContain('[(CHASSIS)]')
     }
   })
 
   test('[[Trait]] references in body text become links', () => {
-    const text = cardText(lookupCard(entity('abilities', 'overpower'), 'abilities'))
+    const text = cardText(lookupCard(hit('abilities', 'overpower')))
     expect(text).toContain('[Vulnerable](https://salvageunion.io/schema/traits/item/vulnerable)')
   })
 })
 
 describe('lookupCard — tables and roll buttons', () => {
   test('a roll table prints every band and offers to roll it', () => {
-    const card = lookupCard(entity('roll-tables', 'reactor-overload'), 'roll-tables')
+    const card = lookupCard(hit('roll-tables', 'reactor-overload'))
     const text = cardText(card)
     expect(text).toContain('-# ROLL THE DIE:')
     expect(text).toContain('`20` **Reactor Overdrive**')
     expect(text).toContain('`11–19` **Reactor Overheat**')
-    expect(labels(card)).toEqual(['Roll on this table'])
+    expect(labels(card)).toEqual(['Roll on this table', 'Buy'])
   })
 
   test('a two-roll table prints each column with its entries', () => {
-    const card = lookupCard(entity('roll-tables', 'callsign-table'), 'roll-tables')
+    const card = lookupCard(hit('roll-tables', 'callsign-table'))
     const text = cardText(card)
     expect(text).toContain('-# ROLL THE DIE: Two rolls: the column, then the entry.')
     expect(text).toContain('**1–4**: `1` Sparkles · `2` Apex')
   })
 
   test('an ability that rolls a table carries that roll as one tap', () => {
-    const card = lookupCard(entity('abilities', 'counter-hacking'), 'abilities')
+    const card = lookupCard(hit('abilities', 'counter-hacking'))
     expect(card.accent).toBe(0xef894f)
     expect(cardText(card)).toContain('-# ABILITY · ADVANCED HACKING TREE · REACTION · `1 AP`')
-    expect(labels(card)).toEqual(['Roll Counter-Hacking'])
+    expect(labels(card)).toEqual(['Roll Counter-Hacking', 'Buy'])
   })
 })
 
-describe('lookupCard — patterns', () => {
-  test('the Overview lists every pattern, linked, with a picker and the tabs', () => {
-    const card = lookupCard(entity('chassis', 'mule'), 'chassis')
+describe('lookupCard — patterns are entries of their own', () => {
+  test('a host’s card lists none of its patterns, and has no tabs or picker', () => {
+    const card = lookupCard(hit('chassis', 'mule'))
     const text = cardText(card)
-    expect(text).toContain('-# PATTERNS (6)')
-    expect(text).toContain(
-      '**[Hauler](https://salvageunion.io/schema/chassis/item/mule/pattern/hauler)** · `7` systems · `2` modules · legal starting'
-    )
-    const select = card.blocks.find((block) => block.kind === 'select')
-    expect(select?.kind === 'select' ? select.customId : '').toBe('su:peek:chassis::mule')
-    expect(select?.kind === 'select' ? select.options[0]?.value : '').toBe('hauler')
-    expect(labels(card)).toEqual(['Overview', 'Patterns (6)'])
-    expect(buttonsOf(card)[0]).toMatchObject({ disabled: true })
+    expect(text).not.toContain('PATTERNS (')
+    expect(text).not.toContain('/pattern/hauler')
+    expect(card.blocks.some((block) => block.kind === 'select')).toBe(false)
+    expect(labels(card)).not.toContain('Overview')
   })
 
-  test('the Patterns tab pages through them, two at a time, with their loadouts', () => {
-    const card = lookupCard(entity('chassis', 'mule'), 'chassis', { tab: 'patterns', page: 1 })
-    const text = cardText(card)
-    expect(text).toContain('-# PATTERNS (6) · PAGE 2 OF 3')
-    expect(text).toContain('-# SYSTEMS (')
-    expect(labels(card)).toEqual(['‹', '2 / 3', '›', 'Overview', 'Patterns (6)'])
+  test('a pattern looked up is its own card', () => {
+    const one = entityFromKey('chassis::mule::hauler')
+    if (!one) throw new Error('no Hauler')
+    expect(one.pattern?.name).toBe('Hauler')
+    const text = cardText(lookupCard(one))
+    expect(text).toContain('-# PATTERN · MULE')
+    expect(text).toContain('[Rigging Arm](https://salvageunion.io/schema/systems/item/rigging-arm)')
   })
 
   test('a Bio-Titan pattern shows the rules it adds', () => {
-    const text = cardText(
-      lookupCard(entity('bio-titans', 'typhon'), 'bio-titans', { tab: 'patterns', page: 0 })
-    )
-    expect(text).toContain(
-      '### [Hill Worm](https://salvageunion.io/schema/bio-titans/item/typhon/pattern/hill-worm)'
-    )
+    const one = entityFromKey('bio-titans::typhon::hill-worm')
+    if (!one) throw new Error('no Hill Worm')
+    const text = cardText(lookupCard(one))
     expect(text).toContain('### Metallic Reconstitution')
-    expect(text).toContain('additional Armour Plating')
   })
 
-  test('a pattern Peek is the pattern card, read-only and terminal', () => {
-    const peek = patternPeek(entity('chassis', 'mule'), 'hauler')
-    if (!peek) throw new Error('no Peek')
-    const text = cardText(peek)
-    expect(text).toContain('-# PATTERN · MULE')
-    expect(text).toContain('[Rigging Arm](https://salvageunion.io/schema/systems/item/rigging-arm)')
-    expect(peek.blocks.some((block) => block.kind === 'buttons' || block.kind === 'select')).toBe(
-      false
+  test('keys round-trip, a retired slug answers with its pattern, and nonsense is refused', () => {
+    const mule = hit('chassis', 'mule')
+    expect(lookupKey(mule)).toBe('chassis::mule')
+    const hauler = entityFromKey('chassis::mule::hauler')
+    expect(hauler && lookupKey(hauler)).toBe('chassis::mule::hauler')
+    expect(entityFromKey('bio-titans::hill-worm-pattern-typhon')?.pattern?.name).toBe('Hill Worm')
+    expect(entityFromKey('chassis::mule::no-such-pattern')).toBeNull()
+    expect(entityFromKey('chassis::mule::hauler::extra')).toBeNull()
+    expect(entityFromKey('nonsense::mule')).toBeNull()
+  })
+
+  test('an older tab’s payload still names its entry', () => {
+    expect(viewPayloadKey('chassis::mule|patterns|2')).toBe('chassis::mule')
+    expect(viewPayloadKey('chassis::mule|overview')).toBe('chassis::mule')
+    expect(viewPayloadKey('chassis::mule|nonsense')).toBeNull()
+  })
+})
+
+describe('lookupCard — the Buy link', () => {
+  const WORKSHOP_MANUAL =
+    'https://leyline.press/products/salvage-union-core-book?variant=43991343956158'
+
+  test('an entry from a Leyline Press book links its store page, after the rolls', () => {
+    const card = lookupCard(hit('chassis', 'mule'))
+    expect(buttonsOf(card).at(-1)).toEqual({ kind: 'link', url: WORKSHOP_MANUAL, label: 'Buy' })
+  })
+
+  test('an adventure module and a Starter Set booklet link their own store pages', () => {
+    expect(buyLink(hit('bio-titans', 'apophis'))).toStartWith(
+      'https://leyline.press/products/rainmaker-adventure-module'
     )
-    expect(patternPeek(entity('chassis', 'mule'), 'no-such-pattern')).toBeNull()
+    expect(buyLink(hit('bio-titans', 'ygdriss'))).toBe(
+      'https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set'
+    )
   })
 
-  test('a view payload round-trips, and nonsense is refused', () => {
-    expect(parseViewPayload('chassis::mule|patterns|2')).toEqual({
-      key: 'chassis::mule',
-      view: { tab: 'patterns', page: 2 },
-    })
-    expect(parseViewPayload('chassis::mule|overview')?.view).toEqual({ tab: 'overview', page: 0 })
-    expect(parseViewPayload('chassis::mule|nonsense')).toBeNull()
+  test('a pattern links the book it is printed in, not its host’s', () => {
+    const hauler = entityFromKey('chassis::mule::hauler')
+    if (!hauler) throw new Error('no Hauler')
+    expect(buyLink(hauler)).toBe(WORKSHOP_MANUAL)
+  })
+
+  test('Mech Monday is not for sale, so it has no Buy link', () => {
+    expect(labels(lookupCard(hit('sources', 'mech-monday')))).not.toContain('Buy')
+    // Mech Monday patterns are hidden today, so only buyLink itself can see one.
+    const mule = hit('chassis', 'mule')
+    const all = ('patterns' in mule.entity ? mule.entity.patterns : undefined) ?? []
+    const appleseed = all.find((pattern) => pattern.name === 'Appleseed')
+    expect(appleseed?.source).toBe('Mech Monday')
+    expect(buyLink({ ...mule, pattern: appleseed })).toBeNull()
   })
 })
 
@@ -202,11 +247,15 @@ describe('lookupCard — patterns', () => {
  * `\]` becomes `\\]`, an ESCAPED BACKSLASH followed by an UNESCAPED `]` that
  * closes the label early and lets the rest of the name leak out as raw
  * markdown (CodeQL js/incomplete-sanitization). Driven black-box through a
- * pattern name, the label the bot itself builds.
+ * pattern's name, its card's title.
  */
 describe('markdown label escaping', () => {
-  const cardWith = (patterns: unknown[]): ContainerData =>
-    lookupCard({ ...entity('chassis', 'goliath'), patterns } as Entity, 'chassis')
+  const cardWith = ([pattern]: { name: string; systems: never[]; modules: never[] }[]) =>
+    lookupCard({
+      schemaName: 'chassis',
+      entity: { ...entity('chassis', 'goliath'), patterns: [pattern] } as Entity,
+      pattern: pattern as never,
+    })
 
   test('a literal backslash in a label is itself escaped', () => {
     const text = cardText(cardWith([{ name: 'Evil\\', systems: [], modules: [] }]))
@@ -223,43 +272,8 @@ describe('markdown label escaping', () => {
     const start = performance.now()
     const card = cardWith([{ name: '['.repeat(50_000), systems: [], modules: [] }])
     expect(performance.now() - start).toBeLessThan(1000)
-    assertFits(card, 'pathological pattern name')
-  })
-})
-
-describe('lookupCard — the Buy link', () => {
-  /** The cite: the last block that is not a row of controls. */
-  const citeBlock = (data: ContainerData) =>
-    data.blocks.filter((block) => block.kind !== 'buttons').at(-1)
-  const buyButton = (data: ContainerData): ButtonSpec | undefined => {
-    const cite = citeBlock(data)
-    return cite?.kind === 'section' ? cite.button : undefined
-  }
-
-  test('an entry from a Leyline Press book sits its Buy link beside the cite', () => {
-    const card = lookupCard(entity('chassis', 'mule'), 'chassis')
-    const button = buyButton(card)
-    expect(button).toEqual({
-      kind: 'link',
-      url: 'https://leyline.press/products/salvage-union-core-book?variant=43991343956158',
-      label: 'Buy',
-    })
-    const cite = citeBlock(card)
-    expect(cite?.kind === 'section' && cite.text[0]).toStartWith('-# Salvage Union Workshop Manual')
-  })
-
-  test('an adventure module and a Starter Set booklet link their own store pages', () => {
-    expect(buyLink(entity('bio-titans', 'apophis'))).toStartWith(
-      'https://leyline.press/products/rainmaker-adventure-module'
-    )
-    expect(buyLink(entity('bio-titans', 'ygdriss'))).toBe(
-      'https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set'
-    )
-  })
-
-  test('Mech Monday is not for sale, so it has no Buy link', () => {
-    const card = lookupCard(entity('sources', 'mech-monday'), 'sources')
-    expect(buyButton(card)).toBeUndefined()
-    expect(card.blocks.at(-1)?.kind).toBe('text')
+    // A title always stays, so a 50,000-character name cannot fit any message:
+    // the container guard trims it rather than sending an invalid reply.
+    expect(enforceContainerLimits(card).blocks.length).toBeGreaterThan(0)
   })
 })

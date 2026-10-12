@@ -116,7 +116,9 @@ export const propose = mutation({
     // never asked to choose between two contradictory pending values. Read
     // through the full index key, so this is the (normally zero or one) live
     // proposals for this field rather than the entity's entire history — under
-    // both ids a live proposal may carry (see `proposalTarget`).
+    // both ids a live proposal may carry (see `proposalTarget`). Taken, not
+    // collected: this supersede keeps it at one per id, so the bound is slack
+    // that still retires a backlog a few rows per proposal if one ever formed.
     const entityId = logIdOf(doc)
     const live = (
       await Promise.all(
@@ -126,7 +128,7 @@ export const propose = mutation({
             .withIndex('by_entity_state_field', (q) =>
               q.eq('entityId', id).eq('state', 'proposed').eq('field', args.field)
             )
-            .collect()
+            .take(MAX_LIVE_PER_FIELD)
         )
       )
     ).flat()
@@ -154,7 +156,24 @@ export const propose = mutation({
   },
 })
 
-/** Proposals awaiting this player's answer, newest first. */
+/**
+ * The most live proposals `propose` reads against one field under one id. A
+ * propose supersedes every live one it reads, so there is at most one.
+ */
+const MAX_LIVE_PER_FIELD = 10
+
+/**
+ * The most proposed rows one `pending` read examines. A field holds at most one
+ * live proposal (`propose` supersedes), so a Game's pending rows are bounded by
+ * its sheets times their proposable fields, far below this; the cap keeps the
+ * reactive read bounded rather than collecting the log.
+ */
+const MAX_PENDING = 500
+
+/**
+ * Proposals awaiting this player's answer, newest first: the newest
+ * `MAX_PENDING` proposed rows in the Game, filtered to this player's.
+ */
 export const pending = query({
   args: { gameId: v.id('games') },
   handler: async (ctx, args) => {
@@ -164,7 +183,8 @@ export const pending = query({
     const rows = await ctx.db
       .query('changeLog')
       .withIndex('by_game_state', (q) => q.eq('gameId', args.gameId).eq('state', 'proposed'))
-      .collect()
+      .order('desc')
+      .take(MAX_PENDING)
 
     const mine = []
     for (const row of rows) {

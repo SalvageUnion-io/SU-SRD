@@ -1,3 +1,4 @@
+import { PRODUCT } from 'component-lib/product'
 import type { ContainerData } from './container'
 import { NEUTRAL_ACCENT } from './format'
 import type { InviteResult } from './itun/types'
@@ -54,7 +55,7 @@ export function buildInviteDm(
     blocks: [
       {
         kind: 'text',
-        content: `**${plain(invite.invitedBy)}** invited you to **${plain(invite.gameName)}**${seat} on In The Union Now.`,
+        content: `**${plain(invite.invitedBy)}** invited you to **${plain(invite.gameName)}**${seat} on ${PRODUCT.name}.`,
       },
       {
         kind: 'text',

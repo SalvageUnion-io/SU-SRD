@@ -10,13 +10,17 @@
  * A8: the design-refresh audit hand-rolled a Playwright script for its
  * screenshots). This is that script, once.
  *
- * - A target starting with `/` is an srd route, served by `bun run dev` on
- *   4321. Anything else is a story id (`bun run stories:ids [filter]` lists
- *   them), served canvas-only by the story catalog (`bun run stories`) on
- *   61000. ITUN is reached through its stories only: its own dev server needs
- *   a local Convex backend.
- * - A server already answering on the port is reused; otherwise this starts
- *   one and stops it afterwards.
+ * - A target starting with `/` is an srd route, served by `bun run dev`.
+ *   Anything else is a story id (`bun run stories:ids [filter]` lists them),
+ *   served canvas-only by the story catalog (`bun run stories`). ITUN is
+ *   reached through its stories only: its own dev server needs a local Convex
+ *   backend.
+ * - Each server listens on this checkout's port (`packages/gates/lib/ports.ts`:
+ *   4321 and 61000 in the primary checkout, offset in a linked worktree). One
+ *   already answering there is reused only when its `x-su-checkout` header
+ *   names this checkout; a server from another checkout is refused, never
+ *   screenshotted. With none answering, this starts one and stops it
+ *   afterwards.
  * - `--width` is the catalog's preset (`WIDTH_PRESETS` in
  *   `apps/catalog/src/catalogRoute.ts`): the viewport width,
  *   and for a story its container width too. The capture is the full page.
@@ -30,6 +34,7 @@
 
 import { existsSync, mkdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 
 const REPO = resolve(import.meta.dir, '..')
 
@@ -42,8 +47,8 @@ const FALLBACK_CHROME = '/opt/pw-browsers/chromium'
 export type ShotArgs = { target: string; width: Width; dark: boolean; out: string }
 
 type Server = { name: string; port: number; script: string }
-const SRD: Server = { name: 'srd', port: 4321, script: 'dev' }
-const STORIES: Server = { name: 'stories', port: 61000, script: 'stories' }
+const SRD: Server = { name: 'srd', port: portFor('srd'), script: 'dev' }
+const STORIES: Server = { name: 'stories', port: portFor('stories'), script: 'stories' }
 
 const USAGE =
   'usage: bun run shot <story-id|/route> [--width phone|column|page] [--dark] [--out <dir>]'
@@ -98,18 +103,39 @@ export function fileName({ target, width, dark }: Omit<ShotArgs, 'out'>): string
   return `${slug}-${width}${dark ? '-dark' : ''}.png`
 }
 
-async function answers(port: number): Promise<boolean> {
+/**
+ * What answers on the port: `undefined` for nothing, else the checkout its
+ * `x-su-checkout` header names (`null` when it names none).
+ */
+async function probe(port: number): Promise<string | null | undefined> {
   try {
-    await fetch(`http://localhost:${port}/`, { signal: AbortSignal.timeout(2000) })
-    return true
+    const response = await fetch(`http://localhost:${port}/`, {
+      signal: AbortSignal.timeout(2000),
+    })
+    await response.body?.cancel()
+    return response.headers.get(CHECKOUT_HEADER)
   } catch {
-    return false
+    return undefined
   }
 }
 
-/** Reuses a server on the port, or starts one. Returns its stop function. */
+/**
+ * Whether a server whose header names `checkout` may be reused by this
+ * checkout. Anything else (another checkout's server, or one that names none)
+ * would capture code this checkout does not have.
+ */
+export function isOwnServer(checkout: string | null | undefined, root = CHECKOUT_ROOT): boolean {
+  return checkout === root
+}
+
+/** Reuses this checkout's server on the port, or starts one. Returns its stop function. */
 async function ensureServer(server: Server): Promise<() => void> {
-  if (await answers(server.port)) {
+  const found = await probe(server.port)
+  if (found !== undefined) {
+    if (!isOwnServer(found))
+      throw new Error(
+        `:${server.port} is answered by ${found ? `the ${server.name} server of ${found}` : 'a server that does not name its checkout'}, not this checkout (${CHECKOUT_ROOT}). Stop it, then rerun.`
+      )
     console.error(`[shot] reusing the ${server.name} server on :${server.port}`)
     return () => {
       // Not ours to stop.
@@ -118,6 +144,9 @@ async function ensureServer(server: Server): Promise<() => void> {
   console.error(`[shot] starting ${server.name} (bun run ${server.script}) on :${server.port}…`)
   const proc = Bun.spawn(['bun', 'run', server.script], {
     cwd: REPO,
+    // Both servers honour an explicit `PORT`, so pin the one probed below
+    // over any `PORT` this shell inherited.
+    env: { ...process.env, PORT: String(server.port) },
     stdout: 'ignore',
     stderr: 'pipe',
     detached: true,
@@ -136,7 +165,7 @@ async function ensureServer(server: Server): Promise<() => void> {
       const err = await new Response(proc.stderr).text()
       throw new Error(`${server.name} exited (${proc.exitCode}) before answering:\n${err}`)
     }
-    if (await answers(server.port)) return stop
+    if (isOwnServer(await probe(server.port))) return stop
     await Bun.sleep(500)
   }
   stop()
@@ -182,7 +211,13 @@ async function main() {
   }
   const { server, path } = planShot(args)
   if (server === STORIES) await assertStory(args.target)
-  const stop = await ensureServer(server)
+  let stop: () => void
+  try {
+    stop = await ensureServer(server)
+  } catch (error) {
+    console.error(`[shot] ${(error as Error).message}`)
+    process.exit(2)
+  }
   try {
     const browser = await launchBrowser()
     try {

@@ -8,7 +8,7 @@
 import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
 import { rollTable, SALVAGE_UNION_TABLE_NAMES } from '@randsum/salvageunion'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { d20ForTable, rollD20, rollDie, rollForTable } from '../dice'
+import { dieForTable, rollD20, rollDie, rollForTable } from '../dice'
 
 /** Make Randsum's next d20s land on these faces, in order. */
 function faces(...values: number[]) {
@@ -73,17 +73,17 @@ describe('@randsum/salvageunion', () => {
   })
 })
 
-describe('d20ForTable', () => {
+describe('dieForTable', () => {
   test("a named table's die is rollTable's total", async () => {
-    const die = await d20ForTable('Morale')
+    const die = await dieForTable('Morale')
     faces(17)
     expect(die()).toBe(17)
     expect(die).not.toBe(rollD20)
   })
 
   test("any other table's die is Randsum's plain d20", async () => {
-    expect(await d20ForTable('Aardvarks Tongue')).toBe(rollD20)
-    expect(await d20ForTable('Callsign Table')).toBe(rollD20)
+    expect(await dieForTable('Aardvarks Tongue')).toBe(rollD20)
+    expect(await dieForTable('Callsign Table')).toBe(rollD20)
   })
 })
 

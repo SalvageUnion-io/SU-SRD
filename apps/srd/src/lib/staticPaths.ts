@@ -3,7 +3,13 @@ import type {
   SURefEntity,
   SURefObjectAnyPattern,
 } from 'salvageunion-reference'
-import { getPatterns, isSchemaName, nameToSlug, normalizePatternName } from 'salvageunion-reference'
+import {
+  displayTitle,
+  getPatterns,
+  isSchemaName,
+  nameToSlug,
+  normalizePatternName,
+} from 'salvageunion-reference'
 import {
   getEntitySchemas,
   getModel,
@@ -60,7 +66,9 @@ export function getItemStaticPaths() {
           props: {
             item,
             schema,
-            itemName: displayData.name,
+            // The page's words outside CSS (<title>, meta, JSON-LD,
+            // breadcrumbs) print a glossary name as the book does.
+            itemName: displayTitle(displayData.name),
             itemDescription: displayData.description ?? '',
           },
         })

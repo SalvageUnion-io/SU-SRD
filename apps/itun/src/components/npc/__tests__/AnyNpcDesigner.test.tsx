@@ -58,6 +58,13 @@ async function click(name: RegExp | string) {
   })
 }
 
+/** Pick a template: its Row's one control is a checkbox. */
+async function pick(name: string) {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('checkbox', { name }))
+  })
+}
+
 beforeEach(() => {
   created = []
   writes.length = 0
@@ -78,7 +85,7 @@ describe('the template step', () => {
 
   test('a reference NPC fills the stats and the actions', async () => {
     await renderDesigner()
-    await click('Start from Veteran')
+    await pick('Start from Veteran')
     await click('Next: Stats')
     expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '9')
     await click('Next: Actions & traits')
@@ -91,10 +98,26 @@ describe('the template step', () => {
   })
 })
 
+describe('adding a trait', () => {
+  test('names a lower-case glossary trait as the book prints it', async () => {
+    await renderDesigner()
+    await pick('Start from Veteran')
+    await click('Next: Stats')
+    await click('Next: Actions & traits')
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('Add an action or trait from the reference'), {
+        target: { value: 'vulnerable' },
+      })
+    })
+    await click(/^Add Vulnerable/)
+    expect(screen.getByRole('checkbox', { name: 'Carry Vulnerable' })).toBeTruthy()
+  })
+})
+
 describe('starting over', () => {
   async function editedVeteran() {
     await renderDesigner()
-    await click('Start from Veteran')
+    await pick('Start from Veteran')
     await click('Next: Stats')
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/Hit points/), { target: { value: '12' } })
@@ -131,7 +154,7 @@ describe('starting over', () => {
 describe('the preview', () => {
   test('is the card as others will see it: User-made, from Veteran, made by you', async () => {
     await renderDesigner()
-    await click('Start from Veteran')
+    await pick('Start from Veteran')
     expect(screen.getAllByText('NPC · from Veteran').length).toBeGreaterThan(0)
     expect(screen.getAllByText('User-made').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Made by alxjrvs').length).toBeGreaterThan(0)
@@ -141,7 +164,7 @@ describe('the preview', () => {
 describe('saving', () => {
   test('stores the carried actions as slugs, and only what the player wrote', async () => {
     await renderDesigner()
-    await click('Start from Veteran')
+    await pick('Start from Veteran')
     await click('Next: Stats')
     await click('Next: Actions & traits')
     await act(async () => {

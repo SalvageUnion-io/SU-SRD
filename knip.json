@@ -3,8 +3,8 @@
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": true,
   // Exports tagged `@public` or `@knipignore` are excluded from analysis. When
-  // to reach for either is in docs/ARCHITECTURE.md ("Dead-code gate (knip)")
-  // — delete by default; these two are the only exemptions.
+  // to reach for either is in docs/ARCHITECTURE.md#dead-code — delete by
+  // default; these two are the only exemptions.
   //
   // `--treat-tag-hints-as-errors` does NOT catch a tag that has outlived its
   // reason, despite reading like it would. Measured against knip 6.32 with this

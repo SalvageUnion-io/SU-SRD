@@ -42,7 +42,7 @@
  *
  * ## Why the tier word is Core-Mechanic-only
  *
- * `CORE_ROLL_BANDS` names the bands of *the Core Mechanic*. Those words do not
+ * `coreRollBandLabel` names the bands of *the Core Mechanic*. Those words do not
  * always survive the move to an outcome table: an 11–19 on Crawler Damage means
  * "your Union Crawler is inoperable and grounded", which the band vocabulary
  * would label **SUCCESS**. The colour ramp is defensible there — 20 survives
@@ -64,7 +64,7 @@ import {
   truncate,
 } from 'salvageunion-reference'
 import type { CoreRollBand } from 'salvageunion-reference/rules'
-import { CORE_ROLL_BANDS, coreRollBand } from 'salvageunion-reference/rules'
+import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
 import type { ContainerBlock, ContainerData } from './container'
 import { deriveLabel } from './derivedLabel'
 import { NEUTRAL_ACCENT, ROLL_ATTRIBUTION, ROLL_COLORS } from './format'
@@ -170,7 +170,7 @@ function headlineAndBody(
       body: quoted.rest,
     }
   }
-  const tier = band !== null && isCoreMechanic ? stencil(CORE_ROLL_BANDS[band].label) : undefined
+  const tier = band !== null && isCoreMechanic ? stencil(coreRollBandLabel(band)) : undefined
   return { headline: rollHeadline(die, tier), body: value || undefined }
 }
 
@@ -179,7 +179,7 @@ function headlineAndBody(
  * ("11–19"), or on a two-roll table the column and the entry. The tier word
  * and the label say what happened; this says which row of the book it is.
  */
-function landsOn(outcome: Extract<RollOnTableOutcome, { success: true }>): string {
+function landsOn(outcome: Extract<RollOnTableOutcome, { kind: 'flat' | 'columns' }>): string {
   return outcome.kind === 'columns'
     ? `Column ${rangeLabel(outcome.columnKey)} · entry ${rangeLabel(String(outcome.entryKey))}`
     : `Lands on ${rangeLabel(outcome.key)}`
@@ -194,7 +194,7 @@ function landsOn(outcome: Extract<RollOnTableOutcome, { success: true }>): strin
  */
 export function buildRollContainerData(
   table: SURefRollTable,
-  outcome: Extract<RollOnTableOutcome, { success: true }>,
+  outcome: Extract<RollOnTableOutcome, { kind: 'flat' | 'columns' }>,
   context: RollContext = {}
 ): ContainerData {
   const tiered = isTieredTable(table)

@@ -9,8 +9,8 @@ The record of the claude.ai/code environment (selector → Cloud); no CLI or API
 4. **No Cloudflare or Sentry MCP hosts.** Their OAuth cannot complete in a cloud session; the claude.ai connectors below stand in.
 5. **Connectors (claude.ai → Settings → Connectors).** Cloudflare Developer Platform, Sentry (org `susrd`), and custom Cloudflare Observability
    at `https://observability.mcp.cloudflare.com/mcp`.
-6. **Convex.** The SessionStart hook exports `CONVEX_AGENT_MODE=anonymous`, so `bun run dev:itun` runs a local backend with no account;
-   in a multi-repo session (no repo hooks) prefix it yourself. Test-auth setup: [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend), per container.
+6. **Convex.** The SessionStart hook exports `CONVEX_AGENT_MODE=anonymous`, so `bun run dev:itun` runs a local backend with no account.
+   Test-auth setup: [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend), per container.
 7. **First `dev:itun` in a fresh container.** Copy `apps/itun/.env.example` to `.env.local` first (else the CLI writes `CONVEX_URL`, not `VITE_CONVEX_URL`);
    the first run exits at Vite, so run it again.
 8. **Playwright.** The image's Chromium is older than `@playwright/test`'s: run e2e specs with `executablePath: '/opt/pw-browsers/chromium'`, never `playwright install`.
@@ -18,20 +18,22 @@ The record of the claude.ai/code environment (selector → Cloud); no CLI or API
    It also caches the newest Convex local backend and dashboard in `~/.cache/convex` (the CLI's own download crashed through the proxy).
 10. **Rules text.** Attach private `SalvageUnion-io/su-rules` as a second repo (no secret or host needed); grep its `extracted/*.txt`.
     `bun run check:rules-fidelity` finds the sibling checkout itself.
+11. **Multi-repo.** The project dir is `/home/user`, so the script copies `.claude/settings.json` (hooks, deny list) there.
 
 ```bash
 #!/bin/bash
 # SU-SRD: docs/ops/cloud-environment.md is this script's record.
-# Warm the snapshot with the repo's pinned Bun and node_modules by running
-# its own SessionStart hook. Never fail: the hook fixes things at start anyway.
+# Item 9: warm the snapshot with the repo's SessionStart hook.
 for d in "${CLAUDE_PROJECT_DIR:-}" "$PWD" /home/user/* /root/* /workspace/*; do
   if [ -x "$d/.claude/hooks/session-start.sh" ] &&
     grep -q '"packageManager": *"bun@' "$d/package.json" 2>/dev/null; then
     CLAUDE_PROJECT_DIR="$d" "$d/.claude/hooks/session-start.sh"
+    [ "$d" = /home/user ] || { mkdir -p /home/user/.claude && sed -e "s|\$CLAUDE_PROJECT_DIR|$d|g" \
+      -e "s|\"command\": \"|&cd $d \&\& CLAUDE_PROJECT_DIR=$d |" "$d/.claude/settings.json" >/home/user/.claude/settings.json; } # 11
     break
   fi
 done
-# Cache the newest Convex local backend and dashboard for `bun run dev:itun`.
+# Item 9: cache the newest Convex local backend and dashboard.
 CV="$(curl -fsS --max-time 20 https://version.convex.dev/v1/local_backend_version |
   sed -n 's/.*"version": *"\([^"]*\)".*/\1/p')"
 if [ -n "$CV" ]; then

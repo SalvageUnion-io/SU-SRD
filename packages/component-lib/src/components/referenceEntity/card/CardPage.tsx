@@ -8,7 +8,7 @@ import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
 import { buildBookStats } from '../referenceEntityStatsConfig'
-import { cardKey } from './cardHelpers'
+import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
@@ -101,12 +101,20 @@ export function CardPage({
     ? buildBookStats(entity, stats).filter((stat) => stat.key !== 'tech-level')
     : []
   const { NestedCard } = action
-  const actionCard = (data: ReferenceCardEntity, index: number, seal?: string) => (
+  // `titleAs` is the card title's element: an `h3` only where a section band's
+  // `h2` holds the card (`nestedTitleLevel`), else the header's `span`.
+  const actionCard = (
+    data: ReferenceCardEntity,
+    index: number,
+    titleAs: 'h3' | undefined,
+    seal?: string
+  ) => (
     <NestedCard
       key={cardKey(data, index)}
       data={data}
       size="medium"
       depth={1}
+      titleAs={titleAs}
       readable={!!seal}
       hostDown={action.hostDown}
       hostName={action.hostName}
@@ -142,7 +150,12 @@ export function CardPage({
             {loadout}
             {leadActions.length > 0 && (
               <div className="su-entity-page__lead">
-                {leadActions.map((data, index) => actionCard(data, index, 'Chassis Ability'))}
+                {/* No band holds the chassis ability (the page's h1 is the
+                    ChapterBand above), so its title stays a span: an h3 here
+                    would skip a level. */}
+                {leadActions.map((data, index) =>
+                  actionCard(data, index, undefined, 'Chassis Ability')
+                )}
               </div>
             )}
           </div>
@@ -153,7 +166,9 @@ export function CardPage({
       {!abilitiesSection && otherActions.length > 0 && (
         <section className="su-entity-page__section">
           <Slab as={sectionAs} variant="solid" label="Actions" />
-          {otherActions.map((data, index) => actionCard(data, index))}
+          {otherActions.map((data, index) =>
+            actionCard(data, index, nestedTitleLevel(!!sectionAs))
+          )}
         </section>
       )}
       {guide}

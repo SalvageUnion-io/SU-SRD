@@ -4,6 +4,7 @@
 
 import { buttonVariants, ChapterBand, InlineRef, Panel, Slab } from 'component-lib'
 import { borderWidth, color, font, fontSize, space, tracking } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
@@ -254,7 +255,7 @@ function page(): PageResult {
             <p style={ASIDE}>
               <strong>Running a campaign?</strong> Pair the bot with{' '}
               <InlineRef href={ITUN_URL} target="_blank" rel="noopener noreferrer" style={BOLD}>
-                In The Union Now
+                {PRODUCT.name}
               </InlineRef>
               {/*
                 "no-account" means usable without one: signed out, ITUN is

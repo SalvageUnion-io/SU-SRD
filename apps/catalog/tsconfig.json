@@ -6,6 +6,7 @@
   "include": ["src/**/*", "listStories.ts", "vite.config.ts"],
   "references": [
     { "path": "../../packages/component-lib" },
+    { "path": "../../packages/gates" },
     { "path": "../../packages/salvageunion-reference" }
   ]
 }

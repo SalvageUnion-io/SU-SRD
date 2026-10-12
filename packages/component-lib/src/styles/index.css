@@ -557,6 +557,18 @@ body {
   width: 36px;
 }
 
+/*
+ * A show page's top controls, one height in both apps: the srd entity page's
+ * "Build with this", the ITUN sheet bar's back, Share, "⋯" and phone switch,
+ * and the sheet band's Read | Edit and "Make a copy". Each was sized by its
+ * own rung (a compact link, a 38px square, a 40px toggle, a full button), so a
+ * row of them stepped. Height only: each keeps its own padding and type. Under
+ * a coarse pointer the 44px floor lifts them all alike.
+ */
+.su-page-action {
+  height: var(--space-40);
+}
+
 /* ══ The entity card's cost pennant as the action button ════════════════════
  *
  * In the Dashboard the pennant on an action's ink banner IS the action button
@@ -826,6 +838,18 @@ body {
 
 [data-entity-grid] > * > * {
   flex: 1 1 auto;
+}
+
+/* A Row that is its head alone (`data-bodyless`: a roll table with no opening
+   prose) keeps its head's height: stretched to its cell it was an empty paper
+   strip under the head. A grid holding one sizes each line to its own content,
+   so a line of heads is a head tall; a bodied Row still fills its line. */
+[data-entity-grid]:has(.su-entity-row__frame[data-bodyless]) {
+  grid-auto-rows: auto;
+}
+
+[data-entity-grid] > * > .su-entity-row:has(> .su-entity-row__frame[data-bodyless]) {
+  flex: none;
 }
 
 /* Two title lines (22px at 1.05) on the head's title line, so the labels
@@ -3813,6 +3837,14 @@ body {
 .su-control-icon__glyph {
   height: var(--space-12);
   width: var(--space-12);
+}
+
+/* A folded card's chevron (`ReferenceEntityCard` `collapsible`): the card's ONE
+   fold control, so it takes the WCAG 2.2 minimum target (24px) a stamp's 24×20
+   misses. A coarse pointer lifts it to 44px through the shared touch floor. */
+.su-card-fold {
+  min-height: var(--space-24);
+  min-width: var(--space-24);
 }
 
 /* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink, and the

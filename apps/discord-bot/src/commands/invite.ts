@@ -1,4 +1,5 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
+import { PRODUCT } from 'component-lib/product'
 import { MessageFlags } from 'discord-api-types/v10'
 import { toContainer } from '../container'
 import { denialMessage, ITUN_ORIGIN } from '../gameCards'
@@ -118,7 +119,7 @@ export const inviteCommand = {
       await interaction.editReply({
         content: [
           `**${invite.inviteeName}** already has an invite to **${invite.gameName}**${seat}, and I DMed it to them recently, so I haven’t sent it again.`,
-          'It waits on their In The Union Now home page, or send them this link — only their Discord account can use it:',
+          `It waits on their ${PRODUCT.name} home page, or send them this link — only their Discord account can use it:`,
           link,
         ].join('\n'),
       })
@@ -142,12 +143,12 @@ export const inviteCommand = {
 
     const again = invite.reused ? 'They already had an invite, so I sent it again. ' : ''
     const content = dm.ok
-      ? `${again}Invited **${invite.inviteeName}** to **${invite.gameName}**${seat}. I sent them a DM with the link, and it waits on their In The Union Now home page too.`
+      ? `${again}Invited **${invite.inviteeName}** to **${invite.gameName}**${seat}. I sent them a DM with the link, and it waits on their ${PRODUCT.name} home page too.`
       : [
           `${again}Invited **${invite.inviteeName}** to **${invite.gameName}**${seat}, but I couldn’t DM them (${detail}).`,
           'Send them this link — only their Discord account can use it:',
           link,
-          'It also waits on their In The Union Now home page once they sign in.',
+          `It also waits on their ${PRODUCT.name} home page once they sign in.`,
         ].join('\n')
     await interaction.editReply({ content })
   },

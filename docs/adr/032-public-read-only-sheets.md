@@ -29,6 +29,12 @@ uses. Every other decision stands.
 **Decision 7 added (2026-10-09, #1276):** saved mech patterns join, at
 `/p/pattern/:appId`. Decisions 1–6 otherwise stand.
 
+**Built NPCs join (2026-10-12):** a built NPC ([ADR-044](../ARCHITECTURE.md#decisions))
+publishes exactly as a pilot does, at `/p/npc/:appId`, with its maker credited.
+Every kind a player shares — pilot, mech, crawler, NPC, pattern — sets this
+from one "Who can see it" control (Only me, My Game's crew, Anyone with the
+link). A public crawler page still draws its book crew line, not a linked NPC.
+
 ## Context
 
 Two rules meet here and neither anticipated this case.

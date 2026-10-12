@@ -27,7 +27,8 @@ function table(name: string): SURefRollTable {
 /** Build the container data for a fixed roll. */
 function rollOf(name: string, roll: number, context = {}): ContainerData {
   const outcome = rollOnTable(table(name).table, () => roll)
-  if (!outcome.success) throw new Error(`no entry for ${roll} on ${name}`)
+  if (!outcome.success || outcome.kind === 'no-effect')
+    throw new Error(`no entry for ${roll} on ${name}`)
   return buildRollContainerData(table(name), outcome, context)
 }
 
@@ -48,7 +49,7 @@ describe('the headline is never a bare die number', () => {
     for (const t of SalvageUnionReference.RollTables.all()) {
       for (let roll = 1; roll <= 20; roll++) {
         const outcome = rollOnTable(t.table, () => roll)
-        if (!outcome.success) continue
+        if (!outcome.success || outcome.kind === 'no-effect') continue
         const line = headline(buildRollContainerData(t, outcome))
         expect(line).not.toContain('Roll:')
       }
@@ -153,7 +154,7 @@ describe('every roll renders the same furniture', () => {
     for (const table of SalvageUnionReference.RollTables.all()) {
       for (let roll = 1; roll <= 20; roll++) {
         const outcome = rollOnTable(table.table, () => roll)
-        if (!outcome.success) continue
+        if (!outcome.success || outcome.kind === 'no-effect') continue
         expect(headline(buildRollContainerData(table, outcome))).not.toMatch(/—\s*$/)
       }
     }
@@ -195,9 +196,9 @@ describe('context', () => {
 
 describe('a dramatic table miss is a result, not an error', () => {
   // Blinding Blue Laser Rifle and Bio-Talon carry only a `20` key, so
-  // resultForTable reports failure on 19 of every 20 rolls. Its internal
-  // diagnostic — "No result found for roll 7" — must never reach the user as an
-  // error. That is not an error; it is what the book means.
+  // rollOnTable answers `no-effect` on 19 of every 20 rolls. resultForTable's
+  // internal diagnostic — "No result found for roll 7" — must never reach the
+  // user as an error. That is not an error; it is what the book means.
   test.each([1, 7, 19])('a %i renders NO EFFECT publicly', (roll) => {
     const message = buildRollMessage('Bio-Talon', 'Vex Marrow', () => roll)
     if ('error' in message) throw new Error('a miss must not be an error')

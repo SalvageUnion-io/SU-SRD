@@ -1,5 +1,5 @@
 import type { ElementType } from 'react'
-import { foregroundOn } from '../../design/contrast'
+import { color } from '../../design/tokens'
 import { ChapterFoot } from '../atoms/ChapterFoot'
 import type { ChapterTone } from '../atoms/chapterBandColor'
 
@@ -8,20 +8,17 @@ import type { ChapterTone } from '../atoms/chapterBandColor'
  * do (refit S2: one product, so one foot; hoisted from the SRD's site footer).
  *
  * - **A book page** (entity, pattern, roll table; board 07) ends on its
- *   chapter's foot band: the page cite set large and the book at the end, then
- *   the licence row in the same tone under the band's ink rule. One band, so
- *   the page does not close twice.
- * - **A schema listing** ends on its chapter's band too, with the licence row
- *   alone: it cites no page.
- * - **Every other page** (the SRD's home, guides, about; board 06, and every
- *   ITUN page) ends on the slim rules-blue band of the Contents chapter.
+ *   chapter's foot band: the page cite set large and the book at the end.
+ * - **Every page**, a book page's under that band, ends on the licence row in
+ *   the Union bar's ink (`AppBar`): one colour on every page of both tools, so
+ *   the site's head and foot match whatever chapter lies between them.
  *
  * The licence row is the same in both tools: the licence's required legal
  * text, the tool's own pages (`links`, through `LinkComponent`), and the
- * "Powered by Salvage" mark.
+ * "Powered by Salvage" mark, reversed to paper on the ink.
  */
 
-/** A page's foot: its chapter tone and citation (a listing: the tone alone). */
+/** A book page's foot: its chapter tone and citation, banded above the licence row. */
 export type FooterFoot = {
   tone: ChapterTone
   /** The band colour when the page wears its own rather than its chapter's. */
@@ -41,7 +38,7 @@ type FooterProps = {
   links: readonly FooterLink[]
   /** URL for the "Powered by Salvage" mark, from the app's public dir. */
   poweredBySalvageUrl: string
-  /** A book page's foot. Absent → the rules-blue band. */
+  /** A book page's foot. Absent → the licence row alone. */
   foot?: FooterFoot
   /** Link component for the tool's pages. Defaults to a plain anchor. */
   LinkComponent?: ElementType
@@ -50,8 +47,8 @@ type FooterProps = {
 /** The SRD's widest measure, matching the Contents band at the page's head. */
 const SITE_MEASURE = '85rem'
 
-/** The chapter bands that carry paper text (ruleset §3.8), where the mark reverses too. */
-const PAPER_ON = new Set<ChapterTone>(['denizen', 'crawler', 'ink'])
+/** The licence row's band: the Union bar's own ink, paper text and paper flecks. */
+const SITE_FILL = color.inkDeep
 
 /**
  * The licence's required legal text, word for word (Salvage Union Open Game
@@ -75,12 +72,10 @@ function Legal() {
 function End({
   links,
   src,
-  onPaper,
   LinkComponent,
 }: {
   links: readonly FooterLink[]
   src: string
-  onPaper: boolean
   LinkComponent: ElementType
 }) {
   return (
@@ -99,13 +94,13 @@ function End({
       {/*
         Square, 40px, with its box declared 1:1 so nothing reflows as it loads:
         a wrong `width`/`height` ratio causes the very shift it exists to
-        prevent. The source is 192px (4x DPR headroom). On a band that carries
-        paper text the black mark reverses to paper, as Leyline's white one is.
+        prevent. The source is 192px (4x DPR headroom). On the ink band the
+        black mark reverses to paper, as Leyline's white one is.
       */}
       <img
         src={src}
         alt="Powered by Salvage"
-        className={onPaper ? 'su-footer__mark su-footer__mark--paper' : 'su-footer__mark'}
+        className="su-footer__mark su-footer__mark--paper"
         width={40}
         height={40}
       />
@@ -114,35 +109,25 @@ function End({
 }
 
 export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }: FooterProps) {
-  const tone = foot?.tone ?? 'rules'
-  const fill = foot?.fill
-  const onPaper = fill ? foregroundOn(fill, 'ink') === 'paper' : PAPER_ON.has(tone)
   const measure = foot?.measure ?? SITE_MEASURE
   const cited = foot != null && (foot.page != null || !!foot.citation)
   return (
     <footer className="su-footer">
       {cited && (
         <ChapterFoot
-          tone={tone}
-          fill={fill}
+          tone={foot.tone}
+          fill={foot.fill}
           measure={measure}
           start={foot.page != null ? `p.${foot.page}` : undefined}
           end={foot.citation}
         />
       )}
       <ChapterFoot
-        tone={tone}
-        fill={fill}
+        fill={SITE_FILL}
+        grain="paper"
         measure={measure}
         start={<Legal />}
-        end={
-          <End
-            links={links}
-            src={poweredBySalvageUrl}
-            onPaper={onPaper}
-            LinkComponent={LinkComponent}
-          />
-        }
+        end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
       />
     </footer>
   )

@@ -1,4 +1,5 @@
 import type { SlashCommandSubcommandGroupBuilder } from '@discordjs/builders'
+import { PRODUCT } from 'component-lib/product'
 import { MessageFlags } from 'discord-api-types/v10'
 import { channelCard, denialMessage, ITUN_ORIGIN } from '../gameCards'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
@@ -29,7 +30,7 @@ export const gameCommand = {
   group(group: SlashCommandSubcommandGroupBuilder): SlashCommandSubcommandGroupBuilder {
     return group
       .setName('game')
-      .setDescription('Connect this channel to an In The Union Now game')
+      .setDescription(`Connect this channel to an ${PRODUCT.name} game`)
       .addSubcommand((sub) =>
         sub
           .setName('bind')

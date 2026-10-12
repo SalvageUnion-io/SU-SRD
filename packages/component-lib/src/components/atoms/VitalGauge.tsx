@@ -1,4 +1,4 @@
-import type { CSSProperties, KeyboardEvent } from 'react'
+import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
 import {
@@ -13,6 +13,7 @@ import {
 } from '../../design/tokens'
 import type { SizeRung } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
+import { FOCUS_RING } from './interaction'
 import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
 import { POSTER_STAMP } from './posterStamp'
 import { Stat } from './Stat'
@@ -40,7 +41,11 @@ export type VitalGaugeProps = {
   value: number
   /** Track maximum (segment count). */
   max: number
-  /** Editable when supplied (and not readOnly) — click a segment / arrow keys. */
+  /**
+   * Editable when supplied (and not readOnly): the track becomes ONE
+   * `role="slider"` tab stop (arrow keys, Home, End), and a click on a segment
+   * sets the value. The segments are pointer-only — never a tab stop each.
+   */
   onChange?: (v: number) => void
   /**
    * Cap override (ADR-022, Free Edit): when supplied (and not readOnly) the Max
@@ -115,8 +120,14 @@ export type VitalGaugeProps = {
  * bar per stat. Label stamp (left) + big numeral (right) over ONE flex row of
  * `flex-1` segments dividing the full width by `max`; filled segments use the
  * per-sheet accent (`--tone` / `--tone-deep`), empty segments read paper. No
- * steppers, no header tab, no unit bar — click a segment (or arrow-key the
- * group) to set the value, `pipClickValue` semantics.
+ * steppers, no header tab, no unit bar — click a segment (`pipClickValue`
+ * semantics) or arrow-key the track to set the value.
+ *
+ * An editable track is one `role="slider"` tab stop, so a sheet of gauges is a
+ * handful of stops rather than one per pip (Cargo alone was 16), and its
+ * `aria-valuetext` ("Heat 5 of 6, over redline") announces every change. A
+ * slider's children are presentational, so the segments are plain spans: the
+ * slider takes the click and reads the segment from `data-pip-index`.
  *
  * Distinct from `StatBlock` (which keeps serving rail / NPC / tally / spec-strip
  * / snapshot-bay consumers). Themes per sheet via the `--tone*` CSS vars.
@@ -130,9 +141,8 @@ export type VitalGaugeProps = {
 const TABULAR: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
 
 /** An editable segment's static half; the hover lift is `.su-vital-gauge__pip`. */
-const PIP_BUTTON: CSSProperties = {
+const PIP_EDITABLE: CSSProperties = {
   cursor: 'pointer',
-  padding: space[0],
   transitionProperty: 'transform, translate, scale, rotate',
   transitionDuration: '120ms',
   transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
@@ -272,9 +282,8 @@ const PIP: CSSProperties = {
   minWidth: 0,
   flex: 1,
   borderWidth: borderWidth.chrome,
-  // `solid`: the base layer's `button { border: none }` leaves an editable
-  // segment with no border style, so an unlit pip vanished in Edit while Read
-  // drew it.
+  // `solid`, set explicitly: a segment once rendered as a `<button>`, whose
+  // base-layer `border: none` made an unlit pip vanish in Edit while Read drew it.
   borderStyle: 'solid',
   padding: space[0],
 }
@@ -370,6 +379,9 @@ export function VitalGauge({
   const showCaption = !readOnly || caption !== undefined
 
   const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
+  // The slider's spoken value: the summary, plus the redline once a lit
+  // segment sits past it (the same test that paints that segment danger).
+  const valueText = `${summary}${shown > dangerFrom ? ', over redline' : ''}`
 
   const setValue = (next: number) => {
     if (!editable) return
@@ -400,6 +412,36 @@ export function VitalGauge({
     if (handled) event.preventDefault()
   }
 
+  // Segments are pointer-only spans (a slider's children are presentational),
+  // so the slider takes the click and reads which segment was hit.
+  const onTrackClick = (event: MouseEvent<HTMLElement>) => {
+    const target = event.target
+    if (!(target instanceof Element)) return
+    const raw = target.closest('[data-pip-index]')?.getAttribute('data-pip-index')
+    if (raw == null) return
+    setValue(pipClickValue(Number(raw), shown))
+  }
+
+  // An editable track, on either rung: ONE tab stop that names the stat,
+  // carries the value and announces each change through `aria-valuetext`.
+  const slider = (trackStyle: CSSProperties, rows: ReactNode) => (
+    <div
+      role="slider"
+      tabIndex={0}
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={max}
+      aria-valuenow={shown}
+      aria-valuetext={valueText}
+      onKeyDown={onKeyDown}
+      onClick={onTrackClick}
+      className={FOCUS_RING}
+      style={trackStyle}
+    >
+      {rows}
+    </div>
+  )
+
   // Empty-segment fill differs by surface: recessed outline on a dark instrument
   // ground, paper on the light sheet.
   const emptyFill: CSSProperties = onDark
@@ -424,6 +466,31 @@ export function VitalGauge({
   // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
   // the §4.5 pip rows beneath. No big numeral or caption.
   if (size === 'compact') {
+    const compactRows = (
+      <>
+        {statBlockRowStarts(segCount).map((segRow) => (
+          <div key={segRow.start} style={C_ROW}>
+            {Array.from({ length: segRow.count }, (_, c) => {
+              const i = segRow.start + c
+              const state = trackSegmentState(i, shown, max, dangerFrom)
+              const on = segmentLit(state)
+              const segStyle: CSSProperties = { ...C_PIP, ...segFill(state) }
+              return editable ? (
+                <span
+                  key={i}
+                  data-pip={on ? 'on' : 'off'}
+                  data-pip-index={i}
+                  className="su-vital-gauge__pip"
+                  style={{ ...segStyle, ...PIP_EDITABLE }}
+                />
+              ) : (
+                <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
+              )
+            })}
+          </div>
+        ))}
+      </>
+    )
     const readout = (
       <div style={C_READOUT}>
         {/* Board D2: the label and the value share one row, the pips sit below. */}
@@ -450,31 +517,7 @@ export function VitalGauge({
          * Every pip is one sixth of the bay (less the gaps) whatever its row
          * holds, so a pip's width stays steady; a shorter row sits centred.
          */}
-        <div style={C_ROWS}>
-          {statBlockRowStarts(segCount).map((segRow) => (
-            <div key={segRow.start} style={C_ROW}>
-              {Array.from({ length: segRow.count }, (_, c) => {
-                const i = segRow.start + c
-                const state = trackSegmentState(i, shown, max, dangerFrom)
-                const on = segmentLit(state)
-                const segStyle: CSSProperties = { ...C_PIP, ...segFill(state) }
-                return editable ? (
-                  <button
-                    key={i}
-                    type="button"
-                    data-pip={on ? 'on' : 'off'}
-                    aria-label={`Set ${label} to ${i + 1}`}
-                    onClick={() => setValue(pipClickValue(i, shown))}
-                    className="su-vital-gauge__pip"
-                    style={{ ...segStyle, ...PIP_BUTTON }}
-                  />
-                ) : (
-                  <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
-                )
-              })}
-            </div>
-          ))}
-        </div>
+        {editable ? slider(C_ROWS, compactRows) : <div style={C_ROWS}>{compactRows}</div>}
       </div>
     )
     /*
@@ -515,12 +558,10 @@ export function VitalGauge({
       )
     }
     return (
-      // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
       // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
       <div
         role={editable ? 'group' : 'img'}
         aria-label={summary}
-        onKeyDown={editable ? onKeyDown : undefined}
         className={className}
         style={{ ...C_SHELL, ...style }}
       >
@@ -537,13 +578,41 @@ export function VitalGauge({
   const headerControl = provenance !== undefined || (isOverridden && onRevertOverride !== undefined)
   const trackIsImage = !interactive && headerControl
   const trackGap = isDense ? '3px' : space[4]
+  const trackStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: trackGap }
+  const fullRows = (
+    <>
+      {statBlockRowStarts(segCount).map((segRow) => (
+        <div key={segRow.start} style={{ display: 'flex', gap: trackGap }}>
+          {Array.from({ length: segRow.count }).map((_, c) => {
+            const i = segRow.start + c
+            const state = trackSegmentState(i, shown, max, dangerFrom)
+            const on = segmentLit(state)
+            const segStyle: CSSProperties = {
+              ...PIP,
+              ...(isDense ? PIP_DENSE : PIP_ROOMY),
+              ...segFill(state),
+            }
+            return editable ? (
+              <span
+                key={i}
+                data-pip={on ? 'on' : 'off'}
+                data-pip-index={i}
+                className="su-vital-gauge__pip"
+                style={{ ...segStyle, ...PIP_EDITABLE }}
+              />
+            ) : (
+              <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
+            )
+          })}
+        </div>
+      ))}
+    </>
+  )
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dynamically group|img|none — each set with a label it supports — but biome can't resolve the ternary
     <div
       role={interactive ? 'group' : trackIsImage ? undefined : 'img'}
       aria-label={trackIsImage ? undefined : summary}
-      onKeyDown={editable ? onKeyDown : undefined}
       className={className}
       style={{ ...ROOT, ...style }}
     >
@@ -658,41 +727,20 @@ export function VitalGauge({
       </div>
 
       {/* Segmented track — balanced rows, max 6 per row (the pip-row split /
-          "looping chips" rule; shared with the Stat tracker). */}
-      {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: the label is set only with role=img */}
-      <div
-        role={trackIsImage ? 'img' : undefined}
-        aria-label={trackIsImage ? summary : undefined}
-        style={{ display: 'flex', flexDirection: 'column', gap: trackGap }}
-      >
-        {statBlockRowStarts(segCount).map((segRow) => (
-          <div key={segRow.start} style={{ display: 'flex', gap: trackGap }}>
-            {Array.from({ length: segRow.count }).map((_, c) => {
-              const i = segRow.start + c
-              const state = trackSegmentState(i, shown, max, dangerFrom)
-              const on = segmentLit(state)
-              const segStyle: CSSProperties = {
-                ...PIP,
-                ...(isDense ? PIP_DENSE : PIP_ROOMY),
-                ...segFill(state),
-              }
-              return editable ? (
-                <button
-                  key={i}
-                  type="button"
-                  data-pip={on ? 'on' : 'off'}
-                  aria-label={`Set ${label} to ${i + 1}`}
-                  onClick={() => setValue(pipClickValue(i, shown))}
-                  className="su-vital-gauge__pip"
-                  style={{ ...segStyle, ...PIP_BUTTON }}
-                />
-              ) : (
-                <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
-              )
-            })}
-          </div>
-        ))}
-      </div>
+          "looping chips" rule; shared with the Stat tracker). Editable, it is
+          the slider; a read-only track beside a header control, the image. */}
+      {editable ? (
+        slider(trackStyle, fullRows)
+      ) : (
+        // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the label is set only with role=img
+        <div
+          role={trackIsImage ? 'img' : undefined}
+          aria-label={trackIsImage ? summary : undefined}
+          style={trackStyle}
+        >
+          {fullRows}
+        </div>
+      )}
 
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
       {(showCaption || isOverridden) && (

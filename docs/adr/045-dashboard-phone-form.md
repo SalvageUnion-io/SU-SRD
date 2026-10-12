@@ -12,7 +12,7 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 45, which
 [ADR-038](038-dashboard-game-surface.md) §3, §4 and §9. It adds no mode to [ADR-021](021-itun-surface-taxonomy.md).
 The phone form is Guided Play, with the same enforcement, seat and Change Log
 as the canvas, so the taxonomy and the
-[rules and ITUN surfaces](../ARCHITECTURE.md#areas) matrix do not change.
+[rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) matrix do not change.
 Built in issue #1256 (boards D4 and D5).
 
 ## Context
@@ -95,5 +95,5 @@ phone form (origin boards D4 and D5, issue #1256).
   `MajorModel` through both (`phoneForm.test.tsx`).
 - The masthead's ⌘K search is not on the Dashboard; its own search is the
   SRD panel (the canvas's SRD tab, the phone's search key).
-- Undo stays unbuilt in both forms (see [combat loop](../ARCHITECTURE.md#areas)). A
+- Undo stays unbuilt in both forms (see [combat loop](../ARCHITECTURE.md#combat)). A
   follow-up decides it.

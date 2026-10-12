@@ -9,8 +9,7 @@
  * (ITUN-CONVEX-A: `build:floor`, missing from an older tree's push). A local
  * deployment is one process on one port, so only one checkout serves it at a
  * time. The project's one cloud dev deployment is the preview slot's staging
- * backend, which only CI pushes (docs/ARCHITECTURE.md, "Accounts and Games
- * operations").
+ * backend, which only CI pushes (docs/ARCHITECTURE.md#deployments).
  *
  * Bun loads `.env.local` before this runs, and `convex dev` reads the same
  * variable with the same precedence (environment over file), so this checks
