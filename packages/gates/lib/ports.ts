@@ -17,19 +17,24 @@
  * - An explicit `PORT` wins over both. The browser preview
  *   (`.claude/launch.json`, `autoPort`) always starts a server with `PORT` set
  *   to the port it waits on: the base port, or a free one when another
- *   checkout holds that. `tools/shot.ts` passes `PORT` too.
- * - Every server answers with `x-su-checkout: <this checkout's root>`, so a
- *   client that finds its port busy can tell its own server from another
- *   checkout's (a collision, or a stale process) and refuse the latter, as
- *   `tools/shot.ts` does.
+ *   checkout holds that. `tools/shot.ts` passes `PORT` too (and `--port` to
+ *   ITUN's Vite, which leaves its port at 5173 for `bun run dev:itun`).
+ * - Every server, ITUN's Vite included, answers with
+ *   `x-su-checkout: <this checkout's root>`, so a client that finds its port
+ *   busy can tell its own server from another checkout's (a collision, or a
+ *   stale process) and refuse the latter, as `tools/shot.ts` does.
  */
 import { createHash } from 'node:crypto'
 import { realpathSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-/** The ports the primary checkout listens on. */
-export const BASE_PORTS = { srd: 4321, stories: 61000 } as const
+/**
+ * The ports the primary checkout listens on. `itun` is ITUN booted signed out
+ * with no backend, `bun run shot itun:/route`'s own server; `bun run dev:itun`
+ * is not on it, and stays on 5173, where its local Convex backend expects it.
+ */
+export const BASE_PORTS = { srd: 4321, stories: 61000, itun: 5180 } as const
 export type DevServer = keyof typeof BASE_PORTS
 
 /** The response header each dev server names its checkout in. */
