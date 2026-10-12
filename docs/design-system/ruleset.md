@@ -80,7 +80,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    9. **ConditionSwatch** — tri-state glyph: `ConditionSwatch`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
-   - **The entity card: one anatomy, two header fills** — a flush header whose first line is its labels (type stamp, classification pills, User-made; in flow, never riding the frame), then the title left, value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have; ink banner for things you do, decided by data shape.
+   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (type stamp, classification pills, User-made; never above it, never riding the frame), value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have; ink banner for things you do, decided by data shape.
    - **Actions sit inline** — flush ink bands, no Actions tray or stamp (on a Page, framed cards under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
    - **Nesting legibility** — nested entities sit in a page-colour tray under stamp-and-leader labels (no item counts: a section never tallies itself), one tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
@@ -91,4 +91,4 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    4. **Must not merge** — Btn (do vs read), SlotGrid (places, not quantity), ConditionSwatch, RollTable, and band ≠ rider.
 7. **§7 Two inviolable laws**
    1. **§7.1 The value-cell law** — a label+value cell is ink on paper, set apart by a 1px ink frame, never a fill (never cream, white or tinted). A lone-label badge is frameless.
-   2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height, never a fixed margin. It rides wells, callouts and Peek titles; never the Slab leader, a flush header band, or an entity's frame (its labels are the head's first line).
+   2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height, never a fixed margin. It rides wells, callouts and Peek titles; never the Slab leader, a flush header band, or an entity's frame (its labels sit right of its title).
