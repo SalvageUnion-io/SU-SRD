@@ -1497,6 +1497,30 @@ body {
   }
 }
 
+/* ══ The page shell (`components/chrome/PageShell.tsx`) ══════════════════════
+ *
+ * The shell's gutters, as custom properties as well as its padding, so a child
+ * that bleeds to the shell's edges (a `ChapterBand`) can undo exactly them.
+ */
+.su-page-shell {
+  --su-page-gutter-inline: var(--space-16);
+  --su-page-gutter-block: var(--space-20);
+  padding: var(--su-page-gutter-block) var(--su-page-gutter-inline);
+}
+
+@media (min-width: 40rem) {
+  .su-page-shell {
+    --su-page-gutter-inline: var(--space-32);
+    --su-page-gutter-block: var(--space-40);
+  }
+}
+
+@media (min-width: 64rem) {
+  .su-page-shell {
+    --su-page-gutter-inline: var(--space-48);
+  }
+}
+
 /* ══ The chapter band (`components/chrome/ChapterBand.tsx`) ═════════════════
  *
  * Layout only — the band's colour, its speckle and the notch's ink on the page
@@ -1504,6 +1528,21 @@ body {
  * sets the title at hero; from `sm` they share one row and the title is the
  * chapter size.
  */
+/* `layout="bleed"` (the default) fills its container; a band that is a page
+   shell's first child also reaches out to the shell's edges and up to its top,
+   by the shell's own gutters. The gutter properties inherit to every
+   descendant, so this selector, not their presence, is what stops a band
+   deeper in the shell (mid-page, in a column) from bleeding past its box. */
+.su-chapter-band[data-layout='bleed'] {
+  width: 100%;
+}
+
+.su-page-shell > .su-chapter-band[data-layout='bleed']:first-child {
+  margin-inline: calc(-1 * var(--su-page-gutter-inline));
+  margin-top: calc(-1 * var(--su-page-gutter-block));
+  width: calc(100% + 2 * var(--su-page-gutter-inline));
+}
+
 .su-chapter-band__row {
   align-items: flex-start;
   display: flex;
