@@ -6,6 +6,7 @@ import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
+import type { AnnouncedRoll } from '../../../../entity/entitySurfaceContext'
 import { CardRollTable } from '../CardRollTable'
 
 const coreMechanic = () => {
@@ -100,7 +101,7 @@ describe('CardRollTable', () => {
     expect(screen.getAllByRole('listitem').length).toBe(5)
   })
 
-  test('a Reference surface reads and folds the table, with no Roll (ruleset §2)', () => {
+  test('a surface with rolls off reads and folds the table, with no Roll', () => {
     render(
       <EntitySurfaceProvider value={{ rolls: false }}>
         <CardRollTable
@@ -115,6 +116,31 @@ describe('CardRollTable', () => {
     expect(screen.queryByRole('button', { name: /on this table/ })).toBeNull()
     expect(screen.getByRole('button', { name: 'Hide the Core Mechanic table' })).toBeTruthy()
     expect(screen.getAllByRole('listitem').length).toBe(5)
+  })
+
+  test('a surface that announces rolls gets the result, and the card keeps no readout', async () => {
+    const announced: AnnouncedRoll[] = []
+    render(
+      <EntitySurfaceProvider value={{ announceRoll: (roll) => announced.push(roll) }}>
+        <CardRollTable
+          table={coreMechanic()}
+          name="Core Mechanic"
+          size="large"
+          collapsible={false}
+          disabled={false}
+        />
+      </EntitySurfaceProvider>
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Roll on this table' }))
+    // The dice load on the first roll (`d20ForTable`), so the mark is awaited.
+    expect(await screen.findByText(/^Rolled \d+$/)).toBeTruthy()
+    expect(announced).toHaveLength(1)
+    const [roll] = announced
+    expect(roll?.table).toBe('Core Mechanic')
+    expect(roll?.roll).toBeGreaterThanOrEqual(1)
+    expect(roll?.roll).toBeLessThanOrEqual(20)
+    expect(roll?.text.length).toBeGreaterThan(0)
+    expect(screen.queryByText(/You rolled · lands on/)).toBeNull()
   })
 
   test('the rows are banded d20: paper, then the cream band, in turn', () => {

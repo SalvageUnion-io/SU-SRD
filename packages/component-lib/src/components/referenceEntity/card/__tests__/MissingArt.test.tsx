@@ -22,6 +22,13 @@ const withArt = () => npcs().filter((item) => !!getAssetUrl(item))
 
 const mark = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-missing-art]')?.dataset.missingArt
+const backdrop = (container: HTMLElement) =>
+  container.querySelector<HTMLImageElement>('.su-missing-art__backdrop')?.getAttribute('src')
+/** Rainmaker's chassis blueprints, as `getAssetUrl` addresses them. */
+const blueprints = () =>
+  SalvageUnionReference.Chassis.all()
+    .filter((item) => item.source === 'Rainmaker')
+    .map((item) => getAssetUrl(item))
 
 describe('missing art', () => {
   test('a schema’s art-less entities take the three marks in turn, in listing order', () => {
@@ -44,6 +51,28 @@ describe('missing art', () => {
       expect(mark(page.container)).toBe(listed)
       page.unmount()
     }
+  })
+
+  test('behind each mark, a Rainmaker blueprint, and a different one for each neighbour', () => {
+    const run = artless()
+      .slice(0, 7)
+      .map((item) => missingArt(item).backdrop)
+    expect(new Set(run).size).toBe(7)
+    for (const url of run) expect(blueprints()).toContain(url)
+  })
+
+  test('the listing card and the page draw the same blueprint', () => {
+    const item = need(artless()[0], 'art-less NPC')
+    const row = render(<ReferenceEntityCard data={item} size="medium" extent="head" artSlot />)
+    const listed = backdrop(row.container)
+    row.unmount()
+    const page = render(
+      <ReferenceEntityCard data={item} size="large" presentation="page" artSlot />
+    )
+    const master = missingArt(item).backdrop.replace(/\.webp$/, '')
+    expect(listed).toBe(`${master}-440.webp`)
+    expect(backdrop(page.container)).toBe(`${master}-880.webp`)
+    page.unmount()
   })
 
   test('an entity with art, or a card without artSlot, wears no mark', () => {

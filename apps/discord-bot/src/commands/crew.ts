@@ -23,7 +23,19 @@ const NO_CHANNEL = 'This command has to be run in a channel.'
 
 export const crewCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('crew').setDescription('This channel’s game, at a glance')
+    return (
+      sub
+        .setName('crew')
+        .setDescription('This channel’s game, at a glance')
+        // Bars are a glance for sighted readers and ten announcements for a
+        // screen reader, so the numbers-and-words form is one option away.
+        .addBooleanOption((option) =>
+          option
+            .setName('text-only')
+            .setDescription('Numbers and words only, without bar glyphs')
+            .setRequired(false)
+        )
+    )
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
@@ -33,10 +45,11 @@ export const crewCommand = {
       return
     }
 
+    const style = interaction.options.getBoolean('text-only') === true ? 'text' : 'bars'
     await respondWithItun(interaction, {
       visibility: 'public',
       call: (client) => client.crew(interaction.user.id, channelId),
-      render: (value) => crewCard(value, ITUN_ORIGIN),
+      render: (value) => crewCard(value, ITUN_ORIGIN, style),
     })
   },
 }

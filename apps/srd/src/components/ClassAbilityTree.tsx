@@ -37,6 +37,7 @@ function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
       omit={OMIT_KIND}
       lead
       toned
+      titleAs="h3"
     />
   )
 }
@@ -53,7 +54,13 @@ type TreeTrack = 'core' | 'advanced' | null
 /** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
 const noteFor = (track: TreeTrack) => (track ? 'Tree' : 'Choose 1')
 
-/** A tree as Rows on its track, under a slab naming it (and, for a branch, its owner). */
+/**
+ * A tree as Rows on its track, under a slab naming it (and, for a branch, its
+ * owner). On the class page the slab is an `h2` and each Ability's title an
+ * `h3`, the card's own outline (`sectionHeadingLevel`, `nestedTitleLevel` in
+ * component-lib): a screen-reader user jumps tree to tree and Ability to
+ * Ability rather than reading a wall of links (WCAG 1.3.1, 2.4.6).
+ */
 function TreeSection({
   tree,
   abilities,
@@ -62,7 +69,7 @@ function TreeSection({
 }: AbilityTreeGroup & { track: TreeTrack; note?: string }) {
   return (
     <section className="srd-ability-tree__group">
-      <Slab variant="solid" label={tree} count={note ?? noteFor(track)} />
+      <Slab variant="solid" as="h2" label={tree} count={note ?? noteFor(track)} />
       <ol className="srd-ability-tree__track" data-track={track ?? undefined}>
         {abilities.map((ability) => (
           <li key={ability.id} className="srd-ability-tree__tier">

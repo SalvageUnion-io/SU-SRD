@@ -10,6 +10,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import type { ScrapPool } from 'itun-domain/schemas/crawler'
+import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import {
   bayGate,
@@ -175,6 +176,20 @@ describe('deteriorationOutcome', () => {
     expect(deteriorationOutcome(11)).toBe('lose-sp')
     expect(deteriorationOutcome(19)).toBe('lose-sp')
     expect(deteriorationOutcome(20)).toBe('safe')
+  })
+
+  it('each band is one row of the Crawler Deterioration table', () => {
+    const table = SalvageUnionReference.RollTables.getByName('Crawler Deterioration')?.table
+    const rows: Record<string, string[]> = {}
+    for (let face = 1; face <= 20; face++) {
+      const row = resultForTable(table, face)
+      expect(row.success).toBe(true)
+      const keys = rows[deteriorationOutcome(face)] ?? []
+      if (!keys.includes(row.key)) rows[deteriorationOutcome(face)] = [...keys, row.key]
+    }
+    for (const keys of Object.values(rows)) expect(keys).toHaveLength(1)
+    const claimed = Object.values(rows).flat()
+    expect(new Set(claimed).size).toBe(claimed.length)
   })
 })
 

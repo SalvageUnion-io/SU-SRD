@@ -167,6 +167,10 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
 
     expect(update.mock.calls[0]).toEqual(['crawler', crawler.id, { currentSP: 5 }, LIVE_SHEET_TXN])
     expect(updateCrawlerBay).not.toHaveBeenCalled()
+    // The readout is the table's row (p.219), then what was applied.
+    expect(screen.getByRole('status').textContent).toContain(
+      'Deterioration 15: Your Union Crawler loses 5 Structure Points. SP now 5.'
+    )
   })
 
   test('the 6-10 band only advises the player to choose a Bay (ADR-007)', async () => {

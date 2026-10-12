@@ -3,9 +3,12 @@
  * component-lib's `compactLead.ts` / `firstParagraphText.ts`.
  */
 
+import { extractVisibleActions } from '../../actionResolution'
 import { parseContentBlockString } from '../../contentBlockHelpers'
 import { isAbility } from '../../entityGuards'
+import { resolveGrantedEntities } from '../../helpers'
 import type {
+  SURefEntity,
   SURefMetaEntity,
   SURefObjectContentBlock,
   SURefObjectGuideStep,
@@ -35,11 +38,30 @@ function firstStepParagraphText(entity: SURefMetaEntity): string | undefined {
 }
 
 /**
+ * The first paragraph of what an entity grants, else of its visible actions —
+ * where a system, a piece of equipment or a grant ability (Holo Companion)
+ * keeps all of its prose. The same order as component-lib's
+ * `resolveCatalogLeadBlocks`.
+ */
+function borrowedParagraphText(entity: SURefMetaEntity): string | undefined {
+  for (const granted of resolveGrantedEntities(entity as SURefEntity)) {
+    const lead = firstParagraphText('content' in granted ? granted.content : undefined)
+    if (lead) return lead
+  }
+  for (const action of extractVisibleActions(entity) ?? []) {
+    const lead = firstParagraphText(action.content)
+    if (lead) return lead
+  }
+  return undefined
+}
+
+/**
  * The lead: an ability's description, else the entity's first paragraph — the
  * lore a chassis, class or denizen opens with — else, for a guide with no
- * preamble of its own, its first step's. Its own prose only: a system whose
- * meaning lives in its actions has none. Plain text, since a clamped line
- * renders no references.
+ * preamble of its own, its first step's, else the opening paragraph of what it
+ * grants or does (a First Aid Kit's action). Every listing leads with prose
+ * when the entity carries any. Plain text, since a clamped line renders no
+ * references.
  */
 export function entityLead(entity: SURefMetaEntity): string | undefined {
   const description =
@@ -47,6 +69,7 @@ export function entityLead(entity: SURefMetaEntity): string | undefined {
   const lead =
     description ||
     firstParagraphText('content' in entity ? entity.content : undefined) ||
-    firstStepParagraphText(entity)
+    firstStepParagraphText(entity) ||
+    borrowedParagraphText(entity)
   return lead ? plainTraitText(lead) : undefined
 }

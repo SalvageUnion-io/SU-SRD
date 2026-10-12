@@ -27,10 +27,12 @@ export function Toaster({ offset, mobileOffset }: ToasterProps = {}) {
           fontFamily: "var(--font-body, 'Barlow', system-ui, sans-serif)",
           fontSize: '0.8125rem',
         },
-        // The status icon's colour: `.su-toast--ok` / `--bad` in index.css.
+        // The status icon's colour: `.su-toast--ok` / `--bad` in index.css; the
+        // description's paper: `.su-toast__description`.
         classNames: {
           success: 'su-toast--ok',
           error: 'su-toast--bad',
+          description: 'su-toast__description',
         },
       }}
     />

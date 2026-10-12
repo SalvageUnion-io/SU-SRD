@@ -9,7 +9,7 @@
 
 import type { SURefObjectChoice, SURefObjectContentBlock } from 'salvageunion-reference'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
-import type { ReferenceCardEntity } from './referenceEntityCardTypes'
+import type { CardTitleTag, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */
@@ -51,22 +51,51 @@ export { isTitanicAction } from 'salvageunion-reference'
  * are *explicitly numbered* in the visible text — already a document outline in
  * everything but markup.
  *
- * Two things deliberately stay spans:
+ * The cards nested in those sections are part of the outline too: on a page
+ * each nested card's TITLE is an `h3` under its section's `h2`
+ * (`nestedTitleLevel`). An entity page lists what the entity carries — a
+ * chassis's systems, a page's actions — and a screen-reader user has to be able
+ * to jump between them, not only between the sections that hold them (WCAG
+ * 1.3.1, 2.4.6). A card a band's `h2` holds gets the `h3`; a nested entity
+ * stacked with no band above it (a System, an NPC, a Drone — its own stamp
+ * names it) is a section itself, an `h2` (`stackedTitleLevel`). The chassis
+ * ability, beneath the stats under the page's `h1`, keeps a span.
+ *
+ * Two things still stay spans:
  *
  * - **Bands inside NESTED cards.** They are separators within a component, not
  *   divisions of the document. A nested card is a separate
- *   `ReferenceEntityCardInner` with no `titleAs`, so this returns `undefined`
- *   for it without any depth check — the level follows the CONTENT, not the
- *   render tree.
+ *   `ReferenceEntityCardInner` whose `titleAs` is at most `h3`, so this returns
+ *   `undefined` for it without any depth check — the level follows the
+ *   CONTENT, not the render tree.
  * - **The `parentSeal` stamp** (e.g. "Chassis Ability"). It reads like a
  *   section title but is passed INTO each nested card as its own badge, so
- *   promoting it would emit one `h2` per ability rather than one per section.
+ *   promoting it would emit one heading per card on top of the card's title.
  *
  * Returning `undefined` rather than `'span'` keeps `Slab`'s own default as the
  * single source of what a non-heading band is.
  */
-export function sectionHeadingLevel(titleAs: 'span' | 'h1' | undefined): 'h2' | undefined {
+export function sectionHeadingLevel(titleAs: CardTitleTag | undefined): 'h2' | undefined {
   return titleAs === 'h1' ? 'h2' : undefined
+}
+
+/**
+ * The element a NESTED card's title renders as: an `h3` when its host IS the
+ * page, under the section band's `h2` (see `sectionHeadingLevel`); otherwise
+ * the header's default `span` — inside a listing card a nested card is part of
+ * a component, not a division of the document.
+ */
+export function nestedTitleLevel(hostOnPage: boolean | undefined): 'h3' | undefined {
+  return hostOnPage ? 'h3' : undefined
+}
+
+/**
+ * The element a STACKED nested card's title renders as — one no band holds
+ * (`CardStack`): an `h2` when its host IS the page, a section of its own under
+ * the page's `h1`; otherwise the header's default `span`.
+ */
+export function stackedTitleLevel(hostOnPage: boolean | undefined): 'h2' | undefined {
+  return hostOnPage ? 'h2' : undefined
 }
 
 /** React key for a nested card. */

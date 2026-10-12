@@ -197,7 +197,7 @@ export function MechMajor({
       result: {
         kind: 'heat-check',
         roll: effect.result.heatCheckRoll,
-        outcome: effect.result.outcome ?? 'safe',
+        outcome: effect.result.outcome ?? 'passed',
       },
     })
   }
@@ -222,7 +222,7 @@ export function MechMajor({
       result: {
         kind: 'heat-check',
         roll: effect.result.heatCheckRoll,
-        outcome: effect.result.outcome ?? 'safe',
+        outcome: effect.result.outcome ?? 'passed',
       },
     })
   }

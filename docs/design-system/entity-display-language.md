@@ -15,10 +15,10 @@ Status: agreed. Code: `packages/component-lib/src/entity/`.
 
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
 2. **Token** — `[kind] name [one fact]`, one size; always opens its entity; Peeks on hover or long-press.
-3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (the kind stamp as its first line, then tier, name, cost pennant, mode slot), paper body (facts, traits, lead while browsing).
+3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier, name with the kind stamp right of it, cost pennant, mode slot), paper body (facts, traits, lead while browsing).
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
    **Tile** — the SRD Catalog's Row: 3:4 art, name notched into the band, compact facts, lead; link only.
-4. **Card** — the whole entity in place: head (its labels — kind stamp, pills, User-made — as the first line, in flow), facts, prose, actions as bands, children as Rows, table as a roll bar, cite; comfortable (≥ 30rem) or compact.
+4. **Card** — the whole entity in place: head (the title, its labels — kind stamp, pills, User-made — right of it, in flow), facts, prose, actions as bands, children as Rows, table as a roll bar, cite; comfortable (≥ 30rem) or compact.
 5. **Page** — the detail view: an SRD route, an ITUN drawer (sheet on phone). From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
    Ability trees and pattern rows clear the art; a tray spans the column (`CardTray`'s `flush`); on a phone the art stacks above.
 6. **Peek** — a compact Card, read-only, children as Tokens. A Mention or Tag carries only `data-peek`; one `PeekHost` per app opens it and loads it lazily.

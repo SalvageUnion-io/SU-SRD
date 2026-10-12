@@ -313,24 +313,31 @@ describe('SalvageUnionReference.preload — list projection', () => {
     resetAllForTesting()
   })
 
-  /** Every row's prose blocks, flattened: what the projection drops. */
-  const proseOf = (rows: readonly { content?: readonly { type: string }[] }[]) =>
-    rows.flatMap((row) => (row.content ?? []).filter((block) => block.type === 'paragraph'))
+  const PROSE = ['paragraph', 'list-item', 'heading', 'flavor', 'hint']
+  type Row = { id?: string; content?: readonly { type: string }[] }
+
+  /** Every row's prose blocks after its first paragraph (its lead), flattened:
+   * what the projection drops. */
+  const proseOf = (rows: readonly Row[]) =>
+    rows.flatMap((row) => {
+      const lead = (row.content ?? []).find((block) => block.type === 'paragraph')
+      return (row.content ?? []).filter((block) => block !== lead && PROSE.includes(block.type))
+    })
 
   it('the generated file is the projection of the committed data', () => {
     expect(JSON.stringify(actionListRows)).toBe(JSON.stringify(actionRows.map(toListRow)))
   })
 
-  it('keeps every row and every non-content field, and drops only prose', () => {
+  it('keeps every row, every non-content field and the lead, and drops only the rest of the prose', () => {
     expect(actionListRows.map((a) => a.id)).toEqual(actionRows.map((a) => a.id))
     actionRows.forEach((full, i) => {
       const { content: fullContent, ...fullRest } = full
       const { content: listContent, ...listRest } = actionListRows[i] ?? {}
       expect(listRest).toEqual(fullRest)
       expect(listContent === undefined).toBe(fullContent === undefined)
-      for (const block of listContent ?? []) {
-        expect(['paragraph', 'list-item', 'heading', 'flavor', 'hint']).not.toContain(block.type)
-      }
+      const fullLead = (fullContent ?? []).find((block) => block.type === 'paragraph')
+      const listProse = (listContent ?? []).filter((block) => PROSE.includes(block.type))
+      expect(listProse).toEqual(fullLead ? [fullLead] : [])
     })
   })
 
@@ -349,8 +356,11 @@ describe('SalvageUnionReference.preload — list projection', () => {
 
   it('a later full preload replaces it, and the action map sees the prose', async () => {
     await SalvageUnionReference.preload(['actions', 'systems'], { projection: 'list' })
-    const system = SalvageUnionReference.Systems.all().find((s) => (s.actions ?? []).length > 0)
-    if (!system) throw new Error('expected a system with actions')
+    const fullById = new Map(actionRows.map((a) => [a.id, a]))
+    const system = SalvageUnionReference.Systems.all().find(
+      (s) => proseOf((extractActions(s) ?? []).flatMap((a) => fullById.get(a.id) ?? [])).length > 0
+    )
+    if (!system) throw new Error('expected a system whose actions carry more than a lead')
     expect(proseOf(extractActions(system) ?? [])).toEqual([])
 
     await SalvageUnionReference.preload(['actions'])

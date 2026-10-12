@@ -4,7 +4,7 @@
  * component-lib's `missingArtMark.ts`; drawing it (the torn edge) stays there.
  */
 
-import { getAssetUrl } from '../../assets'
+import { assetUrl, getAssetUrl } from '../../assets'
 import { getPageReference, getTechLevel } from '../../entityFields'
 import { getModel } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
@@ -12,6 +12,18 @@ import type { SURefMetaEntity } from '../../schemas/index'
 import type { EntityArt, MissingArtVariant } from '../types'
 
 const VARIANTS: readonly MissingArtVariant[] = ['file', 'row', 'removed']
+
+/** Rainmaker's chassis blueprints, the faded drawing behind every censor mark.
+ * Seven, coprime with the three marks, so a run's neighbours differ in both. */
+const BLUEPRINTS: readonly string[] = [
+  'wader',
+  'stolas',
+  'paladin',
+  'ravager',
+  'agares',
+  'black-dragon',
+  'cerberus',
+].map((slug) => assetUrl(`chassis/${slug}.webp`))
 
 /** A string's FNV-1a hash: the seed for everything derived per entity. */
 function hash(text: string): number {
@@ -58,7 +70,7 @@ function artlessOrdinal(entity: SURefMetaEntity): number | undefined {
 /**
  * The censor mark an entity wears: the schema's art-less entities take the
  * three in turn, in listing order, so neighbours differ and a listing and a
- * page always agree. Outside a loaded schema it falls back to the hash.
+ * page always agree; the blueprint behind the mark turns the same way. Outside a loaded schema it falls back to the hash.
  */
 export function missingArt(entity: SURefMetaEntity): Extract<EntityArt, { kind: 'missing' }> {
   const seed = entitySeed(entity)
@@ -72,6 +84,7 @@ export function missingArt(entity: SURefMetaEntity): Extract<EntityArt, { kind: 
     code: `UNION_ARCHIVE._${padded}`,
     short: `P.${padded}`,
     seed,
+    backdrop: BLUEPRINTS[index % BLUEPRINTS.length] ?? '',
   }
 }
 

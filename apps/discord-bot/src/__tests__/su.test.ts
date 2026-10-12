@@ -51,6 +51,13 @@ describe('/su command', () => {
       (lookup as { options?: { name: string; autocomplete?: boolean }[] }).options?.[0]
     ).toMatchObject({ name: 'entity', autocomplete: true, required: true })
 
+    const crew = (json.options ?? []).find((o) => o.name === 'crew')
+    expect((crew as { options?: { name: string; type: number }[] }).options?.[0]).toMatchObject({
+      name: 'text-only',
+      type: 5, // BOOLEAN
+      required: false,
+    })
+
     // `game` is a GROUP (type 2), not a subcommand (type 1) — the distinction
     // is what makes `/su game bind` dispatch correctly.
     const game = (json.options ?? []).find((o) => o.name === 'game')

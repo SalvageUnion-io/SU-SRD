@@ -15,14 +15,15 @@ a reply looks like.
 ## Every reply is a Components V2 container
 
 - Build a pure `ContainerData` and render it with `toContainer` in
-  `src/container.ts`. A reference entry uses the shared `discordCardParts`
-  (also the SRD's Component Embed); sheets and game cards `entityCard()`;
+  `src/container.ts`. A reference entry is `discordEntryCard`, the SRD's
+  Component Embed too (add controls only); sheets and game cards
+  `entityCard()`;
   anything else authors its blocks in a `*Container.ts` builder. Never an
   `embeds:` payload — with `MessageFlags.IsComponentsV2` Discord rejects
   `content` and `embeds` outright.
 - **Limits are enforced once, in `toContainer`** (`enforceContainerLimits`,
   budgets in `V2_LIMIT`). They are server-side ceilings no installed package
-  checks, so do not add a second guard; a builder that must fit (lookup) budgets
+  checks, so do not add a second guard; a builder that must fit budgets
   against `V2_LIMIT` by measuring what it renders.
 - Builders stay pure: data in, data out. Changing a sent message means
   rebuilding it, not mutating it.

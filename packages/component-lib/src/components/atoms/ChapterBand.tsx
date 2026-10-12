@@ -32,10 +32,11 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * `aside` sits at the right of the same row, on the band, bottom-aligned with
  * the notch (a sheet's Read | Edit). Below `sm` it stacks above the notch,
- * where the band has room for it. `asideAt="notch"` instead sets it right
- * beside the notch at every width, after the title in reading order as in the
- * DOM (an entity's type stamps); when a long name leaves no room
- * there it wraps above the notch, which stays on the band's foot.
+ * where the band has room for it. `asideAt="notch"` instead keeps it on the
+ * notch's row at every width, at the row's far end and after the title in
+ * reading order as in the DOM (an entity's type stamps); when a long name
+ * leaves no room there it wraps above the notch, still at the end, and
+ * the notch stays on the band's foot.
  *
  * ## Colour map
  *
@@ -86,7 +87,8 @@ export type ChapterBandProps = {
   aside?: ReactNode
   /**
    * Where `aside` sits: `end` (default), at the band's far end from `sm` and
-   * above the notch on a phone; `notch`, beside the notch at every width.
+   * above the notch on a phone; `notch`, on the notch's row at every width
+   * (at its far end, wrapping above the notch when a long name fills it).
    */
   asideAt?: 'end' | 'notch'
   /**
