@@ -7,7 +7,7 @@ import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityC
 import {
   accentDeepColor,
   borderColorFromHeaderBg,
-  onToneText,
+  onTone,
 } from '../referenceEntity/referenceEntityHelpers'
 import { CardControlRail } from './CardControlRail'
 import type { CardExtent, CardSize } from './displayMode'
@@ -388,7 +388,7 @@ export function Card({
             className={cn(
               'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-badge font-bold uppercase tracking-caps-tight',
               // Ink or paper by contrast with the band actually painted.
-              onToneText(subHeaderBg)
+              onTone(subHeaderBg) === 'paper' ? 'text-paper' : 'text-ink'
             )}
             // Footer is the DARKER shade (matches the sub-header + the
             // reference-entity footer), not the header tone.

@@ -30,3 +30,29 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
+
+/*
+ * Reference Entity Card stories (Compositions/Entity): the side-by-side pair
+ * (`grid-cols-1 lg:grid-cols-2`) and the catalog tile grids (`md:grid-cols-2`,
+ * `md:grid-cols-3`). Display and gap are the stories' style objects; only the
+ * columns change with width.
+ */
+.su-story-pair {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 64rem) {
+  .su-story-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 48rem) {
+  .su-story-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-story-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

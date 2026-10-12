@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { space } from '../../../design/tokens'
 import { Badge } from '../../chrome/Badge'
 import { CountStepper } from '../../chrome/CountStepper'
 import { CardControlRail } from '../../shared/CardControlRail'
@@ -43,13 +44,17 @@ export function CardTopRail({
   // selected (the picker-cell affordance).
   const selectionSealNode =
     selected && selectionSeal ? (
-      <Badge surface="tone" tone="ok" className="pointer-events-none">{`${selectionSeal} ✓`}</Badge>
+      <Badge
+        surface="tone"
+        tone="ok"
+        style={{ pointerEvents: 'none' }}
+      >{`${selectionSeal} ✓`}</Badge>
     ) : null
   // MULTI-SELECT seal — a "Chosen" stamp + `[− n +]` CountStepper, the
   // duplicate-allowed counterpart to the single-select seal. The "Chosen"
   // stamp only lights once at least one copy is picked.
   const countSealNode = multiSelect ? (
-    <div className="flex items-center gap-1.5">
+    <div style={{ display: 'flex', alignItems: 'center', gap: space[6] }}>
       {multiSelect.count >= 1 && (
         <Badge surface="tone" tone="ok">
           Chosen

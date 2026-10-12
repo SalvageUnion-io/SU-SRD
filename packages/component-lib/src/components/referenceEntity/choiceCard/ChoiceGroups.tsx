@@ -11,7 +11,7 @@ import { Badge } from '../../chrome/Badge'
 import { FOCUS_RING, INPUT_FOCUS } from '../../chrome/interaction'
 import { CardRollTable } from '../card/CardRollTable'
 import { CardTopRail } from '../card/CardTopRail'
-import { onToneText, textBand } from '../referenceEntityHelpers'
+import { onTone, textBand } from '../referenceEntityHelpers'
 import type { ChoiceCardOption, ChoiceSelections } from './choiceSelectionHelpers'
 import {
   getChoiceCardOptions,
@@ -120,7 +120,7 @@ function ChoiceOption({
 }): ReactNode {
   const parsedDescription = useParseTraitReferences(description ?? '')
   const band = textBand(toneColor)
-  const onBand = onToneText(band, 'text-ink') === 'text-paper' ? color.paper : color.ink
+  const onBand = onTone(band, 'ink') === 'paper' ? color.paper : color.ink
   const button: CSSProperties = {
     background: 'none',
     border: 0,

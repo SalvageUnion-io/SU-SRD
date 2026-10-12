@@ -1,5 +1,16 @@
+import type { CSSProperties } from 'react'
+import { space } from '../../../design/tokens'
 import { Stat } from '../../shared/Stat'
 import type { BonusCell } from './cardCells'
+
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[6] } satisfies CSSProperties
+
+const CELLS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'flex-start',
+  gap: space[6],
+} satisfies CSSProperties
 
 /**
  * BONUS PER TECH LEVEL — its own distinct rendering, anchored INLINE at the
@@ -9,7 +20,7 @@ import type { BonusCell } from './cardCells'
  */
 export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; compact: boolean }) {
   return (
-    <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
+    <div className="su-ec-block" style={STACK}>
       <Stat
         orientation="horizontal"
         label="Bonus per Tech Level"
@@ -17,7 +28,7 @@ export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; comp
         textColor="var(--color-paper)"
         size={compact ? 'compact' : 'full'}
       />
-      <div className="flex flex-wrap items-start gap-1.5">
+      <div style={CELLS}>
         {cells.map((cell) =>
           cell.label.toLowerCase() === 'damage' ? (
             // Damage is always horizontal (label | +N SP), matching every other

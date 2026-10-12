@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes, heroImageSizes } from './cardImageSizes'
 import { heroArtCrop } from './heroArtCrop'
@@ -39,6 +40,17 @@ type CardImageProps = {
  * one. When one does, it arrives as a deliberate design whose destructive
  * action uses the danger tone, never an ONTOLOGY hue (ruleset §3.3).
  */
+/** The artwork fades in once loaded. */
+const IMG = {
+  display: 'block',
+  height: 'auto',
+  width: '100%',
+  objectFit: 'contain',
+  transitionProperty: 'opacity',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionDuration: '300ms',
+} satisfies CSSProperties
+
 export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   // The fade-in is a CLIENT-ONLY enhancement, so it starts already-`loaded` on
@@ -119,8 +131,11 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
       style={{ width: containerWidth, maxWidth: '100%', shapeOutside: 'margin-box' }}
     >
       <div
-        className="relative overflow-hidden"
-        style={loaded ? undefined : { minHeight: compact ? 120 : 200 }}
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          ...(loaded ? {} : { minHeight: compact ? 120 : 200 }),
+        }}
       >
         <img
           ref={imgRef}
@@ -135,8 +150,7 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
           // so it is that width except on a viewport narrower than the card.
           sizes={srcSet ? cardImageSizes(compact) : undefined}
           alt={alt}
-          className="block h-auto w-full object-contain transition-opacity duration-300"
-          style={{ opacity: loaded ? 1 : 0 }}
+          style={{ ...IMG, opacity: loaded ? 1 : 0 }}
           loading="lazy"
           decoding="async"
           onLoad={() => setLoaded(true)}
