@@ -60,5 +60,49 @@
 
   // `bun run preview` (`wrangler dev`) serves the built `dist/` through this
   // Worker on the dev server's port: the e2e suite's CI server.
-  "dev": { "port": 5173 }
+  "dev": { "port": 5173 },
+
+  // Refit S2 spike (docs/spikes/s2-one-product.md): ITUN at
+  // salvageunion.io/build. NOTHING DEPLOYS THIS until the owner flips S2: the
+  // deploy runs plain `wrangler deploy`, which ignores `env`. Flipped, the
+  // deploy builds with `ITUN_SITE=one-domain` (src/lib/site.ts) and runs
+  // `wrangler deploy --env one-domain`. `name` is set so it updates su-itun
+  // itself rather than creating `su-itun-one-domain`.
+  "env": {
+    "one-domain": {
+      "name": "su-itun",
+      // A Workers route, not a Custom Domain: a route runs before the su-srd
+      // Custom Domain on the same hostname, so `/build*` never reaches srd.
+      // The intheunionnow.com domains stay attached so their DNS records stay
+      // proxied for the zone's Redirect Rule (salvageunion.io/build/*), which
+      // answers before any Worker.
+      "routes": [
+        { "pattern": "salvageunion.io/build*", "zone_name": "salvageunion.io" },
+        { "pattern": "intheunionnow.com", "custom_domain": true },
+        { "pattern": "www.intheunionnow.com", "custom_domain": true }
+      ],
+      // Not inherited either: the deploy still fails while SENTRY_DSN is unset.
+      "secrets": {
+        "required": ["SENTRY_DSN"]
+      },
+      // `vars` is not inherited: CONVEX_URL restated (the routing test holds
+      // the two equal), plus the base the Worker strips and puts back.
+      "vars": {
+        "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud",
+        "BASE_PATH": "/build"
+      },
+      // `patternsUnder('/build')` (src/worker/retiredRedirects.ts).
+      "assets": {
+        "directory": "./dist",
+        "binding": "ASSETS",
+        "not_found_handling": "single-page-application",
+        "run_worker_first": [
+          "/build/games",
+          "/build/games/",
+          "/build/games/*/view/*",
+          "/build/join/*"
+        ]
+      }
+    }
+  }
 }

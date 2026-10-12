@@ -96,7 +96,14 @@ export const RUNTIME_CACHING = [
     // answered from the cache only when the network fails or times out — see
     // the header. Stringified into sw.js, so it must not reference anything
     // outside its own parameters.
-    urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+    //
+    // Not under `/build`: that is ITUN's, on this origin once refit S2 routes
+    // it here, and ITUN's own worker (scope `/build/`) decides how its shell
+    // is fetched. Without the carve-out this worker, scoped `/`, would answer
+    // ITUN's first visit from srd's `pages` cache when the network is slow.
+    // Inert until then: srd has no `/build` page.
+    urlPattern: ({ request, url }: { request: Request; url: URL }) =>
+      request.mode === 'navigate' && !/^\/build(\/|$)/.test(url.pathname),
     handler: 'NetworkFirst' as const,
     options: { cacheName: PAGES_CACHE, networkTimeoutSeconds: NAVIGATION_TIMEOUT_SECONDS },
   },

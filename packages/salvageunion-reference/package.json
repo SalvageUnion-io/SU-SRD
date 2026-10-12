@@ -36,7 +36,7 @@
     "generate:json-schemas": "bun tools/generateJsonSchemas.ts",
     "validate": "bun tools/validate.ts",
     "edit-data": "bun tools/edit-data.ts",
-    "typecheck": "bun tools/ensureGenerated.ts && tsc --project tsconfig.json --noEmit",
+    "typecheck": "bun tools/ensureGenerated.ts && tsc -b",
     "test": "bun test",
     "clean": "rm -rf dist *.tsbuildinfo"
   },

@@ -58,7 +58,8 @@ const NAME: CSSProperties = {
 /**
  * TILE — the catalog form: the artwork is the hero. The art at 3:4 on paper
  * (the line art multiplied onto it, or the entity's censor mark when its
- * schema has art and it has none), then the tone band with the name notched
+ * schema has art and it has none; for a tech level with no art, its numeral
+ * as the plate), then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
  * Manual's chapter band at a tile's scale — then the facts as value cells and,
  * while browsing, the lead clamped to three lines.
@@ -71,13 +72,19 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
   const facts = factCells(model.facts, omit)
   const { art } = model
   const leadText = lead ? model.lead : undefined
+  // No art place at all, but a tech level: its numeral is the plate.
+  const numeral = art.kind === 'none' && model.techLevel != null ? model.techLevel : undefined
+  const artClass =
+    art.kind === 'missing'
+      ? ' su-entity-tile__art--missing'
+      : numeral != null
+        ? ' su-entity-tile__art--numeral'
+        : ''
 
   return (
     <LinkSurface target={target} label={model.title} className="su-entity-tile">
       <div className="su-entity-tile__frame" data-user-made={model.userMade || undefined}>
-        <span
-          className={`su-entity-tile__art${art.kind === 'missing' ? ' su-entity-tile__art--missing' : ''}`}
-        >
+        <span className={`su-entity-tile__art${artClass}`}>
           {art.kind === 'image' ? (
             <img
               src={derivative(art.url, 440)}
@@ -91,6 +98,10 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
             />
           ) : art.kind === 'missing' ? (
             <MissingArtMark mark={art} />
+          ) : numeral != null ? (
+            <span className="su-entity-tile__numeral" aria-hidden="true">
+              {numeral}
+            </span>
           ) : null}
         </span>
         <div

@@ -21,5 +21,11 @@
     "vite.config.ts",
     "routeTree.config.ts",
     "playwright.config.ts"
+  ],
+  "references": [
+    { "path": "../../packages/component-lib" },
+    { "path": "../../packages/itun-domain" },
+    { "path": "../../packages/observability" },
+    { "path": "../../packages/salvageunion-reference" }
   ]
 }

@@ -27,7 +27,7 @@ utility framework. What an editor needs:
   No speculative style object: add one with the component that needs it.
 - **Edit `tokens.ts` and `theme.css` together** — `theme.css` is the one
   token set (`:root` custom properties), and
-  `src/design/tokens.parity.test.ts` fails if they disagree.
+  `src/design/__tests__/tokens.parity.test.ts` fails if they disagree.
 - **The one entry:** `packages/component-lib/src/styles/entry.css` declares
   `@layer su-reset, su-base;` and imports `theme.css`, `reset.css` into
   `su-reset` and `index.css` into `su-base`. The two apps and

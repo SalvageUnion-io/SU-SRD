@@ -21,7 +21,7 @@ export function borderColorFromHeaderBg(
  *
  * 60% tone, not the 65% it was: the footer prints 12px text on this band, which
  * owes 4.5:1, and TL1's deep shade at 65% gave its best foreground (paper) only
- * 4.05:1. At 60% every card tone clears 4.5:1 — `design/contrast.test.ts` holds it.
+ * 4.05:1. At 60% every card tone clears 4.5:1 — `design/__tests__/contrast.test.ts` holds it.
  */
 export function accentDeepColor(
   headerBg: string | undefined,

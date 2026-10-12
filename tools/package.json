@@ -5,7 +5,7 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "typecheck": "bun ../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc --noEmit",
+    "typecheck": "bun ../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
     "test": "bun test"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@
  *
  * The server sends a linked entity's name and body only when it is published
  * itself, and nothing but its kind otherwise (`publicSheet.get`, pinned in
- * `test/convex/liveSheet.test.ts`). This pins the other half — what the page
+ * `test/convex/__tests__/liveSheet.test.ts`). This pins the other half — what the page
  * does with each: a published one is a full rail row with a View into its own
  * `/p/` page; a private one fills its slot as "Not shared", and nothing more.
  */

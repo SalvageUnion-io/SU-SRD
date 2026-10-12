@@ -6,6 +6,13 @@ import { useCallback, useState, useSyncExternalStore } from 'react'
  */
 export type ListingView = 'list' | 'catalog'
 
+/**
+ * Listings that are a Catalog at every width: their entities have no artwork,
+ * but each tile carries a plate of its own (a tech level's numeral), and the
+ * tiles are the whole content — so no List view and no toggle.
+ */
+export const CATALOG_LISTINGS: ReadonlySet<string> = new Set(['tech-levels'])
+
 /** A shared link's view: `?view=catalog` or `?view=list`. */
 export const PARAM_VIEW = 'view'
 
@@ -72,8 +79,13 @@ function isWide(): boolean {
  *
  * `fromUrl` says whether the view should ride the URL: only once the reader
  * chose it on this page, or arrived on a link that named it.
+ *
+ * `catalogOnly` (`CATALOG_LISTINGS`) pins the Catalog: there is nothing to choose.
  */
-export function useListingView(hasArt: boolean): {
+export function useListingView(
+  hasArt: boolean,
+  catalogOnly = false
+): {
   view: ListingView
   setView: (view: ListingView) => void
   fromUrl: boolean
@@ -89,6 +101,10 @@ export function useListingView(hasArt: boolean): {
     storeView(next)
   }, [])
 
-  const view: ListingView = !hasArt ? 'list' : (choice ?? (wide ? 'catalog' : 'list'))
-  return { view, setView, fromUrl: hasArt && fromUrl }
+  const view: ListingView = catalogOnly
+    ? 'catalog'
+    : !hasArt
+      ? 'list'
+      : (choice ?? (wide ? 'catalog' : 'list'))
+  return { view, setView, fromUrl: hasArt && !catalogOnly && fromUrl }
 }

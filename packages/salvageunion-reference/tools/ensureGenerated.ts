@@ -27,7 +27,7 @@
  *
  * ## Why a lock
  *
- * `bun --filter "*" typecheck` and `bun --filter "*" test` start every
+ * `bun --filter "*" test` (and a scoped `bun --filter … typecheck`) start every
  * workspace at once, and each one runs this. The first takes the lock
  * (`mkdir` is atomic) and regenerates; the rest wait for it, then find the
  * stamp current and return — so no reader ever sees a half-written file.

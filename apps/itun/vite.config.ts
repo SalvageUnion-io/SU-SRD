@@ -1,10 +1,15 @@
+import { copyFileSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
 import { readChangelog } from 'component-lib/changelog/git'
 import { sentrySourcemaps } from 'observability/vite'
+import type { Plugin } from 'vite'
 import { defineConfig, loadEnv } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
+import type { ItunSite } from './src/lib/site'
+import { basePathOf, headersForBase, itunSite, shellForSite } from './src/lib/site'
 import { WORKBOX_OPTIONS } from './src/lib/sw/workbox'
 
 /**
@@ -21,10 +26,47 @@ function requireConvexUrl(mode: string): void {
   )
 }
 
+/**
+ * Refit S2 spike (`src/lib/site.ts`, `docs/spikes/s2-one-product.md`): under a
+ * base, the build lands in `dist/build/` and two files move to `dist/`:
+ *
+ * - `_headers`, which Static Assets reads only at the asset root, with its
+ *   `/assets/*` rule scoped to the base;
+ * - a copy of `index.html`, because `single-page-application` mode answers a
+ *   navigation miss with `/index.html` at the root, whatever the path.
+ *
+ * At the root (`standalone`, today's build) it does nothing.
+ */
+function siteLayout(site: ItunSite): Plugin {
+  const base = basePathOf(site.base)
+  return {
+    name: 'itun-site-layout',
+    apply: 'build',
+    transformIndexHtml: (html) => shellForSite(html, site),
+    // `emptyOutDir` clears only `dist/build/`: a root build's files must not
+    // linger beside it, where Static Assets would serve them.
+    buildStart() {
+      if (base !== '') rmSync('dist', { recursive: true, force: true })
+    },
+    closeBundle() {
+      if (base === '') return
+      const root = 'dist'
+      const out = join(root, base)
+      copyFileSync(join(out, 'index.html'), join(root, 'index.html'))
+      const headers = readFileSync(join(out, '_headers'), 'utf8')
+      writeFileSync(join(root, '_headers'), headersForBase(headers, site.base))
+      rmSync(join(out, '_headers'))
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   requireConvexUrl(mode)
+  const site = itunSite(process.env.ITUN_SITE)
   return {
+    // `/` (intheunionnow.com) unless the build asks for the one-domain site.
+    base: site.base,
     // `feat`/`fix`/`perf` squash titles scoped `itun` (ADR-041).
     define: { __ITUN_CHANGELOG__: JSON.stringify(readChangelog('itun', 'App')) },
     plugins: [
@@ -95,10 +137,14 @@ export default defineConfig(({ mode }) => {
           ],
         },
       }),
+      siteLayout(site),
       // Must run last; inert without SENTRY_AUTH_TOKEN (see observability/vite).
       ...sentrySourcemaps('dist'),
     ],
     build: {
+      // `dist/build/` under a base, so a file's path on disk is its URL path.
+      outDir: `dist${basePathOf(site.base)}`,
+      emptyOutDir: true,
       rolldownOptions: {
         output: {
           // Named groups for the code every route loads (audit AP-11).

@@ -217,8 +217,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         load()
         setDismissedResults(null)
       }}
-      // The bar's fixed width is a class, so the mobile sheet can widen it.
-      className={hero ? undefined : 'srd-search__input'}
+      // The bar's width is the Union bar's (ITUN's trigger shares it), a class
+      // so the mobile sheet can widen it.
+      className={hero ? undefined : 'su-union-bar__search-input'}
       containerClassName={hero ? 'srd-hero-search__field' : undefined}
       glyphSize={hero ? 18 : undefined}
       {...inputProps}

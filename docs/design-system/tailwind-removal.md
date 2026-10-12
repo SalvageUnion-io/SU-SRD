@@ -21,7 +21,7 @@ Done: the record of the migration; each phase was its own PR series. Paths below
    3. **Class-string exports are stylesheet-only** — `buttonVariants`, `capsLabel`, the `FOCUS_*` / `DISABLED` / `SELECTION_RING*` set keep all styling in `index.css`; their `.su-*` names are public API.
    4. **No speculative style objects** — add one with the component that needs it.
    5. **Catalog-only rules go in `src/stories/_stories.css`** — `index.css` ships to every consumer.
-   6. **Edit both token forms or neither** — `theme.css` and `tokens.ts`; `src/design/tokens.parity.test.ts` fails on disagreement.
+   6. **Edit both token forms or neither** — `theme.css` and `tokens.ts`; `src/design/__tests__/tokens.parity.test.ts` fails on disagreement.
 5. **§5 While both systems were live** — `src/styles/tailwind.css` was the one Tailwind entry, importing `index.css` into `layer(su-base)` before `utilities`. TW7 replaced it with `src/styles/entry.css`; `package-stylesheet-import` still guards the one entry.
 6. **§6 Verification traps**
    1. **`.focus()` does not match `:focus-visible`** — send a real Tab or assert `el.matches(':focus-visible')`; the `:focus` and `:focus-within` rungs do respond.

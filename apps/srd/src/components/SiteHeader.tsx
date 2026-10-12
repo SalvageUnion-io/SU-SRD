@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 
 /**
  * SiteHeader — the SRD's preset of the shared Union bar (`AppBar`, ruleset
- * §3.11): the full-density bar on the **Reference** side of the switcher, the
+ * §3.11): the one Union bar, on the **Reference** side of the switcher, the
  * search slot, "Buy the game" and the breadcrumb trail. The interactive search
  * + mobile-nav pieces are slotted (`search` / `mobile`) so the page mounts them
  * as independent islands.

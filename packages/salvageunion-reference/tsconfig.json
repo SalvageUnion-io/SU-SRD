@@ -1,6 +1,13 @@
 {
   "extends": "../../tsconfig.worker.json",
   "compilerOptions": {
+    // A referenced library: declarations only, into the gitignored .tsbuild/
+    // (see the root tsconfig.json).
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": "../../.tsbuild/salvageunion-reference",
+    "tsBuildInfoFile": "../../.tsbuild/salvageunion-reference/tsconfig.tsbuildinfo",
     // `tools/` are Bun scripts, and the workerd globals retype `process` so
     // `process.exit()` stops returning `never`. The library itself uses no
     // runtime globals, so it type-checks against Node + Bun only.

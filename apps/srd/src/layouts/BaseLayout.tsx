@@ -11,12 +11,12 @@
  * make `ssg/` a runtime dependency of the app.
  */
 
+import { Footer } from 'component-lib'
 import { color } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta, PageFoot } from '../../ssg/types'
-import { Footer } from '../components/Footer'
 import { TopNavigation } from '../components/TopNavigation'
-import { DEFAULT_OG_IMAGE, SITE_URL, THEME_COLOR } from '../lib/constants'
+import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL, THEME_COLOR } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { Island } from '../runtime/Island'
 
@@ -205,7 +205,11 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           <main id="main-content" tabIndex={-1} style={MAIN}>
             {children}
           </main>
-          <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" foot={foot} />
+          <Footer
+            links={SITE_LINKS}
+            poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
+            foot={foot}
+          />
         </div>
         {/* The page's one Peek: every Mention and Tag above carries only its
             entity's address, and this host shows it (no props, no SSR). */}

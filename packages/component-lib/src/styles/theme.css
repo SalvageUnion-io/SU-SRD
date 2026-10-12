@@ -4,7 +4,7 @@
  * Every design token the repo styles with is declared in this file, as `:root`
  * custom properties: the scales first, then the derived and spacing tokens. `src/styles/index.css` reads these properties and declares none of
  * its own; `src/design/tokens.ts` mirrors them for style objects, and
- * `src/design/tokens.parity.test.ts` fails if the two disagree. Edit both.
+ * `src/design/__tests__/tokens.parity.test.ts` fails if the two disagree. Edit both.
  */
 :root {
   /* === Typography === */

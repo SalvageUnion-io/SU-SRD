@@ -19,7 +19,7 @@
     }
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b",
     "test": "bun test"
   },
   "dependencies": {

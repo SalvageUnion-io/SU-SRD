@@ -25,8 +25,6 @@ export { buttonVariants } from './components/chrome/buttonVariants'
 export { Callout } from './components/chrome/Callout'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './components/chrome/ChapterBand'
-// ChapterFoot — the foot band: the chapter colour again, carrying the citation
-export { ChapterFoot } from './components/chrome/ChapterFoot'
 export { Checkbox, Radio } from './components/chrome/Checkbox'
 // Conditions — the entity-condition chip row. Public because ITUN's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
@@ -142,6 +140,8 @@ export { CopyFeedbackProvider } from './components/shared/copyFeedbackContext'
 // digestRollTable — a banded d20 table as rows, highest first (the book's order)
 export { digestRollTable } from './components/shared/digestRollTable'
 export { EntitySearcher } from './components/shared/EntitySearcher'
+export type { FooterFoot } from './components/shared/Footer'
+export { Footer } from './components/shared/Footer'
 export { Inset } from './components/shared/Inset'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
@@ -171,7 +171,7 @@ export { PICKER_MODAL_WIDTH } from './components/shared/pickerModalWidth'
 export { RecoveryPanel } from './components/shared/RecoveryPanel'
 export { RollTable } from './components/shared/RollTable'
 export { RosterSkeleton } from './components/shared/RosterSkeleton'
-export { SearchField } from './components/shared/SearchField'
+export { SearchField, SearchFieldTrigger } from './components/shared/SearchField'
 export { SheetSectionCard } from './components/shared/SheetSectionCard'
 export { SheetSectionSlab } from './components/shared/SheetSectionSlab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
@@ -196,8 +196,6 @@ export type { VitalGaugeBreakdown } from './components/stat/VitalGauge'
 export { VitalGauge } from './components/stat/VitalGauge'
 // UI primitives
 export { Toaster, toast } from './components/ui/toaster'
-/** Ink or paper: which foreground reads better on a band colour (the token scale, rgb or hex). */
-export { foregroundOn } from './design/contrast'
 /**
  * The styling foundation (#798, epic #802): tokens, style objects and one
  * stylesheet (ADR-046). Namespaced rather than spread flat into this

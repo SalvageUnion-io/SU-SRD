@@ -6,7 +6,7 @@
  * A delete that skipped the server deleted the record locally and left it
  * alive there, and `ShelfSync` restored it on the next sync: the value arrived
  * at the target and the source kept it too. One mutation is also what makes
- * the server side all-or-nothing (`test/convex/transfer.test.ts`).
+ * the server side all-or-nothing (`test/convex/__tests__/transfer.test.ts`).
  *
  * These spy on the commit seam rather than running against a server: the
  * test client (`apps/itun/test/convexClientStub.ts`) accepts every write.

@@ -63,11 +63,11 @@
         // Narrow schema lists render identically.
         "!**/apps/srd/src/lib/__tests__/schemaPreloadDeps.test.tsx",
         // Convex functions run on only the schemas the deployment installs.
-        "!**/apps/itun/test/convex/referenceSubset.test.ts",
+        "!**/apps/itun/test/convex/__tests__/referenceSubset.test.ts",
         // The preload API is the unit under test.
-        "!**/packages/salvageunion-reference/lib/preload.test.ts",
+        "!**/packages/salvageunion-reference/lib/__tests__/preload.test.ts",
         // preload() invalidates the search index and result cache.
-        "!**/packages/salvageunion-reference/lib/search.test.ts"
+        "!**/packages/salvageunion-reference/lib/__tests__/search.test.ts"
       ]
     },
     {

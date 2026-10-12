@@ -17,8 +17,9 @@
  * ## Profiles
  *
  *   full      everything — `bun run check`
- *   fast      the ~12s inner loop: no test suite, no network, no
- *             regeneration — `bun run check:fast`
+ *   fast      the inner loop (~8 s warm, ~22 s from a cold typecheck on 4
+ *             cores): no test suite, no network, no regeneration —
+ *             `bun run check:fast`
  *   pre-push  fast + generated-file drift (the suite runs separately, scoped
  *             by the workspace graph — see tools/pre-push-test.ts)
  *   ci        everything except the test suite, which runs in CI's own
@@ -187,6 +188,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'test-layout',
+    guards:
+      'every *.test.ts(x) sits in a __tests__/ directory; the root bunfig preload is the union of the workspace preloads',
+    fix: "git mv the test into a __tests__/ beside its subject (deepen its relative paths); copy the named preload into the root bunfig.toml in its workspace's order",
+    cmd: ['bun', 'tools/check-test-layout.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'barrel-consumers',
     guards:
       'every component-lib export has an app importer, and none is a composition only one app renders',
@@ -256,7 +266,9 @@ export function parseArgs(argv: readonly string[]): Options {
     profile: 'full',
     areas: null,
     skip: [],
-    jobs: Math.max(2, availableParallelism()),
+    // Half the cores: typecheck, knip and biome each run threads of their own,
+    // so one check per core oversubscribes the machine.
+    jobs: Math.max(2, Math.floor(availableParallelism() / 2)),
     list: false,
     verbose: false,
   }
