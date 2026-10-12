@@ -12,9 +12,14 @@
  *     which every browser sends when it opens a page). Navigations never run
  *     this script.
  *
- * Only a miss WITHOUT `Sec-Fetch-Mode: navigate` lands here: a module import, a
- * `fetch`, a crawler, an unfurl bot. This script answers it:
+ * The one exception is the retired addresses in `retiredRedirects.ts`, which
+ * `run_worker_first` sends here before Static Assets looks: rule R answers
+ * every request for them, navigation or not.
  *
+ * Otherwise only a miss WITHOUT `Sec-Fetch-Mode: navigate` lands here: a
+ * module import, a `fetch`, a crawler, an unfurl bot. This script answers it:
+ *
+ *   R. a retired address  → **301** to where it lives now (refit D6), or 404.
  *   1. `/assets/*`        → **404**, never the shell.
  *   2. a missing FILE     → **404**: a dot in the last segment.
  *   0. `/og/*.png`        → a link preview's picture (`linkPreview.ts`,
@@ -23,9 +28,8 @@
  *      so a crawler or an unfurl bot opening `/p/:kind/:appId` gets the same
  *      document a browser does. `/` rather than `/index.html`, which the
  *      asset server's HTML handling may answer with a redirect to `/`. For
- *      a route a player shares (`/p/:kind/:appId`, `/invite/:token`, and
- *      the retired `/join/:code`) the shell's `itun:meta` block is swapped
- *      for that thing's preview (`shellMeta.ts`): what a stranger may see,
+ *      a route a player shares (`/p/:kind/:appId`, `/invite/:token`) the
+ *      shell's `itun:meta` block is swapped for that thing's preview (`shellMeta.ts`): what a stranger may see,
  *      or the plain Private card.
  *
  * ## Rule 1 is the one that has already broken production
@@ -56,6 +60,7 @@ import type { ObservabilityEnv } from 'observability/cloudflare'
 import { withObservability } from 'observability/cloudflare'
 import type { ImageCache, PreviewEnv } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
+import { isRetiredPath, retiredRedirect } from './retiredRedirects'
 import { applyMeta } from './shellMeta'
 
 export type Env = ObservabilityEnv &
@@ -75,6 +80,9 @@ export default withObservability('su-itun', {
     const url = new URL(request.url)
     const path = url.pathname
     const lastSegment = path.slice(path.lastIndexOf('/') + 1)
+
+    // R. A retired address, which `run_worker_first` routes here first.
+    if (isRetiredPath(path)) return retiredRedirect(url)
 
     // 0. A link preview's picture — a file that exists only on request.
     if (isOgImagePath(path)) return ogImage(request, env, { cache: defaultCache() })

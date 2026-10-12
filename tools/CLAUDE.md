@@ -34,7 +34,7 @@ the corpus size, not just the finding count.
 
 | Id | Script | Baseline |
 | --- | --- | --- |
-| `generated` | `check-generated.ts` (runs first and alone: it rewrites files) | — |
+| `generated` | `check-generated.ts` (runs first and alone: it rewrites files; off CI it skips generators whose inputs are unchanged, `--force` re-runs all) | — |
 | `test` | `bun run test` | — |
 | `typecheck` | `bun run typecheck` | — |
 | `knip` | `bun run knip` | — |
@@ -55,10 +55,11 @@ the corpus size, not just the finding count.
 
 | Script | Run by | Purpose | Baseline |
 | --- | --- | --- | --- |
-| `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
+| `run-coverage.ts` | `test:coverage`: CI's `coverage` job only (pre-push runs `pre-push-test.ts`: the changed workspaces and their dependents, no coverage) | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
 | `lib/a11yScan.ts` | each app's `e2e/a11y.e2e.ts`, in `build-srd` and `build-itun` in `ci.yml` (every srd / ITUN PR) | WCAG 2.2 AA scan (axe-core in the suite's own Playwright browser) of the pages each spec lists in `PAGES`, at desktop and as a Pixel 7. Fails on any violation. | — |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
 | `environments.ts` | `e2e-nightly.yml` (`environments`); `--apply` by hand | The GitHub Environments declared once (branches, secret names, required reviewers) and compared against the live settings: no branch policy, a missing or repository-level secret, an undeclared Environment. `--apply` sets Environments and branch policies, never secrets. Its static half is `workflows`' `secrets-env`. | — |
+| `gallery.ts`, `gallery-pages.ts` | `pr-gallery.yml`, then `pr-gallery-pages.yml` | `gallery` shoots `lib/galleryPages.ts` (desktop, phone, OG cards, ITUN signed in on a throwaway Convex). `gallery-pages` builds the Pages site from each open PR's `pr-gallery-<n>` artifact. | — |
 | `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www and http→https redirects, CSP/HSTS reaching the browser, the rotated-chunk 404 (and that it is not `immutable`), artwork robots.txt, bot token health. Runs every check, then exits 1 if any failed. | — |
 
 ## Local-only and by hand
@@ -74,6 +75,7 @@ the corpus size, not just the finding count.
 
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
+`workspaceGraph.ts` (the manifests' `workspace:` edges, for pre-push),
 `tailwindClasses.ts` (the Tailwind-file ratchet's detector),
 `proseFidelity.ts` (prose collection, hashing and the fidelity lock format),
 `r2.ts` (R2 through `Bun.S3Client`, because `wrangler r2 object` cannot list)

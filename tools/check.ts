@@ -19,8 +19,8 @@
  *   full      everything — `bun run check`
  *   fast      the ~12s inner loop: no test suite, no network, no
  *             regeneration — `bun run check:fast`
- *   pre-push  fast + generated-file drift (the suite runs separately, scoped by
- *             `--changed` — see lefthook.yml)
+ *   pre-push  fast + generated-file drift (the suite runs separately, scoped
+ *             by the workspace graph — see tools/pre-push-test.ts)
  *   ci        everything except the test suite, which runs in CI's own
  *             `coverage` job
  *
@@ -137,7 +137,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'doc-drift',
     guards:
       'cited paths, bun scripts and markdown links exist; no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the entry of any ADR it amends; ARCHITECTURE.md entries are a headline plus at most two lines; doc size budgets',
-    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep entry N of ## Decisions as ADR-N; add the amending ADR to the amended one\'s entry; cut an entry to two lines or a doc to its size budget',
+    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep entry N of ## Decisions as ADR-N, and link a docs/adr/NNN-slug.md full text (status front-matter) from its headline; add the amending ADR to the amended one\'s entry; cut an entry to two lines or a doc to its size budget',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,

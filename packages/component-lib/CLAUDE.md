@@ -4,97 +4,53 @@ Shared React component library consumed by both `srd` and `itun`.
 
 ## Key Facts
 
-- **No build step** - exports TypeScript source directly via `src/index.ts` barrel ([ADR-011](../../docs/ARCHITECTURE.md#decisions))
-- **Data-source agnostic** - no backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/ARCHITECTURE.md#decisions))
+- **No build step** - exports TypeScript source through the `src/index.ts` barrel, named exports only ([ADR-011](../../docs/ARCHITECTURE.md#decisions))
+- **Data-source agnostic** - keep components free of any backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/ARCHITECTURE.md#decisions))
 - Vite in consuming apps handles `.ts/.tsx` compilation
 - **`sideEffects` is CSS only** (`package.json`): bundlers drop any module whose exports go unused. Never rely on an import running code; if a module truly must, add it to that list ([dependencies](../../docs/ARCHITECTURE.md#areas))
-- Styling: tokens + style objects + one stylesheet, with Tailwind being removed — see [Styling](#styling)
 - **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) is the source of truth ("board 05c" names one of its boards); [`ruleset.md`](../../docs/design-system/ruleset.md) codifies it and yields where they disagree
 
 ## Styling
 
-Tailwind is being removed. **The plan and its phases live in
-[`docs/design-system/tailwind-removal.md`](../../docs/design-system/tailwind-removal.md)**
-— read it before migrating a component. What an editor of this package needs:
-
-- **Target pattern:** [`src/design/tokens.ts`](src/design/tokens.ts) (typed
-  scale) + [`src/styles/index.css`](src/styles/index.css) (the one stylesheet
-  every consumer loads; `.su-*` classes over the `theme.css` tokens). The
-  Dashboard's `.pc-*` rules are ITUN's (`apps/itun/src/styles/dashboard/`),
-  not this package's.
-- **The split is per-PROPERTY.** A property with no stateful or responsive
-  variant on that element → style object. A property with **any** (`:hover`,
-  `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling selectors)
-  → a `.su-*` class, **resting value included** — an inline `style=` beats every
-  stylesheet rule, so a split property's hover silently never fires.
-- **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /
-  `DISABLED` / `SELECTION_RING*` vocabulary) are stylesheet-only, and their
-  `.su-*` names are public API. The exemption does not extend to components.
-- **Edit `tokens.ts` and `theme.css` together** — `theme.css` is the one
-  token set, and `src/design/tokens.parity.test.ts` fails if they disagree.
-- **Do not add Tailwind or `.pc-*` classes.** `bun run check styling` ratchets
-  both counts downward (`tailwind-utility-file`, `pc-class-defined`); if you
-  removed some, lower the baseline with `--update-baseline` in the same PR.
-- `src/styles/tailwind.css` is the one Tailwind entry: it imports `index.css`
-  into `layer(su-base)` (load-bearing while both systems are live), and the
-  two apps and `src/styles/catalog.css` import it rather than Tailwind. Catalog-only
-  CSS goes in `src/stories/_stories.css`, not `index.css`.
-- **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a
-  real key press. Checking layer order by block position lies: read the
-  `@layer` declaration. Details in the plan, §6.
+Tailwind is being removed ([plan](../../docs/design-system/tailwind-removal.md)).
+The working rules (the per-property style-object/`.su-*` split, token parity,
+the ratchet, the one Tailwind entry) are [`.claude/rules/styling.md`](../../.claude/rules/styling.md), which
+loads with any stylesheet or `src/design/` file. Read it before restyling a
+component.
 
 ## Contents
 
-There is deliberately **no roster here.** [`src/index.ts`](src/index.ts) is the public API
-and the only trustworthy list of what this package exports — read it. A
-hand-maintained enumeration in a doc is a second source of truth that drifts
-silently every time a component lands or is deleted.
-
-- For the export surface: the barrel, [`src/index.ts`](src/index.ts).
-- For the rules governing that surface (what may be exported, what consumers may
-  import): [packages and contracts](../../docs/ARCHITECTURE.md#areas).
-- For a browsable, rendered catalog: the `stories` launch config (`bun run stories`
-  outside Claude Code) — the story-coverage guard
-  proves it covers every public visual component.
+No roster here: the barrel, [`src/index.ts`](src/index.ts), is the public API and the only
+list of exports — read it. The rules for that surface (what may be exported, what consumers may
+import): [packages and contracts](../../docs/ARCHITECTURE.md#areas). The rendered catalog: the
+`stories` launch config (`bun run stories` outside Claude Code).
 
 ## Entity Display System
 
 Forms per the [entity display language](../../docs/design-system/entity-display-language.md): Row, Token, Mention and Peek in `src/entity/`; Card and Page are `ReferenceEntityCard`.
 
-The entity display uses **generic slot props** (`afterExtraContent`, `abilitiesSection`, `footerOverride`, etc.) so consuming apps can inject app-specific renderers without the shared library knowing about app-specific concerns. Schema-specific logic is extracted into helper hooks (`useChassisPatternConfig`) and utilities (`getClassSelections`) that return generic override props.
+Apps inject their renderers through **generic slot props** (`afterExtraContent`, `abilitiesSection`, `footerOverride`, …), so the library knows nothing app-specific. Schema-specific logic lives in helper hooks (`useChassisPatternConfig`) and utilities (`getClassSelections`) that return generic override props.
 
 ## Stories
 
-Component stories live beside their components (`*.stories.tsx`) and are served by the catalog, `catalog.tsx` at the package root.
+**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** `src/story-coverage.test.ts` enforces every clause; explained in [component catalog](../../docs/ARCHITECTURE.md#areas).
 
-**The catalog also serves the apps' own components.** A composition only one app renders lives in that app (see [component-lib](../../docs/ARCHITECTURE.md#areas)): ITUN's Dashboard instruments, sheet presentation, wizard shell and steps, masthead and roster row under `apps/itun/src/components/`, srd's site-only components under `apps/srd/src/components/`. A primitive (an Atom or a Container) stays here however many apps render it. The story's group is the classification: `bun run check barrel-consumers` fails a barrel export only one app reaches whose story files it under `Compositions/`, so file a new component in the group it truly belongs to. Their stories moved with them and `catalog.tsx` globs both folders, so they keep their pages. The taxonomy, unique-title and co-location rules below apply to them too — `story-coverage.test.ts` scans all three roots — while coverage (every *public* component has a story) is about this package's barrel only. App stories are plain components and take `Story` and `Caption` from `component-lib/stories/harness`.
-
-**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** Every clause is enforced by `src/story-coverage.test.ts`; the contributor-facing explanation lives in [component catalog](../../docs/ARCHITECTURE.md#areas).
-
-- **No multi-component gallery story files.** A story file demonstrates exactly one component. A file that renders several sibling primitives leaves all but one of them with **no sidebar entry at all** — they look covered to a text-matching guard while being undiscoverable in the catalog, which is the exact failure a styleguide exists to prevent.
-- **`src/stories/` is for catalog pages only** — the flat set `Styleguide`, `Theme`, `Typography`, `Layout`, `Sizing`, `RenderingMatrix`, plus the underscore-prefixed scaffolding (`_harness.tsx`, `_groups.ts`, `_stories.css`, `_themeTokens.ts`, `_foundations.tsx`). No subdirectories, and every page there is a `Foundations/*` story. Anything with a backing component belongs beside that component.
-- **Sub-groups are sanctioned, not ad-hoc.** Only Compositions has them — Entity, Catalog, Dashboard, Wizard, Shell — and a cluster earns one only at **3+ siblings**; everything else stays a direct leaf. Atoms and Containers are deliberately **flat** lists of peers, which stays scannable and keeps the sidebar filter a single hop. Nesting never exceeds `Group/Sub-group/Leaf`. Adding a sub-group means editing `storySubgroups` in `src/stories/_groups.ts`, which the guard and the catalog's sidebar both read.
-- **Titles are unique.** Two files may not claim the same title (it silently collapses the nav).
-
-- **Every story MUST render with real SRD data or real game terms — never lorem/placeholder/invented content.** Drive stories from `SalvageUnionReference.*` fixtures (e.g. `SalvageUnionReference.Chassis.all()[0]`, `SalvageUnionReference.Actions.all()[0]`), and when a prop needs a literal (a label, a stat name, a condition), use the real game term, not a stand-in. A story is a preview of what ships; fake data hides real rendering bugs (overflow, wrapping, tone, empty-state) that only surface with production content.
-- **Render entities the way we actually render them.** Feed props exactly as consuming apps do — real values in the real shapes, through the real components (e.g. entities via `ReferenceEntityCard`, stats via `Stat`). Don't hand-assemble simplified markup that no app produces; the story must exercise the same path production does.
-- Reference data is preloaded by `catalog.tsx`, which awaits `SalvageUnionReference.preload('all')` before it imports any story module — the gate ITUN's GameDataReady and srd's `useGameData` apply. Reading a `SalvageUnionReference.*` model at module top level anywhere a story imports before that gate throws "Schema not loaded", so keep new stories consistent with the existing preload pattern.
-- **Nothing lives only in the catalog, or only in a test.** A module whose only importers are `.stories.tsx` or test files is a prototype being kept alive: it ships in no app, and still has to be read, refactored and kept compiling by everyone who touches the package. A test importer does not count. Delete it, or move it to a **harness** file — a leading underscore (`_harness.tsx`, ITUN's `_dashboardStage.tsx`) marks shared story scaffolding and is exempt by naming, not by allowlist. Explore in a branch or a design doc; the catalog demonstrates what ships. Enforced by `story-coverage.test.ts`, and it **cascades** — when `LiveSheetPoster` (621 catalog-only lines) was deleted it orphaned `UsedPip`, which the guard caught on the next run, so re-run it after any such deletion.
-- **Coverage is enforced in lockstep** by `src/story-coverage.test.ts`: every barrel-exported visual component must be **imported by a story file sitting in its own directory**. When you add a public component to `src/index.ts`, add a story in the same change — the guard fails otherwise. The only escape is its `ALLOWLIST`, reserved for genuine internal sub-parts demonstrated through their parent (each needs a one-line rationale). The guard also fails on **stale** allowlist entries (a name that gained a story, or no longer exists), so prune the allowlist when you story a component or delete one.
-  - The same-directory-import rule is deliberate: a story that merely mentions a component's name does not give it a nav entry of its own. Requiring a **co-located importer** makes coverage mean what the catalog implies: this component has its own page.
-- **The taxonomy is enforced too**, by the same test: every story's **meta** `title:` must start with a sanctioned top-level group, use only a sanctioned sub-group, never nest deeper than `Group/Sub-group/Leaf`, and be unique across files. It reads only the default-export meta title, so `title:` strings inside story bodies are ignored. Introduce a new top-level group or sub-group only by extending `storyGroups` / `storySubgroups` in `src/stories/_groups.ts`.
-- **Co-location is enforced too**: a `*.stories.tsx` under `src/stories/` fails the guard unless it is one of the flat catalog pages listed above.
-- **The four groups have crisp definitions** (sidebar order, top-to-bottom). These are **membership tests, not rosters** — for the current members, read the catalog, which the coverage guard proves is complete. An enumeration here would be a second source of truth that silently drifts every time a component lands; this file defines the _rule_, the catalog _is_ the list.
-  - **Foundations** — design tokens, layout scaffolding, and the QA harness. No product component. Specimens are generated **from the tokens** so they cannot drift from `theme.css`.
-  - **Atoms** — primitives with a single presentational job and **no Salvage Union domain knowledge**. An atom **may** compose a lower-level atom: `Stat` composes `Text` + `Tooltip`, `CountStepper` composes `StepButton`. (An earlier version of this rule said atoms compose no other atom — that was never true and isn't a useful line: 7 of 34 atoms compose one, including `Stat`, the flagship of the unification. **Domain knowledge, not composition, is what separates an atom from a composition** — so `CountStepper` is a legitimate atom despite composing `StepButton`, while `StatusBadge` is a Composition despite looking primitive, because it owns the entity-condition vocabulary.)
-  - **Containers** — content-agnostic wrappers / state shells that hold or announce arbitrary content, and would still make sense with entirely different content inside.
-  - **Compositions** — domain/game components: they know about Salvage Union entities, or they assemble atoms into a product surface.
-- **Components are named for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes. So `Stat`, `Content` and `DisplayPanel`, never `StatDisplay`, `BlockContentRendererView` or `DisplayView`.
-  - **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it.** Here `Reference*` is a **domain qualifier, not a redundant prefix**: it is the card whose `data` prop is a `SURefEntity` (reference data from the `salvageunion-reference` ORM), as opposed to `Card`, the content-agnostic shell the player-data surfaces build on. [display system](../../docs/ARCHITECTURE.md#areas) and [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md) both name the two side by side as the two card shells and state they are deliberately **not** merged, so collapsing the name to EntityCard would erase the one word carrying that distinction — and EntityCard is already taken by a private helper in ITUN's `apps/itun/src/components/dashboard/DisplayPanel.tsx`. The prefix earns its place; the rule targets prefixes that restate the component's own directory with no added meaning.
-  - The bar for an exception is that the prefix/suffix **carries information the bare name loses** — not that the rename would be laborious. Reach for it rarely, and record it here when you do.
-- **Title + story naming is standardized, and enforced.** The group title is **Title Case with spaces** — `Atoms/Stat`, `Containers/Card`, `Compositions/Entity/Content` — and its **last segment must name the component**, so the sidebar can be navigated by the symbol you would grep for. The story **file keeps the component symbol name** (`Stat.stories.tsx`). A sub-group may absorb a shared prefix, so `Compositions/Dashboard/Gauge` legitimately names ITUN's DashboardGauge. A file whose only story is a catch-all "show everything" page exports it as **`Default`** (not Variants / Costs / etc.).
-  - This is a guard assertion, not a convention: titles had drifted from their symbols. A symbol with a banned suffix is renamed (`ActivationCostBox` → `ActivationCost`); a fine symbol keeps its name and the title is corrected.
-- **Stories render on a global paper canvas, in the product's Barlow.** `catalog.tsx` frames every story on paper, so a story does **not** need its own outer `bg-paper` wrapper; a wrapper fills the frame (no `w-fit` card). Shared caption/frame helpers that would otherwise be copy-pasted across story files live in `src/stories/_harness.tsx` (e.g. `Caption`) — import them instead of re-declaring a local copy.
+- **The catalog also serves the apps' own components.** A composition only one app renders lives in that app's `src/components/`, story beside it; `catalog.tsx` globs both ([component-lib](../../docs/ARCHITECTURE.md#areas)). A primitive (an Atom or a Container) stays here however many apps render it. The story's group is the classification: `bun run check barrel-consumers` fails a barrel export only one app reaches whose story files it under `Compositions/`. The rules below apply to app stories too (the guard scans all three roots); coverage is this package's barrel only. App stories take `Story` and `Caption` from `component-lib/stories/harness`.
+- **Coverage, in lockstep:** every barrel-exported visual component must be **imported by a story file in its own directory** (a story that merely names it gives it no page). Add a public component to `src/index.ts` and its story in the same change. The only escape is the guard's `ALLOWLIST`, for genuine internal sub-parts shown through their parent, each with a one-line rationale; the guard fails on **stale** entries, so prune it when you story or delete one.
+- **No multi-component gallery story files.** A story file demonstrates exactly one component; a file rendering several siblings leaves all but one with **no sidebar entry**.
+- **`src/stories/` is for catalog pages only** — the flat `Foundations/*` set `Styleguide`, `Theme`, `Typography`, `Layout`, `Sizing`, `RenderingMatrix`, plus underscore scaffolding (`_harness.tsx`, `_groups.ts`, `_stories.css`, `_themeTokens.ts`, `_foundations.tsx`). No subdirectories; any other `*.stories.tsx` there fails the guard.
+- **Titles:** the default-export meta `title:` starts with a sanctioned group, uses only a sanctioned sub-group, nests no deeper than `Group/Sub-group/Leaf`, and is unique across files (a duplicate collapses the nav). It is **Title Case with spaces** and its **last segment names the component** (`Atoms/Stat`, `Compositions/Entity/Content`); the file keeps the symbol name (`Stat.stories.tsx`). A sub-group may absorb a shared prefix (`Compositions/Dashboard/Gauge` is DashboardGauge). A file whose only story is a catch-all page exports it as **`Default`**.
+- **Sub-groups:** only Compositions has them (Entity, Catalog, Dashboard, Wizard, Shell), and a cluster earns one only at **3+ siblings**; Atoms and Containers stay flat. A new group or sub-group means editing `storyGroups` / `storySubgroups` in `src/stories/_groups.ts`, which the guard and the sidebar both read.
+- **The four groups are membership tests, not rosters** (the catalog is the list), in sidebar order:
+  - **Foundations** — tokens, layout scaffolding, the QA harness; no product component. Specimens are generated **from the tokens** so they cannot drift from `theme.css`.
+  - **Atoms** — a single presentational job and **no Salvage Union domain knowledge**. An atom may compose a lower atom (`Stat` composes `Text` + `Tooltip`); domain knowledge, not composition, makes a Composition (`StatusBadge` owns the condition vocabulary).
+  - **Containers** — content-agnostic wrappers / state shells that would make sense with entirely different content inside.
+  - **Compositions** — know about Salvage Union entities, or assemble atoms into a product surface.
+- **Name components for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes (`Stat`, never `StatDisplay`). A banned suffix means renaming the symbol; otherwise fix the title. **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it:** `Reference*` marks the card over a `SURefEntity`, distinct from the content-agnostic `Card` (see [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md)). An exception's prefix must carry information the bare name loses; record any new one here.
+- **Real data only — never lorem or invented content.** Drive stories from `SalvageUnionReference.*` (`SalvageUnionReference.Chassis.all()[0]`) and use real game terms for literals, fed exactly as the apps feed them, through the real components (entities via `ReferenceEntityCard`, stats via `Stat`) — never markup no app produces.
+- `catalog.tsx` awaits `SalvageUnionReference.preload('all')` before importing any story; reading a model at module top level in anything a story imports before that throws "Schema not loaded".
+- **Nothing lives only in the catalog, or only in a test.** A module whose only importers are stories or tests ships in no app: delete it, or make it a **harness** file (a leading underscore, as `_harness.tsx` and ITUN's `_dashboardStage.tsx`, exempt by naming). The guard cascades — one deletion can orphan another module — so re-run it after deleting.
+- **Stories render on a global paper canvas, in Barlow:** no outer `bg-paper` wrapper; a wrapper fills the frame (no `w-fit` card). Import shared helpers (`Caption`) from `src/stories/_harness.tsx` rather than re-declaring them.
 
 ### Capturing a story
 
@@ -102,12 +58,4 @@ Run your own server (`bunx vite --port N --strictPort` here), find the id with `
 
 ## Testing
 
-- Own `bunfig.toml` with happy-dom preload
-- No backend env vars needed
-- Run: `bun --filter component-lib test`
-
-## Conventions
-
-- Named exports only (via `src/index.ts` barrel)
-- New and migrated styling follows the split rule in [Styling](#styling); `cn()` remains only on surfaces still on Tailwind.
-- Keep components data-source agnostic
+`bun --filter component-lib test`: its own `bunfig.toml` (happy-dom preload), no backend env vars.

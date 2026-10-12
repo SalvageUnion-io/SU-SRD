@@ -1,7 +1,8 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { ChapterBand } from 'component-lib'
+import { buttonVariants, ChapterBand } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { PageFoot } from '../../ssg/types'
+import type { BuildLink } from '../lib/buildLink'
 import { EntityPageStamps } from './EntityPageStamps'
 
 /**
@@ -47,6 +48,8 @@ type EntityPageFrameProps = {
   measure?: string
   /** What the entity is built on, linked above the title: a pattern's chassis. */
   parent?: { label: string; name: string; href: string }
+  /** "Build with this": the deep link into ITUN's builder (`buildLinkFor`), atop the body. */
+  build?: BuildLink | null
   children: ReactNode
 }
 
@@ -56,6 +59,7 @@ export function EntityPageFrame({
   meta,
   measure = ENTITY_PAGE_MEASURE,
   parent,
+  build,
   children,
 }: EntityPageFrameProps) {
   return (
@@ -70,6 +74,19 @@ export function EntityPageFrame({
         {title}
       </ChapterBand>
       <div className="srd-entity__body" style={{ maxWidth: measure }}>
+        {build && (
+          // A link that looks like the shared Button (`buttonVariants`, as the
+          // home page's "Build a pilot"): same tab, no off-site arrow — the
+          // Reference and Build are one union (ruleset §3.11).
+          <div className="srd-entity__build">
+            <a
+              href={build.href}
+              className={buttonVariants({ variant: 'primary', size: 'compact' })}
+            >
+              {build.label}
+            </a>
+          </div>
+        )}
         {children}
       </div>
     </article>
