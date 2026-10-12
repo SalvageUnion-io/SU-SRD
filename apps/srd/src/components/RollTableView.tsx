@@ -1,6 +1,12 @@
 import { Button, InlineRef } from 'component-lib'
 import type { RefText, RollState, RollTablePageData } from '../lib/rollTablePage'
-import { outcomeLabel, rangeLabel, rowForRoll, splitRows } from '../lib/rollTablePage'
+import {
+  outcomeLabel,
+  rangeLabel,
+  rollTableDensity,
+  rowForRoll,
+  splitRows,
+} from '../lib/rollTablePage'
 
 /**
  * RollTableView — a roll table's page, rolled and read (board 08b).
@@ -12,7 +18,8 @@ import { outcomeLabel, rangeLabel, rowForRoll, splitRows } from '../lib/rollTabl
  * put whatever length the outcome's text runs to. The matching row is set in
  * ink with a "Rolled 14" tag. The die is not named: it is always a d20. A
  * long or wordy table (`splitRows`) sets its bands in two columns on a wide
- * screen, the ranges on the outer edges, so the page fits one screen.
+ * screen, the ranges on the outer edges, and a wordy page sets tighter
+ * (`rollTableDensity`), so the page fits one screen.
  *
  * Presentational, so the server and the island draw the same page: the server
  * renders it with no roll and no handlers (the bands are real content for a
@@ -52,7 +59,7 @@ export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
     : [data.rows]
 
   return (
-    <div className="srd-roll">
+    <div className="srd-roll" data-density={rollTableDensity(data.rows, data.description)}>
       <section className="srd-roll__panel" aria-labelledby="roll-panel-title">
         <div className="srd-roll__panel-head">
           <h2 id="roll-panel-title" className="srd-roll__panel-title">

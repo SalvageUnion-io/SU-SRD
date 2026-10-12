@@ -44,6 +44,27 @@ describe('the roll-table page, before a roll (the server markup)', () => {
     expect(screen.getByRole('button', { name: 'Roll the die' }).hasAttribute('disabled')).toBe(true)
   })
 
+  test('a dense table splits in two, ranges outside, and sets the page dense', () => {
+    const table = SalvageUnionReference.RollTables.getByName('Mechapult') as SURefEntity | undefined
+    const data = table ? rollTablePageData(table) : null
+    if (!data) throw new Error('fixture missing: Mechapult')
+    const { container } = render(<RollTableView data={data} state={{ roll: null, history: [] }} />)
+    expect(container.querySelector('.srd-roll')?.getAttribute('data-density')).toBe('dense')
+    const left = screen.getByRole('list', { name: 'Mechapult table' })
+    const right = screen.getByRole('list', { name: 'Mechapult table, continued' })
+    expect(right.getAttribute('data-side')).toBe('right')
+    expect(within(left).getAllByRole('listitem')).toHaveLength(10)
+    expect(within(right).getAllByRole('listitem')).toHaveLength(10)
+  })
+
+  test('a short table stays one column at the board’s setting', () => {
+    const { container } = render(
+      <RollTableView data={coreMechanic()} state={{ roll: null, history: [] }} />
+    )
+    expect(container.querySelector('.srd-roll')?.getAttribute('data-density')).toBe('roomy')
+    expect(screen.getAllByRole('list', { name: /^Core Mechanic table/ })).toHaveLength(1)
+  })
+
   test('credits Randsum at the panel’s foot', () => {
     render(<RollTableView data={coreMechanic()} state={{ roll: null, history: [] }} />)
     const credit = screen.getByRole('link', { name: 'Randsum.dev' })

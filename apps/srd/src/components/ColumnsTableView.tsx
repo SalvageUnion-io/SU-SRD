@@ -31,7 +31,8 @@ export function ColumnsTableView({ data, state, onRoll }: ColumnsTableViewProps)
   const entryKeys = data.columns[0]?.entries.map((entry) => entry.key) ?? []
 
   return (
-    <div className="srd-roll">
+    // Twenty rows of five columns under a note: always the compact setting.
+    <div className="srd-roll" data-density="compact">
       <section className="srd-roll__panel" aria-labelledby="roll-panel-title">
         <div className="srd-roll__panel-head">
           <h2 id="roll-panel-title" className="srd-roll__panel-title">
