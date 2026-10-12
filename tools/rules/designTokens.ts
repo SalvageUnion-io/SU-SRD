@@ -25,8 +25,7 @@
  * `ratchet` rules, counted against `tools/styling-baseline.json`:
  *
  *   - `raw-color` — the Discord bot restates the palette as hex integers
- *     (`format.ts`, `gameCards.ts`, `lookupCard.ts`; `0xb7410e` is
- *     `--color-rust`, three times over).
+ *     (`format.ts`, `gameCards.ts`).
  *   - `arbitrary-font-size` — `WizShell.tsx` and `LiveSheet.tsx`.
  *
  * An upward rebaseline is sanctioned only when a rule is made STRICTER, so its
@@ -338,6 +337,12 @@ const EXEMPTIONS: Exemption[] = [
     rules: ['rust-allowlist'],
     reason:
       'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. Its paint lives in the stylesheet half, `.su-inline-ref--link` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist; this entry keeps the component itself sanctioned to name rust.',
+  },
+  {
+    file: 'packages/salvageunion-reference/lib/view/discordCard.ts',
+    rules: ['raw-color'],
+    reason:
+      "Discord's accent stripe takes a `0xRRGGBB` integer, never a CSS token, so the Discord card (the bot's lookup and the SRD's Component Embed) mirrors the tone palette as integers. A token-definition mirror like `design/tokens.ts`: every value is theme.css's, and `discordCard.test.ts` fails if one drifts. Its one departure, ink painting the rules blue on Discord's dark theme, is written in the table's own comment.",
   },
   {
     file: 'apps/discord-bot/src',

@@ -1,0 +1,150 @@
+/**
+ * The Discord card: what a `/su lookup` reply and a pasted salvageunion.io
+ * link both draw. Pins the book's devices (stat cells in the book's words,
+ * linked traits, the table) and the fit rule (whole parts shed, the page
+ * linked), plus the accent mirror of `theme.css`.
+ */
+
+import { describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { getModel } from '../helpers.js'
+import { EntitySchemaNames, findEntityBySlug } from '../index.js'
+import { getPatterns } from '../patterns.js'
+import type { SURefEnumSchemaName, SURefMetaEntity } from '../schemas/index.js'
+import type { DiscordCard } from './discordCard.js'
+import {
+  DISCORD_TONE_ACCENT,
+  discordCard,
+  discordCardParts,
+  discordCardTextLength,
+  linkTraitReferences,
+} from './discordCard.js'
+import { toEntityModel } from './toEntityModel.js'
+
+const need = <T>(value: T | undefined | null, label: string): T => {
+  if (value == null) throw new Error(`fixture missing: ${label}`)
+  return value
+}
+
+const partsFor = (schemaName: SURefEnumSchemaName, slug: string) =>
+  discordCardParts(toEntityModel(need(findEntityBySlug(schemaName, slug), slug)))
+
+const text = (card: DiscordCard): string =>
+  card.blocks
+    .map((block) =>
+      block.kind === 'text'
+        ? block.content
+        : block.kind === 'section'
+          ? block.text.join('\n')
+          : '---'
+    )
+    .join('\n')
+
+describe('discordCardParts', () => {
+  test('a chassis prints the book stat column, three cells to a line', () => {
+    const parts = partsFor('chassis', 'mule')
+    expect(parts.tone).toBe('mech')
+    expect(parts.head[0]).toBe('-# CHASSIS')
+    expect(parts.head[1]).toBe('## [Mule](https://salvageunion.io/schema/chassis/item/mule)')
+    expect(parts.head[2]).toBe('`12` STRUCTURE PTS. · `4` ENERGY PTS. · `6` HEAT CAP.')
+    expect(parts.thumbnail?.url).toContain('mule')
+    expect(parts.cite).toBe(
+      '-# Salvage Union Workshop Manual p.100 · also in Salvage Union Starter Set (PC) p.12'
+    )
+  })
+
+  test('an ability leads with its tier, action type and cost, and carries its table', () => {
+    const parts = partsFor('abilities', 'counter-hacking')
+    expect(parts.head[0]).toBe('-# ABILITY · ADVANCED HACKING TREE · REACTION · `1 AP`')
+    expect(parts.head[1]).toStartWith('## 2 · [Counter-Hacking](')
+    expect(parts.head).toContain('[Hacking](https://salvageunion.io/schema/traits/item/hacking)')
+    expect(parts.table?.rows.map((row) => row.key)).toEqual(['20', '11-19', '6-10', '2-5', '1'])
+  })
+
+  test('a lower-case glossary name is set as the book prints it', () => {
+    expect(partsFor('traits', 'vulnerable').head[1]).toStartWith('## [Vulnerable](')
+  })
+
+  test('a pattern names its chassis and lists its loadout as links', () => {
+    const mule = need(findEntityBySlug('chassis', 'mule'), 'mule')
+    const hauler = need(
+      getPatterns(mule)?.find((pattern) => pattern.name === 'Hauler'),
+      'hauler'
+    )
+    const parts = discordCardParts(toEntityModel(mule, undefined, { pattern: hauler }))
+    expect(parts.head[0]).toBe('-# PATTERN · MULE')
+    expect(parts.url).toBe('https://salvageunion.io/schema/chassis/item/mule/pattern/hauler')
+    const systems = need(
+      parts.children.find((group) => group.label === 'Systems'),
+      'systems'
+    )
+    expect(systems.count).toBe(7)
+    expect(systems.line).toContain(
+      '[Rigging Arm](https://salvageunion.io/schema/systems/item/rigging-arm)'
+    )
+    // The chassis placeholder names the chassis, never the pattern.
+    expect(parts.actions.map((action) => action.text).join('\n')).toContain('of The Mule')
+  })
+
+  test('renders every entity without throwing, and never leaves raw [[ markup', () => {
+    for (const schemaName of EntitySchemaNames) {
+      for (const entity of (getModel(schemaName)?.all() ?? []) as SURefMetaEntity[]) {
+        const card = discordCard(discordCardParts(toEntityModel(entity)))
+        expect(text(card)).not.toContain('[[')
+      }
+    }
+  })
+})
+
+describe('linkTraitReferences', () => {
+  test('links a known trait and keeps its parameter', () => {
+    expect(linkTraitReferences('gains the [[Vulnerable]] Trait')).toBe(
+      'gains the [Vulnerable](https://salvageunion.io/schema/traits/item/vulnerable) Trait'
+    )
+  })
+})
+
+describe('discordCard', () => {
+  test('sheds whole parts to fit, keeps the head and the cite, and links the page', () => {
+    const parts = partsFor('roll-tables', 'anomalous-zone')
+    const card = discordCard(parts, { fits: (c) => discordCardTextLength(c) <= 1500 })
+    const body = text(card)
+    expect(discordCardTextLength(card)).toBeLessThanOrEqual(1500)
+    expect(body).toContain('## [Anomalous Zone](')
+    expect(body).toContain('[The full entry on salvageunion.io](')
+    expect(body).toContain(parts.cite)
+    expect(body).toContain('`20` **MELD BEHEMOTH**')
+  })
+
+  test('marks the rolled row and keeps it while shedding', () => {
+    const parts = partsFor('roll-tables', 'anomalous-zone')
+    const card = discordCard(parts, {
+      markedRow: '1',
+      markedNote: 'ROLLED 1 · Alex',
+      fits: (c) => discordCardTextLength(c) <= 1500,
+    })
+    expect(text(card)).toContain('> **▶** `1`')
+    expect(text(card)).toContain('> -# ROLLED 1 · Alex')
+  })
+})
+
+describe('DISCORD_TONE_ACCENT', () => {
+  const css = readFileSync(
+    join(import.meta.dir, '../../../component-lib/src/styles/theme.css'),
+    'utf8'
+  )
+  const token = (name: string): number => {
+    const match = css.match(new RegExp(`--color-${name}:\\s*rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)`))
+    if (!match) throw new Error(`--color-${name} not in theme.css`)
+    const [, r, g, b] = match.map(Number)
+    return ((r ?? 0) << 16) | ((g ?? 0) << 8) | (b ?? 0)
+  }
+
+  test('mirrors theme.css, except ink, which paints the rules blue', () => {
+    for (const [tone, accent] of Object.entries(DISCORD_TONE_ACCENT)) {
+      const source = tone === 'ink' || tone === 'ink-2' ? 'wk-line' : tone
+      expect([tone, accent]).toEqual([tone, token(source)])
+    }
+  })
+})

@@ -16,6 +16,7 @@ From `git log origin/design-refresh`; one squash-merged PR each unless noted.
 7. **PL** Compact-card listings grouped as the book prints them, censor marks for missing art, one-screen roll tables — no PR: 8 direct commits (`6044219`…`58692ee`).
 8. **EDL** ([entity-display-language.md](entity-display-language.md)) — phases 1 model (`18bb05f`), 2 Row + Token (`0223974`), 3 Mention + Peek (`c49a5ef`) merged without PRs.
    Remaining: 4 Card + Hold, 5 Page + instruments, 6 delete `ReferenceEntityCard` and add the E15 lint.
+9. **DB** The Discord bot on the shared card, and Component Embeds on SRD pages ([discord-bot-refresh.md](../architecture/discord-bot-refresh.md)) — direct commits.
 
 ## Refit fleet
 
@@ -46,7 +47,7 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 4. **06** SRD home — `HomeContents`, `HeroSearch`, `index.page`, `Footer`, `chapters`, `ChapterFoot`, `Slab`.
 5. **07** SRD entity page — `EntityPageFrame`, `EntityPageStamps`, `CardPage`, `entityPage`, `CardImage`. **08** Entity, phone — `NavDrawer`, `EntityCardStatic`.
 6. **08b** SRD roll table — `RollTablePage`, `RollTableView`, `RollTableIsland`, `rollTablePage`, `columnsTablePage`.
-7. **E1** Card size × extent — `referenceEntity/card/` head, seam, pennant, facets, tone. **E2** Nesting — `NestedCards`, `bodyBlocks`.
+7. **E1** Card size × extent — `referenceEntity/card/` head, labels, pennant, facets, tone. **E2** Nesting — `NestedCards`, `bodyBlocks`.
 8. **E3** Five contexts — `StatusRail`, `CardPennant`, `peekPlate`. **E4** Embedded roll table — `CardRollTable`.
 9. **09** ITUN front door — `FrontDoor`, `Roster`, `AppHeader`, `SiteFooter`. **10** Pilot sheet, printed — ITUN `components/sheet/`, `Field`.
 10. **D1–D5** Dashboard: boarded, Crew tab, Downtime, phone Mech tab, phone resolve — ITUN `components/dashboard/`, `VitalGauge`, `pipRows`.

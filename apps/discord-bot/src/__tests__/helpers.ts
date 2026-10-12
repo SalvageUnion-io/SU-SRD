@@ -9,20 +9,30 @@ import type { ReplyArg } from './fakeInteraction.js'
  * structurally, so no cast is needed — the same contract `worker/adapter.ts`
  * (`makeButtonInteraction`) builds from the raw interaction.
  */
-export function buttonInteractionHandlerFor(customId: string): {
+export function buttonInteractionHandlerFor(
+  customId: string,
+  values: readonly string[] = []
+): {
   handle: () => Promise<void>
   replies: ReplyArg[]
+  updates: ReplyArg[]
   edits: ReplyArg[]
 } {
   const replies: ReplyArg[] = []
+  const updates: ReplyArg[] = []
   const edits: ReplyArg[] = []
 
   const interaction: CommandButtonInteraction = {
     customId,
-    user: { id: 'discord-tester' },
+    values,
+    user: { id: 'discord-tester', displayName: 'Alex' },
     channelId: 'chan-1',
     reply: (arg: ReplyArg) => {
       replies.push(arg)
+      return Promise.resolve()
+    },
+    update: (arg: ReplyArg) => {
+      updates.push(arg)
       return Promise.resolve()
     },
     editReply: (arg: ReplyArg) => {
@@ -31,5 +41,5 @@ export function buttonInteractionHandlerFor(customId: string): {
     },
   }
 
-  return { handle: () => handleButtonInteraction(interaction), replies, edits }
+  return { handle: () => handleButtonInteraction(interaction), replies, updates, edits }
 }

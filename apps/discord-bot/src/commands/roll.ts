@@ -1,12 +1,19 @@
 import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
-import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import type { ContainerData } from '../container.js'
-import { toContainer } from '../container.js'
+import {
+  discordAccent,
+  discordCard,
+  discordCardParts,
+  rollOnTable,
+  SalvageUnionReference,
+  toEntityModel,
+} from 'salvageunion-reference'
+import type { ButtonSpec, ContainerData } from '../container.js'
+import { containerTextLength, toContainer, V2_LIMIT } from '../container.js'
 import { decodeRollResult, encodeRollResult, makeCustomId } from '../customId.js'
 import { d20ForTable, rollD20 } from '../dice.js'
 import { noEffectContainer, unknownTableContainer } from '../errorContainer.js'
-import { buildRollContainerData, rollTableUrl } from '../rollContainer.js'
+import { buildRollContainerData } from '../rollContainer.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { attributeRoll } from './rollAttribution.js'
 
@@ -44,6 +51,32 @@ function getRollTables(): ReturnType<typeof SalvageUnionReference.RollTables.all
 export type RollMessage =
   | { flags: number; components: [ContainerBuilder]; data: ContainerData; ephemeral?: true }
   | { error: string }
+
+/**
+ * The one row every roll result carries: `↻ Roll again` (Primary: it is the
+ * action people take) and `See table`, which answers privately with the whole
+ * table and this roll's row marked. Both are stateless; `See table` carries the
+ * RESULT (`encodeRollResult`), so it marks the row on screen, never a new one.
+ * A table name too long for either id falls back to the lookup card.
+ */
+function rollButtons(tableName: string, result: string, between: ButtonSpec[] = []): ButtonSpec[] {
+  const rerollId = makeCustomId('roll', tableName)
+  const tableId = makeCustomId('table', result) ?? makeCustomId('lookup', tableName)
+  return [
+    ...(rerollId
+      ? [
+          {
+            kind: 'action' as const,
+            customId: rerollId,
+            label: '↻ Roll again',
+            style: ButtonStyle.Primary,
+          },
+        ]
+      : []),
+    ...between,
+    ...(tableId ? [{ kind: 'action' as const, customId: tableId, label: 'See table' }] : []),
+  ]
+}
 
 /**
  * Roll on a named table and shape the result into a reply. Shared by the slash
@@ -95,34 +128,22 @@ export function buildRollMessage(
 
   const data = buildRollContainerData(table, outcome, { roller })
 
-  // `Roll again` is Primary now: it is the action people take. `See table` was
-  // Primary, which put Discord's loudest, most off-brand colour on the least
-  // used control — and it is a Link button now, so it costs no customId at all.
-  const rerollId = makeCustomId('roll', table.name)
   // The RESULT, not the request. A "post this" button that re-rolled would
   // share a different outcome from the one on screen — silently. See
   // customId.ts. Omitted when the encoded result overflows the 100-char id,
   // which is the rule every other button here already follows.
   const rolls =
     outcome.kind === 'columns' ? [outcome.columnRoll, outcome.entryRoll] : [outcome.roll]
-  const postId = isPrivate ? makeCustomId('post', encodeRollResult(table.name, rolls)) : null
+  const result = encodeRollResult(table.name, rolls)
+  const postId = isPrivate ? makeCustomId('post', result) : null
 
   data.blocks.push({
     kind: 'buttons',
-    buttons: [
-      ...(rerollId
-        ? [
-            {
-              kind: 'action' as const,
-              customId: rerollId,
-              label: '↻ Roll again',
-              style: ButtonStyle.Primary,
-            },
-          ]
-        : []),
-      ...(postId ? [{ kind: 'action' as const, customId: postId, label: 'Post to channel' }] : []),
-      { kind: 'link' as const, url: rollTableUrl(table), label: 'See table' },
-    ],
+    buttons: rollButtons(
+      table.name,
+      result,
+      postId ? [{ kind: 'action', customId: postId, label: 'Post to channel' }] : []
+    ),
   })
 
   return {
@@ -164,28 +185,61 @@ export function buildPostedRollMessage(
   if (!outcome.success) return { error: 'That roll can no longer be rendered.' }
 
   const data = buildRollContainerData(table, outcome, { roller })
-  const rerollId = makeCustomId('roll', table.name)
-  data.blocks.push({
-    kind: 'buttons',
-    buttons: [
-      ...(rerollId
-        ? [
-            {
-              kind: 'action' as const,
-              customId: rerollId,
-              label: '↻ Roll again',
-              style: ButtonStyle.Primary,
-            },
-          ]
-        : []),
-      { kind: 'link' as const, url: rollTableUrl(table), label: 'See table' },
-    ],
-  })
+  data.blocks.push({ kind: 'buttons', buttons: rollButtons(table.name, payload) })
 
   return {
     flags: MessageFlags.IsComponentsV2,
     components: [toContainer(data)],
     data: { ...data, tableName: table.name },
+  }
+}
+
+/**
+ * The `See table` answer: the whole table, privately, with the encoded roll's
+ * row marked ("ROLLED 14 · Alex") — the d20 map the book prints beside every
+ * result. Rendered by the shared Discord card (`discordCardParts`), so it is
+ * the same table a `/su lookup` or a pasted salvageunion.io link shows. A table
+ * too long for one message sheds whole rows, never the marked one, and links
+ * the page.
+ */
+export function buildSeeTableMessage(
+  payload: string,
+  roller?: string
+): { flags: number; components: [ContainerBuilder]; data: ContainerData } | { error: string } {
+  const decoded = decodeRollResult(payload)
+  if (decoded === null) return { error: 'That button is no longer readable.' }
+  const table =
+    SalvageUnionReference.RollTables.getByName(decoded.tableName) ??
+    getRollTables().find((t) => t.name.toLowerCase() === decoded.tableName.toLowerCase())
+  if (!table) return { error: `Could not find table: "${decoded.tableName}".` }
+
+  const queue = [...decoded.rolls]
+  const outcome = rollOnTable(table.table, () => queue.shift() ?? 1)
+  const markedRow = outcome.success && outcome.kind === 'flat' ? outcome.key : undefined
+  const die = decoded.rolls.join('·')
+  const rollId = makeCustomId('roll', table.name)
+  const buttons: ButtonSpec[] = rollId
+    ? [{ kind: 'action', customId: rollId, label: 'Roll on this table' }]
+    : []
+
+  const parts = discordCardParts(toEntityModel(table))
+  const card = discordCard(parts, {
+    ...(markedRow ? { markedRow } : {}),
+    markedNote: roller ? `ROLLED ${die} · ${roller}` : `ROLLED ${die}`,
+    fits: (candidate) =>
+      containerTextLength({ accent: 0, blocks: candidate.blocks }) <= V2_LIMIT.totalText,
+  })
+  const data: ContainerData = {
+    accent: discordAccent(card.tone),
+    blocks: [
+      ...card.blocks,
+      ...(buttons.length > 0 ? [{ kind: 'buttons' as const, buttons }] : []),
+    ],
+  }
+  return {
+    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+    components: [toContainer(data)],
+    data,
   }
 }
 

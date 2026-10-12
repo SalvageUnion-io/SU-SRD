@@ -78,7 +78,7 @@ export function ClassAbilityStep({
   )
 
   // The class's legal Level-1 pool, flat. The card names its own tree in the
-  // seam pill (`[Forging | 1]`), so the pool needs no extra label.
+  // label pill (`[Forging | 1]`), so the pool needs no extra label.
   const legalPool = legalCreationAbilities(allAbilities, selectedClass?.coreTrees).sort((a, b) =>
     a.tree.localeCompare(b.tree)
   )

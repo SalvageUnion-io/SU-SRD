@@ -11,12 +11,27 @@
 
 import { MessageFlags } from 'discord-api-types/v10'
 import type { CommandButtonInteraction } from './commands/interactions.js'
-import { buildTableLookupMessage } from './commands/lookup.js'
-import { buildPostedRollMessage, buildRollMessage } from './commands/roll.js'
+import type { LookupMessage } from './commands/lookup.js'
+import { buildLookupMessage, buildTableLookupMessage } from './commands/lookup.js'
+import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from './commands/roll.js'
 import { attributeRoll } from './commands/rollAttribution.js'
 import type { ContainerData } from './container.js'
+import { toContainer } from './container.js'
 import { parseCustomId } from './customId.js'
 import { d20ForTable } from './dice.js'
+import { entityFromKey, parseViewPayload, patternPeek } from './lookupCard.js'
+
+/**
+ * A `su:lookup` payload: an entry key (`schemaName::slug`, from "Post to
+ * channel" on a found term) or, as every older button carries, a table name.
+ */
+function lookupFromPayload(payload: string): LookupMessage {
+  if (!payload.includes('::')) return buildTableLookupMessage(payload)
+  const hit = entityFromKey(payload)
+  return hit
+    ? buildLookupMessage(hit.entity, hit.schemaName)
+    : { error: 'That entry is no longer in the reference.' }
+}
 
 export async function handleButtonInteraction(
   interaction: CommandButtonInteraction
@@ -54,10 +69,59 @@ export async function handleButtonInteraction(
     return
   }
 
+  // A tab or a page redraws the card it sits on, for everyone who sees it:
+  // the same entry, another view of it. Nothing new is posted.
+  if (parsed.action === 'view') {
+    const target = parseViewPayload(parsed.payload)
+    const hit = target ? entityFromKey(target.key) : null
+    if (!target || !hit) {
+      await interaction.reply({
+        content: 'That entry is no longer in the reference.',
+        flags: MessageFlags.Ephemeral,
+      })
+      return
+    }
+    const { data: _data, ...payload } = buildLookupMessage(hit.entity, hit.schemaName, target.view)
+    await interaction.update(payload)
+    return
+  }
+
+  // The pattern picker: the picked pattern's Peek, privately — read-only and
+  // terminal, so it carries no controls of its own.
+  if (parsed.action === 'peek') {
+    const hit = entityFromKey(parsed.payload)
+    const peek =
+      hit && interaction.values[0] ? patternPeek(hit.entity, interaction.values[0]) : null
+    if (!peek) {
+      await interaction.reply({
+        content: 'That pattern is no longer in the reference.',
+        flags: MessageFlags.Ephemeral,
+      })
+      return
+    }
+    await interaction.reply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [toContainer(peek)],
+    })
+    return
+  }
+
+  // `table` answers privately and is not a roll: nothing to record.
+  if (parsed.action === 'table') {
+    const seen = buildSeeTableMessage(parsed.payload, roller)
+    if ('error' in seen) {
+      await interaction.reply({ content: seen.error, flags: MessageFlags.Ephemeral })
+      return
+    }
+    const { data: _data, ...payload } = seen
+    await interaction.reply(payload)
+    return
+  }
+
   const message =
     parsed.action === 'roll'
       ? buildRollMessage(parsed.payload, roller, await d20ForTable(parsed.payload))
-      : buildTableLookupMessage(parsed.payload)
+      : lookupFromPayload(parsed.payload)
 
   if ('error' in message) {
     await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })

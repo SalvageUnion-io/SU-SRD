@@ -84,20 +84,22 @@ describe('lookupCommand.execute', () => {
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
     expect(reply.components).toHaveLength(1)
-    expect(containerTextOf(reply)).toContain('## [')
-    // A real hit deep-links out; the not-found path carries content instead.
+    // A heading that links its page; an ability's tier numeral leads it.
+    expect(containerTextOf(reply)).toMatch(/^## (\d+ · )?\[/m)
     expect(reply.content).toBeUndefined()
   })
 
-  test('a no-match query replies with an ephemeral "not found"', async () => {
+  test('a no-match query answers privately, in the system, with the way in that works', async () => {
     const { interaction, replies } = mockChatInput('zzzqqqxyzzy123')
     await lookupCommand.execute(interaction)
     expect(replies).toHaveLength(1)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
     expect(reply.embeds).toBeUndefined()
-    expect(reply.content).toContain('No entity found')
-    expect(reply.flags).toBe(MessageFlags.Ephemeral)
+    expect(reply.content).toBeUndefined()
+    expect(containerTextOf(reply)).toContain('-# NO SUCH ENTRY')
+    expect(containerTextOf(reply)).toContain('`entity:` option')
+    expect(reply.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
 })
 

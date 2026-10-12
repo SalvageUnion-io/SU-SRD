@@ -175,6 +175,32 @@ const interaction = {
     member: { user: { id: USER_ID } },
     data: { custom_id: customId, component_type: 2 },
   }),
+
+  select: (customId: string, values: string[]) => ({
+    id: '5',
+    application_id: APPLICATION_ID,
+    type: InteractionType.MessageComponent,
+    token: 'interaction-token',
+    channel_id: CHANNEL_ID,
+    member: { user: { id: USER_ID } },
+    data: { custom_id: customId, component_type: 3, values },
+  }),
+
+  messageCommand: (name: string, content: string) => ({
+    id: '6',
+    application_id: APPLICATION_ID,
+    type: InteractionType.ApplicationCommand,
+    token: 'interaction-token',
+    channel_id: CHANNEL_ID,
+    member: { user: { id: USER_ID } },
+    data: {
+      id: 'ctx',
+      name,
+      type: 3, // MESSAGE
+      target_id: 'msg-1',
+      resolved: { messages: { 'msg-1': { id: 'msg-1', content, author: { username: 'rook' } } } },
+    },
+  }),
 }
 
 describe('signature verification', () => {
@@ -344,6 +370,55 @@ describe('interaction dispatch', () => {
     // serialises through its `toJSON()` and reaches the wire as real JSON.
     expect(JSON.stringify(body.data?.components)).toContain('Mule')
     expect(body.data?.content).toBeUndefined()
+  })
+
+  test('a lookup tab redraws the message it sits on (UPDATE_MESSAGE)', async () => {
+    const keys = await generateKeyPair()
+    const { ctx, settled } = executionContext()
+    const res = await worker.fetch(
+      await signedRequest(interaction.button('su:view:chassis::mule|patterns'), keys),
+      envFor(keys),
+      ctx
+    )
+    await settled()
+    const body = (await res.json()) as { type: number; data?: { components?: unknown[] } }
+    expect(body.type).toBe(InteractionResponseType.UpdateMessage)
+    expect(JSON.stringify(body.data?.components)).toContain('PAGE 1 OF 3')
+  })
+
+  test('the pattern picker reads the select value and answers privately', async () => {
+    const keys = await generateKeyPair()
+    const { ctx, settled } = executionContext()
+    const res = await worker.fetch(
+      await signedRequest(interaction.select('su:peek:chassis::mule', ['hauler']), keys),
+      envFor(keys),
+      ctx
+    )
+    await settled()
+    const body = (await res.json()) as {
+      type: number
+      data?: { flags?: number; components?: unknown[] }
+    }
+    expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
+    expect((body.data?.flags ?? 0) & 64).toBe(64)
+    expect(JSON.stringify(body.data?.components)).toContain('PATTERN · MULE')
+  })
+
+  test('the message context menu reads the target message', async () => {
+    const keys = await generateKeyPair()
+    const { ctx, settled } = executionContext()
+    const res = await worker.fetch(
+      await signedRequest(
+        interaction.messageCommand('Look up in Salvage Union', "we're Vulnerable now"),
+        keys
+      ),
+      envFor(keys),
+      ctx
+    )
+    await settled()
+    const body = (await res.json()) as { type: number; data?: { components?: unknown[] } }
+    expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
+    expect(JSON.stringify(body.data?.components)).toContain("FOUND IN ROOK'S MESSAGE")
   })
 
   test('a missing REQUIRED option fails cleanly rather than passing null onward', async () => {

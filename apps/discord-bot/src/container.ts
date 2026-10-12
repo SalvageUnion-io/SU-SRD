@@ -33,6 +33,8 @@ import {
   ContainerBuilder,
   SectionBuilder,
   SeparatorBuilder,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from '@discordjs/builders'
@@ -56,11 +58,13 @@ export const V2_LIMIT = {
   textDisplay: 4000,
   /** Buttons in one action row. */
   rowButtons: 5,
+  /** Options in one string select. */
+  selectOptions: 25,
 } as const
 
 /** A button that re-invokes the bot, or one that just opens a URL. */
 export type ButtonSpec =
-  | { kind: 'action'; customId: string; label: string; style?: ButtonStyle }
+  | { kind: 'action'; customId: string; label: string; style?: ButtonStyle; disabled?: boolean }
   | { kind: 'link'; url: string; label: string }
 
 /** One block in a container, in render order. */
@@ -72,8 +76,18 @@ export type ContainerBlock =
       /** 1–3 text blocks, per the builder's own predicate. */
       text: string[]
       thumbnail?: { url: string; description?: string }
+      /** Or a button beside the text, which acts on that line. */
+      button?: ButtonSpec
     }
   | { kind: 'buttons'; buttons: ButtonSpec[] }
+  /** A string select in its own row: a picker whose choice re-invokes the bot. */
+  | {
+      kind: 'select'
+      customId: string
+      placeholder: string
+      /** Up to 25, Discord's limit; label and description up to 100 chars each. */
+      options: { label: string; value: string; description?: string }[]
+    }
 
 /** Everything needed to render one container. Pure data — no builders. */
 export type ContainerData = {
@@ -97,9 +111,13 @@ export function containerTextLength(data: ContainerData): number {
  */
 export function containerComponentCount(data: ContainerData): number {
   const cost = (block: ContainerBlock): number => {
-    // the section, its text blocks, and the thumbnail accessory
-    if (block.kind === 'section') return 1 + block.text.length + (block.thumbnail ? 1 : 0)
+    // the section, its text blocks, and its accessory
+    if (block.kind === 'section') {
+      return 1 + block.text.length + (block.thumbnail || block.button ? 1 : 0)
+    }
     if (block.kind === 'buttons') return 1 + block.buttons.length
+    // the row and the select
+    if (block.kind === 'select') return 2
     return 1
   }
   // 1 for the container itself.
@@ -124,7 +142,7 @@ export function enforceContainerLimits(data: ContainerData): ContainerData {
   )
 
   const trimmed: ContainerData = { ...data, blocks }
-  const isButtons = (b: ContainerBlock): boolean => b.kind === 'buttons'
+  const isButtons = (b: ContainerBlock): boolean => b.kind === 'buttons' || b.kind === 'select'
   while (
     (containerTextLength(trimmed) > V2_LIMIT.totalText ||
       containerComponentCount(trimmed) > V2_LIMIT.components) &&
@@ -234,6 +252,7 @@ function toButton(spec: ButtonSpec): ButtonBuilder {
         .setStyle(spec.style ?? ButtonStyle.Secondary)
         .setCustomId(spec.customId)
         .setLabel(spec.label)
+        .setDisabled(spec.disabled === true)
 }
 
 /**
@@ -264,8 +283,31 @@ export function toContainer(data: ContainerData): ContainerBuilder {
           const thumb = new ThumbnailBuilder().setURL(block.thumbnail.url)
           if (block.thumbnail.description) thumb.setDescription(block.thumbnail.description)
           section.setThumbnailAccessory(thumb)
+        } else if (block.button) {
+          section.setButtonAccessory(toButton(block.button))
         }
         container.addSectionComponents(section)
+        break
+      }
+      case 'select': {
+        const options = block.options.slice(0, V2_LIMIT.selectOptions).map((option) => {
+          const built = new StringSelectMenuOptionBuilder()
+            .setLabel(truncate(option.label, 100))
+            .setValue(option.value)
+          return option.description
+            ? built.setDescription(truncate(option.description, 100))
+            : built
+        })
+        if (options.length > 0) {
+          container.addActionRowComponents(
+            new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+              new StringSelectMenuBuilder()
+                .setCustomId(block.customId)
+                .setPlaceholder(block.placeholder)
+                .addOptions(...options)
+            )
+          )
+        }
         break
       }
       case 'buttons': {

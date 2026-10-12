@@ -15,8 +15,7 @@
  * ## The headline rule
  *
  * Three branches, no per-table special-casing. The die leads the headline in
- * all three — it is the one number a roller looks for, and there is no
- * provenance line to carry it instead:
+ * all three — it is the one number a roller looks for:
  *
  * 1. The entry has a `label` → the label is the headline, the value is the body.
  * 2. No label, value ≤ {@link INLINE_HEADLINE_MAX} → **the value is the
@@ -56,7 +55,14 @@
  */
 
 import type { RollOnTableOutcome, SURefRollTable } from 'salvageunion-reference'
-import { getEntitySlug, srdEntityUrl, truncate } from 'salvageunion-reference'
+import {
+  discordCiteLine,
+  linkTraitReferences,
+  plainTraitText,
+  rangeLabel,
+  toEntityModel,
+  truncate,
+} from 'salvageunion-reference'
 import type { CoreRollBand } from 'salvageunion-reference/rules'
 import { CORE_ROLL_BANDS, coreRollBand } from 'salvageunion-reference/rules'
 import type { ContainerBlock, ContainerData } from './container.js'
@@ -149,8 +155,9 @@ function headlineAndBody(
   if (label !== undefined && label.length > 0) {
     return { headline: rollHeadline(die, stencil(label)), body: value || undefined }
   }
+  // A headline is a heading: it prints a trait's name, never its markup.
   if (value.length > 0 && value.length <= INLINE_HEADLINE_MAX) {
-    return { headline: rollHeadline(die, stencil(value)) }
+    return { headline: rollHeadline(die, stencil(plainTraitText(value))) }
   }
   // The entry's own words, where they already read as a name. Never a
   // truncation and never a paraphrase — see derivedLabel.ts.
@@ -158,10 +165,24 @@ function headlineAndBody(
   if (quoted !== undefined) {
     // The remainder, not the whole value — the quoted sentence has been
     // promoted to the headline and must not be repeated beneath it.
-    return { headline: rollHeadline(die, stencil(quoted.label)), body: quoted.rest }
+    return {
+      headline: rollHeadline(die, stencil(plainTraitText(quoted.label))),
+      body: quoted.rest,
+    }
   }
   const tier = band !== null && isCoreMechanic ? stencil(CORE_ROLL_BANDS[band].label) : undefined
   return { headline: rollHeadline(die, tier), body: value || undefined }
+}
+
+/**
+ * Where the die landed, as board 08b's "Lands on" readout: the band's range
+ * ("11–19"), or on a two-roll table the column and the entry. The tier word
+ * and the label say what happened; this says which row of the book it is.
+ */
+function landsOn(outcome: Extract<RollOnTableOutcome, { success: true }>): string {
+  return outcome.kind === 'columns'
+    ? `Column ${rangeLabel(outcome.columnKey)} · entry ${rangeLabel(String(outcome.entryKey))}`
+    : `Lands on ${rangeLabel(outcome.key)}`
 }
 
 /**
@@ -202,10 +223,17 @@ export function buildRollContainerData(
   ]
 
   blocks.push({ kind: 'text', content: headline })
-  if (body !== undefined) blocks.push({ kind: 'text', content: truncate(body, 1800) })
+  blocks.push({ kind: 'text', content: `-# ${landsOn(outcome)}` })
+  // Cut first, then link: a cut can never land inside a link it made.
+  if (body !== undefined) {
+    blocks.push({ kind: 'text', content: linkTraitReferences(truncate(body, 1800)) })
+  }
 
   blocks.push({ kind: 'separator' })
-  blocks.push({ kind: 'text', content: `-# ${ROLL_ATTRIBUTION}` })
+  blocks.push({
+    kind: 'text',
+    content: `-# ${discordCiteLine(toEntityModel(table))} · ${ROLL_ATTRIBUTION}`,
+  })
   if (context.loggedTo !== undefined) {
     blocks.push({ kind: 'text', content: loggedLine(context.loggedTo) })
   }
@@ -214,9 +242,4 @@ export function buildRollContainerData(
     accent: band !== null ? ROLL_COLORS[band] : NEUTRAL_ACCENT,
     blocks,
   }
-}
-
-/** The reference-site page for a roll table, for the `See table` link button. */
-export function rollTableUrl(table: SURefRollTable): string {
-  return srdEntityUrl('roll-tables', getEntitySlug(table))
 }
