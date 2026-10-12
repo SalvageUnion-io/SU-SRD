@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # ADR-045: The Dashboard Has a Phone Form
@@ -8,7 +8,7 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 45, which
 
 ## Status
 
-**Proposed; built.** Amends
+**Accepted; built.** Amends
 [ADR-038](038-dashboard-game-surface.md) §3, §4 and §9. It adds no mode to [ADR-021](021-itun-surface-taxonomy.md).
 The phone form is Guided Play, with the same enforcement, seat and Change Log
 as the canvas, so the taxonomy and the

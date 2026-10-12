@@ -227,10 +227,10 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, not built: a static `/v1` tree emitted from the committed files; no query Worker.
     Amends ADR-014, ADR-040; decision 1 superseded by ADR-047.
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
-    Proposed, built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
+    Accepted, built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
 45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
-    Proposed, built: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
+    Accepted, built: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
     Amends ADR-038.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
     Accepted, built: `theme.css` tokens, `tokens.ts` objects, `index.css`; `styling`'s `no-tailwind` keeps Tailwind out.
