@@ -1,5 +1,5 @@
 {
-  "floor": 1791601915,
+  "floor": 1791830516,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -1710,6 +1710,22 @@
           "optional": false
         }
       }
+    },
+    "photos:claim": {
+      "type": "object",
+      "value": {
+        "storageId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "_storage"
+          },
+          "optional": false
+        }
+      }
+    },
+    "photos:generateUploadUrl": {
+      "type": "object",
+      "value": {}
     },
     "proposals:alerts": {
       "type": "object",

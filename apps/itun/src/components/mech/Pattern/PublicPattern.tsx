@@ -30,6 +30,7 @@ import {
 } from 'component-lib'
 import { useMutation } from 'convex/react'
 import type { MechPattern } from 'itun-domain/schemas/pattern'
+import type { Photo } from 'itun-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import {
@@ -56,6 +57,7 @@ import { deepLinkTo } from '../../../lib/srd-deep-link'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
 import { SignInControl } from '../../account/SignInControl'
+import { EntityPhoto } from '../../shared/EntityPhoto'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -163,8 +165,6 @@ const ART = {
   justifyContent: 'center',
   overflow: 'hidden',
 } satisfies CSSProperties
-
-const ART_IMG = { height: '100%', objectFit: 'contain', width: '100%' } satisfies CSSProperties
 
 /** The maker's own words: a dashed box, not the book's. */
 const NOTES = {
@@ -318,6 +318,17 @@ function sharedDate(at: number): string {
 
 /** Open a loadout part's reference page, when the book has one for it. */
 
+/**
+ * Write the maker's photo onto their own pattern. The page reads the pattern
+ * from the public query, so the shelf's copy may not have arrived yet: wait
+ * for it before the store patches it, and the query hears the write back.
+ */
+async function setPatternPhoto(patternId: string, photo: Photo | undefined): Promise<void> {
+  const store = usePatternStore.getState()
+  await store.hydrate()
+  await usePatternStore.getState().update(patternId, { photo })
+}
+
 export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const { pattern, madeBy, sharedAt, builtCount, mine, visibility } = answer
   const navigate = useNavigate()
@@ -419,13 +430,21 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
       <div style={BODY}>
         <div style={COLUMNS}>
           <section style={COLUMN} aria-label="Chassis">
-            <div style={ART}>
-              {art && chassis ? (
-                <img src={art} alt={`${chassis.name} line art`} style={ART_IMG} />
-              ) : (
+            {/* The maker's photo where they gave one, else the chassis art. */}
+            <EntityPhoto
+              photo={pattern.photo}
+              fallback={art && chassis ? { url: art, alt: `${chassis.name} line art` } : undefined}
+              name={pattern.name}
+              frame={ART}
+              onChange={
+                mine && canWrite ? (photo) => setPatternPhoto(pattern.id, photo) : undefined
+              }
+            />
+            {!pattern.photo && !art && !(mine && canWrite) && (
+              <div style={ART}>
                 <Text variant="hint">No artwork in the reference for this chassis.</Text>
-              )}
-            </div>
+              </div>
+            )}
             {pattern.notes && (
               <figure style={NOTES}>
                 <figcaption style={NOTES_LABEL}>Maker&rsquo;s notes</figcaption>

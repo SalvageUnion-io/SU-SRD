@@ -2,6 +2,7 @@ import { z } from 'salvageunion-reference/zod'
 import { containerFields } from './entity'
 import { ItemConditionMapSchema } from './itemCondition'
 import { PartnerInstanceSchema } from './partner'
+import { photoFields } from './photo'
 
 /**
  * Persisted choice selections for an entity that carries `choices`
@@ -165,6 +166,8 @@ export const PilotSchema = z
     conditions: z.array(z.string()),
 
     ...containerFields,
+    /** The entity's own picture; see `PhotoSchema`. */
+    ...photoFields,
 
     /**
      * Which built-in template row this was spawned from, if any.

@@ -49,6 +49,7 @@ export {
   getTraits,
 } from './actionResolution'
 export {
+  assetUrl,
   getAssetUrl,
   SRD_SITE_URL,
   srdEntityPath,

@@ -7,4 +7,7 @@ const crons = cronJobs()
 // `authHealth.ts` for why this is an outcome check and not an error filter.
 crons.hourly('discord sign-in health', { minuteUTC: 7 }, internal.authHealth.check)
 
+// Deletes uploaded photos whose entity write never landed. See `photos.ts`.
+crons.hourly('unused photo sweep', { minuteUTC: 37 }, internal.photos.sweep)
+
 export default crons

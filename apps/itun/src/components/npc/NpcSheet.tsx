@@ -23,11 +23,13 @@ import type { CrewSlot } from 'itun-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import { isNpcDown, npcCurrentHP, slotPhrase } from '../../lib/npcs/npcModel'
+import { npcTemplateArt } from '../../lib/photos/defaultArt'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
 import { AppLink } from '../shared/AppLink'
+import { EntityPhoto } from '../shared/EntityPhoto'
 import type { Confirm } from '../shared/useConfirm'
 import { NpcInset } from '../sheet/NpcInset'
 import { NpcCard } from './NpcCard'
@@ -178,6 +180,20 @@ export function NpcSheet({
 
         <section style={COLUMN} aria-labelledby="npc-identity">
           <Slab variant="solid" id="npc-identity" label="Identity" />
+          {/* A portrait's width in the column; empty (and gone) with no picture. */}
+          <div className="su-photo-beside-slot">
+            <EntityPhoto
+              photo={npc.photo}
+              fallback={npcTemplateArt(npc.templateRef)}
+              name={npc.name}
+              onChange={
+                editable
+                  ? (photo) =>
+                      useEntityStore.getState().update('npc', npc.id, { photo }, LIVE_SHEET_MANUAL)
+                  : undefined
+              }
+            />
+          </div>
           {down && (
             <div style={ROW}>
               <Badge shape="stamp" size="compact">

@@ -4075,7 +4075,8 @@
         "source": "Mech Monday",
         "page": 4
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "1ba741eb-5b33-496f-81f8-7f9d05e27985",
@@ -8018,7 +8019,10 @@
         "value": "The 'B-419' Impaler is the main combat Mech of the BOLZA Corporation. Its rugged design helps it survive and manoeuvre in the harsh conditions of the Arid Steppes."
       }
     ],
-    "chassisAbilities": ["Rugged Chassis"]
+    "chassisAbilities": [
+      "Rugged Chassis"
+    ],
+    "hasArtwork": true
   },
   {
     "id": "a15bb42b-6d0d-49c3-a86f-13ef573399ba",
@@ -8084,7 +8088,11 @@
         "value": "A resilient Bio-Mech built from the core thoraxes, chest cavities, rib cages, and central nervous systems of Bio-Titans. Layers of thickened carapace with the ability to regenerate grow on its fleshy form."
       }
     ],
-    "chassisAbilities": ["Bio-Chassis", "Heavily Armoured Carapace"]
+    "chassisAbilities": [
+      "Bio-Chassis",
+      "Heavily Armoured Carapace"
+    ],
+    "hasArtwork": true
   },
   {
     "id": "ff9af5ce-df71-40cc-8e2e-8141b5a8c1d0",
@@ -8144,7 +8152,11 @@
         "value": "A Bio-Mech designed to destroy low-flying aircraft and perform hit-and-run attacks on enemy installations."
       }
     ],
-    "chassisAbilities": ["Bio-Chassis", "Integrated Monstrous Bio-Wings"]
+    "chassisAbilities": [
+      "Bio-Chassis",
+      "Integrated Monstrous Bio-Wings"
+    ],
+    "hasArtwork": true
   },
   {
     "id": "79bef9bb-3222-4655-b1a9-911fe272ac2c",
@@ -8209,7 +8221,11 @@
         "value": "Fashioned from the engorged craniums of brain bugs, this bloated, slug like Bio-Chassis was deployed to interrogate high-value targets, siphoning succulent secrets straight from their brainstem and feeding it to the Pilot."
       }
     ],
-    "chassisAbilities": ["Bio-Chassis", "Probing Proboscis"]
+    "chassisAbilities": [
+      "Bio-Chassis",
+      "Probing Proboscis"
+    ],
+    "hasArtwork": true
   },
   {
     "id": "ea209e85-964d-437a-b552-423f540719cf",
@@ -8265,7 +8281,11 @@
         "value": "Developed from the spider-like legs on many Bio-Titans, this light and fast Bio-Chassis is able to rapidly traverse a wide array of terrain."
       }
     ],
-    "chassisAbilities": ["Bio-Chassis", "Integrated Scuttling Locomotion System"]
+    "chassisAbilities": [
+      "Bio-Chassis",
+      "Integrated Scuttling Locomotion System"
+    ],
+    "hasArtwork": true
   },
   {
     "id": "f1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c",
@@ -8361,7 +8381,8 @@
         "type": "paragraph",
         "value": "Developed by Kombu Tech as a cheap way of harvesting their patented regrown algae which feeds most of the populace of the wastes, the compact Kelpie has inbuilt Hydrologics to allow the efficient traversal of aquatic bodies."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "ab17cf2b-eb34-4cfa-9ec2-7b68f14474c9",
@@ -8439,7 +8460,8 @@
         "type": "paragraph",
         "value": "The sacrifices of the new Pilots forced Evantis back, preventing a hostile takeover of DronTek territory. As a reward, DronTek granted Scrip debt rights to the surviving Pilots, allowing them to work to pay off the debt they had accumulated during the conflict."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "1122a9ba-a073-4784-9501-3f7828c37adf",
@@ -8512,7 +8534,8 @@
         "type": "paragraph",
         "value": "As with most Opus Mechs, its blueprints are open source on the corpo-net. As a result, it is often scrapped together by wastelanders living in arctic regions or salvagers delving into the ice."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "5dcadbe1-1a22-429d-a8f4-9d89a5b10630",
@@ -8593,7 +8616,8 @@
         "type": "paragraph",
         "value": "The 'V17' Parasite is a mobile supercomputer with a suite of CPU modules that are capable of causing havoc in an enemy force. Though it may be weaker than similarly sized combat mechs, it will often not need to directly confront an opponent; instead, it uses hacking to immobilise, disable weapons, or even drain reactors. Its highly unorthodox reactor was developed during the cyberwars as a covert means of disabling opposing Mechs from afar."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "bcdccf7a-10d0-468a-affe-12cc2a27daf7",
@@ -8678,7 +8702,8 @@
         "type": "paragraph",
         "value": "The 'KC0-29' Big Brother was developed by DronTek as a heavy weapon and drone support platform, epitomising rugged DronTek design principles. It is a lynchpin within their lances, usually deployed to act as a bulwark against the most powerful forces of the opposition. Its cumbersome speed means it relies on its drones and on faster members of its lance to prevent it being outmanoeuvred. It saw active deployment against Evantis forces in their failed invasion of the Northern Wastes, going toe to toe with their Colossus Mechs."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "fc47852d-00c7-453e-b497-65c40f24060b",
@@ -8709,7 +8734,8 @@
         "type": "paragraph",
         "value": "The X0315 adds its Pilot's Ability Point total to its Energy and the Pilot's Hit Points to its Structure Points. The Pilot may use all of their Pilot Abilities whilst piloting the X0315 and may spend Energy Points to do so."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "e6c053a9-9ae4-4447-938b-2f9423ad77e5",
@@ -8769,7 +8795,8 @@
         "type": "paragraph",
         "value": "Wasters in the Oceanic Rim would take to carrying their entire families in these Mechs upon woven baskets. This allowed them to safely traverse the many areas of boggy terrain, and even cross shallow inlets to other islands within the region."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "ec8f92dd-709e-49d8-9ff8-8f324fcc7225",
@@ -8826,7 +8853,8 @@
         "type": "paragraph",
         "value": "Stolas Mechs are lighter Auto-mech variants, designed to screen an Automech lance with fumes of smoke, and overwhelm their foes with their sheer weight of numbers. Following the Slaughter of Bunker-13 Stolas Mechs took to enhancing their smoke-launchers with superheated fumes to liquify the flesh of their foes, the smell of acrid smoke and putrid flesh a tell-tale sign of their approach."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "c21f66f4-228d-417e-a7f7-104994fa23a8",
@@ -8904,7 +8932,8 @@
         "type": "paragraph",
         "value": "The 'v8.12.5' Paladin is engineered to channel and amplify its reactor energy reserves to enhance the force, impact, and destructive potential of its close combat attacks. This enables the mech to deliver bone-shattering strikes that obliterate enemy defenses. Developed by Aeon as an offensive siegebreaker, designed to breach fortifications and fearlessly lead its lance into the heart of enemy fire. It proved its prowess in the 100 day siege of the Union of Nations headquarters during the Last War of Nations, which led to their complete annihilation. Thousands of corpo mercs, with more scrip debt than sense, eagerly apply to Aeon's Privateer Partnership program with the hopes of being able to pilot a Paladin Mech as part of Aeon's Elite Security Division."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "5d3abe62-827d-4144-98e1-be0a30b70520",
@@ -8960,7 +8989,8 @@
         "type": "paragraph",
         "value": "The Hunchback Pattern Ravager was developed by Aegean Dynamics during the Oceanic Expansion to defend arcologies and naval bases. It features a heavy-duty stabilization system that allows it to maintain accuracy while firing its long-range weaponry. The Ravager saw significant use in the Siege of Salamis against Automechs, where its defensive capabilities proved invaluable. Following the conflict, many Ravagers were repurposed by mercenaries and wannabe-corpos, including the Water-Baron's Elite Guard."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "f2262dbd-d0c9-44a5-9b9d-d4c73458ad48",
@@ -9027,7 +9057,8 @@
         "type": "paragraph",
         "value": "This macabre practice was intended to ward off any other mortal intruders venturing into their domain."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "646280d7-eba9-452d-b680-3bc55c6da8f9",
@@ -9094,7 +9125,8 @@
         "type": "paragraph",
         "value": "In response to the Corporate Council's prohibition of incendiary explosives, the Black Dragon found new buyers among more morally flexible mercenary groups and feudal corpos. Notably the security force of the Water Baron, deploying the Black Dragon to suppress the inhabitants of the Wild Hills."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "8cba10e1-20f1-4d82-a028-d9d84ac9f1b3",
@@ -9214,7 +9246,8 @@
         "type": "paragraph",
         "value": "The 'TAC-OS PATTERN' Cerberus is a colossal multi-headed Automech, the pinnacle of the Automech Program. Designed by TJG Automations, it features three independently controlled heads - Kyrios, Phren, and Morphos - each capable of mounting separate weapon systems and modules. The advanced Tac-OS A.I. system was the only system powerful enough to control all three heads simultaneously, though the chassis can also be piloted by three separate Pilots, one for each head."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "1b7df14c-8f92-48ff-a42a-313fd24038c9",
@@ -9633,7 +9666,10 @@
         "value": "Designed by Opus Institute as a general purpose construction Mech, the 'NL-9' Bobcat was instrumental in the efforts to restore the central wastelands after Impact Day. Salvager Bobcat teams were sent out to support in the reconstruction of settlements reduced to ruin by the impact, or buried under the ash. This proved an effective recruiting method for the Salvage Union."
       }
     ],
-    "chassisAbilities": ["Integrated Scrap Magnet"]
+    "chassisAbilities": [
+      "Integrated Scrap Magnet"
+    ],
+    "hasArtwork": true
   },
   {
     "id": "68945613-1444-404b-b552-6c940b7e67b8",
@@ -9790,6 +9826,9 @@
         "value": "A TDA Mech designed with the singular purpose of breaching fortifications. They were produced en masse and used extensively in the TDA revolutionary war to breach corporate arcos. Gatecrasher Mechs are dangerous to Pilots due to the heat build up of the siege ram, leading their pilots to be nicknamed 'Moths' for their short lifespans and tendency to burn up in flame. These pilots were considered heroes by the TDA who commemorated them in their monuments."
       }
     ],
-    "chassisAbilities": ["Siege Ram"]
+    "chassisAbilities": [
+      "Siege Ram"
+    ],
+    "hasArtwork": true
   }
 ]

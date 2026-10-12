@@ -28,6 +28,7 @@
 
 import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'
+import type { Photo } from '../schemas/photo'
 import type { Pilot } from '../schemas/pilot'
 import type { SoftLink } from '../schemas/softLink'
 
@@ -284,9 +285,19 @@ const MECH_APPEARANCES: Record<string, string> = {
     'Razor designed this Mech to get up close and personal with its dual chainsaw and laser. The Self-Destruct was added to feed her fantasies of explosive redemption in battle — at least Judge persuaded her to include the Escape Hatch.\n\nAppearance: Mil-Tech, clean and built for purpose, with a series of jagged tally marks from its own chainsaw arm counting confirmed kills.\nQuirk: Grinding, loud gears — especially the cacophonous reverb of the chainsaw.',
 }
 
+/**
+ * Each crew member's portrait from the Starter Set's character sheets, on the
+ * artwork CDN under `starter-set/pilots/` (keyed by the id's last segment). A
+ * copy keeps it: it is the copied pilot's photo until the player replaces it.
+ */
+function portrait(id: string): Photo {
+  return { kind: 'asset', path: `starter-set/pilots/${id.replace('starter-pilot-', '')}.webp` }
+}
+
 export const STARTER_PILOTS: readonly Pilot[] = CREW.map((c) => ({
   ...c.pilot,
   description: PILOT_BIOS[c.pilot.id],
+  photo: portrait(c.pilot.id),
 }))
 export const STARTER_MECHS: readonly Mech[] = CREW.map((c) => ({
   ...c.mech,
@@ -412,6 +423,8 @@ const STARTER_CRAWLER: Crawler = {
     'Built by its salvager pilots, the Tenacity (Crawler #430) is a quadrupedal crawler on stilt-like legs, able to explore the most rugged of terrain.',
   techLevel: 'tech-1',
   type: EXPLORATORY_TYPE,
+  // The Tenacity as the Starter Set's crawler sheet draws it.
+  photo: { kind: 'asset', path: 'starter-set/crawlers/tenacity.webp' },
   // The Exploratory type's special NPC — the Wasteland Explorer.
   typeNpc: { npcName: "Hannah 'Trek' Lane", npcCurrentHP: 4 },
   // The Armament Bay's mounted weapon: weapon systems live in the crawler's

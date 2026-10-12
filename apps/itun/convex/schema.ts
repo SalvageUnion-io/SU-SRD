@@ -586,6 +586,26 @@ export default defineSchema({
     .index('by_game', ['gameId']),
 
   /**
+   * One row per uploaded entity photo in file storage (`photos.ts`).
+   *
+   * The file is referenced from inside entity bodies (`body.photo`), which
+   * Convex cannot index, so this row is the file's bookkeeping: who uploaded
+   * it and how many entity rows hold it. The entity triggers in
+   * `model/entities.ts` keep `refs` current on every write and delete, and
+   * delete the file when the last holder lets go; the hourly sweep deletes a
+   * claimed file no entity ever took up.
+   */
+  photos: defineTable({
+    storageId: v.id('_storage'),
+    ownerId: v.id('users'),
+    /** Entity rows whose body holds this file. */
+    refs: v.number(),
+    claimedAt: v.number(),
+  })
+    .index('by_storage', ['storageId'])
+    .index('by_refs_claimed', ['refs', 'claimedAt']),
+
+  /**
    * The Change Log (ADR-022), promoted from a local-only audit trail to the
    * synchronized spine of the whole feature.
    *

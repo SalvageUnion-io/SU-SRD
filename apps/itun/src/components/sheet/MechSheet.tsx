@@ -71,9 +71,12 @@ import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
+import { chassisArt } from '../../lib/photos/defaultArt'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { EntityGridRow } from './EntityGrid'
 import { MechConditionsEditor } from './MechConditionsEditor'
@@ -84,6 +87,7 @@ import { useMechSheetModel } from './mechSheet.model'
 import type { ItemKind } from './mechSheetActions'
 import { useMechSheetActions } from './mechSheetActions'
 import { PartnerCard } from './PartnerCard'
+import { PhotoBeside } from './PhotoBeside'
 import { SheetHero } from './SheetHero'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
@@ -308,91 +312,109 @@ export function MechSheet({
         // ability, its quirk. "Identity" named the shape, not the subject.
         fieldsTitle="Chassis"
         fields={
-          <div style={FIELDS}>
-            <MechIdentityPanel
-              mech={mech}
-              chassisName={model.chassisName}
-              patch={readOnly ? undefined : actions.patchMech}
-              besideChassis={
-                <Field
-                  label="Quirk"
-                  value={mech.quirk ?? ''}
-                  onSave={readOnly ? undefined : actions.saveQuirk}
-                  placeholder="No quirk recorded."
-                />
-              }
-              after={
-                // The chassis's ability, carrying the CHASSIS STATS in its own
-                // header: the numbers describe the machine the ability belongs
-                // to, so the card that names it is where they read. That folds
-                // what were two adjacent blocks (a bare stat strip and a card)
-                // into one, full-width under the chassis name.
-                //
-                // Always visible, never folded — there is nothing to manage or
-                // choose here, so a fold would hide the one thing that
-                // distinguishes this chassis from another.
-                model.chassisAbilities.length > 0 ? (
-                  <div style={ABILITIES}>
-                    {model.chassisAbilities.map((ability, i) => {
-                      // Activating an ability (spending its EP) is a Guided-Play
-                      // transaction — it lives on the Dashboard, not the
-                      // Free-Edit Live Sheet (ADR-021). EP is spent here by
-                      // hand-editing the EP gauge (free state).
-                      //
-                      // No `footMeta`: the ability's EP cost is the CARD's to
-                      // render and it already does, as its own "2 EP" box, so an
-                      // "EP Cost 2" pair in the footer was the same number twice
-                      // on one card.
-                      return (
-                        <EntityGridRow key={ability.id}>
-                          <ReferenceEntityCard
-                            data={ability}
-                            size="large"
-                            foldTables
-                            // Only the FIRST ability carries the stats — they
-                            // belong to the chassis, not to each ability, and
-                            // repeating them down a list would read as though
-                            // each ability had its own.
-                            statsOverride={
-                              i === 0
-                                ? model.specs.map((spec) => ({
-                                    key: spec.code,
-                                    label: spec.code,
-                                    value: spec.value,
-                                    outOfMax: spec.max,
-                                  }))
-                                : undefined
-                            }
-                            // `[(CHASSIS)]` in the ability's text resolves to
-                            // the PATTERN name, not the chassis's: on a live
-                            // sheet the reader is looking at this machine, and
-                            // "Increases the Cargo Capacity of Bad Penny" is
-                            // what the sentence is actually about.
-                            chassisName={mech.name}
-                          />
-                        </EntityGridRow>
-                      )
-                    })}
-                  </div>
-                ) : undefined
-              }
-            />
+          <PhotoBeside
+            photo={
+              <EntityPhoto
+                photo={mech.photo}
+                fallback={chassisArt(mech.chassisRef)}
+                name={mech.name}
+                onChange={
+                  readOnly
+                    ? undefined
+                    : (photo) =>
+                        useEntityStore
+                          .getState()
+                          .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
+                }
+              />
+            }
+          >
+            <div style={FIELDS}>
+              <MechIdentityPanel
+                mech={mech}
+                chassisName={model.chassisName}
+                patch={readOnly ? undefined : actions.patchMech}
+                besideChassis={
+                  <Field
+                    label="Quirk"
+                    value={mech.quirk ?? ''}
+                    onSave={readOnly ? undefined : actions.saveQuirk}
+                    placeholder="No quirk recorded."
+                  />
+                }
+                after={
+                  // The chassis's ability, carrying the CHASSIS STATS in its own
+                  // header: the numbers describe the machine the ability belongs
+                  // to, so the card that names it is where they read. That folds
+                  // what were two adjacent blocks (a bare stat strip and a card)
+                  // into one, full-width under the chassis name.
+                  //
+                  // Always visible, never folded — there is nothing to manage or
+                  // choose here, so a fold would hide the one thing that
+                  // distinguishes this chassis from another.
+                  model.chassisAbilities.length > 0 ? (
+                    <div style={ABILITIES}>
+                      {model.chassisAbilities.map((ability, i) => {
+                        // Activating an ability (spending its EP) is a Guided-Play
+                        // transaction — it lives on the Dashboard, not the
+                        // Free-Edit Live Sheet (ADR-021). EP is spent here by
+                        // hand-editing the EP gauge (free state).
+                        //
+                        // No `footMeta`: the ability's EP cost is the CARD's to
+                        // render and it already does, as its own "2 EP" box, so an
+                        // "EP Cost 2" pair in the footer was the same number twice
+                        // on one card.
+                        return (
+                          <EntityGridRow key={ability.id}>
+                            <ReferenceEntityCard
+                              data={ability}
+                              size="large"
+                              foldTables
+                              // Only the FIRST ability carries the stats — they
+                              // belong to the chassis, not to each ability, and
+                              // repeating them down a list would read as though
+                              // each ability had its own.
+                              statsOverride={
+                                i === 0
+                                  ? model.specs.map((spec) => ({
+                                      key: spec.code,
+                                      label: spec.code,
+                                      value: spec.value,
+                                      outOfMax: spec.max,
+                                    }))
+                                  : undefined
+                              }
+                              // `[(CHASSIS)]` in the ability's text resolves to
+                              // the PATTERN name, not the chassis's: on a live
+                              // sheet the reader is looking at this machine, and
+                              // "Increases the Cargo Capacity of Bad Penny" is
+                              // what the sentence is actually about.
+                              chassisName={mech.name}
+                            />
+                          </EntityGridRow>
+                        )
+                      })}
+                    </div>
+                  ) : undefined
+                }
+              />
 
-            {/* Appearance closes the card: multi-line and full width, taking
+              {/* Appearance closes the card: multi-line and full width, taking
                 whatever height the slab has left (the identity slab stretches
                 to match the vitals beside it, and that space should go to a
                 field the reader can use rather than sitting as dead paper).
                 Quirk is one line, so it rides the chassis row above instead. */}
-            <Field
-              label="Appearance"
-              value={mech.appearance ?? ''}
-              multiline
-              fill
-              onSave={readOnly ? undefined : actions.saveAppearance}
-              placeholder="No appearance recorded."
-              className="su-sheet-mech-fill"
-            />
-          </div>
+              <Field
+                label="Appearance"
+                value={mech.appearance ?? ''}
+                multiline
+                fill
+                onSave={readOnly ? undefined : actions.saveAppearance}
+                placeholder="No appearance recorded."
+                className="su-sheet-mech-fill"
+              />
+            </div>
+          </PhotoBeside>
         }
         vitals={
           <div className="su-sheet-mech-vitals" style={VITALS}>

@@ -1,6 +1,7 @@
 import { z } from 'salvageunion-reference/zod'
 import { CargoLotSchema } from './cargoLot'
 import { containerFields } from './entity'
+import { photoFields } from './photo'
 import { ChoiceSelectionsSchema } from './pilot'
 
 /**
@@ -120,6 +121,8 @@ export const CrawlerSchema = z
      */
     bayChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
     ...containerFields,
+    /** The entity's own picture; see `PhotoSchema`. */
+    ...photoFields,
 
     /** Which built-in template row this was spawned from. See `PilotSchema.seedRef`. */
     seedRef: z.string().optional(),
