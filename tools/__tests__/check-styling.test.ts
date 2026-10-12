@@ -310,11 +310,14 @@ const STYLING_BASE: Record<string, string> = {
   'packages/component-lib/src/styles/catalog.css': "@import './tailwind.css';\n",
   'apps/itun/src/index.css': "@import 'component-lib/styles/tailwind.css';\n",
   'apps/srd/src/styles/global.css': "@import 'component-lib/styles/tailwind.css';\n",
-  'apps/itun/src/styles/dashboard/DashboardCanvas.css': '.pc-used { color: red }\n',
+  // One retired `.pc-*` rule, so `pc-class-defined` (the ban) has a finding.
+  'apps/itun/src/styles/dashboard/DashboardCanvas.css':
+    '.su-dash-used { color: red }\n.pc-retired { color: red }\n',
   'apps/itun/src/styles/dashboard/DashboardGrid.css': '',
   'apps/itun/src/styles/dashboard/instruments.css': '',
+  'apps/itun/src/styles/dashboard/DashboardPhone.css': '',
   'apps/itun/src/components/dashboard/Thing.tsx':
-    'export const T = () => <div className="pc-used" />\n',
+    'export const T = () => <div className="su-dash-used pc-retired" />\n',
 }
 
 describe('styling rule set', () => {
@@ -331,20 +334,20 @@ describe('styling rule set', () => {
     expect(found['pc-class-defined']?.length).toBe(1)
   })
 
-  test('an app @theme, dead app CSS and an undefined pc class are all found', () => {
+  test('an app @theme, dead app CSS and an undefined dashboard class are all found', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
         'apps/srd/src/styles/extra.css':
           '@theme {\n  --color-x: red;\n}\n.never-used { color: red }\n',
-        'apps/srd/src/Page.tsx': 'export const P = () => <div className="pc-missing" />\n',
+        'apps/srd/src/Page.tsx': 'export const P = () => <div className="su-dash-missing" />\n',
       })
     )
     expect(found['app-theme']?.length).toBe(2) // the @theme block and the reserved token inside it
     expect(found['dead-app-css']?.map((f) => f.detail)).toEqual([
       '.never-used defined but never referenced in app source',
     ])
-    expect(found['pc-class-contract']?.map((f) => f.detail)[0]).toContain("'pc-missing'")
+    expect(found['pc-class-contract']?.map((f) => f.detail)[0]).toContain("'su-dash-missing'")
   })
 
   test('an unlayered package stylesheet import is found', () => {

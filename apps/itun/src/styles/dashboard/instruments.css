@@ -1,5 +1,5 @@
 /*
- * Dashboard ("Pit HUD") instrument stylesheet — the `.pc-*` surfaces that fill
+ * Dashboard ("Pit HUD") instrument stylesheet — the `.su-dash-*` surfaces that fill
  * the layout regions: rail buttons, stamps, the slot row's Major band, and
  * the light "document under glass" display content.
  *
@@ -14,8 +14,8 @@
  * never identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
  * (rail + display); everything else is flat/inset (ADR-038 §8).
  *
- * The layout shell lives beside this file: `.pc-root`/`.pc-canvas`
- * (DashboardCanvas.css) and the `.pc-grid` regions (DashboardGrid.css).
+ * The layout shell lives beside this file: `.su-dash-root`/`.su-dash-canvas`
+ * (DashboardCanvas.css) and the `.su-dash-grid` regions (DashboardGrid.css).
  */
 
 /* ---- Keyboard focus: the canonical ink ring, in raw CSS ----
@@ -58,21 +58,21 @@
  * ring clear of each surface's own border, including `.is-active`, whose ink
  * fill would otherwise swallow an inset ring.
  */
-.pc-deck-tab:focus-visible,
-.pc-deck-range-btn:focus-visible,
-.pc-deck-source:focus-visible,
-.pc-tablepick-item:focus-visible {
+.su-dash-deck-tab:focus-visible,
+.su-dash-deck-range-btn:focus-visible,
+.su-dash-deck-source:focus-visible,
+.su-dash-tablepick-item:focus-visible {
   outline: 3px solid transparent;
   outline-offset: 1px;
   box-shadow: var(--focus-ring-shadow);
 }
 
-.pc-display-scroll {
+.su-dash-display-scroll {
   height: 100%;
   overflow-y: auto;
   padding: 12px;
 }
-.pc-display-note {
+.su-dash-display-note {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,7 +92,7 @@
    canvas ground. Before the ground went dark it could be transparent (paper on
    paper); now it has to carry its own card or its gauges and bay dividers would
    float on the workbench. */
-.pc-band {
+.su-dash-band {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -102,16 +102,16 @@
   border-radius: var(--radius-panel);
   padding: 7px 9px;
 }
-.pc-band-id {
+.su-dash-band-id {
   flex: 0 0 auto;
 }
-.pc-bays {
+.su-dash-bays {
   display: flex;
   flex: 1;
   min-height: 0;
   align-items: stretch;
 }
-.pc-bay {
+.su-dash-bay {
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
@@ -119,10 +119,10 @@
   min-width: 0;
   padding: 2px 13px;
 }
-.pc-bay + .pc-bay {
+.su-dash-bay + .su-dash-bay {
   border-left: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
 }
-.pc-bay-lab {
+.su-dash-bay-lab {
   font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
@@ -133,7 +133,7 @@
      text this small. */
   color: var(--color-ink-75);
 }
-.pc-bay-gauges {
+.su-dash-bay-gauges {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -141,7 +141,7 @@
 /* Two a row while each button keeps room for a spelled-out label (board D1:
    TAKE DAMAGE, HEAT CHECK); a bay too narrow for two stacks them, rather
    than a label running past the bay's edge. */
-.pc-btn-grid {
+.su-dash-btn-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(max(104px, calc(50% - 2px)), 1fr));
   gap: 4px;
@@ -152,17 +152,17 @@
 /* A gauge-less bay has no middle content, so floor-pinning its buttons leaves a
    void the height of the band. Centre the whole bay instead and let the button
    grid sit with its label. */
-.pc-bay[data-nogauge] {
+.su-dash-bay[data-nogauge] {
   justify-content: center;
 }
-.pc-bay[data-nogauge] .pc-btn-grid {
+.su-dash-bay[data-nogauge] .su-dash-btn-grid {
   margin-top: 0;
 }
 /* ---- Resolve overlay: roll readouts + player-confirmed steps (Phase 5) ---- */
-.pc-band {
+.su-dash-band {
   position: relative;
 }
-.pc-resolve {
+.su-dash-resolve {
   position: absolute;
   inset: 0;
   display: flex;
@@ -174,7 +174,7 @@
   border-radius: var(--radius-panel);
   z-index: 2;
 }
-.pc-resolve-head {
+.su-dash-resolve-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -183,7 +183,7 @@
 /* Gauges kept live in the overlay header, so the value you are editing and the
    value it changes are on screen together. Sized to share the row with the
    title and Close without pushing either out. */
-.pc-resolve-gauges {
+.su-dash-resolve-gauges {
   display: flex;
   flex: 1;
   min-width: 0;
@@ -191,7 +191,7 @@
   gap: 4px;
   max-width: 260px;
 }
-.pc-resolve-title {
+.su-dash-resolve-title {
   font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
@@ -199,7 +199,7 @@
   font-size: var(--text-badge);
   color: var(--color-ink-50);
 }
-.pc-resolve-body {
+.su-dash-resolve-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -207,7 +207,7 @@
   min-height: 0;
   justify-content: center;
 }
-.pc-resolve-log {
+.su-dash-resolve-log {
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--text-caption);
@@ -215,24 +215,24 @@
   color: var(--color-ink);
   text-align: center;
 }
-.pc-resolve-actions {
+.su-dash-resolve-actions {
   display: flex;
   gap: 8px;
   justify-content: center;
 }
-.pc-step {
+.su-dash-step {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
 }
-.pc-step-num {
+.su-dash-step-num {
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   /* Was a raw 24px. The token guard's arbitrary-font-size rule only matches the
      Tailwind BRACKET spelling, so a raw declaration in a `.css` file it already
-     scans was invisible — this readout, `.pc-deck-d20` and `.pc-deck-band` were
+     scans was invisible — this readout, `.su-dash-deck-d20` and `.su-dash-deck-band` were
      the only three font sizes in this 1100-line sheet not coming from the
      ladder. (Deliberately describing the anti-pattern rather than spelling it:
      the guard reads comments too and cannot tell a citation from a commission.)
@@ -246,12 +246,12 @@
 }
 
 /* ---- Actions deck (light display surface, Phase 5) ---- */
-.pc-deck {
+.su-dash-deck {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-.pc-deck-empty {
+.su-dash-deck-empty {
   padding: 12px;
   font-family: var(--font-body);
   font-size: var(--text-caption);
@@ -266,7 +266,7 @@
  * COUNT is implicit: `column-width` is a minimum, so the deck widens from one
  * to three columns with the display panel and needs no breakpoints.
  */
-.pc-deck-grid {
+.su-dash-deck-grid {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -274,33 +274,33 @@
   column-width: 320px;
   column-gap: 8px;
 }
-.pc-deck-grid > li {
+.su-dash-deck-grid > li {
   break-inside: avoid;
   /* Multi-column has no row gap; the item's own bottom margin is the gutter. */
   margin: 0 0 8px;
 }
-.pc-deck-panel {
+.su-dash-deck-panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.pc-deck-panel-head {
+.su-dash-deck-panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-.pc-deck-cost {
+.su-dash-deck-cost {
   font-family: var(--font-cond);
   font-weight: 700;
   font-size: var(--text-note);
   color: var(--color-ink-50);
 }
-.pc-deck-controls {
+.su-dash-deck-controls {
   display: flex;
   gap: 8px;
 }
-.pc-deck-roll {
+.su-dash-deck-roll {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -309,7 +309,7 @@
   border-radius: var(--radius-card);
   background: var(--color-paper);
 }
-.pc-deck-d20 {
+.su-dash-deck-d20 {
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -322,7 +322,7 @@
   text-align: center;
   color: var(--color-ink);
 }
-.pc-deck-band {
+.su-dash-deck-band {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -330,7 +330,7 @@
   font-size: var(--text-caption);
   color: var(--color-ink);
 }
-.pc-deck-pushlog {
+.su-dash-deck-pushlog {
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--text-note);
@@ -339,7 +339,7 @@
 }
 
 /* ---- Resolve flow: cost choice, Hot(X) stepper, Apply readouts ---- */
-.pc-deck-cost-choice {
+.su-dash-deck-cost-choice {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -348,7 +348,7 @@
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
   border-radius: var(--radius-card);
 }
-.pc-deck-cost-choice-lab {
+.su-dash-deck-cost-choice-lab {
   padding: 0;
   font-family: var(--font-cond);
   font-weight: 700;
@@ -357,7 +357,7 @@
   font-size: var(--text-note);
   color: var(--color-ink-50);
 }
-.pc-deck-radio {
+.su-dash-deck-radio {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -366,12 +366,12 @@
   color: var(--color-ink);
   cursor: pointer;
 }
-.pc-deck-hotx {
+.su-dash-deck-hotx {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.pc-deck-hotx-lab {
+.su-dash-deck-hotx-lab {
   font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
@@ -379,24 +379,24 @@
   font-size: var(--text-note);
   color: var(--color-ink-50);
 }
-.pc-deck-hotx-proj {
+.su-dash-deck-hotx-proj {
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
   color: var(--color-ink);
 }
-.pc-deck-hotx-proj.is-over {
+.su-dash-deck-hotx-proj.is-over {
   color: var(--color-sheet-crawler-deep);
 }
-.pc-deck-applied {
+.su-dash-deck-applied {
   margin: 0;
   font-family: var(--font-cond);
   font-weight: 700;
   font-size: var(--text-caption);
   color: var(--color-status-ok);
 }
-.pc-deck-apply-route {
+.su-dash-deck-apply-route {
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--text-note);
@@ -405,18 +405,18 @@
 }
 
 /* ---- Deck controls bar (timing tabs, grouping, range, source tags) ---- */
-.pc-deck-controls-bar {
+.su-dash-deck-controls-bar {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 12px;
 }
-.pc-deck-tabs {
+.su-dash-deck-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
-.pc-deck-tab {
+.su-dash-deck-tab {
   padding: 5px 10px;
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
   border-radius: var(--radius-card);
@@ -429,27 +429,27 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-note);
 }
-.pc-deck-tab:hover {
+.su-dash-deck-tab:hover {
   border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
 }
-.pc-deck-tab.is-active {
+.su-dash-deck-tab.is-active {
   background: var(--color-ink);
   border-color: var(--color-ink);
   color: var(--color-paper);
 }
-.pc-deck-toolrow {
+.su-dash-deck-toolrow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
-.pc-deck-range {
+.su-dash-deck-range {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-.pc-deck-range-btn {
+.su-dash-deck-range-btn {
   width: 26px;
   height: 26px;
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
@@ -461,12 +461,12 @@
   font-weight: 700;
   font-size: var(--text-note);
 }
-.pc-deck-range-btn.is-active {
+.su-dash-deck-range-btn.is-active {
   background: var(--color-ink);
   border-color: var(--color-ink);
   color: var(--color-paper);
 }
-.pc-deck-reach {
+.su-dash-deck-reach {
   margin-left: 6px;
   font-family: var(--font-cond);
   font-weight: 700;
@@ -476,12 +476,12 @@
   color: var(--color-ink-50);
   white-space: nowrap;
 }
-.pc-deck-sources {
+.su-dash-deck-sources {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
-.pc-deck-source {
+.su-dash-deck-source {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -496,19 +496,19 @@
   font-size: var(--text-note);
   max-width: 100%;
 }
-.pc-deck-source:hover {
+.su-dash-deck-source:hover {
   border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
 }
-.pc-deck-fam-mech .pc-deck-source.is-active {
+.su-dash-deck-fam-mech .su-dash-deck-source.is-active {
   border-color: var(--color-sheet-mech-deep);
   box-shadow: inset 0 0 0 1px var(--color-sheet-mech-deep);
 }
-.pc-deck-fam-pilot .pc-deck-source.is-active {
+.su-dash-deck-fam-pilot .su-dash-deck-source.is-active {
   border-color: var(--color-sheet-pilot-deep);
   box-shadow: inset 0 0 0 1px var(--color-sheet-pilot-deep);
 }
 /* ---- Crawler focus → Enter Downtime (light display, Phase 6) ---- */
-.pc-crawler-focus-note {
+.su-dash-crawler-focus-note {
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--text-caption);
@@ -516,7 +516,7 @@
   color: var(--color-ink-50);
   max-width: 40ch;
 }
-.pc-entity-fallback {
+.su-dash-entity-fallback {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -526,25 +526,25 @@
   text-align: center;
   padding: 24px 16px;
 }
-.pc-entity-foot {
+.su-dash-entity-foot {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
 }
 /* ---- Downtime wizard (light display, Phase 6) ---- */
-.pc-dt {
+.su-dash-dt {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.pc-dt-head {
+.su-dash-dt-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-.pc-dt-count {
+.su-dash-dt-count {
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -553,7 +553,7 @@
 }
 /* The step name, notched in ink into the foot of its crawler-pink band
    (board D3): the page ground cut out of the band, as a chapter title is. */
-.pc-dt-step-name {
+.su-dash-dt-step-name {
   display: inline-block;
   margin: 0;
   padding: 6px 12px 0;
@@ -566,7 +566,7 @@
   line-height: 1;
   color: var(--color-ink);
 }
-.pc-dt-gate {
+.su-dash-dt-gate {
   margin: 0;
   padding: 10px 12px 10px 28px;
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
@@ -577,20 +577,20 @@
   line-height: 1.4;
   color: var(--color-ink);
 }
-.pc-dt-gate li + li {
+.su-dash-dt-gate li + li {
   margin-top: 4px;
 }
-.pc-dt-table {
+.su-dash-dt-table {
   margin-top: 2px;
 }
-.pc-dt-note {
+.su-dash-dt-note {
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--text-note);
   line-height: 1.4;
   color: var(--color-ink-50);
 }
-.pc-dt-controls {
+.su-dash-dt-controls {
   display: flex;
   gap: 8px;
 }
@@ -600,14 +600,14 @@
 /* ---- Phase 7 — cargo-hold overlay, table picker ---- */
 
 /* Cargo-hold overlay body (inside the mech-band resolve overlay). */
-.pc-cargo {
+.su-dash-cargo {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
   min-height: 0;
 }
-.pc-cargo-usage {
+.su-dash-cargo-usage {
   margin: 0;
   font-family: var(--font-cond);
   font-weight: 700;
@@ -617,7 +617,7 @@
   color: var(--color-ink-50);
   text-align: center;
 }
-.pc-cargo-list {
+.su-dash-cargo-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -626,7 +626,7 @@
   gap: 6px;
   overflow-y: auto;
 }
-.pc-cargo-row {
+.su-dash-cargo-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -636,7 +636,7 @@
   border-radius: var(--radius-card);
   background: var(--color-paper);
 }
-.pc-cargo-name {
+.su-dash-cargo-name {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -645,14 +645,14 @@
   font-size: var(--text-caption);
   color: var(--color-ink);
 }
-.pc-cargo-code {
+.su-dash-cargo-code {
   font-family: var(--font-cond);
   font-weight: 700;
   font-size: var(--text-badge);
   letter-spacing: var(--tracking-caps-tight);
   color: var(--color-ink-50);
 }
-.pc-cargo-units {
+.su-dash-cargo-units {
   font-size: var(--text-badge);
   color: var(--color-ink-50);
 }
@@ -662,7 +662,7 @@
  * ------------------------------------------------------------------------ */
 
 /* Positioning context for the picker overlay. */
-.pc-tables {
+.su-dash-tables {
   position: relative;
 }
 
@@ -670,7 +670,7 @@
  * this focus has no mini-bar of its own. */
 
 /* Full picker overlay — covers the display area with the 5-column grid. */
-.pc-tablepick {
+.su-dash-tablepick {
   position: absolute;
   inset: 0;
   display: flex;
@@ -682,14 +682,14 @@
   border-radius: var(--radius-panel);
   z-index: 4;
 }
-.pc-tablepick-head {
+.su-dash-tablepick-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   flex: 0 0 auto;
 }
-.pc-tablepick-title {
+.su-dash-tablepick-title {
   font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
@@ -697,7 +697,7 @@
   font-size: var(--text-badge);
   color: var(--color-ink-50);
 }
-.pc-tablepick-grid {
+.su-dash-tablepick-grid {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
@@ -705,13 +705,13 @@
   gap: 8px;
   overflow-y: auto;
 }
-.pc-tablepick-col {
+.su-dash-tablepick-col {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
-.pc-tablepick-cat {
+.su-dash-tablepick-cat {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -725,7 +725,7 @@
   font-size: var(--text-badge);
   text-align: center;
 }
-.pc-tablepick-list {
+.su-dash-tablepick-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -733,14 +733,14 @@
   flex-direction: column;
   gap: 4px;
 }
-.pc-tablepick-empty {
+.su-dash-tablepick-empty {
   font-family: var(--font-body);
   font-size: var(--text-note);
   color: var(--color-ink-50);
   text-align: center;
   padding: 4px 0;
 }
-.pc-tablepick-item {
+.su-dash-tablepick-item {
   width: 100%;
   padding: 5px 7px;
   border: var(--bw-chrome) solid var(--color-ink-30);
@@ -753,11 +753,11 @@
   text-align: left;
   cursor: pointer;
 }
-.pc-tablepick-item:hover {
+.su-dash-tablepick-item:hover {
   background: var(--color-ink-8);
   border-color: var(--color-ink-30);
 }
-.pc-tablepick-item[data-selected] {
+.su-dash-tablepick-item[data-selected] {
   border-color: var(--color-ink);
   background: var(--color-ink-8);
 }

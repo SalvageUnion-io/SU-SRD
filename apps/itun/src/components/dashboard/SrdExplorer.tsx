@@ -230,7 +230,7 @@ function SrdHome({
           ))}
         </div>
       ) : (
-        <div className="pc-display-note">Loading reference data…</div>
+        <div className="su-dash-display-note">Loading reference data…</div>
       )}
     </div>
   )
@@ -277,7 +277,7 @@ export function SrdExplorer() {
   if (view.kind === 'entity') {
     const from = view.from
     return (
-      <div className="pc-display-scroll">
+      <div className="su-dash-display-scroll">
         <SrdEntity
           entity={view.entity}
           onBack={() => setView(from === 'home' ? { kind: 'home' } : { kind: 'category', ...from })}
@@ -289,14 +289,14 @@ export function SrdExplorer() {
   if (view.kind === 'category') {
     if (!ready) {
       return (
-        <div className="pc-display-scroll">
-          <div className="pc-display-note">Loading reference data…</div>
+        <div className="su-dash-display-scroll">
+          <div className="su-dash-display-note">Loading reference data…</div>
         </div>
       )
     }
     const { schemaName, label } = view
     return (
-      <div className="pc-display-scroll">
+      <div className="su-dash-display-scroll">
         <EntitySearcher
           schema={schemaName}
           mode="browse"
@@ -315,7 +315,7 @@ export function SrdExplorer() {
   }
 
   return (
-    <div className="pc-display-scroll">
+    <div className="su-dash-display-scroll">
       <SrdHome
         ready={ready}
         onPickSchema={(schemaName, label) => {

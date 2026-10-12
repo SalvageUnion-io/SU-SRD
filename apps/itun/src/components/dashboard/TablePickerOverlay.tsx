@@ -9,7 +9,7 @@
  * pickable tables.
  *
  * A `ModalShell` portalled into `container` (the Tables tab), so it covers that
- * tab inside the scaled canvas and keeps the `.pc-root` styling, while Base UI
+ * tab inside the scaled canvas and keeps the `.su-dash-root` styling, while Base UI
  * moves focus into it, keeps it there and hands it back on close.
  */
 
@@ -50,26 +50,26 @@ export function TablePickerOverlay({
       container={container}
       bare
     >
-      <div className="pc-tablepick">
-        <div className="pc-tablepick-head">
-          <span className="pc-tablepick-title">{TITLE}</span>
+      <div className="su-dash-tablepick">
+        <div className="su-dash-tablepick-head">
+          <span className="su-dash-tablepick-title">{TITLE}</span>
           <Button size="compact" onClick={onClose} aria-label="Close table picker">
             ✕
           </Button>
         </div>
-        <div className="pc-tablepick-grid">
+        <div className="su-dash-tablepick-grid">
           {columns.map(({ category, tables: colTables }) => (
-            <div key={category} className="pc-tablepick-col">
-              <div className="pc-tablepick-cat">{TABLE_CATEGORY_LABEL[category]}</div>
-              <ul className="pc-tablepick-list">
+            <div key={category} className="su-dash-tablepick-col">
+              <div className="su-dash-tablepick-cat">{TABLE_CATEGORY_LABEL[category]}</div>
+              <ul className="su-dash-tablepick-list">
                 {colTables.length === 0 ? (
-                  <li className="pc-tablepick-empty">—</li>
+                  <li className="su-dash-tablepick-empty">—</li>
                 ) : (
                   colTables.map((t) => (
                     <li key={t.id}>
                       <button
                         type="button"
-                        className="pc-tablepick-item"
+                        className="su-dash-tablepick-item"
                         aria-pressed={t.id === selectedId}
                         data-selected={t.id === selectedId ? '' : undefined}
                         onClick={() => {

@@ -45,7 +45,7 @@ export const Default = () => {
     <div style={STACK}>
       <Caption>Deck list — timing, range and source filters over the tile grid.</Caption>
       <InstrumentStage width={560}>
-        <div className="pc-display-light" style={FRAME}>
+        <div className="su-dash-display-light" style={FRAME}>
           <DeckList
             view={{
               kind: 'list',
@@ -62,7 +62,7 @@ export const Default = () => {
               ],
               sourceFilter: source,
               onSourceFilter: setSource,
-              familyClass: 'pc-deck-fam-mech',
+              familyClass: 'su-dash-deck-fam-mech',
               rows: realRows(),
               onOpen: () => {},
               onActivate: () => {},
