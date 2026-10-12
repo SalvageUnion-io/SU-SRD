@@ -102,12 +102,12 @@ const WORKER_SURFACES: WorkerSurface[] = [
   },
   {
     name: 'su-assets-worker',
-    entryPath: 'apps/su-assets/src/worker.ts',
+    entryPath: 'apps/su-assets/src/worker/index.ts',
     configPath: 'apps/su-assets/wrangler.jsonc',
   },
   {
     name: 'discord-bot-worker',
-    entryPath: 'apps/discord-bot/src/http/worker.ts',
+    entryPath: 'apps/discord-bot/src/worker/index.ts',
     configPath: 'apps/discord-bot/wrangler.jsonc',
   },
 ]

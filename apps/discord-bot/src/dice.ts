@@ -22,7 +22,7 @@ export function rollD20(): number {
  *
  * The import is dynamic because the package's module scope reads
  * `SalvageUnionReference.RollTables`, which throws until it is loaded: a static
- * import would evaluate before `worker.ts`'s top-level `preload('all')`.
+ * import would evaluate before `worker/index.ts`'s top-level `preload('all')`.
  */
 export async function d20ForTable(tableName: string): Promise<() => number> {
   const { SALVAGE_UNION_TABLE_NAMES, rollTable } = await import('@randsum/salvageunion')

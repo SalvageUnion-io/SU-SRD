@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+import { color, font, fontSize, radius, space, tracking } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { buttonVariants } from '../chrome/buttonVariants'
 import { Toaster, toast } from './toaster'
@@ -9,19 +11,41 @@ export default {
 // Ruleset §Toast: an off-white chip — status swatch + message + rust dismiss.
 // Each button below fires a real `toast(...)` so the container is interactive.
 
-const CAPTION = 'font-cond text-badge uppercase tracking-caps text-wk-muted'
+const CAPTION = {
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.caps,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[12] } satisfies CSSProperties
+const ROW = { display: 'flex', flexWrap: 'wrap', gap: space[12] } satisfies CSSProperties
+
+/** A trigger filled in the tone of the toast it raises. */
+function fill(backgroundColor: string): CSSProperties {
+  return {
+    borderRadius: radius.card,
+    backgroundColor,
+    padding: `${space[8]} ${space[16]}`,
+    fontFamily: font.cond,
+    textTransform: 'uppercase',
+    letterSpacing: tracking.capsTight,
+    color: color.paper,
+  }
+}
 
 export const Default: Story = () => (
   <>
     <Toaster />
-    <div className="flex flex-col gap-3">
-      <span className={CAPTION}>
+    <div style={STACK}>
+      <span style={CAPTION}>
         status swatch + message + rust dismiss · fires a real toast, bottom-right
       </span>
-      <div className="flex flex-wrap gap-3">
+      <div style={ROW}>
         <button
           type="button"
-          className="rounded-card bg-status-ok px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
+          style={fill(color.statusOk)}
           onClick={() =>
             toast.success('Saved to workspace.', {
               description: 'Your build is up to date.',
@@ -32,7 +56,7 @@ export const Default: Story = () => (
         </button>
         <button
           type="button"
-          className="rounded-card bg-status-bad px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
+          style={fill(color.statusBad)}
           onClick={() =>
             toast.error('Save failed.', {
               description: 'Could not reach local storage.',
@@ -41,11 +65,7 @@ export const Default: Story = () => (
         >
           Error
         </button>
-        <button
-          type="button"
-          className="rounded-card bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
-          onClick={() => toast('Nothing to report.')}
-        >
+        <button type="button" style={fill(color.ink)} onClick={() => toast('Nothing to report.')}>
           Default
         </button>
       </div>
@@ -56,14 +76,12 @@ export const Default: Story = () => (
 export const Dismiss: Story = () => (
   <>
     <Toaster />
-    <div className="flex flex-col gap-3">
-      <span className={CAPTION}>
-        rust = the dismiss action · raise a sticky toast, then clear it
-      </span>
-      <div className="flex flex-wrap gap-3">
+    <div style={STACK}>
+      <span style={CAPTION}>rust = the dismiss action · raise a sticky toast, then clear it</span>
+      <div style={ROW}>
         <button
           type="button"
-          className="rounded-card bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
+          style={fill(color.ink)}
           onClick={() =>
             toast('Salvage pending…', {
               description: 'This chip stays until dismissed.',

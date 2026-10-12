@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && bun scripts/assert-local-convex.ts && VITE_TEST_AUTH=true convex dev --start vite",
     "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc --noEmit",
-    "build": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc --noEmit && vite build",
+    "build": "bun run typecheck && vite build",
     "preview": "wrangler dev",
     "test": "bun test --parallel=4 --no-isolate",
     "clean": "rm -rf dist .vite node_modules/.vite",

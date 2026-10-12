@@ -172,7 +172,7 @@ function containerTable() {
       appId: v.optional(v.string()),
       /**
        * Whether this entity is readable by anybody, with no account
-       * ([ADR-032](../../../docs/ARCHITECTURE.md#decisions)).
+       * ([ADR-032](../../../docs/adr/032-public-read-only-sheets.md)).
        *
        * A column rather than a body field because it is a **visibility** fact,
        * which is server state in the same way `gameId` and `ownerId` are — and

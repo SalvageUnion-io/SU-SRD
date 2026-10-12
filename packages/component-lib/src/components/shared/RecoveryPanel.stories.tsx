@@ -1,3 +1,4 @@
+import { borderWidth, color, fontSize, radius, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { RecoveryPanel } from './RecoveryPanel'
 
@@ -32,7 +33,22 @@ export const WithDevDump: Story = () => (
     message="The app hit an unexpected error. Your saved data is stored locally and is not affected."
     action={{ label: 'Reload app', onClick: noop }}
   >
-    <pre className="max-w-full overflow-auto rounded-card border-chrome border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
+    <pre
+      style={{
+        maxWidth: '100%',
+        overflow: 'auto',
+        borderRadius: radius.card,
+        borderStyle: 'solid',
+        borderWidth: borderWidth.chrome,
+        borderColor: color.ink20,
+        backgroundColor: color.wkBg,
+        padding: space[12],
+        textAlign: 'left',
+        fontSize: fontSize.xs,
+        lineHeight: '16px',
+        color: color.ink,
+      }}
+    >
       Cannot read properties of undefined (reading 'chassis')
     </pre>
   </RecoveryPanel>

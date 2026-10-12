@@ -23,7 +23,7 @@
  * on an unauthenticated public URL would let a crawler walking `-1`, `-2`, `-3`
  * exhaust the account's monthly transformation quota in a single pass.
  *
- * So this list and `ALLOWED_WIDTHS` in `apps/su-assets/src/worker.ts` must move
+ * So this list and `ALLOWED_WIDTHS` in `apps/su-assets/src/worker/index.ts` must move
  * together. A width added here and not there is a 404, which browsers resolve by
  * quietly falling back rather than by telling anyone.
  */

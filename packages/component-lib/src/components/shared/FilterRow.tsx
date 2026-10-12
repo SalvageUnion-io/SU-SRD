@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { cn } from '../../utils/cn'
+import type { CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize, tracking, weight } from '../../design/tokens'
 
 type FilterRowProps = {
   label: string
@@ -10,23 +10,29 @@ type FilterRowProps = {
   onDark?: boolean
 }
 
+const LABEL = {
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.capsSnug,
+} satisfies CSSProperties
+
+/**
+ * A row of filter chips under a caps label: stacked and centred on a phone,
+ * label-left (`.su-filter-row`, `styles/index.css`) from `sm`.
+ */
 export function FilterRow({ label, children, onDark = false }: FilterRowProps) {
   return (
     // biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this chip row; role="group" + aria-label conveys the same semantics
-    <div
-      className="flex flex-col items-center gap-1 sm:flex-row sm:items-center"
-      role="group"
-      aria-label={`Filter by ${label}`}
-    >
+    <div className="su-filter-row" role="group" aria-label={`Filter by ${label}`}>
       <span
-        className={cn(
-          'font-cond text-badge font-bold uppercase tracking-caps-snug sm:w-[4.5rem] sm:shrink-0 sm:text-right',
-          onDark ? 'text-paper/85' : 'text-wk-muted'
-        )}
+        className="su-filter-row-label"
+        style={{ ...LABEL, color: onDark ? color.paper85 : color.wkMuted }}
       >
         {label}
       </span>
-      <div className="flex flex-wrap justify-center gap-1 sm:justify-start">{children}</div>
+      <div className="su-filter-row-chips">{children}</div>
     </div>
   )
 }

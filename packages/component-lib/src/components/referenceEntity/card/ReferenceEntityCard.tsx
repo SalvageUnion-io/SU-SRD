@@ -23,7 +23,7 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { isLegalStartingPattern } from 'salvageunion-reference/rules'
-import { space } from '../../../design/tokens'
+import { fontSize, space } from '../../../design/tokens'
 import type { RowSlots } from '../../../entity/forms/Row'
 import { Row } from '../../../entity/forms/Row'
 import type { TokenFact, TokenSlots } from '../../../entity/forms/Token'
@@ -96,7 +96,7 @@ import {
   resolveEyebrow,
   resolveSeamLabel,
   resolveTierNumeral,
-  titleSizeClass,
+  titleSizeRung,
 } from './entityCardTone'
 import type { SplitFacets } from './facetSplit'
 import { splitFacets } from './facetSplit'
@@ -188,26 +188,26 @@ function resolveHide(
  * The ink banner's large title sits one rung under the tone header's, beside
  * its numeral (board E1); an inline action band takes its own rung.
  */
-function resolveTitleClass(inline: boolean, fill: HeaderFill, depth: number, size: CardSize) {
+function resolveTitleSize(inline: boolean, fill: HeaderFill, depth: number, size: CardSize) {
   if (inline) return INLINE_TITLE[size]
-  const ladderTitle = titleSizeClass(depth, size)
-  return fill === 'ink' && ladderTitle === 'text-display-lg' ? 'text-display' : ladderTitle
+  const ladderTitle = titleSizeRung(depth, size)
+  return fontSize[fill === 'ink' && ladderTitle === 'displayLg' ? 'display' : ladderTitle]
 }
 
 /** An inline action's title: one step under its host's (board E1). */
 const INLINE_TITLE: Record<CardSize, string> = {
-  large: 'text-readout',
-  medium: 'text-readout',
-  small: 'text-lede',
+  large: fontSize.readout,
+  medium: fontSize.readout,
+  small: fontSize.lede,
 }
 
 /**
- * The card body's class: dimmed when down, and with artwork a width container,
- * so the art sits beside the prose only when the CARD is wide and stacks above
- * it when narrow (`.su-ec-art-body`).
+ * The card body's class: with artwork a width container, so the art sits
+ * beside the prose only when the CARD is wide and stacks above it when narrow
+ * (`.su-ec-art-body`).
  */
-function bodyClassName(isDown: boolean, hasArt: boolean): string | undefined {
-  return [isDown ? 'opacity-60' : '', hasArt ? 'su-ec-art-body' : ''].join(' ').trim() || undefined
+function bodyClassName(hasArt: boolean): string | undefined {
+  return hasArt ? 'su-ec-art-body' : undefined
 }
 
 /** An NPC's shortform stat: its hit points (or structure points), as `HP 9`. */
@@ -399,7 +399,7 @@ function ReferenceEntityCardInner({
   // A damaged/destroyed card — or one nested under a damaged host — greys its
   // header; its body dims.
   const isDown = status === 'damaged' || status === 'destroyed' || !!hostDown
-  const { onBandText, headerBg, headerBgColor } = resolveCardColors({ tone, isDown, fill })
+  const { onBand, bandColor } = resolveCardColors({ tone, isDown, fill })
   const grain: CardGrain | undefined =
     textured && !isDown ? (fill === 'ink' ? 'paper' : 'ink') : undefined
   const techLevel = getTechLevel(entity)
@@ -414,7 +414,7 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const titleClass = resolveTitleClass(inline, fill, depth, size)
+  const titleSize = resolveTitleSize(inline, fill, depth, size)
   // ARTWORK — a MINI catalog tile drops it: at the small size the image would
   // crowd out the description it exists to caption.
   const isMiniCatalog = isCatalog && size === 'small'
@@ -562,10 +562,9 @@ function ReferenceEntityCardInner({
       fill={fill}
       titleSlot={titleSlot}
       titleAs={titleAs}
-      bg={headerBg}
-      bgColor={headerBgColor}
-      titleClass={titleClass}
-      titleTextClass={onBandText}
+      bandColor={bandColor}
+      titleSize={titleSize}
+      titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
       stats={effectiveHeaderStats}
       rightContent={rightContentProp ?? headerHint}
@@ -751,9 +750,8 @@ function ReferenceEntityCardInner({
     // An inline action reads at its host's size, not a nested card's.
     compact: inline ? size !== 'large' : compact,
     chassisName: resolvedChassisName,
-    headerBg: tone.bg,
-    headerBgColor: tone.bgColor,
-    ...(onPage ? { fontSize: '' } : readable ? { fontSize: 'text-sm' } : {}),
+    toneColor: tone.bgColor ?? tone.bg,
+    ...(onPage ? { fontSize: 'inherit' } : readable ? { fontSize: 'sm' } : {}),
   }
 
   // BONUS PER TECH LEVEL — anchored INLINE at the prose that describes it.
@@ -992,8 +990,9 @@ function ReferenceEntityCardInner({
 
   const body = bodyHasContent ? (
     <div
-      className={bodyClassName(isDown, !!bodyAnchor)}
+      className={bodyClassName(!!bodyAnchor)}
       style={{
+        ...(isDown ? { opacity: 0.6 } : {}),
         display: flat ? 'flow-root' : 'flex',
         flexDirection: 'column',
         gap: space[6],
