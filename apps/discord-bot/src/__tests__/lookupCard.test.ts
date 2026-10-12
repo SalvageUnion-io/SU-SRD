@@ -103,6 +103,19 @@ describe('lookupCard — content depth', () => {
     expect(cardText(e)).toContain('Patterns')
   })
 
+  test('a Bio-Titan lists its patterns, linked, with the rules each adds', () => {
+    const typhon = SalvageUnionReference.BioTitans.getByName('Typhon')
+    if (!typhon) throw new Error('expected Typhon')
+    const e = lookupCard({ ...typhon, schemaName: 'bio-titans' }, 'bio-titans')
+    const text = cardText(e)
+    expect(text).toContain('**Patterns**')
+    expect(text).toContain(
+      '[Hill Worm](https://salvageunion.io/schema/bio-titans/item/typhon/pattern/hill-worm)'
+    )
+    expect(text).toContain('__Metallic Reconstitution__')
+    expect(text).toContain('additional Armour Plating')
+  })
+
   test('chassis ability text resolves [(CHASSIS)] to the chassis name', () => {
     // Every chassis with a [(CHASSIS)] placeholder in its ability text must
     // render the name, never the literal token (regression: PR #336 review).

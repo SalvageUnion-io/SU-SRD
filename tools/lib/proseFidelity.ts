@@ -57,6 +57,7 @@ export type ProseItem = {
 /** Keys whose string values are not prose: enums, references, ids, urls. */
 const SKIP_KEYS = new Set([
   'id',
+  'formerSlugs',
   'type',
   'source',
   'booklet',

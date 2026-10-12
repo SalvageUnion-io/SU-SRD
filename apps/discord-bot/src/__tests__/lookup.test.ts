@@ -56,6 +56,27 @@ describe('lookupCommand.execute', () => {
     expect(reply.flags).toBe(MessageFlags.IsComponentsV2)
   })
 
+  test('a choice for a retired slug answers with the host that now carries it', async () => {
+    // "Hill Worm Pattern Typhon" was its own Bio-Titan before it became Typhon's
+    // pattern; an autocomplete value offered before then must still resolve.
+    const { interaction, replies } = mockChatInput('bio-titans::hill-worm-pattern-typhon')
+    await lookupCommand.execute(interaction)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(containerTextOf(reply)).toContain(
+      '## [Typhon](https://salvageunion.io/schema/bio-titans/item/typhon)'
+    )
+    expect(containerTextOf(reply)).toContain('Hill Worm')
+  })
+
+  test('free-typed "Hill Worm" finds Typhon, which carries the pattern', async () => {
+    const { interaction, replies } = mockChatInput('Hill Worm')
+    await lookupCommand.execute(interaction)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(containerTextOf(reply)).toContain('## [Typhon]')
+  })
+
   test('free-typed text falls back to the top search hit', async () => {
     const { interaction, replies } = mockChatInput('cover')
     await lookupCommand.execute(interaction)
