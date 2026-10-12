@@ -96,7 +96,7 @@ type MechPrompt =
  */
 const PUSH_RULE = (heat: number, cap: number): StepRule => ({
   rule: `Pushing adds 2 Heat before the roll, and a Mech can never exceed its Heat Cap. This Mech is at ${heat}/${cap} Heat, so a Push would take it past the Cap — vent or take a Heat Check first.`,
-  cite: 'Quick Ref · p.233',
+  cite: 'Core Book · p.234',
 })
 
 export function MechMajor({
@@ -167,7 +167,7 @@ export function MechMajor({
 
   const fresh = () => store.get('mech', mech.id) ?? mech
 
-  // Quick Ref p.233 — can't Push if +2 Heat would exceed the Heat Cap.
+  // Core Book p.234 — can't Push if +2 Heat would exceed the Heat Cap.
   const pushLocked = heat + 2 > maxHeat
 
   // The rule a blocked control explains when the player reaches for it.

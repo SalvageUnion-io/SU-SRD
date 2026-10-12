@@ -20,7 +20,8 @@ import type { ScrapableItem, TechLevel } from './types'
  * Returns the buy (install) cost of an item in units of its own tech level's
  * scrap. Per SRD rules the purchase cost equals the salvage value.
  *
- * SRD reference: Workshop Manual p.162–163 ("Salvage and Scrap" rules).
+ * SRD reference: Core Book p.244 ("To craft a Mech Chassis, System, or Module
+ * you must spend an amount of Scrap equal to Salvage Value").
  */
 export function scrapCostFor(item: ScrapableItem): number {
   // Cost equals salvage value — items are bought and sold at the same scrap price.

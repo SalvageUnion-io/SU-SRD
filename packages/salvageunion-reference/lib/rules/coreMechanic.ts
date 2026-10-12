@@ -1,7 +1,7 @@
 /**
  * Core Mechanic d20 (design review R-6/U-3).
  *
- * Salvage Union Core Book p.229-232 / Quick Ref 2.0 p.1 — the game's single
+ * Salvage Union Core Book p.232 / Quick Ref 2.0 p.1 — the game's single
  * resolution roll. Roll a d20 and read the band:
  *
  *   20    → Nailed It       (outstanding success + a bonus of your choice)
@@ -68,7 +68,7 @@ export const CORE_ROLL_BANDS: Record<CoreRollBand, CoreRollBandInfo> = {
 }
 
 /**
- * Maps a Core Mechanic d20 roll to its band (p.229-232). Rolls are clamped
+ * Maps a Core Mechanic d20 roll to its band (p.232). Rolls are clamped
  * into [1, 20] defensively — modifiers never move a roll off the table.
  */
 export function coreRollBand(roll: number): CoreRollBand {

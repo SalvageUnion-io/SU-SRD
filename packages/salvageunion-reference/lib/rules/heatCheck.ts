@@ -90,8 +90,8 @@ export function performHeatCheck({ heat, currentSP, roll, now }: HeatCheckInput)
   const clock = now ?? (() => new Date())
   const heatCheckRoll = roll(20)
   // A natural 20 is ALWAYS a success, even when current Heat >= 20 (Heat Cap can
-  // exceed 20, e.g. Cerberus chassis at Cap 30). Core Book p.30/39 / keywords
-  // 'heat check'. Otherwise the reactor overloads when the roll is <= current Heat.
+  // exceed 20, e.g. Cerberus chassis at Cap 30). Core Book p.234. Otherwise the
+  // reactor overloads when the roll is <= current Heat.
   const overloaded = heatCheckRoll !== 20 && heatCheckRoll <= heat
 
   if (!overloaded) {
