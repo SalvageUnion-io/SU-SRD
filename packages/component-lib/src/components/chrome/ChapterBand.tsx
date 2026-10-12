@@ -20,11 +20,11 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * ## Layout
  *
  * The band is full-bleed by default (`layout="bleed"`): it fills its
- * container, and inside a `PageShell` it also cancels the shell's gutters, out
- * to the shell's edges and up to its top, so the band meets the masthead the
- * way it does on the SRD. It must then lead the shell: it climbs into the
- * shell's top padding. `layout="inset"` keeps it inside the container's box,
- * for a band set in a column of its own. `measure` caps the inner row so the
+ * container, and as a `PageShell`'s first child it also cancels the shell's
+ * gutters, out to the shell's edges and up to its top, so the band meets the
+ * masthead the way it does on the SRD. Anywhere deeper in the shell it only
+ * fills its container. `layout="inset"` keeps even a leading band inside the
+ * shell's gutters. `measure` caps the inner row so the
  * notch lines up with the column of content under it. The notch's bottom edge
  * IS the band's bottom edge, and it is painted in the page ground
  * (`--color-wk-bg`), so the title reads as cut out of the band rather than
@@ -75,7 +75,7 @@ export type ChapterBandProps = {
   /** The heading element. Defaults to `h1`: the band is the page's title. */
   /**
    * `bleed` (default): full-bleed, cancelling a `PageShell`'s gutters when it
-   * leads one. `inset`: inside its container's box.
+   * is the shell's first child. `inset`: inside its container's box.
    */
   layout?: 'bleed' | 'inset'
   as?: ElementType
@@ -118,8 +118,9 @@ const ROOT = {
   position: 'relative',
 } satisfies CSSProperties
 
-// The bleed's width is `.su-chapter-band[data-layout='bleed']`'s: it widens by
-// the page shell's gutters, which a style object cannot read per breakpoint.
+// A bleed band's width is the stylesheet's (`.su-chapter-band[data-layout]`):
+// leading a page shell it widens by the shell's gutters, which a style object
+// cannot read per breakpoint.
 const INSET = { width: '100%' } satisfies CSSProperties
 
 // The user-made notch: the same cut-out, framed in dashes on three sides — the

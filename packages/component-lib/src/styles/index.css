@@ -1528,13 +1528,19 @@ body {
  * sets the title at hero; from `sm` they share one row and the title is the
  * chapter size.
  */
-/* `layout="bleed"` (the default): out to the page shell's edges and up to its
-   top, by the shell's own gutters. Outside a `PageShell` the properties are
-   unset and the band simply fills its container. */
+/* `layout="bleed"` (the default) fills its container; a band that is a page
+   shell's first child also reaches out to the shell's edges and up to its top,
+   by the shell's own gutters. The gutter properties inherit to every
+   descendant, so this selector, not their presence, is what stops a band
+   deeper in the shell (mid-page, in a column) from bleeding past its box. */
 .su-chapter-band[data-layout='bleed'] {
-  margin-inline: calc(-1 * var(--su-page-gutter-inline, 0px));
-  margin-top: calc(-1 * var(--su-page-gutter-block, 0px));
-  width: calc(100% + 2 * var(--su-page-gutter-inline, 0px));
+  width: 100%;
+}
+
+.su-page-shell > .su-chapter-band[data-layout='bleed']:first-child {
+  margin-inline: calc(-1 * var(--su-page-gutter-inline));
+  margin-top: calc(-1 * var(--su-page-gutter-block));
+  width: calc(100% + 2 * var(--su-page-gutter-inline));
 }
 
 .su-chapter-band__row {
