@@ -11,7 +11,7 @@
 import { GREY_HEADER } from '../../components/referenceEntity/card/cardChrome'
 import type { CardGrain } from '../../components/referenceEntity/card/cardGrain'
 import { textBand } from '../../components/referenceEntity/referenceEntityHelpers'
-import { foregroundOn } from '../../design/contrast'
+import { bandCarriesText, foregroundOn } from '../../design/contrast'
 
 export type Paint = {
   background: string
@@ -20,15 +20,13 @@ export type Paint = {
   /** An ink band (a thing you do): its stamps go inverse. */
   ink: boolean
   /**
-   * The name sits on a PAPER chip: a tech-level ramp is never a text ground
-   * (ruleset §3.8) — ink measures 3.99:1 on TL3 — so the band keeps its tone
-   * and the name its own paper.
+   * The name sits on a PAPER chip only where neither ink nor paper reaches
+   * 4.5:1 on the band (ruleset §3.8): TL3 and Nanite, where ink measures
+   * 3.99:1 and paper 3.84:1. Every other tone prints the name in the
+   * foreground that passes (ink on TL1 at 8.6:1, paper on TL4 at 5.7:1).
    */
   nameOnPaper: boolean
 }
-
-/** The tech-level ramp: TL1–6, Bio-tech and Nanite. */
-const TECH_LEVEL_RAMP = /^tl-/
 
 /** The name on its paper chip, line by line (`box-decoration-break`). */
 export const PAPER_NAME = {
@@ -50,7 +48,7 @@ export function paintFor(
       background: GREY_HEADER,
       color: FOREGROUND[foregroundOn(GREY_HEADER, 'ink')],
       ink: false,
-      nameOnPaper: false,
+      nameOnPaper: !bandCarriesText(GREY_HEADER),
     }
   }
   const ink = tone === 'ink'
@@ -61,7 +59,7 @@ export function paintFor(
     background: band,
     color: FOREGROUND[foregroundOn(band, 'paper')],
     ink,
-    nameOnPaper: TECH_LEVEL_RAMP.test(tone),
+    nameOnPaper: !bandCarriesText(band),
     ...(texture ? { grain: ink ? ('paper' as const) : ('ink' as const) } : {}),
   }
 }
