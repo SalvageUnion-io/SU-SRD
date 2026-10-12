@@ -90,6 +90,7 @@ export {
   isEntityData,
   isKeyword,
 } from './entityGuards.js'
+export { type FormerSlug, formerSlugsIn, resolveFormerSlug } from './formerSlugs.js'
 // Every SURef* entity type and the SURefEntity / SURefMetaEntity unions,
 // generated from lib/schemas/registry.ts. Exported as a family rather than
 // name by name: they are 1:1 with SchemaToEntityMap (below), so each is already
@@ -147,6 +148,7 @@ export {
   // forked them instead (discord-bot + component-lib forked `isSchemaName`).
   // One implementation, one behaviour.
   isSchemaName,
+  patternSearchText,
   type SearchOptions,
   type SearchResult,
   search,

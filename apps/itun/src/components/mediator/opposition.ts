@@ -7,10 +7,11 @@
  * pick the roll.
  */
 
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import {
   findEntityBySlug,
   getEntitySlug,
+  resolveFormerSlug,
   rollOnTable,
   SalvageUnionReference,
 } from 'salvageunion-reference'
@@ -37,6 +38,12 @@ export type TrayNpc = {
   name: string
   /** The reference entity it was drawn from, when it still resolves. */
   entity: SURefEntity | null
+  /**
+   * Set when the row's slug is a FORMER one that now names a pattern (ADR-043):
+   * a "Hill Worm Pattern Typhon" drawn before it became Typhon's "Hill Worm"
+   * pattern. `entity` is then the pattern's host, which supplies its stats.
+   */
+  pattern: SURefObjectAnyPattern | null
   currentHp: number
   maxHp: number
   statKind: 'hp' | 'sp'
@@ -59,7 +66,9 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
   const body = (row.body ?? {}) as Record<string, unknown>
   const refSchema = isRefSchema(body.refSchema) ? body.refSchema : null
   const refSlug = typeof body.refSlug === 'string' ? body.refSlug : null
-  const entity = refSchema && refSlug ? findEntityBySlug(refSchema, refSlug) : null
+  const live = refSchema && refSlug ? findEntityBySlug(refSchema, refSlug) : null
+  const former = !live && refSchema && refSlug ? resolveFormerSlug(refSchema, refSlug) : null
+  const entity = live ?? former?.host ?? null
   const maxHp = num(body.maxHp, 0)
   const currentHp = num(body.currentHp, maxHp)
   const roll = body.lastMediatorRoll as MoraleRoll | undefined
@@ -67,6 +76,7 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     id: row._id,
     name: typeof body.name === 'string' ? body.name : 'Unnamed',
     entity,
+    pattern: former?.pattern ?? null,
     currentHp,
     maxHp,
     statKind: body.statKind === 'sp' ? 'sp' : 'hp',

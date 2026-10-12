@@ -13,7 +13,7 @@
  *
  * Pure and data-shape-driven: one engine covers all ~27 schemas, with a
  * couple of genuinely structural special cases (chassis stat grid + patterns,
- * roll-table summaries). Returns `ContainerData` through `entityCard`, the
+ * a Bio-Titan's patterns, roll-table summaries). Returns `ContainerData` through `entityCard`, the
  * same render layer the Game cards use, with the entity's artwork beside the
  * heading when it has any. Everything degrades to bare text on an unresolved
  * reference; nothing throws.
@@ -24,6 +24,7 @@ import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaAction,
+  SURefMetaEntity,
   SURefObjectContent,
   SURefObjectDataValue,
   SURefObjectTable,
@@ -31,15 +32,18 @@ import type {
   SURefObjectTrait,
 } from 'salvageunion-reference'
 import {
+  extractPatternActions,
   extractVisibleActions,
   findEntityBySlug,
   getAssetUrl,
   getChassisAbilities,
   getEntitySlug,
   getPageReference,
+  getPatterns,
   getSalvageValue,
   getSlotsRequired,
   getTechLevel,
+  isBioTitanPattern,
   nameToSlug,
   replaceChassisPlaceholder,
   replaceTraitReferences,
@@ -286,6 +290,31 @@ function chassisSections(entity: SURefChassis): {
   return { fields, patterns }
 }
 
+/**
+ * A Bio-Titan's patterns (a structural case beside the chassis's): each named
+ * and linked to its own page, with its prose and the rules of the actions it
+ * adds. The rest of a pattern IS its host, which this card already shows.
+ */
+function addedActionPatterns(
+  entity: SURefEntity,
+  schemaName: SURefEnumSchemaName,
+  ownName: string
+): string {
+  const patterns = (getPatterns(entity as SURefMetaEntity) ?? []).filter(isBioTitanPattern)
+  if (patterns.length === 0) return ''
+  const hostUrl = srdEntityUrl(schemaName, getEntitySlug(entity))
+  const rows = patterns.map((pattern) => {
+    const lines = [
+      `• **[${escapeLabel(pattern.name)}](${hostUrl}/pattern/${nameToSlug(pattern.name)})**`,
+    ]
+    const prose = flattenContent(pattern.content)
+    if (prose) lines.push(prose)
+    for (const action of extractPatternActions(pattern)) lines.push(renderAction(action, ownName))
+    return lines.join('\n')
+  })
+  return `**Patterns**\n${rows.join('\n')}`
+}
+
 function footerFor(entity: SURefEntity): string {
   const parts: string[] = []
   if (typeof entity.source === 'string') parts.push(entity.source)
@@ -410,6 +439,8 @@ export function lookupCard(
     for (const action of extractVisibleActions(entity) ?? []) {
       sections.push(renderAction(action, name))
     }
+    const patterns = addedActionPatterns(entity, schemaName, name)
+    if (patterns) sections.push(patterns)
   }
 
   const thumbnail = getAssetUrl(entity)

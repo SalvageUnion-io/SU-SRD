@@ -474,6 +474,12 @@
               "type": "array",
               "items": { "type": "string" },
               "description": "Action names this pattern ADDS to its Bio-Titan; the base Structure Points and actions are inherited"
+            },
+            "formerSlugs": {
+              "minItems": 1,
+              "type": "array",
+              "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+              "description": "Slugs this pattern was once published under as a row of its host's schema (ADR-043: a published slug never dies). Each resolves, and redirects, to this pattern."
             }
           },
           "required": ["name", "actions"],

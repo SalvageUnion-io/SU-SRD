@@ -26,6 +26,7 @@
 
 import { itemJsonEndpoint } from '../src/endpoints/itemJson'
 import { llmsTxtEndpoint } from '../src/endpoints/llmsTxt'
+import { redirectsEndpoint } from '../src/endpoints/redirects'
 import { schemaDefinitionJsonEndpoint } from '../src/endpoints/schemaDefinitionJson'
 import { schemaJsonEndpoint } from '../src/endpoints/schemaJson'
 import { searchIndexJsonEndpoint } from '../src/endpoints/searchIndexJson'
@@ -86,6 +87,7 @@ export function registerEndpoint<Params extends Record<string, string>, Props>(
 
 export const endpoints: EndpointRegistration[] = [
   registerEndpoint(llmsTxtEndpoint),
+  registerEndpoint(redirectsEndpoint),
   registerEndpoint(searchIndexJsonEndpoint),
   registerEndpoint(schemaJsonEndpoint),
   registerEndpoint(schemaDefinitionJsonEndpoint),

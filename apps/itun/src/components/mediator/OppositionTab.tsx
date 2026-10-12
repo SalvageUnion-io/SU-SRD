@@ -108,7 +108,9 @@ function NpcRow({
   onFailure: (err: unknown) => void
   onRemove: (npc: TrayNpc) => void
 }) {
-  const detail = useDetailModal(npc.entity ?? undefined)
+  const detail = useDetailModal(npc.entity ?? undefined, {
+    pattern: npc.pattern ?? undefined,
+  })
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
   return (
     <li>
@@ -119,6 +121,7 @@ function NpcRow({
           ) : (
             <ReferenceEntityCard
               data={npc.entity}
+              pattern={npc.pattern ?? undefined}
               size="medium"
               extent="head"
               titleOverride={npc.name}
