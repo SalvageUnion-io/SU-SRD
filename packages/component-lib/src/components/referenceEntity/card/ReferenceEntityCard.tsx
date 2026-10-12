@@ -892,6 +892,7 @@ function ReferenceEntityCardInner({
         collapsibleTables={isCatalog || depth > 0 || foldTables}
         chassisName={resolvedChassisName}
         NestedCard={ReferenceEntityCardInner}
+        page={onPage}
       />
     ) : null
 

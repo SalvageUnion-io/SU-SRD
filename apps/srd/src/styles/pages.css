@@ -108,6 +108,136 @@
   padding-inline: var(--space-14);
 }
 
+/*
+ * The not-found page (`404.page.tsx`, `islands/DidYouMeanIsland.tsx`): the
+ * rules band with the hero search, then the guesses and the five chapters on
+ * the page ground. Ink on paper throughout; a chapter's colour is only its
+ * swatch (ruleset §3.8).
+ */
+.srd-not-found__lede {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  max-width: 34rem;
+  width: 100%;
+}
+
+.srd-not-found__lede p {
+  font-size: var(--text-readout);
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .srd-not-found__band .su-chapter-band__row {
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
+}
+
+@media (min-width: 64rem) {
+  .srd-not-found__band .su-chapter-band__title {
+    flex: none;
+  }
+
+  .srd-not-found__band .su-chapter-band__aside {
+    flex: 0 1 34rem;
+    min-width: 0;
+  }
+}
+
+.srd-not-found__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-28);
+  margin-inline: auto;
+  padding: var(--space-24) var(--space-16) var(--space-32);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .srd-not-found__body {
+    padding-inline: var(--space-24);
+  }
+}
+
+.srd-not-found__guesses,
+.srd-not-found__chapters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.srd-not-found__heading {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  margin: 0;
+  padding-top: var(--space-6);
+  text-transform: uppercase;
+}
+
+/* The guesses: search-result Rows, room above each for its kind stamp. */
+.srd-not-found__results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  list-style: none;
+  margin: 0;
+  padding: var(--space-8) 0 0;
+}
+
+.srd-not-found__link {
+  align-self: flex-start;
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.srd-not-found__chapter-list {
+  display: grid;
+  gap: var(--space-10);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-not-found__chapter {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-12);
+  min-height: 44px;
+  overflow: hidden;
+  padding-right: var(--space-12);
+  text-decoration: none;
+}
+
+.srd-not-found__chapter:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.srd-not-found__swatch {
+  align-self: stretch;
+  border-right: var(--bw-chrome) solid var(--color-ink);
+  flex: none;
+  width: var(--space-16);
+}
+
 /* A chapter of the index: its colour band, its name and count, its rows. */
 .srd-contents__chapter {
   display: flex;
