@@ -30,7 +30,7 @@ import {
   pilotMinorModel,
   pilotVitals,
   scrapLine,
-} from './slotModels'
+} from './slots.model'
 import type { MountState } from './useSeat'
 
 export default { title: 'Compositions/Dashboard/Slot Row' }
@@ -38,7 +38,7 @@ export default { title: 'Compositions/Dashboard/Slot Row' }
 /*
  * The slot row in each mount, with each slot in each of its forms: Pilot,
  * Mech and Crawler as a Major, as a Minor at rest, and as a Minor with
- * something wrong. The Minors are the real models (`slotModels.ts`) over
+ * something wrong. The Minors are the real models (`slots.model.ts`) over
  * fixture entities; the Majors are their frames with the same numbers and
  * inert buttons, since the store-wired Majors need the app's stores.
  */

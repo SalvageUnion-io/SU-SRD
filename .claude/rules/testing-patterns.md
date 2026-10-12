@@ -6,11 +6,15 @@ paths:
 
 # Testing Patterns
 
+## Layout
+
+Every test lives in a `__tests__/` beside its subject; ITUN's Convex suites in
+`apps/itun/test/convex/__tests__/` (Convex deploys any helper inside `convex/`).
+`check test-layout` fails a sibling test and a root preload off the workspaces'.
+
 ## Component Testing
 
-- Test user interactions, not implementation details
-- Query by accessible roles/labels when possible
-- Use `waitFor` for async updates
+- Test user interactions, query by role/label, `waitFor` async updates
 - React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in ITUN load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
 
 ## Mocking
@@ -64,19 +68,17 @@ load behaviour, and biome.jsonc excludes each by path with its reason.
 
 ### Do not sleep on a real debounce
 
-Never `await new Promise((r) => setTimeout(r, 200))` to outwait a debounce: it
-is a latent flake on CI and dead wall-clock everywhere. Use one of:
+Never sleep (`setTimeout`) past a debounce: a CI flake and dead wall-clock. Use:
 
 - `jest.useFakeTimers()` + `jest.advanceTimersByTime(DEBOUNCE_MS)` inside
   `act()` when the component's own timer must be driven — see
-  `RollTable.test.tsx`, `SearchIsland.test.tsx`, `useSearchCombobox.test.tsx`.
+  `RollTable.test.tsx`.
 - `setSystemTime()` when the code under test reads `Date.now()` rather than a
-  timer — see the stale-write tests in `apps/itun/test/convex/appId.test.ts`.
+  timer — see the stale-write tests in `apps/itun/test/convex/__tests__/appId.test.ts`.
 - `await screen.findByText(...)` / `waitFor(...)`, which poll.
 
-**Fake timers and `waitFor` do not mix.** RTL's `waitFor` polls on a real
-interval, so a test that leaves timers faked and then calls `waitFor` hangs the
-whole suite. Scope `useFakeTimers()` to the helper that needs it (see
+**Fake timers and `waitFor` do not mix:** `waitFor` polls on a real interval,
+so it hangs under faked timers. Scope `useFakeTimers()` to the helper that needs it (see
 `GlobalSearch.test.tsx`), not the whole file, when both appear in one file.
 
 ### Fixtures carry one frozen timestamp

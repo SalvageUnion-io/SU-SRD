@@ -41,7 +41,7 @@
  * between the `// GENERATED:BEGIN` / `// GENERATED:END` marker comments
  * (which must already exist in that file). This — rather than a runtime
  * mixin/base-class trick — keeps every static property a true *own* property
- * of the class, which lib/index.test.ts depends on via
+ * of the class, which lib/__tests__/index.test.ts depends on via
  * `Object.getOwnPropertyNames(SalvageUnionReference)`.
  *
  * Run via `bun run build:package` (before generate:json-schemas, since
@@ -222,7 +222,7 @@ ${zodImports}
  * import this directly, so data is validated against the exact schemas the runtime would
  * use rather than a parallel literal that could drift. No runtime module
  * imports it — \`preload()\` trusts the committed data — or every client bundle
- * would carry the schemas again (\`lib/loadPathBundle.test.ts\`).
+ * would carry the schemas again (\`lib/__tests__/loadPathBundle.test.ts\`).
  */
 export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
 ${zodSchemaMap}

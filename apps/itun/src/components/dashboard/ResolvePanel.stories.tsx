@@ -2,8 +2,8 @@ import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { CORE_ROLL_BANDS } from 'salvageunion-reference/rules'
+import { coreMechanicRowText } from '../../lib/rules/playActions'
 import { InstrumentStage } from './_dashboardStage'
-import { coreMechanicRowText } from './dashboardRules'
 import { ResolvePanel } from './ResolvePanel'
 
 export default { title: 'Compositions/Dashboard/Resolve Panel' }

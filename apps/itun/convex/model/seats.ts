@@ -100,7 +100,7 @@ export async function releaseSeatsOf(
  *
  * Every other table with a `gameId` column holds something somebody built, or
  * history, and each teardown path shelves or deletes those rows itself first.
- * `test/convex/gameTeardown.test.ts` fails when a table gains a `gameId` column
+ * `test/convex/__tests__/gameTeardown.test.ts` fails when a table gains a `gameId` column
  * without being named here or exempted there.
  */
 export const GAME_APPARATUS_TABLES = [

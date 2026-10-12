@@ -5,7 +5,7 @@
  * `@theme` block (which Tailwind turns into utilities) and the `:root` block
  * below it. `src/styles/index.css` reads these properties and declares none of
  * its own; `src/design/tokens.ts` mirrors them for style objects, and
- * `src/design/tokens.parity.test.ts` fails if the two disagree. Edit both.
+ * `src/design/__tests__/tokens.parity.test.ts` fails if the two disagree. Edit both.
  */
 /* `static`: Tailwind otherwise emits only the variables some utility uses, and
    a component moved onto a style object reads `var(--color-tl-2)` with no

@@ -102,7 +102,7 @@ import {
   mechStats,
   pilotMinorModel,
   pilotVitals,
-} from './slotModels'
+} from './slots.model'
 import { useActionsDeck } from './useActionsDeck'
 import { useBoardSources } from './useBoardSources'
 import type { DowntimeHandle } from './useDowntime'

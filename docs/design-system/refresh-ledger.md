@@ -35,7 +35,7 @@ claude.ai pages a local agent cannot open; text snapshot of 2026-10-12. [The ori
 3. **[Traits and Facets](https://claude.ai/artifact/TDRC7wUBiFBRBHf3mVwHLR)** — retires the "//" line: action type → stamp, range and damage → Stats, traits → Tags (E17).
 4. **[SRD Index Refresh](https://claude.ai/artifact/V77WHFAs2UWdVW3ociTWHw)** — listings as one compact card, grouped, with art, one filter rail, a chapter-toned foot (built as PL).
 5. **[Missing Artwork Redactions](https://claude.ai/artifact/3a1uSWEZ2rKcGFshGq4DJu)** — five fills for entities without art, from the manual's censor marks; patch, strip and stamp shipped in PL.
-6. **[Design Refresh Preview Tour](https://claude.ai/artifact/UyfFQkZejGFyq7eN5XTPks)** — desktop and phone captures of 32 preview pages, recaptured each deploy.
+6. **[Design Refresh Preview Tour](https://claude.ai/artifact/UyfFQkZejGFyq7eN5XTPks)** — desktop and phone captures of 32 preview pages; superseded by the PR gallery site's `/tour/`, which `pr-gallery.yml` recaptures from main after each production deploy.
 
 ## The origin's boards
 

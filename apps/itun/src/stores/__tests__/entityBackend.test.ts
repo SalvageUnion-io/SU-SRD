@@ -175,7 +175,7 @@ describe('subscribeBackend — the stores hear every push', () => {
 describe('a crawler field patch names the fields it clears', () => {
   // The Convex client drops undefined object fields on the wire, so a cleared
   // field (the ↺ revert of a pinned Max SP) has to travel as `unset` — see the
-  // server side in `test/convex/entities.test.ts`.
+  // server side in `test/convex/__tests__/entities.test.ts`.
   test('an undefined value becomes an unset key', () => {
     expect(crawlerPatchArgs('c1', { maxSpOverride: undefined, scrap: 4 })).toEqual({
       appId: 'c1',
