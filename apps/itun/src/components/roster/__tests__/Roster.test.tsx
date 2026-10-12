@@ -124,7 +124,12 @@ async function openMenu(name: string): Promise<HTMLElement> {
 
 beforeEach(async () => {
   // Shelves, with no Games, no invitations and no shared patterns.
-  setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [], 'shelf:patternSharing': [] })
+  setQueryAnswers({
+    'games:listMine': [],
+    'invites:forMe': [],
+    'shelf:patternSharing': [],
+    'shelf:sharedByLink': [],
+  })
   // The NPC shelf also lists encounter NPCs; an earlier file in the same
   // process can leave some in memory, so every store starts empty.
   resetStores()

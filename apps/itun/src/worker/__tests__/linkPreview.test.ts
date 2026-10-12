@@ -241,13 +241,14 @@ describe('previewRouteOf', () => {
   it('reads the routes a player shares, and nothing else', () => {
     expect(previewRouteOf('/p/pilot/abc')).toEqual({ type: 'sheet', kind: 'pilot', id: 'abc' })
     expect(previewRouteOf('/p/pattern/abc')).toEqual({ type: 'sheet', kind: 'pattern', id: 'abc' })
+    expect(previewRouteOf('/p/npc/abc')).toEqual({ type: 'sheet', kind: 'npc', id: 'abc' })
     expect(previewRouteOf('/invite/0123456789ABCDEF')).toEqual({
       type: 'invite',
       code: '0123456789ABCDEF',
     })
     expect(previewRouteOf('/join/K7QR2XA')).toBeNull()
     expect(previewRouteOf('/invite')).toBeNull()
-    expect(previewRouteOf('/p/npc/abc')).toBeNull()
+    expect(previewRouteOf('/p/encounter/abc')).toBeNull()
     expect(previewRouteOf('/sheet/pilot/abc')).toBeNull()
     expect(previewRouteOf('/p/pilot/<script>')).toBeNull()
   })

@@ -1,23 +1,29 @@
 /**
- * ShareStatusDialog — sharing, answered on the sheet itself.
+ * ShareStatusDialog — who can see it, answered where the thing stands.
+ *
+ * ## One control for everything a player shares
+ *
+ * Pilots, mechs, crawlers, built NPCs and mech patterns all open this dialog
+ * from their own page's Share button, and it asks them all the same question
+ * in the same words: Who can see it — Only me, My Game's crew, or Anyone with
+ * the link (`ShareSettings`, `lib/sharing/visibility.ts`).
  *
  * ## Why a dialog, not a screen
  *
- * The sheet you are standing on IS the preview, so sharing is a status you
- * check, not a place you go: a dialog over the live sheet, with no second
+ * The page you are standing on IS the preview, so sharing is a status you
+ * check, not a place you go: a dialog over the live page, with no second
  * rendering of the derived-stat math to disagree with what the recipient sees.
  *
- * ## One way to share
+ * ## One account-free way to share
  *
- * The live public sheet ([ADR-032](../../../../../docs/adr/032-public-read-only-sheets.md))
+ * The live public page ([ADR-032](../../../../../docs/adr/032-public-read-only-sheets.md))
  * is the only account-free way to share
- * ([ADR-036](../../../../../docs/ARCHITECTURE.md#decisions)), so the dialog is
- * `PublicSheetPanel` — on/off, the link, a QR of it — and a sentence that
- * frames it.
+ * ([ADR-036](../../../../../docs/ARCHITECTURE.md#decisions)): "Anyone with the
+ * link", its link and a QR of it.
  *
- * ## The panel only mounts Connected
+ * ## The settings only mount Connected
  *
- * `PublicSheetPanel` calls Convex hooks unconditionally, so it must not MOUNT
+ * `ShareSettings` calls Convex hooks unconditionally, so it must not MOUNT
  * outside Connected — see its own header. Everywhere else the dialog says what
  * sharing needs instead of offering a control that cannot work: an anonymous
  * visitor is told it needs an account (with the sign-in control), and a
@@ -25,34 +31,25 @@
  */
 
 import { ModalShell, tokens } from 'component-lib'
-import type { Crawler } from 'itun-domain/schemas/crawler'
-import type { SheetEntityKind } from 'itun-domain/schemas/entity'
-import type { Mech } from 'itun-domain/schemas/mech'
-import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
+import type { ShareKind } from '../../lib/sharing/visibility'
 import { SignInControl } from '../account/SignInControl'
-import { PublicSheetPanel } from './PublicSheetPanel'
+import { ShareSettings } from './ShareSettings'
 
 type ShareStatusDialogProps = {
-  kind: SheetEntityKind
+  kind: ShareKind
+  /** The app-level id: what the public page is addressed by. */
   id: string
-  entity: Pilot | Mech | Crawler
+  /** What it is called, for the dialog's subtitle and its copy. */
+  name: string
+  /** A sheet's container: the Game it is in, or null on the shelf. Unused for a pattern. */
+  gameId?: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
   /** Injectable clipboard writer for testing. */
   clipboardWriter?: (text: string) => Promise<void>
 }
-
-const PANEL_HEADING = {
-  marginBottom: tokens.space[12],
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.semibold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.capsSnug,
-  color: tokens.color.ink,
-} satisfies CSSProperties
 
 const NOTE = {
   color: tokens.color.wkMuted,
@@ -80,14 +77,15 @@ const SIGN_IN = {
 export function ShareStatusDialog({
   kind,
   id,
-  entity,
+  name,
+  gameId,
   open,
   onOpenChange,
   clipboardWriter,
 }: ShareStatusDialogProps) {
   const { mode } = useConnection()
 
-  /** Whether `PublicSheetPanel` MOUNTS: only Connected (see its own header). */
+  /** Whether `ShareSettings` MOUNTS: only Connected (see its own header). */
   const showLive = mode === 'connected'
 
   return (
@@ -95,8 +93,8 @@ export function ShareStatusDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Share status"
-      subtitle={entity.name}
-      description={`Share ${entity.name} as a live, read-only page, or stop sharing it.`}
+      subtitle={name}
+      description={`Choose who can see ${name}.`}
       maxWidth="su-sheet-share-dialog"
     >
       {/*
@@ -108,22 +106,16 @@ export function ShareStatusDialog({
       <div className="su-sheet-share-body" style={BODY}>
         {/* Read-only is the promise that holds whichever branch renders below. */}
         <p style={NOTE}>
-          Whoever has the link gets a read-only view of {entity.name} that keeps up with the sheet.
+          Whoever can see {name} gets a read-only view of it that keeps up with every change.
         </p>
 
         {showLive ? (
-          <PublicSheetPanel
-            kind={kind}
-            appId={id}
-            entityName={entity.name}
-            headingStyle={PANEL_HEADING}
-            clipboardWriter={clipboardWriter}
-          />
+          <ShareSettings kind={kind} appId={id} gameId={gameId} clipboardWriter={clipboardWriter} />
         ) : mode === 'solo' ? (
           <section style={SIGN_IN}>
             <p style={NOTE}>
-              Sharing needs an account: the public page is served from your saved sheet, and an
-              unsaved one has nothing to serve. No account is needed to read it.
+              Sharing needs an account: the public page is served from what your account saves. No
+              account is needed to read it.
             </p>
             <SignInControl />
           </section>

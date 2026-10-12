@@ -1880,6 +1880,10 @@
               {
                 "type": "literal",
                 "value": "crawler"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
               }
             ]
           },
@@ -1936,6 +1940,10 @@
               },
               {
                 "type": "literal",
+                "value": "npc"
+              },
+              {
+                "type": "literal",
                 "value": "pattern"
               }
             ]
@@ -1968,6 +1976,10 @@
               {
                 "type": "literal",
                 "value": "crawler"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
               }
             ]
           },
@@ -2302,6 +2314,10 @@
           "optional": true
         }
       }
+    },
+    "shelf:sharedByLink": {
+      "type": "object",
+      "value": {}
     },
     "shelf:upsertEncounterNpc": {
       "type": "object",

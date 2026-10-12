@@ -33,12 +33,12 @@ import { AppLink } from '../shared/AppLink'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { useConfirm } from '../shared/useConfirm'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
+import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
 import type { EntityLookup } from './composition'
 import { resolveSheetComposition } from './composition'
 import type { LiveSheetSegment } from './LiveSheet'
-import { ShareStatusDialog } from './ShareStatusDialog'
 import { SheetActionsMenu } from './SheetActionsMenu'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
@@ -431,7 +431,8 @@ export function Sheet({
           <ShareStatusDialog
             kind={kind}
             id={id}
-            entity={entity}
+            name={entity.name}
+            gameId={entity.gameId ?? null}
             open={shareOpen}
             onOpenChange={setShareOpen}
           />

@@ -173,23 +173,32 @@ describe('signed in', () => {
     expect(screen.getByText(/Anyone with the link/)).toBeTruthy()
   })
 
-  test('its maker can stop sharing it, and the page then says only they can see it', async () => {
-    setQueryAnswers({ 'publicSheet:pattern': answer({ mine: true, visibility: 'link' }) })
+  test('its maker changes who can see it from the Share dialog every player thing opens', async () => {
+    setQueryAnswers({
+      'publicSheet:pattern': answer({ mine: true, visibility: 'link' }),
+      'shelf:patternSharing': [
+        { appId: 'pat-tow-rig', visibility: 'link', gameId: null, gameName: null, builtCount: 3 },
+      ],
+      'games:listMine': [],
+    })
     renderAs(CONNECTED)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Stop sharing' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Share Tow Rig' }))
+    })
+    expect(screen.getByRole('group', { name: /who can see it/i })).toBeTruthy()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('radio', { name: /only me/i }))
     })
 
     expect(visibilityWrites).toEqual([{ patternId: 'pat-tow-rig', visibility: 'private' }])
-    expect(screen.getByText('Only you can see this pattern.')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Stop sharing' })).toBeNull()
   })
 
-  test('a reader who is not its maker is never offered Stop sharing', () => {
+  test('a reader who is not its maker is never offered Share', () => {
     setQueryAnswers({ 'publicSheet:pattern': answer({ visibility: null }) })
     renderAs(CONNECTED)
-    expect(screen.queryByRole('button', { name: 'Stop sharing' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Share Tow Rig' })).toBeNull()
   })
 
   test('the stat column names stats in the manual’s wording', () => {

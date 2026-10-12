@@ -17,9 +17,9 @@ import type { OgCardProps } from 'component-lib'
 import { color } from 'component-lib/design/tokens'
 
 /** The kinds of player thing a link previews. */
-export type PreviewKind = 'pilot' | 'mech' | 'crawler' | 'pattern'
+export type PreviewKind = 'pilot' | 'mech' | 'crawler' | 'npc' | 'pattern'
 
-export const PREVIEW_KINDS: readonly PreviewKind[] = ['pilot', 'mech', 'crawler', 'pattern']
+export const PREVIEW_KINDS: readonly PreviewKind[] = ['pilot', 'mech', 'crawler', 'npc', 'pattern']
 
 export function isPreviewKind(value: string): value is PreviewKind {
   return (PREVIEW_KINDS as readonly string[]).includes(value)
@@ -122,6 +122,16 @@ export function sheetCard(answer: PreviewAnswer, nameOf: NameOf, address: string
         address,
       }
     }
+    case 'npc':
+      return {
+        kind: 'userMade',
+        kicker: joinParts(['NPC', text(body, 'position')]),
+        title: text(body, 'name') ?? 'NPC',
+        tone: color.denizenBand,
+        stats: [],
+        madeBy: ownerName ?? 'a player',
+        address,
+      }
     case 'pattern': {
       const chassisRef = text(body, 'chassisRef')
       return {
