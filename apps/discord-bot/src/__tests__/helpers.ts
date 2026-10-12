@@ -11,7 +11,8 @@ import type { ReplyArg } from './fakeInteraction.js'
  */
 export function buttonInteractionHandlerFor(
   customId: string,
-  values: readonly string[] = []
+  values: readonly string[] = [],
+  userId = 'discord-tester'
 ): {
   handle: () => Promise<void>
   replies: ReplyArg[]
@@ -25,7 +26,7 @@ export function buttonInteractionHandlerFor(
   const interaction: CommandButtonInteraction = {
     customId,
     values,
-    user: { id: 'discord-tester', displayName: 'Alex' },
+    user: { id: userId, displayName: 'Alex' },
     channelId: 'chan-1',
     reply: (arg: ReplyArg) => {
       replies.push(arg)

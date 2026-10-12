@@ -10,7 +10,7 @@ import {
 } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from '../container.js'
 import { containerTextLength, toContainer, V2_LIMIT } from '../container.js'
-import { decodeRollResult, encodeRollResult, makeCustomId } from '../customId.js'
+import { decodeRollResult, encodeRollRequest, encodeRollResult, makeCustomId } from '../customId.js'
 import { d20ForTable, rollD20 } from '../dice.js'
 import { noEffectContainer, unknownTableContainer } from '../errorContainer.js'
 import { buildRollContainerData } from '../rollContainer.js'
@@ -55,12 +55,19 @@ export type RollMessage =
 /**
  * The one row every roll result carries: `↻ Roll again` (Primary: it is the
  * action people take) and `See table`, which answers privately with the whole
- * table and this roll's row marked. Both are stateless; `See table` carries the
- * RESULT (`encodeRollResult`), so it marks the row on screen, never a new one.
- * A table name too long for either id falls back to the lookup card.
+ * table and this roll's row marked. Both are stateless. `Roll again` carries
+ * its roller's id, so only they can press it (`encodeRollRequest`); `See
+ * table` carries the RESULT (`encodeRollResult`), so it marks the row on
+ * screen, never a new one. A table name too long for either id falls back to
+ * the lookup card. Every roll posts a NEW message; none is ever redrawn.
  */
-function rollButtons(tableName: string, result: string, between: ButtonSpec[] = []): ButtonSpec[] {
-  const rerollId = makeCustomId('roll', tableName)
+function rollButtons(
+  tableName: string,
+  result: string,
+  ownerId: string | undefined,
+  between: ButtonSpec[] = []
+): ButtonSpec[] {
+  const rerollId = makeCustomId('roll', encodeRollRequest(tableName, ownerId))
   const tableId = makeCustomId('table', result) ?? makeCustomId('lookup', tableName)
   return [
     ...(rerollId
@@ -92,7 +99,9 @@ export function buildRollMessage(
    */
   d20: () => number = rollD20,
   /** Render only to the asker, with a button to share the same result. */
-  isPrivate = false
+  isPrivate = false,
+  /** The roller's Discord id: the only person whose `Roll again` works. */
+  ownerId?: string
 ): RollMessage {
   // Exact name first, through the model's name index; the case-insensitive
   // scan is only the fallback for a hand-typed name that skipped autocomplete.
@@ -120,7 +129,7 @@ export function buildRollMessage(
     // book means. Only a table with no entries at all is a genuine fault.
     if (rolled !== null && Object.keys(table.table).length > 1) {
       // A miss is a RESULT, so it stays public like any other roll.
-      const data = noEffectContainer(table, rolled, roller)
+      const data = noEffectContainer(table, rolled, roller, ownerId)
       return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
     }
     return { error: `Error rolling on table "${table.name}": ${outcome.error}` }
@@ -142,6 +151,7 @@ export function buildRollMessage(
     buttons: rollButtons(
       table.name,
       result,
+      ownerId,
       postId ? [{ kind: 'action', customId: postId, label: 'Post to channel' }] : []
     ),
   })
@@ -169,7 +179,9 @@ export function buildRollMessage(
  */
 export function buildPostedRollMessage(
   payload: string,
-  roller?: string
+  roller?: string,
+  /** Who posted it: the roller, since only they could see the private roll. */
+  ownerId?: string
 ): (RollMessage & { data: ContainerData & { tableName: string } }) | { error: string } {
   const decoded = decodeRollResult(payload)
   if (decoded === null) return { error: 'That button is no longer readable.' }
@@ -185,7 +197,7 @@ export function buildPostedRollMessage(
   if (!outcome.success) return { error: 'That roll can no longer be rendered.' }
 
   const data = buildRollContainerData(table, outcome, { roller })
-  data.blocks.push({ kind: 'buttons', buttons: rollButtons(table.name, payload) })
+  data.blocks.push({ kind: 'buttons', buttons: rollButtons(table.name, payload, ownerId) })
 
   return {
     flags: MessageFlags.IsComponentsV2,
@@ -286,7 +298,8 @@ export const rollCommand = {
       tableName,
       interaction.user.displayName,
       await d20ForTable(tableName),
-      isPrivate
+      isPrivate,
+      interaction.user.id
     )
     if ('error' in message) {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })

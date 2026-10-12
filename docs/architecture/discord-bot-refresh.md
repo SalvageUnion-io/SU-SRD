@@ -73,6 +73,15 @@ Added:
 - one row: `↻ Roll again` (Primary) and `See table`, with `Post to channel`
   between them on a private roll.
 
+Two rules the owner set:
+
+- **A roll is always a new message**, never a redraw: every roll stays in the
+  channel's history and the Game's log. Only lookup tabs and pages redraw.
+- **Only the roller re-rolls.** `Roll again` carries its roller's Discord id
+  (`su:roll:<table>|<userId>`); anyone else is told, privately, to roll it
+  themselves. Lookup's `Roll on this table` is a first roll and stays open, as
+  do buttons posted before the id was added.
+
 **See table** (`su:table:<table>|<rolls>`) answers privately with the whole
 table and this roll's row marked (`> ▶`, `ROLLED 14 · Alex`). It carries the
 result, so it marks the row on screen, never a new roll. An older message's

@@ -17,7 +17,7 @@ import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from '
 import { attributeRoll } from './commands/rollAttribution.js'
 import type { ContainerData } from './container.js'
 import { toContainer } from './container.js'
-import { parseCustomId } from './customId.js'
+import { decodeRollRequest, parseCustomId } from './customId.js'
 import { d20ForTable } from './dice.js'
 import { entityFromKey, parseViewPayload, patternPeek } from './lookupCard.js'
 
@@ -55,7 +55,7 @@ export async function handleButtonInteraction(
   // rather than rolling again, so what reaches the channel is provably the
   // outcome the player was looking at when they pressed the button.
   if (parsed.action === 'post') {
-    const posted = buildPostedRollMessage(parsed.payload, roller)
+    const posted = buildPostedRollMessage(parsed.payload, roller, interaction.user.id)
     if ('error' in posted) {
       await interaction.reply({ content: posted.error, flags: MessageFlags.Ephemeral })
       return
@@ -118,10 +118,29 @@ export async function handleButtonInteraction(
     return
   }
 
-  const message =
-    parsed.action === 'roll'
-      ? buildRollMessage(parsed.payload, roller, await d20ForTable(parsed.payload))
-      : lookupFromPayload(parsed.payload)
+  // A re-roll belongs to whoever rolled: anyone else is told, privately, how
+  // to roll it themselves. A button with no owner (one posted before this, or
+  // the lookup card's "Roll on this table", a first roll) is open to anyone.
+  const request = parsed.action === 'roll' ? decodeRollRequest(parsed.payload) : null
+  if (request?.ownerId !== undefined && request.ownerId !== interaction.user.id) {
+    await interaction.reply({
+      content: `Only the person who rolled can roll this again. Roll it yourself with \`/su roll table: ${request.tableName}\`.`,
+      flags: MessageFlags.Ephemeral,
+    })
+    return
+  }
+
+  // Always a NEW message: a roll is never redrawn in place, so every roll
+  // stays in the channel's history (and in the Game's log).
+  const message = request
+    ? buildRollMessage(
+        request.tableName,
+        roller,
+        await d20ForTable(request.tableName),
+        false,
+        interaction.user.id
+      )
+    : lookupFromPayload(parsed.payload)
 
   if ('error' in message) {
     await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
@@ -137,9 +156,9 @@ export async function handleButtonInteraction(
   // Change Log quietly disagreed with the channel about what happened at the
   // table — and "why is my re-roll missing?" is a worse question than any this
   // saves. `lookup` is not a roll and is deliberately excluded.
-  if (parsed.action === 'roll' && data !== undefined) {
-    await attributeRoll(interaction, data, `Rolled on ${parsed.payload}`, {
-      rerolled: parsed.payload,
+  if (request && data !== undefined) {
+    await attributeRoll(interaction, data, `Rolled on ${request.tableName}`, {
+      rerolled: request.tableName,
     })
   }
 }

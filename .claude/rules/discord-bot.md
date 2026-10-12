@@ -29,7 +29,7 @@ a reply looks like.
 
 ## What Discord will and will not render
 
-Learned by shipping it and looking — each cost a PR (#976, #977):
+Learned from shipped replies (#976, #977):
 
 - `setAccentColor()` paints the container's **left edge only**. A
   `TextDisplay` is always default text colour, so a glyph "tinted by the tier"
@@ -53,6 +53,8 @@ Learned by shipping it and looking — each cost a PR (#976, #977):
   posting to the channel is the owner's act. `sheetVisibility.test.ts` holds it.
 - A private roll re-renders publicly only from the result encoded in its
   button — never by re-rolling.
+- A roll is always a NEW message, never a redraw; only its roller can
+  re-roll (`encodeRollRequest`).
 
 ## Buttons are permanent
 
@@ -77,5 +79,4 @@ Run `bun --filter discord-bot test`; `src/worker/__tests__/replay.test.ts` drive
 the Worker with signed, Discord-shaped payloads. There is no local loop against
 real Discord: the Interactions Endpoint URL is application-wide, so only the
 deployed Worker receives interactions, and a reply is first seen rendered once
-it ships. The tests prove structure; every rule in "What Discord will and will
-not render" was learned by looking at a shipped reply.
+it ships. The tests prove structure, not rendering.

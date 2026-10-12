@@ -18,7 +18,7 @@ import { ButtonStyle } from 'discord-api-types/v10'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { searchIn } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container.js'
-import { makeCustomId } from './customId.js'
+import { encodeRollRequest, makeCustomId } from './customId.js'
 import { NEUTRAL_ACCENT } from './format.js'
 import { rollHeadline } from './rollContainer.js'
 
@@ -80,10 +80,12 @@ export function unknownTableContainer(query: string, indexed: number): Container
 export function noEffectContainer(
   table: SURefRollTable,
   roll: number,
-  roller?: string
+  roller?: string,
+  /** The roller's Discord id: only they can roll again. */
+  ownerId?: string
 ): ContainerData {
   const name = table.name.toUpperCase()
-  const rerollId = makeCustomId('roll', table.name)
+  const rerollId = makeCustomId('roll', encodeRollRequest(table.name, ownerId))
   const buttons: ButtonSpec[] = rerollId
     ? [{ kind: 'action', customId: rerollId, label: '↻ Roll again', style: ButtonStyle.Primary }]
     : []

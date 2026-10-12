@@ -84,6 +84,24 @@ export function encodeRollResult(tableName: string, rolls: number[]): string {
   return [tableName, ...rolls.map(String)].join('|')
 }
 
+/**
+ * A re-roll REQUEST: the table, and the Discord id of the one person who may
+ * press it — `<table>|<userId>`. Only the person who rolled re-rolls; anyone
+ * else rolls their own with `/su roll`. A bare table name (every button posted
+ * before this, and the lookup card's "Roll on this table", which is a first
+ * roll) carries no owner and stays open to anyone. Table names hold no `|`.
+ */
+export function encodeRollRequest(tableName: string, ownerId?: string): string {
+  return ownerId ? `${tableName}|${ownerId}` : tableName
+}
+
+/** The inverse of {@link encodeRollRequest}. */
+export function decodeRollRequest(payload: string): { tableName: string; ownerId?: string } {
+  const at = payload.lastIndexOf('|')
+  const ownerId = at === -1 ? '' : payload.slice(at + 1)
+  return ownerId ? { tableName: payload.slice(0, at), ownerId } : { tableName: payload }
+}
+
 /** The inverse of {@link encodeRollResult}, or null if the payload is malformed. */
 export function decodeRollResult(payload: string): { tableName: string; rolls: number[] } | null {
   const parts = payload.split('|')
