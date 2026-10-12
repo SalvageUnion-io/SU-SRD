@@ -38,7 +38,7 @@ import { NpcSchema } from 'itun-domain/schemas/npc'
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import type { SURefEntity, SURefNPC } from 'salvageunion-reference'
-import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { npcActionName, npcActionSlug, resolveNpcAction } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
@@ -625,7 +625,8 @@ function TraitPick({
     null
   )
   const detail = useDetailModal(trait ?? undefined)
-  const label = amount === undefined ? type : `${type} (${amount})`
+  const name = displayTitle(type)
+  const label = amount === undefined ? name : `${name} (${amount})`
   return (
     <PickRow label={`Carry ${label}`} carried={carried} onToggle={onToggle}>
       {trait ? (
@@ -706,7 +707,11 @@ function ReferenceAdder({
                     setQuery('')
                   }}
                 >
-                  <span>{has ? `${m.name} — already listed` : `Add ${m.name}`}</span>
+                  <span>
+                    {has
+                      ? `${displayTitle(m.name)} — already listed`
+                      : `Add ${displayTitle(m.name)}`}
+                  </span>
                   <span style={CAPS}>{m.kind}</span>
                 </button>
               </li>

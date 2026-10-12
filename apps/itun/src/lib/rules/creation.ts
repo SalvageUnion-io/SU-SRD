@@ -62,9 +62,9 @@ const OK: StepGateResult = { ok: true }
 
 /**
  * The NPC designer's gates (board N1; issue 1269 §4.1). This is GM-grade tooling
- * (Adjudicate mode, ARCHITECTURE.md § Rules and ITUN surfaces): the designer
- * guides and pre-fills rather than enforcing a build budget, so the only hard
- * gates are a name and HP ≥ 1 — and the template step, which is answered by
+ * (Adjudicate mode, ARCHITECTURE.md#surfaces): the designer guides and
+ * pre-fills rather than enforcing a build budget, so the only hard gates are a
+ * name and HP ≥ 1 — and the template step, which is answered by
  * a template or by "Start blank" (D4).
  *
  * Crawler crew has no HP gate (D2): its HP is fixed by the slot's data, and

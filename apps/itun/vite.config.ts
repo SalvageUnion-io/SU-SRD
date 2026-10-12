@@ -108,7 +108,7 @@ export default defineConfig(({ mode }) => {
         includeAssets: ['favicon.svg'],
         workbox: WORKBOX_OPTIONS,
         manifest: {
-          name: 'ITUN — In The Union Now',
+          name: 'ITUN — In the Union now',
           short_name: 'ITUN',
           // index.html's meta description, verbatim (lib/__tests__/manifestDescription.test.ts).
           description:

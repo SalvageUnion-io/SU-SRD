@@ -1,3 +1,4 @@
+import { PRODUCT } from 'component-lib/product'
 import { v } from 'convex/values'
 import type {
   BindResult,
@@ -72,7 +73,7 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permis
 type Ack = { ok: true }
 
 const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
-  unlinked: 'No In The Union Now account is signed in with this Discord account.',
+  unlinked: `No ${PRODUCT.name} account is signed in with this Discord account.`,
   unbound: 'This channel is not bound to a game.',
   'not-a-member': 'You are not a member of the game bound to this channel.',
   forbidden: 'You do not have permission to do that.',

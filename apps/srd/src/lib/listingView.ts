@@ -11,7 +11,7 @@ export type ListingView = 'list' | 'catalog'
  * but each tile carries a plate of its own (a tech level's numeral), and the
  * tiles are the whole content — so no List view and no toggle.
  */
-export const CATALOG_LISTINGS: ReadonlySet<string> = new Set(['tech-levels'])
+export const CATALOG_LISTINGS: ReadonlySet<string> = new Set(['tech-levels', 'crawler-tech-levels'])
 
 /** A shared link's view: `?view=catalog` or `?view=list`. */
 export const PARAM_VIEW = 'view'

@@ -14,7 +14,7 @@ import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { containerOf } from 'itun-domain/container'
 import type { Pilot } from 'itun-domain/schemas/pilot'
-import { CORE_ROLL_BANDS, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { coreRollBandLabel, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -126,7 +126,7 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
 export function describeResolve(pilotName: string, resolving: SeatResolving): string {
   const head = `${pilotName} is resolving ${resolving.name}`
   if (resolving.roll !== undefined) {
-    const label = CORE_ROLL_BANDS[resolving.roll.band].label
+    const label = coreRollBandLabel(resolving.roll.band)
     const tail = resolving.applied ? ', applied' : ''
     return `${head}: rolled ${resolving.roll.roll}, ${label}${tail}`
   }

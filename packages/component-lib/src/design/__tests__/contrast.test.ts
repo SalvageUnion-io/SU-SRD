@@ -2,15 +2,16 @@ import { describe, expect, test } from 'bun:test'
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCardColors } from '../../components/referenceEntity/card/cardChrome'
-import type { DomainTone } from '../../components/referenceEntity/card/entityCardTone'
+import type { DomainTone, TitleRung } from '../../components/referenceEntity/card/entityCardTone'
 import {
   resolveCardTone,
   resolveSchemaDomain,
+  titleSizeRung,
 } from '../../components/referenceEntity/card/entityCardTone'
 import { onTone } from '../../components/referenceEntity/referenceEntityHelpers'
 import type { Rgb } from '../contrast'
 import { contrastRatio, foregroundOn, resolveColor } from '../contrast'
-import { color } from '../tokens'
+import { color, fontSize, weight } from '../tokens'
 
 /**
  * Card-band contrast guard.
@@ -130,17 +131,43 @@ function everyHeader(): Band[] {
 const ratio = (band: Band) => contrastRatio(band.ground ?? PAPER, FOREGROUND[band.foreground])
 
 /**
- * Headers whose BEST foreground still misses 4.5:1. Neither ink nor paper
- * reaches it on these two book tones; fixing that is re-toning the palette
- * away from the printed book, which this guard does not do. (Crawler pink is
- * not here: its header paints the crawler band, ruleset §3.8.) They clear 3:1,
- * which the header's title — large text at every top-level card size — owes.
- * This list is exact: a tone that starts passing must be deleted from it.
+ * What a header owes is set by its TITLE SIZE, not by its band (WCAG 1.4.3):
+ * large text — 24px, or 18.66px (14pt) bold — owes 3:1, anything smaller
+ * 4.5:1. The title is set extrabold (`EntityCardHeader`), so the bold
+ * threshold is the one that applies.
+ *
+ * Every tone can render at every size and depth, so each band owes what the
+ * SMALLEST title it can carry owes: a small card's 17px title (and every
+ * nested rung below it) is under 18.66px, so every band owes 4.5:1. There is
+ * no per-band exemption: TL3 and Nanite once sat at 3.99:1 and 3.94:1 on the
+ * reasoning that their titles were large at every size, which a small card
+ * disproved, so they were retoned instead.
  */
-const HEADER_SHORTFALL = new Set([
-  'var(--color-tl-3) solid header',
-  'var(--color-tl-n) solid header',
-])
+const LARGE_TEXT_PX = 24
+const LARGE_BOLD_TEXT_PX = 18.66
+const TITLE_WEIGHT = weight.extrabold
+
+const px = (size: string): number => {
+  const m = size.match(/^([\d.]+)px$/)
+  if (!m) throw new Error(`not a px size: ${size}`)
+  return Number(m[1])
+}
+
+/** The ratio WCAG 1.4.3 asks of a title set at this rung. */
+function owedByTitle(rung: TitleRung): number {
+  const size = px(fontSize[rung])
+  const large = size >= LARGE_TEXT_PX || (TITLE_WEIGHT >= weight.bold && size >= LARGE_BOLD_TEXT_PX)
+  return large ? 3 : 4.5
+}
+
+/** Every rung a card title can be set at: each size, at each nesting depth. */
+const TITLE_RUNGS: TitleRung[] = [
+  ...new Set(
+    (['large', 'medium', 'small'] as const).flatMap((size) =>
+      [0, 1, 2, 3, 4, 5, 6].map((depth) => titleSizeRung(depth, size))
+    )
+  ),
+]
 
 describe('card band contrast', () => {
   const header = everyHeader()
@@ -171,14 +198,21 @@ describe('card band contrast', () => {
     expect(banner ? ratio(banner) : 0).toBeGreaterThan(10)
   })
 
-  test('header text clears 4.5:1, bar the recorded shortfalls, which clear 3:1', () => {
-    const below = header.filter((b) => ratio(b) < 4.5)
-    expect(below.map((b) => b.name).sort()).toEqual([...HEADER_SHORTFALL].sort())
-    const underLarge = below
-      .filter((b) => ratio(b) < 3)
-      .map((b) => `${b.name}: ${ratio(b).toFixed(2)}`)
-    expect(underLarge).toEqual([])
+  test('a small card’s title is under the large-text threshold, so owes 4.5:1', () => {
+    expect(px(fontSize[titleSizeRung(0, 'small')])).toBeLessThan(LARGE_BOLD_TEXT_PX)
+    expect(owedByTitle(titleSizeRung(0, 'small'))).toBe(4.5)
+    expect(owedByTitle(titleSizeRung(0, 'large'))).toBe(3)
   })
+
+  for (const rung of TITLE_RUNGS) {
+    test(`header text clears what a ${fontSize[rung]} title owes on every band`, () => {
+      const owed = owedByTitle(rung)
+      const short = header
+        .filter((b) => ratio(b) < owed)
+        .map((b) => `${b.name}: ${ratio(b).toFixed(2)} < ${owed}`)
+      expect(short).toEqual([])
+    })
+  }
 })
 
 /**

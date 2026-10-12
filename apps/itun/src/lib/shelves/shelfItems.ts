@@ -227,14 +227,25 @@ export function encounterNpcReading(
 }
 
 /**
- * Who can see an NPC: nobody but you while it is on your shelf; the table, once
- * it is moved into a Game. A Game this viewer cannot name is just "a Game".
+ * The chip a pilot, mech or crawler anyone with the link may read carries
+ * (`shelf.sharedByLink`): the words a pattern shared by link wears.
+ */
+export function linkChip(sharedByLink: readonly string[] | undefined, id: string): ShelfChip[] {
+  return sharedByLink?.includes(id) ? [{ key: 'link', label: 'Shared by link' }] : []
+}
+
+/**
+ * Who can see an NPC: anyone with the link once its owner shares it so; else
+ * nobody but you while it is on your shelf, and the table once it is moved into
+ * a Game. A Game this viewer cannot name is just "a Game".
  */
 export function npcChips(args: {
   npc: Pick<Npc, 'gameId'>
   games: readonly ShelfGame[] | undefined
+  sharedByLink?: boolean
 }): ShelfChip[] {
   const { npc } = args
+  if (args.sharedByLink) return [{ key: 'who', label: 'Shared by link' }]
   if (typeof npc.gameId !== 'string') return [{ key: 'who', label: 'Only me' }]
   const game = args.games?.find((g) => g._id === npc.gameId)
   return [{ key: 'who', label: game ? `Shared with ${game.name}` : 'Shared with a Game' }]

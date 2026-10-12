@@ -91,7 +91,11 @@
   /* Tech Level Blues */
   --color-tl-1: rgb(115, 201, 230);
   --color-tl-2: rgb(87, 169, 200);
-  --color-tl-3: rgb(68, 135, 162);
+  /* TL3 and Nanite are retoned one step from 68,135,162 and 146,109,184, on
+     which neither ink nor paper reached 4.5:1, so a small card's 17px title
+     fell short. TL3 is lifted until ink clears 4.5:1 and Nanite deepened
+     until paper does (design/__tests__/contrast.test.ts). */
+  --color-tl-3: rgb(83, 145, 169);
   --color-tl-4: rgb(48, 107, 128);
   --color-tl-5: rgb(30, 83, 100);
   --color-tl-6: rgb(6, 52, 65);
@@ -100,7 +104,7 @@
      interpolation stays case-stable — CSS custom-property names are
      case-sensitive. */
   --color-tl-b: rgb(86, 156, 104);
-  --color-tl-n: rgb(146, 109, 184);
+  --color-tl-n: rgb(134, 100, 169);
 
   /* Entity colors (semantic) — hue encodes ontology (ruleset §3/§4.1).
      These hold their literal values; nothing aliases a brand name. */

@@ -8,6 +8,7 @@ import type { HeaderFill } from './cardChrome'
 import type { CardGrain } from './cardGrain'
 import { grainStyle } from './cardGrain'
 import { EntityCardStatBox } from './EntityCardStatBox'
+import type { CardTitleTag } from './referenceEntityCardTypes'
 
 type EntityCardHeaderProps = {
   title: string
@@ -22,8 +23,8 @@ type EntityCardHeaderProps = {
   titleColor?: string
   /** Write layer: a full replacement node for the title. */
   titleSlot?: ReactNode
-  /** SEO: render the title as an `h1` (item pages) instead of the default `span`. */
-  titleAs?: 'span' | 'h1'
+  /** The title's element (`ReferenceEntityCardProps.titleAs`); default `span`. */
+  titleAs?: CardTitleTag
   /** An ability's tier numeral, at the left of the ink banner (title size, dimmed). */
   numeral?: string
   /** The value cells, after the title. */

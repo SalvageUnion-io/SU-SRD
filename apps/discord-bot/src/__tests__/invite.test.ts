@@ -88,12 +88,12 @@ function run(options: Parameters<typeof fakeExecute>[0] = {}) {
 }
 
 describe('/su invite', () => {
-  test('with In The Union Now unavailable it explains itself, privately', async () => {
+  test('with In the Union now unavailable it explains itself, privately', async () => {
     const fake = run()
     await inviteCommand.execute(fake.interaction)
 
     expect(fake.deferred).toEqual({ called: true, ephemeral: true })
-    expect(fake.edits[0]?.content).toContain('In The Union Now is not configured')
+    expect(fake.edits[0]?.content).toContain('In the Union now is not configured')
     expect(fake.directMessages).toHaveLength(0)
   })
 

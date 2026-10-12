@@ -309,9 +309,10 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
     )
 
     await act(async () => {
-      // SP is a VitalGauge now: clicking the top-lit segment (index 4 =
-      // "Set SP to 5") steps SP 5 → 4 (pipClickValue click-to-set).
-      fireEvent.click(screen.getByRole('button', { name: 'Set SP to 5' }))
+      // SP is a VitalGauge: clicking the top-lit segment (index 4) steps
+      // SP 5 → 4 (pipClickValue click-to-set) through the track's slider.
+      const sp = screen.getByRole('slider', { name: 'SP' })
+      fireEvent.click(must(sp.querySelector('[data-pip-index="4"]')))
     })
 
     expect(captured.length).toBe(1)

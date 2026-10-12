@@ -72,7 +72,7 @@
   max-width: 80vw;
 }
 
-/* ShareStatusDialog + PublicSheetPanel. */
+/* ShareStatusDialog + ShareSettings (components/sharing). */
 .su-sheet-share-dialog {
   max-width: 36rem;
 }

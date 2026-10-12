@@ -1,5 +1,13 @@
-import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { findEntityBySlug, getAssetUrl, getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
+import { PRODUCT } from 'component-lib/product'
+import type { ItemCondition, SURefEnumSchemaName } from 'salvageunion-reference'
+import {
+  CONDITION_LABELS,
+  findEntityBySlug,
+  getAssetUrl,
+  getEntitySlug,
+  STAT_LABELS,
+  srdEntityUrl,
+} from 'salvageunion-reference'
 import {
   mechMaxHeat,
   mechMaxSP,
@@ -66,7 +74,12 @@ const CRITICAL = ROLL_COLORS.cascade
  */
 export const ITUN_ORIGIN = 'https://salvageunion.io/build'
 
-const FOOTER = 'In The Union Now'
+const FOOTER = PRODUCT.name
+
+/** The stats' short names, from the reference vocabulary the sheets print. */
+const HP = STAT_LABELS.hitPoints.short
+const SP = STAT_LABELS.structurePoints.short
+const HEAT = STAT_LABELS.heatCapacity.short
 
 /**
  * Read a number off an opaque body, trying each name in order.
@@ -294,7 +307,7 @@ export function denialMessage(
   switch (reason) {
     case 'unlinked':
       return [
-        '**You don’t have an In The Union Now account yet.**',
+        `**You don’t have an ${PRODUCT.name} account yet.**`,
         '',
         'Sign in with this same Discord account and the bot will recognise you here',
         'automatically — there’s nothing to copy across and no code to enter.',
@@ -335,7 +348,7 @@ function gameLines(games: GameSummary[], webUrl: string, currentGameId?: string)
 /** `/su me` — who the bot thinks you are, and what you are part of. */
 export function meCard(me: MeResult, webUrl: string, currentGameId?: string): ContainerData {
   return entityCard({
-    title: `${me.user.displayName} — In The Union Now`,
+    title: `${me.user.displayName} — ${PRODUCT.name}`,
     url: `${webUrl.replace(/\/+$/, '')}/account`,
     accent: NEUTRAL,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
@@ -415,7 +428,7 @@ function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: str
       sheetUrl(webUrl, 'pilots', pilot.id)
     )
     lines.push(`**${pilotName}**${dead ? ' ✖' : ''}`)
-    lines.push(`HP ${gauge(stats.hp, stats.maxHp)}`)
+    lines.push(`${HP} ${gauge(stats.hp, stats.maxHp)}`)
     lines.push(`AP ${gauge(stats.ap, stats.maxAp)}`)
   }
   for (const mech of mechs) {
@@ -424,8 +437,8 @@ function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: str
     const overheated = stats.heat !== null && stats.maxHeat > 0 && stats.heat >= stats.maxHeat
     const mechName = maybeLink(str(mech.body, 'name') ?? 'Mech', sheetUrl(webUrl, 'mechs', mech.id))
     lines.push(`${mechName}${destroyed ? ' ✖' : ''}`)
-    lines.push(`SP ${gauge(stats.sp, stats.maxSp)}`)
-    lines.push(`HT ${gauge(stats.heat, stats.maxHeat, '▲')}${overheated ? ' ⚠' : ''}`)
+    lines.push(`${SP} ${gauge(stats.sp, stats.maxSp)}`)
+    lines.push(`${HEAT} ${gauge(stats.heat, stats.maxHeat, '▲')}${overheated ? ' ⚠' : ''}`)
   }
   return lines.length > 0 ? lines.join('\n') : '_Nothing yet._'
 }
@@ -596,8 +609,6 @@ function refArtwork(schemaName: SURefEnumSchemaName, slug: string | null): strin
 }
 
 /** Item condition as stored per-slug on a mech body. */
-type ItemCondition = 'intact' | 'damaged' | 'destroyed'
-
 function conditionOf(body: EntityBody, key: string, slug: string): ItemCondition {
   const map = body[key]
   if (map === null || typeof map !== 'object') return 'intact'
@@ -625,8 +636,9 @@ function collectionLines(
       const link = refLink(schemaName, slug)
       if (body === undefined || conditionKey === undefined) return link
       const condition = conditionOf(body, conditionKey, slug)
-      if (condition === 'damaged') return `${link} · damaged`
-      if (condition === 'destroyed') return `~~${link}~~ · destroyed`
+      const word = CONDITION_LABELS[condition].toLowerCase()
+      if (condition === 'damaged') return `${link} · ${word}`
+      if (condition === 'destroyed') return `~~${link}~~ · ${word}`
       return link
     })
     .join('\n')
@@ -673,7 +685,7 @@ function pilotSheet(body: EntityBody): RenderedSheet {
   const stats = pilotStats(body)
   const classRef = str(body, 'classRef')
   const fields: CardField[] = [
-    { name: 'HP', value: gauge(stats.hp, stats.maxHp), inline: true },
+    { name: HP, value: gauge(stats.hp, stats.maxHp), inline: true },
     { name: 'AP', value: gauge(stats.ap, stats.maxAp), inline: true },
     { name: 'Class', value: refName('classes', classRef), inline: true },
   ]
@@ -711,8 +723,8 @@ function mechSheet(body: EntityBody): RenderedSheet {
   const stats = mechStats(body)
   const chassisRef = str(body, 'chassisRef')
   const fields: CardField[] = [
-    { name: 'SP', value: gauge(stats.sp, stats.maxSp), inline: true },
-    { name: 'Heat', value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
+    { name: SP, value: gauge(stats.sp, stats.maxSp), inline: true },
+    { name: HEAT, value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
     { name: 'Chassis', value: refName('chassis', chassisRef), inline: true },
   ]
 
@@ -731,7 +743,7 @@ function mechSheet(body: EntityBody): RenderedSheet {
   const status = chipRun([
     body.shutdown === true ? 'Shutdown' : '',
     body.vulnerable === true ? 'Vulnerable' : '',
-    body.destroyed === true ? 'Destroyed' : '',
+    body.destroyed === true ? CONDITION_LABELS.destroyed : '',
     ...strArray(body, 'conditions'),
   ])
   if (status !== null) fields.push({ name: 'Status', value: status, inline: true })
@@ -760,7 +772,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   const sp = num(body, 'currentSP', 'currentSp')
   const maxSp = num(body, 'maxSpOverride')
   fields.push({
-    name: 'SP',
+    name: SP,
     value: maxSp === null ? (sp === null ? '—' : String(sp)) : gauge(sp, maxSp),
     inline: true,
   })

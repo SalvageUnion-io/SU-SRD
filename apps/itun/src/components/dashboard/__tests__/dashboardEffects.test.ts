@@ -37,7 +37,7 @@ describe('activatableEffects', () => {
 
   test('summarises a fromStat amount without inventing a number', () => {
     const [effect] = activatableEffects({ systems: [], modules: ['hull-magnetiser'] }, undefined)
-    expect(effect?.summary).toContain('systemSlots')
+    expect(effect?.summary).toBe("Cargo Capacity by this Mech's System Slots")
   })
 
   test('an empty loadout offers nothing to switch on', () => {

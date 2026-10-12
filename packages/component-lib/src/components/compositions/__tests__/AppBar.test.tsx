@@ -20,7 +20,7 @@ describe('AppBar', () => {
     render(<AppBar product="reference" referenceHref="/" buildHref="https://itun.example/" />)
     const home = screen.getByRole('link', { name: 'Salvage Union' })
     expect(home.getAttribute('href')).toBe('/')
-    expect(home.textContent).toContain('SalvageUnion.io')
+    expect(home.textContent).toContain('salvageunion.io')
   })
 
   test('the switcher: the product you are in is the current tab; the other is same-tab', () => {

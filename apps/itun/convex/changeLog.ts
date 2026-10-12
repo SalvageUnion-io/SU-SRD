@@ -5,6 +5,7 @@ import { displayNameOf } from './model/bot'
 import type { LoggedTable } from './model/entities'
 import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
+import { changeLogEntityType, entityRefType } from './schema'
 
 /** The table each sheet kind's row lives in. */
 const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc: 'npcs' } as const
@@ -37,14 +38,7 @@ export const appendChangeLog = mutation({
     entries: v.array(
       v.object({
         gameId: v.union(v.id('games'), v.null()),
-        entityType: v.union(
-          v.literal('pilot'),
-          v.literal('mech'),
-          v.literal('crawler'),
-          v.literal('npc'),
-          v.literal('softLink'),
-          v.literal('game')
-        ),
+        entityType: changeLogEntityType,
         entityId: v.string(),
         ts: v.number(),
         kind: v.union(v.literal('transaction'), v.literal('override'), v.literal('manual')),
@@ -198,21 +192,18 @@ const MAX_ENTITY_ROWS = 100
  * written before every writer used it name the entity by its row id, so both
  * are read.
  *
- * Read off `by_entity_state_field`, whose `field` column sits between the key
- * and the time, so the newest `MAX_ENTITY_ROWS` are found by reading the
- * entity's applied and proposed rows and sorting, not by a range scan.
+ * Read off `by_entity_state_ts`: each stream — one id, one state — yields its
+ * newest `MAX_ENTITY_ROWS` in order, and the newest `MAX_ENTITY_ROWS` overall
+ * are among those, so merging the streams and cutting the sorted result is
+ * exact. Every write appends a row, so a read that collected the entity's
+ * history would grow all campaign toward Convex's per-query read limits.
  *
  * Its owner reads it, and so does a member of the Game it is in. An entity the
  * server has no row for has no history here yet, and reads as empty.
  */
 export const forEntity = query({
   args: {
-    entityType: v.union(
-      v.literal('pilot'),
-      v.literal('mech'),
-      v.literal('crawler'),
-      v.literal('npc')
-    ),
+    entityType: entityRefType,
     entityId: v.string(),
   },
   handler: async (ctx, args) => {
@@ -229,8 +220,9 @@ export const forEntity = query({
       (['applied', 'proposed'] as const).map((state) =>
         ctx.db
           .query('changeLog')
-          .withIndex('by_entity_state_field', (q) => q.eq('entityId', entityId).eq('state', state))
-          .collect()
+          .withIndex('by_entity_state_ts', (q) => q.eq('entityId', entityId).eq('state', state))
+          .order('desc')
+          .take(MAX_ENTITY_ROWS)
       )
     )
     const rows = (await Promise.all(reads))

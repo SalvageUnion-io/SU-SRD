@@ -7,9 +7,11 @@
  * `Route` (`routes/__tests__/routeExports.test.ts`).
  */
 
-export const SITE_TITLE = 'In The Union Now'
+import { PRODUCT } from 'component-lib/product'
 
-/** `<prefix> · In The Union Now`, or the bare site name with no prefix. */
+export const SITE_TITLE = PRODUCT.name
+
+/** `<prefix> · <product name>`, or the bare site name with no prefix. */
 export function pageTitle(prefix?: string | null): string {
   return prefix ? `${prefix} · ${SITE_TITLE}` : SITE_TITLE
 }

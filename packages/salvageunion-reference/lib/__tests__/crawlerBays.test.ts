@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index'
+import { bayKind } from '../view/parts/kind'
 
 /**
  * The `expansion` data tag distinguishes base crawler facilities (pre-installed
@@ -24,13 +25,25 @@ describe('CrawlerBays expansion tag', () => {
     expect(tagged).toEqual([...EXPANSION_BAY_NAMES].sort())
   })
 
-  it('leaves base facilities untagged (expansion absent/false)', () => {
+  it('tags the base facilities expansion: false, so every bay carries the tag', () => {
     const baseBays = SalvageUnionReference.CrawlerBays.all().filter(
       (bay) => !EXPANSION_BAY_NAMES.includes(bay.name)
     )
-    expect(baseBays.length).toBeGreaterThan(0)
+    expect(baseBays.length).toBe(10)
     for (const bay of baseBays) {
-      expect(bay.expansion ?? false).toBe(false)
+      expect(bay.expansion).toBe(false)
     }
+  })
+
+  it('reads the tag as the bay kind: Standard or Expansion', () => {
+    const kinds = Object.fromEntries(
+      SalvageUnionReference.CrawlerBays.all().map((bay) => [bay.name, bayKind(bay)])
+    )
+    expect(kinds['Med Bay']).toBe('Standard')
+    expect(kinds.Cantina).toBe('Standard')
+    expect(kinds['VR Tubes']).toBe('Expansion')
+    expect(kinds['Bio-Mech Bay']).toBe('Expansion')
+    const chassis = SalvageUnionReference.Chassis.all()[0]
+    expect(chassis && bayKind(chassis)).toBeUndefined()
   })
 })

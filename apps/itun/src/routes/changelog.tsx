@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Changelog, ChapterBand } from 'component-lib'
 import { borderWidth, color, font, fontSize, space } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 import { pageTitle } from '../lib/pageTitle'
 
@@ -46,7 +47,7 @@ function ChangelogPage() {
       <div style={COLUMN}>
         <header style={HEADER}>
           <ChapterBand>Changelog</ChapterBand>
-          <p style={LEDE}>What's new in In the Union Now.</p>
+          <p style={LEDE}>What's new in {PRODUCT.name}.</p>
         </header>
 
         <Changelog entries={__ITUN_CHANGELOG__} />

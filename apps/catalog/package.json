@@ -5,8 +5,8 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "dev": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && vite",
-    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
+    "dev": "su-ref-generate && vite",
+    "typecheck": "tsc -b",
     "test": "bun test --parallel=4 --no-isolate",
     "stories:ids": "bun listStories.ts"
   },
@@ -19,5 +19,8 @@
     "react-dom": "catalog:",
     "salvageunion-reference": "workspace:*",
     "srd": "workspace:*"
+  },
+  "devDependencies": {
+    "gates": "workspace:*"
   }
 }

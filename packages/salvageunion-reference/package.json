@@ -4,6 +4,9 @@
   "private": true,
   "description": "Comprehensive, schema-validated JSON dataset and TypeScript ORM for the Salvage Union tabletop RPG",
   "type": "module",
+  "bin": {
+    "su-ref-generate": "./tools/ensureGenerated.ts"
+  },
   "main": "./lib/index.ts",
   "types": "./lib/index.ts",
   "exports": {
@@ -14,6 +17,10 @@
     "./rules": {
       "types": "./lib/rules/index.ts",
       "default": "./lib/rules/index.ts"
+    },
+    "./proseDeviations": {
+      "types": "./lib/proseDeviations.ts",
+      "default": "./lib/proseDeviations.ts"
     },
     "./zod": {
       "types": "./lib/zod.ts",

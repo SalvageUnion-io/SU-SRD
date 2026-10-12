@@ -14,8 +14,9 @@ import { pageTitle } from '../../../lib/pageTitle'
  * A non-public sheet and a nonexistent one are the same page on purpose —
  * "this exists but is private" is itself a disclosure.
  *
- * `kind` is `pilot`, `mech` or `crawler` — or `pattern`, a saved mech pattern
- * its maker shared (issue 1276), which `PublicSheetView` routes to its own page.
+ * `kind` is `pilot`, `mech`, `crawler` or `npc` — or `pattern`, a saved mech
+ * pattern its maker shared (issue 1276). `PublicSheetView` routes a pattern and
+ * an NPC to their own pages.
  *
  * The page body is `PublicSheetView` (`components/sheet/PublicSheetView.tsx`).
  * This file exports only `Route` so `autoCodeSplitting` can keep the sheet

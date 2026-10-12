@@ -220,5 +220,5 @@ carrier (a prose span) alongside it.
   stay pure and side-effect-free.
 - [ADR-010](../ARCHITECTURE.md#decisions) — the Frozen end of the
   display contract.
-- [Rules and ITUN surfaces](../ARCHITECTURE.md#areas)
+- [Rules and ITUN surfaces](../ARCHITECTURE.md#surfaces)
   — the authoritative mode × rule-class matrix.
