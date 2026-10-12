@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useContext, useState } from 'react'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
@@ -7,13 +7,12 @@ import { Entity } from '../../../entity/Entity'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import type { EntityMode } from '../../../entity/types'
 import { Button } from '../../atoms/Button'
-import { Slab } from '../../atoms/Slab'
 import type { CardSize } from '../../containers/displayMode'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import { cardKey, nestedTitleLevel } from './cardHelpers'
+import { cardKey, stackedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type {
   NestedCard,
@@ -30,7 +29,7 @@ export type NestedCardHost = {
   /** The host's size: a child renders medium, or small inside a small card. */
   size: CardSize
   isDown: boolean
-  /** The host IS the page: its trays drop the frame inset (see `CardTray`). */
+  /** The host IS the page: its stacks drop the frame inset (see `CardStack`). */
   onPage?: boolean
   /** The host's display name (lets a nested action drop its ` (Host)` suffix). */
   entityName: string
@@ -55,55 +54,42 @@ export type NestedWrite = {
   hide: ReferenceEntityCardHideConfig | undefined
 }
 
-/** The tray's inset from the frame, by the host's size (board E2). */
-const TRAY_MARGIN: Record<CardSize, string> = {
+/** A stack's inset from the frame, by the host's size (board E2). */
+const STACK_MARGIN: Record<CardSize, string> = {
   large: `${space[4]} ${space[14]} ${space[14]}`,
   medium: `${space[2]} ${space[10]} ${space[10]}`,
   small: `${space[2]} ${space[8]} ${space[8]}`,
 }
 
-const tray = (size: CardSize, flush: boolean): CSSProperties => ({
-  backgroundColor: 'var(--color-wk-bg)',
-  // Its own formatting context: beside a page's floated art the whole tray
-  // narrows, rather than its ground running under the image.
-  display: 'flow-root',
-  border: 'var(--bw-hairline) solid var(--color-ink-20)',
-  borderRadius: 'var(--radius-card)',
-  margin: flush ? 0 : TRAY_MARGIN[size],
-  padding: space[10],
+/**
+ * A bare stack of nested cards, inset from the frame: no ground and no head.
+ * A flex box is its own formatting context, so beside a page's floated art it
+ * narrows rather than running under the image.
+ */
+const stack = (size: CardSize, flush: boolean): CSSProperties => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[14],
+  margin: flush ? 0 : STACK_MARGIN[size],
 })
 
-/** The tray's cards, stacked under its head (the Slab keeps its own margin). */
-const TRAY_STACK: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[14] }
-
 /**
- * A TRAY of nested cards (board E2): a recessed tray in the page colour,
- * inside the parent's frame, headed by the section `Slab` — the ink stamp
- * naming the group, then the dashed leader (ruleset §3.2: slabs
- * section). Containment and the type stamp show the nesting; there is no
- * indent and no rail (ruleset §3.10).
+ * Nested cards that each wear their own type stamp (or GRANTS seal) — a
+ * System, a Module, an NPC, a Drone, a Pattern. A tray headed "Systems" or
+ * "NPC" would only repeat that stamp, so they stack in the parent's frame
+ * without one (board E2). Containment and the stamp show the nesting; there
+ * is no indent and no rail (ruleset §3.10).
  */
-export function CardTray({
-  label,
+export function CardStack({
   size,
-  as,
   flush = false,
   children,
 }: {
-  label: string
   size: CardSize
-  /** A real heading when the card IS the page (`sectionHeadingLevel`). */
-  as?: ElementType
-  /** On a page there is no frame to inset from: the tray spans the column. */
   flush?: boolean
   children: ReactNode
 }) {
-  return (
-    <div style={tray(size, flush)}>
-      <Slab variant="solid" as={as} label={label} />
-      <div style={TRAY_STACK}>{children}</div>
-    </div>
-  )
+  return <div style={stack(size, flush)}>{children}</div>
 }
 
 /** Children inside a Peek: one read-only Token each, on a wrapping line (E16). */
@@ -123,7 +109,7 @@ function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
 }
 
 /**
- * A list of nested cards, stacked in their tray. Depth 1 renders the full
+ * A list of nested cards, stacked. Depth 1 renders the full
  * medium card; from depth 2 a child is a one-line head row that opens the
  * entity rather than expanding in place (board E2).
  */
@@ -153,8 +139,8 @@ export function NestedCardList({
         hostDown={host.isDown}
         data={nested}
         parentSeal={seal}
-        // On a page, a heading under its tray's section band.
-        titleAs={nestedTitleLevel(host.onPage)}
+        // On a page, a section heading of its own: no band stands above it.
+        titleAs={stackedTitleLevel(host.onPage)}
         hostName={host.entityName}
         chassisName={host.chassisName}
         shownProse={host.shownProse}
@@ -204,36 +190,32 @@ export function NestedRow({ data, host }: { data: ReferenceCardEntity; host: Nes
 }
 
 /**
- * A labelled group of nested entities in its tray. Grants also stamp a GRANTS
- * seal on each card (the granting ability's own actions belong to the granted
- * card).
+ * A group of nested entities — Systems, Modules, NPCs, Grants — stacked with
+ * no tray: each card's own stamp names it. Grants also stamp a GRANTS seal on
+ * each card (the granting ability's own actions belong to the granted card).
  */
 export function NestedCardGroup({
-  label,
   entities,
   seal,
-  sectionAs,
   host,
   write,
 }: {
-  label: string
   entities: ReferenceCardEntity[]
   seal?: { label: string; tone: string }
-  sectionAs: ElementType | undefined
   host: NestedCardHost
   write?: NestedWrite
 }) {
   if (entities.length === 0) return null
   return (
-    <CardTray label={label} size={host.size} as={sectionAs} flush={host.onPage}>
+    <CardStack size={host.size} flush={host.onPage}>
       <NestedCardList entities={entities} seal={seal} host={host} write={write} />
-    </CardTray>
+    </CardStack>
   )
 }
 
 /**
  * DRONE — a chassis controls a drone (named by a chassis ability); a pattern
- * specifies one or several. Each renders as a drone card in a Drone tray, and
+ * specifies one or several. Each renders as a drone card (no tray), and
  * its systems + modules render INSIDE that card (via `droneLoadout`).
  */
 export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: NestedCardHost }) {
@@ -242,9 +224,9 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
   if (drones.length === 0) return null
   if (insidePeek) {
     return (
-      <CardTray label={drones.length === 1 ? 'Drone' : 'Drones'} size={host.size}>
+      <CardStack size={host.size}>
         <PeekTokens entities={drones.map((info) => info.drone)} />
-      </CardTray>
+      </CardStack>
     )
   }
   const cards = drones.map((droneInfo, index) => (
@@ -260,17 +242,15 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
       // block it rides on ('Big Brother Drone') still supplies every stat,
       // trait and content block below.
       titleOverride={droneInfo.instanceName}
+      titleAs={stackedTitleLevel(host.onPage)}
       droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
     />
   ))
-  // On a page the drone card's own type stamp says what it is: no tray, no
-  // "Drone" slab around it. With no section band holding it, its title stays a
-  // span (`nestedTitleLevel` is for a card under a band's h2).
-  if (host.onPage) return <div style={TRAY_STACK}>{cards}</div>
+  // The drone card's own type stamp says what it is: no tray, no "Drone" slab.
   return (
-    <CardTray label={drones.length === 1 ? 'Drone' : 'Drones'} size={host.size}>
+    <CardStack size={host.size} flush={host.onPage}>
       {cards}
-    </CardTray>
+    </CardStack>
   )
 }
 

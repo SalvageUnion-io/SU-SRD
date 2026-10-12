@@ -56,9 +56,10 @@ export { isTitanicAction } from 'salvageunion-reference'
  * (`nestedTitleLevel`). An entity page lists what the entity carries — a
  * chassis's systems, a page's actions — and a screen-reader user has to be able
  * to jump between them, not only between the sections that hold them (WCAG
- * 1.3.1, 2.4.6). Only a card a band's `h2` holds gets the `h3`: the chassis
- * ability (beneath the stats, under the page's `h1`) and a page's drone (no
- * tray) keep spans, since an `h3` there would skip a level.
+ * 1.3.1, 2.4.6). A card a band's `h2` holds gets the `h3`; a nested entity
+ * stacked with no band above it (a System, an NPC, a Drone — its own stamp
+ * names it) is a section itself, an `h2` (`stackedTitleLevel`). The chassis
+ * ability, beneath the stats under the page's `h1`, keeps a span.
  *
  * Two things still stay spans:
  *
@@ -86,6 +87,15 @@ export function sectionHeadingLevel(titleAs: CardTitleTag | undefined): 'h2' | u
  */
 export function nestedTitleLevel(hostOnPage: boolean | undefined): 'h3' | undefined {
   return hostOnPage ? 'h3' : undefined
+}
+
+/**
+ * The element a STACKED nested card's title renders as — one no band holds
+ * (`CardStack`): an `h2` when its host IS the page, a section of its own under
+ * the page's `h1`; otherwise the header's default `span`.
+ */
+export function stackedTitleLevel(hostOnPage: boolean | undefined): 'h2' | undefined {
+  return hostOnPage ? 'h2' : undefined
 }
 
 /** React key for a nested card. */
