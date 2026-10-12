@@ -81,7 +81,7 @@ renders exactly one placeholder:
 ```
 
 - **Four client strategies** (`data-client`): `load` and `only` mount immediately, `idle` via
-  `requestIdleCallback` (fallback `setTimeout(…, 200)`), `visible` via
+  `requestIdleCallback` (2 s timeout), `visible` via
   `IntersectionObserver` on first intersection.
 - **Mounting is always `createRoot`, never `hydrateRoot`**
   (`src/runtime/islands.client.ts`). `useGameData`'s server snapshot is hardcoded
