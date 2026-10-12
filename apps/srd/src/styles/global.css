@@ -236,8 +236,10 @@ body {
     color: inherit;
   }
   /* Browsers strip backgrounds when printing, so light-on-dark labels
-     (pseudoheaders, NPC name spans) would print white-on-white. Force dark. */
-  main .text-paper {
+     (pseudoheaders, NPC name spans) would print white-on-white. Force dark.
+     `.srd-print-ink` marks the srd ones whose paper text is a style object. */
+  main .text-paper,
+  main .srd-print-ink {
     /* biome-ignore lint/complexity/noImportantStyles: must out-rank the Tailwind utility it deliberately inverts for print */
     color: #000 !important;
   }

@@ -1751,3 +1751,81 @@
   right: calc(100% - var(--space-20));
   top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
 }
+
+/*
+ * The site chrome's and the document pages' stateful parts — the hover,
+ * breakpoint and descendant rules a style object cannot express (tailwind-
+ * removal plan §4.1). Everything static on those elements is a style object in
+ * the component or page. The hovers sit behind `(hover: hover)`, exactly as
+ * the Tailwind `hover:` variants they replace did, so a tap never leaves one
+ * stuck on a touch screen.
+ */
+
+/* `MobileSearchDialog`: the bar's magnifier, a paper wash on the ink bar. */
+@media (hover: hover) {
+  .srd-mobile-search__trigger:hover {
+    background-color: var(--color-paper-15);
+  }
+}
+
+/* `MobileSearchIsland`: the sheet's field fills the sheet, over the bar's
+   fixed width below (a descendant rule, so it outranks that class). */
+.srd-mobile-search__body input {
+  width: 100%;
+}
+
+/* `SearchIsland`: the Union bar's field, a fixed 14rem — a class rather than
+   inline so the sheet above can widen it. */
+.srd-search__input {
+  width: 14rem;
+}
+
+/* A category result in the search dropdown. */
+.srd-search__category {
+  transition-duration: 150ms;
+  transition-property:
+    color, background-color, border-color, outline-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .srd-search__category:hover {
+    background-color: var(--color-wk-bg);
+  }
+}
+
+/* `/about`: the map lightbox (a native `<dialog>`) — its scrim, its close
+   button's ground, its credit link's underline. */
+.srd-about-lightbox::backdrop {
+  background-color: color-mix(in oklab, var(--color-ink) 70%, transparent);
+}
+
+.srd-about-lightbox__close {
+  background-color: var(--color-ink);
+}
+
+@media (hover: hover) {
+  .srd-about-lightbox__close:hover {
+    background-color: var(--color-ink-2);
+  }
+
+  .srd-about-lightbox__credit:hover {
+    text-decoration-line: underline;
+  }
+}
+
+/* `/api`: the schema table's Panel clips the table to its frame, and the
+   description column is dropped below 40rem. */
+.srd-api__schemas {
+  overflow: hidden;
+}
+
+.srd-api__wide-cell {
+  display: none;
+}
+
+@media (min-width: 40rem) {
+  .srd-api__wide-cell {
+    display: table-cell;
+  }
+}
