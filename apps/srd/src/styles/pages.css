@@ -560,23 +560,39 @@
   color: var(--color-ink);
   display: inline-flex;
   font-family: var(--font-cond);
-  font-size: var(--text-sm);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-snug);
   line-height: 1;
+  /* The band's other stamps' height (`.srd-entity-stamp`, the stat column). */
+  min-height: 40px;
   text-decoration: none;
   text-transform: uppercase;
 }
 
 .srd-parent-link__label {
+  align-items: center;
   background-color: var(--color-ink);
   color: var(--color-paper);
-  padding: var(--space-6) var(--space-8);
+  display: flex;
+  padding-inline: var(--space-8);
 }
 
 .srd-parent-link__name {
+  align-items: center;
   background-color: var(--color-paper);
-  padding: var(--space-6) var(--space-10);
+  display: flex;
+  padding-inline: var(--space-10);
+}
+
+@media (min-width: 40rem) {
+  .srd-parent-link {
+    font-size: var(--text-sm);
+  }
+
+  .srd-parent-link__label {
+    padding-inline: var(--space-12);
+  }
 }
 
 .srd-parent-link:hover .srd-parent-link__name,
