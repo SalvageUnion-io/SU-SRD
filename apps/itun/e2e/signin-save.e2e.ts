@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { buildPilot, gotoStable, waitForReady } from './_helpers'
 import { expect, requireSeam, seamIsPresent, signInFresh, test } from './fixtures'
 
@@ -45,7 +46,7 @@ test.use({ account: 'anonymous' })
 test('a signed-out visitor is asked to sign in, and what they build then is saved', async ({
   page,
 }, testInfo) => {
-  await page.goto('/')
+  await page.goto(at('/'))
   await waitForReady(page)
 
   // Skips in an ordinary build, THROWS in a run that provisioned the seam —

@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { at } from './_base'
 import { advanceUntilVisible, editSheet, fillIdentity, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -9,7 +10,7 @@ import { expect, test } from './fixtures'
  * Next clicks.
  */
 async function buildIronWagon(page: Page): Promise<void> {
-  await page.goto('/crawlers/new?mode=guided')
+  await page.goto(at('/crawlers/new?mode=guided'))
   await waitForReady(page)
 
   // Crawler Type — one entity card per type.
@@ -31,7 +32,7 @@ async function buildIronWagon(page: Page): Promise<void> {
   const createCrawler = page.getByRole('button', { name: /Create Crawler/i })
   await advanceUntilVisible(page, createCrawler)
   await createCrawler.click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === at('/'), { timeout: 15_000 })
   await waitForReady(page)
 }
 

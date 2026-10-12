@@ -99,9 +99,10 @@ jobs:
           # `convex/auth.ts` gates the password provider on the exact string
           # 'true'; anything else leaves the provider absent and the seam gone.
           bunx convex env set ITUN_TEST_AUTH true
-          # SITE_URL is the FRONTEND origin, not the Convex site URL. Nothing
-          # prompts for it, and omitting it fails as an opaque 500.
-          bunx convex env set SITE_URL http://localhost:5173
+          # SITE_URL is the FRONTEND's address, base included (ITUN is served
+          # under /build, ADR-048), not the Convex site URL. Nothing prompts
+          # for it, and omitting it fails as an opaque 500.
+          bunx convex env set SITE_URL http://localhost:5173/build
 
       # `--cmd` builds with VITE_CONVEX_URL injected — the same shape
       # deploy-cloudflare.yml uses. Playwright's CI webServer reuses an existing

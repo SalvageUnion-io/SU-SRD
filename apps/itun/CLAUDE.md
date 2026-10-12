@@ -185,8 +185,10 @@ bun run e2e:itun          # Playwright e2e (chromium)
 bun --filter itun typecheck
 ```
 
-Deploys to Cloudflare Workers Static Assets in single-page-application mode, with
-a Worker script for the misses that are not navigations; config in
+Served at **salvageunion.io/build** (ADR-048): base `/build/` everywhere, dev
+too (`src/lib/site.ts`); e2e opens routes via `at()`. Deploys to Workers
+Static Assets in single-page-application mode on a Workers route, a script
+for misses and intheunionnow.com's 301s; config in
 `wrangler.jsonc`, headers in `public/_headers`, deployed from
 `.github/workflows/deploy-cloudflare.yml`.
 

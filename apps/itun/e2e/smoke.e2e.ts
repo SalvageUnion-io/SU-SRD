@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -14,7 +15,7 @@ test.use({ account: 'anonymous' })
  * covered, signed in, by the other e2e specs in the nightly suite.
  */
 test('the roster loads and asks a signed-out visitor to sign in', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(at('/'))
   await waitForReady(page)
 
   // App title is present

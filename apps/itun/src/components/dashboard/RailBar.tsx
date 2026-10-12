@@ -14,6 +14,7 @@
 
 import { Badge, Button, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { MARK_SRC } from '../../lib/appUrl'
 
 export type RailFam = 'mech' | 'pilot' | 'crawler'
 
@@ -113,7 +114,7 @@ export function RailBar({
   return (
     <>
       {returnControl}
-      <img src="/logos/su-cargo-dark.svg" alt="" width={24} height={24} style={MARK} />
+      <img src={MARK_SRC} alt="" width={24} height={24} style={MARK} />
       <span style={IDENTITY}>
         <span style={NAME}>{name}</span>
         {context && <span style={CONTEXT}>{context}</span>}

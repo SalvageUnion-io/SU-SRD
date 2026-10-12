@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { advanceUntilVisible, clickNext, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -17,13 +18,13 @@ import { expect, test } from './fixtures'
  */
 
 test('cancel mid-wizard leaves the dashboard with no new pilot', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(at('/'))
   await waitForReady(page)
   // Count pilots already on the dashboard (0 for the fresh account, but count
   // rather than assume).
   const initialCount = await page.getByRole('link', { name: /Sheet$/i }).count()
 
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
   await pickByName(page, 'Engineer')
   // The form is now dirty (a class was picked), so #334's `confirmCancel`
@@ -42,7 +43,7 @@ test('cancel mid-wizard leaves the dashboard with no new pilot', async ({ page }
 })
 
 test('switching class after picking an ability resets the ability list', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
 
   // Class and first Ability share one step, so switching class needs no trip
@@ -58,7 +59,7 @@ test('switching class after picking an ability resets the ability list', async (
 })
 
 test('identity step gates Next until name + callsign are present', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
 
   // Satisfy the gated steps ahead of identity, then walk to it by content
@@ -88,7 +89,7 @@ test('identity step gates Next until name + callsign are present', async ({ page
 })
 
 test('a further ability pick is blocked once the budget is reached', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
   await pickByName(page, 'Engineer')
   await pickByName(page, 'Engineering Expertise')
@@ -111,7 +112,7 @@ test('a further ability pick is blocked once the budget is reached', async ({ pa
 })
 
 test('a further equipment pick is blocked once the budget is reached', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
   await pickByName(page, 'Engineer')
   await pickByName(page, 'Engineering Expertise')

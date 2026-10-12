@@ -12,6 +12,7 @@
 import { Badge, buttonVariants, tokens } from 'component-lib'
 import { ChevronLeft } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { MARK_SRC } from '../../lib/appUrl'
 import { SavedIndicator } from '../dashboard/SavedIndicator'
 import { AppLink } from '../shared/AppLink'
 
@@ -62,7 +63,7 @@ export function MediatorRail({
       >
         <ChevronLeft size={18} aria-hidden="true" />
       </AppLink>
-      <img src="/logos/su-cargo-dark.svg" alt="" width={24} height={24} style={MARK} />
+      <img src={MARK_SRC} alt="" width={24} height={24} style={MARK} />
       <Badge shape="stamp" size="compact">
         Mediator
       </Badge>

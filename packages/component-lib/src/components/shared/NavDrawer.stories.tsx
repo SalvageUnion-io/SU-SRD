@@ -85,7 +85,7 @@ export const Default: Story = () => {
           { label: 'ABOUT', href: '/about/', active: true },
           { label: 'CHANGELOG', href: '/changelog/' },
           { label: 'DISCORD', href: '/discord/' },
-          { label: 'BUILDER ↗', href: 'https://intheunionnow.com', external: true },
+          { label: 'BUILDER ↗', href: 'https://salvageunion.io/build/', external: true },
           {
             label: 'BUY THE GAME',
             href: 'https://leyline.press/collections/salvage-union',
