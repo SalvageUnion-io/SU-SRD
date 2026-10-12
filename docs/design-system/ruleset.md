@@ -54,7 +54,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    6. **§3.6 Copy is 1:1 with real SRD data** — everywhere, catalog stories included.
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
-   8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground.
+   8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground, bar systems and modules (book pp. 162, 188).
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment and the type stamp.
@@ -82,7 +82,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header whose first line is its labels (type stamp, classification pills, User-made; in flow, never riding the frame), then the title left, value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have; ink banner for things you do, decided by data shape.
    - **Actions sit inline** — flush ink bands, no Actions tray or stamp (on a Page, framed cards under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
-   - **Nesting legibility** — nested entities sit in a page-colour tray under counted stamp-and-leader labels, one tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
+   - **Nesting legibility** — nested entities sit in a page-colour tray under stamp-and-leader labels (no item counts: a section never tallies itself), one tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.
    1. **Badge** — folds ValueDisplay, Tag, Pill, Chip, cost pennant, Range, Action-type, TL and the StatusBadge shell.

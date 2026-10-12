@@ -11,7 +11,7 @@
  * makes "read this" register before you've parsed a single label.
  */
 
-.pc-grid {
+.su-dash-grid {
   display: grid;
   height: 100%;
   width: 100%;
@@ -32,7 +32,7 @@
     'display';
 }
 
-.pc-rail {
+.su-dash-rail {
   grid-area: rail;
   display: flex;
   align-items: center;
@@ -44,22 +44,22 @@
 }
 
 /* Active-entity tint on the rail: the entity in the Major slot. */
-.pc-grid[data-mount='mech'] .pc-rail {
+.su-dash-grid[data-mount='mech'] .su-dash-rail {
   border-color: color-mix(in oklab, var(--color-mech) 60%, transparent);
 }
-.pc-grid[data-mount='pilot'] .pc-rail {
+.su-dash-grid[data-mount='pilot'] .su-dash-rail {
   border-color: color-mix(in oklab, var(--color-pilot) 60%, transparent);
 }
-.pc-grid[data-mount='downtime'] .pc-rail {
+.su-dash-grid[data-mount='downtime'] .su-dash-rail {
   border-color: color-mix(in oklab, var(--color-crawler) 60%, transparent);
 }
 
-.pc-primary {
+.su-dash-primary {
   grid-area: primary;
   min-height: 0;
 }
 
-.pc-display {
+.su-dash-display {
   grid-area: display;
   border: var(--bw-rail) solid color-mix(in srgb, var(--color-ink) 45%, transparent);
   border-radius: var(--radius-panel);
@@ -70,7 +70,7 @@
    document inset in the dark cockpit (the reused ReferenceEntityDisplay /
    RollTable are light-themed). It is deliberately a step brighter than the
    cream instruments around it. Its own scroll — the canvas never scrolls. */
-.pc-display-light {
+.su-dash-display-light {
   background: var(--color-paper);
   color: var(--color-ink);
   overflow: hidden;
@@ -79,7 +79,7 @@
 
 /* Placeholder for a surface not yet built. Carries the instrument ground: it
    stands in for a card, so it must not leave a hole in the dark canvas. */
-.pc-placeholder {
+.su-dash-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,7 +96,7 @@
 }
 
 /* Centered muted label used inside an already-bordered surface (e.g. the display). */
-.pc-fill {
+.su-dash-fill {
   display: flex;
   align-items: center;
   justify-content: center;

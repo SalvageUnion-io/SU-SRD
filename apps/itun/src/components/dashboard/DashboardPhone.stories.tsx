@@ -52,7 +52,7 @@ function deck(): DeckListModel {
     sources: [],
     sourceFilter: null,
     onSourceFilter: ignore,
-    familyClass: 'pc-deck-fam-mech',
+    familyClass: 'su-dash-deck-fam-mech',
     rows: actions.map((action, i) => ({
       key: `act-${action.id}`,
       entity: action,
@@ -150,7 +150,7 @@ export const MechTab = () => {
       <Caption>
         Board D4 — the Mech tab on a phone. Pick Pilot or Crawler to see the pinned vitals.
       </Caption>
-      <div className="pc-root su-dash-phone" style={PHONE}>
+      <div className="su-dash-root su-dash-phone" style={PHONE}>
         <DashboardPhone
           gameName="Reclamation"
           homeHref="/"
@@ -188,7 +188,7 @@ export const Resolving = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <Caption>Board D5 — resolving on a phone: only the next step at the bottom.</Caption>
-      <div className="pc-root su-dash-phone" style={PHONE}>
+      <div className="su-dash-root su-dash-phone" style={PHONE}>
         <PhoneResolve
           view={{
             kind: 'resolve',

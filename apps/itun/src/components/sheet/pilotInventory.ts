@@ -14,7 +14,7 @@
  * (on the equipment record or its matching action). `equipmentUses[slug]`
  * stores uses REMAINING; an absent key means full.
  *
- * Pure functions — no React, no IndexedDB.
+ * Pure functions — no React, no store.
  */
 
 import type { GenericInventoryEntry, Pilot } from 'itun-domain/schemas/pilot'

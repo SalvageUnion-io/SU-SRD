@@ -1,8 +1,8 @@
 /**
  * useHydrateOnMount tests (production incident 2026-07-09).
  *
- * The load-bearing guarantee: a rejected hydrator (e.g. a blocked or failed
- * IndexedDB open) must SURFACE to the nearest error boundary — in the app, the
+ * The load-bearing guarantee: a rejected hydrator (any failure while a
+ * store's rows load) must SURFACE to the nearest error boundary — in the app, the
  * router's RootErrorComponent recovery screen — rather than leaving the caller
  * on `false` (the loading skeleton) forever. Previously the hook had no error
  * branch, so a rejected hydrate hung the Dashboard silently.
@@ -51,11 +51,11 @@ describe('useHydrateOnMount', () => {
     try {
       render(
         <Boundary>
-          <Probe hydrate={() => Promise.reject(new Error('db open failed'))} />
+          <Probe hydrate={() => Promise.reject(new Error('hydrate failed'))} />
         </Boundary>
       )
       await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
-      expect(screen.getByText(/db open failed/)).toBeTruthy()
+      expect(screen.getByText(/hydrate failed/)).toBeTruthy()
     } finally {
       console.error = originalError
     }

@@ -47,13 +47,13 @@ function renderWizard({
 describe('DowntimeWizard', () => {
   test("drives the Game's step from the reference guide (name + phase)", () => {
     const { container } = renderWizard()
-    expect(container.querySelector('.pc-dt')).toBeTruthy()
+    expect(container.querySelector('.su-dash-dt')).toBeTruthy()
     // Step 1 of the SRD procedure is "Tally Salvage" in the Post-Session phase.
     expect(container.textContent).toContain('Tally Salvage')
-    expect(container.querySelector('.pc-dt-head')?.firstElementChild?.textContent).toBe(
+    expect(container.querySelector('.su-dash-dt-head')?.firstElementChild?.textContent).toBe(
       'Post-Session'
     )
-    expect(container.querySelector('.pc-dt-count')?.textContent).toContain('Step 1 /')
+    expect(container.querySelector('.su-dash-dt-count')?.textContent).toContain('Step 1 /')
   })
 
   test('the step track marks where the table is', () => {
@@ -113,6 +113,6 @@ describe('DowntimeWizard', () => {
     expect(idx).toBeGreaterThan(-1)
     const { container } = renderWizard({ stepIndex: idx })
     expect(container.textContent).toContain('Trade')
-    expect(container.querySelector('.pc-dt-table table')).toBeTruthy()
+    expect(container.querySelector('.su-dash-dt-table table')).toBeTruthy()
   })
 })

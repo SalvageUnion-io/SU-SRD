@@ -308,7 +308,7 @@ const TAB_NAMES: Record<DisplayTab, string> = {
 const STAND_INS = Object.fromEntries(
   Object.entries(TAB_NAMES).map(([tab, name]) => [
     tab,
-    <div key={tab} className="pc-fill">
+    <div key={tab} className="su-dash-fill">
       Display · {name}
     </div>,
   ])

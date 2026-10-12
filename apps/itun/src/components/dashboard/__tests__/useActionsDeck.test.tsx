@@ -208,7 +208,7 @@ function timing(name: string): HTMLElement {
  * Each row's cost pennant IS its action (ruleset §1): the one button on the
  * row, named "Resolve <action>". These are those pennants. */
 function deckCards(container: HTMLElement): HTMLElement[] {
-  return [...container.querySelectorAll<HTMLElement>('.pc-deck-grid > li button')]
+  return [...container.querySelectorAll<HTMLElement>('.su-dash-deck-grid > li button')]
 }
 
 /** The action a deck pennant resolves. */
@@ -242,8 +242,10 @@ describe('the Actions deck', () => {
     const { container } = renderDeck(mech, store)
     // Every card lives in a single grid; the deck files none of them under a
     // heading of its own name (the source names survive only as filter chips).
-    expect(container.querySelectorAll('.pc-deck-grid')).toHaveLength(1)
-    expect(container.querySelector('.pc-deck h1, .pc-deck h2, .pc-deck h3')).toBeNull()
+    expect(container.querySelectorAll('.su-dash-deck-grid')).toHaveLength(1)
+    expect(
+      container.querySelector('.su-dash-deck h1, .su-dash-deck h2, .su-dash-deck h3')
+    ).toBeNull()
     expect(deckCards(container).length).toBeGreaterThan(0)
   })
 
@@ -296,10 +298,10 @@ describe('the Actions deck', () => {
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    expect(container.querySelector('.pc-deck-roll')).toBeNull()
+    expect(container.querySelector('.su-dash-deck-roll')).toBeNull()
     await clickRolling('Roll')
-    expect(container.querySelector('.pc-deck-roll')).toBeTruthy()
-    expect(container.querySelector('.pc-deck-d20')).toBeTruthy()
+    expect(container.querySelector('.su-dash-deck-roll')).toBeTruthy()
+    expect(container.querySelector('.su-dash-deck-d20')).toBeTruthy()
   })
 
   test('the timing filter is toggle buttons, not tabs without a keyboard model', () => {
@@ -317,26 +319,26 @@ describe('the Actions deck', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
-    const before = container.querySelectorAll('.pc-deck-grid > li').length
+    const before = container.querySelectorAll('.su-dash-deck-grid > li').length
     expect(before).toBeGreaterThan(0)
     // Pick a timing tab that the system's actions do NOT match by intersecting
     // with a type absent from the deck. DownTime is not a tab, so use React
     // (Reaction) — most weapon systems are Turn actions, so React empties it.
     fireEvent.click(timing('React'))
-    const reactItems = container.querySelectorAll('.pc-deck-grid > li').length
+    const reactItems = container.querySelectorAll('.su-dash-deck-grid > li').length
     // Either the deck filtered down, or it shows the no-match note.
-    const emptied = reactItems < before || container.querySelector('.pc-deck-empty') !== null
+    const emptied = reactItems < before || container.querySelector('.su-dash-deck-empty') !== null
     expect(emptied).toBe(true)
     // Back to All restores the full deck.
     fireEvent.click(timing('All'))
-    expect(container.querySelectorAll('.pc-deck-grid > li').length).toBe(before)
+    expect(container.querySelectorAll('.su-dash-deck-grid > li').length).toBe(before)
   })
 
   test('a range readout renders with the reach count', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
-    expect(container.querySelector('.pc-deck-reach')?.textContent).toContain('in reach')
+    expect(container.querySelector('.su-dash-deck-reach')?.textContent).toContain('in reach')
   })
 
   test('the range band is read from the seat, and a new one is sent to it', () => {
@@ -369,7 +371,7 @@ describe('the Actions deck', () => {
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Clear resets the resolve state (the roll readout disappears).
     fireEvent.click(screen.getByText('Clear'))
-    expect(container.querySelector('.pc-deck-roll')).toBeNull()
+    expect(container.querySelector('.su-dash-deck-roll')).toBeNull()
   })
 
   test('Apply commits a rolled outcome without ever auto-writing a destructive condition', async () => {
@@ -381,8 +383,8 @@ describe('the Actions deck', () => {
     fireEvent.click(screen.getByText('Apply'))
     // Either the non-destructive auto-commit or the Cascade-Failure route note —
     // never both, and neither writes a destructive condition through the store.
-    const applied = container.querySelector('.pc-deck-applied')
-    const routed = container.querySelector('.pc-deck-apply-route')
+    const applied = container.querySelector('.su-dash-deck-applied')
+    const routed = container.querySelector('.su-dash-deck-apply-route')
     expect(Boolean(applied) !== Boolean(routed)).toBe(true)
     // Apply performs no store write at all (the cost lands at Activate; a
     // destructive band is routed to the Mech's Major slot, never auto-applied).
@@ -404,10 +406,10 @@ describe('the Actions deck', () => {
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickActionByName(container, sys.actionName)
-    const proj = container.querySelector('.pc-deck-hotx-proj')
+    const proj = container.querySelector('.su-dash-deck-hotx-proj')
     expect(proj?.textContent).toContain('Heat 1/')
     fireEvent.click(screen.getByLabelText('Increase Hot'))
-    expect(container.querySelector('.pc-deck-hotx-proj')?.textContent).toContain('Heat 2/')
+    expect(container.querySelector('.su-dash-deck-hotx-proj')?.textContent).toContain('Heat 2/')
     fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     const resolvedSystem = resolveSystem(sys.id)
     if (!resolvedSystem) throw new Error(`unresolved system ${sys.id}`)
@@ -760,7 +762,7 @@ describe('the resolve on the seat', () => {
         />
       </EntityHrefProvider>
     )
-    expect(container.querySelector('.pc-deck-d20')?.textContent).toBe('14')
+    expect(container.querySelector('.su-dash-deck-d20')?.textContent).toBe('14')
     expect(screen.getByRole('button', { name: /^Activated\b/ })).toBeTruthy()
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Restoring rolls nothing and writes nothing.

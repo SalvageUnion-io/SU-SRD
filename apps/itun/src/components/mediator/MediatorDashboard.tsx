@@ -16,7 +16,7 @@
  * Writes are blocked, never queued (ADR-030 §1).
  */
 
-// The dashboard's `.pc-*` stylesheet (the canvas, grid and rail), loaded with
+// The dashboard's `.su-dash-*` stylesheet (the canvas, grid and rail), loaded with
 // this route's chunk as the player Dashboard loads it with its own.
 import '../../styles/dashboard.css'
 import { d20ForTable, toast } from 'component-lib'

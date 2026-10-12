@@ -100,7 +100,7 @@ export function NpcSheetView({ id }: { id: string }) {
     return (
       <NotFoundPanel
         title="NPC not found"
-        message="This NPC is not saved in this browser. Reading a crewmate's NPC needs a connection."
+        message="This NPC was not loaded before the connection dropped, and loading it needs a connection."
       />
     )
   }

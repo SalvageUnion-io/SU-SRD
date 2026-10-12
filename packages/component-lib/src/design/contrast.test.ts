@@ -131,13 +131,16 @@ const ratio = (band: Band) => contrastRatio(band.ground ?? PAPER, FOREGROUND[ban
 
 /**
  * Headers whose BEST foreground still misses 4.5:1. Neither ink nor paper
- * reaches it on this book tone (TL-N left with mech gear, which is mech now); fixing that is re-toning the palette
+ * reaches it on these two book tones; fixing that is re-toning the palette
  * away from the printed book, which this guard does not do. (Crawler pink is
  * not here: its header paints the crawler band, ruleset §3.8.) They clear 3:1,
  * which the header's title — large text at every top-level card size — owes.
  * This list is exact: a tone that starts passing must be deleted from it.
  */
-const HEADER_SHORTFALL = new Set(['var(--color-tl-3) solid header'])
+const HEADER_SHORTFALL = new Set([
+  'var(--color-tl-3) solid header',
+  'var(--color-tl-n) solid header',
+])
 
 describe('card band contrast', () => {
   const header = everyHeader()

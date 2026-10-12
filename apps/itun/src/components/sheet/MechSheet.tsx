@@ -96,7 +96,7 @@ type MechSheetProps = {
   chassis?: ChassisLike | null
   /**
    * Injectable store — defaults to useEntityStore.
-   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
   /** Suppresses every edit affordance (published snapshots). */
@@ -410,8 +410,7 @@ export function MechSheet({
         title="The Hold"
         count={
           <span className="tabular-nums">
-            {cargo.state.carrierLots.length} {cargo.state.carrierLots.length === 1 ? 'lot' : 'lots'}{' '}
-            · {cargo.usage.used}/{cargo.usage.cap} slots
+            {cargo.usage.used}/{cargo.usage.cap} slots
           </span>
         }
       >
@@ -467,7 +466,7 @@ export function MechSheet({
           mech-granted drone is fixed by its stat block and never tracks the
           Union Crawler, unlike a pilot's ability-granted partners. ===== */}
       {(mech.partners ?? []).length > 0 && (
-        <SheetSectionSlab title="Partners" count={(mech.partners ?? []).length}>
+        <SheetSectionSlab title="Partners">
           <div className="flex flex-col gap-3">
             {(mech.partners ?? []).map((partner) => (
               <PartnerCard

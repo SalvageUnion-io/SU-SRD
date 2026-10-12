@@ -2,14 +2,13 @@
  * Roster component tests: the front door signed out, Shelves signed in
  * (issue 1279, board S1).
  *
- * fake-indexeddb/auto is preloaded via bunfig.toml.
- * We exercise the real entityStore to keep tests honest.
+ * We exercise the real (in-memory) entityStore to keep tests honest.
  *
  * Note: uses .toBeTruthy() / .toBeFalsy() instead of .toBeInTheDocument() to
  * stay compatible with the project tsconfig (no jest-dom type augmentation).
  *
- * act() hygiene: hydration (and delete) resolve through fake-indexeddb after
- * the initial act() block, so async store work is driven to completion with
+ * act() hygiene: a lazy hydration (and a delete's stubbed server commit)
+ * resolves after the initial act() block, so async store work is driven to completion with
  * settle() — repeated small act() blocks with the condition polled between
  * them — and afterEach unmounts before it resets the Zustand store. State
  * updates land inside act; no warnings.
@@ -32,10 +31,8 @@ const convexMocks = await installConvexMocks({
 })
 
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { clearCache, _resetDbSingleton } = await import('../../../lib/db/index')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
-const { usePatternStore } = await import('../../../stores/patternStore')
-const { useEncounterStore } = await import('../../../stores/encounterStore')
 const { Roster } = await import('../Roster')
 
 withSignedInBackend()
@@ -77,28 +74,8 @@ const baseMechInput = {
   conditions: [],
 }
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: {
-      pilots: false,
-      mechs: false,
-      crawlers: false,
-      npcs: false,
-      softLinks: false,
-    },
-  })
-  usePatternStore.setState({ mechPatterns: [], hydrated: false })
-  // The NPC shelf also lists encounter NPCs; an earlier file in the same
-  // process can leave some in memory.
-  useEncounterStore.setState({ encounterNpcs: [], hydrated: false })
-}
-
 /**
- * Drive pending async store work (fake-indexeddb) to completion inside act()
+ * Drive pending async store work to completion inside act()
  * blocks, polling `done` between blocks — every React update lands inside
  * act, so no "not wrapped in act" warnings. Bounded at ~1s.
  */
@@ -122,7 +99,7 @@ async function renderShelves() {
   await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
 }
 
-/** Seed one entity into the cache, then forget it in memory so the render re-hydrates. */
+/** Seed one entity the way a signed-in player builds it: a store create. */
 async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<string> {
   const store = useEntityStore.getState()
   await store.hydrate(type)
@@ -130,7 +107,6 @@ async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<string>
     type,
     type === 'pilot' ? { ...basePilotInput, name } : { ...baseMechInput, name }
   )
-  resetEntityStore()
   return created.id
 }
 
@@ -149,17 +125,16 @@ async function openMenu(name: string): Promise<HTMLElement> {
 beforeEach(async () => {
   // Shelves, with no Games, no invitations and no shared patterns.
   setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [], 'shelf:patternSharing': [] })
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  // The NPC shelf also lists encounter NPCs; an earlier file in the same
+  // process can leave some in memory, so every store starts empty.
+  resetStores()
 })
 
 afterEach(async () => {
   // Unmount before the reset: this hook runs before the preload's cleanup, and a
   // mounted Roster answers the reset by starting hydrations that resolve after act().
   cleanup()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 // ---------------------------------------------------------------------------
@@ -284,7 +259,7 @@ describe('Shelves — one shelf per kind', () => {
     )
   })
 
-  test('a designed NPC is a dashed line with who can see it, counted on the shelf', async () => {
+  test('a designed NPC is a dashed line with who can see it, on a shelf marked yours', async () => {
     const store = useEntityStore.getState()
     await store.hydrate('npc')
     const npc = await store.create('npc', {
@@ -296,11 +271,10 @@ describe('Shelves — one shelf per kind', () => {
       actions: [],
       traits: [],
     })
-    resetEntityStore()
     await renderShelves()
 
     const npcs = screen.getByRole('region', { name: 'NPCs' })
-    expect(within(npcs).getByText('1 · yours')).toBeTruthy()
+    expect(within(npcs).getByText('Yours')).toBeTruthy()
     const line = within(npcs)
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/npc/${npc.id}`)
@@ -348,7 +322,6 @@ describe('Shelves — items', () => {
       to: { type: 'pilot', id: pilot.id },
       type: 'mech-to-pilot',
     })
-    resetEntityStore()
 
     await renderShelves()
 

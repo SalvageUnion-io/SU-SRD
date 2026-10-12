@@ -2,7 +2,7 @@
  * patternStore — Zustand store for saved MechPatterns (audit item 22).
  *
  * Patterns go through the shared collection slice, so every write commits to
- * the server of record before it reaches the cache.
+ * the server of record before the store holds it.
  *
  * Patterns are immutable after creation (create/delete only in the UI), but
  * the slice's update() comes along for free should that change.
@@ -10,12 +10,12 @@
 
 import type { MechPattern } from 'itun-domain/schemas/pattern'
 import { create } from 'zustand'
-import * as db from '../lib/db/index'
 import { commitPatternWrite } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
 import { makeHydratedCollectionSlice } from './makeHydratedCollection'
+import { RECORD_KINDS } from './records'
 
-/** db.create input — id/createdAt are injected by the db layer. */
+/** create input — id/createdAt are injected by `prepareCreate`. */
 export type MechPatternCreateInput = Omit<MechPattern, 'id' | 'createdAt' | 'updatedAt'>
 
 type PatternState = HydratedCollectionSlice<'mechPatterns', MechPattern> &
@@ -23,7 +23,7 @@ type PatternState = HydratedCollectionSlice<'mechPatterns', MechPattern> &
 
 const slice = makeHydratedCollectionSlice<'mechPatterns', MechPattern, MechPatternCreateInput>({
   key: 'mechPatterns',
-  db: db.mechPatterns,
+  kind: RECORD_KINDS.mechPattern,
   /**
    * The server-first write (ADR-034).
    *
@@ -33,6 +33,6 @@ const slice = makeHydratedCollectionSlice<'mechPatterns', MechPattern, MechPatte
   commit: commitPatternWrite,
 })
 
-export const usePatternStore = create<PatternState>((set, get) => ({
-  ...slice(set, get),
+export const usePatternStore = create<PatternState>((set, get, api) => ({
+  ...slice(set, get, api.subscribe),
 }))

@@ -326,7 +326,7 @@ export function MechMajor({
       return {
         title: 'Reactor',
         onClose,
-        body: <p className="pc-resolve-log">{prompt.log}</p>,
+        body: <p className="su-dash-resolve-log">{prompt.log}</p>,
         actions: prompt.meltdown
           ? [
               {
@@ -369,7 +369,7 @@ export function MechMajor({
       return {
         title: 'Critical Damage',
         onClose,
-        body: <p className="pc-resolve-log">{prompt.log}</p>,
+        body: <p className="su-dash-resolve-log">{prompt.log}</p>,
         actions,
       }
     }
@@ -391,7 +391,7 @@ export function MechMajor({
     return {
       title: 'Eject',
       onClose,
-      body: <p className="pc-resolve-log">Eject the pilot from the mech?</p>,
+      body: <p className="su-dash-resolve-log">Eject the pilot from the mech?</p>,
       actions: [
         {
           label: 'Confirm Eject',

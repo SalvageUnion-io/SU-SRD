@@ -193,7 +193,7 @@ export function PilotMajor({
         title: 'Claim and board',
         onClose,
         body: (
-          <p className="pc-resolve-log">
+          <p className="su-dash-resolve-log">
             {option.name} is an unclaimed spare. Claim it to make it yours in this Game, then board
             it. Boarding doesn’t assign it to {pilot.name}.
           </p>
@@ -211,7 +211,7 @@ export function PilotMajor({
       }
     }
     if (prompt.kind === 'log') {
-      return { title: 'Vitals', onClose, body: <p className="pc-resolve-log">{prompt.log}</p> }
+      return { title: 'Vitals', onClose, body: <p className="su-dash-resolve-log">{prompt.log}</p> }
     }
     if (prompt.kind === 'dmg') {
       return {
@@ -235,7 +235,7 @@ export function PilotMajor({
     return {
       title: 'Critical Injury',
       onClose,
-      body: <p className="pc-resolve-log">{prompt.log}</p>,
+      body: <p className="su-dash-resolve-log">{prompt.log}</p>,
       actions:
         prompt.effect === null
           ? [{ label: 'Roll Critical Injury', onClick: rollInjury, variant: 'danger' }]

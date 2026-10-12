@@ -39,6 +39,17 @@ describe('ChapterFoot', () => {
     expect(band.style.color).toBe(color.paper)
   })
 
+  test('a fill outside the chapter map overrides the tone, with the text that reads on it', () => {
+    const light = render(<ChapterFoot tone="mech" fill="var(--color-tl-1)" start="p.164" />)
+      .container.firstElementChild as HTMLElement
+    const dark = render(<ChapterFoot tone="mech" fill="var(--color-tl-6)" start="p.185" />)
+      .container.firstElementChild as HTMLElement
+    expect(light.style.backgroundColor).toBe('var(--color-tl-1)')
+    expect(light.style.color).toBe(color.ink)
+    expect(dark.style.backgroundColor).toBe('var(--color-tl-6)')
+    expect(dark.style.color).toBe(color.paper)
+  })
+
   test('is the site footer’s landmark when rendered as a footer', () => {
     render(<ChapterFoot as="footer" start="Licence" />)
     expect(screen.getByRole('contentinfo')).toBeTruthy()

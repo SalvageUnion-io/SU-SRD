@@ -34,15 +34,14 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Zod schemas, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
 10. **Data flow and connection modes**
     Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
-    `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (cache, writes blocked).
+    `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
 11. **Convex, the server of record**
     `apps/itun/convex/`: bodies are opaque (`v.any()`), Zod parses before every mutation; an entity is in a Game or on a Shelf.
     Every store commits through a `commit*` in `apps/itun/src/stores/`; `containerParity.test.ts` asserts each has a table.
-12. **IndexedDB cache**
-    `apps/itun/src/lib/db/` (`idb`, `itun-v1`): one account's cache, emptied on sign-out or a different user, never sent up.
-    Reads are strict; an upgrade empties every store and Convex refills it, so a schema change bumps `DB_VERSION` only.
+12. **No device cache** (D9, [spike](spikes/d9-offline-cache.md))
+    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable.
 13. **Zustand stores**
-    `apps/itun/src/stores/` hydrate on first `list(type)`; `update()` validates, awaits Convex, writes the cache, logs.
+    `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs.
     A refused write changes nothing; no TanStack Query, reads are `src/hooks/entities/` and `convex/react`.
 14. **Sharing**
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
@@ -126,9 +125,9 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 1. **ADR-001 Local-first, no backend, no auth**
    Superseded by ADR-030, whose remaining Solo guarantee ADR-034 withdrew.
 2. **ADR-002 IndexedDB via `idb`, Zod as the schema source**
-   Accepted; amended by ADR-034: IndexedDB is a strict-read cache of Convex, and an upgrade empties it (no migrations).
+   Amended by ADR-034, then superseded by D9 (no IndexedDB); Zod stays the schema source.
 3. **ADR-003 Client state via Zustand**
-   Superseded by ADR-030 and ADR-034, except lazy hydration: stores hydrate on first `list(type)`, then answer from memory.
+   Superseded by ADR-030 and ADR-034, except that stores answer from memory.
 4. **ADR-004 Snapshot sharing via Netlify Functions**
    Superseded by ADR-036.
 5. **ADR-005 Game-data ORM**
@@ -200,7 +199,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Its snapshot store is history (ADR-036); cutover phases cited in code are in git. Amended by ADR-047.
 34. **ADR-034 Persistence requires an account; the local store is a cache**
     Accepted: signed out is read-only, every record is Convex-backed, both apps are PWAs; the pre-account migration is gone.
-    Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022.
+    Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022. D9 removed the cache.
 35. **ADR-035 No isolated local-only data**
     Partly superseded by its own 2026-10-08 amendment: anonymous visitors get the `signedOut` backend; the legacy claim is retired.
 36. **ADR-036 Retire snapshot shares**
@@ -234,8 +233,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Proposed: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
     Amends ADR-038.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
-    Accepted: `theme.css` tokens, `tokens.ts` style objects, `index.css` `.su-*` classes; Tailwind is removed by TW7.
-    Plan and phases: [tailwind-removal.md](design-system/tailwind-removal.md).
+    Accepted: `theme.css` tokens, `tokens.ts` objects, `index.css`; no Tailwind after TW7 ([plan](design-system/tailwind-removal.md)).
 47. **ADR-047 One salvageunion.io edge Worker**
     Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033. [Spike](spikes/o3-one-edge-worker.md).

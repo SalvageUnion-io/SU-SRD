@@ -12,8 +12,8 @@ import type { ExportBundle } from '../schemas/exportBundle'
  * The real entityStore satisfies this.
  */
 type MergeEntityStore = {
-  /** Re-read a type from the cache, even when it has been loaded before. */
-  rehydrate: (type: EntityType) => Promise<void>
+  /** Resolves once the type's rows have arrived from the server. */
+  hydrate: (type: EntityType) => Promise<void>
   list: <T extends EntityType>(type: T) => import('../../stores/types').EntityForType<T>[]
   create: <T extends EntityType>(
     type: T,
@@ -25,16 +25,13 @@ type MergeEntityStore = {
  * Minimal pattern store for import. Patterns are not in entityStore — they have
  * their own Zustand store; tests may pass a double.
  *
- * `rehydrate` is part of the contract, not a convenience. These stores list
- * synchronously from memory, so deduping against a cold cache would let an
- * import create a second copy of every pattern the user already has. It has to
- * be `rehydrate` rather than `hydrate`: `hydrate` is idempotent and returns
- * immediately once the store has ever loaded, which would dedupe against a
- * cache that another tab's writes have since moved on from. An import is
- * exactly when a stale read is expensive, so it re-reads from IndexedDB.
+ * `hydrate` is part of the contract, not a convenience. These stores list
+ * synchronously from memory, so deduping before the account's rows have
+ * arrived would let an import create a second copy of every pattern the user
+ * already has.
  */
 type MergePatternStore = {
-  rehydrate: () => Promise<void>
+  hydrate: () => Promise<void>
   list: () => MechPattern[]
   create: (input: MechPatternCreateInput) => Promise<MechPattern>
 }
@@ -42,10 +39,10 @@ type MergePatternStore = {
 /**
  * Minimal encounter-NPC store for import. Like patterns, encounterNpcs are not
  * in entityStore but have their own store; tests may pass a double. Same
- * rehydrate-before-list contract as above.
+ * hydrate-before-list contract as above.
  */
 type MergeEncounterNpcStore = {
-  rehydrate: () => Promise<void>
+  hydrate: () => Promise<void>
   list: () => EncounterNpc[]
   create: (input: EncounterNpcCreateInput) => Promise<EncounterNpc>
 }
@@ -108,16 +105,14 @@ export async function mergeImport(
   patternStore: MergePatternStore = usePatternStore.getState(),
   encounterNpcStore: MergeEncounterNpcStore = useEncounterStore.getState()
 ): Promise<MergeSummary> {
-  // Re-read, not `hydrate`: `hydrate` returns at once once a type has ever
-  // loaded, so the duplicate check below would run against whatever this tab's
-  // memory last held (a row a sync re-adopted after the player deleted it, say)
-  // rather than against what the account keeps right now.
+  // The duplicate check below runs against the account's rows, so they have
+  // to have arrived first.
   await Promise.all([
-    entityStore.rehydrate('pilot'),
-    entityStore.rehydrate('mech'),
-    entityStore.rehydrate('crawler'),
-    entityStore.rehydrate('npc'),
-    entityStore.rehydrate('softLink'),
+    entityStore.hydrate('pilot'),
+    entityStore.hydrate('mech'),
+    entityStore.hydrate('crawler'),
+    entityStore.hydrate('npc'),
+    entityStore.hydrate('softLink'),
   ])
 
   const existingPilotIds = new Set(entityStore.list('pilot').map((e) => e.id))
@@ -257,7 +252,7 @@ export async function mergeImport(
   // 6. Mech patterns — fresh UUIDs, exact-id dedupe (same policy as entities).
   //    Patterns reference no other bundle entities, so no remapping needed.
   // -------------------------------------------------------------------------
-  await patternStore.rehydrate()
+  await patternStore.hydrate()
   const existingPatternIds = new Set(patternStore.list().map((p) => p.id))
   for (const pattern of bundle.mechPatterns) {
     if (existingPatternIds.has(pattern.id)) {
@@ -276,7 +271,7 @@ export async function mergeImport(
   //    lands on the Shelf (dropped if the referenced container was not
   //    part of this bundle / not in the map).
   // -------------------------------------------------------------------------
-  await encounterNpcStore.rehydrate()
+  await encounterNpcStore.hydrate()
   const existingEncounterNpcIds = new Set(encounterNpcStore.list().map((n) => n.id))
   for (const npc of bundle.encounterNpcs) {
     if (existingEncounterNpcIds.has(npc.id)) {

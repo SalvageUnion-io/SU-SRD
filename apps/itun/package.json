@@ -26,7 +26,6 @@
     "component-lib": "workspace:*",
     "convex": "catalog:",
     "convex-helpers": "0.1.124",
-    "idb": "8.0.3",
     "itun-domain": "workspace:*",
     "lucide-react": "catalog:",
     "observability": "workspace:*",

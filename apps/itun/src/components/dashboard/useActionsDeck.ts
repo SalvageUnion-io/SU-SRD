@@ -424,7 +424,7 @@ export function useActionsDeck({
       sources,
       sourceFilter,
       onSourceFilter: setSourceFilter,
-      familyClass: onFoot ? 'pc-deck-fam-pilot' : 'pc-deck-fam-mech',
+      familyClass: onFoot ? 'su-dash-deck-fam-pilot' : 'su-dash-deck-fam-mech',
       rows,
       onOpen: (key) => {
         const action = deck.find((a) => a.key === key)

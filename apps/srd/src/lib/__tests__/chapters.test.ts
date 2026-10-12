@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { getEntitySchemas, SalvageUnionReference } from 'salvageunion-reference'
-import { buildChapters, CONTENTS, chapterForSchema } from '../chapters'
+import { bandFillFor, buildChapters, CONTENTS, chapterForSchema } from '../chapters'
 
 /**
  * The SRD's chapters (board 06): the index the home page prints, the nav
@@ -57,5 +57,40 @@ describe('chapterForSchema', () => {
 
   test('a schema no chapter gathers falls back to Contents', () => {
     expect(chapterForSchema('actions')).toEqual(CONTENTS)
+  })
+})
+
+describe('bandFillFor', () => {
+  const systemAt = (techLevel: number | 'B' | 'N') => {
+    const system = SalvageUnionReference.Systems.all().find((s) => s.techLevel === techLevel)
+    if (!system) throw new Error(`no system at tech level ${techLevel}`)
+    return system
+  }
+
+  test('a system or module show page wears its tech level’s blue, head and foot', () => {
+    expect(bandFillFor('systems', systemAt(1))).toEqual({
+      band: 'var(--color-tl-1)',
+      foot: 'var(--color-tl-1)',
+    })
+    expect(bandFillFor('systems', systemAt(6))?.band).toBe('var(--color-tl-6)')
+    expect(bandFillFor('systems', systemAt('B'))?.band).toBe('var(--color-tl-b)')
+    const module = SalvageUnionReference.Modules.all().find((m) => m.techLevel === 2)
+    if (!module) throw new Error('no module at tech level 2')
+    expect(bandFillFor('modules', module)?.band).toBe('var(--color-tl-2)')
+  })
+
+  test('tech level 3’s foot takes tech level 4’s blue, which carries text', () => {
+    expect(bandFillFor('systems', systemAt(3))).toEqual({
+      band: 'var(--color-tl-3)',
+      foot: 'var(--color-tl-4)',
+    })
+  })
+
+  test('every other show page wears its chapter’s band', () => {
+    const [chassis] = SalvageUnionReference.Chassis.all()
+    const equipment = SalvageUnionReference.Equipment.all().find((e) => e.techLevel === 1)
+    if (!chassis || !equipment) throw new Error('fixtures missing')
+    expect(bandFillFor('chassis', chassis)).toBeUndefined()
+    expect(bandFillFor('equipment', equipment)).toBeUndefined()
   })
 })

@@ -56,7 +56,7 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
   const tables: RollTableEntity[] = SalvageUnionReference.RollTables.all()
   const [tableId, setTableId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
-  // The picker covers this tab (`.pc-tables` is its positioning context).
+  // The picker covers this tab (`.su-dash-tables` is its positioning context).
   const pickerHost = useRef<HTMLDivElement>(null)
 
   const selected =
@@ -68,7 +68,7 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
     tables[0]
 
   return (
-    <div ref={pickerHost} className="pc-display-scroll pc-tables">
+    <div ref={pickerHost} className="su-dash-display-scroll su-dash-tables">
       {selected ? (
         <RollTable
           table={selected.table}
@@ -78,7 +78,7 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
           onRollResult={(text, key) => onRoll?.(selected.name, key, text)}
         />
       ) : (
-        <div className="pc-display-note">Roll tables load here.</div>
+        <div className="su-dash-display-note">Roll tables load here.</div>
       )}
 
       <TablePickerOverlay
@@ -108,10 +108,10 @@ function EntityCard({
 }) {
   if (!data) {
     return (
-      <div className="pc-entity-fallback">
-        <p className="pc-crawler-focus-note">{note}</p>
+      <div className="su-dash-entity-fallback">
+        <p className="su-dash-crawler-focus-note">{note}</p>
         {controls && controls.length > 0 ? (
-          <div className="pc-entity-foot">
+          <div className="su-dash-entity-foot">
             <ControlButtons controls={controls} />
           </div>
         ) : null}
@@ -135,19 +135,19 @@ export type DisplayContent =
 export function DisplayPanelFrame({ content }: { content: DisplayContent }) {
   switch (content.kind) {
     case 'note':
-      return <div className="pc-display-note">{content.text}</div>
+      return <div className="su-dash-display-note">{content.text}</div>
     case 'tables':
       return <TablesView onRoll={content.onRoll} />
     case 'srd':
       return <SrdExplorer />
     case 'entity':
       // Centre the card at a document width, the way the srd reference page
-      // does (`mx-auto w-full max-w-*`). Without it the full `large` card
+      // does (a centred 42rem column). Without it the full `large` card
       // stretches to the whole panel and reads squashed — wide-and-short header
-      // stats, over-wide art. `pc-display-scroll` only provides the scroll box.
+      // stats, over-wide art. `su-dash-display-scroll` only provides the scroll box.
       return (
-        <div className="pc-display-scroll">
-          <div className="mx-auto w-full max-w-2xl">
+        <div className="su-dash-display-scroll">
+          <div style={ENTITY_COLUMN}>
             <EntityCard data={content.data} note={content.note} controls={content.controls} />
           </div>
         </div>
@@ -241,6 +241,9 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
   return <DisplayPanelFrame content={content} />
 }
 
+/** The entity card's document column, centred in the display. */
+const ENTITY_COLUMN: CSSProperties = { marginInline: 'auto', maxWidth: '42rem', width: '100%' }
+
 const PICKER: CSSProperties = { padding: '8px 12px 0', flex: '0 0 auto' }
 
 /** A bare fieldset: the group, without the browser's frame around it. */
@@ -263,13 +266,13 @@ export function DisplayPicker({
 }) {
   return (
     <div style={PICKER}>
-      <fieldset className="pc-deck-tabs" style={GROUP} aria-label="Reference">
+      <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Reference">
         {options.map((o) => (
           <button
             key={o.focus}
             type="button"
             aria-pressed={focus === o.focus}
-            className={`pc-deck-tab${focus === o.focus ? ' is-active' : ''}`}
+            className={`su-dash-deck-tab${focus === o.focus ? ' is-active' : ''}`}
             onClick={() => onFocus(o.focus)}
           >
             {o.label}

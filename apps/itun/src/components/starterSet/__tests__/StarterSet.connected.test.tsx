@@ -22,9 +22,9 @@ const convexMocks = await installConvexMocks({
 
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { useEntityStore } = await import('../../../stores/entityStore')
-const db = await import('../../../lib/db/index')
 const { STARTER_PILOTS } = await import('itun-domain/starterSet/starterSet')
 const { StarterSheetView } = await import('../StarterSheetView')
 const { StarterSetRoster } = await import('../StarterSetRoster')
@@ -46,15 +46,7 @@ beforeEach(async () => {
       { _id: 'g1', name: 'The Long Haul', mediator: false, organizer: false, tableRunner: false },
     ],
   })
-  db._resetDbSingleton()
-  await db.clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
+  resetStores()
   await hydrateStores()
 })
 

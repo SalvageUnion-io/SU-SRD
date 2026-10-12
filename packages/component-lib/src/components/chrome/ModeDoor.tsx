@@ -1,7 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { capsLabel } from './capsLabel'
-import { FOCUS_RING } from './interaction'
 
 type ModeDoorProps = {
   /**
@@ -21,12 +20,10 @@ type ModeDoorProps = {
 
 /**
  * The door's static frame. Its transition and hover lift are `.su-mode-door`
- * (a `:hover` rule cannot be inline).
- *
- * The halo and drop shadows ARE inline, deliberately: on the Tailwind build
- * they were `shadow-[…]` utilities, which out-ranked `.su-focus-ring`'s
- * `:focus-visible` box-shadow (layer `utilities` over `su-base`), and inline
- * keeps that precedence exactly.
+ * (a `:hover` rule cannot be inline), and so is every `box-shadow`: the halo
+ * and drop shadows share the property with the `:focus-visible` ring, so they
+ * live in `.su-mode-door--guided` / `--blank`, resting value included. Inline,
+ * they out-ranked any focus ring and the door showed none.
  */
 const DOOR = {
   borderRadius: '0.75rem',
@@ -44,8 +41,6 @@ const DOOR = {
  *  The plate always fills with the surrounding surface tone. */
 const GUIDED = {
   background: 'var(--tone)',
-  boxShadow:
-    '0 0 0 3px var(--ground), 0 0 0 7px var(--color-ink), 0 18px 30px -14px var(--color-ink-50)',
 } satisfies CSSProperties
 
 const BLANK = {
@@ -53,7 +48,6 @@ const BLANK = {
   borderColor: color.ink50,
   borderStyle: 'dashed',
   borderWidth: borderWidth.entity,
-  boxShadow: '0 14px 26px -14px var(--color-ink-40)',
   color: color.ink,
 } satisfies CSSProperties
 
@@ -124,7 +118,7 @@ export function ModeDoor({
     <button
       type="button"
       onClick={onSelect}
-      className={`su-mode-door ${FOCUS_RING}${className ? ` ${className}` : ''}`}
+      className={`su-mode-door su-mode-door--${variant}${className ? ` ${className}` : ''}`}
       style={{ ...DOOR, ...(guided ? GUIDED : BLANK) }}
     >
       <span style={TAB} aria-hidden="true">

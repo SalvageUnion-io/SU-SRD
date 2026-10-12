@@ -380,8 +380,8 @@ function press(name: string): HTMLElement {
 }
 
 /**
- * Drive store work that outlasts one act() scope (IndexedDB) to completion in
- * small act() blocks, polling `done` between them. Bounded at ~1s.
+ * Drive store work that outlasts one act() scope (the stubbed server commit)
+ * to completion in small act() blocks, polling `done` between them. Bounded at ~1s.
  */
 async function settle(done: () => boolean): Promise<void> {
   for (let i = 0; i < 200 && !done(); i++) {
@@ -426,7 +426,7 @@ describe('every verb that changes who has a build asks first', () => {
     expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
 
     await confirmWith('Make a copy')
-    // A signed-in create writes the IndexedDB cache, which settles after `act`.
+    // A signed-in create commits to the (stubbed) server first, and settles after `act`.
     await waitFor(() => expect(localPilotNames()).toContain('COPY OF Vex Arlo'))
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
@@ -557,7 +557,7 @@ describe('remove from game', () => {
     press('Remove from game')
 
     await confirmWith('Move to your shelf')
-    // The move writes through IndexedDB, which outlasts one act() scope.
+    // The move commits to the (stubbed) server first, which outlasts one act() scope.
     await settle(() => screen.queryByRole('alertdialog') === null)
     expect(screen.queryByRole('alertdialog')).toBeNull()
     // A move, never a copy: same id, `gameId` cleared.

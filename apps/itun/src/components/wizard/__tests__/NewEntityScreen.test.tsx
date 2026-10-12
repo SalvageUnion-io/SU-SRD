@@ -5,7 +5,6 @@
  * schema-valid entity through createBlank.
  *
  * Conventions: toBeTruthy() not toBeInTheDocument().
- * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
@@ -30,7 +29,7 @@ const convexMocks = await installConvexMocks({ authReact: true })
 afterAll(() => convexMocks.restore())
 
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { _resetDbSingleton, clearCache } = await import('../../../lib/db/index')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { NewEntityScreen } = await import('../NewEntityScreen')
@@ -52,26 +51,13 @@ function Connected({ children }: { children: ReactNode }) {
 /** Every render here is signed in, unless a test renders Solo on purpose. */
 const render = (ui: ReactNode) => rtlRender(ui, { wrapper: Connected })
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+beforeEach(() => {
+  resetStores()
 })
 
-afterEach(async () => {
+afterEach(() => {
   cleanup()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 const noop = () => {}

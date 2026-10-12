@@ -453,7 +453,7 @@ export default defineSchema({
    * occupy. Deleting a Game had to destroy its crawler: pilots and mechs fell
    * back to a shelf, and the crew's home had nowhere to fall to.
    *
-   * The alternative was to copy a shelved crawler into IndexedDB alone. That is
+   * The alternative was to copy a shelved crawler onto the device alone. That is
    * rejected on principle: offline-first here is ordinary PWA caching, so the
    * local store is a *reflection* of Convex and never a second source of truth.
    * A record with no server row to reflect is invisible on the player's other

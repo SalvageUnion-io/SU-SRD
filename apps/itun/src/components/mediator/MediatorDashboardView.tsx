@@ -97,7 +97,7 @@ const COLUMN: CSSProperties = {
   padding: `${space[8]} ${space[10]} ${space[24]}`,
 }
 
-/** The rail outside the grid keeps `.pc-rail`'s look and wraps. */
+/** The rail outside the grid keeps `.su-dash-rail`'s look and wraps. */
 const STACKED_RAIL: CSSProperties = { minHeight: '40px', flexWrap: 'wrap', padding: space[8] }
 
 const STACKED_MINORS: CSSProperties = {
@@ -212,7 +212,7 @@ function Panels({
   if (stacked) {
     return (
       <div style={COLUMN}>
-        <div className="pc-rail" style={STACKED_RAIL}>
+        <div className="su-dash-rail" style={STACKED_RAIL}>
           {rail}
         </div>
         {seats}
@@ -220,7 +220,7 @@ function Panels({
           {downtime}
           {crawler}
         </div>
-        <div className="pc-display pc-display-light" style={STACKED_DISPLAY}>
+        <div className="su-dash-display su-dash-display-light" style={STACKED_DISPLAY}>
           {display}
         </div>
       </div>

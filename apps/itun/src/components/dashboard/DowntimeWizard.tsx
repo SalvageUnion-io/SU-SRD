@@ -63,6 +63,16 @@ const DOWNTIME_GUIDE_TYPE = 'downtime'
 /** The phase stamp's fill: Downtime is the crawler's, and the stamp carries paper. */
 const PHASE_STAMP_BG = 'var(--color-crawler-band)'
 
+/** The phase stamp: paper caption type at a 9×5 inset on the crawler band. */
+const PHASE_STAMP: CSSProperties = {
+  backgroundColor: PHASE_STAMP_BG,
+  color: 'var(--color-paper)',
+  fontSize: 'var(--text-caption)',
+  lineHeight: 'inherit',
+  paddingBlock: '5px',
+  paddingInline: '9px',
+}
+
 /** Fallback tone when the guide carries no `guideTone` (crawler ontology). */
 const CRAWLER_TONE = 'var(--color-sheet-crawler-deep)'
 
@@ -252,13 +262,13 @@ export function DowntimeWizardFrame({
   const guide = SalvageUnionReference.Guides.find((g) => g.guideType === DOWNTIME_GUIDE_TYPE)
   const steps = guide?.steps ?? []
   if (steps.length === 0) {
-    return <div className="pc-display-note">Downtime procedure not in the reference set.</div>
+    return <div className="su-dash-display-note">Downtime procedure not in the reference set.</div>
   }
 
   const idx = Math.min(Math.max(stepIndex, 0), steps.length - 1)
   const step = steps[idx]
   if (!step) {
-    return <div className="pc-display-note">Downtime procedure not in the reference set.</div>
+    return <div className="su-dash-display-note">Downtime procedure not in the reference set.</div>
   }
 
   // Phase = the most recent section label at or before the current step (the
@@ -299,23 +309,22 @@ export function DowntimeWizardFrame({
       <div style={STEP_COLUMN}>
         <div style={STEP_SCROLL}>
           <div style={STEP_BAND}>
-            <h3 className="pc-dt-step-name">{step.name}</h3>
+            <h3 className="su-dash-dt-step-name">{step.name}</h3>
           </div>
-          <div className="pc-dt" style={STEP_BODY}>
-            <div className="pc-dt-head">
+          <div className="su-dash-dt" style={STEP_BODY}>
+            <div className="su-dash-dt-head">
               {/* Paper on the deeper crawler band (4.6 : 1, ruleset §3.8): the
                 guide's own pink carries paper at only 3.7 : 1. */}
               <Badge
                 shape="stamp"
-                className="px-[9px] py-[5px] text-caption text-paper"
-                // `text-caption` used to merge the stamp's rung size and
+                // The caption size once merged the stamp's rung size and
                 // line-height:1 away, leaving the inherited line-height; the
                 // stamp now keeps both.
-                style={{ backgroundColor: PHASE_STAMP_BG, lineHeight: 'inherit' }}
+                style={PHASE_STAMP}
               >
                 {phase}
               </Badge>
-              <span className="pc-dt-count">
+              <span className="su-dash-dt-count">
                 Step {idx + 1} / {steps.length}
               </span>
             </div>
@@ -327,7 +336,7 @@ export function DowntimeWizardFrame({
             {renderStepGate?.(step)}
 
             {table && (
-              <div className="pc-dt-table">
+              <div className="su-dash-dt-table">
                 <RollTable table={table} tableName={tableName} size="compact" showCommand />
               </div>
             )}
@@ -343,7 +352,7 @@ export function DowntimeWizardFrame({
               </ul>
             ) : null}
 
-            <p className="pc-dt-note">
+            <p className="su-dash-dt-note">
               {onNext
                 ? 'You move the table on. Each player marks the step done when they are.'
                 : 'The Mediator moves the table on. Mark the step done when you are.'}
@@ -351,7 +360,7 @@ export function DowntimeWizardFrame({
           </div>
         </div>
 
-        <div className="pc-dt-controls" style={STEP_FOOT}>
+        <div className="su-dash-dt-controls" style={STEP_FOOT}>
           <Button
             size="compact"
             variant={doneByMe ? 'ghost' : 'primary'}
@@ -405,7 +414,7 @@ function StepGate({
     const mechBay = mechBayStatus(crawler)
     const medBay = medBayStatus(crawler)
     return (
-      <ul className="pc-dt-gate">
+      <ul className="su-dash-dt-gate">
         <li>
           Mech Bay:{' '}
           {mechBay.operational
@@ -423,7 +432,7 @@ function StepGate({
   }
   if (step.name === 'Upkeep & Upgrade') {
     return (
-      <ul className="pc-dt-gate">
+      <ul className="su-dash-dt-gate">
         <li>Upkeep is {UPKEEP_SCRAP}× the crawler's Tech Level in Scrap this Downtime.</li>
         <li>
           {upkeepSpent
@@ -437,7 +446,7 @@ function StepGate({
   if (step.name === 'Trade') {
     const trading = bayGate(crawler, 'trading-bay')
     return (
-      <ul className="pc-dt-gate">
+      <ul className="su-dash-dt-gate">
         <li>
           Trading Bay:{' '}
           {trading.operational
@@ -526,11 +535,11 @@ export function DowntimeWizard({
               <>
                 <StepGate step={step} crawler={crawler} upkeepSpent={upkeepSpent} />
                 {step.name === 'Restore your Mech & Pilot' && (mech || pilot) ? (
-                  <div className="pc-dt-gate">
+                  <div className="su-dash-dt-gate">
                     <Button type="button" onClick={restore}>
                       Apply Restore
                     </Button>
-                    {restored ? <p className="pc-dt-note">{restored}</p> : null}
+                    {restored ? <p className="su-dash-dt-note">{restored}</p> : null}
                   </div>
                 ) : null}
               </>

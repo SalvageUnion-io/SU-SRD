@@ -18,7 +18,7 @@
  *
  * Maps the dashboard's ontology tones onto the gauge's `--tone` vars using the
  * canonical `--color-*` tokens directly. Renders on the warm-paper cockpit scope
- * (`.pc-root`, DashboardCanvas) via the shared `sheet` surface — the same paper
+ * (`.su-dash-root`, DashboardCanvas) via the shared `sheet` surface — the same paper
  * gauge the live sheet uses. No app/data coupling.
  */
 

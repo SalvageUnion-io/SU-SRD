@@ -12,7 +12,6 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { staleWriteError } from 'itun-domain/connection/staleWrite'
 import { pilotFixture } from '../../components/__tests__/fixtures'
-import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import { withSignedInBackend } from './signedInBackend'
 
 withSignedInBackend()
@@ -35,17 +34,12 @@ afterAll(() => {
 })
 
 const { useEntityStore } = await import('../entityStore')
-const { knownVersion, forgetVersions } = await import('../serverVersions')
+const { knownVersion } = await import('../serverVersions')
+const { resetStores } = await import('./resetStores')
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  forgetVersions()
+beforeEach(() => {
+  resetStores()
   useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
 })

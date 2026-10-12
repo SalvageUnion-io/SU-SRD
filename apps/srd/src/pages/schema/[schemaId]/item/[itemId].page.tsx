@@ -23,7 +23,7 @@ import {
   rollTablePageData,
 } from '../../../../components/RollTablePage'
 import { buildLinkFor } from '../../../../lib/buildLink'
-import { chapterForSchema } from '../../../../lib/chapters'
+import { bandFillFor, chapterForSchema } from '../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../lib/componentEmbed'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../lib/constants'
 import { itemHref, schemaHref } from '../../../../lib/entityHref'
@@ -47,6 +47,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const schemaName = schema.displayName || 'Item'
   const pluralName = schema.displayNamePlural || schemaName
   const chapter = chapterForSchema(schemaId)
+  const fill = bandFillFor(schemaId, item)
   const pageMeta = resolveEntityPageMeta(item)
   // A banded d20 table rolls on a page of its own (board 08b), and so does a
   // two-roll columns table; every other entity is the card's page.
@@ -154,11 +155,17 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: itemName, url: canonicalUrl },
       ],
     },
-    foot: entityPageFoot(chapter.tone, pageMeta, rollPage ? ROLL_TABLE_PAGE_MEASURE : undefined),
+    foot: entityPageFoot(
+      chapter.tone,
+      pageMeta,
+      rollPage ? ROLL_TABLE_PAGE_MEASURE : undefined,
+      fill?.foot
+    ),
     children: rollPage ? (
       <EntityPageFrame
         title={itemName}
         tone={chapter.tone}
+        fill={fill?.band}
         meta={pageMeta}
         measure={ROLL_TABLE_PAGE_MEASURE}
       >
@@ -168,6 +175,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       <EntityPageFrame
         title={itemName}
         tone={chapter.tone}
+        fill={fill?.band}
         meta={pageMeta}
         build={buildLinkFor(schemaId, item)}
       >

@@ -1,16 +1,16 @@
 /**
  * encounterStore unit tests (design-review R-5).
  *
- * fake-indexeddb/auto is preloaded via bunfig.toml. The store is reset in
- * beforeEach/afterEach to prevent inter-test state leakage.
+ * The store holds rows in memory only; it is reset in beforeEach/afterEach to
+ * prevent inter-test state leakage.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { SHELF } from 'itun-domain/container'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
-import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { EncounterNpcCreateInput } from '../encounterStore'
 import { useEncounterStore } from '../encounterStore'
+import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -28,19 +28,12 @@ const baseNpcInput: EncounterNpcCreateInput = {
   conditions: [],
 }
 
-function resetStore(): void {
-  useEncounterStore.setState({ encounterNpcs: [], hydrated: false })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetStore()
+beforeEach(() => {
+  resetStores()
 })
 
-afterEach(async () => {
-  await clearCache()
-  resetStore()
+afterEach(() => {
+  resetStores()
 })
 
 describe('encounterStore — create', () => {
@@ -92,30 +85,12 @@ describe('encounterStore — update', () => {
 })
 
 describe('encounterStore — delete', () => {
-  test('removes the tracked NPC from memory and disk', async () => {
+  test('removes the tracked NPC from the store', async () => {
     const npc = await useEncounterStore.getState().create(baseNpcInput)
     await useEncounterStore.getState().delete(npc.id)
 
     expect(useEncounterStore.getState().list().length).toBe(0)
-
-    // Fresh hydration from IndexedDB confirms the delete persisted.
-    resetStore()
-    await useEncounterStore.getState().hydrate()
-    expect(useEncounterStore.getState().list().length).toBe(0)
-  })
-})
-
-describe('encounterStore — hydration persistence', () => {
-  test('records survive a reset + rehydrate (reload semantics)', async () => {
-    await useEncounterStore.getState().create(baseNpcInput)
-
-    resetStore()
-    expect(useEncounterStore.getState().encounterNpcs.length).toBe(0)
-
-    await useEncounterStore.getState().hydrate()
-    const list = useEncounterStore.getState().list()
-    expect(list.length).toBe(1)
-    expect(list[0]?.refSlug).toBe('raider')
+    expect(useEncounterStore.getState().get(npc.id)).toBeNull()
   })
 })
 

@@ -1,24 +1,32 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 // The components import no CSS; the app (or story) loads the bundle.
 import '../../styles/dashboard.css'
 import { DashboardCanvas } from './DashboardCanvas'
+
+const STACK_12 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 export default { title: 'Compositions/Dashboard/Canvas' }
 
 /**
  * The real promoted DashboardCanvas — the scale-to-fit dark shell that owns the
- * `.pc-root` token scope. Resize the frame to watch it letterbox. Below the
+ * `.su-dash-root` token scope. Resize the frame to watch it letterbox. Below the
  * floor on either axis the Dashboard renders its phone form instead
  * (`phone`, ADR-045; see Compositions/Dashboard/Phone); with none passed, as
  * here, it keeps scaling down. A bare placeholder stands in for the
  * store-wired grid (which lives in ITUN).
  */
 export const Default = () => (
-  <div className="flex flex-col gap-3">
+  <div style={STACK_12}>
     <Caption>Scale-to-fit HUD canvas (1280×800), letterboxed on the warm-paper ground.</Caption>
     <div style={{ height: 520, resize: 'both', overflow: 'hidden', border: '1px solid #ccc' }}>
       <DashboardCanvas>
-        <div className="pc-placeholder">
+        <div className="su-dash-placeholder">
           <span
             style={{
               position: 'absolute',
