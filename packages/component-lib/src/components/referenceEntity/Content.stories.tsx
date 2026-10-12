@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import { color, font, fontSize, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Content } from './Content'
 
@@ -21,27 +22,56 @@ const labels: SURefObjectContentBlock[] = [
   { type: 'label', label: 'ON CRITICAL', value: 'Deals double damage and applies Burning.' },
 ]
 
+const rowStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
+
+const rowLabelStyle = {
+  fontFamily: font.body,
+  fontSize: fontSize.badge,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+const pageStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[24],
+  backgroundColor: color.paper,
+  padding: space[20],
+  color: color.ink,
+} satisfies CSSProperties
+
+const introStyle = {
+  maxWidth: '42rem',
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 1.625,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
 function Row({
   label,
-  width = 'w-[500px]',
+  width = 500,
   children,
 }: {
   label: string
-  width?: string
+  width?: number
   children: ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className={`${width} bg-paper p-3`}>{children}</div>
-      <code className="font-body text-badge text-wk-muted">{label}</code>
+    <div style={rowStyle}>
+      <div style={{ width, backgroundColor: color.paper, padding: space[12] }}>{children}</div>
+      <code style={rowLabelStyle}>{label}</code>
     </div>
   )
 }
 
 /** Every content-block type — headings, paragraphs, list-items, hints, labels. */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
+  <div style={pageStyle}>
+    <p style={introStyle}>
       Renders a content-block array: headings, paragraphs, list-items, hints, and EFFECT/ON-CRITICAL
       labels. compact tightens spacing.
     </p>
@@ -51,7 +81,7 @@ export const Default: Story = () => (
     <Row label="labels">
       <Content body={labels} />
     </Row>
-    <Row label="compact" width="w-[400px]">
+    <Row label="compact" width={400}>
       <Content body={mixed} compact />
     </Row>
   </div>

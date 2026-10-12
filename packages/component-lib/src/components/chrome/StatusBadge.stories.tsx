@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import type { EntityStatus } from '../shared/entityStatus'
@@ -13,6 +15,15 @@ export default {
 // any story chunk imports, so module-top-level access is safe here.
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const chassisName = chassis?.name ?? 'Chassis'
+
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[16] } satisfies CSSProperties
+
+const ROW = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[12],
+} satisfies CSSProperties
 
 const STATUSES: EntityStatus[] = ['intact', 'damaged', 'destroyed']
 
@@ -40,10 +51,10 @@ function CyclingStatusBadge({ initial }: { initial: EntityStatus }) {
  * condition vocabulary Intact / Damaged / Destroyed).
  */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-4">
+  <div style={STACK}>
     <div>
       <Caption>All states (static span)</Caption>
-      <div className="flex flex-wrap items-start gap-3">
+      <div style={ROW}>
         {STATUSES.map((status) => (
           <StatusBadge key={status} status={status} />
         ))}
@@ -51,7 +62,7 @@ export const Default: Story = () => (
     </div>
     <div>
       <Caption>Clickable (cycle handler, with subject)</Caption>
-      <div className="flex flex-wrap items-start gap-3">
+      <div style={ROW}>
         {STATUSES.map((status) => (
           <CyclingStatusBadge key={status} initial={status} />
         ))}

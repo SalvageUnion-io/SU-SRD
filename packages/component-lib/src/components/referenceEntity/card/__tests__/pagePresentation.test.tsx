@@ -131,8 +131,12 @@ describe('the card as a page', () => {
   test('the chassis ability reads at 14px, not the compact 12px', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     const lead = container.querySelector('.su-entity-page__lead')
-    expect(lead?.querySelector('.text-sm')).not.toBeNull()
-    expect(lead?.querySelector('.text-xs')).toBeNull()
+    // Content sets its reading size inline (`fontSize: 0.875rem` is text-sm).
+    const sizes = [...(lead?.querySelectorAll<HTMLElement>('[style]') ?? [])].map(
+      (el) => el.style.fontSize
+    )
+    expect(sizes).toContain('0.875rem')
+    expect(sizes).not.toContain('0.75rem')
   })
 
   test('a pattern page lists its loadout under the stats as Rows that Peek', () => {

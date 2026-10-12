@@ -128,16 +128,10 @@ function patternCount(entity: SURefMetaEntity): number {
   return visiblePatterns(patterns).length
 }
 
-/**
- * The entity's tone as a CSS colour. The tone resolver answers in a Tailwind
- * `bg-*` class for most schemas; each one names a theme token, so it maps
- * onto that token's custom property.
- */
+/** The entity's tone as a CSS colour: a guide's own, else its domain tone. */
 function toneOf(schemaName: SURefEnumSchemaName, entity: SURefMetaEntity): string {
   const { bg, bgColor } = resolveDomainTone(schemaName, entity)
-  if (bgColor) return bgColor
-  const token = bg?.match(/^bg-([a-z0-9-]+)$/)?.[1]
-  return token ? `var(--color-${token})` : 'var(--color-ink-2)'
+  return bgColor ?? bg ?? 'var(--color-ink-2)'
 }
 
 /** The header's short stat cells, the tech level carried by the kicker instead. */

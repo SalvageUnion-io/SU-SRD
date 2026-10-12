@@ -44,3 +44,39 @@
     width: 16rem;
   }
 }
+
+/*
+ * Reference Entity Card stories (Compositions/Entity): the side-by-side pair
+ * (`grid-cols-1 lg:grid-cols-2`) and the catalog tile grids (`md:grid-cols-2`,
+ * `md:grid-cols-3`). Display and gap are the stories' style objects; only the
+ * columns change with width.
+ */
+.su-story-pair {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 64rem) {
+  .su-story-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 48rem) {
+  .su-story-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-story-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/*
+ * The narrower drawer panel ITUN asks for (its `w-72`, 18rem), on the Nav
+ * Drawer story's ITUN example. A class because it reaches the panel through
+ * `panelClassName`; this file is imported unlayered, so it beats the panel's
+ * full-width default in `index.css` just as the app's utility does.
+ */
+.su-story-nav-drawer-narrow {
+  width: 18rem;
+}

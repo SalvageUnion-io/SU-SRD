@@ -43,7 +43,7 @@ export function ChoiceRegion({
   // to ChoiceGroups.
   if (isSchemaOnlyCatalogChoice(choice)) {
     return (
-      <div className="[&:not(:last-child)]:mb-3">
+      <div className="su-choice-region">
         <CatalogChoiceListing
           choice={choice}
           techLevel={typeof effTechLevel === 'number' ? effTechLevel : undefined}
@@ -64,7 +64,7 @@ export function ChoiceRegion({
     )
   }
   return (
-    <div className="[&:not(:last-child)]:mb-3">
+    <div className="su-choice-region">
       <ChoiceGroups
         choices={[choice]}
         parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}

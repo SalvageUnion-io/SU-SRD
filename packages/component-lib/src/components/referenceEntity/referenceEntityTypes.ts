@@ -1,8 +1,13 @@
 import type { SURefObjectPatternSystemModule } from 'salvageunion-reference'
+import type { fontSize } from '../../design/tokens'
+import { space } from '../../design/tokens'
 
 /**
  * Spacing helpers based on compact mode.
- * Returns Tailwind-friendly class strings instead of numeric Chakra spacing.
+ *
+ * Returns token VALUES, not class strings: `smallGap` / `sectionGap` are the
+ * vertical rhythm of a stacked block (fed to `stackClassName`, or to a flex
+ * `gap`).
  */
 export const getReferenceEntitySpacing = (compact: boolean) => {
   const contentPadding = compact ? 0.5 : 0.75
@@ -11,14 +16,10 @@ export const getReferenceEntitySpacing = (compact: boolean) => {
   const contentPaddingX = compact ? 0.7 : 0.9
 
   return {
-    /** Gap between small elements: 1.5 (compact) or 2 (normal) */
-    smallGap: compact ? 1.5 : 2,
-    /** Tailwind gap class: 'gap-1.5' (compact) or 'gap-2' (normal) */
-    smallGapClass: compact ? 'gap-1.5' : ('gap-2' as const),
-    /** Tailwind space-y class: 'space-y-1.5' (compact) or 'space-y-2' (normal) */
-    smallSpaceYClass: compact ? 'space-y-1.5' : ('space-y-2' as const),
-    /** Tailwind space-y class for section-level gaps: 'space-y-3' (compact) or 'space-y-4' (normal) */
-    sectionSpaceYClass: compact ? 'space-y-3' : ('space-y-4' as const),
+    /** Gap between small elements: 6px (compact) or 8px (normal) */
+    smallGap: compact ? space[6] : space[8],
+    /** Gap between sections: 12px (compact) or 16px (normal) */
+    sectionGap: compact ? space[12] : space[16],
     /** Gap for minimal spacing: 0.25 (compact) or 0.5 (normal) */
     minimalGap: compact ? 0.25 : 0.5,
     /** Vertical padding for content (rem): 0.5 (compact) or 0.75 (normal) */
@@ -40,19 +41,42 @@ export const getReferenceEntitySpacing = (compact: boolean) => {
   }
 }
 
+/** A vertical rhythm `getReferenceEntitySpacing` hands out. */
+type StackGap = (typeof space)[6 | 8 | 12 | 16]
+
+const STACK_MODIFIER: Record<StackGap, string> = {
+  [space[6]]: 'su-pattern-stack--6',
+  [space[8]]: 'su-pattern-stack--8',
+  [space[12]]: 'su-pattern-stack--12',
+  [space[16]]: 'su-pattern-stack--16',
+}
+
+/**
+ * The classes that stack a block's children at `gap` — the `space-y-*` they
+ * replace. A modifier class per rung rather than a custom property: stacks
+ * nest, and an inherited property would hand an inner stack's gap to its own
+ * margin inside the outer one.
+ */
+export const stackClassName = (gap: StackGap) => `su-pattern-stack ${STACK_MODIFIER[gap]}`
+
+type TypeRung = keyof typeof fontSize
+
 /**
  * Font size helpers based on compact mode.
- * Returns Tailwind class names instead of Chakra size tokens.
+ * Returns `fontSize` token KEYS (`'xs'` is `fontSize.xs`); `sm` is a valid
+ * `ContentFontSize` as it stands.
  */
-export const getReferenceEntityFontSizes = (compact: boolean) => ({
+export const getReferenceEntityFontSizes = (
+  compact: boolean
+): { xs: TypeRung; sm: 'xs' | 'sm'; md: TypeRung; lg: TypeRung } => ({
   /** Extra small text */
-  xs: compact ? 'text-badge' : 'text-xs',
+  xs: compact ? 'badge' : 'xs',
   /** Small text */
-  sm: compact ? 'text-xs' : 'text-sm',
+  sm: compact ? 'xs' : 'sm',
   /** Medium text */
-  md: compact ? 'text-sm' : 'text-base',
+  md: compact ? 'sm' : 'base',
   /** Large text */
-  lg: compact ? 'text-base' : 'text-lg',
+  lg: compact ? 'base' : 'lg',
 })
 
 /** Pattern override data for patterned chassis display */
