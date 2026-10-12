@@ -196,18 +196,20 @@ export function inputHash(gen: GeneratorSpec, root = ROOT, withOutputs = true): 
   return hash.digest('hex')
 }
 
-const CACHE_FILE = join(ROOT, 'node_modules/.cache/check-generated.json')
-
-function readCache(): Record<string, string> {
+function readCache(cacheFile: string): Record<string, string> {
   try {
-    return JSON.parse(readFileSync(CACHE_FILE, 'utf8')) as Record<string, string>
+    return JSON.parse(readFileSync(cacheFile, 'utf8')) as Record<string, string>
   } catch {
     return {}
   }
 }
 
-async function run(cmd: string[], cwd: string): Promise<{ status: number; output: string }> {
-  const proc = Bun.spawn(cmd, { cwd: join(ROOT, cwd), stdout: 'pipe', stderr: 'pipe' })
+async function run(
+  cmd: string[],
+  cwd: string,
+  root = ROOT
+): Promise<{ status: number; output: string }> {
+  const proc = Bun.spawn(cmd, { cwd: join(root, cwd), stdout: 'pipe', stderr: 'pipe' })
   const [stdout, stderr, status] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
@@ -216,29 +218,54 @@ async function run(cmd: string[], cwd: string): Promise<{ status: number; output
   return { status, output: `${stdout}${stderr}` }
 }
 
-async function main(): Promise<void> {
-  const useCache = !process.env.CI && !process.argv.includes('--force')
-  const cache = useCache ? readCache() : {}
+export type GeneratorResult = {
+  gen: GeneratorSpec
+  skipped: boolean
+  status: number
+  output: string
+}
+
+/**
+ * Run `generators` at once, skipping each whose key matches `cacheFile`'s
+ * record when `useCache`, and record the key of each clean run.
+ */
+export async function runGenerators(
+  generators: GeneratorSpec[],
+  {
+    root = ROOT,
+    cacheFile = join(ROOT, 'node_modules/.cache/check-generated.json'),
+    useCache = true,
+  } = {}
+): Promise<GeneratorResult[]> {
+  const cache = useCache ? readCache(cacheFile) : {}
   const results = await Promise.all(
-    GENERATORS.map(async (gen) => {
-      if (useCache && cache[gen.label] === inputHash(gen))
+    generators.map(async (gen): Promise<GeneratorResult> => {
+      if (useCache && cache[gen.label] === inputHash(gen, root)) {
         return { gen, skipped: true, status: 0, output: '' }
-      const before = inputHash(gen, ROOT, false)
-      const r = await run(gen.cmd, gen.cwd)
+      }
+      const before = inputHash(gen, root, false)
+      const r = await run(gen.cmd, gen.cwd, root)
       // Hashed after the run — the state in which a re-run is a no-op — and only
       // when no input moved while it ran (that output could be from the old one).
-      if (r.status === 0 && inputHash(gen, ROOT, false) === before) {
-        cache[gen.label] = inputHash(gen)
+      if (r.status === 0 && inputHash(gen, root, false) === before) {
+        cache[gen.label] = inputHash(gen, root)
       } else delete cache[gen.label]
       return { gen, skipped: false, ...r }
     })
   )
   try {
-    mkdirSync(dirname(CACHE_FILE), { recursive: true })
-    writeFileSync(CACHE_FILE, `${JSON.stringify(cache, null, 2)}\n`)
+    mkdirSync(dirname(cacheFile), { recursive: true })
+    writeFileSync(cacheFile, `${JSON.stringify(cache, null, 2)}\n`)
   } catch {
     // A cache that can't be written only costs the next run its skip.
   }
+  return results
+}
+
+async function main(): Promise<void> {
+  const results = await runGenerators(GENERATORS, {
+    useCache: !process.env.CI && !process.argv.includes('--force'),
+  })
   const failed = results.filter((r) => r.status !== 0)
   for (const r of failed) {
     console.error(`✗ generated files: the ${r.gen.label} generator failed (exit ${r.status})\n`)

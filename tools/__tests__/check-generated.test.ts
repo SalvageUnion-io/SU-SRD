@@ -1,8 +1,15 @@
 import { afterAll, describe, expect, test } from 'bun:test'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { GENERATED_PATHS, GENERATORS, inputHash, parsePorcelain } from '../check-generated'
+import type { GeneratorSpec } from '../check-generated'
+import {
+  GENERATED_PATHS,
+  GENERATORS,
+  inputHash,
+  parsePorcelain,
+  runGenerators,
+} from '../check-generated'
 
 describe('check-generated', () => {
   test('a modified file and an untracked NEW file are both drift', () => {
@@ -132,5 +139,70 @@ describe('the cache key', () => {
     const before = inputHash(ref, root, false)
     write('packages/salvageunion-reference/schemas/index.json', 'regenerated')
     expect(inputHash(ref, root, false)).toBe(before)
+  })
+})
+
+describe('runGenerators', () => {
+  const root = mkdtempSync(join(tmpdir(), 'run-generators-'))
+  const cacheFile = join(root, 'cache/check-generated.json')
+  afterAll(() => rmSync(root, { recursive: true, force: true }))
+  writeFileSync(join(root, 'in.txt'), 'v1')
+
+  // Appends a line per run to runs.log, so a skip is visible as no new line.
+  const spec = (label: string, script: string): GeneratorSpec => ({
+    label,
+    cmd: ['sh', '-c', script],
+    cwd: '.',
+    outputs: ['out.txt'] as unknown as GeneratorSpec['outputs'],
+    inputs: ['in.txt'],
+    tools: [],
+  })
+  const counting = spec('counting', 'cat in.txt > out.txt && echo run >> runs.log')
+  const runs = () => readFileSync(join(root, 'runs.log'), 'utf8').split('\n').length - 1
+  const go = (gens: GeneratorSpec[], useCache = true) =>
+    runGenerators(gens, { root, cacheFile, useCache })
+
+  test('runs, then skips while nothing changed, then re-runs on an input change', async () => {
+    expect((await go([counting]))[0]?.skipped).toBe(false)
+    expect(runs()).toBe(1)
+    expect((await go([counting]))[0]?.skipped).toBe(true)
+    expect(runs()).toBe(1)
+    writeFileSync(join(root, 'in.txt'), 'v2')
+    expect((await go([counting]))[0]?.skipped).toBe(false)
+    expect(runs()).toBe(2)
+  })
+
+  test('a hand edit to an output re-runs it', async () => {
+    writeFileSync(join(root, 'out.txt'), 'hand-edited')
+    expect((await go([counting]))[0]?.skipped).toBe(false)
+    expect(readFileSync(join(root, 'out.txt'), 'utf8')).toBe('v2')
+  })
+
+  test('without the cache (CI, --force) it always runs', async () => {
+    const before = runs()
+    expect((await go([counting], false))[0]?.skipped).toBe(false)
+    expect(runs()).toBe(before + 1)
+  })
+
+  test('a failed run reports its exit and output and is never recorded', async () => {
+    const failing = spec('failing', 'echo broke >&2; exit 3')
+    for (let i = 0; i < 2; i++) {
+      const [r] = await go([failing])
+      expect(r).toMatchObject({ skipped: false, status: 3, output: 'broke\n' })
+    }
+    expect(JSON.parse(readFileSync(cacheFile, 'utf8'))).not.toHaveProperty('failing')
+  })
+
+  test('an input that moves during the run is not recorded', async () => {
+    const racing = spec('racing', 'echo moved >> in.txt')
+    await go([racing])
+    expect(JSON.parse(readFileSync(cacheFile, 'utf8'))).not.toHaveProperty('racing')
+  })
+
+  test('an unreadable cache is a miss, not a crash', async () => {
+    writeFileSync(cacheFile, 'not json')
+    const before = runs()
+    expect((await go([counting]))[0]?.skipped).toBe(false)
+    expect(runs()).toBe(before + 1)
   })
 })
