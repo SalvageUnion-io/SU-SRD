@@ -1,8 +1,8 @@
 # Architecture
 
 What is true now: one entry each, a headline and at most two lines (`bun run check doc-drift` holds the shape).
-Rationale and history live in git; the full pre-collapse text, including the ADR §-sections code comments
-cite, is `git show 62d5afa:docs/ARCHITECTURE.md`.
+The ADRs code cites by § keep their full text in [`docs/adr/`](adr/), linked from their entries; the rest of
+the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 
 ## Areas
 
@@ -133,7 +133,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
    Accepted: Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
 6. **ADR-006 Rules logic as pure functions in `salvageunion-reference/rules`**
    Accepted: state in, result out, consumers persist. Randsum is the only dice source; the package binds no RNG.
-7. **ADR-007 Automation boundary**
+7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)
    Accepted: automate bookkeeping (heat, EP / AP, uses, SP damage); never change a condition or destroy without the player.
 8. **ADR-008 Sequential client-side mutations**
    Accepted: no atomic transaction or rollback; affordability is checked before an action runs.
@@ -161,7 +161,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Merged into ADR-015; superseded by ADR-038 (play state is a seat saved on the Game).
 20. **ADR-020 Fixed 1280×800 scale-to-fit canvas**
     Merged into ADR-015; superseded by ADR-038 §9.
-21. **ADR-021 ITUN surface taxonomy**
+21. **ADR-021 ITUN surface taxonomy** · [full text](adr/021-itun-surface-taxonomy.md)
     Accepted, governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
     Wins over any earlier ADR; the live matrix is Areas 17.
 22. **ADR-022 Change Log and stat overrides**
@@ -173,7 +173,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Superseded by ADR-041; amended by ADR-040.
 25. **ADR-025 Versioned releases for `salvageunion-reference`**
     Superseded by ADR-040.
-26. **ADR-026 Entity card design rules**
+26. **ADR-026 Entity card design rules** · [full text](adr/026-entity-card-design-rules.md)
     Accepted: `ReferenceEntityCard` is the only entity renderer; app UI layers onto it, never replaces it.
     Stats have Normal and Compact modes, no pips; a modified stat wears a heavier solid ink frame.
 27. **ADR-027 Partners are instances owned by a pilot or a mech**
@@ -181,18 +181,18 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 28. **ADR-028 A partner renders in place**
     Accepted: a partner is a `ReferenceEntityCard` on its host's sheet with instance state; no partner sheet or route.
     Supersedes ADR-027.
-29. **ADR-029 Unified contribution model and stat provenance**
+29. **ADR-029 Unified contribution model and stat provenance** · [full text](adr/029-contribution-model.md)
     Accepted, built: one source / op / target model (`packages/salvageunion-reference/lib/rules/contributions.ts`).
     Derivations return parts, so provenance shows wherever a value does; duration effects are never persisted.
-30. **ADR-030 Accounts, Games, and a server of record**
+30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Accepted, governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal.
     Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037 and ADR-039.
 31. **ADR-031 srd builds on an in-house Vite SSG**
     Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/srd/ssg/DESIGN.md`.
-32. **ADR-032 Public, read-only sheets**
+32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Accepted: opt-in `publicRead` per entity; the owner decides, the table runner for a crawler.
     Amends ADR-030's visibility rule; amended by ADR-036.
-33. **ADR-033 Hosting on Cloudflare**
+33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Accepted, delivered: every hostname is a Worker (Static Assets, R2); builds run in Actions, deploys use `wrangler`.
     Its snapshot store is history (ADR-036); cutover phases cited in code are in git.
 34. **ADR-034 Persistence requires an account; the local store is a cache**
@@ -206,10 +206,10 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 37. **ADR-037 The assignment model**
     Accepted: one-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
     Amends ADR-030; amended by ADR-044. Code: `apps/itun/src/lib/links/linkRules.ts`.
-38. **ADR-038 The Dashboard is a Game surface with shared play state**
+38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
     Supersedes ADR-015; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
-39. **ADR-039 Addressed invites by Discord account**
+39. **ADR-039 Addressed invites by Discord account** · [full text](adr/039-addressed-invites.md)
     Accepted: an invite may carry `invites.target`; `/su invite` is Discord-signed; both doors mint through `mintInvite`.
     Amends ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).
 40. **ADR-040 The dataset is served verbatim with no release stream**
@@ -227,6 +227,6 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
     Proposed, built on this branch: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
-45. **ADR-045 The Dashboard has a phone form**
+45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
     Proposed: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
     Amends ADR-038.

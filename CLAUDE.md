@@ -7,11 +7,11 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the whole architecture as terse numbered entries (Areas, then Decisions: entry N is ADR-N, its status first). Read it whole; §-level detail cited in code is in git (the file's header says where). The three ADRs that govern:
-  - [ADR-030](docs/ARCHITECTURE.md) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#areas).
-  - [ADR-021](docs/ARCHITECTURE.md) — the surface/mode taxonomy for **where a rule is enforced**.
-  - [ADR-007](docs/ARCHITECTURE.md) — the automation boundary. Read before building rules-driven features.
-- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/ARCHITECTURE.md).
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the architecture as terse numbered entries (Areas, then Decisions: entry N is ADR-N, status first). Read it whole; §-cited ADRs keep full text in [`docs/adr/`](docs/adr/). The three ADRs that govern:
+  - [ADR-030](docs/adr/030-accounts-games-server-of-record.md) — accounts, Games, Convex of record. Ops: [accounts](docs/ARCHITECTURE.md#areas).
+  - [ADR-021](docs/adr/021-itun-surface-taxonomy.md) — the surface/mode taxonomy: **where a rule is enforced**.
+  - [ADR-007](docs/adr/007-automation-boundary.md) — automation boundary; read before rules-driven work.
+- **Hosting:** Cloudflare Workers + R2 — [ADR-033](docs/adr/033-hosting-on-cloudflare.md).
 - **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session or Routine, attach `su-rules` as a second repo and grep its committed `extracted/*.txt` (sibling checkout, no poppler; the rules checks find it there). Both carry `<!-- page N -->` markers for citations. There is no curated rules digest.
 
 ## Critical Rules
