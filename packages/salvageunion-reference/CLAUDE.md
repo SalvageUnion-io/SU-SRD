@@ -154,16 +154,7 @@ generated from that manifest by `tools/generateRegistry.ts` — run via
 `bun run build:package` (it runs before `generate:json-schemas`, since that
 tool transitively imports the generated `zodSchemaMap`).
 
-Run the scaffold generator to print an exact, ready-to-paste checklist for
-the manual steps plus the manifest entry, derived from the live registry —
-it does not edit files, it tells you precisely what to add and where:
-
-```bash
-bun --filter salvageunion-reference scaffold:entity <schema-id> [Singular] [Plural] [--non-entity]
-# e.g. … scaffold:entity power-cores "Power Core" "Power Cores"
-```
-
-See the header of `tools/scaffold-entity.ts` for full usage.
+The step-by-step checklist is `.claude/rules/reference-new-schema.md`.
 
 `LazyModel` is generated
 into the class body (not a runtime base class / mixin) specifically so every

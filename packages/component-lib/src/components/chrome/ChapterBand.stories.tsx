@@ -43,10 +43,11 @@ export const Default: Story = () => (
       <ChapterBand measure="80rem">The Salvage Union SRD</ChapterBand>
     </div>
     <div style={PAGE}>
-      <Caption>mech — with an aside (the entity's stamps)</Caption>
+      <Caption>mech — with an aside beside the notch (an entity's stamps)</Caption>
       <ChapterBand
         tone="mech"
         measure="80rem"
+        asideAt="notch"
         aside={
           <span style={STAMPS}>
             <Badge shape="stamp" size="full">

@@ -59,7 +59,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment and the seam stamp.
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build; ITUN is the product name, spelled out on its front door; no off-site arrows between the two.
 4. **§4 Foundations** — the token layer, one home: `packages/component-lib/src/styles/theme.css`.
-   1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface (pure white retired), `--color-wk-bg` the page ground, `--color-band-cream` the one cream.
+   1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface (pure white retired), `--color-wk-bg` the page ground (the cool `-2` is off-palette on screen: tokens rule `cool-ground`), `--color-band-cream` the one cream.
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground. `contrast.test.ts` pins every pair.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) is the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
    3. **§4.3 The border map** — one meaning per weight: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (Card below large, and the Row), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value-cell frames and table rules.

@@ -43,7 +43,7 @@ describe('toEntityModel', () => {
     const drill = need(SalvageUnionReference.Systems.getByName('Salvaging Drill'), 'drill')
     const model = toEntityModel(drill)
     expect(model.kind).toEqual({ stamp: 'System', type: 'System', domain: 'gear', nature: 'have' })
-    expect(model.tone).toBe('tl-2')
+    expect(model.tone).toBe('mech')
     expect(model.facts.map((f) => [f.short, f.value])).toEqual([
       ['TL', '2'],
       ['Slots', '3'],
@@ -145,10 +145,17 @@ describe('entityTone', () => {
     expect(entityTone('systems', as({ ...base, blackMarket: true }))).toBe('ink-2')
   })
 
-  test('gear rides the tech-level ramp, Bio and Nanite included', () => {
-    expect(entityTone('systems', as({ ...base, techLevel: 3 }))).toBe('tl-3')
+  test('other gear rides the tech-level ramp, Bio and Nanite included', () => {
+    expect(entityTone('equipment', as({ ...base, techLevel: 3 }))).toBe('tl-3')
     expect(entityTone('equipment', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
-    expect(entityTone('modules', as({ ...base, techLevel: 'N' }))).toBe('tl-n')
+    expect(entityTone('drones', as({ ...base, techLevel: 'N' }))).toBe('tl-n')
+  })
+
+  test('mech gear is mech at every tech level: TL is a badge, never a ground (§3.8)', () => {
+    for (const techLevel of [1, 3, 6, 'B', 'N']) {
+      expect(entityTone('systems', as({ ...base, techLevel }))).toBe('mech')
+      expect(entityTone('modules', as({ ...base, techLevel }))).toBe('mech')
+    }
   })
 
   test('a chassis is mech; an action is ink', () => {
