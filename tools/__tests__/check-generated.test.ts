@@ -151,7 +151,7 @@ describe('the cache key', () => {
 
   test('without outputs, a rewritten output does not move the key', () => {
     const before = inputHash(ref, root, false)
-    write('packages/salvageunion-reference/schemas/index.json', 'regenerated')
+    write('packages/salvageunion-reference/lib/index.ts', 'regenerated')
     expect(inputHash(ref, root, false)).toBe(before)
   })
 })

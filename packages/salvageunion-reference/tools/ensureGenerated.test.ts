@@ -20,13 +20,28 @@ describe('ensureGenerated', () => {
       .trimEnd()
       .split('\n')
     expect(hash).toBe(inputsHash())
-    const schemas = readdirSync(join(PACKAGE_DIR, 'schemas')).filter((f) =>
-      f.endsWith('.schema.json')
+    const onDisk = (dir: string) =>
+      readdirSync(join(PACKAGE_DIR, dir))
+        .filter((f) => !f.startsWith('.'))
+        .map((f) => `${dir}/${f}`)
+    expect(outputs).toEqual([...onDisk('lib/generated'), ...onDisk('schemas')].sort())
+    expect(outputs).toContain('schemas/index.json')
+    // Four registry modules, plus one list projection per entry that asks.
+    expect(outputs.filter((o) => o.startsWith('lib/generated/'))).toHaveLength(
+      4 + registry.filter((e) => e.listProjection).length
     )
-    expect(outputs.filter((o) => o.startsWith('schemas/'))).toEqual(
-      schemas.map((f) => `schemas/${f}`).sort()
+  })
+
+  test("the catalog marks exactly the registry's `meta` entries", () => {
+    const catalog = JSON.parse(readFileSync(join(PACKAGE_DIR, 'schemas/index.json'), 'utf8')) as {
+      schemas: { id: string; meta?: boolean }[]
+    }
+    expect(catalog.schemas.filter((s) => s.meta).map((s) => s.id)).toEqual(
+      registry
+        .filter((e) => e.meta)
+        .map((e) => e.id)
+        .sort()
     )
-    expect(outputs.filter((o) => o.startsWith('lib/generated/'))).toHaveLength(4)
   })
 
   test('writes one JSON Schema per registry entry, and no orphans', () => {

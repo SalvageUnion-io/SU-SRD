@@ -30,7 +30,7 @@
     "./lib/zod.ts"
   ],
   "scripts": {
-    "build": "bun tools/ensureGenerated.ts --force && bun run docs",
+    "build": "bun tools/ensureGenerated.ts --force",
     "docs": "bun tools/generateDocs.ts",
     "generate:registry": "bun tools/generateRegistry.ts",
     "generate:json-schemas": "bun tools/generateJsonSchemas.ts",

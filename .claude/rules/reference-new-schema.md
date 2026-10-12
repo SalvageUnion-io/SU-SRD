@@ -24,16 +24,14 @@ script). For a new schema `<id>` (kebab-case, not already in `lib/schemas/regist
 2. **Data file** `data/<id>.json`, starting as `[]`.
 3. **One registry entry** in `lib/schemas/registry.ts`:
    `{ id, typeName: 'SURefWidget', zodExportName: 'WidgetSchema', singular, plural }`
-   (plus `entity: false` or `excludeFromEntityUnion: true` from step 1).
-   Then `bun run build:package` regenerates the rest: the gitignored
-   `schemas/<id>.schema.json` and the committed `schemas/index.json` entry
-   (prose from the `.describe()`); commit the catalog. Two parts of that entry
-   are still by hand:
+   (plus `entity: false` or `excludeFromEntityUnion: true` from step 1, and
+   `meta: true` to keep the schema out of search and the catalog listing).
+   Then `bun run build:package` regenerates the rest, all gitignored:
+   `schemas/<id>.schema.json` and its `schemas/index.json` entry (prose from
+   the `.describe()`). One part of that entry is still by hand:
    - `displayName` comes from the id → name chain in `parseSchemaFile`
      (`packages/salvageunion-reference/tools/generateDocs.ts`); add the id
      there, or it falls back to the raw id.
-   - `meta: true` (keeps a schema out of search and the catalog listing) is
-     only carried over from an existing entry: if wanted, add it once.
 4. **Verify:** `bun --filter salvageunion-reference typecheck`,
    `bun --filter salvageunion-reference test` (the registry-consistency guard:
    a failure there means a missed or mistyped registry entry), and

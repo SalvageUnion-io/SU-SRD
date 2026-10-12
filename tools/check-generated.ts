@@ -2,10 +2,10 @@
 /**
  * Generated-file drift — `bun run check generated`.
  *
- * Several committed files are machine output: the reference package's schema
- * catalog and the static-accessor block in its `lib/index.ts`
- * (`bun run build:package`; its JSON schemas and `lib/generated/` are
- * gitignored build output, not checked here), ITUN's `src/routeTree.gen.ts`,
+ * Several committed files are machine output: the static-accessor block in
+ * the reference package's `lib/index.ts` (`bun run build:package`; its
+ * `schemas/` and `lib/generated/` are gitignored build output, not checked
+ * here), ITUN's `src/routeTree.gen.ts`,
  * and the `worker-configuration.d.ts` that `wrangler types` writes for each of
  * the four Workers (`Env` from wrangler.jsonc, so a binding added there without
  * the types fails here). Each is regenerated here and then compared with what
@@ -73,7 +73,6 @@ const ROOT = join(import.meta.dir, '..')
 
 /** Every committed path a generator below writes. */
 export const GENERATED_PATHS = [
-  'packages/salvageunion-reference/schemas/index.json',
   'packages/salvageunion-reference/lib/index.ts',
   'apps/itun/src/routeTree.gen.ts',
   'apps/srd/worker-configuration.d.ts',
@@ -130,10 +129,7 @@ export const GENERATORS: GeneratorSpec[] = [
     label: 'salvageunion-reference build',
     cmd: ['bun', 'run', 'build'],
     cwd: 'packages/salvageunion-reference',
-    outputs: [
-      'packages/salvageunion-reference/schemas/index.json',
-      'packages/salvageunion-reference/lib/index.ts',
-    ],
+    outputs: ['packages/salvageunion-reference/lib/index.ts'],
     // The whole package: data, lib (the registry and zod schemas), tools.
     inputs: ['packages/salvageunion-reference'],
     tools: ['zod', '@biomejs/biome'],

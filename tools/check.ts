@@ -78,7 +78,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'generated',
     guards:
-      'committed generated files match their generators (schema catalog, registry block, route tree)',
+      'committed generated files match their generators (registry block, route tree, Worker types)',
     fix: 'commit the files it just regenerated; never hand-edit a generated file',
     cmd: ['bun', 'tools/check-generated.ts'],
     first: true,

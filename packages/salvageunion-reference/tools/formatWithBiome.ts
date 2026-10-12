@@ -2,10 +2,9 @@
  * formatWithBiome — format generated source through the repo's Biome binary.
  *
  * Biome is the single formatter, and the generators format *in-process*,
- * before writing: `lib/index.ts` and `schemas/index.json` are committed and
- * gated by `tools/check-generated.ts`, `biome ci .` reads the gitignored
- * `schemas/*.schema.json` too (Biome ignores `.gitignore`), and srd serves
- * those bytes verbatim. A later `biome format --write` pass would leave a
+ * before writing: `lib/index.ts` is committed and gated by
+ * `tools/check-generated.ts`, `biome ci .` reads the gitignored `schemas/`
+ * too (Biome ignores `.gitignore`), and srd serves those bytes verbatim. A later `biome format --write` pass would leave a
  * clean tree failing that gate.
  *
  * ## Why shell out instead of using a Biome API package

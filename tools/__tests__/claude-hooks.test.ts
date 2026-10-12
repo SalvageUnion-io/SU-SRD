@@ -74,10 +74,6 @@ describe('settings.json deny rules', () => {
     (typeof GENERATED_PATHS)[number],
     { file: string; denied: boolean }
   > = {
-    'packages/salvageunion-reference/schemas/index.json': {
-      file: 'packages/salvageunion-reference/schemas/index.json',
-      denied: true,
-    },
     // Only its GENERATED:BEGIN/END span is generated; the rest is hand-written.
     'packages/salvageunion-reference/lib/index.ts': {
       file: 'packages/salvageunion-reference/lib/index.ts',

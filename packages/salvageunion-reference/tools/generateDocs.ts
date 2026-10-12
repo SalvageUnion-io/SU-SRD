@@ -1,5 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { registry } from '../lib/schemas/registry.js'
+import { formatWithBiome } from './formatWithBiome.js'
 
 /**
  * Every path below is anchored to THIS FILE, not to `process.cwd()`, so the
@@ -133,12 +135,13 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
 /**
  * No `version` field: the package has no release stream (ADR-040), the
  * repository's release is the deployed commit (ADR-041), and nothing reads one.
+ * No `generated` timestamp either: the file is gitignored build output that
+ * `ModelFactory` bundles, so the same inputs must give the same bytes.
  */
 type SchemaIndex = {
   $schema: string
   title: string
   description: string
-  generated: string
   schemas: Array<{
     id: string
     title: string
@@ -153,28 +156,17 @@ type SchemaIndex = {
   }>
 }
 
+/** Ids whose catalog entry is `meta` — the registry's `meta` flag. */
+const META_IDS = new Set(registry.filter((e) => e.meta).map((e) => e.id))
+
 function generateSchemaIndex(schemas: SchemaInfo[]): void {
   const outputPath = path.join(PACKAGE_DIR, 'schemas', 'index.json')
 
-  // Read the existing index in a single syscall — `existsSync` followed by
-  // `readFileSync` is a check-then-act pair (the file can vanish in between);
-  // catching ENOENT off the read itself has no such window.
-  let existingIndex: SchemaIndex | null = null
-  try {
-    existingIndex = JSON.parse(fs.readFileSync(outputPath, 'utf-8')) as SchemaIndex
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
-  }
-
-  const newIndex: SchemaIndex = {
+  const index: SchemaIndex = {
     $schema: 'http://json-schema.org/draft-07/schema#',
     title: 'Salvage Union Data Schema Catalog',
     description: 'Catalog of all available schemas in the salvageunion-data repository',
-    generated: new Date().toISOString(),
     schemas: schemas.map((s) => {
-      // Find existing entry to preserve meta property
-      const existingEntry = existingIndex?.schemas.find((e) => e.id === s.id)
-
       const entry: SchemaIndex['schemas'][0] = {
         id: s.id,
         title: s.title,
@@ -189,34 +181,22 @@ function generateSchemaIndex(schemas: SchemaInfo[]): void {
       if (s.comment) {
         entry.comment = s.comment
       }
-      // Preserve meta property from existing entry if it exists
-      if (existingEntry?.meta !== undefined) {
-        entry.meta = existingEntry.meta
+      if (META_IDS.has(s.id)) {
+        entry.meta = true
       }
       return entry
     }),
-  }
-
-  // Check if only the generated field would change
-  if (existingIndex) {
-    const existingWithoutGenerated = { ...existingIndex, generated: undefined }
-    const newWithoutGenerated = { ...newIndex, generated: undefined }
-
-    if (JSON.stringify(existingWithoutGenerated) === JSON.stringify(newWithoutGenerated)) {
-      console.log(`⏭️  Skipped schemas/index.json (only generated timestamp would change)`)
-      return
-    }
   }
 
   // Publish the file as ONE atomic step: write the full contents to a temp
   // file in the SAME directory (so `rename` stays within one filesystem, where
   // POSIX guarantees it is atomic) and rename it over the target. A reader
   // therefore sees either the old index or the new one — never a half-written
-  // file, and there is no window between deciding to write and the bytes
-  // landing. Unlink the temp file if the rename itself fails.
+  // file. Unlink the temp file if the rename itself fails.
   const tempPath = `${outputPath}.${process.pid}.tmp`
   try {
-    fs.writeFileSync(tempPath, `${JSON.stringify(newIndex, null, 2)}\n`)
+    // Biome, as the schema files are: `biome ci .` reads this path too.
+    fs.writeFileSync(tempPath, formatWithBiome(JSON.stringify(index), outputPath))
     fs.renameSync(tempPath, outputPath)
   } catch (error) {
     fs.rmSync(tempPath, { force: true })

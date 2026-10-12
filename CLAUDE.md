@@ -70,7 +70,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 - `apps/su-assets/` - Cloudflare Worker (`assets.salvageunion.io`) serving licensed entity artwork from the `su-lp-assets` R2 bucket, with `-440`/`-880` derivatives from Cloudflare Images. Image bytes never live in git; entity-card artwork in both apps depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
 - `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
 - `packages/observability/` - Sentry wiring: `/cloudflare` for the four Workers, `/browser` for the two browser apps' shared helper.
-- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `schemas/*.schema.json` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
+- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `schemas/` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
 - `tools/` - The repo's gates and scripts: [`tools/CLAUDE.md`](tools/CLAUDE.md).
 
 **Dependency graph:**
