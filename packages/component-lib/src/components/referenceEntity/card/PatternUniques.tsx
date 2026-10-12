@@ -44,6 +44,7 @@ export function PatternUniques({
   chassisName,
   NestedCard,
   className,
+  loadout: showLoadout = true,
 }: {
   pattern: SURefObjectAnyPattern
   /** The depth the embedded cards render at. */
@@ -53,8 +54,12 @@ export function PatternUniques({
   chassisName?: string
   NestedCard: NestedCard
   className?: string
+  /** `false` when the caller draws the loadout itself (a page's pattern cards, as Rows). */
+  loadout?: boolean
 }) {
-  const loadout = resolvePatternGroups(pattern).flatMap((group) => group.entities)
+  const loadout = showLoadout
+    ? resolvePatternGroups(pattern).flatMap((group) => group.entities)
+    : []
   const actions = extractPatternActions(pattern)
   if (loadout.length === 0 && actions.length === 0) return null
   const name = normalizePatternName(pattern.name)

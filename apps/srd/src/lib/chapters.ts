@@ -16,7 +16,8 @@
  */
 
 import type { ChapterTone } from 'component-lib'
-import { getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
+import { getSchemaCatalog, getTechLevel, SalvageUnionReference } from 'salvageunion-reference'
 import { schemaHref } from './entityHref'
 
 type ChapterDefinition = {
@@ -144,4 +145,37 @@ export function chapterForSchema(schemaId: string): ChapterRef {
   if (!definition) return CONTENTS
   const { id, title, tone } = definition
   return { id, title, tone, href: `/#${id}` }
+}
+
+/** A show page's band colours when it wears its own rather than its chapter's. */
+export type BandFill = {
+  /** The head band (`ChapterBand`'s `fill`). */
+  band: string
+  /** The foot band (`ChapterFoot`'s `fill`): the band, or its text-bearing shade. */
+  foot: string
+}
+
+/** The schemas whose show pages wear the entity's tech-level blue. */
+const TECH_LEVEL_PAGES: ReadonlySet<string> = new Set(['systems', 'modules'])
+
+/**
+ * Tech level 3's blue carries neither ink (4.0:1) nor paper (3.8:1) at 4.5:1,
+ * so the foot band, which carries the citation, takes tech level 4's beneath it
+ * (as a Union Crawler foot takes the deeper `crawlerBand`).
+ */
+const FOOT_SHADE: Partial<Record<string, string>> = {
+  'var(--color-tl-3)': 'var(--color-tl-4)',
+}
+
+/**
+ * The bands a system's or module's show page wears: its tech level's blue,
+ * head and foot, as its card's header does. Every other page, the listings
+ * included, wears its chapter's band (`undefined`).
+ */
+export function bandFillFor(schemaId: string, entity: SURefEntity): BandFill | undefined {
+  if (!TECH_LEVEL_PAGES.has(schemaId)) return undefined
+  const techLevel = getTechLevel(entity)
+  if (techLevel == null) return undefined
+  const band = `var(--color-tl-${String(techLevel).toLowerCase()})`
+  return { band, foot: FOOT_SHADE[band] ?? band }
 }

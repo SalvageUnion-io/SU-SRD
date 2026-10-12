@@ -1,4 +1,4 @@
-import { ChapterFoot } from 'component-lib'
+import { ChapterFoot, foregroundOn } from 'component-lib'
 import type { PageFoot } from '../../ssg/types'
 
 /**
@@ -91,6 +91,8 @@ function End({ src, onPaper }: { src: string; onPaper: boolean }) {
  */
 export function Footer({ poweredBySalvageUrl, foot }: FooterProps) {
   const tone = foot?.tone ?? 'rules'
+  const fill = foot?.fill
+  const onPaper = fill ? foregroundOn(fill, 'ink') === 'paper' : PAPER_ON.has(tone)
   const measure = foot?.measure ?? SITE_MEASURE
   const cited = foot != null && (foot.page != null || !!foot.citation)
   return (
@@ -98,6 +100,7 @@ export function Footer({ poweredBySalvageUrl, foot }: FooterProps) {
       {cited && (
         <ChapterFoot
           tone={tone}
+          fill={fill}
           measure={measure}
           start={foot.page != null ? `p.${foot.page}` : undefined}
           end={foot.citation}
@@ -105,9 +108,10 @@ export function Footer({ poweredBySalvageUrl, foot }: FooterProps) {
       )}
       <ChapterFoot
         tone={tone}
+        fill={fill}
         measure={measure}
         start={<Legal />}
-        end={<End src={poweredBySalvageUrl} onPaper={PAPER_ON.has(tone)} />}
+        end={<End src={poweredBySalvageUrl} onPaper={onPaper} />}
       />
     </footer>
   )

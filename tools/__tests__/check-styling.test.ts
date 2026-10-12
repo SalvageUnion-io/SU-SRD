@@ -433,7 +433,7 @@ describe('tone-ground rule set', () => {
     ])
   )
 
-  test('systems and modules paint no TL ground at any tech level', () => {
+  test('systems and modules may paint the TL ground the book heads them in', () => {
     const root = fixture({
       ...pending,
       [`${DATA_DIR}/systems.json`]: JSON.stringify([gear(1), gear(6), gear('B'), gear('N')]),

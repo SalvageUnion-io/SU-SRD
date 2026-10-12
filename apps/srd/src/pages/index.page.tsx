@@ -2,11 +2,11 @@
  * `/` — the landing page: the manual's Contents page (board 06).
  *
  * The title, then search: beside the title on the blue Contents band on a
- * desktop, under the notch on a phone. Then one run of sections in reading
- * order — the "New to the Union?" path into ITUN first, the book's chapters
- * as an index with their real entry counts, the rules a table reaches for
- * under an ink band, and the Discord bot last — set as columns on a desktop
- * and one stack on a phone, so tab order is the order you see at both widths.
+ * desktop, under the notch on a phone. Then the "Getting started" aside — the
+ * "New to the Union?" path into ITUN and the Discord bot — and the index: the
+ * book's chapters with their real entry counts, then the rules a table reaches
+ * for under an ink band. The aside comes first in the DOM, so a phone reads it
+ * before the index; a desktop pins it to a right-hand sidebar.
  * The band's search is the page's search, so the Union bar carries none here.
  */
 
@@ -96,19 +96,23 @@ function page(): PageResult {
           </ChapterBand>
         </div>
         <div className="srd-home__body" style={{ maxWidth: MEASURE }}>
-          <NewToTheUnion steps={steps} buildHref={ITUN_URL} />
-          {chapters.map((chapter) => (
-            <ContentsChapter
-              key={chapter.id}
-              id={chapter.id}
-              title={chapter.title}
-              tone={chapter.tone}
-              rows={chapter.rows}
-              total={chapter.total}
-            />
-          ))}
-          <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
-          <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
+          <aside className="srd-home__aside" aria-label="Getting started">
+            <NewToTheUnion steps={steps} buildHref={ITUN_URL} />
+            <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
+          </aside>
+          <div className="srd-home__index">
+            {chapters.map((chapter) => (
+              <ContentsChapter
+                key={chapter.id}
+                id={chapter.id}
+                title={chapter.title}
+                tone={chapter.tone}
+                rows={chapter.rows}
+                total={chapter.total}
+              />
+            ))}
+            <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
+          </div>
         </div>
       </div>
     ),

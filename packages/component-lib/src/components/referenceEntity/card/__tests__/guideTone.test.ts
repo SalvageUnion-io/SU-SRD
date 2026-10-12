@@ -90,7 +90,7 @@ describe('guide tone — no other domain is disturbed', () => {
     }
   })
 
-  test('equipment still rides the tech-level ramp', () => {
+  test('equipment rides the tech-level ramp', () => {
     const item = SalvageUnionReference.Equipment.all().find((e) => typeof e.techLevel === 'number')
     if (!item) throw new Error('no equipment with a numeric tech level')
     const tone = resolveDomainTone('equipment', item)
@@ -98,14 +98,16 @@ describe('guide tone — no other domain is disturbed', () => {
     expect(tone.bgColor).toBeUndefined()
   })
 
-  test('systems and modules are mech green, never a tech-level ground (§3.8)', () => {
+  test('systems and modules wear their tech level’s blue, as the book heads them', () => {
     for (const [schemaName, all] of [
       ['systems', SalvageUnionReference.Systems.all()],
       ['modules', SalvageUnionReference.Modules.all()],
     ] as const) {
       for (const entity of all) {
-        const tone = resolveDomainTone(schemaName, entity)
-        expect(tone.bg === 'var(--color-mech)' || tone.bg === 'var(--color-ink-2)').toBe(true)
+        const level = entity.techLevel
+        const expected =
+          level == null ? 'var(--color-ink-2)' : `var(--color-tl-${String(level).toLowerCase()})`
+        expect(resolveDomainTone(schemaName, entity).bg).toBe(expected)
       }
     }
   })

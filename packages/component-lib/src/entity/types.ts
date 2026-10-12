@@ -8,8 +8,11 @@
 import type { HTMLAttributes } from 'react'
 import type { EntityModel } from 'salvageunion-reference'
 
-/** The five forms, smallest to largest. Phase 2 draws `token` and `row`. */
-export type EntityForm = 'mention' | 'token' | 'row' | 'card' | 'page'
+/**
+ * The five forms, smallest to largest, and `tile` — the catalog's art-first
+ * card (a listing's Catalog view). Phase 2 draws `token`, `row` and `tile`.
+ */
+export type EntityForm = 'mention' | 'token' | 'row' | 'tile' | 'card' | 'page'
 
 /**
  * Attributes a link surface takes from its host, for a list that owns the

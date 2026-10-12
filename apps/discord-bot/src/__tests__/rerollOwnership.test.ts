@@ -27,8 +27,14 @@ describe('the roll request', () => {
     expect(decodeRollRequest('Core Mechanic|1234')).toEqual({
       tableName: 'Core Mechanic',
       ownerId: '1234',
+      isPrivate: false,
     })
-    expect(decodeRollRequest('Core Mechanic')).toEqual({ tableName: 'Core Mechanic' })
+    expect(decodeRollRequest('Core Mechanic')).toEqual({
+      tableName: 'Core Mechanic',
+      isPrivate: false,
+    })
+    expect(encodeRollRequest('Core Mechanic', '1234', true)).toBe('Core Mechanic|1234|p')
+    expect(decodeRollRequest('Core Mechanic|1234|p').isPrivate).toBe(true)
   })
 
   test('every Roll again a roll posts names its roller', () => {
@@ -87,6 +93,51 @@ describe('pressing Roll again', () => {
 
   test('an older button with no owner stays open to anyone', async () => {
     const { handle, replies } = buttonInteractionHandlerFor('su:roll:Core Mechanic', [], '9999')
+    await handle()
+    expect(replies[0]?.flags).toBe(MessageFlags.IsComponentsV2)
+  })
+})
+
+describe('a re-roll shares the status of its first roll', () => {
+  test('a private roll offers a private re-roll; a posted one, a public re-roll', () => {
+    const secret = buildRollMessage('Core Mechanic', 'Alex', () => 14, true, '1234')
+    if ('error' in secret) throw new Error(secret.error)
+    expect(reroll(secret.data)).toBe('su:roll:Core Mechanic|1234|p')
+
+    const posted = buildPostedRollMessage('Core Mechanic|14', 'Alex', '1234')
+    if ('error' in posted) throw new Error(posted.error)
+    expect(reroll(posted.data)).toBe('su:roll:Core Mechanic|1234')
+  })
+
+  test('a private miss stays private, and so does its re-roll', () => {
+    const miss = buildRollMessage('Bio-Talon', 'Alex', () => 7, true, '1234')
+    if ('error' in miss) throw new Error(miss.error)
+    expect(miss.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+    expect(reroll(miss.data)).toBe('su:roll:Bio-Talon|1234|p')
+  })
+
+  test('pressing a private re-roll answers privately, as a new message', async () => {
+    const { handle, replies, updates, edits } = buttonInteractionHandlerFor(
+      'su:roll:Core Mechanic|1234|p',
+      [],
+      '1234'
+    )
+    await handle()
+    expect(updates).toHaveLength(0)
+    expect(replies).toHaveLength(1)
+    expect(replies[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+    // Ours, not Discord's: the internal marker never reaches the wire.
+    expect(replies[0]).not.toHaveProperty('ephemeral')
+    // Not at the table until posted: nothing is recorded.
+    expect(edits).toHaveLength(0)
+  })
+
+  test('pressing a public re-roll answers publicly', async () => {
+    const { handle, replies } = buttonInteractionHandlerFor(
+      'su:roll:Core Mechanic|1234',
+      [],
+      '1234'
+    )
     await handle()
     expect(replies[0]?.flags).toBe(MessageFlags.IsComponentsV2)
   })
