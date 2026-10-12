@@ -73,16 +73,27 @@ function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
   )
 }
 
-function TreeSection({ tree, abilities }: TreeGroup) {
+/**
+ * Which track a tree draws (ruleset "Where the screen departs from print": the
+ * ability-tree track stays a diagram). Core and Advanced/Hybrid trees are
+ * trained in order — each Ability needs the one before it — so their three
+ * tiers hang off one connected pipe in the tier's hue (Core = brick, Advanced
+ * = pilot). A Legendary tree is a pick-one, not a sequence, so it has none.
+ */
+type TreeTrack = 'core' | 'advanced' | null
+
+function TreeSection({ tree, abilities, track }: TreeGroup & { track: TreeTrack }) {
   return (
-    <div className="space-y-4">
-      <div className="pt-2">
-        <Slab variant="solid" label={tree} count="Tree" />
-      </div>
-      {abilities.map((ability) => (
-        <AbilityTreeListing key={ability.id} ability={ability} />
-      ))}
-    </div>
+    <section className="srd-ability-tree__group">
+      <Slab variant="solid" label={tree} count="Tree" />
+      <ol className="srd-ability-tree__track" data-track={track ?? undefined}>
+        {abilities.map((ability) => (
+          <li key={ability.id} className="srd-ability-tree__tier">
+            <AbilityTreeListing ability={ability} />
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 
@@ -94,21 +105,21 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   if (!hasCoreTrees && !hasSpecialTrees) return null
 
   return (
-    <div className="space-y-1.5">
+    <div className="srd-ability-tree">
       {/* The trees are a full-width section of their own beneath the class
           artwork + flavour, so they get a section Slab like any other group. */}
       <Slab variant="dashed" label="Abilities" />
       {hasCoreTrees && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="srd-ability-tree__row" data-columns="3">
           {trees.coreTrees.map((group) => (
-            <TreeSection key={group.tree} {...group} />
+            <TreeSection key={group.tree} {...group} track="core" />
           ))}
         </div>
       )}
       {hasSpecialTrees && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {trees.advancedTree && <TreeSection {...trees.advancedTree} />}
-          {trees.legendaryTree && <TreeSection {...trees.legendaryTree} />}
+        <div className="srd-ability-tree__row" data-columns="2">
+          {trees.advancedTree && <TreeSection {...trees.advancedTree} track="advanced" />}
+          {trees.legendaryTree && <TreeSection {...trees.legendaryTree} track={null} />}
         </div>
       )}
     </div>
