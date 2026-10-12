@@ -26,6 +26,8 @@ export type EntityProps = EntitySource & {
   fact?: TokenFact | null
   /** Row only: hover, focus or a long press Peeks it (a Token always does). */
   peek?: boolean
+  /** Row only: a "do" entity's head wears its tone (an ability's tier), not the ink banner. */
+  toned?: boolean
 }
 
 /**
@@ -36,7 +38,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` draws those.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, fact, peek } = props
+  const { form, instance, mode, lead, omit, fact, peek, toned } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -47,7 +49,15 @@ export function Entity(props: EntityProps) {
   switch (form) {
     case 'row':
       return (
-        <Row model={model} instance={instance} mode={mode} lead={lead} omit={omit} peek={peek} />
+        <Row
+          model={model}
+          instance={instance}
+          mode={mode}
+          lead={lead}
+          omit={omit}
+          peek={peek}
+          toned={toned}
+        />
       )
     case 'token':
       return <Token model={model} instance={instance} mode={mode} fact={fact} />

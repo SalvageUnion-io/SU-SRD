@@ -235,12 +235,7 @@ export function PatternLinkRows({
   const count = patterns.length
   return (
     <section id="patterns" className="su-pattern-rows">
-      <Slab
-        as={sectionAs}
-        variant="solid"
-        label="Patterns"
-        count={`${count} ${count === 1 ? 'pattern' : 'patterns'}`}
-      />
+      <Slab as={sectionAs} variant="solid" label="Patterns" />
       <ul className="su-pattern-rows__list">
         {patterns.map((pat) => (
           <PatternLinkRow

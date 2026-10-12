@@ -12,7 +12,11 @@ type SlabProps = {
    * screen-reader navigation still work.
    */
   as?: ElementType
-  /** Muted count suffix, e.g. '2' or '3 lots · 5/6 slots' */
+  /**
+   * A muted note after the label or rule: a choice ('Choose 1'), a state
+   * ('5/6 slots'), whose tree it is. Never a tally of the items the section
+   * lists — sections don't count themselves.
+   */
   count?: ReactNode
   /**
    * Trailing section controls after the leader rule (e.g. a per-section Edit
@@ -29,8 +33,8 @@ type SlabProps = {
    * 'dashed' (default, unchanged) — tone-deep colored text label + dashed
    * leader rule, the original live-play control-panel shape. 'solid' — the
    * section stamp of the brand refresh (boards 06–10): a solid ink stamp,
-   * paper text, then a dashed ink hairline running to the count at the far
-   * end ("PATTERNS ┄┄┄ 5 patterns"). It replaced the centred rust
+   * paper text, then a dashed ink hairline running to its note at the far
+   * end ("CRAWLER TYPES ┄┄┄ Choose 1"). It replaced the centred rust
    * `SectionHeader` and the roster's column headings.
    */
   variant?: 'dashed' | 'solid'

@@ -436,9 +436,7 @@ function SchemaViewer({
           <div className="srd-listing__groups">
             {groups.map((group) => (
               <section key={group.key} className="srd-listing__group" aria-label={group.label}>
-                {group.label && (
-                  <Slab variant="solid" label={group.label} count={group.items.length} />
-                )}
+                {group.label && <Slab variant="solid" label={group.label} />}
                 <ul className="srd-listing__cards" data-entity-grid="">
                   {group.items.map((item: SURefEntity) => (
                     <li key={item.id}>

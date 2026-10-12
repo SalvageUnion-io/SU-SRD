@@ -175,7 +175,7 @@ export function PatternLoadoutRows({
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
         <section key={group.label} style={LOADOUT_GROUP}>
-          <Slab variant="solid" as={sectionAs} label={group.label} count={group.entities.length} />
+          <Slab variant="solid" as={sectionAs} label={group.label} />
           <ul aria-label={`${group.label} installed`} data-entity-grid="" style={LOADOUT_ROWS}>
             {group.entities.map((item, index) => (
               <li key={cardKey(item, index)} style={{ minWidth: 0 }}>

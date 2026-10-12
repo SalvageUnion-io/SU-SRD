@@ -79,20 +79,18 @@ const TRAY_STACK: CSSProperties = { display: 'flex', flexDirection: 'column', ga
 /**
  * A TRAY of nested cards (board E2): a recessed tray in the page colour,
  * inside the parent's frame, headed by the section `Slab` — the ink stamp
- * naming the group and its count, then the dashed leader (ruleset §3.2: slabs
+ * naming the group, then the dashed leader (ruleset §3.2: slabs
  * section). Containment and the seam stamp show the nesting; there is no
  * indent and no rail (ruleset §3.10).
  */
 export function CardTray({
   label,
-  count,
   size,
   as,
   flush = false,
   children,
 }: {
   label: string
-  count: number
   size: CardSize
   /** A real heading when the card IS the page (`sectionHeadingLevel`). */
   as?: ElementType
@@ -102,7 +100,7 @@ export function CardTray({
 }) {
   return (
     <div style={tray(size, flush)}>
-      <Slab variant="solid" as={as} label={`${label} · ${count}`} />
+      <Slab variant="solid" as={as} label={label} />
       <div style={TRAY_STACK}>{children}</div>
     </div>
   )
@@ -225,13 +223,7 @@ export function NestedCardGroup({
 }) {
   if (entities.length === 0) return null
   return (
-    <CardTray
-      label={label}
-      count={entities.length}
-      size={host.size}
-      as={sectionAs}
-      flush={host.onPage}
-    >
+    <CardTray label={label} size={host.size} as={sectionAs} flush={host.onPage}>
       <NestedCardList entities={entities} seal={seal} host={host} write={write} />
     </CardTray>
   )
@@ -248,11 +240,7 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
   if (drones.length === 0) return null
   if (insidePeek) {
     return (
-      <CardTray
-        label={drones.length === 1 ? 'Drone' : 'Drones'}
-        count={drones.length}
-        size={host.size}
-      >
+      <CardTray label={drones.length === 1 ? 'Drone' : 'Drones'} size={host.size}>
         <PeekTokens entities={drones.map((info) => info.drone)} />
       </CardTray>
     )
@@ -274,14 +262,10 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
     />
   ))
   // On a page the drone card's own seam stamp says what it is: no tray, no
-  // "Drone · 1" slab around it.
+  // "Drone" slab around it.
   if (host.onPage) return <div style={TRAY_STACK}>{cards}</div>
   return (
-    <CardTray
-      label={drones.length === 1 ? 'Drone' : 'Drones'}
-      count={drones.length}
-      size={host.size}
-    >
+    <CardTray label={drones.length === 1 ? 'Drone' : 'Drones'} size={host.size}>
       {cards}
     </CardTray>
   )

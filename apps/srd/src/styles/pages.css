@@ -1759,18 +1759,6 @@
   top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
 }
 
-/* A nested tree draws its abilities as Tokens: a tighter track, its stub at a
-   Token's middle rather than a Row head's. */
-.srd-ability-tree__group[data-form='token'] {
-  gap: 0;
-  padding-top: 0;
-}
-
-.srd-ability-tree__group[data-form='token'] > .srd-ability-tree__track {
-  --srd-track-gap: var(--space-8);
-  --srd-track-node: 0.8rem;
-}
-
 /*
  * The training brief (Workshop Manual p.23, "Gaining Abilities"): an ink head,
  * then label | rule rows on paper. On a wide page it fills the room beside the
@@ -1866,127 +1854,106 @@
 
 /*
  * A Core class's paths (the book's spread lists them under its Advanced and
- * Legendary Abilities and "Hybrid Classes"): each Hybrid Class as its listing
- * Row, then the class's own Advanced tree, last, as a head naming where it
- * ends. Every path carries its trees beneath its head in a page-colour tray,
- * as Tokens. The cards share one row track (subgrid), so the heads line up and
- * the trays start level.
+ * Legendary Abilities and "Hybrid Classes"), one card each, stacked: the
+ * class's own Advanced tree first, then each Hybrid Class. Every card is the
+ * same shell — a pilot head naming the path and its kind, then what opens it
+ * beside its trees (their Rows on the same track as the class's own), then
+ * the citation. A hybrid's head is a link to its page; the class's own path
+ * has no page, so its head links nowhere.
  */
 .srd-class-paths {
-  display: grid;
-  gap: 0 var(--space-16);
-  grid-auto-rows: auto;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-@media (min-width: 40rem) {
-  .srd-class-paths {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 64rem) {
-  .srd-class-paths {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 .srd-class-path {
-  display: grid;
-  grid-row: span 2;
-  grid-template-rows: subgrid;
-  margin-bottom: var(--space-20);
-}
-
-/* The head sits over the tray's top edge, so its rounded foot closes the seam. */
-.srd-class-path__head {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 1;
-}
-
-.srd-class-path__head > * {
-  flex: 1;
-}
-
-.srd-class-path__tray {
-  background: var(--color-wk-bg);
-  border: var(--bw-entity-compact) solid var(--color-ink);
-  border-radius: 0 0 var(--radius-card) var(--radius-card);
-  border-top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  margin-top: calc(-1 * var(--radius-card));
-  padding: calc(var(--space-12) + var(--radius-card)) var(--space-12) var(--space-12);
-}
-
-/* The class's own path: no entity of its own, so a framed head in the
-   Legendary tone, its kind on a seam stamp, pointing down at its trees. */
-.srd-class-path__own {
   background: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
   border-radius: var(--radius-card);
+  overflow: hidden;
 }
 
-.srd-class-path__own > * {
-  flex: none;
+.srd-class-path__head {
+  align-items: center;
+  background: var(--color-pilot);
+  border-bottom: var(--bw-entity-compact) solid var(--color-ink);
+  color: var(--color-ink);
+  display: flex;
+  gap: var(--space-10);
+  min-height: 2.75rem;
+  padding: var(--space-8) var(--space-12);
+  text-decoration: none;
 }
 
-.srd-class-path__seam {
-  background: var(--color-ink);
-  color: var(--color-paper);
-  font-family: var(--font-cond);
-  font-size: var(--text-badge);
-  font-weight: var(--font-weight-bold);
-  left: var(--space-12);
-  letter-spacing: var(--tracking-caps);
-  line-height: 1;
-  padding: var(--space-4) var(--space-6);
-  position: absolute;
-  text-transform: uppercase;
-  top: 0;
-  transform: translateY(-50%);
-  z-index: 1;
+a.srd-class-path__head:hover {
+  color: var(--color-ink);
+}
+
+a.srd-class-path__head:focus-visible {
+  outline: var(--bw-chrome) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--space-4));
 }
 
 .srd-class-path__name {
-  align-items: center;
-  background: var(--color-crawler-band);
-  border-bottom: var(--bw-entity-compact) solid var(--color-ink);
-  color: var(--color-paper);
-  display: flex;
+  flex: 1;
   font-family: var(--font-cond);
-  font-size: var(--text-2xl);
+  font-size: var(--text-title);
   font-weight: var(--font-weight-bold);
-  gap: var(--space-8);
-  justify-content: space-between;
   line-height: 1.05;
-  margin: 0;
-  padding: var(--space-16) var(--space-12) var(--space-12);
+  min-width: 0;
   text-transform: uppercase;
 }
 
-.srd-class-path__down {
+.srd-class-path__chevron {
   flex: none;
-  height: 1rem;
-  width: 1rem;
+  height: 1.1rem;
+  transition: transform 120ms;
+  width: 1.1rem;
+}
+
+a.srd-class-path__head:hover .srd-class-path__chevron {
+  transform: translateX(2px);
 }
 
 .srd-class-path__body {
-  align-items: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  padding: var(--space-12);
+  display: grid;
+  gap: var(--space-16) var(--space-28);
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-14);
 }
 
-.srd-class-path__own > .srd-class-path__body {
-  flex: 1;
+@media (min-width: 64rem) {
+  .srd-class-path__body {
+    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  }
+}
+
+.srd-class-path__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.srd-class-path__req {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+/* "or" / "Engineer only": a lone-label caps badge, frameless (§7.1). */
+.srd-class-path__or {
+  color: var(--color-wk-muted);
+  font-family: var(--font-cond);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-wide);
+  text-transform: uppercase;
 }
 
 .srd-class-path__note {
@@ -1994,4 +1961,36 @@
   font-size: var(--text-sm);
   line-height: 1.45;
   margin: 0;
+}
+
+.srd-class-path__trees {
+  display: grid;
+  gap: var(--space-8) var(--space-24);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+@media (min-width: 40rem) {
+  .srd-class-path__trees {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.srd-class-path__foot {
+  align-items: center;
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+  color: var(--color-wk-muted);
+  display: flex;
+  font-size: var(--text-caption);
+  gap: var(--space-8);
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-14);
+}
+
+.srd-class-path__page {
+  border: var(--bw-hairline) solid var(--color-ink);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  padding: 0 var(--space-6);
 }

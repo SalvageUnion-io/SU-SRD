@@ -71,11 +71,7 @@ export function JoinRequests({ gameId }: { gameId: Id<'games'> }) {
     )
 
   return (
-    <HubSection
-      id="asking-to-join-heading"
-      title="Asking to join"
-      aside={requests === undefined ? undefined : String(requests.length)}
-    >
+    <HubSection id="asking-to-join-heading" title="Asking to join">
       {requests !== undefined && requests.length === 0 ? (
         <p style={HUB_COPY}>Nobody is waiting. An approval link sends people here first.</p>
       ) : (

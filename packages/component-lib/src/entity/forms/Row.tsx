@@ -65,6 +65,12 @@ export type RowProps = {
   omit?: readonly EntityOmit[]
   /** Hover, focus or a long press Peeks the Row (a pattern's loadout). Off in listings. */
   peek?: boolean
+  /**
+   * A "do" entity's head wears its own tone instead of the ink banner: an
+   * ability's tier fill (Core brick, Advanced pilot, Legendary crawler), where
+   * the tiers are the point (a class page's trees).
+   */
+  toned?: boolean
   slots?: RowSlots
 }
 
@@ -111,6 +117,7 @@ export function Row({
   lead = false,
   omit = [],
   peek = false,
+  toned = false,
   slots = {},
 }: RowProps) {
   const surface = useEntitySurface()
@@ -118,7 +125,7 @@ export function Row({
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
-  const fill = model.kind.nature === 'do' ? 'ink' : model.tone
+  const fill = model.kind.nature === 'do' && !toned ? 'ink' : model.tone
   const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
   const title = instance?.title ?? model.title

@@ -1,9 +1,9 @@
-import { Entity, Slab, Stat } from 'component-lib'
-import { useMemo } from 'react'
+import { Badge, Entity, Slab, Stat } from 'component-lib'
+import { Fragment, useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
-import { getEntitySlug } from 'salvageunion-reference'
+import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/classPaths'
-import { resolveClassPlan } from '../lib/classPaths'
+import { resolveClassPlan, treeOwner } from '../lib/classPaths'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
 import { MentionProse } from './MentionProse'
@@ -15,9 +15,6 @@ type ClassAbilityTreeProps = {
 /** The tree's slab names the kind, so its Rows drop the seam stamp. */
 const OMIT_KIND = ['kind'] as const
 
-/** A path's tray names the tree that opens it from this class, so its Row drops the full requirement. */
-const OMIT_REQUIREMENT = ['class-requires'] as const
-
 /** The Workshop Manual page "Gaining Abilities" sits on: the brief cites it. */
 const GAINING_ABILITIES_PAGE = 23
 
@@ -27,7 +24,9 @@ const classHref = (c: SURefClass) => itemHref('classes', getEntitySlug(c))
 /**
  * One ability in its tree: a Row in link mode, a real same-tab link to the
  * ability's page — the listing row's shape (`EntityListingRow`), so a crawler
- * follows it and a reader keeps their back button.
+ * follows it and a reader keeps their back button. On a class page the tiers
+ * are the point, so the head wears its tier fill (`toned`: Core brick,
+ * Advanced and Hybrid pilot, Legendary crawler) and the body its description.
  */
 function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
   return (
@@ -36,6 +35,8 @@ function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
       entity={ability}
       mode={{ kind: 'link', href: abilityHref(ability) }}
       omit={OMIT_KIND}
+      lead
+      toned
     />
   )
 }
@@ -49,46 +50,23 @@ function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
  */
 type TreeTrack = 'core' | 'advanced' | null
 
-/** What a tree's slab counts: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
-const countFor = (track: TreeTrack) => (track ? 'Tree' : 'Choose 1')
+/** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
+const noteFor = (track: TreeTrack) => (track ? 'Tree' : 'Choose 1')
 
-/** A tree the page is about: its abilities as Rows (the class's own trees). */
-function TreeSection({ tree, abilities, track }: AbilityTreeGroup & { track: TreeTrack }) {
+/** A tree as Rows on its track, under a slab naming it (and, for a branch, its owner). */
+function TreeSection({
+  tree,
+  abilities,
+  track,
+  note,
+}: AbilityTreeGroup & { track: TreeTrack; note?: string }) {
   return (
     <section className="srd-ability-tree__group">
-      <Slab variant="solid" label={tree} count={countFor(track)} />
+      <Slab variant="solid" label={tree} count={note ?? noteFor(track)} />
       <ol className="srd-ability-tree__track" data-track={track ?? undefined}>
         {abilities.map((ability) => (
           <li key={ability.id} className="srd-ability-tree__tier">
             <AbilityTreeListing ability={ability} />
-          </li>
-        ))}
-      </ol>
-    </section>
-  )
-}
-
-/**
- * A tree nested in something else (a path card, a branch): its abilities as
- * Tokens on the same track, the slab counting it, or naming who owns it.
- */
-function TokenTree({
-  tree,
-  abilities,
-  track,
-  count,
-}: AbilityTreeGroup & { track: TreeTrack; count?: string }) {
-  return (
-    <section className="srd-ability-tree__group" data-form="token">
-      <Slab variant="solid" label={tree} count={count ?? countFor(track)} />
-      <ol className="srd-ability-tree__track" data-track={track ?? undefined}>
-        {abilities.map((ability) => (
-          <li key={ability.id} className="srd-ability-tree__tier">
-            <Entity
-              form="token"
-              entity={ability}
-              mode={{ kind: 'link', href: abilityHref(ability) }}
-            />
           </li>
         ))}
       </ol>
@@ -171,78 +149,119 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   )
 }
 
+/** "or" between the trees that open a path, a quiet caps label like a lone-label badge. */
+function Or({ children = 'or' }: { children?: string }) {
+  return <span className="srd-class-path__or">{children}</span>
+}
+
 /**
- * A path's trees, in the tray under its head: what opens it from this class
- * (the one Core tree of its requirement this class trains, "Forging"), then
- * the Advanced or Hybrid tree and the Legendary tree, as Tokens.
+ * What opens a path, as value cells: the class's own path names its tree and
+ * that only this class walks it ("REQ | MECH-TECH · ENGINEER ONLY"); a hybrid
+ * names the tree this class trains first, then each other tree that also
+ * opens it under the class that owns it ("REQ | FORGING or HACKER | ELECTRONICS").
  */
-function PathTray({ path, requirement }: { path: ClassPath; requirement: string }) {
+function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
+  if (!path.hybrid || !path.via) {
+    return (
+      <div className="srd-class-path__req">
+        <Stat
+          orientation="horizontal"
+          label="REQ"
+          value={path.requirement.join(' or ')}
+          size="compact"
+        />
+        <Or>{`${classEntity.name} only`}</Or>
+      </div>
+    )
+  }
+  const others = path.requirement.filter((tree) => tree !== path.via)
   return (
-    <div className="srd-class-path__tray">
-      {requirement && (
-        <Stat orientation="horizontal" label="REQ" value={requirement} size="compact" />
-      )}
-      <TokenTree {...path.advanced} track="advanced" />
-      {path.legendary && <TokenTree {...path.legendary} track={null} />}
+    <div className="srd-class-path__req">
+      <Stat orientation="horizontal" label="REQ" value={path.via} size="compact" />
+      {others.map((tree) => (
+        <Fragment key={tree}>
+          <Or />
+          <Stat
+            orientation="horizontal"
+            label={treeOwner(tree)?.name ?? 'Tree'}
+            value={tree}
+            size="compact"
+          />
+        </Fragment>
+      ))}
     </div>
+  )
+}
+
+const articleFor = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
+
+function Chevron() {
+  return (
+    <svg
+      className="srd-class-path__chevron"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9 5l7 7-7 7" />
+    </svg>
   )
 }
 
 /**
  * One path a Core class advances along (the Workshop Manual's class spread
- * lists them: Advanced Abilities, then the Hybrid Classes). A Hybrid Class is
- * its listing Row; the class's own Advanced tree is no entity of its own, so
- * it is a head naming where it ends — "Legendary Engineer" — drawn last. The
- * Row's own requirement names every class's tree; the tray names this one's.
- * The paths are a choice the reader is browsing, so the Row keeps its lead (E11).
+ * lists them: Advanced Abilities, then the Hybrid Classes), every one in the
+ * same card: a pilot head naming it and its kind, then what opens it and what
+ * it is beside its trees, as Rows on their tracks. The class's own Advanced
+ * tree is no entity of its own, so its head names where it ends ("Legendary
+ * Engineer") and links nowhere; a Hybrid Class's head opens its page.
  */
 function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
-  if (path.hybrid) {
-    return (
-      <li className="srd-class-path">
-        <div className="srd-class-path__head">
-          <Entity
-            form="row"
-            entity={path.hybrid}
-            mode={{ kind: 'link', href: classHref(path.hybrid) }}
-            omit={OMIT_REQUIREMENT}
-            lead
-          />
-        </div>
-        <PathTray path={path} requirement={path.via ?? ''} />
-      </li>
-    )
-  }
-  const title = path.legendary?.tree ?? path.advanced.tree
+  const hybrid = path.hybrid
+  const name = hybrid?.name ?? path.legendary?.tree ?? path.advanced.tree
+  const kind = hybrid ? 'Hybrid' : 'Legendary'
+  const head = (
+    <>
+      <span className="srd-class-path__name">{name}</span>
+      <Badge shape="stamp" size="mini" style={{ flex: 'none' }}>
+        {kind}
+      </Badge>
+      {hybrid && <Chevron />}
+    </>
+  )
+  const note = hybrid
+    ? toEntityModel(hybrid).lead
+    : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
   return (
-    <li className="srd-class-path" data-own="">
-      <div className="srd-class-path__head srd-class-path__own">
-        <span className="srd-class-path__seam">Advanced Abilities</span>
-        <div className="srd-class-path__name">
-          {title}
-          <svg
-            className="srd-class-path__down"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            aria-hidden="true"
-          >
-            <path d="M12 5v14M6 13l6 6 6-6" />
-          </svg>
+    <li className="srd-class-path" data-kind={kind.toLowerCase()}>
+      {hybrid ? (
+        <a className="srd-class-path__head" href={classHref(hybrid)}>
+          {head}
+        </a>
+      ) : (
+        <div className="srd-class-path__head">{head}</div>
+      )}
+      <div className="srd-class-path__body">
+        <div className="srd-class-path__intro">
+          <PathRequirement path={path} classEntity={classEntity} />
+          {note && <p className="srd-class-path__note">{note}</p>}
         </div>
-        <div className="srd-class-path__body">
-          <p className="srd-class-path__note">
-            {`Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${title} Ability.`}
-          </p>
+        <div className="srd-class-path__trees">
+          <TreeSection {...path.advanced} track="advanced" />
+          {path.legendary && <TreeSection {...path.legendary} track={null} />}
         </div>
       </div>
-      <PathTray path={path} requirement={path.requirement.join(' or ')} />
+      <div className="srd-class-path__foot">
+        <span>Workshop Manual</span>
+        <span className="srd-class-path__page">p.{(hybrid ?? classEntity).page}</span>
+      </div>
     </li>
   )
 }
-
-const articleFor = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
 
 export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   const plan = useMemo(() => resolveClassPlan(classEntity), [classEntity])
@@ -270,7 +289,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
       <ClassBrief plan={plan} />
       {plan.coreTrees.length > 0 && (
         <section className="srd-ability-tree__section">
-          <Slab variant="dashed" label="Core trees" count={plan.coreTrees.length} />
+          <Slab variant="dashed" label="Core trees" />
           <div className="srd-ability-tree__row" data-columns="3">
             {plan.coreTrees.map((group) => (
               <TreeSection key={group.tree} {...group} track="core" />
@@ -280,7 +299,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
       )}
       {plan.paths.length > 0 && (
         <section className="srd-ability-tree__section">
-          <Slab variant="dashed" label="Advanced & hybrid classes" count={plan.paths.length} />
+          <Slab variant="dashed" label="Advancement" />
           <ul className="srd-class-paths">
             {plan.paths.map((path) => (
               <PathCard
@@ -298,17 +317,17 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
 
 /**
  * A Hybrid Class's branches (its spread): the Core trees it may also take
- * Abilities from, as Tokens, each slab naming the class that owns the tree.
+ * Abilities from, each slab naming the class that owns the tree.
  */
 function BranchTrees({ branches }: { branches: BranchTree[] }) {
   const groups = branches.flatMap(({ group, owner }) => (group ? [{ group, owner }] : []))
   if (groups.length === 0) return null
   return (
     <section className="srd-ability-tree__section">
-      <Slab variant="dashed" label="Branch trees" count={groups.length} />
+      <Slab variant="dashed" label="Branch trees" />
       <div className="srd-ability-tree__row" data-columns="2">
         {groups.map(({ group, owner }) => (
-          <TokenTree key={group.tree} {...group} track="core" count={owner?.name} />
+          <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />
         ))}
       </div>
     </section>

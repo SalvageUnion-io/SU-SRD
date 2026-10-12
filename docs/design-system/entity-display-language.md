@@ -46,7 +46,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E9** Facts are Stats, traits are Mentions or Tags, citations are Tags, sections are Slabs, kinds are Stamps (ruleset §3).
 - **E10** Art appears by schema and room, not by prop; an entity without art shows its censor mark.
 - **E11** The lead appears only while browsing (SRD listings and search page).
-- **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Row, Card or Page, an ability's tier on its numeral and pennant (ruleset §3.1).
+- **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Row, Card or Page, an ability's tier on its numeral and pennant (ruleset §3.1). A class page's trees are the exception: there the tiers are the point, so its ability Rows wear their tier fill (`toned`).
 - **E13** Texture and the user-made treatment come from the surface and the instance.
 - **E14** Tables are the Table instrument: a roll bar in a Card, the roll instrument on a Page or panel.
 - **E15** No hand-built entity markup outside `component-lib/src/entity/` (lint-enforced once phase 6 lands).

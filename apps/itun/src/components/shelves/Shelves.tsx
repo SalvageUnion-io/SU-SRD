@@ -495,7 +495,6 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
               <Shelf
                 id="shelf-pilots"
                 title="Pilots"
-                count={pilots.length}
                 action={newLink('/pilots/new', '+ New pilot')}
                 isEmpty={pilots.length === 0}
                 empty={emptyText(allPilots.length, 'No pilots yet.', 'pilot')}
@@ -517,7 +516,6 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
               <Shelf
                 id="shelf-mechs"
                 title="Mechs"
-                count={mechs.length}
                 action={newLink('/mechs/new', '+ New mech')}
                 isEmpty={mechs.length === 0}
                 empty={emptyText(allMechs.length, 'No mechs yet.', 'mech')}
@@ -539,7 +537,6 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
               <Shelf
                 id="shelf-crawlers"
                 title="Crawlers"
-                count={crawlers.length}
                 action={newLink('/crawlers/new', '+ New crawler')}
                 isEmpty={crawlers.length === 0}
                 empty={emptyText(keptCrawlers.length, 'No crawlers yet.', 'crawler')}
@@ -563,7 +560,7 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
               <Shelf
                 id="shelf-patterns"
                 title="Patterns"
-                count={`${patterns.length} · yours`}
+                aside="Yours"
                 note="User-made: dashed, like everything players make."
                 action={
                   canWrite ? (
@@ -598,7 +595,7 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
               <Shelf
                 id="shelf-npcs"
                 title="NPCs"
-                count={`${npcs.length + tray.length} · yours`}
+                aside="Yours"
                 note="Your NPCs, ready to drop into a Game you mediate."
                 action={newLink('/npcs/new', '+ Design an NPC')}
                 isEmpty={npcs.length + tray.length === 0}

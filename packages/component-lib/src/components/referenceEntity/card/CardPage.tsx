@@ -152,7 +152,7 @@ export function CardPage({
       {abilitiesSection && <div className="su-entity-page__wide">{abilitiesSection}</div>}
       {!abilitiesSection && otherActions.length > 0 && (
         <section className="su-entity-page__section">
-          <Slab as={sectionAs} variant="solid" label="Actions" count={otherActions.length} />
+          <Slab as={sectionAs} variant="solid" label="Actions" />
           {otherActions.map((data, index) => actionCard(data, index))}
         </section>
       )}

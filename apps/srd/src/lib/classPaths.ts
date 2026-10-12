@@ -1,7 +1,7 @@
 /**
  * What a class page lays out, resolved from the dataset (Workshop Manual
  * p.23 and each class spread): a Core class's trees and the paths it can
- * advance into — its Hybrid Classes, then its own Advanced tree — or a Hybrid
+ * advance into — its own Advanced tree first, then its Hybrid Classes — or a Hybrid
  * Class's own tree and the Core trees it branches into.
  *
  * A Hybrid Class opens from a Core tree its requirement names (Fabricator:
@@ -71,7 +71,7 @@ function pathFor(
 }
 
 /** The Core class that owns a tree: one that advances, so never the Salvager. */
-function treeOwner(tree: string): SURefClass | undefined {
+export function treeOwner(tree: string): SURefClass | undefined {
   return SalvageUnionReference.Classes.all().find((c) => {
     if (!isCoreClass(c) || !c.advanceable) return false
     const trees: readonly string[] = c.coreTrees
@@ -88,16 +88,16 @@ export function resolveClassPlan(classEntity: SURefClass): ClassPlan {
       .filter((group): group is AbilityTreeGroup => group !== null)
     const paths: ClassPath[] = []
     if (classEntity.advanceable) {
+      const own = classEntity.advancedTree
+        ? pathFor(requirements, classEntity.advancedTree, classEntity.legendaryTree)
+        : null
+      if (own) paths.push(own)
       for (const hybrid of SalvageUnionReference.Classes.all().filter(isBaseAdvancedClass)) {
         if (!hybrid.advancedTree) continue
         const path = pathFor(requirements, hybrid.advancedTree, hybrid.legendaryTree)
         const via = path?.requirement.find((tree) => ownTrees.includes(tree))
         if (path && via) paths.push({ ...path, hybrid, via })
       }
-      const own = classEntity.advancedTree
-        ? pathFor(requirements, classEntity.advancedTree, classEntity.legendaryTree)
-        : null
-      if (own) paths.push(own)
     }
     return { kind: 'core', classEntity, coreTrees, paths }
   }

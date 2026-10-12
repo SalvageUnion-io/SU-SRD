@@ -82,11 +82,7 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
     )
 
   return (
-    <HubSection
-      id="proposal-inbox-heading"
-      title="Awaiting your answer"
-      aside={String(pending.length)}
-    >
+    <HubSection id="proposal-inbox-heading" title="Awaiting your answer">
       <ul style={LIST} aria-label="Proposals awaiting your answer">
         {pending.map((p) => {
           const what = `${p.targetName ?? p.entityType} · ${fieldLabel(p.field)} → ${show(p.after)}`

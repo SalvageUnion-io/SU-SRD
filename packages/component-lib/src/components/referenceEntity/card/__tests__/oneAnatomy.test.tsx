@@ -81,8 +81,8 @@ describe('actions sit inline', () => {
 describe('nesting legibility', () => {
   test('the drone sits in a labelled tray, and hides the prose its parent prints', () => {
     render(<ReferenceEntityCard data={sestra()} />)
-    expect(screen.getByText('Drone · 1')).toBeTruthy()
-    expect(screen.getByText('Systems · 1')).toBeTruthy()
+    expect(screen.getAllByText('Drone').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Systems').length).toBeGreaterThan(0)
     // "…comes with a single Sestra Drone…" is printed once — by the Drone
     // Controller ability — not again by the drone it names.
     expect(screen.getAllByText(/comes with a single Sestra Drone/).length).toBe(1)
