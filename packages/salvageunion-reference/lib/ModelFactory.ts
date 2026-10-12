@@ -271,7 +271,6 @@ export function getSchemaCatalog(): {
   $schema: string
   title: string
   description: string
-  generated: string
   schemas: EnhancedSchemaMetadata[]
 } {
   return {

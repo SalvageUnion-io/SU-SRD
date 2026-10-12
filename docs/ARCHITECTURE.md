@@ -10,7 +10,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    `salvageunion-reference` → `component-lib` → `srd` / `itun`; `discord-bot` uses the reference package only.
    Packages never import an app (`noRestrictedImports` in [`biome.jsonc`](../biome.jsonc)); deps use `workspace:*`.
 2. **salvageunion-reference**
-   Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types (`bun run build:package`, commit).
+   Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (`ensureGenerated.ts`).
    Exports `.`, `./rules`, `./zod`, `./testing`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
 3. **Lazy loading**
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`tools/biome/noModuleScopeReferenceCall.grit`).
@@ -130,7 +130,8 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 4. **ADR-004 Snapshot sharing via Netlify Functions**
    Superseded by ADR-036.
 5. **ADR-005 Game-data ORM**
-   Accepted: Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
+   Accepted (amended 2026-10): Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
+   Its output (`schemas/`, `lib/generated/`) is gitignored and rebuilt on install, typecheck, build and test: no `build:package` prerequisite.
 6. **ADR-006 Rules logic as pure functions in `salvageunion-reference/rules`**
    Accepted: state in, result out, consumers persist. Randsum is the only dice source; the package binds no RNG.
 7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)

@@ -1,6 +1,6 @@
 /**
  * `/schema/[schemaId].schema.json` — a schema's JSON Schema definition: the
- * committed `schemas/<id>.schema.json`, served verbatim (`readReferenceFile`).
+ * generated `schemas/<id>.schema.json`, served verbatim (`readReferenceFile`).
  * Its `$id` is this URL.
  *
  * Dotted pattern: emits `dist/schema/chassis.schema.json` as a FILE. See
