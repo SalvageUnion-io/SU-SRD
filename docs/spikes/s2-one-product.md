@@ -167,4 +167,5 @@ made on salvageunion.io are lost (a second sign-out).
 - `AppBar`'s mark and ITUN's in-app logos use the root path
   `/logos/su-cargo-dark.svg`, which on one origin is srd's copy: it works, but
   couples the two apps.
-- ITUN's footer still shows only on a signed-out desktop.
+- ITUN's footer showed only on a signed-out desktop; refit F1 shows it on
+  every page, signed in or out, at every width.
