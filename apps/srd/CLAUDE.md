@@ -193,10 +193,10 @@ pages agree on it. `scripts/og-screenshots.ts` screenshots it at 1200×630 into
   `OG_SCREENSHOTS_BUDGET_MS`, or failing outright therefore degrades to the
   default banner and **never fails the build** — the failure mode that got the
   previous version of this deleted (#482).
-- Bump `SCRIPT_VERSION` in the script whenever the card's _rendering_ changes
-  (OgCard, ChapterBand, fonts, dimensions); entity data changes invalidate on their own.
-  The deploy's `og-srd` job keys its persisted copy of this cache on every
-  render input as well, so there a rendering change starts cold regardless.
+- No version to bump: each PNG is keyed on its entity's JSON and the render key
+  (`scripts/ogRenderFingerprint.ts`: the built bytes that draw the card, not
+  the data), so only a rendering change re-renders every card. The `og-srd`
+  job persists the cache under that key (`--fingerprint`).
 - **Patterns** (a chassis's, a Bio-Titan's) are covered as entities in their own right — a pattern has
   its own page, card view and provenance, so it gets its own card at
   `…/item/{itemId}/pattern/{patternId}.og.png` rather than inheriting the
