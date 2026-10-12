@@ -12,6 +12,7 @@
  */
 
 import { SalvageUnionReference } from '../index'
+import type { HouseRuleId } from './houseRules'
 import { resolveInstalledRef } from './resolveRefs'
 
 /** The stat keys a contribution may target. Mirrors `ContributionStatSchema`. */
@@ -56,6 +57,11 @@ export type ResolvedContribution = {
   amount: number
   /** How many copies contributed (1 unless the item stacks and is installed twice). */
   copies: number
+  /**
+   * Set when a house rule, not the book, produced this contribution: the
+   * provenance ledger labels the line "house rule" (`houseRules.ts`).
+   */
+  houseRule?: HouseRuleId
 }
 
 /**

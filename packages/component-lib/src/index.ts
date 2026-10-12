@@ -103,6 +103,8 @@ export { digestRollTable } from './components/compositions/digestRollTable'
 export { EntitySearcher } from './components/compositions/EntitySearcher'
 export type { FooterFoot } from './components/compositions/Footer'
 export { Footer } from './components/compositions/Footer'
+// HouseRules (the house-rule registry, listed on both about pages)
+export { HouseRules } from './components/compositions/HouseRules'
 export type { NavDrawerCategory, NavDrawerItem } from './components/compositions/NavDrawer'
 export { NavDrawer } from './components/compositions/NavDrawer'
 // OgCard — the 1200 × 630 link preview (issue 1280), built from ChapterBand and

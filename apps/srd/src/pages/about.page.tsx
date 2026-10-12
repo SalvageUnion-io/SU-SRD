@@ -20,7 +20,7 @@
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { ChapterBand, InlineRef, Slab } from 'component-lib'
+import { ChapterBand, HouseRules, InlineRef, Slab } from 'component-lib'
 import { color, font, fontSize, radius, space, tracking, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
@@ -370,6 +370,9 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 affiliated with Leyline Press.
               </p>
             </section>
+
+            {/* House rules: where the tools depart from the book (shared with ITUN). */}
+            <HouseRules />
 
             {/* Colophon: About the Dev + Special Thanks + support | LLM Statement
                 (shared with ITUN).

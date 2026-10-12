@@ -2,13 +2,13 @@
  * AboutScreen — the /about page for In the Union Now.
  *
  * Static content page: what ITUN is, its local-first stance, links to the SRD
- * and the official game, and the shared `Colophon` (author bio, special thanks,
+ * and the official game, the shared `HouseRules` list, and the shared `Colophon` (author bio, special thanks,
  * LLM statement, Ko-fi support widget). Styled in the ITUN paper/ink Workshop-Manual idiom
  * (mirrors the Roster main layout) rather than the SRD reference-site look, so
  * it reads as part of this app.
  */
 
-import { ChapterBand, Colophon, InlineRef, Slab } from 'component-lib'
+import { ChapterBand, Colophon, HouseRules, InlineRef, Slab } from 'component-lib'
 import { borderWidth, color, font, fontSize, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
@@ -149,6 +149,8 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
             Press.
           </p>
         </section>
+
+        <HouseRules />
 
         <Colophon
           aboutMarkdown={aboutJrvs}

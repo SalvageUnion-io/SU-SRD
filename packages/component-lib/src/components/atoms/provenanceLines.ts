@@ -58,11 +58,18 @@ export function linesFromBreakdown(
   // Named contributions get a line EACH. They must never be folded into the
   // aggregate above: doing so attributed an ability's bonus to installed
   // hardware, which is a provenance panel lying about provenance.
+  //
+  // A contribution a house rule produced says so, so a player who knows the
+  // book can see where the sheet departs from it (`houseRules.ts`).
   for (const source of parts.sources ?? []) {
+    const details = [
+      ...(source.copies > 1 ? [`×${source.copies}`] : []),
+      ...(source.houseRule ? ['house rule'] : []),
+    ]
     lines.push({
       kind: 'contribution',
       label: source.source,
-      ...(source.copies > 1 ? { detail: `×${source.copies}` } : {}),
+      ...(details.length > 0 ? { detail: details.join(' · ') } : {}),
       amount: source.amount,
     })
   }

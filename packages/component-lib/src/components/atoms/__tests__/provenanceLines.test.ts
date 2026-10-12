@@ -137,4 +137,39 @@ describe('named sources vs the anonymous aggregate', () => {
     )
     expect(lines.find((l) => l.label === 'Heat Sink')?.detail).toBe('×2')
   })
+
+  test('a source a house rule produced says so', () => {
+    const lines = linesFromBreakdown(
+      parts({
+        sources: [
+          {
+            source: 'Crawler Tech 3',
+            ref: 'Pilot Bay',
+            stat: 'maxHp',
+            amount: 4,
+            copies: 1,
+            houseRule: 'stat-training-follows-crawler',
+          },
+        ],
+        derived: 14,
+        total: 14,
+      }),
+      { base: 'Pilot', baseDetail: 'base' }
+    )
+    expect(lines.find((l) => l.label === 'Crawler Tech 3')?.detail).toBe('house rule')
+  })
+
+  test('a book-sourced line carries no house-rule label', () => {
+    const lines = linesFromBreakdown(
+      parts({
+        sources: [
+          { source: 'Beefcake', ref: 'beefcake', stat: 'structurePoints', amount: 7, copies: 1 },
+        ],
+        derived: 17,
+        total: 17,
+      }),
+      { base: 'Atlas chassis' }
+    )
+    expect(lines.find((l) => l.label === 'Beefcake')?.detail).toBeUndefined()
+  })
 })

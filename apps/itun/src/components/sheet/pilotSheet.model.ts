@@ -119,7 +119,7 @@ export function usePilotSheetModel({
   const linkedCrawler = crawlerLink ? storeState.get('crawler', crawlerLink.to.id) : null
   const effectiveCrawlerLevel = resolveEffectiveCrawlerLevel(pilot, linkedCrawler)
   // The same effective level drives the pilot's Stat Training bonus to max HP
-  // and AP (house choice: always derived from the crawler tier — see
+  // and AP (house rule: always derived from the crawler tier — see
   // `pilotMaxHPParts`), so every max-HP read below goes through this input.
   const statInput = { ...pilot, crawlerTechLevel: effectiveCrawlerLevel }
   // Memoized so the {techLevel} object's identity is stable across renders.
