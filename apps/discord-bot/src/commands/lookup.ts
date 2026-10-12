@@ -1,12 +1,11 @@
 import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
-import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { findEntityBySlug, nameToSlug, search } from 'salvageunion-reference'
+import { findEntityBySlug, getPatterns, nameToSlug, search } from 'salvageunion-reference'
 import type { ContainerData } from '../container'
 import { toContainer } from '../container'
 import { noEntryContainer } from '../errorContainer'
-import type { LookupHit, LookupView } from '../lookupCard'
-import { entityFromKey, lookupCard, lookupKey } from '../lookupCard'
+import type { LookupHit } from '../lookupCard'
+import { entityFromKey, lookupCard, lookupKey, patternOf } from '../lookupCard'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 
 /** A `/su lookup` reply ready for `interaction.reply`, or a user-facing error. */
@@ -15,16 +14,16 @@ export type LookupMessage =
   | { error: string }
 
 /**
- * Build the lookup reply for a resolved entity, on a tab and page. Shared by
- * the `/su lookup` slash handler, the tab and page buttons (which redraw it),
- * the older "See table" buttons and the message context menu.
+ * Build the lookup reply for a resolved entry or pattern. Shared by the
+ * `/su lookup` slash handler, the older tab buttons (which redraw it), the older
+ * "See table" buttons and the message context menu.
  */
-export function buildLookupMessage(
-  entity: LookupHit['entity'],
-  schemaName: SURefEnumSchemaName,
-  view?: LookupView
-): { flags: number; components: [ContainerBuilder]; data: ContainerData } {
-  const data = lookupCard(entity, schemaName, view)
+export function buildLookupMessage(hit: LookupHit): {
+  flags: number
+  components: [ContainerBuilder]
+  data: ContainerData
+} {
+  const data = lookupCard(hit)
   return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
 }
 
@@ -39,7 +38,55 @@ export function buildTableLookupMessage(tableName: string): LookupMessage {
   if (!entity) {
     return { error: `Could not find table: "${tableName}".` }
   }
-  return buildLookupMessage({ ...entity, schemaName: 'roll-tables' }, 'roll-tables')
+  return buildLookupMessage({
+    schemaName: 'roll-tables',
+    entity: { ...entity, schemaName: 'roll-tables' },
+  })
+}
+
+/** Autocomplete's most choices, Discord's limit. */
+const MAX_CHOICES = 25
+
+/**
+ * Autocomplete choices for a query: each entry the search finds, and any of its
+ * patterns whose name the query names, as an entry of its own (the pattern's
+ * card, not its host's). A pattern leads its host, since its name is what
+ * matched.
+ */
+export function lookupChoices(query: string): { name: string; value: string }[] {
+  const needle = query.trim().toLowerCase()
+  const choices: { name: string; value: string }[] = []
+  for (const hit of search({ query, limit: MAX_CHOICES })) {
+    const entity = { ...hit.entity, schemaName: hit.schemaName }
+    const hostName =
+      'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : hit.entity.id
+    for (const pattern of getPatterns(hit.entity) ?? []) {
+      if (!pattern.name.toLowerCase().includes(needle)) continue
+      choices.push({
+        name: `${pattern.name} (${hostName} pattern)`.slice(0, 100),
+        value: lookupKey({ schemaName: hit.schemaName, entity, pattern }),
+      })
+    }
+    choices.push({
+      name: hostName.slice(0, 100),
+      value: lookupKey({ schemaName: hit.schemaName, entity }),
+    })
+  }
+  return choices.slice(0, MAX_CHOICES)
+}
+
+/**
+ * What free-typed text looks up: the top search hit, or one of its patterns
+ * when the text is that pattern's name.
+ */
+function typedHit(input: string): LookupHit | null {
+  const [top] = search({ query: input, limit: 1 })
+  if (!top) return null
+  const entity = { ...top.entity, schemaName: top.schemaName }
+  const pattern = patternOf(top.entity, nameToSlug(input))
+  return pattern
+    ? { schemaName: top.schemaName, entity, pattern }
+    : { schemaName: top.schemaName, entity }
 }
 
 export const lookupCommand = {
@@ -63,33 +110,15 @@ export const lookupCommand = {
       await interaction.respond([])
       return
     }
-    const results = search({ query: focusedValue, limit: 25 })
-    await interaction.respond(
-      results.slice(0, 25).map((hit) => {
-        const name =
-          'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : hit.entity.id
-        return {
-          name: name.slice(0, 100),
-          value: lookupKey({
-            schemaName: hit.schemaName,
-            entity: { ...hit.entity, schemaName: hit.schemaName },
-          }),
-        }
-      })
-    )
+    await interaction.respond(lookupChoices(focusedValue))
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const input = interaction.options.getString('entity', true)
 
-    // Autocomplete selections arrive as `schemaName::slug`; free-typed text
-    // falls back to the top search hit.
-    let hit = entityFromKey(input)
-    if (!hit) {
-      const [top] = search({ query: input, limit: 1 })
-      if (top)
-        hit = { schemaName: top.schemaName, entity: { ...top.entity, schemaName: top.schemaName } }
-    }
+    // Autocomplete selections arrive as `schemaName::slug[::pattern]`;
+    // free-typed text falls back to the top search hit, or its pattern.
+    const hit = entityFromKey(input) ?? typedHit(input)
 
     if (!hit) {
       // An in-system container with the closest entries as buttons, the same
@@ -102,7 +131,7 @@ export const lookupCommand = {
       return
     }
 
-    const { data: _data, ...payload } = buildLookupMessage(hit.entity, hit.schemaName)
+    const { data: _data, ...payload } = buildLookupMessage(hit)
     await interaction.reply(payload)
   },
 }

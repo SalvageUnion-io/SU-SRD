@@ -4,7 +4,7 @@
  * Headed by its chapter's band (the schema's plural name notched in), then the
  * listing, in the groups the book prints them in: one Row per entity, or where
  * the schema has art an art-first Tile (the Catalog, the default at a desktop
- * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (the two tech-level tables) is
+ * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (a short one with no art) is
  * a Catalog at every width, one grid with no groups. It ends on the same
  * chapter's band (`foot`), as an entity page does.
  *
@@ -113,8 +113,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   // A listing whose tiles are the content is a Catalog at every width.
   const catalogOnly = CATALOG_LISTINGS.has(schemaId)
-  // Pre-compute filter facets at build time. A Catalog-only listing's tiles
-  // are each a tech level, so it has no TL facet and no TL groups.
+  // Pre-compute filter facets at build time. A Catalog-only listing is a
+  // handful of tiles, so it has no TL facet and no TL groups.
   const techLevels = catalogOnly ? [] : getUniqueTechLevels(data)
   const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []

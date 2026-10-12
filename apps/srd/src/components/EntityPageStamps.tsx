@@ -29,7 +29,7 @@ export function EntityPageStamps({ meta }: EntityPageStampsProps) {
   return (
     <div style={ROW}>
       {meta.typeLabel && (
-        <Badge shape="stamp" size="compact">
+        <Badge shape="stamp" size="compact" className="srd-entity-stamp">
           {meta.typeLabel}
         </Badge>
       )}
@@ -37,7 +37,7 @@ export function EntityPageStamps({ meta }: EntityPageStampsProps) {
         <Stat orientation="horizontal" size="compact" label="LVL" value={meta.numeral} />
       )}
       {meta.cost && (
-        <Badge shape="stamp" size="compact" surface="inverse">
+        <Badge shape="stamp" size="compact" surface="inverse" className="srd-entity-stamp">
           {meta.cost}
         </Badge>
       )}

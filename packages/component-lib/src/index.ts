@@ -229,6 +229,7 @@ export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
+export { TECH_LEVEL_SCHEMAS } from './entity/parts/plate'
 export type { EntityRowModel } from './entity/types'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from './styles/cssVars'
