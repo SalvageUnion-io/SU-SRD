@@ -230,3 +230,6 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 45. **ADR-045 The Dashboard has a phone form**
     Proposed: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
     Amends ADR-038.
+46. **ADR-046 Styling is tokens, style objects and one stylesheet**
+    Accepted: `theme.css` tokens, `tokens.ts` style objects, `index.css` `.su-*` classes; Tailwind is removed by TW7.
+    Plan and phases: [tailwind-removal.md](design-system/tailwind-removal.md).
