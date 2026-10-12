@@ -57,6 +57,7 @@ export {
   srdSchemaPath,
   srdSchemaUrl,
 } from './assets'
+export { type BookAnchor, bookQuote } from './bookQuote'
 export {
   parseContentBlockString,
   replaceChassisPlaceholder,

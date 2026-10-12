@@ -1,10 +1,11 @@
 import { afterAll, describe, expect, test } from 'bun:test'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import type { LockFile } from '../lib/proseFidelity'
 import {
   collectProse,
+  collectQuotes,
   compareWithLock,
   formatLockEntry,
   parseLockEntry,
@@ -32,6 +33,30 @@ function fixture(files: Record<string, unknown[]>): string {
     writeFileSync(join(dir, name), JSON.stringify(rows))
   return dir
 }
+
+/** A repo of source files: `{ 'apps/x/src/A.tsx': '…' }`. */
+function sourceFixture(files: Record<string, string>): string {
+  const dir = mkdtempSync(join(tmpdir(), 'fidelity-src-'))
+  fixtures.push(dir)
+  for (const [name, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(dir, name)), { recursive: true })
+    writeFileSync(join(dir, name), text)
+  }
+  return dir
+}
+
+const WM = "source: 'Salvage Union Workshop Manual'"
+const REPO = sourceFixture({
+  'apps/demo/src/Wizard.tsx': `
+    const rules = [
+      bookQuote({ ${WM}, page: 94 }, 'You start with 20 Tech 1 Scrap.'),
+      bookQuote({ ${WM}, booklet: 'CR', page: 3 }, \`Craft a Mech.\`),
+      'An unwrapped string the app writes itself.',
+    ]
+  `,
+  'apps/demo/src/__tests__/Wizard.test.tsx': `bookQuote({ ${WM}, page: 1 }, 'In a test.')`,
+  'packages/ref/lib/facts.ts': `const hint = bookQuote({ ${WM}, page: 97 }, 'Structure Points.')`,
+})
 
 const DATA = fixture({
   'systems.json': [
@@ -62,7 +87,7 @@ const DATA = fixture({
 })
 
 describe('collectProse', () => {
-  const items = collectProse(DATA)
+  const items = collectProse(DATA, REPO)
   const keys = items.map((i) => i.key)
 
   test('keys by entity id and path, so inserting a row moves no key', () => {
@@ -84,6 +109,51 @@ describe('collectProse', () => {
   test('an action inherits the anchors of what references it', () => {
     const action = items.find((i) => i.key === 'actions.json#act-1.content[0].value')
     expect(action?.anchors).toEqual([{ source: 'Salvage Union Workshop Manual', page: 180 }])
+  })
+})
+
+describe('collectQuotes', () => {
+  const items = collectQuotes(REPO)
+
+  test('a bookQuote is prose, keyed by file and call order, anchored where it says', () => {
+    expect(items.map((i) => [i.key, i.text, i.anchors])).toEqual([
+      [
+        'apps/demo/src/Wizard.tsx#bookQuote[0]',
+        'You start with 20 Tech 1 Scrap.',
+        [{ source: 'Salvage Union Workshop Manual', page: 94 }],
+      ],
+      [
+        'apps/demo/src/Wizard.tsx#bookQuote[1]',
+        'Craft a Mech.',
+        [{ source: 'Salvage Union Workshop Manual', booklet: 'CR', page: 3 }],
+      ],
+      [
+        'packages/ref/lib/facts.ts#bookQuote[0]',
+        'Structure Points.',
+        [{ source: 'Salvage Union Workshop Manual', page: 97 }],
+      ],
+    ])
+    expect(items.every((i) => i.kind === 'prose' && !i.structural)).toBe(true)
+  })
+
+  test('collectProse holds quotes to the lock with the dataset', () => {
+    expect(collectProse(DATA, REPO).map((i) => i.key)).toContain(
+      'packages/ref/lib/facts.ts#bookQuote[0]'
+    )
+  })
+
+  test('a call the scan cannot read fails, so no quote passes the gate unseen', () => {
+    const cases = [
+      `bookQuote({ ${WM}, page: 9 }, \`Deals \${n} SP.\`)`,
+      `bookQuote({ ${WM}, page: 9 }, text)`,
+      `bookQuote({ ${WM} }, 'No page.')`,
+      `bookQuote({ ...anchor, page: 9 }, 'Spread.')`,
+      `bookQuote(anchor, 'Not a literal.')`,
+    ]
+    for (const call of cases)
+      expect(() => collectQuotes(sourceFixture({ 'apps/x/src/a.ts': `\n${call}` }))).toThrow(
+        'apps/x/src/a.ts:2: bookQuote needs literal arguments'
+      )
   })
 })
 
@@ -111,7 +181,7 @@ describe('lock entries', () => {
 })
 
 describe('compareWithLock', () => {
-  const items = collectProse(DATA)
+  const items = collectProse(DATA, REPO)
   const comment = JSON.parse(serializeLock({ editions: {}, entries: {} })).$comment as string
   const full = {
     $comment: comment,

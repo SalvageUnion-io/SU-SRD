@@ -16,8 +16,9 @@
  * books stay out of git. `parseLockEntry` enforces that shape.
  */
 import { createHash } from 'node:crypto'
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { basename, join, relative, sep } from 'node:path'
+import { parseSync } from 'oxc-parser'
 import type { ProseRuleId } from 'salvageunion-reference/proseDeviations'
 import { PROSE_RULES, STRUCTURAL_FIELDS } from 'salvageunion-reference/proseDeviations'
 
@@ -33,7 +34,10 @@ export const LOCK_PATH = join(REPO, 'packages/salvageunion-reference/fidelity.lo
 export type Anchor = { source: string; booklet?: string; page?: number }
 
 export type ProseItem = {
-  /** `file#entityId.path`: stable across row reordering and insertion. */
+  /**
+   * `file#entityId.path`: stable across row reordering and insertion. A
+   * `bookQuote` in source is `<repo path>#bookQuote[n]`, the file's nth call.
+   */
   key: string
   file: string
   entityId: string
@@ -148,14 +152,15 @@ function dedupe(anchors: Anchor[]): Anchor[] {
 }
 
 /**
- * Every string in the dataset that is prose or a printed name, in file order.
+ * Every string in the dataset that is prose or a printed name, in file order,
+ * then every `bookQuote` in the workspaces' source (`collectQuotes`).
  *
  * Actions carry no source of their own: they are printed under whatever
  * references them, so an action inherits the anchors of every entity that
  * lists it in `actions` or `chassisAbilities` (or of the nested record that
  * lists it, when that record carries its own `source`).
  */
-export function collectProse(dataDir = DATA_DIR): ProseItem[] {
+export function collectProse(dataDir = DATA_DIR, repoRoot = REPO): ProseItem[] {
   const files = readdirSync(dataDir)
     .filter((f) => f.endsWith('.json'))
     .sort()
@@ -239,6 +244,128 @@ export function collectProse(dataDir = DATA_DIR): ProseItem[] {
         walk(x, `.${k}`, k, base, STRUCTURAL.has(k))
       }
     }
+  }
+  items.push(...collectQuotes(repoRoot))
+  return items
+}
+
+// ---------------------------------------------------------------------------
+// Book quotes in source
+// ---------------------------------------------------------------------------
+
+/** Where quotes live: each app's `src/`, each package's `lib/` and `src/`. */
+const QUOTE_ROOTS = ['apps', 'packages']
+const QUOTE_DIRS = ['src', 'lib']
+const QUOTE_SKIP = /(^|\/)(__tests__|node_modules|generated)(\/|$)|\.test\.tsx?$/
+
+function quoteFiles(repoRoot: string): string[] {
+  const out: string[] = []
+  for (const top of QUOTE_ROOTS) {
+    const wsDir = join(repoRoot, top)
+    if (!existsSync(wsDir)) continue
+    for (const ws of readdirSync(wsDir).sort())
+      for (const sub of QUOTE_DIRS) {
+        const dir = join(wsDir, ws, sub)
+        if (!existsSync(dir)) continue
+        for (const f of readdirSync(dir, { recursive: true, encoding: 'utf8' }).sort()) {
+          const rel = f.split(sep).join('/')
+          if (/\.tsx?$/.test(rel) && !QUOTE_SKIP.test(rel)) out.push(join(dir, f))
+        }
+      }
+  }
+  return out
+}
+
+type Node = { type?: unknown; start?: unknown; [k: string]: unknown }
+const isNode = (v: unknown): v is Node => !!v && typeof v === 'object' && !Array.isArray(v)
+
+/** A string literal, or a template literal with nothing spliced in. */
+function stringOf(n: unknown): string | undefined {
+  if (!isNode(n)) return undefined
+  if (n.type === 'Literal' && typeof n.value === 'string') return n.value
+  if (n.type === 'TemplateLiteral' && Array.isArray(n.expressions) && !n.expressions.length) {
+    const q = (n.quasis as { value?: { cooked?: unknown } }[] | undefined)?.[0]
+    return typeof q?.value?.cooked === 'string' ? q.value.cooked : undefined
+  }
+  return undefined
+}
+
+/** `{ source, booklet?, page }` of literals, or why not. */
+function anchorOf(n: unknown): Anchor | string {
+  if (!isNode(n) || n.type !== 'ObjectExpression' || !Array.isArray(n.properties))
+    return 'the first argument is not an object literal'
+  const fields: Record<string, unknown> = {}
+  for (const p of n.properties as Node[]) {
+    const key = isNode(p.key) ? (p.key.name ?? p.key.value) : undefined
+    if (p.type !== 'Property' || p.computed || typeof key !== 'string')
+      return 'the anchor has a spread or computed key'
+    const v = p.value as Node
+    fields[key] = v?.type === 'Literal' ? v.value : stringOf(v)
+  }
+  const { source, booklet, page, ...rest } = fields
+  if (Object.keys(rest).length) return `unknown anchor key "${Object.keys(rest)[0]}"`
+  if (typeof source !== 'string') return '`source` is not a string literal'
+  if (typeof page !== 'number') return '`page` is not a number literal'
+  if (booklet !== undefined && typeof booklet !== 'string')
+    return '`booklet` is not a string literal'
+  return { source, ...(booklet !== undefined ? { booklet } : {}), page }
+}
+
+/**
+ * Every `bookQuote(anchor, text)` call in the workspaces' source
+ * (`salvageunion-reference/lib/bookQuote.ts`), as prose items anchored where
+ * the call says. Throws on a call whose arguments are not literals: the scan
+ * cannot read a value, and a quote it cannot read would pass the gate unseen.
+ */
+export function collectQuotes(repoRoot = REPO): ProseItem[] {
+  const items: ProseItem[] = []
+  for (const path of quoteFiles(repoRoot)) {
+    const source = readFileSync(path, 'utf8')
+    if (!source.includes('bookQuote(')) continue
+    const file = relative(repoRoot, path).split(sep).join('/')
+    const calls: Node[] = []
+    const visit = (v: unknown): void => {
+      if (Array.isArray(v)) {
+        for (const x of v) visit(x)
+        return
+      }
+      if (!isNode(v)) return
+      if (
+        v.type === 'CallExpression' &&
+        isNode(v.callee) &&
+        v.callee.type === 'Identifier' &&
+        v.callee.name === 'bookQuote'
+      )
+        calls.push(v)
+      for (const [k, x] of Object.entries(v)) if (k !== 'parent') visit(x)
+    }
+    visit(parseSync(path, source).program)
+    calls.sort((a, b) => Number(a.start) - Number(b.start))
+    calls.forEach((call, i) => {
+      const args = (call.arguments as unknown[] | undefined) ?? []
+      const anchor = anchorOf(args[0])
+      const text = stringOf(args[1])
+      if (typeof anchor === 'string' || text === undefined || args.length !== 2) {
+        const problem = typeof anchor === 'string' ? anchor : 'the text is not a string literal'
+        const line = source.slice(0, Number(call.start)).split('\n').length
+        throw new Error(`${file}:${line}: bookQuote needs literal arguments: ${problem}`)
+      }
+      if (!text.trim()) return
+      const entityId = `bookQuote[${i}]`
+      items.push({
+        key: `${file}#${entityId}`,
+        file,
+        entityId,
+        entityName: basename(file).replace(/\.tsx?$/, ''),
+        path: '',
+        field: 'bookQuote',
+        kind: 'prose',
+        text,
+        anchors: [anchor],
+        structural: false,
+        owners: [],
+      })
+    })
   }
   return items
 }

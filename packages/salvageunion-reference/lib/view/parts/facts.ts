@@ -4,6 +4,7 @@
  * builds its `StatItem`s from these.
  */
 
+import { bookQuote } from '../../bookQuote'
 import {
   getBioSalvageValue,
   getCargoCapacity,
@@ -74,7 +75,10 @@ type StatConfig = {
   primary?: true
 }
 
-/** Every stat, in the head's order. */
+/**
+ * Every stat, in the head's order. A hint the Core Book prints (Mech stats
+ * p.96–97, Hit Points p.20) is a `bookQuote`; the rest are written here.
+ */
 const STATS: StatConfig[] = [
   {
     key: 'slotsRequired',
@@ -84,24 +88,36 @@ const STATS: StatConfig[] = [
   {
     key: 'structurePoints',
     getter: getStructurePoints,
-    hint: 'Structure Points represent how tough and sturdy your Mech is, and how much damage it can take. This is an abstract measure representing a broad range of factors ranging from sheer bulk and armour to wider defensive capabilities.',
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 97 },
+      'Structure Points represent how tough and sturdy your Mech is, and how much damage it can take. This is an abstract measure representing a broad range of factors ranging from sheer bulk and armour to wider defensive capabilities.'
+    ),
     primary: true,
   },
   {
     key: 'hitPoints',
     getter: getHitPoints,
-    hint: 'Hit Points are an abstract measure of how resilient your Pilot and NPCs are. This can represent a wide variety of different factors, including their ability to mitigate harm and defend themselves, their general toughness, as well as good fortune.',
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 20 },
+      'Hit Points are an abstract measure of how resilient your Pilot and NPCs are. This can represent a wide variety of different factors, including their ability to mitigate harm and defend themselves, their general toughness, as well as good fortune.'
+    ),
   },
   {
     key: 'energyPoints',
     getter: getEnergyPoints,
-    hint: 'Energy Points abstractly represents the energy output and efficiency of your Mechs reactor as well as its stored power. You can spend these points to activate your Systems, Modules, and Chassis Abilities.',
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 96 },
+      'Energy Points abstractly represents the energy output and efficiency of your Mechs reactor as well as its stored power. You can spend these points to activate your Systems, Modules, and Chassis Abilities.'
+    ),
     primary: true,
   },
   {
     key: 'salvageValue',
     getter: getSalvageValue,
-    hint: "Salvage Value represents the sum of a Mech, System, or Module's material components. As such it's the amount of Scrap you receive when breaking down a Chassis, System, or Module, as well as the amount of Scrap required to craft a Mech, System, or Module.",
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 97 },
+      "Salvage Value represents the sum of a Mech, System, or Module's material components. As such it's the amount of Scrap you receive when breaking down a Chassis, System, or Module, as well as the amount of Scrap required to craft a Mech, System, or Module."
+    ),
     primary: true,
   },
   {
@@ -113,22 +129,34 @@ const STATS: StatConfig[] = [
   {
     key: 'systemSlots',
     getter: getSystemSlots,
-    hint: 'Each System has a System Slot value which represents how much space it takes up on a Mech, conversely a Mechs System Slot value represents how many Systems it can mount. This is an abstract value that covers not only size, but energy requirements, ammo storage and a host of other factors.',
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 97 },
+      'Each System has a System Slot value which represents how much space it takes up on a Mech, conversely a Mechs System Slot value represents how many Systems it can mount. This is an abstract value that covers not only size, but energy requirements, ammo storage and a host of other factors.'
+    ),
   },
   {
     key: 'moduleSlots',
     getter: getModuleSlots,
-    hint: "Each Module has a Module Slot value which represents how much space it takes up on a Mech, conversely a Mech's Module Slot value represents how many Modules it can mount.",
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 97 },
+      "Each Module has a Module Slot value which represents how much space it takes up on a Mech, conversely a Mech's Module Slot value represents how many Modules it can mount."
+    ),
   },
   {
     key: 'cargoCapacity',
     getter: getCargoCapacity,
-    hint: "A Mech's Cargo Slots represents how much it can carry. By default a Mech has 6 Cargo Slots. Cargo Capacity can be increased by installing Systems such as Transport Holds or Cargo Bays into your Mech, as well as from some unique Chassis and Pilot Abilities.",
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 97 },
+      "A Mech's Cargo Slots represents how much it can carry. By default a Mech has 6 Cargo Slots. Cargo Capacity can be increased by installing Systems such as Transport Holds or Cargo Bays into your Mech, as well as from some unique Chassis and Pilot Abilities."
+    ),
   },
   {
     key: 'heatCapacity',
     getter: getHeatCapacity,
-    hint: 'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.',
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 97 },
+      'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.'
+    ),
     primary: true,
   },
   // A Union Crawler's economy (Workshop Manual p.218): only
