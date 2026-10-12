@@ -27,7 +27,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve, sep } from 'node:path'
-import { assertScanFloor } from './lib/scanFloor'
+import { assertScanFloor } from 'gates/lib/scanFloor'
 
 export const CONVEX_DIR = 'apps/itun/convex'
 export const CLIENT_SRC = 'apps/itun/src'

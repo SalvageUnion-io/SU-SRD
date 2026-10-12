@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { scanPages } from '../../../tools/lib/a11yScan'
+import { scanPages } from 'gates/lib/a11yScan'
 
 /**
  * WCAG 2.2 AA on every page in `PAGES`, at desktop and as a Pixel 7
- * (`tools/lib/a11yScan.ts`). Fails on any violation.
+ * (`packages/gates/lib/a11yScan.ts`). Fails on any violation.
  */
 
 /** One of each page shape the SSG renders. */

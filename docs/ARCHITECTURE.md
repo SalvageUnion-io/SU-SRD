@@ -1,19 +1,19 @@
 # Architecture
 
-What is true now: one entry each, a headline and at most two lines (`bun run check doc-drift` holds the shape).
+What is true now: one entry each, a headline and at most two lines.
 The ADRs code cites by § keep their full text in [`docs/adr/`](adr/), linked from their entries; the rest of
 the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 
 ## Areas
 
 1. **Packages**
-   `salvageunion-reference` → `component-lib` → `srd` / `itun` → `catalog`; `itun-domain` → `itun` / `discord-bot`.
+   `salvageunion-reference` → `component-lib` → `srd` / `itun` → `catalog`; `itun-domain` → `itun` / `discord-bot`; `gates` → `tools/` and the apps' e2e.
    Packages never import an app (`noRestrictedImports` in [`biome.jsonc`](../biome.jsonc)); deps use `workspace:*`.
 2. **salvageunion-reference**
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (`ensureGenerated.ts`).
    Exports `.`, `./rules`, `./zod`, `./testing`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
 3. **Lazy loading**
-   Call `preload()` before any accessor; a module-scope ORM call fails Biome (`tools/biome/noModuleScopeReferenceCall.grit`).
+   Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
 4. **component-lib**
    TypeScript source, no build; `src/index.ts` barrel; tokens in `src/styles/theme.css`, mirrored by `src/design/tokens.ts`.

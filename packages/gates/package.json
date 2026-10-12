@@ -1,0 +1,25 @@
+{
+  "name": "gates",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "Salvage Union Open Game Licence 1.0b",
+  "exports": {
+    "./lib/*": {
+      "types": "./lib/*.ts",
+      "default": "./lib/*.ts"
+    },
+    "./rules/*": {
+      "types": "./rules/*.ts",
+      "default": "./rules/*.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "axe-core": "4.13.0",
+    "oxc-parser": "0.143.0"
+  }
+}

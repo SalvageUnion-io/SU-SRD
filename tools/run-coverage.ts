@@ -19,9 +19,9 @@
 import { $ } from 'bun'
 import { appendFileSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { functionRanges } from './lib/functionRanges'
-import { mergeLcov } from './lib/lcov'
-import { assertCoversWorkspaces } from './lib/workspaceCoverage'
+import { functionRanges } from 'gates/lib/functionRanges'
+import { mergeLcov } from 'gates/lib/lcov'
+import { assertCoversWorkspaces } from 'gates/lib/workspaceCoverage'
 
 /**
  * Minimum line coverage per workspace, in percent. Raise a floor to lock in a
@@ -37,7 +37,8 @@ const FLOORS: Readonly<Record<string, number>> = {
   'apps/su-assets': 89.5,
   'packages/observability': 99.5,
   'packages/itun-domain': 96,
-  tools: 82.5,
+  'packages/gates': 91,
+  tools: 79.5,
 }
 
 /**

@@ -180,7 +180,7 @@ async function scanAs(
   const context = await browser.newContext({
     ...EMULATIONS[device],
     baseURL,
-    // As in both suites' configs (tools/lib/playwrightBase.ts): a PWA worker
+    // As in both suites' configs (packages/gates/lib/playwrightBase.ts): a PWA worker
     // activating mid-navigation can abort the goto, and the production CSP
     // `bun run preview` serves would refuse the injected axe script.
     serviceWorkers: 'block',

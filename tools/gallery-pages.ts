@@ -24,7 +24,7 @@
 
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { escapeHtml } from './lib/galleryHtml'
+import { escapeHtml } from 'gates/lib/galleryHtml'
 
 export type PullRequest = {
   number: number

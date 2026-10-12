@@ -46,7 +46,7 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * dead time on the critical path. At module scope the load starts during module
  * evaluation, so it overlaps with React bootstrap and the rest of the entry chunk. This is the
  * pattern `apps/srd/src/lib/gameData.ts` already uses, and module-scope
- * `preload()` is explicitly sanctioned — `tools/biome/noModuleScopeReferenceCall.grit`
+ * `preload()` is explicitly sanctioned — `packages/gates/biome/noModuleScopeReferenceCall.grit`
  * exempts `.preload()` / `.isLoaded()` from the no-module-scope-ORM-access rule
  * as the lifecycle calls the preload contract exists to make eagerly.
  *

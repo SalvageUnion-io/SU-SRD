@@ -101,7 +101,7 @@ export const srdCss: RuleSet = {
   id: 'srd-css',
   label: 'srd css ownership',
   rules: RULES,
-  exemptionsLive: 'tools/rules/srdCss.ts',
+  exemptionsLive: 'packages/gates/rules/srdCss.ts',
   preflight(root) {
     assertScanFloor('srd-css (srd source files)', srdFiles(root).length, 65)
     assertScanFloor('srd-css (component-lib source files)', libFiles(root).length, 100)

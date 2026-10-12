@@ -45,7 +45,8 @@ cd "$ROOT" || exit 0
 
 # The edited project plus every project that imports it. `tools` typechecks
 # `test/` too and imports every package (and the catalog's route helpers, in
-# `shot.test.ts`); srd's and itun's e2e configs import `tools/lib`. Repo-root config belongs to no project — leave it to CI.
+# `shot.test.ts`); srd's and itun's e2e configs import `packages/gates`.
+# Repo-root config belongs to no project — leave it to CI.
 case "$REL" in
   packages/salvageunion-reference/*) TARGETS="*" ;;
   packages/component-lib/*) TARGETS="packages/component-lib apps/srd apps/itun apps/catalog tools" ;;
@@ -56,7 +57,7 @@ case "$REL" in
   apps/srd/*) TARGETS="apps/srd" ;;
   apps/su-assets/*) TARGETS="apps/su-assets" ;;
   apps/catalog/*) TARGETS="apps/catalog tools" ;;
-  tools/lib/*) TARGETS="tools apps/srd apps/itun" ;;
+  packages/gates/*) TARGETS="packages/gates apps/srd apps/itun tools" ;;
   tools/* | test/*) TARGETS="tools" ;;
   *) exit 0 ;;
 esac

@@ -36,7 +36,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
-import { assertScanFloor } from './lib/scanFloor'
+import { assertScanFloor } from 'gates/lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
 const LIB_SRC = join(ROOT, 'packages/component-lib/src')

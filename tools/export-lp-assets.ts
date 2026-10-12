@@ -37,7 +37,7 @@
  *   R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… \
  *     bun tools/export-lp-assets.ts <out-dir> [--prefix <p>] [--bucket <name>]
  *
- * Mint the token scoped to this one bucket — see `tools/lib/r2.ts`.
+ * Mint the token scoped to this one bucket — see `packages/gates/lib/r2.ts`.
  *
  * The output directory is laid out exactly as `upload-lp-assets.ts` expects, so
  * a restore is:
@@ -49,7 +49,7 @@
 import { createHash } from 'node:crypto'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve, sep } from 'node:path'
-import { credentialsFromEnv, listObjects, r2Client } from './lib/r2'
+import { credentialsFromEnv, listObjects, r2Client } from 'gates/lib/r2'
 
 const DEFAULT_BUCKET = 'su-lp-assets'
 

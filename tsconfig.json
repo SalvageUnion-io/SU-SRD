@@ -4,7 +4,7 @@
   // its declarations instead of re-checking its source. Options live in
   // tsconfig.base.json (via tsconfig.dom.json / tsconfig.worker.json).
   //
-  // Build mode will not reference a `noEmit` project (TS6310), so the four
+  // Build mode will not reference a `noEmit` project (TS6310), so the five
   // libraries are `composite` and emit declarations only, into the gitignored
   // `.tsbuild/`; the apps and tools stay `noEmit`.
   "files": [],
@@ -13,6 +13,7 @@
     { "path": "packages/observability" },
     { "path": "packages/itun-domain" },
     { "path": "packages/component-lib" },
+    { "path": "packages/gates" },
     { "path": "apps/srd" },
     { "path": "apps/itun" },
     { "path": "apps/catalog" },
