@@ -7,6 +7,7 @@ import { render } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Entity } from '../Entity'
+import { monogram } from '../parts/plate'
 
 const need = <T,>(value: T | undefined, label: string): T => {
   if (value === undefined) throw new Error(`fixture missing: ${label}`)
@@ -49,5 +50,26 @@ describe('Tile lead', () => {
     const { container } = render(<Entity form="tile" entity={mule()} />)
     expect(container.querySelector('.su-entity-tile__cells p')).toBeNull()
     expect(container.textContent).not.toContain(muleLead())
+  })
+})
+
+describe('Tile plate', () => {
+  test('a tech level with no art wears its numeral', () => {
+    const tl = need(SalvageUnionReference.CrawlerTechLevels.all()[2], 'crawler tech level 3')
+    const { container } = render(<Entity form="tile" entity={tl} />)
+    expect(container.querySelector('.su-entity-tile__numeral')?.textContent).toBe('3')
+  })
+
+  test('any other entity with no art wears its monogram, even one with a tech level', () => {
+    const vrTubes = need(SalvageUnionReference.CrawlerBays.getByName('VR Tubes'), 'vr tubes')
+    const { container } = render(<Entity form="tile" entity={vrTubes} />)
+    expect(container.querySelector('.su-entity-tile__numeral')?.textContent).toBe('VT')
+  })
+
+  test('the monogram is the initials of the first two words that open on a letter', () => {
+    expect(monogram('Trade Caravan')).toBe('TC')
+    expect(monogram('Close')).toBe('C')
+    expect(monogram('Crawler #693 Salvagers')).toBe('CS')
+    expect(monogram('SAKURA 78TH LANCE MSD')).toBe('SL')
   })
 })

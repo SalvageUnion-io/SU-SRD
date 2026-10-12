@@ -25,6 +25,8 @@ export function CardFacets({
   size,
   flush = false,
   linkable = false,
+  align = 'start',
+  className,
 }: {
   facets: SplitFacets
   leading?: ReactNode
@@ -33,6 +35,9 @@ export function CardFacets({
   flush?: boolean
   /** Tags may link (a page, not inside a clickable card). */
   linkable?: boolean
+  /** `end` sets the row at the column's far end (a page's tags, under the band's stamps). */
+  align?: 'start' | 'end'
+  className?: string
 }) {
   if (!leading && facets.facts.length === 0 && facets.tags.length === 0) return null
   const row: CSSProperties = {
@@ -40,10 +45,11 @@ export function CardFacets({
     display: 'flex',
     flexWrap: 'wrap',
     gap: space[4],
+    justifyContent: align === 'end' ? 'flex-end' : 'flex-start',
     ...(flush ? {} : { padding: PAD[size] }),
   }
   return (
-    <div style={row}>
+    <div className={className} style={row}>
       {leading}
       <Facts cells={facets.facts} />
       <Tags tags={facets.tags} linkable={linkable} />

@@ -23,6 +23,28 @@ const TITLE: CSSProperties = {
   WebkitLineClamp: 2,
 }
 
+/** The name and its labels: the row's room, the labels right after the name. */
+const NAME: CSSProperties = {
+  alignItems: 'center',
+  columnGap: space[8],
+  display: 'flex',
+  flex: '1 1 0',
+  minWidth: 0,
+}
+
+/**
+ * Beside its labels the name gives way first, wrapping at spaces (a high
+ * shrink), but keeps its longest word whole: only then do the labels give way.
+ */
+const NAME_TITLE: CSSProperties = {
+  flex: '0 100 auto',
+  minWidth: 'min-content',
+  overflowWrap: 'break-word',
+}
+
+/** The labels give way once the name cannot wrap further, truncating with "…". */
+const LABELS: CSSProperties = { display: 'flex', flex: '0 1 auto', minWidth: 0 }
+
 /** A one-line hint on the band (a pattern row's description), truncated. */
 const HINT: CSSProperties = {
   contain: 'inline-size',
@@ -36,7 +58,7 @@ const HINT: CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
-/** The one line that never wraps: tier, name, hint, stamps, pennant, affordance. */
+/** The one line that never wraps: tier, name and labels, hint, stamps, pennant, affordance. */
 const LINE: CSSProperties = {
   alignItems: 'center',
   columnGap: space[8],
@@ -64,13 +86,13 @@ export type HeadProps = {
   pennant?: ReactNode
   /** The mode's affordance: the link chevron, the "Selected" seal. */
   affordance?: ReactNode
-  /** The labels (`CardLabels`): a line of their own above the title. */
+  /** The labels (`CardLabels`): on the name's line, right after the name. */
   labels?: ReactNode
 }
 
 /**
- * HEAD — a Row's band: its labels, when it has any, then one line that never wraps: the tier, the name (two
- * lines, then clamped), a hint, the action-type stamp (E17), the condition,
+ * HEAD — a Row's band: one line that never wraps: the tier, the name (two
+ * lines, then clamped) with its labels to its right, a hint, the action-type stamp (E17), the condition,
  * the cost pennant and the mode's affordance, in that order. The band wears
  * the paint (`paintFor`): the tone or ink, grey when down.
  */
@@ -99,21 +121,26 @@ export function Head({
         color: paint.color,
         display: 'flex',
         flexDirection: 'column',
-        gap: space[6],
         minWidth: 0,
-        padding: labels ? `${space[8]} ${space[10]}` : `${space[6]} ${space[10]}`,
+        padding: `${space[6]} ${space[10]}`,
       }}
     >
-      {labels}
       <div className="su-entity-row__line" style={LINE}>
         {tier && (
           <span style={{ ...TITLE, display: 'inline', flex: 'none', opacity: 0.75 }}>{tier}</span>
         )}
-        {titleSlot ?? (
-          <TitleTag className="su-entity-row__title" title={title} style={{ ...TITLE, ...ink }}>
-            {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
-          </TitleTag>
-        )}
+        <div style={NAME}>
+          {titleSlot ?? (
+            <TitleTag
+              className="su-entity-row__title"
+              title={title}
+              style={{ ...TITLE, ...ink, ...NAME_TITLE }}
+            >
+              {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
+            </TitleTag>
+          )}
+          {labels && <div style={LABELS}>{labels}</div>}
+        </div>
         {hint && <span style={HINT}>{hint}</span>}
         {stamps.map((stamp) => (
           <Badge

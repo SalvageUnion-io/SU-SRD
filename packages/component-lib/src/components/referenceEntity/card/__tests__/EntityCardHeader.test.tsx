@@ -164,7 +164,7 @@ describe('EntityCardHeader — the compact head', () => {
     expect(band('Cargo Pod').style.padding).toBe('6px 10px')
   })
 
-  test('the labels are the band’s first line, in flow above the title', () => {
+  test('the labels sit right of the title, on its line', () => {
     render(
       <EntityCardHeader
         title="Cargo Pod"
@@ -179,9 +179,10 @@ describe('EntityCardHeader — the compact head', () => {
     const row = band('Cargo Pod')
     // Symmetric: the band holds no room above for a border-riding stamp.
     expect(row.style.padding).toBe('8px 10px')
-    const first = row.firstElementChild as HTMLElement
-    expect(first.textContent).toBe('System')
-    expect(first.style.flex).toBe('1 1 100%')
+    const title = screen.getByText('Cargo Pod')
+    const labels = title.nextElementSibling as HTMLElement
+    expect(labels.textContent).toBe('System')
+    expect(title.parentElement?.parentElement).toBe(row)
   })
 
   test('a full card title wraps and carries no truncation tooltip', () => {

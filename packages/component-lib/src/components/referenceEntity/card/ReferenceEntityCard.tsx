@@ -127,7 +127,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * NPCs (ruleset §5, boards E1–E4). ONE anatomy across every size × extent ×
  * context:
  *
- *   flush header (labels, then title) · italic "//" line · body · footer
+ *   flush header (title, then labels) · italic "//" line · body · footer
  *
  * with TWO header fills, chosen by the reader's question and decided by data
  * shape (`isDoEntity`), never a schema prop:
@@ -264,7 +264,15 @@ function PageSubLine({
   return (
     <>
       {extra}
-      <CardFacets facets={facets} leading={children} size={size} flush linkable />
+      <CardFacets
+        facets={facets}
+        leading={children}
+        size={size}
+        flush
+        linkable
+        align="end"
+        className="su-entity-page__tags"
+      />
     </>
   )
 }
@@ -473,7 +481,7 @@ function ReferenceEntityCardInner({
   const foldedAction = resolveFoldedAction(foldableActions, entityName)
   const foldedActionFields: ActionFields | undefined = foldedAction ?? undefined
 
-  // The LABELS, the head's first line: a parent seal (GRANTS) replaces the type
+  // The LABELS, right of the title: a parent seal (GRANTS) replaces the type
   // stamp; a one-kind listing (`hide.seam`) drops it and the pills.
   const unlabelled = !!hide?.seam && !parentSeal && !userMade && !isLegalStartingPatternCard
   const labels = unlabelled ? undefined : (
