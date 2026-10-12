@@ -225,6 +225,8 @@ export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
 export { Mention } from './entity/forms/Mention'
 export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
+export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
+export { findPageRefs } from './entity/pageRefs'
 export type { EntityRowModel } from './entity/types'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from './styles/cssVars'
