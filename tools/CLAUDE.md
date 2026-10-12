@@ -14,7 +14,7 @@ script's header docstring carries the full reasoning.
 
 ```bash
 bun run check                 # every gate, in parallel, ending in a pass/fail table
-bun run check:fast            # the inner loop: no suite, no network
+bun run check:fast            # the inner loop: no suite, no network, no regeneration
 bun run check styling data    # just these; `bun run check --list` prints every id, what it guards and its fix
 ```
 
@@ -40,7 +40,7 @@ the corpus size, not just the finding count.
 | `knip` | `bun run knip` | — |
 | `biome` | `biome ci .`, plus the GritQL plugins in `packages/gates/biome/` | — |
 | `data` | `packages/salvageunion-reference/tools/validate.ts` (`--only=` runs a subset) | — |
-| `rules-fidelity` | `check-fidelity-lock.ts`: fails a prose string whose text has no verdict in the lock (`--prune` drops entries for deleted strings). Needs no book; the verdicts come from `check-rules-fidelity.ts --update` | `packages/salvageunion-reference/fidelity.lock.json` |
+| `rules-fidelity` | `check-fidelity-lock.ts` (`--prune` drops deleted strings); verdicts come from `check-rules-fidelity.ts --update`, no book needed | `packages/salvageunion-reference/fidelity.lock.json` |
 | `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET`, `COLLAPSED_DOCS` and `RETIRED_CLAIMS` in the script |
 | `observability` | `check-observability.ts` | — |
 | `workers` | `check-workers.ts` | — |
@@ -51,7 +51,7 @@ the corpus size, not just the finding count.
 | `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |
 | `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
 | `styling` | `check-styling.ts` (`--report` lists every finding) | `baselines/styling-baseline.json` |
-| `audit` | `bun run audit` (CI: only when a manifest or `bun.lock` changed; also nightly) | one `--ignore`, in the root `audit` script |
+| `audit` | `bun run audit` (CI: only when a manifest or `bun.lock` changed; also nightly) | — |
 | `actionlint` | `lint-workflows.sh` (pinned, sha256-verified actionlint + zizmor) | — |
 
 ## CI-only, nightly and deploy scripts

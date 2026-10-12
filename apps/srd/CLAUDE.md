@@ -1,6 +1,6 @@
-# SURef Web (Static Reference Site)
+# srd — salvageunion.io
 
-Static SRD reference site for Salvage Union game data. Read-only — choices render
+The static SRD reference site for Salvage Union game data. Read-only — choices render
 ephemerally/non-editably
 ([ADR-010](../../docs/ARCHITECTURE.md#decisions)).
 
@@ -16,14 +16,14 @@ ephemerally/non-editably
   client bundle. No framework runtime ships to the browser beyond React.
 - **Output:** Static HTML (no server runtime, no SSR at request time, no auth,
   no backend)
-- **UI:** `component-lib` components, tokens and stylesheet (ADR-046)
-- **Components:** Shared components from `component-lib`; React islands for
-  interactivity
+- **UI:** `component-lib` components, tokens and stylesheet (ADR-046); React
+  islands for interactivity
 - **Game data:** `salvageunion-reference` workspace package
 - **Tooling:** Biome (`bun run lint`) and TypeScript 7 (`bun run typecheck`).
 - **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`). Every
   page is pre-rendered; the Worker script (`src/worker/index.ts`) runs only for
-  a miss, answering it 404 with `no-store` so a missing chunk is never cached
+  a miss, answering it 404 with `no-store` so a missing chunk is never cached.
+  `/build*` on the same host is ITUN's Worker route, not srd's (ADR-048).
 
 ## Architecture
 
@@ -31,7 +31,6 @@ ephemerally/non-editably
 
 | file            | role                                                                          |
 | --------------- | ----------------------------------------------------------------------------- |
-| `DESIGN.md`     | **the contract.** Read before changing anything here                          |
 | `types.ts`      | `PageModule` / `EndpointModule` / `RouteContext` / `DocumentMeta`             |
 | `routes.ts`     | the **explicit** route registry                                               |
 | `endpoints.ts`  | non-HTML outputs (`*.json`, `llms.txt`, search index)                         |
@@ -40,7 +39,9 @@ ephemerally/non-editably
 | `build.ts`      | orchestrator: vite client build → render every route → emit                   |
 | `dev.ts`        | dev server; Vite in middleware mode, **same `render.tsx` path**               |
 | `sitemap.ts`    | `sitemap-index.xml` + `sitemap-0.xml`                                         |
-| `pwa.ts`        | workbox options for `vite-plugin-pwa` in `vite.config.ts`                     |
+| `vite.config.ts` | the client build: PWA, Sentry source maps, the `react-vendor` chunk          |
+| `pwa.ts`        | workbox options for `vite-plugin-pwa` in `ssg/vite.config.ts`                 |
+| `linkAudit.ts`  | fails the build on an entity link by UUID instead of slug                     |
 | `outputPath.ts` | URL → dist file mapping (`/404` → `404.html`, everything else `…/index.html`) |
 
 ### Routes are registered, not discovered
@@ -69,9 +70,8 @@ wired through `ssg/endpoints.ts` — **endpoints are not routes.**
 [`ssg/DESIGN.md`](ssg/DESIGN.md)'s. Two that get "helpfully" undone: every
 `src/runtime/islandRegistry.ts` specifier is a **static string literal** (a
 computed one collapses the registry into one eager chunk), and
-**`MobileNavIsland` takes zero props on purpose** (as a prop, its catalog blob
-was inlined into all 1,039 pages, 17.3 MB). `EntityCardStatic` is 82% of entity
-pages and ships no JS; leave that path alone.
+**`MobileNavIsland` takes zero props on purpose** (a prop would inline its
+catalog blob into every page).
 
 ## Pages as the Workshop Manual sets them
 
@@ -89,18 +89,11 @@ pages and ships no JS; leave that path alone.
 
 ## Hard rules
 
-1. **No `.css` import may be reachable from an SSR module.** It does **not**
-   break the build: under Bun it resolves to an object (`ssg/build.ts`'s
-   `ssg-css-stub` makes that deterministic), so the stylesheet never reaches
-   Vite and its rules never ship, with a green build and typecheck.
-   `bun run check styling` (its `srd-css` rule set) enforces it. **All** css is
-   imported from `src/runtime/styles.entry.ts`, a client-bundle entry and
-   nothing else; `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
-   `src/runtime/Island.tsx` stay stylesheet-free. Likewise
-   `src/runtime/assets.entry.ts` is the only importer of `src/assets/`; pages
-   address the emitted file through `RouteContext.builtAssets`.
-2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/`
-   may import from `ssg/` at runtime.
+[`ssg/DESIGN.md`](ssg/DESIGN.md)'s hard rules hold. What they rest on: a `.css`
+import reachable from SSR does **not** break the build (`ssg/build.ts`'s
+`ssg-css-stub` resolves it to an object), so the stylesheet silently never
+ships. `src/runtime/assets.entry.ts` is likewise the only importer of
+`src/assets/`; pages address the emitted file through `RouteContext.builtAssets`.
 
 ## Verification
 
@@ -110,26 +103,13 @@ smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
 `dist`.
 `ssg/__tests__/routes.test.ts` asserts every registered route emits a page.
 
-## Key Directories
-
-- `ssg/` - the static-site generator (build-time only)
-- `src/pages/` - `*.page.tsx` route modules (above)
-- `src/endpoints/` - `*.ts` endpoint modules (JSON, llms.txt, search index)
-- `src/runtime/` - `Island.tsx`, `islandRegistry.ts`, `islands.client.ts`,
-  `styles.entry.ts`, `assets.entry.ts`
-- `src/components/islands/` - React island components
-- `src/components/` - React components rendered into the page tree
-- `src/layouts/BaseLayout.tsx` - the shared page shell
-
 ## Conventions
 
-- **No auth, no backend, no user data** - pure static reference
-- Search: In-memory via `salvageunion-reference` package `search()` function
-- Cmd+K/Ctrl+K shortcut to focus search
-- Imports from `component-lib` for shared UI components
-- Dev: `bun run dev` (= `bun ssg/dev.ts`) renders through production's
-  `render.tsx` **on purpose** (DESIGN.md rule 5) — never "optimize" it into a
-  client-rendered SPA.
+- Search: the build-time `/search-index.json`, matched in the browser by
+  `src/lib/searchCompactIndex.ts` with the reference package's ranking
+  functions; no ORM ships to the browser. Cmd+K / Ctrl+K focuses it.
+- Dev: `bun run dev` renders through production's `render.tsx` **on purpose**
+  (DESIGN.md rule 5) — never "optimize" it into a client-rendered SPA.
 
 ## Social preview images (og:image)
 

@@ -31,7 +31,7 @@ in order, each short:
 - **What changed** — the change by area, not by file.
 - **Verification** — what you ran (`bun run check`, a `bun run shot`) and what
   you looked at.
-- **Follow-ups** — what is left, or "None". Ideas you did not build go here,
+- **Follow-ups** — what is left. Ideas you did not build go here,
   not into the diff.
 
 Delete a heading only when it would read "None" and add nothing. Never paste

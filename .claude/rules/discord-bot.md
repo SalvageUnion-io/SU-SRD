@@ -29,7 +29,7 @@ a reply looks like.
 
 ## What Discord will and will not render
 
-Learned from shipped replies (#976, #977):
+Learned from shipped replies:
 
 - `setAccentColor()` paints the container's **left edge only**. A
   `TextDisplay` is always default text colour, so a glyph "tinted by the tier"
@@ -41,7 +41,7 @@ Learned from shipped replies (#976, #977):
   results makes the message change shape with the roll; every roll draws the
   same furniture.
 - No block glyphs for decoration. The one surviving glyph set is functional
-  (`REROLL_SYMBOL` in `src/customId.ts`, the gauge in `src/gameCards.ts`);
+  (`↻` on Roll again in `src/commands/roll.ts`, `gauge()` in `src/gameCards.ts`);
   extend those, do not start a second vocabulary.
 
 ## Ephemerality is a rule, not a default
@@ -67,9 +67,7 @@ retired `su:<action>` name for something new.
 - Roll and neutral colours mirror `--color-roll-*` / `--color-rust` in
   `packages/component-lib/src/styles/theme.css`; change them together.
   `themeLockstep.test.ts` fails when they diverge (entry tones:
-  `discordCard.test.ts`).
-- `degradedMode.test.ts` — the reference bot must keep working when In The
-  Union Now does not answer. Do not let it regress.
+  `packages/salvageunion-reference/lib/view/__tests__/discordCard.test.ts`).
 - Handlers take the narrow types in `src/commands/interactions.ts` (add a member
   only when a handler reads it); extend the shared fakes in
   `src/__tests__/fakeInteraction.ts` rather than casting.

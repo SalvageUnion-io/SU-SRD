@@ -12,7 +12,7 @@
  * this public repo — and it serves two production domains.
  *
  * R2 is otherwise the ONLY copy — a single point of failure. This tool is the
- * backup path (ADR-033 P1); `upload-lp-assets.ts` is the ingest path.
+ * backup path; `upload-lp-assets.ts` is the ingest path.
  *
  * ## What "verified" means here
  *

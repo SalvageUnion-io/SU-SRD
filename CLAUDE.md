@@ -42,10 +42,10 @@ bun run check            # THE full gate: every check in tools/check.ts in paral
                          # ending in a pass/fail table
 bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
 bun run test             # full suite, each workspace with its own bunfig — what CI runs
-bun --filter <workspace> test      # one workspace: salvageunion-reference, component-lib, srd, itun
+bun --filter <workspace> test      # one workspace, by package name (itun, tools, …)
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
 
-bun run build            # package + srd + ITUN (the bot has no build; wrangler bundles it)
+bun run build            # reference generation + srd + ITUN (the Worker-only apps build at deploy)
 
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
@@ -56,7 +56,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 ### Hooks (Lefthook)
 
 - **Pre-commit:** `biome check --write` on staged files only (lint + safe fixes + format in one pass). No typecheck.
-- **Pre-push (in order):** `bun tools/check.ts --profile=pre-push` (every gate but the suite and the network ones), then `bun tools/pre-push-test.ts`: tests the workspaces changed since the merge-base with its base (`baseBranch.ts`), their dependents by `workspace:` edges (`--changed` stops at a workspace boundary) and `tools`. No coverage: floors are CI's `test:coverage` alone. Raise a test's timeout only for a measured intrinsic cost, never for contention.
+- **Pre-push (in order):** `bun tools/check.ts --profile=pre-push` (every gate but the suite and the network ones), then `bun tools/pre-push-test.ts`: tests the workspaces changed since the merge-base with its base (`baseBranch.ts`), their dependents by `workspace:` edges (`--changed` stops at a workspace boundary), and always `gates` and `tools`. No coverage: floors are CI's `test:coverage` alone. Raise a test's timeout only for a measured intrinsic cost, never for contention.
 
 ## Repository Overview
 
@@ -76,17 +76,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON game data. Ships TS source; `schemas/` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
 - `tools/` - The gates' CLI entry points and baselines: [`tools/CLAUDE.md`](tools/CLAUDE.md).
 
-**Dependency graph:**
-
-```
-salvageunion-reference
-  └── component-lib
-        ├── srd
-        └── itun (its convex/: component-lib/product only)
-discord-bot (salvageunion-reference, itun-domain types, component-lib/product only)
-```
-
-Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#display) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
+The dependency graph is [packages](docs/ARCHITECTURE.md#packages). Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#display) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
 
 ## Code Conventions
 
@@ -113,10 +103,10 @@ For styling bugs, check the stylesheet wiring (`entry.css`'s `layer(su-reset)` /
 
 ## External Integrations & MCP Servers
 
-The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#mcp). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **local** deployment `bun run dev:itun` runs, from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`) and `context7` (version-pinned library docs — this repo runs ahead of training data; versions: the manifests).
+Servers, deployments and opt-in: [MCP](docs/ARCHITECTURE.md#mcp). `convex` targets the **local** deployment `bun run dev:itun` runs (`CONVEX_DEPLOYMENT` in `apps/itun/.env.local`); `context7` serves version-pinned library docs (this repo runs ahead of training data).
 
-- `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Only `context7` and `convex` are enabled; opt into the rest [locally](docs/ARCHITECTURE.md#mcp).
-- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI. In a cloud session `gh` is preinstalled and authenticated by the GitHub proxy, but only REST answers (`gh api`); GraphQL subcommands such as `gh pr` and `gh issue` get 403, so use `gh api` or the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#cloud).
+- [`.mcp.json`](.mcp.json) is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders.
+- `claude mcp list` is the only way to know a server works. GitHub: the `gh` CLI; in a cloud session it is REST only (`gh api` or `mcp__github__*`) — [cloud sessions](docs/ARCHITECTURE.md#cloud).
 - **Sentry fails silently**: no DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin blocks every event. The rules are [`packages/observability/CLAUDE.md`](packages/observability/CLAUDE.md)'s, gated by the `observability` check; **change the CSP or Sentry region in every source for that app together.**
 
 ## Merging

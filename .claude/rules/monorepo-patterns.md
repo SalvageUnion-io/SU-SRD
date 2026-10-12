@@ -33,11 +33,9 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 ## Dependencies
 
-Read [dependencies](../../docs/ARCHITECTURE.md#dependencies) before touching a
-`package.json`, `bunfig.toml` or `overrides`. Bun deps are updated by hand,
-Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every
-PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml`
-refuses versions under three days old and makes `bun add` pin exactly.
+Read [dependencies](../../docs/ARCHITECTURE.md#dependencies) and
+[audit](../../docs/ARCHITECTURE.md#audit) before touching a `package.json`,
+`bunfig.toml` or `overrides`.
 
 ## Test-script flags
 
@@ -61,4 +59,5 @@ committed ones — locally, at pre-push and in CI. The reference package's
 `schemas/` and `lib/generated/` are gitignored instead: never
 commit them; the package's `su-ref-generate` bin (`packages/salvageunion-reference/tools/ensureGenerated.ts`) rebuilds them,
 once per run: postinstall, the root `typecheck`, `test` and `build`, `bun run check`,
-each app's `dev` and the test preload. A workspace's own `typecheck` is plain `tsc -b`.
+srd's, ITUN's and the catalog's `dev`, the test preload and the package's own
+`typecheck`. Every other workspace's `typecheck` is plain `tsc -b`.
