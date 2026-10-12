@@ -195,7 +195,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Amends ADR-030's visibility rule; amended by ADR-036.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Accepted, delivered: every hostname is a Worker (Static Assets, R2); builds run in Actions, deploys use `wrangler`.
-    Its snapshot store is history (ADR-036); cutover phases cited in code are in git.
+    Its snapshot store is history (ADR-036); cutover phases cited in code are in git. Amended by ADR-047.
 34. **ADR-034 Persistence requires an account; the local store is a cache**
     Accepted: signed out is read-only, every record is Convex-backed, both apps are PWAs; the pre-account migration is gone.
     Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022.
@@ -223,8 +223,8 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, built: `apps/itun/convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
     The `client-contract` gate catches argument breaks; anything else is a soft update.
 43. **ADR-043 The dataset is a versioned public contract at `api.salvageunion.io`**
-    Accepted, not built: a static `/v1` Worker emitted from the committed files; no query Worker.
-    Amends ADR-014; amends ADR-040.
+    Accepted, not built: a static `/v1` tree emitted from the committed files; no query Worker.
+    Amends ADR-014, ADR-040; decision 1 superseded by ADR-047.
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
     Proposed, built on this branch: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
@@ -233,3 +233,6 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Amends ADR-038.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
     Accepted: `theme.css` tokens, `tokens.ts` objects, `index.css`; no Tailwind after TW7 ([plan](design-system/tailwind-removal.md)).
+47. **ADR-047 One salvageunion.io edge Worker**
+    Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
+    Supersedes ADR-043 decision 1; amends ADR-033. [Spike](spikes/o3-one-edge-worker.md).

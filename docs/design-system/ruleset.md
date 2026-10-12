@@ -27,6 +27,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    4. **The cost pennant is the action** — on the Dashboard, tapping the pennant resolves the action: read-pennant size, filled rust, 44px hit area, no separate deck button.
    5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck, depth 2): art column, one-row head, value cells then the facets row.
       Context changes props, never the anatomy; nothing edits or expands in place. Missing art wears a manual censor mark (`MissingArt`).
+      Where the schema has art, the SRD listing's **Catalog** draws the same groups as art-first Tiles (`<Entity form="tile">`: art at 3:4 from the `-440` derivative, the name notched into the tone band in ink, compact value cells, the lead): the default at ≥ 75rem, the List below it, and a reader's List | Catalog choice is kept.
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links, nested Peeks or steppers; children are Tokens, Mentions inert.
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and trays flow around it, then run full width; trays sit flush with the column.
