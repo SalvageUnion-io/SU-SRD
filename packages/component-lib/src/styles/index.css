@@ -2600,23 +2600,47 @@ body {
 
 /* ── TW4 group A: shared/RollTable ── */
 
-/* ── end group A ── */
+/*
+ * RollTable's collapsible-header Show/Hide toggle. Its colour is a class
+ * because it brightens on :hover (paper at 80% → full paper); everything
+ * static on it is a style object in RollTable.tsx.
+ */
+.su-roll-table__toggle {
+  color: var(--color-paper-80);
+}
 
+.su-roll-table__toggle:hover {
+  color: var(--color-paper);
+}
+
+/*
+ * The header title as a table-picker trigger (`titleSelect`). Border colour
+ * and fill both change on :hover, so both live here; the fill's resting value
+ * is the transparent a button gets from the preflight reset.
+ */
+.su-roll-table__title-select {
+  border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
+  background-color: transparent;
+}
+
+.su-roll-table__title-select:hover {
+  border-color: var(--color-paper);
+  background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
+}
+
+/* ── end group A ── */
 
 /* ── TW4 group B: shared/EntitySearcher ── */
 
 /* ── end group B ── */
 
-
 /* ── TW4 group C: shell and flat leaves ── */
 
 /* ── end group C ── */
 
-
 /* ── TW4 group D: choices, content and patterns ── */
 
 /* ── end group D ── */
-
 
 /* ── TW4 group E: the reference entity card ── */
 
