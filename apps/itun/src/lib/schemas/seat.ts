@@ -3,7 +3,7 @@ import { z } from 'salvageunion-reference/zod'
 /**
  * A pilot's seat at a Game: the Dashboard's play state, shared with the crew
  * and saved on the Game
- * ([ADR-038](../../../../../docs/ARCHITECTURE.md#decisions) §2).
+ * ([ADR-038](../../../../../docs/adr/038-dashboard-game-surface.md) §2).
  *
  * One seat per pilot, not per member: a member covering for an absent player
  * runs two. A seat points at its pilot and boarded mech by app id, the way

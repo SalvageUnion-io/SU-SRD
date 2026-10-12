@@ -14,7 +14,7 @@ import { expect, test } from './fixtures'
  *
  * **The two halves are two tests on purpose.** The wiring test is about the
  * live sheets; the share test is about the live public sheet
- * ([ADR-032](../../../docs/ARCHITECTURE.md#decisions)), which is
+ * ([ADR-032](../../../docs/adr/032-public-read-only-sheets.md)), which is
  * the only way to share
  * ([ADR-036](../../../docs/ARCHITECTURE.md#decisions)).
  *
