@@ -198,6 +198,8 @@ describe('hydration directives', () => {
 
       expect(islands.map((i) => `${i.name}:${i.client}`)).toEqual([
         'SearchIsland:idle',
+        'WikiLinkIsland:idle',
+        'WikiLinkIsland:idle',
         'MobileSearchIsland:idle',
         'MobileNavIsland:idle',
       ])

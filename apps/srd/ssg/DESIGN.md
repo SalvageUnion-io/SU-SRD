@@ -51,6 +51,7 @@ Canonical URLs always carry a trailing slash.
 | `ColumnsTableIsland`    | idle    | **true** | a columns table (Callsign); same `ColumnsTableView`, no roll      |
 | `DidYouMeanIsland`      | idle    | false    | the 404's guesses: the missed path is known only in the browser  |
 | `PeekIsland`            | idle    | false    | every page, no props: the one Peek host; loads on the first Peek |
+| `WikiLinkIsland`        | idle    | false    | chrome, mounted twice; the WIKI link rolls 1 in 100 per page load |
 
 `EntityCardStatic` is not an island: it renders into the page and ships no JS. Keep it that way.
 
