@@ -465,12 +465,16 @@ esac`,
     const work = join(dir, 'work')
     await git('init', '-q', '--bare', '-b', 'main', origin)
     await git('clone', '-q', origin, work)
+    // No signing: a global commit.gpgsign would hand each commit to an agent.
     const inWork = (...args: string[]) =>
-      Bun.spawn(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], {
-        cwd: work,
-        env: cleanEnv,
-        stderr: 'pipe',
-      }).exited
+      Bun.spawn(
+        ['git', '-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', ...args],
+        {
+          cwd: work,
+          env: cleanEnv,
+          stderr: 'pipe',
+        }
+      ).exited
     await inWork('commit', '-q', '--allow-empty', '-m', 'base')
     await inWork('push', '-q', 'origin', 'main')
     // A release branch one commit past main, and a branch cut from it.
