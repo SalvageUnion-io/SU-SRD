@@ -2,9 +2,25 @@
  * `/discord` — the Discord bot landing page.
  */
 
-import { buttonVariants, ChapterBand, cn, InlineRef, Panel, Slab } from 'component-lib'
+import { buttonVariants, ChapterBand, InlineRef, Panel, Slab } from 'component-lib'
+import { borderWidth, color, font, fontSize, space, tracking } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import {
+  ASIDE,
+  BOLD,
+  bulletList,
+  column,
+  DOC_PAGE,
+  docMeasure,
+  ITALIC,
+  inlineCode,
+  PANEL_BODY,
+  PANEL_HEAD,
+  PANEL_TITLE,
+  proseColumn,
+} from '../lib/docPageStyles'
 import { SalvageUnionReference } from '../lib/gameData'
 
 /**
@@ -39,11 +55,54 @@ const DESCRIPTION =
 
 // The install CTA is an <a> styled as THE primary (rust) action — the lib
 // Button recipe as a class string (buttonVariants), keeping the condensed
-// uppercase treatment this hero link uses.
-const installButtonClass = cn(
-  buttonVariants({ variant: 'primary' }),
-  'font-cond text-base uppercase tracking-caps-snug'
-)
+// uppercase treatment this hero link uses. None of those four properties
+// changes on hover, so they sit inline over the recipe.
+const installButtonClass = buttonVariants({ variant: 'primary' })
+
+const INSTALL_TYPE = {
+  fontFamily: font.cond,
+  fontSize: fontSize.base,
+  letterSpacing: tracking.capsSnug,
+  lineHeight: 1.5,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const MEASURE = docMeasure('48rem', space[32])
+const PROSE_12 = proseColumn(space[12])
+const PROSE_16 = proseColumn(space[16])
+const COLUMN_24 = column(space[24])
+const CODE = inlineCode()
+const LIST_4 = bulletList(space[4], 'margin')
+const LIST_8 = bulletList(space[8], 'margin')
+
+/** The site's search shortcut, as a key cap in prose. */
+const KEY_CAP = {
+  ...inlineCode(),
+  borderColor: color.wkFaint,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  paddingInline: space[6],
+} satisfies CSSProperties
+
+const LEGAL = {
+  color: color.wkMuted,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  textAlign: 'center',
+} satisfies CSSProperties
+
+const ATTRIBUTION = {
+  ...LEGAL,
+  borderColor: color.wkFaint,
+  borderStyle: 'solid',
+  borderWidth: `${borderWidth.hairline} 0 0`,
+  paddingTop: space[24],
+} satisfies CSSProperties
+
+const LEGAL_DOT = { color: color.wkFaint, paddingInline: space[6] } satisfies CSSProperties
 
 function page(): PageResult {
   const examples = buildExamples()
@@ -74,11 +133,11 @@ function page(): PageResult {
       ],
     },
     children: (
-      <div className="flex w-full flex-1 flex-col pb-12">
+      <div style={DOC_PAGE}>
         <ChapterBand measure="48rem">Discord Bot</ChapterBand>
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 pt-8">
+        <div style={MEASURE}>
           {/* Overview + install */}
-          <section className="flex flex-col gap-4 text-sm leading-relaxed">
+          <section style={PROSE_16}>
             <p>
               The SURef bot brings this reference to your table&rsquo;s Discord server: roll on
               every Salvage Union table and look up any game entity — chassis, systems, modules,
@@ -95,6 +154,7 @@ function page(): PageResult {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={installButtonClass}
+                style={INSTALL_TYPE}
               >
                 Add to your Discord server
               </a>
@@ -102,21 +162,20 @@ function page(): PageResult {
           </section>
 
           {/* Commands */}
-          <section className="flex flex-col gap-6">
+          <section style={COLUMN_24}>
             <Slab as="h2" variant="solid" label="Commands" />
 
             <Panel soft>
-              <div className="border-b-chrome border-wk-faint px-5 py-3">
-                <p className="mt-1 font-body text-base font-bold">
-                  /su roll <span className="italic">[table]</span>
+              <div style={PANEL_HEAD}>
+                <p style={PANEL_TITLE}>
+                  /su roll <span style={ITALIC}>[table]</span>
                 </p>
               </div>
-              <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
+              <div style={PANEL_BODY}>
                 <p>
-                  Rolls a d20 on any Salvage Union table. Leave{' '}
-                  <code className="rounded-card bg-wk-bg px-1 py-0.5">table</code> empty to roll on
-                  the <strong>Core Mechanic</strong> table — the game&rsquo;s basic d20 resolution
-                  roll.
+                  Rolls a d20 on any Salvage Union table. Leave <code style={CODE}>table</code>{' '}
+                  empty to roll on the <strong>Core Mechanic</strong> table — the game&rsquo;s basic
+                  d20 resolution roll.
                 </p>
                 <p>
                   Start typing a table name and autocomplete suggests matches from all{' '}
@@ -128,61 +187,47 @@ function page(): PageResult {
                 <p>
                   <strong>Examples:</strong>
                 </p>
-                <ul className="ml-5 flex list-disc flex-col gap-1">
+                <ul style={LIST_4}>
                   <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">/su roll</code> — Core
-                    Mechanic d20
+                    <code style={CODE}>/su roll</code> — Core Mechanic d20
                   </li>
                   <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su roll table: Critical Damage
-                    </code>{' '}
-                    — what happens at 0 SP
+                    <code style={CODE}>/su roll table: Critical Damage</code> — what happens at 0 SP
                   </li>
                   <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su roll table: Group Initiative
-                    </code>{' '}
-                    — who acts first
+                    <code style={CODE}>/su roll table: Group Initiative</code> — who acts first
                   </li>
                 </ul>
               </div>
             </Panel>
 
             <Panel soft>
-              <div className="border-b-chrome border-wk-faint px-5 py-3">
-                <p className="mt-1 font-body text-base font-bold">
-                  /su lookup <span className="italic">entity</span>
+              <div style={PANEL_HEAD}>
+                <p style={PANEL_TITLE}>
+                  /su lookup <span style={ITALIC}>entity</span>
                 </p>
               </div>
-              <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
+              <div style={PANEL_BODY}>
                 <p>
                   Looks up any entity in the reference — the same search as this site&rsquo;s
-                  <kbd className="rounded-card border border-wk-faint bg-wk-bg px-1.5 py-0.5 font-body text-xs">
-                    Cmd&nbsp;K
-                  </kbd>{' '}
-                  box. Autocomplete searches as you type (multi-word queries and small typos are
-                  fine); the reply shows the entity&rsquo;s key stats and links to its full page
-                  here.
+                  <kbd style={KEY_CAP}>Cmd&nbsp;K</kbd> box. Autocomplete searches as you type
+                  (multi-word queries and small typos are fine); the reply shows the entity&rsquo;s
+                  key stats and links to its full page here.
                 </p>
                 <p>
                   <strong>Examples:</strong>
                 </p>
-                <ul className="ml-5 flex list-disc flex-col gap-1">
+                <ul style={LIST_4}>
                   <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su lookup entity: green laser
-                    </code>
+                    <code style={CODE}>/su lookup entity: green laser</code>
                   </li>
                   <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
+                    <code style={CODE}>
                       /su lookup entity: {examples.lookupExample.toLowerCase()}
                     </code>
                   </li>
                   <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su lookup entity: overheat
-                    </code>
+                    <code style={CODE}>/su lookup entity: overheat</code>
                   </li>
                 </ul>
               </div>
@@ -190,13 +235,13 @@ function page(): PageResult {
           </section>
 
           {/* Notes */}
-          <section className="flex flex-col gap-3 text-sm leading-relaxed">
+          <section style={PROSE_12}>
             <Slab as="h2" variant="solid" label="Good to know" />
-            <ul className="ml-5 flex list-disc flex-col gap-2">
+            <ul style={LIST_8}>
               <li>
-                Typing <code className="rounded-card bg-wk-bg px-1 py-0.5">/su</code> filters
-                Discord&rsquo;s command picker to just this bot — no more fishing your roll out of a
-                pile of identically-named commands from other bots.
+                Typing <code style={CODE}>/su</code> filters Discord&rsquo;s command picker to just
+                this bot — no more fishing your roll out of a pile of identically-named commands
+                from other bots.
               </li>
               <li>
                 The bot serves the same dataset as this site, including expansion content and the
@@ -206,14 +251,9 @@ function page(): PageResult {
                 It never reads messages — its only Discord capability is answering slash commands.
               </li>
             </ul>
-            <p className="rounded-panel border-l-4 border-ink bg-wk-bg px-4 py-3">
+            <p style={ASIDE}>
               <strong>Running a campaign?</strong> Pair the bot with{' '}
-              <InlineRef
-                href={ITUN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold"
-              >
+              <InlineRef href={ITUN_URL} target="_blank" rel="noopener noreferrer" style={BOLD}>
                 In The Union Now
               </InlineRef>
               {/*
@@ -227,13 +267,13 @@ function page(): PageResult {
           </section>
 
           {/* Attribution */}
-          <p className="border-t border-wk-faint pt-6 text-center text-xs text-wk-muted">
+          <p style={ATTRIBUTION}>
             Dice rolling powered by{' '}
             <InlineRef
               href="https://randsum.dev"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold"
+              style={BOLD}
             >
               Randsum.dev
             </InlineRef>
@@ -241,9 +281,9 @@ function page(): PageResult {
           </p>
 
           {/* Legal */}
-          <p className="text-center text-xs text-wk-muted">
+          <p style={LEGAL}>
             <InlineRef href="/bot/terms">Terms of Service</InlineRef>
-            <span className="px-1.5 text-wk-faint">·</span>
+            <span style={LEGAL_DOT}>·</span>
             <InlineRef href="/bot/privacy">Privacy Policy</InlineRef>
           </p>
         </div>

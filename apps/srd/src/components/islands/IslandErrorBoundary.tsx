@@ -1,7 +1,18 @@
 import { RecoveryPanel } from 'component-lib'
-import type { ErrorInfo, ReactNode } from 'react'
+import { space } from 'component-lib/design/tokens'
+import type { CSSProperties, ErrorInfo, ReactNode } from 'react'
 import { Component } from 'react'
 import { captureException } from '../../lib/observability'
+
+/** Centres the recovery panel in the island's place. */
+const RECOVERY = {
+  display: 'flex',
+  justifyContent: 'center',
+  marginInline: 'auto',
+  maxWidth: '72rem',
+  padding: space[16],
+  width: '100%',
+} satisfies CSSProperties
 
 type Props = { children: ReactNode }
 type State = { error: Error | null }
@@ -39,7 +50,7 @@ export class IslandErrorBoundary extends Component<Props, State> {
   override render() {
     if (this.state.error) {
       return (
-        <div className="mx-auto flex w-full max-w-6xl justify-center p-4">
+        <div style={RECOVERY}>
           <RecoveryPanel
             title="Something went wrong"
             message="Something went wrong rendering this entry."

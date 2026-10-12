@@ -1,10 +1,33 @@
 import { SearchField } from 'component-lib'
+import { color, font, fontSize, space, weight } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { MobileSearchDialog } from './MobileSearchDialog'
 
 export default {
   title: 'Containers/Mobile Search Dialog',
 }
+
+const BAR = {
+  alignItems: 'center',
+  backgroundColor: color.ink,
+  borderRadius: '0.25rem',
+  display: 'flex',
+  gap: space[12],
+  paddingBlock: space[8],
+  paddingInline: space[16],
+} satisfies CSSProperties
+
+const WORDMARK = {
+  color: color.paper,
+  fontFamily: font.cond,
+  fontSize: fontSize.sm,
+  fontWeight: weight.bold,
+  lineHeight: 'calc(1.25 / 0.875)',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const TRAILING = { marginLeft: 'auto' } satisfies CSSProperties
 
 /**
  * The mobile top-nav search trigger + full-screen sheet. Tap the magnifier to
@@ -15,11 +38,11 @@ export default {
 export const Default = () => {
   const [q, setQ] = useState('Iron Mongrel')
   return (
-    <div className="flex items-center gap-3 rounded bg-ink px-4 py-2">
-      <span className="font-cond text-sm font-bold uppercase text-paper">Salvage Union</span>
-      <div className="ml-auto">
+    <div style={BAR}>
+      <span style={WORDMARK}>Salvage Union</span>
+      <div style={TRAILING}>
         <MobileSearchDialog triggerAriaLabel="Search the SRD">
-          <div className="[&_input]:w-full">
+          <div className="srd-mobile-search__body">
             <SearchField
               type="search"
               aria-label="Search the SRD"

@@ -5,8 +5,20 @@
  */
 
 import { ChapterBand, InlineRef, Slab } from 'component-lib'
+import { space } from 'component-lib/design/tokens'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { TITLE_SUFFIX } from '../../lib/constants'
+import {
+  BOLD,
+  DOC_PAGE,
+  docMeasure,
+  LAST_UPDATED_STAMP,
+  proseColumn,
+  SMALL_PRINT,
+} from '../../lib/docPageStyles'
+
+const MEASURE = docMeasure('48rem', space[24])
+const BODY = proseColumn(space[16])
 
 const LAST_UPDATED = '6 July 2026'
 
@@ -18,14 +30,12 @@ function page(): PageResult {
         'Terms of Service for the Salvage Union Discord bot — an unofficial, community reference tool for the Salvage Union TTRPG.',
     },
     children: (
-      <div className="flex w-full flex-1 flex-col pb-12">
+      <div style={DOC_PAGE}>
         <ChapterBand measure="48rem">Salvage Union Bot — Terms of Service</ChapterBand>
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 pt-8">
-          <p className="text-xs uppercase tracking-caps-snug text-ink/60">
-            Last updated: {LAST_UPDATED}
-          </p>
+        <div style={MEASURE}>
+          <p style={LAST_UPDATED_STAMP}>Last updated: {LAST_UPDATED}</p>
 
-          <section className="flex flex-col gap-4 text-sm leading-relaxed">
+          <section style={BODY}>
             <p>
               By adding or using the Salvage Union bot (“the Bot”) in a Discord server or via user
               install, you agree to these terms.
@@ -57,13 +67,13 @@ function page(): PageResult {
                   href="https://leyline.press"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold"
+                  style={BOLD}
                 >
                   Leyline Press
                 </InlineRef>
                 . The Bot is an unofficial, community reference tool and is not affiliated with or
                 endorsed by Leyline Press. Game data is drawn from the community reference at{' '}
-                <InlineRef href="/" className="font-bold">
+                <InlineRef href="/" style={BOLD}>
                   salvageunion.io
                 </InlineRef>
                 .
@@ -82,16 +92,16 @@ function page(): PageResult {
               <Slab as="h2" variant="solid" label="Contact" />
               <p>
                 Questions about these terms:{' '}
-                <InlineRef href="mailto:privacy@salvageunion.io" className="font-bold">
+                <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>
                   privacy@salvageunion.io
                 </InlineRef>
                 .
               </p>
             </div>
 
-            <p className="text-xs text-ink/60">
+            <p style={SMALL_PRINT}>
               See also the{' '}
-              <InlineRef href="/bot/privacy" className="font-bold">
+              <InlineRef href="/bot/privacy" style={BOLD}>
                 Privacy Policy
               </InlineRef>
               .
