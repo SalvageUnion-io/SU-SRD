@@ -140,6 +140,9 @@ type SchemaViewerIslandProps = {
   /** Whether any entity in the schema has artwork: only then is there a
    *  Catalog view (the default at a desktop measure, `listingView.ts`). */
   hasArt?: boolean
+  /** A Catalog at every width (`CATALOG_LISTINGS`): one grid of tiles, each
+   *  its own tech level, so no groups and no TL facet to sort them by. */
+  catalogOnly?: boolean
 }
 
 /**
@@ -156,17 +159,18 @@ type SchemaViewerIslandProps = {
 export function SchemaViewerIsland({
   preloadSchemas,
   hasArt = false,
+  catalogOnly = false,
   ...props
 }: SchemaViewerIslandProps) {
   // Resolved here, above the gate, so the skeletons already take the view's shape.
-  const listingView = useListingView(hasArt)
+  const listingView = useListingView(hasArt, catalogOnly)
   return (
     <IslandErrorBoundary>
       <GameDataGate
         schemas={preloadSchemas}
         projection="list"
         fallback={
-          <div className="srd-listing">
+          <div className="srd-listing" data-catalog={catalogOnly || undefined}>
             {listingView.view === 'catalog' ? (
               <ul className="srd-listing__tiles" aria-hidden="true">
                 {Array.from({ length: 12 }, (_, i) => (
@@ -187,7 +191,12 @@ export function SchemaViewerIsland({
           </div>
         }
       >
-        <SchemaViewer {...props} hasArt={hasArt} listingView={listingView} />
+        <SchemaViewer
+          {...props}
+          hasArt={hasArt}
+          catalogOnly={catalogOnly}
+          listingView={listingView}
+        />
       </GameDataGate>
     </IslandErrorBoundary>
   )
@@ -200,6 +209,7 @@ function SchemaViewer({
   sources,
   trees = [],
   hasArt,
+  catalogOnly,
   listingView,
 }: Omit<SchemaViewerIslandProps, 'preloadSchemas'> & {
   listingView: ReturnType<typeof useListingView>
@@ -261,10 +271,14 @@ function SchemaViewer({
     () => TL_ORDER.filter((tl) => techLevels.some((level) => String(level) === String(tl))),
     [techLevels]
   )
-  const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels)
+  const groupBy = catalogOnly ? 'none' : resolveGroupBy(initialData, trees, orderedTechLevels)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
-  // A single-kind listing: no type stamp, and no TL cell when the tech level heads the group.
-  const omit = useMemo(() => (groupBy === 'tl' ? ['kind', 'tech-level'] : ['kind']), [groupBy])
+  // A single-kind listing: no type stamp, and no TL cell when the tech level
+  // heads the group or is the tile's plate.
+  const omit = useMemo(
+    () => (groupBy === 'tl' || catalogOnly ? ['kind', 'tech-level'] : ['kind']),
+    [groupBy, catalogOnly]
+  )
 
   const toggleTechLevel = (level: TechLevel) => {
     setTechLevelFilters((prev) => {
@@ -277,7 +291,7 @@ function SchemaViewer({
     })
   }
 
-  const hasTechLevels = orderedTechLevels.length > 1
+  const hasTechLevels = !catalogOnly && orderedTechLevels.length > 1
   const hasSources = sources.length > 1
   const hasTrees = trees.length > 1
   const hasFacets = hasTechLevels || hasSources || hasTrees
@@ -297,6 +311,7 @@ function SchemaViewer({
     <div
       className="srd-listing"
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
+      data-catalog={catalogOnly || undefined}
       data-view={view}
     >
       {/* THE RAIL — one row of 44px controls: search, the TL badge, the menus,
@@ -328,7 +343,7 @@ function SchemaViewer({
           </button>
         )}
         <span className="srd-rail__spring" />
-        {hasArt && (
+        {hasArt && !catalogOnly && (
           <fieldset className="srd-seg srd-rail__view">
             <legend className="srd-vh">View</legend>
             {(['list', 'catalog'] as const satisfies readonly ListingView[]).map((option) => (

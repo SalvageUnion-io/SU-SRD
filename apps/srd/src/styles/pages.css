@@ -1442,6 +1442,15 @@
   min-width: 0;
 }
 
+/* A Catalog-only listing (`CATALOG_LISTINGS`): a handful of tiles whose lead
+   is the content, so wider columns — three across at the page's measure, two
+   on a tablet, one on a phone — hold it in two or three lines. */
+.srd-listing[data-catalog] .srd-listing__tiles,
+.srd-listing[data-catalog] .srd-listing__cards {
+  grid-auto-rows: auto;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+}
+
 /* A tile's place while the data loads: the art box, the band, the cells and
    the lore line's three lines. A tile is a 3:4 art box over ~10rem of band
    and cells, so its ratio drifts with the column; measured at 1280px and
@@ -1470,6 +1479,16 @@
     padding-bottom: var(--space-12);
     white-space: normal;
   }
+}
+
+/* Before the island mounts, a Catalog-only listing's names stand at its
+   tiles' height at every width. */
+.srd-listing[data-catalog] .srd-listing__tile-skeleton,
+.srd-listing[data-catalog] .srd-listing__fallback-row {
+  align-items: flex-end;
+  aspect-ratio: 4 / 3;
+  padding-bottom: var(--space-12);
+  white-space: normal;
 }
 
 /* The List | Catalog toggle sits at the rail's end, beside the facets. */

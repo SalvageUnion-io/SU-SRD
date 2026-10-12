@@ -4,7 +4,8 @@
  * Headed by its chapter's band (the schema's plural name notched in), then the
  * listing, in the groups the book prints them in: one Row per entity, or where
  * the schema has art an art-first Tile (the Catalog, the default at a desktop
- * measure; `lib/listingView.ts`). It ends on the same chapter's band (`foot`),
+ * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (tech levels) is
+ * a Catalog at every width, one grid with no groups. It ends on the same chapter's band (`foot`),
  * as an entity page does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
@@ -24,6 +25,7 @@ import { chapterForSchema } from '../../../lib/chapters'
 import { SITE_URL, TITLE_SUFFIX } from '../../../lib/constants'
 import { itemHref, schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
+import { CATALOG_LISTINGS } from '../../../lib/listingView'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { Island } from '../../../runtime/Island'
@@ -39,13 +41,19 @@ function SchemaItemLinks({
   schemaId,
   data,
   hasArt,
+  catalogOnly,
 }: {
   schemaId: string
   data: SURefEntity[]
   hasArt: boolean
+  catalogOnly: boolean
 }) {
   return (
-    <div className="srd-listing" data-art={hasArt || undefined}>
+    <div
+      className="srd-listing"
+      data-art={hasArt || undefined}
+      data-catalog={catalogOnly || undefined}
+    >
       <ul className="srd-listing__cards">
         {data.map((item) => (
           <li key={item.id}>
@@ -80,6 +88,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const preloadSchemas = getSchemaPreloadList(schemaId)
   // A schema with artwork has a Catalog view, the default at a desktop measure.
   const hasArt = data.some((item) => !!getAssetUrl(item))
+  // A listing whose tiles are the content is a Catalog at every width.
+  const catalogOnly = CATALOG_LISTINGS.has(schemaId)
 
   return {
     meta: {
@@ -130,9 +140,14 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             name="SchemaViewerIsland"
             client="visible"
             ssr
-            props={{ schemaId, techLevels, sources, trees, preloadSchemas, hasArt }}
+            props={{ schemaId, techLevels, sources, trees, preloadSchemas, hasArt, catalogOnly }}
           >
-            <SchemaItemLinks schemaId={schemaId} data={data} hasArt={hasArt} />
+            <SchemaItemLinks
+              schemaId={schemaId}
+              data={data}
+              hasArt={hasArt}
+              catalogOnly={catalogOnly}
+            />
           </Island>
         </div>
       </div>

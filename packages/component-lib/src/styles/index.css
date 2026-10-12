@@ -730,6 +730,40 @@ body {
   }
 }
 
+/* A tech level's plate (no art, `Tile.tsx`): its numeral, set as large as the
+   plate holds in the condensed face, in ink on paper. The band below carries
+   the level's colour. */
+.su-entity-tile__art--numeral {
+  align-items: center;
+  aspect-ratio: 2 / 1;
+  container-type: inline-size;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.su-entity-tile__numeral {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: 44cqi;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  transition: transform 160ms ease-out;
+}
+
+.su-entity-tile:hover .su-entity-tile__numeral {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .su-entity-tile__numeral {
+    transition: none;
+  }
+
+  .su-entity-tile:hover .su-entity-tile__numeral {
+    transform: none;
+  }
+}
+
 /* The band: the tone, with the name's cut-out sitting on its foot and the
    pennant and chevron at the right. Its top edge rules the art off. */
 .su-entity-tile__band {
