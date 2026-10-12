@@ -1004,10 +1004,9 @@ function ReferenceEntityCardInner({
     </div>
   ) : null
 
-  // PATTERN view → the pattern's own prose, then what it changes. On a card
-  // it follows the chassis ability (chassis → ability → pattern → loadout) and
-  // leads any other action (a Bio-Titan pattern → its added actions → the
-  // actions it inherits); on a page it leads (`CardPage`'s `opening`).
+  // PATTERN view → the pattern's own prose, then what it changes. On a card it
+  // follows the chassis ability and leads any other action; on a page only its
+  // prose leads (`opening`), and the loadout follows the stats (`pageLoadout`).
   const patternSection = isPattern ? (
     <PatternSection
       prose={patternProse}
