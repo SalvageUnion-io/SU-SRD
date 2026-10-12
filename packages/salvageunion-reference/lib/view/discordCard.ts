@@ -25,6 +25,7 @@ import { srdEntityUrl } from '../assets'
 import { replaceChassisPlaceholder } from '../contentBlockHelpers'
 import { SalvageUnionReference } from '../index'
 import { nameToSlug } from '../nameToSlug'
+import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { toEntityModel } from './toEntityModel'
@@ -242,14 +243,6 @@ export function traitTags(traits: TraitMention[]): string {
       return trait.param ? `${label} ${trait.param}` : label
     })
     .join(' · ')
-}
-
-/**
- * A title as the book prints it. The glossaries store their names lower-case
- * ("vulnerable"); the web sets them in caps, which a Discord heading cannot.
- */
-function displayTitle(title: string): string {
-  return title === title.toLowerCase() ? title.replace(/\b\p{L}/gu, (c) => c.toUpperCase()) : title
 }
 
 /** The seam stamp as a kicker: `-# ABILITY · ADVANCED HACKING TREE · REACTION · \`1 AP\``. */

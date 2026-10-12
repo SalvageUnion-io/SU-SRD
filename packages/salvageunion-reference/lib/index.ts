@@ -118,6 +118,7 @@ export {
 export { getInventorySlots } from './inventorySlots'
 export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory'
 export { nameToSlug } from './nameToSlug'
+export { displayTitle } from './naming'
 export {
   getPatterns,
   isBioTitanPattern,

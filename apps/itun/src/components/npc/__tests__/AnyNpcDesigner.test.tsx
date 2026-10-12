@@ -91,6 +91,22 @@ describe('the template step', () => {
   })
 })
 
+describe('adding a trait', () => {
+  test('names a lower-case glossary trait as the book prints it', async () => {
+    await renderDesigner()
+    await click('Start from Veteran')
+    await click('Next: Stats')
+    await click('Next: Actions & traits')
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('Add an action or trait from the reference'), {
+        target: { value: 'vulnerable' },
+      })
+    })
+    await click(/^Add Vulnerable/)
+    expect(screen.getByRole('checkbox', { name: 'Carry Vulnerable' })).toBeTruthy()
+  })
+})
+
 describe('starting over', () => {
   async function editedVeteran() {
     await renderDesigner()
