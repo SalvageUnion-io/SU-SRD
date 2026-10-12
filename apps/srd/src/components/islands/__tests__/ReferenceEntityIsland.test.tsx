@@ -86,26 +86,27 @@ describe('static fallback stripping', () => {
     })
   })
 
-  it('removes [data-static-fallback] elements once data is ready', async () => {
+  it('swaps the fallback for the card in one step once data is ready', async () => {
     insertStaticFallback()
-    render(<ReferenceEntityIsland item={sampleEntity} />)
+    const { container } = render(<ReferenceEntityIsland item={sampleEntity} />)
     await waitFor(() => {
       expect(document.querySelector('[data-static-fallback]')).toBeNull()
     })
+    expect(container.querySelector('.su-entity-page')).not.toBeNull()
   })
 
-  it('hides (but keeps) the fallback while data is still loading', () => {
+  it('leaves the fallback on screen, with no skeleton, while data is loading', () => {
     isLoadedSpy = spyOn(SalvageUnionReference, 'isLoaded').mockReturnValue(false)
     preloadSpy = spyOn(SalvageUnionReference, 'preload').mockReturnValue(new Promise(() => {}))
     resetPreloadForTests()
 
     const el = insertStaticFallback()
-    render(<ReferenceEntityIsland item={sampleEntity} />)
+    const { container } = render(<ReferenceEntityIsland item={sampleEntity} />)
 
-    // Hidden immediately at hydration (no duplicate <h1> next to the skeleton)…
-    expect(el.hasAttribute('hidden')).toBe(true)
-    // …but not removed: if the preload never resolves the content is still in
-    // the DOM rather than stripped before data arrived.
-    expect(document.querySelector('[data-static-fallback]')).not.toBeNull()
+    // The served text is what the reader reads until the card can replace it…
+    expect(el.isConnected).toBe(true)
+    expect(el.hasAttribute('hidden')).toBe(false)
+    // …and the island draws nothing beside it in the meantime.
+    expect(container.innerHTML).toBe('')
   })
 })

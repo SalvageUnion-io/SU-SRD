@@ -207,7 +207,10 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     <SearchField
       ref={inputRef}
       type="text"
-      name="srd-search"
+      // The hero's field shares the server field's name (`HeroSearchStatic`),
+      // so the mounter carries what a reader typed there, with focus and
+      // caret, onto this one (`mountIsland`).
+      name={hero ? 'q' : 'srd-search'}
       placeholder={hero ? HERO_SEARCH_PLACEHOLDER : 'Search the SRD'}
       shortcut="⌘K"
       value={query}
