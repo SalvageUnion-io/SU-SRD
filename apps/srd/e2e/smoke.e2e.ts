@@ -161,12 +161,13 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
 // (g) A listing grid lays its Rows out as equals (entity display language,
 // "entity grid"): every Row in a grid is the same height, at a desktop width
 // and a phone's, even where one name wraps (Bio-Titans' "Hill Worm Pattern
-// Typhon") or one lead runs shorter.
+// Typhon") or one lead runs shorter. These schemas have art, so a desktop
+// opens on the Catalog; `?view=list` asks for the Rows.
 for (const width of [1440, 390]) {
   for (const schema of ['bio-titans', 'chassis']) {
     test(`every Row in a /schema/${schema}/ grid is one height at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
-      await page.goto(`/schema/${schema}/`)
+      await page.goto(`/schema/${schema}/?view=list`)
       const grid = page.locator('ul[data-entity-grid]').first()
       await expect(grid.locator('a[aria-label]').first()).toBeVisible({ timeout: 30_000 })
       const heights = await page.$$eval('ul[data-entity-grid]', (grids) =>
@@ -179,3 +180,26 @@ for (const width of [1440, 390]) {
     })
   }
 }
+
+// (h) A listing with art opens on its Catalog at a desktop measure: art-first
+// Tiles, each art box 3:4 before its image loads; a phone keeps the List.
+test('a listing with art opens on the Catalog at 1440px, the List at 390px', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/schema/chassis/')
+  const tile = page.locator('.srd-listing__tiles a.su-entity-tile').first()
+  await expect(tile).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByRole('button', { name: 'Catalog' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+  const box = await tile.locator('.su-entity-tile__art').boundingBox()
+  expect(box).not.toBeNull()
+  if (box) expect(Math.abs(box.width / box.height - 3 / 4)).toBeLessThan(0.02)
+
+  await page.setViewportSize({ width: 390, height: 900 })
+  await page.goto('/schema/chassis/')
+  await expect(page.locator('ul[data-entity-grid] a[aria-label]').first()).toBeVisible({
+    timeout: 30_000,
+  })
+  await expect(page.locator('.srd-listing__tiles')).toHaveCount(0)
+})
