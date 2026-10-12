@@ -14,6 +14,7 @@
 import { describe, expect, test } from 'bun:test'
 import type {
   EntityModel,
+  SURefEntity,
   SURefEnumSchemaName,
   SURefMetaEntity,
   SURefObjectAnyPattern,
@@ -44,6 +45,7 @@ import {
 } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
 import { isTitanicAction } from '../card/cardHelpers'
+import { resolveCatalogLeadBlocks } from '../card/catalogLead'
 import { resolveCardTone } from '../card/entityCardTone'
 import { resolveEntityPageMeta } from '../card/entityPage'
 import { resolveNestedSections } from '../card/nestedSections'
@@ -260,8 +262,9 @@ describe('toEntityModel parity, every entity', () => {
   test('lead is the card header hint, else the first paragraph, as plain text', () => {
     // The Row's lead is the model's; this is the formula the compact card used
     // before it did (`resolveHeaderHint`'s hint, else the first paragraph),
-    // plus a step-only guide's first step, as the catalog card's
-    // `resolveGuideLead`.
+    // then what the catalog card borrows: a step-only guide's first step
+    // (`resolveGuideLead`), then a grant's or an action's opening paragraph
+    // (`resolveCatalogLeadBlocks`).
     for (const row of ENTITIES) {
       const { schemaName, entity } = row
       const { hintText } = resolveHeaderHint(entity, {
@@ -271,7 +274,8 @@ describe('toEntityModel parity, every entity', () => {
       const lead =
         hintText ||
         firstParagraphText('content' in entity ? entity.content : undefined) ||
-        resolveGuideLead(entity)
+        resolveGuideLead(entity) ||
+        String(resolveCatalogLeadBlocks(entity as SURefEntity)[0]?.value ?? '')
       agree(label(row), toEntityModel(entity).lead, lead ? plainTraitText(lead) : undefined)
     }
   })

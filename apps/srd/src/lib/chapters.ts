@@ -156,7 +156,7 @@ export type BandFill = {
 }
 
 /** The schemas whose show pages wear the entity's tech-level blue. */
-const TECH_LEVEL_PAGES: ReadonlySet<string> = new Set(['systems', 'modules'])
+const TECH_LEVEL_PAGES: ReadonlySet<string> = new Set(['systems', 'modules', 'equipment'])
 
 /**
  * Tech level 3's foot band, which carries the citation, takes tech level 4's
@@ -169,7 +169,7 @@ const FOOT_SHADE: Partial<Record<string, string>> = {
 }
 
 /**
- * The bands a system's or module's show page wears: its tech level's blue,
+ * The bands a system's, module's or pilot equipment's show page wears: its tech level's blue,
  * head and foot, as its card's header does. Every other page, the listings
  * included, wears its chapter's band (`undefined`).
  */
