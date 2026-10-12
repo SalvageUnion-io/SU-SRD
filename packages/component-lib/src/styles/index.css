@@ -2602,21 +2602,133 @@ body {
 
 /* ── end group A ── */
 
-
 /* ── TW4 group B: shared/EntitySearcher ── */
 
 /* ── end group B ── */
 
-
 /* ── TW4 group C: shell and flat leaves ── */
 
-/* ── end group C ── */
+/* ControlButtons (`shared/ControlButtons.tsx`). The link control and the paper
+   icon stamp flip fill and ink on hover, so both colours are here, resting
+   value included; their geometry is the component's style objects. */
+.su-control-link,
+.su-control-icon--plain {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
 
+.su-control-link:hover,
+.su-control-icon--plain:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* A live worded control, and the red icon stamp, brighten on hover. */
+.su-control-button--live:hover {
+  filter: brightness(110%);
+}
+
+/* The icon stamp's glyph. A class rather than a style object only because the
+   control's `icon` contract takes `className` and nothing else. */
+.su-control-icon__glyph {
+  height: var(--space-12);
+  width: var(--space-12);
+}
+
+/* NavDrawer (`shared/NavDrawer.tsx`). The trigger's padding and ink, and the
+   panel's width, are classes because the app overrides them through
+   `triggerClassName` / `panelClassName` (ITUN passes `p-1.5` and `w-72`): a
+   utility there still beats this layer, where an inline style would not. */
+.su-nav-drawer__trigger {
+  color: var(--color-paper);
+  padding: var(--space-8);
+}
+
+.su-nav-drawer__panel {
+  width: 100%;
+}
+
+/* The close button's fill and ink change on hover. */
+.su-nav-drawer__close {
+  background-color: transparent;
+  color: var(--color-ink-60);
+}
+
+.su-nav-drawer__close:hover {
+  background-color: var(--color-ink-10);
+  color: var(--color-ink);
+}
+
+/* The search slot: its field fills the drawer whatever width the app's own
+   field asks for (the SRD passes `w-56`). That width is a utility, a layer above
+   this one, so only `!important` reaches past it from here — as the arbitrary
+   `[&_input]:w-full` variant used to, from inside the utilities layer. */
+.su-nav-drawer__search {
+  margin-bottom: var(--space-12);
+}
+
+.su-nav-drawer__search input,
+.su-nav-drawer__search input:focus {
+  /* biome-ignore lint/complexity/noImportantStyles: the slot's input carries the app's own width utility, which sits in a higher layer than this one */
+  width: 100% !important;
+}
+
+/* A primary nav link spans the drawer. A class, because the link is a
+   `buttonVariants` element rendered through the app's own LinkComponent. */
+.su-nav-drawer__link {
+  width: 100%;
+}
+
+/* Changelog (`changelog/Changelog.tsx`). The bullets' spacing and marker colour
+   are child and pseudo-element selectors (Tailwind's `space-y-1` and
+   `marker:` emit exactly these). */
+.su-changelog__items > :not(:last-child) {
+  margin-block-end: var(--space-4);
+}
+
+.su-changelog__items *::marker,
+.su-changelog__items::marker {
+  color: var(--color-wk-muted);
+}
+
+/* The entry's date, set on `PageHeading`, which takes a className and no style.
+   Its `subheading` rung brings `text-lg`'s 1.75rem line-height as a utility, a
+   layer above this one; the date's tighter line-height overrode it through
+   tailwind-merge, and from here only `!important` can. */
+.su-changelog__date {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-caps-tight);
+  /* biome-ignore lint/complexity/noImportantStyles: PageHeading's own text-lg line-height is a utility in a higher layer */
+  line-height: 1.25 !important;
+}
+
+/* Colophon (`shared/Colophon.tsx`): one column, two from `md` (48rem) up. */
+.su-colophon {
+  grid-template-columns: none;
+}
+
+@media (min-width: 48rem) {
+  .su-colophon {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The support section's slab spans its column and drops its own bottom margin
+   (the section's gap spaces it). Slab takes a className and no style, and its
+   `mb-3.5` is a utility a layer above this one, so the reset needs `!important`
+   — what tailwind-merge's `mb-0` did before. */
+.su-colophon__support-slab {
+  /* biome-ignore lint/complexity/noImportantStyles: Slab's own mb-3.5 is a utility in a higher layer */
+  margin-bottom: 0 !important;
+  width: 100%;
+}
+
+/* ── end group C ── */
 
 /* ── TW4 group D: choices, content and patterns ── */
 
 /* ── end group D ── */
-
 
 /* ── TW4 group E: the reference entity card ── */
 
