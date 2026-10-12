@@ -28,6 +28,7 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { ITUN_URL } from '../src/lib/constants'
 
 const DIST = join(import.meta.dir, '../dist')
 
@@ -106,6 +107,9 @@ const documentedUrls = [
       // `/schema/{schemaId}.json` and friends are illustrative, not real.
       .filter((u) => !u.includes('{'))
       .map((u) => u.replace(/[.,]$/, ''))
+      // ITUN's (the Union bar's Build tab): another app's Worker serves it on
+      // this origin (ADR-048), so srd's `dist` never holds it.
+      .filter((u) => !u.startsWith(ITUN_URL))
   ),
 ]
 
