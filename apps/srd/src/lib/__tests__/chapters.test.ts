@@ -67,7 +67,7 @@ describe('bandFillFor', () => {
     return system
   }
 
-  test('a system or module show page wears its tech level’s blue, head and foot', () => {
+  test('a system, module or equipment show page wears its tech level’s blue, head and foot', () => {
     expect(bandFillFor('systems', systemAt(1))).toEqual({
       band: 'var(--color-tl-1)',
       foot: 'var(--color-tl-1)',
@@ -77,6 +77,9 @@ describe('bandFillFor', () => {
     const module = SalvageUnionReference.Modules.all().find((m) => m.techLevel === 2)
     if (!module) throw new Error('no module at tech level 2')
     expect(bandFillFor('modules', module)?.band).toBe('var(--color-tl-2)')
+    const equipment = SalvageUnionReference.Equipment.all().find((e) => e.techLevel === 1)
+    if (!equipment) throw new Error('no equipment at tech level 1')
+    expect(bandFillFor('equipment', equipment)?.band).toBe('var(--color-tl-1)')
   })
 
   test('tech level 3’s foot takes tech level 4’s blue, which carries text', () => {
@@ -88,9 +91,7 @@ describe('bandFillFor', () => {
 
   test('every other show page wears its chapter’s band', () => {
     const [chassis] = SalvageUnionReference.Chassis.all()
-    const equipment = SalvageUnionReference.Equipment.all().find((e) => e.techLevel === 1)
-    if (!chassis || !equipment) throw new Error('fixtures missing')
+    if (!chassis) throw new Error('fixtures missing')
     expect(bandFillFor('chassis', chassis)).toBeUndefined()
-    expect(bandFillFor('equipment', equipment)).toBeUndefined()
   })
 })
