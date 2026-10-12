@@ -171,9 +171,9 @@ describe('headerFill (E12)', () => {
     expect(headerFill(mule, 'page')).toBe('tone')
   })
 
-  test('an ability wears its tier tone as a Row, ink as a Card or Page', () => {
+  test('an ability is ink in every form, a Row included', () => {
     const ability = need(SalvageUnionReference.Abilities.all()[0], 'an ability')
-    expect(headerFill(ability, 'row')).toBe('tone')
+    expect(headerFill(ability, 'row')).toBe('ink')
     expect(headerFill(ability, 'card')).toBe('ink')
     expect(headerFill(ability, 'page')).toBe('ink')
   })

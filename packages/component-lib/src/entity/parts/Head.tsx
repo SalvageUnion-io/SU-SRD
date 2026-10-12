@@ -62,7 +62,7 @@ export type HeadProps = {
  * HEAD — a Row's band, one line that never wraps: the tier, the name (two
  * lines, then clamped), a hint, the action-type stamp (E17), the condition,
  * the cost pennant and the mode's affordance, in that order. The band wears
- * the paint (`paintFor`): the tone, the tier tone or ink, grey when down.
+ * the paint (`paintFor`): the tone or ink, grey when down.
  */
 export function Head({
   title,
