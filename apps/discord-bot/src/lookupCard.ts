@@ -17,6 +17,8 @@
  *   picked pattern's card: a Peek, read-only and terminal (EDL E16).
  * - **Roll buttons** for the entity's own table and every table its actions
  *   roll on, so a chained roll is one tap.
+ * - **A Buy link** beside the cite, when the book the entry is printed in is
+ *   for sale from Leyline Press (`buyLink`).
  */
 
 import { ButtonStyle } from 'discord-api-types/v10'
@@ -39,6 +41,7 @@ import {
   isSchemaName,
   nameToSlug,
   resolveFormerSlug,
+  SalvageUnionReference,
   toEntityModel,
 } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerBlock, ContainerData } from './container'
@@ -49,6 +52,22 @@ import { makeCustomId } from './customId'
 export type LookupHit = {
   schemaName: SURefEnumSchemaName
   entity: SURefEntity & { schemaName: SURefEnumSchemaName }
+}
+
+/**
+ * Where to buy the book an entity is printed in, or null. A source's
+ * `purchaseLink` is the publisher's storefront: a Leyline Press product page,
+ * or its BackerKit store for the Starter Set and its booklets. Anything else —
+ * Mech Monday's link is a free community page — is not something to buy.
+ */
+export function buyLink(entity: SURefEntity): string | null {
+  const link = SalvageUnionReference.Sources.getByName(entity.source)?.purchaseLink
+  if (!link) return null
+  const { hostname, pathname } = new URL(link)
+  const forSale =
+    (hostname === 'leyline.press' && pathname.startsWith('/products/')) ||
+    (hostname === 'www.backerkit.com' && pathname.includes('/leyline-press/'))
+  return forSale ? link : null
 }
 
 /** Which view of the card: a tab, and a page within it. */
@@ -295,9 +314,19 @@ export function lookupCard(
     })
   }
 
-  // The bot's additions sit above the foot rule: the cite stays last.
+  // The bot's additions sit above the foot rule: the cite stays last, with
+  // the Buy link beside it.
   const blocks: ContainerBlock[] = [...card.blocks]
-  const foot = blocks.splice(-2, 2)
+  const foot: ContainerBlock[] = blocks.splice(-2, 2)
+  const buy = buyLink(entity)
+  const cite = foot[1]
+  if (buy && cite?.kind === 'text') {
+    foot[1] = {
+      kind: 'section',
+      text: [cite.content],
+      button: { kind: 'link', url: buy, label: 'Buy' },
+    }
+  }
   blocks.push(...insert)
   if (select) blocks.push(select)
   blocks.push(...foot, ...controls)

@@ -22,7 +22,7 @@ import {
 import type { ButtonSpec, ContainerData } from '../container'
 import { enforceContainerLimits } from '../container'
 import { NEUTRAL_ACCENT } from '../format'
-import { lookupCard, parseViewPayload, patternPeek } from '../lookupCard'
+import { buyLink, lookupCard, parseViewPayload, patternPeek } from '../lookupCard'
 import { cardText } from './cardText'
 
 type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
@@ -224,5 +224,42 @@ describe('markdown label escaping', () => {
     const card = cardWith([{ name: '['.repeat(50_000), systems: [], modules: [] }])
     expect(performance.now() - start).toBeLessThan(1000)
     assertFits(card, 'pathological pattern name')
+  })
+})
+
+describe('lookupCard — the Buy link', () => {
+  /** The cite: the last block that is not a row of controls. */
+  const citeBlock = (data: ContainerData) =>
+    data.blocks.filter((block) => block.kind !== 'buttons').at(-1)
+  const buyButton = (data: ContainerData): ButtonSpec | undefined => {
+    const cite = citeBlock(data)
+    return cite?.kind === 'section' ? cite.button : undefined
+  }
+
+  test('an entry from a Leyline Press book sits its Buy link beside the cite', () => {
+    const card = lookupCard(entity('chassis', 'mule'), 'chassis')
+    const button = buyButton(card)
+    expect(button).toEqual({
+      kind: 'link',
+      url: 'https://leyline.press/products/salvage-union-core-book?variant=43991343956158',
+      label: 'Buy',
+    })
+    const cite = citeBlock(card)
+    expect(cite?.kind === 'section' && cite.text[0]).toStartWith('-# Salvage Union Workshop Manual')
+  })
+
+  test('an adventure module and a Starter Set booklet link their own store pages', () => {
+    expect(buyLink(entity('bio-titans', 'apophis'))).toStartWith(
+      'https://leyline.press/products/rainmaker-adventure-module'
+    )
+    expect(buyLink(entity('bio-titans', 'ygdriss'))).toBe(
+      'https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set'
+    )
+  })
+
+  test('Mech Monday is not for sale, so it has no Buy link', () => {
+    const card = lookupCard(entity('sources', 'mech-monday'), 'sources')
+    expect(buyButton(card)).toBeUndefined()
+    expect(card.blocks.at(-1)?.kind).toBe('text')
   })
 })
