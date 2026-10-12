@@ -1,7 +1,7 @@
 # Spike T7: one OG image pipeline
 
-Refit ledger item T7, spike. **Status: re-opened 2026-10-12 after S2, re-measured,
-awaiting the owner's choice.** First round: option B, chosen 2026-10-12
+Refit ledger item T7, spike. **Status: decided again (2026-10-12): option B, after the
+round-2 re-measure below. Closed until a [re-open trigger](#recommendation) fires.** First round: option B, chosen 2026-10-12
 ([#1396](https://github.com/SalvageUnion-io/SU-SRD/pull/1396#issuecomment-6124251979)),
 re-open trigger "S2 moves ITUN to salvageunion.io/build". S2 has landed (#1423,
 #1426): ITUN is the Workers route `salvageunion.io/build*` on `su-itun`, its own
@@ -121,7 +121,7 @@ browser pictures equal, or the preview drifts from the page.
 
 ## Recommendation
 
-**B again, with the next trigger named.** S2 makes A cheaper only as A2, and A2
+**B again, with the next trigger named. The owner chose it (2026-10-12, #1429).** S2 makes A cheaper only as A2, and A2
 puts srd's previews on ITUN's leg, against ADR-048. A1 is round 1's trade with one
 new fact on each side: cold deploys cost ~150 s and happen most refresh days, but
 moving the work to a post-deploy sweep moves it to a paid API and a sticky-blank
