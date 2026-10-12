@@ -8,7 +8,9 @@ paths:
 # Styling — tokens, style objects, one stylesheet
 
 The system is [ADR-046](../../docs/ARCHITECTURE.md#decisions); there is no
-utility framework. What an editor needs:
+utility framework, and `bun run check styling` (`no-tailwind`) fails a Tailwind
+package in any manifest or a Tailwind directive in any stylesheet. What an
+editor needs:
 
 - **The pattern:** `packages/component-lib/src/design/tokens.ts` (typed
   scale) + `packages/component-lib/src/styles/index.css` (the one stylesheet

@@ -1,7 +1,7 @@
 # Design Refresh Ledger
 
 What `design-refresh` shipped, under which commit tag, and what is left; status as of 2026-10-12, updated as PRs land.
-Tags: `[design-refresh <phase>]` (build phases) and `[refit <ID>]` (the audit fleet). The Tailwind plan's phases are TW0–TW7 ([tailwind-removal.md](tailwind-removal.md)), never a `P` tag.
+Tags: `[design-refresh <phase>]` (build phases) and `[refit <ID>]` (the audit fleet). The Tailwind plan's phases were TW0–TW7 (ADR-046; the plan retired after TW7), never a `P` tag.
 
 ## Build phases
 
