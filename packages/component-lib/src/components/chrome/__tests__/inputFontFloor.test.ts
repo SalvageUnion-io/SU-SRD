@@ -25,7 +25,7 @@ import { join } from 'node:path'
 
 const PRIMITIVES = ['inputs.tsx', '../shared/SearchField.tsx', '../shared/EntitySearcher.tsx']
 
-/** Tailwind rungs below 16px that must never land on a text-entry control. */
+/** Type rungs below 16px that must never land on a text-entry control. */
 const TOO_SMALL = ['text-badge', 'text-note', 'text-caption', 'text-xs', 'text-sm']
 
 /**

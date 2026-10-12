@@ -4,7 +4,7 @@
  * the `ChapterBand`, a centred measure, prose at the reading size, inline code.
  *
  * Style objects over `tokens.ts`, not classes, because none of these has a
- * stateful or responsive variant (tailwind-removal plan §4.1). A part that does
+ * stateful or responsive variant (ADR-046). A part that does
  * — a hover, a breakpoint — is a `srd-*` class in `styles/pages.css`.
  */
 

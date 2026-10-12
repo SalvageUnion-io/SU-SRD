@@ -42,8 +42,8 @@
   # type="application/json" — DATA BLOCKS, which the browser never executes and
   # script-src does not gate. They need no hash.
   #
-  # 'unsafe-inline' stays in style-src deliberately: Tailwind needs it, and
-  # style injection is not script execution.
+  # 'unsafe-inline' stays in style-src deliberately: React's inline `style=`
+  # attributes need it, and style injection is not script execution.
   Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
 
 # Content-hashed bundle output (`ssg/vite.config.ts` uses Vite's default

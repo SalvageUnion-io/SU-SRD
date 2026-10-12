@@ -12,9 +12,9 @@ Shared React component library consumed by both `srd` and `itun`.
 
 ## Styling
 
-Tailwind is being removed ([plan](../../docs/design-system/tailwind-removal.md)).
-The working rules (the per-property style-object/`.su-*` split, token parity,
-the ratchet, the one Tailwind entry) are [`.claude/rules/styling.md`](../../.claude/rules/styling.md), which
+Tokens, style objects and one stylesheet (ADR-046). The working rules (the
+per-property style-object/`.su-*` split, token parity, the one stylesheet
+entry) are [`.claude/rules/styling.md`](../../.claude/rules/styling.md), which
 loads with any stylesheet or `src/design/` file. Read it before restyling a
 component.
 

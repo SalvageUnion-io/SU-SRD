@@ -9,7 +9,6 @@
  */
 
 import { fileURLToPath } from 'node:url'
-import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import { sentrySourcemaps } from 'observability/vite'
 import { defineConfig } from 'vite'
@@ -25,7 +24,6 @@ export default defineConfig({
   publicDir: fileURLToPath(new URL('../public', import.meta.url)),
   plugins: [
     react(),
-    tailwindcss(),
     // The service worker; its options and their reasons are in ./pwa. No web
     // manifest (public/site.webmanifest is hand-written) and no injected
     // registration: there is no index.html to inject into, and

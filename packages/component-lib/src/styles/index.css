@@ -1,7 +1,7 @@
 /*
  * The package stylesheet — the ONE stylesheet a web consumer loads.
  *
- * Layer 1 of the Tailwind removal (#798, epic #802). This is the other half of
+ * The styling foundation (#798, epic #802; ADR-046). This is the other half of
  * the pattern whose TypeScript half is `src/design/tokens.ts`, and it is the
  * half that is easy to miss.
  *
@@ -9,8 +9,8 @@
  *
  * An inline `style={}` object cannot express `:hover`, `@media`,
  * `:focus-visible`, `:disabled`, or a pseudo-element. Measured across the three
- * UI workspaces, this codebase depends on all of them — ~403 Tailwind variant
- * usages: 215 responsive, 120 hover, 15 focus-visible, 12 disabled, 9 focus, 5
+ * UI workspaces, this codebase depends on all of them — ~403 stateful or
+ * responsive rules when this file was started: 215 responsive, 120 hover, 15 focus-visible, 12 disabled, 9 focus, 5
  * structural. A migration to style objects ALONE would drop every one of them,
  * which is a straight functional regression, not a styling change. Everything
  * in that list lands here.
@@ -38,7 +38,7 @@
  * `theme.css` custom property (`--color-*`, `--text-*`, `--space-*`, …), the
  * one token set, which `src/design/tokens.ts` mirrors for style objects and
  * `src/design/__tests__/tokens.parity.test.ts` holds in step. So `theme.css` loads
- * before this file wherever it is used (`styles/tailwind.css` does both).
+ * before this file wherever it is used (`styles/entry.css` does both).
  */
 
 /* ══ Derived values ═════════════════════════════════════════════════════════ */
@@ -53,10 +53,9 @@
 
 /* ══ Base ═══════════════════════════════════════════════════════════════════
  *
- * Tailwind's preflight supplies these today and takes them away when it leaves,
- * so the package stylesheet has to carry them or every migrated component's box
- * maths changes underneath it. Deliberately minimal: only the rules the app
- * visibly depends on, not a general-purpose reset.
+ * `reset.css` (the `su-reset` layer) supplies these too; this file restates the
+ * few the components visibly depend on, so it keeps its box maths when loaded
+ * on its own. Deliberately minimal: not a general-purpose reset.
  */
 *,
 *::before,
@@ -515,7 +514,7 @@ body {
 }
 
 /* ── The size ladder (styles/sizing.ts). The odd numbers are the arbitrary
-      Tailwind values carried verbatim — `px-[22px]`, `py-[6px]`, `py-[3px]` —
+      values carried verbatim from the first port — 22px, 6px, 3px —
       because rounding them onto the space scale would resize every button. ── */
 .su-btn--full {
   font-size: var(--text-lede);
@@ -1075,7 +1074,7 @@ body {
   text-transform: uppercase;
 }
 
-/* Semantic type-ladder rungs only. A site on an inherited Tailwind rung
+/* Semantic type-ladder rungs only. A site on an inherited rem rung
    (`text-sm`, `text-lg`, …) is deliberately NOT expressible here — moving
    `text-sm` (14px) to `text-caption` (13px) is a per-site design call, not a
    rename, so those keep their own size until someone rules on each one. */
@@ -2562,7 +2561,7 @@ body {
 /* ══ Mobile-first touch targets ═════════════════════════════════════════════
  *
  * The floor (ruleset §4.6) mirrors theme.css's unlayered copy, which is the
- * one that wins while Tailwind is live. A mini button and an interactive chip
+ * one that also wins over the apps' own stylesheets. A mini button and an interactive chip
  * (`Badge as="button"` carries `.su-hit-area`) keep their drawn size and get a
  * centred 44px hit area instead. So does a breadcrumb link: the phone's trail
  * row is a line of 17px text, and a 44px box per crumb would stretch it into a
@@ -2700,15 +2699,15 @@ body {
 
 /* — Atoms (TW2) — ═══════════════════════════════════════════════════════════
  *
- * The rules the `Atoms/*` components moved off Tailwind need (tailwind-removal
- * plan, TW2): the stateful, responsive and class-string halves of the split.
+ * The rules the `Atoms/*` components need (phase TW2 of the styling
+ * migration): the stateful, responsive and class-string halves of the split.
  * Static values live in each component's style objects.
  */
 
 /* The size ladder's class strings (`styles/sizing.ts`: `RUNG_TYPE`,
- * `RUNG_INLINE_PADDING`). The two inherited rungs carry the line-height
- * Tailwind's `text-sm` / `text-xs` paired them with; the semantic rungs set
- * size alone, as their utilities did. */
+ * `RUNG_INLINE_PADDING`). The two inherited rungs carry their paired
+ * line-height (`text-sm` 1.25rem, `text-xs` 1rem); the semantic rungs set
+ * size alone. */
 .su-rung-label--full {
   font-size: var(--text-sm);
   line-height: calc(1.25 / 0.875);
@@ -2782,7 +2781,7 @@ body {
   outline-width: 2px;
 }
 
-/* Visually hidden, still announced (Tailwind's `sr-only`). */
+/* Visually hidden, still announced. */
 .su-sr-only {
   border-width: 0;
   clip-path: inset(50%);
@@ -2903,8 +2902,7 @@ body {
 
 /* The provenance triggers. `StatProvenance` takes no `style`, so every
  * property is a class; each is compounded with the trigger's own class so it
- * outranks `.su-stat-provenance__trigger`'s dotted underline, as the
- * `border-0` / `border-b-0` utilities did through tailwind-merge. */
+ * outranks `.su-stat-provenance__trigger`'s dotted underline. */
 .su-stat-provenance__trigger.su-vital-gauge__prov-compact {
   align-items: center;
   border-width: 0;
@@ -3057,7 +3055,7 @@ body {
   padding-block: 10px;
 }
 
-/* `prominent`: the readout one rung up (Tailwind's `text-xl`). */
+/* `prominent`: the readout one rung up (`text-xl`). */
 .su-field__prominent > span {
   font-size: var(--text-xl);
   line-height: calc(1.75 / 1.25);
@@ -3339,7 +3337,7 @@ body {
  * as before — the lift is the `translate` property, so it steps rather than
  * slides. The frame is explicit, so the link tile and the `<button>` tile
  * (`onActivate`, which the `button` reset would leave frameless) match, and
- * neither depends on Tailwind's preflight. */
+ * neither depends on the reset. */
 .su-catalog-tile {
   border-color: var(--color-ink);
   border-style: solid;
@@ -3419,6 +3417,18 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ── Toaster ── */
+/* components/ui/toaster.tsx — a success or error toast's status icon takes
+ * the status colour. Sonner renders the icon, so only a descendant rule
+ * reaches it; `classNames` puts the class on the toast. */
+.su-toast--ok > [data-icon] {
+  color: var(--color-status-ok);
+}
+
+.su-toast--bad > [data-icon] {
+  color: var(--color-status-bad);
 }
 
 /* ── StatProvenance, Tooltip, Text ── */
@@ -3807,8 +3817,8 @@ body {
 
 /* NavDrawer (`shared/NavDrawer.tsx`). The trigger's padding and ink, and the
    panel's width, are classes because the app overrides them through
-   `triggerClassName` / `panelClassName` (ITUN passes `p-1.5` and `w-72`): a
-   utility there still beats this layer, where an inline style would not. */
+   `triggerClassName` / `panelClassName`: an app stylesheet class still beats
+   this layer, where an inline style would not. */
 .su-nav-drawer__trigger {
   color: var(--color-paper);
   padding: var(--space-8);
@@ -3830,16 +3840,15 @@ body {
 }
 
 /* The search slot: its field fills the drawer whatever width the app's own
-   field asks for (the SRD passes `w-56`). That width is a utility, a layer above
-   this one, so only `!important` reaches past it from here — as the arbitrary
-   `[&_input]:w-full` variant used to, from inside the utilities layer. */
+   field asks for. That width is the app's own rule, which outranks this layer,
+   so only `!important` reaches past it from here. */
 .su-nav-drawer__search {
   margin-bottom: var(--space-12);
 }
 
 .su-nav-drawer__search input,
 .su-nav-drawer__search input:focus {
-  /* biome-ignore lint/complexity/noImportantStyles: the slot's input carries the app's own width utility, which sits in a higher layer than this one */
+  /* biome-ignore lint/complexity/noImportantStyles: the slot's input carries the app's own width, which outranks this layer */
   width: 100% !important;
 }
 
@@ -3850,8 +3859,7 @@ body {
 }
 
 /* Changelog (`changelog/Changelog.tsx`). The bullets' spacing and marker colour
-   are child and pseudo-element selectors (Tailwind's `space-y-1` and
-   `marker:` emit exactly these). */
+   are child and pseudo-element selectors. */
 .su-changelog__items > :not(:last-child) {
   margin-block-end: var(--space-4);
 }
@@ -3862,14 +3870,13 @@ body {
 }
 
 /* The entry's date, set on `PageHeading`, which takes a className and no style.
-   Its `subheading` rung brings `text-lg`'s 1.75rem line-height as a utility, a
-   layer above this one; the date's tighter line-height overrode it through
-   tailwind-merge, and from here only `!important` can. */
+   Its `subheading` rung brings `text-lg`'s 1.75rem line-height with it, which
+   outranks a class here; only `!important` sets the date's tighter one. */
 .su-changelog__date {
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-caps-tight);
-  /* biome-ignore lint/complexity/noImportantStyles: PageHeading's own text-lg line-height is a utility in a higher layer */
+  /* biome-ignore lint/complexity/noImportantStyles: PageHeading's own text-lg line-height outranks a class in this layer */
   line-height: 1.25 !important;
 }
 
@@ -3886,10 +3893,10 @@ body {
 
 /* The support section's slab spans its column and drops its own bottom margin
    (the section's gap spaces it). Slab takes a className and no style, and its
-   `mb-3.5` is a utility a layer above this one, so the reset needs `!important`
-   — what tailwind-merge's `mb-0` did before. */
+   own 14px bottom margin outranks a class here, so the reset needs
+   `!important`. */
 .su-colophon__support-slab {
-  /* biome-ignore lint/complexity/noImportantStyles: Slab's own mb-3.5 is a utility in a higher layer */
+  /* biome-ignore lint/complexity/noImportantStyles: Slab's own 14px bottom margin outranks a class in this layer */
   margin-bottom: 0 !important;
   width: 100%;
 }
@@ -3923,7 +3930,7 @@ body {
    the field is empty and unfocused (a single-space placeholder makes
    `:placeholder-shown` mean "empty") it drops inside like a placeholder, and
    focus snaps it back up. Sibling-state driven, so a class; the focus rule
-   comes last and wins when both match, as Tailwind's variant order had it. */
+   comes last and wins when both match. */
 .su-stampseal-field__label {
   top: 0;
   translate: 0 -50%;
@@ -3987,8 +3994,8 @@ body {
 }
 
 /* `pattern/*` — the `space-y-*` stacks (`stackClassName` in
-   `referenceEntityTypes.ts`): a child-selector rule, as Tailwind emits it.
-   `:where()` keeps it at zero specificity, as Tailwind's own was, so a child's
+   `referenceEntityTypes.ts`): a child-selector rule.
+   `:where()` keeps it at zero specificity, so a child's
    own margin class still wins over the stack's. */
 :where(.su-pattern-stack > :not(:last-child)) {
   margin-block-start: 0;

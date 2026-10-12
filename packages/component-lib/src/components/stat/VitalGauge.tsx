@@ -121,7 +121,7 @@ export type VitalGaugeProps = {
  * Distinct from `StatBlock` (which keeps serving rail / NPC / tally / spec-strip
  * / snapshot-bay consumers). Themes per sheet via the `--tone*` CSS vars.
  *
- * Styling follows tailwind-removal.md §4: static geometry, type and colour as
+ * Styling follows the per-property split (ADR-046): static geometry, type and colour as
  * the style objects below; the hover-only halves (the segment lift, the muted
  * glyphs that ink on hover, the provenance triggers, which take no `style`) as
  * `.su-vital-gauge__*` in `styles/index.css`.

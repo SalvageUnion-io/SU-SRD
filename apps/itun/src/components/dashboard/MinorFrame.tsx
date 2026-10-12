@@ -8,7 +8,7 @@
  * moving the slots. The caller is handed the ⤢ button itself, so the overlay
  * can give focus back to it when it closes.
  *
- * Style objects only, no new `.su-dash-*` class (tailwind-removal.md §4): nothing
+ * Style objects only, no new `.su-dash-*` class (ADR-046): nothing
  * here has a hover or focus state of its own; ⤢ is the shared `Button`.
  */
 

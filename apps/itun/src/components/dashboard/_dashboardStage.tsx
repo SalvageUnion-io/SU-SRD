@@ -5,7 +5,7 @@
  * renders exactly as it does inside the live Dashboard, without the full
  * scale-to-fit canvas.
  *
- * `su-dash-root` STAYS a class, and is not a Tailwind holdover: it is the instrument
+ * `su-dash-root` STAYS a class, and is not a holdover: it is the instrument
  * token scope those three stylesheets key off, so the stage must keep applying
  * it. Only the frame's own `var(--color-*)` reads move onto `design/tokens.ts`
  * here (#799) — the ones inside `.su-dash-root` belong to the dashboard's own

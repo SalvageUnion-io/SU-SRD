@@ -1,4 +1,4 @@
-/* biome-ignore-all lint/complexity/noImportantStyles: print stylesheet — every override must beat Tailwind utility/inline styles at print time, and the pip re-assertions must beat this file's own universal `*` !important reset */
+/* biome-ignore-all lint/complexity/noImportantStyles: print stylesheet — every override must beat package rules and inline styles at print time, and the pip re-assertions must beat this file's own universal `*` !important reset */
 /**
  * print.css — THE @media print rules for ITUN. One print stylesheet per app.
  *
@@ -40,8 +40,8 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Themed surface tokens → white, so anything reading them (rather than a
-   * Tailwind utility) also lands on paper-white.
+   * Themed surface tokens → white, so anything reading them also lands on
+   * paper-white.
    * ------------------------------------------------------------------------- */
   :root {
     --color-wk-bg: #fff;
@@ -188,9 +188,8 @@
   /* -------------------------------------------------------------------------
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */
-  /* A border ported off Tailwind is an inline style (TW6), so match that too:
-   * a stylesheet `!important` still beats a plain inline declaration. */
-  .border,
+  /* A border is a class or an inline style, so match both: a stylesheet
+   * `!important` still beats a plain inline declaration. */
   [class*='border-'],
   [style*='border'] {
     border-color: #000 !important;

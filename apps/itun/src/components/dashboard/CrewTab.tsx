@@ -18,7 +18,7 @@
  * the Organizer.
  *
  * Presentational: `crewLines` builds the rows from `crew.vitals` and the seats.
- * Style objects only, no new `.su-dash-*` class (tailwind-removal.md §4).
+ * Style objects only, no new `.su-dash-*` class (ADR-046).
  */
 
 import {

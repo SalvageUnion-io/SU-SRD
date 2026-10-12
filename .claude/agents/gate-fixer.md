@@ -34,8 +34,8 @@ regenerated, never hand-edited.
 
 When the only fix the output allows is one of those, or the fix needs a
 judgement the output does not settle (a real type error in logic, a failing
-test's intended behaviour, a styling ratchet that fell because a change added
-a Tailwind file), stop on that check and report it; keep fixing the others.
+test's intended behaviour, a styling rule that needs a design call), stop on
+that check and report it; keep fixing the others.
 
 ## Report
 

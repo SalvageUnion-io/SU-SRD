@@ -9,8 +9,8 @@
     "./changelog/git": "./src/changelog/gitChangelog.ts",
     "./design/tokens": "./src/design/tokens.ts",
     "./stories/harness": "./src/stories/_harness.tsx",
+    "./styles/entry.css": "./src/styles/entry.css",
     "./styles/index.css": "./src/styles/index.css",
-    "./styles/tailwind.css": "./src/styles/tailwind.css",
     "./styles/theme.css": "./src/styles/theme.css"
   },
   "sideEffects": [
@@ -40,7 +40,6 @@
     "clsx": "2.1.1",
     "lucide-react": "catalog:",
     "salvageunion-reference": "workspace:*",
-    "sonner": "2.0.8",
-    "tailwind-merge": "3.6.0"
+    "sonner": "2.0.8"
   }
 }

@@ -136,7 +136,7 @@ const VIEWPORT = {
   zIndex: 50,
 } satisfies CSSProperties
 
-/** Tailwind's `transition-colors`, ported verbatim (minus its `--tw-gradient-*` stops). */
+/** The colour transition: the colour properties over 150ms, standard easing. */
 const TRANSITION_COLORS = {
   transitionDuration: '150ms',
   transitionProperty:
@@ -159,7 +159,7 @@ const PANEL = {
   padding: space[16],
 } satisfies CSSProperties
 
-/** Visually hidden, still read (Tailwind's `sr-only`). */
+/** Visually hidden, still read. */
 const SR_ONLY = {
   borderWidth: 0,
   clip: 'rect(0, 0, 0, 0)',

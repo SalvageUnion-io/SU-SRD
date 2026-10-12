@@ -1,7 +1,7 @@
 /*
  * DashboardPhone — the Dashboard's phone form (ADR-045, boards D4 and D5).
  *
- * Only what a style object cannot say lives here (tailwind-removal.md §4):
+ * Only what a style object cannot say lives here (ADR-046):
  * rules over descendants, and states. The components carry the rest.
  *
  * `.su-dash-phone` scopes the phone form: the host `DashboardCanvas` renders

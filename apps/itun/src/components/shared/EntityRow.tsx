@@ -305,7 +305,7 @@ const EMPTY_MESSAGE = {
   flex: 1,
   fontFamily: font.body,
   fontSize: fontSize.note,
-  // Tailwind's `leading-snug`.
+  // The snug leading.
   lineHeight: 1.375,
   margin: 0,
   minWidth: '140px',

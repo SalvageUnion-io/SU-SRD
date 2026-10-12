@@ -14,7 +14,7 @@
  *    with), one column per kind, each opening its read-only sheet, with one
  *    Leyline Press credit for the section rather than a stamp on every card.
  *
- * Style objects and tokens only (tailwind-removal.md).
+ * Style objects and tokens only (ADR-046).
  */
 
 import { buttonVariants, ChapterBand, Slab, tokens } from 'component-lib'

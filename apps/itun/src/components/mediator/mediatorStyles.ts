@@ -4,8 +4,7 @@
  * `--color-ink-deep` ground in `--color-band-cream`, and the display is
  * `--color-paper`, as on the player Dashboard (ruleset §1).
  *
- * Style objects over `tokens` only: no Dashboard stylesheet class and no Tailwind utility
- * (tailwind-removal.md §4; `bun run check styling` ratchets both).
+ * Style objects over `tokens` only: no Dashboard stylesheet class (ADR-046).
  */
 
 import { tokens } from 'component-lib'

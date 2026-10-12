@@ -35,8 +35,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - **Zustand** stores for persistent client state (`src/stores/`).
 - **Base UI** primitives from `component-lib` (`ui/`, `chrome/`, `base/`) —
   there is no app-local `src/components/ui/`. Styling is the `component-lib`
-  theme; Tailwind is being removed
-  ([plan](../../docs/design-system/tailwind-removal.md)).
+  tokens and stylesheet (ADR-046).
 - **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable;
   the shell boots offline (signed out and empty: there is no data cache). It is `prompt` and must stay that way: `autoUpdate` force-sets
   `skipWaiting` + `clientsClaim` (a plugin assignment the `workbox` block

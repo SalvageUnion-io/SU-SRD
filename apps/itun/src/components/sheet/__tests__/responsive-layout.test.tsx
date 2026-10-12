@@ -1,7 +1,7 @@
 /**
  * Responsive layout tests — Phase 4.
  *
- * These tests assert that layout-bearing Tailwind classes are present on the
+ * These tests assert that layout-bearing classes are present on the
  * correct container elements. happy-dom does not compute layout, so we verify
  * className strings directly — this is the standard pattern for layout-only
  * changes in this codebase (see mobile-responsive.test.tsx).

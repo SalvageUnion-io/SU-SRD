@@ -28,7 +28,7 @@ import { digestRollTable } from './digestRollTable'
 type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
 
 /*
- * Styling is tokens in style objects (Tailwind-removal plan §4). The three
+ * Styling is tokens in style objects (ADR-046). The three
  * properties with a `:hover` — the expand toggle's colour, the title trigger's
  * border and fill — live in `.su-roll-table__*` (styles/index.css), resting
  * value included. `RollTable` takes no `className`, so no consumer override
@@ -36,8 +36,8 @@ type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
  */
 
 /**
- * Tailwind's inherited type rungs: a size AND its paired line height, which
- * `text-xs` … `text-2xl` set together. Kept as Tailwind's own unitless ratios
+ * The inherited type rungs: a size AND its paired line height, which
+ * `text-xs` … `text-2xl` set together. Kept as unitless ratios
  * (not the px they resolve to), so a child that changes its font size still
  * inherits the same factor it did under the utility.
  */
@@ -49,7 +49,7 @@ const TYPE = {
   '2xl': { fontSize: fontSize['2xl'], lineHeight: 'calc(2 / 1.5)' },
 } as const satisfies Record<string, CSSProperties>
 
-/** Tailwind's default transition easing (`transition-*` with no `ease-*`). */
+/** The standard transition easing. */
 const EASE_DEFAULT = 'cubic-bezier(0.4, 0, 0.2, 1)'
 
 const VISUALLY_HIDDEN = {
@@ -139,7 +139,7 @@ type RollTableDisplayProps = {
 /*
  * The header band. Inline, so each property outranks the stamp's own geometry
  * classes it replaces (`inline-block w-fit`, the compact rung's padding, the
- * caps-tight tracking) — what the band's tailwind-merged `className` did before.
+ * caps-tight tracking) — what the band's merged `className` did before.
  */
 const HEADER_BAND_STYLE = {
   display: 'flex',
@@ -475,7 +475,7 @@ function CollapsedResultSlideout({
           overflow: 'hidden',
           transitionProperty: 'grid-template-rows',
           transitionDuration: '300ms',
-          // Tailwind's `ease-out` rung.
+          // The `ease-out` curve.
           transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
           gridTemplateRows: hasResult ? '1fr' : '0fr',
         }}
@@ -527,7 +527,7 @@ const rollCellStyle = (compact?: boolean) =>
 /**
  * The roll number. Line height is the size rung's own, NOT 1: the class list
  * this replaces carried `leading-none`, but `cn()` dropped it in favour of the
- * `text-sm` / `text-lg` that followed (tailwind-merge treats a font-size
+ * `text-sm` / `text-lg` that followed (the class merge treated a font-size
  * utility as resetting the line height), so the rendered number never had it.
  */
 const rollKeyStyle = (compact?: boolean) =>

@@ -41,11 +41,11 @@ export const font = {
  * The spacing rhythm, keyed by its own pixel value.
  *
  * Keyed by pixels rather than by an invented `xs`/`sm`/`lg` vocabulary on
- * purpose: the repo has no such vocabulary today (spacing came from Tailwind's
- * numeric scale, where the rung number is a quarter of the pixel value), and
- * inventing one in a port would mean every migrated call site had to be
- * re-judged rather than translated. `space[8]` is 8px, and `p-2` — Tailwind's
- * name for 8px — translates to it without a lookup table.
+ * purpose: the repo had no such vocabulary (spacing came from a numeric
+ * utility scale, where the rung number is a quarter of the pixel value), and
+ * inventing one in a port would have meant every migrated call site had to be
+ * re-judged rather than translated. `space[8]` is 8px, and `p-2` — the old
+ * name for 8px — translated to it without a lookup table.
  *
  * The rungs are the ones actually in use across the three UI workspaces, so a
  * migrated call site always has an exact landing spot and never rounds.
@@ -93,10 +93,10 @@ export const space = {
  * (tokens/type-floor) rejects any smaller size, by name or by literal.
  *
  * The second block is the INHERITED rungs, and they are here for an honest
- * reason rather than a tidy one. They are Tailwind's built-in `text-xs` …
- * `text-3xl`, which ~340 call sites across the three workspaces use today, at
- * Tailwind's own rem values (theme.css restates them), so a style object and
- * the utility it replaces scale identically with the reader's font size.
+ * reason rather than a tidy one. They are the stock `text-xs` … `text-3xl`
+ * rungs, which ~340 call sites across the three workspaces used when the port
+ * began, at their rem values (theme.css declares them), so they scale with the
+ * reader's font size.
  *
  * They overlap the semantic ladder (14 sits between caption and lede; 24 and 30
  * sit either side of title and displayLg), and that overlap is real debt: two
@@ -119,7 +119,7 @@ export const fontSize = {
   hero: '38px',
   /** The ChapterBand's notched title at desktop width (phones take `hero`). */
   chapter: '64px',
-  // — inherited rungs (Tailwind built-ins in live use; see the note above) —
+  // — inherited rungs (rem, in live use; see the note above) —
   xs: '0.75rem',
   sm: '0.875rem',
   base: '1rem',
@@ -161,7 +161,7 @@ export const tracking = {
  *   none   stamps are square
  *   full   pills and circles
  *
- * Tailwind's own `rounded` / `rounded-md` / `rounded-xl` rungs are deliberately
+ * The stock `rounded` / `rounded-md` / `rounded-xl` rungs are deliberately
  * NOT carried across, unlike the inherited type rungs above. The radius ladder
  * is a *closed* role vocabulary with a guard behind it (`tokens/arbitrary-radius`
  * in `bun run check styling`), so their ~40 call sites are drift the ladder already
@@ -260,9 +260,9 @@ const base = {
    *  shadows. Warm ink at opacity reads as the same material at distance,
    *  which a true-neutral grey does not against warm paper.
    *
-   *  A Tailwind `/NN` alpha with no rung here is never rounded to a
-   *  neighbouring one: it ports as the `color-mix()` Tailwind already emits
-   *  for it (tailwind-removal plan, TW1). */
+   *  An `/NN` alpha with no rung here is never rounded to a neighbouring
+   *  one: it ports as the `color-mix()` it was compiled to (styling phase
+   *  TW1). */
   ink85: 'rgb(40 32 25 / 0.85)',
   ink75: 'rgb(40 32 25 / 0.75)',
   /** ModalShell's scrim edge. */

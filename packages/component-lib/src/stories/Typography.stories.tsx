@@ -50,7 +50,7 @@ function Row({ token, children }: { token: ThemeToken; children: ReactNode }) {
 
 /**
  * The type scale, each rung at true size. The semantic ladder is declared in
- * px; the rem rungs are Tailwind's own, restated in theme.css for the cutover,
+ * px; the rem rungs are inherited from the first port and stay in theme.css,
  * so they are listed apart rather than specimened as a choice.
  */
 export const Scale: Story = () => {
@@ -75,7 +75,7 @@ export const Scale: Story = () => {
             </Row>
           ))}
       </div>
-      <Caption>Inherited from Tailwind — prefer a rung above</Caption>
+      <Caption>Inherited rem rungs — prefer a rung above</Caption>
       <div>
         {inherited.map((t) => (
           <Row key={t.name} token={t}>

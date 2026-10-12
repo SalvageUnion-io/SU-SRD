@@ -251,7 +251,7 @@ describe('Stamp', () => {
     const stamp = screen.getByText('Mule')
     expect(stamp.className).toContain('su-badge--on-ink')
     // One assertion, on the recipe's own output for the rungs a stamp uses,
-    // where there were two on Tailwind spellings (`uppercase`, then
+    // where there were two on utility spellings (`uppercase`, then
     // `tracking-caps-tight`). Both were describing the same fact — that a stamp
     // is the condensed-caps label at its default tracking — and the recipe is
     // the thing that decides it, so asking the recipe is both shorter and
