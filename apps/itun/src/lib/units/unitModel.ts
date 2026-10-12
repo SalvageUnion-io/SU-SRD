@@ -31,6 +31,8 @@ export function unitRowModel({
   name,
   readings = [],
   userMade = false,
+  art = { kind: 'none' },
+  lead,
 }: {
   kind: UnitKind
   /** The kind as the unit's stamp says it: "Pilot · Engineer", "mech". */
@@ -40,6 +42,10 @@ export function unitRowModel({
   readings?: { label: string; value: string }[]
   /** A pattern or an NPC: dashed, its name quoted (ruleset §3.9). */
   userMade?: boolean
+  /** The art of what it is built on (a pilot's class, a mech's chassis); none by default. */
+  art?: EntityRowModel['art']
+  /** Its own line, for a Row's `lead` (a pilot's motto). */
+  lead?: string
 }): EntityRowModel {
   const { schemaName, tone, domain } = KIND[kind]
   const slug = nameToSlug(name)
@@ -50,7 +56,8 @@ export function unitRowModel({
     tone,
     facts: readings.map((r) => ({ key: r.label, label: r.label, short: r.label, value: r.value })),
     traits: [],
-    art: { kind: 'none' },
+    art,
+    ...(lead ? { lead } : {}),
     ...(userMade ? { userMade: true } : {}),
   }
 }
