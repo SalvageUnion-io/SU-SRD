@@ -662,6 +662,13 @@ body {
   }
 }
 
+/* A Row as a listbox option (a search's results): the option the arrow keys
+   highlight wears the ink selection ring, as a selected Row does. */
+.su-entity-row[aria-selected='true'] {
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 3px var(--color-ink);
+}
+
 .su-entity-token {
   color: inherit;
   display: inline-flex;

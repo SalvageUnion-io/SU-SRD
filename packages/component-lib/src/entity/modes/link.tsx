@@ -33,10 +33,13 @@ export function LinkSurface({
 }) {
   const cls = `${className} ${FOCUS_RING}`
   if (target.href) {
+    // An in-app path goes through the app's router link; anything else
+    // (another site's page) is a plain anchor.
+    const Anchor = target.linkAs && target.href.startsWith('/') ? target.linkAs : 'a'
     return (
-      <a href={target.href} aria-label={label} className={cls} style={style} {...attrs}>
+      <Anchor href={target.href} aria-label={label} className={cls} style={style} {...attrs}>
         {children}
-      </a>
+      </Anchor>
     )
   }
   const open = target.onOpen

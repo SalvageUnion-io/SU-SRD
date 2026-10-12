@@ -1,3 +1,4 @@
+import type { AnchorHTMLAttributes, ComponentType, ReactNode, Ref } from 'react'
 import { createContext, useContext, useMemo } from 'react'
 import type { EntityRef, SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -21,13 +22,25 @@ import {
  * - `openPage(ref)`: ITUN's Page opener (the drawer, phase 5).
  * - `texture`: whether bands wear the speckle; the Dashboard turns it off once.
  * - `userMade`: the dashed treatment, for a surface of player-made things.
+ * - `linkAs`: the app's router link (ITUN's `AppLink`), for an in-app path, so
+ *   a link-mode form navigates client-side; an external href stays an `<a>`.
  */
 export type EntitySurfaceValue = {
   hrefFor: (ref: EntityRef) => string | undefined
   openPage?: (ref: EntityRef) => void
+  linkAs?: EntityLinkComponent
   texture: boolean
   userMade: boolean
 }
+
+/** A router link: an anchor's attributes, a concrete `href`, its children. */
+export type EntityLinkComponent = ComponentType<
+  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
+    href: string
+    children?: ReactNode
+    ref?: Ref<HTMLAnchorElement>
+  }
+>
 
 export const EntitySurfaceContext = createContext<Partial<EntitySurfaceValue>>({})
 
@@ -73,6 +86,7 @@ export function useEntitySurface(): EntitySurfaceValue {
       // links out (the SRD) turns the legacy href builder into links.
       hrefFor: own.hrefFor ?? (linksOut ? legacyHrefFor(entityHref, patternHref) : NO_HREF),
       ...(own.openPage ? { openPage: own.openPage } : {}),
+      ...(own.linkAs ? { linkAs: own.linkAs } : {}),
       texture: own.texture ?? legacyTexture,
       userMade: own.userMade ?? false,
     }),

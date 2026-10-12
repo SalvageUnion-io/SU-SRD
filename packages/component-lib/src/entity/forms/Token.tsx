@@ -116,6 +116,7 @@ export function Token({
     slots.fact !== undefined ? slots.fact : fact !== undefined ? fact : defaultFact(model)
   const pill = (
     <span
+      data-user-made={userMade || undefined}
       title={userMade ? USER_MADE_TITLE : undefined}
       style={{
         ...PILL,

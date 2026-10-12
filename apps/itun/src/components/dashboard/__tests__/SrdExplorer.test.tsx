@@ -123,10 +123,11 @@ describe('SrdExplorer', () => {
     const input = mustInput(container.querySelector('input[role="combobox"]'))
     // A broad query that matches entities.
     fireEvent.change(input, { target: { value: 'iron' } })
+    // A result is a category button or an entity Row (link mode, an option).
     const result = await waitFor(() => {
-      const el = container.querySelector('.pc-srd-result')
+      const el = container.querySelector<HTMLElement>('.pc-srd-results [role="option"]')
       if (!el) throw new Error('no results yet')
-      return mustButton(el)
+      return el
     })
     fireEvent.click(result)
     // Either a category (schema hit) or an entity card — a schema hit lists,

@@ -146,6 +146,7 @@ export function Row({
   const frame = (
     <div
       className="su-entity-row__frame"
+      data-user-made={userMade || undefined}
       style={{ ...frameOf(userMade, selected), ...slots.frameStyle }}
     >
       {slots.art !== false && <Art art={model.art} />}
@@ -193,7 +194,7 @@ export function Row({
   }
   if (mode.kind === 'select') {
     return (
-      <SelectSurface mode={mode} label={title} className="su-entity-row">
+      <SelectSurface mode={mode} label={mode.label ?? title} className="su-entity-row">
         {parts}
       </SelectSurface>
     )

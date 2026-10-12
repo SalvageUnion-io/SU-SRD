@@ -799,10 +799,11 @@
 .pc-srd-results {
   list-style: none;
   margin: 6px 0 0;
-  padding: 0;
+  /* Room above each result Row for its kind stamp. */
+  padding: var(--space-8) 0 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-12);
   max-height: 260px;
   overflow-y: auto;
 }

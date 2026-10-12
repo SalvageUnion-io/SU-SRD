@@ -23,8 +23,8 @@ import {
   Button,
   ConfirmDialog,
   CountStepper,
+  Entity,
   EntitySearcher,
-  ReferenceEntityCard,
   Select,
   tokens,
   useDetailModal,
@@ -117,14 +117,17 @@ function NpcRow({
           {npc.entity === null ? (
             <div style={PLAIN}>{npc.name}</div>
           ) : (
-            <ReferenceEntityCard
-              data={npc.entity}
-              size="medium"
-              extent="head"
-              titleOverride={npc.name}
-              hostDown={npc.down}
-              controls={[detail.control]}
-              cardClickLabel={`${npc.name}: the full reference card`}
+            // The tray's Row (E1): the instance's name as its title, greyed
+            // when down; the whole Row opens the full reference card.
+            <Entity
+              form="row"
+              entity={npc.entity}
+              instance={{ title: npc.name, ...(npc.down ? { condition: 'destroyed' } : {}) }}
+              mode={{
+                kind: 'link',
+                onOpen: () => detail.control.onClick?.(),
+                attrs: { 'aria-label': `${npc.name}: the full reference card` },
+              }}
             />
           )}
         </div>

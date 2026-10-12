@@ -1,7 +1,9 @@
 # Entity Display Language
 
 **Status:** agreed. Being implemented phase by phase on `design-refresh`
-([migration](#migration)); phase 1, the model, has landed.
+([migration](#migration)); phase 1, the model, and phase 2, the Row and Token
+forms with the link and select modes (`<Entity>` in
+`packages/component-lib/src/entity/`), have landed.
 
 One rendering path for every game entity, in the SRD and in ITUN alike,
 designed from what the person is doing rather than from the app.
@@ -39,6 +41,11 @@ carry texture, the user-made treatment); nothing passes it per call.
 
 A **Peek** is a Card at compact density: read-only, no links, children as
 Tokens.
+
+An **entity grid** (`data-entity-grid` on the list) lays Rows out as equals:
+every Row in it is the same height at every width, and every head reserves its
+name's two lines, so the heads end on one line and the bodies start on one.
+Outside a grid a Row is its own height.
 
 ## Modes
 

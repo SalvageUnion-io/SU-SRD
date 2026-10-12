@@ -38,6 +38,8 @@ export type EntityMode =
       onSelect: () => void
       /** The seal's word: "Selected" unless the picker says otherwise ("Chosen"). */
       seal?: string
+      /** The surface's accessible name when it says what choosing does ("Start from Veteran"). */
+      label?: string
     }
 
 /**

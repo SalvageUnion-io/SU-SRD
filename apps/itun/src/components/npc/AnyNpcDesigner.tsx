@@ -22,11 +22,11 @@
 import {
   Button,
   ConfirmDialog,
+  Entity,
   Field,
   FieldError,
   Input,
   ModalShell,
-  ReferenceEntityCard,
   SearchField,
   Select,
   Slab,
@@ -236,7 +236,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
             <div style={ROW}>
               <span style={CAPS}>Template</span>
               {template ? (
-                <ReferenceEntityCard data={template} size="small" extent="head" />
+                <Entity form="token" entity={template} />
               ) : (
                 <span style={HINT}>Started blank</span>
               )}
@@ -434,17 +434,20 @@ function TemplateStep({
         </li>
         {shown.map((npc) => (
           <li key={npc.id}>
-            <ReferenceEntityCard
-              data={npc}
-              size="small"
-              extent="head"
-              selected={
-                form.templateRef?.schema === 'npcs' &&
-                form.templateRef.slug === nameToSlug(npc.name)
-              }
-              onCardClick={() => onTemplate(npc)}
-              cardClickLabel={`Start from ${npc.name}`}
-              selectionRole="toggle"
+            {/* A picker (E1): a Row in select mode; the list names the kind. */}
+            <Entity
+              form="row"
+              entity={npc}
+              omit={OMIT_KIND}
+              mode={{
+                kind: 'select',
+                role: 'toggle',
+                selected:
+                  form.templateRef?.schema === 'npcs' &&
+                  form.templateRef.slug === nameToSlug(npc.name),
+                onSelect: () => onTemplate(npc),
+                label: `Start from ${npc.name}`,
+              }}
             />
           </li>
         ))}
@@ -585,12 +588,14 @@ function ActionPick({
   return (
     <PickRow label={`Carry ${name}`} carried={carried} onToggle={onToggle}>
       {action ? (
-        <ReferenceEntityCard
-          data={action}
-          size="medium"
-          extent="head"
-          onCardClick={() => detail.control.onClick?.()}
-          cardClickLabel={`Open ${name}`}
+        <Entity
+          form="row"
+          entity={action}
+          mode={{
+            kind: 'link',
+            onOpen: () => detail.control.onClick?.(),
+            attrs: { 'aria-label': `Open ${name}` },
+          }}
         />
       ) : (
         <span style={HINT}>{name}</span>
@@ -599,6 +604,9 @@ function ActionPick({
     </PickRow>
   )
 }
+
+/** A list of one kind: its Rows drop the kind stamp. */
+const OMIT_KIND = ['kind'] as const
 
 function TraitPick({
   type,
@@ -621,13 +629,15 @@ function TraitPick({
   return (
     <PickRow label={`Carry ${label}`} carried={carried} onToggle={onToggle}>
       {trait ? (
-        <ReferenceEntityCard
-          data={trait}
-          size="medium"
-          extent="head"
-          titleOverride={label}
-          onCardClick={() => detail.control.onClick?.()}
-          cardClickLabel={`Open ${label}`}
+        <Entity
+          form="row"
+          entity={trait}
+          instance={{ title: label }}
+          mode={{
+            kind: 'link',
+            onOpen: () => detail.control.onClick?.(),
+            attrs: { 'aria-label': `Open ${label}` },
+          }}
         />
       ) : (
         <span style={HINT}>{label}</span>

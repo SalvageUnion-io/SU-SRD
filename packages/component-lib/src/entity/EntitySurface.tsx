@@ -19,16 +19,17 @@ export function EntitySurfaceProvider({
   children: ReactNode
 }) {
   const parent = useContext(EntitySurfaceContext)
-  const { hrefFor, openPage, texture, userMade } = value
+  const { hrefFor, openPage, linkAs, texture, userMade } = value
   const merged = useMemo(
     () => ({
       ...parent,
       ...(hrefFor ? { hrefFor } : {}),
       ...(openPage ? { openPage } : {}),
+      ...(linkAs ? { linkAs } : {}),
       ...(texture !== undefined ? { texture } : {}),
       ...(userMade !== undefined ? { userMade } : {}),
     }),
-    [parent, hrefFor, openPage, texture, userMade]
+    [parent, hrefFor, openPage, linkAs, texture, userMade]
   )
   const provided = (
     <EntitySurfaceContext.Provider value={merged}>{children}</EntitySurfaceContext.Provider>

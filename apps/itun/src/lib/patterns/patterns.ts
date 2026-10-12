@@ -8,7 +8,6 @@
  * own the writes.
  */
 
-import type { StatItem } from 'component-lib'
 import type { SURefChassis, SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../stores/types'
@@ -100,9 +99,9 @@ export function slotsUsed(items: SURefEntity[]): number {
 }
 
 /** The SLOTS chip every system and module wears in a loadout listing. */
-export function slotsStats(item: SURefEntity): StatItem[] {
+export function slotsFact(item: SURefEntity): { label: string; value: string } {
   const slots = 'slotsRequired' in item ? Number(item.slotsRequired) : Number.NaN
-  return [{ key: 'slots', label: 'SLOTS', value: Number.isFinite(slots) ? slots : 1 }]
+  return { label: 'SLOTS', value: String(Number.isFinite(slots) ? slots : 1) }
 }
 
 /**

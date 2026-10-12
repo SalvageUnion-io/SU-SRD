@@ -300,9 +300,9 @@ describe('Shelves — one shelf per kind', () => {
     const line = within(npcs)
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/npc/${npc.id}`)
-    expect(line?.getAttribute('data-user-made')).toBe('true')
+    expect(line?.querySelector('[data-user-made]')).not.toBeNull()
     // The dashes are the only visual cue, so the name says it too.
-    expect(line?.textContent).toContain('user-made')
+    expect(line?.textContent).toMatch(/user-made/i)
     expect(within(npcs).getByText('Only me')).toBeTruthy()
     expect(within(npcs).getByRole('button', { name: 'More for Doc Marrow' })).toBeTruthy()
   })

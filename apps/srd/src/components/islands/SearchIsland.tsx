@@ -182,7 +182,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     <div
       id={listboxId}
       role="listbox"
-      className={`srd-search-results absolute top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-panel border border-wk-faint bg-paper shadow-lg ${hero ? 'left-0 w-full' : 'right-0 w-80'}`}
+      className={`absolute top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-panel border border-wk-faint bg-paper shadow-lg ${hero ? 'left-0 w-full' : 'right-0 w-80'}`}
     >
       {!ready ? (
         <div className="px-4 py-3 text-sm text-wk-muted">Loading search index…</div>

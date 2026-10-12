@@ -115,13 +115,6 @@
   padding-inline: var(--space-14);
 }
 
-/* The search dropdown's Rows (`SearchIsland`): the option the arrow keys
-   highlight wears the ink selection ring, as a selected Row does. */
-.srd-search-results [role='option'][aria-selected='true'] {
-  border-radius: var(--radius-card);
-  box-shadow: 0 0 0 3px var(--color-ink);
-}
-
 /* A chapter of the index: its colour band, its name and count, its rows. */
 .srd-contents__chapter {
   display: flex;

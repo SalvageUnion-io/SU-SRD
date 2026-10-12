@@ -26,7 +26,7 @@
  * `.su-dash-phone` (`styles/dashboard/DashboardPhone.css`).
  */
 
-import { Badge, Button, ReferenceEntityCard } from 'component-lib'
+import { Badge, Button, Entity } from 'component-lib'
 import {
   borderWidth,
   color,
@@ -237,7 +237,7 @@ function PhoneBay({ bay }: { bay: BandBay }) {
           {bay.chips.map((c) =>
             c.entity ? (
               <li key={c.text}>
-                <ReferenceEntityCard data={c.entity} size="small" extent="head" texture={false} />
+                <Entity form="token" entity={c.entity} />
               </li>
             ) : (
               <li key={c.text} style={c.warn ? { ...CHIP, ...WARN } : CHIP}>
