@@ -4,6 +4,9 @@ name: Deploy preview (Cloudflare)
 #
 #   gh workflow run deploy-preview.yml --ref <branch>
 #
+# and every push to design-refresh (the 3.0.0 redesign branch) on its own.
+# Those runs still wait for the reviewer below, like a dispatch.
+#
 #   srd   https://preview-su-srd.alxjrvs.workers.dev
 #   itun  https://preview-su-itun.alxjrvs.workers.dev, against the staging
 #         Convex deployment perfect-donkey-72
@@ -33,6 +36,8 @@ name: Deploy preview (Cloudflare)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [design-refresh]
 
 # One preview slot, so one run at a time. Never cancelled mid-upload; GitHub
 # keeps one pending run, so the newest dispatch replaces any queued one.
