@@ -1,6 +1,6 @@
 /**
- * A Row's labels (the kind stamp, the User-made stamp) are the head band's
- * first line, in flow above the name — never a stamp riding the frame.
+ * A Row's labels (the kind stamp, the User-made stamp) sit on the name's line,
+ * right of the name — never a stamp riding the frame, never a line above it.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
@@ -21,15 +21,15 @@ const headOf = (name: string) => {
 }
 
 describe('Row labels', () => {
-  test('the kind stamp leads the head band, above the name line', () => {
+  test('the kind stamp sits right of the name, on its line', () => {
     render(<Entity form="row" entity={drill()} />)
     const head = headOf('Salvaging Drill')
-    expect(head.style.flexDirection).toBe('column')
-    expect(head.firstElementChild?.textContent).toBe('System')
-    expect(head.contains(screen.getByText('System'))).toBe(true)
+    expect(head.firstElementChild?.className).toBe('su-entity-row__line')
+    const labels = screen.getByText('Salvaging Drill').nextElementSibling
+    expect(labels?.textContent).toBe('System')
   })
 
-  test('omitting the kind leaves the head a single line', () => {
+  test('omitting the kind drops the stamp from the name line', () => {
     render(<Entity form="row" entity={drill()} omit={['kind']} />)
     expect(screen.queryByText('System')).toBeNull()
     expect(headOf('Salvaging Drill').firstElementChild?.className).toBe('su-entity-row__line')
@@ -39,7 +39,8 @@ describe('Row labels', () => {
     render(<Entity form="row" entity={juryRig()} />)
     const head = headOf('Jury Rig')
     expect(head.dataset.fill).toBe('ink')
-    const labels = head.querySelector('.su-entity-row__line')?.previousElementSibling
+    const labels = screen.getByText('Jury Rig').nextElementSibling
     expect(labels?.textContent).toContain('Ability')
+    expect(head.contains(labels ?? null)).toBe(true)
   })
 })

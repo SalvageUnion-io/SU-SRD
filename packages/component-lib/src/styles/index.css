@@ -852,9 +852,8 @@ body {
   flex: none;
 }
 
-/* Two title lines (22px at 1.05) on the head's title line, so the labels
-   above it and the band's padding stay each head's own and the name centres
-   in its line. */
+/* Two title lines (22px at 1.05) on the head's title line, so every head in
+   the grid is one height and the name centres in its line. */
 [data-entity-grid] .su-entity-row__line {
   min-height: calc(2.1 * var(--text-title));
 }
