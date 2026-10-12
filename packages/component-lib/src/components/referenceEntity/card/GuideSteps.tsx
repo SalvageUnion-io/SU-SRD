@@ -1,8 +1,9 @@
 import type { ElementType, ReactNode } from 'react'
 import { useContext } from 'react'
+import { InsidePeekContext } from '../../../entity/peekContext'
+import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
 import { Slab } from '../../chrome/Slab'
-import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
@@ -11,6 +12,11 @@ import { cardKey } from './cardHelpers'
 import { chunkGuideStepProse } from './guideStepProse'
 import type { NestedCard } from './referenceEntityCardTypes'
 import type { ResolvedGuideStep } from './resolveGuideSteps'
+
+/** A step's page pointer, its references as Mentions (E4). */
+function GuideNote({ text }: { text: string }) {
+  return <p className="su-guide__note">{useParseTraitReferences(text)}</p>
+}
 
 /**
  * GUIDE STEPS — a guide keeps almost all of its prose in `steps` (28.7k of
@@ -62,7 +68,7 @@ export function GuideSteps({
   NestedCard: NestedCard
 }) {
   // Terminal in a tooltip popup (ruleset §1): the step table carries controls.
-  const insideTooltip = useContext(InsideTooltipContext)
+  const insidePeek = useContext(InsidePeekContext)
   const groups = groupBySection(steps)
   // With sections, a step heads one level below its section's slab.
   const hasSections = groups.some((group) => group.section !== undefined)
@@ -83,9 +89,7 @@ export function GuideSteps({
     const stepProse = chunkGuideStepProse(step.content).map((chunk, index) =>
       chunk.kind === 'note' ? (
         // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
-        <p key={index} className="su-guide__note">
-          {chunk.text}
-        </p>
+        <GuideNote key={index} text={chunk.text} />
       ) : (
         // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
         <CardProse key={index} body={chunk.blocks} context={prose} />
@@ -116,7 +120,7 @@ export function GuideSteps({
           {/* The step's table: the same embedded table an entity owns (board
               E4), framed because it sits on the page; a wide one scrolls in
               its own box rather than pushing the page sideways. */}
-          {table && !insideTooltip && (
+          {table && !insidePeek && (
             <div className="su-guide__table">
               <CardRollTable
                 table={table.table}

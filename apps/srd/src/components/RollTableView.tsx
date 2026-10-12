@@ -1,5 +1,5 @@
 import { Button, InlineRef } from 'component-lib'
-import type { RefText, RollState, RollTablePageData } from '../lib/rollTablePage'
+import type { RollState, RollTablePageData } from '../lib/rollTablePage'
 import {
   outcomeLabel,
   rangeLabel,
@@ -7,6 +7,7 @@ import {
   rowForRoll,
   splitRows,
 } from '../lib/rollTablePage'
+import { MentionProse } from './MentionProse'
 
 /**
  * RollTableView — a roll table's page, rolled and read (board 08b).
@@ -25,20 +26,6 @@ import {
  * renders it with no roll and no handlers (the bands are real content for a
  * crawler or a no-JS reader), and `RollTableIsland` mounts it live.
  */
-
-/** Prose with its trait references as `InlineRef` links (inert when unresolved). */
-function RefProse({ parts }: { parts: RefText }) {
-  return parts.map((part, index) =>
-    typeof part === 'string' ? (
-      part
-    ) : (
-      // biome-ignore lint/suspicious/noArrayIndexKey: a fixed run of prose; position is identity
-      <InlineRef key={index} href={part.href ?? undefined}>
-        {part.ref}
-      </InlineRef>
-    )
-  )
-}
 
 type RollTableViewProps = {
   data: RollTablePageData
@@ -107,7 +94,7 @@ export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
               </div>
               {hit && (
                 <p className="srd-roll__text">
-                  <RefProse parts={hit.value} />
+                  <MentionProse parts={hit.value} />
                 </p>
               )}
             </>
@@ -163,7 +150,7 @@ export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
                     <div className="srd-roll__body">
                       {row.label && <span className="srd-roll__label">{row.label}</span>}
                       <span className="srd-roll__value">
-                        <RefProse parts={row.value} />
+                        <MentionProse parts={row.value} />
                       </span>
                     </div>
                     {rolled && <span className="srd-roll__tag">Rolled {roll}</span>}

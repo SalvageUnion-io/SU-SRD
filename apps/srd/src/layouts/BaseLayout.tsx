@@ -17,6 +17,7 @@ import { Footer } from '../components/Footer'
 import { TopNavigation } from '../components/TopNavigation'
 import { DEFAULT_OG_IMAGE, SITE_URL, THEME_COLOR } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
+import { Island } from '../runtime/Island'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =
@@ -170,6 +171,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           </main>
           <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" foot={foot} />
         </div>
+        {/* The page's one Peek: every Mention and Tag above carries only its
+            entity's address, and this host shows it (no props, no SSR). */}
+        <Island name="PeekIsland" client="idle" />
       </body>
     </html>
   )

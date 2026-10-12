@@ -1,14 +1,19 @@
 import { describe, expect, test } from 'bun:test'
-import { resolveTraitHref } from '../staticLinks'
+import { srdHrefFor } from '../entityHref'
+import { resolveMentionRef } from '../staticLinks'
 
-describe('resolveTraitHref', () => {
-  test('maps a trait name to its trait item URL', () => {
-    expect(resolveTraitHref('armour')).toBe('/schema/traits/item/armour/')
+describe('resolveMentionRef', () => {
+  test('resolves a trait name to its trait, and so to its page', () => {
+    const ref = resolveMentionRef('armour')
+    expect(ref?.schemaName).toBe('traits')
+    expect(ref && srdHrefFor(ref)).toBe('/schema/traits/item/armour/')
   })
-  test('falls back to keywords for keyword-only types', () => {
-    expect(resolveTraitHref('irradiated')).toBe('/schema/keywords/item/irradiated/')
+  test('falls back to keywords for keyword-only names', () => {
+    const ref = resolveMentionRef('irradiated')
+    expect(ref?.schemaName).toBe('keywords')
+    expect(ref && srdHrefFor(ref)).toBe('/schema/keywords/item/irradiated/')
   })
-  test('returns null for unknown types', () => {
-    expect(resolveTraitHref('definitely-not-a-trait')).toBeNull()
+  test('returns null for unknown names', () => {
+    expect(resolveMentionRef('definitely-not-a-trait')).toBeNull()
   })
 })

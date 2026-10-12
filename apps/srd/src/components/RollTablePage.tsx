@@ -16,7 +16,7 @@ import type { ColumnsTablePageData } from '../lib/columnsTablePage'
 import { digestColumnsTable } from '../lib/columnsTablePage'
 import type { RollTablePageData } from '../lib/rollTablePage'
 import { refText } from '../lib/rollTablePage'
-import { resolveTraitHref } from '../lib/staticLinks'
+import { resolveMentionRef } from '../lib/staticLinks'
 import { Island } from '../runtime/Island'
 import { ColumnsTableView } from './ColumnsTableView'
 import { RollTableView } from './RollTableView'
@@ -42,7 +42,7 @@ export function rollTablePageData(item: SURefEntity): RollTablePageData | null {
   const rows = digestRollTable(table).map(({ key, label, value }) => ({
     key,
     label,
-    value: refText(value, resolveTraitHref),
+    value: refText(value, resolveMentionRef),
   }))
   if (rows.length === 0) return null
   return {

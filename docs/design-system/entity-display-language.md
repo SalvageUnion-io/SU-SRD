@@ -1,9 +1,10 @@
 # Entity Display Language
 
 **Status:** agreed. Being implemented phase by phase on `design-refresh`
-([migration](#migration)); phase 1, the model, and phase 2, the Row and Token
+([migration](#migration)); phase 1, the model, phase 2, the Row and Token
 forms with the link and select modes (`<Entity>` in
-`packages/component-lib/src/entity/`), have landed.
+`packages/component-lib/src/entity/`), and phase 3, the Mention and the Peek,
+have landed.
 
 One rendering path for every game entity, in the SRD and in ITUN alike,
 designed from what the person is doing rather than from the app.
@@ -40,7 +41,10 @@ carry texture, the user-made treatment); nothing passes it per call.
 | **Page** | The detail view: learn, cite, share | Chapter band, title and stamps, parent link, art as hero, prose, stat column, actions, children, table, patterns, foot citation. An SRD route; a drawer (desktop) or sheet (phone) in ITUN |
 
 A **Peek** is a Card at compact density: read-only, no links, children as
-Tokens.
+Tokens. A Mention or a Tag carries only its entity's address (`data-peek`);
+each app mounts one `PeekHost`, which shows the Peek on hover, keyboard focus
+or a long press, so a server-rendered page Peeks as well as a live one, and
+the popup, its card and the schema it reads load on the first Peek.
 
 An **entity grid** (`data-entity-grid` on the list) lays Rows out as equals:
 every Row in it is the same height at every width, and every head reserves its

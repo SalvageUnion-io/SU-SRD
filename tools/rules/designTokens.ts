@@ -108,9 +108,10 @@ const TEXTURE_FORBIDDEN: readonly RegExp[] = [
   // Fields: the input primitives.
   /\/chrome\/(?:Field|FieldError|InlineEditField|inputs|Sel|Checkbox|RadioCardGroup|CountStepper)\.tsx$/,
   /\/SearchField\.tsx$/,
-  // Tooltips: the tooltip primitive and the entity hovercard.
+  // Tooltips: the tooltip primitive, and the Peek (the entity's compact card).
   /\/ui\/tooltip\.tsx$/,
   /Tooltip\w*\.tsx$/,
+  /\/entity\/Peek\w*\.tsx$/,
 ]
 
 /** A paper GROUND on the same line — the speckle never sits on paper. */

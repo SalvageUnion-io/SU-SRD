@@ -1,6 +1,9 @@
 import { InlineRef, Slab } from 'component-lib'
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
+import { refText } from '../lib/rollTablePage'
+import { resolveMentionRef } from '../lib/staticLinks'
+import { MentionProse } from './MentionProse'
 
 /**
  * StaticEntityContent — the SSR / no-JS entity fallback. Renders a plain,
@@ -11,26 +14,25 @@ import type { StaticEntitySummary } from 'salvageunion-reference'
  * `ReferenceEntityIsland` hides it on mount and removes it once game data is
  * ready, so the two never double up.
  *
- * Route-agnostic: trait/keyword links are resolved by the injected
- * `resolveTraitHref` (srd passes its build-time resolver); without it,
- * traits render as plain text. Every link to another entity is an `InlineRef`,
- * the one in-prose reference the design system has. Layout is
- * `pages.css`'s `.srd-static*`.
+ * Every trait or keyword it names, in its prose or its trait list, is a
+ * Mention resolved at build time (`resolveMentionRef`): a link to its page
+ * with its Peek. The summary keeps its prose's `[[Trait]]` markup
+ * (`keepReferences`) for exactly that; a summary without it reads as words.
+ * The parent link is an `InlineRef`. Layout is `pages.css`'s `.srd-static*`.
  */
+
+/** Prose with its references drawn as Mentions. */
+function Prose({ text }: { text: string }) {
+  return <MentionProse parts={refText(text, resolveMentionRef)} />
+}
 
 type StaticEntityContentProps = {
   summary: StaticEntitySummary
-  /** Resolve a trait/keyword name to an href, or null for no link. */
-  resolveTraitHref?: (traitName: string) => string | null
   /** What the entity is built on, linked first: a pattern's base chassis. */
   parent?: { label: string; name: string; href: string }
 }
 
-export function StaticEntityContent({
-  summary,
-  resolveTraitHref,
-  parent,
-}: StaticEntityContentProps) {
+export function StaticEntityContent({ summary, parent }: StaticEntityContentProps) {
   return (
     <div data-static-fallback className="srd-static">
       {/* No heading of its own: the page's chapter band is its <h1>, for
@@ -42,7 +44,11 @@ export function StaticEntityContent({
         </p>
       )}
 
-      {summary.description && <p>{summary.description}</p>}
+      {summary.description && (
+        <p>
+          <Prose text={summary.description} />
+        </p>
+      )}
 
       {summary.stats.length > 0 && (
         <dl className="srd-static__stats">
@@ -56,7 +62,9 @@ export function StaticEntityContent({
       )}
 
       {summary.contentParagraphs.map((p) => (
-        <p key={p}>{p}</p>
+        <p key={p}>
+          <Prose text={p} />
+        </p>
       ))}
 
       {/*
@@ -88,7 +96,7 @@ export function StaticEntityContent({
                   <th scope="row">{row.key}</th>
                   <td>
                     {row.label && <strong>{row.label}: </strong>}
-                    {row.value}
+                    <Prose text={row.value} />
                   </td>
                 </tr>
               ))}
@@ -105,7 +113,9 @@ export function StaticEntityContent({
         <section key={section.name} className="srd-static__section">
           <Slab as="h2" variant="solid" label={section.name} />
           {section.paragraphs.map((p) => (
-            <p key={p}>{p}</p>
+            <p key={p}>
+              <Prose text={p} />
+            </p>
           ))}
         </section>
       ))}
@@ -113,15 +123,12 @@ export function StaticEntityContent({
       {summary.traits.length > 0 && (
         <p>
           <span className="srd-static__label">Traits:</span>{' '}
-          {summary.traits.map((t, i) => {
-            const href = resolveTraitHref?.(t) ?? null
-            return (
-              <Fragment key={t}>
-                {i > 0 && ', '}
-                {href ? <InlineRef href={href}>{t}</InlineRef> : t}
-              </Fragment>
-            )
-          })}
+          {summary.traits.map((t, i) => (
+            <Fragment key={t}>
+              {i > 0 && ', '}
+              <MentionProse parts={[{ text: t, ref: resolveMentionRef(t) }]} />
+            </Fragment>
+          ))}
         </p>
       )}
 

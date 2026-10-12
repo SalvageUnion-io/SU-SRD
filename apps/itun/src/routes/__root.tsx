@@ -19,6 +19,7 @@ import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppHeader } from '../components/shared/AppHeader'
 import { AppLink } from '../components/shared/AppLink'
+import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
@@ -42,7 +43,7 @@ import '../index.css'
 /**
  * The entity SURFACE every form in the app reads (entity display language §2):
  * a link-mode form navigates through the router (`AppLink`). The Page opener
- * joins it with the Page drawer (phase 5).
+ * is `EntityPageHost`'s, below (the detail dialog until the drawer, phase 5).
  */
 const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink }
 
@@ -126,13 +127,16 @@ function RootComponent() {
           {/* Above the header, not just the routes: the search in AppHeader opens
             entity detail modals whose RollTables raise the same Copy toast. */}
           <CopyFeedbackProvider value={toastCopied}>
-            {onDashboard ? null : <RootHeader pathname={pathname} />}
-            <GameDataReady>
-              <Outlet />
-            </GameDataReady>
-            {/* About and Changelog for a signed-out desktop, which has neither
-              the drawer nor the account menu that carry them elsewhere. */}
-            <SiteFooter />
+            {/* The Page opener every Mention and Tag reads, and the app's Peek. */}
+            <EntityPageHost>
+              {onDashboard ? null : <RootHeader pathname={pathname} />}
+              <GameDataReady>
+                <Outlet />
+              </GameDataReady>
+              {/* About and Changelog for a signed-out desktop, which has neither
+                the drawer nor the account menu that carry them elsewhere. */}
+              <SiteFooter />
+            </EntityPageHost>
           </CopyFeedbackProvider>
           <Toaster />
         </EntitySurfaceProvider>

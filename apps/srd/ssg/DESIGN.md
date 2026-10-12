@@ -118,6 +118,7 @@ builds from.
 | `ColophonIsland`        | visible | **true** | prose worth indexing                                             |
 | `SearchResultsIsland`   | only    | false    | a client-only results page                                       |
 | `OgCardIsland`          | load    | false    | screenshot target                                                |
+| `PeekIsland`            | idle    | false    | every page (`BaseLayout`), no props: the page's one Peek host; Mentions and Tags carry only `data-peek`, and the popup, card and schema load on the first Peek |
 
 `EntityCardStatic` is NOT an island: it renders straight into the page tree and
 ships no JS, for 82% of entity pages. Keep it that way.

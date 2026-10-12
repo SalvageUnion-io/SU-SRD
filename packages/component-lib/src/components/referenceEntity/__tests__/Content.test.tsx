@@ -179,7 +179,7 @@ describe('Content — datavalues chips', () => {
     expect(screen.getByText('Anti-Personnel')).toBeTruthy()
   })
 
-  test('a qualified trait datavalue reads as the book prints it', () => {
+  test('a qualified trait datavalue is a Tag with its parameter cell (E17)', () => {
     render(
       <Content
         body={blocks({
@@ -188,7 +188,9 @@ describe('Content — datavalues chips', () => {
         })}
       />
     )
-    expect(screen.getByText('Explosive (1)')).toBeTruthy()
+    const tag = screen.getByText('Explosive').closest('[data-tag]')
+    expect(tag?.textContent).toBe('Explosive1')
+    expect(tag?.getAttribute('data-peek')).toStartWith('traits:')
   })
 
   test('a label-only keyword datavalue renders its label as a tag', () => {

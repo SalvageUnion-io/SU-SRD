@@ -249,7 +249,7 @@ describe('tokens rule set', () => {
       'packages/component-lib/src/components/chrome/inputs.tsx',
       'packages/component-lib/src/components/shared/SearchField.tsx',
       'packages/component-lib/src/components/ui/tooltip.tsx',
-      'packages/component-lib/src/components/referenceEntity/EntityTooltip.tsx',
+      'packages/component-lib/src/entity/PeekCard.tsx',
     ]) {
       expect(scan(file, ref)['texture-placement']?.length, file).toBe(2)
     }

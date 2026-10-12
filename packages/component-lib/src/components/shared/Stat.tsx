@@ -1,13 +1,12 @@
 import type { ReactElement } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-reference'
-import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference'
+import type { EntityRef } from 'salvageunion-reference'
+import { usePeekAttrs } from '../../entity/peekContext'
 import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import type { StampSurface } from '../chrome/Badge'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING } from '../chrome/interaction'
-import { EntityTooltip } from '../referenceEntity/EntityTooltip'
 import { Tooltip } from '../ui/tooltip'
 import type { EntityStatus } from './entityStatus'
 
@@ -90,7 +89,7 @@ type StatPropKey =
   | 'onChange'
   | 'onClick'
   | 'hoverText'
-  | 'entityTooltip'
+  | 'peek'
   | 'flash'
   | 'disabled'
   | 'state'
@@ -181,9 +180,9 @@ type HorizontalValueProps = Exact<{
    * name from the caller; this keeps that contract when they fold onto Stat.
    */
   stepperLabel?: string
-  /** When set, wrap the cell in the entity/keyword hover-tooltip (resolves
-   * `label` within `schemaName`); unresolved refs render plain (no tooltip). */
-  entityTooltip?: { schemaName: SURefEnumSchemaName; label: StatValue }
+  /** The glossary entry the cell's label names (a measured keyword, "Damage |
+   * 2 SP"): the cell Peeks it on hover (entity display language E4). */
+  peek?: EntityRef
   /** Plain-text hover explanation (the stat's glossary line). Same contract as
    * the value box's `hoverText` — a compact header cell states the SAME stat as
    * the full box, so it must be able to explain itself too. */
@@ -246,36 +245,16 @@ type ValueBoxProps = Exact<{
 
 type StatProps = HorizontalValueProps | ValueBoxProps
 
-/** Narrow a schema name to the entity subset `findIn` accepts. */
-function isEntitySchemaName(
-  value: SURefEnumSchemaName
-): value is SURefEnumSchemaName & EntitySchemaName {
-  const names: ReadonlySet<string> = EntitySchemaNames
-  return names.has(value)
-}
-
 export function Stat(props: StatProps) {
   const inner = renderStat(props)
-  const entityTooltip = 'entityTooltip' in props ? props.entityTooltip : undefined
-  if (entityTooltip) {
-    // Resolve the trait/keyword to a real entity; wrap in the hover-tooltip when
-    // found, else render plain.
-    const { schemaName, label } = entityTooltip
-    const entity = isEntitySchemaName(schemaName)
-      ? SalvageUnionReference.findIn(
-          schemaName,
-          (t) => t.name.toLowerCase() === String(label).toLowerCase()
-        )
-      : undefined
-    if (entity?.id) {
-      return (
-        <EntityTooltip schemaName={schemaName} entityId={entity.id} openDelay={300}>
-          {inner}
-        </EntityTooltip>
-      )
-    }
-  }
-  return inner
+  const peek = usePeekAttrs('peek' in props ? props.peek : undefined)
+  if (!peek['data-peek']) return inner
+  // The cell carries the Peek's address; the page's PeekHost does the rest.
+  return (
+    <span {...peek} style={{ display: 'inline-flex', flex: 'none', lineHeight: 1 }}>
+      {inner}
+    </span>
+  )
 }
 
 function renderStat(props: StatProps) {

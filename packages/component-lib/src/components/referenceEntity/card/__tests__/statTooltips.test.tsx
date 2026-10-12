@@ -11,16 +11,18 @@
  *   stat config supplies for every stat was dropped — so a stat explained itself
  *   on a large card and went silent on a listing or nested one.
  *
- * Both are asserted through the trigger attribute base-ui stamps on whatever it
- * arms, since the popup itself only mounts on hover.
+ * A stat's explanation is asserted through the trigger attribute base-ui
+ * stamps on whatever it arms; a trait Tag's Peek through the address it
+ * carries (`data-peek`), which the page's one PeekHost reads.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { InsideTooltipContext } from '../../../ui/insideTooltipContext'
+import { InsidePeekContext } from '../../../../entity/peekContext'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const TRIGGER = '[data-base-ui-tooltip-trigger]'
+const PEEK = '[data-peek]'
 
 const action = (name: string) => {
   const found = SalvageUnionReference.Actions.getByName(name)
@@ -39,10 +41,10 @@ const leafWithText = (text: string) =>
   screen.getAllByText((_, el) => el?.textContent === text).at(-1)
 
 describe('trait tags (E17)', () => {
-  test('each trait Tag arms its own hovercard', () => {
+  test('each trait Tag Peeks its own entry', () => {
     render(<ReferenceEntityCard data={action('Beta Fission Gun')} />)
-    for (const name of ['Burn', 'Explosive', 'Heavy', 'Uses']) {
-      expect(leafWithText(name)?.closest(TRIGGER)).toBeTruthy()
+    for (const name of ['Burn', 'Explosive', 'Heavy']) {
+      expect(leafWithText(name)?.closest(PEEK)?.getAttribute('data-peek')).toStartWith('traits:')
     }
   })
 
@@ -57,18 +59,19 @@ describe('trait tags (E17)', () => {
     // An action's classification and its measured cells lead the line and are
     // not glossary terms — they must stay bare text nodes, not armed spans.
     const { container } = render(<ReferenceEntityCard data={action('Beta Fission Gun')} />)
-    const armed = [...container.querySelectorAll(TRIGGER)].map((el) => el.textContent)
+    const armed = [...container.querySelectorAll(`${TRIGGER}, ${PEEK}`)].map((el) => el.textContent)
     expect(armed).not.toContain('Turn Action')
     expect(armed).not.toContain('Range: Medium')
   })
 
-  test('inside a hovercard the line is inert — no nested hovercards', () => {
+  test('inside a Peek the line is inert — no nested Peek', () => {
     const { container } = render(
-      <InsideTooltipContext.Provider value={true}>
+      <InsidePeekContext.Provider value={true}>
         <ReferenceEntityCard data={action('Beta Fission Gun')} size="medium" extent="catalog" />
-      </InsideTooltipContext.Provider>
+      </InsidePeekContext.Provider>
     )
     expect(container.querySelector(TRIGGER)).toBeNull()
+    expect(container.querySelector(PEEK)).toBeNull()
   })
 })
 

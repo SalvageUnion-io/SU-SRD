@@ -29,14 +29,19 @@ const firstOfType = (type: string) =>
 
 describe('refText', () => {
   test('a band’s trait markup becomes references, resolved where the trait exists', () => {
-    const href = (name: string) =>
-      name === 'Vulnerable' ? '/schema/traits/item/vulnerable/' : null
-    const parts = refText('It gains the [[Vulnerable]] Trait and [[[Burn](X)]].', href)
+    const vulnerable = {
+      schemaName: 'traits' as const,
+      id: 'vulnerable-id',
+      slug: 'vulnerable',
+      name: 'Vulnerable',
+    }
+    const resolve = (name: string) => (name === 'Vulnerable' ? vulnerable : null)
+    const parts = refText('It gains the [[Vulnerable]] Trait and [[[Burn](X)]].', resolve)
     expect(parts).toEqual([
       'It gains the ',
-      { ref: 'Vulnerable', href: '/schema/traits/item/vulnerable/' },
+      { text: 'Vulnerable', ref: vulnerable },
       ' Trait and ',
-      { ref: 'Burn (X)', href: null },
+      { text: 'Burn (X)', ref: null },
       '.',
     ])
     expect(plainText(parts)).toBe('It gains the Vulnerable Trait and Burn (X).')

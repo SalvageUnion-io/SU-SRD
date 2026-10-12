@@ -4,6 +4,7 @@ import { Component, Fragment, StrictMode, Suspense, use, useEffect, useState } f
 import { createRoot } from 'react-dom/client'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, weight } from './src/design/tokens'
+import { PeekHost } from './src/entity/Peek'
 import type { CatalogRoute, StoryRef } from './src/stories/_catalogRoute'
 import {
   parseRoute,
@@ -334,6 +335,9 @@ if (root)
         <Suspense fallback={null}>
           <Catalog />
         </Suspense>
+        {/* The page's one Peek, as each app mounts it: every story's
+            Mentions and Tags Peek. */}
+        <PeekHost />
       </StoryBoundary>
     </StrictMode>
   )

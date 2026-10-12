@@ -1,6 +1,8 @@
 import type { SURefObjectContentBlock, SURefObjectDataValue } from 'salvageunion-reference'
 import { parseContentBlockString } from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
+import { Tag } from '../../entity/parts/Tags'
+import { glossaryRef } from '../../entity/parts/tagItems'
 import { cn } from '../../utils/cn'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
@@ -8,16 +10,15 @@ import { Badge } from '../chrome/Badge'
 import { Slab } from '../chrome/Slab'
 import { ActivationCost } from '../shared/ActivationCost'
 import { Stat } from '../shared/Stat'
-import { EntityTooltip } from './EntityTooltip'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 
 /**
  * A single `datavalues` item. A `cost` item ("3 AP") uses the ActivationCost
  * atom. A CITATION of a named rule — a trait ("Missile", "Explosive (1)", the
- * book's qualified form) or a label-only keyword ("Turn Action") — is a tag
- * (ruleset §3.2: tags cite), with that entry's hovercard. Anything with a
- * `label | value` — a measured keyword ("Damage | 2 SP") included — is a
- * horizontal Stat (§3.7), keeping its hovercard when it names a keyword.
+ * book's qualified form) or a label-only keyword ("Turn Action") — is a Tag
+ * (ruleset §3.2: tags cite), linking to its entry and Peeking it. Anything
+ * with a `label | value` — a measured keyword ("Damage | 2 SP") included — is
+ * a horizontal Stat (§3.7), Peeking its keyword.
  */
 function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?: boolean }) {
   if (item.type === 'cost') {
@@ -35,18 +36,25 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
   }
   const value = item.value != null && item.unit ? `${item.value} ${item.unit}` : item.value
   if (item.type === 'trait' || (item.type === 'keyword' && value == null)) {
+    // A citation of a rule is a TAG (E9, E17): its name, its parameter cell,
+    // and its entry's page and Peek.
+    const schemaName = item.type === 'trait' ? ('traits' as const) : ('keywords' as const)
+    const name = String(item.label)
+    const ref = glossaryRef(schemaName, name)
     return (
-      <EntityTooltip
-        schemaName={item.type === 'trait' ? 'traits' : 'keywords'}
-        entityName={String(item.label)}
-        openDelay={300}
-      >
-        <Badge>{value == null ? item.label : `${item.label} (${value})`}</Badge>
-      </EntityTooltip>
+      <Tag
+        linkable
+        tag={{
+          key: `${schemaName}-${name}`,
+          name,
+          ...(value == null ? {} : { param: String(value) }),
+          schemaName,
+          ...(ref ? { ref } : {}),
+        }}
+      />
     )
   }
-  const entityTooltip =
-    item.type === 'keyword' ? { schemaName: 'keywords' as const, label: item.label } : undefined
+  const peek = item.type === 'keyword' ? glossaryRef('keywords', String(item.label)) : undefined
   return (
     <Stat
       orientation="horizontal"
@@ -54,7 +62,7 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
       value={value}
       size={compact ? 'compact' : 'full'}
       inline={false}
-      entityTooltip={entityTooltip}
+      peek={peek}
     />
   )
 }

@@ -38,3 +38,12 @@ export function glossaryRef(
     ? { schemaName, id: entry.id, slug: getEntitySlug(entry), name: entry.name }
     : undefined
 }
+
+/**
+ * The entry a `[[Name]]` in rules text names: a trait, else a keyword (the
+ * book's markup does not say which glossary). `undefined` when neither carries
+ * it, or neither is loaded: the Mention renders inert.
+ */
+export function mentionRef(name: string): EntityRef | undefined {
+  return glossaryRef('traits', name) ?? glossaryRef('keywords', name)
+}
