@@ -13,8 +13,8 @@
 
 /*
  * The home page — the manual's Contents page (board 06, `index.page.tsx` and
- * `components/HomeContents.tsx`). A 1360px measure: three chapter columns and
- * the "New to the Union?" panels beside them, all one column on a phone.
+ * `components/HomeContents.tsx`). A 1360px measure. First-timer content
+ * first: the title, the search, "New to the Union?", then the index.
  */
 .srd-home__lede {
   display: flex;
@@ -30,12 +30,29 @@
   margin: 0;
 }
 
-/* Between the phone and the desktop the lede has no room beside the title,
-   so the band keeps the phone's stack (lede above the notch). */
-@media (min-width: 40rem) and (max-width: 63.99rem) {
+/* Below the desktop the lede has no room beside the title, so it follows the
+   title instead of riding above it (the band's own stack is column-reverse):
+   the title notched into the band's foot, then the lede and search on the
+   page ground the notch is cut from. The aside spans the row's padding so the
+   ground runs edge to edge. */
+@media (max-width: 63.99rem) {
   .srd-home__band .su-chapter-band__row {
     align-items: flex-start;
-    flex-direction: column-reverse;
+    flex-direction: column;
+  }
+
+  .srd-home__band .su-chapter-band__aside {
+    align-self: stretch;
+    background-color: var(--color-wk-bg);
+    margin-inline: calc(-1 * var(--space-16));
+    padding: var(--space-16) var(--space-16) 0;
+  }
+}
+
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .srd-home__band .su-chapter-band__aside {
+    margin-inline: calc(-1 * var(--space-24));
+    padding-inline: var(--space-24);
   }
 }
 
@@ -50,49 +67,25 @@
   }
 }
 
+/* The sections in one flow: up to four columns of at least 16rem, filled
+   down then across and balanced, so no column ends on a hole; one column on
+   a phone. Multi-column has no row gap, so each section carries its own. */
 .srd-home__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-28);
+  column-gap: var(--space-28);
+  columns: 4 16rem;
   margin-inline: auto;
   padding: var(--space-24) var(--space-16) var(--space-32);
   width: 100%;
 }
 
-.srd-home__chapters {
-  align-content: start;
-  display: grid;
-  gap: var(--space-20) var(--space-28);
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  min-width: 0;
-}
-
-.srd-home__aside {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-14);
-  min-width: 0;
+.srd-home__body > * {
+  break-inside: avoid;
+  margin-block-end: var(--space-24);
 }
 
 @media (min-width: 40rem) {
   .srd-home__body {
     padding-inline: var(--space-24);
-  }
-}
-
-@media (min-width: 64rem) {
-  .srd-home__body {
-    align-items: flex-start;
-    flex-direction: row;
-  }
-
-  .srd-home__chapters {
-    flex: 1 1 0;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .srd-home__aside {
-    flex: 0 0 20rem;
   }
 }
 
