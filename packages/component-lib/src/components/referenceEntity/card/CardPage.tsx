@@ -18,7 +18,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
  * hero on the left; beside it the prose, the book's stat column and, beneath
  * the stats, the chassis ability; then everything the entity carries, full
- * width — its table, its other actions, its nested trays and its patterns as
+ * width — its table, its other actions, its nested cards and its patterns as
  * link rows. A pattern page leads the right column with the pattern itself
  * (`opening`), then the base chassis's prose under its own slab.
  *
@@ -58,7 +58,7 @@ type CardPageProps = {
   abilitiesSection: ReactNode
   /** A guide's steps (`GuideSteps`): on a page they follow the prose, full section. */
   guide?: ReactNode
-  /** The nested trays. */
+  /** The nested cards. */
   sections: ReactNode
   /** A basic host's patterns, as full-width link rows. */
   patterns: SURefObjectAnyPattern[]

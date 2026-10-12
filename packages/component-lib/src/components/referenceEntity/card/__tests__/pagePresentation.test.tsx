@@ -194,11 +194,12 @@ describe('the card as a page', () => {
     expect(screen.getByRole('heading', { name: 'Tail Sweep', level: 3 })).toBeTruthy()
   })
 
-  test('a tray’s nested card is an h3 under the tray’s h2', () => {
+  test('a stacked nested card is an h2 of its own: no "NPC" band repeats its stamp', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Command Bay'), 'command bay')
     render(<ReferenceEntityCard data={bay} presentation="page" />)
-    expect(screen.getByRole('heading', { name: 'NPC', level: 2 })).toBeTruthy()
-    expect(screen.getAllByRole('heading', { level: 3 }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('heading', { name: 'NPC' })).toBeNull()
+    const npc = need(bay.npc && 'position' in bay.npc ? bay.npc.position : undefined, 'npc')
+    expect(screen.getByRole('heading', { name: npc, level: 2 })).toBeTruthy()
   })
 
   test('the chassis ability and its seal stay spans: no band holds them', () => {
