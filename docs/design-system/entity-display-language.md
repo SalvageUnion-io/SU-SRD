@@ -1,7 +1,7 @@
 # Entity Display Language
 
 The law for **how an entity is drawn**, in the SRD and ITUN alike; [ruleset.md](ruleset.md) governs primitives, tokens and contexts (amend one first where they disagree).
-Status: agreed; phases 1–3 have landed (`packages/component-lib/src/entity/`).
+Status: agreed. Code: `packages/component-lib/src/entity/`.
 
 ## Pipeline
 
@@ -25,6 +25,8 @@ Status: agreed; phases 1–3 have landed (`packages/component-lib/src/entity/`).
 
 ## Modes
 
+Count, hold and act: phase 4.
+
 1. **read** — no affordance; all forms (Peek, page bodies, reviews).
 2. **link** — whole surface plus a head chevron; Mention, Token, Row.
 3. **select** — ink ring and "Selected" seal; Row, Card (pickers, wizards).
@@ -43,7 +45,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E5** The detail view is always a Page: no large-card modals, no new-tab `window.open`.
 - **E6** Nest one form down, two levels deep (Page → Row, Card → Row, Row → count chip); a third level is a link or a Peek.
 - **E7** Modes fill slots; they never change anatomy.
-- **E8** There is one way to fold: a Row's disclosure expands it into a Card in place.
+- **E8** There is one way to fold: hold mode's disclosure expands a Row into a Card in place; a Listing never does (ruleset §1.5).
 - **E9** Facts are Stats, traits are Mentions or Tags, citations are Tags, sections are Slabs, kinds are Stamps (ruleset §3).
 - **E10** Art appears by schema and room, not by prop; an entity without art shows its censor mark.
 - **E11** The lead appears only while browsing (SRD listings and search page).
@@ -62,11 +64,10 @@ Each is checkable; breaking one needs an amendment here first.
 4. **ITUN dense slots** (inventory strip, bays, loadouts) — Token, hold / link. **Deck, resolve** — Row / Card, act.
 5. **ITUN "open" anywhere** — Page in a drawer (sheet on phone). **Mediator opposition tray** — Row, hold. **OG cards, the bot** — fed by the model.
 
-## Migration
+## Remaining
 
-1. **Model** — done: `toEntityModel` and its parts; parity over every entity and pattern (`entityModelParity.test.ts`).
-2. **Row + Token** — done: listings, search, pickers, loadouts and bays.
-3. **Mention + Peek** — done: no raw `[[` markup in rendered HTML.
+Phases 1–3 (model, Row + Token, Mention + Peek) are built.
+
 4. **Card + Hold** — Card densities, the Row ⇄ Card disclosure, hold and count modes; done when sheets, wizards, opposition and decks migrate.
 5. **Page + instruments** — the Page as route and panel, the Table instrument, guide Steps; done at one roll-table renderer.
 6. **Delete** — remove `ReferenceEntityCard` and its axes, add the E15 lint; done when `card/` is gone.

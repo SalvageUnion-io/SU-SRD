@@ -20,8 +20,8 @@ absolute pin. Extends the "modified stats" heavier-solid-ink language of
 effects resolve against the pilot's seat on the Game instead of ephemeral play
 state. They are still never persisted on the entity.
 
-**Amended 2026-10-10 (#1284):** the "modified" language it extends from stat
-cells to prose is now a heavier solid ink mark (see the amendment in
+**Amended (refresh tokens):** the "modified" language it extends from stat
+cells to prose is a heavier solid ink mark (see the amendment in
 [ADR-026](026-entity-card-design-rules.md)), not rust and not dashed; the rules-bearing prose span
 carries a solid ink rail.
 
@@ -116,17 +116,16 @@ thin `.total` wrappers so no call site changes when this lands.
 ### 3. Provenance is a property of the value, not of a surface
 
 Any surface that renders a derived value can render its breakdown. Concretely:
-Live Sheet, Dashboard, partner cards (rendered in place since #590), Frozen
+Live Sheet, Dashboard, partner cards, Frozen
 snapshot, wizard previews, and entity reference cards.
 
 - The panel opens on **hover, focus _and_ tap**. Hover alone is unreachable by
   keyboard and on touch, and is not acceptable.
 - **Frozen** shows the breakdown and never the revert — a published snapshot has
   no editing affordance ([ADR-010](../ARCHITECTURE.md#decisions)).
-- **The Dashboard carries it.** `DashboardGauge` currently discards the
-  override/breakdown props. Restoring them _is_ the "teach as they enforce"
-  affordance [ADR-021](021-itun-surface-taxonomy.md) requires of Guided Play
-  and the Dashboard presently lacks.
+- **The Dashboard carries it.** `DashboardGauge` takes `provenance` and
+  `breakdown`: the "teach as they enforce" affordance
+  [ADR-021](021-itun-surface-taxonomy.md) requires of Guided Play.
 - **An override appends; it never replaces.** See the ADR-022 amendment.
 
 ### 4. Duration-bound effects are Dashboard-applied, and never persisted on the entity
@@ -183,14 +182,14 @@ This is deliberate and does double duty:
   the product**, not only a CI failure. The parity backlog is legible to anyone
   reading a card.
 
-Note ADR-026 §5 currently scopes the rust language to `Stat` cells and
+Note ADR-026 §5 scopes the modified language to `Stat` cells and
 explicitly not `VitalGauge`. This ADR does not change that; it adds a third
 carrier (a prose span) alongside it.
 
 ## Consequences
 
-- **Ability parity becomes possible at all.** Today it is not expressible, so no
-  amount of data work fixes Beefcake.
+- **Ability parity is expressible.** Abilities declare contributions in the
+  data (Beefcake's mech SP, cargo, HP and inventory).
 - **One vocabulary, one provenance implementation.** The alternative — extending
   both engines separately — means two things to learn, two places to look when a
   number is wrong, and a third mechanism the first time someone needs an ability
@@ -205,7 +204,7 @@ carrier (a prose span) alongside it.
   the value of its existing test coverage and the bar for changing it.
 - Duration-bound effects introduce the first contributions whose value depends on
   play state rather than reference data alone. §4's constraints exist to stop
-  that leaking into IndexedDB.
+  that leaking into the persisted entity.
 
 ## Cross-references
 

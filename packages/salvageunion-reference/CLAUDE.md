@@ -1,11 +1,11 @@
 # salvageunion-reference (Game Data Package)
 
 TypeScript ORM + schema-validated JSON dataset for Salvage Union game data.
-Design rationale: [ADR-005](../../docs/ARCHITECTURE.md) (Zod →
+Design rationale: [ADR-005](../../docs/ARCHITECTURE.md#decisions) (Zod →
 generated JSON Schema, BaseModel/ModelFactory, lazy data loading). All Zod usage
 goes through `lib/zod.ts` for CSP-safe (jitless) parsing
-([ADR-013](../../docs/ARCHITECTURE.md)). Pure rules math lives
-here too ([ADR-006](../../docs/ARCHITECTURE.md)).
+([ADR-013](../../docs/ARCHITECTURE.md#decisions)). Pure rules math lives
+here too ([ADR-006](../../docs/ARCHITECTURE.md#decisions)).
 
 **Data first.** When encoding any game data, model it here first — Zod schema,
 JSON data, resolution logic — before building UI or consumers elsewhere. This
@@ -18,7 +18,7 @@ commit them. `tools/ensureGenerated.ts`, the package's `su-ref-generate` bin,
 runs the registry, JSON-schema and docs generators when its input hash (Zod,
 registry, data, generators) is stale; it runs once per run on postinstall, the
 root `typecheck`/`test`/`build`, each app's `dev`, the test preload and
-`bun run check` — never pasted into a workspace's `typecheck`. `bun run build:package` forces it.
+`bun run check` — never pasted into another workspace's `typecheck`. `bun run build:package` forces it.
 `bun run check generated` diffs the one committed output, `lib/index.ts`'s
 generated block.
 
@@ -52,7 +52,7 @@ code imports from the module that owns the function — `entityFields.ts`,
 To expose a new name, add it to the barrel's list in the same change as its
 first outside consumer.
 
-`lib/schemas/objects.ts` is still a re-export barrel over
+`lib/schemas/objects.ts` is a re-export barrel over
 `lib/schemas/objects/*.ts`, one file per schema family. Its list is **explicit on purpose** — a submodule may
 export a helper its siblings need without that helper joining the package's
 public surface.
@@ -75,7 +75,7 @@ would return it unchanged. Two consequences:
   may import them directly.
 
 `BaseModel` stamps `schemaName` on a shallow copy of each row, never on the
-row it was given — the rows are the imported JSON module's own objects now.
+row it was given — the rows are the imported JSON module's own objects.
 
 ### Looking an entity up
 
@@ -111,21 +111,7 @@ the same gate holds it to the book.
 
 ## Adding a New Entity **Type** (schema)
 
-Adding a whole new schema (not just rows in an existing file) needs one
-hand-authored piece — the Zod schema itself — plus **one** manifest entry in
-`lib/schemas/registry.ts`. The `SURef*` type and its SURefEntity /
-SURefMetaEntity union membership are generated from that entry.
-
-The `schemas/index.json` catalog entry is **generated** by
-`tools/generateDocs.ts` (`itemCount`, `requiredFields`, `title`,
-`displayName`). Write the prose in the Zod schema's `.describe()` — it flows
-Zod → `schemas/<id>.schema.json` → `schemas/index.json`. Its `meta` flag is the
-registry entry's `meta`.
-
-Everything else (the registries, `SURef*` types and unions, the static
-accessors) is generated from that manifest by `bun run build:package`.
-
-The step-by-step checklist is `.claude/rules/reference-new-schema.md`.
+The checklist is `.claude/rules/reference-new-schema.md`.
 
 `LazyModel` is generated into the class body, not a runtime base class or
 mixin, so every static stays an _own_ property of `SalvageUnionReference`

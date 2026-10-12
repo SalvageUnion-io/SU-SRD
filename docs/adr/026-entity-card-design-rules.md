@@ -8,18 +8,20 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 26, which
 
 ## Status
 
-Accepted. **Amended 2026-10-10 (#1284):** §5's "modified" border moved from rust
+Accepted. **Amended (refresh tokens):** §5's "modified" border moved from rust
 to a heavier solid ink frame when the rust allowlist (ruleset §3.1) reserved
 rust for actions. It does not use the dash: ruleset §3.9 says canon is solid
 and dashes mark homebrew and the edit state, and no board on the origin gives
 the modified treatment a dash.
+**Amended (EDL):** `ReferenceEntityCard` is the Card and Page form; lists,
+prose and Peeks go through `src/entity/` (the
+[entity display language](../design-system/entity-display-language.md)), whose
+Peek draws this card at small size.
 
 ## Context
 
 The reference-entity display was reconciled from a 57-file legacy render core
-(`ReferenceEntityDisplay/`, "RED") onto a single card. That migration
-(its methodology was the `/component-refresh` skill, since removed)
-settled a set of **design rules** along the way — about how choices render, how
+(`ReferenceEntityDisplay/`, "RED") onto a single card. That migration settled a set of **design rules** along the way — about how choices render, how
 stats read, how tech-level scaling looks, and which data carries a tech level.
 Those rules were decided interactively and proven in the story catalog, but were only
 recorded in commit messages. This ADR enshrines them so they are not
@@ -32,10 +34,10 @@ taxonomy — which surface may enforce vs. free-edit), [ADR-023](../ARCHITECTURE
 
 ## Decision
 
-### 1. One renderer — `ReferenceEntityCard`, and nothing else
+### 1. One Card and Page renderer — `ReferenceEntityCard`
 
 `ReferenceEntityCard` (`components/referenceEntity/card/`) is the **only**
-reference-entity renderer, with no compat shim in front of it: size is `size`,
+renderer of a reference entity's Card and Page, with no compat shim in front of it: size is `size`,
 damage is `damaged`, and stat overrides are `StatItem[]`. Call the card.
 
 ### 2. Entities always render as the card — layer UI on top
@@ -54,11 +56,10 @@ changing the _data shape_ over special-casing the renderer.
 
 **Choice placement splits by kind:**
 
-- **Freeform choices** (`source.kind: 'text'`, or no `source` — a simple free-text field, e.g.
-  a companion's Name / a crawler's Keepsake / Motto) are treated as **simple
-  inputs**. In **read-only** they surface as **`Choose | <name>` sub-header cells**
-  (a `Stat` hint that there's a field to fill), never a body block. In
-  **editable** mode they stay in the body as a real text input (you type into it).
+- **Freeform choices** (`source.kind: 'text'`, or no `source` — e.g. a
+  companion's Name / a crawler's Keepsake / Motto) are **simple inputs**, inline
+  in the body: editable, a text field; read-only, the chosen value as prose, or
+  nothing when empty.
 - **Multiple-choice choices** (`source.kind` is `table` / `options` / `catalog` /
   `systemVariant`, or `cardinality.max` is above one or `{ scalesWith }` —
   "choose from the list below") always render **inline in the body**, in both modes.
@@ -69,24 +70,21 @@ changing the _data shape_ over special-casing the renderer.
   stampseal** (no rust selection ring). Options are always a
   `button[aria-pressed]` so the chosen state stays queryable in both modes
   (read-only is inert).
-- Demo: `Compositions/Reference Entity Write Layer` → **ChoiceEquipment**
-  (multiple-choice) / **FreeformChoices** (freeform → sub-header).
+- Demo: `Compositions/Entity/Reference Entity Card` → **ChoiceEquipment**
+  (multiple-choice) / **InlineChoices** (freeform and table, both inline).
 
-### 4. The stat atom has exactly two modes: Normal and Compact — and NO pips
+### 4. The stat atom has two anatomies — and NO pips
 
-A `Stat` is **Normal** (vertical value box, full labels) or **Compact**
-(horizontal `[label | value]` cell, shortform labels).
-**Compact IS horizontal**; there is no "horizontal" mode.
-Editable stats grow a `+/-` stepper column in either mode. The entity
-header uses **Compact** at every size.
+A `Stat` is the vertical value box (the default) or the horizontal
+`[label | value]` cell (`orientation="horizontal"`); `size` picks its rung of the
+sizing ladder in either. Editable stats grow a `+/-` stepper column. The entity
+header uses the horizontal cell at every size.
 
-**`Stat` has no pip mode.** The framed pip tracker and the condensed
-pip-chip were retired: a value/max tracker is the plain value box (a fill bar is
-`VitalGauge`), and the crawler-bay condition tally is its own **`BayStatus`**
-primitive. Individual pips live only in `VitalGauge` / `BayStatus` — never inside
-a stat cell.
+**`Stat` has no pip mode.** A value/max tracker is the value box (a fill bar is
+`VitalGauge`); individual pips live only in `VitalGauge`, never inside a stat
+cell.
 
-- Demo: `Atoms/Stat` → **Anatomies** / **ValueBox**; `Atoms/Bay Status`.
+- Demo: `Atoms/Stat` → **Anatomies** / **ValueBox** / **Horizontal**.
 
 ### 5. "Modified stats" — the heavier-frame language
 
@@ -100,7 +98,7 @@ dashes are the pencil/override cue of the edit state and the homebrew cue
 The value itself updates. This applies to **statblocks / `Stat`
 cells only** — not `VitalGauge`.
 
-- Demo: `Compositions/Reference Entity Write Layer` → **ChoiceEquipment** /
+- Demo: `Compositions/Entity/Reference Entity Card` → **ChoiceEquipment** /
   **TechLevelScaling**.
 
 ### 6. Effective / editable tech level drives scaling
@@ -110,17 +108,15 @@ Some granted, TL-scalable pilot equipment (e.g. Custom Sniper Rifle) resolves an
 (`cardinality.max.scalesWith: techLevel`) AND any `perTechLevel` datavalue
 (e.g. "+1 SP damage per Tech Level after the first").
 
-- Effective TL = `max(baseTL, effectiveTechLevel ?? scalingParent.techLevel ??
-baseTL)` — it **floors at the entity's base TL** (a granted item is never below
-  its own tech level; so a TL1 item with no crawler shows `0/1`, not unbounded).
-- **Both contexts are supported** (a card may use either or both):
-  **controlled from without** — pass `effectiveTechLevel` (the crawler level in
-  ITUN, via `scalingParent`); the header TL reads it and Damage + cap reflect it,
-  read-only. **Editable in place** — pass `onTechLevelChange`; the header "TL" cell
-  becomes an editable `+/-` stepper.
+- Effective TL = `max(baseTL, scalingParent.techLevel ?? baseTL)` — it **floors
+  at the entity's base TL** (a granted item is never below its own tech level; so
+  a TL1 item with no crawler shows `0/1`, not unbounded).
+- The level is **controlled from without**: the card takes `scalingParent` (the
+  crawler level in ITUN); the header TL reads it and Damage + cap reflect it,
+  read-only.
 - Damage scaling is resolved by `resolveDataValueForTechLevel` and surfaced with
   the "modified" border (rule 5).
-- Demo: `Compositions/Reference Entity Write Layer` → **TechLevelScaling**.
+- Demo: `Compositions/Entity/Reference Entity Card` → **TechLevelScaling**.
 
 ### 7. Data rule: granted-only pilot equipment is TL1
 
@@ -135,7 +131,7 @@ equipment was already TL1.)
 ## Consequences
 
 - The design rules are demonstrable and regression-guarded: each has a story
-  (canonical groups `Compositions/Reference Entity *` and `Atoms/Stat`),
+  (`Compositions/Entity/Reference Entity Card` and `Atoms/Stat`),
   and the story-coverage guard keeps every barrel-exported visual component
   storied.
 - Rule 7 is a shared-data change: it changes the tech-level badge on srd /

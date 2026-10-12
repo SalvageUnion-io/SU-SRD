@@ -1,6 +1,6 @@
 # The Primitives Ruleset — Salvage Union Design System
 
-Canon for every primitive and surface: if a component contradicts a rule, the component is wrong. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) (the design board set; "board 05c" names one) outranks this file, which is amended to match it.
+Canon for every primitive and surface: if a component contradicts a rule, the component is wrong. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) (board index: [sources.md](sources.md)) outranks this file, which is amended to match it.
 
 ## The source: the Workshop Manual
 
@@ -31,9 +31,9 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links, nested Peeks or steppers; children are Tokens, Mentions inert.
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and trays flow around it, then run full width; trays sit flush with the column.
-   8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E17: [entity-display-language.md](entity-display-language.md). Card and Page are still `ReferenceEntityCard`.
+   8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E17: [entity-display-language.md](entity-display-language.md).
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Dashboard → Listing → Peek); the `Foundations/Rendering Matrix` story shows it.
-   1. **Vitals** — `VitalGauge`: sheet skin, Dashboard instrument, compact in the Peek; MiniStat in listings. TP is a counter (no cap, no gauge).
+   1. **Vitals** — `VitalGauge`: sheet skin, Dashboard instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTable` under ROLL THE DIE:; the result is a readout plus a marked row (§3.4); Roll is a rust Button outside Reference and the Peek.
@@ -77,7 +77,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    6. **Btn** — rust action, the only mutator: `Button` / `buttonVariants`.
    7. **Slab** — section stamp + leader rule: `Slab`.
    8. **RollTable** — banded d20 map: `RollTable`.
-   9. **ConditionSwatch** — tri-state glyph: `ConditionSwatch`.
+   9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header whose first line is its labels (type stamp, classification pills, User-made; in flow, never riding the frame), then the title left, value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have; ink banner for things you do, decided by data shape.
@@ -88,7 +88,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    1. **Badge** — folds ValueDisplay, Tag, Pill, Chip, cost pennant, Range, Action-type, TL and the StatusBadge shell.
    2. **Stat** — folds StatControl, inputs, InlineEditField and StatBlock pips: read vs edit is a state.
    3. **Gauge** — folds VitalGauge, DashboardGauge and pip tracks: a darker room is a skin.
-   4. **Must not merge** — Btn (do vs read), SlotGrid (places, not quantity), ConditionSwatch, RollTable, and band ≠ rider.
+   4. **Must not merge** — Btn (do vs read), SlotGrid (places, not quantity), the condition glyph, RollTable, and band ≠ rider.
 7. **§7 Two inviolable laws**
    1. **§7.1 The value-cell law** — a label+value cell is ink on paper, set apart by a 1px ink frame, never a fill (never cream, white or tinted). A lone-label badge is frameless.
    2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height, never a fixed margin. It rides wells, callouts and Peek titles; never the Slab leader, a flush header band, or an entity's frame (its labels are the head's first line).
