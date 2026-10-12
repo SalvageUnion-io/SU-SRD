@@ -36,8 +36,8 @@ const crowdedSeals = [
 ]
 
 function railEl(container: HTMLElement): HTMLElement {
-  const el = container.querySelector('div.absolute')
-  if (!(el instanceof HTMLElement)) throw new Error('no absolute rail rendered')
+  const el = container.querySelector('[data-card-rail]')
+  if (!(el instanceof HTMLElement)) throw new Error('no rail rendered')
   return el
 }
 
@@ -47,12 +47,11 @@ describe('CardControlRail — corner-pinned, still contained', () => {
       <CardControlRail controls={crowdedControls} seals={crowdedSeals} />
     )
     const rail = railEl(container)
-    expect(rail.className).toContain('right-2')
-    expect(rail.className).toContain('justify-end')
+    expect(rail.style.right).toBe('8px')
+    expect(rail.style.justifyContent).toBe('flex-end')
     // The centred anchor must be gone.
-    expect(rail.className).not.toContain('left-1/2')
-    expect(rail.className).not.toContain('-translate-x-1/2')
-    expect(rail.className).not.toContain('justify-center')
+    expect(rail.style.left).toBe('')
+    expect(rail.style.translate).toBe('0 -50%')
   })
 
   test('the overflow bound is position-independent — flex-wrap + max-w survive', () => {
@@ -62,8 +61,8 @@ describe('CardControlRail — corner-pinned, still contained', () => {
     const rail = railEl(container)
     // These two together are what actually contain a crowded rail; the alignment
     // does not. If a re-position change drops either, a full rail spills.
-    expect(rail.className).toContain('flex-wrap')
-    expect(rail.className).toContain('max-w-[calc(100%-1rem)]')
+    expect(rail.style.flexWrap).toBe('wrap')
+    expect(rail.style.maxWidth).toBe('calc(100% - 1rem)')
   })
 
   test('positioning does not reorder cells — status stays leftmost', () => {

@@ -12,6 +12,7 @@ import {
   useEntityHrefBuilder,
   usePatternHrefBuilder,
 } from '../components/referenceEntity/entityHrefContext'
+import type { PageRefIndex } from './pageRefs'
 
 /**
  * THE SURFACE (entity display language, §2): what every form inside it reads
@@ -24,6 +25,13 @@ import {
  * - `userMade`: the dashed treatment, for a surface of player-made things.
  * - `linkAs`: the app's router link (ITUN's `AppLink`), for an in-app path, so
  *   a link-mode form navigates client-side; an external href stays an `<a>`.
+ * - `rolls`: whether a roll table carries its Roll. A Reference surface (the
+ *   SRD) turns it off: its matrix cell is the banded table under its stamp,
+ *   and rust there would be an action on a read-only page (ruleset §1, §2,
+ *   §3.1). The Live Sheet and the Dashboard roll.
+ * - `pageRefs`: the entities on each Workshop Manual page the prose cites, so a
+ *   "p. 235" links to the page that covers it (`pageRefs.ts`). Absent, a
+ *   reference stays text.
  */
 export type EntitySurfaceValue = {
   hrefFor: (ref: EntityRef) => string | undefined
@@ -31,6 +39,8 @@ export type EntitySurfaceValue = {
   linkAs?: EntityLinkComponent
   texture: boolean
   userMade: boolean
+  rolls: boolean
+  pageRefs?: PageRefIndex
 }
 
 /** A router link: an anchor's attributes, a concrete `href`, its children. */
@@ -89,6 +99,8 @@ export function useEntitySurface(): EntitySurfaceValue {
       ...(own.linkAs ? { linkAs: own.linkAs } : {}),
       texture: own.texture ?? legacyTexture,
       userMade: own.userMade ?? false,
+      rolls: own.rolls ?? true,
+      ...(own.pageRefs ? { pageRefs: own.pageRefs } : {}),
     }),
     [own, entityHref, patternHref, linksOut, legacyTexture]
   )

@@ -1,6 +1,7 @@
 import aboutMd from '../../../../../ABOUT_JRVS.md?raw'
 import statementMd from '../../../../../LLM_STATEMENT.md?raw'
 import thanksMd from '../../../../../SPECIAL_THANKS.md?raw'
+import { color, font } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Colophon } from './Colophon'
 
@@ -13,11 +14,14 @@ export default { title: 'Compositions/Colophon' }
  * files is visible here first.
  */
 export const Default: Story = () => (
-  <Colophon
-    aboutMarkdown={aboutMd}
-    llmMarkdown={statementMd}
-    specialThanksMarkdown={thanksMd}
-    kofiCode="C3Z82382ZC"
-    className="font-body text-ink"
-  />
+  // The body face and ink an app's about page sets around the block; both
+  // inherit, so a wrapper carries them exactly as a className on the block did.
+  <div style={{ color: color.ink, fontFamily: font.body }}>
+    <Colophon
+      aboutMarkdown={aboutMd}
+      llmMarkdown={statementMd}
+      specialThanksMarkdown={thanksMd}
+      kofiCode="C3Z82382ZC"
+    />
+  </div>
 )

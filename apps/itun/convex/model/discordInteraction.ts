@@ -10,7 +10,7 @@
  * application's public key. Who ran the command, whom they named and which
  * Game they picked are then **attested by Discord**, not reported by the bot.
  *
- * This duplicates the bot's own verifier (`apps/discord-bot/src/http/verify.ts`)
+ * This duplicates the bot's own verifier (`apps/discord-bot/src/worker/verify.ts`)
  * rather than importing it, because Convex cannot import from another app. It
  * is the same algorithm over the same bytes, and small enough to read twice.
  *

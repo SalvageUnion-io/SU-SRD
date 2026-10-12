@@ -14,6 +14,7 @@ import type { ModelWithMetadata } from './BaseModel.js'
 import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
 import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js'
 import type { LazyModel } from './LazyModel.js'
+import type { LoadProjection } from './ModelFactory.js'
 import {
   getLoadedModel,
   installSchemas,
@@ -337,6 +338,9 @@ export class SalvageUnionReference {
    * proves them parse-stable (see the header of `ModelFactory.ts`).
    *
    * @param schemas - Array of schema IDs to load, or `'all'` to load everything.
+   * @param options.projection - `'list'` loads a schema's list projection
+   *   (rows without their prose, `lib/listProjection.ts`) where it has one, for
+   *   a listing that never prints that prose. A later full `preload` replaces it.
    * @returns Promise that resolves when all requested schemas are loaded.
    *
    * @example
@@ -345,9 +349,15 @@ export class SalvageUnionReference {
    *
    * // Load only what you need (enables code-splitting):
    * await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
+   *
+   * // A listing: actions without their prose
+   * await SalvageUnionReference.preload(['systems', 'actions'], { projection: 'list' })
    */
-  public static async preload(schemas: string[] | 'all'): Promise<void> {
-    await loadSchemas(schemas)
+  public static async preload(
+    schemas: string[] | 'all',
+    options?: { projection?: LoadProjection }
+  ): Promise<void> {
+    await loadSchemas(schemas, options?.projection)
     bindLoadedModels(schemas === 'all' ? Object.keys(lazyModelsById) : schemas)
   }
 
@@ -374,10 +384,12 @@ export class SalvageUnionReference {
    * Check whether a schema has been loaded.
    *
    * @param schemaId - The schema ID to check (e.g. `'chassis'`, `'abilities'`).
-   * @returns `true` if the schema has been loaded via `preload()`, `false` otherwise.
+   * @param options.projection - `'list'` also counts a list-projection load.
+   * @returns `true` if the schema has been loaded in full via `preload()`
+   *   (or, with `projection: 'list'`, in either projection), `false` otherwise.
    */
-  public static isLoaded(schemaId: string): boolean {
-    return isSchemaLoaded(schemaId)
+  public static isLoaded(schemaId: string, options?: { projection?: LoadProjection }): boolean {
+    return isSchemaLoaded(schemaId, options?.projection)
   }
 
   // ---------------------------------------------------------------------------
@@ -556,7 +568,7 @@ function bindLoadedModels(ids: readonly string[]): void {
   for (const id of ids) {
     const lazyModel = lazyModelsById[id]
     if (!lazyModel) continue
-    if (!isSchemaLoaded(id)) continue
+    if (!isSchemaLoaded(id, 'list')) continue
 
     try {
       const backing = getLoadedModel(id, toPascalCase(id))

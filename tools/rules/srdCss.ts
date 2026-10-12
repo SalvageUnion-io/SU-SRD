@@ -8,7 +8,7 @@
  *
  * ## The rule was enforced by nothing, in either direction
  *
- * Both that file and `ssg/DESIGN.md` say a stray `import './x.css'` in the SSR
+ * Both that file and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
  * graph **breaks the build**. It does not. Measured under this repo's Bun: a
  * `.css` import in an SSR module resolves and returns an object, exit 0 —
  * including a package import, and including a file with an unresolvable

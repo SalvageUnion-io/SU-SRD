@@ -13,6 +13,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import { SITE_URL } from '../../src/lib/constants'
+import { notFoundPage } from '../../src/pages/404.page'
 import type { BuildAssets } from '../document'
 import { register, resolveRoutes, withTrailingSlash } from '../render'
 import type { PageModule, RouteContext } from '../types'
@@ -179,5 +180,14 @@ describe('register', () => {
 
     routes[0]?.render(NO_ASSETS)
     expect(contexts).toHaveLength(1)
+  })
+
+  it('gives the 404 one search: its band, not the Union bar too', () => {
+    // `/404` is emitted as `404.html`, but the layout reads the route's own
+    // pathname (`/404/`), so `BaseLayout` still drops the bar's field.
+    const html = register(notFoundPage).resolve()[0]?.render(NO_ASSETS) ?? ''
+
+    expect(html.match(/data-island="SearchIsland"/g)).toHaveLength(1)
+    expect(html).toContain('srd-hero-search')
   })
 })

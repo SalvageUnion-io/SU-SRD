@@ -2,10 +2,10 @@
 
 Static SRD reference site for Salvage Union game data. Read-only — choices render
 ephemerally/non-editably
-([ADR-010](../../docs/ARCHITECTURE.md#adr-010)).
+([ADR-010](../../docs/ARCHITECTURE.md#decisions)).
 
 > **srd is not an Astro app** — it runs on an in-house static-site generator in
-> [`ssg/`](ssg/) ([ADR-031](../../docs/ARCHITECTURE.md#adr-031), superseding
+> [`ssg/`](ssg/) ([ADR-031](../../docs/ARCHITECTURE.md#decisions), superseding
 > ADR-012). No `.astro` files, no `astro.config.mjs`, no `client:*` directives,
 > no file-based routing. The contract is [`ssg/DESIGN.md`](ssg/DESIGN.md) —
 > **read it first.** This file is the canonical statement of this; others point here.
@@ -63,48 +63,15 @@ all — `/greembeem` ships as `public/greembeem/index.html`, which Vite copies
 into `dist` like any public file. Non-HTML outputs are `src/endpoints/*.ts`
 wired through `ssg/endpoints.ts` — **endpoints are not routes.**
 
-Current routes: `/`, `/schema/[schemaId]`, `/schema/[schemaId]/item/[itemId]`,
-`/schema/[schemaId]/item/[itemId]/pattern/[patternId]`, `/about`, `/api`,
-`/changelog`, `/search`, `/discord`, `/bot/privacy`, `/bot/terms`, `/og-card`,
-`/404`.
-
 ### The island protocol
 
-```tsx
-<Island name="SearchIsland" client="idle" props={{ … }} ssr={false} />
-```
-
-renders exactly one placeholder:
-
-```html
-<div data-island="SearchIsland" data-client="idle" data-island-id="i0">…</div>
-```
-
-- **Four client strategies** (`data-client`): `load` and `only` mount immediately, `idle` via
-  `requestIdleCallback` (fallback `setTimeout(…, 200)`), `visible` via
-  `IntersectionObserver` on first intersection.
-- **Mounting is always `createRoot`, never `hydrateRoot`**
-  (`src/runtime/islands.client.ts`). `useGameData`'s server snapshot is hardcoded
-  `false`, so hydrating would reintroduce the React #418 mismatch that
-  `cardNeedsHydration` exists to avoid. The mounter clears the placeholder
-  (`el.replaceChildren()`) and renders fresh.
-- Consequently **`ssr` is an SEO/no-JS decision per island, never a hydration
-  contract** — server markup inside a placeholder is discarded on mount, so a
-  mismatch is impossible. Default `false`; the per-island table is in
-  `ssg/DESIGN.md`.
-- Props for every island on a page are emitted **once per page** as a single
-  `<script type="application/json" data-island-props>` keyed by
-  `data-island-id` — not per-island attributes.
-- `src/runtime/islandRegistry.ts` maps name → `() => import('…')`. Every
-  specifier must be a **static string literal** so Rollup code-splits it; a
-  computed specifier collapses the registry into one eager chunk.
-- **`MobileNavIsland` takes zero props on purpose.** As a prop, its catalog
-  blob would be inlined into all 1,039 pages (17.3 MB); the island reads the
-  chapters frozen at build time (`src/generated/navCatalog.ts`, from
-  `src/lib/chapters.ts`) and `location.pathname` inside its own chunk. Do not
-  "helpfully" pass it props again.
-- `EntityCardStatic` is **not** an island — it renders straight into the page
-  tree and ships no JS. It is 82% of entity pages; leave that path alone.
+`<Island name client props ssr>` and the per-island table are
+[`ssg/DESIGN.md`](ssg/DESIGN.md)'s. Two that get "helpfully" undone: every
+`src/runtime/islandRegistry.ts` specifier is a **static string literal** (a
+computed one collapses the registry into one eager chunk), and
+**`MobileNavIsland` takes zero props on purpose** (as a prop, its catalog blob
+was inlined into all 1,039 pages, 17.3 MB). `EntityCardStatic` is 82% of entity
+pages and ships no JS; leave that path alone.
 
 ## Pages as the Workshop Manual sets them
 
@@ -122,20 +89,16 @@ renders exactly one placeholder:
 
 ## Hard rules
 
-1. **No `.css` import may be reachable from an SSR module.** Note what this does
-   NOT do: it does **not** break the build. Measured — a `.css` import in an SSR
-   module resolves under Bun and returns an object, exit 0, and `ssg/build.ts`'s
-   `ssg-css-stub` plugin makes that deterministic rather than introducing it.
-   That is precisely why the rule matters: a stylesheet imported anywhere else
-   never reaches Vite, so its authored rules never ship, with a green build and
-   a green typecheck. `bun run check styling` (its `srd-css` rule set) is what actually enforces it. **All** css is
-   imported from
-   `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
-   else. `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
-   `src/runtime/Island.tsx` must stay stylesheet-free. The same split applies to
-   static assets: `src/runtime/assets.entry.ts` is the only module that imports
-   from `src/assets/`, and pages address the emitted file through
-   `RouteContext.builtAssets`.
+1. **No `.css` import may be reachable from an SSR module.** It does **not**
+   break the build: under Bun it resolves to an object (`ssg/build.ts`'s
+   `ssg-css-stub` makes that deterministic), so the stylesheet never reaches
+   Vite and its rules never ship, with a green build and typecheck.
+   `bun run check styling` (its `srd-css` rule set) enforces it. **All** css is
+   imported from `src/runtime/styles.entry.ts`, a client-bundle entry and
+   nothing else; `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
+   `src/runtime/Island.tsx` stay stylesheet-free. Likewise
+   `src/runtime/assets.entry.ts` is the only importer of `src/assets/`; pages
+   address the emitted file through `RouteContext.builtAssets`.
 2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/`
    may import from `ssg/` at runtime.
 
@@ -164,48 +127,20 @@ smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
 - Search: In-memory via `salvageunion-reference` package `search()` function
 - Cmd+K/Ctrl+K shortcut to focus search
 - Imports from `component-lib` for shared UI components
-- Dev command: `bun run dev` (= `bun ssg/dev.ts`). Dev renders through the same
-  `render.tsx` as production **on purpose** — it is slower than an SPA dev server
-  and honest about what production will emit. Do not "optimize" it into a
+- Dev: `bun run dev` (= `bun ssg/dev.ts`) renders through production's
+  `render.tsx` **on purpose** (DESIGN.md rule 5) — never "optimize" it into a
   client-rendered SPA.
 
 ## Social preview images (og:image)
 
-Each entity page's `og:image` is its **link preview card**, `OgCard` from
-component-lib (issue 1280): the chapter band with speckle, the notched title,
-the stat boxes and the Union bar's foot, the same parts the pages are built
-from, so the preview cannot drift from the page. A reference thing (chassis,
-system, equipment) takes its tone, stats and page cite; a thing you do (ability,
-action) the ink band, tier numeral, cost pennant and rules. `ogCardForEntity`
-builds the card from the entity, and `src/lib/ogCard.ts` (`ogCardFor`,
-`ogMetaFor`, `ogImagePath`) is the one place the island, the generator and the
-pages agree on it. `scripts/og-screenshots.ts` screenshots it at 1200×630 into
-`dist/schema/{schemaId}/item/{itemId}.og.png`.
-
-- The page's other preview tags come from the same card: `og:title` is the
-  name, `og:description` the kicker and cite (never the body), and
-  `theme-color` the band's tone (`DocumentMeta.ogTitle` / `ogDescription` /
-  `themeColor`); `<title>` and the meta description still serve search.
-- Run it with `bun --filter srd og:generate` (chromium via `og:install-browser`).
-  It is **opt-in** — a plain `bun run build` never renders images, so CI stays fast.
-- The build always emits the _default_ og:image; the script then rewrites the meta
-  only for pages whose PNG actually landed. Generation being skipped, capped by
-  `OG_SCREENSHOTS_BUDGET_MS`, or failing outright therefore degrades to the
-  default banner and **never fails the build** — the failure mode that got the
-  previous version of this deleted (#482).
-- Bump `SCRIPT_VERSION` in the script whenever the card's _rendering_ changes
-  (OgCard, ChapterBand, fonts, dimensions); entity data changes invalidate on their own.
-  The deploy's `og-srd` job keys its persisted copy of this cache on every
-  render input as well, so there a rendering change starts cold regardless.
-- **Patterns** (a chassis's, a Bio-Titan's) are covered as entities in their own right — a pattern has
-  its own page, card view and provenance, so it gets its own card at
-  `…/item/{itemId}/pattern/{patternId}.og.png` rather than inheriting the
-  host's image.
+Each entity page's `og:image` is `OgCard`, screenshotted by `bun --filter srd
+og:generate` (opt-in; it never fails the build). The rules load with its files:
+[`.claude/rules/srd-og-images.md`](../../.claude/rules/srd-og-images.md).
 
 ## Changelog (generated)
 
 The `/changelog` page (`src/pages/changelog.page.tsx`) is rendered **at build time** from `main`'s
-history ([ADR-041](../../docs/ARCHITECTURE.md#adr-041)): `readChangelog('srd', 'Site')` from
+history ([ADR-041](../../docs/ARCHITECTURE.md#decisions)): `readChangelog('srd', 'Site')` from
 `component-lib/changelog/git` keeps the `feat`, `fix` and `perf` squash titles scoped `srd`, one
 entry per day, and the page renders them with `Changelog`. There is no file to edit: a PR reaches
 this page by its title, `feat(srd): …`. Another scope, or none, never shows here.

@@ -1,5 +1,8 @@
+import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import '../../stories/_stories.css'
 import type { Story } from '../../stories/_harness'
 import type { NavDrawerCategory } from './NavDrawer'
 import { NavDrawer } from './NavDrawer'
@@ -9,10 +12,26 @@ export default {
   title: 'Compositions/Shell/Nav Drawer',
 }
 
+const BRAND = {
+  border: `${borderWidth.hairline} solid ${color.ink}`,
+  display: 'inline-flex',
+  flexShrink: 0,
+  fontFamily: font.cond,
+  fontSize: fontSize.xl,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsTight,
+  lineHeight: 1,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const BRAND_PAD = `${space[2]} ${space[4]}`
+
 const SrdBrand = () => (
-  <span className="inline-flex shrink-0 border border-ink font-cond text-xl font-bold uppercase leading-none tracking-caps-tight">
-    <span className="bg-ink px-1 py-0.5 text-paper">Salvage Union</span>
-    <span className="bg-paper px-1 py-0.5 text-ink">SRD</span>
+  <span style={BRAND}>
+    <span style={{ backgroundColor: color.ink, color: color.paper, padding: BRAND_PAD }}>
+      Salvage Union
+    </span>
+    <span style={{ backgroundColor: color.paper, color: color.ink, padding: BRAND_PAD }}>SRD</span>
   </span>
 )
 
@@ -100,7 +119,7 @@ export const WithFoot: Story = () => {
           { label: 'About', href: '/about' },
           { label: 'Changelog', href: '/changelog' },
         ]}
-        panelClassName="w-72"
+        panelClassName="su-story-nav-drawer-narrow"
       />
     </div>
   )

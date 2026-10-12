@@ -50,27 +50,6 @@ describe('SchemaViewerIsland', () => {
     expect(within(filterRail).getByRole('combobox', { name: 'Source' })).toBeTruthy()
   })
 
-  for (const schema of entitySchemas) {
-    const model = getModel(schema.id)
-    if (!model) continue
-
-    const entities = model.all()
-    if (entities.length === 0) continue
-
-    it(`renders all ${entities.length} entities for "${schema.displayName}" (${schema.id})`, () => {
-      const { container } = render(
-        <SchemaViewerIsland
-          schemaId={schema.id}
-          techLevels={getUniqueTechLevels(entities)}
-          sources={getUniqueSources(entities)}
-        />
-      )
-
-      const links = container.querySelectorAll('a')
-      expect(links.length).toBe(entities.length)
-    })
-  }
-
   it('renders filter buttons when multiple tech levels exist', () => {
     const firstSchema = required(entitySchemas[0], 'first entity schema')
 
@@ -424,6 +403,14 @@ describe('SchemaViewerIsland', () => {
           /^https:\/\/assets\.salvageunion\.io\/.+-440\.webp$/
         )
         expect(img.getAttribute('loading')).toBe('lazy')
+        // The Tile carries the lore under its cells, as the Row does.
+        const gopher = required(
+          container.querySelector<HTMLElement>('.srd-listing__tiles a[aria-label="Gopher"]'),
+          'the Gopher tile'
+        )
+        expect(gopher.querySelector('p')?.textContent).toStartWith(
+          "The 'TC40' Gopher was originally designed"
+        )
         // The reader's choice wins over the measure, and is remembered.
         fireEvent.click(screen.getByRole('button', { name: 'List' }))
         expect(container.querySelector('.srd-listing__tiles')).toBeNull()

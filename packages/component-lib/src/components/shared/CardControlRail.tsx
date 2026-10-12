@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Fragment } from 'react'
-import { cn } from '../../utils/cn'
+import { space } from '../../design/tokens'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 import { ControlButtons } from './ControlButtons'
 
@@ -15,6 +15,20 @@ type CardControlRailProps = {
   seals?: ReactNode[]
 }
 
+const RAIL = {
+  position: 'absolute',
+  right: space[8],
+  top: 0,
+  zIndex: 30,
+  display: 'flex',
+  maxWidth: 'calc(100% - 1rem)',
+  translate: '0 -50%',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: space[6],
+} satisfies CSSProperties
+
 /**
  * THE card control rail — ONE absolutely-positioned row, riding the card's
  * top-right frame edge, holding every seal and the action cluster so they sit
@@ -25,14 +39,14 @@ type CardControlRailProps = {
  * of stacking at the same coordinate, and `status` has exactly one rendering
  * path: a `controls` entry.
  *
- * The rail rides the card's top-RIGHT corner (`right-2` + `justify-end`),
- * CENTRED on the frame line (`top-0 -translate-y-1/2`) at every density — the
+ * The rail rides the card's top-RIGHT corner (`right: 8px` + `justify-content: flex-end`),
+ * CENTRED on the frame line (`top: 0` + `translate: 0 -50%`) at every density — the
  * StampSeam signature, half above the border and half over it. The corner
  * keeps the controls off the card's title, which is the one thing a reader
  * scans a collapsed listing for.
  *
  * Position has no bearing on overflow either way: containment comes from
- * `flex-wrap` + `max-w-[calc(100%-1rem)]`, which cap the row at the card width
+ * `flex-wrap` + `max-width: calc(100% - 1rem)`, which cap the row at the card width
  * minus a 0.5rem gutter and wrap a crowded rail (status seal + selection seal +
  * count seal + three controls) onto stacked, equal-height lines rather than
  * letting it escape the frame. `justify` only aligns those wrapped lines INSIDE
@@ -54,11 +68,7 @@ export function CardControlRail({ controls, seals }: CardControlRailProps) {
   }
 
   return (
-    <div
-      className={cn(
-        'absolute right-2 top-0 z-30 flex max-w-[calc(100%-1rem)] -translate-y-1/2 flex-wrap items-center justify-end gap-1.5'
-      )}
-    >
+    <div data-card-rail="" style={RAIL}>
       {statusControls.length > 0 && <ControlButtons controls={statusControls} />}
       {visibleSeals.map((seal, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: a fixed positional rail (selection seal, then count seal) — the index IS the identity

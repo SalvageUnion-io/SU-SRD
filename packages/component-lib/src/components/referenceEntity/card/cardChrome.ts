@@ -8,12 +8,12 @@
 import type { CSSProperties } from 'react'
 import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
 import { headerFill, isAbility, parseContentBlockString } from 'salvageunion-reference'
+import type { Foreground } from '../../../design/contrast'
 import { cn } from '../../../utils/cn'
 import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
 import type { CardExtent, CardSize } from '../../shared/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import type { OnToneText } from '../referenceEntityHelpers'
-import { borderColorFromHeaderBg, onToneText, textBand } from '../referenceEntityHelpers'
+import { onTone, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
 import { firstParagraphText } from './firstParagraphText'
@@ -51,9 +51,9 @@ export function resolveHeaderFill(entity: SURefMetaEntity, extent: CardExtent): 
  * are ink on paper on every card, so they need no colour of their own. */
 export type CardColors = {
   /** The foreground for the header band — see `resolveCardColors`. */
-  onBandText: OnToneText
-  headerBg: string | undefined
-  headerBgColor: string | undefined
+  onBand: Foreground
+  /** The band's fill as a CSS colour; `undefined` leaves it paper. */
+  bandColor: string | undefined
 }
 
 /**
@@ -68,7 +68,7 @@ export type CardColors = {
  * - DAMAGED/DESTROYED (write layer): the header goes flat grey, whatever the fill.
  *
  * FOREGROUNDS go by WCAG contrast against the band actually painted
- * (`onToneText`): "solid tones read paper" measured 1.79:1 on TL1, 2.41:1 on
+ * (`onTone`): "solid tones read paper" measured 1.79:1 on TL1, 2.41:1 on
  * pilot and 3.03:1 on mech, so the title is ink or paper, whichever passes.
  */
 export function resolveCardColors({
@@ -80,32 +80,12 @@ export function resolveCardColors({
   isDown: boolean
   fill: HeaderFill
 }): CardColors {
-  if (isDown) {
-    return {
-      onBandText: onToneText(GREY_HEADER, 'text-ink'),
-      headerBg: undefined,
-      headerBgColor: GREY_HEADER,
-    }
-  }
-  if (fill === 'ink') {
-    return { onBandText: 'text-paper', headerBg: undefined, headerBgColor: 'var(--color-ink)' }
-  }
+  if (isDown) return { onBand: onTone(GREY_HEADER, 'ink'), bandColor: GREY_HEADER }
+  if (fill === 'ink') return { onBand: 'paper', bandColor: 'var(--color-ink)' }
   // A tone that carries neither foreground at 4.5:1 paints its deeper text
   // band instead (ruleset §3.8): crawler pink becomes the crawler band, paper text.
-  const band = borderColorFromHeaderBg(tone.bg, tone.bgColor)
-  const painted = textBand(band)
-  if (painted !== band) {
-    return {
-      onBandText: onToneText(painted, 'text-paper'),
-      headerBg: undefined,
-      headerBgColor: painted,
-    }
-  }
-  return {
-    onBandText: onToneText(band, 'text-paper'),
-    headerBg: tone.bg,
-    headerBgColor: tone.bgColor,
-  }
+  const band = tone.bgColor ?? tone.bg
+  return { onBand: onTone(band, 'paper'), bandColor: textBand(band) }
 }
 
 /**
@@ -163,13 +143,15 @@ export function resolveCardInteraction({
 } {
   const resolvedCardClick = onCardClick ?? controls?.find((c) => c.cardClick)?.onClick
   const isHoverable = !!resolvedCardClick || !!cardClickable
+  // Classes, not a style object: a caller's `className` may override any of
+  // these (`.su-ec-outer` in `styles/index.css`).
   const outerClassName = cn(
-    'relative flex min-w-0 flex-col overflow-visible',
-    disabled && 'opacity-50',
-    selectable === false && 'opacity-50 saturate-50',
+    'su-ec-outer',
+    disabled && 'su-ec-outer--dim',
+    selectable === false && 'su-ec-outer--unselectable',
     // Flat chrome (brand refresh P2a): a clickable card says so with the pointer, not by
     // lifting and scaling off the page.
-    isHoverable && 'cursor-pointer',
+    isHoverable && 'su-ec-outer--clickable',
     resolvedCardClick && FOCUS_RING,
     className
   )

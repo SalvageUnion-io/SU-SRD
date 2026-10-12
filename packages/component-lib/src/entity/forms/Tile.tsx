@@ -9,6 +9,7 @@ import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
+import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
@@ -17,6 +18,8 @@ export type TileProps = {
   /** `link` on a listing; a tile has no `select` slot yet. */
   mode?: TileMode
   omit?: readonly EntityOmit[]
+  /** The opening prose under the cells, while browsing (E11). */
+  lead?: boolean
 }
 
 type TileMode = Extract<EntityMode, { kind: 'read' | 'link' }>
@@ -57,15 +60,17 @@ const NAME: CSSProperties = {
  * (the line art multiplied onto it, or the entity's censor mark when its
  * schema has art and it has none), then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
- * Manual's chapter band at a tile's scale — then the facts as value cells.
+ * Manual's chapter band at a tile's scale — then the facts as value cells and,
+ * while browsing, the lead clamped to three lines.
  * Layout is `index.css`'s `.su-entity-tile*`.
  */
-export function Tile({ model, mode = READ, omit = [] }: TileProps) {
+export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
   const facts = factCells(model.facts, omit)
   const { art } = model
+  const leadText = lead ? model.lead : undefined
 
   return (
     <LinkSurface target={target} label={model.title} className="su-entity-tile">
@@ -106,9 +111,10 @@ export function Tile({ model, mode = READ, omit = [] }: TileProps) {
           {model.cost && <CardPennant cost={model.cost} size="medium" subject={model.title} />}
           {(target.href || target.onOpen) && <LinkChevron />}
         </div>
-        {facts.length > 0 && (
+        {(facts.length > 0 || leadText) && (
           <div className="su-entity-tile__cells">
             <Facts cells={facts} size="compact" />
+            {leadText && <Lead text={leadText} />}
           </div>
         )}
       </div>

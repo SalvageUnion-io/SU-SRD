@@ -153,6 +153,7 @@ export const TileCatalog: Story = () => (
             entity={entity}
             mode={{ kind: 'link', href: '#' }}
             omit={['kind', 'tech-level']}
+            lead
           />
         </li>
       )

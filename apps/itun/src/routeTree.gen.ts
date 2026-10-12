@@ -13,13 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ChangelogRouteImport } from './routes/changelog'
-import { Route as GamesRouteImport } from './routes/games'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as DashboardPilotIdRouteImport } from './routes/dashboard/$pilotId'
 import { Route as GamesGameIdRouteImport } from './routes/games_.$gameId'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
-import { Route as JoinCodeRouteImport } from './routes/join/$code'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
 import { Route as MediatorGameIdRouteImport } from './routes/mediator/$gameId'
 import { Route as NpcsNewRouteImport } from './routes/npcs/new'
@@ -33,7 +31,6 @@ import { Route as OgKindIdRouteImport } from './routes/og.$kind.$id'
 import { Route as PKindAppIdRouteImport } from './routes/p.$kind.$appId'
 import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
 import { Route as StarterKindIdRouteImport } from './routes/starter.$kind.$id'
-import { Route as GamesGameIdViewKindEntityIdRouteImport } from './routes/games_.$gameId_.view.$kind.$entityId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,11 +50,6 @@ const AccountRoute = AccountRouteImport.update({
 const ChangelogRoute = ChangelogRouteImport.update({
   id: '/changelog',
   path: '/changelog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GamesRoute = GamesRouteImport.update({
-  id: '/games',
-  path: '/games',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -83,11 +75,6 @@ const GamesGameIdRoute = GamesGameIdRouteImport.update({
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JoinCodeRoute = JoinCodeRouteImport.update({
-  id: '/join/$code',
-  path: '/join/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MechsNewRoute = MechsNewRouteImport.update({
@@ -155,25 +142,17 @@ const StarterKindIdRoute = StarterKindIdRouteImport.update({
   path: '/starter/$kind/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GamesGameIdViewKindEntityIdRoute =
-  GamesGameIdViewKindEntityIdRouteImport.update({
-    id: '/games_/$gameId_/view/$kind/$entityId',
-    path: '/games/$gameId/view/$kind/$entityId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/changelog': typeof ChangelogRoute
-  '/games': typeof GamesRoute
   '/settings': typeof SettingsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
   '/games/$gameId': typeof GamesGameIdRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/join/$code': typeof JoinCodeRoute
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -187,20 +166,17 @@ export interface FileRoutesByFullPath {
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
-  '/games/$gameId/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/changelog': typeof ChangelogRoute
-  '/games': typeof GamesRoute
   '/settings': typeof SettingsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
   '/games/$gameId': typeof GamesGameIdRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/join/$code': typeof JoinCodeRoute
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -214,7 +190,6 @@ export interface FileRoutesByTo {
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
   '/mechs/patterns': typeof MechsPatternsIndexRoute
-  '/games/$gameId/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -222,13 +197,11 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/changelog': typeof ChangelogRoute
-  '/games': typeof GamesRoute
   '/settings': typeof SettingsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
   '/games_/$gameId': typeof GamesGameIdRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/join/$code': typeof JoinCodeRoute
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -242,7 +215,6 @@ export interface FileRoutesById {
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
-  '/games_/$gameId_/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -251,13 +223,11 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/changelog'
-    | '/games'
     | '/settings'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
     | '/games/$gameId'
     | '/invite/$token'
-    | '/join/$code'
     | '/mechs/new'
     | '/mediator/$gameId'
     | '/npcs/new'
@@ -271,20 +241,17 @@ export interface FileRouteTypes {
     | '/sheet/$kind/$id'
     | '/starter/$kind/$id'
     | '/mechs/patterns/'
-    | '/games/$gameId/view/$kind/$entityId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/account'
     | '/changelog'
-    | '/games'
     | '/settings'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
     | '/games/$gameId'
     | '/invite/$token'
-    | '/join/$code'
     | '/mechs/new'
     | '/mediator/$gameId'
     | '/npcs/new'
@@ -298,20 +265,17 @@ export interface FileRouteTypes {
     | '/sheet/$kind/$id'
     | '/starter/$kind/$id'
     | '/mechs/patterns'
-    | '/games/$gameId/view/$kind/$entityId'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/account'
     | '/changelog'
-    | '/games'
     | '/settings'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
     | '/games_/$gameId'
     | '/invite/$token'
-    | '/join/$code'
     | '/mechs/new'
     | '/mediator/$gameId'
     | '/npcs/new'
@@ -325,7 +289,6 @@ export interface FileRouteTypes {
     | '/sheet/$kind/$id'
     | '/starter/$kind/$id'
     | '/mechs/patterns/'
-    | '/games_/$gameId_/view/$kind/$entityId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -333,13 +296,11 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
   ChangelogRoute: typeof ChangelogRoute
-  GamesRoute: typeof GamesRoute
   SettingsRoute: typeof SettingsRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
   DashboardPilotIdRoute: typeof DashboardPilotIdRoute
   GamesGameIdRoute: typeof GamesGameIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
-  JoinCodeRoute: typeof JoinCodeRoute
   MechsNewRoute: typeof MechsNewRoute
   MediatorGameIdRoute: typeof MediatorGameIdRoute
   NpcsNewRoute: typeof NpcsNewRoute
@@ -353,7 +314,6 @@ export interface RootRouteChildren {
   SheetKindIdRoute: typeof SheetKindIdRoute
   StarterKindIdRoute: typeof StarterKindIdRoute
   MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
-  GamesGameIdViewKindEntityIdRoute: typeof GamesGameIdViewKindEntityIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -384,13 +344,6 @@ declare module '@tanstack/react-router' {
       path: '/changelog'
       fullPath: '/changelog'
       preLoaderRoute: typeof ChangelogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/games': {
-      id: '/games'
-      path: '/games'
-      fullPath: '/games'
-      preLoaderRoute: typeof GamesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -426,13 +379,6 @@ declare module '@tanstack/react-router' {
       path: '/invite/$token'
       fullPath: '/invite/$token'
       preLoaderRoute: typeof InviteTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/join/$code': {
-      id: '/join/$code'
-      path: '/join/$code'
-      fullPath: '/join/$code'
-      preLoaderRoute: typeof JoinCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mechs/new': {
@@ -526,13 +472,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StarterKindIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/games_/$gameId_/view/$kind/$entityId': {
-      id: '/games_/$gameId_/view/$kind/$entityId'
-      path: '/games/$gameId/view/$kind/$entityId'
-      fullPath: '/games/$gameId/view/$kind/$entityId'
-      preLoaderRoute: typeof GamesGameIdViewKindEntityIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -541,13 +480,11 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
   ChangelogRoute: ChangelogRoute,
-  GamesRoute: GamesRoute,
   SettingsRoute: SettingsRoute,
   CrawlersNewRoute: CrawlersNewRoute,
   DashboardPilotIdRoute: DashboardPilotIdRoute,
   GamesGameIdRoute: GamesGameIdRoute,
   InviteTokenRoute: InviteTokenRoute,
-  JoinCodeRoute: JoinCodeRoute,
   MechsNewRoute: MechsNewRoute,
   MediatorGameIdRoute: MediatorGameIdRoute,
   NpcsNewRoute: NpcsNewRoute,
@@ -561,7 +498,6 @@ const rootRouteChildren: RootRouteChildren = {
   SheetKindIdRoute: SheetKindIdRoute,
   StarterKindIdRoute: StarterKindIdRoute,
   MechsPatternsIndexRoute: MechsPatternsIndexRoute,
-  GamesGameIdViewKindEntityIdRoute: GamesGameIdViewKindEntityIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -40,9 +40,9 @@ describe('FilterRow', () => {
     )
     const label = container.querySelector('span')
     expect(label).toBeTruthy()
-    // An uppercase caps label rides the CONDENSED face (font-cond), not the
-    // body face — it used to sit on the retired `font-mono` alias.
-    expect(label?.className).toContain('font-cond')
-    expect(label?.className).toContain('uppercase')
+    // An uppercase caps label rides the CONDENSED face, not the body face —
+    // it used to sit on the retired `font-mono` alias.
+    expect(label?.style.fontFamily).toContain('Barlow Semi Condensed')
+    expect(label?.style.textTransform).toBe('uppercase')
   })
 })

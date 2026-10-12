@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Button } from '../chrome/Button'
 import { PageHeading } from '../chrome/PageHeading'
@@ -22,6 +23,29 @@ type RecoveryPanelProps = {
   className?: string
 }
 
+/** The card; its padding is `.su-recovery-panel`'s, which steps up at `sm`. */
+const PANEL = {
+  display: 'flex',
+  width: '100%',
+  maxWidth: '36rem',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: space[16],
+  borderRadius: radius.panel,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  borderColor: color.ink,
+  backgroundColor: color.paper,
+  textAlign: 'center',
+} satisfies CSSProperties
+
+const MESSAGE = {
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: '20px',
+  color: color.wkMuted,
+} satisfies CSSProperties
+
 /**
  * RecoveryPanel — the shared error-recovery card behind srd's island error
  * boundary and itun's root error component (which mirrored each other by hand).
@@ -36,17 +60,11 @@ type RecoveryPanelProps = {
  */
 export function RecoveryPanel({ title, message, action, children, className }: RecoveryPanelProps) {
   return (
-    <div
-      role="alert"
-      className={cn(
-        'flex w-full max-w-xl flex-col items-center gap-4 rounded-panel border-chrome border-ink bg-paper p-6 text-center sm:p-8',
-        className
-      )}
-    >
-      <PageHeading variant="subheading" as="h1" className="tracking-caps-tight text-ink">
+    <div role="alert" className={cn('su-recovery-panel', className)} style={PANEL}>
+      <PageHeading variant="subheading" as="h1" className="su-recovery-panel-title">
         {title}
       </PageHeading>
-      <p className="font-body text-sm text-wk-muted">{message}</p>
+      <p style={MESSAGE}>{message}</p>
       {children}
       <Button variant="primary" onClick={action.onClick}>
         {action.label}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
@@ -24,7 +25,7 @@ const chassis = SalvageUnionReference.Chassis.all().slice(0, 4)
  * to watch columns redistribute only when a breakpoint is crossed.
  */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-3">
+  <div style={{ display: 'flex', flexDirection: 'column', gap: space[12] }}>
     <Caption>Viewport ladder 1 / 2 / 3 — cards round-robin into positional columns</Caption>
     <MasonryColumns>
       {equipment.map((item) => (
@@ -36,7 +37,7 @@ export const Default: Story = () => (
 
 /** The wizard selection-pool shape: `maxColumns={2}` never splits past two. */
 export const TwoColumnCap: Story = () => (
-  <div className="flex flex-col gap-3">
+  <div style={{ display: 'flex', flexDirection: 'column', gap: space[12] }}>
     <Caption>maxColumns=2 — constrained pools (wizard steps) stop at two columns</Caption>
     <MasonryColumns maxColumns={2}>
       {equipment.map((item) => (
@@ -54,7 +55,7 @@ export const TwoColumnCap: Story = () => (
 export const RadioSelection: Story = () => {
   const [chosen, setChosen] = useState('')
   return (
-    <div className="flex flex-col gap-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[12] }}>
       <Caption>radio + ariaLabel — pick-one pool with the card's native selected ring</Caption>
       <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
         {chassis.map((c) => (

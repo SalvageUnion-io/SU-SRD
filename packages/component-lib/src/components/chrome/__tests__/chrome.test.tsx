@@ -160,7 +160,7 @@ describe('Panel / Row', () => {
 describe('EmptyState', () => {
   test('stamp default renders the dashed frame with a stamp headline', () => {
     const { container } = render(<EmptyState headline="No pilots yet" />)
-    expect(container.firstElementChild?.className).toContain('border-dashed')
+    expect((container.firstElementChild as HTMLElement | null)?.style.borderStyle).toBe('dashed')
     const stamp = screen.getByText('No pilots yet')
     expect(stamp.className).toContain('bg-ink')
   })
@@ -174,9 +174,9 @@ describe('EmptyState', () => {
       />
     )
     const root = rootEl(container)
-    expect(root.className).toContain('border-dashed')
-    expect(root.className).toContain('border-wk-faint')
-    expect(root.className).toContain('text-center')
+    expect(root.style.borderStyle).toBe('dashed')
+    expect(root.style.borderColor).toBe('rgb(167, 180, 189)')
+    expect(root.style.textAlign).toBe('center')
     expect(screen.getByText('No pilots yet')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Create' })).toBeTruthy()
   })

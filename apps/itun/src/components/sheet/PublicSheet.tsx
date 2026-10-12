@@ -1,6 +1,6 @@
 /**
  * PublicSheet — one published sheet, read-only, for a reader with no account
- * ([ADR-032](../../../../../docs/ARCHITECTURE.md#adr-032)).
+ * ([ADR-032](../../../../../docs/adr/032-public-read-only-sheets.md)).
  *
  * Rendered by the same live `<Sheet>` as every other surface, from a store built
  * out of `publicSheet.get` (`readOnlySheetStore.ts`), so it adds no rendering
