@@ -124,7 +124,7 @@ describe('Change Log — write-through chokepoint', () => {
   })
 
   test('transfer() logs every updated entity — the chokepoint hole (ADR-022)', async () => {
-    // transfer() commits cross-entity writes in one IDB transaction, bypassing
+    // transfer() commits cross-entity writes in one server mutation, bypassing
     // update(). Before this was wired it emitted nothing, so cargo stow/load
     // and scrap hand-offs mutated entities with no provenance at all.
     const pilot = await seedPilot()

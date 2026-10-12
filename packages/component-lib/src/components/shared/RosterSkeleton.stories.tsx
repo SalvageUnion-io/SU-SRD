@@ -7,7 +7,7 @@ export default {
   title: 'Containers/Roster Skeleton',
 }
 
-/** Roster loading placeholder — shown while IndexedDB hydrates. */
+/** Roster loading placeholder — shown until the roster's rows arrive. */
 export const Default: Story = () => (
   <div style={{ backgroundColor: color.paper, padding: space[16] }}>
     <Caption>RosterSkeleton</Caption>
