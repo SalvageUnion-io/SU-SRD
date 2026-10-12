@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { resolve } from 'node:path'
 import { WIDTH_PRESETS } from 'catalog/src/catalogRoute'
-import { fileName, parseArgs, planShot, WIDTHS } from '../shot'
+import { CHECKOUT_ROOT, portFor } from 'gates/ports'
+import { fileName, isOwnServer, parseArgs, planShot, WIDTHS } from '../shot'
 
 /**
  * `tools/shot.ts` — argument parsing and the target → server/path/file plan.
@@ -37,18 +38,24 @@ describe('parseArgs', () => {
 })
 
 describe('planShot', () => {
-  test('a /route goes to the srd dev server as is', () => {
+  test("a /route goes to this checkout's srd dev server as is", () => {
     expect(planShot({ target: '/schema/chassis/item/mule/', width: 'page' })).toEqual({
-      server: { name: 'srd', port: 4321, script: 'dev' },
+      server: { name: 'srd', port: portFor('srd'), script: 'dev' },
       path: '/schema/chassis/item/mule/',
     })
   })
 
   test('anything else is a story, canvas-only at the preset width', () => {
     const { server, path } = planShot({ target: 'atoms--button--primary', width: 'phone' })
-    expect(server.port).toBe(61000)
+    expect(server.port).toBe(portFor('stories'))
     expect(path).toBe('/?story=atoms--button--primary&mode=canvas&width=phone')
   })
+})
+
+test('only a server naming this checkout is reused', () => {
+  expect(isOwnServer(CHECKOUT_ROOT)).toBe(true)
+  expect(isOwnServer('/somewhere/else')).toBe(false)
+  expect(isOwnServer(null)).toBe(false)
 })
 
 test('fileName slugs the target and marks the width and dark', () => {

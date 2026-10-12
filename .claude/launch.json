@@ -5,7 +5,8 @@
       "name": "srd",
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "dev"],
-      "port": 4321
+      "port": 4321,
+      "autoPort": true
     },
     {
       "name": "itun",
@@ -17,7 +18,8 @@
       "name": "stories",
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "stories"],
-      "port": 61000
+      "port": 61000,
+      "autoPort": true
     }
   ]
 }

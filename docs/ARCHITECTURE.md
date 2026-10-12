@@ -72,7 +72,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Entity forms (Mention, Token, Row, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Component catalog**
-    `bun run stories` (port 61000) serves `apps/catalog`: component-lib's and both apps' stories.
+    `bun run stories` serves `apps/catalog`: component-lib's and both apps' stories.
     Story rules: [component-lib's CLAUDE.md](../packages/component-lib/CLAUDE.md), enforced by `story-coverage.test.ts`.
 24. **Discord bot as a Game client**
     `/su` commands call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`; `/su invite` is Discord-signed.

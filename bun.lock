@@ -38,6 +38,9 @@
         "salvageunion-reference": "workspace:*",
         "srd": "workspace:*",
       },
+      "devDependencies": {
+        "gates": "workspace:*",
+      },
     },
     "apps/discord-bot": {
       "name": "discord-bot",

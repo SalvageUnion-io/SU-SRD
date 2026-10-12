@@ -13,6 +13,10 @@
       "types": "./lib/playwrightBase.ts",
       "default": "./lib/playwrightBase.ts"
     },
+    "./ports": {
+      "types": "./lib/ports.ts",
+      "default": "./lib/ports.ts"
+    },
     "./lib/*": {
       "types": "./lib/*.ts",
       "default": "./lib/*.ts"
