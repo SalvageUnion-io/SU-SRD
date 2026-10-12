@@ -353,10 +353,10 @@ function ReferenceEntityCardInner({
   scalingParent,
   expand,
 }: ReferenceEntityCardProps) {
-  // Section bands become real headings only when this card IS the page — see
-  // `sectionHeadingLevel` for why, and for what deliberately stays a span.
-  // A PAGE is the page whatever `titleAs` says: its title is the page's h1, in
-  // the chapter band. Only a top-level card takes the page presentation.
+  // Section bands are h2s (their nested cards' titles h3s) only when this card
+  // IS the page — see `sectionHeadingLevel`. A PAGE is the page whatever
+  // `titleAs` says: its title is the page's h1, in the chapter band. Only a
+  // top-level card takes the page presentation.
   const onPage = presentation === 'page' && !inline && depthProp === 0
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
