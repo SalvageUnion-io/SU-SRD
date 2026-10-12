@@ -46,8 +46,14 @@ export function TopNavigation({
       // Cross-document view transitions (`@view-transition { navigation: auto }`)
       // match on this name.
       viewTransitionName="nav"
-      search={pageHasSearch ? undefined : <Island name="SearchIsland" client="idle" />}
-      actions={<Island name="WikiLinkIsland" client="idle" />}
+      // The WIKI link sits left of the search, so it rides the search slot; it
+      // stays when the page carries its own search.
+      search={
+        <>
+          <Island name="WikiLinkIsland" client="idle" />
+          {pageHasSearch ? null : <Island name="SearchIsland" client="idle" />}
+        </>
+      }
       mobile={
         <>
           <Island name="WikiLinkIsland" client="idle" />

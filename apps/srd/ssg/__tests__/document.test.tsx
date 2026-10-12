@@ -139,8 +139,8 @@ describe('island props payload', () => {
     // TopNavigation's chrome islands are part of every base-shell page, so they
     // take the first ids and the page's own island follows them.
     const html = renderAbout()
-    expect(html).toContain('data-island="SearchIsland" data-client="idle" data-island-id="i0"')
-    expect(html).toContain('data-island="WikiLinkIsland" data-client="idle" data-island-id="i1"')
+    expect(html).toContain('data-island="WikiLinkIsland" data-client="idle" data-island-id="i0"')
+    expect(html).toContain('data-island="SearchIsland" data-client="idle" data-island-id="i1"')
     expect(html).toContain('data-island="WikiLinkIsland" data-client="idle" data-island-id="i2"')
     expect(html).toContain(
       'data-island="MobileSearchIsland" data-client="idle" data-island-id="i3"'

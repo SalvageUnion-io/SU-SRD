@@ -29,8 +29,6 @@ type SiteHeaderProps = {
   search?: ReactNode
   /** Mobile cluster — search trigger + hamburger drawer (slotted, hydrated by the site). */
   mobile?: ReactNode
-  /** Desktop controls after "Buy the game" (srd slots the rare WIKI link here). */
-  actions?: ReactNode
 }
 
 export function SiteHeader({
@@ -40,7 +38,6 @@ export function SiteHeader({
   viewTransitionName,
   search,
   mobile,
-  actions,
 }: SiteHeaderProps) {
   return (
     <AppBar
@@ -51,7 +48,6 @@ export function SiteHeader({
       search={search}
       buyHref="https://leyline.press/collections/salvage-union"
       mobile={mobile}
-      actions={actions}
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}
     />
