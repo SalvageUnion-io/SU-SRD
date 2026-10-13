@@ -102,7 +102,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
   const { state, usage, crawlerLocked } = cargo
   const editable = !readOnly
   // Stow and Load both write the crawler; a player in a Game may not (ADR-038 §5).
-  const stowBlocked = crawlerLinked ? crawlerLocked : 'No crawler is linked.'
+  const stowBlocked = crawlerLinked ? crawlerLocked : 'No crawler is assigned.'
   const loadBlocked = crawlerLocked ?? (usage.free <= 0 ? 'The hold is full.' : null)
 
   return (

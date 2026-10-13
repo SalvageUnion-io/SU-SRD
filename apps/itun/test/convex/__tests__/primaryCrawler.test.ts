@@ -180,7 +180,7 @@ describe('moves — crawlers are the table runner’s', () => {
     const other = await o.as.mutation(api.games.create, { name: 'Other' })
     await addCrawler(o, 'c1', gameId)
 
-    await expect(moveCrawler(o, 'c1', other)).rejects.toThrow(/my stuff first/i)
+    await expect(moveCrawler(o, 'c1', other)).rejects.toThrow(/your shelf first/i)
   })
 
   test('a field patch never moves a crawler — its gameId is ignored', async () => {
@@ -361,7 +361,7 @@ describe('the primary crawler', () => {
     ).rejects.toThrow(/only the mediator/i)
     await expect(
       o.as.mutation(api.games.setPrimaryCrawler, { gameId, crawlerId: elsewhere })
-    ).rejects.toThrow(/not in this game/i)
+    ).rejects.toThrow(/not in this Game/i)
   })
 
   test('the Games list names the primary, and follows it when it changes', async () => {

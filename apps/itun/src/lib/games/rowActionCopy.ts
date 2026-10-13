@@ -50,7 +50,7 @@ function them(kind: RowActionKind): string {
 export type MoveDestination = { kind: 'shelf' } | { kind: 'game'; name: string | null }
 
 /** A Game the reader cannot name (still loading, or one they have left). */
-const UNNAMED_GAME = 'this game'
+const UNNAMED_GAME = 'this Game'
 
 /**
  * What a move out of a Game undoes (ADR-037: a move prunes every link it would
@@ -127,7 +127,7 @@ export const ROW_ACTION_COPY = {
     return {
       title: `Pick up ${name}?`,
       body: [
-        `${name} is unclaimed — the Mediator left them for somebody to take. Picking them up makes you their owner: they become yours to edit, they open in this browser, and every change saves back to the game.`,
+        `${name} is unclaimed — the Mediator left them for somebody to take. Picking them up makes you their owner: they become yours to edit, they open in this browser, and every change saves back to the Game.`,
         'Changed your mind later? Hand them back with “Offer to the crew”.',
       ],
       confirmLabel: 'Pick up',
@@ -145,7 +145,7 @@ export const ROW_ACTION_COPY = {
     return {
       title: `Offer ${name} to the crew?`,
       body: [
-        `You'll stop owning ${name}, and anyone in the game can pick ${them(kind)} up.`,
+        `You'll stop owning ${name}, and anyone in the Game can pick ${them(kind)} up.`,
         `You can pick ${them(kind)} up again yourself, as long as nobody else has first.`,
       ],
       confirmLabel: 'Offer to the crew',
@@ -162,7 +162,7 @@ export const ROW_ACTION_COPY = {
    */
   copy(name: string): ConfirmCopy {
     return {
-      title: `Copy ${name} to your shelf?`,
+      title: `Make a copy of ${name} on your shelf?`,
       body: [
         `This makes “${copyName(name)}” on your shelf. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
         "Don't want it later? Delete the copy from your shelf.",
@@ -203,8 +203,8 @@ export const ROW_ACTION_COPY = {
     return {
       title: `Delete ${name}?`,
       body: [
-        `This cannot be undone. ${name} will be removed from this game for everyone, and from this browser.`,
-        'Only leaving the table? “Offer to the crew” hands them back instead — they stay in the game for somebody else to pick up.',
+        `This cannot be undone. ${name} will be removed from this Game for everyone, and from this browser.`,
+        'Only leaving the table? “Offer to the crew” hands them back instead — they stay in the Game for somebody else to pick up.',
       ],
       confirmLabel: 'Delete',
       pendingLabel: 'Deleting…',
@@ -229,7 +229,7 @@ export const ROW_ACTION_COPY = {
   scrap(name: string): ConfirmCopy {
     return {
       title: `Scrap ${name}?`,
-      body: [`This deletes ${name} for everyone in the game and can't be undone.`],
+      body: [`This deletes ${name} for everyone in the Game and can't be undone.`],
       confirmLabel: 'Scrap',
       pendingLabel: 'Scrapping…',
       tone: 'danger',
@@ -267,9 +267,9 @@ export const ROW_ACTION_COPY = {
       return {
         title: `Take ${args.name} out of ${from}?`,
         body: [
-          `${args.name} leaves the game's roster and goes back to your shelf, so the rest of the table won't see ${it} any more.`,
+          `${args.name} leaves the Game's roster and goes back to your shelf, so the rest of the table won't see ${it} any more.`,
           clearedAssignments(args.kind, from),
-          `You can move ${it} back into the game later.`,
+          `You can move ${it} back into the Game later.`,
         ],
         confirmLabel: 'Move to your shelf',
         pendingLabel: 'Moving…',
@@ -278,7 +278,7 @@ export const ROW_ACTION_COPY = {
       }
     }
 
-    const to = args.to.name ?? 'another game'
+    const to = args.to.name ?? 'another Game'
     return {
       title: `Move ${args.name} to ${to}?`,
       body: [

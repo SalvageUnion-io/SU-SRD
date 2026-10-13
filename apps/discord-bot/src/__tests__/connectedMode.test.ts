@@ -121,7 +121,7 @@ describe('an ephemeral command', () => {
 
   test.each([
     ['games', gamesCommand],
-    ['my-stuff', shelfCommand],
+    ['shelves', shelfCommand],
   ])('/su %s renders too', async (name, command) => {
     connect({
       kind: 'ok',
@@ -301,7 +301,7 @@ describe('/su game', () => {
 
     // A hand-typed name fails `v.id('games')` server-side, which the bot would
     // otherwise render as "could not be reached" — an outage message for a typo.
-    expect(edits[0]?.content).toContain('Pick a game from the list')
+    expect(edits[0]?.content).toContain('Pick a Game from the list')
     expect(followUps).toHaveLength(0)
   })
 

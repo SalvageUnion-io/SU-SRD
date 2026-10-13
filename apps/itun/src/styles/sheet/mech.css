@@ -11,7 +11,7 @@
   width: var(--space-40);
 }
 
-/* A rail slot's share of the Linked Units row. `EntityRow` takes a className
+/* A rail slot's share of the Assigned Units row. `EntityRow` takes a className
    and no style, so the static `flex` rides a class. */
 .su-sheet-rail-slot {
   flex: 1 1 0%;
@@ -112,7 +112,7 @@
   flex: 1 1 0%;
 }
 
-/* Linked Units: stacked, side by side once the sheet is wide enough. */
+/* Assigned Units: stacked, side by side once the sheet is wide enough. */
 .su-sheet-mech-linked {
   display: flex;
   flex-direction: column;

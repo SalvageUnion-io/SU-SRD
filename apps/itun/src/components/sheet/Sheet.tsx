@@ -126,12 +126,12 @@ type SheetProps = {
    *
    * The public-sheet query resolves the refs server-side, and this passes them
    * in explicitly rather than fabricating a pilot record — a synthetic pilot
-   * would surface in the Linked Units rail as a unit that was never shared.
+   * would surface in the Assigned Units rail as a unit that was never shared.
    */
   pilotAbilities?: string[]
   /**
    * Entities the viewer may read but not edit — a Game's crewmates, from
-   * `listForGame` (`readOnlySheetStore.model.ts`). Linked units the store does not
+   * `listForGame` (`readOnlySheetStore.model.ts`). Assigned units the store does not
    * hold resolve through it, so your crawler lists its whole crew and your
    * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
    * what only this holds (`holds` in `sheetViewProps.model.ts`).
@@ -139,7 +139,7 @@ type SheetProps = {
   others?: EntityLookup
   /** Where a linked unit's View goes; the live sheet route when omitted. */
   hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
-  /** Linked units to name without reading — a public sheet's private assignments. */
+  /** Assigned units to name without reading — a public sheet's private assignments. */
   withheld?: readonly WithheldUnit[]
   /**
    * Where the sheet comes from, on its band beside the type stamps ("Starter

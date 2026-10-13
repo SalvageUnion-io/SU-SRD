@@ -33,7 +33,7 @@ test('a Mediator proposes a change and the player applies it', async ({ page, br
     // --- The player joins and builds a pilot in the Game ---
     await gotoStable(player.page, `/invite/${token}`)
     await waitForReady(player.page)
-    await player.page.getByRole('button', { name: 'Join this game' }).click()
+    await player.page.getByRole('button', { name: 'Join this Game' }).click()
     await player.page.waitForURL(new RegExp(`/games/${gameId}$`), { timeout: 20_000 })
     await buildPilot(player.page, 'Mira Voss', 'Sparks')
 

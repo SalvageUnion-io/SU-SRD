@@ -214,13 +214,13 @@ test.describe('signed in: what a player keeps', () => {
 
     await context.setOffline(true)
 
-    await expect(page.getByText('Not connected — your games are read-only')).toBeVisible()
+    await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
     await expect(page.getByText('Offline Keeper').first()).toBeVisible()
     await expect(page.getByRole('group', { name: /read or edit this/i })).toHaveCount(0)
 
     await context.setOffline(false)
 
-    await expect(page.getByText('Not connected — your games are read-only')).toHaveCount(0)
+    await expect(page.getByText('Not connected — your Games are read-only')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Edit', exact: true })).toBeVisible()
   })
 

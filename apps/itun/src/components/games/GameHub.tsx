@@ -19,7 +19,7 @@
  *     refuses anyone else (`requireOrganizer`). Anyone else brings a friend
  *     with "Copy invite link", which asks the Organizer to let them in.
  *
- * Starting a Game is "+ New game" at the top of the hub (`NewGameControl`), and
+ * Starting a Game is "+ New Game" at the top of the hub (`NewGameControl`), and
  * joining one is an invite link (`InviteScreen`), so nothing here is about
  * choosing a table.
  *
@@ -89,12 +89,12 @@ function NotInGame() {
       <Card>
         <div style={NOT_IN}>
           <Text>
-            You are not in this game. Ask its Mediator or a crewmate for an invite link, then open
+            You are not in this Game. Ask its Mediator or a crewmate for an invite link, then open
             it to join.
           </Text>
           <div>
             <Button variant="default" size="compact" onClick={() => showContainer(SHELF)}>
-              Back to your shelves
+              Back to Shelves
             </Button>
           </div>
         </div>
@@ -154,7 +154,7 @@ function GameSections({ game }: { game: Game }) {
             // player's link asks the Organizer to let them in (`invites.link`).
             <HubSection id="invite-crewmate-heading" title="Invite a crewmate">
               <p style={HUB_COPY}>
-                Anyone who opens this link asks to join, and the organizer lets them in.
+                Anyone who opens this link asks to join, and the Organiser lets them in.
               </p>
               <div>
                 <CopyInviteLink gameId={gameId} />
@@ -190,7 +190,7 @@ export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps
   if (game === undefined) {
     return (
       <div style={PENDING}>
-        <ConvexPending label="this game" />
+        <ConvexPending label="this Game" />
       </div>
     )
   }

@@ -305,8 +305,8 @@ export function denialMessage(
   serverMessage?: string
 ): string {
   // For `forbidden` and `not-found` the SERVER knows the specifics and this
-  // module does not: "that channel is already bound to another game" is a very
-  // different thing to be told than "binding is the Organizer's job", and a
+  // module does not: "that channel is already bound to another Game" is a very
+  // different thing to be told than "binding is the Organiser's job", and a
   // generic line here would actively mislead. The reasons below are the ones
   // where the bot adds something the server cannot — a sign-in link, the name
   // of the command that fixes it — so those keep their own wording.
@@ -326,27 +326,27 @@ export function denialMessage(
       ].join('\n')
     case 'unbound':
       return [
-        '**This channel isn’t bound to a game.**',
+        '**This channel isn’t bound to a Game.**',
         '',
-        'An Organizer can bind it with `/su game bind`.',
+        'An Organiser can bind it with `/su game bind`.',
       ].join('\n')
     case 'not-a-member':
-      return 'You’re not a member of the game bound to this channel.'
+      return 'You’re not a member of the Game bound to this channel.'
     case 'forbidden':
-      return 'You don’t have permission to do that. Binding a channel is the Organizer’s job.'
+      return 'You don’t have permission to do that. Binding a channel is the Organiser’s job.'
     case 'not-found':
-      return 'That could not be found in this channel’s game.'
+      return 'That could not be found in this channel’s Game.'
   }
 }
 
 function roleLabel(game: { mediator: boolean; organizer: boolean }): string {
   const roles = [game.mediator ? 'Mediator' : 'Player']
-  if (game.organizer) roles.push('Organizer')
+  if (game.organizer) roles.push('Organiser')
   return roles.join(' · ')
 }
 
 function gameLines(games: GameSummary[], webUrl: string, currentGameId?: string): string {
-  if (games.length === 0) return '_No games yet._'
+  if (games.length === 0) return '_No Games yet._'
   return games
     .map((game) => {
       const here = game.gameId === currentGameId ? '  ← this channel' : ''
@@ -364,7 +364,7 @@ export function meCard(me: MeResult, webUrl: string, currentGameId?: string): Co
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
       {
-        name: `Your games (${me.games.length})`,
+        name: `Your Games (${me.games.length})`,
         value: gameLines(me.games, webUrl, currentGameId),
       },
     ],
@@ -375,7 +375,7 @@ export function meCard(me: MeResult, webUrl: string, currentGameId?: string): Co
 /** `/su games` — every Game you belong to. */
 export function gamesCard(games: GameSummary[], webUrl: string): ContainerData {
   return entityCard({
-    title: `Your games (${games.length})`,
+    title: `Your Games (${games.length})`,
     url: `${webUrl.replace(/\/+$/, '')}/games`,
     accent: NEUTRAL,
     description: gameLines(games, webUrl),
@@ -384,7 +384,7 @@ export function gamesCard(games: GameSummary[], webUrl: string): ContainerData {
   })
 }
 
-/** `/su my-stuff` — what you own that is in no game (ITUN's My Stuff). */
+/** `/su shelves` — what you own that is in no Game (ITUN's Shelves, showing Not in a Game). */
 export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
   const name = (body: EntityBody, keys: BodyKey[]): string => {
     for (const key of keys) {
@@ -415,13 +415,13 @@ export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
   }
 
   return entityCard({
-    title: 'My Stuff',
+    title: 'Shelves · Not in a Game',
     url: `${webUrl.replace(/\/+$/, '')}/`,
     accent: NEUTRAL,
     description:
       fields.length === 0
-        ? 'Nothing in My Stuff — everything you own is in a game.'
-        : 'Pilots and mechs you own that are in no game.',
+        ? 'Nothing here — everything you own is in a Game.'
+        : 'Pilots and mechs you own that are in no Game.',
     fields,
     footer: FOOTER,
   })
@@ -563,7 +563,7 @@ export function channelCard(channel: ChannelResult, webUrl: string): ContainerDa
   const crew = channel.members
     .map((m) => {
       const roles = [m.mediator ? 'Mediator' : 'Player']
-      if (m.organizer) roles.push('Organizer')
+      if (m.organizer) roles.push('Organiser')
       return `${m.displayName} — ${roles.join(' · ')}`
     })
     .join('\n')
@@ -587,7 +587,7 @@ export function channelCard(channel: ChannelResult, webUrl: string): ContainerDa
     title: channel.game.name,
     url: gameUrl(webUrl, channel.game.gameId),
     accent: NEUTRAL,
-    description: 'This channel is bound to this game.',
+    description: 'This channel is bound to this Game.',
     fields,
     footer: FOOTER,
   })

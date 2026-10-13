@@ -190,7 +190,7 @@ export function MechItemCard({
         ? scrapPoolLocked
         : scrapPool
           ? `Not enough TL ${itemTl ?? 1}+ scrap in the crawler pool`
-          : 'No crawler linked — no pool to deduct from'
+          : 'No crawler assigned — no pool to deduct from'
 
   // All per-card interactivity rides the controls overlay (no footer actions):
   // Use, the uses stepper, and Repair (which opens a modal confirm), plus the

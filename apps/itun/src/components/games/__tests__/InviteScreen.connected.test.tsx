@@ -105,7 +105,7 @@ describe('a live invite', () => {
     renderJoin(preview())
     expect(screen.getByText(/Vex/)).toBeTruthy()
     expect(screen.getByText('Union Crawler #430')).toBeTruthy()
-    expect(screen.getByText('Join this game')).toBeTruthy()
+    expect(screen.getByText('Join this Game')).toBeTruthy()
   })
 
   test('a Mediator invite says which chair is on offer', () => {
@@ -129,7 +129,7 @@ describe('a live invite', () => {
 
   test('accepting shows the Game', async () => {
     renderJoin(preview())
-    fireEvent.click(screen.getByText('Join this game'))
+    fireEvent.click(screen.getByText('Join this Game'))
     await waitFor(() => expect(getActiveContainer()).toEqual(THE_GAME))
   })
 
@@ -148,7 +148,7 @@ describe('a live invite', () => {
   test('a refusal is surfaced in the server’s own words', async () => {
     renderJoin(preview())
     redeemError = new ConvexError('That invite link has been revoked')
-    fireEvent.click(screen.getByText('Join this game'))
+    fireEvent.click(screen.getByText('Join this Game'))
     await waitFor(() => expect(screen.getByText(/has been revoked/)).toBeTruthy())
   })
 })
@@ -157,7 +157,7 @@ describe('a gated invite', () => {
   test('offers to ask rather than to join', () => {
     renderJoin(preview({ requiresApproval: true }))
     expect(screen.getByText('Ask to join')).toBeTruthy()
-    expect(screen.getByText(/asks the organizer to let you in/i)).toBeTruthy()
+    expect(screen.getByText(/asks the Organiser to let you in/i)).toBeTruthy()
   })
 
   test('after knocking it says it is waiting, and does not pretend to have joined', async () => {
@@ -169,9 +169,7 @@ describe('a gated invite', () => {
     expect(navigations).toHaveLength(0)
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
     // The way out is Shelves; the game appears in Games once approved.
-    expect(screen.getByRole('link', { name: 'Back to your shelves' }).getAttribute('href')).toBe(
-      '/'
-    )
+    expect(screen.getByRole('link', { name: 'Back to Shelves' }).getAttribute('href')).toBe('/')
     redeemResult = { kind: 'joined', gameId: 'g1', granted: 0 }
   })
 })
@@ -202,7 +200,7 @@ describe('an invite addressed to you (ADR-039)', () => {
   test('opened by a different Discord account, it says so before any button is pressed', () => {
     renderJoin(preview({ addressed: 'discord', forYou: false }))
     expect(screen.getByText(/sent to a different Discord account/)).toBeTruthy()
-    expect(screen.queryByText('Join this game')).toBeNull()
+    expect(screen.queryByText('Join this Game')).toBeNull()
     expect(screen.queryByText('Decline')).toBeNull()
   })
 })
@@ -213,10 +211,8 @@ describe('a link that is no good', () => {
     expect(screen.getByText(/not valid/i)).toBeTruthy()
     // An old typed code from `/join/…` lands here too: say how joining works now.
     expect(screen.getByText(/there is no code to type/i)).toBeTruthy()
-    expect(screen.queryByText('Join this game')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Back to your shelves' }).getAttribute('href')).toBe(
-      '/'
-    )
+    expect(screen.queryByText('Join this Game')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Back to Shelves' }).getAttribute('href')).toBe('/')
   })
 
   test('each kind of dead code says which kind it is', () => {
@@ -229,7 +225,7 @@ describe('a link that is no good', () => {
       renderJoin(preview({ status }))
       expect(screen.getByText(copy)).toBeTruthy()
       // Never a join button for a code that cannot be spent.
-      expect(screen.queryByText('Join this game')).toBeNull()
+      expect(screen.queryByText('Join this Game')).toBeNull()
       cleanup()
     }
   })
@@ -259,7 +255,7 @@ describe('a visitor who is not signed in', () => {
     expect(screen.getByText(/Sign in to join\. Your pilots/i)).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sign in to join' })).toBeTruthy()
     // Not offered the button, because pressing it could not work yet.
-    expect(screen.queryByText('Join this game')).toBeNull()
+    expect(screen.queryByText('Join this Game')).toBeNull()
   })
 
   test('a Discord-addressed invite asks for that account in particular', () => {
@@ -286,9 +282,7 @@ describe('a visitor who is not signed in', () => {
     expect(screen.getByText(/has expired/i)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Sign in to join' })).toBeNull()
     // Its ways on: back to your shelves, and — signed out — a plain sign-in.
-    expect(screen.getByRole('link', { name: 'Back to your shelves' }).getAttribute('href')).toBe(
-      '/'
-    )
+    expect(screen.getByRole('link', { name: 'Back to Shelves' }).getAttribute('href')).toBe('/')
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     isAuthenticated = true
   })

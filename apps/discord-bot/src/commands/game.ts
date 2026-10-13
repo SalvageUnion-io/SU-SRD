@@ -30,24 +30,24 @@ export const gameCommand = {
   group(group: SlashCommandSubcommandGroupBuilder): SlashCommandSubcommandGroupBuilder {
     return group
       .setName('game')
-      .setDescription(`Connect this channel to an ${PRODUCT.name} game`)
+      .setDescription(`Connect this channel to an ${PRODUCT.name} Game`)
       .addSubcommand((sub) =>
         sub
           .setName('bind')
-          .setDescription('Bind this channel to one of your games (Organizer only)')
+          .setDescription('Bind this channel to one of your Games (Organiser only)')
           .addStringOption((option) =>
             option
               .setName('game')
-              .setDescription('Which game this channel speaks for')
+              .setDescription('Which Game this channel speaks for')
               .setRequired(true)
               .setAutocomplete(true)
           )
       )
       .addSubcommand((sub) =>
-        sub.setName('unbind').setDescription('Unbind this channel (Organizer only)')
+        sub.setName('unbind').setDescription('Unbind this channel (Organiser only)')
       )
       .addSubcommand((sub) =>
-        sub.setName('info').setDescription('What game this channel is bound to')
+        sub.setName('info').setDescription('What Game this channel is bound to')
       )
   },
 
@@ -103,7 +103,7 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
   const gameId = interaction.options.getString('game', true)
   if (!/^[a-z0-9]{16,}$/i.test(gameId)) {
     await interaction.editReply({
-      content: 'Pick a game from the list rather than typing its name.',
+      content: 'Pick a Game from the list rather than typing its name.',
     })
     return
   }
@@ -144,7 +144,7 @@ async function unbind(interaction: CommandExecuteInteraction): Promise<void> {
     await interaction.editReply({ content: result.message })
     return
   }
-  await interaction.editReply({ content: 'This channel is no longer bound to a game.' })
+  await interaction.editReply({ content: 'This channel is no longer bound to a Game.' })
 }
 
 async function info(interaction: CommandExecuteInteraction): Promise<void> {

@@ -186,7 +186,7 @@ describe('MoveToContainerControl', () => {
       <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
     )
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
+    fireEvent.change(screen.getByLabelText('Move to a Game or your shelf'), {
       target: { value: 'game:g1' },
     })
 
@@ -224,7 +224,7 @@ describe('MoveToContainerControl', () => {
       />
     )
 
-    const select = screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a Game or your shelf') as HTMLSelectElement
     // Only a Game this user runs is on offer for a crawler (ADR-037).
     expect([...select.options].map((o) => o.textContent)).toEqual(['Shelves', 'Run by me'])
 
@@ -248,7 +248,7 @@ describe('MoveToContainerControl', () => {
         entity={crawlerFixture({ id: 'c1', gameId: 'g2' })}
       />
     )
-    const select = screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a Game or your shelf') as HTMLSelectElement
     expect([...select.options].map((o) => o.textContent)).toEqual(['Not mine'])
     expect(select.disabled).toBe(true)
   })
@@ -261,14 +261,14 @@ describe('MoveToContainerControl', () => {
         entity={{ name: 'Mira Cole', gameId: 'phantom' }}
       />
     )
-    const select = screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a Game or your shelf') as HTMLSelectElement
     expect(select.value).toBe('game:phantom')
-    expect(select.selectedOptions[0]?.textContent).toBe('Unknown game')
+    expect(select.selectedOptions[0]?.textContent).toBe('Unknown Game')
   })
 })
 
 describe('MoveToContainerControl — moving into a Game clears an assignment', () => {
-  const select = () => screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
+  const select = () => screen.getByLabelText('Move to a Game or your shelf') as HTMLSelectElement
 
   test('asks first, naming what is cleared, and writes nothing until confirmed', async () => {
     const pilot = await heldPilot(null)
@@ -330,7 +330,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
+    fireEvent.change(screen.getByLabelText('Move to a Game or your shelf'), {
       target: { value: 'shelf' },
     })
 
@@ -349,7 +349,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
+    fireEvent.change(screen.getByLabelText('Move to a Game or your shelf'), {
       target: { value: 'shelf' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -358,7 +358,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     expect(gameIdOf()).toBe('g1')
     expect(serverWrites).toHaveLength(0)
     // The select still says where the build actually is.
-    expect((screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement).value).toBe(
+    expect((screen.getByLabelText('Move to a Game or your shelf') as HTMLSelectElement).value).toBe(
       'game:g1'
     )
   })
@@ -367,7 +367,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
+    fireEvent.change(screen.getByLabelText('Move to a Game or your shelf'), {
       target: { value: 'shelf' },
     })
     await act(async () => {
@@ -386,7 +386,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
+    fireEvent.change(screen.getByLabelText('Move to a Game or your shelf'), {
       target: { value: 'game:g2' },
     })
 
@@ -400,7 +400,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
+    fireEvent.change(screen.getByLabelText('Move to a Game or your shelf'), {
       target: { value: 'shelf' },
     })
     failWrites = true

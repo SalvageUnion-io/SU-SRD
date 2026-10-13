@@ -45,7 +45,7 @@ describe('a public sheet’s assignments', () => {
     expect(screen.queryByRole('link', { name: /^View / })).toBeNull()
     // And never reported as missing: the pilot HAS a mech and a crawler.
     expect(screen.queryByText(/No mech assigned/i)).toBeNull()
-    expect(screen.queryByText(/No crawler linked/i)).toBeNull()
+    expect(screen.queryByText(/No crawler assigned/i)).toBeNull()
   })
 
   test('a published one is a full, named row that opens its own public page', () => {

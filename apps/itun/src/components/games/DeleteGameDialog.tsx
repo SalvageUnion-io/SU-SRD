@@ -108,7 +108,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       }}
       title={`Delete ${game?.name ?? ''}?`}
       tone="danger"
-      confirmLabel="Delete game"
+      confirmLabel="Delete Game"
       pendingLabel="Deleting…"
       onConfirm={handleConfirm}
       // A refusal carries wording the server chose for the player —
@@ -118,7 +118,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       // generic line and an operator report instead. Either way the dialog
       // stays open with the reason on it; closing silently would look like the
       // game had been deleted.
-      describeError={(err) => failureMessage(err, 'That game could not be deleted. Try again.')}
+      describeError={(err) => failureMessage(err, 'That Game could not be deleted. Try again.')}
       body={
         <>
           <Text>
@@ -133,23 +133,23 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
               {surviving.length > 0 && (
                 <li>
                   <Text variant="hint" style={LEFT}>
-                    {surviving.join(' and ')} go back to whoever owns them, in their shelves.
+                    {surviving.join(' and ')} go back to whoever owns them, on their shelf.
                   </Text>
                 </li>
               )}
               <li>
                 <Text variant="hint" style={LEFT}>
                   {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? 'Anything unclaimed comes to you, in your shelves.'
-                    : `${game.crawlerName} and anything unclaimed come to you, in your shelves.`}
+                    ? 'Anything unclaimed comes to you, on your shelf.'
+                    : `${game.crawlerName} and anything unclaimed come to you, on your shelf.`}
                 </Text>
               </li>
             </ul>
           </div>
 
           <Text variant="hint" style={LEFT}>
-            The crew, its invites, any pending join requests, the opposition tray and the wiring
-            between everyone's builds go with the game.
+            The crew, its invites, any pending join requests, the opposition tray and the
+            assignments between everyone's builds go with the Game.
           </Text>
         </>
       }

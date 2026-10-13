@@ -266,7 +266,7 @@ export const preview = query({
 
     return {
       gameName: game.name,
-      invitedBy: inviter?.displayName ?? inviter?.name ?? 'the organizer',
+      invitedBy: inviter?.displayName ?? inviter?.name ?? 'the Organiser',
       role: invite.role,
       requiresApproval: invite.requiresApproval,
       grantCount: invite.grants?.length ?? 0,
@@ -529,7 +529,7 @@ export const forMe = query({
         _id: invite._id,
         code: invite.code,
         gameName: game.name,
-        invitedBy: inviter?.displayName ?? inviter?.name ?? 'the organizer',
+        invitedBy: inviter?.displayName ?? inviter?.name ?? 'the Organiser',
         role: invite.role,
         grantCount: invite.grants?.length ?? 0,
         expiresAt: invite.expiresAt,

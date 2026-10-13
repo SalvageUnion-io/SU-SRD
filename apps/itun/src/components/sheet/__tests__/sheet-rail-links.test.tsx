@@ -316,12 +316,12 @@ describe('Sheet — every slot can be assigned from its own sheet (ADR-037)', ()
   test('a crawler sheet adds crew and docks mechs, empty or not', () => {
     renderOver('crawler', 'crawler-1', [])
     expect(button(/^\+ Add Crew$/)).toBeTruthy()
-    expect(button(/^\+ Dock Mech$/)).toBeTruthy()
+    expect(button(/^\+ Assign Mech$/)).toBeTruthy()
     cleanup()
 
     renderOver('crawler', 'crawler-1', [pilotToCrawler, mechToCrawler])
     expect(button(/^\+ Add Crew$/)).toBeTruthy()
-    expect(button(/^\+ Dock Mech$/)).toBeTruthy()
+    expect(button(/^\+ Assign Mech$/)).toBeTruthy()
   })
 
   test('a read-only sheet offers no picker at all', () => {

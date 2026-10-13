@@ -477,7 +477,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                     onClick={() => void copy()}
                     disabled={busy !== null}
                   >
-                    {busy === 'copy' ? 'Copying…' : 'Copy to my shelf'}
+                    {busy === 'copy' ? 'Copying…' : 'Make a copy'}
                   </Button>
                 </>
               ) : mode === 'connected' || mode === 'disconnected' ? null : (

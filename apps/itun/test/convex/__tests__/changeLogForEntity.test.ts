@@ -110,7 +110,7 @@ describe('changeLog.forEntity', () => {
     const args = { entityType: 'mech' as const, entityId: 'm-app' }
     expect(await organizer.as.query(api.changeLog.forEntity, args)).toHaveLength(1)
     await expect(stranger.as.query(api.changeLog.forEntity, args)).rejects.toThrow(
-      /Not a member of this game/
+      /Not a member of this Game/
     )
   })
 

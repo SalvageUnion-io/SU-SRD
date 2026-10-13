@@ -134,7 +134,7 @@ export const create = mutation({
   handler: async (ctx, args): Promise<Id<'games'>> => {
     const userId = await requireUser(ctx)
     const name = args.name.trim()
-    if (name.length === 0) throw new Error('A game needs a name')
+    if (name.length === 0) throw new Error('A Game needs a name')
 
     const gameId = await ctx.db.insert('games', {
       name,
@@ -312,7 +312,7 @@ export const setPrimaryCrawler = mutation({
     await requireTableRunner(ctx, args.gameId)
     const crawler = await ctx.db.get(args.crawlerId)
     if (crawler === null || crawler.gameId !== args.gameId) {
-      throw new NotAuthorized('That crawler is not in this game')
+      throw new NotAuthorized('That crawler is not in this Game')
     }
     await ctx.db.patch(args.gameId, { primaryCrawlerId: args.crawlerId })
     await refreshGameSummary(ctx, args.gameId)
@@ -325,7 +325,7 @@ export const setMediator = mutation({
   handler: async (ctx, args): Promise<void> => {
     await requireOrganizer(ctx, args.gameId)
     const target = await getMembership(ctx, args.gameId, args.userId)
-    if (target === null) throw new NotAuthorized('That user is not a member of this game')
+    if (target === null) throw new NotAuthorized('That user is not a member of this Game')
     await ctx.db.patch(target._id, { mediator: args.mediator })
   },
 })

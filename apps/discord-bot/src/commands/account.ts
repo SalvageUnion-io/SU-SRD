@@ -5,7 +5,7 @@ import type { CommandExecuteInteraction } from './interactions'
 import { respondWithItun } from './itunReply'
 
 /**
- * The three **personal** ITUN subcommands: `/su me`, `/su games`, `/su my-stuff`.
+ * The three **personal** ITUN subcommands: `/su me`, `/su games`, `/su shelves`.
  *
  * Grouped in one module rather than three because they are one idea — "what
  * does In The Union Now know about *me*" — and each is a handful of lines. The
@@ -18,7 +18,7 @@ import { respondWithItun } from './itunReply'
 
 export const meCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('me').setDescription(`Your ${PRODUCT.name} account and games`)
+    return sub.setName('me').setDescription(`Your ${PRODUCT.name} account and Games`)
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
@@ -34,7 +34,7 @@ export const meCommand = {
 
 export const gamesCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('games').setDescription('Every game you belong to')
+    return sub.setName('games').setDescription('Every Game you belong to')
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
@@ -47,7 +47,7 @@ export const gamesCommand = {
 
 export const shelfCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('my-stuff').setDescription('Your pilots and mechs in My Stuff, in no game')
+    return sub.setName('shelves').setDescription('Your pilots and mechs on your shelf, in no Game')
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {

@@ -10,12 +10,12 @@ import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
  * (board M2).
  */
 
-/** "+ New game" from Shelves, named; resolves to the new Game's id. */
+/** "+ New Game" from Shelves, named; resolves to the new Game's id. */
 export async function createGame(page: Page, name: string): Promise<string> {
   await gotoStable(page, '/')
   await waitForReady(page)
-  await page.getByRole('button', { name: '+ New game' }).click()
-  await page.getByLabel('New game name').fill(name)
+  await page.getByRole('button', { name: '+ New Game' }).click()
+  await page.getByLabel('New Game name').fill(name)
   await page.getByRole('button', { name: 'Create', exact: true }).click()
   await page.waitForURL(/\/games\/[^/]+$/, { timeout: 20_000 })
   const id = new URL(page.url()).pathname.split('/').pop()
@@ -73,8 +73,8 @@ async function pickUp(page: Page, name: string): Promise<void> {
 export async function setUpTable(page: Page): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
-  await page.getByRole('button', { name: '+ New game' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Start this game' }).first().click()
+  await page.getByRole('button', { name: '+ New Game' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Start this Game' }).first().click()
   // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
   await page.getByRole('button', { name: 'Appoint' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()

@@ -122,14 +122,14 @@ export function TheGame({
           </dd>
         </div>
         <div style={ROW}>
-          <dt style={TERM}>Organizer</dt>
+          <dt style={TERM}>Organiser</dt>
           <dd style={VALUE}>{organizers.map(name).join(', ') || '—'}</dd>
         </div>
       </dl>
       {organizer && (
         <div style={ACTIONS}>
           <Button variant="danger" size="compact" disabled={!canWrite} onClick={onDelete}>
-            Delete this game
+            Delete this Game
           </Button>
         </div>
       )}

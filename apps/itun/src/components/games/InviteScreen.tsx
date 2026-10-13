@@ -19,7 +19,7 @@ import { WayOutLink } from '../shared/WayOutLink'
  * page describes the invitation *before* asking for a sign-in, and a dead link
  * says so without ever prompting one — being asked to authenticate only to find
  * out the link expired is the worst version of this screen. (A dead link does
- * offer a plain sign-in beside "Back to your shelves", as a way on once it has
+ * offer a plain sign-in beside "Back to Shelves", as a way on once it has
  * said the link is dead; it is never "Sign in to join".)
  *
  * Opening one signs you in if needed and joins that Game. "Sign in to join"
@@ -65,10 +65,10 @@ const DEAD_LINK_COPY = {
 const HOW_INVITES_WORK =
   'A Game is joined from an invite link its Mediator or a crewmate sends you. Open the link and sign in to join; there is no code to type.'
 
-const BACK = { href: '/', label: 'Back to your shelves' }
+const BACK = { href: '/', label: 'Back to Shelves' }
 
 /**
- * A dead link's ways on: back to your shelves, as a button-shaped link with a
+ * A dead link's ways on: back to Shelves, as a button-shaped link with a
  * full touch target and, signed out, a sign-in beside it. That sign-in is a way
  * on, not a prompt: the page has already said the link is dead, and signing in
  * lands on your shelves rather than pretending it could still join.
@@ -218,7 +218,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
         <div style={PAD}>
           <Text>Asked to join {preview.gameName}.</Text>
           <Text variant="hint" style={HINT}>
-            The organizer has to let you in before you can see the table. You can close this page;
+            The Organiser has to let you in before you can see the table. You can close this page;
             the Game shows up in your Games once they do.
           </Text>
           <Back />
@@ -254,12 +254,12 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
         )}
         <Text variant="hint" style={HINT}>
           {preview.requiresApproval
-            ? 'Joining asks the organizer to let you in.'
+            ? 'Joining asks the Organiser to let you in.'
             : 'Everyone at a table can read each other’s sheets.'}
         </Text>
         <div style={ACTIONS}>
           <Button variant="primary" size="compact" disabled={working} onClick={() => void accept()}>
-            {preview.requiresApproval ? 'Ask to join' : 'Join this game'}
+            {preview.requiresApproval ? 'Ask to join' : 'Join this Game'}
           </Button>
           {/* Only an invite addressed to you can be declined: an open link may
               be meant for the whole table (ADR-039). */}
@@ -352,7 +352,7 @@ export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
 
   return (
     <PageShell>
-      <ChapterBand>Join a game</ChapterBand>
+      <ChapterBand>Join a Game</ChapterBand>
       <div style={COLUMN}>{body()}</div>
     </PageShell>
   )

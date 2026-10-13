@@ -374,7 +374,7 @@ export function LiveSheet({
                   key={segment.key}
                   href={segment.href}
                   style={LINK}
-                  aria-label={`Open the wired ${segment.label.toLowerCase()}`}
+                  aria-label={`Open the assigned ${segment.label.toLowerCase()}`}
                 >
                   {/* Tinted with the TARGET's ontology tone, not the current
                       sheet's: the badge's job is to say where it goes, and a
@@ -395,7 +395,7 @@ export function LiveSheet({
             here-state is ink);
             the others navigate to their wired counterpart's sheet. */}
         {segments && segments.length > 1 && (
-          <nav aria-label="Wired sheets" className="su-sheet-live-segments" style={SEGMENTS}>
+          <nav aria-label="Assigned sheets" className="su-sheet-live-segments" style={SEGMENTS}>
             {segments.map((segment) =>
               segment.active ? (
                 <span

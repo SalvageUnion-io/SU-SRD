@@ -38,7 +38,7 @@
  *
  * ## Every verb that changes who has a build asks first
  *
- * Pick up, Offer to the crew, Copy to your shelves, Remove from game, Delete and
+ * Pick up, Offer to the crew, Make a copy, Remove from Game, Delete and
  * Scrap each open one shared confirm (`useConfirm`) that says what will happen
  * and whether it can be undone, and do nothing until the player confirms. The
  * verbs and their words live outside this file — `useRowActions` and
@@ -93,13 +93,13 @@ const COLUMNS: ReadonlyArray<{
     kind: 'pilot',
     title: 'Pilots',
     create: { href: '/pilots/new', label: 'Create Pilot' },
-    empty: 'No pilots in this game yet.',
+    empty: 'No pilots in this Game yet.',
   },
   {
     kind: 'mech',
     title: 'Mechs',
     create: { href: '/mechs/new', label: 'Create Mech' },
-    empty: 'No mechs in this game yet.',
+    empty: 'No mechs in this Game yet.',
   },
   {
     kind: 'crawler',
@@ -260,7 +260,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                   disabled={busy}
                   onClick={() => rowActions.copy(row)}
                 >
-                  Copy to your shelves
+                  Make a copy
                 </Button>
               )}
               {/* The move out (ADR-037): your own pilot or mech, or — for the
@@ -274,7 +274,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                   disabled={busy}
                   onClick={() => rowActions.removeFromGame(row, gameName)}
                 >
-                  Remove from game
+                  Remove from Game
                 </Button>
               )}
               {row.can.delete && (
@@ -363,7 +363,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
       <Text variant="hint" style={HINT}>
         {caps.tableRunner
           ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
-          : 'Everything the crew has brought to this game. Pick up anything nobody holds.'}
+          : 'Everything the crew has brought to this Game. Pick up anything nobody holds.'}
       </Text>
 
       {error !== null && (

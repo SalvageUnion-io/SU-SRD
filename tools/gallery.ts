@@ -243,7 +243,7 @@ async function seed(page: Page, itun: string): Promise<Partial<Seeded>> {
     .getByRole('button', { name: /new game/i })
     .first()
     .click()
-  await page.getByLabel('New game name').fill('The Long Haul')
+  await page.getByLabel('New Game name').fill('The Long Haul')
   await page.getByRole('button', { name: 'Create', exact: true }).click()
   await page.waitForURL(/\/games\//, { timeout: 20_000 })
   const game = routeOf(itun, new URL(page.url()).pathname)

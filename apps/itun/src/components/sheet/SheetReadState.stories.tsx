@@ -37,7 +37,7 @@ export const Default = () => {
         <SheetModeToggle mode={{ editing, setEditing }} kind="pilot" />
       </div>
       <div>
-        <Caption>Linked units, one line each</Caption>
+        <Caption>Assigned units, one line each</Caption>
         <LinkedUnitLink
           kind="mech"
           name={scrapper?.name ?? 'Scrapper'}

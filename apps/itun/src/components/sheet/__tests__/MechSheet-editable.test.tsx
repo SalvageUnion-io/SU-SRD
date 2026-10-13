@@ -148,7 +148,7 @@ describe('MechSheet — Damaged promotes Repair (S12)', () => {
     })
     const deduct = screen.getByRole('button', { name: /deduct scrap/i })
     expect((deduct as HTMLButtonElement).disabled).toBe(true)
-    expect(deduct.getAttribute('title')).toMatch(/no crawler linked/i)
+    expect(deduct.getAttribute('title')).toMatch(/no crawler assigned/i)
 
     await act(async () => {
       clickButton(/repair smoke machine without deducting/i)

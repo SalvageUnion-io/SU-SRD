@@ -26,7 +26,7 @@ export const crewCommand = {
     return (
       sub
         .setName('crew')
-        .setDescription('This channel’s game, at a glance')
+        .setDescription('This channel’s Game, at a glance')
         // Bars are a glance for sighted readers and ten announcements for a
         // screen reader, so the numbers-and-words form is one option away.
         .addBooleanOption((option) =>

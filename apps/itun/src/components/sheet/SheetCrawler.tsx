@@ -243,7 +243,7 @@ export function SheetCrawler({
       />
     )),
     ...withheldMechs.map((unit) => (
-      <WithheldUnitRow key={unit.key} unit={unit} label="Docked Mech" />
+      <WithheldUnitRow key={unit.key} unit={unit} label="Assigned Mech" />
     )),
     ...composition.crawlerPilots.map((crewPilot) => (
       <LinkedUnitLink
@@ -271,7 +271,7 @@ export function SheetCrawler({
               name={dockedMech.name}
               sheetHref={hrefFor('mech', dockedMech.id)}
               linkAs={AppLink}
-              meta="Docked Mech"
+              meta="Assigned Mech"
               metaLine={mechStatusPill(dockedMech).label}
               stats={rowStats(
                 mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
@@ -280,7 +280,7 @@ export function SheetCrawler({
             />
           ))}
           {withheldMechs.map((unit) => (
-            <WithheldUnitRow key={unit.key} unit={unit} label="Docked Mech" />
+            <WithheldUnitRow key={unit.key} unit={unit} label="Assigned Mech" />
           ))}
           {/* The bay takes more than one, so the way to dock the next has to
               survive the first — the same trailing slot the crew list uses. */}
@@ -290,7 +290,7 @@ export function SheetCrawler({
               entityType="mech"
               className="su-sheet-crawler-grow"
               roleLabel="Bay"
-              message="Dock another mech."
+              message="Assign another mech."
               actions={
                 <>
                   {dockPicker}
@@ -305,10 +305,10 @@ export function SheetCrawler({
           empty
           entityType="mech"
           className="su-sheet-crawler-grow"
-          roleLabel="Docked Mechs"
+          roleLabel="Assigned Mechs"
           /* Says how a mech actually gets here: by its own assignment to this
              crawler (ADR-037), not by its pilot joining the crew. */
-          message="No mechs in the bay. Dock a mech here — it is assigned on its own, separately from its pilot."
+          message="No mechs in the bay. Assign a mech here — on its own, separately from its pilot."
           actions={
             editable ? (
               <>
@@ -350,7 +350,7 @@ export function SheetCrawler({
               entityType="pilot"
               className="su-sheet-crawler-grow"
               roleLabel="Crew"
-              message="Bring another pilot aboard."
+              message="Assign another pilot."
               actions={
                 <>
                   {crewPicker}
@@ -366,7 +366,7 @@ export function SheetCrawler({
           entityType="pilot"
           className="su-sheet-crawler-grow"
           roleLabel="Pilots"
-          message="No pilots wired to this crawler yet."
+          message="No pilots assigned to this crawler yet."
           /* Both verbs, because they answer different questions. `+ Create` was
              the only one here, which quietly assumed the pilot you wanted did
              not exist yet — at a table, they almost always already do. */

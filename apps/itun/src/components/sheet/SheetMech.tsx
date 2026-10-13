@@ -153,7 +153,7 @@ export function SheetMech({
     ) : null,
   ].filter((unit) => unit !== null)
 
-  // Linked Units rail content (poster R4, span 5) — built here because it
+  // Assigned Units rail content (poster R4, span 5) — built here because it
   // needs `composition` (resolved pilot/crawler), which MechSheet does not
   // receive; handed down as `linkedUnits`.
   const rail = !editable ? (
@@ -198,7 +198,7 @@ export function SheetMech({
           entityType="pilot"
           className="su-sheet-rail-slot"
           roleLabel="Assigned Pilot"
-          message="No pilot assigned. Link a pilot to speak for this machine."
+          message="No pilot assigned. Assign a pilot to speak for this machine."
           actions={
             editable ? (
               <>
@@ -240,7 +240,7 @@ export function SheetMech({
           entityType="crawler"
           className="su-sheet-rail-slot"
           roleLabel="Home Crawler"
-          message="No crawler assigned. A mech docks by its own assignment, separately from its pilot."
+          message="No crawler assigned. A mech is assigned to a crawler on its own, separately from its pilot."
           actions={
             editable ? (
               <>

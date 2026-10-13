@@ -217,7 +217,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign crawler to pilot/i)
-    expect(screen.getByText('No crawlers in this game yet.')).toBeTruthy()
+    expect(screen.getByText('No crawlers in this Game yet.')).toBeTruthy()
     expect(
       (screen.getByRole('button', { name: /confirm crawler assignment/i }) as HTMLButtonElement)
         .disabled
@@ -234,7 +234,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign crawler to mech/i)
-    // "My Stuff", never "Shelf", in anything a player reads.
+    // "your shelf", never "My Stuff", in anything a player reads.
     expect(screen.getByText('No crawlers on your shelf.')).toBeTruthy()
   })
 
@@ -254,7 +254,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     open(/change crawler for this pilot/i)
     // The only crawler here is already this pilot's: "other", not "none".
     expect(offered()).toEqual([])
-    expect(screen.getByText('No other crawlers in this game.')).toBeTruthy()
+    expect(screen.getByText('No other crawlers in this Game.')).toBeTruthy()
   })
 
   test('Add Crew leaves out pilots already aboard', () => {
@@ -328,11 +328,11 @@ describe('AssignPicker — the link points the way the schema says', () => {
       type: 'pilot-to-crawler',
     },
     {
-      name: 'crawler sheet, Dock Mech: the picked mech docks',
+      name: 'crawler sheet, Assign Mech: the picked mech is assigned',
       subject: { type: 'crawler', id: 'c1' },
       pick: 'mech',
-      trigger: /dock mech/i,
-      confirmName: /confirm mech docking/i,
+      trigger: /assign mech/i,
+      confirmName: /confirm mech assignment/i,
       store: { mechs: [mech('m1', 'Iron Fist')] },
       expected: { from: { type: 'mech', id: 'm1' }, to: { type: 'crawler', id: 'c1' } },
       type: 'mech-to-crawler',

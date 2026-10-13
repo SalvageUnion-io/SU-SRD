@@ -141,7 +141,7 @@ export function pilotChips(args: {
   const mechName = mech && args.mechNames.get(mech.from.id)
   return [
     containerChip(pilot, args.games),
-    ...(mechName ? [{ key: 'linked', label: `Linked: ${mechName}` }] : []),
+    ...(mechName ? [{ key: 'linked', label: `Assigned: ${mechName}` }] : []),
     ...originChip(pilot),
   ]
 }

@@ -11,7 +11,7 @@
  *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
  *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
  *     by SheetCrawler and passed as `economy`) → Bays (3-column masonry)
- *     → Armament Bay Weapons (3-column) → Linked Units (bare section, no card
+ *     → Armament Bay Weapons (3-column) → Assigned Units (bare section, no card
  *     frame) → Storage Bay.
  *   Storage Bay is the FULL-WIDTH band at the very BOTTOM (printed sheet p.2 —
  *     Storage Bay spans the whole width beneath the bays), NOT a full-height
@@ -180,7 +180,7 @@ type CrawlerSheetProps = {
    */
   economy?: ReactNode
   /**
-   * The Linked Units rail content (docked mech + lead pilot rail row/
+   * The Assigned Units rail content (docked mech + lead pilot rail row/
    * RailEmpty), built by SheetCrawler from `composition` — CrawlerSheet has
    * no composition access of its own, so this is passed straight through
    * into the content column's bottom section.
@@ -401,7 +401,7 @@ export function CrawlerSheet({
       style={ROOT}
     >
       {/* ===== Single-column region flow (Workshop-Manual crawler sheet):
-          Identity → Bays → Armament Weapons → Linked Units → Storage Bay.
+          Identity → Bays → Armament Weapons → Assigned Units → Storage Bay.
           Storage is the FULL-WIDTH band at the very bottom (printed
           `Editable_..._Crawler_Sheets.pdf` p.2), not a full-height right
           column. ===== */}
@@ -506,12 +506,12 @@ export function CrawlerSheet({
           <SheetSectionSlab title="Storage Bay">{storageContents}</SheetSectionSlab>
         )}
 
-        {/* Linked Units — poster renders this as a bare section header +
+        {/* Assigned Units — poster renders this as a bare section header +
             rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
         {linkedUnits && (
           <SheetSectionSlab
             id="linked-units"
-            title="Linked Units"
+            title="Assigned Units"
             // A wrapping column, never a row: a row of full unit rows made the
             // page wider than the viewport. Read stacks one-line listing cards;
             // Edit stacks the full rows with their Assign controls.

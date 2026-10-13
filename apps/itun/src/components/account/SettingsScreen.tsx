@@ -139,7 +139,7 @@ function SignedInAccount() {
           </PageHeading>
           <Text variant="hint" style={HINT}>
             Your pilots and mechs are deleted. Games you are in survive — the shared crawler stays,
-            and if you organise a game the role passes to the longest-standing member. Download your
+            and if you organise a Game the role passes to the longest-standing member. Download your
             data first; this cannot be undone.
           </Text>
           <div>
@@ -205,7 +205,7 @@ function SettingsBody() {
         </Text>
         <Text variant="hint" style={HINT}>
           Signing in saves your builds to your account, carries them between devices, and lets you
-          join a game with other people.
+          join a Game with other people.
         </Text>
         <div>
           <SignInControl />

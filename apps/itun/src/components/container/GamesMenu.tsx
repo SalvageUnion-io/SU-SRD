@@ -72,9 +72,9 @@ function ConnectedGamesMenu({ active }: { active: boolean }) {
   // states stay inside the menu a screen reader is walking.
   const gameItems: HeaderMenuItem[] =
     games === undefined
-      ? [{ id: 'loading', label: 'Loading your games…' }]
+      ? [{ id: 'loading', label: 'Loading your Games…' }]
       : games.length === 0
-        ? [{ id: 'none', label: 'No games yet' }]
+        ? [{ id: 'none', label: 'No Games yet' }]
         : games.map(asItem)
 
   return (
@@ -135,8 +135,8 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
         <Badge shape="stamp">Games</Badge>
       </div>
       {row(SHELF_ENTRY)}
-      {games === undefined && <Text variant="hint">Loading your games…</Text>}
-      {games?.length === 0 && <Text variant="hint">No games yet</Text>}
+      {games === undefined && <Text variant="hint">Loading your Games…</Text>}
+      {games?.length === 0 && <Text variant="hint">No Games yet</Text>}
       {games?.map(row)}
     </nav>
   )

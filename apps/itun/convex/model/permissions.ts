@@ -107,7 +107,7 @@ export async function requireMemberAs(
   userId: Id<'users'>
 ): Promise<Doc<'memberships'>> {
   const membership = await getMembership(ctx, gameId, userId)
-  if (membership === null) throw new NotAuthorized('Not a member of this game')
+  if (membership === null) throw new NotAuthorized('Not a member of this Game')
   return membership
 }
 
@@ -142,7 +142,7 @@ export async function requireOrganizerAs(
   userId: Id<'users'>
 ): Promise<Doc<'memberships'>> {
   const membership = await requireMemberAs(ctx, gameId, userId)
-  if (!membership.organizer) throw new NotAuthorized('Only the Organizer can do that')
+  if (!membership.organizer) throw new NotAuthorized('Only the Organiser can do that')
   return membership
 }
 
@@ -210,6 +210,6 @@ export async function requireTableRunner(
   const membership = await requireMember(ctx, gameId)
   if (await isTableRunner(ctx, gameId, membership)) return membership
   throw new NotAuthorized(
-    'Only the Mediator can do that (or the Organizer, when the game has no Mediator)'
+    'Only the Mediator can do that (or the Organiser, when the Game has no Mediator)'
   )
 }

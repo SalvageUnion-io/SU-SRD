@@ -14,11 +14,12 @@ Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITEC
 10. **Sharing** — ADR-032, ADR-036.
 11. **Accounts, Games, Convex** — ADR-030; [deployments](ARCHITECTURE.md#deployments) to [conventions](ARCHITECTURE.md#convex-conventions); procedures: the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill.
 12. **Invites, links between entities** — ADR-039, ADR-037.
-13. **Discord bot** — [Game client](ARCHITECTURE.md#bot-game-client); [its CLAUDE.md](../apps/discord-bot/CLAUDE.md)
-14. **Package API, public dataset** — [packages](ARCHITECTURE.md#packages) to [dataset API](ARCHITECTURE.md#dataset-api); ADR-040, ADR-043.
-15. **srd build** — [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md); ADR-031.
-16. **Hosting, CI, deploys** — ADR-033; [CI](ARCHITECTURE.md#ci) to [previews](ARCHITECTURE.md#previews).
-17. **Dependencies** — [dependencies](ARCHITECTURE.md#dependencies) to [dead code](ARCHITECTURE.md#dead-code).
-18. **Services, MCP, cloud sessions** — [MCP](ARCHITECTURE.md#mcp) to [identifiers](ARCHITECTURE.md#identifiers); [cloud-environment.md](ops/cloud-environment.md).
-19. **A Salvage Union rule** — the [`rules-lookup`](../.claude/agents/rules-lookup.md) agent, or `bun run rules:find <term>`; setup is AGENTS.md's Rules text.
-20. **Per-package guidance** — each workspace's `CLAUDE.md` loads when you work there; path rules in [`.claude/rules/`](../.claude/rules/).
+13. **Feature names in copy (Game, Shelf, assign)** — [glossary.md](architecture/glossary.md).
+14. **Discord bot** — [Game client](ARCHITECTURE.md#bot-game-client); [its CLAUDE.md](../apps/discord-bot/CLAUDE.md)
+15. **Package API, public dataset** — [packages](ARCHITECTURE.md#packages) to [dataset API](ARCHITECTURE.md#dataset-api); ADR-040, ADR-043.
+16. **srd build** — [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md); ADR-031.
+17. **Hosting, CI, deploys** — ADR-033; [CI](ARCHITECTURE.md#ci) to [previews](ARCHITECTURE.md#previews).
+18. **Dependencies** — [dependencies](ARCHITECTURE.md#dependencies) to [dead code](ARCHITECTURE.md#dead-code).
+19. **Services, MCP, cloud sessions** — [MCP](ARCHITECTURE.md#mcp) to [identifiers](ARCHITECTURE.md#identifiers); [cloud-environment.md](ops/cloud-environment.md).
+20. **A Salvage Union rule** — the [`rules-lookup`](../.claude/agents/rules-lookup.md) agent, or `bun run rules:find <term>`; setup is AGENTS.md's Rules text.
+21. **Per-package guidance** — each workspace's `CLAUDE.md` loads when you work there; path rules in [`.claude/rules/`](../.claude/rules/).

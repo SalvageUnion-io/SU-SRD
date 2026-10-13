@@ -105,7 +105,7 @@ describe('GamesMenu', () => {
     setQueryAnswers({ 'games:listMine': [] })
     wrap(<GamesMenu />)
 
-    const empty = within(await openGames()).getByRole('menuitem', { name: 'No games yet' })
+    const empty = within(await openGames()).getByRole('menuitem', { name: 'No Games yet' })
     expect(empty.getAttribute('aria-disabled')).toBe('true')
     setActiveContainer(SHELF)
     await act(async () => {
@@ -145,6 +145,6 @@ describe('GamesDrawerList', () => {
     wrap(<GamesDrawerList onPick={() => {}} />)
 
     expect(screen.getByRole('button', { name: 'Shelves' })).toBeTruthy()
-    expect(screen.getByText('No games yet')).toBeTruthy()
+    expect(screen.getByText('No Games yet')).toBeTruthy()
   })
 })

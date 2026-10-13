@@ -266,7 +266,7 @@ describe('refusals', () => {
     await addPilot(player, 'shelf-pilot', null)
     await expect(
       player.as.mutation(api.seats.setRange, { gameId, pilotId: 'shelf-pilot', range: 'Far' })
-    ).rejects.toThrow(/not in this game/i)
+    ).rejects.toThrow(/not in this Game/i)
   })
 
   test("a pilot cannot board another player's mech", async () => {
@@ -284,7 +284,7 @@ describe('refusals', () => {
     await addMech(player, 'm-shelf', null)
     await expect(
       player.as.mutation(api.seats.board, { gameId, pilotId: 'p1', mechId: 'm-shelf' })
-    ).rejects.toThrow(/not in this game/i)
+    ).rejects.toThrow(/not in this Game/i)
   })
 
   test('a destroyed mech cannot be boarded', async () => {

@@ -111,7 +111,7 @@ both apply. A reference card wears its entry's tone (`discordAccent`); rust
 stays only for system replies (errors, invites).
 
 **One link shape, one live sheet.** `sheetUrl` builds `/sheet/<kind>/<rowId>`
-from the Convex row id for every sheet the bot links — `/su my-stuff`, `/su crew`
+from the Convex row id for every sheet the bot links — `/su shelves`, `/su crew`
 and `/su sheet`. ITUN's `entities.locate` resolves it: yours editable, a
 crewmate's read-only.
 

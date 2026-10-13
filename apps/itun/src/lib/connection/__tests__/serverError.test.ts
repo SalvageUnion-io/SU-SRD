@@ -52,7 +52,7 @@ describe('serverMessage', () => {
 
   test('a refusal carrying the redaction prefix is still a refusal', () => {
     // Refusal vs defect is `instanceof ConvexError`, never the prefix string.
-    const refusalWithPrefix = new ConvexError('[CONVEX M(games:create)] Only the organizer can')
+    const refusalWithPrefix = new ConvexError('[CONVEX M(games:create)] Only the Organiser can')
 
     expect(isServerRefusal(refusalWithPrefix)).toBe(true)
   })

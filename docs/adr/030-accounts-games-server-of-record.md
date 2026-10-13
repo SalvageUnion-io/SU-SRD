@@ -321,7 +321,7 @@ is single use and its addressee may decline it.
 
 A Game is joined from a link, `/invite/:token`, whose token is the invite's
 `code` column, now 16 Crockford characters (80 bits) since nobody types it. The
-code-entry door in "+ New game" is gone. Opening a link signed out previews it
+code-entry door in "+ New Game" is gone. Opening a link signed out previews it
 and offers "Sign in to join"; the OAuth round trip returns with `?join=1` and
 the page joins on arrival. **Old `/join/:code` links resolve**: the Worker 301s
 them to `/invite/:code` (`apps/itun/src/worker/retiredRedirects.ts`), so a live

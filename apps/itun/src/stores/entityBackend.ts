@@ -148,7 +148,7 @@ export type BlockedWriteReason = 'offline' | 'settling' | 'signedOut' | 'outdate
 
 const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
   settling: 'Still signing in — that change was not saved. Try again in a moment.',
-  offline: 'Not connected — your games are read-only until the connection returns',
+  offline: 'Not connected — your Games are read-only until the connection returns',
   signedOut: 'Sign in to build and edit — nothing is saved without an account.',
   outdated: `${PRODUCT.shortName} has been updated — that change was not saved. Reloading onto the new version.`,
 }

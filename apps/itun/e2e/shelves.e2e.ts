@@ -33,8 +33,8 @@ test('move a unit into a Game and back: it never leaves the shelf', async ({ pag
 
   // A Game to move it into.
   await openShelves(page)
-  await page.getByRole('button', { name: '+ New game' }).click()
-  await page.getByLabel('New game name').fill('Dustbowl Run')
+  await page.getByRole('button', { name: '+ New Game' }).click()
+  await page.getByLabel('New Game name').fill('Dustbowl Run')
   await page.getByRole('button', { name: 'Create', exact: true }).click()
   await page.waitForURL(/\/games\//, { timeout: 20_000 })
 

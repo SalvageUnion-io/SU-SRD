@@ -174,7 +174,7 @@ function SignedInGate({ id, offline }: { id: string; offline: boolean }) {
     return (
       <DashboardRefusal
         title="This Game has no Mediator"
-        body="Ask the Organizer to name one, or edit your live sheet."
+        body="Ask the Organiser to name one, or edit your live sheet."
         link={sheet}
       />
     )

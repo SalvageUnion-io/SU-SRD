@@ -52,7 +52,7 @@ describe('with In the Union now unavailable', () => {
   test.each([
     ['me', meCommand],
     ['games', gamesCommand],
-    ['my-stuff', shelfCommand],
+    ['shelves', shelfCommand],
     ['crew', crewCommand],
     ['invite', inviteCommand],
   ])('/su %s explains itself instead of failing', async (name, command) => {

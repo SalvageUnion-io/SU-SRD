@@ -342,7 +342,7 @@ describe('yours first, then everyone else', () => {
   })
 })
 
-describe('copy to your shelves', () => {
+describe('make a copy', () => {
   test('every character offers it, including ones you do not own', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
 
@@ -350,7 +350,7 @@ describe('copy to your shelves', () => {
     // view of every row, so copying what is on screen escalates nothing. It is
     // also the only way to keep a character when you walk away from the table:
     // releasing one leaves it behind, unclaimed.
-    expect(screen.getAllByRole('button', { name: 'Copy to your shelves' })).toHaveLength(3)
+    expect(screen.getAllByRole('button', { name: 'Make a copy' })).toHaveLength(3)
   })
 
   test('the crawler does not — a deliberate hold, no longer an impossibility', async () => {
@@ -362,7 +362,7 @@ describe('copy to your shelves', () => {
     // somebody keeps, so offering "copy the table's crawler to your shelf" is a
     // product decision that has not been made — and this test is what will fail
     // first, loudly and in the right place, when somebody makes it.
-    expect(screen.queryByRole('button', { name: 'Copy to your shelves' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Make a copy' })).toBeNull()
   })
 })
 
@@ -414,14 +414,14 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
-  test('Copy to your shelves says the copy is separate, and copies nothing until confirmed', async () => {
+  test('Make a copy says the copy is separate, and copies nothing until confirmed', async () => {
     // Signed in: building needs an account. The backend's auth state is
     // process-global, so it is set here rather than assumed.
     setEntityBackendAuthState(SIGNED_IN)
     await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
-    const dialog = press('Copy to your shelves')
+    const dialog = press('Make a copy')
 
-    expect(dialog.textContent).toContain('Copy Vex Arlo to your shelf?')
+    expect(dialog.textContent).toContain('Make a copy of Vex Arlo on your shelf?')
     expect(dialog.textContent).toContain("won't sync back")
     expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
 
@@ -436,7 +436,7 @@ describe('every verb that changes who has a build asks first', () => {
     const dialog = press('Scrap')
 
     expect(dialog.textContent).toContain('Scrap #430 Tenacity?')
-    expect(dialog.textContent).toContain("for everyone in the game and can't be undone")
+    expect(dialog.textContent).toContain("for everyone in the Game and can't be undone")
     expect(mutations).toHaveLength(0)
 
     await confirmWith('Scrap')
@@ -471,7 +471,7 @@ describe('every verb that changes who has a build asks first', () => {
 
   test.each([
     ['Offer to the crew', MY_PILOT],
-    ['Copy to your shelves', MY_PILOT],
+    ['Make a copy', MY_PILOT],
     ['Delete', MY_PILOT],
   ] as const)('Cancel on %s leaves everything as it was', async (verb, pilot) => {
     await renderAs(ME, listing({ pilots: [pilot] }))
@@ -529,18 +529,18 @@ describe('remove from game', () => {
   test('is offered on your own pilot once its copy is here, and on nobody else’s', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
     // Not yet in this browser: nothing to move from here.
-    expect(screen.queryByRole('button', { name: 'Remove from game' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Remove from Game' })).toBeNull()
 
     cleanup()
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
-    expect(screen.getAllByRole('button', { name: 'Remove from game' })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: 'Remove from Game' })).toHaveLength(1)
   })
 
   test('asks first — naming the game and the assignments it clears — and moves nothing until confirmed', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = press('Remove from game')
+    const dialog = press('Remove from Game')
 
     expect(dialog.textContent).toContain('Take Roach-Boy out of Tenacity?')
     expect(dialog.textContent).toContain('goes back to your shelf')
@@ -554,7 +554,7 @@ describe('remove from game', () => {
   test('confirming moves the same record to your shelves', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    press('Remove from game')
+    press('Remove from Game')
 
     await confirmWith('Move to your shelf')
     // The move commits to the (stubbed) server first, which outlasts one act() scope.
@@ -571,11 +571,11 @@ describe('remove from game', () => {
       .adopt('crawler', crawlerFixture({ id: 'a-crawler', name: '#430 Tenacity', gameId: 'g1' }))
 
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-    expect(screen.queryByRole('button', { name: 'Remove from game' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Remove from Game' })).toBeNull()
 
     cleanup()
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    const dialog = press('Remove from game')
+    const dialog = press('Remove from Game')
     expect(dialog.textContent).toContain('Everyone in Tenacity assigned to it is unassigned')
   })
 })

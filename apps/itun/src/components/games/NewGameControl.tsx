@@ -1,5 +1,5 @@
 /**
- * "+ New game" — the top of the hub, and the way to start a Game (ADR-030).
+ * "+ New Game" — the top of the hub, and the way to start a Game (ADR-030).
  *
  * One dialog with two ways to start a table: by name, or from a template.
  * Joining somebody else's Game is not here: a Game is joined from an invite
@@ -82,7 +82,7 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
   const start = useServerAction(
     (from: { name: string } | { templateId: TemplateId }) =>
       'templateId' in from ? createFromTemplate(from) : create(from),
-    { failure: 'That game could not be created. Try again.' }
+    { failure: 'That Game could not be created. Try again.' }
   )
   const { pending: busy, error } = start
 
@@ -111,19 +111,19 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
         onClick={() => openDialog(true)}
         className={className}
       >
-        + New game
+        + New Game
       </Button>
-      <ModalShell open={open} onOpenChange={openDialog} title="New game">
+      <ModalShell open={open} onOpenChange={openDialog} title="New Game">
         <div style={BODY}>
           <section aria-labelledby="new-game-start" style={SECTION}>
             <PageHeading variant="section" as="h3" id="new-game-start">
-              Start a game
+              Start a Game
             </PageHeading>
             <div style={ROW}>
               <div style={GROW}>
                 <Field label="Name">
                   <Input
-                    aria-label="New game name"
+                    aria-label="New Game name"
                     placeholder="Union Crawler #430"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -166,7 +166,7 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
                     // `t.id`, not a hardcoded template id — see `templates.list`.
                     onClick={() => void startGame({ templateId: t.id })}
                   >
-                    Start this game
+                    Start this Game
                   </Button>
                 </div>
               </div>
@@ -188,7 +188,7 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
   )
 }
 
-/** "+ New game" and its dialog; nothing at all outside Connected mode. */
+/** "+ New Game" and its dialog; nothing at all outside Connected mode. */
 export function NewGameControl(props: NewGameControlProps) {
   const { mode } = useConnection()
   if (mode !== 'connected') return null

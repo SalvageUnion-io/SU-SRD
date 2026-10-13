@@ -160,11 +160,11 @@ const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
     assignAria: 'Assign crawler to mech',
     change: 'Change Crawler',
     changeAria: 'Change crawler for this mech',
-    title: 'Dock Mech in Crawler',
+    title: 'Assign Mech to Crawler',
     confirm: 'Assign',
     confirmAria: 'Confirm crawler assignment',
     pending: 'Assigning…',
-    note: 'A mech docks in one crawler, on its own assignment — its pilot is assigned separately.',
+    note: 'A mech is assigned to one crawler, on its own — its pilot is assigned separately.',
   },
   'crawler.pilot': {
     assign: '+ Add Crew',
@@ -172,15 +172,15 @@ const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
     confirm: 'Add to Crew',
     confirmAria: 'Confirm crew assignment',
     pending: 'Adding…',
-    note: 'A pilot crews one crawler — adding one already aboard another moves them here.',
+    note: 'A pilot crews one crawler — adding one already assigned to another moves them here.',
   },
   'crawler.mech': {
-    assign: '+ Dock Mech',
-    title: 'Dock Mech in Crawler',
-    confirm: 'Dock',
-    confirmAria: 'Confirm mech docking',
-    pending: 'Docking…',
-    note: 'A mech docks in one crawler — docking one from another bay moves it here. Its pilot is assigned separately.',
+    assign: '+ Assign Mech',
+    title: 'Assign Mech to Crawler',
+    confirm: 'Assign',
+    confirmAria: 'Confirm mech assignment',
+    pending: 'Assigning…',
+    note: 'A mech is assigned to one crawler — assigning one from another bay moves it here. Its pilot is assigned separately.',
   },
 }
 
@@ -230,7 +230,7 @@ function emptyCopy(kind: Kind, scope: Container | null, anyAtAll: boolean): stri
     return anyAtAll ? `No other ${many} to pick.` : `No ${many} yet — create one first.`
   }
   if (scope.kind === 'game') {
-    return anyAtAll ? `No other ${many} in this game.` : `No ${many} in this game yet.`
+    return anyAtAll ? `No other ${many} in this Game.` : `No ${many} in this Game yet.`
   }
   return anyAtAll ? `No other ${many} on your shelf.` : `No ${many} on your shelf.`
 }

@@ -104,7 +104,7 @@ export function useRowActions(confirm: Confirm): RowActions {
               row.kind === 'pilot' ? 'pilot' : 'mech',
               copyForShelf(row.body, row.name) as never
             )
-          toast.success(`Copied ${created.name} to your shelves.`)
+          toast.success(`Copied ${created.name} to your shelf.`)
         },
       }),
 

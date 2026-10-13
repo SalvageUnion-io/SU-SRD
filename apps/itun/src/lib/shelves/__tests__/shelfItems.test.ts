@@ -91,7 +91,7 @@ describe('a unit’s chips', () => {
           mechNames: new Map([['m1', 'Scrapper']]),
         })
       )
-    ).toEqual(['Reclamation of the Wastes', 'Linked: Scrapper', 'Copied from the Starter Set'])
+    ).toEqual(['Reclamation of the Wastes', 'Assigned: Scrapper', 'Copied from the Starter Set'])
   })
 
   test('a mech names its pilot and the pattern it was built from', () => {

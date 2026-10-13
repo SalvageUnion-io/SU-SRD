@@ -28,7 +28,7 @@ const STRIP = {
 const NOT_CONNECTED = [
   {
     severity: 'warn' as const,
-    message: 'Not connected — your games are read-only until the connection returns',
+    message: 'Not connected — your Games are read-only until the connection returns',
   },
 ]
 

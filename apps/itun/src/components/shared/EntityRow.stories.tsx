@@ -125,7 +125,7 @@ export const Game: Story = () => (
           entityType="game"
           name="Thursday Night Salvage"
           meta={['No crawler', '0 Pilots', '0 Mechs']}
-          metaLine="Player · organized by Vex"
+          metaLine="Player · organised by Vex"
           sheetHref="#/games/thursday"
         />
       </li>

@@ -144,7 +144,7 @@ describe('refusals', () => {
     setQueryAnswers({ 'games:get': GAME, 'games:members': NO_MEDIATOR })
     await renderGate('gate-rook')
     expect(heading('This Game has no Mediator')).toBeTruthy()
-    expect(screen.getByText('Ask the Organizer to name one, or edit your live sheet.')).toBeTruthy()
+    expect(screen.getByText('Ask the Organiser to name one, or edit your live sheet.')).toBeTruthy()
     expect(dashboardOpen()).toBe(false)
   })
 })

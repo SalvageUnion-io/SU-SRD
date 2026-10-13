@@ -10,7 +10,7 @@
  *
  *  - **The band** (ink, paper flecks): the notched title, a line saying what
  *    the page is, the **Showing** toggle (Everything | Not in a Game),
- *    **Import** and **Export all**, and "+ New game", the one way to start a
+ *    **Import** and **Export all**, and "+ New Game", the one way to start a
  *    table.
  *  - **Invited**: an invitation addressed to you, above the shelves
  *    (`InvitationsForYou`), with Join the Game and Not now.

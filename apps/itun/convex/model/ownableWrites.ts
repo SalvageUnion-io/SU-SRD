@@ -71,7 +71,7 @@ async function assertMayAddToContainer(
 ): Promise<void> {
   if (gameId === null) return
   const membership = await getMembership(ctx, gameId, userId)
-  if (membership === null) throw new NotAuthorized('Not a member of this game')
+  if (membership === null) throw new NotAuthorized('Not a member of this Game')
 }
 
 /**

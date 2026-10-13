@@ -80,8 +80,8 @@ describe('HeaderMenu', () => {
   })
 
   test('a row with no action is an inert, disabled menuitem', async () => {
-    const menu = await open(setup([[{ id: 'none', label: 'No games yet' }]]))
-    const row = within(menu).getByRole('menuitem', { name: 'No games yet' })
+    const menu = await open(setup([[{ id: 'none', label: 'No Games yet' }]]))
+    const row = within(menu).getByRole('menuitem', { name: 'No Games yet' })
     expect(row.getAttribute('aria-disabled')).toBe('true')
 
     await act(async () => {

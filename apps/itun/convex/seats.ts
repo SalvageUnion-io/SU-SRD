@@ -53,7 +53,7 @@ async function writablePilot(
   await requireMember(ctx, gameId)
   const row = await resolveLinkEnd(ctx, { type: 'pilot', id: pilotId }, gameId)
   if (row === null || row.gameId !== gameId) {
-    throw new NotAuthorized('That pilot is not in this game')
+    throw new NotAuthorized('That pilot is not in this Game')
   }
   // A `pilot` end only ever resolves to a row of the `pilots` table.
   const pilot = row as Doc<'pilots'>
@@ -158,7 +158,7 @@ export const board = mutation({
 
     const row = await resolveLinkEnd(ctx, { type: 'mech', id: args.mechId }, args.gameId)
     if (row === null || row.gameId !== args.gameId) {
-      throw new NotAuthorized('That mech is not in this game')
+      throw new NotAuthorized('That mech is not in this Game')
     }
     // A `mech` end only ever resolves to a row of the `mechs` table.
     const mech = row as Doc<'mechs'>

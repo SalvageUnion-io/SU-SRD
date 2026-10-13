@@ -352,7 +352,7 @@ export function linkIdOf(row: ContainedRow): string | undefined {
  *
  * The same Game, or the same owner's shelf. The second clause is the one
  * `itun-domain/container`'s `sameContainer` cannot express: every player's shelf has
- * the same `null` game id, and "My Stuff" is a solo Game per person, not one
+ * the same `null` game id, and a shelf is a solo container per person, not one
  * shared bucket. A shelf row with no owner is the invalid row (ADR-030 §2), so
  * it shares a container with nothing.
  */

@@ -122,8 +122,8 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
         ) : destinations.length === 0 ? (
           <Text variant="hint" style={HINT}>
             {subject?.type === 'crawler'
-              ? 'A crawler goes only into a Game you run. Start one with “+ New game”.'
-              : 'You are in no Game to move it to. Start one with “+ New game”, or join one from an invite link.'}
+              ? 'A crawler goes only into a Game you run. Start one with “+ New Game”.'
+              : 'You are in no Game to move it to. Start one with “+ New Game”, or join one from an invite link.'}
           </Text>
         ) : (
           <ul style={LIST} aria-label="Where to">

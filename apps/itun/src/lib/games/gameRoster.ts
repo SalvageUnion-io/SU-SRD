@@ -152,7 +152,7 @@ export function tableCapabilities(args: {
     hasCrawler,
     canRaiseCrawler: tableRunner,
     canAddCrew,
-    addCrewBlocked: canAddCrew ? null : 'Only members of this game can bring builds into it.',
+    addCrewBlocked: canAddCrew ? null : 'Only members of this Game can bring builds into it.',
     canOfferUnclaimed: tableRunner,
   }
 }
@@ -198,7 +198,7 @@ export function moveDestinations(args: {
       ? shelf
       : currentGame !== undefined
         ? toGame(currentGame)
-        : { container: current, label: 'Unknown game' }
+        : { container: current, label: 'Unknown Game' }
   const others = (destinations: MoveDestination[]) =>
     destinations.filter((d) => !sameContainer(d.container, current))
 

@@ -110,7 +110,7 @@ export async function bindChannelAs(
   const existing = await bindingForChannel(ctx, trimmed)
   if (existing !== null) {
     if (existing.gameId === gameId) return
-    throw new NotAuthorized('That channel is already bound to another game')
+    throw new NotAuthorized('That channel is already bound to another Game')
   }
 
   await ctx.db.insert('channelBindings', {

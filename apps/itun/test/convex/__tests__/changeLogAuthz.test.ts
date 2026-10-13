@@ -93,7 +93,7 @@ describe('appendChangeLog authorization', () => {
 
     await expect(
       outsider.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(gameId)] })
-    ).rejects.toThrow(/Not a member of this game/)
+    ).rejects.toThrow(/Not a member of this Game/)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
     expect(rows).toHaveLength(0)
@@ -112,7 +112,7 @@ describe('appendChangeLog authorization', () => {
       player.as.mutation(api.changeLog.appendChangeLog, {
         entries: [entry(mine), entry(theirs), entry(null)],
       })
-    ).rejects.toThrow(/Not a member of this game/)
+    ).rejects.toThrow(/Not a member of this Game/)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
     expect(rows).toHaveLength(0)
@@ -141,7 +141,7 @@ describe('appendChangeLog authorization', () => {
 
     await expect(
       player.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(gameId)] })
-    ).rejects.toThrow(/Not a member of this game/)
+    ).rejects.toThrow(/Not a member of this Game/)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
     expect(rows).toHaveLength(1)
@@ -254,7 +254,7 @@ describe("appendChangeLog and an entity's history", () => {
       stranger.as.mutation(api.changeLog.appendChangeLog, {
         entries: [entry(null, { entityId: 'p-crew' })],
       })
-    ).rejects.toThrow(/Not a member of this game/)
+    ).rejects.toThrow(/Not a member of this Game/)
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
     expect(rows).toHaveLength(0)
   })

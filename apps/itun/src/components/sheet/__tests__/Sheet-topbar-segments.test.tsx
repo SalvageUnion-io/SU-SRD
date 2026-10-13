@@ -147,7 +147,7 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(screen.queryByRole('navigation', { name: /wired sheets/i })).toBeNull()
+    expect(screen.queryByRole('navigation', { name: /assigned sheets/i })).toBeNull()
   })
 
   test('fully wired pilot sheet: active Pilot segment + Mech/Crawler links', () => {
@@ -159,7 +159,7 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToPilot, pilotToCrawler])}
       />
     )
-    const nav = screen.getByRole('navigation', { name: /wired sheets/i })
+    const nav = screen.getByRole('navigation', { name: /assigned sheets/i })
     expect(nav).toBeTruthy()
     // mobile-only row, stitched into the sticky bar (`display: none` from sm)
     expect(nav.className).toContain('su-sheet-live-segments')
@@ -195,7 +195,7 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToPilot])}
       />
     )
-    const nav = screen.getByRole('navigation', { name: /wired sheets/i })
+    const nav = screen.getByRole('navigation', { name: /assigned sheets/i })
     const active = nav.querySelector('[aria-current="page"]')
     expect(active?.textContent).toBe('Mech')
     const links = Array.from(nav.querySelectorAll('a')).map((a) => a.getAttribute('href'))

@@ -111,7 +111,7 @@ export function SheetPilot({
     ) : null,
   ].filter((unit) => unit !== null)
 
-  // Linked Units rail content (poster R3, span 5) — built here because it
+  // Assigned Units rail content (poster R3, span 5) — built here because it
   // needs `composition` (resolved mech/crawler), which PilotSheet does not
   // receive; handed down as `linkedUnits`.
   const rail = !editable ? (
@@ -196,7 +196,7 @@ export function SheetPilot({
           entityType="crawler"
           className="su-sheet-pilot-fill"
           roleLabel="Home Crawler"
-          message="No crawler linked. Set the crawler level by hand until your union home is wired in."
+          message="No crawler assigned. Set the crawler level by hand until your union home is assigned."
           mock={
             <Stat
               label="CRAWLER"

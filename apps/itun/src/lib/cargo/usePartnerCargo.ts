@@ -102,7 +102,7 @@ export function usePartnerCargo({
     if (needsDepot && !crawler) {
       return {
         ok: false,
-        reason: 'No crawler is linked — nothing to transfer to or from.',
+        reason: 'No crawler is assigned — nothing to transfer to or from.',
       }
     }
     if (needsDepot && crawlerLocked !== null) return { ok: false, reason: crawlerLocked }

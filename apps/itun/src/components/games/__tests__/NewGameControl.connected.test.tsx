@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { ConvexError } from 'convex/values'
 
 /**
- * "+ New game" — starting a Game, from the top of the hub.
+ * "+ New Game" — starting a Game, from the top of the hub.
  *
  * What these pin: there is no game UI for somebody who is not signed in; a game
  * started by name or from a template is shown (on its own page, with a router —
@@ -75,7 +75,7 @@ async function renderOpen(): Promise<void> {
       </ConnectionProvider>
     )
   })
-  fireEvent.click(screen.getByRole('button', { name: '+ New game' }))
+  fireEvent.click(screen.getByRole('button', { name: '+ New Game' }))
 }
 
 async function press(name: string): Promise<void> {
@@ -98,9 +98,9 @@ describe('who gets it', () => {
     expect(container?.textContent).toBe('')
   })
 
-  test('"+ New game" opens the two ways to start one, and no code to type', async () => {
+  test('"+ New Game" opens the two ways to start one, and no code to type', async () => {
     await renderOpen()
-    expect(screen.getByRole('heading', { name: 'Start a game' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Start a Game' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'From a template' })).toBeTruthy()
     expect(screen.getByText('Reclamation of the Wastes')).toBeTruthy()
     expect(screen.queryByLabelText('Invite code')).toBeNull()
@@ -116,7 +116,7 @@ describe('starting a game', () => {
     const create = screen.getByRole('button', { name: 'Create' })
     expect(create.hasAttribute('disabled')).toBe(true)
 
-    fireEvent.change(screen.getByLabelText('New game name'), {
+    fireEvent.change(screen.getByLabelText('New Game name'), {
       target: { value: 'Union Crawler #430' },
     })
     await press('Create')
@@ -128,7 +128,7 @@ describe('starting a game', () => {
 
   test('from a template, the new game is shown too', async () => {
     await renderOpen()
-    await press('Start this game')
+    await press('Start this Game')
 
     expect(mutations).toEqual([
       { name: 'templates:createGame', args: { templateId: 'starter-set' } },
@@ -139,7 +139,7 @@ describe('starting a game', () => {
   test('a refusal is shown in the server’s own words, and goes nowhere', async () => {
     await renderOpen()
     mutationError = new ConvexError('You have too many games')
-    await press('Start this game')
+    await press('Start this Game')
 
     expect(screen.getByRole('alert').textContent).toBe('You have too many games')
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })

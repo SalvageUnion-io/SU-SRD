@@ -88,7 +88,7 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
 
   test('Sheet crawler body is a single-column region flow with Storage as a full-width bottom band', () => {
     // Workshop-Manual crawler sheet: a single-column region stack (Identity →
-    // Bays → Weapons → Linked Units → Storage Bay), NOT the old 2-col macro
+    // Bays → Weapons → Assigned Units → Storage Bay), NOT the old 2-col macro
     // grid that stood Storage up as a full-height right column. The old
     // `54fr`-split grid is gone; the crawler section flows in one column and
     // the Storage Bay renders as its own section at the bottom.

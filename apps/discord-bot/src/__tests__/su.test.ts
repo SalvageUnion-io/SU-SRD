@@ -32,10 +32,10 @@ describe('/su command', () => {
       'invite',
       'lookup',
       'me',
-      'my-stuff',
       'roll',
       'screen',
       'sheet',
+      'shelves',
     ])
 
     // Discord caps a command at 25 options, and subcommands + groups both
@@ -70,12 +70,15 @@ describe('/su command', () => {
     ])
   })
 
-  test('the pre-rename `shelf` still reaches My Stuff until commands are re-registered', async () => {
-    // Discord keeps serving `/su shelf` until `deploy-commands:global` runs.
-    const { interaction, deferred } = fakeExecute({ subcommand: 'shelf' })
-    await suCommand.execute(interaction)
-    expect(deferred.called).toBe(true)
-  })
+  test.each(['my-stuff', 'shelf'])(
+    'the earlier name `%s` still reaches Shelves until commands are re-registered',
+    async (subcommand) => {
+      // Discord keeps serving a registered name until `deploy-commands:global` runs.
+      const { interaction, deferred } = fakeExecute({ subcommand })
+      await suCommand.execute(interaction)
+      expect(deferred.called).toBe(true)
+    }
+  )
 
   test('execute throws loudly on an unknown subcommand', async () => {
     const { interaction } = fakeExecute({ subcommand: 'nonsense' })

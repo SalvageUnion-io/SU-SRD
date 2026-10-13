@@ -146,7 +146,7 @@ export async function moveCrawlerRow(
 
   if (from !== null && to !== null) {
     throw new NotAuthorized(
-      'Move the crawler to My Stuff first, then into the other game — a crawler changes tables one step at a time'
+      'Move the crawler to your shelf first, then into the other Game — a crawler changes tables one step at a time'
     )
   }
   if (from === null) {

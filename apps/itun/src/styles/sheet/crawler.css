@@ -1,6 +1,6 @@
 /* The crawler sheet group's rules: only what a style object cannot express. */
 
-/* ── SheetCrawler: a rail row's share of the Linked Units stack. `EntityRow`
+/* ── SheetCrawler: a rail row's share of the Assigned Units stack. `EntityRow`
       takes a class and no style, so the one property rides here. ── */
 .su-sheet-crawler-grow {
   flex: 1 1 0%;
@@ -28,7 +28,7 @@
   }
 }
 
-/* ── CrawlerSheet: the Linked Units body (`SheetSectionSlab` takes a class for
+/* ── CrawlerSheet: the Assigned Units body (`SheetSectionSlab` takes a class for
       its body, not a style). Read is a container-sized grid of listing cards;
       Edit stacks the full rows. ── */
 .su-sheet-crawler-linked-read {

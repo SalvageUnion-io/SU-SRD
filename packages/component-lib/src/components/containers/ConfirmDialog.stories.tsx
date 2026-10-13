@@ -125,9 +125,9 @@ export const Default: Story = () => {
           tone="danger"
         />
         <Demo
-          trigger={`Copy ${mech}`}
-          title={`Copy ${mech} to My Stuff?`}
-          body={`Makes “COPY OF ${mech}” in My Stuff. It is a separate build: changes to it won't sync back.`}
+          trigger="Make a copy"
+          title={`Make a copy of ${mech} on your shelf?`}
+          body={`Makes “COPY OF ${mech}” on your shelf. It is a separate build: changes to it won't sync back.`}
           confirmLabel="Make a copy"
           pendingLabel="Copying…"
           tone="default"
@@ -135,7 +135,7 @@ export const Default: Story = () => {
         <Demo
           trigger={`Scrap ${crawler} (fails once)`}
           title={`Scrap ${crawler}?`}
-          body={`This deletes ${crawler} for everyone in the game and can't be undone.`}
+          body={`This deletes ${crawler} for everyone in the Game and can't be undone.`}
           confirmLabel="Scrap"
           pendingLabel="Scrapping…"
           tone="danger"

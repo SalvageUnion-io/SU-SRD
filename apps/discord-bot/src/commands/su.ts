@@ -61,9 +61,11 @@ export const suCommand = {
         return meCommand.execute(interaction)
       case 'games':
         return gamesCommand.execute(interaction)
+      case 'shelves':
+      // The subcommand's earlier names (`shelf`, then `my-stuff`): Discord
+      // keeps serving a registered name until the commands are re-registered
+      // (`bun run deploy-commands:global`), so both still answer.
       case 'my-stuff':
-      // The subcommand's pre-rename name: Discord keeps serving it until the
-      // commands are re-registered (`bun run deploy-commands:global`).
       case 'shelf':
         return shelfCommand.execute(interaction)
       case 'crew':

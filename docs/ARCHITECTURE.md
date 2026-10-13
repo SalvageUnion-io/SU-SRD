@@ -37,7 +37,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
 11. **Convex, the server of record** <a id="convex"></a>
-    `apps/itun/convex/`: bodies are opaque (`v.any()`), Zod parses before every mutation; an entity is in a Game or on a Shelf.
+    `apps/itun/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
     Every store commits through a `commit*` in `apps/itun/src/stores/`; `containerParity.test.ts` asserts each has a table.
 12. **No device cache** <a id="no-device-cache"></a>
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/offline.e2e.ts` pins both offline cases.

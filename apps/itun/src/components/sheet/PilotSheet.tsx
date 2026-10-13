@@ -11,7 +11,7 @@
  *     Edit;
  *   - narrow: the Vitals card (HP/AP gauges, TP and Conditions), Inventory
  *     (shortform pills and free-slot boxes in Read; in Edit each pill with its
- *     controls in a row under it) and Linked Units (one line each in Read).
+ *     controls in a row under it) and Assigned Units (one line each in Read).
  * Ability-granted partners run full width under both columns.
  *
  * Read | Edit (`sheetMode.model.ts`) reaches here as `readOnly`: Read withdraws every
@@ -19,7 +19,7 @@
  *
  * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
  * a section of inputs/gauges is a CARD (here, the identity band), a section of
- * entity cards is a SLAB (Abilities, Inventory, Linked Units) — cards already
+ * entity cards is a SLAB (Abilities, Inventory, Assigned Units) — cards already
  * carry their own frame, so a second frame around them reads as one opaque
  * block.
  *
@@ -300,7 +300,7 @@ type PilotSheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * The Linked Units rail content (mech + crawler rail row/RailEmpty), built
+   * The Assigned Units rail content (mech + crawler rail row/RailEmpty), built
    * by SheetPilot from `composition` — PilotSheet has no composition access
    * of its own, so this is passed straight through into the R3 section.
    */
@@ -669,13 +669,13 @@ export function PilotSheet({
             </SheetSectionSlab>
           </div>
 
-          {/* ===== Linked Units — the assigned mech and the home crawler =====
+          {/* ===== Assigned Units — the assigned mech and the home crawler =====
               One line each in Read (board 10); full rows with Assign in Edit. */}
           {linkedUnits && (
             <div className="su-sheet-pilot-order-2" style={MIN_W_0}>
               <SheetSectionSlab
                 id="linked-units"
-                title="Linked Units"
+                title="Assigned Units"
                 bodyClassName="su-sheet-pilot-stack-16"
               >
                 {linkedUnits}

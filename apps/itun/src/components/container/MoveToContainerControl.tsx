@@ -167,7 +167,7 @@ function ConnectedMoveToContainerControl({
           disabled={pending || destinations.length <= 1}
           className="container-select move-to-container__select"
           style={SELECT}
-          aria-label="Move to a game or your shelf"
+          aria-label="Move to a Game or your shelf"
         >
           {shelfOptions.map((d) => (
             <option key="shelf" value="shelf">

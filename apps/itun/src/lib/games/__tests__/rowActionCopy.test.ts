@@ -98,7 +98,7 @@ describe('rowActionCopy', () => {
         { type: 'pilot-to-crawler', other: { kind: 'crawler', name: null } },
       ],
     })
-    expect(copy.title).toBe('Move Mira Cole into this game?')
+    expect(copy.title).toBe('Move Mira Cole into this Game?')
     expect(copy.body.slice(1, 3)).toEqual([
       'Their pairing with a mech is cleared.',
       "They leave their crawler's crew.",
@@ -127,8 +127,8 @@ describe('rowActionCopy', () => {
       from: null,
       to: { kind: 'game', name: null },
     })
-    expect(copy.title).toBe('Move Iron Mongrel to another game?')
-    expect(copy.body[0]).toContain("leaves this game's roster")
+    expect(copy.title).toBe('Move Iron Mongrel to another Game?')
+    expect(copy.body[0]).toContain("leaves this Game's roster")
   })
 
   test('a pilot is "them"; a mech or a crawler is "it"', () => {

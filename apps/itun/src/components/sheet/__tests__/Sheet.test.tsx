@@ -158,7 +158,7 @@ describe('Sheet — crawler-only (no links)', () => {
       />
     )
     // The slot is "Pilots" now, not a single lead.
-    expect(screen.getByText(/No pilots wired to this crawler/)).toBeTruthy()
+    expect(screen.getByText(/No pilots assigned to this crawler/)).toBeTruthy()
   })
 })
 

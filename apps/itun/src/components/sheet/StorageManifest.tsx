@@ -360,8 +360,8 @@ export function StorageManifest({
           ) : (
             <p style={NOTE}>
               {side === 'mech'
-                ? 'No crawler linked — stow is disabled until a home crawler is wired.'
-                : 'No mech docked — load is disabled until a mech is wired.'}
+                ? 'No crawler assigned — stow is disabled until a home crawler is assigned.'
+                : 'No mech assigned — load is disabled until a mech is assigned.'}
             </p>
           )}
         </div>

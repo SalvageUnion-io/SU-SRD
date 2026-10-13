@@ -138,12 +138,12 @@ export function useCargo({
     if (!mech)
       return {
         ok: false,
-        reason: 'No mech is docked — nothing to transfer to or from.',
+        reason: 'No mech is assigned — nothing to transfer to or from.',
       }
     if (!crawler) {
       return {
         ok: false,
-        reason: 'No crawler is linked — nothing to transfer to or from.',
+        reason: 'No crawler is assigned — nothing to transfer to or from.',
       }
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
@@ -175,7 +175,7 @@ export function useCargo({
   async function dispatchMechLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
     if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
     if (!mech) {
-      return { ok: false, reason: 'No mech is docked — nothing to store cargo in.' }
+      return { ok: false, reason: 'No mech is assigned — nothing to store cargo in.' }
     }
 
     // Reduce against a FRESH read, not the render-time `state` snapshot. These
@@ -215,7 +215,7 @@ export function useCargo({
   async function dispatchCrawlerLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
     if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
     if (!crawler) {
-      return { ok: false, reason: 'No crawler is linked — nothing to store cargo in.' }
+      return { ok: false, reason: 'No crawler is assigned — nothing to store cargo in.' }
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 

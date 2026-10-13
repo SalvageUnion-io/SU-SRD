@@ -127,7 +127,7 @@ function GamePage({ gameId }: { gameId: string | null }) {
             </AppLink>
           </div>
           {/* Where else to go, and how to get another table: the select lists
-              Shelves and every Game, and "+ New game" adds one. Both render
+              Shelves and every Game, and "+ New Game" adds one. Both render
               nothing outside Connected. */}
           <div style={BAND_END}>
             <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />

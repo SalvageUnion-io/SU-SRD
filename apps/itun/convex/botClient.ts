@@ -74,8 +74,8 @@ type Ack = { ok: true }
 
 const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
   unlinked: `No ${PRODUCT.name} account is signed in with this Discord account.`,
-  unbound: 'This channel is not bound to a game.',
-  'not-a-member': 'You are not a member of the game bound to this channel.',
+  unbound: 'This channel is not bound to a Game.',
+  'not-a-member': 'You are not a member of the Game bound to this channel.',
   forbidden: 'You do not have permission to do that.',
   'not-found': 'That could not be found.',
 }
@@ -340,7 +340,7 @@ export const bind = internalMutation({
     }
 
     const game = await ctx.db.get(args.gameId)
-    return { ok: true, name: game?.name ?? 'this game' }
+    return { ok: true, name: game?.name ?? 'this Game' }
   },
 })
 
@@ -432,7 +432,7 @@ export const invite = internalMutation({
     const user = await userByDiscordId(ctx, parsed.inviterId)
     if (user === null) return fail('unlinked')
 
-    if (parsed.invitee.bot) return fail('forbidden', 'A bot cannot join a game.')
+    if (parsed.invitee.bot) return fail('forbidden', 'A bot cannot join a Game.')
     if (parsed.invitee.id === parsed.inviterId) {
       return fail('forbidden', 'You are already at your own table.')
     }
@@ -442,7 +442,7 @@ export const invite = internalMutation({
     if (parsed.gameId !== null) {
       gameId = ctx.db.normalizeId('games', parsed.gameId)
       if (gameId === null) {
-        return fail('not-found', 'Pick a game from the list rather than typing its name.')
+        return fail('not-found', 'Pick a Game from the list rather than typing its name.')
       }
     } else {
       const binding =
@@ -450,7 +450,7 @@ export const invite = internalMutation({
       if (binding === null) {
         return fail(
           'unbound',
-          'This channel is not bound to a game. Pick one with the game option.'
+          'This channel is not bound to a Game. Pick one with the game option.'
         )
       }
       gameId = binding.gameId

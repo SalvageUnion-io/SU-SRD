@@ -21,12 +21,12 @@
  *   The Hold (`StorageManifest side='mech'`) reads BEFORE Systems & Modules —
  *       cargo is reached for mid-session and was buried under two long loadout
  *       lists at the printed sheet's bottom-of-page-2 placement.
- *   Linked Units closes the sheet.
+ *   Assigned Units closes the sheet.
  *
  * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
  * inputs/gauges get a CARD (the identity band, Quirk & Appearance, The Hold),
  * entity-card collections get a SLAB (Chassis Ability, Systems, Modules,
- * Linked Units) — cards already carry their own frame, so a second frame
+ * Assigned Units) — cards already carry their own frame, so a second frame
  * around them reads as one opaque block.
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
@@ -210,7 +210,7 @@ type MechSheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * The Linked Units rail content (pilot + crawler rail row/RailEmpty), built
+   * The Assigned Units rail content (pilot + crawler rail row/RailEmpty), built
    * by SheetMech from `composition` — MechSheet has no composition access of
    * its own, so this is passed straight through into the R4 section.
    */
@@ -556,7 +556,7 @@ export function MechSheet({
 
       {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
           Sestra's Sestra Drone, Big Brother's four). Its own region rather than
-          a Linked Units row: a partner is not a linked roster entity, it is part
+          a Assigned Units row: a partner is not a linked roster entity, it is part
           of this mech's own kit — and it renders full width because it carries a
           nested loadout and a hold. No crawler tech level is threaded: a
           mech-granted drone is fixed by its stat block and never tracks the
@@ -577,12 +577,12 @@ export function MechSheet({
         </SheetSectionSlab>
       )}
 
-      {/* ===== Linked Units — the last region ===== (none in Read when
+      {/* ===== Assigned Units — the last region ===== (none in Read when
           nothing is linked: an empty slot is left out, as an empty field is) */}
       {linkedUnits && (
         <SheetSectionSlab
           id="linked-units"
-          title="Linked Units"
+          title="Assigned Units"
           // Side by side: each linked unit is one roster row, and two of them
           // stack to a wasteful column on a sheet that has the width for both.
           bodyClassName="su-sheet-mech-linked"

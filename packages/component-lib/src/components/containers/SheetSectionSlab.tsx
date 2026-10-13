@@ -59,7 +59,7 @@ type SheetSectionSlabProps = {
    */
   collapsible?: boolean
   /** DOM id on the section — an in-page link target (e.g. the header's
-   *  "Linked Units" jump). */
+   *  "Assigned Units" jump). */
   id?: string
   children: ReactNode
 }

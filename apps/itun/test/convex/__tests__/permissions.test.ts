@@ -66,7 +66,7 @@ describe('roles are a base role plus one modifier', () => {
   test('a Player cannot delete the game', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
-    await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organizer/i)
+    await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organiser/i)
   })
 
   test('a Player cannot appoint a Mediator', async () => {
@@ -78,7 +78,7 @@ describe('roles are a base role plus one modifier', () => {
         userId: player.userId,
         mediator: true,
       })
-    ).rejects.toThrow(/organizer/i)
+    ).rejects.toThrow(/organiser/i)
   })
 })
 
@@ -174,7 +174,7 @@ describe('destroying a game preserves everything anybody built', () => {
   test('a Player cannot destroy the game', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
-    await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organizer/i)
+    await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organiser/i)
   })
 
   test('a Mediator who is not the Organizer cannot destroy the game either', async () => {
@@ -190,7 +190,7 @@ describe('destroying a game preserves everything anybody built', () => {
     // that helper hands authority to the Organizer only while a Game has no
     // Mediator, so who may end a campaign would otherwise depend on whether one
     // had been appointed yet.
-    await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organizer/i)
+    await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organiser/i)
   })
 })
 
@@ -325,7 +325,7 @@ describe('invite lifecycle', () => {
 
     await expect(
       player.as.mutation(api.invites.revoke, { inviteId: invite?._id as never })
-    ).rejects.toThrow(/organizer/i)
+    ).rejects.toThrow(/organiser/i)
   })
 })
 

@@ -156,11 +156,11 @@ describe('the sections under the roster (board M2)', () => {
     expect(heading('Asking to join')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Make link' })).toBeNull()
     expect(screen.queryByRole('button', { name: /Hand over|Appoint/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Delete this game' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Delete this Game' })).toBeNull()
     // …but any member can bring someone to the table.
     // (The button itself is `CopyInviteLink`'s, mounted only when Connected.)
     expect(heading('Invite a crewmate')).toBeTruthy()
-    expect(screen.getByText(/asks to join, and the organizer lets them in/)).toBeTruthy()
+    expect(screen.getByText(/asks to join, and the Organiser lets them in/)).toBeTruthy()
   })
 
   test('the Organizer gets invite links, the knocks, who mediates, and ending the game', async () => {
@@ -173,7 +173,8 @@ describe('the sections under the roster (board M2)', () => {
     // This is the ONLY way the Mediator flag is ever set.
     expect(screen.getByText('Nobody yet')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Appoint' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Delete this game' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Delete this Game' })).toBeTruthy()
+    expect(screen.getByText('Organiser')).toBeTruthy()
   })
 
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {
@@ -203,17 +204,15 @@ describe('the sections under the roster (board M2)', () => {
   test('ending the game asks first, says where everything lands, and then shows Shelves', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete this game' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this Game' }))
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('It cannot be undone')
     expect(dialog.textContent).toContain('4 pilots and 3 mechs go back to whoever owns them')
-    expect(dialog.textContent).toContain(
-      'Hamlet and anything unclaimed come to you, in your shelves'
-    )
+    expect(dialog.textContent).toContain('Hamlet and anything unclaimed come to you, on your shelf')
     expect(mutations).toHaveLength(0)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Delete game' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
     })
     expect(mutations).toEqual([{ name: 'games:destroy', args: { gameId: 'g1' } }])
     expect(navigations).toEqual([{ to: '/' }])
@@ -221,9 +220,9 @@ describe('the sections under the roster (board M2)', () => {
 
   test('a game with no crawler does not promise one', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
-    fireEvent.click(screen.getByRole('button', { name: 'Delete this game' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this Game' }))
 
-    expect(screen.getByText(/^Anything unclaimed comes to you, in your shelves\.$/)).toBeTruthy()
+    expect(screen.getByText(/^Anything unclaimed comes to you, on your shelf\.$/)).toBeTruthy()
     // With no pilots there is no "0 pilots" line to read past.
     expect(screen.queryByText(/0 pilots/)).toBeNull()
   })
@@ -309,18 +308,18 @@ describe('a game the viewer is not in', () => {
   test('explains itself, and offers the way back to Shelves, instead of rendering the table', async () => {
     await renderHub({ 'games:get': null })
 
-    expect(screen.getByText(/not in this game/i)).toBeTruthy()
+    expect(screen.getByText(/not in this Game/i)).toBeTruthy()
     expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(heading('Crew & seats')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Back to your shelves' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Shelves' }))
     expect(navigations).toEqual([{ to: '/' }])
   })
 
   test('still loading is not the same as not a member', async () => {
     await renderHub({ 'games:get': undefined })
 
-    expect(screen.getByText(/Loading this game/i)).toBeTruthy()
-    expect(screen.queryByText(/not in this game/i)).toBeNull()
+    expect(screen.getByText(/Loading this Game/i)).toBeTruthy()
+    expect(screen.queryByText(/not in this Game/i)).toBeNull()
   })
 })
 

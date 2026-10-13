@@ -128,7 +128,7 @@ describe('MechSheet — The Hold (Stow →)', () => {
 
     const stow = screen.getByRole('button', { name: /stow sealed crate/i })
     expect((stow as HTMLButtonElement).disabled).toBe(true)
-    expect(stow.getAttribute('title')).toMatch(/no crawler linked/i)
+    expect(stow.getAttribute('title')).toMatch(/no crawler assigned/i)
   })
 
   test("Stow is closed with the reason on a player's mech, whose crawler the Mediator keeps", async () => {

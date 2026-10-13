@@ -297,7 +297,7 @@ describe('moveDestinations — the move control lists only what the server accep
       current: { kind: 'game', gameId: 'phantom' },
       games,
     })
-    expect(here?.label).toBe('Unknown game')
+    expect(here?.label).toBe('Unknown Game')
     expect(here?.container).toEqual({ kind: 'game', gameId: 'phantom' })
   })
 })

@@ -446,7 +446,7 @@ describe('shelfCard', () => {
   test('explains an empty shelf rather than rendering a blank card', () => {
     const card = shelfCard({ pilots: [], mechs: [] }, WEB)
     expect(cardText(card)).not.toContain('**Pilots')
-    expect(cardText(card)).toContain('Nothing in My Stuff')
+    expect(cardText(card)).toContain('Nothing here — everything you own is in a Game.')
   })
 
   test('links each entity to its sheet', () => {
@@ -457,7 +457,7 @@ describe('shelfCard', () => {
 
 describe('gamesCard and channelCard', () => {
   test('an empty game list is stated, not implied', () => {
-    expect(cardText(gamesCard([], WEB))).toContain('No games yet')
+    expect(cardText(gamesCard([], WEB))).toContain('No Games yet')
   })
 
   test('roles read as base role plus modifier, never as three roles', () => {
@@ -467,7 +467,7 @@ describe('gamesCard and channelCard', () => {
     )
     // ADR-030 §3: Organizer is a flag ON a base role, so it renders alongside
     // Mediator rather than replacing it.
-    expect(cardText(card)).toContain('Mediator · Organizer')
+    expect(cardText(card)).toContain('Mediator · Organiser')
   })
 
   test('the channel card shows Downtime only while it is running', () => {

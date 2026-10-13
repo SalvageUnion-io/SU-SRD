@@ -58,8 +58,8 @@ afterAll(() => {
 
 describe('failureMessage', () => {
   test("a refusal says the server's words", () => {
-    expect(failureMessage(new ConvexError('Only the Organizer can do that.'), FAILURE)).toBe(
-      'Only the Organizer can do that.'
+    expect(failureMessage(new ConvexError('Only the Organiser can do that.'), FAILURE)).toBe(
+      'Only the Organiser can do that.'
     )
   })
 
@@ -96,7 +96,7 @@ describe('what Sentry hears', () => {
   })
 
   test('a refusal, a blocked or refused write, and a named player error are not', () => {
-    failureMessage(new ConvexError('Only the Organizer can do that.'), FAILURE)
+    failureMessage(new ConvexError('Only the Organiser can do that.'), FAILURE)
     failureMessage(new WritesBlockedOffline(), FAILURE)
     failureMessage(new LinkRefused('That NPC is in another Game.'), FAILURE)
     failureMessage(new FileRefused('Not a backup.'), FAILURE, [FileRefused])

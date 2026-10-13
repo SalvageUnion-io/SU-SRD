@@ -156,7 +156,7 @@ describe('signed in', () => {
     renderAs(CONNECTED)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy to my shelf' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Make a copy' }))
     })
     await settle(() => usePatternStore.getState().mechPatterns.length > 0)
 
@@ -169,7 +169,7 @@ describe('signed in', () => {
     setQueryAnswers({ 'publicSheet:pattern': answer({ mine: true, visibility: 'link' }) })
     renderAs(CONNECTED)
 
-    expect(screen.getByRole('button', { name: 'Copy to my shelf' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Make a copy' })).toBeTruthy()
     expect(screen.getByText(/Anyone with the link/)).toBeTruthy()
   })
 

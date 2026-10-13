@@ -160,7 +160,7 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
     expect(screen.getByRole('button', { name: 'Sign in to build' })).toBeTruthy()
     expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Import' })).toBeNull()
-    expect(screen.queryByRole('button', { name: '+ New game' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
   })
 
   test('says a Game is joined from an invite link, with no code to type', async () => {
@@ -330,7 +330,7 @@ describe('Shelves — items', () => {
 
     await renderShelves()
 
-    expect(screen.getByText('Linked: Iron Fist')).toBeTruthy()
+    expect(screen.getByText('Assigned: Iron Fist')).toBeTruthy()
     expect(screen.getByText('Pilot: Mara Vex')).toBeTruthy()
   })
 

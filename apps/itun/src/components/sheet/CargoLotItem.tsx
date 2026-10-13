@@ -210,8 +210,8 @@ function moveAffordance(
   // them whichever sheet they are on.
   let disabledReason: string | null = !linked
     ? side === 'mech'
-      ? 'No crawler linked — nothing to stow to.'
-      : 'No mech docked — nothing to load onto.'
+      ? 'No crawler assigned — nothing to stow to.'
+      : 'No mech assigned — nothing to load onto.'
     : cargo.crawlerLocked
 
   if (side === 'crawler' && disabledReason === null) {

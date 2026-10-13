@@ -36,7 +36,7 @@ export const inviteCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
     return sub
       .setName('invite')
-      .setDescription('Invite someone to one of your games (Organizer only)')
+      .setDescription('Invite someone to one of your Games (Organiser only)')
       .addUserOption((option) =>
         option.setName('user').setDescription('Who to invite').setRequired(true)
       )
@@ -49,7 +49,7 @@ export const inviteCommand = {
       .addStringOption((option) =>
         option
           .setName('game')
-          .setDescription('Which game (default: the one this channel is bound to)')
+          .setDescription('Which Game (default: the one this channel is bound to)')
           .setAutocomplete(true)
       )
   },
