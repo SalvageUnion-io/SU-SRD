@@ -292,20 +292,10 @@ a code posted somewhere public is a broader disclosure than the Organizer
 intended. Approval is the Organizer exercising the membership authority §3
 already gives them, one step later.
 
-**An invite may also carry a seat and a hand-out** — a `role` of Player or
-Mediator, and a list of unclaimed entities handed over on join.
-
-This sits alongside the self-claim amendment above rather than against it. That
-amendment made an unclaimed entity an **offer to the crew**, which anyone may
-accept; `assign` survived it as the table runner's power to place an entity with
-a _particular_ person. An invite grant is exactly that power, scheduled: the
-Organizer names the recipient in advance, and the Change Log records **them** as
-`actorId` rather than whoever walked through the door. Both routes to ownership
-respect the same boundary — neither can touch an entity somebody already holds.
-A grant whose entity has since been claimed, moved, or deleted is **skipped, and
-the join still succeeds**: arriving without the promised pilot is a notice,
-whereas failing the join over a stale pointer would strand someone outside a
-Game they were genuinely invited to.
+**An invite may also carry a seat** — a `role` of Player or Mediator. It
+carries no hand-out: invite grants (entities handed over on join) were retired,
+and a joiner claims an unclaimed entity like any crewmate (the self-claim
+amendment above). The `invites.grants` column stays optional and unwritten.
 
 Revocation becomes a **soft delete**, so an invite's redemption history stays
 resolvable, and it never evicts anyone already seated: closing a door is not the

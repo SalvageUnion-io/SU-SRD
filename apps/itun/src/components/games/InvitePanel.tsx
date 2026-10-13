@@ -231,7 +231,6 @@ export function InvitePanel({
                     {[
                       invite.label,
                       invite.requiresApproval ? 'You approve each' : 'Anyone with it joins',
-                      invite.grantCount > 0 ? `${invite.grantCount} handed over` : null,
                       expiresIn(invite.expiresAt, now),
                     ]
                       .filter((part) => part !== null)

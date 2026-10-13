@@ -21,7 +21,7 @@ const convexMocks = await installConvexMocks({
     useMutation: (ref: unknown) => async (args: unknown) => {
       const name = getFunctionName(ref as FunctionReference<'mutation'>)
       calls.push({ name, args })
-      return name === 'invites:redeem' ? { kind: 'joined', gameId: 'g7', granted: 0 } : null
+      return name === 'invites:redeem' ? { kind: 'joined', gameId: 'g7' } : null
     },
   },
 })
@@ -41,7 +41,6 @@ function invitation(over: Record<string, unknown> = {}) {
     gameName: 'Tenacity',
     invitedBy: 'Vex',
     role: 'player',
-    grantCount: 0,
     expiresAt: Date.now() + 6 * DAY + 1000,
     ...over,
   }
@@ -82,11 +81,11 @@ describe('Invitations on the hub', () => {
     expect(banner.textContent).toContain('7 days left')
   })
 
-  test('a Mediator seat, with characters waiting', () => {
-    renderCard([invitation({ role: 'mediator', grantCount: 2 })])
+  test('a Mediator seat brings a crawler', () => {
+    renderCard([invitation({ role: 'mediator' })])
     const banner = screen.getByRole('listitem')
     expect(banner.textContent).toContain('Vex invited you to Tenacity as its Mediator.')
-    expect(banner.textContent).toContain('2 characters are waiting for you there.')
+    expect(banner.textContent).toContain('Bring a crawler from your shelf')
   })
 
   test('joining redeems that code and shows the Game', async () => {

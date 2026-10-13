@@ -86,9 +86,7 @@ const ACTIONS = {
 const ERROR = { textAlign: 'left', color: tokens.color.rollCascade } satisfies CSSProperties
 
 /** What to bring, for the seat you are invited to. */
-function bring(role: string, grantCount: number): string {
-  if (grantCount === 1) return 'A character is waiting for you there.'
-  if (grantCount > 1) return `${grantCount} characters are waiting for you there.`
+function bring(role: string): string {
   return role === 'mediator'
     ? 'Bring a crawler from your shelf, or make one when you get there.'
     : 'Bring a pilot from your shelf, or make one when you get there.'
@@ -124,8 +122,7 @@ function ConnectedInvitations() {
                 <strong>{invite.invitedBy}</strong> invited you to{' '}
                 <strong>{invite.gameName}</strong>
                 {invite.role === 'mediator' ? ' as its Mediator' : ' as a player'}.{' '}
-                {bring(invite.role, invite.grantCount)}{' '}
-                <span style={QUIET}>({humanExpiry(invite.expiresAt)})</span>
+                {bring(invite.role)} <span style={QUIET}>({humanExpiry(invite.expiresAt)})</span>
               </p>
             </div>
             <div style={ACTIONS}>

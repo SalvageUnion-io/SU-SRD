@@ -520,7 +520,6 @@ export const invite = internalMutation({
       inviteeDiscordId: parsed.invitee.id,
       inviteeName,
       role: row.role,
-      grantCount: row.grants?.length ?? 0,
       expiresAt: row.expiresAt,
       reused: live !== null,
       deliver,

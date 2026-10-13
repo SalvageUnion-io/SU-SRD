@@ -4,7 +4,7 @@ import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
-import { logIdOf, mutation } from './model/entities'
+import { mutation } from './model/entities'
 import {
   discordIdOfUser,
   inviteByCode,
@@ -20,8 +20,7 @@ import {
   requireOrganizer,
   requireUser,
 } from './model/permissions'
-import { logOwnershipChange } from './ownership'
-import { inviteDeliveryState, inviteRole, ownableTable } from './schema'
+import { inviteDeliveryState, inviteRole } from './schema'
 
 /**
  * Invites (ADR-030 §3, and the invite amendments) — how a player joins a Game.
@@ -34,14 +33,11 @@ import { inviteDeliveryState, inviteRole, ownableTable } from './schema'
  * `crypto.getRandomValues`. Minting itself is `model/invites.ts#mintInvite`,
  * shared with every other door that creates one.
  *
- * An invite carries four things beyond the code itself:
+ * An invite carries three things beyond the code itself:
  *
  *   - **A seat** (`role`). A Mediator invite hands over the GM chair on join,
  *     which is the Organizer pre-exercising the authority `games.setMediator`
  *     already gives them.
- *   - **Grants**. Unclaimed entities assigned on join. Ownership stays
- *     *assigned, never self-claimed* (ADR-030 §4) — the Organizer made the
- *     decision when minting, and the Change Log records them as the actor.
  *   - **A door** (`requiresApproval`). A bearer code IS the authority; a knock
  *     grants nothing until the Organizer approves it, which is what a code
  *     posted somewhere public needs, since membership confers read access to
@@ -59,14 +55,6 @@ export const create = mutation({
     expiresInMs: v.optional(v.number()),
     label: v.optional(v.string()),
     role: v.optional(inviteRole),
-    grants: v.optional(
-      v.array(
-        v.object({
-          table: ownableTable,
-          entityId: v.string(),
-        })
-      )
-    ),
     requiresApproval: v.optional(v.boolean()),
   },
   handler: async (ctx, args): Promise<string> => {
@@ -137,7 +125,6 @@ export const list = query({
       code: v.string(),
       label: v.union(v.string(), v.null()),
       role: inviteRole,
-      grantCount: v.number(),
       requiresApproval: v.boolean(),
       expiresAt: v.number(),
       usesRemaining: v.union(v.number(), v.null()),
@@ -180,7 +167,6 @@ export const list = query({
         code: invite.code,
         label: invite.label ?? null,
         role: invite.role,
-        grantCount: invite.grants?.length ?? 0,
         requiresApproval: invite.requiresApproval,
         expiresAt: invite.expiresAt,
         usesRemaining: invite.usesRemaining ?? null,
@@ -224,8 +210,7 @@ export const revoke = mutation({
  *
  * Returns only what the invite already tells its bearer: never the member list,
  * never the crew, never entity names. A valid code is not yet a seat, and
- * ADR-030 §5 visibility begins at membership, so `grants` is reported as a
- * count rather than as identity.
+ * ADR-030 §5 visibility begins at membership.
  *
  * Unauthenticated on purpose — someone following an invite link has not signed
  * in yet, and refusing to say what the link is for until they do is how you get
@@ -243,7 +228,6 @@ export const preview = query({
       invitedBy: v.string(),
       role: inviteRole,
       requiresApproval: v.boolean(),
-      grantCount: v.number(),
       status: inviteStatus,
       expiresAt: v.number(),
       addressed: v.union(v.literal('discord'), v.null()),
@@ -271,7 +255,6 @@ export const preview = query({
       invitedBy: displayNameOf(inviter, 'the Organiser'),
       role: invite.role,
       requiresApproval: invite.requiresApproval,
-      grantCount: invite.grants?.length ?? 0,
       status: statusOf(invite, Date.now()),
       expiresAt: invite.expiresAt,
       addressed: invite.target?.kind ?? null,
@@ -281,19 +264,13 @@ export const preview = query({
 })
 
 /**
- * Seat someone in a Game with everything their invite promised.
+ * Seat someone in a Game in the seat their invite promised.
  *
  * Shared by `redeem` (the bearer door) and `decideRequest` (the knock door) so
- * role and grants behave identically whichever way someone came in — one
- * implementation rather than two that drift.
- *
- * Returns how many grants actually landed.
+ * the seat is identical whichever way someone came in — one implementation
+ * rather than two that drift.
  */
-async function seat(
-  ctx: MutationCtx,
-  invite: Doc<'invites'>,
-  userId: Id<'users'>
-): Promise<number> {
+async function seat(ctx: MutationCtx, invite: Doc<'invites'>, userId: Id<'users'>): Promise<void> {
   const now = Date.now()
 
   await ctx.db.insert('memberships', {
@@ -303,45 +280,6 @@ async function seat(
     organizer: false,
     joinedAt: now,
   })
-
-  let granted = 0
-  for (const grant of invite.grants ?? []) {
-    /*
-     * A grant is a promise made when the invite was minted, and the world may
-     * have moved since: the entity could have been claimed by someone else,
-     * moved to another Game, or deleted. Skip it and seat them anyway —
-     * arriving without the promised pilot is a notice, whereas failing the join
-     * over a stale pointer would strand someone outside a Game they were
-     * genuinely invited to.
-     *
-     * `normalizeId` is what makes `grant.table` load-bearing rather than
-     * decorative: a Convex id is table-tagged, but `db.get` returns a document
-     * from ANY table, so casting the string let a grant naming `pilots` hand
-     * over a row from somewhere else entirely. A mismatched id is a stale
-     * pointer like any other, so it takes the same skip.
-     */
-    const entityId = ctx.db.normalizeId(grant.table, grant.entityId)
-    if (entityId === null) continue
-
-    const doc = await ctx.db.get(entityId)
-    if (doc === null) continue
-    if (doc.gameId !== invite.gameId) continue
-    if (doc.ownerId !== null) continue
-
-    await ctx.db.patch(doc._id, { ownerId: userId, updatedAt: now })
-    await logOwnershipChange(ctx, {
-      table: grant.table,
-      entityId: logIdOf(doc),
-      gameId: invite.gameId,
-      before: null,
-      after: userId,
-      // The Organizer decided this when they minted the invite; the joiner
-      // merely turned up. Recording the joiner would make ownership look
-      // self-claimed, which ADR-030 §4 is explicit that it is not.
-      actorId: invite.createdBy,
-    })
-    granted += 1
-  }
 
   await ctx.db.insert('inviteRedemptions', {
     inviteId: invite._id,
@@ -353,8 +291,6 @@ async function seat(
   if (invite.usesRemaining !== undefined) {
     await ctx.db.patch(invite._id, { usesRemaining: invite.usesRemaining - 1 })
   }
-
-  return granted
 }
 
 /**
@@ -382,7 +318,7 @@ function assertSpendable(invite: Doc<'invites'>): void {
 }
 
 export type RedeemResult =
-  | { kind: 'joined'; gameId: Id<'games'>; granted: number }
+  | { kind: 'joined'; gameId: Id<'games'> }
   | { kind: 'pending'; gameId: Id<'games'> }
   | { kind: 'already'; gameId: Id<'games'> }
 
@@ -390,9 +326,9 @@ export type RedeemResult =
  * Redeem a code and join the Game.
  *
  * Joining is deliberately the *only* self-serve membership act. Everything
- * downstream of it — what you own, whether you mediate — is decided by the
- * Organizer, either when they minted the invite or afterwards (ADR-030 §3), so
- * a valid code buys the seat it was minted for and nothing else.
+ * downstream of it — whether you mediate, what you own — is decided by the
+ * Organizer, when they minted the invite or afterwards (ADR-030 §3), so a
+ * valid code buys the seat it was minted for and nothing else.
  *
  * Redeeming twice is a no-op rather than an error: a player who taps a link
  * again should land in the Game, not read a failure. No use is consumed in that
@@ -442,8 +378,8 @@ export const redeem = mutation({
       return { kind: 'pending', gameId: invite.gameId }
     }
 
-    const granted = await seat(ctx, invite, userId)
-    return { kind: 'joined', gameId: invite.gameId, granted }
+    await seat(ctx, invite, userId)
+    return { kind: 'joined', gameId: invite.gameId }
   },
 })
 
@@ -493,7 +429,6 @@ export const forMe = query({
       gameName: v.string(),
       invitedBy: v.string(),
       role: inviteRole,
-      grantCount: v.number(),
       expiresAt: v.number(),
     })
   ),
@@ -523,7 +458,6 @@ export const forMe = query({
         gameName: game.name,
         invitedBy: displayNameOf(inviter, 'the Organiser'),
         role: invite.role,
-        grantCount: invite.grants?.length ?? 0,
         expiresAt: invite.expiresAt,
       })
     }

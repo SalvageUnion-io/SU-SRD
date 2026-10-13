@@ -22,7 +22,7 @@ M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the G
    12. **Q12 Invites** — Seat stamp, approval, expiry (1/7/14/30 days, default 7), uses, Copy, Revoke; approval unchecked by default; Asking to join: Let in or Decline.
    13. **Q13 The Game** — Who mediates, with Hand over (Appoint when nobody does), who organises, and Delete; Archive is the owner's call.
    14. **Q14 Tabs** — Opposition, Proposals, Tell the table, Tables (rolls private), SRD, Log.
-3. **§3 Not built** — Show the table, rename, the Discord channel line, grant names on join requests. Undecided: Archive, presence, a below-cap heat warning.
+3. **§3 Not built** — Show the table, rename, the Discord channel line. Undecided: Archive, presence, a below-cap heat warning.
 4. **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed).
 5. **§5 Tests** — Propose → apply → Applied (`apps/itun/e2e/mediator-propose.e2e.ts`); approval link → Let in → Game page (`apps/itun/e2e/invite-approval.e2e.ts`); server in `apps/itun/test/convex/__tests__/mediatorDashboard.test.ts`.
 6. **§6 M1 layout** — Rail; The table, Crawler minor, Downtime minor; tabs left, propose dock right. Ground ink-deep, instruments band-cream, display paper.

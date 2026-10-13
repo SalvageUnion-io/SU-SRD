@@ -35,7 +35,7 @@ is the only way to sign in, so a person is picked by their Discord account.
 ### 1. An address is a column on an invite, not a second invite system
 
 `invites.target` is `{ kind: 'discord', discordId, name? }`; absent is a bearer
-code. Everything else — the preview, `redeem`, `seat()`, grants, revoke, the
+code. Everything else — the preview, `redeem`, `seat()`, revoke, the
 redemption log — is the same code path whichever door was used, for the reason
 ADR-030's amendment gave for `seat()`: one implementation rather than two that
 drift.

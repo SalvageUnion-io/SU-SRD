@@ -46,7 +46,6 @@ function invite(over: Record<string, unknown> = {}) {
     code: 'A1B2C3D4',
     label: null,
     role: 'player',
-    grantCount: 0,
     requiresApproval: false,
     expiresAt: Date.now() + 6 * DAY + 60_000,
     usesRemaining: null,
@@ -90,10 +89,10 @@ describe('reading a link back', () => {
   })
 
   test('a bearer Mediator link says so, and that it is not used yet', () => {
-    renderPanel([invite({ role: 'mediator', grantCount: 2 })])
+    renderPanel([invite({ role: 'mediator' })])
     const card = openLinks()
     expect(card.getByText('Mediator seat')).toBeTruthy()
-    expect(card.getByText(/Anyone with it joins · 2 handed over/)).toBeTruthy()
+    expect(card.getByText(/Anyone with it joins · expires in/)).toBeTruthy()
     expect(card.getByText('Not used yet')).toBeTruthy()
   })
 

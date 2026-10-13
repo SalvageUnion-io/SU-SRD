@@ -34,7 +34,6 @@ const INVITED: InvitedResult = {
   inviteeDiscordId: 'snowflake-sam',
   inviteeName: 'Sam',
   role: 'player',
-  grantCount: 0,
   expiresAt: 1_700_000_000_000 + 7 * 24 * 60 * 60 * 1000,
   reused: false,
   deliver: true,
@@ -222,13 +221,9 @@ describe('the DM', () => {
   const DAY = 1000 * 60 * 60 * 24
 
   test('says who, what, which seat and how long — and nothing about the crew', () => {
-    const dm = buildInviteDm(
-      { ...INVITED, role: 'mediator', grantCount: 2, expiresAt: NOW + 6 * DAY + 1 },
-      NOW
-    )
+    const dm = buildInviteDm({ ...INVITED, role: 'mediator', expiresAt: NOW + 6 * DAY + 1 }, NOW)
     const text = JSON.stringify(dm)
     expect(text).toContain('**Vex** invited you to **Tenacity** as its **Mediator**')
-    expect(text).toContain('2 characters are waiting for you.')
     expect(text).toContain('It expires in 7 days.')
     expect(text).toContain('yours alone')
   })

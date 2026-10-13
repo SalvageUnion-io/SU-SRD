@@ -40,12 +40,6 @@ function expiryLine(expiresAt: number, now: number): string {
 
 export function buildInviteDm(invite: InvitedResult, now: number = Date.now()): ContainerData {
   const seat = invite.role === 'mediator' ? ' as its **Mediator**' : ''
-  const waiting =
-    invite.grantCount === 0
-      ? null
-      : invite.grantCount === 1
-        ? 'A character is waiting for you.'
-        : `${invite.grantCount} characters are waiting for you.`
 
   return {
     accent: NEUTRAL_ACCENT,
@@ -57,12 +51,9 @@ export function buildInviteDm(invite: InvitedResult, now: number = Date.now()): 
       {
         kind: 'text',
         content: [
-          waiting,
           'Sign in with this Discord account to accept — the invite is yours alone.',
           expiryLine(invite.expiresAt, now),
-        ]
-          .filter((line) => line !== null)
-          .join('\n'),
+        ].join('\n'),
       },
       {
         kind: 'buttons',

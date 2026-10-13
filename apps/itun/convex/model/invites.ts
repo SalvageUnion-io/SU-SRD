@@ -71,7 +71,6 @@ export type MintArgs = {
   expiresInMs?: number
   label?: string
   role?: 'player' | 'mediator'
-  grants?: Array<{ table: 'pilots' | 'mechs'; entityId: string }>
   requiresApproval?: boolean
   target?: InviteTarget
   sourceInteractionId?: string
@@ -138,22 +137,18 @@ export async function mintInvite(
   })
 
   const role = args.role ?? 'player'
-  const grants = args.grants ?? []
   const target = args.target
 
   /*
-   * Single use, unless the Organizer says otherwise, for three kinds of invite:
+   * Single use, unless the Organizer says otherwise, for two kinds of invite:
    *
    *   - A Mediator code. The schema permits several Mediators but the UI is
    *     built for one, so an unlimited one quietly seats a second.
-   *   - A code carrying grants. Two people cannot both receive the same
-   *     pilot; the second would join and silently get nothing.
    *   - An addressed invite — and for this one the Organizer does NOT get a
    *     say. It is for one person; a second use would be somebody else.
    */
-  const defaultsToSingleUse = role === 'mediator' || grants.length > 0
   const usesRemaining =
-    target !== undefined ? 1 : (args.usesRemaining ?? (defaultsToSingleUse ? 1 : undefined))
+    target !== undefined ? 1 : (args.usesRemaining ?? (role === 'mediator' ? 1 : undefined))
 
   /*
    * An addressed invite never needs approval: Discord has already proven who
@@ -173,7 +168,6 @@ export async function mintInvite(
     usesRemaining,
     label: args.label,
     role,
-    grants: grants.length > 0 ? grants : undefined,
     requiresApproval,
     target,
     sourceInteractionId: args.sourceInteractionId,

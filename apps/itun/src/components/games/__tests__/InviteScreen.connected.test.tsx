@@ -24,7 +24,7 @@ import { getFunctionName } from 'convex/server'
 import { ConvexError } from 'convex/values'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
-let redeemResult: unknown = { kind: 'joined', gameId: 'g1', granted: 0 }
+let redeemResult: unknown = { kind: 'joined', gameId: 'g1' }
 let redeemError: Error | null = null
 // The preview a decline test started from, re-served as declined once it lands.
 let declinedPreview: Record<string, unknown> = {}
@@ -74,7 +74,6 @@ function preview(over: Record<string, unknown> = {}) {
     invitedBy: 'Vex',
     role: 'player',
     requiresApproval: false,
-    grantCount: 0,
     status: 'active',
     expiresAt: Date.now() + 14 * 24 * 60 * 60 * 1000,
     addressed: null,
@@ -111,15 +110,6 @@ describe('a live invite', () => {
   test('a Mediator invite says which chair is on offer', () => {
     renderJoin(preview({ role: 'mediator' }))
     expect(screen.getByText(/as its Mediator/)).toBeTruthy()
-  })
-
-  test('a waiting character is mentioned, singular and plural', () => {
-    renderJoin(preview({ grantCount: 1 }))
-    expect(screen.getByText(/A character is waiting for you/)).toBeTruthy()
-    cleanup()
-
-    renderJoin(preview({ grantCount: 3 }))
-    expect(screen.getByText(/3 characters are waiting for you/)).toBeTruthy()
   })
 
   test('warns that a table reads each other’s sheets', () => {
@@ -170,7 +160,7 @@ describe('a gated invite', () => {
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
     // The way out is Shelves; the game appears in Games once approved.
     expect(screen.getByRole('link', { name: 'Back to Shelves' }).getAttribute('href')).toBe('/')
-    redeemResult = { kind: 'joined', gameId: 'g1', granted: 0 }
+    redeemResult = { kind: 'joined', gameId: 'g1' }
   })
 })
 

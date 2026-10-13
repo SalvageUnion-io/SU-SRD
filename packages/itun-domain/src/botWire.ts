@@ -167,7 +167,6 @@ export type InviteResult =
       inviteeDiscordId: string
       inviteeName: string
       role: 'player' | 'mediator'
-      grantCount: number
       expiresAt: number
       /** True when a live invite to this person was re-sent rather than minted. */
       reused: boolean

@@ -54,8 +54,8 @@ export type OwnableTable = 'pilots' | 'mechs'
 /**
  * Every table whose rows are always their owner's and written whole by
  * `upsertByAppId`: the ownable pair, plus built NPCs (ADR-044). NPCs are kept
- * out of `OwnableTable` because claiming, releasing, invite grants and
- * proposals are about a player's character, and none of them reach an NPC.
+ * out of `OwnableTable` because claiming, releasing and proposals are about a
+ * player's character, and none of them reach an NPC.
  */
 export type OwnedTable = OwnableTable | 'npcs'
 

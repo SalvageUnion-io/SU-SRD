@@ -245,13 +245,6 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
           {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>
           {preview.role === 'mediator' ? ' as its Mediator' : ''}.
         </Text>
-        {preview.grantCount > 0 && (
-          <Text variant="hint" style={HINT}>
-            {preview.grantCount === 1
-              ? 'A character is waiting for you.'
-              : `${preview.grantCount} characters are waiting for you.`}
-          </Text>
-        )}
         <Text variant="hint" style={HINT}>
           {preview.requiresApproval
             ? 'Joining asks the Organiser to let you in.'

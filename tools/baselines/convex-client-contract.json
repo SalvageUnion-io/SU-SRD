@@ -1,5 +1,5 @@
 {
-  "floor": 1791830516,
+  "floor": 1791883140,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -1409,39 +1409,6 @@
                 "value": "mediator"
               }
             ]
-          },
-          "optional": true
-        },
-        "grants": {
-          "fieldType": {
-            "type": "array",
-            "value": {
-              "type": "object",
-              "value": {
-                "table": {
-                  "fieldType": {
-                    "type": "union",
-                    "value": [
-                      {
-                        "type": "literal",
-                        "value": "pilots"
-                      },
-                      {
-                        "type": "literal",
-                        "value": "mechs"
-                      }
-                    ]
-                  },
-                  "optional": false
-                },
-                "entityId": {
-                  "fieldType": {
-                    "type": "string"
-                  },
-                  "optional": false
-                }
-              }
-            }
           },
           "optional": true
         },

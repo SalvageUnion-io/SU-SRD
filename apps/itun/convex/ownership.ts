@@ -33,8 +33,7 @@ import { ownableTable } from './schema'
  * There is no table-runner `assign` (placing an entity with a *particular*
  * person) and no `leaveGame`. Nobody can place a character with a particular
  * person: it is released (by its owner or the Mediator) and any member claims
- * it. `invites.create` accepts `grants`, but it is Organizer-only and no client
- * sends them.
+ * it.
  */
 
 /**
@@ -46,8 +45,7 @@ import { ownableTable } from './schema'
  * on *who holds* an entity rather than on its contents, which is the boundary
  * the propose-and-confirm rule actually protects.
  */
-/* Exported so invite-driven grants log identically — see `invites.ts`. */
-export async function logOwnershipChange(
+async function logOwnershipChange(
   ctx: MutationCtx,
   args: {
     table: OwnableTable

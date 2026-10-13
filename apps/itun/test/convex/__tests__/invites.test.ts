@@ -9,10 +9,9 @@ import { testConvex } from '../harness'
 /**
  * The invite scheme past a bare code (ADR-030 §2–4).
  *
- * The three things worth defending here are the ones a UI cannot enforce:
- * an invite grants exactly the seat it was minted for, a grant that has gone
- * stale must not strand the joiner outside the Game, and a knock must not be
- * a membership until someone says so.
+ * The things worth defending here are the ones a UI cannot enforce: an
+ * invite grants exactly the seat it was minted for, and a knock must not be a
+ * membership until someone says so.
  */
 
 /**
@@ -141,62 +140,6 @@ describe('invites carry a seat and a hand-out', () => {
     await expect(second.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/used up/i)
   })
 
-  test('a grant assigns the pilot and logs the ORGANIZER as the actor', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const joiner = await makeUser(t, 'Sam')
-    const pilotId = await seedPilot(t, gameId, null)
-
-    const code = await organizer.as.mutation(api.invites.create, {
-      gameId,
-      grants: [{ table: 'pilots', entityId: pilotId }],
-    })
-    const result = await joiner.as.mutation(api.invites.redeem, { code })
-
-    expect(result).toMatchObject({ kind: 'joined', granted: 1 })
-
-    const pilot = await t.run(async (ctx) => ctx.db.get(pilotId))
-    expect(pilot?.ownerId).toBe(joiner.userId)
-
-    // ADR-030 §4: ownership is ASSIGNED, never self-claimed. The Organizer made
-    // this call when they minted the invite, so the log must name them — not the
-    // person who happened to walk through the door.
-    const entry = await t.run(async (ctx) =>
-      (await ctx.db.query('changeLog').collect()).find(
-        (row) => row.entityId === pilotId && row.field === 'ownerId'
-      )
-    )
-    expect(entry?.actorId).toBe(organizer.userId)
-    expect(entry?.after).toBe(joiner.userId)
-  })
-
-  test('a stale grant is skipped and the joiner still gets in', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const claimer = await makeUser(t, 'Claimer')
-    const joiner = await makeUser(t, 'Sam')
-    const pilotId = await seedPilot(t, gameId, null)
-
-    const code = await organizer.as.mutation(api.invites.create, {
-      gameId,
-      grants: [{ table: 'pilots', entityId: pilotId }],
-      usesRemaining: 5,
-    })
-
-    // Somebody else takes the pilot between minting and redeeming.
-    await t.run(async (ctx) => ctx.db.patch(pilotId, { ownerId: claimer.userId }))
-
-    const result = await joiner.as.mutation(api.invites.redeem, { code })
-
-    // Arriving without the promised pilot is a notice. Failing the join over a
-    // stale pointer would strand someone outside a Game they were invited to.
-    expect(result).toMatchObject({ kind: 'joined', granted: 0 })
-    const games = await joiner.as.query(api.games.listMine, {})
-    expect(games).toHaveLength(1)
-    const pilot = await t.run(async (ctx) => ctx.db.get(pilotId))
-    expect(pilot?.ownerId).toBe(claimer.userId)
-  })
-
   test('redeeming twice is idempotent and consumes no second use', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
@@ -274,17 +217,15 @@ describe('knock and approve', () => {
     expect(await organizer.as.query(api.invites.pendingRequests, { gameId })).toHaveLength(1)
   })
 
-  test('approval seats them with the invite’s role and grants', async () => {
+  test('approval seats them with the invite’s role', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
     const knocker = await makeUser(t, 'Knocker')
-    const pilotId = await seedPilot(t, gameId, null)
 
     const code = await organizer.as.mutation(api.invites.create, {
       gameId,
       requiresApproval: true,
       role: 'mediator',
-      grants: [{ table: 'pilots', entityId: pilotId }],
     })
     await knocker.as.mutation(api.invites.redeem, { code })
 
@@ -297,8 +238,6 @@ describe('knock and approve', () => {
     // Whichever door they came through, the seat is the same one.
     const [game] = await knocker.as.query(api.games.listMine, {})
     expect(game?.mediator).toBe(true)
-    const pilot = await t.run(async (ctx) => ctx.db.get(pilotId))
-    expect(pilot?.ownerId).toBe(knocker.userId)
     expect(await organizer.as.query(api.invites.pendingRequests, { gameId })).toHaveLength(0)
   })
 

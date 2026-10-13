@@ -180,8 +180,7 @@ export const inviteRole = v.union(v.literal('player'), v.literal('mediator'))
 
 /**
  * The tables an entity can be handed over from: a pilot or a mech, never the
- * communal crawler. An invite's `grants` name them, and `ownership` and
- * `entities.remove` take them.
+ * communal crawler. `ownership` and `entities.remove` take them.
  */
 export const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
 
@@ -359,11 +358,7 @@ export default defineSchema({
     /** The seat granted on redeem. */
     role: inviteRole,
 
-    /**
-     * Entities handed over on join. A list, not a single id: the Starter Set
-     * case is a pilot AND its mech, and a one-entity field would need a second
-     * mechanism a week later.
-     */
+    /** Retired invite grants: no longer written; kept optional for rows that carry it. */
     grants: v.optional(
       v.array(
         v.object({
@@ -449,8 +444,8 @@ export default defineSchema({
    *
    * A pending request is **not** a membership: no `memberships` row exists until
    * approval, so a knocker sees nothing of the Game. Approval runs the same
-   * seat-granting path a direct redeem does, so role and grants behave
-   * identically whichever door was used.
+   * seat-granting path a direct redeem does, so the seat is identical
+   * whichever door was used.
    */
   joinRequests: defineTable({
     gameId: v.id('games'),
