@@ -43,7 +43,7 @@ describe('Row labels', () => {
     render(<Entity form="row" entity={drill()} />)
     const head = headOf('Salvaging Drill')
     // The name and its chips share one heading: the name first, so it keeps the
-    // tab at the band's foot and the chips stay right of it, wrapping there.
+    // tab at the band's foot, the chips right of it (under it on a phone).
     const heading = head.querySelector('.su-entity-row__heading--cut')
     expect(heading?.firstElementChild?.className).toBe('su-entity-row__name')
     // The chips (with any type stamp beside them) follow the name, never inside it.

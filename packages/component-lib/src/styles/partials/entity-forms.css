@@ -299,6 +299,65 @@
   border-color: var(--color-paper);
 }
 
+/* On a phone the chips flow UNDER the name, never above it (owner's rule,
+   2026-10-13): their own line on the paper below the tab, the head of the
+   body, so the tab still opens into the paper. The strip is painted the
+   band's full width by a clipped shadow, since the heading sits inset. */
+@media (max-width: 40rem) {
+  .su-entity-row__heading--cut {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .su-entity-row__heading--cut > .su-chips,
+  .su-entity-row__heading--cut > .su-entity-row__chip-group {
+    background-color: var(--color-paper);
+    box-shadow: 0 0 0 100vmax var(--color-paper);
+    clip-path: inset(0 -100vmax -1px);
+    flex-basis: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+    padding-block: var(--space-6) 0;
+  }
+
+  /* The tier, pennant and affordance stay on the band, by the name, and
+     paint over the strip (its clip makes it a stacking context). */
+  /* On the paper strip an ink band's chips take their paper-side plates. */
+  .su-entity-row__heading--cut .su-chips--on-ink .su-badge--inverse,
+  .su-entity-row__heading--cut .su-chips--on-ink .su-cost--on-ink {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .su-entity-row__heading--cut .su-chips--on-ink .su-badge--on-ink {
+    background-color: var(--color-paper);
+    box-shadow: inset 0 0 0 1px var(--color-ink);
+    color: var(--color-ink);
+  }
+
+  .su-entity-row__heading--cut .su-chips--on-ink > .su-stat-cell {
+    border-color: var(--color-ink);
+  }
+
+  .su-entity-row__head[data-fill='ink']
+    .su-entity-row__heading--cut
+    .su-entity-row__chip-group
+    .su-ec-labels__stamps
+    > .su-badge-stamp {
+    background-color: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .su-entity-row__head[data-notch]
+    .su-entity-row__line:has(> .su-entity-row__heading--cut)
+    > :not(.su-entity-row__heading--cut) {
+    align-self: flex-start;
+    margin-block: var(--space-6) 0;
+    position: relative;
+  }
+}
+
 /* A trait chip (`Tag`): the cell is the whole target when it links. */
 .su-chip-link {
   background: none;
