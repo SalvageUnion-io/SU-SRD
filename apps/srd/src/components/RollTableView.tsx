@@ -18,9 +18,8 @@ import { RollPanel } from './RollPanel'
  * guide step draws: its "ROLL THE DIE:" bar, then the bands, banded in the
  * page's tone. The page adds only its READOUT: the "You rolled" panel with the
  * number, the range it lands on, the outcome and its text, and the earlier
- * rolls. Roll again and the Randsum credit sit under the panel's head, above
- * the result, so the button stays put whatever length the outcome's text runs
- * to. The die is not named: it is always a d20. A long or wordy table
+ * rolls. The table's ROLL THE DIE stamp is the roll (press it again to roll
+ * again); the panel has no button of its own. The die is not named: it is always a d20. A long or wordy table
  * (`splitRows`) sets its bands in two halves on a wide screen, the ranges on
  * the outer edges, and a wordy page sets tighter (`rollTableDensity`), so the
  * page fits one screen.
@@ -35,7 +34,7 @@ type RollTableViewProps = {
   /** The page's band colour, which the table's rows band in. */
   tone?: string
   state: RollState
-  /** Roll the die. Absent on the server, where the controls are inert. */
+  /** Roll the die. Absent on the server, where the stamp is a plain label. */
   onRoll?: () => void
 }
 
@@ -47,8 +46,6 @@ export function RollTableView({ data, tone, state, onRoll }: RollTableViewProps)
   return (
     <RollPanel
       name={data.name}
-      rollLabel={roll === null ? 'Roll the die' : 'Roll again'}
-      onRoll={onRoll}
       prompt="Roll the die, and the result is marked in the table."
       result={
         roll === null ? undefined : (
@@ -88,6 +85,7 @@ export function RollTableView({ data, tone, state, onRoll }: RollTableViewProps)
         size="large"
         tone={tone}
         density={density}
+        onRoll={onRoll}
         hint="Your result is marked in the table"
         table={{
           kind: 'bands',

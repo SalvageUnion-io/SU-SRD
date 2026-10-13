@@ -120,8 +120,9 @@ export {
 // multi-select EntitySearcher (ITUN's SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './components/compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
-// the SRD roll-table page's bands, banded in the surface tone
-export { RollTableInstrument } from './components/compositions/RollTableInstrument'
+// the SRD roll-table page's bands, banded in the surface tone. RollStamp — its
+// ROLL THE DIE stamp, which is the roll button (ITUN's Dashboard table wears it)
+export { RollStamp, RollTableInstrument } from './components/compositions/RollTableInstrument'
 // StartHere — the one onboarding block, on the SRD's home and ITUN's front door
 export { StartHere } from './components/compositions/StartHere'
 export { StatusBadge } from './components/compositions/StatusBadge'

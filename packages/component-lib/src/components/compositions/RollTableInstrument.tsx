@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { useSyncExternalStore } from 'react'
 import type { CardSize } from '../containers/displayMode'
 import { rollBandColor, rollRangeLabel } from './rollTableBands'
 
@@ -9,8 +10,11 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  * The book prints one table, however it is reached (pp. 88, 232).
  *
  * - The BAR: the underlined "ROLL THE DIE:" stamp, then the table's title or
- *   a hint, then whatever controls the host owns (`actions`: a card's Roll
- *   and Table / Hide; the page has none, its Roll lives in its readout).
+ *   a hint, then whatever controls the host owns (`actions`: a card's Table /
+ *   Hide). The STAMP IS THE ROLL (`RollStamp`): given `onRoll` it is the
+ *   table's one roll control, a real button that keeps the stamp's look;
+ *   without it, or in static HTML before the script runs, it is the plain
+ *   label. No host draws a second Roll button beside it.
  * - The READOUT slot under the bar (`readout`): a card's ink strip. The page
  *   adds its own "You rolled" panel beside the instrument instead.
  * - The BANDS: banded d20 rows in the SURFACE TONE (`tone`, the colour of the
@@ -65,6 +69,11 @@ export type RollTableInstrumentProps = {
   tone?: string
   /** The stamp's words: "Roll the Die:", or "Roll twice:" for two dice. */
   stamp?: string
+  /**
+   * Roll the table: makes the stamp the roll button. Absent where the table
+   * only reads (a static page, a damaged host, a surface with no rolls).
+   */
+  onRoll?: () => void
   /** The bar's title, after the stamp (a card's table name). */
   title?: ReactNode
   /** A quieter line in the bar (the page's, which has no title there). */
@@ -98,6 +107,7 @@ export function RollTableInstrument({
   size,
   tone,
   stamp = 'Roll the Die:',
+  onRoll,
   title,
   hint,
   actions,
@@ -115,7 +125,9 @@ export function RollTableInstrument({
       style={{ [BAND_VAR]: rollBandColor(tone) } as CSSProperties}
     >
       <div className="su-roll__bar">
-        <span className="su-roll__stamp">{stamp}</span>
+        <RollStamp name={name} onRoll={onRoll}>
+          {stamp}
+        </RollStamp>
         {title && <span className="su-roll__title">{title}</span>}
         {hint && <span className="su-roll__hint">{hint}</span>}
         {actions}
@@ -128,6 +140,61 @@ export function RollTableInstrument({
           <Columns name={name} table={table} />
         ))}
     </div>
+  )
+}
+
+/** Liveness never changes once true, so there is nothing to subscribe to. */
+const noSubscribe = () => () => undefined
+
+/**
+ * Whether this render is in a browser that has run the script: false in
+ * server markup (and the hydration pass that matches it), true after. A
+ * control rendered as a button before its handler can run is a dead button.
+ */
+function useLive(): boolean {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false
+  )
+}
+
+/**
+ * The "ROLL THE DIE:" stamp, and the roll itself (ruleset §2.4): with
+ * `onRoll`, once the script runs, a real button in the stamp's look, named
+ * "Roll the die on <table>"; otherwise (no roll here, or static HTML) the
+ * plain label. The host owns the result and its polite live region.
+ */
+export function RollStamp({
+  name,
+  onRoll,
+  children = 'Roll the Die:',
+  onInk = false,
+}: {
+  /** The table's name, for the button's accessible name. */
+  name: string
+  onRoll?: () => void
+  /** The stamp's words ("Roll the Die:", "Roll twice:"). */
+  children?: string
+  /** On an ink band (ITUN's Dashboard table head): the button wears a paper plate. */
+  onInk?: boolean
+}) {
+  const live = useLive()
+  const cls = onInk ? 'su-roll__stamp su-roll__stamp--on-ink' : 'su-roll__stamp'
+  if (!onRoll || !live) return <span className={cls}>{children}</span>
+  // The name starts with the stamp's own words (WCAG 2.5.3).
+  // "Roll the Die:" names the button "Roll the die on Critical Damage".
+  const words = children.replace(/:\s*$/, '').toLowerCase()
+  const label = `${words.charAt(0).toUpperCase()}${words.slice(1)} on ${name}`
+  return (
+    <button
+      type="button"
+      className={`${cls} su-roll__stamp--button su-focus-ring`}
+      onClick={onRoll}
+      aria-label={label}
+    >
+      {children}
+    </button>
   )
 }
 

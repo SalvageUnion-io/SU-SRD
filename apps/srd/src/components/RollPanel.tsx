@@ -1,13 +1,9 @@
-import { Button, InlineRef } from 'component-lib'
+import { InlineRef } from 'component-lib'
 import type { ReactNode } from 'react'
 
 type RollPanelProps = {
   /** The table's name, beside "You rolled". */
   name: string
-  /** The button's words: what one press rolls. */
-  rollLabel: string
-  /** Roll. Absent on the server, where the button is inert. */
-  onRoll?: () => void
   /** The readout of the current roll, or absent to show `prompt`. */
   result?: ReactNode
   /** What the panel says before there is a result to read. */
@@ -21,21 +17,14 @@ type RollPanelProps = {
 }
 
 /**
- * The roll pages' shared frame (board 08b): the "You rolled" panel (Roll again
- * and the Randsum credit fixed under its head, then the result and the earlier
- * rolls) beside the main column. `RollTableView` and `ColumnsTableView` differ
- * only in what they put in it.
+ * The roll pages' shared frame (board 08b): the "You rolled" panel (the
+ * Randsum credit fixed under its head, then the result and the earlier rolls)
+ * beside the main column. The panel has no button: the table's own ROLL THE
+ * DIE stamp is the roll (`RollTableInstrument`'s `onRoll`), and the result is
+ * announced here, in the panel's polite live region. `RollTableView` and
+ * `ColumnsTableView` differ only in what they put in it.
  */
-export function RollPanel({
-  name,
-  rollLabel,
-  onRoll,
-  result,
-  prompt,
-  history,
-  density,
-  children,
-}: RollPanelProps) {
+export function RollPanel({ name, result, prompt, history, density, children }: RollPanelProps) {
   return (
     <div className="srd-roll" data-density={density}>
       <section className="srd-roll__panel" aria-labelledby="roll-panel-title">
@@ -47,15 +36,6 @@ export function RollPanel({
         </div>
 
         <div className="srd-roll__controls">
-          <Button
-            variant="primary"
-            size="full"
-            className="srd-roll__roll"
-            onClick={onRoll}
-            disabled={!onRoll}
-          >
-            {rollLabel}
-          </Button>
           <p className="srd-roll__credit">
             Dice rolling powered by{' '}
             <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">

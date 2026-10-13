@@ -5,7 +5,7 @@ import { color, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { digestColumnsTable, digestRollTable } from './digestRollTable'
-import { RollTableInstrument } from './RollTableInstrument'
+import { RollStamp, RollTableInstrument } from './RollTableInstrument'
 
 export default {
   title: 'Compositions/Entity/Roll Table Instrument',
@@ -80,6 +80,33 @@ export const Default: Story = () => (
         tone="var(--color-pilot)"
         table={{ kind: 'columns', columns: callsignColumns, mark: { column: '9-12', entry: '7' } }}
       />
+    </Labelled>
+  </div>
+)
+
+/**
+ * The stamp IS the roll (`RollStamp`): given `onRoll` it is the table's one
+ * roll control, a button in the stamp's look; without it, the plain label.
+ * On an ink band (ITUN's Dashboard table head) it wears a paper plate.
+ */
+export const Stamp: Story = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: space[16], padding: space[16] }}>
+    <Labelled label="1 · The roll: a button in the stamp's look">
+      <div>
+        <RollStamp name="Core Mechanic" onRoll={() => {}} />
+      </div>
+    </Labelled>
+    <Labelled label="2 · No roll here: the plain label">
+      <div>
+        <RollStamp name="Core Mechanic" />
+      </div>
+    </Labelled>
+    <Labelled label="3 · On an ink band">
+      <div style={{ backgroundColor: color.ink, padding: space[8] }}>
+        <RollStamp name="Core Mechanic" onRoll={() => {}} onInk>
+          Roll the Die
+        </RollStamp>
+      </div>
     </Labelled>
   </div>
 )

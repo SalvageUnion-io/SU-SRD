@@ -22,10 +22,13 @@ const dice = (...faces: number[]) => {
   return async () => die
 }
 
-/** Click a roll button and let the (async) die land. */
-async function roll(name: string): Promise<void> {
+/** The table's one roll control: its ROLL THE DIE stamp. */
+const STAMP = 'Roll the die on Core Mechanic'
+
+/** Press the stamp and let the (async) die land. */
+async function roll(): Promise<void> {
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name }))
+    fireEvent.click(screen.getByRole('button', { name: STAMP }))
   })
 }
 
@@ -58,9 +61,10 @@ describe('the roll-table page, before a roll (the server markup)', () => {
     expect(fills.slice(0, 2)).toEqual(['var(--color-paper)', 'var(--su-roll-band)'])
   })
 
-  test('its controls are inert until the island mounts', () => {
+  test('has no button until the island mounts: the stamp is a plain label', () => {
     render(<RollTableView data={coreMechanic()} state={{ roll: null, history: [] }} />)
-    expect(screen.getByRole('button', { name: 'Roll the die' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
+    expect(screen.getByText('Roll the Die:').tagName).toBe('SPAN')
   })
 
   test('a dense table splits in two, ranges outside, and sets the page dense', () => {
@@ -92,11 +96,22 @@ describe('the roll-table page, before a roll (the server markup)', () => {
 })
 
 describe('RollTableIsland', () => {
-  test('Roll reads the result in the panel and marks the row it lands on', async () => {
+  test('the ROLL THE DIE stamp is its one roll control', () => {
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
-    await roll('Roll the die')
+    const controls = screen.getAllByRole('button')
+    expect(controls).toHaveLength(1)
+    expect(controls[0]?.getAttribute('aria-label')).toBe(STAMP)
+    expect(controls[0]?.textContent).toBe('Roll the Die:')
+  })
+
+  test('the stamp reads the result in the panel and marks the row it lands on', async () => {
+    render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
+    await roll()
 
     const panel = screen.getByRole('region', { name: 'You rolled' })
+    // Announced in the panel's polite live region.
+    const live = panel.querySelector('[aria-live="polite"]') as HTMLElement
+    expect(within(live).getByText('Success')).toBeTruthy()
     expect(within(panel).getByText('14')).toBeTruthy()
     expect(within(panel).getByText('Success')).toBeTruthy()
     expect(within(panel).getByText('11–19')).toBeTruthy()
@@ -118,15 +133,15 @@ describe('RollTableIsland', () => {
         }}
       />
     )
-    await roll('Roll the die')
+    await roll()
     expect(asked).toEqual(['Core Mechanic'])
   })
 
-  test('Roll again keeps the earlier rolls, newest first', async () => {
+  test('pressing the stamp again keeps the earlier rolls, newest first', async () => {
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(7, 20, 3)} />)
-    await roll('Roll the die')
-    await roll('Roll again')
-    await roll('Roll again')
+    await roll()
+    await roll()
+    await roll()
 
     const earlier = screen.getByRole('heading', { name: 'Earlier rolls' }).parentElement
     const items = within(earlier as HTMLElement).getAllByRole('listitem')

@@ -1,7 +1,7 @@
 /**
  * `RollTable` — the only surface in the library that *does* something when you
  * click it, and until now the only large one with no direct test. Three other
- * files assert the Roll button **renders**; none had ever clicked it, so the
+ * files assert the roll control **renders**; none had ever clicked it, so the
  * entire result path (announce, highlight, reroll, clear, copy, and the whole
  * two-roll columns variant) was uncovered.
  *
@@ -34,7 +34,8 @@ import {
 } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 
-const ROLL_BUTTON = 'Roll on this table'
+/** The table's one roll control: its ROLL THE DIE stamp. */
+const ROLL_BUTTON = /^Roll the die on /
 /** The reveal delay both variants wrap their state update in. */
 const REVEAL_MS = 300
 
@@ -121,15 +122,9 @@ async function reveal(): Promise<void> {
   })
 }
 
-/** Click Roll and run out the 300ms reveal. */
+/** Press the ROLL THE DIE stamp and run out the 300ms reveal. */
 async function rollAndReveal(): Promise<void> {
   fireEvent.click(screen.getByLabelText(ROLL_BUTTON))
-  await reveal()
-}
-
-/** Click a result-bar action by its visible label and run out any reveal. */
-async function clickAction(label: string): Promise<void> {
-  fireEvent.click(screen.getByText(label))
   await reveal()
 }
 
@@ -226,6 +221,20 @@ describe('rolling a standard table', () => {
     expect(reported).toEqual([['Nailed It: nothing goes wrong', '20']])
   })
 
+  test('the stamp is the one roll control, before and after a roll', async () => {
+    queued = [20]
+    render(<RollTable table={RANGE_TABLE} tableName="Core Mechanic" />)
+    const rolls = () => screen.queryAllByRole('button', { name: /^Roll/ })
+    expect(rolls().map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Roll the die on Core Mechanic',
+    ])
+    await rollAndReveal()
+    // The result bar keeps Copy, with no Reroll beside it.
+    expect(rolls()).toHaveLength(1)
+    expect(screen.queryByText('Reroll')).toBeNull()
+    expect(screen.getByLabelText('Copy result to clipboard')).toBeTruthy()
+  })
+
   test('rerolling replaces the previous result rather than adding to it', async () => {
     queued = [1, 20]
     render(<RollTable table={RANGE_TABLE} />)
@@ -233,14 +242,14 @@ describe('rolling a standard table', () => {
     await rollAndReveal()
     expect(announcement()).toContain('Cascade Failure')
 
-    await clickAction('Reroll')
+    await rollAndReveal()
 
     expect(announcement()).toBe('Rolled 20: Nailed It - nothing goes wrong')
     // The old row must have let go of its selection, not merely been joined.
     const selected = document.querySelectorAll('[aria-selected="true"]')
     expect(selected).toHaveLength(1)
     expect(selected[0]?.textContent).toContain('Nailed It')
-    expect(screen.queryAllByText('Reroll')).toHaveLength(1)
+    expect(screen.queryAllByLabelText('Copy result to clipboard')).toHaveLength(1)
   })
 
   test('clicking the selected row clears the result and silences the live region', async () => {
@@ -254,7 +263,7 @@ describe('rolling a standard table', () => {
 
     expect(document.querySelectorAll('[aria-selected="true"]')).toHaveLength(0)
     expect(announcement()).toBe('')
-    expect(screen.queryByText('Reroll')).toBeNull()
+    expect(screen.queryByLabelText('Copy result to clipboard')).toBeNull()
   })
 
   test('Enter on the selected row clears it too — the keyboard path is not a dead end', async () => {
@@ -335,14 +344,14 @@ describe('the columns variant', () => {
     expect(announcement()).toBe('Column 17-20, Roll 1: 17-20 entry 1')
   })
 
-  test('rerolling from the highlighted cell moves the highlight', async () => {
+  test('pressing the stamp again moves the highlight', async () => {
     queued = [1, 1, 20, 20]
     render(<RollTable table={COLUMNS_TABLE} />)
 
     await rollAndReveal()
     expect(announcement()).toBe('Column 1-4, Roll 1: 1-4 entry 1')
 
-    await clickAction('Reroll')
+    await rollAndReveal()
 
     expect(announcement()).toBe('Column 17-20, Roll 20: 17-20 entry 20')
     expect(document.querySelectorAll('[aria-selected="true"]')).toHaveLength(1)

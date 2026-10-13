@@ -12,7 +12,8 @@ import { extractVisibleActions, resolveTable, SalvageUnionReference } from 'salv
 import { malformed } from 'salvageunion-reference/testing'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
-const ROLL_BUTTON = 'Roll on this table'
+/** The stamp is the roll: "Roll the die on <table>". */
+const ROLL_BUTTON = /^Roll the die on /
 
 const find = <T extends { name?: string }>(items: readonly T[], name: string): T => {
   const match = items.find((item) => item.name === name)

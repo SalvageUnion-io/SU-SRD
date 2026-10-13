@@ -781,8 +781,8 @@
   text-transform: uppercase;
 }
 
-/* Under the panel's head, above the result: the button never moves, however
-   long the outcome's text runs. */
+/* Under the panel's head, above the result: the Randsum credit. The roll is
+   the table's own stamp, so the panel holds no button. */
 .srd-roll__controls {
   align-items: center;
   border-bottom: var(--bw-chrome) solid var(--color-ink);
@@ -790,12 +790,6 @@
   flex-wrap: wrap;
   gap: var(--space-10);
   padding: var(--space-12) var(--space-14);
-}
-
-/* "Roll the die" and "Roll again" hold one width, so the credit beside it
-   does not shift either. */
-.srd-roll__roll {
-  min-width: 9rem;
 }
 
 .srd-roll__credit {

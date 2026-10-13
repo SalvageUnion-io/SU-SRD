@@ -5,6 +5,7 @@ import {
   cn,
   digestRollTable,
   FOCUS_RING_ON_TONE,
+  RollStamp,
   Text,
   toast,
   useParseTraitReferences,
@@ -136,12 +137,10 @@ const HEADER_ACTION_STYLE = {
   gap: space[8],
 } satisfies CSSProperties
 
-/** Widens the mini rung's 8px inline padding; inline beats `.su-btn--mini`. */
-const ROLL_BUTTON_STYLE = { paddingInline: '11px' } satisfies CSSProperties
-
 /**
  * The roll-table header band — the ink bar carrying the table name and the
- * rust Roll button.
+ * ROLL THE DIE stamp, which IS the roll (component-lib's `RollStamp`): there
+ * is no second Roll button, and pressing the stamp again rolls again.
  *
  * StandardRollTable and ColumnsRollTable each held a VERBATIM 31-line copy of
  * this. Only the BAND was duplicated: the frames around it genuinely differ
@@ -164,18 +163,9 @@ function RollTableHeader({
         {titleSelect ? <TitleSelect title={title} select={titleSelect} /> : title}
       </span>
       <span style={HEADER_ACTION_STYLE}>
-        Roll the Die
-        <Button
-          variant="primary"
-          size="mini"
-          onClick={handleRoll}
-          style={ROLL_BUTTON_STYLE}
-          aria-label="Roll on this table"
-          title="Roll on this table"
-        >
-          Roll
-          <DiceIcon compact />
-        </Button>
+        <RollStamp name={title} onRoll={handleRoll} onInk>
+          Roll the Die
+        </RollStamp>
       </span>
     </Badge>
   )
@@ -272,28 +262,7 @@ function RollTableDescription({
   )
 }
 
-const DiceIcon = ({ compact }: { compact?: boolean }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    height={compact ? '14' : '16'}
-    viewBox="0 -960 960 960"
-    width={compact ? '14' : '16'}
-    fill="currentColor"
-    aria-hidden="true"
-  >
-    <path d="M240-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm480 0q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-600q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240 240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm240-240q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Z" />
-  </svg>
-)
-
-function ResultActionBar({
-  compact,
-  resultText,
-  onReroll,
-}: {
-  compact?: boolean
-  resultText: string
-  onReroll: () => void
-}) {
+function ResultActionBar({ compact, resultText }: { compact?: boolean; resultText: string }) {
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
@@ -304,17 +273,8 @@ function ResultActionBar({
     [resultText]
   )
 
-  const handleReroll = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onReroll()
-    },
-    [onReroll]
-  )
-
-  // Copy / Reroll are the shared `Button` at its mini rung, so they line up as
-  // equal-sized actions: Reroll is the roll (the rust primary, as on the card's
-  // own Roll), Copy the paper default.
+  // Copy is the shared `Button` at its mini rung. There is no Reroll here:
+  // the header's ROLL THE DIE stamp is the table's one roll control.
   const iconSize = compact ? 12 : 14
 
   return (
@@ -333,10 +293,6 @@ function ResultActionBar({
       <Button size="mini" onClick={handleCopy} aria-label="Copy result to clipboard">
         Copy
         <Copy aria-hidden="true" size={iconSize} />
-      </Button>
-      <Button variant="primary" size="mini" onClick={handleReroll}>
-        Reroll
-        <DiceIcon compact={compact} />
       </Button>
     </div>
   )
@@ -448,7 +404,7 @@ function ColumnsRollTable({
 
   return (
     <div style={OUTER_STYLE}>
-      <div className="su-sr-only" aria-live="assertive" role="status">
+      <div className="su-sr-only" aria-live="polite" role="status">
         {rollAnnouncement}
       </div>
 
@@ -530,11 +486,7 @@ function ColumnsRollTable({
                         >
                           <span style={BOLD}>{entryNum}:</span> {entry?.value}
                           {isHighlighted && (
-                            <ResultActionBar
-                              compact={compact}
-                              resultText={entry?.value ?? ''}
-                              onReroll={handleRoll}
-                            />
+                            <ResultActionBar compact={compact} resultText={entry?.value ?? ''} />
                           )}
                         </td>
                       )
@@ -609,7 +561,7 @@ function StandardRollTable({
   return (
     <div style={OUTER_STYLE}>
       {/* Screen reader announcement for roll results */}
-      <div className="su-sr-only" aria-live="assertive" role="status">
+      <div className="su-sr-only" aria-live="polite" role="status">
         {rollAnnouncement}
       </div>
 
@@ -677,7 +629,6 @@ function StandardRollTable({
                       <ResultActionBar
                         compact={compact}
                         resultText={label ? `${label}: ${value}` : value}
-                        onReroll={handleRoll}
                       />
                     </td>
                   )}

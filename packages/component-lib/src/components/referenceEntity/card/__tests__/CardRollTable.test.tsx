@@ -24,7 +24,7 @@ const coreMechanic = () => {
 }
 
 describe('CardRollTable', () => {
-  test('collapsed: the bar alone — ROLL THE DIE, the name, Roll and the Table toggle', () => {
+  test('collapsed: the bar alone — the ROLL THE DIE stamp (the roll), the name and the Table toggle', () => {
     render(
       <CardRollTable
         table={coreMechanic()}
@@ -34,9 +34,10 @@ describe('CardRollTable', () => {
         disabled={false}
       />
     )
-    expect(screen.getByText('Roll the Die:')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }).textContent).toBe(
+      'Roll the Die:'
+    )
     expect(screen.getByText('Core Mechanic')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Roll on this table' })).toBeTruthy()
     const toggle = screen.getByRole('button', { name: 'Show the Core Mechanic table' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByRole('listitem')).toBeNull()
@@ -57,7 +58,7 @@ describe('CardRollTable', () => {
     expect(screen.getByText('You rolled · lands on 11–19')).toBeTruthy()
     expect(screen.getByText('Success')).toBeTruthy()
     expect(screen.queryByRole('listitem')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Reroll on this table' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
   })
 
   test('rolled and open: the matching row is marked, the same for every outcome', () => {
@@ -88,7 +89,7 @@ describe('CardRollTable', () => {
         disabled={false}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Roll on this table' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     // The dice load on the first roll (`dieForTable`), so the readout is awaited.
     expect(await screen.findByText(/You rolled · lands on/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Show the Core Mechanic table' }))
@@ -105,7 +106,7 @@ describe('CardRollTable', () => {
         disabled
       />
     )
-    expect(screen.queryByRole('button', { name: /on this table/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Roll/ })).toBeNull()
     expect(screen.getAllByRole('listitem').length).toBe(5)
   })
 
@@ -121,7 +122,7 @@ describe('CardRollTable', () => {
         />
       </EntitySurfaceProvider>
     )
-    expect(screen.queryByRole('button', { name: /on this table/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Roll/ })).toBeNull()
     expect(screen.getByRole('button', { name: 'Hide the Core Mechanic table' })).toBeTruthy()
     expect(screen.getAllByRole('listitem').length).toBe(5)
   })
@@ -139,7 +140,7 @@ describe('CardRollTable', () => {
         />
       </EntitySurfaceProvider>
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Roll on this table' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     // The dice load on the first roll (`d20ForTable`), so the mark is awaited.
     expect(await screen.findByText(/^Rolled \d+$/)).toBeTruthy()
     expect(announced).toHaveLength(1)
@@ -204,13 +205,15 @@ describe('CardRollTable', () => {
         tone="var(--color-pilot)"
       />
     )
-    expect(screen.getByText('Roll twice:')).toBeTruthy()
     const grid = screen.getByRole('table', { name: 'Callsign Table' })
     expect(grid.querySelectorAll('tbody tr')).toHaveLength(20)
     expect(screen.getByText('Sparkles')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Roll on this table' }))
+    const stamp = screen.getByRole('button', { name: 'Roll twice on Callsign Table' })
+    expect(stamp.textContent).toBe('Roll twice:')
+    fireEvent.click(stamp)
     expect(screen.getByText(/You rolled · column/)).toBeTruthy()
     expect(grid.querySelectorAll('td[aria-current="true"]')).toHaveLength(1)
-    expect(screen.getByRole('button', { name: 'Reroll on this table' })).toBeTruthy()
+    // Pressed again, the same stamp rolls again: there is no second Roll.
+    expect(screen.queryAllByRole('button', { name: /^Roll/ })).toHaveLength(1)
   })
 })

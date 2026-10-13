@@ -31,7 +31,7 @@ const cond = (size: string, extra?: CSSProperties): CSSProperties => ({
   ...extra,
 })
 
-/** Roll and the Table toggle: condensed caps at the 44px touch floor (§4.6). */
+/** The Table toggle: condensed caps at the 44px touch floor (§4.6). */
 const BAR_BUTTON: CSSProperties = {
   flex: 'none',
   fontFamily: font.cond,
@@ -54,8 +54,9 @@ function TraitText({ text }: { text: string }) {
  *
  * Two switches — shown or hidden, rolled or not — give four states, and ONE
  * bar holds the same place in all of them: the underlined "ROLL THE DIE:"
- * stamp, the table's name, Roll (Reroll once rolled) and the Table / Hide
- * toggle. Rolling never needs the table open.
+ * stamp, which IS the roll (`RollStamp`; press it again to reroll), the
+ * table's name and the Table / Hide toggle. Rolling never needs the table
+ * open.
  *
  * The result is a READOUT, not a row hunt: the number, the outcome and its
  * text in an ink strip under the bar, at reading size, open or not. An open
@@ -67,11 +68,11 @@ function TraitText({ text }: { text: string }) {
  *
  * A surface that announces rolls (`EntitySurfaceValue.announceRoll` — the
  * SRD's toast) gets the result there instead of the readout; the open table
- * still marks the row. A surface with `rolls` off has no Roll at all: the
- * table still reads and still folds.
+ * still marks the row. A surface with `rolls` off has no roll at all: the
+ * stamp is a plain label, and the table still reads and still folds.
  *
  * A COLUMNS table (Callsign, a d20 × d20) is the same instrument and the same
- * bar: Roll rolls both dice, the readout names the column, and the grid marks
+ * bar: its stamp rolls both dice, the readout names the column, and the grid marks
  * the column's head and the entry's cell.
  */
 export function CardRollTable({
@@ -156,36 +157,21 @@ export function CardRollTable({
     })
   }
 
-  const isRolled = isColumns ? !!rolledColumns : !!rolled
   const actions = (
-    <>
-      {!noRoll && (
-        <Button
-          variant="primary"
-          size="compact"
-          onClick={isColumns ? rollColumns : rollBands}
-          // The name starts with the visible word (WCAG 2.5.3).
-          aria-label={`${isRolled ? 'Reroll' : 'Roll'} on this table`}
-          style={BAR_BUTTON}
-        >
-          {isRolled ? 'Reroll' : 'Roll'}
-        </Button>
+    <Button
+      size="compact"
+      aria-expanded={expanded}
+      aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
+      onClick={() => setExpanded((open) => !open)}
+      style={BAR_BUTTON}
+    >
+      {expanded ? 'Hide' : 'Table'}
+      {expanded ? (
+        <ChevronUp aria-hidden="true" size={16} />
+      ) : (
+        <ChevronDown aria-hidden="true" size={16} />
       )}
-      <Button
-        size="compact"
-        aria-expanded={expanded}
-        aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
-        onClick={() => setExpanded((open) => !open)}
-        style={BAR_BUTTON}
-      >
-        {expanded ? 'Hide' : 'Table'}
-        {expanded ? (
-          <ChevronUp aria-hidden="true" size={16} />
-        ) : (
-          <ChevronDown aria-hidden="true" size={16} />
-        )}
-      </Button>
-    </>
+    </Button>
   )
 
   // The live region is always mounted, so the announcement fires on the first
@@ -220,6 +206,7 @@ export function CardRollTable({
       tone={tone}
       frame={framed ? 'box' : 'rule'}
       stamp={isColumns ? 'Roll twice:' : undefined}
+      onRoll={noRoll ? undefined : isColumns ? rollColumns : rollBands}
       actions={actions}
       readout={readout}
       open={expanded}

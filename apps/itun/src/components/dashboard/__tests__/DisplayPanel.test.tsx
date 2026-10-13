@@ -90,7 +90,7 @@ describe('DisplayPanel', () => {
     const trigger = container.querySelector('[aria-haspopup="dialog"]')
     expect(trigger).toBeTruthy()
     expect(
-      trigger?.closest('div')?.querySelector('button[aria-label="Roll on this table"]')
+      trigger?.closest('div')?.querySelector('button[aria-label="Roll the die on Core Mechanic"]')
     ).toBeTruthy()
     expect(trigger?.textContent).toContain('Core Mechanic')
     expect(trigger?.getAttribute('aria-expanded')).toBe('false')
@@ -159,7 +159,7 @@ describe('DisplayPanel', () => {
       </EntityHrefProvider>
     )
     const rollBtn = container.querySelector(
-      'button[aria-label="Roll on this table"]'
+      'button[aria-label="Roll the die on Core Mechanic"]'
     ) as HTMLButtonElement
     expect(rollBtn).toBeTruthy()
     fireEvent.click(rollBtn)

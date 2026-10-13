@@ -47,7 +47,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Card or Page, and as a Row but for an ability.
   An ability's Row (tree, listing, search, picker) wears its tier, as its tree's track does: Core `--color-pilot`, Advanced and Hybrid `--color-tier-advanced`, Legendary `--color-tier-legendary`.
 - **E13** Texture and the user-made treatment come from the surface and the instance.
-- **E14** Tables are the Table instrument: a roll bar in a Card, the roll instrument on a Page or panel.
+- **E14** Tables are the Table instrument: a roll bar in a Card, the roll instrument on a Page or panel; its ROLL THE DIE stamp is the roll button.
 - **E15** No hand-built entity markup outside `component-lib/src/entity/`.
 - **E16** A Peek is read-only and terminal.
 - **E17** There is no "//" line: the action type is a head stamp, facets are Stat cells after the entity's facts, traits are Tags with a parameter cell (`[Burn | 2]`).

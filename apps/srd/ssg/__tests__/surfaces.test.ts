@@ -243,6 +243,18 @@ describe('a roll table rolls on its own page (board 08b)', () => {
   })
 })
 
+/**
+ * The ROLL THE DIE stamp is the roll button, but only once a script can run
+ * it: the static HTML prints the plain label, never a dead button.
+ */
+describe('static HTML prints the roll stamp as a label, not a button', () => {
+  it.each(['/roll-tables/core-mechanic', '/roll-tables/callsign-table'])('%s', (route) => {
+    const html = page(route)
+    expect(html).toMatch(/class="su-roll__stamp">Roll (the Die|twice):</)
+    expect(html).not.toContain('su-roll__stamp--button')
+  })
+})
+
 describe('a columns table rolls on its own page too', () => {
   const html = page('/roll-tables/callsign-table')
 

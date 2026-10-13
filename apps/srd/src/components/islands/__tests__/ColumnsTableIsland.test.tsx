@@ -65,15 +65,22 @@ describe('the columns table’s page', () => {
     expect(within(table).getAllByRole('columnheader')).toHaveLength(7)
     expect(within(table).getByText('Sparkles')).toBeTruthy()
     expect(within(table).getByText('Iceman')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Roll the dice' }).hasAttribute('disabled')).toBe(
-      true
-    )
+    // No dead button: before the island mounts the stamp is a plain label.
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
+    expect(screen.getByText('Roll twice:').tagName).toBe('SPAN')
   })
 
-  test('Roll reads the callsign in the panel and marks its cell', async () => {
+  test('its ROLL TWICE stamp is its one roll control', () => {
+    render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7)} />)
+    const controls = screen.getAllByRole('button')
+    expect(controls).toHaveLength(1)
+    expect(controls[0]?.getAttribute('aria-label')).toBe('Roll twice on Callsign Table')
+  })
+
+  test('the stamp reads the callsign in the panel and marks its cell', async () => {
     render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7)} />)
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Roll the dice' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Roll twice on Callsign Table' }))
     })
     const panel = screen.getByRole('region', { name: 'You rolled' })
     expect(within(panel).getByText('Silverback')).toBeTruthy()

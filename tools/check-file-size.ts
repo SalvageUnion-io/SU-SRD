@@ -47,7 +47,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/itun/convex/model/entities.ts': 929,
   'apps/itun/convex/schema.ts': 777,
   'apps/itun/src/components/dashboard/Dashboard.tsx': 675,
-  'apps/itun/src/components/dashboard/RollTable.tsx': 698,
+  'apps/itun/src/components/dashboard/RollTable.tsx': 649,
   'apps/itun/src/components/npc/AnyNpcDesigner.tsx': 781,
   'apps/itun/src/components/npc/CrewBoard.tsx': 688,
   'apps/itun/src/components/shared/EntityRow.tsx': 648,

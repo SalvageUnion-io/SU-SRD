@@ -226,9 +226,11 @@ const tableChoice: SURefObjectChoice = {
 describe('ChoiceGroups — table choice (A.I. Personality)', () => {
   test('renders the cited table header (title + roll), rows collapsed', () => {
     render(<ChoiceGroups choices={[tableChoice]} readOnly />)
-    // the header names the table and exposes the Roll button…
+    // the header names the table, and its ROLL THE DIE stamp is the roll…
     expect(screen.getByText('A.I. Personality Table')).toBeTruthy()
-    expect(screen.getByRole('button', { name: /Roll on this table/i })).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'Roll the die on A.I. Personality Table' })
+    ).toBeTruthy()
     // …but the rows are collapsed by default (no <table> in the DOM yet)
     expect(screen.queryAllByRole('listitem').length).toBe(0)
     // read-only: no input
