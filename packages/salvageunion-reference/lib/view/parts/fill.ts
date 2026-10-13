@@ -5,6 +5,7 @@
  */
 
 import { getBlackMarket, getTechLevel, getTechLevelNumber } from '../../entityFields'
+import { isAbility } from '../../entityGuards'
 import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
 import { isDoEntity, isHybridTree, schemaDomain } from './kind'
 
@@ -30,22 +31,22 @@ function techLevelTone(level: number | undefined): string | undefined {
   return level !== undefined && level >= 1 && level <= 6 ? `tl-${level}` : undefined
 }
 
-/** Book tier tones (the class ability-tree spreads): Core = brick, Advanced
- * and Hybrid = orange, Legendary = pink. */
+/** Ability tier tones: Core = pilot orange, Advanced and Hybrid = the darker
+ * rust (`tier-advanced`), Legendary = purple (`tier-legendary`). */
 function abilityTierTone(entity: SURefMetaEntity): string {
   const isLegendary =
     ('level' in entity && String(entity.level).toUpperCase() === 'L') ||
     ('tree' in entity && String(entity.tree).includes('Legendary'))
-  if (isLegendary) return 'crawler'
+  if (isLegendary) return 'tier-legendary'
   const tree = 'tree' in entity ? String(entity.tree) : ''
-  return tree.includes('Advanced') || isHybridTree(tree) ? 'pilot' : 'tier-core'
+  return tree.includes('Advanced') || isHybridTree(tree) ? 'tier-advanced' : 'pilot'
 }
 
 function treeRequirementTone(entity: SURefMetaEntity): string {
   const name = 'name' in entity ? String(entity.name).toLowerCase() : ''
-  if (name.includes('legendary')) return 'crawler'
-  if (name.includes('advanced') || name.includes('hybrid')) return 'pilot'
-  return 'tier-core'
+  if (name.includes('legendary')) return 'tier-legendary'
+  if (name.includes('advanced') || name.includes('hybrid')) return 'tier-advanced'
+  return 'pilot'
 }
 
 const SCHEMA_TONE: Partial<Record<SURefEnumSchemaName, string>> = {
@@ -101,10 +102,11 @@ export function entityTone(
 export type HeaderFill = 'tone' | 'ink'
 
 /**
- * Which fill a header takes in a form (E12): things you do are the ink banner
- * in every form, a Row included (ruleset §3.1: the Core tier fill is rust's
- * near twin); an ability's tier rides on its numeral and pennant.
+ * Which fill a header takes in a form (E12): things you do are the ink banner,
+ * except an ability's Row, which wears its tier tone (Core orange, Advanced
+ * rust, Legendary purple) wherever abilities are listed.
  */
-export function headerFill(entity: SURefMetaEntity, _form: 'row' | 'card' | 'page'): HeaderFill {
+export function headerFill(entity: SURefMetaEntity, form: 'row' | 'card' | 'page'): HeaderFill {
+  if (form === 'row' && isAbility(entity)) return 'tone'
   return isDoEntity(entity) ? 'ink' : 'tone'
 }

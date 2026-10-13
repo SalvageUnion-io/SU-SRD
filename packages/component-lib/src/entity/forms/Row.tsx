@@ -88,9 +88,8 @@ const READ: EntityMode = { kind: 'read' }
  * Tile's, with no rule between head and body) and a paper body
  * whose first row is the facts and facets as Stats, then the traits as Tags
  * (E17: no "//" line), then the lead while browsing (E11). Fill follows kind
- * (E12): a "have" entity's tone, a "do" entity's ink banner with paper flecks
- * (ruleset §3.1: the Core tier fill is rust's near twin); an ability's tier
- * rides on its numeral and pennant.
+ * (E12): a "have" entity's tone, an ability's tier tone (Core orange, Advanced
+ * rust, Legendary purple), any other "do" entity's ink banner with paper flecks.
  */
 export function Row({
   model,
@@ -106,7 +105,9 @@ export function Row({
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
-  const fill = model.kind.nature === 'do' ? 'ink' : model.tone
+  // An ability's Row wears its tier tone (E12); any other "do" entity the ink banner.
+  const fill =
+    model.kind.nature === 'do' && model.ref.schemaName !== 'abilities' ? 'ink' : model.tone
   const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
   const title = instance?.title ?? model.title

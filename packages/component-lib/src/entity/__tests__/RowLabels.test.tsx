@@ -50,10 +50,12 @@ describe('Row labels', () => {
     expect(headOf('Salvaging Drill').firstElementChild?.className).toBe('su-entity-row__line')
   })
 
-  test('the ink banner carries its kind stamp inside the band too', () => {
+  test("an ability's tier banner carries its kind stamp inside the band too", () => {
     render(<Entity form="row" entity={juryRig()} />)
     const head = headOf('Jury Rig')
-    expect(head.dataset.fill).toBe('ink')
+    // A Core ability's Row wears the Core tier: orange.
+    expect(head.dataset.fill).toBe('tone')
+    expect(head.style.backgroundColor).toBe('var(--color-pilot)')
     const labels = nameBox('Jury Rig').nextElementSibling
     expect(labels?.textContent).toContain('Ability')
     expect(head.contains(labels ?? null)).toBe(true)
@@ -67,7 +69,7 @@ describe('Row labels', () => {
     unmount()
     render(<Entity form="row" entity={juryRig()} omit={['kind', 'tier']} />)
     const head = headOf('Jury Rig')
-    expect(head.dataset.fill).toBe('ink')
+    expect(head.dataset.fill).toBe('tone')
     expect(head.textContent).not.toMatch(/^1/)
     expect(head.querySelector('.su-entity-row__line')?.firstElementChild?.textContent).toBe(
       'Jury Rig'

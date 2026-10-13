@@ -138,12 +138,13 @@
   --color-guide-salvage: rgb(90, 157, 181); /* #5a9db5 */
   --color-guide-hazard: rgb(184, 76, 76); /* #b84c4c */
 
-  /* Class ability-tier ramp (Core Book 2.0a, class ability-tree spreads).
-     Core = brick, Advanced (incl. Hybrid) = pilot, Legendary = crawler — the
-     book reuses the ontology hues for the upper two tiers, so only Core needs
-     its own token. */
-  --color-tier-core: rgb(168, 89, 71); /* #a85947 */
-  --color-tier-core-pale: rgb(210, 160, 140); /* #d2a08c */
+  /* Class ability-tier ramp: Core = pilot orange, Advanced (incl. Hybrid) =
+     this darker rust, Legendary = this purple. Core reuses the pilot hue, so
+     only the upper two tiers own a token. Both carry paper text
+     (design/__tests__/contrast.test.ts). */
+  --color-tier-advanced: rgb(168, 89, 71); /* #a85947 */
+  --color-tier-advanced-pale: rgb(210, 160, 140); /* #d2a08c */
+  --color-tier-legendary: rgb(120, 82, 160); /* #7852a0 */
 
   /* Roll result tiers — canonical warm state palette (canonical primitive
      language §3): warm, so damaged/destroyed state (via the --color-status-* aliases below) and the Discord bot's roll

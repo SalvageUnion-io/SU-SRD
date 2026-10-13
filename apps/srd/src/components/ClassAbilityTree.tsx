@@ -26,9 +26,9 @@ const classHref = (c: SURefClass) => itemHref('classes', getEntitySlug(c))
 /**
  * One ability in its tree: a Row in link mode, a real same-tab link to the
  * ability's page — the listing row's shape (`EntityListingRow`), so a crawler
- * follows it and a reader keeps their back button. Its banner is ink, as every
- * ability's is (EDL E12; the Core Book prints them so, pp.34, 36, 37): the tier
- * rides on the track, so on a track the Row leaves its numeral to it.
+ * follows it and a reader keeps their back button. Its banner wears its tier
+ * (EDL E12: Core orange, Advanced and Hybrid rust, Legendary purple), the hue
+ * of its track; on a track the Row leaves its numeral to the track.
  */
 function AbilityTreeListing({ ability, onTrack }: { ability: SURefAbility; onTrack: boolean }) {
   return (
@@ -47,8 +47,8 @@ function AbilityTreeListing({ ability, onTrack }: { ability: SURefAbility; onTra
  * Which track a tree draws (ruleset "Where the screen departs from print": the
  * ability-tree track stays a diagram). Core and Advanced/Hybrid trees are
  * trained in order — each Ability needs the one before it — so their three
- * tiers hang off one thick, round-footed track in the tier's hue (Core =
- * brick, Advanced = pilot), each tier's numeral on it beside its banner. A
+ * tiers hang off one thick track in the tier's hue (Core = pilot orange,
+ * Advanced = the Advanced rust), each tier's numeral on it beside its banner. A
  * Legendary tree is a pick-one, not a sequence, so it has none.
  */
 type TreeTrack = 'core' | 'advanced' | null
@@ -115,7 +115,8 @@ function briefRows(plan: Exclude<ClassPlan, { kind: 'none' }>): BriefRow[] {
       limit,
       { label: 'Trees', value: trees },
       {
-        label: 'Entry',
+        // The book's verb: "to advance into the Class" (Workshop Manual p.23).
+        label: 'Advance',
         value: [`6 Core Abilities and 3 in ${path.requirement.join(' or ')}.`],
       },
       { label: 'Hybrid', value: ['2 TP each, in tree order.'] },

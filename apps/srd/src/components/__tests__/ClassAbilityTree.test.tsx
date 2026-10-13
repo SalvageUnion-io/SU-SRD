@@ -38,13 +38,24 @@ describe('ClassAbilityTree headings', () => {
 })
 
 describe('ClassAbilityTree banners and track', () => {
-  test('every ability banner is ink; a tracked tier sets its numeral on the track', () => {
+  test('every ability banner wears its tier; a tracked tier sets its numeral on the track', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const heads = [
       ...document.querySelectorAll<HTMLElement>('.srd-ability-tree__tier .su-entity-row__head'),
     ]
     expect(heads.length).toBeGreaterThan(0)
-    for (const head of heads) expect(head.dataset.fill).toBe('ink')
+    for (const head of heads) expect(head.dataset.fill).toBe('tone')
+    const bandsOf = (tree: string) =>
+      screen
+        .getAllByRole('heading', { level: 2, name: tree })
+        .flatMap((h) => [
+          ...(h.closest('section')?.querySelectorAll<HTMLElement>('.su-entity-row__head') ?? []),
+        ])
+        .map((head) => head.style.backgroundColor)
+    // Core orange, Advanced rust, Legendary purple.
+    expect(new Set(bandsOf('Forging'))).toEqual(new Set(['var(--color-pilot)']))
+    expect(new Set(bandsOf('Advanced Engineer'))).toEqual(new Set(['var(--color-tier-advanced)']))
+    expect(new Set(bandsOf('Legendary Engineer'))).toEqual(new Set(['var(--color-tier-legendary)']))
 
     const forging = screen.getByRole('heading', { level: 2, name: 'Forging' }).closest('section')
     if (!forging) throw new Error('no Forging tree')
@@ -70,5 +81,16 @@ describe('ClassAbilityTree banners and track', () => {
       false
     )
     expect(legendary.querySelector('.srd-ability-tree__numeral')).toBeNull()
+  })
+})
+
+describe('ClassAbilityTree training brief', () => {
+  test("a Hybrid Class's brief says what it takes to advance, in the book's verb (p.23)", () => {
+    render(<ClassAbilityTree classEntity={classNamed('Fabricator')} />)
+    const labels = [...document.querySelectorAll('.srd-class-brief__row > dt')].map(
+      (dt) => dt.textContent
+    )
+    expect(labels).toContain('Advance')
+    expect(labels).not.toContain('Entry')
   })
 })

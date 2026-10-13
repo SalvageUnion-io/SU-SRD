@@ -7,14 +7,14 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
 2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the citation.
 3. **Framed numeral + ink stamp** — the stat column (`14 | STRUCTURE PTS.`), label 14px, horizontal, in the book's order: STRUCTURE PTS., ENERGY PTS., HEAT CAP., SYSTEM SLOTS, MODULE SLOTS, CARGO CAP., TECH LEVEL, SALVAGE VALUE.
-4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the entity card's ink header (§5).
+4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen a head stamp, facet Stats and trait Tags (E17).
 6. **The book's colour map** — which chapter band a page wears:
    - **Rules · Salvaging**, rules blue `--color-wk-line`: Home, Core Rules, Salvaging, Guides, Keywords.
    - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, ITUN pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, ITUN mechs.
    - **Union Crawler**, `--color-crawler`: Crawlers, Bays, Crawler TLs, ITUN crawlers. **Denizens**, `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards keep adversary brown).
    - **ITUN's Shelves** (not the book): ink, with paper flecks (§3.5).
-7. **Deliberate departures** — no white knockout; generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); rounding only where the book rounds (§4.4).
+7. **Deliberate departures** — no white knockout; generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); ability Rows wear their tier (E12); rounding only where the book rounds (§4.4).
 
 ## The laws
 
@@ -82,7 +82,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
-   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (type stamp, classification pills, User-made; never above it, never riding the frame), value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have; ink banner for things you do, decided by data shape.
+   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (type stamp, classification pills, User-made; never above it, never riding the frame), value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have, ink banner for things you do (E12).
    - **Actions sit inline** — flush ink bands, no Actions tray or stamp (on a Page, framed cards under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
    - **Nesting legibility** — nested entities stack in the parent's frame under their type stamp, no tray or label repeating it. One tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".

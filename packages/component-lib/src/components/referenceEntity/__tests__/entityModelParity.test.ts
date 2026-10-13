@@ -150,7 +150,9 @@ describe('toEntityModel parity, every entity', () => {
       agree(label(row), model.tone, schemaName === 'actions' ? 'ink' : toneToken(tone))
       const doFill = model.kind.nature === 'do' ? 'ink' : 'tone'
       agree(label(row), resolveHeaderFill(entity, 'full'), doFill)
-      agree(label(row), resolveHeaderFill(entity, 'head'), doFill)
+      // An ability's head-only card is its Row: it wears its tier tone (E12).
+      const rowFill = schemaName === 'abilities' ? 'tone' : doFill
+      agree(label(row), resolveHeaderFill(entity, 'head'), rowFill)
     }
   })
 

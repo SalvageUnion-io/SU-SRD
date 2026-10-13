@@ -240,10 +240,11 @@ const base = {
   guideSalvage: 'rgb(90, 157, 181)',
   guideHazard: 'rgb(184, 76, 76)',
 
-  // — Class ability-tier ramp. Advanced and Legendary reuse pilot/crawler, so
-  //   only Core needs its own token. —
-  tierCore: 'rgb(168, 89, 71)',
-  tierCorePale: 'rgb(210, 160, 140)',
+  // — Class ability-tier ramp. Core reuses pilot, so only Advanced (incl.
+  //   Hybrid) and Legendary own a token. —
+  tierAdvanced: 'rgb(168, 89, 71)',
+  tierAdvancedPale: 'rgb(210, 160, 140)',
+  tierLegendary: 'rgb(120, 82, 160)',
 
   // — Roll result tiers: the canonical warm state ramp, shared with the bot —
   rollCascade: 'rgb(176, 67, 43)',

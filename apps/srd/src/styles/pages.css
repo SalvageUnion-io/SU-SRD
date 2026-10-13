@@ -1413,12 +1413,13 @@
  *
  * Each sequential tree draws the book's track (Core Book 2.0a pp.34, 36,
  * 37; ruleset, "Where the screen departs from print"): a thick pipe in the
- * tier's hue down the tree's left, ending in a rounded foot, with each tier's
- * numeral on it and a stub into that tier's Row, so tiers 1-2-3 read as one
- * chain trained in order. The Rows keep their ink banners; the tier rides on the track. It is a
- * diagram beside the Rows, never a left border on a card (§3.10). The pipe is
- * one segment per tier: the first starts at its numeral, the last runs on to
- * its Row's foot, and each but the last runs down through the gap to the next.
+ * tier's hue down the tree's left, with each tier's numeral on it and a stub
+ * into that tier's Row, so tiers 1-2-3 read as one chain trained in order.
+ * The Rows wear the same tier hue as their track. It is a diagram beside the
+ * Rows, never a left border on a card (§3.10). The pipe is one segment per
+ * tier, numeral to numeral: the first starts at its numeral, each but the
+ * last runs down through the gap to the next, and the last ends under its
+ * numeral, so nothing hangs below the final tier.
  * `data-track` picks the tier hue; a Legendary tree (pick one) has none.
  */
 .srd-ability-tree {
@@ -1474,16 +1475,16 @@
   padding: 0;
 }
 
-/* The tier's hue, and the numeral's foreground on it (§3.8: paper on brick,
-   ink on pilot). */
+/* The tier's hue, and the numeral's foreground on it (§3.8: ink on pilot,
+   paper on the Advanced rust). */
 .srd-ability-tree__track[data-track='core'] {
-  --srd-track-color: var(--color-tier-core);
-  --srd-track-on: var(--color-paper);
+  --srd-track-color: var(--color-pilot);
+  --srd-track-on: var(--color-ink);
 }
 
 .srd-ability-tree__track[data-track='advanced'] {
-  --srd-track-color: var(--color-pilot);
-  --srd-track-on: var(--color-ink);
+  --srd-track-color: var(--color-tier-advanced);
+  --srd-track-on: var(--color-paper);
 }
 
 .srd-ability-tree__tier {
@@ -1513,10 +1514,10 @@
   top: var(--srd-track-node);
 }
 
-/* The foot: the last segment runs on to its Row's foot and rounds off. */
+/* The last segment stops under its numeral: no foot hangs below the tree. */
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier:last-child::before {
-  border-radius: 0 0 var(--srd-track-weight) var(--srd-track-weight);
-  bottom: 0;
+  bottom: auto;
+  height: var(--srd-track-node);
 }
 
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child:last-child::before {

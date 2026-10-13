@@ -153,7 +153,8 @@ describe('lookupCard — tables and roll buttons', () => {
 
   test('an ability that rolls a table carries that roll as one tap', () => {
     const card = lookupCard(hit('abilities', 'counter-hacking'))
-    expect(card.accent).toBe(0xef894f)
+    // Counter-Hacking is Advanced: the Advanced tier rust.
+    expect(card.accent).toBe(0xa85947)
     expect(cardText(card)).toContain('-# ABILITY · ADVANCED HACKING TREE · REACTION · `1 AP`')
     expect(labels(card)).toEqual(['Roll Counter-Hacking', 'Buy'])
   })

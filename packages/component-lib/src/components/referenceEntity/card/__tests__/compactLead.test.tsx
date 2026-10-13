@@ -80,13 +80,13 @@ describe('the compact card lead', () => {
   })
 })
 
-describe('an ability row keeps the ink banner', () => {
+describe("an ability's row wears its tier; its card keeps the ink banner", () => {
   const fill = (container: HTMLElement) =>
     container.querySelector<HTMLElement>('[data-fill]')?.dataset.fill
 
-  test('the compact card and the full card both take the ink banner (ruleset §3.1)', () => {
+  test('the compact card is a tier-toned Row; the full card takes the ink banner', () => {
     const row = render(<ReferenceEntityCard data={talkShop()} size="medium" extent="head" />)
-    expect(fill(row.container)).toBe('ink')
+    expect(fill(row.container)).toBe('tone')
     row.unmount()
     const full = render(<ReferenceEntityCard data={talkShop()} size="medium" />)
     expect(fill(full.container)).toBe('ink')

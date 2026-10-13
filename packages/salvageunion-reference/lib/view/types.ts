@@ -116,8 +116,8 @@ export type EntityModel = {
     /** The bare type: "Ability", "Crawler Type". */
     type: string
     domain: EntityDomain
-    /** HAVE (wears its tone) or DO (an ability or action: the ink banner in a
-     * Row, Card or Page). */
+    /** HAVE (wears its tone) or DO (an ability or action: the ink banner on a
+     * Card or Page; an ability's Row wears its tier tone). */
     nature: 'have' | 'do'
     classKind?: ClassKind
   }

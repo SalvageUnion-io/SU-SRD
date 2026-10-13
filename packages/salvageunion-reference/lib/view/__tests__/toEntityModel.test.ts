@@ -177,7 +177,15 @@ describe('entityTone', () => {
     const tones = new Set(
       SalvageUnionReference.Abilities.all().map((a) => entityTone('abilities', a))
     )
-    expect([...tones].sort()).toEqual(['crawler', 'pilot', 'tier-core'])
+    expect([...tones].sort()).toEqual(['pilot', 'tier-advanced', 'tier-legendary'])
+    const toneOf = (tree: string) => {
+      const ability = SalvageUnionReference.Abilities.all().find((a) => a.tree === tree)
+      return entityTone('abilities', need(ability, tree))
+    }
+    expect(toneOf('Hacking')).toBe('pilot')
+    expect(toneOf('Advanced Hacking')).toBe('tier-advanced')
+    expect(toneOf('Cyborg')).toBe('tier-advanced')
+    expect(toneOf('Legendary Hacker')).toBe('tier-legendary')
   })
 })
 
@@ -188,9 +196,9 @@ describe('headerFill (E12)', () => {
     expect(headerFill(mule, 'page')).toBe('tone')
   })
 
-  test('an ability is ink in every form, a Row included', () => {
+  test('an ability is ink on a card or page; its Row wears its tier tone', () => {
     const ability = need(SalvageUnionReference.Abilities.all()[0], 'an ability')
-    expect(headerFill(ability, 'row')).toBe('ink')
+    expect(headerFill(ability, 'row')).toBe('tone')
     expect(headerFill(ability, 'card')).toBe('ink')
     expect(headerFill(ability, 'page')).toBe('ink')
   })

@@ -3,10 +3,9 @@
  * `--color-<tone>`, the foreground that passes contrast on the band actually
  * painted, and the speckle when the surface wears it.
  *
- * The form passes the token: a "have" entity's own tone, `ink` for a "do"
- * entity in a Row (the model's tone for an ability is its tier tone, which a
- * Row never paints: ruleset §3.1). A condition that is down greys the band,
- * whatever its tone.
+ * The form passes the token: a "have" entity's own tone, an ability's tier
+ * tone in a Row, `ink` for any other "do" entity. A condition that is down
+ * greys the band, whatever its tone.
  */
 
 import { GREY_HEADER } from '../../components/referenceEntity/card/cardChrome'
