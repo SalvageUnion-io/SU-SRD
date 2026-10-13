@@ -394,6 +394,14 @@ describe('legal starting pattern stamp', () => {
     expect(screen.queryByText('Legal Starting Pattern')).toBeNull()
   })
 
+  test('no pattern card or row wears a standalone "Pattern" tag', () => {
+    render(<ReferenceEntityCard data={mule()} pattern={patternOf('Hauler')} />)
+    expect(screen.queryByText(/^Pattern$/i)).toBeNull()
+    cleanup()
+    render(<ReferenceEntityCard data={mule()} presentation="page" />)
+    expect(screen.queryByText(/^Pattern$/i)).toBeNull()
+  })
+
   test('the chassis pattern LISTING stamps exactly its tagged patterns', () => {
     const chassis = mule()
     render(<ReferenceEntityCard data={chassis} />)

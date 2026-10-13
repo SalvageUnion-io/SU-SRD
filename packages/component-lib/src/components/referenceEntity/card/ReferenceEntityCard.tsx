@@ -373,11 +373,10 @@ function ReferenceEntityCardInner({
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
   // SYSTEM: its intro is its lead, its options the body.
   const isTitanicMeta = isAction && isTitanicAction(entity)
-  // The TYPE stamp — on every card (board E1). A pattern reads
-  // "Pattern"; an ability carries its tree.
-  const typeStamp = kicker ?? (isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity))
-  const footerType =
-    kicker ?? (isAction ? undefined : isPattern ? 'Pattern' : resolveEyebrow(schemaName).type)
+  // The TYPE stamp — on every card (board E1) but a pattern's, whose quoted
+  // name and Chassis marker already say what it is; an ability carries its tree.
+  const typeStamp = kicker ?? (isPattern ? undefined : resolveSeamLabel(schemaName, entity))
+  const footerType = kicker ?? (isAction || isPattern ? undefined : resolveEyebrow(schemaName).type)
   const provenance = resolveFooterProvenance(entity, pattern)
   const axisMarkers: AxisMarker[] = isAction
     ? []

@@ -380,11 +380,12 @@
 }
 
 .su-chapter-band__aside {
+  align-items: center;
   padding-bottom: var(--space-12);
 }
 
-/* The eyebrow (a breadcrumb, or stamps that lead the title) takes the band's
-   top padding, so the title row under it closes up to it. */
+/* The eyebrow (a breadcrumb) takes the band's top padding, so the title row
+   under it closes up to it. */
 .su-chapter-band__eyebrow {
   padding: var(--space-24) var(--space-16) 0;
 }
@@ -415,21 +416,59 @@
   }
 }
 
-/* `asideAt="notch"`: the aside on the notch's row, after it, at every
-   width. `wrap-reverse` keeps the notch on the band's foot: when a long name
-   leaves no room beside it the aside wraps ABOVE the notch, never under it
-   (and swaps the cross axis, so `flex-start` is the foot). */
+/* `asideAt="notch"`: a show page's stamps and controls, never above the
+   title (EDL E20). From `sm` they are one cluster at the row's far end,
+   top-aligned with the notch, which keeps the band's foot; each child of the
+   aside is a line of it, right-aligned and wrapping. A phone has no room
+   beside the name, so the cluster follows it: below the band, on a strip of
+   the page ground the width of the band. */
 .su-chapter-band[data-aside='notch'] .su-chapter-band__row {
+  align-items: stretch;
+  gap: 0;
+  flex-direction: column;
+}
+
+.su-chapter-band[data-aside='notch'] .su-chapter-band__title {
+  align-self: flex-start;
+}
+
+.su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
   align-items: flex-start;
-  column-gap: var(--space-16);
-  flex-flow: row wrap-reverse;
+  background-color: var(--color-wk-bg);
+  flex-direction: column;
+  margin-inline: calc(-1 * var(--space-16));
+  padding: var(--space-12) var(--space-16) 0;
+}
+
+.su-chapter-band[data-aside='notch'] .su-chapter-band__aside > * {
   justify-content: flex-start;
 }
 
-/* …and at the band's far end, as the tags under it are: on the notch's line
-   when it fits, and at the end of its own line when it wraps. */
-.su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
-  margin-inline-start: auto;
+@media (min-width: 40rem) {
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__row {
+    align-items: flex-start;
+    column-gap: var(--space-24);
+    flex-direction: row;
+  }
+
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__title {
+    align-self: flex-end;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
+    align-items: flex-end;
+    background-color: transparent;
+    flex: 0 1 auto;
+    margin-inline: auto 0;
+    max-width: 60%;
+    padding: 0 0 var(--space-12);
+  }
+
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside > * {
+    justify-content: flex-end;
+  }
 }
 
 /* ══ The nav drawer's index (`components/compositions/NavDrawer.tsx`) ═════════════

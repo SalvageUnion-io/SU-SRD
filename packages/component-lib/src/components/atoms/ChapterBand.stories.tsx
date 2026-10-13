@@ -34,7 +34,9 @@ const ON_INK = { color: color.paper } satisfies CSSProperties
  * colour with ink speckle, the title notched into its foot in ink on the page
  * ground — never a white knockout. It replaced `PageHeading`'s ink-stamp page
  * heading (boards 06, 07, 09 and 10). One band per tone of the book's colour
- * map, with an entity's stamps as the `aside` on the Mech Workshop band.
+ * map, with a show page's stamps as the `aside` right of the title on the
+ * Mech Workshop and Pilot Bay bands (`asideAt="notch"`, EDL E20: below the
+ * title at phone width, never above it).
  */
 export const Default: Story = () => (
   <div style={STACK}>
@@ -43,7 +45,7 @@ export const Default: Story = () => (
       <ChapterBand measure="80rem">The Salvage Union SRD</ChapterBand>
     </div>
     <div style={PAGE}>
-      <Caption>mech — with an aside on the notch's row (an entity's stamps)</Caption>
+      <Caption>mech — a show page's stamps right of the title (below it on a phone)</Caption>
       <ChapterBand
         tone="mech"
         measure="80rem"
@@ -67,12 +69,13 @@ export const Default: Story = () => (
       <ChapterBand tone="pilot">{pilotClass?.name ?? 'Pilot Bay'}</ChapterBand>
     </div>
     <div style={PAGE}>
-      <Caption>pilot — with an eyebrow (a sheet's stamps and provenance, board 10)</Caption>
+      <Caption>pilot — a sheet's stamps and provenance beside the name (board 10)</Caption>
       <ChapterBand
         tone="pilot"
         measure="80rem"
-        eyebrow={
-          <>
+        asideAt="notch"
+        aside={
+          <span style={STAMPS}>
             <Badge shape="stamp" size="full">
               Pilot
             </Badge>
@@ -80,7 +83,7 @@ export const Default: Story = () => (
               {pilotClass?.name ?? 'Engineer'}
             </Badge>
             <span>Starter Set · Leyline Press · read-only</span>
-          </>
+          </span>
         }
       >
         Bonesaw
@@ -115,7 +118,7 @@ export const Default: Story = () => (
  * USER-MADE (ruleset §3.9): a full page a player made that could
  * pass for the book — a shared mech pattern (board P2). The band is hatched in
  * ink over the chapter colour, the notched title is framed in dashes, and the
- * stamps lead the title as its `eyebrow`. Shown beside the canon band it must
+ * stamps sit right of the title as its `aside`. Shown beside the canon band it must
  * never be mistaken for.
  */
 export const UserMade: Story = () => (
@@ -127,13 +130,14 @@ export const UserMade: Story = () => (
       </ChapterBand>
     </div>
     <div style={PAGE}>
-      <Caption>user-made — hatched band, dashed notch, stamps as the eyebrow</Caption>
+      <Caption>user-made — hatched band, dashed notch, stamps beside the title</Caption>
       <ChapterBand
         tone="mech"
         measure="80rem"
         userMade
-        eyebrow={
-          <>
+        asideAt="notch"
+        aside={
+          <span style={STAMPS}>
             <UserMadeStamp label="User-made pattern" />
             <Badge shape="stamp" size="full">
               Chassis {gopher?.name ?? 'Gopher'}
@@ -141,7 +145,7 @@ export const UserMade: Story = () => (
             <Badge shape="stamp" size="full" surface="inverse">
               TL {gopher?.techLevel ?? 2}
             </Badge>
-          </>
+          </span>
         }
       >
         &ldquo;Tow Rig&rdquo;

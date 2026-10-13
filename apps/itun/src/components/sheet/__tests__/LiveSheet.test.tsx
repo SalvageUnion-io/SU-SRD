@@ -88,7 +88,7 @@ function bar() {
 function stripWrapper(): HTMLElement {
   // The condensed block wraps the name stamp and the live readouts — empty at
   // rest, filled and faded in once the hero scrolls out of view (Option A: the
-  // resting bar is slim, back + actions only).
+  // resting bar is slim, back only).
   return must(
     document.querySelector<HTMLElement>('section[aria-label="Sheet controls"] [data-sheet-strip]')
   )
@@ -112,7 +112,7 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
   test('the name is not in the bar at rest — it lives in the poster below', () => {
     renderShell()
     // The condense block mounts its contents only once the hero scrolls out of
-    // view, so the resting bar stays slim (only back + actions show) and the
+    // view, so the resting bar stays slim (only back shows) and the
     // hero h1 is the one copy of the name on the page.
     expect(bar().queryByText('Mara Vex')).toBeNull()
     expect(stripWrapper().getAttribute('aria-hidden')).toBe('true')
@@ -148,6 +148,26 @@ describe('LiveSheet — the chapter band (board 10)', () => {
   test('the band carries the sheet’s controls beside the name', () => {
     renderShell({ band: { actions: <button type="button">Make a copy</button> } })
     expect(screen.getByRole('button', { name: 'Make a copy' })).toBeTruthy()
+  })
+
+  test('nothing but the back link sits above the name: stamps, Share and the switch follow it', () => {
+    renderShell({
+      kindDetail: 'Engineer',
+      actions: <button type="button">Share</button>,
+      segments: [
+        { key: 'pilot', label: 'Pilot', href: '/sheet/pilot/p', active: true },
+        { key: 'mech', label: 'Mech', href: '/sheet/mech/m', active: false },
+      ],
+    })
+    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex' })
+    expect(bar().queryByRole('button', { name: 'Share' })).toBeNull()
+    expect(bar().queryByRole('navigation', { name: 'Assigned sheets' })).toBeNull()
+    const after = (el: Element) =>
+      (title.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+    expect(after(screen.getByRole('button', { name: 'Share' }))).toBe(true)
+    expect(after(screen.getByRole('navigation', { name: 'Assigned sheets' }))).toBe(true)
+    expect(after(screen.getByText('Engineer'))).toBe(true)
+    expect(must(title.closest('.su-chapter-band')).getAttribute('data-aside')).toBe('notch')
   })
 })
 

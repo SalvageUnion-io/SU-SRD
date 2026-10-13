@@ -53,10 +53,11 @@ Each is checkable; breaking one needs an amendment here first.
 - **E17** There is no "//" line: the action type is a head stamp, facets are Stat cells after the entity's facts, traits are Tags with a parameter cell (`[Burn | 2]`).
 - **E18** No form cuts a name, stamp or chip to "…": it wraps or widens.
 - **E19** A chassis ability shows only on its chassis's page and its patterns' pages (an SRD route, ITUN's shared pattern); never in a detail dialog, Row, Tile, Card, Peek or nested form.
+- **E20** On a show page (SRD entity, pattern or table; ITUN sheet, NPC or pattern) only the breadcrumb sits above the title: every stamp and control is one cluster right of it, below it on a phone (`ChapterBand asideAt="notch"`).
 
 ## Which form, where
 
-1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — head on the cut-out, the chassis ability on its page (E19), then Systems and Modules as full-width Tokens, one a line (card, page, a host's pattern list).
+1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — head on the cut-out, no "Pattern" stamp, the chassis ability on its page (E19), then Systems and Modules as full-width Tokens, one a line (card, page, a host's pattern list).
 2. **Search, both apps** — Row (no lead), link. **Any prose** — Mention: Peek, then Page.
 3. **ITUN wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **ITUN dense slots** (inventory strip, bays, loadouts) — Token, link. **Deck, resolve** — Row / Card.

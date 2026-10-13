@@ -7,9 +7,11 @@ import { EntityPageStamps } from './EntityPageStamps'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
- * 08b): its chapter's band at the head, the title notched in and the type
- * stamps at the band's far end on the notch's row (wrapping above it when a
- * long name leaves no room: the band's `asideAt="notch"`); then the body. The page's foot band — the citation
+ * 08b): its chapter's band at the head, the title notched in and, right of
+ * it, one cluster of everything else the head carries — the parent link, the
+ * type stamps and "Build with this" (EDL E20: nothing but the breadcrumb sits
+ * above a show page's title; on a phone the cluster follows the title, the
+ * band's `asideAt="notch"`); then the body. The page's foot band — the citation
  * ("p.112 · Workshop Manual · also in …") — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * to the layout as its `PageResult.foot`.
@@ -20,8 +22,8 @@ import { EntityPageStamps } from './EntityPageStamps'
  */
 
 /**
- * The band's link back to what this entity is built on, above the title: a
- * stamp naming the relation ("Pattern of") and the parent's name as a link,
+ * The band's link back to what this entity is built on, leading the cluster
+ * beside the title: a stamp naming the relation ("Pattern of") and the parent's name as a link,
  * with an arrow (`.srd-parent-link`).
  */
 function ParentLink({ label, name, href }: { label: string; name: string; href: string }) {
@@ -76,11 +78,11 @@ type EntityPageFrameProps = {
   meta: EntityPageMeta
   /** The inner row's max width; the roll-table page runs wider (board 08b). */
   measure?: string
-  /** What the entity is built on, linked above the title: a pattern's chassis. */
+  /** What the entity is built on, linked beside the title: a pattern's chassis. */
   parent?: { label: string; name: string; href: string }
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
   legalStartingPattern?: boolean
-  /** "Build with this": the deep link into ITUN's builder (`buildLinkFor`), atop the body. */
+  /** "Build with this": the deep link into ITUN's builder (`buildLinkFor`), ending the cluster. */
   build?: BuildLink | null
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
@@ -105,29 +107,34 @@ export function EntityPageFrame({
         tone={tone}
         fill={fill}
         measure={measure}
-        aside={<EntityPageStamps meta={meta} legalStartingPattern={legalStartingPattern} />}
+        aside={
+          <EntityPageStamps
+            meta={meta}
+            legalStartingPattern={legalStartingPattern}
+            lead={parent && <ParentLink {...parent} />}
+            end={
+              build && (
+                // A link that looks like the shared Button (`buttonVariants`):
+                // same tab, no off-site arrow — the Reference and Build are one
+                // union (ruleset §3.11).
+                <a
+                  href={build.href}
+                  className={cn(
+                    buttonVariants({ variant: 'primary', size: 'compact' }),
+                    'su-page-action'
+                  )}
+                >
+                  {build.label}
+                </a>
+              )
+            }
+          />
+        }
         asideAt="notch"
-        eyebrow={parent && <ParentLink {...parent} />}
       >
         {title}
       </ChapterBand>
       <div className="srd-entity__body" style={{ maxWidth: measure }}>
-        {build && (
-          // A link that looks like the shared Button (`buttonVariants`): same
-          // tab, no off-site arrow — the Reference and Build are one union
-          // (ruleset §3.11).
-          <div className="srd-entity__build">
-            <a
-              href={build.href}
-              className={cn(
-                buttonVariants({ variant: 'primary', size: 'compact' }),
-                'su-page-action'
-              )}
-            >
-              {build.label}
-            </a>
-          </div>
-        )}
         {children}
         {exits && <GuideExitsFoot {...exits} />}
       </div>

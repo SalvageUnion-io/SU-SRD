@@ -6,17 +6,19 @@ import {
   StatColumn,
 } from 'component-lib'
 import { space } from 'component-lib/design/tokens'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 /**
- * EntityPageStamps — what an entity page's chapter band carries at its right
- * (boards 07, 08): the type stamp, an ability's level and its cost, then
+ * EntityPageStamps — what an entity page's chapter band carries right of its
+ * title (boards 07, 08; EDL E20), as one line that wraps: `lead` (a pattern's
+ * parent link), the type stamp, an ability's level and its cost, then
  * the Tech Level, every one at the stat column's height and type: the level
  * and Tech Level as its framed-numeral cells, the stamps sized to match
  * (`.srd-entity-stamp`). Tech Level is the first thing a table asks of anything it
  * can field or buy, so it is not a chip here: it is the stat column's own cell
  * (`2 | TECH LEVEL`, the framed numeral beside the ink stamp), the size the
- * page body draws its stats, and the body leaves it out of its column. The same facts the card's header shows,
+ * page body draws its stats, and the body leaves it out of its column; then
+ * `end` (the page's "Build with this"). The same facts the card's header shows,
  * resolved by `resolveEntityPageMeta` so the page cannot describe an entity
  * differently from its own card.
  */
@@ -25,6 +27,10 @@ type EntityPageStampsProps = {
   meta: EntityPageMeta
   /** A pattern the book sanctions as a starting build: its stamp after the type's. */
   legalStartingPattern?: boolean
+  /** Before the stamps: the link to what the entity is built on. */
+  lead?: ReactNode
+  /** After the stamps: the page's action. */
+  end?: ReactNode
 }
 
 const ROW = {
@@ -34,9 +40,15 @@ const ROW = {
   gap: space[8],
 } satisfies CSSProperties
 
-export function EntityPageStamps({ meta, legalStartingPattern = false }: EntityPageStampsProps) {
+export function EntityPageStamps({
+  meta,
+  legalStartingPattern = false,
+  lead,
+  end,
+}: EntityPageStampsProps) {
   return (
     <div style={ROW}>
+      {lead}
       {meta.typeLabel && (
         <Badge shape="stamp" size="compact" className="srd-entity-stamp">
           {meta.typeLabel}
@@ -66,6 +78,7 @@ export function EntityPageStamps({ meta, legalStartingPattern = false }: EntityP
           label="Tech level"
         />
       )}
+      {end}
     </div>
   )
 }

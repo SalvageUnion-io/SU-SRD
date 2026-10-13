@@ -24,8 +24,11 @@ import {
 import type { ActionFields } from './referenceEntityCardTypes'
 
 export type EntityPageMeta = {
-  /** The type stamp: "Chassis", "Ability · Hacking Tree", "Pattern". */
-  typeLabel: string
+  /**
+   * The type stamp: "Chassis", "Ability · Hacking Tree". A pattern has none:
+   * its parent link already says what it is.
+   */
+  typeLabel?: string
   /** The Tech Level, as the header's TL cell reads it. */
   techLevel?: string
   /** An ability's tier numeral (its level in the tree). */
@@ -67,7 +70,7 @@ export function resolveEntityPageMeta(
 ): EntityPageMeta {
   const model = toEntityModel(entity, undefined, { pattern })
   return {
-    typeLabel: model.kind.stamp,
+    typeLabel: pattern ? undefined : model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     numeral: model.tier,
     cost: bandCost(entity),

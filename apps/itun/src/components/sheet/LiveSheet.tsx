@@ -5,10 +5,13 @@
  * Render-prop contract (binding):
  *   { variant, name, strip, back, renderBody, syncStats }
  *
- * App bar (poster `.appbar`, design source clean-pilot.html): back + overflow
- * are bordered square icon buttons, `.su-page-action` high, either side of the
- * SU cargo mark. At rest the bar is a slim interactive strip (back + actions
- * only); the entity name lives once, in the poster hero below.
+ * App bar (poster `.appbar`, design source clean-pilot.html): the back link,
+ * a bordered square icon button `.su-page-action` high. At rest the bar is a
+ * slim strip (back only); the entity name lives once, in the chapter band
+ * below. Every other control — Share, "⋯", Read | Edit, "Make a copy", the
+ * phone's Pilot/Mech/Crawler switch — sits with the type stamps right of the
+ * name (EDL E20: nothing but navigation above a show page's title), and
+ * below it on a phone.
  *
  * Condense (S11 — binding): the top bar is sticky; when the hero scrolls out
  * of view (IntersectionObserver simple threshold — NOT the prototype's
@@ -76,9 +79,9 @@ type LiveSheetProps = {
   back?: { href: string; label: string }
   /**
    * Mobile segmented Pilot/Mech/Crawler switch — rendered as a
-   * full-width row of flex-1 sm btns under the top-bar controls, visible only
-   * below the sm breakpoint (the 390 endpoint). Provided by the caller for
-   * wired compositions; omit to hide.
+   * full-width row of flex-1 sm btns under the name, the band's last line,
+   * visible only below the sm breakpoint (the 390 endpoint). Provided by the
+   * caller for wired compositions; omit to hide.
    */
   segments?: LiveSheetSegment[]
   /**
@@ -89,7 +92,7 @@ type LiveSheetProps = {
   renderBody: () => ReactNode
   /** Derived stat overlays merged onto strip items by key (e.g. {cargo: used}). */
   syncStats?: Record<string, number>
-  /** Trailing top-bar actions (Share/Publish). */
+  /** The sheet's own actions (Share, "⋯"), after the band's controls. */
   actions?: ReactNode
   /**
    * The chapter band's line past the title (board 10): provenance beside the
@@ -107,11 +110,12 @@ const PROVENANCE = {
   fontSize: tokens.fontSize.caption,
 } satisfies CSSProperties
 
-const BAND_ACTIONS = {
+/** One line of the cluster beside the name: the stamps, or the controls. */
+const BAND_LINE = {
   alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
-  gap: tokens.space[12],
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 /** Sticky bar height — the IntersectionObserver top inset (design: 58/66px). */
@@ -198,13 +202,6 @@ const BAR_END = {
   marginLeft: 'auto',
 } satisfies CSSProperties
 
-const BAR_ACTIONS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexShrink: 0,
-  gap: tokens.space[10],
-} satisfies CSSProperties
-
 const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
@@ -212,8 +209,6 @@ const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 /** The phone switch row; its `display` (phones only) is `.su-sheet-live-segments`. */
 const SEGMENTS = {
   gap: tokens.space[8],
-  order: 9999,
-  paddingBottom: tokens.space[4],
   width: '100%',
 } satisfies CSSProperties
 
@@ -378,45 +373,7 @@ export function LiveSheet({
                   </Badge>
                 </AppLink>
               ))}
-          <div style={BAR_ACTIONS}>{actions}</div>
         </div>
-
-        {/* Mobile segmented Pilot/Mech/Crawler switch — full-width
-            second row inside the sticky bar so it stays thumb-reachable. The
-            active segment is the sheet being viewed (an ink plate, never rust: a
-            here-state is ink);
-            the others navigate to their wired counterpart's sheet. */}
-        {segments && segments.length > 1 && (
-          <nav aria-label="Assigned sheets" className="su-sheet-live-segments" style={SEGMENTS}>
-            {segments.map((segment) =>
-              segment.active ? (
-                <span
-                  key={segment.key}
-                  aria-current="page"
-                  className={cn(
-                    buttonVariants({ variant: 'default', size: 'compact' }),
-                    'su-page-action'
-                  )}
-                  style={{ ...SEGMENT, ...ACTIVE_SEGMENT }}
-                >
-                  {segment.label}
-                </span>
-              ) : (
-                <AppLink
-                  key={segment.key}
-                  href={segment.href}
-                  className={cn(
-                    buttonVariants({ variant: 'default', size: 'compact' }),
-                    'su-page-action'
-                  )}
-                  style={SEGMENT}
-                >
-                  {segment.label}
-                </AppLink>
-              )
-            )}
-          </nav>
-        )}
       </section>
 
       {/* Condense sentinel — the moment this scrolls under the sticky bar, the
@@ -424,27 +381,72 @@ export function LiveSheet({
       <div ref={topRef} aria-hidden="true" style={SENTINEL} />
 
       {/* The chapter band (board 10): the sheet's one h1, notched into a band
-          in its own tone with the speckle behind it; the type stamps and where
-          the sheet comes from above the name, Read | Edit beside it where the viewer
-          may write (a read-only sheet has nothing to switch to). Full-bleed,
-          like the SRD's. */}
+          in its own tone with the speckle behind it. Right of the name, one
+          cluster (EDL E20): the type stamps and where the sheet comes from,
+          then the controls — Read | Edit where the viewer may write, "Make a
+          copy", Share and "⋯" — and on a phone the Pilot/Mech/Crawler switch,
+          the whole cluster below the name there. Full-bleed, like the SRD's. */}
       <ChapterBand
         layout="bleed"
         tone={variant}
-        eyebrow={
+        asideAt="notch"
+        aside={
           <>
-            <Badge shape="stamp" size="full">
-              {variant}
-            </Badge>
-            {kindDetail && (
-              <Badge shape="stamp" size="full" surface="inverse">
-                {kindDetail}
+            <div style={BAND_LINE}>
+              <Badge shape="stamp" size="full">
+                {variant}
               </Badge>
+              {kindDetail && (
+                <Badge shape="stamp" size="full" surface="inverse">
+                  {kindDetail}
+                </Badge>
+              )}
+              {band?.provenance && <span style={PROVENANCE}>{band.provenance}</span>}
+            </div>
+            {(band?.actions || actions) && (
+              <div style={BAND_LINE}>
+                {band?.actions}
+                {actions}
+              </div>
             )}
-            {band?.provenance && <span style={PROVENANCE}>{band.provenance}</span>}
+            {/* The phone's segmented Pilot/Mech/Crawler switch, full width
+                under the name so it stays thumb-reachable. The active segment
+                is the sheet being viewed (an ink plate, never rust: a
+                here-state is ink); the others navigate to their wired
+                counterpart's sheet. */}
+            {segments && segments.length > 1 && (
+              <nav aria-label="Assigned sheets" className="su-sheet-live-segments" style={SEGMENTS}>
+                {segments.map((segment) =>
+                  segment.active ? (
+                    <span
+                      key={segment.key}
+                      aria-current="page"
+                      className={cn(
+                        buttonVariants({ variant: 'default', size: 'compact' }),
+                        'su-page-action'
+                      )}
+                      style={{ ...SEGMENT, ...ACTIVE_SEGMENT }}
+                    >
+                      {segment.label}
+                    </span>
+                  ) : (
+                    <AppLink
+                      key={segment.key}
+                      href={segment.href}
+                      className={cn(
+                        buttonVariants({ variant: 'default', size: 'compact' }),
+                        'su-page-action'
+                      )}
+                      style={SEGMENT}
+                    >
+                      {segment.label}
+                    </AppLink>
+                  )
+                )}
+              </nav>
+            )}
           </>
         }
-        aside={band?.actions ? <div style={BAND_ACTIONS}>{band.actions}</div> : undefined}
       >
         {name}
       </ChapterBand>

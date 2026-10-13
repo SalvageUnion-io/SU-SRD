@@ -31,12 +31,13 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * stuck onto it.
  *
  * `aside` sits at the right of the same row, on the band, bottom-aligned with
- * the notch (a sheet's Read | Edit). Below `sm` it stacks above the notch,
- * where the band has room for it. `asideAt="notch"` instead keeps it on the
- * notch's row at every width, at the row's far end and after the title in
- * reading order as in the DOM (an entity's type stamps); when a long name
- * leaves no room there it wraps above the notch, still at the end, and
- * the notch stays on the band's foot.
+ * the notch. Below `sm` it stacks above the notch, where the band has room
+ * for it. A show page passes `asideAt="notch"` (EDL E20: nothing above
+ * a show page's title): its stamps and controls are one cluster beside the
+ * title from `sm`, top-aligned with it and after it in reading order as in
+ * the DOM, each child of `aside` a right-aligned line that wraps; on a phone
+ * the cluster follows the title, below the band on the page ground. The
+ * notch stays on the band's foot either way.
  *
  * ## Colour map
  *
@@ -85,8 +86,8 @@ export type ChapterBandProps = {
   aside?: ReactNode
   /**
    * Where `aside` sits: `end` (default), at the band's far end from `sm` and
-   * above the notch on a phone; `notch`, on the notch's row at every width
-   * (at its far end, wrapping above the notch when a long name fills it).
+   * above the notch on a phone; `notch`, a show page's cluster beside the
+   * title from `sm` (each child a right-aligned line) and below it on a phone.
    */
   asideAt?: 'end' | 'notch'
   /**
@@ -99,8 +100,8 @@ export type ChapterBandProps = {
   id?: string
   /**
    * Content on the band ABOVE the title row, left-aligned with the notch: a
-   * breadcrumb, or a page's stamps when they lead the title rather than trail
-   * it.
+   * breadcrumb, or a front page's kicker. Never a show page's stamps or
+   * controls: those are its `aside` (EDL E20).
    */
   eyebrow?: ReactNode
   /**
@@ -160,8 +161,9 @@ const EYEBROW = {
   marginInline: 'auto',
 } satisfies CSSProperties
 
+// `align-items` is the stylesheet's: a show page's cluster (`asideAt="notch"`)
+// changes it at `sm`.
 const ASIDE = {
-  alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
   gap: space[8],

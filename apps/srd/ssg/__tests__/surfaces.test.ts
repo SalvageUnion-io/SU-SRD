@@ -161,12 +161,18 @@ describe('an entity page (boards 07, 08)', () => {
 describe('a pattern page names and links its base chassis', () => {
   const html = page('/chassis/mazona/pattern/buzzard')
 
-  it('links back to the chassis in the band, above the title', () => {
+  it('links back to the chassis in the band, beside the title and never above it', () => {
     const link = html.indexOf('<a class="srd-parent-link" href="/chassis/mazona/">')
     expect(link).toBeGreaterThan(-1)
     expect(html.slice(link, link + 300)).toContain('Pattern of')
-    expect(link).toBeLessThan(html.indexOf('<h1'))
+    // The title leads the heading order; the band's cluster follows it.
+    expect(link).toBeGreaterThan(html.indexOf('<h1'))
+    expect(html.indexOf('su-chapter-band__eyebrow')).toBe(-1)
     expect(h1s(html)).toEqual(['“Buzzard”'])
+  })
+
+  it('wears no standalone "Pattern" stamp', () => {
+    expect(html).not.toMatch(/srd-entity-stamp"[^>]*>Pattern</)
   })
 
   it('leads with the pattern, then the base chassis under its own slab', () => {

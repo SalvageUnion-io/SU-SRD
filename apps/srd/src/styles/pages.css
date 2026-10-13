@@ -463,13 +463,6 @@
   }
 }
 
-/* "Build with this" (`EntityPageFrame`'s `build`): one action, above the card at its end. */
-.srd-entity__build {
-  display: flex;
-  justify-content: flex-end;
-  margin-block-end: var(--space-12);
-}
-
 /*
  * A creation guide's exits (`EntityPageFrame`'s `exits`): under the card,
  * behind an ink rule: the build action, the next guide as the book's exit
@@ -513,7 +506,7 @@
 
 /*
  * A page's link back to what its entity is built on (`EntityPageFrame`'s
- * `parent`): on the chapter band above the title, an ink stamp naming the
+ * `parent`): leading the cluster beside the title, an ink stamp naming the
  * relation joined to a paper cell carrying the parent's name. The whole pair
  * is the link; hover underlines the name.
  */

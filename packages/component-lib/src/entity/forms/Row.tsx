@@ -139,7 +139,8 @@ export function Row({
     ) : omit.includes('kind') && !userMade ? null : (
       <CardLabels
         seal={undefined}
-        typeStamp={omit.includes('kind') ? undefined : model.kind.stamp}
+        // A pattern's Row wears no "Pattern" stamp: its quoted name says it.
+        typeStamp={omit.includes('kind') || model.ref.pattern ? undefined : model.kind.stamp}
         axisMarkers={[]}
         legalStartingPattern={false}
         userMade={userMade}

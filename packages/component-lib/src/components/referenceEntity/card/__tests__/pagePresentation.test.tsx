@@ -75,10 +75,10 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(meta.cost).toBe('2 AP')
   })
 
-  test('a pattern is stamped "Pattern" and cites its own book when it has one', () => {
+  test('a pattern wears no standalone "Pattern" stamp: its parent link names it', () => {
     const chassis = gopher()
     const pattern = need(chassis.patterns?.[0], 'gopher pattern')
-    expect(resolveEntityPageMeta(chassis, pattern).typeLabel).toBe('Pattern')
+    expect(resolveEntityPageMeta(chassis, pattern).typeLabel).toBeUndefined()
   })
 })
 

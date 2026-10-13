@@ -78,6 +78,14 @@ const PAGE = { backgroundColor: tokens.color.wkBg } satisfies CSSProperties
 
 const STAMP_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
+/** The line of stamps right of the title (EDL E20), below it on a phone. */
+const HEAD_LINE = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
 /** A dark `[label | value]` stamp pair, as the band's stamps are set. */
 const PAIR = {
   alignItems: 'stretch',
@@ -374,8 +382,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         tone="mech"
         measure={MEASURE}
         userMade
-        eyebrow={
-          <>
+        asideAt="notch"
+        aside={
+          <div style={HEAD_LINE}>
             <UserMadeStamp label="User-made pattern" />
             {chassis && (
               <a
@@ -393,7 +402,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 <span style={PAIR_VALUE}>{chassis.techLevel}</span>
               </span>
             )}
-          </>
+          </div>
         }
       >
         {quotePatternName(pattern.name)}

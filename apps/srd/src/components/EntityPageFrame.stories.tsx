@@ -73,8 +73,9 @@ export const Ability = () => {
 }
 
 /**
- * A long name: where the stamps no longer fit on the notch's row they wrap
- * above it, and the title stays on the band's foot. The art fills its canvas,
+ * A long name: the stamps stay right of it, wrapping within their cluster, and
+ * on a phone they follow it below the band, never above (EDL E20); the title
+ * stays on the band's foot. The art fills its canvas,
  * so its crop is a hair.
  */
 export const LongName = () => {

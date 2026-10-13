@@ -172,9 +172,12 @@ export function NpcSheet({
               {' / '}
               <span aria-current="page">Denizens · NPC</span>
             </nav>
-            <UserMadeStamp label="User-made NPC" />
           </div>
         }
+        // Only the breadcrumb rides above the name; the stamp sits right of
+        // it, below it on a phone (EDL E20).
+        asideAt="notch"
+        aside={<UserMadeStamp label="User-made NPC" />}
       >
         {npc.name}
       </ChapterBand>

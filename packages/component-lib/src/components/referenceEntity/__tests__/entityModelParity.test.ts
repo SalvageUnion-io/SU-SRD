@@ -123,7 +123,8 @@ function headFactCount(model: EntityModel): number {
 /** The page meta a model states, in `resolveEntityPageMeta`'s shape. */
 function pageMetaOf(model: EntityModel) {
   return {
-    typeLabel: model.kind.stamp,
+    // A pattern's page wears no "Pattern" stamp: its parent link says it.
+    typeLabel: model.ref.pattern ? undefined : model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     numeral: model.tier,
     cost: model.cost,
