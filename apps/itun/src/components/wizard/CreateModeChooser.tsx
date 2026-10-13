@@ -52,25 +52,28 @@ const screenStyle: CSSProperties = { background: 'var(--ground)', minHeight: '10
 
 /** Its inline padding widens at `sm` (`.wiz-chooser-band`). */
 const bandStyle: CSSProperties = {
-  background: 'var(--tone)',
+  background: 'var(--tone-band)',
   borderBottom: `4px solid color-mix(in oklab, var(--color-paper) 95%, transparent)`,
   paddingBottom: tokens.space[14],
   paddingTop: tokens.space[28],
 }
 
+/**
+ * Banner text on the tone takes the sheet's `onTone` pair (`--tone-band` /
+ * `--on-tone-band`, theme.css): paper on the bare tone measured 2.4:1 on pilot.
+ */
 const bannerStyle: CSSProperties = {
-  color: tokens.color.paper,
+  color: 'var(--on-tone-band)',
   fontFamily: tokens.font.cond,
   fontSize: 'clamp(34px, 5.2vw, 54px)',
   fontWeight: tokens.weight.bold,
   letterSpacing: tokens.tracking.capsTight,
   lineHeight: 0.98,
   margin: 0,
-  textShadow: '0 2px 0 var(--color-ink-20)',
   textTransform: 'uppercase',
 }
 
-const bandTailStyle: CSSProperties = { background: 'var(--tone)', height: tokens.space[10] }
+const bandTailStyle: CSSProperties = { background: 'var(--tone-band)', height: tokens.space[10] }
 
 /** Its padding grows at `sm` (`.wiz-chooser-body`). */
 const bodyStyle: CSSProperties = { marginInline: 'auto', maxWidth: '56rem', width: '100%' }
@@ -107,8 +110,8 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
       style={screenStyle}
       aria-label={`New ${label.toLowerCase()} — choose how to create`}
     >
-      {/* Poster band (mockup `.band` + `.banner`): tone ground, white
-          condensed banner, a white rule then a tone bandtail below it. */}
+      {/* Poster band (mockup `.band` + `.banner`): the sheet's text band,
+          its on-tone condensed banner, a white rule then a bandtail below it. */}
       <header className="wiz-band" style={bandStyle}>
         <h1 style={bannerStyle}>New {label}</h1>
       </header>

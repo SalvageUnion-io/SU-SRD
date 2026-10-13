@@ -10,7 +10,7 @@ import {
   resolveSchemaDomain,
   titleSizeRung,
 } from '../../components/referenceEntity/card/entityCardTone'
-import { onTone } from '../../components/referenceEntity/referenceEntityHelpers'
+import { onTone, textBand } from '../../components/referenceEntity/referenceEntityHelpers'
 import type { Rgb } from '../contrast'
 import {
   contrastRatio,
@@ -285,6 +285,56 @@ describe('ink on colour — the refresh pairs', () => {
     const step = contrastRatio(opaque(color.paper), opaque(color.wkBg))
     expect(step).toBeGreaterThan(1.1)
     expect(step).toBeLessThan(1.25)
+  })
+})
+
+/**
+ * Poster text on the sheet tones.
+ *
+ * The wizard banner, the mode chooser's h1 and the guided ModeDoor print on a
+ * sheet's tone, and printed paper there: 2.4:1 on pilot, under even the 3:1
+ * large-text floor, while the door's ink body measured 4.17:1 on crawler pink.
+ * They now read `--tone-band` / `--on-tone-band`, which each `.sheet--*` rule
+ * in `styles/theme.css` sets. The rules are read off the stylesheet, so this
+ * holds them to the `onTone` rule — the band `textBand` paints, the
+ * foreground `onTone` picks — and to 4.5:1, since the door's body copy is
+ * small text.
+ */
+describe('poster text on the sheet tones', () => {
+  const css = readFileSync(join(import.meta.dir, '../../styles/theme.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    ''
+  )
+  const sheet = (kind: string) => {
+    // Its own rule, not the shared `.sheet--pilot, .sheet--mech, .sheet--crawler`
+    // one: the own rule is the one that sets `--tone-default`.
+    const body =
+      [...css.matchAll(new RegExp(`\\.sheet--${kind}\\s*\\{([^}]*)\\}`, 'g'))]
+        .map((m) => m[1] ?? '')
+        .find((b) => /(?:^|[;\s])--tone-default:/.test(b)) ?? ''
+    const decl = (prop: string) =>
+      body.match(new RegExp(`(?:^|[;\\s])${prop}:\\s*([^;]+);`))?.[1]?.trim()
+    const tone = decl('--tone-default') ?? ''
+    // `--tone-band` may name the sheet's own tone; read it as the default.
+    const band = decl('--tone-band')?.replace('var(--tone)', tone)
+    return { tone, band, text: decl('--on-tone-band') }
+  }
+
+  for (const kind of ['pilot', 'mech', 'crawler']) {
+    test(`the ${kind} sheet's poster text follows onTone and clears 4.5:1`, () => {
+      const { tone, band, text } = sheet(kind)
+      expect(resolveColor(tone)).toBeDefined()
+      const ground = band ? resolveColor(band) : undefined
+      const fg = text ? resolveColor(text) : undefined
+      expect(ground).toEqual(resolveColor(textBand(tone) ?? ''))
+      expect(fg).toEqual(FOREGROUND[onTone(tone)])
+      if (!ground || !fg) return
+      expect(contrastRatio(ground, fg)).toBeGreaterThanOrEqual(4.5)
+    })
+  }
+
+  test('paper on the bare pilot tone fails even the large-text floor — the bug', () => {
+    expect(contrastRatio(opaque(color.sheetPilot), PAPER)).toBeLessThan(3)
   })
 })
 

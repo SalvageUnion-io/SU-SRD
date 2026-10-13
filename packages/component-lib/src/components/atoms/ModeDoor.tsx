@@ -38,9 +38,13 @@ const DOOR = {
 } satisfies CSSProperties
 
 /** guided emphasis: a ground gap, a 3px ink ring, then a soft drop shadow.
- *  The plate always fills with the surrounding surface tone. */
+ *  The plate fills with the sheet's text band and prints its foreground —
+ *  the `onTone` rule as `.sheet--*` sets it (`--tone-band` / `--on-tone-band`
+ *  in theme.css). Paper on the bare tone measured 2.4:1 on pilot, and ink
+ *  4.17:1 on crawler pink. Headline, body and cite all inherit the colour. */
 const GUIDED = {
-  background: 'var(--tone)',
+  background: 'var(--tone-band)',
+  color: 'var(--on-tone-band)',
 } satisfies CSSProperties
 
 const BLANK = {
@@ -78,7 +82,6 @@ const HEAD_STYLE = {
 } satisfies CSSProperties
 
 const BODY = {
-  color: color.ink,
   display: 'block',
   fontFamily: font.body,
   fontSize: fontSize.caption,
@@ -87,7 +90,6 @@ const BODY = {
 } satisfies CSSProperties
 
 const CITE = {
-  color: color.ink,
   display: 'block',
   fontFamily: font.body,
   fontSize: fontSize.caption,
@@ -124,14 +126,7 @@ export function ModeDoor({
       <span style={TAB} aria-hidden="true">
         {tab}
       </span>
-      <span
-        className={HEAD}
-        style={
-          guided
-            ? { ...HEAD_STYLE, color: color.paper, textShadow: '0 1px 0 var(--color-ink-40)' }
-            : { ...HEAD_STYLE, color: color.ink }
-        }
-      >
+      <span className={HEAD} style={HEAD_STYLE}>
         {headline}
       </span>
       <span style={BODY}>{children}</span>
