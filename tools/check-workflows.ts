@@ -42,9 +42,9 @@
  *                 key) declares an Environment holding it, and every
  *                 Environment a job names is declared there. The secrets live
  *                 only in Environments: `production` admits `main` alone, and
- *                 `preview` admits any branch only past its required
- *                 reviewer, so a workflow copy run from a branch cannot read
- *                 one unapproved. The nightly repository-secret sentinel is the
+ *                 `preview` admits any branch, but only from a job that names
+ *                 it, in a run someone dispatched by hand. The nightly
+ *                 repository-secret sentinel is the
  *                 one exemption, and it must stay outside every Environment.
  *                 zizmor's `secrets-outside-env` runs only under
  *                 `--persona=auditor`, which `lint-workflows.sh` does not use.

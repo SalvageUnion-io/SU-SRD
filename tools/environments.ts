@@ -81,15 +81,15 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
   {
     // `deploy-preview.yml`: uploads Worker versions under the `preview` alias
     // and pushes the staging Convex deployment `perfect-donkey-72`. It is
-    // dispatched from ANY branch (`**/*`), so the branch policy protects
-    // nothing; the required reviewer is the gate. The Cloudflare token cannot
-    // be narrowed to the preview (ADR-033 §Credentials: Workers Scripts: Edit
-    // reaches every Worker on the account), so without a reviewer any branch's
-    // code would hold a credential that can deploy production.
+    // dispatched by hand from ANY branch (`**/*`), and the dispatch is the
+    // gate: no required reviewer, by the owner's choice (2026-10-13). Accepted
+    // risk (ADR-033 §Credentials): the Cloudflare token cannot be narrowed to
+    // the preview (Workers Scripts: Edit reaches every Worker on the account),
+    // so a dispatched branch's code holds a credential that can deploy
+    // production.
     name: 'preview',
     branches: ['**/*'],
     secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
-    reviewers: ['alxjrvs'],
   },
   {
     // `pr-gallery-pages.yml`: deploys the PR screenshot galleries to GitHub

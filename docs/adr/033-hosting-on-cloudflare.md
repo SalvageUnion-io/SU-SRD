@@ -102,7 +102,9 @@ that can deploy production. The bar it is held to:
   level, in a `wrangler.jsonc`, or in a `.env` git can see.
 - The [preview slot](../ARCHITECTURE.md#previews) runs from any branch, so its
   `preview` Environment admits every branch and holds a copy of the token (it
-  cannot be narrowed to the preview) behind a required reviewer, the owner.
+  cannot be narrowed to the preview). It has no required reviewer: the
+  workflow runs only when dispatched by hand, and that is the gate (see
+  Accepted risks).
 - Every deploy follows a merge, and the `main` ruleset merges only a branch
   that is up to date with `main` and passed `CI Success`, so a red gate cannot
   deploy. A green gate suffices: production deploys need no environment
@@ -117,6 +119,10 @@ that can deploy production. The bar it is held to:
   this project's. Revisit if RANDSUM's deployments become something this
   repository must not be able to touch; adding anything else to the account
   widens it.
+- **A dispatched preview hands any branch the token.** The `preview`
+  Environment has no reviewer (owner's call, 2026-10-13), so whoever can
+  dispatch `deploy-preview.yml` can run a branch's code holding a credential
+  that reaches production. Dispatch is manual only, never on push or PR.
 
 ## Configuration outside the repo
 
