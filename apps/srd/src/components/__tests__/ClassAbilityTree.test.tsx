@@ -82,6 +82,36 @@ describe('ClassAbilityTree banners and track', () => {
       false
     )
     expect(legendary.querySelector('.srd-ability-tree__numeral')).toBeNull()
+    // An "or" stands between its picks instead: one before each but the first.
+    const tiers = [...legendary.querySelectorAll('.srd-ability-tree__tier')]
+    expect(
+      tiers.map((tier) => tier.querySelector(':scope > .srd-class-path__or')?.textContent)
+    ).toEqual(tiers.map((_, index) => (index === 0 ? undefined : 'or')))
+  })
+})
+
+describe('ClassAbilityTree advancement paths', () => {
+  test('a path head carries its requirement and text, its name on the cut-out at its foot', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const heads = [...document.querySelectorAll('.srd-class-path__head')]
+    expect(heads.length).toBeGreaterThan(1)
+    for (const head of heads) {
+      expect(head.querySelector('.srd-class-path__req')).not.toBeNull()
+      expect(head.lastElementChild?.className).toBe('srd-class-path__name')
+    }
+    expect(heads[0]?.querySelector('.srd-class-path__note')?.textContent).toContain(
+      'Stay an Engineer'
+    )
+  })
+
+  test('the class’s own path sits beside its Core trees; each Hybrid Class runs below', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const split = document.querySelector('.srd-ability-tree__split')
+    expect(split?.querySelectorAll('.srd-class-path')).toHaveLength(1)
+    expect(split?.querySelector('.srd-class-path')?.getAttribute('data-kind')).toBe('legendary')
+    const hybrids = [...document.querySelectorAll('.srd-class-path[data-kind="hybrid"]')]
+    expect(hybrids.length).toBeGreaterThan(0)
+    for (const hybrid of hybrids) expect(split?.contains(hybrid)).toBe(false)
   })
 })
 
