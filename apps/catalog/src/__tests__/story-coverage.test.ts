@@ -138,10 +138,15 @@ const publicComponents = [...libDefinitions.keys()]
   .filter((name) => new RegExp(`\\b${name}\\b`).test(barrel))
   .sort()
 
-/** The library directory a public component is defined in, or null. */
-function dirOfComponent(name: string): string | null {
+/**
+ * Whether a story beside one of `name`'s library definitions imports it. A
+ * name defined in two directories (the `Row` of `Panel` and the entity form)
+ * is covered by a story in either; picking the first would hang the result on
+ * the glob's order, which differs between machines.
+ */
+function hasColocatedStory(name: string): boolean {
   const dirs = libDefinitions.get(name)
-  return dirs ? ([...dirs][0] ?? null) : null
+  return stories.some((s) => (dirs?.has(s.dir) ?? false) && s.imports.has(name))
 }
 
 /** Whether `name` is a component defined in `dir` (library or app). */
@@ -202,10 +207,7 @@ describe('Story catalog: coverage', () => {
     // an incidental mention while having no sidebar entry of its own.
     const uncovered = publicComponents
       .filter((name) => !ALLOWLIST.has(name))
-      .filter((name) => {
-        const dir = dirOfComponent(name)
-        return !stories.some((s) => s.dir === dir && s.imports.has(name))
-      })
+      .filter((name) => !hasColocatedStory(name))
       .sort()
     expect(uncovered).toEqual([])
   })
@@ -213,8 +215,7 @@ describe('Story catalog: coverage', () => {
   test('the allowlist has no stale entries (all still exist + still unstoried)', () => {
     const stale = [...ALLOWLIST].filter((name) => {
       if (!publicComponents.includes(name)) return true
-      const dir = dirOfComponent(name)
-      return stories.some((s) => s.dir === dir && s.imports.has(name))
+      return hasColocatedStory(name)
     })
     expect(stale).toEqual([])
   })
