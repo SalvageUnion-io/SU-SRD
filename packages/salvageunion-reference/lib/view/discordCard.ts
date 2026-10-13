@@ -78,6 +78,11 @@ export type DiscordBlock =
       /** 1–3 text blocks, Discord's own limit. */
       text: string[]
       thumbnail?: { url: string; description: string }
+      /**
+       * An action's index row (`indexActions`): the action's name, for the bot
+       * to hang its Read button on. Never set on a Component Embed's card.
+       */
+      action?: string
     }
 
 /** A rendered card: the tone key for the accent, and its blocks. */
@@ -86,8 +91,11 @@ export type DiscordCard = { tone: string; blocks: DiscordBlock[] }
 /** A row of a table, ready to print: its range and its line. */
 type DiscordTableRow = { key: string; line: string }
 
-/** An action band inside a card, and the table it rolls on, if any. */
-type DiscordAction = { name: string; text: string; tableName?: string }
+/**
+ * An action band inside a card, and the table it rolls on, if any. `summary`
+ * is the band without its rules: the name, its stat line and its traits.
+ */
+type DiscordAction = { name: string; text: string; summary: string; tableName?: string }
 
 /** A group of nested entities: its stamp, and the names as links. */
 type DiscordChildGroup = { label: string; count: number; line: string; items: EntityRef[] }
@@ -283,12 +291,14 @@ function actionBand(ref: EntityRef, ownName: string, chassisName?: string): Disc
     ...factCells(model.facts, 99),
   ].filter(Boolean)
   const name = stripOwnerSuffix(model.title, ownName)
-  const lines = [`### ${escapeMarkdownLabel(name)}`]
-  if (meta.length > 0) lines.push(`-# ${meta.join(' · ')}`)
-  if (model.traits.length > 0) lines.push(traitTags(model.traits))
-  lines.push(...contentMarkdown(model.prose, chassisName))
+  const stats: string[] = []
+  if (meta.length > 0) stats.push(`-# ${meta.join(' · ')}`)
+  if (model.traits.length > 0) stats.push(traitTags(model.traits))
+  const label = escapeMarkdownLabel(name)
+  const text = [`### ${label}`, ...stats, ...contentMarkdown(model.prose, chassisName)].join('\n')
+  const summary = [`**${label}**`, ...stats].join('\n')
   const tableName = model.table?.name
-  return { name, text: lines.join('\n'), ...(tableName ? { tableName } : {}) }
+  return { name, text, summary, ...(tableName ? { tableName } : {}) }
 }
 
 /** "Chassis Repair (Fabrication Arm)" inside Fabrication Arm → "Chassis Repair". */
@@ -399,6 +409,11 @@ export type DiscordCardOptions = {
   markedNote?: string
   /** Fits the budget? Parts are shed from the end until it does. */
   fits?: (card: DiscordCard) => boolean
+  /**
+   * Draw each action as an index row (its name and stat line, no rules), for
+   * the bot's long cards, whose Read button answers with the whole action.
+   */
+  indexActions?: boolean
 }
 
 /** The table's rows, the marked one quoted with its note. */
@@ -446,10 +461,17 @@ function build(
       : { kind: 'text', content: head }
   )
 
-  const body = [...content.prose, ...content.actions.map((action) => action.text)]
+  const index = options.indexActions === true
+  const body = [...content.prose, ...(index ? [] : content.actions.map((action) => action.text))]
   if (body.length > 0) {
     blocks.push({ kind: 'separator' })
     blocks.push({ kind: 'text', content: body.join('\n\n') })
+  }
+  if (index && content.actions.length > 0) {
+    blocks.push({ kind: 'separator' })
+    for (const action of content.actions) {
+      blocks.push({ kind: 'section', text: [action.summary], action: action.name })
+    }
   }
 
   if (parts.table && content.rows.length > 0) {

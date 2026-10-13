@@ -13,6 +13,7 @@ import { describe, expect, test } from 'bun:test'
 import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import {
   discordEntryCard,
+  discordEntryIndexCard,
   findEntityBySlug,
   getDataMaps,
   getPatterns,
@@ -20,11 +21,19 @@ import {
   isSchemaName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import type { ButtonSpec, ContainerData } from '../container'
-import { enforceContainerLimits } from '../container'
+import type { ButtonSpec, ContainerBlock, ContainerData } from '../container'
+import { containerTextLength, enforceContainerLimits } from '../container'
 import { NEUTRAL_ACCENT } from '../format'
 import type { LookupHit } from '../lookupCard'
-import { buyLink, entityFromKey, lookupCard, lookupKey, viewPayloadKey } from '../lookupCard'
+import {
+  buyLink,
+  entityFromKey,
+  INDEX_MIN_CHARS,
+  lookupCard,
+  lookupKey,
+  readCard,
+  viewPayloadKey,
+} from '../lookupCard'
 import { cardText } from './cardText'
 
 type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
@@ -53,12 +62,26 @@ const labels = (data: ContainerData): string[] => buttonsOf(data).map((button) =
 /** The card without its controls: what the Component Embed draws. */
 const content = (data: ContainerData) => data.blocks.filter((block) => block.kind !== 'buttons')
 
+/** A long card's index rows: sections carrying a Read button. */
+const readRows = (data: ContainerData) =>
+  data.blocks.filter(
+    (block): block is Extract<ContainerBlock, { kind: 'section' }> =>
+      block.kind === 'section' && block.button !== undefined
+  )
+
+/** The index card as the bot draws it: each index row's `action` is its Read button. */
+const indexBlocks = (card: ContainerData): unknown[] =>
+  content(card).map((block) =>
+    block.kind === 'section' && block.button ? { kind: 'section', text: block.text } : block
+  )
+
 describe('lookupCard — exhaustive across the whole dataset', () => {
   test('every entry and every pattern renders whole, never in rust, and IS its pasted link’s card', () => {
     const schemas = getSchemaCatalog().schemas.filter((s) => !s.meta)
     const { dataMap } = getDataMaps()
     let entries = 0
     let patterns = 0
+    let indexed = 0
     for (const schema of schemas) {
       const schemaName = schema.id
       if (!isSchemaName(schemaName)) throw new Error(`non-canonical schema id: ${schemaName}`)
@@ -79,9 +102,33 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
           // Rust means action, and only action (ruleset §3.1).
           expect(card.accent).not.toBe(NEUTRAL_ACCENT)
           expect(cardText(card)).not.toContain('[[')
-          // The pasted link's card, block for block.
+          // The pasted link's card, block for block; a long card is the index
+          // of that card, every row a Read button that answers.
           const embed = discordEntryCard(withSchema as SURefMetaEntity, one.pattern)
-          expect(content(card), `${label}: differs from its Component Embed`).toEqual(embed.blocks)
+          if (readRows(card).length === 0) {
+            expect(content(card), `${label}: differs from its Component Embed`).toEqual(
+              embed.blocks
+            )
+          } else {
+            indexed++
+            expect(
+              containerTextLength({ accent: 0, blocks: embed.blocks }),
+              `${label}: indexed a short card`
+            ).toBeGreaterThan(INDEX_MIN_CHARS)
+            const index = discordEntryIndexCard(withSchema as SURefMetaEntity, one.pattern)
+            expect(indexBlocks(card), `${label}: differs from its index card`).toEqual(
+              index.blocks.map((block) =>
+                block.kind === 'section' && block.action !== undefined
+                  ? { kind: 'section', text: block.text }
+                  : block
+              )
+            )
+            for (const row of readRows(card)) {
+              const button = row.button
+              if (button?.kind !== 'action') throw new Error(`${label}: Read is not an action`)
+              expect(readCard(button.customId.replace(/^su:read:/, '')), label).not.toBeNull()
+            }
+          }
           if (one.pattern) patterns++
           else entries++
         }
@@ -90,6 +137,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
     // Guard against the loop silently checking nothing (accessor drift).
     expect(entries).toBeGreaterThan(800)
     expect(patterns).toBeGreaterThan(100)
+    expect(indexed).toBeGreaterThan(10)
   })
 })
 
@@ -183,7 +231,7 @@ describe('lookupCard — patterns are entries of their own', () => {
     const one = entityFromKey('bio-titans::typhon::hill-worm')
     if (!one) throw new Error('no Hill Worm')
     const text = cardText(lookupCard(one))
-    expect(text).toContain('### Metallic Reconstitution')
+    expect(text).toContain('**Metallic Reconstitution**')
   })
 
   test('keys round-trip, a retired slug answers with its pattern, and nonsense is refused', () => {
@@ -274,5 +322,50 @@ describe('markdown label escaping', () => {
     // A title always stays, so a 50,000-character name cannot fit any message:
     // the container guard trims it rather than sending an invalid reply.
     expect(enforceContainerLimits(card).blocks.length).toBeGreaterThan(0)
+  })
+})
+
+describe('lookupCard — a long card is an index with Read buttons', () => {
+  test('each action is its name and stat line, with a Read button; its rules are not on the card', () => {
+    const card = lookupCard(hit('bio-titans', 'cortex-bio-titan'))
+    const text = cardText(card)
+    expect(text).toContain('A Bio-Titan developed by the Red Mesa researchers')
+    expect(text).not.toContain('pierce through the cockpit')
+    const proboscis = readRows(card).find((row) => row.text[0]?.startsWith('**Proboscis**'))
+    expect(proboscis?.text[0]).toBe(
+      '**Proboscis**\n-# Turn · `Close` RANGE\n[Melee](https://salvageunion.io/traits/melee)'
+    )
+    expect(proboscis?.button).toEqual({
+      kind: 'action',
+      customId: 'su:read:bio-titans::cortex-bio-titan|proboscis',
+      label: 'Read',
+    })
+    expect(readRows(card).map((row) => row.text[0]?.split('\n')[0])).toEqual([
+      '**One Step Ahead**',
+      '**Proboscis**',
+      '**Mutant Fanatics**',
+      '**Probing Telepathy**',
+      '**Titanic Actions**',
+    ])
+  })
+
+  test('a short card stays whole', () => {
+    expect(readRows(lookupCard(hit('chassis', 'mule')))).toHaveLength(0)
+  })
+
+  test('Read answers with the whole action under its entry, and refuses what is gone', () => {
+    const read = readCard('bio-titans::cortex-bio-titan|proboscis')
+    if (!read) throw new Error('no Proboscis')
+    expect(read.accent).toBe(lookupCard(hit('bio-titans', 'cortex-bio-titan')).accent)
+    const text = cardText(read)
+    expect(text).toContain(
+      '-# [Cortex Bio-Titan](https://salvageunion.io/bio-titans/cortex-bio-titan)'
+    )
+    expect(text).toContain('### Proboscis\n-# Turn · `Close` RANGE')
+    expect(text).toContain('pierce through the cockpit')
+    expect(text).toContain('-# We Were Here First! p.56')
+    expect(readCard('bio-titans::cortex-bio-titan|nope')).toBeNull()
+    expect(readCard('bio-titans::nope|proboscis')).toBeNull()
+    expect(readCard('no-separator')).toBeNull()
   })
 })

@@ -156,6 +156,7 @@ export {
   COMPONENT_EMBED_MAX_BYTES,
   componentEmbedJson,
   discordEntryCard,
+  discordEntryIndexCard,
 } from './view/discordEntryCard'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,

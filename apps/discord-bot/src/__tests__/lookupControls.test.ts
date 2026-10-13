@@ -1,7 +1,8 @@
 /**
  * The lookup card's controls, through the real router: a tab or a page
  * REDRAWS the card it sits on (`update`, never a new message), and the
- * pattern picker answers privately with the pattern's Peek.
+ * pattern picker answers privately with the pattern's Peek, and a long card's
+ * Read button answers privately with one action.
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
@@ -68,5 +69,25 @@ describe('su:table', () => {
     const { handle, replies } = buttonInteractionHandlerFor('su:table:Reactor Overload|14')
     await handle()
     expect(replies[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+  })
+})
+
+describe('su:read', () => {
+  test('Read answers privately with the one action, whole', async () => {
+    const { handle, replies, updates } = buttonInteractionHandlerFor(
+      'su:read:bio-titans::cortex-bio-titan|proboscis'
+    )
+    await handle()
+    expect(updates).toHaveLength(0)
+    expect(replies[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+    expect(textOf(replies[0])).toContain('### Proboscis')
+  })
+
+  test('an action that is gone is a private error', async () => {
+    const { handle, replies } = buttonInteractionHandlerFor(
+      'su:read:bio-titans::cortex-bio-titan|nope'
+    )
+    await handle()
+    expect(replies[0]?.flags).toBe(MessageFlags.Ephemeral)
   })
 })

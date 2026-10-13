@@ -11,7 +11,14 @@
  * A pattern is an entry of its own (`schemaName::slug::pattern`): looked up by
  * name, it is its own page's card. Its host's card never lists it.
  *
- * What the bot adds is controls only, all stateless (`customId.ts`): a **Roll
+ * A **long** entry (over {@link INDEX_MIN_CHARS} characters, with two or more
+ * actions) is the one exception: its card is `discordEntryIndexCard`, each
+ * action drawn as an index row, its name and stat line, with a **Read** button
+ * that answers privately with the whole action (`readCard`). The channel sees a
+ * short card; anyone can open any part. A Component Embed cannot carry a
+ * button, so a pasted link keeps the full card.
+ *
+ * Otherwise what the bot adds is controls only, all stateless (`customId.ts`): a **Roll
  * button** for the entry's own table and every table its actions roll on, so a
  * chained roll is one tap, and a **Buy link** when the book the entry is
  * printed in is for sale from Leyline Press (`buyLink`). Older messages' `su:view` tabs and `su:peek` picker
@@ -30,6 +37,7 @@ import {
   discordAccent,
   discordCardParts,
   discordEntryCard,
+  discordEntryIndexCard,
   findEntityBySlug,
   getEntitySlug,
   getPatterns,
@@ -39,7 +47,8 @@ import {
   SalvageUnionReference,
   toEntityModel,
 } from 'salvageunion-reference'
-import type { ButtonSpec, ContainerData } from './container'
+import type { ButtonSpec, ContainerBlock, ContainerData } from './container'
+import { containerComponentCount, containerTextLength, V2_LIMIT } from './container'
 import { makeCustomId } from './customId'
 
 /** An entry the lookup resolved, with the schema it came from, or one of its patterns. */
@@ -146,15 +155,95 @@ export function entityCard(hit: LookupHit): ContainerData {
   return { accent: discordAccent(card.tone), blocks: card.blocks }
 }
 
-/** The lookup card: the entry's one card, then its Roll buttons and Buy link. */
+/**
+ * A card longer than this, in characters, draws its actions as an index with
+ * Read buttons, when it has two or more. Below it the whole card reads easily.
+ */
+export const INDEX_MIN_CHARS = 1500
+
+/** The Read button's id for one action of an entry: `<key>|<action slug>`. */
+function readId(hit: LookupHit, actionName: string): string | null {
+  return makeCustomId('read', `${lookupKey(hit)}|${nameToSlug(actionName)}`)
+}
+
+/**
+ * A long entry's index card, or null when the entry is short, has fewer than
+ * two actions, or an action's Read id would not fit Discord's cap (the full
+ * card is then the one sent, so nothing becomes unreachable).
+ */
+function indexCard(hit: LookupHit, full: ContainerData): ContainerData | null {
+  if (containerTextLength(full) <= INDEX_MIN_CHARS) return null
+  const card = discordEntryIndexCard(hit.entity as SURefMetaEntity, hit.pattern)
+  const blocks: ContainerBlock[] = []
+  let rows = 0
+  for (const block of card.blocks) {
+    if (block.kind === 'section' && block.action !== undefined) {
+      const customId = readId(hit, block.action)
+      if (!customId) return null
+      blocks.push({
+        kind: 'section',
+        text: block.text,
+        button: { kind: 'action', customId, label: 'Read' },
+      })
+      rows++
+    } else {
+      blocks.push(block)
+    }
+  }
+  return rows >= 2 ? { accent: discordAccent(card.tone), blocks } : null
+}
+
+/**
+ * The Read button's answer: one action of an entry, whole, under the entry's
+ * name and over its citation. Null when the entry or the action is gone.
+ */
+export function readCard(payload: string): ContainerData | null {
+  const cut = payload.lastIndexOf('|')
+  if (cut === -1) return null
+  const hit = entityFromKey(payload.slice(0, cut))
+  if (!hit) return null
+  const slug = payload.slice(cut + 1)
+  const parts = discordCardParts(
+    toEntityModel(
+      hit.entity as SURefMetaEntity,
+      undefined,
+      hit.pattern ? { pattern: hit.pattern } : undefined
+    )
+  )
+  const action = parts.actions.find((one) => nameToSlug(one.name) === slug)
+  if (!action) return null
+  const title = hit.pattern?.name ?? hit.entity.name
+  return {
+    accent: discordAccent(parts.tone),
+    blocks: [
+      { kind: 'text', content: `-# ${parts.url ? `[${title}](${parts.url})` : title}` },
+      { kind: 'text', content: action.text },
+      { kind: 'separator' },
+      { kind: 'text', content: parts.cite },
+    ],
+  }
+}
+
+/**
+ * The lookup card: the entry's one card (a long one as its index), then its
+ * Roll buttons and Buy link.
+ */
 export function lookupCard(hit: LookupHit): ContainerData {
-  const card = entityCard(hit)
+  const full = entityCard(hit)
   const buy = buyLink(hit)
   const controls: ButtonSpec[] = [
     ...rollButtons(hit),
     ...(buy ? [{ kind: 'link' as const, url: buy, label: 'Buy' }] : []),
   ]
-  return controls.length > 0
-    ? { ...card, blocks: [...card.blocks, { kind: 'buttons', buttons: controls }] }
-    : card
+  const withControls = (card: ContainerData): ContainerData =>
+    controls.length > 0
+      ? { ...card, blocks: [...card.blocks, { kind: 'buttons', buttons: controls }] }
+      : card
+  // Each index row costs three components; an index that would pass Discord's
+  // ceiling sends the full card instead, which the shared budget already fits.
+  const index = indexCard(hit, full)
+  const indexed = index ? withControls(index) : null
+  return indexed && containerComponentCount(indexed) <= V2_LIMIT.components
+    ? indexed
+    : withControls(full)
 }
