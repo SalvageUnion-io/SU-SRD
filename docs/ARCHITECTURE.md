@@ -51,7 +51,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, the preview slot only.
     `bun run dev:itun` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment** <a id="convex-env"></a>
-    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `ITUN_BOT_SECRET`, `DISCORD_PUBLIC_KEY`.
+    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `ITUN_BOT_SECRET`.
     `ITUN_TEST_AUTH` never in production; `convex env list` prints values, so pipe it through `cut -d= -f1`.
 17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `apps/itun/convex/model/entities.ts` (its triggers keep `games.summary`).
@@ -212,8 +212,8 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
     Supersedes ADR-015; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
 39. **ADR-039 Addressed invites by Discord account** · [full text](adr/039-addressed-invites.md)
-    Accepted: an invite may carry `invites.target`; `/su invite` is Discord-signed; both doors mint through `mintInvite`.
-    Amends ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).
+    Retired with `/su invite`: nothing mints an addressed invite; `invites.redeem` holds a minted one to its address until it expires.
+    Amended ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).
 40. **ADR-040 The dataset is served verbatim with no release stream**
     Accepted, built: `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`.
     Supersedes ADR-025; amends ADR-014 and ADR-024; amended by ADR-043.

@@ -8,7 +8,7 @@
  * itself, how often it has been used, **Copy link** and **Revoke**. Revoking
  * closes a link; it never removes anyone who has already joined. A closed
  * link (revoked, declined, expired, used up) drops to one line under them,
- * so who used it, or that its addressee declined, is still there to read.
+ * so who used it is still there to read.
  *
  * Under them, **New link**: the seat, when it expires (1, 7, 14 or 30 days;
  * every invite expires, so there is no "never"), and "I approve each person
@@ -24,7 +24,6 @@
 
 import { Badge, Button, Checkbox, Field, Select, toast, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
-import type { FunctionReturnType } from 'convex/server'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -40,8 +39,6 @@ import { HUB_COPY } from './hubStyles.model'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 
-type InviteRow = FunctionReturnType<typeof api.invites.list>[number]
-
 const DAY_MS = 24 * 60 * 60 * 1000
 
 /** How long a new link lasts. Seven days is the default, as drawn. */
@@ -51,17 +48,6 @@ const EXPIRY_CHOICES = [
   { days: 14, label: 'In 14 days' },
   { days: 30, label: 'In 30 days' },
 ] as const
-
-/** Who an addressed invite (ADR-039) went to, and how its DM fared while live. */
-function addressLine(invite: InviteRow): string | null {
-  if (invite.target === null) return null
-  const to = `Sent to ${invite.target.name === null ? 'a Discord account' : `@${invite.target.name}`}`
-  if (invite.delivery?.state === 'failed') {
-    return `${to} · DM not delivered${invite.delivery.detail === null ? '' : ` (${invite.delivery.detail})`}`
-  }
-  if (invite.delivery?.state === 'queued') return `${to} · DM sending`
-  return to
-}
 
 const LIST: CSSProperties = {
   listStyle: 'none',
@@ -243,7 +229,6 @@ export function InvitePanel({
                     {[
                       usedLine(invite.redeemers.length),
                       invite.redeemers.length > 0 ? `by ${invite.redeemers.join(', ')}` : null,
-                      addressLine(invite),
                     ]
                       .filter((part) => part !== null)
                       .join(' · ')}
@@ -282,9 +267,6 @@ export function InvitePanel({
                 invite.role === 'mediator' ? 'Mediator seat' : 'Player seat',
                 invite.label,
                 invite.status,
-                invite.target === null
-                  ? null
-                  : `sent to ${invite.target.name === null ? 'a Discord account' : `@${invite.target.name}`}`,
                 invite.redeemers.length > 0 ? `used by ${invite.redeemers.join(', ')}` : null,
               ]
                 .filter((part) => part !== null)

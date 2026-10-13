@@ -118,24 +118,16 @@ type InviteProps = {
 function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const preview = useQuery(api.invites.preview, { code: token })
   const redeem = useMutation(api.invites.redeem)
-  const decline = useMutation(api.invites.decline)
   const showContainer = useShowContainer()
 
   const join = useServerAction(() => redeem({ code: token }), {
     failure: 'That invite could not be used. Try again.',
   })
-  const leave = useServerAction(() => decline({ code: token }), {
-    failure: 'That invite could not be declined. Try again.',
-  })
-  const error = join.error ?? leave.error
-  const working = join.pending || leave.pending
   const [pending, setPending] = useState(false)
-  const [declined, setDeclined] = useState(false)
   // The arrival join runs once, whatever the live preview does after it.
   const arrived = useRef(false)
 
   const accept = async () => {
-    leave.clearError()
     const result = await join.run()
     if (!result.ok) return
     if (result.value.kind === 'pending') {
@@ -146,10 +138,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
     showContainer({ kind: 'game', gameId: result.value.gameId })
   }
 
-  const live =
-    preview != null &&
-    preview.status === 'active' &&
-    !(preview.addressed === 'discord' && preview.forYou === false)
+  const live = preview != null && preview.status === 'active'
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: `accept` is rebuilt every render; the ref makes this a one-shot keyed on the preview landing
   useEffect(() => {
@@ -169,46 +158,12 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
     )
   }
 
-  // Before the dead-link check: declining makes the live preview report
-  // 'declined', and the person who just said no should read that they did,
-  // not that somebody else's invite went dead.
-  if (declined) {
-    return (
-      <Card>
-        <div style={PAD}>
-          <Text>You declined the invite to {preview.gameName}.</Text>
-          <Text variant="hint" style={HINT}>
-            If you change your mind, ask {preview.invitedBy} for a new one.
-          </Text>
-          <Back />
-        </div>
-      </Card>
-    )
-  }
-
   if (preview.status !== 'active') {
     return (
       <DeadLink
         headline={DEAD_LINK_COPY[preview.status]}
         ask={`Ask ${preview.invitedBy} for a fresh link.`}
       />
-    )
-  }
-
-  // A Discord-addressed invite opened while signed in as somebody else. Saying
-  // so before the button is pressed beats a refusal after it; the server names
-  // nobody, and neither does this.
-  if (preview.addressed === 'discord' && preview.forYou === false) {
-    return (
-      <Card>
-        <div style={PAD}>
-          <Text>This invite to {preview.gameName} was sent to a different Discord account.</Text>
-          <Text variant="hint" style={HINT}>
-            Sign in with the account it was sent to, or ask {preview.invitedBy} to invite this one.
-          </Text>
-          <Back />
-        </div>
-      </Card>
     )
   }
 
@@ -225,12 +180,6 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
         </div>
       </Card>
     )
-  }
-
-  const refuse = async () => {
-    join.clearError()
-    const result = await leave.run()
-    if (result.ok) setDeclined(true)
   }
 
   return (
@@ -251,20 +200,18 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
             : 'Everyone at a table can read each other’s sheets.'}
         </Text>
         <div style={ACTIONS}>
-          <Button variant="primary" size="compact" disabled={working} onClick={() => void accept()}>
+          <Button
+            variant="primary"
+            size="compact"
+            disabled={join.pending}
+            onClick={() => void accept()}
+          >
             {preview.requiresApproval ? 'Ask to join' : 'Join this Game'}
           </Button>
-          {/* Only an invite addressed to you can be declined: an open link may
-              be meant for the whole table (ADR-039). */}
-          {preview.addressed !== null && (
-            <Button variant="ghost" size="compact" disabled={working} onClick={() => void refuse()}>
-              Decline
-            </Button>
-          )}
         </div>
-        {error !== null && (
+        {join.error !== null && (
           <Text variant="hint" role="alert" style={ERROR}>
-            {error}
+            {join.error}
           </Text>
         )}
       </div>
@@ -313,9 +260,8 @@ function SignedOutInvite({ token }: { token: string }) {
           {preview.role === 'mediator' ? ' as its Mediator' : ''}.
         </Text>
         <Text variant="hint" style={HINT}>
-          {preview.addressed === 'discord'
-            ? 'This invite was sent to one Discord account. Sign in with that account to join.'
-            : 'Sign in to join. Your pilots, mechs and crawlers live on your account, and signing in is what seats you at the table.'}
+          Sign in to join. Your pilots, mechs and crawlers live on your account, and signing in is
+          what seats you at the table.
         </Text>
         <div>
           {/* Back here with `?join=1`, so the round trip ends in the Game. */}

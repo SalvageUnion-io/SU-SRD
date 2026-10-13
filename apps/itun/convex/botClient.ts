@@ -1,35 +1,22 @@
 import { PRODUCT } from 'component-lib/product'
 import { v } from 'convex/values'
 import type {
-  BindResult,
   BotDenialReason,
   BotFailure,
   BotSuccess,
-  ChannelResult,
   EntityBody,
   GamesResult,
-  InviteResult,
   MeResult,
   MineResult,
   RecordRollResult,
   SheetResult,
 } from 'itun-domain/botWire'
-import type { Doc, Id } from './_generated/dataModel'
-import type { QueryCtx } from './_generated/server'
+import type { Id } from './_generated/dataModel'
 import { internalQuery } from './_generated/server'
 import { displayNameOf } from './account'
-import {
-  bindChannelAs,
-  bindingForChannel,
-  gamesForUser,
-  resolveActor,
-  unbindChannelAs,
-  userByDiscordId,
-} from './model/bot'
-import { parseInviteInteraction } from './model/discordInteraction'
+import { gamesForUser, resolveActor, userByDiscordId } from './model/bot'
 import { internalMutation, oldestByAppId, primaryCrawlerOf } from './model/entities'
-import { inviteByCode, liveDiscordInvite, mintInvite } from './model/invites'
-import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permissions'
+import { getMembership } from './model/permissions'
 
 /**
  * The Discord bot as a Game participant — **bot-facing half** (ADR-030).
@@ -68,9 +55,6 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permis
  * to a return shape here is a compile error on both sides of the wire rather
  * than a silent drift between two hand-kept copies.
  */
-/** A success carrying nothing but the fact that it worked. */
-type Ack = { ok: true }
-
 const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
   unlinked: `No ${PRODUCT.name} account is signed in with this Discord account.`,
   unbound: 'This channel is not bound to a Game.',
@@ -81,38 +65,6 @@ const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
 
 function fail(reason: BotDenialReason, message?: string): BotFailure {
   return { ok: false, reason, message: message ?? DENIAL_MESSAGE[reason] }
-}
-
-/**
- * Map a thrown authorization error onto a rendered failure.
- *
- * `NotAuthorized` is the one throw the bot expects and can explain; anything
- * else is a real fault and is re-thrown so it reaches Sentry rather than being
- * flattened into a shrug in a Discord channel.
- */
-function asFailure(error: unknown): BotFailure {
-  if (error instanceof NotAuthorized) return fail('forbidden', error.message)
-  throw error
-}
-
-/**
- * Owner display names for a Game, resolved once per request.
- *
- * Names only: ITUN tracks no presence, so there is no "who is at the table"
- * flag to report; see `mediator.ts`'s header.
- */
-async function ownerNames(ctx: QueryCtx, gameId: Id<'games'>): Promise<Map<string, string>> {
-  const members = await ctx.db
-    .query('memberships')
-    .withIndex('by_game', (q) => q.eq('gameId', gameId))
-    .collect()
-
-  const out = new Map<string, string>()
-  for (const member of members) {
-    const user = await ctx.db.get(member.userId)
-    out.set(member.userId, displayNameOf(user, 'Crewmate'))
-  }
-  return out
 }
 
 /**
@@ -140,50 +92,13 @@ export const me = internalQuery({
   },
 })
 
-/** Every Game the caller belongs to. Also the source for `bind` autocomplete. */
+/** Every Game the caller belongs to. */
 export const games = internalQuery({
   args: { discordId: v.string() },
   handler: async (ctx, args): Promise<BotFailure | BotSuccess<GamesResult>> => {
     const user = await userByDiscordId(ctx, args.discordId)
     if (user === null) return fail('unlinked')
     return { ok: true, games: await gamesForUser(ctx, user._id) }
-  },
-})
-
-/** The bound Game's roster and Downtime phase. */
-export const channel = internalQuery({
-  args: { discordId: v.string(), channelId: v.string() },
-  handler: async (ctx, args): Promise<BotFailure | BotSuccess<ChannelResult>> => {
-    const actor = await resolveActor(ctx, args.channelId, args.discordId)
-    if (!actor.ok) return fail(actor.reason)
-
-    const { gameId, game } = actor.value
-    const names = await ownerNames(ctx, gameId)
-    const memberships = await ctx.db
-      .query('memberships')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .collect()
-    const downtime = await ctx.db
-      .query('downtime')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .unique()
-
-    return {
-      ok: true,
-      game: { gameId, name: game.name },
-      members: memberships.map((m) => ({
-        userId: m.userId,
-        displayName: names.get(m.userId) ?? 'Crewmate',
-        mediator: m.mediator,
-        organizer: m.organizer,
-      })),
-      downtime: {
-        running: downtime !== null && downtime.stepIndex !== null,
-        stepIndex: downtime?.stepIndex ?? null,
-        completed: downtime?.completedBy.length ?? 0,
-        upkeepSpent: downtime?.upkeepSpent ?? false,
-      },
-    }
   },
 })
 
@@ -305,39 +220,6 @@ export const sheet = internalQuery({
   },
 })
 
-/** Bind this channel to a Game. Organizer only, enforced in `model/bot.ts`. */
-export const bind = internalMutation({
-  args: { discordId: v.string(), channelId: v.string(), gameId: v.id('games') },
-  handler: async (ctx, args): Promise<BotFailure | BotSuccess<BindResult>> => {
-    const user = await userByDiscordId(ctx, args.discordId)
-    if (user === null) return fail('unlinked')
-
-    try {
-      await bindChannelAs(ctx, user._id, args.gameId, args.channelId)
-    } catch (error) {
-      return asFailure(error)
-    }
-
-    const game = await ctx.db.get(args.gameId)
-    return { ok: true, name: game?.name ?? 'this Game' }
-  },
-})
-
-export const unbind = internalMutation({
-  args: { discordId: v.string(), channelId: v.string() },
-  handler: async (ctx, args): Promise<BotFailure | Ack> => {
-    const user = await userByDiscordId(ctx, args.discordId)
-    if (user === null) return fail('unlinked')
-
-    try {
-      await unbindChannelAs(ctx, user._id, args.channelId)
-    } catch (error) {
-      return asFailure(error)
-    }
-    return { ok: true }
-  },
-})
-
 /**
  * Record a roll made in Discord against the bound Game.
  *
@@ -376,171 +258,5 @@ export const recordRoll = internalMutation({
       state: 'applied',
     })
     return { ok: true, game: actor.value.game.name }
-  },
-})
-
-/** How long after a delivered `/su invite` DM the same invite is not DMed again. */
-const DM_COOLDOWN_MS = 1000 * 60 * 60 * 24
-
-/** How long a DM marked as sending is assumed to be on its way. */
-const DM_IN_FLIGHT_MS = 1000 * 60
-
-/**
- * `/su invite @user` — mint an invite addressed to a Discord account (ADR-039).
- *
- * **The only bot operation that does not trust the bot.** Its sole caller is
- * `botHttp.ts`, which verifies Discord's Ed25519 signature over `body` and its
- * freshness before it gets here, and which never routes `invite` through the
- * generic args-forwarding path. Every fact that decides anything — who is
- * inviting, whom, into which Game, in which seat — is read out of those signed
- * bytes, so a leaked bot secret still cannot mint a membership.
- *
- * From there it is the web's rule set: the inviter must be the Game's
- * Organizer (`requireOrganizerAs`), and the invite is `mintInvite`'s, exactly
- * as `invites.create` would make it with a target.
- *
- * Idempotent twice over: a retried interaction finds the invite its id minted,
- * and inviting somebody who already has a live invite re-sends that one.
- */
-export const invite = internalMutation({
-  args: { body: v.string() },
-  handler: async (ctx, args): Promise<BotFailure | BotSuccess<InviteResult>> => {
-    const parsed = parseInviteInteraction(args.body)
-    if (parsed === null) return fail('not-found', 'That was not an invite command.')
-
-    const user = await userByDiscordId(ctx, parsed.inviterId)
-    if (user === null) return fail('unlinked')
-
-    if (parsed.invitee.bot) return fail('forbidden', 'A bot cannot join a Game.')
-    if (parsed.invitee.id === parsed.inviterId) {
-      return fail('forbidden', 'You are already at your own table.')
-    }
-
-    // Which Game: the one picked, else the one this channel is bound to.
-    let gameId: Id<'games'> | null
-    if (parsed.gameId !== null) {
-      gameId = ctx.db.normalizeId('games', parsed.gameId)
-      if (gameId === null) {
-        return fail('not-found', 'Pick a Game from the list rather than typing its name.')
-      }
-    } else {
-      const binding =
-        parsed.channelId === null ? null : await bindingForChannel(ctx, parsed.channelId)
-      if (binding === null) {
-        return fail(
-          'unbound',
-          'This channel is not bound to a Game. Pick one with the game option.'
-        )
-      }
-      gameId = binding.gameId
-    }
-    const game = await ctx.db.get(gameId)
-    if (game === null) return fail('not-found')
-
-    let organizer: Doc<'memberships'>
-    try {
-      organizer = await requireOrganizerAs(ctx, gameId, user._id)
-    } catch (error) {
-      return asFailure(error)
-    }
-
-    const inviteeName = parsed.invitee.displayName
-    const inviteeUser = await userByDiscordId(ctx, parsed.invitee.id)
-    if (inviteeUser !== null && (await getMembership(ctx, gameId, inviteeUser._id)) !== null) {
-      return { ok: true, outcome: 'already-member', gameName: game.name, inviteeName }
-    }
-
-    // A retry of this very interaction: answer with what it minted.
-    const retried = await ctx.db
-      .query('invites')
-      .withIndex('by_source_interaction', (q) => q.eq('sourceInteractionId', parsed.interactionId))
-      .first()
-
-    // Somebody already holding a live invite to this table gets that one again
-    // — unless the seat changed, in which case the old one is closed and a new
-    // one carries the seat the Organizer asked for this time.
-    let live = retried ?? (await liveDiscordInvite(ctx, gameId, parsed.invitee.id))
-    if (live !== null && retried === null && live.role !== parsed.role) {
-      await ctx.db.patch(live._id, { revokedAt: Date.now() })
-      live = null
-    }
-
-    const row =
-      live ??
-      (await mintInvite(ctx, organizer, {
-        role: parsed.role,
-        target: {
-          kind: 'discord',
-          discordId: parsed.invitee.id,
-          name: parsed.invitee.username,
-        },
-        sourceInteractionId: parsed.interactionId,
-      }))
-
-    // One DM per invite per day. Re-running `/su invite` on somebody who
-    // already holds this invite re-offers the link to the Organizer, but must
-    // not become a way to make the bot DM a person on repeat; a DM still in
-    // flight counts as sent. Only a DM that will actually go out resets the
-    // delivery note — otherwise it keeps the outcome it already has.
-    const now = Date.now()
-    const recent = row.delivery
-    const deliver = !(
-      recent !== undefined &&
-      ((recent.state === 'sent' && recent.at > now - DM_COOLDOWN_MS) ||
-        (recent.state === 'queued' && recent.at > now - DM_IN_FLIGHT_MS))
-    )
-    if (deliver) await ctx.db.patch(row._id, { delivery: { state: 'queued', at: now } })
-
-    return {
-      ok: true,
-      outcome: 'invited',
-      code: row.code,
-      gameName: game.name,
-      invitedBy: displayNameOf(user, 'Crewmate'),
-      inviteeDiscordId: parsed.invitee.id,
-      inviteeName,
-      role: row.role,
-      expiresAt: row.expiresAt,
-      reused: live !== null,
-      deliver,
-    }
-  },
-})
-
-/**
- * The bot reporting whether its `/su invite` DM arrived, so the Organizer's
- * invite list can say "DM not delivered" and they know to pass the code on.
- *
- * This one rides the ordinary bearer path: it writes nothing but a delivery
- * note, on an invite the asserted Discord user must organise.
- */
-export const inviteDelivery = internalMutation({
-  args: {
-    discordId: v.string(),
-    code: v.string(),
-    state: v.union(v.literal('sent'), v.literal('failed')),
-    detail: v.optional(v.string()),
-  },
-  handler: async (ctx, args): Promise<BotFailure | Ack> => {
-    const user = await userByDiscordId(ctx, args.discordId)
-    if (user === null) return fail('unlinked')
-
-    const row = await inviteByCode(ctx, args.code)
-    if (row === null) return fail('not-found')
-
-    try {
-      await requireOrganizerAs(ctx, row.gameId, user._id)
-    } catch (error) {
-      return asFailure(error)
-    }
-
-    await ctx.db.patch(row._id, {
-      delivery: {
-        state: args.state,
-        at: Date.now(),
-        detail: args.detail === undefined ? undefined : args.detail.slice(0, 120),
-      },
-    })
-    return { ok: true }
   },
 })

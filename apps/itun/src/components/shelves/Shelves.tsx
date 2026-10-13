@@ -12,8 +12,6 @@
  *    the page is, the **Showing** toggle (Everything | Not in a Game),
  *    **Import** and **Export all**, and "+ New Game", the one way to start a
  *    table.
- *  - **Invited**: an invitation addressed to you, above the shelves
- *    (`InvitationsForYou`), with Join the Game and Not now.
  *  - **One shelf per kind**: Pilots, Mechs and Crawlers; Patterns and NPCs,
  *    which are user-made and so dashed (ruleset §3.9); and the Starter Set,
  *    read-only in the rules blue (`StarterShelf`).
@@ -87,7 +85,6 @@ import { usePatternStore } from '../../stores/patternStore'
 import type { AssignableType } from '../../stores/types'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
-import { InvitationsForYou } from '../games/InvitationsForYou'
 import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
 import type { HeaderMenuItem } from '../shared/HeaderMenu'
@@ -497,8 +494,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       </ChapterBand>
 
       <div style={BODY}>
-        <InvitationsForYou />
-
         {!ready ? (
           <RosterSkeleton />
         ) : (

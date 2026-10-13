@@ -85,22 +85,6 @@ export type EntityBody = Record<string, unknown>
 /** One of the caller's own entities: no owner to name, because the owner is the caller. */
 type ShelfEntity = { id: string; body: EntityBody }
 
-export type ChannelResult = {
-  game: { gameId: string; name: string }
-  members: {
-    userId: string
-    displayName: string
-    mediator: boolean
-    organizer: boolean
-  }[]
-  downtime: {
-    running: boolean
-    stepIndex: number | null
-    completed: number
-    upkeepSpent: boolean
-  }
-}
-
 /**
  * What `/su sheet` offers as you type: every pilot, mech and crawler you own,
  * in a Game or not, and the communal crawler of each Game you belong to.
@@ -137,34 +121,4 @@ export type SheetResult = {
   body: EntityBody
 }
 
-export type BindResult = { name: string }
-
 export type RecordRollResult = { game: string }
-
-/**
- * `/su invite @user` (ADR-039). Either an invite to deliver, or the news that
- * the person is already seated — not a refusal, so not a `BotFailure`.
- */
-export type InviteResult =
-  | {
-      outcome: 'invited'
-      /** The token the DM links to (`/invite/<code>`). */
-      code: string
-      gameName: string
-      /** The Organizer's display name, for the DM's "<who> invited you". */
-      invitedBy: string
-      /** Whom to DM: from Discord's signed interaction, not from the bot. */
-      inviteeDiscordId: string
-      inviteeName: string
-      role: 'player' | 'mediator'
-      expiresAt: number
-      /** True when a live invite to this person was re-sent rather than minted. */
-      reused: boolean
-      /**
-       * Whether the bot should DM the invitee. False when this invite was DMed
-       * within the last day (or a DM is still on its way): re-running the
-       * command must not make the bot DM somebody on repeat.
-       */
-      deliver: boolean
-    }
-  | { outcome: 'already-member'; gameName: string; inviteeName: string }

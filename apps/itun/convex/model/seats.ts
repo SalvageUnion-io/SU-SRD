@@ -95,8 +95,7 @@ export async function releaseSeatsOf(
  * shelved entities land unwired); `invites`, `inviteRedemptions` and
  * `joinRequests` are ways into a Game that no longer exists, and an unanswered
  * knock at a deleted door would sit pending forever; a `channelBindings` row
- * claims a Discord channel for the Game, and a stale one refuses every later
- * bind of that channel; `downtime` and `seats` are its play state (ADR-038 §2).
+ * attributes a Discord channel's rolls to the Game; `downtime` and `seats` are its play state (ADR-038 §2).
  *
  * Every other table with a `gameId` column holds something somebody built, or
  * history, and each teardown path shelves or deletes those rows itself first.

@@ -279,9 +279,8 @@ same act as removing someone from the room.
 
 Enforced in `convex/invites.ts` (`seat`, `assertSpendable`, `decideRequest`).
 
-**Extended by [ADR-039](039-addressed-invites.md):** an invite may also carry
-an address — a Discord account, which alone may redeem it. An addressed invite
-is single use and its addressee may decline it.
+**Extended by [ADR-039](039-addressed-invites.md)**, now retired: an invite
+could carry an address, a Discord account, which alone may redeem it.
 
 ## Amendment — an invite is a link, never a typed code
 

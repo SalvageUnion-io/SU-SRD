@@ -63,6 +63,10 @@ describe('opFromPath', () => {
     // No traversal into another op, and no nesting.
     expect(opFromPath('/bot/sheet/extra')).toBeNull()
     expect(opFromPath('/bot/../auth')).toBeNull()
+    // The ops the bot no longer calls are gone, not merely unused.
+    for (const op of ['bind', 'unbind', 'channel', 'invite', 'inviteDelivery']) {
+      expect(opFromPath(`/bot/${op}`)).toBeNull()
+    }
   })
 
   test('every advertised op resolves', () => {

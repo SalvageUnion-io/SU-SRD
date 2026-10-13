@@ -1,5 +1,5 @@
 {
-  "floor": 1791883140,
+  "floor": 1791929227,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -1437,21 +1437,6 @@
           "optional": false
         }
       }
-    },
-    "invites:decline": {
-      "type": "object",
-      "value": {
-        "code": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "invites:forMe": {
-      "type": "object",
-      "value": {}
     },
     "invites:link": {
       "type": "object",

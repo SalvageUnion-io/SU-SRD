@@ -8,14 +8,14 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 39, which
 
 ## Status
 
-**Accepted.** Extends the invite amendment of
-[ADR-030](030-accounts-games-server-of-record.md) — an invite already
-carries a seat and an optional approval door; it may now also carry
-an **address**: one Discord account. Bearer codes are unchanged and remain the
-default.
-
-Built: `convex/model/invites.ts`, `invites.redeem` / `decline` / `forMe`, the
-Invitations card on Shelves, and `/su invite @user`.
+**Retired.** `/su invite` was removed from the bot, and with it the website
+half: the Invitations card, `invites.forMe` and `invites.decline`, the signed
+`/bot/invite` op and the Organizer's "Sent to @…" line. Nothing mints an
+addressed invite. `invites.target` stays in the schema for rows already minted,
+and `invites.redeem` (`model/invites.ts#mayRedeem`) still spends one only for
+its addressee until it expires. The decision below is the record of what was
+built; it extended the invite amendment of
+[ADR-030](030-accounts-games-server-of-record.md).
 
 ## Context
 

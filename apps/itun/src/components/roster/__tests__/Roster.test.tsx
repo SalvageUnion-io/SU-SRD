@@ -123,10 +123,9 @@ async function openMenu(name: string): Promise<HTMLElement> {
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
-  // Shelves, with no Games, no invitations and no shared patterns.
+  // Shelves, with no Games and no shared patterns.
   setQueryAnswers({
     'games:listMine': [],
-    'invites:forMe': [],
     'shelf:patternSharing': [],
     'shelf:sharedByLink': [],
   })

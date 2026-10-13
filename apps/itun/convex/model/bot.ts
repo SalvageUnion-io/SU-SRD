@@ -1,7 +1,7 @@
 import type { BotDenial } from 'itun-domain/botWire'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
-import { getMembership, NotAuthorized, requireOrganizerAs } from './permissions'
+import { getMembership } from './permissions'
 
 /**
  * Shared logic for the Discord bot as a Game participant (ADR-030).
@@ -43,7 +43,7 @@ export async function userByDiscordId(
 }
 
 /** The binding for a channel, or null when the channel speaks for no Game. */
-export async function bindingForChannel(
+async function bindingForChannel(
   ctx: AnyCtx,
   channelId: string
 ): Promise<Doc<'channelBindings'> | null> {
@@ -89,49 +89,6 @@ export async function resolveActor(
   if (membership === null) return { ok: false, reason: 'not-a-member' }
 
   return { ok: true, value: { gameId: binding.gameId, game, user, membership } }
-}
-
-/**
- * Bind a channel to a Game. Administrative, so Organizer only.
- *
- * One Game per channel: a channel meaning two Games would make every roll in
- * it ambiguous, and the bot has no way to ask which was meant.
- */
-export async function bindChannelAs(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  gameId: Id<'games'>,
-  channelId: string
-): Promise<void> {
-  const membership = await requireOrganizerAs(ctx, gameId, userId)
-  const trimmed = channelId.trim()
-  if (trimmed.length === 0) throw new Error('A binding needs a channel')
-
-  const existing = await bindingForChannel(ctx, trimmed)
-  if (existing !== null) {
-    if (existing.gameId === gameId) return
-    throw new NotAuthorized('That channel is already bound to another Game')
-  }
-
-  await ctx.db.insert('channelBindings', {
-    gameId,
-    channelId: trimmed,
-    boundBy: membership.userId,
-    boundAt: Date.now(),
-  })
-}
-
-/** Unbind a channel. Organizer of the bound Game only; a no-op when unbound. */
-export async function unbindChannelAs(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  channelId: string
-): Promise<void> {
-  const existing = await bindingForChannel(ctx, channelId)
-  if (existing === null) return
-
-  await requireOrganizerAs(ctx, existing.gameId, userId)
-  await ctx.db.delete(existing._id)
 }
 
 /** Every Game a user belongs to, with their role in each. */

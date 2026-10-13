@@ -109,8 +109,6 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'proposals:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
-    // The Invited banner (ADR-039); none addressed to this viewer.
-    'invites:forMe': [],
     'shelf:patternSharing': [],
     'shelf:sharedByLink': [],
     ...over,

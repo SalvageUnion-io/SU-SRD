@@ -51,8 +51,6 @@ function invite(over: Record<string, unknown> = {}) {
     usesRemaining: null,
     status: 'active',
     redeemers: [],
-    target: null,
-    delivery: null,
     ...over,
   }
 }
@@ -131,11 +129,11 @@ describe('revoking', () => {
   test('a closed link drops to one line with its state, and offers no revoke', () => {
     renderPanel([
       invite({ _id: 'i2', status: 'expired', redeemers: ['Sam'] }),
-      invite({ _id: 'i3', status: 'declined', target: { kind: 'discord', name: 'sam' } }),
+      invite({ _id: 'i3', status: 'revoked' }),
     ])
     const closed = within(screen.getByRole('list', { name: 'Closed invite links' }))
     expect(closed.getByText(/Player seat · expired · used by Sam/)).toBeTruthy()
-    expect(closed.getByText(/declined · sent to @sam/)).toBeTruthy()
+    expect(closed.getByText(/Player seat · revoked/)).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Revoke/ })).toBeNull()
   })
 

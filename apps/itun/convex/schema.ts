@@ -185,11 +185,7 @@ export const inviteRole = v.union(v.literal('player'), v.literal('mediator'))
 export const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
 
 /** Whether an addressed invite's `/su invite` DM went out (`invites.delivery`). */
-export const inviteDeliveryState = v.union(
-  v.literal('queued'),
-  v.literal('sent'),
-  v.literal('failed')
-)
+const inviteDeliveryState = v.union(v.literal('queued'), v.literal('sent'), v.literal('failed'))
 
 /** A Game's denormalised summary (`games.summary`), as `games.listMine` returns it too. */
 export const gameSummary = v.object({
@@ -384,11 +380,11 @@ export default defineSchema({
     revokedAt: v.optional(v.number()),
 
     /**
-     * Who the invite is addressed to (ADR-039). Absent is a bearer code, as
-     * every invite was before. An addressed invite is always single use and is
-     * redeemable only by the account signed in with this Discord snowflake.
-     * `name` is the invitee's Discord handle as the bot saw it, shown to the
-     * Organizer and nobody else.
+     * Who the invite is addressed to (ADR-039). Absent is a bearer code, and
+     * nothing mints any other kind now: `target`, `declinedAt`, `delivery` and
+     * `sourceInteractionId` are read only off rows the retired `/su invite`
+     * minted, which `invites.redeem` still spends only for the account signed
+     * in with this Discord snowflake.
      */
     target: v.optional(
       v.object({
@@ -398,7 +394,7 @@ export default defineSchema({
       })
     ),
 
-    /** The addressee said no. Terminal, like a revoke, and only for a targeted invite. */
+    /** The addressee said no. Terminal, like a revoke. */
     declinedAt: v.optional(v.number()),
 
     /** Whether the `/su invite` DM carrying an addressed invite was delivered. */
@@ -411,10 +407,7 @@ export default defineSchema({
       })
     ),
 
-    /**
-     * The Discord interaction that minted this invite, when `/su invite` did.
-     * A retried interaction finds its invite here instead of minting another.
-     */
+    /** The Discord interaction that minted this invite, when `/su invite` did. */
     sourceInteractionId: v.optional(v.string()),
 
     /**
@@ -425,9 +418,7 @@ export default defineSchema({
     standing: v.optional(v.boolean()),
   })
     .index('by_code', ['code'])
-    .index('by_game', ['gameId'])
-    .index('by_target_discord', ['target.discordId'])
-    .index('by_source_interaction', ['sourceInteractionId']),
+    .index('by_game', ['gameId']),
 
   /** Who actually used which invite — the audit trail revocation alone can't give. */
   inviteRedemptions: defineTable({
@@ -697,8 +688,8 @@ export default defineSchema({
    * against `authAccounts.providerAccountId` (`model/bot.ts#userByDiscordId`),
    * so the bot can never act as somebody who has not linked their account.
    *
-   * One Game per channel: a channel that meant two Games would make every roll
-   * ambiguous.
+   * Nothing creates a binding now; rows already here still attribute rolls
+   * (`botClient.recordRoll`) and go with their Game.
    */
   channelBindings: defineTable({
     gameId: v.id('games'),
