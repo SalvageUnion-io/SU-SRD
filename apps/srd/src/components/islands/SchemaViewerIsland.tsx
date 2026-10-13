@@ -334,10 +334,7 @@ function SchemaViewer({
         />
       ) : (
         <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
-          <div
-            className="srd-listing__groups"
-            data-trees={(groupBy === 'tree' && view !== 'catalog') || undefined}
-          >
+          <div className="srd-listing__groups">
             {groups.map((group) => (
               <section key={group.key} className="srd-listing__group" aria-label={group.label}>
                 {group.label && <Slab variant="solid" label={group.label} />}
@@ -420,8 +417,7 @@ function ListingSkeleton({
           view={view}
         />
       )}
-      {/* An ability listing's trees sit side by side, as the island lays them. */}
-      <div className="srd-listing__groups" data-trees={(trees.length > 1 && !catalog) || undefined}>
+      <div className="srd-listing__groups">
         {groups.map((group) => (
           <section key={group.key} className="srd-listing__group">
             {group.label && <Slab variant="solid" label={group.label} />}
