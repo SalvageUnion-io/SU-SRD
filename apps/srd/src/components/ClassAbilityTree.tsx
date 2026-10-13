@@ -12,9 +12,10 @@ type ClassAbilityTreeProps = {
   classEntity: SURefClass
 }
 
-/** The tree's slab names the kind, so its Rows drop the type stamp. */
-const OMIT_KIND = ['kind'] as const
-/** On a track the tier numeral sits on the track, outside the banner. */
+/**
+ * The tree's slab names the kind, so its Rows drop the type stamp; every tree
+ * is on a track, whose numeral (or "or") sits outside the banner.
+ */
 const OMIT_KIND_TIER = ['kind', 'tier'] as const
 
 /** The Workshop Manual page "Gaining Abilities" sits on: the brief cites it. */
@@ -28,15 +29,15 @@ const classHref = (c: SURefClass) => itemHref('classes', getEntitySlug(c))
  * ability's page — the listing row's shape (`EntityListingRow`), so a crawler
  * follows it and a reader keeps their back button. Its banner wears its tier
  * (EDL E12: Core brick, Advanced orange, Hybrid rust, Legendary pink), the hue
- * of its track; on a track the Row leaves its numeral to the track.
+ * of its track; the Row leaves its numeral to the track.
  */
-function AbilityTreeListing({ ability, onTrack }: { ability: SURefAbility; onTrack: boolean }) {
+function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
   return (
     <Entity
       form="row"
       entity={ability}
       mode={{ kind: 'link', href: abilityHref(ability) }}
-      omit={onTrack ? OMIT_KIND_TIER : OMIT_KIND}
+      omit={OMIT_KIND_TIER}
       lead
       titleAs="h3"
     />
@@ -49,13 +50,13 @@ function AbilityTreeListing({ ability, onTrack }: { ability: SURefAbility; onTra
  * trained in order — each Ability needs the one before it — so their three
  * tiers hang off one thick track in the tier's hue (Core = brick,
  * Advanced = pilot orange, Hybrid = rust), each tier's numeral on it beside its banner. A
- * Legendary tree is a pick-one, not a sequence, so it has none: an "or" stands
- * between its Abilities instead.
+ * Legendary tree is a pick-one, not a sequence: its track runs in its pink with
+ * no numerals, an "or" stamp on it between each pick.
  */
-type TreeTrack = 'core' | 'advanced' | 'hybrid' | null
+type TreeTrack = 'core' | 'advanced' | 'hybrid' | 'legendary'
 
 /** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
-const noteFor = (track: TreeTrack) => (track ? 'Tree' : 'Choose 1')
+const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tree')
 
 /**
  * A tree as Rows on its track, under a slab naming it (and, for a branch, its
@@ -73,20 +74,23 @@ function TreeSection({
   return (
     <section className="srd-ability-tree__group">
       <Slab variant="solid" as="h2" label={tree} count={note ?? noteFor(track)} />
-      <ol className="srd-ability-tree__track" data-track={track ?? undefined}>
+      <ol className="srd-ability-tree__track" data-track={track}>
         {abilities.map((ability, index) => {
-          const tier = track ? toEntityModel(ability).tier : undefined
+          const pick = track === 'legendary'
+          const tier = pick ? undefined : toEntityModel(ability).tier
           return (
             <li key={ability.id} className="srd-ability-tree__tier">
-              {/* A pick-one tree: "or" between its Abilities, never a numbered spine. */}
-              {!track && index > 0 && <Or />}
+              {pick && index > 0 && (
+                // A pick-one tree: an "or" on its track between picks, never a numeral.
+                <span className="srd-ability-tree__or">or</span>
+              )}
               {tier && (
                 // The list's order already says the tier; the numeral is the print's mark.
                 <span className="srd-ability-tree__numeral" aria-hidden="true">
                   {tier}
                 </span>
               )}
-              <AbilityTreeListing ability={ability} onTrack={!!track} />
+              <AbilityTreeListing ability={ability} />
             </li>
           )
         })}
@@ -280,7 +284,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
       <div className="srd-class-path__body">
         <div className="srd-class-path__trees" data-entity-fit="">
           <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} />
-          {path.legendary && <TreeSection {...path.legendary} track={null} />}
+          {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
         </div>
       </div>
       <div className="srd-class-path__foot">
@@ -304,7 +308,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
           <Slab variant="dashed" label="Abilities" />
           <div className="srd-ability-tree__row" data-entity-fit="">
             <TreeSection {...path.advanced} track="hybrid" />
-            {path.legendary && <TreeSection {...path.legendary} track={null} />}
+            {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
           </div>
         </section>
         <BranchTrees branches={branches} />
@@ -369,7 +373,7 @@ function BranchTrees({ branches }: { branches: BranchTree[] }) {
   if (groups.length === 0) return null
   return (
     <section className="srd-ability-tree__section">
-      <Slab variant="dashed" label="Branch trees" />
+      <Slab variant="dashed" label="Required Trees" />
       <div className="srd-ability-tree__row" data-entity-fit="">
         {groups.map(({ group, owner }) => (
           <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />

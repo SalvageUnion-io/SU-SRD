@@ -526,8 +526,8 @@
   text-decoration: none;
 }
 
+/* No rule under the head: its name's cut-out tab opens into this paper. */
 .su-pattern-rows__body {
-  border-top: var(--bw-chrome) solid var(--color-ink);
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;

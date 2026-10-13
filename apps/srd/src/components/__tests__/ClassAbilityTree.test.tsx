@@ -28,7 +28,7 @@ describe('ClassAbilityTree headings', () => {
     expect(abilities).toHaveLength(rows.length)
   })
 
-  test('a Hybrid Class: its own trees and its branch trees are h2s', () => {
+  test('a Hybrid Class: its own trees and its required trees are h2s', () => {
     render(<ClassAbilityTree classEntity={classNamed('Fabricator')} />)
     const trees = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
     expect(trees).toContain('Fabricator')
@@ -71,21 +71,21 @@ describe('ClassAbilityTree banners and track', () => {
     }
   })
 
-  test('a Legendary tree (pick one) has no track, so no numerals', () => {
+  test('a Legendary tree (pick one) runs on a track with an "or" between picks, no numerals', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const legendary = screen
       .getAllByRole('heading', { level: 2, name: 'Legendary Engineer' })
       .map((h) => h.closest('section'))
       .find((section) => section?.querySelector('.srd-ability-tree__track'))
     if (!legendary) throw new Error('no Legendary tree')
-    expect(legendary.querySelector('.srd-ability-tree__track')?.hasAttribute('data-track')).toBe(
-      false
+    expect(legendary.querySelector('.srd-ability-tree__track')?.getAttribute('data-track')).toBe(
+      'legendary'
     )
     expect(legendary.querySelector('.srd-ability-tree__numeral')).toBeNull()
-    // An "or" stands between its picks instead: one before each but the first.
+    // The "or" sits on the track above each pick but the first.
     const tiers = [...legendary.querySelectorAll('.srd-ability-tree__tier')]
     expect(
-      tiers.map((tier) => tier.querySelector(':scope > .srd-class-path__or')?.textContent)
+      tiers.map((tier) => tier.querySelector(':scope > .srd-ability-tree__or')?.textContent)
     ).toEqual(tiers.map((_, index) => (index === 0 ? undefined : 'or')))
   })
 })

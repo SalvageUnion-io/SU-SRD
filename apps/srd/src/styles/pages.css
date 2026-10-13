@@ -1515,6 +1515,13 @@
   --srd-track-on: var(--color-paper);
 }
 
+/* A Legendary tree (pick one) runs on its deeper pink band, which carries
+   paper (§3.8): no numerals, an "or" stamp on the pipe between picks. */
+.srd-ability-tree__track[data-track='legendary'] {
+  --srd-track-color: var(--color-crawler-band);
+  --srd-track-on: var(--color-paper);
+}
+
 .srd-ability-tree__tier {
   position: relative;
 }
@@ -1576,6 +1583,29 @@
   line-height: 1;
   position: absolute;
   top: calc(var(--srd-track-node) - var(--srd-track-numeral) / 2);
+  width: var(--srd-track-numeral);
+  z-index: 1;
+}
+
+/* A pick-one tree's "or", on the pipe in the gap above each pick after the
+   first, where a sequence sets its numerals: the stamp's face in the track's
+   hue, so the bar reads as one choice, not a chain. */
+.srd-ability-tree__or {
+  align-items: center;
+  background: var(--srd-track-color);
+  color: var(--srd-track-on);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-extrabold);
+  height: var(--srd-track-numeral);
+  justify-content: center;
+  left: 0;
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1;
+  position: absolute;
+  text-transform: uppercase;
+  top: calc(-1 * (var(--srd-track-gap) + var(--srd-track-numeral)) / 2);
   width: var(--srd-track-numeral);
   z-index: 1;
 }
@@ -1702,7 +1732,6 @@
 .srd-class-path__head {
   align-items: flex-start;
   background: var(--color-pilot);
-  border-bottom: var(--bw-entity-compact) solid var(--color-ink);
   color: var(--color-ink);
   display: flex;
   flex-direction: column;
@@ -1738,7 +1767,8 @@ a.srd-class-path__head:focus-visible {
   outline-offset: calc(-1 * var(--space-4));
 }
 
-/* The name on the paper cut-out, notched into the band's foot (a Row's). */
+/* The name on the paper cut-out, notched into the band's foot (a Row's): the
+   head draws no rule under it, so the tab opens into the paper body. */
 .srd-class-path__name {
   background-color: var(--color-paper);
   border-radius: var(--radius-card) var(--radius-card) 0 0;
@@ -1783,12 +1813,6 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-wide);
   text-transform: uppercase;
-}
-
-/* A Legendary tree is pick-one: an "or" over each Ability after the first. */
-.srd-ability-tree__tier > .srd-class-path__or {
-  display: block;
-  margin-bottom: var(--space-6);
 }
 
 /* On the band the "or" / "Engineer only" label is ink: the muted grey does

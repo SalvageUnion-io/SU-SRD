@@ -223,14 +223,26 @@
    they do not, they rise whole onto the band ABOVE the tab (`wrap-reverse`),
    never under it, so a narrow Row's name is never squeezed by its chips. */
 .su-entity-row__heading--cut {
-  align-content: flex-start;
+  align-content: space-evenly;
   align-items: center;
   align-self: stretch;
   flex-wrap: wrap-reverse;
+  justify-content: space-between;
+  row-gap: var(--space-6);
 }
 
+/* Every header chip floats right on the band: beside the name while they
+   fit, and over its right end when they rise above it. */
 .su-entity-row__heading--cut > .su-chips {
+  justify-content: flex-end;
   margin-bottom: var(--space-4);
+  margin-left: auto;
+}
+
+/* A cut-out head's labels (a pattern's Legal Starting Pattern stamp) float
+   right on the band too. */
+.su-entity-row__head[data-notch] .su-entity-row__labels {
+  margin-left: auto;
 }
 
 /* On the ink banner each cell keeps a paper rule, or its paper value cell
