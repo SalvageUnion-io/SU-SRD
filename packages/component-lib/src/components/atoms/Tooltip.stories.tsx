@@ -43,32 +43,16 @@ const ROW = {
   padding: space[32],
 } satisfies CSSProperties
 
-/** Sides, rich content, and delay — every Tooltip mode on one page (hover each). */
+/** Plain and rich content — every Tooltip mode on one page (hover each). */
 export const Default: Story = () => (
   <div style={PAGE}>
     <p style={INTRO}>
-      Hover a trigger. side positions the tip (top / right / bottom / left); content accepts rich
-      nodes; delayDuration tunes the open delay.
+      Hover a trigger. The tip opens above it after a short delay; content accepts rich nodes.
     </p>
     <div style={ROW}>
-      <Tooltip content="Top" side="top">
+      <Tooltip content="Laser Cutter">
         <button type="button" style={trigger}>
-          Top
-        </button>
-      </Tooltip>
-      <Tooltip content="Right" side="right">
-        <button type="button" style={trigger}>
-          Right
-        </button>
-      </Tooltip>
-      <Tooltip content="Bottom" side="bottom">
-        <button type="button" style={trigger}>
-          Bottom
-        </button>
-      </Tooltip>
-      <Tooltip content="Left" side="left">
-        <button type="button" style={trigger}>
-          Left
+          Plain text
         </button>
       </Tooltip>
       <Tooltip
@@ -83,16 +67,6 @@ export const Default: Story = () => (
       >
         <button type="button" style={trigger}>
           Rich content
-        </button>
-      </Tooltip>
-      <Tooltip content="Instant" delayDuration={0}>
-        <button type="button" style={trigger}>
-          No delay
-        </button>
-      </Tooltip>
-      <Tooltip content="Slow" delayDuration={1000}>
-        <button type="button" style={trigger}>
-          1s delay
         </button>
       </Tooltip>
     </div>

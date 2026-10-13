@@ -139,21 +139,6 @@ no account to open, is always current, and requires no publishing step.
   control, not the unguessability of an id. That is the opposite of the snapshot
   model, where the id _is_ the capability, and it is the better property: it can
   be withdrawn.
-- **~~ADR-004 is narrowed, not superseded.~~ Withdrawn by
-  [ADR-036](../ARCHITECTURE.md#decisions).** This said snapshots would stop
-  being the way to share a character and become the way to keep a _frozen_ one —
-  "this pilot, as they were the night we lost the crawler" — with both surfaces
-  kept. The product owner decided frozen sheets should not exist; ADR-004 is
-  superseded and this page is the one way to share.
-- **Serving live fixes a defect the frozen path cannot.** A published mech
-  snapshot must carry `context.pilotAbilities` alongside the entity, because a
-  bare frozen mech cannot see the pilot flying it and computes Max SP and Cargo
-  without their contributions ([ADR-029](029-contribution-model.md)).
-  A live query runs with the whole `softLinks` graph in reach and can resolve
-  the piloting pilot properly.
-- **~~Solo still works and is untouched.~~ Withdrawn by
-  [ADR-034](../ARCHITECTURE.md#decisions)**: there is no Solo mode; signed out
-  is read-only.
 - **A public sheet is crawlable in principle.** ITUN ships no `robots.txt` and no
   sitemap, and `/p/:kind/:appId` is a client-rendered route with no link graph
   pointing at it — so it is discoverable by nobody in
@@ -179,8 +164,3 @@ switch off, and the row id would never leave the system. Rejected for now as
 strictly more machinery for a marginal gain: `publicRead` already revokes, and a
 rotating URL is a worse promise to make about a link somebody has put in their
 bio. Worth revisiting if a token proves necessary for some other reason.
-
-**Extending ADR-004 snapshots to auto-refresh.** Rejected because it contradicts
-the property that makes a snapshot worth having. An immutable, historyless copy
-is what ADR-030 explicitly re-affirmed; making it mutable would leave the
-project with two live surfaces and no frozen one.

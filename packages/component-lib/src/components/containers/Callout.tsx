@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { color, fontSize, space } from '../../design/tokens'
-import type { SizeRung } from '../../styles/sizing'
 import { Badge } from '../atoms/Badge'
 import { Card } from './Card'
 
@@ -29,12 +28,6 @@ type CalloutProps = {
   label?: string
   /** Accent tone — the 3px solid frame, and (with a label) the band tint. */
   tone?: CalloutTone
-  /**
-   * Size on the canonical rung ladder (`src/styles/sizing.ts`) — two rungs:
-   * `full` (default) is the reading note; `compact` tightens the band, body
-   * padding and type for dense listings / nested content.
-   */
-  size?: Extract<SizeRung, 'full' | 'compact'>
   /** Body content — a paper panel under the header. */
   children?: ReactNode
   className?: string
@@ -42,15 +35,14 @@ type CalloutProps = {
 
 /** The band is tighter than a card header and has no min-height — it sizes to
  * the stamp riding in it. */
-const BAND = {
-  full: { minHeight: 0, padding: `${space[6]} ${space[12]}` },
-  compact: { minHeight: 0, padding: `${space[4]} ${space[8]}` },
-} satisfies Record<string, CSSProperties>
+const BAND = { minHeight: 0, padding: `${space[6]} ${space[12]}` } satisfies CSSProperties
 
 const BODY = {
-  full: { padding: space[12], fontSize: fontSize.sm, lineHeight: 1.375, color: color.ink },
-  compact: { padding: space[8], fontSize: fontSize.xs, lineHeight: 1.375, color: color.ink },
-} satisfies Record<string, CSSProperties>
+  padding: space[12],
+  fontSize: fontSize.sm,
+  lineHeight: 1.375,
+  color: color.ink,
+} satisfies CSSProperties
 
 /** Replaces Card's default drop shadow — a callout sits flat in prose. */
 const FRAME = { overflow: 'hidden' } satisfies CSSProperties
@@ -74,22 +66,21 @@ const FRAME = { overflow: 'hidden' } satisfies CSSProperties
  * over the header-derived default (the accent frame is deliberately a different
  * colour from the header tint).
  */
-export function Callout({ label, tone = 'ink', size = 'full', children, className }: CalloutProps) {
-  const compact = size === 'compact'
+export function Callout({ label, tone = 'ink', children, className }: CalloutProps) {
   return (
     <Card
-      size={compact ? 'medium' : 'large'}
+      size="large"
       borderColor={CALLOUT_ACCENT[tone]}
       headerBgColor={label ? bandTint(tone) : undefined}
       headerContent={
         label ? (
-          <Badge shape="stamp" size={compact ? 'mini' : 'compact'}>
+          <Badge shape="stamp" size="compact">
             {label}
           </Badge>
         ) : undefined
       }
-      headerStyle={{ style: BAND[size] }}
-      bodyStyle={BODY[size]}
+      headerStyle={{ style: BAND }}
+      bodyStyle={BODY}
       cardStyle={{ className, style: FRAME }}
     >
       {children}

@@ -1,5 +1,5 @@
 /**
- * The "ROLL THE DIE:" stamp is the roll (refit2 preview-fixes): given
+ * The "ROLL THE DIE:" stamp is the roll: given
  * `onRoll`, the stamp is the table's one roll control, a real button named
  * for its table; without it, or in server markup, it is the plain label, so
  * static HTML never carries a dead button.

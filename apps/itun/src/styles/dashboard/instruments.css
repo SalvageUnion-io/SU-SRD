@@ -21,46 +21,14 @@
  * (DashboardCanvas.css) and the `.su-dash-grid` regions (DashboardGrid.css).
  */
 
-/* ---- Keyboard focus: the canonical ink ring, in raw CSS ----
+/* ---- Keyboard focus: the canonical ink ring ----
  *
- * Every interactive surface in this file is a NATIVE <button>, so it takes
- * keyboard focus — but this
- * stylesheet styled `:hover` five times and `:focus` zero times, and no global
- * `:focus-visible` rule exists in either app or in the library. That left a
- * keyboard user driving the cockpit with no visible caret at all: the browser
- * default outline is suppressed on none of these, but each rule sets its own
- * `border` and `background`, so the default ring is the only affordance and it
- * is exactly what the rest of the app deliberately replaced.
- *
- * This is `FOCUS_RING` (component-lib components/atoms/interaction.ts)
- * transcribed into CSS rather than
- * a new treatment: the dashboard is a self-contained stylesheet by design, so
- * it restates the canonical rung in its own classes.
- *
- * It READS the canonical token rather than transcribing a literal, because the
- * ring must hold at least 3:1 against its ground (WCAG 2.4.11 / 1.4.11) and a
- * translucent rust wash cannot: it measures 1.42:1 on paper and 1.27:1 on
- * `ink-deep`, and this deck is the DARK skin.
- *
- * Deliberately NOT "the same literal, made solid". These controls sit on both
- * `--color-paper` and `--color-ink` grounds (`.is-active` is ink-filled), and
- * solid rust measures 2.97:1 on ink — a ring that fails on half of this file's
- * own surfaces.
- * `--focus-ring-shadow` is the two-ring construction that holds on every
- * ground; see the table above `.su-focus-ring` in component-lib's
- * `styles/partials/foundation.css`.
- *
- * Reading the token is also more faithful to the "restates the canonical rung"
- * intent above than re-transcribing it, and it removes one more place for the
- * ring to drift out of sync — which is exactly how it got here.
- *
- * `color-mix()` remains this file's alpha spelling everywhere it means a
- * genuine wash — it is simply not what a focus indicator may be made of.
- *
- * `:focus-visible`, not `:focus` — a mouse click on a tab must not leave a ring
- * behind it, and these are all pointer-first controls. The offset keeps the
- * ring clear of each surface's own border, including `.is-active`, whose ink
- * fill would otherwise swallow an inset ring.
+ * Every interactive surface here is a native <button> that sets its own border
+ * and background, so each takes the canonical ring (`--focus-ring-shadow`, the
+ * two-ring construction that holds on paper and on the `.is-active` ink fill;
+ * see `.su-focus-ring` in component-lib's `styles/partials/foundation.css`).
+ * `:focus-visible`, so a mouse click leaves no ring; the offset keeps it clear
+ * of the surface's own border.
  */
 .su-dash-deck-tab:focus-visible,
 .su-dash-deck-range-btn:focus-visible,
@@ -92,10 +60,9 @@
 }
 
 /* ---- Major slot band: responsibility bays (gauge + button grid) ---- */
-/* The Major band is an INSTRUMENT surface: cream chassis on the dark
-   canvas ground. Before the ground went dark it could be transparent (paper on
-   paper); now it has to carry its own card or its gauges and bay dividers would
-   float on the workbench. */
+/* The Major band is an INSTRUMENT surface: cream chassis on the dark canvas
+   ground, carrying its own card so its gauges and bay dividers do not float on
+   the workbench. Positioned for the resolve overlay below. */
 .su-dash-band {
   display: flex;
   flex-direction: column;
@@ -105,6 +72,7 @@
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
   border-radius: var(--radius-panel);
   padding: 7px 9px;
+  position: relative;
 }
 .su-dash-band-id {
   flex: 0 0 auto;
@@ -163,9 +131,6 @@
   margin-top: 0;
 }
 /* ---- Resolve overlay: roll readouts + player-confirmed steps ---- */
-.su-dash-band {
-  position: relative;
-}
 .su-dash-resolve {
   position: absolute;
   inset: 0;
@@ -234,15 +199,7 @@
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  /* Was a raw 24px. The token guard's arbitrary-font-size rule only matches the
-     bracketed class spelling, so a raw declaration in a `.css` file it already
-     scans was invisible — this readout, `.su-dash-deck-d20` and `.su-dash-deck-band` were
-     the only three font sizes in this 1100-line sheet not coming from the
-     ladder. (Deliberately describing the anti-pattern rather than spelling it:
-     the guard reads comments too and cannot tell a citation from a commission.)
-     24 sits between `--text-title` (22) and `--text-display` (26); it lands on
-     display because this IS the readout the display step was introduced for —
-     a numeral read at a glance, not a label. */
+  /* The display step: a numeral read at a glance, not a label. */
   font-size: var(--text-display);
   min-width: 44px;
   text-align: center;
@@ -317,9 +274,6 @@
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  /* Was a raw `34px` — the largest of the three off-ladder literals, and the
-     one the ladder note at theme.css:64-80 already names as a cluster it
-     absorbs (`display-lg 31`). */
   font-size: var(--text-display-lg);
   line-height: 1;
   min-width: 48px;

@@ -1,24 +1,12 @@
 // eslint-disable-next-line react-refresh/only-export-components
 export { toast } from 'sonner'
 
-import type { ToasterProps as SonnerToasterProps } from 'sonner'
 import { Toaster as SonnerToaster } from 'sonner'
 
-type ToasterProps = {
-  /**
-   * Distance from the viewport edges (desktop / below 600px). Sonner's defaults
-   * apply to any edge left out.
-   */
-  offset?: SonnerToasterProps['offset']
-  mobileOffset?: SonnerToasterProps['mobileOffset']
-}
-
-export function Toaster({ offset, mobileOffset }: ToasterProps = {}) {
+export function Toaster() {
   return (
     <SonnerToaster
       position="bottom-right"
-      offset={offset}
-      mobileOffset={mobileOffset}
       toastOptions={{
         style: {
           background: 'var(--color-ink)',

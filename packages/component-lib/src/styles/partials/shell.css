@@ -83,9 +83,6 @@
   transition:
     color 120ms,
     border-color 120ms;
-}
-
-.su-union-bar__link {
   color: var(--color-paper-70);
 }
 

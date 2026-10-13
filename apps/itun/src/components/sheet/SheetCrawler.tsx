@@ -15,11 +15,16 @@
 
 import { linesFromBreakdown, VitalGauge } from 'component-lib'
 import { containerOf } from 'itun-domain/container'
-import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
+import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import { pilotingContext } from 'itun-domain/rules/pilotingContext'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import { useState } from 'react'
-import { crawlerMaxSPParts, pinFor, resolvePool } from 'salvageunion-reference/rules'
+import {
+  crawlerMaxSPParts,
+  parseCrawlerTechLevel,
+  pinFor,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'

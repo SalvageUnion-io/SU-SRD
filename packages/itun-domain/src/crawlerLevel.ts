@@ -12,29 +12,17 @@
  *   2. Otherwise fall back to the pilot's manual `crawlerLevel`.
  *   3. Otherwise undefined (no cap resolves — unbounded, unchanged behaviour).
  *
- * A crawler's `techLevel` is stored as a slug like "tech-3"; this parses out the
- * numeric level.
+ * A crawler's `techLevel` is stored as a slug like "tech-3";
+ * `parseCrawlerTechLevel` (salvageunion-reference/rules) parses out the numeric level.
  *
  * The same effective level also drives the pilot's Stat Training bonus to max
  * HP/AP (`crawlerTechLevel` on the pilot derivations) — every surface that shows
  * or clamps a pilot's max HP/AP must feed it this value, or it reads Tech 1.
  */
 
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { Crawler } from './schemas/crawler'
 import type { Pilot } from './schemas/pilot'
-
-/**
- * Parse a crawler techLevel slug (e.g. "tech-3") to its numeric level (3).
- * Returns undefined when no digits are present.
- */
-export function parseCrawlerTechLevel(techLevel: string): number | undefined {
-  const digits = techLevel.replace(/[^0-9]/g, '')
-  if (digits.length === 0) {
-    return undefined
-  }
-  const n = Number.parseInt(digits, 10)
-  return Number.isFinite(n) ? n : undefined
-}
 
 /**
  * Compute the effective Crawler Tech Level for a pilot.

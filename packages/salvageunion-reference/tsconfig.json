@@ -13,6 +13,6 @@
     // runtime globals, so it type-checks against Node + Bun only.
     "types": ["node", "bun-types"]
   },
-  "include": ["lib/**/*.ts", "tools/**/*.ts", "test/**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.template.ts"]
+  "include": ["lib/**/*.ts", "tools/**/*.ts"],
+  "exclude": ["node_modules"]
 }

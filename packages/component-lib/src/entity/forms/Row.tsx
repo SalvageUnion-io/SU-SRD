@@ -112,7 +112,7 @@ export function Row({
   // An ability's Row wears its tier tone (E12); any other "do" entity the ink banner.
   const fill = model.kind.nature === 'do' && !ability ? 'ink' : model.tone
   const paint = paintFor(fill, { down, texture: surface.texture })
-  const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
+  const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
   const selected = mode.kind === 'select' && mode.selected
 

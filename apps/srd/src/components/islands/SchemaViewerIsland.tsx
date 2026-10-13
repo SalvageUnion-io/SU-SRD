@@ -416,7 +416,7 @@ function ListingSkeleton({
                 {Array.from({ length: group.count }, (_, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
                   <li key={i}>
-                    <Skeleton mode="card" compact />
+                    <Skeleton />
                   </li>
                 ))}
               </ul>

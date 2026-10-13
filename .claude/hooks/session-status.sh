@@ -1,10 +1,7 @@
 #!/bin/bash
 # SessionStart hook — tell the agent where things stand.
 #
-# WHY THIS EXISTS. session-start.sh fixes the toolchain and says nothing, so an
-# agent's first moves were `gh run list` / `gh pr list` to orient itself — and
-# in a cloud session those are GraphQL calls the GitHub proxy answers with 403.
-# This prints the same orientation once, through `gh api` REST, which answers.
+# Orientation through `gh api` REST: a cloud session's GraphQL `gh` calls get 403.
 #
 # DESIGN RULES.
 #   * NEVER fails the session and never prints an error: offline, no gh, a 403

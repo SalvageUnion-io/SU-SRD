@@ -12,7 +12,7 @@ import { Glyph } from '../glyphs'
 import { INPUT_FOCUS } from '../interaction'
 import { KvRow } from '../KvRow'
 import { ModeDoor } from '../ModeDoor'
-import { Panel, Row } from '../Panel'
+import { Panel } from '../Panel'
 import { Slab } from '../Slab'
 import { StepButton } from '../SmallButtons'
 
@@ -149,26 +149,13 @@ describe('Badge tone / quiet preset', () => {
   })
 })
 
-describe('Panel / Row', () => {
+describe('Panel', () => {
   test('panel defaults to ink border, soft swaps to faint', () => {
     const { container } = render(<Panel>content</Panel>)
     expect(rootEl(container).style.borderColor).toBe(color.ink)
     cleanup()
     const { container: soft } = render(<Panel soft>content</Panel>)
     expect(rootEl(soft).style.borderColor).toBe(color.wkFaint)
-  })
-
-  test('row renders name, meta and trailing actions', () => {
-    render(
-      <Row
-        name="Mara Vex"
-        meta='"Wrench" · Engineer'
-        actions={<button type="button">Sheet</button>}
-      />
-    )
-    expect(screen.getByText('Mara Vex')).toBeTruthy()
-    expect(screen.getByText('"Wrench" · Engineer')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Sheet' })).toBeTruthy()
   })
 })
 
@@ -245,12 +232,9 @@ describe('Conditions', () => {
     expect(className).not.toContain('su-badge--tone-warn')
   })
 
-  test('inactive condition chip is paper, active is warn', () => {
-    const { container } = render(<ConditionChip label="Burning" active={false} />)
-    expect(container.firstElementChild?.className).toContain('su-badge--outline')
-    cleanup()
-    const { container: active } = render(<ConditionChip label="Burning" />)
-    expect(active.firstElementChild?.className).toContain('su-badge--tone-warn')
+  test('a condition chip is the warn fill', () => {
+    const { container } = render(<ConditionChip label="Burning" />)
+    expect(container.firstElementChild?.className).toContain('su-badge--tone-warn')
   })
 })
 
@@ -301,16 +285,12 @@ describe('Stamp', () => {
 })
 
 describe('Glyph', () => {
-  test('is decorative (aria-hidden) with no title', () => {
-    const { container } = render(<Glyph name="gear" />)
+  test('is a decorative (aria-hidden) currentColor stroke', () => {
+    const { container } = render(<Glyph name="plus" />)
     const svg = container.querySelector('svg')
     expect(svg?.getAttribute('aria-hidden')).toBe('true')
+    expect(svg?.getAttribute('stroke')).toBe('currentColor')
     expect(svg?.querySelector('path')).toBeTruthy()
-  })
-
-  test('a title makes it an accessible image', () => {
-    render(<Glyph name="pennant" title="1 AP" />)
-    expect(screen.getByRole('img', { name: '1 AP' })).toBeTruthy()
   })
 })
 

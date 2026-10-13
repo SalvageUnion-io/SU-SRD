@@ -1,10 +1,10 @@
 import type { CSSProperties } from 'react'
 import type { SURefMetaEntity } from 'salvageunion-reference'
-import { getTechLevel, SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
-import { buildBookStats } from '../referenceEntity/referenceEntityStatsConfig'
+import { resolveEntityPageMeta } from '../referenceEntity/card/entityPage'
 import { StatColumn } from './StatColumn'
 
 export default {
@@ -21,7 +21,7 @@ const COLUMN = { maxWidth: '36rem' } satisfies CSSProperties
 
 function Column({ entity, name }: { entity: SURefMetaEntity | undefined; name: string }) {
   if (!entity) return null
-  const stats = buildBookStats(entity, { techLevel: getTechLevel(entity) })
+  const { stats } = resolveEntityPageMeta(entity)
   return (
     <div style={COLUMN}>
       <StatColumn stats={stats} label={`${name} stats`} />
@@ -33,7 +33,8 @@ function Column({ entity, name }: { entity: SURefMetaEntity | undefined; name: s
  * The book's stat column at page scale: a framed numeral beside an ink stamp
  * in the manual's own words — `14 | STRUCTURE PTS.` — two to a row, in the
  * book's order (board 07). It replaced the entity page's header cells, whose
- * labels clipped on a phone. Real stats, through `buildBookStats`.
+ * labels clipped on a phone. Real stats, through `resolveEntityPageMeta`
+ * (the entity model's `bookStats`), as the SRD page feeds them.
  */
 export const Default: Story = () => (
   <div style={STACK}>

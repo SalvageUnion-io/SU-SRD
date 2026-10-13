@@ -15,9 +15,8 @@ type InlineEditFieldProps = {
   value: string | number
   /** Persist a new value; awaited before returning to display. */
   onSave: (next: string | number) => Promise<void> | void
-  /** `number` validates min/max and shows an inline error; default `text`. */
+  /** `number` validates the number (and `max`) and shows an inline error; default `text`. */
   type?: 'number' | 'text'
-  min?: number
   max?: number
   /** 3-row textarea instead of a single-line input (Enter without Shift commits). */
   multiline?: boolean
@@ -77,7 +76,6 @@ export function InlineEditField({
   value,
   onSave,
   type = 'text',
-  min,
   max,
   multiline = false,
   bordered = false,
@@ -117,9 +115,6 @@ export function InlineEditField({
       const parsed = Number(trimmed)
       if (trimmed === '' || !Number.isFinite(parsed)) {
         return { ok: false, msg: 'Must be a number.' }
-      }
-      if (min !== undefined && parsed < min) {
-        return { ok: false, msg: `min ${min}` }
       }
       if (max !== undefined && parsed > max) {
         return { ok: false, msg: `max ${max}` }
@@ -216,7 +211,6 @@ export function InlineEditField({
           type={type}
           numeric={type === 'number'}
           value={draft}
-          min={min}
           max={max}
           aria-label={ariaLabel}
           aria-invalid={error !== null}

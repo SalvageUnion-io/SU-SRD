@@ -50,11 +50,6 @@ describe('ChapterFoot', () => {
     expect(dark.style.color).toBe(color.paper)
   })
 
-  test('is the site footer’s landmark when rendered as a footer', () => {
-    render(<ChapterFoot as="footer" start="Licence" />)
-    expect(screen.getByRole('contentinfo')).toBeTruthy()
-  })
-
   test('renders nothing for an end it was not given', () => {
     const { container } = render(<ChapterFoot start="p.9" />)
     expect(container.querySelector('.su-chapter-foot__end')).toBeNull()

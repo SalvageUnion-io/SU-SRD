@@ -25,7 +25,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    In-house Vite SSG with React islands ([DESIGN.md](../apps/srd/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
    No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
 7. **Dataset API** <a id="dataset-api"></a>
-   srd serves the package's committed `data/` and `schemas/` verbatim at `/schema/*` (`apps/srd/src/lib/referenceFiles.ts`), CORS on.
+   srd serves the package's `data/` and generated `schemas/` verbatim at `/schema/*` (`apps/srd/src/lib/referenceFiles.ts`), CORS on.
    Each schema's `$id` is the URL it is served at; `api.salvageunion.io/v1` is decided, not built (ADR-043, ADR-047).
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
@@ -215,7 +215,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted: an invite may carry `invites.target`; `/su invite` is Discord-signed; both doors mint through `mintInvite`.
     Amends ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).
 40. **ADR-040 The dataset is served verbatim with no release stream**
-    Accepted, built: `/schema/*` serves the committed files byte for byte; `$id` is the served URL; version `0.0.0`.
+    Accepted, built: `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`.
     Supersedes ADR-025; amends ADR-014 and ADR-024; amended by ADR-043.
 41. **ADR-041 The deployed commit is the release**
     Accepted, built: no app versions; each site's changelog is `main`'s first-parent history filtered by scope.

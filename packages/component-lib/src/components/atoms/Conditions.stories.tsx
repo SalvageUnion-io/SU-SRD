@@ -67,11 +67,7 @@ export const Default: Story = () => (
         <Label>ConditionChip states</Label>
         <div style={STATES}>
           <ConditionChip label="Active (default)" />
-          <ConditionChip label="Inactive" active={false} />
           <ConditionChip label="Removable" onRemove={() => {}} />
-          <ConditionChip label="Clickable" onClick={() => {}} />
-          <ConditionChip label="Click + Remove" onClick={() => {}} onRemove={() => {}} />
-          <ConditionChip label="Inactive clickable" active={false} onClick={() => {}} />
         </div>
       </div>
     </div>

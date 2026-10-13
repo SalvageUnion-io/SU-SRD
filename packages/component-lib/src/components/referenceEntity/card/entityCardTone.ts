@@ -2,13 +2,11 @@ import type { EntityDomain, SURefEnumSchemaName, SURefMetaEntity } from 'salvage
 import {
   bayKind,
   classKind,
-  classRequirements,
   entityStamp,
   entityTone,
   entityTypeLabel,
   guideTone,
   isAbility,
-  isClassEntity as isClassRecord,
   isDoEntity as isDoRecord,
   schemaDomain,
   tierNumeral,
@@ -182,37 +180,6 @@ export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): Eye
   return { type: entityTypeLabel(schemaName) }
 }
 
-/** The three kinds of pilot CLASS, as the stamp reads them — derived from the
- * class's own two flags by the entity model, never stored. */
-export type ClassKind = 'BASE' | 'HYBRID' | 'NON-ADVANCEABLE'
-
-/** Is this entity a pilot CLASS? A data-shape check (`coreTrees` / `hybrid`). */
-export function isClassEntity(entity: SURefMetaEntity): boolean {
-  return isClassRecord(entity)
-}
-
-/** Which KIND of class this is (HYBRID, NON-ADVANCEABLE, else BASE). */
-export function resolveClassKind(entity: SURefMetaEntity): ClassKind | undefined {
-  return classKind(entity)
-}
-
-/** The ability trees a HYBRID class requires; `[]` for every other entity. */
-export function resolveClassRequirements(entity: SURefMetaEntity): string[] {
-  return classRequirements(entity)
-}
-
-/**
- * The requirements as the sub-header renders them: joined by **"or"**.
- *
- * The relation is a genuine DISJUNCTION — a pilot advances into a hybrid from
- * ONE of its two parent trees, not from both — so this is never a comma list
- * and never "and". The literal stored tree names are shown; mapping a tree back
- * to its owning class would be an inference the data does not make.
- */
-export function formatClassRequirements(requirements: string[]): string | undefined {
-  return requirements.length > 0 ? requirements.join(' or ') : undefined
-}
-
 export type AxisMarker = { label: string; value?: string }
 
 /**
@@ -249,8 +216,8 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
   // anything. This is a deliberate, ruled exception to the catalog suppression,
   // not an oversight — the labels are not gated on extent, so returning the marker
   // here is what carries it onto the tile. Keep it that way.
-  const classKind = resolveClassKind(entity)
-  if (classKind) return [{ label: 'Class', value: classKind }]
+  const kind = classKind(entity)
+  if (kind) return [{ label: 'Class', value: kind }]
   // BAY KIND survives the catalog for the same reason: whether a bay comes
   // with every Union Crawler or is added in play is what the bay index is
   // scanned for.

@@ -46,7 +46,6 @@ function corpus(root: string): Corpus {
   return {
     root,
     appCss: listFiles(root, APP_DIRS, ['.css']),
-    // `.astro` was in this list until apps/srd moved off Astro.
     appSource: listFiles(root, APP_DIRS, ['.tsx', '.ts']),
     // Not `packages/gates`: its rule sets and their fixtures name the classes
     // they check, and would count as usages.
@@ -93,9 +92,8 @@ function stripCssComments(css: string): string {
 
 /**
  * Strip both block and line comments from TS/TSX so class-name extraction never
- * mistakes PROSE for a live reference. Documentation of a REMOVED class — e.g.
- * buttonVariants.ts describing the retired `.pc-railbtn` HUD ghost treatment,
- * in both a JSDoc block and a `//` line comment — must not read as a usage.
+ * mistakes PROSE for a live reference: documentation of a removed class must
+ * not read as a usage.
  * Line comments are only stripped when `//` follows whitespace or line-start, so
  * `https://…` and `'a//b'` string contents are left intact.
  */
@@ -141,14 +139,10 @@ function scanAppTheme(c: Corpus): Finding[] {
     const lines = css.split('\n')
     const mask = printBlockMask(css)
     lines.forEach((text, i) => {
-      // (a) an `@theme` block is an app-local token registry — the library owns
-      //     the theme. Exempt only the sanctioned loader-animation block.
-      if (/@theme\b/.test(text) && !isExempt(EXEMPTIONS, relPath, 'app-theme')) {
-        out.push({ file: relPath, line: i + 1, detail: '@theme block in an app stylesheet' })
-      }
-      // (b) DEFINING a reserved-namespace token anywhere in an app is forbidden —
-      //     EXCEPT re-pointing an existing lib token inside @media print (theme.css
-      //     sanctions the white-paper print override). Never exempted by file.
+      // DEFINING a reserved-namespace token anywhere in an app is forbidden —
+      // EXCEPT re-pointing an existing lib token inside @media print (theme.css
+      // sanctions the white-paper print override). Never exempted by file. (An
+      // app `@theme` block is Tailwind syntax, which `no-tailwind` fails.)
       if (RESERVED_TOKEN.test(text) && !mask[i]) {
         out.push({
           file: relPath,
@@ -543,7 +537,7 @@ const RULES: OwnershipRule[] = [
     id: 'app-theme',
     mode: 'zero',
     rule: 'source-of-truth §component-lib owns shared styling — no app-local design tokens',
-    fix: 'Move the token into packages/component-lib/src/styles/theme.css so both apps share one source. A print-time re-point of an EXISTING lib token belongs inside @media print (already allowed). A truly app-only animation with one consumer gets an EXEMPTIONS entry with a reason.',
+    fix: 'Move the token into packages/component-lib/src/styles/theme.css so both apps share one source. A print-time re-point of an EXISTING lib token belongs inside @media print (already allowed).',
     scan: scanAppTheme,
   },
   {

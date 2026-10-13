@@ -178,11 +178,6 @@ type SheetPickerModalProps = {
   onClose: () => void
   title: string
   /**
-   * ModalShell max width. Defaults to `PICKER_MODAL_WIDTH` for a `floating`
-   * searcher picker, and to 80% of the viewport for a framed picker body.
-   */
-  maxWidth?: string
-  /**
    * The searcher-picker layout: render a BARE ModalShell and hand the single
    * `EntitySearcher` child its own frame by injecting this modal's
    * `title`/`onClose`. (The default framed layout stays for picker bodies that
@@ -209,7 +204,6 @@ export function SheetPickerModal({
   open,
   onClose,
   title,
-  maxWidth,
   floating = false,
   children,
 }: SheetPickerModalProps) {
@@ -230,7 +224,7 @@ export function SheetPickerModal({
           if (!next) onClose()
         }}
         title={title}
-        maxWidth={maxWidth ?? PICKER_MODAL_WIDTH}
+        maxWidth={PICKER_MODAL_WIDTH}
         bare
       >
         {searcher}
@@ -245,7 +239,8 @@ export function SheetPickerModal({
         if (!next) onClose()
       }}
       title={title}
-      maxWidth={maxWidth ?? 'su-sheet-picker-framed'}
+      // 80% of the viewport for a framed picker body.
+      maxWidth="su-sheet-picker-framed"
     >
       <div style={PICKER_BODY}>{children}</div>
     </ModalShell>

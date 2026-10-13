@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, tracking, weight } from '../../design/tokens'
 
 /**
@@ -32,7 +32,6 @@ export type BandTitleProps = {
    * track with another flexing element.
    */
   fill?: boolean
-  as?: ElementType
   className?: string
 }
 
@@ -60,19 +59,13 @@ const VARIANT = {
   mute: { color: color.paper60, fontSize: fontSize.xs, lineHeight: 'calc(1 / 0.75)' },
 } as const satisfies Record<string, CSSProperties>
 
-export function BandTitle({
-  children,
-  variant = 'lead',
-  fill = true,
-  as: Tag = 'span',
-  className,
-}: BandTitleProps) {
+export function BandTitle({ children, variant = 'lead', fill = true, className }: BandTitleProps) {
   return (
-    <Tag
+    <span
       className={className}
       style={{ ...BASE, ...(fill ? FILL : undefined), ...VARIANT[variant] }}
     >
       {children}
-    </Tag>
+    </span>
   )
 }

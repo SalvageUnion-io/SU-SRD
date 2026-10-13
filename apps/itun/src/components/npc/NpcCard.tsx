@@ -33,19 +33,17 @@ type NpcCardProps = {
   /** The maker's display name — "Made by alxjrvs". */
   madeBy: string
   size?: CardProps['size']
-  extent?: CardProps['extent']
   /** Overrides the derived kicker ("Crawler crew · Med Bay" for a slot draft). */
   kicker?: string
 }
 
-export function NpcCard({ npc, madeBy, size = 'large', extent = 'full', kicker }: NpcCardProps) {
+export function NpcCard({ npc, madeBy, size = 'large', kicker }: NpcCardProps) {
   const line = npcIdentityLine(npc)
   return (
     <EntityExternalLinkProvider value={undefined}>
       <ReferenceEntityCard
         data={npcAsReferenceEntity(npc)}
         size={size}
-        extent={extent}
         userMade
         madeBy={madeBy}
         kicker={kicker ?? npcKicker(npc)}

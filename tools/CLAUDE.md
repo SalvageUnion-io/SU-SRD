@@ -30,12 +30,6 @@ use `packages/gates/lib/scanFloor.ts` (collapsed corpus) and
 `packages/gates/lib/workspaceCoverage.ts` (a workspace missing from the list), and print
 the corpus size, not just the finding count.
 
-## The checks in `bun run check`
-
-`bun run check --list` prints each check's id, profiles, what it guards, its
-command and its fix (which names any baseline it reads): the `CHECKS` registry
-in [`check.ts`](check.ts) is the only list.
-
 ## CI-only, nightly and deploy scripts
 
 | Script | Run by | Purpose | Baseline |

@@ -191,10 +191,8 @@ export { entityTone, guideTone, headerFill } from './view/parts/fill'
 export {
   bayKind,
   classKind,
-  classRequirements,
   entityStamp,
   entityTypeLabel,
-  isClassEntity,
   isDoEntity,
   schemaDomain,
   tierNumeral,
@@ -202,14 +200,12 @@ export {
 export { firstParagraphText } from './view/parts/lead'
 export { resolveTable } from './view/parts/table'
 export {
-  actionFacets,
   type FacetCell,
   facetCells,
   formatActionType,
   formatCost,
-  populationRange,
 } from './view/parts/traits'
-export { toEntityModel } from './view/toEntityModel'
+export { glossaryRef, toEntityModel } from './view/toEntityModel'
 export type {
   EntityArt,
   EntityDomain,
@@ -250,13 +246,6 @@ export const EntitySchemaNames = new Set<EntitySchemaName>(
     .filter(([, v]) => v.entity !== false)
     .map(([k]) => k)
 )
-
-// Runtime mapping from schema names to model property names (derived from registry)
-export const SchemaToModelMap = Object.fromEntries(
-  Object.entries(SCHEMA_REGISTRY).map(([k, v]) => [k, v.model])
-) as {
-  readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['model']
-}
 
 // Runtime mapping from schema names to display names (derived from registry)
 export const SchemaToDisplayName = Object.fromEntries(

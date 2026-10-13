@@ -5,15 +5,13 @@ import { readPackageStylesheet } from '../../../styles/__tests__/packageStyleshe
 
 /**
  * The coarse-pointer touch floor (ruleset §4.6: every target is at least 44px
- * under a coarse pointer), as brand refresh P2a set it.
+ * under a coarse pointer).
  *
- * Two copies exist on purpose: theme.css's is unlayered and also outranks the
- * apps' own stylesheets, index.css's travels with the package stylesheet
- * wherever it is loaded. Two hand-kept copies drift, so this pins them
- * to one selector list, pins `.su-btn` (the anchors `buttonVariants` dresses
- * included) onto it, and pins the mini button and the interactive chip OFF it
- * and onto the hit-area pseudo-element instead, so they keep the size they
- * are drawn at.
+ * The floor lives once, in theme.css, unlayered, so it also outranks the apps'
+ * own stylesheets. The package stylesheet carries only the hit-area half. This
+ * pins `.su-btn` (the anchors `buttonVariants` dresses included) onto the
+ * floor, and pins the mini button and the interactive chip OFF it and onto the
+ * hit-area pseudo-element instead, so they keep the size they are drawn at.
  */
 
 const STYLES = join(import.meta.dir, '../../../styles')
@@ -45,8 +43,8 @@ describe('the coarse-pointer touch floor', () => {
   const theme = coarseBlock('theme.css', readFileSync(join(STYLES, 'theme.css'), 'utf8'))
   const index = coarseBlock('index.css', readPackageStylesheet())
 
-  test('theme.css and index.css floor the same selectors', () => {
-    expect(floorSelectors(index)).toEqual(floorSelectors(theme))
+  test('the floor is set once, in theme.css', () => {
+    expect(index).not.toMatch(/min-height:\s*44px/)
   })
 
   test('every .su-btn size is on the floor, the mini rung excepted', () => {

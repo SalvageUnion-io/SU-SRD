@@ -11,7 +11,7 @@ import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-refe
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
 import { resolveBodyBlocks, resolveBodyLayout } from '../bodyBlocks'
-import { actionCells, bonusCells, buildHeaderStats, resolveTechScaling } from '../cardCells'
+import { bonusCells, buildHeaderStats, resolveTechScaling } from '../cardCells'
 import {
   resolveCardColors,
   resolveCardInteraction,
@@ -23,28 +23,6 @@ import { resolveNestedSections } from '../nestedSections'
 const paragraph = (value: string): SURefObjectContentBlock => ({ type: 'paragraph', value })
 
 describe('cardCells', () => {
-  test('actionCells leads with the type, then range / damage / traits', () => {
-    const cells = actionCells({
-      actionType: 'Turn',
-      range: ['Close', 'Medium'],
-      damage: { amount: 4, damageType: 'SP' },
-      traits: [{ type: 'explosive', amount: 1 }],
-    })
-    expect(cells.map((c) => [c.label, c.value])).toEqual([
-      ['Turn Action', undefined],
-      ['Range', 'Close / Medium'],
-      ['Damage', '4 SP'],
-      ['Explosive', '1'],
-    ])
-  })
-
-  test('a split action type reads Mech first, as the book prints it', () => {
-    expect(actionCells({ actionType: 'Short' }, 'Turn').map((c) => c.label)).toEqual([
-      'Turn Action (Mech)',
-      'Short Action (Pilot)',
-    ])
-  })
-
   test('bonusCells drops zero and absent fields', () => {
     expect(bonusCells({ structurePoints: 2, energyPoints: 0 })).toEqual([
       { key: 'bonus-structurePoints', label: 'Structure', bottomLabel: 'Points', value: '+2' },

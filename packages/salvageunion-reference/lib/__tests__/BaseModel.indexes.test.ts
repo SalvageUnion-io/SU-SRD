@@ -16,14 +16,15 @@
 import { describe, expect, test } from 'bun:test'
 import type { ModelWithMetadata } from '../BaseModel'
 import { BaseModel } from '../BaseModel'
-import { SalvageUnionReference, SchemaToModelMap } from '../index'
+import { SCHEMA_REGISTRY } from '../generated/schemaRegistry.generated'
+import { SalvageUnionReference } from '../index'
 import { nameToSlug } from '../nameToSlug'
 import { malformed } from '../testing'
 
 type Row = { id?: string; name?: string }
 
 const allModels = (): Array<[string, ModelWithMetadata<Row>]> =>
-  Object.entries(SchemaToModelMap).map(([schemaId, propName]) => [
+  Object.entries(SCHEMA_REGISTRY).map(([schemaId, { model: propName }]) => [
     schemaId,
     (SalvageUnionReference as unknown as Record<string, ModelWithMetadata<Row>>)[
       propName

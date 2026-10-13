@@ -202,13 +202,6 @@ export async function clickNext(page: Page): Promise<void> {
   await page.getByRole('button', { name: /^Next( ·|$)/ }).click()
 }
 
-/**
- * Click a top-level navigation control by accessible name.
- */
-export async function clickNavLink(page: Page, name: RegExp | string): Promise<void> {
-  await page.getByRole('link', { name }).click()
-}
-
 // ---------------------------------------------------------------------------
 // Entity builders — drive the WizShell wizards end to end.
 // Each returns once the dashboard redirect lands (the server write is

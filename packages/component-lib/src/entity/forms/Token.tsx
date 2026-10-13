@@ -5,7 +5,6 @@ import type { CardOuterProps } from '../../components/referenceEntity/card/CardO
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import { USER_MADE_TITLE } from '../../components/referenceEntity/card/cardChrome'
 import { cn } from '../../utils/cn'
-import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { CostBox } from '../parts/Chips'
@@ -84,13 +83,12 @@ export function Token({
   fact?: TokenFact | null
   slots?: TokenSlots
 }) {
-  const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const peek = usePeekAttrs(model.ref)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
   const paint = paintFor(model.tone, { down, texture: false })
-  const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
+  const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
   const shown =
     slots.fact !== undefined ? slots.fact : fact !== undefined ? fact : defaultFact(model)

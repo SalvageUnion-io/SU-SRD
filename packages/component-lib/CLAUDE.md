@@ -12,11 +12,7 @@ Shared React component library consumed by both `srd` and `itun`.
 
 ## Styling
 
-Tokens, style objects and one stylesheet (ADR-046). The working rules (the
-per-property style-object/`.su-*` split, token parity, the one stylesheet
-entry) are [`.claude/rules/styling.md`](../../.claude/rules/styling.md), which
-loads with any stylesheet or `src/design/` file. Read it before restyling a
-component.
+Rules: [`.claude/rules/styling.md`](../../.claude/rules/styling.md) (loads with any stylesheet or `src/design/` file).
 
 ## Contents
 
@@ -50,7 +46,7 @@ Apps inject their renderers through **generic slot props** (`afterExtraContent`,
 - **Real data only — never lorem or invented content.** Drive stories from `SalvageUnionReference.*` (`SalvageUnionReference.Chassis.all()[0]`) and use real game terms for literals, fed exactly as the apps feed them, through the real components (entities via `Entity`, `Mention` or `ReferenceEntityCard`, stats via `Stat`) — never markup no app produces.
 - The catalog awaits `SalvageUnionReference.preload('all')` before importing any story; reading a model at module top level in anything a story imports before that throws "Schema not loaded".
 - **Nothing lives only in the catalog, or only in a test.** A module whose only importers are stories or tests ships in no app: delete it, or make it a **harness** file (a leading underscore, as `_harness.tsx` and ITUN's `_dashboardStage.tsx`, exempt by naming). The guard cascades: re-run it after deleting.
-- **Stories render on a global paper canvas, in Barlow:** no outer `bg-paper` wrapper; a wrapper fills the frame (no `w-fit` card). Import shared helpers (`Caption`) from `src/stories/_harness.tsx` rather than re-declaring them.
+- **Stories render on a global paper canvas, in Barlow:** no wrapper background; wrappers fill the frame. Import shared helpers (`Caption`) from `src/stories/_harness.tsx` rather than re-declaring them.
 
 ### Capturing a story
 

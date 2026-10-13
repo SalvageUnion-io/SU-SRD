@@ -77,14 +77,5 @@ export const Default: Story = () => (
         <Body>Apply it on each Pilot&rsquo;s sheet yourself.</Body>
       </Callout>
     </div>
-
-    <div style={GROUP}>
-      <p style={NOTE}>Compact</p>
-      <Callout size="compact" tone="mech">
-        <Body>
-          {String(settlements[0]?.value ?? 'Corporate Arcos typically have a Tech Level of 5-6.')}
-        </Body>
-      </Callout>
-    </div>
   </div>
 )

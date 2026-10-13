@@ -26,11 +26,6 @@
     "required": ["SENTRY_DSN", "DISCORD_TOKEN", "ITUN_BOT_SECRET", "ITUN_CONVEX_SITE_URL"]
   },
 
-  // Empty, not absent: only `[]` removes deployed crons.
-  "triggers": {
-    "crons": []
-  },
-
   "observability": {
     "enabled": true
   }

@@ -18,8 +18,6 @@ type PopoverPanelProps = {
   trigger: ReactElement
   /** Names the panel. */
   label: string
-  side?: 'top' | 'bottom' | 'left' | 'right'
-  align?: 'start' | 'center' | 'end'
   /** Mounted only while open. */
   children: ReactNode
 }
@@ -44,18 +42,13 @@ const PANEL = {
   padding: space[8],
 } satisfies CSSProperties
 
-export function PopoverPanel({
-  trigger,
-  label,
-  side = 'bottom',
-  align = 'end',
-  children,
-}: PopoverPanelProps) {
+/** Opens below its trigger, flush to the trigger's end edge. */
+export function PopoverPanel({ trigger, label, children }: PopoverPanelProps) {
   return (
     <Popover.Root>
       <Popover.Trigger render={trigger} />
       <Popover.Portal>
-        <Popover.Positioner side={side} align={align} sideOffset={6} style={POSITIONER}>
+        <Popover.Positioner side="bottom" align="end" sideOffset={6} style={POSITIONER}>
           <Popover.Popup aria-label={label} style={PANEL}>
             {children}
           </Popover.Popup>

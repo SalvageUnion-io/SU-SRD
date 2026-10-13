@@ -193,8 +193,8 @@
  * A guide on its own page (`GuideSteps`'s `page`): the hierarchy and the rail.
  *
  * A section ("Post-Session") opens on the page's H2: condensed caps at the
- * display size over a chrome rule, a rung above the step banners it holds —
- * where it was a 12px stamp, below them. Every head is an anchor target.
+ * display size over a chrome rule, a rung above the step banners it holds.
+ * Every head is an anchor target.
  *
  * The contents ("On this page") are a sticky right sidebar on a desktop
  * (from 64rem), beside the reading column; narrower, the same list folds
@@ -355,7 +355,7 @@
 }
 
 /* The aside (`GuideAside`): a tip or a worked example, framed on paper in
- * chrome-weight ink, as the srd's other asides are (refit2 F15) — a frame,
+ * chrome-weight ink, as the srd's other asides are — a frame,
  * never a left rail (ruleset §3.10). */
 .su-guide__aside {
   background-color: var(--color-paper);
@@ -432,9 +432,13 @@
 
 /* The hero: the line art on a paper plate, the full width of its column. The
    plate hugs the art: a small even inset inside the hairline, and the art's
-   white canvas multiplied onto the paper so no second ground shows around it. */
+   white canvas multiplied onto the paper so no second ground shows around it.
+   `--su-hero-max-h` is the tallest the art draws: most of a phone's screen;
+   beside the flowing page's text, capped lower (see `.su-entity-page--flow`
+   below). */
 .su-entity-hero {
   --su-hero-inset: var(--space-6);
+  --su-hero-max-h: 70vh;
   background-color: var(--color-paper);
   border: var(--bw-hairline) solid var(--color-ink-20);
   margin: 0;
@@ -452,18 +456,12 @@
   transition: opacity 300ms;
 }
 
-/* The tallest the art draws: most of a phone's screen; beside the flowing
-   page's text, capped lower (see `.su-entity-page--flow` below). */
-.su-entity-hero {
-  --su-hero-max-h: 70vh;
-}
-
 /* Cropped to the line art (`heroArtCrop`): the artwork's canvas
    carries a margin that differs per image, so the plate takes the ink's own
    aspect (`--su-art-aspect`) and the window shows only the ink's box; the
    image inside is scaled and offset by its inline style. The plate is as wide
    as the art drawn at its tallest, or its column, whichever is narrower, so a
-   tall figure no longer sits in a wide box of empty paper. */
+   tall figure never sits in a wide box of empty paper. */
 .su-entity-hero--crop {
   margin-inline: auto;
   max-width: 100%;

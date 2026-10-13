@@ -7,7 +7,7 @@ paths:
 
 # Monorepo Patterns
 
-Bun workspace conventions that are **not** stated in the root `CLAUDE.md`.
+Bun workspace conventions that are **not** stated in [`AGENTS.md`](../../AGENTS.md).
 
 ## Bun workspace conventions
 
@@ -29,12 +29,6 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 - A `workspace:*` dependency also has to appear in that app's CI path filter, or
   a change to it silently skips the app's build job. The `workflows` check
   (`tools/check-workflows.ts`, its `path-filters` half) asserts this from the manifests, so you will be told rather than bitten.
-
-## Dependencies
-
-Read [dependencies](../../docs/ARCHITECTURE.md#dependencies) and
-[audit](../../docs/ARCHITECTURE.md#audit) before touching a `package.json`,
-`bunfig.toml` or `overrides`.
 
 ## Test-script flags
 

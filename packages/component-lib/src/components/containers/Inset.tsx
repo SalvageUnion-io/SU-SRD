@@ -15,9 +15,7 @@ type InsetProps = {
   tag?: string
   /** Right-edge head-bar slot — a subtitle, meta readout, or actions. */
   headRight?: ReactNode
-  /** Extra classes on the padded body wrapper (e.g. a flex layout). */
-  bodyClassName?: string
-  /** Inline style on the padded body wrapper — `bodyClassName`'s style-object twin. */
+  /** Inline style on the padded body wrapper (e.g. a flex layout). */
   bodyStyle?: CSSProperties
   children: ReactNode
 }
@@ -74,15 +72,7 @@ const FRAME = { style: { backgroundColor: color.paper } }
  * duplicate that markup at every call site — the thing this file exists to
  * prevent.
  */
-export function Inset({
-  label,
-  tone,
-  tag,
-  headRight,
-  bodyClassName,
-  bodyStyle,
-  children,
-}: InsetProps) {
+export function Inset({ label, tone, tag, headRight, bodyStyle, children }: InsetProps) {
   // An inset with nothing to say below its head bar is just the bar: no empty
   // padded strip under it (a read-state crew lead with every field blank).
   const hasBody = children !== null && children !== undefined && children !== false
@@ -110,11 +100,7 @@ export function Inset({
           consumer's row layout (`flex flex-wrap items-start`) into it would
           leave `flex-col` standing — silently turning NpcInset's row into a
           column. Layering keeps every consumer's child layout exactly as it was. */}
-      {hasBody && (
-        <div className={bodyClassName} style={bodyStyle}>
-          {children}
-        </div>
-      )}
+      {hasBody && <div style={bodyStyle}>{children}</div>}
     </Card>
   )
 }

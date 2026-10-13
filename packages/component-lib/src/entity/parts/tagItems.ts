@@ -1,5 +1,5 @@
 import type { EntityRef, TraitMention } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { glossaryRef } from 'salvageunion-reference'
 
 /** One trait as a Tag: its name, its parameter and the glossary entry it names. */
 export type TagItem = {
@@ -23,20 +23,6 @@ export function traitTags(traits: readonly TraitMention[]): TagItem[] {
     schemaName: trait.schemaName,
     ...(trait.ref ? { ref: trait.ref } : {}),
   }))
-}
-
-/** A glossary entry by name, exact or lower-cased (the glossaries store lower case). */
-export function glossaryRef(
-  schemaName: 'traits' | 'keywords',
-  name: string
-): EntityRef | undefined {
-  if (!SalvageUnionReference.isLoaded(schemaName)) return undefined
-  const entry =
-    SalvageUnionReference.getByNameIn(schemaName, name) ??
-    SalvageUnionReference.getByNameIn(schemaName, name.toLowerCase())
-  return entry
-    ? { schemaName, id: entry.id, slug: getEntitySlug(entry), name: entry.name }
-    : undefined
 }
 
 /**

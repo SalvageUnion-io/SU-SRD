@@ -36,8 +36,6 @@ export type HeadProps = {
   tier?: string
   /** The entity's chip group (`Chips`, E17): right of the name, or under it. */
   chips?: ReactNode
-  /** The instance's condition stamp (the Hold mode's slot). */
-  condition?: ReactNode
   /** A one-line hint, after the title. */
   hint?: ReactNode
   /** The pennant button (act): the Dashboard's. A read cost is a chip. */
@@ -65,7 +63,7 @@ export type HeadProps = {
  * HEAD — a Row's band: the tier (on the band), the name (it wraps, never
  * clipped; with `notch`, on the paper cut-out at the band's foot) with its labels to its
  * right, the chip group (right of the name while it fits, under it when it
- * does not: the band's own width decides), a hint, the condition, the pennant
+ * does not: the band's own width decides), a hint, the pennant
  * button and the mode's affordance, in that order; the affordance stays on
  * the band's right, centred on it, never alone on a line. The band wears the
  * paint (`paintFor`): the tone or ink, grey when down.
@@ -77,7 +75,6 @@ export function Head({
   paint,
   tier,
   chips,
-  condition,
   hint,
   pennant,
   affordance,
@@ -139,7 +136,6 @@ export function Head({
             {hint}
           </span>
         )}
-        {condition}
         {pennant && <span style={{ display: 'flex', flex: 'none' }}>{pennant}</span>}
         {affordance}
       </div>

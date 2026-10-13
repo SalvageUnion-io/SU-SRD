@@ -74,8 +74,6 @@ type HeaderMenuProps = {
   sections: HeaderMenuItem[][]
   /** Draw the ▾ after the trigger content. On by default; off for an avatar-only trigger. */
   chevron?: boolean
-  /** Which edge of the trigger the popup lines up with. */
-  align?: 'start' | 'center' | 'end'
   /**
    * The menu is where you are: the trigger takes the nav links' here-state
    * (`aria-current`, full paper and a rule beneath), as a link to this page would.
@@ -188,7 +186,6 @@ export function HeaderMenu({
   label,
   sections,
   chevron = true,
-  align = 'end',
   active = false,
   variant = 'masthead',
   className,
@@ -220,7 +217,7 @@ export function HeaderMenu({
         )}
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner side="bottom" align={align} sideOffset={8} style={POSITIONER}>
+        <Menu.Positioner side="bottom" align="end" sideOffset={8} style={POSITIONER}>
           <Menu.Popup style={POPUP}>
             {filled.map((section, index) => (
               <Fragment key={section[0]?.id}>

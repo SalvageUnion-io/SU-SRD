@@ -58,17 +58,14 @@ became running **a table**: several players, one Union Crawler, a Mediator, and 
 shared session where a Downtime happens to everybody at once.
 
 [ADR-021](021-itun-surface-taxonomy.md) anticipated this precisely. Its
-long-tail section lists **"Workspaces → Game spaces"**, a **"Shared, live
+long-tail section listed **"Workspaces → Game spaces"**, a **"Shared, live
 Dashboard"**, and a **"dedicated Mediator layer"** as out of scope and
 _explicitly gated on revisiting ADR-001_. Nothing here is a surprise to the
 architecture; this ADR opens the gate ADR-021 described.
 
-Three existing decisions turned out to be well-shaped for this and were carried
+Two existing decisions turned out to be well-shaped for this and were carried
 over:
 
-- **~~[ADR-004](../ARCHITECTURE.md#decisions) (immutable, unauthenticated
-  snapshots) remains the account-free way to hand someone a pilot.~~ Retired by
-  [ADR-036](../ARCHITECTURE.md#decisions).**
 - **[ADR-027](../ARCHITECTURE.md#decisions)/[ADR-028](../ARCHITECTURE.md#decisions)**
   made partner ownership _intrinsic_ — partners ride their host through snapshots
   and export bundles with no orphan cleanup. That ports to per-user ownership with
@@ -141,29 +138,11 @@ step, which is exactly the property a fork would not have had.
 So a character in somebody else's Game can be copied to your shelf without
 copying the Game, and editing your copy can never touch theirs.
 
-> **Amended.** This clause previously read: _"a pilot's crawler
-> level, scrap, TP, and injuries are Game-specific, so a shared pilot would be
-> incoherent rather than convenient. Moving one is an explicit **fork** that
-> copies and records its origin."_
->
-> The conclusion did not follow from the premise. Game-specific state is only
-> incoherent if one entity can be in two Games at once, and the container model
-> makes that unrepresentable: `gameId` is a **single nullable column**, so an
-> entity is in at most one Game by construction. Forking solved a problem the
-> schema already prevents.
->
-> Note that a fork is **not** the same thing as the copy sanctioned above, and
-> the difference is the origin it "records". A copy is a clean break — a new
-> build of yours with no tie to what it came from. A fork keeps a relationship,
-> and a relationship between two records of one character is precisely the thing
-> that has to be reconciled, watched, and eventually gets out of step. The verb
-> that survives is the one with nothing to keep in sync.
->
-> No fork was ever built, so this amendment does not change behaviour;
-> `MoveToContainerControl` re-stamps `gameId` in place and
-> `entities.upsertByAppId` re-homes the existing row. What it changes is the
-> instruction: that in-place move **is** the design, and the absence of a fork
-> mutation is not a gap for somebody to close later.
+An entity is in at most one Game by construction (`gameId` is a **single
+nullable column**), so there is nothing to fork. `MoveToContainerControl`
+re-stamps `gameId` in place and `entities.upsertByAppId` re-homes the existing
+row: that in-place move **is** the design, and the absence of a fork mutation is
+not a gap for somebody to close later.
 
 ### 3. Roles: a base role plus one modifier
 
@@ -201,19 +180,17 @@ Owners may always **release** what they hold, and the Mediator may **reassign**,
 so a mis-assignment is fixable. A player may own any number of entities in a
 Game — solo play and covering for an absent player both need it.
 
-> **Amended: players self-claim what is offered.** This section originally read
-> "ownership is assigned rather than claimed: players do not self-claim". That
-> is reversed. An unclaimed entity is an **offer to the crew** — that is the
-> whole reason the Mediator pre-builds characters and a template seeds six of
-> them — so a player taking one is accepting an offer, not seizing anything.
-> Requiring the Mediator to hand each one over individually added a round trip
-> to the first ten minutes of every table and bought no safety.
->
-> The boundary the original rule protected is intact and is the important half:
-> **claiming touches only what is free.** An entity somebody already holds
-> cannot be taken; it must be released first, by its owner or by the Mediator.
-> `assign` remains the table runner's power to place an entity with a
-> _particular_ person, which self-claim cannot express.
+**Players self-claim what is offered.** An unclaimed entity is an **offer to
+the crew** — that is the whole reason the Mediator pre-builds characters and a
+template seeds six of them — so a player taking one is accepting an offer, not
+seizing anything. Requiring the Mediator to hand each one over individually
+would add a round trip to the first ten minutes of every table and buy no
+safety.
+
+**Claiming touches only what is free.** An entity somebody already holds
+cannot be taken; it must be released first, by its owner or by the Mediator.
+`assign` remains the table runner's power to place an entity with a
+_particular_ person, which self-claim cannot express.
 
 ### 5. Visibility
 
@@ -233,10 +210,8 @@ Communal is not free-to-**create**:
   `mediator: false` on its only membership, so a Mediator-strict rule would make
   every new Game an unreachable state). So is filling its fields (§5, as
   amended by [ADR-038](038-dashboard-game-surface.md) §5).
-- ~~**A Game takes a player's pilots and mechs once it has a crawler.**~~
-  **Amended by [ADR-037](../ARCHITECTURE.md#decisions):** any member may bring
-  their pilots and mechs into any Game they belong to, crawler or not. The
-  anchoring this bullet wanted is now explicit instead of a gate: the first
+- **Any member may bring their pilots and mechs into any Game they belong
+  to**, crawler or not ([ADR-037](../ARCHITECTURE.md#decisions)). The first
   crawler to arrive becomes the Game's **primary** and takes aboard everyone
   already there, and whoever enters later is assigned to the primary on the way
   in. Moving a crawler into or out of a Game is the table runner's act.
@@ -339,14 +314,9 @@ table runner's acts.
 
 What the amendment adds is the third row of §2's ownership table — `gameId:
 null` with an owner, *on the shelf* — which the crawler was the one entity
-unable to occupy. Two things were being worked around rather than fixed:
-
-- **Deleting a Game had to destroy its crawler.** Pilots and mechs fell back to
-  a shelf; the crew's home had nowhere to fall to.
-- **Claiming a Solo roster invented a container.** `entities.claimLocal` parked
-  a claimed crawler on a placeholder "Claimed crawler" Game of one, complete
-  with a membership, because the shelf could not hold it. That Game appeared in
-  the player's list as a table they never made.
+unable to occupy. Without it, deleting a Game had to destroy its crawler:
+pilots and mechs fell back to a shelf, and the crew's home had nowhere to fall
+to.
 
 `gameId == null && ownerId == null` remains the one invalid combination, for the
 crawler exactly as for everything else — which is *why* a shelved crawler must
@@ -377,15 +347,6 @@ table's wiring rather than a possession — a pilot-to-crawler assignment means
 "aboard this crew's crawler", which stops being true when the crew disbands — so
 shelved entities land unwired.
 
-### Why not keep a shelved crawler in the browser only
-
-The rejected alternative was to copy the crawler into IndexedDB on deletion and
-leave the server out of it, which needs no schema change. It is rejected on
-principle: Convex is the one source of truth, and there is now no local store
-at all ([no device cache](../ARCHITECTURE.md#no-device-cache)). A record with no
-server row is invisible on the player's other devices and lost with the
-browser's storage.
-
 ## Amendment to ADR-022
 
 ADR-022 states the Change Log is **local only** and never travels with a
@@ -394,8 +355,8 @@ published snapshot. The first half no longer holds: the log is now
 `applied | proposed | rejected | superseded`, and a `supersededBy` pointer. A
 proposal _is_ a log entry; applying one commits it.
 
-The second half stood — **a published snapshot remained frozen, historyless,
-and bare** — until [ADR-036](../ARCHITECTURE.md#decisions) retired snapshots.
+The second half no longer applies: [ADR-036](../ARCHITECTURE.md#decisions)
+retired snapshots.
 
 ## Consequences
 
@@ -405,8 +366,8 @@ and bare** — until [ADR-036](../ARCHITECTURE.md#decisions) retired snapshots.
   Deleting an account transfers Organizer to the longest-standing remaining
   member and removes that account's owned entities; **the Game and the communal
   crawler survive**, so a campaign never dies because one person quit.
-- **Anonymous use must keep working, forever.** Withdrawn by ADR-034: anonymous
-  use still works, but nothing it builds persists without an account.
+- **Anonymous use still works**, but nothing it builds persists without an
+  account ([ADR-034](../ARCHITECTURE.md#decisions)).
 - **Convex cannot validate entity bodies.** The Zod schemas in
   `packages/itun-domain/src/schemas/` stay the source of truth and Convex stores bodies
   opaquely, so **every mutation must Zod-parse before persisting**. The

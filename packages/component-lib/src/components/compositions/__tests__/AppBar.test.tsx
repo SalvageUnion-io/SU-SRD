@@ -38,7 +38,7 @@ describe('AppBar', () => {
     expect(screen.queryByRole('navigation', { name: 'Main navigation' })).toBeNull()
   })
 
-  test('one geometry for both tools: nav inline, quiet links at the end, no density', () => {
+  test('one geometry for both tools: nav inline, no density', () => {
     render(
       <AppBar
         product="build"
@@ -49,7 +49,6 @@ describe('AppBar', () => {
           { id: 'games', node: <button type="button">Games</button> },
           { label: 'Starter Set', href: '/starter/' },
         ]}
-        secondaryItems={[{ label: 'About', href: '/about/' }]}
       />
     )
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
@@ -62,8 +61,6 @@ describe('AppBar', () => {
     expect(within(nav).getByRole('link', { name: 'Shelves' }).getAttribute('aria-current')).toBe(
       'page'
     )
-    expect(within(nav).queryByRole('link', { name: 'About' })).toBeNull()
-    expect(screen.getByRole('link', { name: 'About' }).className).toContain('su-union-bar__quiet')
     const banner = screen.getByRole('banner')
     expect(banner.hasAttribute('data-density')).toBe(false)
     // The same lockup in both tools: the wordmark is always drawn.

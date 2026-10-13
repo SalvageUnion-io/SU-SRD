@@ -201,10 +201,9 @@
 
 /* ── StatProvenance, Tooltip, Text ── */
 /* components/atoms/Text.tsx — every property a class, because callers restyle
- * Text through `className` (their utilities must keep winning). Two classes of
+ * Text through `className` (their classes must keep winning). Two classes of
  * specificity so a package rule such as `.su-entity-page__prose
- * [data-prose='flavor']` loses to the variant, as it lost to the variant's
- * utilities before. */
+ * [data-prose='flavor']` loses to the variant. */
 .su-text.su-text--default {
   color: var(--foreground);
   font-family: var(--font-body);

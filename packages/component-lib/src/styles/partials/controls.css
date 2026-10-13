@@ -189,7 +189,7 @@
 .su-searcher__rail {
   position: sticky;
   top: 0;
-  /* Over a hovered pool card (z-10), as the floating rail it replaced was. */
+  /* Over a hovered pool card (z-10). */
   z-index: 20;
   border-bottom: var(--bw-chrome) solid var(--color-ink);
 }

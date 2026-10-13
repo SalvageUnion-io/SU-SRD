@@ -8,14 +8,17 @@ import { Badge } from '../atoms/Badge'
 import { FilterRow } from './FilterRow'
 
 /**
- * FilterRow — the labelled filter band above SRD listings (SchemaViewerIsland,
- * SearchResultsIsland): a small-caps label with a wrapping run of controls
- * beside it. Facet values here are derived from the real dataset, exactly as
+ * FilterRow — the labelled filter band in the EntitySearcher's dark
+ * sub-header: a small-caps paper label with a wrapping run of controls beside
+ * it. Facet values here are derived from the real dataset, exactly as
  * the reference site derives them.
  */
 export default {
   title: 'Containers/Filter Row',
 }
+
+/** The dark tone band FilterRow sits on (the EntitySearcher's sub-header). */
+const BAND = { backgroundColor: color.ink, padding: space[8] } satisfies CSSProperties
 
 const GROUP = { display: 'flex', flexDirection: 'column', gap: space[6] } satisfies CSSProperties
 
@@ -68,99 +71,107 @@ export const Default: Story = () => {
     <div style={{ display: 'flex', maxWidth: '48rem', flexDirection: 'column', gap: space[24] }}>
       <div style={GROUP}>
         <Caption>Name — an arbitrary control (search input), not just chips</Caption>
-        <FilterRow label="Name">
-          <input
-            type="search"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            placeholder="Filter by name…"
-            aria-label="Filter items by name"
-            className="su-story-filter-input"
-            style={INPUT}
-          />
-        </FilterRow>
+        <div style={BAND}>
+          <FilterRow label="Name">
+            <input
+              type="search"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              placeholder="Filter by name…"
+              aria-label="Filter items by name"
+              className="su-story-filter-input"
+              style={INPUT}
+            />
+          </FilterRow>
+        </div>
       </div>
 
       <div style={GROUP}>
         <Caption>Tech Level — swatch chips coloured from the TL palette</Caption>
-        <FilterRow label="Tech Level">
-          <Badge
-            shape="chip"
-            as="button"
-            aria-pressed={tlFilters.size === 0}
-            surface={tlFilters.size === 0 ? 'solid' : 'ghost'}
-            onClick={() => setTlFilters(new Set())}
-          >
-            All
-          </Badge>
-          {techLevels.map((level) => (
+        <div style={BAND}>
+          <FilterRow label="Tech Level">
             <Badge
-              key={String(level)}
               shape="chip"
               as="button"
-              aria-pressed={tlFilters.has(String(level))}
-              surface={tlFilters.has(String(level)) ? 'solid' : 'ghost'}
-              swatch={typeof level === 'number' ? `var(--color-tl-${level})` : undefined}
-              onClick={() => setTlFilters((s) => toggle(s, String(level)))}
+              aria-pressed={tlFilters.size === 0}
+              surface={tlFilters.size === 0 ? 'solid' : 'ghost'}
+              onClick={() => setTlFilters(new Set())}
             >
-              {level === 'B' ? 'BIO' : level === 'N' ? 'NANITE' : `TL${level}`}
+              All
             </Badge>
-          ))}
-        </FilterRow>
+            {techLevels.map((level) => (
+              <Badge
+                key={String(level)}
+                shape="chip"
+                as="button"
+                aria-pressed={tlFilters.has(String(level))}
+                surface={tlFilters.has(String(level)) ? 'solid' : 'ghost'}
+                swatch={typeof level === 'number' ? `var(--color-tl-${level})` : undefined}
+                onClick={() => setTlFilters((s) => toggle(s, String(level)))}
+              >
+                {level === 'B' ? 'BIO' : level === 'N' ? 'NANITE' : `TL${level}`}
+              </Badge>
+            ))}
+          </FilterRow>
+        </div>
       </div>
 
       <div style={GROUP}>
         <Caption>Source — plain chips; the run wraps under the label</Caption>
-        <FilterRow label="Source">
-          <Badge
-            shape="chip"
-            as="button"
-            aria-pressed={sourceFilters.size === 0}
-            surface={sourceFilters.size === 0 ? 'solid' : 'ghost'}
-            onClick={() => setSourceFilters(new Set())}
-          >
-            All
-          </Badge>
-          {sources.map((source) => (
+        <div style={BAND}>
+          <FilterRow label="Source">
             <Badge
-              key={source}
               shape="chip"
               as="button"
-              aria-pressed={sourceFilters.has(source)}
-              surface={sourceFilters.has(source) ? 'solid' : 'ghost'}
-              onClick={() => setSourceFilters((s) => toggle(s, source))}
+              aria-pressed={sourceFilters.size === 0}
+              surface={sourceFilters.size === 0 ? 'solid' : 'ghost'}
+              onClick={() => setSourceFilters(new Set())}
             >
-              {source}
+              All
             </Badge>
-          ))}
-        </FilterRow>
+            {sources.map((source) => (
+              <Badge
+                key={source}
+                shape="chip"
+                as="button"
+                aria-pressed={sourceFilters.has(source)}
+                surface={sourceFilters.has(source) ? 'solid' : 'ghost'}
+                onClick={() => setSourceFilters((s) => toggle(s, source))}
+              >
+                {source}
+              </Badge>
+            ))}
+          </FilterRow>
+        </div>
       </div>
 
       <div style={GROUP}>
         <Caption>Tree — the abilities-only facet</Caption>
-        <FilterRow label="Tree">
-          <Badge
-            shape="chip"
-            as="button"
-            aria-pressed={treeFilters.size === 0}
-            surface={treeFilters.size === 0 ? 'solid' : 'ghost'}
-            onClick={() => setTreeFilters(new Set())}
-          >
-            All
-          </Badge>
-          {trees.map((tree) => (
+        <div style={BAND}>
+          <FilterRow label="Tree">
             <Badge
-              key={tree}
               shape="chip"
               as="button"
-              aria-pressed={treeFilters.has(tree)}
-              surface={treeFilters.has(tree) ? 'solid' : 'ghost'}
-              onClick={() => setTreeFilters((s) => toggle(s, tree))}
+              aria-pressed={treeFilters.size === 0}
+              surface={treeFilters.size === 0 ? 'solid' : 'ghost'}
+              onClick={() => setTreeFilters(new Set())}
             >
-              {tree}
+              All
             </Badge>
-          ))}
-        </FilterRow>
+            {trees.map((tree) => (
+              <Badge
+                key={tree}
+                shape="chip"
+                as="button"
+                aria-pressed={treeFilters.has(tree)}
+                surface={treeFilters.has(tree) ? 'solid' : 'ghost'}
+                onClick={() => setTreeFilters((s) => toggle(s, tree))}
+              >
+                {tree}
+              </Badge>
+            ))}
+          </FilterRow>
+        </div>
       </div>
 
       <Caption>

@@ -12,7 +12,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getSchemaCatalog, SalvageUnionReference, SchemaToModelMap } from 'salvageunion-reference'
+import { getModel, getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** Text the tile renders, with the entity's own name removed — what a reader
@@ -42,12 +42,7 @@ describe('catalog tiles always carry content', () => {
     .map((schema) => schema.id)
 
   test.each(listingSchemas)('every %s tile says something beyond its name', (schemaId) => {
-    const model = SchemaToModelMap[schemaId as keyof typeof SchemaToModelMap]
-    const all = (
-      SalvageUnionReference[model as keyof typeof SalvageUnionReference] as unknown as {
-        all: () => SURefEntity[]
-      }
-    ).all()
+    const all = getModel(schemaId)?.all() ?? []
     expect(all.length).toBeGreaterThan(0)
 
     const blank = all.filter((entity) => contentBeyondName(entity).length === 0)

@@ -38,24 +38,20 @@ declare global {
 export type KofiButtonProps = {
   /** Ko-fi page code — the `<code>` in `ko-fi.com/<code>`. */
   code: string
-  /** Button label. */
-  label?: string
-  /**
-   * Button accent colour (hex). The widget sets its label in white on this, so
-   * the default is dark enough for WCAG AA: 5.5:1, where the `#72a4f2` it
-   * replaced measured 2.5:1.
-   */
-  color?: string
   /** Optional class on the container element. */
   className?: string
 }
 
-export function KofiButton({
-  code,
-  label = 'Support me on Ko-fi',
-  color = '#2e66c4',
-  className,
-}: KofiButtonProps) {
+const LABEL = 'Support me on Ko-fi'
+
+/**
+ * The button's accent colour (hex). The widget sets its label in white on this,
+ * so it is dark enough for WCAG AA: 5.5:1, where the `#72a4f2` it replaced
+ * measured 2.5:1.
+ */
+const ACCENT = '#2e66c4'
+
+export function KofiButton({ code, className }: KofiButtonProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -70,14 +66,14 @@ export function KofiButton({
     fallback.href = `https://ko-fi.com/${code}`
     fallback.target = '_blank'
     fallback.rel = 'noopener noreferrer'
-    fallback.textContent = label
+    fallback.textContent = LABEL
     el.appendChild(fallback)
 
     function render() {
       if (cancelled || !ref.current) return
       const widget = window.kofiwidget2
       if (!widget) return
-      widget.init(label, color, code)
+      widget.init(LABEL, ACCENT, code)
       ref.current.innerHTML = widget.getHTML()
     }
 
@@ -101,7 +97,7 @@ export function KofiButton({
       cancelled = true
       script.removeEventListener('load', render)
     }
-  }, [code, label, color])
+  }, [code])
 
   return <div ref={ref} className={className} style={CONTAINER} />
 }

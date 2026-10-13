@@ -8,14 +8,7 @@
   // `e2e/**/*` + `playwright.config.ts`: Playwright transpiles specs without
   // type-checking them, and biome.jsonc disables the linter for both paths, so
   // this include is their only check beyond the formatter.
-  "include": [
-    "src/**/*",
-    "ssg/**/*",
-    "test/**/*",
-    "scripts/**/*",
-    "e2e/**/*",
-    "playwright.config.ts"
-  ],
+  "include": ["src/**/*", "ssg/**/*", "scripts/**/*", "e2e/**/*", "playwright.config.ts"],
   // `include` is explicit, but a stale build output must never be typechecked.
   "exclude": ["dist"],
   "references": [

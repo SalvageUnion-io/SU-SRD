@@ -110,23 +110,6 @@ describe('CardRollTable', () => {
     expect(screen.getAllByRole('listitem').length).toBe(5)
   })
 
-  test('a surface with rolls off reads and folds the table, with no Roll', () => {
-    render(
-      <EntitySurfaceProvider value={{ rolls: false }}>
-        <CardRollTable
-          table={coreMechanic()}
-          name="Core Mechanic"
-          size="large"
-          collapsible={false}
-          disabled={false}
-        />
-      </EntitySurfaceProvider>
-    )
-    expect(screen.queryByRole('button', { name: /^Roll/ })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Hide the Core Mechanic table' })).toBeTruthy()
-    expect(screen.getAllByRole('listitem').length).toBe(5)
-  })
-
   test('a surface that announces rolls gets the result, and the card keeps no readout', async () => {
     const announced: AnnouncedRoll[] = []
     render(

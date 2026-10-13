@@ -23,9 +23,6 @@ accepted, not built.
 answers it with `no-store` (see Configuration outside the repo). §Credentials
 carries the `production` and `preview` Environments.
 
-**§3 is history:** [ADR-036](../ARCHITECTURE.md#decisions) retired snapshots
-(and superseded ADR-004, which §3 amended).
-
 Re-affirms [ADR-031](../ARCHITECTURE.md#decisions) and
 [ADR-030](030-accounts-games-server-of-record.md) without changing either.
 `srd` remains a statically pre-rendered no-backend site; Convex remains the
@@ -46,12 +43,9 @@ rather than assumed: 549.6 KiB compressed and a 141 ms startup.
 `su-assets` is a Worker over R2, and the Discord bot is a Worker answering HTTP
 interactions.
 
-**2. The cutover was hard, with no rollback.** Per-phase verification was the
-only safety mechanism, so every phase carried a gate written so that it could
-fail.
+**2. The cutover** — done; its plan is in the commit cited under Status.
 
-**3. Snapshots used R2, not KV.** KV's up-to-60-second propagation and cached
-negative lookups would have turned publish-then-read into a hard not-found.
+**3. Snapshot storage** — retired with snapshots ([ADR-036](../ARCHITECTURE.md#decisions)).
 
 **4. Builds run in GitHub Actions; deploys use `wrangler`.** Workers Builds is
 not adopted: `srd`'s build provisions Chromium to render per-entity OG images,
@@ -59,7 +53,7 @@ and one build path keeps one place for path filtering and the CI gates in front
 of every deploy.
 
 **5. Convex stays, and nothing here may foreclose moving it.** Replacing Convex
-with D1 is a separate decision needing its own ADR (see the follow-up below).
+with D1 is a separate decision needing its own ADR.
 So the Worker↔Convex boundary stays plain HTTP with a bearer token.
 
 **6. Everything runs on the existing `alxjrvs@gmail.com` account.** A dedicated
@@ -157,17 +151,3 @@ proxied `www` record, **decline** — wrangler's custom-domain attach creates th
 record and fails with 409 Conflict if one already exists. `www` stays attached
 as a Worker custom domain so that a missing rule serves the site, with correct
 canonicals, rather than an error.
-
-## Follow-up: Convex → D1
-
-Out of scope, with its own future ADR; recorded because decision 5 binds today.
-Schema translation to SQLite is the easy part. Three things are not:
-
-1. **Reactivity.** D1 has no subscriptions, and ADR-030 makes the reactive model
-   the product feature. Cloudflare's answer is Durable Objects with hibernating
-   WebSockets (a real design exercise) or polling (a product downgrade).
-2. **Auth.** Discord OAuth terminates on Convex via `@convex-dev/auth`.
-   Replacing it means owning the OAuth flow, session issuance and refresh, and
-   the `authAccounts` lookup the Discord bot uses to resolve a snowflake.
-3. **Transactions.** Convex mutations are serializable by default; invariants
-   the platform guarantees today would have to become explicit.

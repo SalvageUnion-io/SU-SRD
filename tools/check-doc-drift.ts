@@ -16,7 +16,7 @@
  *            a claim the repo has retired (`RETIRED_CLAIMS`).
  *   decisions every ADR is entry N of the numbered list under `## Decisions`
  *            in docs/ARCHITECTURE.md (`N. **ADR-NNN Title**`), none missing or
- *            repeated, docs/adrs/ stays gone, and an entry that amends,
+ *            repeated, and an entry that amends,
  *            supersedes or reverses another is named in that other entry.
  *            An ADR whose full text is kept (the ones code cites by §) is
  *            one `docs/adr/NNN-slug.md` with `status` front-matter and a
@@ -267,7 +267,7 @@ function resolvesFrom(root: string, doc: string, candidate: string, workspaces: 
  * any closing markup before whitespace; every table row and list item is its
  * own unit, so one history word cannot excuse a whole table.
  */
-function sentenceBounds(text: string, index: number): [number, number] {
+export function sentenceBounds(text: string, index: number): [number, number] {
   const boundary = /[.!?;][*_)\]`'"]*(?=\s)|\n\s*\n|\n(?=\s*(?:\||[-*+]\s|\d+[.)]\s))/g
   let start = 0
   let end = text.length
@@ -280,11 +280,6 @@ function sentenceBounds(text: string, index: number): [number, number] {
     }
   }
   return [start, end]
-}
-
-export function sentenceAround(text: string, index: number): string {
-  const [start, end] = sentenceBounds(text, index)
-  return text.slice(start, end)
 }
 
 const proseOf = (text: string): string => text.replace(/`[^`]*`/g, ' code ').toLowerCase()
@@ -864,11 +859,6 @@ function adrFileFailures(root: string, source: string): { count: number; failure
 
 export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckResult {
   const failures: string[] = []
-  if (existsSync(join(root, 'docs/adrs'))) {
-    failures.push(
-      `docs/adrs/ exists again. An ADR is an entry under \`## Decisions\` in ${DECISIONS_DOC}: move it there.`
-    )
-  }
   if (!existsSync(join(root, DECISIONS_DOC))) {
     failures.push(`${DECISIONS_DOC}, which holds the ADRs, does not exist.`)
     return { ok: '', failures }
@@ -1045,8 +1035,8 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  * so); raise one only on purpose, saying why in the commit.
  */
 const SESSION_CEILINGS: Record<string, number> = {
-  srd: 25_183,
-  'itun+component-lib': 64_524,
+  srd: 24_350,
+  'itun+component-lib': 63_232,
   bot: 23_148,
 }
 

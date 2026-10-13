@@ -7,7 +7,73 @@
  */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
-import { AS_PRINTED_OVERFLOW, mountsFit, patternSlotUsage } from '../capacity'
+import { nameToSlug } from '../../nameToSlug'
+import type { SURefChassis, SURefObjectPattern } from '../../schemas/index'
+import { AS_PRINTED_OVERFLOW } from '../capacity'
+import { resolveModuleRef, resolveSystemRef } from '../resolveRefs'
+
+/** One mount's slot usage: the chassis itself (`head` absent) or one of its heads. */
+type MountSlotUsage = {
+  head?: string
+  systemSlotsUsed: number
+  systemSlotsMax: number
+  moduleSlotsUsed: number
+  moduleSlotsMax: number
+}
+
+/**
+ * A pattern's slot usage per mount: the chassis first, then each of its heads.
+ * Items are costed by the reference's `slotsRequired` (1 when unresolved, as in
+ * `computeMechCapacity`) times their `count`. An item placed on a head the
+ * chassis does not have gets a mount of its own with no slots.
+ */
+function patternSlotUsage(chassis: SURefChassis, pattern: SURefObjectPattern): MountSlotUsage[] {
+  const mounts: MountSlotUsage[] = [
+    {
+      systemSlotsUsed: 0,
+      systemSlotsMax: chassis.systemSlots,
+      moduleSlotsUsed: 0,
+      moduleSlotsMax: chassis.moduleSlots,
+    },
+    ...(chassis.heads ?? []).map((head) => ({
+      head: head.name,
+      systemSlotsUsed: 0,
+      systemSlotsMax: head.systemSlots,
+      moduleSlotsUsed: 0,
+      moduleSlotsMax: head.moduleSlots,
+    })),
+  ]
+  const mountFor = (head: string | undefined): MountSlotUsage => {
+    const found = mounts.find((mount) => mount.head === head)
+    if (found) return found
+    const added = {
+      head,
+      systemSlotsUsed: 0,
+      systemSlotsMax: 0,
+      moduleSlotsUsed: 0,
+      moduleSlotsMax: 0,
+    }
+    mounts.push(added)
+    return added
+  }
+  for (const item of pattern.systems) {
+    mountFor(item.head).systemSlotsUsed +=
+      (resolveSystemRef(nameToSlug(item.name))?.slotsRequired ?? 1) * (item.count ?? 1)
+  }
+  for (const item of pattern.modules) {
+    mountFor(item.head).moduleSlotsUsed +=
+      (resolveModuleRef(nameToSlug(item.name))?.slotsRequired ?? 1) * (item.count ?? 1)
+  }
+  return mounts
+}
+
+/** True when every mount's usage is within its slots. */
+function mountsFit(mounts: readonly MountSlotUsage[]): boolean {
+  return mounts.every(
+    (mount) =>
+      mount.systemSlotsUsed <= mount.systemSlotsMax && mount.moduleSlotsUsed <= mount.moduleSlotsMax
+  )
+}
 
 const chassisList = SalvageUnionReference.Chassis.all()
 

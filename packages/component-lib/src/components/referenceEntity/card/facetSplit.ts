@@ -1,7 +1,7 @@
 import type { FacetCell, SURefEnumSchemaName } from 'salvageunion-reference'
+import { glossaryRef } from 'salvageunion-reference'
 import { actionTypeStamps } from '../../../entity/parts/actionStamps'
 import type { TagItem } from '../../../entity/parts/tagItems'
-import { glossaryRef } from '../../../entity/parts/tagItems'
 import type { StatItem } from '../../containers/statsBarTypes'
 
 /**

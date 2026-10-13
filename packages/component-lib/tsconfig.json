@@ -9,6 +9,6 @@
     "declarationDir": "../../.tsbuild/component-lib",
     "tsBuildInfoFile": "../../.tsbuild/component-lib/tsconfig.tsbuildinfo"
   },
-  "include": ["src", "test"],
+  "include": ["src"],
   "references": [{ "path": "../salvageunion-reference" }]
 }

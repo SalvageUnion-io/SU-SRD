@@ -68,8 +68,7 @@ function TraitText({ text }: { text: string }) {
  *
  * A surface that announces rolls (`EntitySurfaceValue.announceRoll` — the
  * SRD's toast) gets the result there instead of the readout; the open table
- * still marks the row. A surface with `rolls` off has no roll at all: the
- * stamp is a plain label, and the table still reads and still folds.
+ * still marks the row.
  *
  * A COLUMNS table (Callsign, a d20 × d20) is the same instrument and the same
  * bar: its stamp rolls both dice, the readout names the column, and the grid marks
@@ -106,8 +105,7 @@ export function CardRollTable({
   /** Called with the outcome's text (and its range key) on every roll. */
   onRollResult?: (text: string, key: string) => void
 }) {
-  const { rolls, announceRoll } = useEntitySurface()
-  const noRoll = disabled || !rolls
+  const { announceRoll } = useEntitySurface()
   const [expanded, setExpanded] = useState(!collapsible)
   const isColumns = table.type === 'columns'
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
@@ -206,7 +204,7 @@ export function CardRollTable({
       tone={tone}
       frame={framed ? 'box' : 'rule'}
       stamp={isColumns ? 'Roll twice:' : undefined}
-      onRoll={noRoll ? undefined : isColumns ? rollColumns : rollBands}
+      onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
       actions={actions}
       readout={readout}
       open={expanded}

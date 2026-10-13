@@ -41,11 +41,6 @@ describe('VitalGauge — render', () => {
     expect(group.querySelectorAll<HTMLElement>('[data-pip="on"]').length).toBe(7)
     expect(group.querySelectorAll('[data-pip="off"]').length).toBe(3)
   })
-
-  test('accepts a caption override', () => {
-    render(<VitalGauge label="SP" value={9} max={13} caption={['Structure', 'Max']} readOnly />)
-    expect(screen.getByText('Structure')).toBeTruthy()
-  })
 })
 
 describe('VitalGauge — click to set', () => {

@@ -122,10 +122,6 @@ export const Default: Story = () => (
           { label: 'Shelves', href: '/', active: true },
           { label: 'Starter Set', href: '/starter/' },
         ]}
-        secondaryItems={[
-          { label: 'About', href: '/about' },
-          { label: 'Changelog', href: '/changelog' },
-        ]}
       />
     </div>
     <div>
@@ -145,10 +141,6 @@ export const Default: Story = () => (
             ),
           },
           { label: 'Starter Set', href: '/starter/' },
-        ]}
-        secondaryItems={[
-          { label: 'About', href: '/about' },
-          { label: 'Changelog', href: '/changelog' },
         ]}
         search={
           <SearchFieldTrigger

@@ -7,8 +7,6 @@ type SRDLinkProps = {
   href: string
   /** Human-readable entity name for the accessible label, e.g. "Iron Mongrel". */
   entityName?: string
-  /** Visible link text. Defaults to the canonical "View in SRD →". */
-  label?: string
   className?: string
 }
 
@@ -20,7 +18,7 @@ type SRDLinkProps = {
  * it in. This component adds the new-tab + security attributes and the
  * accessible label.
  */
-export function SRDLink({ href, entityName, label = 'View in SRD →', className }: SRDLinkProps) {
+export function SRDLink({ href, entityName, className }: SRDLinkProps) {
   const ariaLabel = entityName
     ? `View ${entityName} in SRD (opens in new tab)`
     : 'View in SRD (opens in new tab)'
@@ -33,7 +31,7 @@ export function SRDLink({ href, entityName, label = 'View in SRD →', className
       aria-label={ariaLabel}
       className={className}
     >
-      {label}
+      View in SRD →
     </a>
   )
 }

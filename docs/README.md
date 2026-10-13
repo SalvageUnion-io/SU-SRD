@@ -22,4 +22,3 @@ Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITEC
 18. **Dependencies** — [dependencies](ARCHITECTURE.md#dependencies) to [dead code](ARCHITECTURE.md#dead-code).
 19. **Services, MCP, cloud sessions** — [MCP](ARCHITECTURE.md#mcp) to [identifiers](ARCHITECTURE.md#identifiers); [cloud-environment.md](ops/cloud-environment.md).
 20. **A Salvage Union rule** — the [`rules-lookup`](../.claude/agents/rules-lookup.md) agent, or `bun run rules:find <term>`; setup is AGENTS.md's Rules text.
-21. **Per-package guidance** — each workspace's `CLAUDE.md` loads when you work there; path rules in [`.claude/rules/`](../.claude/rules/).

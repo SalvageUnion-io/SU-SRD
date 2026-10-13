@@ -157,7 +157,7 @@ describe('committing', () => {
 describe('number validation', () => {
   test('a valid number is saved as a number, not a string', async () => {
     // Stats are arithmetic downstream; a string here corrupts every sum.
-    const saved = setup({ value: 5, type: 'number', min: 0, max: 10 })
+    const saved = setup({ value: 5, type: 'number', max: 10 })
     openEditor()
     fireEvent.change(screen.getByLabelText('Callsign'), { target: { value: '7' } })
     fireEvent.keyDown(screen.getByLabelText('Callsign'), { key: 'Enter' })
@@ -184,16 +184,6 @@ describe('number validation', () => {
     fireEvent.keyDown(screen.getByLabelText('Callsign'), { key: 'Enter' })
 
     await waitFor(() => expect(screen.getByText('Must be a number.')).toBeTruthy())
-    expect(saved).toEqual([])
-  })
-
-  test('below min is refused, and the bound is named', async () => {
-    const saved = setup({ value: 5, type: 'number', min: 1 })
-    openEditor()
-    fireEvent.change(screen.getByLabelText('Callsign'), { target: { value: '0' } })
-    fireEvent.keyDown(screen.getByLabelText('Callsign'), { key: 'Enter' })
-
-    await waitFor(() => expect(screen.getByText('min 1')).toBeTruthy())
     expect(saved).toEqual([])
   })
 

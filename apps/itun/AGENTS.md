@@ -8,11 +8,12 @@ rewrites everything between its markers: amend it here, never inside it.
   work elsewhere in ITUN does not need it.
 - **This repo uses `bunx`; `npx` is denied.** Run every `npx convex …` the
   block or a vendored skill names as `bunx convex …`.
-- **The vendored skills are the six in `skills-lock.json`** (`convex`,
-  `convex-reviewer`, `convex-test`, `convex-authz`, `convex-migrate`,
-  `convex-docs`), in `.claude/skills/` only; there is no `.agents/`.
-  `ai-files install` / `update` reinstall the whole upstream set into both, so
-  prune back to the lock afterwards. Where a kept skill names a dropped one
+- **The vendored skills are the three in `skills-lock.json`** (`convex`,
+  `convex-reviewer`, `convex-authz`), in `.claude/skills/` only; there is no
+  `.agents/`. `ai-files install` / `update` reinstall the whole upstream set
+  into both, so prune back to the lock afterwards: `convex-migrate`,
+  `convex-test` and `convex-docs` are pruned on purpose (context7 serves
+  version-current docs), so remove them again when an update re-adds them. Where a kept skill names a dropped one
   (`convex-expert`), read the guidelines file; deployments and repairs go
   through [convex-ops](../../.claude/skills/convex-ops/SKILL.md).
 
