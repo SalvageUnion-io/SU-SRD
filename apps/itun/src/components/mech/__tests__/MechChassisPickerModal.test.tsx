@@ -43,54 +43,68 @@ function renderPicker(onConfirm: (ref: string) => void = () => {}) {
 /**
  * Each test renders the full shared searcher over the real chassis pool (51
  * cards), so the tests are as few as the contracts allow: three renders, each
- * one pinning what a shorter sequence would only repeat. 0.5 s to 1.9 s a test
- * inside itun's 4-worker suite, and up to 3.1 s with srd, component-lib and
- * tools running beside it (junit): under Bun's 5 s default, so they keep it.
+ * one pinning what a shorter sequence would only repeat. About 3 s a test under
+ * `--coverage` alone, and 2.5 s to 5.1 s in CI's coverage shard: past Bun's 5 s
+ * default, so each test sets its own.
  */
+const RENDER_TIMEOUT_MS = 10_000
+
 describe('MechChassisPickerModal', () => {
-  it('renders the shared searcher with the mech’s current chassis in the rail', () => {
-    const { current } = renderPicker()
-    // The searcher's own affordances, not a bespoke master/detail pane: a text
-    // search and the pool summary.
-    expect(screen.getByLabelText('Search')).toBeDefined()
-    expect(screen.getByText(/showing \d+ of \d+/i)).toBeDefined()
-    // The current chassis is pre-selected.
-    expect(screen.getByTestId('rail-entry').textContent).toContain(current.name)
-    // A pick card shows its chassis ability (E19's builder exception): once.
-    expect((document.body.textContent ?? '').split('Integrated Cargo Bay').length - 1).toBe(1)
-  })
+  it(
+    'renders the shared searcher with the mech’s current chassis in the rail',
+    () => {
+      const { current } = renderPicker()
+      // The searcher's own affordances, not a bespoke master/detail pane: a text
+      // search and the pool summary.
+      expect(screen.getByLabelText('Search')).toBeDefined()
+      expect(screen.getByText(/showing \d+ of \d+/i)).toBeDefined()
+      // The current chassis is pre-selected.
+      expect(screen.getByTestId('rail-entry').textContent).toContain(current.name)
+      // A pick card shows its chassis ability (E19's builder exception): once.
+      expect((document.body.textContent ?? '').split('Integrated Cargo Bay').length - 1).toBe(1)
+    },
+    RENDER_TIMEOUT_MS
+  )
 
-  it('will not apply an EMPTY chassis after the selection is cleared', () => {
-    const seen: string[] = []
-    const { current } = renderPicker((ref) => seen.push(ref))
+  it(
+    'will not apply an EMPTY chassis after the selection is cleared',
+    () => {
+      const seen: string[] = []
+      const { current } = renderPicker((ref) => seen.push(ref))
 
-    // Single-select clears when the chosen card is clicked again. A mech must
-    // always have a chassis, so this must NOT count as a change — otherwise
-    // Apply writes `chassisRef: ''` and wipes the loadout with it.
-    fireEvent.click(screen.getByRole('radio', { name: current.name }))
-    expect(screen.queryAllByTestId('rail-entry')).toHaveLength(0)
+      // Single-select clears when the chosen card is clicked again. A mech must
+      // always have a chassis, so this must NOT count as a change — otherwise
+      // Apply writes `chassisRef: ''` and wipes the loadout with it.
+      fireEvent.click(screen.getByRole('radio', { name: current.name }))
+      expect(screen.queryAllByTestId('rail-entry')).toHaveLength(0)
 
-    const apply = screen.getByRole('button', { name: /apply chassis/i })
-    expect(apply.hasAttribute('disabled')).toBe(true)
-    fireEvent.click(apply)
-    expect(seen).toEqual([])
-  })
+      const apply = screen.getByRole('button', { name: /apply chassis/i })
+      expect(apply.hasAttribute('disabled')).toBe(true)
+      fireEvent.click(apply)
+      expect(seen).toEqual([])
+    },
+    RENDER_TIMEOUT_MS
+  )
 
-  it('applies only a different chassis, by SLUG, and only after the danger dialog', () => {
-    const seen: string[] = []
-    const { other } = renderPicker((ref) => seen.push(ref))
-    const apply = () => screen.getByRole('button', { name: /apply chassis/i })
+  it(
+    'applies only a different chassis, by SLUG, and only after the danger dialog',
+    () => {
+      const seen: string[] = []
+      const { other } = renderPicker((ref) => seen.push(ref))
+      const apply = () => screen.getByRole('button', { name: /apply chassis/i })
 
-    // Inert until a DIFFERENT chassis is chosen.
-    expect(apply().hasAttribute('disabled')).toBe(true)
-    fireEvent.click(screen.getByRole('radio', { name: other.name }))
-    expect(apply().hasAttribute('disabled')).toBe(false)
+      // Inert until a DIFFERENT chassis is chosen.
+      expect(apply().hasAttribute('disabled')).toBe(true)
+      fireEvent.click(screen.getByRole('radio', { name: other.name }))
+      expect(apply().hasAttribute('disabled')).toBe(false)
 
-    fireEvent.click(apply())
-    // Apply opens the confirm; it must not have written anything yet.
-    expect(seen).toEqual([])
+      fireEvent.click(apply())
+      // Apply opens the confirm; it must not have written anything yet.
+      expect(seen).toEqual([])
 
-    fireEvent.click(screen.getByRole('button', { name: /^change chassis$/i }))
-    expect(seen).toEqual([nameToSlug(other.name)])
-  })
+      fireEvent.click(screen.getByRole('button', { name: /^change chassis$/i }))
+      expect(seen).toEqual([nameToSlug(other.name)])
+    },
+    RENDER_TIMEOUT_MS
+  )
 })
