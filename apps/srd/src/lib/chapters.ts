@@ -17,8 +17,14 @@
 
 import type { ChapterTone } from 'component-lib'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getSchemaCatalog, getTechLevel, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  getModel,
+  getSchemaCatalog,
+  getTechLevel,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { schemaHref } from './entityHref'
+import { listingEntries } from './listingEntries'
 
 type ChapterDefinition = {
   /** The home page's anchor for the chapter (`/#mech-workshop`). */
@@ -96,12 +102,15 @@ export function buildChapters(): SrdChapter[] {
     const rows = ordered.flatMap((schemaId): ChapterRow[] => {
       const schema = schemas.get(schemaId)
       if (!schema) return []
+      // The listing's count: the roll tables count only the ones they list.
+      const model = getModel(schemaId)
+      const count = model ? listingEntries(schemaId, model.all()).length : schema.itemCount
       return [
         {
           schemaId,
           label: schema.displayNamePlural,
           href: schemaHref(schemaId),
-          count: schema.itemCount,
+          count,
         },
       ]
     })

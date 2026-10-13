@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-import { getEntitySchemas, SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySchemas, getModel, SalvageUnionReference } from 'salvageunion-reference'
 import { bandFillFor, buildChapters, CONTENTS, chapterForSchema } from '../chapters'
+import { listingEntries } from '../listingEntries'
 
 /**
  * The SRD's chapters (board 06): the index the home page prints, the nav
@@ -26,8 +27,18 @@ describe('buildChapters', () => {
     expect(new Set(indexed).size).toBe(indexed.length)
   })
 
-  test('counts are the real entry counts, and a chapter’s total is its rows’ sum', () => {
-    const counts = new Map(getEntitySchemas().map((s) => [s.id, s.itemCount]))
+  test('counts are what each listing lists, and a chapter’s total is its rows’ sum', () => {
+    const counts = new Map(
+      getEntitySchemas().map((s) => [
+        s.id,
+        listingEntries(s.id, getModel(s.id)?.all() ?? []).length,
+      ])
+    )
+    // The roll tables count only their top-level tables; every other listing
+    // counts every entry of its schema.
+    expect(counts.get('roll-tables')).toBeLessThan(SalvageUnionReference.RollTables.all().length)
+    for (const schema of getEntitySchemas())
+      if (schema.id !== 'roll-tables') expect(counts.get(schema.id)).toBe(schema.itemCount)
     for (const chapter of chapters) {
       for (const row of chapter.rows) expect(row.count).toBe(counts.get(row.schemaId) ?? -1)
       expect(chapter.total).toBe(chapter.rows.reduce((sum, row) => sum + row.count, 0))

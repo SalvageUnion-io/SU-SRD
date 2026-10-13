@@ -1,5 +1,13 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { bayKind, getPageReference, getSource, getTechLevel, getTree } from 'salvageunion-reference'
+import {
+  bayKind,
+  bookName,
+  getPageReference,
+  getSource,
+  getTechLevel,
+  getTree,
+  getUniqueSources,
+} from 'salvageunion-reference'
 
 /**
  * How a schema listing groups its entities. The island groups its live grid
@@ -37,80 +45,38 @@ export type ListingShape = {
 /**
  * How a listing groups its entities, by data shape: abilities by tree, gear and
  * chassis by tech level, classes into base and hybrid, crawler bays into
- * standard and expansion; a `CHAPTER_LISTINGS` schema by the chapter of the
- * book it is printed in. The group heading then says what each card would
- * otherwise repeat (the tree on its type stamp, its TL cell).
+ * standard and expansion; a `SOURCE_LISTINGS` schema by the book each entry
+ * comes from. The group heading then says what each card would otherwise
+ * repeat (the tree on its type stamp, its TL cell).
  */
-export type GroupBy = 'chapter' | 'tree' | 'tl' | 'kind' | 'bay' | 'none'
+export type GroupBy = 'source' | 'tree' | 'tl' | 'kind' | 'bay' | 'none'
 
 /**
- * Listings grouped by where the book prints each entry (`chapterOf`): the roll
- * tables, whose 96 cards were one run with the supplements' tables mixed in
- * among the core book's.
+ * Listings grouped by the book each entry comes from: the roll tables, the
+ * core book's and each supplement's.
  */
-const CHAPTER_LISTINGS: ReadonlySet<string> = new Set(['roll-tables'])
-
-const CORE_BOOK = 'Salvage Union Workshop Manual'
+const SOURCE_LISTINGS: ReadonlySet<string> = new Set(['roll-tables'])
 
 /**
- * The Workshop Manual's chapters by their first page (its Contents, p. 7):
- * Pilot Bay p. 18 (its Pilot Tables pp. 88–93), Mech Workshop p. 94 (Mech
- * Tables pp. 208–211), Union Crawler p. 212 (to p. 231), Core Rules
- * pp. 232–251, Mediator Advice p. 252, Denizens of the Wasteland p. 266 (its
- * NPC Actions, Reactions & Morale p. 267, Encounter Tables p. 270), The
- * Downing of the Atychos p. 304, Keywords and Traits p. 318 and Reference
- * Tables p. 336. A chapter's own tables sit at its end; the tables an
- * ability, system or module prints sit with it, in the same chapter.
+ * One group per book, headed by the name a cite prints for it (`bookName`:
+ * "Workshop Manual" for the core book), in the order the rail's source filter
+ * lists them (`getUniqueSources`: the core book, then the supplements by
+ * name); within a book, by page.
  */
-const CORE_CHAPTERS: readonly { firstPage: number; label: string }[] = [
-  { firstPage: 18, label: 'Pilot Bay' },
-  { firstPage: 94, label: 'Mech Workshop' },
-  { firstPage: 212, label: 'Union Crawler' },
-  { firstPage: 232, label: 'Core Rules' },
-  { firstPage: 252, label: 'Mediator Advice' },
-  { firstPage: 266, label: 'Denizens of the Wasteland' },
-  { firstPage: 304, label: 'The Downing of the Atychos' },
-  { firstPage: 318, label: 'Keywords and Traits' },
-  { firstPage: 336, label: 'Reference Tables' },
-]
-
-/**
- * Where the book prints an entry: a Workshop Manual entry's chapter, by its
- * page, ranked in the book's order; a supplement's entry under its source,
- * after the core book. `rank` orders the groups: the core chapters by their
- * place, then the supplements by name, as the rail's source filter lists them.
- */
-export function chapterOf(item: SURefEntity): { key: string; label: string; rank: number } {
-  const source = getSource(item) ?? ''
-  if (source !== CORE_BOOK) {
-    return { key: `source:${source}`, label: source, rank: CORE_CHAPTERS.length }
-  }
-  const page = getPageReference(item) ?? 0
-  const index = CORE_CHAPTERS.filter((chapter) => chapter.firstPage <= page).length - 1
-  const chapter = CORE_CHAPTERS[index]
-  // An entry before the first chapter (or with no page) is the core book's,
-  // ahead of its chapters.
-  if (!chapter) return { key: 'core', label: 'Workshop Manual', rank: -1 }
-  return { key: `core:${chapter.label}`, label: chapter.label, rank: index }
-}
-
-function groupByChapter(items: SURefEntity[]): ListingGroup[] {
-  const byKey = new Map<string, ListingGroup & { rank: number }>()
+function groupBySource(items: SURefEntity[]): ListingGroup[] {
+  const bySource = new Map<string, SURefEntity[]>()
   for (const item of items) {
-    const { key, label, rank } = chapterOf(item)
-    const group = byKey.get(key) ?? { key, label, rank, items: [] }
-    group.items.push(item)
-    byKey.set(key, group)
+    const source = getSource(item) ?? ''
+    bySource.set(source, [...(bySource.get(source) ?? []), item])
   }
-  return [...byKey.values()]
-    .sort((a, b) => a.rank - b.rank || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
-    .map(({ key, label, items: entries }) => ({
-      key,
-      label,
-      // The book's order within a chapter: by page (a stable sort keeps the
-      // dataset's order on a shared page).
-      items: [...entries].sort((a, b) => (getPageReference(a) ?? 0) - (getPageReference(b) ?? 0)),
-    }))
+  return getUniqueSources(items).map((source) => ({
+    key: `source:${source}`,
+    label: bookName(source),
+    // A stable sort keeps the dataset's order on a shared page.
+    items: [...(bySource.get(source) ?? [])].sort(
+      (a, b) => (getPageReference(a) ?? 0) - (getPageReference(b) ?? 0)
+    ),
+  }))
 }
 
 export function resolveGroupBy(
@@ -119,7 +85,7 @@ export function resolveGroupBy(
   techLevels: TechLevel[],
   schemaId?: string
 ): GroupBy {
-  if (schemaId && CHAPTER_LISTINGS.has(schemaId)) return 'chapter'
+  if (schemaId && SOURCE_LISTINGS.has(schemaId)) return 'source'
   if (trees.length > 1) return 'tree'
   if (techLevels.length > 1 && items.every((item) => getTechLevel(item) != null)) return 'tl'
   if (items.length > 0 && items.every((item) => 'hybrid' in item)) return 'kind'
@@ -129,7 +95,7 @@ export function resolveGroupBy(
 
 export function groupEntities(items: SURefEntity[], groupBy: GroupBy): ListingGroup[] {
   if (groupBy === 'none') return [{ key: 'all', label: undefined, items }]
-  if (groupBy === 'chapter') return groupByChapter(items)
+  if (groupBy === 'source') return groupBySource(items)
   const byKey = new Map<string, ListingGroup>()
   for (const item of items) {
     const tl = getTechLevel(item)

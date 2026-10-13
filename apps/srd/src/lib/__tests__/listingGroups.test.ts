@@ -1,61 +1,45 @@
 import { describe, expect, test } from 'bun:test'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getPageReference, SalvageUnionReference } from 'salvageunion-reference'
-import { chapterOf, defaultGroups, resolveGroupBy } from '../listingGroups'
-
-const need = <T>(value: T | undefined, label: string): T => {
-  if (value === undefined) throw new Error(`fixture missing: ${label}`)
-  return value
-}
+import { getPageReference, getSource, SalvageUnionReference } from 'salvageunion-reference'
+import { listingEntries } from '../listingEntries'
+import { defaultGroups, resolveGroupBy } from '../listingGroups'
 
 const rollTables = () => SalvageUnionReference.RollTables.all() as SURefEntity[]
-const tableNamed = (name: string) =>
-  need(SalvageUnionReference.RollTables.getByName(name), name) as SURefEntity
+const listed = () => listingEntries('roll-tables', rollTables())
 
 /**
- * The roll tables listing groups its tables by where the book prints them
- * (Workshop Manual Contents, p. 7), then each supplement under its source.
+ * The roll-table listing lists its top-level tables (`listingEntries`) by the
+ * book each comes from: the core book's first, then each supplement's.
  */
-describe('roll tables by chapter', () => {
-  const groups = defaultGroups(rollTables(), [], [], 'roll-tables')
+describe('roll tables by source', () => {
+  const groups = defaultGroups(listed(), [], [], 'roll-tables')
 
-  test('the roll tables group by chapter; other listings keep their own grouping', () => {
-    expect(resolveGroupBy(rollTables(), [], [], 'roll-tables')).toBe('chapter')
+  test('the roll tables group by source; other listings keep their own grouping', () => {
+    expect(resolveGroupBy(listed(), [], [], 'roll-tables')).toBe('source')
     expect(resolveGroupBy(rollTables(), [], [], 'keywords')).toBe('none')
   })
 
-  test('the core book’s chapters in its order, then the supplements by name', () => {
-    expect(groups.map((group) => group.label)).toEqual([
-      'Pilot Bay',
-      'Mech Workshop',
-      'Union Crawler',
-      'Core Rules',
-      'Denizens of the Wasteland',
-      'False Flag',
-      'Reclamation of the Wastes',
-      'Relics of a Time Gone By',
-      "Thatcher's Mech Base",
-      'The Hive',
-      'We Were Here First!',
+  test('the core book under its cite name, then the supplements by name, each with its tables', () => {
+    expect(groups.map((group) => [group.label, group.items.length])).toEqual([
+      ['Workshop Manual', 22],
+      ['False Flag', 3],
+      ['Reclamation of the Wastes', 11],
+      ['Relics of a Time Gone By', 2],
+      ["Thatcher's Mech Base", 1],
+      ['The Hive', 2],
+      ['We Were Here First!', 9],
     ])
   })
 
-  test('every table is in exactly one group', () => {
+  test('every listed table is in exactly one group, under its own book', () => {
     const grouped = groups.flatMap((group) => group.items.map((item) => item.id))
     expect([...grouped].sort()).toEqual(
-      rollTables()
+      listed()
         .map((table) => table.id)
         .sort()
     )
-  })
-
-  test('a chapter’s tables are by its pages (Pilot Bay p. 18, Mech Workshop p. 94, Union Crawler p. 212, Core Rules p. 232, Denizens of the Wasteland p. 266)', () => {
-    expect(chapterOf(tableNamed('Callsign Table')).label).toBe('Pilot Bay') // p. 88
-    expect(chapterOf(tableNamed('Quirks')).label).toBe('Mech Workshop') // p. 208
-    expect(chapterOf(tableNamed('Crawler Name')).label).toBe('Union Crawler') // p. 226
-    expect(chapterOf(tableNamed('Core Mechanic')).label).toBe('Core Rules') // p. 232
-    expect(chapterOf(tableNamed('Reaction Roll')).label).toBe('Denizens of the Wasteland') // p. 268
-    expect(chapterOf(tableNamed('Meteor Encounter')).label).toBe('We Were Here First!')
+    for (const group of groups)
+      for (const item of group.items) expect(group.key).toBe(`source:${getSource(item)}`)
   })
 
   test('within a group, the book’s order: by page', () => {

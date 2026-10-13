@@ -85,17 +85,16 @@ import {
   VERDICTS,
   writeLockFile,
 } from 'gates/lib/proseFidelity'
+import { ruling } from 'gates/lib/proseRuling'
 import type { BookSpec } from 'gates/lib/rulesBooks'
 import { pickFiles, readPages } from 'gates/lib/rulesBooks'
 import type { StatResult } from 'gates/lib/statFidelity'
 import { collectStats, parsePages, statContext, statVerdict } from 'gates/lib/statFidelity'
 import type { ProseRuleId } from 'salvageunion-reference/proseDeviations'
 import {
-  BOILERPLATE_MIN_REPEATS,
   BOOK_TYPOS,
   CHASSIS_PLACEHOLDERS,
   CHASSIS_STAND_INS,
-  NAME_DEVIATIONS,
   OWNER_SUFFIX,
   TRAIT_MARKUP,
 } from 'salvageunion-reference/proseDeviations'
@@ -718,7 +717,6 @@ function candidates(item: ProseItem): { text: string; rule?: ProseRuleId }[] {
 function verify(lib: Library, items: ProseItem[]): Result[] {
   const freq = new Map<string, number>()
   for (const it of items) freq.set(it.text, (freq.get(it.text) ?? 0) + 1)
-  const nameDeviations = new Set(NAME_DEVIATIONS.map((d) => d.name))
   const results: Result[] = []
 
   for (const item of items) {
@@ -755,17 +753,10 @@ function verify(lib: Library, items: ProseItem[]): Result[] {
     }
     if (matched) continue
 
-    // 2. rulings and boilerplate
-    const suffixBase = item.text.match(OWNER_SUFFIX)?.[1]
-    if (
-      item.kind === 'name' &&
-      (nameDeviations.has(item.text) || (suffixBase && nameDeviations.has(suffixBase)))
-    ) {
-      done({ verdict: 'deviation', reason: 'printed-name' })
-      continue
-    }
-    if (item.kind === 'prose' && (freq.get(item.text) ?? 0) >= BOILERPLATE_MIN_REPEATS) {
-      done({ verdict: 'authored', reason: 'boilerplate' })
+    // 2. rulings and boilerplate (`ruling`)
+    const ruled = ruling(item, freq.get(item.text) ?? 0)
+    if (ruled) {
+      done(ruled)
       continue
     }
 

@@ -69,6 +69,10 @@ export const PROSE_RULES = {
     verdict: 'authored',
     why: "NPC blocks, choices, options and guide steps are assembled by the dataset from the book's tables and procedures; where such a string matches no book text it is ours. Prose outside those fields never falls under this rule.",
   },
+  'authored-lead': {
+    verdict: 'authored',
+    why: 'Every top-level roll table leads its listing row with a description. Where the book prints a table with no words of its own to introduce it, the dataset writes one plain line; each is listed in AUTHORED_LEADS, and no other string falls under this rule.',
+  },
 } as const satisfies Record<string, ProseRule>
 
 /** Owner suffix on a name: "Name (Owner)". Group 1 is the printed name. */
@@ -221,5 +225,35 @@ export const NAME_DEVIATIONS: NameDeviation[] = [
     printedAs: 'Portable Communications Unit',
     page: 81,
     why: 'The book uses both: the entry heading on p. 81 spells it out, while the equipment summary tables and every NPC gear list say "Portable Comms Unit". The dataset follows the tables — the short form is what a player reads on a sheet, and the dataset carries a matching "Portable Comms Unit (NPC)" action.',
+  },
+]
+
+/**
+ * ## Authored leads
+ *
+ * The roll tables whose description the dataset writes itself (the
+ * `authored-lead` rule): the book prints the table with no words of its own
+ * to introduce it, so its listing row would otherwise lead with nothing. Each
+ * is the table's first paragraph, enforced by `proseDeviations.test.ts`.
+ *
+ * Adding an entry is a claim you have checked the book and found no such
+ * words. Include the page.
+ */
+export type AuthoredLead = {
+  /** The roll table's name in the dataset. */
+  name: string
+  /** Its first paragraph, as the dataset writes it. */
+  text: string
+  /** Printed page carrying the table. */
+  page: number
+  why: string
+}
+
+export const AUTHORED_LEADS: AuthoredLead[] = [
+  {
+    name: 'Rumour',
+    text: 'Roll to find out what rumour the Pilots hear.',
+    page: 8,
+    why: 'False Flag p. 8 prints the "Rumour Table.dll" window with its twenty rumours and nothing else; no other page of the module mentions the table.',
   },
 ]

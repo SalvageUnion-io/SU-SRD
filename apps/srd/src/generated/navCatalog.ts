@@ -145,7 +145,7 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
         "id": "roll-tables",
         "displayName": "Roll Tables",
         "href": "/roll-tables/",
-        "count": 96
+        "count": 50
       },
       {
         "id": "keywords",

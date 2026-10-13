@@ -18,7 +18,7 @@ const table = (name: string) =>
 
 describe('Row body', () => {
   test('a Row with nothing to say past its head has no body and is marked bodyless', () => {
-    const { container } = render(<Entity form="row" entity={table('Reactor Overload')} lead />)
+    const { container } = render(<Entity form="row" entity={table('Mechapult')} lead />)
     expect(container.querySelector('.su-entity-row__body')).toBeNull()
     expect(container.querySelector('.su-entity-row__frame[data-bodyless]')).not.toBeNull()
   })

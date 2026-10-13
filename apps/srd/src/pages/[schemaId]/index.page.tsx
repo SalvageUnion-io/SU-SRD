@@ -30,6 +30,7 @@ import { chapterForSchema } from '../../lib/chapters'
 import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../../lib/constants'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../lib/gameData'
+import { listingEntries } from '../../lib/listingEntries'
 import type { ListingGroup, ListingShape, TechLevel } from '../../lib/listingGroups'
 import { defaultGroups, orderTechLevels, WIDE_LISTINGS } from '../../lib/listingGroups'
 import { CATALOG_LISTINGS } from '../../lib/listingView'
@@ -103,7 +104,12 @@ function SchemaItemLinks({
 
 function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const { schemaId } = params
-  const { schema, data } = props
+  const { schema } = props
+  // What the listing lists: the roll tables only their top-level ones.
+  const data = listingEntries(schemaId, props.data)
+  // The island reads its schema from the ORM, so a listing that lists fewer
+  // than its schema holds hands it the ids it lists.
+  const entryIds = data.length < props.data.length ? data.map((item) => item.id) : undefined
 
   const schemaName = schema.displayName || 'Schema'
   const pluralName = schema.displayNamePlural || schemaName
@@ -187,6 +193,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
               hasArt,
               catalogOnly,
               shape,
+              entryIds,
             }}
           >
             <SchemaItemLinks

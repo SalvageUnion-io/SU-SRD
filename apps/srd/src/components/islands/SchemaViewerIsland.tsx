@@ -71,6 +71,10 @@ type SchemaViewerIslandProps = {
    *  on its own plate. The page passes it no tech levels, so it has no
    *  groups and no TL facet. */
   catalogOnly?: boolean
+  /** The ids the listing lists, when it lists fewer than its schema holds
+   *  (the roll tables list only their top-level tables,
+   *  `lib/listingEntries.ts`); absent, it lists every entry. */
+  entryIds?: readonly string[]
 }
 
 /**
@@ -122,6 +126,7 @@ export function SchemaViewerIsland({
 /** Rendered only behind the gate: `getModel(…).all()` throws on an unloaded schema. */
 function SchemaViewer({
   schemaId,
+  entryIds,
   techLevels,
   sources,
   trees = [],
@@ -132,7 +137,12 @@ function SchemaViewer({
   listingView: ReturnType<typeof useListingView>
 }) {
   const { view, setView, fromUrl: viewInUrl } = listingView
-  const initialData = useMemo(() => getModel(schemaId)?.all() ?? [], [schemaId])
+  const initialData = useMemo(() => {
+    const all = getModel(schemaId)?.all() ?? []
+    if (!entryIds) return all
+    const listed = new Set(entryIds)
+    return all.filter((item) => listed.has(item.id))
+  }, [schemaId, entryIds])
 
   // Filter state initializes from the URL on mount so a shared/bookmarked link
   // restores the exact filtered view. Lazy initializers run once; the reads are

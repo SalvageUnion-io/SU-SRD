@@ -140,6 +140,7 @@ export {
   tokenizeSearchQuery,
 } from './searchRanking'
 export { findEntityBySlug, getEntitySlug } from './slug'
+export { topLevelRollTables } from './topLevelRollTables'
 export { parseTraitReferences, plainTraitText } from './traitText'
 export { truncate } from './truncate'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
@@ -171,6 +172,7 @@ export {
 export {
   type AdditionalSource,
   type BookCite,
+  bookName,
   formatCite,
   formatProvenance,
   resolveAdditionalSources,

@@ -20,7 +20,7 @@ const CORE_BOOK = {
 } as const
 
 /** The name a cite prints for a book: the core book's one name, else the source as given. */
-function bookName(source: string): string {
+export function bookName(source: string): string {
   const key = source.trim().toLowerCase()
   const core = [CORE_BOOK.source, CORE_BOOK.name, ...CORE_BOOK.aliases]
   return core.some((name) => name.toLowerCase() === key) ? CORE_BOOK.name : source

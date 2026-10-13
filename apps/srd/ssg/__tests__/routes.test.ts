@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { getModel } from 'salvageunion-reference'
 import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
 import { ITUN_URL } from '../../src/lib/constants'
+import { listingEntries } from '../../src/lib/listingEntries'
 import type { BuildAssets } from '../document'
 import { outputPathFor } from '../outputPath'
 import { routes } from '../routes'
@@ -72,7 +73,8 @@ describe('route registry', () => {
     expect(listings.length).toBeGreaterThan(0)
     for (const listing of listings) {
       const schemaId = listing.route.split('/')[1] ?? ''
-      const entities = getModel(schemaId)?.all() ?? []
+      // What the listing lists: the roll tables only their top-level ones.
+      const entities = listingEntries(schemaId, getModel(schemaId)?.all() ?? [])
       const html = listing.render(ASSETS)
       const props = html.match(
         /<script type="application\/json" data-island-props>(.*?)<\/script>/s

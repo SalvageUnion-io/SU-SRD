@@ -451,4 +451,38 @@ describe('SchemaViewerIsland', () => {
       expect(screen.queryByRole('button', { name: 'Catalog' })).toBeNull()
     })
   })
+
+  // The page hands the roll tables their top-level ids (`listingEntries`): the
+  // island lists those, by book, each Row leading with its description.
+  describe('the roll tables', () => {
+    const tables = () => required(getModel('roll-tables'), 'roll-tables model').all()
+    const listed = ['Core Mechanic', 'Callsign Table', 'Meteor Encounter']
+    const renderTables = () => {
+      const entryIds = tables()
+        .filter((table) => listed.includes(table.name))
+        .map((table) => table.id)
+      return render(
+        <SchemaViewerIsland
+          schemaId="roll-tables"
+          techLevels={[]}
+          sources={getUniqueSources(tables())}
+          entryIds={entryIds}
+        />
+      )
+    }
+
+    it('lists only the ids it is handed, under a slab per book, each with its lead', () => {
+      const { container } = renderTables()
+      const rows = [...container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')]
+      expect(rows.map((row) => row.getAttribute('aria-label')).sort()).toEqual([...listed].sort())
+      const groups = [...container.querySelectorAll('.srd-listing__group')]
+      expect(groups.map((group) => group.getAttribute('aria-label'))).toEqual([
+        'Workshop Manual',
+        'We Were Here First!',
+      ])
+      for (const row of rows) expect(row.querySelector('p')?.textContent).toBeTruthy()
+      // The rail counts what the listing lists.
+      expect(screen.queryByRole('searchbox', { name: 'Filter items by name' })).toBeNull()
+    })
+  })
 })

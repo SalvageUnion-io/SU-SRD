@@ -206,7 +206,13 @@
       "type": "standard"
     },
     "page": 235,
-    "indexable": true
+    "indexable": true,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "You must roll on the Reactor Overload Table to see what happens to your Mech. This can result in your Mech shutting down, losing Systems or Modules, or even being destroyed."
+      }
+    ]
   },
   {
     "id": "abca780b-da93-47b0-91e6-290da910e2fd",
@@ -513,7 +519,13 @@
       "type": "flat"
     },
     "page": 11,
-    "indexable": true
+    "indexable": true,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Chimerium is allegedly safe in short stints, but long-term exposure can cause an array of mutations."
+      }
+    ]
   },
   {
     "id": "3b30af52-8e82-4b55-bda8-e46e64bf141f",
@@ -1069,6 +1081,12 @@
         "booklet": "PH",
         "page": 47
       }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "All A.I. systems tend to have their own idiosyncracies. Roll on this table to find out exactly what kind of A.I. you’ve got."
+      }
     ]
   },
   {
@@ -1391,6 +1409,12 @@
         "booklet": "PH",
         "page": 62
       }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Provide your Union Crawler with a unique name and tag. For example, Crawler #132 is also known as ‘Tin Lizzy’."
+      }
     ]
   },
   {
@@ -1505,7 +1529,13 @@
       },
       "type": "flat"
     },
-    "page": 23
+    "page": 23,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Pilots find a Salvage Cache. Roll on the Cache table."
+      }
+    ]
   },
   {
     "id": "e213dd70-6ece-4950-8036-e4b495e6dd34",
@@ -1715,7 +1745,13 @@
       },
       "type": "flat"
     },
-    "page": 8
+    "page": 8,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll to find out what rumour the Pilots hear."
+      }
+    ]
   },
   {
     "id": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
@@ -3732,7 +3768,13 @@
       "11-19": {
         "value": "Safe travel between the areas."
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An enormous plateau of basalt thrusts from the earth like a gigantic beast. Surrounding the land beneath are the ruins of the TDA town of Redwall, overgrown with bio-mutated wildlife."
+      }
+    ]
   },
   {
     "id": "9f3b1e7c-5a2d-4f88-b6e1-3c8a5d7f9b2e",
@@ -3816,7 +3858,13 @@
       "11-19": {
         "value": "IED dealing 3 SP Damage (Explosive 1)"
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Monkey Wrencher boobytrap triggers. Roll on the Monkey Wrencher Boobytrap Table."
+      }
+    ]
   },
   {
     "id": "6b4f8e1c-9a3d-4e72-8f5a-2c7b1d4e9a3f",
@@ -3840,7 +3888,13 @@
       "11-19": {
         "value": "All Meld within the entire area, including the Underground Lab and Decontamination Chamber are entirely destroyed, leaving not even dust behind.  The following are also destroyed: The Generator, The Wind Turbines, The Lab Mainframe, Observation Mainframe, and all data within"
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The generator has been installed with an emergency module designed to absorb all remaining power from the facility and detonate it as an electromagnetic pulse intended to destroy the Meld."
+      }
+    ]
   },
   {
     "id": "dd4d6469-fd9d-4eeb-86fc-b8202477d5e3",
@@ -3921,7 +3975,13 @@
       "2-4": {
         "value": "Evantis"
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A random faction is encountered. Roll on the Irongrad Faction Table."
+      }
+    ]
   },
   {
     "id": "9e5f8873-5627-4e8e-8126-b9cd8c01d762",
@@ -3954,6 +4014,12 @@
       "2-4": {
         "value": "6 x Salt Termites"
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A fragment of the meteor that landed upon the mesa was made of Chimerium: a mutative, bio-organic substance that is known to rapidly grow life around it."
+      }
+    ]
   }
 ]
