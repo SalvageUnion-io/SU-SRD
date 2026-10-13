@@ -45,8 +45,8 @@ the bot uses.
 
 ```bash
 bun --filter discord-bot test      # the loop: unit tests plus the signed replay harness
-bun run deploy-commands            # Register slash commands to a test guild
-bun run deploy-commands:global     # Register globally (production)
+bun run deploy-commands            # a test guild
+bun run deploy-commands:global     # production. Credentials: op run, .env.example's header
 ```
 
 There is no local Worker loop: the Interactions Endpoint URL is

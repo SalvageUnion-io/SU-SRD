@@ -18,7 +18,9 @@
  *
  * ## Credentials
  *
- * Three values, all read from the environment and never logged:
+ * Three values, all read from the environment and never logged. Their
+ * 1Password references are committed in `tools/r2.op.env`; run a script under
+ * `op run --env-file=tools/r2.op.env -- …` and none is ever typed or stored:
  *
  *   R2_ACCOUNT_ID          the Cloudflare account id, OR the S3 endpoint URL
  *                          Cloudflare actually hands you — see below
@@ -84,7 +86,8 @@ export function credentialsFromEnv(): R2Credentials {
   if (missing.length > 0) {
     throw new Error(
       `missing R2 credential(s): ${missing.join(', ')}\n` +
-        '  Create an R2 API token scoped to the one bucket you are touching:\n' +
+        '  Resolve them from 1Password: op run --env-file=tools/r2.op.env -- <command>\n' +
+        '  No token yet? Create an R2 API token scoped to the one bucket you are touching:\n' +
         '  Cloudflare dashboard → R2 → Manage R2 API Tokens → Create API token.'
     )
   }
