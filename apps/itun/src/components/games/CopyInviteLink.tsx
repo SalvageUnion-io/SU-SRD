@@ -4,15 +4,16 @@
  *
  * Copying hands out the Game's one URL (`invites.link`); pressing it again
  * copies the same one. Resetting mints a new URL (`invites.reset`), and the
- * old one stops working.
+ * old one stops working, after a confirm.
  *
  * Connected only. The link comes from the server of record, so a signed-out or
  * offline viewer has nothing to copy and sees no button.
  */
 
-import { Button, toast } from 'component-lib'
+import { Button, ConfirmDialog, toast } from 'component-lib'
 import { useMutation } from 'convex/react'
 import { Link2 } from 'lucide-react'
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { appRoot } from '../../lib/appUrl'
@@ -79,29 +80,31 @@ export function CopyInviteLink(props: CopyInviteLinkProps) {
 
 function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
   const reset = useMutation(api.invites.reset)
-  const resetLink = useServerAction(() => reset({ gameId }), {
-    failure: 'The invite link could not be reset. Try again.',
-    toastId: 'invite-link-reset',
-  })
+  const [confirming, setConfirming] = useState(false)
 
   async function run(): Promise<void> {
-    const result = await resetLink.run()
-    if (result.ok) {
-      toast.success('Invite link reset. The old link no longer works.', {
-        id: 'invite-link-reset',
-      })
-    }
+    await reset({ gameId })
+    toast.success('Invite link reset. The old link no longer works.', {
+      id: 'invite-link-reset',
+    })
   }
 
   return (
-    <Button
-      variant="default"
-      size="compact"
-      disabled={resetLink.pending}
-      onClick={() => void run()}
-    >
-      Reset link
-    </Button>
+    <>
+      <Button variant="default" size="compact" onClick={() => setConfirming(true)}>
+        Reset link
+      </Button>
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        tone="danger"
+        title="Reset the invite link?"
+        body="The current link stops working. Anyone who has it but has not joined yet needs the new one."
+        confirmLabel="Reset link"
+        pendingLabel="Resetting…"
+        onConfirm={run}
+      />
+    </>
   )
 }
 

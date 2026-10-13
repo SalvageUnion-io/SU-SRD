@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
  * The Game's invite URL: "Copy invite link" (the Game page and the
@@ -81,7 +81,7 @@ describe('Copy invite link', () => {
 })
 
 describe('Reset link', () => {
-  test('asks the server for a new link for this Game', async () => {
+  async function openConfirm(): Promise<void> {
     await act(async () => {
       render(
         <ConnectionProvider>
@@ -91,6 +91,24 @@ describe('Reset link', () => {
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Reset link' }))
+    })
+  }
+
+  test('asks before resetting, and Cancel resets nothing', async () => {
+    await openConfirm()
+    expect(screen.getByRole('alertdialog', { name: 'Reset the invite link?' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    })
+
+    expect(mutations).toEqual([])
+  })
+
+  test('confirming asks the server for a new link for this Game', async () => {
+    await openConfirm()
+    const dialog = screen.getByRole('alertdialog', { name: 'Reset the invite link?' })
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Reset link' }))
     })
 
     expect(mutations).toEqual([{ name: 'invites:reset', args: { gameId: 'g1' } }])
