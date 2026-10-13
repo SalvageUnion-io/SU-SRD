@@ -1,7 +1,7 @@
 /**
  * AboutScreen — the /about page for the product (`PRODUCT.name`).
  *
- * Static content page: what ITUN is, its local-first stance, links to the SRD
+ * Static content page: what ITUN is, what needs an account, links to the SRD
  * and the official game, the shared `HouseRules` list, and the shared `Colophon` (author bio, special thanks,
  * LLM statement, Ko-fi support widget). Styled in the ITUN paper/ink Workshop-Manual idiom
  * (mirrors the Roster main layout) rather than the SRD reference-site look, so
@@ -12,6 +12,7 @@ import { ChapterBand, Colophon, HouseRules, InlineRef, Slab } from 'component-li
 import { borderWidth, color, font, fontSize, space, weight } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
+import { SRD_SITE_URL } from 'salvageunion-reference'
 
 type AboutScreenProps = {
   /** The build the app is running: the deployed commit's short SHA (ADR-041).
@@ -117,19 +118,13 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
             share.
           </p>
           <p>
-            It's <strong>local-first</strong>: everything you create is stored privately in your own
-            browser. There's no account and no server — export a backup any time to move your builds
-            between devices.
+            Reading needs no account: the Starter Set and any sheet shared by link open signed out.
+            Sign in with Discord to build, and everything you make saves to your account.
           </p>
           <p>
             Looking for the rules? Browse the full searchable reference at{' '}
-            <InlineRef
-              href="https://salvageunion.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={LINK}
-            >
-              salvageunion.io
+            <InlineRef href={SRD_SITE_URL} style={LINK}>
+              {PRODUCT.wordmark}
             </InlineRef>
             .
           </p>

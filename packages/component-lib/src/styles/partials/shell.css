@@ -152,6 +152,19 @@
   border-color: var(--color-paper);
 }
 
+/* A bar with a product nav (ITUN's) has no room for "Buy the game" until
+   80rem: from `lg` to there it would push the row past the viewport. Below
+   `lg` the drawer carries it. */
+.su-union-bar__nav ~ .su-union-bar__end .su-union-bar__buy {
+  display: none;
+}
+
+@media (min-width: 80rem) {
+  .su-union-bar__nav ~ .su-union-bar__end .su-union-bar__buy {
+    display: inline-flex;
+  }
+}
+
 /* The search entry's width, one for both tools: the SRD's field
    (`SearchField`'s input) and ITUN's trigger (`SearchFieldTrigger`'s label). */
 .su-union-bar__search-input {

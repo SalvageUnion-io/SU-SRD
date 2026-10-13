@@ -1,12 +1,20 @@
 /**
  * `/discord` — the Discord bot landing page.
+ *
+ * The command list is the bot's own: `DISCORD_COMMANDS` is generated from the
+ * registered `/su` builder (`apps/discord-bot/src/commandList.ts`), so every
+ * subcommand is here under the name and description Discord shows. The
+ * reference tools each get a panel with worked examples (`commandDetail`); the
+ * In the Union now commands are listed under the account they need.
  */
 
 import { buttonVariants, ChapterBand, InlineRef, Panel, Slab } from 'component-lib'
 import { borderWidth, color, font, fontSize, space, tracking } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
+import type { DiscordCommand } from '../generated/discordCommands'
+import { DISCORD_COMMANDS } from '../generated/discordCommands'
 import {
   CONTENTS_CRUMB,
   DISCORD_INSTALL_URL,
@@ -111,8 +119,102 @@ const ATTRIBUTION = {
 
 const LEGAL_DOT = { color: color.wkFaint, paddingInline: space[6] } satisfies CSSProperties
 
+/** A command as Discord's picker spells it: optional options in brackets, every option italic. */
+function Usage({ command }: { command: DiscordCommand }) {
+  return (
+    <>
+      /su {command.name}
+      {command.options.map((option) => (
+        <span key={option.name} style={ITALIC}>
+          {' '}
+          {option.required ? option.name : `[${option.name}]`}
+        </span>
+      ))}
+    </>
+  )
+}
+
+/** The worked examples under a reference tool's panel, by subcommand. */
+function commandDetail(
+  name: string,
+  examples: ReturnType<typeof buildExamples>
+): ReactNode | undefined {
+  switch (name) {
+    case 'roll':
+      return (
+        <>
+          <p>
+            Rolls a d20 on any Salvage Union table. Leave <code style={CODE}>table</code> empty to
+            roll on the <strong>Core Mechanic</strong> table — the game&rsquo;s basic d20 resolution
+            roll.
+          </p>
+          <p>
+            Start typing a table name and autocomplete suggests matches from all{' '}
+            {examples.rollTableCount} tables — Critical Damage, Reactor Overload, Area Salvage, NPC
+            generators, Keepsake, Motto, and every table from the expansions. Column tables (like
+            the NPC tables) roll two d20s: one for the column, one for the entry.
+          </p>
+          <p>
+            <strong>Examples:</strong>
+          </p>
+          <ul style={LIST_4}>
+            <li>
+              <code style={CODE}>/su roll</code> — Core Mechanic d20
+            </li>
+            <li>
+              <code style={CODE}>/su roll table: Critical Damage</code> — what happens at 0 SP
+            </li>
+            <li>
+              <code style={CODE}>/su roll table: Group Initiative</code> — who acts first
+            </li>
+          </ul>
+        </>
+      )
+    case 'lookup':
+      return (
+        <>
+          <p>
+            Looks up any entity in the reference — the same search as this site&rsquo;s
+            <kbd style={KEY_CAP}>Cmd&nbsp;K</kbd> box. Autocomplete searches as you type (multi-word
+            queries and small typos are fine); the reply shows the entity&rsquo;s key stats and
+            links to its full page here.
+          </p>
+          <p>
+            <strong>Examples:</strong>
+          </p>
+          <ul style={LIST_4}>
+            <li>
+              <code style={CODE}>/su lookup entity: green laser</code>
+            </li>
+            <li>
+              <code style={CODE}>/su lookup entity: {examples.lookupExample.toLowerCase()}</code>
+            </li>
+            <li>
+              <code style={CODE}>/su lookup entity: overheat</code>
+            </li>
+          </ul>
+        </>
+      )
+    case 'screen':
+      return (
+        <p>
+          The Mediator Screen: Core Mechanic, Group Initiative, Critical Injury and Damage, Reactor
+          Overload, Area and Mech Salvage, and the NPC tables, each by its bands with a button that
+          rolls it. Only you see the screen; its rolls land in the channel, or only to you with{' '}
+          <code style={CODE}>private</code>. The{' '}
+          <InlineRef href="/screen/">Mediator Screen</InlineRef> here has them all on one page, with
+          Heat, the distances and Downtime.
+        </p>
+      )
+    default:
+      return undefined
+  }
+}
+
 function page(): PageResult {
   const examples = buildExamples()
+  const reference = DISCORD_COMMANDS.filter((command) => !command.needsAccount)
+  const withAccount = DISCORD_COMMANDS.filter((command) => command.needsAccount)
 
   return {
     meta: {
@@ -149,8 +251,8 @@ function page(): PageResult {
               the full entry on this site.
             </p>
             <p>
-              It asks for no server permissions — it only ever replies to slash commands. Free, no
-              account, no configuration.
+              It asks for no server permissions — it only ever replies to slash commands. Free and
+              with no configuration; rolling and lookups need no account.
             </p>
             <p>
               <a
@@ -165,95 +267,43 @@ function page(): PageResult {
             </p>
           </section>
 
-          {/* Commands */}
+          {/* Commands: every /su subcommand, from the bot's own builder */}
           <section style={COLUMN_24}>
             <Slab as="h2" variant="solid" label="Commands" />
 
-            <Panel soft>
-              <div style={PANEL_HEAD}>
-                <p style={PANEL_TITLE}>
-                  /su roll <span style={ITALIC}>[table]</span>
-                </p>
-              </div>
-              <div style={PANEL_BODY}>
-                <p>
-                  Rolls a d20 on any Salvage Union table. Leave <code style={CODE}>table</code>{' '}
-                  empty to roll on the <strong>Core Mechanic</strong> table — the game&rsquo;s basic
-                  d20 resolution roll.
-                </p>
-                <p>
-                  Start typing a table name and autocomplete suggests matches from all{' '}
-                  {examples.rollTableCount} tables — Critical Damage, Reactor Overload, Area
-                  Salvage, NPC generators, Keepsake, Motto, and every table from the expansions.
-                  Column tables (like the NPC tables) roll two d20s: one for the column, one for the
-                  entry.
-                </p>
-                <p>
-                  <strong>Examples:</strong>
-                </p>
-                <ul style={LIST_4}>
-                  <li>
-                    <code style={CODE}>/su roll</code> — Core Mechanic d20
-                  </li>
-                  <li>
-                    <code style={CODE}>/su roll table: Critical Damage</code> — what happens at 0 SP
-                  </li>
-                  <li>
-                    <code style={CODE}>/su roll table: Group Initiative</code> — who acts first
-                  </li>
-                </ul>
-              </div>
-            </Panel>
+            {reference.map((command) => (
+              <Panel key={command.name} soft>
+                <div style={PANEL_HEAD}>
+                  <p style={PANEL_TITLE}>
+                    <Usage command={command} />
+                  </p>
+                </div>
+                <div style={PANEL_BODY}>
+                  {commandDetail(command.name, examples) ?? <p>{command.description}.</p>}
+                </div>
+              </Panel>
+            ))}
+          </section>
 
-            <Panel soft>
-              <div style={PANEL_HEAD}>
-                <p style={PANEL_TITLE}>
-                  /su lookup <span style={ITALIC}>entity</span>
-                </p>
-              </div>
-              <div style={PANEL_BODY}>
-                <p>
-                  Looks up any entity in the reference — the same search as this site&rsquo;s
-                  <kbd style={KEY_CAP}>Cmd&nbsp;K</kbd> box. Autocomplete searches as you type
-                  (multi-word queries and small typos are fine); the reply shows the entity&rsquo;s
-                  key stats and links to its full page here.
-                </p>
-                <p>
-                  <strong>Examples:</strong>
-                </p>
-                <ul style={LIST_4}>
-                  <li>
-                    <code style={CODE}>/su lookup entity: green laser</code>
-                  </li>
-                  <li>
-                    <code style={CODE}>
-                      /su lookup entity: {examples.lookupExample.toLowerCase()}
-                    </code>
-                  </li>
-                  <li>
-                    <code style={CODE}>/su lookup entity: overheat</code>
-                  </li>
-                </ul>
-              </div>
-            </Panel>
-
-            <Panel soft>
-              <div style={PANEL_HEAD}>
-                <p style={PANEL_TITLE}>
-                  /su screen <span style={ITALIC}>[private]</span>
-                </p>
-              </div>
-              <div style={PANEL_BODY}>
-                <p>
-                  The Mediator Screen: Core Mechanic, Group Initiative, Critical Injury and Damage,
-                  Reactor Overload, Area and Mech Salvage, and the NPC tables, each by its bands
-                  with a button that rolls it. Only you see the screen; its rolls land in the
-                  channel, or only to you with <code style={CODE}>private</code>. The{' '}
-                  <InlineRef href="/screen/">Mediator Screen</InlineRef> here has them all on one
-                  page, with Heat, the distances and Downtime.
-                </p>
-              </div>
-            </Panel>
+          <section style={PROSE_12}>
+            <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />
+            <p>
+              These read your {PRODUCT.name} account and its Games. Sign in to{' '}
+              <InlineRef href={ITUN_URL} style={BOLD}>
+                {PRODUCT.name}
+              </InlineRef>{' '}
+              with the same Discord account and the bot knows you; until then each one says how.
+            </p>
+            <ul style={LIST_8}>
+              {withAccount.map((command) => (
+                <li key={command.name}>
+                  <code style={CODE}>
+                    <Usage command={command} />
+                  </code>{' '}
+                  — {command.description}
+                </li>
+              ))}
+            </ul>
           </section>
 
           {/* Notes */}
@@ -275,16 +325,16 @@ function page(): PageResult {
             </ul>
             <p style={ASIDE}>
               <strong>Running a campaign?</strong> Pair the bot with{' '}
-              <InlineRef href={ITUN_URL} target="_blank" rel="noopener noreferrer" style={BOLD}>
+              <InlineRef href={ITUN_URL} style={BOLD}>
                 {PRODUCT.name}
               </InlineRef>
               {/*
-                "no-account" means usable without one: signed out, ITUN is
-                read-only, and building needs an account (ADR-034). It must
-                never be reworded to claim building or keeping work without one.
+                Signed out, ITUN is read-only; building needs an account
+                (ADR-034). Never reword this to claim building or keeping work
+                without one.
               */}
-              , the no-account character builder &amp; game manager — sheets can be shared into
-              Discord as live public links.
+              , the character builder &amp; Game manager: read the Starter Set with no account, and
+              sign in with Discord to build. Sheets can be shared into Discord as live public links.
             </p>
           </section>
 

@@ -35,6 +35,15 @@
   max-width: 100%;
 }
 
+/* ── compositions/StartHere ── */
+
+/* A step that opens its guide underlines its title on hover. A class because
+   a style object has no `:hover`. */
+.su-start-here__step:hover .su-start-here__title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* ── shell and flat leaves ── */
 
 /* ControlButtons (`compositions/ControlButtons.tsx`). The link control and the paper

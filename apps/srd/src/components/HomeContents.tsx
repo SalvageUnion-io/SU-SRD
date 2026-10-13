@@ -1,15 +1,16 @@
 import type { ChapterTone } from 'component-lib'
-import { buttonVariants, CHAPTER_BAND_COLOR } from 'component-lib'
+import { buttonVariants, CHAPTER_BAND_COLOR, StartHere } from 'component-lib'
 import { PRODUCT } from 'component-lib/product'
+import type { ComponentProps } from 'react'
 
 /**
  * The home page as the manual's Contents page (board 06): the book's chapters
  * as an index, each opened by a band in its colour and, where the chapter has
  * one, a piece of its artwork, then its name and real entry count; then the
  * rules a table reaches for under an ink band, set as CSS columns (a masonry
- * that leaves no hole under a short chapter); and the "New to the Union?" path
- * and the Discord bot in a right-hand sidebar. On a phone "New to the Union?"
- * leads the stack and the Discord bot follows the index. Server-rendered and
+ * that leaves no hole under a short chapter); and "Start here" and the Discord
+ * bot in a right-hand sidebar. On a phone "Start here" leads the stack and the
+ * Discord bot follows the index. Server-rendered and
  * static: every row is a plain link.
  *
  * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
@@ -83,70 +84,37 @@ export function ContentsChapter({ id, title, tone, rows, total, art }: ContentsC
   )
 }
 
-export type NewToTheUnionStep = {
-  title: string
-  /** The chapter and pages the step walks through. */
-  meta: string
-  /** The guide that walks it. */
-  href: string
-}
-
-type NewToTheUnionProps = {
-  steps: NewToTheUnionStep[]
+type HomeStartHereProps = {
+  /** Each step's creation guide in the book, by step. */
+  guideHrefs: ComponentProps<typeof StartHere>['hrefs']
   /** Where "Build a pilot" hands off: ITUN. */
   buildHref: string
-  /** The fourth line, "Play now": ITUN's Starter Set (`STARTER_SET_HREF`). */
+  /** "Play now": ITUN's Starter Set (`STARTER_SET_HREF`). */
   starterSetHref: string
 }
 
 /**
- * The path in for a new player: Create a Pilot, then a Mech, then a Crawler,
- * each opening its guide; then "Play now", the shortcut past all three to the
- * Starter Set's ready-made crew; and the hand-off to In The Union Now, which
- * turns those pages into a live sheet.
+ * The path in for a new player: the shared "Start here" block both tools show
+ * (`StartHere`), each step opening its guide in the book; then the hand-off to
+ * ITUN, which turns those pages into a live sheet, and "Play now", the
+ * shortcut past all three to the Starter Set's ready-made crew. Both are
+ * same-tab links: the two tools are one site (ruleset §3.11).
  */
-export function NewToTheUnion({ steps, buildHref, starterSetHref }: NewToTheUnionProps) {
+export function HomeStartHere({ guideHrefs, buildHref, starterSetHref }: HomeStartHereProps) {
   return (
-    <section className="srd-panel" aria-labelledby="new-to-the-union">
-      <h2 id="new-to-the-union" className="srd-panel__heading">
-        New to the Union?
-      </h2>
-      <ol className="srd-steps">
-        {steps.map((step, index) => (
-          <li key={step.href}>
-            <a href={step.href} className="srd-steps__step">
-              <span aria-hidden="true" className="srd-steps__numeral">
-                {index + 1}
-              </span>
-              <span className="srd-steps__text">
-                <span className="srd-steps__title">{step.title}</span>
-                <span className="srd-steps__meta">{step.meta}</span>
-              </span>
-            </a>
-          </li>
-        ))}
-        <li>
-          <a href={starterSetHref} className="srd-steps__step">
-            <span aria-hidden="true" className="srd-steps__numeral">
-              →
-            </span>
-            <span className="srd-steps__text">
-              <span className="srd-steps__title">Play now</span>
-              <span className="srd-steps__meta">Starter Set · A pre-generated crew</span>
-            </span>
-          </a>
-        </li>
-      </ol>
-      <div className="srd-panel__foot">
+    <StartHere id="start-here" hrefs={guideHrefs}>
+      <div className="srd-start-here__foot">
         <p>Ready to build? {PRODUCT.name} turns these pages into a live sheet for your crew.</p>
-        <a
-          href={buildHref}
-          className={`${buttonVariants({ variant: 'primary', size: 'full' })} srd-panel__cta`}
-        >
-          Build a pilot
-        </a>
+        <div className="srd-start-here__actions">
+          <a href={buildHref} className={buttonVariants({ variant: 'primary', size: 'full' })}>
+            Build a pilot
+          </a>
+          <a href={starterSetHref} className="srd-panel__link">
+            Play now with the Starter Set
+          </a>
+        </div>
       </div>
-    </section>
+    </StartHere>
   )
 }
 

@@ -15,7 +15,7 @@
  * The home page — the manual's Contents page (board 06, `index.page.tsx` and
  * `components/HomeContents.tsx`). A 1360px measure: the index in columns and
  * the "Getting started" sidebar at its right; on a phone, the title, the
- * search, "New to the Union?", then the index.
+ * search, "Start here", then the index.
  */
 .srd-home__lede {
   display: flex;
@@ -69,7 +69,7 @@
 }
 
 /* The aside, the index, then the Discord bot: one stack on a phone, the aside
-   first so a first-timer meets "New to the Union?" before the index, and the
+   first so a first-timer meets "Start here" before the index, and the
    bot after it so the index is not pushed a screen down. */
 .srd-home__body {
   display: flex;
@@ -110,7 +110,7 @@
 /* A desktop pins the aside and the Discord bot to a 20rem sidebar at the
    right of the index, the bot under the aside. The index spans both rows; the
    second row is the flexible one, so the index's height lands there and the
-   bot sits a panel's gap under "New to the Union?". */
+   bot sits a panel's gap under "Start here". */
 @media (min-width: 64rem) {
   .srd-home__body {
     align-items: start;
@@ -381,7 +381,7 @@
   }
 }
 
-/* The home page's panels: "New to the Union?" and the Discord bot. */
+/* The home page's Discord bot panel. */
 .srd-panel {
   background-color: var(--color-paper);
   border: var(--bw-chrome) solid var(--color-ink);
@@ -421,13 +421,6 @@
   padding: var(--space-8) var(--space-14) var(--space-12);
 }
 
-.srd-panel__foot p {
-  color: var(--color-ink-2);
-  font-size: var(--text-lede);
-  line-height: 1.5;
-  margin: 0;
-}
-
 .srd-panel__cta {
   align-self: flex-start;
 }
@@ -446,56 +439,25 @@
   text-underline-offset: 3px;
 }
 
-/* The path in: ink banners with the book's rounded tail (ruleset §4.4). */
-.srd-steps {
+/* "Start here"'s foot on the home page: the hand-off to ITUN, then its links. */
+.srd-start-here__foot {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  list-style: none;
+  gap: var(--space-8);
+}
+
+.srd-start-here__foot p {
+  color: var(--color-ink-2);
+  font-size: var(--text-lede);
+  line-height: 1.5;
   margin: 0;
-  padding: 0 0 var(--space-4);
 }
 
-.srd-steps__step {
+.srd-start-here__actions {
   align-items: center;
-  background-color: var(--color-ink);
-  border-radius: 0 var(--radius-full) var(--radius-full) 0;
-  color: var(--color-paper);
   display: flex;
-  gap: var(--space-12);
-  margin-right: var(--space-14);
-  min-height: 44px;
-  padding: var(--space-4) var(--space-20) var(--space-4) var(--space-14);
-  text-decoration: none;
-}
-
-.srd-steps__numeral {
-  font-family: var(--font-cond);
-  font-size: var(--text-display);
-  font-weight: var(--font-weight-extrabold);
-  line-height: 1;
-}
-
-.srd-steps__text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.srd-steps__title {
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: var(--font-weight-bold);
-}
-
-.srd-steps__step:hover .srd-steps__title {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.srd-steps__meta {
-  color: var(--color-paper-85);
-  font-size: var(--text-caption);
+  flex-wrap: wrap;
+  gap: var(--space-14);
 }
 
 /*

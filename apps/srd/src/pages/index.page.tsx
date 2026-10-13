@@ -3,10 +3,10 @@
  *
  * The title, then search: beside the title on the blue Contents band on a
  * desktop, under the notch on a phone. Then the "Getting started" aside — the
- * "New to the Union?" path into ITUN — the index, and the Discord bot. The
+ * shared "Start here" path, into ITUN — the index, and the Discord bot. The
  * index is the book's chapters, each opened by its band and a piece of its
  * artwork, with their real entry counts, then the rules a table reaches for
- * under an ink band. The DOM order is a phone's: "New to the Union?", the
+ * under an ink band. The DOM order is a phone's: "Start here", the
  * index, then the Discord bot; a desktop pins the aside and the bot to a
  * right-hand sidebar.
  * The band's search is the page's search, so the Union bar carries none here.
@@ -17,8 +17,8 @@ import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { getAssetUrl, getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
-import type { ContentsArt, ContentsRow, NewToTheUnionStep } from '../components/HomeContents'
-import { ContentsChapter, DiscordBot, NewToTheUnion } from '../components/HomeContents'
+import type { ContentsArt, ContentsRow } from '../components/HomeContents'
+import { ContentsChapter, DiscordBot, HomeStartHere } from '../components/HomeContents'
 import { STARTER_SET_HREF } from '../lib/buildLink'
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL } from '../lib/constants'
@@ -60,12 +60,12 @@ function chapterArt(chapterId: string): ContentsArt | undefined {
   return src ? { src, srcSet: assetSrcSetFor(src) } : undefined
 }
 
-/** The three creation guides, in the order a new crew walks them. */
-const STEPS: { guide: string; meta: string }[] = [
-  { guide: 'Create a Pilot', meta: 'Pilot Bay · Classes · Keepsake' },
-  { guide: 'Create a Mech', meta: 'Mech Workshop · Chassis · Systems' },
-  { guide: 'Create a Crawler', meta: 'Union Crawler · Type · Bays' },
-]
+/** The creation guide each "Start here" step opens. */
+const STEP_GUIDES = {
+  pilot: 'Create a Pilot',
+  mech: 'Create a Mech',
+  crawler: 'Create a Crawler',
+} as const
 
 /** The rules a table reaches for mid-session (board 06, "At the table"). */
 const AT_THE_TABLE: { schema: SURefEnumSchemaName; name: string; label: string }[] = [
@@ -79,10 +79,11 @@ const AT_THE_TABLE: { schema: SURefEnumSchemaName; name: string; label: string }
 function page(): PageResult {
   const chapters = buildChapters()
 
-  const steps = STEPS.flatMap(({ guide, meta }): NewToTheUnionStep[] => {
-    const href = hrefByName('guides', guide)
-    return href ? [{ title: guide, meta, href }] : []
-  })
+  const guideHrefs = {
+    pilot: hrefByName('guides', STEP_GUIDES.pilot),
+    mech: hrefByName('guides', STEP_GUIDES.mech),
+    crawler: hrefByName('guides', STEP_GUIDES.crawler),
+  }
   // The Mediator Screen first: every one of these on one page, rolled in place.
   const atTheTable: ContentsRow[] = [
     { label: 'Mediator Screen', href: SCREEN_HREF },
@@ -125,7 +126,11 @@ function page(): PageResult {
         </div>
         <div className="srd-home__body" style={{ maxWidth: MEASURE }}>
           <aside className="srd-home__aside" aria-label="Getting started">
-            <NewToTheUnion steps={steps} buildHref={ITUN_URL} starterSetHref={STARTER_SET_HREF} />
+            <HomeStartHere
+              guideHrefs={guideHrefs}
+              buildHref={ITUN_URL}
+              starterSetHref={STARTER_SET_HREF}
+            />
           </aside>
           <div className="srd-home__index">
             {chapters.map((chapter) => (

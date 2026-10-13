@@ -9,8 +9,10 @@ import { MARK_SRC } from '../../lib/appUrl'
 /**
  * AppHeader — ITUN's preset of the shared Union bar (`AppBar`, ruleset §3.11):
  * the one Union bar, on the **Build** side of the switcher, with ITUN's nav
- * inline — Shelves · Games · Starter Set — then the search slot and the
- * app-supplied `actions` (the account menu) at the end. Below `lg` the nav
+ * inline — Shelves · Games · Starter Set — then the search slot, "Buy the
+ * game" (from 80rem, where the row has room for it beside the nav) and the
+ * app-supplied `actions` (the account menu) at the end: the SRD's bar, plus
+ * the account. Below `lg` the nav
  * collapses into the shared `NavDrawer`, with `mobileSearch` and
  * `mobileActions` beside the hamburger and `drawerExtra` inside the drawer.
  *
@@ -20,7 +22,9 @@ import { MARK_SRC } from '../../lib/appUrl'
  * signed in or out (board 09's bar has neither).
  *
  * The switcher replaces the old "SRD ↗" link: the reference is the other tab
- * of the same bar, not an off-site destination.
+ * of the same bar, not an off-site destination. The drawer's Discord entry is
+ * the SRD's `/discord` page, so it opens in this tab too; only "Buy the game"
+ * leaves the site, in a new one.
  *
  * "Games" is the app's own control (`games`), a menu rather than a link — there
  * is no Games page; picking one sets what the Shelves hub shows — so it takes
@@ -112,7 +116,7 @@ export function AppHeader({
   const drawerNav: NavDrawerItem[] = [
     { label: 'Shelves', href: '/', active: onShelves },
     { label: 'Starter Set', href: '/starter/', active: onStarterSet },
-    { label: 'Discord', href: `${SRD_SITE_URL}/discord/`, external: true },
+    { label: 'Discord', href: `${SRD_SITE_URL}/discord/` },
     { label: 'Buy the game', href: BUY_HREF, external: true },
   ]
 
@@ -134,6 +138,7 @@ export function AppHeader({
         { label: 'Starter Set', href: '/starter/', active: onStarterSet },
       ]}
       search={search}
+      buyHref={BUY_HREF}
       actions={actions}
       mobile={
         <>

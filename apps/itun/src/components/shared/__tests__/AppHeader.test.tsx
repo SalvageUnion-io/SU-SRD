@@ -11,6 +11,7 @@
  * - About and Changelog are at the drawer's foot, not in the bar,
  *   except signed out, when no account menu carries them on a desktop
  * - Search is the bar's search slot, with its phone form by the hamburger
+ * - Buy the game is in the bar, as on the SRD's
  * - Places the app's slots: `actions` at the bar's end, `mobileActions` beside
  *   the hamburger, `drawerExtra` inside the drawer
  */
@@ -88,6 +89,13 @@ describe('AppHeader', () => {
     expect(phone.compareDocumentPosition(hamburger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
+  test('the bar carries Buy the game, as the SRD’s does, off to the publisher in a new tab', () => {
+    render(<AppHeader />)
+    const buy = within(screen.getByRole('banner')).getByRole('link', { name: /buy the game/i })
+    expect(buy.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
+    expect(buy.getAttribute('target')).toBe('_blank')
+  })
+
   test('renders a hamburger trigger for the mobile nav drawer, closed by default', () => {
     render(<AppHeader />)
     expect(screen.getByRole('button', { name: 'Open menu' })).toBeTruthy()
@@ -106,9 +114,10 @@ describe('AppHeader', () => {
     expect(drawer.getByRole('link', { name: 'Starter Set' })).toBeTruthy()
     expect(drawer.getByRole('link', { name: 'About' })).toBeTruthy()
     expect(drawer.getByRole('link', { name: 'Changelog' })).toBeTruthy()
-    expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe(
-      `${SRD}/discord/`
-    )
+    const discord = drawer.getByRole('link', { name: 'Discord' })
+    expect(discord.getAttribute('href')).toBe(`${SRD}/discord/`)
+    // The SRD is the same site: no new tab (ruleset §3.11).
+    expect(discord.getAttribute('target')).toBeNull()
     const buy = drawer.getByRole('link', { name: /buy the game/i })
     expect(buy.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
     expect(buy.getAttribute('target')).toBe('_blank')

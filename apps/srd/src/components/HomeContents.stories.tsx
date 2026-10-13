@@ -4,29 +4,17 @@ import { STARTER_SET_HREF } from '../lib/buildLink'
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, ITUN_URL } from '../lib/constants'
 import type { ContentsArt } from './HomeContents'
-import { ContentsChapter, DiscordBot, NewToTheUnion } from './HomeContents'
+import { ContentsChapter, DiscordBot, HomeStartHere } from './HomeContents'
 
 export default {
   title: 'Compositions/Shell/Home Contents',
 }
 
-const STEPS = [
-  {
-    title: 'Create a Pilot',
-    meta: 'Pilot Bay · Classes · Keepsake',
-    href: '/guides/create-a-pilot/',
-  },
-  {
-    title: 'Create a Mech',
-    meta: 'Mech Workshop · Chassis · Systems',
-    href: '/guides/create-a-mech/',
-  },
-  {
-    title: 'Create a Crawler',
-    meta: 'Union Crawler · Type · Bays',
-    href: '/guides/create-a-crawler/',
-  },
-]
+const GUIDES = {
+  pilot: '/guides/create-a-pilot/',
+  mech: '/guides/create-a-mech/',
+  crawler: '/guides/create-a-crawler/',
+}
 
 /** The chapter openers' artwork, as the home page resolves it (`index.page.tsx`). */
 const ART: Partial<Record<string, ContentsArt>> = Object.fromEntries(
@@ -50,7 +38,7 @@ const AT_THE_TABLE = [
 
 /**
  * The SRD home as the manual's Contents page (board 06): the "Getting started"
- * aside — the "New to the Union?" path — and the Discord bot beside the book's
+ * aside — the shared "Start here" path — and the Discord bot beside the book's
  * chapters as an index, each opened by its colour band and, for Pilot Bay,
  * Mech Workshop and Denizens, a piece of su-assets artwork, with real entry
  * counts (from `buildChapters`, the same source the nav drawer is frozen
@@ -62,7 +50,7 @@ const AT_THE_TABLE = [
 export const Default = () => (
   <div className="srd-home__body">
     <aside className="srd-home__aside" aria-label="Getting started">
-      <NewToTheUnion steps={STEPS} buildHref={ITUN_URL} starterSetHref={STARTER_SET_HREF} />
+      <HomeStartHere guideHrefs={GUIDES} buildHref={ITUN_URL} starterSetHref={STARTER_SET_HREF} />
     </aside>
     <div className="srd-home__index">
       {buildChapters().map((chapter) => (

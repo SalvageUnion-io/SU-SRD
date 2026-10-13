@@ -171,11 +171,11 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
     expect(screen.getByText(/no codes to type/)).toBeTruthy()
   })
 
-  test('how it works is three steps, and playing is not one of them', async () => {
+  test('Start here is the SRD’s three steps, and playing is not one of them', async () => {
     await act(async () => {
       render(<Roster />)
     })
-    const how = screen.getByRole('region', { name: 'How it works' })
+    const how = screen.getByRole('region', { name: 'Start here' })
     expect(
       within(how)
         .getAllByRole('heading', { level: 3 })

@@ -8,7 +8,7 @@
  * A guide's procedure as the book prints a how-to: an ordered list whose every
  * step opens on an ink banner with a rounded tail (ruleset §4.4 — one of the
  * two places rounding copies the book), numeral then name, the same device as
- * the home page's "New to the Union?" steps. A `section` is a solid `Slab`
+ * "Start here" steps (`StartHere`). A `section` is a solid `Slab`
  * over the steps it holds. Under the banner everything keeps the banner's left
  * edge: prose, the page-pointer notes, the option cards, the table.
  *

@@ -75,7 +75,7 @@ test('the home page indexes the book’s chapters', async ({ page }) => {
       })
     ).toBeVisible()
   }
-  await expect(page.getByRole('heading', { name: 'New to the Union?' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Start here' })).toBeVisible()
 })
 
 // (e) An entity page at a phone's width and a desktop's (boards 07, 08): the

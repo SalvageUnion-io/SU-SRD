@@ -6,6 +6,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import { CHAPTER_BAND_COLOR } from 'component-lib'
+import { DISCORD_COMMANDS } from '../../src/generated/discordCommands'
 import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
 import type { BuildAssets } from '../document'
 import { routes } from '../routes'
@@ -59,10 +60,15 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(html).toContain('href="/chassis/"')
   })
 
-  it('hands a new player to ITUN', () => {
-    expect(html).toContain('New to the Union?')
-    expect(html).toContain('Build a pilot')
-    expect(html).toContain('href="/guides/create-a-pilot/"')
+  it('hands a new player to ITUN through the shared "Start here" block, in the same tab', () => {
+    const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('srd-home__index'))
+    expect(aside).toContain('>Start here<')
+    for (const guide of ['create-a-pilot', 'create-a-mech', 'create-a-crawler']) {
+      expect(aside).toContain(`href="/guides/${guide}/"`)
+    }
+    expect(aside).toContain('Build a pilot')
+    expect(aside).toContain('href="https://salvageunion.io/build/"')
+    expect(aside).not.toContain('target="_blank"')
   })
 
   it('sets "At the table" as a section of the index, and offers the Discord bot after it', () => {
@@ -70,7 +76,7 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/roll-tables/core-mechanic/"')
     const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('srd-home__index'))
-    expect(aside).toContain('id="new-to-the-union"')
+    expect(aside).toContain('id="start-here"')
     expect(aside).not.toContain('Add to Discord')
     const discord = html.slice(html.indexOf('srd-home__discord'))
     expect(discord).toContain('Add to Discord')
@@ -88,12 +94,12 @@ describe('home: the manual’s Contents page (board 06)', () => {
     ])
   })
 
-  it('puts first-timer content first: title, search, "New to the Union?", the index, then Discord', () => {
+  it('puts first-timer content first: title, search, "Start here", the index, then Discord', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
     expect(at('<h1')).toBeLessThan(at('action="/search/"'))
-    expect(at('action="/search/"')).toBeLessThan(at('id="new-to-the-union"'))
-    expect(at('id="new-to-the-union"')).toBeLessThan(at('id="pilot-bay"'))
+    expect(at('action="/search/"')).toBeLessThan(at('id="start-here"'))
+    expect(at('id="start-here"')).toBeLessThan(at('id="pilot-bay"'))
     expect(at('id="at-the-table"')).toBeLessThan(at('id="discord-bot"'))
   })
 })
@@ -324,4 +330,21 @@ describe('every page ends on one footer (boards 06, 07)', () => {
       expect(feet[0]).toBe(licence())
     })
   }
+})
+
+describe('/discord documents the bot it installs', () => {
+  const html = page('/discord')
+
+  it('lists every /su subcommand the bot registers, under the name Discord shows', () => {
+    for (const command of DISCORD_COMMANDS) {
+      expect(html).toContain(`/su ${command.name}`)
+      if (command.needsAccount) expect(html).toContain(command.description)
+    }
+  })
+
+  it('says what needs an account, and opens In the Union now in the same tab', () => {
+    expect(html).not.toContain('no-account character builder')
+    expect(html).toContain('sign in with Discord to build')
+    expect(html).not.toMatch(/href="https:\/\/salvageunion\.io\/build\/"[^>]*target="_blank"/)
+  })
 })

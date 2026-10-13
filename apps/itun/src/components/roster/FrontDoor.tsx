@@ -7,9 +7,9 @@
  *  - the **product-name chapter band** (`PRODUCT.name`), with what ITUN is, the sign-in,
  *    a way into a Starter Set sheet, and the one line about invite links (a
  *    Game is joined from a link, never a typed code);
- *  - **how it works**, in three steps: Create a Pilot → Create a Mech → Join
- *    or make a Crawler. Playing a Game happens from the Crawler, so it is not a
- *    step of its own;
+ *  - **Start here**, the onboarding the SRD's home shows too (`StartHere`):
+ *    Create a Pilot → Create a Mech → Join or make a Crawler. Playing a Game
+ *    happens from the Crawler, so it is not a step of its own;
  *  - **the Starter Set** as `StarterCard`s (the card `/starter` lists them
  *    with), one column per kind, each opening its read-only sheet, with one
  *    Leyline Press credit for the section rather than a stamp on every card.
@@ -17,7 +17,7 @@
  * Style objects and tokens only (ADR-046).
  */
 
-import { buttonVariants, ChapterBand, Slab, tokens } from 'component-lib'
+import { buttonVariants, ChapterBand, Slab, StartHere, tokens } from 'component-lib'
 import { PRODUCT } from 'component-lib/product'
 import { STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
@@ -103,54 +103,6 @@ const GRID = {
   padding: 0,
 } satisfies CSSProperties
 
-const STEP = {
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-  paddingBottom: tokens.space[20],
-} satisfies CSSProperties
-
-/** The step's ink band, square on the left and rounded off on the right. */
-const STEP_BAND = {
-  alignItems: 'center',
-  backgroundColor: tokens.color.ink,
-  borderEndEndRadius: tokens.radius.full,
-  borderStartEndRadius: tokens.radius.full,
-  color: tokens.color.paper,
-  display: 'flex',
-  gap: tokens.space[10],
-  margin: `${tokens.space[12]} ${tokens.space[24]} ${tokens.space[16]} 0`,
-  padding: `${tokens.space[8]} ${tokens.space[16]} ${tokens.space[8]} ${tokens.space[12]}`,
-} satisfies CSSProperties
-
-const STEP_NUMBER = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.displayLg,
-  fontWeight: tokens.weight.extrabold,
-  lineHeight: 1,
-} satisfies CSSProperties
-
-const STEP_TITLE = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.title,
-  fontWeight: tokens.weight.bold,
-  lineHeight: 1.1,
-  margin: 0,
-} satisfies CSSProperties
-
-const STEP_BODY = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.lede,
-  lineHeight: 1.55,
-  margin: 0,
-  paddingInline: tokens.space[16],
-} satisfies CSSProperties
-
 const CREDIT = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
@@ -203,21 +155,6 @@ const TONE: Record<StarterKind, string> = {
   crawler: tokens.color.crawler,
 }
 
-const STEPS = [
-  {
-    title: 'Create a Pilot',
-    body: 'Pick a class and your first ability, then add a keepsake, motto and background.',
-  },
-  {
-    title: 'Create a Mech',
-    body: 'Choose a chassis and pattern, then fill its system and module slots.',
-  },
-  {
-    title: 'Join or make a Crawler',
-    body: 'Start a crew’s Union Crawler and send an invite link, or open one a crewmate sent you. Your pilot plays from it, and the Dashboard handles heat, damage and the change log at the table.',
-  },
-]
-
 export function FrontDoor() {
   const shelves = starterShelves()
   const firstSheet = STARTER_PILOTS[0]
@@ -260,22 +197,7 @@ export function FrontDoor() {
           </p>
         </section>
 
-        <section aria-labelledby="front-door-how" style={SECTION}>
-          <Slab label="How it works" id="front-door-how" as="h2" variant="solid" />
-          <ol style={GRID}>
-            {STEPS.map((step, index) => (
-              <li key={step.title} style={STEP}>
-                <div style={STEP_BAND}>
-                  <span aria-hidden="true" style={STEP_NUMBER}>
-                    {index + 1}
-                  </span>
-                  <h3 style={STEP_TITLE}>{step.title}</h3>
-                </div>
-                <p style={STEP_BODY}>{step.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <StartHere id="front-door-start" />
 
         <section aria-labelledby="front-door-starter" style={SECTION}>
           <Slab label="Starter Set" id="front-door-starter" as="h2" variant="solid" />

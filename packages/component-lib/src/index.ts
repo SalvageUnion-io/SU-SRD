@@ -131,6 +131,8 @@ export { PICKER_MODAL_WIDTH } from './components/compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
 // the SRD roll-table page's bands, banded in the surface tone
 export { RollTableInstrument } from './components/compositions/RollTableInstrument'
+// StartHere — the one onboarding block, on the SRD's home and ITUN's front door
+export { StartHere } from './components/compositions/StartHere'
 // StepButton is deliberately NOT exported: it is an internal atom composed by
 // CountStepper (its only consumer), demonstrated via its own co-located story.
 // Every hand-assembled '-'/value/'+' cluster in the apps now renders through
