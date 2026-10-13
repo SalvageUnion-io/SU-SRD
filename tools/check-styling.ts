@@ -15,18 +15,17 @@
  * ships. Each rule set's header carries its full reasoning.
  *
  * A rule is `zero` (any finding fails) or a `ratchet` counted against
- * `tools/baselines/styling-baseline.json`. A ratchet fails when its count RISES, and also
- * when it FALLS without the baseline falling with it — an unrecorded
- * improvement is slack that the next regression spends without anyone seeing.
+ * `tools/baselines/styling-baseline.json`. Every rule is `zero` but
+ * `styling/style-object-annotation`, the one with a backlog left. A ratchet
+ * fails when its count RISES, and also when it FALLS without the baseline
+ * falling with it — an unrecorded improvement is slack that the next
+ * regression spends without anyone seeing. A styling baseline only falls:
+ * `--update-baseline` refuses a rise outright.
  *
  * Usage:
  *   bun tools/check-styling.ts                      # every set
  *   bun tools/check-styling.ts --only=tokens        # one set (comma-separate for more)
  *   bun tools/check-styling.ts --update-baseline    # lower the ratchets to today's counts
- *   bun tools/check-styling.ts --update-baseline --allow-increase
- *                                                   # ONLY in a commit that makes a rule stricter,
- *                                                   # or that splits files without adding a
- *                                                   # utility (see packages/gates/lib/ruleEngine.ts)
  *   bun tools/check-styling.ts --report             # print every finding; never fails
  */
 
@@ -91,14 +90,12 @@ function main(argv: readonly string[]): void {
       raised.push(...increases(baseline[set.id] ?? {}, counts).map((r) => `${set.id}/${r}`))
       next[set.id] = counts
     }
-    if (raised.length > 0 && !argv.includes('--allow-increase')) {
+    if (raised.length > 0) {
       console.error('✗ refusing to RAISE a ratchet baseline:')
       for (const r of raised) console.error(`    ${r}`)
       console.error(
-        '\n  A baseline only goes down. The two exceptions are the commit that makes a rule\n' +
-          '  STRICTER (it counts literals that were always there) and a pure FILE SPLIT (a\n' +
-          '  per-file count rises with no literal written) — pass --allow-increase there,\n' +
-          '  and write the reason and the evidence into the rule set.'
+        '\n  A styling baseline only goes down. Fix the new findings, or exempt a\n' +
+          '  genuinely-correct case in the rule set with a written reason.'
       )
       process.exit(1)
     }

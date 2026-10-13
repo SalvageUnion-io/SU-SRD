@@ -16,23 +16,14 @@
  * cites the section so a failure tells you which law you broke, not just which
  * regex you tripped.
  *
- * ## Zero rules and the two ratchets
+ * ## Every rule is zero
  *
- * Ten rules are `zero`: any finding fails. Three of them landed with the brand
- * refresh's tokens and hold the Workshop Manual canon the ruleset
- * ratifies: `rust-allowlist` (§3.1), `type-floor` (§4.6) and
- * `texture-placement` (§3.5). Each landed with its backlog fixed, not
- * baselined, so it starts at zero. Two rules still carry a backlog and are
- * `ratchet` rules, counted against `tools/baselines/styling-baseline.json`:
- *
- *   - `raw-color` — at zero: the Discord bot's hex-integer accents, its last
- *     findings, are exempt below (Discord's API takes integers, not CSS).
- *   - `arbitrary-font-size` — `WizShell.tsx` and `LiveSheet.tsx`.
- *
- * An upward rebaseline is sanctioned only when a rule is made STRICTER, so its
- * count rises without anyone having written a new violation.
- * A stricter rule may raise its baseline ONCE, in the commit that tightens it,
- * with `--allow-increase` and the reason written down. Drift may not.
+ * Every rule here is `zero`: any finding fails, and none has a baseline entry.
+ * `rust-allowlist` (§3.1), `type-floor` (§4.6) and `texture-placement` (§3.5)
+ * hold the Workshop Manual canon the ruleset ratifies. The Discord bot's
+ * hex-integer accents are exempt from `raw-color` below (Discord's API takes
+ * integers, not CSS). Making a rule stricter means fixing or exempting what
+ * it newly finds in the same commit; there is no baseline to raise.
  */
 
 import { readFileSync } from 'node:fs'
@@ -135,7 +126,7 @@ export const TOKEN_RULES: TokenRule[] = [
   },
   {
     id: 'raw-color',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: 'ruleset §4.1 — colour lives in tokens, not call sites',
     fix: 'Add or reuse a token in theme.css (and its mirror in tokens.ts): `color.<name>` in a style object, `var(--color-<name>)` in a stylesheet rule. A translucent shade of a token is `color-mix(in oklab, var(--color-<name>) NN%, transparent)`.',
     // Two guards keep this from firing on things that only LOOK like hex:
@@ -218,7 +209,7 @@ export const TOKEN_RULES: TokenRule[] = [
   },
   {
     id: 'arbitrary-font-size',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: 'ruleset §4.2 — one type scale',
     fix: 'Use the semantic type ladder: `fontSize.badge` / `var(--text-badge)` (11px, the floor), then note / caption / lede, and the display end — readout (17) / title (22) / display (26) / displayLg (31) / hero (38).',
     pattern: /text-\[(?!var\(|color:|--)[^\]]+\]/g,
@@ -233,8 +224,8 @@ export const TOKEN_RULES: TokenRule[] = [
     // a retired rung's NAME is a finding (in any spelling — utility, custom
     // property, token key, caps-recipe class), and so is any LITERAL size
     // under 11px (an arbitrary utility, a CSS declaration, a style-object or
-    // SVG `fontSize`). `arbitrary-font-size` above still counts every
-    // arbitrary utility; this one fails the build on the small ones.
+    // SVG `fontSize`). `arbitrary-font-size` above fails every arbitrary
+    // utility; this one fails a small size in any spelling.
     fix: 'Use `fontSize.badge` / `var(--text-badge)` / `text-badge` (11px) — the floor. A caps label at the floor reads at `tracking.capsSnug` (0.06em). Nothing renders smaller, seam and roll-table stamps included.',
     pattern:
       /(?<![\w-])text-(?:nano|micro|label(?:-lg)?)(?![\w-])|--text-(?:nano|micro|label(?:-lg)?)(?![\w-])|\bfontSize\.(?:nano|micro|label|labelLg)\b|\bsu-caps--(?:nano|micro|label(?:-lg)?)\b|text-\[\d*\.?\d+(?:px|rem)\]|font-size\s*:\s*\d*\.?\d+(?:px|rem)?(?![\w.])|\bfont[sS]ize\s*[=:]\s*\{?\s*['"`]?\d*\.?\d+(?:px|rem)?(?![\w.])/g,

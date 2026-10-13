@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { Finding, RuleSet } from '../lib/ruleEngine'
 import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '../lib/ruleEngine'
-import { fontSizePx, scanTokenSources } from '../rules/designTokens'
+import { designTokens, fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
 import { stylingOwnership } from '../rules/stylingOwnership'
 import { DATA_DIR, PENDING_TL_GROUNDS, toneGround } from '../rules/toneGround'
@@ -108,6 +108,11 @@ describe('ruleEngine.listFiles', () => {
 
 describe('tokens rule set', () => {
   const scan = (rel: string, text: string) => scanTokenSources(new Map([[rel, text]]))
+
+  test('every rule is zero, so the set keeps no baseline', () => {
+    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
+    expect(ratchetCounts(designTokens, {})).toEqual({})
+  })
 
   test('raw colour literals are found; issue refs and HTML entities are not', () => {
     const found = scan(
