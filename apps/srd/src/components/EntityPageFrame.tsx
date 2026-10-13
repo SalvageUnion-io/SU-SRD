@@ -113,9 +113,9 @@ export function EntityPageFrame({
       </ChapterBand>
       <div className="srd-entity__body" style={{ maxWidth: measure }}>
         {build && (
-          // A link that looks like the shared Button (`buttonVariants`, as the
-          // home page's "Build a pilot"): same tab, no off-site arrow — the
-          // Reference and Build are one union (ruleset §3.11).
+          // A link that looks like the shared Button (`buttonVariants`): same
+          // tab, no off-site arrow — the Reference and Build are one union
+          // (ruleset §3.11).
           <div className="srd-entity__build">
             <a
               href={build.href}

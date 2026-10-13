@@ -60,14 +60,14 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(html).toContain('href="/chassis/"')
   })
 
-  it('hands a new player to ITUN through the shared "Start here" block, in the same tab', () => {
+  it('starts a new player on the shared "Start here" block, each step opening its guide', () => {
     const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('srd-home__index'))
     expect(aside).toContain('>Start here<')
     for (const guide of ['create-a-pilot', 'create-a-mech', 'create-a-crawler']) {
       expect(aside).toContain(`href="/guides/${guide}/"`)
     }
-    expect(aside).toContain('Build a pilot')
-    expect(aside).toContain('href="https://salvageunion.io/build/"')
+    expect(aside).not.toContain('Ready to build')
+    expect(aside).not.toContain('Build a pilot')
     expect(aside).not.toContain('target="_blank"')
   })
 
@@ -83,15 +83,9 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(discord).toContain('href="https://discord.com/oauth2/authorize?client_id=')
   })
 
-  it('opens Pilot Bay, Mech Workshop and Denizens on su-assets artwork', () => {
-    const art = [...html.matchAll(/class="srd-contents__art"><img src="([^"]+)"/g)].map(
-      ([, src]) => src
-    )
-    expect(art).toEqual([
-      'https://assets.salvageunion.io/classes/hacker.webp',
-      'https://assets.salvageunion.io/chassis/mule.webp',
-      'https://assets.salvageunion.io/bio-titans/tyrant.webp',
-    ])
+  it('opens each chapter on its band alone, with no artwork', () => {
+    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('srd-home__discord'))
+    expect(index).not.toContain('<img')
   })
 
   it('puts first-timer content first: title, search, "Start here", the index, then Discord', () => {

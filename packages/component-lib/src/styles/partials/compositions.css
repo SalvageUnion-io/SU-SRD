@@ -37,6 +37,34 @@
 
 /* ── compositions/StartHere ── */
 
+/* The three steps are one box (the `<ol>`'s border is its style object),
+   ruled between steps: stacked until the block is 48rem wide, then three
+   across with the rules upright. Classes because the layout and the rules
+   change with the container's width. */
+.su-start-here {
+  container-type: inline-size;
+}
+
+.su-start-here__steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-start-here__steps > li + li {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+}
+
+@container (min-width: 48rem) {
+  .su-start-here__steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .su-start-here__steps > li + li {
+    border-left: var(--bw-chrome) solid var(--color-ink);
+    border-top: 0;
+  }
+}
+
 /* A step that opens its guide underlines its title on hover. A class because
    a style object has no `:hover`. */
 .su-start-here__step:hover .su-start-here__title {

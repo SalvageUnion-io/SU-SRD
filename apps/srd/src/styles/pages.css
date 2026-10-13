@@ -299,25 +299,6 @@
   height: 8px;
 }
 
-/* A chapter opener's artwork, under its band: the line art is printed on
-   white, so `multiply` lays it onto the paper, ruled in ink at the sides like
-   the band; the heading's rule closes the plate. */
-.srd-contents__art {
-  background-color: var(--color-paper);
-  border-inline: var(--bw-chrome) solid var(--color-ink);
-  height: 10rem;
-  position: relative;
-}
-
-.srd-contents__art img {
-  height: calc(100% - 2 * var(--space-6));
-  inset: var(--space-6);
-  mix-blend-mode: multiply;
-  object-fit: contain;
-  position: absolute;
-  width: calc(100% - 2 * var(--space-6));
-}
-
 .srd-contents__heading {
   align-items: baseline;
   border-top: var(--bw-chrome) solid var(--color-ink);
@@ -437,27 +418,6 @@
   font-family: var(--font-cond);
   font-weight: var(--font-weight-semibold);
   text-underline-offset: 3px;
-}
-
-/* "Start here"'s foot on the home page: the hand-off to ITUN, then its links. */
-.srd-start-here__foot {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
-.srd-start-here__foot p {
-  color: var(--color-ink-2);
-  font-size: var(--text-lede);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.srd-start-here__actions {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-14);
 }
 
 /*

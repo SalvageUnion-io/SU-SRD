@@ -3,25 +3,24 @@
  *
  * The title, then search: beside the title on the blue Contents band on a
  * desktop, under the notch on a phone. Then the "Getting started" aside — the
- * shared "Start here" path, into ITUN — the index, and the Discord bot. The
- * index is the book's chapters, each opened by its band and a piece of its
- * artwork, with their real entry counts, then the rules a table reaches for
+ * shared "Start here" path — the index, and the Discord bot. The index is the
+ * book's chapters, each opened by its band, with their real entry counts, then
+ * the rules a table reaches for
  * under an ink band. The DOM order is a phone's: "Start here", the
  * index, then the Discord bot; a desktop pins the aside and the bot to a
  * right-hand sidebar.
  * The band's search is the page's search, so the Union bar carries none here.
  */
 
-import { assetSrcSetFor, ChapterBand } from 'component-lib'
+import { ChapterBand } from 'component-lib'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { getAssetUrl, getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
-import type { ContentsArt, ContentsRow } from '../components/HomeContents'
+import type { ContentsRow } from '../components/HomeContents'
 import { ContentsChapter, DiscordBot, HomeStartHere } from '../components/HomeContents'
-import { STARTER_SET_HREF } from '../lib/buildLink'
 import { buildChapters } from '../lib/chapters'
-import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL } from '../lib/constants'
+import { DISCORD_INSTALL_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
 import { SCREEN_HREF } from '../lib/screenPage'
 import '../lib/gameData'
@@ -38,26 +37,6 @@ const MEASURE = '85rem'
 function hrefByName(schemaName: SURefEnumSchemaName, name: string): string | undefined {
   const entity = SalvageUnionReference.findIn(schemaName, (e) => e.name === name)
   return entity ? itemHref(schemaName, getEntitySlug(entity)) : undefined
-}
-
-/**
- * Each chapter's opener artwork, from su-assets, by the entity it illustrates.
- * Union Crawler has none: no crawler carries artwork yet (`hasArtwork`), so
- * its chapter opens on its band alone, as Rules & Reference does.
- */
-const CHAPTER_ART: Partial<Record<string, { schema: SURefEnumSchemaName; name: string }>> = {
-  'pilot-bay': { schema: 'classes', name: 'Hacker' },
-  'mech-workshop': { schema: 'chassis', name: 'Mule' },
-  denizens: { schema: 'bio-titans', name: 'Tyrant' },
-}
-
-/** A chapter's opener artwork, or nothing when the entity or its artwork is gone. */
-function chapterArt(chapterId: string): ContentsArt | undefined {
-  const piece = CHAPTER_ART[chapterId]
-  if (!piece) return undefined
-  const entity = SalvageUnionReference.findIn(piece.schema, (e) => e.name === piece.name)
-  const src = entity ? getAssetUrl(entity) : undefined
-  return src ? { src, srcSet: assetSrcSetFor(src) } : undefined
 }
 
 /** The creation guide each "Start here" step opens. */
@@ -126,11 +105,7 @@ function page(): PageResult {
         </div>
         <div className="srd-home__body" style={{ maxWidth: MEASURE }}>
           <aside className="srd-home__aside" aria-label="Getting started">
-            <HomeStartHere
-              guideHrefs={guideHrefs}
-              buildHref={ITUN_URL}
-              starterSetHref={STARTER_SET_HREF}
-            />
+            <HomeStartHere guideHrefs={guideHrefs} />
           </aside>
           <div className="srd-home__index">
             {chapters.map((chapter) => (
@@ -141,7 +116,6 @@ function page(): PageResult {
                 tone={chapter.tone}
                 rows={chapter.rows}
                 total={chapter.total}
-                art={chapterArt(chapter.id)}
               />
             ))}
             <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
