@@ -329,6 +329,7 @@ describe('styling rule set', () => {
       'dash-class-contract',
       'package-stylesheet-import',
       'no-tailwind',
+      'style-object-annotation',
     ]) {
       expect(found[id]).toEqual([])
     }
@@ -426,6 +427,28 @@ describe('styling rule set', () => {
       })
     )
     expect(found['package-stylesheet-import']?.[0]?.detail).toContain('BEFORE')
+  })
+
+  test('an annotated style object is counted; satisfies, a style function and prose are not', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        'packages/component-lib/src/A.tsx': [
+          "const WIDE: CSSProperties = { width: '100%' }",
+          'const TALL: React.CSSProperties = {',
+          "  height: '100%',",
+          '}',
+          "const OK = { width: '100%' } satisfies CSSProperties",
+          'const band = (fill: string): CSSProperties => ({ background: fill })',
+          '// never `const X: CSSProperties = {}`',
+          '',
+        ].join('\n'),
+      })
+    )
+    expect(found['style-object-annotation']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'packages/component-lib/src/A.tsx:1',
+      'packages/component-lib/src/A.tsx:2',
+    ])
   })
 
   test('a consumer that imports the package stylesheet itself is a second entry', () => {

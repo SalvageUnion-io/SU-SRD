@@ -1,0 +1,130 @@
+/*
+ * The package stylesheet, part 12 of 21: Field, the inputs, InlineEditField,
+ * Sel and Checkbox. `../index.css` imports the parts in cascade order.
+ */
+
+/* ── Field, inputs, InlineEditField, Sel, Checkbox ── */
+/* `atoms/inputs.tsx` + `atoms/Field.tsx`: the `Input` / `Textarea` / `Select`
+ * skin. ALL of it is a class, geometry included: the three are public and
+ * callers restyle them by className (`px-2 py-1.5 text-xs`, `w-auto
+ * sm:min-h-9`) and by `style` (a dashed `borderStyle`), and an inline style
+ * would beat the one and be replaced wholesale by the other. */
+.su-text-input {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-chrome);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  padding-block: 10px;
+  padding-inline: 12px;
+  width: 100%;
+}
+
+.su-text-input::placeholder {
+  color: var(--color-wk-muted);
+}
+
+.su-textarea {
+  resize: vertical;
+}
+
+/* `Select`: the `Input` skin one rung smaller, held to the 44px target. */
+.su-select {
+  font-size: var(--text-sm);
+  line-height: calc(1.25 / 0.875);
+  min-height: 2.75rem;
+}
+
+.su-select--chevron {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 32px;
+}
+
+/* `atoms/InlineEditField.tsx`. The readout's alignment and colour stay in a
+ * class: `Field`'s `fill` and callers' `[&>span]:` reach in to restyle them. */
+.su-inline-edit__readout {
+  align-items: center;
+  color: var(--color-ink);
+}
+
+.su-inline-edit__readout--empty {
+  color: var(--color-wk-muted);
+}
+
+.su-inline-edit__readout--editable:hover {
+  background-color: var(--color-ink-8);
+}
+
+/* The bordered value box — a class, because `Field` re-strokes it dashed and
+ * stretches it (`fill`). */
+.su-inline-edit__box {
+  align-items: center;
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-chrome);
+  display: flex;
+  min-height: 2.75rem;
+  width: 100%;
+}
+
+/* The number editor's invalid skin, over `.su-text-input`. */
+.su-inline-edit__error {
+  border-color: var(--color-status-bad);
+}
+
+/* `atoms/Field.tsx`. The picker value box fills on hover. */
+.su-field__picker {
+  background-color: var(--color-paper);
+}
+
+.su-field__picker:hover {
+  background-color: var(--color-ink-8);
+}
+
+/* A writable value box is pencil, not print: dashed (ruleset §1). */
+.su-field__write-cue {
+  border-style: dashed;
+}
+
+/* `fill`: the value box and its readout stretch, the text at the top. */
+.su-field__fill {
+  align-items: stretch;
+  flex: 1;
+  height: 100%;
+}
+
+.su-field__fill > span {
+  align-items: flex-start;
+  height: 100%;
+  padding-block: 10px;
+}
+
+/* `prominent`: the readout one rung up (`text-xl`). */
+.su-field__prominent > span {
+  font-size: var(--text-xl);
+  line-height: calc(1.75 / 1.25);
+}
+
+/* `atoms/Checkbox.tsx`: the choice row fills on hover, and the stacked row
+ * thickens its border (padding paying the difference) once checked. */
+.su-choice {
+  background-color: var(--color-paper);
+  border-width: var(--bw-chrome);
+  padding: 8px;
+}
+
+.su-choice:hover {
+  background-color: var(--color-ink-8);
+}
+
+.su-choice--stacked:has(:checked) {
+  border-width: 2px;
+  padding: calc(0.5rem - 0.5px);
+}

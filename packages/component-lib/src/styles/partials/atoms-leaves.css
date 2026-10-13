@@ -1,0 +1,254 @@
+/*
+ * The package stylesheet, part 14 of 21: the remaining Atoms: Conditions to
+ * Text. `../index.css` imports the parts in cascade order.
+ */
+
+/* ── Conditions, ModeDoor, Panel, Slab, PageHeading, KvRow ── */
+/* Conditions.tsx — the remove glyph brightens on hover. */
+.su-condition-chip__remove {
+  opacity: 0.8;
+}
+
+.su-condition-chip__remove:hover {
+  opacity: 1;
+}
+
+/* Conditions.tsx — the dashed '+ Add' chip inks in on hover. */
+.su-conditions__add {
+  border-color: var(--color-wk-faint);
+  color: var(--color-wk-muted);
+}
+
+.su-conditions__add:hover {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* ModeDoor.tsx — the door lifts 2px on hover. */
+.su-mode-door {
+  transition-duration: 120ms;
+  transition-property: transform, translate, scale, rotate;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.su-mode-door:hover {
+  translate: 0 calc(var(--space-2) * -1);
+}
+
+/* ModeDoor's shadows. Here, not inline, because the focus ring is a
+   box-shadow too and an inline one would out-rank it.
+   guided: a ground gap, a 3px ink ring, then a soft drop shadow. */
+.su-mode-door--guided {
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 7px var(--color-ink),
+    0 18px 30px -14px var(--color-ink-50);
+}
+
+.su-mode-door--blank {
+  box-shadow: 0 14px 26px -14px var(--color-ink-40);
+}
+
+/* The canonical ring (`--focus-ring-shadow`: paper offset, ink ring) with
+   the door's own shadows kept. guided already wears an ink ring at rest, so
+   its focus ring sits OUTSIDE the halo, the same paper-then-ink pair offset
+   by the halo's 7px; laid on the edge it would merge into the halo and read
+   as no change. */
+.su-mode-door--guided:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 7px var(--color-ink),
+    0 0 0 9px var(--color-paper),
+    0 0 0 11px var(--color-ink),
+    0 18px 30px -14px var(--color-ink-50);
+}
+
+.su-mode-door--blank:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow:
+    var(--focus-ring-shadow),
+    0 14px 26px -14px var(--color-ink-40);
+}
+
+/* PageHeading.tsx — each rung's size, leading and tracking, which callers
+   retune through `className` (`leading-tight`, `tracking-caps-tight`). */
+.su-page-heading--subheading {
+  font-size: var(--text-lg);
+  line-height: calc(1.75 / 1.125);
+}
+
+.su-page-heading--section {
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-caps);
+  line-height: calc(1.25 / 0.875);
+}
+
+/* KvRow.tsx — the bottom rule, cleared on the last row. */
+.su-kv-row {
+  border-bottom-width: var(--bw-hairline);
+}
+
+.su-kv-row:last-child {
+  border-width: 0;
+}
+
+/* ── ActivationCost, CatalogTile, KofiButton, SearchField, SlotGrid ── */
+/* `CATALOG_TILE_*` (`atoms/catalogTileTreatment.ts`, used by `atoms/CatalogTile.tsx`):
+ * the tile frame and its hover lift. Only box-shadow and transform transition,
+ * as before — the lift is the `translate` property, so it steps rather than
+ * slides. The frame is explicit, so the link tile and the `<button>` tile
+ * (`onActivate`, which the `button` reset would leave frameless) match, and
+ * neither depends on the reset. */
+.su-catalog-tile {
+  border-color: var(--color-ink);
+  border-style: solid;
+  border-radius: var(--radius-card);
+  border-width: var(--bw-chrome);
+  padding-block: 13px;
+  padding-inline: 15px;
+  text-decoration-line: none;
+  transition-duration: 120ms;
+  transition-property: box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.su-catalog-tile:hover {
+  box-shadow: 0 5px 18px var(--color-ink-20);
+  translate: 0 -2px;
+}
+
+.su-catalog-tile--fill {
+  background: var(--catalog-bg);
+  color: var(--color-paper);
+}
+
+.su-catalog-tile__label {
+  background-color: var(--catalog-label);
+  border-radius: var(--radius-badge);
+  display: inline-block;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-10);
+  text-shadow: none;
+}
+
+/* `atoms/SearchField.tsx`: the bordered shell and its input. Callers restyle
+ * both by className (`containerClassName`, `className`), so neither is inline. */
+.su-search-field {
+  align-items: center;
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-radius: 0.25rem;
+  border-style: solid;
+  border-width: 1px;
+  color: var(--color-wk-muted);
+  display: flex;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  gap: var(--space-8);
+  padding-block: 7px;
+  padding-inline: var(--space-12);
+}
+
+/* 16px on the input itself: iOS Safari zooms on a focused control under 16px. */
+.su-search-field__input {
+  background-color: transparent;
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  width: 100%;
+}
+
+.su-search-field__input::placeholder {
+  color: var(--color-wk-muted);
+}
+
+.su-search-field__input:focus {
+  outline-style: none;
+}
+
+/* `SearchFieldTrigger`: the field as a button. The label reads as the
+   placeholder, left-aligned where the input's text would sit. */
+.su-search-field--trigger {
+  cursor: pointer;
+  text-align: left;
+}
+
+.su-search-field__label {
+  color: var(--color-wk-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Toaster ── */
+/* components/containers/Toaster.tsx — a success or error toast's status icon takes
+ * the status colour. Sonner renders the icon, so only a descendant rule
+ * reaches it; `classNames` puts the class on the toast. */
+.su-toast--ok > [data-icon] {
+  color: var(--color-status-ok);
+}
+
+.su-toast--bad > [data-icon] {
+  color: var(--color-status-bad);
+}
+
+/* A toast's description reads in the toast's own paper. Sonner injects an
+   unlayered grey for it, which outranks any class in this layer. */
+.su-toast__description {
+  /* biome-ignore lint/complexity/noImportantStyles: Sonner's unlayered description colour outranks this layer */
+  color: inherit !important;
+  opacity: 0.85;
+}
+
+/* ── StatProvenance, Tooltip, Text ── */
+/* components/atoms/Text.tsx — every property a class, because callers restyle
+ * Text through `className` (their utilities must keep winning). Two classes of
+ * specificity so a package rule such as `.su-entity-page__prose
+ * [data-prose='flavor']` loses to the variant, as it lost to the variant's
+ * utilities before. */
+.su-text.su-text--default {
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+.su-text.su-text--body {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.375;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+  white-space: normal;
+}
+
+.su-text.su-text--hint {
+  color: var(--color-ink);
+  font-style: italic;
+  font-weight: var(--font-weight-normal);
+  line-height: 1.375;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-align: center;
+  text-wrap: pretty;
+  white-space: normal;
+}
+
+.su-text.su-text--flavor {
+  color: var(--color-ink-2);
+  font-style: italic;
+  font-weight: var(--font-weight-normal);
+  line-height: 1.375;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+  white-space: normal;
+}
+
+/* components/atoms/StatProvenance.tsx — the trigger's dotted underline; callers
+ * restyle it (`border-0`, `border-b-0`, `cursor`) through `className`. */
+.su-stat-provenance__trigger {
+  border-bottom-width: 1px;
+  border-color: color-mix(in oklab, currentcolor 40%, transparent);
+  border-style: dotted;
+  cursor: help;
+}

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { readPackageStylesheet } from '../../../styles/__tests__/packageStylesheet'
 
 /**
  * The coarse-pointer touch floor (ruleset §4.6: every target is at least 44px
@@ -17,8 +18,8 @@ import { join } from 'node:path'
 
 const STYLES = join(import.meta.dir, '../../../styles')
 
-function coarseBlock(file: string): string {
-  const css = readFileSync(join(STYLES, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+function coarseBlock(file: string, text: string): string {
+  const css = text.replace(/\/\*[\s\S]*?\*\//g, '')
   const start = css.indexOf('@media (pointer: coarse)')
   expect(start).toBeGreaterThan(-1)
   // The block runs to the brace that closes the @media rule.
@@ -41,8 +42,8 @@ function floorSelectors(block: string): string[] {
 }
 
 describe('the coarse-pointer touch floor', () => {
-  const theme = coarseBlock('theme.css')
-  const index = coarseBlock('index.css')
+  const theme = coarseBlock('theme.css', readFileSync(join(STYLES, 'theme.css'), 'utf8'))
+  const index = coarseBlock('index.css', readPackageStylesheet())
 
   test('theme.css and index.css floor the same selectors', () => {
     expect(floorSelectors(index)).toEqual(floorSelectors(theme))

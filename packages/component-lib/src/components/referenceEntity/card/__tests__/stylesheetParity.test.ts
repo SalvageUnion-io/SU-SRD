@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { readPackageStylesheet } from '../../../../styles/__tests__/packageStylesheet'
 import { PENNANT_SHAPE } from '../cardChrome'
 import { grainClass, grainSvg } from '../cardGrain'
 
@@ -13,7 +14,7 @@ import { grainClass, grainSvg } from '../cardGrain'
  * - the pennant's cut: `PENNANT_SHAPE`, which `.su-pennant` restates.
  */
 const STYLES = join(import.meta.dir, '../../../../styles')
-const css = readFileSync(join(STYLES, 'index.css'), 'utf8')
+const css = readPackageStylesheet()
 
 describe('card grain', () => {
   for (const grain of ['ink', 'paper'] as const) {
@@ -24,7 +25,7 @@ describe('card grain', () => {
 
     test(`.${grainClass(grain)} wears styles/grain/${grain}.svg`, () => {
       const rule = new RegExp(
-        `\\.${grainClass(grain)}\\s*\\{\\s*background-image:\\s*url\\('\\./grain/${grain}\\.svg'\\);\\s*\\}`
+        `\\.${grainClass(grain)}\\s*\\{\\s*background-image:\\s*url\\('\\.\\./grain/${grain}\\.svg'\\);\\s*\\}`
       )
       expect(css).toMatch(rule)
     })

@@ -13,9 +13,8 @@
  *   keeping its full name in a tooltip, and the cells move to the card body.
  */
 import { describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { render, screen } from '@testing-library/react'
+import { readPackageStylesheet } from '../../../../styles/__tests__/packageStylesheet'
 import type { StatItem } from '../../../containers/statsBarTypes'
 import { EntityCardHeader } from '../EntityCardHeader'
 
@@ -26,7 +25,7 @@ const stats: StatItem[] = [
   { key: 'salvageValue', label: 'SV', value: 2 },
 ]
 
-const css = readFileSync(join(import.meta.dir, '../../../../styles/index.css'), 'utf8')
+const css = readPackageStylesheet()
 
 /** The declarations of the stylesheet rule whose selector is exactly `selector`. */
 const rule = (selector: string) => {

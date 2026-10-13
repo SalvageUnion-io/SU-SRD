@@ -14,6 +14,7 @@ import {
   titleSizeRung,
 } from '../../components/referenceEntity/card/entityCardTone'
 import { onTone, textBand } from '../../components/referenceEntity/referenceEntityHelpers'
+import { readPackageStylesheet } from '../../styles/__tests__/packageStylesheet'
 import type { Rgb } from '../contrast'
 import {
   contrastRatio,
@@ -456,10 +457,7 @@ describe('muted text, composited over the known grounds', () => {
  * Damaged badge players act on — until they took ink.
  */
 describe('badge tone contrast', () => {
-  const css = readFileSync(join(import.meta.dir, '../../styles/index.css'), 'utf8').replace(
-    /\/\*[\s\S]*?\*\//g,
-    ''
-  )
+  const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
   const tones = [...css.matchAll(/\.su-badge--tone-([a-z-]+)\s*\{([^}]*)\}/g)].map(
     ([, tone, body]) => {
       const decl = (prop: string) =>

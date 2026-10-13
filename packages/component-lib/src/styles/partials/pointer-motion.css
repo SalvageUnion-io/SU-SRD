@@ -1,0 +1,74 @@
+/*
+ * The package stylesheet, part 9 of 21: the coarse-pointer touch floor and
+ * the reduced-motion backstop. `../index.css` imports the parts in cascade
+ * order.
+ */
+
+/* ══ Mobile-first touch targets ═════════════════════════════════════════════
+ *
+ * The floor (ruleset §4.6) mirrors theme.css's unlayered copy, which is the
+ * one that also wins over the apps' own stylesheets. A mini button and an interactive chip
+ * (`Badge as="button"` carries `.su-hit-area`) keep their drawn size and get a
+ * centred 44px hit area instead. So does a breadcrumb link: the phone's trail
+ * row is a line of 17px text, and a 44px box per crumb would stretch it into a
+ * toolbar. That half lives only here, in the layer, so a call site that
+ * positions the control (`absolute`) still wins over the `relative` the
+ * pseudo-element needs.
+ */
+@media (pointer: coarse) {
+  button:not(.su-btn--mini, .su-hit-area),
+  [role='button']:not(.su-btn--mini, .su-hit-area),
+  input,
+  select,
+  textarea,
+  .su-btn:not(.su-btn--mini),
+  .su-union-bar__tab,
+  .su-union-bar__brand {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .su-btn--mini,
+  .su-hit-area,
+  .su-crumbs__link {
+    position: relative;
+  }
+
+  .su-btn--mini::after,
+  .su-hit-area::after,
+  .su-crumbs__link::after {
+    content: '';
+    height: max(100%, 44px);
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: max(100%, 44px);
+  }
+}
+
+/* ══ Reduced-motion backstop ════════════════════════════════════════════════
+ *
+ * The single place the "no loops for a prefers-reduced-motion user" guarantee is
+ * made true. A per-call-site convention that nothing enforces will drift; this
+ * is the floor under it, and it holds for a call site nobody remembered to mark.
+ *
+ * `animation-duration: 0.01ms` + `animation-iteration-count: 1` does NOT strip
+ * the animation — it runs it once, instantly, so the element lands on the
+ * keyframes' END state rather than being left mid-transform. Simply disabling
+ * the animation would strand an exit animation mounted forever.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: an accessibility backstop must out-rank every inline style and class it covers, whatever their specificity or layer */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — a loop must not survive because one call site set iteration-count inline */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — transitions are motion too */
+    transition-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — smooth scrolling is vestibular motion */
+    scroll-behavior: auto !important;
+  }
+}

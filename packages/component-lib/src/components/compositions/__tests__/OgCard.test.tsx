@@ -1,10 +1,9 @@
 import { describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { color } from '../../../design/tokens'
+import { readPackageStylesheet } from '../../../styles/__tests__/packageStylesheet'
 import { OgCard } from '../OgCard'
 import { ogCardForEntity } from '../ogCardForEntity'
 import type { OgCardProps } from '../ogCardText'
@@ -437,7 +436,7 @@ describe('OgCard', () => {
       expect(html).toContain('font-size:34px')
       expect(html).toContain(LONG)
     }
-    const css = readFileSync(join(import.meta.dir, '../../../styles/index.css'), 'utf8')
+    const css = readPackageStylesheet()
     expect(css).toMatch(
       /\.su-chapter-band\[data-scale='og'\] \.su-chapter-band__title \{[^}]*white-space: nowrap[^}]*\}/
     )
