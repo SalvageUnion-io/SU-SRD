@@ -19,7 +19,7 @@ import type { ContainerData } from './container'
 import { v2Reply } from './container'
 import { decodeRollRequest, parseCustomId } from './customId'
 import { dieForTable } from './dice'
-import { entityCard, entityFromKey, patternOf, viewPayloadKey } from './lookupCard'
+import { entityCard, entityFromKey, patternOf, readCard, viewPayloadKey } from './lookupCard'
 
 /**
  * A `su:lookup` payload: an entry key (`schemaName::slug`, from "Post to
@@ -99,6 +99,21 @@ export async function handleButtonInteraction(
       return
     }
     await interaction.reply(v2Reply(peek, true))
+    return
+  }
+
+  // A long card's Read button: that one action, privately, so the channel
+  // keeps the short card. Anyone may press it; nothing is recorded.
+  if (parsed.action === 'read') {
+    const read = readCard(parsed.payload)
+    if (!read) {
+      await interaction.reply({
+        content: 'That entry is no longer in the reference.',
+        flags: MessageFlags.Ephemeral,
+      })
+      return
+    }
+    await interaction.reply(v2Reply(read, true))
     return
   }
 
