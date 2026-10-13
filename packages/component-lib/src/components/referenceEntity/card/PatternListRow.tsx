@@ -12,7 +12,9 @@ import { cn } from '../../../utils/cn'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
 import { usePatternHref } from '../entityHrefContext'
+import { CardLabels } from './CardLabels'
 import { firstParagraphText } from './firstParagraphText'
+import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -154,8 +156,23 @@ function PatternLinkRow({
   const description = firstParagraphText(pattern.content)
   const loadout = useMemo(() => resolvePatternGroups(pattern), [pattern])
   const paint = paintFor(model.tone, { down: host.hostDown, texture: surface.texture })
+  // The book's starting builds wear their stamp on the row, as on the card.
+  const labels = isLegalStartingPatternOf(pattern) ? (
+    <CardLabels
+      seal={undefined}
+      typeStamp={undefined}
+      axisMarkers={[]}
+      legalStartingPattern
+      onInk={paint.ink}
+    />
+  ) : undefined
   const head = (
-    <Head title={`“${name}”`} paint={paint} affordance={href ? <LinkChevron /> : undefined} />
+    <Head
+      title={`“${name}”`}
+      paint={paint}
+      labels={labels}
+      affordance={href ? <LinkChevron /> : undefined}
+    />
   )
   return (
     <li className="su-pattern-rows__item">

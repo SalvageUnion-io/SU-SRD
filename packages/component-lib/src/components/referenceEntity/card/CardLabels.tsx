@@ -3,6 +3,7 @@ import { space } from '../../../design/tokens'
 import { Badge } from '../../atoms/Badge'
 import { Stat } from '../../atoms/Stat'
 import type { AxisMarker } from './entityCardTone'
+import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import { UserMadeStamp } from './UserMadeStamp'
 
 /** A stamp that gives way with "…" when the line runs out of room. */
@@ -107,8 +108,14 @@ export function CardLabels({
           precisely so it survives the LISTING extent. Purely the stored
           `legalStarting` data tag, never computed from tech level or SV. */}
         {legalStartingPattern && (
-          <Badge shape="stamp" size="mini" surface={surface} style={TRUNCATE}>
-            Legal Starting Pattern
+          <Badge
+            shape="stamp"
+            size="mini"
+            surface={surface}
+            style={TRUNCATE}
+            title={LEGAL_STARTING_PATTERN_NOTE}
+          >
+            {LEGAL_STARTING_PATTERN}
           </Badge>
         )}
       </div>

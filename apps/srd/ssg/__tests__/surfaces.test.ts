@@ -187,6 +187,20 @@ describe('a pattern page names and links its base chassis', () => {
       /<a href="\/schema\/chassis\/item\/jackhammer\/" class="su-inline-ref su-inline-ref--link">Jackhammer<\/a>/
     )
   })
+
+  it('stamps a legal starting pattern in the band, and offers to build it', () => {
+    expect(html).toMatch(/<span class="[^"]*srd-entity-stamp"[^>]*>Legal Starting Pattern<\/span>/)
+    expect(html).toMatch(
+      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build this mech<\/a>/
+    )
+  })
+
+  it('stamps nothing and offers no build on a pattern the book does not mark legal', () => {
+    const untagged = page('/schema/chassis/item/jackhammer/pattern/auger')
+    expect(untagged).not.toContain('Legal Starting Pattern')
+    expect(untagged).not.toContain('mechs/new')
+    expect(untagged).not.toContain('Build this mech')
+  })
 })
 
 describe('a class page links its abilities', () => {

@@ -348,6 +348,32 @@ describe('MechWizard — preselected chassis', () => {
     expect(onCancel).toHaveBeenCalledTimes(1)
   }, 30000)
 
+  it('a deep-linked pattern starts with its loadout prefilled, with nothing to discard', async () => {
+    const hauler = must(mule().patterns.find((p) => p.name === 'Hauler'))
+    const onCancel = mock(() => {})
+    render(
+      <MechWizard
+        onComplete={() => {}}
+        onCancel={onCancel}
+        preselectChassis="mule"
+        preselectPattern={hauler}
+      />
+    )
+    // The pattern's loadout is debited along with the chassis.
+    expect(screen.getByTestId('scrap-remaining').textContent).not.toContain(
+      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue} /`
+    )
+    await clickNext()
+    expect(
+      screen.getByRole('radio', { name: `${hauler.name} pattern` }).getAttribute('aria-checked')
+    ).toBe('true')
+    // The preselection is the baseline: cancelling asks nothing.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    })
+    expect(onCancel).toHaveBeenCalledTimes(1)
+  }, 30000)
+
   it('never overrides the chassis of a build in progress', async () => {
     const { unmount } = render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext()

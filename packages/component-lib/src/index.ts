@@ -177,6 +177,13 @@ export { entityGuideToneColor } from './components/referenceEntity/card/entityCa
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './components/referenceEntity/card/entityPage'
+// The book's starting builds: the stamp, its sentence and the stored-tag test,
+// for a page band that wears the stamp outside the card.
+export {
+  isLegalStartingPatternOf,
+  LEGAL_STARTING_PATTERN,
+  LEGAL_STARTING_PATTERN_NOTE,
+} from './components/referenceEntity/card/legalStartingPattern'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'

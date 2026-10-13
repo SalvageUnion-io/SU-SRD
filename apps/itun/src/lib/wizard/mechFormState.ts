@@ -13,6 +13,8 @@
 
 import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import type { Mech } from 'itun-domain/schemas/mech'
+import type { SURefChassis } from 'salvageunion-reference'
+import { nameToSlug } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
 
@@ -47,6 +49,30 @@ export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
   cargoLots: [],
   quirk: '',
   appearance: '',
+}
+
+/** One of a chassis's printed patterns: a name and its loadout. */
+export type MechPattern = SURefChassis['patterns'][number]
+
+/**
+ * The canonical starting-pattern prefill: the pattern's name (and the mech's,
+ * while it has none) and its loadout as slug refs, one per copy (`count`).
+ */
+export function withPatternPrefill(
+  form: MechWizardFormState,
+  pattern: MechPattern
+): MechWizardFormState {
+  return {
+    ...form,
+    patternName: pattern.name,
+    name: form.name.trim() === '' ? pattern.name : form.name,
+    systems: pattern.systems.flatMap((s) =>
+      new Array<string>(s.count ?? 1).fill(nameToSlug(s.name))
+    ),
+    modules: pattern.modules.flatMap((m) =>
+      new Array<string>(m.count ?? 1).fill(nameToSlug(m.name))
+    ),
+  }
 }
 
 /** Wizard-owned mech fields — the ones the form captures. */

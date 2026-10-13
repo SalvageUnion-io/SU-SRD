@@ -15,6 +15,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import type { SURefEntity, SURefObjectAnyPattern, SURefObjectPattern } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
+import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The Mule — a chassis carrying patterns, a chassis ability and chassis prose. */
@@ -308,6 +309,37 @@ describe('legal starting pattern stamp', () => {
     expect(tagged.length).toBeGreaterThan(0)
     expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
   })
+
+  test("a chassis PAGE's pattern rows stamp exactly its tagged patterns", () => {
+    const chassis = mule()
+    render(<ReferenceEntityCard data={chassis} presentation="page" />)
+    const tagged = (chassis.patterns ?? []).filter((p) => p.legalStarting === true)
+    expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
+  })
+
+  for (const presentation of ['card', 'page'] as const) {
+    test(`a tagged pattern closes its prose on the book's sentence (${presentation})`, () => {
+      render(
+        <ReferenceEntityCard
+          data={mule()}
+          pattern={patternOf('Hauler')}
+          presentation={presentation}
+        />
+      )
+      expect(screen.getAllByText(LEGAL_STARTING_PATTERN_NOTE).length).toBe(1)
+    })
+
+    test(`an untagged pattern carries no such sentence (${presentation})`, () => {
+      render(
+        <ReferenceEntityCard
+          data={mule()}
+          pattern={patternOf('Crusher')}
+          presentation={presentation}
+        />
+      )
+      expect(screen.queryByText(LEGAL_STARTING_PATTERN_NOTE)).toBeNull()
+    })
+  }
 })
 
 /**

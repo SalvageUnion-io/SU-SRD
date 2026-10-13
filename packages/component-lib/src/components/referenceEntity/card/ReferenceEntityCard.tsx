@@ -22,7 +22,6 @@ import {
   resolveGrantedEntities,
   toEntityModel,
 } from 'salvageunion-reference'
-import { isLegalStartingPattern } from 'salvageunion-reference/rules'
 import { fontSize, space } from '../../../design/tokens'
 import type { RowSlots } from '../../../entity/forms/Row'
 import { Row } from '../../../entity/forms/Row'
@@ -101,6 +100,7 @@ import {
 import type { SplitFacets } from './facetSplit'
 import { splitFacets } from './facetSplit'
 import { GuideSteps } from './GuideSteps'
+import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import { MissingHero } from './MissingArt'
 import type { NestedCardHost } from './NestedCards'
 import { ActionsChip, CardStack, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
@@ -464,8 +464,7 @@ function ReferenceEntityCardInner({
         : []
       : resolveAxisMarkers(entity)
   // "Legal Starting Pattern" is a STORED data tag on the pattern.
-  const isLegalStartingPatternCard =
-    isPattern && 'legalStarting' in pattern && isLegalStartingPattern(pattern.legalStarting)
+  const isLegalStartingPatternCard = isPattern && isLegalStartingPatternOf(pattern)
   const numeral = resolveTierNumeral(entity)
 
   // The SELF-action — an action named like its entity — folds into the card:
@@ -882,9 +881,16 @@ function ReferenceEntityCardInner({
     ) : null
 
   // PATTERN PROSE — the pattern's own flavour, ahead of the loadout.
+  // A legal starting pattern closes on the book's own sentence for it.
   const patternProse =
-    isPattern && pattern.content && pattern.content.length > 0 ? (
-      <PatternProse name={pattern.name} content={pattern.content} context={prose} onPage={onPage} />
+    isPattern && ((pattern.content && pattern.content.length > 0) || isLegalStartingPatternCard) ? (
+      <PatternProse
+        name={pattern.name}
+        content={pattern.content ?? []}
+        context={prose}
+        onPage={onPage}
+        note={isLegalStartingPatternCard ? LEGAL_STARTING_PATTERN_NOTE : undefined}
+      />
     ) : null
 
   // GUIDE STEPS — the bulk of a guide's prose.
