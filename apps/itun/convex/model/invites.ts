@@ -70,12 +70,6 @@ const CODE_LENGTH = 16
 const MAX_CODE_ATTEMPTS = 5
 
 /**
- * The URL does not expire: it stops working only when the Organizer resets it.
- * `expiresAt` is a required column, so it is written as never.
- */
-const NEVER = Number.MAX_SAFE_INTEGER
-
-/**
  * Sixteen random Crockford-base32 characters (80 bits), from
  * `crypto.getRandomValues`. 256 is a multiple of 32, so `b % 32` is unbiased.
  */
@@ -111,9 +105,6 @@ export async function mintInvite(
     code,
     createdBy: organizer.userId,
     createdAt: now,
-    expiresAt: NEVER,
-    role: 'player',
-    requiresApproval: false,
     standing: true,
   })
   const invite = await ctx.db.get(inviteId)

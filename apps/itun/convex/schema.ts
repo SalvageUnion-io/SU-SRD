@@ -172,8 +172,8 @@ export const seatMount = zodToConvex(SeatSchema.shape.mount)
 export const seatResolving = zodToConvex(SeatSchema.shape.resolving.unwrap())
 
 /**
- * `invites.role`: every invite is written `'player'` now; `'mediator'` survives
- * on older rows until a migration drops the column.
+ * `invites.role`: new invites leave it unset; `'mediator'` survives on older
+ * rows until `invites.dropRetired` clears it.
  */
 const inviteRole = v.union(v.literal('player'), v.literal('mediator'))
 
@@ -334,21 +334,21 @@ export default defineSchema({
    * Opening it joins as a player; every other row opens nothing. `expiresAt`,
    * `usesRemaining`, `label`, `role`, `requiresApproval`, `grants`, `target`,
    * `declinedAt`, `delivery` and `sourceInteractionId` are read by nothing;
-   * the required ones are written as constants until a migration drops them.
+   * `invites.dropRetired` clears the first six before a schema change drops them.
    */
   invites: defineTable({
     gameId: v.id('games'),
     /** The link token. The column keeps its name: rows minted as typed codes still resolve. */
     code: v.string(),
     createdBy: v.id('users'),
-    expiresAt: v.number(),
+    expiresAt: v.optional(v.number()),
     usesRemaining: v.optional(v.number()),
 
     createdAt: v.number(),
 
     label: v.optional(v.string()),
 
-    role: inviteRole,
+    role: v.optional(inviteRole),
 
     grants: v.optional(
       v.array(
@@ -359,7 +359,7 @@ export default defineSchema({
       )
     ),
 
-    requiresApproval: v.boolean(),
+    requiresApproval: v.optional(v.boolean()),
 
     /** Set when the Organizer resets the Game's invite URL: this code stops working. */
     revokedAt: v.optional(v.number()),
@@ -392,7 +392,7 @@ export default defineSchema({
     .index('by_code', ['code'])
     .index('by_game', ['gameId']),
 
-  /** Who used which invite. Written by nothing now; a migration drops it. */
+  /** Who used which invite. Written by nothing now; `invites.dropRetired` empties it. */
   inviteRedemptions: defineTable({
     inviteId: v.id('invites'),
     gameId: v.id('games'),
@@ -404,7 +404,7 @@ export default defineSchema({
 
   /**
    * Asks to join, from approval links. Written and read by nothing now but the
-   * Game and account sweeps; a migration drops it.
+   * Game and account sweeps; `invites.dropRetired` empties it.
    */
   joinRequests: defineTable({
     gameId: v.id('games'),
