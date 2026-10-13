@@ -48,7 +48,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).
 15. **Convex deployments** <a id="deployments"></a>
-    Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, the preview slot only.
+    Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
     `bun run dev:itun` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment** <a id="convex-env"></a>
     Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `ITUN_BOT_SECRET`.
@@ -93,8 +93,8 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy (srd's after `og-srd`) → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy.
 30. **Preview deploys** <a id="previews"></a>
-    `gh workflow run deploy-preview.yml --ref <branch>` → `preview-su-srd` / `preview-su-itun.alxjrvs.workers.dev` on staging Convex.
-    Dispatching is the approval (the `preview` Environment has no reviewer); staging data persists across branches.
+    A PR into `main` labelled `preview` gets Worker Previews `pr-<n>` (srd, ITUN on staging Convex) per push, linked in a comment, deleted on close.
+    The label is the approval (no Environment reviewer); staging's schema and `SITE_URL` follow the last PR shipped.
 31. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.

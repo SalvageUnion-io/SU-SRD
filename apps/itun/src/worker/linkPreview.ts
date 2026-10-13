@@ -36,7 +36,7 @@
  * secrets). Without them no `og:image` is advertised and the unfurl is text.
  *
  * Every URL is built from the request's own origin and the app's base, so
- * it works on salvageunion.io/build and on the preview slot alike.
+ * it works on salvageunion.io/build and on a Worker Preview alike.
  */
 import { reportError } from 'observability/cloudflare'
 import type {

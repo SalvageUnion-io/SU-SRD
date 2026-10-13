@@ -11,7 +11,7 @@
  * served on localhost (srd's `dist`, ITUN's `dist` built against a throwaway
  * Convex backend with the test sign-in), and `pr-gallery-pages.yml` publishes
  * the result to GitHub Pages. It replaced a
- * hand-run Playwright loop over the preview slot.
+ * hand-run Playwright loop over the old shared preview deploy.
  *
  * - A link preview is rendered the way `apps/srd/scripts/og-screenshots.ts`
  *   renders it (`/og-card/`, `window.__ogSetEntity`), so the gallery shows the

@@ -100,11 +100,11 @@ that can deploy production. The bar it is held to:
 - Stored as a secret of the `production` GitHub Environment, restricted to
   `main`, with no reviewers. Never at repository
   level, in a `wrangler.jsonc`, or in a `.env` git can see.
-- The [preview slot](../ARCHITECTURE.md#previews) runs from any branch, so its
-  `preview` Environment admits every branch and holds a copy of the token (it
-  cannot be narrowed to the preview). It has no required reviewer: the
-  workflow runs only when dispatched by hand, and that is the gate (see
-  Accepted risks).
+- [Worker Previews](../ARCHITECTURE.md#previews) run from any PR branch, so
+  the `preview` Environment admits every branch and holds a copy of the token
+  (it cannot be narrowed to the previews). It has no required reviewer: the
+  workflow ships only a same-repository PR into `main` carrying the `preview`
+  label, and adding the label is the gate (see Accepted risks).
 - Every deploy follows a merge, and the `main` ruleset merges only a branch
   that is up to date with `main` and passed `CI Success`, so a red gate cannot
   deploy. A green gate suffices: production deploys need no environment
@@ -119,10 +119,11 @@ that can deploy production. The bar it is held to:
   this project's. Revisit if RANDSUM's deployments become something this
   repository must not be able to touch; adding anything else to the account
   widens it.
-- **A dispatched preview hands any branch the token.** The `preview`
-  Environment has no reviewer (owner's call, 2026-10-13), so whoever can
-  dispatch `deploy-preview.yml` can run a branch's code holding a credential
-  that reaches production. Dispatch is manual only, never on push or PR.
+- **A labelled preview hands its branch the token.** The `preview`
+  Environment has no reviewer (owner's call, 2026-10-13), so a PR carrying the
+  `preview` label runs its branch's code, this workflow included, holding a
+  credential that reaches production. Only someone with triage access can
+  label, fork PRs never ship, and later pushes to a labelled PR ship too.
 
 ## Configuration outside the repo
 

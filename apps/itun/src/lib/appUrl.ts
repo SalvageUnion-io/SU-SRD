@@ -27,7 +27,7 @@ export function appRoot(origin: string = window.location.origin): string {
 /**
  * A file from ITUN's `public/` as the page asks for it: under the base
  * (`/build/logos/…`). A root path would be srd's copy on salvageunion.io and
- * missing on the preview slot or the dev server.
+ * missing on a Worker Preview or the dev server.
  */
 export function publicPath(file: string): string {
   return `${BASE_PATH}/${file.replace(/^\/+/, '')}`

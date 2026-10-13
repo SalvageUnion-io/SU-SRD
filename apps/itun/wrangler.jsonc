@@ -22,11 +22,10 @@
     { "pattern": "www.intheunionnow.com", "custom_domain": true }
   ],
   "workers_dev": false,
-  // Version URLs (`<version|alias>-su-itun.alxjrvs.workers.dev`), for the
-  // preview slot (.github/workflows/deploy-preview.yml). Separate from
+  // Preview URLs (`pr-<n>-su-itun.alxjrvs.workers.dev`), for the Worker
+  // Previews (.github/workflows/deploy-preview.yml). Separate from
   // `workers_dev`: su-itun.alxjrvs.workers.dev stays off. Unset, they follow
-  // `workers_dev` and are off. Applied by `wrangler deploy`, not by
-  // `versions upload`.
+  // `workers_dev` and are off.
   "preview_urls": true,
   "main": "src/worker/index.ts",
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
@@ -52,6 +51,15 @@
   "vars": {
     "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud",
     "BASE_PATH": "/build"
+  },
+
+  // A Worker Preview (deploy-preview.yml) inherits none of the vars above:
+  // the staging deployment its SPA is built against, and the same base.
+  "previews": {
+    "vars": {
+      "CONVEX_URL": "https://perfect-donkey-72.convex.cloud",
+      "BASE_PATH": "/build"
+    }
   },
 
   "assets": {
