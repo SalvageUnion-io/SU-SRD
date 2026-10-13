@@ -43,7 +43,7 @@ export function getItemStaticPaths() {
   }[] = []
 
   // Entity schemas only — meta schemas (actions, ability-tree-requirements,
-  // catalog-categories) have no /schema/<id>/ listing page (see
+  // catalog-categories) have no /<id>/ listing page (see
   // getSchemaStaticPaths above), so item pages for them would be sitemap
   // orphans with 404 breadcrumbs. Their content renders inline on the pages
   // of the entities that own it. `getEntitySchemas()` IS that filter — going
@@ -83,13 +83,13 @@ export function getItemStaticPaths() {
 
 /**
  * A page per PATTERN, nested under its host:
- * `/schema/<schema>/item/<host>/pattern/<pattern>/` — a chassis's mech
+ * `/<schema>/<host>/pattern/<pattern>/` — a chassis's mech
  * patterns and a Bio-Titan's variants alike.
  *
  * Patterns are nested objects on their host rather than a schema of their own,
  * so they are generated here instead of falling out of `getItemStaticPaths`.
  * Any entity schema whose rows carry visible `patterns` gets them; `schemaId`
- * is the host's, so the route sits in the existing `/schema/<schema>/item/<item>/`
+ * is the host's, so the route sits in the existing `/<schema>/<item>/`
  * tree and its breadcrumbs resolve like every other page's.
  */
 export function getPatternStaticPaths() {

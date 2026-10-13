@@ -63,7 +63,7 @@ describe('renderGallery, page by page', () => {
   })
   const srdPage: GalleryPage = {
     site: 'srd',
-    path: '/schema/chassis/',
+    path: '/chassis/',
     name: 'Chassis',
     note: 'A "note"',
     chips: ['Art'],
@@ -84,7 +84,7 @@ describe('renderGallery, page by page', () => {
 
   test('a linkable run links each signed-out page to its site, never a signed-in one', () => {
     const html = render([srdPage, itunIn, itunOut], run())
-    expect(html).toContain('<a class="shot__frames" href="http://srd/schema/chassis/">')
+    expect(html).toContain('<a class="shot__frames" href="http://srd/chassis/">')
     expect(html).toContain('href="http://itun/starter"')
     expect(html).not.toContain('href="http://itun/pilots/new"')
     expect(html).toContain('<span class="chip">Signed in</span>')
@@ -121,7 +121,7 @@ describe('renderGallery, page by page', () => {
     ])
     const html = render([srdPage, itunIn, itunOut], run(), og)
     expect(html).toContain('Link previews <small>2 pages</small>')
-    expect(html).toContain('salvageunion.io/schema/chassis/')
+    expect(html).toContain('salvageunion.io/chassis/')
     expect(html).toContain('salvageunion.io/build/starter')
     expect(html).toContain(`shots/${pageSlug(itunOut)}-og.png`)
     expect(html).toContain('<strong>Chassis</strong>')

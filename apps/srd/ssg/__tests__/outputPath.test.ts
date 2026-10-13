@@ -8,7 +8,7 @@
  * Three separate seams meet here, which is why they are tested together:
  *
  *   `outputPathFor`    HTML routes    /about   -> about/index.html
- *   `fillPattern`      dynamic params /schema/[schemaId] + {schemaId} -> /schema/chassis
+ *   `fillPattern`      dynamic params /[schemaId] + {schemaId} -> /chassis
  *   `registerEndpoint` non-HTML       schema/[schemaId].json -> schema/chassis.json (a FILE)
  */
 
@@ -43,10 +43,10 @@ describe('outputPathFor', () => {
   it('maps every other route to <route>/index.html', () => {
     expect(outputPathFor('/about')).toBe('about/index.html')
     expect(outputPathFor('/bot/privacy')).toBe('bot/privacy/index.html')
-    expect(outputPathFor('/schema/chassis')).toBe('schema/chassis/index.html')
-    expect(outputPathFor('/schema/chassis/item/aegis')).toBe('schema/chassis/item/aegis/index.html')
-    expect(outputPathFor('/schema/chassis/item/aegis/pattern/scrapper')).toBe(
-      'schema/chassis/item/aegis/pattern/scrapper/index.html'
+    expect(outputPathFor('/chassis')).toBe('chassis/index.html')
+    expect(outputPathFor('/chassis/aegis')).toBe('chassis/aegis/index.html')
+    expect(outputPathFor('/chassis/aegis/pattern/scrapper')).toBe(
+      'chassis/aegis/pattern/scrapper/index.html'
     )
   })
 
@@ -55,7 +55,7 @@ describe('outputPathFor', () => {
     // filesystem root, so this is load-bearing, not cosmetic.
     expect(outputPathFor('/about/')).toBe('about/index.html')
     expect(outputPathFor('//about//')).toBe('about/index.html')
-    for (const route of ['/', '/404', '/about', '/schema/chassis']) {
+    for (const route of ['/', '/404', '/about', '/chassis']) {
       expect(outputPathFor(route).startsWith('/')).toBe(false)
     }
   })
@@ -63,17 +63,17 @@ describe('outputPathFor', () => {
 
 describe('fillPattern', () => {
   it('substitutes every [param] in the pattern', () => {
-    expect(fillPattern('/schema/[schemaId]', { schemaId: 'chassis' })).toBe('/schema/chassis')
+    expect(fillPattern('/[schemaId]', { schemaId: 'chassis' })).toBe('/chassis')
+    expect(fillPattern('/[schemaId]/[itemId]', { schemaId: 'chassis', itemId: 'aegis' })).toBe(
+      '/chassis/aegis'
+    )
     expect(
-      fillPattern('/schema/[schemaId]/item/[itemId]', { schemaId: 'chassis', itemId: 'aegis' })
-    ).toBe('/schema/chassis/item/aegis')
-    expect(
-      fillPattern('/schema/[schemaId]/item/[itemId]/pattern/[patternId]', {
+      fillPattern('/[schemaId]/[itemId]/pattern/[patternId]', {
         schemaId: 'chassis',
         itemId: 'aegis',
         patternId: 'scrapper',
       })
-    ).toBe('/schema/chassis/item/aegis/pattern/scrapper')
+    ).toBe('/chassis/aegis/pattern/scrapper')
   })
 
   it('leaves a pattern with no params alone', () => {
@@ -81,19 +81,19 @@ describe('fillPattern', () => {
   })
 
   it('throws on a missing param rather than emitting a literal [bracket] path', () => {
-    expect(() => fillPattern('/schema/[schemaId]', {})).toThrow(
-      'Missing parameter "schemaId" for pattern "/schema/[schemaId]"'
+    expect(() => fillPattern('/[schemaId]', {})).toThrow(
+      'Missing parameter "schemaId" for pattern "/[schemaId]"'
     )
   })
 
   it('composes with outputPathFor to give the dist file for a dynamic route', () => {
-    const route = fillPattern('/schema/[schemaId]/item/[itemId]', {
+    const route = fillPattern('/[schemaId]/[itemId]', {
       schemaId: 'chassis',
       itemId: 'aegis',
     })
-    expect(outputPathFor(route)).toBe('schema/chassis/item/aegis/index.html')
+    expect(outputPathFor(route)).toBe('chassis/aegis/index.html')
     // …and the canonical URL for that same route keeps its trailing slash.
-    expect(withTrailingSlash(route)).toBe('/schema/chassis/item/aegis/')
+    expect(withTrailingSlash(route)).toBe('/chassis/aegis/')
   })
 })
 

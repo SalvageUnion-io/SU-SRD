@@ -46,7 +46,7 @@ describe('GET /llms.txt', () => {
   it('includes the rules content map section', () => {
     const text = render()
     expect(text).toContain('## Rules Content Map')
-    expect(text).toContain('https://salvageunion.io/schema/guides/')
+    expect(text).toContain('https://salvageunion.io/guides/')
     expect(text).toContain('https://salvageunion.io/schema/guides.json')
   })
 

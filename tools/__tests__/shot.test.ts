@@ -53,9 +53,9 @@ describe('parseArgs', () => {
 
 describe('planShot', () => {
   test("a /route goes to this checkout's srd dev server as is", () => {
-    expect(planShot({ target: '/schema/chassis/item/mule/', width: 'page' })).toEqual({
+    expect(planShot({ target: '/chassis/mule/', width: 'page' })).toEqual({
       server: expect.objectContaining({ name: 'srd', port: portFor('srd') }),
-      path: '/schema/chassis/item/mule/',
+      path: '/chassis/mule/',
     })
   })
 
@@ -90,9 +90,7 @@ test('only a server naming this checkout is reused', () => {
 })
 
 test('fileName slugs the target and marks the width', () => {
-  expect(fileName({ target: '/schema/chassis/item/mule/', width: 'column' })).toBe(
-    'schema-chassis-item-mule-column.png'
-  )
+  expect(fileName({ target: '/chassis/mule/', width: 'column' })).toBe('chassis-mule-column.png')
   expect(fileName({ target: '/', width: 'page' })).toBe('home-page.png')
   expect(fileName({ target: 'itun:/starter', width: 'page' })).toBe('itun-starter-page.png')
   expect(fileName({ target: 'atoms--button--primary', width: 'phone' })).toBe(

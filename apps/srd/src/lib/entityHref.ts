@@ -23,7 +23,7 @@ export function schemaHref(schemaName: string): string {
   return `${srdSchemaPath(schemaName)}/`
 }
 
-/** An entity's show page: `/schema/<schema>/item/<slug>/`. */
+/** An entity's show page: `/<schema>/<slug>/`. */
 export function itemHref(schemaName: string, slug: string): string {
   return `${srdEntityPath(schemaName, slug)}/`
 }

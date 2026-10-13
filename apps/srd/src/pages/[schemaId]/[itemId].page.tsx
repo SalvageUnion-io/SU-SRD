@@ -1,5 +1,5 @@
 /**
- * `/schema/[schemaId]/item/[itemId]` — an entity's show page.
+ * `/[schemaId]/[itemId]` — an entity's show page (`/chassis/mule/`).
  *
  * The largest route family on the site (~850 of 1,038 pages), so a change here
  * reaches almost the whole SRD at once.
@@ -17,29 +17,24 @@ import {
 } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
-import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
-import { EntityPageFrame, entityPageFoot } from '../../../../components/EntityPageFrame'
-import { EntityView } from '../../../../components/EntityView'
+import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../ssg/types'
+import { EntityPageFrame, entityPageFoot } from '../../components/EntityPageFrame'
+import { EntityView } from '../../components/EntityView'
 import {
   ColumnsTablePage,
   columnsTablePageData,
   ROLL_TABLE_PAGE_MEASURE,
   RollTablePage,
   rollTablePageData,
-} from '../../../../components/RollTablePage'
-import { buildLinkFor, guideExitsFor } from '../../../../lib/buildLink'
-import { bandFillFor, chapterForSchema } from '../../../../lib/chapters'
-import { componentEmbedFor } from '../../../../lib/componentEmbed'
-import {
-  CONTENTS_CRUMB,
-  META_DESCRIPTION_MAX,
-  SITE_URL,
-  TITLE_SUFFIX,
-} from '../../../../lib/constants'
-import { itemHref, schemaHref } from '../../../../lib/entityHref'
-import { extractStaticEntitySummary, getReferenceEntityData } from '../../../../lib/gameData'
-import { ogCardFor, ogMetaFor } from '../../../../lib/ogCard'
-import { getItemStaticPaths } from '../../../../lib/staticPaths'
+} from '../../components/RollTablePage'
+import { buildLinkFor, guideExitsFor } from '../../lib/buildLink'
+import { bandFillFor, chapterForSchema } from '../../lib/chapters'
+import { componentEmbedFor } from '../../lib/componentEmbed'
+import { CONTENTS_CRUMB, META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../lib/constants'
+import { itemHref, schemaHref } from '../../lib/entityHref'
+import { extractStaticEntitySummary, getReferenceEntityData } from '../../lib/gameData'
+import { ogCardFor, ogMetaFor } from '../../lib/ogCard'
+import { getItemStaticPaths } from '../../lib/staticPaths'
 
 type Params = { schemaId: string; itemId: string }
 
@@ -201,7 +196,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 }
 
 export const itemPage: PageModule<Params, Props> = {
-  pattern: '/schema/[schemaId]/item/[itemId]',
+  pattern: '/[schemaId]/[itemId]',
   getStaticPaths: getItemStaticPaths,
   page,
 }

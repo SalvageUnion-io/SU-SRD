@@ -6,7 +6,7 @@ import { firstParagraphText } from './firstParagraphText'
  *
  * A catalog tile renders an entity's whole `content[]` untruncated, which for
  * guides produced both failure modes at once. Measured on the built
- * `/schema/guides/` listing: **Safety Protocols** rendered 1,236 characters into
+ * `/guides/` listing: **Safety Protocols** rendered 1,236 characters into
  * a tile, while **Salvaging**, **Upgrading your Union Crawler** and **Activating
  * and Shutting Down a Mech** rendered none at all — those three keep every word
  * in `steps` and carry no top-level `content`, so their tiles showed a title and

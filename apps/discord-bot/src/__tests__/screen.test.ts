@@ -33,7 +33,7 @@ describe('/su screen', () => {
     expect(text).toContain(
       '20 Nailed it · 11–19 Success · 6–10 Tough Choice · 2–5 Failure · 1 Cascade Failure'
     )
-    expect(text).toContain('/schema/roll-tables/item/critical-injury)** p.241')
+    expect(text).toContain('/roll-tables/critical-injury)** p.241')
     expect(buttonsOf(data).map((b) => b.label)).toEqual(TABLES)
   })
 

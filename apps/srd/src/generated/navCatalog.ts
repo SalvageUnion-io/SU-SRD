@@ -16,19 +16,19 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
       {
         "id": "classes",
         "displayName": "Classes",
-        "href": "/schema/classes/",
+        "href": "/classes/",
         "count": 11
       },
       {
         "id": "abilities",
         "displayName": "Abilities",
-        "href": "/schema/abilities/",
+        "href": "/abilities/",
         "count": 103
       },
       {
         "id": "equipment",
         "displayName": "Equipment",
-        "href": "/schema/equipment/",
+        "href": "/equipment/",
         "count": 82
       }
     ]
@@ -39,19 +39,19 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
       {
         "id": "chassis",
         "displayName": "Chassis",
-        "href": "/schema/chassis/",
+        "href": "/chassis/",
         "count": 51
       },
       {
         "id": "systems",
         "displayName": "Systems",
-        "href": "/schema/systems/",
+        "href": "/systems/",
         "count": 126
       },
       {
         "id": "modules",
         "displayName": "Modules",
-        "href": "/schema/modules/",
+        "href": "/modules/",
         "count": 84
       }
     ]
@@ -62,19 +62,19 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
       {
         "id": "crawlers",
         "displayName": "Crawlers",
-        "href": "/schema/crawlers/",
+        "href": "/crawlers/",
         "count": 5
       },
       {
         "id": "crawler-bays",
         "displayName": "Crawler Bays",
-        "href": "/schema/crawler-bays/",
+        "href": "/crawler-bays/",
         "count": 14
       },
       {
         "id": "crawler-tech-levels",
         "displayName": "Crawler Tech Levels",
-        "href": "/schema/crawler-tech-levels/",
+        "href": "/crawler-tech-levels/",
         "count": 6
       }
     ]
@@ -85,49 +85,49 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
       {
         "id": "bio-titans",
         "displayName": "Bio-Titans",
-        "href": "/schema/bio-titans/",
+        "href": "/bio-titans/",
         "count": 11
       },
       {
         "id": "creatures",
         "displayName": "Creatures",
-        "href": "/schema/creatures/",
+        "href": "/creatures/",
         "count": 13
       },
       {
         "id": "drones",
         "displayName": "Drones",
-        "href": "/schema/drones/",
+        "href": "/drones/",
         "count": 14
       },
       {
         "id": "factions",
         "displayName": "Factions",
-        "href": "/schema/factions/",
+        "href": "/factions/",
         "count": 10
       },
       {
         "id": "meld",
         "displayName": "Meld",
-        "href": "/schema/meld/",
+        "href": "/meld/",
         "count": 5
       },
       {
         "id": "npcs",
         "displayName": "NPCs",
-        "href": "/schema/npcs/",
+        "href": "/npcs/",
         "count": 19
       },
       {
         "id": "squads",
         "displayName": "Squads",
-        "href": "/schema/squads/",
+        "href": "/squads/",
         "count": 23
       },
       {
         "id": "vehicles",
         "displayName": "Vehicles",
-        "href": "/schema/vehicles/",
+        "href": "/vehicles/",
         "count": 11
       }
     ]
@@ -138,43 +138,43 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
       {
         "id": "guides",
         "displayName": "Guides",
-        "href": "/schema/guides/",
+        "href": "/guides/",
         "count": 15
       },
       {
         "id": "roll-tables",
         "displayName": "Roll Tables",
-        "href": "/schema/roll-tables/",
+        "href": "/roll-tables/",
         "count": 96
       },
       {
         "id": "keywords",
         "displayName": "Keywords",
-        "href": "/schema/keywords/",
+        "href": "/keywords/",
         "count": 82
       },
       {
         "id": "traits",
         "displayName": "Traits",
-        "href": "/schema/traits/",
+        "href": "/traits/",
         "count": 48
       },
       {
         "id": "distances",
         "displayName": "Distances",
-        "href": "/schema/distances/",
+        "href": "/distances/",
         "count": 4
       },
       {
         "id": "sources",
         "displayName": "Sources",
-        "href": "/schema/sources/",
+        "href": "/sources/",
         "count": 10
       },
       {
         "id": "tech-levels",
         "displayName": "Tech Levels",
-        "href": "/schema/tech-levels/",
+        "href": "/tech-levels/",
         "count": 6
       }
     ]

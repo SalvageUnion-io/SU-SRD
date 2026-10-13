@@ -98,9 +98,7 @@ describe('lookupCard — the card', () => {
     const card = lookupCard(hit('chassis', 'goliath'))
     expect(card.accent).toBe(0x7a978a)
     const text = cardText(card)
-    expect(text).toContain(
-      '-# CHASSIS\n## [Goliath](https://salvageunion.io/schema/chassis/item/goliath)'
-    )
+    expect(text).toContain('-# CHASSIS\n## [Goliath](https://salvageunion.io/chassis/goliath)')
     expect(text).toContain('`13` STRUCTURE PTS. · `11` ENERGY PTS. · `12` HEAT CAP.')
     expect(text).toContain('### Scrap Plating')
   })
@@ -108,10 +106,10 @@ describe('lookupCard — the card', () => {
   test('a weapon system prints its facets as cells and its traits as links', () => {
     const text = cardText(lookupCard(hit('systems', '50-cal-machine-gun')))
     expect(text).toContain(
-      '## [.50 Cal Machine Gun](https://salvageunion.io/schema/systems/item/50-cal-machine-gun)'
+      '## [.50 Cal Machine Gun](https://salvageunion.io/systems/50-cal-machine-gun)'
     )
     expect(text).toContain('`Close` RANGE · `2 SP` DAMAGE')
-    expect(text).toContain('[Ballistic](https://salvageunion.io/schema/traits/item/ballistic)')
+    expect(text).toContain('[Ballistic](https://salvageunion.io/traits/ballistic)')
     expect(text.toLowerCase()).toContain('ballistic weapon')
   })
 
@@ -132,7 +130,7 @@ describe('lookupCard — the card', () => {
 
   test('[[Trait]] references in body text become links', () => {
     const text = cardText(lookupCard(hit('abilities', 'overpower')))
-    expect(text).toContain('[Vulnerable](https://salvageunion.io/schema/traits/item/vulnerable)')
+    expect(text).toContain('[Vulnerable](https://salvageunion.io/traits/vulnerable)')
   })
 })
 
@@ -177,7 +175,7 @@ describe('lookupCard — patterns are entries of their own', () => {
     expect(one.pattern?.name).toBe('Hauler')
     const text = cardText(lookupCard(one))
     expect(text).toContain('-# PATTERN · MULE')
-    expect(text).toContain('[Rigging Arm](https://salvageunion.io/schema/systems/item/rigging-arm)')
+    expect(text).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
   })
 
   test('a Bio-Titan pattern shows the rules it adds', () => {

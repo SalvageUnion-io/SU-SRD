@@ -16,9 +16,14 @@ describe('_redirects', () => {
   })
 
   it('sends the Hill Worm’s old Bio-Titan page to its pattern page', () => {
-    const to = '/schema/bio-titans/item/typhon/pattern/hill-worm/'
+    const to = '/bio-titans/typhon/pattern/hill-worm/'
+    // As it was published, under the pre-N4 grammar, in one hop…
     expect(rules).toContainEqual({ from: '/schema/bio-titans/item/hill-worm-pattern-typhon/', to })
     expect(rules).toContainEqual({ from: '/schema/bio-titans/item/hill-worm-pattern-typhon', to })
+    // …and as the current grammar would spell the former slug.
+    expect(rules).toContainEqual({ from: '/bio-titans/hill-worm-pattern-typhon/', to })
+    expect(rules).toContainEqual({ from: '/bio-titans/hill-worm-pattern-typhon', to })
+    // The JSON API keeps its own grammar.
     expect(rules).toContainEqual({
       from: '/schema/bio-titans/item/hill-worm-pattern-typhon.json',
       to: '/schema/bio-titans/item/typhon.json',
@@ -28,7 +33,7 @@ describe('_redirects', () => {
   it('points every page redirect at a generated pattern page', () => {
     const pages = new Set(
       getPatternStaticPaths().map(
-        (p) => `/schema/${p.params.schemaId}/item/${p.params.itemId}/pattern/${p.params.patternId}/`
+        (p) => `/${p.params.schemaId}/${p.params.itemId}/pattern/${p.params.patternId}/`
       )
     )
     const toPages = rules.filter((r) => r.to.includes('/pattern/'))

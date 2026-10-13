@@ -21,7 +21,7 @@ describe('componentEmbedFor', () => {
     expect(embed.component.type).toBe(17)
     expect(embed.component.accent_color).toBe(0x7a978a)
     const json = JSON.stringify(embed)
-    expect(json).toContain('## [Mule](https://salvageunion.io/schema/chassis/item/mule)')
+    expect(json).toContain('## [Mule](https://salvageunion.io/chassis/mule)')
     expect(json).toContain('`12` STRUCTURE PTS.')
   })
 

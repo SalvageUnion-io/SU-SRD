@@ -17,7 +17,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { getModel } from 'salvageunion-reference'
 import { BaseLayout } from '../../../layouts/BaseLayout'
 import { cardNeedsHydration } from '../../../lib/cardNeedsHydration'
-import { schemaListingPage } from '../../../pages/schema/[schemaId]/index.page'
+import { schemaListingPage } from '../../../pages/[schemaId]/index.page'
 import type { CollectedIslandProps } from '../../../runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../../../runtime/Island'
 import { islandRegistry } from '../../../runtime/islandRegistry'
@@ -172,9 +172,9 @@ describe('hydration directives', () => {
     it('SchemaViewerIsland on the schema listing page is client="visible"', () => {
       const paths = schemaListingPage.getStaticPaths?.() ?? []
       const path = paths.find((p) => p.params.schemaId === 'keywords')
-      if (!path) throw new Error('no static path for /schema/keywords')
+      if (!path) throw new Error('no static path for /keywords')
 
-      const pathname = '/schema/keywords/'
+      const pathname = '/keywords/'
       const result = schemaListingPage.page({
         params: path.params,
         props: path.props,

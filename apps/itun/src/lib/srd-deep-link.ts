@@ -3,10 +3,10 @@
  *
  * Verified srd URL pattern (from apps/srd/src/pages/):
  *   Base: https://salvageunion.io
- *   Item route: /schema/[schemaId]/item/[itemSlug]
+ *   Item route: /[schemaId]/[itemSlug]
  *   Uses slugs (never UUIDs) per CLAUDE.md data convention
  *
- * See: apps/srd/src/pages/schema/[schemaId]/item/[itemId].page.tsx
+ * See: apps/srd/src/pages/[schemaId]/[itemId].page.tsx
  */
 
 import { getEntitySchemas, srdEntityUrl, srdSchemaUrl } from 'salvageunion-reference'
@@ -48,7 +48,7 @@ export function deepLinkTo({ schemaName, slug }: EntityRef): string {
 
 /**
  * Build a deep-link URL to a srd schema index page (the category
- * listing, e.g. /schema/chassis). Used by reference search's category rows —
+ * listing, e.g. /chassis). Used by reference search's category rows —
  * ITUN has no in-app schema list routes.
  */
 export function deepLinkToSchema(schemaName: string): string {

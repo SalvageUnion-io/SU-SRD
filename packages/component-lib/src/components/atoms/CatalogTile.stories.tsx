@@ -32,17 +32,17 @@ export default {
  */
 export const Default: Story = () => (
   <div className="su-story-catalog-grid">
-    <CatalogTile href="/schema/chassis" name="Chassis" catalogBg="var(--color-mech)" />
-    <CatalogTile href="/schema/pilots" name="Pilots" catalogBg="var(--color-pilot)" />
-    <CatalogTile href="/schema/crawlers" name="Crawlers" catalogBg="var(--color-crawler)" />
+    <CatalogTile href="/chassis" name="Chassis" catalogBg="var(--color-mech)" />
+    <CatalogTile href="/pilots" name="Pilots" catalogBg="var(--color-pilot)" />
+    <CatalogTile href="/crawlers" name="Crawlers" catalogBg="var(--color-crawler)" />
     <CatalogTile
-      href="/schema/systems"
+      href="/systems"
       name="Systems"
       catalogBg={TECH_LEVEL_RAMP}
       catalogLabel="var(--color-mech-dark)"
     />
     <CatalogTile
-      href="/schema/npcs"
+      href="/npcs"
       name="NPCs"
       catalogBg="var(--color-ink)"
       catalogLabel="var(--color-adversary)"

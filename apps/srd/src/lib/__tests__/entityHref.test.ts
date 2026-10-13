@@ -12,17 +12,15 @@ import { ogImagePath } from '../ogCard'
  */
 describe('srd route grammar', () => {
   it('builds a schema listing href', () => {
-    expect(schemaHref('chassis')).toBe('/schema/chassis/')
+    expect(schemaHref('chassis')).toBe('/chassis/')
   })
 
   it('builds an item show-page href from a SLUG, never a uuid', () => {
-    expect(itemHref('chassis', 'iron-mongrel')).toBe('/schema/chassis/item/iron-mongrel/')
+    expect(itemHref('chassis', 'iron-mongrel')).toBe('/chassis/iron-mongrel/')
   })
 
   it('nests a pattern under the item it belongs to', () => {
-    expect(patternHref('chassis', 'iron-mongrel', 'mk8')).toBe(
-      '/schema/chassis/item/iron-mongrel/pattern/mk8/'
-    )
+    expect(patternHref('chassis', 'iron-mongrel', 'mk8')).toBe('/chassis/iron-mongrel/pattern/mk8/')
   })
 
   it('composes: an item href extends its schema href', () => {
@@ -57,7 +55,7 @@ describe('srdEntityHref', () => {
   it('returns undefined when the entity carries no schemaName', () => {
     // `schemaName` is NOT part of `SURefEntity` — the ORM stamps it on. So a
     // record that never went through the ORM is a real, reachable input here,
-    // and the builder must decline it rather than emit `/schema/undefined/...`.
+    // and the builder must decline it rather than emit `/undefined/...`.
     const { schemaName: _stampedByTheOrm, ...bare } = chassis
     expect(srdEntityHref(bare)).toBeUndefined()
   })
@@ -65,7 +63,7 @@ describe('srdEntityHref', () => {
   it('declines a record assembled for display, which has no page', () => {
     // A crawler bay's commander: its bay's embedded `npc` object, dressed as an
     // `npcs` entity by `resolveNestedEntities`. It has no `id` and no page, so
-    // a name-built link (`/schema/npcs/item/princeps/`) would 404.
+    // a name-built link (`/npcs/princeps/`) would 404.
     const bay = SalvageUnionReference.CrawlerBays.all().find((b) => 'npc' in b && b.npc)
     if (!bay || !('npc' in bay) || !bay.npc) throw new Error('no crawler bay carries an npc')
     // Built exactly as `resolveNestedEntities` builds it, cast included.

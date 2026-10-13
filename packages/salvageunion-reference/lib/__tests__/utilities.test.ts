@@ -739,20 +739,20 @@ describe('homebrew patterns (stored data tag — never computed)', () => {
  */
 describe('SRD site URLs', () => {
   it('builds a root-relative entity path matching the srd route grammar', () => {
-    expect(srdEntityPath('chassis', 'iron-mongrel')).toBe('/schema/chassis/item/iron-mongrel')
+    expect(srdEntityPath('chassis', 'iron-mongrel')).toBe('/chassis/iron-mongrel')
   })
 
   it('builds the absolute URL as the site origin plus that path', () => {
     expect(srdEntityUrl('traits', 'melee')).toBe(
       `${SRD_SITE_URL}${srdEntityPath('traits', 'melee')}`
     )
-    expect(srdEntityUrl('traits', 'melee')).toBe('https://salvageunion.io/schema/traits/item/melee')
+    expect(srdEntityUrl('traits', 'melee')).toBe('https://salvageunion.io/traits/melee')
   })
 
   it('links a real entity at the slug its own page uses', () => {
     const mule = defined(getReference().Chassis.getByName('Mule'))
     expect(srdEntityUrl('chassis', getEntitySlug(mule))).toBe(
-      'https://salvageunion.io/schema/chassis/item/mule'
+      'https://salvageunion.io/chassis/mule'
     )
   })
 })

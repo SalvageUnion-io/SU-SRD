@@ -69,10 +69,12 @@ export const SRD_SITE_URL = 'https://salvageunion.io'
 /**
  * The reference site's ROOT-RELATIVE path for one entity's page.
  *
- * This is the site's route grammar (`/schema/{schemaName}/item/{slug}` — it
- * matches the srd `getStaticPaths`), expressed once. The srd site itself wants
- * the relative form (it is that origin); anything linking in from outside
- * prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
+ * This is the site's route grammar (`/{schemaName}/{slug}` — it matches the
+ * srd `getStaticPaths`), expressed once. The pages once lived under
+ * `/schema/{schemaName}/item/{slug}`; the srd Worker 301s that tree here, and
+ * `/schema/*` now names only the JSON API, whose paths are not this grammar.
+ * The srd site itself wants the relative form (it is that origin); anything
+ * linking in from outside prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
  *
  * Takes the SLUG rather than the entity, because callers arrive with either —
  * a resolved entity (slug it with `getEntitySlug`) or a bare name already run
@@ -84,7 +86,7 @@ export const SRD_SITE_URL = 'https://salvageunion.io'
  */
 
 export function srdEntityPath(schemaName: string, slug: string): string {
-  return `${srdSchemaPath(schemaName)}/item/${slug}`
+  return `${srdSchemaPath(schemaName)}/${slug}`
 }
 
 /**
@@ -105,7 +107,7 @@ export function srdEntityPath(schemaName: string, slug: string): string {
  * @returns The root-relative listing path
  */
 export function srdSchemaPath(schemaName: string): string {
-  return `/schema/${schemaName}`
+  return `/${schemaName}`
 }
 
 /**

@@ -17,9 +17,9 @@ The in-house SSG behind `apps/srd` (ADR-031 in [ARCHITECTURE.md](../../../docs/A
 | `/`                                    | `index.html`                                      |
 | `/about`                               | `about/index.html`                                |
 | `/404`                                 | `404.html` (special-cased, not a directory)       |
-| `/schema/chassis`                      | `schema/chassis/index.html`                       |
-| `/schema/chassis/item/aegis`           | `schema/chassis/item/aegis/index.html`            |
-| `/schema/chassis/item/aegis/pattern/x` | `schema/chassis/item/aegis/pattern/x/index.html`  |
+| `/chassis`                             | `chassis/index.html`                              |
+| `/chassis/aegis`                       | `chassis/aegis/index.html`                        |
+| `/chassis/aegis/pattern/x`             | `chassis/aegis/pattern/x/index.html`              |
 | `/schema/chassis.json`                 | `schema/chassis.json` (dotted: a file, not a dir) |
 | `/llms.txt`                            | `llms.txt`                                        |
 

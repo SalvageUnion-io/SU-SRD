@@ -35,7 +35,7 @@ function findByName(model: string, name: string): SURefEntity {
 
 describe('catalog tiles always carry content', () => {
   // The whole-dataset sweep. Every schema with a listing page (`meta: false` is
-  // what gives a schema a `/schema/<id>/` index in srd) renders a grid of these
+  // what gives a schema a `/<id>/` index in srd) renders a grid of these
   // tiles, so the guarantee has to hold for the entire dataset, not a fixture.
   const listingSchemas = getSchemaCatalog()
     .schemas.filter((schema) => !schema.meta)

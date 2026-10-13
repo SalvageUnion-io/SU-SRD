@@ -4,7 +4,7 @@
  * A single static page that renders the link preview (`OgCard`, issue 1280)
  * for the entity named by `?schema=&item=`. `scripts/og-screenshots.ts` drives
  * chromium across every entity here after the build, screenshots the 1200 ×
- * 630 frame, and writes it to `dist/schema/{schemaId}/item/{itemId}.og.png`.
+ * 630 frame, and writes it to `dist/{schemaId}/{itemId}.og.png`.
  *
  * Resolving the entity client-side (OgCardIsland) keeps the build to ONE page
  * instead of ~1,000. Excluded from the sitemap and noindexed.

@@ -11,11 +11,11 @@ const index = buildSearchIndexEntries()
 
 describe('queryFromPathname', () => {
   test('reads the last slug back as words', () => {
-    expect(queryFromPathname('/schema/chassis/item/mule-mk2/')).toBe('mule mk2')
+    expect(queryFromPathname('/chassis/mule-mk2/')).toBe('mule mk2')
   })
 
   test('skips the site’s own path words', () => {
-    expect(queryFromPathname('/schema/chassis/item/')).toBe('chassis')
+    expect(queryFromPathname('/chassis/')).toBe('chassis')
     expect(queryFromPathname('/404/')).toBe('')
     expect(queryFromPathname('/')).toBe('')
   })
@@ -62,7 +62,7 @@ describe('DidYouMeanIsland', () => {
   })
 
   test('offers the closest entries and a search for the slug', async () => {
-    render(<DidYouMeanIsland pathname="/schema/chassis/item/gophr/" />)
+    render(<DidYouMeanIsland pathname="/chassis/gophr/" />)
     expect(await screen.findByRole('heading', { name: 'Did you mean' })).toBeTruthy()
     expect(screen.getByRole('link', { name: /Search the SRD for “gophr”/ })).toBeTruthy()
     expect(screen.getAllByRole('link').some((link) => link.textContent?.includes('Gopher'))).toBe(

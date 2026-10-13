@@ -1,7 +1,7 @@
 /**
  * Per-schema preload lists — which `salvageunion-reference` schemas a given
- * `/schema/[schemaId]/` listing page or `/schema/[schemaId]/item/[itemId]/`
- * item page actually needs loaded client-side, instead of every island
+ * `/[schemaId]/` listing page or `/[schemaId]/[itemId]/` item
+ * page actually needs loaded client-side, instead of every island
  * calling `SalvageUnionReference.preload('all')` (the full ~1.3 MB corpus).
  *
  * This is deliberately conservative and coarse-grained (per audit advice):
@@ -154,7 +154,7 @@ const SCHEMA_PRELOAD_DEPS: Readonly<Record<string, readonly string[]>> = {
 
 /**
  * The list to pass to `SalvageUnionReference.preload(...)` (or `useGameData`
- * / `GameDataGate`'s `schemas` option) for a given `/schema/[schemaId]/`
+ * / `GameDataGate`'s `schemas` option) for a given `/[schemaId]/`
  * route. Falls back to `'all'` for `guides` and any schema not covered above
  * (new schemas default to the safe, unoptimized behavior until added here).
  */

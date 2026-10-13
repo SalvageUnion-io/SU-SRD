@@ -172,7 +172,7 @@ describe('every roll renders the same furniture', () => {
 
   test('links the traits an outcome names, and never prints their markup', () => {
     const body = text(rollOf('Reactor Overload', 14))
-    expect(body).toContain('[Vulnerable](https://salvageunion.io/schema/traits/item/vulnerable)')
+    expect(body).toContain('[Vulnerable](https://salvageunion.io/traits/vulnerable)')
     expect(body).not.toContain('[[')
   })
 })

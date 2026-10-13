@@ -95,9 +95,7 @@ describe('useDetailModal — link mode (srd)', () => {
       return null
     }
     const result = render(
-      <EntityHrefProvider
-        value={() => (opts.noHref ? undefined : '/schema/systems/item/red-laser')}
-      >
+      <EntityHrefProvider value={() => (opts.noHref ? undefined : '/systems/red-laser')}>
         <EntityDetailLinkProvider value={true}>
           <Harness data={system('Red Laser')} forceModal={opts.forceModal} />
         </EntityDetailLinkProvider>
@@ -109,7 +107,7 @@ describe('useDetailModal — link mode (srd)', () => {
   test('clicking navigates to the show page in a new tab instead of opening a dialog', () => {
     const { opened } = renderLinked()
     fireEvent.click(screen.getByLabelText('View details'))
-    expect(opened).toEqual([['/schema/systems/item/red-laser', '_blank', 'noopener,noreferrer']])
+    expect(opened).toEqual([['/systems/red-laser', '_blank', 'noopener,noreferrer']])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 

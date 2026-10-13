@@ -31,7 +31,7 @@ describe('a Mediator Screen table, before a roll (the server markup)', () => {
     expect(within(panel).getByText('Core resolution')).toBeTruthy()
     expect(within(panel).getByText('p.232')).toBeTruthy()
     const link = within(panel).getByRole('link', { name: 'Core Mechanic' })
-    expect(link.getAttribute('href')).toBe('/schema/roll-tables/item/core-mechanic/')
+    expect(link.getAttribute('href')).toBe('/roll-tables/core-mechanic/')
     const rows = within(panel).getByRole('list', { name: 'Core Mechanic table' })
     expect(within(rows).getAllByRole('listitem')).toHaveLength(5)
     expect(within(rows).getByText('11–19')).toBeTruthy()

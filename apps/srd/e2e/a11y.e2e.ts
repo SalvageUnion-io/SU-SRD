@@ -16,10 +16,10 @@ const PAGES = [
   '/bot/terms/',
   '/bot/privacy/',
   '/search/',
-  '/schema/chassis/',
-  '/schema/chassis/item/aegis/',
-  '/schema/roll-tables/item/ai-personality/',
-  '/schema/guides/item/activating-and-shutting-down-a-mech/',
+  '/chassis/',
+  '/chassis/aegis/',
+  '/roll-tables/ai-personality/',
+  '/guides/activating-and-shutting-down-a-mech/',
 ]
 
 // A violation that fires only sometimes must not pass on a retry.

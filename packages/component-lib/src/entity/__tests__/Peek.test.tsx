@@ -18,7 +18,7 @@ const refOf = (schema: 'traits' | 'systems', name: string): EntityRef => {
   return toEntityModel(entity).ref
 }
 
-const hrefFor = (ref: EntityRef) => `/schema/${ref.schemaName}/item/${ref.slug}/`
+const hrefFor = (ref: EntityRef) => `/${ref.schemaName}/${ref.slug}/`
 
 function Page({ entityRef, label }: { entityRef: EntityRef; label: string }) {
   return (

@@ -34,6 +34,7 @@ import type { OgMeta } from 'gates/lib/galleryHtml'
 import { renderGallery } from 'gates/lib/galleryHtml'
 import type { GalleryPage } from 'gates/lib/galleryPages'
 import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
+import { isSchemaName } from 'salvageunion-reference'
 import { launchBrowser } from './shot'
 
 export type GalleryArgs = {
@@ -103,8 +104,10 @@ export function parseGalleryArgs(argv: readonly string[]): GalleryArgs {
 export function pageEntity(
   path: string
 ): { schema: string; item: string; pattern?: string } | undefined {
-  const m = path.match(/^\/schema\/([^/]+)\/item\/([^/]+)\/(?:pattern\/([^/]+)\/)?$/)
-  if (!m?.[1] || !m[2]) return undefined
+  const m = path.match(/^\/([^/]+)\/([^/]+)\/(?:pattern\/([^/]+)\/)?$/)
+  // Pages sit at the root (`/chassis/mule/`), so the first segment is a schema
+  // only when it names one: `/bot/terms/` has the same shape.
+  if (!m?.[1] || !m[2] || !isSchemaName(m[1])) return undefined
   return { schema: m[1], item: m[2], ...(m[3] ? { pattern: m[3] } : {}) }
 }
 

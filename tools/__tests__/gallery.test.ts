@@ -114,16 +114,17 @@ describe('parseGalleryArgs', () => {
 
 describe('pageEntity', () => {
   test("reads an entity's and a pattern's page, and nothing else", () => {
-    expect(pageEntity('/schema/chassis/item/mazona/')).toEqual({
+    expect(pageEntity('/chassis/mazona/')).toEqual({
       schema: 'chassis',
       item: 'mazona',
     })
-    expect(pageEntity('/schema/chassis/item/mazona/pattern/buzzard/')).toEqual({
+    expect(pageEntity('/chassis/mazona/pattern/buzzard/')).toEqual({
       schema: 'chassis',
       item: 'mazona',
       pattern: 'buzzard',
     })
-    expect(pageEntity('/schema/chassis/')).toBeUndefined()
+    expect(pageEntity('/chassis/')).toBeUndefined()
+    expect(pageEntity('/bot/terms/')).toBeUndefined()
     expect(pageEntity('/')).toBeUndefined()
   })
 })
@@ -250,24 +251,20 @@ describe('ogSource', () => {
 
   test('an srd entity page renders its own card, whatever og:image the build emitted', () => {
     expect(
-      ogSource(
-        srdPage('/schema/chassis/item/mazona/'),
-        'http://srd',
-        'https://salvageunion.io/og.png'
-      )
+      ogSource(srdPage('/chassis/mazona/'), 'http://srd', 'https://salvageunion.io/og.png')
     ).toEqual({ kind: 'card', entity: { schema: 'chassis', item: 'mazona' } })
   })
 
   test('any other page fetches the og:image path from the build it was shot from', () => {
     expect(
-      ogSource(srdPage('/schema/chassis/'), 'http://srd', 'https://salvageunion.io/og/default.png')
+      ogSource(srdPage('/chassis/'), 'http://srd', 'https://salvageunion.io/og/default.png')
     ).toEqual({
       kind: 'file',
       url: 'http://srd/og/default.png',
     })
     const itunPage: GalleryPage = {
       site: 'itun',
-      path: '/schema/chassis/item/x/',
+      path: '/chassis/x/',
       name: 'x',
       note: '',
     }

@@ -36,14 +36,14 @@ describe('screenPanels', () => {
   test('every d20 table carries all five bands, and every panel its page and link', () => {
     for (const panel of panels) {
       expect(panel.page).toBeGreaterThan(0)
-      expect(panel.href).toMatch(/^\/schema\/[a-z-]+\/(item\/[a-z0-9-]+\/)?$/)
+      expect(panel.href).toMatch(/^\/[a-z-]+\/([a-z0-9-]+\/)?$/)
       if (panel.kind === 'table') expect(panel.data.rows.map((r) => r.key)).toHaveLength(5)
     }
     expect(panels.find((p) => p.title === 'Critical Injury')?.page).toBe(241)
   })
 
   test('the distances link to a listing the site builds', () => {
-    expect(reference('Distances')?.href).toBe('/schema/distances/')
+    expect(reference('Distances')?.href).toBe('/distances/')
     expect(getEntitySchemas().map((s) => s.id)).toContain('distances')
     expect(reference('Distances')?.notes.map((n) => n.term)).toEqual([
       'Close',

@@ -46,12 +46,12 @@ function locs(xml: string): string[] {
 
 describe('URL selection', () => {
   it('emits absolute, trailing-slashed URLs against the site origin', async () => {
-    const { count, urlsets } = await emit(['/', '/about', '/schema/chassis'])
+    const { count, urlsets } = await emit(['/', '/about', '/chassis'])
 
     expect(locs(urlsets['sitemap-0.xml'] ?? '')).toEqual([
       `${SITE_URL}/`,
       `${SITE_URL}/about/`,
-      `${SITE_URL}/schema/chassis/`,
+      `${SITE_URL}/chassis/`,
     ])
     expect(count).toBe(3)
   })
@@ -62,15 +62,15 @@ describe('URL selection', () => {
     const { count, urlsets } = await emit([
       '/about',
       '/og-card',
-      '/schema/chassis/item/aegis',
-      '/schema/chassis/item/aegis.og.png',
+      '/chassis/aegis',
+      '/chassis/aegis.og.png',
       '/api/image',
-      '/schema/image-noise',
+      '/image-noise',
     ])
 
     expect(locs(urlsets['sitemap-0.xml'] ?? '')).toEqual([
       `${SITE_URL}/about/`,
-      `${SITE_URL}/schema/chassis/item/aegis/`,
+      `${SITE_URL}/chassis/aegis/`,
     ])
     expect(count).toBe(2)
   })
@@ -102,18 +102,18 @@ describe('ordering', () => {
     // character-wise. `Intl.Collator('en', {numeric: true})` compares the runs
     // of digits as numbers, so 120 sorts after 50.
     const routes = [
-      '/schema/systems/item/50-cal-machine-gun',
-      '/schema/systems/item/120mm-cannon',
-      '/schema/systems/item/30mm-autocannon',
+      '/systems/50-cal-machine-gun',
+      '/systems/120mm-cannon',
+      '/systems/30mm-autocannon',
     ]
 
     const { urlsets } = await emit(routes)
     const emitted = locs(urlsets['sitemap-0.xml'] ?? '')
 
     expect(emitted).toEqual([
-      `${SITE_URL}/schema/systems/item/30mm-autocannon/`,
-      `${SITE_URL}/schema/systems/item/50-cal-machine-gun/`,
-      `${SITE_URL}/schema/systems/item/120mm-cannon/`,
+      `${SITE_URL}/systems/30mm-autocannon/`,
+      `${SITE_URL}/systems/50-cal-machine-gun/`,
+      `${SITE_URL}/systems/120mm-cannon/`,
     ])
 
     // …and the lexicographic answer is genuinely different, so this test is
@@ -171,9 +171,9 @@ describe('XML shape', () => {
   it('escapes XML metacharacters in a slug', async () => {
     // No slug contains one today. The escaping exists so that the day one does,
     // the site emits a valid sitemap instead of one Google refuses to parse.
-    const { urlsets } = await emit(['/schema/x/item/a&b'])
+    const { urlsets } = await emit(['/x/a&b'])
 
-    expect(urlsets['sitemap-0.xml']).toContain(`<loc>${SITE_URL}/schema/x/item/a&amp;b/</loc>`)
+    expect(urlsets['sitemap-0.xml']).toContain(`<loc>${SITE_URL}/x/a&amp;b/</loc>`)
     expect(urlsets['sitemap-0.xml']).not.toContain('item/a&b')
   })
 })

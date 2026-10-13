@@ -12,7 +12,7 @@ const chassis = SalvageUnionReference.Chassis.all()[0]
 const slug = chassis ? getEntitySlug(chassis) : 'iron-mongrel'
 const name = chassis?.name ?? 'Iron Mongrel'
 // The caller resolves the URL; ITUN builds this via its own `deepLinkTo`.
-const href = `https://salvageunion.io/schema/chassis/item/${slug}`
+const href = `https://salvageunion.io/chassis/${slug}`
 
 /**
  * The cross-link ITUN renders in the foot band of every full entity card

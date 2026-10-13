@@ -29,19 +29,21 @@ test('landing page loads and search returns results', async ({ page, isMobile })
 
 // (b) A schema index page renders its entities.
 test('chassis schema index renders entities', async ({ page }) => {
-  await page.goto('/schema/chassis/')
+  await page.goto('/chassis/')
   await expect(page).toHaveTitle(/Chassis/i)
 
   // Entities render (after the island hydrates + game data loads) as links to
   // their individual item pages.
-  await expect(page.locator('a[aria-label][href*="/schema/chassis/item/"]').first()).toBeVisible({
+  await expect(
+    page.locator('a[aria-label][href^="/chassis/"]:not([href="/chassis/"])').first()
+  ).toBeVisible({
     timeout: 30_000,
   })
 })
 
 // (c) An individual entity page renders.
 test('a chassis entity page renders its card', async ({ page }) => {
-  await page.goto('/schema/chassis/item/mule/')
+  await page.goto('/chassis/mule/')
   // Title is server-rendered, so this asserts the static page exists.
   await expect(page).toHaveTitle(/Mule/i)
   // The entity name renders on the page (breadcrumb + card header). Assert the
@@ -82,7 +84,7 @@ test('the home page indexes the book’s chapters', async ({ page }) => {
 for (const width of [375, 1440]) {
   test(`an entity page at ${width}px keeps its stats clear of its title`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
-    await page.goto('/schema/chassis/item/gopher/')
+    await page.goto('/chassis/gopher/')
     const title = page.getByRole('heading', { level: 1, name: 'Gopher' })
     const stats = page.getByLabel('Gopher stats')
     await expect(title).toBeVisible()
@@ -110,8 +112,8 @@ for (const width of [375, 1440]) {
 for (const width of [375, 1440]) {
   test(`a chassis listing row at ${width}px shows its name in full`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
-    await page.goto('/schema/chassis/')
-    const row = page.locator('a[aria-label="Scrapper"][href*="/schema/chassis/item/"]')
+    await page.goto('/chassis/')
+    const row = page.locator('a[aria-label="Scrapper"][href*="/chassis/"]')
     await expect(row).toBeVisible({ timeout: 30_000 })
     const name = row.getByText('Scrapper', { exact: true })
     const fits = await name.evaluate((el) => el.scrollWidth <= el.clientWidth)
@@ -126,7 +128,7 @@ for (const width of [375, 1440]) {
 for (const schema of ['systems', 'abilities']) {
   test(`every ${schema} listing row at 375px keeps its parts inside the row`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 900 })
-    await page.goto(`/schema/${schema}/`)
+    await page.goto(`/${schema}/`)
     const headers = page.locator('.srd-listing__cards a[aria-label] [data-fill]')
     await expect(headers.first()).toBeVisible({ timeout: 30_000 })
     const broken = await headers.evaluateAll((rows) =>
@@ -148,7 +150,7 @@ for (const schema of ['systems', 'abilities']) {
 
 // (f) A roll table rolls on its own page (board 08b).
 test('a roll table page rolls and marks the result', async ({ page }) => {
-  await page.goto('/schema/roll-tables/item/core-mechanic/')
+  await page.goto('/roll-tables/core-mechanic/')
   const roll = page.getByRole('button', { name: 'Roll the die' })
   // The island mounts the live controls; the server markup's are inert.
   await expect(roll).toBeEnabled({ timeout: 30_000 })
@@ -165,9 +167,9 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
 // opens on the Catalog; `?view=list` asks for the Rows.
 for (const width of [1440, 390]) {
   for (const schema of ['bio-titans', 'chassis']) {
-    test(`every Row in a /schema/${schema}/ grid is one height at ${width}px`, async ({ page }) => {
+    test(`every Row in a /${schema}/ grid is one height at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
-      await page.goto(`/schema/${schema}/?view=list`)
+      await page.goto(`/${schema}/?view=list`)
       const grid = page.locator('ul[data-entity-grid]').first()
       await expect(grid.locator('a[aria-label]').first()).toBeVisible({ timeout: 30_000 })
       const heights = await page.$$eval('ul[data-entity-grid]', (grids) =>
@@ -185,7 +187,7 @@ for (const width of [1440, 390]) {
 // Tiles, each art box 3:4 before its image loads; a phone keeps the List.
 test('a listing with art opens on the Catalog at 1440px, the List at 390px', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
-  await page.goto('/schema/chassis/')
+  await page.goto('/chassis/')
   const tile = page.locator('.srd-listing__tiles a.su-entity-tile').first()
   await expect(tile).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('button', { name: 'Catalog' })).toHaveAttribute(
@@ -197,7 +199,7 @@ test('a listing with art opens on the Catalog at 1440px, the List at 390px', asy
   if (box) expect(Math.abs(box.width / box.height - 3 / 4)).toBeLessThan(0.02)
 
   await page.setViewportSize({ width: 390, height: 900 })
-  await page.goto('/schema/chassis/')
+  await page.goto('/chassis/')
   await expect(page.locator('ul[data-entity-grid] a[aria-label]').first()).toBeVisible({
     timeout: 30_000,
   })

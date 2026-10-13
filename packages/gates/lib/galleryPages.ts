@@ -54,14 +54,12 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     tone: 'var(--pilot)',
     intro: 'Rows grouped as the book prints them, with art (or a censor mark) and the lore lead.',
     pages: [
-      srd('/schema/chassis/', 'Chassis', 'Grouped by tech level; art and censor marks mixed.', [
-        'Art',
-      ]),
-      srd('/schema/systems/', 'Systems', 'The largest listing; no art column.'),
-      srd('/schema/abilities/', 'Abilities', 'Grouped by tree; each Row in its tier tone.'),
-      srd('/schema/creatures/', 'Creatures', 'The censor marks rotate patch, strip, stamp.'),
-      srd('/schema/bio-titans/', 'Bio-Titans', 'An entity grid: every Row one height.'),
-      srd('/schema/keywords/', 'Keywords', 'Text only: a name and a lead.'),
+      srd('/chassis/', 'Chassis', 'Grouped by tech level; art and censor marks mixed.', ['Art']),
+      srd('/systems/', 'Systems', 'The largest listing; no art column.'),
+      srd('/abilities/', 'Abilities', 'Grouped by tree; each Row in its tier tone.'),
+      srd('/creatures/', 'Creatures', 'The censor marks rotate patch, strip, stamp.'),
+      srd('/bio-titans/', 'Bio-Titans', 'An entity grid: every Row one height.'),
+      srd('/keywords/', 'Keywords', 'Text only: a name and a lead.'),
       srd('/search?q=drill', 'Search: "drill"', 'Search results as Rows.'),
     ],
   },
@@ -71,36 +69,26 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     tone: 'var(--mech)',
     intro: 'Where the most structure stacks up: patterns, trees, loadouts, nested cards.',
     pages: [
-      srd('/schema/chassis/item/mazona/', 'Mazona', 'Patterns as cards; Tech Level in the band.', [
-        'Patterns',
-      ]),
+      srd('/chassis/mazona/', 'Mazona', 'Patterns as cards; Tech Level in the band.', ['Patterns']),
       srd(
-        '/schema/chassis/item/mazona/pattern/buzzard/',
+        '/chassis/mazona/pattern/buzzard/',
         '“Buzzard”',
         'A pattern page: its loadout as Rows under the stats.',
         ['Pattern']
       ),
       srd(
-        '/schema/bio-titans/item/typhon/pattern/hill-worm/',
+        '/bio-titans/typhon/pattern/hill-worm/',
         'Typhon “Hill Worm”',
         'A Bio-Titan pattern and the action it adds.'
       ),
-      srd(
-        '/schema/chassis/item/big-brother/',
-        'Big Brother',
-        'Chassis abilities and a drone card.'
-      ),
-      srd('/schema/chassis/item/kelpie/', 'Kelpie', 'The REMOVED stamp as hero.', ['Missing art']),
-      srd('/schema/classes/item/hacker/', 'Hacker', 'The ability tree.'),
-      srd('/schema/bio-titans/item/tyrant/', 'Tyrant', 'Art hero and a long run of actions.'),
-      srd('/schema/npcs/item/saboteur/', 'Saboteur', 'Actions flowing around the art.'),
-      srd('/schema/drones/item/pest-drone/', 'Pest Drone', 'A systems tray beside the art.'),
-      srd('/schema/crawler-bays/item/armoury/', 'Armoury', 'A crawler bay with its NPC.'),
-      srd(
-        '/schema/systems/item/salvaging-drill/',
-        'Salvaging Drill',
-        'Trait Tags and action facets (E17).'
-      ),
+      srd('/chassis/big-brother/', 'Big Brother', 'Chassis abilities and a drone card.'),
+      srd('/chassis/kelpie/', 'Kelpie', 'The REMOVED stamp as hero.', ['Missing art']),
+      srd('/classes/hacker/', 'Hacker', 'The ability tree.'),
+      srd('/bio-titans/tyrant/', 'Tyrant', 'Art hero and a long run of actions.'),
+      srd('/npcs/saboteur/', 'Saboteur', 'Actions flowing around the art.'),
+      srd('/drones/pest-drone/', 'Pest Drone', 'A systems tray beside the art.'),
+      srd('/crawler-bays/armoury/', 'Armoury', 'A crawler bay with its NPC.'),
+      srd('/systems/salvaging-drill/', 'Salvaging Drill', 'Trait Tags and action facets (E17).'),
     ],
   },
   {
@@ -109,18 +97,10 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     tone: 'var(--denizen)',
     intro: 'Each page sets its density from its table; the Roll button never moves.',
     pages: [
+      srd('/roll-tables/core-mechanic/', 'Core Mechanic', 'Roomy: one column of bands.'),
+      srd('/roll-tables/mechapult/', 'Mechapult', 'Dense: two columns, numbers outside.'),
       srd(
-        '/schema/roll-tables/item/core-mechanic/',
-        'Core Mechanic',
-        'Roomy: one column of bands.'
-      ),
-      srd(
-        '/schema/roll-tables/item/mechapult/',
-        'Mechapult',
-        'Dense: two columns, numbers outside.'
-      ),
-      srd(
-        '/schema/roll-tables/item/callsign-table/',
+        '/roll-tables/callsign-table/',
         'Callsign Table',
         'Two rolls: the column, then the entry.'
       ),
@@ -132,12 +112,8 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     tone: 'var(--crawler)',
     intro: "Steps on the book's ink banner, sections under solid slabs.",
     pages: [
-      srd(
-        '/schema/guides/item/create-a-pilot/',
-        'Create a Pilot',
-        'Numbered steps with their option cards.'
-      ),
-      srd('/schema/guides/item/heat/', 'Heat', 'A rules page.'),
+      srd('/guides/create-a-pilot/', 'Create a Pilot', 'Numbered steps with their option cards.'),
+      srd('/guides/heat/', 'Heat', 'A rules page.'),
     ],
   },
   {

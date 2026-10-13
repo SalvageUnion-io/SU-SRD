@@ -1,9 +1,9 @@
 /**
- * `/schema/[schemaId]/item/[itemId]/pattern/[patternId]` — a pattern's own
- * page: a chassis's mech pattern or a Bio-Titan's variant.
+ * `/[schemaId]/[itemId]/pattern/[patternId]` — a pattern's own page: a
+ * chassis's mech pattern or a Bio-Titan's variant.
  *
  * `schemaId` is the host's schema, so the route sits inside the existing
- * `/schema/<schema>/item/<item>/` tree and its breadcrumbs resolve like every
+ * `/<schema>/<item>/` tree and its breadcrumbs resolve like every
  * other page's.
  */
 
@@ -19,28 +19,23 @@ import type {
   SURefObjectAnyPattern,
 } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
-import type {
-  PageModule,
-  PageResult,
-  RouteContext,
-  StructuredData,
-} from '../../../../../../../ssg/types'
-import { EntityPageFrame, entityPageFoot } from '../../../../../../components/EntityPageFrame'
-import { EntityView } from '../../../../../../components/EntityView'
-import { patternBuildLinkFor } from '../../../../../../lib/buildLink'
-import { chapterForSchema } from '../../../../../../lib/chapters'
-import { componentEmbedFor } from '../../../../../../lib/componentEmbed'
+import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
+import { EntityPageFrame, entityPageFoot } from '../../../../components/EntityPageFrame'
+import { EntityView } from '../../../../components/EntityView'
+import { patternBuildLinkFor } from '../../../../lib/buildLink'
+import { chapterForSchema } from '../../../../lib/chapters'
+import { componentEmbedFor } from '../../../../lib/componentEmbed'
 import {
   CONTENTS_CRUMB,
   META_DESCRIPTION_MAX,
   SITE_URL,
   TITLE_SUFFIX,
-} from '../../../../../../lib/constants'
-import { itemHref, patternHref, schemaHref } from '../../../../../../lib/entityHref'
-import { getReferenceEntityData } from '../../../../../../lib/gameData'
-import { ogCardFor, ogMetaFor } from '../../../../../../lib/ogCard'
-import { patternStaticSummary } from '../../../../../../lib/patternSummary'
-import { getPatternStaticPaths } from '../../../../../../lib/staticPaths'
+} from '../../../../lib/constants'
+import { itemHref, patternHref, schemaHref } from '../../../../lib/entityHref'
+import { getReferenceEntityData } from '../../../../lib/gameData'
+import { ogCardFor, ogMetaFor } from '../../../../lib/ogCard'
+import { patternStaticSummary } from '../../../../lib/patternSummary'
+import { getPatternStaticPaths } from '../../../../lib/staticPaths'
 
 type Params = { schemaId: string; itemId: string; patternId: string }
 
@@ -161,7 +156,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 }
 
 export const patternPage: PageModule<Params, Props> = {
-  pattern: '/schema/[schemaId]/item/[itemId]/pattern/[patternId]',
+  pattern: '/[schemaId]/[itemId]/pattern/[patternId]',
   getStaticPaths: getPatternStaticPaths,
   page,
 }

@@ -6,11 +6,16 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import { readdirSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { getModel } from 'salvageunion-reference'
 import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
+import { ITUN_URL } from '../../src/lib/constants'
 import type { BuildAssets } from '../document'
 import { outputPathFor } from '../outputPath'
 import { routes } from '../routes'
+
+const PUBLIC_DIR = fileURLToPath(new URL('../../public', import.meta.url))
 
 /** Well under the ~1,040 pages the site emits: a collapse detector, not a budget. */
 const PAGE_FLOOR = 900
@@ -62,11 +67,11 @@ describe('route registry', () => {
     expect(blockedInlineScripts(html)).toEqual([])
   })
 
-  it('server-renders a /schema/<id>/ listing as links, without inlining its entities', () => {
-    const listings = resolved.find((r) => r.pattern === '/schema/[schemaId]')?.pages ?? []
+  it('server-renders a /<id>/ listing as links, without inlining its entities', () => {
+    const listings = resolved.find((r) => r.pattern === '/[schemaId]')?.pages ?? []
     expect(listings.length).toBeGreaterThan(0)
     for (const listing of listings) {
-      const schemaId = listing.route.split('/')[2] ?? ''
+      const schemaId = listing.route.split('/')[1] ?? ''
       const entities = getModel(schemaId)?.all() ?? []
       const html = listing.render(ASSETS)
       const props = html.match(
@@ -75,9 +80,31 @@ describe('route registry', () => {
       // The island reads its entities from the ORM; inlined, they were up to 162 KB.
       expect(props?.[1]).toBeString()
       expect(props?.[1]?.length ?? 0).toBeLessThan(4096)
-      const links = html.match(new RegExp(`href="/schema/${schemaId}/item/`, 'g')) ?? []
+      const links = html.match(new RegExp(`href="/${schemaId}/[^"]`, 'g')) ?? []
       expect(links.length).toBeGreaterThanOrEqual(entities.length)
     }
+  })
+
+  // Pages sit at the root (`/chassis/mule/`), so a schema id shares one
+  // namespace with every other top-level path: a schema named `about`, a
+  // public directory named `chassis`, or a schema under ITUN's `/build/` or
+  // the JSON API's `/schema/` would shadow one or the other.
+  it('gives no schema listing a first segment another route, a public file or a sibling app owns', () => {
+    const listingPattern = '/[schemaId]'
+    const schemaIds = (resolved.find((r) => r.pattern === listingPattern)?.pages ?? []).map(
+      (p) => p.route.split('/')[1] ?? ''
+    )
+    expect(schemaIds.length).toBeGreaterThan(0)
+    const taken = new Set([
+      ...resolved
+        .filter((r) => !r.pattern.startsWith('/[schemaId]'))
+        .flatMap((r) => r.pages.map((p) => p.route.split('/')[1] ?? '')),
+      ...readdirSync(PUBLIC_DIR),
+      new URL(ITUN_URL).pathname.split('/')[1] ?? '',
+      'schema',
+      'assets',
+    ])
+    expect(schemaIds.filter((id) => taken.has(id))).toEqual([])
   })
 
   it('keeps every noindexed page out of the sitemap', () => {
