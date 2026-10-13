@@ -6,7 +6,9 @@ import type { SizeRung } from '../../styles/sizing'
  * FACTS — the body's first cells: each a horizontal `Stat` at its `full`
  * rung, the row's content. An editable stat (a sheet's override) grows its
  * stepper, exactly as the card's cluster does. A catalog Tile sets its cells a
- * rung down (`compact`), under the art.
+ * rung down (`compact`), under the art. A value longer than the row is wide (a
+ * hybrid class's requirements in a tile) wraps onto more lines instead of
+ * being clipped by the frame (`wrap`).
  */
 export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: SizeRung }) {
   return (
@@ -24,6 +26,7 @@ export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: Size
           mode={stat.onChange ? ((stat.canEdit ?? true) ? 'edit' : 'read') : 'read'}
           max={stat.outOfMax}
           hoverText={stat.hoverText}
+          wrap
         />
       ))}
     </>

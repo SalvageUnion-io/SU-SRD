@@ -49,6 +49,9 @@ const LEAD: CSSProperties = { ...TRUNCATE, flex: 'none', maxWidth: '100%' }
  * seal in its place; the classification pills; the Legal Starting Pattern
  * stamp; and on a user-made card the dashed User-made stamp after them. On
  * the ink banner the stamps take the `inverse` plate so they still read.
+ * A pill whose label repeats the type stamp (a class's `[Class | Hybrid]`
+ * after its "Class" stamp) stands in for the stamp: one `CLASS | HYBRID`,
+ * never "CLASS" then "CLASS | HYBRID".
  */
 export function CardLabels({
   seal,
@@ -70,6 +73,9 @@ export function CardLabels({
   onInk?: boolean
 }) {
   const surface = onInk ? 'inverse' : 'on-ink'
+  const restated =
+    typeStamp !== undefined &&
+    axisMarkers.some((marker) => marker.label.toLowerCase() === typeStamp.toLowerCase())
   return (
     <div style={LINE}>
       <div style={STAMPS}>
@@ -86,7 +92,7 @@ export function CardLabels({
             {seal.label}
           </Badge>
         )}
-        {typeStamp && (
+        {typeStamp && !restated && (
           <Badge shape="stamp" size="mini" surface={surface} style={LEAD}>
             {typeStamp}
           </Badge>

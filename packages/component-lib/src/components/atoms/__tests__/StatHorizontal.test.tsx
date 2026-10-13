@@ -34,4 +34,22 @@ describe('Stat (horizontal)', () => {
     expect(within(container).getByText('Range')).toBeTruthy()
     expect(within(container).getByText('Close')).toBeTruthy()
   })
+
+  test('`wrap` lets a long value wrap inside a cell that may narrow; the label stays one line', () => {
+    const { container } = render(
+      <Stat orientation="horizontal" label="REQ" value="Augmentation or Gladiatorial" wrap />
+    )
+    const cell = container.querySelector<HTMLElement>('.su-stat-cell')
+    expect(cell?.classList.contains('su-stat-cell--wrap')).toBe(true)
+    expect(cell?.style.whiteSpace).toBe('normal')
+    expect(cell?.style.minWidth).toBe('0')
+    expect(within(container).getByText('REQ').style.whiteSpace).toBe('nowrap')
+  })
+
+  test('without `wrap` the cell keeps its value on one line', () => {
+    const { container } = render(<Stat orientation="horizontal" label="Range" value="Close" />)
+    const cell = container.querySelector<HTMLElement>('.su-stat-cell')
+    expect(cell?.classList.contains('su-stat-cell--wrap')).toBe(false)
+    expect(cell?.style.whiteSpace).toBe('nowrap')
+  })
 })

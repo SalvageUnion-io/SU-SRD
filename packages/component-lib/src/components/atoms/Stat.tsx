@@ -122,6 +122,7 @@ type StatPropKey =
   | 'ariaLabel'
   | 'className'
   | 'truncate'
+  | 'wrap'
 
 /** `T`, plus every stat prop NOT in `T` forbidden (`?: never`) — the exclusion
  * that makes the anatomies genuinely non-overlapping at the type level. */
@@ -215,6 +216,14 @@ type HorizontalValueProps = Exact<{
    * cut mid-word by the row's clip. The label never shrinks.
    */
   truncate?: boolean
+  /**
+   * A cell in a wrapping row whose value may be longer than the row is wide
+   * (a hybrid class's `REQ | Augmentation or Gladiatorial` in a catalog
+   * tile): alone on its line, the cell narrows to the row and its value wraps
+   * onto more lines, rather than being clipped by the frame. A cell that fits
+   * is unchanged. The label never wraps.
+   */
+  wrap?: boolean
   className?: string
 }>
 
@@ -307,6 +316,7 @@ function HorizontalValue({
   stepperLabel,
   hoverText,
   truncate = false,
+  wrap = false,
   className,
 }: HorizontalValueProps) {
   // Both halves of the cell take the rung's type; line-height is 1 throughout.
@@ -361,6 +371,7 @@ function HorizontalValue({
         'su-stat-cell',
         !inline && 'su-stat-cell--block',
         truncate && 'su-stat-cell--truncate',
+        wrap && 'su-stat-cell--wrap',
         state === 'modified' && STATE_RING_CLASS,
         className
       )}
@@ -373,9 +384,9 @@ function HorizontalValue({
         cursor: 'default',
         flexGrow: 0,
         overflow: 'hidden',
-        whiteSpace: 'nowrap',
+        whiteSpace: wrap && !truncate ? 'normal' : 'nowrap',
         width: 'fit-content',
-        ...(truncate ? { minWidth: 0 } : undefined),
+        ...(truncate || wrap ? { minWidth: 0 } : undefined),
       }}
     >
       <Badge
@@ -396,6 +407,8 @@ function HorizontalValue({
           // Two-line label cell (e.g. "Tech" / "Level") when a bottomLabel is set.
           ...(bottomLabel !== undefined ? { flexDirection: 'column' } : undefined),
           justifyContent: 'center',
+          // The label stays one line when the value wraps beside it.
+          whiteSpace: 'nowrap',
           ...(bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined),
         }}
       >
@@ -427,7 +440,14 @@ function HorizontalValue({
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }
-              : { alignItems: 'center', display: 'flex', gap: '1px' }),
+              : {
+                  alignItems: 'center',
+                  display: 'flex',
+                  gap: '1px',
+                  // Wrapping, it narrows with its cell; a word longer than the
+                  // row breaks rather than being clipped.
+                  ...(wrap ? { minWidth: 0, overflowWrap: 'anywhere' } : undefined),
+                }),
           }}
         >
           {value}

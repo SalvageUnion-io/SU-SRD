@@ -628,6 +628,14 @@ body {
   min-width: 0;
 }
 
+/* A Row that is its head alone (`data-bodyless`: a base class, a roll table,
+   with no facts and no lead to show) is its head's height wherever it stands:
+   stretched by a grid or a flex line beside bodied Rows, its frame keeps the
+   head's height instead of opening an empty paper strip under it. */
+.su-entity-row__frame[data-bodyless] {
+  flex: none;
+}
+
 .su-entity-row__main {
   display: flex;
   flex: 1 1 auto;
@@ -2845,6 +2853,13 @@ body {
 
 .su-stat-cell--truncate {
   flex-shrink: 1;
+}
+
+/* `wrap`: alone on a line too narrow for it, the cell narrows to the line and
+ * its value wraps. */
+.su-stat-cell--wrap {
+  flex-shrink: 1;
+  max-width: 100%;
 }
 
 /* `state="modified"`: the heavier frame's 1px ink ring. A class, so the

@@ -153,6 +153,23 @@ describe('class card rendering', () => {
     expect(screen.queryByText('REQ')).toBeNull()
   })
 
+  test('the [Class | KIND] pill stands in for the "Class" type stamp, never beside it', () => {
+    // The list row and the full card alike: one "Class" stamp, the pill's
+    // label cell — not a type stamp reading "Class" before it.
+    for (const extent of ['head', undefined] as const) {
+      const { container, unmount } = render(
+        <ReferenceEntityCard data={classByName('Cyborg')} size="medium" extent={extent} />
+      )
+      const stamps = [...container.querySelectorAll('.su-badge-stamp')].filter(
+        (stamp) => stamp.textContent === 'Class'
+      )
+      expect(stamps).toHaveLength(1)
+      expect(stamps[0]?.parentElement?.classList.contains('su-stat-cell')).toBe(true)
+      expect(stamps[0]?.nextElementSibling?.textContent).toBe('HYBRID')
+      unmount()
+    }
+  })
+
   test('the kind stamp survives extent="catalog" — the deliberate exception', () => {
     // Catalog tiles suppress card chrome, but the class kind is exempt: a reader
     // scanning the class index needs to know a hybrid is unavailable at creation
