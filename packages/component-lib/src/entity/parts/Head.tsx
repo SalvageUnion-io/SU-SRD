@@ -54,7 +54,8 @@ export type HeadProps = {
   notch?: boolean
   /**
    * Keep the cut-out with chips: the chips stay on the band right of the
-   * name, wrapping there, never dropping under it (every Row and Card head).
+   * name at every width, wrapping there, never above or under it (every Row
+   * and Card head).
    */
   chipsBeside?: boolean
 }
