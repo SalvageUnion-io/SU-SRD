@@ -18,11 +18,11 @@
 #   * Idempotent and cheap when already correct — the common case is a no-op.
 #   * NEVER fails the session. A hook that blocks startup on a network hiccup is
 #     worse than the problem it solves, so every failure prints a diagnosis and
-#     exits 0. In CI, the bun-version half of `tools/check-workflows.ts` is the
-#     hard guard; here this is the fixer, and the only one.
+#     exits 0. In CI, `./.github/actions/setup-bun` installs exactly the pin
+#     (it reads `packageManager`); here this is the fixer, and the only one.
 #   * Its PATH fix reaches the main agent shell only: in an audit session the
 #     subagents' shells still ran the image's Bun. So the pin tracks the
-#     image's Bun, and the running-Bun comparison is CI-only.
+#     image's Bun.
 #   * Never writes to tracked files. `--frozen-lockfile` does no resolution and
 #     cannot rewrite `bun.lock`.
 

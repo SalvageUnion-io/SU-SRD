@@ -56,10 +56,12 @@ name: Deploy (Cloudflare)
 # its build — a CI-artifact path would need this build path as a fallback
 # anyway. So the build happens once, here, and the deploy ships exactly it.
 #
-# `tools/check-workflows.ts` (convex-guard) asserts this file still refuses a
-# production deploy with no CONVEX_DEPLOY_KEY, and that the job pushing the
-# backend depends on the job carrying that guard. Do not rename this file
-# without updating that tool.
+# `tools/check-workflows.ts` (deploy-order) also asserts this file still runs
+# `convex deploy`, still has the step refusing a production deploy with no
+# CONVEX_DEPLOY_KEY (by its name, and that its script names the key and can
+# `exit 1`), and that the job pushing the backend depends on the job carrying
+# it. Do not rename this file or that step without updating
+# that tool.
 
 on:
   # Every merge. Only a same-repo push can reach `main`, and the `production`

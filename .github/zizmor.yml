@@ -10,7 +10,7 @@ rules:
         '*': hash-pin
 
   # Suggests the `$/` self-repository syntax for local actions. Every
-  # `./.github/actions/setup-bun` reference would change, and check-workflows'
-  # bun-version check is written against `./`. Advisory-only upstream.
+  # `./.github/actions/setup-bun` reference would change for no gain.
+  # Advisory-only upstream.
   self-repository:
     disable: true

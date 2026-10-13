@@ -3,8 +3,6 @@ import { join } from 'node:path'
 import type { WorkflowContext, WorkflowFile } from '../check-workflows'
 import {
   checkAggregator,
-  checkBunVersion,
-  checkConvexGuard,
   checkDeployOrder,
   checkPathFilters,
   checkPinning,
@@ -12,20 +10,17 @@ import {
   GUARD_STEP,
   loadContext,
   runnerCalls,
-  runningBunToCompare,
   toolIsPinned,
   WORKFLOW_CHECKS,
 } from '../check-workflows'
 import { MAIN_RULESET } from '../environments'
 
 /**
- * `tools/check-workflows.ts` — seven merge-gating invariants over `.github/`.
+ * `tools/check-workflows.ts` — five merge-gating invariants over `.github/`.
  *
  * Every case builds its context from YAML TEXT through `Bun.YAML.parse`, the
  * same path the real run takes, so a fixture cannot pass by being shaped
- * differently from a workflow. The running Bun is injected (`runningBun`), so
- * these pass on any machine — the previous bun-version suite failed wherever
- * the local Bun differed from the pin.
+ * differently from a workflow.
  */
 
 const REPO = join(import.meta.dir, '..', '..')
@@ -165,17 +160,11 @@ jobs:
       - uses: actions/github-script@v9
 `
 
-const SETUP_BUN = yaml(
-  '.github/actions/setup-bun/action.yml',
-  `runs:\n  using: composite\n  steps:\n    - uses: oven-sh/setup-bun@${SHA}\n      with:\n        bun-version-file: package.json\n`
-)
-
 function ctx(overrides: {
   ci?: string
   deploy?: string | null
   extra?: WorkflowFile[]
   manifests?: Record<string, object>
-  running?: string | null
   missing?: string[]
 }): WorkflowContext {
   const files = [
@@ -196,7 +185,6 @@ function ctx(overrides: {
       '.github/workflows/other.yml',
       'jobs:\n  a:\n    steps:\n      - uses: actions/checkout@v7\n'
     ),
-    SETUP_BUN,
     ...(overrides.extra ?? []),
   ]
   if (overrides.deploy !== null) {
@@ -205,10 +193,7 @@ function ctx(overrides: {
   const manifests = new Map<string, object>(
     Object.entries(
       overrides.manifests ?? {
-        'package.json': {
-          packageManager: 'bun@1.4.0',
-          devDependencies: { 'bun-types': '1.4.0', convex: '1.0.0' },
-        },
+        'package.json': { devDependencies: { convex: '1.0.0' } },
         'apps/itun/package.json': {
           name: 'itun',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
@@ -231,14 +216,13 @@ function ctx(overrides: {
     files,
     manifests,
     lockBins: new Map([['@playwright/test', ['playwright']]]),
-    runningBun: overrides.running === undefined ? null : overrides.running,
     exists: (p) => !missing.has(p) && files.some((f) => f.path === p),
   }
 }
 
 describe('the real repo', () => {
   test('every workflow check passes on the tree as committed', () => {
-    const real = loadContext(REPO, null)
+    const real = loadContext(REPO)
     for (const check of WORKFLOW_CHECKS) {
       expect({ id: check.id, failures: check.run(real).failures }).toEqual({
         id: check.id,
@@ -391,113 +375,6 @@ describe('pinning', () => {
   })
 })
 
-describe('bun-version', () => {
-  test('passes when bun-types matches and nothing pins Bun by hand', () => {
-    expect(checkBunVersion(ctx({})).failures).toEqual([])
-  })
-
-  test('the running Bun is compared only when injected, so the suite passes on any Bun', () => {
-    expect(checkBunVersion(ctx({ running: '1.4.0' })).failures).toEqual([])
-    expect(checkBunVersion(ctx({ running: '1.3.11' })).failures[0]).toContain(
-      'running Bun is 1.3.11'
-    )
-  })
-
-  test('the running Bun is compared in CI only', () => {
-    expect(runningBunToCompare({ CI: 'true' }, '1.4.2')).toBe('1.4.2')
-    expect(runningBunToCompare({}, '1.4.2')).toBeNull()
-    expect(runningBunToCompare({ CI: '' }, '1.4.2')).toBeNull()
-  })
-
-  test('bun-types drift, or no bun-types at all, fails', () => {
-    const drift = ctx({})
-    drift.manifests.set('package.json', {
-      packageManager: 'bun@1.4.0',
-      devDependencies: { 'bun-types': '1.3.10' },
-    })
-    expect(checkBunVersion(drift).failures[0]).toContain('bun-types = 1.3.10')
-    const none = ctx({})
-    none.manifests.set('package.json', { packageManager: 'bun@1.4.0' })
-    expect(checkBunVersion(none).failures[0]).toContain('no bun-types')
-  })
-
-  test('packageManager is the pin: bun-types follows it, and an absent or ranged pin fails', () => {
-    const moved = ctx({})
-    moved.manifests.set('package.json', {
-      packageManager: 'bun@1.3.11',
-      devDependencies: { 'bun-types': '1.4.0' },
-    })
-    expect(checkBunVersion(moved).failures).toEqual([
-      expect.stringContaining('bun-types = 1.4.0, expected 1.3.11'),
-    ])
-    const absent = ctx({})
-    absent.manifests.set('package.json', { devDependencies: { 'bun-types': '1.4.0' } })
-    expect(checkBunVersion(absent).failures[0]).toContain('packageManager = (absent)')
-    const ranged = ctx({})
-    ranged.manifests.set('package.json', {
-      packageManager: 'bun@^1.4.0',
-      devDependencies: { 'bun-types': '1.4.0' },
-    })
-    expect(checkBunVersion(ranged).failures[0]).toContain('packageManager = bun@^1.4.0')
-  })
-
-  test('a hand pin fails even when it matches today; bun-version-file does not', () => {
-    const pinned = (v: string) => [
-      yaml(
-        '.github/workflows/p.yml',
-        `jobs:\n  a:\n    steps:\n      - uses: oven-sh/setup-bun@${SHA}\n        with:\n          bun-version: ${v}\n`
-      ),
-    ]
-    expect(checkBunVersion(ctx({ extra: pinned('1.2.0') })).failures[0]).toContain(
-      'pins bun-version 1.2.0'
-    )
-    expect(checkBunVersion(ctx({ extra: pinned('1.4.0') })).failures[0]).toContain('matches today')
-  })
-})
-
-describe('convex-guard', () => {
-  test('passes on a workflow that deploys the backend and guards the key', () => {
-    expect(checkConvexGuard(ctx({})).failures).toEqual([])
-  })
-
-  test('a missing deploy workflow fails', () => {
-    expect(checkConvexGuard(ctx({ deploy: null })).failures[0]).toContain('is missing')
-  })
-
-  test('deleting the guard STEP fails even while its tokens survive elsewhere', () => {
-    const deploy = DEPLOY_TEXT.replace(`name: ${GUARD_STEP}`, 'name: Some other guard')
-    expect(checkConvexGuard(ctx({ deploy })).failures[0]).toContain(`no \`${GUARD_STEP}\` step`)
-  })
-
-  test('a guard that can no longer exit, or no longer names the key, fails', () => {
-    expect(
-      checkConvexGuard(ctx({ deploy: DEPLOY_TEXT.replace('exit 1', 'true') })).failures
-    ).toHaveLength(1)
-    const renamed = DEPLOY_TEXT.replace('if [ -z "$CONVEX_DEPLOY_KEY" ]', 'if [ -z "$OTHER" ]')
-    expect(checkConvexGuard(ctx({ deploy: renamed })).failures).toHaveLength(1)
-  })
-
-  test('`convex deploy` mentioned only in a shell comment does not count', () => {
-    const deploy = DEPLOY_TEXT.replace(
-      'run: bunx convex deploy --cmd "true"',
-      'run: |\n          # bunx convex deploy used to run here\n          true'
-    )
-    expect(checkConvexGuard(ctx({ deploy })).failures[0]).toContain(
-      'no longer runs `convex deploy`'
-    )
-  })
-
-  test('a push in a job that does not need the guard job fails', () => {
-    const deploy = DEPLOY_TEXT.replace(
-      '  push-convex:\n    needs: [plan, build-srd, build-itun]\n',
-      '  push-convex:\n'
-    )
-    expect(checkConvexGuard(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('`push-convex` runs `convex deploy` without needing `plan`'),
-    ])
-  })
-})
-
 /** A job-level `if:` line as the fixture writes it, `\${{ … }}` and all. */
 const jobIf = (expr: string) => `    if: \${{ ${expr} }}`
 
@@ -541,6 +418,44 @@ describe('deploy-order', () => {
     expect(checkDeployOrder(ctx({ deploy: record })).failures[0]).toContain(
       '`record` does not need `smoke`'
     )
+  })
+
+  test('deleting the deploy-key guard STEP fails, wherever its tokens survive', () => {
+    const deploy = DEPLOY_TEXT.replace(`name: ${GUARD_STEP}`, 'name: Some other guard')
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining(`no \`${GUARD_STEP}\` step`),
+    ])
+  })
+
+  test('a guard that can no longer exit, or no longer names the key, fails', () => {
+    const noExit = DEPLOY_TEXT.replace('exit 1', 'true')
+    expect(checkDeployOrder(ctx({ deploy: noExit })).failures).toEqual([
+      expect.stringContaining('no longer fails when CONVEX_DEPLOY_KEY is absent'),
+    ])
+    const renamed = DEPLOY_TEXT.replace('$CONVEX_DEPLOY_KEY', '$OTHER')
+    expect(checkDeployOrder(ctx({ deploy: renamed })).failures).toEqual([
+      expect.stringContaining('no longer fails when CONVEX_DEPLOY_KEY is absent'),
+    ])
+  })
+
+  test('a Convex push in a job that does not need the guard job fails', () => {
+    const guarded = DEPLOY_TEXT.replace(
+      `      - name: ${GUARD_STEP}\n`,
+      `  guard:\n    runs-on: ubuntu-latest\n    steps:\n      - name: ${GUARD_STEP}\n`
+    )
+    expect(checkDeployOrder(ctx({ deploy: guarded })).failures).toEqual([
+      expect.stringContaining('`push-convex` does not need `guard` — the deploy-key guard'),
+    ])
+  })
+
+  test('`convex deploy` mentioned only in a shell comment is no push', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      'run: bunx convex deploy --cmd "true"',
+      'run: |\n          # bunx convex deploy used to run here\n          true'
+    )
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining('has no job that runs `convex deploy`'),
+    ])
   })
 
   test('a Convex push that does not wait for EVERY build fails', () => {
@@ -656,9 +571,9 @@ describe('deploy-order', () => {
     ])
   })
 
-  test('a workflow with no builds, deploys, smoke or record fails rather than passing empty', () => {
+  test('a workflow with no guard, push, builds, deploys, smoke or record fails rather than passing empty', () => {
     const deploy = 'on: workflow_dispatch\njobs:\n  a:\n    steps:\n      - run: echo hi\n'
-    expect(checkDeployOrder(ctx({ deploy })).failures).toHaveLength(4)
+    expect(checkDeployOrder(ctx({ deploy })).failures).toHaveLength(6)
     expect(checkDeployOrder(ctx({ deploy: null })).failures[0]).toContain('is missing')
   })
 })

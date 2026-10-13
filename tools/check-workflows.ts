@@ -2,9 +2,12 @@
 /**
  * Workflow invariants — `bun run check workflows`.
  *
- * Seven properties of `.github/`, checked from one parse of every workflow and
- * composite action, with `Bun.YAML.parse`: a hand-written YAML state machine
- * can be fooled by a `run: |` body shaped like YAML; a real parse cannot be.
+ * Five properties of `.github/` that no linter holds, checked from one parse
+ * of every workflow and composite action, with `Bun.YAML.parse`: a hand-written
+ * YAML state machine can be fooled by a `run: |` body shaped like YAML; a real
+ * parse cannot be. What actionlint and zizmor (`bun run check actionlint`) do
+ * hold — syntax, expressions, action SHA pins — is theirs, and the Bun version
+ * is setup-bun's (it reads `packageManager`).
  *
  *   aggregator    `CI Success` (`quality-checks` in ci.yml) `needs:` every job
  *                 in ci.yml. It is ci.yml's one required status check, and it
@@ -19,25 +22,13 @@
  *                 merges with its build never having run (the #731 shape).
  *   pinning       every `bunx`/`npx` tool with no manifest entry carries an
  *                 exact version: it runs in jobs holding deploy credentials.
- *                 Action SHA pinning is zizmor's `unpinned-uses` (`actionlint`).
- *   bun-version   the root `packageManager` is the one Bun pin: the root
- *                 `bun-types` matches it, no workflow pins Bun by hand
- *                 instead of using `./.github/actions/setup-bun` (which reads
- *                 it), and in CI the Bun running this is the pinned one (a
- *                 mismatched Bun cannot read bun.lock, and `bun why` exits 0
- *                 while saying so). CI only: setup-bun installs exactly the pin
- *                 there, while an agent shell runs whatever Bun its image or
- *                 PATH gives it (the SessionStart hook's PATH fix reaches the
- *                 main shell, not every subshell), and that is no change's fault.
- *   convex-guard  `deploy-cloudflare.yml` still runs `convex deploy` and still
- *                 fails a production deploy with no CONVEX_DEPLOY_KEY. Without
- *                 it, production ran a four-day-stale backend in 2026-08 with
- *                 nothing red. The job pushing the backend must also need
- *                 the guard's job.
- *   deploy-order  in `deploy-cloudflare.yml`, the Convex push needs every
- *                 build job, every deploy job needs every build job and the
- *                 push, the smoke job needs every deploy job, and the deploy
- *                 record needs the smoke job to have SUCCEEDED.
+ *                 zizmor's `unpinned-uses` covers action SHAs only.
+ *   deploy-order  in `deploy-cloudflare.yml`, the Convex push needs the job
+ *                 refusing a deploy with no CONVEX_DEPLOY_KEY (a step whose
+ *                 script names the key and can `exit 1`) and every build
+ *                 job, every deploy job needs every build job and the push,
+ *                 the smoke job needs every deploy job, and the deploy record
+ *                 needs the smoke job to have SUCCEEDED.
  *                 A build job uploads an artifact built from source; a pass
  *                 that downloads one and re-uploads it (srd's OG render) is
  *                 not a build, and only what ships its output waits for it.
@@ -55,13 +46,15 @@
  *                 reviewer, so a workflow copy run from a branch cannot read
  *                 one unapproved. The nightly repository-secret sentinel is the
  *                 one exemption, and it must stay outside every Environment.
+ *                 zizmor's `secrets-outside-env` runs only under
+ *                 `--persona=auditor`, which `lint-workflows.sh` does not use.
  *
  * Every check refuses to pass by absence: a parse that found no jobs, no
  * filter groups or no workflow files is a failure, not a clean result.
  *
  * Usage:
- *   bun tools/check-workflows.ts                     # all seven
- *   bun tools/check-workflows.ts --only=pinning      # one (comma-separate for more)
+ *   bun tools/check-workflows.ts                       # all five
+ *   bun tools/check-workflows.ts --only=deploy-order   # one (comma-separate for more)
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -75,7 +68,6 @@ export type WorkflowFile = { path: string; doc: Yaml }
 
 type Manifest = {
   name?: string
-  packageManager?: string
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
 }
@@ -87,8 +79,6 @@ export type WorkflowContext = {
   manifests: Map<string, Manifest>
   /** Package name -> the bins bun.lock records for it. */
   lockBins: Map<string, string[]>
-  /** The Bun running this, or null to skip that comparison (outside CI, tests). */
-  runningBun: string | null
   exists: (repoRelPath: string) => boolean
 }
 
@@ -460,129 +450,15 @@ export function checkPinning(ctx: WorkflowContext): CheckResult {
   }
 }
 
-// ─── bun-version ────────────────────────────────────────────────────────────
-
-const SETUP_BUN = './.github/actions/setup-bun'
-
-/** Every literal `bun-version:` input (not `bun-version-file:`) in a step. */
-function inlineBunPins(f: WorkflowFile): { where: string; version: string }[] {
-  const out: { where: string; version: string }[] = []
-  for (const { where, step } of stepsOf(f)) {
-    if (!isObject(step.with)) continue
-    const v = step.with['bun-version']
-    if (typeof v === 'string' || typeof v === 'number') out.push({ where, version: String(v) })
-  }
-  return out
-}
-
-export function checkBunVersion(ctx: WorkflowContext): CheckResult {
-  const failures: string[] = []
-  // `packageManager` is the pin: setup-bun reads it, and so does any tool that
-  // installs its own Bun. A Bun other than the pinned one can write a bun.lock
-  // the pinned Bun cannot read.
-  const packageManager = ctx.manifests.get('package.json')?.packageManager
-  const expected = packageManager?.match(/^bun@(\d+\.\d+\.\d+)$/)?.[1]
-  if (!expected) {
-    return {
-      ok: '',
-      failures: [
-        `root package.json packageManager = ${packageManager ?? '(absent)'}, expected an exact ` +
-          '`bun@X.Y.Z` — it is the one Bun pin, and setup-bun reads it.',
-      ],
-    }
-  }
-  if (ctx.runningBun !== null && ctx.runningBun !== expected) {
-    failures.push(
-      `the running Bun is ${ctx.runningBun}, but packageManager pins ${expected}. Install the ` +
-        'pinned version — a mismatched Bun can fail to read bun.lock entirely, and ' +
-        '`bun why` / `bun pm ls` exit 0 when it does.'
-    )
-  }
-  const bunTypes = ctx.manifests.get('package.json')?.devDependencies?.['bun-types']
-  if (!bunTypes) failures.push('root package.json declares no bun-types')
-  else if (bunTypes.replace(/^[^0-9]*/, '') !== expected) {
-    failures.push(`root bun-types = ${bunTypes}, expected ${expected}`)
-  }
-  const workflows = workflowsOnly(ctx)
-  if (workflows.length === 0)
-    failures.push('no workflow files found — this would pass by doing nothing')
-  let composite = 0
-  for (const f of workflows) {
-    if (stepsOf(f).some(({ step }) => step.uses === SETUP_BUN)) composite++
-    for (const { where, version } of inlineBunPins(f)) {
-      failures.push(
-        `${f.path} ${where} pins bun-version ${version} by hand` +
-          (version === expected ? ' (it matches today, but will not track packageManager)' : '') +
-          ` — use ${SETUP_BUN}, which reads packageManager.`
-      )
-    }
-  }
-  return {
-    ok: `Bun ${expected}: bun-types matches, ${composite}/${workflows.length} workflow(s) use ${SETUP_BUN}, none pin by hand`,
-    failures,
-  }
-}
-
-// ─── convex-guard ───────────────────────────────────────────────────────────
-
-export const GUARD_STEP = 'Refuse to deploy without a Convex deploy key'
-
-export function checkConvexGuard(ctx: WorkflowContext): CheckResult {
-  const doc = file(ctx, DEPLOY)
-  if (!doc) {
-    return {
-      ok: '',
-      failures: [
-        `${DEPLOY} is missing, so nothing carries the Convex deploy guard — a production deploy ` +
-          'could ship a client against a backend nobody pushed.',
-      ],
-    }
-  }
-  const failures: string[] = []
-  const steps = stepsOf({ path: DEPLOY, doc })
-  const runs = (step: Yaml) => (typeof step.run === 'string' ? executable(step.run) : '')
-  if (!steps.some(({ step }) => runs(step).includes('convex deploy'))) {
-    failures.push(
-      `${DEPLOY} no longer runs \`convex deploy\`, so a deploy never pushes the backend.`
-    )
-  }
-  // Asserted BY NAME: a file-wide search for `exit 1` and the key name was
-  // once satisfied by the neighbouring Cloudflare-token guard and the build
-  // step's env block, with this step deleted entirely.
-  const guard = steps.find(({ step }) => step.name === GUARD_STEP)
-  if (!guard) {
-    failures.push(`${DEPLOY} has no \`${GUARD_STEP}\` step.`)
-  } else {
-    const script = runs(guard.step)
-    if (!script.includes('CONVEX_DEPLOY_KEY') || !script.includes('exit 1')) {
-      failures.push(
-        `${DEPLOY} \`${GUARD_STEP}\` no longer fails when CONVEX_DEPLOY_KEY is absent — an ` +
-          'absent key would ship a current client against a stale backend with nothing red.'
-      )
-    }
-    // The deploy runs as several jobs, so a guard in one job protects the
-    // push in another only if the push cannot start until the guard passed.
-    const jobs = isObject(doc.jobs) ? doc.jobs : {}
-    const guardJob = jobOf(guard.where)
-    for (const { where } of steps.filter(({ step }) => runs(step).includes('convex deploy'))) {
-      const pushJob = jobOf(where)
-      if (pushJob !== guardJob && !ancestorsOf(jobs, pushJob).has(guardJob)) {
-        failures.push(
-          `${DEPLOY} job \`${pushJob}\` runs \`convex deploy\` without needing \`${guardJob}\`, ` +
-            `which carries \`${GUARD_STEP}\` — the push could run before, or without, the guard.`
-        )
-      }
-    }
-  }
-  return {
-    ok: 'a production deploy runs `convex deploy` and fails with no CONVEX_DEPLOY_KEY',
-    failures,
-  }
-}
-
 // ─── deploy-order ───────────────────────────────────────────────────────────
 
 const SMOKE_SCRIPT = 'tools/smoke-production.sh'
+
+/**
+ * The step that fails a deploy with no CONVEX_DEPLOY_KEY, found by name; its
+ * script must name the key and `exit 1`.
+ */
+export const GUARD_STEP = 'Refuse to deploy without a Convex deploy key'
 
 /** A status-check function other than the implicit `success()`. */
 const EXPLICIT_STATUS = /\b(?:always|cancelled|failure)\(\)/
@@ -590,10 +466,13 @@ const EXPLICIT_STATUS = /\b(?:always|cancelled|failure)\(\)/
 /**
  * The deploy workflow's job graph keeps its orderings:
  *
- *   1. the job that pushes the Convex backend needs every build job (one that
- *      uploads an artifact and downloads none) — a failed build of ANY surface
- *      stops the push, rather than leaving a new backend under the old client
- *      until the next green run;
+ *   1. the job that pushes the Convex backend (`convex deploy`) needs the job
+ *      carrying the `GUARD_STEP`, whose script names CONVEX_DEPLOY_KEY and can
+ *      `exit 1` — without it, production ran a four-day-stale
+ *      backend in 2026-08 with nothing red — and every build job (one that
+ *      uploads an artifact and downloads none), so a failed build of ANY
+ *      surface stops the push, rather than leaving a new backend under the old
+ *      client until the next green run;
  *   2. every job that ships (`bun run deploy`) needs every build job and the
  *      push — all builds finish, and the backend is pushed, before any
  *      traffic moves;
@@ -630,6 +509,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const builders = jobsWhere((step) => uses(step, 'upload-artifact')).filter(
     (job) => !downloaders.has(job)
   )
+  const guards = jobsWhere((step) => step.name === GUARD_STEP)
   const pushers = jobsWhere((step) => runs(step).includes('convex deploy'))
   const shippers = jobsWhere((step) => /\bbun run deploy\b/.test(runs(step)))
   const smokers = jobsWhere((step) => runs(step).includes(SMOKE_SCRIPT))
@@ -643,6 +523,16 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const failures: string[] = []
   if (builders.length === 0)
     failures.push(`${DEPLOY} has no job that builds an artifact from source.`)
+  if (guards.length === 0) failures.push(`${DEPLOY} has no \`${GUARD_STEP}\` step.`)
+  for (const { step } of steps.filter(({ step }) => step.name === GUARD_STEP)) {
+    const script = runs(step)
+    if (!script.includes('CONVEX_DEPLOY_KEY') || !script.includes('exit 1'))
+      failures.push(
+        `${DEPLOY} \`${GUARD_STEP}\` no longer fails when CONVEX_DEPLOY_KEY is absent — an ` +
+          'absent key would ship a current client against a stale backend with nothing red.'
+      )
+  }
+  if (pushers.length === 0) failures.push(`${DEPLOY} has no job that runs \`convex deploy\`.`)
   if (shippers.length === 0) failures.push(`${DEPLOY} has no job that runs \`bun run deploy\`.`)
   if (smokers.length === 0) failures.push(`${DEPLOY} has no job that runs ${SMOKE_SCRIPT}.`)
   if (recorders.length === 0)
@@ -657,6 +547,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
       }
     }
   }
+  requireBefore(pushers, guards, 'the deploy-key guard must pass before the backend is pushed.')
   requireBefore(pushers, builders, 'every build must finish before the backend is pushed.')
   requireBefore(shippers, builders, 'every build must finish before any surface ships.')
   requireBefore(shippers, pushers, 'the backend must be pushed before any surface ships.')
@@ -830,25 +721,12 @@ export const WORKFLOW_CHECKS: readonly WorkflowCheck[] = [
   { id: 'aggregator', label: 'CI aggregate gate', run: (ctx) => checkAggregator(ctx) },
   { id: 'path-filters', label: 'path filters', run: checkPathFilters },
   { id: 'pinning', label: 'runner pinning', run: checkPinning },
-  { id: 'bun-version', label: 'Bun version', run: checkBunVersion },
-  { id: 'convex-guard', label: 'Convex deploy guard', run: checkConvexGuard },
   { id: 'deploy-order', label: 'deploy job order', run: checkDeployOrder },
   { id: 'secrets-env', label: 'Environment secrets', run: (ctx) => checkSecretsEnv(ctx) },
 ]
 
-/**
- * The running Bun the bun-version check compares, or null to skip it. CI only:
- * setup-bun installs the pin there, and an agent shell's Bun is the image's.
- */
-export function runningBunToCompare(
-  env: Readonly<Record<string, string | undefined>>,
-  version: string
-): string | null {
-  return env.CI ? version : null
-}
-
 /** Read the real repo into a context. */
-export function loadContext(root: string, runningBun: string | null): WorkflowContext {
+export function loadContext(root: string): WorkflowContext {
   const files: WorkflowFile[] = []
   const parse = (path: string) => {
     const doc = Bun.YAML.parse(readFileSync(join(root, path), 'utf8'))
@@ -901,7 +779,6 @@ export function loadContext(root: string, runningBun: string | null): WorkflowCo
     files,
     manifests,
     lockBins,
-    runningBun,
     exists: (path) => existsSync(join(root, path)),
   }
 }
@@ -918,10 +795,7 @@ function main(argv: readonly string[]): void {
     )
     process.exit(2)
   }
-  const ctx = loadContext(
-    join(import.meta.dir, '..'),
-    runningBunToCompare(process.env, Bun.version)
-  )
+  const ctx = loadContext(join(import.meta.dir, '..'))
   let failed = false
   for (const check of WORKFLOW_CHECKS) {
     if (only && !only.includes(check.id)) continue

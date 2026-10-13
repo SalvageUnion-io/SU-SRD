@@ -209,7 +209,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'workflows',
     guards:
-      'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard, deploy order, production-secret env',
+      'CI aggregate gate, path filters, bunx pinning, deploy order (incl. Convex deploy-key guard), production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
     // Reads only .github/ and the manifests, all of them `code`.
