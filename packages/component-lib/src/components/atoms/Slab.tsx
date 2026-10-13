@@ -19,6 +19,14 @@ type SlabProps = {
    */
   count?: ReactNode
   /**
+   * The count's ink. 'muted' (default) is `wkMuted`, which clears AA on paper
+   * and the workshop grounds only. 'inherit' prints it in the surrounding ink
+   * (`currentcolor`), for a slab printed straight on a tinted ground: on
+   * ITUN's wizard step card `wkMuted` measures 3.78 / 3.03 / 2.65:1 (pilot /
+   * mech / crawler), the card's own ink 10.13 / 8.12 / 7.11:1.
+   */
+  countInk?: 'muted' | 'inherit'
+  /**
    * Trailing section controls after the leader rule (e.g. a per-section Edit
    * toggle or an always-available '+ Add'). Optional and additive — existing
    * consumers render unchanged.
@@ -70,6 +78,9 @@ const COUNT = {
   lineHeight: 'calc(1 / 0.75)',
   textTransform: 'none',
 } satisfies CSSProperties
+
+/** `countInk="inherit"`: the count takes the ground's ink. */
+const COUNT_INHERIT = { ...COUNT, color: 'currentcolor' } satisfies CSSProperties
 
 /** Composed with `POSTER_STAMP`, which supplies face, caps, weight and tracking. */
 const SOLID_LABEL = {
@@ -126,6 +137,7 @@ export function Slab({
   label,
   as,
   count,
+  countInk = 'muted',
   actions,
   className,
   style,
@@ -136,7 +148,9 @@ export function Slab({
   const isSolid = variant === 'solid'
   const countByLabel = !isSolid || countAt === 'label'
   const Label = as ?? 'span'
-  const countNode = count != null && <span style={COUNT}>{count}</span>
+  const countNode = count != null && (
+    <span style={countInk === 'inherit' ? COUNT_INHERIT : COUNT}>{count}</span>
+  )
   return (
     <div className={className} style={style ? { ...ROW, ...style } : ROW}>
       {isSolid ? (

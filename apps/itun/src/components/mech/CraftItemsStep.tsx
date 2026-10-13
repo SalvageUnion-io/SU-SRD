@@ -57,7 +57,12 @@ export function CraftItemsStep({
 
   return (
     <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
-      <Slab variant="solid" label={`Tech 1 ${noun}s`} count="Duplicates allowed" />
+      <Slab
+        variant="solid"
+        label={`Tech 1 ${noun}s`}
+        count="Duplicates allowed"
+        countInk="inherit"
+      />
       <MasonryColumns maxColumns={2}>
         {items.map((item) => {
           const name = item.name ?? item.id

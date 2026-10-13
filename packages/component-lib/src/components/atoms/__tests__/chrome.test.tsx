@@ -195,6 +195,13 @@ describe('EmptyState', () => {
     expect(screen.getByText('No pilots yet')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Create' })).toBeTruthy()
   })
+
+  test('the quiet message is muted, or takes the ground ink with bodyInk="inherit"', () => {
+    render(<EmptyState variant="quiet" body="Muted" />)
+    expect(screen.getByText('Muted').style.color).toBe(color.wkMuted)
+    render(<EmptyState variant="quiet" body="On the card" bodyInk="inherit" />)
+    expect(screen.getByText('On the card').style.color).toBe('currentcolor')
+  })
 })
 
 describe('Slab', () => {
@@ -202,6 +209,13 @@ describe('Slab', () => {
     render(<Slab label="Systems" count="2" />)
     expect(screen.getByText('Systems')).toBeTruthy()
     expect(screen.getByText('2')).toBeTruthy()
+  })
+
+  test('the count is muted, or takes the ground ink with countInk="inherit"', () => {
+    render(<Slab variant="solid" label="Classes" count="Choose 1" />)
+    expect(screen.getByText('Choose 1').style.color).toBe(color.wkMuted)
+    render(<Slab variant="solid" label="Types" count="Pick one" countInk="inherit" />)
+    expect(screen.getByText('Pick one').style.color).toBe('currentcolor')
   })
 })
 

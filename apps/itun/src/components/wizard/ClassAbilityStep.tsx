@@ -87,7 +87,7 @@ export function ClassAbilityStep({
 
   return (
     <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
-      <Slab variant="solid" label="Pilot Class" count="Choose 1" />
+      <Slab variant="solid" label="Pilot Class" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2}>{legalClasses.map(renderClassCard)}</MasonryColumns>
 
       {selectedClass === undefined ? (
@@ -101,6 +101,7 @@ export function ClassAbilityStep({
             variant="solid"
             label={`First Ability · ${selectedClass.name} Trees · Level 1`}
             count="Choose 1"
+            countInk="inherit"
           />
           <MasonryColumns maxColumns={2}>{legalPool.map(renderAbilityCard)}</MasonryColumns>
           {legalPool.length === 0 && (

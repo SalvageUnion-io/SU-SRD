@@ -385,9 +385,11 @@ describe('poster text on the sheet tones', () => {
  * The card is a relative OKLCH step off the sheet tone, which `resolveColor`
  * does not model, so this reads the step off `theme.css` and paints it as
  * Chromium does: OKLab there and back, each channel clipped to sRGB. That
- * gives pilot #ffc09d, the fill axe measured. Copy printed straight on the
- * card takes `--tone-card-ink` (onTone: ink on every card); `wkMuted` printed
- * there measured 3.78:1 on pilot.
+ * gives the fills axe measured (pilot #ffc09d, mech #aabdb4, crawler
+ * #e296bb). Copy printed straight on the card takes `--tone-card-ink` (onTone:
+ * ink on every card); `wkMuted` printed there fails on all three. ITUN's
+ * "Compositions/Wizard/Step Card" stories put every step on the real card for
+ * the catalog's axe scan.
  */
 describe('the wizard step card', () => {
   const css = readFileSync(join(import.meta.dir, '../../styles/theme.css'), 'utf8').replace(
@@ -428,26 +430,29 @@ describe('the wizard step card', () => {
     expect(resolveColor(cardInk)).toEqual(INK)
   })
 
-  test('the pilot card paints the fill axe measured', () => {
-    expect(card(color.sheetPilot)).toEqual([0xff, 0xc0, 0x9d])
-  })
-
-  for (const [kind, tone] of [
-    ['pilot', color.sheetPilot],
-    ['mech', color.sheetMech],
-    ['crawler', color.sheetCrawler],
+  for (const [kind, tone, measured] of [
+    ['pilot', color.sheetPilot, [0xff, 0xc0, 0x9d]],
+    ['mech', color.sheetMech, [0xaa, 0xbd, 0xb4]],
+    ['crawler', color.sheetCrawler, [0xe2, 0x96, 0xbb]],
   ] as const) {
+    test(`the ${kind} card paints the fill axe measured`, () => {
+      expect(card(tone)).toEqual(measured)
+    })
+
     test(`the ${kind} card's ink is the foreground onTone picks and clears 4.5:1`, () => {
       const fill = card(tone)
       const hex = `#${fill.map((v) => v.toString(16).padStart(2, '0')).join('')}`
       expect(onTone(hex)).toBe('ink')
       expect(contrastRatio(fill, opaque(cardInk))).toBeGreaterThanOrEqual(TEXT_CONTRAST)
     })
-  }
 
-  test('wkMuted on the pilot card fails AA — why card copy inherits the card ink', () => {
-    expect(contrastRatio(card(color.sheetPilot), opaque(color.wkMuted))).toBeLessThan(TEXT_CONTRAST)
-  })
+    // Why copy on the card inherits the card ink: BackgroundStep's intro, and
+    // `Slab countInk="inherit"` / `EmptyState bodyInk="inherit"` where a step
+    // prints them straight on the card (3.78 / 3.03 / 2.65:1 muted).
+    test(`wkMuted on the ${kind} card fails AA`, () => {
+      expect(contrastRatio(card(tone), opaque(color.wkMuted))).toBeLessThan(TEXT_CONTRAST)
+    })
+  }
 })
 
 describe('resolveColorOver', () => {

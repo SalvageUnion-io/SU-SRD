@@ -95,7 +95,7 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           />
         ))}
         {chosenAbilities.length === 0 && chosenEquipment.length === 0 && (
-          <EmptyState variant="quiet" body="No abilities or equipment chosen." />
+          <EmptyState variant="quiet" body="No abilities or equipment chosen." bodyInk="inherit" />
         )}
       </div>
     </div>

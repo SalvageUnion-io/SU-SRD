@@ -12,6 +12,8 @@ type StampEmptyStateProps = {
   /** A single rust action (usually a primary Button). */
   action?: ReactNode
   icon?: never
+  /** The stamp variant prints on its own paper, where `wkMuted` clears AA. */
+  bodyInk?: never
   className?: string
 }
 
@@ -28,6 +30,14 @@ type QuietEmptyStateProps = {
   icon?: ReactNode
   /** CTA slot (usually a primary sm Button). */
   action?: ReactNode
+  /**
+   * The message's ink. The quiet frame has no ground of its own, so 'muted'
+   * (default, `wkMuted`) holds AA only on paper and the workshop grounds.
+   * 'inherit' prints it in the surrounding ink (`currentcolor`), for a quiet
+   * state on a tinted ground such as ITUN's wizard step card, where `wkMuted`
+   * measures 3.78:1 on pilot.
+   */
+  bodyInk?: 'muted' | 'inherit'
   className?: string
 }
 
@@ -73,6 +83,9 @@ const BODY = {
   color: color.wkMuted,
 } satisfies CSSProperties
 
+/** `bodyInk="inherit"`: the message takes the ground's ink. */
+const BODY_INHERIT = { ...BODY, color: 'currentcolor' } satisfies CSSProperties
+
 /**
  * EmptyState — the one empty-slot primitive (ruleset §"Empty state").
  *
@@ -90,6 +103,7 @@ export function EmptyState({
   body,
   icon,
   action,
+  bodyInk = 'muted',
   className,
 }: EmptyStateProps) {
   const quiet = variant === 'quiet'
@@ -106,7 +120,7 @@ export function EmptyState({
           {headline}
         </Badge>
       )}
-      {body && <p style={BODY}>{body}</p>}
+      {body && <p style={bodyInk === 'inherit' ? BODY_INHERIT : BODY}>{body}</p>}
       {action}
     </div>
   )

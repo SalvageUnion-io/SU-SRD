@@ -63,7 +63,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
 
       {chassisAbilities.length > 0 && (
         <>
-          <Slab variant="solid" label="Chassis Ability" count={chassis.name} />
+          <Slab variant="solid" label="Chassis Ability" count={chassis.name} countInk="inherit" />
           <div className="wiz-stack wiz-stack--12" style={ABILITIES}>
             {chassisAbilities.map((ability) => (
               <ReferenceEntityCard
