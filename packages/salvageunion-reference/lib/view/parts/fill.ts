@@ -31,22 +31,23 @@ function techLevelTone(level: number | undefined): string | undefined {
   return level !== undefined && level >= 1 && level <= 6 ? `tl-${level}` : undefined
 }
 
-/** Ability tier tones: Core = pilot orange, Advanced and Hybrid = the darker
- * rust (`tier-advanced`), Legendary = purple (`tier-legendary`). */
+/** Book tier tones (Workshop Manual p.27, the class ability-tree spreads):
+ * Core = brick (`tier-core`), Advanced and Hybrid = pilot orange, Legendary =
+ * crawler pink. */
 function abilityTierTone(entity: SURefMetaEntity): string {
   const isLegendary =
     ('level' in entity && String(entity.level).toUpperCase() === 'L') ||
     ('tree' in entity && String(entity.tree).includes('Legendary'))
-  if (isLegendary) return 'tier-legendary'
+  if (isLegendary) return 'crawler'
   const tree = 'tree' in entity ? String(entity.tree) : ''
-  return tree.includes('Advanced') || isHybridTree(tree) ? 'tier-advanced' : 'pilot'
+  return tree.includes('Advanced') || isHybridTree(tree) ? 'pilot' : 'tier-core'
 }
 
 function treeRequirementTone(entity: SURefMetaEntity): string {
   const name = 'name' in entity ? String(entity.name).toLowerCase() : ''
-  if (name.includes('legendary')) return 'tier-legendary'
-  if (name.includes('advanced') || name.includes('hybrid')) return 'tier-advanced'
-  return 'pilot'
+  if (name.includes('legendary')) return 'crawler'
+  if (name.includes('advanced') || name.includes('hybrid')) return 'pilot'
+  return 'tier-core'
 }
 
 const SCHEMA_TONE: Partial<Record<SURefEnumSchemaName, string>> = {
@@ -103,8 +104,8 @@ export type HeaderFill = 'tone' | 'ink'
 
 /**
  * Which fill a header takes in a form (E12): things you do are the ink banner,
- * except an ability's Row, which wears its tier tone (Core orange, Advanced
- * rust, Legendary purple) wherever abilities are listed.
+ * except an ability's Row, which wears its tier tone (the book's: Core brick,
+ * Advanced orange, Legendary pink) wherever abilities are listed.
  */
 export function headerFill(entity: SURefMetaEntity, form: 'row' | 'card' | 'page'): HeaderFill {
   if (form === 'row' && isAbility(entity)) return 'tone'

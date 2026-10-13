@@ -27,7 +27,7 @@ const classHref = (c: SURefClass) => itemHref('classes', getEntitySlug(c))
  * One ability in its tree: a Row in link mode, a real same-tab link to the
  * ability's page — the listing row's shape (`EntityListingRow`), so a crawler
  * follows it and a reader keeps their back button. Its banner wears its tier
- * (EDL E12: Core orange, Advanced and Hybrid rust, Legendary purple), the hue
+ * (EDL E12, the book's: Core brick, Advanced and Hybrid orange, Legendary pink), the hue
  * of its track; on a track the Row leaves its numeral to the track.
  */
 function AbilityTreeListing({ ability, onTrack }: { ability: SURefAbility; onTrack: boolean }) {
@@ -47,8 +47,8 @@ function AbilityTreeListing({ ability, onTrack }: { ability: SURefAbility; onTra
  * Which track a tree draws (ruleset "Where the screen departs from print": the
  * ability-tree track stays a diagram). Core and Advanced/Hybrid trees are
  * trained in order — each Ability needs the one before it — so their three
- * tiers hang off one thick track in the tier's hue (Core = pilot orange,
- * Advanced = the Advanced rust), each tier's numeral on it beside its banner. A
+ * tiers hang off one thick track in the tier's hue (Core = brick,
+ * Advanced = pilot orange), each tier's numeral on it beside its banner. A
  * Legendary tree is a pick-one, not a sequence, so it has none.
  */
 type TreeTrack = 'core' | 'advanced' | null

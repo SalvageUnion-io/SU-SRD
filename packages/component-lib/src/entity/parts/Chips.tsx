@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ActivationCost } from '../../components/atoms/ActivationCost'
 import { Stat } from '../../components/atoms/Stat'
 import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
@@ -8,11 +9,11 @@ import { Facts } from './Facts'
 import { Tags } from './Tags'
 
 /**
- * CHIPS — every chip of an entity as ONE group in ONE style (E17): the action
- * type ("Turn Action"), the cost (`EP | 2`), the facts (`SLOTS | 1`,
- * `RNG | Long`), then the traits (`[Hot | 2]`, linking to their entry where
- * `linkable`), each the horizontal `Stat` cell. The group wraps; it never
- * clips a chip (E18).
+ * CHIPS — every chip of an entity as ONE group (E17): the action type
+ * ("Turn Action"), the facts (`SLOTS | 1`, `RNG | Long`), the traits
+ * (`[Hot | 2]`, linking to their entry where `linkable`), each the horizontal
+ * `Stat` cell, then last the cost in the book's pointy box (`CostBox`). The
+ * group wraps; it never clips a chip (E18).
  *
  * On the ink banner (`onInk`) the cells take the inverse plate, and
  * `.su-chips--on-ink` keeps a paper rule round each so its value cell does
@@ -39,7 +40,6 @@ export function Chips({
   className?: string
 }) {
   if (!leading && chipCount(chips) === 0) return null
-  const cost = chips.cost ? costCell(chips.cost) : undefined
   return (
     <div
       data-chip-group=""
@@ -60,17 +60,34 @@ export function Chips({
           inverse={onInk}
         />
       ))}
-      {cost && (
-        <Stat
-          orientation="horizontal"
-          label={cost.label}
-          value={cost.value}
-          size={rung}
-          inverse={onInk}
-        />
-      )}
       <Facts cells={chips.facts} size={rung} inverse={onInk} />
       <Tags tags={chips.tags} linkable={linkable} rung={rung} onInk={onInk} />
+      {chips.cost && <CostBox cost={chips.cost} rung={rung} onInk={onInk} />}
     </div>
+  )
+}
+
+/**
+ * A read cost ("2 EP") as the book prints it: the ink pointy box
+ * (`ActivationCost`), paper on an ink band. Every form's read cost is this box,
+ * last among its chips; the Dashboard's pennant button is the live one.
+ */
+export function CostBox({
+  cost,
+  rung,
+  onInk = false,
+}: {
+  cost: string
+  rung: SizeRung
+  onInk?: boolean
+}) {
+  const cell = costCell(cost)
+  return (
+    <ActivationCost
+      cost={cell.value ?? cell.label}
+      currency={cell.value ? cell.label : ''}
+      compact={rung !== 'full'}
+      onInk={onInk}
+    />
   )
 }

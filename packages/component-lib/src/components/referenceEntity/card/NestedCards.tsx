@@ -115,14 +115,11 @@ function NestedCardList({
   seal,
   host,
   write,
-  cutOut = false,
 }: {
   entities: ReferenceCardEntity[]
   seal?: { label: string; tone: string }
   host: NestedCardHost
   write?: NestedWrite
-  /** Depth-1 cards wear the Row's cut-out head (`ReferenceEntityCardProps.cutOut`). */
-  cutOut?: boolean
 }) {
   const { NestedCard } = host
   const depth = host.depth + 1
@@ -144,7 +141,6 @@ function NestedCardList({
         hostName={host.entityName}
         chassisName={host.chassisName}
         shownProse={host.shownProse}
-        cutOut={cutOut}
         // Thread the write layer when the group asks for it (a bay's crew).
         {...write}
       />
@@ -200,19 +196,16 @@ export function NestedCardGroup({
   seal,
   host,
   write,
-  cutOut,
 }: {
   entities: ReferenceCardEntity[]
   seal?: { label: string; tone: string }
   host: NestedCardHost
   write?: NestedWrite
-  /** The group's cards wear the Row's cut-out head (an embedded crew NPC). */
-  cutOut?: boolean
 }) {
   if (entities.length === 0) return null
   return (
     <CardStack size={host.size} flush={host.onPage}>
-      <NestedCardList entities={entities} seal={seal} host={host} write={write} cutOut={cutOut} />
+      <NestedCardList entities={entities} seal={seal} host={host} write={write} />
     </CardStack>
   )
 }

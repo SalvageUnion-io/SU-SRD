@@ -14,6 +14,7 @@
 
 import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import type { BookStat } from '../referenceEntityStatsConfig'
 
 export type EntityPageMeta = {
   /**
@@ -23,6 +24,13 @@ export type EntityPageMeta = {
   typeLabel?: string
   /** The Tech Level, as the header's TL cell reads it. */
   techLevel?: string
+  /**
+   * The book's stat cells the band carries, Tech Level among them in the
+   * book's order (Slots Required, Tech Level, Salvage Value). Empty for a
+   * chassis: its stat column stays in the page body beside the art, and the
+   * band carries only its `techLevel` (owner's call, 2026-10-13).
+   */
+  stats: BookStat[]
   /** An ability's tier numeral (its level in the tree). */
   numeral?: string
   /** The page number the citation leads with (`p.112`). */
@@ -40,9 +48,18 @@ export function resolveEntityPageMeta(
   pattern?: SURefObjectAnyPattern
 ): EntityPageMeta {
   const model = toEntityModel(entity, undefined, { pattern })
+  const isChassis = 'schemaName' in entity && entity.schemaName === 'chassis'
   return {
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
+    stats: isChassis
+      ? []
+      : model.bookStats.map((fact) => ({
+          key: fact.key,
+          label: fact.label,
+          value: fact.value,
+          ...(fact.hint ? { hoverText: fact.hint } : {}),
+        })),
     numeral: model.tier,
     page: model.cite.page,
     citation: model.cite.citation,

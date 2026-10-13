@@ -3,7 +3,7 @@ import { Head } from '../../../entity/parts/Head'
 import { EntityCardHeader } from './EntityCardHeader'
 
 type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {
-  /** The Row's head in place of the flush band (`ReferenceEntityCardProps.cutOut`). */
+  /** The Row's head in place of the flush band (every framed card: `ReferenceEntityCard`'s `cutOut`). */
   cutOut: boolean
 }
 

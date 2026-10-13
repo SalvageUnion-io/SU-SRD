@@ -5,71 +5,60 @@ type ActivationCostProps = {
   cost: string | number
   currency?: string | undefined | number
   compact?: boolean
+  /** On an ink band the box is paper with ink text, so it does not sink into the ink. */
+  onInk?: boolean
 }
 
-const ROOT = {
-  alignItems: 'center',
-  display: 'inline-flex',
-  overflow: 'visible',
-  padding: 0,
-} satisfies CSSProperties
+/** The point's depth: the right edge runs to a tip at mid-height. */
+const TIP = '0.5em'
 
-// The 2px block padding matches the pseudoheader datavalue tags (TURN ACTION,
-// …) so the AP badge box is the same height as the other datavalue cells.
+// The book's pointy cost box ("2AP"): one shape, cut by `clip-path`, so the
+// tip always spans the box. It stretches to its row's height and carries the
+// bordered chips' block padding plus their 1px rule's worth, so beside them it
+// is as tall as they are, never shorter.
 const BOX = {
   alignItems: 'center',
+  alignSelf: 'stretch',
   backgroundColor: color.ink,
+  clipPath: `polygon(0 0, calc(100% - ${TIP}) 0, 100% 50%, calc(100% - ${TIP}) 100%, 0 100%)`,
   color: color.paper,
   display: 'inline-flex',
-  justifyContent: 'center',
+  flex: 'none',
   lineHeight: 1,
-  paddingBlock: space[2],
+  paddingBlock: `calc(${space[2]} + 1px)`,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
-  zIndex: 2,
 } satisfies CSSProperties
 
 // Match the datavalue tags' weight (normal compact / semibold).
 const BOX_COMPACT = {
   fontSize: fontSize.xs,
   fontWeight: weight.normal,
-  paddingInline: space[4],
+  paddingInlineStart: space[4],
+  paddingInlineEnd: `calc(${space[4]} + ${TIP})`,
 } satisfies CSSProperties
 
 const BOX_FULL = {
   fontSize: fontSize.sm,
   fontWeight: weight.semibold,
-  paddingInline: space[6],
+  paddingInlineStart: space[6],
+  paddingInlineEnd: `calc(${space[6]} + ${TIP})`,
 } satisfies CSSProperties
 
-const TIP = {
-  alignSelf: 'center',
-  height: 0,
-  marginLeft: 0,
-  width: 0,
-  zIndex: 1,
-} satisfies CSSProperties
+const ON_INK = { backgroundColor: color.paper, color: color.ink } satisfies CSSProperties
 
-export function ActivationCost({ cost, currency = 'AP', compact = false }: ActivationCostProps) {
+export function ActivationCost({
+  cost,
+  currency = 'AP',
+  compact = false,
+  onInk = false,
+}: ActivationCostProps) {
   if (cost === undefined) return null
   const displayCost = cost === 'Variable' ? 'X' : cost
 
   return (
-    <span style={ROOT}>
-      <span style={{ ...BOX, ...(compact ? BOX_COMPACT : BOX_FULL) }}>
-        {`${displayCost} ${currency}`}
-      </span>
-      <span
-        aria-hidden="true"
-        style={{
-          ...TIP,
-          // Pennant tip spans the full box height (font + 2×2px padding) so
-          // the arrow matches the box and the neighbouring datavalue tags.
-          borderTop: compact ? '8px solid transparent' : '9px solid transparent',
-          borderBottom: compact ? '8px solid transparent' : '9px solid transparent',
-          borderLeft: compact ? '7px solid var(--color-ink)' : '8px solid var(--color-ink)',
-        }}
-      />
+    <span style={{ ...BOX, ...(compact ? BOX_COMPACT : BOX_FULL), ...(onInk ? ON_INK : {}) }}>
+      {currency === '' ? displayCost : `${displayCost} ${currency}`}
     </span>
   )
 }

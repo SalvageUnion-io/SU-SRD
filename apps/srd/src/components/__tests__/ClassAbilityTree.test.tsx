@@ -52,10 +52,10 @@ describe('ClassAbilityTree banners and track', () => {
           ...(h.closest('section')?.querySelectorAll<HTMLElement>('.su-entity-row__head') ?? []),
         ])
         .map((head) => head.style.backgroundColor)
-    // Core orange, Advanced rust, Legendary purple.
-    expect(new Set(bandsOf('Forging'))).toEqual(new Set(['var(--color-pilot)']))
-    expect(new Set(bandsOf('Advanced Engineer'))).toEqual(new Set(['var(--color-tier-advanced)']))
-    expect(new Set(bandsOf('Legendary Engineer'))).toEqual(new Set(['var(--color-tier-legendary)']))
+    // The book's: Core brick, Advanced orange, Legendary pink (its deeper band).
+    expect(new Set(bandsOf('Forging'))).toEqual(new Set(['var(--color-tier-core)']))
+    expect(new Set(bandsOf('Advanced Engineer'))).toEqual(new Set(['var(--color-pilot)']))
+    expect(new Set(bandsOf('Legendary Engineer'))).toEqual(new Set(['var(--color-crawler-band)']))
 
     const forging = screen.getByRole('heading', { level: 2, name: 'Forging' }).closest('section')
     if (!forging) throw new Error('no Forging tree')

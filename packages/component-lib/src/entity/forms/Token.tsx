@@ -8,7 +8,7 @@ import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
-import { costCell } from '../parts/chipSet'
+import { CostBox } from '../parts/Chips'
 import { KindLabel } from '../parts/KindLabel'
 import { PAPER_NAME, paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
@@ -94,7 +94,6 @@ export function Token({
   const title = instance?.title ?? model.title
   const shown =
     slots.fact !== undefined ? slots.fact : fact !== undefined ? fact : defaultFact(model)
-  const cost = slots.cost ? costCell(slots.cost) : undefined
   const pill = (
     <span
       data-user-made={userMade || undefined}
@@ -113,10 +112,10 @@ export function Token({
         <KindLabel kind={slots.kind ?? model.kind.type} />
       </span>
       {slots.pennant}
-      {cost && <Stat orientation="horizontal" label={cost.label} value={cost.value} size="mini" />}
       {shown && (
         <Stat orientation="horizontal" label={shown.label} value={shown.value} size="mini" />
       )}
+      {slots.cost && <CostBox cost={slots.cost} rung="mini" onInk={paint.ink} />}
     </span>
   )
   if (slots.outer) {

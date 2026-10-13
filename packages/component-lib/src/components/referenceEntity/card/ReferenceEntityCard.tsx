@@ -224,7 +224,6 @@ function ReferenceEntityCardInner({
   texture,
   foldTables = false,
   parentSeal,
-  cutOut: cutOutProp = false,
   readable = false,
   pattern,
   hostName,
@@ -457,13 +456,14 @@ function ReferenceEntityCardInner({
     facts: [...effectiveHeaderStats, ...facets.facts],
     tags: facets.tags,
   }
-  // A page's stat column holds the entity's own stats: its group is the rest.
+  // A page's band or stat column holds the entity's own stats: its group is the rest.
   const pageChips: ChipSet = { ...chips, facts: facets.facts }
   const hasSubLine = onPage && (!!suggestedNode || chipCount(pageChips) > 0)
 
-  // The head extent is the Row (and, small, the Token): see below. A cut-out card wears its head.
+  // The head extent is the Row (and, small, the Token): see below. Every other
+  // card wears the cut-out head; a Page has its chapter band, an inline card its Row.
   const isHead = extent === 'head'
-  const cutOut = cutOutProp && !inline && !isHead && !onPage
+  const cutOut = !inline && !isHead && !onPage
   const header = (
     <CardHead
       cutOut={cutOut}

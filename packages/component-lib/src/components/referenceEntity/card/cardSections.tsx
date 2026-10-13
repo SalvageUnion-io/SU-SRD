@@ -277,8 +277,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
             entities={group.entities}
             host={nestedHost}
             write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
-            // An embedded crew NPC wears the Row's head: its name on the cut-out, its HP a chip right of it.
-            cutOut={group.label === 'NPCs'}
             seal={
               group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
             }

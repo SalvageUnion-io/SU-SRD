@@ -262,10 +262,9 @@ describe('ink on colour — the refresh pairs', () => {
     { band: 'denizenBand', ground: color.denizenBand, text: 'paper' },
     // The Avatar fallback initial sits on pilot (Avatar.tsx).
     { band: 'avatar', ground: color.pilot, text: 'ink' },
-    // The ability tiers' Row banners and tree tracks: Core is pilot (above),
-    // Advanced and Hybrid the darker rust, Legendary purple.
-    { band: 'tierAdvanced', ground: color.tierAdvanced, text: 'paper' },
-    { band: 'tierLegendary', ground: color.tierLegendary, text: 'paper' },
+    // The ability tiers' Row banners and tree tracks (the book's): Core brick;
+    // Advanced and Hybrid are pilot, Legendary the crawler band (above).
+    { band: 'tierCore', ground: color.tierCore, text: 'paper' },
   ] as const
 
   for (const { band, ground, text } of PAIRS) {

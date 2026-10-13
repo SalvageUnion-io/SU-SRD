@@ -1,5 +1,4 @@
 import type { CSSProperties } from 'react'
-import { Stat } from '../../components/atoms/Stat'
 import { assetSrcSetFor } from '../../components/compositions/assetSrcSet'
 import { grainClass } from '../../components/referenceEntity/card/cardGrain'
 import { font, fontSize, space, tracking, weight } from '../../design/tokens'
@@ -7,7 +6,7 @@ import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
-import { costCell } from '../parts/chipSet'
+import { CostBox } from '../parts/Chips'
 import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
@@ -73,7 +72,6 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
   const facts = factCells(model.facts, omit)
   const { art } = model
   const leadText = lead ? model.lead : undefined
-  const cost = model.cost ? costCell(model.cost) : undefined
 
   return (
     <LinkSurface
@@ -112,12 +110,10 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
           </span>
           {(target.href || target.onOpen) && <LinkChevron />}
         </div>
-        {(cost || facts.length > 0 || leadText) && (
+        {(model.cost || facts.length > 0 || leadText) && (
           <div className="su-entity-tile__cells">
-            {cost && (
-              <Stat orientation="horizontal" label={cost.label} value={cost.value} size="compact" />
-            )}
             <Facts cells={facts} size="compact" />
+            {model.cost && <CostBox cost={model.cost} rung="compact" />}
             {leadText && <Lead text={leadText} />}
           </div>
         )}

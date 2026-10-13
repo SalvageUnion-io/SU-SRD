@@ -49,15 +49,14 @@ export type HeadProps = {
   /**
    * The cut-out (ruleset, "Chapter band"): the name notched into the band's
    * foot on a tab of the paper below, in ink, as a catalog Tile's; the tier
-   * stays on the band, left of it. For a head with a paper body under it (a
-   * bodied Row, a pattern row) and no chips: chips that drop under the name
-   * would leave the tab mid-band, unless `chipsBeside`.
+   * stays on the band, left of it. Without `chipsBeside` it holds only for a
+   * head with no chips: chips that drop under the name would leave the tab
+   * mid-band.
    */
   notch?: boolean
   /**
    * Keep the cut-out with chips: the chips stay on the band right of the
-   * name, wrapping there, never dropping under it (an embedded crew NPC's
-   * head, its HP beside the name).
+   * name, wrapping there, never dropping under it (every Row and Card head).
    */
   chipsBeside?: boolean
 }

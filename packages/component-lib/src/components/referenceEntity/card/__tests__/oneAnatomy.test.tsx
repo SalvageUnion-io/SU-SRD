@@ -39,16 +39,16 @@ describe('have vs do', () => {
     expect(isDoEntity(drill())).toBe(false)
   })
 
-  test('an ability is an ink banner: tier numeral, its kind read out, its cost a chip', () => {
+  test('an ability is an ink banner: tier numeral, its kind read out, its cost last', () => {
     const { container } = render(<ReferenceEntityCard data={juryRig()} />)
     expect(fills(container)[0]).toBe('ink')
     // The kind and tree are never stamped (E9): the title says them to screen readers.
     expect(screen.queryByText('Ability · Forging Tree')).toBeNull()
     expect(container.querySelector('.su-sr-only')?.textContent).toBe(' (Ability, Forging Tree)')
     expect(screen.getByText('1')).toBeTruthy()
-    // A read cost is a chip, `AP | 2`: no pennant.
+    // A read cost is the book's pointy box, last in the chip group: no pennant.
     expect(container.querySelector('.su-pennant')).toBeNull()
-    expect(container.querySelector('[data-chip-group]')?.textContent).toContain('AP2')
+    expect(container.querySelector('[data-chip-group]')?.textContent).toMatch(/2 AP$/)
   })
 
   test('a system is a tone header with no kind stamp: only the footer names the type', () => {

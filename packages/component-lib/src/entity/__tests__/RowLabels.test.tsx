@@ -39,14 +39,15 @@ describe('Row labels', () => {
     expect(head.querySelector('.su-entity-row__labels')?.textContent ?? '').toBe('')
   })
 
-  test('the chips share the heading with the name, in one group', () => {
+  test('the name wears the cut-out, its chips on the band beside it, in one group', () => {
     render(<Entity form="row" entity={drill()} />)
     const head = headOf('Salvaging Drill')
-    const heading = head.querySelector('.su-entity-row__heading')
-    expect(heading?.firstElementChild?.className).toBe('su-entity-row__name')
-    expect(heading?.lastElementChild?.getAttribute('data-chip-group')).toBe('')
-    // A head with chips wears no cut-out: they may drop under the name.
-    expect(head.dataset.notch).toBeUndefined()
+    const line = head.querySelector('.su-entity-row__line')
+    expect(line?.firstElementChild?.className).toBe('su-entity-row__name')
+    expect(line?.children[1]?.getAttribute('data-chip-group')).toBe('')
+    // Every Row wears the cut-out, chips or not.
+    expect(head.dataset.notch).toBe('true')
+    expect(nameBox('Salvaging Drill').className).toBe('su-entity-row__notch')
   })
 
   test('over a body a head with no chips sets its name on the paper cut-out', () => {
@@ -65,9 +66,9 @@ describe('Row labels', () => {
   test("an ability's tier banner wears its tier; its kind and tree are read out", () => {
     render(<Entity form="row" entity={juryRig()} />)
     const head = headOf('Jury Rig')
-    // A Core ability's Row wears the Core tier: orange.
+    // A Core ability's Row wears the book's Core tier: brick.
     expect(head.dataset.fill).toBe('tone')
-    expect(head.style.backgroundColor).toBe('var(--color-pilot)')
+    expect(head.style.backgroundColor).toBe('var(--color-tier-core)')
     expect(head.querySelector('.su-sr-only')?.textContent).toContain('Ability')
   })
 
@@ -84,16 +85,16 @@ describe('Row labels', () => {
     expect(head.querySelector('.su-entity-row__title')?.textContent).toBe('Jury Rig')
   })
 
-  test('the tier numeral stays on the band, first on the line; chips mean no cut-out', () => {
+  test('the tier numeral stays on the band, first on the line; an ability keeps its cut-out with chips', () => {
     const charge = need(SalvageUnionReference.Abilities.getByName('Charge'), 'charge')
     render(<Entity form="row" entity={charge} />)
     const head = headOf('Charge')
     const line = head.querySelector('.su-entity-row__line')
     expect(line?.firstElementChild?.className).toBe('su-entity-row__tier')
     expect(line?.firstElementChild?.textContent).toBe('1')
-    // Its chips could drop under the name, so the name is on the band, not a tab.
-    expect(head.dataset.notch).toBeUndefined()
-    expect(head.querySelector('.su-entity-row__notch')).toBeNull()
+    // Every ability's name sits on the cut-out; its chips stay on the band beside it.
+    expect(head.dataset.notch).toBe('true')
+    expect(nameBox('Charge').className).toBe('su-entity-row__notch')
     expect(head.textContent).toContain('Free Action')
   })
 })

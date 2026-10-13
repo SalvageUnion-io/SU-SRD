@@ -91,8 +91,8 @@ const READ: EntityMode = { kind: 'read' }
  * a paper body: a leading stamp and the lead while browsing (E11). A bodied
  * head with no chips keeps its tier on the band and sets its name on the paper
  * cut-out notched into the band's foot, as a Tile's. Fill follows kind (E12):
- * a "have" entity's tone, an ability's tier tone (Core orange, Advanced rust,
- * Legendary purple), any other "do" entity's ink banner with paper flecks.
+ * a "have" entity's tone, an ability's tier tone (the book's: Core brick,
+ * Advanced orange, Legendary pink), any other "do" entity's ink banner with paper flecks.
  */
 export function Row({
   model,
@@ -108,9 +108,9 @@ export function Row({
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
+  const ability = model.ref.schemaName === 'abilities'
   // An ability's Row wears its tier tone (E12); any other "do" entity the ink banner.
-  const fill =
-    model.kind.nature === 'do' && model.ref.schemaName !== 'abilities' ? 'ink' : model.tone
+  const fill = model.kind.nature === 'do' && !ability ? 'ink' : model.tone
   const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
   const title = instance?.title ?? model.title
@@ -184,8 +184,10 @@ export function Row({
           pennant={slots.pennant}
           affordance={affordance}
           labels={labels}
-          // A pattern wears the cut-out even as a bodyless list row.
-          notch={hasBody || !!model.ref.pattern}
+          // Every Row wears the cut-out, bodied or not, its chips on the band
+          // beside the name (owner's call, 2026-10-13).
+          notch
+          chipsBeside
         />
         {hasBody && (
           <div className="su-entity-row__body" style={down ? { opacity: 0.6 } : undefined}>

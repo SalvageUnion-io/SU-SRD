@@ -16,8 +16,8 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * CardPage — the card when it IS the page (`presentation="page"`, boards 07
  * and 08). No frame, header or footer: the page's `ChapterBand` carries
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
- * hero on the left; beside it the prose, the book's stat column and, beneath
- * the stats, the chassis ability; then everything the entity carries, full
+ * hero on the left; beside it the prose, a chassis's stat column (every other
+ * entity's stats ride the band) and, beneath the stats, the chassis ability; then everything the entity carries, full
  * width — its table, its other actions, its nested cards and its patterns as
  * link rows. A pattern page leads the right column with the pattern itself
  * (`opening`), then the base chassis's prose under its own slab.
@@ -95,11 +95,13 @@ export function CardPage({
   sectionAs,
   action,
 }: CardPageProps) {
-  // The page's band carries the Tech Level at full size (srd's
-  // `EntityPageStamps`), so the column does not print it twice.
-  const bookStats = stats
-    ? buildBookStats(entity, stats).filter((stat) => stat.key !== 'tech-level')
-    : []
+  // The page's band carries the Tech Level (srd's `EntityPageStamps`), and for
+  // everything but a chassis the rest of the stats too (`resolveEntityPageMeta`):
+  // only a chassis keeps its stat column here, beside its art.
+  const bookStats =
+    stats && stats.schemaName === 'chassis'
+      ? buildBookStats(entity, stats).filter((stat) => stat.key !== 'tech-level')
+      : []
   const { NestedCard } = action
   // `titleAs` is the card title's element: an `h3` only where a section band's
   // `h2` holds the card (`nestedTitleLevel`), else the header's `span`.

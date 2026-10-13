@@ -75,11 +75,12 @@
   }
 }
 
-/* A lone stat on a band (an entity's Tech Level, `ChapterBand asideAt="notch"`)
-   is one cell, not a two-column grid whose empty column would push the aside
-   off the notch. */
+/* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
+   are a row of cells sized to their labels that wraps, not a grid whose empty
+   columns would push the aside off the notch. */
 .su-chapter-band[data-aside='notch'] .su-stat-column {
-  grid-template-columns: auto;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 /* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
