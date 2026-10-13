@@ -53,7 +53,7 @@
 #
 # Nothing else is marked immutable, and this is the one place this file
 # deliberately differs from srd's. itun's `public/` holds `favicon.svg`,
-# `icon-192.png`, `icon-512.png` and `logos/` — FIXED names that are mutated in
+# `icon-192.png`, `icon-512.png`, `og-image.png` and `logos/` — FIXED names that are mutated in
 # place on redesign, so a year of `immutable` would mean a changed icon no
 # amount of reloading can dislodge. They, and the shell, keep the platform's
 # default `public, max-age=0, must-revalidate`: a stale shell names chunks a

@@ -13,7 +13,7 @@ describe('SITE', () => {
   test("the shell's sitewide og:url and og:image point there", async () => {
     const html = await Bun.file(new URL('../../../index.html', import.meta.url)).text()
     expect(html).toContain(`<meta property="og:url" content="${siteUrl()}" />`)
-    expect(html).toContain(`content="${siteUrl()}icon-512.png"`)
+    expect(html).toContain(`content="${siteUrl()}og-image.png"`)
     expect(html).not.toContain('intheunionnow.com/')
   })
 })

@@ -21,6 +21,7 @@ import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
 import { Route as MediatorGameIdRouteImport } from './routes/mediator/$gameId'
 import { Route as NpcsNewRouteImport } from './routes/npcs/new'
+import { Route as OgBrandRouteImport } from './routes/og/brand'
 import { Route as OgPrivateRouteImport } from './routes/og/private'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
 import { Route as SIdRouteImport } from './routes/s/$id'
@@ -92,6 +93,11 @@ const NpcsNewRoute = NpcsNewRouteImport.update({
   path: '/npcs/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OgBrandRoute = OgBrandRouteImport.update({
+  id: '/og/brand',
+  path: '/og/brand',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OgPrivateRoute = OgPrivateRouteImport.update({
   id: '/og/private',
   path: '/og/private',
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
+  '/og/brand': typeof OgBrandRoute
   '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
+  '/og/brand': typeof OgBrandRoute
   '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
+  '/og/brand': typeof OgBrandRoute
   '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/mechs/new'
     | '/mediator/$gameId'
     | '/npcs/new'
+    | '/og/brand'
     | '/og/private'
     | '/pilots/new'
     | '/s/$id'
@@ -255,6 +265,7 @@ export interface FileRouteTypes {
     | '/mechs/new'
     | '/mediator/$gameId'
     | '/npcs/new'
+    | '/og/brand'
     | '/og/private'
     | '/pilots/new'
     | '/s/$id'
@@ -279,6 +290,7 @@ export interface FileRouteTypes {
     | '/mechs/new'
     | '/mediator/$gameId'
     | '/npcs/new'
+    | '/og/brand'
     | '/og/private'
     | '/pilots/new'
     | '/s/$id'
@@ -304,6 +316,7 @@ export interface RootRouteChildren {
   MechsNewRoute: typeof MechsNewRoute
   MediatorGameIdRoute: typeof MediatorGameIdRoute
   NpcsNewRoute: typeof NpcsNewRoute
+  OgBrandRoute: typeof OgBrandRoute
   OgPrivateRoute: typeof OgPrivateRoute
   PilotsNewRoute: typeof PilotsNewRoute
   SIdRoute: typeof SIdRoute
@@ -402,6 +415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NpcsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/og/brand': {
+      id: '/og/brand'
+      path: '/og/brand'
+      fullPath: '/og/brand'
+      preLoaderRoute: typeof OgBrandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/og/private': {
       id: '/og/private'
       path: '/og/private'
@@ -488,6 +508,7 @@ const rootRouteChildren: RootRouteChildren = {
   MechsNewRoute: MechsNewRoute,
   MediatorGameIdRoute: MediatorGameIdRoute,
   NpcsNewRoute: NpcsNewRoute,
+  OgBrandRoute: OgBrandRoute,
   OgPrivateRoute: OgPrivateRoute,
   PilotsNewRoute: PilotsNewRoute,
   SIdRoute: SIdRoute,
