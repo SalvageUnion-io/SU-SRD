@@ -1,13 +1,12 @@
 name: CI
 
-# The reasoning behind every non-obvious choice in this file is in
-# docs/ARCHITECTURE.md#ci (the incidents behind them are in git history). Read it
-# before changing a trigger, a path filter, a `needs:` edge or the aggregate
-# gate. Comments here say WHAT a step guards; the doc says WHY.
+# The comments here carry the reasoning behind every non-obvious choice. Read
+# them before changing a trigger, a path filter, a `needs:` edge or the
+# aggregate gate.
 
 on:
   # No `branches:` filter: it matches the PR's BASE, so it would give stacked
-  # PRs no checks at all — and `CI Success` is required (ARCHITECTURE.md#ci).
+  # PRs no checks at all — and `CI Success` is required.
   # CI runs on PRs only: the ruleset requires `CI Success` on a branch that is
   # up to date with `main`, so a merged tree has already passed.
   pull_request:
@@ -26,7 +25,7 @@ concurrency:
 jobs:
   # ---------------------------------------------------------------------------
   # Which areas a change touches. `shared` affects everything; `docs` is prose
-  # and agent config only. See ARCHITECTURE.md#ci before adding a path.
+  # and agent config only.
   # ---------------------------------------------------------------------------
   changes:
     runs-on: ubuntu-latest
@@ -62,7 +61,7 @@ jobs:
               - 'test/**'
               - 'bunfig.toml'
               # root prose rendered by srd + itun and asserted on by
-              # component-lib tests — the #731 incident (ARCHITECTURE.md#ci)
+              # component-lib tests
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
@@ -113,7 +112,7 @@ jobs:
               - '.github/*.yml'
             # Prose and agent config. Runs the repo-invariant checks (doc
             # drift, observability) but not the test suite or the typecheck —
-            # nothing compiles or tests these files (audit CI-11).
+            # nothing compiles or tests these files.
             docs:
               - 'docs/**'
               - 'AGENTS.md'
@@ -183,7 +182,7 @@ jobs:
         run: bun run test:coverage
 
   # The build jobs need only `changes`: they take no artifact from the check
-  # jobs, and `CI Success` already fails on any of them (audit CI-02).
+  # jobs, and `CI Success` already fails on any of them.
   build-srd:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
@@ -253,16 +252,8 @@ jobs:
       # The URL is a throwaway backend carrying this PR's own functions, not
       # production: a PR's client must run against the backend it ships with,
       # and a PR gate makes no production calls.
-      - name: Start a throwaway Convex backend
-        id: convex
+      - name: Start a throwaway Convex backend and build itun against it
         uses: ./.github/actions/convex-backend
-
-      - name: Push functions and build itun against the backend
-        working-directory: apps/itun
-        env:
-          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
-          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
-        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
 
       # The build emits the assets; this bundles the Worker `main` that ships.
       - name: Bundle the Worker that actually deploys

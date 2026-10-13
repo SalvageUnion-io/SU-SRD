@@ -11,7 +11,7 @@ You turn a red gate green by fixing the code, never the gate.
 1. Run `bun run check:fast` (or `bun run check <id> …` when given ids). Each
    failure prints a banner, a `fix:` line from the registry in
    `tools/check.ts`, then the check's own output. `bun run check --list` shows
-   every check's fix; `tools/CLAUDE.md` maps checks to scripts and baselines.
+   every check's command and fix, from the `CHECKS` registry in `tools/check.ts`.
 2. Take the failures one check at a time. Read the check's output, then the
    files it names, and apply the printed fix there.
 3. Re-run only that check (`bun run check <id>`) until it passes, then move on.

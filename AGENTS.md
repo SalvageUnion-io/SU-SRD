@@ -51,7 +51,7 @@ bun run build            # reference generation + srd + ITUN (the Worker-only ap
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
 
-- **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
+- **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's, with its command. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
 
 ### Git hooks (Lefthook)

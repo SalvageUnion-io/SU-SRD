@@ -1,22 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreExportsUsedInFile": false,
   "includeEntryExports": true,
-  // Exports tagged `@public` or `@knipignore` are excluded from analysis. When
-  // to reach for either is in docs/ARCHITECTURE.md#dead-code — delete by
-  // default; these two are the only exemptions.
-  //
-  // `--treat-tag-hints-as-errors` does NOT catch a tag that has outlived its
-  // reason, despite reading like it would. Measured against knip 6.32 with this
-  // config: it exits 0 even with a deliberately redundant `@public` on an
-  // already-imported export. It was going to be added to the `knip` script
-  // until that probe ran — recorded here so the next reader does not add it
-  // believing it guards something.
-  //
-  // So a stale tag is found by a human, and its cost is misleading PROSE rather
-  // than a hidden finding: five `@public` tags were pruned in 2026-08, every one
-  // justified by a fork that had already been deleted, each telling a reader to
-  // go de-duplicate files that no longer existed.
+  // @public/@knipignore are the only exemptions: docs/ARCHITECTURE.md#dead-code.
+  // --treat-tag-hints-as-errors does not catch a stale tag; don't add it as a guard.
   "tags": ["-public", "-knipignore"],
   "workspaces": {
     // The root holds no code of its own now that `tools/` is a workspace.
@@ -50,18 +36,8 @@
       "project": ["src/**/*.ts"]
     },
     "packages/component-lib": {
-      // `includeEntryExports` is ON here, unlike the app workspaces below.
-      //
-      // For an app, the entry is a framework contract nothing imports, so
-      // checking its exports is noise. For this package the barrel IS the
-      // public API — `src/index.ts` is the only thing the apps may import from
-      // — so switching the check off made the one workspace where barrel rot
-      // matters most the one workspace where it could not be seen. 28 dead
-      // re-exports accumulated behind it.
-      //
-      // Turning it on is only possible because those 28 are gone. If this ever
-      // needs to go back to `false`, the reason belongs here, because the cost
-      // is invisible by construction.
+      // Pinned on (the root default) because src/index.ts is the package's
+      // whole public API; see biome.jsonc's component-lib/src/** rule.
       "project": ["src/**/*.{ts,tsx}"],
       "includeEntryExports": true
     },
@@ -89,6 +65,7 @@
         "e2e/a11y.e2e.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"],
+      // Its entries are framework contracts nothing imports.
       "includeEntryExports": false
     },
     "apps/itun": {
@@ -120,6 +97,7 @@
       // it did not, the whole Worker and its test sat OUTSIDE knip's scope and
       // the gate passed by not looking.
       "project": ["src/**/*.ts"],
+      // Its entry is a Worker contract nothing imports.
       "includeEntryExports": false
     },
     "apps/discord-bot": {

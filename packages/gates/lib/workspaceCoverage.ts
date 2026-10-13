@@ -10,19 +10,6 @@
  * while the new surface is silently unguarded. Its own docstring says as much:
  * a catastrophe detector, not a coverage target.
  *
- * That blind spot has already cost this repo once, and the incident is worth
- * restating because it is the exact shape this helper exists to prevent.
- * `tools/check-observability.ts` stayed green across the entire Cloudflare
- * cutover while all three production Workers reported to nothing but
- * `console.error` — because the checker had no notion of a Worker. A guard that
- * does not know about a surface cannot fail for it.
- *
- * At the time of writing the same pattern survived in four more places:
- * the design-token rules (SCAN_DIRS), `check-architecture` (INCLUDE_GLOBS),
- * the styling-ownership rules (APP_DIRS) and `coverage-report` (WORKSPACES) all
- * predate `apps/su-assets` and `packages/observability`, and all four silently
- * omitted them.
- *
  * ## The contract
  *
  * Every directory under `apps/` and `packages/` that carries a `package.json`
@@ -43,18 +30,24 @@ import { join } from 'node:path'
 
 const ROOT = join(import.meta.dir, '..', '..', '..')
 
-/** Every workspace directory, discovered rather than listed. */
-export function discoverWorkspaceDirs(): string[] {
+/**
+ * Every workspace directory under `root`, discovered rather than listed: each
+ * `apps/*` and `packages/*` carrying a `package.json`, sorted, then `tools`
+ * when `withTools` is set and it has a manifest.
+ */
+export function discoverWorkspaceDirs(root: string = ROOT, { withTools = false } = {}): string[] {
   const found: string[] = []
   for (const dir of ['apps', 'packages']) {
-    const base = join(ROOT, dir)
+    const base = join(root, dir)
     if (!existsSync(base)) continue
     for (const entry of readdirSync(base, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue
       if (existsSync(join(base, entry.name, 'package.json'))) found.push(`${dir}/${entry.name}`)
     }
   }
-  return found.sort()
+  found.sort()
+  if (withTools && existsSync(join(root, 'tools', 'package.json'))) found.push('tools')
+  return found
 }
 
 /**

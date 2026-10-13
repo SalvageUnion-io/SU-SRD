@@ -3,24 +3,11 @@
  *
  * ## Why this exists
  *
- * Three gates — `check-architecture` (since replaced by Biome plugins) and what
- * are now the `tokens` and `styling` rule sets of `check-styling.ts` — walked a
- * hardcoded set of
- * directories, count violations, and exit 0 when the count is not worse than a
- * committed baseline. All three baselines were all-zero at the time, and every
- * one of their `walk()` helpers swallowed a failed `readdirSync` and returns `[]`. So a scan that
- * matched NOTHING produced byte-identical output to a healthy run:
- *
- *     ✓ design tokens: no new violations (0 known, burning down)
- *
- * Rename or move a scanned directory and the gate keeps reporting success
- * forever, having checked nothing. There was no timing tell either — in CI the
- * token check runs in 0s and the styling check in 1s, so "checked 998 files"
- * and "found no files" are indistinguishable from the outside.
- *
- * `check-architecture` even printed the file count in its success message
- * (`✓ ... (584 files checked)`) — but printed is not asserted, and nothing ever
- * read it.
+ * A gate that walks a directory list and swallows a failed `readdirSync`
+ * reports the same success for a scan that matched nothing as for a healthy
+ * one, so renaming or moving a scanned directory leaves it green forever,
+ * having checked nothing. Neither its output nor its timing tells the two
+ * apart.
  *
  * ## What a floor is and is not
  *

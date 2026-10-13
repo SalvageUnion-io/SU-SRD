@@ -80,7 +80,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'generated',
     guards:
       'committed generated files match their generators (registry block, route tree, Worker types)',
-    fix: 'commit the files it just regenerated; never hand-edit a generated file',
+    fix: 'commit the files it just regenerated; never hand-edit a generated file; `bun tools/check-generated.ts --force` re-runs every generator',
     cmd: ['bun', 'tools/check-generated.ts'],
     first: true,
     areas: ['code'],
@@ -120,7 +120,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'data',
     guards: 'the reference dataset: ids, slugs, references, orphans, parity, …',
-    fix: 'fix the data: each diagnostic names the file and record',
+    fix: 'fix the data: each diagnostic names the file and record; `bun packages/salvageunion-reference/tools/validate.ts --only=<id>` reruns a subset',
     cmd: ['bun', 'tools/validate.ts'],
     cwd: 'packages/salvageunion-reference',
     areas: REPO_INVARIANT,
@@ -130,7 +130,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'rules-fidelity',
     guards:
       'every prose string in the dataset has a verdict in fidelity.lock.json for its current text (checked against the books)',
-    fix: 'where the rules extract exists: `bun tools/check-rules-fidelity.ts --update`, then commit the lock; a deleted string needs only `bun tools/check-fidelity-lock.ts --prune`',
+    fix: 'where the rules extract exists: `bun tools/check-rules-fidelity.ts --update`, then commit packages/salvageunion-reference/fidelity.lock.json; a deleted string needs only `bun tools/check-fidelity-lock.ts --prune`',
     cmd: ['bun', 'tools/check-fidelity-lock.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -174,7 +174,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'client-contract',
     guards:
       'a Convex argument change that refuses calls an open ITUN tab still makes raises the build floor',
-    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/itun/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write`',
+    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/itun/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
     cmd: ['bun', 'tools/check-client-contract.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -227,7 +227,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'styling',
     guards: 'design tokens, styling ownership, srd stylesheet entry (ratcheted)',
-    fix: "follow the rule's printed fix; a ratchet that fell needs `bun tools/check-styling.ts --update-baseline`",
+    fix: "follow the rule's printed fix; `--report` lists every finding; a ratchet that fell needs `bun tools/check-styling.ts --update-baseline` (tools/baselines/styling-baseline.json)",
     cmd: ['bun', 'tools/check-styling.ts'],
     profiles: ALL,
   },
@@ -235,7 +235,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'copy',
     guards:
       'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product (ratcheted)',
-    fix: 'write the spelling the finding names; a ratchet that fell needs `bun tools/check-copy.ts --update-baseline`',
+    fix: 'write the spelling the finding names; `--report` lists every finding; a ratchet that fell needs `bun tools/check-copy.ts --update-baseline` (tools/baselines/copy-baseline.json)',
     cmd: ['bun', 'tools/check-copy.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -427,6 +427,7 @@ async function main(argv: readonly string[]): Promise<number> {
     const width = Math.max(...CHECKS.map((c) => c.id.length))
     for (const c of CHECKS) {
       console.log(`${c.id.padEnd(width)}  [${c.profiles.join(' ')}]  ${c.guards}`)
+      console.log(`${' '.repeat(width)}  cmd: ${c.cmd.join(' ')}`)
       console.log(`${' '.repeat(width)}  fix: ${c.fix}`)
     }
     return 0

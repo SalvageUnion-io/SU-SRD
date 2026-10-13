@@ -37,15 +37,31 @@ const SHARED = [/^test\//, /^bunfig\.toml$/, /^package\.json$/, /^bun\.lock$/]
  */
 const ALWAYS = ['gates', 'tools']
 
+/** A workspace's `package.json`, as far as the gates read it. */
+export type PackageManifest = {
+  name: string
+  scripts?: Record<string, string>
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+}
+
+/** Every workspace's manifest under `root`, in `discoverWorkspaceDirs` order. */
+export function readManifests(
+  root: string = ROOT,
+  opts: { withTools?: boolean } = {}
+): { dir: string; name: string; manifest: PackageManifest }[] {
+  return discoverWorkspaceDirs(root, opts).map((dir) => {
+    const manifest = JSON.parse(
+      readFileSync(join(root, dir, 'package.json'), 'utf-8')
+    ) as PackageManifest
+    return { dir, name: manifest.name, manifest }
+  })
+}
+
 /** Every workspace (`tools/` included) with its `workspace:` dependencies. */
 export function readWorkspaces(root: string = ROOT): Workspace[] {
-  return [...discoverWorkspaceDirs(), 'tools'].map((dir) => {
-    const manifest = JSON.parse(readFileSync(join(root, dir, 'package.json'), 'utf-8')) as {
-      name: string
-      dependencies?: Record<string, string>
-      devDependencies?: Record<string, string>
-      peerDependencies?: Record<string, string>
-    }
+  return readManifests(root, { withTools: true }).map(({ dir, name, manifest }) => {
     const ranges = {
       ...manifest.dependencies,
       ...manifest.devDependencies,
@@ -53,8 +69,8 @@ export function readWorkspaces(root: string = ROOT): Workspace[] {
     }
     const deps = Object.entries(ranges)
       .filter(([, range]) => range.startsWith('workspace:'))
-      .map(([name]) => name)
-    return { dir, name: manifest.name, deps }
+      .map(([dep]) => dep)
+    return { dir, name, deps }
   })
 }
 

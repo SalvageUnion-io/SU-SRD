@@ -1,4 +1,7 @@
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { Workspace } from '../lib/workspaceGraph'
 import { readWorkspaces, selectWorkspaces } from '../lib/workspaceGraph'
 
@@ -99,5 +102,34 @@ describe('readWorkspaces, against this repo', () => {
     )
     expect(selected).toContain('discord-bot')
     expect(selected).not.toContain('su-assets')
+  })
+})
+
+describe('readWorkspaces, against a fixture root', () => {
+  const root = mkdtempSync(join(tmpdir(), 'workspace-graph-'))
+
+  afterAll(() => {
+    rmSync(root, { recursive: true, force: true })
+  })
+
+  const manifest = (dir: string, pkg: object) => {
+    mkdirSync(join(root, dir), { recursive: true })
+    writeFileSync(join(root, dir, 'package.json'), JSON.stringify(pkg))
+  }
+  manifest('packages/data', { name: 'data' })
+  manifest('apps/site', {
+    name: 'site',
+    dependencies: { data: 'workspace:*', react: '19.0.0' },
+  })
+  manifest('tools', { name: 'tools', devDependencies: { data: 'workspace:*' } })
+  // A directory with no manifest is not a workspace.
+  mkdirSync(join(root, 'apps/scratch'), { recursive: true })
+
+  test('discovers workspaces under the root it is given, tools last', () => {
+    expect(readWorkspaces(root)).toEqual([
+      { dir: 'apps/site', name: 'site', deps: ['data'] },
+      { dir: 'packages/data', name: 'data', deps: [] },
+      { dir: 'tools', name: 'tools', deps: ['data'] },
+    ])
   })
 })

@@ -34,9 +34,11 @@
  * depends on `component-lib`; their `src/` and `ssg/` trees are scanned.
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
+import { walk } from 'gates/lib/walk'
+import { readWorkspaces } from 'gates/lib/workspaceGraph'
 
 const ROOT = join(import.meta.dir, '..')
 const LIB_SRC = join(ROOT, 'packages/component-lib/src')
@@ -234,17 +236,6 @@ function resolveModule(fromFile: string, specifier: string): string | null {
   return null
 }
 
-function walk(dir: string, keep: (path: string) => boolean, out: string[] = []): string[] {
-  if (!existsSync(dir)) return out
-  for (const entry of readdirSync(dir)) {
-    if (entry === 'node_modules') continue
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) walk(full, keep, out)
-    else if (keep(full)) out.push(full)
-  }
-  return out
-}
-
 const isShippedSource = (path: string) =>
   /\.tsx?$/.test(path) && !/[\\/]__tests__[\\/]/.test(path) && !/\.(test|stories)\.tsx?$/.test(path)
 
@@ -255,24 +246,15 @@ const isShippedSource = (path: string) =>
  */
 const SHIPS_NOTHING = new Set(['apps/catalog'])
 
-/** Every shipping workspace whose manifest depends on component-lib. */
+/**
+ * Every shipping workspace whose manifest depends on component-lib. Only a
+ * `workspace:` range counts, which is how every in-repo dependent takes it.
+ */
 function consumingWorkspaces(): string[] {
-  const found: string[] = []
-  for (const group of ['apps', 'packages']) {
-    for (const entry of readdirSync(join(ROOT, group))) {
-      const manifest = join(ROOT, group, entry, 'package.json')
-      if (entry === 'component-lib' || SHIPS_NOTHING.has(`${group}/${entry}`)) continue
-      if (!existsSync(manifest)) continue
-      const pkg = JSON.parse(readFileSync(manifest, 'utf-8')) as {
-        dependencies?: Record<string, string>
-        devDependencies?: Record<string, string>
-      }
-      if ('component-lib' in { ...pkg.dependencies, ...pkg.devDependencies }) {
-        found.push(`${group}/${entry}`)
-      }
-    }
-  }
-  return found.sort()
+  return readWorkspaces(ROOT)
+    .filter((ws) => ws.deps.includes('component-lib') && !SHIPS_NOTHING.has(ws.dir))
+    .map((ws) => ws.dir)
+    .sort()
 }
 
 export type Census = {

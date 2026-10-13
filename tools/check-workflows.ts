@@ -59,6 +59,7 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { readManifests } from 'gates/lib/workspaceGraph'
 import type { EnvironmentSpec, RulesetSpec } from './environments'
 import { ENVIRONMENTS, MAIN_RULESET, SECRET_SENTINEL } from './environments'
 
@@ -753,13 +754,11 @@ export function loadContext(root: string): WorkflowContext {
       manifests.set(path, JSON.parse(readFileSync(join(root, path), 'utf8')) as Manifest)
     }
   }
+  // The root and every apps/packages workspace, but NOT tools: its deps must
+  // not widen what a `bunx` call may resolve locally.
   readManifest('package.json')
-  for (const group of ['apps', 'packages']) {
-    const base = join(root, group)
-    if (!existsSync(base)) continue
-    for (const entry of readdirSync(base, { withFileTypes: true })) {
-      if (entry.isDirectory()) readManifest(`${group}/${entry.name}/package.json`)
-    }
+  for (const { dir, manifest } of readManifests(root)) {
+    manifests.set(`${dir}/package.json`, manifest as Manifest)
   }
   // A top-level `packages` key is the package's own name; nested keys
   // (`parent/child`) are the copies one dependent resolved differently.

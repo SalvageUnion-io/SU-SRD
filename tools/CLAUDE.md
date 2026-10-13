@@ -32,28 +32,9 @@ the corpus size, not just the finding count.
 
 ## The checks in `bun run check`
 
-| Id | Script | Baseline |
-| --- | --- | --- |
-| `generated` | `check-generated.ts` (runs first and alone: it rewrites files; off CI it skips generators whose inputs are unchanged, `--force` re-runs all) | — |
-| `test` | `bun run test` | — |
-| `typecheck` | `bun run typecheck` | — |
-| `knip` | `bun run knip` | — |
-| `biome` | `biome ci .`, plus the GritQL plugins in `packages/gates/biome/` | — |
-| `data` | `packages/salvageunion-reference/tools/validate.ts` (`--only=` runs a subset) | — |
-| `rules-fidelity` | `check-fidelity-lock.ts` (`--prune` drops deleted strings); verdicts come from `check-rules-fidelity.ts --update`, no book needed | `packages/salvageunion-reference/fidelity.lock.json` |
-| `doc-drift` | `check-doc-drift.ts` | the script's budget, ceiling and claim tables; `commentHistory.ts` phrases |
-| `observability` | `check-observability.ts` | — |
-| `workers` | `check-workers.ts` | — |
-| `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |
-| `client-contract` | `check-client-contract.ts` (`--write` records the snapshot; refuses a breaking change without a raised `BUILD_FLOOR`) | `baselines/convex-client-contract.json` |
-| `rules-home` | `check-rules-home.ts` | — |
-| `test-layout` | `check-test-layout.ts` | — |
-| `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |
-| `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
-| `styling` | `check-styling.ts` (`--report` lists every finding) | `baselines/styling-baseline.json` |
-| `copy` | `check-copy.ts` (`--report` lists every finding); rule set `gates/rules/copyTerms.ts` | `baselines/copy-baseline.json` |
-| `audit` | `bun run audit` (CI: only when a manifest or `bun.lock` changed; also nightly) | — |
-| `actionlint` | `lint-workflows.sh` (pinned, sha256-verified actionlint + zizmor) | — |
+`bun run check --list` prints each check's id, profiles, what it guards, its
+command and its fix (which names any baseline it reads): the `CHECKS` registry
+in [`check.ts`](check.ts) is the only list.
 
 ## CI-only, nightly and deploy scripts
 

@@ -22,9 +22,10 @@
  */
 
 import { $ } from 'bun'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
+import { readManifests } from 'gates/lib/workspaceGraph'
 
 /** ~65% of today's count (544 test files): a catastrophe floor. */
 const TEST_FLOOR = 350
@@ -46,21 +47,10 @@ export type TestScript = { dir: string; script: string | undefined }
 
 /** Every workspace manifest's `test` script: `apps/*`, `packages/*` and `tools`. */
 export function workspaceTestScripts(root: string): TestScript[] {
-  const dirs = ['apps', 'packages'].flatMap((base) =>
-    existsSync(join(root, base))
-      ? readdirSync(join(root, base), { withFileTypes: true })
-          .filter((e) => e.isDirectory())
-          .map((e) => `${base}/${e.name}`)
-      : []
-  )
-  return [...dirs.sort(), 'tools']
-    .filter((dir) => existsSync(join(root, dir, 'package.json')))
-    .map((dir) => {
-      const manifest = JSON.parse(readFileSync(join(root, dir, 'package.json'), 'utf8')) as {
-        scripts?: { test?: string }
-      }
-      return { dir, script: manifest.scripts?.test }
-    })
+  return readManifests(root, { withTools: true }).map(({ dir, manifest }) => ({
+    dir,
+    script: manifest.scripts?.test,
+  }))
 }
 
 /** Workspaces whose `test` script is set and is not `TEST_SCRIPT`, one problem per line. */

@@ -64,15 +64,20 @@
  *       bun tools/check-rules-fidelity.ts --update   # ... and rewrite the lock
  *       bun tools/check-rules-fidelity.ts --show=paraphrase,omission   # list those, with diffs
  *       bun tools/check-rules-fidelity.ts --show=stat-mismatch          # stat blocks that differ
- *       bun tools/check-rules-fidelity.ts --summary  # drift summary as markdown (no book text)
  */
 import { existsSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import type { Anchor, Lock, LockEntry, ProseItem, Reason } from 'gates/lib/proseFidelity'
+import type {
+  Anchor,
+  DRIFT_REASONS,
+  Lock,
+  LockEntry,
+  ProseItem,
+  Reason,
+} from 'gates/lib/proseFidelity'
 import {
   collectProse,
   compareWithLock,
-  DRIFT_REASONS,
   fold,
   proseHash,
   readLockFile,
@@ -875,69 +880,8 @@ function printStatSummary(results: StatResult[]) {
   }
 }
 
-/** Escape text for a markdown table or list: backslashes first, then pipes. */
-function mdEscape(s: string): string {
-  return s.replace(/\\/g, '\\\\').replace(/\|/g, '\\|')
-}
-
 function excerpt(s: string, n = 90): string {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s
-}
-
-/** Markdown drift summary for a PR body. Data text only — never book text. */
-function markdownSummary(
-  results: Result[],
-  stats: StatResult[],
-  editions: Record<string, string>
-): string {
-  const out: string[] = []
-  const unv = results.filter((r) => r.verdict === 'unverified')
-  out.push(`Verified ${results.length} prose strings against:`)
-  for (const [k, v] of Object.entries(editions)) out.push(`- ${k}: \`${v}\``)
-  out.push('', '| Verdict | Reason | Strings |', '| --- | --- | ---: |')
-  for (const [l, n] of countBy(results, label)) {
-    const [v, r = ''] = l.split(' ')
-    out.push(`| ${v} | ${r} | ${n} |`)
-  }
-  out.push('', `**Drift (\`unverified\`): ${unv.length} strings.** By file:`, '')
-  out.push(
-    `| File | ${DRIFT_REASONS.join(' | ')} |`,
-    `| --- |${DRIFT_REASONS.map(() => ' ---: |').join('')}`
-  )
-  for (const [file] of countBy(unv, (r) => r.item.file)) {
-    const rs = unv.filter((r) => r.item.file === file)
-    out.push(
-      `| ${file} | ${DRIFT_REASONS.map((d) => rs.filter((r) => r.reason === d).length || '').join(' | ')} |`
-    )
-  }
-  for (const reason of DRIFT_REASONS) {
-    const rs = unv
-      .filter((r) => r.reason === reason)
-      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || a.item.key.localeCompare(b.item.key))
-    if (rs.length === 0) continue
-    out.push('', `<details><summary><code>${reason}</code>: ${rs.length}</summary>`, '')
-    for (const r of rs.slice(0, 8))
-      out.push(
-        `- \`${r.item.file}\` **${r.item.entityName}** \`${r.item.path}\`${r.book ? ` (nearest: ${r.book} p.${r.page}${r.score !== undefined ? `, score ${r.score}` : ''})` : ''} — “${mdEscape(excerpt(r.item.text))}”`
-      )
-    out.push('', '</details>')
-  }
-  const statDrift = stats.filter((r) => r.verdict === 'unverified')
-  out.push(
-    '',
-    `**Stat blocks: ${stats.length}**, ${stats.filter((r) => r.verdict === 'verbatim').length} verbatim, ${statDrift.length} unverified, ${stats.filter((r) => r.verdict === 'unverified-source').length} with no extractor for their book.`
-  )
-  for (const reason of ['stat-mismatch', 'no-match'] as const) {
-    const rs = statDrift.filter((r) => r.reason === reason)
-    if (rs.length === 0) continue
-    out.push('', `<details><summary><code>${reason}</code>: ${rs.length}</summary>`, '')
-    for (const r of rs)
-      out.push(
-        `- \`${r.item.file}\` **${r.item.entityName}**${r.item.name ? ` ${mdEscape(r.item.name)}` : ''} \`${r.item.path || '(own)'}\`: ${mdEscape(r.item.text)}`
-      )
-    out.push('', '</details>')
-  }
-  return out.join('\n')
 }
 
 // ---------------------------------------------------------------------------
@@ -947,7 +891,6 @@ function markdownSummary(
 async function main() {
   const args = process.argv.slice(2)
   const update = args.includes('--update')
-  const summary = args.includes('--summary')
   const show = args
     .find((a) => a.startsWith('--show='))
     ?.slice('--show='.length)
@@ -1029,7 +972,6 @@ async function main() {
       if (r.diff) console.log(`  diff: ${r.diff}`)
     }
   }
-  if (summary) console.log(`\n${markdownSummary(results, stats, editions)}`)
 
   const lock: Lock = {
     editions,

@@ -14,7 +14,7 @@ name: Deploy (Cloudflare)
 # passed CI as that PR (docs/ARCHITECTURE.md#deploy).
 #
 # ---------------------------------------------------------------------------
-# SHAPE: plan -> build-* -> push-convex -> deploy -> smoke -> record (CI-12)
+# SHAPE: plan -> build-* -> push-convex -> deploy -> smoke -> record
 # ---------------------------------------------------------------------------
 #
 #   plan       provenance, the deploy set and every credential guard. Holds no
@@ -39,29 +39,18 @@ name: Deploy (Cloudflare)
 # Every build finishes before any traffic moves, so a failed itun build cannot
 # leave srd on the new commit and itun on the old — a partial deploy nobody
 # chose — and the two long builds overlap.
-# `tools/check-workflows.ts` (deploy-order) asserts that ordering, so a future
-# edit cannot quietly let the deploy run ahead of a build.
 #
-# WHY THE ARTIFACTS ARE BUILT HERE AND NOT TAKEN FROM CI'S RUN. The audit's
-# first suggestion was to deploy the `dist` CI already built for the PR.
-# Neither CI build is the production artifact:
-#   - srd: CI builds with no Sentry DSN, and production must ship the DSN,
-#     source maps and the OG images, none of which CI produces.
-#   - itun: CI builds against a throwaway Convex backend carrying the PR's own
-#     functions. Production must be compiled against the production
-#     deployment's URL (`ITUN_CONVEX_URL` below, checked against Convex's
-#     canonical URL before the push), and with the Sentry DSN.
-# And CI path-filters per PR while this workflow deploys per LAST RECORDED
-# DEPLOY (CI-01), so a surface can need deploying on a commit where CI skipped
-# its build — a CI-artifact path would need this build path as a fallback
-# anyway. So the build happens once, here, and the deploy ships exactly it.
+# ARTIFACTS ARE BUILT HERE, NOT TAKEN FROM CI. CI's srd build has no Sentry
+# DSN, source maps or OG images; CI's itun build targets a throwaway Convex
+# backend, not `ITUN_CONVEX_URL`; and CI path-filters per PR while this deploys
+# per last recorded deploy, so a surface can need shipping on a commit where CI
+# skipped its build.
 #
-# `tools/check-workflows.ts` (deploy-order) also asserts this file still runs
-# `convex deploy`, still has the step refusing a production deploy with no
-# CONVEX_DEPLOY_KEY (by its name, and that its script names the key and can
+# `tools/check-workflows.ts` (deploy-order) asserts that ordering, that this
+# file still runs `convex deploy`, that the step refusing a production deploy
+# with no CONVEX_DEPLOY_KEY exists (by its name, naming the key and able to
 # `exit 1`), and that the job pushing the backend depends on the job carrying
-# it. Do not rename this file or that step without updating
-# that tool.
+# it. Do not rename this file or that step without updating that tool.
 
 on:
   # Every merge. Only a same-repo push can reach `main`, and the `production`
@@ -71,14 +60,9 @@ on:
   # Manual re-deploy, for when a deploy fails on something unrelated to the code
   # (a Cloudflare incident, a rotated token) and the commit is already green.
   #
-  # `sha` is the ROLLBACK PATH, and it exists because there was none: dispatch
-  # took no inputs and checked out `github.sha`, so recovering from a bad deploy
-  # meant a revert PR through full CI — five minutes at best, and it re-runs all
-  # four deploys anyway. Now: dispatch with the last known-good commit.
-  #
+  # `sha` is the ROLLBACK PATH: dispatch with the last known-good commit.
   # Validated as an ancestor of `main` before anything is built (see the guard
-  # below), so this cannot become the "any branch straight to production" hole
-  # the `github.ref` clause was added to close.
+  # below), so it cannot become an "any branch straight to production" hole.
   workflow_dispatch:
     inputs:
       sha:
@@ -102,7 +86,7 @@ on:
 # because the deploy set below is computed against the last RECORDED deploy,
 # not against `HEAD^`: the run that survives diffs across every commit the
 # dropped run would have shipped. Diffing `HEAD^..HEAD` here would silently
-# skip any surface touched only by the dropped commit (CI-01).
+# skip any surface touched only by the dropped commit.
 concurrency:
   group: deploy-cloudflare
   cancel-in-progress: false
@@ -209,14 +193,10 @@ jobs:
 
       # Which surfaces differ from what is live.
       #
-      # ci.yml path-filters every heavy job; without this, a docs-only merge
-      # still installed Chromium, rendered ~2,000 OG images and ran four
-      # `wrangler deploy`s.
-      #
       # The base is the LAST SUCCESSFUL DEPLOY — the `deployed/cloudflare` tag
       # that the `record` job below moves after every green run — never
-      # `HEAD^`, which silently skipped any surface touched only by a commit
-      # whose deploy never ran (audit CI-01). The logic, its reasoning and its
+      # `HEAD^`, which silently skips any surface touched only by a commit
+      # whose deploy never ran. The logic, its reasoning and its
       # tests live in tools/deploy-surfaces.ts; it fails SAFE (no record, a
       # shared path or `force_all` deploys everything).
       #
@@ -243,14 +223,9 @@ jobs:
       # ---------------------------------------------------------------------
       #
       # An absent CONVEX_DEPLOY_KEY must be fatal, loudly, before any artifact
-      # exists, for a measured reason: production ran a four-day
-      # stale backend from 2026-08-06 to 2026-08-10 because an absent key
-      # silently skipped the backend push. The site served the current commit,
-      # the backend was four days behind, every soft-link write failed, and
-      # nothing was red.
-      #
-      # A deploy that cannot push the backend must not ship the client that
-      # expects it.
+      # exists: a skipped backend push serves the current client against a
+      # stale backend, its new writes fail, and nothing is red. A deploy that
+      # cannot push the backend must not ship the client that expects it.
       - name: Refuse to deploy without a Convex deploy key
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
@@ -480,7 +455,7 @@ jobs:
   # ===========================================================================
   #
   # Order is the whole point. The backend must never be BEHIND the served
-  # client (that is what broke players in 2026-08), so it is pushed before
+  # client, so it is pushed before
   # the deploy's itun leg can run. And it must not be pushed by a run that ends up
   # shipping nothing, so it waits for both builds — an srd build failure now
   # stops the push exactly as it stops every deploy. Between this job and
@@ -529,9 +504,8 @@ jobs:
   #
   # Two jobs over the same steps: `deploy-srd`, and `deploy`, a matrix over
   # the rest of the deploy set. A matrix cannot vary `needs` per leg, and only
-  # srd ships `og-srd`'s output — which takes 20-30 s warm and up to ~3 min
-  # cold (docs/ARCHITECTURE.md#deploy) — so only srd waits for it. Keep
-  # the two jobs' steps in step.
+  # srd ships `og-srd`'s output, so only srd waits for it. Keep the two jobs'
+  # steps in step.
   #
   # Both `need` both build jobs and the push, not just what one leg ships: a
   # failed itun build must stop srd shipping too, or the run leaves production
@@ -646,9 +620,9 @@ jobs:
   # ===========================================================================
   #
   # Deliberately includes the rotated-chunk 404: in single-page-application
-  # mode only itun's Worker keeps #759 from coming back, where a missing
-  # hashed chunk answered `200 text/html` and the `immutable` header pinned
-  # that HTML into the HTTP cache for a year.
+  # mode only itun's Worker stops a missing hashed chunk answering
+  # `200 text/html`, which the `immutable` header would pin into the HTTP
+  # cache for a year.
   # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run
   # the same checks on a schedule, catching a regression that happens
   # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
@@ -695,11 +669,10 @@ jobs:
     #
     # The explicit status functions are load-bearing. A bare `if:` gets an
     # implicit `success()`, which at job level checks EVERY ancestor — and a
-    # skipped build job or deploy (an unchanged surface) makes it false. The
-    # record then moved only when all four surfaces shipped, so a newer
-    # srd-only deploy left it behind, and an older commit's later run was
-    # not "stale" and shipped its srd over the newer one: a silent
-    # rollback with every job green. `smoke` must have actually passed.
+    # skipped build job or deploy (an unchanged surface) makes it false, so a
+    # partial deploy would leave the record behind and a later run of an older
+    # commit would not be "stale": a silent rollback with every job green.
+    # `smoke` must have actually passed.
     if: ${{ !cancelled() && !failure() && needs.smoke.result == 'success' && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5

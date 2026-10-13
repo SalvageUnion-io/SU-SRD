@@ -51,8 +51,9 @@
  * regenerating (`bunx convex dev`) stays the source of truth.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { walk } from 'gates/lib/walk'
 
 const ROOT = join(import.meta.dir, '..')
 const CONVEX_DIR = join(ROOT, 'apps/itun/convex')
@@ -73,15 +74,8 @@ const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])
 /** Files Convex does not register as function modules: the data model and provider config. */
 const NOT_MODULES = new Set(['schema', 'auth.config'])
 
-function walk(dir: string, keep: (path: string) => boolean, out: string[] = []): string[] {
-  for (const entry of readdirSync(dir)) {
-    if (entry === '_generated' || entry === 'node_modules') continue
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) walk(full, keep, out)
-    else if (keep(full)) out.push(full)
-  }
-  return out
-}
+/** Codegen output is not source a caller or a module lives in. */
+const SKIP_DIRS = new Set(['node_modules', '_generated'])
 
 /**
  * The public functions one module's source exports, by name.
@@ -180,7 +174,7 @@ function isTest(path: string): boolean {
 
 function main(): void {
   const defined: string[] = []
-  const modules = walk(CONVEX_DIR, (p) => p.endsWith('.ts') && !p.endsWith('.d.ts'))
+  const modules = walk(CONVEX_DIR, (p) => p.endsWith('.ts') && !p.endsWith('.d.ts'), SKIP_DIRS)
   const sources = new Map<string, string>()
   const ownPublic = new Map<string, string[]>()
   const onDisk = new Set<string>()
@@ -208,7 +202,7 @@ function main(): void {
 
   const referenced = new Set<string>()
   for (const dir of CALLER_DIRS) {
-    for (const file of walk(dir, (p) => /\.tsx?$/.test(p) && !isTest(p))) {
+    for (const file of walk(dir, (p) => /\.tsx?$/.test(p) && !isTest(p), SKIP_DIRS)) {
       for (const ref of referencesIn(readFileSync(file, 'utf-8'))) referenced.add(ref)
     }
   }

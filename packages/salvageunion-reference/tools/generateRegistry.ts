@@ -348,7 +348,7 @@ async function main() {
   console.log('Generating registry files from lib/schemas/registry.ts...\n')
 
   // lib/generated/** is biome-ignored (same treatment as routeTree.gen.ts) so
-  // it's never a format:check/lint requirement, but running it through the
+  // it's never a `bun run check biome` requirement, but running it through the
   // formatter anyway keeps the human-readable output pleasant to
   // read. Because Biome would return an ignored path untouched, these go
   // through the synthetic TS_FORMAT_PATH rather than their own paths.
@@ -383,7 +383,7 @@ async function main() {
 
   // lib/index.ts is hand-written (only the marker region is generated), and is
   // NOT biome-ignored, so format the whole file — under its own path — to keep
-  // it format:check-clean and the drift check idempotent.
+  // it `bun run check biome`-clean and the drift check idempotent.
   const formatted = formatWithBiome(injected, indexPath)
   writeFileSync(indexPath, formatted)
   console.log('✓ Injected static accessors into lib/index.ts')
