@@ -171,6 +171,11 @@ type PilotAbilityItemProps = {
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
   readOnly: boolean
+  /**
+   * Fold the card to its header row, opened on demand: the Generic tree every
+   * pilot shares, which reads as reference after the class's own abilities.
+   */
+  folded?: boolean
 }
 
 /**
@@ -185,6 +190,7 @@ export function PilotAbilityItem({
   onSpend,
   onToggleUsed,
   readOnly,
+  folded = false,
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
   const canSpend = apCost !== null && currentAP >= apCost
@@ -238,6 +244,7 @@ export function PilotAbilityItem({
       data={ability}
       size="medium"
       extent="full"
+      collapsible={folded}
       foldTables
       hide={HIDE_CHOICES}
       controls={usedStamp}

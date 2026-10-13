@@ -16,7 +16,7 @@ import { linesFromBreakdown } from 'component-lib'
 import { pilotingContext } from 'itun-domain/rules/pilotingContext'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
 import {
   computeMechCapacity,
   mechMaxEPParts,
@@ -30,7 +30,8 @@ import { useCargo } from '../../lib/cargo/useCargo'
 import type { useEntityStore } from '../../stores/entityStore'
 
 /** One lozenge of the chassis-stats strip: a code, a value, an optional max. */
-type ChassisSpec = { code: string; value: number; max?: number }
+/** One chassis stat as the book's sheet prints it: the numeral and its stamp. */
+type ChassisStat = { key: string; label: string; value: string }
 
 /** Narrow subset of chassis data the stat derivations need. */
 export type ChassisLike = {
@@ -79,8 +80,8 @@ export type MechSheetModel = {
   spLines: ProvenanceLine[]
   epLines: ProvenanceLine[]
   heatLines: ProvenanceLine[]
-  /** The poster's 8-lozenge chassis-stats strip. */
-  specs: ChassisSpec[]
+  /** The Chassis Stats strip, in the order and words of the official mech sheet. */
+  chassisStats: ChassisStat[]
   /** The linked crawler's scrap pool, or null when unlinked. */
   scrapPool: NonNullable<Crawler['scrapPool']> | null
 }
@@ -147,20 +148,38 @@ export function useMechSheetModel({
   const techLevel =
     typeof chassisEntity?.techLevel === 'number' ? chassisEntity.techLevel : undefined
 
-  // The poster's 8-lozenge chassis-stats strip (identity card body):
-  // Structure/Energy/Heat maxima, System/Module slot usage, Cargo usage,
-  // Tech Level, Salvage Value — number-only lozenges, a bounded 4-col grid
-  // rather than a free-wrapped strip.
-  const specs: ChassisSpec[] = [
-    { code: 'SP', value: maxSP },
-    { code: 'EP', value: maxEP },
-    { code: 'HEAT', value: heatCap },
-    { code: 'SYS', value: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
-    { code: 'MOD', value: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
-    { code: 'CARGO', value: cargo.usage.used, max: cargo.usage.cap },
-    ...(techLevel !== undefined ? [{ code: 'TL', value: techLevel }] : []),
+  // The Chassis Stats strip, as the official mech sheet prints its own block
+  // (SU_Char Sheets 2.0, page 2): Structure Pts., Energy Pts., Heat Cap, System
+  // Slots, Module Slots, Cargo Cap., Tech Level, Salvage Value, in the book's
+  // words (`STAT_LABELS.book`). Each is the machine's figure: SP/EP/Heat are the
+  // derived maxima, the slots and cargo the chassis's capacities. What is in use
+  // reads where it is used: the Systems and Modules counts and The Hold.
+  const chassisStats: ChassisStat[] = [
+    { key: 'sp', label: STAT_LABELS.structurePoints.book, value: String(maxSP) },
+    { key: 'ep', label: STAT_LABELS.energyPoints.book, value: String(maxEP) },
+    { key: 'heat', label: STAT_LABELS.heatCapacity.book, value: String(heatCap) },
+    {
+      key: 'system-slots',
+      label: STAT_LABELS.systemSlots.book,
+      value: String(capacity.systemSlotsMax),
+    },
+    {
+      key: 'module-slots',
+      label: STAT_LABELS.moduleSlots.book,
+      value: String(capacity.moduleSlotsMax),
+    },
+    { key: 'cargo', label: STAT_LABELS.cargoCapacity.book, value: String(cargo.usage.cap) },
+    ...(techLevel !== undefined
+      ? [{ key: 'tech-level', label: 'Tech Level', value: String(techLevel) }]
+      : []),
     ...(typeof chassisEntity?.salvageValue === 'number'
-      ? [{ code: 'SV', value: chassisEntity.salvageValue }]
+      ? [
+          {
+            key: 'salvage-value',
+            label: STAT_LABELS.salvageValue.book,
+            value: String(chassisEntity.salvageValue),
+          },
+        ]
       : []),
   ]
 
@@ -184,7 +203,7 @@ export function useMechSheetModel({
     spLines,
     epLines,
     heatLines,
-    specs,
+    chassisStats,
     scrapPool,
   }
 }

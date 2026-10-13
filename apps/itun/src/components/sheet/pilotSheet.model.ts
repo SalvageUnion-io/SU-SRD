@@ -38,9 +38,11 @@ import type { SheetStoreState } from './sheetViewProps.model'
  * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
  *
  * It is INTRINSIC, not chosen: it is never offered in the abilities picker and
- * never stored in `pilot.abilities`. The sheet renders it from reference data,
- * ahead of the abilities the pilot owns (board 10 prints Bonesaw's Generic
- * cards although the record holds only Jury Rig).
+ * never stored in `pilot.abilities`. The sheet renders it from reference data
+ * (board 10 prints Bonesaw's Generic cards although the record holds only Jury
+ * Rig), AFTER the abilities the pilot owns and folded to rows: every pilot has
+ * the same eight, so they are reference, while the class's own abilities are
+ * what tells this pilot from another.
  */
 export const GENERIC_TREE = 'Generic'
 
@@ -77,11 +79,10 @@ export type PilotSheetModel = {
   genericInventory: GenericInventoryEntry[]
   /** Trees offerable in the abilities picker; null when it is closed. */
   abilityTrees: Set<string> | null
-  /**
-   * Every card the Abilities section prints: the whole Generic tree from
-   * reference data first, then the abilities this pilot owns, in stored order.
-   */
-  abilityCards: AbilityEntry[]
+  /** The abilities this pilot owns (its class's trees), in stored order: printed first, open. */
+  classAbilities: AbilityEntry[]
+  /** The whole Generic tree, from reference data: printed after them, folded to rows. */
+  genericAbilities: AbilityEntry[]
   /** The trees they come from, for the section rule's caption; null with none. */
   abilityTreeCaption: string | null
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
@@ -199,27 +200,29 @@ export function usePilotSheetModel({
     []
   )
 
-  // The Generic tree, then the abilities this pilot owns in the order stored,
-  // each keyed by the slug the record actually stores (`pilot.abilities`,
-  // `usedAbilities` and every handler speak slugs). A Generic ability a legacy
-  // record happens to store is already printed with its tree, so it is skipped.
-  const abilityCards = useMemo(() => {
-    const entries: AbilityEntry[] = [...genericAbilities]
+  // The abilities this pilot owns in the order stored, each keyed by the slug
+  // the record actually stores (`pilot.abilities`, `usedAbilities` and every
+  // handler speak slugs). A Generic ability a legacy record happens to store is
+  // already printed with its tree, so it is skipped.
+  const classAbilities = useMemo(() => {
+    const entries: AbilityEntry[] = []
     for (const slug of pilot.abilities) {
       const ability = resolveAbility(slug)
       if (ability && ability.tree !== GENERIC_TREE) entries.push({ slug, ability })
     }
     return entries
     // eslint-disable-next-line react-hooks/preserve-manual-memoization -- keyed on the slug list; resolveAbility is a pure ORM lookup
-  }, [genericAbilities, pilot.abilities])
+  }, [pilot.abilities])
 
-  // The trees those abilities come from, Generic first: the section rule's
-  // caption ("Generic · Forging tree", board 10).
+  // The trees those abilities come from, in the order the section prints them
+  // (the class's own, then Generic): the section rule's caption ("Forging ·
+  // Generic tree", board 10).
   const abilityTreeCaption = useMemo(() => {
-    const trees = [...new Set(abilityCards.map((entry) => entry.ability.tree))]
-    trees.sort((x, y) => Number(y === GENERIC_TREE) - Number(x === GENERIC_TREE))
+    const trees = [
+      ...new Set([...classAbilities, ...genericAbilities].map((entry) => entry.ability.tree)),
+    ]
     return trees.length === 0 ? null : `${trees.join(' · ')} tree`
-  }, [abilityCards])
+  }, [classAbilities, genericAbilities])
 
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
@@ -256,7 +259,8 @@ export function usePilotSheetModel({
     overCapacity,
     genericInventory,
     abilityTrees,
-    abilityCards,
+    classAbilities,
+    genericAbilities,
     abilityTreeCaption,
     unresolvedAbilities,
     hpParts,

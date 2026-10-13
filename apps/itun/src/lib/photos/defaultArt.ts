@@ -1,8 +1,8 @@
 /**
  * The art a player-built entity shows when it has no photo of its own — what
  * an uploaded photo replaces (`EntityPhoto`). Each is the reference entity the
- * build came from: a mech's (or pattern's) chassis, a crawler's type, a built
- * NPC's book template. Where that entity has no artwork there is no default,
+ * build came from: a pilot's class, a mech's (or pattern's) chassis, a
+ * crawler's type, a built NPC's book template. Where that entity has no artwork there is no default,
  * and the sheet makes room for a photo only while it is being edited.
  */
 
@@ -11,6 +11,7 @@ import type { SURefMetaEntity } from 'salvageunion-reference'
 import { findEntityBySlug, getAssetUrl } from 'salvageunion-reference'
 import { resolveChassisRef, resolveCrawlerRef } from 'salvageunion-reference/rules'
 import type { DefaultArt } from '../../components/shared/EntityPhoto'
+import { resolveClass } from '../classRef'
 import { readReference } from '../readReference'
 
 function artOf(entity: SURefMetaEntity | null | undefined): DefaultArt | undefined {
@@ -18,6 +19,11 @@ function artOf(entity: SURefMetaEntity | null | undefined): DefaultArt | undefin
   const url = getAssetUrl(entity)
   if (url === undefined) return undefined
   return { url, alt: `${'name' in entity ? entity.name : 'Reference'} artwork` }
+}
+
+/** A pilot's class art: the sheet opens on it until the player adds a portrait. */
+export function classArt(classRef: string): DefaultArt | undefined {
+  return readReference('photo:class', () => artOf(resolveClass(classRef)), undefined)
 }
 
 /** A mech's or pattern's chassis art. */

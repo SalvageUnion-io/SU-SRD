@@ -208,3 +208,36 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
     expect(screen.getByRole('button', { name: /mark talk shop used/i })).toBeTruthy()
   })
 })
+
+describe('PilotSheet — the class leads, the Generic tree folds', () => {
+  test("the pilot's own abilities print first, open; the Generic tree after, folded", () => {
+    const pilot = makePilot()
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+
+    // Talk Shop (the pilot's own) is open: its live-play row is in the DOM.
+    expect(screen.getByRole('button', { name: /mark talk shop used/i })).toBeTruthy()
+    // Every Generic card is folded to its header row until the reader opens it.
+    const repair = screen.getByRole('button', { name: 'Repair details' })
+    expect(repair.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByRole('button', { name: /mark repair used/i })).toBeNull()
+
+    // …and reads after the class's own ability.
+    const talkShop = screen.getByRole('button', { name: /mark talk shop used/i })
+    expect(talkShop.compareDocumentPosition(repair) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  test("the section caption names the class's tree before Generic", () => {
+    const pilot = makePilot()
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    expect(screen.getByText(/· Generic tree$/)).toBeTruthy()
+  })
+})
+
+describe('PilotSheet — the class art stands in for a portrait', () => {
+  test('a pilot with no photo opens on their class art', () => {
+    const pilot = makePilot({ classRef: 'hacker' })
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+    const art = screen.getByRole<HTMLImageElement>('img', { name: 'Hacker artwork' })
+    expect(art.src).toContain('/classes/hacker.webp')
+  })
+})

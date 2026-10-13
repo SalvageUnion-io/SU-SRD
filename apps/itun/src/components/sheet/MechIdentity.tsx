@@ -109,8 +109,8 @@ export function MechIdentityPanel({
         />
         {/* Chassis (picker-backed). Tech Level is NOT here: it is inherent to
             the chassis, never hand-set, and rendering it as a Field made it look
-            editable. It reads off the static-stats strip's TL box instead, with
-            the rest of the chassis-derived numbers. */}
+            editable. It reads off the Chassis Stats strip instead, with the
+            rest of the chassis-derived numbers. */}
         {/* Half width: the chassis is a one-word picker value, and a full-bleed
             box for it competed with the pattern name above. */}
         <div className="su-sheet-mech-chassis-row" style={CHASSIS_ROW}>

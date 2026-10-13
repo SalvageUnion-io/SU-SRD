@@ -4,10 +4,11 @@
  *
  * Two columns, as board 10 prints the pilot sheet (issue 1255); one below the
  * container's 5xl, in this reading order:
- *   - wide: the Identity card (typeset in Read, fields in Edit), then
- *     Abilities — the Generic tree, then the pilot's own, as entity cards with
- *     Spend AP (fixed costs only) and a used/recharge toggle in a row under
- *     the body in Edit;
+ *   - wide: the Identity card (the portrait, else the class's art, beside
+ *     fields typeset in Read), then Abilities — the pilot's own class trees as
+ *     full entity cards, then the Generic tree folded to rows — with Spend AP
+ *     (fixed costs only) and a used/recharge toggle in a row under the body in
+ *     Edit;
  *   - narrow: the Vitals card (HP/AP gauges, TP and Conditions), Inventory
  *     (shortform pills and free-slot boxes in Read; in Edit each pill with its
  *     controls in a row under it) and Linked Units (one line each in Read).
@@ -68,6 +69,7 @@ import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
+import { classArt } from '../../lib/photos/defaultArt'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { EntityPhoto } from '../shared/EntityPhoto'
@@ -330,10 +332,14 @@ export function PilotSheet({
 
   const { hpParts, apParts, maxHP, maxAP, hp, ap, tp } = model
 
-  /** One learned ability card — identical wherever its tree puts it. */
-  function renderAbility({ slug, ability }: { slug: string; ability: SURefAbility }) {
+  /** One learned ability card — identical wherever its tree puts it, bar the fold. */
+  function renderAbility(
+    { slug, ability }: { slug: string; ability: SURefAbility },
+    folded = false
+  ) {
     return (
       <PilotAbilityItem
+        folded={folded}
         ability={ability}
         currentAP={ap}
         used={pilot.usedAbilities?.includes(slug) ?? false}
@@ -397,6 +403,9 @@ export function PilotSheet({
               photo={
                 <EntityPhoto
                   photo={pilot.photo}
+                  // With no portrait, the sheet opens on the class's art, as the
+                  // book's premades open on theirs.
+                  fallback={classArt(pilot.classRef)}
                   name={pilot.callsign || pilot.name}
                   onChange={
                     readOnly
@@ -416,7 +425,7 @@ export function PilotSheet({
               />
             </PhotoBeside>
           </SheetSectionCard>
-          {/* ===== Abilities — the Generic tree, then the ones this pilot owns =====
+          {/* ===== Abilities — the ones this pilot owns, then the Generic tree =====
               A SLAB, not a card: the grid is entity cards, which carry their own
               frame. */}
           <div className="su-sheet-pilot-order-1" style={MIN_W_0}>
@@ -430,17 +439,30 @@ export function PilotSheet({
                 )
               }
             >
-              {model.abilityCards.length === 0 && model.unresolvedAbilities.length === 0 ? (
+              {model.classAbilities.length === 0 &&
+              model.genericAbilities.length === 0 &&
+              model.unresolvedAbilities.length === 0 ? (
                 <EmptyState variant="quiet" body="No abilities learned yet." />
               ) : (
                 <div style={STACK_20}>
-                  {/* The Generic tree every pilot has, then what this pilot owns,
-                    each a full medium card so the action and range line and the
-                    body read in Read. */}
-                  {model.abilityCards.length > 0 && (
+                  {/* What this pilot owns first, each a full medium card so the
+                    action and range line and the body read in Read: the class's
+                    own abilities are what tell this pilot from another. */}
+                  {model.classAbilities.length > 0 && (
                     <MasonryColumns maxColumns={3}>
-                      {model.abilityCards.map((entry) => (
+                      {model.classAbilities.map((entry) => (
                         <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
+                      ))}
+                    </MasonryColumns>
+                  )}
+
+                  {/* Then the Generic tree every pilot has, folded to rows: eight
+                    full cards ran ~1,500px ahead of the class's first ability,
+                    and the reader opens the one they are using. */}
+                  {model.genericAbilities.length > 0 && (
+                    <MasonryColumns maxColumns={3}>
+                      {model.genericAbilities.map((entry) => (
+                        <EntityGridRow key={entry.slug}>{renderAbility(entry, true)}</EntityGridRow>
                       ))}
                     </MasonryColumns>
                   )}

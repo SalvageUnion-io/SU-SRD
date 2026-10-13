@@ -6,9 +6,10 @@
  * `SheetHero` as its first region. Region order mirrors the
  * printed mech sheet:
  *
- *   Identity Band: edge wordmark ∥ the pattern-name/chassis fields + the
- *       8-lozenge chassis-stats strip ∥ SP/EP/Heat `VitalGauge`s + Conditions
- *       vitals rail — one toned frame (the printed top band).
+ *   Identity Band: edge wordmark ∥ the chassis art beside the pattern-name/
+ *       chassis fields and the Chassis Stats strip (its own block, as the
+ *       official sheet's page 2 prints it) ∥ SP/EP/Heat `VitalGauge`s +
+ *       Conditions vitals rail — one toned frame (the printed top band).
  *   Chassis Ability + Quirk & Appearance live INSIDE the identity card: the
  *       chassis's ability is what the chassis IS (always visible, no fold), and
  *       quirk/appearance are two more identity Fields under the same Edit
@@ -61,6 +62,7 @@ import {
   MasonryColumns,
   ReferenceEntityCard,
   SheetSectionSlab,
+  StatColumn,
   tokens,
   VitalGauge,
 } from 'component-lib'
@@ -364,47 +366,30 @@ export function MechSheet({
                   />
                 }
                 after={
-                  // The chassis's ability, carrying the CHASSIS STATS in its own
-                  // header: the numbers describe the machine the ability belongs
-                  // to, so the card that names it is where they read. That folds
-                  // what were two adjacent blocks (a bare stat strip and a card)
-                  // into one, full-width under the chassis name.
-                  //
-                  // Always visible, never folded — there is nothing to manage or
-                  // choose here, so a fold would hide the one thing that
-                  // distinguishes this chassis from another.
-                  model.chassisAbilities.length > 0 ? (
-                    <div style={ABILITIES}>
-                      {model.chassisAbilities.map((ability, i) => {
-                        // Activating an ability (spending its EP) is a Guided-Play
-                        // transaction — it lives on the Dashboard, not the
-                        // Free-Edit Live Sheet (ADR-021). EP is spent here by
-                        // hand-editing the EP gauge (free state).
-                        //
-                        // No `footMeta`: the ability's EP cost is the CARD's to
-                        // render and it already does, as its own "2 EP" box, so an
-                        // "EP Cost 2" pair in the footer was the same number twice
-                        // on one card.
-                        return (
+                  <>
+                    {/* The Chassis Stats, their own strip under the chassis name,
+                      as the official mech sheet prints its own block ahead of
+                      the Chassis Ability (SU_Char Sheets 2.0, page 2). */}
+                    <StatColumn stats={model.chassisStats} label="Chassis stats" />
+                    {/* The chassis's ability: always visible, never folded —
+                      there is nothing to manage or choose here, so a fold would
+                      hide the one thing that distinguishes this chassis from
+                      another. */}
+                    {model.chassisAbilities.length > 0 && (
+                      <div style={ABILITIES}>
+                        {model.chassisAbilities.map((ability) => (
+                          // Activating an ability (spending its EP) is a
+                          // Guided-Play transaction — it lives on the Dashboard,
+                          // not the Free-Edit Live Sheet (ADR-021). EP is spent
+                          // here by hand-editing the EP gauge (free state).
+                          //
+                          // No `footMeta`: the ability's EP cost is the CARD's to
+                          // render and it already does, as its own "2 EP" box.
                           <EntityGridRow key={ability.id}>
                             <ReferenceEntityCard
                               data={ability}
                               size="large"
                               foldTables
-                              // Only the FIRST ability carries the stats — they
-                              // belong to the chassis, not to each ability, and
-                              // repeating them down a list would read as though
-                              // each ability had its own.
-                              statsOverride={
-                                i === 0
-                                  ? model.specs.map((spec) => ({
-                                      key: spec.code,
-                                      label: spec.code,
-                                      value: spec.value,
-                                      outOfMax: spec.max,
-                                    }))
-                                  : undefined
-                              }
                               // `[(CHASSIS)]` in the ability's text resolves to
                               // the PATTERN name, not the chassis's: on a live
                               // sheet the reader is looking at this machine, and
@@ -413,10 +398,10 @@ export function MechSheet({
                               chassisName={mech.name}
                             />
                           </EntityGridRow>
-                        )
-                      })}
-                    </div>
-                  ) : undefined
+                        ))}
+                      </div>
+                    )}
+                  </>
                 }
               />
 

@@ -155,3 +155,32 @@ describe('MechSheet — readOnly', () => {
     expect(updateSpy).not.toHaveBeenCalled()
   })
 })
+
+describe('MechSheet — the Chassis Stats strip', () => {
+  test("prints the chassis stats as their own block, in the official sheet's words", () => {
+    // A real chassis, so every figure resolves from the reference data.
+    const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
+    const { container } = render(
+      <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
+    )
+    // Its own strip (SU_Char Sheets 2.0, page 2), not a banner on the chassis
+    // ability: the numbers belong to the machine, in the sheet's order.
+    const strip = container.querySelector('dl[aria-label="Chassis stats"]')
+    expect(strip).not.toBeNull()
+    const pairs = [...(strip?.querySelectorAll('dt') ?? [])].map(
+      (dt) => `${dt.textContent} ${dt.nextElementSibling?.textContent}`
+    )
+    // The machine's figures: capacities, not what is in use (the Systems and
+    // Modules counts and The Hold say that).
+    expect(pairs).toEqual([
+      'Structure Pts. 17',
+      'Energy Pts. 11',
+      'Heat Cap. 3',
+      'System Slots 7',
+      'Module Slots 4',
+      'Cargo Cap. 6',
+      'Tech Level 1',
+      'Salvage Value 10',
+    ])
+  })
+})
