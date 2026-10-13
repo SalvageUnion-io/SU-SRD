@@ -154,8 +154,8 @@ for (const schema of ['systems', 'abilities']) {
 // (f) A roll table rolls on its own page (board 08b).
 test('a roll table page rolls and marks the result', async ({ page }) => {
   await page.goto('/roll-tables/core-mechanic/')
-  // The Roll the Die button is the roll once the island mounts (the server
-  // markup's is the plain stamp), and the page's only one.
+  // The ROLL THE DIE stamp is the roll: a button once the island mounts (the
+  // server markup's stamp is a plain label), and the page's only one.
   const roll = page.getByRole('button', { name: 'Roll the die on Core Mechanic' })
   await expect(roll).toBeVisible({ timeout: 30_000 })
   await expect(page.locator('main').getByRole('button', { name: /^Roll/ })).toHaveCount(1)
@@ -164,35 +164,35 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Randsum.dev' })).toBeVisible()
 })
 
-// (g) An index's List is one flat column (entity display language): a Row a
-// line, each its own height, at a desktop width and a phone's. These schemas
-// have art, so a desktop opens on the Catalog; `?view=list` asks for the Rows.
+// (g) An index's List is one flat column (the Catalog is the grid): every Row
+// on its own line, spanning the list's full width, at a desktop width and a
+// phone's. These schemas have art, so a desktop opens on the Catalog;
+// `?view=list` asks for the Rows. `data-entity-fit` marks the mounted List,
+// not the server-rendered names that stand in for it (Catalog-shaped at 1440px).
+const LIST = '.srd-listing[data-view="list"] ul.srd-listing__cards[data-entity-fit]'
 for (const width of [1440, 390]) {
   for (const schema of ['bio-titans', 'chassis']) {
-    test(`the /${schema}/ List is one column of Rows at ${width}px`, async ({ page }) => {
+    test(`the /${schema}/ List is one column at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto(`/${schema}/?view=list`)
-      const list = page.locator('ul.srd-listing__cards').first()
-      await expect(list.locator('a[aria-label]').first()).toBeVisible({ timeout: 30_000 })
-      // Every Row in every list shares one left edge and one width. Polled:
-      // the server markup lays out before the island mounts.
-      const spread = () =>
-        page.$$eval('ul.srd-listing__cards > li', (rows) => {
-          const boxes = rows.map((li) => li.getBoundingClientRect())
-          const lefts = boxes.map((r) => r.left)
-          const widths = boxes.map((r) => r.width)
-          return {
-            rows: boxes.length,
-            left: Math.max(...lefts) - Math.min(...lefts),
-            width: Math.max(...widths) - Math.min(...widths),
-          }
+      await expect(page.locator(`${LIST} a[aria-label]`).first()).toBeVisible({ timeout: 30_000 })
+      const lists = await page.$$eval(LIST, (uls) =>
+        uls.map((ul) => {
+          const list = ul.getBoundingClientRect()
+          return [...ul.children].map((li) => {
+            const row = li.getBoundingClientRect()
+            return { left: row.left - list.left, width: row.width - list.width }
+          })
         })
-      await expect
-        .poll(async () => {
-          const s = await spread()
-          return s.rows > 1 && s.left <= 1 && s.width <= 1
-        })
-        .toBe(true)
+      )
+      expect(lists.length).toBeGreaterThan(0)
+      for (const rows of lists) {
+        expect(rows.length).toBeGreaterThan(0)
+        for (const row of rows) {
+          expect(Math.abs(row.left)).toBeLessThanOrEqual(1)
+          expect(Math.abs(row.width)).toBeLessThanOrEqual(1)
+        }
+      }
     })
   }
 }
@@ -214,7 +214,7 @@ test('a listing with art opens on the Catalog at 1440px, the List at 390px', asy
 
   await page.setViewportSize({ width: 390, height: 900 })
   await page.goto('/chassis/')
-  await expect(page.locator('ul.srd-listing__cards a[aria-label]').first()).toBeVisible({
+  await expect(page.locator(`${LIST} a[aria-label]`).first()).toBeVisible({
     timeout: 30_000,
   })
   await expect(page.locator('.srd-listing__tiles')).toHaveCount(0)
