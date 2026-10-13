@@ -34,6 +34,7 @@ describe('/su command', () => {
       'me',
       'my-stuff',
       'roll',
+      'screen',
       'sheet',
     ])
 

@@ -40,8 +40,8 @@ even for a type: its value import cannot run on workerd.
 - `src/gameCards.ts` - Game cards (`data → entityCard`)
 - `src/termFinder.ts`, `src/commands/lookUpMessage.ts` - "Look up in Salvage
   Union", the message context menu
-- `src/rollContainer.ts`, `src/errorContainer.ts`, `src/inviteContainer.ts` -
-  surfaces that author their own blocks
+- `src/rollContainer.ts`, `src/errorContainer.ts`, `src/inviteContainer.ts`,
+  `src/screenContainer.ts` - surfaces that author their own blocks
 - `src/deploy-commands.ts` - Command registration CLI (run from source); the
   only file that reads `process.env`
 

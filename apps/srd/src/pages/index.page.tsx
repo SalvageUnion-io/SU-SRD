@@ -23,6 +23,7 @@ import { STARTER_SET_HREF } from '../lib/buildLink'
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
+import { SCREEN_HREF } from '../lib/screenPage'
 import '../lib/gameData'
 import { Island } from '../runtime/Island'
 
@@ -82,10 +83,14 @@ function page(): PageResult {
     const href = hrefByName('guides', guide)
     return href ? [{ title: guide, meta, href }] : []
   })
-  const atTheTable = AT_THE_TABLE.flatMap(({ schema, name, label }): ContentsRow[] => {
-    const href = hrefByName(schema, name)
-    return href ? [{ label, href }] : []
-  })
+  // The Mediator Screen first: every one of these on one page, rolled in place.
+  const atTheTable: ContentsRow[] = [
+    { label: 'Mediator Screen', href: SCREEN_HREF },
+    ...AT_THE_TABLE.flatMap(({ schema, name, label }): ContentsRow[] => {
+      const href = hrefByName(schema, name)
+      return href ? [{ label, href }] : []
+    }),
+  ]
 
   return {
     meta: {

@@ -49,6 +49,7 @@ Canonical URLs always carry a trailing slash.
 | `SearchResultsIsland`   | only    | false    | client-only results page                                         |
 | `OgCardIsland`          | load    | false    | screenshot target                                                |
 | `ColumnsTableIsland`    | idle    | **true** | a columns table (Callsign); same `ColumnsTableView`, no roll      |
+| `ScreenTableIsland`     | idle    | **true** | a table on `/screen/`; same `ScreenTableView`, no roll            |
 | `DidYouMeanIsland`      | idle    | false    | the 404's guesses: the missed path is known only in the browser  |
 | `PeekIsland`            | idle    | false    | every page, no props: the one Peek host; loads on the first Peek |
 | `WikiLinkIsland`        | idle    | false    | chrome, mounted twice; the WIKI link rolls 1 in 100 per page load |
