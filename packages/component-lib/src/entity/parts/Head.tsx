@@ -114,13 +114,8 @@ export function Head({
     >
       <div className="su-entity-row__line">
         {tierNode}
-        {cut && chips ? (
-          <>
-            {name}
-            {chips}
-          </>
-        ) : chips ? (
-          <div className="su-entity-row__heading">
+        {chips ? (
+          <div className={cn('su-entity-row__heading', cut && 'su-entity-row__heading--cut')}>
             {name}
             {chips}
           </div>

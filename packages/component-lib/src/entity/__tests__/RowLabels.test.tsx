@@ -42,9 +42,11 @@ describe('Row labels', () => {
   test('the name wears the cut-out, its chips on the band beside it, in one group', () => {
     render(<Entity form="row" entity={drill()} />)
     const head = headOf('Salvaging Drill')
-    const line = head.querySelector('.su-entity-row__line')
-    expect(line?.firstElementChild?.className).toBe('su-entity-row__name')
-    expect(line?.children[1]?.getAttribute('data-chip-group')).toBe('')
+    // The name and its chips share one heading: the name first, so it keeps the
+    // tab at the band's foot and the chips rise above it when they do not fit.
+    const heading = head.querySelector('.su-entity-row__heading--cut')
+    expect(heading?.firstElementChild?.className).toBe('su-entity-row__name')
+    expect(heading?.lastElementChild?.getAttribute('data-chip-group')).toBe('')
     // Every Row wears the cut-out, chips or not.
     expect(head.dataset.notch).toBe('true')
     expect(nameBox('Salvaging Drill').className).toBe('su-entity-row__notch')

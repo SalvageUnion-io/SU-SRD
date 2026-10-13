@@ -218,10 +218,19 @@
   flex: 0 1 auto;
 }
 
-/* A cut-out head with chips (`Head`'s `chipsBeside`): the chips stay on the
-   band right of the name, wrapping there, never under the tab. */
-.su-entity-row__head[data-notch] .su-entity-row__line > .su-chips {
-  flex: 0 1 auto;
+/* A cut-out head with chips (`Head`'s `chipsBeside`): the name stays on its
+   tab at the band's foot and the chips sit right of it while they fit; when
+   they do not, they rise whole onto the band ABOVE the tab (`wrap-reverse`),
+   never under it, so a narrow Row's name is never squeezed by its chips. */
+.su-entity-row__heading--cut {
+  align-content: flex-start;
+  align-items: center;
+  align-self: stretch;
+  flex-wrap: wrap-reverse;
+}
+
+.su-entity-row__heading--cut > .su-chips {
+  margin-bottom: var(--space-4);
 }
 
 /* On the ink banner each cell keeps a paper rule, or its paper value cell
@@ -518,6 +527,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    the grid is one height and the name centres in its line. */
 [data-entity-grid] .su-entity-row__line {
   min-height: calc(2.1 * var(--text-title));
+}
+
+/* On a phone a grid's cut-out heads all set their chips on the band above the
+   tab, so a long name that pushes its chips up stands no taller than the
+   rest. */
+@media (max-width: 40rem) {
+  [data-entity-grid] .su-entity-row__heading--cut > .su-chips {
+    flex-basis: 100%;
+  }
 }
 
 /* Every lead in the grid reserves its three lines (`Lead`'s clamp at 1.4), so

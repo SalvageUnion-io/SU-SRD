@@ -220,9 +220,12 @@ describe('the card as a page', () => {
     const head = need(title.closest('.su-entity-row__head') ?? undefined, 'cut-out head')
     expect(head.getAttribute('data-notch')).toBe('true')
     expect(head.querySelector('.su-entity-row__notch')?.contains(title)).toBe(true)
-    // The HP chip sits on the band, the name's next sibling group, not on the tab.
-    const line = need(head.querySelector('.su-entity-row__line') ?? undefined, 'line')
-    const chips = need(line.querySelector(':scope > .su-chips') ?? undefined, 'chips on the band')
+    // The HP chip sits on the band beside the name, not on the tab.
+    const heading = need(head.querySelector('.su-entity-row__heading--cut') ?? undefined, 'heading')
+    const chips = need(
+      heading.querySelector(':scope > .su-chips') ?? undefined,
+      'chips on the band'
+    )
     expect(chips.textContent).toBe('HP4')
     expect(head.textContent).toBe('Chef (NPC)HP4')
   })
