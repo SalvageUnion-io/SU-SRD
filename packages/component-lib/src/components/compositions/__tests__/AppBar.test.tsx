@@ -11,8 +11,8 @@ import { AppBar } from '../AppBar'
 
 const CRUMBS = [
   { name: 'SRD', url: 'https://salvageunion.io/' },
-  { name: 'Chassis', url: 'https://salvageunion.io/schema/chassis/' },
-  { name: 'Gopher', url: 'https://salvageunion.io/schema/chassis/item/gopher/' },
+  { name: 'Chassis', url: 'https://salvageunion.io/chassis/' },
+  { name: 'Gopher', url: 'https://salvageunion.io/chassis/gopher/' },
 ]
 
 describe('AppBar', () => {

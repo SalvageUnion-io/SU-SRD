@@ -105,7 +105,7 @@ export type RouteContext<Params, Props> = {
   props: Props
   /** Full URL of the page being rendered, e.g. https://salvageunion.io/about/ */
   url: URL
-  /** Pathname with a trailing slash, e.g. /schema/chassis/item/aegis/ */
+  /** Pathname with a trailing slash, e.g. /chassis/aegis/ */
   pathname: string
   /** Emitted URLs of assets from `src/assets/`. See `BuiltAssets`. */
   builtAssets: BuiltAssets
@@ -114,7 +114,7 @@ export type RouteContext<Params, Props> = {
 export type StaticPath<Params, Props> = { params: Params; props: Props }
 
 export type PageModule<Params = Record<string, string>, Props = unknown> = {
-  /** Route pattern, e.g. '/schema/[schemaId]/item/[itemId]' */
+  /** Route pattern, e.g. '/[schemaId]/[itemId]' */
   pattern: string
   /** Omit for a single fixed route. */
   getStaticPaths?: () => StaticPath<Params, Props>[]

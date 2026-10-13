@@ -22,7 +22,7 @@ describe('srdEntityExternalLink', () => {
 
     const { container } = render(node)
     const link = container.querySelector('a')
-    expect(link?.href).toBe('https://salvageunion.io/schema/chassis/item/mule')
+    expect(link?.href).toBe('https://salvageunion.io/chassis/mule')
     expect(link?.target).toBe('_blank')
     expect(link?.textContent).toBe('View in SRD →')
     expect(link?.getAttribute('aria-label')).toContain('Mule')

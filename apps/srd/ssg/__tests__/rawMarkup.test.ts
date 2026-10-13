@@ -42,9 +42,9 @@ const renderRoute = (route: string): string =>
 
 describe('rendered pages', () => {
   it('draws a rules-text trait as a Mention linked to its page, with its Peek', () => {
-    const html = renderRoute('/schema/roll-tables/item/mechapult')
+    const html = renderRoute('/roll-tables/mechapult')
     expect(renderedBody(html)).toMatch(
-      /<a href="\/schema\/traits\/item\/burn\/" class="su-inline-ref su-inline-ref--link" data-peek="traits:[^"]+">Burn \(X\)<\/a>/
+      /<a href="\/traits\/burn\/" class="su-inline-ref su-inline-ref--link" data-peek="traits:[^"]+">Burn \(X\)<\/a>/
     )
     expect(findRawMarkup(html)).toBeUndefined()
   })
@@ -52,19 +52,11 @@ describe('rendered pages', () => {
   // One page per render path the sample above does not reach: the build scan
   // covers every page, these keep each path's markup under test.
   it.each([
-    [
-      'a hybrid class, its trees and their owners',
-      '/schema/classes/item/fabricator',
-      '<dt>Hybrid</dt>',
-    ],
-    [
-      'a two-roll columns table',
-      '/schema/roll-tables/item/callsign-table',
-      'data-island="ColumnsTableIsland"',
-    ],
+    ['a hybrid class, its trees and their owners', '/classes/fabricator', '<dt>Hybrid</dt>'],
+    ['a two-roll columns table', '/roll-tables/callsign-table', 'data-island="ColumnsTableIsland"'],
     [
       'a static fallback with a Traits line',
-      '/schema/abilities/item/auto-turret',
+      '/abilities/auto-turret',
       'srd-static__label">Traits:',
     ],
   ])('renders %s without raw markup', (_label, route, marker) => {

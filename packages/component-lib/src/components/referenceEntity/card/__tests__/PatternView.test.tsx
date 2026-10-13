@@ -134,7 +134,7 @@ describe('full pattern view reading order', () => {
 describe('pattern loadout badges', () => {
   /** Stands in for srd's entity route builder. */
   const testEntityHref = (entity: SURefEntity) =>
-    `/schema/${'schemaName' in entity ? String(entity.schemaName) : ''}/item/${
+    `/${'schemaName' in entity ? String(entity.schemaName) : ''}/${
       'name' in entity ? nameToSlug(String(entity.name)) : ''
     }`
 
@@ -158,11 +158,11 @@ describe('pattern loadout badges', () => {
     const guns = screen.getAllByRole('link', { name: /\.50 Cal Machine Gun/ })
     expect(guns).toHaveLength(6)
     for (const gun of guns) {
-      expect(gun.getAttribute('href')).toBe('/schema/systems/item/50-cal-machine-gun')
+      expect(gun.getAttribute('href')).toBe('/systems/50-cal-machine-gun')
     }
     // Modules link out through the same builder.
     expect(screen.getByRole('link', { name: /Comms Module/ }).getAttribute('href')).toBe(
-      '/schema/modules/item/comms-module'
+      '/modules/comms-module'
     )
   })
 

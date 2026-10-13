@@ -86,7 +86,10 @@
 /logos/*
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-/schema/*.og.png
+# The unfurls sit beside their pages (`/chassis/mule.og.png`), one per schema
+# directory, so this one rule is a root splat on the `.og.png` suffix. Nothing
+# under `/assets/` carries that suffix: a hashed name ends in its hash.
+/*.og.png
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 # HTML is the one thing that must never be cached: a deploy rotates the hashed

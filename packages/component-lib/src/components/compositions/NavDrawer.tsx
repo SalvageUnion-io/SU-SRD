@@ -2,6 +2,7 @@ import { Drawer } from '@base-ui/react/drawer'
 import { Menu, X } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
+import { srdSchemaPath } from 'salvageunion-reference'
 import {
   borderWidth,
   color,
@@ -282,7 +283,7 @@ export function NavDrawer({
                     {cat.schemas.map((schema) => (
                       <li key={schema.id}>
                         <a
-                          href={schema.href || `/schema/${schema.id}/`}
+                          href={schema.href || `${srdSchemaPath(schema.id)}/`}
                           className={cn('su-nav-drawer__row', FOCUS_RING)}
                           onClick={close}
                         >

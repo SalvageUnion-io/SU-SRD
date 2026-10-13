@@ -46,7 +46,7 @@ describe('discordCardParts', () => {
     const parts = partsFor('chassis', 'mule')
     expect(parts.tone).toBe('mech')
     expect(parts.head[0]).toBe('-# CHASSIS')
-    expect(parts.head[1]).toBe('## [Mule](https://salvageunion.io/schema/chassis/item/mule)')
+    expect(parts.head[1]).toBe('## [Mule](https://salvageunion.io/chassis/mule)')
     expect(parts.head[2]).toBe('`12` STRUCTURE PTS. · `4` ENERGY PTS. · `6` HEAT CAP.')
     expect(parts.thumbnail?.url).toContain('mule')
     expect(parts.cite).toBe(
@@ -58,7 +58,7 @@ describe('discordCardParts', () => {
     const parts = partsFor('abilities', 'counter-hacking')
     expect(parts.head[0]).toBe('-# ABILITY · ADVANCED HACKING TREE · REACTION · `1 AP`')
     expect(parts.head[1]).toStartWith('## 2 · [Counter-Hacking](')
-    expect(parts.head).toContain('[Hacking](https://salvageunion.io/schema/traits/item/hacking)')
+    expect(parts.head).toContain('[Hacking](https://salvageunion.io/traits/hacking)')
     expect(parts.table?.rows.map((row) => row.key)).toEqual(['20', '11-19', '6-10', '2-5', '1'])
   })
 
@@ -74,15 +74,13 @@ describe('discordCardParts', () => {
     )
     const parts = discordCardParts(toEntityModel(mule, undefined, { pattern: hauler }))
     expect(parts.head[0]).toBe('-# PATTERN · MULE')
-    expect(parts.url).toBe('https://salvageunion.io/schema/chassis/item/mule/pattern/hauler')
+    expect(parts.url).toBe('https://salvageunion.io/chassis/mule/pattern/hauler')
     const systems = need(
       parts.children.find((group) => group.label === 'Systems'),
       'systems'
     )
     expect(systems.count).toBe(7)
-    expect(systems.line).toContain(
-      '[Rigging Arm](https://salvageunion.io/schema/systems/item/rigging-arm)'
-    )
+    expect(systems.line).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
     // The chassis placeholder names the chassis, never the pattern.
     expect(parts.actions.map((action) => action.text).join('\n')).toContain('of The Mule')
   })
@@ -100,7 +98,7 @@ describe('discordCardParts', () => {
 describe('linkTraitReferences', () => {
   test('links a known trait and keeps its parameter', () => {
     expect(linkTraitReferences('gains the [[Vulnerable]] Trait')).toBe(
-      'gains the [Vulnerable](https://salvageunion.io/schema/traits/item/vulnerable) Trait'
+      'gains the [Vulnerable](https://salvageunion.io/traits/vulnerable) Trait'
     )
   })
 })

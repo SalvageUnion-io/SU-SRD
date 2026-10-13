@@ -58,9 +58,7 @@ describe('getPatternStaticPaths', () => {
     )
     expect(hidden.length).toBeGreaterThan(0)
     const generated = new Set(
-      paths.map(
-        (p) => `/schema/${p.params.schemaId}/item/${p.params.itemId}/pattern/${p.params.patternId}/`
-      )
+      paths.map((p) => `/${p.params.schemaId}/${p.params.itemId}/pattern/${p.params.patternId}/`)
     )
     expect(hidden.filter((href) => generated.has(href))).toEqual([])
   })
@@ -84,7 +82,7 @@ describe('srdPatternHref', () => {
   it('resolves to a page that getPatternStaticPaths actually generates', () => {
     const generated = new Set(
       getPatternStaticPaths().map(
-        (p) => `/schema/${p.params.schemaId}/item/${p.params.itemId}/pattern/${p.params.patternId}/`
+        (p) => `/${p.params.schemaId}/${p.params.itemId}/pattern/${p.params.patternId}/`
       )
     )
     const dangling = [
@@ -102,14 +100,14 @@ describe('srdPatternHref', () => {
     const host = typhon()
     const hillWorm = host.patterns?.find((p) => p.name === 'Hill Worm')
     if (!hillWorm) throw new Error('Hill Worm fixture missing')
-    expect(srdPatternHref(host, hillWorm)).toBe('/schema/bio-titans/item/typhon/pattern/hill-worm/')
+    expect(srdPatternHref(host, hillWorm)).toBe('/bio-titans/typhon/pattern/hill-worm/')
   })
 
   it('nests the pattern under its chassis', () => {
     const chassis = mule()
     const hauler = chassis.patterns?.find((p) => p.name === 'Hauler')
     if (!hauler) throw new Error('Hauler fixture missing')
-    expect(srdPatternHref(chassis, hauler)).toBe('/schema/chassis/item/mule/pattern/hauler/')
+    expect(srdPatternHref(chassis, hauler)).toBe('/chassis/mule/pattern/hauler/')
   })
 })
 

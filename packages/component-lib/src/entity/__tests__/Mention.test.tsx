@@ -19,7 +19,7 @@ const burn = (): EntityRef => {
   return toEntityModel(trait).ref
 }
 
-const hrefFor = (ref: EntityRef) => `/schema/${ref.schemaName}/item/${ref.slug}/`
+const hrefFor = (ref: EntityRef) => `/${ref.schemaName}/${ref.slug}/`
 
 describe('Mention', () => {
   test('links to its page where the surface routes it, and carries its Peek', () => {
@@ -30,7 +30,7 @@ describe('Mention', () => {
       </EntitySurfaceProvider>
     )
     const link = screen.getByRole('link', { name: 'Burn (2)' })
-    expect(link.getAttribute('href')).toBe(`/schema/traits/item/${ref.slug}/`)
+    expect(link.getAttribute('href')).toBe(`/traits/${ref.slug}/`)
     expect(link.getAttribute('data-peek')).toBe(`traits:${ref.id}`)
     expect(link.className).toContain('su-inline-ref--link')
   })
@@ -106,7 +106,7 @@ describe('rules text', () => {
     )
     expect(container.textContent).toBe('It gains the Vulnerable Trait and Burn (X).')
     expect(screen.getByRole('link', { name: 'Vulnerable' }).getAttribute('href')).toBe(
-      '/schema/traits/item/vulnerable/'
+      '/traits/vulnerable/'
     )
     expect(screen.getByRole('link', { name: 'Burn (X)' })).toBeTruthy()
   })

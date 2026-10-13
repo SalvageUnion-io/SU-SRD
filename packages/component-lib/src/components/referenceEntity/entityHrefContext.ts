@@ -4,7 +4,7 @@ import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 
 /**
  * Builds a navigable href (show-page link) for an entity. The shape is the
- * consuming app's concern — srd supplies its `/schema/.../item/...` route,
+ * consuming app's concern — srd supplies its `/<schema>/<slug>/` route,
  * ITUN its own — so the shared library stays route-agnostic.
  */
 export type EntityHrefBuilder = (entity: SURefEntity) => string | undefined

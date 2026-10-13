@@ -7,7 +7,7 @@ import { getItemStaticPaths, getSchemaStaticPaths } from '../staticPaths'
  *
  * They did not. `getStaticPaths` for the two JSON routes mapped the whole
  * catalog (27 schemas) while the page routes filtered `!s.meta` (24), so
- * `/schema/actions.json` existed and `/schema/actions/` did not. Three
+ * `/schema/actions.json` existed and `/actions/` did not. Three
  * consequences, none of which surfaced as a failure anywhere:
  *
  *  - three undocumented endpoints, since `api.page.tsx` — the page that documents

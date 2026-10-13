@@ -3,7 +3,7 @@
  *
  * A catalog tile renders an entity's whole `content[]` untruncated and never
  * expands its `steps`. For guides that broke in both directions at once,
- * measured on the built `/schema/guides/` listing: Safety Protocols rendered
+ * measured on the built `/guides/` listing: Safety Protocols rendered
  * 1,236 characters into a tile, while Salvaging, Upgrading your Union Crawler
  * and Activating and Shutting Down a Mech rendered no prose at all — they keep
  * every word in `steps` and carry no top-level `content`.

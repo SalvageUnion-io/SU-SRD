@@ -97,8 +97,8 @@ export const Default: Story = () => (
         buyHref={BUY}
         breadcrumbs={[
           { name: 'SRD', url: '/' },
-          { name: 'Chassis', url: '/schema/chassis/' },
-          { name: chassisName, url: `/schema/chassis/item/${gopher?.id ?? 'gopher'}/` },
+          { name: 'Chassis', url: '/chassis/' },
+          { name: chassisName, url: `/chassis/${gopher?.id ?? 'gopher'}/` },
         ]}
       />
     </div>

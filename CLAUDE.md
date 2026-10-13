@@ -88,7 +88,7 @@ The dependency graph is [packages](docs/ARCHITECTURE.md#packages). Each workspac
 
 ### Data conventions
 
-- Entity links use slugs, never UUIDs: `/schema/chassis/item/mule/`.
+- Entity links use slugs, never UUIDs: `/chassis/mule/`.
 - Never run JSON data files through an automated formatter such as `json.dump` that reflows arrays; insert at the text level to preserve formatting.
 
 ### Debugging

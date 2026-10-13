@@ -16,7 +16,7 @@ renders an entity.
 
 - **Targets.** `bun run stories:ids [filter]` lists story ids. Given a
   component or a diff, find its `*.stories.tsx` and filter by its id; given an
-  srd page, use its route (`/schema/chassis/item/mule/`); given a signed-out
+  srd page, use its route (`/chassis/mule/`); given a signed-out
   ITUN page, `itun:` and its route (`itun:/starter`).
 - **Screenshots.** `bun run shot <story-id|/route|itun:/route>` (see
   `tools/shot.ts`); it starts the catalog, srd or ITUN server if none is up and

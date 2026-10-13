@@ -14,17 +14,17 @@ const STEPS = [
   {
     title: 'Create a Pilot',
     meta: 'Pilot Bay · Classes · Keepsake',
-    href: '/schema/guides/item/create-a-pilot/',
+    href: '/guides/create-a-pilot/',
   },
   {
     title: 'Create a Mech',
     meta: 'Mech Workshop · Chassis · Systems',
-    href: '/schema/guides/item/create-a-mech/',
+    href: '/guides/create-a-mech/',
   },
   {
     title: 'Create a Crawler',
     meta: 'Union Crawler · Type · Bays',
-    href: '/schema/guides/item/create-a-crawler/',
+    href: '/guides/create-a-crawler/',
   },
 ]
 
@@ -41,11 +41,11 @@ const ART: Partial<Record<string, ContentsArt>> = Object.fromEntries(
 )
 
 const AT_THE_TABLE = [
-  { label: 'The Core Mechanic', href: '/schema/roll-tables/item/core-mechanic/' },
-  { label: 'Heat', href: '/schema/guides/item/heat/' },
-  { label: 'Mech Damage', href: '/schema/guides/item/mech-damage/' },
-  { label: 'Tough Choices', href: '/schema/guides/item/tough-choices/' },
-  { label: 'Salvaging', href: '/schema/guides/item/salvaging/' },
+  { label: 'The Core Mechanic', href: '/roll-tables/core-mechanic/' },
+  { label: 'Heat', href: '/guides/heat/' },
+  { label: 'Mech Damage', href: '/guides/mech-damage/' },
+  { label: 'Tough Choices', href: '/guides/tough-choices/' },
+  { label: 'Salvaging', href: '/guides/salvaging/' },
 ]
 
 /**

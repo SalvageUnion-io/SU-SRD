@@ -210,7 +210,7 @@ describe('GuideSteps on the page', () => {
     const { container } = render(
       <EntitySurfaceProvider
         value={{
-          hrefFor: (ref) => `/schema/${ref.schemaName}/item/${ref.slug}/`,
+          hrefFor: (ref) => `/${ref.schemaName}/${ref.slug}/`,
           pageRefs: {
             235: [
               {
@@ -230,7 +230,7 @@ describe('GuideSteps on the page', () => {
       </EntitySurfaceProvider>
     )
     const link = within(container).getByRole('link', { name: 'p. 235' })
-    expect(link.getAttribute('href')).toBe('/schema/roll-tables/item/reactor-overload/')
+    expect(link.getAttribute('href')).toBe('/roll-tables/reactor-overload/')
   })
 
   test("without an index, a page reference is the book's text", () => {

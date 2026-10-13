@@ -96,7 +96,7 @@ function escapeRegExp(literal: string): string {
 }
 
 /**
- * `'/schema/[schemaId]/item/[itemId]'` -> `/^\/schema\/([^/]+)\/item\/([^/]+)$/`.
+ * `'/[schemaId]/[itemId]'` -> `/^\/([^/]+)\/([^/]+)$/`.
  *
  * Used only to decide *which* registration can possibly serve a path, so the
  * request pays for one module's `getStaticPaths()` instead of all fourteen.
@@ -163,7 +163,7 @@ async function loadEndpoints(vite: ViteDevServer): Promise<EndpointRegistration[
  * The dotted routes (`/schema/chassis.json`, `/llms.txt`, `/search-index.json`).
  *
  * Checked BEFORE pages, and that order is load-bearing: `/schema/chassis.json`
- * also matches the page pattern `/schema/[schemaId]`, because a pattern segment
+ * also matches the page pattern `/[schemaId]/[itemId]`, because a pattern segment
  * happily swallows a dot. An endpoint pattern is a dist-relative path, so the
  * leading slash comes off before matching.
  */

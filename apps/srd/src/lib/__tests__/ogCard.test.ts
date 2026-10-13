@@ -40,16 +40,14 @@ describe('ogCardFor', () => {
 })
 
 describe('ogAddress', () => {
-  it("drops the grammar's constant segments", () => {
-    expect(ogAddress('/schema/abilities/item/mass-field-repair/')).toBe(
-      '/abilities/mass-field-repair'
-    )
+  it('prints the page path without its trailing slash', () => {
+    expect(ogAddress('/abilities/mass-field-repair/')).toBe('/abilities/mass-field-repair')
   })
 
   it('steps a path too long for the foot down to the slug, never clipping it', () => {
-    expect(
-      ogAddress('/schema/roll-tables/item/salvage-cache-table-reclamation-of-the-wastes/')
-    ).toBe('/salvage-cache-table-reclamation-of-the-wastes')
+    expect(ogAddress('/roll-tables/salvage-cache-table-reclamation-of-the-wastes/')).toBe(
+      '/salvage-cache-table-reclamation-of-the-wastes'
+    )
   })
 })
 
@@ -79,12 +77,10 @@ describe('ogMetaFor', () => {
 
 describe('ogImagePath', () => {
   it('mirrors the item page URL', () => {
-    expect(ogImagePath('classes', 'engineer')).toBe('/schema/classes/item/engineer.og.png')
+    expect(ogImagePath('classes', 'engineer')).toBe('/classes/engineer.og.png')
   })
 
   it('addresses a chassis pattern as an entity in its own right', () => {
-    expect(ogImagePath('chassis', 'atlas', 'mk8')).toBe(
-      '/schema/chassis/item/atlas/pattern/mk8.og.png'
-    )
+    expect(ogImagePath('chassis', 'atlas', 'mk8')).toBe('/chassis/atlas/pattern/mk8.og.png')
   })
 })

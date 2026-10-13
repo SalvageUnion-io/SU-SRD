@@ -2,7 +2,7 @@
  * Pure logic for slug-uniqueness validation.
  *
  * Entity URLs, deep links, and lookup helpers key on `nameToSlug(name)`
- * within a schema (srd routes /schema/[schemaId]/item/[slug],
+ * within a schema (srd routes /[schemaId]/[slug],
  * findEntityBySlug, the Discord bot's name lookups). Two same-named entities
  * in one schema therefore SHADOW each other: only the first is reachable —
  * the second silently loses its page, JSON endpoint, og-image, and bot

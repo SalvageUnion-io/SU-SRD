@@ -265,7 +265,7 @@ describe('the results', () => {
       fireEvent.click(must(categoryOption))
 
       expect(openSpy).toHaveBeenCalledWith(
-        'https://salvageunion.io/schema/chassis',
+        'https://salvageunion.io/chassis',
         '_blank',
         'noopener,noreferrer'
       )

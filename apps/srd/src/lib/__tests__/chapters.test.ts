@@ -42,7 +42,7 @@ describe('buildChapters', () => {
   test('rows link to their listing; chapters to their anchor on Contents', () => {
     const mech = chapters.find((c) => c.id === 'mech-workshop')
     expect(mech?.href).toBe('/#mech-workshop')
-    expect(mech?.rows[0]?.href).toBe('/schema/chassis/')
+    expect(mech?.rows[0]?.href).toBe('/chassis/')
   })
 })
 

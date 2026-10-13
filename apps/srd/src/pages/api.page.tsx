@@ -28,7 +28,7 @@ import {
   PROSE,
   proseColumn,
 } from '../lib/docPageStyles'
-import { schemaHref } from '../lib/entityHref'
+import { itemHref, schemaHref } from '../lib/entityHref'
 import { getEntitySchemas } from '../lib/gameData'
 
 const TITLE = `API Reference${TITLE_SUFFIX}`
@@ -246,12 +246,14 @@ function page(): PageResult {
               <strong>Base URL:</strong> <code style={CODE}>{baseUrl}</code>
             </p>
             <p style={ASIDE}>
-              <strong>Tip:</strong> appending <code style={CODE_ON_GROUND}>.json</code> to any
-              schema URL on this site returns the underlying data. For example,{' '}
-              <code style={CODE_ON_GROUND}>/schema/chassis</code> renders the HTML index, and{' '}
-              <code style={CODE_ON_GROUND}>/schema/chassis.json</code> serves the raw array. The
+              <strong>Tip:</strong> every page on this site has its data under{' '}
+              <code style={CODE_ON_GROUND}>/schema/</code>. For example,{' '}
+              <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code> renders the HTML index,
+              and <code style={CODE_ON_GROUND}>/schema/chassis.json</code> serves the raw array. The
               same applies to individual entities:{' '}
-              <code style={CODE_ON_GROUND}>/schema/chassis/item/{samples.slug}.json</code>.
+              <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code> is the page,
+              and <code style={CODE_ON_GROUND}>/schema/chassis/item/{samples.slug}.json</code> its
+              data.
             </p>
           </section>
 
@@ -326,7 +328,7 @@ function page(): PageResult {
                 <p>
                   Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated
                   versions of the entity name (e.g., <code style={CODE}>{samples.name}</code>{' '}
-                  becomes <code style={CODE}>{samples.slug}</code>). Slugs match the URLs used on
+                  becomes <code style={CODE}>{samples.slug}</code>). Slugs match the page URLs on
                   the reference site.
                 </p>
                 <p>

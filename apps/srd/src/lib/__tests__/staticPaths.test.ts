@@ -1,7 +1,7 @@
 /**
  * Static-path generation: item pages exist ONLY for entity
  * (non-meta) schemas. Meta schemas (actions, ability-tree-requirements,
- * catalog-categories) have no /schema/<id>/ listing page, so item pages for
+ * catalog-categories) have no /<id>/ listing page, so item pages for
  * them would be sitemap orphans whose breadcrumbs 404.
  */
 import { describe, expect, it } from 'bun:test'

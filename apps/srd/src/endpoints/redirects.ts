@@ -11,8 +11,12 @@
  *   that became a pattern of another — "Hill Worm Pattern Typhon", now
  *   Typhon's "Hill Worm" — keeps its old URL answering: the page 301s to the
  *   pattern's page (with and without the trailing slash, since a hand-typed
- *   link may have either), and the item's `.json` to its host's, which carries
+ *   link may have either, and under both the legacy `/schema/…/item/` grammar
+ *   and the current one), and the item's `.json` to its host's, which carries
  *   the pattern.
+ *
+ * The bulk move of every page out of `/schema/…/item/` is NOT here: that is one
+ * pattern, not a rule per page, and the Worker answers it (`lib/legacyPaths.ts`).
  *
  * It replaces a hand-written `public/_redirects`: an endpoint is written after
  * Vite copies `public/`, so a second copy there would be overwritten silently.
@@ -22,7 +26,9 @@ import { formerSlugsIn } from 'salvageunion-reference'
 import type { EndpointModule } from '../../ssg/types'
 import { itemHref } from '../lib/entityHref'
 import { getEntitySchemas, getReferenceEntityData } from '../lib/gameData'
+import { legacyItemHref } from '../lib/legacyPaths'
 import { srdPatternHref } from '../lib/patternHref'
+import { itemJsonPath } from './itemJson'
 
 /** Each `from → to` pair, in output order. */
 export function redirectRules(): Array<{ from: string; to: string }> {
@@ -30,13 +36,16 @@ export function redirectRules(): Array<{ from: string; to: string }> {
   for (const schema of getEntitySchemas()) {
     for (const { slug, host, pattern } of formerSlugsIn(schema.id)) {
       const page = srdPatternHref(host, pattern)
-      const hostJson = `${itemHref(schema.id, getReferenceEntityData(host).slug).slice(0, -1)}.json`
-      const oldPage = itemHref(schema.id, slug)
-      rules.push(
-        { from: oldPage, to: page },
-        { from: oldPage.slice(0, -1), to: page },
-        { from: `${oldPage.slice(0, -1)}.json`, to: hostJson }
-      )
+      // The page as it was published (the `/schema/…/item/` grammar) and as the
+      // current grammar spells it, each in one hop rather than through the
+      // Worker's legacy 301 and then this one.
+      for (const oldPage of [legacyItemHref(schema.id, slug), itemHref(schema.id, slug)]) {
+        rules.push({ from: oldPage, to: page }, { from: oldPage.slice(0, -1), to: page })
+      }
+      rules.push({
+        from: itemJsonPath(schema.id, slug),
+        to: itemJsonPath(schema.id, getReferenceEntityData(host).slug),
+      })
     }
   }
   return rules

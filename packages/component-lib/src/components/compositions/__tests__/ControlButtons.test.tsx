@@ -54,9 +54,7 @@ describe('ControlButtons', () => {
   test('a link control flips its colours on hover through its class', () => {
     render(
       <ControlButtons
-        controls={[
-          { key: 'go', label: 'Open', ariaLabel: 'Open the chassis', href: '/schema/chassis/' },
-        ]}
+        controls={[{ key: 'go', label: 'Open', ariaLabel: 'Open the chassis', href: '/chassis/' }]}
       />
     )
     const link = screen.getByRole('link')

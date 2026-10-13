@@ -140,7 +140,7 @@ describe('buildCatalogCategories', () => {
     const schema = required(result[0], 'first catalog section').schemas[0]
     if (!schema) throw new Error('Expected a first schema entry')
     expect(schema.id).toBe('chassis')
-    expect(schema.href).toBe('/schema/chassis/')
+    expect(schema.href).toBe('/chassis/')
     expect(schema.catalogBg).toBe('bg-chassis')
     // 'Chassis' is an invariant noun — should not be pluralized
     expect(schema.displayName).toBe('Chassis')
@@ -250,7 +250,7 @@ describe('buildCatalogCategories', () => {
 
     const first = required(section.schemas[0], 'first schema entry')
     expect(first.id).toBe('guide-1')
-    expect(first.href).toBe('/schema/guides/item/slug-guide-1/')
+    expect(first.href).toBe('/guides/slug-guide-1/')
     expect(first.displayName).toBe('Combat Guide')
     expect(first.label).toBe('Combat Guide')
 

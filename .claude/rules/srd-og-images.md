@@ -19,7 +19,7 @@ action) the ink band, tier numeral, cost pennant and rules. `ogCardForEntity`
 builds the card from the entity, and `apps/srd/src/lib/ogCard.ts` (`ogCardFor`,
 `ogMetaFor`, `ogImagePath`) is the one place the island, the generator and the
 pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at
-1200×630 into `dist/schema/{schemaId}/item/{itemId}.og.png`.
+1200×630 into `dist/{schemaId}/{itemId}.og.png`, beside the page.
 
 - The page's other preview tags come from the same card: `og:title` is the
   name, `og:description` the kicker and cite (never the body), and
@@ -40,5 +40,5 @@ pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at
   (`.github/actions/srd-og`) persists the cache under the same key
   (`og-screenshots.ts --fingerprint`).
 - **Patterns** (a chassis's, a Bio-Titan's) get their own card at
-  `…/item/{itemId}/pattern/{patternId}.og.png` rather than inheriting the
+  `/{schemaId}/{itemId}/pattern/{patternId}.og.png` rather than inheriting the
   host's image.

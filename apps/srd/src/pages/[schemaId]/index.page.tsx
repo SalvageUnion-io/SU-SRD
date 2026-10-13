@@ -1,5 +1,5 @@
 /**
- * `/schema/[schemaId]` — the per-schema listing page.
+ * `/[schemaId]` — the per-schema listing page (`/chassis/`).
  *
  * Headed by its chapter's band (the schema's plural name notched in), then the
  * listing, in the groups the book prints them in: one Row per entity, or where
@@ -24,18 +24,18 @@
 import { ChapterBand, Slab } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import { getAssetUrl, getEntitySlug } from 'salvageunion-reference'
-import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
-import { ListingRail } from '../../../components/islands/ListingRail'
-import { chapterForSchema } from '../../../lib/chapters'
-import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../../../lib/constants'
-import { itemHref, schemaHref } from '../../../lib/entityHref'
-import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
-import type { ListingGroup, ListingShape, TechLevel } from '../../../lib/listingGroups'
-import { defaultGroups, orderTechLevels, WIDE_LISTINGS } from '../../../lib/listingGroups'
-import { CATALOG_LISTINGS } from '../../../lib/listingView'
-import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
-import { getSchemaStaticPaths } from '../../../lib/staticPaths'
-import { Island } from '../../../runtime/Island'
+import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
+import { ListingRail } from '../../components/islands/ListingRail'
+import { chapterForSchema } from '../../lib/chapters'
+import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../../lib/constants'
+import { itemHref, schemaHref } from '../../lib/entityHref'
+import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../lib/gameData'
+import type { ListingGroup, ListingShape, TechLevel } from '../../lib/listingGroups'
+import { defaultGroups, orderTechLevels, WIDE_LISTINGS } from '../../lib/listingGroups'
+import { CATALOG_LISTINGS } from '../../lib/listingView'
+import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
+import { getSchemaStaticPaths } from '../../lib/staticPaths'
+import { Island } from '../../runtime/Island'
 
 type Params = { schemaId: string }
 type Props = { schema: EnhancedSchemaMetadata; data: SURefEntity[] }
@@ -207,7 +207,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 }
 
 export const schemaListingPage: PageModule<Params, Props> = {
-  pattern: '/schema/[schemaId]',
+  pattern: '/[schemaId]',
   getStaticPaths: getSchemaStaticPaths,
   page,
 }

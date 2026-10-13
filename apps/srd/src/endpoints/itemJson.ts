@@ -3,8 +3,10 @@
  * row, without the `schemaName` that `BaseModel` stamps on the model's copy
  * (the published schema forbids that key).
  *
- * Dotted leaf: emits `dist/schema/chassis/item/aegis.json` as a FILE, sitting
- * beside the `aegis/index.html` directory the HTML route writes.
+ * Dotted leaf: emits `dist/schema/chassis/item/aegis.json` as a FILE. The API
+ * keeps the `/schema/…/item/` grammar the pages left (the page is
+ * `/chassis/aegis/`): its URLs are a published contract (ADR-040, ADR-043),
+ * and a developer surface may say `schema`.
  */
 
 import type { SURefEntity } from 'salvageunion-reference'
@@ -16,6 +18,11 @@ type Props = ReturnType<typeof getItemStaticPaths>[number]['props']
 
 function committedRow(item: SURefEntity): Record<string, unknown> {
   return Object.fromEntries(Object.entries(item).filter(([key]) => key !== 'schemaName'))
+}
+
+/** One entity's JSON URL, root-relative: `/schema/chassis/item/aegis.json`. */
+export function itemJsonPath(schemaId: string, itemId: string): string {
+  return `/schema/${schemaId}/item/${itemId}.json`
 }
 
 function getStaticPaths(): StaticPath<Params, Props>[] {

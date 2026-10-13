@@ -123,8 +123,8 @@ export const BOOK_TYPOS: BookTypo[] = [
  * The problem this file solves is that the choice is invisible in the data. A
  * future contributor re-deriving names from the PDFs sees `Video Projection
  * Array` against a printed heading of `Projection Array`, reads it as a typo,
- * "corrects" it — and silently breaks `/schema/modules/item/video-projection-
- * array`, a URL that is canon.
+ * "corrects" it — and silently breaks `/modules/video-projection-array`,
+ * a URL that is canon.
  *
  * A documentary `alias` field on the records themselves was considered and
  * rejected: a field written but read by nothing is exactly the `indexable`
@@ -157,7 +157,7 @@ export const NAME_DEVIATIONS: NameDeviation[] = [
     name: 'Video Projection Array',
     printedAs: 'Projection Array',
     page: 196,
-    why: 'The book uses both: the entry heading and index say "Projection Array", while the module contents list and the summary tables say "Video Projection Array". The dataset form is canon because /schema/modules/item/video-projection-array is a public URL.',
+    why: 'The book uses both: the entry heading and index say "Projection Array", while the module contents list and the summary tables say "Video Projection Array". The dataset form is canon because /modules/video-projection-array is a public URL.',
   },
   {
     schema: 'Modules',

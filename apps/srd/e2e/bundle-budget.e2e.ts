@@ -80,7 +80,7 @@ async function captureJsTotals(
 test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage()
   try {
-    await page.goto('/schema/traits/item/missile/', { waitUntil: 'domcontentloaded' })
+    await page.goto('/traits/missile/', { waitUntil: 'domcontentloaded' })
     const built = await page.evaluate(() =>
       Array.from(document.querySelectorAll('script[src]')).some((s) =>
         (s as HTMLScriptElement).src.includes('/assets/')
@@ -109,7 +109,7 @@ test.describe('bundle-size budget', () => {
   // So assert the capture is non-empty FIRST. A budget guard that cannot fail
   // is worse than no guard, because it is also reassuring.
   test('the capture actually sees JS chunks (guards against a dead selector)', async ({ page }) => {
-    const totals = await captureJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
+    const totals = await captureJsTotals(page, () => page.goto('/traits/missile/'))
     expect(totals.count).toBeGreaterThan(0)
     expect(totals.bytes).toBeGreaterThan(0)
   })
@@ -117,7 +117,7 @@ test.describe('bundle-size budget', () => {
   test('a leaf-schema item page never loads the large content/chassis data chunks', async ({
     page,
   }) => {
-    const totals = await captureJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
+    const totals = await captureJsTotals(page, () => page.goto('/traits/missile/'))
     expect(totals.count).toBeGreaterThan(0)
 
     // The big, schema-specific data chunks (actions ~360KB, chassis ~150KB,
@@ -159,7 +159,7 @@ test.describe('bundle-size budget', () => {
   test('a chassis item page loads chassis-bundle data but not unrelated content schemas', async ({
     page,
   }) => {
-    const totals = await captureJsTotals(page, () => page.goto('/schema/chassis/item/mule/'))
+    const totals = await captureJsTotals(page, () => page.goto('/chassis/mule/'))
 
     // Schemas with no chassis-pattern relationship (per CHASSIS_BUNDLE in
     // schemaPreloadDeps.ts) should never be fetched on a chassis page.

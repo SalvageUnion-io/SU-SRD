@@ -168,7 +168,7 @@ describe('SchemaViewerIsland', () => {
     const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()
     const knownName = '.50 Cal Machine Gun'
-    window.location.href = `http://localhost/schema/systems/?q=${encodeURIComponent(knownName)}`
+    window.location.href = `http://localhost/systems/?q=${encodeURIComponent(knownName)}`
 
     render(
       <SchemaViewerIsland
@@ -201,7 +201,7 @@ describe('SchemaViewerIsland', () => {
       ),
       'a numeric tech level present in the dataset'
     )
-    window.location.href = `http://localhost/schema/systems/?tl=${level}`
+    window.location.href = `http://localhost/systems/?tl=${level}`
 
     render(
       <SchemaViewerIsland
@@ -269,7 +269,7 @@ describe('SchemaViewerIsland', () => {
     const entities = abilitiesModel.all()
     const trees = getUniqueTrees(entities)
     const tree = required(trees[0], 'at least one ability tree')
-    window.location.href = `http://localhost/schema/abilities/?tree=${encodeURIComponent(tree)}`
+    window.location.href = `http://localhost/abilities/?tree=${encodeURIComponent(tree)}`
 
     render(
       <SchemaViewerIsland
@@ -290,7 +290,7 @@ describe('SchemaViewerIsland', () => {
   it('URL sync: writes the name filter to the URL on change (replaceState)', () => {
     const systemsModel = required(getModel('systems'), 'systems model')
     const entities = systemsModel.all()
-    window.location.href = 'http://localhost/schema/systems/'
+    window.location.href = 'http://localhost/systems/'
     // Spy after mount so the initial (idempotent) sync doesn't count; assert the
     // change-driven write. happy-dom doesn't reflect a relative replaceState into
     // location, so verify the call argument rather than location.search.
@@ -433,7 +433,7 @@ describe('SchemaViewerIsland', () => {
       }
       cleanup()
       window.localStorage.clear()
-      window.location.href = 'http://localhost/schema/chassis/?view=catalog'
+      window.location.href = 'http://localhost/chassis/?view=catalog'
       const { container } = renderChassis()
       expect(container.querySelector('.srd-listing__tiles')).toBeTruthy()
     })

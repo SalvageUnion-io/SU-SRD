@@ -55,19 +55,19 @@ describe('home: the manual’s Contents page (board 06)', () => {
     ]) {
       expect(html).toContain(`<span>${chapter}</span>`)
     }
-    expect(html).toContain('href="/schema/chassis/"')
+    expect(html).toContain('href="/chassis/"')
   })
 
   it('hands a new player to ITUN', () => {
     expect(html).toContain('New to the Union?')
     expect(html).toContain('Build a pilot')
-    expect(html).toContain('href="/schema/guides/item/create-a-pilot/"')
+    expect(html).toContain('href="/guides/create-a-pilot/"')
   })
 
   it('sets "At the table" as a section of the index, and offers the Discord bot after it', () => {
     const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('srd-home__discord'))
     expect(index).toContain('<span>At the table</span>')
-    expect(index).toContain('href="/schema/roll-tables/item/core-mechanic/"')
+    expect(index).toContain('href="/roll-tables/core-mechanic/"')
     const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('srd-home__index'))
     expect(aside).toContain('id="new-to-the-union"')
     expect(aside).not.toContain('Add to Discord')
@@ -98,7 +98,7 @@ describe('home: the manual’s Contents page (board 06)', () => {
 })
 
 describe('a listing (compact cards under a visible heading)', () => {
-  const html = page('/schema/chassis')
+  const html = page('/chassis')
 
   it('has a visible heading — the chapter band — and no count stamp beside it', () => {
     expect(h1s(html)).toEqual(['Chassis'])
@@ -138,7 +138,7 @@ describe('a listing (compact cards under a visible heading)', () => {
 })
 
 describe('an entity page (boards 07, 08)', () => {
-  const html = page('/schema/chassis/item/gopher')
+  const html = page('/chassis/gopher')
 
   it('notches the name into the chapter band, the page’s one h1', () => {
     expect(h1s(html)).toEqual(['Gopher'])
@@ -158,10 +158,10 @@ describe('an entity page (boards 07, 08)', () => {
 })
 
 describe('a pattern page names and links its base chassis', () => {
-  const html = page('/schema/chassis/item/mazona/pattern/buzzard')
+  const html = page('/chassis/mazona/pattern/buzzard')
 
   it('links back to the chassis in the band, above the title', () => {
-    const link = html.indexOf('<a class="srd-parent-link" href="/schema/chassis/item/mazona/">')
+    const link = html.indexOf('<a class="srd-parent-link" href="/chassis/mazona/">')
     expect(link).toBeGreaterThan(-1)
     expect(html.slice(link, link + 300)).toContain('Pattern of')
     expect(link).toBeLessThan(html.indexOf('<h1'))
@@ -180,27 +180,27 @@ describe('a pattern page names and links its base chassis', () => {
   })
 
   it('links the chassis from the no-JS fallback too, as an inline reference', () => {
-    const fallback = page('/schema/chassis/item/jackhammer/pattern/auger')
+    const fallback = page('/chassis/jackhammer/pattern/auger')
     expect(fallback).toContain('data-static-fallback')
     expect(fallback).toMatch(
-      /<a href="\/schema\/chassis\/item\/jackhammer\/" class="su-inline-ref su-inline-ref--link">Jackhammer<\/a>/
+      /<a href="\/chassis\/jackhammer\/" class="su-inline-ref su-inline-ref--link">Jackhammer<\/a>/
     )
   })
 })
 
 describe('a class page links its abilities', () => {
-  const html = page('/schema/classes/item/hacker')
+  const html = page('/classes/hacker')
 
   it('as same-tab links to each ability’s page', () => {
-    const links = [...html.matchAll(/<a href="(\/schema\/abilities\/item\/[^"]+)"([^>]*)>/g)]
+    const links = [...html.matchAll(/<a href="(\/abilities\/[^"]+)"([^>]*)>/g)]
     expect(links.length).toBeGreaterThan(0)
-    expect(links.map(([, href]) => href)).toContain('/schema/abilities/item/hacking-kit/')
+    expect(links.map(([, href]) => href)).toContain('/abilities/hacking-kit/')
     expect(links.every(([, , attrs]) => !attrs?.includes('target='))).toBe(true)
   })
 })
 
 describe('a roll table rolls on its own page (board 08b)', () => {
-  const html = page('/schema/roll-tables/item/core-mechanic')
+  const html = page('/roll-tables/core-mechanic')
 
   it('mounts the roll island over its server-rendered bands', () => {
     expect(h1s(html)).toEqual(['Core Mechanic'])
@@ -228,17 +228,17 @@ const backgrounds = (html: string, className: string) =>
 
 describe('every page ends on one footer (boards 06, 07)', () => {
   const book = [
-    ['a Pilot Bay entity', firstUnder('/schema/classes/item/')],
-    ['a Mech Workshop entity', '/schema/chassis/item/gopher'],
-    ['a pattern', firstUnder('/schema/chassis/item/gopher/pattern/')],
-    ['a Union Crawler entity', firstUnder('/schema/crawlers/item/')],
-    ['a Denizens entity', firstUnder('/schema/bio-titans/item/')],
-    ['a roll table', '/schema/roll-tables/item/core-mechanic'],
-    ['a guide', firstUnder('/schema/guides/item/')],
+    ['a Pilot Bay entity', firstUnder('/classes/')],
+    ['a Mech Workshop entity', '/chassis/gopher'],
+    ['a pattern', firstUnder('/chassis/gopher/pattern/')],
+    ['a Union Crawler entity', firstUnder('/crawlers/')],
+    ['a Denizens entity', firstUnder('/bio-titans/')],
+    ['a roll table', '/roll-tables/core-mechanic'],
+    ['a guide', firstUnder('/guides/')],
   ] as const
   const listings = [
-    ['a Mech Workshop listing', '/schema/chassis'],
-    ['a Union Crawler listing', '/schema/crawlers'],
+    ['a Mech Workshop listing', '/chassis'],
+    ['a Union Crawler listing', '/crawlers'],
   ] as const
   const site = [
     ['home', '/'],
@@ -264,7 +264,7 @@ describe('every page ends on one footer (boards 06, 07)', () => {
       const [head] = backgrounds(html, 'su-chapter-band')
       const feet = backgrounds(html, 'su-chapter-foot')
       expect(feet).toHaveLength(2)
-      if (path.startsWith('/schema/crawlers/')) {
+      if (path.startsWith('/crawlers/')) {
         // The foot carries text, so it takes the deeper crawler pink (§3.8).
         expect(feet[0]).not.toBe(head)
       } else {
@@ -276,7 +276,7 @@ describe('every page ends on one footer (boards 06, 07)', () => {
   }
 
   it('the Gopher cites its page in that band', () => {
-    const html = page('/schema/chassis/item/gopher')
+    const html = page('/chassis/gopher')
     expect(html).toMatch(/<footer[^>]*>[\s\S]*p\.112[\s\S]*<\/footer>/)
   })
 

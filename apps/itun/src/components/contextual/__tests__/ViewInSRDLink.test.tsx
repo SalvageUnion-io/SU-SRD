@@ -7,7 +7,7 @@ describe('ViewInSRDLink', () => {
     const { container } = render(<ViewInSRDLink schemaName="chassis" slug="iron-mongrel" />)
     const link = container.querySelector('a')
     expect(link).toBeTruthy()
-    expect(link?.href).toBe('https://salvageunion.io/schema/chassis/item/iron-mongrel')
+    expect(link?.href).toBe('https://salvageunion.io/chassis/iron-mongrel')
   })
 
   it('opens in a new tab', () => {

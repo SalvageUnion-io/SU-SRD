@@ -12,14 +12,15 @@ import { IslandErrorBoundary } from './IslandErrorBoundary'
 const LIMIT = 5
 
 /**
- * The site's own path words, never part of what the reader was looking for
+ * The site's own path words (the JSON API's `schema` and `item`, a pattern page's
+ * `pattern`), never part of what the reader was looking for
  * (`404` is the page itself, opened directly).
  */
 const STRUCTURAL = new Set(['schema', 'item', 'pattern', '404'])
 
 /**
  * The search term a missed URL implies: its last meaningful segment, a slug
- * turned back into words (`/schema/chassis/item/mule-mk2/` → `mule mk2`).
+ * turned back into words (`/chassis/mule-mk2/` → `mule mk2`).
  * Empty when the path holds nothing to search for (`/`, `/schema/item/`).
  */
 export function queryFromPathname(pathname: string): string {

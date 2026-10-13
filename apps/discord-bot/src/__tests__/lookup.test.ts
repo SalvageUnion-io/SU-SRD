@@ -51,7 +51,7 @@ describe('lookupCommand.execute', () => {
     // The deep link survives the move to a container as a masked link in the
     // heading — a container has no title slot to carry a url.
     expect(containerTextOf(reply)).toContain(
-      '## [.50 Cal Machine Gun](https://salvageunion.io/schema/systems/item/50-cal-machine-gun)'
+      '## [.50 Cal Machine Gun](https://salvageunion.io/systems/50-cal-machine-gun)'
     )
     expect(reply.flags).toBe(MessageFlags.IsComponentsV2)
   })
@@ -64,7 +64,7 @@ describe('lookupCommand.execute', () => {
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
     expect(containerTextOf(reply)).toContain(
-      '## [Hill Worm](https://salvageunion.io/schema/bio-titans/item/typhon/pattern/hill-worm)'
+      '## [Hill Worm](https://salvageunion.io/bio-titans/typhon/pattern/hill-worm)'
     )
   })
 

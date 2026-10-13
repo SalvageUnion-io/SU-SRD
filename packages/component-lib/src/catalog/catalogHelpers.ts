@@ -4,7 +4,7 @@ import type {
   SURefEnumSchemaName,
   SURefMetaEntity,
 } from 'salvageunion-reference'
-import { isSchemaName } from 'salvageunion-reference'
+import { isSchemaName, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
 import { entityGuideToneColor } from '../components/referenceEntity/card/entityCardTone'
 
 export type CatalogCategory = {
@@ -109,7 +109,7 @@ export function buildCatalogCategories({
           const guideColor = entityGuideToneColor(item as SURefMetaEntity)
           return {
             id: item.id,
-            href: `/schema/${schemaName}/item/${display.slug}/`,
+            href: `${srdEntityPath(schemaName, display.slug)}/`,
             kind: 'entity' as const,
             schemaName,
             displayName: rawName,
@@ -133,7 +133,7 @@ export function buildCatalogCategories({
         return [
           {
             id: s.id,
-            href: `/schema/${s.id}/`,
+            href: `${srdSchemaPath(s.id)}/`,
             kind: 'schema' as const,
             schemaName: s.id,
             displayName: rawDisplayName,

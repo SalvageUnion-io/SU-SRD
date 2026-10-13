@@ -52,10 +52,9 @@ export function ogCardFor(
 }
 
 /**
- * What the foot prints for a page: its bare path, as board OgCard does
- * (`/chassis/scrapper`). The SalvageUnion.io wordmark beside it already names
- * the host, and the grammar's constant `schema` and `item` segments say
- * nothing about where the link goes.
+ * What the foot prints for a page: its path without the trailing slash, as
+ * board OgCard does (`/chassis/scrapper`). The SalvageUnion.io
+ * wordmark beside it already names the host.
  *
  * The address is a readout, so it is never clipped. A path too long for the
  * foot's one line (`/roll-tables/salvage-cache-table-reclamation-of-the-wastes`)
@@ -63,10 +62,7 @@ export function ogCardFor(
  */
 export function ogAddress(href: string): string {
   const parts = href.split('/').filter((part) => part.length > 0)
-  const bare = parts.filter(
-    (part, index) => !(index === 0 && part === 'schema') && !(index === 2 && part === 'item')
-  )
-  const path = `/${bare.join('/')}`
+  const path = `/${parts.join('/')}`
   return ogReferenceAddressFits(path) ? path : `/${parts.at(-1) ?? ''}`
 }
 

@@ -116,15 +116,15 @@ describe('fixed-name images can change under a returning visitor', () => {
     '/og-image.png',
     '/web-app-manifest-512x512.png',
     '/favicons/su/favicon.svg',
-    '/schema/chassis/item/mule.og.png',
-    '/schema/chassis/item/mule/pattern/hauler.og.png',
+    '/chassis/mule.og.png',
+    '/chassis/mule/pattern/hauler.og.png',
   ])('%s is short-lived with revalidation', (path) => {
     expect(cacheControlsFor(path)).toEqual(['public, max-age=3600, stale-while-revalidate=86400'])
   })
 })
 
 describe('pages', () => {
-  test.each(['/', '/about/', '/schema/chassis/item/mule/'])(
+  test.each(['/', '/about/', '/chassis/', '/chassis/mule/'])(
     '%s takes the platform default (max-age=0, must-revalidate)',
     (path) => {
       expect(cacheControlsFor(path)).toEqual([])

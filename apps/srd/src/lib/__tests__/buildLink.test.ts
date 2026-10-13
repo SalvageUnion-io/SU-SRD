@@ -52,7 +52,7 @@ describe('guideExitsFor', () => {
   test('Create a Pilot builds a pilot, walks on to Create a Mech, offers the Starter Set', () => {
     expect(guideExitsFor('guides', guide('Create a Pilot'))).toEqual({
       build: { href: `${ITUN_URL}pilots/new?mode=guided`, label: 'Build a pilot' },
-      next: { href: '/schema/guides/item/create-a-mech/', label: 'Next: Create a Mech' },
+      next: { href: '/guides/create-a-mech/', label: 'Next: Create a Mech' },
       starterSet: { href: `${ITUN_URL}starter`, label: 'Or play the Starter Set' },
     })
   })
@@ -60,7 +60,7 @@ describe('guideExitsFor', () => {
   test('Create a Mech walks on to Create a Crawler; Create a Crawler is the last', () => {
     const mech = guideExitsFor('guides', guide('Create a Mech'))
     expect(mech?.build.href).toBe(`${ITUN_URL}mechs/new?mode=guided`)
-    expect(mech?.next?.href).toBe('/schema/guides/item/create-a-crawler/')
+    expect(mech?.next?.href).toBe('/guides/create-a-crawler/')
     const crawler = guideExitsFor('guides', guide('Create a Crawler'))
     expect(crawler?.build).toEqual({
       href: `${ITUN_URL}crawlers/new?mode=guided`,

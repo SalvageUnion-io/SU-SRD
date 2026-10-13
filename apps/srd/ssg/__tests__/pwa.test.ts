@@ -19,7 +19,7 @@ import {
 } from '../pwa'
 
 /** The slice of a fetch event's request the route matchers read. */
-const requestOf = (mode: RequestMode, path = '/schema/chassis/') => ({
+const requestOf = (mode: RequestMode, path = '/chassis/') => ({
   request: { mode } as Request,
   url: new URL(`https://salvageunion.io${path}`),
 })

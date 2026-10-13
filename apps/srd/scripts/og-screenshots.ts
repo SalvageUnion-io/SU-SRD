@@ -3,7 +3,7 @@
  *
  * Renders every entity's link preview — `OgCard` (issue 1280), built from the
  * same ChapterBand, stat boxes and Union bar as the pages — at its own
- * 1200×630 and writes it to `dist/schema/{schemaId}/item/{itemId}.og.png`, the
+ * 1200×630 and writes it to `dist/{schemaId}/{itemId}.og.png`, the
  * path each page references as its og:image. It replaced the screenshot of the
  * Catalog tile, keeping that pipeline's reason: the preview is drawn by the
  * page's own parts, so it cannot drift from them.
@@ -11,7 +11,7 @@
  * Chassis PATTERNS are covered as entities in their own right: a pattern has its
  * own page, its own card view (the card takes the chassis as `data` plus the
  * `pattern` it renders as the subject) and its own provenance, so it gets its
- * own card at `…/item/{itemId}/pattern/{patternId}.og.png` rather than
+ * own card at `…/{itemId}/pattern/{patternId}.og.png` rather than
  * inheriting the chassis image.
  *
  * Pipeline:
@@ -57,6 +57,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../src/lib/constants'
+import { itemHref, patternHref } from '../src/lib/entityHref'
 import { OG_HEIGHT, OG_WIDTH, ogImagePath } from '../src/lib/ogCard'
 import { getItemStaticPaths, getPatternStaticPaths } from '../src/lib/staticPaths'
 import { ogRenderFingerprint } from './ogRenderFingerprint'
@@ -202,11 +203,12 @@ function entityKey(entity: Entity): string {
     : `${entity.schemaId}/${entity.itemId}`
 }
 
+/** The built page, from the same grammar its route is: `dist/<path>/index.html`. */
 function itemHtmlPath(entity: Entity): string {
-  const base = join(DIST_DIR, 'schema', entity.schemaId, 'item', entity.itemId)
-  return entity.patternId
-    ? join(base, 'pattern', entity.patternId, 'index.html')
-    : join(base, 'index.html')
+  const href = entity.patternId
+    ? patternHref(entity.schemaId, entity.itemId, entity.patternId)
+    : itemHref(entity.schemaId, entity.itemId)
+  return join(DIST_DIR, href, 'index.html')
 }
 
 /**
