@@ -11,8 +11,8 @@ import { z } from 'salvageunion-reference/zod'
  * state out of sheets and public sheets.
  *
  * This is the source of truth for `seats` in `apps/itun/convex/schema.ts`: its
- * range and roll-band unions are built from the enums below, and its mount and
- * resolve validators are checked against these types when it compiles.
+ * range, mount and resolve validators are built from the schemas below
+ * (`zodToConvex`), and the row is checked against `Seat` when it compiles.
  *
  * "In Downtime" is deliberately absent: it is the Game's `downtime` row, not
  * per-seat state. The deck action being resolved is on it, as an optional

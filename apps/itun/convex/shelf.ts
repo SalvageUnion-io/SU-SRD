@@ -1,4 +1,5 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
+import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
@@ -9,6 +10,7 @@ import {
   mutation,
   PARSERS,
   parseBody,
+  patternVisibility,
   patternVisibilityOf,
 } from './model/entities'
 import { NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
@@ -83,7 +85,7 @@ export const removeMechPattern = mutation({
 export const setPatternVisibility = mutation({
   args: {
     patternId: v.string(),
-    visibility: v.union(v.literal('private'), v.literal('link'), v.literal('game')),
+    visibility: patternVisibility,
     gameId: v.optional(v.id('games')),
   },
   handler: async (ctx, args): Promise<{ visibility: PatternVisibility }> => {
@@ -115,6 +117,14 @@ export const setPatternVisibility = mutation({
   },
 })
 
+/** One pattern a crewmate shared with a Game, as `crewPatterns` serves it. */
+const crewPattern = v.object({
+  appId: v.string(),
+  body: v.any(),
+  madeBy: v.string(),
+  gameName: v.string(),
+})
+
 /**
  * The patterns crewmates have shared with the caller's Games (#1276: "My Game's
  * crew"), for the patterns page. The caller's own are on their shelf already and
@@ -122,16 +132,15 @@ export const setPatternVisibility = mutation({
  */
 export const crewPatterns = query({
   args: {},
-  handler: async (
-    ctx
-  ): Promise<Array<{ appId: string; body: unknown; madeBy: string; gameName: string }>> => {
+  returns: v.array(crewPattern),
+  handler: async (ctx): Promise<Array<Infer<typeof crewPattern>>> => {
     const userId = await getAuthUserId(ctx)
     if (userId === null) return []
     const memberships = await ctx.db
       .query('memberships')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect()
-    const out: Array<{ appId: string; body: unknown; madeBy: string; gameName: string }> = []
+    const out: Array<Infer<typeof crewPattern>> = []
     for (const membership of memberships) {
       const game = await ctx.db.get(membership.gameId)
       if (game === null) continue
@@ -163,17 +172,16 @@ export const crewPatterns = query({
  */
 export const patternSharing = query({
   args: {},
-  handler: async (
-    ctx
-  ): Promise<
-    Array<{
-      appId: string
-      visibility: PatternVisibility
-      gameId: Id<'games'> | null
-      gameName: string | null
-      builtCount: number
-    }>
-  > => {
+  returns: v.array(
+    v.object({
+      appId: v.string(),
+      visibility: patternVisibility,
+      gameId: v.union(v.id('games'), v.null()),
+      gameName: v.union(v.string(), v.null()),
+      builtCount: v.number(),
+    })
+  ),
+  handler: async (ctx) => {
     const userId = await getAuthUserId(ctx)
     if (userId === null) return []
     const rows = await ctx.db
@@ -205,6 +213,7 @@ export const patternSharing = query({
  */
 export const sharedByLink = query({
   args: {},
+  returns: v.array(v.string()),
   handler: async (ctx): Promise<string[]> => {
     const userId = await getAuthUserId(ctx)
     if (userId === null) return []

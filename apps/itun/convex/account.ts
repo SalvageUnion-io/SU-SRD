@@ -19,6 +19,15 @@ import { deleteGameApparatus, releaseSeatsOf } from './model/seats'
 /** The signed-in user's own profile. Never exposes another user's row. */
 export const me = query({
   args: {},
+  returns: v.union(
+    v.object({
+      _id: v.id('users'),
+      displayName: v.union(v.string(), v.null()),
+      avatarUrl: v.union(v.string(), v.null()),
+      email: v.union(v.string(), v.null()),
+    }),
+    v.null()
+  ),
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
     const user = await ctx.db.get(userId)
@@ -71,6 +80,21 @@ export const updateProfile = mutation({
  */
 export const exportMine = query({
   args: {},
+  returns: v.object({
+    exportedAt: v.string(),
+    pilots: v.array(v.any()),
+    mechs: v.array(v.any()),
+    npcs: v.array(v.any()),
+    mechPatterns: v.array(v.any()),
+    games: v.array(
+      v.object({
+        gameId: v.id('games'),
+        mediator: v.boolean(),
+        organizer: v.boolean(),
+        joinedAt: v.number(),
+      })
+    ),
+  }),
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
 

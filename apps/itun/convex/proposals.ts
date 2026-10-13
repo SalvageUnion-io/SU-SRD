@@ -1,5 +1,7 @@
 import { ConvexError, v } from 'convex/values'
+import { zodToConvex } from 'convex-helpers/server/zod4'
 import { normalizeReason, PROPOSAL_REASON_MAX } from 'itun-domain/games/proposals'
+import { EntityRefSchema } from 'itun-domain/schemas/entity'
 import { MechSchema } from 'itun-domain/schemas/mech'
 import { PilotSchema } from 'itun-domain/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
@@ -7,6 +9,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
+import { changeLogEntityType, changeLogState } from './schema'
 
 /**
  * Proposals and alerts (ADR-030 §4).
@@ -34,6 +37,21 @@ import { NotAuthorized, requireMediator, requireMember, requireUser } from './mo
  *    `(entityId, field)` retires the first, so a player never faces two
  *    contradictory pending changes to one value.
  */
+
+/** What a proposal may target: a pilot or a mech, out of `EntityRefSchema.type`. */
+const proposableType = zodToConvex(EntityRefSchema.shape.type.extract(['pilot', 'mech']))
+
+/** A proposal row as both `pending` and `sent` serve it. */
+const proposalRow = {
+  _id: v.id('changeLog'),
+  entityId: v.string(),
+  entityType: changeLogEntityType,
+  targetName: v.union(v.string(), v.null()),
+  field: v.string(),
+  after: v.any(),
+  reason: v.union(v.string(), v.null()),
+  ts: v.number(),
+}
 
 /**
  * The table a Change Log row's `entityType` names, or null when it names none.
@@ -91,7 +109,7 @@ async function requireProposalTarget(
 export const propose = mutation({
   args: {
     entityId: v.string(),
-    entityType: v.union(v.literal('pilot'), v.literal('mech')),
+    entityType: proposableType,
     field: v.string(),
     after: v.any(),
     reason: v.optional(v.string()),
@@ -176,6 +194,7 @@ const MAX_PENDING = 500
  */
 export const pending = query({
   args: { gameId: v.id('games') },
+  returns: v.array(v.object(proposalRow)),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const userId = await requireUser(ctx)
@@ -237,6 +256,14 @@ function targetName(doc: Doc<'pilots'> | Doc<'mechs'> | null, entityType: string
  */
 export const sent = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  returns: v.array(
+    v.object({
+      ...proposalRow,
+      state: changeLogState,
+      mine: v.boolean(),
+      actorName: v.union(v.string(), v.null()),
+    })
+  ),
   handler: async (ctx, args) => {
     const membership = await requireMediator(ctx, args.gameId)
     const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 20) : 20
@@ -381,6 +408,14 @@ const MAX_ALERTS = 100
  */
 export const alerts = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  returns: v.array(
+    v.object({
+      _id: v.id('changeLog'),
+      message: v.string(),
+      ts: v.number(),
+      actorId: v.union(v.id('users'), v.null()),
+    })
+  ),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 20) : 20

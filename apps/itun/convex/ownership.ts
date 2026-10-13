@@ -4,6 +4,7 @@ import type { MutationCtx } from './_generated/server'
 import type { OwnableTable } from './model/entities'
 import { loadOwnable, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
+import { ownableTable } from './schema'
 
 /**
  * Entity ownership (ADR-030 §3–4).
@@ -39,8 +40,6 @@ import { NotAuthorized, requireMember, requireUser } from './model/permissions'
  * it. `invites.create` accepts `grants`, but it is Organizer-only and no client
  * sends them.
  */
-
-const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
 
 /**
  * Record an ownership change on the Change Log.

@@ -39,6 +39,9 @@ export type TemplateId = keyof typeof TEMPLATES
 /** The templates a Game can be started from. */
 export const list = query({
   args: {},
+  returns: v.array(
+    v.object({ id: v.literal('starter-set'), name: v.string(), description: v.string() })
+  ),
   handler: async () => {
     // `id` is typed as the TemplateId union rather than `string` so a caller can
     // pass the row straight to `createGame`. With a plain `string` the only way

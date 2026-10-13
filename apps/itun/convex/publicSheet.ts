@@ -1,21 +1,23 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
+import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import type { PatternVisibility } from './model/entities'
 import {
   linksTouching,
   mayReadPattern,
   mutation,
   parseBody,
   patternByAppId,
+  patternVisibility,
   patternVisibilityOf,
   resolveLinkEnd,
   sameContainerRows,
 } from './model/entities'
 import { statusOf } from './model/invites'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
+import { entityRef, entityRefType, inviteRole, softLinkType } from './schema'
 
 /**
  * Public, read-only sheets (ADR-032).
@@ -75,12 +77,8 @@ const KIND_TO_TABLE = {
 type Kind = keyof typeof KIND_TO_TABLE
 type PublicTable = (typeof KIND_TO_TABLE)[Kind]
 
-const kindValidator = v.union(
-  v.literal('pilot'),
-  v.literal('mech'),
-  v.literal('crawler'),
-  v.literal('npc')
-)
+/** A sheet's kind: `EntityRefSchema.type`, built from Zod in `schema.ts`. */
+const kindValidator = entityRefType
 
 /** Look one entity up by the client-minted app id the URL carries. */
 async function byAppId(
@@ -101,13 +99,20 @@ async function byAppId(
 }
 
 /** One assignment of a published entity, as the reader's sheet draws it. */
-type PublicLink = Pick<Doc<'softLinks'>, 'type' | 'from' | 'to'>
+const publicLink = v.object({ type: softLinkType, from: entityRef, to: entityRef })
+type PublicLink = Infer<typeof publicLink>
 
 /**
  * A linked entity that is published itself: what its own `/p/` page shows, so
  * the reader's rail can carry its vitals and a way in.
  */
-type PublicLinked = { kind: Kind; id: string; name: string; body: unknown }
+const publicLinked = v.object({
+  kind: kindValidator,
+  id: v.string(),
+  name: v.string(),
+  body: v.any(),
+})
+type PublicLinked = Infer<typeof publicLinked>
 
 /**
  * A linked entity that is NOT published: its kind, and nothing else — no name,
@@ -115,7 +120,21 @@ type PublicLinked = { kind: Kind; id: string; name: string; body: unknown }
  * crewmate's private pilot is not named on somebody else's public crawler; the
  * reader's sheet says the slot is filled ("Not shared") without saying by whom.
  */
-type PublicWithheld = { kind: Kind }
+const publicWithheld = v.object({ kind: kindValidator })
+type PublicWithheld = Infer<typeof publicWithheld>
+
+/** One published sheet, as `get` serves it. */
+const publicSheet = v.object({
+  kind: kindValidator,
+  body: v.any(),
+  /** A mech's pilot's abilities, for its maxima (`pilotAbilitiesForMech`). */
+  pilotAbilities: v.optional(v.array(v.string())),
+  /** An NPC's maker, for its "Made by" credit (ruleset §3.9). */
+  madeBy: v.optional(v.string()),
+  links: v.array(publicLink),
+  linked: v.array(publicLinked),
+  withheld: v.array(publicWithheld),
+})
 
 /**
  * One published sheet, or null.
@@ -128,19 +147,8 @@ type PublicWithheld = { kind: Kind }
  */
 export const get = query({
   args: { kind: kindValidator, appId: v.string() },
-  handler: async (
-    ctx,
-    args
-  ): Promise<{
-    kind: Kind
-    body: unknown
-    pilotAbilities?: string[]
-    /** An NPC's maker, for its "Made by" credit (ruleset §3.9). */
-    madeBy?: string
-    links: PublicLink[]
-    linked: PublicLinked[]
-    withheld: PublicWithheld[]
-  } | null> => {
+  returns: v.union(publicSheet, v.null()),
+  handler: async (ctx, args): Promise<Infer<typeof publicSheet> | null> => {
     const row = await byAppId(ctx, KIND_TO_TABLE[args.kind], args.appId)
     // Not-public and not-found are the same answer on purpose: distinguishing
     // them would confirm that a given entity exists.
@@ -401,19 +409,20 @@ export const setPublic = mutation({
 })
 
 /** One readable pattern, as its page draws it. */
-type PatternAnswer = {
-  body: unknown
+const patternAnswer = v.object({
+  body: v.any(),
   /** The maker's display name: the page's only credit (ruleset §3.9). */
-  madeBy: string
+  madeBy: v.string(),
   /** When it was shared, for the page's foot; null while it is the maker's alone. */
-  sharedAt: number | null
+  sharedAt: v.union(v.number(), v.null()),
   /** Mechs built from it so far. */
-  builtCount: number
+  builtCount: v.number(),
   /** The reader made it. */
-  mine: boolean
+  mine: v.boolean(),
   /** Who may read it — told to its maker only. */
-  visibility: PatternVisibility | null
-}
+  visibility: v.union(patternVisibility, v.null()),
+})
+type PatternAnswer = Infer<typeof patternAnswer>
 
 /**
  * One saved mech pattern, or null (#1276, board P2).
@@ -425,6 +434,7 @@ type PatternAnswer = {
  */
 export const pattern = query({
   args: { appId: v.string() },
+  returns: v.union(patternAnswer, v.null()),
   handler: async (ctx, args): Promise<PatternAnswer | null> => {
     const row = await patternByAppId(ctx, args.appId)
     if (row === null) return null
@@ -448,29 +458,24 @@ export const pattern = query({
  * The kinds of player thing a link can preview (issue 1280): the four sheets
  * and a shared mech pattern.
  */
-const previewKindValidator = v.union(
-  v.literal('pilot'),
-  v.literal('mech'),
-  v.literal('crawler'),
-  v.literal('npc'),
-  v.literal('pattern')
-)
+const previewKindValidator = v.union(...entityRefType.members, v.literal('pattern'))
 
 /** What a link preview of one player thing may say. */
-type PreviewAnswer = {
-  kind: Kind | 'pattern'
-  body: unknown
+const previewAnswer = v.object({
+  kind: previewKindValidator,
+  body: v.any(),
   /** The player who owns it (a sheet) or made it (a pattern); null when unclaimed. */
-  ownerName: string | null
+  ownerName: v.union(v.string(), v.null()),
   /** The Game a sheet sits in; null on a shelf, and always null for a pattern. */
-  gameName: string | null
+  gameName: v.union(v.string(), v.null()),
   /**
    * A pilot's mech, as its chassis slug: the one mech assigned to it that is
    * published itself, or null. A private mech is not named (the card's MECH
    * cell reads as empty), as `assignmentsOf` withholds it from the page.
    */
-  mechChassisRef?: string | null
-}
+  mechChassisRef: v.optional(v.union(v.string(), v.null())),
+})
+type PreviewAnswer = Infer<typeof previewAnswer>
 
 /** A user's display name, the way every credit in the app reads it. */
 function displayNameOf(user: Doc<'users'> | null): string | null {
@@ -495,6 +500,7 @@ function displayNameOf(user: Doc<'users'> | null): string | null {
  */
 export const preview = query({
   args: { kind: previewKindValidator, appId: v.string() },
+  returns: v.union(previewAnswer, v.null()),
   handler: async (ctx, args): Promise<PreviewAnswer | null> => {
     if (args.kind === 'pattern') {
       const row = await patternByAppId(ctx, args.appId)
@@ -546,14 +552,15 @@ async function publishedMechOf(
 }
 
 /** What a Game invite's link preview may say: never the code, never the crew. */
-type InvitePreviewAnswer = {
-  gameName: string
+const invitePreviewAnswer = v.object({
+  gameName: v.string(),
   /** Who runs the table: the Game's Mediator, by display name. */
-  mediatedBy: string | null
-  role: 'player' | 'mediator'
-  requiresApproval: boolean
-  expiresAt: number
-}
+  mediatedBy: v.union(v.string(), v.null()),
+  role: inviteRole,
+  requiresApproval: v.boolean(),
+  expiresAt: v.number(),
+})
+type InvitePreviewAnswer = Infer<typeof invitePreviewAnswer>
 
 /**
  * A Game invite, as its link preview shows it (issue 1280, board PV1): the
@@ -564,6 +571,7 @@ type InvitePreviewAnswer = {
  */
 export const invitePreview = query({
   args: { code: v.string() },
+  returns: v.union(invitePreviewAnswer, v.null()),
   handler: async (ctx, args): Promise<InvitePreviewAnswer | null> => {
     const code = args.code.trim().toUpperCase()
     if (code.length === 0) return null

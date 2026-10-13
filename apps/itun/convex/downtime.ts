@@ -66,6 +66,14 @@ async function ensureState(ctx: MutationCtx, gameId: Id<'games'>): Promise<Doc<'
 /** The table's current Downtime, plus who has finished the current step. */
 export const state = query({
   args: { gameId: v.id('games') },
+  returns: v.object({
+    running: v.boolean(),
+    stepIndex: v.union(v.number(), v.null()),
+    /** Absent while no Downtime row exists yet. */
+    startedAt: v.optional(v.union(v.number(), v.null())),
+    completedBy: v.array(v.object({ userId: v.id('users'), displayName: v.string() })),
+    upkeepSpent: v.boolean(),
+  }),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const row = await readState(ctx, args.gameId)

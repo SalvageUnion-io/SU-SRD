@@ -4,7 +4,7 @@ import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { logIdOf, mutation } from './model/entities'
-import { discordIdOfUser, mayRedeem, mintInvite, statusOf } from './model/invites'
+import { discordIdOfUser, inviteStatus, mayRedeem, mintInvite, statusOf } from './model/invites'
 import {
   getMembership,
   NotAuthorized,
@@ -13,6 +13,7 @@ import {
   requireUser,
 } from './model/permissions'
 import { logOwnershipChange } from './ownership'
+import { inviteDeliveryState, inviteRole, ownableTable } from './schema'
 
 /**
  * Invites (ADR-030 §3, and the invite amendments) — how a player joins a Game.
@@ -49,11 +50,11 @@ export const create = mutation({
     usesRemaining: v.optional(v.number()),
     expiresInMs: v.optional(v.number()),
     label: v.optional(v.string()),
-    role: v.optional(v.union(v.literal('player'), v.literal('mediator'))),
+    role: v.optional(inviteRole),
     grants: v.optional(
       v.array(
         v.object({
-          table: v.union(v.literal('pilots'), v.literal('mechs')),
+          table: ownableTable,
           entityId: v.string(),
         })
       )
@@ -122,6 +123,28 @@ function addressOf(invite: Doc<'invites'>): { kind: 'discord'; name: string | nu
 /** Every invite for a Game, with its derived status and who has used it. */
 export const list = query({
   args: { gameId: v.id('games') },
+  returns: v.array(
+    v.object({
+      _id: v.id('invites'),
+      code: v.string(),
+      label: v.union(v.string(), v.null()),
+      role: inviteRole,
+      grantCount: v.number(),
+      requiresApproval: v.boolean(),
+      expiresAt: v.number(),
+      usesRemaining: v.union(v.number(), v.null()),
+      status: inviteStatus,
+      redeemers: v.array(v.string()),
+      target: v.union(
+        v.object({ kind: v.literal('discord'), name: v.union(v.string(), v.null()) }),
+        v.null()
+      ),
+      delivery: v.union(
+        v.object({ state: inviteDeliveryState, detail: v.union(v.string(), v.null()) }),
+        v.null()
+      ),
+    })
+  ),
   handler: async (ctx, args) => {
     await requireOrganizer(ctx, args.gameId)
     const now = Date.now()
@@ -206,6 +229,20 @@ export const revoke = mutation({
  */
 export const preview = query({
   args: { code: v.string() },
+  returns: v.union(
+    v.object({
+      gameName: v.string(),
+      invitedBy: v.string(),
+      role: inviteRole,
+      requiresApproval: v.boolean(),
+      grantCount: v.number(),
+      status: inviteStatus,
+      expiresAt: v.number(),
+      addressed: v.union(v.literal('discord'), v.null()),
+      forYou: v.union(v.boolean(), v.null()),
+    }),
+    v.null()
+  ),
   handler: async (ctx, args) => {
     const code = args.code.trim().toUpperCase()
     if (code.length === 0) return null
@@ -457,6 +494,17 @@ export const decline = mutation({
  */
 export const forMe = query({
   args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id('invites'),
+      code: v.string(),
+      gameName: v.string(),
+      invitedBy: v.string(),
+      role: inviteRole,
+      grantCount: v.number(),
+      expiresAt: v.number(),
+    })
+  ),
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx)
     if (userId === null) return []
@@ -494,6 +542,15 @@ export const forMe = query({
 /** Pending knocks for a Game, for the Organizer to answer. */
 export const pendingRequests = query({
   args: { gameId: v.id('games') },
+  returns: v.array(
+    v.object({
+      _id: v.id('joinRequests'),
+      displayName: v.string(),
+      requestedAt: v.number(),
+      inviteLabel: v.union(v.string(), v.null()),
+      role: inviteRole,
+    })
+  ),
   handler: async (ctx, args) => {
     await requireOrganizer(ctx, args.gameId)
     const requests = await ctx.db

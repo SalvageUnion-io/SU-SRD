@@ -2,9 +2,12 @@ import { authTables } from '@convex-dev/auth/server'
 import { defineSchema, defineTable } from 'convex/server'
 import type { GenericId, GenericValidator, Infer } from 'convex/values'
 import { v } from 'convex/values'
+import { zodToConvex } from 'convex-helpers/server/zod4'
 import { CHANGE_LOG_KINDS } from 'itun-domain/schemas/changeLog'
-import type { Seat, SeatMount, SeatResolving } from 'itun-domain/schemas/seat'
-import { CORE_ROLL_BAND_NAMES, RANGE_BANDS } from 'itun-domain/schemas/seat'
+import { EntityRefSchema } from 'itun-domain/schemas/entity'
+import type { Seat } from 'itun-domain/schemas/seat'
+import { SeatSchema } from 'itun-domain/schemas/seat'
+import { CrewSlotSchema, SoftLinkSchema } from 'itun-domain/schemas/softLink'
 
 /**
  * Convex schema for ITUN accounts, Games, and entity ownership.
@@ -46,10 +49,16 @@ import { CORE_ROLL_BAND_NAMES, RANGE_BANDS } from 'itun-domain/schemas/seat'
  * error. The unions below are the checked version of comments that were already
  * there, each kept in step with its Zod counterpart in `itun-domain/schemas/`.
  *
- * Where the Zod side is a list of names, the union is built from that list
- * (`literalUnion`), so there is nothing to keep in step. Where it is a shape,
- * the validator is written out and `mirrors` refuses to compile it when it
- * stops accepting exactly what the Zod type does.
+ * Where the Zod side is a schema, the validator is built from it with
+ * `zodToConvex` (convex-helpers), and where it is only a list of names, from
+ * that list (`literalUnion`), so there is nothing to keep in step. What Zod
+ * refines beyond the shape (a `.min(1)`, a `superRefine`) Convex does not
+ * check; the mutation's Zod parse still does. `mirrors` checks a validator
+ * still written out against the type it stands for: the `seats` row here, the
+ * crew statuses `crew.vitals` returns.
+ *
+ * The function modules take their arguments and declare their `returns`
+ * against these same validators, never a hand-copied union.
  */
 
 /** A `v.union` of literals built from a Zod enum's own list. */
@@ -65,10 +74,11 @@ type Same<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 
 
 /**
  * Hands `validator` back unchanged, and fails to compile when what it accepts
- * is not exactly `Z`, the Zod type it mirrors. Curried so `Z` is named and the
- * validator's own type is inferred.
+ * is not exactly `Z`, the type it mirrors. Curried so `Z` is named and the
+ * validator's own type is inferred. Exported for a `returns` validator that
+ * mirrors a domain type with no Zod schema to build it from (`crew.vitals`).
  */
-function mirrors<Z>() {
+export function mirrors<Z>() {
   return <V extends GenericValidator>(
     validator: V,
     ..._exact: Same<Infer<V>, Z> extends true
@@ -78,43 +88,33 @@ function mirrors<Z>() {
 }
 
 /**
- * Mirrors `EntityRefSchema.type` (itun-domain/schemas/entity) — ADR-027.
+ * `EntityRefSchema.type` (itun-domain/schemas/entity) — ADR-027.
  *
  * Exported so a mutation that takes an endpoint as an *argument* validates it
  * against this same union rather than a hand-copied one. `entities.upsertSoftLink`
  * is the caller; a second copy there is exactly the drift the header warns about.
  */
-export const entityRefType = v.union(
-  v.literal('pilot'),
-  v.literal('mech'),
-  v.literal('crawler'),
-  v.literal('npc')
-)
+export const entityRefType = zodToConvex(EntityRefSchema.shape.type)
+
+/** `EntityRefSchema` (itun-domain/schemas/entity): a link end, by kind and app id. */
+export const entityRef = v.object({ type: entityRefType, id: v.string() })
 
 /**
- * Mirrors `SoftLinkSchema.type` (itun-domain/schemas/softLink). Exported: see above.
+ * `SoftLinkSchema.type` (itun-domain/schemas/softLink). Exported: see above.
  *
  * `mech-to-crawler` (ADR-037): a mech's crawler is its own link, not reached
  * through its pilot. Adding a literal is the backward-compatible direction —
  * every existing row still validates.
  */
-export const softLinkType = v.union(
-  v.literal('mech-to-pilot'),
-  v.literal('pilot-to-crawler'),
-  v.literal('mech-to-crawler'),
-  v.literal('npc-to-crawler')
-)
+export const softLinkType = zodToConvex(SoftLinkSchema.shape.type)
 
 /**
- * Mirrors `CrewSlotSchema` (itun-domain/schemas/softLink) — ADR-044. The crew
+ * `CrewSlotSchema` (itun-domain/schemas/softLink) — ADR-044. The crew
  * slot an `npc-to-crawler` link fills: a bay by its slug, or the crawler
  * type's NPC. Required on that type and refused on every other, which the
  * writers in `entities.ts` enforce (a validator cannot see the link's type).
  */
-export const crewSlot = v.union(
-  v.object({ kind: v.literal('bay'), bayRef: v.string() }),
-  v.object({ kind: v.literal('type') })
-)
+export const crewSlot = zodToConvex(CrewSlotSchema)
 
 /**
  * What a Change Log row is about: one of the player entities, or the Game.
@@ -129,22 +129,22 @@ export const crewSlot = v.union(
  * union rather than a hand-copied one, as `entityRefType` is above.
  */
 export const changeLogEntityType = v.union(
-  v.literal('pilot'),
-  v.literal('mech'),
-  v.literal('crawler'),
-  v.literal('npc'),
+  ...entityRefType.members,
   v.literal('softLink'),
   v.literal('game')
 )
 
-/** `CHANGE_LOG_KINDS` (itun-domain/schemas/changeLog) — ADR-022. */
-const changeLogKind = literalUnion(CHANGE_LOG_KINDS)
+/**
+ * `CHANGE_LOG_KINDS` (itun-domain/schemas/changeLog) — ADR-022. Exported so
+ * `changeLog.appendChangeLog` takes its entries' `kind` against this union.
+ */
+export const changeLogKind = literalUnion(CHANGE_LOG_KINDS)
 
 /**
  * Proposal lifecycle (ADR-030 §4). No Zod counterpart: proposals are made and
- * answered only on the server.
+ * answered only on the server. Exported for the reads that return it.
  */
-const changeLogState = v.union(
+export const changeLogState = v.union(
   v.literal('applied'),
   v.literal('proposed'),
   v.literal('declined'),
@@ -155,37 +155,51 @@ const changeLogState = v.union(
  * `RANGE_BANDS` (itun-domain/schemas/seat) — ADR-038. Exported so `seats.setRange`
  * takes its argument against this same union.
  */
-export const seatRange = literalUnion(RANGE_BANDS)
+export const seatRange = zodToConvex(SeatSchema.shape.range)
 
 /** A `Seat` as its row stores it: the Game is a Convex id rather than a string. */
 type SeatRow = {
   [K in keyof Seat]: K extends 'gameId' ? GenericId<'games'> : Seat[K]
 }
 
-/** Mirrors `SeatMount` (itun-domain/schemas/seat). */
-const seatMount = mirrors<SeatMount>()(
-  v.union(
-    v.object({ kind: v.literal('foot') }),
-    v.object({ kind: v.literal('boarded'), mechId: v.string() })
-  )
-)
-
-/** `CORE_ROLL_BAND_NAMES` (itun-domain/schemas/seat), the Core Mechanic's five bands. */
-const seatRollBand = literalUnion(CORE_ROLL_BAND_NAMES)
+/** `SeatMount` (itun-domain/schemas/seat). Exported for `seats.forGame`'s answer. */
+export const seatMount = zodToConvex(SeatSchema.shape.mount)
 
 /**
- * Mirrors `SeatResolving` (itun-domain/schemas/seat). Exported so
- * `seats.setResolving` takes its argument against this same validator.
+ * `SeatResolving` (itun-domain/schemas/seat). Exported so `seats.setResolving`
+ * takes its argument against this same validator.
  */
-export const seatResolving = mirrors<SeatResolving>()(
-  v.object({
-    ref: v.string(),
-    name: v.string(),
-    activated: v.boolean(),
-    roll: v.optional(v.object({ roll: v.number(), band: seatRollBand })),
-    applied: v.boolean(),
-  })
+export const seatResolving = zodToConvex(SeatSchema.shape.resolving.unwrap())
+
+/**
+ * The seat an invite grants (`invites.role`). No Zod counterpart: invites are
+ * minted and redeemed only on the server. Exported so `invites.create` takes
+ * it and the invite reads return it against this same union.
+ */
+export const inviteRole = v.union(v.literal('player'), v.literal('mediator'))
+
+/**
+ * The tables an entity can be handed over from: a pilot or a mech, never the
+ * communal crawler. An invite's `grants` name them, and `ownership` and
+ * `entities.remove` take them.
+ */
+export const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
+
+/** Whether an addressed invite's `/su invite` DM went out (`invites.delivery`). */
+export const inviteDeliveryState = v.union(
+  v.literal('queued'),
+  v.literal('sent'),
+  v.literal('failed')
 )
+
+/** A Game's denormalised summary (`games.summary`), as `games.listMine` returns it too. */
+export const gameSummary = v.object({
+  memberCount: v.number(),
+  pilotCount: v.number(),
+  mechCount: v.number(),
+  /** The primary crawler's name, or null before one exists. */
+  crawlerName: v.union(v.string(), v.null()),
+})
 
 /** The columns and indexes `pilots`, `mechs`, `crawlers` and `npcs` share: one table shape, four tables. */
 function containerTable() {
@@ -283,15 +297,7 @@ export default defineSchema({
      * Optional because a Game is inserted before the membership whose trigger
      * first fills it; `summaryOf` computes it live for a row that has none.
      */
-    summary: v.optional(
-      v.object({
-        memberCount: v.number(),
-        pilotCount: v.number(),
-        mechCount: v.number(),
-        /** The primary crawler's name, or null before one exists. */
-        crawlerName: v.union(v.string(), v.null()),
-      })
-    ),
+    summary: v.optional(gameSummary),
     /**
      * The crawler every pilot and mech is assigned to on entering this Game
      * (ADR-037 — the primary crawler).
@@ -352,7 +358,7 @@ export default defineSchema({
     label: v.optional(v.string()),
 
     /** The seat granted on redeem. */
-    role: v.union(v.literal('player'), v.literal('mediator')),
+    role: inviteRole,
 
     /**
      * Entities handed over on join. A list, not a single id: the Starter Set
@@ -362,7 +368,7 @@ export default defineSchema({
     grants: v.optional(
       v.array(
         v.object({
-          table: v.union(v.literal('pilots'), v.literal('mechs')),
+          table: ownableTable,
           entityId: v.string(),
         })
       )
@@ -404,7 +410,7 @@ export default defineSchema({
     /** Whether the `/su invite` DM carrying an addressed invite was delivered. */
     delivery: v.optional(
       v.object({
-        state: v.union(v.literal('queued'), v.literal('sent'), v.literal('failed')),
+        state: inviteDeliveryState,
         at: v.number(),
         /** A short reason for a failure, worded for the Organizer. */
         detail: v.optional(v.string()),
@@ -528,8 +534,8 @@ export default defineSchema({
    */
   softLinks: defineTable({
     gameId: v.union(v.id('games'), v.null()),
-    from: v.object({ type: entityRefType, id: v.string() }),
-    to: v.object({ type: entityRefType, id: v.string() }),
+    from: entityRef,
+    to: entityRef,
     type: softLinkType,
     /** The crew slot of an `npc-to-crawler` link; absent on every other type. */
     slot: v.optional(crewSlot),

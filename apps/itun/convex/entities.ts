@@ -1,5 +1,5 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
-import type { ObjectType } from 'convex/values'
+import type { Infer, ObjectType } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import { staleWriteError } from 'itun-domain/connection/staleWrite'
 import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'itun-domain/links/linkRules'
@@ -36,7 +36,7 @@ import {
   requireUser,
 } from './model/permissions'
 import { releaseSeatsOf } from './model/seats'
-import { crewSlot, entityRefType, softLinkType } from './schema'
+import { crewSlot, entityRef, entityRefType, ownableTable, softLinkType } from './schema'
 
 /**
  * Entity reads and writes against the server of record (ADR-030 §1).
@@ -93,8 +93,6 @@ import { crewSlot, entityRefType, softLinkType } from './schema'
  *  - `changeLog.ts` — the client's Change Log append.
  */
 
-const OWNABLE = v.union(v.literal('pilots'), v.literal('mechs'))
-
 /** The tables written whole by their owner: pilots, mechs and built NPCs (ADR-044). */
 const OWNED = v.union(v.literal('pilots'), v.literal('mechs'), v.literal('npcs'))
 
@@ -117,8 +115,8 @@ const CRAWLER_PATCH = {
 
 /** A soft link, addressed by its endpoints (and, for crew, its slot). */
 const LINK = {
-  from: v.object({ type: entityRefType, id: v.string() }),
-  to: v.object({ type: entityRefType, id: v.string() }),
+  from: entityRef,
+  to: entityRef,
   type: softLinkType,
   slot: v.optional(crewSlot),
 }
@@ -162,6 +160,23 @@ async function assertMayAddToContainer(
   if (membership === null) throw new NotAuthorized('Not a member of this game')
 }
 
+const nullableAppId = v.union(v.string(), v.null())
+const nullableOwner = v.union(v.id('users'), v.null())
+
+/** A link row as the client syncs it — `softLinkFromServer`'s input (`servedLink`). */
+const servedLinkValidator = v.object({
+  _id: v.id('softLinks'),
+  _creationTime: v.number(),
+  gameId: v.union(v.id('games'), v.null()),
+  from: entityRef,
+  to: entityRef,
+  type: softLinkType,
+  slot: v.optional(crewSlot),
+})
+
+/** An owned row as `listMine` serves it: its app id, its version and its body. */
+const versionedRow = v.object({ appId: nullableAppId, updatedAt: v.number(), body: v.any() })
+
 /**
  * Everything in a Game the caller can see: all pilots, mechs and built NPCs,
  * plus the crawler. NPCs ride here because a bay crewed by another member's
@@ -169,6 +184,20 @@ async function assertMayAddToContainer(
  */
 export const listForGame = query({
   args: { gameId: v.id('games') },
+  returns: v.object({
+    pilots: v.array(
+      v.object({ _id: v.id('pilots'), appId: nullableAppId, ownerId: nullableOwner, body: v.any() })
+    ),
+    mechs: v.array(
+      v.object({ _id: v.id('mechs'), appId: nullableAppId, ownerId: nullableOwner, body: v.any() })
+    ),
+    crawlers: v.array(v.object({ _id: v.id('crawlers'), appId: nullableAppId, body: v.any() })),
+    npcs: v.array(
+      v.object({ _id: v.id('npcs'), appId: nullableAppId, ownerId: nullableOwner, body: v.any() })
+    ),
+    softLinks: v.array(servedLinkValidator),
+    primaryCrawlerId: v.union(v.id('crawlers'), v.null()),
+  }),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
 
@@ -234,7 +263,7 @@ export const listForGame = query({
 })
 
 /** A link row as the client syncs it — `softLinkFromServer`'s input. */
-function servedLink(l: Doc<'softLinks'>) {
+function servedLink(l: Doc<'softLinks'>): Infer<typeof servedLinkValidator> {
   return {
     _id: l._id,
     _creationTime: l._creationTime,
@@ -273,6 +302,10 @@ const LOCATE_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc:
  */
 export const locate = query({
   args: { kind: entityRefType, id: v.string() },
+  returns: v.union(
+    v.object({ id: v.string(), gameId: v.union(v.id('games'), v.null()), mayEdit: v.boolean() }),
+    v.null()
+  ),
   handler: async (
     ctx,
     args
@@ -344,6 +377,14 @@ export const locate = query({
  */
 export const listMine = query({
   args: {},
+  returns: v.object({
+    pilots: v.array(versionedRow),
+    mechs: v.array(versionedRow),
+    crawlers: v.array(versionedRow),
+    npcs: v.array(versionedRow),
+    mechPatterns: v.array(v.object({ body: v.any() })),
+    encounterNpcs: v.array(v.object({ body: v.any() })),
+  }),
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
 
@@ -445,6 +486,18 @@ export const listMine = query({
  */
 export const listWiring = query({
   args: {},
+  returns: v.object({
+    gameIds: v.array(v.id('games')),
+    softLinks: v.array(servedLinkValidator),
+    crawlers: v.array(
+      v.object({
+        appId: nullableAppId,
+        gameId: v.union(v.id('games'), v.null()),
+        updatedAt: v.number(),
+        body: v.any(),
+      })
+    ),
+  }),
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
 
@@ -526,7 +579,7 @@ export const listWiring = query({
  * address a row from that surface.
  */
 export const remove = mutation({
-  args: { table: OWNABLE, entityId: v.string() },
+  args: { table: ownableTable, entityId: v.string() },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
     const doc = await loadOwnable(ctx, args.table, args.entityId)

@@ -1,3 +1,5 @@
+import type { Infer } from 'convex/values'
+import { v } from 'convex/values'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
@@ -25,7 +27,14 @@ export const DEFAULT_EXPIRY_MS = DAY_MS * 14
 export const TARGETED_EXPIRY_MS = DAY_MS * 7
 
 /** What an invite is currently worth, derived rather than stored. */
-export type InviteStatus = 'active' | 'revoked' | 'declined' | 'expired' | 'exhausted'
+export const inviteStatus = v.union(
+  v.literal('active'),
+  v.literal('revoked'),
+  v.literal('declined'),
+  v.literal('expired'),
+  v.literal('exhausted')
+)
+export type InviteStatus = Infer<typeof inviteStatus>
 
 export type InviteTarget = NonNullable<Doc<'invites'>['target']>
 

@@ -1,3 +1,4 @@
+import type { Infer } from 'convex/values'
 import { v } from 'convex/values'
 import type { MechStatus, PilotStatus } from 'itun-domain/rules/crewStatus'
 import {
@@ -17,6 +18,7 @@ import { linkIdOf } from './model/entities'
 import { requireMember, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 import { seatsInGame } from './model/seats'
+import { mirrors } from './schema'
 
 /**
  * Crew visibility inside a Game (ADR-030 §5), and the crew's derived
@@ -51,26 +53,80 @@ import { seatsInGame } from './model/seats'
  * derive the maxima and never leave.
  */
 
+const nullableNumber = v.union(v.number(), v.null())
+const nullableString = v.union(v.string(), v.null())
+
+/** `PilotStatus` (itun-domain/rules/crewStatus). */
+const pilotStatusValidator = mirrors<PilotStatus>()(
+  v.object({ dead: v.boolean(), injured: v.boolean(), ejected: v.boolean() })
+)
+
+/** `MechStatus` (itun-domain/rules/crewStatus). */
+const mechStatusValidator = mirrors<MechStatus>()(
+  v.object({
+    destroyed: v.boolean(),
+    shutdown: v.boolean(),
+    overheating: v.boolean(),
+    destroyedSystems: v.array(v.string()),
+    destroyedModules: v.array(v.string()),
+  })
+)
+
 /** A pilot's derived numbers, or nulls when their body is not a readable pilot. */
-type PilotDerived = {
-  maxHP: number | null
-  maxAP: number | null
-  status: PilotStatus
-  attention: boolean
-}
+const pilotDerived = v.object({
+  maxHP: nullableNumber,
+  maxAP: nullableNumber,
+  status: pilotStatusValidator,
+  attention: v.boolean(),
+})
+type PilotDerived = Infer<typeof pilotDerived>
 
 /** A mech's derived numbers, or nulls when its body is not a readable mech. */
-type MechDerived = {
-  maxSP: number | null
-  maxEP: number | null
-  maxHeat: number | null
-  status: MechStatus | null
-  attention: boolean
+const mechDerived = v.object({
+  maxSP: nullableNumber,
+  maxEP: nullableNumber,
+  maxHeat: nullableNumber,
+  status: v.union(mechStatusValidator, v.null()),
+  attention: v.boolean(),
+})
+type MechDerived = Infer<typeof mechDerived>
+
+/** One crewmate's row: who it is, whose it is, and what it reads at a glance. */
+const crewRow = {
+  appId: nullableString,
+  linkId: nullableString,
+  ownerId: v.union(v.id('users'), v.null()),
+  ownerName: nullableString,
+  name: v.string(),
 }
 
 /** Every crewmate's vitals, their derived maxima and status, and who the rows belong to. */
 export const vitals = query({
   args: { gameId: v.id('games') },
+  returns: v.object({
+    viewerId: v.id('users'),
+    pilots: v.array(
+      v.object({
+        _id: v.id('pilots'),
+        ...crewRow,
+        currentHP: nullableNumber,
+        currentAP: nullableNumber,
+        boarded: v.boolean(),
+        mechId: nullableString,
+        ...pilotDerived.fields,
+      })
+    ),
+    mechs: v.array(
+      v.object({
+        _id: v.id('mechs'),
+        ...crewRow,
+        currentSP: nullableNumber,
+        currentEP: nullableNumber,
+        currentHeat: nullableNumber,
+        ...mechDerived.fields,
+      })
+    ),
+  }),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const viewerId = await requireUser(ctx)

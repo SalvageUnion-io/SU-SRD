@@ -1,3 +1,5 @@
+import type { Infer } from 'convex/values'
+import { v } from 'convex/values'
 import { customCtx, customMutation } from 'convex-helpers/server/customFunctions'
 import { Triggers } from 'convex-helpers/server/triggers'
 import type { LinkShape } from 'itun-domain/links/linkRules'
@@ -251,7 +253,8 @@ export async function findSoftLink(
  * Who may read a saved pattern: its maker's choice of three, held in the
  * `publicRead` and `gameId` columns (see `mechPatterns` in `schema.ts`).
  */
-export type PatternVisibility = 'private' | 'link' | 'game'
+export const patternVisibility = v.union(v.literal('private'), v.literal('link'), v.literal('game'))
+export type PatternVisibility = Infer<typeof patternVisibility>
 
 /** The visibility a pattern row's columns encode. */
 export function patternVisibilityOf(row: Doc<'mechPatterns'>): PatternVisibility {

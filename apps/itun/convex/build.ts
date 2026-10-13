@@ -1,3 +1,4 @@
+import { v } from 'convex/values'
 import { query } from './_generated/server'
 import { BUILD_FLOOR } from './buildFloor'
 
@@ -12,4 +13,8 @@ import { BUILD_FLOOR } from './buildFloor'
  * and every open tab below it hears at once: it stops writing and reloads onto
  * the new build (`src/lib/connection/buildFloor.ts`).
  */
-export const floor = query({ args: {}, handler: async (): Promise<number> => BUILD_FLOOR })
+export const floor = query({
+  args: {},
+  returns: v.number(),
+  handler: async (): Promise<number> => BUILD_FLOOR,
+})

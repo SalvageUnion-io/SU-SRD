@@ -5,7 +5,7 @@ import { displayNameOf } from './model/bot'
 import type { LoggedTable } from './model/entities'
 import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
-import { changeLogEntityType, entityRefType } from './schema'
+import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } from './schema'
 
 /** The table each sheet kind's row lives in. */
 const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc: 'npcs' } as const
@@ -41,7 +41,7 @@ export const appendChangeLog = mutation({
         entityType: changeLogEntityType,
         entityId: v.string(),
         ts: v.number(),
-        kind: v.union(v.literal('transaction'), v.literal('override'), v.literal('manual')),
+        kind: changeLogKind,
         field: v.string(),
         before: v.optional(v.any()),
         after: v.optional(v.any()),
@@ -150,6 +150,15 @@ const MAX_ROLLS = 100
  */
 export const rolls = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  returns: v.array(
+    v.object({
+      _id: v.id('changeLog'),
+      ts: v.number(),
+      source: v.string(),
+      description: v.string(),
+      actorName: v.union(v.string(), v.null()),
+    })
+  ),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 30) : 30
@@ -206,6 +215,18 @@ export const forEntity = query({
     entityType: entityRefType,
     entityId: v.string(),
   },
+  returns: v.array(
+    v.object({
+      _id: v.id('changeLog'),
+      ts: v.number(),
+      kind: changeLogKind,
+      field: v.string(),
+      before: v.any(),
+      after: v.any(),
+      source: v.string(),
+      state: changeLogState,
+    })
+  ),
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx)
     const row = await loadLogged(ctx, LOGGED_TABLE[args.entityType], args.entityId)

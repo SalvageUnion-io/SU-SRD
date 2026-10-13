@@ -7,7 +7,7 @@ import { linkIdOf, mutation, resolveLinkEnd, rowsInGame } from './model/entities
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
 import type { SeatState } from './model/seats'
 import { defaultSeat, readSeat, seatsInGame } from './model/seats'
-import { seatRange, seatResolving } from './schema'
+import { seatMount, seatRange, seatResolving } from './schema'
 
 /**
  * Seats: each pilot's play state in a Game, shared with the crew and saved on
@@ -104,6 +104,16 @@ type SeatRead = Omit<SeatState, 'resolving' | 'ejected'> & {
  */
 export const forGame = query({
   args: { gameId: v.id('games') },
+  returns: v.array(
+    v.object({
+      pilotId: v.string(),
+      mount: seatMount,
+      range: seatRange,
+      activeEffects: v.array(v.string()),
+      resolving: v.union(seatResolving, v.null()),
+      updatedAt: v.union(v.number(), v.null()),
+    })
+  ),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const [pilots, rows] = await Promise.all([

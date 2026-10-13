@@ -1,3 +1,4 @@
+import type { Infer } from 'convex/values'
 import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
@@ -14,6 +15,7 @@ import {
   requireUser,
 } from './model/permissions'
 import { deleteGameApparatus } from './model/seats'
+import { gameSummary } from './schema'
 
 /**
  * Games — the shared container (ADR-030 §2).
@@ -25,25 +27,22 @@ import { deleteGameApparatus } from './model/seats'
  */
 
 /** Shape returned to the client for a Game the caller belongs to. */
-type GameSummary = {
-  _id: Id<'games'>
-  name: string
-  templateOrigin: string | undefined
-  mediator: boolean
-  organizer: boolean
+const gameRead = v.object({
+  _id: v.id('games'),
+  name: v.string(),
+  templateOrigin: v.optional(v.string()),
+  mediator: v.boolean(),
+  organizer: v.boolean(),
   /**
    * Whether the caller runs this table — Mediator, or Organizer while there is
    * none. The client offers crawler moves into and out of a Game by it
    * (`moveDestinations`), so it has to be the server's answer, which depends on
    * the other memberships too.
    */
-  tableRunner: boolean
-  memberCount: number
-  /** The primary crawler's name, or null before one exists. */
-  crawlerName: string | null
-  pilotCount: number
-  mechCount: number
-}
+  tableRunner: v.boolean(),
+  ...gameSummary.fields,
+})
+type GameSummary = Infer<typeof gameRead>
 
 /**
  * Collapse a Game + the caller's membership into the summary every Game
@@ -80,6 +79,7 @@ async function summarize(
 /** Every Game the signed-in user belongs to, with their role in each. */
 export const listMine = query({
   args: {},
+  returns: v.array(gameRead),
   handler: async (ctx): Promise<GameSummary[]> => {
     const userId = await requireUser(ctx)
     const memberships = await ctx.db
@@ -108,6 +108,7 @@ export const listMine = query({
  */
 export const get = query({
   args: { gameId: v.id('games') },
+  returns: v.union(gameRead, v.null()),
   handler: async (ctx, args): Promise<GameSummary | null> => {
     const userId = await requireUser(ctx)
     const membership = await getMembership(ctx, args.gameId, userId)
@@ -263,6 +264,16 @@ export const destroy = mutation({
 /** The Game's roster, with each member's role. Any member may read it. */
 export const members = query({
   args: { gameId: v.id('games') },
+  returns: v.array(
+    v.object({
+      userId: v.id('users'),
+      displayName: v.string(),
+      avatarUrl: v.optional(v.string()),
+      mediator: v.boolean(),
+      organizer: v.boolean(),
+      joinedAt: v.number(),
+    })
+  ),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const rows = await ctx.db

@@ -47,6 +47,7 @@ import { NotAuthorized, requireMediator, requireUser } from './model/permissions
 /** The Mediator's prepared opposition. Mediator-only, by design. */
 export const npcs = query({
   args: { gameId: v.id('games') },
+  returns: v.array(v.object({ _id: v.id('encounterNpcs'), body: v.any() })),
   handler: async (ctx, args) => {
     await requireMediator(ctx, args.gameId)
     const rows = await ctx.db
@@ -167,6 +168,7 @@ async function requireNpcWriter(ctx: MutationCtx, doc: Doc<'encounterNpcs'>): Pr
  */
 export const amMediator = query({
   args: { gameId: v.id('games') },
+  returns: v.boolean(),
   handler: async (ctx, args): Promise<boolean> => {
     const userId = await requireUser(ctx)
     const membership = await ctx.db
