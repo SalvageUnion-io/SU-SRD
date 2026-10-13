@@ -94,7 +94,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy.
 30. **Preview deploys** <a id="previews"></a>
     `gh workflow run deploy-preview.yml --ref <branch>` → `preview-su-srd` / `preview-su-itun.alxjrvs.workers.dev` on staging Convex.
-    The owner approves the `preview` Environment; staging data persists across branches.
+    Dispatching is the approval (the `preview` Environment has no reviewer); staging data persists across branches.
 31. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.

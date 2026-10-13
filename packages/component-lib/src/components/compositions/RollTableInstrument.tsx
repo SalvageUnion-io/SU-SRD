@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useSyncExternalStore } from 'react'
+import { Button } from '../atoms/Button'
 import type { CardSize } from '../containers/displayMode'
 import { rollBandColor, rollRangeLabel } from './rollTableBands'
 
@@ -9,20 +10,21 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  * step's, and the SRD's roll-table page all draw this, so they cannot drift.
  * The book prints one table, however it is reached (pp. 88, 232).
  *
- * - The BAR: the underlined "ROLL THE DIE:" stamp, then the table's title or
- *   a hint, then whatever controls the host owns (`actions`: a card's Table /
- *   Hide). The STAMP IS THE ROLL (`RollStamp`): given `onRoll` it is the
- *   table's one roll control, a real button that keeps the stamp's look;
- *   without it, or in static HTML before the script runs, it is the plain
- *   label. No host draws a second Roll button beside it.
+ * - The BAR: the table's title or a hint, then whatever controls the host
+ *   owns (`actions`: a card's Table / Hide), then, at the far right, the ROLL
+ *   (`RollControl`): given `onRoll` it is the table's one roll control, the
+ *   shared `Button` reading "Roll the Die"; without it, or in static HTML
+ *   before the script runs, it is the underlined "ROLL THE DIE:" stamp in the
+ *   same place. No host draws a second Roll button beside it.
  * - The READOUT slot under the bar (`readout`): a card's ink strip. The page
  *   adds its own "You rolled" panel beside the instrument instead.
  * - The BANDS: banded d20 rows in the SURFACE TONE (`tone`, the colour of the
  *   page or guide the table sits on): paper, then the tone's band
  *   (`rollBandColor`), in turn; a surface with no tone bands in cream. The
- *   rolled row is set in ink with a "Rolled N" pennant on its title line, the
- *   same mark whatever the outcome (ruleset §3.4); the other rows keep their
- *   ink, so every band reads at full contrast.
+ *   rolled row is set in ink with a "Rolled N" pennant pinned to its top right
+ *   corner, over the row rather than in its flow, so rolling never changes the
+ *   row's height; the same mark whatever the outcome (ruleset §3.4). The other
+ *   rows keep their ink, so every band reads at full contrast.
  * - A COLUMNS table (Callsign, a d20 × d20) is the same instrument: its rows
  *   banded the same way, the columns' ranges across an ink head and the entry
  *   numbers down both outer edges; the rolled column head and cell are marked.
@@ -67,18 +69,18 @@ export type RollTableInstrumentProps = {
   size: CardSize
   /** The surface's tone (a CSS colour); its band paints every other row. */
   tone?: string
-  /** The stamp's words: "Roll the Die:", or "Roll twice:" for two dice. */
+  /** The roll's words: "Roll the Die:", or "Roll twice:" for two dice. */
   stamp?: string
   /**
-   * Roll the table: makes the stamp the roll button. Absent where the table
+   * Roll the table: makes the roll control a button. Absent where the table
    * only reads (a static page, a damaged host, a surface with no rolls).
    */
   onRoll?: () => void
-  /** The bar's title, after the stamp (a card's table name). */
+  /** The bar's title (a card's table name). */
   title?: ReactNode
   /** A quieter line in the bar (the page's, which has no title there). */
   hint?: ReactNode
-  /** The host's controls, at the bar's far end. */
+  /** The host's controls, before the roll at the bar's far end. */
   actions?: ReactNode
   /** Under the bar, above the bands: the host's result readout. */
   readout?: ReactNode
@@ -125,12 +127,12 @@ export function RollTableInstrument({
       style={{ [BAND_VAR]: rollBandColor(tone) } as CSSProperties}
     >
       <div className="su-roll__bar">
-        <RollStamp name={name} onRoll={onRoll}>
-          {stamp}
-        </RollStamp>
         {title && <span className="su-roll__title">{title}</span>}
         {hint && <span className="su-roll__hint">{hint}</span>}
         {actions}
+        <RollControl name={name} onRoll={onRoll}>
+          {stamp}
+        </RollControl>
       </div>
       {readout}
       {open &&
@@ -159,6 +161,42 @@ function useLive(): boolean {
   )
 }
 
+/** "Roll the Die:" → the button's name, "Roll the die on Critical Damage" (WCAG 2.5.3). */
+function rollLabel(words: string, name: string): string {
+  const said = words.replace(/:\s*$/, '').toLowerCase()
+  return `${said.charAt(0).toUpperCase()}${said.slice(1)} on ${name}`
+}
+
+/**
+ * The instrument's roll, at the bar's far right: with `onRoll`, once the
+ * script runs, the shared `Button` ("Roll the Die" in the action colour, named "Roll the die on
+ * <table>"); otherwise (no roll here, or static HTML) the plain stamp, in the
+ * same place. The host owns the result and its polite live region.
+ */
+function RollControl({
+  name,
+  onRoll,
+  children,
+}: {
+  name: string
+  onRoll?: () => void
+  children: string
+}) {
+  const live = useLive()
+  if (!onRoll || !live) return <span className="su-roll__stamp su-roll__roll">{children}</span>
+  return (
+    <Button
+      variant="primary"
+      size="compact"
+      className="su-roll__roll"
+      onClick={onRoll}
+      aria-label={rollLabel(children, name)}
+    >
+      {children.replace(/:\s*$/, '')}
+    </Button>
+  )
+}
+
 /**
  * The "ROLL THE DIE:" stamp, and the roll itself (ruleset §2.4): with
  * `onRoll`, once the script runs, a real button in the stamp's look, named
@@ -183,9 +221,7 @@ export function RollStamp({
   const cls = onInk ? 'su-roll__stamp su-roll__stamp--on-ink' : 'su-roll__stamp'
   if (!onRoll || !live) return <span className={cls}>{children}</span>
   // The name starts with the stamp's own words (WCAG 2.5.3).
-  // "Roll the Die:" names the button "Roll the die on Critical Damage".
-  const words = children.replace(/:\s*$/, '').toLowerCase()
-  const label = `${words.charAt(0).toUpperCase()}${words.slice(1)} on ${name}`
+  const label = rollLabel(children, name)
   return (
     <button
       type="button"
@@ -224,15 +260,14 @@ function Bands({ name, table }: { name: string; table: BandsTable }) {
               >
                 <span className="su-roll__range">{rollRangeLabel(row.key)}</span>
                 <div className="su-roll__body">
-                  {(row.label || marked) && (
-                    // The "Rolled" pennant rides the title line, so the text
-                    // keeps the row's whole width on a phone.
+                  {row.label && (
                     <div className="su-roll__head">
-                      {row.label ? <span className="su-roll__label">{row.label}</span> : <span />}
-                      {marked && <span className="su-roll__tag">Rolled {mark.roll}</span>}
+                      <span className="su-roll__label">{row.label}</span>
                     </div>
                   )}
                   <span className="su-roll__value">{row.value}</span>
+                  {/* Pinned to the corner, out of the flow: the row keeps its height. */}
+                  {marked && <span className="su-roll__tag">Rolled {mark.roll}</span>}
                 </div>
               </li>
             )

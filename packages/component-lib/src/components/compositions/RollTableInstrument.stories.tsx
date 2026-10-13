@@ -14,7 +14,8 @@ export default {
 /**
  * THE roll table (EDL E14): the instrument every card, guide step and SRD
  * table page draws. Its rows band in the surface's tone, cream where the
- * surface has none; a roll sets its row in ink with a "Rolled N" pennant. A
+ * surface has none; a roll sets its row in ink with a "Rolled N" pennant
+ * pinned to its corner, at the row's unrolled height. A
  * columns table (Callsign) is the same instrument. Real data: the Core
  * Mechanic and the Callsign Table.
  */
@@ -62,12 +63,12 @@ export const Default: Story = () => (
         table={{ kind: 'bands', rows: coreRows, mark: { key: '11-19', roll: 14 } }}
       />
     </Labelled>
-    <Labelled label="3 · A page's table on the rules band — a hint, no title">
+    <Labelled label="3 · A page's table on the rules band — no title, the Roll button at its right">
       <RollTableInstrument
         name="Core Mechanic"
         size="large"
         tone="var(--color-wk-line)"
-        hint="Your result is marked in the table"
+        onRoll={() => {}}
         table={{ kind: 'bands', rows: coreRows }}
       />
     </Labelled>
@@ -85,9 +86,9 @@ export const Default: Story = () => (
 )
 
 /**
- * The stamp IS the roll (`RollStamp`): given `onRoll` it is the table's one
- * roll control, a button in the stamp's look; without it, the plain label.
- * On an ink band (ITUN's Dashboard table head) it wears a paper plate.
+ * `RollStamp`, ITUN's Dashboard table head's roll: given `onRoll` a button in
+ * the stamp's look; without it, the plain label. On an ink band it wears a
+ * paper plate. (The instrument's own roll is the shared Button.)
  */
 export const Stamp: Story = () => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: space[16], padding: space[16] }}>

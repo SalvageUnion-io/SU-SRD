@@ -18,9 +18,9 @@ type RollPanelProps = {
 
 /**
  * The roll pages' shared frame (board 08b): the "You rolled" panel (the
- * Randsum credit fixed under its head, then the result and the earlier rolls)
- * beside the main column. The panel has no button: the table's own ROLL THE
- * DIE stamp is the roll (`RollTableInstrument`'s `onRoll`), and the result is
+ * result and the earlier rolls) beside the main column, which ends in the
+ * Randsum credit, set very small under the table. The panel has no button:
+ * the table's own Roll the Die button is the roll (`RollTableInstrument`'s `onRoll`), and the result is
  * announced here, in the panel's polite live region. `RollTableView` and
  * `ColumnsTableView` differ only in what they put in it.
  */
@@ -33,15 +33,6 @@ export function RollPanel({ name, result, prompt, history, density, children }: 
             You rolled
           </h2>
           <span className="srd-roll__panel-name">{name}</span>
-        </div>
-
-        <div className="srd-roll__controls">
-          <p className="srd-roll__credit">
-            Dice rolling powered by{' '}
-            <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">
-              Randsum.dev
-            </InlineRef>
-          </p>
         </div>
 
         <div aria-live="polite" className="srd-roll__result">
@@ -64,7 +55,15 @@ export function RollPanel({ name, result, prompt, history, density, children }: 
         )}
       </section>
 
-      <div className="srd-roll__main">{children}</div>
+      <div className="srd-roll__main">
+        {children}
+        <p className="srd-roll__credit">
+          Dice rolling powered by{' '}
+          <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">
+            Randsum.dev
+          </InlineRef>
+        </p>
+      </div>
     </div>
   )
 }

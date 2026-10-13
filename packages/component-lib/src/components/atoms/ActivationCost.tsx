@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
-import { color, fontSize, space, weight } from '../../design/tokens'
+import { fontSize, space, weight } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 
 type ActivationCostProps = {
   cost: string | number
@@ -15,13 +16,12 @@ const TIP = '0.5em'
 // The book's pointy cost box ("2AP"): one shape, cut by `clip-path`, so the
 // tip always spans the box. It stretches to its row's height and carries the
 // bordered chips' block padding plus their 1px rule's worth, so beside them it
-// is as tall as they are, never shorter.
+// is as tall as they are, never shorter. Its colours are `.su-cost`'s, so a
+// phone's chip strip can flip an ink band's paper box back to ink.
 const BOX = {
   alignItems: 'center',
   alignSelf: 'stretch',
-  backgroundColor: color.ink,
   clipPath: `polygon(0 0, calc(100% - ${TIP}) 0, 100% 50%, calc(100% - ${TIP}) 100%, 0 100%)`,
-  color: color.paper,
   display: 'inline-flex',
   flex: 'none',
   lineHeight: 1,
@@ -45,8 +45,6 @@ const BOX_FULL = {
   paddingInlineEnd: `calc(${space[6]} + ${TIP})`,
 } satisfies CSSProperties
 
-const ON_INK = { backgroundColor: color.paper, color: color.ink } satisfies CSSProperties
-
 export function ActivationCost({
   cost,
   currency = 'AP',
@@ -57,7 +55,10 @@ export function ActivationCost({
   const displayCost = cost === 'Variable' ? 'X' : cost
 
   return (
-    <span style={{ ...BOX, ...(compact ? BOX_COMPACT : BOX_FULL), ...(onInk ? ON_INK : {}) }}>
+    <span
+      className={cn('su-cost', onInk && 'su-cost--on-ink')}
+      style={{ ...BOX, ...(compact ? BOX_COMPACT : BOX_FULL) }}
+    >
       {currency === '' ? displayCost : `${displayCost} ${currency}`}
     </span>
   )

@@ -29,7 +29,8 @@ function coreMechanic(): RollTablePageData | null {
 
 /**
  * A roll table's own page (board 08b), before the first roll: the banded d20
- * table under its "ROLL THE DIE:" stamp, and the "You rolled" panel waiting.
+ * table with its "ROLL THE DIE:" stamp at the bar's right, and the "You
+ * rolled" panel waiting.
  * This is also what the server renders for a crawler or a no-JS reader.
  */
 export const BeforeRolling = () => {
@@ -39,8 +40,9 @@ export const BeforeRolling = () => {
 
 /**
  * Rolled, with earlier rolls: the readout (number, the range it lands on, the
- * outcome and its text), the matching row in ink with its "Rolled 14" tag,
- * and the earlier rolls under the Randsum credit. Board 08b's own state.
+ * outcome and its text), the matching row in ink with its "Rolled 14" tag at
+ * its unrolled height, the earlier rolls, and the Randsum credit under the
+ * table. Board 08b's own state.
  */
 export const Rolled = () => {
   const data = coreMechanic()

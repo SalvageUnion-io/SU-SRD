@@ -22,10 +22,10 @@ const dice = (...faces: number[]) => {
   return async () => die
 }
 
-/** The table's one roll control: its ROLL THE DIE stamp. */
+/** The table's one roll control: its Roll the Die button. */
 const STAMP = 'Roll the die on Core Mechanic'
 
-/** Press the stamp and let the (async) die land. */
+/** Press the button and let the (async) die land. */
 async function roll(): Promise<void> {
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: STAMP }))
@@ -88,23 +88,25 @@ describe('the roll-table page, before a roll (the server markup)', () => {
     expect(screen.getAllByRole('list', { name: /^Core Mechanic table/ })).toHaveLength(1)
   })
 
-  test('credits Randsum at the panel’s foot', () => {
+  test('credits Randsum under the table', () => {
     render(<RollTableView data={coreMechanic()} state={{ roll: null, history: [] }} />)
     const credit = screen.getByRole('link', { name: 'Randsum.dev' })
     expect(credit.getAttribute('href')).toBe('https://randsum.dev')
+    // Out of the panel: it sits under the table, at the main column's foot.
+    expect(screen.getByRole('region', { name: 'You rolled' }).contains(credit)).toBe(false)
   })
 })
 
 describe('RollTableIsland', () => {
-  test('the ROLL THE DIE stamp is its one roll control', () => {
+  test('the Roll the Die button is its one roll control', () => {
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
     const controls = screen.getAllByRole('button')
     expect(controls).toHaveLength(1)
     expect(controls[0]?.getAttribute('aria-label')).toBe(STAMP)
-    expect(controls[0]?.textContent).toBe('Roll the Die:')
+    expect(controls[0]?.textContent).toBe('Roll the Die')
   })
 
-  test('the stamp reads the result in the panel and marks the row it lands on', async () => {
+  test('the button reads the result in the panel and marks the row it lands on', async () => {
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
     await roll()
 
@@ -137,7 +139,7 @@ describe('RollTableIsland', () => {
     expect(asked).toEqual(['Core Mechanic'])
   })
 
-  test('pressing the stamp again keeps the earlier rolls, newest first', async () => {
+  test('pressing the button again keeps the earlier rolls, newest first', async () => {
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(7, 20, 3)} />)
     await roll()
     await roll()

@@ -783,21 +783,10 @@
   text-transform: uppercase;
 }
 
-/* Under the panel's head, above the result: the Randsum credit. The roll is
-   the table's own stamp, so the panel holds no button. */
-.srd-roll__controls {
-  align-items: center;
-  border-bottom: var(--bw-chrome) solid var(--color-ink);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-10);
-  padding: var(--space-12) var(--space-14);
-}
-
+/* At the main column's foot, under the table: the Randsum credit, very small. */
 .srd-roll__credit {
   color: var(--color-wk-muted);
-  flex: 1 1 100%;
-  font-size: var(--text-xs);
+  font-size: var(--text-badge);
   margin: 0;
 }
 

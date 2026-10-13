@@ -113,6 +113,17 @@
   width: fit-content;
 }
 
+/* The pointy cost box (`ActivationCost`): ink, or paper on an ink band. */
+.su-cost {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-cost--on-ink {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
 .su-badge--on-ink {
   background-color: var(--color-ink);
   color: var(--color-paper);

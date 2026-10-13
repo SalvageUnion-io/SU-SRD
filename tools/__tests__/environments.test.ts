@@ -172,12 +172,11 @@ describe('the declaration', () => {
     })
   })
 
-  test('preview admits every branch, so a required reviewer gates its secrets', () => {
+  test('preview admits every branch with no reviewer: dispatching it is the gate', () => {
     expect(ENVIRONMENTS[1]).toEqual({
       name: 'preview',
       branches: ['**/*'],
       secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
-      reviewers: ['alxjrvs'],
     })
   })
 
@@ -301,14 +300,12 @@ describe('apply', () => {
       }),
       [`${E}/preview/deployment-branch-policies`]: ok({ branch_policies: [] }),
       [`${E}/github-pages/deployment-branch-policies`]: ok({ branch_policies: [] }),
-      'users/alxjrvs': ok({ id: 42 }),
     })
     expect(apply(api)).toEqual([
       'production: custom deployment branch policy',
       'production: admits main',
       'production: no longer admits release',
       'preview: custom deployment branch policy',
-      'preview: requires alxjrvs',
       'preview: admits **/*',
       'github-pages: custom deployment branch policy',
       'github-pages: admits main',
@@ -320,11 +317,7 @@ describe('apply', () => {
       ['PUT', `${E}/production`, { deployment_branch_policy: policy, reviewers: [] }],
       ['POST', `${E}/production/deployment-branch-policies`, { name: 'main', type: 'branch' }],
       ['DELETE', `${E}/production/deployment-branch-policies/7`, undefined],
-      [
-        'PUT',
-        `${E}/preview`,
-        { deployment_branch_policy: policy, reviewers: [{ type: 'User', id: 42 }] },
-      ],
+      ['PUT', `${E}/preview`, { deployment_branch_policy: policy, reviewers: [] }],
       ['POST', `${E}/preview/deployment-branch-policies`, { name: '**/*', type: 'branch' }],
       ['PUT', `${E}/github-pages`, { deployment_branch_policy: policy, reviewers: [] }],
       ['POST', `${E}/github-pages/deployment-branch-policies`, { name: 'main', type: 'branch' }],
@@ -343,12 +336,10 @@ describe('apply', () => {
       [`${E}/github-pages/deployment-branch-policies`]: ok({
         branch_policies: [{ id: 3, name: 'main', type: 'branch' }],
       }),
-      'users/alxjrvs': ok({ id: 42 }),
     })
     expect(apply(api)).toEqual([
       'production: custom deployment branch policy',
       'preview: custom deployment branch policy',
-      'preview: requires alxjrvs',
       'github-pages: custom deployment branch policy',
     ])
   })

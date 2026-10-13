@@ -18,12 +18,13 @@ name: Deploy preview (Cloudflare)
 # refuses unless it is the dev key for perfect-donkey-72, so a production key
 # stored here by mistake fails the run before anything is pushed.
 #
-# THE GATE IS THE REVIEWER. Any branch may be dispatched, so the `preview`
-# Environment's branch policy admits every branch and protects nothing; its
-# required reviewer (tools/environments.ts) is what stands between a branch's
-# code and the Cloudflare token, which can deploy any Worker on the account
-# (ADR-033 §Credentials). Only `ship` names the Environment, so a run asks for
-# one approval, after every build is green.
+# THE GATE IS THE DISPATCH. The workflow runs only when someone dispatches it
+# (no push or PR trigger), and any branch may be dispatched, so the `preview`
+# Environment admits every branch and has no required reviewer: asking for the
+# run is the approval (owner's call, 2026-10-13). The accepted risk is that a
+# branch's code holds the Cloudflare token, which can deploy any Worker on the
+# account (ADR-033 §Credentials). Only `ship` names the Environment, and only
+# after every build is green.
 #
 # THE BUILDS HOLD NO SECRET. They are deploy-cloudflare.yml's builds minus
 # Sentry: the browser bundles carry no DSN (a preview's errors would otherwise
@@ -148,8 +149,7 @@ jobs:
           retention-days: 1
 
   # The only job holding a secret: push the staging backend, then upload both
-  # Worker versions. One job so the reviewer approves once, and only after both
-  # builds are green.
+  # Worker versions, only after both builds are green.
   ship:
     needs: [og-srd, build-itun]
     runs-on: ubuntu-latest

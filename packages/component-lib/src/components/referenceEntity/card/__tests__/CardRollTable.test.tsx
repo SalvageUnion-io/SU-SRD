@@ -24,7 +24,7 @@ const coreMechanic = () => {
 }
 
 describe('CardRollTable', () => {
-  test('collapsed: the bar alone — the ROLL THE DIE stamp (the roll), the name and the Table toggle', () => {
+  test('collapsed: the bar alone — the name, the Table toggle and the Roll the Die button', () => {
     render(
       <CardRollTable
         table={coreMechanic()}
@@ -35,7 +35,7 @@ describe('CardRollTable', () => {
       />
     )
     expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }).textContent).toBe(
-      'Roll the Die:'
+      'Roll the Die'
     )
     expect(screen.getByText('Core Mechanic')).toBeTruthy()
     const toggle = screen.getByRole('button', { name: 'Show the Core Mechanic table' })
@@ -192,11 +192,11 @@ describe('CardRollTable', () => {
     expect(grid.querySelectorAll('tbody tr')).toHaveLength(20)
     expect(screen.getByText('Sparkles')).toBeTruthy()
     const stamp = screen.getByRole('button', { name: 'Roll twice on Callsign Table' })
-    expect(stamp.textContent).toBe('Roll twice:')
+    expect(stamp.textContent).toBe('Roll twice')
     fireEvent.click(stamp)
     expect(screen.getByText(/You rolled · column/)).toBeTruthy()
     expect(grid.querySelectorAll('td[aria-current="true"]')).toHaveLength(1)
-    // Pressed again, the same stamp rolls again: there is no second Roll.
+    // Pressed again, the same button rolls again: there is no second Roll.
     expect(screen.queryAllByRole('button', { name: /^Roll/ })).toHaveLength(1)
   })
 })
