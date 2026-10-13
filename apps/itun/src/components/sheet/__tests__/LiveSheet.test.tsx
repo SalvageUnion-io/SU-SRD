@@ -82,14 +82,16 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
 
 /** The sticky bar. The name is also the chapter band's h1, below it. */
 function bar() {
-  return within(must(document.querySelector('header')))
+  return within(screen.getByRole('region', { name: 'Sheet controls' }))
 }
 
 function stripWrapper(): HTMLElement {
   // The condensed block wraps the name stamp and the live readouts — empty at
   // rest, filled and faded in once the hero scrolls out of view (Option A: the
   // resting bar is slim, back + actions only).
-  return must(document.querySelector<HTMLElement>('header [data-sheet-strip]'))
+  return must(
+    document.querySelector<HTMLElement>('section[aria-label="Sheet controls"] [data-sheet-strip]')
+  )
 }
 
 // The KIND PILL is gone from the bar (and from the props): the gutter wordmark
@@ -97,6 +99,15 @@ function stripWrapper(): HTMLElement {
 // permanently, and repeating it in the condensed bar said the same word twice
 // on one screen. These tests pin the NAME stamp alone, and that no kind label
 // is rendered in the bar.
+describe('LiveSheet — landmarks', () => {
+  test('the sheet is the page’s one main, and its sticky bar is no second banner', () => {
+    renderShell()
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(screen.queryByRole('banner')).toBeNull()
+    expect(screen.getByRole('main').contains(bar().getByRole('link'))).toBe(true)
+  })
+})
+
 describe('LiveSheet — condensed identity (name stamp)', () => {
   test('the name is not in the bar at rest — it lives in the poster below', () => {
     renderShell()

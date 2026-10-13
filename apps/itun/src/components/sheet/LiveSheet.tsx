@@ -277,8 +277,14 @@ export function LiveSheet({
   }))
 
   return (
-    <div className={cn(`sheet--${variant}`, className)} style={ROOT} data-variant={variant}>
-      {/* Top bar — <header> is a print-stylesheet target (nav-hide rule).
+    // The page's one `<main>` landmark, on every surface that draws a sheet
+    // (the live, public and Starter Set sheets): none of their routes wraps
+    // one, and `Sheet`'s not-found state is itself a `<main>`, so the landmark
+    // belongs here rather than around `Sheet`.
+    <main className={cn(`sheet--${variant}`, className)} style={ROOT} data-variant={variant}>
+      {/* Top bar — a labelled section, not a <header>: outside a <main> a
+          header is a banner landmark, a second one beside the Union bar. It
+          carries `data-print="hide"`, the print stylesheet's chrome rule.
           Always present (its back/share/overflow controls are always wanted),
           but UNSEAMED at rest: no bottom border while the sheet's own identity
           block is still on screen, so the bar reads as part of the page rather
@@ -293,7 +299,12 @@ export function LiveSheet({
           mech or pilot tone over paper made a pale blue-grey or pink bar that
           sat off the closed palette (ruleset §4.1). The entity's tone stays in
           the hero below. */}
-      <header className="su-sheet-gutter" style={condensed ? BAR_SEAMED : BAR_AT_REST}>
+      <section
+        aria-label="Sheet controls"
+        data-print="hide"
+        className="su-sheet-gutter"
+        style={condensed ? BAR_SEAMED : BAR_AT_REST}
+      >
         {back && (
           <>
             {/* Back — a bordered square icon button (poster `.iconbtn`), icon
@@ -414,7 +425,7 @@ export function LiveSheet({
             )}
           </nav>
         )}
-      </header>
+      </section>
 
       {/* Condense sentinel — the moment this scrolls under the sticky bar, the
           bar seams (border + shadow) and fills (name + vitals). */}
@@ -462,6 +473,6 @@ export function LiveSheet({
           <EntityExternalLinkProvider value={undefined}>{renderBody()}</EntityExternalLinkProvider>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

@@ -108,6 +108,12 @@ function RootComponent() {
           GameDataReady.tsx's doc comment: brand chrome touches no reference
           data, so it paints immediately instead of sitting behind the full
           preload. */}
+          {/* Skip link (WCAG 2.4.1), the SRD's: the first focusable thing on
+            the page, ahead of the banners and the Union bar, so a keyboard
+            reader is not walked through the whole bar before the content. */}
+          <a href="#main-content" className="su-skip-link">
+            Skip to content
+          </a>
           <NotConnectedBanner />
           {/* The account gate (ADR-034 decision 1) and the migration off
             device-only storage (ADR-035), as one surface: says what is at
@@ -125,9 +131,16 @@ function RootComponent() {
             {/* The Page opener every Mention and Tag reads, and the app's Peek. */}
             <EntityPageHost>
               {onDashboard ? null : <RootHeader pathname={pathname} />}
-              <GameDataReady>
-                <Outlet />
-              </GameDataReady>
+              {/* The skip link's target. A plain block, not a `<main>`: each
+                route draws its own `<main>` (a sheet's is `LiveSheet`), and a
+                second one would be a duplicate landmark. `tabIndex={-1}` makes
+                following the link move focus here, not just the scroll, so the
+                next Tab lands in the content instead of back in the bar. */}
+              <div id="main-content" tabIndex={-1}>
+                <GameDataReady>
+                  <Outlet />
+                </GameDataReady>
+              </div>
               {/* The shared page foot, on every route. */}
               <SiteFooter />
             </EntityPageHost>

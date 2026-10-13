@@ -119,7 +119,7 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
 // ---------------------------------------------------------------------------
 
 describe('Sheet responsive layout — single entity', () => {
-  test('mech-only Sheet renders the mech-toned shell with a sticky header', () => {
+  test('mech-only Sheet renders the mech-toned shell with a sticky bar', () => {
     const { container } = render(
       <Sheet
         kind="mech"
@@ -129,12 +129,11 @@ describe('Sheet responsive layout — single entity', () => {
       />
     )
     expect(container.querySelector('.sheet--mech')).toBeTruthy()
-    const header = container.querySelector('header')
-    expect(header).toBeTruthy()
-    expect((header as HTMLElement).style.position).toBe('sticky')
+    const bar = container.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
+    expect(bar?.style.position).toBe('sticky')
   })
 
-  test('pilot-only Sheet renders the pilot-toned shell with a sticky header', () => {
+  test('pilot-only Sheet renders the pilot-toned shell with a sticky bar', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -144,9 +143,8 @@ describe('Sheet responsive layout — single entity', () => {
       />
     )
     expect(container.querySelector('.sheet--pilot')).toBeTruthy()
-    const header = container.querySelector('header')
-    expect(header).toBeTruthy()
-    expect((header as HTMLElement).style.position).toBe('sticky')
+    const bar = container.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
+    expect(bar?.style.position).toBe('sticky')
   })
 })
 

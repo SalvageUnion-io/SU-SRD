@@ -84,7 +84,7 @@ describe('Print markup — PilotSheet', () => {
     expect(section).toBeTruthy()
   })
 
-  test('renders a <header> element for the LiveSheet top bar (nav-hide rule target)', () => {
+  test('marks the LiveSheet top bar data-print="hide" (the chrome-hide rule target)', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -93,11 +93,11 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    const header = container.querySelector('header')
-    expect(header).toBeTruthy()
+    const bar = container.querySelector('section[aria-label="Sheet controls"]')
+    expect(bar?.getAttribute('data-print')).toBe('hide')
   })
 
-  test('top-bar back-link is inside <header> (targeted by print hide)', () => {
+  test('top-bar back-link is inside the print-hidden bar', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -106,7 +106,7 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    const backLink = container.querySelector('header a[aria-label="Back to roster"]')
+    const backLink = container.querySelector('[data-print="hide"] a[aria-label="Back to roster"]')
     expect(backLink).toBeTruthy()
   })
 

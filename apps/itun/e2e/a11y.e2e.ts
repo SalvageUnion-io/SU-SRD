@@ -21,6 +21,8 @@ const PAGES = [
   '/mechs/patterns',
   '/settings',
   '/starter',
+  // A sheet: its one <main> and its sticky bar, which is no second banner.
+  '/starter/pilot/starter-pilot-bonesaw',
 ]
 
 // A violation that fires only sometimes must not pass on a retry.
