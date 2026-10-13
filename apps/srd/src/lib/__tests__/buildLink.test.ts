@@ -54,7 +54,8 @@ describe('patternBuildLinkFor', () => {
   test('a legal starting pattern opens the mech wizard on its chassis and pattern', () => {
     expect(patternBuildLinkFor('chassis', mule(), patternOf('Hauler'))).toEqual({
       href: `${ITUN_URL}mechs/new?mode=guided&chassis=mule&pattern=hauler`,
-      label: 'Build this mech',
+      label: 'Build With This',
+      ariaLabel: 'Build With This: the Hauler mech',
     })
   })
 

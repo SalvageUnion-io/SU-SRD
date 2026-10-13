@@ -198,7 +198,7 @@ describe('a pattern page names and links its base chassis', () => {
   it('stamps a legal starting pattern in the band, and offers to build it', () => {
     expect(html).toMatch(/<span class="[^"]*srd-entity-stamp"[^>]*>Legal Starting Pattern<\/span>/)
     expect(html).toMatch(
-      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build this mech<\/a>/
+      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build With This<\/a>/
     )
   })
 
@@ -206,7 +206,7 @@ describe('a pattern page names and links its base chassis', () => {
     const untagged = page('/chassis/jackhammer/pattern/auger')
     expect(untagged).not.toContain('Legal Starting Pattern')
     expect(untagged).not.toContain('mechs/new')
-    expect(untagged).not.toContain('Build this mech')
+    expect(untagged).not.toContain('Build With This')
   })
 })
 

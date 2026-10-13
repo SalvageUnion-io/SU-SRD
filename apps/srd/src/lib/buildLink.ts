@@ -90,7 +90,7 @@ export function buildLinkFor(schemaId: string, item: SURefEntity): BuildLink | n
 }
 
 /**
- * A pattern page's "Build this mech": the mech wizard on the pattern's chassis
+ * A pattern page's "Build With This": the mech wizard on the pattern's chassis
  * with the pattern's loadout prefilled (`/mechs/new?chassis=mule&pattern=hauler`).
  * Offered only for a pattern the wizard's own pattern strip offers — a
  * `legalStarting` pattern of a Tech 1 chassis — so a Bio-Titan's or a
@@ -109,7 +109,8 @@ export function patternBuildLinkFor(
       chassis: getEntitySlug(host),
       pattern: nameToSlug(pattern.name),
     }),
-    label: 'Build this mech',
+    label: BUILD_WITH_THIS,
+    ariaLabel: `${BUILD_WITH_THIS}: the ${pattern.name} mech`,
   }
 }
 
