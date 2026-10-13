@@ -1,6 +1,7 @@
 import { PRODUCT } from 'component-lib/product'
 import type { ContainerData } from './container'
 import { NEUTRAL_ACCENT } from './format'
+import { ITUN_ORIGIN } from './gameCards'
 import type { InviteResult } from './itun/types'
 
 /**
@@ -22,8 +23,8 @@ const DAY_MS = 1000 * 60 * 60 * 24
  * The invite link: ITUN's `/invite/<token>`, where the token is the
  * invite's code. Opening it signs the invitee in and joins the Game.
  */
-export function inviteUrl(webUrl: string, code: string): string {
-  return `${webUrl.replace(/\/+$/, '')}/invite/${encodeURIComponent(code)}`
+export function inviteUrl(code: string): string {
+  return `${ITUN_ORIGIN}/invite/${encodeURIComponent(code)}`
 }
 
 /** Discord markdown is live in a TextDisplay; a Game called `**x**` must not bold. */
@@ -37,11 +38,7 @@ function expiryLine(expiresAt: number, now: number): string {
   return `It expires in ${days} days.`
 }
 
-export function buildInviteDm(
-  invite: InvitedResult,
-  webUrl: string,
-  now: number = Date.now()
-): ContainerData {
+export function buildInviteDm(invite: InvitedResult, now: number = Date.now()): ContainerData {
   const seat = invite.role === 'mediator' ? ' as its **Mediator**' : ''
   const waiting =
     invite.grantCount === 0
@@ -69,7 +66,7 @@ export function buildInviteDm(
       },
       {
         kind: 'buttons',
-        buttons: [{ kind: 'link', url: inviteUrl(webUrl, invite.code), label: 'Open invite' }],
+        buttons: [{ kind: 'link', url: inviteUrl(invite.code), label: 'Open invite' }],
       },
     ],
   }

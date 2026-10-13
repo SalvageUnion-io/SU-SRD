@@ -1,11 +1,10 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { PRODUCT } from 'component-lib/product'
 import { MessageFlags } from 'discord-api-types/v10'
-import { toContainer } from '../container'
-import { denialMessage, ITUN_ORIGIN } from '../gameCards'
+import { v2Reply } from '../container'
 import { buildInviteDm, inviteUrl } from '../inviteContainer'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
-import { itun } from './itunReply'
+import { explainFailure, itun } from './itunReply'
 
 /**
  * `/su invite @user` — invite somebody to a Game by their Discord account
@@ -86,21 +85,13 @@ export const inviteCommand = {
     const client = itun()
     const result = await client.invite(interaction.signed)
 
-    if (result.kind === 'unavailable') {
+    if (result.kind === 'denied' && result.reason === 'unbound') {
+      // An unbound channel has a fix specific to this command — the `game`
+      // option — which the server's wording names and the generic one does not.
       await interaction.editReply({ content: result.message })
       return
     }
-    if (result.kind === 'denied') {
-      // An unbound channel has a fix specific to this command — the `game`
-      // option — which the server's wording names and the generic one does not.
-      await interaction.editReply({
-        content:
-          result.reason === 'unbound'
-            ? result.message
-            : denialMessage(result.reason, ITUN_ORIGIN, result.message),
-      })
-      return
-    }
+    if (result.kind !== 'ok') return explainFailure(interaction, result)
 
     const invite = result.value
     if (invite.outcome === 'already-member') {
@@ -111,7 +102,7 @@ export const inviteCommand = {
     }
 
     const seat = invite.role === 'mediator' ? ' as its Mediator' : ''
-    const link = inviteUrl(ITUN_ORIGIN, invite.code)
+    const link = inviteUrl(invite.code)
 
     // The server says no fresh DM: this person was DMed this invite recently.
     // Re-offer the link to the Organizer and leave the invitee alone.
@@ -126,10 +117,10 @@ export const inviteCommand = {
       return
     }
 
-    const dm = await interaction.directMessage(invite.inviteeDiscordId, {
-      components: [toContainer(buildInviteDm(invite, ITUN_ORIGIN))],
-      flags: MessageFlags.IsComponentsV2,
-    })
+    const dm = await interaction.directMessage(
+      invite.inviteeDiscordId,
+      v2Reply(buildInviteDm(invite))
+    )
     const detail = dm.ok
       ? undefined
       : dm.code === DM_REFUSED

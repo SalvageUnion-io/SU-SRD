@@ -183,15 +183,6 @@ describe('context', () => {
       'rolled by Vex Marrow'
     )
   })
-
-  test('the Game signal is its own line, not appended to attribution boilerplate', () => {
-    const body = text(rollOf('Core Mechanic', 14, { loggedTo: 'Tenacity' }))
-    expect(body).toContain('-# LOGGED TO TENACITY')
-  })
-
-  test('no Game signal when the roll was not recorded', () => {
-    expect(text(rollOf('Core Mechanic', 14))).not.toContain('LOGGED TO')
-  })
 })
 
 describe('a dramatic table miss is a result, not an error', () => {

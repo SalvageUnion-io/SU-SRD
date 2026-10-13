@@ -1,6 +1,6 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { PRODUCT } from 'component-lib/product'
-import { gamesCard, ITUN_ORIGIN, meCard, shelfCard } from '../gameCards'
+import { gamesCard, meCard, shelfCard } from '../gameCards'
 import type { CommandExecuteInteraction } from './interactions'
 import { respondWithItun } from './itunReply'
 
@@ -9,7 +9,7 @@ import { respondWithItun } from './itunReply'
  *
  * Grouped in one module rather than three because they are one idea — "what
  * does In The Union Now know about *me*" — and each is a handful of lines. The
- * substantial commands (roll, check, lookup, crew) keep their own files.
+ * substantial commands (roll, lookup, crew) keep their own files.
  *
  * All three are **ephemeral**: an account, a game list and a shelf are personal,
  * and none of them is something the table needs to see. All three also work in
@@ -24,10 +24,7 @@ export const meCommand = {
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     await respondWithItun(interaction, {
       call: (client) => client.me(interaction.user.id),
-      // `currentGameId` is deliberately not resolved here: it would cost a
-      // second round trip to mark one line, and `/su game info` answers
-      // "what is this channel" properly.
-      render: (value) => meCard(value, ITUN_ORIGIN),
+      render: (value) => meCard(value),
     })
   },
 }
@@ -40,7 +37,7 @@ export const gamesCommand = {
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     await respondWithItun(interaction, {
       call: (client) => client.games(interaction.user.id),
-      render: (value) => gamesCard(value.games, ITUN_ORIGIN),
+      render: (value) => gamesCard(value.games),
     })
   },
 }
@@ -53,7 +50,7 @@ export const shelfCommand = {
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     await respondWithItun(interaction, {
       call: (client) => client.shelf(interaction.user.id),
-      render: (value) => shelfCard(value, ITUN_ORIGIN),
+      render: (value) => shelfCard(value),
     })
   },
 }

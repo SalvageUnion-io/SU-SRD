@@ -165,7 +165,6 @@ describe('lookupCard — patterns are entries of their own', () => {
     const text = cardText(card)
     expect(text).not.toContain('PATTERNS (')
     expect(text).not.toContain('/pattern/hauler')
-    expect(card.blocks.some((block) => block.kind === 'select')).toBe(false)
     expect(labels(card)).not.toContain('Overview')
   })
 

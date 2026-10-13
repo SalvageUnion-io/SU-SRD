@@ -9,7 +9,7 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from '../container'
-import { containerTextLength, toContainer, V2_LIMIT } from '../container'
+import { containerTextLength, V2_LIMIT, v2Reply } from '../container'
 import { decodeRollResult, encodeRollRequest, encodeRollResult, makeCustomId } from '../customId'
 import { dieForTable, rollD20 } from '../dice'
 import { noEffectContainer, unknownTableContainer } from '../errorContainer'
@@ -17,30 +17,39 @@ import { buildRollContainerData } from '../rollContainer'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 import { attributeRoll } from './rollAttribution'
 
+type RollTable = ReturnType<typeof SalvageUnionReference.RollTables.all>[number]
+
 /**
- * An error container, ephemeral. A typo is the asker's problem, not the
- * channel's.
+ * A roll table by name. Exact name first, through the model's name index; the
+ * case-insensitive scan is only the fallback for a hand-typed name that skipped
+ * autocomplete.
  */
-function ephemeralContainer(data: ContainerData): {
-  flags: number
-  components: [ContainerBuilder]
-  data: ContainerData
-} {
-  return {
-    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-    components: [toContainer(data)],
-    data,
-  }
+function findRollTable(name: string): RollTable | undefined {
+  return (
+    SalvageUnionReference.RollTables.getByName(name) ??
+    SalvageUnionReference.RollTables.all().find((t) => t.name.toLowerCase() === name.toLowerCase())
+  )
 }
 
-// Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
-// Accessing them at module load would throw before preload completes, so defer to first use.
-let cachedRollTables: ReturnType<typeof SalvageUnionReference.RollTables.all> | null = null
-function getRollTables(): ReturnType<typeof SalvageUnionReference.RollTables.all> {
-  if (cachedRollTables === null) {
-    cachedRollTables = SalvageUnionReference.RollTables.all()
-  }
-  return cachedRollTables
+/**
+ * Decode a roll result from a button and replay its recorded dice in order —
+ * one for a flat table, two for columns. The outcome is returned unfiltered:
+ * each caller decides what a failed or no-effect replay means for it.
+ */
+function replayResult(payload: string):
+  | {
+      table: RollTable
+      outcome: ReturnType<typeof rollOnTable>
+      decoded: NonNullable<ReturnType<typeof decodeRollResult>>
+    }
+  | { error: string } {
+  const decoded = decodeRollResult(payload)
+  if (decoded === null) return { error: 'That button is no longer readable.' }
+  const table = findRollTable(decoded.tableName)
+  if (!table) return { error: `Could not find table: "${decoded.tableName}".` }
+  const queue = [...decoded.rolls]
+  const outcome = rollOnTable(table.table, () => queue.shift() ?? 1)
+  return { table, outcome, decoded }
 }
 
 /**
@@ -104,15 +113,12 @@ export function buildRollMessage(
   /** The roller's Discord id: the only person whose `Roll again` works. */
   ownerId?: string
 ): RollMessage {
-  // Exact name first, through the model's name index; the case-insensitive
-  // scan is only the fallback for a hand-typed name that skipped autocomplete.
-  const table =
-    SalvageUnionReference.RollTables.getByName(tableName) ??
-    getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
+  const table = findRollTable(tableName)
   if (!table) {
-    // An in-system container with tapped recovery, not a dead-end string.
-    const data = unknownTableContainer(tableName, getRollTables().length)
-    return { ...ephemeralContainer(data), ephemeral: true }
+    // An in-system container with tapped recovery, not a dead-end string. A
+    // typo is the asker's problem, not the channel's, so it is ephemeral.
+    const data = unknownTableContainer(tableName, SalvageUnionReference.RollTables.all().length)
+    return { ...v2Reply(data, true), data, ephemeral: true }
   }
 
   // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
@@ -125,14 +131,7 @@ export function buildRollMessage(
     // book means. A miss is a RESULT, so it is as public, or as private, as
     // any roll.
     const data = noEffectContainer(table, outcome.roll, roller, ownerId, isPrivate)
-    return {
-      flags: isPrivate
-        ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-        : MessageFlags.IsComponentsV2,
-      components: [toContainer(data)],
-      data,
-      ...(isPrivate ? { ephemeral: true as const } : {}),
-    }
+    return { ...v2Reply(data, isPrivate), data, ...(isPrivate ? { ephemeral: true as const } : {}) }
   }
 
   const data = buildRollContainerData(table, outcome, { roller })
@@ -156,14 +155,7 @@ export function buildRollMessage(
     ),
   })
 
-  return {
-    flags: isPrivate
-      ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-      : MessageFlags.IsComponentsV2,
-    components: [toContainer(data)],
-    data,
-    ...(isPrivate ? { ephemeral: true as const } : {}),
-  }
+  return { ...v2Reply(data, isPrivate), data, ...(isPrivate ? { ephemeral: true as const } : {}) }
 }
 
 /**
@@ -183,17 +175,9 @@ export function buildPostedRollMessage(
   /** Who posted it: the roller, since only they could see the private roll. */
   ownerId?: string
 ): (RollMessage & { data: ContainerData & { tableName: string } }) | { error: string } {
-  const decoded = decodeRollResult(payload)
-  if (decoded === null) return { error: 'That button is no longer readable.' }
-
-  const table =
-    SalvageUnionReference.RollTables.getByName(decoded.tableName) ??
-    getRollTables().find((t) => t.name.toLowerCase() === decoded.tableName.toLowerCase())
-  if (!table) return { error: `Could not find table: "${decoded.tableName}".` }
-
-  // Replay the recorded dice in order — one for a flat table, two for columns.
-  const queue = [...decoded.rolls]
-  const outcome = rollOnTable(table.table, () => queue.shift() ?? 1)
+  const replayed = replayResult(payload)
+  if ('error' in replayed) return replayed
+  const { table, outcome } = replayed
   // Only a row is ever posted: a no-effect roll carries no Post button.
   if (!outcome.success || outcome.kind === 'no-effect')
     return { error: 'That roll can no longer be rendered.' }
@@ -205,11 +189,7 @@ export function buildPostedRollMessage(
     buttons: rollButtons(table.name, payload, { id: ownerId, isPrivate: false }),
   })
 
-  return {
-    flags: MessageFlags.IsComponentsV2,
-    components: [toContainer(data)],
-    data: { ...data, tableName: table.name },
-  }
+  return { ...v2Reply(data), data: { ...data, tableName: table.name } }
 }
 
 /**
@@ -224,15 +204,9 @@ export function buildSeeTableMessage(
   payload: string,
   roller?: string
 ): { flags: number; components: [ContainerBuilder]; data: ContainerData } | { error: string } {
-  const decoded = decodeRollResult(payload)
-  if (decoded === null) return { error: 'That button is no longer readable.' }
-  const table =
-    SalvageUnionReference.RollTables.getByName(decoded.tableName) ??
-    getRollTables().find((t) => t.name.toLowerCase() === decoded.tableName.toLowerCase())
-  if (!table) return { error: `Could not find table: "${decoded.tableName}".` }
-
-  const queue = [...decoded.rolls]
-  const outcome = rollOnTable(table.table, () => queue.shift() ?? 1)
+  const replayed = replayResult(payload)
+  if ('error' in replayed) return replayed
+  const { table, outcome, decoded } = replayed
   const markedRow = outcome.success && outcome.kind === 'flat' ? outcome.key : undefined
   const die = decoded.rolls.join('·')
   const rollId = makeCustomId('roll', table.name)
@@ -254,11 +228,7 @@ export function buildSeeTableMessage(
       ...(buttons.length > 0 ? [{ kind: 'buttons' as const, buttons }] : []),
     ],
   }
-  return {
-    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-    components: [toContainer(data)],
-    data,
-  }
+  return { ...v2Reply(data, true), data }
 }
 
 export const rollCommand = {
@@ -289,7 +259,7 @@ export const rollCommand = {
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
     const focusedValue = interaction.options.getFocused().toLowerCase()
 
-    const filtered = getRollTables()
+    const filtered = SalvageUnionReference.RollTables.all()
       .map((t) => t.name)
       .filter((name) => name.toLowerCase().includes(focusedValue))
       .slice(0, 25) // Discord limits to 25 choices

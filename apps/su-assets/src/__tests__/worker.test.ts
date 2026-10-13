@@ -2,6 +2,7 @@ import { afterAll, afterEach, describe, expect, it, spyOn } from 'bun:test'
 import * as observability from 'observability/cloudflare'
 import type { AssetBucket } from '../worker'
 import { makeAssetHandler } from '../worker'
+import { bucketWith, req } from './fixtures'
 
 /**
  * The R2 asset Worker's contract: its guards, its extension allowlist and its
@@ -23,23 +24,6 @@ afterAll(() => {
   reportError.mockRestore()
 })
 
-function bucketWith(entries: Record<string, string>): AssetBucket & { asked: string[] } {
-  const asked: string[] = []
-  return {
-    asked,
-    async get(key: string) {
-      asked.push(key)
-      const body = entries[key]
-      if (body === undefined) return null
-      return { body: new Response(body).body }
-    },
-  }
-}
-
-function get(path: string): Request {
-  return new Request(`https://assets.salvageunion.io${path}`)
-}
-
 describe('asset worker — request guards', () => {
   for (const [label, path] of [
     ['an empty key', '/'],
@@ -47,7 +31,7 @@ describe('asset worker — request guards', () => {
   ] as const) {
     it(`404s on ${label} without touching the store`, async () => {
       const bucket = bucketWith({})
-      const res = await makeAssetHandler(() => bucket)(get(path))
+      const res = await makeAssetHandler(() => bucket)(req(path))
 
       expect(res.status).toBe(404)
       expect(bucket.asked).toEqual([])
@@ -60,7 +44,7 @@ describe('asset worker — request guards', () => {
     // `decodeURIComponent` then reveals `../../`, and the guard fires. Decoding
     // BEFORE the guard is what makes the guard meaningful.
     const bucket = bucketWith({})
-    const res = await makeAssetHandler(() => bucket)(get('/a/..%2f..%2fb.webp'))
+    const res = await makeAssetHandler(() => bucket)(req('/a/..%2f..%2fb.webp'))
 
     expect(res.status).toBe(404)
     expect(await res.text()).toBe('Not found')
@@ -79,7 +63,7 @@ describe('asset worker — request guards', () => {
     // namespace — and a normalised key never is.
     for (const path of ['/chassis/../mule.webp', '/chassis/%2e%2e/mule.webp']) {
       const bucket = bucketWith({})
-      const res = await makeAssetHandler(() => bucket)(get(path))
+      const res = await makeAssetHandler(() => bucket)(req(path))
 
       expect(res.status).toBe(404)
       expect(bucket.asked).toEqual(['mule.webp'])
@@ -89,7 +73,7 @@ describe('asset worker — request guards', () => {
   for (const path of ['/chassis/mule.txt', '/chassis/mule', '/chassis/mule.js']) {
     it(`404s on an unlisted extension: ${path}`, async () => {
       const bucket = bucketWith({})
-      const res = await makeAssetHandler(() => bucket)(get(path))
+      const res = await makeAssetHandler(() => bucket)(req(path))
 
       expect(res.status).toBe(404)
       expect(bucket.asked).toEqual([])
@@ -110,7 +94,7 @@ describe('asset worker — request guards', () => {
     for (const ext of ['png', 'PNG', 'jpg', 'jpeg', 'webp', 'gif', 'avif', 'svg']) {
       const key = `chassis/mule.${ext}`
       const bucket = bucketWith({ [key]: 'bytes' })
-      const res = await makeAssetHandler(() => bucket)(get(`/${key}`))
+      const res = await makeAssetHandler(() => bucket)(req(`/${key}`))
 
       expect(res.status).toBe(200)
     }
@@ -120,7 +104,7 @@ describe('asset worker — request guards', () => {
 describe('asset worker — serving', () => {
   it('streams a stored object with immutable cache headers and CORS', async () => {
     const bucket = bucketWith({ 'chassis/mule.webp': 'imagebytes' })
-    const res = await makeAssetHandler(() => bucket)(get('/chassis/mule.webp'))
+    const res = await makeAssetHandler(() => bucket)(req('/chassis/mule.webp'))
 
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toBe('image/webp')
@@ -133,7 +117,7 @@ describe('asset worker — serving', () => {
 
   it('sends the same security headers as the other two sites (#778)', async () => {
     const bucket = bucketWith({ 'chassis/mule.webp': 'bytes' })
-    const res = await makeAssetHandler(() => bucket)(get('/chassis/mule.webp'))
+    const res = await makeAssetHandler(() => bucket)(req('/chassis/mule.webp'))
 
     expect(res.headers.get('x-content-type-options')).toBe('nosniff')
     expect(res.headers.get('x-frame-options')).toBe('DENY')
@@ -146,7 +130,7 @@ describe('asset worker — serving', () => {
 
   it('decodes percent-encoded keys before looking them up', async () => {
     const bucket = bucketWith({ 'chassis/iron mongrel.webp': 'bytes' })
-    const res = await makeAssetHandler(() => bucket)(get('/chassis/iron%20mongrel.webp'))
+    const res = await makeAssetHandler(() => bucket)(req('/chassis/iron%20mongrel.webp'))
 
     expect(res.status).toBe(200)
     expect(bucket.asked).toEqual(['chassis/iron mongrel.webp'])
@@ -154,7 +138,7 @@ describe('asset worker — serving', () => {
 
   it('404s when the key is absent', async () => {
     const bucket = bucketWith({})
-    const res = await makeAssetHandler(() => bucket)(get('/chassis/nope.webp'))
+    const res = await makeAssetHandler(() => bucket)(req('/chassis/nope.webp'))
 
     expect(res.status).toBe(404)
     expect(bucket.asked).toEqual(['chassis/nope.webp'])
@@ -168,12 +152,12 @@ describe('asset worker — serving', () => {
       },
     }
     const responses = [
-      await makeAssetHandler(() => bucketWith({}))(get('/chassis/nope.webp')),
-      await makeAssetHandler(() => bucketWith({}))(get('/chassis/mule.txt')),
+      await makeAssetHandler(() => bucketWith({}))(req('/chassis/nope.webp')),
+      await makeAssetHandler(() => bucketWith({}))(req('/chassis/mule.txt')),
       await makeAssetHandler(() => bucketWith({}))(
         new Request('https://assets.salvageunion.io/chassis/mule.webp', { method: 'POST' })
       ),
-      await makeAssetHandler(() => down)(get('/chassis/mule.webp')),
+      await makeAssetHandler(() => down)(req('/chassis/mule.webp')),
     ]
 
     expect(responses.map((r) => r.status)).toEqual([404, 404, 405, 503])
@@ -186,7 +170,7 @@ describe('asset worker — serving', () => {
         return { body: null }
       },
     }
-    const res = await makeAssetHandler(() => bucket)(get('/chassis/mule.webp'))
+    const res = await makeAssetHandler(() => bucket)(req('/chassis/mule.webp'))
 
     expect(res.status).toBe(404)
   })
@@ -199,7 +183,7 @@ describe('asset worker — reporting policy', () => {
         throw new Error('r2 down')
       },
     }
-    const res = await makeAssetHandler(() => bucket)(get('/chassis/mule.webp'))
+    const res = await makeAssetHandler(() => bucket)(req('/chassis/mule.webp'))
 
     expect(res.status).toBe(503)
     expect(reportError).toHaveBeenCalledTimes(1)
@@ -213,7 +197,7 @@ describe('asset worker — reporting policy', () => {
   it('reports a bucket that cannot even be opened', async () => {
     const res = await makeAssetHandler(() => {
       throw new Error('no binding')
-    })(get('/chassis/mule.webp'))
+    })(req('/chassis/mule.webp'))
 
     expect(res.status).toBe(503)
     expect(reportError).toHaveBeenCalledTimes(1)
@@ -228,7 +212,7 @@ describe('asset worker — reporting policy', () => {
       // This Worker answers every path on a public, crawler-visible host.
       // Alerting on these would turn the Sentry project into a scanner log.
       const bucket = bucketWith({})
-      await makeAssetHandler(() => bucket)(get(path))
+      await makeAssetHandler(() => bucket)(req(path))
 
       expect(reportError).not.toHaveBeenCalled()
     })

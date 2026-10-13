@@ -1,9 +1,8 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
-import { crewCard, ITUN_ORIGIN, sheetCard } from '../gameCards'
-import type { EntityBody } from '../itun/types'
+import { bodyName, crewCard, sheetCard } from '../gameCards'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
-import { itun, respondWithItun } from './itunReply'
+import { itun, requireChannel, respondWithItun } from './itunReply'
 
 /**
  * `/su crew` and `/su sheet` — the table's read surfaces (ADR-030).
@@ -17,9 +16,6 @@ import { itun, respondWithItun } from './itunReply'
  * player's sheet on any surface, so there is deliberately no `/su damage` here
  * — that becomes a proposal or it does not exist.
  */
-
-/** A channel is what decides which Game a command speaks for. */
-const NO_CHANNEL = 'This command has to be run in a channel.'
 
 export const crewCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
@@ -39,28 +35,16 @@ export const crewCommand = {
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    const channelId = interaction.channelId
-    if (channelId === null) {
-      await interaction.reply({ content: NO_CHANNEL, flags: MessageFlags.Ephemeral })
-      return
-    }
+    const channelId = await requireChannel(interaction)
+    if (channelId === null) return
 
     const style = interaction.options.getBoolean('text-only') === true ? 'text' : 'bars'
     await respondWithItun(interaction, {
       visibility: 'public',
       call: (client) => client.crew(interaction.user.id, channelId),
-      render: (value) => crewCard(value, ITUN_ORIGIN, style),
+      render: (value) => crewCard(value, style),
     })
   },
-}
-
-/** Name an entity for the autocomplete list, tolerating an opaque body. */
-function entityLabel(body: EntityBody, keys: string[]): string {
-  for (const key of keys) {
-    const value = body[key]
-    if (typeof value === 'string' && value.trim().length > 0) return value
-  }
-  return 'Unnamed'
 }
 
 export const sheetCommand = {
@@ -102,21 +86,19 @@ export const sheetCommand = {
     const focused = interaction.options.getFocused().toLowerCase()
     const choices = [
       ...result.value.pilots.map((p) => ({
-        name: `${entityLabel(p.body, ['callsign', 'name'])} — pilot`,
+        name: `${bodyName(p.body, ['callsign', 'name'])} — pilot`,
         value: `pilots:${p.id}`,
       })),
       ...result.value.mechs.map((m) => ({
-        name: `${entityLabel(m.body, ['name'])} — mech`,
+        name: `${bodyName(m.body, ['name'])} — mech`,
         value: `mechs:${m.id}`,
       })),
-      // The crawler is communal, so there is at most one and it belongs to
-      // nobody. It was on the crew board and openable nowhere until the server
-      // op learned the `crawlers` table.
+      // The crawler is communal: at most one, owned by nobody.
       ...(result.value.crawler === null
         ? []
         : [
             {
-              name: `${entityLabel(result.value.crawler.body, ['name'])} — crawler`,
+              name: `${bodyName(result.value.crawler.body, ['name'])} — crawler`,
               value: `crawlers:${result.value.crawler.id}`,
             },
           ]),
@@ -128,11 +110,8 @@ export const sheetCommand = {
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    const channelId = interaction.channelId
-    if (channelId === null) {
-      await interaction.reply({ content: NO_CHANNEL, flags: MessageFlags.Ephemeral })
-      return
-    }
+    const channelId = await requireChannel(interaction)
+    if (channelId === null) return
 
     // The autocomplete value is `<table>:<id>`, but a user may type anything
     // into an autocomplete field, so this is parsed rather than trusted.
@@ -169,7 +148,7 @@ export const sheetCommand = {
     // future change that would break it silently.
     await respondWithItun(interaction, {
       call: (client) => client.sheet(interaction.user.id, channelId, table, entityId),
-      render: (value) => sheetCard(value, ITUN_ORIGIN),
+      render: (value) => sheetCard(value),
     })
   },
 }

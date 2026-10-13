@@ -21,7 +21,7 @@ import type {
  * Deliberately built on `fetch` and nothing else. The `convex` package would
  * buy a websocket and reactive subscriptions, which the bot needs exactly once
  * — for pushing Mediator alerts into a channel — which is not built. Adding a
- * dependency now for a feature later is how a Node worker
+ * dependency now for a feature later is how a Worker
  * quietly acquires a browser SDK.
  *
  * ## Degrading
@@ -46,9 +46,6 @@ const REQUEST_TIMEOUT_MS = 8_000
  * early and the picker simply shows nothing.
  */
 const AUTOCOMPLETE_TIMEOUT_MS = 2_000
-
-/** Ops invoked from an autocomplete handler, where the 3s deadline applies. */
-const AUTOCOMPLETE_OPS = new Set(['crew', 'games'])
 
 export type ItunClient = {
   me(discordId: string): Promise<ItunResult<MeResult>>
@@ -156,10 +153,11 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
   const { siteUrl, botSecret } = config
   const origin = siteUrl?.replace(/\/+$/, '') ?? ''
 
-  async function call<T>(
+  async function post<T>(
     op: string,
-    payload: Record<string, unknown>,
-    forAutocomplete = false
+    body: string,
+    extraHeaders: Record<string, string>,
+    timeoutMs: number
   ): Promise<ItunResult<T>> {
     if (!origin || !botSecret) return UNCONFIGURED
     try {
@@ -168,17 +166,16 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
         headers: {
           Authorization: `Bearer ${botSecret}`,
           'Content-Type': 'application/json',
+          ...extraHeaders,
         },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(
-          forAutocomplete && AUTOCOMPLETE_OPS.has(op) ? AUTOCOMPLETE_TIMEOUT_MS : REQUEST_TIMEOUT_MS
-        ),
+        body,
+        signal: AbortSignal.timeout(timeoutMs),
       })
 
       // A non-JSON body from a proxy or an error page must not throw past the
       // caller — it is just another way for the deployment to be unavailable.
-      const body: unknown = await response.json().catch(() => null)
-      return interpret<T>(response.status, body)
+      const json: unknown = await response.json().catch(() => null)
+      return interpret<T>(response.status, json)
     } catch {
       // Timeout or network failure: the bot's Degraded mode, by design. It is
       // worded to the user as an outage, and ITUN's own monitoring owns it.
@@ -186,30 +183,17 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
     }
   }
 
-  /**
-   * A signed op: the body is Discord's, not ours, so it is posted as the exact
-   * string received — parsing and re-serialising it would invalidate the
-   * signature Convex is about to check.
-   */
-  async function callSigned<T>(op: string, signed: SignedInteraction): Promise<ItunResult<T>> {
-    if (!origin || !botSecret) return UNCONFIGURED
-    try {
-      const response = await fetch(`${origin}/bot/${op}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${botSecret}`,
-          'Content-Type': 'application/json',
-          'X-Signature-Ed25519': signed.signature,
-          'X-Signature-Timestamp': signed.timestamp,
-        },
-        body: signed.body,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      })
-      const body: unknown = await response.json().catch(() => null)
-      return interpret<T>(response.status, body)
-    } catch {
-      return { kind: 'unavailable', message: `${PRODUCT.name} could not be reached.` }
-    }
+  function call<T>(
+    op: string,
+    payload: Record<string, unknown>,
+    forAutocomplete = false
+  ): Promise<ItunResult<T>> {
+    return post<T>(
+      op,
+      JSON.stringify(payload),
+      {},
+      forAutocomplete ? AUTOCOMPLETE_TIMEOUT_MS : REQUEST_TIMEOUT_MS
+    )
   }
 
   return {
@@ -226,7 +210,19 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
     unbind: (discordId, channelId) => call('unbind', { discordId, channelId }),
     recordRoll: (discordId, channelId, description, result) =>
       call('recordRoll', { discordId, channelId, description, result }),
-    invite: (signed) => callSigned<InviteResult>('invite', signed),
+    // The body is Discord's, not ours, so it is posted as the exact string
+    // received — parsing and re-serialising it would invalidate the signature
+    // Convex is about to check.
+    invite: (signed) =>
+      post<InviteResult>(
+        'invite',
+        signed.body,
+        {
+          'X-Signature-Ed25519': signed.signature,
+          'X-Signature-Timestamp': signed.timestamp,
+        },
+        REQUEST_TIMEOUT_MS
+      ),
     inviteDelivery: (discordId, code, state, detail) =>
       call('inviteDelivery', { discordId, code, state, detail }),
   }

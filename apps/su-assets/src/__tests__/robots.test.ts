@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import type { AssetBucket } from '../worker'
 import { makeAssetHandler } from '../worker'
+import { emptyBucket, req } from './fixtures'
 
 /**
  * `/robots.txt`.
@@ -10,24 +11,7 @@ import { makeAssetHandler } from '../worker'
  * directory, so without its own branch this path falls through to Cloudflare's
  * zone-level managed robots.txt — content-signal comments with **no `Disallow` directive at all**,
  * which permits everything.
- *
- * Verified against production while auditing:
- *
- *     $ curl https://assets.salvageunion.io/robots.txt
- *     → 200, Cloudflare's managed file, zero Disallow lines
- *
- * Nothing failed. The origin simply went from closed to open, silently.
  */
-
-const emptyBucket: AssetBucket = {
-  async get() {
-    return null
-  },
-}
-
-function req(path: string, method = 'GET'): Request {
-  return new Request(`https://assets.salvageunion.io${path}`, { method })
-}
 
 describe('su-assets robots.txt', () => {
   it('disallows every crawler', async () => {

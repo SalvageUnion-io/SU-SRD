@@ -1,7 +1,6 @@
-import { MessageFlags } from 'discord-api-types/v10'
 import { reportError } from 'observability/cloudflare'
 import type { ContainerData } from '../container'
-import { toContainer } from '../container'
+import { v2Reply } from '../container'
 import type { EditReplyPayload } from './interactions'
 import { itun } from './itunReply'
 
@@ -11,7 +10,8 @@ import { itun } from './itunReply'
  * *"A roll in Discord appears on the table's Dashboard, attributed to the
  * right player"* — and it is deliberately
  * **not a command**. `/su roll` gains no option and no flag for it; in
- * a bound channel their footer simply grows ` · recorded to Tenacity`. A
+ * a bound channel the reply gains a `-# LOGGED TO <GAME>` line above its
+ * buttons. A
  * separate `/su gameroll` would be a worse product and a second thing to teach.
  *
  * ## Why the reply is not deferred
@@ -82,10 +82,7 @@ export async function attributeRoll(
     if (buttonsAt === -1) blocks.push(line)
     else blocks.splice(buttonsAt, 0, line)
 
-    await interaction.editReply({
-      flags: MessageFlags.IsComponentsV2,
-      components: [toContainer({ ...data, blocks })],
-    })
+    await interaction.editReply(v2Reply({ ...data, blocks }))
   } catch (error) {
     reportError(error, { source: 'roll-attribution' })
   }

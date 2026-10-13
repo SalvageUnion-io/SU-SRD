@@ -40,32 +40,32 @@ function sheetResult(overrides: Partial<SheetResult> = {}): SheetResult {
 describe('publicSheetUrl', () => {
   test('is null for a sheet nobody has published', () => {
     // The common case, and the one that must not produce a link.
-    expect(publicSheetUrl(WEB, 'pilots', 'app1', false)).toBeNull()
+    expect(publicSheetUrl('pilots', 'app1', false)).toBeNull()
   })
 
   test('builds the /p route by app id once published', () => {
-    expect(publicSheetUrl(WEB, 'pilots', 'app1', true)).toBe(`${WEB}/p/pilot/app1`)
-    expect(publicSheetUrl(WEB, 'mechs', 'app1', true)).toBe(`${WEB}/p/mech/app1`)
-    expect(publicSheetUrl(WEB, 'crawlers', 'app1', true)).toBe(`${WEB}/p/crawler/app1`)
+    expect(publicSheetUrl('pilots', 'app1', true)).toBe(`${WEB}/p/pilot/app1`)
+    expect(publicSheetUrl('mechs', 'app1', true)).toBe(`${WEB}/p/mech/app1`)
+    expect(publicSheetUrl('crawlers', 'app1', true)).toBe(`${WEB}/p/crawler/app1`)
   })
 
   test('is null with no app id, even when published', () => {
     // The public route resolves by app id; a server-created entity nobody has
     // claimed has none, so there is nothing addressable to link.
-    expect(publicSheetUrl(WEB, 'pilots', null, true)).toBeNull()
+    expect(publicSheetUrl('pilots', null, true)).toBeNull()
   })
 })
 
 describe('the Share field', () => {
   test('is absent from a private sheet', () => {
-    const card = sheetCard(sheetResult({ publicRead: false }), WEB)
+    const card = sheetCard(sheetResult({ publicRead: false }))
     expect(blockStarting(card, '**Share**')).toBeUndefined()
     // And nothing anywhere on the card points at the public route.
     expect(cardText(card)).not.toContain('/p/')
   })
 
   test('appears once the owner has published it', () => {
-    const card = sheetCard(sheetResult({ publicRead: true }), WEB)
+    const card = sheetCard(sheetResult({ publicRead: true }))
     expect(blockStarting(card, '**Share**')).toContain(`${WEB}/p/pilot/app1`)
   })
 
@@ -73,7 +73,7 @@ describe('the Share field', () => {
     // `enforceContainerLimits` sheds from the END. Appended, the Share field
     // would be the first thing dropped on a large sheet. The one link that
     // works without an account should not be the one that goes.
-    const texts = cardTexts(sheetCard(sheetResult({ publicRead: true }), WEB))
+    const texts = cardTexts(sheetCard(sheetResult({ publicRead: true })))
     const shareAt = texts.findIndex((t) => t.startsWith('**Share**'))
     const lastCollection = texts.reduce(
       (last, t, i) => (t.startsWith('**Inventory') || t.startsWith('**Abilities') ? i : last),
@@ -86,7 +86,7 @@ describe('the Share field', () => {
   test('is absent when the server does not send the flag at all', () => {
     // An older deployment sends no `publicRead`. Absent must read as private,
     // never as published.
-    const card = sheetCard({ ...sheetResult(), publicRead: undefined }, WEB)
+    const card = sheetCard({ ...sheetResult(), publicRead: undefined })
     expect(blockStarting(card, '**Share**')).toBeUndefined()
   })
 })

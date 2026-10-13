@@ -83,23 +83,20 @@ describe('vital field names', () => {
     // `currentHP`, so every vital rendered as an em-dash indistinguishable
     // from an undamaged crew. The reads are typed against that schema
     // now; this pins that the canonical names reach the card.
-    const card = crewCard(
-      {
-        game: { gameId: 'g1', name: 'Tenacity' },
-        viewerId: 'u1',
-        pilots: [pilot({ body: { callsign: 'Rook', currentHP: 6, currentAP: 3 } })],
-        mechs: [
-          {
-            id: 'm1',
-            ownerId: 'u1',
-            ownerName: 'alxjrvs',
-            body: { name: 'Mule', chassisRef: 'mule', currentSP: 8, currentHeat: 3 },
-          },
-        ],
-        crawler: null,
-      },
-      WEB
-    )
+    const card = crewCard({
+      game: { gameId: 'g1', name: 'Tenacity' },
+      viewerId: 'u1',
+      pilots: [pilot({ body: { callsign: 'Rook', currentHP: 6, currentAP: 3 } })],
+      mechs: [
+        {
+          id: 'm1',
+          ownerId: 'u1',
+          ownerName: 'alxjrvs',
+          body: { name: 'Mule', chassisRef: 'mule', currentSP: 8, currentHeat: 3 },
+        },
+      ],
+      crawler: null,
+    })
     const value = cardText(card)
     expect(value).toContain('6/10')
     expect(value).toContain('3/5')
@@ -114,23 +111,20 @@ describe('absent vitals', () => {
     // sites in the app read it as `?? max`. Defaulting to 0 would render a
     // fresh, undamaged crew as wiped out — backwards on the one surface built
     // to show exactly this.
-    const card = crewCard(
-      {
-        game: { gameId: 'g1', name: 'Tenacity' },
-        viewerId: 'u1',
-        pilots: [pilot({ body: { callsign: 'Rook' } })],
-        mechs: [
-          {
-            id: 'm1',
-            ownerId: 'u1',
-            ownerName: 'alxjrvs',
-            body: { name: 'Mule', chassisRef: 'mule' },
-          },
-        ],
-        crawler: null,
-      },
-      WEB
-    )
+    const card = crewCard({
+      game: { gameId: 'g1', name: 'Tenacity' },
+      viewerId: 'u1',
+      pilots: [pilot({ body: { callsign: 'Rook' } })],
+      mechs: [
+        {
+          id: 'm1',
+          ownerId: 'u1',
+          ownerName: 'alxjrvs',
+          body: { name: 'Mule', chassisRef: 'mule' },
+        },
+      ],
+      crawler: null,
+    })
     const value = cardText(card)
     expect(value).toContain('10/10')
     expect(value).toContain('5/5')
@@ -142,23 +136,20 @@ describe('absent vitals', () => {
   test('an unwritten Heat means COLD, which is zero', () => {
     // The one field that reads the other way: a mech starts at no heat and
     // gains it, where SP starts full and is lost.
-    const card = crewCard(
-      {
-        game: { gameId: 'g1', name: 'Tenacity' },
-        viewerId: 'u1',
-        pilots: [],
-        mechs: [
-          {
-            id: 'm1',
-            ownerId: 'u1',
-            ownerName: 'alxjrvs',
-            body: { name: 'Mule', chassisRef: 'mule' },
-          },
-        ],
-        crawler: null,
-      },
-      WEB
-    )
+    const card = crewCard({
+      game: { gameId: 'g1', name: 'Tenacity' },
+      viewerId: 'u1',
+      pilots: [],
+      mechs: [
+        {
+          id: 'm1',
+          ownerId: 'u1',
+          ownerName: 'alxjrvs',
+          body: { name: 'Mule', chassisRef: 'mule' },
+        },
+      ],
+      crawler: null,
+    })
     expect(cardText(card)).toContain('0/6')
   })
 })
@@ -177,7 +168,7 @@ describe('ownerLabel', () => {
 
 describe('denialMessage', () => {
   test('an unlinked user is told there is nothing to link', () => {
-    const message = denialMessage('unlinked', WEB)
+    const message = denialMessage('unlinked')
     // The whole point of Discord-as-sole-provider: signing in IS the linking
     // step, so the message must not imply a code to paste.
     expect(message).toContain('nothing to copy across')
@@ -185,7 +176,7 @@ describe('denialMessage', () => {
   })
 
   test('an unbound channel points at the command that fixes it', () => {
-    expect(denialMessage('unbound', WEB)).toContain('/su game bind')
+    expect(denialMessage('unbound')).toContain('/su game bind')
   })
 
   test('every reason produces a non-empty message', () => {
@@ -196,7 +187,7 @@ describe('denialMessage', () => {
       'forbidden',
       'not-found',
     ] as const) {
-      expect(denialMessage(reason, WEB).length).toBeGreaterThan(0)
+      expect(denialMessage(reason).length).toBeGreaterThan(0)
     }
   })
 })
@@ -225,8 +216,7 @@ describe('crewCard', () => {
             body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 8, currentHeat: 3 },
           },
         ],
-      }),
-      WEB
+      })
     )
 
     // One owner, one field — the pilot and the mech read as one crewmate,
@@ -244,12 +234,12 @@ describe('crewCard', () => {
   })
 
   test('renders unclaimed entities in their own bucket rather than dropping them', () => {
-    const card = crewCard(crewOf({ pilots: [pilot({ ownerId: null, ownerName: null })] }), WEB)
+    const card = crewCard(crewOf({ pilots: [pilot({ ownerId: null, ownerName: null })] }))
     expect(blockStarting(card, '**Unclaimed** ')).toBeDefined()
   })
 
   test('marks the crew critical when a mech is wrecked', () => {
-    const healthy = crewCard(crewOf(), WEB)
+    const healthy = crewCard(crewOf())
     const wrecked = crewCard(
       crewOf({
         mechs: [
@@ -260,8 +250,7 @@ describe('crewCard', () => {
             body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 0 },
           },
         ],
-      }),
-      WEB
+      })
     )
     // The one sanctioned deviation from rust, reusing the warm ramp the design
     // system already shares with the bot's roll outcomes.
@@ -292,8 +281,7 @@ describe('crewCard', () => {
             body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 0, currentHeat: 6 },
           },
         ],
-      }),
-      WEB
+      })
     )
     const text = cardText(card)
     expect(text).toMatch(/Rook.*\*\* ✖ Critical Injury/)
@@ -315,7 +303,6 @@ describe('crewCard', () => {
           },
         ],
       }),
-      WEB,
       'text'
     )
     const text = cardText(card)
@@ -329,11 +316,11 @@ describe('crewCard', () => {
   })
 
   test('links back to the game in the app', () => {
-    expect(cardUrl(crewCard(crewOf(), WEB))).toContain('g1')
+    expect(cardUrl(crewCard(crewOf()))).toContain('g1')
   })
 
   test('says so plainly when nothing is in play', () => {
-    const card = crewCard(crewOf({ pilots: [], mechs: [] }), WEB)
+    const card = crewCard(crewOf({ pilots: [], mechs: [] }))
     // Heading, the line saying so, and the footer: no crewmate fields.
     expect(cardTexts(card)).toHaveLength(3)
     expect(cardText(card)).toContain('Nothing in play')
@@ -343,7 +330,7 @@ describe('crewCard', () => {
     const table = Array.from({ length: 8 }, (_, i) =>
       pilot({ id: `p${i}`, ownerId: `u${i}`, ownerName: `Crew ${i}` })
     )
-    const card = crewCard(crewOf({ pilots: table }), WEB)
+    const card = crewCard(crewOf({ pilots: table }))
     expect(enforceContainerLimits(card).blocks).toEqual(card.blocks)
   })
 })
@@ -352,42 +339,39 @@ describe('deep links', () => {
   test('a game links to its own route, not a query string', () => {
     // /games/$gameId is the real TanStack route (games_/$gameId.tsx). A link
     // that 404s reads as the app having lost the game, not as the bot guessing.
-    expect(gameUrl(WEB, 'g1')).toBe(`${WEB}/games/g1`)
+    expect(gameUrl('g1')).toBe(`${WEB}/games/g1`)
   })
 
   test('every sheet links to the live sheet by its row id', () => {
     // /sheet/$kind/$id resolves a Convex row id for anyone allowed to see the
     // row (ITUN's entities.locate), so one shape serves the owner and the crew.
-    expect(sheetUrl(WEB, 'pilots', 'cx-p1')).toBe(`${WEB}/sheet/pilot/cx-p1`)
-    expect(sheetUrl(WEB, 'mechs', 'cx-m1')).toBe(`${WEB}/sheet/mech/cx-m1`)
-    expect(sheetUrl(WEB, 'crawlers', 'cx-c1')).toBe(`${WEB}/sheet/crawler/cx-c1`)
+    expect(sheetUrl('pilots', 'cx-p1')).toBe(`${WEB}/sheet/pilot/cx-p1`)
+    expect(sheetUrl('mechs', 'cx-m1')).toBe(`${WEB}/sheet/mech/cx-m1`)
+    expect(sheetUrl('crawlers', 'cx-c1')).toBe(`${WEB}/sheet/crawler/cx-c1`)
   })
 
   test('a sheet with no row id has no link at all', () => {
-    expect(sheetUrl(WEB, 'pilots', '')).toBeNull()
-    expect(sheetUrl(WEB, 'pilots', null)).toBeNull()
-    expect(sheetUrl(WEB, 'pilots', undefined)).toBeNull()
+    expect(sheetUrl('pilots', '')).toBeNull()
+    expect(sheetUrl('pilots', null)).toBeNull()
+    expect(sheetUrl('pilots', undefined)).toBeNull()
   })
 
   test('the crew board links every crewmate, claimed or not, to the live sheet', () => {
-    const card = crewCard(
-      {
-        game: { gameId: 'g1', name: 'Tenacity' },
-        viewerId: 'u1',
-        pilots: [
-          pilot({ body: { callsign: 'Rook', currentHP: 6 } }),
-          pilot({
-            id: 'p2',
-            ownerId: null,
-            ownerName: null,
-            body: { callsign: 'Nobody' },
-          }),
-        ],
-        mechs: [],
-        crawler: null,
-      },
-      WEB
-    )
+    const card = crewCard({
+      game: { gameId: 'g1', name: 'Tenacity' },
+      viewerId: 'u1',
+      pilots: [
+        pilot({ body: { callsign: 'Rook', currentHP: 6 } }),
+        pilot({
+          id: 'p2',
+          ownerId: null,
+          ownerName: null,
+          body: { callsign: 'Nobody' },
+        }),
+      ],
+      mechs: [],
+      crawler: null,
+    })
     const text = cardText(card)
     const linked = text.slice(text.indexOf('**alxjrvs**'), text.indexOf('**Unclaimed**'))
     const unclaimed = text.slice(text.indexOf('**Unclaimed**'))
@@ -404,20 +388,17 @@ describe('unclaimed ordering', () => {
     // It is a state worth showing, not a crewmate — it should not be the first
     // thing the table reads. Its sentinel key must not sort first (a key that
     // begins with a space does).
-    const card = crewCard(
-      {
-        game: { gameId: 'g1', name: 'Tenacity' },
-        viewerId: 'u1',
-        pilots: [
-          pilot({ id: 'p0', ownerId: null, ownerName: null, body: { callsign: 'Nobody' } }),
-          pilot({ id: 'p1', ownerId: 'u9', ownerName: 'Zed' }),
-          pilot({ id: 'p2', ownerId: 'u1', ownerName: 'alxjrvs' }),
-        ],
-        mechs: [],
-        crawler: null,
-      },
-      WEB
-    )
+    const card = crewCard({
+      game: { gameId: 'g1', name: 'Tenacity' },
+      viewerId: 'u1',
+      pilots: [
+        pilot({ id: 'p0', ownerId: null, ownerName: null, body: { callsign: 'Nobody' } }),
+        pilot({ id: 'p1', ownerId: 'u9', ownerName: 'Zed' }),
+        pilot({ id: 'p2', ownerId: 'u1', ownerName: 'alxjrvs' }),
+      ],
+      mechs: [],
+      crawler: null,
+    })
     const text = cardText(card)
     // Owners stay alphabetical among themselves, and Unclaimed comes after.
     expect(text.indexOf('**alxjrvs**')).toBeLessThan(text.indexOf('**Zed**'))
@@ -425,46 +406,40 @@ describe('unclaimed ordering', () => {
   })
 
   test('the aboard count excludes the unclaimed bucket', () => {
-    const card = crewCard(
-      {
-        game: { gameId: 'g1', name: 'Tenacity' },
-        viewerId: 'u1',
-        pilots: [
-          pilot({ id: 'p0', ownerId: null, ownerName: null }),
-          pilot({ id: 'p1', ownerId: 'u1', ownerName: 'alxjrvs' }),
-        ],
-        mechs: [],
-        crawler: null,
-      },
-      WEB
-    )
+    const card = crewCard({
+      game: { gameId: 'g1', name: 'Tenacity' },
+      viewerId: 'u1',
+      pilots: [
+        pilot({ id: 'p0', ownerId: null, ownerName: null }),
+        pilot({ id: 'p1', ownerId: 'u1', ownerName: 'alxjrvs' }),
+      ],
+      mechs: [],
+      crawler: null,
+    })
     expect(cardText(card)).toContain('1 aboard')
   })
 })
 
 describe('shelfCard', () => {
   test('explains an empty shelf rather than rendering a blank card', () => {
-    const card = shelfCard({ pilots: [], mechs: [] }, WEB)
+    const card = shelfCard({ pilots: [], mechs: [] })
     expect(cardText(card)).not.toContain('**Pilots')
     expect(cardText(card)).toContain('Nothing here — everything you own is in a Game.')
   })
 
   test('links each entity to its sheet', () => {
-    const card = shelfCard({ pilots: [{ id: 'p1', body: { callsign: 'Rook' } }], mechs: [] }, WEB)
+    const card = shelfCard({ pilots: [{ id: 'p1', body: { callsign: 'Rook' } }], mechs: [] })
     expect(blockStarting(card, '**Pilots')).toContain(`${WEB}/sheet/pilot/p1`)
   })
 })
 
 describe('gamesCard and channelCard', () => {
   test('an empty game list is stated, not implied', () => {
-    expect(cardText(gamesCard([], WEB))).toContain('No Games yet')
+    expect(cardText(gamesCard([]))).toContain('No Games yet')
   })
 
   test('roles read as base role plus modifier, never as three roles', () => {
-    const card = gamesCard(
-      [{ gameId: 'g1', name: 'Tenacity', mediator: true, organizer: true }],
-      WEB
-    )
+    const card = gamesCard([{ gameId: 'g1', name: 'Tenacity', mediator: true, organizer: true }])
     // ADR-030 §3: Organizer is a flag ON a base role, so it renders alongside
     // Mediator rather than replacing it.
     expect(cardText(card)).toContain('Mediator · Organiser')
@@ -482,14 +457,14 @@ describe('gamesCard and channelCard', () => {
         },
       ],
     }
-    const idle = channelCard(
-      { ...base, downtime: { running: false, stepIndex: null, completed: 0, upkeepSpent: false } },
-      WEB
-    )
-    const running = channelCard(
-      { ...base, downtime: { running: true, stepIndex: 1, completed: 1, upkeepSpent: true } },
-      WEB
-    )
+    const idle = channelCard({
+      ...base,
+      downtime: { running: false, stepIndex: null, completed: 0, upkeepSpent: false },
+    })
+    const running = channelCard({
+      ...base,
+      downtime: { running: true, stepIndex: 1, completed: 1, upkeepSpent: true },
+    })
     expect(blockStarting(idle, '**Downtime**')).toBeUndefined()
     // stepIndex is zero-based on the server and one-based for humans.
     expect(blockStarting(running, '**Downtime**')).toContain('Step 2')

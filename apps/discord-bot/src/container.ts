@@ -33,12 +33,10 @@ import {
   ContainerBuilder,
   SectionBuilder,
   SeparatorBuilder,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from '@discordjs/builders'
-import { ButtonStyle, SeparatorSpacingSize } from 'discord-api-types/v10'
+import { ButtonStyle, MessageFlags, SeparatorSpacingSize } from 'discord-api-types/v10'
 import { truncate } from 'salvageunion-reference'
 
 /**
@@ -58,8 +56,6 @@ export const V2_LIMIT = {
   textDisplay: 4000,
   /** Buttons in one action row. */
   rowButtons: 5,
-  /** Options in one string select. */
-  selectOptions: 25,
 } as const
 
 /** A button that re-invokes the bot, or one that just opens a URL. */
@@ -70,7 +66,7 @@ export type ButtonSpec =
 /** One block in a container, in render order. */
 export type ContainerBlock =
   | { kind: 'text'; content: string }
-  | { kind: 'separator'; divider?: boolean; large?: boolean }
+  | { kind: 'separator' }
   | {
       kind: 'section'
       /** 1–3 text blocks, per the builder's own predicate. */
@@ -80,14 +76,6 @@ export type ContainerBlock =
       button?: ButtonSpec
     }
   | { kind: 'buttons'; buttons: ButtonSpec[] }
-  /** A string select in its own row: a picker whose choice re-invokes the bot. */
-  | {
-      kind: 'select'
-      customId: string
-      placeholder: string
-      /** Up to 25, Discord's limit; label and description up to 100 chars each. */
-      options: { label: string; value: string; description?: string }[]
-    }
 
 /** Everything needed to render one container. Pure data — no builders. */
 export type ContainerData = {
@@ -116,8 +104,6 @@ export function containerComponentCount(data: ContainerData): number {
       return 1 + block.text.length + (block.thumbnail || block.button ? 1 : 0)
     }
     if (block.kind === 'buttons') return 1 + block.buttons.length
-    // the row and the select
-    if (block.kind === 'select') return 2
     return 1
   }
   // 1 for the container itself.
@@ -142,7 +128,7 @@ export function enforceContainerLimits(data: ContainerData): ContainerData {
   )
 
   const trimmed: ContainerData = { ...data, blocks }
-  const isButtons = (b: ContainerBlock): boolean => b.kind === 'buttons' || b.kind === 'select'
+  const isButtons = (b: ContainerBlock): boolean => b.kind === 'buttons'
   while (
     (containerTextLength(trimmed) > V2_LIMIT.totalText ||
       containerComponentCount(trimmed) > V2_LIMIT.components) &&
@@ -270,9 +256,7 @@ export function toContainer(data: ContainerData): ContainerBuilder {
         break
       case 'separator':
         container.addSeparatorComponents(
-          new SeparatorBuilder()
-            .setDivider(block.divider ?? true)
-            .setSpacing(block.large ? SeparatorSpacingSize.Large : SeparatorSpacingSize.Small)
+          new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small)
         )
         break
       case 'section': {
@@ -289,27 +273,6 @@ export function toContainer(data: ContainerData): ContainerBuilder {
         container.addSectionComponents(section)
         break
       }
-      case 'select': {
-        const options = block.options.slice(0, V2_LIMIT.selectOptions).map((option) => {
-          const built = new StringSelectMenuOptionBuilder()
-            .setLabel(truncate(option.label, 100))
-            .setValue(option.value)
-          return option.description
-            ? built.setDescription(truncate(option.description, 100))
-            : built
-        })
-        if (options.length > 0) {
-          container.addActionRowComponents(
-            new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-              new StringSelectMenuBuilder()
-                .setCustomId(block.customId)
-                .setPlaceholder(block.placeholder)
-                .addOptions(...options)
-            )
-          )
-        }
-        break
-      }
       case 'buttons': {
         const buttons = block.buttons.slice(0, V2_LIMIT.rowButtons).map(toButton)
         if (buttons.length > 0) {
@@ -322,4 +285,20 @@ export function toContainer(data: ContainerData): ContainerBuilder {
     }
   }
   return container
+}
+
+/**
+ * The reply payload for one container. A container needs `IsComponentsV2`, so
+ * that flag is paired with the optional `Ephemeral` here, once.
+ */
+export function v2Reply(
+  data: ContainerData,
+  ephemeral = false
+): { flags: number; components: [ContainerBuilder] } {
+  return {
+    flags: ephemeral
+      ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      : MessageFlags.IsComponentsV2,
+    components: [toContainer(data)],
+  }
 }

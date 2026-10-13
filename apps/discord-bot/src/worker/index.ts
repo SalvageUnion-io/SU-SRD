@@ -59,13 +59,6 @@ await SalvageUnionReference.preload('all')
 
 type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
 
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json' },
-  })
-}
-
 /**
  * Dispatch one interaction, returning the initial response.
  *
@@ -79,7 +72,7 @@ async function dispatch(
   raw: APIInteraction,
   env: Env,
   ctx: ExecutionCtx,
-  signed: SignedInteraction | null = null
+  signed: SignedInteraction | null
 ): Promise<{ type: number; data?: unknown }> {
   const sink = new ResponseSink()
   const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
@@ -289,7 +282,7 @@ export default withObservability('su-discord-bot', {
     }
 
     if (interaction.type === InteractionType.Ping) {
-      return json({ type: InteractionResponseType.Pong })
+      return Response.json({ type: InteractionResponseType.Pong })
     }
 
     // The verified request travels with the interaction, untouched, for the
@@ -301,6 +294,6 @@ export default withObservability('su-discord-bot', {
       signature: request.headers.get(SIGNATURE_HEADER) ?? '',
       timestamp: request.headers.get(TIMESTAMP_HEADER) ?? '',
     }
-    return json(await dispatch(interaction, env, ctx, signed))
+    return Response.json(await dispatch(interaction, env, ctx, signed))
   },
 })

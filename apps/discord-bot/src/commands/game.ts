@@ -1,9 +1,9 @@
 import type { SlashCommandSubcommandGroupBuilder } from '@discordjs/builders'
 import { PRODUCT } from 'component-lib/product'
 import { MessageFlags } from 'discord-api-types/v10'
-import { channelCard, denialMessage, ITUN_ORIGIN } from '../gameCards'
+import { channelCard } from '../gameCards'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
-import { itun, respondWithItun } from './itunReply'
+import { explainFailure, itun, requireChannel, respondWithItun } from './itunReply'
 
 /**
  * `/su game bind | unbind | info` — the channel↔Game link (ADR-030).
@@ -16,14 +16,6 @@ import { itun, respondWithItun } from './itunReply'
  * against the *Discord user*, not against the bot. Holding the bot credential
  * does not make you an Organizer of anything.
  */
-
-const NO_CHANNEL = 'This command has to be run in a channel.'
-
-async function requireChannel(interaction: CommandExecuteInteraction): Promise<string | null> {
-  if (interaction.channelId !== null) return interaction.channelId
-  await interaction.reply({ content: NO_CHANNEL, flags: MessageFlags.Ephemeral })
-  return null
-}
 
 export const gameCommand = {
   /** Options for the `/su game` subcommand group (registered by su.ts). */
@@ -99,7 +91,7 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
   // Picked, not typed. The option carries a Convex id, and a hand-typed name
   // fails `v.id('games')` validation server-side — which the bot renders as
   // "could not be reached", an outage message for a typo. `/su sheet` guards
-  // the same case; this one did not.
+  // the same case.
   const gameId = interaction.options.getString('game', true)
   if (!/^[a-z0-9]{16,}$/i.test(gameId)) {
     await interaction.editReply({
@@ -109,17 +101,7 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
   }
 
   const result = await itun().bind(interaction.user.id, channelId, gameId)
-
-  if (result.kind === 'denied') {
-    await interaction.editReply({
-      content: denialMessage(result.reason, ITUN_ORIGIN, result.message),
-    })
-    return
-  }
-  if (result.kind === 'unavailable') {
-    await interaction.editReply({ content: result.message })
-    return
-  }
+  if (result.kind !== 'ok') return explainFailure(interaction, result)
 
   await interaction.editReply({ content: `Bound to **${result.value.name}**.` })
   await interaction.followUp({
@@ -134,16 +116,7 @@ async function unbind(interaction: CommandExecuteInteraction): Promise<void> {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
   const result = await itun().unbind(interaction.user.id, channelId)
-  if (result.kind === 'denied') {
-    await interaction.editReply({
-      content: denialMessage(result.reason, ITUN_ORIGIN, result.message),
-    })
-    return
-  }
-  if (result.kind === 'unavailable') {
-    await interaction.editReply({ content: result.message })
-    return
-  }
+  if (result.kind !== 'ok') return explainFailure(interaction, result)
   await interaction.editReply({ content: 'This channel is no longer bound to a Game.' })
 }
 
@@ -154,6 +127,6 @@ async function info(interaction: CommandExecuteInteraction): Promise<void> {
   await respondWithItun(interaction, {
     visibility: 'public',
     call: (client) => client.channel(interaction.user.id, channelId),
-    render: (value) => channelCard(value, ITUN_ORIGIN),
+    render: (value) => channelCard(value),
   })
 }

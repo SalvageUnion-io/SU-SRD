@@ -16,7 +16,7 @@ import { buildLookupMessage, buildTableLookupMessage } from './commands/lookup'
 import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from './commands/roll'
 import { attributeRoll } from './commands/rollAttribution'
 import type { ContainerData } from './container'
-import { toContainer } from './container'
+import { v2Reply } from './container'
 import { decodeRollRequest, parseCustomId } from './customId'
 import { dieForTable } from './dice'
 import { entityCard, entityFromKey, patternOf, viewPayloadKey } from './lookupCard'
@@ -98,10 +98,7 @@ export async function handleButtonInteraction(
       })
       return
     }
-    await interaction.reply({
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-      components: [toContainer(peek)],
-    })
+    await interaction.reply(v2Reply(peek, true))
     return
   }
 

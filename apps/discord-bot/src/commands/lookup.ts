@@ -1,8 +1,7 @@
 import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { MessageFlags } from 'discord-api-types/v10'
 import { findEntityBySlug, getPatterns, nameToSlug, search } from 'salvageunion-reference'
 import type { ContainerData } from '../container'
-import { toContainer } from '../container'
+import { v2Reply } from '../container'
 import { noEntryContainer } from '../errorContainer'
 import type { LookupHit } from '../lookupCard'
 import { entityFromKey, lookupCard, lookupKey, patternOf } from '../lookupCard'
@@ -24,7 +23,7 @@ export function buildLookupMessage(hit: LookupHit): {
   data: ContainerData
 } {
   const data = lookupCard(hit)
-  return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
+  return { ...v2Reply(data), data }
 }
 
 /**
@@ -121,13 +120,10 @@ export const lookupCommand = {
     const hit = entityFromKey(input) ?? typedHit(input)
 
     if (!hit) {
-      // An in-system container with the closest entries as buttons, the same
-      // way back an unknown roll table offers. Errors are always ephemeral.
-      const data = noEntryContainer(input)
-      await interaction.reply({
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-        components: [toContainer(data)],
-      })
+      // An in-system 'no such entry' container pointing at `entity:`
+      // autocomplete (no suggestion buttons — the lookup already fell back to
+      // the top search hit). Errors are always ephemeral.
+      await interaction.reply(v2Reply(noEntryContainer(input), true))
       return
     }
 

@@ -92,7 +92,7 @@ export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
  * Headers every response carries.
  *
  * `Access-Control-Allow-Origin: *` is required, not decorative: this host is
- * addressed cross-origin from both salvageunion.io and intheunionnow.com.
+ * addressed cross-origin from salvageunion.io (the SRD, and ITUN under /build).
  *
  * `default-src 'none'; sandbox` because the extension allowlist admits `svg`,
  * and SVG is script-capable: fetched by direct navigation it executes in this
@@ -183,9 +183,8 @@ export function makeAssetHandler(openBucket: () => AssetBucket, images?: ImagesB
       return plain('Asset storage unavailable', 503)
     }
 
-    // A stored object always wins. That is what keeps the 114 pre-baked
-    // derivatives serving unchanged until someone prunes them, so this change
-    // needs no coordinated bucket edit to be safe.
+    // A stored object always wins over a rendered derivative, so any derivative
+    // still in the bucket keeps serving until it is pruned.
     if (object?.body) {
       return imageResponse(object.body, contentType)
     }

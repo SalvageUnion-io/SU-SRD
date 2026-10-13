@@ -117,10 +117,6 @@ function resolveOptionPath(options: APIApplicationCommandInteractionDataOption[]
  * So this throws instead: the dispatcher catches it and
  * replies with the generic error, which is a far better outcome than
  * `null is not an object` at some unrelated line.
- *
- * Found by driving `/su lookup` through the replay harness with the wrong
- * option name — the adapter handed the handler a null and the failure surfaced
- * five frames away in `findByChoiceValue`.
  */
 function stringOption(
   values: APIApplicationCommandInteractionDataBasicOption[],
@@ -184,12 +180,33 @@ export function webhookRoutes(applicationId: string, token: string) {
  * covers a slash command, but a **button** re-roll attributes far more weakly —
  * and "who got the 20?" is the most-asked question at a busy table.
  */
-function displayNameOf(raw: {
-  member?: { nick?: string | null; user?: { global_name?: string | null; username?: string } }
-  user?: { global_name?: string | null; username?: string }
-}): string | undefined {
+function displayNameOf(raw: RawActor): string | undefined {
   const user = raw.member?.user ?? raw.user
   return raw.member?.nick ?? user?.global_name ?? user?.username ?? undefined
+}
+
+/** The fields of a raw interaction that say who sent it, and where. */
+type RawActor = {
+  channel_id?: string | null
+  member?: {
+    nick?: string | null
+    user?: { id: string; global_name?: string | null; username?: string }
+  }
+  user?: { id: string; global_name?: string | null; username?: string }
+}
+
+/**
+ * Who ran an interaction, and in which channel.
+ *
+ * `user` is top-level in DMs and nested under `member` in a guild. Reading
+ * only one of them is how a command works everywhere except where it is
+ * actually used.
+ */
+function actorOf(raw: RawActor): Pick<CommandExecuteInteraction, 'user' | 'channelId'> {
+  return {
+    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
+    channelId: raw.channel_id ?? null,
+  }
 }
 
 function replyMembers(ctx: AdapterContext) {
@@ -236,19 +253,17 @@ function replyMembers(ctx: AdapterContext) {
  * whole under `resolved.messages`, keyed by `target_id`. Null for a slash
  * command, which has no target.
  */
-function targetMessageOf(
-  data:
-    | {
-        target_id?: string
-        resolved?: {
-          messages?: Record<
-            string,
-            { content?: string; author?: { global_name?: string | null; username?: string } }
-          >
-        }
-      }
-    | undefined
-): { content: string; author?: string } | null {
+type RawTarget = {
+  target_id?: string
+  resolved?: {
+    messages?: Record<
+      string,
+      { content?: string; author?: { global_name?: string | null; username?: string } }
+    >
+  }
+}
+
+function targetMessageOf(data: RawTarget | undefined): { content: string; author?: string } | null {
   const id = data?.target_id
   const message = id ? data?.resolved?.messages?.[id] : undefined
   if (!message) return null
@@ -273,23 +288,8 @@ export function interactionName(raw: APIInteraction): string | null {
 
 /** Build the chat-input surface `Command.execute` expects. */
 export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInteraction {
-  const raw = ctx.raw as {
-    data?: {
-      options?: APIApplicationCommandInteractionDataOption[]
-      target_id?: string
-      resolved?: {
-        messages?: Record<
-          string,
-          { content?: string; author?: { global_name?: string | null; username?: string } }
-        >
-      }
-    }
-    channel_id?: string | null
-    member?: {
-      nick?: string | null
-      user?: { id: string; global_name?: string | null; username?: string }
-    }
-    user?: { id: string; global_name?: string | null; username?: string }
+  const raw = ctx.raw as RawActor & {
+    data?: { options?: APIApplicationCommandInteractionDataOption[] } & RawTarget
   }
   const { group, subcommand, values } = resolveOptionPath(raw.data?.options)
 
@@ -299,17 +299,13 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
       getSubcommandGroup: () => group,
       // Overloaded in the source type (required: true narrows to string). One
       // implementation satisfies both; the cast is at the boundary only.
-      // `required` must be forwarded — dropping it is what let a null reach a
+      // `required` must be forwarded, or a required option comes back null to a
       // handler typed to receive a string.
       getString: ((name: string, required?: boolean) =>
         stringOption(values, name, required)) as CommandExecuteInteraction['options']['getString'],
       getBoolean: (name: string) => booleanOption(values, name),
     },
-    // `user` is top-level in DMs and nested under `member` in a guild. Reading
-    // only one of them is how a command works everywhere except where it is
-    // actually used.
-    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
-    channelId: raw.channel_id ?? null,
+    ...actorOf(raw),
     targetMessage: targetMessageOf(raw.data),
     signed: ctx.signed ?? null,
     directMessage: (userId: string, payload: unknown) => directMessage(ctx.rest, userId, payload),
@@ -345,22 +341,14 @@ async function directMessage(
 
 /** Build the button surface `handleButtonInteraction` expects. */
 export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInteraction {
-  const raw = ctx.raw as {
-    data?: { custom_id?: string; values?: string[] }
-    channel_id?: string | null
-    member?: {
-      nick?: string | null
-      user?: { id: string; global_name?: string | null; username?: string }
-    }
-    user?: { id: string; global_name?: string | null; username?: string }
-  }
+  const raw = ctx.raw as RawActor & { data?: { custom_id?: string; values?: string[] } }
+  const members = replyMembers(ctx)
 
   return {
     customId: raw.data?.custom_id ?? '',
     values: raw.data?.values ?? [],
-    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
-    channelId: raw.channel_id ?? null,
-    ...replyMembers(ctx),
+    ...actorOf(raw),
+    ...members,
     // Redraw the message the control is on. First, it IS the HTTP response
     // (UPDATE_MESSAGE); after that, the component's message is `@original`.
     async update(payload: unknown): Promise<unknown> {
@@ -368,8 +356,7 @@ export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInterac
         ctx.sink.send({ type: InteractionResponseType.UpdateMessage, data: payload })
         return undefined
       }
-      const token = (ctx.raw as { token: string }).token
-      return ctx.rest.patch(webhookRoutes(ctx.applicationId, token).original, { body: payload })
+      return members.editReply(payload)
     },
   } as CommandButtonInteraction
 }
@@ -381,14 +368,8 @@ export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInterac
  * response — so `respond` always settles the sink and never touches REST.
  */
 export function makeAutocompleteInteraction(ctx: AdapterContext): CommandAutocompleteInteraction {
-  const raw = ctx.raw as {
+  const raw = ctx.raw as RawActor & {
     data?: { options?: APIApplicationCommandInteractionDataOption[] }
-    channel_id?: string | null
-    member?: {
-      nick?: string | null
-      user?: { id: string; global_name?: string | null; username?: string }
-    }
-    user?: { id: string; global_name?: string | null; username?: string }
   }
   const { group, subcommand, values } = resolveOptionPath(raw.data?.options)
   const focused = values.find((o) => (o as { focused?: boolean }).focused === true)
@@ -400,8 +381,7 @@ export function makeAutocompleteInteraction(ctx: AdapterContext): CommandAutocom
       getFocused: () =>
         focused && focused.type === ApplicationCommandOptionType.String ? focused.value : '',
     },
-    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
-    channelId: raw.channel_id ?? null,
+    ...actorOf(raw),
     async respond(choices: CommandChoice[]): Promise<unknown> {
       ctx.sink.send({
         type: InteractionResponseType.ApplicationCommandAutocompleteResult,

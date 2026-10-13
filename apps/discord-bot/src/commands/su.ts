@@ -10,7 +10,7 @@
  * The subcommand option shapes live with their handlers (roll.ts,
  * lookup.ts); this module only composes the builder and dispatches on
  * `getSubcommand()`. Handlers read their options identically under a
- * subcommand, so their logic and tests are untouched.
+ * subcommand.
  */
 
 import { SlashCommandBuilder } from '@discordjs/builders'

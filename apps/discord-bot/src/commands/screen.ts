@@ -1,6 +1,5 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { MessageFlags } from 'discord-api-types/v10'
-import { toContainer } from '../container'
+import { v2Reply } from '../container'
 import { buildScreenData } from '../screenContainer'
 import type { CommandExecuteInteraction } from './interactions'
 
@@ -34,9 +33,6 @@ export const screenCommand = {
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const isPrivate = interaction.options.getBoolean('private') === true
     const data = buildScreenData(interaction.user.id, isPrivate)
-    await interaction.reply({
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-      components: [toContainer(data)],
-    })
+    await interaction.reply(v2Reply(data, true))
   },
 }

@@ -3,14 +3,8 @@
  * cards (`container.ts#entityCard`), a roll authors its own blocks: a headline
  * and a body are not an entity's shape.
  *
- * ## Why the headline is never `Roll: N`
- *
- * 76 of the 96 roll tables carry no labels at all. Titling a result
- * `outcome.label ?? \`Roll: ${roll}\`` would, across every roll 1–20 on every
- * table, give **1,482 of 1,882 outcomes — 78.7% — a headline of "Roll: 14"**,
- * with the actual result demoted to body copy. That includes 54 of the 69
- * `standard` tables: Crawler Damage, Crawler Destruction, Chimerium Exposure.
- * Ordinary play tables, not name generators.
+ * Most tables carry no labels, so an unlabelled entry must never get a bare
+ * `Roll: N` headline with the actual result demoted to body copy.
  *
  * ## The headline rule
  *
@@ -27,31 +21,12 @@
  *    the tier word where one applies, else the die number alone. The value is
  *    the body either way.
  *
- * ## Why there are no block glyphs
- *
- * A die stamped into a plate (`▌15▐`) or a banner on a natural 1 or 20, built
- * from Unicode Block Elements, renders as bare white bars: a container's accent
- * colours its edge, **not** its text, so a TextDisplay is always
- * default-coloured and the glyphs never pick up the tier. A banner that fires on
- * two bands out of five also makes the surface look different depending on what
- * you rolled rather than consistent across every roll.
- *
- * The die number stands on its own in the headline, separated from the outcome
- * by an em dash — see {@link rollHeadline}. Tier is carried by the accent stripe
- * and the word.
- *
  * ## Why the tier word is Core-Mechanic-only
  *
- * `coreRollBandLabel` names the bands of *the Core Mechanic*. Those words do not
- * always survive the move to an outcome table: an 11–19 on Crawler Damage means
- * "your Union Crawler is inoperable and grounded", which the band vocabulary
- * would label **SUCCESS**. The colour ramp is defensible there — 20 survives
- * undamaged, 1 is destroyed, so higher genuinely is better — but the word is
- * not, so it is withheld.
- *
- * This is the shape that becomes fully correct once the 54 unlabelled
- * `standard` tables gain authored labels: branch 1 then covers them, and the
- * label says what actually happened instead of a borrowed tier noun.
+ * `coreRollBandLabel` names the bands of *the Core Mechanic*. On an outcome
+ * table an 11–19 can mean "your Union Crawler is inoperable and grounded",
+ * which the band vocabulary would label **SUCCESS**, so the word is withheld
+ * there while the colour ramp stays.
  */
 
 import type { RollOnTableOutcome, SURefRollTable } from 'salvageunion-reference'
@@ -100,8 +75,6 @@ export function isTieredTable(table: SURefRollTable): boolean {
 export type RollContext = {
   /** Display name of whoever rolled, for the context line. */
   roller?: string
-  /** Game name, when the roll was recorded. Rendered as a status line. */
-  loggedTo?: string
 }
 
 /** Uppercase for the stencil voice, and normalise the dataset's mixed casing. */
@@ -115,21 +88,14 @@ function contextLine(tableName: string, roller?: string): string {
   return roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}`
 }
 
-function loggedLine(game: string): string {
-  return `-# LOGGED TO ${stencil(game)}`
-}
-
 /**
  * `## 14 — SUCCESS`, or `## 14` when there is nothing to say beside the die.
  *
  * ## Why an em dash
  *
- * `## 14 SUCCESS` ran the two together as one string: a reader looking for the
- * die and a reader looking for the outcome both had to parse the whole line to
- * find their half. Discord paints no colour inside a TextDisplay and a heading
- * is already bold, so weight and hue are both unavailable — punctuation is the
- * only break this surface has, and an em dash is the widest one that renders
- * identically everywhere.
+ * A TextDisplay has no colour and a heading is already bold, so punctuation is
+ * the only break between the die and the outcome; an em dash is the widest one
+ * that renders identically everywhere.
  *
  * One choke point deliberately: every headline on every roll surface comes
  * through here, so the separator cannot drift between them. `errorContainer.ts`
@@ -189,8 +155,8 @@ function landsOn(outcome: Extract<RollOnTableOutcome, { kind: 'flat' | 'columns'
  * Shape a table roll into container data.
  *
  * Pure: takes the resolved table, the outcome and optional context, and returns
- * blocks. Re-invoking it with `loggedTo` set is how the Game signal is added
- * after the reply — see `rollAttribution.ts`.
+ * blocks. The Game's LOGGED TO line is spliced in after the reply by
+ * `commands/rollAttribution.ts`.
  */
 export function buildRollContainerData(
   table: SURefRollTable,
@@ -234,9 +200,6 @@ export function buildRollContainerData(
     kind: 'text',
     content: `-# ${discordCiteLine(toEntityModel(table))} · ${ROLL_ATTRIBUTION}`,
   })
-  if (context.loggedTo !== undefined) {
-    blocks.push({ kind: 'text', content: loggedLine(context.loggedTo) })
-  }
 
   return {
     accent: band !== null ? ROLL_COLORS[band] : NEUTRAL_ACCENT,

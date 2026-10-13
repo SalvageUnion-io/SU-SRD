@@ -81,9 +81,9 @@ function hexToBytes(hex: string): Uint8Array | null {
  *
  * Called per request rather than cached at module scope: Workers forbid async
  * I/O in global scope, and `importKey` is async. The cost is negligible next to
- * the network round trips the handler makes anyway, and the alternative — a
- * lazily-populated module-level cache — would be shared across every isolate
- * for no measurable gain.
+ * the network round trips the handler makes anyway, so a lazily-populated
+ * per-isolate cache would save one `importKey` per request for no measurable
+ * gain.
  */
 async function importPublicKey(publicKeyHex: string): Promise<CryptoKey | null> {
   const raw = hexToBytes(publicKeyHex)

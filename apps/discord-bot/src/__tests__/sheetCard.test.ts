@@ -14,18 +14,15 @@ import { blockStarting, cardHeading, cardText, cardTexts, cardUrl } from './card
 const WEB = ITUN_ORIGIN
 
 function sheet(table: SheetTable, body: EntityBody, overrides: Partial<SheetResult> = {}) {
-  return sheetCard(
-    {
-      table,
-      id: 'cx1',
-      appId: 'app1',
-      publicRead: false,
-      ownerName: 'alxjrvs',
-      body,
-      ...overrides,
-    },
-    WEB
-  )
+  return sheetCard({
+    table,
+    id: 'cx1',
+    appId: 'app1',
+    publicRead: false,
+    ownerName: 'alxjrvs',
+    body,
+    ...overrides,
+  })
 }
 
 describe('slug resolution', () => {

@@ -7,7 +7,7 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 
 ## Stack
 
-- **Runtime:** Bun
+- **Runtime:** a Cloudflare Worker (workerd); Bun runs the tooling and tests
 - **Library:** `@discordjs/builders` (commands + Components V2),
   `@discordjs/rest`, `discord-api-types`. **Not `discord.js`** — nothing here
   needs its gateway client.
@@ -84,31 +84,17 @@ character editing, and no `/su damage` — a Mediator writing another player's
 sheet is forbidden on every surface (ADR-030 §4); it becomes a proposal or it
 does not exist.
 
-**Maxima are derived here, not fetched.** `gameCards.ts` derives max
-HP/SP/Heat via `salvageunion-reference/rules`
-([ADR-006](../../docs/ARCHITECTURE.md#decisions)). Convex's `crew.vitals`
-derives the same maxima with the same rules; the two must agree.
+**Maxima are derived here, not fetched** (`gameCards.ts` header,
+[ADR-006](../../docs/ARCHITECTURE.md#decisions)); Convex's `crew.vitals` derives
+the same maxima, and the two must agree.
 
-**`/su sheet` is the live sheet folded into a message.** `gameCards.ts` maps it
-one-to-one onto an entity card — identity band → description, vitals rail →
-inline fields, section slab → one full-width field with the slab's count in the
-field *name*, `ReferenceEntityCard` → one linked line, sheet accent → accent
-colour, image seat → thumbnail — and `entityCard()` turns that into V2 blocks
-(inline fields merge into one rail, the thumbnail pins beside the identity
-band). Two consequences worth knowing before editing it:
+**`/su sheet`** maps the live sheet one-to-one onto an entity card. The mapping,
+slug resolution and ability grouping are documented on `sheetCard`, `refLink`
+and `abilityFields` in `gameCards.ts`.
 
-- **Slugs are resolved, not printed.** Bodies store `classRef: 'salvager'` and
-  `systems: ['armour-plating']`; the bot has the whole dataset in memory, so
-  these render as the names the book prints, linked to salvageunion.io. An
-  unknown slug falls back to the slug rather than vanishing — the card must not
-  disagree with the app about what a player owns.
-- **Abilities group by tree**, exactly as the sheet groups them under dashed
-  sub-slabs, one slab per tree.
-
-**Per-sheet accents amend "colour carries one meaning".** Pilot / mech / crawler
-take their `--color-sheet-*` tones from `theme.css`; `CRITICAL` still wins where
-both apply. A reference card wears its entry's tone (`discordAccent`); rust
-stays only for system replies (errors, invites).
+**Accent colour:** sheets wear `SHEET_ACCENT` (see its comment; `CRITICAL`
+wins), reference cards wear their entry's tone (`discordAccent`), and rust is
+only for system replies (errors, invites).
 
 **One link shape, one live sheet.** `sheetUrl` builds `/sheet/<kind>/<rowId>`
 from the Convex row id for every sheet the bot links — `/su shelves`, `/su crew`

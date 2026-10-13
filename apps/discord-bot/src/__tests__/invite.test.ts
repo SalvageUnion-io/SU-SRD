@@ -224,7 +224,6 @@ describe('the DM', () => {
   test('says who, what, which seat and how long — and nothing about the crew', () => {
     const dm = buildInviteDm(
       { ...INVITED, role: 'mediator', grantCount: 2, expiresAt: NOW + 6 * DAY + 1 },
-      'https://salvageunion.io/build',
       NOW
     )
     const text = JSON.stringify(dm)
@@ -235,20 +234,18 @@ describe('the DM', () => {
   })
 
   test('under a day left reads as "within a day", never "today"', () => {
-    const dm = buildInviteDm({ ...INVITED, expiresAt: NOW + 23 * 60 * 60 * 1000 }, 'https://x', NOW)
+    const dm = buildInviteDm({ ...INVITED, expiresAt: NOW + 23 * 60 * 60 * 1000 }, NOW)
     expect(JSON.stringify(dm)).toContain('It expires within a day.')
   })
 
   test('a Game name cannot restyle the message', () => {
-    const dm = buildInviteDm({ ...INVITED, gameName: '**loud**' }, 'https://x', NOW)
+    const dm = buildInviteDm({ ...INVITED, gameName: '**loud**' }, NOW)
     expect(JSON.stringify(dm)).toContain('\\\\*\\\\*loud\\\\*\\\\*')
   })
 
   test('the button opens the invite link', () => {
-    expect(inviteUrl('https://salvageunion.io/build/', 'A1B2C3D4')).toBe(
-      'https://salvageunion.io/build/invite/A1B2C3D4'
-    )
-    const dm = buildInviteDm(INVITED, 'https://salvageunion.io/build', NOW)
+    expect(inviteUrl('A1B2C3D4')).toBe('https://salvageunion.io/build/invite/A1B2C3D4')
+    const dm = buildInviteDm(INVITED, NOW)
     expect(dm.blocks.at(-1)).toEqual({
       kind: 'buttons',
       buttons: [

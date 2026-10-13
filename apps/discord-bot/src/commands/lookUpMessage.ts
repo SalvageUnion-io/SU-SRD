@@ -1,5 +1,5 @@
 import { ContextMenuCommandBuilder } from '@discordjs/builders'
-import { ApplicationCommandType, MessageFlags } from 'discord-api-types/v10'
+import { ApplicationCommandType } from 'discord-api-types/v10'
 import {
   discordAccent,
   discordCardParts,
@@ -8,7 +8,7 @@ import {
   truncate,
 } from 'salvageunion-reference'
 import type { ContainerBlock, ContainerData } from '../container'
-import { toContainer } from '../container'
+import { v2Reply } from '../container'
 import { makeCustomId } from '../customId'
 import { NEUTRAL_ACCENT } from '../format'
 import { lookupKey } from '../lookupCard'
@@ -89,9 +89,6 @@ export const lookUpMessageCommand = {
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const target = interaction.targetMessage
     const data = lookUpMessageContainer(target?.content ?? '', target?.author)
-    await interaction.reply({
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-      components: [toContainer(data)],
-    })
+    await interaction.reply(v2Reply(data, true))
   },
 }

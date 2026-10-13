@@ -1049,7 +1049,7 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
 const SESSION_CEILINGS: Record<string, number> = {
   srd: 30_748,
   'itun+component-lib': 71_591,
-  bot: 28_152,
+  bot: 27_255,
 }
 
 // ─── runner ─────────────────────────────────────────────────────────────────
