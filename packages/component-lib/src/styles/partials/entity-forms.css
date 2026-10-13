@@ -520,6 +520,13 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   min-height: calc(2.1 * var(--text-title));
 }
 
+/* Every lead in the grid reserves its three lines (`Lead`'s clamp at 1.4), so
+   a short lead never leaves its Row shorter than a line of full ones: a Row
+   alone on a listing's last line shares no line to stretch to. */
+[data-entity-grid] .su-entity-lead {
+  min-height: calc(3 * 1.4em);
+}
+
 /*
  * FIT (`data-entity-fit` on an ancestor): a Row's natural width is its head on
  * one line (tier, name, labels, pennant, affordance), so a wrapping flex line

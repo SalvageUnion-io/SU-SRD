@@ -17,7 +17,7 @@ const LEAD: CSSProperties = {
 /** LEAD (E11) — the entity's opening prose, while browsing only. */
 export function Lead({ text }: { text: string }) {
   return (
-    <p style={LEAD} title={text}>
+    <p className="su-entity-lead" style={LEAD} title={text}>
       {text}
     </p>
   )

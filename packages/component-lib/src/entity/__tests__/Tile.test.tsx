@@ -35,7 +35,7 @@ describe('Tile lead', () => {
   // style, so the clamp is read from the markup React emits.
   test('clamps it to three lines, the full text in the tooltip', () => {
     const html = renderToStaticMarkup(<Entity form="tile" entity={mule()} lead />)
-    const style = html.match(/<p style="([^"]*)"[^>]*title="/)?.[1]
+    const style = html.match(/<p [^>]*style="([^"]*)"[^>]*title="/)?.[1]
     expect(style).toContain('display:-webkit-box')
     expect(style).toContain('-webkit-box-orient:vertical')
     expect(style).toContain('-webkit-line-clamp:3')
