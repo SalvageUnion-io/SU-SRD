@@ -20,5 +20,5 @@ One pilot's live-play surface in a Game (`apps/itun/src/components/dashboard/`).
 8. **§8 Launch** — Only from Launch Dashboard on the Game hub; `DashboardGate` shows a shell for anonymous, shelf, non-member and Mediator-less cases.
 9. **§9 Tests** — Test the wiring, not the rules math: destructive outcomes confirm, mount state never reaches `entityStore`, the scale threshold holds.
 10. **§10 Open** — Targeting is a range band only; sheet and Dashboard can race on one record; players cannot request a crawler change.
-    - **§10.3 Zoom** — Below the scale floor the phone form takes over (ADR-045).
+    - **§10.3 Zoom** — Below the scale floor × zoom the phone form takes over (ADR-045).
     - **§10.4 Gauges** — One `DashboardGauge` over `VitalGauge`; `numeral` and `track` are its variants.

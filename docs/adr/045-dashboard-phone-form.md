@@ -66,6 +66,42 @@ phone form (boards D4 and D5).
    - The bar's search opens the SRD panel.
 6. **The Dashboard has no masthead.** At every width, `/dashboard` renders
    its own bar in place of the app masthead. The offline banner stays.
+7. **Browser zoom raises the floor.** *(Amended.)*
+   - Scaling the canvas to fit cancels zoom: an 11px label painted at 12.7,
+     12.5 and 12.4 device px at 100%, 150% and 175% zoom (WCAG 1.4.4).
+   - The canvas holds only while its fitted scale is at least 0.62 × the
+     page zoom, so a zoomed reader reaches the phone form sooner, and the
+     phone form's type grows with zoom. A 1920×1080 desktop keeps the canvas
+     at 125% and gets the phone form at 150%. A caller's own floor (the
+     Mediator Dashboard's 0.8) rises the same way.
+   - The zoom is `devicePixelRatio` normalised against the display's own
+     density (`pageZoom`). `devicePixelRatio` alone cannot tell them apart:
+     a Retina screen at 100% and a 1x screen at 200% both report 2. The
+     window's width in screen px over the viewport's in CSS px is the zoom
+     in Chromium, but a side panel, docked devtools or vertical tabs widen
+     the window the same way, and on a high-density screen
+     `devicePixelRatio` does not cap them. So a reading counts only when it
+     snaps to a browser zoom step (110% to 300%, up to 3% over for a window
+     frame) and `devicePixelRatio` over that step is a
+     density a screen ships with (a quarter step from 1, to within 0.2%:
+     a real zoom divides exactly). A 14-inch MacBook Pro with a 400px side
+     panel reads 1.36, between steps, so the Mediator Dashboard keeps its
+     0.87 canvas.
+   - Every doubtful reading is 1, which is the old behaviour. A panel
+     reads as zoom only by landing on a step and a density at once. On a
+     Retina screen only the 200% step leaves a quarter density, so only a
+     panel as wide as the page itself. The known false positive is a
+     125% Windows display: a panel that puts the ratio near 1.25 (300 to
+     340px on a 1536px window) reads as 125% zoom, because 1.25 / 1.25 = 1
+     is a density. Firefox scales `outerWidth` with the page, so it reads
+     1 there; a zoom on a density that is not a quarter step (a custom
+     Windows scale) also reads 1. Zooming out never lowers the floor.
+   - The viewport's width counts the page's scrollbar (`layoutWidth`), so
+     both forms read the same zoom. Only the phone form scrolls; measured
+     without its scrollbar, switching to it raised the reading by the
+     scrollbar's width, which near a step's edge dropped the zoom to 1 and
+     switched back, forever. A pinch-zoom, which shrinks `innerWidth`, does
+     not move the reading.
 
 ## Alternatives rejected
 
@@ -86,8 +122,11 @@ phone form (boards D4 and D5).
 
 - No-scroll remains a landscape-desktop contract (ADR-038 §9). The phone form
   scrolls inside a unit tab.
-- Large browser zoom now reaches the phone form, which closes
+- Browser zoom reaches the phone form, and sooner than the CSS viewport
+  alone would (decision 7), which closes
   [dashboard.md](../architecture/dashboard.md) §10.3.
+- The px type scale still ignores the browser's default font size; only
+  page zoom moves the floor.
 - A desktop window under about 496px tall gets the phone form instead of a
   squashed canvas.
 - Both forms must render every view-model field. A test renders a

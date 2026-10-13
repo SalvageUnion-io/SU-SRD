@@ -10,9 +10,11 @@
  * **Below the floor on either axis it renders the phone form instead**
  * (`phone`, ADR-045; docs/architecture/dashboard.md §7): a portrait phone, a
  * landscape phone (whose height would draw the canvas near 0.49), a window
- * under about 496px tall, or browser zoom deep enough to shrink the CSS
- * viewport. The phone form scrolls the page; the canvas never does. The
- * rotate-to-landscape notice it replaces is retired.
+ * under about 496px tall, or browser zoom. Fitting the canvas would cancel
+ * zoom, so the floor rises with it (`pageZoom`, ADR-045 §7) and a zoomed
+ * reader reaches the phone form, whose type grows, sooner. The phone form
+ * scrolls the page; the canvas never does. The rotate-to-landscape notice it
+ * replaces is retired.
  *
  * The dashboard layout shell. It owns the `.su-dash-root` scope (see
  * DashboardCanvas.css) that every dashboard surface inherits, and paints the
@@ -33,7 +35,14 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { CANVAS_H, CANVAS_W, isPhoneForm } from './dashboardForm.model'
+import {
+  belowFloor,
+  CANVAS_H,
+  CANVAS_W,
+  isPhoneForm,
+  layoutWidth,
+  pageZoom,
+} from './dashboardForm.model'
 
 // Uniform upscale cap — generous enough to fill a 4K display's height while
 // still guarding against an absurdly large render on giant panels (beyond which
@@ -68,7 +77,8 @@ type DashboardCanvasProps = {
   phone?: ReactNode
   /**
    * A caller's own floor as a scale, replacing the phone form's `isPhoneForm`
-   * floor. The Mediator Dashboard sets 0.8.
+   * floor. The Mediator Dashboard sets 0.8. Browser zoom raises it the same
+   * way (`belowFloor`).
    */
   minScale?: number
   /** What shows below `minScale` instead of the canvas: it fills the host and scrolls. */
@@ -105,7 +115,17 @@ export function DashboardCanvas({
       if (!w || !availH) return
       const rawW = w / CANVAS_W
       const rawH = availH / CANVAS_H
-      setReflow(minScale === undefined ? isPhoneForm(w, availH) : Math.min(rawW, rawH) < minScale)
+      const zoom = pageZoom({
+        devicePixelRatio: window.devicePixelRatio,
+        // In a frame, `outerWidth` is the top window's: no reading.
+        outerWidth: window.top === window ? window.outerWidth : 0,
+        viewportWidth: layoutWidth(document.documentElement.clientWidth, window.innerWidth),
+      })
+      setReflow(
+        minScale === undefined
+          ? isPhoneForm(w, availH, zoom)
+          : belowFloor(w, availH, minScale, zoom)
+      )
       // Uniform scale that fits whichever axis binds first (never clipping),
       // capped so it can fill space without ballooning on giant panels.
       setScale(Math.min(MAX_SCALE, Math.min(rawW, rawH)))
