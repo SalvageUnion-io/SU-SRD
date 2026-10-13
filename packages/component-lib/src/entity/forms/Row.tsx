@@ -37,7 +37,6 @@ export type RowSlots = {
   labels?: ReactNode
   /** The card's top-right control rail. */
   rail?: ReactNode
-  titleSlot?: ReactNode
   titleAs?: ElementType
   facts?: StatItem[]
   tags?: TagItem[]
@@ -164,7 +163,6 @@ export function Row({
         <Head
           title={title}
           titleAs={slots.titleAs}
-          titleSlot={slots.titleSlot}
           paint={paint}
           tier={omit.includes('tier') ? undefined : model.tier}
           stamps={slots.stamps ?? actionTypeStamps(model.actionType, model.mechActionType)}

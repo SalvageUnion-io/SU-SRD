@@ -29,7 +29,7 @@ import): [component-lib](../../docs/ARCHITECTURE.md#component-lib). The rendered
 
 Forms per the [entity display language](../../docs/design-system/entity-display-language.md): Row, Tile, Token, Mention and Peek in `src/entity/`; Card and Page are `ReferenceEntityCard`.
 
-Apps inject their renderers through **generic slot props** (`afterExtraContent`, `abilitiesSection`, `footerOverride`, …), so the library knows nothing app-specific. Schema-specific logic lives in helper hooks (`useChassisPatternConfig`) that return generic override props.
+Apps inject their renderers through **generic slot props** (`afterExtraContent`, `abilitiesSection`, `titleOverride`, …), so the library knows nothing app-specific. Schema-specific logic lives in helper hooks (`useChassisPatternConfig`) that return generic override props.
 
 ## Stories
 

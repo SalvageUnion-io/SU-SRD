@@ -4,7 +4,6 @@ import { Badge } from '../../atoms/Badge'
 import { CountStepper } from '../../atoms/CountStepper'
 import type { EntityStatus } from '../../atoms/entityStatus'
 import { CardControlRail } from '../../containers/CardControlRail'
-import { foldStatusControl } from '../../containers/foldStatusControl'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 
 /**
@@ -13,9 +12,9 @@ import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
  * they carry bespoke tone styling the control variants don't cover; the status
  * and action cells come through `controls`.
  *
- * Condition is routed into the rail as a status CONTROL rather than a bespoke
- * seal, via the same `foldStatusControl` the Card shell uses, so the badge (and
- * the fold rule) has one implementation across both card layers.
+ * Condition is routed into the rail as a status CONTROL leading the caller's
+ * controls, rather than a bespoke seal, so the condition badge has one
+ * implementation: the rail's.
  */
 export function CardTopRail({
   controls,
@@ -39,7 +38,12 @@ export function CardTopRail({
   /** The condition as a neutral tri-state seal (a head row has no body rail). */
   statusSeal?: ReactNode
 }) {
-  const railControls = foldStatusControl(controls, status, { onClick: onStatusClick, subject })
+  const railControls: ReferenceEntityControl[] = status
+    ? [
+        { key: '__status', status: { value: status, onClick: onStatusClick, subject } },
+        ...(controls ?? []),
+      ]
+    : (controls ?? [])
   // Selection seal — an `ok`-tone "chosen" stamp riding the top-right frame when
   // selected (the picker-cell affordance).
   const selectionSealNode =

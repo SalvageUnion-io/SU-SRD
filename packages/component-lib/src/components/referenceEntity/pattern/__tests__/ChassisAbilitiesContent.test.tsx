@@ -1,11 +1,6 @@
 /**
- * `ChassisAbilitiesContent` is the chassis card's abilities block. Beyond
- * listing the abilities it does two things nothing else does: it resolves the
- * drone an ability NAMES into a real drone card, and — in the pre-baked pattern
- * mode — resolves that drone's pattern-specific systems/modules names into
- * entity listings under their own slabs. Both resolutions are by name against
- * the dataset, so a rename or a lookup regression makes content vanish without
- * failing typecheck.
+ * `ChassisAbilitiesContent` is the chassis pattern card's abilities block: one
+ * inline card per chassis ability.
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
@@ -43,78 +38,6 @@ describe('ChassisAbilitiesContent', () => {
     for (const ability of abilities) {
       expect(screen.getAllByText(ability.name as string).length).toBeGreaterThan(0)
     }
-  })
-
-  test("an ability naming a drone mounts that drone's own card", () => {
-    render(
-      <ChassisAbilitiesContent
-        compact={false}
-        chassisName="Little Sestra"
-        chassisAbilities={abilitiesOf('Little Sestra')}
-      />
-    )
-    // "Sestra Drone" appears as the ability's name too, so assert on the drone
-    // card's own content rather than the string alone.
-    expect(screen.getByText('Sestra Drone')).toBeTruthy()
-  })
-
-  test('hideDrone suppresses the drone card for consumers rendering it themselves', () => {
-    render(
-      <ChassisAbilitiesContent
-        compact={false}
-        chassisName="Little Sestra"
-        chassisAbilities={abilitiesOf('Little Sestra')}
-        hideDrone
-      />
-    )
-    expect(screen.queryByText('Sestra Drone')).toBeNull()
-  })
-
-  test("pre-baked droneEquipment resolves the pattern's systems and modules by name", () => {
-    render(
-      <ChassisAbilitiesContent
-        compact={false}
-        chassisName="Little Sestra"
-        chassisAbilities={abilitiesOf('Little Sestra')}
-        droneEquipment={[
-          {
-            name: 'Sestra Drone',
-            systems: ['Long Barrelled Green Laser', 'High Gain Antenna'],
-            modules: ['Survey Scanner'],
-          },
-        ]}
-      />
-    )
-    expect(screen.getByText('Long Barrelled Green Laser')).toBeTruthy()
-    expect(screen.getByText('High Gain Antenna')).toBeTruthy()
-    expect(screen.getByText('Survey Scanner')).toBeTruthy()
-  })
-
-  test('an unresolvable equipment name is dropped, not rendered blank', () => {
-    render(
-      <ChassisAbilitiesContent
-        compact={false}
-        chassisName="Little Sestra"
-        chassisAbilities={abilitiesOf('Little Sestra')}
-        droneEquipment={[{ systems: ['No Such System'], modules: ['Survey Scanner'] }]}
-      />
-    )
-    expect(screen.queryByText('No Such System')).toBeNull()
-    // The modules half still renders — one bad name must not take the block down.
-    expect(screen.getByText('Survey Scanner')).toBeTruthy()
-  })
-
-  test('an empty droneEquipment loadout renders no equipment listings', () => {
-    render(
-      <ChassisAbilitiesContent
-        compact={false}
-        chassisName="Little Sestra"
-        chassisAbilities={abilitiesOf('Little Sestra')}
-        droneEquipment={[{ systems: [], modules: [] }]}
-      />
-    )
-    expect(screen.queryByText('Long Barrelled Green Laser')).toBeNull()
-    expect(screen.queryByText('Survey Scanner')).toBeNull()
   })
 
   test('an unknown chassis name still renders the abilities (no host tone to ghost)', () => {

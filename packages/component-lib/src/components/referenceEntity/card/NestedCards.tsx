@@ -11,7 +11,6 @@ import type { CardSize } from '../../containers/displayMode'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
-import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { cardKey, stackedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type {
@@ -36,8 +35,6 @@ export type NestedCardHost = {
   chassisName: string | undefined
   /** Prose the host already prints — a child hides any it would repeat. */
   shownProse: string[]
-  /** Controls for each inline action band (see `actionControls` on the card). */
-  actionControls?: (action: ReferenceCardEntity) => ReferenceEntityControl[] | undefined
   NestedCard: NestedCard
 }
 
@@ -278,7 +275,6 @@ export function InlineActions({
       data={action}
       hostName={host.entityName}
       chassisName={host.chassisName}
-      controls={host.actionControls?.(action)}
     />
   ))
 }

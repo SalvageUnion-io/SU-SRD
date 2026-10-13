@@ -47,7 +47,7 @@ export function CardProse({
       compact={context.compact}
       chassisName={context.chassisName}
       fontSize={context.fontSize ?? (context.compact ? 'xs' : 'sm')}
-      headerBgColor={context.toneColor}
+      grouped={Boolean(context.toneColor)}
     />
   )
 }

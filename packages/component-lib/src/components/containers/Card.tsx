@@ -1,31 +1,18 @@
-import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
-import { useCallback } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Badge } from '../atoms/Badge'
-import type { EntityStatus } from '../atoms/entityStatus'
-import { FOCUS_RING_ON_TONE } from '../atoms/interaction'
-import { Stat } from '../atoms/Stat'
-import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
-import {
-  accentDeepColor,
-  borderColorFromHeaderBg,
-  textBand,
-} from '../referenceEntity/referenceEntityHelpers'
-import { CardControlRail } from './CardControlRail'
+import { accentDeepColor, textBand } from '../referenceEntity/referenceEntityHelpers'
 import type { CardExtent, CardSize } from './displayMode'
 import { displayBooleans, resolveCardDisplay } from './displayMode'
-import { foldStatusControl } from './foldStatusControl'
-import type { StatItem } from './statsBarTypes'
 
 /** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
 export type CardFootMeta = { label: string; value: ReactNode }
 
 type CardProps = {
-  /** Background color class for header and footer (e.g., "bg-mech"). Default: "" */
-  headerBg?: string
-  /** Optional CSS color for border derivation */
+  /** CSS colour of the header band; the frame and the deep sub-header/footer
+   * bands derive from it. */
   headerBgColor?: string
   /** Content rendered inside the header bar. Omit it and NO header band is
    * painted — a card that has nothing to put in the band shouldn't render an
@@ -43,30 +30,6 @@ type CardProps = {
   /** How much of the card renders — `full` | `head` | `catalog`. Orthogonal to
    * `size`, so a `small` card can still show its whole content. */
   extent?: CardExtent
-  /** Intact/Damaged/Destroyed condition. Presentational sugar: it is folded
-   * into a `status` CONTROL and rendered by the shared rail, so the condition
-   * badge has exactly one implementation. */
-  status?: EntityStatus
-  /** Cycle handler for the status badge (Intact → Damaged → Destroyed) */
-  onStatusClick?: () => void
-  /** Expansion slot rendered after the body, before the footer (design-spec
-   * §2.1 `.ec__expand`) — ability trees, integrated systems, bay crew insets.
-   * Hidden in listing/head mode like the body. */
-  expand?: ReactNode
-  /** Inline label/value meta folded into the footer band (`.ec__metafoot`) */
-  footMeta?: CardFootMeta[]
-  /** Click handler for the entire card. Adds hover enlarge effect + cursor-pointer.
-   * Controls with `cardClick: true` also contribute (fallback when this is not set). */
-  onCardClick?: () => void
-  /** Controls rendered at the card level. Controls with `cardClick: true` make
-   * the entire card clickable with a hover enlarge effect (any mode).
-   * Controls with `hidden: true` are not rendered as buttons.
-   * When provided, controls should NOT also be passed to CardHeader. */
-  controls?: ReferenceEntityControl[]
-  /** Grey header + reduced opacity for disabled state */
-  disabled?: boolean
-  /** Extra classes on the body band, e.g. its padding (default: none). */
-  bodyPadding?: string
   /**
    * Inline style on the body band. The case it exists for: a height-capped
    * card whose body owns its own scroll (EntitySearcher in a picker modal)
@@ -92,74 +55,10 @@ type CardProps = {
    * This is a rung, not an escape hatch: the weight was hardcoded at 3px, which
    * is why `Inset` hand-rolled its own frame instead of composing Card. */
   frame?: 'entity' | 'chrome'
-  /** Content rendered in the sub-header band, alongside/instead of `stats` —
-   * a darker shade of the header tone directly below the header content row.
-   * The band renders when either `subHeader` or `stats` is provided; no band
-   * renders when both are empty. */
+  /** Content rendered in the sub-header band — a darker shade of the header
+   * tone directly below the header content row. No band renders when empty. */
   subHeader?: ReactNode
-  /** Stats rendered in the sub-header band — a darker shade of the header tone
-   * directly below the header content row. No band renders when empty. */
-  stats?: StatItem[]
 }
-
-/**
- * The sub-header band's stat row — a tight, non-wrapping `[StatItem → Stat]`
- * cluster inside the wrapping band: each item skips when its value is undefined,
- * an `onChange` item renders the edit-mode +/- stepper (coercing a string value to
- * a number), and tooltips gate on `suppressTooltips`.
- */
-function SubHeaderStats({
-  stats,
-  compact = false,
-  suppressTooltips = false,
-}: {
-  stats: StatItem[]
-  compact?: boolean
-  suppressTooltips?: boolean
-}) {
-  return (
-    <div style={STATS_ROW}>
-      {stats.map((stat) => {
-        if (stat.value === undefined) return null
-
-        if (stat.onChange) {
-          return (
-            <Stat
-              key={stat.key}
-              label={stat.label}
-              value={typeof stat.value === 'number' ? stat.value : parseInt(String(stat.value), 10)}
-              max={stat.outOfMax}
-              bottomLabel={stat.bottomLabel}
-              mode={(stat.canEdit ?? true) ? 'edit' : 'read'}
-              size={compact ? 'mini' : 'compact'}
-              onChange={stat.onChange}
-            />
-          )
-        }
-
-        return (
-          <Stat
-            key={stat.key}
-            label={stat.label}
-            value={stat.value}
-            max={stat.outOfMax}
-            bottomLabel={stat.bottomLabel}
-            hoverText={suppressTooltips ? undefined : stat.hoverText}
-            inverse={stat.inverse}
-            state={stat.state}
-            flash={stat.flash}
-            disabled={stat.disabled}
-            ariaLabel={stat.ariaLabel}
-            size={compact ? 'mini' : 'compact'}
-            onClick={stat.onClick}
-          />
-        )
-      })}
-    </div>
-  )
-}
-
-const STATS_ROW = { display: 'flex', alignItems: 'center', gap: space[2] } satisfies CSSProperties
 
 /** The label stamp riding the top border. */
 const CALLOUT_ROW = {
@@ -195,42 +94,9 @@ const FOOTER = {
   letterSpacing: tracking.capsTight,
 } satisfies CSSProperties
 
-const FOOT_META = {
-  marginLeft: 'auto',
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: space[6],
-} satisfies CSSProperties
-
-const FOOT_META_ENTRY = {
-  marginRight: space[4],
-  display: 'inline-flex',
-  alignItems: 'baseline',
-  gap: space[4],
-} satisfies CSSProperties
-
-const FOOT_META_LABEL = {
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
-  textTransform: 'uppercase',
-  lineHeight: 1,
-  letterSpacing: tracking.capsTight,
-} satisfies CSSProperties
-
-const FOOT_META_VALUE = {
-  fontFamily: font.body,
-  fontSize: fontSize.caption,
-  fontWeight: weight.bold,
-  lineHeight: 1,
-} satisfies CSSProperties
-
 const FULL_WIDTH = { width: '100%' } satisfies CSSProperties
 
 export function Card({
-  headerBg = '',
   headerBgColor,
   headerContent,
   footerContent,
@@ -238,46 +104,16 @@ export function Card({
   label,
   size,
   extent,
-  status,
-  onStatusClick,
-  expand,
-  footMeta,
-  onCardClick,
-  controls,
-  disabled = false,
-  bodyPadding,
   bodyStyle,
   cardStyle,
   headerStyle: headerStyleProp,
   borderColor: borderColorProp,
   frame = 'entity',
   subHeader,
-  stats,
 }: CardProps) {
   const display = resolveCardDisplay({ size, extent })
   const { compact: isCompact, listing: isListing } = displayBooleans(display)
   const hasCallout = !!label
-
-  // `status` is presentational sugar over the controls API: it folds into a
-  // status CONTROL so the condition badge has exactly ONE implementation (the
-  // shared rail), rather than a second inline rendering inside the header row.
-  const railControls = foldStatusControl(controls, status, { onClick: onStatusClick })
-
-  // Resolve card-level click: onCardClick prop → fallback to controls with
-  // cardClick (when multiple controls set it, the last one wins).
-  const cardClickControls = !onCardClick && controls ? controls.filter((c) => c.cardClick) : []
-  const clickControl = cardClickControls.at(-1)
-  const resolvedCardClick = onCardClick ?? clickControl?.onClick
-  // ONE CONTROL: when the click comes from a control the card SHOWS, that
-  // control is the keyboard and screen-reader path and the card is a pointer
-  // convenience only — no role, tab stop or key handler. A `role="button"`
-  // card around a visible button is two tab stops for one action, and its
-  // content goes presentational. Only a click no visible control carries
-  // (`onCardClick`, a hidden control) makes the card itself the button.
-  const surfaceIsButton = !!resolvedCardClick && !(clickControl && !clickControl.hidden)
-
-  // Hover effect when card is clickable (via handler or boolean flag)
-  const isCardHoverable = !!resolvedCardClick
 
   // An EXPLICIT `borderColor` wins. Otherwise the border equals the tone (header
   // background) itself, matching the codex "After" .a-card spec, and falls back
@@ -286,25 +122,12 @@ export function Card({
   // The frame is settable independently of the band (an accent frame around a
   // tinted header is the whole shape of a Callout), so a caller passing both a
   // header bg and a `borderColor` keeps its `borderColor`.
-  const effectiveBorderColor =
-    borderColorProp ?? borderColorFromHeaderBg(headerBg, headerBgColor) ?? 'var(--color-ink)'
+  const effectiveBorderColor = borderColorProp ?? headerBgColor ?? 'var(--color-ink)'
 
   // Sub-header band (design-spec four-band model): a darker shade of the
   // header tone, sitting flush below the header content row. Optional —
-  // populated by `subHeader` content and/or `stats`; no band when both are empty.
-  const subHeaderBg = accentDeepColor(headerBg, headerBgColor) ?? 'var(--color-ink)'
-  const hasStats = !!stats && stats.length > 0
-  const hasSubHeader = !!subHeader || hasStats
-
-  const handleCardKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
-      if (resolvedCardClick && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault()
-        resolvedCardClick()
-      }
-    },
-    [resolvedCardClick]
-  )
+  // populated by `subHeader` content; no band when it is empty.
+  const subHeaderBg = accentDeepColor(headerBgColor) ?? 'var(--color-ink)'
 
   // Frame weight comes from the border glossary, not a literal: `entity` (3px)
   // for both compact and non-compact — the codex .a-card is 3px and .cx does
@@ -319,31 +142,21 @@ export function Card({
    * reads thin under the weight of the header band. It doubles in the footer's
    * place. Mirrors the same rule in `ReferenceEntityCard`.
    */
-  const rendersFooter = !isListing && Boolean(footerContent || (footMeta && footMeta.length > 0))
+  const rendersFooter = !isListing && Boolean(footerContent)
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever the card itself is the button; otherwise a visible control inside carries the same click for the keyboard
     <div
-      role={surfaceIsButton ? 'button' : undefined}
-      tabIndex={surfaceIsButton ? 0 : undefined}
       className={cn(
-        // Flat chrome (brand refresh P2a): no drop shadow and no hover lift — a card is
-        // printed on the page, and the 3px frame is its edge. `.su-card` is a
-        // class, not a style object, so a caller's `cardStyle.className` can
-        // still override it.
+        // Flat chrome: no drop shadow and no hover lift — a card is printed on
+        // the page, and the 3px frame is its edge. `.su-card` is a class, not a
+        // style object, so a caller's `cardStyle.className` can still override it.
         'su-card',
-        cardStyle?.className,
-        // Button mode focuses ON TONE — a card's own background may be any
-        // entity tone, including the near-black end of the tech-level ramp,
-        // where the 25%-alpha rust ring disappears. See FOCUS_RING_ON_TONE.
-        surfaceIsButton && FOCUS_RING_ON_TONE
+        cardStyle?.className
       )}
       style={{
-        ...(disabled ? { opacity: 0.5 } : {}),
-        ...(isCardHoverable ? { cursor: 'pointer' } : {}),
         // A frame is drawn for a toned card OR one that asked for a border
         // outright; an untoned, unframed card still renders borderless.
-        ...(headerBg || headerBgColor || borderColorProp
+        ...(headerBgColor || borderColorProp
           ? // Longhand, not the `border` shorthand: a shorthand carrying `var()`
             // is valid CSS but is mis-parsed by happy-dom (it re-serialises
             // `border: var(--bw-chrome) solid var(--color-ink)` as
@@ -362,8 +175,6 @@ export function Card({
           : {}),
         ...cardStyle?.style,
       }}
-      onClick={resolvedCardClick}
-      onKeyDown={surfaceIsButton ? handleCardKeyDown : undefined}
     >
       {hasCallout && (
         <div
@@ -380,8 +191,6 @@ export function Card({
           </Badge>
         </div>
       )}
-
-      <CardControlRail controls={railControls} />
 
       {/* Inner wrapper clips backgrounds to border-radius. */}
       <div
@@ -404,7 +213,7 @@ export function Card({
               // callout clearance key off these two attributes.
               data-compact={isCompact || undefined}
               data-callout={hasCallout || undefined}
-              className={cn('su-card-head', headerBg, headerStyleProp?.className)}
+              className={cn('su-card-head', headerStyleProp?.className)}
               style={{
                 ...(headerStyleProp?.className ? { height: '100%' } : {}),
                 ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
@@ -416,11 +225,9 @@ export function Card({
           )}
 
           {/* Sub-header band (design-spec four-band model) — a darker shade of
-              the header tone, directly below the header content row. Carries
-              `subHeader` content and/or `stats` (moved out of the header's
-              right side), full width, flush to the frame. Both are optional;
-              renders nothing when neither is present. */}
-          {hasSubHeader && (
+              the header tone, directly below the header content row, full
+              width, flush to the frame. Renders nothing without `subHeader`. */}
+          {!!subHeader && (
             <div
               style={{
                 ...SUB_HEADER,
@@ -429,26 +236,19 @@ export function Card({
               }}
             >
               {subHeader}
-              {hasStats && <SubHeaderStats stats={stats ?? []} compact={isCompact} />}
             </div>
           )}
         </div>
 
         {/* Body — hidden in listing mode */}
         {showBody && (
-          // A class, so a caller's `bodyPadding` classes can override it.
-          <div className={cn('su-card-body', bodyPadding)} style={bodyStyle}>
+          <div className="su-card-body" style={bodyStyle}>
             {children}
           </div>
         )}
 
-        {/* Expansion slot — after the body, before the footer (.ec__expand).
-            Hidden in listing mode like the body. */}
-        {!isListing && expand && <div style={FULL_WIDTH}>{expand}</div>}
-
-        {/* Footer — hidden in listing mode. Renders when there is footer
-            content OR foot extras (actions/meta) to fold into the band. */}
-        {!isListing && (footerContent || (footMeta && footMeta.length > 0)) && (
+        {/* Footer — hidden in listing mode. */}
+        {rendersFooter && (
           <div
             style={{
               ...FOOTER,
@@ -461,17 +261,6 @@ export function Card({
             }}
           >
             {footerContent}
-            {footMeta && footMeta.length > 0 && (
-              <div style={FOOT_META}>
-                {footMeta.map(({ label: metaLabel, value }, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
-                  <span key={`${metaLabel}-${i}`} style={FOOT_META_ENTRY}>
-                    <span style={FOOT_META_LABEL}>{metaLabel}</span>
-                    <span style={FOOT_META_VALUE}>{value}</span>
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>

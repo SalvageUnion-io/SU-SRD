@@ -2,20 +2,6 @@ import type { Foreground } from '../../design/contrast'
 import { foregroundOn } from '../../design/contrast'
 
 /**
- * Derive a CSS color value from a `Card` `headerBg` class (e.g. 'bg-pilot' →
- * 'var(--color-pilot)'); a raw `headerBgColor` wins. Returns undefined when both
- * are falsy so callers can skip border styling. The entity card passes its tone
- * as `headerBgColor`.
- */
-export function borderColorFromHeaderBg(
-  headerBg: string | undefined,
-  headerBgColor?: string
-): string | undefined {
-  if (headerBgColor) return headerBgColor
-  return headerBg ? `var(--color-${headerBg.replace('bg-', '')})` : undefined
-}
-
-/**
  * Deeper (darker) tint of the card's accent (header) colour — the "deep" variant:
  * the sub-header and footer bands, and the white body box's 3px left accent border.
  *
@@ -23,12 +9,8 @@ export function borderColorFromHeaderBg(
  * owes 4.5:1, and TL1's deep shade at 65% gave its best foreground (paper) only
  * 4.05:1. At 60% every card tone clears 4.5:1 — `design/__tests__/contrast.test.ts` holds it.
  */
-export function accentDeepColor(
-  headerBg: string | undefined,
-  headerBgColor?: string
-): string | undefined {
-  const base = borderColorFromHeaderBg(headerBg, headerBgColor)
-  return base ? `color-mix(in srgb, ${base} 60%, black)` : undefined
+export function accentDeepColor(tone: string | undefined): string | undefined {
+  return tone ? `color-mix(in srgb, ${tone} 60%, black)` : undefined
 }
 
 /**

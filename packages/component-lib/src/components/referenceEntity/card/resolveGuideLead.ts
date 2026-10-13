@@ -1,5 +1,5 @@
 import type { SURefMetaEntity, SURefObjectGuideStep } from 'salvageunion-reference'
-import { firstParagraphText } from './firstParagraphText'
+import { firstParagraphText } from 'salvageunion-reference'
 
 /**
  * A guide's INTRODUCTORY paragraph — the one thing its catalog tile should say.

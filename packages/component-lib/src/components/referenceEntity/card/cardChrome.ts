@@ -7,7 +7,12 @@
 
 import type { CSSProperties } from 'react'
 import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
-import { headerFill, isAbility, parseContentBlockString } from 'salvageunion-reference'
+import {
+  firstParagraphText,
+  headerFill,
+  isAbility,
+  parseContentBlockString,
+} from 'salvageunion-reference'
 import type { Foreground } from '../../../design/contrast'
 import { cn } from '../../../utils/cn'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
@@ -16,7 +21,6 @@ import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { onTone, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
-import { firstParagraphText } from './firstParagraphText'
 
 /** The book's pennant: a box with a pointed tail. Hard edges, no tail rounding.
  *  The card's cost pennant (`.su-pennant` in `styles/index.css`, which restates

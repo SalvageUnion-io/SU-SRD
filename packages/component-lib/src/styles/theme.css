@@ -249,9 +249,6 @@
   --color-status-ok: var(--color-roll-success);
   --color-status-warn: var(--color-roll-failure);
   --color-status-bad: var(--color-roll-cascade);
-  /* The error focus-ring wash. A literal, not an alias: re-tone it by hand
-     whenever --color-roll-cascade moves (see `statusBad25` in tokens.ts). */
-  --color-status-bad-25: rgb(176 67 43 / 0.25);
 
   /* Cargo (storage) accent triplet */
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
@@ -263,8 +260,8 @@
   /* A LITERAL, never `var(--color-rust)`: rust means "do something" and
      nothing else may alias it (ruleset §3.1, the rust allowlist). Board 03
      rules that pilot-deep becomes ink — frames and deep chrome on a pilot
-     sheet stay ink — so this holds ink's value, spelled out, the way the game
-     deep holds tl-5's: the role is the sheet's deep tone, not "ink". */
+     sheet stay ink — so this holds ink's value, spelled out: the role is the
+     sheet's deep tone, not "ink". */
   --color-sheet-pilot-deep: rgb(40, 32, 25); /* #282019 */
   --color-sheet-mech: var(--color-mech); /* #7a978a */
   --color-sheet-mech-deep: rgb(47, 67, 56); /* #2f4338 */
@@ -272,13 +269,8 @@
   --color-sheet-crawler-deep: rgb(126, 42, 91); /* #7e2a5b */
   /* Game — the shared table (ADR-030), the fourth ontology. Blue, so a Game row
      never reads as the crawler row sitting next to it. The base is the palette's
-     existing game-state accent; the deep is a LITERAL, not `var(--color-tl-5)`,
-     which holds the same value but means TECH LEVEL — aliasing it would tie the
-     Game ontology to tech-level semantics. Chosen for contrast, not by eye:
-     EntityRow's empty variant paints `tone.rail` as TEXT on the tone wash, and
-     #1e5364 measures 7.7:1 there, mid-family between mech (9.1) and crawler (7.5). */
+     existing game-state accent. */
   --color-sheet-game: var(--color-wk-accent); /* #7dceeb */
-  --color-sheet-game-deep: rgb(30, 83, 100); /* #1e5364 */
 
   /* Heat cap escalates by colour only (`heatLevel.ts` `heatDangerFrom`,
      consumed by VitalGauge). A keyframe ships only with the call site that
@@ -368,7 +360,6 @@
   --space-40: 40px;
   --space-48: 48px;
   --space-64: 64px;
-  --space-96: 96px;
 
   /* The light speckle's overlay opacities (ruleset §3.5 "Texture", board
      05c): ink blot and ink speck on a colour band, paper flecks on an ink
@@ -434,7 +425,6 @@
   --tone-default: var(--color-sheet-pilot);
   --tone-deep: var(--color-sheet-pilot-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
-  --ground-2: oklch(from var(--tone) 0.985 0.012 h);
   --tone-band: var(--tone);
   --on-tone-band: var(--color-ink);
 }
@@ -443,7 +433,6 @@
   --tone-default: var(--color-sheet-mech);
   --tone-deep: var(--color-sheet-mech-deep);
   --ground: oklch(from var(--tone) 0.955 0.022 h);
-  --ground-2: oklch(from var(--tone) 0.985 0.01 h);
   --tone-band: var(--tone);
   --on-tone-band: var(--color-ink);
 }
@@ -452,7 +441,6 @@
   --tone-default: var(--color-sheet-crawler);
   --tone-deep: var(--color-sheet-crawler-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
-  --ground-2: oklch(from var(--tone) 0.985 0.012 h);
   --tone-band: var(--color-crawler-band);
   --on-tone-band: var(--color-paper);
 }

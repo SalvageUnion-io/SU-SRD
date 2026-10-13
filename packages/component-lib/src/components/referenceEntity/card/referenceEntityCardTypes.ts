@@ -120,13 +120,6 @@ export type ReferenceEntityCardProps = {
    * art, so every name starts in the same place and every page has a hero.
    */
   artSlot?: boolean
-  /**
-   * The compact card (`extent="head"`) ends its body with the entity's own
-   * opening prose — its lore paragraph, or an ability's description — clamped
-   * to three lines; the full text is on the entity's page. A listing turns it
-   * on; a slot or a deck, which has no room for prose, leaves it off.
-   */
-  leadProse?: boolean
 
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */
@@ -174,12 +167,6 @@ export type ReferenceEntityCardProps = {
   cardClickLabel?: string
   /** Top-right overlay controls (reuse ControlButtons shapes/variants). */
   controls?: ReferenceEntityControl[]
-  /**
-   * Controls for each INLINE action band (the Dashboard, board E3): a `pennant`
-   * control makes that band's cost pennant the rust action button. Absent ⇒ the
-   * bands read as they always do.
-   */
-  actionControls?: (action: ReferenceCardEntity) => ReferenceEntityControl[] | undefined
   /** Controlled interactive-choice state (renders `ChoiceGroups` in the body). */
   selections?: ChoiceSelections
   /** Selection-change handler — its presence flips choices to editable body cards. */
@@ -195,7 +182,6 @@ export type ReferenceEntityCardProps = {
 
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───
   titleOverride?: string
-  titleSlot?: ReactNode
   statsOverride?: StatItem[]
   primaryStatsOnly?: boolean
   subtitleExtra?: ReactNode
@@ -214,13 +200,9 @@ export type ReferenceEntityCardProps = {
    * artwork-bearing chassis to a layout meant only for class pages. Only the
    * class consumers set this. */
   asideLead?: boolean
-  afterChoicesContent?: ReactNode
-  footerOverride?: ReactNode
   /** Write-layer: inline `[label value]` meta pairs (cost / SV) folded into the
    * identity footer's right side, before the source/page. */
   footMeta?: CardFootMeta[]
-  /** Overrides the header's top-right flavor slot. */
-  rightContent?: ReactNode
   className?: string
   /**
    * The title's element: `h1` for the entity an item page names, `h2` for a
@@ -247,22 +229,9 @@ export type ReferenceEntityCardHideConfig = {
   rollTable?: boolean
   damagedEffect?: boolean
   choices?: boolean
-  stats?: boolean
   content?: boolean
-  footer?: boolean
   /** Suppress the entity's artwork (a preview that has none to show). */
   image?: boolean
-  /**
-   * Suppress the header's type stamp and classification pills — a listing of one
-   * kind, whose page already names it. A seal, the User-made stamp and the
-   * Legal Starting Pattern stamp still show.
-   */
-  seam?: boolean
-  /**
-   * Drop these value cells by key (`'tech-level'`, …) — a listing grouped by
-   * the value, whose group heading already says it.
-   */
-  statKeys?: readonly string[]
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

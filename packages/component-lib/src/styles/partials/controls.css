@@ -35,10 +35,7 @@
  * the split rule would otherwise send all of it inline: `capsLabel` is composed
  * INTO `buttonVariants`, which is a public class-string export that both apps
  * put on `<a>` elements. A recipe feeding a class string has to be a class
- * string itself. That is the "anything built on them inherits the same
- * constraint" clause of the class-string exemption in this package's CLAUDE.md,
- * and it is the whole reason this is a CSS block rather than a `CSSProperties`
- * object. Worth revisiting once Button migrates.
+ * string itself — the class-string exemption in `.claude/rules/styling.md`.
  *
  * The two invariants live on the base; the three genuinely-varying decisions
  * are modifiers, exactly as the cva had them. `inherit` on weight or tracking

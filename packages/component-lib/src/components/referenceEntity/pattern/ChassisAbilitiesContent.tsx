@@ -1,56 +1,21 @@
 import type { SURefMetaAction } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import { Slab } from '../../atoms/Slab'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { getReferenceEntitySpacing, stackClassName } from '../referenceEntityTypes'
-import { PatternEquipmentItem } from './PatternEquipmentItem'
 
 type ChassisAbilitiesContentProps = {
   chassisName?: string
-  /** Optional override; falls back to the card display-state context. */
-  spacing?: ReturnType<typeof getReferenceEntitySpacing>
   compact: boolean
   chassisAbilities?: SURefMetaAction[]
-  /** Drone equipment from pattern (pre-baked mode only) */
-  droneEquipment?: Array<{ name?: string; systems: string[]; modules: string[] }>
-  /** When true, skip rendering the drone entity (consumer renders it separately) */
-  hideDrone?: boolean
 }
 
 export function ChassisAbilitiesContent({
   chassisName,
-  spacing: spacingProp,
   compact,
   chassisAbilities,
-  droneEquipment,
-  hideDrone,
 }: ChassisAbilitiesContentProps) {
-  const spacing = spacingProp ?? getReferenceEntitySpacing(compact)
+  const spacing = getReferenceEntitySpacing(compact)
   if (!chassisAbilities || chassisAbilities.length === 0) return null
-
-  const droneAbility = chassisAbilities.find((a) => a.drone)
-  const droneEntity = droneAbility?.drone
-    ? SalvageUnionReference.getByNameIn('drones', droneAbility.drone)
-    : undefined
-
-  const resolvedSystems = droneEquipment?.length
-    ? droneEquipment.flatMap((drone) =>
-        drone.systems.flatMap((name) => {
-          const found = SalvageUnionReference.getByNameIn('systems', name)
-          return found ? [found] : []
-        })
-      )
-    : []
-
-  const resolvedModules = droneEquipment?.length
-    ? droneEquipment.flatMap((drone) =>
-        drone.modules.flatMap((name) => {
-          const found = SalvageUnionReference.getByNameIn('modules', name)
-          return found ? [found] : []
-        })
-      )
-    : []
 
   return (
     <div className={stackClassName(spacing.smallGap)} style={{ marginTop: space[16] }}>
@@ -66,37 +31,6 @@ export function ChassisAbilitiesContent({
           chassisName={chassisName}
         />
       ))}
-      {droneEntity && !hideDrone && (
-        <>
-          <ReferenceEntityCard
-            data={droneEntity}
-            size="medium"
-            hide={{ actions: true, patterns: true }}
-          />
-          {(resolvedSystems.length > 0 || resolvedModules.length > 0) && (
-            <div className="su-pattern-equipment" style={{ display: 'grid', gap: space[16] }}>
-              {resolvedSystems.length > 0 && (
-                <div className={stackClassName(spacing.smallGap)}>
-                  <Slab variant="solid" label="Systems" />
-                  {resolvedSystems.map((entity, idx) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate system ids
-                    <PatternEquipmentItem key={`drone-sys-${entity.id}-${idx}`} data={entity} />
-                  ))}
-                </div>
-              )}
-              {resolvedModules.length > 0 && (
-                <div className={stackClassName(spacing.smallGap)}>
-                  <Slab variant="solid" label="Modules" />
-                  {resolvedModules.map((entity, idx) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate module ids
-                    <PatternEquipmentItem key={`drone-mod-${entity.id}-${idx}`} data={entity} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </>
-      )}
     </div>
   )
 }

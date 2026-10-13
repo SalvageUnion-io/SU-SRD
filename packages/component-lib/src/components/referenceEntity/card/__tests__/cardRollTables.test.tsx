@@ -8,10 +8,9 @@
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { extractVisibleActions, SalvageUnionReference } from 'salvageunion-reference'
+import { extractVisibleActions, resolveTable, SalvageUnionReference } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
-import { resolveCardTable } from '../resolveCardTable'
 
 const ROLL_BUTTON = 'Roll on this table'
 
@@ -67,7 +66,7 @@ describe('roll tables reach the card by reference, not just inline', () => {
   test('every ability with by-reference table data resolves a table', () => {
     const abilities = SalvageUnionReference.Abilities.all().filter((ability) => {
       const selfAction = (extractVisibleActions(ability) ?? []).find((a) => a.name === ability.name)
-      return selfAction !== undefined && resolveCardTable(selfAction) !== undefined
+      return selfAction !== undefined && resolveTable(selfAction) !== undefined
     })
     // Guard the guard: this set is non-empty in the shipped dataset.
     expect(abilities.length).toBeGreaterThan(0)
@@ -77,19 +76,5 @@ describe('roll tables reach the card by reference, not just inline', () => {
       expect(screen.getAllByLabelText(ROLL_BUTTON).length).toBeGreaterThan(0)
       cleanup()
     }
-  })
-})
-
-describe('resolveCardTable', () => {
-  test('prefers an inline table, resolves a name, ignores anything else', () => {
-    // An inline table wins over a name that would resolve to a different one.
-    const inline = find(SalvageUnionReference.RollTables.all(), 'Trading Bay').table
-    expect(resolveCardTable({ table: inline, tableName: 'Mechapult' })).toEqual(inline)
-    expect(resolveCardTable({ tableName: 'Trading Bay' })).toBeDefined()
-    expect(resolveCardTable({ tableName: 'no such table' })).toBeUndefined()
-    expect(resolveCardTable({ tableName: '' })).toBeUndefined()
-    expect(resolveCardTable(undefined)).toBeUndefined()
-    expect(resolveCardTable(null)).toBeUndefined()
-    expect(resolveCardTable('Trading Bay')).toBeUndefined()
   })
 })

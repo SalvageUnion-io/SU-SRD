@@ -5,46 +5,46 @@
  * Uses real entity/action names from the dataset.
  */
 import { describe, expect, test } from 'bun:test'
-import { resolveFoldedAction } from '../resolveFoldedAction'
+import { foldedActionOf } from '../index'
 
 const a = (name: string) => ({ name })
 
-describe('resolveFoldedAction', () => {
+describe('foldedActionOf', () => {
   test('a (Host)-suffixed action folds via displayName (Bio-Rifle)', () => {
     // The dataset uniquifies two different Bio-Rifle actions by source —
     // `Bio-Rifle (Equipment)` and `Bio-Rifle (Chimerium Chosen)` — and keeps the
     // real name in displayName. Matching on `name` alone made the Bio-Rifle
     // equipment card render a nested "Bio-Rifle" sub-card inside itself.
     const actions = [{ name: 'Bio-Rifle (Equipment)', displayName: 'Bio-Rifle' }]
-    expect(resolveFoldedAction(actions, 'Bio-Rifle')?.name).toBe('Bio-Rifle (Equipment)')
+    expect(foldedActionOf(actions, 'Bio-Rifle')?.name).toBe('Bio-Rifle (Equipment)')
   })
 
   test('displayName does not fold into an unrelated entity', () => {
     const actions = [{ name: 'Bio-Rifle (Chimerium Chosen)', displayName: 'Bio-Rifle' }]
-    expect(resolveFoldedAction(actions, 'Bio-Maw')).toBeUndefined()
+    expect(foldedActionOf(actions, 'Bio-Maw')).toBeUndefined()
   })
 
   test('a differing displayName does not stop a name match folding', () => {
     // The match is EITHER field, not `displayName ?? name`, so it is strictly
     // additive — this action still folds on its name.
     const actions = [{ name: 'Grenade', displayName: 'Grenade (Pilot Equipment)' }]
-    expect(resolveFoldedAction(actions, 'Grenade')?.name).toBe('Grenade')
+    expect(foldedActionOf(actions, 'Grenade')?.name).toBe('Grenade')
   })
 
   test('single same-named action folds (Grenade)', () => {
-    expect(resolveFoldedAction([a('Grenade')], 'Grenade')?.name).toBe('Grenade')
+    expect(foldedActionOf([a('Grenade')], 'Grenade')?.name).toBe('Grenade')
   })
 
   test('MULTI-action entity folds its same-named self-action (Holo Companion)', () => {
     // The bug: the old `length === 1` gate refused to fold here, dropping the
     // self-action's choices/content and disagreeing with getChoices.
     const actions = [a('Holo Companion'), a('Project'), a('Un-Project')]
-    expect(resolveFoldedAction(actions, 'Holo Companion')?.name).toBe('Holo Companion')
+    expect(foldedActionOf(actions, 'Holo Companion')?.name).toBe('Holo Companion')
   })
 
   test('MULTI-action entity folds self-action (Bionic Arms)', () => {
     const actions = [a('Bionic Arms'), a('Bionic Arms Attack')]
-    expect(resolveFoldedAction(actions, 'Bionic Arms')?.name).toBe('Bionic Arms')
+    expect(foldedActionOf(actions, 'Bionic Arms')?.name).toBe('Bionic Arms')
   })
 
   test('single differently-named action does NOT fold (Molebear → Iron Claw)', () => {
@@ -52,20 +52,20 @@ describe('resolveFoldedAction', () => {
     // read as the entity's own stats — so a Molebear announced itself as a
     // "Turn Action // Range: Close // Damage 4SP". A sole action is still just
     // an action.
-    expect(resolveFoldedAction([a('Iron Claw')], 'Molebear')).toBeUndefined()
+    expect(foldedActionOf([a('Iron Claw')], 'Molebear')).toBeUndefined()
   })
 
   test('single differently-named action does NOT fold (Meld Drone → Bite)', () => {
-    expect(resolveFoldedAction([a('Bite')], 'Meld Drone')).toBeUndefined()
+    expect(foldedActionOf([a('Bite')], 'Meld Drone')).toBeUndefined()
   })
 
   test('multiple differently-named actions, no self-action → nothing folds', () => {
     // e.g. a repair system whose actions are Patch / System Repair, none named
     // like the entity — each renders as its own card.
-    expect(resolveFoldedAction([a('Patch'), a('System Repair')], 'Nanite Sifter')).toBeUndefined()
+    expect(foldedActionOf([a('Patch'), a('System Repair')], 'Nanite Sifter')).toBeUndefined()
   })
 
   test('no actions → nothing folds', () => {
-    expect(resolveFoldedAction([], 'Whatever')).toBeUndefined()
+    expect(foldedActionOf([], 'Whatever')).toBeUndefined()
   })
 })

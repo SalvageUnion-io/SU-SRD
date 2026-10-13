@@ -20,8 +20,8 @@ import { readPackageStylesheet } from './packageStylesheet'
  *
  * `:focus-visible` does not match programmatic focus, so `el.focus()` plus
  * `getComputedStyle` reports `boxShadow: none` on a ring that is perfectly
- * fine — see "Checking a focus style: `.focus()` will lie to you" in this
- * package's CLAUDE.md. A render-based assertion here would fail for a reason
+ * fine — see "Checking a focus ring with `el.focus()` lies" in
+ * `.claude/rules/styling.md`. A render-based assertion here would fail for a reason
  * unrelated to contrast, and the natural fix for that failure is to weaken the
  * assertion. Parsing the declaration sidesteps the trap entirely.
  */

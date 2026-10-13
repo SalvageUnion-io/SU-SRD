@@ -11,7 +11,7 @@
  * ALL of it is here, geometry and type included — not just the stateful half.
  * `buttonVariants` is a public class-string export that both apps put on `<a>`
  * elements the library never renders, so there is no element for a style object
- * to attach to. That is the class-string exemption in this package's CLAUDE.md,
+ * to attach to. That is the class-string exemption in `.claude/rules/styling.md`,
  * and it is why this block is larger than the split rule alone would predict.
  *
  * ORDER MATTERS TWICE in here, and both are single-class specificity, so source

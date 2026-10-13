@@ -1,28 +1,13 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
-import type { StatItem } from '../containers/statsBarTypes'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
-import type { ReferenceEntityCardHideConfig } from './card/referenceEntityCardTypes'
 import { DetailIcon } from './DetailIcon'
 import { EntityDetailDialog } from './EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from './entityHrefContext'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 
 type UseDetailModalOptions = {
-  children?: ReactNode
-  /** Controls to render in the modal's entity header */
-  modalControls?: ReferenceEntityControl[]
-  /** Generic override props */
-  titleOverride?: string
-  subtitleExtra?: ReactNode
-  statsOverride?: StatItem[]
-  primaryStatsOnly?: boolean
-  abilitiesSection?: ReactNode
-  afterExtraContent?: ReactNode
-  afterChoicesContent?: ReactNode
-  footerOverride?: ReactNode
-  hide?: Partial<ReferenceEntityCardHideConfig>
   /**
    * Force the in-place modal even when the app enables link mode. Used for
    * views that have no standalone URL (e.g. chassis patterns, whose `data` is
@@ -75,22 +60,7 @@ export function useDetailModal(
   const modal =
     !openInNewTab && data && schemaName ? (
       <EntityDetailDialog open={open} onOpenChange={setOpen} title={title}>
-        <ReferenceEntityCard
-          data={data}
-          pattern={options?.pattern}
-          disabled={false}
-          hide={options?.hide}
-          controls={options?.modalControls}
-          titleOverride={options?.titleOverride}
-          subtitleExtra={options?.subtitleExtra}
-          statsOverride={options?.statsOverride}
-          primaryStatsOnly={options?.primaryStatsOnly}
-          abilitiesSection={options?.abilitiesSection}
-          afterExtraContent={options?.afterExtraContent}
-          afterChoicesContent={options?.afterChoicesContent}
-          footerOverride={options?.footerOverride}
-        />
-        {options?.children}
+        <ReferenceEntityCard data={data} pattern={options?.pattern} disabled={false} />
       </EntityDetailDialog>
     ) : null
 

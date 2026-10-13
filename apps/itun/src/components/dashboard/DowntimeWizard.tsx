@@ -35,7 +35,7 @@
  * Upkeep bay (`CrawlerSlot.tsx`), once per Downtime.
  */
 
-import { Badge, Button, Content, entityGuideToneColor } from 'component-lib'
+import { Badge, Button, Content } from 'component-lib'
 import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import {
   allDowntimeSteps,
@@ -74,9 +74,6 @@ const PHASE_STAMP: CSSProperties = {
   paddingBlock: '5px',
   paddingInline: '9px',
 }
-
-/** Fallback tone when the guide carries no `guideTone` (crawler ontology). */
-const CRAWLER_TONE = 'var(--color-sheet-crawler-deep)'
 
 /**
  * SRD roll tables associated with a Downtime step (keyed by the guide step's
@@ -281,7 +278,6 @@ export function DowntimeWizardFrame({
     if (sec) phase = sec
   }
 
-  const headerBg = (guide ? entityGuideToneColor(guide) : undefined) ?? CRAWLER_TONE
   const tableName = STEP_ROLL_TABLE[step.name]
   const table = tableName
     ? (SalvageUnionReference.RollTables.getByName(tableName) as SURefObjectTable | undefined)
@@ -331,9 +327,7 @@ export function DowntimeWizardFrame({
               </span>
             </div>
 
-            {step.content && step.content.length > 0 && (
-              <Content body={step.content} headerBg={headerBg} />
-            )}
+            {step.content && step.content.length > 0 && <Content body={step.content} grouped />}
 
             {renderStepGate?.(step)}
 

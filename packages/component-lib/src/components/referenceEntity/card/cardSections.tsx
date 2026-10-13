@@ -7,6 +7,7 @@
  */
 
 import type { ReactNode } from 'react'
+import { resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { CardImage } from '../../compositions/CardImage'
 import type { CardSize } from '../../containers/displayMode'
@@ -20,7 +21,6 @@ import { LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import { MissingHero } from './MissingArt'
 import { ActionsChip, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
 import { PatternSection } from './PatternSection'
-import { resolveCardTable } from './resolveCardTable'
 import { resolveGuideSteps } from './resolveGuideSteps'
 
 /** The body box's padding by size (board E1): tight on top under a "//" line. */
@@ -65,7 +65,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     sectionAs,
     foldTables = false,
     afterExtraContent,
-    afterChoicesContent,
     abilitiesSection,
     selections,
     onSelectionChange,
@@ -94,8 +93,8 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   const isPattern = !!pattern
   // ROLL TABLE — the entity's own, or its folded action's: inline, flush,
   // under its ROLL THE DIE bar (board E4).
-  const ownTable = resolveCardTable(entity)
-  const entityTable = ownTable ?? resolveCardTable(foldedAction)
+  const ownTable = resolveTable(entity)
+  const entityTable = ownTable ?? resolveTable(foldedAction)
   const tableSource = ownTable ? entity : foldedAction
   const tableName =
     (tableSource && 'tableName' in tableSource && typeof tableSource.tableName === 'string'
@@ -182,8 +181,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     catalogLeadBlocks.length > 0 ||
     (!isSelfAction && !!foldedActionContent?.length && !hide?.content && !hide?.actions) ||
     (!hide?.damagedEffect && !!damagedEffect) ||
-    (!onPage && !!guideStepsNode) ||
-    !!afterChoicesContent
+    (!onPage && !!guideStepsNode)
 
   // ACTIONS — inline, flush. Below depth 1 they fold behind a chip.
   const actionsNode: ReactNode =
@@ -233,8 +231,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       {!hide?.damagedEffect && damagedEffect && <DamagedEffectCallout effect={damagedEffect} />}
       {/* On a page the steps stand as a page section (`CardPage`'s `guide`). */}
       {!onPage && guideStepsNode}
-      {/* SLOT: afterChoicesContent — appended just below the choices. */}
-      {afterChoicesContent}
     </>
   )
 

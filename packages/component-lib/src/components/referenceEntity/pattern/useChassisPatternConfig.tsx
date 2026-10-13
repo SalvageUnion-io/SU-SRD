@@ -197,11 +197,8 @@ export function useChassisPatternConfig(
         {hasChassisAbilities && (
           <ChassisAbilitiesContent
             chassisName={chassisName}
-            spacing={spacing}
             compact={compact}
             chassisAbilities={chassisAbilities}
-            droneEquipment={overridePatternData?.drones}
-            hideDrone
           />
         )}
       </div>

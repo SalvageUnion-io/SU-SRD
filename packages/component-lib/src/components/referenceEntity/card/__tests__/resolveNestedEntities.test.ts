@@ -4,7 +4,7 @@
  * crawler's embedded commander, and a pattern's systems/modules/drone loadout.
  * If a resolver silently returns nothing the card renders a *plausible* page
  * with the nested content missing, which is exactly the failure mode that made
- * roll tables vanish (see `resolveCardTable.test.tsx`). These tests pin the
+ * roll tables vanish (see `cardRollTables.test.tsx`). These tests pin the
  * grouping, the name -> entity resolution, and the "nothing to resolve" exits.
  */
 import { describe, expect, test } from 'bun:test'

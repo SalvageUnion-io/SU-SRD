@@ -23,9 +23,6 @@ import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 import type { CardFacetCell } from './facetSplit'
 import type { ActionFields } from './referenceEntityCardTypes'
 
-/** The cost and action-type wording are the entity model's. */
-export { formatActionType, formatCost } from 'salvageunion-reference'
-
 /** The "modified stats" colour — a choice-touched or TL-scaled cell's border.
  * Ink, not rust: rust is an action's colour (ruleset §3.1), and a player's
  * change reads as `Stat`'s heavier solid `modified` frame, never the pencil

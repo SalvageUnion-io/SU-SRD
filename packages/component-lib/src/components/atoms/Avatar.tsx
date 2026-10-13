@@ -22,8 +22,8 @@ import { borderWidth, color, font, radius, weight } from '../../design/tokens'
  * would say everything twice.
  *
  * Every property here is static, so the styling is style objects read from
- * `tokens` — no stylesheet class (the per-property split rule in the package
- * CLAUDE.md).
+ * `tokens` — no stylesheet class (the per-property split rule in
+ * `.claude/rules/styling.md`).
  */
 
 type AvatarProps = {

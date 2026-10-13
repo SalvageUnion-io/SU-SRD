@@ -29,8 +29,6 @@ const HINT: CSSProperties = {
 export type HeadProps = {
   title: string
   titleAs?: ElementType
-  /** A full replacement for the title node (a legacy `titleSlot`). */
-  titleSlot?: ReactNode
   paint: Paint
   /** An ability's tier numeral, at the left. */
   tier?: string
@@ -64,7 +62,6 @@ export type HeadProps = {
 export function Head({
   title,
   titleAs: TitleTag = 'span',
-  titleSlot,
   paint,
   tier,
   stamps = [],
@@ -76,7 +73,7 @@ export function Head({
   notch = false,
 }: HeadProps) {
   const tierNode = tier && <span className="su-entity-row__tier">{tier}</span>
-  const titleNode = titleSlot ?? (
+  const titleNode = (
     <TitleTag
       className="su-entity-row__title"
       title={title}

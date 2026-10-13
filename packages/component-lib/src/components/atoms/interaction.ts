@@ -11,15 +11,9 @@ import type { KeyboardEvent } from 'react'
  * works on any element, in this package or in either app. The rules live in
  * `src/styles/index.css`.
  *
- * **Why these do not get the split rule's style-object half.** That half
- * assumes the library owns the element being styled. These deliberately do not:
- * they exist so a consuming app can put the treatment on an element the library
- * never renders, which is the whole reason they are exported. A constant
- * holding a string cannot carry a style object without changing its type, and
- * its type is public API. So they were always going to be stylesheet-only the
- * moment the utilities left — a class name is the only thing they can carry. The
- * category is written up in this package's CLAUDE.md as the split rule's
- * BOUNDARY, not an exception to it.
+ * They are stylesheet-only because a consuming app puts them on elements the
+ * library never renders, and a string constant cannot carry a style object —
+ * the class-string exemption in `.claude/rules/styling.md`.
  *
  * **The names are public API.** Apps compose them with `cn()`, so they land in
  * app-side code and cannot be renamed cheaply. Treat a new one as a commitment.

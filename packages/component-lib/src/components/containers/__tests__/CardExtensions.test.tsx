@@ -1,5 +1,5 @@
-import { describe, expect, mock, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { Card } from '../Card'
 import { displayBooleans, resolveCardDisplay } from '../displayMode'
 
@@ -53,76 +53,5 @@ describe('Card size/extent sugar', () => {
     )
     expect(screen.getByText('Body')).toBeTruthy()
     expect(screen.getByText('Foot')).toBeTruthy()
-  })
-})
-
-describe('Card status badge', () => {
-  test('renders the opt-in Intact/Damaged/Destroyed badge', () => {
-    render(
-      <Card headerContent={<span>H</span>} status="destroyed">
-        <span>Body</span>
-      </Card>
-    )
-    expect(screen.getByText('Destroyed')).toBeTruthy()
-  })
-
-  test('no badge by default', () => {
-    render(
-      <Card headerContent={<span>H</span>}>
-        <span>Body</span>
-      </Card>
-    )
-    expect(screen.queryByText('Intact')).toBeNull()
-  })
-
-  test('onStatusClick makes the badge a cycle button', () => {
-    const onStatusClick = mock(() => {})
-    render(<Card headerContent={<span>H</span>} status="intact" onStatusClick={onStatusClick} />)
-    fireEvent.click(screen.getByText('Intact'))
-    expect(onStatusClick).toHaveBeenCalled()
-  })
-})
-
-describe('Card expand slot', () => {
-  test('renders after the body, hidden in listing mode', () => {
-    render(
-      <Card headerContent={<span>H</span>} expand={<span>Expanded</span>}>
-        <span>Body</span>
-      </Card>
-    )
-    expect(screen.getByText('Expanded')).toBeTruthy()
-    cleanup()
-    render(
-      <Card headerContent={<span>H</span>} expand={<span>Expanded</span>} extent="head">
-        <span>Body</span>
-      </Card>
-    )
-    expect(screen.queryByText('Expanded')).toBeNull()
-  })
-})
-
-describe('Card footMeta / footerContent', () => {
-  test('fold into the footer band alongside footerContent', () => {
-    render(
-      <Card
-        headerContent={<span>H</span>}
-        footerContent={<span>Source</span>}
-        footMeta={[{ label: 'AP Cost', value: 1 }]}
-      >
-        <span>Body</span>
-      </Card>
-    )
-    expect(screen.getByText('Source')).toBeTruthy()
-    expect(screen.getByText('AP Cost')).toBeTruthy()
-    expect(screen.getByText('1')).toBeTruthy()
-  })
-
-  test('footMeta alone renders the foot band', () => {
-    render(
-      <Card headerContent={<span>H</span>} footMeta={[{ label: 'Slots', value: 2 }]}>
-        <span>Body</span>
-      </Card>
-    )
-    expect(screen.getByText('Slots')).toBeTruthy()
   })
 })

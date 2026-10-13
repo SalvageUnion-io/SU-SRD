@@ -734,39 +734,8 @@ const panel = {
   minWidth: 0,
 } as const
 
-/** The Dashboard card: flat, the same footer as every context, each inline action's pennant the button. */
-function DashboardCard() {
-  return (
-    <div style={{ backgroundColor: 'var(--color-ink-deep)', padding: '16px' }}>
-      <ReferenceEntityCard
-        data={system}
-        size="medium"
-        texture={false}
-        actionControls={(action) => [
-          {
-            key: 'activate',
-            pennant: true,
-            label: 'Activate',
-            onClick: () => {},
-            ariaLabel: `Activate ${'name' in action ? action.name : 'action'}`,
-          },
-        ]}
-      />
-    </div>
-  )
-}
-
 /**
- * Outlines the pennant button's invisible hit area for the catalog only: the
- * dashed box is the 44px target (ruleset §4.6) around the pennant it carries.
- */
-const HIT_AREA_OUTLINE = `.story-hit-areas .su-ec-pennant-btn {
-  outline: 1px dashed var(--color-paper);
-  outline-offset: -1px;
-}`
-
-/**
- * Board E3 — the five contexts. Geometry never changes; the context decides
+ * Board E3's contexts. Geometry never changes; the context decides
  * materials, density and interactivity, through the controls API.
  */
 export const Contexts: Story = () => {
@@ -805,17 +774,6 @@ export const Contexts: Story = () => {
             },
           ]}
         />
-      </div>
-      <div style={panel}>
-        <Caption>Dashboard · medium · full — flat, each band's pennant is the button</Caption>
-        <DashboardCard />
-      </div>
-      <div style={panel}>
-        <Caption>Dashboard · the pennants' 44px hit areas, outlined — no deck button</Caption>
-        <style>{HIT_AREA_OUTLINE}</style>
-        <div className="story-hit-areas">
-          <DashboardCard />
-        </div>
       </div>
       <div style={panel}>
         <Caption>Listing · medium · head — one line, one click</Caption>

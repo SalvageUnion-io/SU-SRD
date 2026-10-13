@@ -51,10 +51,8 @@ export type CardBodyInput = Pick<
   | 'scalingParent'
   | 'selections'
   | 'onSelectionChange'
-  | 'actionControls'
   | 'foldTables'
   | 'afterExtraContent'
-  | 'afterChoicesContent'
   | 'abilitiesSection'
 > & {
   data: ReferenceCardEntity
@@ -79,7 +77,7 @@ export type CardBodyInput = Pick<
   asideLeadRequested: boolean
   tone: DomainTone
   hide: ReferenceEntityCardHideConfig | undefined
-  /** The self-action folded into the body (`resolveFoldedAction`). */
+  /** The self-action folded into the body (`foldedActionOf`). */
   foldedAction: SURefMetaAction | undefined
   titanicBodyContent: SURefObjectContentBlock[] | undefined
   hintText: string | undefined
@@ -128,7 +126,6 @@ export function resolveBodyProse(input: CardBodyInput) {
     scalingParent,
     selections,
     onSelectionChange,
-    actionControls,
     NestedCard,
   } = input
   const editableChoices = !!onSelectionChange
@@ -204,7 +201,7 @@ export function resolveBodyProse(input: CardBodyInput) {
     ...dataValueBonuses,
   ]
   const bonusNode: ReactNode =
-    bonusCellList.length > 0 && !hide?.stats ? (
+    bonusCellList.length > 0 ? (
       <BonusPerTechLevel key="bonus-per-tech" cells={bonusCellList} compact={compact} />
     ) : null
 
@@ -289,7 +286,6 @@ export function resolveBodyProse(input: CardBodyInput) {
     entityName,
     chassisName: resolvedChassisName,
     shownProse: printedProse,
-    actionControls,
     NestedCard: NestedCard,
   }
   return {

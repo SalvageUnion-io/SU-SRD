@@ -7,7 +7,7 @@
  * This is deliberately conservative and coarse-grained (per audit advice):
  * cross-schema references in this dataset are pervasive, and a few are
  * unconditional — `ReferenceEntityCard` itself, regardless of the
- * entity's schema, always calls `resolveCardTable()` (-> `roll-tables`, for
+ * entity's schema, always calls `resolveTable()` (-> `roll-tables`, for
  * `tableName` refs), always renders `RangeValueDisplay` for any `range`
  * DataValue (-> `distances`), and always resolves ability-tree prerequisite
  * text via `resolveClassRequirements` (-> `ability-tree-requirements`).
@@ -27,7 +27,7 @@
  *
  * - ALWAYS_CORE — every `ReferenceEntityCard` render, regardless of
  *   schema, unconditionally touches:
- *   - `roll-tables`: `resolveCardTable()` (referenceEntity/card/) checks the
+ *   - `roll-tables`: `resolveTable()` (salvageunion-reference) checks the
  *     entity's own `tableName` field — and its folded action's — via a
  *     LazyModel `.find()`.
  *   - `distances`: `RangeValueDisplay` resolves any `range`-type DataValue

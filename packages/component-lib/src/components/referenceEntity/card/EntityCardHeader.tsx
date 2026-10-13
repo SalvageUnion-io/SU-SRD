@@ -22,8 +22,6 @@ type EntityCardHeaderProps = {
   titleSize: string
   /** On-band text colour (ink or paper), resolved by contrast. */
   titleColor?: string
-  /** Write layer: a full replacement node for the title. */
-  titleSlot?: ReactNode
   /** The title's element (`ReferenceEntityCardProps.titleAs`); default `span`. */
   titleAs?: CardTitleTag
   /** An ability's tier numeral, at the left of the ink banner (title size, dimmed). */
@@ -137,7 +135,6 @@ export function EntityCardHeader({
   bandColor,
   titleSize,
   titleColor = 'var(--color-ink)',
-  titleSlot,
   titleAs,
   numeral,
   stats,
@@ -154,7 +151,7 @@ export function EntityCardHeader({
 }: EntityCardHeaderProps) {
   const TitleTag = titleAs ?? 'span'
   const titleType: CSSProperties = { color: titleColor, fontSize: titleSize }
-  const titleNode = titleSlot ?? (
+  const titleNode = (
     <TitleTag
       title={head ? title : undefined}
       className={cn(

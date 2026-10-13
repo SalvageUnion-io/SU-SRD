@@ -1,40 +1,9 @@
 /*
- * The package stylesheet — the ONE stylesheet a web consumer loads.
- *
- * The styling foundation (#798, epic #802; ADR-046). This is the other half of
- * the pattern whose TypeScript half is `src/design/tokens.ts`, and it is the
- * half that is easy to miss.
- *
- * WHY IT IS NOT OPTIONAL
- *
- * An inline `style={}` object cannot express `:hover`, `@media`,
- * `:focus-visible`, `:disabled`, or a pseudo-element. Measured across the three
- * UI workspaces, this codebase depends on all of them — ~403 stateful or
- * responsive rules when this file was started: 215 responsive, 120 hover, 15 focus-visible, 12 disabled, 9 focus, 5
- * structural. A migration to style objects ALONE would drop every one of them,
- * which is a straight functional regression, not a styling change. Everything
- * in that list lands here.
- *
- * (The pattern is ported from `binfinite-app`, whose component library has zero
- * `:hover` and zero `@media` because it is React-Native-first and RN has
- * neither. Its style objects were therefore never asked to carry interaction or
- * viewport state. Here they would be, and they cannot, so both halves are
- * ported deliberately rather than just the visible one.)
- *
- * THE SPLIT RULE
- *
- *   Style object     static values that never vary by interaction or viewport:
- *                    colour, padding, font, border, layout.
- *   Stylesheet class anything stateful or conditional: `:hover`,
- *                    `:focus-visible`, `:disabled`, `@media`,
- *                    pseudo-elements, sibling/child selectors. And static
- *                    values repeated on many elements per page (a listing
- *                    row's parts, a stat cell, card chrome): srd's static HTML
- *                    writes a style object out on every element, so those
- *                    are classes too, the per-instance values left inline.
- *
- * A component may use both — the object on `style=`, the class on `className=`.
- * The full statement lives in this package's CLAUDE.md.
+ * The package stylesheet — the ONE stylesheet a web consumer loads (ADR-046).
+ * It is the half of the styling pattern a style object cannot express —
+ * `:hover`, `@media`, `:focus-visible`, `:disabled`, pseudo-elements — whose
+ * TypeScript half is `src/design/tokens.ts`. Which half a value belongs in
+ * (the split rule) is in `.claude/rules/styling.md`.
  *
  * TOKENS COME FROM theme.css
  *

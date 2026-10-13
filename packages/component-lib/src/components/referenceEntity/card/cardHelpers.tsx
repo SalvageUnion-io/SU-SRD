@@ -29,9 +29,6 @@ export function isRulesBearing(data: unknown): boolean {
   return Array.isArray(record.contributions) || Array.isArray(record.mutations)
 }
 
-/** A titanic action (bio-titan "Titanic Actions") — gets its own full-width row. */
-export { isTitanicAction } from 'salvageunion-reference'
-
 /**
  * The element a card's section bands should render as.
  *

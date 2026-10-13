@@ -11,7 +11,6 @@ import { Badge } from '../atoms/Badge'
 import { Slab } from '../atoms/Slab'
 import { Stat } from '../atoms/Stat'
 import { Text } from '../atoms/Text'
-import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 
 /**
  * The reading size a `Content` run is set in.
@@ -120,10 +119,9 @@ type ContentProps = {
   compact?: boolean
   /** Chassis name to replace [(CHASSIS)] placeholder with */
   chassisName?: string
-  /** Header background class (e.g. 'bg-pilot') for heading section left border */
-  headerBg?: string
-  /** Raw CSS color for borders (overrides headerBg-derived color when set) */
-  headerBgColor?: string
+  /** Group blocks into sections, each heading/datavalues block leading one.
+   * Opt-in: without it the blocks render as one flat flow. */
+  grouped?: boolean
   /**
    * True when the owning record carries structured data for the mechanical
    * change its text states (ADR-029).
@@ -157,8 +155,7 @@ export function Content({
   compact = false,
   chassisName,
   rulesBearing = false,
-  headerBg,
-  headerBgColor,
+  grouped = false,
 }: ContentProps) {
   if (!rawContent || rawContent.length === 0) {
     return null
@@ -172,14 +169,9 @@ export function Content({
     return null
   }
 
-  // borderColor now only gates section grouping (below); the source-texture
-  // treatment that once bordered each section — and the list-item frame — are gone.
-  const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
-
-  // Section grouping (heading/datavalues blocks start a new section with top spacing)
-  // is gated on borderColor: entities without a derived colour render the flat,
-  // ungrouped block flow. Kept intentional to preserve current rendered spacing.
-  const groupSections = Boolean(borderColor)
+  // Section grouping (heading/datavalues blocks start a new section with top
+  // spacing) is opt-in: without `grouped` the blocks render as one flat flow.
+  const groupSections = grouped
 
   // Group content blocks into sections: blocks before any heading/datavalues are ungrouped,
   // each heading or datavalues block starts a new section

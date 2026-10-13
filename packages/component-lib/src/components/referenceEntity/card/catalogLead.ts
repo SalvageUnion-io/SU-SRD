@@ -1,6 +1,9 @@
 import type { SURefEntity, SURefObjectContentBlock } from 'salvageunion-reference'
-import { extractVisibleActions, resolveGrantedEntities } from 'salvageunion-reference'
-import { firstParagraphText } from './firstParagraphText'
+import {
+  extractVisibleActions,
+  firstParagraphText,
+  resolveGrantedEntities,
+} from 'salvageunion-reference'
 
 /**
  * CATALOG LEAD — the prose a catalog tile falls back to when the entity itself

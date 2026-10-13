@@ -16,8 +16,9 @@ import {
   extractVisibleActions,
   getChassisAbilities,
   getPatterns,
+  isTitanicAction,
 } from 'salvageunion-reference'
-import { isTitanicAction, MAX_DEPTH } from './cardHelpers'
+import { MAX_DEPTH } from './cardHelpers'
 import type { DroneLoadout } from './resolveNestedEntities'
 import {
   resolveChassisDrone,

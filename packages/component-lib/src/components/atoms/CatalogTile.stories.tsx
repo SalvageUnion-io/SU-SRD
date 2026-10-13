@@ -1,53 +1,36 @@
+import { getCatalogBg } from '../../catalog/catalogColors'
 import type { Story } from '../../stories/_harness'
 import '../../stories/_stories.css'
 import { CatalogTile } from './CatalogTile'
-
-/**
- * The real gear/tech-level ramp the SRD renders behind the Systems, Equipment,
- * Modules and Drones tiles — six HARD-STOP bands, one per tech level, with no
- * blending between them.
- *
- * Mirrors `getCatalogBg`'s `techLevelBg` in `apps/srd/src/lib/catalogColors.ts`;
- * it is restated rather than imported because component-lib must not depend on
- * an app. It is banded, not a smooth blend: a blend reads as shading rather
- * than the wayfinding cue this is.
- */
-const TECH_LEVEL_RAMP = `linear-gradient(to right, ${[1, 2, 3, 4, 5, 6]
-  .map((tl, i, arr) => {
-    const start = ((i / arr.length) * 100).toFixed(1)
-    const end = (((i + 1) / arr.length) * 100).toFixed(1)
-    return `var(--color-tl-${tl}) ${start}%, var(--color-tl-${tl}) ${end}%`
-  })
-  .join(', ')})`
 
 export default {
   title: 'Atoms/Catalog Tile',
 }
 
+const noop = () => {}
+
 /**
- * The SRD landing/404 catalog-tile link (canonical). Tile fill comes from the
- * caller's `catalogBg`; an optional
- * `catalogLabel` renders the name as a filled chip (the reference site uses this
- * for grouped sub-categories).
+ * The Dashboard SRD Explorer's catalog tile (canonical). Tile fill comes from
+ * the caller's `catalogBg` (here the real `getCatalogBg` ramps, Systems on the
+ * tech-level hard-stop bands); an optional `catalogLabel` renders the name as
+ * a filled chip (grouped sub-categories use this).
  */
 export const Default: Story = () => (
   <div className="su-story-catalog-grid">
-    <CatalogTile href="/chassis" name="Chassis" catalogBg="var(--color-mech)" />
-    <CatalogTile href="/pilots" name="Pilots" catalogBg="var(--color-pilot)" />
-    <CatalogTile href="/crawlers" name="Crawlers" catalogBg="var(--color-crawler)" />
+    <CatalogTile onActivate={noop} name="Chassis" catalogBg="var(--color-mech)" />
+    <CatalogTile onActivate={noop} name="Pilots" catalogBg="var(--color-pilot)" />
+    <CatalogTile onActivate={noop} name="Crawlers" catalogBg="var(--color-crawler)" />
     <CatalogTile
-      href="/systems"
+      onActivate={noop}
       name="Systems"
-      catalogBg={TECH_LEVEL_RAMP}
+      catalogBg={getCatalogBg('systems')}
       catalogLabel="var(--color-mech-dark)"
     />
     <CatalogTile
-      href="/npcs"
+      onActivate={noop}
       name="NPCs"
       catalogBg="var(--color-ink)"
       catalogLabel="var(--color-adversary)"
     />
-    {/* Ghost variant — paper fill / ink text, the 404 "Return to Home" link. */}
-    <CatalogTile href="/" name="Return to Home" variant="ghost" />
   </div>
 )

@@ -1,12 +1,12 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import type { SURefEntity, SURefMetaEntity, SURefObjectChoice } from 'salvageunion-reference'
+import { firstParagraphText } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { color, font, fontSize, space, tracking } from '../../../design/tokens'
 import { Button } from '../../atoms/Button'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
-import { firstParagraphText } from './firstParagraphText'
 
 /** `ink/70` — no ink-opacity rung sits at 70%. */
 const ink70 = `color-mix(in oklab, ${color.ink} 70%, transparent)`

@@ -24,6 +24,8 @@ import {
   EntitySchemaNames,
   extractVisibleActions,
   firstParagraphText,
+  foldedActionOf,
+  formatActionType,
   getAssetUrl,
   getChoices,
   getModel,
@@ -32,26 +34,20 @@ import {
   getReferenceEntityName,
   getTechLevel,
   isAbility,
+  isTitanicAction,
   missingArt,
   plainTraitText,
   resolveGrantedEntities,
+  resolveTable,
   toEntityModel,
 } from 'salvageunion-reference'
-import {
-  buildHeaderStats,
-  formatActionType,
-  resolveSubHeaderCells,
-  resolveTechScaling,
-} from '../card/cardCells'
+import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
-import { isTitanicAction } from '../card/cardHelpers'
 import { resolveCatalogLeadBlocks } from '../card/catalogLead'
 import { resolveCardTone } from '../card/entityCardTone'
 import { resolveEntityPageMeta } from '../card/entityPage'
 import { resolveNestedSections } from '../card/nestedSections'
 import type { ActionFields } from '../card/referenceEntityCardTypes'
-import { resolveCardTable } from '../card/resolveCardTable'
-import { resolveFoldedAction } from '../card/resolveFoldedAction'
 import { resolveGuideLead } from '../card/resolveGuideLead'
 import {
   resolveDroneOwnLoadout,
@@ -85,7 +81,7 @@ function cardFoldedAction(schemaName: Schema, entity: SURefMetaEntity) {
   if (schemaName === 'actions') return undefined
   if (isAbility(entity) && resolveGrantedEntities(entity as never).length > 0) return undefined
   const foldable = (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
-  return resolveFoldedAction(foldable, nameOf(entity))
+  return foldedActionOf(foldable, nameOf(entity))
 }
 
 /** The schemas that keep an art place: any entity in them has artwork. */
@@ -367,7 +363,7 @@ describe('toEntityModel parity, every entity', () => {
       )
 
       // The same table, and drawn as bands unless it is a two-roll table.
-      const table = resolveCardTable(entity) ?? resolveCardTable(folded)
+      const table = resolveTable(entity) ?? resolveTable(folded)
       const shape = (t: SURefObjectTable | undefined) =>
         t ? [t.type === 'columns' ? 'columns' : 'bands', t] : undefined
       agree(

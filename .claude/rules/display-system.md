@@ -25,12 +25,11 @@ There are two, and the separation is a decision, not an accident:
   sub-header / body / footer) that the poster, sheet and modal surfaces compose.
   `ModalShell` is built on it.
 
-**They are NOT being merged** (and their `cardClick` fallback resolves
-first-wins vs last-wins).
+**They are NOT being merged**.
 
 So: **do not add entity-card features to Card**, and do not route the
 entity card through it. Share the VOCABULARY (`displayMode`, the controls
-contract, `CardFootMeta`, `foldStatusControl`) — not the DOM.
+contract, `CardControlRail`) — not the DOM.
 
 ## Sizing vocabulary
 
@@ -68,12 +67,13 @@ display layer stays schema-agnostic.
 
 ## Controls
 
-Card-level actions go through the `controls` API. The one preset factory is
-`navigateControl`; build any other control directly.
+Card-level actions go through `ReferenceEntityCard`'s `controls` API (the
+generic `Card` takes no controls, `cardClick` or `status`). The one preset
+factory is `navigateControl`; build any other control directly.
 
 A control with `cardClick: true` makes the whole card clickable; `hidden: true`
 keeps it out of the button rail. `status` is presentational sugar that folds into
-a status control via `foldStatusControl`, so the condition badge has exactly one
+a status control in `CardTopRail`, so the condition badge has exactly one
 implementation.
 
 ## Stats

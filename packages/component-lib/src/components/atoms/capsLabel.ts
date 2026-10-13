@@ -21,9 +21,8 @@ import { cva } from 'class-variance-authority'
  * otherwise put all of it inline. The reason is `buttonVariants`: that is a
  * public class-string export which composes this recipe into its own output,
  * and both apps put that output on `<a>` elements. A recipe feeding a class
- * string has to BE a class string. See the class-string exemption in this
- * package's CLAUDE.md — this is the "anything built on them inherits the same
- * constraint" clause. Worth revisiting once Button migrates.
+ * string has to BE a class string — the class-string exemption in
+ * `.claude/rules/styling.md`.
  *
  * ## What this recipe does and does NOT standardise
  *

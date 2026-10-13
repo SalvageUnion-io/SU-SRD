@@ -204,9 +204,9 @@ describe('Content — datavalues chips', () => {
 })
 
 describe('Content — section grouping', () => {
-  // Grouping is gated on a derivable border colour: with no `headerBg` the
-  // blocks render as one flat flow, with one they split into sections led by
-  // the heading. Both shapes must still show every block.
+  // Grouping is opt-in: without `grouped` the blocks render as one flat flow,
+  // with it they split into sections led by the heading. Both shapes must
+  // still show every block.
   const body = () =>
     blocks(
       { type: 'paragraph', value: 'lead-in prose' },
@@ -214,7 +214,7 @@ describe('Content — section grouping', () => {
       { type: 'paragraph', value: 'section prose' }
     )
 
-  test('renders every block ungrouped when no header colour is supplied', () => {
+  test('renders every block ungrouped by default', () => {
     render(<Content body={body()} />)
     expect(screen.getByText('lead-in prose')).toBeTruthy()
     expect(screen.getByText('Big Heading')).toBeTruthy()
@@ -222,7 +222,7 @@ describe('Content — section grouping', () => {
   })
 
   test('renders every block when grouping into sections', () => {
-    render(<Content body={body()} headerBg="bg-pilot" />)
+    render(<Content body={body()} grouped />)
     expect(screen.getByText('lead-in prose')).toBeTruthy()
     expect(screen.getByText('Big Heading')).toBeTruthy()
     expect(screen.getByText('section prose')).toBeTruthy()
@@ -236,7 +236,7 @@ describe('Content — section grouping', () => {
           label: 'Requirements',
           value: [{ type: 'stat', label: 'Tech Level', value: '2' }],
         })}
-        headerBg="bg-pilot"
+        grouped
       />
     )
     expect(screen.getByText('Requirements')).toBeTruthy()

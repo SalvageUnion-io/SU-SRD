@@ -8,9 +8,9 @@ export { Changelog } from './changelog/Changelog'
 export { Avatar } from './components/atoms/Avatar'
 export type { BadgeTone } from './components/atoms/Badge'
 // Chrome primitives (ITUN design handoff — design-spec §2)
-// Badge — the unified stamp-chip family. No named presets: the quiet keyword
-// chip is `surface="quiet"`, the status badge is StatusBadge (domain vocabulary),
-// and a pill is `Badge surface="outline"`/`"tone"`.
+// Badge — the unified stamp-chip family: the quiet keyword chip is
+// `surface="quiet"`, the status badge is StatusBadge (domain vocabulary), and a
+// pill is `Badge surface="outline"`/`"tone"`.
 export { Badge } from './components/atoms/Badge'
 // BandTitle — the paper-on-tone title inside a Card's header band. NOT a
 // stamp: it fills its track and truncates, where a stamp sizes to its text.
@@ -24,8 +24,6 @@ export { Checkbox, Radio } from './components/atoms/Checkbox'
 // Conditions — the entity-condition chip row. Public because ITUN's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './components/atoms/Conditions'
-// ConditionChip is deliberately NOT exported: it is an internal sub-part of
-// Conditions (its only consumer), demonstrated via that component's story.
 export { CountStepper } from './components/atoms/CountStepper'
 export type { ChapterTone } from './components/atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './components/atoms/chapterBandColor'
@@ -36,21 +34,14 @@ export { FieldError } from './components/atoms/FieldError'
 export { Ghost } from './components/atoms/Ghost'
 // Glyph — the hand-drawn UI glyph set (the sheet's edit/add/remove marks)
 export { Glyph } from './components/atoms/glyphs'
-// Only `heatDangerFrom` survives — `heatLevel`/`HeatLevel`/`HEAT_HIGH_RATIO`
-// were measured to zero consumers and deleted.
 export { heatDangerFrom } from './components/atoms/heatLevel'
 export { InlineEditField } from './components/atoms/InlineEditField'
 // The one link look (ruleset §3.1): rust is painted only by Button and by
 // InlineRef, so a prose link in either app is an InlineRef.
 export { InlineRef } from './components/atoms/InlineRef'
 export { Textarea } from './components/atoms/inputs'
-/**
- * The focus vocabulary. Exported because the APPS need it, not only the lib:
- * srd and itun each had their own hand-rolled focus treatment (a pilot outline,
- * a rust outline) purely because the canonical rungs stopped at the package
- * boundary. A design system the consuming apps cannot import is one they will
- * re-invent.
- */
+// The focus vocabulary — exported so the apps' focus treatment uses these
+// rungs rather than their own.
 export {
   FOCUS_RING,
   FOCUS_RING_ON_TONE,
@@ -133,10 +124,6 @@ export { PICKER_MODAL_WIDTH } from './components/compositions/pickerModalWidth'
 export { RollTableInstrument } from './components/compositions/RollTableInstrument'
 // StartHere — the one onboarding block, on the SRD's home and ITUN's front door
 export { StartHere } from './components/compositions/StartHere'
-// StepButton is deliberately NOT exported: it is an internal atom composed by
-// CountStepper (its only consumer), demonstrated via its own co-located story.
-// Every hand-assembled '-'/value/'+' cluster in the apps now renders through
-// Stat's stepper anatomy instead, so nothing outside this package needs it.
 export { StatusBadge } from './components/compositions/StatusBadge'
 export type { SearchComboboxResult } from './components/compositions/useSearchCombobox'
 export { useSearchCombobox } from './components/compositions/useSearchCombobox'
@@ -175,7 +162,6 @@ export type { StatItem } from './components/containers/statsBarTypes'
 // UI primitives
 export { Toaster, toast } from './components/containers/Toaster'
 export { Content } from './components/referenceEntity/Content'
-export { entityGuideToneColor } from './components/referenceEntity/card/entityCardTone'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './components/referenceEntity/card/entityPage'
@@ -207,10 +193,7 @@ export {
   EntityHrefProvider,
   PatternHrefProvider,
 } from './components/referenceEntity/entityHrefContext'
-// Entity controls — `navigateControl` and `foldControl` (the Row ⇄ Card
-// disclosure) are the live presets. `addControl`, `deleteControl` and
-// `selectControl` were measured to zero production call sites and deleted;
-// consumers build the rest directly.
+// Entity controls: the live presets (navigateControl, foldControl).
 export { foldControl } from './components/referenceEntity/foldControl'
 export { quotePatternName } from './components/referenceEntity/pattern/quotePatternName'
 export { useChassisPatternConfig } from './components/referenceEntity/pattern/useChassisPatternConfig'
@@ -226,7 +209,7 @@ export { useDetailModal } from './components/referenceEntity/useDetailModal'
  * `tokens` is the values. The other two halves are `styles/index.css`
  * (the stateful half — `:hover`, `:focus-visible`, `:disabled`, `@media` —
  * which a style object cannot express at all) and `styles/sizing.ts`. The split
- * rule is in this package's CLAUDE.md; read it before migrating a component.
+ * rule is in `.claude/rules/styling.md`; read it before migrating a component.
  *
  * There is no shared style-object set: a component that needs a style object
  * gets it beside its consumer, not in a speculative shared module.

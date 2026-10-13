@@ -7,22 +7,22 @@ import type {
 } from 'salvageunion-reference'
 import {
   extractVisibleActions,
+  firstParagraphText,
+  foldedActionOf,
+  formatCost,
   getReferenceEntityName,
   getTechLevel,
   isAbility,
   resolveActivationCurrency,
   visiblePatterns,
 } from 'salvageunion-reference'
-import { formatCost } from '../referenceEntity/card/cardCells'
 import {
   isDoEntity,
   resolveDomainTone,
   resolveSeamLabel,
   resolveTierNumeral,
 } from '../referenceEntity/card/entityCardTone'
-import { firstParagraphText } from '../referenceEntity/card/firstParagraphText'
 import { formatProvenance, resolveFooterProvenance } from '../referenceEntity/card/provenance'
-import { resolveFoldedAction } from '../referenceEntity/card/resolveFoldedAction'
 import { buildReferenceEntityStats } from '../referenceEntity/referenceEntityStatsConfig'
 import type { OgCardProps, OgCardStat } from './ogCardText'
 
@@ -102,7 +102,7 @@ type ActionShape = Pick<
 function selfAction(entity: SURefMetaEntity, name: string): ActionShape | undefined {
   if ('actionSource' in entity) return entity as ActionShape
   const actions = (extractVisibleActions(entity) ?? []) as ActionShape[]
-  return resolveFoldedAction(actions, name) ?? actions[0]
+  return foldedActionOf(actions, name) ?? actions[0]
 }
 
 /** One line of rules: the action's first paragraph, else the entity's own. */

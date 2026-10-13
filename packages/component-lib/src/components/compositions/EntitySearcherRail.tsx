@@ -17,15 +17,9 @@ import { Button } from '../atoms/Button'
 import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { PageHeading } from '../atoms/PageHeading'
-import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { BudgetSummary, BudgetTrack } from './EntitySearcherBudget'
 import { chevronStyle, VISUALLY_HIDDEN } from './entitySearcherChrome'
 import type { BudgetConfig, EntityLike, PoolEntity } from './entitySearcherTypes'
-
-/** A card `hide` as the Row's `omit`: the kind stamp, and any stat keys. */
-function omitOf(hide: ReferenceEntityCardHideConfig): string[] {
-  return [...(hide.seam ? ['kind'] : []), ...(hide.statKeys ?? [])]
-}
 
 /**
  * A polite live-region message that speaks only when `message` CHANGES — the
@@ -240,7 +234,6 @@ export function SelectionRail({
   mode,
   onToggle,
   onRemove,
-  hide,
   actions,
 }: {
   wide: boolean
@@ -253,7 +246,6 @@ export function SelectionRail({
   mode: 'toggle' | 'count'
   onToggle?: (ref: string) => void
   onRemove?: (index: number) => void
-  hide: ReferenceEntityCardHideConfig
   actions?: ReactNode
 }) {
   const budgets = budgetList(budget)
@@ -367,7 +359,7 @@ export function SelectionRail({
               style={RAIL_ENTRY_STYLE}
             >
               <div style={RAIL_ENTRY_BODY_STYLE}>
-                <Entity form="row" entity={entry.entity} omit={omitOf(hide)} />
+                <Entity form="row" entity={entry.entity} />
                 {entry.total > 1 && (
                   <span
                     className={capsLabel({ size: 'badge', tracking: 'caps' })}

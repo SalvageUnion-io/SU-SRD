@@ -108,7 +108,7 @@ type EntitySearcherProps = {
   /** Close handler — renders the header's close badge. */
   onClose?: () => void
   /**
-   * Extra `hide` config for the pool + rail cards, merged OVER the searcher's
+   * Extra `hide` config for the pool cards, merged OVER the searcher's
    * own defaults (actions/choices are always suppressed). Big entities — a
    * chassis, a crawler type — carry sections a picker has no room for
    * (`{ patterns: true }`), and that is a property of the entity, not of the
@@ -276,7 +276,6 @@ export function EntitySearcher({
       mode={mode === 'count' ? 'count' : 'toggle'}
       onToggle={onToggle}
       onRemove={onRemove}
-      hide={cardHide}
       actions={railActions}
     />
   )
@@ -289,9 +288,6 @@ export function EntitySearcher({
   // rail, laid out by the `.su-searcher` classes (see the header comment).
   return (
     <Card
-      // The CSS variable, not `color.pilot`: it is the exact string the old
-      // `headerBg="bg-pilot"` derived, so Card's border and deep-band
-      // colour-mix come out the same.
       headerBgColor="var(--color-pilot)"
       headerContent={
         <div style={HEADER_ROW_STYLE}>

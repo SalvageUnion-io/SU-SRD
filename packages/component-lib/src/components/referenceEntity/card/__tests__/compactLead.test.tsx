@@ -1,17 +1,18 @@
 /**
- * The compact card's LEAD (`leadProse`): a listing asks for the entity's own
- * opening prose, clamped under the cells.
+ * The Row's LEAD (`<Entity form="row" lead>`): a listing asks for the entity's
+ * own opening prose, clamped under the cells.
  *
- * Rendered through the real card with real SRD data:
+ * Rendered with real SRD data:
  * - a chassis leads with its lore paragraph, an ability with its description;
  * - a system leads with its own paragraph when it has one, and one whose
  *   meaning lives in its actions with its action's opening paragraph — a
  *   listing shows prose whenever the entity carries any;
- * - without the prop (a slot, a deck) the compact card prints no prose.
+ * - the compact card (a slot, a deck) prints no prose.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { Entity } from '../../../../entity/Entity'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const need = <T,>(value: T | undefined, label: string): T => {
@@ -27,11 +28,9 @@ const cal50 = () =>
 // The lead is the compact card's one paragraph.
 const lead = (container: HTMLElement) => container.querySelector('p')
 
-describe('the compact card lead', () => {
+describe('the row lead', () => {
   test('a chassis leads with its lore paragraph, its full text a tooltip', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={gopher()} size="medium" extent="head" leadProse />
-    )
+    const { container } = render(<Entity form="row" entity={gopher()} lead />)
     const paragraph = lead(container)
     expect(paragraph?.textContent).toStartWith("The 'TC40' Gopher was originally designed")
     // happy-dom drops `-webkit-line-clamp`, so the clamp itself is checked in
@@ -40,39 +39,31 @@ describe('the compact card lead', () => {
   })
 
   test('an ability leads with its description', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={talkShop()} size="medium" extent="head" leadProse />
-    )
+    const { container } = render(<Entity form="row" entity={talkShop()} lead />)
     expect(lead(container)?.textContent).toBe(
       'Build rapport, and ask favours of other mechanics, salvagers, and workers.'
     )
   })
 
   test('a system leads with its own prose when it has some', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={drill()} size="medium" extent="head" leadProse />
-    )
+    const { container } = render(<Entity form="row" entity={drill()} lead />)
     expect(lead(container)?.textContent).toStartWith('An Opus-designed industrial sized drill')
   })
 
   test('a system whose meaning lives in its actions leads with its action', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={cal50()} size="medium" extent="head" leadProse />
-    )
+    const { container } = render(<Entity form="row" entity={cal50()} lead />)
     expect(lead(container)?.textContent).toStartWith('This simple ballistic weapon')
   })
 
   test('trait markup in a lead reads as plain words, never raw brackets', () => {
     const overpower = need(SalvageUnionReference.Abilities.getByName('Overpower'), 'overpower')
-    const { container } = render(
-      <ReferenceEntityCard data={overpower} size="medium" extent="head" leadProse />
-    )
+    const { container } = render(<Entity form="row" entity={overpower} lead />)
     const text = lead(container)?.textContent ?? ''
     expect(text).toContain('Vulnerable')
     expect(text).not.toContain('[[')
   })
 
-  test('without leadProse the compact card prints no prose', () => {
+  test('the compact card prints no prose', () => {
     const { container } = render(
       <ReferenceEntityCard data={gopher()} size="medium" extent="head" />
     )

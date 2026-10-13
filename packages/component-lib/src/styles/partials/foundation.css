@@ -80,29 +80,6 @@ button {
   padding: 0;
 }
 
-/* ══ The page ground and body face ══════════════════════════════════════════
- *
- * `text-base` (16px), not `text-sm` (14px), and this is the ONE declaration
- * that sets it — neither app's stylesheet sets a body `font-size`.
- *
- * 14px was inherited rather than chosen. It is below the 16px that browsers
- * default to and that a phone read at arm's length in bad light needs.
- *
- * It does NOT fix the iOS auto-zoom on form controls, which was the other half
- * of the reason to raise it. The reset above gives controls `font: inherit`,
- * which looks like it should be enough — but measured against the built output
- * at 390px, the header search input still computed to **13px** and the
- * `/search` input to **14px**, because each inherits from a wrapper that sets
- * its own rung, and an explicit ancestor size beats the body default. So the
- * controls were raised individually, at their own call sites, where the floor
- * is documented as a functional requirement rather than a preference:
- * `atoms/SearchField.tsx`, `atoms/inputs.tsx`, `compositions/EntitySearcherFilters.tsx`.
- *
- * The blast radius is narrower than it looks: this is a DEFAULT, so it moves
- * only text that sets no size of its own. Anything on an explicit rung —
- * every `--text-*` consumer, every `text-*` utility — is untouched, which
- * is most of the chrome. The type ladder itself does not move.
- */
 /**
  * Skip link (WCAG 2.4.1 Bypass Blocks).
  *
@@ -143,6 +120,15 @@ button {
   box-shadow: var(--focus-ring-shadow);
 }
 
+/* ══ The page ground and body face ══════════════════════════════════════════
+ *
+ * The ONE body `font-size` declaration (16px) — neither app sets one. It is a
+ * default, so it moves only text on no rung of its own. It does not reach form
+ * controls: each inherits from a wrapper that sets its own rung, and an
+ * ancestor's size beats the body default, so their 16px iOS-zoom floor is set
+ * at the call sites (`atoms/SearchField.tsx`, `atoms/inputs.tsx`,
+ * `compositions/EntitySearcherFilters.tsx`).
+ */
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);
@@ -156,24 +142,12 @@ body {
  *
  * Everything below is here because a style object could not hold it.
  *
- * THE SPLIT IS PER-PROPERTY, NOT PER-COMPONENT — and this is the part that is
- * easy to get wrong. An earlier framing of this section said the object paints
- * the resting state and the class paints every other state. That does not work,
- * and it fails SILENTLY: an inline declaration outranks an author rule whatever
- * its selector, so a resting `background-color` on `style=` beats the same
- * property in a `:hover` rule and the hover never renders at all. Measured on a
- * real page — resting colour inline, hovered computed value unchanged; resting
- * colour in the class, hover applied.
- *
- * So a property that VARIES by state is not static, and its resting value
- * belongs here too, beside the state that overrides it. A component splits down
- * the middle of its own style: `padding`, `border-radius` and `font` on the
- * object; `background-color`, `border-color` and `color` in the class whenever
- * a `:hover` / `:focus` / `:disabled` rule touches them.
- *
- * (`.su-button` below is the shape that hid this — `filter: brightness()`
- * dodges the collision by being a different property from the one the object
- * sets. That is a workaround, not the rule; see the note on it.)
+ * THE SPLIT IS PER-PROPERTY, NOT PER-COMPONENT, and it fails SILENTLY when
+ * wrong: an inline declaration outranks an author rule whatever its selector,
+ * so a resting `background-color` on `style=` beats the same property in a
+ * `:hover` rule and the hover never renders. A property that VARIES by state
+ * keeps its resting value here, beside the state that overrides it. The rule
+ * is in `.claude/rules/styling.md`.
  */
 
 /**
@@ -213,7 +187,7 @@ body {
  * boundary holds at 15.35 regardless. That is the whole reason for two rings
  * (`focusRing.contrast.test.ts` asserts both halves).
  *
- * All five ring rules below read ONE token, `--focus-ring-shadow`, so they
+ * All four ring rules below read ONE token, `--focus-ring-shadow`, so they
  * cannot drift apart.
  *
  * `outline: 3px solid transparent` accompanies every `outline: none` here.
@@ -241,34 +215,7 @@ body {
 }
 
 /**
- * The interactive complement of `styles.buttonBase`.
- *
- * NOT the pattern to copy. `filter: brightness()` is a generic darkening that
- * happens to survive `styles.buttonPrimary` setting `background-color` inline,
- * because the two are different properties — which is why this rule works and
- * masks the precedence trap described at the top of this section. The real
- * `Button` (`components/atoms/buttonVariants.ts`) does not darken generically:
- * it swaps to a NAMED colour per variant (`hover:bg-ink-8`, the primary's
- * darker action hover), and no brightness filter reproduces those without
- * re-toning them. Those live in `.su-btn--*` below, resting colour included.
- */
-.su-button:hover:not(:disabled) {
-  filter: brightness(0.94);
-}
-
-.su-button:focus-visible {
-  outline: 3px solid transparent;
-  box-shadow: var(--focus-ring-shadow);
-}
-
-.su-button:disabled {
-  cursor: default;
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/**
- * The interactive complement of `styles.inputBase`. Plain `:focus`, not
+ * An input's focus ring, disabled state and placeholder. Plain `:focus`, not
  * `:focus-visible`: an editable control shows the ring on every focus.
  */
 .su-input:focus {
@@ -321,8 +268,8 @@ body {
  * Unlike the focus rings these are NOT stateful: selection is application
  * state, not a CSS pseudo-class, so the class is applied conditionally from
  * TypeScript and the rule itself is unconditional. They live here because they
- * are class-string exports (see the class-string exemption in this package's
- * CLAUDE.md), not because a style object could not hold them.
+ * are class-string exports (the class-string exemption in
+ * `.claude/rules/styling.md`), not because a style object could not hold them.
  */
 .su-selection-ring {
   /* Ink, not rust: a selection is state, not an action (ruleset §3.1). */

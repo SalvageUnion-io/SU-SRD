@@ -19,8 +19,8 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * library owns the element being styled, and this recipe deliberately does not.
  * A caller putting this string on an `<a>` never receives a style object, and a
  * function returning a string cannot return one without changing a signature
- * that is public API. See the class-string exemption in this package's
- * CLAUDE.md.
+ * that is public API. See the class-string exemption in
+ * `.claude/rules/styling.md`.
  *
  * The `.su-btn*` names are public API from that same moment, for the same
  * reason — apps compose them with `cn()`, so they end up in app-side code.

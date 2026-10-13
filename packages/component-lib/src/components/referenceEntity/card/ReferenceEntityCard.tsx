@@ -9,12 +9,15 @@ import type {
 } from 'salvageunion-reference'
 import {
   extractVisibleActions,
+  foldedActionOf,
+  formatCost,
   getAssetUrl,
   getChoices,
   getReferenceEntityName,
   getTechLevel,
   isAbility,
   isBioTitanPattern,
+  isTitanicAction,
   resolveActivationCurrency,
   resolveGrantedEntities,
   toEntityModel,
@@ -42,12 +45,7 @@ import { CardPennant } from './CardPennant'
 import { CardTopRail } from './CardTopRail'
 import type { CardBodyInput } from './cardBodyProse'
 import { resolveBodyProse } from './cardBodyProse'
-import {
-  buildHeaderStats,
-  formatCost,
-  resolveSubHeaderCells,
-  resolveTechScaling,
-} from './cardCells'
+import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from './cardCells'
 import type { HeaderFill } from './cardChrome'
 import {
   resolveCardColors,
@@ -57,7 +55,7 @@ import {
   resolveHeaderHint,
 } from './cardChrome'
 import type { CardGrain } from './cardGrain'
-import { isTitanicAction, MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
+import { MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
 import { resolveCardSections } from './cardSections'
 import { CardTextureContext } from './cardTexture'
 import { EntityCardHeader } from './EntityCardHeader'
@@ -84,7 +82,6 @@ import type {
   ReferenceEntityCardHideConfig,
   ReferenceEntityCardProps,
 } from './referenceEntityCardTypes'
-import { resolveFoldedAction } from './resolveFoldedAction'
 import { StatusRail, StatusTriState } from './StatusRail'
 import { stripHostParenthetical } from './stripHostParenthetical'
 
@@ -220,7 +217,6 @@ function HeadForm({
   entity,
   pattern,
   instance,
-  lead,
   shared,
   token,
   row,
@@ -228,14 +224,13 @@ function HeadForm({
   entity: SURefMetaEntity
   pattern: SURefObjectAnyPattern | undefined
   instance: EntityInstance
-  lead: boolean
   shared: Pick<RowSlots, 'outer' | 'frameStyle' | 'down'>
   token: Pick<TokenSlots, 'kind' | 'fact' | 'pennant'> | false
   row: RowSlots
 }) {
   const model = toEntityModel(entity, undefined, { pattern })
   if (token) return <Token model={model} instance={instance} slots={{ ...shared, ...token }} />
-  return <Row model={model} instance={instance} lead={lead} slots={{ ...shared, ...row }} />
+  return <Row model={model} instance={instance} slots={{ ...shared, ...row }} />
 }
 
 function ReferenceEntityCardInner({
@@ -259,7 +254,6 @@ function ReferenceEntityCardInner({
   chassisName,
   droneLoadout,
   artSlot = false,
-  leadProse = false,
   hide: hideProp,
   status,
   onStatusClick,
@@ -275,21 +269,16 @@ function ReferenceEntityCardInner({
   selectionRole,
   cardClickLabel,
   controls,
-  actionControls,
   selections,
   onSelectionChange,
   titleOverride,
-  titleSlot,
   statsOverride,
   primaryStatsOnly,
   subtitleExtra,
   abilitiesSection,
   afterExtraContent,
   asideLead: asideLeadRequested = false,
-  afterChoicesContent,
-  footerOverride,
   footMeta,
-  rightContent: rightContentProp,
   className,
   titleAs,
   scalingParent,
@@ -403,7 +392,7 @@ function ReferenceEntityCardInner({
 
   // The SELF-action — an action named like its entity — folds into the card:
   // its content becomes the body and its facets the "//" line (see
-  // `resolveFoldedAction`). Every other action sits inline below.
+  // `foldedActionOf`). Every other action sits inline below.
   const foldableActions =
     !isAction &&
     !isPattern &&
@@ -411,17 +400,16 @@ function ReferenceEntityCardInner({
     !(isAbility(entity) && resolveGrantedEntities(entity as SURefEntity).length > 0)
       ? (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
       : []
-  const foldedAction = resolveFoldedAction(foldableActions, entityName)
+  const foldedAction = foldedActionOf(foldableActions, entityName)
   const foldedActionFields: ActionFields | undefined = foldedAction ?? undefined
 
   // The LABELS, right of the title: a parent seal (GRANTS) replaces the type
-  // stamp; a one-kind listing (`hide.seam`) drops it and the pills.
-  const unlabelled = !!hide?.seam && !parentSeal && !userMade && !isLegalStartingPatternCard
-  const labels = unlabelled ? undefined : (
+  // stamp.
+  const labels = (
     <CardLabels
       seal={parentSeal}
-      typeStamp={parentSeal || hide?.seam ? undefined : typeStamp}
-      axisMarkers={hide?.seam ? [] : axisMarkers}
+      typeStamp={parentSeal ? undefined : typeStamp}
+      axisMarkers={axisMarkers}
       legalStartingPattern={isLegalStartingPatternCard}
       userMade={userMade}
       onInk={fill === 'ink'}
@@ -440,9 +428,7 @@ function ReferenceEntityCardInner({
     techLevelDisplay,
     techLevelModified,
   })
-  const effectiveHeaderStats: StatItem[] = hide?.stats
-    ? []
-    : (statsOverride ?? headerStats).filter((stat) => !hide?.statKeys?.includes(stat.key))
+  const effectiveHeaderStats: StatItem[] = statsOverride ?? headerStats
 
   // COST PENNANT — the action's own cost, or its folded self-action's. In the
   // Dashboard a `pennant` control makes it the action button.
@@ -500,14 +486,13 @@ function ReferenceEntityCardInner({
     <EntityCardHeader
       title={name}
       fill={fill}
-      titleSlot={titleSlot}
       titleAs={titleAs}
       bandColor={bandColor}
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
       stats={effectiveHeaderStats}
-      rightContent={rightContentProp ?? headerHint}
+      rightContent={headerHint}
       stamps={facets.stamps}
       pennant={pennantNode}
       labels={inline ? undefined : labels}
@@ -534,8 +519,7 @@ function ReferenceEntityCardInner({
   })
   // A CATALOG tile carries NO footer: it is artwork + description, and
   // provenance belongs on the entity's own page, which the tile links to.
-  const rendersFooter =
-    !inline && !hide?.footer && !isCatalog && (footerOverride != null || depth === 0)
+  const rendersFooter = !inline && !isCatalog && depth === 0
   // LIVE SHEET (board E3): the condition and the destructive Remove live in a
   // dashed body rail, not on the seam as green and red tabs. A head row has no
   // body, so its condition rides the seam as the same neutral tri-state.
@@ -590,7 +574,6 @@ function ReferenceEntityCardInner({
         entity={entity}
         pattern={pattern}
         instance={{ title: name, ...(userMade ? { userMade } : {}) }}
-        lead={leadProse && !hide?.content}
         shared={{ outer, frameStyle, down: isDown }}
         token={
           size === 'small' && {
@@ -602,13 +585,12 @@ function ReferenceEntityCardInner({
         row={{
           labels: labels ?? null,
           rail: topRightRail,
-          titleSlot,
           titleAs,
           facts: [...effectiveHeaderStats, ...facets.facts],
           tags: facets.tags,
           stamps: facets.stamps,
           leading: suggestedNode,
-          hint: rightContentProp ?? headerHint,
+          hint: headerHint,
           pennant: pennantNode,
           chevron: !inline && (!!onCardClick || !!cardClickable),
           art: !(isPattern || inline || hide?.image),
@@ -659,10 +641,8 @@ function ReferenceEntityCardInner({
     scalingParent,
     selections,
     onSelectionChange,
-    actionControls,
     foldTables,
     afterExtraContent,
-    afterChoicesContent,
     abilitiesSection,
     NestedCard: ReferenceEntityCardInner,
   }
@@ -706,14 +686,10 @@ function ReferenceEntityCardInner({
             ? `${resolvedChassisName ?? entityName} ${isBioTitanPattern(pattern) ? 'Bio-Titan' : 'chassis'}`
             : undefined
         }
-        stats={
-          hide?.stats
-            ? null
-            : {
-                techLevel: techLevelDisplay,
-                schemaName: schemaName === 'actions' ? undefined : schemaName,
-              }
-        }
+        stats={{
+          techLevel: techLevelDisplay,
+          schemaName: schemaName === 'actions' ? undefined : schemaName,
+        }}
         table={rollTableNode}
         abilitiesSection={abilitiesSection}
         guide={guideStepsNode}
@@ -803,30 +779,27 @@ function ReferenceEntityCardInner({
           </div>
         )}
         {statusRail}
-        {/* FOOTER — `footerOverride` replaces the identity footer; `hide.footer`
-            and the catalog extent suppress it entirely. */}
-        {rendersFooter
-          ? (footerOverride ?? (
-              // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
-              // A player's pattern rides on a chassis whose provenance would
-              // otherwise put "Workshop Manual · p.104" under homebrew.
-              <EntityCardIdentityFooter
-                typeLabel={footerType}
-                source={userMade ? undefined : provenance.source}
-                booklet={userMade ? undefined : provenance.booklet}
-                page={userMade ? undefined : provenance.page}
-                // Reprints are the entity's OWN-PAGE fact — the roomy full card.
-                additionalSources={compact || userMade ? undefined : provenance.additionalSources}
-                footMeta={footMeta}
-                externalLink={
-                  extent === 'full' && !insidePeek && !userMade ? externalLinkNode : undefined
-                }
-                size={size}
-                dashed={userMade}
-                credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
-              />
-            ))
-          : null}
+        {/* FOOTER — the catalog extent suppresses it entirely. */}
+        {rendersFooter ? (
+          // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
+          // A player's pattern rides on a chassis whose provenance would
+          // otherwise put "Workshop Manual · p.104" under homebrew.
+          <EntityCardIdentityFooter
+            typeLabel={footerType}
+            source={userMade ? undefined : provenance.source}
+            booklet={userMade ? undefined : provenance.booklet}
+            page={userMade ? undefined : provenance.page}
+            // Reprints are the entity's OWN-PAGE fact — the roomy full card.
+            additionalSources={compact || userMade ? undefined : provenance.additionalSources}
+            footMeta={footMeta}
+            externalLink={
+              extent === 'full' && !insidePeek && !userMade ? externalLinkNode : undefined
+            }
+            size={size}
+            dashed={userMade}
+            credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
+          />
+        ) : null}
       </div>
     </CardOuter>
   )
@@ -854,8 +827,6 @@ export type ReferenceEntityCardWrapperProps = Omit<
    * chevron's `aria-controls` names (`resolveCardInteraction`).
    */
   collapsible?: boolean
-  /** Start folded. Only meaningful with `collapsible`; defaults to true. */
-  defaultCollapsed?: boolean
 }
 
 /**
@@ -869,14 +840,13 @@ export function ReferenceEntityCard({
   size,
   extent,
   collapsible = false,
-  defaultCollapsed = true,
   controls,
   texture,
   ...rest
 }: ReferenceEntityCardWrapperProps): ReactNode {
   // Hook before the nullable-data guard — a conditional hook would break the
   // rules of hooks the first time a caller passed `undefined`.
-  const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed)
+  const [collapsed, setCollapsed] = useState(collapsible)
   const surfaceId = useId()
   if (!data) return null
 

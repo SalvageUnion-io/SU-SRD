@@ -94,12 +94,10 @@
 }
 
 /* ── ActivationCost, CatalogTile, KofiButton, SearchField, SlotGrid ── */
-/* `CATALOG_TILE_*` (`atoms/catalogTileTreatment.ts`, used by `atoms/CatalogTile.tsx`):
- * the tile frame and its hover lift. Only box-shadow and transform transition,
- * as before — the lift is the `translate` property, so it steps rather than
- * slides. The frame is explicit, so the link tile and the `<button>` tile
- * (`onActivate`, which the `button` reset would leave frameless) match, and
- * neither depends on the reset. */
+/* `atoms/CatalogTile.tsx`: the tile frame and its hover lift. Only box-shadow
+ * and transform transition — the lift is the `translate` property, so it steps
+ * rather than slides. The frame is explicit, so the `<button>` tile does not
+ * depend on the `button` reset, which would leave it frameless. */
 .su-catalog-tile {
   border-color: var(--color-ink);
   border-style: solid;

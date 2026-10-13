@@ -50,7 +50,7 @@ type CardPageProps = {
   subLine: ReactNode
   /** The prose body (`bodyContent`), or null when there is none. */
   body: ReactNode
-  /** The stat column's source; `null` hides it (`hide.stats`). */
+  /** The stat column's source; `null` hides it. */
   stats: { techLevel?: number | 'B' | 'N'; schemaName?: SURefEnumSchemaName } | null
   /** The entity's own roll table, framed on the page. */
   table: ReactNode

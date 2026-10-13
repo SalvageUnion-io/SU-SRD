@@ -1,31 +1,16 @@
 /**
  * The typed token scale — the TypeScript mirror of `src/styles/theme.css`, the
- * one token set.
+ * one token set. How tokens and stylesheet classes divide the work is in
+ * `.claude/rules/styling.md`.
  *
- * Every value here is **ported verbatim** from `theme.css`. Nothing is
- * re-designed, re-toned or rounded: a call site moved off a utility class onto
- * a style object keeps exactly what it looked like.
- *
- * Three properties are deliberate:
- *
- *   - **Plain `as const` objects, no dependency.** Not a theme provider, not a
- *     context, not a function. A token is a value, and a value can be read from
- *     a style object, a test, a canvas, a PDF generator, or a Node script that
- *     has no DOM at all. Reaching for `var(--color-*)` here would have made the
- *     scale depend on the stylesheet being loaded, which is the one thing a
- *     token scale must not require.
- *   - **Literals, not aliases of each other's CSS variables.** `theme.css`
- *     declares the same values as custom properties, which `src/styles/index.css`
- *     reads for the half of the system a style object cannot express (see that
- *     file, and the split rule in this package's CLAUDE.md). Two files holding
- *     one set of numbers is a drift risk, so `tokens.parity.test.ts` asserts
- *     they agree — that test is what makes the duplication safe.
- *   - **Names match theme.css.** `--color-ink-75` is `color.ink75`, `--text-display-lg`
- *     is `fontSize.displayLg`, `--bw-chrome` is `borderWidth.chrome`,
- *     `--font-weight-bold` is `weight.bold`. A camelCase key maps to its
- *     kebab-case custom property mechanically (`inkDeep` → `ink-deep`, `wkBg2` →
- *     `wk-bg-2`, `tl1` → `tl-1`), which is what lets the parity test compare the
- *     two files without a hand-maintained mapping.
+ *   - **Plain `as const` literals, no `var()`.** A token is a value, readable
+ *     from a style object, a test or a Node script with no DOM, so the scale
+ *     works with no stylesheet loaded. `tokens.parity.test.ts` asserts these
+ *     literals agree with `theme.css`.
+ *   - **Names match theme.css.** A camelCase key maps to its kebab-case custom
+ *     property mechanically (`ink75` → `--color-ink-75`, `displayLg` →
+ *     `--text-display-lg`, `wkBg2` → `wk-bg-2`, `tl1` → `tl-1`), which is what
+ *     lets the parity test compare the two files without a mapping table.
  */
 
 /**
@@ -40,15 +25,8 @@ export const font = {
 /**
  * The spacing rhythm, keyed by its own pixel value.
  *
- * Keyed by pixels rather than by an invented `xs`/`sm`/`lg` vocabulary on
- * purpose: the repo had no such vocabulary (spacing came from a numeric
- * utility scale, where the rung number is a quarter of the pixel value), and
- * inventing one in a port would have meant every migrated call site had to be
- * re-judged rather than translated. `space[8]` is 8px, and `p-2` — the old
- * name for 8px — translated to it without a lookup table.
- *
- * The rungs are the ones actually in use across the three UI workspaces, so a
- * migrated call site always has an exact landing spot and never rounds.
+ * Keyed by pixels rather than by an invented `xs`/`sm`/`lg` vocabulary:
+ * `space[8]` is 8px.
  */
 export const space = {
   0: '0px',
@@ -67,7 +45,6 @@ export const space = {
   40: '40px',
   48: '48px',
   64: '64px',
-  96: '96px',
 } as const
 
 /**
@@ -92,10 +69,8 @@ export const space = {
  * 10 and 10.5px) were retired into `badge`, and `bun run check styling`
  * (tokens/type-floor) rejects any smaller size, by name or by literal.
  *
- * The second block is the INHERITED rungs, and they are here for an honest
- * reason rather than a tidy one. They are the stock `text-xs` … `text-3xl`
- * rungs, which ~340 call sites across the three workspaces used when the port
- * began, at their rem values (theme.css declares them), so they scale with the
+ * The second block is the INHERITED rungs: the stock `text-xs` … `text-3xl`
+ * rungs at their rem values (theme.css declares them), so they scale with the
  * reader's font size.
  *
  * They overlap the semantic ladder (14 sits between caption and lede; 24 and 30
@@ -305,8 +280,7 @@ const base = {
   /** THE single action colour. */
   rust: 'rgb(168, 82, 34)',
   rustHi: 'rgb(138, 64, 25)',
-  /** A 25% rust wash, for non-indicator use and as the stated counterpart of
-   *  the error skin below.
+  /** A 25% rust wash, for non-indicator use.
    *
    *  **It is not a focus ring**: it measures 1.42:1 against paper where WCAG
    *  2.4.11 / 1.4.11 require 3:1. Focus is the offset ring in
@@ -350,10 +324,6 @@ const base = {
   sheetPilotDeep: 'rgb(40, 32, 25)',
   sheetMechDeep: 'rgb(47, 67, 56)',
   sheetCrawlerDeep: 'rgb(126, 42, 91)',
-  /** A LITERAL, not an alias of `tl5`, which holds the same value but means
-   *  TECH LEVEL — aliasing it would tie the Game ontology to tech-level
-   *  semantics. */
-  sheetGameDeep: 'rgb(30, 83, 100)',
 } as const
 
 /**
@@ -368,21 +338,6 @@ export const color = {
   statusOk: base.rollSuccess,
   statusWarn: base.rollFailure,
   statusBad: base.rollCascade,
-  /**
-   * The error focus-ring wash — `statusBad` at 25%, the destructive
-   * counterpart of `rust25`, used by `InlineEditField`'s error skin
-   * (`focus:ring-status-bad/25`).
-   *
-   * A LITERAL rather than an alias, and unavoidably so: the three rungs above
-   * stay aliases because a retone of `rollCascade` should follow, but CSS has
-   * no way to spell "that custom property, at 25%" that the parity test can
-   * resolve — `color-mix()` produces a computed value, not the literal the
-   * test compares against. So this one must be re-toned BY HAND alongside
-   * `rollCascade`, which is exactly the drift the aliases exist to prevent.
-   * Recorded here rather than hidden, because it is the first place the
-   * aliasing discipline could not be honoured.
-   */
-  statusBad25: 'rgb(176 67 43 / 0.25)',
 
   // — Sheet tones (Header C live sheets): base + deep pairs —
   sheetPilot: base.pilot,
