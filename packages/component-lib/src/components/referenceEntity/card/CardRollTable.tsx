@@ -53,9 +53,9 @@ function TraitText({ text }: { text: string }) {
  * its readout under it.
  *
  * Two switches — shown or hidden, rolled or not — give four states, and ONE
- * bar holds the same place in all of them: the underlined "ROLL THE DIE:"
- * stamp, which IS the roll (`RollStamp`; press it again to reroll), the
- * table's name and the Table / Hide toggle. Rolling never needs the table
+ * bar holds the same place in all of them: the table's name, the Table / Hide
+ * toggle and, at the far right, the Roll the Die button (press it again to
+ * reroll). Rolling never needs the table
  * open.
  *
  * The result is a READOUT, not a row hunt: the number, the outcome and its
@@ -71,7 +71,7 @@ function TraitText({ text }: { text: string }) {
  * still marks the row.
  *
  * A COLUMNS table (Callsign, a d20 × d20) is the same instrument and the same
- * bar: its stamp rolls both dice, the readout names the column, and the grid marks
+ * bar: its Roll twice button rolls both dice, the readout names the column, and the grid marks
  * the column's head and the entry's cell.
  */
 export function CardRollTable({

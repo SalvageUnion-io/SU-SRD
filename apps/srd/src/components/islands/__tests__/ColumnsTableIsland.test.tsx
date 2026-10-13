@@ -70,14 +70,14 @@ describe('the columns table’s page', () => {
     expect(screen.getByText('Roll twice:').tagName).toBe('SPAN')
   })
 
-  test('its ROLL TWICE stamp is its one roll control', () => {
+  test('its Roll twice button is its one roll control', () => {
     render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7)} />)
     const controls = screen.getAllByRole('button')
     expect(controls).toHaveLength(1)
     expect(controls[0]?.getAttribute('aria-label')).toBe('Roll twice on Callsign Table')
   })
 
-  test('the stamp reads the callsign in the panel and marks its cell', async () => {
+  test('the button reads the callsign in the panel and marks its cell', async () => {
     render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7)} />)
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll twice on Callsign Table' }))

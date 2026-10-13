@@ -154,8 +154,8 @@ for (const schema of ['systems', 'abilities']) {
 // (f) A roll table rolls on its own page (board 08b).
 test('a roll table page rolls and marks the result', async ({ page }) => {
   await page.goto('/roll-tables/core-mechanic/')
-  // The ROLL THE DIE stamp is the roll: a button once the island mounts (the
-  // server markup's stamp is a plain label), and the page's only one.
+  // The Roll the Die button is the roll once the island mounts (the server
+  // markup's is the plain stamp), and the page's only one.
   const roll = page.getByRole('button', { name: 'Roll the die on Core Mechanic' })
   await expect(roll).toBeVisible({ timeout: 30_000 })
   await expect(page.locator('main').getByRole('button', { name: /^Roll/ })).toHaveCount(1)

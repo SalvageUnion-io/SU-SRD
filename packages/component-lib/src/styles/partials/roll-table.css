@@ -75,7 +75,13 @@
   white-space: nowrap;
 }
 
-/* The stamp as the roll (`RollStamp`): a real button that keeps the stamp's
+/* The instrument's roll (`RollControl`): the shared Button, or before the
+   script runs the stamp, at the bar's far right. */
+.su-roll__roll {
+  margin-left: auto;
+}
+
+/* The stamp as the roll (`RollStamp`, ITUN's Dashboard table head): a real button that keeps the stamp's
    look. Hover inverts it to paper, never rust: rust is `Button`'s alone
    (ruleset §3.1). It is at least 24px tall (WCAG 2.5.8's target size), and
    a coarse pointer gets the 44px tap floor (§4.6). */
@@ -180,6 +186,7 @@
   gap: var(--space-2);
   min-width: 0;
   padding: var(--space-8) var(--space-12);
+  position: relative;
 }
 
 .su-roll__head {
@@ -203,7 +210,9 @@
   line-height: 1.45;
 }
 
-/* The rolled row is set in ink, its range cell and pennant on paper. */
+/* The rolled row is set in ink, its range cell and pennant on paper. The
+   pennant is pinned to the row's top right corner, out of the flow, so the
+   rolled row keeps exactly its unrolled height. */
 .su-roll__row[data-rolled] {
   color: var(--color-paper);
 }
@@ -223,7 +232,10 @@
   letter-spacing: var(--tracking-caps-tight);
   line-height: 1.1;
   padding: 3px var(--space-6) 3px var(--space-12);
+  position: absolute;
+  right: 0;
   text-transform: uppercase;
+  top: 0;
   white-space: nowrap;
 }
 

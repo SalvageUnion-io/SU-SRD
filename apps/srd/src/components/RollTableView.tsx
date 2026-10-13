@@ -15,11 +15,11 @@ import { RollPanel } from './RollPanel'
  * RollTableView — a roll table's page, rolled and read (board 08b).
  *
  * The table is the shared `RollTableInstrument`, the same one every card and
- * guide step draws: its "ROLL THE DIE:" bar, then the bands, banded in the
- * page's tone. The page adds only its READOUT: the "You rolled" panel with the
- * number, the range it lands on, the outcome and its text, and the earlier
- * rolls. The table's ROLL THE DIE stamp is the roll (press it again to roll
- * again); the panel has no button of its own. The die is not named: it is always a d20. A long or wordy table
+ * guide step draws: its bar with the Roll the Die button at its right, then
+ * the bands, banded in the page's tone. The page adds only its READOUT: the
+ * "You rolled" panel with the number, the range it lands on, the outcome and
+ * its text, and the earlier rolls. The table's Roll the Die button is the roll
+ * (press it again to roll again); the panel has no button of its own. The die is not named: it is always a d20. A long or wordy table
  * (`splitRows`) sets its bands in two halves on a wide screen, the ranges on
  * the outer edges, and a wordy page sets tighter (`rollTableDensity`), so the
  * page fits one screen.
@@ -86,7 +86,6 @@ export function RollTableView({ data, tone, state, onRoll }: RollTableViewProps)
         tone={tone}
         density={density}
         onRoll={onRoll}
-        hint="Your result is marked in the table"
         table={{
           kind: 'bands',
           rows: data.rows.map((row) => ({ ...row, value: <MentionProse parts={row.value} /> })),

@@ -10,8 +10,8 @@ import { RollPanel } from './RollPanel'
  * 08b): roll for the column, then for the entry down it.
  *
  * The page keeps the roll-table page's shape: the "You rolled" panel (the
- * result and the earlier rolls) and the table beside it, whose ROLL TWICE
- * stamp is the roll. The table is the shared `RollTableInstrument`'s columns
+ * result and the earlier rolls) and the table beside it, whose Roll twice
+ * button is the roll. The table is the shared `RollTableInstrument`'s columns
  * grid, banded in the page's tone: the columns' ranges across the top, the
  * entry numbers down both outer edges, every entry a cell. A roll marks its
  * column's head and sets its cell in ink.
