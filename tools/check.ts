@@ -224,6 +224,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'copy',
+    guards:
+      'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product (ratcheted)',
+    fix: 'write the spelling the finding names; a ratchet that fell needs `bun tools/check-copy.ts --update-baseline`',
+    cmd: ['bun', 'tools/check-copy.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'audit',
     guards: 'no advisory, at any severity, in the dependency tree',
     fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#audit)',

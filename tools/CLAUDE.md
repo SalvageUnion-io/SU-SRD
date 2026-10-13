@@ -51,6 +51,7 @@ the corpus size, not just the finding count.
 | `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |
 | `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
 | `styling` | `check-styling.ts` (`--report` lists every finding) | `baselines/styling-baseline.json` |
+| `copy` | `check-copy.ts` (`--report` lists every finding); rule set `gates/rules/copyTerms.ts` | `baselines/copy-baseline.json` |
 | `audit` | `bun run audit` (CI: only when a manifest or `bun.lock` changed; also nightly) | — |
 | `actionlint` | `lint-workflows.sh` (pinned, sha256-verified actionlint + zizmor) | — |
 
