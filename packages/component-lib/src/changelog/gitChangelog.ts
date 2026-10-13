@@ -16,20 +16,26 @@ import type { ChangelogEntry } from './Changelog'
 const REPO = 'https://github.com/SalvageUnion-io/SU-SRD'
 const SUBJECT = /^(?:feat|fix|perf)\(([a-z0-9./-]+(?:,[a-z0-9./-]+)*)\)!?: (.+?)(?: \(#(\d+)\))?$/
 
-/** `log` is `git log --format=%ad%x09%s --date=short` output, newest first. */
+/**
+ * `log` is `git log --format=%ad%x09%s --date=short` output, newest first.
+ *
+ * `%ad` is the author date, which a squash keeps from the branch, so history
+ * order is not date order: a day can come back after an older one. Each day is
+ * one entry wherever its commits fall, and the entries run newest day first.
+ */
 export function changelogFromLog(log: string, scope: string, area: string): ChangelogEntry[] {
-  const entries: ChangelogEntry[] = []
+  const byDate = new Map<string, ChangelogEntry>()
   for (const line of log.split('\n')) {
     const [date, subject] = line.split('\t')
     const match = subject?.match(SUBJECT)
     if (!date || !match?.[1]?.split(',').includes(scope)) continue
     const pr = match[3]
     const item = pr ? `${match[2]} ([#${pr}](${REPO}/pull/${pr}))` : (match[2] ?? '')
-    const last = entries.at(-1)
-    if (last?.date === date) last.items.push(item)
-    else entries.push({ date, area, items: [item] })
+    const day = byDate.get(date)
+    if (day) day.items.push(item)
+    else byDate.set(date, { date, area, items: [item] })
   }
-  return entries
+  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date))
 }
 
 /** One entry per day on `main`'s first-parent history, newest first. */

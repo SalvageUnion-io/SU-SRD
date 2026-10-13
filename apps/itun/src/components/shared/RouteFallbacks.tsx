@@ -95,7 +95,7 @@ type NotFoundPanelProps = {
   title: ReactNode
   /** What is missing and why it might be. */
   message: ReactNode
-  /** The exit path. Defaults to the Roster, which is always somewhere to go. */
+  /** The exit path. Defaults to the Shelves, which are always somewhere to go. */
   back?: { href: string; label: string }
 }
 
@@ -106,7 +106,7 @@ type NotFoundPanelProps = {
 export function NotFoundPanel({
   title,
   message,
-  back = { href: '/', label: 'Roster' },
+  back = { href: '/', label: 'Shelves' },
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>

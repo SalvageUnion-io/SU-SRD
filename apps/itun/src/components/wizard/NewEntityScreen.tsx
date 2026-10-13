@@ -52,7 +52,12 @@ export function NewEntityScreen({
   if (connection.mode === 'solo') {
     // Not a PageShell: the routes already wrap this screen in their `<main>`,
     // and the gate's band runs its full width.
-    return <SignInToBuild title={`Sign in to build a ${kind}`} redirectTo={returnTo} />
+    return (
+      <SignInToBuild
+        title={kind === 'npc' ? 'Sign in to build an NPC' : `Sign in to build a ${kind}`}
+        redirectTo={returnTo}
+      />
+    )
   }
 
   if (mode === 'guided' || kind === 'npc') {

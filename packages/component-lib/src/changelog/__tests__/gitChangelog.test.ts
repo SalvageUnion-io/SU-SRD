@@ -59,6 +59,19 @@ describe('changelogFromLog', () => {
     expect(changelogFromLog('2026-10-09\tfeat(itun,srd): both apps (#2)', 'bot', 'Bot')).toEqual([])
   })
 
+  test('a day that comes back after an older one is still one entry, in date order', () => {
+    // A squash keeps its branch's author date, so history can run 13, 12, 13.
+    const log = [
+      '2026-10-13\tfix(itun): newest (#3)',
+      '2026-10-12\tfix(itun): older (#2)',
+      '2026-10-13\tfix(itun): same day, landed earlier (#1)',
+    ].join('\n')
+    expect(changelogFromLog(log, 'itun', 'App').map((e) => [e.date, e.items.length])).toEqual([
+      ['2026-10-13', 2],
+      ['2026-10-12', 1],
+    ])
+  })
+
   test('an empty log is no entries', () => {
     expect(changelogFromLog('', 'itun', 'App')).toEqual([])
   })
