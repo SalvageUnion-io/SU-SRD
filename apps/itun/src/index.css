@@ -12,7 +12,7 @@
 @import './styles/globalSearch.css';
 /* The NPC designer's responsive rules (step strip, phone preview). */
 @import './styles/npc.css';
-/* The Shelves band's paper-on-ink controls (board S1). */
+/* The Shelves band's paper-on-ink controls. */
 @import './styles/shelves.css';
 /* The stateful halves of ITUN's other components. */
 @import './styles/entityRow.css';
@@ -22,7 +22,7 @@
 /* The live and public sheet. */
 @import './styles/sheet.css';
 /* component-lib classes handed back their own type over this file's heading
-   rule (refit2 V3). */
+   rule. */
 @import './styles/libHandback.css';
 
 /* === Base layout === */
@@ -34,8 +34,8 @@ body {
 body {
   /*
    * Full-viewport blue-pale background. The SRD's BaseLayout puts blue-pale
-   * on the <main> element, but ITUN's per-route <main> tags are width-
-   * constrained (`mx-auto max-w-Nxl`), which left the rest of the viewport
+   * on the <main> element, but each ITUN route's <main> is width-capped and
+   * centred, which left the rest of the viewport
    * unstyled. Setting the colour at the <body> level paints the whole
    * window; the centred content inside each route inherits the colour and
    * sits over it.

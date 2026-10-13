@@ -44,6 +44,7 @@ import {
   tokens,
 } from 'component-lib'
 import { parseCrawlerTechLevel } from 'itun-domain/crawlerLevel'
+import { DOWNTIME_UPKEEP_SCRAP } from 'itun-domain/rules/downtime'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
@@ -66,7 +67,6 @@ import {
   SCRAP_TLS,
   TRADING_AVAILABILITY_LABEL,
   tradingSourceTl,
-  UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
 import type { useEntityStore } from '../../stores/entityStore'
@@ -91,7 +91,7 @@ const BODY = {
   padding: tokens.space[20],
 } satisfies CSSProperties
 
-/** Body copy: the `text-sm` rung, with its line height. */
+/** Body copy: the `sm` size rung, with its line height. */
 const TEXT = {
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
@@ -272,7 +272,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
     const drawText = payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
     dispatch({
       type: 'paid',
-      message: `Paid ${UPKEEP_SCRAP} Scrap (${drawText}) — Upgrade Pool now ${nextUpgradePool}${
+      message: `Paid ${DOWNTIME_UPKEEP_SCRAP} Scrap (${drawText}) — Upgrade Pool now ${nextUpgradePool}${
         quote ? ` of ${quote.cost}` : ''
       }.`,
     })
@@ -322,13 +322,13 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
         if (!next) onClose()
       }}
       title="Pay Upkeep"
-      subtitle={`${UPKEEP_SCRAP}× Tech ${tl} Scrap per Downtime`}
+      subtitle={`${DOWNTIME_UPKEEP_SCRAP}× Tech ${tl} Scrap per Downtime`}
       maxWidth={DIALOG_WIDTH}
     >
       <div style={BODY}>
         <p style={MUTED}>
-          Upkeep costs {UPKEEP_SCRAP} Scrap of Tech {tl} or higher each Downtime. Paying it credits
-          the Upgrade Pool in full; failing to pay rolls the Crawler Deterioration Table.
+          Upkeep costs {DOWNTIME_UPKEEP_SCRAP} Scrap of Tech {tl} or higher each Downtime. Paying it
+          credits the Upgrade Pool in full; failing to pay rolls the Crawler Deterioration Table.
         </p>
         <p style={TEXT}>
           Pool holds <strong>{available}</strong> scrap at Tech {tl}+.
@@ -448,7 +448,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               Upgrading from Tech {quote.fromTl} to Tech {quote.toTl} consumes{' '}
               <strong>{quote.cost}</strong> from the Upgrade Pool (currently{' '}
               <strong>{upgradePool}</strong>). Damaged Bays are repaired during the upgrade; Upkeep
-              rises to {UPKEEP_SCRAP}× Tech {quote.toTl} Scrap.
+              rises to {DOWNTIME_UPKEEP_SCRAP}× Tech {quote.toTl} Scrap.
             </p>
             {!quote.affordable && (
               <FieldError>

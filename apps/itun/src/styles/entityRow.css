@@ -4,8 +4,7 @@
  * component-lib tokens. Loaded by `index.css`.
  *
  *   - `EntityRow` (components/shared/EntityRow.tsx): the empty variant's foot,
- *     whose children stretch (a child selector), and the Delete button's
- *     colours (stateful: they must hold over the ghost variant's hover fill).
+ *     whose children stretch (a child selector).
  *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
  *     the "View in SRD →" link, which fades on hover. `ViewInSRDLink` forwards
  *     only a class, so the whole treatment lives here.
@@ -14,20 +13,6 @@
 /* The empty slot's dashed foot: every CTA in it shares the width equally. */
 .entity-row__empty-actions > * {
   flex: 1;
-}
-
-/* The trash glyph button: a ghost button with no frame (its transparent border
-   and padding are inline) in the danger colour. The ghost variant's hover fill
-   is cancelled, so the glyph never sits on a wash. */
-.entity-row__delete {
-  background-color: transparent;
-  color: var(--color-status-bad);
-}
-@media (hover: hover) {
-  .entity-row__delete:hover {
-    background-color: transparent;
-    color: var(--color-status-bad);
-  }
 }
 
 /* "View in SRD →": a hairline underline that fades to 70% on hover. */

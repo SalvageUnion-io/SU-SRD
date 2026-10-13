@@ -39,6 +39,7 @@ import { Badge, Button, Content, entityGuideToneColor } from 'component-lib'
 import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import {
   allDowntimeSteps,
+  DOWNTIME_UPKEEP_SCRAP,
   downtimeMechPatch,
   downtimePilotPatch,
   mechBayStatus,
@@ -51,7 +52,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
+import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
@@ -338,7 +339,7 @@ export function DowntimeWizardFrame({
 
             {table && (
               <div className="su-dash-dt-table">
-                <RollTable table={table} tableName={tableName} size="compact" showCommand />
+                <RollTable table={table} tableName={tableName} size="compact" />
               </div>
             )}
 
@@ -434,7 +435,7 @@ function StepGate({
   if (step.name === 'Upkeep & Upgrade') {
     return (
       <ul className="su-dash-dt-gate">
-        <li>Upkeep is {UPKEEP_SCRAP}× the crawler's Tech Level in Scrap this Downtime.</li>
+        <li>Upkeep is {DOWNTIME_UPKEEP_SCRAP}× the crawler's Tech Level in Scrap this Downtime.</li>
         <li>
           {upkeepSpent
             ? 'Upkeep is paid for this Downtime.'

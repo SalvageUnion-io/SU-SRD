@@ -2,7 +2,7 @@
  * SheetHero — the sheet's opening region (Workshop-Manual identity band):
  * a wide "thick" card of identity FIELDS beside a narrow "long" card of
  * current/max GAUGES. There is no name stamp here: the name is the chapter
- * band's notched `<h1>` above it (`LiveSheet`, board 10).
+ * band's notched `<h1>` above it (`LiveSheet`).
  *
  * Pure layout — all content arrives via slots so the three variant sheets
  * compose it without forking the frame.
@@ -31,7 +31,7 @@ type SheetHeroProps = {
   vitals?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
-  /** `paper` is the printed read state (board 10); `frame` the Edit state's card. */
+  /** `paper` is the printed read state; `frame` the Edit state's card. */
   surface?: 'frame' | 'paper'
   className?: string
 }
@@ -52,9 +52,9 @@ export function SheetHero({
       // the fields card takes the rest ("thick"). They stack on narrow
       // viewports so neither ever crushes.
       //
-      // No `items-start`: grid items stretch by default, so the two cards are
-      // always the SAME height whichever one is taller. `Card` is a flex
-      // column with a `flex-1` body, so the shorter card grows its paper body
+      // No `align-items: start`: grid items stretch by default, so the two
+      // cards are always the SAME height whichever one is taller. `Card` is a
+      // flex column with a growing body, so the shorter card grows its paper body
       // rather than leaving the frame short and the row ragged.
       className={cn('su-sheet-hero', className)}
       style={GRID}

@@ -75,8 +75,8 @@
 /* ── ContainerSwitcher, MoveToContainerControl ── */
 
 /* The container selects step down from `Select`'s 44px to 36px from `sm`. The
-   coarse-pointer floor (theme.css, unlayered) out-ranked the old utility, so it
-   is restated here, after the step, to keep winning on touch. */
+   coarse-pointer floor (theme.css) is restated here, after the step, so it
+   keeps winning on touch. */
 .container-select {
   min-height: 2.75rem;
 }
@@ -110,26 +110,13 @@
   max-width: 28rem;
 }
 
-/* The candidate radios, 8px apart (the margins `space-y-2` drew). */
+/* The candidate radios, 8px apart. */
 :where(.assign-picker__candidates > :not(:last-child)) {
   margin-block-end: 8px;
   margin-block-start: 0;
 }
 
 /* dashboard/RollTable.tsx (the Dashboard's and Downtime's roll table). */
-
-/*
- * RollTable's collapsible-header Show/Hide toggle. Its colour is a class
- * because it brightens on :hover (paper at 80% → full paper); everything
- * static on it is a style object in `RollTable.tsx`.
- */
-.su-roll-table__toggle {
-  color: var(--color-paper-80);
-}
-
-.su-roll-table__toggle:hover {
-  color: var(--color-paper);
-}
 
 /*
  * The header title as a table-picker trigger (`titleSelect`). Border colour

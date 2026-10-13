@@ -11,9 +11,6 @@
  * also flattened a multi-action item to its PRIMARY action's cost, printing
  * "EP Cost 2" beside a card openly listing 2 EP / 2 EP / 4 EP.
  *
- *   - Use: spends the primary action's EP cost / adds its Hot heat /
- *     decrements the uses counter. DISABLED while Damaged/Destroyed —
- *     "wire the disabled state, not just the pill" (§4.3).
  *   - Repair (Damaged only, danger control): shows the half-SV scrap cost and
  *     opens a MODAL confirm offering an OPTIONAL crawler scrap-pool deduction.
  *     The no-deduction path is always available — advisory, never blocks,
@@ -36,10 +33,9 @@ import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { MechItem, MechItemEconomy } from '../../lib/rules/mechItems'
+import type { MechItem } from '../../lib/rules/mechItems'
 import {
   itemEconomy,
-  itemUseBlocker,
   itemUsesRemaining,
   repairPoolTl,
   repairScrapCost,
@@ -70,7 +66,7 @@ const CHIT = {
   padding: `${tokens.space[8]} ${tokens.space[12]}`,
 } satisfies CSSProperties
 
-/** `text-sm` — its size and its own line-height. */
+/** The small body size and its own line-height. */
 const BODY_SM = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
@@ -108,8 +104,6 @@ type MechItemCardProps = {
   condition: ItemCondition
   /** Uses remaining (mech.itemUses). Absent = full. */
   usesRemaining?: number
-  /** Current EP — gates the Use button honestly. Omit when Use is not offered. */
-  currentEP?: number
   /** Linked crawler's scrap pool; null when no crawler is wired. */
   scrapPool: ScrapPool | null
   /**
@@ -121,12 +115,6 @@ type MechItemCardProps = {
   readOnly: boolean
   /** Cycle this item's condition (Intact → Damaged → Destroyed). */
   onStatusCycle: () => void
-  /**
-   * Spend one activation (EP / heat / a use). "Using a system" is a Guided-Play
-   * transaction that belongs to the Dashboard (ADR-021); omit `onUse` on the
-   * Free-Edit Live Sheet — the uses counter stays hand-editable via onUsesChange.
-   */
-  onUse?: (economy: MechItemEconomy) => void
   /** Set the uses counter (already clamped 0..max by the card). */
   onUsesChange: (next: number) => void
   /** Repair to Intact; deductTl = pool bucket to decrement, null = none. */
@@ -143,12 +131,10 @@ export function MechItemCard({
   entity,
   condition,
   usesRemaining,
-  currentEP,
   scrapPool,
   scrapPoolLocked = null,
   readOnly,
   onStatusCycle,
-  onUse,
   onUsesChange,
   onRepair,
   onRemove,
@@ -169,19 +155,13 @@ export function MechItemCard({
     )
   }
 
-  const economy = itemEconomy(entity)
-  const { epCost, heat, maxUses } = economy
+  const { maxUses } = itemEconomy(entity)
   const remaining = itemUsesRemaining(maxUses, usesRemaining)
   const cost = repairScrapCost(entity.salvageValue)
   // techLevel can be 'B'/'N' (Bio/Nano) — only numeric TLs map to pool buckets.
   const itemTl = typeof entity.techLevel === 'number' ? entity.techLevel : undefined
   const deductTl =
     scrapPool && scrapPoolLocked === null ? repairPoolTl(scrapPool, itemTl, cost) : null
-
-  const useDisabledReason = itemUseBlocker({ condition, economy, remaining, currentEP })
-  // "Use" (the EP/heat-spending activation) is offered only when a handler is
-  // wired — the Dashboard passes one; the Free-Edit Live Sheet does not (ADR-021).
-  const showUse = onUse !== undefined && (epCost > 0 || heat > 0 || maxUses > 0)
 
   const deductDisabledReason =
     deductTl !== null
@@ -193,24 +173,11 @@ export function MechItemCard({
           : 'No crawler assigned — no pool to deduct from'
 
   // All per-card interactivity rides the controls overlay (no footer actions):
-  // Use, the uses stepper, and Repair (which opens a modal confirm), plus the
+  // the uses stepper and Repair (which opens a modal confirm), plus the
   // per-card remove (✕). The status toggle is added by ReferenceEntityCard.
   const controls: ReferenceEntityControl[] = readOnly
     ? []
     : [
-        ...(showUse
-          ? [
-              {
-                key: 'use',
-                label: 'Use',
-                ariaLabel: `Use ${entity.name}`,
-                title: useDisabledReason ?? undefined,
-                onClick: () => onUse?.(economy),
-                variant: condition === 'intact' ? 'primary' : 'ghost',
-                disabled: useDisabledReason !== null,
-              } satisfies ReferenceEntityControl,
-            ]
-          : []),
         ...(maxUses > 0
           ? [
               {

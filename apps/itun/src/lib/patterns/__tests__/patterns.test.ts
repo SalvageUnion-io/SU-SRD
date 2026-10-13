@@ -85,7 +85,7 @@ describe('building a mech from a pattern', () => {
 })
 
 describe('copying a pattern to your shelf', () => {
-  test('is the same pattern under a new id, minted by the db layer', () => {
+  test('is the same pattern under a new id, minted on create', () => {
     const copy = patternCopy(towRig)
     expect('id' in copy).toBe(false)
     expect('createdAt' in copy).toBe(false)

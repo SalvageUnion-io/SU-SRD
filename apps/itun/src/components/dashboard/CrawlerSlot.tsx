@@ -22,7 +22,7 @@
  */
 
 import { Button, rollForTable } from 'component-lib'
-import { UPKEEP_STEP_NAME } from 'itun-domain/rules/downtime'
+import { DOWNTIME_UPKEEP_SCRAP, UPKEEP_STEP_NAME } from 'itun-domain/rules/downtime'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { CSSProperties } from 'react'
@@ -30,12 +30,7 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { craftableAtTl } from '../../lib/rules/crafting'
-import {
-  crawlerUpgradeQuote,
-  payUpkeep,
-  UPKEEP_SCRAP,
-  upkeepShortfall,
-} from '../../lib/rules/crawlerEconomy'
+import { crawlerUpgradeQuote, payUpkeep, upkeepShortfall } from '../../lib/rules/crawlerEconomy'
 import {
   areaSalvageOutcome,
   craftOutcome,
@@ -229,7 +224,7 @@ export function CrawlerMajor({
       setPrompt({
         kind: 'blocked',
         rule: {
-          rule: `Upkeep is ${UPKEEP_SCRAP} Scrap of Tech ${tl} or higher, and the pool is ${upkeepShortfall(fresh().scrapPool ?? {}, tl)} short. Unpaid Upkeep is a roll on the Crawler Deterioration table, on the crawler sheet.`,
+          rule: `Upkeep is ${DOWNTIME_UPKEEP_SCRAP} Scrap of Tech ${tl} or higher, and the pool is ${upkeepShortfall(fresh().scrapPool ?? {}, tl)} short. Unpaid Upkeep is a roll on the Crawler Deterioration table, on the crawler sheet.`,
           cite: { source: 'Salvage Union Workshop Manual', page: 218 },
         },
       })
@@ -256,7 +251,7 @@ export function CrawlerMajor({
       () =>
         setPrompt({
           kind: 'upkeep',
-          log: `Paid ${UPKEEP_SCRAP} Scrap (${drawn}). Upgrade Pool now ${upgradePool}.`,
+          log: `Paid ${DOWNTIME_UPKEEP_SCRAP} Scrap (${drawn}). Upgrade Pool now ${upgradePool}.`,
         })
     )
   }
@@ -377,8 +372,8 @@ export function CrawlerMajor({
       {
         text:
           crawlerTl === undefined
-            ? `${UPKEEP_SCRAP} Scrap per Downtime`
-            : `${UPKEEP_SCRAP} Tech ${crawlerTl} Scrap per Downtime`,
+            ? `${DOWNTIME_UPKEEP_SCRAP} Scrap per Downtime`
+            : `${DOWNTIME_UPKEEP_SCRAP} Tech ${crawlerTl} Scrap per Downtime`,
       },
       ...(upkeep === null
         ? []
@@ -398,7 +393,7 @@ export function CrawlerMajor({
             {
               label: 'Pay Upkeep',
               onClick: () => void doUpkeep(upkeep),
-              title: `Pay ${UPKEEP_SCRAP} Scrap of the crawler's Tech Level, once this Downtime`,
+              title: `Pay ${DOWNTIME_UPKEEP_SCRAP} Scrap of the crawler's Tech Level, once this Downtime`,
             },
           ]
         : [],

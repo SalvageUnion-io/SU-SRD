@@ -307,7 +307,7 @@ function withoutLinksTo(links: readonly SoftLink[], ids: ReadonlySet<string>): S
  * Applies to pilots/mechs/crawlers only; SoftLinks carry no container. An
  * input that already decided its own container is left untouched so it isn't
  * clobbered — and "already decided" includes an explicit `gameId: null`,
- * because null *is* the Shelf rather than an absence (see lib/container.ts).
+ * because null *is* the Shelf rather than an absence (see itun-domain/src/container.ts).
  * Testing for `undefined` rather than nullishness is what keeps a deliberate
  * shelving from being overwritten by whatever container happens to be open.
  */

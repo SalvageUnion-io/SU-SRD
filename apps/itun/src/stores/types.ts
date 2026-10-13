@@ -23,8 +23,8 @@ export type EntityForType<T extends EntityType> = T extends 'pilot'
         : SoftLink
 
 /**
- * Input type for db.create() — strips id/createdAt/updatedAt (injected by the
- * db layer). Mirrors EntityStore<T>.create's parameter from crud.ts.
+ * Input type for an entity create — strips id/createdAt/updatedAt, which
+ * stores/records.ts (prepareCreate) mints.
  */
 export type CreateInput<T extends EntityType> = Omit<
   EntityForType<T>,

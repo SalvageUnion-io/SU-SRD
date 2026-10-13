@@ -6,41 +6,38 @@ import {
   digestRollTable,
   FOCUS_RING_ON_TONE,
   Text,
+  toast,
   useParseTraitReferences,
 } from 'component-lib'
 import {
   borderWidth,
   color,
-  font,
   fontSize,
   radius,
   space,
   tracking,
   weight,
 } from 'component-lib/design/tokens'
-import { Copy, X } from 'lucide-react'
-import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from 'react'
+import { Copy } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../lib/rollTableDice'
-import { useCopyFeedback } from './useCopyFeedback'
 
 type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
 
 /*
- * Styling is tokens in style objects (ADR-046). The three
- * properties with a `:hover` — the expand toggle's colour, the title trigger's
- * border and fill — live in `.su-roll-table__*` (`styles/controls.css`), resting
- * value included. `RollTable` takes no `className`, so no consumer override
+ * Styling is tokens in style objects (ADR-046). The two
+ * properties with a `:hover` — the title trigger's border and fill — live in
+ * `.su-roll-table__title-select` (`styles/controls.css`), resting value included. `RollTable` takes no `className`, so no consumer override
  * has to survive here.
  */
 
 /**
- * The inherited type rungs: a size AND its paired line height, which
- * `text-xs` … `text-2xl` set together. Kept as unitless ratios
- * (not the px they resolve to), so a child that changes its font size still
- * inherits the same factor it did under the utility.
+ * The inherited type rungs: a size AND its paired line height. Kept as
+ * unitless ratios (not the px they resolve to), so a child that changes its
+ * font size still inherits the same line-height factor.
  */
 const TYPE = {
   xs: { fontSize: fontSize.xs, lineHeight: 'calc(1 / 0.75)' },
@@ -52,18 +49,6 @@ const TYPE = {
 
 /** The standard transition easing. */
 const EASE_DEFAULT = 'cubic-bezier(0.4, 0, 0.2, 1)'
-
-const VISUALLY_HIDDEN = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  padding: space[0],
-  margin: '-1px',
-  overflow: 'hidden',
-  clip: 'rect(0, 0, 0, 0)',
-  whiteSpace: 'nowrap',
-  borderWidth: space[0],
-} satisfies CSSProperties
 
 const BOLD = { fontWeight: weight.bold } satisfies CSSProperties
 
@@ -97,9 +82,6 @@ const LIFT_SHADOW = `0 14px 40px ${color.ink85}`
  * affordance (chevron, hit area, focus ring, aria) and every consumer gets the
  * same one — the same reason entity-card interactivity is typed `controls`.
  * The caller still owns what opening means; it renders its own picker.
- *
- * Independent of `disabled`, which suppresses the ROLL action only: choosing
- * which table to read is not rolling on it.
  */
 type RollTableTitleSelect = {
   /** Open the caller's picker. */
@@ -112,8 +94,6 @@ type RollTableTitleSelect = {
 
 type RollTableDisplayProps = {
   table: RollTableType
-  showCommand?: boolean
-  disabled?: boolean
   /**
    * Ladder rung (styles/sizing.ts) — two rungs: `full` (default) is the
    * reading table; `compact` tightens rows, result text and action chips for
@@ -123,23 +103,14 @@ type RollTableDisplayProps = {
   tableName?: string
   /** Called with the result text (and roll key) when the built-in roll button is used */
   onRollResult?: (text: string, key: string) => void
-  /**
-   * Collapsible mode: the header (title + Roll button) is always shown, and the
-   * table rows collapse behind a "Show/Hide table" toggle (rolling still works
-   * from the header and auto-expands to reveal the result). Implies the header.
-   */
-  collapsible?: boolean
-  /**
-   * Renders the header title as a picker trigger (see `RollTableTitleSelect`).
-   * Requires the header — pass `showCommand` or `collapsible`.
-   */
+  /** Renders the header title as a picker trigger (see `RollTableTitleSelect`). */
   titleSelect?: RollTableTitleSelect
 }
 
 /*
  * The header band. Inline, so each property outranks the stamp's own geometry
- * classes it replaces (`inline-block w-fit`, the compact rung's padding, the
- * caps-tight tracking) — what the band's merged `className` did before.
+ * (its inline-block fit-content width, the compact rung's padding, the
+ * caps-tight tracking).
  */
 const HEADER_BAND_STYLE = {
   display: 'flex',
@@ -169,8 +140,8 @@ const HEADER_ACTION_STYLE = {
 const ROLL_BUTTON_STYLE = { paddingInline: '11px' } satisfies CSSProperties
 
 /**
- * The roll-table header band — the ink bar carrying the expand toggle, the
- * table name and the rust Roll button.
+ * The roll-table header band — the ink bar carrying the table name and the
+ * rust Roll button.
  *
  * StandardRollTable and ColumnsRollTable each held a VERBATIM 31-line copy of
  * this. Only the BAND was duplicated: the frames around it genuinely differ
@@ -178,55 +149,39 @@ const ROLL_BUTTON_STYLE = { paddingInline: '11px' } satisfies CSSProperties
  * extracting the whole frame would not have been pixel-neutral. This is.
  */
 function RollTableHeader({
-  showHeader,
-  collapsible,
-  expanded,
-  setExpanded,
   tableName,
-  disabled,
   handleRoll,
   titleSelect,
 }: {
-  showHeader?: boolean
-  collapsible?: boolean
-  expanded: boolean
-  setExpanded: Dispatch<SetStateAction<boolean>>
   tableName?: string
-  disabled?: boolean
   handleRoll: () => void
   titleSelect?: RollTableTitleSelect
 }) {
-  if (!showHeader) return null
   const title = tableName || 'Roll table'
   return (
     <Badge shape="stamp" as="div" size="compact" style={HEADER_BAND_STYLE}>
       <span style={HEADER_TITLE_STYLE}>
-        {collapsible && (
-          <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
-        )}
         {titleSelect ? <TitleSelect title={title} select={titleSelect} /> : title}
       </span>
-      {!disabled && (
-        <span style={HEADER_ACTION_STYLE}>
-          Roll the Die
-          <Button
-            variant="primary"
-            size="mini"
-            onClick={handleRoll}
-            style={ROLL_BUTTON_STYLE}
-            aria-label="Roll on this table"
-            title="Roll on this table"
-          >
-            Roll
-            <DiceIcon compact />
-          </Button>
-        </span>
-      )}
+      <span style={HEADER_ACTION_STYLE}>
+        Roll the Die
+        <Button
+          variant="primary"
+          size="mini"
+          onClick={handleRoll}
+          style={ROLL_BUTTON_STYLE}
+          aria-label="Roll on this table"
+          title="Roll on this table"
+        >
+          Roll
+          <DiceIcon compact />
+        </Button>
+      </span>
     </Badge>
   )
 }
 
-/** The 10px caret both header controls use — flipped when what it opens is open. */
+/** The title trigger's 10px caret — flipped when its picker is open. */
 function Caret({ flipped }: { flipped?: boolean }) {
   return (
     <svg
@@ -246,18 +201,6 @@ function Caret({ flipped }: { flipped?: boolean }) {
     </svg>
   )
 }
-
-/** Its colour (paper at 80%, full paper on hover) is `.su-roll-table__toggle`. */
-const EXPAND_TOGGLE_STYLE = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: space[4],
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tracking.capsTight,
-} satisfies CSSProperties
 
 /**
  * Its border colour and fill change on hover, so they are
@@ -287,25 +230,6 @@ const TRUNCATE = {
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
-
-/**
- * The expand/collapse control shown in a collapsible roll-table header. It sits
- * on the ink band, so it takes the on-tone ring: the paper ring carries on ink.
- */
-function ExpandToggle({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-expanded={expanded}
-      className={cn('su-roll-table__toggle', FOCUS_RING_ON_TONE)}
-      style={EXPAND_TOGGLE_STYLE}
-    >
-      {expanded ? 'Hide' : 'Show'}
-      <Caret flipped={expanded} />
-    </button>
-  )
-}
 
 /**
  * The title-as-picker-trigger. Reads as the title it replaces (same band type),
@@ -365,21 +289,19 @@ function ResultActionBar({
   compact,
   resultText,
   onReroll,
-  onClear,
 }: {
   compact?: boolean
   resultText: string
   onReroll: () => void
-  /** When provided, renders a Clear action that resets the current result. */
-  onClear?: () => void
 }) {
-  const onCopied = useCopyFeedback()
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
-      navigator.clipboard.writeText(resultText).then(() => onCopied?.())
+      navigator.clipboard
+        .writeText(resultText)
+        .then(() => toast.success('Copied', { id: 'clipboard-copy', duration: 1500 }))
     },
-    [resultText, onCopied]
+    [resultText]
   )
 
   const handleReroll = useCallback(
@@ -390,17 +312,9 @@ function ResultActionBar({
     [onReroll]
   )
 
-  const handleClear = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onClear?.()
-    },
-    [onClear]
-  )
-
-  // Copy / Reroll / Clear are the shared `Button` at its mini rung, so they
-  // line up as equal-sized actions: Reroll is the roll (the rust primary, as on
-  // the card's own Roll), Copy and Clear the paper default.
+  // Copy / Reroll are the shared `Button` at its mini rung, so they line up as
+  // equal-sized actions: Reroll is the roll (the rust primary, as on the card's
+  // own Roll), Copy the paper default.
   const iconSize = compact ? 12 : 14
 
   return (
@@ -424,83 +338,6 @@ function ResultActionBar({
         Reroll
         <DiceIcon compact={compact} />
       </Button>
-      {onClear && (
-        <Button size="mini" onClick={handleClear} aria-label="Clear result">
-          Clear
-          <X aria-hidden="true" size={iconSize} />
-        </Button>
-      )}
-    </div>
-  )
-}
-
-/**
- * The collapsed-table result slide-out. When a collapsible table is ROLLED
- * while collapsed, the full table stays hidden and only the rolled result
- * slides out from below the header — a genuine height reveal via the
- * grid-template-rows `0fr → 1fr` idiom (a child clipped by `overflow-hidden`),
- * so the panel animates to its natural height with no magic max-height.
- *
- * The `ResultActionBar` (Copy/Reroll/Clear) is a SIBLING of the clipped grid,
- * not a child, because it deliberately protrudes below its parent
- * (`bottom-[-26px]`) and would otherwise be clipped by the reveal's
- * `overflow-hidden`.
- *
- * `children` is the single rolled row, supplied by each variant so it MIRRORS
- * that variant's own expanded-row markup (the roll `#` cell + result text).
- */
-function CollapsedResultSlideout({
-  show,
-  hasResult,
-  resultText,
-  compact,
-  onReroll,
-  onClear,
-  children,
-}: {
-  show: boolean
-  hasResult: boolean
-  resultText: string
-  compact?: boolean
-  onReroll: () => void
-  onClear: () => void
-  children: ReactNode
-}) {
-  if (!show) return null
-  return (
-    <div style={{ position: 'relative' }}>
-      <div
-        style={{
-          display: 'grid',
-          overflow: 'hidden',
-          transitionProperty: 'grid-template-rows',
-          transitionDuration: '300ms',
-          // The `ease-out` curve.
-          transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
-          gridTemplateRows: hasResult ? '1fr' : '0fr',
-        }}
-      >
-        <div style={{ minHeight: 0 }}>
-          <div
-            style={{
-              borderTop: `${borderWidth.pill} solid ${color.pilotLight}`,
-              backgroundColor: color.bandCream,
-              paddingInline: compact ? space[8] : space[12],
-              paddingBlock: compact ? space[6] : space[8],
-            }}
-          >
-            {children}
-          </div>
-        </div>
-      </div>
-      {hasResult && (
-        <ResultActionBar
-          compact={compact}
-          resultText={resultText}
-          onReroll={onReroll}
-          onClear={onClear}
-        />
-      )}
     </div>
   )
 }
@@ -525,10 +362,8 @@ const rollCellStyle = (compact?: boolean) =>
   }) satisfies CSSProperties
 
 /**
- * The roll number. Line height is the size rung's own, NOT 1: the class list
- * this replaces carried `leading-none`, but `cn()` dropped it in favour of the
- * `text-sm` / `text-lg` that followed (the class merge treated a font-size
- * utility as resetting the line height), so the rendered number never had it.
+ * The roll number. Line height is the size rung's own, deliberately NOT 1:
+ * that is the rendered look, so don't set one.
  */
 const rollKeyStyle = (compact?: boolean) =>
   ({
@@ -567,20 +402,15 @@ function getColumnEntry(
 
 function ColumnsRollTable({
   size = 'full',
-  disabled,
   table,
-  showCommand = false,
   tableName,
   onRollResult,
-  collapsible = false,
   titleSelect,
 }: Omit<RollTableDisplayProps, 'table'> & { table: ColumnsTableData }) {
   const compact = size === 'compact'
   const [result, setResult] = useState<ColumnsRollResult | null>(null)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
-  const [expanded, setExpanded] = useState(!collapsible)
   const highlightedRef = useRef<HTMLTableCellElement>(null)
-  const showHeader = showCommand || collapsible
 
   useEffect(() => {
     if (result && highlightedRef.current) {
@@ -618,128 +448,103 @@ function ColumnsRollTable({
 
   return (
     <div style={OUTER_STYLE}>
-      <div style={VISUALLY_HIDDEN} aria-live="assertive" role="status">
+      <div className="su-sr-only" aria-live="assertive" role="status">
         {rollAnnouncement}
       </div>
 
       <div style={FRAME_STYLE}>
-        <RollTableHeader
-          showHeader={showHeader}
-          collapsible={collapsible}
-          expanded={expanded}
-          setExpanded={setExpanded}
-          tableName={tableName}
-          disabled={disabled}
-          handleRoll={handleRoll}
-          titleSelect={titleSelect}
-        />
+        <RollTableHeader tableName={tableName} handleRoll={handleRoll} titleSelect={titleSelect} />
 
-        <CollapsedResultSlideout
-          show={collapsible && !expanded}
-          hasResult={!!result}
-          resultText={result?.value ?? ''}
-          compact={compact}
-          onReroll={handleRoll}
-          onClear={handleClear}
-        >
-          {/* Mirror the expanded cell: bold roll `#` then the result text. */}
-          <div style={{ textAlign: 'left', color: color.ink, ...(compact ? TYPE.xs : TYPE.base) }}>
-            <span style={BOLD}>{result?.entryKey}:</span> {result?.value}
-          </div>
-        </CollapsedResultSlideout>
+        <div style={{ overflow: 'visible' }}>
+          <table style={TABLE_STYLE}>
+            <caption className="su-sr-only">{tableName || 'Columns roll table'}</caption>
+            <thead>
+              <tr>
+                {COLUMN_KEYS.map((colKey) => (
+                  <th
+                    key={colKey}
+                    scope="col"
+                    style={{
+                      textAlign: 'left',
+                      fontWeight: weight.bold,
+                      color: color.ink,
+                      paddingInline: compact ? space[8] : space[12],
+                      paddingBlock: compact ? space[4] : space[8],
+                      ...(compact ? TYPE.lg : TYPE['2xl']),
+                    }}
+                  >
+                    ({colKey.replace('-', ' - ')})
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 20 }, (_, i) => {
+                const entryNum = (i + 1).toString()
+                return (
+                  <tr
+                    key={entryNum}
+                    style={{ borderBottom: ROW_RULE, backgroundColor: bandColor(i) }}
+                  >
+                    {COLUMN_KEYS.map((colKey) => {
+                      const entry = getColumnEntry(tableData, colKey, entryNum)
+                      const isHighlighted =
+                        result?.columnKey === colKey && result?.entryKey === entryNum
 
-        {expanded && (
-          <div style={{ overflow: 'visible' }}>
-            <table style={TABLE_STYLE}>
-              <caption style={VISUALLY_HIDDEN}>{tableName || 'Columns roll table'}</caption>
-              <thead>
-                <tr>
-                  {COLUMN_KEYS.map((colKey) => (
-                    <th
-                      key={colKey}
-                      scope="col"
-                      style={{
-                        textAlign: 'left',
-                        fontWeight: weight.bold,
-                        color: color.ink,
-                        paddingInline: compact ? space[8] : space[12],
-                        paddingBlock: compact ? space[4] : space[8],
-                        ...(compact ? TYPE.lg : TYPE['2xl']),
-                      }}
-                    >
-                      ({colKey.replace('-', ' - ')})
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: 20 }, (_, i) => {
-                  const entryNum = (i + 1).toString()
-                  return (
-                    <tr
-                      key={entryNum}
-                      style={{ borderBottom: ROW_RULE, backgroundColor: bandColor(i) }}
-                    >
-                      {COLUMN_KEYS.map((colKey) => {
-                        const entry = getColumnEntry(tableData, colKey, entryNum)
-                        const isHighlighted =
-                          result?.columnKey === colKey && result?.entryKey === entryNum
-
-                        return (
-                          // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected marks the rolled result cell; restructuring the table to a grid role would change its announced semantics
-                          <td
-                            key={colKey + entryNum}
-                            ref={isHighlighted ? highlightedRef : null}
-                            style={{
-                              position: 'relative',
-                              textAlign: 'left',
-                              color: color.ink,
-                              transitionProperty: 'all',
-                              transitionTimingFunction: EASE_DEFAULT,
-                              transitionDuration: '200ms',
-                              paddingInline: compact ? space[8] : space[12],
-                              paddingBlock: compact ? space[2] : space[4],
-                              ...(compact ? TYPE.xs : TYPE.base),
-                              ...(isHighlighted && {
-                                zIndex: 1,
-                                scale: '1.04',
-                                cursor: 'pointer',
-                                outline: `4px solid ${color.ink}`,
-                                boxShadow: LIFT_SHADOW,
-                              }),
-                            }}
-                            onClick={isHighlighted ? handleClear : undefined}
-                            onKeyDown={
-                              isHighlighted
-                                ? (e: React.KeyboardEvent) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault()
-                                      handleClear()
-                                    }
+                      return (
+                        // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected marks the rolled result cell; restructuring the table to a grid role would change its announced semantics
+                        <td
+                          key={colKey + entryNum}
+                          ref={isHighlighted ? highlightedRef : null}
+                          style={{
+                            position: 'relative',
+                            textAlign: 'left',
+                            color: color.ink,
+                            transitionProperty: 'all',
+                            transitionTimingFunction: EASE_DEFAULT,
+                            transitionDuration: '200ms',
+                            paddingInline: compact ? space[8] : space[12],
+                            paddingBlock: compact ? space[2] : space[4],
+                            ...(compact ? TYPE.xs : TYPE.base),
+                            ...(isHighlighted && {
+                              zIndex: 1,
+                              scale: '1.04',
+                              cursor: 'pointer',
+                              outline: `4px solid ${color.ink}`,
+                              boxShadow: LIFT_SHADOW,
+                            }),
+                          }}
+                          onClick={isHighlighted ? handleClear : undefined}
+                          onKeyDown={
+                            isHighlighted
+                              ? (e: React.KeyboardEvent) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    handleClear()
                                   }
-                                : undefined
-                            }
-                            aria-selected={isHighlighted || undefined}
-                            tabIndex={isHighlighted ? 0 : undefined}
-                          >
-                            <span style={BOLD}>{entryNum}:</span> {entry?.value}
-                            {isHighlighted && (
-                              <ResultActionBar
-                                compact={compact}
-                                resultText={entry?.value ?? ''}
-                                onReroll={handleRoll}
-                              />
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                                }
+                              : undefined
+                          }
+                          aria-selected={isHighlighted || undefined}
+                          tabIndex={isHighlighted ? 0 : undefined}
+                        >
+                          <span style={BOLD}>{entryNum}:</span> {entry?.value}
+                          {isHighlighted && (
+                            <ResultActionBar
+                              compact={compact}
+                              resultText={entry?.value ?? ''}
+                              onReroll={handleRoll}
+                            />
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -757,21 +562,16 @@ export function RollTable(props: RollTableDisplayProps) {
 
 function StandardRollTable({
   size = 'full',
-  disabled,
   table,
-  showCommand = false,
   tableName,
   onRollResult,
-  collapsible = false,
   titleSelect,
 }: RollTableDisplayProps) {
   const compact = size === 'compact'
   const digestedTable = digestRollTable(table)
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
-  const [expanded, setExpanded] = useState(!collapsible)
   const highlightedRowRef = useRef<HTMLTableRowElement>(null)
-  const showHeader = showCommand || collapsible
 
   useEffect(() => {
     if (highlightedKey && highlightedRowRef.current) {
@@ -806,19 +606,10 @@ function StandardRollTable({
     setRollAnnouncement('')
   }
 
-  const highlightedEntry = highlightedKey
-    ? digestedTable.find((d) => d.key === highlightedKey)
-    : undefined
-  const collapsedResultText = highlightedEntry
-    ? highlightedEntry.label
-      ? `${highlightedEntry.label}: ${highlightedEntry.value}`
-      : highlightedEntry.value
-    : ''
-
   return (
     <div style={OUTER_STYLE}>
       {/* Screen reader announcement for roll results */}
-      <div style={VISUALLY_HIDDEN} aria-live="assertive" role="status">
+      <div className="su-sr-only" aria-live="assertive" role="status">
         {rollAnnouncement}
       </div>
 
@@ -831,116 +622,76 @@ function StandardRollTable({
           transitionDuration: '200ms',
         }}
       >
-        <RollTableHeader
-          showHeader={showHeader}
-          collapsible={collapsible}
-          expanded={expanded}
-          setExpanded={setExpanded}
-          tableName={tableName}
-          disabled={disabled}
-          handleRoll={handleRoll}
-          titleSelect={titleSelect}
-        />
-        <CollapsedResultSlideout
-          show={collapsible && !expanded}
-          hasResult={!!highlightedEntry}
-          resultText={collapsedResultText}
-          compact={compact}
-          onReroll={handleRoll}
-          onClear={handleClearHighlight}
-        >
-          {/* Mirror the expanded row: the 52px roll `#` cell + the description. */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: rowGap(compact),
-            }}
-          >
-            <div style={rollCellStyle(compact)}>
-              <Text style={rollKeyStyle(compact)}>{highlightedEntry?.key}</Text>
-            </div>
-            <div style={resultCellStyle(compact)}>
-              <RollTableDescription
-                label={highlightedEntry?.label ?? null}
-                value={highlightedEntry?.value ?? ''}
-                compact={compact}
-              />
-            </div>
-          </div>
-        </CollapsedResultSlideout>
-        {expanded && (
-          <table style={TABLE_STYLE}>
-            <caption style={VISUALLY_HIDDEN}>{tableName || 'Roll table'}</caption>
-            <thead style={VISUALLY_HIDDEN}>
-              <tr>
-                <th scope="col">Roll</th>
-                <th scope="col">Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {digestedTable.map(({ label, value, key }, index) => {
-                if (key === 'type') return null
-                const isHighlighted = highlightedKey === key
+        <RollTableHeader tableName={tableName} handleRoll={handleRoll} titleSelect={titleSelect} />
+        <table style={TABLE_STYLE}>
+          <caption className="su-sr-only">{tableName || 'Roll table'}</caption>
+          <thead className="su-sr-only">
+            <tr>
+              <th scope="col">Roll</th>
+              <th scope="col">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            {digestedTable.map(({ label, value, key }, index) => {
+              if (key === 'type') return null
+              const isHighlighted = highlightedKey === key
 
-                return (
-                  <tr
-                    ref={isHighlighted ? highlightedRowRef : null}
-                    key={key}
-                    aria-selected={isHighlighted || undefined}
-                    tabIndex={isHighlighted ? 0 : undefined}
-                    style={{
-                      position: 'relative',
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                      borderBottom: ROW_RULE,
-                      transitionProperty: 'all',
-                      transitionTimingFunction: EASE_DEFAULT,
-                      transitionDuration: '200ms',
-                      backgroundColor: bandColor(index),
-                      gap: rowGap(compact),
-                      ...(isHighlighted && {
-                        zIndex: 1,
-                        scale: '1.04',
-                        cursor: 'pointer',
-                        boxShadow: `0 0 0 4px ${color.ink85}, ${LIFT_SHADOW}`,
-                      }),
-                    }}
-                    onClick={isHighlighted ? handleClearHighlight : undefined}
-                    onKeyDown={
-                      isHighlighted
-                        ? (e: React.KeyboardEvent) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              handleClearHighlight()
-                            }
+              return (
+                <tr
+                  ref={isHighlighted ? highlightedRowRef : null}
+                  key={key}
+                  aria-selected={isHighlighted || undefined}
+                  tabIndex={isHighlighted ? 0 : undefined}
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    borderBottom: ROW_RULE,
+                    transitionProperty: 'all',
+                    transitionTimingFunction: EASE_DEFAULT,
+                    transitionDuration: '200ms',
+                    backgroundColor: bandColor(index),
+                    gap: rowGap(compact),
+                    ...(isHighlighted && {
+                      zIndex: 1,
+                      scale: '1.04',
+                      cursor: 'pointer',
+                      boxShadow: `0 0 0 4px ${color.ink85}, ${LIFT_SHADOW}`,
+                    }),
+                  }}
+                  onClick={isHighlighted ? handleClearHighlight : undefined}
+                  onKeyDown={
+                    isHighlighted
+                      ? (e: React.KeyboardEvent) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleClearHighlight()
                           }
-                        : undefined
-                    }
-                  >
-                    {isHighlighted && (
-                      <td style={{ display: 'contents' }}>
-                        <ResultActionBar
-                          compact={compact}
-                          resultText={label ? `${label}: ${value}` : value}
-                          onReroll={handleRoll}
-                        />
-                      </td>
-                    )}
-                    <th scope="row" style={rollCellStyle(compact)}>
-                      <Text style={rollKeyStyle(compact)}>{key}</Text>
-                    </th>
-                    <td style={resultCellStyle(compact)}>
-                      <RollTableDescription label={label} value={value} compact={compact} />
+                        }
+                      : undefined
+                  }
+                >
+                  {isHighlighted && (
+                    <td style={{ display: 'contents' }}>
+                      <ResultActionBar
+                        compact={compact}
+                        resultText={label ? `${label}: ${value}` : value}
+                        onReroll={handleRoll}
+                      />
                     </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
+                  )}
+                  <th scope="row" style={rollCellStyle(compact)}>
+                    <Text style={rollKeyStyle(compact)}>{key}</Text>
+                  </th>
+                  <td style={resultCellStyle(compact)}>
+                    <RollTableDescription label={label} value={value} compact={compact} />
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )

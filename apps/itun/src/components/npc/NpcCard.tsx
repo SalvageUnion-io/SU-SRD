@@ -13,7 +13,7 @@
  */
 
 import { EntityExternalLinkProvider, ReferenceEntityCard, tokens } from 'component-lib'
-import type { ComponentProps, CSSProperties, ReactNode } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import { npcAsReferenceEntity, npcIdentityLine, npcKicker } from '../../lib/npcs/npcModel'
 
@@ -36,18 +36,9 @@ type NpcCardProps = {
   extent?: CardProps['extent']
   /** Overrides the derived kicker ("Crawler crew · Med Bay" for a slot draft). */
   kicker?: string
-  /** Trailing content inside the card (the sheet's crew line). */
-  afterContent?: ReactNode
 }
 
-export function NpcCard({
-  npc,
-  madeBy,
-  size = 'large',
-  extent = 'full',
-  kicker,
-  afterContent,
-}: NpcCardProps) {
+export function NpcCard({ npc, madeBy, size = 'large', extent = 'full', kicker }: NpcCardProps) {
   const line = npcIdentityLine(npc)
   return (
     <EntityExternalLinkProvider value={undefined}>
@@ -59,7 +50,6 @@ export function NpcCard({
         madeBy={madeBy}
         kicker={kicker ?? npcKicker(npc)}
         subtitleExtra={line ? <p style={IDENTITY_LINE}>{line}</p> : undefined}
-        afterExtraContent={afterContent}
       />
     </EntityExternalLinkProvider>
   )

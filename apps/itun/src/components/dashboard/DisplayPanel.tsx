@@ -74,7 +74,6 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
         <RollTable
           table={selected.table}
           tableName={selected.name}
-          showCommand
           titleSelect={{ onOpen: () => setPickerOpen(true), open: pickerOpen }}
           onRollResult={(text, key) => onRoll?.(selected.name, key, text)}
         />

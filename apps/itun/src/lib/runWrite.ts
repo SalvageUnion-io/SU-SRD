@@ -17,8 +17,7 @@
  *
  * ## Why it lives in `lib/` rather than under one feature folder
  *
- * It began as `components/sheet/sheetWrite.ts`, when the Live Sheet was the
- * only surface writing this way. It is not: the Dashboard applies play actions
+ * The Live Sheet is not the only surface writing this way: the Dashboard applies play actions
  * as write-through patches (ADR-021), the encounter tray edits NPCs, and
  * `useEntityChoices` persists selections. All of them can be refused for
  * exactly the same reason, so the handler is app-level rather than sheet-level.

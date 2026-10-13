@@ -229,7 +229,7 @@ export function PilotIdentityPanel({
   )
 
   return (
-    // `h-full` + a flex column: the identity card is stretched to match the
+    // Full height + a flex column: the identity card is stretched to match the
     // vitals card beside it, so the panel spends that height on its fields
     // (the Bio grows into whatever is left) instead of leaving dead paper.
     <div className={className} style={PANEL}>
@@ -273,7 +273,7 @@ export function PilotIdentityPanel({
                 )}
               </div>
             )}
-            {/* Read omits the name: it is the band's title (board 10). */}
+            {/* Read omits the name: it is the band's title. */}
             {canEdit && <Field label="Name" value={pilot.name} onSave={saveRequired('name')} />}
             <Field
               label="Pronouns"

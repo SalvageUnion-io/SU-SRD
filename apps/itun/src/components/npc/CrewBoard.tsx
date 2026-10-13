@@ -48,6 +48,7 @@ import { nameToSlug } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../hooks/entities'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { assignCrew } from '../../lib/links/assignLink'
@@ -75,18 +76,13 @@ import { EntityRow } from '../shared/EntityRow'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import { RollTableButton } from '../wizard/RollTableButton'
 import { NpcCard } from './NpcCard'
-import {
-  CAPS,
-  COLUMN,
-  COLUMNS,
-  HINT,
-  LIST,
-  NOTE,
-  PENCIL,
-  ROW,
-  VISUALLY_HIDDEN,
-} from './npcStyles.model'
-import { useWide } from './useWide'
+import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
+
+/**
+ * The breakpoint the NPC designer's two columns start at (`styles/npc.css`).
+ * Below it the crew slot form opens in a full-height modal (§5).
+ */
+const WIDE_QUERY = '(min-width: 48rem)'
 
 /** The Game rule, said where an assignment would be made (D7). */
 const GAME_RULE =
@@ -241,7 +237,7 @@ function CrewSlots({
   madeBy: string
   onSelect: (slot: string | undefined) => void
 }) {
-  const wide = useWide()
+  const wide = useMediaQuery(WIDE_QUERY)
   const npcs = useNpcs()
   const links = useSoftLinkList()
   const where = containerOf(crawler)
@@ -635,7 +631,7 @@ function SlotPanel({
           </Field>
         )
       })}
-      <p aria-live="polite" style={VISUALLY_HIDDEN}>
+      <p aria-live="polite" className="su-sr-only">
         {announcement}
       </p>
 

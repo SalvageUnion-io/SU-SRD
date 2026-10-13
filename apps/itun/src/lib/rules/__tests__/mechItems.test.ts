@@ -13,7 +13,6 @@ import { must } from '../../../components/__tests__/must'
 import {
   cycleCondition,
   itemEconomy,
-  itemUseBlocker,
   itemUsesRemaining,
   mechConditionsPatch,
   repairPoolTl,
@@ -167,41 +166,5 @@ describe('itemUsesRemaining', () => {
 
   test('an item with no uses counter has none left', () => {
     expect(itemUsesRemaining(0, 2)).toBe(0)
-  })
-})
-
-describe('itemUseBlocker', () => {
-  const economy = { epCost: 2, heat: 0, maxUses: 0 }
-
-  test('an Intact item with the EP to pay can be used', () => {
-    expect(itemUseBlocker({ condition: 'intact', economy, remaining: 0, currentEP: 4 })).toBeNull()
-  })
-
-  test('Destroyed cannot be used; Damaged must be repaired first', () => {
-    expect(itemUseBlocker({ condition: 'destroyed', economy, remaining: 0, currentEP: 4 })).toBe(
-      'Destroyed — cannot be used'
-    )
-    expect(itemUseBlocker({ condition: 'damaged', economy, remaining: 0, currentEP: 4 })).toBe(
-      'Damaged — repair before use'
-    )
-  })
-
-  test('an item with a uses counter needs a use left', () => {
-    const counted = { ...economy, maxUses: 2 }
-    expect(
-      itemUseBlocker({ condition: 'intact', economy: counted, remaining: 0, currentEP: 4 })
-    ).toBe('No uses remaining')
-    expect(
-      itemUseBlocker({ condition: 'intact', economy: counted, remaining: 1, currentEP: 4 })
-    ).toBeNull()
-  })
-
-  test('the activation needs the EP; an unknown EP does not block', () => {
-    expect(itemUseBlocker({ condition: 'intact', economy, remaining: 0, currentEP: 1 })).toBe(
-      'Not enough EP (needs 2)'
-    )
-    expect(
-      itemUseBlocker({ condition: 'intact', economy, remaining: 0, currentEP: undefined })
-    ).toBeNull()
   })
 })

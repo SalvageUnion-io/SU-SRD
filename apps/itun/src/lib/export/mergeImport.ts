@@ -4,7 +4,7 @@ import type { EncounterNpcCreateInput } from '../../stores/encounterStore'
 import { useEncounterStore } from '../../stores/encounterStore'
 import type { MechPatternCreateInput } from '../../stores/patternStore'
 import { usePatternStore } from '../../stores/patternStore'
-import type { EntityType } from '../../stores/types'
+import type { AssignableType, CreateInput, EntityForType, EntityType } from '../../stores/types'
 import type { ExportBundle } from '../schemas/exportBundle'
 
 /**
@@ -14,11 +14,8 @@ import type { ExportBundle } from '../schemas/exportBundle'
 type MergeEntityStore = {
   /** Resolves once the type's rows have arrived from the server. */
   hydrate: (type: EntityType) => Promise<void>
-  list: <T extends EntityType>(type: T) => import('../../stores/types').EntityForType<T>[]
-  create: <T extends EntityType>(
-    type: T,
-    input: import('../../stores/types').CreateInput<T>
-  ) => Promise<import('../../stores/types').EntityForType<T>>
+  list: <T extends EntityType>(type: T) => EntityForType<T>[]
+  create: <T extends EntityType>(type: T, input: CreateInput<T>) => Promise<EntityForType<T>>
 }
 
 /**
@@ -98,8 +95,8 @@ export type MergeSummary = {
 export async function mergeImport(
   bundle: ExportBundle,
   entityStore: MergeEntityStore,
-  // Patterns and encounter NPCs go through their stores, not `db.*`, like
-  // pilots/mechs/crawlers below: a write straight to the db layer never
+  // Patterns and encounter NPCs go through their stores, like
+  // pilots/mechs/crawlers below: a write that bypasses the store never
   // reaches the server of record, and leaves this tab's in-memory lists
   // showing the pre-import rows until a reload.
   patternStore: MergePatternStore = usePatternStore.getState(),
@@ -115,10 +112,6 @@ export async function mergeImport(
     entityStore.hydrate('softLink'),
   ])
 
-  const existingPilotIds = new Set(entityStore.list('pilot').map((e) => e.id))
-  const existingMechIds = new Set(entityStore.list('mech').map((e) => e.id))
-  const existingCrawlerIds = new Set(entityStore.list('crawler').map((e) => e.id))
-  const existingNpcIds = new Set(entityStore.list('npc').map((e) => e.id))
   const existingSoftLinkIds = new Set(entityStore.list('softLink').map((l) => l.id))
 
   /** old id → new id for every entity that will be created */
@@ -138,89 +131,38 @@ export async function mergeImport(
     skippedDuplicates: 0,
   }
 
-  // -------------------------------------------------------------------------
-  // 1. Pilots
-  // -------------------------------------------------------------------------
-  for (const pilot of bundle.entities.pilots) {
-    if (existingPilotIds.has(pilot.id)) {
-      summary.skippedDuplicates++
-      idMap.set(pilot.id, pilot.id)
-      continue
+  /**
+   * Copies one kind of entity in: a fresh id, on the Shelf, `seedRef` dropped
+   * (see above). An id the account already holds is skipped, not overwritten,
+   * and maps to itself so links to it still resolve.
+   */
+  async function importKind<T extends AssignableType>(
+    type: T,
+    records: EntityForType<T>[],
+    countKey: 'pilots' | 'mechs' | 'crawlers' | 'npcs'
+  ): Promise<void> {
+    const existing = new Set(entityStore.list(type).map((e) => e.id))
+    for (const record of records) {
+      if (existing.has(record.id)) {
+        summary.skippedDuplicates++
+        idMap.set(record.id, record.id)
+        continue
+      }
+      const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, ...rest } = record
+      if ('seedRef' in rest) delete rest.seedRef
+      const created = await entityStore.create(type, { ...rest, gameId: null } as CreateInput<T>)
+      idMap.set(record.id, created.id)
+      summary.created[countKey]++
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = pilot
-
-    const created = await entityStore.create('pilot', {
-      ...rest,
-      gameId: null,
-    })
-    idMap.set(pilot.id, created.id)
-    summary.created.pilots++
   }
 
-  // -------------------------------------------------------------------------
-  // 3. Mechs
-  // -------------------------------------------------------------------------
-  for (const mech of bundle.entities.mechs) {
-    if (existingMechIds.has(mech.id)) {
-      summary.skippedDuplicates++
-      idMap.set(mech.id, mech.id)
-      continue
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = mech
+  await importKind('pilot', bundle.entities.pilots, 'pilots')
+  await importKind('mech', bundle.entities.mechs, 'mechs')
+  await importKind('crawler', bundle.entities.crawlers, 'crawlers')
+  // Built NPCs (ADR-044) — a copy, like the rest: fresh id, on the Shelf.
+  await importKind('npc', bundle.entities.npcs, 'npcs')
 
-    const created = await entityStore.create('mech', {
-      ...rest,
-      gameId: null,
-    })
-    idMap.set(mech.id, created.id)
-    summary.created.mechs++
-  }
-
-  // -------------------------------------------------------------------------
-  // 4. Crawlers
-  // -------------------------------------------------------------------------
-  for (const crawler of bundle.entities.crawlers) {
-    if (existingCrawlerIds.has(crawler.id)) {
-      summary.skippedDuplicates++
-      idMap.set(crawler.id, crawler.id)
-      continue
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = crawler
-
-    const created = await entityStore.create('crawler', {
-      ...rest,
-      gameId: null,
-    })
-    idMap.set(crawler.id, created.id)
-    summary.created.crawlers++
-  }
-
-  // -------------------------------------------------------------------------
-  // 4b. Built NPCs (ADR-044) — a copy, like the rest: fresh id, on the Shelf.
-  // -------------------------------------------------------------------------
-  for (const npc of bundle.entities.npcs) {
-    if (existingNpcIds.has(npc.id)) {
-      summary.skippedDuplicates++
-      idMap.set(npc.id, npc.id)
-      continue
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, ...rest } = npc
-
-    const created = await entityStore.create('npc', {
-      ...rest,
-      gameId: null,
-    })
-    idMap.set(npc.id, created.id)
-    summary.created.npcs++
-  }
-
-  // -------------------------------------------------------------------------
-  // 5. SoftLinks — remap from/to through idMap; skip if endpoint missing.
-  // -------------------------------------------------------------------------
+  // SoftLinks — remap from/to through idMap; skip if endpoint missing.
   for (const link of bundle.softLinks) {
     if (existingSoftLinkIds.has(link.id)) {
       summary.skippedDuplicates++
@@ -238,7 +180,6 @@ export async function mergeImport(
     const wasRemapped = newFromId !== link.from.id || newToId !== link.to.id
     if (wasRemapped) summary.remappedLinks++
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: _id, createdAt: _ca, ...rest } = link
     await entityStore.create('softLink', {
       ...rest,
@@ -248,10 +189,8 @@ export async function mergeImport(
     summary.created.softLinks++
   }
 
-  // -------------------------------------------------------------------------
-  // 6. Mech patterns — fresh UUIDs, exact-id dedupe (same policy as entities).
-  //    Patterns reference no other bundle entities, so no remapping needed.
-  // -------------------------------------------------------------------------
+  // Mech patterns — fresh UUIDs, exact-id dedupe (same policy as entities).
+  // Patterns reference no other bundle entities, so no remapping needed.
   await patternStore.hydrate()
   const existingPatternIds = new Set(patternStore.list().map((p) => p.id))
   for (const pattern of bundle.mechPatterns) {
@@ -259,18 +198,14 @@ export async function mergeImport(
       summary.skippedDuplicates++
       continue
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: _id, createdAt: _ca, ...rest } = pattern
     await patternStore.create(rest)
     summary.created.mechPatterns++
   }
 
-  // -------------------------------------------------------------------------
-  // 7. Encounter NPCs — fresh UUIDs, exact-id dedupe (same policy as
-  //    entities). Container handling matches pilot/mech/crawler: everything
-  //    lands on the Shelf (dropped if the referenced container was not
-  //    part of this bundle / not in the map).
-  // -------------------------------------------------------------------------
+  // Encounter NPCs — fresh UUIDs, exact-id dedupe (same policy as entities).
+  // Container handling matches pilot/mech/crawler: everything lands on the
+  // Shelf.
   await encounterNpcStore.hydrate()
   const existingEncounterNpcIds = new Set(encounterNpcStore.list().map((n) => n.id))
   for (const npc of bundle.encounterNpcs) {
@@ -278,7 +213,6 @@ export async function mergeImport(
       summary.skippedDuplicates++
       continue
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, ...rest } = npc
 
     await encounterNpcStore.create({

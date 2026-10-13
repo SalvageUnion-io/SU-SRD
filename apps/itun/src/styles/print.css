@@ -107,9 +107,8 @@
   /* The component-lib parts that set their own type in a `.su-*` class keep it
    * on paper. This file is unlayered and those classes sit in `su-base`, so
    * the element rules above would beat them; `revert-layer` hands each
-   * property back to the class. (They were inline styles until refit2 V3, and
-   * an inline style already beat these rules.) A part whose type is still an
-   * inline style needs nothing here; a title's weight is handed back for
+   * property back to the class. A part whose type is an inline style needs
+   * nothing here, since an inline style already beats these rules; a title's weight is handed back for
    * screen and paper alike in `libHandback.css`. */
   .su-stat-plate,
   .su-entity-row__title,
@@ -207,8 +206,8 @@
    * ------------------------------------------------------------------------- */
   /* A border is a class or an inline style, so match both: a stylesheet
    * `!important` still beats a plain inline declaration. The `.su-*` parts
-   * named here draw their border in a component-lib class, not a `border-`
-   * utility or an inline style, so they are named outright. */
+   * named here draw their border in a component-lib class, not a `border-*`
+   * class or an inline style, so they are named outright. */
   [class*='border-'],
   [style*='border'],
   .su-entity-row__frame,

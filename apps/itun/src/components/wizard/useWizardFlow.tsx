@@ -82,7 +82,6 @@ type WizardShellProps = {
   steps: readonly string[]
   active: number
   onStepClick: (index: number) => void
-  tintedStepCard: true
   escapeAction: ReactNode
   onBack: (() => void) | undefined
   onCancel: () => void
@@ -192,7 +191,6 @@ export function useWizardFlow<
         const s = steps[i]
         if (s) setStep(s)
       },
-      tintedStepCard: true,
       escapeAction: !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined,
       onBack: currentIndex > 0 ? goBack : undefined,
       onCancel: () => {

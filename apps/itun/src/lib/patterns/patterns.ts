@@ -14,7 +14,7 @@ import type { SURefChassis, SURefEntity, SURefObjectPattern } from 'salvageunion
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../stores/types'
 
-/** What `patternStore.create` takes: the id and timestamp come from the db layer. */
+/** What `patternStore.create` takes: the id and timestamp are minted on create. */
 type PatternInput = Omit<MechPattern, 'id' | 'createdAt'>
 
 /** Who may read a pattern — the three choices of board P1. */
@@ -46,7 +46,7 @@ export function patternFromMech(
 }
 
 /**
- * A copy of somebody's pattern for the reader's own shelf. The db layer mints
+ * A copy of somebody's pattern for the reader's own shelf. Create mints
  * it a new id — a copy is never the same pattern (the copy rule in
  * `apps/itun/CLAUDE.md`).
  */

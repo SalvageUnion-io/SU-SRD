@@ -130,11 +130,6 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
     })
     expect(bar().getByText('Mara Vex').closest('[aria-hidden="false"]')).not.toBeNull()
   })
-
-  test('the name is not rendered when condense is disabled', () => {
-    renderShell({ condense: false })
-    expect(bar().queryByText('Mara Vex')).toBeNull()
-  })
 })
 
 describe('LiveSheet — the chapter band (board 10)', () => {
@@ -193,14 +188,6 @@ describe('LiveSheet — condense strip gating (S11)', () => {
     })
     expect(stripWrapper().getAttribute('aria-hidden')).toBe('true')
     expect(bar().queryByText('Mara Vex')).toBeNull()
-  })
-
-  test('condense=false renders no condensed block and observes nothing', () => {
-    renderShell({ condense: false })
-    // The whole condensed block (name + strip) is gated on condense.
-    expect(bar().queryByText('Mara Vex')).toBeNull()
-    expect(screen.queryByLabelText('HP 7 of 10')).toBeNull()
-    expect(observerCallbacks.length).toBe(0)
   })
 
   test('the strip transitions opacity for the CSS fade', () => {

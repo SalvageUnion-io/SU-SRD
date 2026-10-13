@@ -33,7 +33,6 @@ export const Default: Story = () => {
       active={active}
       onStepClick={setActive}
       title="Abilities"
-      subtitle="Pick 3 Class Abilities to start."
       trackers={<WizTracker label="Abilities" value="2 / 3" />}
       footerNote="1 ability left to choose"
       onBack={() => setActive((i) => Math.max(0, i - 1))}

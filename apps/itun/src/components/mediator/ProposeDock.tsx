@@ -28,7 +28,7 @@ import {
 } from 'itun-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
-import { EYEBROW, MUTED, NUMBERS, VISUALLY_HIDDEN } from './mediatorStyles.model'
+import { EYEBROW, MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'
 import { PROPOSAL_LIST } from './proposalLine.model'
@@ -211,7 +211,7 @@ export function ProposeDock({
       </div>
       {recent.length > 0 && (
         <section aria-label="Newest proposals">
-          <span style={VISUALLY_HIDDEN} role="status" aria-live="polite">
+          <span className="su-sr-only" role="status" aria-live="polite">
             {recent[0] ? `Newest proposal: ${PROPOSAL_STATE_WORD[recent[0].state]}` : ''}
           </span>
           <ul style={PROPOSAL_LIST}>

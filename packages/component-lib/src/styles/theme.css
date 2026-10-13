@@ -410,8 +410,9 @@
      #A6B9B0 (mech), #DD93B7 (crawler).
 
      Every card therefore lands light and takes DARK ink, at 9.67 / 7.77 /
-     6.81:1. One fill rule, one ink rule. See WizShell's `tintedStepCard`, whose step title
-     inherits this ink rather than hardcoding white. */
+     6.81:1. One fill rule, one ink rule. See WizShell's step card
+     (`.wiz-step-card` / `stepCardTitleStyle`), whose step title inherits this
+     ink rather than hardcoding white. */
   --tone-card: oklch(from var(--tone) calc(l + 0.13) calc(c * 0.62) h);
   --tone-card-ink: var(--color-ink);
 }

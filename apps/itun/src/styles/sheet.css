@@ -4,7 +4,7 @@
  * resting value included (ADR-046). Everything static is a
  * style object over component-lib's `tokens`.
  *
- * Unlayered, so it sits over the shared `su-base` layer as the utilities did.
+ * Unlayered, so it sits over the shared `su-base` layer.
  * The app loads it from `index.css`; the sheet's stories import it directly,
  * since the catalog does not load ITUN's stylesheet.
  */

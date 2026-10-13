@@ -61,27 +61,19 @@ function Row({
   )
 }
 
-/** The banded d20 table — bare, with the roll command, size="compact", and disabled. */
+/** The banded d20 table — full, size="compact", and with titleSelect. */
 export const Default: Story = () =>
   table ? (
     <div style={PAGE_STYLE}>
       <p style={INTRO_STYLE}>
-        The banded d20 roll table. showCommand adds the rust Roll control + command name;
-        size=&quot;compact&quot; tightens for rails/tooltips; disabled suppresses the Roll action
-        (Reference surface); titleSelect turns the header title into the surface&apos;s table picker
-        trigger.
+        The banded d20 roll table. size=&quot;compact&quot; tightens for rails/tooltips; titleSelect
+        turns the header title into the surface&apos;s table picker trigger.
       </p>
-      <Row label="bare">
-        <RollTable table={table} />
-      </Row>
-      <Row label="showCommand">
-        <RollTable table={table} showCommand tableName={tableName} />
+      <Row label="full">
+        <RollTable table={table} tableName={tableName} />
       </Row>
       <Row label='size="compact"' width="420px">
-        <RollTable table={table} size="compact" showCommand tableName={tableName} />
-      </Row>
-      <Row label="disabled (Reference)">
-        <RollTable table={table} showCommand tableName={tableName} disabled />
+        <RollTable table={table} size="compact" tableName={tableName} />
       </Row>
       <Row label="titleSelect (Dashboard Tables)">
         <TitleSelectRow />
@@ -100,7 +92,6 @@ function TitleSelectRow() {
   return (
     <RollTable
       table={table}
-      showCommand
       tableName={tableName}
       titleSelect={{ onOpen: () => setOpen((v) => !v), open }}
     />

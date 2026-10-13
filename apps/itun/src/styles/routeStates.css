@@ -8,8 +8,7 @@
  *   `su-pulse`.)
  * - components/shared/GameDataReady.tsx — `.game-data-fallback__mark`: the SU
  *   mark steps up from `sm`; `.game-data-fallback__bar`: the indeterminate
- *   loader sweep, only for a reader who has not asked for reduced motion (it
- *   was the `@theme` utility `animate-loader-slide` in index.css).
+ *   loader sweep, only for a reader who has not asked for reduced motion.
  * - components/shared/SoftWarningDialog.tsx — `.soft-warning-dialog`: the
  *   dialog's width cap, handed to ModalShell's `maxWidth` class slot.
  * - RouteErrors.tsx and WritesBlockedNotice.tsx have no stateful half: they are

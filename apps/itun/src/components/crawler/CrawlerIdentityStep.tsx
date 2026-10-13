@@ -5,7 +5,7 @@ import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
 import { rollCrawlerName } from './crawlerRollTables.model'
 import '../../styles/wizard.css'
 
-/** The step's column (`max-w-3xl`). */
+/** The step's column, capped at 48rem. */
 const COLUMN: CSSProperties = { maxWidth: '48rem' }
 
 /** The Roll button keeps its width beside the field label. */

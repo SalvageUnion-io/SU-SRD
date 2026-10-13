@@ -33,7 +33,6 @@ import {
   test,
 } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { CopyFeedbackProvider } from '../useCopyFeedback'
 
 const ROLL_BUTTON = 'Roll on this table'
 /** The reveal delay both variants wrap their state update in. */
@@ -187,7 +186,7 @@ const COLUMNS_TABLE = {
 describe('rolling a standard table', () => {
   test('a roll announces the result and marks exactly one row selected', async () => {
     queued = [7]
-    render(<RollTable table={RANGE_TABLE} showCommand tableName="Core Mechanic" />)
+    render(<RollTable table={RANGE_TABLE} tableName="Core Mechanic" />)
 
     // Before the roll: nothing announced, nothing selected.
     expect(announcement()).toBe('')
@@ -204,12 +203,12 @@ describe('rolling a standard table', () => {
 
   test('a named table asks for its own die; an unnamed one rolls a plain d20', async () => {
     queued = [7, 7]
-    render(<RollTable table={RANGE_TABLE} showCommand tableName="Core Mechanic" />)
+    render(<RollTable table={RANGE_TABLE} tableName="Core Mechanic" />)
     await rollAndReveal()
     expect(asked).toEqual(['Core Mechanic'])
 
     cleanup()
-    render(<RollTable table={RANGE_TABLE} showCommand />)
+    render(<RollTable table={RANGE_TABLE} />)
     await rollAndReveal()
     expect(asked).toEqual(['Core Mechanic'])
     expect(queued).toEqual([])
@@ -219,11 +218,7 @@ describe('rolling a standard table', () => {
     const reported: Array<[string, string]> = []
     queued = [20]
     render(
-      <RollTable
-        table={RANGE_TABLE}
-        showCommand
-        onRollResult={(text, key) => reported.push([text, key])}
-      />
+      <RollTable table={RANGE_TABLE} onRollResult={(text, key) => reported.push([text, key])} />
     )
 
     await rollAndReveal()
@@ -233,7 +228,7 @@ describe('rolling a standard table', () => {
 
   test('rerolling replaces the previous result rather than adding to it', async () => {
     queued = [1, 20]
-    render(<RollTable table={RANGE_TABLE} showCommand />)
+    render(<RollTable table={RANGE_TABLE} />)
 
     await rollAndReveal()
     expect(announcement()).toContain('Cascade Failure')
@@ -250,7 +245,7 @@ describe('rolling a standard table', () => {
 
   test('clicking the selected row clears the result and silences the live region', async () => {
     queued = [20]
-    render(<RollTable table={RANGE_TABLE} showCommand />)
+    render(<RollTable table={RANGE_TABLE} />)
     await rollAndReveal()
 
     const selected = document.querySelector('[aria-selected="true"]')
@@ -264,7 +259,7 @@ describe('rolling a standard table', () => {
 
   test('Enter on the selected row clears it too — the keyboard path is not a dead end', async () => {
     queued = [20]
-    render(<RollTable table={RANGE_TABLE} showCommand />)
+    render(<RollTable table={RANGE_TABLE} />)
     await rollAndReveal()
 
     const selected = document.querySelector('[aria-selected="true"]')
@@ -278,7 +273,7 @@ describe('rolling a standard table', () => {
 
   test('Copy puts the labelled result text on the clipboard', async () => {
     queued = [20]
-    render(<RollTable table={RANGE_TABLE} showCommand />)
+    render(<RollTable table={RANGE_TABLE} />)
     await rollAndReveal()
 
     fireEvent.click(screen.getByLabelText('Copy result to clipboard'))
@@ -286,95 +281,13 @@ describe('rolling a standard table', () => {
     expect(copied).toEqual(['Nailed It: nothing goes wrong'])
   })
 
-  test('Copy confirms through the app-provided CopyFeedbackProvider once written', async () => {
-    queued = [20]
-    let confirmed = 0
-    render(
-      <CopyFeedbackProvider
-        value={() => {
-          confirmed += 1
-        }}
-      >
-        <RollTable table={RANGE_TABLE} showCommand />
-      </CopyFeedbackProvider>
-    )
-    await rollAndReveal()
-
-    fireEvent.click(screen.getByLabelText('Copy result to clipboard'))
-    await act(async () => {
-      await Promise.resolve()
-    })
-
-    expect(confirmed).toBe(1)
-  })
-
   test('a flat 1-20 table resolves on the rolled number itself', async () => {
     queued = [13]
-    render(<RollTable table={FLAT_TABLE} showCommand />)
+    render(<RollTable table={FLAT_TABLE} />)
 
     await rollAndReveal()
 
     expect(announcement()).toBe('Rolled 13: Outcome 13 - it happens 13')
-  })
-
-  test('`disabled` withholds the Roll button but keeps the table readable', () => {
-    render(<RollTable table={RANGE_TABLE} showCommand tableName="Core Mechanic" disabled />)
-
-    expect(screen.queryByLabelText(ROLL_BUTTON)).toBeNull()
-    // Header band + the sr-only <caption> both name it.
-    expect(screen.getAllByText('Core Mechanic')).toHaveLength(2)
-    expect(screen.getByText(/it works, but/, NOT_LIVE_REGION)).toBeTruthy()
-  })
-})
-
-describe('collapsible mode', () => {
-  test('starts collapsed, and a roll reveals the result without opening the table', async () => {
-    queued = [20]
-    render(<RollTable table={RANGE_TABLE} collapsible tableName="Core Mechanic" />)
-
-    // Collapsed: header only, no rows.
-    expect(screen.queryByText(/it works, but/, NOT_LIVE_REGION)).toBeNull()
-    expect(screen.getByText('Show')).toBeTruthy()
-
-    await rollAndReveal()
-
-    // The rolled row slides out; the other 3 rows stay hidden.
-    expect(announcement()).toContain('Nailed It')
-    expect(screen.getByText(/nothing goes wrong/, NOT_LIVE_REGION)).toBeTruthy()
-    expect(screen.queryByText(/it works, but/, NOT_LIVE_REGION)).toBeNull()
-    expect(screen.getByText('Show')).toBeTruthy()
-  })
-
-  test('Clear is offered only in the slide-out, and empties it', async () => {
-    queued = [20]
-    render(<RollTable table={RANGE_TABLE} collapsible />)
-
-    // No result yet: no action bar at all.
-    expect(screen.queryByLabelText('Clear result')).toBeNull()
-
-    await rollAndReveal()
-    expect(screen.getByLabelText('Clear result')).toBeTruthy()
-
-    fireEvent.click(screen.getByLabelText('Clear result'))
-
-    expect(announcement()).toBe('')
-    expect(screen.queryByLabelText('Clear result')).toBeNull()
-  })
-
-  test('the expand toggle opens the full table and tracks aria-expanded', () => {
-    render(<RollTable table={RANGE_TABLE} collapsible />)
-
-    const toggle = screen.getByText('Show').closest('button')
-    if (!toggle) throw new Error('expected an expand toggle')
-    expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    // It sits on the ink band, where only the paper ring of the two-ring
-    // construction is visible; the browser's own outline is not the house ring.
-    expect(toggle.classList.contains('su-focus-ring-on-tone')).toBe(true)
-
-    fireEvent.click(toggle)
-
-    expect(screen.getByText(/it works, but/, NOT_LIVE_REGION)).toBeTruthy()
-    expect(screen.getByText('Hide').closest('button')?.getAttribute('aria-expanded')).toBe('true')
   })
 })
 
@@ -384,7 +297,6 @@ describe('the title-as-picker trigger', () => {
     render(
       <RollTable
         table={RANGE_TABLE}
-        showCommand
         tableName="Core Mechanic"
         titleSelect={{ onOpen: () => opened.push(1) }}
       />
@@ -397,29 +309,13 @@ describe('the title-as-picker trigger', () => {
     fireEvent.click(trigger)
     expect(opened).toHaveLength(1)
   })
-
-  test('`disabled` suppresses rolling but NOT choosing which table to read', () => {
-    render(
-      <RollTable
-        table={RANGE_TABLE}
-        showCommand
-        tableName="Core Mechanic"
-        disabled
-        titleSelect={{ onOpen: () => undefined, open: true, ariaLabel: 'Pick a table' }}
-      />
-    )
-
-    expect(screen.queryByLabelText(ROLL_BUTTON)).toBeNull()
-    const trigger = screen.getByLabelText('Pick a table')
-    expect(trigger.getAttribute('aria-expanded')).toBe('true')
-  })
 })
 
 describe('the columns variant', () => {
   test('two rolls pick the column and the entry, and exactly that cell lights up', async () => {
     // 9 lands in the 9-12 column; 3 picks entry 3 within it.
     queued = [9, 3]
-    render(<RollTable table={COLUMNS_TABLE} showCommand tableName="NPC Generator" />)
+    render(<RollTable table={COLUMNS_TABLE} tableName="NPC Generator" />)
 
     await rollAndReveal()
 
@@ -432,7 +328,7 @@ describe('the columns variant', () => {
   test('the column is chosen by range, not by the raw number', async () => {
     // 17..20 all share one column, so the boundary is the thing worth pinning.
     queued = [17, 1]
-    render(<RollTable table={COLUMNS_TABLE} showCommand />)
+    render(<RollTable table={COLUMNS_TABLE} />)
 
     await rollAndReveal()
 
@@ -441,7 +337,7 @@ describe('the columns variant', () => {
 
   test('rerolling from the highlighted cell moves the highlight', async () => {
     queued = [1, 1, 20, 20]
-    render(<RollTable table={COLUMNS_TABLE} showCommand />)
+    render(<RollTable table={COLUMNS_TABLE} />)
 
     await rollAndReveal()
     expect(announcement()).toBe('Column 1-4, Roll 1: 1-4 entry 1')
@@ -454,7 +350,7 @@ describe('the columns variant', () => {
 
   test('clicking the highlighted cell clears it', async () => {
     queued = [1, 1]
-    render(<RollTable table={COLUMNS_TABLE} showCommand />)
+    render(<RollTable table={COLUMNS_TABLE} />)
     await rollAndReveal()
 
     const selected = document.querySelector('[aria-selected="true"]')
@@ -466,7 +362,7 @@ describe('the columns variant', () => {
   })
 
   test('every column renders all 20 of its entries', () => {
-    render(<RollTable table={COLUMNS_TABLE} showCommand />)
+    render(<RollTable table={COLUMNS_TABLE} />)
 
     for (const col of COLUMN_KEYS) {
       expect(screen.getByText(`(${col.replace('-', ' - ')})`)).toBeTruthy()
@@ -474,19 +370,5 @@ describe('the columns variant', () => {
     }
     // 5 columns x 20 rows.
     expect(document.querySelectorAll('tbody td')).toHaveLength(100)
-  })
-
-  test('collapsed, a roll reveals only the rolled cell', async () => {
-    queued = [5, 6]
-    render(<RollTable table={COLUMNS_TABLE} collapsible />)
-
-    expect(screen.queryByText('5-8 entry 6', NOT_LIVE_REGION)).toBeNull()
-
-    await rollAndReveal()
-
-    expect(announcement()).toBe('Column 5-8, Roll 6: 5-8 entry 6')
-    expect(screen.getByText(/5-8 entry 6/, NOT_LIVE_REGION)).toBeTruthy()
-    // Still collapsed: no full grid behind it.
-    expect(document.querySelectorAll('tbody td')).toHaveLength(0)
   })
 })

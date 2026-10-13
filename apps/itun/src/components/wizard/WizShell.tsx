@@ -18,18 +18,13 @@ type WizShellProps = {
   active: number
   /** When provided, completed stepper entries navigate back. */
   onStepClick?: (index: number) => void
-  /** Step heading — stamped as 'STEP n OF N · {title}' in the main pane. */
+  /** Step heading — the step card's title, read as 'Step n of N · {title}'. */
   title: string
-  /** Meta line under the title — live counts, helper copy. */
-  subtitle?: ReactNode
   /** Main pane content (detail card, Sel grid, form, review). */
   children: ReactNode
-  /** Rendered between content and footer — soft warnings, submit errors. */
-  notice?: ReactNode
   /**
-   * Black tracker tabs hosted in the action pill (mockup `.trackrow` idiom
-   * promoted into the footer slot) — live budget/count chrome. Pass
-   * `WizTracker` elements.
+   * Black tracker tabs hosted in the action pill — live budget/count chrome.
+   * Pass `WizTracker` elements.
    */
   trackers?: ReactNode
   /**
@@ -39,27 +34,11 @@ type WizShellProps = {
    */
   footerNote?: ReactNode
   /**
-   * Rich, step-specific HUD content mounted INTO the floating footer bar
-   * alongside the nav pill (the mech install steps pass their Loadout HUD —
-   * gauges + installed chips — here). When present the footer becomes a wide
-   * paper bar holding the HUD with the ink action pill nested at its right; when
-   * absent the footer stays the compact ink pill. Distinct from `trackers`
-   * (small black tabs inside the pill) — this is a full-width content region.
-   */
-  footerHud?: ReactNode
-  /**
    * Escape hatch shown inside the action pill: a link/button to abandon the
    * guided guardrails and finish the build off-rules on the Free-Edit Live
    * Sheet (ADR-021). Rendered subordinate to the CTA; omit to hide.
    */
   escapeAction?: ReactNode
-  /**
-   * OPT-IN blown-up tinted step card (mockup Screen 01 `.stepcard`): the main
-   * pane renders the heading + content inside a `var(--tone-card)` card with
-   * a flush ink number tab. Only book-order wizards opt in (pilot); the
-   * multi-section Mech/Crawler wizards stay untinted.
-   */
-  tintedStepCard?: boolean
   onBack?: () => void
   onCancel: () => void
   /**
@@ -101,7 +80,7 @@ const trackerValueStyle: CSSProperties = {
 }
 
 /**
- * Black tracker tab (mockup `.tracker`): condensed-caps label
+ * Black tracker tab: condensed-caps label
  * with an amber value, hosted in the WizShell action pill. Its value is the
  * caller's: the tab does no budget math.
  */
@@ -168,9 +147,8 @@ const railTabFutureStyle: CSSProperties = {
 }
 
 /**
- * Hidden until 721px (`.wiz-rail-label`). No line height of its own: the
- * utility version asked for 1.15, but the old `cn()` class merge dropped it in
- * favour of the size class that followed, so the label has always inherited.
+ * Hidden until 721px (`.wiz-rail-label`). No lineHeight: the label inherits
+ * its line height, and that is the rendered look. Don't add one.
  */
 const railLabelStyle: CSSProperties = {
   color: tokens.color.ink,
@@ -194,7 +172,7 @@ const railLabelFutureStyle: CSSProperties = {
   opacity: 0.66,
 }
 
-/** Connector-pipe rail entry (mockup `.rstep`/`.rtab`) — one step tab + label. */
+/** Connector-pipe rail entry — one step tab + label. */
 function RailStep({
   label,
   index,
@@ -238,32 +216,6 @@ function RailStep({
   )
 }
 
-const headingStyle: CSSProperties = { margin: 0 }
-
-const stepStampStyle: CSSProperties = {
-  backgroundColor: tokens.color.ink,
-  boxDecorationBreak: 'clone',
-  color: tokens.color.paper,
-  display: 'inline',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.title,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: '0em',
-  lineHeight: 1.35,
-  padding: `2px ${tokens.space[8]} 3px`,
-  textTransform: 'uppercase',
-  WebkitBoxDecorationBreak: 'clone',
-}
-
-const stepCountStyle: CSSProperties = { color: tokens.color.pilot }
-
-const subtitleStyle: CSSProperties = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  marginTop: tokens.space[8],
-}
-
 /** Its direction, alignment, gap, radius and padding change at sm (`.wiz-pill`). */
 const pillStyle: CSSProperties = {
   backgroundColor: tokens.color.ink,
@@ -305,7 +257,7 @@ const pillNavStyle: CSSProperties = {
 /** Full width on a phone, its own width from sm (`.wiz-pill-cta`). */
 const ctaStyle: CSSProperties = { borderRadius: tokens.radius.full }
 
-/** Locked (mockup `.next.locked`): hollow, dashed, at full opacity though disabled. */
+/** Locked: hollow, dashed, at full opacity though disabled. */
 const ctaLockedStyle: CSSProperties = {
   ...ctaStyle,
   backgroundColor: 'transparent',
@@ -441,8 +393,6 @@ const stepCardTitleStyle: CSSProperties = {
 
 const stepCardBodyStyle: CSSProperties = { marginTop: tokens.space[16] }
 
-const noticeStyle: CSSProperties = { marginTop: tokens.space[24] }
-
 const footerPillStyle: CSSProperties = {
   bottom: tokens.space[16],
   display: 'flex',
@@ -453,39 +403,16 @@ const footerPillStyle: CSSProperties = {
   zIndex: 40,
 }
 
-/** Centred on a phone, right-aligned from sm (`.wiz-footer--hud`). */
-const footerStyle: CSSProperties = { ...footerPillStyle, justifyContent: undefined }
-
-/** Its width, direction, gap and padding change at sm (`.wiz-hud`). */
-const hudStyle: CSSProperties = {
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
-  borderRadius: '1rem',
-  boxShadow: '0 16px 28px -12px var(--color-ink-50)',
-  display: 'flex',
-  pointerEvents: 'auto',
-}
-
-const hudContentStyle: CSSProperties = {
-  alignItems: 'center',
-  display: 'flex',
-  flex: '1 1 0%',
-  minWidth: 0,
-}
-
 /**
- * Shared wizard skeleton, reskinned as a poster sibling (mockup
- * Screens 01/02): the `.sheet--{kind}` tone context on the
- * `var(--ground)` page, a tone band banner up top, the manual's connector-pipe
- * stepper rail (196px) and a flex-1 main pane
- * headed by an ink-stamp 'STEP n OF N · {title}' h1 with a floating ink
- * action pill (ghost Back/Cancel + primary CTA + tracker tabs + gate text).
+ * Shared wizard skeleton, a poster sibling: the `.sheet--{kind}` tone context
+ * on the `var(--ground)` page, a tone band banner up top, the manual's
+ * connector-pipe stepper rail (196px) and a flex-1 main pane holding the
+ * tinted step card, with a floating ink action pill (ghost Back/Cancel +
+ * primary CTA + tracker tabs + gate text).
  * The shell is layout-only — all wizard state lives in the caller.
  *
  * Mobile (≤lg) stacks the panes full-width with a horizontal tab rail
- * (labels hidden ≤720px, per the mockup).
+ * (labels hidden ≤720px).
  */
 export function WizShell({
   kind,
@@ -494,14 +421,10 @@ export function WizShell({
   active,
   onStepClick,
   title,
-  subtitle,
   children,
-  notice,
   trackers,
   footerNote,
-  footerHud,
   escapeAction,
-  tintedStepCard = false,
   onBack,
   onCancel,
   onNext,
@@ -513,31 +436,8 @@ export function WizShell({
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const isLast = active >= steps.length - 1
   const ctaLabel = isLast ? submitLabel : `Next · ${steps[active + 1]} →`
-  // The sticky footer overlaps content when pinned, so the main pane reserves
-  // scroll room beneath it. A HUD footer is taller (a full paper bar, not the
-  // compact pill), so it reserves proportionally more.
-  const contentPad = footerHud ? '13rem' : '6rem'
-
-  const heading = (
-    <header>
-      <h1 style={headingStyle}>
-        {/* Ink-stamp step heading: paper text on an ink band that wraps per line. */}
-        <span style={stepStampStyle}>
-          <span style={stepCountStyle}>
-            Step {active + 1} of {steps.length}
-          </span>
-          {' · '}
-          <span>{title}</span>
-        </span>
-      </h1>
-      {subtitle && <div style={subtitleStyle}>{subtitle}</div>}
-    </header>
-  )
-
-  // The ink action pill (mockup `.pill`): trackers + gate note + escape + nav
-  // buttons + CTA. Rendered standalone in the footer by default; with a
-  // `footerHud` it is MOUNTED at the right of the wide paper footer bar. Its own
-  // dark ground keeps the ghost buttons legible in either home.
+  // The ink action pill: trackers + gate note + escape + nav buttons + CTA.
+  // Its own dark ground keeps the ghost buttons legible.
   const actionPill = (
     <div className="wiz-pill" style={pillStyle}>
       {trackers && (
@@ -599,7 +499,7 @@ export function WizShell({
           </div>
         </ModalShell>
       </div>
-      {/* Locked CTA (mockup `.next.locked`): hollow, dashed, dimmed weight —
+      {/* Locked CTA: hollow, dashed, dimmed weight —
           the blocking reason lives in the footerNote text. */}
       <Button
         variant="primary"
@@ -616,7 +516,7 @@ export function WizShell({
 
   return (
     <div className={`sheet--${kind}`} style={shellStyle}>
-      {/* Poster band (mockup `.band`/`.banner`): the sheet's text band, its
+      {/* Poster band: the sheet's text band, its
           on-tone condensed banner, a white rule then a thin bandtail below it. */}
       <header className="wiz-band" style={bandStyle}>
         <p style={bannerStyle}>{eyebrow}</p>
@@ -624,7 +524,7 @@ export function WizShell({
       <div style={bandTailStyle} aria-hidden="true" />
 
       <div className="wiz-body" style={bodyStyle}>
-        {/* (a) 196px connector-pipe stepper rail (mockup `.rail`): a thick ink
+        {/* (a) 196px connector-pipe stepper rail: a thick ink
             pipe with an arrow-capped end runs behind the step tabs on lg;
             mobile keeps the horizontal wrap without the pipe. */}
         <aside className="wiz-rail">
@@ -651,91 +551,52 @@ export function WizShell({
 
         {/* (b) flex-1 main pane — always owns the step heading */}
         <main className="wiz-main" style={mainStyle}>
-          {tintedStepCard ? (
-            /* Blown-up tinted step card (mockup `.stepcard`): tone-card fill,
-               flush ink number tab, condensed step head in the card ink. */
-            <div className="wiz-step-frame" style={{ ...fillStyle, paddingBottom: contentPad }}>
-              <article
-                /* `sm:pl-12` (48px) is LOAD-BEARING, not a taste-level inset: it
-                   is the gutter the overhanging number tab below is measured
-                   against. The tab is `w-14` (56px) at `-left-5` (-20px), so its
-                   right edge lands 36px inside the card — at 32px the content box
-                   would start 4px to the LEFT of that, and the black tab would
-                   print over the step title's first glyph and the RuleBrief
-                   panel's left edge. 48px clears it by 12px.
-                   Same overhang-plus-clearance relationship as `ModeDoor`'s tab.
-                   Move one of the three numbers and you must move the others. */
-                className="wiz-step-card"
-                style={{
-                  ...stepCardStyle,
-                  background: 'var(--tone-card, var(--tone))',
-                  // Card ink, ONE rule for all three sheets: every step card is
-                  // now a light tint derived from its page tone, so all of them
-                  // take dark ink (6.8–9.7:1). Content sitting directly on the
-                  // card — the step head included — inherits via `text-current`.
-                  color: 'var(--tone-card-ink, var(--color-ink))',
-                }}
-              >
-                <span aria-hidden="true" className="wiz-step-tab" style={stepTabStyle}>
-                  {active + 1}
-                </span>
-                <header>
-                  {/* The title INHERITS `--tone-card-ink` from the article
-                      (`text-current`) instead of hardcoding `text-paper`. White
-                      was safe only while the step cards were dark book literals;
-                      now that every card is a light tint derived from its page
-                      tone, a white title measures 1.54:1 on the pilot fill and
-                      1.91 / 2.18 on mech and crawler — invisible.
+          {/* Tinted step card: tone-card fill, flush ink number tab, condensed
+              step head in the card ink. */}
+          {/* The sticky footer overlaps content when pinned, so the frame
+              reserves scroll room beneath it. */}
+          <div className="wiz-step-frame" style={{ ...fillStyle, paddingBottom: '6rem' }}>
+            <article
+              className="wiz-step-card"
+              style={{
+                ...stepCardStyle,
+                background: 'var(--tone-card, var(--tone))',
+                // Card ink, ONE rule for all three sheets: every step card is
+                // a light tint derived from its page tone, so all of them
+                // take dark ink (6.8–9.7:1). Content sitting directly on the
+                // card — the step head included — inherits it.
+                color: 'var(--tone-card-ink, var(--color-ink))',
+              }}
+            >
+              <span aria-hidden="true" className="wiz-step-tab" style={stepTabStyle}>
+                {active + 1}
+              </span>
+              <header>
+                {/* The title INHERITS `--tone-card-ink` from the article
+                      (`currentcolor`) instead of hardcoding paper: on these
+                      light tints a white title measures 1.54:1 on the pilot
+                      fill and 1.91 / 2.18 on mech and crawler — invisible.
                       Inheriting keeps the title and the body copy on the same
-                      ink rule, so a future dark card flips both together. The
-                      dark `text-shadow` went with it: it existed to lift white
-                      type off a saturated fill and only muddies dark type. */}
-                  <h1 style={stepCardTitleStyle}>
-                    <span className="su-sr-only">
-                      Step {active + 1} of {steps.length} ·{' '}
-                    </span>
-                    {title}
-                  </h1>
-                  {subtitle && <div style={subtitleStyle}>{subtitle}</div>}
-                </header>
-                <div style={stepCardBodyStyle}>{children}</div>
-              </article>
-            </div>
-          ) : (
-            <>
-              {heading}
-              <div style={{ ...fillStyle, marginTop: tokens.space[20], paddingBottom: contentPad }}>
-                {children}
-              </div>
-            </>
-          )}
-
-          {notice && <div style={noticeStyle}>{notice}</div>}
+                      ink rule, so a future dark card flips both together. */}
+                <h1 style={stepCardTitleStyle}>
+                  <span className="su-sr-only">
+                    Step {active + 1} of {steps.length} ·{' '}
+                  </span>
+                  {title}
+                </h1>
+              </header>
+              <div style={stepCardBodyStyle}>{children}</div>
+            </article>
+          </div>
 
           {/* Footer — floats sticky at the bottom-right of the viewport as the
               content scrolls, so confirm/nav stays reachable without a
               full-width bar eating vertical space. The footer itself is
-              click-through (pointer-events-none); only the ink action pill
-              (mockup `.pill`) is interactive. Below the sm endpoint the pill
-              stacks with a full-width primary CTA on EVERY step — Back/Cancel
-              share a row above it.
-
-              With a `footerHud`, the pill is MOUNTED inside a wide paper bar that
-              also carries the step HUD (the mech Loadout gauges + chips) — one
-              floating interface, no second overlay competing for the corner. */}
-          <footer
-            className={footerHud ? 'wiz-footer--hud' : undefined}
-            style={footerHud ? footerStyle : footerPillStyle}
-          >
-            {footerHud ? (
-              <div className="wiz-hud" style={hudStyle}>
-                <div style={hudContentStyle}>{footerHud}</div>
-                {actionPill}
-              </div>
-            ) : (
-              actionPill
-            )}
-          </footer>
+              click-through (`pointer-events: none`); only the ink action pill
+              is interactive. Below the sm endpoint the pill stacks with a
+              full-width primary CTA on EVERY step — Back/Cancel share a row
+              above it. */}
+          <footer style={footerPillStyle}>{actionPill}</footer>
         </main>
       </div>
     </div>

@@ -46,7 +46,6 @@ afterEach(resetStores)
 
 /** Strip the fields mergeImport intentionally re-mints/remaps on import. */
 function stable(record: Record<string, unknown>): Record<string, unknown> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _gid, ...rest } = record
   return rest
 }

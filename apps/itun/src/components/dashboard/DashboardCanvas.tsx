@@ -3,7 +3,7 @@
  * a single `transform: scale(...)`, letterboxed, never scrolling (ADR-038
  * §9). It scales linearly to fill the available space: the
  * host is sized to the viewport height below its own top offset (nothing on the
- * ancestor chain establishes a height, so `h-full` alone would collapse to the
+ * ancestor chain establishes a height, so `height: 100%` alone would collapse to the
  * canvas's fixed 800px layout box and leave dead space below), then the canvas
  * grows uniformly to fill whichever axis binds first.
  *

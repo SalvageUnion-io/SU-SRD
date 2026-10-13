@@ -279,18 +279,6 @@ export function crewSlotsOf(
   return slots
 }
 
-/** The crew link filling one slot of a crawler, if any. */
-export function crewLinkFor(
-  links: readonly SoftLink[],
-  crawlerId: string,
-  slot: CrewSlot
-): SoftLink | undefined {
-  const key = slotKey(slot)
-  return links.find(
-    (l) => l.type === 'npc-to-crawler' && l.to.id === crawlerId && slotKey(l.slot) === key
-  )
-}
-
 /**
  * A crew slot's assignment as a sheet renders it (Q2): the link, and the NPC
  * it names when this view can read it. `npc` is null when the link is there

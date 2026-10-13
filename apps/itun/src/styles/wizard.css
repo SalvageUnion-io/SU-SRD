@@ -15,7 +15,7 @@
  * The breakpoints: sm 40rem, md 48rem, lg 64rem.
  */
 
-/* — Stacks: the `space-y-*` child-selector rule.
+/* — Stacks: a child-selector vertical rhythm.
    `:where()` keeps it at zero specificity, so a child's
    own margin still wins. — */
 :where(.wiz-stack > :not(:last-child)) {
@@ -131,7 +131,7 @@
   pointer-events: none;
 }
 
-/* The step labels show from 721px (the mockup's breakpoint). */
+/* The step labels show from 721px. */
 .wiz-rail-label {
   display: none;
 }
@@ -193,18 +193,6 @@
   }
 }
 
-/* The HUD footer: centred on a phone, right-aligned from sm. */
-.wiz-footer--hud {
-  justify-content: center;
-}
-
-.wiz-hud {
-  flex-direction: column;
-  gap: var(--space-10);
-  padding: var(--space-10);
-  width: 100%;
-}
-
 @media (min-width: 40rem) {
   .wiz-band {
     padding-inline: var(--space-28);
@@ -218,6 +206,12 @@
     padding-left: var(--space-20);
   }
 
+  /* The 48px gutter is LOAD-BEARING: the number tab (`.wiz-step-tab`,
+     `stepTabStyle` in WizShell.tsx) is 56px wide at -20px, so its right edge
+     lands 36px inside the card. 48px clears it by 12px; at 32px the tab would
+     print over the step title's first glyph and the RuleBrief panel's left
+     edge. Same overhang-plus-clearance relationship as `ModeDoor`'s tab. Move
+     one of the three numbers and you must move the others. */
   .wiz-step-card {
     padding-left: var(--space-48);
   }
@@ -244,18 +238,6 @@
   }
 
   .wiz-pill-cta {
-    width: auto;
-  }
-
-  .wiz-footer--hud {
-    justify-content: flex-end;
-  }
-
-  .wiz-hud {
-    flex-direction: row;
-    gap: var(--space-12);
-    max-width: 56rem;
-    padding-left: 0.875rem;
     width: auto;
   }
 }
@@ -300,7 +282,7 @@
 }
 
 /* — The builders' steps (crawler, pilot, mech) — */
-/* CrawlerBuilder, PilotWizard, MechWizard: the gap under each step's RuleBrief (`mb-5`).
+/* CrawlerBuilder, PilotWizard, MechWizard: the gap under each step's RuleBrief.
    A class, not a style object: RuleBrief takes no `style`. */
 .wiz-rule-brief {
   margin-bottom: var(--space-20);
@@ -317,7 +299,7 @@
   }
 }
 
-/* CrawlerIdentityStep: the Scrap Pool panel's padding (`p-4`). A class:
+/* CrawlerIdentityStep: the Scrap Pool panel's padding. A class:
    Panel takes no `style`. */
 .wiz-scrap-panel {
   padding: var(--space-16);
@@ -345,7 +327,7 @@
   }
 }
 
-/* CrawlerReviewStep, pilot ReviewStep: the kv-panel (`p-4 text-sm`). A class:
+/* CrawlerReviewStep, pilot ReviewStep: the kv-panel. A class:
    Panel takes no `style`. */
 .wiz-review-panel {
   padding: var(--space-16);
@@ -353,13 +335,13 @@
   line-height: calc(1.25 / 0.875);
 }
 
-/* Pilot ReviewStep: its kv-panel is itself the grid item (`self-start`). */
+/* Pilot ReviewStep: its kv-panel is itself the grid item, aligned to the start. */
 .wiz-review-panel--start {
   align-self: start;
 }
 
-/* CrawlerReviewStep, pilot and MechReviewStep: the submit error under the kv rows
-   (`mt-3`). A class: FieldError takes no `style`. */
+/* CrawlerReviewStep, pilot and MechReviewStep: the submit error under the kv rows.
+   A class: FieldError takes no `style`. */
 .wiz-review-error {
   margin-top: var(--space-12);
 }
@@ -375,16 +357,15 @@
   }
 }
 
-/* ClassPathPicker: the gap under each class card (`mb-1`). A class:
+/* ClassPathPicker: the gap under each class card. A class:
    ReferenceEntityCard takes no `style`. */
 .wiz-class-card {
   margin-bottom: var(--space-4);
 }
 
-/* MechChassisStep: the Custom-build door's double-ink halo when chosen (was an
-   arbitrary `shadow-[…]` utility; Sel takes no `style`). Unlayered, so it
-   beats Sel's layered `.su-selection-ring` and `.su-focus-ring:focus-visible`
-   exactly as the utility did. */
+/* MechChassisStep: the Custom-build door's double-ink halo when chosen (Sel
+   takes no `style`). Unlayered, so it beats Sel's layered
+   `.su-selection-ring` and `.su-focus-ring:focus-visible`. */
 .wiz-custom-build-ring {
   box-shadow:
     0 0 0 3px var(--ground),

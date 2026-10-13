@@ -12,12 +12,6 @@ import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 
 /**
- * useHydrateOnMount — the generalization for stores outside entityStore
- * (e.g. the encounter tray's injectable store): run the given hydrator once
- * on mount and flip to true when it resolves. The hydrator is captured on
- * first render only, matching the entity variant's once-on-mount semantics.
- */
-/**
  * "No error yet" sentinel. A plain `null`/`undefined` can't be used: a hydrator
  * that rejected with `null` or `undefined` would then be indistinguishable from
  * the initial state and NOT re-thrown — silently reproducing the stuck-skeleton
@@ -26,6 +20,12 @@ import { useEntityStore } from '../../stores/entityStore'
  */
 const NO_ERROR = Symbol('useHydrateOnMount.noError')
 
+/**
+ * useHydrateOnMount — the generalization for stores outside entityStore
+ * (e.g. the encounter tray's injectable store): run the given hydrator once
+ * on mount and flip to true when it resolves. The hydrator is captured on
+ * first render only, matching the entity variant's once-on-mount semantics.
+ */
 export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
   const [state, setState] = useState<{ hydrated: boolean; error: unknown }>({
     hydrated: false,
@@ -46,8 +46,6 @@ export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
     return () => {
       cancelled = true
     }
-    // Only run once on mount; hydrators close over stable Zustand singletons.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // A rejected hydration must surface as the nearest error boundary's recovery

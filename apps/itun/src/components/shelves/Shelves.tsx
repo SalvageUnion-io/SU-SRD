@@ -1,5 +1,5 @@
 /**
- * Shelves — everything you keep, on your account (board S1). The
+ * Shelves — everything you keep, on your account. The
  * page at `/` once you are signed in; signed out, `/` is the front door.
  *
  * "My Stuff" became Shelves: ADR-030 already called the personal container the

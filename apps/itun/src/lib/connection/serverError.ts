@@ -45,14 +45,3 @@ export function serverMessage(err: unknown): string | null {
     typeof data === 'object' && data !== null ? (data as { message?: unknown }).message : data
   return typeof message === 'string' && message.length > 0 ? message : null
 }
-
-/**
- * Whether this error is a deliberate refusal rather than a defect.
- *
- * Worth having as its own verb because the two call for opposite handling:
- * a refusal is the system working (show the message, do not alert an operator),
- * a defect is not (generic message, report it).
- */
-export function isServerRefusal(err: unknown): boolean {
-  return serverMessage(err) !== null
-}

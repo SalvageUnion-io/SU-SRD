@@ -32,10 +32,10 @@
  * `border` and `background`, so the default ring is the only affordance and it
  * is exactly what the rest of the app deliberately replaced.
  *
- * This is `FOCUS_RING` (chrome/interaction.ts) transcribed into CSS rather than
+ * This is `FOCUS_RING` (component-lib components/atoms/interaction.ts)
+ * transcribed into CSS rather than
  * a new treatment: the dashboard is a self-contained stylesheet by design, so
- * it restates the canonical rung instead of mixing utility classes into
- * markup that is otherwise class-driven.
+ * it restates the canonical rung in its own classes.
  *
  * It READS the canonical token rather than transcribing a literal, because the
  * ring must hold at least 3:1 against its ground (WCAG 2.4.11 / 1.4.11) and a
@@ -47,7 +47,8 @@
  * solid rust measures 2.97:1 on ink — a ring that fails on half of this file's
  * own surfaces.
  * `--focus-ring-shadow` is the two-ring construction that holds on every
- * ground; see the table above `.su-focus-ring` in `styles/index.css`.
+ * ground; see the table above `.su-focus-ring` in component-lib's
+ * `styles/partials/foundation.css`.
  *
  * Reading the token is also more faithful to the "restates the canonical rung"
  * intent above than re-transcribing it, and it removes one more place for the
@@ -141,8 +142,8 @@
   flex-direction: column;
   gap: 5px;
 }
-/* Two a row while each button keeps room for a spelled-out label (board D1:
-   TAKE DAMAGE, HEAT CHECK); a bay too narrow for two stacks them, rather
+/* Two a row while each button keeps room for a spelled-out label (TAKE
+   DAMAGE, HEAT CHECK); a bay too narrow for two stacks them, rather
    than a label running past the bay's edge. */
 .su-dash-btn-grid {
   display: grid;
@@ -248,7 +249,7 @@
   color: var(--color-ink);
 }
 
-/* ---- Actions deck (light display surface, Phase 5) ---- */
+/* ---- Actions deck (light display surface) ---- */
 .su-dash-deck {
   display: flex;
   flex-direction: column;
@@ -510,7 +511,7 @@
   border-color: var(--color-sheet-pilot-deep);
   box-shadow: inset 0 0 0 1px var(--color-sheet-pilot-deep);
 }
-/* ---- Crawler focus → Enter Downtime (light display, Phase 6) ---- */
+/* ---- Crawler focus → Enter Downtime (light display) ---- */
 .su-dash-crawler-focus-note {
   margin: 0;
   font-family: var(--font-body);
@@ -535,7 +536,7 @@
   gap: 8px;
   justify-content: center;
 }
-/* ---- Downtime wizard (light display, Phase 6) ---- */
+/* ---- Downtime wizard (light display) ---- */
 .su-dash-dt {
   display: flex;
   flex-direction: column;
@@ -554,8 +555,8 @@
   font-size: var(--text-note);
   color: var(--color-wk-muted);
 }
-/* The step name, notched in ink into the foot of its crawler-pink band
-   (board D3): the page ground cut out of the band, as a chapter title is. */
+/* The step name, notched in ink into the foot of its crawler-pink band: the
+   page ground cut out of the band, as a chapter title is. */
 .su-dash-dt-step-name {
   display: inline-block;
   margin: 0;
@@ -600,7 +601,7 @@
 /* DashboardGauge renders through the shared VitalGauge (surface="instrument");
    no bar styles live here. */
 
-/* ---- Phase 7 — cargo-hold overlay, table picker ---- */
+/* ---- Cargo-hold overlay and table picker ---- */
 
 /* Cargo-hold overlay body (inside the mech-band resolve overlay). */
 .su-dash-cargo {

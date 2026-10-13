@@ -4,7 +4,6 @@ import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components
 import {
   assignmentFor,
   crewAssignmentsOf,
-  crewLinkFor,
   crewSlotsOf,
   isNpcDown,
   npcAsReferenceEntity,
@@ -141,11 +140,9 @@ describe('a crawler’s crew slots', () => {
   test('the link filling a slot, and the assignment it makes', () => {
     const link = softLinkFixture('npc-to-crawler', 'n1', 'c1')
     const npc = npcFixture({ id: 'n1', name: 'Doc Ambrose' })
-    expect(crewLinkFor([link], 'c1', { kind: 'bay', bayRef: 'med-bay' })).toBe(link)
-    expect(crewLinkFor([link], 'c1', { kind: 'type' })).toBeUndefined()
-
     const crew = crewAssignmentsOf([link], 'c1', (id) => (id === 'n1' ? npc : null))
     expect(assignmentFor(crew, { kind: 'bay', bayRef: 'med-bay' })?.npc?.name).toBe('Doc Ambrose')
+    expect(assignmentFor(crew, { kind: 'type' })).toBeUndefined()
     // A link whose NPC cannot be read stays an assignment, with no NPC.
     expect(crewAssignmentsOf([link], 'c1', () => null)[0]?.npc).toBeNull()
   })

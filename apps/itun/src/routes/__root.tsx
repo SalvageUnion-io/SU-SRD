@@ -1,6 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import type { EntitySurfaceValue } from 'component-lib'
-import { EntityHrefProvider, EntitySurfaceProvider, Toaster, toast } from 'component-lib'
+import { EntityHrefProvider, EntitySurfaceProvider, Toaster } from 'component-lib'
 import { useState } from 'react'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
@@ -10,7 +10,6 @@ import {
   HeaderMobileActions,
 } from '../components/account/HeaderAccount'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
-import { CopyFeedbackProvider } from '../components/dashboard/useCopyFeedback'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppHeader } from '../components/shared/AppHeader'
 import { AppLink } from '../components/shared/AppLink'
@@ -48,11 +47,6 @@ export const Route = createRootRoute({
   component: RootComponent,
   errorComponent: RootErrorComponent,
 })
-
-/** RollTable's Copy confirmation, raised on the `<Toaster />` below. */
-function toastCopied() {
-  toast.success('Copied', { id: 'clipboard-copy', duration: 1500 })
-}
 
 /**
  * The Union bar with ITUN's slots filled. Its own component because its
@@ -125,26 +119,22 @@ function RootComponent() {
           <AccountReconciler />
           {/* A test seam, compiled out of production builds — see its header. */}
           <TestAuthBridge />
-          {/* Above the header, not just the routes: the search in AppHeader opens
-            entity detail modals whose RollTables raise the same Copy toast. */}
-          <CopyFeedbackProvider value={toastCopied}>
-            {/* The Page opener every Mention and Tag reads, and the app's Peek. */}
-            <EntityPageHost>
-              {onDashboard ? null : <RootHeader pathname={pathname} />}
-              {/* The skip link's target. A plain block, not a `<main>`: each
+          {/* The Page opener every Mention and Tag reads, and the app's Peek. */}
+          <EntityPageHost>
+            {onDashboard ? null : <RootHeader pathname={pathname} />}
+            {/* The skip link's target. A plain block, not a `<main>`: each
                 route draws its own `<main>` (a sheet's is `LiveSheet`), and a
                 second one would be a duplicate landmark. `tabIndex={-1}` makes
                 following the link move focus here, not just the scroll, so the
                 next Tab lands in the content instead of back in the bar. */}
-              <div id="main-content" tabIndex={-1}>
-                <GameDataReady>
-                  <Outlet />
-                </GameDataReady>
-              </div>
-              {/* The shared page foot, on every route. */}
-              <SiteFooter />
-            </EntityPageHost>
-          </CopyFeedbackProvider>
+            <div id="main-content" tabIndex={-1}>
+              <GameDataReady>
+                <Outlet />
+              </GameDataReady>
+            </div>
+            {/* The shared page foot, on every route. */}
+            <SiteFooter />
+          </EntityPageHost>
           <Toaster />
         </EntitySurfaceProvider>
       </EntityHrefProvider>

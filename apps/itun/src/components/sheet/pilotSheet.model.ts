@@ -31,7 +31,6 @@ import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilo
 import type { ClassLike } from '../pilot/abilityTrees.model'
 import { treesFor } from '../pilot/abilityTrees.model'
 import { useSoftLinks } from '../wiring/useSoftLinks'
-import { resolveAbility } from './pilotAbilities.model'
 import type { SheetStoreState } from './sheetViewProps.model'
 
 /**
@@ -132,7 +131,6 @@ export function usePilotSheetModel({
   // this call site is already correct for it.
   const scalingParent = useMemo(
     () => (effectiveCrawlerLevel !== undefined ? { techLevel: effectiveCrawlerLevel } : undefined),
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: effectiveCrawlerLevel is a derived scalar, memoized purely to keep the {techLevel} object identity stable for the ReferenceEntityCard subtree, which is NOT itself memoized (see the note above)
     [effectiveCrawlerLevel]
   )
 
@@ -181,7 +179,7 @@ export function usePilotSheetModel({
    * The Generic tree — EVERY pilot has all of it, so it is read from the
    * reference data rather than from `pilot.abilities` (which only ever holds
    * chosen, class-tree abilities). Keyed by the ability's slug, which
-   * `resolveAbility` accepts, so the used/recharge toggles persist like any
+   * `Abilities.getBySlug` accepts, so the used/recharge toggles persist like any
    * other ability.
    *
    * Guarded: read-only snapshot renders may not have preloaded the ORM, and a
@@ -207,11 +205,10 @@ export function usePilotSheetModel({
   const classAbilities = useMemo(() => {
     const entries: AbilityEntry[] = []
     for (const slug of pilot.abilities) {
-      const ability = resolveAbility(slug)
+      const ability = SalvageUnionReference.Abilities.getBySlug(slug)
       if (ability && ability.tree !== GENERIC_TREE) entries.push({ slug, ability })
     }
     return entries
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- keyed on the slug list; resolveAbility is a pure ORM lookup
   }, [pilot.abilities])
 
   // The trees those abilities come from, in the order the section prints them
@@ -225,7 +222,9 @@ export function usePilotSheetModel({
   }, [classAbilities, genericAbilities])
 
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
-  const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
+  const unresolvedAbilities = pilot.abilities.filter(
+    (slug) => !SalvageUnionReference.Abilities.getBySlug(slug)
+  )
 
   const hpParts = pilotMaxHPParts(statInput)
   const apParts = pilotMaxAPParts(statInput)

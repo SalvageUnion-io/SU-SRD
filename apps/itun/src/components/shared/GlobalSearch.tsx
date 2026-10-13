@@ -48,9 +48,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { useGameDataLoaded } from '../../hooks/useGameDataLoaded'
-import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
+
+/** The Union bar's desktop layout starts here (`lg`, 64rem): below it, the drawer. */
+const DESKTOP_QUERY = '(min-width: 64rem)'
 
 /** The button's name, the panel's and the input's: one thing, one name. */
 const LABEL = 'Search the SRD'
@@ -179,7 +182,7 @@ export function GlobalSearch({
   const [detailEntity, setDetailEntity] = useState<SURefEntity | undefined>(undefined)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const desktop = useIsDesktop()
+  const desktop = useMediaQuery(DESKTOP_QUERY)
   const ready = useGameDataLoaded()
   // Only the trigger on screen at this width shows the panel.
   const shown = open && (variant === 'bar') === desktop

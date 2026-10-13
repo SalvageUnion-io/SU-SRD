@@ -9,6 +9,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import { DOWNTIME_UPKEEP_SCRAP } from 'itun-domain/rules/downtime'
 import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
@@ -28,7 +29,6 @@ import {
   poolAvailableAtOrAbove,
   tradingAvailability,
   tradingSourceTl,
-  UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../crawlerEconomy'
 
@@ -125,7 +125,7 @@ describe('payUpkeep', () => {
     const payment = payUpkeep({ tl3: 7 }, 3)
     expect(payment).not.toBeNull()
     expect(payment?.pool).toEqual({ tl3: 2 })
-    expect(payment?.upgradeCredit).toBe(UPKEEP_SCRAP)
+    expect(payment?.upgradeCredit).toBe(DOWNTIME_UPKEEP_SCRAP)
   })
 
   it('accepts higher-TL scrap when the exact bucket is short', () => {
@@ -146,7 +146,7 @@ describe('upkeepShortfall', () => {
   it('is 0 when covered and the missing amount when short', () => {
     expect(upkeepShortfall({ tl2: 5 }, 2)).toBe(0)
     expect(upkeepShortfall({ tl2: 3, tl5: 1 }, 2)).toBe(1)
-    expect(upkeepShortfall({}, 2)).toBe(UPKEEP_SCRAP)
+    expect(upkeepShortfall({}, 2)).toBe(DOWNTIME_UPKEEP_SCRAP)
   })
 })
 

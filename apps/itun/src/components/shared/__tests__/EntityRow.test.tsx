@@ -78,39 +78,20 @@ describe('EntityRow — the game ontology', () => {
   })
 })
 
-/**
- * Unassign and Delete are different verbs — one ends an assignment, the other
- * destroys the entity — so they must not share a control or a name.
- */
-describe('EntityRow — unassign is not delete', () => {
+/** Unassign ends an assignment and leaves the entity alone. */
+describe('EntityRow — unassign', () => {
   test('Unassign is a labelled button named for the row, and fires its own handler', () => {
     const onUnassign = mock(() => {})
-    const onDelete = mock(() => {})
-    render(
-      <EntityRow
-        entityType="mech"
-        name="Iron Fist"
-        onUnassignClick={onUnassign}
-        onDeleteClick={onDelete}
-      />
-    )
+    render(<EntityRow entityType="mech" name="Iron Fist" onUnassignClick={onUnassign} />)
     const unassign = screen.getByRole('button', { name: 'Unassign Iron Fist' })
     expect(unassign.textContent).toContain('Unassign')
 
     fireEvent.click(unassign)
     expect(onUnassign).toHaveBeenCalledTimes(1)
-    expect(onDelete).not.toHaveBeenCalled()
   })
 
-  test('a row with only Unassign shows no Delete, and one with neither shows no Unassign', () => {
-    const { unmount } = render(
-      <EntityRow entityType="pilot" name="Yara Voss" onUnassignClick={() => {}} />
-    )
-    expect(screen.queryByRole('button', { name: /^Delete/ })).toBeNull()
-    unmount()
-
-    render(<EntityRow entityType="pilot" name="Yara Voss" onDeleteClick={() => {}} />)
+  test('a row with no Unassign handler shows no Unassign', () => {
+    render(<EntityRow entityType="pilot" name="Yara Voss" />)
     expect(screen.queryByRole('button', { name: /^Unassign/ })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Delete Yara Voss' })).toBeDefined()
   })
 })

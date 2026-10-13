@@ -30,6 +30,7 @@
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { GenericInventoryEntry, Pilot } from 'itun-domain/schemas/pilot'
 import { useState } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { enrichPilotSnapshot, pilotMaxAP, resolvePool } from 'salvageunion-reference/rules'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
@@ -42,7 +43,6 @@ import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import type { UsedToggleKey } from './PilotIdentity'
-import { resolveAbility } from './pilotAbilities.model'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
 type PilotSheetActionsOptions = {
@@ -177,7 +177,7 @@ export function usePilotSheetActions({
   function toggleAbility(slug: string) {
     const current = freshPilot()
     const removing = current.abilities.includes(slug)
-    const name = resolveAbility(slug)?.name ?? slug
+    const name = SalvageUnionReference.Abilities.getBySlug(slug)?.name ?? slug
     const abilities = removing
       ? current.abilities.filter((a) => a !== slug)
       : [...current.abilities, slug]

@@ -64,7 +64,6 @@ export const Default: Story = () => (
           meta={pilotClass?.name ?? 'Pilot'}
           stats={[{ label: 'HP', value: 16 }]}
           sheetHref="#/pilot/ace"
-          onDeleteClick={() => {}}
         />
       </li>
       <li>
@@ -76,7 +75,6 @@ export const Default: Story = () => (
             { label: 'SP', value: mech?.structurePoints ?? 12 },
           ]}
           sheetHref="#/mech/mule"
-          onDeleteClick={() => {}}
         />
       </li>
       <li>
@@ -88,7 +86,6 @@ export const Default: Story = () => (
             { label: 'SP', value: 20 },
           ]}
           sheetHref="#/crawler/hamlet"
-          onDeleteClick={() => {}}
         />
       </li>
     </ul>

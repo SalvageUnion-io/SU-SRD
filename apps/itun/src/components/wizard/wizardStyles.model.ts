@@ -14,7 +14,7 @@ export const stepColumnStyle: CSSProperties = { maxWidth: '48rem' }
 export const fieldRowStyle: CSSProperties = { display: 'flex', gap: tokens.space[8] }
 
 /**
- * Small body copy at the `text-sm` rung, whose line height (1.25rem) comes
+ * Small body copy at the `sm` size rung, whose line height (1.25rem) comes
  * with the size.
  */
 export const textSmStyle: CSSProperties = {

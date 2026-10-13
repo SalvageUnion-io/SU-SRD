@@ -183,20 +183,6 @@ const SEPARATOR = {
   margin: `${space[4]} 0`,
 } satisfies CSSProperties
 
-/** Clip to nothing without leaving the accessibility tree. */
-const VISUALLY_HIDDEN = {
-  border: 0,
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: '1px',
-  margin: '-1px',
-  overflow: 'hidden',
-  padding: 0,
-  position: 'absolute',
-  whiteSpace: 'nowrap',
-  width: '1px',
-} satisfies CSSProperties
-
 export function HeaderMenu({
   trigger,
   label,
@@ -259,7 +245,7 @@ export function HeaderMenu({
                       <span className="header-menu-item__hint" style={ITEM_HINT}>
                         {/* The two lines are separate blocks visually; this keeps
                             them separate words in the accessible name too. */}
-                        <span style={VISUALLY_HIDDEN}>, </span>
+                        <span className="su-sr-only">, </span>
                         {item.hint}
                       </span>
                     )}

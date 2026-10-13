@@ -89,18 +89,6 @@ const CATEGORY_GROUP = {
 
 const BACK_ROW = { marginBottom: tokens.space[10] } satisfies CSSProperties
 
-const VISUALLY_HIDDEN = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  margin: '-1px',
-  padding: 0,
-  overflow: 'hidden',
-  clip: 'rect(0, 0, 0, 0)',
-  whiteSpace: 'nowrap',
-  borderWidth: 0,
-} satisfies CSSProperties
-
 /** Home view: the search box + the SRD catalog's category sections. */
 function SrdHome({
   ready,
@@ -155,7 +143,7 @@ function SrdHome({
           aria-expanded={open}
           aria-controls={listboxId}
         />
-        <div style={VISUALLY_HIDDEN} aria-live="polite">
+        <div className="su-sr-only" aria-live="polite">
           {announcement}
         </div>
         {open ? (

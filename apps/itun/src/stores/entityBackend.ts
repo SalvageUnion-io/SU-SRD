@@ -116,7 +116,8 @@ function currentMode(): ConnectionMode {
  * Anonymous (`solo`) is `signedOut` unconditionally
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions)
  * decision 1). There is no build flag and no exemption for a browser that
- * already holds rows (ADR-035): the cache is never read signed out.
+ * already holds rows (ADR-035): there is no device cache to read signed out
+ * (lib/legacyCache.ts deletes the old one).
  */
 export function backendForMode(mode: ConnectionMode): BackendKind {
   if (mode === 'solo') return 'signedOut'

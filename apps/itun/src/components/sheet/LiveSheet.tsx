@@ -3,7 +3,7 @@
  * One shell, three variants, "so the three screens cannot drift apart".
  *
  * Render-prop contract (binding):
- *   { variant, name, strip, back, condense, renderBody, syncStats }
+ *   { variant, name, strip, back, renderBody, syncStats }
  *
  * App bar (poster `.appbar`, design source clean-pilot.html): back + overflow
  * are bordered square icon buttons, `.su-page-action` high, either side of the
@@ -81,8 +81,6 @@ type LiveSheetProps = {
    * wired compositions; omit to hide.
    */
   segments?: LiveSheetSegment[]
-  /** Sticky condense bar on scroll (default true — shipped tweak default). */
-  condense?: boolean
   /**
    * The sheet body. Workshop-Manual sheets fold their identity band into the
    * body's first region, so identity + vitals stay in one component with their
@@ -230,11 +228,10 @@ const BODY_FRAME = { position: 'relative' } satisfies CSSProperties
  * observer per S11; environments without IntersectionObserver (happy-dom,
  * very old browsers) simply never condense.
  */
-function useCondensed(target: RefObject<HTMLElement | null>, enabled: boolean): boolean {
+function useCondensed(target: RefObject<HTMLElement | null>): boolean {
   const [condensed, setCondensed] = useState(false)
 
   useEffect(() => {
-    if (!enabled) return
     const el = target.current
     if (!el || typeof IntersectionObserver === 'undefined') return
     const observer = new IntersectionObserver(
@@ -246,9 +243,9 @@ function useCondensed(target: RefObject<HTMLElement | null>, enabled: boolean): 
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [target, enabled])
+  }, [target])
 
-  return enabled && condensed
+  return condensed
 }
 
 export function LiveSheet({
@@ -257,7 +254,6 @@ export function LiveSheet({
   strip = [],
   back,
   segments,
-  condense = true,
   renderBody,
   syncStats,
   actions,
@@ -269,7 +265,7 @@ export function LiveSheet({
   // should seam and fill the moment you scroll past IT, rather than waiting for
   // a whole region to clear the viewport.
   const topRef = useRef<HTMLDivElement | null>(null)
-  const condensed = useCondensed(topRef, condense)
+  const condensed = useCondensed(topRef)
 
   const stripItems = strip.map((item) => ({
     ...item,
@@ -325,37 +321,33 @@ export function LiveSheet({
             A). Once the hero scrolls out of view it fades in the name stamp +
             kind pill + at-a-glance readouts (poster `.barname` + `.kindpill`)
             so the anchored bar keeps them in view (S11). */}
-        {condense && (
-          <div
-            data-sheet-strip=""
-            aria-hidden={!condensed}
-            style={condensed ? STRIP_SHOWN : STRIP_HIDDEN}
-          >
-            {/* The contents mount only while condensed: an invisible copy of
-                the name ahead of the hero h1 was the first match for a text
-                query, and a hidden duplicate is noise to every reader. */}
-            {condensed && (
-              <>
-                <Badge shape="stamp" size="full" style={NAME_STAMP}>
-                  {name}
-                </Badge>
-                {stripItems.map((item) => (
-                  <Stat
-                    key={item.key}
-                    orientation="horizontal"
-                    label={item.label}
-                    value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
-                    // Non-priority readouts fold below sm so the condensed
-                    // bar leads with Heat + SP on phones.
-                    className={
-                      item.mobilePriority === false ? 'su-sheet-live-stat-fold' : undefined
-                    }
-                  />
-                ))}
-              </>
-            )}
-          </div>
-        )}
+        <div
+          data-sheet-strip=""
+          aria-hidden={!condensed}
+          style={condensed ? STRIP_SHOWN : STRIP_HIDDEN}
+        >
+          {/* The contents mount only while condensed: an invisible copy of
+              the name ahead of the hero h1 was the first match for a text
+              query, and a hidden duplicate is noise to every reader. */}
+          {condensed && (
+            <>
+              <Badge shape="stamp" size="full" style={NAME_STAMP}>
+                {name}
+              </Badge>
+              {stripItems.map((item) => (
+                <Stat
+                  key={item.key}
+                  orientation="horizontal"
+                  label={item.label}
+                  value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
+                  // Non-priority readouts fold below sm so the condensed
+                  // bar leads with Heat + SP on phones.
+                  className={item.mobilePriority === false ? 'su-sheet-live-stat-fold' : undefined}
+                />
+              ))}
+            </>
+          )}
+        </div>
 
         {/* One badge PER LINKED UNIT, on the right beside the sheet actions —
             a hop straight to that pilot / mech / crawler, not a jump link to a

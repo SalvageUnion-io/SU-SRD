@@ -8,8 +8,9 @@ import {
   PILOT_BASE_AP,
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
+  PILOT_CREATION_ABILITY_PICKS,
+  PILOT_CREATION_EQUIPMENT_PICKS,
 } from 'salvageunion-reference/rules'
-import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
 import type { PilotWizardStepId } from '../../lib/rules/creation'
 import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
@@ -232,7 +233,7 @@ export function PilotWizard({
       const target = Math.max(0, next)
       if (target === current) return prev
       if (target > current) {
-        const room = STARTING_EQUIPMENT_BUDGET - prev.equipment.length
+        const room = PILOT_CREATION_EQUIPMENT_PICKS - prev.equipment.length
         const add = Math.min(target - current, Math.max(0, room))
         if (add <= 0) return prev
         return {
@@ -373,7 +374,7 @@ export function PilotWizard({
             value={
               <span data-testid="ability-count">
                 {form.abilities.length}
-                {` / ${STARTING_ABILITY_BUDGET}`}
+                {` / ${PILOT_CREATION_ABILITY_PICKS}`}
               </span>
             }
           />
@@ -385,7 +386,7 @@ export function PilotWizard({
             value={
               <span data-testid="equipment-count">
                 {form.equipment.length}
-                {` / ${STARTING_EQUIPMENT_BUDGET}`}
+                {` / ${PILOT_CREATION_EQUIPMENT_PICKS}`}
               </span>
             }
           />
@@ -435,7 +436,7 @@ export function PilotWizard({
         <EquipmentStep
           selectedEquipment={form.equipment}
           onCountChange={handleEquipmentCount}
-          budget={STARTING_EQUIPMENT_BUDGET}
+          budget={PILOT_CREATION_EQUIPMENT_PICKS}
           _sur={{ Equipment: sur.Equipment }}
         />
       )}

@@ -10,7 +10,7 @@ import {
   weight,
 } from 'component-lib/design/tokens'
 import type { LucideIcon } from 'lucide-react'
-import { Bot, Trash2, Unlink, UserRound, Users, Warehouse } from 'lucide-react'
+import { Bot, Unlink, UserRound, Users, Warehouse } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
 
@@ -94,21 +94,9 @@ type FilledEntityRowProps = {
    *
    * This is the row's PRIMARY register: what a reader scans a column of forty
    * rows for. Keep it short. A band asked to carry six cells stops being a
-   * scannable edge and becomes a queue — put the rest in `bodyStats`.
+   * scannable edge and becomes a queue.
    */
   stats?: EntityRowStat[]
-  /**
-   * The SECONDARY stats, rendered in the body beside the controls.
-   *
-   * Same cell, same primitive, lower billing — for facts that belong to the row
-   * but are not what you scan it for. A Game states what the table IS in the
-   * band (its crawler, its pilots, its mechs) and your standing at it down here
-   * (your role, the member count, the template it came from).
-   *
-   * The split is the point. Everything was briefly in the band, which made the
-   * one line a reader is meant to scan the longest line on the row.
-   */
-  bodyStats?: EntityRowStat[]
   /**
    * Class/role label(s) beside the stats — rendered as ontology-toned Badges
    * (pilot → orange, mech → green, crawler → pink, game → blue), never plain
@@ -163,9 +151,6 @@ type FilledEntityRowProps = {
    * to get client-side navigation; it receives `href` and `className`.
    */
   linkAs?: ElementType
-  /** Fired when the ghost trash Delete button is pressed. Omit to hide the
-   * Delete button entirely (e.g. read-only poster surfaces). */
-  onDeleteClick?: () => void
   /**
    * Fired when the Unassign button is pressed. Omit to hide it.
    *
@@ -177,7 +162,7 @@ type FilledEntityRowProps = {
    */
   onUnassignClick?: () => void
   /**
-   * Extra trailing controls, rendered before View/Delete.
+   * Extra trailing controls, rendered before View/Unassign.
    *
    * Deliberately a slot rather than a set of named props: what a row can do
    * depends on the surface it is listed on, and the two known consumers already
@@ -421,14 +406,6 @@ const VIEW_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
 
 const UNASSIGN_GLYPH = { height: space[14], width: space[14] } satisfies CSSProperties
 
-/** Static half of the Delete button; its colours are `.entity-row__delete`. */
-const DELETE_BUTTON = {
-  borderColor: 'transparent',
-  paddingInline: space[8],
-} satisfies CSSProperties
-
-const DELETE_GLYPH = { height: space[16], width: space[16] } satisfies CSSProperties
-
 const SEAL_INSET = { right: space[12] } satisfies CSSProperties
 
 export function EntityRow(props: EntityRowProps) {
@@ -467,12 +444,10 @@ export function EntityRow(props: EntityRowProps) {
     entityType,
     name,
     stats,
-    bodyStats,
     meta,
     metaLine,
     seal,
     sheetHref,
-    onDeleteClick,
     onUnassignClick,
     actions,
     linkAs: Link = 'a',
@@ -486,11 +461,9 @@ export function EntityRow(props: EntityRowProps) {
   const hasBody =
     captionParts.length > 0 ||
     metaBadges.length > 0 ||
-    (bodyStats?.length ?? 0) > 0 ||
     !!actions ||
     sheetHref !== undefined ||
-    !!onUnassignClick ||
-    !!onDeleteClick
+    !!onUnassignClick
 
   return (
     <div
@@ -589,17 +562,6 @@ export function EntityRow(props: EntityRowProps) {
                 with four buttons truncated its chips rather than dropping the
                 controls to their own line. */}
             <div style={ROW_DETAILS}>
-              {/* The SECONDARY stats — the same cell as the band's, in the
-                  quieter register. See `bodyStats`. */}
-              {bodyStats?.map((stat) => (
-                <Stat
-                  key={String(stat.label)}
-                  label={stat.label}
-                  value={stat.value}
-                  orientation="horizontal"
-                  size="mini"
-                />
-              ))}
               {/* The class/role badge is keyed to the entity's ontology tone
                   (pilot → orange, mech → green, crawler → pink, game → blue). */}
               {metaBadges.map((badge, i) => (
@@ -664,18 +626,6 @@ export function EntityRow(props: EntityRowProps) {
                   glyph={<Unlink style={UNASSIGN_GLYPH} />}
                 >
                   Unassign
-                </Button>
-              )}
-              {onDeleteClick && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  aria-label={`Delete ${name}`}
-                  onClick={onDeleteClick}
-                  className="entity-row__delete"
-                  style={DELETE_BUTTON}
-                >
-                  <Trash2 aria-hidden="true" style={DELETE_GLYPH} />
                 </Button>
               )}
             </div>
