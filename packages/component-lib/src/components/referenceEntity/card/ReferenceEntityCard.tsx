@@ -658,7 +658,6 @@ function ReferenceEntityCardInner({
     actionsNode,
     patternSection,
     pageLoadout,
-    patternLeads,
     nestedGroupsNode,
   } = resolveCardSections(bodyInput, resolved)
 
@@ -744,9 +743,8 @@ function ReferenceEntityCardInner({
         <CardFacets facets={facets} leading={suggestedNode} size={size} />
         {body}
         {rollTableNode}
-        {patternLeads && patternSection}
+        {patternSection}
         {actionsNode}
-        {!patternLeads && patternSection}
         {nestedGroupsNode}
         {/* BASIC CHASSIS → its patterns as head rows. */}
         {!hide?.patterns && patternList.length > 0 && (

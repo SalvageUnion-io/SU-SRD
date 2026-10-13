@@ -87,9 +87,9 @@ export function FoldedActionProse({
 /**
  * PATTERN PROSE — the pattern's OWN flavour, name-tabbed like a folded
  * action's prose so it can't be mistaken for the chassis prose that leads the
- * body. It renders between the chassis ability and the loadout groups, which
- * is what makes a pattern view read chassis → chassis ability → pattern →
- * systems → modules. (A `head` pattern row surfaces this same text as its
+ * body. It renders ahead of the loadout groups, so a pattern view reads
+ * chassis → pattern → systems → modules (a pattern PAGE sets the chassis
+ * ability before its loadout). (A `head` pattern row surfaces this same text as its
  * header hint and returns before the body, so it never doubles up.)
  */
 export function PatternProse({

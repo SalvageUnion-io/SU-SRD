@@ -158,6 +158,7 @@ export function resolveBodyProse(input: CardBodyInput) {
     schemaName,
     pattern,
     isCatalog,
+    onPage,
     depth,
     isGrantingAbility,
     foldedAction,

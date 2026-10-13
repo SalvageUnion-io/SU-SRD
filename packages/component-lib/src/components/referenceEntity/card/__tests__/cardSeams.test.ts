@@ -263,6 +263,7 @@ describe('nestedSections', () => {
     const common = {
       entity: chassis,
       pattern: undefined,
+      onPage: false,
       depth: 0,
       isGrantingAbility: false,
       foldedAction: undefined,
@@ -275,5 +276,25 @@ describe('nestedSections', () => {
     const page = resolveNestedSections({ ...common, schemaName: 'chassis', isCatalog: false })
     expect(page.canExpand).toBe(true)
     expect(page.patternList.length).toBeGreaterThan(0)
+  })
+
+  test('the chassis ability resolves only on a page, for a chassis and its pattern', () => {
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as SURefMetaEntity
+    const pattern = SalvageUnionReference.Chassis.getByName('Mule')?.patterns?.[0]
+    const common = {
+      entity: chassis,
+      schemaName: 'chassis' as const,
+      isCatalog: false,
+      depth: 0,
+      isGrantingAbility: false,
+      foldedAction: undefined,
+      droneLoadout: undefined,
+    }
+    for (const view of [undefined, pattern]) {
+      const page = resolveNestedSections({ ...common, pattern: view, onPage: true })
+      expect(page.chassisAbilityEntities.length).toBeGreaterThan(0)
+      const card = resolveNestedSections({ ...common, pattern: view, onPage: false })
+      expect(card.chassisAbilityEntities).toEqual([])
+    }
   })
 })

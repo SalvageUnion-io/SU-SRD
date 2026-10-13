@@ -100,7 +100,8 @@ describe('lookupCard — the card', () => {
     const text = cardText(card)
     expect(text).toContain('-# CHASSIS\n## [Goliath](https://salvageunion.io/chassis/goliath)')
     expect(text).toContain('`13` STRUCTURE PTS. · `11` ENERGY PTS. · `12` HEAT CAP.')
-    expect(text).toContain('### Scrap Plating')
+    // The chassis ability shows only on the chassis and pattern pages.
+    expect(text).not.toContain('Scrap Plating')
   })
 
   test('a weapon system prints its facets as cells and its traits as links', () => {
@@ -119,7 +120,7 @@ describe('lookupCard — the card', () => {
     expect(text).not.toContain('(Multi-Function Repair Arm)')
   })
 
-  test('chassis ability text never leaks the [(CHASSIS)] placeholder', () => {
+  test('a chassis card never leaks the [(CHASSIS)] placeholder', () => {
     for (const chassis of SalvageUnionReference.Chassis.all()) {
       const text = cardText(
         lookupCard({ schemaName: 'chassis', entity: { ...chassis, schemaName: 'chassis' } })

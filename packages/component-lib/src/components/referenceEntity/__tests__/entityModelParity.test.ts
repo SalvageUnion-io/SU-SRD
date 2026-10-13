@@ -346,6 +346,8 @@ describe('toEntityModel parity, every entity', () => {
         schemaName,
         pattern: undefined,
         isCatalog: false,
+        // The model is the PAGE's: a chassis ability shows only there.
+        onPage: true,
         depth: 0,
         isGrantingAbility: isAbility(entity) && resolveGrantedEntities(entity as never).length > 0,
         foldedAction: folded,

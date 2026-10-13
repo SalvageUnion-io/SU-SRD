@@ -360,7 +360,9 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
     ...contentMarkdown(foldedProse, chassisName),
   ]
 
-  const actions = [...model.abilities, ...model.actions].flatMap((ref) => {
+  // A chassis ability shows only on the chassis and pattern PAGES; a card in
+  // Discord is a card, so it carries the other actions alone.
+  const actions = model.actions.flatMap((ref) => {
     const band = actionBand(ref, model.title, chassisName)
     return band ? [band] : []
   })

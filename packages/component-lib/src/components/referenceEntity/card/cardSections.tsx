@@ -73,7 +73,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   const {
     canExpand,
     nestedGroups,
-    chassisAbilityEntities,
     patternGroups,
     patternActions,
     droneInfos,
@@ -250,8 +249,9 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   ) : null
 
   // PATTERN view → the pattern's own prose, then what it changes. On a card it
-  // follows the chassis ability and leads any other action; on a page only its
-  // prose leads (`opening`), and the loadout follows the stats (`pageLoadout`).
+  // leads the actions (a card never carries the chassis ability); on a page
+  // only its prose leads (`opening`), and the loadout follows the stats and the
+  // chassis ability (`pageLoadout`).
   const patternSection = isPattern ? (
     <PatternSection
       prose={patternProse}
@@ -263,8 +263,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     />
   ) : null
   const pageLoadout = isPattern && !hide?.patterns ? inFlowGroups : []
-  // With no chassis ability to follow, the pattern leads the actions.
-  const patternLeads = chassisAbilityEntities.length === 0
 
   // NESTED ENTITIES — each group stacked in the frame, on a card or a page
   // alike; every child wears its own type stamp, so no group is labelled.
@@ -297,7 +295,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     actionsNode,
     patternSection,
     pageLoadout,
-    patternLeads,
     nestedGroupsNode,
   }
 }

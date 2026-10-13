@@ -1,11 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import {
-  getChassisAbilities,
-  normalizePatternName,
-  SalvageUnionReference,
-} from 'salvageunion-reference'
+import { normalizePatternName, SalvageUnionReference } from 'salvageunion-reference'
 import { space, fontSize as typeScale, weight } from '../../../design/tokens'
 import { Badge } from '../../atoms/Badge'
 import { Slab } from '../../atoms/Slab'
@@ -19,7 +15,6 @@ import {
   getReferenceEntitySpacing,
   stackClassName,
 } from '../referenceEntityTypes'
-import { ChassisAbilitiesContent } from './ChassisAbilitiesContent'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { computeSvOverride, resolvePatternOverride } from './patternOverrideUtils'
 import { quotePatternName } from './quotePatternName'
@@ -54,7 +49,8 @@ type ChassisPatternConfig = {
   statsOverride: StatItem[]
   /** Show only primary stats in header */
   primaryStatsOnly: boolean
-  /** The complete abilities section (pattern info + abilities + drone equipment) */
+  /** The pattern's own section (its stamps and prose). A pattern CARD never
+   * carries the chassis ability: that shows only on a page. */
   abilitiesSection: ReactNode | null
   /** The pattern systems/modules block for extra content */
   afterExtraContent: ReactNode | null
@@ -88,7 +84,6 @@ export function useChassisPatternConfig(
     () => (patternOverride ? computeSvOverride(data, patternOverride) : undefined),
     [data, patternOverride]
   )
-  const chassisAbilities = useMemo(() => getChassisAbilities(data), [data])
 
   const resolvedSystems = useMemo(
     () =>
@@ -117,8 +112,6 @@ export function useChassisPatternConfig(
   )
 
   if (!patternOverride) return null
-
-  const hasChassisAbilities = !!chassisAbilities && chassisAbilities.length > 0
 
   const titleOverride = quotePatternName(patternOverride.name)
 
@@ -151,58 +144,38 @@ export function useChassisPatternConfig(
   ]
   const primaryStatsOnly = compact
 
-  const abilitiesSection =
-    hasChassisAbilities || overridePatternData ? (
-      <div className={stackClassName(spacing.sectionGap)}>
-        {overridePatternData && (
-          <div className={stackClassName(spacing.smallGap)}>
-            {/*
-             * The row is `items-center`, so `self-start` is load-bearing: these
-             * three stamps carry different font sizes and must stay TOP aligned,
-             * not centred against the tallest. The line-height of 1 is set with
-             * the font size, which would otherwise bring its own.
-             */}
-            <div style={stampRowStyle}>
-              <Badge
-                shape="stamp"
-                size="mini"
-                style={headerStampStyle(compact ? 'xs' : 'sm', weight.bold)}
-              >
-                {normalizePatternName(overridePatternData.name)}
-              </Badge>
-              {overridePatternData.page && (
-                <Badge shape="stamp" size="mini" style={headerStampStyle('xs', weight.semibold)}>
-                  Page {overridePatternData.page}
-                </Badge>
-              )}
-              {!compact && overridePatternData.source && (
-                <Badge
-                  shape="stamp"
-                  size="mini"
-                  style={headerStampStyle('xs', weight.semibold, 0.7)}
-                >
-                  {overridePatternData.source}
-                </Badge>
-              )}
-            </div>
-            {overridePatternData.content && overridePatternData.content.length > 0 && (
-              <Content
-                body={overridePatternData.content}
-                fontSize={fontSize.sm}
-                compact={compact}
-              />
-            )}
-          </div>
+  const abilitiesSection = overridePatternData ? (
+    <div className={stackClassName(spacing.smallGap)}>
+      {/*
+       * The row is `items-center`, so `self-start` is load-bearing: these
+       * three stamps carry different font sizes and must stay TOP aligned,
+       * not centred against the tallest. The line-height of 1 is set with
+       * the font size, which would otherwise bring its own.
+       */}
+      <div style={stampRowStyle}>
+        <Badge
+          shape="stamp"
+          size="mini"
+          style={headerStampStyle(compact ? 'xs' : 'sm', weight.bold)}
+        >
+          {normalizePatternName(overridePatternData.name)}
+        </Badge>
+        {overridePatternData.page && (
+          <Badge shape="stamp" size="mini" style={headerStampStyle('xs', weight.semibold)}>
+            Page {overridePatternData.page}
+          </Badge>
         )}
-        {hasChassisAbilities && (
-          <ChassisAbilitiesContent
-            chassisName={chassisName}
-            compact={compact}
-            chassisAbilities={chassisAbilities}
-          />
+        {!compact && overridePatternData.source && (
+          <Badge shape="stamp" size="mini" style={headerStampStyle('xs', weight.semibold, 0.7)}>
+            {overridePatternData.source}
+          </Badge>
         )}
       </div>
-    ) : null
+      {overridePatternData.content && overridePatternData.content.length > 0 && (
+        <Content body={overridePatternData.content} fontSize={fontSize.sm} compact={compact} />
+      )}
+    </div>
+  ) : null
 
   const hasSystems = resolvedSystems.length > 0
   const hasModules = resolvedModules.length > 0

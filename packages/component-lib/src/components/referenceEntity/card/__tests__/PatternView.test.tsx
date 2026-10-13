@@ -7,8 +7,10 @@
  *    pattern's own page, resolved through `PatternHrefProvider`.
  * 2. With no provider (an app whose patterns have no pages) the row stays inert
  *    rather than linking nowhere.
- * 3. The full pattern view reads chassis prose → chassis ability → pattern prose
- *    → systems → modules, so the pattern is framed by the chassis it belongs to.
+ * 3. The full pattern view reads chassis prose → pattern prose → systems →
+ *    modules, so the pattern is framed by the chassis it belongs to.
+ * 4. The chassis ability shows only on a PAGE — the chassis page and its
+ *    pattern pages — never on a card, a catalog tile or a nested card.
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
@@ -81,8 +83,56 @@ describe('chassis pattern rows', () => {
   })
 })
 
+/** How many times the Mule's chassis ability prints. */
+const abilityCount = (container: HTMLElement) =>
+  (container.textContent ?? '').split('Integrated Cargo Bay').length - 1
+
+describe('the chassis ability shows only on a page', () => {
+  const hauler = () => {
+    const pattern = mule().patterns?.find((p) => p.name === 'Hauler')
+    if (!pattern) throw new Error('Hauler pattern fixture missing')
+    return pattern
+  }
+
+  test('the chassis page shows it once', () => {
+    const { container } = render(<ReferenceEntityCard data={mule()} presentation="page" />)
+    expect(abilityCount(container)).toBe(1)
+    expect(container.querySelector('.su-entity-page__lead')).not.toBeNull()
+  })
+
+  test('the pattern page shows it once, ahead of its Systems and Modules', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={mule()} pattern={hauler()} presentation="page" />
+    )
+    expect(abilityCount(container)).toBe(1)
+    const lead = container.querySelector('.su-entity-page__lead')
+    const loadout = container.querySelector('.su-entity-page__loadout')
+    expect(lead && loadout).toBeTruthy()
+    expect(
+      !!lead &&
+        !!loadout &&
+        !!(lead.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
+  })
+
+  for (const [form, card] of [
+    ['a chassis card', () => <ReferenceEntityCard data={mule()} size="large" />],
+    ['a chassis catalog tile', () => <ReferenceEntityCard data={mule()} extent="catalog" />],
+    ['a pattern card', () => <ReferenceEntityCard data={mule()} pattern={hauler()} />],
+    [
+      'a nested chassis card on a page',
+      () => <ReferenceEntityCard data={mule()} depth={1} presentation="page" />,
+    ],
+  ] as const) {
+    test(`${form} does not show it`, () => {
+      const { container } = render(card())
+      expect(abilityCount(container)).toBe(0)
+    })
+  }
+})
+
 describe('full pattern view reading order', () => {
-  test('reads chassis prose → chassis ability → pattern prose → systems → modules', () => {
+  test('reads chassis prose → pattern prose → systems → modules', () => {
     const chassis = mule()
     const pattern = chassis.patterns?.find((p) => p.name === 'Hauler')
     if (!pattern) throw new Error('Hauler pattern fixture missing')
@@ -93,16 +143,14 @@ describe('full pattern view reading order', () => {
     const text = container.textContent ?? ''
 
     const chassisProse = text.indexOf("The 'M-63' Mule was developed")
-    const chassisAbility = text.indexOf('Integrated Cargo Bay')
     const patternProse = text.indexOf('This Mule, favoured by wastelanders')
     const systems = text.indexOf('Transport Hold')
     const modules = text.indexOf('Reactor Flare')
 
-    for (const index of [chassisProse, chassisAbility, patternProse, systems, modules]) {
+    for (const index of [chassisProse, patternProse, systems, modules]) {
       expect(index).toBeGreaterThan(-1)
     }
-    expect(chassisProse).toBeLessThan(chassisAbility)
-    expect(chassisAbility).toBeLessThan(patternProse)
+    expect(chassisProse).toBeLessThan(patternProse)
     expect(patternProse).toBeLessThan(systems)
     expect(systems).toBeLessThan(modules)
   })

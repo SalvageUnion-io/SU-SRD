@@ -89,8 +89,8 @@ describe('discordCardParts', () => {
     )
     expect(systems.count).toBe(7)
     expect(systems.line).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
-    // The chassis placeholder names the chassis, never the pattern.
-    expect(parts.actions.map((action) => action.text).join('\n')).toContain('of The Mule')
+    // The chassis ability shows only on the chassis and pattern pages.
+    expect(parts.actions).toEqual([])
   })
 
   test('renders every entity without throwing, and never leaves raw [[ markup', () => {
