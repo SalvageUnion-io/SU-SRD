@@ -13,7 +13,7 @@ import { Slab } from '../atoms/Slab'
  * What each tool adds is a prop: an `href` per step (the SRD opens the book's
  * creation guide; ITUN, signed out, has nowhere to send them yet).
  *
- * The three steps are one box, ruled between steps: stacked in the SRD's
+ * The three steps are one box, with no rules between them: stacked in the SRD's
  * 20rem sidebar and on a phone, three across once the box is 48rem wide
  * (ITUN's front door) — the `.su-start-here__steps` container query.
  */
@@ -56,7 +56,7 @@ const SECTION = {
   gap: space[16],
 } satisfies CSSProperties
 
-/** The one box the three steps share; its rules between steps are the class's. */
+/** The one box the three steps share. */
 const STEPS = {
   backgroundColor: color.paper,
   borderColor: color.ink,
