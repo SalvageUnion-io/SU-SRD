@@ -151,7 +151,11 @@
   padding: var(--space-8) var(--space-10) 0;
 }
 
-.su-entity-row__head[data-notch] .su-entity-row__line > :not(.su-entity-row__name),
+/* Not the heading: it holds the tab, which must reach the band's foot so it
+   opens into the body with no band showing under it. */
+.su-entity-row__head[data-notch]
+  .su-entity-row__line
+  > :not(.su-entity-row__name, .su-entity-row__heading),
 .su-entity-row__head[data-notch] .su-entity-row__labels {
   align-self: center;
   margin-bottom: var(--space-4);
@@ -232,11 +236,11 @@
 }
 
 /* Every header chip floats right on the band: beside the name while they
-   fit, and over its right end when they rise above it. */
+   fit, centred on its line of text, and over its right end when they rise
+   above it. */
 .su-entity-row__heading--cut > .su-chips,
 .su-entity-row__heading--cut > .su-entity-row__chip-group {
   justify-content: flex-end;
-  margin-bottom: var(--space-4);
   margin-left: auto;
 }
 
