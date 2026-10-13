@@ -60,10 +60,8 @@ describe('PatternList', () => {
     // Titled in typographic quotes, as on the Save preview and the public page.
     expect(screen.getByText('“Tow Rig”')).toBeTruthy()
     expect(screen.queryByText('"Tow Rig"')).toBeNull()
-    const dashed = [...container.querySelectorAll<HTMLElement>('div')].filter(
-      (el) => el.style.borderStyle === 'dashed'
-    )
-    expect(dashed.length).toBeGreaterThan(0)
+    // The frame's dashes ride `data-user-made` (`.su-entity-row__frame[data-user-made]`).
+    expect(container.querySelector('.su-entity-row__frame[data-user-made]')).not.toBeNull()
     expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
     expect(screen.queryByText(/Chassis: scrapper/)).toBeNull()
     expect(screen.getByRole('button', { name: /Build this mech/ })).toBeTruthy()

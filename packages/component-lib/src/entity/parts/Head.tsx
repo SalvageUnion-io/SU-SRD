@@ -1,49 +1,10 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Badge } from '../../components/atoms/Badge'
-import { grainStyle } from '../../components/referenceEntity/card/cardGrain'
-import { font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { grainClass } from '../../components/referenceEntity/card/cardGrain'
+import { font } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import type { Paint } from './paint'
 import { PAPER_NAME } from './paint'
-
-/** The title: the row's room, two lines, then "…" (its full name in a tooltip). */
-const TITLE: CSSProperties = {
-  display: '-webkit-box',
-  flex: '1 1 0',
-  fontFamily: font.cond,
-  fontSize: fontSize.title,
-  fontWeight: weight.extrabold,
-  letterSpacing: tracking.capsTight,
-  lineHeight: 1.05,
-  margin: 0,
-  minWidth: 0,
-  overflow: 'hidden',
-  overflowWrap: 'anywhere',
-  textTransform: 'uppercase',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-}
-
-/** The name and its labels: the row's room, the labels right after the name. */
-const NAME: CSSProperties = {
-  alignItems: 'center',
-  columnGap: space[8],
-  display: 'flex',
-  flex: '1 1 0',
-  minWidth: 0,
-}
-
-/**
- * Beside its labels the name gives way first, wrapping at spaces (a high
- * shrink), but keeps its longest word whole: only then do the labels give way.
- */
-const NAME_TITLE: CSSProperties = {
-  flex: '0 100 auto',
-  minWidth: 'min-content',
-  overflowWrap: 'break-word',
-}
-
-/** The labels give way once the name cannot wrap further, truncating with "…". */
-const LABELS: CSSProperties = { display: 'flex', flex: '0 1 auto', minWidth: 0 }
 
 /** A one-line hint on the band (a pattern row's description), truncated. */
 const HINT: CSSProperties = {
@@ -58,15 +19,12 @@ const HINT: CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
-/** The one line that never wraps: tier, name and labels, hint, stamps, pennant, affordance. */
-const LINE: CSSProperties = {
-  alignItems: 'center',
-  columnGap: space[8],
-  display: 'flex',
-  flex: '1 1 auto',
-  flexWrap: 'nowrap',
-  minWidth: 0,
-}
+/*
+ * The band's parts are `.su-entity-row__*` classes (`styles/index.css`), not
+ * style objects: a listing repeats them on every row, so inline they were a
+ * large share of each page (ADR-046, repeated elements). What varies by row
+ * (the paint) stays inline.
+ */
 
 export type HeadProps = {
   title: string
@@ -109,37 +67,22 @@ export function Head({
   affordance,
   labels,
 }: HeadProps) {
-  const ink = { color: paint.color }
   return (
     <div
-      className="su-entity-row__head"
+      className={cn('su-entity-row__head', grainClass(paint.grain))}
       data-fill={paint.ink ? 'ink' : 'tone'}
       data-grain={paint.grain}
-      style={{
-        ...grainStyle(paint.grain),
-        backgroundColor: paint.background,
-        color: paint.color,
-        display: 'flex',
-        flexDirection: 'column',
-        minWidth: 0,
-        padding: `${space[6]} ${space[10]}`,
-      }}
+      style={{ backgroundColor: paint.background, color: paint.color }}
     >
-      <div className="su-entity-row__line" style={LINE}>
-        {tier && (
-          <span style={{ ...TITLE, display: 'inline', flex: 'none', opacity: 0.75 }}>{tier}</span>
-        )}
-        <div style={NAME}>
+      <div className="su-entity-row__line">
+        {tier && <span className="su-entity-row__tier">{tier}</span>}
+        <div className="su-entity-row__name">
           {titleSlot ?? (
-            <TitleTag
-              className="su-entity-row__title"
-              title={title}
-              style={{ ...TITLE, ...ink, ...NAME_TITLE }}
-            >
+            <TitleTag className="su-entity-row__title" title={title} style={{ color: paint.color }}>
               {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
             </TitleTag>
           )}
-          {labels && <div style={LABELS}>{labels}</div>}
+          {labels && <div className="su-entity-row__labels">{labels}</div>}
         </div>
         {hint && <span style={HINT}>{hint}</span>}
         {stamps.map((stamp) => (

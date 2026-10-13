@@ -5,7 +5,6 @@ import { CardLabels } from '../../components/referenceEntity/card/CardLabels'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import { CardPennant } from '../../components/referenceEntity/card/CardPennant'
-import { space } from '../../design/tokens'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -73,29 +72,13 @@ export type RowProps = {
 
 const READ: EntityMode = { kind: 'read' }
 
-const BODY: CSSProperties = {
-  alignContent: 'flex-start',
-  alignItems: 'center',
-  borderTop: 'var(--bw-chrome) solid var(--color-ink)',
-  display: 'flex',
-  flex: '1 1 auto',
-  flexWrap: 'wrap',
-  gap: space[4],
-  padding: `${space[4]} ${space[10]} ${space[6]}`,
-}
-
-/** The frame: ink on paper, dashed when player-made (ruleset §3.9). */
-function frameOf(userMade: boolean, selected: boolean): CSSProperties {
-  return {
-    backgroundColor: 'var(--color-paper)',
-    borderColor: 'var(--color-ink)',
-    borderRadius: 'var(--radius-card)',
-    borderStyle: userMade ? 'dashed' : 'solid',
-    borderWidth: 'var(--bw-entity-compact)',
-    overflow: 'hidden',
-    ...(selected ? SELECTED_RING : {}),
-  }
-}
+/*
+ * The frame (ink on paper, dashed when player-made: ruleset §3.9) and the body
+ * are `.su-entity-row__frame` / `__body` classes (`styles/index.css`): every
+ * row of a listing repeats them, so they are stylesheet rules, not style
+ * objects (ADR-046, repeated elements). The selection ring, a caller's frame
+ * and a down row's dimming stay inline.
+ */
 
 /**
  * ROW — the workhorse form (entity display language §3): every list of
@@ -167,7 +150,11 @@ export function Row({
       className="su-entity-row__frame"
       data-user-made={userMade || undefined}
       data-bodyless={!hasBody || undefined}
-      style={{ ...frameOf(userMade, selected), ...slots.frameStyle }}
+      style={
+        selected || slots.frameStyle
+          ? { ...(selected ? SELECTED_RING : {}), ...slots.frameStyle }
+          : undefined
+      }
     >
       {slots.art !== false && !omit.includes('art') && <Art art={model.art} />}
       <div className="su-entity-row__main">
@@ -184,10 +171,7 @@ export function Row({
           labels={labels}
         />
         {hasBody && (
-          <div
-            className="su-entity-row__body"
-            style={{ ...BODY, ...(down ? { opacity: 0.6 } : {}) }}
-          >
+          <div className="su-entity-row__body" style={down ? { opacity: 0.6 } : undefined}>
             {slots.leading}
             <Facts cells={facts} />
             <Tags tags={tags} linkable={mode.kind === 'read' && !slots.outer} />

@@ -25,8 +25,9 @@ describe('Stat (horizontal)', () => {
     const { container } = render(
       <Stat orientation="horizontal" label="SP" value={5} size="compact" />
     )
+    // The plate's type rides its rung class (`.su-stat-plate--compact`: `text-xs`).
     const label = within(container).getByText('SP')
-    expect(label.style.fontSize).toBe('0.75rem')
+    expect(label.classList).toContain('su-stat-plate--compact')
   })
 
   test('renders string values', () => {
@@ -40,16 +41,19 @@ describe('Stat (horizontal)', () => {
       <Stat orientation="horizontal" label="REQ" value="Augmentation or Gladiatorial" wrap />
     )
     const cell = container.querySelector<HTMLElement>('.su-stat-cell')
+    // `.su-stat-cell--wrap` lets the cell wrap and narrow; `.su-stat-plate--wrap`
+    // lets the value break; the label plate (`--label`) holds one line.
     expect(cell?.classList.contains('su-stat-cell--wrap')).toBe(true)
-    expect(cell?.style.whiteSpace).toBe('normal')
-    expect(cell?.style.minWidth).toBe('0')
-    expect(within(container).getByText('REQ').style.whiteSpace).toBe('nowrap')
+    expect(within(container).getByText('Augmentation or Gladiatorial').classList).toContain(
+      'su-stat-plate--wrap'
+    )
+    expect(within(container).getByText('REQ').classList).toContain('su-stat-plate--label')
   })
 
   test('without `wrap` the cell keeps its value on one line', () => {
     const { container } = render(<Stat orientation="horizontal" label="Range" value="Close" />)
     const cell = container.querySelector<HTMLElement>('.su-stat-cell')
     expect(cell?.classList.contains('su-stat-cell--wrap')).toBe(false)
-    expect(cell?.style.whiteSpace).toBe('nowrap')
+    expect(within(container).getByText('Close').classList).not.toContain('su-stat-plate--wrap')
   })
 })

@@ -4,7 +4,7 @@ import { Stat } from '../../components/atoms/Stat'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import { USER_MADE_TITLE } from '../../components/referenceEntity/card/cardChrome'
-import { font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -34,26 +34,13 @@ export type TokenSlots = {
   down?: boolean
 }
 
-const PILL: CSSProperties = {
-  alignItems: 'center',
-  alignSelf: 'flex-start',
-  borderColor: 'var(--color-ink)',
-  borderRadius: 'var(--radius-card)',
-  borderWidth: 'var(--bw-chrome)',
-  display: 'inline-flex',
-  fontFamily: font.cond,
-  fontSize: fontSize.caption,
-  fontWeight: weight.bold,
-  gap: space[6],
-  letterSpacing: tracking.capsTight,
-  lineHeight: 1.2,
-  maxWidth: '100%',
-  overflow: 'hidden',
-  padding: `3px ${space[6]} 3px ${space[4]}`,
-  position: 'relative',
-  textTransform: 'uppercase',
-  whiteSpace: 'nowrap',
-}
+/*
+ * The pill, its kind stamp and its name are `.su-entity-token__*` classes
+ * (`styles/index.css`), not style objects: a page lists tokens by the dozen,
+ * so inline they repeated on every one (ADR-046, repeated elements). The
+ * pill's paint and a caller's frame stay inline; a player-made pill's dashes
+ * ride `data-user-made`.
+ */
 
 /** Read by assistive tech only: the dashes are the pill's only visual user-made cue. */
 const VISUALLY_HIDDEN: CSSProperties = {
@@ -67,24 +54,6 @@ const VISUALLY_HIDDEN: CSSProperties = {
   whiteSpace: 'nowrap',
   width: '1px',
 }
-
-/** The name wins: it wraps onto a second line rather than being clipped. */
-const NAME: CSSProperties = {
-  flex: '1 1 auto',
-  minWidth: 0,
-  overflowWrap: 'break-word',
-  whiteSpace: 'normal',
-}
-
-const kindStamp = (ink: boolean): CSSProperties => ({
-  backgroundColor: 'var(--color-ink)',
-  border: `var(--bw-hairline) solid ${ink ? 'var(--color-paper)' : 'var(--color-ink)'}`,
-  color: 'var(--color-paper)',
-  flex: 'none',
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.capsSnug,
-  padding: `1px ${space[4]}`,
-})
 
 /**
  * TOKEN — the shortform (§3): `[kind] name [fact]`, one size, for many on a
@@ -121,17 +90,14 @@ export function Token({
     <span
       data-user-made={userMade || undefined}
       title={userMade ? USER_MADE_TITLE : undefined}
-      style={{
-        ...PILL,
-        backgroundColor: paint.background,
-        borderStyle: userMade ? 'dashed' : 'solid',
-        color: paint.color,
-        ...slots.frameStyle,
-      }}
+      className="su-entity-token__pill"
+      style={{ backgroundColor: paint.background, color: paint.color, ...slots.frameStyle }}
     >
       {userMade && <span style={VISUALLY_HIDDEN}>User-made </span>}
-      <span style={kindStamp(paint.ink)}>{slots.kind ?? model.kind.type}</span>
-      <span style={NAME}>
+      <span className={cn('su-entity-token__kind', paint.ink && 'su-entity-token__kind--on-ink')}>
+        {slots.kind ?? model.kind.type}
+      </span>
+      <span className="su-entity-token__name">
         {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
       </span>
       {slots.pennant}

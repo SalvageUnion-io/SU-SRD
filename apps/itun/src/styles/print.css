@@ -104,6 +104,23 @@
     font-size: 12pt;
   }
 
+  /* The component-lib parts that set their own type in a `.su-*` class keep it
+   * on paper. This file is unlayered and those classes sit in `su-base`, so
+   * the element rules above would beat them; `revert-layer` hands each
+   * property back to the class. (They were inline styles until refit2 V3, and
+   * an inline style already beat these rules.) A part whose type is still an
+   * inline style needs nothing here; a title's weight is handed back for
+   * screen and paper alike in `libHandback.css`. */
+  .su-stat-plate,
+  .su-entity-row__title,
+  .su-entity-row__tier,
+  .su-entity-token__pill,
+  .su-entity-token__kind,
+  .su-pennant {
+    font-size: revert-layer;
+    margin-bottom: revert-layer;
+  }
+
   /* -------------------------------------------------------------------------
    * Hide non-printable elements.
    *
@@ -189,9 +206,19 @@
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */
   /* A border is a class or an inline style, so match both: a stylesheet
-   * `!important` still beats a plain inline declaration. */
+   * `!important` still beats a plain inline declaration. The `.su-*` parts
+   * named here draw their border in a component-lib class, not a `border-`
+   * utility or an inline style, so they are named outright. */
   [class*='border-'],
-  [style*='border'] {
+  [style*='border'],
+  .su-entity-row__frame,
+  .su-entity-row__body,
+  .su-entity-token__pill,
+  .su-entity-token__kind,
+  .su-stat-cell,
+  .su-pennant--button,
+  .su-ec-band--ruled,
+  .su-badge__param {
     border-color: #000 !important;
   }
 

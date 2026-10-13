@@ -74,7 +74,14 @@ function appOf(relPath: string): string | null {
  * Sanctioned exceptions. Each entry needs a reason — an exemption without a
  * justification is just a silent hole in the guardrail.
  */
-const EXEMPTIONS: Exemption[] = []
+const EXEMPTIONS: Exemption[] = [
+  {
+    file: 'apps/itun/src/styles/libHandback.css',
+    rules: ['dead-app-css'],
+    reason:
+      "Its selectors are component-lib's own classes, referenced in component-lib source rather than ITUN's: the file only hands those classes back their layered values (`revert-layer`) over ITUN's unlayered element rules, and styles nothing of its own.",
+  },
+]
 
 // ── shared CSS helpers ───────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useContext, useId, useState } from 'react'
 import type {
   EntityInstance,
@@ -217,22 +217,6 @@ function npcHitPointsTail(entity: object): TokenFact | undefined {
   return {
     label: 'damageType' in entity && entity.damageType === 'SP' ? 'SP' : 'HP',
     value: String(entity.hitPoints),
-  }
-}
-
-/**
- * The card's frame box: the frame lives on the INNER clipping element; the
- * OUTER div is overflow-visible only so the control rail escapes the clip.
- */
-function frameBoxStyle(frameStyle: CSSProperties): CSSProperties {
-  return {
-    ...frameStyle,
-    backgroundColor: 'var(--color-paper)',
-    borderRadius: 'var(--radius-card)',
-    display: 'flex',
-    flex: '1 1 auto',
-    flexDirection: 'column',
-    overflow: 'hidden',
   }
 }
 
@@ -685,8 +669,6 @@ function ReferenceEntityCardInner({
     )
   }
 
-  const frameBox = frameBoxStyle(frameStyle)
-
   // BODY — content + nested groups. A granting ability collapses its own
   // content AND actions (they belong to the granted entity); its description
   // leads, then the granted cards.
@@ -1129,7 +1111,12 @@ function ReferenceEntityCardInner({
   return (
     <CardOuter {...outer}>
       {topRightRail}
-      <div style={frameBox}>
+      {/* The frame box: the frame lives on this INNER clipping element; the
+        OUTER div is overflow-visible only so the control rail escapes the
+        clip. Its paper, radius and clip are `.su-ec-frame` (every nested
+        card repeats them: ADR-046, repeated elements); its weight, dash and
+        selection ring are this card's. */}
+      <div className="su-ec-frame" style={frameStyle}>
         {header}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
         {subtitleExtra && (

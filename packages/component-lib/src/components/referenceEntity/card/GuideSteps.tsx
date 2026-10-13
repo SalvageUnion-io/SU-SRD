@@ -8,7 +8,7 @@ import { Slab } from '../../atoms/Slab'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
-import { grainStyle } from './cardGrain'
+import { grainClass } from './cardGrain'
 import { cardKey } from './cardHelpers'
 import { chunkGuideStepProse } from './guideStepProse'
 import type { NestedCard } from './referenceEntityCardTypes'
@@ -285,7 +285,7 @@ function StepHead({
 }) {
   const Heading = as ?? 'div'
   return (
-    <Heading id={id} className="su-guide__head" style={grainStyle('paper')}>
+    <Heading id={id} className={`su-guide__head ${grainClass('paper')}`}>
       <span className="su-guide__num">{number}</span>
       <span className="su-guide__name">{name}</span>
       {optional && (

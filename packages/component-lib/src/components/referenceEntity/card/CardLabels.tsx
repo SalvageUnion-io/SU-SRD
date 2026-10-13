@@ -1,46 +1,24 @@
-import type { CSSProperties } from 'react'
-import { space } from '../../../design/tokens'
 import { Badge } from '../../atoms/Badge'
 import { Stat } from '../../atoms/Stat'
 import type { AxisMarker } from './entityCardTone'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import { UserMadeStamp } from './UserMadeStamp'
 
-/** A stamp that gives way with "…" when the line runs out of room. */
-const TRUNCATE = {
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-/** The cluster: the stamps, then the User-made stamp. */
-const LINE: CSSProperties = {
-  alignItems: 'center',
-  display: 'flex',
-  gap: space[6],
-  minWidth: 0,
-}
-
-/**
- * The stamps never run past the band: on a phone they share the room and the
- * last (the Legal Starting Pattern) gives way, instead of running off the edge.
+/*
+ * The cluster's layout is `.su-ec-labels*` classes (`styles/index.css`), not
+ * style objects: every head band of a listing carries one (ADR-046, repeated
+ * elements).
+ *
+ * - `.su-ec-labels`: the stamps, then the User-made stamp.
+ * - `__stamps`: they never run past the band; on a phone they share the room
+ *   and the last (the Legal Starting Pattern) gives way instead of running
+ *   off the edge.
+ * - `__truncate`: a stamp that gives way with "…" when the line runs out.
+ * - `__lead`: the type stamp (or the seal in its place) gives way LAST: it
+ *   never shrinks, so the stamps after it go first, and only when it alone
+ *   overflows does it truncate with "…" rather than being cut mid-letter.
  */
-const STAMPS: CSSProperties = {
-  alignItems: 'center',
-  display: 'flex',
-  flex: '1 1 auto',
-  gap: space[6],
-  minWidth: 0,
-  overflow: 'hidden',
-}
-
-/**
- * The type stamp (or the seal in its place) gives way LAST: it never shrinks,
- * so the stamps after it go first, and only when it alone overflows the room
- * does it truncate with "…" rather than being cut mid-letter by the band's edge.
- */
-const LEAD: CSSProperties = { ...TRUNCATE, flex: 'none', maxWidth: '100%' }
+const LEAD = 'su-ec-labels__lead'
 
 /**
  * LABELS — the categorization stamps of an entity's head band, on the title's
@@ -77,23 +55,22 @@ export function CardLabels({
     typeStamp !== undefined &&
     axisMarkers.some((marker) => marker.label.toLowerCase() === typeStamp.toLowerCase())
   return (
-    <div style={LINE}>
-      <div style={STAMPS}>
+    <div className="su-ec-labels">
+      <div className="su-ec-labels__stamps">
         {/* A seal in ink is the standard stamp; any other tone keeps its own plate. */}
         {seal && (
           <Badge
             shape="stamp"
             size="mini"
             surface={surface}
-            style={
-              seal.tone === 'var(--color-ink)' ? LEAD : { ...LEAD, backgroundColor: seal.tone }
-            }
+            className={LEAD}
+            style={seal.tone === 'var(--color-ink)' ? undefined : { backgroundColor: seal.tone }}
           >
             {seal.label}
           </Badge>
         )}
         {typeStamp && !restated && (
-          <Badge shape="stamp" size="mini" surface={surface} style={LEAD}>
+          <Badge shape="stamp" size="mini" surface={surface} className={LEAD}>
             {typeStamp}
           </Badge>
         )}
@@ -118,7 +95,7 @@ export function CardLabels({
             shape="stamp"
             size="mini"
             surface={surface}
-            style={TRUNCATE}
+            className="su-ec-labels__truncate"
             title={LEGAL_STARTING_PATTERN_NOTE}
           >
             {LEGAL_STARTING_PATTERN}
