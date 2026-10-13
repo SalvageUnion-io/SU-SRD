@@ -379,6 +379,77 @@ describe('poster text on the sheet tones', () => {
   })
 })
 
+/**
+ * The wizard step card (`--tone-card`, WizShell's `.wiz-step-card`).
+ *
+ * The card is a relative OKLCH step off the sheet tone, which `resolveColor`
+ * does not model, so this reads the step off `theme.css` and paints it as
+ * Chromium does: OKLab there and back, each channel clipped to sRGB. That
+ * gives pilot #ffc09d, the fill axe measured. Copy printed straight on the
+ * card takes `--tone-card-ink` (onTone: ink on every card); `wkMuted` printed
+ * there measured 3.78:1 on pilot.
+ */
+describe('the wizard step card', () => {
+  const css = readFileSync(join(import.meta.dir, '../../styles/theme.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    ''
+  )
+  const step = css.match(
+    /--tone-card:\s*oklch\(from var\(--tone\) calc\(l \+ ([\d.]+)\) calc\(c \* ([\d.]+)\) h\);/
+  )
+  const cardInk = css.match(/--tone-card-ink:\s*([^;]+);/)?.[1]?.trim() ?? ''
+
+  const toLinear = (v: number) => {
+    const c = v / 255
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  }
+  const toGamma = (c: number) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055)
+  const toneCard = ([r, g, b]: Rgb, lift: number, scale: number): Rgb => {
+    const [R, G, B] = [r, g, b].map(toLinear) as [number, number, number]
+    const l = Math.cbrt(0.4122214708 * R + 0.5363325363 * G + 0.0514459929 * B)
+    const m = Math.cbrt(0.2119034982 * R + 0.6806995451 * G + 0.1073969566 * B)
+    const s = Math.cbrt(0.0883024619 * R + 0.2817188376 * G + 0.6299787005 * B)
+    const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s + lift
+    const a = (1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s) * scale
+    const bb = (0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s) * scale
+    const l3 = (L + 0.3963377774 * a + 0.2158037573 * bb) ** 3
+    const m3 = (L - 0.1055613458 * a - 0.0638541728 * bb) ** 3
+    const s3 = (L - 0.0894841775 * a - 1.291485548 * bb) ** 3
+    return [
+      4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3,
+      -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3,
+      -0.0041960863 * l3 - 0.7034186147 * m3 + 1.707614701 * s3,
+    ].map((c) => Math.round(Math.min(1, Math.max(0, toGamma(c))) * 255)) as unknown as Rgb
+  }
+  const card = (tone: string): Rgb => toneCard(opaque(tone), Number(step?.[1]), Number(step?.[2]))
+
+  test('theme.css still derives the card by the step this models', () => {
+    expect(step).not.toBeNull()
+    expect(resolveColor(cardInk)).toEqual(INK)
+  })
+
+  test('the pilot card paints the fill axe measured', () => {
+    expect(card(color.sheetPilot)).toEqual([0xff, 0xc0, 0x9d])
+  })
+
+  for (const [kind, tone] of [
+    ['pilot', color.sheetPilot],
+    ['mech', color.sheetMech],
+    ['crawler', color.sheetCrawler],
+  ] as const) {
+    test(`the ${kind} card's ink is the foreground onTone picks and clears 4.5:1`, () => {
+      const fill = card(tone)
+      const hex = `#${fill.map((v) => v.toString(16).padStart(2, '0')).join('')}`
+      expect(onTone(hex)).toBe('ink')
+      expect(contrastRatio(fill, opaque(cardInk))).toBeGreaterThanOrEqual(TEXT_CONTRAST)
+    })
+  }
+
+  test('wkMuted on the pilot card fails AA — why card copy inherits the card ink', () => {
+    expect(contrastRatio(card(color.sheetPilot), opaque(color.wkMuted))).toBeLessThan(TEXT_CONTRAST)
+  })
+})
+
 describe('resolveColorOver', () => {
   const WHITE: Rgb = [255, 255, 255]
 

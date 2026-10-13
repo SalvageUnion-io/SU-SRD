@@ -4,8 +4,12 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { WizShell, WizTracker } from './WizShell'
 
+/**
+ * Copy printed straight on the step card takes the card's ink by inheriting it
+ * (`--tone-card-ink`). `wkMuted` clears AA only on the light grounds: on the
+ * pilot card it measures 3.78:1.
+ */
 const COPY: CSSProperties = {
-  color: tokens.color.wkMuted,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',

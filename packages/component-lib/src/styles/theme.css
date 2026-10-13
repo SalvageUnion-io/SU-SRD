@@ -397,14 +397,15 @@
                          legibility ceiling on the other two.
        chroma   ×0.62  — backs off the saturation so the card reads as the
                          paper the step is printed on, not a second band.
-     Sampled from rendered pixels (NOT the raw formula output — pilot's ideal
-     value is outside sRGB, so the browser gamut-maps it): #F9BC99 (pilot),
-     #A6B9B0 (mech), #DD93B7 (crawler).
+     Pilot's ideal value is outside sRGB, so Chromium clips it: #FFC09D
+     (pilot), #AABDB4 (mech), #E296BB (crawler), the fills axe measures.
 
-     Every card therefore lands light and takes DARK ink, at 9.67 / 7.77 /
-     6.81:1. One fill rule, one ink rule. See WizShell's step card
-     (`.wiz-step-card` / `stepCardTitleStyle`), whose step title inherits this
-     ink rather than hardcoding white. */
+     Every card therefore lands light and takes DARK ink, at 10.13 / 8.12 /
+     7.11:1; `wk-muted` does not clear AA on any of them, so copy on the card
+     inherits this ink. One fill rule, one ink rule, held by `contrast.test.ts`
+     ("the wizard step card"). See WizShell's step card (`.wiz-step-card` /
+     `stepCardTitleStyle`), whose step title inherits this ink rather than
+     hardcoding white. */
   --tone-card: oklch(from var(--tone) calc(l + 0.13) calc(c * 0.62) h);
   --tone-card-ink: var(--color-ink);
 }

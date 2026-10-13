@@ -50,7 +50,6 @@
     "compositions--wizard--equipment-step--default": ["color-contrast", "nested-interactive"],
     "compositions--wizard--systems-list--default": ["nested-interactive"],
     "compositions--wizard--wiz-shell--default": ["button-name"],
-    "containers--card--densities": ["color-contrast"],
     "containers--recovery-panel--with-dev-dump": ["scrollable-region-focusable"],
     "containers--toaster--default": ["color-contrast"],
     "foundations--rendering-matrix--default": ["target-size"],
