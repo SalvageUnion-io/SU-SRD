@@ -9,6 +9,7 @@ paths:
   - 'apps/itun/src/components/games/**'
   - 'apps/itun/convex/**'
   - 'apps/itun/e2e/**'
+  - 'packages/itun-domain/**'
 ---
 
 # Data access in ITUN — storage modes, stores and Convex

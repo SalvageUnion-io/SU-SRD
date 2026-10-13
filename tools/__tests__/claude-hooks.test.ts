@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { GENERATED_PATHS } from '../check-generated'
@@ -130,6 +130,46 @@ describe('settings.json deny rules', () => {
       expect(await proc.exited).toBe(0)
     }
   )
+})
+
+describe('.claude/rules path globs', () => {
+  // A rule loads only when an edited file matches one of its `paths:` globs, so a
+  // glob that matches nothing tracked (a moved directory, a gitignored output)
+  // is a rule that silently never loads there.
+  const tracked = Bun.spawnSync(['git', 'ls-files'], { cwd: ROOT })
+    .stdout.toString()
+    .split('\n')
+    .filter(Boolean)
+  const rulesDir = join(ROOT, '.claude', 'rules')
+  const globs = readdirSync(rulesDir)
+    .filter((name) => name.endsWith('.md'))
+    .flatMap((name) => {
+      const front = /^---\n([\s\S]*?)\n---/.exec(readFileSync(join(rulesDir, name), 'utf-8'))
+      return [...(front?.[1] ?? '').matchAll(/^\s*-\s*'?([^'\n]+?)'?\s*$/gm)].map(
+        (m): [string, string] => [name, m[1] as string]
+      )
+    })
+
+  test('every rule declares at least one glob', () => {
+    expect(globs.length).toBeGreaterThan(0)
+    const withGlobs = new Set(globs.map(([rule]) => rule))
+    const rules = readdirSync(rulesDir).filter((name) => name.endsWith('.md'))
+    expect(rules.filter((rule) => !withGlobs.has(rule))).toEqual([])
+  })
+
+  test.each(globs)('%s: %s matches a tracked file', (_rule, glob) => {
+    const matcher = new Bun.Glob(glob)
+    expect(tracked.some((path) => matcher.match(path))).toBe(true)
+  })
+
+  test('itun-domain edits load the data-access and bot rules', () => {
+    const loading = (path: string) =>
+      globs.filter(([, glob]) => new Bun.Glob(glob).match(path)).map(([rule]) => rule)
+    expect(loading('packages/itun-domain/src/schemas/pilot.ts')).toContain('itun-data-access.md')
+    expect(loading('packages/itun-domain/src/botWire.ts')).toEqual(
+      expect.arrayContaining(['itun-data-access.md', 'discord-bot.md'])
+    )
+  })
 })
 
 describe('typecheck-scoped.sh', () => {

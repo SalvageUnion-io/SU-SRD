@@ -106,7 +106,7 @@ fi
 
 # A cloud session has no Convex login, so `convex dev` (and with it
 # `bun run dev:itun`) would stop at the sign-in prompt. Anonymous agent mode runs
-# a local deployment with no account, which `scripts/assert-local-convex.ts`
+# a local deployment with no account, which `apps/itun/scripts/assert-local-convex.ts`
 # already accepts. Cloud only: on a laptop it would bypass the configured project.
 if [ "${CLAUDE_CODE_REMOTE:-}" = "true" ] && [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   echo 'export CONVEX_AGENT_MODE=anonymous' >>"$CLAUDE_ENV_FILE"

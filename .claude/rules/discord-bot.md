@@ -1,6 +1,7 @@
 ---
 paths:
   - 'apps/discord-bot/**'
+  - 'packages/itun-domain/src/botWire.ts'
 ---
 
 # Discord bot — changing a reply

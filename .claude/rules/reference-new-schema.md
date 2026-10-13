@@ -2,7 +2,6 @@
 paths:
   - 'packages/salvageunion-reference/lib/schemas/**'
   - 'packages/salvageunion-reference/data/**'
-  - 'packages/salvageunion-reference/schemas/**'
 ---
 
 # salvageunion-reference — adding a schema type

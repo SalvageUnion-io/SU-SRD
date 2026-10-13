@@ -1,13 +1,16 @@
 #!/usr/bin/env bun
 /**
- * Doc drift — `bun run check doc-drift`. Eight checks, each asking whether
+ * Doc drift — `bun run check doc-drift`. Nine checks, each asking whether
  * what a doc tells a reader is still true:
  *
- *   paths    every backticked repo path in a live-instruction doc exists,
- *            unless the words beside it mark it as history or a proposal.
+ *   paths    every backticked repo path in a live-instruction doc or a
+ *            Claude hook's text exists, unless the words beside it mark it as
+ *            history or a proposal.
  *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
  *            `bun run check <id>` in that same text, or in a Claude hook,
  *            names a real script or check id.
+ *   fixes    every repo path and bun command in a `tools/check.ts` fix hint
+ *            (printed under a failed gate) exists.
  *   claims   no agent doc (the docs above, the hooks and `.env.example`;
  *            the ADR entries excepted, which record what was retired) repeats
  *            a claim the repo has retired (`RETIRED_CLAIMS`).
@@ -38,7 +41,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
-import { CHECK_IDS } from './check'
+import { CHECK_IDS, CHECKS as GATES } from './check'
 
 const repoRoot = join(import.meta.dir, '..')
 
@@ -95,6 +98,9 @@ function liveInstructionDocs(root: string): string[] {
 }
 
 const hookScripts = (root: string): string[] => filesIn(root, '.claude/hooks', '.sh')
+
+/** A hook script read as prose: comment markers dropped, so its comments split into sentences. */
+const hookProse = (source: string): string => source.replace(/^[ \t]*#+[ \t]?/gm, '')
 
 /** Markdown text split into blocks (blank-line separated; list items apart), fences dropped. */
 export function splitMarkdownBlocks(source: string): { line: number; text: string }[] {
@@ -350,8 +356,11 @@ export function checkBacktickedPathsExist(root: string): CheckResult {
     )
   }
 
-  for (const doc of liveInstructionDocs(root)) {
-    const source = read(root, doc)
+  const sources = [
+    ...liveInstructionDocs(root).map((doc) => [doc, read(root, doc)] as const),
+    ...hookScripts(root).map((hook) => [hook, hookProse(read(root, hook))] as const),
+  ]
+  for (const [doc, source] of sources) {
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
     for (const block of splitMarkdownBlocks(source)) {
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
@@ -393,57 +402,134 @@ function workspaceManifests(root: string): Map<string, string> {
 const owningManifest = (doc: string): string | undefined =>
   doc.match(/^((?:apps|packages)\/[^/]+)\//)?.[1]?.concat('/package.json')
 
-export function checkReferencedScripts(root: string): CheckResult {
+/** What a bun command reference is judged against. */
+type ScriptContext = {
+  rootScripts: Set<string>
+  manifests: Map<string, string>
+  scriptsIn: (manifest: string) => Set<string>
+}
+
+function scriptContext(root: string): ScriptContext {
+  return {
+    rootScripts: scriptsOf(root, 'package.json'),
+    manifests: workspaceManifests(root),
+    scriptsIn: (manifest) => scriptsOf(root, manifest),
+  }
+}
+
+/**
+ * Failures for each `bun run <script>`, `bun run check <id>` and
+ * `bun --filter <ws> <script>` in `text`, with the number of references judged.
+ * `owner` is the manifest whose scripts `text` may name without `--filter`.
+ */
+function scriptReferenceFailures(
+  label: string,
+  text: string,
+  ctx: ScriptContext,
+  owner: string | undefined
+): { failures: string[]; checked: number } {
   const failures: string[] = []
-  const rootScripts = scriptsOf(root, 'package.json')
-  const manifests = workspaceManifests(root)
+  const localScripts = owner ? ctx.scriptsIn(owner) : new Set<string>()
   let checked = 0
 
-  for (const doc of [...liveInstructionDocs(root), ...hookScripts(root)]) {
-    const text = read(root, doc)
-    const owner = owningManifest(doc)
-    const localScripts = owner ? scriptsOf(root, owner) : new Set<string>()
-
-    for (const m of text.matchAll(/\bbun run ([a-z][\w:-]*)/g)) {
-      const script = m[1] as string
-      checked++
-      if (!rootScripts.has(script) && !localScripts.has(script)) {
-        failures.push(
-          `${doc} references \`bun run ${script}\`, which is not a script in the root ` +
-            `package.json${owner ? ` or ${owner}` : ''}.`
-        )
-      }
+  for (const m of text.matchAll(/\bbun run ([a-z][\w:-]*)/g)) {
+    const script = m[1] as string
+    checked++
+    if (!ctx.rootScripts.has(script) && !localScripts.has(script)) {
+      failures.push(
+        `${label} references \`bun run ${script}\`, which is not a script in the root ` +
+          `package.json${owner ? ` or ${owner}` : ''}.`
+      )
     }
+  }
 
-    // `bun run check data doc-drift`: the words after `check` are registry ids, but only
-    // where the command visibly ends (a closing backtick or quote, or end of line / `#`).
-    for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[`'"]|[ \t]*(?:#|$))/gm)) {
-      for (const id of (m[1] ?? '').trim().split(' ')) {
-        checked++
-        if (!CHECK_IDS.includes(id)) {
-          failures.push(
-            `${doc} references \`bun run check ${id}\`, but \`${id}\` is not a check id in ` +
-              `tools/check.ts (known: ${CHECK_IDS.join(', ')}).`
-          )
-        }
-      }
-    }
-
-    for (const m of text.matchAll(/\bbun --filter ([\w-]+) ([a-z][\w:-]*)/g)) {
-      const [, workspace, script] = m as unknown as [string, string, string]
+  // `bun run check data doc-drift`: the words after `check` are registry ids, but only
+  // where the command visibly ends (a closing backtick or quote, or end of line / `#`).
+  for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[`'"]|[ \t]*(?:#|$))/gm)) {
+    for (const id of (m[1] ?? '').trim().split(' ')) {
       checked++
-      const manifest = manifests.get(workspace)
-      if (manifest === undefined) {
-        failures.push(`${doc} references \`bun --filter ${workspace}\`, which is no workspace.`)
-      } else if (!scriptsOf(root, manifest).has(script)) {
+      if (!CHECK_IDS.includes(id)) {
         failures.push(
-          `${doc} references \`bun --filter ${workspace} ${script}\`, which is not a script in ${manifest}.`
+          `${label} references \`bun run check ${id}\`, but \`${id}\` is not a check id in ` +
+            `tools/check.ts (known: ${CHECK_IDS.join(', ')}).`
         )
       }
     }
   }
 
+  for (const m of text.matchAll(/\bbun --filter ([\w-]+) ([a-z][\w:-]*)/g)) {
+    const [, workspace, script] = m as unknown as [string, string, string]
+    checked++
+    const manifest = ctx.manifests.get(workspace)
+    if (manifest === undefined) {
+      failures.push(`${label} references \`bun --filter ${workspace}\`, which is no workspace.`)
+    } else if (!ctx.scriptsIn(manifest).has(script)) {
+      failures.push(
+        `${label} references \`bun --filter ${workspace} ${script}\`, which is not a script in ${manifest}.`
+      )
+    }
+  }
+
+  return { failures, checked }
+}
+
+export function checkReferencedScripts(root: string): CheckResult {
+  const failures: string[] = []
+  const ctx = scriptContext(root)
+  let checked = 0
+
+  for (const doc of [...liveInstructionDocs(root), ...hookScripts(root)]) {
+    const found = scriptReferenceFailures(doc, read(root, doc), ctx, owningManifest(doc))
+    failures.push(...found.failures)
+    checked += found.checked
+  }
+
   return { ok: `documented bun scripts exist (${checked} references checked)`, failures }
+}
+
+// ─── fixes ──────────────────────────────────────────────────────────────────
+
+/** A gate's one-line fix hint, as the `tools/check.ts` registry prints it under a failure. */
+export type FixHint = { id: string; fix: string }
+
+const REGISTRY_FIX_HINTS: FixHint[] = GATES.map(({ id, fix }) => ({ id, fix }))
+
+/** A repo-rooted path in running text, backticked or bare: `tools/x.ts`, docs/A.md#anchor. */
+const FIX_HINT_PATH = new RegExp(
+  `(?<![\\w./-])((?:${REPO_PATH_ROOTS.map((r) => r.replace('.', '\\.')).join('|')})/[\\w./-]*[\\w/])`,
+  'g'
+)
+
+/** A path template, not a path: `docs/adr/NNN-slug.md`. */
+const FIX_HINT_TEMPLATE = /\bN{3,}\b/
+
+/**
+ * The fix hints are instructions too, read at the worst moment: under a red
+ * gate. Every repo path one names must exist, and every bun command name a
+ * real script or check id.
+ */
+export function checkFixHints(root: string, hints: FixHint[] = REGISTRY_FIX_HINTS): CheckResult {
+  const failures: string[] = []
+  const workspaces = workspaceDirs(root)
+  const ctx = scriptContext(root)
+  let checked = 0
+
+  for (const { id, fix } of hints) {
+    const label = `tools/check.ts fix hint for \`${id}\``
+    for (const m of fix.matchAll(FIX_HINT_PATH)) {
+      const candidate = (m[1] as string).replace(/\/$/, '')
+      if (FIX_HINT_TEMPLATE.test(candidate)) continue
+      checked++
+      if (!resolvesFrom(root, 'tools/check.ts', candidate, workspaces)) {
+        failures.push(`${label} names ${candidate}, which does not exist. Fix the hint.`)
+      }
+    }
+    const found = scriptReferenceFailures(label, fix, ctx, undefined)
+    failures.push(...found.failures)
+    checked += found.checked
+  }
+
+  return { ok: `check.ts fix hints name real paths and scripts (${checked} checked)`, failures }
 }
 
 // ─── claims ─────────────────────────────────────────────────────────────────
@@ -970,6 +1056,7 @@ export function checkDocSizes(
 const CHECKS = [
   checkBacktickedPathsExist,
   checkReferencedScripts,
+  (root: string) => checkFixHints(root),
   (root: string) => checkRetiredClaims(root),
   (root: string) => checkMarkdownLinks(root),
   (root: string) => checkAreaCitations(root),

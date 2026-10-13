@@ -12,6 +12,7 @@ import {
   checkBacktickedPathsExist,
   checkDecisions,
   checkDocSizes,
+  checkFixHints,
   checkMarkdownLinks,
   checkReferencedScripts,
   checkRetiredClaims,
@@ -356,6 +357,62 @@ describe('checkRetiredClaims', () => {
         'The bot is a first-class authenticated client.\n',
     })
     expect(checkRetiredClaims(root).failures).toEqual([])
+  })
+})
+
+describe('checkBacktickedPathsExist on hook scripts', () => {
+  it('judges a path a hook comment or message cites, at its line', () => {
+    const root = fixture({
+      'tools/real.ts': '',
+      '.claude/hooks/h.sh': [
+        '#!/bin/bash',
+        '# The guard is `tools/real.ts`; the fixer is',
+        '# `tools/gone.ts`, which runs first.',
+        'echo "see `tools/also-gone.ts`"',
+        '#',
+        '# `tools/old.ts` (since deleted) used to do this.',
+      ].join('\n'),
+    })
+    const failures = checkBacktickedPathsExist(root).failures
+    expect(failures).toHaveLength(2)
+    expect(failures[0]).toContain('.claude/hooks/h.sh:3 cites `tools/gone.ts`')
+    expect(failures[1]).toContain('.claude/hooks/h.sh:4 cites `tools/also-gone.ts`')
+  })
+})
+
+describe('checkFixHints', () => {
+  it('judges every repo path and bun command a fix hint names', () => {
+    const root = fixture({
+      'package.json': JSON.stringify({ scripts: { check: 'x', format: 'x' } }),
+      'apps/srd/package.json': JSON.stringify({ name: 'srd', scripts: { test: 'x' } }),
+      'tools/check-real.ts': '',
+      'docs/ARCHITECTURE.md': '## Dead code\n',
+    })
+    const hints = [
+      {
+        id: 'ok',
+        fix: '`bun run format`; see docs/ARCHITECTURE.md#dead-code and tools/check-real.ts',
+      },
+      {
+        id: 'template',
+        fix: 'link a docs/adr/NNN-slug.md full text; `bun --filter <workspace> test`',
+      },
+      { id: 'stale', fix: '`bun tools/check-gone.ts --update`, then `bun run lint`' },
+      { id: 'filter', fix: '`bun --filter srd gate`; `bun run check nope`' },
+    ]
+    const failures = checkFixHints(root, hints).failures
+    expect(failures).toHaveLength(4)
+    const text = failures.join('\n')
+    expect(text).toContain('fix hint for `stale` names tools/check-gone.ts')
+    expect(text).toContain('fix hint for `stale` references `bun run lint`')
+    expect(text).toContain('`bun --filter srd gate`')
+    expect(text).toContain('`nope` is not a check id')
+    expect(text).not.toContain('`ok`')
+    expect(text).not.toContain('`template`')
+  })
+
+  it('passes on the real registry', () => {
+    expect(checkFixHints(join(import.meta.dir, '..', '..')).failures).toEqual([])
   })
 })
 
