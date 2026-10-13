@@ -14,7 +14,7 @@ import { z } from 'salvageunion-reference/zod'
  *                       boundary.
  *   - `code`          — short display code rendered on cargo chits ('CAT · CODE').
  */
-export const CargoLotCategorySchema = z.enum(['SCRAP', 'POWER', 'SEALED', 'SYSTEM'])
+const CargoLotCategorySchema = z.enum(['SCRAP', 'POWER', 'SEALED', 'SYSTEM'])
 export type CargoLotCategory = z.infer<typeof CargoLotCategorySchema>
 
 export const CargoLotSchema = z

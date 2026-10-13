@@ -14,7 +14,7 @@ export function shortSource(source: string): string {
 }
 
 /** What the rail offers, from build-time data: it decides which controls it has. */
-export type RailFacets = {
+type RailFacets = {
   /** The listing's size: the name filter shows above 12. */
   count: number
   /** In the book's order (`orderTechLevels`). */
@@ -25,14 +25,14 @@ export type RailFacets = {
   hasArt: boolean
 }
 
-export type RailFilters = {
+type RailFilters = {
   techLevels: ReadonlySet<string>
   source: string
   tree: string
   name: string
 }
 
-export const NO_FILTERS: RailFilters = { techLevels: new Set(), source: '', tree: '', name: '' }
+const NO_FILTERS: RailFilters = { techLevels: new Set(), source: '', tree: '', name: '' }
 
 export type RailActions = {
   setName: (name: string) => void

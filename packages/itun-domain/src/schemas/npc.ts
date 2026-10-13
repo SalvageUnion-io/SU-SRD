@@ -21,7 +21,7 @@ import { photoFields } from './photo'
  */
 
 /** A trait, in the package's own shape (`TraitSchema` in salvageunion-reference). */
-export const NpcTraitSchema = z
+const NpcTraitSchema = z
   .object({
     type: z.string().min(1),
     amount: z.union([z.number().int().min(0), z.string()]).optional(),
@@ -30,7 +30,7 @@ export const NpcTraitSchema = z
 export type NpcTrait = z.infer<typeof NpcTraitSchema>
 
 /** Where a built NPC started. Informational only: nothing re-derives from it. */
-export const NpcTemplateRefSchema = z
+const NpcTemplateRefSchema = z
   .object({
     schema: z.enum(['npcs', 'crawler-bays', 'crawlers']),
     slug: z.string().min(1),

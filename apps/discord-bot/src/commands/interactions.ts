@@ -17,7 +17,7 @@ import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-type
  * through `toJSON()`, which `JSON.stringify` calls when the payload goes over
  * the wire (`worker/adapter.ts`).
  */
-export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
+type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
 
 /**
  * What a handler may send as a reply or follow-up.
@@ -25,7 +25,7 @@ export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessag
  * These are the only three keys any handler sets. There is no `embeds`:
  * every reply is Components V2, which forbids them.
  */
-export type ReplyPayload = {
+type ReplyPayload = {
   content?: string
   components?: readonly ReplyComponent[]
   flags?: number

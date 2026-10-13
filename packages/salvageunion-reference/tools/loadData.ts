@@ -34,7 +34,7 @@ export function listDataFiles(): string[] {
  * file is a top-level array of entity-shaped objects (each schema's full Zod
  * parse is `lib/__tests__/dataCanonical.test.ts`); checks work with that assumption.
  */
-export function loadDataFile(filename: string): Record<string, unknown>[] {
+function loadDataFile(filename: string): Record<string, unknown>[] {
   const content = readFileSync(join(dataDir, filename), 'utf-8')
   const parsed = JSON.parse(content) as unknown
   return Array.isArray(parsed) ? (parsed as Record<string, unknown>[]) : []

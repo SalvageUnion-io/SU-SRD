@@ -244,7 +244,7 @@ async function assertStory(id: string) {
  * to it, so `loading="lazy"` art there never starts and comes out blank.
  * Scroll the page through a viewport at a time, then back to the top.
  */
-export const SCROLL_THROUGH = `(async () => {
+const SCROLL_THROUGH = `(async () => {
   const step = Math.max(200, Math.floor(window.innerHeight * 0.8))
   for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
     window.scrollTo(0, y)
@@ -257,7 +257,7 @@ export const SCROLL_THROUGH = `(async () => {
  * Waits for every image on the page to finish loading (or failing) and
  * decode, for at most five seconds: one that never starts must not hang it.
  */
-export const IMAGES_DECODED = `Promise.race([
+const IMAGES_DECODED = `Promise.race([
   Promise.all(
     Array.from(document.images, (img) =>
       img.complete ? undefined : img.decode().catch(() => undefined)

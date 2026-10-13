@@ -41,7 +41,7 @@ import { assertScanFloor } from '../lib/scanFloor'
 export const DATA_DIR = 'packages/salvageunion-reference/data'
 
 /** Schemas the book itself heads in a tech-level blue, each with where. */
-export const BOOK_TL_GROUNDS: Readonly<Record<string, string>> = {
+const BOOK_TL_GROUNDS: Readonly<Record<string, string>> = {
   systems: 'Core Book pp. 162–164: each entry and index row in its tech level’s blue',
   modules: 'Core Book pp. 188–190: each entry and index row in its tech level’s blue',
 }

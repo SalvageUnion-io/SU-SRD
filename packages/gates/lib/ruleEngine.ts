@@ -30,7 +30,7 @@ import { join } from 'node:path'
 
 export type Finding = { file: string; line: number; detail: string }
 
-export type RuleMode = 'zero' | 'ratchet'
+type RuleMode = 'zero' | 'ratchet'
 
 export type Rule = {
   /** Stable id, used by exemptions and the baseline. */
@@ -107,7 +107,7 @@ export function isExempt(
   return exemptions.some((e) => relPath.includes(e.file) && e.rules.includes(ruleId))
 }
 
-export type RuleVerdict = {
+type RuleVerdict = {
   rule: Rule
   found: number
   allowed: number

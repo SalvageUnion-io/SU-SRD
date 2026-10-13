@@ -126,7 +126,7 @@ const BLANK_STATS: ReturnType<typeof statsOf> = {
 }
 
 /** A reference NPC's own description: its first paragraph. */
-export function npcTemplateProse(ref: SURefNPC | undefined): string {
+function npcTemplateProse(ref: SURefNPC | undefined): string {
   const first = ref?.content?.find((b) => b.type === 'paragraph')
   return typeof first?.value === 'string' ? first.value : ''
 }
@@ -226,7 +226,7 @@ export function applyBlankStart(form: NpcFormState): NpcFormState {
 }
 
 /** A whole, non-negative number typed into a field, or null when it is not one. */
-export function parseCount(text: string): number | null {
+function parseCount(text: string): number | null {
   const trimmed = text.trim()
   if (!/^\d+$/.test(trimmed)) return null
   return Number(trimmed)

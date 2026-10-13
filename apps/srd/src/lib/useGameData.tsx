@@ -142,7 +142,7 @@ function ensurePreloaded(key: string, schemas: SchemaList, projection: Projectio
  * preload on mount and the deferred consumer simply rides the in-flight
  * promise — by design, not a missed optimization.
  */
-export function useGameData(options?: {
+function useGameData(options?: {
   defer?: boolean
   schemas?: SchemaList
   projection?: Projection

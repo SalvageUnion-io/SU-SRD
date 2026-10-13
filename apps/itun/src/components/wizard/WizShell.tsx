@@ -5,7 +5,7 @@ import '../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 /** Sheet tone context — picks the `.sheet--{kind}` poster theming. */
-export type WizKind = 'pilot' | 'mech' | 'crawler'
+type WizKind = 'pilot' | 'mech' | 'crawler'
 
 type WizShellProps = {
   /** Sheet tone context (`.sheet--{kind}`) — themes ground, band, and rail. */

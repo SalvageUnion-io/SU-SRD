@@ -7,7 +7,7 @@
  * `:crawler`, `:game`), resolved once the seed has run.
  */
 
-export type GallerySite = 'srd' | 'itun'
+type GallerySite = 'srd' | 'itun'
 
 export type GalleryPage = {
   site: GallerySite

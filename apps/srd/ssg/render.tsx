@@ -45,7 +45,7 @@ export function resolveRoutes<Params extends Record<string, string>, Props>(
   }))
 }
 
-export function renderRoute<Params extends Record<string, string>, Props>(
+function renderRoute<Params extends Record<string, string>, Props>(
   resolved: ResolvedRoute<Params, Props>,
   assets: BuildAssets
 ): string {

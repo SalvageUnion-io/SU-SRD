@@ -27,20 +27,12 @@ import type { Anchor, LockEntry } from './proseFidelity'
 import { anchorsOf, DATA_DIR, fold } from './proseFidelity'
 
 /** The Core Book's citation in the data: the only layout with extractors. */
-export const CORE_SOURCE = 'Salvage Union Workshop Manual'
+const CORE_SOURCE = 'Salvage Union Workshop Manual'
 
-export type StatKind =
-  | 'chassis'
-  | 'pattern'
-  | 'system'
-  | 'module'
-  | 'drone'
-  | 'npc'
-  | 'squad'
-  | 'ability'
+type StatKind = 'chassis' | 'pattern' | 'system' | 'module' | 'drone' | 'npc' | 'squad' | 'ability'
 
 /** One printed stat: `{ label: 'TL', value: '2' }`, or `{ label: 'Line', value: <stat line> }`. */
-export type StatField = { label: string; value: string }
+type StatField = { label: string; value: string }
 
 export type StatItem = {
   /** `file#entityId[.path]@stat`: never collides with a prose key. */
@@ -107,7 +99,7 @@ export function renderStatLine(a: Row, currency: string, extra: string[] = []): 
 }
 
 /** An action's name as the book prints it: no `(Owner)` suffix. */
-export function printedActionName(a: Row): string {
+function printedActionName(a: Row): string {
   if (typeof a.displayName === 'string') return a.displayName
   return str(a.name).replace(/ \([^)]+\)$/, '')
 }
@@ -521,7 +513,7 @@ export function statContext(pages: Pages, dataDir = DATA_DIR): StatContext {
 }
 
 /** The book's fields for one block, under the data's labels, or why it was not found. */
-export type Extracted = { fields: StatField[] } | { missing: string }
+type Extracted = { fields: StatField[] } | { missing: string }
 
 /** A chassis: its name, then the eight numbers of its stat block, SP first. */
 function chassisBlock(ctx: StatContext, item: StatItem, page: number): Extracted {
@@ -728,20 +720,20 @@ const ACTION: Partial<Record<StatKind, Extractor>> = {
 }
 
 /** The Core Book page a block is printed on, when its own citation is the Core Book. */
-export function corePage(item: StatItem): number | undefined {
+function corePage(item: StatItem): number | undefined {
   const own = item.anchors[0]
   return own?.source === CORE_SOURCE && !own.booklet ? own.page : undefined
 }
 
 /** The Core Book's reading of one block; undefined when no extractor covers it. */
-export function extractStats(ctx: StatContext, item: StatItem): Extracted | undefined {
+function extractStats(ctx: StatContext, item: StatItem): Extracted | undefined {
   const page = corePage(item)
   const extractor = (item.path.startsWith('.actions[') ? ACTION : OWN)[item.kind]
   return page === undefined || !extractor ? undefined : extractor(ctx, item, page)
 }
 
 /** Is a book field the data's? Stat lines compare as token sets, lists part by part. */
-export function sameField(data: StatField, book: StatField | undefined): boolean {
+function sameField(data: StatField, book: StatField | undefined): boolean {
   if (!book) return false
   // an NPC or Squad's label is its damage track (HP or SP), printed by the book
   if (data.label !== book.label) return false

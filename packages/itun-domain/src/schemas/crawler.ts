@@ -10,7 +10,7 @@ import { ChoiceSelectionsSchema } from './pilot'
  * withdraw. SCRAP cargo lots crossing the crawler boundary deposit/withdraw
  * the matching bucket. Absent buckets read as 0.
  */
-export const ScrapPoolSchema = z
+const ScrapPoolSchema = z
   .object({
     tl1: z.number().int().min(0).optional(),
     tl2: z.number().int().min(0).optional(),
@@ -29,7 +29,7 @@ export type ScrapPool = z.infer<typeof ScrapPoolSchema>
  * fields (Keepsake/Motto) persist in the crawler's `bayChoices` map, NOT here —
  * this schema holds only the structured live-play state.
  */
-export const CrawlerNpcStateSchema = z
+const CrawlerNpcStateSchema = z
   .object({
     /** Freeform name the player gave this NPC. */
     npcName: z.string().optional(),

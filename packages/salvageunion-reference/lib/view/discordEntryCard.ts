@@ -69,7 +69,7 @@ export function componentEmbedBytes(json: string): number {
 }
 
 /** Whether a card fits the one budget both surfaces share. */
-export function fitsDiscordEntryBudget(card: DiscordCard): boolean {
+function fitsDiscordEntryBudget(card: DiscordCard): boolean {
   return componentEmbedBytes(componentEmbedJson(card)) <= COMPONENT_EMBED_MAX_BYTES
 }
 

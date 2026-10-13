@@ -20,7 +20,7 @@ import { PRODUCT } from 'component-lib/product'
 /** The kinds of player thing a link previews. */
 export type PreviewKind = 'pilot' | 'mech' | 'crawler' | 'npc' | 'pattern'
 
-export const PREVIEW_KINDS: readonly PreviewKind[] = ['pilot', 'mech', 'crawler', 'npc', 'pattern']
+const PREVIEW_KINDS: readonly PreviewKind[] = ['pilot', 'mech', 'crawler', 'npc', 'pattern']
 
 export function isPreviewKind(value: string): value is PreviewKind {
   return (PREVIEW_KINDS as readonly string[]).includes(value)

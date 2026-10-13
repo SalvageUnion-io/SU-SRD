@@ -42,7 +42,7 @@ type RollTableEntity = PickableTable & {
 }
 
 /** A table roll, by table, the row it landed on and that row's text. */
-export type TableRoll = (tableName: string, key: string, text: string) => void
+type TableRoll = (tableName: string, key: string, text: string) => void
 
 /**
  * TablesView — the Tables tab: the selected table rendered via the reused

@@ -141,7 +141,7 @@ const DECISIONS_HEADING = /^## Decisions$/m
  * A markdown doc up to its `## Decisions` heading: the part that describes the
  * code as it is now. The ADR entries below also record what was retired.
  */
-export function liveTextOf(source: string): string {
+function liveTextOf(source: string): string {
   const at = source.search(DECISIONS_HEADING)
   return at === -1 ? source : source.slice(0, at)
 }
@@ -153,7 +153,7 @@ type Entry = { n: number; adr: number | undefined; start: number; lines: string[
 const ENTRY_START = /^(\d+)\.\s+\*\*(?:ADR-(\d+)\b)?/
 
 /** The numbered entries of each `## ` section, each with its continuation lines. */
-export function entriesOf(source: string): (Entry & { section: string })[] {
+function entriesOf(source: string): (Entry & { section: string })[] {
   const entries: (Entry & { section: string })[] = []
   let section = ''
   let inFence = false
@@ -507,7 +507,7 @@ export function checkFixHints(root: string, hints: FixHint[] = REGISTRY_FIX_HINT
 // ─── claims ─────────────────────────────────────────────────────────────────
 
 /** Claims the repo has retired, each with what is true instead. */
-export const RETIRED_CLAIMS: [RegExp, string][] = [
+const RETIRED_CLAIMS: [RegExp, string][] = [
   [/local-first/i, 'ITUN is account-gated: persistence requires an account (ADR-034)'],
   [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
   [
@@ -795,7 +795,7 @@ const ACTS_ON = /\b(amends|supersedes|reverses|replaces)\b[\s*_]*\[?ADR-(\d{3})\
  * An ADR entry that amends, supersedes or reverses another must be named in
  * that other entry, which is where a reader of it looks first.
  */
-export function missingBackReferences(source: string): string[] {
+function missingBackReferences(source: string): string[] {
   const text = new Map(adrEntries(source).map((entry) => [entry.adr, entry.lines.join('\n')]))
   const failures: string[] = []
   for (const [n, body] of text) {

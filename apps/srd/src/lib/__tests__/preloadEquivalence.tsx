@@ -43,7 +43,7 @@ import { getSchemaPreloadList } from '../schemaPreloadDeps'
  * parallel runner can spread it over its workers: each file runs one shard.
  */
 
-export const SHARD_COUNT = 4
+const SHARD_COUNT = 4
 
 /**
  * Strip React's auto-generated `useId` ids before comparing markup — they're

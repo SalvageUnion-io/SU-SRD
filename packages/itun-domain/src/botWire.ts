@@ -83,7 +83,7 @@ export type GamesResult = { games: GameSummary[] }
 export type EntityBody = Record<string, unknown>
 
 /** A pilot or mech on a shelf: no owner to name, because the owner is the caller. */
-export type ShelfEntity = { id: string; body: EntityBody }
+type ShelfEntity = { id: string; body: EntityBody }
 
 export type ShelfResult = {
   pilots: ShelfEntity[]

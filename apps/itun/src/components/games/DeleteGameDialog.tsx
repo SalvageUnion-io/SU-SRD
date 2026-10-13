@@ -37,7 +37,7 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { failureMessage } from '../../lib/connection/useServerAction'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
-export type DeletableGame = {
+type DeletableGame = {
   _id: Id<'games'>
   name: string
   crawlerName: string | null

@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreExportsUsedInFile": true,
+  "ignoreExportsUsedInFile": false,
   "includeEntryExports": true,
   // Exports tagged `@public` or `@knipignore` are excluded from analysis. When
   // to reach for either is in docs/ARCHITECTURE.md#dead-code — delete by

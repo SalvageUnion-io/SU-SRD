@@ -4,7 +4,7 @@ import { Badge } from '../atoms/Badge'
 import { Card } from './Card'
 
 /** Ontological tone for the head-bar tag (pilot orange / mech green / crawler pink). */
-export type InsetTone = 'pilot' | 'mech' | 'crawler'
+type InsetTone = 'pilot' | 'mech' | 'crawler'
 
 type InsetProps = {
   /** Head-bar title — condensed caps, paper on the ink bar. */

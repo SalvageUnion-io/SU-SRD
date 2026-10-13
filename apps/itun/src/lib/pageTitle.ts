@@ -9,7 +9,7 @@
 
 import { PRODUCT } from 'component-lib/product'
 
-export const SITE_TITLE = PRODUCT.name
+const SITE_TITLE = PRODUCT.name
 
 /** `<prefix> · <product name>`, or the bare site name with no prefix. */
 export function pageTitle(prefix?: string | null): string {

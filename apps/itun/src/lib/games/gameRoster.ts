@@ -48,7 +48,7 @@ export type GameMember = {
 }
 
 /** What the viewer may do with one row. */
-export type RowCapabilities = {
+type RowCapabilities = {
   /**
    * The row's sheet opens EDITABLE for the viewer. Mirrors `assertMayWrite`.
    * Every row opens (`rosterSheetHref`); this only says whether it opens to edit.
@@ -241,7 +241,7 @@ export function groupColumn(rows: readonly RosterRow[]): RosterColumnGroups {
  * pre-gen has none and goes by its body id, and a row with neither by its row
  * id. The sheet route and the Dashboard's both take it.
  */
-export function rosterEntityId(row: RosterRow): string {
+function rosterEntityId(row: RosterRow): string {
   const bodyId = typeof row.body.id === 'string' && row.body.id.length > 0 ? row.body.id : null
   return row.appId ?? bodyId ?? row.serverId
 }

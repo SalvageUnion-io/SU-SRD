@@ -71,7 +71,7 @@
 
 /** Every `ReferenceEntityCard` render touches these regardless of the
  *  entity's own schema — see file header. */
-export const ALWAYS_CORE: readonly string[] = [
+const ALWAYS_CORE: readonly string[] = [
   'roll-tables',
   'distances',
   'ability-tree-requirements',
@@ -81,7 +81,7 @@ export const ALWAYS_CORE: readonly string[] = [
 
 /** Schemas with their own `actions` field, `classes` (ability-tree lookup),
  *  and everything `abilities` can `grant`. Shared bundle — see file header. */
-export const CONTENT_BUNDLE: readonly string[] = [
+const CONTENT_BUNDLE: readonly string[] = [
   'abilities',
   'bio-titans',
   'classes',
@@ -101,7 +101,7 @@ export const CONTENT_BUNDLE: readonly string[] = [
 
 /** `chassis` itself, and any schema that resolves a full Chassis entity
  *  (currently just `factions`, via formation rosters). See file header. */
-export const CHASSIS_BUNDLE: readonly string[] = [
+const CHASSIS_BUNDLE: readonly string[] = [
   'chassis',
   'systems',
   'modules',
@@ -118,7 +118,7 @@ export const CHASSIS_BUNDLE: readonly string[] = [
  *  the whole `systems` collection and filters by referenced-action damage type
  *  (`actions`). The resolver runs even for the collapsed listing (to count the
  *  options), so both schemas must be loaded whenever a bay renders. */
-export const CRAWLER_BAY_BUNDLE: readonly string[] = ['systems', 'actions', ...ALWAYS_CORE]
+const CRAWLER_BAY_BUNDLE: readonly string[] = ['systems', 'actions', ...ALWAYS_CORE]
 
 /** Schemas whose entities are data-driven, arbitrary cross-references into
  *  any other schema (guide steps) — not safely narrowable. */

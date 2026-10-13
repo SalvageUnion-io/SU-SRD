@@ -43,7 +43,7 @@ import { AppLink } from '../shared/AppLink'
 import { SHEET_ICONBTN_CLASS } from './sheetChrome.model'
 import type { SheetBand } from './sheetViewProps.model'
 
-export type SheetVariant = 'pilot' | 'mech' | 'crawler'
+type SheetVariant = 'pilot' | 'mech' | 'crawler'
 
 export type LiveSheetSegment = {
   key: SheetVariant

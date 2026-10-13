@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 /** A JSON-LD object. */
 export type StructuredData = Record<string, unknown>
 
-export type BreadcrumbItem = { name: string; url: string }
+type BreadcrumbItem = { name: string; url: string }
 
 /** Everything BaseLayout needs to build <head>. */
 export type DocumentMeta = {

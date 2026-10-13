@@ -23,10 +23,10 @@ export const ENCOUNTER_REF_SCHEMAS = [
   'vehicles',
   'meld',
 ] as const
-export const EncounterRefSchemaSchema = z.enum(ENCOUNTER_REF_SCHEMAS)
+const EncounterRefSchemaSchema = z.enum(ENCOUNTER_REF_SCHEMAS)
 
 /** The three Mediator tables the tray can roll (Workshop Manual p.268). */
-export const MediatorTableIdSchema = z.enum(['reaction', 'morale', 'retreat'])
+const MediatorTableIdSchema = z.enum(['reaction', 'morale', 'retreat'])
 
 /**
  * Recorded result of a Mediator table roll (Reaction / Morale / Retreat).

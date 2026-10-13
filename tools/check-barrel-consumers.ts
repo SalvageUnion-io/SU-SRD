@@ -88,7 +88,7 @@ export type StoryIndex = ReadonlyMap<
 >
 
 /** `source` with comments blanked, so a name in prose is not an import. */
-export function withoutComments(source: string): string {
+function withoutComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1')
 }
 
@@ -130,7 +130,7 @@ export function namesImportedFromLib(raw: string): string[] {
 }
 
 /** Names a module binds from relative `import { … }` statements. */
-export function namesImportedRelatively(raw: string): string[] {
+function namesImportedRelatively(raw: string): string[] {
   const source = withoutComments(raw)
   return [...source.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*'\.[^']*'/g)].flatMap((m) =>
     bindings(m[1] ?? '', { exported: false })
@@ -138,7 +138,7 @@ export function namesImportedRelatively(raw: string): string[] {
 }
 
 /** Relative specifiers a module imports or re-exports. */
-export function relativeSpecifiers(raw: string): string[] {
+function relativeSpecifiers(raw: string): string[] {
   const source = withoutComments(raw)
   return [...source.matchAll(/(?:from|import)\s*'(\.[^']+)'/g)]
     .map((m) => m[1])

@@ -74,7 +74,7 @@ export type PreviewRoute =
  * Bump when the card's RENDERING changes (OgCard, ChapterBand, fonts), since
  * the answer alone cannot see it: every cached image re-renders.
  */
-export const OG_RENDER_VERSION = 1
+const OG_RENDER_VERSION = 1
 
 const SEGMENT = /^[A-Za-z0-9_-]{1,64}$/
 

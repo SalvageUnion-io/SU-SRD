@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
 
-export type BannerSeverity = 'info' | 'warn'
+type BannerSeverity = 'info' | 'warn'
 
 /**
  * A single advisory row. The shape is defined locally — Banner never depends on

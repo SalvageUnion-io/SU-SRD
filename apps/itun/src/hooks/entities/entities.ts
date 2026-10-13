@@ -88,10 +88,7 @@ function useEntityList<T extends EntityType>(type: T): EntityForType<T>[] {
  * Reactive by-id read. Returns null while unhydrated, when the record does
  * not exist, or when `id` is undefined. Auto-triggers lazy hydration.
  */
-export function useEntity<T extends EntityType>(
-  type: T,
-  id: string | undefined
-): EntityForType<T> | null {
+function useEntity<T extends EntityType>(type: T, id: string | undefined): EntityForType<T> | null {
   ensureHydrated(type)
   return useEntityStore((s) => selectEntityById(s, type, id))
 }

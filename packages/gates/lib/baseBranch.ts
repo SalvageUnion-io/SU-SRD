@@ -25,9 +25,9 @@
  */
 
 /** The long-lived branches a branch can be cut from, in tie-break order. */
-export const BASE_CANDIDATES = ['main', 'design-refresh'] as const
+const BASE_CANDIDATES = ['main', 'design-refresh'] as const
 
-export type BaseSource = 'SU_BASE' | 'pr' | 'upstream' | 'nearest'
+type BaseSource = 'SU_BASE' | 'pr' | 'upstream' | 'nearest'
 
 export type BaseBranch = {
   /** The branch name on origin, e.g. `design-refresh`. */

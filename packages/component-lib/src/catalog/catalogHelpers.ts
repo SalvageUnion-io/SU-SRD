@@ -14,7 +14,7 @@ export type CatalogCategory = {
   flat: boolean
 }
 
-export type CatalogCard = {
+type CatalogCard = {
   id: string
   href: string
   /**

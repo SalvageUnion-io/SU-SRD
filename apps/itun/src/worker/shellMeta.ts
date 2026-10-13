@@ -52,7 +52,7 @@ function tidy(value: string, max: number): string {
 }
 
 /** Render the meta block for one route. */
-export function renderMeta(meta: ShellMeta): string {
+function renderMeta(meta: ShellMeta): string {
   const title = escapeAttr(tidy(meta.title, 70))
   const description = escapeAttr(tidy(meta.description, 200))
   const url = escapeAttr(meta.url)

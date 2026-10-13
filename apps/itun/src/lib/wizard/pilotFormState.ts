@@ -77,7 +77,7 @@ export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardP
  * Equipment gates, abilities count: Mecha Packmaster turns one Mecha Companion
  * entry into two companions (`partnerGrantCount`).
  */
-export function pilotFormToPartners(form: PilotWizardFormState) {
+function pilotFormToPartners(form: PilotWizardFormState) {
   return syncPartners(undefined, pilotPartnerSeeds(form.equipment, form.abilities))
 }
 

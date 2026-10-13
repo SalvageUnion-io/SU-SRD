@@ -32,7 +32,7 @@ export const PROPOSAL_FIELDS = {
   ],
 } as const
 
-export type ProposalTargetKind = keyof typeof PROPOSAL_FIELDS
+type ProposalTargetKind = keyof typeof PROPOSAL_FIELDS
 
 export type ProposalField = (typeof PROPOSAL_FIELDS)[ProposalTargetKind][number]['field']
 
@@ -67,7 +67,7 @@ export function normalizeReason(reason: string | undefined): string | undefined 
 }
 
 /** One field on one target: what it holds now, and its derived maximum. */
-export type TargetReading = { current: number | null; max: number | null }
+type TargetReading = { current: number | null; max: number | null }
 
 /** Something a proposal can be aimed at: a claimed pilot or mech. */
 export type ProposalTarget = {

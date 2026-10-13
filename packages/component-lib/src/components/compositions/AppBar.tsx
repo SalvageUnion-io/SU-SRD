@@ -43,9 +43,9 @@ import { Speckle } from '../atoms/Speckle'
  * Paper flecks lie behind the bar's content (`Speckle`, §3.5).
  */
 
-export type AppBarProduct = 'reference' | 'build'
+type AppBarProduct = 'reference' | 'build'
 
-export type AppBarNavItem = {
+type AppBarNavItem = {
   label: ReactNode
   href: string
   /** Marks the link as the page you are on (`aria-current="page"`). */

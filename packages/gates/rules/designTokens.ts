@@ -33,7 +33,7 @@ import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
-export const SCAN_DIRS = [
+const SCAN_DIRS = [
   'packages/component-lib/src',
   'packages/salvageunion-reference/lib',
   // The DATASET, not just the code that reads it (`.json` included): a raw hex
@@ -85,7 +85,7 @@ export function fontSizePx(match: string): number | undefined {
 }
 
 /** The type floor (ruleset §4.6): nothing renders under 11px. */
-export const TYPE_FLOOR_PX = 11
+const TYPE_FLOOR_PX = 11
 
 /**
  * Where the light speckle may never sit (ruleset §3.5 "Texture"): buttons,
@@ -112,7 +112,7 @@ const TEXTURE_FORBIDDEN: readonly RegExp[] = [
 const PAPER_GROUND =
   /(?<![\w-])bg-paper(?![\w-])|background(?:-color|Color)?\s*:\s*(?:var\(--color-paper\)|color\.paper\b)/
 
-export const TOKEN_RULES: TokenRule[] = [
+const TOKEN_RULES: TokenRule[] = [
   {
     id: 'shadow-tokens',
     mode: 'zero',

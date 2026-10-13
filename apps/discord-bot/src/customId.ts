@@ -13,7 +13,7 @@
  */
 
 /** Namespace prefix for every one of this bot's component ids. */
-export const CUSTOM_ID_NS = 'su'
+const CUSTOM_ID_NS = 'su'
 
 /** Discord caps a component customId at 100 characters. */
 const CUSTOM_ID_MAX = 100

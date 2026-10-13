@@ -60,7 +60,7 @@ export type BandButton = {
 }
 
 /** A short text readout in a bay; `warn` marks a problem (a damaged bay). */
-export type BandText = {
+type BandText = {
   text: string
   warn?: boolean
   /**

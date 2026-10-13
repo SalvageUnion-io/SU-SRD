@@ -102,7 +102,7 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
 }
 
 /** The drones a fresh mech's chassis grants, kitted by its pattern. */
-export function mechFormToPartners(form: MechWizardFormState) {
+function mechFormToPartners(form: MechWizardFormState) {
   return syncPartners(undefined, mechPartnerSeeds(form.chassisName, form.patternName))
 }
 

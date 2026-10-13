@@ -23,7 +23,7 @@ export const ChoiceSelectionsSchema = z.record(z.string(), z.array(z.string()))
  * lib/rules/derivedStats.ts; `note` records the source/description.
  */
 
-export const InjurySchema = z
+const InjurySchema = z
   .object({
     severity: z.enum(['minor', 'major']),
     note: z.string(),
@@ -40,7 +40,7 @@ export const InjurySchema = z
  * - miraculous-survival: roll 20 — 1 HP, conscious, acts normally
  */
 
-export const CriticalInjuryOutcomeSchema = z.enum([
+const CriticalInjuryOutcomeSchema = z.enum([
   'fatal',
   'major-injury',
   'minor-injury',
@@ -54,7 +54,7 @@ export const CriticalInjuryOutcomeSchema = z.enum([
  * discipline as the mech's HeatCheckResult/CriticalDamageResult.
  */
 
-export const CriticalInjuryResultSchema = z
+const CriticalInjuryResultSchema = z
   .object({
     roll: z.number().int().min(1).max(20),
     outcome: CriticalInjuryOutcomeSchema,
@@ -71,7 +71,7 @@ export const CriticalInjuryResultSchema = z
  * layer sums `slotCost` truthfully alongside reference equipment.
  */
 
-export const GenericInventoryEntrySchema = z
+const GenericInventoryEntrySchema = z
   .object({
     id: z.string(),
     name: z.string().min(1),

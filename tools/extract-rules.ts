@@ -57,7 +57,7 @@ export function findExtractDir(): string | undefined {
   return candidates.find((d): d is string => !!d && existsSync(d))
 }
 
-export async function extractPdf(pdfPath: string, layer: Layer = 'flow'): Promise<string> {
+async function extractPdf(pdfPath: string, layer: Layer = 'flow'): Promise<string> {
   // No -layout for `flow`: poppler's reading-order heuristic keeps two-column
   // prose more coherent than fixed-position layout mode for this book. `\f`
   // (form feed) separates pages.

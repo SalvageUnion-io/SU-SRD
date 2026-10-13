@@ -35,7 +35,7 @@ import { OffRulesEscape } from './OffRulesEscape'
  * keeps the three wizards free to hand over their own schema without the hook
  * having an opinion about the parsed shape.
  */
-export type WizardValidationSchema = {
+type WizardValidationSchema = {
   safeParse: (value: unknown) => {
     success: boolean
     error?: { issues: readonly { message: string }[] }
@@ -78,7 +78,7 @@ export type WizardFlowOptions<
 }
 
 /** The `WizShell` props every creation wizard passes the same way. */
-export type WizardShellProps = {
+type WizardShellProps = {
   steps: readonly string[]
   active: number
   onStepClick: (index: number) => void

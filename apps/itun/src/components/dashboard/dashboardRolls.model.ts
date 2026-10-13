@@ -20,7 +20,7 @@ import { containerOf } from 'itun-domain/container'
 import { commitChangeLog } from '../../stores/entityBackend'
 
 /** Which roll it was. The Log tab reads `description`; `result` keeps the numbers. */
-export type DashboardRollKind =
+type DashboardRollKind =
   | 'core'
   | 'push'
   | 'heat-check'

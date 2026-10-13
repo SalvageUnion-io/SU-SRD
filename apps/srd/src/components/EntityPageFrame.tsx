@@ -65,7 +65,7 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
 }
 
 /** An entity page's measure (board 07). */
-export const ENTITY_PAGE_MEASURE = '75rem'
+const ENTITY_PAGE_MEASURE = '75rem'
 
 type EntityPageFrameProps = {
   /** The page title: the entity's name, or a pattern's quoted name. */

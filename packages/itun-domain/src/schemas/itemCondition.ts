@@ -16,7 +16,7 @@
 
 import { z } from 'salvageunion-reference/zod'
 
-export const ItemConditionSchema = z.enum(['intact', 'damaged', 'destroyed'])
+const ItemConditionSchema = z.enum(['intact', 'damaged', 'destroyed'])
 
 export type ItemCondition = z.infer<typeof ItemConditionSchema>
 

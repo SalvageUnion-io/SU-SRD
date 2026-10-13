@@ -52,7 +52,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 // ── the corpus ───────────────────────────────────────────────────────────────
 
 /** The source trees whose strings reach a reader. */
-export const COPY_DIRS = [
+const COPY_DIRS = [
   'apps/itun/src',
   'apps/itun/convex',
   'apps/srd/src',
@@ -176,11 +176,11 @@ export function extractCopy(file: string, source: string): CopyString[] {
   return out
 }
 
-export function copyFiles(root: string): string[] {
+function copyFiles(root: string): string[] {
   return listFiles(root, COPY_DIRS, ['.ts', '.tsx']).filter((f) => !SKIP_FILE.test(f))
 }
 
-export function collectCopy(root: string): CopyString[] {
+function collectCopy(root: string): CopyString[] {
   return copyFiles(root).flatMap((f) => extractCopy(f, readFileSync(join(root, f), 'utf8')))
 }
 

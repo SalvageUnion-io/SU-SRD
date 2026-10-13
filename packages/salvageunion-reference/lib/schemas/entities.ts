@@ -167,7 +167,7 @@ export const ClassSchema = z
  * Expansion "upgrade" bays (e.g. Bio-Mech Bay, Nanite Processing Bay) are
  * bought with a mix of Scrap (at a given Tech level) and/or Bio-Salvage.
  */
-export const CrawlerBayCostSchema = z
+const CrawlerBayCostSchema = z
   .object({
     scrap: NonNegativeIntegerSchema.describe(
       'Amount of Scrap required to build this bay'

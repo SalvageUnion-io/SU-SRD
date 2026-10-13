@@ -29,16 +29,16 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  */
 
 /** One banded row: its range key ("11-19"), the outcome's name, its text. */
-export type RollInstrumentRow = { key: string; label: string | null; value: ReactNode }
+type RollInstrumentRow = { key: string; label: string | null; value: ReactNode }
 
 /** One column of a columns table: its d20 range and its entries. */
-export type RollInstrumentColumn = {
+type RollInstrumentColumn = {
   key: string
   entries: { key: string; value: ReactNode }[]
 }
 
 /** How tightly a wide screen sets a page's table (the SRD's `rollTableDensity`). */
-export type RollInstrumentDensity = 'roomy' | 'compact' | 'dense'
+type RollInstrumentDensity = 'roomy' | 'compact' | 'dense'
 
 type BandsTable = {
   kind: 'bands'

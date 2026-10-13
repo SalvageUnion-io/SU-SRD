@@ -68,7 +68,7 @@ export function formatCost(cost: string | number, currency: string | number | un
 }
 
 /** Traits → cells: "Explosive (1)" is name Explosive, value 1. */
-export function traitFacets(traits: SURefObjectTrait[]): FacetCell[] {
+function traitFacets(traits: SURefObjectTrait[]): FacetCell[] {
   return traits.map((trait) => ({
     key: `trait-${trait.type}`,
     label: capitalize(trait.type),

@@ -30,7 +30,7 @@ import type { ConfirmCopy } from '../../lib/games/rowActionCopy'
  * system working.
  */
 
-export type ConfirmRequest = ConfirmCopy & {
+type ConfirmRequest = ConfirmCopy & {
   /** The action. Runs only on confirm; a rejection keeps the dialog open. */
   onConfirm: () => void | Promise<void>
 }

@@ -20,9 +20,9 @@ import { PEEK_ATTRIBUTE } from './peekContext'
 /** The attribute the popup carries, so the controller can tell inside from out. */
 export const PEEK_POPUP_ATTRIBUTE = 'data-peek-popup'
 
-export const PEEK_OPEN_DELAY = 300
-export const PEEK_CLOSE_DELAY = 150
-export const PEEK_LONG_PRESS = 500
+const PEEK_OPEN_DELAY = 300
+const PEEK_CLOSE_DELAY = 150
+const PEEK_LONG_PRESS = 500
 /** A press that travels further than this is a scroll, not a long press. */
 const PRESS_SLOP = 10
 /** Focus this soon after a pointer press came from the press. */

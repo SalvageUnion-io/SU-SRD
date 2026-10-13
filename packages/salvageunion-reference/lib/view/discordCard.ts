@@ -83,13 +83,13 @@ export type DiscordBlock =
 export type DiscordCard = { tone: string; blocks: DiscordBlock[] }
 
 /** A row of a table, ready to print: its range and its line. */
-export type DiscordTableRow = { key: string; line: string }
+type DiscordTableRow = { key: string; line: string }
 
 /** An action band inside a card, and the table it rolls on, if any. */
-export type DiscordAction = { name: string; text: string; tableName?: string }
+type DiscordAction = { name: string; text: string; tableName?: string }
 
 /** A group of nested entities: its stamp, and the names as links. */
-export type DiscordChildGroup = { label: string; count: number; line: string; items: EntityRef[] }
+type DiscordChildGroup = { label: string; count: number; line: string; items: EntityRef[] }
 
 /** Everything a card can show, rendered; consumers choose and order. */
 export type DiscordCardParts = {
@@ -122,7 +122,7 @@ function link(label: string, url: string | undefined): string {
  * Where a ref links: its SRD page, a pattern's own page under its chassis, and
  * nothing for a synthetic record or an action (actions have no page).
  */
-export function discordRefUrl(ref: EntityRef): string | undefined {
+function discordRefUrl(ref: EntityRef): string | undefined {
   if (ref.synthetic || ref.schemaName === 'actions') return undefined
   const base = srdEntityUrl(ref.schemaName, ref.slug)
   return ref.pattern ? `${base}/pattern/${nameToSlug(ref.pattern)}` : base
@@ -158,7 +158,7 @@ export function rangeLabel(key: string): string {
 }
 
 /** Content blocks as markdown paragraphs, one string per block. */
-export function contentMarkdown(
+function contentMarkdown(
   blocks: SURefObjectContentBlock[] | undefined,
   chassisName?: string
 ): string[] {
@@ -215,7 +215,7 @@ export function contentMarkdown(
 }
 
 /** Value cells, three to a line: `` `12` STRUCTURE PTS. · `4` ENERGY PTS. ``. */
-export function factCells(facts: Fact[], perLine = 3): string[] {
+function factCells(facts: Fact[], perLine = 3): string[] {
   const cells = facts
     .filter((fact) => fact.value !== '')
     .map((fact) => `\`${fact.value}\` ${fact.label.toUpperCase()}`)
@@ -234,7 +234,7 @@ function cellFacts(model: EntityModel): Fact[] {
 }
 
 /** Traits as linked tags: `[Hacking](…) · [Burn](…) 2`. */
-export function traitTags(traits: TraitMention[]): string {
+function traitTags(traits: TraitMention[]): string {
   return traits
     .map((trait) => {
       const label = link(

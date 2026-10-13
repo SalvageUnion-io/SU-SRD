@@ -135,8 +135,8 @@ export function ogCardDescription(props: OgCardProps): string {
   return [props.kicker, byline].filter((part) => part && part.length > 0).join(' · ')
 }
 
-export const PRIVATE_TITLE = 'Private'
-export const PRIVATE_LINE = "Its owner hasn't shared this."
+const PRIVATE_TITLE = 'Private'
+const PRIVATE_LINE = "Its owner hasn't shared this."
 
 /** The string the notch prints: the name, in curly quotes for a quoted user-made card. */
 export function ogCardPrintedTitle(props: OgCardProps): string {

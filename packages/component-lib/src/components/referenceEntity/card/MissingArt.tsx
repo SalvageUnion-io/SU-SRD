@@ -36,7 +36,7 @@ const GHOST_ROWS = ['12%', '25%', '66%', '79%']
  * It is decoration (`aria-hidden`): the entity's name is the card's title.
  * Layout is `index.css`'s `.su-missing-art*`.
  */
-export function MissingArt({ entity, hero = false }: { entity: SURefMetaEntity; hero?: boolean }) {
+function MissingArt({ entity, hero = false }: { entity: SURefMetaEntity; hero?: boolean }) {
   return <MissingArtMark mark={missingArt(entity)} hero={hero} />
 }
 

@@ -21,7 +21,7 @@ export function useInsidePeek(): boolean {
 export const PEEK_ATTRIBUTE = 'data-peek'
 
 /** A ref's address as a trigger carries it: `schema:id`. */
-export function peekAddress(ref: EntityRef): string {
+function peekAddress(ref: EntityRef): string {
   return `${ref.schemaName}:${ref.id}`
 }
 

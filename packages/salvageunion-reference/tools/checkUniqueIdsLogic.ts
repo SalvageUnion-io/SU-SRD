@@ -18,7 +18,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0
  * catalog-categories uses short slug IDs (e.g. "pilot", "mech") by design —
  * they are exempt from the UUIDv4 format check but still checked for duplicates.
  */
-export const SLUG_ID_FILES = new Set(['catalog-categories.json'])
+const SLUG_ID_FILES = new Set(['catalog-categories.json'])
 
 export type FileResult = {
   file: string

@@ -154,7 +154,7 @@ export function foldedActionOf<T extends { name?: string; displayName?: string }
 }
 
 /** An ability that grants entities: its actions belong to what it grants. */
-export function isGrantingAbility(entity: SURefMetaEntity): boolean {
+function isGrantingAbility(entity: SURefMetaEntity): boolean {
   return isAbility(entity) && resolveGrantedEntities(entity as SURefEntity).length > 0
 }
 

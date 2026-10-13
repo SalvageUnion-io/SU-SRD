@@ -16,7 +16,7 @@ import { Badge, Button, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { MARK_SRC } from '../../lib/appUrl'
 
-export type RailFam = 'mech' | 'pilot' | 'crawler'
+type RailFam = 'mech' | 'pilot' | 'crawler'
 
 /** The stamp's fill: the Major's ontology — crawler pink in Downtime. */
 const STAMP_BG: Record<RailFam, string> = {

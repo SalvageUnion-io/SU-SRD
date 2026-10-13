@@ -45,8 +45,8 @@
 import { availableParallelism } from 'node:os'
 import { join } from 'node:path'
 
-export type Profile = 'full' | 'fast' | 'pre-push' | 'ci'
-export type Area = 'code' | 'docs' | 'deps'
+type Profile = 'full' | 'fast' | 'pre-push' | 'ci'
+type Area = 'code' | 'docs' | 'deps'
 const AREAS: readonly Area[] = ['code', 'docs', 'deps']
 
 export type CheckSpec = {

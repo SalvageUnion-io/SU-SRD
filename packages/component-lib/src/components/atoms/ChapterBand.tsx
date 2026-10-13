@@ -69,8 +69,6 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * `titleSize` fits a long name to the notch.
  */
 
-export type { ChapterTone } from './chapterBandColor'
-
 export type ChapterBandProps = {
   /** The page title. */
   children: ReactNode

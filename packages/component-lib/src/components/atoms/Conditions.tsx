@@ -13,7 +13,7 @@ import { FOCUS_RING } from './interaction'
  *   *facts* rather than conditions (a crawler NPC's facts), where a warn fill
  *   would read as an alarm and caps would shout a sentence.
  */
-export type ConditionChipTone = 'warn' | 'quiet'
+type ConditionChipTone = 'warn' | 'quiet'
 
 type ConditionChipProps = {
   label: string

@@ -17,7 +17,7 @@ export type ActionReferenceError = {
 }
 
 // Data files that may contain action references
-export const ACTION_REFERENCING_FILES = [
+const ACTION_REFERENCING_FILES = [
   'abilities.json',
   'systems.json',
   'modules.json',

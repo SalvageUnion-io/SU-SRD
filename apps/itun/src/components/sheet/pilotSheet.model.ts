@@ -44,10 +44,10 @@ import type { SheetStoreState } from './sheetViewProps.model'
  * the same eight, so they are reference, while the class's own abilities are
  * what tells this pilot from another.
  */
-export const GENERIC_TREE = 'Generic'
+const GENERIC_TREE = 'Generic'
 
 /** One learned ability, keyed by the slug the pilot record actually stores. */
-export type AbilityEntry = { slug: string; ability: SURefAbility }
+type AbilityEntry = { slug: string; ability: SURefAbility }
 
 type PilotSheetModelOptions = {
   pilot: Pilot

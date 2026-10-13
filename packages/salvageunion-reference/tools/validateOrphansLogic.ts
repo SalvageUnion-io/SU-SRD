@@ -424,7 +424,7 @@ export const ROOT_FILES = [
 //     ONLY orphaned abilities-sourced action and the only such passive/attack
 //     pair in the data (not a convention) — likely a data anomaly. Left OUT so
 //     the checker keeps surfacing it until a maintainer decides.
-export const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
+const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   // Deployable turret weapon options. These are referenced only via
   // `source.options[].actions` (`kind: 'systemVariant'`) nested inside the
   // parent "Automated Weapon Turret" action's `choices` — a structure the

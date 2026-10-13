@@ -28,7 +28,7 @@ import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { reportRefusedWrite } from './useSeat'
 
 /** A member of the Game, as a ready pip names them. */
-export type DowntimeMember = { userId: string; displayName: string }
+type DowntimeMember = { userId: string; displayName: string }
 
 /** What the Dashboard reads off the Game's Downtime. */
 export type DowntimeView = {

@@ -44,7 +44,7 @@ const PLAYER_CONTENT = new Set([
   'drones.json',
 ])
 
-export type ParityClass = 'cap' | 'effect'
+type ParityClass = 'cap' | 'effect'
 
 export type ParityFinding = {
   /** Display name of the owning record. */
@@ -67,7 +67,7 @@ export type ParityFinding = {
  * established by a real record — not a one-off excuse. Adding an entry is a
  * design decision; adding one without a reason is not possible.
  */
-export const PARITY_EXEMPTIONS: Record<string, string> = {
+const PARITY_EXEMPTIONS: Record<string, string> = {
   // Chassis-integrated: the bonus is already folded into the chassis's own
   // absolute stat. Verified: Mule cargoCapacity IS 16, Gopher 12, Atlas 30.
   // Encoding these as contributions would DOUBLE-COUNT them.

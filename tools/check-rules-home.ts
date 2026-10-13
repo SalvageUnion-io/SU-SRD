@@ -30,7 +30,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 
 export const CONVEX_DIR = 'apps/itun/convex'
-export const CLIENT_SRC = 'apps/itun/src'
+const CLIENT_SRC = 'apps/itun/src'
 export const COMPONENTS_DIR = 'apps/itun/src/components'
 
 /** ~65% of today's counts (31 Convex files, 437 component files): a catastrophe floor. */

@@ -75,7 +75,7 @@ export type SheetViewCommonProps = {
 }
 
 /** Fields a sheet patch may set on its own entity. */
-export type SheetPatchFields = Partial<Pilot> & Partial<Mech> & Partial<Crawler>
+type SheetPatchFields = Partial<Pilot> & Partial<Mech> & Partial<Crawler>
 
 /**
  * Persist a partial patch on the sheet's own entity (fire-and-forget).

@@ -21,7 +21,7 @@ import { getEntitySlug } from './slug'
  * entity's schema name and slug; see getAssetUrl().
  */
 
-export const ASSET_BASE_URL = 'https://assets.salvageunion.io'
+const ASSET_BASE_URL = 'https://assets.salvageunion.io'
 
 /**
  * Derive an entity's asset URL from its schema name and slug.

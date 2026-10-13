@@ -19,7 +19,7 @@ import { photoFields } from './photo'
  * saved with that `lastHeatCheck` still reads, as `'overdrive'`.
  */
 
-export const ReactorOverloadOutcomeSchema = z.preprocess(
+const ReactorOverloadOutcomeSchema = z.preprocess(
   (value) => (value === 'safe' ? 'overdrive' : value),
   z.enum(['meltdown', 'system-destroyed', 'module-destroyed', 'overheat', 'overdrive'])
 )
@@ -34,7 +34,7 @@ export const ReactorOverloadOutcomeSchema = z.preprocess(
  * that roll <= heat. `overloadRoll` / `outcome` are only present on an overload.
  */
 
-export const HeatCheckResultSchema = z
+const HeatCheckResultSchema = z
   .object({
     heatCheckRoll: z.number().int().min(1).max(20),
     heatAtCheck: z.number().int().min(0),
@@ -62,7 +62,7 @@ export const HeatCheckResultSchema = z
  * - miraculous-survival: roll 20 — mech Intact at 1 SP, fully operational
  */
 
-export const CriticalDamageOutcomeSchema = z.enum([
+const CriticalDamageOutcomeSchema = z.enum([
   'catastrophic',
   'system-destruction',
   'module-destruction',
@@ -80,7 +80,7 @@ export const CriticalDamageOutcomeSchema = z.enum([
  * render the last outcome — same shape discipline as HeatCheckResult.
  */
 
-export const CriticalDamageResultSchema = z
+const CriticalDamageResultSchema = z
   .object({
     roll: z.number().int().min(1).max(20),
     outcome: CriticalDamageOutcomeSchema,

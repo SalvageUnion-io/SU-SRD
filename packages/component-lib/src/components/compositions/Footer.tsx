@@ -31,7 +31,7 @@ export type FooterFoot = {
   measure?: string
 }
 
-export type FooterLink = { label: string; href: string }
+type FooterLink = { label: string; href: string }
 
 type FooterProps = {
   /** The tool's own pages, same tab, underlined in the band's ink (or paper). */

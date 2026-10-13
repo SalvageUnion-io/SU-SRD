@@ -130,7 +130,7 @@ export function reExportsIn(
  * comment ("see `api.games.rename`") does not count as calling it. Line
  * comments need a non-`:` before the `//` so a URL inside a string survives.
  */
-export function withoutComments(source: string): string {
+function withoutComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1')
 }
 

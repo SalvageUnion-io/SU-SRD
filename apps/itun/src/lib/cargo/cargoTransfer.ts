@@ -68,7 +68,7 @@ export type CargoTransferAction =
   | { type: 'add-depot-lot'; lot: CargoLot }
   | { type: 'remove-depot-lot'; lotId: string }
 
-export type CargoTransferOk = {
+type CargoTransferOk = {
   ok: true
   state: CargoBoundaryState
   /** Which sides changed — lets the persistence layer write only what moved. */
@@ -77,7 +77,7 @@ export type CargoTransferOk = {
   moved?: number
 }
 
-export type CargoTransferError = { ok: false; reason: string }
+type CargoTransferError = { ok: false; reason: string }
 
 export type CargoTransferResult = CargoTransferOk | CargoTransferError
 

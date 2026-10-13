@@ -113,7 +113,7 @@ function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
  * medium card; from depth 2 a child is a one-line head row that opens the
  * entity rather than expanding in place (board E2).
  */
-export function NestedCardList({
+function NestedCardList({
   entities,
   seal,
   host,
@@ -158,7 +158,7 @@ export function NestedCardList({
  * an href), else the detail modal (ITUN). A synthesised entity (no dataset
  * row) and a Row inside a tooltip are read-only.
  */
-export function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCardHost }) {
+function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCardHost }) {
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
   const insidePeek = useContext(InsidePeekContext)

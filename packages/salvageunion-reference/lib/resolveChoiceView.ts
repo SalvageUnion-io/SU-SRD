@@ -37,7 +37,7 @@ export type ChoiceSelections = Record<string, string[]>
 /**
  * Unresolved required-choice prompt surfaced in the dataview row.
  */
-export type ChoicePrompt = {
+type ChoicePrompt = {
   choiceId: string
   label: string
   text: string

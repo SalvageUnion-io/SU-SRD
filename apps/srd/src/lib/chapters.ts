@@ -56,7 +56,7 @@ const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
 ]
 
 /** One row of a chapter: a schema's listing and how many entries it holds. */
-export type ChapterRow = {
+type ChapterRow = {
   schemaId: string
   label: string
   href: string

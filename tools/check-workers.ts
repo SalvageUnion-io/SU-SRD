@@ -33,10 +33,10 @@ import { WORKER_APPS } from './check-generated'
 export const SCRIPTS = ['dev', 'build', 'test', 'typecheck', 'deploy', 'worker:bundle'] as const
 
 /** Scripts whose command is the same everywhere; the rest are per-app. */
-export const SAME_SCRIPTS = ['deploy', 'worker:bundle'] as const
+const SAME_SCRIPTS = ['deploy', 'worker:bundle'] as const
 
 /** wrangler.jsonc keys every Worker sets to the same value. */
-export const SHARED_KEYS = ['compatibility_date', 'compatibility_flags', 'observability'] as const
+const SHARED_KEYS = ['compatibility_date', 'compatibility_flags', 'observability'] as const
 
 export const ENTRY = 'src/worker/index.ts'
 

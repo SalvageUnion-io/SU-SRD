@@ -20,7 +20,7 @@
 
 import { nameToSlug } from '../lib/nameToSlug'
 
-export type NamedEntity = { id?: string; name?: string; source?: string; page?: number }
+type NamedEntity = { id?: string; name?: string; source?: string; page?: number }
 
 export type SlugCollision = {
   file: string

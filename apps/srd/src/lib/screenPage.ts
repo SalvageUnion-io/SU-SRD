@@ -38,10 +38,10 @@ type ScreenPanelBase = {
 export type ScreenTable = ScreenPanelBase & { kind: 'table'; data: RollTablePageData }
 
 /** One line of a reference panel: a term and its rule ("Close" and what Close Range means). */
-export type ScreenNote = { term: string; text: RefText }
+type ScreenNote = { term: string; text: RefText }
 
 /** A procedure's steps, under the heading the book sets them in ("Post-Session"). */
-export type ScreenSteps = { heading: string; names: string[] }
+type ScreenSteps = { heading: string; names: string[] }
 
 /** A reference panel: rules to read, not roll (Heat, the distances, Downtime). */
 export type ScreenReference = ScreenPanelBase & {

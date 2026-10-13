@@ -346,7 +346,7 @@ export function slotParam(slot: CrewSlot): string {
 }
 
 /** A slot's short name: "Med Bay", or "Type NPC". */
-export function slotName(slot: CrewSlot): string {
+function slotName(slot: CrewSlot): string {
   if (slot.kind === 'type') return 'Type NPC'
   const bay = readReference(
     'npcModel.slotName',

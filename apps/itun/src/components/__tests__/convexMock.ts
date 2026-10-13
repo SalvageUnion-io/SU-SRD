@@ -78,7 +78,7 @@ export function mockUseQuery(ref: unknown, args?: unknown): unknown {
  * Pass `overrides` for the per-file bits (a mutation spy, an unauthenticated
  * `useConvexAuth`, …).
  */
-export function convexReactMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function convexReactMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     useQuery: mockUseQuery,
     // `ConnectionProvider`'s build-floor subscription (`buildFloor.ts`): every
@@ -101,7 +101,7 @@ export function convexReactMock(overrides: Record<string, unknown> = {}): Record
 }
 
 /** Extra modules to mock alongside Convex, keyed by specifier. */
-export type ExtraMocks = Record<string, () => unknown>
+type ExtraMocks = Record<string, () => unknown>
 
 export type InstallOptions = {
   /**

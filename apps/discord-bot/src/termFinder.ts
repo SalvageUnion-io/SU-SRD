@@ -25,7 +25,7 @@ export type FoundTerm = { hit: LookupHit; matched: string; row?: string }
 const MAX_WORDS = 6
 
 /** The most terms one answer lists. */
-export const MAX_TERMS = 5
+const MAX_TERMS = 5
 
 type IndexEntry = { hit: LookupHit; row?: string }
 

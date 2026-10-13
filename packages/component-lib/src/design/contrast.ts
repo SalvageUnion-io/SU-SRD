@@ -21,7 +21,7 @@ import { color } from './tokens'
 export type Rgb = readonly [number, number, number]
 
 /** WCAG 2.x relative luminance of an sRGB triple (0–255 channels). */
-export function relativeLuminance([r, g, b]: Rgb): number {
+function relativeLuminance([r, g, b]: Rgb): number {
   const channel = (v: number) => {
     const c = v / 255
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4

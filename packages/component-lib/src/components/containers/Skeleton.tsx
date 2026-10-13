@@ -3,7 +3,7 @@ import { borderWidth, color, radius, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Ghost } from '../atoms/Ghost'
 
-export type SkeletonMode = 'card' | 'list' | 'text'
+type SkeletonMode = 'card' | 'list' | 'text'
 
 type SkeletonProps = {
   /** Anatomy to mirror: a framed card, a stack of rows, or lines of text. */

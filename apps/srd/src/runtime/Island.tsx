@@ -25,7 +25,7 @@ import type { ReactNode } from 'react'
 import type { IslandName } from './islandRegistry'
 
 /** When the client mounts an island (see `islands.client.ts`). */
-export type IslandClientDirective = 'load' | 'idle' | 'visible' | 'only'
+type IslandClientDirective = 'load' | 'idle' | 'visible' | 'only'
 
 export type IslandProps = {
   /**

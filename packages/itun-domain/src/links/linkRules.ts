@@ -114,7 +114,7 @@ export function slotKey(slot: CrewSlot | undefined): string {
 }
 
 /** Whether two slots name the same crew slot (two absent slots do). */
-export function sameSlot(a: CrewSlot | undefined, b: CrewSlot | undefined): boolean {
+function sameSlot(a: CrewSlot | undefined, b: CrewSlot | undefined): boolean {
   return slotKey(a) === slotKey(b)
 }
 
@@ -150,7 +150,7 @@ export function isSlotted(type: SoftLinkType): boolean {
  * this crawler's Med Bay conflicts. The same link drawn again is not a
  * conflict — it is the link.
  */
-export function conflictsWith(existing: LinkShape, candidate: LinkShape): boolean {
+function conflictsWith(existing: LinkShape, candidate: LinkShape): boolean {
   if (existing.type !== candidate.type) return false
   if (sameLink(existing, candidate)) return false
   if (existing.from.id === candidate.from.id) return true

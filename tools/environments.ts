@@ -102,7 +102,7 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
 ]
 
 /** A `code_scanning` rule entry: which tool's results gate a merge, and at what severity. */
-export type CodeScanningSpec = {
+type CodeScanningSpec = {
   tool: string
   security_alerts_threshold: string
   alerts_threshold: string

@@ -56,7 +56,7 @@ export type BoardSources = {
 /** Nothing read yet: the menu falls back to the assigned mech alone. */
 export const NO_BOARD_SOURCES: BoardSources = { listing: null, seats: [], viewerId: null }
 
-export type BoardState = 'yours' | 'spare' | 'others' | 'destroyed' | 'aboard'
+type BoardState = 'yours' | 'spare' | 'others' | 'destroyed' | 'aboard'
 
 export type BoardOption = {
   /** The mech's app id: what a seat and a link end address it by. */

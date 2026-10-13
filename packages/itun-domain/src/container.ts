@@ -12,7 +12,7 @@
  */
 
 /** A shared Game, by id. */
-export type GameContainer = { kind: 'game'; gameId: string }
+type GameContainer = { kind: 'game'; gameId: string }
 /** The owner's personal shelf. Not a Game: no crew, no Mediator, no invites. */
 export type ShelfContainer = { kind: 'shelf' }
 

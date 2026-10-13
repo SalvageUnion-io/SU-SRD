@@ -192,7 +192,7 @@ export type EntityState = {
 }
 
 /** One update inside a transfer() — the discriminant ties patch to type. */
-export type TransferUpdate = {
+type TransferUpdate = {
   [T in ContainedType]: { type: T; id: string; patch: Partial<EntityForType<T>> }
 }[ContainedType]
 

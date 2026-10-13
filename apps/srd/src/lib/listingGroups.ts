@@ -10,7 +10,7 @@ import { bayKind, getPageReference, getSource, getTechLevel, getTree } from 'sal
 export type TechLevel = number | 'B' | 'N'
 
 /** The book's tech-level order: TL1–6, then Bio-tech and Nanite. */
-export const TL_ORDER: readonly TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
+const TL_ORDER: readonly TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
 /** A schema's tech levels in the book's order. */
 export function orderTechLevels(techLevels: readonly TechLevel[]): TechLevel[] {
@@ -48,7 +48,7 @@ export type GroupBy = 'chapter' | 'tree' | 'tl' | 'kind' | 'bay' | 'none'
  * tables, whose 96 cards were one run with the supplements' tables mixed in
  * among the core book's.
  */
-export const CHAPTER_LISTINGS: ReadonlySet<string> = new Set(['roll-tables'])
+const CHAPTER_LISTINGS: ReadonlySet<string> = new Set(['roll-tables'])
 
 const CORE_BOOK = 'Salvage Union Workshop Manual'
 

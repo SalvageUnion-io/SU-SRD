@@ -419,13 +419,13 @@ export const VERDICTS = [
   'unverified',
   'unverified-source',
 ] as const
-export type Verdict = (typeof VERDICTS)[number]
+type Verdict = (typeof VERDICTS)[number]
 
 /**
  * The closed list of reason codes. Rule ids come from the allowlist; the rest
  * qualify a `verbatim` match or name an `unverified` near-miss's drift class.
  */
-export const VERBATIM_REASONS = [
+const VERBATIM_REASONS = [
   'elsewhere', // found in the cited book, away from the cited page
   'other-book', // found word-for-word in a book the record does not cite
   'artefact', // the only differences are PDF text-layer noise
@@ -444,7 +444,7 @@ export type Reason =
   | ProseRuleId
   | (typeof VERBATIM_REASONS)[number]
   | (typeof DRIFT_REASONS)[number]
-export const REASONS: readonly Reason[] = [
+const REASONS: readonly Reason[] = [
   ...VERBATIM_REASONS,
   ...DRIFT_REASONS,
   ...(Object.keys(PROSE_RULES) as ProseRuleId[]),

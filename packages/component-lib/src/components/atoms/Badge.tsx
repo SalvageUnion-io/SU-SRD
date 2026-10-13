@@ -9,14 +9,14 @@ import { STAMP_SEAM } from './stampSeam'
 
 export type BadgeTone = 'pilot' | 'mech' | 'crawler' | 'game' | 'ok' | 'warn' | 'bad'
 /** Chip surfaces (the rounded `shape="chip"` default). */
-export type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
+type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
 /**
  * Stamp text scale — the canonical FULL / COMPACT / MINI ladder (see
  * `src/styles/sizing.ts`, `Foundations/Sizing`). Badge is the reference
  * implementation of that vocabulary: every three-step size axis in the system
  * uses these names, so a size means the same thing wherever it is read.
  */
-export type StampSize = SizeRung
+type StampSize = SizeRung
 /** Stamp plate (`shape="stamp"`). */
 export type StampSurface = 'on-ink' | 'inverse' | 'on-tone'
 

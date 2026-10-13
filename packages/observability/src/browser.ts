@@ -84,7 +84,7 @@ export type BrowserSentrySdk = {
 }
 
 /** What `init` is called with. Errors only: no tracing, no replay. */
-export type BrowserSentryInitOptions = {
+type BrowserSentryInitOptions = {
   dsn: string
   environment?: string
   release?: string
@@ -102,7 +102,7 @@ export type BrowserObservabilityConfig = {
 }
 
 /** The per-deploy values the app reads from `import.meta.env`. */
-export type BrowserInitEnv = {
+type BrowserInitEnv = {
   dsn: string
   environment?: string
   release?: string
@@ -169,7 +169,7 @@ type PreloadErrorEvent = Event & { payload?: unknown }
  *
  * Every field defaults to the browser's own; tests inject them.
  */
-export type ChunkRecoveryDeps = {
+type ChunkRecoveryDeps = {
   /** Where Vite dispatches `vite:preloadError`. Defaults to `window`. */
   target?: EventTarget
   /** Defaults to `sessionStorage`. */

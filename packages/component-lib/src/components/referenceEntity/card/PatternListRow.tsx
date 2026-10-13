@@ -38,7 +38,7 @@ import { resolvePatternGroups } from './resolveNestedEntities'
  * The uniques sit OUTSIDE the anchor: their names and cards are links and
  * controls of their own, which cannot nest inside another link.
  */
-export function PatternListRow({
+function PatternListRow({
   chassis,
   chassisName,
   pattern,

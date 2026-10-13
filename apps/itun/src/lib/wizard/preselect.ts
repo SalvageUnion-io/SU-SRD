@@ -68,7 +68,7 @@ export function preselectedPattern(
  * Prefill `pattern` while the form is on `chassisSlug` with no pattern and no
  * loadout yet; a build in progress is returned unchanged.
  */
-export function withPatternPreselection(
+function withPatternPreselection(
   form: MechWizardFormState,
   chassisSlug: string | undefined,
   pattern: MechPattern | undefined

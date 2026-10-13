@@ -71,7 +71,7 @@ import { Fragment } from 'react'
  * alongside the three player entities because it is another thing you own and
  * open, and it carries its own tone so a Game row never reads as a crawler row.
  */
-export type EntityRowType = 'pilot' | 'mech' | 'crawler' | 'game' | 'npc'
+type EntityRowType = 'pilot' | 'mech' | 'crawler' | 'game' | 'npc'
 
 /** A single `label | value` stat rendered in the subheader as a horizontal Stat. */
 export type EntityRowStat = {

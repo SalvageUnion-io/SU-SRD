@@ -107,7 +107,7 @@ const workflowsOnly = (ctx: WorkflowContext) =>
 type Step = { where: string; step: Yaml }
 
 /** Every step in a workflow's jobs, or a composite action's `runs.steps`. */
-export function stepsOf(f: WorkflowFile): Step[] {
+function stepsOf(f: WorkflowFile): Step[] {
   const out: Step[] = []
   const jobs = isObject(f.doc.jobs) ? f.doc.jobs : {}
   for (const [job, def] of Object.entries(jobs)) {
@@ -138,7 +138,7 @@ const executable = (script: string): string =>
  * The aggregate job's key — the required-status-check identity, not a fact
  * about the job graph. Renaming it means updating the `main` ruleset too.
  */
-export const AGGREGATOR = 'quality-checks'
+const AGGREGATOR = 'quality-checks'
 
 /**
  * The workflow behind each gate the `main` ruleset (`MAIN_RULESET` in
@@ -271,7 +271,7 @@ const APP_TO_FILTER: Record<string, string> = {
 const NO_FILTER_GROUP: Record<string, string> = {}
 
 /** The `dorny/paths-filter` groups in ci.yml's `changes` job, aliases expanded. */
-export function filterGroups(ci: Yaml): Map<string, string[]> {
+function filterGroups(ci: Yaml): Map<string, string[]> {
   const jobs = isObject(ci.jobs) ? ci.jobs : {}
   for (const f of stepsOf({ path: CI, doc: { jobs } })) {
     const uses = f.step.uses

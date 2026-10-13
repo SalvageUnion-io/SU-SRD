@@ -18,7 +18,7 @@ import { parseSync } from 'oxc-parser'
 /** One denied phrase: its id, what it matches, and what to write instead. */
 export type HistoryPhrase = { id: string; pattern: RegExp; instead: string }
 
-export const HISTORY_PHRASES: readonly HistoryPhrase[] = [
+const HISTORY_PHRASES: readonly HistoryPhrase[] = [
   {
     id: 'issue-number',
     // The word issue, PR or epic before a number, or a bare hash-number. Not a

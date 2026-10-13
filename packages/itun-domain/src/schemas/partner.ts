@@ -46,7 +46,7 @@ import { ItemConditionMapSchema } from './itemCondition'
  * Which reference file `hostRef` resolves against. See the "Survey Drone exists
  * in both" note above — this is a disambiguator, not a convenience.
  */
-export const PartnerHostSchemaSchema = z.enum(['equipment', 'drones'])
+const PartnerHostSchemaSchema = z.enum(['equipment', 'drones'])
 
 export const PartnerInstanceSchema = z
   .object({

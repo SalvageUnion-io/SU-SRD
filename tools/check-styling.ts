@@ -48,7 +48,7 @@ const ROOT = join(import.meta.dir, '..')
 const BASELINE_PATH = join(import.meta.dir, 'baselines', 'styling-baseline.json')
 const UPDATE = 'bun tools/check-styling.ts --update-baseline'
 
-export const RULE_SETS: readonly RuleSet[] = [designTokens, stylingOwnership, srdCss, toneGround]
+const RULE_SETS: readonly RuleSet[] = [designTokens, stylingOwnership, srdCss, toneGround]
 
 function selectedSets(argv: readonly string[]): RuleSet[] {
   const only = argv.find((a) => a.startsWith('--only='))?.slice('--only='.length)
