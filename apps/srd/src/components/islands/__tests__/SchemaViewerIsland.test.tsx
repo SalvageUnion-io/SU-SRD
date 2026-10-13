@@ -332,9 +332,12 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('one Row per entity, each a named link, in an entity grid', () => {
+    it('one Row per entity, each a named link, in a flat list, not a grid', () => {
       const { container } = renderChassis()
-      expect(container.querySelector('.srd-listing__cards[data-entity-grid]')).toBeTruthy()
+      expect(
+        container.querySelector('.srd-listing[data-view="list"] .srd-listing__cards')
+      ).toBeTruthy()
+      expect(container.querySelector('.srd-listing__cards[data-entity-grid]')).toBeNull()
       const rows = container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')
       expect(rows.length).toBe(chassisEntities().length)
     })

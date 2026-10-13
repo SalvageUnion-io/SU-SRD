@@ -1006,6 +1006,25 @@
   }
 }
 
+/* An index's List (`data-view="list"`) is one flat column: a Row a line, each
+   its own height; the grid is the Catalog's. `:where` keeps this under the
+   desktop pre-mount Catalog columns (`data-art`) and a Catalog-only listing,
+   so the server-rendered names there still take the tiles' shape. */
+:where(.srd-listing[data-view='list']) .srd-listing__cards {
+  grid-auto-rows: auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.srd-listing[data-view='list'] .srd-listing__cards[data-entity-fit] {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.srd-listing[data-view='list'] .srd-listing__cards[data-entity-fit] > * {
+  flex: none;
+  min-width: 0;
+}
+
 /* Search's grid mixes kinds (a roll table beside a chassis), so its rows are
    each line's own height: Rows still match across a line, but a lone row on a
    phone is never stretched to the tallest hit's height. */
