@@ -100,6 +100,23 @@ describe('bandFillFor', () => {
     })
   })
 
+  test('an ability’s show page wears its tier’s colour, as its Row does on the index', () => {
+    const inTree = (tree: string) => {
+      const ability = SalvageUnionReference.Abilities.all().find((a) => a.tree === tree)
+      if (!ability) throw new Error(`no ability in ${tree}`)
+      return ability
+    }
+    expect(bandFillFor('abilities', inTree('Hacking'))).toBeUndefined()
+    expect(bandFillFor('abilities', inTree('Advanced Hacking'))?.band).toBe(
+      'var(--color-tier-hybrid)'
+    )
+    expect(bandFillFor('abilities', inTree('Cyborg'))?.band).toBe('var(--color-tier-hybrid)')
+    expect(bandFillFor('abilities', inTree('Legendary Hacker'))).toEqual({
+      band: 'var(--color-crawler-band)',
+      foot: 'var(--color-crawler-band)',
+    })
+  })
+
   test('every other show page wears its chapter’s band', () => {
     const [chassis] = SalvageUnionReference.Chassis.all()
     if (!chassis) throw new Error('fixtures missing')

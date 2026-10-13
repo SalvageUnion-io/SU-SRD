@@ -238,6 +238,43 @@ describe('SchemaViewerIsland', () => {
     expect(within(filterRail).getByRole('combobox', { name: 'Tree' })).toBeTruthy()
   })
 
+  it('draws each ability tree on its track: numerals 1-2-3, a Legendary tree its "or"', () => {
+    const abilitiesModel = required(getModel('abilities'), 'abilities model')
+    const entities = abilitiesModel.all()
+
+    const { container } = render(
+      <SchemaViewerIsland
+        schemaId="abilities"
+        techLevels={getUniqueTechLevels(entities)}
+        sources={getUniqueSources(entities)}
+        trees={getUniqueTrees(entities)}
+      />
+    )
+
+    const trackOf = (tree: string) =>
+      required(
+        container.querySelector<HTMLElement>(
+          `section[aria-label="${tree} Tree"] .srd-ability-tree__track`
+        ),
+        `${tree}'s track`
+      )
+    const forging = trackOf('Forging')
+    expect(forging.dataset.track).toBe('core')
+    expect(
+      [...forging.querySelectorAll('.srd-ability-tree__numeral')].map((n) => n.textContent)
+    ).toEqual(['1', '2', '3'])
+    expect(trackOf('Advanced Engineer').dataset.track).toBe('advanced')
+    expect(trackOf('Fabricator').dataset.track).toBe('hybrid')
+    const legendary = trackOf('Legendary Engineer')
+    expect(legendary.dataset.track).toBe('legendary')
+    expect(legendary.querySelector('.srd-ability-tree__numeral')).toBeNull()
+    expect(legendary.querySelectorAll('.srd-ability-tree__or')).toHaveLength(1)
+    // The Generic Abilities have no tiers and no order: plain rows, no track.
+    expect(
+      container.querySelector('section[aria-label="Generic Tree"] .srd-ability-tree__track')
+    ).toBeNull()
+  })
+
   it('tree filter: picking a tree shows only that tree’s abilities', () => {
     const abilitiesModel = required(getModel('abilities'), 'abilities model')
     const entities = abilitiesModel.all()
@@ -332,9 +369,12 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('one Row per entity, each a named link, in an entity grid', () => {
+    it('one Row per entity, each a named link, in a flat list, not a grid', () => {
       const { container } = renderChassis()
-      expect(container.querySelector('.srd-listing__cards[data-entity-grid]')).toBeTruthy()
+      expect(
+        container.querySelector('.srd-listing[data-view="list"] .srd-listing__cards')
+      ).toBeTruthy()
+      expect(container.querySelector('.srd-listing__cards[data-entity-grid]')).toBeNull()
       const rows = container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')
       expect(rows.length).toBe(chassisEntities().length)
     })

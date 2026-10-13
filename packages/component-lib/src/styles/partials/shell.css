@@ -381,6 +381,26 @@
   padding-bottom: var(--space-12);
 }
 
+/* `lead` (an ability page's level numeral) beside the notch, both on the
+   band's foot; the numeral at the title's size, which changes at `sm`. */
+.su-chapter-band__heading {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--space-12);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.su-chapter-band__heading > .su-chapter-band__title,
+.su-chapter-band[data-aside] .su-chapter-band__heading > .su-chapter-band__title {
+  align-self: flex-end;
+  min-width: 0;
+}
+
+.su-chapter-band__lead {
+  font-size: var(--text-hero);
+}
+
 /* The eyebrow (a breadcrumb) takes the band's top padding, so the title row
    under it closes up to it. */
 .su-chapter-band__eyebrow {
@@ -404,6 +424,10 @@
     padding: var(--space-12) var(--space-20) 0;
   }
 
+  .su-chapter-band__lead {
+    font-size: var(--text-chapter);
+  }
+
   .su-chapter-band__eyebrow {
     padding: var(--space-32) var(--space-24) 0;
   }
@@ -425,7 +449,8 @@
   flex-direction: column;
 }
 
-.su-chapter-band[data-aside='notch'] .su-chapter-band__title {
+.su-chapter-band[data-aside='notch'] .su-chapter-band__title,
+.su-chapter-band[data-aside='notch'] .su-chapter-band__heading {
   align-self: flex-start;
 }
 
@@ -448,7 +473,8 @@
     flex-direction: row;
   }
 
-  .su-chapter-band[data-aside='notch'] .su-chapter-band__title {
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__title,
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__heading {
     align-self: flex-end;
     flex: 0 1 auto;
     min-width: 0;

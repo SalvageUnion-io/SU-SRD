@@ -74,6 +74,7 @@ function SchemaItemLinks({
       data-art={hasArt || undefined}
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
       data-catalog={catalogOnly || undefined}
+      data-view={catalogOnly ? undefined : 'list'}
     >
       <ListingRail
         facets={{ count, techLevels: orderTechLevels(techLevels), sources, trees, hasArt }}

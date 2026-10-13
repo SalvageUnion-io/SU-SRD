@@ -134,6 +134,15 @@ export function EntityPageFrame({
           />
         }
         asideAt="notch"
+        lead={
+          // An ability's level, left of its title as its Row sets it: just the number.
+          meta.numeral && (
+            <>
+              <span className="su-sr-only">Level </span>
+              {meta.numeral}
+            </>
+          )
+        }
       >
         {title}
         <KindLabel kind={meta.typeLabel} />

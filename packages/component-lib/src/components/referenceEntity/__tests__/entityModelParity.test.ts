@@ -39,6 +39,8 @@ import {
   resolveTable,
   toEntityModel,
 } from 'salvageunion-reference'
+import { actionTypeStamps } from '../../../entity/parts/actionStamps'
+import { costCell } from '../../../entity/parts/chipSet'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
 import { resolveCatalogLeadBlocks } from '../card/catalogLead'
@@ -94,6 +96,9 @@ function headFactCount(model: EntityModel): number {
 
 /** The page meta a model states, in `resolveEntityPageMeta`'s shape. */
 function pageMetaOf(model: EntityModel) {
+  // An ability's band carries its action type and cost (`bandCarriesAction`).
+  const onBand = model.kind.type === 'Ability'
+  const cost = onBand && model.cost ? costCell(model.cost) : undefined
   return {
     // The kind, for the title's screen-reader text (never a stamp, E9).
     typeLabel: model.kind.stamp,
@@ -106,6 +111,10 @@ function pageMetaOf(model: EntityModel) {
       ...(fact.hint ? { hoverText: fact.hint } : {}),
     })),
     numeral: model.tier,
+    actionTypes: onBand ? actionTypeStamps(model.actionType, model.mechActionType) : [],
+    ...(cost
+      ? { cost: { value: cost.value ?? cost.label, currency: cost.value ? cost.label : '' } }
+      : {}),
     page: model.cite.page,
     citation: model.cite.citation,
   }

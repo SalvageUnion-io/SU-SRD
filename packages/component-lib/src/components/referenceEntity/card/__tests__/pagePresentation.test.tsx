@@ -65,11 +65,18 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(meta.citation).toContain('also in Salvage Union Starter Set (PC) · p.26')
   })
 
-  test('an ability: its tree in its kind and its tier numeral; its cost is a chip', () => {
+  test('an ability: its tree in its kind, its tier numeral, and its action type and cost on the band', () => {
     const ability = juryRig()
     const meta = resolveEntityPageMeta(ability)
     expect(meta.typeLabel).toContain('Tree')
     expect(meta.numeral).toBe(String(ability.level))
+    expect(meta.actionTypes).toEqual(['Turn Action'])
+    expect(meta.cost).toEqual({ value: '2', currency: 'AP' })
+  })
+
+  test('any other entity leaves its action type and cost to the chip group', () => {
+    const meta = resolveEntityPageMeta(gopher())
+    expect(meta.actionTypes).toEqual([])
     expect(meta).not.toHaveProperty('cost')
   })
 

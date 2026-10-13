@@ -45,7 +45,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E10** Art appears by room, not by prop; an entity without art has no art place, and nothing stands in for it.
 - **E11** The lead appears only while browsing (SRD listings and search page).
 - **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Card or Page, and as a Row but for an ability.
-  An ability's Row wears its book tier, as its track: Core `tier-core`, Advanced `pilot`, Hybrid `tier-hybrid`, Legendary `crawler`.
+  An ability's Row wears its tier, as its track and page band do: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
 - **E13** Texture and the user-made treatment come from the surface and the instance.
 - **E14** Tables are the Table instrument: a roll bar in a Card, the roll instrument on a Page or panel; its ROLL THE DIE stamp is the roll button.
 - **E15** No hand-built entity markup outside `component-lib/src/entity/`.

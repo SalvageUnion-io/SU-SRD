@@ -456,6 +456,15 @@
   padding-inline: var(--space-8);
 }
 
+/* An ability's cost on its band: the book's pointy box at the stamps'
+   height (it stretches to its flex line), in the stamps' type. */
+.srd-entity-cost {
+  align-self: stretch;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: 32px;
+}
+
 /*
  * A creation guide's exits (`EntityPageFrame`'s `exits`): under the card,
  * behind an ink rule: the build action, the next guide as the book's exit
@@ -995,6 +1004,25 @@
   }
 }
 
+/* An index's List (`data-view="list"`) is one flat column: a Row a line, each
+   its own height; the grid is the Catalog's. `:where` keeps this under the
+   desktop pre-mount Catalog columns (`data-art`) and a Catalog-only listing,
+   so the server-rendered names there still take the tiles' shape. */
+:where(.srd-listing[data-view='list']) .srd-listing__cards {
+  grid-auto-rows: auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.srd-listing[data-view='list'] .srd-listing__cards[data-entity-fit] {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.srd-listing[data-view='list'] .srd-listing__cards[data-entity-fit] > * {
+  flex: none;
+  min-width: 0;
+}
+
 /* Search's grid mixes kinds (a roll table beside a chassis), so its rows are
    each line's own height: Rows still match across a line, but a lone row on a
    phone is never stretched to the tallest hit's height. */
@@ -1487,18 +1515,14 @@
   padding: 0;
 }
 
-/* The tier's hue, and the numeral's foreground on it (§3.8: paper on the Core
-   brick and the Hybrid rust, ink on pilot). */
+/* The tier's hue, and the numeral's foreground on it (§3.8: ink on the Core
+   orange, paper on the Advanced and Hybrid rust). */
 .srd-ability-tree__track[data-track='core'] {
-  --srd-track-color: var(--color-tier-core);
-  --srd-track-on: var(--color-paper);
-}
-
-.srd-ability-tree__track[data-track='advanced'] {
   --srd-track-color: var(--color-pilot);
   --srd-track-on: var(--color-ink);
 }
 
+.srd-ability-tree__track[data-track='advanced'],
 .srd-ability-tree__track[data-track='hybrid'] {
   --srd-track-color: var(--color-tier-hybrid);
   --srd-track-on: var(--color-paper);
@@ -1646,7 +1670,7 @@
    §3.8), the tier's name on the paper cut-out tab that opens into the body,
    no rule between them, and the TP cost in the pointy box on the band. */
 .srd-class-brief__card {
-  --srd-brief-tier: var(--color-tier-core);
+  --srd-brief-tier: var(--color-pilot);
   background: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
   border-radius: var(--radius-card);
@@ -1656,10 +1680,7 @@
   overflow: hidden;
 }
 
-.srd-class-brief__card[data-tier='advanced'] {
-  --srd-brief-tier: var(--color-pilot);
-}
-
+.srd-class-brief__card[data-tier='advanced'],
 .srd-class-brief__card[data-tier='hybrid'] {
   --srd-brief-tier: var(--color-tier-hybrid);
 }

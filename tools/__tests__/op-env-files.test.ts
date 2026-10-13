@@ -75,4 +75,13 @@ describe('committed op env files', () => {
   test.each(checked)('%s holds only op:// references or empty values', (path) => {
     expect(plaintextValues(read(path))).toEqual([])
   })
+
+  // A reference by item ID breaks silently when the item moves, since a move
+  // gives it a new ID. Name the item instead.
+  test.each(checked)('%s names its items rather than using item IDs', (path) => {
+    const byId = assignments(read(path)).filter(({ value }) =>
+      /^op:\/\/[^/]+\/[a-z0-9]{26}\//.test(value)
+    )
+    expect(byId).toEqual([])
+  })
 })

@@ -91,8 +91,8 @@ const READ: EntityMode = { kind: 'read' }
  * a paper body: a leading stamp and the lead while browsing (E11). A bodied
  * head with no chips keeps its tier on the band and sets its name on the paper
  * cut-out notched into the band's foot, as a Tile's. Fill follows kind (E12):
- * a "have" entity's tone, an ability's tier tone (the book's: Core brick,
- * Advanced orange, Legendary pink), any other "do" entity's ink banner with paper flecks.
+ * a "have" entity's tone, an ability's tier tone (Core orange, Advanced
+ * and Hybrid rust, Legendary pink), any other "do" entity's ink banner with paper flecks.
  */
 export function Row({
   model,

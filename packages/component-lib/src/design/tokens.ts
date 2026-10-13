@@ -211,9 +211,8 @@ const base = {
   guideSalvage: 'rgb(90, 157, 181)',
   guideHazard: 'rgb(184, 76, 76)',
 
-  // — Class ability-tier ramp (the book's; Hybrid rust by the owner's call).
-  //   Advanced and Legendary reuse pilot/crawler. —
-  tierCore: 'rgb(168, 89, 71)',
+  // — Class ability-tier ramp (owner's call): Advanced and Hybrid rust.
+  //   Core and Legendary reuse pilot/crawler. —
   tierHybrid: 'rgb(183, 65, 14)',
 
   // — Roll result tiers: the canonical warm state ramp, shared with the bot —
