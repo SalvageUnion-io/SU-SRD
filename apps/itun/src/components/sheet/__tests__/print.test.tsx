@@ -106,7 +106,7 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    const backLink = container.querySelector('[data-print="hide"] a[aria-label="Back to roster"]')
+    const backLink = container.querySelector('[data-print="hide"] a[aria-label="Back to shelves"]')
     expect(backLink).toBeTruthy()
   })
 

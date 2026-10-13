@@ -19,6 +19,6 @@ describe('an old snapshot link', () => {
 
     expect(screen.getByRole('heading', { name: /this share link has been retired/i })).toBeTruthy()
     expect(screen.getByText(/live public sheet/i)).toBeTruthy()
-    expect(screen.getByRole('link', { name: /back to roster/i })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /back to shelves/i })).toBeTruthy()
   })
 })
