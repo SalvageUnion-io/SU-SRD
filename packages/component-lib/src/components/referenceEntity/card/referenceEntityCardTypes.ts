@@ -113,13 +113,6 @@ export type ReferenceEntityCardProps = {
    * uses the drone's own loadout; a pattern uses its pattern-specific config).
    * Rendered as listings INSIDE this drone card, never at the parent level. */
   droneLoadout?: { systems: SURefEntity[]; modules: SURefEntity[] }
-  /**
-   * Keep the art place when this entity has no artwork, filled with a censor
-   * mark (`MissingArt`): the compact card's art column (`extent="head"`) and a
-   * page's hero (`presentation="page"`). For a schema where some entities have
-   * art, so every name starts in the same place and every page has a hero.
-   */
-  artSlot?: boolean
 
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */

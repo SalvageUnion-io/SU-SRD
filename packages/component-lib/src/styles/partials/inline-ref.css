@@ -53,7 +53,7 @@
 
 /* The flowing entity page's art (see `.su-entity-page--flow`), after the
    hero's own rules: capped so a tall portrait does not hold the wide blocks
-   (a class's ability tree) far down the page, and a censor mark kept squat. */
+   (a class's ability tree) far down the page. */
 @media (min-width: 64rem) {
   .su-entity-page--flow .su-entity-hero {
     --su-hero-max-h: 32rem;
@@ -66,9 +66,5 @@
     > .su-entity-page__art:has(.su-entity-hero--crop) {
     max-width: 42%;
     width: auto;
-  }
-
-  .su-entity-page--flow .su-missing-art--hero {
-    aspect-ratio: 4 / 3;
   }
 }

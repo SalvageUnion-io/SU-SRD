@@ -162,7 +162,6 @@ describe('hydration directives', () => {
         'item',
         'pattern',
         'preloadSchemas',
-        'artSlot',
         'pageRefs',
       ])
     })

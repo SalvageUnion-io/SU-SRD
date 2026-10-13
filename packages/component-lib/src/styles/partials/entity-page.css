@@ -236,13 +236,6 @@
     margin-top: var(--space-24);
   }
 
-  /* A censor mark stands in for art: it needs a stamp's room, not a plate's. */
-  .su-entity-page--flow
-    > .su-entity-page__main--art
-    > .su-entity-page__art:has(.su-entity-hero--missing) {
-    width: 30%;
-  }
-
   .su-entity-page--flow .su-entity-page__section {
     display: block;
   }

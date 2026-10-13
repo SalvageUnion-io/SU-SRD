@@ -2,7 +2,6 @@ import type { CSSProperties } from 'react'
 import { assetSrcSetFor } from '../../components/compositions/assetSrcSet'
 import { CardPennant } from '../../components/referenceEntity/card/CardPennant'
 import { grainClass } from '../../components/referenceEntity/card/cardGrain'
-import { MissingArtMark } from '../../components/referenceEntity/card/MissingArt'
 import { font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
@@ -12,7 +11,6 @@ import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
-import { monogram, TECH_LEVEL_SCHEMAS } from '../parts/plate'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 export type TileProps = {
@@ -59,9 +57,8 @@ const NAME: CSSProperties = {
 
 /**
  * TILE — the catalog form: the artwork is the hero. The art at 3:4 on paper
- * (the line art multiplied onto it, or the entity's censor mark when its
- * schema has art and it has none; with no art place at all, a tech level's
- * numeral or any other entity's monogram as the plate), then the tone band with the name notched
+ * (the line art multiplied onto it); an entity without art has no art place,
+ * so its tile opens on the band. Then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
  * Manual's chapter band at a tile's scale — then the facts as value cells and,
  * while browsing, the lead clamped to three lines.
@@ -74,25 +71,16 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
   const facts = factCells(model.facts, omit)
   const { art } = model
   const leadText = lead ? model.lead : undefined
-  // No art place at all: a tech level's numeral is the plate, else the name's monogram.
-  const numeral =
-    art.kind !== 'none'
-      ? undefined
-      : TECH_LEVEL_SCHEMAS.has(model.ref.schemaName)
-        ? model.techLevel
-        : monogram(model.title) || undefined
-  const artClass =
-    art.kind === 'missing'
-      ? ' su-entity-tile__art--missing'
-      : numeral != null
-        ? ' su-entity-tile__art--numeral'
-        : ''
 
   return (
-    <LinkSurface target={target} label={model.title} className="su-entity-tile">
+    <LinkSurface
+      target={target}
+      label={model.title}
+      className={art.kind === 'image' ? 'su-entity-tile' : 'su-entity-tile su-entity-tile--bare'}
+    >
       <div className="su-entity-tile__frame" data-user-made={model.userMade || undefined}>
-        <span className={`su-entity-tile__art${artClass}`}>
-          {art.kind === 'image' ? (
+        {art.kind === 'image' && (
+          <span className="su-entity-tile__art">
             <img
               src={derivative(art.url, 440)}
               srcSet={assetSrcSetFor(art.url)}
@@ -103,14 +91,8 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
               loading="lazy"
               decoding="async"
             />
-          ) : art.kind === 'missing' ? (
-            <MissingArtMark mark={art} />
-          ) : numeral != null ? (
-            <span className="su-entity-tile__numeral" aria-hidden="true">
-              {numeral}
-            </span>
-          ) : null}
-        </span>
+          </span>
+        )}
         <div
           className={cn('su-entity-tile__band', grainClass(paint.grain))}
           data-grain={paint.grain}

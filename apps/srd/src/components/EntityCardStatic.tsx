@@ -14,8 +14,6 @@ import { ReferenceSurface } from './ReferenceSurface'
 type EntityCardStaticProps = {
   item: SURefEntity
   pattern?: SURefObjectAnyPattern
-  /** The schema keeps an art place: a censor mark when this item has no art. */
-  artSlot?: boolean
   /** The pages its text cites (`lib/pageRefIndex.ts`), to link "p. N". */
   pageRefs?: PageRefIndex
 }
@@ -49,12 +47,7 @@ function classOf(item: SURefEntity): SURefClass | undefined {
  * before rendering this, so the ORM lookups the card makes for
  * nested entities resolve synchronously during the build.
  */
-export function EntityCardStatic({
-  item,
-  pattern,
-  artSlot = false,
-  pageRefs,
-}: EntityCardStaticProps) {
+export function EntityCardStatic({ item, pattern, pageRefs }: EntityCardStaticProps) {
   const classEntity = classOf(item)
 
   return (
@@ -67,7 +60,6 @@ export function EntityCardStatic({
               pattern={pattern}
               size="large"
               presentation="page"
-              artSlot={artSlot}
               afterExtraContent={
                 classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
               }

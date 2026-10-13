@@ -1,12 +1,4 @@
-import {
-  Button,
-  EmptyState,
-  Entity,
-  EntitySurfaceProvider,
-  Skeleton,
-  Slab,
-  TECH_LEVEL_SCHEMAS,
-} from 'component-lib'
+import { Button, EmptyState, Entity, EntitySurfaceProvider, Skeleton, Slab } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
@@ -34,6 +26,9 @@ const PARAM_TECH_LEVEL = 'tl'
 const PARAM_SOURCE = 'source'
 const PARAM_TREE = 'tree'
 const PARAM_NAME = 'q'
+
+/** The schemas whose entity IS a tech level: its name already says the level. */
+const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set(['tech-levels', 'crawler-tech-levels'])
 /**
  * Read a single query-param value from the current URL. SSR-safe: the SSG
  * renders this island's `ssr` markup under Bun (no `window`), so guard every
@@ -193,7 +188,7 @@ function SchemaViewer({
   const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
   // A single-kind listing: no type stamp, and no TL cell when the tech level
-  // heads the group or is the tile's plate (a tech-level listing's numeral).
+  // heads the group or names the tile (a tech-level listing's "Tech 3").
   const omit = useMemo(
     () =>
       groupBy === 'tl' || (catalogOnly && TECH_LEVEL_SCHEMAS.has(schemaId))

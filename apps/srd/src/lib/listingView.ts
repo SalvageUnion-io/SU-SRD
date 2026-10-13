@@ -8,9 +8,8 @@ export type ListingView = 'list' | 'catalog'
 
 /**
  * Listings that are a Catalog at every width: short ones whose entities have
- * no artwork, so each tile carries a plate of its own (a tech level's numeral,
- * any other entity's monogram), and the tiles are the whole content — so no
- * List view and no toggle.
+ * no artwork, so each tile is its band, cells and lead, and the tiles are the
+ * whole content — so no List view and no toggle.
  */
 export const CATALOG_LISTINGS: ReadonlySet<string> = new Set([
   'tech-levels',

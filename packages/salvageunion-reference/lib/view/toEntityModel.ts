@@ -10,7 +10,6 @@ import {
   getChassisAbilities,
   getChoices,
 } from '../actionResolution'
-import { getAssetUrl } from '../assets'
 import { getReferenceEntityName, getTechLevel } from '../entityFields'
 import type { EntitySchemaName } from '../generated/schemaRegistry.generated'
 import { resolveActivationCurrency } from '../helpers'
@@ -208,12 +207,7 @@ export function toEntityModel(
       ? plainTraitText(patternLead)
       : undefined
     : entityLead(entity)
-  const art = pattern
-    ? (() => {
-        const url = getAssetUrl(entity)
-        return url ? { kind: 'image' as const, url } : { kind: 'none' as const }
-      })()
-    : entityArt(entity)
+  const art = entityArt(entity)
   const tier = tierNumeral(entity)
   const kindMarker = classKind(entity)
   const userMade = instance?.userMade

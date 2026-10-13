@@ -52,12 +52,12 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     id: 'listings',
     title: 'Listings',
     tone: 'var(--pilot)',
-    intro: 'Rows grouped as the book prints them, with art (or a censor mark) and the lore lead.',
+    intro: 'Rows grouped as the book prints them, with art where there is any, and the lore lead.',
     pages: [
-      srd('/chassis/', 'Chassis', 'Grouped by tech level; art and censor marks mixed.', ['Art']),
+      srd('/chassis/', 'Chassis', 'Grouped by tech level; every chassis with art.', ['Art']),
       srd('/systems/', 'Systems', 'The largest listing; no art column.'),
       srd('/abilities/', 'Abilities', 'Grouped by tree; each Row in its tier tone.'),
-      srd('/creatures/', 'Creatures', 'The censor marks rotate patch, strip, stamp.'),
+      srd('/creatures/', 'Creatures', 'Art and art-less entities mixed.'),
       srd('/bio-titans/', 'Bio-Titans', 'An entity grid: every Row one height.'),
       srd('/keywords/', 'Keywords', 'Text only: a name and a lead.'),
       srd('/search?q=drill', 'Search: "drill"', 'Search results as Rows.'),
@@ -82,7 +82,9 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
         'A Bio-Titan pattern and the action it adds.'
       ),
       srd('/chassis/big-brother/', 'Big Brother', 'Chassis abilities and a drone card.'),
-      srd('/chassis/kelpie/', 'Kelpie', 'The REMOVED stamp as hero.', ['Missing art']),
+      srd('/creatures/irradiated-scorpion/', 'Irradiated Scorpion', 'An art-less page: no hero.', [
+        'No art',
+      ]),
       srd('/classes/hacker/', 'Hacker', 'The ability tree.'),
       srd('/bio-titans/tyrant/', 'Tyrant', 'Art hero and a long run of actions.'),
       srd('/npcs/saboteur/', 'Saboteur', 'Actions flowing around the art.'),

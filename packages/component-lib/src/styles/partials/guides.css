@@ -342,17 +342,15 @@
   }
 }
 
-/* The hero: the line art on a paper plate, the full width of its column. */
+/* The hero: the line art on a paper plate, the full width of its column. The
+   plate hugs the art: a small even inset inside the hairline, and the art's
+   white canvas multiplied onto the paper so no second ground shows around it. */
 .su-entity-hero {
+  --su-hero-inset: var(--space-6);
   background-color: var(--color-paper);
   border: var(--bw-hairline) solid var(--color-ink-20);
   margin: 0;
-  padding: var(--space-16);
-}
-
-.su-entity-hero--missing {
-  display: flex;
-  justify-content: center;
+  padding: var(--su-hero-inset);
 }
 
 .su-entity-hero__img {
@@ -361,6 +359,7 @@
   margin-inline: auto;
   max-height: var(--su-hero-max-h);
   max-width: 100%;
+  mix-blend-mode: multiply;
   object-fit: contain;
   transition: opacity 300ms;
 }
@@ -384,7 +383,7 @@
     var(--su-hero-max-h) *
     var(--su-art-aspect) +
     2 *
-    var(--space-16) +
+    var(--su-hero-inset) +
     2 *
     var(--bw-hairline)
   );

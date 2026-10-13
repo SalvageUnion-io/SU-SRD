@@ -69,24 +69,8 @@ export type EntityTable =
   /** A two-roll table: the raw buckets, since bands would misstate it. */
   | { kind: 'columns'; name: string; table: SURefObjectTable }
 
-/** Which of the Workshop Manual's three censor marks stands in for missing art. */
-export type MissingArtVariant = 'file' | 'row' | 'removed'
-
-export type EntityArt =
-  | { kind: 'image'; url: string }
-  /** The schema has art and this entity has none: its censor mark. `seed`
-   * tears its edge the same way in every form; `backdrop` is the master URL of
-   * the faded blueprint drawn behind it. */
-  | {
-      kind: 'missing'
-      variant: MissingArtVariant
-      code: string
-      short: string
-      seed: number
-      backdrop: string
-    }
-  /** The schema has no art at all: no art place. */
-  | { kind: 'none' }
+/** An entity's artwork, or none: an entity without art has no art place. */
+export type EntityArt = { kind: 'image'; url: string } | { kind: 'none' }
 
 export type EntityCite = {
   source?: string

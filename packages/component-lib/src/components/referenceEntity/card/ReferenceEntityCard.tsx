@@ -253,7 +253,6 @@ function ReferenceEntityCardInner({
   hostDown,
   chassisName,
   droneLoadout,
-  artSlot = false,
   hide: hideProp,
   status,
   onStatusClick,
@@ -356,7 +355,6 @@ function ReferenceEntityCardInner({
   // stats / tone / source. A `head` pattern is a LIST ROW.
   const isPattern = !!pattern
   const isPatternListing = isPattern && extent === 'head'
-  const keepsArt = artSlot && !isPattern && !hide?.image // no art: a censor mark (`MissingArt`)
   // A pattern's title is its name in typographic QUOTES. A nested ACTION drops its
   // ` (Host)` disambiguation suffix when the host is this card's own context.
   const name =
@@ -619,7 +617,6 @@ function ReferenceEntityCardInner({
     isDown,
     isTitanicMeta,
     isLegalStartingPatternCard,
-    keepsArt,
     hasSubLine,
     asideLeadRequested,
     tone,

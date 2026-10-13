@@ -18,7 +18,6 @@ import type { BodyProse, CardBodyInput } from './cardBodyProse'
 import { DamagedEffectCallout } from './DamagedEffectCallout'
 import { GuideSteps } from './GuideSteps'
 import { LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
-import { MissingHero } from './MissingArt'
 import { ActionsChip, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
 import { PatternSection } from './PatternSection'
 import { resolveGuideSteps } from './resolveGuideSteps'
@@ -54,7 +53,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     isCatalog,
     isDown,
     isLegalStartingPatternCard,
-    keepsArt,
     hasSubLine,
     asideLeadRequested,
     tone,
@@ -169,9 +167,8 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     ...bodyNodes,
   ]
 
-  // On a PAGE the art, or its censor mark, is the hero; an NPC anchor stays in flow.
-  const heroNode: ReactNode =
-    onPage && (showImage ? anchorNode : keepsArt && !assetUrl && <MissingHero entity={entity} />)
+  // On a PAGE the art is the hero; an NPC anchor stays in flow. No art, no hero.
+  const heroNode: ReactNode = onPage && showImage ? anchorNode : undefined
   const bodyAnchor: ReactNode = heroNode ? undefined : anchorNode
 
   const bodyHasContent =

@@ -39,7 +39,7 @@ const need = <T,>(value: T | undefined, label: string): T => {
 /**
  * The ROW in LINK mode, as an SRD listing draws it (E2, E11): the art column
  * by room, the head, the facts and traits, the lead while browsing. A system
- * without art wears its censor mark (E10).
+ * without art has no art column (E10).
  */
 export const RowLink: Story = () => (
   <div style={STACK}>
@@ -130,8 +130,8 @@ export const RowGrid: Story = () => (
 )
 
 /**
- * The TILE: the SRD listing's Catalog, art first. Chassis with art and without
- * (Kelpie's REMOVED stamp, Wader's REDACTED patch), the name notched into the
+ * The TILE: the SRD listing's Catalog, art first. Creatures with art and
+ * without (an art-less tile opens on its band), the name notched into the
  * tone band, the facts as compact cells.
  */
 export const TileCatalog: Story = () => (
@@ -142,8 +142,8 @@ export const TileCatalog: Story = () => (
       gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr))',
     }}
   >
-    {['Mule', 'Mazona', 'Kelpie', 'Wader'].map((name) => {
-      const entity = need(SalvageUnionReference.Chassis.getByName(name), name)
+    {['Artl', 'Irradiated Scorpion', 'Chimeripede', 'Wasteland Bear'].map((name) => {
+      const entity = need(SalvageUnionReference.Creatures.getByName(name), name)
       return (
         <li key={entity.id} style={{ display: 'flex' }}>
           <Entity

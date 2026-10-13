@@ -1093,10 +1093,10 @@
 /*
  * A Catalog-only listing (`CATALOG_LISTINGS`): a handful of tiles whose lead
  * is the content, so wider columns — three across at the page's measure, two
- * on a tablet, one on a phone — hold it in two or three lines. Its tiles'
- * plate is 2:1 (a tech level's numeral), and the band under it measures
- * 8.25rem on the built site. Before the island mounts, its skeletons and
- * server-rendered names take that shape at every width.
+ * on a tablet, one on a phone — hold it in two or three lines. Its tiles have
+ * no art: each is its band, cells and lead, 8.25rem on the built site. Before
+ * the island mounts, its skeletons and server-rendered names take that shape
+ * at every width.
  */
 .srd-listing[data-catalog] {
   --srd-tile-band: 8.25rem;
@@ -1110,21 +1110,12 @@
 }
 
 .srd-listing[data-catalog] .srd-listing__tile-skeleton::before {
-  aspect-ratio: 2 / 1;
+  content: none;
 }
 
 .srd-listing[data-catalog] .srd-listing__fallback-row {
-  align-items: center;
-  display: grid;
-  grid-template-rows: auto var(--srd-tile-band);
+  min-height: var(--srd-tile-band);
   white-space: normal;
-}
-
-.srd-listing[data-catalog] .srd-listing__fallback-row::before {
-  align-self: stretch;
-  aspect-ratio: 2 / 1;
-  content: '';
-  margin: 0 calc(-1 * var(--space-12));
 }
 
 /* The List | Catalog toggle sits at the rail's end, beside the facets. */

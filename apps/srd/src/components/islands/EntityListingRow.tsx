@@ -15,8 +15,7 @@ type EntityListingRowProps = {
  * entity display language E2, E11): a Row in link mode, the whole row a real
  * `<a>` to the entity's page. Its head carries the name (two lines, then
  * clamped), its body the facts as Stats, the traits as Tags and the entity's
- * opening prose; its art column the artwork, or the censor mark where the
- * schema has art and the entity has none.
+ * opening prose; its art column the artwork, where the entity has any.
  */
 export function EntityListingRow({ entity, href, omit }: EntityListingRowProps) {
   return <Entity form="row" entity={entity} mode={{ kind: 'link', href }} omit={omit} lead />

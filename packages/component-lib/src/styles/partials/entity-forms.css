@@ -281,48 +281,29 @@
   }
 }
 
-/* The plate of a tile with no art place (`Tile.tsx`): a tech level's numeral,
-   or another entity's monogram, set as large as the plate holds in the
-   condensed face, in ink on paper. The band below carries the tone. */
-.su-entity-tile__art--numeral {
-  align-items: center;
-  aspect-ratio: 2 / 1;
-  container-type: inline-size;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.su-entity-tile__numeral {
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: 44cqi;
-  font-weight: var(--font-weight-extrabold);
-  line-height: 1;
-  transition: transform 160ms ease-out;
-}
-
-.su-entity-tile:hover .su-entity-tile__numeral {
-  transform: scale(1.03);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .su-entity-tile__numeral {
-    transition: none;
-  }
-
-  .su-entity-tile:hover .su-entity-tile__numeral {
-    transform: none;
-  }
+/* A tile without art (`--bare`) has no art place: it opens on its band. In a
+   list that mixes it with art-led tiles, its frame keeps its own height
+   rather than stretching to theirs as an empty block of paper. */
+ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
+  > li
+  > .su-entity-tile--bare
+  > .su-entity-tile__frame {
+  flex-grow: 0;
 }
 
 /* The band: the tone, with the name's cut-out sitting on its foot and the
-   pennant and chevron at the right. Its top edge rules the art off. */
+   pennant and chevron at the right. Its top edge rules the art off; a bare
+   tile's frame is its top edge. */
 .su-entity-tile__band {
   align-items: flex-end;
   border-top: var(--bw-chrome) solid var(--color-ink);
   display: flex;
   min-height: calc(2.1 * var(--text-title) + var(--space-10));
   padding: var(--space-8) var(--space-8) 0;
+}
+
+.su-entity-tile--bare .su-entity-tile__band {
+  border-top: 0;
 }
 
 .su-entity-tile__band > :not(.su-entity-tile__notch) {

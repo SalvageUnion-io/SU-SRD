@@ -29,13 +29,11 @@ import {
   getAssetUrl,
   getChoices,
   getModel,
-  getPageReference,
   getPatterns,
   getReferenceEntityName,
   getTechLevel,
   isAbility,
   isTitanicAction,
-  missingArt,
   plainTraitText,
   resolveGrantedEntities,
   resolveTable,
@@ -83,32 +81,6 @@ function cardFoldedAction(schemaName: Schema, entity: SURefMetaEntity) {
   const foldable = (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
   return foldedActionOf(foldable, nameOf(entity))
 }
-
-/** The schemas that keep an art place: any entity in them has artwork. */
-const SCHEMAS_WITH_ART = new Set(
-  [...EntitySchemaNames].filter((s) => (getModel(s)?.all() ?? []).some((e) => !!getAssetUrl(e)))
-)
-
-/**
- * The censor mark each art-less entity should wear, re-derived: a schema's
- * art-less run, by tech level then book order, takes file / row / removed in
- * turn (the rule `MissingArt.test.tsx` states).
- */
-const EXPECTED_MARK = new Map<SURefMetaEntity, string>(
-  [...SCHEMAS_WITH_ART].flatMap((schemaName) => {
-    const tier = (e: SURefMetaEntity) => {
-      const level = getTechLevel(e)
-      return typeof level === 'number' ? level : 0
-    }
-    const run = (getModel(schemaName)?.all() ?? [])
-      .filter((e) => !getAssetUrl(e))
-      .sort((a, b) => tier(a) - tier(b))
-    return run.map((e, i): [SURefMetaEntity, string] => [
-      e,
-      ['file', 'row', 'removed'][i % 3] ?? '',
-    ])
-  })
-)
 
 /** The theme token a card tone paints, read back out of its colour. */
 function toneToken(tone: { bg: string | undefined; bgColor: string | undefined }) {
@@ -296,27 +268,11 @@ describe('toEntityModel parity, every entity', () => {
     }
   })
 
-  test('art agrees with getAssetUrl and the missing-art mark', () => {
+  test('art agrees with getAssetUrl: the image, or none', () => {
     for (const row of ENTITIES) {
-      const { schemaName, entity } = row
-      const { art } = toEntityModel(entity)
-      const url = getAssetUrl(entity)
-      if (url) {
-        agree(label(row), art, { kind: 'image', url })
-      } else if (SCHEMAS_WITH_ART.has(schemaName as never)) {
-        const page = String(getPageReference(entity) ?? 0).padStart(3, '0')
-        agree(label(row), art, {
-          kind: 'missing',
-          variant: EXPECTED_MARK.get(entity) ?? 'unranked',
-          code: `UNION_ARCHIVE._${page}`,
-          short: `P.${page}`,
-          seed: art.kind === 'missing' ? art.seed : undefined,
-          backdrop: art.kind === 'missing' ? art.backdrop : undefined,
-        })
-        agree(label(row), missingArt(entity), art)
-      } else {
-        agree(label(row), art, { kind: 'none' })
-      }
+      const { art } = toEntityModel(row.entity)
+      const url = getAssetUrl(row.entity)
+      agree(label(row), art, url ? { kind: 'image', url } : { kind: 'none' })
     }
   })
 

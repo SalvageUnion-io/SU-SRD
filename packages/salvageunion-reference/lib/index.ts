@@ -159,7 +159,6 @@ export {
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
 // for component-lib's card helpers, which read them rather than keep a copy.
-export { missingArt, schemaHasArt } from './view/parts/art'
 export {
   droneOwnLoadout,
   foldedActionOf,

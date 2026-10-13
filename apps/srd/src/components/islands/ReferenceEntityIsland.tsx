@@ -15,8 +15,6 @@ type ReferenceEntityIslandProps = {
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this item needs. */
   preloadSchemas?: SchemaList
-  /** The schema keeps an art place: a censor mark when this item has no art. */
-  artSlot?: boolean
   /** The pages its text cites, built at build time, to link "p. N". */
   pageRefs?: PageRefIndex
 }
@@ -40,7 +38,6 @@ export function ReferenceEntityIsland({
   item,
   pattern,
   preloadSchemas,
-  artSlot = false,
   pageRefs,
 }: ReferenceEntityIslandProps) {
   // The static SEO/no-JS fallback (`StaticEntityContent`) stays on screen,
@@ -53,7 +50,7 @@ export function ReferenceEntityIsland({
       <GameDataGate schemas={preloadSchemas} fallback={null}>
         <Suspense fallback={null}>
           <DropStaticFallback />
-          <EntityCardStatic item={item} pattern={pattern} artSlot={artSlot} pageRefs={pageRefs} />
+          <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />
           {/* Where a roll on the card's tables lands (`ReferenceSurface`). */}
           <Toaster />
         </Suspense>

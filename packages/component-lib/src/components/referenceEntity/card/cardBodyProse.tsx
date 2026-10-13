@@ -72,7 +72,6 @@ export type CardBodyInput = Pick<
   isDown: boolean
   isTitanicMeta: boolean
   isLegalStartingPatternCard: boolean
-  keepsArt: boolean
   hasSubLine: boolean
   asideLeadRequested: boolean
   tone: DomainTone

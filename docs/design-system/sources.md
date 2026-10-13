@@ -9,7 +9,7 @@ An agent reads a page with the Artifact tool's `read` action, not a web fetch. [
 2. **[Entity Display Language](https://claude.ai/artifact/5Wf8KGHCjgcMzJV7zY381C)** — one model, five forms, modes, nesting, rules E1–E17; codified in [entity-display-language.md](entity-display-language.md).
 3. **[Traits and Facets](https://claude.ai/artifact/TDRC7wUBiFBRBHf3mVwHLR)** — retires the "//" line: action type → stamp, range and damage → Stats, traits → Tags (E17).
 4. **[SRD Index Refresh](https://claude.ai/artifact/V77WHFAs2UWdVW3ociTWHw)** — listings as one compact card, grouped, with art, one filter rail, a chapter-toned foot.
-5. **[Missing Artwork Redactions](https://claude.ai/artifact/3a1uSWEZ2rKcGFshGq4DJu)** — fills for entities without art, from the manual's censor marks.
+5. **[Missing Artwork Redactions](https://claude.ai/artifact/3a1uSWEZ2rKcGFshGq4DJu)** — retired: an entity without art has no art place (E10), so no fill.
 
 ## The origin's boards
 

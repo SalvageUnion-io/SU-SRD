@@ -26,7 +26,7 @@
  */
 
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
-import { getEntitySlug, schemaHasArt } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { itemHref } from '../lib/entityHref'
 import { extractStaticEntitySummary } from '../lib/gameData'
@@ -45,10 +45,9 @@ type EntityViewProps = {
 }
 
 export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
-  const artSlot = schemaHasArt(schemaId)
   const pageRefs = pageRefIndexFor(item)
   if (!cardNeedsHydration(item, pattern)) {
-    return <EntityCardStatic item={item} pattern={pattern} artSlot={artSlot} pageRefs={pageRefs} />
+    return <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />
   }
 
   // The fallback draws its references as Mentions, so it keeps their markup.
@@ -66,7 +65,6 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
           item,
           pattern,
           preloadSchemas: getSchemaPreloadList(schemaId),
-          artSlot,
           pageRefs,
         }}
       />
