@@ -73,9 +73,9 @@ describe('Row labels', () => {
   test("an ability's tier banner wears its tier; its kind and tree are read out", () => {
     render(<Entity form="row" entity={juryRig()} />)
     const head = headOf('Jury Rig')
-    // A Core ability's Row wears the book's Core tier: brick.
+    // A Core ability's Row wears the Core tier: pilot orange.
     expect(head.dataset.fill).toBe('tone')
-    expect(head.style.backgroundColor).toBe('var(--color-tier-core)')
+    expect(head.style.backgroundColor).toBe('var(--color-pilot)')
     expect(head.querySelector('.su-sr-only')?.textContent).toContain('Ability')
   })
 

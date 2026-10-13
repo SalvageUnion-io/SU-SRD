@@ -1,4 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { foregroundOn } from '../../design/contrast'
 import { color, font, space, weight } from '../../design/tokens'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
@@ -29,6 +30,10 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * IS the band's bottom edge, and it is painted in the page ground
  * (`--color-wk-bg`), so the title reads as cut out of the band rather than
  * stuck onto it.
+ *
+ * `lead` sits on the band LEFT of the notch, on its foot, in the title's type
+ * and the band's foreground: an ability's level numeral, where its Row sets
+ * it. Nothing else goes there.
  *
  * `aside` sits at the right of the same row, on the band, bottom-aligned with
  * the notch. Below `sm` it stacks above the notch, where the band has room
@@ -82,6 +87,11 @@ export type ChapterBandProps = {
    * is the shell's first child. `inset`: inside its container's box.
    */
   layout?: 'bleed' | 'inset'
+  /**
+   * Left of the notch, on the band's foot, in the title's type: an ability
+   * page's level numeral, as its Row sets it left of its name.
+   */
+  lead?: ReactNode
   /** Right-hand content on the band, bottom-aligned with the notch. */
   aside?: ReactNode
   /**
@@ -183,11 +193,20 @@ const TITLE = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
+// The lead: the notch's type, on the band, its foot on the band's foot.
+const LEAD = {
+  flex: 'none',
+  fontFamily: font.cond,
+  fontWeight: weight.extrabold,
+  lineHeight: 0.92,
+} satisfies CSSProperties
+
 export function ChapterBand({
   children,
   tone = 'rules',
   as: Tag = 'h1',
   layout = 'bleed',
+  lead,
   aside,
   asideAt = 'end',
   measure,
@@ -204,6 +223,16 @@ export function ChapterBand({
   const titleStyle = userMade
     ? { ...TITLE, ...userMadeTitle(scale === 'og' ? OG_DASH : DASH) }
     : TITLE
+  const band = fill ?? CHAPTER_BAND_COLOR[tone]
+  const title = (
+    <Tag
+      id={id}
+      className="su-chapter-band__title"
+      style={titleSize ? { ...titleStyle, fontSize: titleSize } : titleStyle}
+    >
+      {children}
+    </Tag>
+  )
   return (
     <div
       className="su-chapter-band"
@@ -214,7 +243,7 @@ export function ChapterBand({
       style={{
         ...ROOT,
         ...(bleed ? {} : INSET),
-        backgroundColor: fill ?? CHAPTER_BAND_COLOR[tone],
+        backgroundColor: band,
         ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
       }}
     >
@@ -234,13 +263,22 @@ export function ChapterBand({
         </div>
       )}
       <div className="su-chapter-band__row" style={measure ? { maxWidth: measure } : undefined}>
-        <Tag
-          id={id}
-          className="su-chapter-band__title"
-          style={titleSize ? { ...titleStyle, fontSize: titleSize } : titleStyle}
-        >
-          {children}
-        </Tag>
+        {lead ? (
+          <div className="su-chapter-band__heading">
+            <span
+              className="su-chapter-band__lead"
+              style={{
+                ...LEAD,
+                color: foregroundOn(band, 'ink') === 'ink' ? color.ink : color.paper,
+              }}
+            >
+              {lead}
+            </span>
+            {title}
+          </div>
+        ) : (
+          title
+        )}
         {aside && (
           <div className="su-chapter-band__aside" style={ASIDE}>
             {aside}

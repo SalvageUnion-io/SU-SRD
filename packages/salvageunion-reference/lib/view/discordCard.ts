@@ -48,7 +48,6 @@ export const DISCORD_TONE_ACCENT: Readonly<Record<string, number>> = {
   'crawler-band': 0xb84a86,
   'denizen-band': 0x2f4a66,
   adversary: 0x8c4b38,
-  'tier-core': 0xa85947,
   'tier-hybrid': 0xb7410e,
   'guide-salvage': 0x5a9db5,
   'guide-hazard': 0xb84c4c,

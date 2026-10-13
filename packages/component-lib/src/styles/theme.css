@@ -129,13 +129,11 @@
   --color-guide-salvage: rgb(90, 157, 181); /* #5a9db5 */
   --color-guide-hazard: rgb(184, 76, 76); /* #b84c4c */
 
-  /* Class ability-tier ramp, the book's (Workshop Manual p.27): Core = this
-     brick, Advanced = pilot orange, Hybrid = rust (owner's call), Legendary =
-     crawler pink. Advanced and Legendary reuse the ontology hues. Hybrid's rust is
-     its own hue, never `var(--color-rust)` or its value: nothing may wear the
-     action colour (ruleset §3.1). Core and Hybrid carry paper text
-     (design/__tests__/contrast.test.ts). */
-  --color-tier-core: rgb(168, 89, 71); /* #a85947 */
+  /* Class ability-tier ramp (owner's call, 2026-10-13): Core = pilot orange,
+     Advanced and Hybrid = this rust, Legendary = crawler pink. Core and
+     Legendary reuse the ontology hues. The tier rust is its own hue, never
+     `var(--color-rust)` or its value: nothing may wear the action colour
+     (ruleset §3.1). It carries paper text (design/__tests__/contrast.test.ts). */
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
 
   /* Roll result tiers — canonical warm state palette (canonical primitive

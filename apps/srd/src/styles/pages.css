@@ -456,6 +456,15 @@
   padding-inline: var(--space-8);
 }
 
+/* An ability's cost on its band: the book's pointy box at the stamps'
+   height (it stretches to its flex line), in the stamps' type. */
+.srd-entity-cost {
+  align-self: stretch;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: 32px;
+}
+
 /*
  * A creation guide's exits (`EntityPageFrame`'s `exits`): under the card,
  * behind an ink rule: the build action, the next guide as the book's exit
@@ -1517,18 +1526,14 @@
   padding: 0;
 }
 
-/* The tier's hue, and the numeral's foreground on it (§3.8: paper on the Core
-   brick and the Hybrid rust, ink on pilot). */
+/* The tier's hue, and the numeral's foreground on it (§3.8: ink on the Core
+   orange, paper on the Advanced and Hybrid rust). */
 .srd-ability-tree__track[data-track='core'] {
-  --srd-track-color: var(--color-tier-core);
-  --srd-track-on: var(--color-paper);
-}
-
-.srd-ability-tree__track[data-track='advanced'] {
   --srd-track-color: var(--color-pilot);
   --srd-track-on: var(--color-ink);
 }
 
+.srd-ability-tree__track[data-track='advanced'],
 .srd-ability-tree__track[data-track='hybrid'] {
   --srd-track-color: var(--color-tier-hybrid);
   --srd-track-on: var(--color-paper);
@@ -1676,7 +1681,7 @@
    §3.8), the tier's name on the paper cut-out tab that opens into the body,
    no rule between them, and the TP cost in the pointy box on the band. */
 .srd-class-brief__card {
-  --srd-brief-tier: var(--color-tier-core);
+  --srd-brief-tier: var(--color-pilot);
   background: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
   border-radius: var(--radius-card);
@@ -1686,10 +1691,7 @@
   overflow: hidden;
 }
 
-.srd-class-brief__card[data-tier='advanced'] {
-  --srd-brief-tier: var(--color-pilot);
-}
-
+.srd-class-brief__card[data-tier='advanced'],
 .srd-class-brief__card[data-tier='hybrid'] {
   --srd-brief-tier: var(--color-tier-hybrid);
 }

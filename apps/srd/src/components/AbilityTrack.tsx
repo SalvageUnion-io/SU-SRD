@@ -7,19 +7,20 @@ import { itemHref } from '../lib/entityHref'
  * Which track a tree draws (ruleset "Where the screen departs from print": the
  * ability-tree track stays a diagram). Core and Advanced/Hybrid trees are
  * trained in order — each Ability needs the one before it — so their three
- * tiers hang off one thick track in the tier's hue (Core = brick,
- * Advanced = pilot orange, Hybrid = rust), each tier's numeral on it beside its banner. A
+ * tiers hang off one thick track in the tier's hue (Core = pilot orange,
+ * Advanced and Hybrid = rust), each tier's numeral on it beside its banner. A
  * Legendary tree is a pick-one, not a sequence: its track runs in its pink with
  * no numerals, an "or" stamp on it between each pick.
  */
 export type TreeTrack = 'core' | 'advanced' | 'hybrid' | 'legendary'
 
-/** The track each banner tone draws (`abilityTierTone` in salvageunion-reference). */
-const TRACK_FOR_TONE: Record<string, TreeTrack> = {
-  'tier-core': 'core',
-  pilot: 'advanced',
-  'tier-hybrid': 'hybrid',
-  crawler: 'legendary',
+/** The track each banner tone draws (`abilityTierTone` in salvageunion-reference);
+ * Advanced and Hybrid share the rust, so the tree's name tells them apart. */
+function trackForTone(tone: string | undefined, tree: string): TreeTrack | undefined {
+  if (tone === 'pilot') return 'core'
+  if (tone === 'crawler') return 'legendary'
+  if (tone === 'tier-hybrid') return tree.includes('Advanced') ? 'advanced' : 'hybrid'
+  return undefined
 }
 
 /**
@@ -31,7 +32,7 @@ export function trackForTree(abilities: readonly SURefAbility[]): TreeTrack | un
   const first = abilities[0]
   if (!first) return undefined
   const model = toEntityModel(first)
-  const track = TRACK_FOR_TONE[model.tone ?? '']
+  const track = trackForTone(model.tone, first.tree)
   return track === 'legendary' || model.tier ? track : undefined
 }
 
@@ -46,8 +47,8 @@ const abilityHref = (ability: SURefAbility) => itemHref('abilities', getEntitySl
 /**
  * A tree's Abilities as Rows on its track, in tree order: a Row in link mode
  * is a real same-tab link to the ability's page (the listing row's shape,
- * `EntityListingRow`). Its banner wears its tier (EDL E12: Core brick,
- * Advanced orange, Hybrid rust, Legendary pink), the hue of its track; the
+ * `EntityListingRow`). Its banner wears its tier (EDL E12: Core orange,
+ * Advanced and Hybrid rust, Legendary pink), the hue of its track; the
  * Row leaves its numeral to the track. The class page and the abilities
  * listing draw the same track.
  */

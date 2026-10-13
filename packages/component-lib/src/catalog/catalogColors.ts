@@ -11,9 +11,9 @@ const techLevelGradient = [1, 2, 3, 4, 5, 6]
 
 const techLevelBg = `linear-gradient(to right, ${techLevelGradient})`
 
-/** The three ability tiers, in book order: Core (brick) · Advanced (orange) · Legendary (pink). */
+/** The three ability tiers, in book order: Core (orange) · Advanced (rust) · Legendary (pink). */
 const abilityGradient =
-  'linear-gradient(to right, var(--color-tier-core) 0%, var(--color-tier-core) 33%, var(--color-pilot) 33%, var(--color-pilot) 66%, var(--color-crawler) 66%, var(--color-crawler) 100%)'
+  'linear-gradient(to right, var(--color-pilot) 0%, var(--color-pilot) 33%, var(--color-tier-hybrid) 33%, var(--color-tier-hybrid) 66%, var(--color-crawler) 66%, var(--color-crawler) 100%)'
 
 /** Core classes vs the hybrid classes they branch into. */
 const classGradient =

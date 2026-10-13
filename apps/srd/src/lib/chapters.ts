@@ -18,6 +18,7 @@
 import type { ChapterTone } from 'component-lib'
 import type { SURefEntity } from 'salvageunion-reference'
 import {
+  entityTone,
   getModel,
   getSchemaCatalog,
   getTechLevel,
@@ -178,11 +179,25 @@ const FOOT_SHADE: Partial<Record<string, string>> = {
 }
 
 /**
+ * An ability's tier tone (`entityTone`) as its page's band: the colour its Row
+ * wears on the abilities index, so the two cannot disagree. Legendary pink is
+ * the deeper crawler band, as the Row paints it (it carries paper); Core is
+ * the chapter's own orange (`undefined`).
+ */
+function abilityBandFill(entity: SURefEntity): BandFill | undefined {
+  const tone = entityTone('abilities', entity)
+  if (tone === 'pilot') return undefined
+  const band = tone === 'crawler' ? 'var(--color-crawler-band)' : `var(--color-${tone})`
+  return { band, foot: band }
+}
+
+/**
  * The bands a system's, module's or pilot equipment's show page wears: its tech level's blue,
- * head and foot, as its card's header does. Every other page, the listings
- * included, wears its chapter's band (`undefined`).
+ * head and foot, as its card's header does; an ability's, its tier's colour.
+ * Every other page, the listings included, wears its chapter's band (`undefined`).
  */
 export function bandFillFor(schemaId: string, entity: SURefEntity): BandFill | undefined {
+  if (schemaId === 'abilities') return abilityBandFill(entity)
   if (!TECH_LEVEL_PAGES.has(schemaId)) return undefined
   const techLevel = getTechLevel(entity)
   if (techLevel == null) return undefined

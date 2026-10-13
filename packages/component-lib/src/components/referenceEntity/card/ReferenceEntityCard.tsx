@@ -72,6 +72,7 @@ import {
   resolveTierNumeral,
   titleSizeRung,
 } from './entityCardTone'
+import { pageChipSet } from './entityPage'
 import { splitFacets } from './facetSplit'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { CardStack } from './NestedCards'
@@ -456,8 +457,7 @@ function ReferenceEntityCardInner({
     facts: [...effectiveHeaderStats, ...facets.facts],
     tags: facets.tags,
   }
-  // A page's band or stat column holds the entity's own stats: its group is the rest.
-  const pageChips: ChipSet = { ...chips, facts: facets.facts }
+  const pageChips = pageChipSet(entity, chips, facets.facts)
   const hasSubLine = onPage && (!!suggestedNode || chipCount(pageChips) > 0)
 
   // The head extent is the Row (and, small, the Token): see below. Every other
