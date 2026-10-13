@@ -21,7 +21,7 @@ export default {
   title: 'Foundations/Rendering Matrix',
 }
 
-// Style objects since #799 (epic #802). The table chrome is static — no
+// Style objects. The table chrome is static — no
 // hover, no breakpoint, no pseudo-element — so all of it lands in style
 // objects and this page needs no stylesheet class of its own.
 

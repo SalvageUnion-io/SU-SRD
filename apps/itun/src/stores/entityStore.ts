@@ -544,13 +544,13 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     requireWritableBackend()
 
     // Capture before-images BEFORE the write, exactly as update() does, so the
-    // Change Log can diff them in phase 4. Without this, cross-entity moves
-    // (cargo stow/load, scrap hand-offs) mutated entities with no provenance at
-    // all — the one hole in ADR-022's "every mutation is logged" chokepoint
+    // Change Log can diff them in step 4. Without this, cross-entity moves
+    // (cargo stow/load, scrap hand-offs) would mutate entities with no
+    // provenance at all — a hole in ADR-022's "every mutation is logged" chokepoint
     // guarantee, since transfer() bypasses update().
     const withBefore = updates.map((u) => ({ ...u, before: get().get(u.type, u.id) }))
 
-    // Phase 1 — validate everything BEFORE changing anything. prepareUpdate
+    // Step 1 — validate everything BEFORE changing anything. prepareUpdate
     // merges + strict-parses without writing, so a Zod failure on any patch
     // aborts the whole transfer with nothing changed.
     const prepared = withBefore.map((u) => ({
@@ -566,7 +566,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
       ),
     }))
 
-    // Phase 1b — commit the whole transfer to the server BEFORE changing anything,
+    // Step 2 — commit the whole transfer to the server BEFORE changing anything,
     // as ONE mutation (`entities.transfer`). A transfer moves value BETWEEN
     // entities, so a half-applied one is not a stale record but a wrong
     // balance: a stow that lands on the mech and is refused on the crawler
@@ -593,7 +593,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
       )
     }
 
-    // Phase 2 — apply it in one set(), mirroring update()/delete(): deleting an
+    // Step 3 — apply it in one set(), mirroring update()/delete(): deleting an
     // entity takes its links with it.
     const deletedByKey = new Map<StoreKey, Set<string>>()
     for (const d of deletes) {
@@ -621,7 +621,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
       return next as Partial<EntityState>
     })
 
-    // Phase 3 — provenance (ADR-022), as update() emits it. One entry per
+    // Step 4 — provenance (ADR-022), as update() emits it. One entry per
     // changed field per updated entity. Deletes are not logged: the per-entity
     // log goes with the entity.
     for (const pu of prepared) {

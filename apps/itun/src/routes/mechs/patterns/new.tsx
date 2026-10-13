@@ -4,10 +4,10 @@ import { SavePatternPage } from '../../../components/mech/Pattern/SavePatternPag
 import { pageTitle } from '../../../lib/pageTitle'
 
 /**
- * `/mechs/patterns/new?from=<mechId>` — save a mech as a pattern (issue 1276,
- * board P1). Reached from the mech sheet's ⋯ menu. A pattern shared beyond its
+ * `/mechs/patterns/new?from=<mechId>` — save a mech as a pattern (board
+ * P1). Reached from the mech sheet's ⋯ menu. A pattern shared beyond its
  * maker opens on its own page, where the link is; one kept private goes to the
- * Patterns shelf on Shelves (issue 1279).
+ * Patterns shelf on Shelves.
  */
 export const Route = createFileRoute('/mechs/patterns/new')({
   head: () => ({ meta: [{ title: pageTitle('Save as pattern') }] }),

@@ -26,7 +26,7 @@ export const OPPOSITION_SCHEMAS: ReadonlyArray<{ schema: EncounterRefSchema; lab
   { schema: 'meld', label: 'Meld' },
 ]
 
-/** One tray row as the tab reads it. A row from before issue 1278 has only a name. */
+/** One tray row as the tab reads it. An older row may carry only a name. */
 export type TrayNpc = {
   id: string
   name: string

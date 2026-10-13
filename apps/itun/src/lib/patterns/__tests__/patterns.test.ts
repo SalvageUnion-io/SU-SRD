@@ -12,7 +12,7 @@ import {
 } from '../patterns'
 
 /**
- * Saved mech patterns (issue 1276): what a pattern keeps of a mech, and what a mech
+ * Saved mech patterns: what a pattern keeps of a mech, and what a mech
  * built from one starts as.
  */
 

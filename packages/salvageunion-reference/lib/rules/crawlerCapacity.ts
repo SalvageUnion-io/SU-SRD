@@ -1,5 +1,5 @@
 /**
- * Crawler capacity rule enforcement (Phase 3, soft-warn).
+ * Crawler capacity rule enforcement (soft-warn).
  *
  * Computes bay and weapon-system usage for a crawler and surfaces violations.
  * All operations are synchronous and pure — same input always yields same output.

@@ -66,7 +66,7 @@ export type BandText = {
   /**
    * The reference entity the chip names, when it is one (a pilot's equipment
    * and abilities). It renders as the entity card's shortform pill — the same
-   * anatomy as everywhere else (issue 1255, board D2) — flat, as the Dashboard
+   * anatomy as everywhere else (board D2) — flat, as the Dashboard
    * is. A chip with none stays a plain chip.
    */
   entity?: SURefEntity

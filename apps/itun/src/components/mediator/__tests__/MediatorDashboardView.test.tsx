@@ -1,5 +1,5 @@
 /**
- * The Mediator Dashboard as the Mediator uses it (issue 1278, board M1;
+ * The Mediator Dashboard as the Mediator uses it (board M1;
  * docs/architecture/mediator-dashboard.md): the commonest loop — see the
  * problem on a seat card, tap it, propose the fix — plus the tray, Downtime,
  * and the offline rule that every control is disabled, never hidden.

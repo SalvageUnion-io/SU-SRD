@@ -7,7 +7,7 @@ import { addPilot, makeUser, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * Link previews (issue 1280): `publicSheet.preview` and `invitePreview` say
+ * Link previews: `publicSheet.preview` and `invitePreview` say
  * what an unfurl may show a STRANGER, and nothing more. A thing not shared by
  * link is the same `null` as a missing one, whoever asks.
  */

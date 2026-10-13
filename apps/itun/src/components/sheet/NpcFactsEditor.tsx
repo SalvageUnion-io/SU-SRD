@@ -1,6 +1,6 @@
 /**
  * NpcFactsEditor — editable list of player-decided facts about a crawler bay's
- * embedded NPC (Slice F, #239).
+ * embedded NPC.
  *
  * Composes the canonical `Conditions` chip row (chrome/Conditions) at its
  * `quiet` tone — the neutral, prose-cased rung — inside the sheet's bordered

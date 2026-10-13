@@ -1,9 +1,9 @@
 /**
  * Roll-table data reaches the card two ways — INLINE (`table`) and BY
  * REFERENCE (`tableName` -> the `roll-tables` schema) — and it may sit on the
- * entity itself or on the action that folds into it. The card used to read
- * `entity.table` only, so "System and Software Hacker" (and 87 other entities)
- * rendered their prose with the d20 outcomes silently missing.
+ * entity itself or on the action that folds into it. A card that reads
+ * `entity.table` only renders "System and Software Hacker" (and 87 other
+ * entities) with the d20 outcomes silently missing.
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'

@@ -11,11 +11,10 @@ import { cva } from 'class-variance-authority'
  * cap or a key/value row re-derives the same five decisions from scratch, and
  * siblings drift between a stock `tracking-wide` and a semantic rung.
  *
- * ## Emits `.su-*` class names (#799, epic #802)
+ * ## Emits `.su-*` class names
  *
- * The recipe's SHAPE is unchanged — same axes, same values, same defaults, same
- * `(opts) => string` signature — so **no call site moves**. Only the class names
- * it returns changed, and the rules behind them live in `src/styles/index.css`.
+ * A `(opts) => string` recipe; the rules behind the names it returns live in
+ * `src/styles/index.css`.
  *
  * It stays a class-string emitter rather than becoming a `CSSProperties` object,
  * even though every property it sets is static and the split rule would

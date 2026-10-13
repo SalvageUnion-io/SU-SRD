@@ -61,7 +61,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * ## The link-preview scale
  *
  * `scale="og"` sets the band at the fixed size of a 1200 × 630 link preview
- * (`OgCard`, issue 1280): the eyebrow at the top, the notch at the foot, the
+ * (`OgCard`): the eyebrow at the top, the notch at the foot, the
  * whole band filling the height it is given, with nothing responsive about it.
  * A preview is a picture drawn at one size, so its padding is the card's, not
  * the page's. `fill` and `grain` let a preview wear an entity's own tone (a

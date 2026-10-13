@@ -1,6 +1,6 @@
 /**
- * RailUnit — the pilot or the mech on the rail during Downtime (board D3,
- * issue 1255). The Crawler takes the whole unit row, because every Downtime
+ * RailUnit — the pilot or the mech on the rail during Downtime (board D3).
+ * The Crawler takes the whole unit row, because every Downtime
  * step acts on it; the pilot and the mech stay one press away as a compact
  * link with their pips, which opens their full controls over the display (the
  * ⤢ overlay), since Restore, Customise your Mech and Train your Pilot need them.

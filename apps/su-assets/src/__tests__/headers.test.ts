@@ -4,8 +4,8 @@ import { join } from 'node:path'
 import { BASE_SECURITY_HEADERS } from '../worker'
 
 /**
- * The one place the three origins' base security headers are held together
- * (#778). srd and itun send them from the `/*` block of `public/_headers`; this
+ * The one place the three origins' base security headers are held together.
+ * srd and itun send them from the `/*` block of `public/_headers`; this
  * Worker builds its own responses and sends `BASE_SECURITY_HEADERS`. A header
  * changed in one source and not the others fails here.
  */

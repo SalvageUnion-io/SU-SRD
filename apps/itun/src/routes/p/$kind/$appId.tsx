@@ -15,7 +15,7 @@ import { pageTitle } from '../../../lib/pageTitle'
  * "this exists but is private" is itself a disclosure.
  *
  * `kind` is `pilot`, `mech`, `crawler` or `npc` — or `pattern`, a saved mech
- * pattern its maker shared (issue 1276). `PublicSheetView` routes a pattern and
+ * pattern its maker shared. `PublicSheetView` routes a pattern and
  * an NPC to their own pages.
  *
  * The page body is `PublicSheetView` (`components/sheet/PublicSheetView.tsx`).

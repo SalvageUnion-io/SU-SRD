@@ -8,9 +8,9 @@
  *   the same tab
  * - The nav reads Shelves · Games · Starter Set, with the app's Games control
  *   in its place, and marks the page you are on
- * - About and Changelog are at the drawer's foot, not in the bar (issue 1255),
+ * - About and Changelog are at the drawer's foot, not in the bar,
  *   except signed out, when no account menu carries them on a desktop
- * - Search is the bar's search slot (issue 1255), with its phone form by the hamburger
+ * - Search is the bar's search slot, with its phone form by the hamburger
  * - Places the app's slots: `actions` at the bar's end, `mobileActions` beside
  *   the hamburger, `drawerExtra` inside the drawer
  */

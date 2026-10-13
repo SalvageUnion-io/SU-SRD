@@ -49,8 +49,8 @@ type Surface = keyof typeof SURFACES
  * A change under any of these can move every surface, so all of them ship.
  *
  * The three root prose files are rendered INTO srd's about page and bundled
- * `?raw` into ITUN (ci.yml's `shared` filter carries them for the same reason,
- * after #731), so an edit to one changes what those surfaces serve even though
+ * `?raw` into ITUN (ci.yml's `shared` filter carries them for the same
+ * reason), so an edit to one changes what those surfaces serve even though
  * nothing under `apps/` moved. Of `.github/`, only this deploy's own workflow
  * and the setup action its jobs run can change what ships.
  */

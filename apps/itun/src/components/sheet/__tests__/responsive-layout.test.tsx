@@ -1,5 +1,5 @@
 /**
- * Responsive layout tests — Phase 4.
+ * Responsive layout tests.
  *
  * These tests assert that layout-bearing classes are present on the
  * correct container elements. happy-dom does not compute layout, so we verify

@@ -49,7 +49,7 @@ import { entityRef, entityRefType, inviteRole, softLinkType } from './schema'
  * - **No refusal.** A non-public entity returns `null`, exactly as a
  *   nonexistent one does. "This sheet is private" is itself a disclosure.
  *
- * ## Mech patterns join it (#1276)
+ * ## Mech patterns join it
  *
  * A saved mech pattern is the one thing a player MAKES that can be published
  * here, at `/p/pattern/:appId`, with the same `publicRead` opt-in. It has its
@@ -425,7 +425,7 @@ const patternAnswer = v.object({
 type PatternAnswer = Infer<typeof patternAnswer>
 
 /**
- * One saved mech pattern, or null (#1276, board P2).
+ * One saved mech pattern, or null (board P2).
  *
  * **Unauthenticated by design**, like `get`: a pattern shared by link is
  * readable with no account. A signed-in reader also reaches one shared with a
@@ -455,7 +455,7 @@ export const pattern = query({
 })
 
 /**
- * The kinds of player thing a link can preview (issue 1280): the four sheets
+ * The kinds of player thing a link can preview: the four sheets
  * and a shared mech pattern.
  */
 const previewKindValidator = v.union(...entityRefType.members, v.literal('pattern'))
@@ -483,7 +483,7 @@ function displayNameOf(user: Doc<'users'> | null): string | null {
 }
 
 /**
- * One player thing, as its link preview shows it to a STRANGER (issue 1280),
+ * One player thing, as its link preview shows it to a STRANGER,
  * or null.
  *
  * **Unauthenticated by design**, and stricter than the pages it previews:
@@ -563,7 +563,7 @@ const invitePreviewAnswer = v.object({
 type InvitePreviewAnswer = Infer<typeof invitePreviewAnswer>
 
 /**
- * A Game invite, as its link preview shows it (issue 1280, board PV1): the
+ * A Game invite, as its link preview shows it (board PV1): the
  * Game's name, who mediates and the expiry, or null for a code that is not
  * live. **Unauthenticated**, like `invites.preview`, which already tells a
  * link holder the Game's name and who invited them; this adds only the

@@ -1,7 +1,7 @@
 /**
  * How a sent proposal reads, wherever it is listed (the propose dock, the
  * Proposals tab, the Game page's "Proposals you sent"), and the list they sit
- * in. A proposal stores no before (ADR-030 §4 as amended for issue 1130), so a row
+ * in. A proposal stores no before (ADR-030 §4, as amended), so a row
  * names only the value it asks for.
  */
 

@@ -3,7 +3,7 @@ import { expect, test } from './fixtures'
 
 /**
  * Save a mech as a pattern, open its public page signed out, and build a mech
- * from it (#1276, boards P1 and P2).
+ * from it (boards P1 and P2).
  *
  * Signed in (the default `test` from `fixtures.ts`), so it SKIPS with a stated
  * reason in a build with no test sign-in seam and runs for real in the nightly

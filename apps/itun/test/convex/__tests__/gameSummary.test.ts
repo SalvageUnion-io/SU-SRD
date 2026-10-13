@@ -8,12 +8,12 @@ import { testConvex } from '../harness'
 /**
  * `games.summary` — the badges the Games list draws, kept on the Game itself.
  *
- * `games.listMine` used to count every membership, pilot, mech and crawler of
- * every Game the caller belonged to, on every run. It is a reactive query, so
- * reading all those rows also subscribed the list to every sheet in every one
- * of those Games: an HP tick anywhere re-ran it for everybody at the table.
+ * `games.listMine` is a reactive query: counting every membership, pilot, mech
+ * and crawler of every Game the caller belongs to would subscribe the list to
+ * every sheet in every one of those Games, so an HP tick anywhere re-runs it
+ * for everybody at the table.
  *
- * The summary is now stored on the `games` row and kept current by triggers on
+ * So the summary is stored on the `games` row and kept current by triggers on
  * the four tables it counts. The properties worth pinning are therefore the
  * two halves of that trade: **every roster change reaches the summary** (or a
  * badge is quietly wrong forever), and **an ordinary sheet edit does not touch

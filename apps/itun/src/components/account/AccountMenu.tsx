@@ -14,7 +14,7 @@ import { useSignOut } from './useSignOut'
  * avatar on a square chip (two initials when there is no avatar, or it will
  * not load); it opens a `HeaderMenu` holding **Settings** (`/settings`) and
  * **Sign out**, then **About** and **Changelog** — which left the bar for the
- * drawer's foot (issue 1255) and need a door on a desktop, which has no drawer.
+ * drawer's foot and need a door on a desktop, which has no drawer.
  * The `compact` form is the avatar alone, for the mobile header row, which has
  * no room for a name.
  *

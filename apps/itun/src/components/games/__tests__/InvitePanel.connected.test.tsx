@@ -3,14 +3,14 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
  * `InvitePanel` and `JoinRequests` — the Organizer's half of a Game's own page
- * (board M2, issue 1278): mint, read back, copy and revoke a link, and answer
+ * (board M2): mint, read back, copy and revoke a link, and answer
  * whoever is asking to join.
  *
  * What is worth testing is what an Organizer can *see and do about* an invite
  * that already exists — its seat, its door, its life left, who spent it, its
  * link, and whether Revoke is offered when it would actually do something —
  * and that a new link's choices reach the server. An invite is a link, never a
- * typed code (issue 1255).
+ * typed code.
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */

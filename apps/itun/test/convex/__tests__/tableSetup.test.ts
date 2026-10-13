@@ -15,8 +15,8 @@ import { testConvex } from '../harness'
  *  1. **The table runner raises the crawler.** Raising, editing and scrapping
  *     it are all the act of whoever runs the table (ADR-038 §5); communal
  *     means only that it has no owner, and every member reads it.
- *  2. **A Game takes any member's pilots and mechs.** It used to wait for a
- *     crawler; since ADR-037 the crew may gather first, and the first crawler
+ *  2. **A Game takes any member's pilots and mechs.** It does not wait for a
+ *     crawler: the crew may gather first (ADR-037), and the first crawler
  *     raised becomes primary and takes them aboard.
  *  3. **An unclaimed character is an offer, and a player takes it.** It arrives
  *     from a Game template or from a player releasing it; claiming is accepting
@@ -218,8 +218,8 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
 
-    // This used to be refused ("no Union Crawler yet"). The first crawler
-    // raised now picks the gathered crew up instead (see assignments).
+    // Not refused ("no Union Crawler yet"): the first crawler raised picks the
+    // gathered crew up (see assignments).
     await writePilot(t, player, gameId)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())

@@ -41,12 +41,12 @@ export const MechPatternSchema = z
     modules: z.array(z.string()),
     /**
      * Cargo lots — mirrors MechSchema.cargoLots. Empty on every pattern saved
-     * from a mech (issue 1276): cargo, like Damage and Heat, stays on the mech, and
+     * from a mech: cargo, like Damage and Heat, stays on the mech, and
      * a mech built from a pattern starts fresh. Older patterns may carry some.
      */
     cargoLots: z.array(CargoLotSchema),
     /**
-     * The maker's notes for whoever builds it (issue 1276, board P1). Shown on the
+     * The maker's notes for whoever builds it (board P1). Shown on the
      * pattern page in a dashed box: the maker's words, not the book's.
      */
     notes: z.string().optional(),

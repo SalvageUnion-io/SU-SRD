@@ -31,9 +31,9 @@
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
- *   - `HeatCheckControl` (#407) — Heat Check / Push / Reactor Overload loop.
- *   - `TakeDamageControl` (#406) — Take Damage / Critical Damage loop.
- *   - the Retire slab + `ScrapMechControl` (#411) — the scrap-a-mech helper.
+ *   - `HeatCheckControl` — Heat Check / Push / Reactor Overload loop.
+ *   - `TakeDamageControl` — Take Damage / Critical Damage loop.
+ *   - the Retire slab + `ScrapMechControl` — the scrap-a-mech helper.
  * The always-live Vitals gauges (SP/EP/Heat) and per-card activation (Use /
  * Repair / uses economy on System/Module cards, chassis-ability Use) are
  * KEPT — only the play-control PANELS drop. Shutdown/Vulnerable/Destroyed

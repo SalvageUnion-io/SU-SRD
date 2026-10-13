@@ -174,7 +174,7 @@ describe('pilot pick budgets (1 ability / 2 equipment)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Mech Workshop (pp.94–95 — Phase 4)
+// Mech Workshop (pp.94–95)
 // ---------------------------------------------------------------------------
 
 describe('isLegalCreationChassis / System / Module (Tech 1 only)', () => {

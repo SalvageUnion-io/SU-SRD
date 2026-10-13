@@ -11,8 +11,8 @@ const LEGACY_DB_NAME = 'itun-v1'
  * `indexedDB`, or `undefined` where the browser has none.
  *
  * A browser that ran an older ITUN build still holds `itun-v1`: a copy of the last
- * signed-in account's roster. Sign-out used to empty it; nothing touches it
- * now, so on a shared device it would sit on disk indefinitely. Deleting a
+ * signed-in account's roster. Nothing else touches it, so on a shared device
+ * it would sit on disk indefinitely. Deleting a
  * database that does not exist is a no-op, so this is safe on every boot.
  *
  * A `blocked` delete (another tab on an older build still holds it open)

@@ -20,8 +20,8 @@ import type {
  *
  * Deliberately built on `fetch` and nothing else. The `convex` package would
  * buy a websocket and reactive subscriptions, which the bot needs exactly once
- * — for pushing Mediator alerts into a channel — and that is Phase 5, which is
- * not built. Adding a dependency now for a feature later is how a Node worker
+ * — for pushing Mediator alerts into a channel — which is not built. Adding a
+ * dependency now for a feature later is how a Node worker
  * quietly acquires a browser SDK.
  *
  * ## Degrading

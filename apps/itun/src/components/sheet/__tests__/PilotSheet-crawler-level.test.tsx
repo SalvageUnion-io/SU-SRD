@@ -3,14 +3,14 @@
  *
  * The "Crawler Level" slab UI (manual-fallback editor + linked-crawler
  * readout) was dropped from the pilot sheet body in the redesign poster
- * conformance pass (#410) — it has no poster counterpart. What survives
+ * conformance pass — it has no poster counterpart. What survives
  * is the underlying SCALING SOURCE: `resolveEffectiveCrawlerLevel` still
  * feeds choice caps (e.g. the Modification choice) regardless of whether a
  * crawler-level control renders anywhere.
  *
  * Asserts that:
  *   1. The dropped manual-fallback editor and linked-crawler readout no
- *      longer render on the pilot sheet body (#410).
+ *      longer render on the pilot sheet body.
  *   2. The effective level still feeds the Modification choice cap: the
  *      `n/max` counter resolves to the effective level from a linked crawler.
  *   3. With neither a crawler nor a manual level, the Modification cap floors at

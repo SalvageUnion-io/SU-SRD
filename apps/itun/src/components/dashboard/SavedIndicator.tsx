@@ -6,7 +6,7 @@
  *
  * It reads `useConnection()`, the one source for the storage mode. Solo has no
  * Dashboard (ADR-038 §1), so it shows nothing there. The rail names the Game
- * beside the stamp (issue 1255), so the rail passes no `gameName` and this
+ * beside the stamp, so the rail passes no `gameName` and this
  * reads "Saved".
  */
 

@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { render, within } from '@testing-library/react'
 import { Stat } from '../Stat'
 
-// The horizontal anatomy (formerly ValueDisplay): the black/white [label | value] chip.
+// The horizontal anatomy: the black/white [label | value] chip.
 describe('Stat (horizontal)', () => {
   test('renders label', () => {
     const { container } = render(<Stat orientation="horizontal" label="SP" />)

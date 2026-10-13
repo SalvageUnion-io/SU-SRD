@@ -6,7 +6,7 @@
  * Target, Field, To, an optional Reason (at most 140 characters), a live
  * preview ("SP 6 → 4 · "Rifle Squad volley""), **Propose**, and the three
  * newest proposals with their state. The preview is the one place a before
- * shows: a sent proposal stores none (ADR-030 §4 as amended for issue 1130).
+ * shows: a sent proposal stores none (ADR-030 §4, as amended).
  *
  * Targets are claimed pilots and mechs; a mech is labelled by its pilot
  * ("Pickle's Spectrum"). The value is a whole number from 0 to the field's

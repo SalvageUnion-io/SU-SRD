@@ -138,8 +138,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'doc-drift',
     guards:
-      'cited paths, bun scripts and markdown links exist; no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the entry of any ADR it amends; ARCHITECTURE.md entries are a headline plus at most two lines; each Area carries a slug anchor and is cited by it, never by number; doc size budgets',
-    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep entry N of ## Decisions as ADR-N, and link a docs/adr/NNN-slug.md full text (status front-matter) from its headline; add the amending ADR to the amended one\'s entry; cite an Area as ARCHITECTURE.md#<its anchor>, and end a new Area\'s headline with <a id="slug"></a>; cut an entry to two lines or a doc to its size budget',
+      'cited paths, bun scripts and markdown links exist; no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the entry of any ADR it amends; ARCHITECTURE.md entries are a headline plus at most two lines; each Area carries a slug anchor and is cited by it, never by number; doc size budgets and session loads; no code comment narrates history',
+    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep entry N of ## Decisions as ADR-N, and link a docs/adr/NNN-slug.md full text (status front-matter) from its headline; add the amending ADR to the amended one\'s entry; cite an Area as ARCHITECTURE.md#<its anchor>, and end a new Area\'s headline with <a id="slug"></a>; cut an entry to two lines or a doc to its size budget; rewrite a history comment as what is true now (packages/gates/lib/commentHistory.ts lists the phrases)',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,

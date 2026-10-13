@@ -30,7 +30,7 @@ test.describe('sheet print preview', () => {
     await page.emulateMedia({ media: 'print' })
 
     // The pilot's name should be visible in print (LiveSheet hero <h1>).
-    // #334's print CSS hides the <header>, whose condensed copy of the name is
+    // The print CSS hides the <header>, whose condensed copy of the name is
     // a <span>; role=heading targets the visible hero <h1> and dodges it.
     await expect(page.getByRole('heading', { name: 'Print Test' })).toBeVisible()
     // The class must also survive print. `… sheet header` holds just the <h1>

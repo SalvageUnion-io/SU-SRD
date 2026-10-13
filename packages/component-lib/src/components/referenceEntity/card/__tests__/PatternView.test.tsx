@@ -108,13 +108,13 @@ describe('full pattern view reading order', () => {
   })
 
   test('a system installed six times renders six badges, not one', () => {
-    // The end-to-end guard for the multiplicity fix in `resolvePatternGroups`.
-    // Atlas's Thunder Storm prints as ".50 Cal Machine Gun x6" in the book; the
-    // card used to de-duplicate the loadout by entity id, so the whole pattern
-    // rendered a single machine gun and read as a far lighter build than it is.
+    // The end-to-end guard for multiplicity in `resolvePatternGroups`. Atlas's
+    // Thunder Storm prints as ".50 Cal Machine Gun x6" in the book; a loadout
+    // de-duplicated by entity id renders a single machine gun and reads as a
+    // far lighter build than it is.
     //
-    // The loadout is now the book's plain list of names rather than full
-    // cards, and multiplicity still REPEATS: six copies are six lines, not one
+    // The loadout is the book's plain list of names rather than full cards,
+    // and multiplicity REPEATS: six copies are six lines, not one
     // reading "×6". A count collapses the shape of the build out of the one
     // list whose job is showing it.
     const chassis = SalvageUnionReference.Chassis.getByName('Atlas')
@@ -141,8 +141,8 @@ describe('full pattern view reading order', () => {
  * ordinary catalogue entities whose full text lives on their own pages, so the
  * pattern view names each one as a Mention with its framed TL, as Core Book
  * p.101 lists them, and links out, rather than reprinting every rule inline —
- * Thunder Storm used to expand to six full-length, identical .50 Cal Machine
- * Gun cards — or painting a TL-toned pill per part.
+ * six full-length, identical .50 Cal Machine Gun cards for Thunder Storm — or
+ * painting a TL-toned pill per part.
  */
 describe('pattern loadout mentions', () => {
   /** Stands in for srd's entity route builder. */

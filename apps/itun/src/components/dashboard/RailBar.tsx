@@ -1,5 +1,5 @@
 /**
- * RailBar — the Dashboard's top rail (boards D1–D3, issue 1255): the way back
+ * RailBar — the Dashboard's top rail (boards D1–D3): the way back
  * to the Game, the SU mark, the pilot this Dashboard plays, a stamp for where
  * they are ("Boarded · Scrapper", "On foot", "Downtime · Step 3 of 10"), the
  * Game it saves to (set under the name), then — in Downtime — the pilot and mech as compact links

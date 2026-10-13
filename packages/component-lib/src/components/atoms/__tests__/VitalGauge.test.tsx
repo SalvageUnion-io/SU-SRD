@@ -260,7 +260,7 @@ describe('VitalGauge — cap override (ADR-022)', () => {
 
   test('the override marks follow the breakdown flag, never a comparison of numbers', () => {
     // A breakdown that says "not overridden" shows no mark at all, whatever
-    // the numbers — the gauge used to decide this itself, and disagreed with
+    // the numbers. The gauge never decides this itself, or it disagrees with
     // the ledger on a pin equal to its derivation (ADR-022 amendment).
     render(
       <VitalGauge

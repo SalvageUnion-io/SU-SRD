@@ -187,7 +187,7 @@ export const PilotSchema = z
     seedRef: z.string().optional(),
 
     // ---------------------------------------------------------------------------
-    // Live-play current stat tracking (#245).
+    // Live-play current stat tracking.
     // A freshly created pilot is seeded with the base HP/AP rule constants
     // (PILOT_BASE_HP / PILOT_BASE_AP in lib/rules/derivedStats, via
     // pilotFormState). Absent means full: see `resolvePool`.
@@ -199,7 +199,7 @@ export const PilotSchema = z
     currentAP: z.number().int().min(0).optional(),
 
     /**
-     * Per-equipment condition map (#240). Keyed by equipment slug.
+     * Per-equipment condition map. Keyed by equipment slug.
      * When absent or key missing, the display layer defaults to 'intact'.
      */
     equipmentConditions: ItemConditionMapSchema.optional(),

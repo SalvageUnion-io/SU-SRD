@@ -565,7 +565,7 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     const epMax = mechMaxEP(mech, resolveChassisRef(CHASSIS))
     expect(epMax).toBeGreaterThan(epCost)
     expect(calls).toHaveLength(1)
-    // Previously Math.max(0, 0 - epCost) === 0 — the mech's EP was zeroed.
+    // Not Math.max(0, 0 - epCost) === 0, which zeroes the mech's EP.
     expect(calls[0]?.patch.currentEP).toBe(epMax - epCost)
   })
 
@@ -614,7 +614,7 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     expect(apMax).toBeGreaterThan(1)
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('pilot')
-    // Previously Math.max(0, 0 - 1) === 0 — the pilot's AP was zeroed.
+    // Not Math.max(0, 0 - 1) === 0, which zeroes the pilot's AP.
     expect(calls[0]?.patch.currentAP).toBe(apMax - 1)
   })
 
@@ -649,8 +649,8 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
       .map((c) => c.patch.currentSP)
       .filter((v): v is number => typeof v === 'number')
     expect(spWrites.length).toBeGreaterThan(0)
-    // Previously every one of these was Math.max(0, 0 - heat) === 0: an undamaged
-    // mech recorded at SP 0, one hit from destroyed.
+    // Not Math.max(0, 0 - heat) === 0, which records an undamaged mech at SP 0,
+    // one hit from destroyed.
     for (const v of spWrites) expect(v).toBe(spMax - heatAtCheck)
   })
 })

@@ -15,7 +15,7 @@
  *   2. For each schema, ONE committed key list is checked against BOTH the live
  *      Zod shape (runtime) and `keyof z.infer<…>` (compile time). A key that
  *      exists in one and not the other cannot satisfy both, which is exactly
- *      the divergence an annotation used to hide.
+ *      the divergence an annotation would hide.
  */
 
 import { describe, expect, it } from 'bun:test'
@@ -137,7 +137,7 @@ const GUIDE_STEP_KEYS = [
 ] as const
 
 // Compile-time half. A dropped optional key makes `Exact` false, and the call
-// stops type-checking — which is the failure the annotations used to swallow.
+// stops type-checking — which is the failure an annotation would swallow.
 expectKeys(ContentBlockSchema, CONTENT_BLOCK_KEYS)
 expectKeys(ChoiceSchema, CHOICE_KEYS)
 expectKeys(NpcSchema, NPC_KEYS)

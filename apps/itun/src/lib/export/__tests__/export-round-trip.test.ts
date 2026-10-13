@@ -19,11 +19,10 @@
  * (checked package.json first, per the harness brief) — this is deliberately
  * thorough table-driven coverage instead of generative testing.
  *
- * Formerly a known gap, now fixed: the `encounterNpcs` store previously had
- * NO representation in ExportBundleSchema at all, so a full backup silently
- * omitted GM encounter-tray state. `encounterNpcs` is now part of the bundle
- * (additive `.default([])` field, no schemaVersion bump — see
- * `exportBundle.ts`) and is covered below the same way mechPatterns is.
+ * `encounterNpcs` is part of the bundle, or a full backup silently omits GM
+ * encounter-tray state (an additive `.default([])` field, no schemaVersion
+ * bump — see `exportBundle.ts`), and is covered below the same way
+ * mechPatterns is.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'

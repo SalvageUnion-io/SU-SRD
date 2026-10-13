@@ -110,7 +110,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const preloadImageSrcSet = assetSrcSetFor(displayData?.assetUrl)
 
   // The preview's words and colour come from the card its image is
-  // screenshotted from (issue 1280).
+  // screenshotted from.
   const og = ogMetaFor(ogCardFor(schemaId, itemId, host, pattern, patternId))
 
   return {

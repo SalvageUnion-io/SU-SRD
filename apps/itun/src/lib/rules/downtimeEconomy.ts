@@ -1,6 +1,5 @@
 /**
- * downtimeEconomy — pure patch builders for the Downtime economy layers
- * (F2/F3/F4 of the rules-parity plan, #599).
+ * downtimeEconomy — pure patch builders for the Downtime economy layers.
  *
  * Same contract as `playActions`: nothing here touches React or the store.
  * Each function takes live numbers and returns the write-through patch(es) the

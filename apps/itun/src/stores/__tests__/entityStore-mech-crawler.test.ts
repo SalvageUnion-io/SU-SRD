@@ -1,5 +1,5 @@
 /**
- * entityStore — mech and crawler CRUD write-through tests (#244).
+ * entityStore — mech and crawler CRUD write-through tests.
  *
  * entityStore.test.ts covers pilots only. This file extends coverage to mechs
  * and crawlers: create/get/update/delete round-trips through the in-memory

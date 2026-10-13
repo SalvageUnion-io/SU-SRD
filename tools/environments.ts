@@ -10,14 +10,13 @@
  *
  * ## Why it exists
  *
- * #1072 declared `environment: production` on every job that reads
- * a deploy secret and added the static gate, on the premise that the secrets
- * live only in an Environment restricted to `main`. The settings half was a
- * manual step in the PR body and never happened: on 2026-10-07 `production`
- * existed with no branch policy and no secrets, all four deploy secrets were
- * still repository-wide (readable by a workflow copy dispatched from any
- * branch), and the gate was green the whole time because it can only read
- * YAML. Settings changed by hand drift silently; this makes the drift red.
+ * Every job that reads a deploy secret declares `environment: production`, and
+ * the static gate checks that, on the premise that the secrets live only in an
+ * Environment restricted to `main`. The gate can only read YAML: on 2026-10-07
+ * `production` existed with no branch policy and no secrets, all four deploy
+ * secrets were repository-wide (readable by a workflow copy dispatched from any
+ * branch), and the gate was green. Settings changed by hand drift silently;
+ * this makes the drift red.
  *
  * ## What it checks
  *

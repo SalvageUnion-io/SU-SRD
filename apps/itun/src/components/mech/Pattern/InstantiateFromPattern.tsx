@@ -1,15 +1,15 @@
 /**
  * InstantiateFromPattern — creates a fresh Mech from a MechPattern.
  *
- * The new mech is `mechFromPattern`'s (issue 1276): the pattern's chassis and
+ * The new mech is `mechFromPattern`'s: the pattern's chassis and
  * loadout under the pattern's name, full SP/EP from the chassis, Heat 0, an
  * empty hold — a mech built from a pattern starts fresh — and the pattern it
- * came from in `sourcePattern` (issue 401), which the pattern page counts. The db
+ * came from in `sourcePattern`, which the pattern page counts. The db
  * layer gives it a fresh id and timestamps.
  *
  * Enforcement regime: NONE, deliberately —
  * instantiate is a Blank-family shortcut and its write path is untouched.
- * Phase 4 adds PRESENTATION only: saved MechPatterns carry no stored
+ * It adds PRESENTATION only: saved MechPatterns carry no stored
  * `legalStarting` data tag (the flag is never computed — project data
  * convention), so the confirm dialog names the freeform nature before
  * stamping the mech.

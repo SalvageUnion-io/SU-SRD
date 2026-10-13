@@ -59,8 +59,8 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permis
  * `salvageunion-reference` and preloads it at startup (ADR-006 — rules math
  * lives in the package), so these return what Convex stores. Convex can derive
  * them too now — `crew.vitals` runs the same rules over the same records for
- * the Dashboard's Crew tab (`model/referenceData.ts` loads the data) — and
- * moving the bot onto those values is #1068.
+ * the Dashboard's Crew tab (`model/referenceData.ts` loads the data) — but the
+ * bot does not read those values yet.
  */
 
 /*

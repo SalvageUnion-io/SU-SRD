@@ -4,7 +4,7 @@
  * (docs/architecture/mediator-dashboard.md Q8; boards M1 and M2).
  *
  * "Judge · HP → 4 · "Ejection burn"", when, and the state in words. A proposal
- * stores no before (ADR-030 §4 as amended for issue 1130), so a sent row shows only
+ * stores no before (ADR-030 §4, as amended), so a sent row shows only
  * the value it asks for. State is a treatment, never a hue (ruleset §3.3): a
  * Superseded row is struck through, and every state is its word.
  */

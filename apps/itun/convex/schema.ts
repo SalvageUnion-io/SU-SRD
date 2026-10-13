@@ -46,8 +46,8 @@ import { CrewSlotSchema, SoftLinkSchema } from 'itun-domain/schemas/softLink'
  * list in a comment. A comment is not checked: `Doc<'changeLog'>['state']` typed
  * as `string` meant every `row.state === 'proposed'` in `proposals.ts` compared
  * two arbitrary strings, so a typo read as "no rows match" rather than as a type
- * error. The unions below are the checked version of comments that were already
- * there, each kept in step with its Zod counterpart in `itun-domain/schemas/`.
+ * error. Each union below is that list, checked, and kept in step with its Zod
+ * counterpart in `itun-domain/schemas/`.
  *
  * Where the Zod side is a schema, the validator is built from it with
  * `zodToConvex` (convex-helpers), and where it is only a list of names, from
@@ -335,9 +335,8 @@ export default defineSchema({
     .index('by_game_user', ['gameId', 'userId']),
 
   /**
-   * Invites (closes the intent of legacy issue #157). An invite travels as a
-   * link, `/invite/<code>` (issue 1255); `code` is the link's token and is never
-   * typed.
+   * Invites. An invite travels as a link, `/invite/<code>`; `code` is the
+   * link's token and is never typed.
    *
    * An invite is not just a key to the door — it carries what the Organizer
    * already decided when they minted it: which seat the joiner takes, and which
@@ -424,7 +423,7 @@ export default defineSchema({
     sourceInteractionId: v.optional(v.string()),
 
     /**
-     * The Game's standing invite link (`invites.link`, issue 1255): the one "Copy
+     * The Game's standing invite link (`invites.link`): the one "Copy
      * invite link" hands out, reused while it is live. The Organizer's opens
      * the door; any other member's asks the Organizer to approve the knock.
      */
@@ -481,24 +480,15 @@ export default defineSchema({
    * field-level merge (ADR-030 §5), enforced in the mutation rather than the schema, so
    * a write from a stale copy never undoes a field it did not touch.
    *
-   * ## Why this now carries the same two columns as `pilots`/`mechs`
+   * ## On a shelf too, like `pilots`/`mechs`
    *
-   * ADR-030 §5 read as "no `ownerId` at all", and `gameId` was correspondingly
-   * non-nullable: a crawler was a thing that could only exist inside a Game.
-   * That is amended here, and the amendment is about **containers**, not about
-   * ownership during play. Communal-while-in-a-Game is unchanged and still
-   * expressed the same way, by `ownerId: null` on a row whose `gameId` is set.
-   *
-   * What it buys is the third row of ADR-030 §2's table — `gameId: null` with
-   * an owner, *on the shelf* — which the crawler was the one entity unable to
-   * occupy. Deleting a Game had to destroy its crawler: pilots and mechs fell
-   * back to a shelf, and the crew's home had nowhere to fall to.
-   *
-   * The alternative was to copy a shelved crawler onto the device alone. That is
-   * rejected on principle: offline-first here is ordinary PWA caching, so the
-   * local store is a *reflection* of Convex and never a second source of truth.
-   * A record with no server row to reflect is invisible on the player's other
-   * devices and lost with the browser's storage.
+   * A crawler can sit on a shelf: `gameId: null` with an owner, ADR-030 §2's
+   * third row. So deleting a Game falls its crawler back to a shelf, as it does
+   * pilots and mechs, rather than destroying the crew's home. A device-only copy
+   * of a shelved crawler is rejected on principle: offline-first here is
+   * ordinary PWA caching, so the local store is a *reflection* of Convex and
+   * never a second source of truth. A record with no server row to reflect is
+   * invisible on the player's other devices and lost with the browser's storage.
    *
    * `ownerId` is null while the crawler is in a Game — that is what communal
    * means (ADR-030 §5) — and set only on the shelf. `gameId == null && ownerId
@@ -584,7 +574,7 @@ export default defineSchema({
     .index('by_owner_app_id', ['ownerId', 'appId']),
 
   /**
-   * A saved mech pattern (#1276). Always its maker's: `ownerId` is set on every
+   * A saved mech pattern. Always its maker's: `ownerId` is set on every
    * row, and only the maker writes it.
    *
    * Who may READ it is the maker's choice of three, held in two columns:
@@ -682,7 +672,7 @@ export default defineSchema({
     state: changeLogState,
     supersededBy: v.optional(v.id('changeLog')),
     /**
-     * Why the Mediator is asking, on a proposal (issue 1278): "Rifle Squad volley".
+     * Why the Mediator is asking, on a proposal: "Rifle Squad volley".
      * At most `PROPOSAL_REASON_MAX` characters, and optional — a proposal
      * without one is still a proposal. The player reads it beside the value.
      */
@@ -789,6 +779,4 @@ export default defineSchema({
     // `gameId` alone is a prefix of this: the crew's seats in one read, and
     // one pilot's seat by both.
     .index('by_game_pilot', ['gameId', 'pilotId']),
-
-  /** Who is at the table right now. Ephemeral — never folded into an entity. */
 })

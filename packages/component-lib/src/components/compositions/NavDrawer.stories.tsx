@@ -98,7 +98,7 @@ export const Default: Story = () => {
 }
 
 /**
- * ITUN's drawer (issue 1255): the primary nav, then About and Changelog as quiet
+ * ITUN's drawer: the primary nav, then About and Changelog as quiet
  * links at the drawer's foot rather than among the destinations.
  */
 export const WithFoot: Story = () => {

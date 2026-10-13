@@ -1,5 +1,5 @@
 /**
- * ONE ANATOMY, TWO FILLS, LEGIBLE NESTING (#1253, boards E1–E4).
+ * ONE ANATOMY, TWO FILLS, LEGIBLE NESTING (boards E1–E4).
  *
  * Rendered through the real card with real SRD data:
  * - have vs do picks the header fill by data shape;

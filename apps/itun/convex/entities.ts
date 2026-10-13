@@ -323,8 +323,7 @@ export const locate = query({
  * index cannot return them. That is right: an unclaimed pre-gen sitting in a
  * Game belongs to the Game's view (`listForGame`), not to anybody's roster.
  *
- * The crawler is included on the same rule, which is only expressible at all
- * because #871 gave it an owner.
+ * The crawler is included on the same rule: it has an owner too.
  */
 export const listMine = query({
   args: {},

@@ -413,13 +413,11 @@ describe('Card', () => {
     // Ring-based focus indicator with a contrasting offset colour so the ring
     // stays visible on both the light and the dark end of the tech-level ramp.
     //
-    // One assertion, on the exported constant, where there were four on the
-    // pieces of its old utility spelling (`ring-ink`, `ring-offset-2`,
-    // `ring-offset-paper`). The vocabulary moved to `.su-*` names in #799, and
-    // the ring's composition is the STYLESHEET's business now — what this test
-    // is actually about is that a clickable Card reaches for the on-tone rung
-    // rather than the soft one. Re-spelling the four would just re-pin the test
-    // to an implementation detail a rename can move.
+    // One assertion, on the exported constant, not on the pieces of a
+    // spelling: the ring's composition is the STYLESHEET's business. What this
+    // test is about is that a clickable Card reaches for the on-tone rung rather
+    // than the soft one; a spelled ring would pin the test to an implementation
+    // detail a rename can move.
     expect(wrapper.className).toContain(FOCUS_RING_ON_TONE)
   })
 

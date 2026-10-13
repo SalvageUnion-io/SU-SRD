@@ -1,5 +1,5 @@
 /**
- * THE CARD AS A PAGE (#1254, boards 07 and 08) — `presentation="page"`.
+ * THE CARD AS A PAGE (boards 07 and 08) — `presentation="page"`.
  *
  * Rendered through the real card with real SRD data:
  * - no frame, seam, header or footer: the page's chapter band carries the

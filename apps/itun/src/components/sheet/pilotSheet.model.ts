@@ -104,11 +104,11 @@ export function usePilotSheetModel({
   picker,
 }: PilotSheetModelOptions): PilotSheetModel {
   // Resolve the pilot's crawler (if any) via the pilot-to-crawler SoftLink,
-  // then compute the EFFECTIVE crawler Tech Level used to scale choice caps
+  // then compute the EFFECTIVE crawler Tech Level that scales choice caps
   // (e.g. the Modification choice). A linked crawler's techLevel wins; with no
   // link the pilot's manual `crawlerLevel` is used; with neither it is
-  // undefined and caps stay unbounded. (The Crawler Level slab UI is dropped
-  // — #410 — but this scaling source stays live.)
+  // undefined and caps stay unbounded. (The sheet has no Crawler Level slab,
+  // but this scaling source stays live.)
   const { outgoing } = useSoftLinks({
     entityType: 'pilot',
     entityId: pilot.id,

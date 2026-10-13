@@ -4,7 +4,7 @@ import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 /**
  * The render surface Browser Rendering screenshots for a player thing's link
- * preview (issue 1280): the card from the same public answers the Worker's
+ * preview: the card from the same public answers the Worker's
  * words come from, and `data-og-ready` once it is drawn.
  */
 

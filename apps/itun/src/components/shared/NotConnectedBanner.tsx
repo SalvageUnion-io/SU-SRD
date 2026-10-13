@@ -16,7 +16,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
  * until the connection returns.
  *
  * It is the shared `Banner` at its warn severity: the status-warn treatment
- * with ink text (issue 1255). Its own strip set roll-failure text on cream, which
+ * with ink text. Its own strip set roll-failure text on cream, which
  * measured 2.97 : 1, under the 4.5 : 1 body text needs.
  */
 

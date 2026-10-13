@@ -1,5 +1,5 @@
 /**
- * Pilot conditions tests (#254)
+ * Pilot conditions tests
  *
  * Conditions live in the pilot hero as the Conditions inset, so
  * these tests render the full Sheet (pilot branch) rather than the body-only

@@ -111,7 +111,7 @@ describe('Print markup — PilotSheet', () => {
   })
 
   /**
-   * Regression (#616). A picker `Field` renders its VALUE *inside* the button
+   * Regression. A picker `Field` renders its VALUE *inside* the button
    * rather than beside it, so the print rule `button:not([data-print='keep'])`
    * hid the pilot's class on paper — the one field saying what the pilot IS.
    * The sibling fields printed fine because `InlineEditField` renders a

@@ -1,6 +1,6 @@
 /**
- * The Mediator Dashboard's pure halves (issue 1278,
- * docs/architecture/mediator-dashboard.md): the seat cards (Q5), the
+ * The Mediator Dashboard's pure halves
+ * (docs/architecture/mediator-dashboard.md): the seat cards (Q5), the
  * proposal targets and values (Q8), how a sent proposal reads, and the
  * Opposition tray's instances (Q9). The Morale roll and what an NPC tracks
  * are rules: `itun-domain/rules/opposition`.

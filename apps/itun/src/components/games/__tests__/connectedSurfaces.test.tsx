@@ -2,8 +2,8 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The Game page's member surfaces in their **connected** state (board M2,
- * issue 1278): the Downtime track every member sees and the Mediator runs, and
+ * The Game page's member surfaces in their **connected** state (board M2):
+ * the Downtime track every member sees and the Mediator runs, and
  * the player's answer queue.
  *
  * The Convex hooks are mocked through `installConvexMocks()`, which owns the

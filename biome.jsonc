@@ -277,6 +277,11 @@
         // currently drifting quietly.
         "useConst": "error",
         "useTemplate": "error",
+        // A warning is invisible to every gate (`bun run lint` exits 0 on
+        // one), so a recommended rule that defaults to "warn" and holds at zero
+        // is an error here. useComponentExportOnlyModules, the other, is set
+        // in the `apps/itun/**` override below.
+        "noDescendingSpecificity": "error",
         "noParameterAssign": "error",
         "useSelfClosingElements": "error",
         "useShorthandFunctionType": "error",
@@ -431,7 +436,7 @@
       "linter": {
         "rules": {
           "style": {
-            "useComponentExportOnlyModules": "warn"
+            "useComponentExportOnlyModules": "error"
           },
           "suspicious": {
             "noConsole": {
@@ -836,9 +841,8 @@
       // catch.
       //
       // This sits AFTER the `apps/itun/**` / `packages/component-lib/**` block
-      // that sets that rule to "warn", because Biome applies overrides in array
-      // order and the later one wins. Placed near the top of this array, it was
-      // silently overridden back to "warn".
+      // that sets that rule to "error", because Biome applies overrides in array
+      // order and the later one wins: placed earlier, it would be overridden.
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
       "linter": {
         "rules": {

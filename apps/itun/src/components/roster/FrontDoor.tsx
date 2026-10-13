@@ -1,5 +1,5 @@
 /**
- * FrontDoor — ITUN's home for a visitor who is not signed in (board 09, issue 1255).
+ * FrontDoor — ITUN's home for a visitor who is not signed in (board 09).
  *
  * Signed out, ITUN is read-only (ADR-034 as amended): there is nothing of the
  * visitor's to list, so `/` is the front door instead —

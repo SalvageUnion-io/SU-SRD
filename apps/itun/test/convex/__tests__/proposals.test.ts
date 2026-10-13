@@ -96,7 +96,7 @@ describe('the Mediator proposes; the player writes', () => {
     await gm.as.mutation(api.proposals.propose, {
       entityId: mechId,
       entityType: 'mech',
-      // The casing the Mediator surface used to offer. It is not a Mech field.
+      // A plausible miscasing. It is not a Mech field.
       field: 'currentSp',
       after: 6,
     })

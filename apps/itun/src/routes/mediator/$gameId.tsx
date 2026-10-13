@@ -1,6 +1,6 @@
 /**
- * Mediator Dashboard route — /mediator/:gameId (issue 1278;
- * docs/architecture/mediator-dashboard.md).
+ * Mediator Dashboard route — /mediator/:gameId
+ * (docs/architecture/mediator-dashboard.md).
  *
  * The address was kept for exactly this surface: it redirected to the Game
  * page while the Mediator's instruments lived there, and it is the Mediator's

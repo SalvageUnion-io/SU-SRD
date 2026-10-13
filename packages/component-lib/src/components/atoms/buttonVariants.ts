@@ -7,14 +7,13 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * (e.g. links styled as buttons) so consumers don't re-inline the class string.
  * Lives in its own file so Button.tsx only exports components (react-refresh).
  *
- * ## Emits `.su-btn*` class names (#799, epic #802)
+ * ## Emits `.su-btn*` class names
  *
- * Same three axes, same values, same defaults, same `(opts) => string`
- * signature — so **no call site moves**, including the ~30 in `apps/itun` and
- * `apps/srd` that put the result on `<a>` elements. Only the names changed; the
- * rules behind them live in `src/styles/index.css`.
+ * Three axes and a `(opts) => string` signature, which the ~30 call sites in
+ * `apps/itun` and `apps/srd` that put the result on `<a>` elements depend on.
+ * The rules behind the names live in `src/styles/index.css`.
  *
- * **ALL of the styling moved there, geometry and type included** — not just the
+ * **ALL of the styling lives there, geometry and type included** — not just the
  * stateful half the split rule would send to a stylesheet. That is not an
  * exception to the rule, it is the rule's boundary: the split rule assumes the
  * library owns the element being styled, and this recipe deliberately does not.

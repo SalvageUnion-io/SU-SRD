@@ -582,7 +582,7 @@ export const CollapseEntities: Story = () => {
 }
 
 /* ------------------------------------------------------------------------- *
- * ONE ANATOMY, TWO FILLS (#1253, boards E1–E4) — the whole matrix the issue
+ * ONE ANATOMY, TWO FILLS (boards E1–E4) — the whole matrix the issue
  * gates on: every size × extent cell, things you have and things you do, a
  * depth-3 stack, every context and the user-made flag. Style objects only.
  * ------------------------------------------------------------------------- */
@@ -843,7 +843,7 @@ export const Contexts: Story = () => {
 }
 
 /**
- * The user-made flag (ruleset §3.9, issue 1276) at every size × extent: a
+ * The user-made flag (ruleset §3.9) at every size × extent: a
  * dashed frame, a dashed User-made stamp, a dashed footer rule and a dashed
  * pill, and a footer that credits the maker ("Made by alxjrvs") in place of the
  * page citation. One simple entity, one cell per row, so each device can be

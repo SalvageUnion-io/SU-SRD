@@ -7,7 +7,7 @@
  * | boarded   | Mech    | Pilot, Crawler  |
  * | Downtime  | Crawler | none            |
  *
- * In Downtime the Crawler takes the whole unit row (board D3, issue 1255):
+ * In Downtime the Crawler takes the whole unit row (board D3):
  * every Downtime step acts on it. The pilot and the mech ride the rail as
  * compact links with their pips, which open their full controls, since
  * Restore, Customise your Mech and Train your Pilot need them.

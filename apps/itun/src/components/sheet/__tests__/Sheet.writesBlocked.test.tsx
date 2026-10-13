@@ -1,10 +1,9 @@
 /**
  * The Live Sheet's connectivity read-only path (ADR-030 §1).
  *
- * `canWrite` used to have no consumers at all: the sheet rendered every edit
- * affordance in Disconnected, and each one threw `WritesBlockedOffline` into an
- * unhandled rejection when tapped. These tests pin the two halves of the fix —
- * the affordances go, and the `settling` window is excluded so a signed-in load
+ * Disconnected, the sheet renders no edit affordance: each one would throw
+ * `WritesBlockedOffline` into an unhandled rejection when tapped. These tests
+ * pin both halves — the affordances go, and the `settling` window is excluded so a signed-in load
  * does not flash read-only on its way to Connected.
  *
  * Uses toBeTruthy() not toBeInTheDocument() (Wave 4 workaround).

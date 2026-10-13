@@ -15,7 +15,7 @@ import { MARK_SRC } from '../../lib/appUrl'
  * `mobileActions` beside the hamburger and `drawerExtra` inside the drawer.
  *
  * About and Changelog are not destinations in the nav: they sit at the
- * drawer's foot (issue 1255), in the account menu on a signed-in desktop, and
+ * drawer's foot, in the account menu on a signed-in desktop, and
  * in the page foot on every page (`SiteFooter`). The bar never carries them,
  * signed in or out (board 09's bar has neither).
  *

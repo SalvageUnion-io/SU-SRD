@@ -1,8 +1,8 @@
 /**
- * One label per schema. The bug this pins: search rows used to print
- * `schemaTitle` with a 'Salvage Union ' prefix stripped — a prefix no catalog
- * title carries — so entity rows read 'crawler-bays' while the category row
- * directly above them read 'Crawler Bays'.
+ * One label per schema. What this pins: search rows never print `schemaTitle`
+ * with a 'Salvage Union ' prefix stripped — a prefix no catalog title carries —
+ * or entity rows read 'crawler-bays' under a category row reading 'Crawler
+ * Bays'.
  */
 import { describe, expect, it } from 'bun:test'
 import { getSchemaCatalog } from 'salvageunion-reference'

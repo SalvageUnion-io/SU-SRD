@@ -89,10 +89,9 @@ const LIFT_SHADOW = `0 14px 40px ${color.ink85}`
 /**
  * Turns the header title into the surface's TABLE PICKER trigger.
  *
- * A surface that shows one of many tables (the Dashboard Tables view) used to
- * carry a separate bar above the table — a label, then a button repeating the
- * table's name, directly above the header band already printing that same name.
- * With this the header title IS the trigger: one name, one control.
+ * A surface that shows one of many tables (the Dashboard Tables view) carries
+ * no separate bar above the table repeating the name the header band already
+ * prints: the header title IS the trigger, one name, one control.
  *
  * Typed rather than a `node` slot, so the header keeps ownership of its own
  * affordance (chevron, hit area, focus ring, aria) and every consumer gets the

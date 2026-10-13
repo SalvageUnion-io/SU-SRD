@@ -41,7 +41,7 @@ type FieldStaticProps = FieldCommon & {
  * `value` inside an ink-bordered value box under the same straddling stamp.
  * ALWAYS editable when it is given a handler — there is no section Edit toggle
  * to unlock first. The value box is DASHED: on a sheet, dashed borders and
- * steppers are the only "write here" cues (ruleset §1, Live Sheet; issue 1255),
+ * steppers are the only "write here" cues (ruleset §1, Live Sheet),
  * and the Read | Edit toggle means a sheet only draws them while it is in Edit.
  * The deep-tone outline still comes on hover / focus to mark the one in hand.
  *

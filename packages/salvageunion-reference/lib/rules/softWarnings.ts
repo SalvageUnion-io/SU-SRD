@@ -5,8 +5,7 @@
  * user sees them in a confirm-and-proceed dialog and may dismiss them. They do
  * not prevent saving — they inform and protect against common mistakes.
  *
- * This module is intentionally kept to documented cases only. Additional
- * warning rules belong in M4 story #225 (REQ-NF-21).
+ * This module is intentionally kept to documented cases only.
  *
  * All functions are pure — no side effects, no async, no React.
  */

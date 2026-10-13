@@ -53,7 +53,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
     'tsconfig.base.json',
     '.github/workflows/deploy-cloudflare.yml',
     '.github/actions/setup-bun/action.yml',
-    // rendered into srd's about page and ITUN's bundle — the #731 shape
+    // rendered into srd's about page and ITUN's bundle, outside `apps/`
     'SPECIAL_THANKS.md',
     'ABOUT_JRVS.md',
     'LLM_STATEMENT.md',

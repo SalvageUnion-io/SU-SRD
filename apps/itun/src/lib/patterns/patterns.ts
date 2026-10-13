@@ -1,10 +1,10 @@
 /**
- * Saved mech patterns (issue 1276): what a pattern keeps of a mech, what a mech
+ * Saved mech patterns: what a pattern keeps of a mech, what a mech
  * built from one starts as, and the reference shapes a pattern renders through.
  *
  * A pattern keeps the chassis and its loadout. Damage, Heat and cargo stay on
  * the mech; a mech built from a pattern starts fresh and records which pattern
- * it came from (issue 401). Pure functions over the schemas — the stores and Convex
+ * it came from. Pure functions over the schemas — the stores and Convex
  * own the writes.
  */
 

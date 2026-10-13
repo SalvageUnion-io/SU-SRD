@@ -189,8 +189,8 @@ describe('typecheck-scoped.sh', () => {
     expect(await runHook('typecheck-scoped.sh', { tool_input: {} })).toBe(ALLOW)
   })
 
-  // The fixture below stubs every `typecheck`; these keep the stubs honest. The
-  // hook once called a script #995 had deleted, and a stubbed suite stayed green.
+  // The fixture below stubs every `typecheck`; these keep the stubs honest: a
+  // hook calling a deleted script passes a stubbed suite.
   test('the script the hook runs exists in the real root manifest', async () => {
     const manifest = await Bun.file(join(ROOT, 'package.json')).json()
     expect(manifest.scripts.typecheck).toBeString()

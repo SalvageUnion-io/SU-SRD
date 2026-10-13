@@ -4,11 +4,10 @@ import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
  * A deterministic wall clock for the tests that care about record ordering.
  *
  * `records.ts` stamps `createdAt` / `updatedAt` with `new Date().toISOString()`,
- * and a store prepends each new record. Tests that wanted two records in a known
- * order used to sleep 5ms between the writes and hope the clock had ticked —
- * fourteen of them, betting on host clock resolution and paying ~70ms per run
- * for the privilege. Worse, they were flaky *by construction*: a coarse timer
- * makes two writes share a millisecond and the ordering assertion fails for a
+ * and a store prepends each new record. A test that wants two records in a
+ * known order must not sleep between the writes and hope the clock ticked:
+ * that bets on host clock resolution, costs time on every run, and is flaky
+ * *by construction*: a coarse timer makes two writes share a millisecond and the ordering assertion fails for a
  * reason that has nothing to do with the code under test.
  *
  * There is no injectable now-source in the stores (that would be a

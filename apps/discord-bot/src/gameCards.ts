@@ -49,8 +49,8 @@ import type {
  * runs the package's rules here (ADR-006: rules math lives in the package,
  * never re-implemented at a call site). Convex can derive them too now —
  * `crew.vitals` runs the same rules over the same records for the Dashboard's
- * Crew tab (`model/referenceData.ts` loads the data) — and moving the bot onto
- * those values is issue 1068.
+ * Crew tab (`model/referenceData.ts` loads the data) — but the bot does not
+ * read those values yet.
  *
  * Every read off a body is defensive. The body is `v.any()` on the server by
  * design, so a missing or wrong-typed field must render as "—" rather than
@@ -92,8 +92,7 @@ const HEAT = STAT_LABELS.heatCapacity.short
  * them (types only: the bot bundles no Zod) makes a misspelling a compile
  * error. That is not hypothetical: `crew.vitals` once read `currentHp` while
  * the schema defines `currentHP`, so every vital on the Mediator's crew strip
- * was null and rendered as an em-dash indistinguishable from an undamaged crew
- * (#656).
+ * was null and rendered as an em-dash indistinguishable from an undamaged crew.
  */
 type BodyKey = keyof Pilot | keyof Mech | keyof Crawler
 

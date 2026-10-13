@@ -19,8 +19,7 @@ import { PILOT_ROLL_TABLE_NAMES } from '../wizard/rollTableHelpers.model'
  * These tests assert the one property that matters: every name a registry
  * hard-codes still resolves to a real entity. They are deliberately NOT
  * assertions about the literal strings — comparing a map to its own literal
- * (which is what the Mediator table test used to do on its own) passes for any
- * pair of strings and never touches the dataset.
+ * passes for any pair of strings and never touches the dataset.
  */
 describe('hard-coded dataset names resolve', () => {
   test('the dataset is actually loaded (guards a vacuous pass)', () => {

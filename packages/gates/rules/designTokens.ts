@@ -19,8 +19,8 @@
  * ## Zero rules and the two ratchets
  *
  * Ten rules are `zero`: any finding fails. Three of them landed with the brand
- * refresh's tokens (#1251) and hold the Workshop Manual canon the ruleset
- * ratified in #1250: `rust-allowlist` (§3.1), `type-floor` (§4.6) and
+ * refresh's tokens and hold the Workshop Manual canon the ruleset
+ * ratifies: `rust-allowlist` (§3.1), `type-floor` (§4.6) and
  * `texture-placement` (§3.5). Each landed with its backlog fixed, not
  * baselined, so it starts at zero. Two rules still carry a backlog and are
  * `ratchet` rules, counted against `tools/baselines/styling-baseline.json`:
@@ -281,7 +281,7 @@ export const TOKEN_RULES: TokenRule[] = [
     mode: 'zero',
     rule: 'ruleset §4.1 — one workshop ground; the cool `wk-bg-2` is off the closed palette',
     // The pale blue-grey (#d7e6ee) is what the page ground was before the brand
-    // refresh moved it to the book's warm paper (#1250). It survived as a
+    // refresh moved it to the book's warm paper. It survived as a
     // second "ground" on a quiet chip and a search row, which put the cool
     // palette back on a warm page. Every spelling counts: the custom property,
     // a utility-style class under any prefix, and the `color.wkBg2` token key.

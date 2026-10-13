@@ -1,8 +1,8 @@
 /**
  * The pure seams `ReferenceEntityCard` was split along.
  *
- * Each of these used to be inline in the card's 1,880-line body, reachable only
- * through a full render. The rendered behaviour is pinned by the card's own
+ * Each is a pure function, reachable without a full render. The rendered
+ * behaviour is pinned by the card's own
  * suites and by the srd output gate; these pin the rules directly, so a change
  * to one fails here, next to the rule, rather than as a text diff on a page.
  */

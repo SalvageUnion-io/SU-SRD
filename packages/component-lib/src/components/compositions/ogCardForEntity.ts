@@ -27,7 +27,7 @@ import { buildReferenceEntityStats } from '../referenceEntity/referenceEntitySta
 import type { OgCardProps, OgCardStat } from './ogCardText'
 
 /**
- * A reference entity's link preview (issue 1280): the `thing` or `do` card
+ * A reference entity's link preview: the `thing` or `do` card
  * the SRD renders at build, one PNG per entity.
  *
  * Every field comes from the helper the entity card itself uses, so the

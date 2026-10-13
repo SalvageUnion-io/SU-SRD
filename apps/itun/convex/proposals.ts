@@ -102,7 +102,7 @@ async function requireProposalTarget(
  * by, whichever id the Mediator's client addressed it with. A proposal carries
  * only the value it asks for; its `before` is `null`.
  *
- * It may carry a `reason` (issue 1278): trimmed, dropped when blank, and refused
+ * It may carry a `reason`: trimmed, dropped when blank, and refused
  * past `PROPOSAL_REASON_MAX` characters rather than cut, so the player reads
  * the Mediator's words as written.
  */
@@ -241,7 +241,7 @@ function targetName(doc: Doc<'pilots'> | Doc<'mechs'> | null, entityType: string
 }
 
 /**
- * Every Mediator proposal in a Game, in every state, newest first (issue 1278).
+ * Every Mediator proposal in a Game, in every state, newest first.
  *
  * Mediator-only (`requireMediator`): the crew reads its own proposals through
  * `pending`, and a player has no use for what was asked of a crewmate. Every
@@ -252,7 +252,7 @@ function targetName(doc: Doc<'pilots'> | Doc<'mechs'> | null, entityType: string
  * Read `limit` rows at a time (20 unless asked; never more than `MAX_SENT`)
  * off `by_game_source_ts`, in order: this is a reactive query on a log that
  * grows all campaign, so it never collects it. A row carries no before — a
- * proposal stores none (ADR-030 §4 as amended for issue 1130).
+ * proposal stores none (ADR-030 §4, as amended).
  */
 export const sent = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },

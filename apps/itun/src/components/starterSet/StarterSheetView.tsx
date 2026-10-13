@@ -2,7 +2,7 @@
  * StarterSheetView — one Starter Set build's sheet: the real `<Sheet>`, read
  * only, over the templates themselves. Its band says where it comes from
  * ("Starter Set · Leyline Press · read-only") and offers "Make a copy" (board
- * 10, issue 1255).
+ * 10).
  *
  * The store is `makeReadOnlySheetStore` over the whole Starter Set, so the
  * sheet resolves the build's mech, pilot and crawler from the same crew and its

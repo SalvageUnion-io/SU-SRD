@@ -733,9 +733,9 @@ describe('homebrew patterns (stored data tag — never computed)', () => {
 })
 
 /**
- * The reference site's origin and route grammar. Previously hardcoded in four
- * places (`apps/srd`, `apps/itun`, and TWICE inside the Discord bot) — the same
- * duplication `ASSET_BASE_URL`/`getAssetUrl` already solved for artwork.
+ * The reference site's origin and route grammar, held once for `apps/srd`,
+ * `apps/itun` and the Discord bot, as `ASSET_BASE_URL`/`getAssetUrl` is for
+ * artwork.
  */
 describe('SRD site URLs', () => {
   it('builds a root-relative entity path matching the srd route grammar', () => {

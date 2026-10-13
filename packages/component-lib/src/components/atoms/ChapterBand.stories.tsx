@@ -112,7 +112,7 @@ export const Default: Story = () => (
 )
 
 /**
- * USER-MADE (ruleset §3.9, issue 1276): a full page a player made that could
+ * USER-MADE (ruleset §3.9): a full page a player made that could
  * pass for the book — a shared mech pattern (board P2). The band is hatched in
  * ink over the chapter colour, the notched title is framed in dashes, and the
  * stamps lead the title as its `eyebrow`. Shown beside the canon band it must

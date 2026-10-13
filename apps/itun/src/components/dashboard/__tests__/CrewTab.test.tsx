@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 
 /**
- * The Crew tab as a table (board D2, issue 1255): Pilot · HP · AP · Mech ·
+ * The Crew tab as a table (board D2): Pilot · HP · AP · Mech ·
  * Status, a ▲ and the word for a crewmate who needs looking at and "Fine" for
  * one who does not, each row a link to the live sheet, and "Copy invite link"
  * under the table.

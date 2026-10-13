@@ -21,7 +21,7 @@ import { blockStarting, cardText, cardTexts, cardUrl } from './cardText'
  * These are pure `data → ContainerData`, so every one of them is exercised here
  * with no Discord client, no network and no mock. The maxima are DERIVED from
  * chassis and class data (the workspace preload loads the dataset); Convex's
- * crew.vitals derives the same numbers, and moving the bot onto those is #1068.
+ * crew.vitals derives the same numbers; the bot does not read those yet.
  */
 
 const WEB = ITUN_ORIGIN
@@ -81,7 +81,7 @@ describe('vital field names', () => {
     // The regression this guards is not hypothetical: `crew.vitals` shipped
     // reading `currentHp` while packages/itun-domain/src/schemas/pilot.ts defines
     // `currentHP`, so every vital rendered as an em-dash indistinguishable
-    // from an undamaged crew (#656). The reads are typed against that schema
+    // from an undamaged crew. The reads are typed against that schema
     // now; this pins that the canonical names reach the card.
     const card = crewCard(
       {
@@ -402,8 +402,8 @@ describe('deep links', () => {
 describe('unclaimed ordering', () => {
   test('unclaimed renders LAST, after every owner', () => {
     // It is a state worth showing, not a crewmate — it should not be the first
-    // thing the table reads. Previously it sorted FIRST, because the sentinel
-    // key began with a space.
+    // thing the table reads. Its sentinel key must not sort first (a key that
+    // begins with a space does).
     const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },

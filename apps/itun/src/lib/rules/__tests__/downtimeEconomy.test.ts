@@ -1,5 +1,5 @@
 /**
- * Downtime economy patch builders (F2/F3/F4, #599).
+ * Downtime economy patch builders.
  *
  * `crafting`, `salvage` and `scrapMech` were fully implemented and tested with
  * ZERO non-test importers — the maths was never the problem, the seam was. These

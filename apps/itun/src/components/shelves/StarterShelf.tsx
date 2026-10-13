@@ -3,7 +3,7 @@
  * (Shelves, board S1): the book's ready-made pilots, mechs and crawler, one
  * button each. They are read like the reference — each opens its read-only
  * sheet (`/starter/:kind/:id`) — and kept by making a copy there ("Make a
- * copy", issue 1255), never by editing the book's.
+ * copy"), never by editing the book's.
  *
  * The stamp is rules blue rather than ink because these are the book's, not
  * yours: the same colour map that bands the SRD's rules pages (ruleset, "The

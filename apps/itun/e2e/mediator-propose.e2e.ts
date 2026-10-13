@@ -3,7 +3,7 @@ import { createGame, makeInviteLink, secondAccount } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * The Mediator proposes; the player decides (issue 1278, boards M1 and M2;
+ * The Mediator proposes; the player decides (boards M1 and M2;
  * docs/architecture/mediator-dashboard.md).
  *
  * The Organizer makes a Game and appoints themselves Mediator; a player joins

@@ -183,7 +183,7 @@ export function PhoneDeck({
                   // which sizes to its content.
                   size="medium"
                   extent="head"
-                  // The Dashboard stays flat (issue 1255): no speckle.
+                  // The Dashboard stays flat: no speckle.
                   texture={false}
                   controls={[pennant]}
                   cardClickLabel={`Open ${row.name}`}

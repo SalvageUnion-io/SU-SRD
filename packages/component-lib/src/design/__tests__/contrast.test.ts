@@ -28,11 +28,11 @@ import { color, fontSize, weight } from '../tokens'
 /**
  * Card-band contrast guard.
  *
- * Every card band used to print paper ("solid tones read white") and the
- * footer printed it at 70%. axe measured 3.03:1 for a mech pattern's title and
- * 3.99:1 for a guide's footer, and against the whole palette paper failed on
- * TL1 (1.79:1), pilot (2.41:1) and mech (3.04:1) among others. Nothing caught
- * it, because nothing measured the bands: the scan only visits nine SRD pages.
+ * Paper on every card band ("solid tones read white") fails: axe measured
+ * 3.03:1 for a mech pattern's title and 3.99:1 for a guide's footer at 70%, and
+ * against the whole palette paper fails on TL1 (1.79:1), pilot (2.41:1) and
+ * mech (3.04:1) among others. The page scan cannot catch it: it visits only
+ * nine SRD pages.
  *
  * So this measures every band a card can actually wear — the tones are read
  * off the dataset through the card's own resolver, not listed by hand — in

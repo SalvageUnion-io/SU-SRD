@@ -69,9 +69,9 @@ describe('the headline is never a bare die number', () => {
   })
 
   test('a long unlabelled value is quoted into the headline, not left in the body', () => {
-    // Previously this rendered `## 14` alone with the whole value beneath.
-    // The entry's own leading sentence now carries the headline, and the body
-    // picks up from the next one rather than repeating it.
+    // Never `## 14` alone with the whole value beneath: the entry's own
+    // leading sentence carries the headline, and the body picks up from the
+    // next one rather than repeating it.
     const data = rollOf('Crawler Damage', 14)
     expect(headline(data)).toContain('14')
     expect(headline(data)).toContain('INOPERABLE AND GROUNDED')

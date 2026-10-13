@@ -2,7 +2,7 @@ import { buildCrawler, editSheet, gotoStable, openSheetFor, waitForReady } from 
 import { expect, test } from './fixtures'
 
 /**
- * The #1277 Gate: build an NPC from a template, assign it to a crawler bay,
+ * The NPC designer end to end: build an NPC from a template, assign it to a crawler bay,
  * and unassign it to fall back to the book's crew line (boards N1 and N2;
  * ADR-044).
  *

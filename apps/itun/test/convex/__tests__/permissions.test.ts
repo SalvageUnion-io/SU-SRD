@@ -125,10 +125,9 @@ describe('destroying a game preserves everything anybody built', () => {
     expect(owned?.gameId).toBeNull()
     expect(owned?.ownerId).toBe(player.userId)
 
-    // An unclaimed entity used to be DELETED here, because it had no owner to
-    // fall back to and `gameId: null` with `ownerId: null` is the one invalid
-    // combination. Deleting was never the only way out of that: the Organizer
-    // doing the deleting is a perfectly good owner, and is the person standing
+    // An unclaimed entity is not DELETED here, though it has no owner to fall
+    // back to and `gameId: null` with `ownerId: null` is the one invalid
+    // combination: the Organizer doing the deleting is a perfectly good owner, and is the person standing
     // in front of the consequence. So it survives, on their shelf.
     expect(unclaimed).not.toBeNull()
     expect(unclaimed?.gameId).toBeNull()
@@ -150,9 +149,8 @@ describe('destroying a game preserves everything anybody built', () => {
 
     await organizer.as.mutation(api.games.destroy, { gameId })
 
-    // The crawler is the crew's HOME, and it used to be destroyed with the Game
-    // — the one build that a deletion could take with it. It now falls back like
-    // everything else. `ownerId` moving from null to the Organizer is not a
+    // The crawler is the crew's HOME, and it is not destroyed with the Game:
+    // it falls back like everything else. `ownerId` moving from null to the Organizer is not a
     // change of heart about ADR-030 §5: communal is what a crawler is INSIDE a Game, and
     // this one is no longer in one.
     const crawler = await t.run(async (ctx) => await ctx.db.get(crawlerId))
@@ -355,11 +353,10 @@ describe('a shelved entity cannot be released', () => {
     const { organizer } = await seedTable(t)
     const shelved = await seedPilot(t, null, organizer.userId)
 
-    // The message used to be "An entity on a shelf is already unclaimed", which
-    // teaches the wrong model to the person least able to check it: unclaimed
-    // is `ownerId: null` *inside a Game*, waiting for a taker; a shelf is
-    // already somebody's. It matters more now that `NotAuthorized` extends
-    // `ConvexError` and the string actually reaches the player.
+    // Not "An entity on a shelf is already unclaimed", which teaches the wrong
+    // model to the person least able to check it: unclaimed is `ownerId: null`
+    // *inside a Game*, waiting for a taker; a shelf is already somebody's.
+    // `NotAuthorized` extends `ConvexError`, so the string reaches the player.
     const err = await organizer.as
       .mutation(api.ownership.release, { table: 'pilots', entityId: shelved })
       .catch((e: unknown) => e)
@@ -374,8 +371,8 @@ describe('requireMediator', () => {
     const { player, gameId } = await seedTable(t)
     const { requireMediator } = await import('../../../convex/model/permissions')
 
-    // Exercised directly: this PR ships the helper ahead of its Phase 3
-    // callers, and an untested gate is the kind that quietly stops gating.
+    // Exercised directly: an untested gate is the kind that quietly stops
+    // gating.
     await expect(
       t.run(async (ctx) => {
         const withIdentity = {

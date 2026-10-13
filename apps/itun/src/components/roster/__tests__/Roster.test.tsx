@@ -1,6 +1,6 @@
 /**
  * Roster component tests: the front door signed out, Shelves signed in
- * (issue 1279, board S1).
+ * (board S1).
  *
  * We exercise the real (in-memory) entityStore to keep tests honest.
  *

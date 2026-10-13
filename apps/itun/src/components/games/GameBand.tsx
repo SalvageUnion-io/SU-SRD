@@ -1,5 +1,5 @@
 /**
- * GameBand — the head of a Game's own page (board M2, issue 1278): the Game's
+ * GameBand — the head of a Game's own page (board M2): the Game's
  * name, notched into a crawler-pink chapter band, because a Game is the crew
  * and its Union Crawler.
  *

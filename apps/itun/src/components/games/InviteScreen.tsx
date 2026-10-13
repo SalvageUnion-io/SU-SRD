@@ -11,7 +11,7 @@ import { useShowContainer } from '../container/useShowContainer'
 import { WayOutLink } from '../shared/WayOutLink'
 
 /**
- * `/invite/$token` — an invite link (issue 1255). A Game is joined from a link,
+ * `/invite/$token` — an invite link. A Game is joined from a link,
  * never a typed code.
  *
  * Signed-out is the **expected** state here, not an edge case: the whole point

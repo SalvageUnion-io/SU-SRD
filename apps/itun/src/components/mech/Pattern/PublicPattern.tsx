@@ -1,6 +1,6 @@
 /**
  * PublicPattern — one saved mech pattern's page, at `/p/pattern/:appId`
- * (issue 1276, board P2).
+ * (board P2).
  *
  * It reads like a reference page and says plainly that a player made it
  * (ruleset §3.9): a hatched mech band with a dashed notch and a "User-made

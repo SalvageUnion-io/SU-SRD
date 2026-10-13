@@ -1,7 +1,7 @@
 /**
  * ContainerSwitcher — the Game page's "Showing" select (ADR-030 §2).
  *
- * It lists **Shelves** (everything you keep, at `/`, issue 1279), then every
+ * It lists **Shelves** (everything you keep, at `/`), then every
  * Game the player is in, and picking one goes there. Shelves itself has its
  * own Showing toggle (Everything | Not in a Game) instead. The masthead's Games
  * menu (`GamesMenu`) makes the same choice from every other route.

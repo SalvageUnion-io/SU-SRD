@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
- * `/invite/$token` — an invite link (issue 1255).
+ * `/invite/$token` — an invite link.
  *
  * This is the one URL in the app a stranger can be handed, so the failure modes
  * worth defending are about people who are not signed in and links that are no

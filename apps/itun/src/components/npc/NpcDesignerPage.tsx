@@ -1,6 +1,6 @@
 /**
- * NpcDesignerPage — `/npcs/new`, the one NPC designer with two modes (issue 1277;
- * `docs/architecture/npc-builder.md`).
+ * NpcDesignerPage — `/npcs/new`, the one NPC designer with two modes
+ * (`docs/architecture/npc-builder.md`).
  *
  * "Any NPC | Crawler crew" is a tab row on the band (`?view=any|crew`):
  *
@@ -71,7 +71,7 @@ export function NpcDesignerPage({
         <ChapterBand
           tone={crew ? 'crawler' : 'denizen'}
           // The crawler pink behind paper text needs the deeper crawlerBand. Passed here,
-          // not set in ChapterBand, so every other crawler band keeps its tone (issue 1251).
+          // not set in ChapterBand, so every other crawler band keeps its tone.
           fill={crew ? tokens.color.crawlerBand : undefined}
           measure="80rem"
           eyebrow={<p style={EYEBROW}>{eyebrow}</p>}

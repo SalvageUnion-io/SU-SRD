@@ -9,7 +9,7 @@ import { ogImage, previewRouteOf, versionOf } from '../linkPreview'
 import { applyMeta, META_END, META_START } from '../shellMeta'
 
 /**
- * Link previews for player things (issue 1280). Discord's unfurler
+ * Link previews for player things. Discord's unfurler
  * (`Discordbot/2.0`) asks for a shared route without a navigation, so the
  * Worker answers it, and must write that thing's preview into the shell —
  * and for a private thing, nothing about it at all.

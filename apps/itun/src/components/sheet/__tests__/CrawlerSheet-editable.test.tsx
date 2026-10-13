@@ -1,8 +1,8 @@
 /**
  * CrawlerSheet — bay action economy tests (poster layout).
  *
- * The SP/Bays trackers moved into the body's economy band (SheetCrawler,
- * Phase 2); this file covers the Bays section's interactive surface:
+ * The SP/Bays trackers live in the body's economy band (SheetCrawler); this
+ * file covers the Bays section's interactive surface:
  *   1. Bay status: Intact bays lead with their function action; a Damaged bay
  *      disables the function and promotes Repair.
  *   2. Repair decrements 5 Scrap from the crawler-TL pool bucket, spilling

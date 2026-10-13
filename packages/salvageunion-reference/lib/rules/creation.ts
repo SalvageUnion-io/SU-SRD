@@ -139,8 +139,8 @@ export type CreationPatternInput = { legalStarting?: boolean }
 /**
  * A legal STARTING pattern carries the stored `legalStarting` data flag —
  * an explicit tag set only where the source book calls it out. NEVER
- * computed from tech level or salvage value (project data convention;
- * PR #292). Takes the primitive the rule reads — the record's
+ * computed from tech level or salvage value (project data convention).
+ * Takes the primitive the rule reads — the record's
  * `legalStarting` value (undefined = unflagged = not legal starting).
  */
 export function isLegalStartingPattern(legalStarting: boolean | undefined): boolean {

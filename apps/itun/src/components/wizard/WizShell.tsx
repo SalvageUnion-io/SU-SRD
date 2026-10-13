@@ -56,9 +56,8 @@ type WizShellProps = {
   /**
    * OPT-IN blown-up tinted step card (mockup Screen 01 `.stepcard`): the main
    * pane renders the heading + content inside a `var(--tone-card)` card with
-   * a flush ink number tab. Only book-order wizards should opt in (pilot as
-   * of Phase 3); the still-multi-section Mech/Crawler wizards stay untinted
-   * until their phases.
+   * a flush ink number tab. Only book-order wizards opt in (pilot); the
+   * multi-section Mech/Crawler wizards stay untinted.
    */
   tintedStepCard?: boolean
   onBack?: () => void
@@ -103,8 +102,8 @@ const trackerValueStyle: CSSProperties = {
 
 /**
  * Black tracker tab (mockup `.tracker`): condensed-caps label
- * with an amber value, hosted in the WizShell action pill. Phase 2 chrome —
- * values reflect today's wizard state; real budget math lands in Phases 3–5.
+ * with an amber value, hosted in the WizShell action pill. Its value is the
+ * caller's: the tab does no budget math.
  */
 export function WizTracker({ label, value }: { label: string; value: ReactNode }) {
   return (

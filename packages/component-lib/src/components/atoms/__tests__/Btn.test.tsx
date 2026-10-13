@@ -8,7 +8,7 @@ import { DISABLED } from '../interaction'
  * The class the recipe emits for one variant, isolated from the rest of its
  * output. Asserting on this rather than on a colour's spelling keeps these
  * tests about "which variant did Button pick" — which is what they are for —
- * and survives the rename that #799 just performed on every one of them.
+ * and survives a rename of every one of them.
  */
 const variantClass = (variant: 'default' | 'primary' | 'ghost' | 'danger') =>
   buttonVariants({ variant })
@@ -78,9 +78,8 @@ describe('Button', () => {
     )
     const btn = screen.getByRole('button')
     expect(btn.hasAttribute('disabled')).toBe(true)
-    // Asserted against the exported constant rather than its spelling: the
-    // vocabulary moved from utility classes to `.su-*` names in #799, and a
-    // test pinned to the spelling breaks on a rename that changes nothing.
+    // Asserted against the exported constant rather than its spelling: a test
+    // pinned to the spelling breaks on a rename that changes nothing.
     expect(btn.className).toContain(DISABLED)
     fireEvent.click(btn)
     expect(onClick).not.toHaveBeenCalled()

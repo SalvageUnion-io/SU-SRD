@@ -71,7 +71,7 @@ export type MintArgs = {
  *
  * The token rides in an invite link (`/invite/<token>`) and is never typed, so
  * it is long rather than short: sixteen characters, 80 bits, where the typed
- * code it replaced had eight (issue 1255). Codes minted before the switch keep their
+ * code it replaced had eight. Codes minted before the switch keep their
  * eight characters and still resolve, through the same `by_code` index.
  */
 const CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'

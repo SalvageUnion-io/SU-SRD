@@ -2,7 +2,7 @@ import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { USER_MADE_TITLE } from './cardChrome'
 
 /**
- * The dashed User-made stamp (ruleset §3.9; issue 1276): paper, a dashed ink edge,
+ * The dashed User-made stamp (ruleset §3.9): paper, a dashed ink edge,
  * and the tooltip saying what it means. Dashes already mean "pencil, not
  * print"; this carries that to the whole card. A full user-made page leads its
  * title with the same stamp, naming what the thing is ("User-made pattern").

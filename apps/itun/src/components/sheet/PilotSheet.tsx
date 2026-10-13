@@ -2,7 +2,7 @@
  * PilotSheet — the pilot body for the LiveSheet shell (Workshop-Manual pilot
  * sheet, region-for-region).
  *
- * Two columns, as board 10 prints the pilot sheet (issue 1255); one below the
+ * Two columns, as board 10 prints the pilot sheet; one below the
  * container's 5xl, in this reading order:
  *   - wide: the Identity card (the portrait, else the class's art, beside
  *     fields typeset in Read), then Abilities — the pilot's own class trees as
@@ -25,11 +25,11 @@
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
- *   - `PilotTakeDamageControl` (#406) — Take Damage / Critical Injury loop.
- *   - the Injuries slab + `InjuryRow` (#408) — severity-enum list editor.
- *   - the Bio `SheetDescription` section (#409) — folded into the Identity
+ *   - `PilotTakeDamageControl` — Take Damage / Critical Injury loop.
+ *   - the Injuries slab + `InjuryRow` — severity-enum list editor.
+ *   - the Bio `SheetDescription` section — folded into the Identity
  *     card instead as an extra field (see `PilotIdentityPanel`'s Bio field).
- *   - the Crawler Level slab (#410) — `resolveEffectiveCrawlerLevel` is
+ *   - the Crawler Level slab — `resolveEffectiveCrawlerLevel` is
  *     PRESERVED (in `pilotSheet.model`, still scaling the Modification-style
  *     choice caps); only the manual-fallback editor UI is dropped.
  * The always-live Vitals gauges and per-card activation (Spend AP, Use /
@@ -37,8 +37,7 @@
  *
  * ## What lives where
  *
- * This file is now the RENDER, and only the render. The two jobs that used to
- * share it are its siblings:
+ * This file is the RENDER, and only the render. Its siblings hold the rest:
  *   - `pilotSheet.model.ts` — everything derived (vitals maxima, provenance
  *     ledgers, the ability cards, inventory capacity, the linked crawler).
  *   - `pilotSheetActions.model.ts` — every write, all of them through one `write()`

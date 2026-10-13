@@ -10,8 +10,8 @@ import type { PreviewKind } from '../../lib/linkPreview/previewSummary'
 import { inviteCard, isPreviewKind, privateCard } from '../../lib/linkPreview/previewSummary'
 
 /**
- * The render surface a player thing's link preview is screenshotted from
- * (issue 1280): `/og/$kind/$id`, `/og/invite/$code` and `/og/private`.
+ * The render surface a player thing's link preview is screenshotted from:
+ * `/og/$kind/$id`, `/og/invite/$code` and `/og/private`.
  *
  * The Worker's picture route (`src/worker/linkPreview.ts`) points Cloudflare
  * Browser Rendering here at 1200 × 630 and waits for `data-og-ready` on

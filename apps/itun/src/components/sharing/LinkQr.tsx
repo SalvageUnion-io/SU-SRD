@@ -1,6 +1,5 @@
 /**
- * LinkQr — renders a share URL as a scannable QR code (issues #227/#259, audit
- * item 14): a public sheet's `/p/:kind/:appId`.
+ * LinkQr — renders a share URL as a scannable QR code: a public sheet's `/p/:kind/:appId`.
  *
  * SVG output (not canvas): deterministic under happy-dom tests and crisp at
  * any DPI. The tile is forced white with an encoder quiet zone — QR readers

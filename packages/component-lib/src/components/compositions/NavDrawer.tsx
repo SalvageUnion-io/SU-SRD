@@ -37,7 +37,7 @@ import { FOCUS_RING } from '../atoms/interaction'
  * changes what the page shows should not leave the panel covering the result.
  *
  * `footItems` are quiet links pinned to the drawer's foot, under a hairline —
- * the pages a reader looks for rarely (ITUN's About and Changelog, issue 1255).
+ * the pages a reader looks for rarely (ITUN's About and Changelog).
  */
 
 export type NavDrawerItem = {

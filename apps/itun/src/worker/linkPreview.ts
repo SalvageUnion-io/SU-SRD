@@ -1,11 +1,11 @@
 /**
- * Link previews for player things (issue 1280): the unfurl's words in the
+ * Link previews for player things: the unfurl's words in the
  * shell, and its picture on request.
  *
  * ## The words
  *
  * An unfurl bot (`Discordbot/2.0`) asks for `/p/:kind/:appId` or
- * `/invite/:token` (the link ITUN and the bot hand out, issue 1255; an old
+ * `/invite/:token` (the link ITUN and the bot hand out; an old
  * `/join/:code` link 301s there first, `legacyHost.ts`) without
  * `Sec-Fetch-Mode: navigate`, so it reaches the Worker
  * rather than Static Assets' SPA fallback. `metaFor` asks Convex what a

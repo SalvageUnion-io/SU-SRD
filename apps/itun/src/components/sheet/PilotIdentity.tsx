@@ -2,8 +2,8 @@
  * PilotIdentityPanel — the pilot poster's IDENTITY card body: the poster's
  * labeled fields — Name / Callsign / Class / Appearance
  * (left) and Motto / Keepsake / Background with their once-per-Downtime USED
- * toggles on the right, plus a folded-in Bio field (#409 — the
- * dropped live-play Bio section's data still needs a home) — rendered via the
+ * toggles on the right, plus a folded-in Bio field (the Bio's home: the sheet
+ * has no Bio section) — rendered via the
  * shared IdentityField primitive.
  *
  * FIELD-section archetype (unified edit language). The parent
@@ -14,7 +14,7 @@
  * (changing class KEEPS abilities).
  *
  * Its body is `ClassPathPicker`, NOT the shared `EntitySearcher` that every
- * other reference-entity picker in this app routes through (#713). This is the
+ * other reference-entity picker in this app routes through. This is the
  * deliberate exception: a class change is a move around the advancement ring,
  * so the options are grouped by where this pilot can actually go and a hybrid
  * destination may have to ASK which Core class they came from before it can
@@ -153,7 +153,7 @@ type PilotIdentityPanelProps = {
   pilot: Pilot
   /**
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
-   * Edit/Done button (Phase 2: the chead row lives in the card, not here).
+   * Edit/Done button (the chead row lives in the card, not here).
    */
   /** Persist a used-flag change; omit on read-only sheets (static stamps). */
   onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
@@ -335,8 +335,8 @@ export function PilotIdentityPanel({
       {/* NOT `floating`. That branch renders a bare shell and hands the frame
           to a single `EntitySearcher` child; this body is a ClassPathPicker, so
           it wants the modal's own frame. And since `SheetPickerModal` has no
-          `footer` prop by design (#713 removed it — a `floating` + `footer`
-          call silently dropped its confirm buttons), the actions render here,
+          `footer` prop by design (a `floating` + `footer` call would silently
+          drop its confirm buttons), the actions render here,
           as the picker's siblings. */}
       <SheetPickerModal
         open={classPickerOpen}

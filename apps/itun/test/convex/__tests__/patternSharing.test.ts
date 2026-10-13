@@ -6,7 +6,7 @@ import { makeUser, mechBody, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * Shared mech patterns (#1276): a pattern stays its maker's, and the maker
+ * Shared mech patterns: a pattern stays its maker's, and the maker
  * chooses who reads it — only them, anyone with the link (ADR-032's
  * `publicRead`), or one Game's crew. Whatever a reader may not read is the same
  * `null` as a pattern that does not exist.

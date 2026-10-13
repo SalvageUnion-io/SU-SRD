@@ -1,6 +1,6 @@
 /**
- * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (redesign
- * Phase 2, the crawler sibling of PilotIdentityPanel / MechIdentityPanel).
+ * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
+ * sibling of PilotIdentityPanel / MechIdentityPanel).
  * Poster identity band: Name + Type as labeled identity fields, then the
  * crawler type's special ability and the type itself as compact
  * ReferenceEntityCard entity cards (max 2 columns), then the Description
@@ -84,7 +84,7 @@ type CrawlerIdentityPanelProps = {
   patch?: SheetPatch
   /**
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
-   * Edit/Done button (Phase 2: the chead row lives in the card, not here).
+   * Edit/Done button (the chead row lives in the card, not here).
    */
   /** CrawlerTypeCard's NPC inset needs an explicit flag — it writes through
    * the store directly (typeNpc), independent of `patch`. */

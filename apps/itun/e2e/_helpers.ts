@@ -105,11 +105,11 @@ export async function waitForReady(page: Page): Promise<void> {
 /**
  * Advance a guided wizard forward until `target` shows up, then stop.
  *
- * Specs that want to exercise ONE step used to `goto('/<kind>/new')` and assume
- * that step was the landing step. Both assumptions have now broken once each: a
- * `CreateModeChooser` gate was added in front of every wizard (hence
- * `?mode=guided`), and the pilot wizard gained a "Your Stats" step ahead of
- * "Class & Ability". Each time, the spec sat waiting for an element that was one
+ * A spec that wants to exercise ONE step must not `goto('/<kind>/new')` and
+ * assume that step is the landing step: a `CreateModeChooser` gate stands in
+ * front of every wizard (hence `?mode=guided`), and the pilot wizard has a
+ * "Your Stats" step ahead of "Class & Ability". A spec that assumed either sat
+ * waiting for an element that was one
  * click away until it burned its whole timeout.
  *
  * So don't encode WHICH step index a thing lives on — walk forward until it is
@@ -221,8 +221,7 @@ export async function clickNavLink(page: Page, name: RegExp | string): Promise<v
  * These are not plain inputs. `Field` with `value` + `onSave` renders an
  * `InlineEditField`: a `role="button"` readout that swaps to an input only once
  * activated, and it labels both halves `Edit <label lowercased>`. So filling one
- * is click-then-type, and `getByLabel(/^Name$/)` — what these helpers used to
- * do — matches nothing at all.
+ * is click-then-type, and `getByLabel(/^Name$/)` matches nothing at all.
  *
  * Falls back to a direct fill for the steps that do render a real input.
  */
@@ -393,7 +392,7 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Open the live sheet for the named entity from Shelves (issue 1279, board S1).
+ * Open the live sheet for the named entity from Shelves (board S1).
  *
  * Each item on a shelf is one line, a link to its sheet whose text carries the
  * entity's name. Match the link by its `/sheet/` href and that text, not by
@@ -415,7 +414,7 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Put the open sheet in Edit. A sheet opens in Read (board 10, issue 1255:
+ * Put the open sheet in Edit. A sheet opens in Read (board 10:
  * "print reads, pencil writes"), so every Manage, Assign and bay control is
  * one press of the band's Edit away. Pressing it when it is already on is a
  * no-op, and the choice holds for the rest of the visit.

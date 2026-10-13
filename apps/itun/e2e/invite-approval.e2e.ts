@@ -3,7 +3,7 @@ import { createGame, makeInviteLink, secondAccount } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * An approval link, used, and the Organizer lets the person in (issue 1278, board
+ * An approval link, used, and the Organizer lets the person in (board
  * M2; docs/architecture/mediator-dashboard.md).
  *
  * The Organizer makes a link with "I approve each person who uses it" ticked.

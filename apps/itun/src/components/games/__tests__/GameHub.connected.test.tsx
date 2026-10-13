@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:tes
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
- * `GameHub` — a Game's own page (board M2, issue 1278): the band, the roster,
+ * `GameHub` — a Game's own page (board M2): the band, the roster,
  * then two columns of sections. What this file defends:
  *
  *  - every member gets Crew & seats, Downtime, their answer queue and The
@@ -157,7 +157,7 @@ describe('the sections under the roster (board M2)', () => {
     expect(screen.queryByRole('button', { name: 'Make link' })).toBeNull()
     expect(screen.queryByRole('button', { name: /Hand over|Appoint/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Delete this game' })).toBeNull()
-    // …but any member can bring someone to the table (issue 1255).
+    // …but any member can bring someone to the table.
     // (The button itself is `CopyInviteLink`'s, mounted only when Connected.)
     expect(heading('Invite a crewmate')).toBeTruthy()
     expect(screen.getByText(/asks to join, and the organizer lets them in/)).toBeTruthy()

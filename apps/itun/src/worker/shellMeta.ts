@@ -1,5 +1,5 @@
 /**
- * Per-route metadata for the SPA shell (issue 1280).
+ * Per-route metadata for the SPA shell.
  *
  * ITUN is client-rendered, and an unfurl bot runs no JavaScript, so a route's
  * runtime `<title>` never reaches Discord: every link unfurled as the app

@@ -71,7 +71,7 @@ export const CriticalDamageOutcomeSchema = z.enum([
 ])
 
 // No `z.infer` type alias here: the only consumer (TakeDamageControl) was
-// dropped by the poster redesign's live-play-panel cut (#406) — the
+// dropped by the poster redesign's live-play-panel cut — the
 // schema stays (used inline below) for backward-tolerant reads.
 
 /**
@@ -189,14 +189,14 @@ export const MechSchema = z
 
     /**
      * The saved mech pattern this mech was built from — the pattern's id, which
-     * is also its `/p/pattern/:id` address (issues 401 and 1276). Creation provenance
+     * is also its `/p/pattern/:id` address. Creation provenance
      * only: the mech's own name is its pattern name, and editing the loadout
      * never clears this. Counts toward the pattern page's "mechs built from it".
      */
     sourcePattern: z.string().optional(),
 
     // ---------------------------------------------------------------------------
-    // Live-play current stat tracking (Wave 6, #199).
+    // Live-play current stat tracking.
     // These are current values for the active session — separate from the chassis
     // defaults shown in MechSheet. When absent the sheet falls back to chassis
     // defaults as the display value; when set they represent the mech's current
@@ -230,13 +230,13 @@ export const MechSchema = z
     partners: z.array(PartnerInstanceSchema).optional(),
 
     /**
-     * Per-system condition map (#240). Keyed by system slug.
+     * Per-system condition map. Keyed by system slug.
      * When absent or key missing, the display layer defaults to 'intact'.
      */
     systemConditions: ItemConditionMapSchema.optional(),
 
     /**
-     * Per-module condition map (#240). Keyed by module slug.
+     * Per-module condition map. Keyed by module slug.
      * When absent or key missing, the display layer defaults to 'intact'.
      */
     moduleConditions: ItemConditionMapSchema.optional(),
@@ -252,7 +252,7 @@ export const MechSchema = z
     itemUses: z.record(z.string(), z.number().int().min(0)).optional(),
 
     // ---------------------------------------------------------------------------
-    // Heat Check / Reactor Overload live-play state (Slice C, #199).
+    // Heat Check / Reactor Overload live-play state.
     // Core Book p.233-235. All optional — absent means the mech is operating
     // normally and has not yet logged a Heat Check this session.
     // ---------------------------------------------------------------------------

@@ -82,7 +82,7 @@ function RootComponent() {
   // (ADR-045 §6, board D1): the canvas's rail, the phone form's ink bar.
   const onDashboard = pathname.startsWith('/dashboard/')
 
-  // A link preview's render surface (`/og/*`, issue 1280) is a picture, not a
+  // A link preview's render surface (`/og/*`) is a picture, not a
   // page: the card alone, with Convex and the reference data and none of the
   // chrome, banners or account flow a screenshot must not catch.
   if (pathname.startsWith('/og/')) {

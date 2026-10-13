@@ -7,8 +7,8 @@ import { testConvex } from '../harness'
 /**
  * The Discord bot as a Game participant.
  *
- * The old #165 called for a service-role key and RLS policies — a bot that can
- * act as anybody. These tests exist to prove this one cannot: every path
+ * The bot holds no service-role key: it cannot act as anybody. These tests
+ * prove it: every path
  * resolves the actor from a *linked* Discord identity that is a *member* of the
  * *bound* Game, and every failure of that chain is reported as a machine-
  * readable reason the bot renders **ephemerally**, because a public channel is
@@ -127,9 +127,8 @@ describe('the bot cannot act as anybody', () => {
     })
     expect(result).toMatchObject({ ok: true })
 
-    // Read the Change Log directly: a roll IS a Change Log entry, and the
-    // `api.bot.rolls` wrapper that used to read it here was deleted with the
-    // rest of the unused web-facing bot surface.
+    // Read the Change Log directly: a roll IS a Change Log entry, and there is
+    // no web-facing bot query to read it through.
     const rolls = await t.run(async (ctx) =>
       (await ctx.db.query('changeLog').collect()).filter((e) => e.field === 'roll')
     )
@@ -374,12 +373,9 @@ describe('identity comes from the sign-in itself', () => {
 })
 
 /**
- * A `a non-member cannot read them` case used to sit here, asserting that
- * `api.bot.rolls` threw for an outsider. That query was the only public reader
- * of roll history and it was deleted along with the rest of the unused
- * web-facing bot module, so there is no longer a surface for an outsider to be
- * refused *from* — the assertion would have been vacuous rather than reassuring.
- * Membership gating on what the bot itself can read is covered above, against
+ * There is no public reader of roll history, so no "a non-member cannot read
+ * them" case: there is no surface for an outsider to be refused *from*, and the
+ * assertion would be vacuous rather than reassuring. Membership gating on what the bot itself can read is covered above, against
  * `botClient`, which is the path that actually runs.
  */
 describe('rolls are Game history, not a separate store', () => {

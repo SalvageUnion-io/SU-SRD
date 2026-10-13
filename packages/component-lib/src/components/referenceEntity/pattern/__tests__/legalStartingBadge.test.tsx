@@ -7,9 +7,8 @@ import { useChassisPatternConfig } from '../useChassisPatternConfig'
 /**
  * "Legal Starting Pattern" is an explicit data tag on a pattern (`legalStarting`),
  * set only where the source book calls it out. The badge must be driven purely by
- * that field — never computed from tech level or salvage value. Previously it was
- * derived from an SV-budget check, so untagged patterns (e.g. every Gopher pattern)
- * were wrongly badged.
+ * that field — never computed from tech level or salvage value: an SV-budget
+ * check wrongly badges untagged patterns (e.g. every Gopher pattern).
  */
 describe('useChassisPatternConfig legal starting badge', () => {
   // Synthetic chassis: one pattern explicitly tagged, one not. Resolution is by

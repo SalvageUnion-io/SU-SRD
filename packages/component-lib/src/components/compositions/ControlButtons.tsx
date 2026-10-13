@@ -165,28 +165,19 @@ function ControlButton({
   // replaces, so an icon button and a worded one are interchangeable in the
   // row.
   //
-  // It carries NO tap-target floor of its own. It used to:
-  // `min-h-11 min-w-11 sm:min-h-0 sm:min-w-0`, which was a WIDTH-keyed
-  // duplicate of the POINTER-keyed floor `theme.css` already applies to every
-  // `button` under `@media (pointer: coarse)`. Two consequences, and the second
-  // is the bug:
+  // It carries NO tap-target floor of its own. `theme.css` applies a
+  // POINTER-keyed 44px floor to every `button` under `@media (pointer:
+  // coarse)`, unlayered, so it beats every layered rule at every width. A
+  // WIDTH-keyed floor (`min-h-11 min-w-11 sm:min-h-0 sm:min-w-0`) would only
+  // add a touch floor to a mouse — a narrow desktop window, a responsive-mode
+  // preview, a small laptop — the one case the pointer rule skips.
   //
-  //  - Where there IS a touch pointer, the utility was redundant. That rule is
-  //    unlayered, so it beats every layered rule — the 44px box survives with
-  //    or without this class,
-  //    at every viewport width.
-  //  - Where there is NOT — a narrow desktop window, a responsive-mode preview,
-  //    a small laptop — the utility applied a touch floor to a mouse. That is
-  //    the one case the pointer rule deliberately skips, and the only case this
-  //    class could actually change.
-  //
-  // So all it ever did was distort the geometry for pointers that never needed
-  // it. This button renders inside `CardControlRail`, an ABSOLUTE row centred
-  // on a card's top frame line, so a 44px box grew the rail with it: measured
-  // at 390px, rail 22px → 44px and button 24×20 → 44×44, which hung 22px down
-  // into the header band over the TL/SV stat cells the rail is z-30 above, and
-  // put a 44px square beside a 22px status badge in a row whose whole premise
-  // is that every cell is the same stamp height.
+  // That distorts the geometry. This button renders inside `CardControlRail`,
+  // an ABSOLUTE row centred on a card's top frame line, so a 44px box grows the
+  // rail with it: at 390px, rail 22px → 44px and button 24×20 → 44×44, hanging
+  // 22px down into the header band over the TL/SV stat cells the rail is z-30
+  // above, a 44px square beside a 22px status badge in a row whose whole
+  // premise is that every cell is the same stamp height.
   //
   // Measure this with touch emulation, not just a narrow viewport — the two
   // disagree here, and a fine-pointer run alone will tell you a coarse-pointer

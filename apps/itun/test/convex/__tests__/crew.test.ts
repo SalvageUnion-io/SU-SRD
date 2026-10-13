@@ -42,10 +42,10 @@ describe('vitals', () => {
 
     // The body is built by PARSING a real record rather than hand-written, so
     // the key names come from the schema instead of from this test's memory of
-    // them. That is the whole point: this query used to read `currentHp` while
-    // the schema defines `currentHP`, every vital came back null, and the crew
-    // strip rendered em-dashes that were indistinguishable from an undamaged
-    // crew. A hand-written fixture agreed with the bug and kept it green.
+    // them. That is the whole point: a query reading `currentHp` where the
+    // schema defines `currentHP` gets every vital back null, and the crew strip
+    // renders em-dashes indistinguishable from an undamaged crew. A hand-written
+    // fixture would agree with that bug and stay green.
     const pilot = PilotSchema.parse(pilotBody({ currentHP: 9, currentAP: 4 }))
     const mech = MechSchema.parse(mechBody({ name: 'Iron Mongrel', currentSP: 12, currentHeat: 2 }))
 

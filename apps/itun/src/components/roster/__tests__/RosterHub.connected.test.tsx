@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
  * Shelves at `/` and a Game's page at `/games/:id`, signed in, end to end
- * through the real `Roster` (issue 1279, board S1; issue 1255).
+ * through the real `Roster` (board S1).
  *
  * What these pin:
  *

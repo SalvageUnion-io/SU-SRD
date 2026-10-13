@@ -130,9 +130,8 @@ describe('resolvePatternGroups', () => {
 
   test('a `count` renders one card per installed copy', () => {
     // Atlas's Thunder Storm is the printed case: the book's pattern block reads
-    // ".50 Cal Machine Gun x6". This resolver used to de-duplicate by entity id,
-    // so all six collapsed into one card and the pattern silently under-reported
-    // its armament.
+    // ".50 Cal Machine Gun x6". De-duplicated by entity id, all six collapse
+    // into one card and the pattern silently under-reports its armament.
     const groups = resolvePatternGroups(pattern('Atlas', 'Thunder Storm'))
     expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual([
       '.50 Cal Machine Gun',

@@ -5,8 +5,8 @@
  *
  *  - **Where candidates come from.** Only the subject's container — the same
  *    Game, or your shelves — and only when signed in; signed out there is one pile
- *    and nothing is filtered. A pilot in one Game used to be offered every
- *    crawler in every Game, and the server refused the pick.
+ *    and nothing is filtered. A pilot in one Game is never offered a crawler
+ *    in another, which the server would refuse.
  *  - **Which way the link points.** The schema decides, not the sheet: the
  *    picked mech is `from` on a pilot sheet, the mech itself is on its own.
  *  - **Refusals land in the dialog,** in player copy — never a raw defect.

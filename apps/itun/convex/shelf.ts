@@ -71,7 +71,7 @@ export const removeMechPattern = mutation({
 })
 
 /**
- * Who may read one of the caller's patterns (#1276, board P1): only them, anyone
+ * Who may read one of the caller's patterns (board P1): only them, anyone
  * with the link, or one Game's crew.
  *
  * The maker's act and nobody else's, like publishing a sheet (ADR-032 §2) — a
@@ -126,7 +126,7 @@ const crewPattern = v.object({
 })
 
 /**
- * The patterns crewmates have shared with the caller's Games (#1276: "My Game's
+ * The patterns crewmates have shared with the caller's Games ("My Game's
  * crew"), for the patterns page. The caller's own are on their shelf already and
  * are left out. Signed out, there is no crew: an empty list.
  */
@@ -165,7 +165,7 @@ export const crewPatterns = query({
 
 /**
  * Who can read each of the caller's own patterns, and how many mechs have been
- * built from it — the chips under a pattern on the Shelves page (#1279, board
+ * built from it — the chips under a pattern on the Shelves page (board
  * S1: "Shared by link", "Only me", "Built twice"). Those facts live in the
  * row's columns rather than its body, so the local pattern cache cannot answer
  * them. Signed out there is no shelf: an empty list.

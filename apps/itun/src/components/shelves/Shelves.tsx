@@ -1,5 +1,5 @@
 /**
- * Shelves — everything you keep, on your account (issue 1279, board S1). The
+ * Shelves — everything you keep, on your account (board S1). The
  * page at `/` once you are signed in; signed out, `/` is the front door.
  *
  * "My Stuff" became Shelves: ADR-030 already called the personal container the
@@ -31,7 +31,7 @@
  *
  * ## NPCs
  *
- * The NPC shelf lists the NPCs you have designed (`/npcs/new`, issue 1277):
+ * The NPC shelf lists the NPCs you have designed (`/npcs/new`):
  * dashed like everything players make, each with who can see it and a ⋯ menu,
  * and "+ Design an NPC" opens the designer. The personal encounter tray's NPCs,
  * when it holds any, are listed beside them. The opposition tray's reference

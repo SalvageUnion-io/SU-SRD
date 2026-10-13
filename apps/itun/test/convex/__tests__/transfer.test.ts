@@ -55,7 +55,7 @@ async function seedHold(holder: 'organizer' | 'player') {
     body: { ...mechBody({ id: 'm1', gameId }), cargoLots: [CRATE] },
     expectedUpdatedAt: null,
   })
-  /** The stow, mech first: the order the refusal used to split. */
+  /** The stow, mech first: the order a split refusal would lose the lot in. */
   const stow = {
     updates: [
       {

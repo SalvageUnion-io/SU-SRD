@@ -26,9 +26,8 @@ import { testConvex } from '../harness'
 /**
  * A minimal body that satisfies MechPatternSchema.
  *
- * This fixture used to be `{ id, name }`, and it passed — patterns once went
- * in unparsed, so the test was asserting that a body nothing would later be
- * able to read was accepted.
+ * Not `{ id, name }`: patterns are parsed on the way in, and a bare body would
+ * assert that something nothing could later read was accepted.
  */
 function patternBody(over: Record<string, unknown> = {}) {
   return {
@@ -303,7 +302,7 @@ describe("the crawler is the table runner's and merges per field", () => {
     })
     expect((await crawlerBodyOnServer())?.maxSpOverride).toBe(30)
 
-    // The revert as the client used to send it. The Convex client drops an
+    // The revert as a client without `unset` sends it. The Convex client drops an
     // undefined field when it serialises the args, so this is `{}` on the wire
     // — and the pin survives. That is the bug `unset` exists for.
     await organizer.as.mutation(api.entities.patchCrawlerByAppId, {

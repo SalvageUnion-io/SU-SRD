@@ -1,5 +1,5 @@
 /**
- * Phase 1B — the unified edit-language control chrome (clean-edit.html).
+ * The unified edit-language control chrome (clean-edit.html).
  *
  *   - HButton: the container-header control button (`.hbtn`) with edit / done /
  *     add variants.

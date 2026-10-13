@@ -1,5 +1,5 @@
 /**
- * Save as pattern (issue 1276, board P1): the mech's chassis and loadout, solid; a
+ * Save as pattern (board P1): the mech's chassis and loadout, solid; a
  * name, notes and who may read it; a dashed, credited preview; then the save.
  */
 

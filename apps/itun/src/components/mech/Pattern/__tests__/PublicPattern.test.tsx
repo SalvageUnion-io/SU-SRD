@@ -1,5 +1,5 @@
 /**
- * The public pattern page, `/p/pattern/:appId` (issue 1276, board P2): reference-
+ * The public pattern page, `/p/pattern/:appId` (board P2): reference-
  * styled, plainly user-made, and buildable by a signed-in reader.
  */
 

@@ -13,7 +13,7 @@ import { RUN_WORKER_FIRST } from '../legacyHost'
  * The rule that has already broken production: `/assets/*` on a miss must be
  * **404**, never the SPA shell. Answering 200 with HTML let the `immutable`
  * header pin that HTML into the HTTP cache for a year under a rotated chunk's
- * URL (#759).
+ * URL.
  */
 
 /** A fake asset binding holding `files`; records every path it is asked for. */

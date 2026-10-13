@@ -1,5 +1,5 @@
 /**
- * The patterns shelf (issue 1276): each saved pattern is a user-made reference
+ * The patterns shelf: each saved pattern is a user-made reference
  * card — dashed, stamped, credited (ruleset §3.9) — not a plain solid Card.
  */
 

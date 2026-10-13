@@ -60,9 +60,9 @@ const truncate: CSSProperties = {
 /**
  * EntityCardIdentityFooter — the card's FOOTER (depth-0 / full cards only):
  * ink-2 type on the card's own paper, under a 1.5px ink rule (dashed on a
- * user-made card). It used to be a band in the tone's deep shade; the frame,
- * the "//" line and the footer are ink on paper now, so the tone lives in the
- * header alone (board E1).
+ * user-made card). Not a band in the tone's deep shade: the frame, the "//"
+ * line and the footer are ink on paper, so the tone lives in the header alone
+ * (board E1).
  *
  * ONE row: the entity TYPE on the LEFT, provenance (source · page) on the
  * RIGHT — "Chassis … Workshop Manual · p.128". A SECOND,

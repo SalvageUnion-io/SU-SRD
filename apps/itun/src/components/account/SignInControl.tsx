@@ -22,7 +22,7 @@ type SignInControlProps = {
   /**
    * Where Discord's round trip lands, as a path on this site (Convex Auth
    * accepts a relative `redirectTo`). An invite link passes its own address,
-   * so signing in from it comes back to it and joins (issue 1255). Unset, the
+   * so signing in from it comes back to it and joins. Unset, the
    * deployment's site URL.
    */
   redirectTo?: string

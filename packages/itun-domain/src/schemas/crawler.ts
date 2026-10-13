@@ -110,7 +110,7 @@ export const CrawlerSchema = z
     systems: z.array(z.string()),
     /**
      * Persisted crawler-bay choice selections, keyed by bay slug (the same
-     * `crawlerBays[].bayRef` used to resolve the SRD bay), then by
+     * `crawlerBays[].bayRef` that resolves the SRD bay), then by
      * choiceId → selected option values. Some SRD bays carry `choices` (e.g.
      * the Armament Bay's "Armament Bay Weapons System" permanent pick); this
      * persists the player's selection so it survives reloads.
@@ -128,7 +128,7 @@ export const CrawlerSchema = z
     seedRef: z.string().optional(),
 
     // ---------------------------------------------------------------------------
-    // Live-play current stat tracking (#245).
+    // Live-play current stat tracking.
     // A freshly created crawler is seeded at its tech-level base SP from the
     // rules data (crawler-tech-levels `structurePoints`, via crawlerFormState).
     // Absent means full: see `resolvePool`.

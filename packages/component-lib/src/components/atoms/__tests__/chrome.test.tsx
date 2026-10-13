@@ -251,7 +251,7 @@ describe('StepButton / Button xs', () => {
   test('Button size="mini" renders the compact uppercase action (former MiniBtn)', () => {
     render(<Button size="mini">⇄ Swap</Button>)
     // The condensed-caps treatment is the `capsLabel` recipe, which emits
-    // `.su-*` names since #799. Asked of the recipe rather than spelled, so a
+    // `.su-*` names. Asked of the recipe rather than spelled, so a
     // rename moves this for free.
     expect(screen.getByRole('button', { name: '⇄ Swap' }).className).toContain(
       capsLabel({ weight: 'inherit', tracking: 'inherit' })

@@ -64,7 +64,7 @@ export type ReferenceEntityCardProps = {
    */
   shownProse?: string[]
   /**
-   * USER-MADE (ruleset §3.9; issue 1276): something a player made that could pass
+   * USER-MADE (ruleset §3.9): something a player made that could pass
    * for the book — a mech pattern, an NPC. A dashed ink frame, a dashed
    * User-made stamp in the header's labels, a dashed footer rule and a dashed pill, at
    * every size and extent. Canon-built units (pilots, mechs, crawlers) never

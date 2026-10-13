@@ -1,5 +1,5 @@
 /**
- * What a player thing's link preview says (issue 1280, board PV1), in words.
+ * What a player thing's link preview says (board PV1), in words.
  *
  * One pure module, read twice: by the Worker, which writes the unfurl's
  * `og:*` and `theme-color` into the shell for a crawler, and by the

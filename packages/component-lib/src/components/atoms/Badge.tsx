@@ -157,10 +157,8 @@ type BadgeStampProps = {
   seam?: boolean
   /**
    * Meant to override the stamp's line-height for a wrapping display headline
-   * (a leading class, e.g. `leading-[1.28]`). **Currently inert, as it always
-   * was:** it used to be merged ahead of the rung's `text-*` size, and the old
-   * class merge dropped a leading class that preceded a font-size, so it never
-   * reached the DOM. The stamp's line-height is its rung's (`.su-rung-
+   * (a leading class, e.g. `leading-[1.28]`). **Inert:** it never reaches the
+   * DOM. The stamp's line-height is its rung's (`.su-rung-
    * label--*`); a call site that needs another passes it through `className`
    * or `style`, which do reach it. Kept so call sites compile; wiring it up is
    * a visible change, not a port.

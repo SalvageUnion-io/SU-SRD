@@ -1,5 +1,5 @@
 /**
- * HubSection — one section of a Game's own page (board M2, issue 1278): the
+ * HubSection — one section of a Game's own page (board M2): the
  * solid section stamp of the refresh, a dashed rule to a count or a hint at
  * the far end ("CREW & SEATS ┄┄┄ 5 of 6 seats"), then its content.
  *

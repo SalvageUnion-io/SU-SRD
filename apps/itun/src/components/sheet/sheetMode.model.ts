@@ -1,5 +1,5 @@
 /**
- * Read | Edit — the sheet's two states (brand refresh P4, issue 1255, board 10:
+ * Read | Edit — the sheet's two states (board 10:
  * "print reads, pencil writes").
  *
  * **Read** is the printed sheet: identity typeset as label and value with the

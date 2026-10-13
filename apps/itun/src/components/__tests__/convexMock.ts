@@ -1,27 +1,22 @@
 /**
  * Name-keyed Convex `useQuery` test double.
  *
- * The connected-surface tests used to answer `useQuery` **positionally** — a
- * queue drained one entry per call, in render order. That made every fixture
- * an implicit assertion about hook ordering: adding a query to a component,
- * or reordering two adjacent `useQuery` lines (GameRoster.tsx and
- * InvitePanel.tsx both have back-to-back calls), silently shifted every later
- * answer onto the wrong hook. The test kept passing while asserting nothing
- * it claimed to.
- *
- * The old comment justified this with "the generated `api` is a Proxy that
- * throws when inspected, so position is the only stable key". That is wrong:
- * `getFunctionName(api.games.get)` returns the stable string `'games:get'`,
- * which is exactly the key we want. Answers are registered by that name here.
+ * Answers are keyed by `getFunctionName(api.games.get)` (`'games:get'`), not
+ * by position. A queue drained one entry per call, in render order, makes
+ * every fixture an implicit assertion about hook ordering: adding a query to a
+ * component, or reordering two adjacent `useQuery` lines (GameRoster.tsx and
+ * InvitePanel.tsx both have back-to-back calls), silently shifts every later
+ * answer onto the wrong hook, and the test passes while asserting nothing it
+ * claims to. The generated `api` is a Proxy, but `getFunctionName` reads it
+ * without inspecting it.
  *
  * An unregistered name **throws** rather than returning `undefined`, so a
  * component that starts asking a new question fails loudly instead of
  * quietly rendering its loading state forever.
  *
- * `mock.module` is process-global (see `.claude/rules/testing-patterns.md`).
- * Nine connected-surface files each hand-rolled the same capture-mock-restore
- * triple, which is exactly the code where getting it wrong breaks *other*
- * files rather than your own. `installConvexMocks()` at the bottom of this
+ * `mock.module` is process-global (see `.claude/rules/testing-patterns.md`),
+ * so a capture-mock-restore triple done wrong breaks *other* files rather than
+ * your own. `installConvexMocks()` at the bottom of this
  * file owns that discipline once; `convexReactMock()` stays available on its
  * own for anything that needs to drive `mock.module` itself.
  */

@@ -13,7 +13,7 @@ const STACK = { display: 'flex', flexDirection: 'column', gap: space[16] } satis
 const ROW = { alignItems: 'center', display: 'flex', gap: space[12] } satisfies CSSProperties
 
 /**
- * The dashed User-made stamp (ruleset §3.9, issue 1276). On a card it rides the
+ * The dashed User-made stamp (ruleset §3.9). On a card it rides the
  * seam and says "User-made"; on a full user-made page it leads the title and
  * names what the thing is. Hover either for what it means.
  */

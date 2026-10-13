@@ -3,11 +3,11 @@
  * container the route picked (`activeContainerStore`):
  *
  *  - **Signed out** — the front door (`FrontDoor`, board 09).
- *  - **Shelves** — everything you keep, on your account (`Shelves`, issue 1279,
- *    board S1). Disconnected, it is also where a remembered Game falls through
+ *  - **Shelves** — everything you keep, on your account (`Shelves`, board
+ *    S1). Disconnected, it is also where a remembered Game falls through
  *    to: with no live Game to show, the whole cached pile is the only rendering
  *    that cannot lose a build.
- *  - **A Game** — that table's own page (issue 1255): the band of hub controls
+ *  - **A Game** — that table's own page: the band of hub controls
  *    (backup, import, the Starter Set, the "Showing" select, "+ New game"), any
  *    invitation, and `GameHub` — its roster, yours first, with every player and
  *    Mediator action below the lists. Connected only; while the connection is

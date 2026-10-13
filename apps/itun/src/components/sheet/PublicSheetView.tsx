@@ -7,7 +7,7 @@
  * `PublicSheet` and the whole sheet tree it renders ended up downloaded on
  * every route. Tests render it directly.
  *
- * A saved mech pattern joins the route as `/p/pattern/:appId` (issue 1276): its own
+ * A saved mech pattern joins the route as `/p/pattern/:appId`: its own
  * query and its own page (`PublicPattern`), the same "not available" for
  * anything the reader may not see. A built NPC is `/p/npc/:appId`: the sheets'
  * query, drawn as its own read-only page (`NpcSheet`).

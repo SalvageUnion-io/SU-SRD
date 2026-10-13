@@ -17,7 +17,7 @@ import type { CrewSlot, SoftLink } from 'itun-domain/schemas/softLink'
  * The one frozen instant every test fixture is stamped with.
  *
  * Exported because plenty of tests hand-build an entity literal rather than
- * calling a factory, and those used to reach for `new Date().toISOString()`.
+ * calling a factory, and those must not reach for `new Date().toISOString()`.
  * A live clock in a fixture is a needless variable: it makes two entities
  * built microseconds apart differ, it makes snapshot-shaped assertions
  * unstable, and it hides genuine "did this write bump `updatedAt`?" bugs

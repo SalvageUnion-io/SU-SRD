@@ -1,5 +1,5 @@
 /**
- * Invite links (issue 1255): a Game is joined from a link, never a typed code.
+ * Invite links: a Game is joined from a link, never a typed code.
  *
  * The link is `/invite/<token>`, where the token is the invite's `code` column
  * (`convex/model/invites.ts`). It is built from the origin the page was served

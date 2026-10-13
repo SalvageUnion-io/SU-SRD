@@ -14,7 +14,7 @@ import type { CreateInput } from '../../stores/types'
 import type { NpcStatFill } from '../npcs/npcModel'
 import { statFillFromReference } from '../npcs/npcModel'
 
-/** The designer's steps, in order (issue 1269 §4.1). */
+/** The designer's steps, in order. */
 export const NPC_STEPS = ['template', 'stats', 'actions', 'identity', 'review'] as const
 export type NpcStepId = (typeof NPC_STEPS)[number]
 

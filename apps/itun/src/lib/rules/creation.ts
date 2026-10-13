@@ -62,7 +62,7 @@ export type StepGateResult = { ok: boolean; reason?: string }
 const OK: StepGateResult = { ok: true }
 
 /**
- * The NPC designer's gates (board N1; issue 1269 §4.1). This is GM-grade tooling
+ * The NPC designer's gates (board N1). This is GM-grade tooling
  * (Adjudicate mode, ARCHITECTURE.md#surfaces): the designer guides and
  * pre-fills rather than enforcing a build budget, so the only hard gates are a
  * name and HP ≥ 1 — and the template step, which is answered by
@@ -492,8 +492,8 @@ function budgetViolationsOf(form: MechWizardFormState): BudgetViolations {
  *     (pure scrap overspend) modules-newest-first then systems. So a
  *     system-slots-only violation never uselessly discards legal modules,
  *     and the toast attributes exactly what it removed,
- *   - starting cargo is cleared (the rules grant a new mech no cargo; the
- *     input left guided create in Phase 4).
+ *   - starting cargo is cleared (the rules grant a new mech no cargo, and
+ *     guided create has no cargo input).
  * The caller shows one toast itemizing `removed`.
  */
 export function clampMechCreationDraft(form: MechWizardFormState): MechDraftClampResult {

@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 
 /**
- * "Copy invite link" (issue 1255) — the one way a Game is shared, on the Game page
+ * "Copy invite link" — the one way a Game is shared, on the Game page
  * and the Dashboard's Crew tab.
  *
  * What these pin: it asks the server for the Game's link (`invites.link`, which

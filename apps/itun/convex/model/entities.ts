@@ -66,7 +66,7 @@ export type OwnedTable = OwnableTable | 'npcs'
  * Deliberately a *partial* of the local `EncounterNpcSchema` rather than the
  * whole thing. That schema describes a tracked instance in the local store —
  * reference slug, HP track, conditions, timestamps. The Mediator Dashboard's
- * Opposition tab (issue 1278) sends a whole instance, but rows written before it
+ * Opposition tab sends a whole instance, but rows written before it
  * carry only a name, and `mediator.updateNpc` re-parses them on every change:
  * demanding the full record would strand those rows.
  *
@@ -246,7 +246,7 @@ export async function findSoftLink(
 }
 
 /* -------------------------------------------------------------------------- */
-/* Shared mech patterns (#1276)                                               */
+/* Shared mech patterns                                                       */
 /* -------------------------------------------------------------------------- */
 
 /**

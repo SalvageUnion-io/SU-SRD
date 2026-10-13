@@ -178,7 +178,7 @@ describe('container parity — every local store can reach the server', () => {
    *
    * ADR-030 §2 allows `gameId` set (in a Game) or null (on a shelf), and
    * ADR-034 decision 2 extends that to every entity-shaped table — which is
-   * what let a crawler survive a deleted Game (#871) and, in this change, an
+   * what let a crawler survive a deleted Game and, in this change, an
    * encounter NPC too. A table that can only be in a Game cannot express the
    * shelf half, and that is precisely the gap both of those had. A mech
    * pattern is personal, so it is shelf-only and not one of them.

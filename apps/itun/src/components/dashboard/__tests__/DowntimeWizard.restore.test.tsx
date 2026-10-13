@@ -1,5 +1,5 @@
 /**
- * Downtime Restore writes (F5, #599).
+ * Downtime Restore writes.
  *
  * The wizard rendered the guide and the gates and wrote NOTHING — Guided Play
  * described a rule it never applied. These assert it now applies it, and that it

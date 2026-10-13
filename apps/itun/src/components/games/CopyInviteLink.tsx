@@ -1,5 +1,5 @@
 /**
- * "Copy invite link" — the one way a Game is shared (issue 1255). It sits on the
+ * "Copy invite link" — the one way a Game is shared. It sits on the
  * Game page and on the Dashboard's Crew tab (board D2).
  *
  * The link is the Game's standing link for whoever presses it

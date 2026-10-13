@@ -13,7 +13,7 @@ import {
 } from '../previewSummary'
 
 /**
- * A player thing's link preview in words (issue 1280): what the Worker writes
+ * A player thing's link preview in words: what the Worker writes
  * beside the unfurl and what the card draws must be the same words.
  */
 

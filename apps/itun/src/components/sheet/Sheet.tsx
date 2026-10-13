@@ -287,7 +287,7 @@ export function Sheet({
       Change Log
     </button>
   )
-  // A mech saves as a pattern on its own page (issue 1276, board P1): a write, so it
+  // A mech saves as a pattern on its own page (board P1): a write, so it
   // is offered only where this sheet can write.
   const savePatternLink =
     kind === 'mech' && !writesBlocked ? (

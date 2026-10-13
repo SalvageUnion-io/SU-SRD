@@ -1,6 +1,6 @@
 /**
- * The half of a player thing's link preview only the browser can work out
- * (issue 1280): the reference's names for its slugs, and the stat boxes.
+ * The half of a player thing's link preview only the browser can work out:
+ * the reference's names for its slugs, and the stat boxes.
  *
  * The Worker writes the unfurl's words without the reference data (it must
  * stay small); the `/og/$kind/$id` render surface loads the reference and

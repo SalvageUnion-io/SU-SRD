@@ -1,6 +1,6 @@
 /**
  * CrewTab — the display's Crew tab: the crew as a table, one read-only row per
- * crewmate, pilot first (ADR-038 §4; board D2, issue 1255).
+ * crewmate, pilot first (ADR-038 §4; board D2).
  *
  * Columns: the pilot, their HP and AP, where they are and in what (Mech), and
  * their status — "Fine", or what is wrong after a ▲. A crewmate who is dead,

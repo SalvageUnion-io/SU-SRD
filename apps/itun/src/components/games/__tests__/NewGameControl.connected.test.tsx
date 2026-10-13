@@ -8,7 +8,7 @@ import { ConvexError } from 'convex/values'
  * What these pin: there is no game UI for somebody who is not signed in; a game
  * started by name or from a template is shown (on its own page, with a router —
  * `useShowContainer`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
- * is no code to type — a Game is joined from an invite link (issue 1255).
+ * is no code to type — a Game is joined from an invite link.
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */

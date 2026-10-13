@@ -18,28 +18,18 @@ import { NotAuthorized, requireMediator, requireUser } from './model/permissions
  * before it happens, which is the one leak that changes how the game is played
  * rather than merely who can edit what.
  *
- * ## There is no presence here any more
+ * ## There is no presence
  *
- * A `presence` table, a `heartbeat` mutation and a `presence` query used to
- * live in this file, with the design note that storing `lastSeen` and letting
- * readers decide what counts as present avoids inventing an online/offline
- * state the app has to keep truthful. The reasoning was sound; the feature was
- * never finished. **No client ever called `heartbeat`** — not the web app, not
- * the bot — so the table had no writer, the query always returned nothing, and
- * `PresenceList` returned null on every render.
- *
- * It was not merely invisible. `botClient.channel` *read* it, so `/su game
- * channel` rendered "0 at the table" and no `●` markers no matter who was
- * actually there — a permanently-false indicator, which is worse than an absent
- * one. All of it is gone rather than left as scaffolding. Rebuild it with the
- * writer in the same change.
+ * Who is at the table is not tracked. A presence reader ships with its writer
+ * (a heartbeat some client calls) in the same change: a reader with no writer
+ * shows "0 at the table" whoever is there, a permanently-false indicator, which
+ * is worse than an absent one.
  *
  * ## The tray owes the same edge parse every other write does
  *
  * `encounterNpcs.body` is `v.any()`, so Convex cannot reject a malformed one —
- * `schema.ts` says in that many words that the mutation must. These two wrote
- * straight through for a while, which meant the one table only a Mediator can
- * see was also the one nothing validated. `parseBody` is shared with
+ * `schema.ts` says in that many words that the mutation must, or the one table
+ * only a Mediator can see is the one nothing validates. `parseBody` is shared with
  * `entities.ts`; what it accepts here is deliberately looser than the local
  * store's record, and `model/entities.ts` says why.
  */
@@ -89,7 +79,7 @@ export const removeNpc = mutation({
 })
 
 /**
- * Change one tray NPC as the fight goes (issue 1278): its HP or SP, its
+ * Change one tray NPC as the fight goes: its HP or SP, its
  * conditions, its name, or the last Morale roll made for it.
  *
  * Only these four fields, merged into the stored body and parsed before it is

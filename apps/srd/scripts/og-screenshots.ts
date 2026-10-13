@@ -1,7 +1,7 @@
 /**
  * Build-time OG-image generator.
  *
- * Renders every entity's link preview — `OgCard` (issue 1280), built from the
+ * Renders every entity's link preview — `OgCard`, built from the
  * same ChapterBand, stat boxes and Union bar as the pages — at its own
  * 1200×630 and writes it to `dist/{schemaId}/{itemId}.og.png`, the
  * path each page references as its og:image. It replaced the screenshot of the
@@ -31,7 +31,7 @@
  *
  * WHY THIS IS OPT-IN (read before re-enabling it in a deploy):
  * run unbounded on every build, a cold cache re-renders ~1.5k entity cards and
- * blows the build's time limit — every srd deploy fails (#482). So it is:
+ * blows the build's time limit — every srd deploy fails. So it is:
  *   - OFF unless OG_SCREENSHOTS=1 (so no build can regress into that failure),
  *   - bounded by OG_SCREENSHOTS_BUDGET_MS, after which it stops rendering and
  *     leaves the remaining entities on the site-wide default og:image, and
@@ -528,7 +528,7 @@ async function run() {
 }
 
 // Never fail the build: a missing og:image degrades to the site-wide default,
-// which is not worth losing a deploy over (see the header note on #482).
+// which is not worth losing a deploy over (see WHY THIS IS OPT-IN above).
 run().catch((err) => {
   console.error('[og-screenshots]', err)
   log('og:image generation failed — entity pages fall back to the default og:image.')

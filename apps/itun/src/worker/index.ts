@@ -26,8 +26,8 @@
  *
  *   1. `/assets/*`        → **404**, never the shell.
  *   2. a missing FILE     → **404**: a dot in the last segment.
- *   0. `/og/*.png`        → a link preview's picture (`linkPreview.ts`,
- *      issue 1280), rendered on request and cached by version.
+ *   0. `/og/*.png`        → a link preview's picture (`linkPreview.ts`),
+ *      rendered on request and cached by version.
  *   3. anything else      → the shell, `/build/` read through the asset
  *      binding, so a crawler or an unfurl bot opening `/build/p/:kind/:appId`
  *      gets the same document a browser does. The directory rather than
@@ -43,7 +43,7 @@
  * population: clients still running the previous build, by module import,
  * never by navigation. When those requests got `200 text/html`, the import
  * rejected on MIME type and the `immutable` header pinned that HTML into the
- * HTTP cache **for a year** under the chunk's URL (#759). An honest 404 makes
+ * HTTP cache **for a year** under the chunk's URL. An honest 404 makes
  * the failed import surface as `vite:preloadError`, which `installChunkRecovery`
  * (`observability/browser`) recovers from with a single reload.
  *
@@ -103,7 +103,7 @@ export default withObservability('su-itun', {
     // 0. A link preview's picture — a file that exists only on request.
     if (isOgImagePath(path)) return ogImage(request, env, { cache: defaultCache(), base })
 
-    // 1 and 2. A file that is not there — a rotated chunk above all (#759).
+    // 1 and 2. A file that is not there — a rotated chunk above all.
     if (path.startsWith('/assets/') || lastSegment.includes('.')) {
       return new Response('Not found', { status: 404, headers: { 'cache-control': 'no-store' } })
     }

@@ -1,8 +1,7 @@
 /**
  * `useServerAction` — the one way a component runs a write it waits on.
  *
- * What is pinned is what each call site used to hand-roll and sometimes got
- * wrong: the press is pending until the write settles, a refusal says the
+ * What is pinned is what a hand-rolled call site gets wrong: the press is pending until the write settles, a refusal says the
  * server's words, a blocked write says the store's, and a defect says the
  * caller's line — never the text it was thrown with, which for a Convex write
  * is the redacted `[CONVEX M(fn)] … Server Error`. And `run` never rejects, so

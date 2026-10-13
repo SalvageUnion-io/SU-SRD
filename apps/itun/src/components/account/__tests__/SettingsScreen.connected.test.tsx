@@ -15,9 +15,9 @@ import { ConvexError } from 'convex/values'
  * falls back to the Discord one rather than to nothing.
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
- * Name-keying also retires the modulo wrap the positional queue needed: a
- * state change re-renders and replays the same hooks, which used to run off
- * the end of the queue and collapse the screen back to its loading state.
+ * Name-keying needs no modulo wrap: a state change re-renders and replays the
+ * same hooks, which would run off the end of a positional queue and collapse
+ * the screen back to its loading state.
  */
 
 import type { QueryAnswers } from '../../__tests__/convexMock'

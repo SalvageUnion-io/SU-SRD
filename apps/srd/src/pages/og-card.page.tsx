@@ -1,7 +1,7 @@
 /**
  * `/og-card` — the build-only OG-card render surface.
  *
- * A single static page that renders the link preview (`OgCard`, issue 1280)
+ * A single static page that renders the link preview (`OgCard`)
  * for the entity named by `?schema=&item=`. `scripts/og-screenshots.ts` drives
  * chromium across every entity here after the build, screenshots the 1200 ×
  * 630 frame, and writes it to `dist/{schemaId}/{itemId}.og.png`.

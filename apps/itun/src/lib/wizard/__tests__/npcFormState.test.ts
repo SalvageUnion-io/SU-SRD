@@ -18,8 +18,8 @@ import {
 } from '../npcFormState'
 
 /**
- * The designer's form (issue 1269 phase 3's gate: every template kind pre-fills
- * correctly) and the crew slot form (D2–D3).
+ * The designer's form (every template kind pre-fills correctly) and the crew
+ * slot form (D2–D3).
  */
 
 const now = '2026-01-01T00:00:00.000Z'

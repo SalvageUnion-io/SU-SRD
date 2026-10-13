@@ -1,8 +1,8 @@
 /**
  * GlobalSearch — ITUN's reference search, in the Union bar (ruleset §3.11,
- * board 05: "Search · ⌘K", right side, before the account control). It used to
- * be a floating button in the bottom-right corner; that button covered content
- * at phone width and duplicated the bar, so it is gone.
+ * board 05: "Search · ⌘K", right side, before the account control), never a
+ * floating button: one in the bottom-right corner covers content at phone
+ * width and duplicates the bar.
  *
  * Two triggers, one search. `variant="bar"` is the desktop control (the bar's
  * `search` slot, shown from `lg`); `variant="icon"` is the phone's icon button
@@ -47,10 +47,10 @@ import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import { useGameDataLoaded } from '../../hooks/useGameDataLoaded'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
-import { useGameDataLoaded } from './GameDataReady'
 
 /** The button's name, the panel's and the input's: one thing, one name. */
 const LABEL = 'Search the SRD'

@@ -159,7 +159,8 @@ export function npcCurrentHP(npc: Pick<NpcView, 'hitPoints' | 'currentHP'>): num
 }
 
 /**
- * Whether an NPC is down (ADR-007; issue 1269 §6): it has HP to lose and has lost
+ * Whether an NPC is down (ADR-007; docs/architecture/npc-builder.md): it has HP
+ * to lose and has lost
  * it. Shown, never acted on — the app deletes and unlinks nothing. An NPC with
  * max 0 (the Augmented crawler's A.I.) is never down (D2).
  */

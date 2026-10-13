@@ -2,12 +2,11 @@
  * Pre-push's test step: the suites of the workspaces this branch changed, plus
  * every workspace that depends on them, with no coverage.
  *
- * Coverage floors are CI's job (`test:coverage`, `run-coverage.ts`). Pre-push
- * used to run that same gate whenever shared code moved, which on a branch off
- * `packages/` meant every push: 97 s against CI's 88 s, beside the pre-push
- * checks on four cores. The contention pushed renders past Bun's 5 s default,
- * and #1343 records three refused pushes and a 1.6 s test given a 30 s budget to get
- * through. A plain run of each workspace's own `test` script (every one is
+ * Coverage floors are CI's job (`test:coverage`, `run-coverage.ts`). Run here
+ * whenever shared code moves, that gate costs every push on a branch off
+ * `packages/` 97 s against CI's 88 s, beside the pre-push checks on four cores,
+ * and the contention pushes renders past Bun's 5 s default: refused pushes,
+ * and a 1.6 s test needing a 30 s budget. A plain run of each workspace's own `test` script (every one is
  * `--parallel=4 --no-isolate`) holds the default budgets.
  *
  * Selection is by workspace graph (`lib/workspaceGraph.ts`), not Bun's
@@ -58,13 +57,12 @@ console.log(`pre-push: testing ${selected.join(', ')} (changed workspaces and th
 if (process.argv.includes('--dry-run')) process.exit(0)
 
 // Side by side, as CI's `run-coverage.ts` runs them: every workspace's own
-// `test` script (`--parallel=4 --no-isolate`) at once. They used to run one
-// after another because itun's slowest renders (SrdExplorer opening Chassis,
-// the chassis picker, the soft-warnings sheets) sat near Bun's 5 s default and
-// tipped past it when the cores were shared; those tests are trimmed, so the
-// selection now takes the longest suite's time rather than the sum. Output is
-// buffered per workspace and printed whole as each finishes, so a failure
-// reads under its workspace's name.
+// `test` script (`--parallel=4 --no-isolate`) at once, so the selection takes
+// the longest suite's time rather than the sum. itun's slowest renders
+// (SrdExplorer opening Chassis, the chassis picker, the soft-warnings sheets)
+// stay well under Bun's 5 s default, so shared cores do not tip them past it.
+// Output is buffered per workspace and printed whole as each finishes, so a
+// failure reads under its workspace's name.
 const runs = workspaces
   .filter((w) => selected.includes(w.name))
   .map(async (ws) => {

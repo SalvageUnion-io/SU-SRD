@@ -1,5 +1,5 @@
 /**
- * Condition tracking tests (#240)
+ * Condition tracking tests
  *
  * Asserts that:
  *   1. Clicking a mech system ConditionToggle calls store.update with the

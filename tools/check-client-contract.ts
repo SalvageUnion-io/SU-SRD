@@ -5,7 +5,7 @@
  *
  * ## The incident
  *
- * ITUN-CONVEX-9 (2026-10-09): #1212 made `entities.upsertByAppId`'s
+ * ITUN-CONVEX-9 (2026-10-09): a change made `entities.upsertByAppId`'s
  * `expectedUpdatedAt` required. A tab that was open across that deploy still
  * ran the old bundle, which never sent the field, so the backend refused the
  * pilot it had just built. The build floor exists to stop such a tab before it
@@ -34,7 +34,7 @@
  *
  * It sees argument validators only. It cannot see:
  *
- * - a `v.any()` body whose meaning changed (slug-only refs, #1267)
+ * - a `v.any()` body whose meaning changed (slug-only refs)
  * - a return shape an older tab reads
  * - a function whose behaviour changed under the same arguments
  *

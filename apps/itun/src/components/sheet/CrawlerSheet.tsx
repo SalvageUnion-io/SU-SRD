@@ -20,13 +20,11 @@
  * Economy (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges) is built by
  * `SheetCrawler` (it owns the economy-dialog state + `patch`) and handed
  * down as the `economy` slot, rendered inside the Identity card below the
- * identity fields. Full `.econ` magenta-frame + Pay/Fund action-lozenge
- * fidelity is Phase 3/4 — this slice only moves the region out of the hero
- * and into the body.
+ * identity fields.
  *
- * Bays stay ONE unified grid (no crew/functional split — redesign
- * refinement; the poster's homebrew/custom-bay split is blocked on a
- * data-model flag, #403 — leave unified) as compact entity cards (max 2
+ * Bays stay ONE unified grid (no crew/functional split; the poster's
+ * homebrew/custom-bay split needs a data-model flag the schema does not have)
+ * as compact entity cards (max 2
  * columns), each with Intact/Damaged status, its crew lead as an
  * NpcInset, a "Docks <mech>" one-liner on the Mech Bay, and a
  * function/Repair action pair. Repair decrements 5 Scrap from the
@@ -46,15 +44,15 @@
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
- *   - the Tech Level stepper slab (#412) — Tech Level itself still reads
+ *   - the Tech Level stepper slab — Tech Level itself still reads
  *     live via the economy band's TL lozenge (built by SheetCrawler); only
  *     the hand-edit stepper UI drops.
- *   - the Scrap Pool slab + `ScrapPoolSlab` (#413) — the scrapPool DATA/
+ *   - the Scrap Pool slab + `ScrapPoolSlab` — the scrapPool DATA/
  *     logic (`scrapPoolBucket` / `addToScrapPool`) is KEPT: bay Repair below
  *     still spends from it, and the same helpers feed mech repair/retire
  *     from the mech sheet.
  *   - the Downtime/Salvaging/Crafting slabs + `DowntimeControl` /
- *     `SalvageControl` / `CraftingControl` (#414) — deleted outright, no
+ *     `SalvageControl` / `CraftingControl` — deleted outright, no
  *     other consumer.
  * The always-live Vitals (SP `VitalGauge`, via `economy`) and per-card
  * activation (the bays' status/repair controls) are KEPT — only the
@@ -451,7 +449,7 @@ export function CrawlerSheet({
           {/* Bays — ONE unified grid, all bays together (no crew/functional
               split). // TODO(redesign): render homebrew/custom bays in a
               separate "Custom Bays" group underneath once the data
-              distinguishes them (#403). */}
+              distinguishes them. */}
           {bays.length > 0 && (
             <SheetSectionSlab
               title="Bays"

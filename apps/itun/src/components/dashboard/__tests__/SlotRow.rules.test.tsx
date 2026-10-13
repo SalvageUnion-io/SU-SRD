@@ -187,9 +187,9 @@ describe('Major slot rules buttons', () => {
 })
 
 describe('blocked controls teach the rule (F6, ADR-021)', () => {
-  // Guided Play "teaches as it enforces". A blocked Push used to grey out with a
-  // hover title — unreachable on touch, and it taught nothing at the moment the
-  // rule actually bit.
+  // Guided Play "teaches as it enforces". A blocked Push greyed out with only a
+  // hover title is unreachable on touch, and teaches nothing at the moment the
+  // rule bites.
   const hotMech = mechFixture({
     id: 'm-hot',
     name: 'Iron Mongrel',

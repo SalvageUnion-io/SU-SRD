@@ -239,8 +239,7 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 
 // ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// The Dashboard's `.su-dash-*` classes (ITUN's own stylesheets; formerly the
-// `.pc-*` scope).
+// The Dashboard's `.su-dash-*` classes (ITUN's own stylesheets).
 
 const DASHBOARD_CSS_FILES = [
   'DashboardCanvas.css',

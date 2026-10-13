@@ -48,7 +48,7 @@ export function moveTo(container: Container): { gameId: string | null } {
 }
 
 /**
- * Where a container is shown (issue 1255): the shelf on Shelves at `/`, a Game on
+ * Where a container is shown: the shelf on Shelves at `/`, a Game on
  * its own page at `/games/<id>`. A Game has a real address, so a link to one
  * opens it whatever the hub showed last.
  */

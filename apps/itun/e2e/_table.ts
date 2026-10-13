@@ -7,7 +7,7 @@ import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
  * Running a table needs two people: the Organizer (the spec's own `page`,
  * signed in by `fixtures.ts`) and a second account in a context of its own.
  * These are the steps the Mediator, Dashboard and signed-in a11y specs share
- * (issue 1278, board M2).
+ * (board M2).
  */
 
 /** "+ New game" from Shelves, named; resolves to the new Game's id. */

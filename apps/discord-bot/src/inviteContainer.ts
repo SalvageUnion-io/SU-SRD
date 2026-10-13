@@ -19,7 +19,7 @@ export type InvitedResult = Extract<InviteResult, { outcome: 'invited' }>
 const DAY_MS = 1000 * 60 * 60 * 24
 
 /**
- * The invite link (issue 1255): ITUN's `/invite/<token>`, where the token is the
+ * The invite link: ITUN's `/invite/<token>`, where the token is the
  * invite's code. Opening it signs the invitee in and joins the Game.
  */
 export function inviteUrl(webUrl: string, code: string): string {

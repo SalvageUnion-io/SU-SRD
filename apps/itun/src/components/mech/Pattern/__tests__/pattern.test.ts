@@ -1,5 +1,5 @@
 /**
- * Tests for MechPattern schema and the patternStore CRUD (#192).
+ * Tests for MechPattern schema and the patternStore CRUD.
  *
  * Covers:
  * - Schema validation: valid input passes, missing required fields throw

@@ -3,7 +3,7 @@ import { buildPilot, gotoStable, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
- * Shelves — everything you keep (issue 1279, board S1).
+ * Shelves — everything you keep (board S1).
  *
  * Signed in (the default `test` from `fixtures.ts`), so each spec SKIPS with a
  * stated reason in a build with no test sign-in seam and runs for real in the

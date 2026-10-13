@@ -10,7 +10,7 @@ import { tableSeats } from './seatCards.model'
 export default { title: 'Compositions/Dashboard/Mediator Dashboard View' }
 
 /**
- * Board M1 (issue 1278): the Mediator Dashboard on its 1280×800 canvas, staged
+ * Board M1: the Mediator Dashboard on its 1280×800 canvas, staged
  * with board M1's table. Resize the frame below 0.8 of the canvas to see the
  * stacked phone column. Writes do nothing here.
  */

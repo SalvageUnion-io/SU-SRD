@@ -81,8 +81,7 @@ describe('useEntityChoices — seeding', () => {
     )
     expect(result.current.selections).toEqual({})
     // The empty reference is stable across renders. There is no downstream
-    // React.memo on ReferenceEntityCard today — this comment used to say there
-    // was — but identity stability is the precondition for adding one, and this
+    // React.memo on ReferenceEntityCard, but identity stability is the precondition for adding one, and this
     // assertion is what keeps that precondition true.
     const first = result.current.selections
     rerender()

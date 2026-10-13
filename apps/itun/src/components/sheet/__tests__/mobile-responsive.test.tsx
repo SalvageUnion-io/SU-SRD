@@ -208,8 +208,8 @@ describe('Mobile responsive — 44px touch targets', () => {
 })
 
 // ---------------------------------------------------------------------------
-// LiveSheet shell: linked entities live in the rail (the #255 segment
-// switcher was removed with the Header C rebuild — one entity per sheet).
+// LiveSheet shell: linked entities live in the rail, not a segment switcher
+// (one entity per sheet).
 // ---------------------------------------------------------------------------
 
 describe('LiveSheet rail replaces the segment switcher', () => {

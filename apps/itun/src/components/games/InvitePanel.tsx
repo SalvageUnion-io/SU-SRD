@@ -1,7 +1,7 @@
 /**
  * InvitePanel — "Invite links" on a Game's own page, the Organizer's (board
  * M2; docs/architecture/mediator-dashboard.md Q12). An invite is a link,
- * never a typed code (issue 1255).
+ * never a typed code.
  *
  * Each live link is a card: its seat as a stamp (PLAYER SEAT or MEDIATOR
  * SEAT), "You approve each" when it asks first, when it expires, the link

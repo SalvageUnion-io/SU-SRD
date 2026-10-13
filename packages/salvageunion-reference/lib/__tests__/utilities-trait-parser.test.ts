@@ -200,7 +200,7 @@ describe('parseTraitReferences ReDoS hardening', () => {
   })
 
   test('completes on a long unterminated parameterized reference', () => {
-    // Exercises the `[^)(]+` param class: an unclosed `(` used to scan to the
+    // Exercises the `[^)(]+` param class: an unclosed `(` must not scan to the
     // end from every candidate start.
     const pathological = `${'[[['.repeat(10_000)}Hot] (${'3'.repeat(20_000)}`
     const start = performance.now()

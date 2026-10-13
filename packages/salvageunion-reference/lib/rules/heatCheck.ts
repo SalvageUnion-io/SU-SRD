@@ -1,5 +1,5 @@
 /**
- * Heat Check / Reactor Overload rules (Slice C, #199).
+ * Heat Check / Reactor Overload rules.
  *
  * Salvage Union Core Book p.233-235 — the central mech combat mechanic.
  *

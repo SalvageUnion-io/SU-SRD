@@ -9,7 +9,7 @@ import { color, font, fontSize, space, tracking } from '../design/tokens'
  * helper would otherwise be copy-pasted across story files, put it here and
  * import it instead of re-declaring it per file.
  *
- * Since #799 (epic #802) every value below is read from
+ * Every value below is read from
  * `design/tokens.ts` rather than spelled as a utility class, so these helpers
  * cannot drift from the scale they are captioning.
  */

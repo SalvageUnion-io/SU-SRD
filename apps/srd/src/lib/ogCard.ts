@@ -1,5 +1,5 @@
 /**
- * The per-entity link preview (issue 1280): one `OgCard` per entity page,
+ * The per-entity link preview: one `OgCard` per entity page,
  * screenshotted at build.
  *
  * One module so the render surface (`OgCardIsland` on `/og-card/`), the

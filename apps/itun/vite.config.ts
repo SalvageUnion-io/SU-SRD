@@ -201,7 +201,7 @@ export default defineConfig(({ mode }) => {
     // Without this, vite dev serves those JSON modules as `text/javascript`, which
     // strict browsers reject under import-attribute enforcement ("Failed to fetch
     // dynamically imported module"), breaking all reference-data loading in dev.
-    // Mirrors srd's optimizeDeps fix in `apps/srd/ssg/vite.config.ts` (#260).
+    // Mirrors srd's optimizeDeps fix in `apps/srd/ssg/vite.config.ts`.
     //
     // List EVERY imported entry point of salvageunion-reference (main + each
     // subpath), not just '.'. The package's stateful ORM singletons — the

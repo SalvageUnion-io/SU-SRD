@@ -50,7 +50,7 @@ type MechIdentityPanelProps = {
   /** Chassis tech level; undefined renders as an em-dash. */
   /**
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
-   * Edit/Done button (Phase 2: the chead row lives in the card, not here).
+   * Edit/Done button (the chead row lives in the card, not here).
    */
   /** Partial merge on this mech; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch

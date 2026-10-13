@@ -19,7 +19,7 @@
  *   path-filters  every `workspace:*` dependency of an app is covered by the
  *                 ci.yml filter group gating that app's build job. `CI Success`
  *                 treats a skipped job as a pass, so an uncovered dependency
- *                 merges with its build never having run (the #731 shape).
+ *                 merges with its build never having run.
  *   pinning       every `bunx`/`npx` tool with no manifest entry carries an
  *                 exact version: it runs in jobs holding deploy credentials.
  *                 zizmor's `unpinned-uses` covers action SHAs only.

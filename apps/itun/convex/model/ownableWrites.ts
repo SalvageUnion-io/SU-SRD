@@ -211,7 +211,7 @@ export async function writeOwnable(
     if (created !== null && kind !== null) {
       await assignToPrimary(ctx, kind, created as Doc<'pilots'> | Doc<'mechs'>)
     }
-    // Built from a saved pattern: the pattern page counts it (#1276). Only on
+    // Built from a saved pattern: the pattern page counts it. Only on
     // the create — editing a mech built from one never counts it again.
     if (args.table === 'mechs') await countPatternBuild(ctx, body, userId)
     return { updatedAt }

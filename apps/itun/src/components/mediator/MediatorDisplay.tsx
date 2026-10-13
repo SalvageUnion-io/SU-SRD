@@ -4,7 +4,7 @@
  * the open tab on the left, and the propose dock on the right under every tab.
  *
  * The tabs: **Opposition**, **Proposals**, **Tell the table**, **Tables**,
- * **SRD**, and **Log** set apart at the far end (issue 1278, board M1). They
+ * **SRD**, and **Log** set apart at the far end (board M1). They
  * are component-lib's `Tabs`, so one tab stop and arrow keys between tabs, each
  * at the canvas's 48-unit control height. Which tab is open is the caller's
  * state, kept on the device.

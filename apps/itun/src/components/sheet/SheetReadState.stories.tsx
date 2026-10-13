@@ -23,7 +23,7 @@ const scrapper = STARTER_MECHS[0]
 const tenacity = STARTER_CRAWLERS[0]
 
 /**
- * The sheet's read state (board 10, issue 1255): the band's Read | Edit, and a
+ * The sheet's read state (board 10): the band's Read | Edit, and a
  * linked unit as one line — the listing card's anatomy at its smallest, which
  * opens that unit's sheet. Edit keeps the full rows with Assign and Unassign.
  * Data from the Starter Set.

@@ -17,7 +17,7 @@ import { GameDataGate } from '../../lib/useGameData'
 /**
  * Build-only OG-card surface.
  *
- * Renders the entity's link preview, `OgCard` (issue 1280): the same
+ * Renders the entity's link preview, `OgCard`: the same
  * ChapterBand, stat boxes and Union bar the pages are built from, at its own
  * 1200 × 630, so `scripts/og-screenshots.ts` photographs it 1:1. It replaced
  * the screenshot of the Catalog tile: the card keeps that pipeline's reason

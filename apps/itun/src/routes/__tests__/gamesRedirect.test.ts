@@ -4,12 +4,12 @@ import { routeTree } from '../../routeTree.gen'
 import { getActiveContainer, setActiveContainer } from '../../stores/activeContainerStore'
 
 /**
- * Where a container is shown, through the real generated route tree (issue 1255):
+ * Where a container is shown, through the real generated route tree:
  *
  *  - `/` is Shelves, so it shows the shelf whatever was showing before;
  *  - `/games/$gameId` is a Game's own page, and stays put — the Discord bot's
  *    game links and the read-only sheet's way back to "the crew" land on it;
- *  - `/mediator/$gameId` is the Mediator Dashboard again (issue 1278), and stays
+ *  - `/mediator/$gameId` is the Mediator Dashboard again, and stays
  *    put without picking the Game: it is not a container's page;
  *
  * The retired `/games`, `/join/$code` and crew-view addresses are no longer

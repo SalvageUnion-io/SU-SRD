@@ -4,8 +4,7 @@ import { color, font, fontSize, space, tracking, weight } from '../../../design/
  * CRAWLER BAY "WHEN DAMAGED" callout — the card's own anatomy at callout
  * scale: an ink band naming the condition over the effect on paper, framed in
  * ink. The damage reads as a treatment on the bay's rules, not as a second
- * hue (ruleset §3.3), which is why the ghosted danger tint it used to wear is
- * gone with the rest of the ghosted tones. The card filters the same string
+ * hue (ruleset §3.3), so it wears no danger tint. The card filters the same string
  * out of its body prose, so it is said once.
  */
 export function DamagedEffectCallout({ effect }: { effect: string }) {

@@ -1,5 +1,5 @@
 /**
- * GameHub — a Game's own page, `/games/$gameId` (issues 1255 and 1278).
+ * GameHub — a Game's own page, `/games/$gameId`.
  *
  * One place per table: the hub lists a Game the way Shelves lists your things
  * and puts everything you can do about the table below the lists, as board M2
@@ -150,7 +150,7 @@ function GameSections({ game }: { game: Game }) {
               <JoinRequests gameId={gameId} />
             </>
           ) : (
-            // Every member can bring someone to the table (issue 1255): a
+            // Every member can bring someone to the table: a
             // player's link asks the Organizer to let them in (`invites.link`).
             <HubSection id="invite-crewmate-heading" title="Invite a crewmate">
               <p style={HUB_COPY}>

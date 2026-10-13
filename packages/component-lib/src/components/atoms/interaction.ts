@@ -5,12 +5,11 @@ import type { KeyboardEvent } from 'react'
  * the focus ring, disabled treatment, selection ring, and keyboard activation
  * that Button / StepButton / Sel would otherwise each re-inline.
  *
- * ## These are `.su-*` class NAMES (#799, #802)
+ * ## These are `.su-*` class NAMES
  *
- * The SHAPE is unchanged — each is still a string you drop into `className`,
- * still composes through `cn()`, still works on any element — so no call site
- * moves, in this package or in either app. What changed is where the rules
- * live: `src/styles/index.css`, rather than generated utilities.
+ * Each is a string you drop into `className`: it composes through `cn()` and
+ * works on any element, in this package or in either app. The rules live in
+ * `src/styles/index.css`.
  *
  * **Why these do not get the split rule's style-object half.** That half
  * assumes the library owns the element being styled. These deliberately do not:

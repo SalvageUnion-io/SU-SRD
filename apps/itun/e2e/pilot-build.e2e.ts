@@ -82,7 +82,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // `Manage ${label}` and PilotSheet passes label="abilities", the same label
   // `sheet/__tests__/sheet-soft-warnings.test.tsx` uses. `mech-build.e2e.ts`
   // uses the same `/^Manage systems$/i` shape.
-  // A sheet opens in Read; its controls are Edit's (issue 1255).
+  // A sheet opens in Read; its controls are Edit's.
   await editSheet(page)
   await page.getByRole('button', { name: /^Manage abilities$/i }).click()
   const picker = page.getByRole('dialog')

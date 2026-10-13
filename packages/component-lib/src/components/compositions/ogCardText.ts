@@ -1,7 +1,7 @@
 import { color } from '../../design/tokens'
 
 /**
- * The words and sizes of an `OgCard` (issue 1280): its props, the canvas, and
+ * The words and sizes of an `OgCard`: its props, the canvas, and
  * what its unfurl says beside the image — `og:title` (the name),
  * `og:description` (the kicker and byline, never the body) and `theme-color`
  * (the band's tone). A module of its own so a page's `<head>` can read them

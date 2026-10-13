@@ -1,5 +1,5 @@
 /**
- * Heat Check / Reactor Overload rule tests (Slice C, #199).
+ * Heat Check / Reactor Overload rule tests.
  *
  * The d20 is INJECTABLE via the `roll` param, so every test is deterministic —
  * no real randomness. We build a `seqRoll` helper that returns a scripted

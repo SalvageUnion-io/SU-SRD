@@ -3,8 +3,7 @@
  *
  * One dialog with two ways to start a table: by name, or from a template.
  * Joining somebody else's Game is not here: a Game is joined from an invite
- * link, never a typed code (issue 1255), so the code door this dialog used to have
- * is gone. The link opens `/invite/$token`, which does the joining.
+ * link, never a typed code, so this dialog has no code door. The link opens `/invite/$token`, which does the joining.
  *
  * A new Game opens on its own page (`/games/$gameId`) as the dialog closes, so
  * the next thing on screen is the new table.

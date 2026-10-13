@@ -9,7 +9,7 @@ import type { ReactNode } from 'react'
  *
  * - **Signed in, Connected** — the trigger is a menu button carrying the
  *   player's display name and avatar circle; its menu holds Settings (to
- *   `/settings`) and Sign out, then About and Changelog (issue 1255). The Games menu is the Union
+ *   `/settings`) and Sign out, then About and Changelog. The Games menu is the Union
  *   bar's nav control (`HeaderGames`), not part of the account slot.
  * - **Signed in, offline** — the identity stays and Sign out still works, but
  *   there is no Games menu: a Disconnected player cannot list their Games.

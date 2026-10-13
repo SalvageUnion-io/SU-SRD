@@ -3,8 +3,8 @@ import { LinkPreviewSurface } from '../../../components/shared/LinkPreviewSurfac
 import { pageTitle } from '../../../lib/pageTitle'
 
 /**
- * `/og/$kind/$id` — the render surface of a player thing's link preview
- * (issue 1280): `OgCard` at 1200 × 630, for Browser Rendering to screenshot.
+ * `/og/$kind/$id` — the render surface of a player thing's link preview:
+ * `OgCard` at 1200 × 630, for Browser Rendering to screenshot.
  * `kind` is `pilot`, `mech`, `crawler`, `pattern` or `invite` (with the code
  * as the id). The root draws it without the app's chrome.
  */

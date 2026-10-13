@@ -1,5 +1,5 @@
 /**
- * What each item on the Shelves page says (issue 1279, board S1) — pure, so
+ * What each item on the Shelves page says (board S1) — pure, so
  * the page only lays it out.
  *
  * Shelves is everything a player keeps, on their account: a unit in a Game

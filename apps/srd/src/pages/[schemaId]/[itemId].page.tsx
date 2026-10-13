@@ -137,7 +137,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const preloadImageSrcSet = assetSrcSetFor(displayData?.assetUrl)
 
   // The preview's words and colour come from the same card its image is
-  // screenshotted from (issue 1280), so the text beside the image matches it.
+  // screenshotted from, so the text beside the image matches it.
   const og = ogMetaFor(ogCardFor(schemaId, itemId, item))
 
   return {

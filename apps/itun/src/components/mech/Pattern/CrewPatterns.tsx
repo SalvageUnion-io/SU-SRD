@@ -1,6 +1,6 @@
 /**
- * CrewPatterns — the patterns crewmates have shared with your Games (issue 1276:
- * "My Game's crew"), under your own on the patterns page.
+ * CrewPatterns — the patterns crewmates have shared with your Games ("My
+ * Game's crew"), under your own on the patterns page.
  *
  * Each opens its pattern page, where the crew reads it and builds from it.
  * Signed out there is no crew, so there is nothing to show — and nothing to

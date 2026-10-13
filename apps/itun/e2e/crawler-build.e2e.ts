@@ -80,7 +80,7 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   // CrawlerSheetItems: Dock / Craft / Heal / Mount…), so the armament bay's
   // control is labelled 'Mount' — that verb IS "open the weapons picker".
   // The searcher runs in toggle mode: click the selectable cell, not its prose.
-  // A sheet opens in Read; its controls are Edit's (issue 1255).
+  // A sheet opens in Read; its controls are Edit's.
   await editSheet(page)
   await page.getByRole('button', { name: /^Mount$/i }).click()
   const picker = page.getByRole('dialog')

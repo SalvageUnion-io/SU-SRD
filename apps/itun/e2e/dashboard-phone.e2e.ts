@@ -3,7 +3,7 @@ import { setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * The Dashboard on a phone (ADR-045, issue #1256): a full boarded turn at
+ * The Dashboard on a phone (ADR-045): a full boarded turn at
  * 375×812 and 390×844.
  *
  * Board, then the deck's pennant (which opens the resolve screen and pays the

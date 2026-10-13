@@ -3,7 +3,7 @@ import { InviteScreen } from '../../components/games/InviteScreen'
 import { pageTitle } from '../../lib/pageTitle'
 
 /**
- * `/invite/$token` — an invite link (issue 1255). `?join=1` marks the return from
+ * `/invite/$token` — an invite link. `?join=1` marks the return from
  * "Sign in to join", so the page joins on arrival rather than asking again.
  */
 export const Route = createFileRoute('/invite/$token')({

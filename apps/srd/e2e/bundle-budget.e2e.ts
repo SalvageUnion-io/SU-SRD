@@ -69,8 +69,8 @@ async function captureJsTotals(
  * server on 4321). The dev server serves ES modules straight from source under
  * `/src/…`, `/@fs/…` and `/node_modules/.vite/…` — the `/assets/…` prefix that
  * this file measures exists ONLY in a Rollup build. So a plain local
- * `bunx playwright test` used to report two confusing failures here: the
- * dead-selector guard saw zero chunks, and the byte budget summed zero.
+ * `bunx playwright test` would report two confusing failures here: the
+ * dead-selector guard sees zero chunks, and the byte budget sums zero.
  *
  * That is a harness mismatch, not a payload regression, and it should not read
  * as one. Detect it up front and fail with the command that fixes it, rather

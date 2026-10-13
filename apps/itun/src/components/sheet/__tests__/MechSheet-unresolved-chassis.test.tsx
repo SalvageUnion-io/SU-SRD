@@ -1,5 +1,5 @@
 /**
- * MechSheet — unresolved chassis tests (#243; poster regions)
+ * MechSheet — unresolved chassis tests (poster regions)
  *
  * When chassis cannot be resolved (null), the body must still render — the
  * accessible alert names the bogus chassisRef, the Identity/Vitals poster

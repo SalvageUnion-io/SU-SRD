@@ -20,8 +20,8 @@ import { inviteDeliveryState, inviteRole, ownableTable } from './schema'
  * Not §2: that section is Containers, and its only mention of invites is that a
  * shelf has none.
  *
- * An invite travels as a **link**, `/invite/<code>`, never as a typed code
- * (issue 1255). The `code` column is the link's token: Crockford base32,
+ * An invite travels as a **link**, `/invite/<code>`, never as a typed code.
+ * The `code` column is the link's token: Crockford base32,
  * collision-checked against the `by_code` index and drawn from
  * `crypto.getRandomValues`. Minting itself is `model/invites.ts#mintInvite`,
  * shared with every other door that creates one.
@@ -70,7 +70,7 @@ export const create = mutation({
 
 /**
  * The Game's invite link, for "Copy invite link" (the Game page and the
- * Dashboard's Crew tab, issue 1255). Any member may ask; what they get depends on
+ * Dashboard's Crew tab). Any member may ask; what they get depends on
  * who they are:
  *
  *   - **The Organizer** gets an open link: anyone holding it joins. Minting a

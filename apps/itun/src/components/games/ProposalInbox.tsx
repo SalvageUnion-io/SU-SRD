@@ -12,7 +12,7 @@ import { HubSection } from './HubSection'
  * The player's side of propose-and-confirm (ADR-030 §4), on a Game's own page.
  *
  * The Mediator has said what they think should change, and why when they gave
- * a reason (issue 1278); this is where the player decides, against the value they
+ * a reason; this is where the player decides, against the value they
  * are already looking at on their own sheet.
  *
  * **Decline is a peer of Apply, not a dismissal.** Declining is a recorded

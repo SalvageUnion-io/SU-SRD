@@ -31,7 +31,7 @@ const BackLink = (
 )
 
 /**
- * The top rail across the three mount states (boards D1–D3, issue 1255): the
+ * The top rail across the three mount states (boards D1–D3): the
  * pilot's name, a stamp for where they are, the Game, and the save state. In
  * Downtime the pilot and mech ride the rail as compact links with their pips,
  * because the crawler has the whole unit row.

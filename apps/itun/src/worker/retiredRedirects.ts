@@ -7,8 +7,8 @@
  *   - `/games`                                → `/` (the Games page became the hub)
  *   - `/games/:gameId/view/:kind/:entityId`   → `/sheet/:kind/:entityId` (the old
  *     crew view; the live read-only sheet takes the same row id)
- *   - `/join/:code`                           → `/invite/:code` (issue 1255: an
- *     invite's token is its old join code, so the invite page joins or explains)
+ *   - `/join/:code`                           → `/invite/:code` (an invite's
+ *     token is its old join code, so the invite page joins or explains)
  *
  * A path under one of these prefixes that names none of these shapes keeps its
  * own path: it never matched a route before either, and lands on the app's

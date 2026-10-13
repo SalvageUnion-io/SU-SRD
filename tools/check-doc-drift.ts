@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
- * Doc drift — `bun run check doc-drift`. Ten checks, each asking whether
- * what a doc tells a reader is still true:
+ * Doc drift — `bun run check doc-drift`. Eleven checks, each asking whether
+ * what a doc, or a comment, tells a reader is still true:
  *
  *   paths    every backticked repo path in a live-instruction doc or a
  *            Claude hook's text exists, unless the words beside it mark it as
@@ -43,10 +43,13 @@
  *            CLAUDE.md and its imports, each CLAUDE.md under its directories,
  *            every rule whose `paths:` match a file there, and the docs its
  *            text says to read first), held to a ratchet (`SESSION_CEILINGS`).
+ *   history  no comment in tracked code under apps/, packages/ or tools/
+ *            narrates history (`gates/lib/commentHistory`'s phrases, at zero).
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { checkCommentHistory } from 'gates/lib/commentHistory'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 import type { SessionProfile } from 'gates/lib/sessionLoad'
 import { checkSessionLoad, gitignoredMatcher, importsOf, markdownIn } from 'gates/lib/sessionLoad'
@@ -968,8 +971,6 @@ const OVER_BUDGET: Record<string, number> = {
 /**
  * Context docs collapsed to terse lists, each held near its collapsed size so
  * prose cannot creep back. Raise one only on purpose, saying why in the PR.
- * ARCHITECTURE.md and README.md rose once for the Area anchors and the links
- * that cite them by slug (the `areas` check), not for prose.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
   'apps/srd/ssg/DESIGN.md': 5_400,
@@ -1064,12 +1065,11 @@ const CHECKS = [
   (root: string) => checkTerseShape(root),
   (root: string) => checkDocSizes(root),
   (root: string) => checkSessionLoad(root, SESSION_PROFILES, SESSION_CEILINGS),
+  checkCommentHistory,
 ] as const
 
 if (import.meta.main) {
-  // A collapsed corpus (a renamed doc directory) would pass every check. The floor is
-  // floor(0.65 × N) for N = 21, the count once the workspace READMEs, CONTRIBUTING.md
-  // and the done plans in docs/architecture/ were cut (#1149).
+  // A collapsed corpus (a renamed doc directory) would pass every check: floor(0.65 × 21).
   const liveDocs = liveInstructionDocs(repoRoot)
   assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 13)
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)

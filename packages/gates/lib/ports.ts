@@ -2,11 +2,10 @@
  * ports — each checkout's own dev-server ports, so parallel worktrees never
  * share one.
  *
- * srd's dev server (`bun run dev`) and the story catalog (`bun run stories`)
- * used to listen on fixed ports, 4321 and 61000. A second worktree then either
- * failed to start its server or, worse, `bun run shot` and srd's Playwright
- * suite reused the first checkout's server and silently measured that
- * checkout's code.
+ * On fixed ports (srd's dev server on 4321, the story catalog on 61000), a
+ * second worktree either fails to start its server or, worse, `bun run shot`
+ * and srd's Playwright suite reuse the first checkout's server and silently
+ * measure that checkout's code.
  *
  * - The primary checkout (its `.git` is a directory) and CI keep the base
  *   ports: `.claude/launch.json`, `wrangler.jsonc`'s `dev.port` and the CI

@@ -1,5 +1,5 @@
 /**
- * The SRD's surfaces as the brand refresh draws them (#1254, boards 06–08b),
+ * The SRD's surfaces as the brand refresh draws them (boards 06–08b),
  * asserted on the built HTML each route emits — what a crawler, a no-JS
  * reader and the first paint all get.
  */

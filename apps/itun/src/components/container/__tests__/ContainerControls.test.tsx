@@ -235,7 +235,7 @@ describe('MoveToContainerControl', () => {
       appId: 'c1',
       gameId: 'g1',
     })
-    // Never as a body patch: that is how a "moved" crawler used to stay put.
+    // Never as a body patch: a "moved" crawler stays put that way.
     expect(serverWrites.some((w) => w.name === 'entities:patchCrawlerByAppId')).toBe(false)
   })
 

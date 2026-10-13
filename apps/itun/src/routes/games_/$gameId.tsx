@@ -4,9 +4,9 @@ import { pageTitle } from '../../lib/pageTitle'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 
 /**
- * `/games/$gameId` — a Game's own page (issue 1255): its crew, its panels and the
- * invite link, at an address you can bookmark and share. It used to pick the
- * Game and redirect to `/`, so every Game shared one URL with the shelf.
+ * `/games/$gameId` — a Game's own page: its crew, its panels and the
+ * invite link, at an address you can bookmark and share: no Game shares its
+ * URL with the shelf.
  *
  * The page is the hub showing that Game. Loading the route makes it the active
  * container, which is also where anything built from here goes

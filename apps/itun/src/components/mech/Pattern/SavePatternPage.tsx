@@ -1,6 +1,6 @@
 /**
- * SavePatternPage — save a mech's chassis and loadout as a pattern (issue 1276,
- * board P1). The body of `/mechs/patterns/new?from=<mechId>`.
+ * SavePatternPage — save a mech's chassis and loadout as a pattern (board
+ * P1). The body of `/mechs/patterns/new?from=<mechId>`.
  *
  * The left column is WHAT GETS SAVED, shown as the reference cards it is —
  * solid, because every part of it is the book's. The right column is the only

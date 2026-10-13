@@ -290,8 +290,8 @@ const base = {
    *  ground. Paper as a background is always the flat `paper`. */
   paper60: 'rgb(251 250 247 / 0.6)',
   /** The de-emphasised rung ON a tone or dark ground — the inverse counterpart
-   *  of `wkMuted`, which only clears AA on the light grounds. Added by the
-   *  Atoms layer of #799 for `Stat`'s `inverse` skin (`text-paper/70`). */
+   *  of `wkMuted`, which only clears AA on the light grounds: `Stat`'s
+   *  `inverse` skin. */
   paper70: 'rgb(251 250 247 / 0.7)',
   paper30: 'rgb(251 250 247 / 0.3)',
   /** FilterRow's sticky backing — near-opaque paper over scrolling content. */
@@ -370,7 +370,7 @@ export const color = {
   /**
    * The error focus-ring wash — `statusBad` at 25%, the destructive
    * counterpart of `rust25`, used by `InlineEditField`'s error skin
-   * (`focus:ring-status-bad/25`). Added by the Atoms layer of #799.
+   * (`focus:ring-status-bad/25`).
    *
    * A LITERAL rather than an alias, and unavoidably so: the three rungs above
    * stay aliases because a retone of `rollCascade` should follow, but CSS has

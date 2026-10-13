@@ -25,7 +25,7 @@ import {
 } from '../shelfItems'
 
 /**
- * What an item on Shelves says (issue 1279, board S1): where it is, what is
+ * What an item on Shelves says (board S1): where it is, what is
  * linked to it, where it came from, and for a pattern who can see it.
  */
 

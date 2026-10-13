@@ -112,7 +112,7 @@ export { Footer } from './components/compositions/Footer'
 export { HouseRules } from './components/compositions/HouseRules'
 export type { NavDrawerCategory, NavDrawerItem } from './components/compositions/NavDrawer'
 export { NavDrawer } from './components/compositions/NavDrawer'
-// OgCard — the 1200 × 630 link preview (issue 1280), built from ChapterBand and
+// OgCard — the 1200 × 630 link preview, built from ChapterBand and
 // the Union bar's foot; `ogCardForEntity` is a reference entity's card.
 export { OgCard } from './components/compositions/OgCard'
 export { ogCardForEntity } from './components/compositions/ogCardForEntity'
@@ -216,19 +216,18 @@ export { navigateControl } from './components/referenceEntity/referenceEntityCon
 export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
 export { useDetailModal } from './components/referenceEntity/useDetailModal'
 /**
- * The styling foundation (#798, epic #802): tokens, style objects and one
+ * The styling foundation: tokens, style objects and one
  * stylesheet (ADR-046). Namespaced rather than spread flat into this
  * barrel, because the token names are deliberately generic (`color`, `space`,
  * `radius`) and read correctly only when qualified: `tokens.color.ink`.
  *
- * `tokens` is the values. The other two halves of L1 are `styles/index.css`
+ * `tokens` is the values. The other two halves are `styles/index.css`
  * (the stateful half — `:hover`, `:focus-visible`, `:disabled`, `@media` —
  * which a style object cannot express at all) and `styles/sizing.ts`. The split
  * rule is in this package's CLAUDE.md; read it before migrating a component.
  *
- * `design/styles.ts` was the third half and is gone — see this commit. When L2
- * (#799) migrates a component, reintroduce the object it needs at that point,
- * with its consumer, rather than restoring the speculative set.
+ * There is no shared style-object set: a component that needs a style object
+ * gets it beside its consumer, not in a speculative shared module.
  */
 export * as tokens from './design/tokens'
 // THE ENTITY DISPLAY LANGUAGE (docs/design-system/entity-display-language.md):
