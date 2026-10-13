@@ -10,7 +10,16 @@ import type { SizeRung } from '../../styles/sizing'
  * hybrid class's requirements in a tile) wraps onto more lines instead of
  * being clipped by the frame (`wrap`).
  */
-export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: SizeRung }) {
+export function Facts({
+  cells,
+  size = 'full',
+  inverse = false,
+}: {
+  cells: StatItem[]
+  size?: SizeRung
+  /** On the ink banner: the inverse plate. */
+  inverse?: boolean
+}) {
   return (
     <>
       {cells.map((stat) => (
@@ -26,6 +35,7 @@ export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: Size
           mode={stat.onChange ? ((stat.canEdit ?? true) ? 'edit' : 'read') : 'read'}
           max={stat.outOfMax}
           hoverText={stat.hoverText}
+          inverse={inverse}
           wrap
         />
       ))}

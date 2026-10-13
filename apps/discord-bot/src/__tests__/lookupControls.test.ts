@@ -54,7 +54,7 @@ describe('su:peek', () => {
     await handle()
     expect(updates).toHaveLength(0)
     expect(replies[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
-    expect(textOf(replies[0])).toContain('-# PATTERN · MULE')
+    expect(textOf(replies[0])).toContain('-# PATTERN OF MULE')
   })
 
   test('no pick, or an unknown one, is a private error', async () => {

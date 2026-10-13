@@ -8,7 +8,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the citation.
 3. **Framed numeral + ink stamp** — the stat column (`14 | STRUCTURE PTS.`), label 14px, horizontal, in the book's order: STRUCTURE PTS., ENERGY PTS., HEAT CAP., SYSTEM SLOTS, MODULE SLOTS, CARGO CAP., TECH LEVEL, SALVAGE VALUE.
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
-5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen a head stamp, facet Stats and trait Tags (E17).
+5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
    - **Rules · Salvaging**, rules blue `--color-wk-line`: Home, Core Rules, Salvaging, Guides, Keywords.
    - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, ITUN pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, ITUN mechs.
@@ -38,7 +38,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTable` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only. TL and Salvage are the TL-Salvage badge everywhere.
-   6. **Cost, range, action type** — cost pennant, range badge (never interactive), action-type stamp (the deck's filter key).
+   6. **Cost, range, action type** — chips (`EP | 2`, `RNG | Close`, "Turn Action"); the Dashboard's cost pennant is its action button.
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1); a section header is a Slab.
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` (the cost pennant included) and `InlineRef`, and no token aliases it.
@@ -57,7 +57,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground, bar systems and modules (book pp. 162, 188).
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
-   10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment and the type stamp.
+   10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build; ITUN is the product name, spelled out on its front door; no off-site arrows between the two.
    12. **§3.12 Microcopy** — sentence case for chrome and buttons ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`). Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
@@ -82,9 +82,9 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
-   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (type stamp, classification pills, User-made; never above it, never riding the frame), value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have, ink banner for things you do (E12).
+   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (classification pills, User-made; never above it, never riding the frame, never the kind, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
    - **Actions sit inline** — flush ink bands, no Actions tray or stamp (on a Page, framed cards under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
-   - **Nesting legibility** — nested entities stack in the parent's frame under their type stamp, no tray or label repeating it. One tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
+   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind. One tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.
    1. **Badge** — folds ValueDisplay, Tag, Pill, Chip, cost pennant, Range, Action-type, TL and the StatusBadge shell.

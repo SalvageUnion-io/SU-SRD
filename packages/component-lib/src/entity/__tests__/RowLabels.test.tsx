@@ -1,6 +1,8 @@
 /**
- * A Row's labels (the kind stamp, the User-made stamp) sit on the name's line,
- * right of the name — never a stamp riding the frame, never a line above it.
+ * A Row's head: its labels (the User-made stamp, a unit's note) sit on the
+ * name's line, right of the name — never a stamp riding the frame, never a
+ * line above it. The kind is never stamped (E9): the title carries it for
+ * screen readers. The chips share the name's heading (E17).
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
@@ -13,6 +15,7 @@ const need = <T,>(value: T | undefined, label: string): T => {
 }
 const drill = () => need(SalvageUnionReference.Systems.getByName('Salvaging Drill'), 'drill')
 const juryRig = () => need(SalvageUnionReference.Abilities.getByName('Jury Rig'), 'jury rig')
+const keyword = () => need(SalvageUnionReference.Keywords.all()[0], 'a keyword')
 
 const headOf = (name: string) => {
   const head = screen.getByText(name).closest('.su-entity-row__head')
@@ -27,38 +30,45 @@ const nameBox = (name: string) => {
 }
 
 describe('Row labels', () => {
-  test('the kind stamp sits right of the name, on its line', () => {
+  test('the kind is no stamp: the title ends with it, for screen readers only', () => {
     render(<Entity form="row" entity={drill()} />)
     const head = headOf('Salvaging Drill')
     expect(head.firstElementChild?.className).toBe('su-entity-row__line')
-    const labels = nameBox('Salvaging Drill').nextElementSibling
-    expect(labels?.textContent).toBe('System')
+    const kind = head.querySelector('.su-entity-row__title .su-sr-only')
+    expect(kind?.textContent).toBe(' (System)')
+    expect(head.querySelector('.su-entity-row__labels')?.textContent ?? '').toBe('')
   })
 
-  test('over a body the name sits on the paper cut-out, its labels on the band beside it', () => {
+  test('the chips share the heading with the name, in one group', () => {
     render(<Entity form="row" entity={drill()} />)
     const head = headOf('Salvaging Drill')
+    const heading = head.querySelector('.su-entity-row__heading')
+    expect(heading?.firstElementChild?.className).toBe('su-entity-row__name')
+    expect(heading?.lastElementChild?.getAttribute('data-chip-group')).toBe('')
+    // A head with chips wears no cut-out: they may drop under the name.
+    expect(head.dataset.notch).toBeUndefined()
+  })
+
+  test('over a body a head with no chips sets its name on the paper cut-out', () => {
+    const entry = keyword()
+    render(<Entity form="row" entity={entry} lead />)
+    const head = headOf(entry.name)
     expect(head.dataset.notch).toBe('true')
-    const notch = nameBox('Salvaging Drill')
-    expect(notch.className).toBe('su-entity-row__notch')
-    expect(notch.contains(screen.getByText('System'))).toBe(false)
+    expect(nameBox(entry.name).className).toBe('su-entity-row__notch')
   })
 
-  test('omitting the kind drops the stamp from the name line', () => {
+  test('omitting the kind drops it from the title too', () => {
     render(<Entity form="row" entity={drill()} omit={['kind']} />)
-    expect(screen.queryByText('System')).toBeNull()
-    expect(headOf('Salvaging Drill').firstElementChild?.className).toBe('su-entity-row__line')
+    expect(headOf('Salvaging Drill').querySelector('.su-sr-only')).toBeNull()
   })
 
-  test("an ability's tier banner carries its kind stamp inside the band too", () => {
+  test("an ability's tier banner wears its tier; its kind and tree are read out", () => {
     render(<Entity form="row" entity={juryRig()} />)
     const head = headOf('Jury Rig')
     // A Core ability's Row wears the Core tier: orange.
     expect(head.dataset.fill).toBe('tone')
     expect(head.style.backgroundColor).toBe('var(--color-pilot)')
-    const labels = nameBox('Jury Rig').nextElementSibling
-    expect(labels?.textContent).toContain('Ability')
-    expect(head.contains(labels ?? null)).toBe(true)
+    expect(head.querySelector('.su-sr-only')?.textContent).toContain('Ability')
   })
 
   test("an ability's tier numeral leads its band, unless the context sets it (`omit` tier)", () => {
@@ -71,20 +81,19 @@ describe('Row labels', () => {
     const head = headOf('Jury Rig')
     expect(head.dataset.fill).toBe('tone')
     expect(head.textContent).not.toMatch(/^1/)
-    expect(head.querySelector('.su-entity-row__line')?.firstElementChild?.textContent).toBe(
-      'Jury Rig'
-    )
+    expect(head.querySelector('.su-entity-row__title')?.textContent).toBe('Jury Rig')
   })
 
-  test('over a body, the tier numeral stays on the band, left of the cut-out', () => {
+  test('the tier numeral stays on the band, first on the line; chips mean no cut-out', () => {
     const charge = need(SalvageUnionReference.Abilities.getByName('Charge'), 'charge')
     render(<Entity form="row" entity={charge} />)
     const head = headOf('Charge')
-    expect(head.dataset.notch).toBe('true')
     const line = head.querySelector('.su-entity-row__line')
     expect(line?.firstElementChild?.className).toBe('su-entity-row__tier')
     expect(line?.firstElementChild?.textContent).toBe('1')
-    // The cut-out carries the name alone.
-    expect(nameBox('Charge').textContent).toBe('Charge')
+    // Its chips could drop under the name, so the name is on the band, not a tab.
+    expect(head.dataset.notch).toBeUndefined()
+    expect(head.querySelector('.su-entity-row__notch')).toBeNull()
+    expect(head.textContent).toContain('Free Action')
   })
 })

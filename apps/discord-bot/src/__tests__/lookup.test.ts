@@ -73,7 +73,7 @@ describe('lookupCommand.execute', () => {
     await lookupCommand.execute(interaction)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
-    expect(containerTextOf(reply)).toContain('-# PATTERN · TYPHON')
+    expect(containerTextOf(reply)).toContain('-# PATTERN OF TYPHON')
     expect(containerTextOf(reply)).toContain('## [Hill Worm]')
   })
 

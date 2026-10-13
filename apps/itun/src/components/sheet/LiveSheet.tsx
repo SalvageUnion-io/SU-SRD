@@ -36,6 +36,7 @@ import {
   ChapterBand,
   cn,
   EntityExternalLinkProvider,
+  KindLabel,
   Stat,
   tokens,
 } from 'component-lib'
@@ -47,6 +48,13 @@ import { SHEET_ICONBTN_CLASS } from './sheetChrome.model'
 import type { SheetBand } from './sheetViewProps.model'
 
 type SheetVariant = 'pilot' | 'mech' | 'crawler'
+
+/** Each sheet's kind, for its h1's screen-reader text (never a stamp, EDL E9). */
+const KIND_LABEL: Record<SheetVariant, string> = {
+  pilot: 'Pilot',
+  mech: 'Mech',
+  crawler: 'Union Crawler',
+}
 
 export type LiveSheetSegment = {
   key: SheetVariant
@@ -99,7 +107,7 @@ type LiveSheetProps = {
    * type stamps, and the band's controls (Read | Edit, "Make a copy").
    */
   band?: SheetBand
-  /** The second type stamp: a pilot's class, a mech's chassis, a crawler's type. */
+  /** What it is built as: a pilot's class, a mech's chassis, a crawler's type. */
   kindDetail?: string
   className?: string
 }
@@ -382,7 +390,7 @@ export function LiveSheet({
 
       {/* The chapter band (board 10): the sheet's one h1, notched into a band
           in its own tone with the speckle behind it. Right of the name, one
-          cluster (EDL E20): the type stamps and where the sheet comes from,
+          cluster (EDL E20): what it is built as and where the sheet comes from,
           then the controls — Read | Edit where the viewer may write, "Make a
           copy", Share and "⋯" — and on a phone the Pilot/Mech/Crawler switch,
           the whole cluster below the name there. Full-bleed, like the SRD's. */}
@@ -393,9 +401,6 @@ export function LiveSheet({
         aside={
           <>
             <div style={BAND_LINE}>
-              <Badge shape="stamp" size="full">
-                {variant}
-              </Badge>
               {kindDetail && (
                 <Badge shape="stamp" size="full" surface="inverse">
                   {kindDetail}
@@ -449,6 +454,8 @@ export function LiveSheet({
         }
       >
         {name}
+        {/* The kind is never stamped (EDL E9): the h1 says it to screen readers. */}
+        <KindLabel kind={KIND_LABEL[variant]} />
       </ChapterBand>
 
       {/* Body slabs. The body owns the hero, so it takes the hero's top

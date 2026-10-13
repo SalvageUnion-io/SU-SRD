@@ -1,5 +1,5 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { buttonVariants, ChapterBand, cn } from 'component-lib'
+import { buttonVariants, ChapterBand, cn, KindLabel } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { PageFoot } from '../../ssg/types'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
@@ -9,7 +9,7 @@ import { EntityPageStamps } from './EntityPageStamps'
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
  * 08b): its chapter's band at the head, the title notched in and, right of
  * it, one cluster of everything else the head carries — the parent link, the
- * type stamps and "Build with this" (EDL E20: nothing but the breadcrumb sits
+ * stamps and "Build with this" (EDL E20: nothing but the breadcrumb sits
  * above a show page's title; on a phone the cluster follows the title, the
  * band's `asideAt="notch"`); then the body. The page's foot band — the citation
  * ("p.112 · Workshop Manual · also in …") — is the site
@@ -133,6 +133,7 @@ export function EntityPageFrame({
         asideAt="notch"
       >
         {title}
+        <KindLabel kind={meta.typeLabel} />
       </ChapterBand>
       <div className="srd-entity__body" style={{ maxWidth: measure }}>
         {children}

@@ -4,7 +4,6 @@ import type { StatItem } from '../../components/containers/statsBarTypes'
 import { CardLabels } from '../../components/referenceEntity/card/CardLabels'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
-import { CardPennant } from '../../components/referenceEntity/card/CardPennant'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -12,12 +11,13 @@ import { SelectCheck, SelectedSeal, SelectSurface } from '../modes/select'
 import { SELECTED_RING } from '../modes/selectedRing'
 import { Art } from '../parts/Art'
 import { actionTypeStamps } from '../parts/actionStamps'
-import { Facts } from '../parts/Facts'
+import { Chips } from '../parts/Chips'
+import type { ChipSet } from '../parts/chipSet'
+import { chipCount } from '../parts/chipSet'
 import { factCells } from '../parts/factCells'
 import { Head } from '../parts/Head'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
-import { Tags } from '../parts/Tags'
 import type { TagItem } from '../parts/tagItems'
 import { traitTags } from '../parts/tagItems'
 import { usePeekAttrs } from '../peekContext'
@@ -40,10 +40,14 @@ export type RowSlots = {
   titleAs?: ElementType
   facts?: StatItem[]
   tags?: TagItem[]
-  stamps?: string[]
+  /** The action types, as the book prints them ("Turn Action"). */
+  durations?: string[]
+  /** The cost as printed ("2 EP"), a chip; `null` for none. */
+  cost?: string | null
   /** A stamp leading the body ("Suggested"). */
   leading?: ReactNode
   hint?: ReactNode
+  /** The Dashboard's pennant button (a read cost is a chip). */
   pennant?: ReactNode
   chevron?: boolean
   /** `false` drops the art column (a pattern row, `hide.image`). */
@@ -81,14 +85,14 @@ const READ: EntityMode = { kind: 'read' }
 
 /**
  * ROW — the workhorse form (entity display language §3): every list of
- * entities. An art column (by schema and room, E10), a head (tier, name,
- * action-type stamp, cost pennant, the mode's affordance; over a body, the
- * tier on the band and the name on the paper cut-out notched into its foot, as a
- * Tile's, with no rule between head and body) and a paper body
- * whose first row is the facts and facets as Stats, then the traits as Tags
- * (E17: no "//" line), then the lead while browsing (E11). Fill follows kind
- * (E12): a "have" entity's tone, an ability's tier tone (Core orange, Advanced
- * rust, Legendary purple), any other "do" entity's ink banner with paper flecks.
+ * entities. An art column (by schema and room, E10), a head (tier, name, the
+ * chip group — action type, cost, facts, traits (E17) — right of the name or
+ * under it, the mode's affordance) and, only when something is left to show,
+ * a paper body: a leading stamp and the lead while browsing (E11). A bodied
+ * head with no chips keeps its tier on the band and sets its name on the paper
+ * cut-out notched into the band's foot, as a Tile's. Fill follows kind (E12):
+ * a "have" entity's tone, an ability's tier tone (Core orange, Advanced rust,
+ * Legendary purple), any other "do" entity's ink banner with paper flecks.
  */
 export function Row({
   model,
@@ -112,15 +116,15 @@ export function Row({
   const title = instance?.title ?? model.title
   const selected = mode.kind === 'select' && mode.selected
 
-  const facts = slots.facts ?? factCells(model.facts, omit)
-  const tags = slots.tags ?? traitTags(model.traits)
+  const cost = slots.cost === undefined ? model.cost : (slots.cost ?? undefined)
+  const chips: ChipSet = {
+    durations: slots.durations ?? actionTypeStamps(model.actionType, model.mechActionType),
+    ...(cost ? { cost } : {}),
+    facts: slots.facts ?? factCells(model.facts, omit),
+    tags: slots.tags ?? traitTags(model.traits),
+  }
   const leadText = lead ? model.lead : undefined
-  const hasBody =
-    !slots.bodyless && (facts.length > 0 || tags.length > 0 || !!slots.leading || !!leadText)
-
-  const pennant =
-    slots.pennant ??
-    (model.cost ? <CardPennant cost={model.cost} size="medium" subject={title} /> : undefined)
+  const hasBody = !slots.bodyless && (!!slots.leading || !!leadText)
   const affordance =
     slots.chevron || target.href || target.onOpen ? (
       <LinkChevron />
@@ -139,8 +143,7 @@ export function Row({
     ) : omit.includes('kind') && !userMade ? null : (
       <CardLabels
         seal={undefined}
-        // A pattern's Row wears no "Pattern" stamp: its quoted name says it.
-        typeStamp={omit.includes('kind') || model.ref.pattern ? undefined : model.kind.stamp}
+        note={model.kind.note}
         axisMarkers={[]}
         legalStartingPattern={false}
         userMade={userMade}
@@ -163,12 +166,22 @@ export function Row({
       <div className="su-entity-row__main">
         <Head
           title={title}
+          kind={omit.includes('kind') ? undefined : model.kind.stamp}
           titleAs={slots.titleAs}
           paint={paint}
           tier={omit.includes('tier') ? undefined : model.tier}
-          stamps={slots.stamps ?? actionTypeStamps(model.actionType, model.mechActionType)}
+          chips={
+            chipCount(chips) > 0 ? (
+              <Chips
+                chips={chips}
+                rung="compact"
+                onInk={paint.ink}
+                linkable={mode.kind === 'read' && !slots.outer}
+              />
+            ) : undefined
+          }
           hint={slots.hint}
-          pennant={pennant}
+          pennant={slots.pennant}
           affordance={affordance}
           labels={labels}
           // A pattern wears the cut-out even as a bodyless list row.
@@ -177,8 +190,6 @@ export function Row({
         {hasBody && (
           <div className="su-entity-row__body" style={down ? { opacity: 0.6 } : undefined}>
             {slots.leading}
-            <Facts cells={facts} />
-            <Tags tags={tags} linkable={mode.kind === 'read' && !slots.outer} />
             {leadText && <Lead text={leadText} />}
           </div>
         )}

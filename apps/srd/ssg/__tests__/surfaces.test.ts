@@ -142,7 +142,8 @@ describe('an entity page (boards 07, 08)', () => {
   const html = page('/chassis/gopher')
 
   it('notches the name into the chapter band, the page’s one h1', () => {
-    expect(h1s(html)).toEqual(['Gopher'])
+    // The kind is never stamped (E9): the h1 reads it out after the name.
+    expect(h1s(html)).toEqual(['Gopher (Chassis)'])
   })
 
   it('sets the stats in the book’s stat column, in its words', () => {
@@ -168,7 +169,7 @@ describe('a pattern page names and links its base chassis', () => {
     // The title leads the heading order; the band's cluster follows it.
     expect(link).toBeGreaterThan(html.indexOf('<h1'))
     expect(html.indexOf('su-chapter-band__eyebrow')).toBe(-1)
-    expect(h1s(html)).toEqual(['“Buzzard”'])
+    expect(h1s(html)).toEqual(['“Buzzard” (Pattern)'])
   })
 
   it('wears no standalone "Pattern" stamp', () => {
@@ -230,7 +231,7 @@ describe('a roll table rolls on its own page (board 08b)', () => {
   const html = page('/roll-tables/core-mechanic')
 
   it('mounts the roll island over its server-rendered bands', () => {
-    expect(h1s(html)).toEqual(['Core Mechanic'])
+    expect(h1s(html)).toEqual(['Core Mechanic (Roll Table)'])
     expect(islands(html, 'RollTableIsland')).toBe(1)
     expect(islands(html, 'ReferenceEntityIsland')).toBe(0)
     expect(html).toContain('Roll the Die:')
@@ -259,7 +260,7 @@ describe('a columns table rolls on its own page too', () => {
   const html = page('/roll-tables/callsign-table')
 
   it('is the same instrument, banded in the page band’s tone', () => {
-    expect(h1s(html)).toEqual(['Callsign Table'])
+    expect(h1s(html)).toEqual(['Callsign Table (Roll Table)'])
     expect(html).toContain('class="su-roll__stamp">Roll twice:<')
     expect(html).toContain(RULES_ROLL_BAND)
     expect(html).not.toContain('--su-roll-band:var(--color-band-cream)')

@@ -31,7 +31,7 @@ describe('a Starter Set sheet', () => {
       </ConnectionProvider>
     )
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw (Pilot)' })).toBeTruthy()
     expect(screen.getByText('Starter Set · Leyline Press · read-only')).toBeTruthy()
     // Read-only: no edit affordance at all, so nothing can reach a template —
     // not even a disabled Read | Edit, which could only say no.

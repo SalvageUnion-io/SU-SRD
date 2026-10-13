@@ -133,14 +133,15 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
 })
 
 describe('LiveSheet — the chapter band (board 10)', () => {
-  test('the name is the band’s h1, with the kind stamp, its detail and provenance', () => {
+  test('the name is the band’s h1 (its kind for screen readers), its detail and provenance', () => {
     renderShell({
       kindDetail: 'Engineer',
       band: { provenance: 'Starter Set · Leyline Press · read-only' },
     })
-    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex' })
+    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
     const band = within(must(title.closest<HTMLElement>('.su-chapter-band')))
-    expect(band.getByText('pilot')).toBeTruthy()
+    // The kind is never stamped (EDL E9).
+    expect(band.queryByText('pilot')).toBeNull()
     expect(band.getByText('Engineer')).toBeTruthy()
     expect(band.getByText('Starter Set · Leyline Press · read-only')).toBeTruthy()
   })
@@ -159,7 +160,7 @@ describe('LiveSheet — the chapter band (board 10)', () => {
         { key: 'mech', label: 'Mech', href: '/sheet/mech/m', active: false },
       ],
     })
-    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex' })
+    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
     expect(bar().queryByRole('button', { name: 'Share' })).toBeNull()
     expect(bar().queryByRole('navigation', { name: 'Assigned sheets' })).toBeNull()
     const after = (el: Element) =>

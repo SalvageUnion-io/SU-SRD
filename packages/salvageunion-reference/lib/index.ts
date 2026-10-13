@@ -180,7 +180,13 @@ export {
   resolveProvenance,
 } from './view/parts/cite'
 export type { ItemCondition, StatLabel } from './view/parts/facts'
-export { bookStats, CONDITION_LABELS, entityStats, STAT_LABELS } from './view/parts/facts'
+export {
+  ACTION_TYPE_LABELS,
+  bookStats,
+  CONDITION_LABELS,
+  entityStats,
+  STAT_LABELS,
+} from './view/parts/facts'
 export { entityTone, guideTone, headerFill } from './view/parts/fill'
 export {
   bayKind,

@@ -210,6 +210,22 @@ describe('card band contrast', () => {
     expect(banner ? ratio(banner) : 0).toBeGreaterThan(10)
   })
 
+  // E17: the chips sit on the band. A chip's two cells are ink and paper
+  // plates, text on each the other (4.5:1 by construction); on the ink banner
+  // its ink cell has no edge of its own, so `.su-chips--on-ink` keeps a paper
+  // rule round every cell, and that rule owes 3:1 against the band (WCAG 1.4.11).
+  test('a chip on the ink banner keeps a paper rule that clears 3:1 against it', () => {
+    const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = css.match(/\.su-chips--on-ink \.su-stat-cell\s*\{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toContain('border-color: var(--color-paper)')
+    expect(contrastRatio(INK, PAPER)).toBeGreaterThanOrEqual(TEXT_CONTRAST)
+    for (const name of ['ink banner', 'ink banner damaged']) {
+      const banner = header.find((b) => b.name === name)
+      expect(banner?.ground).toBeDefined()
+      expect(contrastRatio(banner?.ground ?? PAPER, PAPER)).toBeGreaterThanOrEqual(3)
+    }
+  })
+
   test('a small card’s title is under the large-text threshold, so owes 4.5:1', () => {
     expect(px(fontSize[titleSizeRung(0, 'small')])).toBeLessThan(LARGE_BOLD_TEXT_PX)
     expect(owedByTitle(titleSizeRung(0, 'small'))).toBe(4.5)

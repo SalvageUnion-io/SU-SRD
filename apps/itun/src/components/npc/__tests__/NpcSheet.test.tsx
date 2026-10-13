@@ -67,7 +67,7 @@ beforeEach(async () => {
 describe('the sheet', () => {
   test('the stat block is the reference NPC card, user-made and credited', async () => {
     await renderSheet()
-    expect(screen.getAllByText('NPC · from Veteran').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('From Veteran').length).toBeGreaterThan(0)
     expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
     expect(screen.getAllByText('Green Laser Rifle (Veteran)').length).toBeGreaterThan(0)
   })

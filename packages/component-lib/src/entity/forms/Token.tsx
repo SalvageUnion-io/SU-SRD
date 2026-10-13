@@ -8,6 +8,8 @@ import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
+import { costCell } from '../parts/chipSet'
+import { KindLabel } from '../parts/KindLabel'
 import { PAPER_NAME, paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityRowModel } from '../types'
@@ -28,14 +30,18 @@ function defaultFact(model: EntityRowModel): TokenFact | undefined {
 export type TokenSlots = {
   outer?: CardOuterProps
   frameStyle?: CSSProperties
+  /** The kind, for screen readers (`KindLabel`). */
   kind?: string
   fact?: TokenFact | null
+  /** The Dashboard's pennant button. */
   pennant?: ReactNode
+  /** A read cost ("1 EP"), as its chip. */
+  cost?: string
   down?: boolean
 }
 
 /*
- * The pill, its kind stamp and its name are `.su-entity-token__*` classes
+ * The pill, its note stamp and its name are `.su-entity-token__*` classes
  * (`styles/index.css`), not style objects: a page lists tokens by the dozen,
  * so inline they repeated on every one (ADR-046, repeated elements). The
  * pill's paint and a caller's frame stay inline; a player-made pill's dashes
@@ -56,8 +62,10 @@ const VISUALLY_HIDDEN: CSSProperties = {
 }
 
 /**
- * TOKEN — the shortform (§3): `[kind] name [fact]`, one size, for many on a
- * line or a slot under 12rem (E3). A tone pill for a thing you have, the tier
+ * TOKEN — the shortform (§3): `name [fact]`, one size, for many on a line or
+ * a slot under 12rem (E3). Its kind is never stamped (E9): screen readers
+ * hear it after the name (`KindLabel`); a player unit's note ("Engineer")
+ * leads in its place. A tone pill for a thing you have, the tier
  * tone or ink for a thing you do, dashed when player-made. It wraps as a
  * whole, never mid-token; in link mode it opens its entity. Hover, focus or a
  * long press Peeks it: the whole card, read-only (E16).
@@ -86,6 +94,7 @@ export function Token({
   const title = instance?.title ?? model.title
   const shown =
     slots.fact !== undefined ? slots.fact : fact !== undefined ? fact : defaultFact(model)
+  const cost = slots.cost ? costCell(slots.cost) : undefined
   const pill = (
     <span
       data-user-made={userMade || undefined}
@@ -94,13 +103,17 @@ export function Token({
       style={{ backgroundColor: paint.background, color: paint.color, ...slots.frameStyle }}
     >
       {userMade && <span style={VISUALLY_HIDDEN}>User-made </span>}
-      <span className={cn('su-entity-token__kind', paint.ink && 'su-entity-token__kind--on-ink')}>
-        {slots.kind ?? model.kind.type}
-      </span>
+      {model.kind.note && (
+        <span className={cn('su-entity-token__kind', paint.ink && 'su-entity-token__kind--on-ink')}>
+          {model.kind.note}
+        </span>
+      )}
       <span className="su-entity-token__name">
         {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
+        <KindLabel kind={slots.kind ?? model.kind.type} />
       </span>
       {slots.pennant}
+      {cost && <Stat orientation="horizontal" label={cost.label} value={cost.value} size="mini" />}
       {shown && (
         <Stat orientation="horizontal" label={shown.label} value={shown.value} size="mini" />
       )}

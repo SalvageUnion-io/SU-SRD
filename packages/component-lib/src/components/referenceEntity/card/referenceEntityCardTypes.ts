@@ -37,9 +37,9 @@ export type ReferenceEntityCardProps = {
   parentSeal?: { label: string; tone: string }
   /**
    * CUT-OUT — the card's head is the Row's (`entity/parts/Head`): its name on
-   * the paper cut-out notched into the band, its labels right of it, and its
-   * value cells in the facts row under the head (E17), as a bodied Row's. An
-   * embedded crew NPC (a crawler's, a bay's) wears it, set by its group.
+   * the paper cut-out notched into the band, its labels and chip group (E17)
+   * on the band right of it. An embedded crew NPC (a crawler's, a bay's)
+   * wears it, set by its group.
    */
   cutOut?: boolean
   /** Set the nested card's prose at the regular reading size (14px) instead of

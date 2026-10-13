@@ -14,7 +14,6 @@ import {
   crawlerChips,
   crawlerIsKept,
   crawlerReading,
-  kicker,
   linkChip,
   mechChips,
   npcChips,
@@ -184,9 +183,7 @@ describe('a pattern’s chips', () => {
 })
 
 describe('the line', () => {
-  test('the stamp reads the kind, then what it is', () => {
-    expect(kicker('Pilot', 'Engineer')).toBe('Pilot · Engineer')
-    expect(kicker('Crawler', undefined)).toBe('Crawler')
+  test('the stamp reads what it is, never its kind', () => {
     expect(chassisFact('scrapper')).toBe('Scrapper')
   })
 

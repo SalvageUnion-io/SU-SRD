@@ -11,10 +11,11 @@ import type { CSSProperties, ReactNode } from 'react'
 /**
  * EntityPageStamps — what an entity page's chapter band carries right of its
  * title (boards 07, 08; EDL E20), as one line that wraps: `lead` (a pattern's
- * parent link), the type stamp, an ability's level and its cost, then
- * the Tech Level, every one at the stat column's height and type: the level
- * and Tech Level as its framed-numeral cells, the stamps sized to match
- * (`.srd-entity-stamp`). Tech Level is the first thing a table asks of anything it
+ * parent link), the Legal Starting Pattern stamp, an ability's level, then
+ * the Tech Level. Never the kind (E9: the title says it to screen readers)
+ * and never the cost (a chip in the page's chip group, E17). Each is at the
+ * stat column's height and type: the level and Tech Level as its
+ * framed-numeral cells, the stamps sized to match (`.srd-entity-stamp`). Tech Level is the first thing a table asks of anything it
  * can field or buy, so it is not a chip here: it is the stat column's own cell
  * (`2 | TECH LEVEL`, the framed numeral beside the ink stamp), the size the
  * page body draws its stats, and the body leaves it out of its column; then
@@ -25,7 +26,7 @@ import type { CSSProperties, ReactNode } from 'react'
 
 type EntityPageStampsProps = {
   meta: EntityPageMeta
-  /** A pattern the book sanctions as a starting build: its stamp after the type's. */
+  /** A pattern the book sanctions as a starting build: its stamp after the parent link. */
   legalStartingPattern?: boolean
   /** Before the stamps: the link to what the entity is built on. */
   lead?: ReactNode
@@ -49,11 +50,6 @@ export function EntityPageStamps({
   return (
     <div style={ROW}>
       {lead}
-      {meta.typeLabel && (
-        <Badge shape="stamp" size="compact" className="srd-entity-stamp">
-          {meta.typeLabel}
-        </Badge>
-      )}
       {legalStartingPattern && (
         <Badge
           shape="stamp"
@@ -66,11 +62,6 @@ export function EntityPageStamps({
       )}
       {meta.numeral && (
         <StatColumn stats={[{ key: 'level', label: 'LVL', value: meta.numeral }]} label="Level" />
-      )}
-      {meta.cost && (
-        <Badge shape="stamp" size="compact" surface="inverse" className="srd-entity-stamp">
-          {meta.cost}
-        </Badge>
       )}
       {meta.techLevel && (
         <StatColumn

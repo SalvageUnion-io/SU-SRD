@@ -129,6 +129,17 @@
   flex: 0 1 auto;
 }
 
+.su-entity-row__labels:empty {
+  display: none;
+}
+
+/* Beside a hint (a pattern row's description) the name and its labels keep
+   their width and the hint, which has none of its own, takes the rest. */
+.su-entity-row__line:has(> .su-entity-row__hint) > .su-entity-row__name {
+  flex: 0 1 auto;
+  min-width: min-content;
+}
+
 /*
  * THE CUT-OUT (`Head`'s `notch`: a Row with a body, a pattern row): the tier
  * and name sit on a tab of the paper below, notched into the band's foot, in
@@ -168,6 +179,78 @@
   margin-left: calc(-1 * var(--space-2));
   min-width: min-content;
   padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
+/* CHIPS (`entity/parts/Chips.tsx`): every chip of an entity, one group, one
+   style, wrapping; never a chip cut to "…" (E18). */
+.su-chips {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.su-chips--end {
+  justify-content: flex-end;
+}
+
+/* A head with chips (`Head`'s `chips`): the name and the chip group share a
+   wrapping heading, as a card's band does (`.su-ec-band__heading`): the name
+   keeps its one-line width and grows, the chips sit right of it while they
+   fit and drop whole onto a line under it when they do not. A head with chips
+   wears no cut-out: its name no longer sits at the band's foot. */
+.su-entity-row__heading {
+  align-items: center;
+  display: flex;
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-10);
+  min-width: 0;
+}
+
+.su-entity-row__heading > .su-entity-row__name {
+  flex: 1 0 auto;
+  max-width: 100%;
+}
+
+.su-entity-row__heading > .su-chips {
+  flex: 0 1 auto;
+}
+
+/* A cut-out head with chips (`Head`'s `chipsBeside`): the chips stay on the
+   band right of the name, wrapping there, never under the tab. */
+.su-entity-row__head[data-notch] .su-entity-row__line > .su-chips {
+  flex: 0 1 auto;
+}
+
+/* On the ink banner each cell keeps a paper rule, or its paper value cell
+   would lose its edge and its ink label cell vanish into the band. */
+.su-chips--on-ink .su-stat-cell {
+  border-color: var(--color-paper);
+}
+
+/* A trait chip (`Tag`): the cell is the whole target when it links. */
+.su-chip-link {
+  background: none;
+  border: 0;
+  border-radius: var(--radius-badge);
+  color: inherit;
+  display: inline-flex;
+  flex: none;
+  font: inherit;
+  max-width: 100%;
+  padding: 0;
+  text-decoration: none;
+}
+
+:is(a, button).su-chip-link,
+:is(a, button).su-chip-link .su-stat-cell {
+  cursor: pointer;
+}
+
+:is(a, button).su-chip-link:hover .su-stat-plate--label {
+  text-decoration: underline;
 }
 
 /* The paper body: the facts, the tags, the lead. No rule above it: the
@@ -345,7 +428,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   text-decoration: none;
 }
 
-/* TOKEN (`entity/forms/Token.tsx`): the pill, `[kind] name [fact]`, dashed
+/* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] name [fact]`, dashed
    when player-made. It wraps as a whole, never mid-token. */
 .su-entity-token__pill {
   align-items: center;
@@ -383,7 +466,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding: 1px var(--space-4);
 }
 
-/* On an ink pill (a thing you do) the kind stamp keeps a paper edge. */
+/* On an ink pill (a thing you do) the note stamp keeps a paper edge. */
 .su-entity-token__kind--on-ink {
   border-color: var(--color-paper);
 }

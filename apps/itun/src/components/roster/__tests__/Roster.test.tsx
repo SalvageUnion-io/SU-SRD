@@ -312,7 +312,9 @@ describe('Shelves — items', () => {
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/pilot/${id}`)
     expect(line?.textContent).toContain('Nia Vale')
-    expect(line?.textContent).toContain('Pilot · Engineer')
+    // What it is built as, never its kind (EDL E9: screen readers hear that).
+    expect(line?.textContent).toContain('Engineer')
+    expect(line?.textContent).not.toContain('Pilot ·')
     expect(line?.textContent).toContain('HP')
     expect(within(pilots).getByText('Not in a Game')).toBeTruthy()
   })

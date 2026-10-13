@@ -63,7 +63,7 @@ const CHIP = {
 
 type ShelfItemProps = {
   kind: ShelfKind
-  kicker: string
+  note?: string | undefined
   name: string
   reading?: ShelfReading
   href?: string
@@ -75,7 +75,7 @@ type ShelfItemProps = {
 
 export function ShelfItem({
   kind,
-  kicker,
+  note,
   name,
   reading,
   href,
@@ -89,7 +89,7 @@ export function ShelfItem({
       <div style={BODY}>
         <ShelfPill
           kind={kind}
-          kicker={kicker}
+          note={note}
           name={name}
           reading={reading}
           href={href}

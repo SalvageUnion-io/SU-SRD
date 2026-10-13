@@ -293,7 +293,7 @@ describe('Pilot hero — readOnly identity', () => {
   test('a callsign that is the name is the band’s title alone', () => {
     renderHero(makePilot({ name: 'Bonesaw', callsign: 'Bonesaw' }), undefined, true)
     expect(screen.queryByText('Callsign')).toBeNull()
-    expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw (Pilot)' })).toBeTruthy()
   })
 
   test('Edit keeps both fields: they are where callsign and class are changed', () => {

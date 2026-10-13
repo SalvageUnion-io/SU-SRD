@@ -4,7 +4,7 @@ import { Caption } from 'component-lib/stories/harness'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { chassisFact, crawlerFact, kicker, pilotFact } from '../../lib/shelves/shelfItems'
+import { chassisFact, crawlerFact, pilotFact } from '../../lib/shelves/shelfItems'
 import { ShelfItem } from './ShelfItem'
 
 export default {
@@ -59,7 +59,7 @@ export const Default: Story = () => (
     <ul style={LIST}>
       <ShelfItem
         kind="pilot"
-        kicker={kicker('Pilot', bonesaw ? pilotFact(bonesaw) : undefined)}
+        note={bonesaw ? pilotFact(bonesaw) : undefined}
         name={bonesaw?.name ?? 'Bonesaw'}
         reading={{ label: 'HP', value: '8/10' }}
         href="#/sheet/pilot/bonesaw"
@@ -72,7 +72,7 @@ export const Default: Story = () => (
       />
       <ShelfItem
         kind="mech"
-        kicker={kicker('Mech', scrapper ? chassisFact(scrapper.chassisRef) : undefined)}
+        note={scrapper ? chassisFact(scrapper.chassisRef) : undefined}
         name={scrapper?.name ?? 'Scrapper'}
         reading={{ label: 'SP', value: '7/9' }}
         href="#/sheet/mech/scrapper"
@@ -84,7 +84,7 @@ export const Default: Story = () => (
       />
       <ShelfItem
         kind="crawler"
-        kicker={kicker('Crawler', tenacity ? crawlerFact(tenacity) : undefined)}
+        note={tenacity ? crawlerFact(tenacity) : undefined}
         name={tenacity?.name ?? 'Tenacity'}
         reading={{ label: 'TL', value: '1' }}
         href="#/sheet/crawler/tenacity"
@@ -96,7 +96,7 @@ export const Default: Story = () => (
       />
       <ShelfItem
         kind="pattern"
-        kicker={kicker('Pattern', scrapper ? chassisFact(scrapper.chassisRef) : undefined)}
+        note={scrapper ? chassisFact(scrapper.chassisRef) : undefined}
         name={bookPattern ?? 'Scrapper'}
         reading={{ label: 'SYS', value: '12/12' }}
         href="#/p/pattern/scrapper"

@@ -64,7 +64,6 @@ export function starterShelves(): StarterShelf[] {
         name: p.name,
         model: unitRowModel({
           kind: 'pilot',
-          stamp: 'Pilot',
           name: p.name,
           readings: readings(pilotStats(p.classRef)),
           art: photoArt(p.photo) ?? artOf('class', () => findClass(p.classRef)),
@@ -80,7 +79,6 @@ export function starterShelves(): StarterShelf[] {
         name: m.name,
         model: unitRowModel({
           kind: 'mech',
-          stamp: 'Mech',
           name: m.name,
           readings: readings(mechChassisStats(m.chassisRef)),
           art: artOf('chassis', () => resolveChassisRef(m.chassisRef)),
@@ -95,7 +93,6 @@ export function starterShelves(): StarterShelf[] {
         name: c.name,
         model: unitRowModel({
           kind: 'crawler',
-          stamp: 'Crawler',
           name: c.name,
           readings: readings(crawlerStats(c.techLevel, c.crawlerBays?.length ?? 0)),
           art:

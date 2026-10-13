@@ -16,18 +16,24 @@ export type UnitKind = 'pilot' | 'mech' | 'crawler' | 'pattern' | 'npc'
 /** The reference schema each kind is built on, the tone it wears and its domain. */
 const KIND: Record<
   UnitKind,
-  { schemaName: EntitySchemaName; tone: string; domain: EntityRowModel['kind']['domain'] }
+  {
+    schemaName: EntitySchemaName
+    tone: string
+    domain: EntityRowModel['kind']['domain']
+    /** The kind, for screen readers only (never a stamp, EDL E9). */
+    label: string
+  }
 > = {
-  pilot: { schemaName: 'classes', tone: 'pilot', domain: 'pilot' },
-  mech: { schemaName: 'chassis', tone: 'mech', domain: 'mech' },
-  crawler: { schemaName: 'crawlers', tone: 'crawler', domain: 'crawler' },
-  pattern: { schemaName: 'chassis', tone: 'mech', domain: 'mech' },
-  npc: { schemaName: 'npcs', tone: 'adversary', domain: 'actor' },
+  pilot: { schemaName: 'classes', tone: 'pilot', domain: 'pilot', label: 'Pilot' },
+  mech: { schemaName: 'chassis', tone: 'mech', domain: 'mech', label: 'Mech' },
+  crawler: { schemaName: 'crawlers', tone: 'crawler', domain: 'crawler', label: 'Crawler' },
+  pattern: { schemaName: 'chassis', tone: 'mech', domain: 'mech', label: 'Pattern' },
+  npc: { schemaName: 'npcs', tone: 'adversary', domain: 'actor', label: 'NPC' },
 }
 
 export function unitRowModel({
   kind,
-  stamp,
+  note,
   name,
   readings = [],
   userMade = false,
@@ -35,8 +41,8 @@ export function unitRowModel({
   lead,
 }: {
   kind: UnitKind
-  /** The kind as the unit's stamp says it: "Pilot · Engineer", "mech". */
-  stamp: string
+  /** What it is built as, stamped where its kind is not: "Engineer", "Mule". */
+  note?: string | undefined
   name: string
   /** Its readings (`SP 9/9`), as Stat cells. */
   readings?: { label: string; value: string }[]
@@ -47,12 +53,12 @@ export function unitRowModel({
   /** Its own line, for a Row's `lead` (a pilot's motto). */
   lead?: string
 }): EntityRowModel {
-  const { schemaName, tone, domain } = KIND[kind]
+  const { schemaName, tone, domain, label } = KIND[kind]
   const slug = nameToSlug(name)
   return {
     ref: { schemaName, id: `unit/${kind}/${slug}`, slug, name, synthetic: true },
     title: userMade ? `“${name}”` : name,
-    kind: { stamp, type: stamp, domain, nature: 'have' },
+    kind: { stamp: label, type: label, domain, nature: 'have', ...(note ? { note } : {}) },
     tone,
     facts: readings.map((r) => ({ key: r.label, label: r.label, short: r.label, value: r.value })),
     traits: [],

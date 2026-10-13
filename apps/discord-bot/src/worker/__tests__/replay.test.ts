@@ -401,7 +401,7 @@ describe('interaction dispatch', () => {
     }
     expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
     expect((body.data?.flags ?? 0) & 64).toBe(64)
-    expect(JSON.stringify(body.data?.components)).toContain('PATTERN · MULE')
+    expect(JSON.stringify(body.data?.components)).toContain('PATTERN OF MULE')
   })
 
   test('the message context menu reads the target message', async () => {

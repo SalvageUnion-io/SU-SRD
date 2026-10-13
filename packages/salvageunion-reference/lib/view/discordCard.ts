@@ -12,7 +12,7 @@
  * Discord paints one colour per message (the accent stripe) and none inside
  * text, so the book's devices become type and punctuation:
  *
- * - the seam stamp → a `-#` caps kicker, with an action's type and cost;
+ * - an action's type and cost → a `-#` caps kicker (never the entity's kind);
  * - the head → `## Name` as a link to its page, an ability's tier numeral first;
  * - value cells → `` `12` STRUCTURE PTS. ``, three to a line, in the book's
  *   words and order (`bookStats`);
@@ -29,6 +29,7 @@ import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { formatProvenance } from './parts/cite'
+import { formatActionType } from './parts/traits'
 import { toEntityModel } from './toEntityModel'
 import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
 
@@ -255,13 +256,26 @@ function traitTags(traits: TraitMention[]): string {
     .join(' · ')
 }
 
-/** The seam stamp as a kicker: `-# ABILITY · ADVANCED HACKING TREE · REACTION · \`1 AP\``. */
-function kicker(model: EntityModel): string {
-  const parts = [model.kind.stamp.toUpperCase()]
-  if (model.parent) parts.push(model.parent.ref.name.toUpperCase())
-  if (model.actionType) parts.push(model.actionType.toUpperCase())
+/** An action's type as the book prints it, a split one Mech first. */
+function actionTypeLine(model: EntityModel): string | undefined {
+  if (!model.actionType) return undefined
+  const own = formatActionType(model.actionType)
+  return model.mechActionType
+    ? `${formatActionType(model.mechActionType)} (Mech) · ${own} (Pilot)`
+    : own
+}
+
+/**
+ * The kicker: `-# REACTION · \`1 AP\``, a pattern's `-# PATTERN OF MULE`. It never
+ * names the entity's kind (E9), so it is absent when nothing else is said.
+ */
+function kicker(model: EntityModel): string | undefined {
+  const parts: string[] = []
+  if (model.parent) parts.push(`${model.parent.label} ${model.parent.ref.name}`.toUpperCase())
+  const actionType = actionTypeLine(model)
+  if (actionType) parts.push(actionType.toUpperCase())
   if (model.cost) parts.push(`\`${model.cost}\``)
-  return `-# ${parts.join(' · ')}`
+  return parts.length > 0 ? `-# ${parts.join(' · ')}` : undefined
 }
 
 /** The head line: `## [Mule](…)`, or `## 2 · [Counter-Hacking](…)`. */
@@ -286,7 +300,7 @@ function actionBand(ref: EntityRef, ownName: string, chassisName?: string): Disc
   if (!record) return null
   const model = toEntityModel(record as SURefMetaEntity)
   const meta = [
-    model.actionType,
+    actionTypeLine(model),
     model.cost ? `\`${model.cost}\`` : undefined,
     ...factCells(model.facts, 99),
   ].filter(Boolean)
@@ -356,7 +370,8 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
   const chassisName =
     model.ref.schemaName === 'chassis' ? (model.parent?.ref.name ?? model.title) : undefined
 
-  const head = [kicker(model), heading(model, url), ...factCells(cellFacts(model))]
+  const lead = kicker(model)
+  const head = [...(lead ? [lead] : []), heading(model, url), ...factCells(cellFacts(model))]
   if (model.traits.length > 0) head.push(traitTags(model.traits))
 
   // The entity's own prose, then its folded self-action's: a system's rules

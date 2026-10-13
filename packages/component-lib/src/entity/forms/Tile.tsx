@@ -1,12 +1,13 @@
 import type { CSSProperties } from 'react'
+import { Stat } from '../../components/atoms/Stat'
 import { assetSrcSetFor } from '../../components/compositions/assetSrcSet'
-import { CardPennant } from '../../components/referenceEntity/card/CardPennant'
 import { grainClass } from '../../components/referenceEntity/card/cardGrain'
 import { font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
+import { costCell } from '../parts/chipSet'
 import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
@@ -60,8 +61,9 @@ const NAME: CSSProperties = {
  * (the line art multiplied onto it); an entity without art has no art place,
  * so its tile opens on the band. Then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
- * Manual's chapter band at a tile's scale — then the facts as value cells and,
- * while browsing, the lead clamped to three lines.
+ * Manual's chapter band at a tile's scale — then the cost and the facts as
+ * chips (`EP | 2`, `SLOTS | 1`) and, while browsing, the lead clamped to three
+ * lines.
  * Layout is `index.css`'s `.su-entity-tile*`.
  */
 export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps) {
@@ -71,6 +73,7 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
   const facts = factCells(model.facts, omit)
   const { art } = model
   const leadText = lead ? model.lead : undefined
+  const cost = model.cost ? costCell(model.cost) : undefined
 
   return (
     <LinkSurface
@@ -107,11 +110,13 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
               {model.title}
             </span>
           </span>
-          {model.cost && <CardPennant cost={model.cost} size="medium" subject={model.title} />}
           {(target.href || target.onOpen) && <LinkChevron />}
         </div>
-        {(facts.length > 0 || leadText) && (
+        {(cost || facts.length > 0 || leadText) && (
           <div className="su-entity-tile__cells">
+            {cost && (
+              <Stat orientation="horizontal" label={cost.label} value={cost.value} size="compact" />
+            )}
             <Facts cells={facts} size="compact" />
             {leadText && <Lead text={leadText} />}
           </div>

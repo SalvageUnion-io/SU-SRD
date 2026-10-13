@@ -135,15 +135,15 @@ function templateName(ref: NpcTemplateRef): string | null {
 }
 
 /**
- * The kicker the card wears in its header labels and its footer (D9): "NPC · from
- * Veteran" for an NPC built from a reference template, "Crawler crew · Med Bay"
- * for crew, "NPC" for one started blank.
+ * The note the card wears in its header labels (D9): "From Veteran" for an NPC
+ * built from a reference template, "Crawler crew · Med Bay" for crew, none for
+ * one started blank. Never the kind "NPC" (EDL E9).
  */
-export function npcKicker(npc: Pick<NpcView, 'templateRef'>): string {
+export function npcKicker(npc: Pick<NpcView, 'templateRef'>): string | undefined {
   const ref = npc.templateRef
-  if (ref === undefined) return 'NPC'
+  if (ref === undefined) return undefined
   const name = templateName(ref)
-  if (ref.schema === 'npcs') return name === null ? 'NPC' : `NPC · from ${name}`
+  if (ref.schema === 'npcs') return name === null ? undefined : `From ${name}`
   if (ref.schema === 'crawler-bays')
     return name === null ? 'Crawler crew' : `Crawler crew · ${name}`
   return name === null ? 'Crawler crew' : `Crawler crew · ${name} type`

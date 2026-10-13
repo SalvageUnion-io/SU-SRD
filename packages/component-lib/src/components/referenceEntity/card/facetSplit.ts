@@ -56,8 +56,3 @@ export function splitFacets(cells: readonly CardFacetCell[]): SplitFacets {
   }
   return { stamps, facts, tags }
 }
-
-/** A cut-out card's facets row (`CardHead`): the head's value cells first, then the facets' own. */
-export function withHeadFacts(facets: SplitFacets, headStats: StatItem[]): SplitFacets {
-  return headStats.length > 0 ? { ...facets, facts: [...headStats, ...facets.facts] } : facets
-}

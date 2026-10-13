@@ -19,6 +19,8 @@ import {
   discordCardParts,
   linkTraitReferences,
 } from '../discordCard'
+import { ACTION_TYPE_LABELS } from '../parts/facts'
+import { formatActionType } from '../parts/traits'
 import { toEntityModel } from '../toEntityModel'
 
 /** Rendered characters, as Discord counts them across every text display. */
@@ -53,9 +55,9 @@ describe('discordCardParts', () => {
   test('a chassis prints the book stat column, three cells to a line', () => {
     const parts = partsFor('chassis', 'mule')
     expect(parts.tone).toBe('mech')
-    expect(parts.head[0]).toBe('-# CHASSIS')
-    expect(parts.head[1]).toBe('## [Mule](https://salvageunion.io/chassis/mule)')
-    expect(parts.head[2]).toBe('`12` STRUCTURE PTS. · `4` ENERGY PTS. · `6` HEAT CAP.')
+    // No kicker: a chassis has no action type or cost, and the kind is never one.
+    expect(parts.head[0]).toBe('## [Mule](https://salvageunion.io/chassis/mule)')
+    expect(parts.head[1]).toBe('`12` STRUCTURE PTS. · `4` ENERGY PTS. · `6` HEAT CAP.')
     expect(parts.thumbnail?.url).toContain('mule')
     expect(parts.cite).toBe(
       '-# Workshop Manual p.100 · also in Salvage Union Starter Set (PC) p.12'
@@ -64,14 +66,30 @@ describe('discordCardParts', () => {
 
   test('an ability leads with its tier, action type and cost, and carries its table', () => {
     const parts = partsFor('abilities', 'counter-hacking')
-    expect(parts.head[0]).toBe('-# ABILITY · ADVANCED HACKING TREE · REACTION · `1 AP`')
+    expect(parts.head[0]).toBe('-# REACTION · `1 AP`')
     expect(parts.head[1]).toStartWith('## 2 · [Counter-Hacking](')
     expect(parts.head).toContain('[Hacking](https://salvageunion.io/traits/hacking)')
     expect(parts.table?.rows.map((row) => row.key)).toEqual(['20', '11-19', '6-10', '2-5', '1'])
   })
 
+  test("a system's kicker says its action type as the book prints it", () => {
+    expect(partsFor('systems', '50-cal-machine-gun').head[0]).toStartWith('-# TURN ACTION')
+  })
+
+  test('the action types read as the Core Book prints them (pp.23, 237-238)', () => {
+    expect(Object.keys(ACTION_TYPE_LABELS).map((type) => formatActionType(type))).toEqual([
+      'Turn Action',
+      'Free Action',
+      'Short Action',
+      'Long Action',
+      'Downtime Action',
+      'Reaction',
+      'Passive',
+    ])
+  })
+
   test('a lower-case glossary name is set as the book prints it', () => {
-    expect(partsFor('traits', 'vulnerable').head[1]).toStartWith('## [Vulnerable](')
+    expect(partsFor('traits', 'vulnerable').head[0]).toStartWith('## [Vulnerable](')
   })
 
   test('a pattern names its chassis and lists its loadout as links', () => {
@@ -81,7 +99,7 @@ describe('discordCardParts', () => {
       'hauler'
     )
     const parts = discordCardParts(toEntityModel(mule, undefined, { pattern: hauler }))
-    expect(parts.head[0]).toBe('-# PATTERN · MULE')
+    expect(parts.head[0]).toBe('-# PATTERN OF MULE')
     expect(parts.url).toBe('https://salvageunion.io/chassis/mule/pattern/hauler')
     const systems = need(
       parts.children.find((group) => group.label === 'Systems'),

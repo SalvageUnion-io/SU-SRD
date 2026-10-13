@@ -1,51 +1,83 @@
-import { Badge } from '../../components/atoms/Badge'
+import { FOCUS_RING } from '../../components/atoms/interaction'
+import { Stat } from '../../components/atoms/Stat'
+import type { SizeRung } from '../../styles/sizing'
+import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { TagItem } from './tagItems'
 
 /**
- * One TAG (E9, E17): a trait as Badge's chip with its parameter cell,
- * `[Burn | 2]`. It behaves as a Mention does: where the tag sits outside a
- * link (`linkable`), it opens its glossary entry — the page where the surface
- * has a route (the SRD), else the Page opener (ITUN) — and it Peeks on hover,
- * focus or long-press wherever it names an entry. Inside a Peek it does
- * neither (E16).
+ * One TAG (E9, E17): a trait as a chip like every other, the horizontal
+ * `Stat` cell with its parameter, `[Burn | 2]`. It behaves as a Mention does:
+ * where the tag sits outside a link (`linkable`), it opens its glossary
+ * entry — the page where the surface has a route (the SRD), else the Page
+ * opener (ITUN) — and it Peeks on hover, focus or long-press wherever it names
+ * an entry. Inside a Peek it does neither (E16).
  *
  * The Tag carries only the entry's ref (the model resolved it), so it needs no
  * glossary loaded: the Peek loads the one it shows.
  */
-export function Tag({ tag, linkable = false }: { tag: TagItem; linkable?: boolean }) {
+export function Tag({
+  tag,
+  linkable = false,
+  rung = 'full',
+  onInk = false,
+}: {
+  tag: TagItem
+  linkable?: boolean
+  /** The chip's rung: `full` in a body, `compact` in a head band. */
+  rung?: SizeRung
+  /** On the ink banner: the inverse plate (`Chips`). */
+  onInk?: boolean
+}) {
   const { hrefFor, openPage } = useEntitySurface()
   const insidePeek = useInsidePeek()
   const peek = usePeekAttrs(tag.ref)
   const ref = !insidePeek && linkable ? tag.ref : undefined
   const href = ref ? hrefFor(ref) : undefined
   const open = ref && !href && openPage ? () => openPage(ref) : undefined
-  const as = href
-    ? { as: 'a' as const, href }
-    : open
-      ? {
-          as: 'button' as const,
-          onClick: (event: { stopPropagation: () => void }) => {
-            // A tag inside a clickable card opens ITS entry, not the card.
-            event.stopPropagation()
-            open()
-          },
-        }
-      : {}
+  const cell = (
+    <Stat
+      orientation="horizontal"
+      label={tag.name}
+      value={tag.param?.trim() ? tag.param : undefined}
+      size={rung}
+      inverse={onInk}
+      state={tag.modified ? 'modified' : 'default'}
+    />
+  )
+  const shared = {
+    'data-tag': '',
+    ...peek,
+    ...(tag.modified ? { 'data-modified': '' } : {}),
+  }
+  if (href) {
+    return (
+      <a href={href} className={cn('su-chip-link', FOCUS_RING)} {...shared}>
+        {cell}
+      </a>
+    )
+  }
+  if (open) {
+    return (
+      <button
+        type="button"
+        className={cn('su-chip-link', FOCUS_RING)}
+        onClick={(event) => {
+          // A tag inside a clickable card opens ITS entry, not the card.
+          event.stopPropagation()
+          open()
+        }}
+        {...shared}
+      >
+        {cell}
+      </button>
+    )
+  }
   return (
-    <Badge
-      shape="chip"
-      surface="outline"
-      param={tag.param}
-      data-tag=""
-      {...as}
-      {...peek}
-      {...(tag.modified ? { 'data-modified': '' } : {})}
-      style={tag.modified ? { boxShadow: '0 0 0 1px var(--color-ink)' } : undefined}
-    >
-      <span>{tag.name}</span>
-    </Badge>
+    <span className="su-chip-link" {...shared}>
+      {cell}
+    </span>
   )
 }
 
@@ -54,11 +86,21 @@ export function Tag({ tag, linkable = false }: { tag: TagItem; linkable?: boolea
  * a link of its own (no nested interactive content), so the form says when it
  * may link; it still Peeks on hover there.
  */
-export function Tags({ tags, linkable = false }: { tags: TagItem[]; linkable?: boolean }) {
+export function Tags({
+  tags,
+  linkable = false,
+  rung,
+  onInk,
+}: {
+  tags: TagItem[]
+  linkable?: boolean
+  rung?: SizeRung
+  onInk?: boolean
+}) {
   return (
     <>
       {tags.map((tag) => (
-        <Tag key={tag.key} tag={tag} linkable={linkable} />
+        <Tag key={tag.key} tag={tag} linkable={linkable} rung={rung} onInk={onInk} />
       ))}
     </>
   )

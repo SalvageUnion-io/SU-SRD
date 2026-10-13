@@ -67,6 +67,22 @@ export const CONDITION_LABELS = {
 
 export type ItemCondition = keyof typeof CONDITION_LABELS
 
+/**
+ * Each action type as the Core Book prints it on an action's line, keyed as
+ * the data stores it: "Turn Action" (p.237), "Free Action", "Short Action",
+ * "Long Action" and "Downtime Action", one word (p.238), but a bare
+ * "Reaction" (p.238) and "Passive" (the legend, p.23).
+ */
+export const ACTION_TYPE_LABELS = {
+  Turn: 'Turn Action',
+  Free: 'Free Action',
+  Short: 'Short Action',
+  Long: 'Long Action',
+  DownTime: 'Downtime Action',
+  Reaction: 'Reaction',
+  Passive: 'Passive',
+} as const satisfies Record<string, string>
+
 type StatConfig = {
   key: StatKey
   getter: (data: SURefMetaEntity) => number | undefined

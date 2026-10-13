@@ -68,11 +68,6 @@ export function crawlerIsKept(
   return game === undefined || game.tableRunner === true
 }
 
-/** "Pilot · Engineer": the kind, then the one fact that says what it is. */
-export function kicker(kind: string, fact: string | undefined): string {
-  return fact ? `${kind} · ${fact}` : kind
-}
-
 /** The class a pilot is, by the name the book gives it. */
 export function pilotFact(pilot: Pick<Pilot, 'classRef'>): string | undefined {
   return resolveClassName(pilot.classRef) || undefined

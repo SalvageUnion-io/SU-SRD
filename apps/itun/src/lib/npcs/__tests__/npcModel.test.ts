@@ -64,14 +64,12 @@ describe('the NPC as an npcs entity', () => {
     ).toEqual([{ type: 'paragraph', value: 'Steady hands.' }])
   })
 
-  test('the kicker names what it was built from (D9)', () => {
-    expect(npcKicker({ templateRef: { schema: 'npcs', slug: 'veteran' } })).toBe(
-      'NPC · from Veteran'
-    )
+  test('the kicker names what it was built from, never the kind (D9, EDL E9)', () => {
+    expect(npcKicker({ templateRef: { schema: 'npcs', slug: 'veteran' } })).toBe('From Veteran')
     expect(npcKicker({ templateRef: { schema: 'crawler-bays', slug: 'med-bay' } })).toBe(
       'Crawler crew · Med Bay'
     )
-    expect(npcKicker({})).toBe('NPC')
+    expect(npcKicker({})).toBeUndefined()
   })
 
   test('the identity line, in the book’s "//" voice', () => {

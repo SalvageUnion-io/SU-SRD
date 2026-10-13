@@ -1,9 +1,9 @@
 /**
  * ShelfPill — an item on a shelf as one line (Shelves, board S1): the entity
  * display language's TOKEN (`<Entity form="token">`) for things a player
- * keeps. A tone fill in the unit's colour, an ink stamp with its kind and
- * defining fact ("PILOT · ENGINEER"), its name, and one reading (`HP 8/10`),
- * framed in ink; the whole line opens it.
+ * keeps. A tone fill in the unit's colour, an ink stamp with its defining
+ * fact ("ENGINEER"; never its kind, EDL E9), its name, and one reading
+ * (`HP 8/10`), framed in ink; the whole line opens it.
  *
  * A pilot, mech or crawler on a shelf is the player's own build, which no
  * reference record describes, so its model is `unitRowModel` rather than
@@ -23,8 +23,8 @@ export type ShelfKind = UnitKind
 
 type ShelfPillProps = {
   kind: ShelfKind
-  /** The stamp: "Pilot · Engineer". */
-  kicker: string
+  /** The stamp: what it is built as ("Engineer"), never its kind. */
+  note?: string | undefined
   name: string
   reading?: ShelfReading
   /** Where the line opens; a line with nowhere to open is not a link. */
@@ -33,11 +33,11 @@ type ShelfPillProps = {
   userMade?: boolean
 }
 
-export function ShelfPill({ kind, kicker, name, reading, href, userMade = false }: ShelfPillProps) {
+export function ShelfPill({ kind, note, name, reading, href, userMade = false }: ShelfPillProps) {
   return (
     <Entity
       form="token"
-      model={unitRowModel({ kind, stamp: kicker, name, userMade })}
+      model={unitRowModel({ kind, note, name, userMade })}
       fact={reading ?? null}
       mode={href === undefined ? { kind: 'read' } : { kind: 'link', href }}
     />

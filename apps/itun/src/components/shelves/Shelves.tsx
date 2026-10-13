@@ -71,7 +71,6 @@ import {
   crawlerReading,
   encounterNpcChips,
   encounterNpcReading,
-  kicker,
   linkChip,
   mechChips,
   npcChips,
@@ -516,7 +515,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   <ShelfItem
                     key={p.id}
                     kind="pilot"
-                    kicker={kicker('Pilot', pilotFact(p))}
+                    note={pilotFact(p)}
                     name={p.name}
                     reading={rowStats(pilotRailItems(p))[0]}
                     href={`/sheet/pilot/${p.id}`}
@@ -540,7 +539,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   <ShelfItem
                     key={m.id}
                     kind="mech"
-                    kicker={kicker('Mech', chassisFact(m.chassisRef))}
+                    note={chassisFact(m.chassisRef)}
                     name={m.name}
                     reading={rowStats(mechRailItems(m))[0]}
                     href={`/sheet/mech/${m.id}`}
@@ -564,7 +563,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   <ShelfItem
                     key={c.id}
                     kind="crawler"
-                    kicker={kicker('Crawler', crawlerFact(c))}
+                    note={crawlerFact(c)}
                     name={c.name}
                     reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
                     href={`/sheet/crawler/${c.id}`}
@@ -603,7 +602,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   <ShelfItem
                     key={p.id}
                     kind="pattern"
-                    kicker={kicker('Pattern', chassisFact(p.chassisRef))}
+                    note={chassisFact(p.chassisRef)}
                     name={p.name}
                     reading={patternReading(p)}
                     href={patternHref(p.id)}
@@ -631,7 +630,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   <ShelfItem
                     key={n.id}
                     kind="npc"
-                    kicker={kicker('NPC', n.position)}
+                    note={n.position}
                     name={n.name}
                     reading={npcReading(n)}
                     href={`/sheet/npc/${n.id}`}
@@ -648,7 +647,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   <ShelfItem
                     key={n.id}
                     kind="npc"
-                    kicker={kicker('NPC', 'Tray')}
+                    note="Tray"
                     name={n.name}
                     reading={encounterNpcReading(n)}
                     userMade

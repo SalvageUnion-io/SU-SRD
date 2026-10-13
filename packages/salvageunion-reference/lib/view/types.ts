@@ -95,8 +95,16 @@ export type EntityModel = {
   ref: EntityRef
   title: string
   kind: {
-    /** The seam's type stamp: "System", "Ability · Hacking Tree", "Pattern". */
+    /**
+     * The kind in full: "System", "Ability · Hacking Tree", "Pattern". No form
+     * stamps it (E9): the title carries it for screen readers only.
+     */
     stamp: string
+    /**
+     * What a player unit is built as, shown where its kind is not: a pilot's
+     * class, a mech's chassis ("Engineer", "Mule"). Never the kind itself.
+     */
+    note?: string
     /** The bare type: "Ability", "Crawler Type". */
     type: string
     domain: EntityDomain

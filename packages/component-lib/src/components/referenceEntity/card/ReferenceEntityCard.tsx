@@ -25,8 +25,11 @@ import {
 import { fontSize, space } from '../../../design/tokens'
 import type { RowSlots } from '../../../entity/forms/Row'
 import { Row } from '../../../entity/forms/Row'
-import type { TokenFact, TokenSlots } from '../../../entity/forms/Token'
+import type { TokenSlots } from '../../../entity/forms/Token'
 import { Token } from '../../../entity/forms/Token'
+import { Chips } from '../../../entity/parts/Chips'
+import type { ChipSet } from '../../../entity/parts/chipSet'
+import { chipCount } from '../../../entity/parts/chipSet'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
@@ -37,7 +40,6 @@ import { useEntityExternalLink } from '../entityHrefContext'
 import { foldControl } from '../foldControl'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import { CardFacets } from './CardFacets'
 import { CardHead } from './CardHead'
 import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
@@ -58,6 +60,7 @@ import {
 import type { CardGrain } from './cardGrain'
 import { MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
 import { resolveCardSections } from './cardSections'
+import { shortformTail } from './cardShortform'
 import { CardTextureContext } from './cardTexture'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import type { AxisMarker } from './entityCardTone'
@@ -69,8 +72,7 @@ import {
   resolveTierNumeral,
   titleSizeRung,
 } from './entityCardTone'
-import type { SplitFacets } from './facetSplit'
-import { splitFacets, withHeadFacts } from './facetSplit'
+import { splitFacets } from './facetSplit'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
@@ -90,17 +92,18 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * NPCs (ruleset §5, boards E1–E4). ONE anatomy across every size × extent ×
  * context:
  *
- *   flush header (title, then labels) · italic "//" line · body · footer
+ *   flush header (title, labels, chip group) · body · footer
  *
  * with TWO header fills, chosen by the reader's question and decided by data
  * shape (`isDoEntity`), never a schema prop:
  *
  * - TONE, for things you HAVE: the entity's tone, ink speckle, the title in
- *   ink or paper by contrast, the value cells after it.
+ *   ink or paper by contrast.
  * - INK, for things you DO (abilities, actions): the book's ink banner — the
- *   tier numeral at the left, the cost pennant at the right, paper flecks.
+ *   tier numeral at the left, paper flecks. The cost is a chip; only the
+ *   Dashboard's pennant button sits at the right.
  *
- * The frame, the "//" line and the footer are ink on paper on every card; the
+ * The frame and the footer are ink on paper on every card; the
  * tone lives in the header alone. Actions sit INLINE as flush ink bands; an
  * entity's own roll table sits inline the same way; nested ENTITIES stack in
  * the frame, one size step per depth (large → medium → a one-line head row), the
@@ -111,10 +114,10 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * `ReferenceEntityCardInner` DECIDES — fill, depth, which sections a card
  * carries, what each one is fed — and composes. What each section LOOKS like
  * lives beside it, one module per section: the labels
- * (`CardLabels`), the header (`EntityCardHeader`), the facets row
- * (`CardFacets`, E17), the Row and Token forms (`src/entity/`), the prose bands
+ * (`CardLabels`), the header (`EntityCardHeader`), the chip group
+ * (`Chips`, E17), the Row and Token forms (`src/entity/`), the prose bands
  * (`CardProse`), the body interleave, choices (`ChoiceRegion`), the roll table
- * (`CardRollTable`), the cost pennant (`CardPennant`), the trays, inline
+ * (`CardRollTable`), the pennant button (`CardPennant`), the trays, inline
  * actions and depth rows (`NestedCards`). The pure cell/stat builders are in
  * `cardCells.ts`, the chrome rules in `cardChrome.ts`.
  *
@@ -155,49 +158,24 @@ const INLINE_TITLE: Record<CardSize, string> = {
   small: fontSize.lede,
 }
 
-/** An NPC's shortform stat: its hit points (or structure points), as `HP 9`. */
-function npcHitPointsTail(entity: object): TokenFact | undefined {
-  if (!('schemaName' in entity) || entity.schemaName !== 'npcs') return undefined
-  if (!('hitPoints' in entity) || typeof entity.hitPoints !== 'number') return undefined
-  return {
-    label: 'damageType' in entity && entity.damageType === 'SP' ? 'SP' : 'HP',
-    value: String(entity.hitPoints),
-  }
-}
-
-/** The shortform's tail: an ability's level, a tech level, an NPC's hit points or a classification. */
-function shortformTail(
-  numeral: string | undefined,
-  techLevel: number | 'B' | 'N' | undefined,
-  entity: object,
-  axisMarker: TokenFact | undefined
-): TokenFact | undefined {
-  if (numeral) return { label: 'LVL', value: numeral }
-  if (techLevel != null) return { label: 'TL', value: String(techLevel) }
-  return npcHitPointsTail(entity) ?? axisMarker
-}
-
-/** A page's facets row (E17): the Tags lead the prose column, after any `subtitleExtra`. */
+/** A page's chip group (E17): it leads the prose column, after any `subtitleExtra`. */
 function PageSubLine({
   extra,
-  facets,
-  size,
+  chips,
   children,
 }: {
   extra: ReactNode
-  facets: SplitFacets
-  size: CardSize
-  /** The row's leading stamp ("Suggested"). */
+  chips: ChipSet
+  /** The group's leading stamp ("Suggested"). */
   children: ReactNode
 }) {
   return (
     <>
       {extra}
-      <CardFacets
-        facets={facets}
+      <Chips
+        chips={chips}
+        rung="full"
         leading={children}
-        size={size}
-        flush
         linkable
         align="end"
         className="su-entity-page__tags"
@@ -223,7 +201,7 @@ function HeadForm({
   pattern: SURefObjectAnyPattern | undefined
   instance: EntityInstance
   shared: Pick<RowSlots, 'outer' | 'frameStyle' | 'down'>
-  token: Pick<TokenSlots, 'kind' | 'fact' | 'pennant'> | false
+  token: Pick<TokenSlots, 'kind' | 'fact' | 'pennant' | 'cost'> | false
   row: RowSlots
 }) {
   const model = toEntityModel(entity, undefined, { pattern })
@@ -369,10 +347,11 @@ function ReferenceEntityCardInner({
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
   // SYSTEM: its intro is its lead, its options the body.
   const isTitanicMeta = isAction && isTitanicAction(entity)
-  // The TYPE stamp — on every card (board E1) but a pattern's, whose quoted
-  // name and Chassis marker already say what it is; an ability carries its tree.
-  const typeStamp = kicker ?? (isPattern ? undefined : resolveSeamLabel(schemaName, entity))
-  const footerType = kicker ?? (isAction || isPattern ? undefined : resolveEyebrow(schemaName).type)
+  // The KIND ("System", "Ability · Forging Tree") is never stamped (E9): the
+  // title carries it for screen readers. A caller's `kicker` that says more
+  // ("From Veteran") is a label.
+  const kind = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
+  const footerType = isAction || isPattern ? undefined : resolveEyebrow(schemaName).type
   const provenance = resolveFooterProvenance(entity, pattern)
   const axisMarkers: AxisMarker[] = isAction
     ? []
@@ -398,12 +377,11 @@ function ReferenceEntityCardInner({
   const foldedAction = foldedActionOf(foldableActions, entityName)
   const foldedActionFields: ActionFields | undefined = foldedAction ?? undefined
 
-  // The LABELS, right of the title: a parent seal (GRANTS) replaces the type
-  // stamp.
+  // The LABELS, right of the title: a parent seal (GRANTS) replaces the note.
   const labels = (
     <CardLabels
       seal={parentSeal}
-      typeStamp={parentSeal ? undefined : typeStamp}
+      note={parentSeal ? undefined : kicker}
       axisMarkers={axisMarkers}
       legalStartingPattern={isLegalStartingPatternCard}
       userMade={userMade}
@@ -432,11 +410,11 @@ function ReferenceEntityCardInner({
     costSource?.activationCost != null
       ? formatCost(costSource.activationCost, resolveActivationCurrency(costSource.actionSource))
       : undefined
+  // Read, the cost is a chip; the Dashboard's `pennant` control is the button.
   const pennantControl = controls?.find((c) => c.pennant)
-  const pennantNode: ReactNode =
-    costLabel || pennantControl ? (
-      <CardPennant cost={costLabel} size={size} control={pennantControl} subject={entityName} />
-    ) : undefined
+  const pennantNode: ReactNode = pennantControl ? (
+    <CardPennant cost={costLabel} size={size} control={pennantControl} subject={entityName} />
+  ) : undefined
   // The rail carries every other control; the pennant control is the pennant.
   const railControls = pennantControl ? controls?.filter((c) => !c.pennant) : controls
 
@@ -471,25 +449,33 @@ function ReferenceEntityCardInner({
     perTechLevelByLabel,
     effTechLevel,
   })
+  // E17: every chip in ONE group: the action type, the cost, the facts, the traits.
+  const facets = splitFacets(cells)
+  const chips: ChipSet = {
+    durations: facets.stamps,
+    ...(costLabel && !pennantControl ? { cost: costLabel } : {}),
+    facts: [...effectiveHeaderStats, ...facets.facts],
+    tags: facets.tags,
+  }
+  // A page's stat column holds the entity's own stats: its group is the rest.
+  const pageChips: ChipSet = { ...chips, facts: facets.facts }
+  const hasSubLine = onPage && (!!suggestedNode || chipCount(pageChips) > 0)
+
   // The head extent is the Row (and, small, the Token): see below. A cut-out card wears its head.
   const isHead = extent === 'head'
   const cutOut = cutOutProp && !inline && !isHead && !onPage
-  // E17: the action type is a head stamp, the facets Stat cells, the traits Tags.
-  const facets = withHeadFacts(splitFacets(cells), cutOut ? effectiveHeaderStats : [])
-  const hasSubLine = !!suggestedNode || facets.facts.length > 0 || facets.tags.length > 0
   const header = (
     <CardHead
       cutOut={cutOut}
       title={name}
+      kind={kind}
       fill={fill}
       titleAs={titleAs}
       bandColor={bandColor}
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      stats={effectiveHeaderStats}
-      rightContent={headerHint}
-      stamps={facets.stamps}
+      chips={<Chips chips={chips} rung="compact" onInk={fill === 'ink'} leading={suggestedNode} />}
       pennant={pennantNode}
       labels={inline ? undefined : labels}
       size={size}
@@ -573,18 +559,20 @@ function ReferenceEntityCardInner({
         shared={{ outer, frameStyle, down: isDown }}
         token={
           size === 'small' && {
-            kind: kicker ?? resolveEyebrow(schemaName).type,
+            kind,
             fact: shortformTail(numeral, techLevel, entity, axisMarkers[0]) ?? null,
             pennant: isAction ? pennantNode : undefined,
+            cost: isAction ? chips.cost : undefined,
           }
         }
         row={{
           labels: labels ?? null,
           rail: topRightRail,
           titleAs,
-          facts: [...effectiveHeaderStats, ...facets.facts],
-          tags: facets.tags,
-          stamps: facets.stamps,
+          facts: chips.facts,
+          tags: chips.tags,
+          durations: chips.durations,
+          cost: chips.cost ?? null,
           leading: suggestedNode,
           hint: headerHint,
           pennant: pennantNode,
@@ -668,7 +656,7 @@ function ReferenceEntityCardInner({
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
         subLine={
           (subtitleExtra || hasSubLine) && (
-            <PageSubLine extra={subtitleExtra} facets={facets} size={size}>
+            <PageSubLine extra={subtitleExtra} chips={pageChips}>
               {suggestedNode}
             </PageSubLine>
           )
@@ -711,9 +699,8 @@ function ReferenceEntityCardInner({
   // no frame, no labels, no footer (board E1).
   if (inline) {
     return (
-      <section style={{ display: 'flex', flexDirection: 'column' }}>
+      <section className="su-ec-inline">
         {header}
-        <CardFacets facets={facets} leading={suggestedNode} size={size} />
         {body}
         {rollTableNode}
       </section>
@@ -736,7 +723,6 @@ function ReferenceEntityCardInner({
             {subtitleExtra}
           </div>
         )}
-        <CardFacets facets={facets} leading={suggestedNode} size={size} />
         {body}
         {rollTableNode}
         {patternSection}

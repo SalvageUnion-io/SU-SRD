@@ -95,11 +95,10 @@ function headFactCount(model: EntityModel): number {
 /** The page meta a model states, in `resolveEntityPageMeta`'s shape. */
 function pageMetaOf(model: EntityModel) {
   return {
-    // A pattern's page wears no "Pattern" stamp: its parent link says it.
-    typeLabel: model.ref.pattern ? undefined : model.kind.stamp,
+    // The kind, for the title's screen-reader text (never a stamp, E9).
+    typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     numeral: model.tier,
-    cost: model.cost,
     page: model.cite.page,
     citation: model.cite.citation,
   }
@@ -255,15 +254,6 @@ describe('toEntityModel parity, every entity', () => {
     for (const row of ENTITIES) {
       const model = toEntityModel(row.entity)
       const meta = resolveEntityPageMeta(row.entity)
-      // KNOWN BUG, kept until the Page form: a GRANTING ability's
-      // self-named action belongs to the item it grants (Camo Suit, Knife
-      // Missile, Wingsuit…), so its card folds nothing and shows no pennant,
-      // and the model follows the card. Today's page band still prints that
-      // action's cost on the ability. Every other field agrees.
-      if (isAbility(row.entity) && resolveGrantedEntities(row.entity as never).length > 0) {
-        agree(label(row), { ...pageMetaOf(model), cost: meta.cost }, meta)
-        continue
-      }
       agree(label(row), pageMetaOf(model), meta)
     }
   })

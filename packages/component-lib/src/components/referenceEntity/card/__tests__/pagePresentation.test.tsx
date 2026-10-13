@@ -58,7 +58,7 @@ describe('buildBookStats — the stat column in the book’s words and order', (
 })
 
 describe('resolveEntityPageMeta — what the page’s bands say', () => {
-  test('a chassis: its type stamp, TL and citation with its reprint', () => {
+  test('a chassis: its kind (for screen readers), TL and citation with its reprint', () => {
     const meta = resolveEntityPageMeta(gopher())
     expect(meta.typeLabel).toBe('Chassis')
     expect(meta.techLevel).toBe('2')
@@ -67,18 +67,18 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(meta.citation).toContain('also in Salvage Union Starter Set (PC) · p.26')
   })
 
-  test('an ability: its tree on the type stamp, its tier numeral and its cost', () => {
+  test('an ability: its tree in its kind and its tier numeral; its cost is a chip', () => {
     const ability = juryRig()
     const meta = resolveEntityPageMeta(ability)
     expect(meta.typeLabel).toContain('Tree')
     expect(meta.numeral).toBe(String(ability.level))
-    expect(meta.cost).toBe('2 AP')
+    expect(meta).not.toHaveProperty('cost')
   })
 
-  test('a pattern wears no standalone "Pattern" stamp: its parent link names it', () => {
+  test('a pattern is a "Pattern" to screen readers', () => {
     const chassis = gopher()
     const pattern = need(chassis.patterns?.[0], 'gopher pattern')
-    expect(resolveEntityPageMeta(chassis, pattern).typeLabel).toBeUndefined()
+    expect(resolveEntityPageMeta(chassis, pattern).typeLabel).toBe('Pattern')
   })
 })
 
@@ -201,7 +201,7 @@ describe('the card as a page', () => {
     const scylla = need(SalvageUnionReference.BioTitans.getByName('Scylla'), 'scylla')
     render(<ReferenceEntityCard data={scylla} presentation="page" />)
     expect(screen.getByRole('heading', { name: 'Actions', level: 2 })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Tail Sweep', level: 3 })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Tail Sweep (Action)', level: 3 })).toBeTruthy()
   })
 
   test('a stacked nested card is an h2 of its own: no "NPC" band repeats its stamp', () => {
@@ -209,20 +209,22 @@ describe('the card as a page', () => {
     render(<ReferenceEntityCard data={bay} presentation="page" />)
     expect(screen.queryByRole('heading', { name: 'NPC' })).toBeNull()
     const npc = need(bay.npc && 'position' in bay.npc ? bay.npc.position : undefined, 'npc')
-    expect(screen.getByRole('heading', { name: npc, level: 2 })).toBeTruthy()
+    // Its kind ends its name, for screen readers only (E9).
+    expect(screen.getByRole('heading', { name: new RegExp(`^${npc} \\(`), level: 2 })).toBeTruthy()
   })
 
-  test('a bay’s crew NPC wears the cut-out head, its HP a cell in the facts row', () => {
+  test('a bay’s crew NPC wears the cut-out head, its HP a chip right of the name', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
     render(<ReferenceEntityCard data={bay} presentation="page" />)
-    const title = screen.getByRole('heading', { name: 'Chef', level: 2 })
+    const title = screen.getByRole('heading', { name: 'Chef (NPC)', level: 2 })
     const head = need(title.closest('.su-entity-row__head') ?? undefined, 'cut-out head')
     expect(head.getAttribute('data-notch')).toBe('true')
     expect(head.querySelector('.su-entity-row__notch')?.contains(title)).toBe(true)
-    // One kind stamp, right of the name; the HP cell is not on the band.
-    expect(head.textContent).toBe('ChefNPC')
-    const frame = need(head.parentElement ?? undefined, 'frame')
-    expect(frame.textContent).toContain('HP4')
+    // The HP chip sits on the band, the name's next sibling group, not on the tab.
+    const line = need(head.querySelector('.su-entity-row__line') ?? undefined, 'line')
+    const chips = need(line.querySelector(':scope > .su-chips') ?? undefined, 'chips on the band')
+    expect(chips.textContent).toBe('HP4')
+    expect(head.textContent).toBe('Chef (NPC)HP4')
   })
 
   test('"When damaged" is a framed callout, its stamp riding the border', () => {
@@ -296,7 +298,7 @@ describe('the card as a page', () => {
     )
     const page = asPage(typhon, hillWorm)
     expect(screen.getByRole('heading', { name: 'Pattern Actions', level: 2 })).toBeTruthy()
-    expect(underBand(page, 'Pattern Actions')).toContain('h3 Metallic Reconstitution')
+    expect(underBand(page, 'Pattern Actions')).toContain('h3 Metallic Reconstitution (Action)')
     expect(outlineSkips(page)).toEqual([])
   })
 

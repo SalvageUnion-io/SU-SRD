@@ -13,33 +13,32 @@ import { UserMadeStamp } from './UserMadeStamp'
  * - `__stamps`: short of room they wrap onto a second line; no stamp is ever
  *   cut to "…" (entity display language E18).
  * - `__truncate` / `__lead`: a stamp that keeps its whole word (the Legal
- *   Starting Pattern; the type stamp or the seal in its place).
+ *   Starting Pattern; the seal or the caller's note).
  */
 const LEAD = 'su-ec-labels__lead'
 
 /**
- * LABELS — the categorization stamps of an entity's head band, on the title's
- * line, right of the name:
- * the TYPE stamp (every card, every depth — board E1), or a parent-provided
- * seal in its place; the classification pills; the Legal Starting Pattern
- * stamp; and on a user-made card the dashed User-made stamp after them. On
- * the ink banner the stamps take the `inverse` plate so they still read.
- * A pill whose label repeats the type stamp (a class's `[Class | Hybrid]`
- * after its "Class" stamp) stands in for the stamp: one `CLASS | HYBRID`,
- * never "CLASS" then "CLASS | HYBRID".
+ * LABELS — the stamps of an entity's head band that say something the band
+ * does not, on the title's line, right of the name: a parent-provided seal
+ * (GRANTS, CHASSIS ABILITY) or a caller's note ("From Veteran"); the
+ * classification pills (`[Class | Hybrid]`, `[Chassis | Mule]`); the Legal
+ * Starting Pattern stamp; and on a user-made card the dashed User-made stamp
+ * after them. Never the entity's kind: no form stamps that (E9), the title
+ * says it to screen readers (`KindLabel`). On the ink banner the stamps take
+ * the `inverse` plate so they still read.
  */
 export function CardLabels({
   seal,
-  typeStamp,
+  note,
   axisMarkers,
   legalStartingPattern,
   userMade = false,
   onInk = false,
 }: {
-  /** A parent-provided seal in place of the type stamp (GRANTS, CHASSIS ABILITY). */
+  /** A parent-provided seal (GRANTS, CHASSIS ABILITY). */
   seal: { label: string; tone: string } | undefined
-  /** The type stamp ("System", "Ability · Forging Tree"). */
-  typeStamp: string | undefined
+  /** A caller's note that says more than the kind ("From Veteran", "Crawler crew · Med Bay"). */
+  note?: string
   axisMarkers: AxisMarker[]
   legalStartingPattern: boolean
   /** USER-MADE (ruleset §3.9): a dashed User-made stamp after the others. */
@@ -48,9 +47,7 @@ export function CardLabels({
   onInk?: boolean
 }) {
   const surface = onInk ? 'inverse' : 'on-ink'
-  const restated =
-    typeStamp !== undefined &&
-    axisMarkers.some((marker) => marker.label.toLowerCase() === typeStamp.toLowerCase())
+  if (!seal && !note && axisMarkers.length === 0 && !legalStartingPattern && !userMade) return null
   return (
     <div className="su-ec-labels">
       <div className="su-ec-labels__stamps">
@@ -66,9 +63,9 @@ export function CardLabels({
             {seal.label}
           </Badge>
         )}
-        {typeStamp && !restated && (
+        {note && (
           <Badge shape="stamp" size="mini" surface={surface} className={LEAD}>
-            {typeStamp}
+            {note}
           </Badge>
         )}
         {axisMarkers.map((marker) => (

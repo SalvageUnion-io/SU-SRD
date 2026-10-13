@@ -30,16 +30,16 @@ const LEAD_MAX = 220
 function termRow(term: FoundTerm): ContainerBlock {
   const model = toEntityModel(term.hit.entity)
   const parts = discordCardParts(model)
-  const title = parts.head[1]?.replace(/^## /, '### ') ?? `### ${model.title}`
-  const matched = term.row ? ` · matched “${term.matched}”, its ${rangeLabel(term.row)}` : ''
-  const what = model.lead ?? parts.head.slice(2).join(' · ')
+  // The head is an optional `-#` kicker, then the `## ` title, then the facts.
+  const at = parts.head.findIndex((line) => line.startsWith('## '))
+  const title = parts.head[at]?.replace(/^## /, '### ') ?? `### ${model.title}`
+  // The row never names the entity's kind (E9): only which table row matched.
+  const matched = term.row ? `\n-# matched “${term.matched}”, its ${rangeLabel(term.row)}` : ''
+  const what = model.lead ?? parts.head.slice(at + 1).join(' · ')
   const postId = makeCustomId('lookup', lookupKey(term.hit))
   return {
     kind: 'section',
-    text: [
-      `${title}\n-# ${model.kind.type}${matched}`,
-      ...(what ? [truncate(what, LEAD_MAX)] : []),
-    ],
+    text: [`${title}${matched}`, ...(what ? [truncate(what, LEAD_MAX)] : [])],
     ...(postId
       ? { button: { kind: 'action' as const, customId: postId, label: 'Post to channel' } }
       : {}),

@@ -146,7 +146,7 @@ describe('lookupCard — the card', () => {
     const card = lookupCard(hit('chassis', 'goliath'))
     expect(card.accent).toBe(0x7a978a)
     const text = cardText(card)
-    expect(text).toContain('-# CHASSIS\n## [Goliath](https://salvageunion.io/chassis/goliath)')
+    expect(text).toContain('## [Goliath](https://salvageunion.io/chassis/goliath)')
     expect(text).toContain('`13` STRUCTURE PTS. · `11` ENERGY PTS. · `12` HEAT CAP.')
     // The chassis ability shows only on the chassis and pattern pages.
     expect(text).not.toContain('Scrap Plating')
@@ -204,7 +204,7 @@ describe('lookupCard — tables and roll buttons', () => {
     const card = lookupCard(hit('abilities', 'counter-hacking'))
     // Counter-Hacking is Advanced: the Advanced tier rust.
     expect(card.accent).toBe(0xa85947)
-    expect(cardText(card)).toContain('-# ABILITY · ADVANCED HACKING TREE · REACTION · `1 AP`')
+    expect(cardText(card)).toContain('-# REACTION · `1 AP`')
     expect(labels(card)).toEqual(['Roll Counter-Hacking', 'Buy'])
   })
 })
@@ -223,7 +223,7 @@ describe('lookupCard — patterns are entries of their own', () => {
     if (!one) throw new Error('no Hauler')
     expect(one.pattern?.name).toBe('Hauler')
     const text = cardText(lookupCard(one))
-    expect(text).toContain('-# PATTERN · MULE')
+    expect(text).toContain('-# PATTERN OF MULE')
     expect(text).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
   })
 
@@ -333,7 +333,7 @@ describe('lookupCard — a long card is an index with Read buttons', () => {
     expect(text).not.toContain('pierce through the cockpit')
     const proboscis = readRows(card).find((row) => row.text[0]?.startsWith('**Proboscis**'))
     expect(proboscis?.text[0]).toBe(
-      '**Proboscis**\n-# Turn · `Close` RANGE\n[Melee](https://salvageunion.io/traits/melee)'
+      '**Proboscis**\n-# Turn Action · `Close` RANGE\n[Melee](https://salvageunion.io/traits/melee)'
     )
     expect(proboscis?.button).toEqual({
       kind: 'action',
@@ -361,7 +361,7 @@ describe('lookupCard — a long card is an index with Read buttons', () => {
     expect(text).toContain(
       '-# [Cortex Bio-Titan](https://salvageunion.io/bio-titans/cortex-bio-titan)'
     )
-    expect(text).toContain('### Proboscis\n-# Turn · `Close` RANGE')
+    expect(text).toContain('### Proboscis\n-# Turn Action · `Close` RANGE')
     expect(text).toContain('pierce through the cockpit')
     expect(text).toContain('-# We Were Here First! p.56')
     expect(readCard('bio-titans::cortex-bio-titan|nope')).toBeNull()

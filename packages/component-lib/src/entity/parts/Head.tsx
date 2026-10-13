@@ -1,8 +1,8 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { Badge } from '../../components/atoms/Badge'
 import { grainClass } from '../../components/referenceEntity/card/cardGrain'
 import { font } from '../../design/tokens'
 import { cn } from '../../utils/cn'
+import { KindLabel } from './KindLabel'
 import type { Paint } from './paint'
 import { PAPER_NAME } from './paint'
 
@@ -28,17 +28,19 @@ const HINT: CSSProperties = {
 
 export type HeadProps = {
   title: string
+  /** The entity's kind, for screen readers only (`KindLabel`): never a stamp (E9). */
+  kind?: string
   titleAs?: ElementType
   paint: Paint
   /** An ability's tier numeral, at the left. */
   tier?: string
-  /** The action-type stamps (E17), before the condition and the pennant. */
-  stamps?: string[]
+  /** The entity's chip group (`Chips`, E17): right of the name, or under it. */
+  chips?: ReactNode
   /** The instance's condition stamp (the Hold mode's slot). */
   condition?: ReactNode
   /** A one-line hint, after the title. */
   hint?: ReactNode
-  /** The cost pennant (read) or the pennant button (act). */
+  /** The pennant button (act): the Dashboard's. A read cost is a chip. */
   pennant?: ReactNode
   /** The mode's affordance: the link chevron, the "Selected" seal. */
   affordance?: ReactNode
@@ -48,68 +50,89 @@ export type HeadProps = {
    * The cut-out (ruleset, "Chapter band"): the name notched into the band's
    * foot on a tab of the paper below, in ink, as a catalog Tile's; the tier
    * stays on the band, left of it. For a head with a paper body under it (a
-   * bodied Row, a pattern row).
+   * bodied Row, a pattern row) and no chips: chips that drop under the name
+   * would leave the tab mid-band, unless `chipsBeside`.
    */
   notch?: boolean
+  /**
+   * Keep the cut-out with chips: the chips stay on the band right of the
+   * name, wrapping there, never dropping under it (an embedded crew NPC's
+   * head, its HP beside the name).
+   */
+  chipsBeside?: boolean
 }
 
 /**
- * HEAD — a Row's band: one line that never wraps: the tier (on the band), the
- * name (it wraps, never clipped; with `notch`, on the paper cut-out at the band's
- * foot) with its labels to its right, a hint, the action-type stamp (E17), the condition,
- * the cost pennant and the mode's affordance, in that order. The band wears
- * the paint (`paintFor`): the tone or ink, grey when down.
+ * HEAD — a Row's band: the tier (on the band), the name (it wraps, never
+ * clipped; with `notch`, on the paper cut-out at the band's foot) with its labels to its
+ * right, the chip group (right of the name while it fits, under it when it
+ * does not: the band's own width decides), a hint, the condition, the pennant
+ * button and the mode's affordance, in that order; the affordance stays on
+ * the band's right, centred on it, never alone on a line. The band wears the
+ * paint (`paintFor`): the tone or ink, grey when down.
  */
 export function Head({
   title,
+  kind,
   titleAs: TitleTag = 'span',
   paint,
   tier,
-  stamps = [],
+  chips,
   condition,
   hint,
   pennant,
   affordance,
   labels,
   notch = false,
+  chipsBeside = false,
 }: HeadProps) {
+  const cut = notch && (!chips || chipsBeside)
   const tierNode = tier && <span className="su-entity-row__tier">{tier}</span>
   const titleNode = (
     <TitleTag
       className="su-entity-row__title"
       title={title}
       // On the notch's paper the name is ink (the class's), whatever the band.
-      style={notch ? undefined : { color: paint.color }}
+      style={cut ? undefined : { color: paint.color }}
     >
-      {paint.nameOnPaper && !notch ? <span style={PAPER_NAME}>{title}</span> : title}
+      {paint.nameOnPaper && !cut ? <span style={PAPER_NAME}>{title}</span> : <span>{title}</span>}
+      <KindLabel kind={kind} />
     </TitleTag>
+  )
+  const name = (
+    <div className="su-entity-row__name">
+      {cut ? <span className="su-entity-row__notch">{titleNode}</span> : titleNode}
+      {labels && <div className="su-entity-row__labels">{labels}</div>}
+    </div>
   )
   return (
     <div
       className={cn('su-entity-row__head', grainClass(paint.grain))}
       data-fill={paint.ink ? 'ink' : 'tone'}
       data-grain={paint.grain}
-      data-notch={notch || undefined}
+      data-notch={cut || undefined}
       style={{ backgroundColor: paint.background, color: paint.color }}
     >
       <div className="su-entity-row__line">
         {tierNode}
-        <div className="su-entity-row__name">
-          {notch ? <span className="su-entity-row__notch">{titleNode}</span> : titleNode}
-          {labels && <div className="su-entity-row__labels">{labels}</div>}
-        </div>
-        {hint && <span style={HINT}>{hint}</span>}
-        {stamps.map((stamp) => (
-          <Badge
-            key={stamp}
-            shape="stamp"
-            size="mini"
-            surface={paint.ink ? 'inverse' : 'on-ink'}
-            style={{ flex: 'none', whiteSpace: 'nowrap' }}
-          >
-            {stamp}
-          </Badge>
-        ))}
+        {cut && chips ? (
+          <>
+            {name}
+            {chips}
+          </>
+        ) : chips ? (
+          <div className="su-entity-row__heading">
+            {name}
+            {chips}
+          </div>
+        ) : (
+          name
+        )}
+        {hint && (
+          <span className="su-entity-row__hint" style={HINT}>
+            {hint}
+          </span>
+        )}
         {condition}
         {pennant && <span style={{ display: 'flex', flex: 'none' }}>{pennant}</span>}
         {affordance}

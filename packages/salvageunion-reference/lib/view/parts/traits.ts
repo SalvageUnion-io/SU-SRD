@@ -20,6 +20,7 @@ import type {
   SURefObjectDamage,
   SURefObjectTrait,
 } from '../../schemas/index'
+import { ACTION_TYPE_LABELS } from './facts'
 import { classRequirements } from './kind'
 
 /** The fields an action states about itself. */
@@ -53,11 +54,12 @@ function capitalize(value: string): string {
   return value.length === 0 ? value : value.charAt(0).toUpperCase() + value.slice(1)
 }
 
-/** "Turn" → "Turn Action"; Passive, Reaction and anything naming an action stay. */
+/** An action type as the book prints it (`ACTION_TYPE_LABELS`): "Turn" → "Turn Action". */
 export function formatActionType(type: string): string {
-  const lower = type.toLowerCase()
-  if (lower.includes('action') || lower === 'passive' || lower === 'reaction') return type
-  return `${type} Action`
+  const labels: Partial<Record<string, string>> = ACTION_TYPE_LABELS
+  const known = labels[type]
+  if (known) return known
+  return type.toLowerCase().includes('action') ? type : `${type} Action`
 }
 
 /** The cost as a pennant prints it: "2 AP", "1 EP", "X EP". */

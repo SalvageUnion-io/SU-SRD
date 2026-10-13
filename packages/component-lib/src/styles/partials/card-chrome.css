@@ -51,29 +51,24 @@
   overflow: hidden;
 }
 
-/* The header band (`card/EntityCardHeader.tsx`). `--full`: the title takes
- * the row and the cells follow it, wrapping beneath when the band is too
- * narrow. `--head`, the compact card: one row that never wraps. `--ruled`: the
- * ink rule that closes the band. */
+/* The header band (`card/EntityCardHeader.tsx`): the numeral, the heading and
+ * the end column on one row. `--ruled`: the ink rule that closes the band,
+ * dropped when nothing follows it (a nested card that held only chips is just
+ * its header). */
 .su-ec-band {
   align-items: center;
+  column-gap: var(--space-10);
   display: flex;
   min-width: 0;
   width: 100%;
 }
 
-.su-ec-band--head {
-  column-gap: var(--space-8);
-  flex-wrap: nowrap;
-}
-
-.su-ec-band--full {
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-14);
-}
-
 .su-ec-band--ruled {
   border-bottom: var(--bw-chrome) solid var(--color-ink);
+}
+
+.su-ec-band--ruled:last-child {
+  border-bottom-width: 0;
 }
 
 /* The title's caps face (also the tier numeral's). No line height of its own:
@@ -83,19 +78,6 @@
   font-weight: var(--font-weight-extrabold);
   letter-spacing: var(--tracking-caps-tight);
   text-transform: uppercase;
-}
-
-/* The compact title: the row's room, two lines, then "…". `min-width: 0`
- * keeps a long name out of the row's min-content, so it cannot push a
- * width-less ancestor past the viewport. */
-.su-ec-band__title--clamp {
-  display: -webkit-box;
-  flex: 1 1 0;
-  min-width: 0;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 /* Beside its labels the title wraps at spaces first (a high shrink) but keeps
@@ -111,18 +93,28 @@
   opacity: 0.75;
 }
 
-/* The name group: the title, its labels right after it. It shares the row
- * with the cells at medium and small; a large header gives it the row. */
+/* The heading: the name group, then the chip group (E17). It wraps by the
+ * band's own width: the chips stay right of the name while both fit on a
+ * line, and drop whole onto a line of their own under it when they do not. */
+.su-ec-band__heading {
+  align-items: center;
+  display: flex;
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-14);
+  min-width: 0;
+}
+
+/* The name group: the title, its labels right after it. Its basis is its
+ * natural one-line width and it never shrinks to make room for the chips
+ * (rows stretch to their titles); it grows, so chips sharing its line sit at
+ * the band's right. Only alone, and wider than the band, does it wrap. */
 .su-ec-band__name {
   align-items: center;
   column-gap: var(--space-8);
   display: flex;
-  flex: 1 1 0;
-  min-width: min-content;
-}
-
-.su-ec-band__name--large {
-  flex: 1 1 auto;
+  flex: 1 0 auto;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -132,15 +124,36 @@
   min-width: 0;
 }
 
-/* The value cells, the stamps and the pennant, at the band's right. */
-.su-ec-band__cluster {
-  align-items: center;
-  display: flex;
+.su-ec-band__labels:empty {
+  display: none;
+}
+
+/* The chip group in a heading: on a line of its own it narrows to the band
+ * and wraps from the left. */
+.su-ec-band__heading > .su-chips {
   flex: 0 1 auto;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  justify-content: flex-end;
-  min-width: 0;
+}
+
+/* An inline action (`ReferenceEntityCard`'s `inline`): its band, its body
+ * and its table. One that is its band alone (the chips said everything) sits
+ * on the next action's band, so a paper rule parts them; after a paper body
+ * the rule is paper on paper. */
+.su-ec-inline {
+  display: flex;
+  flex-direction: column;
+}
+
+.su-ec-inline + .su-ec-inline {
+  border-top: var(--bw-chrome) solid var(--color-paper);
+}
+
+/* The end column: the Dashboard's pennant button and the chevron, centred on
+ * the whole band so neither is ever left alone on a line. */
+.su-ec-band__end {
+  align-items: center;
+  column-gap: var(--space-8);
+  display: flex;
+  flex: none;
 }
 
 /* The cost pennant (`card/CardPennant.tsx`), ruleset §5, board E1: a box with

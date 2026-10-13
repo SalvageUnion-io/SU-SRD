@@ -39,19 +39,22 @@ describe('have vs do', () => {
     expect(isDoEntity(drill())).toBe(false)
   })
 
-  test('an ability is an ink banner: tree in the labels, tier numeral, cost pennant', () => {
+  test('an ability is an ink banner: tier numeral, its kind read out, its cost a chip', () => {
     const { container } = render(<ReferenceEntityCard data={juryRig()} />)
     expect(fills(container)[0]).toBe('ink')
-    expect(screen.getByText('Ability · Forging Tree')).toBeTruthy()
+    // The kind and tree are never stamped (E9): the title says them to screen readers.
+    expect(screen.queryByText('Ability · Forging Tree')).toBeNull()
+    expect(container.querySelector('.su-sr-only')?.textContent).toBe(' (Ability, Forging Tree)')
     expect(screen.getByText('1')).toBeTruthy()
-    expect(screen.getByText('2 AP')).toBeTruthy()
+    // A read cost is a chip, `AP | 2`: no pennant.
+    expect(container.querySelector('.su-pennant')).toBeNull()
+    expect(container.querySelector('[data-chip-group]')?.textContent).toContain('AP2')
   })
 
-  test('a system is a tone header with the type stamp in its header at depth 0', () => {
+  test('a system is a tone header with no kind stamp: only the footer names the type', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
     expect(fills(container)[0]).toBe('tone')
-    // The type stamp and the footer both name the type.
-    expect(screen.getAllByText('System').length).toBe(2)
+    expect(screen.getAllByText('System')).toHaveLength(1)
   })
 })
 
@@ -61,9 +64,10 @@ describe('actions sit inline', () => {
     // The card's own tone header, then one ink band per action.
     expect(fills(container)).toEqual(['tone', 'ink', 'ink'])
     expect(screen.queryByText('Action')).toBeNull()
-    // E17: the action type is a head stamp, the facets Stat cells, the traits Tags.
+    // E17: one chip group per band: the action type in the book's words,
+    // the facts, the traits. No "//" line.
     expect(container.textContent).not.toContain('//')
-    expect(screen.getAllByText('Turn').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Turn Action').length).toBeGreaterThan(0)
     expect(container.textContent).toContain('RNGClose')
     expect(container.textContent).toContain('DMG1 SP')
     expect(screen.getAllByText('Melee').length).toBeGreaterThan(0)
@@ -79,11 +83,12 @@ describe('actions sit inline', () => {
 })
 
 describe('nesting legibility', () => {
-  test('the drone stacks under its own stamp, and hides the prose its parent prints', () => {
+  test('the drone stacks with no stamp or tray label, and hides the prose its parent prints', () => {
     render(<ReferenceEntityCard data={sestra()} />)
-    // The drone card's type stamp names it; no "Drone" or "Systems" tray
-    // label repeats what each nested card already stamps.
-    expect(screen.getAllByText('Drone').length).toBeGreaterThan(0)
+    // No "Drone" stamp (E9: the title reads its kind out) and no "Systems"
+    // tray label.
+    expect(screen.queryByText('Drone')).toBeNull()
+    expect(screen.getAllByText(/\(Drone\)/).length).toBeGreaterThan(0)
     expect(screen.queryByText('Systems')).toBeNull()
     // "…comes with a single Sestra Drone…" is printed once — by the Drone
     // Controller ability — not again by the drone it names.
@@ -151,12 +156,9 @@ describe('the user-made flag', () => {
     expect(screen.queryByText('Made by alxjrvs')).toBeNull()
   })
 
-  test('a kicker names what a user-made card was built from, in the header and in the footer', () => {
-    render(
-      <ReferenceEntityCard data={sestra()} userMade madeBy="alxjrvs" kicker="NPC · from Veteran" />
-    )
-    // The header's type stamp and the footer's type label both read the kicker.
-    expect(screen.getAllByText('NPC · from Veteran')).toHaveLength(2)
+  test('a kicker names what a user-made card was built from, as a label in the header', () => {
+    render(<ReferenceEntityCard data={sestra()} userMade madeBy="alxjrvs" kicker="From Veteran" />)
+    expect(screen.getAllByText('From Veteran')).toHaveLength(1)
   })
 
   test('dashes the shortform pill, at the smallest extent', () => {

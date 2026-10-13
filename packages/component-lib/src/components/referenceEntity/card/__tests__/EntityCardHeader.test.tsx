@@ -5,25 +5,18 @@
  * rules encode rather than pixel widths. The band's static layout is
  * `.su-ec-band*` classes (ADR-046, repeated elements), so those are read off
  * the element's classes and the stylesheet rule they name:
- * - a TONE header carries the title, then the value cells; an INK header adds
- *   the tier numeral before the title and the pennant after the cells;
+ * - a TONE header carries the title, then the chip group; an INK header adds
+ *   the tier numeral before the title and the pennant button at the end;
+ * - the chips sit right of the title or under it by the band's own width:
+ *   the name never shrinks to share its line, so the chips wrap whole;
+ * - the kind is never stamped: the title carries it for screen readers;
  * - the speckle rides the band as a background image (ink grain on tone, paper
- *   flecks on ink), and is absent when the card asks for none;
- * - a compact HEAD keeps one row: the title wraps to two lines and clamps,
- *   keeping its full name in a tooltip, and the cells move to the card body.
+ *   flecks on ink), and is absent when the card asks for none.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { readPackageStylesheet } from '../../../../styles/__tests__/packageStylesheet'
-import type { StatItem } from '../../../containers/statsBarTypes'
 import { EntityCardHeader } from '../EntityCardHeader'
-
-// Real game content: the Salvaging Drill system and the Jury Rig ability.
-const stats: StatItem[] = [
-  { key: 'tech-level', label: 'TL', value: '2' },
-  { key: 'slotsRequired', label: 'Slots', value: 3 },
-  { key: 'salvageValue', label: 'SV', value: 2 },
-]
 
 const css = readPackageStylesheet()
 
@@ -41,15 +34,17 @@ const band = (title: string) => {
   return el
 }
 
+const chips = <div className="su-chips">SLOTS 3</div>
+
 describe('EntityCardHeader — two fills', () => {
-  test('a tone header: the tone, ink speckle, the title then the value cells', () => {
+  test('a tone header: the tone, ink speckle, the title then the chips', () => {
     render(
       <EntityCardHeader
         title="Salvaging Drill"
         fill="tone"
         bandColor="var(--color-tl-2)"
         titleSize="31px"
-        stats={stats}
+        chips={chips}
         size="large"
         grain="ink"
         ruled
@@ -62,18 +57,17 @@ describe('EntityCardHeader — two fills', () => {
     // itself, so the grain is read off the band's marker).
     expect(header.dataset.grain).toBe('ink')
     expect(header.classList).toContain('su-grain--ink')
-    // Closed by the 1.5px ink rule.
+    // Closed by the 1.5px ink rule, unless nothing follows the band.
     expect(header.classList).toContain('su-ec-band--ruled')
     expect(rule('.su-ec-band--ruled')).toContain(
       'border-bottom: var(--bw-chrome) solid var(--color-ink)'
     )
-    // The title wraps (a full card), the cells follow it.
-    expect(header.classList).toContain('su-ec-band--full')
-    expect(rule('.su-ec-band--full')).toContain('flex-wrap: wrap')
-    expect(screen.getByText('Slots')).toBeTruthy()
+    expect(rule('.su-ec-band--ruled:last-child')).toContain('border-bottom-width: 0')
+    const heading = header.querySelector('.su-ec-band__heading')
+    expect(heading?.lastElementChild?.textContent).toBe('SLOTS 3')
   })
 
-  test('an ink header: the numeral leads, dimmed, and the pennant closes the row', () => {
+  test('an ink header: the numeral leads, dimmed, and the pennant button ends the band', () => {
     render(
       <EntityCardHeader
         title="Jury Rig"
@@ -82,10 +76,10 @@ describe('EntityCardHeader — two fills', () => {
         titleSize="26px"
         titleColor="var(--color-paper)"
         numeral="1"
-        stats={[]}
-        pennant={<span>2 AP</span>}
+        pennant={<button type="button">2 AP</button>}
         size="large"
         grain="paper"
+        chevron
       />
     )
     const header = band('Jury Rig')
@@ -97,10 +91,13 @@ describe('EntityCardHeader — two fills', () => {
     expect(numeral.classList).toContain('su-ec-band__title')
     expect(numeral.classList).toContain('su-ec-band__numeral')
     expect(rule('.su-ec-band__numeral')).toContain('opacity: 0.75')
-    // Order: numeral, title, then the pennant.
-    const text = header.textContent ?? ''
-    expect(text.indexOf('1')).toBeLessThan(text.indexOf('Jury Rig'))
-    expect(text.indexOf('Jury Rig')).toBeLessThan(text.indexOf('2 AP'))
+    // The pennant button and the chevron share the end column, so neither
+    // is ever alone on a wrapped line.
+    const end = header.lastElementChild as HTMLElement
+    expect(end.classList).toContain('su-ec-band__end')
+    expect(end.textContent).toBe('2 AP')
+    expect(end.querySelector('svg')).not.toBeNull()
+    expect(rule('.su-ec-band__end')).toContain('flex: none')
   })
 
   test('no grain when the card asks for none (the Dashboard, a tooltip)', () => {
@@ -110,7 +107,6 @@ describe('EntityCardHeader — two fills', () => {
         fill="tone"
         bandColor="var(--color-tl-2)"
         titleSize="22px"
-        stats={stats}
         size="medium"
       />
     )
@@ -118,74 +114,36 @@ describe('EntityCardHeader — two fills', () => {
   })
 })
 
-describe('EntityCardHeader — the compact head', () => {
-  test('one no-wrap row: the title takes the room and clamps at two lines, its name a tooltip', () => {
-    render(
-      <EntityCardHeader
-        title="Electro-Magnetic Shield Projector"
-        fill="tone"
-        bandColor="var(--color-tl-4)"
-        titleSize="22px"
-        stats={stats}
-        size="medium"
-        head
-      />
-    )
-    const title = screen.getByText('Electro-Magnetic Shield Projector')
-    expect(title.getAttribute('title')).toBe('Electro-Magnetic Shield Projector')
-    expect(title.classList).toContain('su-ec-band__title--clamp')
-    const clamp = rule('.su-ec-band__title--clamp')
-    expect(clamp).toContain('flex: 1 1 0;')
-    expect(clamp).toContain('min-width: 0;')
-    expect(clamp).toContain('overflow: hidden;')
-    expect(clamp).toContain('-webkit-line-clamp: 2;')
-    const row = band('Electro-Magnetic Shield Projector')
-    expect(row.classList).toContain('su-ec-band--head')
-    expect(rule('.su-ec-band')).toContain('display: flex')
-    expect(rule('.su-ec-band--head')).toContain('flex-wrap: nowrap')
-    // The value cells live in the compact card's body, not the head.
-    expect(screen.queryByText('Slots')).toBeNull()
+describe('EntityCardHeader — the chips beside the title or under it', () => {
+  test('the heading wraps; the name keeps its one-line width and grows', () => {
+    const heading = rule('.su-ec-band__heading')
+    expect(heading).toContain('flex-wrap: wrap')
+    expect(heading).toContain('flex: 1 1 0')
+    const name = rule('.su-ec-band__name')
+    // Its basis is its natural width and it never shrinks for the chips.
+    expect(name).toContain('flex: 1 0 auto')
+    expect(name).toContain('max-width: 100%')
+    expect(rule('.su-ec-band__heading > .su-chips')).toContain('flex: 0 1 auto')
+    // No viewport rule decides it.
+    expect(css).not.toMatch(/@media[^{]*\{[^}]*su-ec-band__heading/)
   })
 
-  test('the numeral, pennant and chevron keep their natural width around the name', () => {
+  test('the kind is for screen readers only, at the end of the title', () => {
     render(
       <EntityCardHeader
-        title="Jury Rig"
+        title="Counter-Hacking"
+        kind="Ability · Advanced Hacking Tree"
         fill="ink"
         bandColor="var(--color-ink)"
         titleSize="22px"
-        numeral="1"
-        stats={[]}
-        pennant={<span>2 AP</span>}
+        titleAs="h3"
         size="medium"
-        head
-        chevron
       />
     )
-    const row = band('Jury Rig')
-    expect(row.classList).toContain('su-ec-band--head')
-    const [numeral, title, pennant, chevron] = [...row.children] as HTMLElement[]
-    expect(numeral?.classList).toContain('su-ec-band__numeral')
-    expect(rule('.su-ec-band__numeral')).toContain('flex: none')
-    expect(title?.classList).toContain('su-ec-band__title--clamp')
-    expect(pennant?.style.flex).toBe('0 0 auto')
-    expect(pennant?.textContent).toBe('2 AP')
-    expect((chevron as unknown as SVGElement | undefined)?.style.flex).toBe('0 0 auto')
-  })
-
-  test('a head is tight all round: no room is held above the title', () => {
-    render(
-      <EntityCardHeader
-        title="Cargo Pod"
-        fill="tone"
-        bandColor="var(--color-tl-1)"
-        titleSize="22px"
-        stats={[]}
-        size="medium"
-        head
-      />
-    )
-    expect(band('Cargo Pod').style.padding).toBe('6px 10px')
+    const heading = screen.getByRole('heading', { level: 3 })
+    expect(heading.textContent).toBe('Counter-Hacking (Ability, Advanced Hacking Tree)')
+    const kind = heading.querySelector('.su-sr-only')
+    expect(kind?.textContent).toBe(' (Ability, Advanced Hacking Tree)')
   })
 
   test('the labels sit right of the title, on its line', () => {
@@ -195,18 +153,17 @@ describe('EntityCardHeader — the compact head', () => {
         fill="tone"
         bandColor="var(--color-tl-1)"
         titleSize="22px"
-        stats={[]}
         size="medium"
-        labels={<span>System</span>}
+        labels={<span>User-made</span>}
       />
     )
     const row = band('Cargo Pod')
     // Symmetric: the band holds no room above for a border-riding stamp.
     expect(row.style.padding).toBe('8px 10px')
-    const title = screen.getByText('Cargo Pod')
+    const title = screen.getByText('Cargo Pod').parentElement as HTMLElement
     const labels = title.nextElementSibling as HTMLElement
-    expect(labels.textContent).toBe('System')
-    expect(title.parentElement?.parentElement).toBe(row)
+    expect(labels.textContent).toBe('User-made')
+    expect(title.parentElement?.classList).toContain('su-ec-band__name')
   })
 
   test('a full card title wraps and carries no truncation tooltip', () => {
@@ -216,11 +173,10 @@ describe('EntityCardHeader — the compact head', () => {
         fill="tone"
         bandColor="var(--color-tl-1)"
         titleSize="22px"
-        stats={[]}
         size="medium"
       />
     )
-    const title = screen.getByText('Coolant Flush')
+    const title = screen.getByText('Coolant Flush').parentElement as HTMLElement
     expect(title.getAttribute('title')).toBeNull()
     expect(title.style.whiteSpace).toBe('')
   })
