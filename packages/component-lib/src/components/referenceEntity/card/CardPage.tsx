@@ -129,7 +129,13 @@ export function CardPage({
     !!hero || !!opening || !!subLine || !!body || bookStats.length > 0 || leadActions.length > 0
 
   return (
-    <div className={cn('su-entity-page', !!hero && 'su-entity-page--flow')}>
+    <div
+      className={cn(
+        'su-entity-page',
+        !!hero && 'su-entity-page--flow',
+        !!guide && 'su-entity-page--guide'
+      )}
+    >
       {hasMain && (
         <div className={cn('su-entity-page__main', !!hero && 'su-entity-page__main--art')}>
           {hero && <div className="su-entity-page__art">{hero}</div>}

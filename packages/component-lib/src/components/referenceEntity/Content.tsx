@@ -136,6 +136,13 @@ type ContentProps = {
    * span; it is the same vocabulary, a third carrier.
    */
   rulesBearing?: boolean
+  /** A class on the run's root (a guide step's `su-guide__prose`). */
+  className?: string
+  /**
+   * The rung a `label` block's stamp takes: `compact` (default) beside card
+   * prose; `full` beside a page's reading size (a guide step's run-in head).
+   */
+  labelStampSize?: 'compact' | 'full'
 }
 
 /**
@@ -156,6 +163,8 @@ export function Content({
   chassisName,
   rulesBearing = false,
   grouped = false,
+  className,
+  labelStampSize = 'compact',
 }: ContentProps) {
   if (!rawContent || rawContent.length === 0) {
     return null
@@ -204,7 +213,7 @@ export function Content({
   }
 
   return (
-    <div>
+    <div className={className}>
       {sections.map((section) => {
         if (!section.startsSection) {
           return section.blocks.map(({ block, originalIndex }) => (
@@ -215,6 +224,7 @@ export function Content({
               compact={compact}
               chassisName={chassisName}
               rulesBearing={rulesBearing}
+              labelStampSize={labelStampSize}
             />
           ))
         }
@@ -240,6 +250,7 @@ export function Content({
                 compact={compact}
                 chassisName={chassisName}
                 rulesBearing={rulesBearing}
+                labelStampSize={labelStampSize}
               />
             )}
             {labelText && (
@@ -261,6 +272,7 @@ export function Content({
                     compact={compact}
                     rulesBearing={rulesBearing}
                     chassisName={chassisName}
+                    labelStampSize={labelStampSize}
                   />
                 ))}
               </div>
@@ -278,6 +290,7 @@ function ContentBlock({
   compact,
   chassisName,
   rulesBearing = false,
+  labelStampSize = 'compact',
 }: {
   block: SURefObjectContentBlock
   fontSize: ContentFontSize
@@ -285,6 +298,8 @@ function ContentBlock({
   chassisName?: string
   /** See `ContentProps.rulesBearing`. */
   rulesBearing?: boolean
+  /** See `ContentProps.labelStampSize`. */
+  labelStampSize?: 'compact' | 'full'
 }) {
   const type = block.type || 'paragraph'
   const blockValue = block.value
@@ -388,7 +403,7 @@ function ContentBlock({
       return (
         <div>
           {block.label && (
-            <Badge shape="stamp" size="compact" style={labelStampStyle}>
+            <Badge shape="stamp" size={labelStampSize} style={labelStampStyle}>
               {block.label}
             </Badge>
           )}

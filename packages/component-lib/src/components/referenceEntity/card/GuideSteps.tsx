@@ -20,6 +20,23 @@ function GuideNote({ text }: { text: string }) {
 }
 
 /**
+ * A step's aside — a tip or a worked example — as a framed callout: a full
+ * chrome-weight ink frame on paper, never a left rail (ruleset §3.10), as the
+ * srd's other asides are. A `note` role, not an `<aside>`: a complementary
+ * landmark may not sit inside the page's `main`.
+ */
+function GuideAside({ text, flavor }: { text: string; flavor: boolean }) {
+  return (
+    <div
+      role="note"
+      className={flavor ? 'su-guide__aside su-guide__aside--flavor' : 'su-guide__aside'}
+    >
+      <p>{useParseTraitReferences(text)}</p>
+    </div>
+  )
+}
+
+/**
  * GUIDE STEPS — a guide keeps almost all of its prose in `steps` (28.7k of
  * 34.2k characters across the dataset), so a card that renders only the
  * top-level `content` renders almost none of the guide: the "Salvaging" page
@@ -33,7 +50,8 @@ function GuideNote({ text }: { text: string }) {
  * "New to the Union?" steps. A `section` (the book's major divisions,
  * "Post-Session") opens a solid `Slab` above the steps it holds, and numbering
  * restarts inside it. Under each banner: the step's prose, its page pointers
- * as left-aligned notes, the entities it selects from as compact cards, its
+ * as left-aligned notes, its asides (a tip, a worked example) as framed
+ * callouts, the entities it selects from as compact cards, its
  * roll table and any sub-guide — every one through the primitive its kind
  * already has.
  *
@@ -42,8 +60,10 @@ function GuideNote({ text }: { text: string }) {
  * page's reading size and measure there. There (`page`) a long guide also gets
  * its hierarchy and its way around: a section opens on an H2-scale head (the
  * book's division, not a 12px stamp), every section and step is an anchor, and
- * an "On this page" rail lists them — sticky in the page's empty right third
- * on a wide screen, a folded disclosure above the steps on a phone.
+ * an "On this page" rail lists them — sticky beside the whole page (the
+ * introduction too: the page is `.su-entity-page--guide`'s grid) on a wide
+ * screen, a folded disclosure above the steps on a phone. Its prose takes a
+ * book measure and leading, and a run-in head's stamp the full rung.
  *
  * Read-only by design: this is the SRD's transcription of the procedure.
  * Walking a guide as an interactive wizard is ITUN's job (`DowntimeWizard`),
@@ -98,15 +118,27 @@ export function GuideSteps({
         chassisName={chassisName}
       />
     )
-    const stepProse = chunkGuideStepProse(step.content).map((chunk, index) =>
-      chunk.kind === 'note' ? (
+    const stepProse = chunkGuideStepProse(step.content).map((chunk, index) => {
+      if (chunk.kind === 'note') {
         // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
-        <GuideNote key={index} text={chunk.text} />
-      ) : (
+        return <GuideNote key={index} text={chunk.text} />
+      }
+      if (chunk.kind === 'aside') {
         // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
-        <CardProse key={index} body={chunk.blocks} context={prose} />
+        return <GuideAside key={index} text={chunk.text} flavor={chunk.flavor} />
+      }
+      // A run-in head stamps at the full rung beside the page's reading size.
+      return (
+        <CardProse
+          // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
+          key={index}
+          body={chunk.blocks}
+          context={prose}
+          className="su-guide__prose"
+          labelStampSize={page ? 'full' : undefined}
+        />
       )
-    )
+    })
     // `sidebar` marks a step whose entities are a progression LADDER (crawler
     // tech levels) rather than a set of options — they read down a narrow
     // column beside the prose instead of across a grid. The prose comes first

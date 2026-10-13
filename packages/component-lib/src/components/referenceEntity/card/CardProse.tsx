@@ -36,12 +36,20 @@ export type CardProseContext = {
 export function CardProse({
   body,
   context,
+  className,
+  labelStampSize,
 }: {
   body: SURefObjectContentBlock[]
   context: CardProseContext
+  /** A class on the run's root, for a surface that sets its own reading rhythm. */
+  className?: string
+  /** A `label` block's stamp rung (`Content`'s `labelStampSize`). */
+  labelStampSize?: 'compact' | 'full'
 }) {
   return (
     <Content
+      className={className}
+      labelStampSize={labelStampSize}
       rulesBearing={context.rulesBearing}
       body={body}
       compact={context.compact}
