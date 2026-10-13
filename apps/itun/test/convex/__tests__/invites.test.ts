@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { api } from '../../../convex/_generated/api'
+import { api, internal } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { refreshGameSummary } from '../../../convex/model/entities'
 import type { Ctx } from '../fixtures'
@@ -288,5 +288,60 @@ describe('games.get and the row summary', () => {
     const stranger = await makeUser(t, 'Stranger')
     // A bookmarked URL for a game you left is an ordinary thing to visit.
     expect(await stranger.as.query(api.games.get, { gameId })).toBeNull()
+  })
+})
+
+describe('dropRetired', () => {
+  test('reports without changing anything, then clears the retired columns and rows', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
+    await seedLegacyInvite(t, gameId, organizer.userId, 'OLDCODE1', { requiresApproval: true })
+    const joiner = await makeUser(t, 'Ash')
+    await t.run(async (ctx) => {
+      const legacy = await ctx.db
+        .query('invites')
+        .withIndex('by_code', (q) => q.eq('code', 'OLDCODE1'))
+        .unique()
+      if (legacy === null) throw new Error('no legacy invite')
+      await ctx.db.insert('joinRequests', {
+        gameId,
+        inviteId: legacy._id,
+        userId: joiner.userId,
+        requestedAt: Date.now(),
+        state: 'pending',
+      })
+      await ctx.db.insert('inviteRedemptions', {
+        gameId,
+        inviteId: legacy._id,
+        userId: joiner.userId,
+        redeemedAt: Date.now(),
+      })
+    })
+
+    const counts = { invites: 1, joinRequests: 1, inviteRedemptions: 1 }
+    expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
+    expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
+
+    expect(await t.mutation(internal.invites.dropRetired, { apply: true })).toEqual(counts)
+    expect(await t.mutation(internal.invites.dropRetired, {})).toEqual({
+      invites: 0,
+      joinRequests: 0,
+      inviteRedemptions: 0,
+    })
+    const legacy = await t.run(async (ctx) =>
+      ctx.db
+        .query('invites')
+        .withIndex('by_code', (q) => q.eq('code', 'OLDCODE1'))
+        .unique()
+    )
+    expect(legacy?.requiresApproval).toBeUndefined()
+    expect(legacy?.expiresAt).toBeUndefined()
+    expect(legacy?.role).toBeUndefined()
+    // The live link still opens.
+    expect(await joiner.as.mutation(api.invites.redeem, { code })).toEqual({
+      kind: 'joined',
+      gameId,
+    })
   })
 })
