@@ -1484,7 +1484,7 @@
 }
 
 /* The tier's hue, and the numeral's foreground on it (§3.8: paper on the Core
-   brick, ink on pilot). */
+   brick and the Hybrid rust, ink on pilot). */
 .srd-ability-tree__track[data-track='core'] {
   --srd-track-color: var(--color-tier-core);
   --srd-track-on: var(--color-paper);
@@ -1493,6 +1493,11 @@
 .srd-ability-tree__track[data-track='advanced'] {
   --srd-track-color: var(--color-pilot);
   --srd-track-on: var(--color-ink);
+}
+
+.srd-ability-tree__track[data-track='hybrid'] {
+  --srd-track-color: var(--color-tier-hybrid);
+  --srd-track-on: var(--color-paper);
 }
 
 .srd-ability-tree__tier {

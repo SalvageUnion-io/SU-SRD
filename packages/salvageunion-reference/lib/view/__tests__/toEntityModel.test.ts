@@ -177,14 +177,14 @@ describe('entityTone', () => {
     const tones = new Set(
       SalvageUnionReference.Abilities.all().map((a) => entityTone('abilities', a))
     )
-    expect([...tones].sort()).toEqual(['crawler', 'pilot', 'tier-core'])
+    expect([...tones].sort()).toEqual(['crawler', 'pilot', 'tier-core', 'tier-hybrid'])
     const toneOf = (tree: string) => {
       const ability = SalvageUnionReference.Abilities.all().find((a) => a.tree === tree)
       return entityTone('abilities', need(ability, tree))
     }
     expect(toneOf('Hacking')).toBe('tier-core')
     expect(toneOf('Advanced Hacking')).toBe('pilot')
-    expect(toneOf('Cyborg')).toBe('pilot')
+    expect(toneOf('Cyborg')).toBe('tier-hybrid')
     expect(toneOf('Legendary Hacker')).toBe('crawler')
   })
 })

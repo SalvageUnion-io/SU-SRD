@@ -139,11 +139,14 @@
   --color-guide-hazard: rgb(184, 76, 76); /* #b84c4c */
 
   /* Class ability-tier ramp, the book's (Workshop Manual p.27): Core = this
-     brick, Advanced (incl. Hybrid) = pilot orange, Legendary = crawler pink.
-     The upper two reuse the ontology hues, so only Core owns a token. It
-     carries paper text (design/__tests__/contrast.test.ts). */
+     brick, Advanced = pilot orange, Hybrid = rust (owner's call), Legendary =
+     crawler pink. Advanced and Legendary reuse the ontology hues. Hybrid's rust is
+     its own hue, never `var(--color-rust)` or its value: nothing may wear the
+     action colour (ruleset §3.1). Core and Hybrid carry paper text
+     (design/__tests__/contrast.test.ts). */
   --color-tier-core: rgb(168, 89, 71); /* #a85947 */
   --color-tier-core-pale: rgb(210, 160, 140); /* #d2a08c */
+  --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
 
   /* Roll result tiers — canonical warm state palette (canonical primitive
      language §3): warm, so damaged/destroyed state (via the --color-status-* aliases below) and the Discord bot's roll

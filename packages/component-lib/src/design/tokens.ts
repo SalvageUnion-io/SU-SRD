@@ -215,10 +215,11 @@ const base = {
   guideSalvage: 'rgb(90, 157, 181)',
   guideHazard: 'rgb(184, 76, 76)',
 
-  // — Class ability-tier ramp (the book's). Advanced and Legendary reuse
-  //   pilot/crawler, so only Core owns a token. —
+  // — Class ability-tier ramp (the book's; Hybrid rust by the owner's call).
+  //   Advanced and Legendary reuse pilot/crawler. —
   tierCore: 'rgb(168, 89, 71)',
   tierCorePale: 'rgb(210, 160, 140)',
+  tierHybrid: 'rgb(183, 65, 14)',
 
   // — Roll result tiers: the canonical warm state ramp, shared with the bot —
   rollCascade: 'rgb(176, 67, 43)',

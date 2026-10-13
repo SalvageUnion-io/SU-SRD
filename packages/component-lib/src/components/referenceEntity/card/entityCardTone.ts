@@ -59,6 +59,7 @@ const TONE_TOKENS: ReadonlySet<string> = new Set([
   'adversary',
   'pilot',
   'tier-core',
+  'tier-hybrid',
   'ink-2',
   'tl-1',
   'tl-2',

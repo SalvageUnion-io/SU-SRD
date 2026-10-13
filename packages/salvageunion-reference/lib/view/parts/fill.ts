@@ -32,21 +32,23 @@ function techLevelTone(level: number | undefined): string | undefined {
 }
 
 /** Book tier tones (Workshop Manual p.27, the class ability-tree spreads):
- * Core = brick (`tier-core`), Advanced and Hybrid = pilot orange, Legendary =
- * crawler pink. */
+ * Core = brick (`tier-core`), Advanced = pilot orange, Hybrid = rust
+ * (`tier-hybrid`, the owner's call), Legendary = crawler pink. */
 function abilityTierTone(entity: SURefMetaEntity): string {
   const isLegendary =
     ('level' in entity && String(entity.level).toUpperCase() === 'L') ||
     ('tree' in entity && String(entity.tree).includes('Legendary'))
   if (isLegendary) return 'crawler'
   const tree = 'tree' in entity ? String(entity.tree) : ''
-  return tree.includes('Advanced') || isHybridTree(tree) ? 'pilot' : 'tier-core'
+  if (isHybridTree(tree)) return 'tier-hybrid'
+  return tree.includes('Advanced') ? 'pilot' : 'tier-core'
 }
 
 function treeRequirementTone(entity: SURefMetaEntity): string {
   const name = 'name' in entity ? String(entity.name).toLowerCase() : ''
   if (name.includes('legendary')) return 'crawler'
-  if (name.includes('advanced') || name.includes('hybrid')) return 'pilot'
+  if (name.includes('hybrid')) return 'tier-hybrid'
+  if (name.includes('advanced')) return 'pilot'
   return 'tier-core'
 }
 
@@ -104,8 +106,8 @@ export type HeaderFill = 'tone' | 'ink'
 
 /**
  * Which fill a header takes in a form (E12): things you do are the ink banner,
- * except an ability's Row, which wears its tier tone (the book's: Core brick,
- * Advanced orange, Legendary pink) wherever abilities are listed.
+ * except an ability's Row, which wears its tier tone (Core brick, Advanced
+ * orange, Hybrid rust, Legendary pink) wherever abilities are listed.
  */
 export function headerFill(entity: SURefMetaEntity, form: 'row' | 'card' | 'page'): HeaderFill {
   if (form === 'row' && isAbility(entity)) return 'tone'

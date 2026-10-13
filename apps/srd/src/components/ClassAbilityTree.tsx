@@ -27,7 +27,7 @@ const classHref = (c: SURefClass) => itemHref('classes', getEntitySlug(c))
  * One ability in its tree: a Row in link mode, a real same-tab link to the
  * ability's page — the listing row's shape (`EntityListingRow`), so a crawler
  * follows it and a reader keeps their back button. Its banner wears its tier
- * (EDL E12, the book's: Core brick, Advanced and Hybrid orange, Legendary pink), the hue
+ * (EDL E12: Core brick, Advanced orange, Hybrid rust, Legendary pink), the hue
  * of its track; on a track the Row leaves its numeral to the track.
  */
 function AbilityTreeListing({ ability, onTrack }: { ability: SURefAbility; onTrack: boolean }) {
@@ -48,10 +48,10 @@ function AbilityTreeListing({ ability, onTrack }: { ability: SURefAbility; onTra
  * ability-tree track stays a diagram). Core and Advanced/Hybrid trees are
  * trained in order — each Ability needs the one before it — so their three
  * tiers hang off one thick track in the tier's hue (Core = brick,
- * Advanced = pilot orange), each tier's numeral on it beside its banner. A
+ * Advanced = pilot orange, Hybrid = rust), each tier's numeral on it beside its banner. A
  * Legendary tree is a pick-one, not a sequence, so it has none.
  */
-type TreeTrack = 'core' | 'advanced' | null
+type TreeTrack = 'core' | 'advanced' | 'hybrid' | null
 
 /** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
 const noteFor = (track: TreeTrack) => (track ? 'Tree' : 'Choose 1')
@@ -273,7 +273,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
           {note && <p className="srd-class-path__note">{note}</p>}
         </div>
         <div className="srd-class-path__trees" data-entity-fit="">
-          <TreeSection {...path.advanced} track="advanced" />
+          <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} />
           {path.legendary && <TreeSection {...path.legendary} track={null} />}
         </div>
       </div>
@@ -297,7 +297,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
         <section className="srd-ability-tree__section">
           <Slab variant="dashed" label="Abilities" />
           <div className="srd-ability-tree__row" data-entity-fit="">
-            <TreeSection {...path.advanced} track="advanced" />
+            <TreeSection {...path.advanced} track="hybrid" />
             {path.legendary && <TreeSection {...path.legendary} track={null} />}
           </div>
         </section>
