@@ -7,6 +7,8 @@ import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ColumnsTableIslandProps = {
   data: ColumnsTablePageData
+  /** The page's band colour, which the table's rows band in. */
+  tone?: string
   /** The die. Injectable so a test controls the rolls; a plain Randsum d20. */
   d20?: () => number
 }
@@ -16,7 +18,7 @@ type ColumnsTableIslandProps = {
  * column's d20, then the entry's, and keeps the earlier rolls. Its props are
  * the page's table, digested at build time, so the island reads no game data.
  */
-export function ColumnsTableIsland({ data, d20 = rollD20 }: ColumnsTableIslandProps) {
+export function ColumnsTableIsland({ data, tone, d20 = rollD20 }: ColumnsTableIslandProps) {
   const [state, setState] = useState<ColumnsRollState>({ roll: null, history: [] })
 
   const onRoll = () => {
@@ -27,7 +29,7 @@ export function ColumnsTableIsland({ data, d20 = rollD20 }: ColumnsTableIslandPr
 
   return (
     <IslandErrorBoundary>
-      <ColumnsTableView data={data} state={state} onRoll={onRoll} />
+      <ColumnsTableView data={data} tone={tone} state={state} onRoll={onRoll} />
     </IslandErrorBoundary>
   )
 }

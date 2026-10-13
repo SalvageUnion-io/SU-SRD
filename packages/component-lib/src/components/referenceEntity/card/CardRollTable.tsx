@@ -1,22 +1,25 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefObjectTable } from 'salvageunion-reference'
-import { plainTraitText, resultForTable } from 'salvageunion-reference'
+import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { useEntitySurface } from '../../../entity/entitySurfaceContext'
-import { dieForTable } from '../../../utils/dice'
+import { dieForTable, rollD20 } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Button } from '../../atoms/Button'
-import type { DigestedRollTable } from '../../compositions/digestRollTable'
-import { digestRollTable } from '../../compositions/digestRollTable'
-import { RollTable } from '../../compositions/RollTable'
+import { digestColumnsTable, digestRollTable } from '../../compositions/digestRollTable'
+import { RollTableInstrument } from '../../compositions/RollTableInstrument'
+import { rollRangeLabel } from '../../compositions/rollTableBands'
 import type { CardSize } from '../../containers/displayMode'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }
 
-const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
+/** A pair of rolls on a columns table: where they landed, and the entry's die. */
+type ColumnsRoll = { column: string; entry: string; roll: number; value: string }
+
+const PAD_X: Record<CardSize, string> = { large: space[12], medium: space[8], small: space[8] }
 
 const cond = (size: string, extra?: CSSProperties): CSSProperties => ({
   fontFamily: font.cond,
@@ -39,11 +42,15 @@ const BAR_BUTTON: CSSProperties = {
   textTransform: 'uppercase',
 }
 
-/** A range key as the book prints it: "11–19", with an en dash. */
-const rangeLabel = (key: string) => key.replace('-', '–')
+/** A row's text, its trait references as Mentions. */
+function TraitText({ text }: { text: string }) {
+  return <>{useParseTraitReferences(text)}</>
+}
 
 /**
- * An entity's own ROLL TABLE, inline in its card like an action (board E4).
+ * An entity's own ROLL TABLE, inline in its card like an action (board E4):
+ * the shared `RollTableInstrument`, with the card's controls in its bar and
+ * its readout under it.
  *
  * Two switches — shown or hidden, rolled or not — give four states, and ONE
  * bar holds the same place in all of them: the underlined "ROLL THE DIE:"
@@ -52,21 +59,20 @@ const rangeLabel = (key: string) => key.replace('-', '–')
  *
  * The result is a READOUT, not a row hunt: the number, the outcome and its
  * text in an ink strip under the bar, at reading size, open or not. An open
- * table also marks the matching row as the srd roll page does — set in ink,
- * paper text, a paper range cell and a "Rolled N" pennant — and fades the
- * rest. The mark is the same whatever the
- * outcome, so the web never colours a roll by how it went (ruleset §3.4).
+ * table also marks the matching row, the instrument's mark: the same whatever
+ * the outcome, so the web never colours a roll by how it went (ruleset §3.4).
  *
- * The rows are BANDED, paper and `--color-band-cream` in turn (ruleset §2,
- * "RollTable banded d20"), so a long outcome's lines stay with their range.
+ * The rows are banded in the SURFACE TONE (`tone`: a guide's own colour, for
+ * the tables in its steps), cream on a surface with none.
  *
  * A surface that announces rolls (`EntitySurfaceValue.announceRoll` — the
  * SRD's toast) gets the result there instead of the readout; the open table
  * still marks the row. A surface with `rolls` off has no Roll at all: the
  * table still reads and still folds.
  *
- * A COLUMNS table (a d20 × d20 grid) keeps the shared `RollTable`: its two
- * dice and five columns are a different shape from a banded table.
+ * A COLUMNS table (Callsign, a d20 × d20) is the same instrument and the same
+ * bar: Roll rolls both dice, the readout names the column, and the grid marks
+ * the column's head and the entry's cell.
  */
 export function CardRollTable({
   table,
@@ -76,6 +82,7 @@ export function CardRollTable({
   disabled,
   defaultRoll,
   framed = false,
+  tone,
   onRollResult,
 }: {
   table: SURefObjectTable
@@ -93,33 +100,26 @@ export function CardRollTable({
    * flush in a card it is closed by the rule above its bar.
    */
   framed?: boolean
+  /** The surface's tone (a CSS colour), whose band paints every other row. */
+  tone?: string
   /** Called with the outcome's text (and its range key) on every roll. */
   onRollResult?: (text: string, key: string) => void
 }) {
   const { rolls, announceRoll } = useEntitySurface()
   const noRoll = disabled || !rolls
   const [expanded, setExpanded] = useState(!collapsible)
+  const isColumns = table.type === 'columns'
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
-    defaultRoll != null ? { roll: defaultRoll, key: resultForTable(table, defaultRoll).key } : null
+    defaultRoll != null && !isColumns
+      ? { roll: defaultRoll, key: resultForTable(table, defaultRoll).key }
+      : null
   )
+  const [rolledColumns, setRolledColumns] = useState<ColumnsRoll | null>(null)
 
-  if (table.type === 'columns') {
-    return (
-      <div style={{ padding: framed ? 0 : `${space[8]} ${PAD_X[size]}` }}>
-        <RollTable
-          table={table}
-          showCommand
-          size={size === 'large' ? 'full' : 'compact'}
-          collapsible={collapsible}
-          disabled={noRoll}
-        />
-      </div>
-    )
-  }
-
-  const rows = digestRollTable(table)
+  const rows = isColumns ? [] : digestRollTable(table)
   const hit = rolled ? rows.find((row) => row.key === rolled.key) : undefined
-  const roll = () => {
+
+  const rollBands = () => {
     // A named table (the Core Mechanic's own card) rolls through
     // @randsum/salvageunion; an entity's table gets Randsum's plain d20. Either
     // way the row is read from this table's data, by the total.
@@ -133,132 +133,128 @@ export function CardRollTable({
       announceRoll?.({
         table: name,
         roll: die,
-        range: rangeLabel(key),
+        range: rollRangeLabel(key),
         ...(entry.label ? { label: entry.label } : {}),
         text: plainTraitText(entry.value),
       })
     })
   }
 
-  return (
-    <div
-      style={
-        framed
-          ? {
-              border: 'var(--bw-chrome) solid var(--color-ink)',
-              borderRadius: 'var(--radius-card)',
-              overflow: 'hidden',
-            }
-          : { borderTop: 'var(--bw-chrome) solid var(--color-ink)' }
-      }
-    >
-      <div
-        style={{
-          alignItems: 'center',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: `${space[8]} ${space[10]}`,
-          padding: `${space[8]} ${PAD_X[size]}`,
-        }}
-      >
-        <span
-          style={cond(fontSize.caption, {
-            backgroundColor: 'var(--color-ink)',
-            color: 'var(--color-paper)',
-            flex: 'none',
-            padding: `3px ${space[6]}`,
-            textDecoration: 'underline',
-            whiteSpace: 'nowrap',
-          })}
-        >
-          Roll the Die:
-        </span>
-        <span
-          style={cond(size === 'small' ? fontSize.lede : fontSize.readout, {
-            // The name WRAPS at word breaks (never clips): when Roll and Table
-            // drop to a second row the name keeps its whole title. `contain`
-            // still keeps a long name from widening a width-less ancestor.
-            contain: 'inline-size',
-            flex: '1 1 8rem',
-            minWidth: 0,
-            overflowWrap: 'break-word',
-          })}
-        >
-          {name}
-        </span>
-        {!noRoll && (
-          <Button
-            variant="primary"
-            size="compact"
-            onClick={roll}
-            // The name starts with the visible word (WCAG 2.5.3).
-            aria-label={`${rolled ? 'Reroll' : 'Roll'} on this table`}
-            style={BAR_BUTTON}
-          >
-            {rolled ? 'Reroll' : 'Roll'}
-          </Button>
-        )}
+  const rollColumns = () => {
+    // Two plain d20s: a columns table is never a named Salvage Union table.
+    const entryRoll = rollD20()
+    const res = resultForColumnsTable(table, rollD20(), entryRoll)
+    if (!res.success) return
+    const { columnKey, entryKey, result } = res
+    setRolledColumns({ column: columnKey, entry: entryKey, roll: entryRoll, value: result.value })
+    onRollResult?.(result.value, entryKey)
+    announceRoll?.({
+      table: name,
+      roll: entryRoll,
+      range: `column ${rollRangeLabel(columnKey)}`,
+      text: result.value,
+    })
+  }
+
+  const isRolled = isColumns ? !!rolledColumns : !!rolled
+  const actions = (
+    <>
+      {!noRoll && (
         <Button
+          variant="primary"
           size="compact"
-          aria-expanded={expanded}
-          aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
-          onClick={() => setExpanded((open) => !open)}
+          onClick={isColumns ? rollColumns : rollBands}
+          // The name starts with the visible word (WCAG 2.5.3).
+          aria-label={`${isRolled ? 'Reroll' : 'Roll'} on this table`}
           style={BAR_BUTTON}
         >
-          {expanded ? 'Hide' : 'Table'}
-          {expanded ? (
-            <ChevronUp aria-hidden="true" size={16} />
-          ) : (
-            <ChevronDown aria-hidden="true" size={16} />
-          )}
+          {isRolled ? 'Reroll' : 'Roll'}
         </Button>
-      </div>
-
-      {/* The live region is always mounted, so the announcement fires on the
-          first roll too. A surface that announces rolls shows its own. */}
-      {!announceRoll && (
-        <div aria-live="polite">
-          {rolled && hit && <RollReadout rolled={rolled} hit={hit} size={size} />}
-        </div>
       )}
+      <Button
+        size="compact"
+        aria-expanded={expanded}
+        aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
+        onClick={() => setExpanded((open) => !open)}
+        style={BAR_BUTTON}
+      >
+        {expanded ? 'Hide' : 'Table'}
+        {expanded ? (
+          <ChevronUp aria-hidden="true" size={16} />
+        ) : (
+          <ChevronDown aria-hidden="true" size={16} />
+        )}
+      </Button>
+    </>
+  )
 
-      {expanded && (
-        <ol
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            listStyle: 'none',
-            margin: 0,
-            padding: 0,
-          }}
-        >
-          {rows.map((row, index) => (
-            <RollRow
-              key={row.key}
-              row={row}
-              band={index % 2 === 1}
-              size={size}
-              rolled={rolled && row.key === rolled.key ? rolled.roll : undefined}
-              faded={!!rolled && row.key !== rolled.key}
-            />
-          ))}
-        </ol>
+  // The live region is always mounted, so the announcement fires on the first
+  // roll too. A surface that announces rolls shows its own.
+  const readout = announceRoll ? null : (
+    <div aria-live="polite">
+      {rolled && hit && (
+        <RollReadout
+          roll={rolled.roll}
+          where={`lands on ${rollRangeLabel(hit.key)}`}
+          label={hit.label}
+          text={<TraitText text={hit.value} />}
+          size={size}
+        />
+      )}
+      {rolledColumns && (
+        <RollReadout
+          roll={rolledColumns.roll}
+          where={`column ${rollRangeLabel(rolledColumns.column)}`}
+          label={rolledColumns.value}
+          size={size}
+        />
       )}
     </div>
+  )
+
+  return (
+    <RollTableInstrument
+      name={name}
+      title={name}
+      size={size}
+      tone={tone}
+      frame={framed ? 'box' : 'rule'}
+      stamp={isColumns ? 'Roll twice:' : undefined}
+      actions={actions}
+      readout={readout}
+      open={expanded}
+      table={
+        isColumns
+          ? {
+              kind: 'columns',
+              columns: digestColumnsTable(table),
+              mark: rolledColumns ?? undefined,
+            }
+          : {
+              kind: 'bands',
+              rows: rows.map((row) => ({ ...row, value: <TraitText text={row.value} /> })),
+              mark: rolled ?? undefined,
+            }
+      }
+    />
   )
 }
 
 /** The result readout: the die, where it landed, the outcome and its text. */
 function RollReadout({
-  rolled,
-  hit,
+  roll,
+  where,
+  label,
+  text,
   size,
 }: {
-  rolled: CardRoll
-  hit: DigestedRollTable
+  roll: number
+  /** Where the roll landed: "lands on 11–19", "column 9–12". */
+  where: string
+  label: string | null
+  text?: ReactNode
   size: CardSize
 }) {
-  const text = useParseTraitReferences(hit.value)
   return (
     <div
       style={{
@@ -267,8 +263,8 @@ function RollReadout({
         borderTop: 'var(--bw-chrome) solid var(--color-ink)',
         color: 'var(--color-paper)',
         display: 'flex',
-        gap: space[14],
-        padding: `${space[10]} ${PAD_X[size]}`,
+        gap: space[12],
+        padding: `${space[8]} ${PAD_X[size]}`,
       }}
     >
       <span
@@ -286,129 +282,30 @@ function RollReadout({
           textAlign: 'center',
         }}
       >
-        {rolled.roll}
+        {roll}
       </span>
       <div style={{ display: 'flex', flexDirection: 'column', gap: space[2], minWidth: 0 }}>
         <span style={cond(fontSize.badge, { letterSpacing: tracking.capsSnug })}>
-          You rolled · lands on {rangeLabel(hit.key)}
+          You rolled · {where}
         </span>
-        {hit.label && (
+        {label && (
           <span
             style={cond(size === 'small' ? fontSize.readout : fontSize.title, { lineHeight: 1 })}
           >
-            {hit.label}
+            {label}
           </span>
         )}
-        <span
-          style={{ fontSize: size === 'small' ? fontSize.caption : fontSize.lede, lineHeight: 1.4 }}
-        >
-          {text}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-/** One banded row: the range cell, then the outcome and its text. */
-function RollRow({
-  row,
-  band,
-  size,
-  rolled,
-  faded,
-}: {
-  row: DigestedRollTable
-  /** Every other row wears the cream band. */
-  band: boolean
-  size: CardSize
-  /** The die, when this is the row it landed on. */
-  rolled: number | undefined
-  faded: boolean
-}) {
-  const text = useParseTraitReferences(row.value)
-  const marked = rolled != null
-  return (
-    <li
-      aria-current={marked ? 'true' : undefined}
-      style={{
-        alignItems: 'stretch',
-        // The hit is set in ink, the srd roll page's mark (`.srd-roll__row[data-rolled]`).
-        backgroundColor: marked
-          ? 'var(--color-ink)'
-          : band
-            ? 'var(--color-band-cream)'
-            : 'var(--color-paper)',
-        borderTop: 'var(--bw-hairline) solid var(--color-ink-20)',
-        color: marked ? 'var(--color-paper)' : undefined,
-        display: 'flex',
-      }}
-    >
-      <span
-        style={cond(fontSize.readout, {
-          alignItems: 'center',
-          backgroundColor: marked ? 'var(--color-paper)' : 'var(--color-wk-bg)',
-          borderRight: 'var(--bw-chrome) solid var(--color-ink)',
-          color: color.ink,
-          display: 'flex',
-          flex: 'none',
-          fontVariantNumeric: 'tabular-nums',
-          fontWeight: weight.extrabold,
-          justifyContent: 'center',
-          width: size === 'small' ? '48px' : '64px',
-        })}
-      >
-        {rangeLabel(row.key)}
-      </span>
-      <div
-        style={{
-          display: 'flex',
-          flex: 1,
-          flexDirection: 'column',
-          gap: space[2],
-          minWidth: 0,
-          opacity: faded ? 0.6 : 1,
-          padding: `${space[8]} ${space[12]}`,
-        }}
-      >
-        {(row.label || marked) && (
-          // The "Rolled" tag rides the title line, so the prose keeps the row's
-          // full width on a phone.
-          <div
+        {text && (
+          <span
             style={{
-              alignItems: 'center',
-              display: 'flex',
-              gap: space[8],
-              justifyContent: 'space-between',
+              fontSize: size === 'small' ? fontSize.caption : fontSize.lede,
+              lineHeight: 1.4,
             }}
           >
-            {row.label ? (
-              <span style={cond(size === 'small' ? fontSize.lede : fontSize.readout)}>
-                {row.label}
-              </span>
-            ) : (
-              <span />
-            )}
-            {marked && (
-              <span
-                style={cond(fontSize.caption, {
-                  backgroundColor: 'var(--color-paper)',
-                  clipPath: 'polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%)',
-                  color: color.ink,
-                  flex: 'none',
-                  fontWeight: weight.extrabold,
-                  padding: `3px ${space[6]} 3px ${space[14]}`,
-                  whiteSpace: 'nowrap',
-                })}
-              >
-                Rolled {rolled}
-              </span>
-            )}
-          </div>
+            {text}
+          </span>
         )}
-        <span style={{ fontSize: size === 'small' ? fontSize.xs : fontSize.sm, lineHeight: 1.45 }}>
-          {text}
-        </span>
       </div>
-    </li>
+    </div>
   )
 }

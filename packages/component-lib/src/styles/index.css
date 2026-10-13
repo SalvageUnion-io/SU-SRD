@@ -3780,37 +3780,353 @@ body {
 
 /* — Compositions — */
 
-/* ── compositions/RollTable ── */
+/* ── end group A ── */
+
+/* ── compositions/RollTableInstrument ── */
 
 /*
- * RollTable's collapsible-header Show/Hide toggle. Its colour is a class
- * because it brightens on :hover (paper at 80% → full paper); everything
- * static on it is a style object in RollTable.tsx.
+ * THE roll table (`RollTableInstrument`, EDL E14): the bar, the host's
+ * readout, then the bands. Classes rather than style objects because the
+ * page's split and density answer to the viewport. The row fills (paper, the
+ * surface tone's band, the rolled row's ink) are the component's own inline
+ * style, so a test reads them straight off the row.
  */
-.su-roll-table__toggle {
-  color: var(--color-paper-80);
+.su-roll {
+  --su-roll-pad-x: var(--space-12);
+  --su-roll-range: 4.5rem;
+  --su-roll-range-size: var(--text-xl);
+  --su-roll-label-size: var(--text-lg);
+  --su-roll-value-size: var(--text-base);
+  --su-roll-title-size: var(--text-readout);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  min-width: 0;
 }
 
-.su-roll-table__toggle:hover {
+.su-roll[data-size='medium'] {
+  --su-roll-pad-x: var(--space-8);
+  --su-roll-range: 4rem;
+  --su-roll-range-size: var(--text-readout);
+  --su-roll-label-size: var(--text-readout);
+  --su-roll-value-size: var(--text-sm);
+}
+
+.su-roll[data-size='small'] {
+  --su-roll-pad-x: var(--space-8);
+  --su-roll-range: 3rem;
+  --su-roll-range-size: var(--text-readout);
+  --su-roll-label-size: var(--text-lede);
+  --su-roll-value-size: var(--text-xs);
+  --su-roll-title-size: var(--text-lede);
+}
+
+.su-roll[data-frame='box'] {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.su-roll[data-frame='rule'] {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+}
+
+.su-roll__bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--su-roll-pad-x);
+}
+
+/* The book's "ROLL THE DIE:" (ruleset, "The source"): an underlined ink stamp. */
+.su-roll__stamp {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  padding: 3px var(--space-6);
+  text-decoration: underline;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The name WRAPS at word breaks (never clips): when the controls drop to a
+   second row the name keeps its whole title. `contain` still keeps a long
+   name from widening a width-less ancestor. */
+.su-roll__title {
+  contain: inline-size;
+  flex: 1 1 8rem;
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-title-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  text-transform: uppercase;
+}
+
+.su-roll__hint {
+  color: var(--color-ink-2);
+  flex: 1 1 8rem;
+  font-size: var(--text-sm);
+  min-width: 0;
+}
+
+.su-roll__bands {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.su-roll__rows {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-roll__row {
+  align-items: stretch;
+  display: flex;
+}
+
+.su-roll__row + .su-roll__row,
+.su-roll__rows + .su-roll__rows > .su-roll__row:first-child {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-roll__range {
+  align-items: center;
+  background-color: var(--color-wk-bg);
+  border-right: var(--bw-hairline) solid var(--color-ink);
+  color: var(--color-ink);
+  display: flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-range-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  line-height: 1.1;
+  width: var(--su-roll-range);
+}
+
+.su-roll__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-8) var(--space-12);
+}
+
+.su-roll__head {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-roll__label {
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-label-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.su-roll__value {
+  font-size: var(--su-roll-value-size);
+  line-height: 1.45;
+}
+
+/* The rolled row is set in ink, its range cell and pennant on paper. */
+.su-roll__row[data-rolled] {
   color: var(--color-paper);
 }
 
-/*
- * The header title as a table-picker trigger (`titleSelect`). Border colour
- * and fill both change on :hover, so both live here; the fill's resting value
- * is the transparent a button gets from the preflight reset.
- */
-.su-roll-table__title-select {
-  border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
-  background-color: transparent;
+.su-roll__row[data-rolled] .su-roll__range {
+  background-color: var(--color-paper);
 }
 
-.su-roll-table__title-select:hover {
-  border-color: var(--color-paper);
-  background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
+.su-roll__tag {
+  background-color: var(--color-paper);
+  clip-path: polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%);
+  color: var(--color-ink);
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  padding: 3px var(--space-6) 3px var(--space-12);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* ── end group A ── */
+/* A columns table: the columns' ranges across an ink head, the entry numbers
+   down both outer edges. A narrow column scrolls the grid inside its frame. */
+.su-roll__grid {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  overflow-x: auto;
+  /* Holds the visually hidden labels inside the scroller, not the page. */
+  position: relative;
+}
+
+.su-roll__table {
+  border-collapse: collapse;
+  font-size: var(--su-roll-value-size);
+  min-width: 34rem;
+  width: 100%;
+}
+
+.su-roll__table thead th {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-label-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  padding: var(--space-2) var(--space-8);
+  text-align: left;
+}
+
+.su-roll__table thead th[data-rolled] {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-roll__table tbody tr + tr > * {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-roll__edge {
+  background-color: var(--color-wk-bg);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  text-align: center;
+  width: 2.75rem;
+}
+
+.su-roll__table tbody .su-roll__edge:first-child {
+  border-right: var(--bw-hairline) solid var(--color-ink);
+}
+
+.su-roll__table tbody .su-roll__edge:last-child {
+  border-left: var(--bw-hairline) solid var(--color-ink);
+}
+
+.su-roll__cell {
+  line-height: 1.25;
+  padding: var(--space-2) var(--space-8);
+}
+
+.su-roll__cell + .su-roll__cell {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-roll__cell[data-rolled] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (min-width: 64rem) {
+  /*
+   * A long or wordy page table (`split`) sets its halves side by side: the
+   * first with its ranges on the left edge, the rest with theirs on the right,
+   * so the numbers stay on the outside. Under `lg` the halves stack as one list.
+   */
+  .su-roll__bands[data-split] {
+    align-items: start;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-roll__bands[data-split] > .su-roll__rows[data-side='right'] {
+    border-left: var(--bw-hairline) solid var(--color-ink);
+  }
+
+  .su-roll__bands[data-split] .su-roll__rows + .su-roll__rows > .su-roll__row:first-child {
+    border-top: 0;
+  }
+
+  .su-roll__rows[data-side='right'] > .su-roll__row {
+    flex-direction: row-reverse;
+  }
+
+  .su-roll__rows[data-side='right'] .su-roll__range {
+    border-left: var(--bw-hairline) solid var(--color-ink);
+    border-right: 0;
+  }
+
+  .su-roll__bands[data-split] {
+    --su-roll-range: 3.5rem;
+    --su-roll-value-size: var(--text-sm);
+  }
+
+  .su-roll__bands[data-split] .su-roll__body {
+    padding: var(--space-6) var(--space-8);
+  }
+
+  /*
+   * A wordy page (`density`, the SRD's `rollTableDensity`) sets tighter so it
+   * ends above the fold: `compact` sets the rows smaller; `dense` also runs
+   * each band's label in ahead of its text, at the caption size, with
+   * narrower ranges.
+   */
+  .su-roll[data-density='compact'] {
+    --su-roll-label-size: var(--text-base);
+    --su-roll-value-size: var(--text-sm);
+  }
+
+  .su-roll[data-density='compact'] .su-roll__body {
+    padding: var(--space-6) var(--space-12);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] {
+    --su-roll-range: 2.75rem;
+    --su-roll-range-size: var(--text-lg);
+    --su-roll-label-size: var(--text-sm);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__body {
+    display: block;
+    font-size: var(--text-caption);
+    line-height: 1.25;
+    padding: var(--space-4) var(--space-8);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__head {
+    display: inline-flex;
+    margin-right: var(--space-6);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__value {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* The columns grid's twenty rows set tighter, so it ends above the fold. */
+  .su-roll[data-density] .su-roll__table {
+    font-size: var(--text-sm);
+  }
+
+  .su-roll[data-density] .su-roll__table tbody th,
+  .su-roll[data-density] .su-roll__table tbody td {
+    line-height: 1.2;
+  }
+}
 
 /* ── compositions/EntitySearcher ── */
 

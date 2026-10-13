@@ -6,14 +6,15 @@
  * Server-only (it digests the table at build time). The island mounts the
  * same `RollTableView` live, and the server renders that view inside the
  * island's placeholder, so the bands are in the HTML for a crawler or a no-JS
- * reader and nothing moves when the island mounts.
+ * reader and nothing moves when the island mounts. The table is the shared
+ * `RollTableInstrument`, as in every card and guide; the page adds only its
+ * readout.
  */
 
-import { digestRollTable } from 'component-lib'
+import { digestColumnsTable, digestRollTable } from 'component-lib'
 import type { SURefEntity, SURefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary } from 'salvageunion-reference'
 import type { ColumnsTablePageData } from '../lib/columnsTablePage'
-import { digestColumnsTable } from '../lib/columnsTablePage'
 import type { RollTablePageData } from '../lib/rollTablePage'
 import { refText } from '../lib/rollTablePage'
 import { resolveMentionRef } from '../lib/staticLinks'
@@ -66,19 +67,23 @@ export function columnsTablePageData(item: SURefEntity): ColumnsTablePageData | 
   }
 }
 
-/** A two-roll table's page: the column, then the entry (Callsign Table). */
-export function ColumnsTablePage({ data }: { data: ColumnsTablePageData }) {
+/**
+ * A two-roll table's page: the column, then the entry (Callsign Table).
+ * `tone` is the page's band colour, which the table's rows band in.
+ */
+export function ColumnsTablePage({ data, tone }: { data: ColumnsTablePageData; tone: string }) {
   return (
-    <Island name="ColumnsTableIsland" client="idle" ssr props={{ data }}>
-      <ColumnsTableView data={data} state={{ roll: null, history: [] }} />
+    <Island name="ColumnsTableIsland" client="idle" ssr props={{ data, tone }}>
+      <ColumnsTableView data={data} tone={tone} state={{ roll: null, history: [] }} />
     </Island>
   )
 }
 
-export function RollTablePage({ data }: { data: RollTablePageData }) {
+/** A banded d20 table's page; `tone` is the page's band colour, as above. */
+export function RollTablePage({ data, tone }: { data: RollTablePageData; tone: string }) {
   return (
-    <Island name="RollTableIsland" client="idle" ssr props={{ data }}>
-      <RollTableView data={data} state={{ roll: null, history: [] }} />
+    <Island name="RollTableIsland" client="idle" ssr props={{ data, tone }}>
+      <RollTableView data={data} tone={tone} state={{ roll: null, history: [] }} />
     </Island>
   )
 }

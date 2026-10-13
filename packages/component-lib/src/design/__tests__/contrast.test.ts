@@ -3,9 +3,12 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference'
+import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
+import { rollBandColor } from '../../components/compositions/rollTableBands'
 import { resolveCardColors } from '../../components/referenceEntity/card/cardChrome'
 import type { DomainTone, TitleRung } from '../../components/referenceEntity/card/entityCardTone'
 import {
+  entityGuideToneColor,
   resolveCardTone,
   resolveSchemaDomain,
   titleSizeRung,
@@ -286,6 +289,39 @@ describe('ink on colour — the refresh pairs', () => {
     expect(step).toBeGreaterThan(1.1)
     expect(step).toBeLessThan(1.25)
   })
+})
+
+/**
+ * Roll-table bands in the surface tone (`RollTableInstrument`).
+ *
+ * Every other row of a roll table wears its surface's band: a quarter of the
+ * tone into paper (`rollBandColor`), cream where the surface has none. The
+ * rows print ink at body size, so each band a surface can pass owes 4.5:1:
+ * every chapter band (the SRD's roll-table pages), every guide's own tone (a
+ * guide step's table) and every tech-level band a show page can wear.
+ */
+describe('roll-table bands in the surface tone', () => {
+  const guideTones = SalvageUnionReference.Guides.all().flatMap((guide) => {
+    const tone = entityGuideToneColor(guide as SURefMetaEntity)
+    return tone ? [tone] : []
+  })
+  const techLevels = ['1', '2', '3', '4', '5', '6', 'b', 'n'].map((tl) => `var(--color-tl-${tl})`)
+  const tones = [...new Set([...Object.values(CHAPTER_BAND_COLOR), ...guideTones, ...techLevels])]
+
+  test('the guard found the guide tones', () => {
+    expect(guideTones.length).toBeGreaterThan(0)
+  })
+
+  test('a surface without a tone bands in cream', () => {
+    expect(rollBandColor(undefined)).toBe('var(--color-band-cream)')
+    expect(contrastRatio(opaque(color.bandCream), INK)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  for (const tone of tones) {
+    test(`ink clears 4.5:1 on the band ${tone} paints`, () => {
+      expect(contrastRatio(opaque(rollBandColor(tone)), INK)).toBeGreaterThanOrEqual(4.5)
+    })
+  }
 })
 
 /**

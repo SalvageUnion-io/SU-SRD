@@ -877,6 +877,7 @@ function ReferenceEntityCardInner({
         size={size}
         collapsible={isCatalog || depth > 0 || foldTables}
         disabled={isDown}
+        tone={tone.bgColor}
       />
     ) : null
 
@@ -898,6 +899,7 @@ function ReferenceEntityCardInner({
         isDown={isDown}
         compact={compact}
         collapsibleTables={isCatalog || depth > 0 || foldTables}
+        tableTone={tone.bgColor}
         chassisName={resolvedChassisName}
         NestedCard={ReferenceEntityCardInner}
         page={onPage}

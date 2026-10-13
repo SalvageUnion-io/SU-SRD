@@ -1,4 +1,4 @@
-import { Button, InlineRef } from 'component-lib'
+import { Button, InlineRef, RollTableInstrument } from 'component-lib'
 import type { ColumnsRollState, ColumnsTablePageData } from '../lib/columnsTablePage'
 import { columnsHit } from '../lib/columnsTablePage'
 import { rangeLabel } from '../lib/rollTablePage'
@@ -9,9 +9,10 @@ import { rangeLabel } from '../lib/rollTablePage'
  *
  * The page keeps the roll-table page's shape: the "You rolled" panel (Roll
  * again fixed under its head, then the result and the earlier rolls) and the
- * table beside it. The table is a grid: the columns' ranges across the top,
- * the entry numbers down both outer edges, every entry a cell. A roll sets
- * its column's head and its cell in ink.
+ * table beside it. The table is the shared `RollTableInstrument`'s columns
+ * grid, banded in the page's tone: the columns' ranges across the top, the
+ * entry numbers down both outer edges, every entry a cell. A roll marks its
+ * column's head and sets its cell in ink.
  *
  * Presentational, as `RollTableView` is: the server draws it with no roll and
  * `ColumnsTableIsland` mounts it live.
@@ -19,16 +20,16 @@ import { rangeLabel } from '../lib/rollTablePage'
 
 type ColumnsTableViewProps = {
   data: ColumnsTablePageData
+  /** The page's band colour, which the table's rows band in. */
+  tone?: string
   state: ColumnsRollState
   /** Roll both dice. Absent on the server, where the button is inert. */
   onRoll?: () => void
 }
 
-export function ColumnsTableView({ data, state, onRoll }: ColumnsTableViewProps) {
+export function ColumnsTableView({ data, tone, state, onRoll }: ColumnsTableViewProps) {
   const { roll, history } = state
   const hit = roll ? columnsHit(data.columns, roll) : undefined
-  // The entry numbers down the edges are the first column's, as the book prints them.
-  const entryKeys = data.columns[0]?.entries.map((entry) => entry.key) ?? []
 
   return (
     // Twenty rows of five columns under a note: always the compact setting.
@@ -102,63 +103,19 @@ export function ColumnsTableView({ data, state, onRoll }: ColumnsTableViewProps)
             {paragraph}
           </p>
         ))}
-        <div className="srd-roll__stamp-row">
-          <span className="srd-roll__stamp">Roll twice:</span>
-          <span aria-hidden="true" className="srd-roll__leader" />
-          <span className="srd-roll__hint">The column, then the entry</span>
-        </div>
-        <div className="srd-cols">
-          <table className="srd-cols__table" data-has-roll={hit ? 'true' : undefined}>
-            <caption className="srd-vh">{data.name}</caption>
-            <thead>
-              <tr>
-                <th scope="col" className="srd-cols__edge">
-                  <span className="srd-vh">Entry</span>
-                </th>
-                {data.columns.map((column) => (
-                  <th
-                    key={column.key}
-                    scope="col"
-                    className="srd-cols__head"
-                    data-rolled={hit?.column.key === column.key ? 'true' : undefined}
-                  >
-                    {rangeLabel(column.key)}
-                  </th>
-                ))}
-                <th scope="col" className="srd-cols__edge">
-                  <span className="srd-vh">Entry</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {entryKeys.map((entryKey, row) => (
-                <tr key={entryKey}>
-                  <th scope="row" className="srd-cols__edge">
-                    {rangeLabel(entryKey)}
-                  </th>
-                  {data.columns.map((column) => {
-                    const entry = column.entries[row]
-                    const rolled =
-                      !!entry && hit?.column.key === column.key && hit.entry.key === entry.key
-                    return (
-                      <td
-                        key={column.key}
-                        className="srd-cols__cell"
-                        data-rolled={rolled ? 'true' : undefined}
-                        aria-current={rolled ? 'true' : undefined}
-                      >
-                        {entry?.value}
-                      </td>
-                    )
-                  })}
-                  <td aria-hidden="true" className="srd-cols__edge">
-                    {rangeLabel(entryKey)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RollTableInstrument
+          name={data.name}
+          size="large"
+          tone={tone}
+          density="compact"
+          stamp="Roll twice:"
+          hint="The column, then the entry"
+          table={{
+            kind: 'columns',
+            columns: data.columns,
+            mark: hit ? { column: hit.column.key, entry: hit.entry.key } : undefined,
+          }}
+        />
       </div>
     </div>
   )

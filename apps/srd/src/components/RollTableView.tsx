@@ -1,4 +1,4 @@
-import { Button, InlineRef } from 'component-lib'
+import { Button, InlineRef, RollTableInstrument } from 'component-lib'
 import { NO_EFFECT } from 'salvageunion-reference'
 import type { RollState, RollTablePageData } from '../lib/rollTablePage'
 import {
@@ -13,15 +13,16 @@ import { MentionProse } from './MentionProse'
 /**
  * RollTableView — a roll table's page, rolled and read (board 08b).
  *
- * The table on the left in the book's bands under its "ROLL THE DIE:" stamp;
- * on the right the "You rolled" panel: the number, the range it lands on, the
- * outcome and its text, and the earlier rolls. Roll again and the Randsum
- * credit sit under the panel's head, above the result, so the button stays
- * put whatever length the outcome's text runs to. The matching row is set in
- * ink with a "Rolled 14" tag. The die is not named: it is always a d20. A
- * long or wordy table (`splitRows`) sets its bands in two columns on a wide
- * screen, the ranges on the outer edges, and a wordy page sets tighter
- * (`rollTableDensity`), so the page fits one screen.
+ * The table is the shared `RollTableInstrument`, the same one every card and
+ * guide step draws: its "ROLL THE DIE:" bar, then the bands, banded in the
+ * page's tone. The page adds only its READOUT: the "You rolled" panel with the
+ * number, the range it lands on, the outcome and its text, and the earlier
+ * rolls. Roll again and the Randsum credit sit under the panel's head, above
+ * the result, so the button stays put whatever length the outcome's text runs
+ * to. The die is not named: it is always a d20. A long or wordy table
+ * (`splitRows`) sets its bands in two halves on a wide screen, the ranges on
+ * the outer edges, and a wordy page sets tighter (`rollTableDensity`), so the
+ * page fits one screen.
  *
  * Presentational, so the server and the island draw the same page: the server
  * renders it with no roll and no handlers (the bands are real content for a
@@ -30,24 +31,22 @@ import { MentionProse } from './MentionProse'
 
 type RollTableViewProps = {
   data: RollTablePageData
+  /** The page's band colour, which the table's rows band in. */
+  tone?: string
   state: RollState
   /** Roll the die. Absent on the server, where the controls are inert. */
   onRoll?: () => void
 }
 
-export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
+export function RollTableView({ data, tone, state, onRoll }: RollTableViewProps) {
   const { roll, history } = state
   const live = !!onRoll
   const hit = roll === null ? undefined : rowForRoll(data.table, data.rows, roll)
   const outcomeOf = (n: number) => outcomeLabel(data.table, data.rows, n)
-  // A dense table splits in two down the middle, ranges on the outer edges.
-  const half = Math.ceil(data.rows.length / 2)
-  const halves = splitRows(data.rows)
-    ? [data.rows.slice(0, half), data.rows.slice(half)]
-    : [data.rows]
+  const density = rollTableDensity(data.rows, data.description)
 
   return (
-    <div className="srd-roll" data-density={rollTableDensity(data.rows, data.description)}>
+    <div className="srd-roll" data-density={density}>
       <section className="srd-roll__panel" aria-labelledby="roll-panel-title">
         <div className="srd-roll__panel-head">
           <h2 id="roll-panel-title" className="srd-roll__panel-title">
@@ -124,43 +123,19 @@ export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
             {paragraph}
           </p>
         ))}
-        <div className="srd-roll__stamp-row">
-          <span className="srd-roll__stamp">Roll the die:</span>
-          <span aria-hidden="true" className="srd-roll__leader" />
-          <span className="srd-roll__hint">Your result is marked in the table</span>
-        </div>
-        <div className="srd-roll__bands" data-split={halves.length > 1 ? 'true' : undefined}>
-          {halves.map((rows, side) => (
-            <ol
-              key={side === 0 ? 'left' : 'right'}
-              className="srd-roll__rows"
-              aria-label={side === 0 ? `${data.name} table` : `${data.name} table, continued`}
-              data-has-roll={hit ? 'true' : undefined}
-              data-side={side === 1 ? 'right' : undefined}
-            >
-              {rows.map((row) => {
-                const rolled = hit?.key === row.key
-                return (
-                  <li
-                    key={row.key}
-                    className="srd-roll__row"
-                    data-rolled={rolled ? 'true' : undefined}
-                    aria-current={rolled ? 'true' : undefined}
-                  >
-                    <span className="srd-roll__range">{rangeLabel(row.key)}</span>
-                    <div className="srd-roll__body">
-                      {row.label && <span className="srd-roll__label">{row.label}</span>}
-                      <span className="srd-roll__value">
-                        <MentionProse parts={row.value} />
-                      </span>
-                    </div>
-                    {rolled && <span className="srd-roll__tag">Rolled {roll}</span>}
-                  </li>
-                )
-              })}
-            </ol>
-          ))}
-        </div>
+        <RollTableInstrument
+          name={data.name}
+          size="large"
+          tone={tone}
+          density={density}
+          hint="Your result is marked in the table"
+          table={{
+            kind: 'bands',
+            rows: data.rows.map((row) => ({ ...row, value: <MentionProse parts={row.value} /> })),
+            mark: hit && roll !== null ? { key: hit.key, roll } : undefined,
+            split: splitRows(data.rows),
+          }}
+        />
       </div>
     </div>
   )

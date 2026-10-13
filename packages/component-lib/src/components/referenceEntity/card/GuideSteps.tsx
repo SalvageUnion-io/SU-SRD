@@ -57,6 +57,7 @@ export function GuideSteps({
   isDown,
   compact,
   collapsibleTables,
+  tableTone,
   chassisName,
   NestedCard,
   page = false,
@@ -70,6 +71,8 @@ export function GuideSteps({
   compact: boolean
   /** A catalog tile or nested card gets its tables collapsible. */
   collapsibleTables: boolean
+  /** The guide's own tone, whose band paints its step tables' rows. */
+  tableTone?: string
   chassisName: string | undefined
   NestedCard: NestedCard
   /** The guide is its own page: H2 section heads, anchors and the rail. */
@@ -144,6 +147,7 @@ export function GuideSteps({
                 collapsible={collapsibleTables}
                 disabled={isDown}
                 framed
+                tone={tableTone}
               />
             </div>
           )}
