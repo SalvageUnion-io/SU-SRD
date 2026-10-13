@@ -325,6 +325,14 @@ describe('markdown label escaping', () => {
   })
 })
 
+describe('lookupCard — an entry and its self-action', () => {
+  test('a paragraph both carry prints once', () => {
+    const text = cardText(lookupCard(hit('equipment', 'hacking-kit')))
+    const lead = 'You acquire and train in the use of a Hacking Kit'
+    expect(text.split(lead)).toHaveLength(2)
+  })
+})
+
 describe('lookupCard — a long card is an index with Read buttons', () => {
   test('each action is its name and stat line, with a Read button; its rules are not on the card', () => {
     const card = lookupCard(hit('bio-titans', 'cortex-bio-titan'))
