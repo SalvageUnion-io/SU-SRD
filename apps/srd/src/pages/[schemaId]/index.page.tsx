@@ -79,7 +79,8 @@ function SchemaItemLinks({
       <ListingRail
         facets={{ count, techLevels: orderTechLevels(techLevels), sources, trees, hasArt }}
       />
-      <div className="srd-listing__groups">
+      {/* An ability listing's trees sit side by side, as the island lays them. */}
+      <div className="srd-listing__groups" data-trees={trees.length > 1 || undefined}>
         {groups.map((group) => (
           <section key={group.key} className="srd-listing__group" aria-label={group.label}>
             {group.label && <Slab variant="solid" label={group.label} />}

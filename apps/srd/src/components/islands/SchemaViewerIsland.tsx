@@ -1,6 +1,6 @@
 import { Button, EmptyState, Entity, EntitySurfaceProvider, Skeleton, Slab } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
 import type { ListingShape, TechLevel } from '../../lib/listingGroups'
@@ -15,6 +15,7 @@ import type { ListingView } from '../../lib/listingView'
 import { PARAM_VIEW, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
+import { AbilityTrack, trackForTree } from '../AbilityTrack'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { RailActions } from './ListingRail'
@@ -197,6 +198,17 @@ function SchemaViewer({
   const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
   const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
+  // An ability listing draws each tree on its track, as the class page does:
+  // a Core, Advanced or Hybrid tree's tiers 1-2-3, a Legendary tree's "or".
+  const treeTracks = useMemo(
+    () =>
+      new Map(
+        groupBy === 'tree'
+          ? groups.map((group) => [group.key, trackForTree(group.items as SURefAbility[])])
+          : []
+      ),
+    [groups, groupBy]
+  )
   // A single-kind listing: no type stamp, and no TL cell when the tech level
   // heads the group or names the tile (a tech-level listing's "Tech 3").
   const omit = useMemo(
@@ -322,7 +334,10 @@ function SchemaViewer({
         />
       ) : (
         <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
-          <div className="srd-listing__groups">
+          <div
+            className="srd-listing__groups"
+            data-trees={(groupBy === 'tree' && view !== 'catalog') || undefined}
+          >
             {groups.map((group) => (
               <section key={group.key} className="srd-listing__group" aria-label={group.label}>
                 {group.label && <Slab variant="solid" label={group.label} />}
@@ -340,6 +355,11 @@ function SchemaViewer({
                       </li>
                     ))}
                   </ul>
+                ) : treeTracks.get(group.key) ? (
+                  <AbilityTrack
+                    abilities={group.items as SURefAbility[]}
+                    track={treeTracks.get(group.key) ?? 'core'}
+                  />
                 ) : (
                   <ul className="srd-listing__cards" data-entity-fit="">
                     {group.items.map((item: SURefEntity) => (
@@ -400,7 +420,8 @@ function ListingSkeleton({
           view={view}
         />
       )}
-      <div className="srd-listing__groups">
+      {/* An ability listing's trees sit side by side, as the island lays them. */}
+      <div className="srd-listing__groups" data-trees={(trees.length > 1 && !catalog) || undefined}>
         {groups.map((group) => (
           <section key={group.key} className="srd-listing__group">
             {group.label && <Slab variant="solid" label={group.label} />}

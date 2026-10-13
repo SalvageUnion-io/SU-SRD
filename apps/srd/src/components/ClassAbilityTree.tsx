@@ -1,59 +1,23 @@
-import { ActivationCost, Badge, Entity, Slab, Stat } from 'component-lib'
+import { ActivationCost, Badge, Slab, Stat } from 'component-lib'
 import { Fragment, useMemo } from 'react'
-import type { SURefAbility, SURefClass } from 'salvageunion-reference'
+import type { SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/classPaths'
 import { resolveClassPlan, treeOwner } from '../lib/classPaths'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
+import type { TreeTrack } from './AbilityTrack'
+import { AbilityTrack } from './AbilityTrack'
 import { MentionProse } from './MentionProse'
 
 type ClassAbilityTreeProps = {
   classEntity: SURefClass
 }
 
-/**
- * The tree's slab names the kind, so its Rows drop the type stamp; every tree
- * is on a track, whose numeral (or "or") sits outside the banner.
- */
-const OMIT_KIND_TIER = ['kind', 'tier'] as const
-
 /** The Workshop Manual page "Gaining Abilities" sits on: the brief cites it. */
 const GAINING_ABILITIES_PAGE = 23
 
-const abilityHref = (ability: SURefAbility) => itemHref('abilities', getEntitySlug(ability))
 const classHref = (c: SURefClass) => itemHref('classes', getEntitySlug(c))
-
-/**
- * One ability in its tree: a Row in link mode, a real same-tab link to the
- * ability's page — the listing row's shape (`EntityListingRow`), so a crawler
- * follows it and a reader keeps their back button. Its banner wears its tier
- * (EDL E12: Core brick, Advanced orange, Hybrid rust, Legendary pink), the hue
- * of its track; the Row leaves its numeral to the track.
- */
-function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
-  return (
-    <Entity
-      form="row"
-      entity={ability}
-      mode={{ kind: 'link', href: abilityHref(ability) }}
-      omit={OMIT_KIND_TIER}
-      lead
-      titleAs="h3"
-    />
-  )
-}
-
-/**
- * Which track a tree draws (ruleset "Where the screen departs from print": the
- * ability-tree track stays a diagram). Core and Advanced/Hybrid trees are
- * trained in order — each Ability needs the one before it — so their three
- * tiers hang off one thick track in the tier's hue (Core = brick,
- * Advanced = pilot orange, Hybrid = rust), each tier's numeral on it beside its banner. A
- * Legendary tree is a pick-one, not a sequence: its track runs in its pink with
- * no numerals, an "or" stamp on it between each pick.
- */
-type TreeTrack = 'core' | 'advanced' | 'hybrid' | 'legendary'
 
 /** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
 const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tree')
@@ -74,27 +38,7 @@ function TreeSection({
   return (
     <section className="srd-ability-tree__group">
       <Slab variant="solid" as="h2" label={tree} count={note ?? noteFor(track)} />
-      <ol className="srd-ability-tree__track" data-track={track}>
-        {abilities.map((ability, index) => {
-          const pick = track === 'legendary'
-          const tier = pick ? undefined : toEntityModel(ability).tier
-          return (
-            <li key={ability.id} className="srd-ability-tree__tier">
-              {pick && index > 0 && (
-                // A pick-one tree: an "or" on its track between picks, never a numeral.
-                <span className="srd-ability-tree__or">or</span>
-              )}
-              {tier && (
-                // The list's order already says the tier; the numeral is the print's mark.
-                <span className="srd-ability-tree__numeral" aria-hidden="true">
-                  {tier}
-                </span>
-              )}
-              <AbilityTreeListing ability={ability} />
-            </li>
-          )
-        })}
-      </ol>
+      <AbilityTrack abilities={abilities} track={track} titleAs="h3" />
     </section>
   )
 }
