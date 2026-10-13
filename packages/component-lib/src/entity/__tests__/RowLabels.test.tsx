@@ -43,4 +43,19 @@ describe('Row labels', () => {
     expect(labels?.textContent).toContain('Ability')
     expect(head.contains(labels ?? null)).toBe(true)
   })
+
+  test("an ability's tier numeral leads its band, unless the context sets it (`omit` tier)", () => {
+    const { unmount } = render(<Entity form="row" entity={juryRig()} />)
+    expect(
+      headOf('Jury Rig').querySelector('.su-entity-row__line')?.firstElementChild?.textContent
+    ).toBe('1')
+    unmount()
+    render(<Entity form="row" entity={juryRig()} omit={['kind', 'tier']} />)
+    const head = headOf('Jury Rig')
+    expect(head.dataset.fill).toBe('ink')
+    expect(head.textContent).not.toMatch(/^1/)
+    expect(head.querySelector('.su-entity-row__line')?.firstElementChild?.textContent).toBe(
+      'Jury Rig'
+    )
+  })
 })

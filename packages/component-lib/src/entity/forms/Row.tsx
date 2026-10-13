@@ -61,16 +61,13 @@ export type RowProps = {
   mode?: EntityMode
   /** The opening prose, in browse contexts only (E11). */
   lead?: boolean
-  /** Facts by key to leave out, `kind` for the type stamp, `art` for the art column. */
+  /**
+   * Facts by key to leave out, `kind` for the type stamp, `art` for the art
+   * column, `tier` for an ability's numeral (a class page sets it on the track).
+   */
   omit?: readonly EntityOmit[]
   /** Hover, focus or a long press Peeks the Row (a pattern's loadout). Off in listings. */
   peek?: boolean
-  /**
-   * A "do" entity's head wears its own tone instead of the ink banner: an
-   * ability's tier fill (Core brick, Advanced pilot, Legendary crawler), where
-   * the tiers are the point (a class page's trees).
-   */
-  toned?: boolean
   slots?: RowSlots
 }
 
@@ -117,7 +114,6 @@ export function Row({
   lead = false,
   omit = [],
   peek = false,
-  toned = false,
   slots = {},
 }: RowProps) {
   const surface = useEntitySurface()
@@ -125,7 +121,7 @@ export function Row({
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
-  const fill = model.kind.nature === 'do' && !toned ? 'ink' : model.tone
+  const fill = model.kind.nature === 'do' ? 'ink' : model.tone
   const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
   const title = instance?.title ?? model.title
@@ -180,7 +176,7 @@ export function Row({
           titleAs={slots.titleAs}
           titleSlot={slots.titleSlot}
           paint={paint}
-          tier={model.tier}
+          tier={omit.includes('tier') ? undefined : model.tier}
           stamps={slots.stamps ?? actionTypeStamps(model.actionType, model.mechActionType)}
           hint={slots.hint}
           pennant={pennant}

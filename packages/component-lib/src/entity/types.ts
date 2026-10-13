@@ -63,7 +63,8 @@ export type EntityRowModel = Pick<
   >
 
 /**
- * A fact the context already states, by key (`tech-level` under a TL slab), or
- * `kind` when a group's slab already names the kind.
+ * A fact the context already states, by key (`tech-level` under a TL slab),
+ * `kind` when a group's slab already names the kind, or `tier` when the
+ * context sets an ability's numeral outside the banner (a class page's track).
  */
 export type EntityOmit = string

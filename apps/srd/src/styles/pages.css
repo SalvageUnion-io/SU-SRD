@@ -1833,12 +1833,14 @@
  * (three across from 40rem) and the paths it advances along; a Hybrid Class's
  * own tree + Legendary tree (two across) and the Core trees it branches into.
  *
- * Each sequential tree draws the book's track (ruleset, "Where the screen
- * departs from print"): a thick pipe down the tree's left with a stub into
- * each tier's Row, so tiers 1-2-3 read as one chain trained in order. It is a
+ * Each sequential tree draws the book's track (Core Book 2.0a pp.34, 36,
+ * 37; ruleset, "Where the screen departs from print"): a thick pipe in the
+ * tier's hue down the tree's left, ending in a rounded foot, with each tier's
+ * numeral on it and a stub into that tier's Row, so tiers 1-2-3 read as one
+ * chain trained in order. The Rows keep their ink banners; the tier rides on the track. It is a
  * diagram beside the Rows, never a left border on a card (§3.10). The pipe is
- * one segment per tier: the first starts at its stub, the last ends at its
- * stub, and each but the last runs down through the gap to the next tier.
+ * one segment per tier: the first starts at its numeral, the last runs on to
+ * its Row's foot, and each but the last runs down through the gap to the next.
  * `data-track` picks the tier hue; a Legendary tree (pick one) has none.
  */
 .srd-ability-tree {
@@ -1877,12 +1879,15 @@
 }
 
 .srd-ability-tree__track {
-  /* The pipe's centre line, its weight, the gap it bridges between tiers, and
-     how far down a Row its stub lands (the middle of a one-line head). */
-  --srd-track-x: var(--space-6);
-  --srd-track-weight: var(--space-6);
+  /* The numeral's stamp, the pipe's centre line (under the stamp), its
+     weight, the gap it bridges between tiers, and how far down a Row the
+     numeral and stub land (the middle of a one-line head). */
+  --srd-track-numeral: 1.75rem;
+  --srd-track-x: calc(var(--srd-track-numeral) / 2);
+  --srd-track-weight: var(--space-10);
   --srd-track-gap: var(--space-16);
   --srd-track-node: 1.2rem;
+  --srd-track-inset: calc(var(--srd-track-numeral) + var(--space-8));
   display: flex;
   flex-direction: column;
   gap: var(--srd-track-gap);
@@ -1891,12 +1896,16 @@
   padding: 0;
 }
 
+/* The tier's hue, and the numeral's foreground on it (§3.8: paper on brick,
+   ink on pilot). */
 .srd-ability-tree__track[data-track='core'] {
   --srd-track-color: var(--color-tier-core);
+  --srd-track-on: var(--color-paper);
 }
 
 .srd-ability-tree__track[data-track='advanced'] {
   --srd-track-color: var(--color-pilot);
+  --srd-track-on: var(--color-ink);
 }
 
 .srd-ability-tree__tier {
@@ -1904,7 +1913,7 @@
 }
 
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier {
-  padding-left: var(--space-20);
+  padding-left: var(--srd-track-inset);
 }
 
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier::before,
@@ -1926,9 +1935,10 @@
   top: var(--srd-track-node);
 }
 
+/* The foot: the last segment runs on to its Row's foot and rounds off. */
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier:last-child::before {
-  bottom: auto;
-  height: calc(var(--srd-track-node) + var(--srd-track-weight) / 2);
+  border-radius: 0 0 var(--srd-track-weight) var(--srd-track-weight);
+  bottom: 0;
 }
 
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child:last-child::before {
@@ -1938,9 +1948,29 @@
 /* The stub from the pipe into the tier's Row. */
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier::after {
   height: var(--srd-track-weight);
-  left: calc(var(--srd-track-x) - var(--srd-track-weight) / 2);
-  right: calc(100% - var(--space-20));
+  left: var(--srd-track-x);
+  right: calc(100% - var(--srd-track-inset));
   top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
+}
+
+/* The tier numeral, set on the track outside the banner: a square stamp
+   (§4.4) in the tier's hue. */
+.srd-ability-tree__numeral {
+  align-items: center;
+  background: var(--srd-track-color);
+  color: var(--srd-track-on);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  height: var(--srd-track-numeral);
+  justify-content: center;
+  left: 0;
+  line-height: 1;
+  position: absolute;
+  top: calc(var(--srd-track-node) - var(--srd-track-numeral) / 2);
+  width: var(--srd-track-numeral);
+  z-index: 1;
 }
 
 /*
