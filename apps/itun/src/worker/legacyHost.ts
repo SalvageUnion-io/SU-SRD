@@ -1,11 +1,11 @@
-import { basePathOf, LEGACY_HOSTS, SITE } from '../lib/site'
+import { LEGACY_HOSTS, SITE } from '../lib/site'
 import { retiredTarget } from './retiredRedirects'
 
 /**
  * Every request that is not under the app's base (ADR-048).
  *
- * `wrangler.jsonc`'s `run_worker_first` is every path but `/build/*`, so these
- * reach the script before Static Assets looks. They come from:
+ * `wrangler.jsonc`'s `run_worker_first` sends every request to the script
+ * before Static Assets looks (`index.ts`). These come from:
  *
  * - **intheunionnow.com and its `www`**, where ITUN lived until ADR-048 and
  *   where every link already posted points. Each is a **301** to the same page
@@ -22,11 +22,14 @@ import { retiredTarget } from './retiredRedirects'
  */
 /**
  * `wrangler.jsonc`'s `run_worker_first`, which the routing test holds equal:
- * every path but the base's. Under the base Static Assets answers first, so
- * every navigation keeps `_headers` and the CSP; outside it nothing is served
- * from the assets, and the script answers. An exclusion wins over `/*`.
+ * every request, so a missing file under the base reaches `index.ts` and is a
+ * 404 rather than the shell. Not a pattern list: a request matching a negative
+ * pattern goes straight to the assets, and a list answers every other miss
+ * with the shell too — `["/*", "!/build/*"]` served `/build/assets/*` misses
+ * that way (`index.ts`). Under the base the script reads each answer through
+ * the asset binding, which applies `_headers` and the CSP.
  */
-export const RUN_WORKER_FIRST = ['/*', `!${basePathOf(SITE.base)}/*`] as const
+export const RUN_WORKER_FIRST = true
 
 export function outsideBase(url: URL, base: string): Response {
   if (LEGACY_HOSTS.includes(url.hostname.toLowerCase())) {

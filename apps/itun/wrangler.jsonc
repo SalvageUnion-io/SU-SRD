@@ -1,9 +1,10 @@
 {
   // ITUN at salvageunion.io/build (ADR-048) — the SPA on Workers Static Assets
-  // (ADR-033). The script runs for every request outside `/build/` (the old
-  // host's 301s) and, under it, only for a miss that is not a navigation
-  // (src/worker/index.ts); every header is public/_headers, which the build
-  // moves to `dist/_headers` (vite.config.ts).
+  // (ADR-033). The script runs first for every request: outside `/build/` it
+  // answers the old host's 301s, and under it it reads every answer through
+  // the asset binding, turning a missing file into a 404 (src/worker/index.ts).
+  // Every header is public/_headers, which the build moves to `dist/_headers`
+  // (vite.config.ts) and the asset server applies to what the binding answers.
   "name": "su-itun",
 
   // A Workers ROUTE, not a Custom Domain: a route runs before su-srd's Custom
@@ -56,14 +57,15 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    // A navigation miss gets index.html without running the Worker; any other
-    // miss runs it, which keeps a rotated chunk a 404 (#759).
+    // A miss is answered with index.html: the shell for every client route.
+    // The Worker turns it into a 404 for a missing FILE, which keeps a rotated
+    // chunk a 404 (#759).
     "not_found_handling": "single-page-application",
-    // Every path but the base's (RUN_WORKER_FIRST in src/worker/legacyHost.ts,
-    // which the routing test holds this list equal to): the old host's 301s and
-    // ITUN's root. Every navigation under `/build/` stays asset-first, so it
-    // keeps `_headers` and the CSP.
-    "run_worker_first": ["/*", "!/build/*"]
+    // Every request (RUN_WORKER_FIRST in src/worker/legacyHost.ts, which the
+    // routing test holds this equal to). Never a pattern list: a negative
+    // pattern such as `!/build/*` sends its matches straight to the assets, so a
+    // missing `/build/assets/*` chunk got the shell, pinned `immutable`.
+    "run_worker_first": true
   },
 
   "observability": {
