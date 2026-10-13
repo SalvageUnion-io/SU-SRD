@@ -24,7 +24,7 @@ const NO_ACCOUNT = new Set(['roll', 'lookup'])
 type CommandOption = { name: string; required: boolean }
 
 export type CommandListEntry = {
-  /** The subcommand's path under `/su`: `roll`, or `game bind` in a group. */
+  /** The subcommand's path under `/su`: `roll`, or `<group> <leaf>` in a group. */
   name: string
   description: string
   options: CommandOption[]

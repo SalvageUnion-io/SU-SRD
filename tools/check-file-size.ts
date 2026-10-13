@@ -42,7 +42,7 @@ const SCAN_FLOOR = 630
  * within MAX_LINES.
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
-  'apps/discord-bot/src/gameCards.ts': 916,
+  'apps/discord-bot/src/gameCards.ts': 708,
   'apps/itun/convex/entities.ts': 852,
   'apps/itun/convex/model/entities.ts': 929,
   'apps/itun/convex/schema.ts': 777,

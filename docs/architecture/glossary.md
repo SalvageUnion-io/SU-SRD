@@ -6,7 +6,6 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
 1. **Game** — the shared container a table plays in: always capital G ("Start a Game", "Not in a Game", "Your Games").
    Lowercase "game" is only Salvage Union itself ("Buy the game"). Not campaign, group or workspace.
 2. **Shelf** — the per-account container: "your shelf" in a sentence; **Shelves** is the page at `/`. Never "My Stuff".
-   The bot's `/su shelves` lists the shelf outside any Game; the retired `my-stuff` and `shelf` still answer until commands are re-registered.
 3. **Assign** — the one verb for an assignment (ADR-037): assign, unassign, assigned; a pilot to a mech, a pilot, mech or NPC to a crawler.
    Never linked, wired, docked or aboard for it; a crawler's assigned pilots are its crew. Code calls the record a soft link.
 4. **Move** — the same record changes container ("Move to a Game…", "Move to your shelf"). It is never a copy.

@@ -23,20 +23,16 @@ import type { CardField, ContainerData } from './container'
 import { entityCard } from './container'
 import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
 import type {
-  ChannelResult,
-  CrewResult,
   DenialReason,
   EntityBody,
   GameSummary,
   MeResult,
-  OwnedEntity,
   SheetResult,
   SheetTable,
-  ShelfResult,
 } from './itun/types'
 
 /**
- * Card builders for the ITUN Game commands (ADR-030).
+ * Card builders for the ITUN commands (ADR-030).
  *
  * Pure `data → ContainerData` through `entityCard`, the same render layer
  * `lookupCard.ts` uses: every one of these is unit-testable without a Discord
@@ -111,7 +107,7 @@ function strArray(body: EntityBody, key: BodyKey): string[] {
 /**
  * How a vital renders: `bars` puts a glyph bar after the number, `text` is the
  * number alone. Text is the form a screen reader reads cleanly — ten block
- * glyphs are ten announcements — so `/su crew` offers it as an option.
+ * glyphs are ten announcements.
  */
 export type GaugeStyle = 'bars' | 'text'
 
@@ -214,14 +210,6 @@ function mechStats(body: EntityBody): {
   }
 }
 
-/** ADR-030: an entity with no owner is a STATE, never a blank. */
-const UNCLAIMED = 'Unclaimed'
-
-export function ownerLabel(entity: OwnedEntity): string {
-  if (entity.ownerId === null) return UNCLAIMED
-  return entity.ownerName ?? 'Crewmate'
-}
-
 /**
  * Web URLs. The glance lives in Discord; the surface lives in the app.
  *
@@ -276,11 +264,6 @@ export function sheetUrl(table: SheetTable, rowId: string | null | undefined): s
   return `${ITUN_ORIGIN}/sheet/${kindOf(table)}/${encodeURIComponent(rowId)}`
 }
 
-/** `name` as a markdown link when there is somewhere to go, else bare. */
-function maybeLink(name: string, url: string | null): string {
-  return url === null ? name : `[${name}](${url})`
-}
-
 /**
  * What to say when a call was denied.
  *
@@ -291,11 +274,9 @@ function maybeLink(name: string, url: string | null): string {
  */
 export function denialMessage(reason: DenialReason, serverMessage?: string): string {
   // For `forbidden` and `not-found` the SERVER knows the specifics and this
-  // module does not: "that channel is already bound to another Game" is a very
-  // different thing to be told than "binding is the Organiser's job", and a
-  // generic line here would actively mislead. The reasons below are the ones
-  // where the bot adds something the server cannot — a sign-in link, the name
-  // of the command that fixes it — so those keep their own wording.
+  // module does not, so its message wins when it sends one. The reasons below
+  // are the ones where the bot adds something the server cannot — a sign-in
+  // link — so those keep their own wording.
   if ((reason === 'forbidden' || reason === 'not-found') && serverMessage) {
     return serverMessage
   }
@@ -311,17 +292,13 @@ export function denialMessage(reason: DenialReason, serverMessage?: string): str
         `${ITUN_ORIGIN}/account`,
       ].join('\n')
     case 'unbound':
-      return [
-        '**This channel isn’t bound to a Game.**',
-        '',
-        'An Organiser can bind it with `/su game bind`.',
-      ].join('\n')
+      return '**This channel isn’t bound to a Game.**'
     case 'not-a-member':
       return 'You’re not a member of the Game bound to this channel.'
     case 'forbidden':
-      return 'You don’t have permission to do that. Binding a channel is the Organiser’s job.'
+      return 'You don’t have permission to do that.'
     case 'not-found':
-      return 'That could not be found in this channel’s Game.'
+      return 'That sheet could not be found, or it isn’t yours to read.'
   }
 }
 
@@ -376,69 +353,8 @@ export function bodyName(body: EntityBody, keys: BodyKey[]): string {
   return 'Unnamed'
 }
 
-/** `/su shelves` — what you own that is in no Game (ITUN's Shelves, showing Not in a Game). */
-export function shelfCard(shelf: ShelfResult): ContainerData {
-  const fields: CardField[] = []
-  if (shelf.pilots.length > 0) {
-    fields.push({
-      name: `Pilots (${shelf.pilots.length})`,
-      value: shelf.pilots
-        .map((p) => maybeLink(bodyName(p.body, ['callsign', 'name']), sheetUrl('pilots', p.id)))
-        .join('\n'),
-      inline: true,
-    })
-  }
-  if (shelf.mechs.length > 0) {
-    fields.push({
-      name: `Mechs (${shelf.mechs.length})`,
-      value: shelf.mechs
-        .map((m) => maybeLink(bodyName(m.body, ['name']), sheetUrl('mechs', m.id)))
-        .join('\n'),
-      inline: true,
-    })
-  }
-
-  return entityCard({
-    title: 'Shelves · Not in a Game',
-    url: `${ITUN_ORIGIN}/`,
-    accent: NEUTRAL_ACCENT,
-    description:
-      fields.length === 0
-        ? 'Nothing here — everything you own is in a Game.'
-        : 'Pilots and mechs you own that are in no Game.',
-    fields,
-    footer: FOOTER,
-  })
-}
-
-/**
- * The words for a crewmate's state, each the term the rules use for it:
- *
- * - Dead: derived max HP at or below 0, the app's own "Killed in Action".
- * - Critical Injury: a Pilot on 0 HP rolls on the Critical Injury Table (Core
- *   Book p.241); that roll, not 0 HP, decides whether they live.
- * - Critical Damage: a Mech on 0 SP rolls on the Critical Damage Table (Core
- *   Book pp.239-240); it "can lose Systems or Modules, or even be destroyed",
- *   so 0 SP is not yet "Destroyed".
- * - At Heat Capacity: a Mech that reaches or starts its turn at its Heat
- *   Capacity must make a Heat Check (Core Book p.234).
- *
- * The glyph rides beside the word on the `bars` style and is dropped on `text`:
- * a glyph alone ("✖") said nothing a screen reader could pass on.
- */
-const CREW_STATE = {
-  dead: { glyph: '✖', word: 'Dead' },
-  criticalInjury: { glyph: '✖', word: 'Critical Injury' },
-  criticalDamage: { glyph: '✖', word: 'Critical Damage' },
-  atHeatCapacity: { glyph: '⚠', word: 'At Heat Capacity' },
-} as const
-
-/** ` ✖ Dead` on `bars`, ` — Dead` on `text`, empty with no state. */
-function stateSuffix(state: keyof typeof CREW_STATE | null, style: GaugeStyle): string {
-  if (state === null) return ''
-  const { glyph, word } = CREW_STATE[state]
-  return style === 'text' ? ` — ${word}` : ` ${glyph} ${word}`
-}
+/** ADR-030: an entity with no owner is a STATE, never a blank. */
+const UNCLAIMED = 'Unclaimed'
 
 /** A pilot's critical state: max HP at or below 0 is dead, 0 HP a Critical Injury. */
 function pilotState(stats: { hp: number | null; maxHp: number }): 'dead' | 'criticalInjury' | null {
@@ -449,130 +365,6 @@ function pilotState(stats: { hp: number | null; maxHp: number }): 'dead' | 'crit
 /** A mech on 0 SP is taking Critical Damage. */
 function mechCritical(stats: { sp: number | null }): boolean {
   return stats.sp === 0
-}
-
-/** One crewmate's block on the crew board: their pilots, then their mechs. */
-function crewFieldValue(
-  pilots: OwnedEntity[],
-  mechs: OwnedEntity[],
-  style: GaugeStyle
-): { value: string; critical: boolean } {
-  const lines: string[] = []
-  let critical = false
-  for (const pilot of pilots) {
-    const stats = pilotStats(pilot.body)
-    const state = pilotState(stats)
-    if (state !== null) critical = true
-    const pilotName = maybeLink(
-      str(pilot.body, 'callsign') ?? 'Pilot',
-      sheetUrl('pilots', pilot.id)
-    )
-    lines.push(`**${pilotName}**${stateSuffix(state, style)}`)
-    lines.push(`${HP} ${gauge(stats.hp, stats.maxHp, '█', style)}`)
-    lines.push(`AP ${gauge(stats.ap, stats.maxAp, '█', style)}`)
-  }
-  for (const mech of mechs) {
-    const stats = mechStats(mech.body)
-    const atZero = mechCritical(stats)
-    if (atZero) critical = true
-    const atCapacity = stats.heat !== null && stats.maxHeat > 0 && stats.heat >= stats.maxHeat
-    const mechName = maybeLink(str(mech.body, 'name') ?? 'Mech', sheetUrl('mechs', mech.id))
-    lines.push(`${mechName}${stateSuffix(atZero ? 'criticalDamage' : null, style)}`)
-    lines.push(`${SP} ${gauge(stats.sp, stats.maxSp, '█', style)}`)
-    lines.push(
-      `${HEAT} ${gauge(stats.heat, stats.maxHeat, '▲', style)}${stateSuffix(atCapacity ? 'atHeatCapacity' : null, style)}`
-    )
-  }
-  return { value: lines.length > 0 ? lines.join('\n') : '_Nothing yet._', critical }
-}
-
-/**
- * `/su crew` — the reason to build any of this.
- *
- * Grouped by owner, one inline field each, so each crewmate reads as a unit
- * on the rail. The unclaimed bucket is rendered last and labelled, never
- * omitted. `style` is the `text-only` option: numbers and words, no glyphs.
- */
-export function crewCard(crew: CrewResult, style: GaugeStyle = 'bars'): ContainerData {
-  type Bucket = { label: string; pilots: OwnedEntity[]; mechs: OwnedEntity[] }
-
-  // Owners in a map, unclaimed in its own variable — rather than one map with a
-  // sentinel key. A sentinel has to both sort last and never collide with a
-  // user id, and those are two assumptions somebody has to keep true; holding
-  // it separately makes "unclaimed renders last, and always renders"
-  // structural instead of conventional.
-  const owned = new Map<string, Bucket>()
-  let unclaimed: Bucket | null = null
-
-  const bucketFor = (entity: OwnedEntity): Bucket => {
-    if (entity.ownerId === null) {
-      unclaimed ??= { label: UNCLAIMED, pilots: [], mechs: [] }
-      return unclaimed
-    }
-    const existing = owned.get(entity.ownerId)
-    if (existing !== undefined) return existing
-    const created: Bucket = {
-      label: ownerLabel(entity),
-      pilots: [],
-      mechs: [],
-    }
-    owned.set(entity.ownerId, created)
-    return created
-  }
-
-  for (const pilot of crew.pilots) bucketFor(pilot).pilots.push(pilot)
-  for (const mech of crew.mechs) bucketFor(mech).mechs.push(mech)
-
-  const ordered = [...owned.values()].sort((a, b) => a.label.localeCompare(b.label))
-  // Appended, so it is last without depending on how anything sorts.
-  if (unclaimed !== null) ordered.push(unclaimed)
-
-  let anyCritical = false
-  const fields: CardField[] = ordered.map((bucket) => {
-    const { value, critical } = crewFieldValue(bucket.pilots, bucket.mechs, style)
-    if (critical) anyCritical = true
-    return { name: bucket.label, value, inline: true }
-  })
-
-  const aboard = owned.size
-
-  return entityCard({
-    title: `${crew.game.name} — Crew`,
-    url: gameUrl(crew.game.gameId),
-    accent: anyCritical ? CRITICAL : NEUTRAL_ACCENT,
-    description: fields.length === 0 ? 'Nothing in play yet.' : `${aboard} aboard`,
-    fields,
-    footer: FOOTER,
-  })
-}
-
-/** `/su game info` — what this channel's table is. */
-export function channelCard(channel: ChannelResult): ContainerData {
-  const crew = channel.members.map((m) => `${m.displayName} — ${roleLabel(m)}`).join('\n')
-
-  const fields: CardField[] = [
-    { name: `Crew (${channel.members.length})`, value: crew.length > 0 ? crew : '_Nobody yet._' },
-  ]
-
-  if (channel.downtime.running) {
-    fields.push({
-      name: 'Downtime',
-      value: [
-        `Step ${(channel.downtime.stepIndex ?? 0) + 1}`,
-        `${channel.downtime.completed} of ${channel.members.length} done`,
-        channel.downtime.upkeepSpent ? 'upkeep spent' : 'upkeep outstanding',
-      ].join(' · '),
-    })
-  }
-
-  return entityCard({
-    title: channel.game.name,
-    url: gameUrl(channel.game.gameId),
-    accent: NEUTRAL_ACCENT,
-    description: 'This channel is bound to this Game.',
-    fields,
-    footer: FOOTER,
-  })
 }
 
 /**

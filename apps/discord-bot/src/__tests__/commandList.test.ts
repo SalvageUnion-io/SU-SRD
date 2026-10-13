@@ -10,20 +10,8 @@ import { commandList, renderCommandListModule } from '../commandList'
 const COMMITTED = join(import.meta.dir, '../../../srd/src/generated/discordCommands.ts')
 
 describe('the /su command list', () => {
-  test('lists every leaf subcommand in registration order, the game group by its leaves', () => {
-    expect(commandList().map((c) => c.name)).toEqual([
-      'roll',
-      'lookup',
-      'me',
-      'games',
-      'shelves',
-      'crew',
-      'sheet',
-      'invite',
-      'game bind',
-      'game unbind',
-      'game info',
-    ])
+  test('lists every leaf subcommand in registration order', () => {
+    expect(commandList().map((c) => c.name)).toEqual(['roll', 'lookup', 'me', 'games', 'sheet'])
   })
 
   test('only the reference tools answer without an account', () => {
@@ -41,8 +29,8 @@ describe('the /su command list', () => {
       { name: 'table', required: false },
       { name: 'private', required: false },
     ])
-    const bind = commandList().find((c) => c.name === 'game bind')
-    expect(bind?.options).toEqual([{ name: 'game', required: true }])
+    const sheet = commandList().find((c) => c.name === 'sheet')
+    expect(sheet?.options).toEqual([{ name: 'entity', required: true }])
   })
 
   test('a group leaf needs an account even when it shares a reference tool’s name', () => {

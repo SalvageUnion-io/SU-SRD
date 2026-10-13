@@ -1,8 +1,6 @@
 import type {
   CommandAutocompleteInteraction,
   CommandExecuteInteraction,
-  DirectMessageOutcome,
-  SignedInteraction,
 } from '../commands/interactions'
 
 /**
@@ -42,8 +40,6 @@ export type FakeExecute = {
   followUps: ReplyArg[]
   /** Whether `deferReply` was called, and with what. */
   deferred: { called: boolean; ephemeral: boolean }
-  /** Every `directMessage` call, in order: whom, and what. */
-  directMessages: { userId: string; payload: ReplyArg }[]
 }
 
 export type FakeExecuteOptions = {
@@ -56,10 +52,6 @@ export type FakeExecuteOptions = {
   channelId?: string | null
   userId?: string
   displayName?: string
-  /** The signed request behind the interaction; null by default, as in a test. */
-  signed?: SignedInteraction | null
-  /** What `directMessage` answers. Delivered, by default. */
-  dmOutcome?: DirectMessageOutcome
   /** The message a context-menu command was used on; none by default. */
   targetMessage?: { content: string; author?: string } | null
 }
@@ -69,7 +61,6 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
   const edits: ReplyArg[] = []
   const followUps: ReplyArg[] = []
   const deferred = { called: false, ephemeral: false }
-  const directMessages: { userId: string; payload: ReplyArg }[] = []
   const strings = options.strings ?? {}
   const booleans = options.booleans ?? {}
 
@@ -109,14 +100,9 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
       followUps.push(arg)
       return Promise.resolve()
     },
-    signed: options.signed ?? null,
-    directMessage: (userId: string, payload: ReplyArg) => {
-      directMessages.push({ userId, payload })
-      return Promise.resolve(options.dmOutcome ?? { ok: true })
-    },
   }
 
-  return { interaction, replies, edits, followUps, deferred, directMessages }
+  return { interaction, replies, edits, followUps, deferred }
 }
 
 export type FakeAutocomplete = {

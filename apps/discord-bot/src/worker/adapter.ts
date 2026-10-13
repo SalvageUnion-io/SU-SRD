@@ -44,8 +44,6 @@ import type {
   CommandButtonInteraction,
   CommandChoice,
   CommandExecuteInteraction,
-  DirectMessageOutcome,
-  SignedInteraction,
 } from '../commands/interactions'
 
 /** What the Worker returns to Discord as the initial response. */
@@ -153,8 +151,6 @@ type AdapterContext = {
   applicationId: string
   rest: REST
   sink: ResponseSink
-  /** The request as Discord signed it; absent when no request stands behind it. */
-  signed?: SignedInteraction | null
 }
 
 /**
@@ -307,36 +303,8 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
     },
     ...actorOf(raw),
     targetMessage: targetMessageOf(raw.data),
-    signed: ctx.signed ?? null,
-    directMessage: (userId: string, payload: unknown) => directMessage(ctx.rest, userId, payload),
     ...replyMembers(ctx),
   } as CommandExecuteInteraction
-}
-
-/**
- * Open (or reuse) the DM channel with a user and post to it.
- *
- * Failure is returned, not thrown: Discord refuses a DM for ordinary reasons —
- * the bot and the user share no server, or they have DMs from server members
- * switched off (error 50007) — and the caller turns that into words for the
- * person who asked, plus a delivery note on the invite. Anything else comes
- * back as a null code and is worded the same way; the caller still reports it.
- */
-async function directMessage(
-  rest: REST,
-  userId: string,
-  payload: unknown
-): Promise<DirectMessageOutcome> {
-  try {
-    const channel = (await rest.post(Routes.userChannels(), {
-      body: { recipient_id: userId },
-    })) as { id: string }
-    await rest.post(Routes.channelMessages(channel.id), { body: payload })
-    return { ok: true }
-  } catch (error) {
-    const code = (error as { code?: unknown } | null)?.code
-    return { ok: false, code: typeof code === 'number' ? code : null }
-  }
 }
 
 /** Build the button surface `handleButtonInteraction` expects. */

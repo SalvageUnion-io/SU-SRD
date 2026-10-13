@@ -74,24 +74,24 @@ does not exist.
 [ADR-006](../../docs/ARCHITECTURE.md#decisions)); Convex's `crew.vitals` derives
 the same maxima, and the two must agree.
 
+**ITUN commands:** `/su me`, `games`, `sheet`. `sheet` takes your own entity
+or any sheet link; `botClient.sheet` decides what you may read.
+
 **`/su sheet`** maps the live sheet one-to-one onto an entity card. The mapping,
 slug resolution and ability grouping are documented on `sheetCard`, `refLink`
 and `abilityFields` in `gameCards.ts`.
 
 **Accent colour:** sheets wear `SHEET_ACCENT` (see its comment; `CRITICAL`
 wins), reference cards wear their entry's tone (`discordAccent`), and rust is
-only for system replies (errors, invites).
+only for system replies (errors).
 
-**One link shape, one live sheet.** `sheetUrl` builds `/sheet/<kind>/<rowId>`
-from the Convex row id for every sheet the bot links — `/su shelves`, `/su crew`
-and `/su sheet`. ITUN's `entities.locate` resolves it: yours editable, a
-crewmate's read-only.
+**One link shape.** `sheetUrl` builds `/sheet/<kind>/<rowId>`; ITUN's
+`entities.locate` opens it editable for its owner, read-only otherwise.
 
 ## Conventions
 
 - Everything hangs off the single `/su` top-level command (`src/commands/su.ts`)
-  — subcommands, plus the `game` subcommand **group**
-- Commands live in `src/commands/`, generally one file per command; the three
+- Commands live in `src/commands/`, generally one file per command; the two
   small personal ones share `account.ts`
 - Shared code reads no configuration. The Worker's `env` installs the ITUN
   client per request; `deploy-commands.ts` alone reads `process.env`

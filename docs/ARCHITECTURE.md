@@ -75,7 +75,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `bun run stories` serves `apps/catalog`: component-lib's and both apps' stories.
     Story rules: [component-lib's CLAUDE.md](../packages/component-lib/CLAUDE.md), enforced by `story-coverage.test.ts`.
 24. **Discord bot as a Game client** <a id="bot-game-client"></a>
-    `/su` commands call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`; `/su invite` is Discord-signed.
+    `/su me`, `games` and `sheet` call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`.
     Reads widely, writes only existing mutations; Convex unreachable means every Game command answers `unavailable`. Each interaction logs its command.
 25. **SEO** <a id="seo"></a>
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.

@@ -1,18 +1,12 @@
 import { PRODUCT } from 'component-lib/product'
-import type { SignedInteraction } from '../commands/interactions'
 import type {
-  BindResult,
-  ChannelResult,
-  CrewResult,
   DenialReason,
   GamesResult,
-  InviteDeliveryState,
-  InviteResult,
   ItunResult,
   MeResult,
+  MineResult,
   SheetResult,
   SheetTable,
-  ShelfResult,
 } from './types'
 
 /**
@@ -50,39 +44,16 @@ const AUTOCOMPLETE_TIMEOUT_MS = 2_000
 export type ItunClient = {
   me(discordId: string): Promise<ItunResult<MeResult>>
   games(discordId: string): Promise<ItunResult<GamesResult>>
-  shelf(discordId: string): Promise<ItunResult<ShelfResult>>
-  channel(discordId: string, channelId: string): Promise<ItunResult<ChannelResult>>
-  crew(discordId: string, channelId: string): Promise<ItunResult<CrewResult>>
-  /** As `crew`/`games`, but under the 3s autocomplete deadline. */
-  crewForAutocomplete(discordId: string, channelId: string): Promise<ItunResult<CrewResult>>
-  gamesForAutocomplete(discordId: string): Promise<ItunResult<GamesResult>>
-  sheet(
-    discordId: string,
-    channelId: string,
-    table: SheetTable,
-    entityId: string
-  ): Promise<ItunResult<SheetResult>>
-  bind(discordId: string, channelId: string, gameId: string): Promise<ItunResult<BindResult>>
-  unbind(discordId: string, channelId: string): Promise<ItunResult<Record<string, never>>>
+  /** What `/su sheet` autocompletes to, under the 3s autocomplete deadline. */
+  mineForAutocomplete(discordId: string): Promise<ItunResult<MineResult>>
+  /** One sheet by row id or app id: yours, a crewmate's, or a published one. */
+  sheet(discordId: string, table: SheetTable, entityId: string): Promise<ItunResult<SheetResult>>
   recordRoll(
     discordId: string,
     channelId: string,
     description: string,
     result: unknown
   ): Promise<ItunResult<{ game: string }>>
-  /**
-   * `/su invite` (ADR-039). Sends Discord's signed interaction **verbatim** —
-   * body and signature headers — because Convex verifies it itself rather than
-   * taking this bot's word for who is inviting whom.
-   */
-  invite(signed: SignedInteraction): Promise<ItunResult<InviteResult>>
-  /** Report whether the invite's DM arrived. */
-  inviteDelivery(
-    discordId: string,
-    code: string,
-    state: InviteDeliveryState,
-    detail?: string
-  ): Promise<ItunResult<Record<string, never>>>
 }
 
 export type ItunClientConfig = {
@@ -153,11 +124,10 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
   const { siteUrl, botSecret } = config
   const origin = siteUrl?.replace(/\/+$/, '') ?? ''
 
-  async function post<T>(
+  async function call<T>(
     op: string,
-    body: string,
-    extraHeaders: Record<string, string>,
-    timeoutMs: number
+    payload: Record<string, unknown>,
+    forAutocomplete = false
   ): Promise<ItunResult<T>> {
     if (!origin || !botSecret) return UNCONFIGURED
     try {
@@ -166,10 +136,9 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
         headers: {
           Authorization: `Bearer ${botSecret}`,
           'Content-Type': 'application/json',
-          ...extraHeaders,
         },
-        body,
-        signal: AbortSignal.timeout(timeoutMs),
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(forAutocomplete ? AUTOCOMPLETE_TIMEOUT_MS : REQUEST_TIMEOUT_MS),
       })
 
       // A non-JSON body from a proxy or an error page must not throw past the
@@ -183,47 +152,12 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
     }
   }
 
-  function call<T>(
-    op: string,
-    payload: Record<string, unknown>,
-    forAutocomplete = false
-  ): Promise<ItunResult<T>> {
-    return post<T>(
-      op,
-      JSON.stringify(payload),
-      {},
-      forAutocomplete ? AUTOCOMPLETE_TIMEOUT_MS : REQUEST_TIMEOUT_MS
-    )
-  }
-
   return {
     me: (discordId) => call('me', { discordId }),
     games: (discordId) => call('games', { discordId }),
-    shelf: (discordId) => call('shelf', { discordId }),
-    channel: (discordId, channelId) => call('channel', { discordId, channelId }),
-    crew: (discordId, channelId) => call('crew', { discordId, channelId }),
-    crewForAutocomplete: (discordId, channelId) => call('crew', { discordId, channelId }, true),
-    gamesForAutocomplete: (discordId) => call('games', { discordId }, true),
-    sheet: (discordId, channelId, table, entityId) =>
-      call('sheet', { discordId, channelId, table, entityId }),
-    bind: (discordId, channelId, gameId) => call('bind', { discordId, channelId, gameId }),
-    unbind: (discordId, channelId) => call('unbind', { discordId, channelId }),
+    mineForAutocomplete: (discordId) => call('mine', { discordId }, true),
+    sheet: (discordId, table, entityId) => call('sheet', { discordId, table, entityId }),
     recordRoll: (discordId, channelId, description, result) =>
       call('recordRoll', { discordId, channelId, description, result }),
-    // The body is Discord's, not ours, so it is posted as the exact string
-    // received — parsing and re-serialising it would invalidate the signature
-    // Convex is about to check.
-    invite: (signed) =>
-      post<InviteResult>(
-        'invite',
-        signed.body,
-        {
-          'X-Signature-Ed25519': signed.signature,
-          'X-Signature-Timestamp': signed.timestamp,
-        },
-        REQUEST_TIMEOUT_MS
-      ),
-    inviteDelivery: (discordId, code, state, detail) =>
-      call('inviteDelivery', { discordId, code, state, detail }),
   }
 }

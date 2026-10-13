@@ -36,10 +36,9 @@ import { isFresh, isSignedByDiscord } from './model/discordInteraction'
 const QUERIES = {
   me: internal.botClient.me,
   games: internal.botClient.games,
-  shelf: internal.botClient.shelf,
   channel: internal.botClient.channel,
-  crew: internal.botClient.crew,
   sheet: internal.botClient.sheet,
+  mine: internal.botClient.mine,
 } as const
 
 const MUTATIONS = {

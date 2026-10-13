@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { gamesCommand, meCommand, shelfCommand } from '../commands/account'
-import { crewCommand, sheetCommand } from '../commands/crew'
-import { gameCommand } from '../commands/game'
+import { gamesCommand, meCommand } from '../commands/account'
 import { setItunClient } from '../commands/itunReply'
 import { rollCommand } from '../commands/roll'
+import { parseSheetTarget, sheetCommand } from '../commands/sheet'
 import { suCommand } from '../commands/su'
 import type { ItunClient } from '../itun/client'
 import type { ItunResult } from '../itun/types'
@@ -33,17 +32,9 @@ function clientReturning(result: ItunResult<unknown>): ItunClient {
   return {
     me: answer,
     games: answer,
-    shelf: answer,
-    channel: answer,
-    crew: answer,
-    crewForAutocomplete: answer,
-    gamesForAutocomplete: answer,
+    mineForAutocomplete: answer,
     sheet: answer,
-    bind: answer,
-    unbind: answer,
     recordRoll: answer,
-    invite: answer,
-    inviteDelivery: answer,
   }
 }
 
@@ -68,9 +59,6 @@ function expectContainer(reply: ReplyArg | undefined, options: { ephemeral: bool
   )
 }
 
-/** A realistic Convex document id — the option carries one of these, not a name. */
-const GAME_ID = 'jd7k2m9p4q8r3s6t1v5w0x2y'
-
 const OK_ME = {
   kind: 'ok' as const,
   value: {
@@ -80,23 +68,25 @@ const OK_ME = {
   },
 }
 
-const OK_CREW = {
+const OK_MINE = {
   kind: 'ok' as const,
   value: {
     ok: true,
-    game: { gameId: 'g1', name: 'Tenacity' },
-    viewerId: 'u1',
-    pilots: [
-      {
-        id: 'p1',
-        ownerId: 'u1',
-        ownerName: 'alxjrvs',
-        present: true,
-        body: { callsign: 'Rook', currentHP: 6, currentAP: 3 },
-      },
-    ],
-    mechs: [],
-    crawler: null,
+    pilots: [{ id: 'p1', body: { callsign: 'Rook' } }],
+    mechs: [{ id: 'm1', body: { name: 'Lantern' } }],
+    crawlers: [{ id: 'c1', body: { name: 'The Ossuary' } }],
+  },
+}
+
+const OK_SHEET = {
+  kind: 'ok' as const,
+  value: {
+    ok: true,
+    table: 'pilots',
+    id: 'p1',
+    appId: 'app-p1',
+    ownerName: 'alxjrvs',
+    body: { callsign: 'Rook', currentHP: 6 },
   },
 }
 
@@ -119,298 +109,145 @@ describe('an ephemeral command', () => {
     }
   })
 
-  test.each([
-    ['games', gamesCommand],
-    ['shelves', shelfCommand],
-  ])('/su %s renders too', async (name, command) => {
-    connect({
-      kind: 'ok',
-      value: { ok: true, games: [], pilots: [], mechs: [] },
-    })
-    const { interaction, followUps } = fakeExecute({ subcommand: name })
-    await command.execute(interaction)
+  test('/su games renders too', async () => {
+    connect({ kind: 'ok', value: { ok: true, games: [] } })
+    const { interaction, followUps } = fakeExecute({ subcommand: 'games' })
+    await gamesCommand.execute(interaction)
     expectContainer(followUps[0], { ephemeral: true })
   })
-})
 
-describe('a public command', () => {
-  test('posts to the channel and confirms privately', async () => {
-    connect(OK_CREW)
-    const { interaction, edits, followUps } = fakeExecute({ subcommand: 'crew' })
-    await crewCommand.execute(interaction)
-
-    // The board goes to the table; the invoker gets a private receipt.
-    expectContainer(followUps[0], { ephemeral: false })
-    expect(edits[0]?.content).toBe('Posted to the channel.')
-  })
-
-  test('the text-only option posts the board without bar glyphs', async () => {
-    connect(OK_CREW)
-    const bars = fakeExecute({ subcommand: 'crew' })
-    await crewCommand.execute(bars.interaction)
-    const text = fakeExecute({ subcommand: 'crew', booleans: { 'text-only': true } })
-    await crewCommand.execute(text.interaction)
-
-    expect(JSON.stringify(bars.followUps[0]?.components)).toContain('6/10 █')
-    const plain = JSON.stringify(text.followUps[0]?.components)
-    expect(plain).toContain('6/10')
-    expect(plain).not.toMatch(/[█░]/)
-  })
-
-  test('keeps a DENIAL ephemeral even though the command is public', async () => {
-    connect({ kind: 'denied', reason: 'not-a-member', message: 'no' })
-    const { interaction, edits, followUps } = fakeExecute({ subcommand: 'crew' })
-    await crewCommand.execute(interaction)
-
-    // The whole reason the command defers ephemerally and follows up: "you are
-    // not a member of this game" is a fact about a person and must never reach
-    // the channel.
+  test('keeps a denial ephemeral and says why', async () => {
+    connect({ kind: 'denied', reason: 'not-found', message: 'That sheet could not be found.' })
+    const { interaction, edits, followUps } = fakeExecute({
+      subcommand: 'sheet',
+      strings: { entity: 'pilots:p1' },
+    })
+    await sheetCommand.execute(interaction)
     expect(followUps).toHaveLength(0)
-    expect(edits[0]?.content).toContain('not a member')
+    expect(edits[0]?.content).toBe('That sheet could not be found.')
   })
 
   test('reports an outage as an outage, not as a permissions problem', async () => {
     connect({ kind: 'unavailable', message: 'In the Union now could not be reached.' })
-    const { interaction, edits, followUps } = fakeExecute({ subcommand: 'crew' })
-    await crewCommand.execute(interaction)
-
+    const { interaction, edits, followUps } = fakeExecute({ subcommand: 'me' })
+    await meCommand.execute(interaction)
     expect(followUps).toHaveLength(0)
     expect(edits[0]?.content).toContain('could not be reached')
   })
 })
 
 describe('/su sheet', () => {
-  test('parses the autocomplete value into a table and an id', async () => {
-    connect({
-      kind: 'ok',
-      value: {
-        ok: true,
-        table: 'pilots',
-        id: 'p1',
-        appId: 'app-p1',
-        ownerName: 'alxjrvs',
-        body: { callsign: 'Rook', currentHP: 6 },
+  test('opens a picked entity, privately', async () => {
+    let asked: unknown[] = []
+    restore = setItunClient({
+      ...clientReturning(OK_SHEET),
+      sheet: (...args) => {
+        asked = args
+        return Promise.resolve(OK_SHEET) as never
       },
     })
     const { interaction, followUps } = fakeExecute({
       subcommand: 'sheet',
+      userId: 'discord-me',
       strings: { entity: 'pilots:p1' },
     })
     await sheetCommand.execute(interaction)
+    expect(asked).toEqual(['discord-me', 'pilots', 'p1'])
     expectContainer(followUps[0], { ephemeral: true })
   })
 
-  test.each([['just-a-name'], ['pilots:'], ['bogus:p1']])(
-    'refuses a hand-typed value (%s) instead of guessing',
-    async (typed) => {
-      connect(OK_CREW)
-      const { interaction, replies, deferred } = fakeExecute({
-        subcommand: 'sheet',
-        strings: { entity: typed },
-      })
-      await sheetCommand.execute(interaction)
+  test('opens a pasted link to somebody else’s sheet', async () => {
+    let asked: unknown[] = []
+    restore = setItunClient({
+      ...clientReturning(OK_SHEET),
+      sheet: (...args) => {
+        asked = args
+        return Promise.resolve(OK_SHEET) as never
+      },
+    })
+    const { interaction, followUps } = fakeExecute({
+      subcommand: 'sheet',
+      userId: 'discord-me',
+      strings: { entity: 'https://salvageunion.io/build/p/mech/app-m9' },
+    })
+    await sheetCommand.execute(interaction)
+    expect(asked).toEqual(['discord-me', 'mechs', 'app-m9'])
+    expectContainer(followUps[0], { ephemeral: true })
+  })
 
-      // A user can type anything into an autocomplete field, so the value is
-      // parsed rather than trusted — and rejected before any network call.
-      expect(deferred.called).toBe(false)
-      expect(replies[0]?.content).toContain('Pick an entity from the list')
-    }
-  )
+  test.each([
+    ['just-a-name'],
+    ['pilots:'],
+    ['bogus:p1'],
+    ['https://salvageunion.io/build/games/g1'],
+  ])('refuses a value that is neither a pick nor a sheet link (%s)', async (typed) => {
+    connect(OK_SHEET)
+    const { interaction, replies, deferred } = fakeExecute({
+      subcommand: 'sheet',
+      strings: { entity: typed },
+    })
+    await sheetCommand.execute(interaction)
 
-  test('autocomplete offers only what is in this channel’s game', async () => {
-    connect(OK_CREW)
-    const { interaction, responses } = fakeAutocomplete({ subcommand: 'sheet', focused: 'roo' })
+    // A user can type anything into an autocomplete field, so the value is
+    // parsed rather than trusted — and rejected before any network call.
+    expect(deferred.called).toBe(false)
+    expect(replies[0]?.content).toContain('paste a link to a sheet')
+  })
+
+  test('autocomplete offers your own pilots, mechs and crawlers', async () => {
+    connect(OK_MINE)
+    const all = fakeAutocomplete({ subcommand: 'sheet', focused: '' })
+    await sheetCommand.autocomplete(all.interaction)
+    expect(all.responses[0]).toEqual([
+      { name: 'Rook — pilot', value: 'pilots:p1' },
+      { name: 'Lantern — mech', value: 'mechs:m1' },
+      { name: 'The Ossuary — crawler', value: 'crawlers:c1' },
+    ])
+
+    const some = fakeAutocomplete({ subcommand: 'sheet', focused: 'roo' })
+    await sheetCommand.autocomplete(some.interaction)
+    expect(some.responses[0]).toEqual([{ name: 'Rook — pilot', value: 'pilots:p1' }])
+  })
+
+  test('autocomplete works outside a channel', async () => {
+    connect(OK_MINE)
+    const { interaction, responses } = fakeAutocomplete({ subcommand: 'sheet', channelId: null })
     await sheetCommand.autocomplete(interaction)
-
-    expect(responses[0]).toEqual([{ name: 'Rook — pilot', value: 'pilots:p1' }])
+    expect(responses[0]).toHaveLength(3)
   })
 
   test('autocomplete stays empty when the call is denied', async () => {
-    connect({ kind: 'denied', reason: 'unbound', message: 'no' })
+    connect({ kind: 'denied', reason: 'unlinked', message: 'no' })
     const { interaction, responses } = fakeAutocomplete({ subcommand: 'sheet' })
     await sheetCommand.autocomplete(interaction)
     // An autocomplete has no way to explain itself; "no options" is the honest
     // rendering of every failure.
     expect(responses[0]).toEqual([])
   })
-
-  test('autocomplete stays empty outside a channel', async () => {
-    connect(OK_CREW)
-    const { interaction, responses } = fakeAutocomplete({ subcommand: 'sheet', channelId: null })
-    await sheetCommand.autocomplete(interaction)
-    expect(responses[0]).toEqual([])
-  })
 })
 
-describe('/su game', () => {
-  test('bind announces itself publicly', async () => {
-    connect({ kind: 'ok', value: { ok: true, name: 'Tenacity' } })
-    const { interaction, edits, followUps } = fakeExecute({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-      strings: { game: GAME_ID },
-    })
-    await gameCommand.execute(interaction)
-
-    // Binding changes what the channel MEANS for everyone in it, so it does
-    // not happen invisibly.
-    expect(edits[0]?.content).toContain('Bound to')
-    expect(followUps[0]?.content).toContain('now the table for')
-  })
-
-  test('a forbidden bind reports the SERVER’s reason, not a generic one', async () => {
-    // The server knows the specifics and this module does not: being told "that
-    // channel is already bound to another game" is a different problem from
-    // "binding is the Organizer's job", and a generic line would mislead.
-    connect({
-      kind: 'denied',
-      reason: 'forbidden',
-      message: 'That channel is already bound to another game',
-    })
-    const { interaction, edits, followUps } = fakeExecute({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-      strings: { game: GAME_ID },
-    })
-    await gameCommand.execute(interaction)
-
-    expect(edits[0]?.content).toContain('already bound to another game')
-    expect(followUps).toHaveLength(0)
-  })
-
-  test('bind reports an outage without announcing anything', async () => {
-    connect({ kind: 'unavailable', message: 'unreachable' })
-    const { interaction, edits, followUps } = fakeExecute({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-      strings: { game: GAME_ID },
-    })
-    await gameCommand.execute(interaction)
-    expect(edits[0]?.content).toBe('unreachable')
-    expect(followUps).toHaveLength(0)
-  })
-
-  test('bind refuses a typed game name before calling anything', async () => {
-    connect({ kind: 'ok', value: { ok: true, name: 'Tenacity' } })
-    const { interaction, edits, followUps } = fakeExecute({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-      strings: { game: 'Tenacity' },
-    })
-    await gameCommand.execute(interaction)
-
-    // A hand-typed name fails `v.id('games')` server-side, which the bot would
-    // otherwise render as "could not be reached" — an outage message for a typo.
-    expect(edits[0]?.content).toContain('Pick a Game from the list')
-    expect(followUps).toHaveLength(0)
-  })
-
-  test('unbind confirms privately', async () => {
-    connect({ kind: 'ok', value: { ok: true } })
-    const { interaction, edits } = fakeExecute({ subcommand: 'unbind', subcommandGroup: 'game' })
-    await gameCommand.execute(interaction)
-    expect(edits[0]?.content).toContain('no longer bound')
-  })
-
+describe('parseSheetTarget', () => {
   test.each([
-    ['denied' as const, { kind: 'denied' as const, reason: 'forbidden' as const, message: 'no' }],
-    ['unavailable' as const, { kind: 'unavailable' as const, message: 'unreachable' }],
-  ])('unbind surfaces a %s result', async (_label, result) => {
-    connect(result)
-    const { interaction, edits } = fakeExecute({ subcommand: 'unbind', subcommandGroup: 'game' })
-    await gameCommand.execute(interaction)
-    expect(edits[0]?.content?.length).toBeGreaterThan(0)
+    ['pilots:p1', { table: 'pilots', entityId: 'p1' }],
+    [
+      'https://salvageunion.io/build/sheet/pilot/jd7k2m9p',
+      { table: 'pilots', entityId: 'jd7k2m9p' },
+    ],
+    ['salvageunion.io/build/p/crawler/app%201?x=1', { table: 'crawlers', entityId: 'app 1' }],
+    ['<https://preview.example/build/sheet/mech/m1>', { table: 'mechs', entityId: 'm1' }],
+  ])('reads %s', (raw, expected) => {
+    expect(parseSheetTarget(raw)).toEqual(expected as ReturnType<typeof parseSheetTarget>)
   })
 
-  test('info posts the channel card publicly', async () => {
-    connect({
-      kind: 'ok',
-      value: {
-        ok: true,
-        game: { gameId: 'g1', name: 'Tenacity' },
-        members: [
-          {
-            userId: 'u1',
-            displayName: 'alxjrvs',
-            present: true,
-            mediator: false,
-            organizer: true,
-          },
-        ],
-        downtime: { running: false, stepIndex: null, completed: 0, upkeepSpent: false },
-      },
-    })
-    const { interaction, followUps } = fakeExecute({ subcommand: 'info', subcommandGroup: 'game' })
-    await gameCommand.execute(interaction)
-    expectContainer(followUps[0], { ephemeral: false })
-  })
-
-  test('every subcommand needs a channel', async () => {
-    connect(OK_ME)
-    for (const subcommand of ['bind', 'unbind', 'info']) {
-      const { interaction, replies } = fakeExecute({
-        subcommand,
-        subcommandGroup: 'game',
-        channelId: null,
-        strings: { game: GAME_ID },
-      })
-      await gameCommand.execute(interaction)
-      expect(replies[0]?.content).toContain('has to be run in a channel')
-    }
-  })
-
-  test('an unknown subcommand in the group throws loudly', async () => {
-    connect(OK_ME)
-    const { interaction } = fakeExecute({ subcommand: 'nonsense', subcommandGroup: 'game' })
-    await expect(gameCommand.execute(interaction)).rejects.toThrow('Unknown /su game subcommand')
-  })
-
-  test('autocomplete offers the caller’s own games', async () => {
-    connect({
-      kind: 'ok',
-      value: {
-        ok: true,
-        games: [
-          { gameId: 'g1', name: 'Tenacity', mediator: false, organizer: true },
-          { gameId: 'g2', name: 'Ashfall', mediator: true, organizer: false },
-        ],
-      },
-    })
-    const { interaction, responses } = fakeAutocomplete({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-      focused: 'ten',
-    })
-    await gameCommand.autocomplete(interaction)
-    expect(responses[0]).toEqual([{ name: 'Tenacity', value: 'g1' }])
-  })
-
-  test('autocomplete stays empty when the call fails', async () => {
-    connect({ kind: 'unavailable', message: 'down' })
-    const { interaction, responses } = fakeAutocomplete({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-    })
-    await gameCommand.autocomplete(interaction)
-    expect(responses[0]).toEqual([])
+  test.each([['Rook'], ['/p/npc/app1'], ['/sheet/pilot/%E0%A4%A']])('rejects %s', (raw) => {
+    expect(parseSheetTarget(raw)).toBeNull()
   })
 })
 
 describe('/su dispatch', () => {
-  test('routes the game GROUP by its group name, not its leaf', async () => {
-    connect({ kind: 'ok', value: { ok: true } })
-    // getSubcommand() inside a group returns `unbind`, which would otherwise
-    // fall through to the default branch and throw.
-    const { interaction, edits } = fakeExecute({ subcommand: 'unbind', subcommandGroup: 'game' })
-    await suCommand.execute(interaction)
-    expect(edits[0]?.content).toContain('no longer bound')
-  })
-
   test.each([
     ['me', OK_ME],
     ['games', { kind: 'ok' as const, value: { ok: true, games: [] } }],
-    ['shelf', { kind: 'ok' as const, value: { ok: true, pilots: [], mechs: [] } }],
-    ['crew', OK_CREW],
   ])('routes /su %s', async (subcommand, result) => {
     connect(result)
     const { interaction, edits, followUps } = fakeExecute({ subcommand })
@@ -439,20 +276,10 @@ describe('/su dispatch', () => {
   })
 
   test('routes sheet autocomplete', async () => {
-    connect(OK_CREW)
+    connect(OK_MINE)
     const { interaction, responses } = fakeAutocomplete({ subcommand: 'sheet', focused: '' })
     await suCommand.autocomplete(interaction)
-    expect(responses[0]).toHaveLength(1)
-  })
-
-  test('routes game-group autocomplete', async () => {
-    connect({ kind: 'ok', value: { ok: true, games: [] } })
-    const { interaction, responses } = fakeAutocomplete({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-    })
-    await suCommand.autocomplete(interaction)
-    expect(responses[0]).toEqual([])
+    expect(responses[0]).toHaveLength(3)
   })
 })
 

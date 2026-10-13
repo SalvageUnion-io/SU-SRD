@@ -40,15 +40,10 @@ export type CommandChoice = { name: string; value: string }
 /**
  * What `execute` handlers read off a chat-input interaction.
  *
- * For the ITUN Game commands (ADR-030): the Discord user id (`user`) IS the
- * account key, `channelId` decides which Game a command speaks for, and a round
- * trip to Convex does not reliably fit inside Discord's 3-second
- * acknowledgement window, so every Game subcommand defers first (the
- * defer/edit pair).
- *
- * `signed` and `directMessage` serve `/su invite` (ADR-039): the one command
- * Convex verifies against Discord's own signature, and the one that writes to
- * somebody other than the person who ran it.
+ * For `/su sheet` (ADR-030): the Discord user id (`user`) IS the account key,
+ * and a round trip to Convex does not reliably fit inside Discord's 3-second
+ * acknowledgement window, so it defers first (the defer/edit pair).
+ * `channelId` decides which Game a roll is logged to.
  */
 export type CommandExecuteInteraction = {
   options: {
@@ -69,21 +64,7 @@ export type CommandExecuteInteraction = {
   deferReply(options?: { flags?: MessageFlags.Ephemeral }): Promise<unknown>
   editReply(payload: EditReplyPayload): Promise<unknown>
   followUp(payload: ReplyPayload): Promise<unknown>
-  /**
-   * The interaction exactly as Discord sent it — raw body and signature
-   * headers — for Convex to verify itself. Null only where there is no signed
-   * request behind the interaction (never in the Worker).
-   */
-  signed: SignedInteraction | null
-  /** DM a user. Best effort: Discord refuses when DMs are closed or no server is shared. */
-  directMessage(userId: string, payload: ReplyPayload): Promise<DirectMessageOutcome>
 }
-
-/** Discord's signed request, untouched. Re-serialising it would break the signature. */
-export type SignedInteraction = { body: string; signature: string; timestamp: string }
-
-/** Whether a DM was delivered, and Discord's error code when it was not. */
-export type DirectMessageOutcome = { ok: true } | { ok: false; code: number | null }
 
 /**
  * What the button router reads off a message-component interaction.
