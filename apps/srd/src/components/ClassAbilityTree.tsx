@@ -272,7 +272,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
           <PathRequirement path={path} classEntity={classEntity} />
           {note && <p className="srd-class-path__note">{note}</p>}
         </div>
-        <div className="srd-class-path__trees">
+        <div className="srd-class-path__trees" data-entity-fit="">
           <TreeSection {...path.advanced} track="advanced" />
           {path.legendary && <TreeSection {...path.legendary} track={null} />}
         </div>
@@ -296,7 +296,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
         <ClassBrief plan={plan} />
         <section className="srd-ability-tree__section">
           <Slab variant="dashed" label="Abilities" />
-          <div className="srd-ability-tree__row" data-columns="2">
+          <div className="srd-ability-tree__row" data-entity-fit="">
             <TreeSection {...path.advanced} track="advanced" />
             {path.legendary && <TreeSection {...path.legendary} track={null} />}
           </div>
@@ -312,7 +312,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
       {plan.coreTrees.length > 0 && (
         <section className="srd-ability-tree__section">
           <Slab variant="dashed" label="Core trees" />
-          <div className="srd-ability-tree__row" data-columns="3">
+          <div className="srd-ability-tree__row" data-entity-fit="">
             {plan.coreTrees.map((group) => (
               <TreeSection key={group.tree} {...group} track="core" />
             ))}
@@ -347,7 +347,7 @@ function BranchTrees({ branches }: { branches: BranchTree[] }) {
   return (
     <section className="srd-ability-tree__section">
       <Slab variant="dashed" label="Branch trees" />
-      <div className="srd-ability-tree__row" data-columns="2">
+      <div className="srd-ability-tree__row" data-entity-fit="">
         {groups.map(({ group, owner }) => (
           <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />
         ))}

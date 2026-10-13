@@ -102,7 +102,9 @@
   text-transform: uppercase;
 }
 
-/* An ability's tier numeral, at the left: the title's face, dimmed. */
+/* An ability's tier numeral, at the left, on the band: the title's face in
+   the band's own foreground, undimmed, so it holds the 4.5:1 the tier bands
+   are tested at (`design/__tests__/contrast.test.ts`). */
 .su-entity-row__tier {
   display: inline;
   flex: none;
@@ -113,7 +115,6 @@
   line-height: 1.05;
   margin: 0;
   min-width: 0;
-  opacity: 0.75;
   overflow: hidden;
   overflow-wrap: anywhere;
   text-transform: uppercase;
@@ -148,6 +149,12 @@
 .su-entity-row__head[data-notch] .su-entity-row__line,
 .su-entity-row__head[data-notch] .su-entity-row__name {
   align-items: flex-end;
+}
+
+/* The tier stays on the band, left of the cut-out, on the name's baseline. */
+.su-entity-row__head[data-notch] .su-entity-row__line > .su-entity-row__tier {
+  align-self: flex-end;
+  margin-bottom: var(--space-2);
 }
 
 .su-entity-row__notch {
@@ -428,4 +435,20 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    the grid is one height and the name centres in its line. */
 [data-entity-grid] .su-entity-row__line {
   min-height: calc(2.1 * var(--text-title));
+}
+
+/*
+ * FIT (`data-entity-fit` on an ancestor): a Row's natural width is its head on
+ * one line (tier, name, labels, pennant, affordance), so a wrapping flex line
+ * can size each Row to its title (the class ability tree, a Row listing). The
+ * body (facts, tags, lead) fills that width and wraps inside it; it never
+ * widens the Row. A size container's width cannot come from its content, so
+ * here the Row is not one: its art column answers the nearest container above.
+ */
+[data-entity-fit] .su-entity-row {
+  container-type: normal;
+}
+
+[data-entity-fit] .su-entity-row__body {
+  contain: inline-size;
 }

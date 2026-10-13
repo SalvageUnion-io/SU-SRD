@@ -992,6 +992,27 @@
   padding: 0;
 }
 
+/* A listing's Rows (`data-entity-fit`): each as wide as its title on one line
+   (component-lib's entity forms), no narrower than the listing's measure,
+   growing to fill its line, so a short group never leaves the line's end
+   empty; a phone stacks them. Rows on a line share its height. */
+.srd-listing__cards[data-entity-fit] {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.srd-listing__cards[data-entity-fit] > * {
+  flex: 1 1 auto;
+  min-width: min(100%, var(--srd-listing-min));
+}
+
+@media (max-width: 40rem) {
+  .srd-listing__cards[data-entity-fit] > * {
+    flex-basis: 100%;
+  }
+}
+
 /* Search's grid mixes kinds (a roll table beside a chassis), so its rows are
    each line's own height: Rows still match across a line, but a lone row on a
    phone is never stretched to the tallest hit's height. */
@@ -1412,19 +1433,28 @@
   gap: var(--space-6);
 }
 
-.srd-ability-tree__row {
-  display: grid;
+/* The trees side by side, each as wide as its longest title on one line
+   (component-lib's `data-entity-fit`), growing to fill the line and wrapping
+   when the next does not fit; a phone stacks them. A title wraps only when it
+   alone is wider than the line. */
+.srd-ability-tree__row,
+.srd-class-path__trees {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-16);
-  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
 }
 
-@media (min-width: 40rem) {
-  .srd-ability-tree__row[data-columns='3'] {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.srd-ability-tree__row > *,
+.srd-class-path__trees > * {
+  flex: 1 1 auto;
+  min-width: min(100%, 16rem);
+}
 
-  .srd-ability-tree__row[data-columns='2'] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 40rem) {
+  .srd-ability-tree__row > *,
+  .srd-class-path__trees > * {
+    flex-basis: 100%;
   }
 }
 
@@ -1735,16 +1765,7 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
 }
 
 .srd-class-path__trees {
-  display: grid;
   gap: var(--space-8) var(--space-24);
-  grid-template-columns: minmax(0, 1fr);
-  min-width: 0;
-}
-
-@media (min-width: 40rem) {
-  .srd-class-path__trees {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 .srd-class-path__foot {

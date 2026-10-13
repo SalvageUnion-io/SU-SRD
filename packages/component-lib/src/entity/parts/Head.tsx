@@ -45,16 +45,17 @@ export type HeadProps = {
   /** The labels (`CardLabels`): on the name's line, right after the name. */
   labels?: ReactNode
   /**
-   * The cut-out (ruleset, "Chapter band"): the tier and name notched into the
-   * band's foot on a tab of the paper below, in ink, as a catalog Tile's. For
-   * a head with a paper body under it (a bodied Row, a pattern row).
+   * The cut-out (ruleset, "Chapter band"): the name notched into the band's
+   * foot on a tab of the paper below, in ink, as a catalog Tile's; the tier
+   * stays on the band, left of it. For a head with a paper body under it (a
+   * bodied Row, a pattern row).
    */
   notch?: boolean
 }
 
 /**
- * HEAD — a Row's band: one line that never wraps: the tier, the name (it
- * wraps, never clipped; with `notch`, both on the paper cut-out at the band's
+ * HEAD — a Row's band: one line that never wraps: the tier (on the band), the
+ * name (it wraps, never clipped; with `notch`, on the paper cut-out at the band's
  * foot) with its labels to its right, a hint, the action-type stamp (E17), the condition,
  * the cost pennant and the mode's affordance, in that order. The band wears
  * the paint (`paintFor`): the tone or ink, grey when down.
@@ -92,16 +93,9 @@ export function Head({
       style={{ backgroundColor: paint.background, color: paint.color }}
     >
       <div className="su-entity-row__line">
-        {notch ? null : tierNode}
+        {tierNode}
         <div className="su-entity-row__name">
-          {notch ? (
-            <span className="su-entity-row__notch">
-              {tierNode}
-              {titleNode}
-            </span>
-          ) : (
-            titleNode
-          )}
+          {notch ? <span className="su-entity-row__notch">{titleNode}</span> : titleNode}
           {labels && <div className="su-entity-row__labels">{labels}</div>}
         </div>
         {hint && <span style={HINT}>{hint}</span>}

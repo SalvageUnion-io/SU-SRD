@@ -15,7 +15,7 @@ Status: agreed. Code: `packages/component-lib/src/entity/`.
 
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
 2. **Token** — `[kind] name [one fact]`, one size; always opens its entity; Peeks on hover or long-press.
-3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier and name, on the paper cut-out over a body as a Tile's, the kind stamp right of it, cost pennant, mode slot), paper body, no rule above it (facts, traits, lead while browsing).
+3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier, then name on the paper cut-out over a body as a Tile's, the kind stamp right of it, cost pennant, mode slot), paper body, no rule above it (facts, traits, lead while browsing).
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
    **Tile** — the SRD Catalog's Row: 3:4 art, name notched into the band, compact facts, lead; link only.
 4. **Card** — the whole entity in place: head (the title, its labels — kind stamp, pills, User-made — right of it, in flow), facts, prose, actions as bands, children as Rows, table as a roll bar, cite; comfortable (≥ 30rem) or compact.

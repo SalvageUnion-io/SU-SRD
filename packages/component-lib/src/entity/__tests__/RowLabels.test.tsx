@@ -75,4 +75,16 @@ describe('Row labels', () => {
       'Jury Rig'
     )
   })
+
+  test('over a body, the tier numeral stays on the band, left of the cut-out', () => {
+    const charge = need(SalvageUnionReference.Abilities.getByName('Charge'), 'charge')
+    render(<Entity form="row" entity={charge} />)
+    const head = headOf('Charge')
+    expect(head.dataset.notch).toBe('true')
+    const line = head.querySelector('.su-entity-row__line')
+    expect(line?.firstElementChild?.className).toBe('su-entity-row__tier')
+    expect(line?.firstElementChild?.textContent).toBe('1')
+    // The cut-out carries the name alone.
+    expect(nameBox('Charge').textContent).toBe('Charge')
+  })
 })

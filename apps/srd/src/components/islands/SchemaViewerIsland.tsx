@@ -341,7 +341,7 @@ function SchemaViewer({
                     ))}
                   </ul>
                 ) : (
-                  <ul className="srd-listing__cards" data-entity-grid="">
+                  <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="">
                     {group.items.map((item: SURefEntity) => (
                       <li key={item.id}>
                         <EntityListingRow

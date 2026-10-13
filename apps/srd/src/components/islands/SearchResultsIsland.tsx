@@ -161,7 +161,7 @@ function SearchResults({
     return (
       <>
         {rail}
-        <ul className="srd-listing__cards" data-entity-grid="">
+        <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="">
           {Array.from({ length: 4 }, (_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static 4-item skeleton placeholder list, never reordered — index is stable
             <li key={i}>
@@ -204,7 +204,7 @@ function SearchResults({
 
       {/* SEARCH (ruleset §1.5, entity display language E11): every result is
           a listing Row in link mode, with the lead, as a schema listing's. */}
-      <ul className="srd-listing__cards" data-entity-grid="" data-mixed="">
+      <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="" data-mixed="">
         {visible.map((result) => {
           const model = models.get(result.entityId)
           return (
