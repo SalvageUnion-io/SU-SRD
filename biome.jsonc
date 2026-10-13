@@ -156,7 +156,7 @@
       // Biome reads no `.gitignore` without a `vcs` block, so gitignored-ness
       // alone excludes nothing — this list is the only mechanism.
       "!**/.astro",
-      // Game-data JSON is crawler-sourced; CLAUDE.md's "Data Conventions"
+      // Game-data JSON is crawler-sourced; AGENTS.md's "Data Conventions"
       // section forbids automated formatters reformatting these arrays
       // (`json.dump`-style tools reflow crawler-authored line breaks). Biome's
       // JSON formatter collapses some multi-line arrays that Prettier left
@@ -263,7 +263,7 @@
           "level": "error",
           "options": { "style": "separatedType" }
         },
-        // "Named exports everywhere except route components" (root CLAUDE.md's
+        // "Named exports everywhere except route components" (root AGENTS.md's
         // code conventions) is enforced here, not by prose.
         //
         // The two exemptions are real framework contracts, not preferences:

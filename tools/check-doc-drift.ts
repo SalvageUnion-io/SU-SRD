@@ -32,7 +32,9 @@
  *            Area is inserted), and every `ARCHITECTURE.md#fragment` names an
  *            anchor there other than the whole-section `#areas`.
  *   size     root and per-directory CLAUDE.md files stay under 8,000
- *            characters and `.claude/rules/*.md` under 4,000.
+ *            characters and `.claude/rules/*.md` under 4,000. A CLAUDE.md
+ *            counts the files it imports by an `@path` line (the root's
+ *            `@AGENTS.md`), since they load with it.
  *            They load into every agent session in scope, so growth costs
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
  *            budget: terse is the point.
@@ -89,6 +91,7 @@ const LIVE_INSTRUCTION_DOC_DIRS = ['.claude/rules', '.claude/skills', 'docs/arch
 
 function liveInstructionDocs(root: string): string[] {
   return [
+    'AGENTS.md',
     'CLAUDE.md',
     'README.md',
     'docs/ARCHITECTURE.md',
@@ -992,7 +995,15 @@ const RULE_BUDGET = 4_000
  */
 const OVER_BUDGET: Record<string, number> = {
   'apps/itun/CLAUDE.md': 11_686,
-  'CLAUDE.md': 10_183,
+  /** With its `@AGENTS.md` import. */
+  'CLAUDE.md': 10_169,
+}
+
+/** Repo-relative paths a doc imports by a line of its own: `@path`, relative to the doc. */
+export function importsOf(doc: string, source: string): string[] {
+  return [...source.matchAll(/^@(\S+)\s*$/gm)].map((match) =>
+    join(dirname(doc), match[1] as string)
+  )
 }
 
 /**
@@ -1035,10 +1046,16 @@ export function checkDocSizes(
   for (const [doc, base] of budgeted) {
     const budget = overBudget[doc] ?? base
     const text = read(root, doc)
-    const size = [...text].length
+    const imported = importsOf(doc, text)
+    let size = [...text].length
+    for (const path of imported) {
+      if (existsSync(join(root, path))) size += [...read(root, path)].length
+      else failures.push(`${doc} imports @${path}, which does not exist.`)
+    }
     if (size > budget) {
+      const what = imported.length > 0 ? `${doc} with ${imported.join(', ')}` : doc
       failures.push(
-        `${doc} is ${size} characters, over its ${budget}-character budget. Cut it: no rosters, ` +
+        `${what} is ${size} characters, over its ${budget}-character budget. Cut it: no rosters, ` +
           'no history, no restating what a check or --list already says.'
       )
     }

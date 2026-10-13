@@ -104,6 +104,7 @@ jobs:
             # nothing compiles or tests these files (audit CI-11).
             docs:
               - 'docs/**'
+              - 'AGENTS.md'
               - 'CLAUDE.md'
               - 'README.md'
               - 'SECURITY.md'

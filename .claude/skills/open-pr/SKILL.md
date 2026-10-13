@@ -55,5 +55,5 @@ and reviews wake it, unless whoever asked for the PR says not to.
 ## Dependent PRs
 
 A PR that builds on another unmerged PR lands only as a `gh stack`; the
-commands and the rules are the [Merging](../../../CLAUDE.md#merging) section of
-the root `CLAUDE.md`. Do not open it as a plain PR against the other branch.
+commands and the rules are the [Merging](../../../AGENTS.md#merging) section of
+the root `AGENTS.md`. Do not open it as a plain PR against the other branch.

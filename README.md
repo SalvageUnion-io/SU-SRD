@@ -43,7 +43,7 @@ bun run dev:itun   # ITUN on a local Convex backend
 bun run check      # every gate, ending in a pass/fail table
 ```
 
-[CLAUDE.md](CLAUDE.md) is the command reference; each workspace's `CLAUDE.md`
+[AGENTS.md](AGENTS.md) is the command reference; each workspace's `CLAUDE.md`
 adds what is particular to it. [docs/README.md](docs/README.md) maps a task to
 its doc, and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) records what is true
 and why.

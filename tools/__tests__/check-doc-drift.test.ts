@@ -707,6 +707,20 @@ describe('checkDocSizes', () => {
     )
   })
 
+  it('counts the files a CLAUDE.md imports by an @path line against its budget', () => {
+    const root = fixture({
+      'CLAUDE.md': '# CLAUDE.md\n\n@AGENTS.md\n',
+      'AGENTS.md': 'x'.repeat(8_000),
+      'apps/itun/CLAUDE.md': '@../../GONE.md\n',
+    })
+    const failures = checkDocSizes(root, {}, {}).failures.join('\n')
+    expect(failures).toContain('CLAUDE.md with AGENTS.md is 8024 characters')
+    expect(failures).toContain('apps/itun/CLAUDE.md imports @GONE.md, which does not exist.')
+    expect(checkDocSizes(root, { 'CLAUDE.md': 8_024 }, {}).failures).toEqual([
+      'apps/itun/CLAUDE.md imports @GONE.md, which does not exist.',
+    ])
+  })
+
   it('holds a collapsed doc to its own budget, and fails an entry whose file is gone', () => {
     const root = fixture({ 'docs/ARCHITECTURE.md': 'x'.repeat(101) })
     expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 101 }).failures).toEqual([])
