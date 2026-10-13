@@ -196,32 +196,6 @@ describe('Search API', () => {
     })
   })
 
-  describe('SalvageUnionReference.search()', () => {
-    test('should work via static method', () => {
-      const results = SalvageUnionReference.search({ query: 'laser' })
-
-      expect(results.length).toBeGreaterThan(0)
-    })
-
-    test('should filter by schemas', () => {
-      const results = SalvageUnionReference.search({
-        query: 'laser',
-        schemas: ['systems'],
-      })
-
-      expect(results.length).toBeGreaterThan(0)
-      expect(results.every((r) => r.schemaName === 'systems')).toBe(true)
-    })
-  })
-
-  describe('SalvageUnionReference.searchIn()', () => {
-    test('should work via static method', () => {
-      const systems = SalvageUnionReference.searchIn('systems', 'laser')
-
-      expect(systems.length).toBeGreaterThan(0)
-    })
-  })
-
   describe('Search index lazy singleton', () => {
     test('should build index on first search and reuse it', () => {
       // First search triggers index build

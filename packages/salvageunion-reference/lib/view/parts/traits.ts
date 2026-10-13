@@ -1,8 +1,7 @@
 /**
  * The FACETS an entity states after its stats (E17): the action type, the
  * action's range and damage, a crawler tech level's population, a hybrid
- * class's requirement, its traits and its datavalues. Ported from component-lib's
- * `cardCells.ts`, which now draws its sub-header from these.
+ * class's requirement, its traits and its datavalues.
  *
  * `facetCells` keeps them as ONE ordered list tagged by kind, because today's
  * card still prints them as one line; the model splits the list into

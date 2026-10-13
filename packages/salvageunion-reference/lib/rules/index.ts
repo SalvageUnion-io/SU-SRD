@@ -12,11 +12,6 @@
  * or, where dynamic `import()` is unavailable (Convex), installed from the
  * imported files with `SalvageUnionReference.install({ chassis, … })`.
  *
- * Migrated from apps/itun/src/lib/rules/ — see ADR-006. Tier 1/2
- * modules (fully portable pure math) live here; Tier 3 modules (deep coupling
- * to full persisted records + app-storage conventions like CargoLot /
- * crypto.randomUUID()) remain app-local in ITUN for now.
- *
  * Every name is re-exported explicitly, and only names with a consumer outside
  * the package are listed; add a name when something imports it.
  */
@@ -61,7 +56,7 @@ export {
   PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
 } from './creation'
-export type { ChassisStats, StatBreakdown } from './derivedStats'
+export type { StatBreakdown } from './derivedStats'
 export {
   crawlerMaxSP,
   crawlerMaxSPParts,
@@ -91,7 +86,6 @@ export {
   canActivateAction,
   canPush,
   clampHeat,
-  PUSH_HEAT,
   performHeatCheck,
   performPush,
 } from './heatCheck'

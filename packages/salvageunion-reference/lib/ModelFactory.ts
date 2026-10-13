@@ -9,13 +9,11 @@
  *
  * ## The trusted load path
  *
- * The data files are committed, and CI validates every one of them against
- * its Zod schema (the `schemas` data check) and proves that a Zod parse returns each
- * file UNCHANGED (`lib/__tests__/dataCanonical.test.ts`: no defaults left to fill, no
- * unknown keys to strip). Re-running `z.array(schema).parse` on every load was
- * therefore pure repetition — and it was most of the cost: ~87% of a
- * `preload('all')`, in every browser tab and every Worker isolate, plus the
- * entity schemas in both client bundles.
+ * The data files are committed, and CI parses every one of them with its Zod
+ * schema and proves the parse returns each file UNCHANGED
+ * (`lib/__tests__/dataCanonical.test.ts`: no defaults left to fill, no unknown
+ * keys to strip). Re-running `z.array(schema).parse` on every load would be
+ * pure repetition.
  *
  * So every load is trusted: this module never imports Zod or the schema map,
  * which keeps both out of client bundles (`lib/__tests__/loadPathBundle.test.ts`).
@@ -253,7 +251,6 @@ export type EnhancedSchemaMetadata = {
   dataFile: string
   schemaFile: string
   itemCount: number
-  requiredFields: string[]
   displayName: string
   displayNamePlural: string
   meta?: boolean
@@ -263,9 +260,7 @@ export type EnhancedSchemaMetadata = {
  * Get schema catalog with enhanced metadata
  * Exposed for client use
  *
- * No `version` — see the note on `SchemaIndex` in tools/generateDocs.ts for why
- * embedding the package version in this generated catalog broke every release
- * PR, and why re-adding it would break them again.
+ * No `version` field: see the note on `SchemaIndex` in tools/generateDocs.ts.
  */
 export function getSchemaCatalog(): {
   $schema: string

@@ -28,17 +28,6 @@
  *
  * Without it a Worker's errors reach only `console.error`, which lands in
  * Workers Logs — retained for days and alerted on by nothing.
- *
- * ## Tested
- *
- * `__tests__/cloudflare.test.ts` drives the real SDK with `fetch` (its workerd
- * transport) replaced, so it asserts what actually leaves the Worker: with a
- * DSN, escaped and handled errors are sent with the release, environment and
- * server name, and a request body never is; with no DSN, nothing is sent at all.
- *
- * `reportError` writes to `console.error` as well as Sentry: Workers Logs is
- * where you look during a `wrangler tail`, and losing that would trade one blind
- * spot for another. It does both so no caller has to.
  */
 import * as Sentry from '@sentry/cloudflare'
 
@@ -106,8 +95,8 @@ export function withObservability<E extends ObservabilityEnv>(
       // No PII by default (cookies, IPs, user identity).
       sendDefaultPii: false,
       // Do not send request bodies. The Discord interaction body is a signed
-      // payload including user content (and the retired snapshot publish body
-      // was a player's sheet); neither belongs in an error report.
+      // payload including user content, which does not belong in an error
+      // report.
       //
       // `sendDefaultPii: false` does NOT achieve this. The SDK's default
       // HttpServer integration captures any textual request body (up to

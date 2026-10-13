@@ -1,5 +1,5 @@
 /**
- * An entity's ROLL TABLE. Ported from component-lib's `resolveCardTable.ts`.
+ * An entity's ROLL TABLE.
  */
 
 import { SalvageUnionReference } from '../../index'

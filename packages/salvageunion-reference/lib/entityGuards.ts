@@ -1,10 +1,9 @@
 /**
  * Type guards over reference data.
  *
- * Every guard here has at least one non-test consumer. There is no shape guard
- * for a System versus a Module: they share one schema, and the only field that
- * distinguishes them is the `schemaName` stamped at load time, so the
- * discriminant is `entity.schemaName === 'systems'`.
+ * There is no shape guard for a System versus a Module: they share one schema,
+ * and the only field that distinguishes them is the `schemaName` stamped at
+ * load time, so the discriminant is `entity.schemaName === 'systems'`.
  *
  * The package barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
@@ -12,28 +11,9 @@
 import type {
   SURefAbility,
   SURefClass,
-  SURefEntity,
-  SURefKeyword,
   SURefMetaEntity,
   SURefObjectAdvancedClass,
 } from './schemas/index'
-
-// ============================================================================
-// TYPE GUARDS - Data shape
-// ============================================================================
-
-/**
- * Type guard to distinguish SURefEntity (structured data with id/name/source/page)
- * from SURefMetaAction or other object types (which lack these fields)
- * @param data - Entity, action, or other object to check
- * @returns True if the data has id, name, source, and page fields
- */
-
-export function isEntityData<T extends object>(
-  data: T
-): data is T & SURefEntity & { id: string; name: string; source: string; page: number } {
-  return 'id' in data && 'name' in data && 'source' in data && 'page' in data
-}
 
 // ============================================================================
 // TYPE GUARDS - Schema-specific
@@ -47,16 +27,6 @@ export function isEntityData<T extends object>(
 
 export function isAbility(entity: SURefMetaEntity | null | undefined): entity is SURefAbility {
   return entity !== null && typeof entity === 'object' && 'tree' in entity && 'level' in entity
-}
-
-/**
- * Type guard to check if an entity is a Keyword
- * @param entity - The entity to check
- * @returns True if the entity is a Keyword
- */
-
-export function isKeyword(entity: SURefMetaEntity): entity is SURefKeyword {
-  return 'id' in entity && 'name' in entity && 'source' in entity && 'page' in entity
 }
 
 /**

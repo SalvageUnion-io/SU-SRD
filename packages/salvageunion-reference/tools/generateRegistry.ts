@@ -44,9 +44,8 @@
  * of the class, which lib/__tests__/index.test.ts depends on via
  * `Object.getOwnPropertyNames(SalvageUnionReference)`.
  *
- * Run via `bun run build:package` (before generate:json-schemas, since
- * generateJsonSchemas.ts imports zodSchemaMap from the generated file this
- * script produces).
+ * Run via `bun run build:package` (before tools/generateJsonSchemas.ts, which
+ * imports zodSchemaMap from the generated file this script produces).
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -218,8 +217,8 @@ ${zodImports}
 /**
  * Zod schema map — the entity schemas keyed by schema id.
  *
- * The \`schemas\` data check (tools/validate.ts) and \`generate:json-schemas\`
- * import this directly, so data is validated against the exact schemas the runtime would
+ * The \`dataCanonical\` test (lib/__tests__/dataCanonical.test.ts) and
+ * tools/generateJsonSchemas.ts import this directly, so data is validated against the exact schemas the runtime would
  * use rather than a parallel literal that could drift. No runtime module
  * imports it — \`preload()\` trusts the committed data — or every client bundle
  * would carry the schemas again (\`lib/__tests__/loadPathBundle.test.ts\`).

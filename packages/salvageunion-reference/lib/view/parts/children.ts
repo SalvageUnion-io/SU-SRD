@@ -1,7 +1,6 @@
 /**
  * An entity's CHILDREN — what it nests (grants, drones, a commander, a
- * pattern's loadout) — and its ACTIONS. Ported from component-lib's
- * `resolveNestedEntities.ts`, `resolveFoldedAction.ts` and `nestedSections.ts`.
+ * pattern's loadout) — and its ACTIONS.
  */
 
 import { extractVisibleActions } from '../../actionResolution'

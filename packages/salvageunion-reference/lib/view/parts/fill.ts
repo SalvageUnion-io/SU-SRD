@@ -1,8 +1,7 @@
 /**
  * An entity's TONE, as the theme token key the UI paints (`--color-<key>`),
- * and which FILL its header takes. Ported from component-lib's
- * `entityCardTone.ts` / `referenceEntityHelpers.ts`; the colours themselves
- * stay in `theme.css`, since this package knows no CSS.
+ * and which FILL its header takes. The colours themselves stay in
+ * `theme.css`, since this package knows no CSS.
  */
 
 import { getBlackMarket, getTechLevel, getTechLevelNumber } from '../../entityFields'

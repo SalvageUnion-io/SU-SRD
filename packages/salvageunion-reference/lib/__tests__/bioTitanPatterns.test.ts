@@ -10,6 +10,7 @@ import { extractPatternActions } from '../actionResolution'
 import { resolveFormerSlug } from '../formerSlugs'
 import { SalvageUnionReference } from '../index'
 import { getPatterns, isBioTitanPattern } from '../patterns'
+import { search } from '../search'
 
 function typhon() {
   const found = SalvageUnionReference.BioTitans.getByName('Typhon')
@@ -54,7 +55,7 @@ describe('Bio-Titan patterns', () => {
 
 describe('Bio-Titan patterns in search', () => {
   it('finds the host by its pattern name', () => {
-    const hits = SalvageUnionReference.search({ query: 'Hill Worm', schemas: ['bio-titans'] })
+    const hits = search({ query: 'Hill Worm', schemas: ['bio-titans'] })
     expect(hits.map((h) => h.entity.name)).toContain('Typhon')
   })
 })

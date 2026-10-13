@@ -38,14 +38,10 @@
   ],
   "scripts": {
     "build": "bun tools/ensureGenerated.ts --force",
-    "docs": "bun tools/generateDocs.ts",
-    "generate:registry": "bun tools/generateRegistry.ts",
-    "generate:json-schemas": "bun tools/generateJsonSchemas.ts",
     "validate": "bun tools/validate.ts",
     "edit-data": "bun tools/edit-data.ts",
     "typecheck": "bun tools/ensureGenerated.ts && tsc -b",
-    "test": "bun test --parallel=4 --no-isolate",
-    "clean": "rm -rf dist *.tsbuildinfo"
+    "test": "bun test --parallel=4 --no-isolate"
   },
   "license": "SEE LICENSE IN LICENCE",
   "dependencies": {

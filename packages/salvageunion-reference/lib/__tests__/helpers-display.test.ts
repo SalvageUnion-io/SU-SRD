@@ -9,7 +9,6 @@ import {
   getUniqueSources,
   getUniqueTechLevels,
   getUniqueTrees,
-  normalizeSchemaName,
   resolveActivationCurrency,
   resolveGrantedEntities,
 } from '../helpers'
@@ -37,27 +36,7 @@ describe('schema names', () => {
     expect(getDisplayName('not-a-schema' as never)).toBe('not-a-schema')
   })
 
-  test('every class alias normalises onto the one unified schema', () => {
-    // Six spellings reach this from data, routes and older links; all six are
-    // the same schema, and a miss yields no model at all.
-    for (const alias of [
-      'classes-core',
-      'classes.core',
-      'classes-advanced',
-      'classes.advanced',
-      'classes-hybrid',
-      'classes.hybrid',
-    ]) {
-      expect(normalizeSchemaName(alias)).toBe('classes')
-    }
-  })
-
-  test('a name that is already canonical is left alone', () => {
-    expect(normalizeSchemaName('chassis')).toBe('chassis')
-  })
-
-  test('getModel resolves through the alias', () => {
-    expect(getModel('classes-core')).toBe(getModel('classes'))
+  test('getModel resolves a schema id to its model', () => {
     expect(getModel('chassis')?.all().length).toBeGreaterThan(0)
   })
 

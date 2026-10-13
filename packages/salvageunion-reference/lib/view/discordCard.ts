@@ -108,7 +108,7 @@ export type DiscordCardParts = {
 }
 
 /** Escape the characters that would end a markdown link label early. */
-export function escapeMarkdownLabel(text: string): string {
+function escapeMarkdownLabel(text: string): string {
   return text.replace(/[\\[\]()]/g, '\\$&')
 }
 
@@ -390,25 +390,12 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
 
 /** Which parts to draw, and the test a rendered card must pass. */
 export type DiscordCardOptions = {
-  prose?: boolean
-  actions?: boolean
-  table?: boolean
-  children?: boolean
   /** Mark this row of the table as the one rolled (`11-19`). */
   markedRow?: string
   /** A line printed under the marked row ("ROLLED 14 · Alex"). */
   markedNote?: string
   /** Fits the budget? Parts are shed from the end until it does. */
   fits?: (card: DiscordCard) => boolean
-}
-
-/** Rendered characters, as Discord counts them across every text display. */
-export function discordCardTextLength(card: DiscordCard): number {
-  return card.blocks.reduce((n, block) => {
-    if (block.kind === 'text') return n + block.content.length
-    if (block.kind === 'section') return n + block.text.reduce((m, t) => m + t.length, 0)
-    return n
-  }, 0)
 }
 
 /** The table's rows, the marked one quoted with its note. */
@@ -456,21 +443,19 @@ function build(
       : { kind: 'text', content: head }
   )
 
-  const body: string[] = []
-  if (options.prose !== false) body.push(...content.prose)
-  if (options.actions !== false) body.push(...content.actions.map((action) => action.text))
+  const body = [...content.prose, ...content.actions.map((action) => action.text)]
   if (body.length > 0) {
     blocks.push({ kind: 'separator' })
     blocks.push({ kind: 'text', content: body.join('\n\n') })
   }
 
-  if (options.table !== false && parts.table && content.rows.length > 0) {
+  if (parts.table && content.rows.length > 0) {
     const lines = tableLines(content.rows, options.markedRow, options.markedNote)
     const heading = parts.table.note ? `-# ROLL THE DIE: ${parts.table.note}` : '-# ROLL THE DIE:'
     blocks.push({ kind: 'text', content: [heading, ...lines].join('\n') })
   }
 
-  if (options.children !== false && content.children.length > 0) {
+  if (content.children.length > 0) {
     blocks.push({
       kind: 'text',
       content: content.children

@@ -1,7 +1,7 @@
 /**
  * An entity's ART: its artwork, or the censor mark that stands in for it.
- * The mark is chosen from the dataset alone, so it moved here from
- * component-lib's `missingArtMark.ts`; drawing it (the torn edge) stays there.
+ * The mark is chosen from the dataset alone; drawing it (the torn edge) is
+ * component-lib's `missingArtMark.ts`.
  */
 
 import { assetUrl, getAssetUrl } from '../../assets'

@@ -167,7 +167,7 @@ describe('findUnknownTraitTypes', () => {
     expect(issues[0]?.detail).toContain('"totally-unknown"')
   })
 
-  it('flags formerly-allowlisted types now that KNOWN_NON_TRAIT_TYPES is empty', () => {
+  it('flags a type missing from the keywords fixture, with no allowlist', () => {
     const filesByName = makeFixture({
       entities: [{ name: 'Creature', traits: [{ type: 'reliable' }] }],
     })

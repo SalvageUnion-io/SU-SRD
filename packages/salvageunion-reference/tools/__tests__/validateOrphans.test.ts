@@ -5,14 +5,9 @@ import { fileURLToPath } from 'node:url'
 import type { AllowlistEntry, OrphanResult } from '../validateOrphansLogic'
 import {
   collectReferencedActionNames,
-  collectReferencedModuleNames,
-  collectReferencedSystemNames,
-  findOrphanedActions,
-  findOrphanedModules,
-  findOrphanedSystems,
-  findStaleRootFiles,
+  collectReferencedLoadoutNames,
+  findOrphans,
   partitionOrphansByAllowlist,
-  ROOT_FILES,
   runOrphanCheck,
 } from '../validateOrphansLogic'
 
@@ -175,40 +170,54 @@ describe('collectReferencedActionNames', () => {
   })
 })
 
-// ─── collectReferencedSystemNames ───────────────────────────────────────────
+// ─── collectReferencedLoadoutNames('systems') ───────────────────────────────
 
-describe('collectReferencedSystemNames', () => {
+describe("collectReferencedLoadoutNames('systems')", () => {
+  const NO_NAMES = new Set<string>()
+
   it('collects system names from chassis patterns', () => {
-    const refs = collectReferencedSystemNames({ chassis: CHASSIS, vehicles: [], drones: [] })
+    const refs = collectReferencedLoadoutNames('systems', {
+      chassis: CHASSIS,
+      vehicles: [],
+      drones: [],
+      bioTitans: [],
+      knownNames: NO_NAMES,
+    })
     expect(refs.has('Laser Cannon')).toBe(true)
   })
 
   it('collects system names from vehicle systems arrays', () => {
     const vehicles = [{ id: 'v1', name: 'Jeep', systems: ['Ram Plate'] }]
-    const refs = collectReferencedSystemNames({ chassis: [], vehicles, drones: [] })
+    const refs = collectReferencedLoadoutNames('systems', {
+      chassis: [],
+      vehicles,
+      drones: [],
+      bioTitans: [],
+      knownNames: NO_NAMES,
+    })
     expect(refs.has('Ram Plate')).toBe(true)
   })
 
   it('collects system names from drone systems (string values)', () => {
     const drones = [{ id: 'd1', name: 'Watcher', systems: ['Sensor Array'] }]
-    const allSystemNames = new Set(['Sensor Array'])
-    const refs = collectReferencedSystemNames({
+    const refs = collectReferencedLoadoutNames('systems', {
       chassis: [],
       vehicles: [],
       drones,
-      allSystemNames,
+      bioTitans: [],
+      knownNames: new Set(['Sensor Array']),
     })
     expect(refs.has('Sensor Array')).toBe(true)
   })
 
   it('does not include module names that appear in drone systems', () => {
     const drones = [{ id: 'd1', name: 'Watcher', systems: ['Shield Module'] }]
-    const allSystemNames = new Set<string>() // Shield Module is not a system
-    const refs = collectReferencedSystemNames({
+    const refs = collectReferencedLoadoutNames('systems', {
       chassis: [],
       vehicles: [],
       drones,
-      allSystemNames,
+      bioTitans: [],
+      knownNames: NO_NAMES, // Shield Module is not a system
     })
     expect(refs.has('Shield Module')).toBe(false)
   })
@@ -221,10 +230,12 @@ describe('collectReferencedSystemNames', () => {
         patterns: [{ name: 'Base', systems: ['Laser Cannon'] }],
       },
     ]
-    const refs = collectReferencedSystemNames({
+    const refs = collectReferencedLoadoutNames('systems', {
       chassis: chassisWithStrings,
       vehicles: [],
       drones: [],
+      bioTitans: [],
+      knownNames: NO_NAMES,
     })
     expect(refs.has('Laser Cannon')).toBe(true)
   })
@@ -243,20 +254,29 @@ describe('collectReferencedSystemNames', () => {
         ],
       },
     ]
-    const refs = collectReferencedSystemNames({
+    const refs = collectReferencedLoadoutNames('systems', {
       chassis: chassisWithDrones,
       vehicles: [],
       drones: [],
+      bioTitans: [],
+      knownNames: NO_NAMES,
     })
     expect(refs.has('Scout Sensor')).toBe(true)
   })
 })
 
-// ─── collectReferencedModuleNames ───────────────────────────────────────────
+// ─── collectReferencedLoadoutNames('modules') ───────────────────────────────
 
-describe('collectReferencedModuleNames', () => {
+describe("collectReferencedLoadoutNames('modules')", () => {
+  const NO_NAMES = new Set<string>()
+
   it('collects module names from chassis patterns', () => {
-    const refs = collectReferencedModuleNames({ chassis: CHASSIS, drones: [] })
+    const refs = collectReferencedLoadoutNames('modules', {
+      chassis: CHASSIS,
+      drones: [],
+      bioTitans: [],
+      knownNames: NO_NAMES,
+    })
     expect(refs.has('Shield Module')).toBe(true)
   })
 
@@ -274,30 +294,39 @@ describe('collectReferencedModuleNames', () => {
         ],
       },
     ]
-    const refs = collectReferencedModuleNames({ chassis: chassisWithDrones, drones: [] })
+    const refs = collectReferencedLoadoutNames('modules', {
+      chassis: chassisWithDrones,
+      drones: [],
+      bioTitans: [],
+      knownNames: NO_NAMES,
+    })
     expect(refs.has('Stealth Module')).toBe(true)
   })
 
   it('collects module names from drone systems when they are modules', () => {
     const drones = [{ id: 'd1', name: 'Watcher', systems: ['Shield Module'] }]
-    const allModuleNames = new Set(['Shield Module'])
-    const refs = collectReferencedModuleNames({ chassis: [], drones, allModuleNames })
+    const refs = collectReferencedLoadoutNames('modules', {
+      chassis: [],
+      drones,
+      bioTitans: [],
+      knownNames: new Set(['Shield Module']),
+    })
     expect(refs.has('Shield Module')).toBe(true)
   })
 })
 
-// ─── findOrphanedActions ────────────────────────────────────────────────────
+// ─── findOrphans ────────────────────────────────────────────────────────────
 
-describe('findOrphanedActions', () => {
+describe('findOrphans: actions', () => {
   it('returns empty array when all actions are referenced', () => {
     const referencedNames = new Set(['Shoot', 'Ram', 'Pilot Jump', 'Ghost Protocol'])
-    const orphans = findOrphanedActions(ACTIONS, referencedNames)
+    const orphans = findOrphans('actions.json', ACTIONS, referencedNames)
     expect(orphans).toHaveLength(0)
   })
 
   it('flags actions that are not referenced anywhere', () => {
     const referencedNames = new Set(['Shoot', 'Ram'])
-    const orphans = findOrphanedActions(ACTIONS, referencedNames)
+    const orphans = findOrphans('actions.json', ACTIONS, referencedNames)
     expect(orphans).toHaveLength(2)
     const orphanNames = orphans.map((o) => o.name)
     expect(orphanNames).toContain('Pilot Jump')
@@ -306,7 +335,11 @@ describe('findOrphanedActions', () => {
 
   it('includes file and name in each OrphanResult', () => {
     const referencedNames = new Set<string>()
-    const orphans = findOrphanedActions([{ id: 'a1', name: 'Lonely Action' }], referencedNames)
+    const orphans = findOrphans(
+      'actions.json',
+      [{ id: 'a1', name: 'Lonely Action' }],
+      referencedNames
+    )
     const orphan = orphans[0]
     expect(orphan).toBeDefined()
     expect(orphan).toMatchObject({
@@ -316,18 +349,16 @@ describe('findOrphanedActions', () => {
   })
 })
 
-// ─── findOrphanedSystems ────────────────────────────────────────────────────
-
-describe('findOrphanedSystems', () => {
+describe('findOrphans: systems', () => {
   it('returns empty when all systems are referenced', () => {
     const referencedNames = new Set(['Laser Cannon', 'Ram Plate', 'Orphan System'])
-    const orphans = findOrphanedSystems(SYSTEMS, referencedNames)
+    const orphans = findOrphans('systems.json', SYSTEMS, referencedNames)
     expect(orphans).toHaveLength(0)
   })
 
   it('flags systems not referenced in any chassis/vehicle/drone', () => {
     const referencedNames = new Set(['Laser Cannon', 'Ram Plate'])
-    const orphans = findOrphanedSystems(SYSTEMS, referencedNames)
+    const orphans = findOrphans('systems.json', SYSTEMS, referencedNames)
     expect(orphans).toHaveLength(1)
     const orphan = orphans[0]
     expect(orphan).toBeDefined()
@@ -336,50 +367,21 @@ describe('findOrphanedSystems', () => {
   })
 })
 
-// ─── findOrphanedModules ────────────────────────────────────────────────────
-
-describe('findOrphanedModules', () => {
+describe('findOrphans: modules', () => {
   it('returns empty when all modules are referenced', () => {
     const referencedNames = new Set(['Shield Module', 'Orphan Module'])
-    const orphans = findOrphanedModules(MODULES, referencedNames)
+    const orphans = findOrphans('modules.json', MODULES, referencedNames)
     expect(orphans).toHaveLength(0)
   })
 
   it('flags modules not referenced in any chassis/drone', () => {
     const referencedNames = new Set(['Shield Module'])
-    const orphans = findOrphanedModules(MODULES, referencedNames)
+    const orphans = findOrphans('modules.json', MODULES, referencedNames)
     expect(orphans).toHaveLength(1)
     const orphan = orphans[0]
     expect(orphan).toBeDefined()
     expect(defined(orphan).name).toBe('Orphan Module')
     expect(defined(orphan).file).toBe('modules.json')
-  })
-})
-
-// ─── findStaleRootFiles (allowlist drift detection) ─────────────────────────
-
-describe('findStaleRootFiles', () => {
-  it('returns empty when every allowlisted root file still exists', () => {
-    const rootFiles = ['chassis.json', 'classes.json', 'roll-tables.json']
-    const existing = new Set([...rootFiles, 'systems.json', 'modules.json'])
-    expect(findStaleRootFiles(rootFiles, existing)).toEqual([])
-  })
-
-  it('flags an allowlist entry whose data file no longer exists', () => {
-    const rootFiles = ['chassis.json', 'renamed-away.json', 'classes.json']
-    const existing = new Set(['chassis.json', 'classes.json'])
-    expect(findStaleRootFiles(rootFiles, existing)).toEqual(['renamed-away.json'])
-  })
-
-  it('reports multiple stale entries sorted and deduplicated', () => {
-    const rootFiles = ['zed.json', 'alpha.json', 'zed.json', 'kept.json']
-    const existing = new Set(['kept.json'])
-    expect(findStaleRootFiles(rootFiles, existing)).toEqual(['alpha.json', 'zed.json'])
-  })
-
-  it('accepts an array of existing files as well as a Set', () => {
-    const rootFiles = ['a.json', 'b.json']
-    expect(findStaleRootFiles(rootFiles, ['a.json'])).toEqual(['b.json'])
   })
 })
 
@@ -468,15 +470,9 @@ describe('runOrphanCheck (real dataset invariant)', () => {
     return filesByName
   }
 
-  it('finds no unexpected orphans, no stale allowlist entries, and no stale root files', () => {
+  it('finds no unexpected orphans and no stale allowlist entries', () => {
     const result = runOrphanCheck(loadRealData())
-    expect(result.staleRootFiles).toEqual([])
     expect(result.unexpected).toEqual([])
     expect(result.staleAllowlist).toEqual([])
-  })
-
-  it('every ROOT_FILES entry corresponds to a real data file', () => {
-    const existing = new Set(readdirSync(dataDir).filter((f) => f.endsWith('.json')))
-    expect(findStaleRootFiles(ROOT_FILES, existing)).toEqual([])
   })
 })

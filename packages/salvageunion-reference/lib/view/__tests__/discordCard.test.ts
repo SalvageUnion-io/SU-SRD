@@ -17,10 +17,18 @@ import {
   DISCORD_TONE_ACCENT,
   discordCard,
   discordCardParts,
-  discordCardTextLength,
   linkTraitReferences,
 } from '../discordCard'
 import { toEntityModel } from '../toEntityModel'
+
+/** Rendered characters, as Discord counts them across every text display. */
+function discordCardTextLength(card: DiscordCard): number {
+  return card.blocks.reduce((n, block) => {
+    if (block.kind === 'text') return n + block.content.length
+    if (block.kind === 'section') return n + block.text.reduce((m, t) => m + t.length, 0)
+    return n
+  }, 0)
+}
 
 const need = <T>(value: T | undefined | null, label: string): T => {
   if (value == null) throw new Error(`fixture missing: ${label}`)

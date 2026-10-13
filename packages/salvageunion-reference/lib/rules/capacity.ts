@@ -137,7 +137,6 @@ function resolveModuleSlotCost(ref: string, slotCostOverride?: number): number {
  * - `chassis-not-found` — the `chassisRef` doesn't resolve to a chassis entry
  * - `system-over-slots` — total system slot usage exceeds the chassis cap
  * - `module-over-slots` — total module slot usage exceeds the chassis cap
- * - `system-requires-chassis` — (reserved for future chassis-locked system checks)
  *
  * When `chassis-not-found` is present, `systemSlotsMax` and `moduleSlotsMax`
  * are both 0 and all slot violations are suppressed (can't enforce without a cap).

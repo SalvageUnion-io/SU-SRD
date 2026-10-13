@@ -1,7 +1,7 @@
 /**
  * An entity's STATS as facts: the head's cells and the page's stat column.
- * Ported from component-lib's `referenceEntityStatsConfig.ts`, which now
- * builds its `StatItem`s from these.
+ * component-lib's `referenceEntityStatsConfig.ts` builds its `StatItem`s from
+ * these.
  */
 
 import { bookQuote } from '../../bookQuote'

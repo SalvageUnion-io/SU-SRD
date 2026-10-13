@@ -57,8 +57,7 @@ export type CaptureHint = {
  * overlapping shapes whose members are mutually `never` — so the day the SDK
  * reshapes that union the breakage lands here rather than at the call site.
  * These three fields are the whole contract we use; naming them is both clearer
- * and stabler. (Keeping that reasoning is the point of moving this: it was
- * written once, in itun, and the srd copy simply lacked the capability.)
+ * and stabler.
  */
 export function buildCaptureHint(
   context?: Record<string, unknown>,

@@ -17,8 +17,6 @@ type SchemaInfo = {
   dataFile: string
   schemaFile: string
   itemCount: number
-  requiredFields: string[]
-  displayName: string
 }
 
 // Get all schema files
@@ -41,38 +39,6 @@ function getItemCount(dataFile: string): number {
   }
 }
 
-type JSONSchema = {
-  items?: {
-    required?: string[]
-    oneOf?: Array<{ required?: string[] }>
-  }
-  required?: string[]
-  [key: string]: unknown
-}
-
-// Extract required fields from schema
-function getRequiredFields(schema: JSONSchema): string[] {
-  // Try items.required first (for array schemas)
-  if (schema.items?.required) {
-    return schema.items.required
-  }
-
-  // Handle oneOf schemas (like classes)
-  if (schema.items?.oneOf && Array.isArray(schema.items.oneOf)) {
-    // Get required fields from first oneOf option
-    if (schema.items.oneOf[0]?.required) {
-      return schema.items.oneOf[0].required
-    }
-  }
-
-  // Try top-level required
-  if (schema.required) {
-    return schema.required
-  }
-
-  return []
-}
-
 function parseSchemaFile(schemaFile: string): SchemaInfo | null {
   try {
     const fullPath = path.join(PACKAGE_DIR, 'schemas', schemaFile)
@@ -81,34 +47,6 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
     const id = schemaFile.replace('.schema.json', '')
     const dataFile = `data/${id}.json`
 
-    // Generate display name from schema title or id
-    // This will be used to populate the schema index
-    let displayName = schema.title || id
-
-    // Convert to proper display format
-    if (displayName === 'abilities') displayName = 'Abilities'
-    else if (displayName === 'ability-tree-requirements') displayName = 'Ability Tree Requirements'
-    else if (displayName === 'chassis') displayName = 'Chassis'
-    else if (displayName === 'classes') displayName = 'Classes'
-    else if (displayName === 'crawler-bays') displayName = 'Crawler Bays'
-    else if (displayName === 'crawler-tech-levels') displayName = 'Crawler Tech Levels'
-    else if (displayName === 'crawlers') displayName = 'Crawlers'
-    else if (displayName === 'creatures') displayName = 'Creatures'
-    else if (displayName === 'distances') displayName = 'Distances'
-    else if (displayName === 'drones') displayName = 'Drones'
-    else if (displayName === 'equipment') displayName = 'Equipment'
-    else if (displayName === 'keywords') displayName = 'Keywords'
-    else if (displayName === 'meld') displayName = 'Meld'
-    else if (displayName === 'modules') displayName = 'Modules'
-    else if (displayName === 'npcs') displayName = 'NPCs'
-    else if (displayName === 'roll-tables') displayName = 'Roll Tables'
-    else if (displayName === 'squads') displayName = 'Squads'
-    else if (displayName === 'systems') displayName = 'Systems'
-    else if (displayName === 'bio-titans') displayName = 'Bio-Titans'
-    else if (displayName === 'traits') displayName = 'Traits'
-    else if (displayName === 'vehicles') displayName = 'Vehicles'
-    else if (displayName === 'catalog-categories') displayName = 'Catalog Categories'
-
     const info: SchemaInfo = {
       id,
       title: schema.title || id,
@@ -116,8 +54,6 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
       dataFile,
       schemaFile: `schemas/${schemaFile}`,
       itemCount: getItemCount(dataFile),
-      requiredFields: getRequiredFields(schema),
-      displayName,
     }
 
     // Add $comment if present
@@ -150,8 +86,6 @@ type SchemaIndex = {
     dataFile: string
     schemaFile: string
     itemCount: number
-    requiredFields: string[]
-    displayName: string
     meta?: boolean
   }>
 }
@@ -174,8 +108,6 @@ function generateSchemaIndex(schemas: SchemaInfo[]): void {
         dataFile: s.dataFile,
         schemaFile: s.schemaFile,
         itemCount: s.itemCount,
-        requiredFields: s.requiredFields,
-        displayName: s.displayName,
       }
       // Only include comment if it exists
       if (s.comment) {

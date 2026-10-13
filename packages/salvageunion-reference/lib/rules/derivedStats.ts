@@ -286,9 +286,8 @@ type MechDerivationInput = {
   maxEpOverride?: number
   maxHeatOverride?: number
   maxCargoOverride?: number
-  // Optional so the legacy single-arg call form (e.g. tests, cargo cap) still
-  // compiles; absent means "no installed bonuses to sum" and the derivation
-  // falls back to chassis stat + modifier.
+  // Absent means "no installed bonuses to sum": the derivation falls back to
+  // chassis stat + modifier.
   systems?: string[]
   modules?: string[]
 }
@@ -306,8 +305,8 @@ export type PilotingContext = {
   /** The mech's Tech Level, for `perTechLevel` amounts (Beefcake's 3+X). */
   techLevel?: number
   /**
-   * Which `duration: 'activated'` contributions are switched on right now
-   * (F1). Ephemeral play state, never persisted — an activated effect that is
+   * Which `duration: 'activated'` contributions are switched on right now.
+   * Ephemeral play state, never persisted — an activated effect that is
    * off contributes nothing, exactly as if it were absent.
    */
   active?: ActiveEffects

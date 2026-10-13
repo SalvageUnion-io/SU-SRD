@@ -4,7 +4,7 @@
  * Unified validation runner.
  *
  * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
- * 11 checks (it replaced separate per-check processes, each re-reading the corpus):
+ * 11 checks:
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - duplicate-keys   (validateDuplicateKeysLogic.ts — reads the raw text)
@@ -155,17 +155,8 @@ function actionBackrefsCheck(data: DataBag): Diagnostic[] {
 }
 
 function orphansCheck(data: DataBag): Diagnostic[] {
-  const { staleRootFiles, unexpected, staleAllowlist } = runOrphanCheck(data)
+  const { unexpected, staleAllowlist } = runOrphanCheck(data)
   const diagnostics: Diagnostic[] = []
-
-  for (const file of staleRootFiles) {
-    diagnostics.push({
-      check: 'orphans',
-      file,
-      path: '(ROOT_FILES)',
-      message: `Stale ROOT_FILES entry in validateOrphansLogic.ts — file no longer exists in data/`,
-    })
-  }
 
   for (const orphan of unexpected) {
     diagnostics.push({

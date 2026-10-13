@@ -15,9 +15,8 @@ import type { SURefEntity, SURefEnumSchemaName } from './schemas/index'
  * Returns the entity if found, null otherwise
  *
  * O(1) via `BaseModel`'s slug index (built once per model, on first use).
- * Semantics are unchanged from the previous linear scan: rows without a
- * truthy string `name` are not slug-addressable, and on a slug collision the
- * FIRST row in data order wins — exactly what `Array.prototype.find` returned.
+ * Rows without a truthy string `name` are not slug-addressable, and on a slug
+ * collision the FIRST row in data order wins.
  */
 export function findEntityBySlug(
   schemaName: SURefEnumSchemaName,

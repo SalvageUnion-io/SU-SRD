@@ -5,10 +5,6 @@
  * Models are loaded lazily via SalvageUnionReference.preload().
  */
 
-// Imported from the concrete module rather than the ./utilities.js barrel: the
-// action-resolution module already imports this one (it needs
-// SalvageUnionReference), so going through the barrel would pull every other
-// utilities module into that cycle for no reason.
 import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution'
 import type { ModelWithMetadata } from './BaseModel'
 import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated'
@@ -23,17 +19,13 @@ import {
   resetLoadStateForTesting,
   toPascalCase,
 } from './ModelFactory'
-import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaAction,
-  SURefMetaEntity,
-} from './schemas/index'
+import type { SURefMetaAction, SURefMetaEntity } from './schemas/index'
 import { invalidateSearchIndex } from './search'
 
 // ---------------------------------------------------------------------------
 // Public API — every name below is re-exported EXPLICITLY, and each one has a
-// consumer outside this package (srd, itun, component-lib or the Discord bot).
+// consumer outside this package (srd, itun, component-lib or the Discord bot;
+// their tests and stories count, since the exports map blocks deep imports).
 //
 // A wildcard makes the surface whatever the modules happen to export; a list
 // makes adding a name a reviewable decision. To expose
@@ -57,43 +49,21 @@ export {
   srdSchemaPath,
   srdSchemaUrl,
 } from './assets'
-export { type BookAnchor, bookQuote } from './bookQuote'
+export { bookQuote } from './bookQuote'
+export { parseContentBlockString } from './contentBlockHelpers'
 export {
-  parseContentBlockString,
-  replaceChassisPlaceholder,
-  resolveDataValueForTechLevel,
-} from './contentBlockHelpers'
-export {
-  getBioSalvageValue,
-  getBlackMarket,
-  getBooklet,
-  getCargoCapacity,
-  getEnergyPoints,
-  getHeatCapacity,
-  getHitPoints,
-  getModuleSlots,
   getName,
   getPageReference,
   getReferenceEntityName,
   getSalvageValue,
   getSlotsRequired,
   getSource,
-  getStructurePoints,
-  getSystemSlots,
   getTechLevel,
   getTechLevelNumber,
   getTree,
-  getUpgradeCost,
-  getUpkeepCost,
 } from './entityFields'
-export {
-  isAbility,
-  isBaseAdvancedClass,
-  isCoreClass,
-  isEntityData,
-  isKeyword,
-} from './entityGuards'
-export { type FormerSlug, formerSlugsIn, resolveFormerSlug } from './formerSlugs'
+export { isAbility, isBaseAdvancedClass, isCoreClass } from './entityGuards'
+export { formerSlugsIn, resolveFormerSlug } from './formerSlugs'
 // Every SURef* entity type and the SURefEntity / SURefMetaEntity unions,
 // generated from lib/schemas/registry.ts. Exported as a family rather than
 // name by name: they are 1:1 with SchemaToEntityMap (below), so each is already
@@ -103,9 +73,7 @@ export type * from './generated/entityTypes.generated'
 export {
   byTechLevelThenName,
   extractStaticEntitySummary,
-  getDisplayName,
   getEntitySchemas,
-  getHybridClasses,
   getModel,
   getReferenceEntityData,
   getUniqueSources,
@@ -138,10 +106,8 @@ export { SchemaNotLoadedError } from './SchemaNotLoadedError'
 export type {
   SURefEnumSchemaName,
   SURefObjectAnyPattern,
-  SURefObjectBioTitanPattern,
   SURefObjectBonusPerTechLevel,
   SURefObjectChoice,
-  SURefObjectContent,
   SURefObjectContentBlock,
   SURefObjectDamage,
   SURefObjectDataValue,
@@ -174,17 +140,14 @@ export {
   tokenizeSearchQuery,
 } from './searchRanking'
 export { findEntityBySlug, getEntitySlug } from './slug'
-export { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText'
+export { parseTraitReferences, plainTraitText } from './traitText'
 export { truncate } from './truncate'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
 export {
-  type DiscordBlock,
-  type DiscordCard,
   discordAccent,
   discordCard,
   discordCardParts,
   discordCiteLine,
-  escapeMarkdownLabel,
   linkTraitReferences,
   rangeLabel,
 } from './view/discordCard'
@@ -209,7 +172,6 @@ export {
 export {
   type AdditionalSource,
   type BookCite,
-  type CitePage,
   formatCite,
   formatProvenance,
   resolveAdditionalSources,
@@ -229,7 +191,7 @@ export {
   schemaDomain,
   tierNumeral,
 } from './view/parts/kind'
-export { entityLead, firstParagraphText } from './view/parts/lead'
+export { firstParagraphText } from './view/parts/lead'
 export { resolveTable } from './view/parts/table'
 export {
   actionFacets,
@@ -242,19 +204,13 @@ export {
 export { toEntityModel } from './view/toEntityModel'
 export type {
   EntityArt,
-  EntityChildGroup,
-  EntityCite,
   EntityDomain,
   EntityInstance,
   EntityModel,
   EntityRef,
-  EntityTable,
   Fact,
   TraitMention,
 } from './view/types'
-
-import type { SearchOptions, SearchResult } from './search'
-import { search as searchFn, searchIn as searchInFn } from './search'
 
 // ---------------------------------------------------------------------------
 // Lazy model registry — LazyModel is defined in ./LazyModel.js; the ~27
@@ -481,81 +437,6 @@ export class SalvageUnionReference {
   ): (SchemaToEntityMap[T] & { schemaName: T }) | undefined {
     const model = lazyModelMap[schemaName]
     return model.getByName(name) as (SchemaToEntityMap[T] & { schemaName: T }) | undefined
-  }
-
-  /**
-   * Check if an entity exists by schema name and ID
-   */
-  public static exists<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): boolean {
-    return SalvageUnionReference.get(schemaName, id) !== undefined
-  }
-
-  /**
-   * Get multiple entities by schema name and IDs
-   */
-  public static getMany(requests: Array<{ schemaName: keyof SchemaToEntityMap; id: string }>): (
-    | (SchemaToEntityMap[keyof SchemaToEntityMap] & {
-        schemaName: keyof SchemaToEntityMap
-      })
-    | undefined
-  )[] {
-    return requests.map((req) => SalvageUnionReference.get(req.schemaName, req.id))
-  }
-
-  /**
-   * Parse a reference string into schema name and ID
-   */
-  public static parseRef(ref: string): {
-    schemaName: SURefEnumSchemaName
-    id: string
-  } | null {
-    const parts = ref.split('::')
-    if (parts.length !== 2) return null
-
-    const schemaName = parts[0]
-    const id = parts[1]
-    if (!schemaName || !id) return null
-    if (!(schemaName in SchemaToModelMap)) return null
-
-    // Sole assertion: the registry key set is a superset of SURefEnumSchemaName
-    // ('actions' and 'catalog-categories' are registered but not in the zod
-    // enum), and this public signature predates that split. Narrowing the
-    // guard to the enum would reject 'actions::…' refs — a behavior change.
-    return { schemaName: schemaName as SURefEnumSchemaName, id }
-  }
-
-  /**
-   * Get an entity by reference string
-   */
-  public static getByRef(ref: string):
-    | (SchemaToEntityMap[keyof SchemaToEntityMap] & {
-        schemaName: keyof SchemaToEntityMap
-      })
-    | undefined {
-    const parsed = SalvageUnionReference.parseRef(ref)
-    if (!parsed) return undefined
-    if (parsed.schemaName in SchemaToModelMap) {
-      return SalvageUnionReference.get(parsed.schemaName, parsed.id)
-    }
-    return undefined
-  }
-
-  /**
-   * Search across all or specific schemas
-   */
-  public static search(options: SearchOptions): SearchResult[] {
-    return searchFn(options)
-  }
-
-  /**
-   * Search within a specific schema
-   */
-  public static searchIn<T extends SURefEntity>(
-    schemaName: SURefEnumSchemaName,
-    query: string,
-    options?: { limit?: number }
-  ): (T & { schemaName: SURefEnumSchemaName })[] {
-    return searchInFn(schemaName, query, options)
   }
 
   /**

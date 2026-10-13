@@ -110,7 +110,7 @@ const PARITY_EXEMPTIONS: Record<string, string> = {
   'Offensive Protocols': "effect-of-an-effect — raises a Weapons System's damage, not a stat",
 
   // Activated: a per-use choice, not a standing property. Belongs to Dashboard
-  // play state (ADR-038 §2) with the other duration-bound effects (F1).
+  // play state (ADR-038 §2) with the other duration-bound effects.
   Snipe: 'activated — a per-attack Range Band increase, chosen at use',
   'Weapon Guidance': 'activated — grants Guided to a chosen system when activated',
 }
@@ -120,8 +120,7 @@ const PARITY_EXEMPTIONS: Record<string, string> = {
  * not yet encodable.
  *
  * Both need the SAME missing capability, and it is not the one first assumed.
- * The plan called for "effects declarable directly on a system/ability" (C3),
- * but declaring them is not the blocker: `ChoiceEffectSchema` has no TARGET, and
+ * Declaring effects directly on a system/ability is not the blocker: `ChoiceEffectSchema` has no TARGET, and
  * neither of these effects lands on the record that declares it.
  *
  *   Bio-Wings         "Your Mech gains the Fly Trait" — targets the HOST MECH.

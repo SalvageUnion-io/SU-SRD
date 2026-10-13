@@ -8,9 +8,6 @@
  * consumer's Zod-inferred types (e.g. ITUN's `src/lib/schemas/`) satisfy
  * these structural shapes automatically (TypeScript's structural type system
  * ensures compatibility at call sites); this module never imports them back.
- *
- * (Migrated from ITUN's `src/lib/rules/types.ts` — see ADR-006. Originally
- * authored with exactly this file-disjoint intent, anticipating this move.)
  */
 
 /**
@@ -69,11 +66,6 @@ export type CapacityViolation =
       kind: 'module-over-slots'
       message: string
       details: { used: number; max: number }
-    }
-  | {
-      kind: 'system-requires-chassis'
-      message: string
-      details: { systemRef: string; requiredChassis: string }
     }
   | {
       kind: 'chassis-not-found'

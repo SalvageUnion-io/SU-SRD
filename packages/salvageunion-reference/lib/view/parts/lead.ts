@@ -1,6 +1,5 @@
 /**
- * An entity's LEAD: its own opening prose as plain text. Ported from
- * component-lib's `compactLead.ts` / `firstParagraphText.ts`.
+ * An entity's LEAD: its own opening prose as plain text.
  */
 
 import { extractVisibleActions } from '../../actionResolution'

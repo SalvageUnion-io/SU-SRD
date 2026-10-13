@@ -1,7 +1,6 @@
 /**
  * What KIND of thing an entity is: its domain, its type stamp, have vs do, an
- * ability's tier numeral and a class's kind. Ported from component-lib's
- * `entityCardTone.ts`, which now reads these.
+ * ability's tier numeral and a class's kind.
  */
 
 import { isAbility } from '../../entityGuards'

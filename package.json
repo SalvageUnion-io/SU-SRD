@@ -51,7 +51,6 @@
   },
   "scripts": {
     "postinstall": "su-ref-generate",
-    "generate": "su-ref-generate --force",
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
     "dev": "bun --filter srd dev",
     "dev:itun": "bun --filter itun dev",

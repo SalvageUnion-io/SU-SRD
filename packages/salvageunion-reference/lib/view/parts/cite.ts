@@ -1,8 +1,7 @@
 /**
  * An entity's CITATION: the book, booklet and page it is printed on, and its
- * reprints. Ported from component-lib's `provenance.ts`. A cite written in an
- * app (a wizard step's rule, a blocked control's brief) comes here too, as
- * `{ source, page }`, through `formatCite`.
+ * reprints. A cite written in an app (a wizard step's rule, a blocked
+ * control's brief) comes here too, as `{ source, page }`, through `formatCite`.
  */
 
 import { getBooklet, getPageReference, getSource } from '../../entityFields'
@@ -28,7 +27,7 @@ function bookName(source: string): string {
 }
 
 /** One page, or a span of pages `[first, last]`. */
-export type CitePage = number | readonly [number, number]
+type CitePage = number | readonly [number, number]
 
 /**
  * A cite written by hand: the book and page a rule is printed on, then the

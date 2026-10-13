@@ -29,14 +29,8 @@ describe('SalvageUnionReference static properties', () => {
         'name',
         'findIn',
         'findAllIn',
-        'search',
-        'searchIn',
         'get',
         'getByNameIn',
-        'exists',
-        'getMany',
-        'parseRef',
-        'getByRef',
         'getSlotsRequired',
         'getAllClasses',
         'findClassById',
@@ -325,87 +319,6 @@ describe('SalvageUnionReference.get', () => {
     const ability2 = SalvageUnionReference.get('abilities', firstAbility.id)
 
     expect(ability1).toBe(ability2) // Same reference
-  })
-})
-
-describe('SalvageUnionReference.exists', () => {
-  it('should return true for existing entity', () => {
-    const allAbilities = SalvageUnionReference.Abilities.all()
-    const firstAbility = defined(allAbilities[0])
-
-    const exists = SalvageUnionReference.exists('abilities', firstAbility.id)
-    expect(exists).toBe(true)
-  })
-
-  it('should return false for non-existent entity', () => {
-    const exists = SalvageUnionReference.exists('abilities', 'non-existent-id')
-    expect(exists).toBe(false)
-  })
-})
-
-describe('SalvageUnionReference.getMany', () => {
-  it('should get multiple entities', () => {
-    const allAbilities = SalvageUnionReference.Abilities.all()
-    const allSystems = SalvageUnionReference.Systems.all()
-
-    const entities = SalvageUnionReference.getMany([
-      { schemaName: 'abilities', id: defined(allAbilities[0]).id },
-      { schemaName: 'systems', id: defined(allSystems[0]).id },
-    ])
-
-    expect(entities.length).toBe(2)
-    expect(entities[0]).toBeDefined()
-    expect(entities[1]).toBeDefined()
-    expect(entities[0]?.id).toBe(defined(allAbilities[0]).id)
-    expect(entities[1]?.id).toBe(defined(allSystems[0]).id)
-  })
-
-  it('should return undefined for non-existent entities', () => {
-    const entities = SalvageUnionReference.getMany([
-      { schemaName: 'abilities', id: 'non-existent-1' },
-      { schemaName: 'systems', id: 'non-existent-2' },
-    ])
-
-    expect(entities.length).toBe(2)
-    expect(entities[0]).toBeUndefined()
-    expect(entities[1]).toBeUndefined()
-  })
-})
-
-describe('SalvageUnionReference.parseRef', () => {
-  it('should parse a valid reference string', () => {
-    const parsed = SalvageUnionReference.parseRef('abilities::test-id')
-    expect(parsed).toBeDefined()
-    expect(parsed?.schemaName).toBe('abilities')
-    expect(parsed?.id).toBe('test-id')
-  })
-
-  it('should return null for invalid reference string', () => {
-    const parsed = SalvageUnionReference.parseRef('invalid-ref')
-    expect(parsed).toBeNull()
-  })
-
-  it('should return null for invalid schema name', () => {
-    const parsed = SalvageUnionReference.parseRef('invalid-schema::test-id')
-    expect(parsed).toBeNull()
-  })
-})
-
-describe('SalvageUnionReference.getByRef', () => {
-  it('should get an entity by reference string', () => {
-    const allAbilities = SalvageUnionReference.Abilities.all()
-    const firstAbility = defined(allAbilities[0])
-
-    const ref = `abilities::${firstAbility.id}`
-    const entity = SalvageUnionReference.getByRef(ref)
-
-    expect(entity).toBeDefined()
-    expect(entity?.id).toBe(firstAbility.id)
-  })
-
-  it('should return undefined for invalid reference', () => {
-    const entity = SalvageUnionReference.getByRef('invalid-ref')
-    expect(entity).toBeUndefined()
   })
 })
 

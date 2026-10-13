@@ -2,35 +2,11 @@
  * Pure logic for orphan detection in Salvage Union data.
  * An "orphan" is an entity that exists in its data file but is never referenced
  * by any other entity.
- *
- * Root entities (chassis, classes, roll-tables, etc.) are intentionally
- * top-level and are never expected to be referenced.
  */
 
 export type OrphanResult = {
   file: string
   name: string
-}
-
-// ─── allowlist drift detection ──────────────────────────────────────────────
-
-/**
- * Detect stale entries in the root-entity allowlist.
- *
- * The orphan checker treats a hand-maintained list of "root" data files as
- * intentionally-unreferenced. That allowlist rots silently: if a file is
- * renamed or removed, its allowlist entry lingers and can mask a genuinely
- * orphaned successor. Given the allowlisted file names and the set of data
- * files that actually exist on disk, return the allowlist entries that no
- * longer correspond to a real file (sorted, deduplicated).
- */
-export function findStaleRootFiles(rootFiles: string[], existingFiles: Iterable<string>): string[] {
-  const existing = existingFiles instanceof Set ? existingFiles : new Set(existingFiles)
-  const stale = new Set<string>()
-  for (const file of rootFiles) {
-    if (!existing.has(file)) stale.add(file)
-  }
-  return [...stale].sort()
 }
 
 // ─── intentional-orphan allowlist ───────────────────────────────────────────
@@ -54,7 +30,7 @@ export type PartitionedOrphans = {
    * Allowlist entries that no longer correspond to a current orphan (the entity
    * got referenced, renamed, or removed). Stale entries rot silently and can
    * mask a genuinely-orphaned successor, so they are surfaced and should fail
-   * too — mirroring {@link findStaleRootFiles}.
+   * too.
    */
   staleAllowlist: AllowlistEntry[]
 }
@@ -98,7 +74,6 @@ export function partitionOrphansByAllowlist(
   return { unexpected, allowlisted, staleAllowlist }
 }
 
-type ActionEntry = Record<string, unknown>
 type EntityEntry = Record<string, unknown>
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -184,22 +159,34 @@ export function collectReferencedActionNames(input: CollectReferencedActionsInpu
   return referenced
 }
 
-// ─── collectReferencedSystemNames ───────────────────────────────────────────
+// ─── collectReferencedLoadoutNames ──────────────────────────────────────────
 
-type CollectReferencedSystemsInput = {
+type CollectReferencedLoadoutInput = {
   chassis: EntityEntry[]
-  vehicles: EntityEntry[]
   drones: EntityEntry[]
-  /** Mech-scale boss/monster entries that may be equipped with named systems */
-  bioTitans?: EntityEntry[]
-  /** Optional: the full set of known system names — used to disambiguate drone.systems entries */
-  allSystemNames?: Set<string>
+  /** Mech-scale boss/monster entries that may be equipped with named systems or modules */
+  bioTitans: EntityEntry[]
+  /**
+   * Every known name of this kind. A top-level drone lists its modules under
+   * `systems` too, so this set decides which kind each drone entry is.
+   */
+  knownNames: Set<string>
+  /** Vehicles carry systems only: pass them for `'systems'`, never `'modules'`. */
+  vehicles?: EntityEntry[]
+}
+
+function stringEntries(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
 }
 
 /**
- * Traverse chassis patterns, vehicles, drones, and bio-titans to collect all referenced system names.
+ * Traverse chassis patterns, vehicles, drones, and bio-titans to collect every
+ * referenced system (`key: 'systems'`) or module (`key: 'modules'`) name.
  */
-export function collectReferencedSystemNames(input: CollectReferencedSystemsInput): Set<string> {
+export function collectReferencedLoadoutNames(
+  key: 'systems' | 'modules',
+  input: CollectReferencedLoadoutInput
+): Set<string> {
   const referenced = new Set<string>()
 
   // Chassis patterns
@@ -210,12 +197,11 @@ export function collectReferencedSystemNames(input: CollectReferencedSystemsInpu
     for (const pattern of patterns) {
       const pat = pattern as Record<string, unknown>
 
-      // systems in pattern
-      const systems = pat.systems
-      if (Array.isArray(systems)) {
-        for (const system of systems) {
-          const name =
-            typeof system === 'string' ? system : (system as Record<string, unknown>).name
+      // A pattern entry is a name or an object with one.
+      const entries = pat[key]
+      if (Array.isArray(entries)) {
+        for (const entry of entries) {
+          const name = typeof entry === 'string' ? entry : (entry as Record<string, unknown>).name
           if (typeof name === 'string') referenced.add(name)
         }
       }
@@ -224,193 +210,48 @@ export function collectReferencedSystemNames(input: CollectReferencedSystemsInpu
       const drones = pat.drones
       if (Array.isArray(drones)) {
         for (const drone of drones as Record<string, unknown>[]) {
-          const droneSystems = drone.systems
-          if (Array.isArray(droneSystems)) {
-            for (const s of droneSystems) {
-              if (typeof s === 'string') referenced.add(s)
-            }
-          }
+          for (const name of stringEntries(drone[key])) referenced.add(name)
         }
       }
     }
   }
 
-  // Vehicle systems
-  for (const vehicle of input.vehicles) {
-    const systems = vehicle.systems
-    if (Array.isArray(systems)) {
-      for (const s of systems) {
-        if (typeof s === 'string') referenced.add(s)
-      }
-    }
+  for (const vehicle of input.vehicles ?? []) {
+    for (const name of stringEntries(vehicle.systems)) referenced.add(name)
   }
 
-  // Drone systems — only count entries that are actually system names
+  // Drone `systems` holds both kinds — only count the known names of this one.
   for (const drone of input.drones) {
-    const systems = drone.systems
-    if (Array.isArray(systems)) {
-      for (const s of systems) {
-        if (typeof s !== 'string') continue
-        // If allSystemNames provided, only include known systems
-        if (input.allSystemNames) {
-          if (input.allSystemNames.has(s)) referenced.add(s)
-        } else {
-          referenced.add(s)
-        }
-      }
+    for (const name of stringEntries(drone.systems)) {
+      if (input.knownNames.has(name)) referenced.add(name)
     }
   }
 
-  // Titan-equipped systems
-  if (input.bioTitans) {
-    for (const titan of input.bioTitans) {
-      const systems = titan.systems
-      if (Array.isArray(systems)) {
-        for (const s of systems) {
-          if (typeof s === 'string') referenced.add(s)
-        }
-      }
-    }
+  // Titan-equipped systems or modules
+  for (const titan of input.bioTitans) {
+    for (const name of stringEntries(titan[key])) referenced.add(name)
   }
 
   return referenced
 }
 
-// ─── collectReferencedModuleNames ───────────────────────────────────────────
-
-type CollectReferencedModulesInput = {
-  chassis: EntityEntry[]
-  drones: EntityEntry[]
-  /** Mech-scale boss/monster entries that may be equipped with named modules */
-  bioTitans?: EntityEntry[]
-  /** Optional: the full set of known module names — used to disambiguate drone.systems entries */
-  allModuleNames?: Set<string>
-}
+// ─── findOrphans ────────────────────────────────────────────────────────────
 
 /**
- * Traverse chassis patterns and drones to collect all referenced module names.
+ * Given every row of one data file and the set of referenced names, return the
+ * rows nothing references.
  */
-export function collectReferencedModuleNames(input: CollectReferencedModulesInput): Set<string> {
-  const referenced = new Set<string>()
-
-  // Chassis patterns
-  for (const chassisItem of input.chassis) {
-    const patterns = chassisItem.patterns
-    if (!Array.isArray(patterns)) continue
-
-    for (const pattern of patterns) {
-      const pat = pattern as Record<string, unknown>
-
-      // modules in pattern
-      const modules = pat.modules
-      if (Array.isArray(modules)) {
-        for (const module of modules) {
-          const name =
-            typeof module === 'string' ? module : (module as Record<string, unknown>).name
-          if (typeof name === 'string') referenced.add(name)
-        }
-      }
-
-      // drone configs in pattern
-      const drones = pat.drones
-      if (Array.isArray(drones)) {
-        for (const drone of drones as Record<string, unknown>[]) {
-          const droneModules = drone.modules
-          if (Array.isArray(droneModules)) {
-            for (const m of droneModules) {
-              if (typeof m === 'string') referenced.add(m)
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Drone systems field can contain module names — include when known to be modules
-  for (const drone of input.drones) {
-    const systems = drone.systems
-    if (Array.isArray(systems)) {
-      for (const s of systems) {
-        if (typeof s !== 'string') continue
-        if (input.allModuleNames?.has(s)) {
-          referenced.add(s)
-        }
-      }
-    }
-  }
-
-  // Titan-equipped modules
-  if (input.bioTitans) {
-    for (const titan of input.bioTitans) {
-      const modules = titan.modules
-      if (Array.isArray(modules)) {
-        for (const m of modules) {
-          if (typeof m === 'string') referenced.add(m)
-        }
-      }
-    }
-  }
-
-  return referenced
-}
-
-// ─── findOrphanedActions / Systems / Modules ────────────────────────────────
-
-/**
- * Given the full list of actions and the set of referenced action names,
- * return the orphaned entries.
- */
-export function findOrphanedActions(
-  actions: ActionEntry[],
+export function findOrphans(
+  file: string,
+  rows: EntityEntry[],
   referencedNames: Set<string>
 ): OrphanResult[] {
-  return actions
-    .filter((a) => typeof a.name === 'string' && !referencedNames.has(a.name as string))
-    .map((a) => ({ file: 'actions.json', name: a.name as string }))
+  return rows
+    .filter((row) => typeof row.name === 'string' && !referencedNames.has(row.name as string))
+    .map((row) => ({ file, name: row.name as string }))
 }
 
-/**
- * Given the full list of systems and the set of referenced system names,
- * return the orphaned entries.
- */
-export function findOrphanedSystems(
-  systems: EntityEntry[],
-  referencedNames: Set<string>
-): OrphanResult[] {
-  return systems
-    .filter((s) => typeof s.name === 'string' && !referencedNames.has(s.name as string))
-    .map((s) => ({ file: 'systems.json', name: s.name as string }))
-}
-
-/**
- * Given the full list of modules and the set of referenced module names,
- * return the orphaned entries.
- */
-export function findOrphanedModules(
-  modules: EntityEntry[],
-  referencedNames: Set<string>
-): OrphanResult[] {
-  return modules
-    .filter((m) => typeof m.name === 'string' && !referencedNames.has(m.name as string))
-    .map((m) => ({ file: 'modules.json', name: m.name as string }))
-}
-
-// ─── config: root files + intentional-orphan allowlist ─────────────────────
-// These are top-level game concepts that nothing else references by name.
-export const ROOT_FILES = [
-  'chassis.json',
-  'classes.json',
-  'ability-tree-requirements.json',
-  'roll-tables.json',
-  'guides.json',
-  'factions.json',
-  'sources.json',
-  'tech-levels.json',
-  'catalog-categories.json',
-  'crawlers.json',
-  'crawler-bays.json',
-]
-
+// ─── config: intentional-orphan allowlist ──────────────────────────────────
 // Individual actions/systems/modules that are UNreferenced by design. Each is a
 // real dangler under the checker's traversal rules, but is intentional per the
 // game data — so we subtract it and only FAIL on *unexpected* orphans. Keep this
@@ -477,7 +318,6 @@ const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
 ]
 
 export type OrphanCheckResult = {
-  staleRootFiles: string[]
   unexpected: OrphanResult[]
   allowlisted: OrphanResult[]
   staleAllowlist: AllowlistEntry[]
@@ -486,14 +326,12 @@ export type OrphanCheckResult = {
 /**
  * Orchestration entry point: given the full data bag (filename -> parsed
  * array), run the entire orphan-detection pipeline (referenced-name
- * collection, orphan detection, allowlist partitioning, stale-entry
+ * collection, orphan detection, allowlist partitioning, stale-allowlist
  * detection). `tools/validate.ts` and the tests both call this, so they
  * can never diverge.
  */
 export function runOrphanCheck(filesByName: Record<string, unknown[]>): OrphanCheckResult {
   const get = (file: string): EntityEntry[] => (filesByName[file] ?? []) as EntityEntry[]
-
-  const staleRootFiles = findStaleRootFiles(ROOT_FILES, new Set(Object.keys(filesByName)))
 
   const systems = get('systems.json')
   const modules = get('modules.json')
@@ -535,31 +373,31 @@ export function runOrphanCheck(filesByName: Record<string, unknown[]>): OrphanCh
     ],
   })
 
-  const referencedSystemNames = collectReferencedSystemNames({
+  const referencedSystemNames = collectReferencedLoadoutNames('systems', {
     chassis,
     vehicles,
     drones,
     bioTitans,
-    allSystemNames,
+    knownNames: allSystemNames,
   })
 
-  const referencedModuleNames = collectReferencedModuleNames({
+  const referencedModuleNames = collectReferencedLoadoutNames('modules', {
     chassis,
     drones,
     bioTitans,
-    allModuleNames,
+    knownNames: allModuleNames,
   })
 
-  const orphanedActions = findOrphanedActions(actions, referencedActionNames)
-  const orphanedSystems = findOrphanedSystems(systems, referencedSystemNames)
-  const orphanedModules = findOrphanedModules(modules, referencedModuleNames)
-
-  const allOrphans: OrphanResult[] = [...orphanedActions, ...orphanedSystems, ...orphanedModules]
+  const allOrphans: OrphanResult[] = [
+    ...findOrphans('actions.json', actions, referencedActionNames),
+    ...findOrphans('systems.json', systems, referencedSystemNames),
+    ...findOrphans('modules.json', modules, referencedModuleNames),
+  ]
 
   const { unexpected, allowlisted, staleAllowlist } = partitionOrphansByAllowlist(
     allOrphans,
     INTENTIONAL_ORPHANS
   )
 
-  return { staleRootFiles, unexpected, allowlisted, staleAllowlist }
+  return { unexpected, allowlisted, staleAllowlist }
 }

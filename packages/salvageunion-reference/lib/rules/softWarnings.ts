@@ -306,7 +306,8 @@ export function evaluateMechWarnings(
  * Dispatches to the appropriate entity-specific evaluator based on
  * `context.entityType`. For 'pilot', `before`/`after` must be `PilotSnapshot`.
  * For 'mech', they must be `MechSnapshot`. For 'crawler', only the
- * tech-level downgrade check applies (crawler-specific rules are M4).
+ * tech-level downgrade check applies (crawler-specific rules beyond it are not
+ * enforced yet).
  *
  * When `entityType` is 'crawler', pass any object satisfying `MechSnapshot`
  * (only the `techLevel` field is read; `systems` can be an empty array).
@@ -326,7 +327,7 @@ export function evaluateSoftWarnings(
     case 'mech':
       return evaluateMechWarnings(snapshot as EditSnapshot<MechSnapshot>, context)
     case 'crawler':
-      // Crawler-specific rules beyond tech-level downgrade are deferred to M4.
+      // Crawler-specific rules beyond the tech-level downgrade are not enforced yet.
       return checkTechLevelDowngrade(context)
     default: {
       // Exhaustiveness guard — TypeScript will catch this at compile time if

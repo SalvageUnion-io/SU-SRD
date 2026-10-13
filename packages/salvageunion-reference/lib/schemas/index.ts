@@ -24,7 +24,6 @@ import type {
   BioTitanPatternSchema,
   ChoiceSchema,
   ContentBlockSchema,
-  ContentSchema,
   DamageSchema,
   DataValueSchema,
   GrantSchema,
@@ -47,7 +46,6 @@ export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>
 export type SURefObjectTrait = z.infer<typeof TraitSchema>
 export type SURefObjectDataValue = z.infer<typeof DataValueSchema>
 export type SURefObjectContentBlock = z.infer<typeof ContentBlockSchema>
-export type SURefObjectContent = z.infer<typeof ContentSchema>
 export type SURefObjectTableContent = z.infer<typeof TableContentSchema>
 export type SURefObjectTable = z.infer<typeof TableSchema>
 export type SURefObjectPatternSystemModule = z.infer<typeof PatternSystemModuleSchema>
