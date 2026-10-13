@@ -61,9 +61,11 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
         size="compact"
         onClick={() => setConfirming(true)}
         disabled={isInstantiating}
-        aria-label={`Build this mech from ${pattern.name}`}
+        // "Build With This", as every build action reads (owner's call,
+        // 2026-10-13); the accessible name starts with it and says what it builds.
+        aria-label={`Build With This: a mech from ${pattern.name}`}
       >
-        {isInstantiating ? 'Building…' : 'Build this mech'}
+        {isInstantiating ? 'Building…' : 'Build With This'}
       </Button>
       <ModalShell
         open={confirming}

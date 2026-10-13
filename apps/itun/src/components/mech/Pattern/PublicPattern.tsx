@@ -477,8 +477,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                     style={ACTION_BUTTON}
                     onClick={() => void build()}
                     disabled={busy !== null}
+                    aria-label={`Build With This: a mech from ${pattern.name}`}
                   >
-                    {busy === 'build' ? 'Building…' : 'Build this mech'}
+                    {busy === 'build' ? 'Building…' : 'Build With This'}
                   </Button>
                   <Button
                     variant="ghost"

@@ -10,8 +10,8 @@ import { parseSlugParam, preselectedChassis, preselectedPattern } from '../../li
 export const Route = createFileRoute('/mechs/new')({
   head: () => ({ meta: [{ title: pageTitle('New Mech') }] }),
   // mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog
-  // chassis: a slug deep-linked from an SRD page's "Build with this" (`lib/wizard/preselect.ts`)
-  // pattern: that chassis's pattern slug, from an SRD pattern page's "Build this mech"
+  // chassis: a slug deep-linked from an SRD page's "Build With This" (`lib/wizard/preselect.ts`)
+  // pattern: that chassis's pattern slug, from an SRD pattern page's "Build With This"
   validateSearch: (
     search: Record<string, unknown>
   ): { mode: CreateMode; chassis?: string; pattern?: string } => {

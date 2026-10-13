@@ -2,7 +2,7 @@
  * Preselection — the `/…/new` routes' deep-link params from an SRD entity
  * page's "Build with this" button: `/mechs/new?chassis=mule`,
  * `/pilots/new?class=salvager`, `/crawlers/new?type=battle-crawler`, and a
- * pattern page's "Build this mech": `/mechs/new?chassis=mule&pattern=hauler`.
+ * pattern page's "Build With This": `/mechs/new?chassis=mule&pattern=hauler`.
  *
  * Each param is an entity SLUG (never a UUID), and a wizard honours it only
  * when it names a starting-legal pick — the same filters its own pickers
