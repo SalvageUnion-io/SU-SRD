@@ -155,15 +155,15 @@
 .su-entity-page > .su-guide {
   font-size: var(--text-lg);
   line-height: 1.6;
-  max-width: 52rem;
+  max-width: var(--su-guide-measure, 52rem);
 }
 
 .su-entity-page > .su-guide .su-guide__steps {
-  gap: var(--space-40);
+  gap: var(--space-48);
 }
 
 .su-entity-page > .su-guide .su-guide__step {
-  gap: var(--space-16);
+  gap: var(--space-20);
 }
 
 .su-entity-page > .su-guide .su-guide__head {
@@ -196,8 +196,8 @@
  * display size over a chrome rule, a rung above the step banners it holds —
  * where it was a 12px stamp, below them. Every head is an anchor target.
  *
- * The contents ("On this page") are a sticky rail in the column's right third
- * on a wide screen, beside the 52rem measure; narrower, the same list folds
+ * The contents ("On this page") are a sticky right sidebar on a desktop
+ * (from 64rem), beside the reading column; narrower, the same list folds
  * into a disclosure above the steps, so a phone never scrolls sideways.
  */
 .su-guide__section-head {
@@ -318,13 +318,98 @@
   min-width: 1.5ch;
 }
 
-@media (min-width: 72rem) {
-  .su-entity-page > .su-guide--page {
+/*
+ * A guide's page reads like the book's prose pages (`.su-entity-page--guide`,
+ * set by `CardPage` when it holds a guide): one column for the introduction
+ * and the steps alike, so banners, tables and option cards share one left
+ * edge. Its prose is set to a book measure inside it (about 70 characters a
+ * line at the reading size; the tables and cards take the column's width) at
+ * a book leading, paragraphs parted by a breath rather than packed, and the
+ * asides framed.
+ */
+.su-entity-page--guide {
+  --su-guide-measure: 46rem;
+  --su-guide-prose: 56ch;
+}
+
+.su-entity-page--guide .su-entity-page__prose,
+.su-entity-page--guide .su-guide__body {
+  gap: 0.75em;
+}
+
+.su-entity-page--guide .su-entity-page__prose .su-text.su-text--body,
+.su-entity-page--guide .su-entity-page__prose .su-text.su-text--flavor,
+.su-entity-page--guide .su-guide__prose .su-text.su-text--body {
+  line-height: 1.6;
+  max-width: var(--su-guide-prose);
+}
+
+/* Paragraphs inside one run part like the runs do. */
+.su-entity-page--guide .su-entity-page__prose .su-text + .su-text,
+.su-entity-page--guide .su-guide__prose .su-text + .su-text {
+  margin-top: 0.6em;
+}
+
+.su-entity-page--guide .su-guide__note {
+  max-width: var(--su-guide-prose);
+}
+
+/* The aside (`GuideAside`): a tip or a worked example, framed on paper in
+ * chrome-weight ink, as the srd's other asides are (refit2 F15) — a frame,
+ * never a left rail (ruleset §3.10). */
+.su-guide__aside {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  padding: var(--space-12) var(--space-16);
+}
+
+.su-guide__aside > p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.su-guide__aside--flavor > p {
+  font-style: italic;
+}
+
+.su-entity-page--guide .su-guide__aside {
+  max-width: calc(var(--su-guide-prose) + 2 * var(--space-16));
+}
+
+/*
+ * On a desktop (from 64rem: the 46rem column, the gap and the rail's 12rem
+ * floor fit inside a 1024px screen's margins) the whole page is two columns:
+ * the reading column, and the rail
+ * beside it from the band down — beside the introduction too, not only the
+ * steps. `GuideSteps`'s own box steps aside (`display: contents`) so its rail
+ * is a cell of the page's grid; the rail spans both rows (the introduction,
+ * then the steps) and sticks while they scroll by. It stands at the page's far
+ * edge, under the band's stamps, as the column stands under its title.
+ */
+@media (min-width: 64rem) {
+  .su-entity-page--guide {
     align-items: start;
-    column-gap: var(--space-48);
+    column-gap: var(--space-40);
     display: grid;
-    grid-template-columns: minmax(0, 52rem) minmax(12rem, 16rem);
-    max-width: none;
+    grid-template-columns: minmax(0, var(--su-guide-measure)) minmax(12rem, 16rem);
+    grid-template-rows: auto 1fr;
+    justify-content: space-between;
+    row-gap: 0;
+  }
+
+  .su-entity-page--guide > *,
+  .su-entity-page--guide .su-guide__flow {
+    grid-column: 1;
+  }
+
+  .su-entity-page--guide > .su-guide--page {
+    display: contents;
+  }
+
+  .su-entity-page--guide > .su-entity-page__main ~ .su-guide .su-guide__flow {
+    margin-top: var(--space-40);
   }
 
   .su-guide--page .su-guide__toc-fold {
@@ -332,8 +417,11 @@
   }
 
   .su-guide--page .su-guide__rail {
+    align-self: start;
     display: block;
     font-size: var(--text-sm);
+    grid-column: 2;
+    grid-row: 1 / -1;
     line-height: 1.4;
     max-height: calc(100vh - var(--space-48));
     overflow-y: auto;

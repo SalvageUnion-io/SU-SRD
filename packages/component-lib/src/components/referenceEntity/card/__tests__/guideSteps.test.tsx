@@ -8,8 +8,10 @@
  * - on a page every section and step is an anchor, listed in an "On this
  *   page" rail (and its phone fold), and a "p. N" the surface can resolve
  *   links to the page that covers it;
- * - page pointers (`hint`) are left-aligned notes, and a run-in head (a
- *   value-only `label`, a sub-`heading`) becomes the stamp over its paragraph;
+ * - page pointers (`hint`) are left-aligned notes, any other hint and a
+ *   `flavor` block are framed asides, and a run-in head (a value-only `label`,
+ *   a sub-`heading`) becomes the stamp over its paragraph (the full rung on a
+ *   page);
  * - on a page the steps stand as a page section, not inside the prose column.
  */
 import { describe, expect, test } from 'bun:test'
@@ -40,6 +42,23 @@ describe('chunkGuideStepProse', () => {
     expect(chunks).toEqual([
       { kind: 'prose', blocks: [paragraph('Make a copy of the Character Sheet on p. 24.')] },
       { kind: 'note', text: 'Full details on Pilot Stats can be found on p. 20.' },
+    ])
+  })
+
+  test('a hint that names no page, and a flavour block, are asides', () => {
+    const chunks = chunkGuideStepProse([
+      paragraph('Then update your Upgrade Pool.'),
+      { type: 'hint', value: "In the Union, paying Upkeep is also called 'paying your dues'." },
+      { type: 'flavor', value: 'For example, a Pilot might want to try.' },
+    ])
+    expect(chunks).toEqual([
+      { kind: 'prose', blocks: [paragraph('Then update your Upgrade Pool.')] },
+      {
+        kind: 'aside',
+        text: "In the Union, paying Upkeep is also called 'paying your dues'.",
+        flavor: false,
+      },
+      { kind: 'aside', text: 'For example, a Pilot might want to try.', flavor: true },
     ])
   })
 
@@ -97,7 +116,7 @@ describe('chunkGuideStepProse', () => {
           .join('|')
         const rendered = chunkGuideStepProse(step.content)
           .flatMap((chunk) =>
-            chunk.kind === 'note'
+            chunk.kind !== 'prose'
               ? [chunk.text]
               : chunk.blocks.flatMap((block) => [
                   ...(block.label && !(step.content ?? []).includes(block) ? [block.label] : []),
@@ -144,6 +163,32 @@ describe('GuideSteps on the page', () => {
     expect(container.querySelector('.su-guide .text-center')).toBeNull()
   })
 
+  test('an aside is a framed note in its step; a run-in head stamps at the full rung', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={guide('Tough Choices')} presentation="page" />
+    )
+    const asides = [...container.querySelectorAll('.su-guide__aside')]
+    expect(asides).toHaveLength(1)
+    expect(asides[0]?.getAttribute('role')).toBe('note')
+    expect(asides[0]?.classList.contains('su-guide__aside--flavor')).toBe(true)
+    expect(asides[0]?.textContent).toStartWith('For example, a Pilot might want')
+    // No complementary landmark inside the page's main.
+    expect(container.querySelector('.su-guide aside')).toBeNull()
+
+    const runIn = [...container.querySelectorAll('.su-guide__prose .su-badge-stamp')].find(
+      (stamp) => stamp.textContent === 'In Combat'
+    )
+    expect(runIn?.className).toContain('su-rung-label--full')
+  })
+
+  test('a step prose run on a card keeps the compact stamp', () => {
+    const { container } = render(<ReferenceEntityCard data={guide('Tough Choices')} />)
+    const runIn = [...container.querySelectorAll('.su-guide__prose .su-badge-stamp')].find(
+      (stamp) => stamp.textContent === 'In Combat'
+    )
+    expect(runIn?.className).toContain('su-rung-label--compact')
+  })
+
   test('sections are H2 heads over their own lists; steps head one level below', () => {
     const downtime = guide('Crawler Downtime')
     const { container } = render(<ReferenceEntityCard data={downtime} presentation="page" />)
@@ -163,8 +208,10 @@ describe('GuideSteps on the page', () => {
       <ReferenceEntityCard data={guide('Create a Pilot')} presentation="page" />
     )
     const steps = container.querySelector('.su-guide')
-    // A child of the page itself, which is what gives it the reading size.
-    expect(steps?.parentElement?.className).toBe('su-entity-page')
+    // A child of the page itself, which is what gives it the reading size;
+    // the page says it holds a guide, which sets its measure and rhythm.
+    expect(steps?.parentElement?.classList.contains('su-entity-page')).toBe(true)
+    expect(steps?.parentElement?.classList.contains('su-entity-page--guide')).toBe(true)
     expect(steps?.closest('.su-entity-page__prose')).toBeNull()
     // The introduction still leads, in the prose column.
     expect(container.querySelector('.su-entity-page__prose')?.textContent).toContain(
