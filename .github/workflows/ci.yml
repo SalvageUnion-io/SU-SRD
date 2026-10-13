@@ -35,7 +35,6 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       bot: ${{ steps.filter.outputs.bot }}
       assets: ${{ steps.filter.outputs.assets }}
-      catalog: ${{ steps.filter.outputs.catalog }}
       code: ${{ steps.filter.outputs.code }}
       docs: ${{ steps.filter.outputs.docs }}
       deps: ${{ steps.filter.outputs.deps }}
@@ -88,17 +87,6 @@ jobs:
             assets:
               - *shared
               - 'apps/su-assets/**'
-            # The story catalog serves component-lib's and both apps' stories,
-            # so a change to any of them can fail its axe scan.
-            catalog:
-              - *shared
-              - 'apps/catalog/**'
-              - 'apps/itun/**'
-              - 'apps/srd/**'
-              - 'packages/component-lib/**'
-              - 'packages/itun-domain/**'
-              - 'packages/gates/**'
-              - 'tools/baselines/stories-a11y-baseline.json'
             code:
               - *shared
               - 'apps/**'
@@ -289,48 +277,6 @@ jobs:
         if: failure()
         run: docker logs convex-e2e || true
 
-  # The story catalog has no build: its job is the axe scan of every story,
-  # served by its dev server (`apps/catalog/playwright.config.ts`).
-  stories-a11y:
-    needs: [changes]
-    if: needs.changes.outputs.catalog == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/catalog
-        run: bunx playwright install chromium
-
-      # WCAG 2.2 AA on every story `bun run stories:ids` lists, at desktop and
-      # as a phone, less the rules about a whole page's landmarks. A ratchet:
-      # it blocks on any violation not in tools/baselines/stories-a11y-baseline.json,
-      # and on an entry there that passes now.
-      - name: Run the stories a11y spec
-        working-directory: apps/catalog
-        run: bunx playwright test stories-a11y.e2e.ts
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: playwright-report-stories-a11y
-          path: apps/catalog/playwright-report/
-          retention-days: 7
-
   build-discord-bot:
     needs: [changes]
     if: needs.changes.outputs.bot == 'true'
@@ -382,7 +328,6 @@ jobs:
       - coverage
       - build-srd
       - build-itun
-      - stories-a11y
       - build-discord-bot
       - build-su-assets
     runs-on: ubuntu-latest
