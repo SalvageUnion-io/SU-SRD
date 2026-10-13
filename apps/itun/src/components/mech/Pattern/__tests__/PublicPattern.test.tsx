@@ -123,7 +123,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     setQueryAnswers({ 'publicSheet:pattern': answer() })
     renderAs(SIGNED_OUT)
 
-    expect(screen.queryByRole('button', { name: 'Build this mech' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Build With This/ })).toBeNull()
     expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy()
   })
 
@@ -135,12 +135,12 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 })
 
 describe('signed in', () => {
-  test('Build this mech makes a fresh mech that records its source, and opens it', async () => {
+  test('Build With This makes a fresh mech that records its source, and opens it', async () => {
     setQueryAnswers({ 'publicSheet:pattern': answer() })
     renderAs(CONNECTED)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Build this mech' }))
+      fireEvent.click(screen.getByRole('button', { name: /^Build With This: a mech from / }))
     })
     await settle(() => convexMocks.navigations.length > 0)
 

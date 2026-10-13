@@ -107,10 +107,10 @@ type SheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * Where the sheet's back link goes. Defaults to the Roster.
+   * Where the sheet's back link goes. Defaults to the Shelves.
    *
    * A sheet reached from a Game's crew list belongs to that game for the length
-   * of the visit, and sending its back link to the personal Roster would strand
+   * of the visit, and sending its back link to the personal Shelves would strand
    * the viewer one surface away from the crew they were reading.
    */
   back?: { href: string; label: string }
@@ -173,7 +173,7 @@ export function Sheet({
   store = useEntityStore,
   readOnly: readOnlyProp = false,
   crawlerReadOnly = false,
-  back = { href: '/', label: 'Roster' },
+  back = { href: '/', label: 'Shelves' },
   pilotAbilities,
   others,
   hrefFor = liveSheetHref,

@@ -42,6 +42,9 @@ const PROSE_12 = proseColumn(space[12])
 const COLUMN_24 = column(space[24])
 const COLUMN_16 = column(space[16])
 const COLUMN_12 = column(space[12])
+/** An endpoint's example URL: a long one breaks at phone width. */
+const EXAMPLE_LINK = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
+
 const CODE = inlineCode()
 const CODE_ON_GROUND = inlineCode(true)
 
@@ -277,7 +280,7 @@ function page(): PageResult {
                     href={`${baseUrl}/schema/chassis.json`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={BOLD}
+                    style={EXAMPLE_LINK}
                   >
                     {baseUrl}/schema/chassis.json
                   </InlineRef>
@@ -306,7 +309,7 @@ function page(): PageResult {
                     href={`${baseUrl}/schema/chassis.schema.json`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={BOLD}
+                    style={EXAMPLE_LINK}
                   >
                     {baseUrl}/schema/chassis.schema.json
                   </InlineRef>
@@ -337,7 +340,7 @@ function page(): PageResult {
                     href={`${baseUrl}/schema/chassis/item/${samples.slug}.json`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={BOLD}
+                    style={EXAMPLE_LINK}
                   >
                     {baseUrl}/schema/chassis/item/{samples.slug}.json
                   </InlineRef>

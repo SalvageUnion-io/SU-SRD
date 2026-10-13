@@ -72,6 +72,8 @@ export function inlineCode(onPaper = false): CSSProperties {
   return {
     backgroundColor: onPaper ? color.paper : color.wkBg,
     borderRadius: radius.card,
+    // A long path breaks rather than pushing a phone-width page sideways.
+    overflowWrap: 'anywhere',
     paddingBlock: space[2],
     paddingInline: space[4],
   }

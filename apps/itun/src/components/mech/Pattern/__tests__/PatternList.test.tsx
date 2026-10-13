@@ -64,7 +64,7 @@ describe('PatternList', () => {
     expect(container.querySelector('.su-entity-row__frame[data-user-made]')).not.toBeNull()
     expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
     expect(screen.queryByText(/Chassis: scrapper/)).toBeNull()
-    expect(screen.getByRole('button', { name: /Build this mech/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Build With This: a mech from / })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Instantiate/ })).toBeNull()
   })
 })

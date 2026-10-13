@@ -1648,6 +1648,11 @@
   padding: 0;
 }
 
+/* A lone card (a Core class with no paths: the Salvager) spans the area. */
+.srd-class-brief__cards:has(> :only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* A tier card: the band in its book hue (ink on pilot, paper elsewhere,
    §3.8), the tier's name on the paper cut-out tab that opens into the body,
    no rule between them, and the TP cost in the pointy box on the band. */
