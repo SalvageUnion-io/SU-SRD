@@ -4,6 +4,7 @@
 export { buildCatalogSections } from './catalog/catalogSections'
 // Changelog view; its build-time git reader is the `./changelog/git` subpath
 export { Changelog } from './changelog/Changelog'
+export { ActivationCost } from './components/atoms/ActivationCost'
 // Avatar — a person's picture in a circle, falling back to their initial
 export { Avatar } from './components/atoms/Avatar'
 export type { BadgeTone } from './components/atoms/Badge'

@@ -70,7 +70,11 @@ describe('rendered pages', () => {
   // One page per render path the sample above does not reach: the build scan
   // covers every page, these keep each path's markup under test.
   it.each([
-    ['a hybrid class, its trees and their owners', '/classes/fabricator', '<dt>Hybrid</dt>'],
+    [
+      'a hybrid class, its trees and their owners',
+      '/classes/fabricator',
+      'srd-class-brief__tab">Hybrid<',
+    ],
     ['a two-roll columns table', '/roll-tables/callsign-table', 'data-island="ColumnsTableIsland"'],
     [
       'a static fallback with a Traits line',

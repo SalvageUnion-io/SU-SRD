@@ -1,4 +1,4 @@
-import { Badge, Entity, Slab, Stat } from 'component-lib'
+import { ActivationCost, Badge, Entity, Slab, Stat } from 'component-lib'
 import { Fragment, useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
@@ -105,72 +105,111 @@ const classMention = (c: SURefClass): RefText[number] => ({
   ref: { schemaName: 'classes', id: c.id, slug: getEntitySlug(c), name: c.name },
 })
 
-type BriefRow = { label: string; value: RefText }
+/**
+ * One tier card of the brief: its book hue (the trees' own), what it costs,
+ * and what opens it, in one short line.
+ */
+type BriefCard = { label: string; tier: TreeTrack; cost?: string; value: RefText }
 
-function briefRows(plan: Exclude<ClassPlan, { kind: 'none' }>): BriefRow[] {
-  const max = plan.classEntity.maxAbilities
-  const limit: BriefRow = { label: 'Abilities', value: [`Up to ${max}.`] }
+function briefCards(plan: Exclude<ClassPlan, { kind: 'none' }>): BriefCard[] {
   if (plan.kind === 'hybrid') {
-    const { path, branches } = plan
-    const trees: RefText = [`${path.advanced.tree}`]
-    for (const branch of branches) {
-      trees.push(`, ${branch.tree}`)
-      if (branch.owner) trees.push(' (', classMention(branch.owner), ')')
-    }
-    trees.push(': take Abilities from any of these.')
+    const { path } = plan
     return [
-      limit,
-      { label: 'Trees', value: trees },
       {
         // The book's verb: "to advance into the Class" (Workshop Manual p.23).
         label: 'Advance',
+        tier: 'core',
         value: [`6 Core Abilities and 3 in ${path.requirement.join(' or ')}.`],
       },
-      { label: 'Hybrid', value: ['2 TP each, in tree order.'] },
+      { label: 'Hybrid', tier: 'hybrid', cost: '2', value: ['Each, in tree order.'] },
       {
         label: 'Legendary',
-        value: [`3 TP, once you have every ${path.advanced.tree} Ability. Only one.`],
+        tier: 'legendary',
+        cost: '3',
+        value: [`Once you have every ${path.advanced.tree} Ability. Only one.`],
       },
     ]
   }
   if (plan.paths.length === 0) {
-    return [limit, { label: 'Core', value: ['1 TP each, from any Core tree, in tree order.'] }]
+    return [
+      {
+        label: 'Core',
+        tier: 'core',
+        cost: '1',
+        value: ['Each, from any Core tree, in tree order.'],
+      },
+    ]
   }
   return [
-    limit,
-    { label: 'Core', value: ['1 TP each, in tree order.'] },
+    { label: 'Core', tier: 'core', cost: '1', value: ['Each, in tree order.'] },
     {
       label: 'Advanced',
+      tier: 'advanced',
+      cost: '2',
       value: [
-        '2 TP each, after 6 Core Abilities and 3 in the linked tree: your Advanced Abilities or one Hybrid Class.',
+        'Each, after 6 Core and 3 in the linked tree. Your Advanced tree or one Hybrid Class.',
       ],
     },
-    { label: 'Legendary', value: ['3 TP, after 3 Advanced or Hybrid Abilities. Only one.'] },
+    {
+      label: 'Legendary',
+      tier: 'legendary',
+      cost: '3',
+      value: ['After 3 Advanced or Hybrid Abilities. Only one.'],
+    },
   ]
+}
+
+/** A Hybrid Class's trees, with the class that owns each branch. */
+function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
+  const trees: RefText = [`${plan.path.advanced.tree}`]
+  for (const branch of plan.branches) {
+    trees.push(`, ${branch.tree}`)
+    if (branch.owner) trees.push(' (', classMention(branch.owner), ')')
+  }
+  trees.push(': take Abilities from any of these.')
+  return trees
 }
 
 /**
  * The class's training brief, from "Gaining Abilities" (Workshop Manual p.23)
- * and its own spread: what it costs and what opens each tier. On a wide page it
- * sits beside the art, in the room the short class prose leaves (`pages.css`).
+ * and its own spread, as tier cards: a dashed slab citing the page with the
+ * ability limit at its end, then one card per tier, its band in the tier's
+ * book hue (the trees' tracks below wear the same), its name on the paper
+ * cut-out and its TP cost in the book's pointy box, its body what opens it.
+ * A Hybrid Class lists its trees under the cards. On a wide page it sits
+ * beside the art, in the room the short class prose leaves (`pages.css`).
  */
 function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   return (
     <aside className="srd-class-brief" aria-label="Training">
       <div className="srd-class-brief__head">
-        <span>Training</span>
-        <span className="srd-class-brief__cite">p.{GAINING_ABILITIES_PAGE}</span>
+        <Slab variant="dashed" label="Training" count={`p.${GAINING_ABILITIES_PAGE}`} />
+        <Stat
+          orientation="horizontal"
+          label="Abilities"
+          value={`Up to ${plan.classEntity.maxAbilities}`}
+          size="compact"
+        />
       </div>
-      <dl className="srd-class-brief__rows">
-        {briefRows(plan).map((row) => (
-          <div key={row.label} className="srd-class-brief__row">
-            <dt>{row.label}</dt>
-            <dd>
-              <MentionProse parts={row.value} />
-            </dd>
-          </div>
+      <ul className="srd-class-brief__cards">
+        {briefCards(plan).map((card) => (
+          <li key={card.label} className="srd-class-brief__card" data-tier={card.tier}>
+            <div className="srd-class-brief__band">
+              <span className="srd-class-brief__tab">{card.label}</span>
+              {card.cost && <ActivationCost cost={card.cost} currency="TP" compact />}
+            </div>
+            <p className="srd-class-brief__body">
+              <MentionProse parts={card.value} />
+            </p>
+          </li>
         ))}
-      </dl>
+      </ul>
+      {plan.kind === 'hybrid' && (
+        <p className="srd-class-brief__trees">
+          <span className="srd-class-brief__trees-label">Trees</span>{' '}
+          <MentionProse parts={hybridTrees(plan)} />
+        </p>
+      )}
     </aside>
   )
 }

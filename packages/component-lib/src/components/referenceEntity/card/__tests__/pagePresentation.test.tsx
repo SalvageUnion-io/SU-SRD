@@ -218,7 +218,9 @@ describe('the card as a page', () => {
     // The HP chip sits on the band beside the name, not on the tab.
     const heading = need(head.querySelector('.su-entity-row__heading--cut') ?? undefined, 'heading')
     const chips = need(
-      heading.querySelector(':scope > .su-chips') ?? undefined,
+      heading.querySelector(
+        ':scope > .su-chips, :scope > .su-entity-row__chip-group > .su-chips'
+      ) ?? undefined,
       'chips on the band'
     )
     expect(chips.textContent).toBe('HP4')

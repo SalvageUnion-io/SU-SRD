@@ -46,7 +46,12 @@ describe('Row labels', () => {
     // tab at the band's foot and the chips rise above it when they do not fit.
     const heading = head.querySelector('.su-entity-row__heading--cut')
     expect(heading?.firstElementChild?.className).toBe('su-entity-row__name')
-    expect(heading?.lastElementChild?.getAttribute('data-chip-group')).toBe('')
+    // The chips (with any type stamp beside them) follow the name, never inside it.
+    const chips = heading?.lastElementChild?.closest('[data-chip-group]')
+      ? heading?.lastElementChild
+      : heading?.lastElementChild?.querySelector(':scope > [data-chip-group]')
+    expect(chips?.getAttribute('data-chip-group')).toBe('')
+    expect(heading?.querySelector('.su-entity-row__name [data-chip-group]')).toBeNull()
     // Every Row wears the cut-out, chips or not.
     expect(head.dataset.notch).toBe('true')
     expect(nameBox('Salvaging Drill').className).toBe('su-entity-row__notch')

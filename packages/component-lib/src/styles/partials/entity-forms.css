@@ -233,10 +233,43 @@
 
 /* Every header chip floats right on the band: beside the name while they
    fit, and over its right end when they rise above it. */
-.su-entity-row__heading--cut > .su-chips {
+.su-entity-row__heading--cut > .su-chips,
+.su-entity-row__heading--cut > .su-entity-row__chip-group {
   justify-content: flex-end;
   margin-bottom: var(--space-4);
   margin-left: auto;
+}
+
+/* A type stamp in the chip group (`Head`): its labels and chips one group,
+   the chips rising above the stamp when the group wraps, the stamp drawn as
+   a chip's plate (ink on a tone band, paper on the ink banner), never a
+   stamp of its own style. */
+.su-entity-row__heading > .su-entity-row__chip-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.su-entity-row__chip-group .su-ec-labels__stamps > .su-badge-stamp {
+  background-color: var(--color-ink);
+  border: var(--bw-hairline) solid var(--color-ink);
+  box-shadow: none;
+  color: var(--color-paper);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: 1;
+}
+
+/* On the ink banner a chip's plate is paper (`.su-chips--on-ink`). */
+.su-entity-row__head[data-fill='ink']
+  .su-entity-row__chip-group
+  .su-ec-labels__stamps
+  > .su-badge-stamp {
+  background-color: var(--color-paper);
+  border-color: var(--color-paper);
+  color: var(--color-ink);
 }
 
 /* A cut-out head's labels (a pattern's Legal Starting Pattern stamp) float

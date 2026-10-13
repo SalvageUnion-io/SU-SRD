@@ -16,7 +16,7 @@ export default {
  * the site `Footer` the layout closes it on, carrying the citation in the
  * same band. The stamps sit at the band's far end and the art is cropped to its
  * line work; narrow the viewport for the phone (board 08), which keeps the
- * same order. The Gopher is Tech 2, so it offers no "Build with this".
+ * same order. The Gopher is Tech 2, so it offers no "Build With This".
  */
 export const Chassis = () => {
   const gopher = SalvageUnionReference.Chassis.getByName('Gopher')
@@ -43,7 +43,7 @@ export const Chassis = () => {
 
 /**
  * A Tech 1 chassis (the Mule): one the mech wizard can start from, so the body
- * opens on "Build a mech with this", the deep link into ITUN (`buildLinkFor`).
+ * opens on "Build With This", the deep link into ITUN (`buildLinkFor`).
  */
 export const BuildWithThis = () => {
   const mule = SalvageUnionReference.Chassis.getByName('Mule')

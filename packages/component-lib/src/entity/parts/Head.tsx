@@ -98,10 +98,15 @@ export function Head({
       <KindLabel kind={kind} />
     </TitleTag>
   )
+  // A cut-out head with chips keeps its labels (a type stamp: "Chassis
+  // Ability") in the chip group, one right-floated group in one chip style,
+  // never a stamp of its own beside the tab.
+  const labelsWithChips = cut && !!chips && !!labels
+  const labelsNode = labels && <div className="su-entity-row__labels">{labels}</div>
   const name = (
     <div className="su-entity-row__name">
       {cut ? <span className="su-entity-row__notch">{titleNode}</span> : titleNode}
-      {labels && <div className="su-entity-row__labels">{labels}</div>}
+      {!labelsWithChips && labelsNode}
     </div>
   )
   return (
@@ -117,7 +122,14 @@ export function Head({
         {chips ? (
           <div className={cn('su-entity-row__heading', cut && 'su-entity-row__heading--cut')}>
             {name}
-            {chips}
+            {labelsWithChips ? (
+              <div className="su-entity-row__chip-group">
+                {labelsNode}
+                {chips}
+              </div>
+            ) : (
+              chips
+            )}
           </div>
         ) : (
           name

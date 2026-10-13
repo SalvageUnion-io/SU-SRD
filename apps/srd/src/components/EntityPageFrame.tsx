@@ -9,7 +9,7 @@ import { EntityPageStamps } from './EntityPageStamps'
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
  * 08b): its chapter's band at the head, the title notched in and, right of
  * it, one cluster of everything else the head carries — the parent link, the
- * stamps and "Build with this" (EDL E20: nothing but the breadcrumb sits
+ * stamps and "Build With This" (EDL E20: nothing but the breadcrumb sits
  * above a show page's title; on a phone the cluster follows the title, the
  * band's `asideAt="notch"`); then the body. The page's foot band — the citation
  * ("p.112 · Workshop Manual · also in …") — is the site
@@ -49,6 +49,7 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
     <nav className="srd-guide-exits" aria-label="Where next">
       <a
         href={build.href}
+        aria-label={build.ariaLabel}
         className={cn(buttonVariants({ variant: 'primary', size: 'compact' }), 'su-page-action')}
       >
         {build.label}
@@ -82,7 +83,7 @@ type EntityPageFrameProps = {
   parent?: { label: string; name: string; href: string }
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
   legalStartingPattern?: boolean
-  /** "Build with this": the deep link into ITUN's builder (`buildLinkFor`), ending the cluster. */
+  /** "Build With This": the deep link into ITUN's builder (`buildLinkFor`), ending the cluster. */
   build?: BuildLink | null
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
@@ -120,6 +121,7 @@ export function EntityPageFrame({
                 // union (ruleset §3.11).
                 <a
                   href={build.href}
+                  aria-label={build.ariaLabel}
                   className={cn(
                     buttonVariants({ variant: 'primary', size: 'compact' }),
                     'su-page-action'

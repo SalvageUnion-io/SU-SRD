@@ -118,10 +118,25 @@ describe('ClassAbilityTree advancement paths', () => {
 describe('ClassAbilityTree training brief', () => {
   test("a Hybrid Class's brief says what it takes to advance, in the book's verb (p.23)", () => {
     render(<ClassAbilityTree classEntity={classNamed('Fabricator')} />)
-    const labels = [...document.querySelectorAll('.srd-class-brief__row > dt')].map(
-      (dt) => dt.textContent
+    const labels = [...document.querySelectorAll('.srd-class-brief__tab')].map(
+      (tab) => tab.textContent
     )
-    expect(labels).toContain('Advance')
+    expect(labels).toEqual(['Advance', 'Hybrid', 'Legendary'])
     expect(labels).not.toContain('Entry')
+    // Its trees, with the classes that own them, follow the cards.
+    expect(document.querySelector('.srd-class-brief__trees')?.textContent).toContain('Engineer')
+  })
+
+  test('a Core class gets a tier card per tier, each costed in the pointy box', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const brief = screen.getByRole('complementary', { name: 'Training' })
+    const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
+    expect(cards.map((card) => card.dataset.tier)).toEqual(['core', 'advanced', 'legendary'])
+    expect(cards.map((card) => card.querySelector('.srd-class-brief__band')?.textContent)).toEqual([
+      'Core1 TP',
+      'Advanced2 TP',
+      'Legendary3 TP',
+    ])
+    expect(brief.textContent).toContain('Up to 10')
   })
 })

@@ -21,7 +21,7 @@ import type { CSSProperties, ReactNode } from 'react'
  * can field or buy, so it is not a chip here: it is the stat column's own cell
  * (`2 | TECH LEVEL`, the framed numeral beside the ink stamp), the size the
  * page body draws its stats, and the body leaves it out of its column; then
- * `end` (the page's "Build with this"). The same facts the card's header shows,
+ * `end` (the page's "Build With This"). The same facts the card's header shows,
  * resolved by `resolveEntityPageMeta` so the page cannot describe an entity
  * differently from its own card.
  */

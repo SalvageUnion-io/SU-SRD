@@ -1611,73 +1611,116 @@
 }
 
 /*
- * The training brief (Workshop Manual p.23, "Gaining Abilities"): an ink head,
- * then label | rule rows on paper. On a wide page it fills the room beside the
+ * The training brief (Workshop Manual p.23, "Gaining Abilities"): a dashed
+ * slab with the ability limit at its end, then tier cards, each band in its
+ * tier's book hue with the name on a cut-out tab and the TP cost in the
+ * pointy box. On a wide page it fills the room beside the
  * art that a class's short prose leaves: the trees' slot stops clearing the
  * float (CardPage's `__wide` clears it), the brief becomes a block formatting
  * context so it narrows beside the art, and everything after it clears.
  */
 .srd-class-brief {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* The slab, and the ability limit at its end. */
+.srd-class-brief__head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+}
+
+.srd-class-brief__head > :first-child {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+/* The tier cards: side by side while each keeps 9.5rem, stacked on a phone. */
+.srd-class-brief__cards {
+  display: grid;
+  gap: var(--space-10);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* A tier card: the band in its book hue (ink on pilot, paper elsewhere,
+   §3.8), the tier's name on the paper cut-out tab that opens into the body,
+   no rule between them, and the TP cost in the pointy box on the band. */
+.srd-class-brief__card {
+  --srd-brief-tier: var(--color-tier-core);
   background: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
   border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   overflow: hidden;
 }
 
-.srd-class-brief__head {
-  align-items: center;
-  background: var(--color-ink);
-  color: var(--color-paper);
+.srd-class-brief__card[data-tier='advanced'] {
+  --srd-brief-tier: var(--color-pilot);
+}
+
+.srd-class-brief__card[data-tier='hybrid'] {
+  --srd-brief-tier: var(--color-tier-hybrid);
+}
+
+.srd-class-brief__card[data-tier='legendary'] {
+  --srd-brief-tier: var(--color-crawler-band);
+}
+
+.srd-class-brief__band {
+  align-items: flex-end;
+  background: var(--srd-brief-tier);
   display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-12);
+  gap: var(--space-8);
   justify-content: space-between;
-  letter-spacing: var(--tracking-caps);
-  padding: var(--space-6) var(--space-12);
+  padding: var(--space-8) var(--space-10) 0;
+}
+
+.srd-class-brief__band > :not(.srd-class-brief__tab) {
+  align-self: center;
+  margin-bottom: var(--space-4);
+}
+
+.srd-class-brief__tab {
+  background: var(--color-paper);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  margin-left: calc(-1 * var(--space-2));
+  padding: var(--space-4) var(--space-8) var(--space-2);
   text-transform: uppercase;
 }
 
-.srd-class-brief__cite {
-  letter-spacing: var(--tracking-caps-tight);
+.srd-class-brief__body {
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: 0;
+  padding: var(--space-6) var(--space-10) var(--space-10);
 }
 
-.srd-class-brief__rows {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+/* A Hybrid Class's trees, a line under its cards. */
+.srd-class-brief__trees {
+  font-size: var(--text-sm);
+  line-height: 1.45;
   margin: 0;
 }
 
-.srd-class-brief__row {
-  display: contents;
-}
-
-.srd-class-brief__row > dt,
-.srd-class-brief__row > dd {
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
-  padding: var(--space-8) var(--space-12);
-}
-
-.srd-class-brief__row:first-child > dt,
-.srd-class-brief__row:first-child > dd {
-  border-top: 0;
-}
-
-.srd-class-brief__row > dt {
-  border-right: var(--bw-hairline) solid var(--color-ink-15);
-  color: var(--color-ink-2);
+.srd-class-brief__trees-label {
   font-family: var(--font-cond);
-  font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-snug);
   text-transform: uppercase;
-}
-
-.srd-class-brief__row > dd {
-  font-size: var(--text-base);
-  line-height: 1.45;
-  margin: 0;
 }
 
 @media (min-width: 64rem) {
@@ -1693,8 +1736,9 @@
     display: block;
   }
 
+  /* A flex container, like a block formatting context, narrows beside the float. */
   .srd-ability-tree > .srd-class-brief {
-    display: flow-root;
+    display: flex;
   }
 
   .srd-ability-tree:has(> .srd-class-brief) > :not(.srd-class-brief) {

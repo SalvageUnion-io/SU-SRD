@@ -13,7 +13,8 @@ describe('buildLinkFor', () => {
     const mule = must(SalvageUnionReference.Chassis.getByName('Mule'))
     expect(buildLinkFor('chassis', mule)).toEqual({
       href: `${ITUN_URL}mechs/new?mode=guided&chassis=mule`,
-      label: 'Build a mech with this',
+      label: 'Build With This',
+      ariaLabel: 'Build With This: a mech',
     })
   })
 

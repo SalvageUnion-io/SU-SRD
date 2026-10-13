@@ -1,5 +1,5 @@
 /**
- * "Build with this" — the deep link from an SRD entity page into ITUN's
+ * "Build With This" — the deep link from an SRD entity page into ITUN's
  * builder, preselecting the entity: a chassis page opens the mech wizard on
  * that chassis, a class page the pilot wizard on that class, a crawler page
  * the crawler wizard on that type. ITUN's `/…/new` routes read the slug
@@ -26,7 +26,15 @@ import {
 import { ITUN_URL } from './constants'
 import { itemHref } from './entityHref'
 
-export type BuildLink = { href: string; label: string }
+/**
+ * A build link: its visible `label`, and, where the label leaves out what is
+ * built, an `ariaLabel` that starts with the label and names it (WCAG 2.5.3,
+ * label in name): "Build With This: a mech".
+ */
+export type BuildLink = { href: string; label: string; ariaLabel?: string }
+
+/** The page action's one visible label, whatever it builds (owner's call, 2026-10-13). */
+const BUILD_WITH_THIS = 'Build With This'
 
 /** `ITUN_URL` + a path in ITUN (`/starter`, `/mechs/new`). */
 function itunHref(path: string): string {
@@ -48,7 +56,7 @@ function wizardHref(path: string, preselect: Record<string, string> = {}): strin
  */
 export const STARTER_SET_HREF = itunHref('/starter')
 
-/** The page's "Build with this" link, or `null` where there is nothing to build from it. */
+/** The page's "Build With This" link, or `null` where there is nothing to build from it. */
 export function buildLinkFor(schemaId: string, item: SURefEntity): BuildLink | null {
   const slug = getEntitySlug(item)
   switch (schemaId) {
@@ -58,20 +66,23 @@ export function buildLinkFor(schemaId: string, item: SURefEntity): BuildLink | n
         isLegalCreationChassis(item.techLevel)
         ? {
             href: wizardHref('/mechs/new', { chassis: slug }),
-            label: 'Build a mech with this',
+            label: BUILD_WITH_THIS,
+            ariaLabel: `${BUILD_WITH_THIS}: a mech`,
           }
         : null
     case 'classes':
       return 'coreTrees' in item && isLegalCreationClass(item.coreTrees)
         ? {
             href: wizardHref('/pilots/new', { class: slug }),
-            label: 'Build a pilot with this',
+            label: BUILD_WITH_THIS,
+            ariaLabel: `${BUILD_WITH_THIS}: a pilot`,
           }
         : null
     case 'crawlers':
       return {
         href: wizardHref('/crawlers/new', { type: slug }),
-        label: 'Build a crawler with this',
+        label: BUILD_WITH_THIS,
+        ariaLabel: `${BUILD_WITH_THIS}: a crawler`,
       }
     default:
       return null
