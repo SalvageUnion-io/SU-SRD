@@ -41,7 +41,7 @@ the corpus size, not just the finding count.
 | `biome` | `biome ci .`, plus the GritQL plugins in `packages/gates/biome/` | — |
 | `data` | `packages/salvageunion-reference/tools/validate.ts` (`--only=` runs a subset) | — |
 | `rules-fidelity` | `check-fidelity-lock.ts` (`--prune` drops deleted strings); verdicts come from `check-rules-fidelity.ts --update`, no book needed | `packages/salvageunion-reference/fidelity.lock.json` |
-| `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET`, `COLLAPSED_DOCS` and `RETIRED_CLAIMS` in the script |
+| `doc-drift` | `check-doc-drift.ts` | the script's budget, ceiling and claim tables |
 | `observability` | `check-observability.ts` | — |
 | `workers` | `check-workers.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |

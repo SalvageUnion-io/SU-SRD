@@ -194,8 +194,8 @@ for misses and intheunionnow.com's 301s; config in
 `wrangler.jsonc`, headers in `public/_headers`, deployed from
 `.github/workflows/deploy-cloudflare.yml`.
 
-Convex AI-files rules (scope, `bunx` not `npx`, the vendored skills):
-[AGENTS.md](AGENTS.md).
+The block below binds `convex/` only; `bunx`, not `npx`; the vendored
+skills: [AGENTS.md](AGENTS.md).
 
 <!-- convex-ai-start -->
 

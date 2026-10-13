@@ -7,7 +7,7 @@ and architecture docs linked below.
 
 Intent → doc map: [`docs/README.md`](docs/README.md): open it to find a doc.
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the architecture as terse numbered entries (Areas, then Decisions: entry N is ADR-N, status first). Read it whole; §-cited ADRs keep full text in [`docs/adr/`](docs/adr/). The three ADRs that govern:
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — numbered Areas, then Decisions (entry N is ADR-N, status first). Jump to the slug (`#convex`) or grep `ADR-NNN`; §-cited ADRs have full text in [`docs/adr/`](docs/adr/). The three ADRs that govern:
   - [ADR-030](docs/adr/030-accounts-games-server-of-record.md) — accounts, Games, Convex of record. Ops: [accounts](docs/ARCHITECTURE.md#deployments).
   - [ADR-021](docs/adr/021-itun-surface-taxonomy.md) — surface/mode taxonomy: **where a rule is enforced**.
   - [ADR-007](docs/adr/007-automation-boundary.md) — automation boundary; read before rules work.

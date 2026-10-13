@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Doc drift — `bun run check doc-drift`. Nine checks, each asking whether
+ * Doc drift — `bun run check doc-drift`. Ten checks, each asking whether
  * what a doc tells a reader is still true:
  *
  *   paths    every backticked repo path in a live-instruction doc or a
@@ -38,11 +38,18 @@
  *            They load into every agent session in scope, so growth costs
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
  *            budget: terse is the point.
+ *   load     each named session profile (`SESSION_PROFILES`: srd,
+ *            itun+component-lib, bot) totals what it loads (the root
+ *            CLAUDE.md and its imports, each CLAUDE.md under its directories,
+ *            every rule whose `paths:` match a file there, and the docs its
+ *            text says to read first), held to a ratchet (`SESSION_CEILINGS`).
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
+import type { SessionProfile } from 'gates/lib/sessionLoad'
+import { checkSessionLoad, gitignoredMatcher, importsOf, markdownIn } from 'gates/lib/sessionLoad'
 import { CHECK_IDS, CHECKS as GATES } from './check'
 
 const repoRoot = join(import.meta.dir, '..')
@@ -51,18 +58,6 @@ const repoRoot = join(import.meta.dir, '..')
 export type CheckResult = { ok: string; failures: string[] }
 
 const read = (root: string, relPath: string): string => readFileSync(join(root, relPath), 'utf-8')
-
-/** Repo-relative paths of the `.md` files at or below `dir`, sorted. */
-function markdownIn(root: string, dir: string): string[] {
-  const full = join(root, dir)
-  if (!existsSync(full)) return []
-  const found: string[] = []
-  for (const entry of readdirSync(full, { withFileTypes: true })) {
-    if (entry.isDirectory()) found.push(...markdownIn(root, `${dir}/${entry.name}`))
-    else if (entry.name.endsWith('.md')) found.push(`${dir}/${entry.name}`)
-  }
-  return found.sort()
-}
 
 /** Files in `dir` with extension `ext`, sorted, repo-relative. */
 function filesIn(root: string, dir: string, ext: string): string[] {
@@ -241,35 +236,6 @@ export function pathCandidate(token: string): string | null {
   }
   if (REPO_PATH_ROOTS.includes(first) || WORKSPACE_PATH_ROOTS.includes(first)) return candidate
   return null
-}
-
-/**
- * "This path is gitignored at the repo root": absent in CI by design, so its
- * existence proves nothing. Handles the rule shapes the root `.gitignore` uses.
- */
-export function gitignoredMatcher(root: string): (candidate: string) => boolean {
-  const file = join(root, '.gitignore')
-  if (!existsSync(file)) return () => false
-  const rules = readFileSync(file, 'utf-8')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line !== '' && !line.startsWith('#') && !line.startsWith('!'))
-  return (candidate) =>
-    rules.some((line) => {
-      const rule = line.replace(/^\//, '')
-      const bare = rule.replace(/\/$/, '')
-      // An unanchored pattern with no inner slash matches that name at any depth.
-      if (!line.startsWith('/') && !bare.includes('/') && !bare.includes('*')) {
-        return candidate.split('/').includes(bare)
-      }
-      if (rule.startsWith('**/')) {
-        const name = rule.slice(3)
-        return candidate.startsWith(name) || candidate.includes(`/${name}`)
-      }
-      if (rule.endsWith('/*')) return candidate.startsWith(rule.slice(0, -1))
-      if (rule.includes('*')) return false
-      return candidate === rule || candidate.startsWith(rule.endsWith('/') ? rule : `${rule}/`)
-    })
 }
 
 /** Docs cite modules the way code imports them, without an extension. */
@@ -994,16 +960,9 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 11_686,
+  'apps/itun/CLAUDE.md': 11_682,
   /** With its `@AGENTS.md` import. */
-  'CLAUDE.md': 10_169,
-}
-
-/** Repo-relative paths a doc imports by a line of its own: `@path`, relative to the doc. */
-export function importsOf(doc: string, source: string): string[] {
-  return [...source.matchAll(/^@(\S+)\s*$/gm)].map((match) =>
-    join(dirname(doc), match[1] as string)
-  )
+  'CLAUDE.md': 10_167,
 }
 
 /**
@@ -1068,6 +1027,30 @@ export function checkDocSizes(
   return { ok: `${budgeted.length} agent docs within their size budgets`, failures }
 }
 
+// ─── load ───────────────────────────────────────────────────────────────────
+
+/** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
+const SESSION_PROFILES: Record<string, SessionProfile> = {
+  srd: { dirs: ['apps/srd'], reads: [] },
+  /** The Convex CLI writes the guidelines; a Convex upgrade that grows them raises this on purpose. */
+  'itun+component-lib': {
+    dirs: ['apps/itun', 'packages/component-lib'],
+    reads: ['apps/itun/convex/_generated/ai/guidelines.md'],
+  },
+  bot: { dirs: ['apps/discord-bot'], reads: [] },
+}
+
+/**
+ * Characters each profile loads, held at today's total: a ratchet. Lower an
+ * entry when its total drops more than `SESSION_SLACK` under it (the check says
+ * so); raise one only on purpose, saying why in the commit.
+ */
+const SESSION_CEILINGS: Record<string, number> = {
+  srd: 30_748,
+  'itun+component-lib': 71_591,
+  bot: 28_152,
+}
+
 // ─── runner ─────────────────────────────────────────────────────────────────
 
 const CHECKS = [
@@ -1080,6 +1063,7 @@ const CHECKS = [
   (root: string) => checkDecisions(root),
   (root: string) => checkTerseShape(root),
   (root: string) => checkDocSizes(root),
+  (root: string) => checkSessionLoad(root, SESSION_PROFILES, SESSION_CEILINGS),
 ] as const
 
 if (import.meta.main) {

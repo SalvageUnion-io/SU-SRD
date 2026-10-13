@@ -18,7 +18,6 @@ import {
   checkRetiredClaims,
   checkTerseShape,
   citationReadsAsHistoryOrProposal,
-  gitignoredMatcher,
   headingSlug,
   pathCandidate,
   sentenceAround,
@@ -730,25 +729,5 @@ describe('checkDocSizes', () => {
     expect(checkDocSizes(root, {}, { 'docs/GONE.md': 1 }).failures).toEqual([
       'COLLAPSED_DOCS names docs/GONE.md, which does not exist. Remove the entry.',
     ])
-  })
-})
-
-describe('gitignoredMatcher', () => {
-  it('matches plain, dir/* and double-star rules, and nothing else', () => {
-    const root = fixture({ '.gitignore': '/.profiles/\nrules/*\n**/coverage/\n!keep\n*.log\n' })
-    const ignored = gitignoredMatcher(root)
-    expect(ignored('.profiles/cpu.md')).toBe(true)
-    expect(ignored('rules/extracted/a.txt')).toBe(true)
-    expect(ignored('apps/srd/coverage/lcov.info')).toBe(true)
-    expect(ignored('tools/check-doc-drift.ts')).toBe(false)
-    expect(ignored('rulesets/a.md')).toBe(false)
-  })
-
-  it('matches an unanchored bare name at any depth, as git does', () => {
-    const root = fixture({ '.gitignore': '.env.local\n/root-only\n' })
-    const ignored = gitignoredMatcher(root)
-    expect(ignored('apps/itun/.env.local')).toBe(true)
-    expect(ignored('.env.local')).toBe(true)
-    expect(ignored('apps/root-only')).toBe(false)
   })
 })
