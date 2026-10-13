@@ -6,48 +6,40 @@ name: PR gallery
 # `pr-gallery-pages.yml` publishes the artifact to GitHub Pages at
 # /<owner>.github.io/<repo>/<n>/ once this run completes.
 #
-# READ-ONLY on purpose: this runs the PR's code, so it holds no write token and
-# no secret. ITUN is built against a THROWAWAY self-hosted Convex backend with
-# the test sign-in (the same setup as e2e-nightly.yml's `e2e-itun`), so the
-# gallery can sign a fresh account up and edit characters without touching the
-# staging or production backend. Publishing, which needs `pages: write`, runs
-# in the separate `workflow_run` workflow, from main's code.
+# BY HAND ONLY, like the preview deploy. Dispatch it on a PR's branch with the
+# PR's number, or on main with none for the PREVIEW TOUR (`preview-tour`,
+# published at /<owner>.github.io/<repo>/tour/):
 #
-# THE PREVIEW TOUR is the same gallery shot from main after every successful
-# production deploy (the `workflow_run` trigger), uploaded as `preview-tour`;
-# `pr-gallery-pages.yml` publishes it at /<owner>.github.io/<repo>/tour/. Only
-# a push deploy counts: a dispatched rollback deploys an older commit than the
-# one this would check out, so the last tour stands rather than mislabel one.
+#   gh workflow run pr-gallery.yml --ref <branch> -f pr=<n>
+#   gh workflow run pr-gallery.yml --ref main
+#
+# READ-ONLY on purpose: this runs the branch's code, so it holds no write token
+# and no secret. ITUN is built against a THROWAWAY self-hosted Convex backend
+# with the test sign-in (the same setup as e2e-nightly.yml's `e2e-itun`), so
+# the gallery can sign a fresh account up and edit characters without touching
+# the staging or production backend. Publishing, which needs `pages: write`,
+# runs in the separate `workflow_run` workflow, from main's code.
 #
 # Not a required check: a red gallery never blocks a merge.
-#
-# zizmor's dangerous-triggers is suppressed: the `workflow_run` leg fires only
-# for a same-repository push to main, checks out that commit, and holds the
-# same read-only token and no secret as the PR leg.
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
-  workflow_run: # zizmor: ignore[dangerous-triggers]
-    workflows: [Deploy (Cloudflare)]
-    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: The pull request this branch is (empty on main for the tour)
+        required: false
+        type: string
 
 permissions: {}
 
 concurrency:
-  group: pr-gallery-${{ github.event.pull_request.number || 'tour' }}
+  group: pr-gallery-${{ inputs.pr || 'tour' }}
   cancel-in-progress: true
 
 jobs:
   shoot:
     name: Shoot the PR gallery
-    if: >-
-      (github.event_name == 'pull_request' && !github.event.pull_request.draft) ||
-      (github.event_name == 'workflow_run' &&
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.event == 'push' &&
-        github.event.workflow_run.head_branch == 'main' &&
-        github.event.workflow_run.head_repository.full_name == github.repository)
+    # A tour is main's alone; a PR gallery names its PR by number.
+    if: inputs.pr != '' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:
@@ -56,9 +48,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The deployed commit on the tour leg; the PR's merge commit otherwise.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
+
+      - name: Check the PR number
+        env:
+          PR_NUMBER: ${{ inputs.pr }}
+        run: |
+          if [ -n "$PR_NUMBER" ] && ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::pr must be a pull request number, got '$PR_NUMBER'"
+            exit 1
+          fi
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -106,8 +105,8 @@ jobs:
       # how gallery-pages.ts tells the tour from a PR's gallery.
       - name: Shoot the gallery
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}
+          PR_NUMBER: ${{ inputs.pr }}
+          HEAD_SHA: ${{ github.sha }}
         run: >-
           bun run gallery --srd http://127.0.0.1:4321 --itun http://localhost:5173/build
           --signed-in ${PR_NUMBER:+--pr "$PR_NUMBER"} --sha "$HEAD_SHA" --out gallery
@@ -118,14 +117,14 @@ jobs:
         if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ github.event.pull_request.number && format('pr-gallery-{0}', github.event.pull_request.number) || 'preview-tour' }}
+          name: ${{ inputs.pr != '' && format('pr-gallery-{0}', inputs.pr) || 'preview-tour' }}
           path: gallery
-          retention-days: ${{ github.event.pull_request.number && 30 || 90 }}
+          retention-days: ${{ inputs.pr != '' && 30 || 90 }}
 
       - name: Link the gallery from the run summary
         if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ inputs.pr }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
         run: |

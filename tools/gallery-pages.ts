@@ -13,8 +13,8 @@
  * because its artifact is HTML its author wrote, served from this
  * repository's Pages origin.
  *
- * The Preview Tour — the same gallery shot from main after each production
- * deploy (`pr-gallery.yml`'s `workflow_run` leg) — is unpacked to
+ * The Preview Tour — the same gallery shot from main, dispatched by hand with
+ * no PR number — is unpacked to
  * `<site-dir>/tour/` from the newest `preview-tour` artifact a main run of
  * this repository uploaded, and the index links it first.
  *
