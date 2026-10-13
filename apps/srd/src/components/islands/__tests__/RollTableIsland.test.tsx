@@ -103,7 +103,7 @@ describe('RollTableIsland', () => {
     const controls = screen.getAllByRole('button')
     expect(controls).toHaveLength(1)
     expect(controls[0]?.getAttribute('aria-label')).toBe(STAMP)
-    expect(controls[0]?.textContent).toBe('⚄Roll the Die')
+    expect(controls[0]?.textContent).toBe('Roll the Die')
   })
 
   test('the button reads the result in the panel and marks the row it lands on', async () => {

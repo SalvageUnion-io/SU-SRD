@@ -169,7 +169,7 @@ function rollLabel(words: string, name: string): string {
 
 /**
  * The instrument's roll, at the bar's far right: with `onRoll`, once the
- * script runs, the shared `Button` ("⚄ Roll the Die", named "Roll the die on
+ * script runs, the shared `Button` ("Roll the Die" in the action colour, named "Roll the die on
  * <table>"); otherwise (no roll here, or static HTML) the plain stamp, in the
  * same place. The host owns the result and its polite live region.
  */
@@ -186,8 +186,8 @@ function RollControl({
   if (!onRoll || !live) return <span className="su-roll__stamp su-roll__roll">{children}</span>
   return (
     <Button
+      variant="primary"
       size="compact"
-      glyph="⚄"
       className="su-roll__roll"
       onClick={onRoll}
       aria-label={rollLabel(children, name)}

@@ -31,7 +31,7 @@ describe('RollTableInstrument — the roll', () => {
     const controls = screen.getAllByRole('button')
     expect(controls).toHaveLength(1)
     const roll = screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })
-    expect(roll.textContent).toBe('⚄Roll the Die')
+    expect(roll.textContent).toBe('Roll the Die')
     expect(roll.className).toContain('su-btn')
     expect(roll.className).toContain('su-roll__roll')
     expect(roll.className).not.toContain('su-roll__stamp')
@@ -51,7 +51,7 @@ describe('RollTableInstrument — the roll', () => {
       />
     )
     expect(screen.getByRole('button', { name: 'Roll twice on Callsign Table' }).textContent).toBe(
-      '⚄Roll twice'
+      'Roll twice'
     )
   })
 
