@@ -82,28 +82,8 @@ export type GamesResult = { games: GameSummary[] }
  */
 export type EntityBody = Record<string, unknown>
 
-/** A pilot or mech on a shelf: no owner to name, because the owner is the caller. */
+/** One of the caller's own entities: no owner to name, because the owner is the caller. */
 type ShelfEntity = { id: string; body: EntityBody }
-
-export type ShelfResult = {
-  pilots: ShelfEntity[]
-  mechs: ShelfEntity[]
-}
-
-export type OwnedEntity = {
-  id: string
-  ownerId: string | null
-  ownerName: string | null
-  body: EntityBody
-}
-
-export type CrewResult = {
-  game: { gameId: string; name: string }
-  viewerId: string
-  pilots: OwnedEntity[]
-  mechs: OwnedEntity[]
-  crawler: { id: string; body: EntityBody } | null
-}
 
 export type ChannelResult = {
   game: { gameId: string; name: string }
@@ -119,6 +99,16 @@ export type ChannelResult = {
     completed: number
     upkeepSpent: boolean
   }
+}
+
+/**
+ * What `/su sheet` offers as you type: every pilot, mech and crawler you own,
+ * in a Game or not, and the communal crawler of each Game you belong to.
+ */
+export type MineResult = {
+  pilots: ShelfEntity[]
+  mechs: ShelfEntity[]
+  crawlers: ShelfEntity[]
 }
 
 /** The tables `/su sheet` can open. The crawler is communal and has no owner. */
@@ -178,6 +168,3 @@ export type InviteResult =
       deliver: boolean
     }
   | { outcome: 'already-member'; gameName: string; inviteeName: string }
-
-/** Whether a `/su invite` DM reached the invitee, as the bot reports it. */
-export type InviteDeliveryState = 'sent' | 'failed'

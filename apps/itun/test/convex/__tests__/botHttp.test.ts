@@ -52,16 +52,16 @@ describe('bearerToken', () => {
 
 describe('opFromPath', () => {
   test('names a known op', () => {
-    expect(opFromPath('/bot/crew')).toBe('crew')
+    expect(opFromPath('/bot/sheet')).toBe('sheet')
     expect(opFromPath('/bot/recordRoll')).toBe('recordRoll')
   })
 
   test('refuses anything else', () => {
     expect(opFromPath('/bot/')).toBeNull()
     expect(opFromPath('/bot/nope')).toBeNull()
-    expect(opFromPath('/crew')).toBeNull()
+    expect(opFromPath('/sheet')).toBeNull()
     // No traversal into another op, and no nesting.
-    expect(opFromPath('/bot/crew/extra')).toBeNull()
+    expect(opFromPath('/bot/sheet/extra')).toBeNull()
     expect(opFromPath('/bot/../auth')).toBeNull()
   })
 

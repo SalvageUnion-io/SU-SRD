@@ -201,11 +201,11 @@ describe('the bot cannot act as anybody', () => {
         })
     )
 
-    // Holding the id is not enough: it must be in THIS channel's Game, and an
-    // id you may not read is reported as absent rather than forbidden.
+    // Holding the id is not enough: it must be yours, in a Game you belong to,
+    // or published, and an id you may not read is reported as absent rather
+    // than forbidden.
     const result = await t.query(internal.botClient.sheet, {
       discordId: 'discord-player',
-      channelId: 'chan-1',
       table: 'pilots',
       entityId: secretPilot,
     })
@@ -232,7 +232,6 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     // would happily serve this pilot as a mech.
     const result = await t.query(internal.botClient.sheet, {
       discordId: 'discord-player',
-      channelId: 'chan-1',
       table: 'mechs',
       entityId: pilotId,
     })
@@ -257,7 +256,6 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     // Same Game, so a gameId-only check would have let this through.
     const result = await t.query(internal.botClient.sheet, {
       discordId: 'discord-player',
-      channelId: 'chan-1',
       table: 'pilots',
       entityId: npcId,
     })
@@ -269,7 +267,6 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     await seedBoundGame(t)
     const result = await t.query(internal.botClient.sheet, {
       discordId: 'discord-player',
-      channelId: 'chan-1',
       table: 'pilots',
       entityId: 'not-an-id',
     })
@@ -295,11 +292,127 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
 
     const result = await t.query(internal.botClient.sheet, {
       discordId: 'discord-player',
-      channelId: 'chan-1',
       table: 'crawlers',
       entityId: npcId,
     })
     expect(result).toMatchObject({ ok: false, reason: 'not-found' })
+  })
+})
+
+describe('/su sheet reaches beyond one channel', () => {
+  test('your own shelved pilot opens anywhere, by row id or app id', async () => {
+    const t = testConvex()
+    const { player } = await seedBoundGame(t)
+    const pilotId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId: null,
+          ownerId: player.userId,
+          appId: 'pilot-app-1',
+          body: { callsign: 'Shelved' },
+          updatedAt: Date.now(),
+        })
+    )
+
+    for (const entityId of [pilotId, 'pilot-app-1']) {
+      const result = await t.query(internal.botClient.sheet, {
+        discordId: 'discord-player',
+        table: 'pilots',
+        entityId,
+      })
+      expect(result).toMatchObject({ ok: true, id: pilotId, ownerName: 'Player' })
+    }
+  })
+
+  test('a published sheet opens for anybody, account or not', async () => {
+    const t = testConvex()
+    const { organizer } = await seedBoundGame(t)
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechs', {
+          gameId: null,
+          ownerId: organizer.userId,
+          appId: 'mech-public',
+          publicRead: true,
+          body: { name: 'Lantern' },
+          updatedAt: Date.now(),
+        })
+    )
+
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-nobody',
+      table: 'mechs',
+      entityId: 'mech-public',
+    })
+    expect(result).toMatchObject({ ok: true, publicRead: true, body: { name: 'Lantern' } })
+  })
+
+  test('a private stranger sheet is not-found, or unlinked without an account', async () => {
+    const t = testConvex()
+    const { organizer } = await seedBoundGame(t)
+    const mechId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechs', {
+          gameId: null,
+          ownerId: organizer.userId,
+          body: { name: 'Private' },
+          updatedAt: Date.now(),
+        })
+    )
+
+    const stranger = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      table: 'mechs',
+      entityId: mechId,
+    })
+    expect(stranger).toMatchObject({ ok: false, reason: 'not-found' })
+    const nobody = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-nobody',
+      table: 'mechs',
+      entityId: mechId,
+    })
+    expect(nobody).toMatchObject({ ok: false, reason: 'unlinked' })
+  })
+
+  test('mine lists what you own and the crawler of each Game you are in', async () => {
+    const t = testConvex()
+    const { player, organizer, gameId } = await seedBoundGame(t)
+    await t.run(async (ctx) => {
+      await ctx.db.insert('pilots', {
+        gameId: null,
+        ownerId: player.userId,
+        body: { callsign: 'Shelved' },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('mechs', {
+        gameId,
+        ownerId: player.userId,
+        body: { name: 'In play' },
+        updatedAt: Date.now(),
+      })
+      // Somebody else's: not offered.
+      await ctx.db.insert('pilots', {
+        gameId,
+        ownerId: organizer.userId,
+        body: { callsign: 'Theirs' },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('crawlers', {
+        gameId,
+        ownerId: null,
+        body: { name: 'The Ossuary' },
+        updatedAt: Date.now(),
+      })
+    })
+
+    const result = await t.query(internal.botClient.mine, { discordId: 'discord-player' })
+    if (!result.ok) throw new Error(`mine denied: ${result.reason}`)
+    expect(result.pilots.map((p) => p.body.callsign)).toEqual(['Shelved'])
+    expect(result.mechs.map((m) => m.body.name)).toEqual(['In play'])
+    expect(result.crawlers.map((c) => c.body.name)).toEqual(['The Ossuary'])
+
+    const unlinked = await t.query(internal.botClient.mine, { discordId: 'discord-nobody' })
+    expect(unlinked).toMatchObject({ ok: false, reason: 'unlinked' })
   })
 })
 
@@ -319,7 +432,6 @@ describe('the communal crawler is readable', () => {
 
     const result = await t.query(internal.botClient.sheet, {
       discordId: 'discord-player',
-      channelId: 'chan-1',
       table: 'crawlers',
       entityId: crawlerId,
     })
@@ -338,8 +450,8 @@ describe('the communal crawler is readable', () => {
     const t = testConvex()
     const { organizer } = await seedBoundGame(t)
 
-    // A second Game this channel is NOT bound to. Membership alone must not
-    // be enough — the entity has to belong to *this channel's* Game.
+    // A second Game the player is NOT in: membership of one Game must not
+    // open another's crawler.
     const otherGameId = await organizer.as.mutation(api.games.create, { name: 'Elsewhere' })
     const foreign = await t.run(
       async (ctx) =>
@@ -353,7 +465,6 @@ describe('the communal crawler is readable', () => {
 
     const result = await t.query(internal.botClient.sheet, {
       discordId: 'discord-player',
-      channelId: 'chan-1',
       table: 'crawlers',
       entityId: foreign,
     })
@@ -415,83 +526,6 @@ describe('the read surfaces', () => {
     if (!result.ok) throw new Error(`me denied: ${result.reason}`)
     expect(result.games).toHaveLength(1)
     expect(result.games[0]).toMatchObject({ name: 'Tenacity', organizer: false })
-  })
-
-  test('crew renders an unclaimed entity as a state, not a blank', async () => {
-    const t = testConvex()
-    const { gameId } = await seedBoundGame(t)
-    await t.run(
-      async (ctx) =>
-        await ctx.db.insert('pilots', {
-          gameId,
-          // ADR-030: a null owner is a normal state, and every surface must
-          // render it rather than crash or blank.
-          ownerId: null,
-          body: { callsign: 'Nobody' },
-          updatedAt: Date.now(),
-        })
-    )
-
-    const result = await t.query(internal.botClient.crew, {
-      discordId: 'discord-player',
-      channelId: 'chan-1',
-    })
-    if (!result.ok) throw new Error(`crew denied: ${result.reason}`)
-    expect(result.pilots).toHaveLength(1)
-    expect(result.pilots[0]).toMatchObject({ ownerId: null, ownerName: null })
-  })
-
-  test("crew reports the Game's PRIMARY crawler, not whichever came first", async () => {
-    const t = testConvex()
-    const { gameId } = await seedBoundGame(t)
-    const [, second] = await t.run(async (ctx) => {
-      const row = (name: string) => ({
-        gameId,
-        ownerId: null,
-        body: { id: name, name },
-        updatedAt: Date.now(),
-      })
-      const first = await ctx.db.insert('crawlers', row('Older'))
-      const next = await ctx.db.insert('crawlers', row('Primary'))
-      await ctx.db.patch(gameId, { primaryCrawlerId: next })
-      return [first, next]
-    })
-
-    const result = await t.query(internal.botClient.crew, {
-      discordId: 'discord-player',
-      channelId: 'chan-1',
-    })
-    if (!result.ok) throw new Error(`crew denied: ${result.reason}`)
-    expect(result.crawler?.id).toBe(second)
-  })
-
-  test('the shelf is personal and needs no binding', async () => {
-    const t = testConvex()
-    const { player, gameId } = await seedBoundGame(t)
-    await t.run(async (ctx) => {
-      await ctx.db.insert('pilots', {
-        gameId: null,
-        ownerId: player.userId,
-        body: { callsign: 'Shelved' },
-        updatedAt: Date.now(),
-      })
-      // In a Game, so NOT on the shelf.
-      await ctx.db.insert('pilots', {
-        gameId,
-        ownerId: player.userId,
-        body: { callsign: 'In play' },
-        updatedAt: Date.now(),
-      })
-    })
-
-    // Typed by `itun-domain/botWire` — the same declaration the bot imports — so
-    // this narrows instead of casting to a hand-written shape.
-    const result = await t.query(internal.botClient.shelf, {
-      discordId: 'discord-player',
-    })
-    if (!result.ok) throw new Error(`shelf denied: ${result.reason}`)
-    expect(result.pilots).toHaveLength(1)
-    expect(result.pilots[0]?.body.callsign).toBe('Shelved')
   })
 
   test('channel reports the roster and the Downtime phase', async () => {

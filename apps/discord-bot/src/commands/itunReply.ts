@@ -54,25 +54,13 @@ export function setItunClient(next: ItunClient): () => void {
   }
 }
 
-/** A channel is what decides which Game a command speaks for. */
-const NO_CHANNEL = 'This command has to be run in a channel.'
-
-/** The command's channel id, or null after telling the caller it needs one. */
-export async function requireChannel(
-  interaction: CommandExecuteInteraction
-): Promise<string | null> {
-  if (interaction.channelId !== null) return interaction.channelId
-  await interaction.reply({ content: NO_CHANNEL, flags: MessageFlags.Ephemeral })
-  return null
-}
-
 /**
  * Word a denied or unavailable result into the deferred reply.
  *
  * The caller must already have deferred with `MessageFlags.Ephemeral`: that
  * defer, not this edit, is what keeps the reply ephemeral.
  */
-export async function explainFailure(
+async function explainFailure(
   interaction: CommandExecuteInteraction,
   result: Exclude<ItunResult<unknown>, { kind: 'ok' }>
 ): Promise<void> {

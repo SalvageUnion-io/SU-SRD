@@ -1,10 +1,8 @@
 import { describe, expect, test } from 'bun:test'
-import { gamesCommand, meCommand, shelfCommand } from '../commands/account'
-import { crewCommand } from '../commands/crew'
-import { gameCommand } from '../commands/game'
-import { inviteCommand } from '../commands/invite'
+import { gamesCommand, meCommand } from '../commands/account'
 import { lookupCommand } from '../commands/lookup'
 import { rollCommand } from '../commands/roll'
+import { sheetCommand } from '../commands/sheet'
 import { fakeExecute } from './fakeInteraction'
 
 /**
@@ -52,15 +50,11 @@ describe('with In the Union now unavailable', () => {
   test.each([
     ['me', meCommand],
     ['games', gamesCommand],
-    ['shelves', shelfCommand],
-    ['crew', crewCommand],
-    ['invite', inviteCommand],
+    ['sheet', sheetCommand],
   ])('/su %s explains itself instead of failing', async (name, command) => {
     const { interaction, edits, deferred, followUps } = fakeExecute({
       subcommand: name,
-      // `/su invite` forwards Discord's signed request; give it one, so what
-      // is under test is the unavailable deployment, not a missing signature.
-      signed: { body: '{}', signature: 'sig', timestamp: '0' },
+      strings: { entity: 'pilots:jd7k2m9p4q8r3s6t1v5w0x2y' },
     })
     await command.execute(interaction)
 
@@ -74,25 +68,14 @@ describe('with In the Union now unavailable', () => {
     expect(edits[0]?.content).toContain('In the Union now')
   })
 
-  test('/su game bind says the same thing', async () => {
-    const { interaction, edits } = fakeExecute({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-      strings: { game: 'jd7k2m9p4q8r3s6t1v5w0x2y' },
-    })
-    await gameCommand.execute(interaction)
-    expect(edits[0]?.content).toContain('In the Union now')
-  })
-
-  test('a Game command outside a channel says so before anything else', async () => {
-    // A DM has no channel, so there is no binding to resolve and no useful
-    // question to ask the server.
-    const { interaction, replies, deferred } = fakeExecute({
-      subcommand: 'crew',
+  test('/su sheet needs no channel: a DM asks the server like anywhere else', async () => {
+    const { interaction, edits, deferred } = fakeExecute({
+      subcommand: 'sheet',
       channelId: null,
+      strings: { entity: 'pilots:jd7k2m9p4q8r3s6t1v5w0x2y' },
     })
-    await crewCommand.execute(interaction)
-    expect(deferred.called).toBe(false)
-    expect(replies[0]?.content).toContain('has to be run in a channel')
+    await sheetCommand.execute(interaction)
+    expect(deferred.called).toBe(true)
+    expect(edits[0]?.content).toContain('In the Union now')
   })
 })

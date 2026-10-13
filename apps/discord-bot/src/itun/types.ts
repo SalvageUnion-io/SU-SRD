@@ -20,19 +20,13 @@
 import type { BotDenialReason } from 'itun-domain/botWire'
 
 export type {
-  BindResult,
-  ChannelResult,
-  CrewResult,
   EntityBody,
   GameSummary,
   GamesResult,
-  InviteDeliveryState,
-  InviteResult,
   MeResult,
-  OwnedEntity,
+  MineResult,
   SheetResult,
   SheetTable,
-  ShelfResult,
 } from 'itun-domain/botWire'
 
 /** Why a call could not be satisfied: `BotDenial` plus the mutation cases. */

@@ -14,13 +14,11 @@
  */
 
 import { SlashCommandBuilder } from '@discordjs/builders'
-import { gamesCommand, meCommand, shelfCommand } from './account'
-import { crewCommand, sheetCommand } from './crew'
-import { gameCommand } from './game'
+import { gamesCommand, meCommand } from './account'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
-import { inviteCommand } from './invite'
 import { lookupCommand } from './lookup'
 import { rollCommand } from './roll'
+import { sheetCommand } from './sheet'
 
 export const suCommand = {
   data: new SlashCommandBuilder()
@@ -34,20 +32,9 @@ export const suCommand = {
     // is unavailable or not configured for this bot.
     .addSubcommand((sub) => meCommand.subcommand(sub))
     .addSubcommand((sub) => gamesCommand.subcommand(sub))
-    .addSubcommand((sub) => shelfCommand.subcommand(sub))
-    .addSubcommand((sub) => crewCommand.subcommand(sub))
-    .addSubcommand((sub) => sheetCommand.subcommand(sub))
-    .addSubcommand((sub) => inviteCommand.subcommand(sub))
-    .addSubcommandGroup((group) => gameCommand.group(group)),
+    .addSubcommand((sub) => sheetCommand.subcommand(sub)),
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    // A group is dispatched by its group name; `getSubcommand()` inside one
-    // returns the LEAF (`bind`), which would otherwise fall through to the
-    // default and throw.
-    if (interaction.options.getSubcommandGroup() === 'game') {
-      return gameCommand.execute(interaction)
-    }
-
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.execute(interaction)
@@ -57,19 +44,8 @@ export const suCommand = {
         return meCommand.execute(interaction)
       case 'games':
         return gamesCommand.execute(interaction)
-      case 'shelves':
-      // The subcommand's earlier names (`shelf`, then `my-stuff`): Discord
-      // keeps serving a registered name until the commands are re-registered
-      // (`bun run deploy-commands:global`), so both still answer.
-      case 'my-stuff':
-      case 'shelf':
-        return shelfCommand.execute(interaction)
-      case 'crew':
-        return crewCommand.execute(interaction)
       case 'sheet':
         return sheetCommand.execute(interaction)
-      case 'invite':
-        return inviteCommand.execute(interaction)
       default:
         // Unreachable while the builder above and this switch agree; loud
         // beats silent if they ever drift.
@@ -78,10 +54,6 @@ export const suCommand = {
   },
 
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
-    if (interaction.options.getSubcommandGroup() === 'game') {
-      return gameCommand.autocomplete(interaction)
-    }
-
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.autocomplete(interaction)
@@ -89,8 +61,6 @@ export const suCommand = {
         return lookupCommand.autocomplete(interaction)
       case 'sheet':
         return sheetCommand.autocomplete(interaction)
-      case 'invite':
-        return inviteCommand.autocomplete(interaction)
       default:
         await interaction.respond([])
     }

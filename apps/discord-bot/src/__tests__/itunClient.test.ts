@@ -28,9 +28,7 @@ describe('an unconfigured client', () => {
       const client = createItunClient(config)
       const result = await client.me('d1')
       expect(result.kind).toBe('unavailable')
-      expect((await client.invite({ body: '{}', signature: 's', timestamp: '0' })).kind).toBe(
-        'unavailable'
-      )
+      expect((await client.sheet('d1', 'pilots', 'p1')).kind).toBe('unavailable')
       expect(called).toBe(false)
     } finally {
       globalThis.fetch = realFetch
@@ -131,31 +129,16 @@ describe('the transport', () => {
 
   test.each([
     ['me', (c: ReturnType<typeof createItunClient>) => c.me('d1'), { discordId: 'd1' }],
-    ['shelf', (c: ReturnType<typeof createItunClient>) => c.shelf('d1'), { discordId: 'd1' }],
+    ['games', (c: ReturnType<typeof createItunClient>) => c.games('d1'), { discordId: 'd1' }],
     [
-      'channel',
-      (c: ReturnType<typeof createItunClient>) => c.channel('d1', 'c1'),
-      { discordId: 'd1', channelId: 'c1' },
-    ],
-    [
-      'crew',
-      (c: ReturnType<typeof createItunClient>) => c.crew('d1', 'c1'),
-      { discordId: 'd1', channelId: 'c1' },
+      'mine',
+      (c: ReturnType<typeof createItunClient>) => c.mineForAutocomplete('d1'),
+      { discordId: 'd1' },
     ],
     [
       'sheet',
-      (c: ReturnType<typeof createItunClient>) => c.sheet('d1', 'c1', 'pilots', 'p1'),
-      { discordId: 'd1', channelId: 'c1', table: 'pilots', entityId: 'p1' },
-    ],
-    [
-      'bind',
-      (c: ReturnType<typeof createItunClient>) => c.bind('d1', 'c1', 'g1'),
-      { discordId: 'd1', channelId: 'c1', gameId: 'g1' },
-    ],
-    [
-      'unbind',
-      (c: ReturnType<typeof createItunClient>) => c.unbind('d1', 'c1'),
-      { discordId: 'd1', channelId: 'c1' },
+      (c: ReturnType<typeof createItunClient>) => c.sheet('d1', 'pilots', 'p1'),
+      { discordId: 'd1', table: 'pilots', entityId: 'p1' },
     ],
     [
       'recordRoll',
@@ -179,7 +162,7 @@ describe('the transport', () => {
     stubFetch(() => {
       throw new Error('ECONNREFUSED')
     })
-    const result = await createItunClient(CONFIG).crew('d1', 'c1')
+    const result = await createItunClient(CONFIG).me('d1')
     expect(result.kind).toBe('unavailable')
   })
 
@@ -187,7 +170,7 @@ describe('the transport', () => {
     // A proxy or an error page in front of the deployment returns HTML; that
     // must not escape as a SyntaxError from inside a slash command.
     stubFetch(() => new Response('<html>502</html>', { status: 200 }))
-    const result = await createItunClient(CONFIG).crew('d1', 'c1')
+    const result = await createItunClient(CONFIG).me('d1')
     expect(result.kind).toBe('unavailable')
   })
 

@@ -36,7 +36,6 @@ import { reportError, withObservability } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
 import { commands } from '../commands/index'
-import type { SignedInteraction } from '../commands/interactions'
 import { setItunClient } from '../commands/itunReply'
 import { createItunClient } from '../itun/client'
 import {
@@ -71,8 +70,7 @@ type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
 async function dispatch(
   raw: APIInteraction,
   env: Env,
-  ctx: ExecutionCtx,
-  signed: SignedInteraction | null
+  ctx: ExecutionCtx
 ): Promise<{ type: number; data?: unknown }> {
   const sink = new ResponseSink()
   const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
@@ -81,7 +79,6 @@ async function dispatch(
     applicationId: env.DISCORD_APPLICATION_ID,
     rest,
     sink,
-    signed,
   }
 
   // One line per interaction, so usage can be counted per command in Workers
@@ -285,15 +282,6 @@ export default withObservability('su-discord-bot', {
       return Response.json({ type: InteractionResponseType.Pong })
     }
 
-    // The verified request travels with the interaction, untouched, for the
-    // one command Convex checks against Discord's signature itself
-    // (`/su invite`, ADR-039). Both headers are present: verification above
-    // would have refused the request otherwise.
-    const signed = {
-      body: rawBody,
-      signature: request.headers.get(SIGNATURE_HEADER) ?? '',
-      timestamp: request.headers.get(TIMESTAMP_HEADER) ?? '',
-    }
-    return Response.json(await dispatch(interaction, env, ctx, signed))
+    return Response.json(await dispatch(interaction, env, ctx))
   },
 })

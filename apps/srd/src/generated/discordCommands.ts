@@ -52,73 +52,14 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
     "needsAccount": true
   },
   {
-    "name": "shelves",
-    "description": "Your pilots and mechs on your shelf, in no Game",
-    "options": [],
-    "needsAccount": true
-  },
-  {
-    "name": "crew",
-    "description": "This channel’s Game, at a glance",
-    "options": [
-      {
-        "name": "text-only",
-        "required": false
-      }
-    ],
-    "needsAccount": true
-  },
-  {
     "name": "sheet",
-    "description": "Read a crewmate’s sheet (read-only)",
+    "description": "Read a sheet: pick one of yours, or paste a link to any other",
     "options": [
       {
         "name": "entity",
         "required": true
       }
     ],
-    "needsAccount": true
-  },
-  {
-    "name": "invite",
-    "description": "Invite someone to one of your Games (Organiser only)",
-    "options": [
-      {
-        "name": "user",
-        "required": true
-      },
-      {
-        "name": "seat",
-        "required": false
-      },
-      {
-        "name": "game",
-        "required": false
-      }
-    ],
-    "needsAccount": true
-  },
-  {
-    "name": "game bind",
-    "description": "Bind this channel to one of your Games (Organiser only)",
-    "options": [
-      {
-        "name": "game",
-        "required": true
-      }
-    ],
-    "needsAccount": true
-  },
-  {
-    "name": "game unbind",
-    "description": "Unbind this channel (Organiser only)",
-    "options": [],
-    "needsAccount": true
-  },
-  {
-    "name": "game info",
-    "description": "What Game this channel is bound to",
-    "options": [],
     "needsAccount": true
   }
 ]

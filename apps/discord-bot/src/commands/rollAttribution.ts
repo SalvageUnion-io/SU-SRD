@@ -41,7 +41,7 @@ import { itun } from './itunReply'
  * member" *to the channel* without announcing who has an account. For a roll
  * nobody asked to have recorded, the honest response to all three is to say
  * nothing: the roll still rolled. Commands the user explicitly invoked
- * (`/su crew`) explain themselves ephemerally instead — see `itunReply.ts`.
+ * (`/su sheet`) explain themselves ephemerally instead — see `itunReply.ts`.
  */
 
 /** The minimum an interaction must offer to attribute a roll from it. */

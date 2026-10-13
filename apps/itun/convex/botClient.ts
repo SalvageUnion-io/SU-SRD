@@ -6,14 +6,13 @@ import type {
   BotFailure,
   BotSuccess,
   ChannelResult,
-  CrewResult,
   EntityBody,
   GamesResult,
   InviteResult,
   MeResult,
+  MineResult,
   RecordRollResult,
   SheetResult,
-  ShelfResult,
 } from 'itun-domain/botWire'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
@@ -28,7 +27,7 @@ import {
   userByDiscordId,
 } from './model/bot'
 import { parseInviteInteraction } from './model/discordInteraction'
-import { internalMutation, primaryCrawlerOf } from './model/entities'
+import { internalMutation, oldestByAppId, primaryCrawlerOf } from './model/entities'
 import { inviteByCode, liveDiscordInvite, mintInvite } from './model/invites'
 import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permissions'
 
@@ -52,7 +51,7 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permis
  * `crew.vitals` deliberately serves the web a narrow projection — the numbers
  * and status the Crew tab draws, never the sheets they come from — because the
  * crew strip re-renders on every point of damage and pushing whole sheets down
- * that path would be absurd. The bot is not that path: `/su crew` is one
+ * that path would be absurd. The bot is not that path: `/su sheet` is one
  * request, typed by a person, a few times a session.
  *
  * The bot still derives max HP, max SP and max Heat itself: it depends on
@@ -151,37 +150,6 @@ export const games = internalQuery({
   },
 })
 
-/**
- * The caller's own shelf — what they own that is in no Game.
- *
- * Needs no channel and no binding: a shelf is personal, so this is the one
- * Game-aware command that works in a DM or an unbound channel.
- */
-export const shelf = internalQuery({
-  args: { discordId: v.string() },
-  handler: async (ctx, args): Promise<BotFailure | BotSuccess<ShelfResult>> => {
-    const user = await userByDiscordId(ctx, args.discordId)
-    if (user === null) return fail('unlinked')
-
-    const [pilots, mechs] = await Promise.all([
-      ctx.db
-        .query('pilots')
-        .withIndex('by_owner_game', (q) => q.eq('ownerId', user._id).eq('gameId', null))
-        .collect(),
-      ctx.db
-        .query('mechs')
-        .withIndex('by_owner_game', (q) => q.eq('ownerId', user._id).eq('gameId', null))
-        .collect(),
-    ])
-
-    return {
-      ok: true,
-      pilots: pilots.map((p) => ({ id: p._id, body: p.body })),
-      mechs: mechs.map((m) => ({ id: m._id, body: m.body })),
-    }
-  },
-})
-
 /** The bound Game's roster and Downtime phase. */
 export const channel = internalQuery({
   args: { discordId: v.string(), channelId: v.string() },
@@ -220,107 +188,119 @@ export const channel = internalQuery({
 })
 
 /**
- * Everything the crew board renders, grouped by owner.
+ * What `/su sheet` autocompletes to: everything the caller owns, in a Game or
+ * on a shelf, and the communal crawler of each Game they belong to.
  *
- * Grouped here rather than in the bot because ownership is a server fact and
- * an **unclaimed** entity (`ownerId: null`) is a first-class state ADR-030
- * requires every surface to render rather than blank. Emitting it as its own
- * bucket makes that impossible to forget downstream.
+ * Needs no channel: the command is personal, so it works in a DM or any
+ * channel. Somebody else's sheet is reached by pasting its link instead.
  */
-export const crew = internalQuery({
-  args: { discordId: v.string(), channelId: v.string() },
-  handler: async (ctx, args): Promise<BotFailure | BotSuccess<CrewResult>> => {
-    const actor = await resolveActor(ctx, args.channelId, args.discordId)
-    if (!actor.ok) return fail(actor.reason)
+export const mine = internalQuery({
+  args: { discordId: v.string() },
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<MineResult>> => {
+    const user = await userByDiscordId(ctx, args.discordId)
+    if (user === null) return fail('unlinked')
 
-    const { gameId, game } = actor.value
-    const [pilots, mechs, crawler] = await Promise.all([
+    const [pilots, mechs, crawlers, games] = await Promise.all([
       ctx.db
         .query('pilots')
-        .withIndex('by_game', (q) => q.eq('gameId', gameId))
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', user._id))
         .collect(),
       ctx.db
         .query('mechs')
-        .withIndex('by_game', (q) => q.eq('gameId', gameId))
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', user._id))
         .collect(),
-      // The PRIMARY crawler (ADR-037) — the one the table is anchored to.
-      primaryCrawlerOf(ctx, gameId),
+      ctx.db
+        .query('crawlers')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', user._id))
+        .collect(),
+      gamesForUser(ctx, user._id),
     ])
-    const names = await ownerNames(ctx, gameId)
+    // A Game's crawler has no owner (ADR-030 §5), so it is found by the Game.
+    const communal = await Promise.all(games.map((game) => primaryCrawlerOf(ctx, game.gameId)))
 
-    const entry = (row: Doc<'pilots'> | Doc<'mechs'>) => ({
-      id: row._id,
-      ownerId: row.ownerId,
-      ownerName: row.ownerId === null ? null : (names.get(row.ownerId) ?? null),
-      body: row.body,
-    })
-
+    const entry = (row: { _id: string; body: EntityBody }) => ({ id: row._id, body: row.body })
     return {
       ok: true,
-      game: { gameId, name: game.name },
-      viewerId: actor.value.user._id,
       pilots: pilots.map(entry),
       mechs: mechs.map(entry),
-      crawler: crawler ? { id: crawler._id, body: crawler.body } : null,
+      // Keyed by id: a crawler you own can also be a Game's primary one.
+      crawlers: [
+        ...new Map(
+          [...crawlers, ...communal.filter((row) => row !== null)].map((row) => [row._id, row])
+        ).values(),
+      ].map(entry),
     }
   },
 })
 
+/** One answer for absent and not-yours alike: either reply would otherwise disclose. */
+const SHEET_NOT_FOUND = 'That sheet could not be found, or it is not yours to read.'
+
 /**
- * One crewmate's sheet, read-only.
+ * One sheet, read-only: the caller's own, a crewmate's, or anybody's public one.
  *
- * Membership is the whole check — inside a Game you may read any crewmate's
- * pilot, mech or the communal crawler, which is what "lean over and look at
- * their sheet" means at a physical table. The entity must belong to *this
- * channel's* Game, so a member of one table cannot read another table's sheets
- * by id. A crawler in a Game is communal (ADR-030 §5): its `ownerId` is null,
- * so it reports no owner.
+ * `entityId` is a Convex row id (what the autocomplete and the live sheet link
+ * carry) or an app id (what a public `/p/` link carries). The caller may read
+ * it when it is **theirs**, when it sits in a **Game they belong to** — "lean
+ * over and look at their sheet" — or when its owner has **published** it
+ * (ADR-032), which needs no account at all. Anything else is `not-found`, the
+ * same answer as no row: telling somebody an id exists but is not theirs to
+ * read is itself a disclosure. A crawler in a Game is communal (ADR-030 §5):
+ * its `ownerId` is null, so it reports no owner.
  */
 export const sheet = internalQuery({
   args: {
     discordId: v.string(),
-    channelId: v.string(),
     table: v.union(v.literal('pilots'), v.literal('mechs'), v.literal('crawlers')),
     entityId: v.string(),
   },
   handler: async (ctx, args): Promise<BotFailure | BotSuccess<SheetResult>> => {
-    const actor = await resolveActor(ctx, args.channelId, args.discordId)
-    if (!actor.ok) return fail(actor.reason)
-
     // `normalizeId` is what makes `table` load-bearing rather than decorative.
     // A Convex id is table-tagged, but `db.get` will happily return a document
-    // from ANY table — so casting the string and checking only `gameId` let a
-    // member pass an `encounterNpcs` id and read the Mediator's prepared
-    // opposition, the one thing ADR-030 §5 says must stay hidden. It also
-    // turns a malformed id from a throw into a clean not-found.
-    const entityId = ctx.db.normalizeId(args.table, args.entityId)
-    if (entityId === null) return fail('not-found')
-
-    const doc = await ctx.db.get(entityId)
-    if (doc === null) return fail('not-found')
+    // from ANY table — so casting the string would let a caller pass an
+    // `encounterNpcs` id and read the Mediator's prepared opposition, the one
+    // thing ADR-030 §5 says must stay hidden. An id that is not this table's
+    // is tried as an app id, on this table's own index, and is otherwise
+    // not-found rather than a throw.
+    const rowId = ctx.db.normalizeId(args.table, args.entityId)
+    const doc =
+      rowId === null ? await oldestByAppId(ctx, args.table, args.entityId) : await ctx.db.get(rowId)
+    if (doc === null) return fail('not-found', SHEET_NOT_FOUND)
 
     const row = doc as unknown as {
+      _id: string
       gameId: Id<'games'> | null
       ownerId: Id<'users'> | null
       appId?: string
+      publicRead?: boolean
+      body: EntityBody
     }
-    // Not `forbidden` — telling somebody an id exists but is another table's is
-    // itself a disclosure. An id they may not read is an id that is not there.
-    if (row.gameId !== actor.value.gameId) return fail('not-found')
+    const publicRead = row.publicRead === true
+    const user = await userByDiscordId(ctx, args.discordId)
+    const mine = user !== null && row.ownerId === user._id
+    const crewmate =
+      user !== null &&
+      row.gameId !== null &&
+      (await getMembership(ctx, row.gameId, user._id)) !== null
+    if (!publicRead && !mine && !crewmate) {
+      // Somebody with no account can still read a published sheet, so for them
+      // the useful answer is how to sign in rather than a bare not-found.
+      return user === null ? fail('unlinked') : fail('not-found', SHEET_NOT_FOUND)
+    }
 
-    const names = await ownerNames(ctx, actor.value.gameId)
     const ownerId = row.ownerId
+    const owner = ownerId === null ? null : await ctx.db.get(ownerId)
     return {
       ok: true,
       table: args.table,
-      id: args.entityId,
+      id: row._id,
       appId: row.appId ?? null,
       // Whether this sheet has a PUBLIC url (ADR-032). The bot renders the
       // `/p/<kind>/<appId>` link only when this is true — a private sheet has
       // no public URL, and advertising one would 404 the reader.
-      publicRead: (doc as unknown as { publicRead?: boolean }).publicRead === true,
-      ownerName: ownerId === null ? null : (names.get(ownerId) ?? null),
-      body: (doc as unknown as { body: EntityBody }).body,
+      publicRead,
+      ownerName: ownerId === null ? null : displayNameOf(owner, 'Crewmate'),
+      body: row.body,
     }
   },
 })
