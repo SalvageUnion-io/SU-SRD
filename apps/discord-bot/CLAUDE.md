@@ -49,8 +49,8 @@ even for a type: its value import cannot run on workerd.
 
 ```bash
 bun --filter discord-bot test      # the loop: unit tests plus the signed replay harness
-bun run deploy-commands            # Register slash commands to a test guild
-bun run deploy-commands:global     # Register globally (production)
+bun run deploy-commands            # a test guild
+bun run deploy-commands:global     # production. Credentials: op run, .env.example's header
 ```
 
 ## In the Union now

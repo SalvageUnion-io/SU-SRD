@@ -34,7 +34,7 @@
  *
  * ## Usage
  *
- *   R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… \
+ *   op run --env-file=tools/r2.op.env -- \
  *     bun tools/export-lp-assets.ts <out-dir> [--prefix <p>] [--bucket <name>]
  *
  * Mint the token scoped to this one bucket — see `packages/gates/lib/r2.ts`.
@@ -42,7 +42,7 @@
  * The output directory is laid out exactly as `upload-lp-assets.ts` expects, so
  * a restore is:
  *
- *   R2_… bun tools/upload-lp-assets.ts <out-dir>
+ *   op run --env-file=tools/r2.op.env -- bun tools/upload-lp-assets.ts <out-dir>
  *
  * @public CLI entry — invoked by an operator, not imported.
  */
@@ -109,7 +109,7 @@ async function main(): Promise<void> {
 
   if (!outDir) {
     console.error(
-      'usage: R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… \\\n' +
+      'usage: op run --env-file=tools/r2.op.env -- \\\n' +
         '         bun tools/export-lp-assets.ts <out-dir> [--prefix <p>] [--bucket <name>]'
     )
     process.exit(1)
