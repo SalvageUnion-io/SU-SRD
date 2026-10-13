@@ -205,11 +205,13 @@ export {
   EntityHrefProvider,
   PatternHrefProvider,
 } from './components/referenceEntity/entityHrefContext'
+// Entity controls — `navigateControl` and `foldControl` (the Row ⇄ Card
+// disclosure) are the live presets. `addControl`, `deleteControl` and
+// `selectControl` were measured to zero production call sites and deleted;
+// consumers build the rest directly.
+export { foldControl } from './components/referenceEntity/foldControl'
 export { quotePatternName } from './components/referenceEntity/pattern/quotePatternName'
 export { useChassisPatternConfig } from './components/referenceEntity/pattern/useChassisPatternConfig'
-// Entity controls — `navigateControl` is the only live preset. `addControl`,
-// `deleteControl` and `selectControl` were measured to zero production call
-// sites and deleted; consumers build controls directly.
 export { navigateControl } from './components/referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
 export { useDetailModal } from './components/referenceEntity/useDetailModal'

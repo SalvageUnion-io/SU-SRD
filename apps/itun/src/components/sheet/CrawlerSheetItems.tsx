@@ -5,13 +5,14 @@
  */
 
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
-import { Content, ReferenceEntityCard, tokens, useDetailModal } from 'component-lib'
+import { Content, foldControl, ReferenceEntityCard, tokens, useDetailModal } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
+import { useId, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
-import { BAY_REPAIR_COST } from '../../lib/rules/crawlerItems'
+import { BAY_REPAIR_COST, bayTechLines } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
@@ -140,6 +141,17 @@ function splitBayContent(content: unknown): { normal: unknown[]; damaged: string
   return { normal, damaged }
 }
 
+/**
+ * What a FOLDED bay keeps of its rules: the line for the crawler's own Tech
+ * Level (`bayTechLines`) and the bay's choice markers, so a pick still reads
+ * where the book puts it. The rest of the prose waits behind the disclosure.
+ */
+function foldedBayContent(normal: unknown[], crawlerTl: number): unknown[] {
+  const blocks = normal as { type?: unknown; label?: string }[]
+  const tlLines = new Set<unknown>(bayTechLines(blocks, crawlerTl))
+  return blocks.filter((block) => block.type === 'choice' || tlLines.has(block))
+}
+
 type CrawlerBayCardProps = {
   crawlerId: string
   entry: CrawlerBayEntry
@@ -189,6 +201,13 @@ type CrawlerBayCardProps = {
  * function/Repair foot actions, and the bay's SRD choices (e.g. the Armament
  * Bay weapon pick). The bay's full rules open in a detail modal from the
  * function action.
+ *
+ * The bay starts FOLDED: it shows its state — condition, crew lead, the line
+ * for the crawler's Tech Level, the roll bar, what it holds — and keeps its
+ * prose behind the card's Row ⇄ Card disclosure (`foldControl`). The bay is a
+ * child of the crawler sheet, and a child hides prose its parent shows
+ * (ruleset §5); printed inline, every bay's rules ran the starter crawler
+ * sheet to thousands of pixels.
  */
 export function CrawlerBayCard({
   crawlerId,
@@ -219,6 +238,8 @@ export function CrawlerBayCard({
   )
   const bay = resolveCrawlerBay(entry.bayRef)
   const detail = useDetailModal(bay ?? undefined)
+  const [folded, setFolded] = useState(true)
+  const surfaceId = useId()
 
   if (!bay) {
     return <div style={UNKNOWN_BAY}>{entry.bayRef}</div>
@@ -345,10 +366,21 @@ export function CrawlerBayCard({
     },
   ]
 
+  // Folds the prose only: the card keeps its Card form and every live field,
+  // so the disclosure is the one way to open it (no card-wide click — typing
+  // in the crew inset must never unfold the bay around it).
+  const fold = foldControl({
+    subject: bay.name,
+    folded,
+    surfaceId,
+    onToggle: () => setFolded((f) => !f),
+  })
+
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
   // expand inset instead — and without the "when damaged" clause,
   // which is held back until it applies (see WHEN_DAMAGED).
-  const { normal } = splitBayContent(bay.content)
+  const { normal: bayRules } = splitBayContent(bay.content)
+  const normal = folded ? foldedBayContent(bayRules, crawlerTl) : bayRules
   const damagedText =
     typeof (bay as { damagedEffect?: unknown }).damagedEffect === 'string'
       ? (bay as { damagedEffect: string }).damagedEffect
@@ -369,7 +401,7 @@ export function CrawlerBayCard({
         onStatusClick={readOnly ? undefined : toggleCondition}
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
-        controls={readOnly ? undefined : controls}
+        controls={readOnly ? [fold] : [...controls, fold]}
         footMeta={footMeta}
         expand={
           damaged && damagedText ? (

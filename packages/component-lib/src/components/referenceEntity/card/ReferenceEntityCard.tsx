@@ -1,4 +1,3 @@
-import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useContext, useId, useState } from 'react'
 import type {
@@ -35,6 +34,7 @@ import type { CardExtent, CardSize } from '../../containers/displayMode'
 import { resolveCardDisplay } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import { useEntityExternalLink } from '../entityHrefContext'
+import { foldControl } from '../foldControl'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
@@ -1248,22 +1248,13 @@ export function ReferenceEntityCard({
   const foldControls: ReferenceEntityControl[] = !collapsible
     ? []
     : [
-        {
-          key: '__fold',
-          // THE fold control: a disclosure button whose name stays put while
-          // `aria-expanded` carries the state. Folded, it is also the card's
-          // pointer target (`cardClick`): its own click stops propagation, so
-          // the two never both fire.
-          icon: folded ? ChevronDown : ChevronUp,
-          variant: 'ghost',
-          className: 'su-card-fold',
-          ...(folded ? { cardClick: true } : {}),
-          ariaLabel: `${label} details`,
-          title: folded ? 'Expand' : 'Collapse',
-          ariaExpanded: !folded,
-          ariaControls: surfaceId,
-          onClick: () => setCollapsed((c) => !c),
-        },
+        foldControl({
+          subject: label ?? '',
+          folded,
+          surfaceId,
+          onToggle: () => setCollapsed((c) => !c),
+          cardClick: true,
+        }),
       ]
 
   const card = (

@@ -7,6 +7,7 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { foldControl } from '../../foldControl'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const drill = () => {
@@ -52,5 +53,27 @@ describe('a folded card', () => {
     // The chevron's own click stops at the button: one click, one toggle.
     fireEvent.click(chevron())
     expect(chevron().getAttribute('aria-expanded')).toBe('true')
+  })
+})
+
+describe('foldControl', () => {
+  test('folded, it makes the card a pointer target only when asked', () => {
+    const base = { subject: 'Pilot Bay', surfaceId: 'bay', onToggle: () => {} }
+    expect(foldControl({ ...base, folded: true, cardClick: true }).cardClick).toBe(true)
+    expect(foldControl({ ...base, folded: true }).cardClick).toBeUndefined()
+    // Open, the chevron is only a chevron.
+    expect(foldControl({ ...base, folded: false, cardClick: true }).cardClick).toBeUndefined()
+  })
+
+  test('names its subject and the surface it controls', () => {
+    const control = foldControl({
+      subject: 'Pilot Bay',
+      folded: true,
+      surfaceId: 'bay',
+      onToggle: () => {},
+    })
+    expect(control.ariaLabel).toBe('Pilot Bay details')
+    expect(control.ariaExpanded).toBe(false)
+    expect(control.ariaControls).toBe('bay')
   })
 })
