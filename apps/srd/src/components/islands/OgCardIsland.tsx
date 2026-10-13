@@ -1,4 +1,4 @@
-import { OgCard } from 'component-lib'
+import { BrandCard, OgCard } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
 import type {
   SURefEntity,
@@ -123,6 +123,9 @@ function OgCardResolved() {
   )
 }
 
+/** The default preview's kicker; the Discord banner's says ITUN's. */
+const SRD_KICKER = 'The Salvage Union SRD'
+
 /**
  * Deliberately NOT wrapped in `IslandErrorBoundary`: this is rendered by the
  * build-time screenshot script, never hydrated in a user's browser, so a
@@ -130,6 +133,11 @@ function OgCardResolved() {
  * resolve reference data at runtime.
  */
 export function OgCardIsland() {
+  // `?brand` draws the site's own preview, `public/og-image.png`: every page
+  // without a card of its own unfurls with it. It needs no game data.
+  if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('brand')) {
+    return <BrandCard kicker={SRD_KICKER} />
+  }
   return (
     <GameDataGate fallback={null}>
       <OgCardResolved />

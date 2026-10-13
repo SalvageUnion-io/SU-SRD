@@ -83,6 +83,8 @@ export { AppBar } from './components/compositions/AppBar'
 // `sizes` on the <img> exactly, or the preload selects a different candidate
 // and the page fetches two files instead of one.
 export { assetSrcSetFor } from './components/compositions/assetSrcSet'
+// BrandCard — the site's own 1200 × 630 link preview, the Discord banner's face.
+export { BrandCard } from './components/compositions/BrandCard'
 // Colophon (renders the repo-root ABOUT_JRVS.md + LLM_STATEMENT.md on both about pages)
 export { Colophon } from './components/compositions/Colophon'
 // ControlButtons — the control strip Card's rail renders; public because
