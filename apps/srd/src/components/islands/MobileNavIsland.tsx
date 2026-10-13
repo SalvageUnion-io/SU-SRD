@@ -84,12 +84,12 @@ function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) 
   const isActive = (candidate: string) => path.startsWith(candidate)
 
   const navItems: NavDrawerItem[] = [
-    { label: 'ABOUT', href: '/about/', active: isActive('/about') },
-    { label: 'CHANGELOG', href: '/changelog/', active: isActive('/changelog') },
-    { label: 'DISCORD', href: '/discord/', active: isActive('/discord') },
+    { label: 'About', href: '/about/', active: isActive('/about') },
+    { label: 'Changelog', href: '/changelog/', active: isActive('/changelog') },
+    { label: 'Discord', href: '/discord/', active: isActive('/discord') },
     { label: 'API', href: '/api/', active: isActive('/api') },
     {
-      label: 'BUY THE GAME',
+      label: 'Buy the game',
       href: 'https://leyline.press/collections/salvage-union',
       external: true,
     },

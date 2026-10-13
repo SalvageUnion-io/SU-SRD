@@ -397,7 +397,7 @@ export function PhoneResolve({
           title="Reactor meltdown"
           tone="danger"
           body={`${resolving?.pushLog ?? 'The Heat Check melted the reactor down.'} Mark the mech Destroyed?`}
-          confirmLabel="Mark Destroyed"
+          confirmLabel="Mark destroyed"
           onConfirm={meltdown.onConfirm}
         />
       )}

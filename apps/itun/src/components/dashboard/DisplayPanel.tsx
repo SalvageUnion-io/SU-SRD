@@ -201,8 +201,8 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
       if (mount === 'pilot') {
         controls.push({
           key: 'load',
-          label: 'Load Into Mech ▶',
-          ariaLabel: 'Load Into Mech',
+          label: 'Load into Mech ▶',
+          ariaLabel: 'Load into Mech',
           onClick: () => seat.board(mech.id),
           variant: 'primary',
         })

@@ -291,6 +291,23 @@ export const BANNED: readonly Banned[] = [
     // The book's own Mech sheet labels its box "Heat Cap" (Core Book p.98).
     allowWhole: /^Heat Cap\.?$/i,
   },
+  {
+    // "scrapped" and "scrapping" are only ever the verb; "Scrap" is the verb
+    // where it opens a sentence before its object ("Scrap the mech").
+    pattern:
+      /(?<![\w-])[Ss]crap(?:ped|ping)(?![\w-])|(?<=^|[.!?]\s)Scrap(?= (?:a|an|the|this|that|it|them)\b)/g,
+    say: 'Break down (or Delete, for a record)',
+    why: 'Scrap is the currency; the book\'s verb is "break down" (Core Book p.248), and the ruleset\'s verb list (§3.12) is Copy / Move / Delete / Break down',
+  },
+  {
+    // An initialism is a name, not a shout.
+    pattern: /(?<![\w-])(?!(?:ITUN|TTRPG|JSON|JPEG|HTML|CORS)(?![\w-]))[A-Z]{4,}(?![\w-])/g,
+    say: 'sentence case',
+    why: 'caps in a sentence shout; a capitalised label is the stamp component (Badge shape="stamp"), ruleset §3.12',
+    // A string with no lower case is a label set in caps on purpose (the
+    // Discord bot's `-# FOUND IN` subtext, where a stamp cannot reach).
+    allowWhole: /^[^a-z]*$/,
+  },
 ]
 
 export const PRODUCT_FILE = 'packages/component-lib/src/product.ts'

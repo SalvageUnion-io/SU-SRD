@@ -204,7 +204,7 @@ describe('what a row offers', () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     // Game rows carry no trash at all — leaving a character you hold is
-    // "Offer to the crew", and the crawler's Scrap is the table runner's.
+    // "Offer to the crew", and deleting the crawler is the table runner's.
     // Nothing here can destroy somebody else's build.
     expect(screen.queryByRole('button', { name: /Delete Ash/i })).toBeNull()
   })
@@ -279,13 +279,13 @@ describe('what the game will accept', () => {
     expect(screen.getAllByRole('button', { name: 'Make primary' })).toHaveLength(1)
   })
 
-  test('only the table runner may scrap a crawler', async () => {
+  test('only the table runner may delete a crawler', async () => {
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-    expect(screen.queryByRole('button', { name: 'Scrap' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull()
 
     cleanup()
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    expect(screen.getByRole('button', { name: 'Scrap' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeTruthy()
   })
 
   test('the crawler opens for every member to read', async () => {
@@ -431,15 +431,15 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
-  test('Scrap says it is for everyone and permanent, and scraps nothing until confirmed', async () => {
+  test('Deleting the crawler says it is for everyone and permanent, and deletes nothing until confirmed', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    const dialog = press('Scrap')
+    const dialog = press('Delete')
 
-    expect(dialog.textContent).toContain('Scrap #430 Tenacity?')
+    expect(dialog.textContent).toContain('Delete #430 Tenacity?')
     expect(dialog.textContent).toContain("for everyone in the Game and can't be undone")
     expect(mutations).toHaveLength(0)
 
-    await confirmWith('Scrap')
+    await confirmWith('Delete')
     expect(mutations).toEqual([
       { name: 'entities:removeCrawler', args: { crawlerId: 's-crawler' } },
     ])
@@ -484,9 +484,9 @@ describe('every verb that changes who has a build asks first', () => {
     expect(localPilotNames()).toEqual(before)
   })
 
-  test('Cancel on Scrap leaves the crawler alone', async () => {
+  test('Cancel on deleting the crawler leaves it alone', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    press('Scrap')
+    press('Delete')
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -505,13 +505,13 @@ describe('every verb that changes who has a build asks first', () => {
 
   test('any other failure stays on the dialog with a plain reason, never the raw error', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    press('Scrap')
+    press('Delete')
     mutationError = new Error('[CONVEX M(entities:removeCrawler)] Server Error')
 
-    await confirmWith('Scrap')
+    await confirmWith('Delete')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(screen.getByRole('alert').textContent).toBe(
-      '#430 Tenacity could not be scrapped. Try again.'
+      '#430 Tenacity could not be deleted. Try again.'
     )
   })
 })

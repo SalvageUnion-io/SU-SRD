@@ -41,7 +41,7 @@ function page(): PageResult {
             aside={
               <div className="srd-not-found__lede">
                 <p>
-                  <strong>404 · Salvage operation failed.</strong> This page was scrapped,
+                  <strong>404 · Salvage operation failed.</strong> This page was broken down,
                   relocated, or never existed. Search the SRD for it, or open a chapter.
                 </p>
                 <Island name="SearchIsland" client="idle" ssr props={{ variant: 'hero' }}>

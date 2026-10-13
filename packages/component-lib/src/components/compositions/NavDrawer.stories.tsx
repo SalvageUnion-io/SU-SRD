@@ -82,12 +82,12 @@ export const Default: Story = () => {
         categories={CATEGORIES}
         search={<SearchField placeholder="Search…" aria-label="Search the SRD" />}
         navItems={[
-          { label: 'ABOUT', href: '/about/', active: true },
-          { label: 'CHANGELOG', href: '/changelog/' },
-          { label: 'DISCORD', href: '/discord/' },
-          { label: 'BUILDER ↗', href: 'https://salvageunion.io/build/', external: true },
+          { label: 'About', href: '/about/', active: true },
+          { label: 'Changelog', href: '/changelog/' },
+          { label: 'Discord', href: '/discord/' },
+          { label: 'Builder ↗', href: 'https://salvageunion.io/build/', external: true },
           {
-            label: 'BUY THE GAME',
+            label: 'Buy the game',
             href: 'https://leyline.press/collections/salvage-union',
             external: true,
           },

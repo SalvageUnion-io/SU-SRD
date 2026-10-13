@@ -188,15 +188,15 @@ describe("the crawler is the Mediator's", () => {
   test('a player sees the numbers and bays, but no crawler verbs', () => {
     renderRow({ mount: 'downtime', mediator: false })
     expect(screen.getByText('Hull')).toBeTruthy()
-    for (const verb of ['Salvage', 'Craft', 'Scrap Mech']) {
+    for (const verb of ['Salvage', 'Craft', 'Break down']) {
       expect(screen.queryByText(verb)).toBeNull()
     }
     expect(screen.getByText(/The Mediator runs the crawler/)).toBeTruthy()
   })
 
-  test('the Mediator gets Salvage, Craft and Scrap Mech', () => {
+  test('the Mediator gets Salvage, Craft and Break down', () => {
     renderRow({ mount: 'downtime', mediator: true })
-    for (const verb of ['Salvage', 'Craft', 'Scrap Mech']) {
+    for (const verb of ['Salvage', 'Craft', 'Break down']) {
       expect(screen.getByText(verb)).toBeTruthy()
     }
   })

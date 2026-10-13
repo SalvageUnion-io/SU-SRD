@@ -175,7 +175,7 @@ export function CrawlerMajor({
   stampLabel,
 }: {
   crawler: Crawler
-  /** The mech Scrap Mech breaks down: the pilot's own, or null with none. */
+  /** The mech "Break down" takes apart: the pilot's own, or null with none. */
   mech: Mech | null
   store: PlayStore
   /** The viewer is the Game's Mediator, who alone runs the crawler. */
@@ -311,7 +311,7 @@ export function CrawlerMajor({
     }
     if (prompt.kind === 'scrap') {
       return {
-        title: 'Mech Scrapped',
+        title: 'Mech broken down',
         onClose,
         body: (
           <p className="su-dash-resolve-log">
@@ -421,12 +421,12 @@ export function CrawlerMajor({
     mediator && mech !== null
       ? [
           {
-            label: 'Scrap a mech',
+            label: 'Break down a Mech',
             side: true,
             columns: 1,
             buttons: [
               {
-                label: 'Scrap Mech',
+                label: 'Break down',
                 onClick: () => doScrap(mech),
                 variant: 'danger',
                 title: `Break ${mech.name} down into Scrap — destructive`,

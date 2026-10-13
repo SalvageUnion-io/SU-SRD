@@ -332,7 +332,7 @@ export function MechMajor({
         actions: prompt.meltdown
           ? [
               {
-                label: 'Confirm Meltdown — Mark Mech Destroyed',
+                label: 'Confirm Meltdown — Mark Mech destroyed',
                 onClick: confirmDestroyed,
                 variant: 'danger',
               },
@@ -366,7 +366,7 @@ export function MechMajor({
         prompt.effect === null
           ? [{ label: 'Roll Critical Damage', onClick: rollCritical, variant: 'danger' }]
           : prompt.effect.destroyed
-            ? [{ label: 'Mark Mech Destroyed', onClick: confirmDestroyed, variant: 'danger' }]
+            ? [{ label: 'Mark Mech destroyed', onClick: confirmDestroyed, variant: 'danger' }]
             : undefined
       return {
         title: 'Critical Damage',

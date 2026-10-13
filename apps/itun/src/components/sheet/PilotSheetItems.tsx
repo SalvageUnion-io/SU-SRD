@@ -234,7 +234,7 @@ export function PilotAbilityItem({
           onToggleUsed(!used)
         }}
       >
-        {used ? 'Recharge' : 'Mark Used'}
+        {used ? 'Recharge' : 'Mark used'}
       </Button>
     </div>
   )

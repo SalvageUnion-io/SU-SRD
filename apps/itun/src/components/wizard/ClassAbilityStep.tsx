@@ -92,7 +92,7 @@ export function ClassAbilityStep({
 
       {selectedClass === undefined ? (
         <EmptyState
-          headline="No Class Selected"
+          headline="No Class selected"
           body="Pick a class to reveal its first-Ability choices."
         />
       ) : (

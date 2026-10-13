@@ -42,8 +42,8 @@ export const Default: Story = () => {
     { key: 'sheet', href: '#', label: 'Full mech sheet →' },
     {
       key: 'load',
-      label: 'Load Into Mech ▶',
-      ariaLabel: 'Load Into Mech',
+      label: 'Load into Mech ▶',
+      ariaLabel: 'Load into Mech',
       onClick: () => {},
       variant: 'primary',
     },

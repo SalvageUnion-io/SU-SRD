@@ -64,7 +64,7 @@ export function CrawlerIdentityStep({
   return (
     <div className="wiz-stack wiz-stack--20" style={COLUMN}>
       <Field
-        label="Crawler Name"
+        label="Crawler name"
         value={name}
         onSave={(next) => onChange({ name: next })}
         placeholder="e.g. Crawler #132, aka ‘Tin Lizzy’"

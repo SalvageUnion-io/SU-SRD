@@ -150,6 +150,43 @@ describe('lintCopy', () => {
     expect(lintCopy(at('Tech 3 and Heat Capacity'), [], BANNED)['banned-variant']).toEqual([])
   })
 
+  test('bans Scrap as a verb, never the currency', () => {
+    const r = lintCopy(
+      [
+        ...at('Mech scrapped'),
+        ...at('Scrapping…'),
+        ...at('Scrap the mech into the pool.'),
+        ...at('Pay 5 Scrap this Downtime. Gain 3 Scrap into the pool.'),
+        ...at('the Tech Level of the Scrap it would find'),
+      ],
+      [],
+      BANNED
+    )
+    expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
+      '"scrapped"',
+      '"Scrapping"',
+      '"Scrap"',
+    ])
+  })
+
+  test('bans a shouted word in a sentence, but not an initialism or an all-caps label', () => {
+    const r = lintCopy(
+      [
+        ...at('OVERLOAD. Reactor Overload 20'),
+        ...at('the mech is DESTROYED'),
+        ...at('JSON over CORS, for the Salvage Union TTRPG, in ITUN'),
+        ...at('-# NOTHING FOUND IN'),
+        ...at('Tech 3, HP 4'),
+      ],
+      [],
+      BANNED
+    )
+    expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
+      '"OVERLOAD"',
+      '"DESTROYED"',
+    ])
+  })
+
   test('bans every other casing of the product names, but not a log tag', () => {
     const bans = productBans({ name: 'In the Union now', shortName: 'ITUN' })
     const r = lintCopy(

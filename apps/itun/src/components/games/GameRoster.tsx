@@ -309,7 +309,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                   disabled={busy}
                   onClick={() => rowActions.scrap(row)}
                 >
-                  Scrap
+                  Delete
                 </Button>
               )}
             </>

@@ -46,7 +46,7 @@ const STEPS: readonly PilotWizardStepId[] = [
 
 /** Stepper-rail labels (mockup Screen 01 `.rlabel`). */
 const STEP_LABELS: Record<PilotWizardStepId, string> = {
-  stats: 'Your Stats',
+  stats: 'Your stats',
   classAbility: 'Class & Ability',
   equipment: 'Equipment',
   callsign: 'Callsign',

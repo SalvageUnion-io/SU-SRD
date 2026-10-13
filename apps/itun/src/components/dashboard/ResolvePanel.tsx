@@ -285,7 +285,7 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
         {view.meltdown && (
           <div className="su-dash-deck-controls">
             <Button variant="danger" size="compact" style={GROW} onClick={view.meltdown.onConfirm}>
-              Confirm Meltdown — Mark Mech Destroyed
+              Confirm Meltdown — Mark Mech destroyed
             </Button>
           </div>
         )}

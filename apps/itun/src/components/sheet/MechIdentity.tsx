@@ -102,7 +102,7 @@ export function MechIdentityPanel({
       <div style={STACK}>
         {/* The prominent identity: pattern name (== the mech's name). */}
         <Field
-          label="Pattern Name"
+          label="Pattern name"
           value={mech.name}
           onSave={canEdit ? savePatternName : undefined}
           prominent

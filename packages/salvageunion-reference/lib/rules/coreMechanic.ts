@@ -154,7 +154,7 @@ export function describeOverloadOutcome(result: HeatCheckEffect['result']): stri
   const rowText = row.result.label && sentence ? `${row.result.label}: ${sentence}` : sentence
   const bookkeeping = result.outcome ? OVERLOAD_BOOKKEEPING[result.outcome] : ''
   const outcome = [rowText, bookkeeping].filter(Boolean).join(' ')
-  return `OVERLOAD. Reactor Overload ${result.overloadRoll}: ${outcome}`
+  return `Overload. Reactor Overload ${result.overloadRoll}: ${outcome}`
 }
 
 /**

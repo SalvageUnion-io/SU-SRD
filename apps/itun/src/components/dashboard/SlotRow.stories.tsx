@@ -188,10 +188,10 @@ function mechMajor(mech: Mech, pilot: Pilot, boarded: boolean): MajorModel {
 function crawlerMajor(crawler: Crawler, mediator: boolean): MajorModel {
   const bays = bayConditions(crawler)
   const scrap: BandBay = {
-    label: 'Scrap a mech',
+    label: 'Break down a Mech',
     side: true,
     columns: 1,
-    buttons: [btn('Scrap Mech', 'danger')],
+    buttons: [btn('Break down', 'danger')],
   }
   return {
     fam: 'crawler',
@@ -382,7 +382,7 @@ export const DowntimePlayer = () => (
   </div>
 )
 
-/** Downtime, as the Mediator sees it: Salvage, Craft and Scrap Mech. */
+/** Downtime, as the Mediator sees it: Salvage, Craft and Break down. */
 export const DowntimeMediator = () => (
   <div style={STACK}>
     <Caption>Downtime, the Mediator — the crawler verbs are live.</Caption>

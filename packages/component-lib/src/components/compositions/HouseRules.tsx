@@ -40,7 +40,7 @@ const CITE = { fontSize: fontSize.xs, fontStyle: 'normal', opacity: 0.75 } satis
 export function HouseRules({ className }: HouseRulesProps) {
   return (
     <section className={className} style={ROOT}>
-      <Slab as="h2" variant="solid" label="House Rules" style={{ marginBottom: 0 }} />
+      <Slab as="h2" variant="solid" label="House rules" style={{ marginBottom: 0 }} />
       <p>
         Where these tools deliberately depart from the book, the change is listed here, and a stat
         it affects is labelled “house rule” in its breakdown.

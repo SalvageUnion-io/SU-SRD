@@ -244,7 +244,7 @@ export function NavDrawer({
             className={cn('su-drawer su-nav-drawer__panel', panelClassName)}
             style={PANEL}
           >
-            <Drawer.Title style={SR_ONLY}>Navigation Menu</Drawer.Title>
+            <Drawer.Title style={SR_ONLY}>Navigation menu</Drawer.Title>
 
             {/* Brand row: lockup | Close */}
             <div style={BRAND_ROW}>

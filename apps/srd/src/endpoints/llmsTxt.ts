@@ -47,7 +47,7 @@ Salvage Union is created and published by Leyline Press (https://leyline.press).
 Rules prose (player-facing guides and processes) lives at: ${SITE_URL}${schemaHref('guides')}
 Individual guide pages are accessible at: ${SITE_URL}${schemaHref('guides')}{slug}/
 Guide data as JSON: ${SITE_URL}/schema/guides.json
-All other schema endpoints contain structured game DATA (stats, abilities, tables, etc.), not narrative rules prose.
+All other schema endpoints contain structured game data (stats, abilities, tables, etc.), not narrative rules prose.
 Guides are the primary resource for LLM consumers seeking rule explanations and procedures.
 
 ## JSON API

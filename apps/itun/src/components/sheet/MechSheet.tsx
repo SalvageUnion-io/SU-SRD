@@ -582,7 +582,7 @@ export function MechSheet({
       {linkedUnits && (
         <SheetSectionSlab
           id="linked-units"
-          title="Assigned Units"
+          title="Assigned units"
           // Side by side: each linked unit is one roster row, and two of them
           // stack to a wasteful column on a sheet that has the width for both.
           bodyClassName="su-sheet-mech-linked"

@@ -142,7 +142,7 @@ export function CrawlerTypeEditModal({
                 disabled={!changed}
                 onClick={() => setConfirming(true)}
               >
-                Change Type…
+                Change type…
               </Button>
             </>
           }
@@ -180,7 +180,7 @@ export function CrawlerTypeEditModal({
               onClick={() => void applyChange()}
               disabled={busy}
             >
-              {busy ? 'Changing…' : 'Change Type'}
+              {busy ? 'Changing…' : 'Change type'}
             </Button>
           </div>
         </div>

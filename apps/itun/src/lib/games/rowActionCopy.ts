@@ -27,7 +27,7 @@ import type { ClearedAssignment } from '../links/clearedByMove'
 export type RowActionKind = 'pilot' | 'mech' | 'crawler' | 'npc'
 
 export type ConfirmCopy = {
-  /** The question, naming the build: "Scrap #430 Tenacity?". */
+  /** The question, naming the build: "Delete Tenacity?". */
   title: string
   /** One paragraph each: what happens, then whether and how it can be undone. */
   body: readonly string[]
@@ -225,15 +225,15 @@ export const ROW_ACTION_COPY = {
     }
   },
 
-  /** Scrapping the crew's crawler — the table runner's act, and a crawler's Delete. */
+  /** Deleting the crew's crawler — the table runner's act, so it says it is for everyone. */
   scrap(name: string): ConfirmCopy {
     return {
-      title: `Scrap ${name}?`,
+      title: `Delete ${name}?`,
       body: [`This deletes ${name} for everyone in the Game and can't be undone.`],
-      confirmLabel: 'Scrap',
-      pendingLabel: 'Scrapping…',
+      confirmLabel: 'Delete',
+      pendingLabel: 'Deleting…',
       tone: 'danger',
-      failure: `${name} could not be scrapped. Try again.`,
+      failure: `${name} could not be deleted. Try again.`,
     }
   },
 

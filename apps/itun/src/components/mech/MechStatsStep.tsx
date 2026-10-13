@@ -38,7 +38,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
   if (!chassis) {
     return (
       <EmptyState
-        headline="No Chassis Crafted"
+        headline="No Chassis crafted"
         body="Craft a chassis first — its statistics appear here."
       />
     )

@@ -511,7 +511,7 @@ export function CrawlerSheet({
         {linkedUnits && (
           <SheetSectionSlab
             id="linked-units"
-            title="Assigned Units"
+            title="Assigned units"
             // A wrapping column, never a row: a row of full unit rows made the
             // page wider than the viewport. Read stacks one-line listing cards;
             // Edit stacks the full rows with their Assign controls.

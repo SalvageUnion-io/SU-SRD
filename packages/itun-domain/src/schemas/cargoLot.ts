@@ -37,7 +37,7 @@ export const CargoLotSchema = z
     if (lot.cat === 'SCRAP' && lot.tl === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'SCRAP cargo lots must carry a tech level (tl)',
+        message: 'A Scrap lot must carry a Tech Level (tl)',
         path: ['tl'],
       })
     }

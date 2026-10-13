@@ -52,7 +52,7 @@ const STEP_LABELS: Record<MechWizardStepId, string> = {
   modules: 'Craft your Modules',
   quirk: 'Quirk',
   appearance: 'Appearance',
-  pattern: 'Pattern Name',
+  pattern: 'Pattern name',
   review: 'Review',
 }
 

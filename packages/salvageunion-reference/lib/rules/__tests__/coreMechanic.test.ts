@@ -111,7 +111,7 @@ describe('describePushOutcome', () => {
       roll: seqRoll(4, 12),
     })
     const line = describePushOutcome(nextHeat, effect)
-    expect(line).toContain('OVERLOAD')
+    expect(line).toContain('— Overload.')
     expect(line).toContain('Reactor Overload 12')
     expect(line).toContain('Reactor Overheat')
   })
@@ -127,7 +127,7 @@ describe('describePushOutcome', () => {
     const effect = performHeatCheck({ heat: 6, currentSP: 8, roll: seqRoll(3, 20) })
     expect(effect.result.outcome).toBe('overdrive')
     expect(describePushOutcome(6, effect)).toBe(
-      '+2 Heat → 6. Heat Check 3 vs Heat 6 — OVERLOAD. Reactor Overload 20: Reactor ' +
+      '+2 Heat → 6. Heat Check 3 vs Heat 6 — Overload. Reactor Overload 20: Reactor ' +
         "Overdrive: Your Mech's reactor goes into overdrive. Your Mech can take any " +
         'additional action this turn or Push their next roll within 10 minutes for free.'
     )

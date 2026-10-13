@@ -90,7 +90,7 @@ export function CrawlerTypeSelectStep({
         </>
       ) : (
         <EmptyState
-          headline="No Type Selected"
+          headline="No type selected"
           body="Pick a type to preview its unique Ability and special NPC."
         />
       )}

@@ -675,7 +675,7 @@ export function PilotSheet({
             <div className="su-sheet-pilot-order-2" style={MIN_W_0}>
               <SheetSectionSlab
                 id="linked-units"
-                title="Assigned Units"
+                title="Assigned units"
                 bodyClassName="su-sheet-pilot-stack-16"
               >
                 {linkedUnits}
