@@ -23,6 +23,7 @@ import { act, fireEvent, render, renderHook, screen, within } from '@testing-lib
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -144,6 +145,47 @@ describe('a MajorModel renders through both forms', () => {
     })
   }
 
+  for (const form of ['canvas', 'phone'] as const) {
+    test(`${form}: a prompt takes focus at its title, covers the bays, speaks, and gives focus back`, () => {
+      function Prompted() {
+        const [open, setOpen] = useState(false)
+        const model = fixtureModel(() => setOpen(true))
+        const overlay = {
+          title: 'Reactor',
+          onClose: () => setOpen(false),
+          body: <p>Vented.</p>,
+          announce: 'Vented, Heat 0.',
+        }
+        return <MajorFrame view={open ? { ...model, overlay } : model} />
+      }
+      const { container } = render(
+        form === 'phone' ? (
+          <Phone>
+            <Prompted />
+          </Phone>
+        ) : (
+          <Prompted />
+        )
+      )
+      // The live region is there before any prompt, so its first words are heard.
+      const live = container.querySelector('[aria-live="polite"]')
+      expect(live?.textContent).toBe('')
+      const vent = screen.getByRole('button', { name: 'Vent' })
+      act(() => vent.focus())
+      fireEvent.click(vent)
+
+      const dialog = screen.getByRole('dialog', { name: 'Reactor' })
+      expect(document.activeElement).toBe(within(dialog).getByText('Reactor'))
+      expect(vent.closest('[inert]')).toBeTruthy()
+      expect(live?.textContent).toBe('Vented, Heat 0.')
+
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(vent.closest('[inert]')).toBeNull()
+      expect(document.activeElement).toBe(vent)
+    })
+  }
+
   test('phone: the main bays, then what goes between, then the side bays', () => {
     render(
       <Phone between={<p>the deck</p>}>
@@ -182,8 +224,10 @@ describe('a MajorModel renders through both forms', () => {
     const dialog = screen.getByRole('dialog', { name: 'Take Structure Damage' })
     expect(within(dialog).getByRole('img', { name: /^SP 7 of 9/ })).toBeTruthy()
     expect(within(dialog).getByRole('button', { name: 'Apply −1 SP' })).toBeTruthy()
-    // The bays and the deck are covered, not beside it.
-    expect(screen.queryByText('the deck')).toBeNull()
+    // The bays and the deck are covered, not beside it: hidden and inert,
+    // kept mounted so the opener can take focus back.
+    expect(screen.queryByRole('button', { name: 'Vent' })).toBeNull()
+    expect(screen.getByText('the deck').closest('[inert]')).toBeTruthy()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
     expect(onClose).toHaveBeenCalledTimes(1)
   })

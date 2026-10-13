@@ -80,9 +80,14 @@ describe('⤢ overlay', () => {
     const { dialog } = await openMech()
     expect(dialog).toBeTruthy()
     // The pilot still holds the Major; the Mech is still a Minor. (Behind the
-    // modal, so hidden from the accessibility tree while it is open.)
+    // modal, so hidden from the accessibility tree while it is open: the modal
+    // hides each sibling of the Major's live region, the Minor's own section
+    // among them, and an aria-hidden node has no accessible name to query by.)
     expect(screen.getByText('On Foot')).toBeTruthy()
-    expect(screen.getByRole('region', { name: 'Mech · Scrapper', hidden: true })).toBeTruthy()
+    const minor = screen
+      .getAllByRole('region', { hidden: true })
+      .find((el) => el.getAttribute('aria-label') === 'Mech · Scrapper')
+    expect(minor?.closest('[aria-hidden="true"]')).toBeTruthy()
   })
 
   test('closes on Escape and returns focus to ⤢', async () => {

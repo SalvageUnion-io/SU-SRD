@@ -362,6 +362,19 @@ describe('the Actions deck', () => {
     expect(sent).toEqual(['Far'])
   })
 
+  test('the roll and Apply are spoken by a live region mounted before the roll', async () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    clickPrimaryAction(container)
+    const live = container.querySelector('.su-dash-display-scroll > [aria-live="polite"]')
+    expect(live?.textContent).toBe('')
+    await clickRolling('Roll')
+    expect(live?.textContent).toMatch(/^Rolled 14: \S/)
+    fireEvent.click(screen.getByText('Apply'))
+    expect(live?.textContent).toMatch(/Result applied$/)
+  })
+
   test('resolve panel exposes Back / Clear and an Apply gated on a roll', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)

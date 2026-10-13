@@ -15,7 +15,8 @@
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
 import { Badge, Button, Entity } from 'component-lib'
 import { radius } from 'component-lib/design/tokens'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { GaugeTone } from './DashboardGauge'
@@ -116,6 +117,12 @@ export type BandOverlay = {
   gauges?: BandGauge[]
   body?: ReactNode
   actions?: BandButton[]
+  /**
+   * The roll or result the overlay reads out (a Heat Check, Critical Damage),
+   * spoken through the slot's live region: focus lands on the title, so the
+   * body is not read on its own.
+   */
+  announce?: string
 }
 
 export type MajorModel = {
@@ -177,6 +184,16 @@ const LINE: CSSProperties = {
 }
 
 const WARN: CSSProperties = { color: 'var(--color-status-bad)', fontWeight: 600 }
+
+/** Read by a screen reader only: the slot's live region. */
+const HIDDEN = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  overflow: 'hidden',
+  clipPath: 'inset(50%)',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
 
 const CHIPS: CSSProperties = {
   display: 'flex',
@@ -378,6 +395,35 @@ export function StorageBay({
 }
 
 /**
+ * An overlay takes focus: its title on open (again when a new prompt replaces
+ * it), unless its body already placed focus inside it; and on close back to what had focus when it opened (the bay button, or
+ * the deck's Apply that routed a Cascade Failure here) — unless focus has
+ * since moved somewhere live. The opener is read in a layout effect, before
+ * the bays' `inert` can move focus off it.
+ */
+function useOverlayFocus(title: string | undefined): RefObject<HTMLElement | null> {
+  const titleRef = useRef<HTMLElement>(null)
+  const open = title !== undefined
+  useLayoutEffect(() => {
+    if (!open) return
+    const active = document.activeElement
+    const opener = active instanceof HTMLElement && active !== document.body ? active : null
+    return () => {
+      const now = document.activeElement
+      if (opener?.isConnected && (now === null || now === document.body)) opener.focus()
+    }
+  }, [open])
+  useEffect(() => {
+    const el = titleRef.current
+    if (title === undefined || el === null) return
+    // A body that places focus itself (the Board menu's first mech) keeps it.
+    if (el.closest('[role="dialog"]')?.contains(document.activeElement)) return
+    el.focus()
+  }, [title])
+  return titleRef
+}
+
+/**
  * Renders one computed Major model: on the canvas's band, or — in the phone
  * form (ADR-045) — as `PhoneMajorFrame`'s one column. Same model either way.
  */
@@ -387,7 +433,16 @@ export function MajorFrame({ view }: { view: MajorModel }) {
   // Escape dismisses the resolve/damage/storage prompt, like every other
   // dismissible surface in the app.
   useEscapeKey(overlay != null, overlay?.onClose ?? NOOP)
-  if (form.form === 'phone') return <PhoneMajorFrame view={view} between={form.between} />
+  const titleRef = useOverlayFocus(overlay?.title)
+  // Mounted before any overlay is, so a screen reader hears what it reads out.
+  const live = (
+    <p aria-live="polite" style={HIDDEN}>
+      {overlay?.announce}
+    </p>
+  )
+  if (form.form === 'phone') {
+    return <PhoneMajorFrame view={view} between={form.between} titleRef={titleRef} live={live} />
+  }
   const main = view.bays.filter((b) => !b.side)
   const side = view.bays.filter((b) => b.side)
   return (
@@ -397,12 +452,14 @@ export function MajorFrame({ view }: { view: MajorModel }) {
       // The unit colour as the slot's top rule, as every Minor wears it (D1–D3).
       style={{ borderTop: slotRule(view.fam) }}
     >
+      {live}
       <div className="su-dash-band-id">
         <Badge shape="stamp" style={{ ...STAMP, backgroundColor: STAMP_BG[view.fam] }}>
           {view.stampLabel}
         </Badge>
       </div>
-      <div className="su-dash-bays" style={BAYS}>
+      {/* Under an overlay the bays are covered: out of the Tab order too. */}
+      <div className="su-dash-bays" style={BAYS} inert={overlay != null}>
         {main.map((bay) => (
           // A bay with only buttons (Mount) has nothing to fill its middle, and
           // the button grid is floor-pinned — so it would render as a label at
@@ -432,7 +489,9 @@ export function MajorFrame({ view }: { view: MajorModel }) {
       {overlay && (
         <div className="su-dash-resolve" role="dialog" aria-label={overlay.title}>
           <div className="su-dash-resolve-head">
-            <span className="su-dash-resolve-title">{overlay.title}</span>
+            <span ref={titleRef} className="su-dash-resolve-title" tabIndex={-1}>
+              {overlay.title}
+            </span>
             {overlay.gauges && overlay.gauges.length > 0 && (
               <div className="su-dash-resolve-gauges">
                 {overlay.gauges.map((g) => (

@@ -91,6 +91,16 @@ const GROW: CSSProperties = { flex: 1 }
 
 const STEP: CSSProperties = { minWidth: 0, paddingInline: space[8] }
 
+/** Read by a screen reader only: the resolve's live region. */
+const HIDDEN = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  overflow: 'hidden',
+  clipPath: 'inset(50%)',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
 const IDLE: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
@@ -196,6 +206,13 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
   const { currencyChoice, variableHot, controls, roll } = view
   return (
     <div className="su-dash-display-scroll">
+      {/* Mounted before the first roll, so the d20, its band and Apply are
+          spoken as they land; each line is one text node, read whole. */}
+      <div aria-live="polite" style={HIDDEN}>
+        {roll && <p>{`Rolled ${roll.roll}: ${roll.bandLabel}. ${roll.bandSummary}`}</p>}
+        {view.pushLog && <p>{view.pushLog}</p>}
+        {view.applied && <p>Result applied</p>}
+      </div>
       <div className="su-dash-deck-panel">
         <div className="su-dash-deck-panel-head">
           <Button variant="ghost" size="compact" onClick={view.onBack}>

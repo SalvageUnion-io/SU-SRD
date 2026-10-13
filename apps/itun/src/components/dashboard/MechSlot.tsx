@@ -328,6 +328,7 @@ export function MechMajor({
         title: 'Reactor',
         onClose,
         body: <p className="su-dash-resolve-log">{prompt.log}</p>,
+        announce: prompt.log,
         actions: prompt.meltdown
           ? [
               {
@@ -371,6 +372,7 @@ export function MechMajor({
         title: 'Critical Damage',
         onClose,
         body: <p className="su-dash-resolve-log">{prompt.log}</p>,
+        announce: prompt.log,
         actions,
       }
     }

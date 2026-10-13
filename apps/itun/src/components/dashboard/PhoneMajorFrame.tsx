@@ -19,6 +19,8 @@
  *
  * A Major's prompt (Take Damage, the cargo hold, the Board menu, a meltdown)
  * covers the whole column, keeping the gauges it pins (`BandOverlay.gauges`).
+ * The bays stay mounted under it, hidden and inert, so the button that opened
+ * it is still there to take focus back when it closes (`MajorFrame`).
  *
  * Materials (ruleset §1): the column is the chassis (`--color-band-cream`,
  * drawn by the tab body around it) and every cell and bay is paper.
@@ -37,7 +39,7 @@ import {
   tracking,
   weight,
 } from 'component-lib/design/tokens'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef } from 'react'
 import { DashboardGauge } from './DashboardGauge'
 import type { BandBay, BandButton, BandGauge, BandOverlay, MajorModel } from './MajorFrame'
@@ -142,6 +144,9 @@ const OVERLAY_TITLE: CSSProperties = {
 }
 
 const ACTIONS: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[8] }
+
+/** The bays while a prompt covers them. */
+const COVERED = { display: 'none' } satisfies CSSProperties
 
 function variantOf(btn: BandButton): 'danger' | 'primary' | 'default' {
   return btn.variant === 'danger' ? 'danger' : btn.variant === 'go' ? 'primary' : 'default'
@@ -260,7 +265,13 @@ function PhoneBay({ bay }: { bay: BandBay }) {
 }
 
 /** A Major's prompt, over the whole column, its pinned gauges kept on screen. */
-function PhoneOverlay({ overlay }: { overlay: BandOverlay }) {
+function PhoneOverlay({
+  overlay,
+  titleRef,
+}: {
+  overlay: BandOverlay
+  titleRef: RefObject<HTMLElement | null>
+}) {
   const ref = useRef<HTMLDivElement>(null)
   // The prompt may open below the fold (a deck hand-off, Storage at the
   // bottom of the Reactor bay): bring it up, as the canvas's covers its band.
@@ -270,7 +281,15 @@ function PhoneOverlay({ overlay }: { overlay: BandOverlay }) {
   return (
     <div ref={ref} role="dialog" aria-label={overlay.title} style={OVERLAY}>
       <div style={OVERLAY_HEAD}>
-        <h3 style={OVERLAY_TITLE}>{overlay.title}</h3>
+        <h3
+          ref={(el) => {
+            titleRef.current = el
+          }}
+          tabIndex={-1}
+          style={OVERLAY_TITLE}
+        >
+          {overlay.title}
+        </h3>
         <Button variant="ghost" size="compact" style={BUTTON} onClick={overlay.onClose}>
           Close
         </Button>
@@ -288,30 +307,40 @@ function PhoneOverlay({ overlay }: { overlay: BandOverlay }) {
   )
 }
 
-export function PhoneMajorFrame({ view, between }: { view: MajorModel; between: ReactNode }) {
-  if (view.overlay) {
-    return (
-      <div style={COLUMN} data-fam={view.fam}>
-        <PhoneOverlay overlay={view.overlay} />
-      </div>
-    )
-  }
+export function PhoneMajorFrame({
+  view,
+  between,
+  titleRef,
+  live,
+}: {
+  view: MajorModel
+  between: ReactNode
+  /** Where focus goes when a prompt opens. */
+  titleRef: RefObject<HTMLElement | null>
+  /** The slot's live region, mounted whether or not a prompt is up. */
+  live: ReactNode
+}) {
   const main = view.bays.filter((b) => !b.side)
   const side = view.bays.filter((b) => b.side)
+  const covered = view.overlay != null
   return (
     <div style={COLUMN} data-fam={view.fam}>
-      <div style={STAMP_ROW}>
-        <Badge shape="stamp" size="mini" style={STAMP}>
-          {view.stampLabel}
-        </Badge>
+      {live}
+      {view.overlay && <PhoneOverlay overlay={view.overlay} titleRef={titleRef} />}
+      <div style={covered ? COVERED : COLUMN} inert={covered}>
+        <div style={STAMP_ROW}>
+          <Badge shape="stamp" size="mini" style={STAMP}>
+            {view.stampLabel}
+          </Badge>
+        </div>
+        {main.map((bay) => (
+          <PhoneBay key={bay.label} bay={bay} />
+        ))}
+        {between}
+        {side.map((bay) => (
+          <PhoneBay key={bay.label} bay={bay} />
+        ))}
       </div>
-      {main.map((bay) => (
-        <PhoneBay key={bay.label} bay={bay} />
-      ))}
-      {between}
-      {side.map((bay) => (
-        <PhoneBay key={bay.label} bay={bay} />
-      ))}
     </div>
   )
 }
