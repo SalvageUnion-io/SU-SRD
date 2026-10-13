@@ -164,24 +164,34 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Randsum.dev' })).toBeVisible()
 })
 
-// (g) A listing grid lays its Rows out as equals (entity display language,
-// "entity grid"): every Row in a grid is the same height, at a desktop width
-// and a phone's, even where one name wraps (Bio-Titans' "Hill Worm Pattern
-// Typhon") or one lead runs shorter. These schemas have art, so a desktop
-// opens on the Catalog; `?view=list` asks for the Rows.
+// (g) An index's List is one flat column (the Catalog is the grid): every Row
+// on its own line, spanning the list's full width, at a desktop width and a
+// phone's. These schemas have art, so a desktop opens on the Catalog;
+// `?view=list` asks for the Rows. `data-entity-fit` marks the mounted List,
+// not the server-rendered names that stand in for it (Catalog-shaped at 1440px).
+const LIST = '.srd-listing[data-view="list"] ul.srd-listing__cards[data-entity-fit]'
 for (const width of [1440, 390]) {
   for (const schema of ['bio-titans', 'chassis']) {
-    test(`every Row in a /${schema}/ grid is one height at ${width}px`, async ({ page }) => {
+    test(`the /${schema}/ List is one column at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto(`/${schema}/?view=list`)
-      const grid = page.locator('ul[data-entity-grid]').first()
-      await expect(grid.locator('a[aria-label]').first()).toBeVisible({ timeout: 30_000 })
-      const heights = await page.$$eval('ul[data-entity-grid]', (grids) =>
-        grids.map((g) => [...g.children].map((li) => li.getBoundingClientRect().height))
+      await expect(page.locator(`${LIST} a[aria-label]`).first()).toBeVisible({ timeout: 30_000 })
+      const lists = await page.$$eval(LIST, (uls) =>
+        uls.map((ul) => {
+          const list = ul.getBoundingClientRect()
+          return [...ul.children].map((li) => {
+            const row = li.getBoundingClientRect()
+            return { left: row.left - list.left, width: row.width - list.width }
+          })
+        })
       )
-      expect(heights.length).toBeGreaterThan(0)
-      for (const rows of heights) {
-        expect(Math.max(...rows) - Math.min(...rows)).toBeLessThanOrEqual(1)
+      expect(lists.length).toBeGreaterThan(0)
+      for (const rows of lists) {
+        expect(rows.length).toBeGreaterThan(0)
+        for (const row of rows) {
+          expect(Math.abs(row.left)).toBeLessThanOrEqual(1)
+          expect(Math.abs(row.width)).toBeLessThanOrEqual(1)
+        }
       }
     })
   }
@@ -204,7 +214,7 @@ test('a listing with art opens on the Catalog at 1440px, the List at 390px', asy
 
   await page.setViewportSize({ width: 390, height: 900 })
   await page.goto('/chassis/')
-  await expect(page.locator('ul[data-entity-grid] a[aria-label]').first()).toBeVisible({
+  await expect(page.locator(`${LIST} a[aria-label]`).first()).toBeVisible({
     timeout: 30_000,
   })
   await expect(page.locator('.srd-listing__tiles')).toHaveCount(0)
