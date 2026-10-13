@@ -53,7 +53,7 @@ const FALLBACK_CHROME = '/opt/pw-browsers/chromium'
 export type ShotArgs = { target: string; width: Width; out: string }
 
 /** How to start a server: the command, where, and what it adds to the environment. */
-type Server = {
+export type Server = {
   name: string
   port: number
   cmd: readonly string[]
@@ -155,7 +155,7 @@ export function fileName({ target, width }: Omit<ShotArgs, 'out'>): string {
  * What answers on the port: `undefined` for nothing, else the checkout its
  * `x-su-checkout` header names (`null` when it names none).
  */
-async function probe(port: number): Promise<string | null | undefined> {
+export async function probe(port: number): Promise<string | null | undefined> {
   try {
     const response = await fetch(`http://localhost:${port}/`, {
       signal: AbortSignal.timeout(2000),
@@ -177,7 +177,7 @@ export function isOwnServer(checkout: string | null | undefined, root = CHECKOUT
 }
 
 /** Reuses this checkout's server on the port, or starts one. Returns its stop function. */
-async function ensureServer(server: Server): Promise<() => void> {
+export async function ensureServer(server: Server): Promise<() => void> {
   const found = await probe(server.port)
   if (found !== undefined) {
     if (!isOwnServer(found))

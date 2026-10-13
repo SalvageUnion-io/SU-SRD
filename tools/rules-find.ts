@@ -114,8 +114,15 @@ export function findHits(
   return lines
 }
 
-function main(): void {
-  const args = process.argv.slice(2)
+/**
+ * The command: `args` as after the script, `findDir` where the extract is.
+ * Prints the hits and a summary; a bad argument or a missing extract prints
+ * why and sets a failing exit code.
+ */
+export function main(
+  args: readonly string[] = process.argv.slice(2),
+  findDir: () => string | undefined = findExtractDir
+): void {
   const flags = args.filter((a) => a.startsWith('--'))
   const term = args.filter((a) => !a.startsWith('--')).join(' ')
   const all = flags.includes('--all')
@@ -129,7 +136,7 @@ function main(): void {
     return
   }
 
-  const dir = findExtractDir()
+  const dir = findDir()
   if (!dir) {
     console.error(
       'No rules extract. Locally: `bun run rules:extract` (needs the PDFs in rules/). Cloud: attach su-rules as a second repo.'
