@@ -4,7 +4,8 @@ import { at } from './_base'
 
 /**
  * WCAG 2.2 AA on every route in `PAGES`, signed out, at desktop and as a
- * Pixel 7 (`packages/gates/lib/a11yScan.ts`). Fails on any violation.
+ * Pixel 7 (`packages/gates/lib/a11yScan.ts`). Fails on any violation. The
+ * pages only an account reaches are `a11y-signed-in.e2e.ts`'s, nightly.
  */
 
 /**
@@ -21,8 +22,11 @@ const PAGES = [
   '/mechs/patterns',
   '/settings',
   '/starter',
-  // A sheet: its one <main> and its sticky bar, which is no second banner.
+  // The Starter Set sheets, one of each kind: a sheet's one <main> and its
+  // sticky bar, which is no second banner.
   '/starter/pilot/starter-pilot-bonesaw',
+  '/starter/mech/starter-mech-scrapper',
+  '/starter/crawler/starter-crawler-tenacity',
 ]
 
 // A violation that fires only sometimes must not pass on a retry.

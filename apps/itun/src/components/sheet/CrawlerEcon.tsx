@@ -82,7 +82,8 @@ const CAPTION = {
   fontWeight: tokens.weight.semibold,
   textTransform: 'uppercase',
   letterSpacing: tokens.tracking.capsWide,
-  color: tokens.color.ink55,
+  // The muted text tone: 11px caps need 4.5:1, which ink55 (3.6:1) missed.
+  color: tokens.color.wkMuted,
 } satisfies CSSProperties
 
 type CrawlerEconFrameProps = {

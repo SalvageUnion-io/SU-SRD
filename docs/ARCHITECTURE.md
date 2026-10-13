@@ -81,7 +81,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
 26. **Accessibility** <a id="a11y"></a>
-    Biome's a11y rules plus each app's `e2e/a11y.e2e.ts` (axe, WCAG 2.2 AA) over its `PAGES`, failing on any violation.
+    Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, every story (ratcheted), ITUN signed in.
     Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
 27. **CI** <a id="ci"></a>
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered per app; `CI Success` must need every job.

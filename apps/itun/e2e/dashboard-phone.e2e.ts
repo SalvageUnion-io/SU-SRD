@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { gotoStable, waitForReady } from './_helpers'
+import { setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
 /**
@@ -105,31 +105,6 @@ async function pinned(page: Page, label: string): Promise<number> {
   const value = text.replace(/\s+/g, ' ').match(new RegExp(`${label} ?(\\d+) ?/`, 'i'))?.[1]
   if (value === undefined) throw new Error(`no pinned ${label} in "${text}"`)
   return Number(value)
-}
-
-/** Pick up an unclaimed pre-gen from the Game's roster. */
-async function pickUp(page: Page, name: string): Promise<void> {
-  const row = page.locator('li', { hasText: name }).first()
-  await row.getByRole('button', { name: /— pick this up$/ }).click()
-  const confirm = page.getByRole('alertdialog')
-  await confirm.getByRole('button', { name: 'Pick up' }).click()
-  await expect(confirm).toBeHidden({ timeout: 15_000 })
-}
-
-/** Start a Starter Set Game, mediate it, take Bonesaw and his Scrapper. */
-async function setUpTable(page: Page): Promise<void> {
-  await gotoStable(page, '/')
-  await waitForReady(page)
-  await page.getByRole('button', { name: '+ New game' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Start this game' }).first().click()
-  // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
-  await page.getByRole('button', { name: 'Appoint' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  await expect(page.getByRole('button', { name: 'Launch Dashboard' })).toBeVisible({
-    timeout: 20_000,
-  })
-  await pickUp(page, 'Bonesaw')
-  await pickUp(page, 'Scrapper')
 }
 
 for (const phone of PHONES) {

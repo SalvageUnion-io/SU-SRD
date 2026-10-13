@@ -1,7 +1,9 @@
 /**
- * The WCAG 2.2 AA scan both apps run as a Playwright spec (`e2e/a11y.e2e.ts`):
- * axe-core over the spec's page list, at a 1280×900 desktop and again as a
- * Pixel 7. Any violation, on any page or device, fails the spec.
+ * The WCAG 2.2 AA scan the apps and the story catalog run as Playwright specs
+ * (each app's `e2e/a11y.e2e.ts`, ITUN's signed-in `e2e/a11y-signed-in.e2e.ts`,
+ * the catalog's `e2e/stories-a11y.e2e.ts`): axe-core over the spec's page
+ * list, at a 1280×900 desktop and again as a Pixel 7. Any violation, on any
+ * page or device, fails the spec.
  *
  * It is a spec rather than a script so the scan rides the suite's own browser
  * and `webServer`: one Playwright setup per app, not a second launcher with its
@@ -69,7 +71,7 @@ type InPage = {
   axe: {
     run: (
       context: unknown,
-      options: { runOnly: string[] }
+      options: { runOnly: string[]; rules: Record<string, { enabled: boolean }> }
     ) => Promise<{ violations: AxeViolation[]; passes: unknown[]; incomplete: unknown[] }>
   }
 }
@@ -77,9 +79,10 @@ type InPage = {
 /**
  * Why the page is not yet what a reader sees, or '' once it is: an island that
  * mounts without interaction (a `visible` one only when rendered on screen) has
- * not mounted, or a loading skeleton remains. Runs in the page.
+ * not mounted, or a loading skeleton remains (unless `skeletonIsContent`: a
+ * skeleton's own story). Runs in the page.
  */
-function unsettled(): string {
+function unsettled(skeletonIsContent: boolean): string {
   const { document, innerHeight, innerWidth } = globalThis as unknown as InPage
   if (document.readyState !== 'complete') return 'the document is still loading'
   const waiting: string[] = []
@@ -99,6 +102,7 @@ function unsettled(): string {
       waiting.push(el.dataset.island ?? '?')
   }
   if (waiting.length > 0) return `unmounted island(s): ${waiting.join(', ')}`
+  if (skeletonIsContent) return ''
   const skeleton = document.querySelector('[role="status"][aria-label="Loading"]')
   return skeleton === null ? '' : 'a loading skeleton is still showing'
 }
@@ -111,13 +115,17 @@ function twoFrames(): Promise<void> {
   })
 }
 
-/** Runs axe over the document and keeps the first five nodes per violation. Runs in the page. */
-async function runAxe(): Promise<Omit<PageResult, 'page' | 'device'>> {
+/**
+ * Runs axe over the document, less the `disabled` rules, and keeps the first
+ * five nodes per violation. Runs in the page.
+ */
+async function runAxe(disabled: readonly string[]): Promise<Omit<PageResult, 'page' | 'device'>> {
   const { axe, document } = globalThis as unknown as InPage
   const res = await axe.run(document, {
     // `wcag22aa` adds 2.2's new AA criteria — target size (2.5.8) among
     // them, which is the one a phone layout most readily fails.
     runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'],
+    rules: Object.fromEntries(disabled.map((id) => [id, { enabled: false }])),
   })
   return {
     violations: res.violations.length,
@@ -145,10 +153,11 @@ async function runAxe(): Promise<Omit<PageResult, 'page' | 'device'>> {
 async function waitUntilSettled(
   page: Page,
   inFlight: ReadonlySet<Request>,
-  ready: string | undefined
+  ready: string | undefined,
+  skeletonIsContent: boolean
 ): Promise<void> {
   const deadline = Date.now() + SETTLE_TIMEOUT_MS
-  const settled = `(${unsettled.toString()})() === ''`
+  const settled = `(${unsettled.toString()})(${skeletonIsContent}) === ''`
   try {
     if (ready) await page.waitForSelector(ready, { state: 'attached', timeout: SETTLE_TIMEOUT_MS })
     for (;;) {
@@ -157,10 +166,12 @@ async function waitUntilSettled(
       await page.waitForFunction(settled, null, { timeout, polling: 50 })
       while (inFlight.size > 0 && Date.now() < deadline) await page.waitForTimeout(25)
       await page.evaluate(twoFrames)
-      if (inFlight.size === 0 && (await page.evaluate(unsettled)) === '') return
+      if (inFlight.size === 0 && (await page.evaluate(unsettled, skeletonIsContent)) === '') return
     }
   } catch (error) {
-    const why = (await page.evaluate(unsettled).catch(() => '')) || 'nothing pending in the DOM'
+    const why =
+      (await page.evaluate(unsettled, skeletonIsContent).catch(() => '')) ||
+      'nothing pending in the DOM'
     const requests = [...inFlight].map((r) => r.url()).join(', ') || 'none'
     throw new Error(
       `the page did not settle within ${SETTLE_TIMEOUT_MS} ms: ${why}; requests in flight: ${requests}`,
@@ -169,17 +180,44 @@ async function waitUntilSettled(
   }
 }
 
+type ScanOptions = {
+  browser: Browser
+  baseURL: string
+  pages: readonly string[]
+  /** An element the page must contain before it counts as settled, for a loading state `unsettled` does not know. */
+  ready?: string
+  /**
+   * Rules that cannot apply to these pages, by axe id: the story catalog
+   * renders a component alone, so the rules about a whole page's landmarks
+   * and headings say nothing about it. Every other rule still runs.
+   */
+  disableRules?: readonly string[]
+  /**
+   * A loading skeleton is what the page shows, not a sign it is still
+   * loading: the catalog has a story of each skeleton. Defaults to false.
+   */
+  skeletonIsContent?: boolean
+  /** Cookies and storage each context starts with: a signed-in session. */
+  storageState?: BrowserContextOptions['storageState']
+}
+
 /** Every page, scanned in one context emulating `device`. A page whose scan throws is -1. */
 async function scanAs(
-  browser: Browser,
   device: string,
-  baseURL: string,
-  pages: readonly string[],
-  ready: string | undefined
+  {
+    browser,
+    baseURL,
+    pages,
+    ready,
+    disableRules = [],
+    skeletonIsContent = false,
+    storageState,
+  }: ScanOptions
 ): Promise<PageResult[]> {
   const context = await browser.newContext({
     ...EMULATIONS[device],
     baseURL,
+    storageState,
     // As in both suites' configs (packages/gates/lib/playwrightBase.ts): a PWA worker
     // activating mid-navigation can abort the goto, and the production CSP
     // `bun run preview` serves would refuse the injected axe script.
@@ -202,10 +240,10 @@ async function scanAs(
     inFlight.clear()
     try {
       await page.goto(pathname, { waitUntil: 'load', timeout: SETTLE_TIMEOUT_MS })
-      await waitUntilSettled(page, inFlight, ready)
+      await waitUntilSettled(page, inFlight, ready, skeletonIsContent)
       // `addScriptTag` resolves once the script has run, so `window.axe` exists.
       await page.addScriptTag({ path: AXE_PATH })
-      results.push({ page: pathname, device, ...(await page.evaluate(runAxe)) })
+      results.push({ page: pathname, device, ...(await page.evaluate(runAxe, disableRules)) })
     } catch (err) {
       console.error(`a11y: error scanning ${pathname} (${device}): ${err}`)
       results.push({
@@ -227,22 +265,11 @@ async function scanAs(
  * Scan every page on every emulation. Returns each result, and one line per
  * violation (or crashed scan): the spec asserts that list is empty.
  */
-export async function scanPages({
-  browser,
-  baseURL,
-  pages,
-  ready,
-}: {
-  browser: Browser
-  baseURL: string
-  pages: readonly string[]
-  /** An element the page must contain before it counts as settled, for a loading state `unsettled` does not know. */
-  ready?: string
-}): Promise<{ results: PageResult[]; violations: string[] }> {
+export async function scanPages(
+  options: ScanOptions
+): Promise<{ results: PageResult[]; violations: string[] }> {
   const results: PageResult[] = []
-  for (const device of Object.keys(EMULATIONS)) {
-    results.push(...(await scanAs(browser, device, baseURL, pages, ready)))
-  }
+  for (const device of Object.keys(EMULATIONS)) results.push(...(await scanAs(device, options)))
 
   const violations: string[] = []
   for (const result of results) {

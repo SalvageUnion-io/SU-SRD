@@ -1,6 +1,6 @@
 /**
- * The one Playwright configuration both apps run (`apps/srd/playwright.config.ts`
- * and `apps/itun/playwright.config.ts` pass only what differs).
+ * The one Playwright configuration both apps and the story catalog run
+ * (`apps/{srd,itun,catalog}/playwright.config.ts` pass only what differs).
  *
  * - Specs are `e2e/*.e2e.ts`, not `.spec.ts`, so Bun's test runner — which
  *   auto-discovers `.spec.ts` and `.test.ts` — never tries to execute them.
@@ -12,7 +12,7 @@
  *   checkout's own port (`ports.ts`: offset in a linked worktree), so a
  *   worktree's suite boots and reuses its own server, never another
  *   checkout's; ITUN's stays on 5173, where its local Convex backend expects
- *   it.
+ *   it. The catalog has no build: it serves its dev server in CI too.
  * - `E2E_BASE_URL` runs the same suite against a deployed origin and boots
  *   nothing; per-test budgets widen to `external` there, because every test
  *   pays real network round trips.
@@ -48,6 +48,8 @@ export type AppE2E = {
   local: Budget
   /** The same against a deployed origin (`E2E_BASE_URL`); defaults to `local`. */
   external?: Budget
+  /** How CI serves the app; defaults to the built app under `bun run preview`. */
+  ciCommand?: string
 }
 
 export function e2eConfig({
@@ -55,6 +57,7 @@ export function e2eConfig({
   basePath = '/',
   local,
   external = local,
+  ciCommand = '[ -d dist ] || bun run build; bun run preview',
 }: AppE2E): PlaywrightTestConfig {
   const ci = Boolean(process.env.CI)
   const externalBaseURL = process.env.E2E_BASE_URL
@@ -87,7 +90,7 @@ export function e2eConfig({
     webServer: externalBaseURL
       ? undefined
       : {
-          command: ci ? '[ -d dist ] || bun run build; bun run preview' : 'bun run dev',
+          command: ci ? ciCommand : 'bun run dev',
           url: `${url}${basePath}`,
           reuseExistingServer: !ci,
           timeout: 240_000,

@@ -3,7 +3,9 @@
   "compilerOptions": {
     "types": ["vite/client", "bun-types"]
   },
-  "include": ["src/**/*", "listStories.ts", "vite.config.ts"],
+  // `e2e/**/*` and `playwright.config.ts`: Playwright transpiles specs without
+  // type-checking them, so this include is what does.
+  "include": ["src/**/*", "e2e/**/*", "listStories.ts", "vite.config.ts", "playwright.config.ts"],
   "references": [
     { "path": "../../packages/component-lib" },
     { "path": "../../packages/gates" },

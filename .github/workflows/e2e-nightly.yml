@@ -50,6 +50,10 @@ jobs:
     # runner cannot do that and needs no credentials, which is why this job
     # requests no secrets at all.
     #
+    # `a11y-signed-in.e2e.ts` runs here too: the axe scan of the pages only an
+    # account reaches (Shelves, the wizards, the sheets, the Game, the Mediator
+    # Dashboard and the Dashboard), which the PR tier's signed-out scan cannot.
+    #
     # One job, one backend, one build: the sign-in hand-off spec
     # (`signin-save.e2e.ts`) and the specs that depend on its seam cannot
     # disagree about how the build was made.

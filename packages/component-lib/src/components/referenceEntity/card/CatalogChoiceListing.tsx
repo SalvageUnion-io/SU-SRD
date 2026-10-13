@@ -24,6 +24,8 @@ const promptStyle = { fontFamily: font.body, ...textXs, color: ink70 } satisfies
 
 const summaryStyle = {
   cursor: 'pointer',
+  // A 12px line padded to 24px tall: the AA target size (WCAG 2.5.8).
+  paddingBlock: space[6],
   fontFamily: font.cond,
   textTransform: 'uppercase',
   lineHeight: 1,

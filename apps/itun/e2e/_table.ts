@@ -6,7 +6,8 @@ import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
 /**
  * Running a table needs two people: the Organizer (the spec's own `page`,
  * signed in by `fixtures.ts`) and a second account in a context of its own.
- * These are the steps the Mediator specs share (issue 1278, board M2).
+ * These are the steps the Mediator, Dashboard and signed-in a11y specs share
+ * (issue 1278, board M2).
  */
 
 /** "+ New game" from Shelves, named; resolves to the new Game's id. */
@@ -54,4 +55,32 @@ export async function secondAccount(
   requireSeam(await seamIsPresent(page), testInfo)
   await signInFresh(page)
   return { context, page }
+}
+
+/** Pick up an unclaimed pre-gen from the Game's roster. */
+async function pickUp(page: Page, name: string): Promise<void> {
+  const row = page.locator('li', { hasText: name }).first()
+  await row.getByRole('button', { name: /— pick this up$/ }).click()
+  const confirm = page.getByRole('alertdialog')
+  await confirm.getByRole('button', { name: 'Pick up' }).click()
+  await expect(confirm).toBeHidden({ timeout: 15_000 })
+}
+
+/**
+ * Start a Starter Set Game, mediate it, take Bonesaw and his Scrapper. Leaves
+ * the page on the Game's own page, with its Launch Dashboard button showing.
+ */
+export async function setUpTable(page: Page): Promise<void> {
+  await gotoStable(page, '/')
+  await waitForReady(page)
+  await page.getByRole('button', { name: '+ New game' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Start this game' }).first().click()
+  // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
+  await page.getByRole('button', { name: 'Appoint' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
+  await expect(page.getByRole('button', { name: 'Launch Dashboard' })).toBeVisible({
+    timeout: 20_000,
+  })
+  await pickUp(page, 'Bonesaw')
+  await pickUp(page, 'Scrapper')
 }

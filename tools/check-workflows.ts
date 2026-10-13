@@ -254,7 +254,8 @@ export function checkAggregator(
 // ─── path-filters ───────────────────────────────────────────────────────────
 
 /**
- * Which filter group gates each app's build job. A genuine translation
+ * Which filter group gates each app's build job (the story catalog's is its
+ * axe scan, `stories-a11y`: it has no build). A genuine translation
  * (`apps/srd` is gated by `web`), so it cannot be derived; an app missing from
  * both this and NO_FILTER_GROUP is a hard failure.
  */
@@ -263,13 +264,11 @@ const APP_TO_FILTER: Record<string, string> = {
   srd: 'web',
   'discord-bot': 'bot',
   'su-assets': 'assets',
+  catalog: 'catalog',
 }
 
 /** Apps with no filter group, each with a reason and an exit condition. */
-const NO_FILTER_GROUP: Record<string, string> = {
-  catalog:
-    'The dev-only story catalog: no build or deploy job to gate, and its suite runs under `code`, which matches every `apps/**` path. Needs a group the day it gets a build job.',
-}
+const NO_FILTER_GROUP: Record<string, string> = {}
 
 /** The `dorny/paths-filter` groups in ci.yml's `changes` job, aliases expanded. */
 export function filterGroups(ci: Yaml): Map<string, string[]> {

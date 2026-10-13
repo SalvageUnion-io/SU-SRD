@@ -268,7 +268,7 @@ const base = {
   ink75: 'rgb(40 32 25 / 0.75)',
   /** ModalShell's scrim edge. */
   ink60: 'rgb(40 32 25 / 0.6)',
-  /** The CrawlerEcon meta label inside `Inset`. */
+  /** MechChassisStep's Custom-build card border. */
   ink55: 'rgb(40 32 25 / 0.55)',
   ink50: 'rgb(40 32 25 / 0.5)',
   ink40: 'rgb(40 32 25 / 0.4)',
