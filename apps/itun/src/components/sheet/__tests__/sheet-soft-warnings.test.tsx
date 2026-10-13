@@ -4,12 +4,11 @@
  *
  * Asserts the confirm-and-proceed contract on BUILD edits:
  *   1. A warning-triggering ability removal opens the dialog and persists
- *      NOTHING until confirmed.
+ *      NOTHING until confirmed; Cancel then persists nothing.
  *   2. "Save anyway" persists the previewed patch (warnings never block).
- *   3. Cancel persists nothing.
- *   4. A clean edit persists immediately with no dialog — the flow is
+ *   3. A clean edit persists immediately with no dialog — the flow is
  *      invisible when nothing is wrong.
- *   5. Mech system removal previews (no dependency data in the SRD dataset →
+ *   4. Mech system removal previews (no dependency data in the SRD dataset →
  *      no warnings → it saves straight through).
  *
  * Real reference data only: the Engineer class's "Mechanical Knowledge" core
@@ -140,13 +139,13 @@ async function removeViaPicker(manage: RegExp, item: RegExp) {
 }
 
 /**
- * Each test renders a live sheet and drives its picker: 2.4 s to 5.0 s
- * measured alone (junit, 4 cores), at or past Bun's 5 s default. A measured
- * render cost, so each test takes the same 20 s budget (`20_000`) as
- * SrdExplorer's searcher tests.
+ * Each test renders a live sheet and drives its picker, so the dialog's opening
+ * and its Cancel share one render rather than two. Up to 1.1 s a test inside
+ * itun's 4-worker suite, and under 2.7 s with srd, component-lib and tools
+ * running beside it (junit), well under Bun's 5 s default, so they keep it.
  */
 describe('PilotSheet — soft warnings on ability edits', () => {
-  test('a tree-order-breaking removal opens the dialog and persists nothing', async () => {
+  test('a tree-order-breaking removal opens the dialog; cancel persists nothing', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
@@ -158,7 +157,12 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     expect(screen.getByRole('button', { name: /save anyway/i })).toBeTruthy()
     // …and nothing has been written yet.
     expect(captured).toHaveLength(0)
-  }, 20_000)
+
+    await click(/^cancel$/i)
+
+    expect(captured).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
+  })
 
   test('"Save anyway" persists the previewed patch — warnings never block', async () => {
     const captured: CapturedUpdate[] = []
@@ -170,19 +174,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
 
     expect(captured).toHaveLength(1)
     expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L2_SLUG] })
-  }, 20_000)
-
-  test('cancelling discards the edit — nothing is persisted', async () => {
-    const captured: CapturedUpdate[] = []
-    const pilot = makePilot()
-    render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
-
-    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L1}$`, 'i'))
-    await click(/^cancel$/i)
-
-    expect(captured).toHaveLength(0)
-    expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
-  }, 20_000)
+  })
 
   test('a clean removal persists immediately with no dialog', async () => {
     const captured: CapturedUpdate[] = []
@@ -195,7 +187,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)
     expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L1_SLUG] })
-  }, 20_000)
+  })
 })
 
 describe('MechSheet — soft warnings on system removal', () => {
@@ -215,5 +207,5 @@ describe('MechSheet — soft warnings on system removal', () => {
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)
     expect(captured[0]?.patch).toEqual({ systems: [] })
-  }, 20_000)
+  })
 })

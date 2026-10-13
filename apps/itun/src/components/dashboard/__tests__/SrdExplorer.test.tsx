@@ -65,6 +65,15 @@ function close(container: HTMLElement): HTMLButtonElement {
 
 const sections = () => buildCatalogSections()
 
+/**
+ * The listing the drill-in tests open: Crawlers, 5 entries. What these tests
+ * pin is the explorer's wiring (tile → searcher → card → back), which a short
+ * pool exercises as fully as a long one; the searcher renders every pool card,
+ * so opening Chassis (51 full cards) cost 1.6 s to 2.9 s a test inside itun's
+ * 4-worker suite for no extra coverage.
+ */
+const LISTING = 'Crawlers'
+
 describe('SrdExplorer', () => {
   test('renders a search box + every catalog section and tile', () => {
     const { container } = renderSrd()
@@ -89,17 +98,17 @@ describe('SrdExplorer', () => {
 
   test('picking a schema tile lists that category in the shared searcher', () => {
     const { container } = renderSrd()
-    fireEvent.click(tile(container, 'Chassis'))
+    fireEvent.click(tile(container, LISTING))
     expect(container.querySelector('.su-searcher')).toBeTruthy()
-    expect(container.textContent).toContain('Chassis')
+    expect(container.textContent).toContain(LISTING)
     expect(poolCards(container).length).toBeGreaterThan(0)
     // A browser, not a picker: no selection rail.
     expect(container.querySelector('.su-searcher__rail')).toBeNull()
-  }, 20_000)
+  })
 
   test('picking a card drills into a reference card, back returns to the list', () => {
     const { container } = renderSrd()
-    fireEvent.click(tile(container, 'Chassis'))
+    fireEvent.click(tile(container, LISTING))
     const [first] = poolCards(container)
     if (!first) throw new Error('no pool cards')
     const name = first.getAttribute('aria-label')
@@ -108,11 +117,11 @@ describe('SrdExplorer', () => {
     // The reference card renders; no longer a listing.
     expect(container.querySelector('.su-searcher')).toBeNull()
     expect(container.textContent).toContain(name)
-    // Back returns to the Chassis listing.
+    // Back returns to the listing.
     fireEvent.click(back(container))
     expect(container.querySelector('.su-searcher')).toBeTruthy()
     expect(poolCards(container).length).toBeGreaterThan(0)
-  }, 20_000)
+  })
 
   test('a flat (guide) tile opens that entity outright', () => {
     const { container } = renderSrd()
@@ -125,12 +134,12 @@ describe('SrdExplorer', () => {
 
   test('the category close badge returns to the catalog', () => {
     const { container } = renderSrd()
-    fireEvent.click(tile(container, 'Systems'))
+    fireEvent.click(tile(container, LISTING))
     expect(container.querySelector('.su-searcher')).toBeTruthy()
     fireEvent.click(close(container))
     // Back at the catalog.
     expect(tiles(container).length).toBe(sections().reduce((n, s) => n + s.schemas.length, 0))
-  }, 20_000)
+  })
 
   test('search surfaces results and picking an entity drills in', async () => {
     const { container } = renderSrd()

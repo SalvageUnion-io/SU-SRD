@@ -57,15 +57,28 @@ if (selected.length === 0) {
 console.log(`pre-push: testing ${selected.join(', ')} (changed workspaces and their dependents)`)
 if (process.argv.includes('--dry-run')) process.exit(0)
 
-// One workspace at a time: srd, itun and component-lib each fill four workers,
-// so running them side by side (as `bun --filter` does) oversubscribes the
-// cores and pushes renders past the 5 s default — the contention this replaced.
-const failed: string[] = []
-for (const ws of workspaces.filter((w) => selected.includes(w.name))) {
-  console.log(`\npre-push: ${ws.name}`)
-  const { exitCode } = await $`bun run test`.cwd(join(root, ws.dir)).nothrow()
-  if (exitCode !== 0) failed.push(ws.name)
-}
+// Side by side, as CI's `run-coverage.ts` runs them: every workspace's own
+// `test` script (`--parallel=4 --no-isolate`) at once. They used to run one
+// after another because itun's slowest renders (SrdExplorer opening Chassis,
+// the chassis picker, the soft-warnings sheets) sat near Bun's 5 s default and
+// tipped past it when the cores were shared; those tests are trimmed, so the
+// selection now takes the longest suite's time rather than the sum. Output is
+// buffered per workspace and printed whole as each finishes, so a failure
+// reads under its workspace's name.
+const runs = workspaces
+  .filter((w) => selected.includes(w.name))
+  .map(async (ws) => {
+    const started = performance.now()
+    const { exitCode, stdout } = await $`bun run test 2>&1`
+      .cwd(join(root, ws.dir))
+      .nothrow()
+      .quiet()
+    const took = `${((performance.now() - started) / 1000).toFixed(1)} s`
+    const verdict = exitCode === 0 ? `passed in ${took}` : `FAILED (exit ${exitCode}) in ${took}`
+    console.log(`\n━━━━ pre-push: ${ws.name} ${verdict} ━━━━\n${stdout.toString().trimEnd()}`)
+    return exitCode === 0 ? null : ws.name
+  })
+const failed = (await Promise.all(runs)).filter((name) => name !== null)
 if (failed.length > 0) {
   console.error(`\npre-push: tests failed in ${failed.join(', ')}`)
   process.exit(1)

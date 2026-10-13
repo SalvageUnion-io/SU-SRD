@@ -41,35 +41,22 @@ function renderPicker(onConfirm: (ref: string) => void = () => {}) {
 }
 
 /**
- * Each test renders the full shared searcher over the real chassis pool: 1.3 s
- * to 3.1 s measured alone (junit, 4 cores), and past Bun's 5 s default inside
- * itun's 4-worker suite. A measured render cost, so each test takes the same
- * 20 s budget (`20_000`) as SrdExplorer's searcher tests.
+ * Each test renders the full shared searcher over the real chassis pool (51
+ * cards), so the tests are as few as the contracts allow: three renders, each
+ * one pinning what a shorter sequence would only repeat. 0.5 s to 1.9 s a test
+ * inside itun's 4-worker suite, and up to 3.1 s with srd, component-lib and
+ * tools running beside it (junit): under Bun's 5 s default, so they keep it.
  */
 describe('MechChassisPickerModal', () => {
-  it('renders the shared searcher, not a bespoke master/detail pane', () => {
-    renderPicker()
-    // The searcher's own affordances: a text search and the pool summary.
+  it('renders the shared searcher with the mech’s current chassis in the rail', () => {
+    const { current } = renderPicker()
+    // The searcher's own affordances, not a bespoke master/detail pane: a text
+    // search and the pool summary.
     expect(screen.getByLabelText('Search')).toBeDefined()
     expect(screen.getByText(/showing \d+ of \d+/i)).toBeDefined()
-  }, 20_000)
-
-  it('pre-selects the mech’s current chassis in the rail', () => {
-    const { current } = renderPicker()
-    const rail = screen.getByTestId('rail-entry')
-    expect(rail.textContent).toContain(current.name)
-  }, 20_000)
-
-  it('keeps Apply disabled until a different chassis is chosen', () => {
-    const { other } = renderPicker()
-    const apply = screen.getByRole('button', { name: /apply chassis/i })
-    expect(apply.hasAttribute('disabled')).toBe(true)
-
-    fireEvent.click(screen.getByRole('radio', { name: other.name }))
-    expect(screen.getByRole('button', { name: /apply chassis/i }).hasAttribute('disabled')).toBe(
-      false
-    )
-  }, 20_000)
+    // The current chassis is pre-selected.
+    expect(screen.getByTestId('rail-entry').textContent).toContain(current.name)
+  })
 
   it('will not apply an EMPTY chassis after the selection is cleared', () => {
     const seen: string[] = []
@@ -85,18 +72,23 @@ describe('MechChassisPickerModal', () => {
     expect(apply.hasAttribute('disabled')).toBe(true)
     fireEvent.click(apply)
     expect(seen).toEqual([])
-  }, 20_000)
+  })
 
-  it('confirms with the chassis SLUG, and only after the danger dialog', () => {
+  it('applies only a different chassis, by SLUG, and only after the danger dialog', () => {
     const seen: string[] = []
     const { other } = renderPicker((ref) => seen.push(ref))
+    const apply = () => screen.getByRole('button', { name: /apply chassis/i })
 
+    // Inert until a DIFFERENT chassis is chosen.
+    expect(apply().hasAttribute('disabled')).toBe(true)
     fireEvent.click(screen.getByRole('radio', { name: other.name }))
-    fireEvent.click(screen.getByRole('button', { name: /apply chassis/i }))
+    expect(apply().hasAttribute('disabled')).toBe(false)
+
+    fireEvent.click(apply())
     // Apply opens the confirm; it must not have written anything yet.
     expect(seen).toEqual([])
 
     fireEvent.click(screen.getByRole('button', { name: /^change chassis$/i }))
     expect(seen).toEqual([nameToSlug(other.name)])
-  }, 20_000)
+  })
 })

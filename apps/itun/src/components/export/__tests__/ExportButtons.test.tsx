@@ -80,7 +80,15 @@ describe('ExportAllButton', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
 
     const failure = 'The backup could not be downloaded. Try again.'
-    await waitFor(() => expect(screen.getByText(failure)).toBeTruthy())
+    // The error (useState) can paint before the transition's pending flag
+    // clears, so wait for the button to settle too, or the retry finds it
+    // still 'Exporting…' and disabled.
+    await waitFor(() => {
+      expect(screen.getByText(failure)).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Export all' }).hasAttribute('disabled')).toBe(
+        false
+      )
+    })
     // What was thrown is a defect's text, not the player's to read.
     expect(screen.queryByText('Disk full')).toBeNull()
     expect(downloads).toHaveLength(0)
