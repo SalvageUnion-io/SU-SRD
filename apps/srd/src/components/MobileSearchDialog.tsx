@@ -12,8 +12,6 @@ type MobileSearchDialogProps = {
    * open. The caller owns any content-specific styling (input width, etc.).
    */
   children: ReactNode
-  /** Sheet heading. Defaults to "Search". */
-  title?: string
   /** Accessible label for the trigger icon button. Defaults to "Search". */
   triggerAriaLabel?: string
 }
@@ -81,7 +79,6 @@ const iconButtonClass = buttonVariants({ variant: 'ghost', size: 'iconOnly' })
  */
 export function MobileSearchDialog({
   children,
-  title = 'Search',
   triggerAriaLabel = 'Search',
 }: MobileSearchDialogProps) {
   const [open, setOpen] = useState(false)
@@ -123,7 +120,7 @@ export function MobileSearchDialog({
         <Drawer.Viewport style={VIEWPORT}>
           <Drawer.Popup className="su-drawer" style={POPUP}>
             <div style={TITLE_ROW}>
-              <Drawer.Title style={TITLE}>{title}</Drawer.Title>
+              <Drawer.Title style={TITLE}>Search</Drawer.Title>
               <Drawer.Close
                 render={
                   <button

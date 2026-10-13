@@ -96,28 +96,16 @@ single-entity Live Sheet), at `/dashboard/$pilotId`
 
 ## Supersession / precedence
 
-This ADR is the top of the stack for **rules enforcement and surface behavior**.
-Concretely it overrides:
-
-- The enforcement framing of the former _Rules Engine Boundary_ doc — rewritten as
-  [rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) around
-  this model.
-- Any assumption that ITUN has a single, app-wide enforcement stance. Enforcement
-  is per-mode.
-- The **Wizard's** former soft-warn-never-block behavior: the create path is now
-  enforced Guided Creation (soft → hard; edit mode keeps the soft regime).
-- The **Live Sheet** hosting enforced play controls: Push, Heat Check, and using a
-  system ([ADR-008](../ARCHITECTURE.md#decisions)'s activation) relocate to
-  the Dashboard; the Live Sheet becomes pure Free Edit plus overrides.
+This ADR is the top of the stack for **rules enforcement and surface behavior**:
+ITUN has no app-wide enforcement stance; enforcement is per-mode.
 
 Prior ADRs on **orthogonal concerns remain in force on their own subjects**:
 [ADR-005](../ARCHITECTURE.md#decisions)/[ADR-006](../ARCHITECTURE.md#decisions)
 (data & rules math), [ADR-011](../ARCHITECTURE.md#decisions),
 [ADR-013](../ARCHITECTURE.md#decisions), [ADR-014](../ARCHITECTURE.md#decisions)
-and [ADR-031](../ARCHITECTURE.md#decisions) (infra). ADR-001–004 and ADR-012,
-once listed here, are superseded (see [Decisions](../ARCHITECTURE.md#decisions)).
-This ADR only takes precedence where a prior decision speaks to _how hard
-a rule is enforced on which surface_:
+and [ADR-031](../ARCHITECTURE.md#decisions) (infra). This ADR only takes
+precedence where a prior decision speaks to _how hard a rule is enforced on
+which surface_:
 
 - [ADR-007](007-automation-boundary.md) (automation boundary) is **retained and
   scoped under** this ADR: confirm-before-destructive governs **Guided Play**; in
@@ -142,18 +130,7 @@ a rule is enforced on which surface_:
   [dashboard.md](../architecture/dashboard.md). It instantiates this taxonomy; it
   does not compete with it (ADR-038 §6 is the Guided-Play surface and obeys the
   ADR-007 boundary this ADR scopes; §2 is its play state).
-- **Long-tail** (gated on revisiting [ADR-001](../ARCHITECTURE.md#decisions),
-  which [ADR-030](030-accounts-games-server-of-record.md) did; none alter this
-  taxonomy):
-  - **Shared, live Dashboard** — partly delivered by
-    [ADR-038](038-dashboard-game-surface.md): each pilot's play state is on the
-    Game, live to the crew; each player keeps their own screen.
-  - **Game spaces** — delivered as ADR-030's Games; ownership scopes _who_
-    may edit, not _what_ each mode enforces.
-  - **A Mediator layer** — delivered as the
-    [Mediator Dashboard](../architecture/mediator-dashboard.md); Adjudicate, no
-    reclassification.
-  - **Net-new homebrew content authoring** (out of scope) — a path to author systems/abilities
-    absent from the dataset, which Free Edit cannot express (an unresolved ref is
-    incoherent). A future authoring surface feeding the dataset, not a Free-Edit
-    affordance.
+- **Net-new homebrew content authoring** is out of scope — a path to author
+  systems/abilities absent from the dataset, which Free Edit cannot express (an
+  unresolved ref is incoherent). A future authoring surface feeding the dataset,
+  not a Free-Edit affordance.

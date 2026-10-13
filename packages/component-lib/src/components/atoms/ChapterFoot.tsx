@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color } from '../../design/tokens'
 import type { ChapterTone } from './chapterBandColor'
@@ -52,10 +52,6 @@ export type ChapterFootProps = {
   grain?: SpeckleGrain
   /** The inner row's max inline size, matching the band at the page's head. */
   measure?: string
-  /** The element. `footer` for the site footer; `div` inside a page's `main`. */
-  as?: ElementType
-  /** Accessible name, when the band is a landmark. */
-  'aria-label'?: string
 }
 
 const ROOT = {
@@ -74,16 +70,13 @@ export function ChapterFoot({
   fill,
   grain,
   measure,
-  as: Tag = 'div',
-  'aria-label': ariaLabel,
 }: ChapterFootProps) {
   const band = fill
     ? { background: fill, text: foregroundOn(fill, 'ink') === 'ink' ? color.ink : color.paper }
     : FOOT_BAND[tone]
   return (
-    <Tag
+    <div
       className="su-chapter-foot"
-      aria-label={ariaLabel}
       style={{
         ...ROOT,
         backgroundColor: band.background,
@@ -95,6 +88,6 @@ export function ChapterFoot({
         {start != null && <div className="su-chapter-foot__start">{start}</div>}
         {end != null && <div className="su-chapter-foot__end">{end}</div>}
       </div>
-    </Tag>
+    </div>
   )
 }

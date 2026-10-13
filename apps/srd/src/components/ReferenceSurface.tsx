@@ -31,7 +31,7 @@ export function ReferenceSurface({
   children: ReactNode
 }) {
   const value = useMemo(
-    () => ({ rolls: true, announceRoll: toastRoll, ...(pageRefs ? { pageRefs } : {}) }),
+    () => ({ announceRoll: toastRoll, ...(pageRefs ? { pageRefs } : {}) }),
     [pageRefs]
   )
   return <EntitySurfaceProvider value={value}>{children}</EntitySurfaceProvider>

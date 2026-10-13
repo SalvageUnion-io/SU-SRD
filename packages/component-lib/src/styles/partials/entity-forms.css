@@ -199,7 +199,7 @@
    wrapping heading, as a card's band does (`.su-ec-band__heading`): the name
    keeps its one-line width and grows, the chips sit right of it while they
    fit and drop whole onto a line under it when they do not. A head with chips
-   wears no cut-out: its name no longer sits at the band's foot. */
+   wears no cut-out: its name does not sit at the band's foot. */
 .su-entity-row__heading {
   align-items: center;
   display: flex;
@@ -557,8 +557,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* A Row that is its head alone (`data-bodyless`: a roll table with no opening
-   prose) keeps its head's height: stretched to its cell it was an empty paper
-   strip under the head. A grid holding one sizes each line to its own content,
+   prose) keeps its head's height rather than stretching to its cell as an
+   empty paper strip under the head. A grid holding one sizes each line to its own content,
    so a line of heads is a head tall; a bodied Row still fills its line. */
 [data-entity-grid]:has(.su-entity-row__frame[data-bodyless]) {
   grid-auto-rows: auto;

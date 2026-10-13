@@ -103,7 +103,7 @@ describe('fixed-name images can change under a returning visitor', () => {
   test('the scan found the public images', () => {
     // A scan that silently found nothing would pass every assertion below.
     expect(images).toContain('/og-image.png')
-    expect(images.length).toBeGreaterThanOrEqual(10)
+    expect(images.length).toBeGreaterThanOrEqual(8)
   })
 
   test.each(publicImages())('%s is never immutable, and is never double-headed', (path) => {

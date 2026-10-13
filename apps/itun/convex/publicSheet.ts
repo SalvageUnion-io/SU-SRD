@@ -19,9 +19,9 @@ import {
   sameContainerRows,
   TABLE_OF_KIND,
 } from './model/entities'
-import { inviteByCode, statusOf } from './model/invites'
+import { inviteByCode, isCurrent } from './model/invites'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
-import { entityRef, entityRefType, inviteRole, softLinkType } from './schema'
+import { entityRef, entityRefType, softLinkType } from './schema'
 
 /**
  * Public, read-only sheets (ADR-032).
@@ -523,15 +523,12 @@ const invitePreviewAnswer = v.object({
   gameName: v.string(),
   /** Who runs the table: the Game's Mediator, by display name. */
   mediatedBy: v.union(v.string(), v.null()),
-  role: inviteRole,
-  requiresApproval: v.boolean(),
-  expiresAt: v.number(),
 })
 type InvitePreviewAnswer = Infer<typeof invitePreviewAnswer>
 
 /**
- * A Game invite, as its link preview shows it: the Game's name, who mediates and the expiry, or null for a code that is not
- * live. **Unauthenticated**, like `invites.preview`, which already tells a
+ * A Game invite, as its link preview shows it: the Game's name and who
+ * mediates, or null for a code that is not the Game's invite URL. **Unauthenticated**, like `invites.preview`, which already tells a
  * link holder the Game's name and who invited them; this adds only the
  * Mediator's name, the one person a player is asking to join.
  */
@@ -540,7 +537,7 @@ export const invitePreview = query({
   returns: v.union(invitePreviewAnswer, v.null()),
   handler: async (ctx, args): Promise<InvitePreviewAnswer | null> => {
     const invite = await inviteByCode(ctx, args.code)
-    if (invite === null || statusOf(invite, Date.now()) !== 'active') return null
+    if (invite === null || !(await isCurrent(ctx, invite))) return null
     const game = await ctx.db.get(invite.gameId)
     if (game === null) return null
     const mediator = (
@@ -552,9 +549,6 @@ export const invitePreview = query({
     return {
       gameName: game.name,
       mediatedBy: mediator ? displayNameOf(await ctx.db.get(mediator.userId), null) : null,
-      role: invite.role,
-      requiresApproval: invite.requiresApproval,
-      expiresAt: invite.expiresAt,
     }
   },
 })

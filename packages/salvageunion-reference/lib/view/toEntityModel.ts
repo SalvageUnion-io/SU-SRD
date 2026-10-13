@@ -99,7 +99,7 @@ function splitFacets(cells: FacetCell[]): {
             name: c.label,
             ...(c.value !== undefined ? { param: c.value } : {}),
             schemaName: c.mention.schemaName,
-            ...glossaryRef(c.mention.schemaName, c.mention.name),
+            ...withRef(glossaryRef(c.mention.schemaName, c.mention.name)),
           },
         ]
       : []
@@ -112,14 +112,26 @@ function splitFacets(cells: FacetCell[]): {
   }
 }
 
-/** A glossary entry by name: exact, else lower-cased (the glossaries store
- * lower-case names; a datavalue prints its rule capitalised). */
-function glossaryRef(schemaName: 'traits' | 'keywords', name: string): { ref?: EntityRef } {
-  if (!SalvageUnionReference.isLoaded(schemaName)) return {}
+/**
+ * A glossary entry by name: exact, else lower-cased (the glossaries store
+ * lower-case names; a datavalue prints its rule capitalised). `undefined` when
+ * the glossary does not carry it, or is not loaded.
+ */
+export function glossaryRef(
+  schemaName: 'traits' | 'keywords',
+  name: string
+): EntityRef | undefined {
+  if (!SalvageUnionReference.isLoaded(schemaName)) return undefined
   const entry =
     SalvageUnionReference.getByNameIn(schemaName, name) ??
     SalvageUnionReference.getByNameIn(schemaName, name.toLowerCase())
-  return entry ? { ref: refOf(entry) } : {}
+  return entry
+    ? { schemaName, id: entry.id, slug: getEntitySlug(entry), name: entry.name }
+    : undefined
+}
+
+function withRef(ref: EntityRef | undefined): { ref?: EntityRef } {
+  return ref ? { ref } : {}
 }
 
 /**

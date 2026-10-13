@@ -16,7 +16,7 @@ import type {
   SURefObjectChoice,
   SURefObjectContentBlock,
 } from 'salvageunion-reference'
-import { actionFacets, facetCells } from 'salvageunion-reference'
+import { facetCells } from 'salvageunion-reference'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
@@ -51,16 +51,6 @@ function toSubHeaderCell(cell: FacetCell): CardFacetCell {
       ...(cell.modified ? { modified: true as const } : {}),
     },
   }
-}
-
-/**
- * An action's classification + range / damage / traits as sub-header cells,
- * the action TYPE leading. `mechActionType` splits the type the way the book
- * prints a few abilities — "Turn Action (Mech) // Short Action (Pilot)"
- * (core book p.248-249), Mech first.
- */
-export function actionCells(action: ActionFields, mechActionType?: string): CardFacetCell[] {
-  return actionFacets(action, mechActionType).map(toSubHeaderCell)
 }
 
 /** `bonusPerTechLevel` fields → "+N" vertical stat boxes (zeros/absent dropped).

@@ -52,7 +52,7 @@ import {
   resolveNestedEntities,
   resolvePatternGroups,
 } from '../card/resolveNestedEntities'
-import { buildBookStats, buildReferenceEntityStats } from '../referenceEntityStatsConfig'
+import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 
 type Schema = SURefEnumSchemaName | 'actions'
 
@@ -158,19 +158,6 @@ describe('toEntityModel parity, every entity', () => {
         label(row),
         head.filter((f) => f.key !== 'tech-level').map((f) => f.label),
         full.map((s) => `${s.label} ${s.bottomLabel}`)
-      )
-    }
-  })
-
-  test('book stats agree with buildBookStats', () => {
-    for (const row of ENTITIES) {
-      const { schemaName, entity } = row
-      if (schemaName === 'actions') continue
-      const expected = buildBookStats(entity, { techLevel: getTechLevel(entity), schemaName })
-      agree(
-        label(row),
-        toEntityModel(entity).bookStats.map((f) => [f.key, f.label, f.value, f.hint]),
-        expected.map((s) => [s.key, s.label, s.value, s.hoverText])
       )
     }
   })

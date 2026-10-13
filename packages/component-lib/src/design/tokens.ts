@@ -136,12 +136,8 @@ export const tracking = {
  *   none   stamps are square
  *   full   pills and circles
  *
- * The stock `rounded` / `rounded-md` / `rounded-xl` rungs are deliberately
- * NOT carried across, unlike the inherited type rungs above. The radius ladder
- * is a *closed* role vocabulary with a guard behind it (`tokens/arbitrary-radius`
- * in `bun run check styling`), so their ~40 call sites are drift the ladder already
- * has a word for — 4px is `card`, 6px is exactly `panel`. Migrating them means
- * naming the role, which is the point of the ladder.
+ * The radius ladder is a *closed* role vocabulary: 4px is `card`, 6px is
+ * exactly `panel`. A new radius names its role here rather than a raw value.
  */
 export const radius = {
   pip: '1px',
@@ -218,7 +214,6 @@ const base = {
   // — Class ability-tier ramp (the book's; Hybrid rust by the owner's call).
   //   Advanced and Legendary reuse pilot/crawler. —
   tierCore: 'rgb(168, 89, 71)',
-  tierCorePale: 'rgb(210, 160, 140)',
   tierHybrid: 'rgb(183, 65, 14)',
 
   // — Roll result tiers: the canonical warm state ramp, shared with the bot —
@@ -272,8 +267,6 @@ const base = {
   paper30: 'rgb(251 250 247 / 0.3)',
   /** FilterRow's sticky backing — near-opaque paper over scrolling content. */
   paper85: 'rgb(251 250 247 / 0.85)',
-  /** ModalShell's panel over the scrim. */
-  paper80: 'rgb(251 250 247 / 0.8)',
   /** MobileSearchDialog's hairline on a tone. */
   paper15: 'rgb(251 250 247 / 0.15)',
 
@@ -310,7 +303,6 @@ const base = {
   caution: 'rgb(215, 195, 125)',
   /** Banner's caution wash — the advisory fill behind its caution border. */
   caution25: 'rgb(215 195 125 / 0.25)',
-  inert: 'rgb(192, 192, 192)',
 
   // — Cargo (storage) accent triplet —
   cargo: 'rgb(156, 122, 62)',

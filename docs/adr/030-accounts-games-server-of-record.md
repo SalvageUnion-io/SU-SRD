@@ -58,17 +58,14 @@ became running **a table**: several players, one Union Crawler, a Mediator, and 
 shared session where a Downtime happens to everybody at once.
 
 [ADR-021](021-itun-surface-taxonomy.md) anticipated this precisely. Its
-long-tail section lists **"Workspaces → Game spaces"**, a **"Shared, live
+long-tail section listed **"Workspaces → Game spaces"**, a **"Shared, live
 Dashboard"**, and a **"dedicated Mediator layer"** as out of scope and
 _explicitly gated on revisiting ADR-001_. Nothing here is a surprise to the
 architecture; this ADR opens the gate ADR-021 described.
 
-Three existing decisions turned out to be well-shaped for this and were carried
+Two existing decisions turned out to be well-shaped for this and were carried
 over:
 
-- **~~[ADR-004](../ARCHITECTURE.md#decisions) (immutable, unauthenticated
-  snapshots) remains the account-free way to hand someone a pilot.~~ Retired by
-  [ADR-036](../ARCHITECTURE.md#decisions).**
 - **[ADR-027](../ARCHITECTURE.md#decisions)/[ADR-028](../ARCHITECTURE.md#decisions)**
   made partner ownership _intrinsic_ — partners ride their host through snapshots
   and export bundles with no orphan cleanup. That ports to per-user ownership with
@@ -141,29 +138,11 @@ step, which is exactly the property a fork would not have had.
 So a character in somebody else's Game can be copied to your shelf without
 copying the Game, and editing your copy can never touch theirs.
 
-> **Amended.** This clause previously read: _"a pilot's crawler
-> level, scrap, TP, and injuries are Game-specific, so a shared pilot would be
-> incoherent rather than convenient. Moving one is an explicit **fork** that
-> copies and records its origin."_
->
-> The conclusion did not follow from the premise. Game-specific state is only
-> incoherent if one entity can be in two Games at once, and the container model
-> makes that unrepresentable: `gameId` is a **single nullable column**, so an
-> entity is in at most one Game by construction. Forking solved a problem the
-> schema already prevents.
->
-> Note that a fork is **not** the same thing as the copy sanctioned above, and
-> the difference is the origin it "records". A copy is a clean break — a new
-> build of yours with no tie to what it came from. A fork keeps a relationship,
-> and a relationship between two records of one character is precisely the thing
-> that has to be reconciled, watched, and eventually gets out of step. The verb
-> that survives is the one with nothing to keep in sync.
->
-> No fork was ever built, so this amendment does not change behaviour;
-> `MoveToContainerControl` re-stamps `gameId` in place and
-> `entities.upsertByAppId` re-homes the existing row. What it changes is the
-> instruction: that in-place move **is** the design, and the absence of a fork
-> mutation is not a gap for somebody to close later.
+An entity is in at most one Game by construction (`gameId` is a **single
+nullable column**), so there is nothing to fork. `MoveToContainerControl`
+re-stamps `gameId` in place and `entities.upsertByAppId` re-homes the existing
+row: that in-place move **is** the design, and the absence of a fork mutation is
+not a gap for somebody to close later.
 
 ### 3. Roles: a base role plus one modifier
 
@@ -201,19 +180,17 @@ Owners may always **release** what they hold, and the Mediator may **reassign**,
 so a mis-assignment is fixable. A player may own any number of entities in a
 Game — solo play and covering for an absent player both need it.
 
-> **Amended: players self-claim what is offered.** This section originally read
-> "ownership is assigned rather than claimed: players do not self-claim". That
-> is reversed. An unclaimed entity is an **offer to the crew** — that is the
-> whole reason the Mediator pre-builds characters and a template seeds six of
-> them — so a player taking one is accepting an offer, not seizing anything.
-> Requiring the Mediator to hand each one over individually added a round trip
-> to the first ten minutes of every table and bought no safety.
->
-> The boundary the original rule protected is intact and is the important half:
-> **claiming touches only what is free.** An entity somebody already holds
-> cannot be taken; it must be released first, by its owner or by the Mediator.
-> `assign` remains the table runner's power to place an entity with a
-> _particular_ person, which self-claim cannot express.
+**Players self-claim what is offered.** An unclaimed entity is an **offer to
+the crew** — that is the whole reason the Mediator pre-builds characters and a
+template seeds six of them — so a player taking one is accepting an offer, not
+seizing anything. Requiring the Mediator to hand each one over individually
+would add a round trip to the first ten minutes of every table and buy no
+safety.
+
+**Claiming touches only what is free.** An entity somebody already holds
+cannot be taken; it must be released first, by its owner or by the Mediator.
+`assign` remains the table runner's power to place an entity with a
+_particular_ person, which self-claim cannot express.
 
 ### 5. Visibility
 
@@ -233,10 +210,8 @@ Communal is not free-to-**create**:
   `mediator: false` on its only membership, so a Mediator-strict rule would make
   every new Game an unreachable state). So is filling its fields (§5, as
   amended by [ADR-038](038-dashboard-game-surface.md) §5).
-- ~~**A Game takes a player's pilots and mechs once it has a crawler.**~~
-  **Amended by [ADR-037](../ARCHITECTURE.md#decisions):** any member may bring
-  their pilots and mechs into any Game they belong to, crawler or not. The
-  anchoring this bullet wanted is now explicit instead of a gate: the first
+- **Any member may bring their pilots and mechs into any Game they belong
+  to**, crawler or not ([ADR-037](../ARCHITECTURE.md#decisions)). The first
   crawler to arrive becomes the Game's **primary** and takes aboard everyone
   already there, and whoever enters later is assigned to the primary on the way
   in. Moving a crawler into or out of a Game is the table runner's act.
@@ -274,55 +249,20 @@ an **UNCLAIMED** stamp seal that opens the pick-up confirm, and creation gated b
 §5a. Every row opens its live sheet: editable when the viewer may edit it,
 otherwise the read-only drill-in §5 permits, `/sheet/:kind/:id`.
 
-## Amendment — an invite carries what the Organizer decided
+## Amendment — a Game has one invite URL
 
-§3 gives the Organizer "invites, membership" and stops there, leaving a code as
-a bare key and the seat and the hand-out as separate acts performed after the
-fact. That is amended in one direction: **an invite now expresses a decision the
-Organizer has already made.**
-
-**An invite may be minted as a request.** With approval required, the code
-identifies the Game and grants nothing until the Organizer lets the knocker in.
-This adds no role and no membership state — a pending request is _not_ a
-membership, and an approved one produces exactly the membership a direct redeem
-would, through the same code path. Bearer codes remain the default; this is a
-per-invite choice, not a mode.
-
-The reason is §5. Membership confers read access to every crewmate's sheet, so
-a code posted somewhere public is a broader disclosure than the Organizer
-intended. Approval is the Organizer exercising the membership authority §3
-already gives them, one step later.
-
-**An invite may also carry a seat** — a `role` of Player or Mediator. It
-carries no hand-out: invite grants (entities handed over on join) were retired,
-and a joiner claims an unclaimed entity like any crewmate (the self-claim
-amendment above). The `invites.grants` column stays optional and unwritten.
-
-Revocation becomes a **soft delete**, so an invite's redemption history stays
-resolvable, and it never evicts anyone already seated: closing a door is not the
-same act as removing someone from the room.
-
-Enforced in `convex/invites.ts` (`seat`, `assertSpendable`, `decideRequest`).
-
-**Extended by [ADR-039](039-addressed-invites.md):** an invite may also carry
-an address — a Discord account, which alone may redeem it. An addressed invite
-is single use and its addressee may decline it.
-
-## Amendment — an invite is a link, never a typed code
-
-A Game is joined from a link, `/invite/:token`, whose token is the invite's
-`code` column, now 16 Crockford characters (80 bits) since nobody types it. The
-code-entry door in "+ New Game" is gone. Opening a link signed out previews it
-and offers "Sign in to join"; the OAuth round trip returns with `?join=1` and
-the page joins on arrival. **Old `/join/:code` links resolve**: the Worker 301s
-them to `/invite/:code` (`apps/itun/src/worker/retiredRedirects.ts`), so a live
-code joins and a dead one gets the invite page's explanation of invite links.
-
-**Any member may hand out the Game's link** (`invites.link`, "Copy invite
-link" on the Game page and the Dashboard's Crew tab). The Organizer's is an
-open link; anyone else's is an approval link, so a player brings a friend to
-the door and the Organizer still decides who is seated (§5). One standing link
-per door is reused while it is live (`invites.standing`).
+§3's "invites" is one URL per Game, `/invite/:code`. Anyone signed in who
+opens it joins as a player; it has no expiry, use limit, label, seat choice or
+approval step. The Organizer copies it (`invites.link`, "Copy invite link" on
+the Game page and the Dashboard's Crew tab) and can reset it
+(`invites.reset`), which mints a new code: the old one stops working, and
+nobody already seated is removed. Who mediates is chosen afterwards among the
+members (`games.setMediator`). Signed out, the page previews the Game and
+offers "Sign in to join", returning with `?join=1` to join on arrival; old
+`/join/:code` links 301 to `/invite/:code`
+(`apps/itun/src/worker/retiredRedirects.ts`). The live code is the Game's
+newest open standing invite row (`convex/model/invites.ts#currentInvite`);
+every other row opens nothing.
 
 ## Amendment — the crawler can sit on a shelf, and deleting a Game destroys nothing
 
@@ -339,14 +279,9 @@ table runner's acts.
 
 What the amendment adds is the third row of §2's ownership table — `gameId:
 null` with an owner, *on the shelf* — which the crawler was the one entity
-unable to occupy. Two things were being worked around rather than fixed:
-
-- **Deleting a Game had to destroy its crawler.** Pilots and mechs fell back to
-  a shelf; the crew's home had nowhere to fall to.
-- **Claiming a Solo roster invented a container.** `entities.claimLocal` parked
-  a claimed crawler on a placeholder "Claimed crawler" Game of one, complete
-  with a membership, because the shelf could not hold it. That Game appeared in
-  the player's list as a table they never made.
+unable to occupy. Without it, deleting a Game had to destroy its crawler:
+pilots and mechs fell back to a shelf, and the crew's home had nowhere to fall
+to.
 
 `gameId == null && ownerId == null` remains the one invalid combination, for the
 crawler exactly as for everything else — which is *why* a shelved crawler must
@@ -371,20 +306,11 @@ The receiving shelf for the last two rows is the deleter's because they are the
 one person guaranteed to exist and to be looking at the consequence as it
 happens.
 
-What does go is the **table**: memberships, invites, pending join requests, the
+What does go is the **table**: memberships, invites, the
 Mediator's opposition tray, and the soft links. A link is a fact about the
 table's wiring rather than a possession — a pilot-to-crawler assignment means
 "aboard this crew's crawler", which stops being true when the crew disbands — so
 shelved entities land unwired.
-
-### Why not keep a shelved crawler in the browser only
-
-The rejected alternative was to copy the crawler into IndexedDB on deletion and
-leave the server out of it, which needs no schema change. It is rejected on
-principle: Convex is the one source of truth, and there is now no local store
-at all ([no device cache](../ARCHITECTURE.md#no-device-cache)). A record with no
-server row is invisible on the player's other devices and lost with the
-browser's storage.
 
 ## Amendment to ADR-022
 
@@ -394,8 +320,8 @@ published snapshot. The first half no longer holds: the log is now
 `applied | proposed | rejected | superseded`, and a `supersededBy` pointer. A
 proposal _is_ a log entry; applying one commits it.
 
-The second half stood — **a published snapshot remained frozen, historyless,
-and bare** — until [ADR-036](../ARCHITECTURE.md#decisions) retired snapshots.
+The second half no longer applies: [ADR-036](../ARCHITECTURE.md#decisions)
+retired snapshots.
 
 ## Consequences
 
@@ -405,8 +331,8 @@ and bare** — until [ADR-036](../ARCHITECTURE.md#decisions) retired snapshots.
   Deleting an account transfers Organizer to the longest-standing remaining
   member and removes that account's owned entities; **the Game and the communal
   crawler survive**, so a campaign never dies because one person quit.
-- **Anonymous use must keep working, forever.** Withdrawn by ADR-034: anonymous
-  use still works, but nothing it builds persists without an account.
+- **Anonymous use still works**, but nothing it builds persists without an
+  account ([ADR-034](../ARCHITECTURE.md#decisions)).
 - **Convex cannot validate entity bodies.** The Zod schemas in
   `packages/itun-domain/src/schemas/` stay the source of truth and Convex stores bodies
   opaquely, so **every mutation must Zod-parse before persisting**. The

@@ -26,6 +26,7 @@ import {
   PILOT_BASE_AP,
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
+  parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxAPParts,
   pilotMaxHP,
@@ -515,5 +516,17 @@ describe('crawler derivation', () => {
   it('unresolvable techLevel slug yields the modifier alone (≥ 0)', () => {
     expect(crawlerMaxSP({ techLevel: 'garbage' })).toBe(0)
     expect(crawlerMaxSP({ techLevel: 'garbage', maxSpModifier: 5 })).toBe(5)
+  })
+})
+
+describe('parseCrawlerTechLevel', () => {
+  it('parses a "tech-N" slug to its numeric level', () => {
+    expect(parseCrawlerTechLevel('tech-3')).toBe(3)
+    expect(parseCrawlerTechLevel('tech-6')).toBe(6)
+  })
+
+  it('returns undefined for a slug with no digits', () => {
+    expect(parseCrawlerTechLevel('tech')).toBeUndefined()
+    expect(parseCrawlerTechLevel('')).toBeUndefined()
   })
 })

@@ -7,25 +7,10 @@ import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * The invite scheme past a bare code (ADR-030 §2–4).
- *
- * The things worth defending here are the ones a UI cannot enforce: an
- * invite grants exactly the seat it was minted for, and a knock must not be a
- * membership until someone says so.
+ * A Game's invite URL (ADR-030's invite amendment): one per Game. Anyone
+ * signed in who opens it joins as a player; the Organizer copies it and can
+ * reset it, and a reset code opens nothing.
  */
-
-/**
- * The first row, or a failure that says so.
- *
- * Destructuring and then asserting non-null hides the interesting case: when a
- * query unexpectedly returns nothing, the test should fail on "expected a row"
- * rather than on a property access against `undefined` several lines later.
- */
-function firstRow<T>(rows: T[]): T {
-  const row = rows[0]
-  if (row === undefined) throw new Error('expected at least one row, got none')
-  return row
-}
 
 async function seedGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer')
@@ -44,293 +29,208 @@ async function seedPilot(t: Ctx, gameId: Id<'games'>, ownerId: Id<'users'> | nul
   )
 }
 
-describe('invite management', () => {
-  test('list reports derived status and who redeemed', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const joiner = await makeUser(t, 'Sam')
-
-    const code = await organizer.as.mutation(api.invites.create, {
+/** An invite row as an older door minted it, straight into the table. */
+async function seedLegacyInvite(
+  t: Ctx,
+  gameId: Id<'games'>,
+  createdBy: Id<'users'>,
+  code: string,
+  extra: {
+    standing?: boolean
+    requiresApproval?: boolean
+    target?: { kind: 'discord'; discordId: string }
+  }
+) {
+  await t.run(async (ctx) => {
+    const now = Date.now()
+    await ctx.db.insert('invites', {
       gameId,
-      label: 'for Sam',
-      usesRemaining: 1,
+      code,
+      createdBy,
+      createdAt: now,
+      expiresAt: now + 1000 * 60 * 60 * 24 * 7,
+      role: 'player',
+      requiresApproval: extra.requiresApproval ?? false,
+      standing: extra.standing,
+      target: extra.target,
     })
-    await joiner.as.mutation(api.invites.redeem, { code })
+  })
+}
 
-    const invite = firstRow(await organizer.as.query(api.invites.list, { gameId }))
-    expect(invite.label).toBe('for Sam')
-    // One use, spent — so the code is exhausted rather than merely used.
-    expect(invite.status).toBe('exhausted')
-    expect(invite.redeemers).toEqual(['Sam'])
+describe('the invite URL', () => {
+  test('is sixteen Crockford characters, and copying again hands out the same one', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
+    expect(code).toMatch(/^[0-9A-HJKMNP-TV-Z]{16}$/)
+    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe(code)
   })
 
-  test('revoke is a soft delete that keeps the audit trail', async () => {
+  test('opening it joins as a player, however many people use it', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
+
+    for (const name of ['Ash', 'Bex', 'Cole']) {
+      const joiner = await makeUser(t, name)
+      expect(await joiner.as.mutation(api.invites.redeem, { code })).toEqual({
+        kind: 'joined',
+        gameId,
+      })
+      const membership = await t.run(async (ctx) =>
+        ctx.db
+          .query('memberships')
+          .withIndex('by_game_user', (q) => q.eq('gameId', gameId).eq('userId', joiner.userId))
+          .unique()
+      )
+      expect(membership).toMatchObject({ mediator: false, organizer: false })
+    }
+  })
+
+  test('opening it twice is a no-op, not an error', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
     const joiner = await makeUser(t, 'Sam')
-
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
     await joiner.as.mutation(api.invites.redeem, { code })
-
-    const before = firstRow(await organizer.as.query(api.invites.list, { gameId }))
-    await organizer.as.mutation(api.invites.revoke, { inviteId: before._id })
-
-    const [after] = await organizer.as.query(api.invites.list, { gameId })
-    expect(after?.status).toBe('revoked')
-    // The row survived, so "who joined via which code" is still answerable.
-    expect(after?.redeemers).toEqual(['Sam'])
+    expect((await joiner.as.mutation(api.invites.redeem, { code })).kind).toBe('already')
+    expect(await joiner.as.query(api.games.listMine, {})).toHaveLength(1)
   })
 
-  test('a revoked code is refused, but does not evict whoever already joined', async () => {
+  test('is the Organizer’s alone to copy or reset', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const player = await makeUser(t, 'Player')
+    const stranger = await makeUser(t, 'Stranger')
+    await player.as.mutation(api.invites.redeem, {
+      code: await organizer.as.mutation(api.invites.link, { gameId }),
+    })
+
+    await expect(player.as.mutation(api.invites.link, { gameId })).rejects.toThrow()
+    await expect(player.as.mutation(api.invites.reset, { gameId })).rejects.toThrow()
+    await expect(stranger.as.mutation(api.invites.link, { gameId })).rejects.toThrow(
+      /not a member/i
+    )
+  })
+})
+
+describe('resetting it', () => {
+  test('mints a new URL; the old one stops working but evicts nobody', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
     const early = await makeUser(t, 'Early')
     const late = await makeUser(t, 'Late')
+    const old = await organizer.as.mutation(api.invites.link, { gameId })
+    await early.as.mutation(api.invites.redeem, { code: old })
 
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
-    await early.as.mutation(api.invites.redeem, { code })
+    const fresh = await organizer.as.mutation(api.invites.reset, { gameId })
+    expect(fresh).not.toBe(old)
+    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe(fresh)
 
-    const invite = firstRow(await organizer.as.query(api.invites.list, { gameId }))
-    await organizer.as.mutation(api.invites.revoke, { inviteId: invite._id })
+    await expect(late.as.mutation(api.invites.redeem, { code: old })).rejects.toThrow(
+      /no longer works/i
+    )
+    expect(await late.as.query(api.invites.preview, { code: old })).toBeNull()
+    // Someone already seated still lands in the Game from the old link.
+    expect((await early.as.mutation(api.invites.redeem, { code: old })).kind).toBe('already')
 
-    await expect(late.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/revoked/i)
-    // Early is still seated — revocation closes the door, it does not sweep the room.
-    const games = await early.as.query(api.games.listMine, {})
-    expect(games).toHaveLength(1)
-  })
-
-  test('a non-organizer can neither list nor revoke', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const player = await makeUser(t, 'Player')
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
-    await player.as.mutation(api.invites.redeem, { code })
-
-    await expect(player.as.query(api.invites.list, { gameId })).rejects.toThrow()
-
-    const invite = firstRow(await organizer.as.query(api.invites.list, { gameId }))
-    await expect(player.as.mutation(api.invites.revoke, { inviteId: invite._id })).rejects.toThrow()
+    expect((await late.as.mutation(api.invites.redeem, { code: fresh })).kind).toBe('joined')
   })
 })
 
-describe('invites carry a seat', () => {
-  test('a mediator invite seats the joiner as Mediator', async () => {
+describe('codes from retired invite kinds', () => {
+  test('the newest open standing link keeps working; every other code opens nothing', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
-    const gm = await makeUser(t, 'Vex')
+    await seedLegacyInvite(t, gameId, organizer.userId, 'OLDSTANDING00000', { standing: true })
+    await seedLegacyInvite(t, gameId, organizer.userId, 'NEWSTANDING00000', { standing: true })
+    await seedLegacyInvite(t, gameId, organizer.userId, 'MINTEDBYCREATE00', {})
+    await seedLegacyInvite(t, gameId, organizer.userId, 'APPROVALLINK0000', {
+      standing: true,
+      requiresApproval: true,
+    })
+    await seedLegacyInvite(t, gameId, organizer.userId, 'ADDRESSEDTOSAM00', {
+      target: { kind: 'discord', discordId: 'snowflake-sam' },
+    })
 
-    const code = await organizer.as.mutation(api.invites.create, { gameId, role: 'mediator' })
-    await gm.as.mutation(api.invites.redeem, { code })
+    // An already-shared link keeps working, and is what "Copy invite link" hands out.
+    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe('NEWSTANDING00000')
+    const joiner = await makeUser(t, 'Joiner')
+    expect((await joiner.as.mutation(api.invites.redeem, { code: 'newstanding00000' })).kind).toBe(
+      'joined'
+    )
 
-    const [game] = await gm.as.query(api.games.listMine, {})
-    expect(game?.mediator).toBe(true)
-  })
-
-  test('a mediator invite defaults to single use', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const first = await makeUser(t, 'First')
-    const second = await makeUser(t, 'Second')
-
-    const code = await organizer.as.mutation(api.invites.create, { gameId, role: 'mediator' })
-    await first.as.mutation(api.invites.redeem, { code })
-
-    // The schema permits several Mediators; the UI is built for one, so an
-    // unlimited mediator code would quietly seat a second.
-    await expect(second.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/used up/i)
-  })
-
-  test('redeeming twice is idempotent and consumes no second use', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const joiner = await makeUser(t, 'Sam')
-    const code = await organizer.as.mutation(api.invites.create, { gameId, usesRemaining: 2 })
-
-    await joiner.as.mutation(api.invites.redeem, { code })
-    const second = await joiner.as.mutation(api.invites.redeem, { code })
-
-    expect(second).toMatchObject({ kind: 'already' })
-    const invite = firstRow(await organizer.as.query(api.invites.list, { gameId }))
-    expect(invite.usesRemaining).toBe(1)
+    for (const code of [
+      'OLDSTANDING00000',
+      'MINTEDBYCREATE00',
+      'APPROVALLINK0000',
+      'ADDRESSEDTOSAM00',
+    ]) {
+      const someone = await makeUser(
+        t,
+        `Someone ${code}`,
+        code === 'ADDRESSEDTOSAM00' ? 'snowflake-sam' : undefined
+      )
+      expect(await someone.as.query(api.invites.preview, { code })).toBeNull()
+      await expect(someone.as.mutation(api.invites.redeem, { code })).rejects.toThrow(
+        /no longer works/i
+      )
+    }
   })
 })
 
 describe('preview', () => {
-  test('describes the invite without spending it or leaking the crew', async () => {
+  test('describes the Game without spending the code or leaking the crew', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
     const stranger = await makeUser(t, 'Stranger')
-    const code = await organizer.as.mutation(api.invites.create, { gameId, role: 'mediator' })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
 
-    const preview = await stranger.as.query(api.invites.preview, { code })
-    expect(preview).toMatchObject({
+    expect(await stranger.as.query(api.invites.preview, { code })).toEqual({
       gameName: 'Tenacity',
       invitedBy: 'Organizer',
-      role: 'mediator',
-      status: 'active',
     })
     // Looking is not joining.
     expect(await stranger.as.query(api.games.listMine, {})).toHaveLength(0)
-    // Nothing about who is already at the table.
-    expect(JSON.stringify(preview)).not.toContain('memberCount')
   })
 
   test('an unknown code is null rather than an error', async () => {
     const t = testConvex()
     const stranger = await makeUser(t, 'Stranger')
     expect(await stranger.as.query(api.invites.preview, { code: 'ZZZZZZZZ' })).toBeNull()
-  })
-
-  test('a revoked code previews as revoked, so the landing page can say so', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const stranger = await makeUser(t, 'Stranger')
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
-    const invite = firstRow(await organizer.as.query(api.invites.list, { gameId }))
-    await organizer.as.mutation(api.invites.revoke, { inviteId: invite._id })
-
-    const preview = await stranger.as.query(api.invites.preview, { code })
-    expect(preview?.status).toBe('revoked')
-  })
-})
-
-describe('knock and approve', () => {
-  test('a knock creates no membership and burns no use', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const knocker = await makeUser(t, 'Knocker')
-
-    const code = await organizer.as.mutation(api.invites.create, {
-      gameId,
-      requiresApproval: true,
-      usesRemaining: 1,
-    })
-    const result = await knocker.as.mutation(api.invites.redeem, { code })
-
-    expect(result).toMatchObject({ kind: 'pending' })
-    expect(await knocker.as.query(api.games.listMine, {})).toHaveLength(0)
-
-    // A spam of knocks must not be able to burn a code before anyone joins.
-    await knocker.as.mutation(api.invites.redeem, { code })
-    const invite = firstRow(await organizer.as.query(api.invites.list, { gameId }))
-    expect(invite.usesRemaining).toBe(1)
-    expect(await organizer.as.query(api.invites.pendingRequests, { gameId })).toHaveLength(1)
-  })
-
-  test('approval seats them with the invite’s role', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const knocker = await makeUser(t, 'Knocker')
-
-    const code = await organizer.as.mutation(api.invites.create, {
-      gameId,
-      requiresApproval: true,
-      role: 'mediator',
-    })
-    await knocker.as.mutation(api.invites.redeem, { code })
-
-    const request = firstRow(await organizer.as.query(api.invites.pendingRequests, { gameId }))
-    await organizer.as.mutation(api.invites.decideRequest, {
-      requestId: request._id,
-      approve: true,
-    })
-
-    // Whichever door they came through, the seat is the same one.
-    const [game] = await knocker.as.query(api.games.listMine, {})
-    expect(game?.mediator).toBe(true)
-    expect(await organizer.as.query(api.invites.pendingRequests, { gameId })).toHaveLength(0)
-  })
-
-  test('a decline leaves them out, and they may knock again', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const knocker = await makeUser(t, 'Knocker')
-
-    const code = await organizer.as.mutation(api.invites.create, {
-      gameId,
-      requiresApproval: true,
-    })
-    await knocker.as.mutation(api.invites.redeem, { code })
-    const request = firstRow(await organizer.as.query(api.invites.pendingRequests, { gameId }))
-    await organizer.as.mutation(api.invites.decideRequest, {
-      requestId: request._id,
-      approve: false,
-    })
-
-    expect(await knocker.as.query(api.games.listMine, {})).toHaveLength(0)
-    expect(await organizer.as.query(api.invites.pendingRequests, { gameId })).toHaveLength(0)
-
-    // An Organizer who declined by mistake should not have to mint a fresh code.
-    await knocker.as.mutation(api.invites.redeem, { code })
-    expect(await organizer.as.query(api.invites.pendingRequests, { gameId })).toHaveLength(1)
-  })
-
-  test('only the organizer can see or answer knocks', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const player = await makeUser(t, 'Player')
-    const knocker = await makeUser(t, 'Knocker')
-
-    const open = await organizer.as.mutation(api.invites.create, { gameId })
-    await player.as.mutation(api.invites.redeem, { code: open })
-
-    const gated = await organizer.as.mutation(api.invites.create, {
-      gameId,
-      requiresApproval: true,
-    })
-    await knocker.as.mutation(api.invites.redeem, { code: gated })
-
-    await expect(player.as.query(api.invites.pendingRequests, { gameId })).rejects.toThrow()
-    const request = firstRow(await organizer.as.query(api.invites.pendingRequests, { gameId }))
-    await expect(
-      player.as.mutation(api.invites.decideRequest, { requestId: request._id, approve: true })
-    ).rejects.toThrow()
-  })
-
-  test('approving a code that expired while pending is refused', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const knocker = await makeUser(t, 'Knocker')
-
-    const code = await organizer.as.mutation(api.invites.create, {
-      gameId,
-      requiresApproval: true,
-    })
-    await knocker.as.mutation(api.invites.redeem, { code })
-
-    await t.run(async (ctx) => {
-      for (const row of await ctx.db.query('invites').collect()) {
-        if (row.code === code) await ctx.db.patch(row._id, { expiresAt: Date.now() - 1000 })
-      }
-    })
-
-    const request = firstRow(await organizer.as.query(api.invites.pendingRequests, { gameId }))
-    await expect(
-      organizer.as.mutation(api.invites.decideRequest, { requestId: request._id, approve: true })
-    ).rejects.toThrow(/expired/i)
+    await expect(stranger.as.mutation(api.invites.redeem, { code: 'ZZZZZZZZ' })).rejects.toThrow(
+      /not valid/i
+    )
   })
 })
 
 describe('deleting a game', () => {
-  test('sweeps redemptions and pending knocks along with the invites', async () => {
+  test('sweeps its invites, and any redemptions and asks older doors left', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
     const joiner = await makeUser(t, 'Sam')
-    const knocker = await makeUser(t, 'Knocker')
-
-    const open = await organizer.as.mutation(api.invites.create, { gameId })
-    await joiner.as.mutation(api.invites.redeem, { code: open })
-
-    const gated = await organizer.as.mutation(api.invites.create, {
-      gameId,
-      requiresApproval: true,
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
+    await joiner.as.mutation(api.invites.redeem, { code })
+    await t.run(async (ctx) => {
+      const invite = await ctx.db.query('invites').first()
+      if (invite === null) throw new Error('expected an invite')
+      await ctx.db.insert('inviteRedemptions', {
+        inviteId: invite._id,
+        gameId,
+        userId: joiner.userId,
+        redeemedAt: Date.now(),
+      })
+      await ctx.db.insert('joinRequests', {
+        gameId,
+        inviteId: invite._id,
+        userId: joiner.userId,
+        requestedAt: Date.now(),
+        state: 'pending',
+      })
     })
-    await knocker.as.mutation(api.invites.redeem, { code: gated })
 
     await organizer.as.mutation(api.games.destroy, { gameId })
 
-    // A knock at a door that no longer exists would otherwise sit pending
-    // forever, and a redemption row would point at a deleted Game.
     const leftovers = await t.run(async (ctx) => ({
       invites: (await ctx.db.query('invites').collect()).length,
       redemptions: (await ctx.db.query('inviteRedemptions').collect()).length,
@@ -388,68 +288,5 @@ describe('games.get and the row summary', () => {
     const stranger = await makeUser(t, 'Stranger')
     // A bookmarked URL for a game you left is an ordinary thing to visit.
     expect(await stranger.as.query(api.games.get, { gameId })).toBeNull()
-  })
-})
-
-describe('invite links (issue 1255)', () => {
-  test('a minted token is sixteen Crockford characters, never a short typed code', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const token = await organizer.as.mutation(api.invites.create, { gameId })
-    expect(token).toMatch(/^[0-9A-HJKMNP-TV-Z]{16}$/)
-  })
-
-  test("the Organizer's link opens the door, and copying again hands out the same one", async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const friend = await makeUser(t, 'Friend')
-
-    const token = await organizer.as.mutation(api.invites.link, { gameId })
-    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe(token)
-
-    expect(await friend.as.mutation(api.invites.redeem, { code: token })).toMatchObject({
-      kind: 'joined',
-    })
-  })
-
-  test("a player's link only asks to join, and the Organizer decides", async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const player = await makeUser(t, 'Player')
-    const friend = await makeUser(t, 'Friend')
-    await player.as.mutation(api.invites.redeem, {
-      code: await organizer.as.mutation(api.invites.create, { gameId }),
-    })
-
-    const token = await player.as.mutation(api.invites.link, { gameId })
-    // Not the Organizer's open link: a player brings a friend to the door.
-    expect(token).not.toBe(await organizer.as.mutation(api.invites.link, { gameId }))
-
-    expect(await friend.as.mutation(api.invites.redeem, { code: token })).toMatchObject({
-      kind: 'pending',
-    })
-    expect(await friend.as.query(api.games.listMine, {})).toHaveLength(0)
-    const knock = firstRow(await organizer.as.query(api.invites.pendingRequests, { gameId }))
-    expect(knock.displayName).toBe('Friend')
-  })
-
-  test('a revoked standing link is replaced on the next ask', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const token = await organizer.as.mutation(api.invites.link, { gameId })
-    const invite = firstRow(await organizer.as.query(api.invites.list, { gameId }))
-    await organizer.as.mutation(api.invites.revoke, { inviteId: invite._id })
-
-    const fresh = await organizer.as.mutation(api.invites.link, { gameId })
-    expect(fresh).not.toBe(token)
-  })
-
-  test('someone outside the Game gets no link', async () => {
-    const t = testConvex()
-    const { gameId } = await seedGame(t)
-    const stranger = await makeUser(t, 'Stranger')
-    await expect(stranger.as.mutation(api.invites.link, { gameId })).rejects.toThrow(
-      /not a member/i
-    )
   })
 })

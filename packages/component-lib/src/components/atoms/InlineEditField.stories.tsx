@@ -57,12 +57,12 @@ export const Default: Story = () => (
       <Live initial=".50 Cal Machine Gun" ariaLabel="Weapon name" />
     </Cell>
 
-    <Cell caption="edit — Ace's HP, number 0–16">
-      <Live initial={16} type="number" min={0} max={16} ariaLabel="Pilot HP" />
+    <Cell caption="edit — Ace's HP, a number up to 16">
+      <Live initial={16} type="number" max={16} ariaLabel="Pilot HP" />
     </Cell>
 
     <Cell caption="number-invalid — type 12 and blur (max 10 → red + role=alert)">
-      <Live initial={6} type="number" min={0} max={10} ariaLabel="Mule Heat" />
+      <Live initial={6} type="number" max={10} ariaLabel="Mule Heat" />
     </Cell>
 
     <Cell caption="textarea — 3-row multiline with placeholder">

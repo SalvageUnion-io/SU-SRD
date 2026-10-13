@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType } from 'react'
+import type { CSSProperties } from 'react'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Slab } from '../atoms/Slab'
@@ -46,8 +46,6 @@ type StartHereProps = {
   id: string
   /** Where each step opens, by key. A step without one is not a link. */
   hrefs?: Partial<Record<StartHereStepKey, string>>
-  /** Link component for the steps' hrefs. Defaults to a plain anchor. */
-  LinkComponent?: ElementType
 }
 
 const SECTION = {
@@ -133,7 +131,7 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
   )
 }
 
-export function StartHere({ id, hrefs = {}, LinkComponent = 'a' }: StartHereProps) {
+export function StartHere({ id, hrefs = {} }: StartHereProps) {
   return (
     <section aria-labelledby={id} className="su-start-here" style={SECTION}>
       <Slab label="Start here" id={id} as="h2" variant="solid" style={{ marginBottom: 0 }} />
@@ -143,13 +141,9 @@ export function StartHere({ id, hrefs = {}, LinkComponent = 'a' }: StartHereProp
           return (
             <li key={step.key}>
               {href ? (
-                <LinkComponent
-                  href={href}
-                  className={`su-start-here__step ${FOCUS_RING}`}
-                  style={STEP}
-                >
+                <a href={href} className={`su-start-here__step ${FOCUS_RING}`} style={STEP}>
                   <StepFace step={step} index={index} />
-                </LinkComponent>
+                </a>
               ) : (
                 <div style={STEP}>
                   <StepFace step={step} index={index} />

@@ -4,9 +4,8 @@
  * line (docs/architecture/mediator-dashboard.md Q6, Q7, Q11).
  */
 
-import { parseCrawlerTechLevel } from 'itun-domain/crawlerLevel'
 import { CrawlerSchema } from 'itun-domain/schemas/crawler'
-import { crawlerMaxSP, resolvePool } from 'salvageunion-reference/rules'
+import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
 
 /** What the minor shows of a crawler. */
 export type CrawlerReading = {

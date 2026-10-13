@@ -10,7 +10,7 @@
  * entity's schema, always calls `resolveTable()` (-> `roll-tables`, for
  * `tableName` refs), always renders `RangeValueDisplay` for any `range`
  * DataValue (-> `distances`), and always resolves ability-tree prerequisite
- * text via `resolveClassRequirements` (-> `ability-tree-requirements`).
+ * text via `classRequirements` (-> `ability-tree-requirements`).
  * So trying to compute a minimal *per-item* closure is a correctness trap —
  * a missed edge silently drops content (some lookups warn-and-degrade) or
  * throws (LazyModel access on an unloaded schema throws synchronously, and
@@ -32,7 +32,7 @@
  *     LazyModel `.find()`.
  *   - `distances`: `RangeValueDisplay` resolves any `range`-type DataValue
  *     via a LazyModel lookup.
- *   - `ability-tree-requirements`: `resolveClassRequirements`
+ *   - `ability-tree-requirements`: `classRequirements`
  *     (referenceEntity/card/entityCardTone.ts) resolves a hybrid class's
  *     prerequisite trees during render, via a LazyModel lookup keyed on the
  *     class name. Dropping it here would throw on any class card.

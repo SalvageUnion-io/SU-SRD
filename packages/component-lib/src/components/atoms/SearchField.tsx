@@ -87,8 +87,6 @@ type SearchFieldTriggerProps = ComponentPropsWithRef<'button'> & {
   label: string
   /** Classes on the label, where `SearchField` takes them on its input (the bar's width). */
   labelClassName?: string
-  /** Magnifier glyph size in px. */
-  glyphSize?: number
   /** The shortcut's key cap, as on `SearchField`. Decorative. */
   shortcut?: string
 }
@@ -105,7 +103,6 @@ type SearchFieldTriggerProps = ComponentPropsWithRef<'button'> & {
 export function SearchFieldTrigger({
   label,
   labelClassName,
-  glyphSize = 14,
   shortcut,
   className,
   ref,
@@ -119,7 +116,7 @@ export function SearchFieldTrigger({
       className={cn('su-search-field su-search-field--trigger', FOCUS_RING, className)}
       {...buttonProps}
     >
-      <Search size={glyphSize} strokeWidth={2.5} aria-hidden="true" style={GLYPH} />
+      <Search size={14} strokeWidth={2.5} aria-hidden="true" style={GLYPH} />
       <span className={cn('su-search-field__input su-search-field__label', labelClassName)}>
         {label}
       </span>

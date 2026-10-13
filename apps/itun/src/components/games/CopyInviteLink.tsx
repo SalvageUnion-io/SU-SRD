@@ -1,18 +1,19 @@
 /**
- * "Copy invite link" — the one way a Game is shared. It sits on the
- * Game page and on the Dashboard's Crew tab (board D2).
+ * The Game's invite URL, the Organizer's: "Copy invite link" (the Game page
+ * and the Dashboard's Crew tab, board D2) and "Reset link" (the Game page).
  *
- * The link is the Game's standing link for whoever presses it
- * (`invites.link`): the Organizer's opens the door, anyone else's asks the
- * Organizer to let the newcomer in. Pressing it again copies the same link.
+ * Copying hands out the Game's one URL (`invites.link`); pressing it again
+ * copies the same one. Resetting mints a new URL (`invites.reset`), and the
+ * old one stops working, after a confirm.
  *
  * Connected only. The link comes from the server of record, so a signed-out or
  * offline viewer has nothing to copy and sees no button.
  */
 
-import { Button, toast } from 'component-lib'
+import { Button, ConfirmDialog, toast } from 'component-lib'
 import { useMutation } from 'convex/react'
 import { Link2 } from 'lucide-react'
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { appRoot } from '../../lib/appUrl'
@@ -75,4 +76,41 @@ export function CopyInviteLink(props: CopyInviteLinkProps) {
   const { mode } = useConnection()
   if (mode !== 'connected') return null
   return <ConnectedCopyInviteLink {...props} />
+}
+
+function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
+  const reset = useMutation(api.invites.reset)
+  const [confirming, setConfirming] = useState(false)
+
+  async function run(): Promise<void> {
+    await reset({ gameId })
+    toast.success('Invite link reset. The old link no longer works.', {
+      id: 'invite-link-reset',
+    })
+  }
+
+  return (
+    <>
+      <Button variant="default" size="compact" onClick={() => setConfirming(true)}>
+        Reset link
+      </Button>
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        tone="danger"
+        title="Reset the invite link?"
+        body="The current link stops working. Anyone who has it but has not joined yet needs the new one."
+        confirmLabel="Reset link"
+        pendingLabel="Resetting…"
+        onConfirm={run}
+      />
+    </>
+  )
+}
+
+/** "Reset link": a new invite URL, and the old one stops working. Connected only. */
+export function ResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
+  const { mode } = useConnection()
+  if (mode !== 'connected') return null
+  return <ConnectedResetInviteLink gameId={gameId} />
 }

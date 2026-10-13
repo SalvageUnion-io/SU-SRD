@@ -5,19 +5,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../crawlerLevel'
-
-describe('parseCrawlerTechLevel', () => {
-  test('parses a "tech-N" slug to its numeric level', () => {
-    expect(parseCrawlerTechLevel('tech-3')).toBe(3)
-    expect(parseCrawlerTechLevel('tech-6')).toBe(6)
-  })
-
-  test('returns undefined for a slug with no digits', () => {
-    expect(parseCrawlerTechLevel('tech')).toBeUndefined()
-    expect(parseCrawlerTechLevel('')).toBeUndefined()
-  })
-})
+import { resolveEffectiveCrawlerLevel } from '../crawlerLevel'
 
 describe('resolveEffectiveCrawlerLevel', () => {
   test('prefers a linked crawler techLevel over the manual fallback', () => {

@@ -26,18 +26,14 @@ export async function createGame(page: Page, name: string): Promise<string> {
 }
 
 /**
- * Make a link from the Game page's New link form and read its token off the
- * newest open link's card. Approval is unchecked by default (ADR-030's invite
- * amendment), so `approval` ticks it.
+ * Copy the Game's invite link from its page ("Copy invite link", the
+ * Organizer's) and read its token off the clipboard.
  */
-export async function makeInviteLink(page: Page, { approval }: { approval: boolean }) {
-  const before = await page.getByRole('list', { name: 'Open invite links' }).locator('li').count()
-  if (approval) await page.getByLabel('I approve each person who uses it').check()
-  await page.getByRole('button', { name: 'Make link' }).click()
-  const cards = page.getByRole('list', { name: 'Open invite links' }).locator('li')
-  await expect(cards).toHaveCount(before + 1, { timeout: 15_000 })
-  // Newest first: the link just made heads the list.
-  const url = (await cards.first().locator('code').innerText()).trim()
+export async function makeInviteLink(page: Page) {
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.getByRole('button', { name: 'Copy invite link' }).click()
+  await expect(page.getByText('Invite link copied')).toBeVisible({ timeout: 15_000 })
+  const url = (await page.evaluate(() => navigator.clipboard.readText())).trim()
   const token = /\/invite\/([^/\s]+)$/.exec(url)?.[1]
   if (!token) throw new Error(`No invite token in "${url}"`)
   return token

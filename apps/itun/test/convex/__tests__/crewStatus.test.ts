@@ -93,7 +93,7 @@ async function seedCrew(t: Ctx) {
   const ash = await makeUser(t, 'Ash')
   const bex = await makeUser(t, 'Bex')
   const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await gm.as.mutation(api.invites.create, { gameId })
+  const code = await gm.as.mutation(api.invites.link, { gameId })
   await ash.as.mutation(api.invites.redeem, { code })
   await bex.as.mutation(api.invites.redeem, { code })
   await gm.as.mutation(api.games.setMediator, { gameId, userId: gm.userId, mediator: true })

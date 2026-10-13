@@ -71,6 +71,7 @@ export {
   PILOT_BASE_AP,
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
+  parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxAPParts,
   pilotMaxHP,

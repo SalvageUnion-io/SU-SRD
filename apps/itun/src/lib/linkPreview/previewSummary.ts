@@ -40,9 +40,6 @@ export type PreviewAnswer = {
 export type InvitePreviewAnswer = {
   gameName: string
   mediatedBy: string | null
-  role: 'player' | 'mediator'
-  requiresApproval: boolean
-  expiresAt: number
 }
 
 /** Names a reference slug: a class, a chassis, a crawler type. */
@@ -148,30 +145,16 @@ export function sheetCard(answer: PreviewAnswer, nameOf: NameOf, address: string
   }
 }
 
-/** "15 Oct": the expiry as a player reads it, in UTC so every renderer agrees. */
-export function expiryDate(expiresAt: number): string {
-  return new Date(expiresAt).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC',
-  })
-}
-
-/** A Game invite's card: the Game, who mediates and the expiry, never the code. */
+/** A Game invite's card: the Game and who mediates, never the code. */
 export function inviteCard(answer: InvitePreviewAnswer, address: string): PreviewCard {
-  const seat = answer.role === 'mediator' ? 'Mediator seat' : 'Player seat'
   return {
     kind: 'invite',
-    kicker: `You're invited · ${seat}`,
+    kicker: "You're invited · Player seat",
     title: answer.gameName,
     tone: color.crawler,
     summary: answer.mediatedBy
       ? `Mediated by ${answer.mediatedBy}.`
       : `A Salvage Union Game on ${PRODUCT.shortName}.`,
-    terms: joinParts([
-      `Link expires ${expiryDate(answer.expiresAt)}`,
-      answer.requiresApproval ? 'the Mediator lets you in' : undefined,
-    ]),
     address,
   }
 }

@@ -16,8 +16,6 @@ const GRID = { display: 'grid' } satisfies CSSProperties
 
 type SheetHeroProps = {
   name: string
-  /** Header-right count/pill slot of the fields card (e.g. a Dead badge). */
-  meta?: ReactNode
   /**
    * The identity FIELDS card body. Both cards are `SheetSectionCard`s — the
    * ONLY framed sections on a live sheet. Every section BELOW them is a slab,
@@ -38,7 +36,6 @@ type SheetHeroProps = {
 
 export function SheetHero({
   name,
-  meta,
   fields,
   vitals,
   fieldsTitle = 'Identity',
@@ -66,7 +63,6 @@ export function SheetHero({
       <SheetSectionCard
         title={fieldsTitle}
         surface={surface}
-        count={meta}
         className="su-sheet-hero-fields"
         bodyClassName="su-sheet-hero-fields-body"
       >

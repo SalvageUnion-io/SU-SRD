@@ -64,7 +64,7 @@ function renderEntity(entity: SURefEntity): string {
     renderToStaticMarkup(
       <EntityHrefProvider value={srdEntityHref}>
         <EntityDetailLinkProvider value={true}>
-          <Suspense fallback={<Skeleton mode="card" />}>
+          <Suspense fallback={<Skeleton />}>
             <ReferenceEntityCard data={entity} />
           </Suspense>
         </EntityDetailLinkProvider>

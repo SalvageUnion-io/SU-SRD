@@ -9,7 +9,7 @@ import type { BookStat } from '../referenceEntity/referenceEntityStatsConfig'
  *
  * Two to a row on a phone, and as many as fit at 200px from there up (board
  * 07: two columns beside the art). The cells keep the book's order: build them
- * with `buildBookStats`.
+ * from the entity model's `bookStats`.
  *
  * A description list, so a screen reader reads "Structure Pts., 14": the
  * numeral is drawn first by `row-reverse`, not by source order.

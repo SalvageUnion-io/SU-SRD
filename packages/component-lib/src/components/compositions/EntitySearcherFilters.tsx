@@ -47,7 +47,7 @@ export function SearchField({
 
 function FacetRow({ row }: { row: FacetRowConfig }) {
   return (
-    <FilterRow label={row.label} onDark>
+    <FilterRow label={row.label}>
       {row.chips.map(({ key, label, active, onClick, swatchStyle }) => (
         <Badge
           key={key}

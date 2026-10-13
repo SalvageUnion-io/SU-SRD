@@ -235,8 +235,8 @@
  * WITH ART, the page FLOWS around it (`--flow`, from 64rem): the art floats
  * left and everything after it — the prose column, then the actions and the
  * nested trays — runs down beside it, taking the full width once it passes
- * the art's foot. Short pages (an NPC, a creature) no longer leave a column
- * of empty paper beside the image. Each card and tray is its own formatting
+ * the art's foot, so a short page (an NPC, a creature) leaves no column of
+ * empty paper beside the image. Each card and tray is its own formatting
  * context, so one that starts beside the art narrows as a whole instead of
  * running under it. Wide blocks — the roll table, a class's ability tree,
  * the pattern rows, `after` — start below the art (`clear`), never squeezed.

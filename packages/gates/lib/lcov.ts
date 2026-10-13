@@ -172,18 +172,3 @@ export function mergeLcov(
   }
   return `${out.join('\n')}\n`
 }
-
-/** Each file's `LF` and `LH` as recorded, for comparing two lcov reports. */
-export function lineTotalsByFile(lcov: string): Map<string, { found: number; hit: number }> {
-  const totals = new Map<string, { found: number; hit: number }>()
-  let path = ''
-  for (const line of lcov.split('\n')) {
-    if (line.startsWith('SF:')) path = line.slice(3)
-    else if (line.startsWith('LF:')) totals.set(path, { found: Number(line.slice(3)), hit: 0 })
-    else if (line.startsWith('LH:')) {
-      const entry = totals.get(path)
-      if (entry) entry.hit = Number(line.slice(3))
-    }
-  }
-  return totals
-}

@@ -20,7 +20,7 @@ import {
   citationReadsAsHistoryOrProposal,
   headingSlug,
   pathCandidate,
-  sentenceAround,
+  sentenceBounds,
   splitMarkdownBlocks,
 } from '../check-doc-drift'
 
@@ -100,7 +100,10 @@ function excused(text: string, token?: string): boolean {
   return citationReadsAsHistoryOrProposal(text, index, span.length)
 }
 
-describe('sentenceAround', () => {
+const sentenceAround = (text: string, index: number): string =>
+  text.slice(...sentenceBounds(text, index))
+
+describe('sentenceBounds', () => {
   it('ends a sentence at a period followed by closing markup', () => {
     const text = '- **Workspaces are retired.** Resolve through `src/lib/container.ts`.'
     expect(sentenceAround(text, text.indexOf('`src'))).toBe(
@@ -587,9 +590,8 @@ describe('checkDecisions', () => {
     expect(checkDecisions(root, 2).failures).toEqual([])
   })
 
-  it('fails a missing, repeated, misnumbered, misplaced or headed ADR, and docs/adrs/ coming back', () => {
+  it('fails a missing, repeated, misnumbered, misplaced or headed ADR', () => {
     const root = fixture({
-      'docs/adrs/ADR-005.md': '# ADR-005\n',
       'docs/ARCHITECTURE.md': [
         '## Areas',
         '',
@@ -609,7 +611,6 @@ describe('checkDecisions', () => {
       ].join('\n'),
     })
     const failures = checkDecisions(root, 4).failures.join('\n')
-    expect(failures).toContain('docs/adrs/ exists again')
     expect(failures).toContain('docs/ARCHITECTURE.md:3 is an ADR entry outside `## Decisions`')
     expect(failures).toContain('lists ADR-002 2 times')
     expect(failures).toContain('docs/ARCHITECTURE.md:9 numbers ADR-003 as entry 4')

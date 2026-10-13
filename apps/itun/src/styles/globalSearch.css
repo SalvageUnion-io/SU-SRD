@@ -7,7 +7,7 @@
  *   and while the row is the keyboard selection, and the edge darkens with the
  *   selection, so both resting values live here too (the per-property split
  *   rule). The highlight is the workshop step off the paper panel (ruleset
- *   §4.1); it was the cool `wk-bg-2` until the brand refresh warmed the page.
+ *   §4.1).
  * - **The phone's icon trigger** (`.global-search-icon`) lightens on hover over
  *   the ink bar. Only the hover lives here: its resting ground is the ghost
  *   button's own, and restating it unlayered would also block the ghost hover

@@ -4,7 +4,22 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { functionRanges } from '../lib/functionRanges'
 import type { FunctionRange } from '../lib/lcov'
-import { lineTotalsByFile, mergeLcov } from '../lib/lcov'
+import { mergeLcov } from '../lib/lcov'
+
+/** Each file's `LF` and `LH` as recorded, for comparing two lcov reports. */
+function lineTotalsByFile(lcov: string): Map<string, { found: number; hit: number }> {
+  const totals = new Map<string, { found: number; hit: number }>()
+  let path = ''
+  for (const line of lcov.split('\n')) {
+    if (line.startsWith('SF:')) path = line.slice(3)
+    else if (line.startsWith('LF:')) totals.set(path, { found: Number(line.slice(3)), hit: 0 })
+    else if (line.startsWith('LH:')) {
+      const entry = totals.get(path)
+      if (entry) entry.hit = Number(line.slice(3))
+    }
+  }
+  return totals
+}
 
 /** One Bun-shaped lcov record: `DA` per entry of `lines` (line → hits). */
 function record(path: string, lines: Record<number, number>, fn = { found: 1, hit: 1 }): string {

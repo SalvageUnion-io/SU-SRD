@@ -44,7 +44,7 @@ export const Quiet: Story = () => (
     <EmptyState
       variant="quiet"
       icon={
-        <Glyph name="gear" style={{ width: space[28], height: space[28], color: color.wkMuted }} />
+        <Glyph name="plus" style={{ width: space[28], height: space[28], color: color.wkMuted }} />
       }
       body="No systems installed yet."
       action={

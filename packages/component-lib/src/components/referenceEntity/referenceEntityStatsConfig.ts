@@ -12,7 +12,7 @@ import type {
   SURefMetaEntity,
   SURefObjectBonusPerTechLevel,
 } from 'salvageunion-reference'
-import { bookStats, entityStats } from 'salvageunion-reference'
+import { entityStats } from 'salvageunion-reference'
 import type { StatItem } from '../containers/statsBarTypes'
 
 type BuildReferenceEntityStatsOptions = {
@@ -53,22 +53,4 @@ export type BookStat = {
   label: string
   value: string
   hoverText?: string
-}
-
-/**
- * The entity page's stat column: every stat the entity carries, in the book's
- * order and the book's own words (Tech Level between Cargo Cap. and Salvage
- * Value). The same facts as the card's header cells, so the two never disagree
- * on a value.
- */
-export function buildBookStats(
-  data: SURefMetaEntity,
-  options: { techLevel?: number | 'B' | 'N'; schemaName?: SURefEnumSchemaName }
-): BookStat[] {
-  return bookStats(data, options).map((fact) => ({
-    key: fact.key,
-    label: fact.label,
-    value: fact.value,
-    ...(fact.hint ? { hoverText: fact.hint } : {}),
-  }))
 }

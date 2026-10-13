@@ -85,8 +85,6 @@ export type VitalGaugeProps = {
    * trigger — it already signals "there is something here to explain".
    */
   provenance?: ProvenanceLine[]
-  /** Caption pair, right-aligned under the track. Defaults to Current / Max. */
-  caption?: [string, string]
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
@@ -315,7 +313,6 @@ export function VitalGauge({
   breakdown,
   onRevertOverride,
   provenance,
-  caption,
   readOnly,
   danger,
   size = 'full',
@@ -373,10 +370,9 @@ export function VitalGauge({
   const isDense = max >= 12
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
-  const [capLeft, capRight] = caption ?? ['Current', 'Max']
-  // A read-out prints without the default caption: the numeral already says
-  // current / max. A caller's own caption always shows.
-  const showCaption = !readOnly || caption !== undefined
+  // The Current / Max caption: a read-out prints without it, since the numeral
+  // already says current / max.
+  const showCaption = !readOnly
 
   const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
   // The slider's spoken value: the summary, plus the redline once a lit
@@ -751,9 +747,9 @@ export function VitalGauge({
           {isOverridden && <span style={CAPTION_OVERRIDE}>overridden from {overriddenFrom}</span>}
           {showCaption && (
             <>
-              <span>{capLeft}</span>
+              <span>Current</span>
               <span>/</span>
-              <span>{capRight}</span>
+              <span>Max</span>
             </>
           )}
         </div>

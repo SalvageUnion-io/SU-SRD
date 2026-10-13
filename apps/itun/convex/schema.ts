@@ -172,11 +172,10 @@ export const seatMount = zodToConvex(SeatSchema.shape.mount)
 export const seatResolving = zodToConvex(SeatSchema.shape.resolving.unwrap())
 
 /**
- * The seat an invite grants (`invites.role`). No Zod counterpart: invites are
- * minted and redeemed only on the server. Exported so `invites.create` takes
- * it and the invite reads return it against this same union.
+ * `invites.role`: every invite is written `'player'` now; `'mediator'` survives
+ * on older rows until a migration drops the column.
  */
-export const inviteRole = v.union(v.literal('player'), v.literal('mediator'))
+const inviteRole = v.union(v.literal('player'), v.literal('mediator'))
 
 /**
  * The tables an entity can be handed over from: a pilot or a mech, never the
@@ -185,11 +184,7 @@ export const inviteRole = v.union(v.literal('player'), v.literal('mediator'))
 export const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
 
 /** Whether an addressed invite's `/su invite` DM went out (`invites.delivery`). */
-export const inviteDeliveryState = v.union(
-  v.literal('queued'),
-  v.literal('sent'),
-  v.literal('failed')
-)
+const inviteDeliveryState = v.union(v.literal('queued'), v.literal('sent'), v.literal('failed'))
 
 /** A Game's denormalised summary (`games.summary`), as `games.listMine` returns it too. */
 export const gameSummary = v.object({
@@ -334,13 +329,12 @@ export default defineSchema({
     .index('by_game_user', ['gameId', 'userId']),
 
   /**
-   * Invites. An invite travels as a link, `/invite/<code>`; `code` is the
-   * link's token and is never typed.
-   *
-   * An invite is not just a key to the door — it carries what the Organizer
-   * already decided when they minted it: which seat the joiner takes, and which
-   * unclaimed entities are waiting for them. That turns "send code → they join →
-   * find them in the crew list → assign a pilot → assign its mech" into one act.
+   * Invites. A Game has one invite URL, `/invite/<code>`: the newest open
+   * `standing` row not yet `revokedAt` (`model/invites.ts#currentInvite`).
+   * Opening it joins as a player; every other row opens nothing. `expiresAt`,
+   * `usesRemaining`, `label`, `role`, `requiresApproval`, `grants`, `target`,
+   * `declinedAt`, `delivery` and `sourceInteractionId` are read by nothing;
+   * the required ones are written as constants until a migration drops them.
    */
   invites: defineTable({
     gameId: v.id('games'),
@@ -352,13 +346,10 @@ export default defineSchema({
 
     createdAt: v.number(),
 
-    /** Organizer's private note ("for Sam"). Never shown to the redeemer. */
     label: v.optional(v.string()),
 
-    /** The seat granted on redeem. */
     role: inviteRole,
 
-    /** Retired invite grants: no longer written; kept optional for rows that carry it. */
     grants: v.optional(
       v.array(
         v.object({
@@ -368,28 +359,12 @@ export default defineSchema({
       )
     ),
 
-    /**
-     * When true the code identifies the Game but grants nothing until the
-     * Organizer approves the knock. For a code posted somewhere public, where
-     * membership would otherwise hand a stranger read access to every
-     * crewmate's sheet (ADR-030 §5).
-     */
     requiresApproval: v.boolean(),
 
-    /**
-     * Soft revoke. The row survives so `inviteRedemptions` keeps referring to
-     * something and "who joined via which code" stays answerable after an
-     * Organizer tidies up.
-     */
+    /** Set when the Organizer resets the Game's invite URL: this code stops working. */
     revokedAt: v.optional(v.number()),
 
-    /**
-     * Who the invite is addressed to (ADR-039). Absent is a bearer code, as
-     * every invite was before. An addressed invite is always single use and is
-     * redeemable only by the account signed in with this Discord snowflake.
-     * `name` is the invitee's Discord handle as the bot saw it, shown to the
-     * Organizer and nobody else.
-     */
+    /** Who an addressed invite (ADR-039) was for. */
     target: v.optional(
       v.object({
         kind: v.literal('discord'),
@@ -398,10 +373,8 @@ export default defineSchema({
       })
     ),
 
-    /** The addressee said no. Terminal, like a revoke, and only for a targeted invite. */
     declinedAt: v.optional(v.number()),
 
-    /** Whether the `/su invite` DM carrying an addressed invite was delivered. */
     delivery: v.optional(
       v.object({
         state: inviteDeliveryState,
@@ -411,25 +384,15 @@ export default defineSchema({
       })
     ),
 
-    /**
-     * The Discord interaction that minted this invite, when `/su invite` did.
-     * A retried interaction finds its invite here instead of minting another.
-     */
     sourceInteractionId: v.optional(v.string()),
 
-    /**
-     * The Game's standing invite link (`invites.link`): the one "Copy
-     * invite link" hands out, reused while it is live. The Organizer's opens
-     * the door; any other member's asks the Organizer to approve the knock.
-     */
+    /** Marks a row that can be the Game's invite URL (`invites.link`, `invites.reset`). */
     standing: v.optional(v.boolean()),
   })
     .index('by_code', ['code'])
-    .index('by_game', ['gameId'])
-    .index('by_target_discord', ['target.discordId'])
-    .index('by_source_interaction', ['sourceInteractionId']),
+    .index('by_game', ['gameId']),
 
-  /** Who actually used which invite — the audit trail revocation alone can't give. */
+  /** Who used which invite. Written by nothing now; a migration drops it. */
   inviteRedemptions: defineTable({
     inviteId: v.id('invites'),
     gameId: v.id('games'),
@@ -440,12 +403,8 @@ export default defineSchema({
     .index('by_game', ['gameId']),
 
   /**
-   * A knock at the door, for invites minted with `requiresApproval`.
-   *
-   * A pending request is **not** a membership: no `memberships` row exists until
-   * approval, so a knocker sees nothing of the Game. Approval runs the same
-   * seat-granting path a direct redeem does, so the seat is identical
-   * whichever door was used.
+   * Asks to join, from approval links. Written and read by nothing now but the
+   * Game and account sweeps; a migration drops it.
    */
   joinRequests: defineTable({
     gameId: v.id('games'),
@@ -697,8 +656,8 @@ export default defineSchema({
    * against `authAccounts.providerAccountId` (`model/bot.ts#userByDiscordId`),
    * so the bot can never act as somebody who has not linked their account.
    *
-   * One Game per channel: a channel that meant two Games would make every roll
-   * ambiguous.
+   * Nothing creates a binding now; rows already here still attribute rolls
+   * (`botClient.recordRoll`) and go with their Game.
    */
   channelBindings: defineTable({
     gameId: v.id('games'),

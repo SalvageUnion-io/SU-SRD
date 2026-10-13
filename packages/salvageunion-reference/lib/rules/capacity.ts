@@ -11,11 +11,7 @@
  */
 
 import { nameToSlug } from '../nameToSlug'
-import type {
-  SURefChassis,
-  SURefObjectPattern,
-  SURefObjectPatternSystemModule,
-} from '../schemas/index'
+import type { SURefChassis, SURefObjectPatternSystemModule } from '../schemas/index'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from './resolveRefs'
 import type { CapacityViolation, MechCapacityResult, MechInput } from './types'
 
@@ -102,15 +98,6 @@ export const AS_PRINTED_OVERFLOW: readonly AsPrintedOverflow[] = [
   { chassis: 'Bobcat', pattern: 'Nyaa~', cite: `${MM_BOBCAT} p.6` },
   { chassis: 'Bobcat', pattern: 'Osiris', cite: `${MM_BOBCAT} p.7` },
 ]
-
-/** One mount's slot usage: the chassis itself (`head` absent) or one of its heads. */
-export type MountSlotUsage = {
-  head?: string
-  systemSlotsUsed: number
-  systemSlotsMax: number
-  moduleSlotsUsed: number
-  moduleSlotsMax: number
-}
 
 /**
  * Look up the slot cost of a system by its slug.
@@ -247,61 +234,4 @@ function asPrintedOverflowOf(
       sameRefs(patternRefs(pattern.modules), modules)
     )
   })
-}
-
-/**
- * A pattern's slot usage per mount: the chassis first, then each of its heads.
- * Items are costed by the reference's `slotsRequired` (1 when unresolved, as in
- * `computeMechCapacity`) times their `count`. An item placed on a head the
- * chassis does not have gets a mount of its own with no slots.
- */
-export function patternSlotUsage(
-  chassis: SURefChassis,
-  pattern: SURefObjectPattern
-): MountSlotUsage[] {
-  const mounts: MountSlotUsage[] = [
-    {
-      systemSlotsUsed: 0,
-      systemSlotsMax: chassis.systemSlots,
-      moduleSlotsUsed: 0,
-      moduleSlotsMax: chassis.moduleSlots,
-    },
-    ...(chassis.heads ?? []).map((head) => ({
-      head: head.name,
-      systemSlotsUsed: 0,
-      systemSlotsMax: head.systemSlots,
-      moduleSlotsUsed: 0,
-      moduleSlotsMax: head.moduleSlots,
-    })),
-  ]
-  const mountFor = (head: string | undefined): MountSlotUsage => {
-    const found = mounts.find((mount) => mount.head === head)
-    if (found) return found
-    const added = {
-      head,
-      systemSlotsUsed: 0,
-      systemSlotsMax: 0,
-      moduleSlotsUsed: 0,
-      moduleSlotsMax: 0,
-    }
-    mounts.push(added)
-    return added
-  }
-  for (const item of pattern.systems) {
-    mountFor(item.head).systemSlotsUsed +=
-      resolveSystemSlotCost(nameToSlug(item.name)) * (item.count ?? 1)
-  }
-  for (const item of pattern.modules) {
-    mountFor(item.head).moduleSlotsUsed +=
-      resolveModuleSlotCost(nameToSlug(item.name)) * (item.count ?? 1)
-  }
-  return mounts
-}
-
-/** True when every mount's usage is within its slots. */
-export function mountsFit(mounts: readonly MountSlotUsage[]): boolean {
-  return mounts.every(
-    (mount) =>
-      mount.systemSlotsUsed <= mount.systemSlotsMax && mount.moduleSlotsUsed <= mount.moduleSlotsMax
-  )
 }

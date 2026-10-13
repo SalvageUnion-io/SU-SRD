@@ -68,10 +68,13 @@ export const Filters: Story = () => (
       maxWidth: '42rem',
     }}
   >
-    <FilterRow label="Traits">
-      {traits.map((t) => (
-        <Badge key={t}>{t}</Badge>
-      ))}
-    </FilterRow>
+    {/* FilterRow's paper label sits on the dark band of the searcher's sub-header. */}
+    <div style={{ backgroundColor: color.ink, padding: space[8] }}>
+      <FilterRow label="Traits">
+        {traits.map((t) => (
+          <Badge key={t}>{t}</Badge>
+        ))}
+      </FilterRow>
+    </div>
   </div>
 )

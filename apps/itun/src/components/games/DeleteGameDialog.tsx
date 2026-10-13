@@ -19,7 +19,7 @@
  * and "2 mechs" is what makes the sentence checkable against the row they just
  * clicked.
  *
- * What genuinely does not survive is named too — invites, join requests, the
+ * What genuinely does not survive is named too — the invite link, the
  * opposition tray, and the crew's wiring. Softening that would be the failure
  * mode of a confirm dialog: it exists to be read once, correctly.
  *
@@ -148,8 +148,8 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
           </div>
 
           <Text variant="hint" style={LEFT}>
-            The crew, its invites, any pending join requests, the opposition tray and the
-            assignments between everyone's builds go with the Game.
+            The crew, its invite link, the opposition tray and the assignments between everyone's
+            builds go with the Game.
           </Text>
         </>
       }

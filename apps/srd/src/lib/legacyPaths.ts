@@ -1,6 +1,6 @@
 /**
  * The page grammar srd published before it dropped `/schema/…/item/` from its
- * URLs (refit N4), and where each such path lives now.
+ * URLs, and where each such path lives now.
  *
  * Until then a listing was `/schema/chassis/` and a page
  * `/schema/chassis/item/mule/` (a pattern under it, `…/mule/pattern/hauler/`,

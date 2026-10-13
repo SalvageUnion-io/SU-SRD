@@ -5,10 +5,8 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 **Storage modes — read
 [`.claude/rules/itun-data-access.md`](../../.claude/rules/itun-data-access.md)
 before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
-`convex/` and `e2e/`). Nothing player-owned is kept on the device
-([no device cache](../../docs/ARCHITECTURE.md#no-device-cache)).
+`convex/` and `e2e/`).
 
-- Never delete the `su-itun-snapshots` R2 bucket: that is the owner's call.
 - Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live
   `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.model.ts`;
   build no other.
@@ -16,10 +14,8 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 ## Stack
 
 - React 19 + Vite, TypeScript.
-- **TanStack Router** — file-based routes in `src/routes/`; the route tree is
-  generated to `src/routeTree.gen.ts` (do not hand-edit).
-- **No TanStack Query** — entity read hooks are store selectors in
-  `src/hooks/entities/`; see `.claude/rules/itun-data-access.md`.
+- **TanStack Router** — file-based routes in `src/routes/`, generated to
+  `src/routeTree.gen.ts`.
 - **Zustand** stores (`src/stores/`), in memory; only the active container
   persists (`localStorage`).
 - **Base UI** primitives from `component-lib` (`atoms/`, `containers/`) —
@@ -42,9 +38,6 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
   every create, update and adopted server row parses strictly
   (`src/stores/records.ts`); `ShelfSync` reports a row that does not parse and
   carries on.
-- Records store **slug references** into `salvageunion-reference` (e.g.
-  `classRef: 'salvager'` on a pilot), never copies of game data; resolve them
-  against `SalvageUnionReference` at render time.
 - **There are no workspaces.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** — encoded as one
   nullable `gameId` and resolved through `itun-domain/container`. Filter with `containerOf` +
@@ -70,9 +63,8 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 
 ## Conventions
 
-- Reuse `component-lib` components before building new UI; choices stay
-  persistence-agnostic in the shared library — ITUN owns the selections
-  ([ADR-010](../../docs/ARCHITECTURE.md)).
+- Choices stay persistence-agnostic in the shared library — ITUN owns the
+  selections ([ADR-010](../../docs/ARCHITECTURE.md)).
 - No Sentry SDK in `convex/`; verify reporting by probe, see
   [convex-ops](../../.claude/skills/convex-ops/SKILL.md).
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
@@ -84,8 +76,6 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
   client, say a failed write with `useServerAction` / `failureMessage`
   (`src/lib/connection/useServerAction.ts`) — never by string-matching
   `'Server Error'` or rendering the caught error's text.
-- Every public Convex query/mutation needs a caller in `src/` —
-  `tools/check-convex-callers.ts` fails on one nobody calls.
 - **A caught error is either reported or explained — never just dropped.**
   Catching is what keeps an error away from Sentry's global handlers, so a
   `catch` must do one of three things: produce an outcome the user or caller

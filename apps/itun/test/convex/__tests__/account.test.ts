@@ -55,7 +55,7 @@ describe('export is scoped to what you own', () => {
     const owner = await makeUser(t, 'Owner')
     const other = await makeUser(t, 'Other')
     const gameId = await owner.as.mutation(api.games.create, { name: 'Tenacity' })
-    const code = await owner.as.mutation(api.invites.create, { gameId })
+    const code = await owner.as.mutation(api.invites.link, { gameId })
     await other.as.mutation(api.invites.redeem, { code })
 
     await seedPilot(t, gameId, owner.userId)
@@ -75,7 +75,7 @@ describe('deleteAccount — the campaign survives', () => {
     const late = await makeUser(t, 'Late')
 
     const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
     await early.as.mutation(api.invites.redeem, { code })
     await late.as.mutation(api.invites.redeem, { code })
 
@@ -100,7 +100,7 @@ describe('deleteAccount — the campaign survives', () => {
     const organizer = await makeUser(t, 'Organizer')
     const player = await makeUser(t, 'Player')
     const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
     await player.as.mutation(api.invites.redeem, { code })
 
     const crawlerId = await t.run(
@@ -127,7 +127,7 @@ describe('deleteAccount — the campaign survives', () => {
     const organizer = await makeUser(t, 'Organizer')
     const player = await makeUser(t, 'Player')
     const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
     await player.as.mutation(api.invites.redeem, { code })
 
     const theirs = await seedPilot(t, gameId, player.userId)
@@ -143,7 +143,7 @@ describe('deleteAccount — the campaign survives', () => {
     const organizer = await makeUser(t, 'Organizer')
     const player = await makeUser(t, 'Player')
     const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
     await player.as.mutation(api.invites.redeem, { code })
 
     const inGame = await seedPilot(t, gameId, organizer.userId)

@@ -144,7 +144,6 @@ export const GENERATORS: GeneratorSpec[] = [
       'apps/itun/routeTree.config.ts',
       'apps/itun/scripts/generate-route-tree.ts',
       'apps/itun/package.json',
-      'apps/itun/tsr.config.json',
     ],
     tools: ['@tanstack/router-plugin'],
   },

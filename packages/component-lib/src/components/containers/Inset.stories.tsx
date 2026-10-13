@@ -139,7 +139,7 @@ export const Economy: Story = () => (
         label={crawlerName}
         bodyStyle={{ display: 'flex', flexDirection: 'column', gap: space[12] }}
       >
-        <VitalGauge label="SP" value={20} max={20} caption={['Current', 'Max']} />
+        <VitalGauge label="SP" value={20} max={20} />
         <div
           style={{
             display: 'grid',

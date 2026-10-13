@@ -1,19 +1,17 @@
 import { describe, expect, test } from 'bun:test'
-import { api, internal } from '../../../convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { GAME_APPARATUS_TABLES } from '../../../convex/model/seats'
 import schema from '../../../convex/schema'
 import type { Ctx } from '../fixtures'
+import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
  * Tearing a Game down, by `games.destroy` or by its last member deleting their
- * account, goes through one helper: `deleteGameApparatus`.
- *
- * Before it, each path carried its own hand-written list of tables, and neither
- * list named `channelBindings`. A destroyed Game left its binding behind, and
- * `bindChannelAs` refused every later bind of that channel as "already bound to
- * another game", so the channel could never be used again.
+ * account, goes through one helper, `deleteGameApparatus`, so both paths clear
+ * every table that names the Game — `channelBindings` included, which a
+ * hand-written list of tables is easy to forget.
  */
 
 /**
@@ -26,18 +24,11 @@ import { testConvex } from '../harness'
  */
 const EXEMPT = ['pilots', 'mechs', 'crawlers', 'npcs', 'encounterNpcs', 'mechPatterns', 'changeLog']
 
-/** A user signed in with Discord, so the bot can resolve them. */
-async function makeDiscordUser(t: Ctx, name: string, discordId: string) {
-  const userId = await t.run(async (ctx) => {
-    const id = await ctx.db.insert('users', { name, displayName: name })
-    await ctx.db.insert('authAccounts', {
-      userId: id,
-      provider: 'discord',
-      providerAccountId: discordId,
-    })
-    return id
+/** A Discord channel bound to `gameId`, as a binding row already in the database is. */
+async function bindChannel(t: Ctx, gameId: Id<'games'>, channelId: string, boundBy: Id<'users'>) {
+  await t.run(async (ctx) => {
+    await ctx.db.insert('channelBindings', { gameId, channelId, boundBy, boundAt: Date.now() })
   })
-  return { userId, as: t.withIdentity({ subject: userId }) }
 }
 
 /** Every row, in every apparatus table, that still names `gameId`. */
@@ -67,50 +58,43 @@ describe('every table with a gameId column is accounted for', () => {
 })
 
 describe('destroying a Game frees its Discord channel', () => {
-  test('a channel bound to a destroyed Game binds to a new one', async () => {
+  test('the binding goes with the Game', async () => {
     const t = testConvex()
-    const organizer = await makeDiscordUser(t, 'Organizer', 'discord-organizer')
-    const first = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-    const bound = await t.mutation(internal.botClient.bind, {
-      discordId: 'discord-organizer',
-      channelId: 'chan-1',
-      gameId: first,
-    })
-    expect(bound).toMatchObject({ ok: true })
+    const organizer = await makeUser(t, 'Organizer')
+    const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
+    await bindChannel(t, gameId, 'chan-1', organizer.userId)
 
-    await organizer.as.mutation(api.games.destroy, { gameId: first })
-    expect(await apparatusLeftFor(t, first)).toEqual([])
-
-    const second = await organizer.as.mutation(api.games.create, { name: 'Second Wind' })
-    const rebound = await t.mutation(internal.botClient.bind, {
-      discordId: 'discord-organizer',
-      channelId: 'chan-1',
-      gameId: second,
-    })
-    expect(rebound).toMatchObject({ ok: true })
+    await organizer.as.mutation(api.games.destroy, { gameId })
+    expect(await apparatusLeftFor(t, gameId)).toEqual([])
   })
 })
 
 describe('the last member out tears the Game down the same way', () => {
-  test('its binding goes with it, and so do their knocks elsewhere', async () => {
+  test('its binding goes with it, and so do their asks to join elsewhere', async () => {
     const t = testConvex()
-    const solo = await makeDiscordUser(t, 'Solo', 'discord-solo')
-    const host = await makeDiscordUser(t, 'Host', 'discord-host')
+    const solo = await makeUser(t, 'Solo')
+    const host = await makeUser(t, 'Host')
 
     const gameId = await solo.as.mutation(api.games.create, { name: 'Alone' })
-    await t.mutation(internal.botClient.bind, {
-      discordId: 'discord-solo',
-      channelId: 'chan-solo',
-      gameId,
-    })
+    await bindChannel(t, gameId, 'chan-solo', solo.userId)
 
-    // A pending request at somebody else's door.
+    // A pending ask at somebody else's door, as an approval link left it.
     const elsewhere = await host.as.mutation(api.games.create, { name: 'Elsewhere' })
-    const gated = await host.as.mutation(api.invites.create, {
-      gameId: elsewhere,
-      requiresApproval: true,
+    const code = await host.as.mutation(api.invites.link, { gameId: elsewhere })
+    await t.run(async (ctx) => {
+      const invite = await ctx.db
+        .query('invites')
+        .withIndex('by_code', (q) => q.eq('code', code))
+        .unique()
+      if (invite === null) throw new Error('expected the invite')
+      await ctx.db.insert('joinRequests', {
+        gameId: elsewhere,
+        inviteId: invite._id,
+        userId: solo.userId,
+        requestedAt: Date.now(),
+        state: 'pending',
+      })
     })
-    await solo.as.mutation(api.invites.redeem, { code: gated })
 
     await solo.as.mutation(api.account.deleteAccount, {})
 

@@ -110,7 +110,7 @@ export function PeekPopup({
                 <PeekCard entity={entity} />
               </PeekBoundary>
             ) : (
-              <Skeleton mode="card" compact />
+              <Skeleton />
             )}
           </PreviewCard.Popup>
         </PreviewCard.Positioner>

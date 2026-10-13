@@ -31,26 +31,18 @@ body {
   min-height: 100dvh;
 }
 
+/* The workshop ground across the whole window: each route's <main> is
+   width-capped and centred, so the body paints the rest. The face is the
+   package's (foundation.css); ITUN adds macOS's grayscale smoothing. */
 body {
-  /*
-   * Full-viewport blue-pale background. The SRD's BaseLayout puts blue-pale
-   * on the <main> element, but each ITUN route's <main> is width-capped and
-   * centred, which left the rest of the viewport
-   * unstyled. Setting the colour at the <body> level paints the whole
-   * window; the centred content inside each route inherits the colour and
-   * sits over it.
-   */
   background-color: var(--color-wk-bg);
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /*
- * Base heading rules — use Barlow Semi Condensed (font-cond) for all
- * headings to match the .sec-label / .h1 pattern in the design system.
- * Additive only; does not override any component-level typography.
+ * Every heading in ITUN wears the condensed caps face. Unlayered, so it beats
+ * a package class on a heading; `styles/libHandback.css` hands those classes
+ * their own type back.
  */
 h1,
 h2,

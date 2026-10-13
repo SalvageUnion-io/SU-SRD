@@ -2,12 +2,10 @@ import type { CSSProperties } from 'react'
 import { borderWidth, font, radius, space } from '../../design/tokens'
 import { Badge } from './Badge'
 import { capsLabel } from './capsLabel'
-import { FOCUS_RING } from './interaction'
 
 /**
  * Chip material for a chip row.
- * - `warn` (default) — the condition treatment: solid warn fill when active,
- *   the ink outline when not.
+ * - `warn` (default) — the condition treatment: the solid warn fill.
  * - `quiet` — the NEUTRAL rung: a muted ground, no status colour, and prose
  *   casing instead of caps. This is the rung for chip rows that list freeform
  *   *facts* rather than conditions (a crawler NPC's facts), where a warn fill
@@ -17,8 +15,6 @@ type ConditionChipTone = 'warn' | 'quiet'
 
 type ConditionChipProps = {
   label: string
-  /** Solid warn fill (default — a listed condition is active) */
-  active?: boolean
   /** Chip material — see {@link ConditionChipTone}. Defaults to `warn`. */
   tone?: ConditionChipTone
   onRemove?: () => void
@@ -26,14 +22,8 @@ type ConditionChipProps = {
    * Pass a subject-scoped label (e.g. "Clear On Fire on Raider") when several
    * chip rows share a page, so the accessible names stay distinct. */
   removeLabel?: string
-  onClick?: () => void
   className?: string
 }
-
-const CHIP_LABEL_BUTTON = {
-  borderRadius: radius.badge,
-  cursor: 'pointer',
-} satisfies CSSProperties
 
 /** 24px hit area (WCAG 2.5.8). Its opacity is `.su-condition-chip__remove`,
  * which brightens it on hover. */
@@ -73,49 +63,32 @@ const ADD_BUTTON = {
 } satisfies CSSProperties
 
 /**
- * Condition chip (design-spec §2.10 `.cond__chip`): active = solid warn fill,
- * inactive = the ink outline, optional '×' remove. The label and the remove
- * glyph are sibling buttons (never nested) so both stay keyboard-operable.
+ * Condition chip (design-spec §2.10 `.cond__chip`): the solid warn fill, with
+ * an optional '×' remove button beside the label.
  *
  * The frame is `Badge`, never hand-rolled chip geometry — the drift the
- * one-label-chip rule exists to kill. It maps onto the canonical surfaces (`tone`+`warn` when active, `outline` when not), so a condition chip
- * is a Badge that happens to carry buttons. `Badge` renders arbitrary children
- * inside a non-interactive `<span>`, so the two controls stay valid and
- * focusable.
+ * one-label-chip rule exists to kill. It maps onto the canonical surfaces (`tone`+`warn`), so a condition chip
+ * is a Badge that happens to carry a button. `Badge` renders arbitrary children
+ * inside a non-interactive `<span>`, so the control stays valid and focusable.
  */
 export function ConditionChip({
   label,
-  active = true,
   tone = 'warn',
   onRemove,
   removeLabel,
-  onClick,
   className,
 }: ConditionChipProps) {
   const quiet = tone === 'quiet'
-  const labelNode = onClick ? (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={FOCUS_RING}
-      style={{ ...CHIP_LABEL_BUTTON, textTransform: quiet ? 'none' : 'uppercase' }}
-    >
-      {label}
-    </button>
-  ) : (
-    <span>{label}</span>
-  )
   return (
     <Badge
-      surface={quiet ? 'quiet' : active ? 'tone' : 'outline'}
-      tone={!quiet && active ? 'warn' : undefined}
+      surface={quiet ? 'quiet' : 'tone'}
+      tone={quiet ? undefined : 'warn'}
       className={className}
       // `textTransform: none` is part of what `quiet` MEANS here: the neutral
       // rung carries prose, and Badge's baked-in `uppercase` would shout it.
       style={{ gap: space[6], ...(quiet ? { textTransform: 'none' } : undefined) }}
     >
-      {labelNode}
+      <span>{label}</span>
       {onRemove && (
         // 24px hit area (WCAG 2.5.8) — negative margins keep the chip visually
         // compact (22px Badge) while the target stays tappable.

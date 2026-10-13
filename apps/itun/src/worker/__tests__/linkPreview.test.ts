@@ -40,9 +40,6 @@ const PILOT = {
 const INVITE = {
   gameName: 'Reclamation of the Wastes',
   mediatedBy: 'alxjrvs',
-  role: 'player',
-  requiresApproval: true,
-  expiresAt: Date.UTC(2026, 9, 15),
 }
 
 const ANSWERS: Answers = {

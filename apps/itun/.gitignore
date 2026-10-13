@@ -1,4 +1,2 @@
-playwright-report/
-test-results/
-
+# `convex dev` writes this file when it is missing; keeping it stops the CLI recreating it.
 .env.local

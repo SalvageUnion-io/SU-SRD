@@ -7,8 +7,6 @@ import { InsidePeekContext } from '../../entity/peekContext'
 type TooltipProps = {
   children: React.ReactNode
   content: React.ReactNode
-  side?: 'top' | 'right' | 'bottom' | 'left'
-  delayDuration?: number
 }
 
 /** `text-xs` carries its paired line-height; `shadow-md` is ported as its computed value. */
@@ -26,16 +24,16 @@ const POPUP: CSSProperties = {
   zIndex: 50,
 }
 
-export function Tooltip({ children, content, side = 'top', delayDuration = 200 }: TooltipProps) {
+export function Tooltip({ children, content }: TooltipProps) {
   // Terminal law: inside a tooltip popup, a nested tooltip renders bare.
   const insidePeek = useContext(InsidePeekContext)
   if (insidePeek) return <>{children}</>
   return (
-    <BaseTooltip.Provider delay={delayDuration} closeDelay={0}>
+    <BaseTooltip.Provider delay={200} closeDelay={0}>
       <BaseTooltip.Root>
         <BaseTooltip.Trigger render={children as React.ReactElement} />
         <BaseTooltip.Portal>
-          <BaseTooltip.Positioner side={side} sideOffset={4}>
+          <BaseTooltip.Positioner side="top" sideOffset={4}>
             <BaseTooltip.Popup style={POPUP}>
               {content}
               <BaseTooltip.Arrow style={{ fill: color.ink }} />

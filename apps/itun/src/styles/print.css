@@ -19,8 +19,8 @@
  *   data-print="keep"  print this even though its element type is hidden below
  *   data-print="hide"  hide this on paper even though its type is kept
  *
- * Neither is used in markup yet; both are live escape hatches for when a
- * button must print (a filled-in checkbox) or a printed block must not.
+ * `keep` prints a button that carries a value (Field's picker); `hide`
+ * drops chrome that would otherwise print (the LiveSheet top bar).
  */
 
 @media print {
@@ -30,11 +30,6 @@
    * or override with a user-selectable body class in a future iteration.
    * ------------------------------------------------------------------------- */
   @page {
-    size: A4 portrait;
-    margin: 10mm;
-  }
-
-  @page :first {
     size: A4 portrait;
     margin: 10mm;
   }
@@ -178,13 +173,6 @@
     break-before: auto;
   }
 
-  /* The restyled SU panel sections carry a border-ink class from the entity
-   * card; keep them whole across a page break. */
-  section[class*='border-ink'] {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
   dl {
     page-break-inside: avoid;
     break-inside: avoid;
@@ -204,11 +192,10 @@
   /* -------------------------------------------------------------------------
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */
-  /* A border is a class or an inline style, so match both: a stylesheet
+  /* An inline border is matched by its style attribute: a stylesheet
    * `!important` still beats a plain inline declaration. The `.su-*` parts
-   * named here draw their border in a component-lib class, not a `border-*`
-   * class or an inline style, so they are named outright. */
-  [class*='border-'],
+   * named here draw their border in a component-lib class, so they are named
+   * outright. */
   [style*='border'],
   .su-entity-row__frame,
   .su-entity-row__body,

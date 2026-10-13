@@ -22,11 +22,8 @@ import type { PageRefIndex } from './pageRefs'
  *   routes). A synthetic ref (built from embedded data) never links.
  * - `openPage(ref)`: ITUN's Page opener (the detail dialog).
  * - `texture`: whether bands wear the speckle; the Dashboard turns it off once.
- * - `userMade`: the dashed treatment, for a surface of player-made things.
  * - `linkAs`: the app's router link (ITUN's `AppLink`), for an in-app path, so
  *   a link-mode form navigates client-side; an external href stays an `<a>`.
- * - `rolls`: whether a roll table carries its Roll. On by default: the Live
- *   Sheet, the Dashboard and the SRD all roll.
  * - `announceRoll`: where a roll's result shows. Absent, the card reads it out
  *   in an ink strip under its bar (the Live Sheet); the SRD raises it as a
  *   toast instead, so a roll on a reference page never reflows the page.
@@ -39,8 +36,6 @@ export type EntitySurfaceValue = {
   openPage?: (ref: EntityRef) => void
   linkAs?: EntityLinkComponent
   texture: boolean
-  userMade: boolean
-  rolls: boolean
   announceRoll?: (roll: AnnouncedRoll) => void
   pageRefs?: PageRefIndex
 }
@@ -114,8 +109,6 @@ export function useEntitySurface(): EntitySurfaceValue {
       ...(own.openPage ? { openPage: own.openPage } : {}),
       ...(own.linkAs ? { linkAs: own.linkAs } : {}),
       texture: own.texture ?? legacyTexture,
-      userMade: own.userMade ?? false,
-      rolls: own.rolls ?? true,
       ...(own.announceRoll ? { announceRoll: own.announceRoll } : {}),
       ...(own.pageRefs ? { pageRefs: own.pageRefs } : {}),
     }),

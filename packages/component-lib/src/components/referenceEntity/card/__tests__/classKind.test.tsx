@@ -1,26 +1,16 @@
 /**
- * CLASS KIND STAMP + HYBRID REQUIREMENTS.
+ * CLASS KIND STAMP + HYBRID REQUIREMENTS, on the card.
  *
  * A pilot class card names WHICH KIND of class it is in its labels — `[Class |
  * BASE / HYBRID / NON-ADVANCEABLE]` — and a hybrid additionally names the two
- * ability trees it advances from in the sub-header row, joined by "or".
- *
- * The kind is DERIVED from the two flags already stored in `classes.json`
- * (`hybrid`, `advanceable`), never from a third stored field. These tests drive
- * every assertion from the real ORM fixtures — all eleven classes by name — so
- * a data change that breaks the derivation fails here rather than silently
- * mis-stamping a card.
+ * ability trees it advances from in the sub-header row, joined by "or". The
+ * derivation itself is the entity model's (salvageunion-reference
+ * `view/__tests__/classKind.test.ts`); these tests pin how the card shows it.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  formatClassRequirements,
-  isClassEntity,
-  resolveAxisMarkers,
-  resolveClassKind,
-  resolveClassRequirements,
-} from '../entityCardTone'
+import { resolveAxisMarkers } from '../entityCardTone'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const classByName = (name: string) => {
@@ -29,108 +19,13 @@ const classByName = (name: string) => {
   return found
 }
 
-/** Every class in the dataset, with the kind its two stored flags imply. */
-const EXPECTED_KINDS = [
-  ['Engineer', 'BASE'],
-  ['Hacker', 'BASE'],
-  ['Hauler', 'BASE'],
-  ['Scout', 'BASE'],
-  ['Soldier', 'BASE'],
-  ['Salvager', 'NON-ADVANCEABLE'],
-  ['Fabricator', 'HYBRID'],
-  ['Cyborg', 'HYBRID'],
-  ['Union Rep', 'HYBRID'],
-  ['Smuggler', 'HYBRID'],
-  ['Ranger', 'HYBRID'],
-] as const
-
-/** The two parent trees each hybrid advances from, per ability-tree-requirements. */
-const EXPECTED_REQUIREMENTS = [
-  ['Fabricator', ['Forging', 'Electronics']],
-  ['Cyborg', ['Augmentation', 'Gladiatorial Combat']],
-  ['Union Rep', ['Leadership', 'Mechanical Knowledge']],
-  ['Smuggler', ['Sleuth', 'Salvaging']],
-  ['Ranger', ['Survivalist', 'Sniper']],
-] as const
-
-describe('class kind derivation', () => {
-  test('the fixture set is exactly the eleven classes these tests enumerate', () => {
-    const actual = SalvageUnionReference.Classes.all()
-      .map((c) => String(c.name))
-      .sort()
-    expect(actual).toEqual(EXPECTED_KINDS.map(([name]) => name).sort())
-  })
-
-  test.each(EXPECTED_KINDS)('%s derives kind %s', (name, kind) => {
-    expect(resolveClassKind(classByName(name))).toBe(kind)
-  })
-
-  test('every class is recognised by data shape, and non-classes are not', () => {
-    for (const cls of SalvageUnionReference.Classes.all()) {
-      expect(isClassEntity(cls)).toBe(true)
-    }
-    const firstOf = <T,>(list: T[], label: string): T => {
-      const found = list[0]
-      if (!found) throw new Error(`no ${label} fixtures loaded`)
-      return found
-    }
-    expect(isClassEntity(firstOf(SalvageUnionReference.Chassis.all(), 'chassis'))).toBe(false)
-    expect(isClassEntity(firstOf(SalvageUnionReference.Abilities.all(), 'ability'))).toBe(false)
-  })
-
-  test('the Salvager is the ONLY non-advanceable class', () => {
-    const nonAdvanceable = SalvageUnionReference.Classes.all()
-      .filter((c) => resolveClassKind(c) === 'NON-ADVANCEABLE')
-      .map((c) => String(c.name))
-    expect(nonAdvanceable).toEqual(['Salvager'])
-  })
-
-  test('no hybrid is mis-derived as non-advanceable (the ordering trap)', () => {
-    // Hybrids now carry `advanceable: false` explicitly — a hybrid HAS advanced
-    // and "cannot advance into any other Hybrid Class or Advanced Tree" (p.321).
-    //
-    // That makes `resolveClassKind`'s ORDER load-bearing rather than incidental.
-    // While `advanceable` was undefined here, the `=== false` branch could never
-    // catch a hybrid whatever the order. Now it would: check `advanceable`
-    // before `hybrid` and all five stamp NON-ADVANCEABLE. This test is the
-    // tripwire for that reordering.
-    for (const [name] of EXPECTED_REQUIREMENTS) {
-      const cls = classByName(name)
-      expect('advanceable' in cls ? cls.advanceable : undefined).toBe(false)
-      expect(resolveClassKind(cls)).toBe('HYBRID')
-    }
-  })
-
+describe('class kind axis marker', () => {
   test('the kind sits in the labels as a [Class | KIND] axis marker', () => {
     expect(resolveAxisMarkers(classByName('Ranger'))).toEqual([{ label: 'Class', value: 'HYBRID' }])
     expect(resolveAxisMarkers(classByName('Salvager'))).toEqual([
       { label: 'Class', value: 'NON-ADVANCEABLE' },
     ])
     expect(resolveAxisMarkers(classByName('Soldier'))).toEqual([{ label: 'Class', value: 'BASE' }])
-  })
-})
-
-describe('hybrid class requirements', () => {
-  test.each(EXPECTED_REQUIREMENTS)('%s requires the trees %o', (name, trees) => {
-    expect(resolveClassRequirements(classByName(name))).toEqual([...trees])
-  })
-
-  test('base and non-advanceable classes have no requirements', () => {
-    for (const [name, kind] of EXPECTED_KINDS) {
-      if (kind === 'HYBRID') continue
-      expect(resolveClassRequirements(classByName(name))).toEqual([])
-    }
-  })
-
-  test('the two trees are joined by "or" — never a comma list, never "and"', () => {
-    const text = formatClassRequirements(resolveClassRequirements(classByName('Fabricator')))
-    expect(text).toBe('Forging or Electronics')
-    expect(text).not.toContain(',')
-    expect(text).not.toContain(' and ')
-  })
-
-  test('an empty requirement list formats to nothing at all', () => {
-    expect(formatClassRequirements([])).toBeUndefined()
   })
 })
 

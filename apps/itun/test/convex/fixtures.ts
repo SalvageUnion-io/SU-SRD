@@ -43,7 +43,7 @@ export async function seedTable(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer')
   const player = await makeUser(t, 'Player')
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await organizer.as.mutation(api.invites.create, { gameId })
+  const code = await organizer.as.mutation(api.invites.link, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
   return { organizer, player, gameId }
 }

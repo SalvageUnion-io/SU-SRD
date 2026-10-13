@@ -140,9 +140,8 @@ const TOKEN_RULES: TokenRule[] = [
     //
     // 2. `(?!\d{1,3}\b)` still excludes a 3-digit ALL-numeric run (`#466`, a PR
     //    ref, is a valid *length* but never a colour anyone means). That also
-    //    drops a 3-digit all-numeric shorthand like `#000`; those are rare, live
-    //    only in the already-exempt print stylesheet, and pure black/white are
-    //    covered by the `pure-white` rule and the paper law regardless. A
+    //    drops a 3-digit all-numeric shorthand like `#000`; those are rare and
+    //    live only in the already-exempt print stylesheet. A
     //    shorthand with any letter (`#fff`, `#a1b`) and every 6-/8-digit form is
     //    still caught. Colour-carrying matches lose nothing; prose stops firing.
     //
@@ -176,45 +175,6 @@ const TOKEN_RULES: TokenRule[] = [
     pattern: /linear-gradient|radial-gradient|conic-gradient/g,
   },
   {
-    id: 'arbitrary-tracking',
-    mode: 'zero',
-    rule: 'ruleset §4.2 — the tracking ladder is tokens only',
-    // Ruleset §4.2 ratifies the five rungs theme.css ships; there is no open
-    // decision.
-    fix: 'Use the tracking ladder: `tracking.capsTight` / `var(--tracking-caps-tight)` (0.04em, the canonical label/stamp tracking), then capsSnug / caps / capsWide, and `tracking.eyebrow` (0.22em, brand caption only).',
-    pattern: /tracking-\[[^\]]+\]/g,
-  },
-  {
-    id: 'arbitrary-border-width',
-    mode: 'zero',
-    rule: 'ruleset §4.3 — border weights are tokens, one meaning each',
-    fix: 'Use the border-weight ladder: `borderWidth.entity` / `var(--bw-entity)` (3px), rail (2.5px), pill (2px), chrome (1.5px), hairline (1px).',
-    // Only widths — `border-[color:var(--x)]` is a colour, covered by raw-color.
-    pattern: /border(?:-[trblxy])?-\[\d*\.?\d+px\]/g,
-  },
-  {
-    id: 'arbitrary-radius',
-    mode: 'zero',
-    rule: 'ruleset §4.4 — the ONE radius vocabulary',
-    // The gap this closes: theme.css has said "never `rounded-[Npx]`" since the
-    // radius ladder landed, and nothing enforced it. 28 arbitrary radii
-    // accumulated, and 24 of them were EXACT ALIASES of a token that already
-    // existed — the drift was never a designer wanting a new value, it was the
-    // ladder being invisible at the call site. Same shape as the three
-    // arbitrary-* rules above, and it belongs beside them.
-    fix: 'Use the radius ladder: `radius.pip` / `var(--radius-pip)` (1px, tracker pips), badge (2px, the stamp-chip family), card (3px — cards, inputs, buttons), panel (6px — app-chrome panels & pick cards). Stamps are square: `radius.none`. Pick by ROLE, not by which number is nearest.',
-    // Corner/side modifiers included (rounded-t-, rounded-tl-, rounded-ss-).
-    // Only px literals — `rounded-[var(--x)]` is indirection, not a new rung.
-    pattern: /\brounded(?:-[a-z]{1,2})?-\[\d*\.?\d+px\]/g,
-  },
-  {
-    id: 'arbitrary-font-size',
-    mode: 'zero',
-    rule: 'ruleset §4.2 — one type scale',
-    fix: 'Use the semantic type ladder: `fontSize.badge` / `var(--text-badge)` (11px, the floor), then note / caption / lede, and the display end — readout (17) / title (22) / display (26) / displayLg (31) / hero (38).',
-    pattern: /text-\[(?!var\(|color:|--)[^\]]+\]/g,
-  },
-  {
     id: 'type-floor',
     mode: 'zero',
     rule: 'ruleset §4.6 — the 11px type floor, no exceptions',
@@ -224,8 +184,7 @@ const TOKEN_RULES: TokenRule[] = [
     // a retired rung's NAME is a finding (in any spelling — utility, custom
     // property, token key, caps-recipe class), and so is any LITERAL size
     // under 11px (an arbitrary utility, a CSS declaration, a style-object or
-    // SVG `fontSize`). `arbitrary-font-size` above fails every arbitrary
-    // utility; this one fails a small size in any spelling.
+    // SVG `fontSize`).
     fix: 'Use `fontSize.badge` / `var(--text-badge)` / `text-badge` (11px) — the floor. A caps label at the floor reads at `tracking.capsSnug` (0.06em). Nothing renders smaller, seam and roll-table stamps included.',
     pattern:
       /(?<![\w-])text-(?:nano|micro|label(?:-lg)?)(?![\w-])|--text-(?:nano|micro|label(?:-lg)?)(?![\w-])|\bfontSize\.(?:nano|micro|label|labelLg)\b|\bsu-caps--(?:nano|micro|label(?:-lg)?)\b|text-\[\d*\.?\d+(?:px|rem)\]|font-size\s*:\s*\d*\.?\d+(?:px|rem)?(?![\w.])|\bfont[sS]ize\s*[=:]\s*\{?\s*['"`]?\d*\.?\d+(?:px|rem)?(?![\w.])/g,
@@ -283,13 +242,6 @@ const TOKEN_RULES: TokenRule[] = [
     fix: 'Use the workshop ground: `color.wkBg` / `var(--color-wk-bg)` for the step off paper, or `color.paper` / `var(--color-paper)` for the surface itself.',
     pattern: /--color-wk-bg-2(?![\w-])|(?<![\w-])[a-z]+(?:-[trblxy])?-wk-bg-2(?![\w-])|\bwkBg2\b/g,
   },
-  {
-    id: 'pure-white',
-    mode: 'zero',
-    rule: 'ruleset §4.1 — pure white is retired; paper (#fbfaf7) is the one light surface',
-    fix: 'Use paper: `color.paper` / `var(--color-paper)`.',
-    pattern: /\b(?:bg|text|border|ring|fill|stroke)-white\b/g,
-  },
 ]
 
 /**
@@ -299,21 +251,15 @@ const TOKEN_RULES: TokenRule[] = [
 const EXEMPTIONS: Exemption[] = [
   {
     file: 'packages/component-lib/src/styles/theme.css',
-    rules: [
-      'raw-color',
-      'arbitrary-border-width',
-      'arbitrary-radius',
-      'rust-allowlist',
-      'cool-ground',
-    ],
+    rules: ['raw-color', 'rust-allowlist', 'cool-ground'],
     reason:
-      'The token definitions themselves — this file is where colour is allowed to be a literal, and where `--color-rust` is DEFINED (rust-allowlist governs who paints with it, not where it is declared). arbitrary-border-width and arbitrary-radius are exempt for a different reason: the file authors no borders and no radii at all, it DEFINES the --bw-* and --radius-* ladders. Their only matches are the prose in each ladder doc-comment ("never `border-[1.5px]`", "never rounded-[Npx]") — the rule text quoting the form it forbids. Rewording those comments to dodge the regex would make the canon harder to read to satisfy a lint.',
+      'The token definitions themselves — this file is where colour is allowed to be a literal, and where `--color-rust` is DEFINED (rust-allowlist governs who paints with it, not where it is declared).',
   },
   {
     file: 'packages/component-lib/src/design/tokens.ts',
-    rules: ['raw-color', 'rust-allowlist', 'cool-ground'],
+    rules: ['raw-color', 'cool-ground'],
     reason:
-      'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/__tests__/tokens.parity.test.ts` fails if the two ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
+      'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/__tests__/tokens.parity.test.ts` fails if the two ever disagree.',
   },
   {
     file: 'packages/component-lib/src/components/atoms/Button.tsx',
@@ -364,31 +310,10 @@ const EXEMPTIONS: Exemption[] = [
       "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/srd, which the guard does not scan, and only became visible when it moved into component-lib to be shared with the Dashboard's SRD Explorer.",
   },
   {
-    file: 'packages/component-lib/src/stories',
-    rules: [
-      'rust-allowlist',
-      'raw-color',
-      'arbitrary-font-size',
-      'arbitrary-tracking',
-      'arbitrary-border-width',
-      'pure-white',
-      'gradient',
-      'cool-ground',
-    ],
-    reason:
-      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples. rust-allowlist is on the list because Foundations/Theme specimens the rust swatch itself — a token page that could not show the action colour would be missing a token. arbitrary-border-width is on the list for exactly that reason: the sole match is Theme.stories.tsx printing the border ladder\'s own caption, "never border-[1.5px]" — the counter-example is the content. cool-ground is on the list for the same reason: Foundations/Theme swatches every key on the scale, `wkBg2` included, until the token itself is retired. (This entry is the directory, so it also covers the non-story helper here, _harness.tsx.)',
-  },
-  {
     file: '.stories.tsx',
-    rules: [
-      'raw-color',
-      'arbitrary-font-size',
-      'arbitrary-tracking',
-      'arbitrary-border-width',
-      'pure-white',
-    ],
+    rules: ['raw-color'],
     reason:
-      'Stories are specimens, not shipped surfaces — the same standing the Foundations catalog pages above already have, extended to the co-located ones so the rule does not depend on which directory a story happens to live in. Their literals are harness scaffolding: the --tone/--ground custom properties the consuming APP supplies at runtime (ModeDoor, VitalGauge), a dark backdrop to prove contrast against, a #ccc outline on a resize container (DashboardGrid/DashboardCanvas), and swatch props fed as data (FilterChip). Nothing here reaches a user, and tokenising a stand-in for app-supplied context would make the story demonstrate something other than what ships. Note the cost, since it is real: stories are where new surfaces get prototyped, so this is the one place drift can incubate un-flagged — a literal that graduates from a story into a component is caught at the component, not here. `gradient` is deliberately NOT on this list: a gradient is banned by §3.5 on shading grounds that a specimen does not escape, and no story carries one.',
+      'Stories are specimens, not shipped surfaces. Their literals are harness scaffolding: the --tone/--ground custom properties the consuming APP supplies at runtime (ModeDoor, VitalGauge), a dark backdrop to prove contrast against, a #ccc outline on a resize container (DashboardGrid/DashboardCanvas), and swatch props fed as data (FilterChip). Nothing here reaches a user, and tokenising a stand-in for app-supplied context would make the story demonstrate something other than what ships. Note the cost, since it is real: stories are where new surfaces get prototyped, so this is the one place drift can incubate un-flagged — a literal that graduates from a story into a component is caught at the component, not here. `gradient` is deliberately NOT on this list: a gradient is banned by §3.5 on shading grounds that a specimen does not escape, and no story carries one.',
   },
   {
     file: 'packages/component-lib/src/components/atoms/CatalogTile.tsx',
@@ -403,34 +328,16 @@ const EXEMPTIONS: Exemption[] = [
       'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
   },
   {
-    file: 'apps/itun/src/components/wizard/WizShell.tsx',
-    rules: ['arbitrary-border-width'],
-    reason:
-      "Not a border WEIGHT — a shape. The two matches (`border-x-[9px]`, `border-t-[14px]`) sit on an `h-0 w-0` span with `border-x-transparent`: the CSS-triangle idiom, drawing the caret under the wizard step marker. Those numbers are the triangle's half-width and height, so snapping them to the 1.5/2/2.5/3px weight ladder would not tidy a border, it would resize a glyph. The rule is right to look here and wrong about this one.",
-  },
-  {
     file: 'packages/component-lib/src/components/atoms/KofiButton.tsx',
     rules: ['raw-color'],
     reason:
-      "EXTERNAL BRAND colour, not ours. #2e66c4 is Ko-fi's blue, darkened: the widget sets its label in white on this fill, and Ko-fi's own #72a4f2 measured 2.5:1 against it where WCAG AA wants 4.5:1 (#2e66c4 gives 5.5:1 at nearly the same hue). The widget is recognisable BECAUSE it is blue, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external hue, and anything sourced to OUR design uses the canonical set. Note the prop is caller-overridable, so a consumer that wants a themed button already can.",
+      "EXTERNAL BRAND colour, not ours. #2e66c4 is Ko-fi's blue, darkened: the widget sets its label in white on this fill, and Ko-fi's own #72a4f2 measured 2.5:1 against it where WCAG AA wants 4.5:1 (#2e66c4 gives 5.5:1 at nearly the same hue). The widget is recognisable BECAUSE it is blue, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external hue, and anything sourced to OUR design uses the canonical set.",
   },
   {
     file: 'apps/itun/src/styles/print.css',
-    rules: ['raw-color', 'pure-white', 'cool-ground'],
+    rules: ['raw-color', 'cool-ground'],
     reason:
       'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint.',
-  },
-  {
-    file: 'apps/itun/src/index.css',
-    rules: ['raw-color', 'pure-white'],
-    reason:
-      'Same print exception as styles/print.css above — the literals here are all inside the print/PDF-export block that forces a true-white ground for the live sheet.',
-  },
-  {
-    file: 'packages/component-lib/src/components/referenceEntity/card/entityCardTone.ts',
-    rules: ['raw-color'],
-    reason:
-      "Self-citation, not a colour: the sole match is a doc comment describing the `hostBase` parameter as accepting a resolvable CSS colour, naming the `rgb()` form it accepts. The rule matches the empty-parens spelling. Rewording the comment to dodge the regex would make the parameter's contract less clear to satisfy a lint — the same trade the raw-color rule already refuses for PR and issue references.",
   },
   {
     file: 'apps/discord-bot/src/format.ts',

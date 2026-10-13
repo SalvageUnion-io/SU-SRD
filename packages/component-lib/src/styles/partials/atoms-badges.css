@@ -8,7 +8,7 @@
 
 /* `atoms/Badge.tsx` — every property is a class, not a style object: call
  * sites override padding, display, size, tracking, colour and the inset ring
- * through `className`, and only a stylesheet base lets their utility win. The
+ * through `className`, and only a stylesheet base lets their class win. The
  * chip (default shape): a fixed 22px rounded stamp-chip. */
 .su-badge {
   align-items: center;

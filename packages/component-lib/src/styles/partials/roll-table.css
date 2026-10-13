@@ -304,6 +304,8 @@
    * so the numbers stay on the outside. Under `lg` the halves stack as one list.
    */
   .su-roll__bands[data-split] {
+    --su-roll-range: 3.5rem;
+    --su-roll-value-size: var(--text-sm);
     align-items: start;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -324,11 +326,6 @@
   .su-roll__rows[data-side='right'] .su-roll__range {
     border-left: var(--bw-hairline) solid var(--color-ink);
     border-right: 0;
-  }
-
-  .su-roll__bands[data-split] {
-    --su-roll-range: 3.5rem;
-    --su-roll-value-size: var(--text-sm);
   }
 
   .su-roll__bands[data-split] .su-roll__body {

@@ -17,7 +17,7 @@ const SLOTS = [
 
 /**
  * Ghost — the single ink-alpha bar every loading placeholder is built from:
- * `Skeleton`'s three modes here, and ITUN's sheet-shaped `SheetSkeleton`, which
+ * `Skeleton`'s card ghost here, and ITUN's sheet-shaped `SheetSkeleton`, which
  * composes it directly. Sized by the caller, so it can stand in for a heading, a
  * stat pill or a line of body text without any layout shift when content lands.
  */

@@ -156,7 +156,7 @@ export const create = mutation({
  *
  * **Organizer only.** Ending a shared campaign is administrative in the sense
  * ADR-030 §3 means it — it is about the table's existence, not about what is on
- * it — so it sits with the Organizer's other acts (`setMediator`, invites)
+ * it — so it sits with the Organizer's other acts (`setMediator`, the invite URL)
  * rather than with the table-runner acts. It is deliberately NOT `requireTableRunner`: that helper
  * falls back to the Organizer only while a Game has no Mediator, which would
  * make who may end a campaign depend on whether one has been appointed yet.

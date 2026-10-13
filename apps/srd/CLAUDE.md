@@ -79,18 +79,11 @@ smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
   `src/lib/searchCompactIndex.ts` with the reference package's ranking
   functions; no ORM ships to the browser. Cmd+K / Ctrl+K focuses it.
 
-## Social preview images (og:image)
+## Social previews
 
-Each entity page's `og:image` is `OgCard`, screenshotted by `bun --filter srd
-og:generate` (opt-in; it never fails the build). The rules load with its files:
-[`.claude/rules/srd-og-images.md`](../../.claude/rules/srd-og-images.md).
-Entity and pattern pages also carry a Discord Component Embed
+Entity and pattern pages carry a Discord Component Embed
 (`src/lib/componentEmbed.ts`): the bot's card, drawn for a pasted link.
 
-## Changelog (generated)
+## Changelog
 
-The `/changelog` page (`src/pages/changelog.page.tsx`) is rendered **at build time** from `main`'s
-history ([ADR-041](../../docs/ARCHITECTURE.md#decisions)): `readChangelog('srd', 'Site')` from
-`component-lib/changelog/git` keeps the `feat`, `fix` and `perf` squash titles scoped `srd`, one
-entry per day, and the page renders them with `Changelog`. There is no file to edit: a PR reaches
-this page by its title, `feat(srd): …`. Another scope, or none, never shows here.
+A `feat(srd):` (or `fix`/`perf`) PR title reaches the generated `/changelog` page.

@@ -217,8 +217,7 @@ export const deleteAccount = mutation({
       await ctx.db.delete(membership._id)
     }
 
-    // Knocks at other Games' doors. A pending one would otherwise sit in an
-    // Organizer's queue naming somebody who no longer exists.
+    // Asks to join other Games that name this account.
     const requests = await ctx.db
       .query('joinRequests')
       .withIndex('by_user', (q) => q.eq('userId', userId))

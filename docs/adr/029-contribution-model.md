@@ -194,9 +194,6 @@ carrier (a prose span) alongside it.
   both engines separately — means two things to learn, two places to look when a
   number is wrong, and a third mechanism the first time someone needs an ability
   to grant a trait.
-- **Ordering is forced.** The ADR-022 override amendment must land _before_ any
-  automatic contribution, or a rules-legal bonus renders as a hand override. See
-  that ADR for why.
 - **The dataset gains authoring obligations.** Every future record stating a flat
   mechanical change must encode it or justify itself to the audit. This is the
   intended cost.
@@ -205,19 +202,3 @@ carrier (a prose span) alongside it.
 - Duration-bound effects introduce the first contributions whose value depends on
   play state rather than reference data alone. §4's constraints exist to stop
   that leaking into the persisted entity.
-
-## Cross-references
-
-- [ADR-021](021-itun-surface-taxonomy.md) — governing; which mode enforces what.
-- [ADR-022](../ARCHITECTURE.md#decisions) — the Change Log and stat
-  overrides; amended by this work to make an override an absolute pin.
-- [ADR-026](026-entity-card-design-rules.md) — entity card design rules; §5's
-  "modified" language, extended here to prose.
-- [ADR-038](038-dashboard-game-surface.md) §2 — the pilot's seat, the
-  home of activated contributions.
-- [ADR-006](../ARCHITECTURE.md#decisions) — rules as pure functions; breakdowns
-  stay pure and side-effect-free.
-- [ADR-010](../ARCHITECTURE.md#decisions) — the Frozen end of the
-  display contract.
-- [Rules and ITUN surfaces](../ARCHITECTURE.md#surfaces)
-  — the authoritative mode × rule-class matrix.

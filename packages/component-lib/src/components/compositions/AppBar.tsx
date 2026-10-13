@@ -90,8 +90,6 @@ type AppBarProps = {
   viewTransitionName?: string
   /** The product's own nav (desktop), inline beside the switcher. */
   navItems?: AppBarNavEntry[]
-  /** Quiet links at the nav's far end (an About, a Changelog). */
-  secondaryItems?: AppBarNavItem[]
   /**
    * Desktop search slot — the SRD's `SearchField` combobox or ITUN's
    * `SearchFieldTrigger`: one shape, `su-union-bar__search-input` wide.
@@ -99,7 +97,6 @@ type AppBarProps = {
   search?: ReactNode
   /** "Buy the game" outbound link. Omit to hide. */
   buyHref?: string
-  buyLabel?: ReactNode
   /**
    * Desktop controls at the right end of the bar — app-owned (ITUN's account
    * menu). A slot rather than nav data because these are controls, not links.
@@ -252,10 +249,8 @@ export function AppBar({
   markSrc = '/logos/su-cargo-dark.svg',
   viewTransitionName,
   navItems = [],
-  secondaryItems = [],
   search,
   buyHref,
-  buyLabel = 'Buy the game',
   actions,
   mobile,
   breadcrumbs,
@@ -283,15 +278,6 @@ export function AppBar({
         />
       )
     )
-
-  const quietLinks = secondaryItems.map((item) => (
-    <NavLink
-      key={item.href}
-      item={item}
-      className="su-union-bar__quiet"
-      LinkComponent={LinkComponent}
-    />
-  ))
 
   return (
     <>
@@ -349,7 +335,6 @@ export function AppBar({
 
           {/* Desktop: the right-hand cluster, pushed to the end. */}
           <div className="su-union-bar__end">
-            {quietLinks}
             {search}
             {buyHref && (
               <a
@@ -358,7 +343,7 @@ export function AppBar({
                 rel="noopener noreferrer"
                 className={`su-union-bar__buy ${FOCUS_RING}`}
               >
-                {buyLabel} <span aria-hidden="true">↗</span>
+                Buy the game <span aria-hidden="true">↗</span>
               </a>
             )}
             {actions}

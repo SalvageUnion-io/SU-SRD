@@ -1,10 +1,9 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { ModeDoor } from './ModeDoor'
-import { Sel } from './Sel'
 
 export default {
   title: 'Atoms/Mode Door',
@@ -20,23 +19,7 @@ const SHEETS = ['pilot', 'mech', 'crawler'] as const
 /** One column, two from the `sm` breakpoint (40rem) up: `.su-story-door-grid`. */
 const DOORS = { display: 'grid', gap: space[24], marginTop: space[16] } satisfies CSSProperties
 
-const CUSTOM_BUILD = {
-  backgroundColor: color.paper,
-  borderColor: color.ink,
-  borderRadius: radius.panel,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
-  color: color.ink,
-  fontFamily: font.cond,
-  fontSize: fontSize.lg,
-  fontWeight: weight.bold,
-  lineHeight: 'calc(1.75 / 1.125)',
-  paddingBlock: space[12],
-  paddingInline: space[16],
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-/** The two onboarding doors side by side on each sheet, plus the ink-double Sel ring. */
+/** The two onboarding doors side by side on each sheet. */
 export const Default: Story = () => {
   const [chosen, setChosen] = useState<string | null>(null)
   return (
@@ -70,15 +53,6 @@ export const Default: Story = () => {
           </div>
         </div>
       ))}
-
-      <div className="sheet--pilot" style={SURFACE}>
-        <Caption>Sel ring="ink-double" — the custom-build door's selection halo.</Caption>
-        <div style={{ marginTop: space[12], width: 'fit-content' }}>
-          <Sel selected ring="ink-double" ariaLabel="Custom build" onToggle={() => {}}>
-            <div style={CUSTOM_BUILD}>Custom Build</div>
-          </Sel>
-        </div>
-      </div>
     </div>
   )
 }

@@ -26,7 +26,6 @@ import type * as invites from "../invites.js";
 import type * as mediator from "../mediator.js";
 import type * as model_bot from "../model/bot.js";
 import type * as model_crawlerWrites from "../model/crawlerWrites.js";
-import type * as model_discordInteraction from "../model/discordInteraction.js";
 import type * as model_entities from "../model/entities.js";
 import type * as model_invites from "../model/invites.js";
 import type * as model_linkWrites from "../model/linkWrites.js";
@@ -68,7 +67,6 @@ declare const fullApi: ApiFromModules<{
   mediator: typeof mediator;
   "model/bot": typeof model_bot;
   "model/crawlerWrites": typeof model_crawlerWrites;
-  "model/discordInteraction": typeof model_discordInteraction;
   "model/entities": typeof model_entities;
   "model/invites": typeof model_invites;
   "model/linkWrites": typeof model_linkWrites;

@@ -7,10 +7,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
-import {
-  populationRange as crawlerPopulationRange,
-  SalvageUnionReference,
-} from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const tier = (name: string) => {
@@ -62,21 +59,5 @@ describe('crawler tech level card', () => {
       expect(text).toContain('POP')
       cleanup()
     }
-  })
-})
-
-describe('crawlerPopulationRange', () => {
-  test('formats a bounded band with an en dash and grouped thousands', () => {
-    expect(crawlerPopulationRange(tier('City Crawler'))).toBe('5,000–15,000')
-  })
-
-  test('formats the unbounded top tier open-ended', () => {
-    expect(crawlerPopulationRange(tier('Megacity Crawler'))).toBe('25,000+')
-  })
-
-  test('returns undefined for an entity that has no population band', () => {
-    const mule = SalvageUnionReference.Chassis.getByName('Mule')
-    if (!mule) throw new Error('Mule fixture missing')
-    expect(crawlerPopulationRange(mule)).toBeUndefined()
   })
 })

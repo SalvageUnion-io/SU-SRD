@@ -104,11 +104,6 @@ op read 'op://<vault>/<item>/credential' | bunx wrangler secret put ITUN_BOT_SEC
 `ITUN_CONVEX_SITE_URL` is the HTTP-actions origin (`.convex.site`), not the
 client URL (`.convex.cloud`) and not the web origin.
 
-For `/su invite`, set `DISCORD_PUBLIC_KEY` to the application's public key from
-`apps/discord-bot/wrangler.jsonc`. It is not a secret, so an argument is fine.
-Set to the wrong application's key, every `/su invite` fails as unverified while
-every other command keeps working: check it first when only invites break.
-
 ## 3. Verify sign-in without signing in
 
 ```bash

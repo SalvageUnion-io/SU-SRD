@@ -241,54 +241,7 @@ describe('requireMediator', () => {
   })
 })
 
-describe('invite lifecycle', () => {
-  test('an expired code is refused', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedTable(t)
-    const joiner = await makeUser(t, 'Late')
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
-
-    await t.run(async (ctx) => {
-      for (const row of await ctx.db.query('invites').collect()) {
-        await ctx.db.patch(row._id, { expiresAt: Date.now() - 1000 })
-      }
-    })
-
-    await expect(joiner.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/expired/i)
-  })
-
-  test('a used-up code is refused, and uses decrement', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedTable(t)
-    const first = await makeUser(t, 'First')
-    const second = await makeUser(t, 'Second')
-    const code = await organizer.as.mutation(api.invites.create, { gameId, usesRemaining: 1 })
-
-    await first.as.mutation(api.invites.redeem, { code })
-    await expect(second.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/used up/i)
-  })
-
-  test('redeeming twice does not consume a second use', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedTable(t)
-    const joiner = await makeUser(t, 'Joiner')
-    const code = await organizer.as.mutation(api.invites.create, { gameId, usesRemaining: 2 })
-
-    await joiner.as.mutation(api.invites.redeem, { code })
-    await joiner.as.mutation(api.invites.redeem, { code })
-
-    // Tapping a link twice should land you in the game, not cost the table a
-    // seat it did not give away.
-    //
-    // Selected BY CODE: seedGame already minted an invite, so index 0 is a
-    // different row entirely — the first draft of this test asserted against it
-    // and failed for the wrong reason.
-    const invite = await t.run(async (ctx) =>
-      (await ctx.db.query('invites').collect()).find((i) => i.code === code)
-    )
-    expect(invite?.usesRemaining).toBe(1)
-  })
-
+describe('the invite URL', () => {
   test('an unknown code is refused', async () => {
     const t = testConvex()
     await seedTable(t)
@@ -298,34 +251,11 @@ describe('invite lifecycle', () => {
     )
   })
 
-  test('the Organizer can revoke a code before it is used', async () => {
+  test('a Player can neither copy nor reset it', async () => {
     const t = testConvex()
-    const { organizer, gameId } = await seedTable(t)
-    const joiner = await makeUser(t, 'Joiner')
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
-
-    const invite = await t.run(async (ctx) =>
-      (await ctx.db.query('invites').collect()).find((i) => i.code === code)
-    )
-    await organizer.as.mutation(api.invites.revoke, { inviteId: invite?._id as never })
-
-    // "revoked", not "not valid": revocation is now a soft delete, so the row
-    // survives to keep its redemption history resolvable and the refusal can say
-    // what actually happened instead of pretending the code never existed.
-    await expect(joiner.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/revoked/i)
-  })
-
-  test('a Player cannot revoke', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seedTable(t)
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
-    const invite = await t.run(async (ctx) =>
-      (await ctx.db.query('invites').collect()).find((i) => i.code === code)
-    )
-
-    await expect(
-      player.as.mutation(api.invites.revoke, { inviteId: invite?._id as never })
-    ).rejects.toThrow(/organiser/i)
+    const { player, gameId } = await seedTable(t)
+    await expect(player.as.mutation(api.invites.link, { gameId })).rejects.toThrow(/organiser/i)
+    await expect(player.as.mutation(api.invites.reset, { gameId })).rejects.toThrow(/organiser/i)
   })
 })
 

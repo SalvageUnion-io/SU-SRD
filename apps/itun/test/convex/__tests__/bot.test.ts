@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api, internal } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
 import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
@@ -10,7 +11,8 @@ import { testConvex } from '../harness'
  * The bot holds no service-role key: it cannot act as anybody. These tests
  * prove it: every path
  * resolves the actor from a *linked* Discord identity that is a *member* of the
- * *bound* Game, and every failure of that chain is reported as a machine-
+ * *bound* Game (a `channelBindings` row; nothing creates one now, so the tests
+ * insert it), and every failure of that chain is reported as a machine-
  * readable reason the bot renders **ephemerally**, because a public channel is
  * the wrong place to announce who has an account.
  *
@@ -24,95 +26,18 @@ async function seedBoundGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer', 'discord-organizer')
   const player = await makeUser(t, 'Player', 'discord-player')
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await organizer.as.mutation(api.invites.create, { gameId })
+  const code = await organizer.as.mutation(api.invites.link, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
-  await t.mutation(internal.botClient.bind, {
-    discordId: 'discord-organizer',
-    channelId: 'chan-1',
-    gameId,
-  })
+  await bindChannel(t, gameId, 'chan-1', organizer.userId)
   return { organizer, player, gameId }
 }
 
-describe('channel binding', () => {
-  test('one game per channel', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedBoundGame(t)
-    const other = await organizer.as.mutation(api.games.create, { name: 'Other' })
-
-    // A channel meaning two games makes every roll in it ambiguous, and the
-    // bot has no way to ask which was meant.
-    const clash = await t.mutation(internal.botClient.bind, {
-      discordId: 'discord-organizer',
-      channelId: 'chan-1',
-      gameId: other,
-    })
-    expect(clash).toMatchObject({ ok: false })
-
-    // The rejected bind leaves the original one standing.
-    const still = await t.query(internal.botClient.channel, {
-      discordId: 'discord-organizer',
-      channelId: 'chan-1',
-    })
-    expect(still).toMatchObject({ ok: true, game: { gameId } })
-
-    // Re-binding the same pair is a no-op, not an error.
-    const same = await t.mutation(internal.botClient.bind, {
-      discordId: 'discord-organizer',
-      channelId: 'chan-1',
-      gameId,
-    })
-    expect(same).toMatchObject({ ok: true })
+/** A channel bound to a Game, as a binding row already in the database is. */
+async function bindChannel(t: Ctx, gameId: Id<'games'>, channelId: string, boundBy: Id<'users'>) {
+  await t.run(async (ctx) => {
+    await ctx.db.insert('channelBindings', { gameId, channelId, boundBy, boundAt: Date.now() })
   })
-
-  test('only the Organizer may unbind', async () => {
-    const t = testConvex()
-    await seedBoundGame(t)
-
-    const denied = await t.mutation(internal.botClient.unbind, {
-      discordId: 'discord-player',
-      channelId: 'chan-1',
-    })
-    expect(denied).toMatchObject({ ok: false, reason: 'forbidden' })
-
-    const allowed = await t.mutation(internal.botClient.unbind, {
-      discordId: 'discord-organizer',
-      channelId: 'chan-1',
-    })
-    expect(allowed).toMatchObject({ ok: true })
-  })
-
-  test('resolves the game a channel speaks for', async () => {
-    const t = testConvex()
-    const { gameId } = await seedBoundGame(t)
-    const found = await t.query(internal.botClient.channel, {
-      discordId: 'discord-player',
-      channelId: 'chan-1',
-    })
-    expect(found).toMatchObject({ ok: true, game: { gameId } })
-  })
-
-  test('the bot obeys the same Organizer rule as the web', async () => {
-    const t = testConvex()
-    const { gameId } = await seedBoundGame(t)
-
-    // The bot credential authenticates the BOT, not the ACTOR — a player
-    // driving the bot is still only a player.
-    const denied = await t.mutation(internal.botClient.bind, {
-      discordId: 'discord-player',
-      channelId: 'chan-2',
-      gameId,
-    })
-    expect(denied).toMatchObject({ ok: false, reason: 'forbidden' })
-
-    const allowed = await t.mutation(internal.botClient.bind, {
-      discordId: 'discord-organizer',
-      channelId: 'chan-2',
-      gameId,
-    })
-    expect(allowed).toMatchObject({ ok: true, name: 'Tenacity' })
-  })
-})
+}
 
 describe('the bot cannot act as anybody', () => {
   test('a linked member roll is recorded, attributed to them', async () => {
@@ -186,11 +111,7 @@ describe('the bot cannot act as anybody', () => {
 
     // A second Game, bound to a second channel, that the player is not in.
     const otherGame = await organizer.as.mutation(api.games.create, { name: 'Ashfall' })
-    await t.mutation(internal.botClient.bind, {
-      discordId: 'discord-organizer',
-      channelId: 'chan-other',
-      gameId: otherGame,
-    })
+    await bindChannel(t, otherGame, 'chan-other', organizer.userId)
     const secretPilot = await t.run(
       async (ctx) =>
         await ctx.db.insert('pilots', {
@@ -526,25 +447,5 @@ describe('the read surfaces', () => {
     if (!result.ok) throw new Error(`me denied: ${result.reason}`)
     expect(result.games).toHaveLength(1)
     expect(result.games[0]).toMatchObject({ name: 'Tenacity', organizer: false })
-  })
-
-  test('channel reports the roster and the Downtime phase', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedBoundGame(t)
-    await organizer.as.mutation(api.games.setMediator, {
-      gameId,
-      userId: organizer.userId,
-      mediator: true,
-    })
-    await organizer.as.mutation(api.downtime.begin, { gameId })
-
-    const result = await t.query(internal.botClient.channel, {
-      discordId: 'discord-player',
-      channelId: 'chan-1',
-    })
-    if (!result.ok) throw new Error(`channel denied: ${result.reason}`)
-    expect(result.game.name).toBe('Tenacity')
-    expect(result.members).toHaveLength(2)
-    expect(result.downtime.running).toBe(true)
   })
 })

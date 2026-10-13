@@ -1,13 +1,13 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * "Copy invite link" — the one way a Game is shared, on the Game page
- * and the Dashboard's Crew tab.
+ * The Game's invite URL: "Copy invite link" (the Game page and the
+ * Dashboard's Crew tab) and "Reset link" (the Game page).
  *
- * What these pin: it asks the server for the Game's link (`invites.link`, which
- * decides what kind of link this viewer gets) and puts the whole URL on the
- * clipboard; and a signed-out viewer, who has no link to copy, sees nothing.
+ * What these pin: copying asks the server for the Game's link (`invites.link`)
+ * and puts the whole URL on the clipboard; resetting asks `invites.reset`; and
+ * a signed-out viewer, who has no link to copy, sees nothing.
  */
 
 import { getFunctionName } from 'convex/server'
@@ -26,7 +26,7 @@ const convexMocks = await installConvexMocks({
   },
 })
 
-const { CopyInviteLink } = await import('../CopyInviteLink')
+const { CopyInviteLink, ResetInviteLink } = await import('../CopyInviteLink')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 
@@ -77,5 +77,40 @@ describe('Copy invite link', () => {
     authed = false
     const container = await renderButton()
     expect(container.textContent).toBe('')
+  })
+})
+
+describe('Reset link', () => {
+  async function openConfirm(): Promise<void> {
+    await act(async () => {
+      render(
+        <ConnectionProvider>
+          <ResetInviteLink gameId={'g1' as never} />
+        </ConnectionProvider>
+      )
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Reset link' }))
+    })
+  }
+
+  test('asks before resetting, and Cancel resets nothing', async () => {
+    await openConfirm()
+    expect(screen.getByRole('alertdialog', { name: 'Reset the invite link?' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    })
+
+    expect(mutations).toEqual([])
+  })
+
+  test('confirming asks the server for a new link for this Game', async () => {
+    await openConfirm()
+    const dialog = screen.getByRole('alertdialog', { name: 'Reset the invite link?' })
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Reset link' }))
+    })
+
+    expect(mutations).toEqual([{ name: 'invites:reset', args: { gameId: 'g1' } }])
   })
 })

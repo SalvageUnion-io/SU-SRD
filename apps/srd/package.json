@@ -12,7 +12,6 @@
     "og:install-browser": "playwright install chromium",
     "preview": "wrangler dev",
     "test": "bun test --parallel=4 --no-isolate",
-    "clean": "rm -rf dist node_modules/.vite",
     "check:examples": "bun ssg/checkPageExamples.ts",
     "deploy": "wrangler deploy",
     "worker:bundle": "wrangler deploy --dry-run"

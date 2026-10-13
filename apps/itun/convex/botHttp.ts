@@ -1,7 +1,5 @@
 import { internal } from './_generated/api'
-import type { ActionCtx } from './_generated/server'
 import { httpAction } from './_generated/server'
-import { isFresh, isSignedByDiscord } from './model/discordInteraction'
 
 /**
  * The bot's HTTP door (ADR-030).
@@ -36,37 +34,17 @@ import { isFresh, isSignedByDiscord } from './model/discordInteraction'
 const QUERIES = {
   me: internal.botClient.me,
   games: internal.botClient.games,
-  channel: internal.botClient.channel,
   sheet: internal.botClient.sheet,
   mine: internal.botClient.mine,
 } as const
 
 const MUTATIONS = {
-  bind: internal.botClient.bind,
-  unbind: internal.botClient.unbind,
   recordRoll: internal.botClient.recordRoll,
-  inviteDelivery: internal.botClient.inviteDelivery,
 } as const
-
-/**
- * Operations that do NOT trust the bot's word for who is asking (ADR-039 §3).
- *
- * The body is Discord's own signed interaction, forwarded byte for byte with
- * its `X-Signature-*` headers, and is verified here against the application's
- * public key before anything reads it. Deliberately absent from `QUERIES` and
- * `MUTATIONS`: an op there takes its arguments from the bot, which is exactly
- * what a signed op must never do.
- */
-const SIGNED = {
-  invite: internal.botClient.invite,
-} as const
-
-export const SIGNATURE_HEADER = 'x-signature-ed25519'
-export const TIMESTAMP_HEADER = 'x-signature-timestamp'
 
 export const BOT_PATH_PREFIX = '/bot/'
 
-export type BotOp = keyof typeof QUERIES | keyof typeof MUTATIONS | keyof typeof SIGNED
+export type BotOp = keyof typeof QUERIES | keyof typeof MUTATIONS
 
 /**
  * Every operation name, for tests and for the 404 body.
@@ -79,16 +57,7 @@ export type BotOp = keyof typeof QUERIES | keyof typeof MUTATIONS | keyof typeof
  * (TS7022/TS2456/TS2502), which in turn degrades every `useQuery` result in
  * `src/` to an implicit any. Widening to `string` here is what cuts it.
  */
-export const BOT_OPS: readonly string[] = [
-  ...Object.keys(QUERIES),
-  ...Object.keys(MUTATIONS),
-  ...Object.keys(SIGNED),
-]
-
-/** True for an op whose body must carry a valid Discord signature. */
-export function isSignedOp(op: string): boolean {
-  return op in SIGNED
-}
+export const BOT_OPS: readonly string[] = [...Object.keys(QUERIES), ...Object.keys(MUTATIONS)]
 
 /**
  * Compare two secrets without leaking their common prefix through timing.
@@ -146,8 +115,6 @@ export const botRoute = httpAction(async (ctx, request) => {
   const op = opFromPath(new URL(request.url).pathname)
   if (op === null) return json({ error: 'unknown operation' }, 404)
 
-  if (isSignedOp(op)) return await signedRoute(ctx, request, op as keyof typeof SIGNED)
-
   let args: Record<string, unknown>
   try {
     args = (await request.json()) as Record<string, unknown>
@@ -174,48 +141,3 @@ export const botRoute = httpAction(async (ctx, request) => {
     return json({ error: message }, 400)
   }
 })
-
-/**
- * A signed op: verify Discord's signature over the exact bytes, check they are
- * recent, and hand the raw body to the internal function — which reads every
- * fact it acts on out of that body itself.
- *
- * `DISCORD_PUBLIC_KEY` unset means this deployment has not opted in. That is
- * answered as a refusal the Organizer can read, not a 404: the rest of the bot
- * surface is configured and working, and "rejected this bot's credentials"
- * would send them looking in the wrong place.
- */
-async function signedRoute(
-  ctx: ActionCtx,
-  request: Request,
-  op: keyof typeof SIGNED
-): Promise<Response> {
-  const publicKey = process.env.DISCORD_PUBLIC_KEY
-  if (publicKey === undefined || publicKey.length === 0) {
-    return json(
-      {
-        ok: false,
-        reason: 'forbidden',
-        message: 'Invites from Discord are not switched on for this server yet.',
-      },
-      200
-    )
-  }
-
-  const body = await request.text()
-  const signature = request.headers.get(SIGNATURE_HEADER)
-  const timestamp = request.headers.get(TIMESTAMP_HEADER)
-  if (
-    !isFresh(timestamp, Date.now()) ||
-    !(await isSignedByDiscord(publicKey, body, signature, timestamp))
-  ) {
-    return json({ error: 'unsigned' }, 401)
-  }
-
-  try {
-    return json(await ctx.runMutation(SIGNED[op], { body }), 200)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'internal error'
-    return json({ error: message }, 400)
-  }
-}

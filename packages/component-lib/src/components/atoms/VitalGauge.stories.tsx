@@ -64,8 +64,8 @@ export const Default: Story = () => (
   <div style={PAGE}>
     <p style={INTRO}>
       The segmented current/max gauge. readOnly is a static read-out; onChange makes segments
-      click-to-set; dense auto-engages at max ≥ 12; danger redlines from a segment index; caption /
-      subLabel annotate; an overridden max shows the hand-pinned cap + revert.
+      click-to-set; dense auto-engages at max ≥ 12; danger redlines from a segment index; subLabel
+      annotates; an overridden max shows the hand-pinned cap + revert.
     </p>
     <Row label="readOnly" skin="sheet--pilot">
       <VitalGauge label="EP" value={Math.ceil(ep / 2)} max={ep} readOnly />
@@ -82,15 +82,6 @@ export const Default: Story = () => (
         value={heat - 1}
         max={heat}
         danger={Math.max(1, heat - 2)}
-        onChange={noop}
-      />
-    </Row>
-    <Row label="caption pair" skin="sheet--crawler">
-      <VitalGauge
-        label="Cargo"
-        value={Math.ceil(cargo * 0.6)}
-        max={cargo}
-        caption={['Stowed', 'Bays']}
         onChange={noop}
       />
     </Row>

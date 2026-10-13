@@ -5,7 +5,7 @@
  * - no frame, seam, header or footer: the page's chapter band carries the
  *   title, so the card prints no heading of its own;
  * - the line art is the hero; the stats are the book's, in its order and its
- *   words (`buildBookStats`), and ride the band, never the body;
+ *   words (`resolveEntityPageMeta`), and ride the band, never the body;
  * - a chassis ability is a framed card stamped "Chassis Ability";
  * - the page's section bands are h2s and the cards nested under them title
  *   themselves h3 (`nestedTitleLevel`), a Bio-Titan pattern's "Pattern
@@ -18,9 +18,8 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { getTechLevel, SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
-import { buildBookStats } from '../../referenceEntityStatsConfig'
 import { resolveEntityPageMeta } from '../entityPage'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -33,31 +32,30 @@ const juryRig = () => need(SalvageUnionReference.Abilities.getByName('Jury Rig')
 
 const patternHref = () => '/pattern/'
 
-describe('buildBookStats — the stat column in the book’s words and order', () => {
-  test('a chassis reads the manual’s eight, in its order', () => {
-    const chassis = gopher()
-    const stats = buildBookStats(chassis, { techLevel: getTechLevel(chassis) })
-    expect(stats.map((s) => s.label)).toEqual([
-      'Structure Pts.',
-      'Energy Pts.',
-      'Heat Cap.',
-      'System Slots',
-      'Module Slots',
-      'Cargo Cap.',
-      'Tech Level',
-      'Salvage Value',
-    ])
-    expect(stats[0]?.value).toBe(String(chassis.structurePoints))
-  })
-
-  test('drops what the entity does not carry, and the TL when it has none', () => {
-    const stats = buildBookStats(juryRig(), {})
-    expect(stats.map((s) => s.label)).not.toContain('Tech Level')
-    expect(stats.map((s) => s.label)).not.toContain('Structure Pts.')
-  })
-})
+const BOOK_EIGHT = [
+  'Structure Pts.',
+  'Energy Pts.',
+  'Heat Cap.',
+  'System Slots',
+  'Module Slots',
+  'Cargo Cap.',
+  'Tech Level',
+  'Salvage Value',
+]
 
 describe('resolveEntityPageMeta — what the page’s bands say', () => {
+  test('a chassis’s stats read the manual’s eight, in its order', () => {
+    const stats = resolveEntityPageMeta(gopher()).stats
+    expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT)
+    expect(stats[0]?.value).toBe(String(gopher().structurePoints))
+  })
+
+  test('stats drop what the entity does not carry, and the TL when it has none', () => {
+    const labels = resolveEntityPageMeta(juryRig()).stats.map((s) => s.label)
+    expect(labels).not.toContain('Tech Level')
+    expect(labels).not.toContain('Structure Pts.')
+  })
+
   test('a chassis: its kind (for screen readers), TL and citation with its reprint', () => {
     const meta = resolveEntityPageMeta(gopher())
     expect(meta.typeLabel).toBe('Chassis')
@@ -107,10 +105,7 @@ describe('the card as a page', () => {
     // Every entity's stats are the band's (`resolveEntityPageMeta`), a chassis's too.
     expect(container.querySelector('dl.su-stat-column')).toBeNull()
     const stats = resolveEntityPageMeta(gopher()).stats
-    const expected = buildBookStats(gopher(), { techLevel: getTechLevel(gopher()) })
-    expect(stats.map((s) => s.label)).toEqual(expected.map((s) => s.label))
-    expect(stats.map((s) => s.value)).toEqual(expected.map((s) => s.value))
-    expect(stats.map((s) => s.label)).toContain('Tech Level')
+    expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT)
   })
 
   test('the chassis ability is a framed card stamped "Chassis Ability" atop the right column', () => {

@@ -134,23 +134,14 @@ export async function requireMediator(
   return await requireMediatorAs(ctx, gameId, await requireUser(ctx))
 }
 
-/** Membership with `organizer: true` for an explicit actor, or a throw. */
-export async function requireOrganizerAs(
-  ctx: AnyCtx,
-  gameId: Id<'games'>,
-  userId: Id<'users'>
-): Promise<Doc<'memberships'>> {
-  const membership = await requireMemberAs(ctx, gameId, userId)
-  if (!membership.organizer) throw new NotAuthorized('Only the Organiser can do that')
-  return membership
-}
-
 /** Membership with `organizer: true`, or a throw. Administrative acts only. */
 export async function requireOrganizer(
   ctx: AnyCtx,
   gameId: Id<'games'>
 ): Promise<Doc<'memberships'>> {
-  return await requireOrganizerAs(ctx, gameId, await requireUser(ctx))
+  const membership = await requireMemberAs(ctx, gameId, await requireUser(ctx))
+  if (!membership.organizer) throw new NotAuthorized('Only the Organiser can do that')
+  return membership
 }
 
 /** True when `gameId` has at least one member flagged as Mediator. */

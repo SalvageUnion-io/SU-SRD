@@ -8,7 +8,8 @@ import {
   getTechLevelNumber,
 } from '../entityFields'
 import { isAbility } from '../entityGuards'
-import { EntitySchemaNames, SalvageUnionReference, SchemaToModelMap } from '../index'
+import { SCHEMA_REGISTRY } from '../generated/schemaRegistry.generated'
+import { EntitySchemaNames, SalvageUnionReference } from '../index'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -496,7 +497,7 @@ describe('SalvageUnionReference.CatalogCategories', () => {
   })
 
   it('should have valid SchemaName references in all categories', () => {
-    const validSchemaNames = new Set(Object.keys(SchemaToModelMap))
+    const validSchemaNames = new Set(Object.keys(SCHEMA_REGISTRY))
     const categories = SalvageUnionReference.CatalogCategories.all()
     for (const cat of categories) {
       for (const schemaName of cat.schemas) {

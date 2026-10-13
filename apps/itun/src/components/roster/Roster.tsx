@@ -30,7 +30,6 @@ import { useShowContainer } from '../container/useShowContainer'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { GameHub } from '../games/GameHub'
-import { InvitationsForYou } from '../games/InvitationsForYou'
 import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
 import { Shelves } from '../shelves/Shelves'
@@ -76,10 +75,8 @@ const BAND_NOTE = {
   marginTop: space[10],
 } satisfies CSSProperties
 
-const INVITES = { marginTop: space[20] } satisfies CSSProperties
-
 /** A stable footprint, so the roster replacing the skeleton does not shift the page. */
-const HUB = { minHeight: '60vh' } satisfies CSSProperties
+const HUB = { marginTop: space[20], minHeight: '60vh' } satisfies CSSProperties
 
 export function Roster() {
   const activeContainer = useActiveContainer()
@@ -139,12 +136,6 @@ function GamePage({ gameId }: { gameId: string | null }) {
             ? 'Download a backup any time to keep a copy yourself.'
             : 'Saved to your account. A downloaded backup is still yours to keep.'}
         </p>
-      </div>
-
-      {/* Invites addressed to your Discord account (ADR-039) — answering one is
-          how you get another table. Renders nothing when there are none. */}
-      <div style={INVITES}>
-        <InvitationsForYou />
       </div>
 
       {/* Reserve a stable footprint so the roster replacing the skeleton

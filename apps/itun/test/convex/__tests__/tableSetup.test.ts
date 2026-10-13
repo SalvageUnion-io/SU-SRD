@@ -34,7 +34,7 @@ async function seedTable(t: Ctx) {
   const player = await makeUser(t, 'Player')
 
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await organizer.as.mutation(api.invites.create, { gameId })
+  const code = await organizer.as.mutation(api.invites.link, { gameId })
   await mediator.as.mutation(api.invites.redeem, { code })
   await player.as.mutation(api.invites.redeem, { code })
   await organizer.as.mutation(api.games.setMediator, {
@@ -372,7 +372,7 @@ describe('unclaimed characters are offers; players pick them up', () => {
 
     const other = await makeUser(t, 'Latecomer')
     // Inviting is administrative, so it is the Organizer's — not the Mediator's.
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
     await other.as.mutation(api.invites.redeem, { code })
 
     await expect(

@@ -165,7 +165,7 @@ function SearchResults({
           {Array.from({ length: 4 }, (_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static 4-item skeleton placeholder list, never reordered — index is stable
             <li key={i}>
-              <Skeleton mode="card" compact />
+              <Skeleton />
             </li>
           ))}
         </ul>

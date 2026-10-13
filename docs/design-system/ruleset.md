@@ -31,7 +31,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links, nested Peeks or steppers; children are Tokens, Mentions inert.
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
-   8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E17: [entity-display-language.md](entity-display-language.md).
+   8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Dashboard → Listing → Peek); the `Foundations/Rendering Matrix` story shows it.
    1. **Vitals** — `VitalGauge`: sheet skin, Dashboard instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.

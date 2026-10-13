@@ -39,10 +39,6 @@
  * module's name — otherwise a re-export would be reachable surface this check
  * could not see.
  *
- * If a public function is genuinely meant to be called from outside this repo,
- * list it in `ALLOWED_WITHOUT_CALLER` with the reason. That list is empty on
- * purpose.
- *
  * It also checks the committed `convex/_generated/api.d.ts` registers exactly
  * the modules on disk. `tsc` does not catch that drift: the root tsconfig sets
  * `skipLibCheck`, so an `api.d.ts` importing a deleted module still typechecks,
@@ -64,9 +60,6 @@ const API_PATH = join(CONVEX_DIR, '_generated/api.d.ts')
  * Convex over HTTP (`botHttp.ts`), never through `api`.
  */
 const CALLER_DIRS = [join(ROOT, 'apps/itun/src')]
-
-/** `module:name` → why it has no caller in this repo. */
-const ALLOWED_WITHOUT_CALLER: Readonly<Record<string, string>> = {}
 
 /** Modules whose exports are not ordinary builder calls. See the header. */
 const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])
@@ -139,13 +132,9 @@ export function referencesIn(raw: string): Set<string> {
   return refs
 }
 
-/** Public functions with no reference and no allowance. */
-export function uncalled(
-  defined: Iterable<string>,
-  referenced: ReadonlySet<string>,
-  allowed: Readonly<Record<string, string>> = ALLOWED_WITHOUT_CALLER
-): string[] {
-  return [...defined].filter((fn) => !referenced.has(fn) && !(fn in allowed)).sort()
+/** Public functions with no reference. */
+export function uncalled(defined: Iterable<string>, referenced: ReadonlySet<string>): string[] {
+  return [...defined].filter((fn) => !referenced.has(fn)).sort()
 }
 
 /** Every module `api.d.ts` registers — each is `import type * as X from "../<path>.js"`. */
@@ -207,12 +196,11 @@ function main(): void {
     }
   }
 
-  const stale = Object.keys(ALLOWED_WITHOUT_CALLER).filter((fn) => !defined.includes(fn))
   const missing = uncalled(defined, referenced)
   const drift = codegenDrift(onDisk, registeredModules(readFileSync(API_PATH, 'utf-8')))
   const drifted = drift.missing.length > 0 || drift.extra.length > 0
 
-  if (missing.length > 0 || stale.length > 0 || drifted) {
+  if (missing.length > 0 || drifted) {
     if (drifted) {
       console.error('✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.')
       for (const m of drift.missing) {
@@ -231,13 +219,8 @@ function main(): void {
       for (const fn of missing) console.error(`    ${fn.replace(':', '.')}`)
       console.error(
         '  → Delete it, make it internal, or call it. A public function nobody calls is\n' +
-          '    reachable surface that nothing exercises. If something outside this repo\n' +
-          '    calls it, list it in ALLOWED_WITHOUT_CALLER in tools/check-convex-callers.ts\n' +
-          '    with the reason.'
+          '    reachable surface that nothing exercises.'
       )
-    }
-    for (const fn of stale) {
-      console.error(`✗ ALLOWED_WITHOUT_CALLER lists ${fn}, which no longer exists — remove it.`)
     }
     process.exit(1)
   }

@@ -26,7 +26,7 @@ test('a Mediator proposes a change and the player applies it', async ({ page, br
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
   await expect(page.getByText('You mediate')).toBeVisible({ timeout: 15_000 })
 
-  const token = await makeInviteLink(page, { approval: false })
+  const token = await makeInviteLink(page)
 
   const player = await secondAccount(browser, info)
   try {

@@ -1,30 +1,16 @@
 import { describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { Skeleton } from '../Skeleton'
 
 describe('Skeleton', () => {
-  test('every mode exposes a loading status', () => {
-    for (const mode of ['card', 'list', 'text'] as const) {
-      render(<Skeleton mode={mode} />)
-      expect(screen.getAllByRole('status').length).toBeGreaterThan(0)
-      cleanup()
-    }
+  test('exposes a loading status', () => {
+    render(<Skeleton />)
+    expect(screen.getByRole('status', { name: 'Loading' })).toBeTruthy()
   })
 
-  test('list mode renders one ghost row per `rows`', () => {
-    const { container } = render(<Skeleton mode="list" rows={4} />)
-    // Each row is a bordered flex container under the status root.
-    const rows = container.querySelectorAll('[role="status"] > div')
-    expect(rows.length).toBe(4)
-  })
-
-  test('card mode: compact tightens the band (absorbed CardSkeleton density)', () => {
-    const { container: full } = render(<Skeleton mode="card" />)
-    const band = (root: HTMLElement) =>
-      root.querySelector<HTMLElement>('[role="status"] > div')?.style.minHeight
-    expect(band(full)).toBe('80px')
-    cleanup()
-    const { container: compact } = render(<Skeleton mode="card" compact />)
-    expect(band(compact)).toBe('60px')
+  test('mirrors the compact card density: the medium card’s band height', () => {
+    const { container } = render(<Skeleton />)
+    const band = container.querySelector<HTMLElement>('[role="status"] > div')
+    expect(band?.style.minHeight).toBe('60px')
   })
 })

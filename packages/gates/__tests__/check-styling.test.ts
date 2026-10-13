@@ -138,25 +138,15 @@ describe('tokens rule set', () => {
   test('the token definition file is exempt from raw-color but not from other rules', () => {
     const found = scan(
       'packages/component-lib/src/styles/theme.css',
-      '--color-x: #ff0000;\n.x { text-[13px] }'
+      '--color-x: #ff0000;\n.x { font-size: 9px; }'
     )
     expect(found['raw-color']).toEqual([])
-    expect(found['arbitrary-font-size']?.length).toBe(1)
+    expect(found['type-floor']?.length).toBe(1)
   })
 
   test('each zero rule matches the form it forbids', () => {
-    const found = scan(
-      'apps/srd/src/x.tsx',
-      'bg-su-orange tracking-[0.1em] border-[3px] rounded-[4px] bg-white linear-gradient('
-    )
-    for (const id of [
-      'shadow-tokens',
-      'arbitrary-tracking',
-      'arbitrary-border-width',
-      'arbitrary-radius',
-      'pure-white',
-      'gradient',
-    ]) {
+    const found = scan('apps/srd/src/x.tsx', 'bg-su-orange linear-gradient(')
+    for (const id of ['shadow-tokens', 'gradient']) {
       expect(found[id]?.length).toBe(1)
     }
   })
@@ -393,7 +383,7 @@ describe('styling rule set', () => {
         'apps/srd/src/Page.tsx': 'export const P = () => <div className="su-dash-missing" />\n',
       })
     )
-    expect(found['app-theme']?.length).toBe(2) // the @theme block and the reserved token inside it
+    expect(found['app-theme']?.length).toBe(1) // the reserved token; the @theme block is no-tailwind's
     expect(found['dead-app-css']?.map((f) => f.detail)).toEqual([
       '.never-used defined but never referenced in app source',
     ])

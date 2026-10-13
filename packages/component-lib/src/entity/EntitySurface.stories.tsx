@@ -14,8 +14,7 @@ const STACK = { display: 'flex', flexDirection: 'column', gap: space[12] } satis
 
 /**
  * The SURFACE supplies context once (E13): the Dashboard turns the speckle
- * off for everything inside it, a shelf of player-made things dashes every
- * frame, and `hrefFor` decides where each Row links.
+ * off for everything inside it, and `hrefFor` decides where each Row links.
  */
 export const Default: Story = () => {
   const drill = SalvageUnionReference.Systems.getByName('Salvaging Drill')
@@ -28,8 +27,8 @@ export const Default: Story = () => {
       <EntitySurfaceProvider value={{ texture: false }}>
         <Entity form="row" entity={drill} />
       </EntitySurfaceProvider>
-      <Caption>A user-made surface, linking every Row</Caption>
-      <EntitySurfaceProvider value={{ userMade: true, hrefFor: () => '#' }}>
+      <Caption>A surface linking every Row</Caption>
+      <EntitySurfaceProvider value={{ hrefFor: () => '#' }}>
         <Entity form="row" entity={drill} mode={{ kind: 'link' }} />
       </EntitySurfaceProvider>
     </div>

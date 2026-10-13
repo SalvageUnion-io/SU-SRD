@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { radius } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { RadioCard } from '../containers/RadioCardGroup'
-import { activateOnKey, FOCUS_RING, SELECTION_RING, SELECTION_RING_INK_DOUBLE } from './interaction'
+import { activateOnKey, FOCUS_RING, SELECTION_RING } from './interaction'
 
 type SelProps = {
   /** Whether the selection ring is on */
@@ -20,12 +20,6 @@ type SelProps = {
    * MasonryColumns' `radio`) for the arrow keys.
    */
   radio?: boolean
-  /**
-   * Selection-ring style. `single` (default) is the standard 3px ink ring;
-   * `ink-double` is the double-ink halo used by the onboarding / custom-build
-   * doors (see {@link SELECTION_RING_INK_DOUBLE}).
-   */
-  ring?: 'single' | 'ink-double'
 }
 
 const RING = { borderRadius: radius.panel } satisfies CSSProperties
@@ -43,11 +37,9 @@ export function Sel({
   className,
   ariaLabel,
   radio = false,
-  ring = 'single',
 }: SelProps) {
   const interactive = !!onToggle
-  const selectionRing = ring === 'ink-double' ? SELECTION_RING_INK_DOUBLE : SELECTION_RING
-  const ringClass = cn(interactive && FOCUS_RING, selected && selectionRing, className)
+  const ringClass = cn(interactive && FOCUS_RING, selected && SELECTION_RING, className)
   const ringStyle = interactive ? RING_INTERACTIVE : RING
   if (radio && onToggle) {
     return (

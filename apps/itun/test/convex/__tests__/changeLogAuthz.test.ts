@@ -123,7 +123,7 @@ describe('appendChangeLog authorization', () => {
     const gm = await makeUser(t, 'Mediator')
     const player = await makeUser(t, 'Player')
     const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
-    const code = await gm.as.mutation(api.invites.create, { gameId })
+    const code = await gm.as.mutation(api.invites.link, { gameId })
     await player.as.mutation(api.invites.redeem, { code })
     await addPilot(player, 'p1', null)
 
@@ -177,7 +177,7 @@ describe('appendChangeLog authorization', () => {
     const player = await makeUser(t, 'Player')
     const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
     await gm.as.mutation(api.games.setMediator, { gameId, userId: gm.userId, mediator: true })
-    const code = await gm.as.mutation(api.invites.create, { gameId })
+    const code = await gm.as.mutation(api.invites.link, { gameId })
     await player.as.mutation(api.invites.redeem, { code })
 
     await expect(

@@ -95,13 +95,10 @@ describe('referencesIn', () => {
 })
 
 describe('uncalled', () => {
-  test('reports what nothing references, minus what is allowed', () => {
+  test('reports what nothing references', () => {
     const defined = ['games:listMine', 'games:rename', 'crew:readEntity']
     const referenced = new Set(['games:listMine'])
-    expect(uncalled(defined, referenced, {})).toEqual(['crew:readEntity', 'games:rename'])
-    expect(uncalled(defined, referenced, { 'games:rename': 'called by an admin script' })).toEqual([
-      'crew:readEntity',
-    ])
+    expect(uncalled(defined, referenced)).toEqual(['crew:readEntity', 'games:rename'])
   })
 })
 
