@@ -21,7 +21,6 @@ import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from '
 import { inviteCommand } from './invite'
 import { lookupCommand } from './lookup'
 import { rollCommand } from './roll'
-import { screenCommand } from './screen'
 
 export const suCommand = {
   data: new SlashCommandBuilder()
@@ -29,7 +28,6 @@ export const suCommand = {
     .setDescription('Salvage Union reference tools')
     .addSubcommand((sub) => rollCommand.subcommand(sub))
     .addSubcommand((sub) => lookupCommand.subcommand(sub))
-    .addSubcommand((sub) => screenCommand.subcommand(sub))
     // In The Union Now (ADR-030). Always registered, never conditional
     // on configuration: a command that vanishes depending on how the bot was
     // deployed is harder to explain than one that answers that In The Union Now
@@ -55,8 +53,6 @@ export const suCommand = {
         return rollCommand.execute(interaction)
       case 'lookup':
         return lookupCommand.execute(interaction)
-      case 'screen':
-        return screenCommand.execute(interaction)
       case 'me':
         return meCommand.execute(interaction)
       case 'games':

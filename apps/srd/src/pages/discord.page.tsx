@@ -195,17 +195,6 @@ function commandDetail(
           </ul>
         </>
       )
-    case 'screen':
-      return (
-        <p>
-          The Mediator Screen: Core Mechanic, Group Initiative, Critical Injury and Damage, Reactor
-          Overload, Area and Mech Salvage, and the NPC tables, each by its bands with a button that
-          rolls it. Only you see the screen; its rolls land in the channel, or only to you with{' '}
-          <code style={CODE}>private</code>. The{' '}
-          <InlineRef href="/screen/">Mediator Screen</InlineRef> here has them all on one page, with
-          Heat, the distances and Downtime.
-        </p>
-      )
     default:
       return undefined
   }

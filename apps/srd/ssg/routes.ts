@@ -22,7 +22,6 @@ import { changelogPage } from '../src/pages/changelog.page'
 import { discordPage } from '../src/pages/discord.page'
 import { indexPage } from '../src/pages/index.page'
 import { ogCardPage } from '../src/pages/og-card.page'
-import { screenPage } from '../src/pages/screen.page'
 import { searchPage } from '../src/pages/search.page'
 import type { RouteRegistration } from './render'
 import { register } from './render'
@@ -44,7 +43,6 @@ export const routes: RouteRegistration[] = [
   register(aboutPage),
   register(apiPage),
   register(discordPage),
-  register(screenPage),
   // Build-only screenshot surface for the per-entity og:images. Noindexed, and
   // `sitemap: false` keeps it out of sitemap-0.xml (the URL filter in
   // ssg/sitemap.ts also drops `/og-card`).

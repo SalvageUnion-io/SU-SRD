@@ -14,7 +14,6 @@ describe('the /su command list', () => {
     expect(commandList().map((c) => c.name)).toEqual([
       'roll',
       'lookup',
-      'screen',
       'me',
       'games',
       'shelves',
@@ -32,7 +31,7 @@ describe('the /su command list', () => {
       commandList()
         .filter((c) => !c.needsAccount)
         .map((c) => c.name)
-    ).toEqual(['roll', 'lookup', 'screen'])
+    ).toEqual(['roll', 'lookup'])
   })
 
   test('carries each description and option, required or not', () => {

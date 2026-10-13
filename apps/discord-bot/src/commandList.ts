@@ -19,7 +19,7 @@ const SUBCOMMAND_GROUP = 2
  * tools. Everything else reads or writes a Game, so a new subcommand is listed
  * as needing an account until it is named here.
  */
-const NO_ACCOUNT = new Set(['roll', 'lookup', 'screen'])
+const NO_ACCOUNT = new Set(['roll', 'lookup'])
 
 type CommandOption = { name: string; required: boolean }
 

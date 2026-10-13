@@ -40,17 +40,6 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
     "needsAccount": false
   },
   {
-    "name": "screen",
-    "description": "The Mediator Screen: the at-the-table tables, each a button to roll",
-    "options": [
-      {
-        "name": "private",
-        "required": false
-      }
-    ],
-    "needsAccount": false
-  },
-  {
     "name": "me",
     "description": "Your In the Union now account and Games",
     "options": [],

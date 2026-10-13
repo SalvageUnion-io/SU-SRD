@@ -33,7 +33,6 @@ describe('/su command', () => {
       'lookup',
       'me',
       'roll',
-      'screen',
       'sheet',
       'shelves',
     ])

@@ -43,8 +43,6 @@ export const islandRegistry = {
     ),
   RollTableIsland: () =>
     import('../components/islands/RollTableIsland').then((m) => asIsland(m.RollTableIsland)),
-  ScreenTableIsland: () =>
-    import('../components/islands/ScreenTableIsland').then((m) => asIsland(m.ScreenTableIsland)),
   ColumnsTableIsland: () =>
     import('../components/islands/ColumnsTableIsland').then((m) => asIsland(m.ColumnsTableIsland)),
   ColophonIsland: () =>

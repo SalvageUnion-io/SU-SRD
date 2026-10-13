@@ -22,7 +22,6 @@ import { ContentsChapter, DiscordBot, HomeStartHere } from '../components/HomeCo
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
-import { SCREEN_HREF } from '../lib/screenPage'
 import '../lib/gameData'
 import { Island } from '../runtime/Island'
 
@@ -63,14 +62,10 @@ function page(): PageResult {
     mech: hrefByName('guides', STEP_GUIDES.mech),
     crawler: hrefByName('guides', STEP_GUIDES.crawler),
   }
-  // The Mediator Screen first: every one of these on one page, rolled in place.
-  const atTheTable: ContentsRow[] = [
-    { label: 'Mediator Screen', href: SCREEN_HREF },
-    ...AT_THE_TABLE.flatMap(({ schema, name, label }): ContentsRow[] => {
-      const href = hrefByName(schema, name)
-      return href ? [{ label, href }] : []
-    }),
-  ]
+  const atTheTable = AT_THE_TABLE.flatMap(({ schema, name, label }): ContentsRow[] => {
+    const href = hrefByName(schema, name)
+    return href ? [{ label, href }] : []
+  })
 
   return {
     meta: {
