@@ -16,13 +16,13 @@ M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the G
     Fields: pilot HP/AP, mech SP/Heat. Rows give state in words (Superseded struck through) and cover every Mediator's proposals.
   - **Q9 Opposition** — Hidden from players: each NPC a head-extent `ReferenceEntityCard` with an HP gauge (a compact `VitalGauge`) and Morale; Morale is stored on the NPC, never logged.
     An NPC at 0 shows as down and is never auto-removed; Remove confirms.
-  - **Q10 M2 sections** — Mediator: crawler band, open M1, Downtime controls, Proposals sent. Organizer: invites, Asking to join, Hand over. Everyone: crew, Downtime track.
+  - **Q10 M2 sections** — Mediator: crawler band, open M1, Downtime controls, Proposals sent. Organizer: Invite link, Hand over. Everyone: crew, Downtime track.
   - **Q11 Crew & seats** — Crawler card, then one row per member's pilot (what they have; M1 shows where they are); open seats are unclaimed pilots; no presence column.
-  - **Q12 Invites** — Seat stamp, approval, expiry (1/7/14/30 days, default 7), uses, Copy, Revoke; approval unchecked by default; Asking to join: Let in or Decline.
+  - **Q12 Invites** — One invite URL per Game (ADR-030): the Organizer's Copy invite link and Reset link; opening it joins as a player.
   - **Q13 The Game** — Who mediates, with Hand over (Appoint when nobody does), who organises, and Delete; Archive is the owner's call.
   - **Q14 Tabs** — Opposition, Proposals, Tell the table, Tables (rolls private), SRD, Log.
 - **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed).
-- **§5 Tests** — Propose → apply → Applied (`apps/itun/e2e/mediator-propose.e2e.ts`); approval link → Let in → Game page (`apps/itun/e2e/invite-approval.e2e.ts`); server in `apps/itun/test/convex/__tests__/mediatorDashboard.test.ts`.
+- **§5 Tests** — Propose → apply → Applied (`apps/itun/e2e/mediator-propose.e2e.ts`); server in `apps/itun/test/convex/__tests__/mediatorDashboard.test.ts`.
 - **§6 M1 layout** — Rail; The table, Crawler minor, Downtime minor; tabs left, propose dock right. Ground ink-deep, instruments band-cream, display paper.
   Controls are 48 design units tall, so at least 38px at the 0.8 floor.
 - **§7 Accessibility** — Base UI tabs; a seat card is a button whose label reads its whole line (▲ `aria-hidden`); polite live regions only; `ConfirmDialog` focuses Cancel.

@@ -11,9 +11,9 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 39, which
 **Retired.** `/su invite` was removed from the bot, and with it the website
 half: the Invitations card, `invites.forMe` and `invites.decline`, the signed
 `/bot/invite` op and the Organizer's "Sent to @…" line. Nothing mints an
-addressed invite. `invites.target` stays in the schema for rows already minted,
-and `invites.redeem` (`model/invites.ts#mayRedeem`) still spends one only for
-its addressee until it expires. The decision below is the record of what was
+addressed invite, and one already minted opens nothing: a Game joins only
+through its one invite URL (ADR-030). `invites.target` stays in the schema
+until a migration drops it. The decision below is the record of what was
 built; it extended the invite amendment of
 [ADR-030](030-accounts-games-server-of-record.md).
 

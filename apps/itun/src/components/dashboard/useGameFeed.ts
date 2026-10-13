@@ -80,8 +80,8 @@ export type GameFeed = {
   gameName: string | null
   /** The Game's own page, where the proposal inbox is answered. */
   gameHref: string | null
-  /** The Game, for "Copy invite link" on the Crew tab; null outside one. */
-  gameId: Id<'games'> | null
+  /** The Game, for "Copy invite link" on the Crew tab: null outside one or for anyone but its Organizer. */
+  inviteGameId: Id<'games'> | null
   /** Newest first; null while the first answer is on its way. */
   rolls: RollLine[] | null
   /** Newest first. */
@@ -114,7 +114,7 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
   return {
     gameName: game?.name ?? null,
     gameHref: gameId === null ? null : `/games/${gameId}`,
-    gameId,
+    inviteGameId: game?.organizer ? gameId : null,
     rolls: rolls ?? null,
     alerts: alerts ?? [],
     inbox: pending?.length ?? 0,

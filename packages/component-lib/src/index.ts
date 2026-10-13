@@ -21,7 +21,7 @@ export { buttonVariants } from './components/atoms/buttonVariants'
 export { CatalogTile } from './components/atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './components/atoms/ChapterBand'
-export { Checkbox, Radio } from './components/atoms/Checkbox'
+export { Radio } from './components/atoms/Checkbox'
 // Conditions — the entity-condition chip row. Public because ITUN's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './components/atoms/Conditions'

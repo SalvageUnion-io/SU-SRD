@@ -1,5 +1,5 @@
 {
-  "floor": 1791929227,
+  "floor": 1791930756,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -1368,101 +1368,7 @@
         }
       }
     },
-    "invites:create": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "games"
-          },
-          "optional": false
-        },
-        "usesRemaining": {
-          "fieldType": {
-            "type": "number"
-          },
-          "optional": true
-        },
-        "expiresInMs": {
-          "fieldType": {
-            "type": "number"
-          },
-          "optional": true
-        },
-        "label": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": true
-        },
-        "role": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "literal",
-                "value": "player"
-              },
-              {
-                "type": "literal",
-                "value": "mediator"
-              }
-            ]
-          },
-          "optional": true
-        },
-        "requiresApproval": {
-          "fieldType": {
-            "type": "boolean"
-          },
-          "optional": true
-        }
-      }
-    },
-    "invites:decideRequest": {
-      "type": "object",
-      "value": {
-        "requestId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "joinRequests"
-          },
-          "optional": false
-        },
-        "approve": {
-          "fieldType": {
-            "type": "boolean"
-          },
-          "optional": false
-        }
-      }
-    },
     "invites:link": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "games"
-          },
-          "optional": false
-        }
-      }
-    },
-    "invites:list": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "games"
-          },
-          "optional": false
-        }
-      }
-    },
-    "invites:pendingRequests": {
       "type": "object",
       "value": {
         "gameId": {
@@ -1496,13 +1402,13 @@
         }
       }
     },
-    "invites:revoke": {
+    "invites:reset": {
       "type": "object",
       "value": {
-        "inviteId": {
+        "gameId": {
           "fieldType": {
             "type": "id",
-            "tableName": "invites"
+            "tableName": "games"
           },
           "optional": false
         }

@@ -13,9 +13,8 @@
  * yours. The action they are resolving ("Rook is resolving Crush", then the
  * roll as it lands) sits under the row, announced politely as it changes.
  *
- * Under the table, "Copy invite link" brings someone else to the table
- * (`CopyInviteLink`): the Organizer's link opens the door, anyone else's asks
- * the Organizer.
+ * Under the table, the Organizer gets "Copy invite link" (`CopyInviteLink`),
+ * the Game's one invite URL.
  *
  * Presentational: `crewLines` builds the rows from `crew.vitals` and the seats.
  * Style objects only, no new `.su-dash-*` class (ADR-046).
@@ -155,7 +154,7 @@ function status(c: CrewLine): string | null {
 
 type CrewTabProps = {
   crew: CrewLine[]
-  /** The Game, for "Copy invite link"; null outside one. */
+  /** The Game, for "Copy invite link"; null outside one or for anyone but its Organizer. */
   gameId: Id<'games'> | null
 }
 

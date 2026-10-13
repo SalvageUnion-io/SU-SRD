@@ -70,7 +70,7 @@ describe('destroying a Game frees its Discord channel', () => {
 })
 
 describe('the last member out tears the Game down the same way', () => {
-  test('its binding goes with it, and so do their knocks elsewhere', async () => {
+  test('its binding goes with it, and so do their asks to join elsewhere', async () => {
     const t = testConvex()
     const solo = await makeUser(t, 'Solo')
     const host = await makeUser(t, 'Host')
@@ -78,13 +78,23 @@ describe('the last member out tears the Game down the same way', () => {
     const gameId = await solo.as.mutation(api.games.create, { name: 'Alone' })
     await bindChannel(t, gameId, 'chan-solo', solo.userId)
 
-    // A pending request at somebody else's door.
+    // A pending ask at somebody else's door, as an approval link left it.
     const elsewhere = await host.as.mutation(api.games.create, { name: 'Elsewhere' })
-    const gated = await host.as.mutation(api.invites.create, {
-      gameId: elsewhere,
-      requiresApproval: true,
+    const code = await host.as.mutation(api.invites.link, { gameId: elsewhere })
+    await t.run(async (ctx) => {
+      const invite = await ctx.db
+        .query('invites')
+        .withIndex('by_code', (q) => q.eq('code', code))
+        .unique()
+      if (invite === null) throw new Error('expected the invite')
+      await ctx.db.insert('joinRequests', {
+        gameId: elsewhere,
+        inviteId: invite._id,
+        userId: solo.userId,
+        requestedAt: Date.now(),
+        state: 'pending',
+      })
     })
-    await solo.as.mutation(api.invites.redeem, { code: gated })
 
     await solo.as.mutation(api.account.deleteAccount, {})
 

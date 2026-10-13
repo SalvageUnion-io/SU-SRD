@@ -6,8 +6,8 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  * then two columns of sections. What this file defends:
  *
  *  - every member gets Crew & seats, Downtime, their answer queue and The
- *    Game; only the Organizer gets the admin (invite links, the knocks, Hand
- *    over, ending the game) — the server refuses the rest
+ *    Game; only the Organizer gets the admin (the invite link, Hand over,
+ *    ending the game) — the server refuses the rest
  *  - only the Mediator gets the band's door to the Mediator Dashboard and
  *    Proposals you sent; the instruments themselves live on that dashboard
  *  - `games.get` answering `null` reads as an explanation with a way back to
@@ -113,8 +113,6 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'proposals:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
-    'invites:list': [],
-    'invites:pendingRequests': [],
     'proposals:sent': [],
     ...over,
   }
@@ -147,28 +145,22 @@ describe('the sections under the roster (board M2)', () => {
     expect(pilots.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  test('a plain member gets none of the Organizer’s admin, and can still invite', async () => {
+  test('a plain member gets none of the Organizer’s admin', async () => {
     await renderHub()
 
-    // The server refuses a non-Organizer's invites.list and setMediator
+    // The server refuses a non-Organizer's invites.link and setMediator
     // outright, so offering either would be a control that only ever errors.
-    expect(heading('Invite links')).toBeNull()
-    expect(heading('Asking to join')).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Make link' })).toBeNull()
+    expect(heading('Invite link')).toBeNull()
     expect(screen.queryByRole('button', { name: /Hand over|Appoint/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Delete this Game' })).toBeNull()
-    // …but any member can bring someone to the table.
-    // (The button itself is `CopyInviteLink`'s, mounted only when Connected.)
-    expect(heading('Invite a crewmate')).toBeTruthy()
-    expect(screen.getByText(/asks to join, and the Organiser lets them in/)).toBeTruthy()
   })
 
-  test('the Organizer gets invite links, the knocks, who mediates, and ending the game', async () => {
+  test('the Organizer gets the invite link, who mediates, and ending the game', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
-    expect(heading('Invite links')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Make link' })).toBeTruthy()
-    expect(heading('Asking to join')).toBeTruthy()
+    // The buttons are `CopyInviteLink`'s and `ResetInviteLink`'s, mounted only when Connected.
+    expect(heading('Invite link')).toBeTruthy()
+    expect(screen.getByText(/joins as a player/)).toBeTruthy()
     // Nobody mediates yet, so the Organizer appoints — themselves or anyone.
     // This is the ONLY way the Mediator flag is ever set.
     expect(screen.getByText('Nobody yet')).toBeTruthy()

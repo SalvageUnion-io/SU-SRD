@@ -45,7 +45,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/discord-bot/src/gameCards.ts': 708,
   'apps/itun/convex/entities.ts': 852,
   'apps/itun/convex/model/entities.ts': 929,
-  'apps/itun/convex/schema.ts': 768,
+  'apps/itun/convex/schema.ts': 736,
   'apps/itun/src/components/dashboard/Dashboard.tsx': 675,
   'apps/itun/src/components/dashboard/RollTable.tsx': 649,
   'apps/itun/src/components/npc/AnyNpcDesigner.tsx': 781,

@@ -400,7 +400,7 @@ function DashboardView({
     tables: <DisplayPanel focus="tables" {...panel} />,
     srd: <DisplayPanel focus="srd" {...panel} />,
     log: <LogTab rolls={feed.rolls} alerts={feed.alerts} />,
-    crew: <CrewTab crew={crew} gameId={feed.gameId} />,
+    crew: <CrewTab crew={crew} gameId={feed.inviteGameId} />,
   }
   const crewAttention = crew.some((c) => c.attention)
 

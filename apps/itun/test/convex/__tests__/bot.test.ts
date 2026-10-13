@@ -26,7 +26,7 @@ async function seedBoundGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer', 'discord-organizer')
   const player = await makeUser(t, 'Player', 'discord-player')
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await organizer.as.mutation(api.invites.create, { gameId })
+  const code = await organizer.as.mutation(api.invites.link, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
   await bindChannel(t, gameId, 'chan-1', organizer.userId)
   return { organizer, player, gameId }

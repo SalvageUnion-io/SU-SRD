@@ -21,7 +21,7 @@ async function seedTable(t: Ctx) {
   const a = await makeUser(t, 'Ash')
   const b = await makeUser(t, 'Bex')
   const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await gm.as.mutation(api.invites.create, { gameId })
+  const code = await gm.as.mutation(api.invites.link, { gameId })
   await a.as.mutation(api.invites.redeem, { code })
   await b.as.mutation(api.invites.redeem, { code })
   await gm.as.mutation(api.games.setMediator, { gameId, userId: gm.userId, mediator: true })

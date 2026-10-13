@@ -3,14 +3,7 @@ import { ogCardDescription, ogCardThemeColor, ogCardTitle } from 'component-lib'
 import { color } from 'component-lib/design/tokens'
 import { fullSheetCard, previewStats, referenceName } from '../previewStats'
 import type { InvitePreviewAnswer, PreviewAnswer, PreviewCard } from '../previewSummary'
-import {
-  expiryDate,
-  inviteCard,
-  previewWords,
-  privateCard,
-  sheetCard,
-  titleCaseSlug,
-} from '../previewSummary'
+import { inviteCard, previewWords, privateCard, sheetCard, titleCaseSlug } from '../previewSummary'
 
 /**
  * A player thing's link preview in words: what the Worker writes
@@ -55,9 +48,6 @@ const NPC: PreviewAnswer = {
 const INVITE: InvitePreviewAnswer = {
   gameName: 'Reclamation of the Wastes',
   mediatedBy: 'alxjrvs',
-  role: 'player',
-  requiresApproval: true,
-  expiresAt: Date.UTC(2026, 9, 15, 12),
 }
 
 const ADDRESS = 'intheunionnow.com/p/pilot/p-1'
@@ -128,15 +118,13 @@ describe('sheetCard', () => {
 })
 
 describe('inviteCard', () => {
-  test('the Game, its Mediator and the expiry', () => {
+  test('the Game and its Mediator', () => {
     expect(inviteCard(INVITE, 'intheunionnow.com')).toMatchObject({
       kind: 'invite',
       title: 'Reclamation of the Wastes',
       kicker: "You're invited · Player seat",
       summary: 'Mediated by alxjrvs.',
-      terms: 'Link expires 15 Oct · the Mediator lets you in',
     })
-    expect(expiryDate(INVITE.expiresAt)).toBe('15 Oct')
   })
 })
 

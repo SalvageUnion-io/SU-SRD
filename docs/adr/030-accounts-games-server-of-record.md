@@ -249,54 +249,20 @@ an **UNCLAIMED** stamp seal that opens the pick-up confirm, and creation gated b
 §5a. Every row opens its live sheet: editable when the viewer may edit it,
 otherwise the read-only drill-in §5 permits, `/sheet/:kind/:id`.
 
-## Amendment — an invite carries what the Organizer decided
+## Amendment — a Game has one invite URL
 
-§3 gives the Organizer "invites, membership" and stops there, leaving a code as
-a bare key and the seat and the hand-out as separate acts performed after the
-fact. That is amended in one direction: **an invite now expresses a decision the
-Organizer has already made.**
-
-**An invite may be minted as a request.** With approval required, the code
-identifies the Game and grants nothing until the Organizer lets the knocker in.
-This adds no role and no membership state — a pending request is _not_ a
-membership, and an approved one produces exactly the membership a direct redeem
-would, through the same code path. Bearer codes remain the default; this is a
-per-invite choice, not a mode.
-
-The reason is §5. Membership confers read access to every crewmate's sheet, so
-a code posted somewhere public is a broader disclosure than the Organizer
-intended. Approval is the Organizer exercising the membership authority §3
-already gives them, one step later.
-
-**An invite may also carry a seat** — a `role` of Player or Mediator. It
-carries no hand-out: invite grants (entities handed over on join) were retired,
-and a joiner claims an unclaimed entity like any crewmate (the self-claim
-amendment above). The `invites.grants` column stays optional and unwritten.
-
-Revocation becomes a **soft delete**, so an invite's redemption history stays
-resolvable, and it never evicts anyone already seated: closing a door is not the
-same act as removing someone from the room.
-
-Enforced in `convex/invites.ts` (`seat`, `assertSpendable`, `decideRequest`).
-
-**Extended by [ADR-039](039-addressed-invites.md)**, now retired: an invite
-could carry an address, a Discord account, which alone may redeem it.
-
-## Amendment — an invite is a link, never a typed code
-
-A Game is joined from a link, `/invite/:token`, whose token is the invite's
-`code` column, now 16 Crockford characters (80 bits) since nobody types it. The
-code-entry door in "+ New Game" is gone. Opening a link signed out previews it
-and offers "Sign in to join"; the OAuth round trip returns with `?join=1` and
-the page joins on arrival. **Old `/join/:code` links resolve**: the Worker 301s
-them to `/invite/:code` (`apps/itun/src/worker/retiredRedirects.ts`), so a live
-code joins and a dead one gets the invite page's explanation of invite links.
-
-**Any member may hand out the Game's link** (`invites.link`, "Copy invite
-link" on the Game page and the Dashboard's Crew tab). The Organizer's is an
-open link; anyone else's is an approval link, so a player brings a friend to
-the door and the Organizer still decides who is seated (§5). One standing link
-per door is reused while it is live (`invites.standing`).
+§3's "invites" is one URL per Game, `/invite/:code`. Anyone signed in who
+opens it joins as a player; it has no expiry, use limit, label, seat choice or
+approval step. The Organizer copies it (`invites.link`, "Copy invite link" on
+the Game page and the Dashboard's Crew tab) and can reset it
+(`invites.reset`), which mints a new code: the old one stops working, and
+nobody already seated is removed. Who mediates is chosen afterwards among the
+members (`games.setMediator`). Signed out, the page previews the Game and
+offers "Sign in to join", returning with `?join=1` to join on arrival; old
+`/join/:code` links 301 to `/invite/:code`
+(`apps/itun/src/worker/retiredRedirects.ts`). The live code is the Game's
+newest open standing invite row (`convex/model/invites.ts#currentInvite`);
+every other row opens nothing.
 
 ## Amendment — the crawler can sit on a shelf, and deleting a Game destroys nothing
 
@@ -340,7 +306,7 @@ The receiving shelf for the last two rows is the deleter's because they are the
 one person guaranteed to exist and to be looking at the consequence as it
 happens.
 
-What does go is the **table**: memberships, invites, pending join requests, the
+What does go is the **table**: memberships, invites, the
 Mediator's opposition tray, and the soft links. A link is a fact about the
 table's wiring rather than a possession — a pilot-to-crawler assignment means
 "aboard this crew's crawler", which stops being true when the crew disbands — so

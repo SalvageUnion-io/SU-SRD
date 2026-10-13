@@ -55,9 +55,6 @@ describe('LinkPreviewSurface', () => {
       'publicSheet:invitePreview': {
         gameName: 'Reclamation of the Wastes',
         mediatedBy: 'alxjrvs',
-        role: 'player',
-        requiresApproval: false,
-        expiresAt: Date.UTC(2026, 9, 15, 12),
       },
     })
     render(<LinkPreviewSurface kind="invite" id="K7QR2XA" />)

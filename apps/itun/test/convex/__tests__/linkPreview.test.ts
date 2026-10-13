@@ -189,10 +189,10 @@ describe('publicSheet.invitePreview', () => {
         joinedAt: Date.now(),
       })
     })
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
 
     const answer = await t.query(api.publicSheet.invitePreview, { code })
-    expect(answer).toMatchObject({ gameName: 'Tenacity', mediatedBy: 'alxjrvs', role: 'player' })
+    expect(answer).toEqual({ gameName: 'Tenacity', mediatedBy: 'alxjrvs' })
     expect(JSON.stringify(answer)).not.toContain(code)
   })
 

@@ -1,7 +1,7 @@
 import { Badge, Button, Card, ChapterBand, PageShell, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
@@ -11,8 +11,8 @@ import { useShowContainer } from '../container/useShowContainer'
 import { WayOutLink } from '../shared/WayOutLink'
 
 /**
- * `/invite/$token` — an invite link. A Game is joined from a link,
- * never a typed code.
+ * `/invite/$token` — a Game's invite URL. A Game is joined from its link,
+ * never a typed code, and joins you as a player.
  *
  * Signed-out is the **expected** state here, not an edge case: the whole point
  * of a link is that you can hand it to someone who has no account yet. So the
@@ -32,8 +32,8 @@ import { WayOutLink } from '../shared/WayOutLink'
  * OAuth round trip and still works when pasted into a different browser.
  *
  * Old `/join/:code` links from Discord history land here too (the Worker 301s
- * them, `src/worker/retiredRedirects.ts`): a live code joins like any link, and
- * a dead or unknown one gets the same explanation of invite links.
+ * them, `src/worker/retiredRedirects.ts`): the Game's current code joins like
+ * any link, and any other code gets the same explanation of invite links.
  */
 
 const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
@@ -53,17 +53,14 @@ const ERROR = { ...HINT, color: tokens.color.rollCascade } satisfies CSSProperti
 /** The page column: an invitation is a short read, so it does not span the hub's width. */
 const COLUMN = { maxWidth: '36rem', width: '100%' } satisfies CSSProperties
 
-/** What the invite is worth, phrased for the person holding it. */
-const DEAD_LINK_COPY = {
-  revoked: 'That invite link has been revoked.',
-  declined: 'That invite was declined.',
-  expired: 'That invite link has expired.',
-  exhausted: 'That invite link has already been used.',
-} as const
-
-/** How invites work now, for a dead link and for a typed code from before links. */
+/** How invites work, for a dead link and for a typed code from before links. */
 const HOW_INVITES_WORK =
-  'A Game is joined from an invite link its Mediator or a crewmate sends you. Open the link and sign in to join; there is no code to type.'
+  'A Game is joined from the invite link its Organiser sends you. Open the link and sign in to join; there is no code to type.'
+
+const DEAD_HEADLINE = 'That invite link does not work.'
+
+const DEAD_ASK =
+  'It may have been reset, or not copied whole. Ask whoever invited you for the current link.'
 
 const BACK = { href: '/', label: 'Back to Shelves' }
 
@@ -123,22 +120,17 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const join = useServerAction(() => redeem({ code: token }), {
     failure: 'That invite could not be used. Try again.',
   })
-  const [pending, setPending] = useState(false)
   // The arrival join runs once, whatever the live preview does after it.
   const arrived = useRef(false)
 
   const accept = async () => {
     const result = await join.run()
     if (!result.ok) return
-    if (result.value.kind === 'pending') {
-      setPending(true)
-      return
-    }
     // Joined (or already in it): open the Game's own page.
     showContainer({ kind: 'game', gameId: result.value.gameId })
   }
 
-  const live = preview != null && preview.status === 'active'
+  const live = preview != null
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: `accept` is rebuilt every render; the ref makes this a one-shot keyed on the preview landing
   useEffect(() => {
@@ -149,38 +141,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
 
   if (preview === undefined) return <Text>Checking that invite…</Text>
 
-  if (preview === null) {
-    return (
-      <DeadLink
-        headline="That invite link is not valid."
-        ask="Check that the whole link was copied, or ask whoever invited you for a fresh one."
-      />
-    )
-  }
-
-  if (preview.status !== 'active') {
-    return (
-      <DeadLink
-        headline={DEAD_LINK_COPY[preview.status]}
-        ask={`Ask ${preview.invitedBy} for a fresh link.`}
-      />
-    )
-  }
-
-  if (pending) {
-    return (
-      <Card>
-        <div style={PAD}>
-          <Text>Asked to join {preview.gameName}.</Text>
-          <Text variant="hint" style={HINT}>
-            The Organiser has to let you in before you can see the table. You can close this page;
-            the Game shows up in your Games once they do.
-          </Text>
-          <Back />
-        </div>
-      </Card>
-    )
-  }
+  if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} />
 
   return (
     <Card>
@@ -191,13 +152,10 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
           </Badge>
         </div>
         <Text>
-          {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>
-          {preview.role === 'mediator' ? ' as its Mediator' : ''}.
+          {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
         </Text>
         <Text variant="hint" style={HINT}>
-          {preview.requiresApproval
-            ? 'Joining asks the Organiser to let you in.'
-            : 'Everyone at a table can read each other’s sheets.'}
+          Everyone at a table can read each other’s sheets.
         </Text>
         <div style={ACTIONS}>
           <Button
@@ -206,7 +164,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
             disabled={join.pending}
             onClick={() => void accept()}
           >
-            {preview.requiresApproval ? 'Ask to join' : 'Join this Game'}
+            Join this Game
           </Button>
         </div>
         {join.error !== null && (
@@ -228,24 +186,7 @@ function SignedOutInvite({ token }: { token: string }) {
   const preview = useQuery(api.invites.preview, { code: token })
 
   if (preview === undefined) return <Text>Checking that invite…</Text>
-  if (preview === null) {
-    return (
-      <DeadLink
-        headline="That invite link is not valid."
-        ask="Check that the whole link was copied, or ask whoever invited you for a fresh one."
-        signIn
-      />
-    )
-  }
-  if (preview.status !== 'active') {
-    return (
-      <DeadLink
-        headline={DEAD_LINK_COPY[preview.status]}
-        ask={`Ask ${preview.invitedBy} for a fresh link.`}
-        signIn
-      />
-    )
-  }
+  if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} signIn />
 
   return (
     <Card>
@@ -256,8 +197,7 @@ function SignedOutInvite({ token }: { token: string }) {
           </Badge>
         </div>
         <Text>
-          {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>
-          {preview.role === 'mediator' ? ' as its Mediator' : ''}.
+          {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
         </Text>
         <Text variant="hint" style={HINT}>
           Sign in to join. Your pilots, mechs and crawlers live on your account, and signing in is

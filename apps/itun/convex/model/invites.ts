@@ -1,19 +1,13 @@
-import type { Infer } from 'convex/values'
-import { v } from 'convex/values'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
 /**
- * Minting and reading invites (ADR-030's invite amendment): `invites.create`
- * and `invites.link` both mint here, so what an invite *is* lives once.
+ * A Game's invite URL (ADR-030's invite amendment): one per Game, read and
+ * minted here so `invites.ts` and `publicSheet.invitePreview` agree on which
+ * code is the live one.
  */
 
 type AnyCtx = QueryCtx | MutationCtx
-
-const DAY_MS = 1000 * 60 * 60 * 24
-
-/** A bearer code lasts a fortnight unless the Organizer says otherwise. */
-export const DEFAULT_EXPIRY_MS = DAY_MS * 14
 
 /**
  * The invite a code names, or null. Codes are matched trimmed and
@@ -28,52 +22,58 @@ export async function inviteByCode(ctx: AnyCtx, raw: string): Promise<Doc<'invit
     .unique()
 }
 
-/** What an invite is currently worth, derived rather than stored. */
-export const inviteStatus = v.union(
-  v.literal('active'),
-  v.literal('revoked'),
-  v.literal('declined'),
-  v.literal('expired'),
-  v.literal('exhausted')
-)
-export type InviteStatus = Infer<typeof inviteStatus>
-
-/**
- * Derive status from the row and the clock.
- *
- * Deliberately not a stored column: an `expired` flag would need a cron to stay
- * true, and a stale one would let a dead code through. Revoked outranks
- * declined — if the Organizer closed it, that is the more useful thing to say.
- */
-export function statusOf(invite: Doc<'invites'>, now: number): InviteStatus {
-  if (invite.revokedAt !== undefined) return 'revoked'
-  if (invite.declinedAt !== undefined) return 'declined'
-  if (invite.expiresAt < now) return 'expired'
-  if (invite.usesRemaining !== undefined && invite.usesRemaining <= 0) return 'exhausted'
-  return 'active'
+/** Whether a row can be the Game's invite URL: an open standing link, never reset. */
+function isCandidate(invite: Doc<'invites'>): boolean {
+  return (
+    invite.standing === true &&
+    !invite.requiresApproval &&
+    invite.revokedAt === undefined &&
+    invite.target === undefined
+  )
 }
 
-export type MintArgs = {
-  usesRemaining?: number
-  expiresInMs?: number
-  label?: string
-  role?: 'player' | 'mediator'
-  requiresApproval?: boolean
-  /** The Game's standing link for its creator's door (`invites.link`). */
-  standing?: boolean
+/**
+ * The Game's invite URL, as its row, or null when none has been minted. It is
+ * the newest open standing link that has not been reset; every other code the
+ * Game holds opens nothing.
+ */
+export async function currentInvite(
+  ctx: AnyCtx,
+  gameId: Id<'games'>
+): Promise<Doc<'invites'> | null> {
+  const invites = await ctx.db
+    .query('invites')
+    .withIndex('by_game', (q) => q.eq('gameId', gameId))
+    .collect()
+  let current: Doc<'invites'> | null = null
+  for (const invite of invites) {
+    if (!isCandidate(invite)) continue
+    if (current === null || invite._creationTime > current._creationTime) current = invite
+  }
+  return current
+}
+
+/** Whether this row is its Game's invite URL right now. */
+export async function isCurrent(ctx: AnyCtx, invite: Doc<'invites'>): Promise<boolean> {
+  return (await currentInvite(ctx, invite.gameId))?._id === invite._id
 }
 
 /**
  * Crockford base32: 0-9 and A-Z minus I, L, O and U.
  *
- * The token rides in an invite link (`/invite/<token>`) and is never typed, so
- * it is long rather than short: sixteen characters, 80 bits, where the typed
- * code it replaced had eight. Codes minted before the switch keep their
- * eight characters and still resolve, through the same `by_code` index.
+ * The token rides in the invite URL (`/invite/<token>`) and is never typed, so
+ * it is long rather than short: sixteen characters, 80 bits. Eight-character
+ * codes resolve through the same `by_code` index.
  */
 const CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
 const CODE_LENGTH = 16
 const MAX_CODE_ATTEMPTS = 5
+
+/**
+ * The URL does not expire: it stops working only when the Organizer resets it.
+ * `expiresAt` is a required column, so it is written as never.
+ */
+const NEVER = Number.MAX_SAFE_INTEGER
 
 /**
  * Sixteen random Crockford-base32 characters (80 bits), from
@@ -87,83 +87,36 @@ function randomCode(): string {
     .join('')
 }
 
-/**
- * A code no invite already has. Retries on collision, which at ~40 bits is
- * vanishingly rare, and throws rather than loop forever.
- */
-async function uniqueCode(exists: (code: string) => Promise<boolean>): Promise<string> {
+/** A code no invite already has. Retries on collision, and throws rather than loop forever. */
+async function uniqueCode(ctx: MutationCtx): Promise<string> {
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
     const code = randomCode()
-    if (!(await exists(code))) return code
+    if ((await inviteByCode(ctx, code)) === null) return code
   }
   throw new Error('Failed to generate a unique invite code after max retries')
 }
 
 /**
- * Insert an invite on behalf of a member whose membership the caller has
- * already checked — an Organizer, or (for `invites.link`'s approval link) any
- * member. Returns the row.
- *
- * The caller proves authority and decides what that member may mint; this
- * decides only what the invite looks like.
+ * Mint a new invite URL for the Organizer's Game. Returns the row. The caller
+ * has already checked that `organizer` is the Game's Organizer.
  */
 export async function mintInvite(
   ctx: MutationCtx,
-  organizer: Doc<'memberships'>,
-  args: MintArgs
+  organizer: Doc<'memberships'>
 ): Promise<Doc<'invites'>> {
-  const code = await uniqueCode(async (candidate) => {
-    const existing = await ctx.db
-      .query('invites')
-      .withIndex('by_code', (q) => q.eq('code', candidate))
-      .unique()
-    return existing !== null
-  })
-
-  const role = args.role ?? 'player'
-
-  // A Mediator code is single use unless the Organizer says otherwise: the
-  // schema permits several Mediators but the UI is built for one, so an
-  // unlimited one quietly seats a second.
-  const usesRemaining = args.usesRemaining ?? (role === 'mediator' ? 1 : undefined)
-
+  const code = await uniqueCode(ctx)
   const now = Date.now()
   const inviteId = await ctx.db.insert('invites', {
     gameId: organizer.gameId,
     code,
     createdBy: organizer.userId,
     createdAt: now,
-    expiresAt: now + (args.expiresInMs ?? DEFAULT_EXPIRY_MS),
-    usesRemaining,
-    label: args.label,
-    role,
-    requiresApproval: args.requiresApproval ?? false,
-    standing: args.standing,
+    expiresAt: NEVER,
+    role: 'player',
+    requiresApproval: false,
+    standing: true,
   })
-
   const invite = await ctx.db.get(inviteId)
   if (invite === null) throw new Error('An invite vanished between insert and read')
   return invite
-}
-
-/**
- * Whether this user may spend this invite, as far as its address is concerned.
- *
- * No door mints an addressed invite any more, but rows `/su invite` minted
- * still carry a `target` until they expire (a week after minting): such a row
- * is spendable only by the account signed in with that Discord snowflake, read
- * from `authAccounts` as `model/bot.ts#userByDiscordId` reads it. Anyone may
- * spend a bearer code.
- */
-export async function mayRedeem(
-  ctx: AnyCtx,
-  invite: Doc<'invites'>,
-  userId: Id<'users'>
-): Promise<boolean> {
-  if (invite.target === undefined) return true
-  const account = await ctx.db
-    .query('authAccounts')
-    .withIndex('userIdAndProvider', (q) => q.eq('userId', userId).eq('provider', 'discord'))
-    .first()
-  return account?.providerAccountId === invite.target.discordId
 }

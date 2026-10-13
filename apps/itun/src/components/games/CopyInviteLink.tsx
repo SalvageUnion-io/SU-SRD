@@ -1,10 +1,10 @@
 /**
- * "Copy invite link" — the one way a Game is shared. It sits on the
- * Game page and on the Dashboard's Crew tab (board D2).
+ * The Game's invite URL, the Organizer's: "Copy invite link" (the Game page
+ * and the Dashboard's Crew tab, board D2) and "Reset link" (the Game page).
  *
- * The link is the Game's standing link for whoever presses it
- * (`invites.link`): the Organizer's opens the door, anyone else's asks the
- * Organizer to let the newcomer in. Pressing it again copies the same link.
+ * Copying hands out the Game's one URL (`invites.link`); pressing it again
+ * copies the same one. Resetting mints a new URL (`invites.reset`), and the
+ * old one stops working.
  *
  * Connected only. The link comes from the server of record, so a signed-out or
  * offline viewer has nothing to copy and sees no button.
@@ -75,4 +75,39 @@ export function CopyInviteLink(props: CopyInviteLinkProps) {
   const { mode } = useConnection()
   if (mode !== 'connected') return null
   return <ConnectedCopyInviteLink {...props} />
+}
+
+function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
+  const reset = useMutation(api.invites.reset)
+  const resetLink = useServerAction(() => reset({ gameId }), {
+    failure: 'The invite link could not be reset. Try again.',
+    toastId: 'invite-link-reset',
+  })
+
+  async function run(): Promise<void> {
+    const result = await resetLink.run()
+    if (result.ok) {
+      toast.success('Invite link reset. The old link no longer works.', {
+        id: 'invite-link-reset',
+      })
+    }
+  }
+
+  return (
+    <Button
+      variant="default"
+      size="compact"
+      disabled={resetLink.pending}
+      onClick={() => void run()}
+    >
+      Reset link
+    </Button>
+  )
+}
+
+/** "Reset link": a new invite URL, and the old one stops working. Connected only. */
+export function ResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
+  const { mode } = useConnection()
+  if (mode !== 'connected') return null
+  return <ConnectedResetInviteLink gameId={gameId} />
 }

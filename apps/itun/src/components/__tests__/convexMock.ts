@@ -5,7 +5,7 @@
  * by position. A queue drained one entry per call, in render order, makes
  * every fixture an implicit assertion about hook ordering: adding a query to a
  * component, or reordering two adjacent `useQuery` lines (GameRoster.tsx and
- * InvitePanel.tsx both have back-to-back calls), silently shifts every later
+ * GameHub.tsx both have back-to-back calls), silently shifts every later
  * answer onto the wrong hook, and the test passes while asserting nothing it
  * claims to. The generated `api` is a Proxy, but `getFunctionName` reads it
  * without inspecting it.

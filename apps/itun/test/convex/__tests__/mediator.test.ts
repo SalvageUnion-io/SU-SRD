@@ -19,7 +19,7 @@ async function seedMediatedGame(t: Ctx) {
   const organizer = await makeUser(t, 'Mediator')
   const player = await makeUser(t, 'Player')
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await organizer.as.mutation(api.invites.create, { gameId })
+  const code = await organizer.as.mutation(api.invites.link, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
   await organizer.as.mutation(api.games.setMediator, {
     gameId,
@@ -64,7 +64,7 @@ describe('the NPC tray is Mediator-only', () => {
     const organizer = await makeUser(t, 'Organizer')
     const gm = await makeUser(t, 'GM')
     const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const code = await organizer.as.mutation(api.invites.link, { gameId })
     await gm.as.mutation(api.invites.redeem, { code })
     await organizer.as.mutation(api.games.setMediator, {
       gameId,

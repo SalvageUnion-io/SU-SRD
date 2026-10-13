@@ -14,10 +14,9 @@
  *  2. **The roster** (`GameRoster`): the three columns, yours first.
  *  3. Two columns of sections. **Every member:** Crew & seats, the Downtime
  *     track, and the proposals awaiting their answer. **The Mediator:**
- *     Downtime's controls and Proposals you sent. **The Organizer:** Invite
- *     links, Asking to join and The Game's Hand over, which the server
- *     refuses anyone else (`requireOrganizer`). Anyone else brings a friend
- *     with "Copy invite link", which asks the Organizer to let them in.
+ *     Downtime's controls and Proposals you sent. **The Organizer:** the
+ *     Invite link (copy and reset) and The Game's Hand over, which the
+ *     server refuses anyone else (`requireOrganizer`).
  *
  * Starting a Game is "+ New Game" at the top of the hub (`NewGameControl`), and
  * joining one is an invite link (`InviteScreen`), so nothing here is about
@@ -39,7 +38,7 @@ import { useShowContainer } from '../container/useShowContainer'
 import { readCrawler } from '../mediator/crawlerReading.model'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { ConvexPending } from '../shared/ConvexPending'
-import { CopyInviteLink } from './CopyInviteLink'
+import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { CrewSeats } from './CrewSeats'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { DowntimeTrack } from './DowntimeTrack'
@@ -47,8 +46,6 @@ import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { HubSection } from './HubSection'
 import { HUB_COLUMN, HUB_COLUMNS, HUB_COPY } from './hubStyles.model'
-import { InvitePanel } from './InvitePanel'
-import { JoinRequests } from './JoinRequests'
 import { LaunchDashboard } from './LaunchDashboard'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
@@ -72,6 +69,12 @@ const NOT_IN = {
   padding: tokens.space[16],
 } satisfies CSSProperties
 
+const INVITE_ACTIONS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
 const NOT_IN_CARD = { marginTop: tokens.space[24] } satisfies CSSProperties
 
 /** The band sits a step below the hub's header row. */
@@ -89,8 +92,7 @@ function NotInGame() {
       <Card>
         <div style={NOT_IN}>
           <Text>
-            You are not in this Game. Ask its Mediator or a crewmate for an invite link, then open
-            it to join.
+            You are not in this Game. Ask its Organiser for the invite link, then open it to join.
           </Text>
           <div>
             <Button variant="default" size="compact" onClick={() => showContainer(SHELF)}>
@@ -142,22 +144,17 @@ function GameSections({ game }: { game: Game }) {
           {game.mediator && <ProposalsSent gameId={gameId} />}
         </div>
         <div style={HUB_COLUMN}>
-          {/* Invites are administrative, so only the Organizer sees them
-              (ADR-030 §3); the server refuses `invites.list` to anyone else. */}
-          {game.organizer ? (
-            <>
-              <InvitePanel gameId={gameId} />
-              <JoinRequests gameId={gameId} />
-            </>
-          ) : (
-            // Every member can bring someone to the table: a
-            // player's link asks the Organizer to let them in (`invites.link`).
-            <HubSection id="invite-crewmate-heading" title="Invite a crewmate">
+          {/* The invite URL is administrative, so only the Organizer sees it
+              (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
+          {game.organizer && (
+            <HubSection id="invite-link-heading" title="Invite link">
               <p style={HUB_COPY}>
-                Anyone who opens this link asks to join, and the Organiser lets them in.
+                Anyone signed in who opens this link joins as a player. Resetting it makes a new
+                link; the old one stops working.
               </p>
-              <div>
+              <div style={INVITE_ACTIONS}>
                 <CopyInviteLink gameId={gameId} />
+                <ResetInviteLink gameId={gameId} />
               </div>
             </HubSection>
           )}

@@ -83,7 +83,7 @@ describe('moves — pilots and mechs', () => {
     const t = testConvex()
     const { organizer: o, player: p, gameId } = await seedTable(t)
     const second = await o.as.mutation(api.games.create, { name: 'Second table' })
-    const code = await o.as.mutation(api.invites.create, { gameId: second })
+    const code = await o.as.mutation(api.invites.link, { gameId: second })
     await p.as.mutation(api.invites.redeem, { code })
     await addPilot(p, 'p1', null)
 
