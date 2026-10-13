@@ -12,9 +12,21 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import type { SURefEntity, SURefObjectAnyPattern, SURefObjectPattern } from 'salvageunion-reference'
+import type { ReactNode } from 'react'
+import type {
+  EntityRef,
+  SURefEntity,
+  SURefObjectAnyPattern,
+  SURefObjectPattern,
+} from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
-import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
+import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
+import {
+  EntityDetailLinkProvider,
+  EntityHrefProvider,
+  PatternHrefProvider,
+} from '../../entityHrefContext'
+import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The Mule — a chassis carrying patterns, a chassis ability and chassis prose. */
@@ -101,10 +113,10 @@ describe('full pattern view reading order', () => {
     // card used to de-duplicate the loadout by entity id, so the whole pattern
     // rendered a single machine gun and read as a far lighter build than it is.
     //
-    // The loadout is now a row of SHORTFORM badges rather than full cards, and
-    // multiplicity still REPEATS: six copies are six badges, not one badge
-    // reading "×6". A count collapses the shape of the build out of the one row
-    // whose job is showing it.
+    // The loadout is now the book's plain list of names rather than full
+    // cards, and multiplicity still REPEATS: six copies are six lines, not one
+    // reading "×6". A count collapses the shape of the build out of the one
+    // list whose job is showing it.
     const chassis = SalvageUnionReference.Chassis.getByName('Atlas')
     if (!chassis) throw new Error('Atlas fixture missing')
     const pattern = chassis.patterns?.find((p) => p.name === 'Thunder Storm')
@@ -114,7 +126,7 @@ describe('full pattern view reading order', () => {
 
     render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
 
-    // One name node per rendered badge.
+    // One name node per rendered line.
     expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
     // No collapsed count anywhere — the copies are the count.
     expect(screen.queryByText(/×6/)).toBeNull()
@@ -125,13 +137,14 @@ describe('full pattern view reading order', () => {
 })
 
 /**
- * THE LOADOUT IS A ROW OF LINKED BADGES. A pattern's systems and modules are
+ * THE LOADOUT IS THE BOOK'S PLAIN LIST. A pattern's systems and modules are
  * ordinary catalogue entities whose full text lives on their own pages, so the
- * pattern view cites them at the card's shortform rung and links out, rather
- * than reprinting every rule inline — Thunder Storm used to expand to six
- * full-length, identical .50 Cal Machine Gun cards.
+ * pattern view names each one as a Mention with its framed TL, as Core Book
+ * p.101 lists them, and links out, rather than reprinting every rule inline —
+ * Thunder Storm used to expand to six full-length, identical .50 Cal Machine
+ * Gun cards — or painting a TL-toned pill per part.
  */
-describe('pattern loadout badges', () => {
+describe('pattern loadout mentions', () => {
   /** Stands in for srd's entity route builder. */
   const testEntityHref = (entity: SURefEntity) =>
     `/${'schemaName' in entity ? String(entity.schemaName) : ''}/${
@@ -146,13 +159,16 @@ describe('pattern loadout badges', () => {
     return { chassis, pattern }
   }
 
+  /** The SRD's setup: a href builder, and the surface links out through it. */
+  const srdLinks = (children: ReactNode) => (
+    <EntityHrefProvider value={testEntityHref}>
+      <EntityDetailLinkProvider value={true}>{children}</EntityDetailLinkProvider>
+    </EntityHrefProvider>
+  )
+
   test('every loadout entry links to its own page', () => {
     const { chassis, pattern } = thunderStorm()
-    render(
-      <EntityHrefProvider value={testEntityHref}>
-        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
-      </EntityHrefProvider>
-    )
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
 
     // All six machine-gun copies are links, each to the system's one page.
     const guns = screen.getAllByRole('link', { name: /\.50 Cal Machine Gun/ })
@@ -176,25 +192,53 @@ describe('pattern loadout badges', () => {
     expect(container.textContent).not.toContain('This simple ballistic weapon')
   })
 
-  test('without a href builder the badges are not links', () => {
+  test('without a route the names are not links', () => {
     const { chassis, pattern } = thunderStorm()
     render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
     expect(screen.queryAllByRole('link', { name: /\.50 Cal Machine Gun/ })).toHaveLength(0)
-    // The badges themselves still render — they just aren't navigable.
+    // The names themselves still render — they just aren't navigable.
     expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
+  })
+
+  test('on a surface with a Page opener, each name opens its Page', () => {
+    // ITUN: no route, a detail dialog. The Mention follows the surface.
+    const { chassis, pattern } = thunderStorm()
+    const opened: EntityRef[] = []
+    render(
+      <EntitySurfaceProvider value={{ openPage: (ref) => opened.push(ref) }}>
+        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
+      </EntitySurfaceProvider>
+    )
+    const guns = screen.getAllByRole('button', { name: '.50 Cal Machine Gun' })
+    expect(guns).toHaveLength(6)
+    guns[0]?.click()
+    expect(opened.map((ref) => ref.name)).toEqual(['.50 Cal Machine Gun'])
+  })
+
+  test('each entry is a name and a framed TL, never a toned Token', () => {
+    const { chassis, pattern } = thunderStorm()
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
+    const systems = screen.getByRole('list', { name: 'Systems installed' })
+    // No Token, so no tone pill: the part's tone stays on its own Row, Card and Page.
+    expect(systems.querySelector('.su-entity-token')).toBeNull()
+    const entries = Array.from(systems.querySelectorAll('li'))
+    expect(entries.length).toBeGreaterThan(0)
+    for (const entry of entries) {
+      const line = entry.querySelector('.su-loadout-entry')
+      expect(line?.querySelector('a.su-inline-ref')).not.toBeNull()
+      // The TL is a Stat cell beside the name, outside the link.
+      expect(line?.querySelector(':scope > .su-stat-cell')?.textContent).toMatch(/^TL\s*\d+$/)
+      expect(line?.querySelector('a')?.textContent).not.toContain('TL')
+    }
   })
 
   test('each loadout group is an announced list', () => {
     // The loadout is a countable set of installed parts, so it is a real `ul`:
     // a screen reader says "list, 6 items" instead of reading a run of
     // anonymous links. The links carry their own name (the entity's), NOT the
-    // badge's scraped text — that would read ".50 Cal Machine Gun TL 1".
+    // line's scraped text — that would read ".50 Cal Machine Gun TL 1".
     const { chassis, pattern } = thunderStorm()
-    render(
-      <EntityHrefProvider value={testEntityHref}>
-        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
-      </EntityHrefProvider>
-    )
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
     expect(screen.getByRole('list', { name: 'Systems installed' })).toBeTruthy()
     expect(screen.getByRole('list', { name: 'Modules installed' })).toBeTruthy()
     // Exact accessible name, tail excluded.
@@ -308,12 +352,43 @@ describe('legal starting pattern stamp', () => {
     expect(tagged.length).toBeGreaterThan(0)
     expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
   })
+
+  test("a chassis PAGE's pattern rows stamp exactly its tagged patterns", () => {
+    const chassis = mule()
+    render(<ReferenceEntityCard data={chassis} presentation="page" />)
+    const tagged = (chassis.patterns ?? []).filter((p) => p.legalStarting === true)
+    expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
+  })
+
+  for (const presentation of ['card', 'page'] as const) {
+    test(`a tagged pattern closes its prose on the book's sentence (${presentation})`, () => {
+      render(
+        <ReferenceEntityCard
+          data={mule()}
+          pattern={patternOf('Hauler')}
+          presentation={presentation}
+        />
+      )
+      expect(screen.getAllByText(LEGAL_STARTING_PATTERN_NOTE).length).toBe(1)
+    })
+
+    test(`an untagged pattern carries no such sentence (${presentation})`, () => {
+      render(
+        <ReferenceEntityCard
+          data={mule()}
+          pattern={patternOf('Crusher')}
+          presentation={presentation}
+        />
+      )
+      expect(screen.queryByText(LEGAL_STARTING_PATTERN_NOTE)).toBeNull()
+    })
+  }
 })
 
 /**
  * A HOST'S PATTERN ROWS SHOW WHAT EACH PATTERN CHANGES. The host's stats and
  * abilities are shared by every pattern, so a row carries only the difference:
- * a mech pattern's loadout as shortform tokens, a Bio-Titan pattern's added
+ * a mech pattern's loadout by name and TL, a Bio-Titan pattern's added
  * actions as embedded cards. Both sit beside the row's link, never inside it —
  * they are links and controls of their own.
  */
@@ -327,9 +402,9 @@ describe('pattern rows show what each pattern changes', () => {
     `/${'name' in host ? nameToSlug(String(host.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
 
   for (const presentation of ['card', 'page'] as const) {
-    test(`a mech pattern row lists its loadout as tokens (${presentation})`, () => {
+    test(`a mech pattern row lists its loadout by name (${presentation})`, () => {
       render(<ReferenceEntityCard data={mule()} presentation={presentation} />)
-      // A card wraps one list of Tokens; a page's card splits Systems from
+      // A card wraps one list of names; a page's card splits Systems from
       // Modules, each list named for its pattern.
       const [systems, modules] =
         presentation === 'page'

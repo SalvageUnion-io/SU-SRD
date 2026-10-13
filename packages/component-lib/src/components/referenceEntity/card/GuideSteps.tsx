@@ -8,7 +8,7 @@ import { Slab } from '../../atoms/Slab'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
-import { grainStyle } from './cardGrain'
+import { grainClass } from './cardGrain'
 import { cardKey } from './cardHelpers'
 import { chunkGuideStepProse } from './guideStepProse'
 import type { NestedCard } from './referenceEntityCardTypes'
@@ -57,6 +57,7 @@ export function GuideSteps({
   isDown,
   compact,
   collapsibleTables,
+  tableTone,
   chassisName,
   NestedCard,
   page = false,
@@ -70,6 +71,8 @@ export function GuideSteps({
   compact: boolean
   /** A catalog tile or nested card gets its tables collapsible. */
   collapsibleTables: boolean
+  /** The guide's own tone, whose band paints its step tables' rows. */
+  tableTone?: string
   chassisName: string | undefined
   NestedCard: NestedCard
   /** The guide is its own page: H2 section heads, anchors and the rail. */
@@ -144,6 +147,7 @@ export function GuideSteps({
                 collapsible={collapsibleTables}
                 disabled={isDown}
                 framed
+                tone={tableTone}
               />
             </div>
           )}
@@ -281,7 +285,7 @@ function StepHead({
 }) {
   const Heading = as ?? 'div'
   return (
-    <Heading id={id} className="su-guide__head" style={grainStyle('paper')}>
+    <Heading id={id} className={`su-guide__head ${grainClass('paper')}`}>
       <span className="su-guide__num">{number}</span>
       <span className="su-guide__name">{name}</span>
       {optional && (

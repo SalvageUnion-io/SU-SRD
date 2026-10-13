@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useId } from 'react'
 import { speckle } from '../../design/tokens'
 
@@ -25,6 +24,12 @@ import { speckle } from '../../design/tokens'
  * (`useId`), because two bands on one page would otherwise declare the same
  * `su-blot` twice — invalid HTML, and the second band would silently render
  * through the first one's filter.
+ *
+ * ## The layer is a class
+ *
+ * `.su-grain-layer` (`styles/index.css`) places each layer: it repeats on every
+ * band of every page, so it is a stylesheet rule, not a style object
+ * (ADR-046, repeated elements).
  */
 
 export type SpeckleGrain = keyof typeof speckle.grains
@@ -33,15 +38,6 @@ type SpeckleProps = {
   /** `ink` — grain on a colour band. `paper` — flecks on an ink ground. */
   grain: SpeckleGrain
 }
-
-const LAYER = {
-  height: '100%',
-  inset: 0,
-  pointerEvents: 'none',
-  position: 'absolute',
-  width: '100%',
-  zIndex: -1,
-} satisfies CSSProperties
 
 export function Speckle({ grain }: SpeckleProps) {
   // `useId` is opaque; keep only the characters an SVG `url(#…)` reference
@@ -53,7 +49,7 @@ export function Speckle({ grain }: SpeckleProps) {
         const filter = speckle.filters[layer.filter]
         const id = `${filter.id}-${uid}`
         return (
-          <svg key={filter.id} aria-hidden="true" focusable="false" style={LAYER}>
+          <svg key={filter.id} aria-hidden="true" focusable="false" className="su-grain-layer">
             <filter id={id} x="0" y="0" width="100%" height="100%">
               <feTurbulence
                 type="fractalNoise"

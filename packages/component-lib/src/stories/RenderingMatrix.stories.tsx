@@ -4,7 +4,7 @@ import { Badge } from '../components/atoms/Badge'
 import { SlotGrid } from '../components/atoms/SlotGrid'
 import { Stat } from '../components/atoms/Stat'
 import { VitalGauge } from '../components/atoms/VitalGauge'
-import { RollTable } from '../components/compositions/RollTable'
+import { CardRollTable } from '../components/referenceEntity/card/CardRollTable'
 import {
   borderWidth,
   color,
@@ -119,16 +119,17 @@ const rows: MatrixRow[] = [
   {
     role: 'Roll table',
     when: 'content',
-    use: 'RollTable',
-    rule: 'Banded d20 map; uniform peach/paper.',
+    use: 'RollTableInstrument',
+    rule: 'Banded d20 map in the surface tone; one instrument in every card, guide and page.',
     example: rollTable ? (
       <div style={{ width: '320px' }}>
-        <RollTable
+        <CardRollTable
           table={rollTable}
-          tableName={rollTableEntity?.name}
-          showCommand
-          size="compact"
+          name={rollTableEntity?.name ?? 'Roll table'}
+          size="small"
+          collapsible={false}
           disabled
+          framed
         />
       </div>
     ) : null,

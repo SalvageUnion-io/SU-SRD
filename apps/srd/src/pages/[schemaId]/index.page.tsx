@@ -35,6 +35,7 @@ import { defaultGroups, orderTechLevels, WIDE_LISTINGS } from '../../lib/listing
 import { CATALOG_LISTINGS } from '../../lib/listingView'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../lib/staticPaths'
+import { tileColumnStyle } from '../../lib/tileColumns'
 import { Island } from '../../runtime/Island'
 
 type Params = { schemaId: string }
@@ -81,7 +82,11 @@ function SchemaItemLinks({
         {groups.map((group) => (
           <section key={group.key} className="srd-listing__group" aria-label={group.label}>
             {group.label && <Slab variant="solid" label={group.label} />}
-            <ul className="srd-listing__cards">
+            <ul
+              className="srd-listing__cards"
+              data-balanced=""
+              style={tileColumnStyle(group.items.length)}
+            >
               {group.items.map((item) => (
                 <li key={item.id}>
                   <a

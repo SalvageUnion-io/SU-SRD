@@ -48,6 +48,7 @@ describe('currentPathFor', () => {
       '/schema/chassis/item/',
       '/chassis/mule/',
       '/about/',
+      '/screen/',
     ]) {
       expect(currentPathFor(path)).toBeUndefined()
     }

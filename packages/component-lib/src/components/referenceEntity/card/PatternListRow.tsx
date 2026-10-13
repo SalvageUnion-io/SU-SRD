@@ -12,7 +12,9 @@ import { cn } from '../../../utils/cn'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
 import { usePatternHref } from '../entityHrefContext'
+import { CardLabels } from './CardLabels'
 import { firstParagraphText } from './firstParagraphText'
+import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -33,7 +35,7 @@ import { resolvePatternGroups } from './resolveNestedEntities'
  * With no `PatternHrefProvider` above it (any app whose patterns have no pages)
  * the row renders exactly as it always did — inert, not a link to nowhere.
  *
- * The uniques sit OUTSIDE the anchor: their tokens and cards are links and
+ * The uniques sit OUTSIDE the anchor: their names and cards are links and
  * controls of their own, which cannot nest inside another link.
  */
 export function PatternListRow({
@@ -128,10 +130,10 @@ export function PatternList({
  * language, Row): the host's tone in the head with the pattern's quoted name
  * and the chevron, then a paper body with the pattern's opening paragraph
  * clamped as a lead, and under it what the pattern changes: its loadout,
- * Systems beside Modules, one full-width Token a line (`PatternLoadout fill`),
- * or the actions a Bio-Titan pattern adds (`PatternUniques`). The HEAD is the
- * link to the pattern's page; the body cannot be, because its Tokens are links
- * of their own.
+ * Systems beside Modules, one name a line with its TL at the column's edge
+ * (`PatternLoadout fill`), or the actions a Bio-Titan pattern adds
+ * (`PatternUniques`). The HEAD is the link to the pattern's page; the body
+ * cannot be, because its names are links of their own.
  */
 function PatternLinkRow({
   chassis,
@@ -154,8 +156,23 @@ function PatternLinkRow({
   const description = firstParagraphText(pattern.content)
   const loadout = useMemo(() => resolvePatternGroups(pattern), [pattern])
   const paint = paintFor(model.tone, { down: host.hostDown, texture: surface.texture })
+  // The book's starting builds wear their stamp on the row, as on the card.
+  const labels = isLegalStartingPatternOf(pattern) ? (
+    <CardLabels
+      seal={undefined}
+      typeStamp={undefined}
+      axisMarkers={[]}
+      legalStartingPattern
+      onInk={paint.ink}
+    />
+  ) : undefined
   const head = (
-    <Head title={`“${name}”`} paint={paint} affordance={href ? <LinkChevron /> : undefined} />
+    <Head
+      title={`“${name}”`}
+      paint={paint}
+      labels={labels}
+      affordance={href ? <LinkChevron /> : undefined}
+    />
   )
   return (
     <li className="su-pattern-rows__item">

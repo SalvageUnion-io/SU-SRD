@@ -21,6 +21,9 @@
 @import './styles/controls.css';
 /* The live and public sheet. */
 @import './styles/sheet.css';
+/* component-lib classes handed back their own type over this file's heading
+   rule (refit2 V3). */
+@import './styles/libHandback.css';
 
 /* === Base layout === */
 html,

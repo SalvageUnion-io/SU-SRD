@@ -1,0 +1,183 @@
+/*
+ * The package stylesheet, part 21 of 21: repeated card chrome (last: its
+ * pennant restates a button and a caps label). `../index.css` imports the
+ * parts in cascade order.
+ */
+
+/* ══ Repeated card chrome ═══════════════════════════════════════════════════
+ *
+ * The parts every card, band and action on a page repeats, as classes rather
+ * than style objects (ADR-046, repeated elements): inline, each copy of them
+ * was written into every element of every static page. What varies by card
+ * (a band's fill and padding, a title's size and colour, a frame's weight)
+ * stays inline. Last in the file: the pennant restates a button's and a caps
+ * label's type, and at one class each only source order lets it.
+ */
+
+/* The light speckle (ruleset §3.5, board 05c). `atoms/Speckle.tsx`: one SVG
+ * layer per grain, laid behind a band's content; the band is
+ * `position: relative` with `isolation: isolate`, so `z-index: -1` paints the
+ * layer above the band's own fill and below every in-flow child. */
+.su-grain-layer {
+  height: 100%;
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: -1;
+}
+
+/* The header grain (`card/cardGrain.ts`): ink speckle on a tone, paper flecks
+ * on ink, as a background over the band's fill. The images are `grainSvg`'s
+ * output (`__tests__/stylesheetParity.test.ts` holds them to the tokens), and
+ * the bundler inlines them here once. */
+.su-grain--ink {
+  background-image: url('../grain/ink.svg');
+}
+
+.su-grain--paper {
+  background-image: url('../grain/paper.svg');
+}
+
+/* The card's frame box (`card/ReferenceEntityCard.tsx`): the frame lives on
+ * this INNER clipping element; its weight, dash and selection ring are the
+ * card's own. */
+.su-ec-frame {
+  background-color: var(--color-paper);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* The header band (`card/EntityCardHeader.tsx`). `--full`: the title takes
+ * the row and the cells follow it, wrapping beneath when the band is too
+ * narrow. `--head`, the compact card: one row that never wraps. `--ruled`: the
+ * ink rule that closes the band. */
+.su-ec-band {
+  align-items: center;
+  display: flex;
+  min-width: 0;
+  width: 100%;
+}
+
+.su-ec-band--head {
+  column-gap: var(--space-8);
+  flex-wrap: nowrap;
+}
+
+.su-ec-band--full {
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-14);
+}
+
+.su-ec-band--ruled {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+}
+
+/* The title's caps face (also the tier numeral's). No line height of its own:
+ * it inherits the band's. */
+.su-ec-band__title {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+/* The compact title: the row's room, two lines, then "…". `min-width: 0`
+ * keeps a long name out of the row's min-content, so it cannot push a
+ * width-less ancestor past the viewport. */
+.su-ec-band__title--clamp {
+  display: -webkit-box;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Beside its labels the title wraps at spaces first (a high shrink) but keeps
+ * its longest word whole; only then do the labels give way. */
+.su-ec-band__title--wrap {
+  flex: 0 100 auto;
+  min-width: min-content;
+  overflow-wrap: break-word;
+}
+
+.su-ec-band__numeral {
+  flex: none;
+  opacity: 0.75;
+}
+
+/* The name group: the title, its labels right after it. It shares the row
+ * with the cells at medium and small; a large header gives it the row. */
+.su-ec-band__name {
+  align-items: center;
+  column-gap: var(--space-8);
+  display: flex;
+  flex: 1 1 0;
+  min-width: min-content;
+}
+
+.su-ec-band__name--large {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-ec-band__labels {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* The value cells, the stamps and the pennant, at the band's right. */
+.su-ec-band__cluster {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+/* The cost pennant (`card/CardPennant.tsx`), ruleset §5, board E1: a box with
+ * a pointed tail (`PENNANT_SHAPE`, held equal by
+ * `__tests__/stylesheetParity.test.ts`). `--read` is the paper pennant on the
+ * ink; `--button` lays the cut over the rust `buttonVariants` plate, whose
+ * radius and border it drops. */
+.su-pennant {
+  clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%);
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.2;
+  padding: var(--space-2) var(--space-14) var(--space-2) var(--space-6);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.su-pennant--large {
+  font-size: var(--text-caption);
+}
+
+.su-pennant--medium {
+  font-size: var(--text-xs);
+}
+
+.su-pennant--small {
+  font-size: var(--text-badge);
+}
+
+.su-pennant--read {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  flex: none;
+}
+
+.su-pennant--button {
+  border-radius: 0;
+  border-width: 0;
+}

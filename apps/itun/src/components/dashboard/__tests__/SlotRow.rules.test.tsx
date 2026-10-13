@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
@@ -242,6 +242,8 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
     await clickAndSettle(screen.getByRole('button', { name: /push/i }))
 
     expect(screen.queryByText(/Workshop Manual · p\.234/)).toBeNull()
-    expect(calls.length).toBeGreaterThan(0)
+    // The Heat Check's dice load on first use (`rollForTable`), so in a file
+    // that runs before any other loaded them the write lands a tick later.
+    await waitFor(() => expect(calls.length).toBeGreaterThan(0))
   })
 })

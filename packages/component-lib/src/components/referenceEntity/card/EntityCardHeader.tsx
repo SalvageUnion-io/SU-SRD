@@ -1,12 +1,13 @@
 import { ChevronRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { font, space, tracking, weight } from '../../../design/tokens'
+import { font, space } from '../../../design/tokens'
+import { cn } from '../../../utils/cn'
 import { Badge } from '../../atoms/Badge'
 import type { CardSize } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { HeaderFill } from './cardChrome'
 import type { CardGrain } from './cardGrain'
-import { grainStyle } from './cardGrain'
+import { grainClass } from './cardGrain'
 import { EntityCardStatBox } from './EntityCardStatBox'
 import type { CardTitleTag } from './referenceEntityCardTypes'
 
@@ -94,34 +95,24 @@ const ONE_LINE: CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
-/**
- * The compact title: it takes the row's room and wraps to two lines, then
- * clamps with "…". `minWidth: 0` keeps a long name out of the row's
- * min-content, so it cannot push a width-less ancestor (an island page's
- * wrapper) past the viewport.
+/*
+ * The band's frame, the title's caps face and layout, the name group and the
+ * cell cluster are `.su-ec-band*` classes (`styles/index.css`), not style
+ * objects: every card and listing row repeats them (ADR-046, repeated
+ * elements). What varies by card stays inline: the band's fill and padding,
+ * the title's size and colour.
+ *
+ * - `__title--clamp`, the compact title: it takes the row's room and wraps to
+ *   two lines, then clamps with "…". `min-width: 0` keeps a long name out of
+ *   the row's min-content, so it cannot push a width-less ancestor (an island
+ *   page's wrapper) past the viewport.
+ * - `__title--wrap`: at the start of the name group, its labels right after
+ *   it, it wraps at spaces first (a high shrink) but keeps its longest word
+ *   whole, and only then do the labels give way, truncating with "…".
+ * - The title has no line height of its own: it inherits the band's, which is
+ *   what it rendered with under the old utilities (the size class after
+ *   `leading-none` had the class merge drop it).
  */
-const CLAMP_TWO: CSSProperties = {
-  display: '-webkit-box',
-  flex: '1 1 0',
-  minWidth: 0,
-  overflow: 'hidden',
-  overflowWrap: 'anywhere',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-}
-
-/**
- * The title's caps face; its size and colour come from the band. No line
- * height of its own: the title inherits the band's, which is what it rendered
- * with under the old utilities (the size class after `leading-none` had the
- * class merge drop it).
- */
-const TITLE_TYPE: CSSProperties = {
-  fontFamily: font.cond,
-  fontWeight: weight.extrabold,
-  textTransform: 'uppercase',
-  letterSpacing: tracking.capsTight,
-}
 
 /** A hint on a compact head (a pattern row's description) takes the room the title leaves. */
 const FILL: CSSProperties = { flex: '1 1 0', minWidth: 0 }
@@ -162,21 +153,15 @@ export function EntityCardHeader({
   chevron = false,
 }: EntityCardHeaderProps) {
   const TitleTag = titleAs ?? 'span'
-  const titleType: CSSProperties = { ...TITLE_TYPE, color: titleColor, fontSize: titleSize }
+  const titleType: CSSProperties = { color: titleColor, fontSize: titleSize }
   const titleNode = titleSlot ?? (
     <TitleTag
       title={head ? title : undefined}
-      style={{
-        ...titleType,
-        // A compact head: the title takes the row and wraps to two lines
-        // before it clamps (see `CLAMP_TWO`). Otherwise it sits at the start
-        // of the name group, its labels right after it: it wraps at spaces
-        // first (a high shrink) but keeps its longest word whole, and only
-        // then do the labels give way, truncating with "…".
-        ...(head
-          ? CLAMP_TWO
-          : { flex: '0 100 auto', minWidth: 'min-content', overflowWrap: 'break-word' }),
-      }}
+      className={cn(
+        'su-ec-band__title',
+        head ? 'su-ec-band__title--clamp' : 'su-ec-band__title--wrap'
+      )}
+      style={titleType}
     >
       {title}
     </TitleTag>
@@ -218,37 +203,21 @@ export function EntityCardHeader({
     />
   ) : null
   const numeralNode = numeral ? (
-    <span style={{ ...titleType, flex: 'none', opacity: 0.75 }}>{numeral}</span>
+    <span className="su-ec-band__title su-ec-band__numeral" style={titleType}>
+      {numeral}
+    </span>
   ) : null
   const bandStyle: CSSProperties = {
     backgroundColor: bandColor ?? 'var(--color-paper)',
-    ...grainStyle(grain),
-    alignItems: 'center',
-    ...(ruled
-      ? {
-          borderBottomColor: 'var(--color-ink)',
-          borderBottomStyle: 'solid',
-          borderBottomWidth: 'var(--bw-chrome)',
-        }
-      : {}),
-    minWidth: 0,
     padding: band ? BAND_PAD[size] : head ? HEAD_PAD[size] : PAD[size],
-    width: '100%',
   }
+  const bandClass = (extent: 'head' | 'full') =>
+    cn('su-ec-band', `su-ec-band--${extent}`, ruled && 'su-ec-band--ruled', grainClass(grain))
 
   // HEAD extent: one row that never wraps; the title wraps inside it.
   if (head) {
     return (
-      <div
-        data-fill={fill}
-        data-grain={grain}
-        style={{
-          ...bandStyle,
-          columnGap: space[8],
-          display: 'flex',
-          flexWrap: 'nowrap',
-        }}
-      >
+      <div data-fill={fill} data-grain={grain} className={bandClass('head')} style={bandStyle}>
         {numeralNode}
         {titleNode}
         {hint}
@@ -260,46 +229,19 @@ export function EntityCardHeader({
   }
 
   return (
-    <div
-      data-fill={fill}
-      data-grain={grain}
-      style={{
-        ...bandStyle,
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: `${space[8]} ${space[14]}`,
-      }}
-    >
+    <div data-fill={fill} data-grain={grain} className={bandClass('full')} style={bandStyle}>
       {numeralNode}
       {/* The name group: the title, its labels right after it. It shares the
         row with the cells on the right at medium and small, and only a large
         header gives it the whole row; the cells wrap beneath when they truly
         cannot fit. */}
-      <div
-        style={{
-          alignItems: 'center',
-          columnGap: space[8],
-          display: 'flex',
-          flex: size === 'large' ? '1 1 auto' : '1 1 0',
-          minWidth: size === 'large' ? 0 : 'min-content',
-        }}
-      >
+      <div className={cn('su-ec-band__name', size === 'large' && 'su-ec-band__name--large')}>
         {titleNode}
-        {labels && <div style={{ display: 'flex', flex: '0 1 auto', minWidth: 0 }}>{labels}</div>}
+        {labels && <div className="su-ec-band__labels">{labels}</div>}
       </div>
       {hint}
       {hasCluster && (
-        <div
-          style={{
-            alignItems: 'center',
-            display: 'flex',
-            flex: '0 1 auto',
-            flexWrap: 'wrap',
-            gap: space[4],
-            justifyContent: 'flex-end',
-            minWidth: 0,
-          }}
-        >
+        <div className="su-ec-band__cluster">
           {cells}
           {stampNodes}
           {pennant}

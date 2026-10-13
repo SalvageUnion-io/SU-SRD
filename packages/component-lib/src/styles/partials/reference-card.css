@@ -1,0 +1,42 @@
+/*
+ * The package stylesheet, part 19 of 21: the reference entity card.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ── the reference entity card ── */
+
+/* The card's outer box (`card/cardChrome.ts`). Classes rather than a style
+   object because a caller's `className` may override any of them. */
+.su-ec-outer {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.su-ec-outer--dim {
+  opacity: 0.5;
+}
+
+/* A card the picker cannot take: dimmed and drained. */
+.su-ec-outer--unselectable {
+  opacity: 0.5;
+  filter: saturate(50%);
+}
+
+.su-ec-outer--clickable {
+  cursor: pointer;
+}
+
+/* A block in the card body (a prose run, a folded action, the bonus row):
+   the gap to whatever follows it, dropped on the last. */
+.su-ec-block:not(:last-child) {
+  margin-bottom: var(--space-12);
+}
+
+/* A pattern's name tab on a card: shrink-to-fit, so the solid Slab's leader
+   rule collapses to its stub instead of running across the card. */
+.su-ec-name-tab {
+  width: fit-content;
+}

@@ -1,0 +1,266 @@
+/*
+ * The package stylesheet, part 7 of 21: the stat column and the entity page.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ The stat column (`components/atoms/StatColumn.tsx`) ═══════════════════
+ *
+ * The book's framed numeral beside its ink stamp. Two cells to a row on a
+ * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
+ * `row-reverse` draws the numeral first while the source reads label, value.
+ * The stamp is sized to its label, not to the cell: the rest of the cell is
+ * paper, so a column of stats reads as numerals with tags (the book's weight)
+ * rather than as solid ink bars that outweigh the title and the art. It may
+ * still shrink and wrap when the cell is narrower than the label.
+ */
+.su-stat-column {
+  display: grid;
+  gap: var(--space-6) var(--space-8);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.su-stat-column__cell {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  min-height: 40px;
+}
+
+.su-stat-column__value {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  display: flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  margin: 0;
+  width: 42px;
+}
+
+.su-stat-column__label {
+  align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: flex;
+  flex: 0 1 auto;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  min-width: 0;
+  padding: 0 var(--space-8);
+  text-transform: uppercase;
+}
+
+@media (min-width: 40rem) {
+  .su-stat-column {
+    gap: var(--space-6) var(--space-14);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .su-stat-column__value {
+    width: 52px;
+  }
+
+  .su-stat-column__label {
+    font-size: var(--text-sm);
+    padding: 0 var(--space-12);
+  }
+}
+
+/* A lone stat on a band (an entity's Tech Level, `ChapterBand asideAt="notch"`)
+   is one cell, not a two-column grid whose empty column would push the aside
+   off the notch. */
+.su-chapter-band[data-aside='notch'] .su-stat-column {
+  grid-template-columns: auto;
+}
+
+/* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
+ *
+ * Boards 07 and 08. The card hands its title to the page's chapter band and
+ * its footer to the foot band, and lays its body out as a page: the line art
+ * as the hero on the left, and on the right the prose, the stat column and,
+ * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
+ * actions, nested trays, patterns) runs the full width beneath.
+ *
+ * One content order at every width, the DOM's: art, then a
+ * pattern's opening, the prose, the stat column and the chassis ability, so a
+ * keyboard and a screen reader meet them in the order the eye does. The right
+ * column is `display: contents` on a phone, so its children join the page's
+ * flex column; from `lg` it runs beside (and flows around) the art.
+ */
+.su-entity-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-entity-page__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.su-entity-page__side {
+  display: contents;
+}
+
+/* A pattern page's pattern, after the art and before the chassis prose.
+   Its prose reads at the page's reading size, as the chassis prose under it does. */
+.su-entity-page__opening {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-lg);
+  gap: var(--space-12);
+  line-height: 1.6;
+}
+
+.su-entity-page__prose {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-lg);
+  gap: var(--space-8);
+  line-height: 1.6;
+}
+
+/* The flavour line is set one step under the prose (boards 07, 08). */
+.su-entity-page__prose [data-prose='flavor'] {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A phone reads at 17px (SrdMobile). */
+@media (max-width: 40rem) {
+  .su-entity-page__opening,
+  .su-entity-page__prose {
+    font-size: 17px;
+  }
+}
+
+.su-entity-page__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.su-entity-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* An entity's own table stands on the page in a frame of its own. */
+.su-entity-page__table {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/* With no art the body is one reading column, but for the tags, which run
+   to the page's far end under the band's stamps. */
+.su-entity-page__main:not(.su-entity-page__main--art)
+  > .su-entity-page__side
+  > :not(.su-entity-page__prose),
+.su-entity-page__main:not(.su-entity-page__main--art)
+  .su-entity-page__prose
+  > :not(.su-entity-page__tags) {
+  max-width: 52rem;
+}
+
+@media (min-width: 64rem) {
+  .su-entity-page__main--art {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: var(--space-40);
+  }
+
+  .su-entity-page__main--art > .su-entity-page__art {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .su-entity-page__side {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: var(--space-24);
+    min-width: 0;
+  }
+}
+
+/*
+ * WITH ART, the page FLOWS around it (`--flow`, from 64rem): the art floats
+ * left and everything after it — the prose column, then the actions and the
+ * nested trays — runs down beside it, taking the full width once it passes
+ * the art's foot. Short pages (an NPC, a creature) no longer leave a column
+ * of empty paper beside the image. Each card and tray is its own formatting
+ * context, so one that starts beside the art narrows as a whole instead of
+ * running under it. Wide blocks — the roll table, a class's ability tree,
+ * the pattern rows, `after` — start below the art (`clear`), never squeezed.
+ */
+@media (min-width: 64rem) {
+  .su-entity-page--flow {
+    display: flow-root;
+  }
+
+  .su-entity-page--flow > * + * {
+    margin-top: var(--space-24);
+  }
+
+  .su-entity-page--flow > .su-entity-page__main--art {
+    display: block;
+  }
+
+  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__art {
+    float: left;
+    margin: 0 var(--space-32) var(--space-16) 0;
+    width: 42%;
+  }
+
+  /* The prose column is no column here: a flex box beside the float would
+     keep the whole of it narrow down the page. As blocks, the opening, stats
+     and chassis abilities each narrow only while the art is beside them. */
+  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__side {
+    display: block;
+  }
+
+  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__side > * + * {
+    margin-top: var(--space-24);
+  }
+
+  /* A censor mark stands in for art: it needs a stamp's room, not a plate's. */
+  .su-entity-page--flow
+    > .su-entity-page__main--art
+    > .su-entity-page__art:has(.su-entity-hero--missing) {
+    width: 30%;
+  }
+
+  .su-entity-page--flow .su-entity-page__section {
+    display: block;
+  }
+
+  .su-entity-page--flow .su-entity-page__section > * + * {
+    margin-top: var(--space-12);
+  }
+
+  .su-entity-page--flow .su-entity-page__section > :not(:first-child) {
+    display: flow-root;
+  }
+
+  .su-entity-page--flow > .su-entity-page__table,
+  .su-entity-page--flow > .su-entity-page__wide {
+    clear: left;
+  }
+}
+
+.su-entity-page__wide:empty {
+  display: none;
+}

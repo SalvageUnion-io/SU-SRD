@@ -756,158 +756,6 @@
   max-width: 68ch;
 }
 
-.srd-roll__stamp-row {
-  align-items: center;
-  display: flex;
-  gap: var(--space-12);
-}
-
-.srd-roll__stamp {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  font-family: var(--font-cond);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  padding: var(--space-2) var(--space-8);
-  text-decoration: underline;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.srd-roll__leader {
-  border-top: var(--bw-chrome) dashed var(--color-ink-40);
-  flex: 1;
-}
-
-.srd-roll__hint {
-  color: var(--color-ink-2);
-  font-size: var(--text-sm);
-}
-
-.srd-roll__rows {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  display: flex;
-  flex-direction: column;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.srd-roll__row {
-  align-items: stretch;
-  display: flex;
-}
-
-.srd-roll__row + .srd-roll__row {
-  border-top: var(--bw-chrome) solid var(--color-ink);
-}
-
-.srd-roll__range {
-  align-items: center;
-  background-color: var(--color-wk-bg);
-  border-right: var(--bw-chrome) solid var(--color-ink);
-  display: flex;
-  flex: none;
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-  justify-content: center;
-  width: 4.5rem;
-}
-
-.srd-roll__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
-  padding: var(--space-12) var(--space-14);
-}
-
-.srd-roll__label {
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.1;
-  text-transform: uppercase;
-}
-
-.srd-roll__value {
-  font-size: var(--text-base);
-  line-height: 1.5;
-}
-
-/* Once a roll lands, the other bands step back and the hit is set in ink. */
-.srd-roll__rows[data-has-roll] .srd-roll__row:not([data-rolled]) .srd-roll__body {
-  color: var(--color-wk-muted);
-}
-
-.srd-roll__row[data-rolled] {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.srd-roll__row[data-rolled] .srd-roll__range {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-.srd-roll__tag {
-  align-self: center;
-  background-color: var(--color-paper);
-  clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
-  color: var(--color-ink);
-  flex: none;
-  font-family: var(--font-cond);
-  font-size: var(--text-lede);
-  font-weight: var(--font-weight-extrabold);
-  letter-spacing: var(--tracking-caps-tight);
-  margin-right: var(--space-14);
-  padding: var(--space-4) var(--space-8) var(--space-4) var(--space-20);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-/* Under `lg` a split table's halves stack as one list: the second continues
-   the first inside the same frame. */
-.srd-roll__bands {
-  display: flex;
-  flex-direction: column;
-}
-
-.srd-roll__bands > .srd-roll__rows + .srd-roll__rows {
-  border-top: 0;
-}
-
-/* A phone: the pennant moves to a line of its own above the body, so the body
-   keeps the row's whole width beside the range (board 08b). */
-@media (max-width: 40rem) {
-  .srd-roll__row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .srd-roll__row > .srd-roll__range {
-    grid-row: 1 / span 2;
-  }
-
-  .srd-roll__row > .srd-roll__tag {
-    align-self: start;
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: start;
-    margin: var(--space-12) 0 0 var(--space-14);
-  }
-
-  .srd-roll__row > .srd-roll__body {
-    grid-column: 2;
-    grid-row: 2;
-  }
-}
-
 .srd-roll__panel {
   background-color: var(--color-paper);
   border: var(--bw-entity) solid var(--color-ink);
@@ -1123,80 +971,17 @@
     min-height: 28px;
   }
 
-  .srd-roll__range {
-    font-size: var(--text-xl);
-    width: 4.5rem;
-  }
-
-  /* Wide screens set the bands tighter, so a table reads on one screen. */
+  /* Wide screens set the note tighter, so a table reads on one screen. */
   .srd-roll__description {
     font-size: var(--text-base);
     line-height: 1.5;
   }
 
-  .srd-roll__body {
-    gap: var(--space-2);
-    padding: var(--space-8) var(--space-12);
-  }
-
-  .srd-roll__label {
-    font-size: var(--text-lg);
-  }
-
-  .srd-roll__value {
-    line-height: 1.4;
-  }
-
-  /*
-   * A long or wordy table (`splitRows`) splits in two down the middle: the
-   * first half on the left with its ranges on the left edge, the rest on the
-   * right with its ranges on the right edge, so the numbers stay on the
-   * outside. Each half packs its own bands, so neither waits on the other.
-   */
-  .srd-roll__bands[data-split] {
-    align-items: start;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .srd-roll__bands[data-split] > .srd-roll__rows[data-side='right'] {
-    border-left: 0;
-    border-top: var(--bw-chrome) solid var(--color-ink);
-  }
-
-  .srd-roll__rows[data-side='right'] > .srd-roll__row {
-    flex-direction: row-reverse;
-  }
-
-  .srd-roll__rows[data-side='right'] .srd-roll__range {
-    border-left: var(--bw-chrome) solid var(--color-ink);
-    border-right: 0;
-  }
-
-  .srd-roll__rows[data-side='right'] .srd-roll__tag {
-    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
-    margin: 0 0 0 var(--space-14);
-    padding: var(--space-4) var(--space-20) var(--space-4) var(--space-8);
-  }
-
-  .srd-roll__bands[data-split] .srd-roll__range {
-    width: 3.5rem;
-  }
-
-  .srd-roll__bands[data-split] .srd-roll__body {
-    padding: var(--space-6) var(--space-10);
-  }
-
-  .srd-roll__bands[data-split] .srd-roll__value {
-    font-size: var(--text-sm);
-    line-height: 1.35;
-  }
-
   /*
    * A wordy page (`rollTableDensity`) sets tighter so it ends above the fold:
    * `compact` sets the note smaller across a wider measure and narrows the
-   * panel, so the bands get the width; `dense` also runs each band's label in
-   * ahead of its text, at the caption size, with narrower ranges.
+   * panel, so the bands get the width. The bands' own setting is the
+   * instrument's (`RollTableInstrument`'s `density`, component-lib's index.css).
    */
   .srd-roll:is([data-density='compact'], [data-density='dense']) {
     gap: var(--space-24);
@@ -1216,142 +1001,9 @@
     max-width: 92ch;
   }
 
-  .srd-roll[data-density='compact'] .srd-roll__body {
-    padding: var(--space-6) var(--space-12);
-  }
-
-  .srd-roll[data-density='compact'] .srd-roll__label {
-    font-size: var(--text-base);
-  }
-
-  .srd-roll[data-density='compact'] .srd-roll__value {
-    font-size: var(--text-sm);
-    line-height: 1.4;
-  }
-
-  .srd-roll[data-density='dense'] .srd-roll__bands[data-split] .srd-roll__range {
-    font-size: var(--text-lg);
-    width: 2.75rem;
-  }
-
-  .srd-roll[data-density='dense'] .srd-roll__bands[data-split] .srd-roll__body {
-    display: block;
-    font-size: var(--text-caption);
-    line-height: 1.25;
-    padding: var(--space-4) var(--space-8);
-  }
-
-  .srd-roll[data-density='dense'] .srd-roll__label {
-    display: inline;
-    font-size: var(--text-sm);
-    margin-right: var(--space-6);
-  }
-
-  .srd-roll[data-density='dense'] .srd-roll__bands[data-split] .srd-roll__value {
-    font-size: inherit;
-    line-height: inherit;
-  }
-
   /* The page sits closer under its band: a line the fold needs. */
   .srd-entity__body:has(.srd-roll) {
     padding-top: var(--space-16);
-  }
-}
-
-/*
- * A two-roll columns table (`ColumnsTableView`, Callsign Table): the columns'
- * d20 ranges across an ink head, the entry numbers down both outer edges,
- * every entry one cell. A roll sets its column's head and its cell in ink and
- * the rest step back, as the banded table's rows do. A phone scrolls the grid
- * sideways inside its own frame.
- */
-.srd-cols {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  overflow-x: auto;
-  /* Holds the visually hidden labels inside the scroller, not the page. */
-  position: relative;
-}
-
-.srd-cols__table {
-  border-collapse: collapse;
-  font-size: var(--text-base);
-  min-width: 34rem;
-  width: 100%;
-}
-
-.srd-cols__table thead th {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  font-family: var(--font-cond);
-  font-size: var(--text-lg);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-  padding: var(--space-4) var(--space-10);
-  text-align: left;
-}
-
-.srd-cols__table thead th[data-rolled] {
-  background-color: var(--color-paper);
-  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
-  color: var(--color-ink);
-}
-
-.srd-cols__table tbody tr + tr > * {
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
-}
-
-.srd-cols__edge {
-  background-color: var(--color-wk-bg);
-  font-family: var(--font-cond);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-  text-align: center;
-  width: 2.75rem;
-}
-
-.srd-cols__table tbody .srd-cols__edge:first-child {
-  border-right: var(--bw-chrome) solid var(--color-ink);
-}
-
-.srd-cols__table tbody .srd-cols__edge:last-child {
-  border-left: var(--bw-chrome) solid var(--color-ink);
-}
-
-.srd-cols__cell {
-  line-height: 1.25;
-  padding: var(--space-2) var(--space-10);
-}
-
-.srd-cols__cell + .srd-cols__cell {
-  border-left: var(--bw-hairline) solid var(--color-ink-15);
-}
-
-.srd-cols__table[data-has-roll] .srd-cols__cell:not([data-rolled]) {
-  color: var(--color-wk-muted);
-}
-
-.srd-cols__cell[data-rolled] {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  font-weight: var(--font-weight-semibold);
-}
-
-/* A wide screen sets the grid's twenty rows tighter, so it ends above the fold. */
-@media (min-width: 64rem) {
-  .srd-cols__table {
-    font-size: var(--text-sm);
-  }
-
-  .srd-cols__table thead th {
-    font-size: var(--text-base);
-    padding-block: var(--space-2);
-  }
-
-  .srd-cols__table tbody th,
-  .srd-cols__table tbody td {
-    line-height: 1.2;
-    padding-block: var(--space-2);
   }
 }
 
@@ -1405,6 +1057,7 @@
 }
 
 .srd-listing__group {
+  container: srd-group / inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
@@ -1478,6 +1131,43 @@
   min-width: 0;
 }
 
+/* A group's columns (`data-balanced`, `lib/tileColumns.ts`): where its line
+   fits N tiles (N × 13.5rem and the 12px gaps; the group, `srd-group`, is the
+   container), it sets `--srd-tiles-N` of them — the fewest lines the group
+   needs, its tiles shared evenly across them — so no tile is left alone on a
+   last line. Each column keeps the width it has in a full line of N, so every
+   tile on the page is one size and a balanced group is a narrower block, not
+   larger tiles. Narrower than two tiles, the grid's one column stands. */
+@container srd-group (min-width: 27.75rem) {
+  .srd-listing__tiles[data-balanced] {
+    grid-template-columns: repeat(var(--srd-tiles-2), calc((100cqi - var(--space-12)) / 2));
+  }
+}
+
+@container srd-group (min-width: 42rem) {
+  .srd-listing__tiles[data-balanced] {
+    grid-template-columns: repeat(var(--srd-tiles-3), calc((100cqi - 2 * var(--space-12)) / 3));
+  }
+}
+
+@container srd-group (min-width: 56.25rem) {
+  .srd-listing__tiles[data-balanced] {
+    grid-template-columns: repeat(var(--srd-tiles-4), calc((100cqi - 3 * var(--space-12)) / 4));
+  }
+}
+
+@container srd-group (min-width: 70.5rem) {
+  .srd-listing__tiles[data-balanced] {
+    grid-template-columns: repeat(var(--srd-tiles-5), calc((100cqi - 4 * var(--space-12)) / 5));
+  }
+}
+
+@container srd-group (min-width: 84.75rem) {
+  .srd-listing__tiles[data-balanced] {
+    grid-template-columns: repeat(var(--srd-tiles-6), calc((100cqi - 5 * var(--space-12)) / 6));
+  }
+}
+
 /* A tile's place while the data loads, in the tile's own structure: its 3:4
    art box (inside the frame's border), then a fixed band for the tone band,
    the cells and the lore line's three lines. The band does not scale with the
@@ -1525,6 +1215,22 @@
   }
 }
 
+/* …and a group's balanced columns, as its tiles will (above). The Catalog's
+   measure holds five at the least, so only the five and six steps apply. */
+@media (min-width: 75rem) {
+  @container srd-group (min-width: 70.5rem) {
+    .srd-listing[data-art] .srd-listing__cards[data-balanced] {
+      grid-template-columns: repeat(var(--srd-tiles-5), calc((100cqi - 4 * var(--space-12)) / 5));
+    }
+  }
+
+  @container srd-group (min-width: 84.75rem) {
+    .srd-listing[data-art] .srd-listing__cards[data-balanced] {
+      grid-template-columns: repeat(var(--srd-tiles-6), calc((100cqi - 5 * var(--space-12)) / 6));
+    }
+  }
+}
+
 /*
  * A Catalog-only listing (`CATALOG_LISTINGS`): a handful of tiles whose lead
  * is the content, so wider columns — three across at the page's measure, two
@@ -1542,6 +1248,34 @@
   gap: var(--space-12);
   grid-auto-rows: auto;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+}
+
+/* Its groups balance on its own 20rem tracks (N × 20rem and the gaps); these
+   outrank the 13.5rem steps above, whatever the width. */
+.srd-listing[data-catalog] .srd-listing__tiles[data-balanced],
+.srd-listing[data-catalog] .srd-listing__cards[data-balanced] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+}
+
+@container srd-group (min-width: 40.75rem) {
+  .srd-listing[data-catalog] .srd-listing__tiles[data-balanced],
+  .srd-listing[data-catalog] .srd-listing__cards[data-balanced] {
+    grid-template-columns: repeat(var(--srd-tiles-2), calc((100cqi - var(--space-12)) / 2));
+  }
+}
+
+@container srd-group (min-width: 61.5rem) {
+  .srd-listing[data-catalog] .srd-listing__tiles[data-balanced],
+  .srd-listing[data-catalog] .srd-listing__cards[data-balanced] {
+    grid-template-columns: repeat(var(--srd-tiles-3), calc((100cqi - 2 * var(--space-12)) / 3));
+  }
+}
+
+@container srd-group (min-width: 82.25rem) {
+  .srd-listing[data-catalog] .srd-listing__tiles[data-balanced],
+  .srd-listing[data-catalog] .srd-listing__cards[data-balanced] {
+    grid-template-columns: repeat(var(--srd-tiles-4), calc((100cqi - 3 * var(--space-12)) / 4));
+  }
 }
 
 .srd-listing[data-catalog] .srd-listing__tile-skeleton::before {
@@ -1833,12 +1567,14 @@
  * (three across from 40rem) and the paths it advances along; a Hybrid Class's
  * own tree + Legendary tree (two across) and the Core trees it branches into.
  *
- * Each sequential tree draws the book's track (ruleset, "Where the screen
- * departs from print"): a thick pipe down the tree's left with a stub into
- * each tier's Row, so tiers 1-2-3 read as one chain trained in order. It is a
+ * Each sequential tree draws the book's track (Core Book 2.0a pp.34, 36,
+ * 37; ruleset, "Where the screen departs from print"): a thick pipe in the
+ * tier's hue down the tree's left, ending in a rounded foot, with each tier's
+ * numeral on it and a stub into that tier's Row, so tiers 1-2-3 read as one
+ * chain trained in order. The Rows keep their ink banners; the tier rides on the track. It is a
  * diagram beside the Rows, never a left border on a card (§3.10). The pipe is
- * one segment per tier: the first starts at its stub, the last ends at its
- * stub, and each but the last runs down through the gap to the next tier.
+ * one segment per tier: the first starts at its numeral, the last runs on to
+ * its Row's foot, and each but the last runs down through the gap to the next.
  * `data-track` picks the tier hue; a Legendary tree (pick one) has none.
  */
 .srd-ability-tree {
@@ -1877,12 +1613,15 @@
 }
 
 .srd-ability-tree__track {
-  /* The pipe's centre line, its weight, the gap it bridges between tiers, and
-     how far down a Row its stub lands (the middle of a one-line head). */
-  --srd-track-x: var(--space-6);
-  --srd-track-weight: var(--space-6);
+  /* The numeral's stamp, the pipe's centre line (under the stamp), its
+     weight, the gap it bridges between tiers, and how far down a Row the
+     numeral and stub land (the middle of a one-line head). */
+  --srd-track-numeral: 1.75rem;
+  --srd-track-x: calc(var(--srd-track-numeral) / 2);
+  --srd-track-weight: var(--space-10);
   --srd-track-gap: var(--space-16);
   --srd-track-node: 1.2rem;
+  --srd-track-inset: calc(var(--srd-track-numeral) + var(--space-8));
   display: flex;
   flex-direction: column;
   gap: var(--srd-track-gap);
@@ -1891,12 +1630,16 @@
   padding: 0;
 }
 
+/* The tier's hue, and the numeral's foreground on it (§3.8: paper on brick,
+   ink on pilot). */
 .srd-ability-tree__track[data-track='core'] {
   --srd-track-color: var(--color-tier-core);
+  --srd-track-on: var(--color-paper);
 }
 
 .srd-ability-tree__track[data-track='advanced'] {
   --srd-track-color: var(--color-pilot);
+  --srd-track-on: var(--color-ink);
 }
 
 .srd-ability-tree__tier {
@@ -1904,7 +1647,7 @@
 }
 
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier {
-  padding-left: var(--space-20);
+  padding-left: var(--srd-track-inset);
 }
 
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier::before,
@@ -1926,9 +1669,10 @@
   top: var(--srd-track-node);
 }
 
+/* The foot: the last segment runs on to its Row's foot and rounds off. */
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier:last-child::before {
-  bottom: auto;
-  height: calc(var(--srd-track-node) + var(--srd-track-weight) / 2);
+  border-radius: 0 0 var(--srd-track-weight) var(--srd-track-weight);
+  bottom: 0;
 }
 
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child:last-child::before {
@@ -1938,9 +1682,29 @@
 /* The stub from the pipe into the tier's Row. */
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier::after {
   height: var(--srd-track-weight);
-  left: calc(var(--srd-track-x) - var(--srd-track-weight) / 2);
-  right: calc(100% - var(--space-20));
+  left: var(--srd-track-x);
+  right: calc(100% - var(--srd-track-inset));
   top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
+}
+
+/* The tier numeral, set on the track outside the banner: a square stamp
+   (§4.4) in the tier's hue. */
+.srd-ability-tree__numeral {
+  align-items: center;
+  background: var(--srd-track-color);
+  color: var(--srd-track-on);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  height: var(--srd-track-numeral);
+  justify-content: center;
+  left: 0;
+  line-height: 1;
+  position: absolute;
+  top: calc(var(--srd-track-node) - var(--srd-track-numeral) / 2);
+  width: var(--srd-track-numeral);
+  z-index: 1;
 }
 
 /*
@@ -2248,4 +2012,162 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   .srd-api__wide-cell {
     display: table-cell;
   }
+}
+
+/*
+ * The Mediator Screen (`/screen/`, `ScreenView.tsx`): the Quick Ref's tables
+ * as panels in balanced columns, one on a phone and up to four on a wide
+ * screen, each panel kept whole. A table is the shared roll-table
+ * instrument (`RollTableInstrument`, `index.css`'s `.su-roll*`) at `small`,
+ * banded in the rules tone, so the screen reads at a glance.
+ */
+.srd-screen__body {
+  column-gap: var(--space-12);
+  columns: 4 20rem;
+  margin-inline: auto;
+  padding: var(--space-24) var(--space-16) var(--space-32);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .srd-screen__body {
+    padding-inline: var(--space-24);
+  }
+}
+
+/* Multi-column has no row gap, so each cell carries its own. */
+.srd-screen__cell {
+  break-inside: avoid;
+  margin-block-end: var(--space-12);
+}
+
+.srd-screen__panel {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.srd-screen__head {
+  align-items: baseline;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  column-gap: var(--space-8);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--space-6) var(--space-8) var(--space-8);
+}
+
+.srd-screen__section {
+  color: var(--color-paper-85);
+  font-family: var(--font-cond);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  grid-column: 1 / -1;
+  letter-spacing: var(--tracking-caps-snug);
+  text-transform: uppercase;
+}
+
+.srd-screen__title {
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.srd-screen__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.srd-screen__title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.srd-screen__page {
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+}
+
+.srd-screen__controls {
+  align-items: center;
+  border-bottom: var(--bw-hairline) solid var(--color-ink);
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-8);
+}
+
+.srd-screen__result {
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  margin: 0;
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.srd-screen__number {
+  border: var(--bw-hairline) solid var(--color-ink);
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  min-width: 2.25rem;
+  padding-inline: var(--space-4);
+  text-align: center;
+}
+
+/* The instrument's own bar and frame, inset in the panel. */
+.srd-screen__table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+}
+
+/* A reference panel: terms and their rules, or a procedure's steps. */
+.srd-screen__notes {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.srd-screen__note + .srd-screen__note,
+.srd-screen__steps + .srd-screen__steps {
+  border-top: var(--bw-hairline) solid var(--color-ink);
+}
+
+.srd-screen__term {
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  margin: 0;
+  padding: var(--space-6) var(--space-8) 0;
+  text-transform: uppercase;
+}
+
+.srd-screen__text {
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  margin: 0;
+  min-width: 0;
+  padding: var(--space-2) var(--space-8) var(--space-6);
+}
+
+/* A step's number sits inside the measure, so the list keeps the panel's 8px inset. */
+.srd-screen__step-list {
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  list-style-position: inside;
+  margin: 0;
+  padding: var(--space-4) var(--space-8) var(--space-8);
 }

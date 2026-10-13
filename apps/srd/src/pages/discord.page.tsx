@@ -236,6 +236,24 @@ function page(): PageResult {
                 </ul>
               </div>
             </Panel>
+
+            <Panel soft>
+              <div style={PANEL_HEAD}>
+                <p style={PANEL_TITLE}>
+                  /su screen <span style={ITALIC}>[private]</span>
+                </p>
+              </div>
+              <div style={PANEL_BODY}>
+                <p>
+                  The Mediator Screen: Core Mechanic, Group Initiative, Critical Injury and Damage,
+                  Reactor Overload, Area and Mech Salvage, and the NPC tables, each by its bands
+                  with a button that rolls it. Only you see the screen; its rolls land in the
+                  channel, or only to you with <code style={CODE}>private</code>. The{' '}
+                  <InlineRef href="/screen/">Mediator Screen</InlineRef> here has them all on one
+                  page, with Heat, the distances and Downtime.
+                </p>
+              </div>
+            </Panel>
           </section>
 
           {/* Notes */}

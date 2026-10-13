@@ -15,7 +15,8 @@
  *
  * The analyses here are structural (cross-file reference graphs, brace-context
  * parsing) rather than per-line regexes, so each rule has its own scan function.
- * Every rule is `zero` (any finding fails).
+ * Every rule is `zero` (any finding fails) but `style-object-annotation`, a
+ * ratchet burning down the second spelling of a style object.
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -74,7 +75,14 @@ function appOf(relPath: string): string | null {
  * Sanctioned exceptions. Each entry needs a reason — an exemption without a
  * justification is just a silent hole in the guardrail.
  */
-const EXEMPTIONS: Exemption[] = []
+const EXEMPTIONS: Exemption[] = [
+  {
+    file: 'apps/itun/src/styles/libHandback.css',
+    rules: ['dead-app-css'],
+    reason:
+      "Its selectors are component-lib's own classes, referenced in component-lib source rather than ITUN's: the file only hands those classes back their layered values (`revert-layer`) over ITUN's unlayered element rules, and styles nothing of its own.",
+  },
+]
 
 // ── shared CSS helpers ───────────────────────────────────────────────────────
 
@@ -502,6 +510,33 @@ function scanNoTailwind(c: Corpus): Finding[] {
   return out
 }
 
+// ── Rule 6: style-object-annotation ───────────────────────────────────────────
+
+/**
+ * A style object is written ONE way (.claude/rules/styling.md, "The written
+ * form"): `const NAME = { … } satisfies CSSProperties`. The annotated spelling,
+ * `const NAME: CSSProperties = { … }`, widens every value to the whole
+ * property type, so the object no longer says what it holds, and it is the
+ * second of two spellings for one thing. It was 531 lines when this rule
+ * landed; the ratchet only lets that fall. A function that builds a style
+ * (`(x): CSSProperties => ({ … })`) is not this spelling and is not counted.
+ */
+const STYLE_OBJECT_ANNOTATION = /:\s*(?:React\.)?CSSProperties\s*=(?!>)/
+
+function scanStyleObjectAnnotation(c: Corpus): Finding[] {
+  const out: Finding[] = []
+  for (const rel of c.allTs) {
+    stripTsComments(c.read(rel))
+      .split('\n')
+      .forEach((text, i) => {
+        if (STYLE_OBJECT_ANNOTATION.test(text)) {
+          out.push({ file: rel, line: i + 1, detail: text.trim().replace(/\s*\{?$/, '') })
+        }
+      })
+  }
+  return out
+}
+
 type OwnershipRule = Rule & { scan: (c: Corpus) => Finding[] }
 
 const RULES: OwnershipRule[] = [
@@ -539,6 +574,13 @@ const RULES: OwnershipRule[] = [
     rule: 'ADR-046 §no utility framework: Tailwind stays removed',
     fix: "Remove the Tailwind package or directive. A value goes in theme.css (and tokens.ts), a style in a style object or a `.su-*` rule in index.css (an app's own stylesheet when only that app uses it); see .claude/rules/styling.md.",
     scan: scanNoTailwind,
+  },
+  {
+    id: 'style-object-annotation',
+    mode: 'ratchet',
+    rule: '.claude/rules/styling.md §the written form: a style object is `const NAME = { … } satisfies CSSProperties`',
+    fix: 'Write `const NAME = { … } satisfies CSSProperties` instead of `const NAME: CSSProperties = { … }`. A value that varies by instance spreads the object (`style={{ ...NAME, color }}`); a stateful, responsive or repeated property is a `.su-*` class. Then lower the baseline: bun tools/check-styling.ts --update-baseline.',
+    scan: scanStyleObjectAnnotation,
   },
 ]
 

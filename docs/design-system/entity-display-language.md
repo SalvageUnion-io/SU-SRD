@@ -44,7 +44,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E9** Facts are Stats, traits are Mentions or Tags, citations are Tags, sections are Slabs, kinds are Stamps (ruleset §3).
 - **E10** Art appears by schema and room, not by prop; an entity without art shows its censor mark.
 - **E11** The lead appears only while browsing (SRD listings and search page).
-- **E12** Fill follows kind: "have" wears its tone, "do" the ink banner (Row, Card, Page), an ability's tier on numeral and pennant (§3.1); class-page ability Rows wear tier.
+- **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Row, Card or Page, an ability's tier on its numeral and pennant (ruleset §3.1).
 - **E13** Texture and the user-made treatment come from the surface and the instance.
 - **E14** Tables are the Table instrument: a roll bar in a Card, the roll instrument on a Page or panel.
 - **E15** No hand-built entity markup outside `component-lib/src/entity/`.
@@ -53,7 +53,7 @@ Each is checkable; breaking one needs an amendment here first.
 
 ## Which form, where
 
-1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link.
+1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern's loadout on a card or a host's pattern list** — Mention with a framed TL Stat, the book's plain list of names (Core Book p.101); the part's tone stays on its own Row, Card and Page.
 2. **Search, both apps** — Row (no lead), link. **Any prose** — Mention: Peek, then Page.
 3. **ITUN wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **ITUN dense slots** (inventory strip, bays, loadouts) — Token, link. **Deck, resolve** — Row / Card.

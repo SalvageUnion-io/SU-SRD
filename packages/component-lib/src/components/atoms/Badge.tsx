@@ -270,23 +270,7 @@ export function Badge(props: BadgeProps) {
     >
       {swatch != null && <i aria-hidden="true" style={{ ...SWATCH, background: swatch }} />}
       {children}
-      {hasParam && (
-        <span
-          style={{
-            alignItems: 'center',
-            alignSelf: 'stretch',
-            backgroundColor: 'var(--color-paper)',
-            borderInlineStart: 'var(--bw-hairline) solid currentColor',
-            color: 'var(--color-ink)',
-            display: 'flex',
-            fontVariantNumeric: 'tabular-nums',
-            marginInlineStart: 'var(--space-6)',
-            padding: '0 var(--space-6)',
-          }}
-        >
-          {param}
-        </span>
-      )}
+      {hasParam && <span className="su-badge__param">{param}</span>}
     </Tag>
   )
 }

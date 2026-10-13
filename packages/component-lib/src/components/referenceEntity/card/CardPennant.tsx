@@ -1,29 +1,16 @@
-import type { CSSProperties } from 'react'
-import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
 import { buttonVariants } from '../../atoms/buttonVariants'
 import { FOCUS_RING } from '../../atoms/interaction'
 import type { CardSize } from '../../containers/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import { PENNANT_SHAPE } from './cardChrome'
 
-const TYPE: Record<CardSize, string> = {
-  large: fontSize.caption,
-  medium: fontSize.xs,
-  small: fontSize.badge,
-}
-
-const pennantType = (size: CardSize): CSSProperties => ({
-  clipPath: PENNANT_SHAPE,
-  fontFamily: font.cond,
-  fontSize: TYPE[size],
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
-  lineHeight: 1.2,
-  padding: `${space[2]} ${space[14]} ${space[2]} ${space[6]}`,
-  textTransform: 'uppercase',
-  whiteSpace: 'nowrap',
-})
+/**
+ * The pennant's cut, caps face and size are `.su-pennant` classes
+ * (`styles/index.css`), not a style object: every action on a page carries one
+ * (ADR-046, repeated elements). Its shape is `PENNANT_SHAPE` (`cardChrome.ts`),
+ * which the link preview (`OgCard`) also cuts.
+ */
+const pennantClass = (size: CardSize) => `su-pennant su-pennant--${size}`
 
 /**
  * The COST PENNANT at the right of an ink banner (ruleset §5, board E1).
@@ -56,18 +43,7 @@ export function CardPennant({
   // (WCAG 2.5.3): "Activate Auger, spend 1 EP".
   const name = control?.ariaLabel ?? `${verb} ${subject}${cost ? `, spend ${cost}` : ''}`
   if (!control?.onClick) {
-    return (
-      <span
-        style={{
-          ...pennantType(size),
-          backgroundColor: 'var(--color-paper)',
-          color: 'var(--color-ink)',
-          flex: 'none',
-        }}
-      >
-        {label}
-      </span>
-    )
+    return <span className={cn(pennantClass(size), 'su-pennant--read')}>{label}</span>
   }
   return (
     <button
@@ -83,8 +59,11 @@ export function CardPennant({
       title={control.title ?? name}
     >
       <span
-        className={buttonVariants({ variant: 'primary', size: 'mini' })}
-        style={{ ...pennantType(size), borderRadius: 0, borderWidth: 0 }}
+        className={cn(
+          buttonVariants({ variant: 'primary', size: 'mini' }),
+          pennantClass(size),
+          'su-pennant--button'
+        )}
       >
         {label}
       </span>

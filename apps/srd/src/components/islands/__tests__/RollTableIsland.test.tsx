@@ -33,10 +33,29 @@ describe('the roll-table page, before a roll (the server markup)', () => {
   test('prints every band for a crawler, under the ROLL THE DIE stamp', () => {
     const data = coreMechanic()
     render(<RollTableView data={data} state={{ roll: null, history: [] }} />)
-    expect(screen.getByText('Roll the die:')).toBeTruthy()
+    expect(screen.getByText('Roll the Die:')).toBeTruthy()
     const table = screen.getByRole('list', { name: 'Core Mechanic table' })
     expect(within(table).getAllByRole('listitem')).toHaveLength(data.rows.length)
     expect(within(table).getByText('11–19')).toBeTruthy()
+  })
+
+  test('is the shared instrument, banded in the page’s tone', () => {
+    render(
+      <RollTableView
+        data={coreMechanic()}
+        tone="var(--color-wk-line)"
+        state={{ roll: null, history: [] }}
+      />
+    )
+    const table = screen.getByRole('list', { name: 'Core Mechanic table' })
+    const instrument = table.closest('.su-roll') as HTMLElement
+    expect(instrument.style.getPropertyValue('--su-roll-band')).toBe(
+      'color-mix(in srgb, var(--color-wk-line) 25%, var(--color-paper))'
+    )
+    const fills = within(table)
+      .getAllByRole('listitem')
+      .map((row) => row.style.backgroundColor)
+    expect(fills.slice(0, 2)).toEqual(['var(--color-paper)', 'var(--su-roll-band)'])
   })
 
   test('its controls are inert until the island mounts', () => {

@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useContext, useId, useState } from 'react'
 import type {
   EntityInstance,
@@ -22,7 +22,6 @@ import {
   resolveGrantedEntities,
   toEntityModel,
 } from 'salvageunion-reference'
-import { isLegalStartingPattern } from 'salvageunion-reference/rules'
 import { fontSize, space } from '../../../design/tokens'
 import type { RowSlots } from '../../../entity/forms/Row'
 import { Row } from '../../../entity/forms/Row'
@@ -101,6 +100,7 @@ import {
 import type { SplitFacets } from './facetSplit'
 import { splitFacets } from './facetSplit'
 import { GuideSteps } from './GuideSteps'
+import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import { MissingHero } from './MissingArt'
 import type { NestedCardHost } from './NestedCards'
 import { ActionsChip, CardStack, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
@@ -217,22 +217,6 @@ function npcHitPointsTail(entity: object): TokenFact | undefined {
   return {
     label: 'damageType' in entity && entity.damageType === 'SP' ? 'SP' : 'HP',
     value: String(entity.hitPoints),
-  }
-}
-
-/**
- * The card's frame box: the frame lives on the INNER clipping element; the
- * OUTER div is overflow-visible only so the control rail escapes the clip.
- */
-function frameBoxStyle(frameStyle: CSSProperties): CSSProperties {
-  return {
-    ...frameStyle,
-    backgroundColor: 'var(--color-paper)',
-    borderRadius: 'var(--radius-card)',
-    display: 'flex',
-    flex: '1 1 auto',
-    flexDirection: 'column',
-    overflow: 'hidden',
   }
 }
 
@@ -464,8 +448,7 @@ function ReferenceEntityCardInner({
         : []
       : resolveAxisMarkers(entity)
   // "Legal Starting Pattern" is a STORED data tag on the pattern.
-  const isLegalStartingPatternCard =
-    isPattern && 'legalStarting' in pattern && isLegalStartingPattern(pattern.legalStarting)
+  const isLegalStartingPatternCard = isPattern && isLegalStartingPatternOf(pattern)
   const numeral = resolveTierNumeral(entity)
 
   // The SELF-action — an action named like its entity — folds into the card:
@@ -686,8 +669,6 @@ function ReferenceEntityCardInner({
     )
   }
 
-  const frameBox = frameBoxStyle(frameStyle)
-
   // BODY — content + nested groups. A granting ability collapses its own
   // content AND actions (they belong to the granted entity); its description
   // leads, then the granted cards.
@@ -877,13 +858,21 @@ function ReferenceEntityCardInner({
         size={size}
         collapsible={isCatalog || depth > 0 || foldTables}
         disabled={isDown}
+        tone={tone.bgColor}
       />
     ) : null
 
   // PATTERN PROSE — the pattern's own flavour, ahead of the loadout.
+  // A legal starting pattern closes on the book's own sentence for it.
   const patternProse =
-    isPattern && pattern.content && pattern.content.length > 0 ? (
-      <PatternProse name={pattern.name} content={pattern.content} context={prose} onPage={onPage} />
+    isPattern && ((pattern.content && pattern.content.length > 0) || isLegalStartingPatternCard) ? (
+      <PatternProse
+        name={pattern.name}
+        content={pattern.content ?? []}
+        context={prose}
+        onPage={onPage}
+        note={isLegalStartingPatternCard ? LEGAL_STARTING_PATTERN_NOTE : undefined}
+      />
     ) : null
 
   // GUIDE STEPS — the bulk of a guide's prose.
@@ -898,6 +887,7 @@ function ReferenceEntityCardInner({
         isDown={isDown}
         compact={compact}
         collapsibleTables={isCatalog || depth > 0 || foldTables}
+        tableTone={tone.bgColor}
         chassisName={resolvedChassisName}
         NestedCard={ReferenceEntityCardInner}
         page={onPage}
@@ -1121,7 +1111,12 @@ function ReferenceEntityCardInner({
   return (
     <CardOuter {...outer}>
       {topRightRail}
-      <div style={frameBox}>
+      {/* The frame box: the frame lives on this INNER clipping element; the
+        OUTER div is overflow-visible only so the control rail escapes the
+        clip. Its paper, radius and clip are `.su-ec-frame` (every nested
+        card repeats them: ADR-046, repeated elements); its weight, dash and
+        selection ring are this card's. */}
+      <div className="su-ec-frame" style={frameStyle}>
         {header}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
         {subtitleExtra && (

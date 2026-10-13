@@ -9,9 +9,13 @@ import {
   mechCreationBudgetFor,
   mechCreationStepGate,
 } from '../../lib/rules/creation'
-import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
-import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from '../../lib/wizard/mechFormState'
-import { withPreselection } from '../../lib/wizard/preselect'
+import type { MechPattern, MechWizardFormState } from '../../lib/wizard/mechFormState'
+import {
+  EMPTY_MECH_FORM_STATE,
+  mechFormToCreateInput,
+  withPatternPrefill,
+} from '../../lib/wizard/mechFormState'
+import { withMechPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import '../../styles/wizard.css'
 import { GainScrapStep } from '../wizard/GainScrapStep'
@@ -74,6 +78,8 @@ type MechWizardProps = {
   onOffRules?: () => void
   /** A chassis slug to start on (`?chassis=`), already checked by `preselectedChassis`. */
   preselectChassis?: string
+  /** That chassis's pattern to prefill (`?pattern=`), already checked by `preselectedPattern`. */
+  preselectPattern?: MechPattern
 }
 
 /** Slot pips for the tracker tab: ●●●○○ (capped so the tab stays a tab). */
@@ -111,6 +117,7 @@ export function MechWizard({
   onCancel,
   onOffRules,
   preselectChassis,
+  preselectPattern,
 }: MechWizardProps) {
   // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
   // wins over the empty state; cleared on submit/cancelled exit. Drafts pass
@@ -118,19 +125,19 @@ export function MechWizard({
   // once, by toast.
   const draftKey = wizardDraftKey('mech')
   const clampRemovedRef = useRef<string[] | null>(null)
-  // A deep-linked pick (`?chassis=` — see `lib/wizard/preselect.ts`) seeds the
-  // fresh form and fills an empty draft; it is the baseline, so following the
-  // link alone leaves nothing to discard.
+  // A deep-linked pick (`?chassis=`, `?pattern=` — see `lib/wizard/preselect.ts`)
+  // seeds the fresh form and fills an empty draft; it is the baseline, so
+  // following the link alone leaves nothing to discard.
   const baseline = useMemo(
-    () => withPreselection(EMPTY_MECH_FORM_STATE, 'chassisName', preselectChassis),
-    [preselectChassis]
+    () => withMechPreselection(EMPTY_MECH_FORM_STATE, preselectChassis, preselectPattern),
+    [preselectChassis, preselectPattern]
   )
   const [form, setForm] = useState<MechWizardFormState>(() => {
     const draft = readWizardDraft<MechWizardFormState>(draftKey)
     if (!draft) return baseline
     const { form: clamped, removed } = clampMechCreationDraft(draft)
     if (removed.length > 0) clampRemovedRef.current = removed
-    return withPreselection(clamped, 'chassisName', preselectChassis)
+    return withMechPreselection(clamped, preselectChassis, preselectPattern)
   })
   useEffect(() => {
     const removed = clampRemovedRef.current
@@ -206,16 +213,7 @@ export function MechWizard({
    * — `legalStarting` patterns fit by data, and the Review gate re-checks.
    */
   function selectPattern(pattern: ChassisPattern) {
-    updateForm({
-      patternName: pattern.name,
-      name: form.name.trim() === '' ? pattern.name : form.name,
-      systems: pattern.systems.flatMap((s) =>
-        new Array<string>(s.count ?? 1).fill(nameToSlug(s.name))
-      ),
-      modules: pattern.modules.flatMap((m) =>
-        new Array<string>(m.count ?? 1).fill(nameToSlug(m.name))
-      ),
-    })
+    setForm((prev) => withPatternPrefill(prev, pattern))
   }
 
   /** Custom build: clear the prefill for a manual craft (idempotent-ish). */

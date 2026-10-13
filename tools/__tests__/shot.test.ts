@@ -1,12 +1,24 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { resolve } from 'node:path'
 import { WIDTH_PRESETS } from 'catalog/src/catalogRoute'
-import { CHECKOUT_ROOT, portFor } from 'gates/ports'
-import { fileName, ITUN_BASE, isOwnServer, NO_BACKEND, parseArgs, planShot, WIDTHS } from '../shot'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
+import type { Server } from '../shot'
+import {
+  ensureServer,
+  fileName,
+  ITUN_BASE,
+  isOwnServer,
+  NO_BACKEND,
+  parseArgs,
+  planShot,
+  probe,
+  WIDTHS,
+} from '../shot'
 
 /**
  * `tools/shot.ts` — argument parsing and the target → server/path/file plan.
- * The browser and dev-server halves are exercised by running it.
+ * The dev-server half runs against throwaway local servers; the browser half
+ * is exercised by running it.
  */
 
 describe('parseArgs', () => {
@@ -88,4 +100,113 @@ test('fileName slugs the target and marks the width', () => {
 
 test('the widths match the story catalog presets', () => {
   expect(WIDTHS).toEqual(WIDTH_PRESETS)
+})
+
+describe('the dev server', () => {
+  const servers: ReturnType<typeof Bun.serve>[] = []
+  afterEach(() => {
+    for (const server of servers.splice(0)) server.stop(true)
+  })
+
+  /** A local server whose checkout header is `checkout` (none when null). */
+  function serve(checkout: string | null): number {
+    const server = Bun.serve({
+      port: 0,
+      hostname: 'localhost',
+      fetch: () =>
+        new Response('ok', { headers: checkout === null ? {} : { [CHECKOUT_HEADER]: checkout } }),
+    })
+    servers.push(server)
+    return server.port ?? 0
+  }
+
+  /** A port nothing listens on: one a server held, then let go. */
+  function closedPort(): number {
+    const server = Bun.serve({ port: 0, hostname: 'localhost', fetch: () => new Response() })
+    const port = server.port ?? 0
+    server.stop(true)
+    return port
+  }
+
+  const quietly = () => spyOn(console, 'error').mockImplementation(() => undefined)
+
+  test('probe reads the checkout a server names: undefined for nothing, null for none', async () => {
+    expect(await probe(serve(CHECKOUT_ROOT))).toBe(CHECKOUT_ROOT)
+    expect(await probe(serve(null))).toBeNull()
+    expect(await probe(closedPort())).toBeUndefined()
+  })
+
+  test("reuses this checkout's server and leaves it running", async () => {
+    const log = quietly()
+    try {
+      const port = serve(CHECKOUT_ROOT)
+      const stop = await ensureServer({ name: 'srd', port, cmd: ['false'], cwd: CHECKOUT_ROOT })
+      stop()
+      expect(await probe(port)).toBe(CHECKOUT_ROOT)
+      expect(String(log.mock.calls[0]?.[0])).toContain(`reusing the srd server on :${port}`)
+    } finally {
+      log.mockRestore()
+    }
+  })
+
+  test.each([
+    ['/somewhere/else', 'the srd server of /somewhere/else'],
+    [null, 'a server that does not name its checkout'],
+  ])('refuses a server from %p', async (checkout, said) => {
+    const port = serve(checkout)
+    const server: Server = { name: 'srd', port, cmd: ['false'], cwd: CHECKOUT_ROOT }
+    await expect(ensureServer(server)).rejects.toThrow(`:${port} is answered by ${said}`)
+  })
+
+  test(
+    'starts one when nothing answers, on the probed port, and stops it',
+    async () => {
+      const log = quietly()
+      try {
+        const port = closedPort()
+        // Answers as this checkout on the PORT it is given, with the env it is given.
+        const script = `Bun.serve({ port: Number(process.env.PORT), hostname: 'localhost', fetch: () => new Response('ok', { headers: { '${CHECKOUT_HEADER}': process.env.SHOT_TEST_ROOT } }) })`
+        const stop = await ensureServer({
+          name: 'fake',
+          port,
+          cmd: [process.execPath, '-e', script],
+          cwd: CHECKOUT_ROOT,
+          env: { SHOT_TEST_ROOT: CHECKOUT_ROOT },
+        })
+        expect(await probe(port)).toBe(CHECKOUT_ROOT)
+        stop()
+        let after = await probe(port)
+        for (let i = 0; i < 40 && after !== undefined; i++) {
+          await Bun.sleep(50)
+          after = await probe(port)
+        }
+        expect(after).toBeUndefined()
+        expect(String(log.mock.calls[0]?.[0])).toContain(`starting fake`)
+      } finally {
+        log.mockRestore()
+      }
+    },
+    { timeout: 30_000 }
+  )
+
+  test(
+    'reports a server that exits before it answers, with its stderr',
+    async () => {
+      const log = quietly()
+      try {
+        const server: Server = {
+          name: 'broken',
+          port: closedPort(),
+          cmd: [process.execPath, '-e', 'console.error("no config"); process.exit(3)'],
+          cwd: CHECKOUT_ROOT,
+        }
+        await expect(ensureServer(server)).rejects.toThrow(
+          /broken exited \(3\) before answering:\nno config/
+        )
+      } finally {
+        log.mockRestore()
+      }
+    },
+    { timeout: 30_000 }
+  )
 })

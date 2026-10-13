@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import { CHAPTER_BAND_COLOR } from 'component-lib'
 import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
 import type { BuildAssets } from '../document'
 import { routes } from '../routes'
@@ -186,6 +187,20 @@ describe('a pattern page names and links its base chassis', () => {
       /<a href="\/chassis\/jackhammer\/" class="su-inline-ref su-inline-ref--link">Jackhammer<\/a>/
     )
   })
+
+  it('stamps a legal starting pattern in the band, and offers to build it', () => {
+    expect(html).toMatch(/<span class="[^"]*srd-entity-stamp"[^>]*>Legal Starting Pattern<\/span>/)
+    expect(html).toMatch(
+      /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build this mech<\/a>/
+    )
+  })
+
+  it('stamps nothing and offers no build on a pattern the book does not mark legal', () => {
+    const untagged = page('/chassis/jackhammer/pattern/auger')
+    expect(untagged).not.toContain('Legal Starting Pattern')
+    expect(untagged).not.toContain('mechs/new')
+    expect(untagged).not.toContain('Build this mech')
+  })
 })
 
 describe('a class page links its abilities', () => {
@@ -199,6 +214,12 @@ describe('a class page links its abilities', () => {
   })
 })
 
+/**
+ * A roll-table page is in the Rules chapter, so its table bands in the rules
+ * band's colour cut into paper (`rollBandColor`), as the instrument writes it.
+ */
+const RULES_ROLL_BAND = `--su-roll-band:color-mix(in srgb, ${CHAPTER_BAND_COLOR.rules} 25%, var(--color-paper))`
+
 describe('a roll table rolls on its own page (board 08b)', () => {
   const html = page('/roll-tables/core-mechanic')
 
@@ -206,8 +227,24 @@ describe('a roll table rolls on its own page (board 08b)', () => {
     expect(h1s(html)).toEqual(['Core Mechanic'])
     expect(islands(html, 'RollTableIsland')).toBe(1)
     expect(islands(html, 'ReferenceEntityIsland')).toBe(0)
-    expect(html).toContain('Roll the die:')
+    expect(html).toContain('Roll the Die:')
     expect(html).toContain('11–19')
+  })
+
+  it('bands its rows in the page band’s tone, not the tone-less cream', () => {
+    expect(html).toContain(RULES_ROLL_BAND)
+    expect(html).not.toContain('--su-roll-band:var(--color-band-cream)')
+  })
+})
+
+describe('a columns table rolls on its own page too', () => {
+  const html = page('/roll-tables/callsign-table')
+
+  it('is the same instrument, banded in the page band’s tone', () => {
+    expect(h1s(html)).toEqual(['Callsign Table'])
+    expect(html).toContain('class="su-roll__stamp">Roll twice:<')
+    expect(html).toContain(RULES_ROLL_BAND)
+    expect(html).not.toContain('--su-roll-band:var(--color-band-cream)')
   })
 })
 

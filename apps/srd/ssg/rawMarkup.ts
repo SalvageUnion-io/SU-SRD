@@ -15,9 +15,48 @@
  * Mentions, so script bodies are left out of the scan.
  */
 
-/** The rendered body: everything after `<body`, without its script blocks. */
+/** True when `<script` at `at` (in lower-cased html) opens a script tag, not `<scripts`. */
+function opensScript(lower: string, at: number): boolean {
+  const next = lower.charAt(at + '<script'.length)
+  return next === '' || !/[a-z0-9-]/.test(next)
+}
+
+/**
+ * `html` with every `<script …>…</script …>` block cut out, matched without
+ * regard to case. An unterminated `<script` is left in place, so the text after
+ * it is still scanned: the assertion errs toward seeing markup, not hiding it.
+ */
+function withoutScriptsOnce(html: string): string {
+  const lower = html.toLowerCase()
+  let out = ''
+  let cursor = 0
+  let open = lower.indexOf('<script', cursor)
+  while (open >= 0) {
+    if (!opensScript(lower, open)) {
+      open = lower.indexOf('<script', open + 1)
+      continue
+    }
+    out += html.slice(cursor, open)
+    const close = lower.indexOf('</script', open)
+    const end = close < 0 ? -1 : lower.indexOf('>', close)
+    if (end < 0) return out + html.slice(open)
+    cursor = end + 1
+    open = lower.indexOf('<script', cursor)
+  }
+  return out + html.slice(cursor)
+}
+
+/**
+ * The rendered body: everything after `<body`, without its script blocks. The
+ * cut repeats until nothing changes, so pieces left either side of a removed
+ * block cannot join into a new one (`<scr<script></script>ipt>`).
+ */
 export function renderedBody(html: string): string {
-  return html.slice(html.indexOf('<body')).replace(/<script\b[\s\S]*?<\/script>/g, '')
+  let body = html.slice(Math.max(0, html.toLowerCase().indexOf('<body')))
+  for (let cut = withoutScriptsOnce(body); cut !== body; cut = withoutScriptsOnce(body)) {
+    body = cut
+  }
+  return body
 }
 
 /** The first raw `[[` in a page's rendered body, with context, or undefined. */

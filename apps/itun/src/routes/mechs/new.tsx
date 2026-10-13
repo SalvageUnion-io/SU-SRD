@@ -5,15 +5,23 @@ import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
 import { pageTitle } from '../../lib/pageTitle'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { parseCreateMode } from '../../lib/wizard/createMode'
-import { parseSlugParam, preselectedChassis } from '../../lib/wizard/preselect'
+import { parseSlugParam, preselectedChassis, preselectedPattern } from '../../lib/wizard/preselect'
 
 export const Route = createFileRoute('/mechs/new')({
   head: () => ({ meta: [{ title: pageTitle('New Mech') }] }),
   // mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog
   // chassis: a slug deep-linked from an SRD page's "Build with this" (`lib/wizard/preselect.ts`)
-  validateSearch: (search: Record<string, unknown>): { mode: CreateMode; chassis?: string } => {
+  // pattern: that chassis's pattern slug, from an SRD pattern page's "Build this mech"
+  validateSearch: (
+    search: Record<string, unknown>
+  ): { mode: CreateMode; chassis?: string; pattern?: string } => {
     const chassisSlug = parseSlugParam(search.chassis)
-    return { mode: parseCreateMode(search.mode), ...(chassisSlug ? { chassis: chassisSlug } : {}) }
+    const patternSlug = parseSlugParam(search.pattern)
+    return {
+      mode: parseCreateMode(search.mode),
+      ...(chassisSlug ? { chassis: chassisSlug } : {}),
+      ...(patternSlug ? { pattern: patternSlug } : {}),
+    }
   },
   // No loader: the wizard renders inside GameDataReady, whose preload('all')
   // is already the gate for every route, so a per-route preload list here was
@@ -44,6 +52,7 @@ function NewMechRoute() {
             onComplete={handleComplete}
             onCancel={handleCancel}
             preselectChassis={preselectedChassis(search.chassis)}
+            preselectPattern={preselectedPattern(search.chassis, search.pattern)}
             onOffRules={() => void navigate({ to: '/mechs/new', search: { mode: 'blank' } })}
           />
         }

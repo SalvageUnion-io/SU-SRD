@@ -17,7 +17,7 @@
  */
 
 import type { ReferenceEntityControl } from 'component-lib'
-import { ControlButtons, ReferenceEntityCard, RollTable } from 'component-lib'
+import { ControlButtons, ReferenceEntityCard } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
@@ -28,6 +28,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { recordRoll } from './dashboardRolls.model'
+import { RollTable } from './RollTable'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
 import type { PickableTable } from './tableCategories.model'

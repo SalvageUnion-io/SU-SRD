@@ -1,9 +1,13 @@
 import type { CSSProperties, ElementType } from 'react'
+import { useMemo } from 'react'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import { toEntityModel } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Entity } from '../../../entity/Entity'
+import { Mention } from '../../../entity/forms/Mention'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
+import { Stat } from '../../atoms/Stat'
 import { useEntityHref } from '../entityHrefContext'
 import { cardKey } from './cardHelpers'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -29,32 +33,28 @@ const columnStyle = {
   gap: space[6],
 } satisfies CSSProperties
 
-const badgeListStyle = {
+/**
+ * The book's plain list (Core Book p.101: a SYSTEMS / MODULES column of names):
+ * one part a line, never a wrap of pills. Each line is a `.su-loadout-entry`,
+ * which takes the 44px coarse-pointer floor.
+ */
+const entryListStyle = {
   display: 'flex',
+  flexDirection: 'column',
   listStyle: 'none',
   margin: 0,
   padding: 0,
-  flexWrap: 'wrap',
-  alignItems: 'flex-start',
-  gap: space[6],
-} satisfies CSSProperties
-
-/** `fill`: the list stacks its Tokens and stretches each across the column. */
-const fillListStyle = {
-  ...badgeListStyle,
-  alignItems: 'stretch',
-  flexDirection: 'column',
 } satisfies CSSProperties
 
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
- * dashed Slab over a wrap of shortform badges (see `LoadoutBadge`).
+ * dashed Slab over the book's plain list of names (see `LoadoutMention`).
  *
  * One block, not one per group, because the two columns only line up if a
  * single grid owns both: a pattern installs far more systems than modules
  * (Thunder Storm, six to two), so stacked groups left the modules row alone
  * on a line under a mostly-empty one. Single column below `sm` — two columns
- * of badges on a phone would each be too narrow to hold a system name.
+ * on a phone would each be too narrow to hold a system name.
  *
  * NO float handling here, deliberately: a pattern card takes the ASIDE LEAD,
  * which drops the float entirely, so this always renders full width beneath
@@ -71,9 +71,10 @@ export function PatternLoadout({
   sectionAs: ElementType | undefined
   hostDown: boolean
   /**
-   * One Token a line, each the column's full width (`.su-pattern-loadout--fill`):
-   * a pattern's card in its host's list on a page, where the card spans the
-   * page and a wrap of short Tokens would leave each column ragged.
+   * Each line the column's full width, its TL badge at the right edge
+   * (`.su-pattern-loadout--fill`): a pattern's card in its host's list on a
+   * page, where the card spans the page and the badges are easier to scan in a
+   * column of their own than ragged after each name.
    */
   fill?: boolean
   /**
@@ -106,11 +107,11 @@ export function PatternLoadout({
               of anonymous links. `listStyle: none` keeps the markers off. */}
           <ul
             aria-label={`${owner ? `${owner} ` : ''}${group.label} installed`}
-            style={fill ? fillListStyle : badgeListStyle}
+            style={entryListStyle}
           >
             {group.entities.map((item, itemIndex) => (
               <li key={cardKey(item, itemIndex)} style={{ minWidth: 0 }}>
-                <LoadoutBadge data={item} hostDown={hostDown} />
+                <LoadoutMention data={item} hostDown={hostDown} />
               </li>
             ))}
           </ul>
@@ -121,46 +122,49 @@ export function PatternLoadout({
 }
 
 /**
- * `LoadoutBadge` — one installed system/module in a pattern's loadout: a
- * TOKEN (E3), in link mode to that entity's page.
+ * `LoadoutMention` — one installed system/module in a pattern's loadout, as
+ * the book prints it (Core Book p.101: a plain SYSTEMS / MODULES list of
+ * names): a MENTION (E4) of the part, then its Tech Level in a framed Stat.
  *
  * A pattern is a BUILD LIST, not rules to read: its systems and modules are
  * ordinary catalogue entities whose full text lives on their own pages, and
  * printing all of it inline made the loadout the longest thing on the page
  * while burying what the pattern itself says — Atlas's Thunder Storm expanded
- * to six identical, full-length .50 Cal Machine Gun cards. The shortform badge
- * gives the build at a glance and one click through to any entry.
+ * to six identical, full-length .50 Cal Machine Gun cards. The name gives the
+ * build at a glance, the Peek the whole card, and one click its Page.
  *
- * The Token is the entity form for many on a line, NOT a hand-assembled chip:
- * it carries the entity's own tone and its one fact (TL), so the tone and
- * tech-level read survive the compression for free.
+ * NOT a Token: a chassis page prints every pattern's loadout, and nine
+ * TL-toned pills a pattern painted the Mule's page a long block of saturated
+ * blue under its green band. The part's tone stays where the part is the
+ * subject — its own Row, Card and Page; here it is one line of ink, and the TL
+ * reads from the framed `[TL | n]` cell, ink on paper whatever the tone.
  *
- * MULTIPLES REPEAT. Six machine guns are six badges, matching the loadout the
+ * MULTIPLES REPEAT. Six machine guns are six lines, matching the loadout the
  * pattern actually installs (and `resolvePatternGroups`, which emits one entry
- * per copy) — a "×6" count would compress the shape of the build out of a row
+ * per copy) — a "×6" count would compress the shape of the build out of a list
  * whose whole job is showing it.
  *
- * A real `<a>`, for the same reasons as `PatternListRow`: middle-click, hover
- * preview, crawlable. With no `EntityHrefProvider` above it the Token renders
- * inert rather than linking nowhere.
+ * Where the name goes is the SURFACE's (`Mention`): the SRD's route, ITUN's
+ * Page opener, or an inert word that still Peeks. Its accessible name is the
+ * entity's alone, never the TL glued onto it (".50 Cal Machine Gun TL 1", six
+ * times over on Thunder Storm). Each line is `.su-loadout-entry`: 44px tall
+ * under a coarse pointer, the name's hit area the line's full height.
  */
-export function LoadoutBadge({
+export function LoadoutMention({
   data,
   hostDown,
 }: {
   data: ReferenceCardEntity
   hostDown?: boolean
 }) {
-  const href = useEntityHref(data as SURefEntity)
+  const model = useMemo(() => toEntityModel(data as SURefMetaEntity), [data])
   return (
-    <Entity
-      form="token"
-      entity={data as SURefMetaEntity}
-      // The Token's own accessible name is the entity's: never the tail glued
-      // onto it (".50 Cal Machine Gun TL 1", six times over on Thunder Storm).
-      mode={href ? { kind: 'link', href } : { kind: 'read' }}
-      {...(hostDown ? { instance: { condition: 'damaged' as const } } : {})}
-    />
+    <span className="su-loadout-entry" data-down={hostDown || undefined}>
+      <Mention entityRef={model.ref}>{model.title}</Mention>
+      {model.techLevel != null && (
+        <Stat orientation="horizontal" label="TL" value={String(model.techLevel)} size="mini" />
+      )}
+    </span>
   )
 }
 
@@ -180,8 +184,8 @@ const LOADOUT_ROWS: CSSProperties = {
 
 /**
  * A pattern PAGE's loadout, under its stats: each group (Systems, Modules) a
- * solid Slab with its count over a grid of ROWS, one form up from the card's
- * Tokens. On its own page the build is the subject, so each part shows its
+ * solid Slab with its count over a grid of ROWS, where the card lists names.
+ * On its own page the build is the subject, so each part shows its
  * head and facts, links to its page and Peeks its whole card (the Row's
  * `peek`). No art column: the page's hero is the pattern's.
  */

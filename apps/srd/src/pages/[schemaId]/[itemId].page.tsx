@@ -9,7 +9,12 @@
  * band. A roll table gets its own page to roll on (board 08b).
  */
 
-import { assetSrcSetFor, heroImageSizes, resolveEntityPageMeta } from 'component-lib'
+import {
+  assetSrcSetFor,
+  CHAPTER_BAND_COLOR,
+  heroImageSizes,
+  resolveEntityPageMeta,
+} from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../ssg/types'
@@ -50,13 +55,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const fill = bandFillFor(schemaId, item)
   const pageMeta = resolveEntityPageMeta(item)
   // A banded d20 table rolls on a page of its own (board 08b), and so does a
-  // two-roll columns table; every other entity is the card's page.
+  // two-roll columns table; every other entity is the card's page. The table
+  // bands in the page's own tone: its band's colour.
   const rollTable = rollTablePageData(item)
   const columnsTable = rollTable ? null : columnsTablePageData(item)
+  const pageTone = fill?.band ?? CHAPTER_BAND_COLOR[chapter.tone]
   const rollPage = rollTable ? (
-    <RollTablePage data={rollTable} />
+    <RollTablePage data={rollTable} tone={pageTone} />
   ) : columnsTable ? (
-    <ColumnsTablePage data={columnsTable} />
+    <ColumnsTablePage data={columnsTable} tone={pageTone} />
   ) : null
   const canonicalUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 

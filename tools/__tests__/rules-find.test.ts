@@ -1,8 +1,8 @@
-import { afterAll, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { findHits, joinWraps, snippets, sources, termPattern } from '../rules-find'
+import { findHits, joinWraps, main, snippets, sources, termPattern } from '../rules-find'
 
 const temps: string[] = []
 afterAll(() => {
@@ -112,5 +112,86 @@ describe('findHits', () => {
       'Core Book p.1: the Heat Check',
       'Blog p.1: a Heat Check',
     ])
+  })
+})
+
+describe('main', () => {
+  const core = 'Salvage Union Digital Edition 2.0a.txt'
+  const old = 'Salvage Union Digital Edition 2.0.txt'
+
+  afterEach(() => {
+    process.exitCode = 0
+  })
+
+  /** Runs the command against `dir`, returning what it printed and its exit code. */
+  function run(args: string[], dir: string | undefined) {
+    const out = spyOn(console, 'log').mockImplementation(() => undefined)
+    const err = spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      process.exitCode = 0
+      main(args, () => dir)
+      return {
+        out: out.mock.calls.map((c) => String(c[0])),
+        err: err.mock.calls.map((c) => String(c[0])),
+        code: process.exitCode,
+      }
+    } finally {
+      out.mockRestore()
+      err.mockRestore()
+    }
+  }
+
+  test('prints each hit, then a summary naming the books searched', () => {
+    const dir = extract({ [core]: ['no hit', 'over your Heat\nCapacity.'], [old]: ['Heat Cap'] })
+    const { out, code } = run(['heat', 'cap'], dir)
+    expect(code).toBe(0)
+    expect(out[0]).toBe('Core Book p.2: over your Heat Capacity.')
+    expect(out[1]).toContain(
+      '1 hit for "heat cap" in Core Book = Salvage Union Digital Edition 2.0a'
+    )
+    expect(out[1]).toContain('(flow layer,')
+    expect(out[1]).toContain('--all searches every edition.')
+  })
+
+  test('--all searches every text; --raw reads the raw layer', () => {
+    const dir = extract(
+      { [core]: ['Heat Check'], [old]: ['a Heat Check'] },
+      { [core]: ['the Heat Check'] }
+    )
+    const { out } = run(['heat', 'check', '--all', '--raw'], dir)
+    expect(out.slice(0, 2).sort()).toEqual([
+      'Salvage Union Digital Edition 2.0 p.1: a Heat Check',
+      'Salvage Union Digital Edition 2.0a p.1: the Heat Check',
+    ])
+    expect(out[2]).toContain('2 hits for "heat check" in 2 texts (raw layer,')
+    expect(out[2]).not.toContain('--all searches')
+  })
+
+  test('--limit caps the hits shown and says how to see them all', () => {
+    const dir = extract({ [core]: ['Heat one', 'Heat two', 'Heat three'] })
+    const { out } = run(['heat', '--limit=2'], dir)
+    expect(out.slice(0, 2)).toEqual(['Core Book p.1: Heat one', 'Core Book p.2: Heat two'])
+    expect(out[2]).toContain('3 hits')
+    expect(out[2]).toContain('Showing 2: --limit=0 prints all.')
+    expect(run(['heat', '--limit=0'], dir).out).toHaveLength(4)
+  })
+
+  test.each([
+    [[]],
+    [['--all']],
+    [['heat', '--frob']],
+    [['heat', '--limit=-1']],
+    [['heat', '--limit=two']],
+  ])('refuses %p with the usage line', (args) => {
+    const { out, err, code } = run(args, extract({ [core]: ['Heat'] }))
+    expect(code).toBe(1)
+    expect(err[0]).toStartWith('Usage: bun run rules:find')
+    expect(out).toEqual([])
+  })
+
+  test('says where to get the extract when there is none', () => {
+    const { err, code } = run(['heat'], undefined)
+    expect(code).toBe(1)
+    expect(err[0]).toContain('No rules extract')
   })
 })

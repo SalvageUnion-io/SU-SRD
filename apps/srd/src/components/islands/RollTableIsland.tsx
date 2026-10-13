@@ -8,6 +8,8 @@ import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type RollTableIslandProps = {
   data: RollTablePageData
+  /** The page's band colour, which the table's rows band in. */
+  tone?: string
   /**
    * The die for this table. Injectable so a test controls the roll; defaults
    * to `dieForTable` — @randsum/salvageunion's `rollTable` for a named Salvage
@@ -22,7 +24,7 @@ type RollTableIslandProps = {
  * roll-table data it reads) loads on the first Roll, through `dieForTable`'s
  * dynamic import, and never ships in the island's own bundle.
  */
-export function RollTableIsland({ data, dieFor = dieForTable }: RollTableIslandProps) {
+export function RollTableIsland({ data, tone, dieFor = dieForTable }: RollTableIslandProps) {
   const [state, setState] = useState<RollState>({ roll: null, history: [] })
 
   const onRoll = () => {
@@ -34,7 +36,7 @@ export function RollTableIsland({ data, dieFor = dieForTable }: RollTableIslandP
 
   return (
     <IslandErrorBoundary>
-      <RollTableView data={data} state={state} onRoll={onRoll} />
+      <RollTableView data={data} tone={tone} state={state} onRoll={onRoll} />
     </IslandErrorBoundary>
   )
 }

@@ -1,9 +1,10 @@
 import type { CSSProperties } from 'react'
 import { assetSrcSetFor } from '../../components/compositions/assetSrcSet'
 import { CardPennant } from '../../components/referenceEntity/card/CardPennant'
-import { grainStyle } from '../../components/referenceEntity/card/cardGrain'
+import { grainClass } from '../../components/referenceEntity/card/cardGrain'
 import { MissingArtMark } from '../../components/referenceEntity/card/MissingArt'
 import { font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -111,10 +112,9 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
           ) : null}
         </span>
         <div
-          className="su-entity-tile__band"
+          className={cn('su-entity-tile__band', grainClass(paint.grain))}
           data-grain={paint.grain}
           style={{
-            ...grainStyle(paint.grain),
             backgroundColor: paint.background,
             color: paint.color,
             columnGap: space[6],

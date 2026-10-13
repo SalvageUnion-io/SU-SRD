@@ -1,0 +1,173 @@
+/*
+ * The package stylesheet, part 18 of 21: choices, content and patterns.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ── choices, content and patterns ── */
+
+/* `choiceCard/ChoiceGroups.tsx` — the option masonry. One column, two from `sm`
+   unless compact: the column count is responsive, so it lives here. */
+.su-choice-options {
+  columns: 1;
+}
+
+@media (min-width: 40rem) {
+  .su-choice-options--split {
+    columns: 2;
+  }
+}
+
+/* The free-text field's border colour: ink at 20%, full ink while focused. */
+.su-stampseal-field__input {
+  border-color: var(--color-ink-20);
+}
+
+.su-stampseal-field__input:focus {
+  border-color: var(--color-ink);
+}
+
+/* The field's floating stamp label. It rides the field's top border; while
+   the field is empty and unfocused (a single-space placeholder makes
+   `:placeholder-shown` mean "empty") it drops inside like a placeholder, and
+   focus snaps it back up. Sibling-state driven, so a class; the focus rule
+   comes last and wins when both match. */
+.su-stampseal-field__label {
+  top: 0;
+  translate: 0 -50%;
+}
+
+.su-stampseal-field__input:placeholder-shown ~ .su-stampseal-field__label {
+  top: var(--space-14);
+  translate: 0 0;
+  opacity: 0.6;
+}
+
+.su-stampseal-field__input:focus ~ .su-stampseal-field__label {
+  top: 0;
+  translate: 0 -50%;
+  opacity: 1;
+}
+
+/* `card/ChoiceRegion.tsx` — a choice sits 12px above whatever follows it, and
+   flush when it is last (a structural `:not(:last-child)`). */
+.su-choice-region:not(:last-child) {
+  margin-bottom: var(--space-12);
+}
+
+/* `EntityDetailDialog.tsx` — the black close stamp: ink, ink-2 on hover.
+   Doubled with `.su-btn` so it out-ranks the ghost variant's resting and hover
+   fills it composes (`.su-btn--ghost:hover:not(:disabled)`). */
+.su-btn.su-detail-dialog__close {
+  background-color: var(--color-ink);
+}
+
+.su-btn.su-detail-dialog__close:hover:not(:disabled) {
+  background-color: var(--color-ink-2);
+}
+
+/* `card/PatternLoadout.tsx` — Systems and Modules side by side from `sm`, with
+   a rule between the columns there and nowhere else. */
+.su-pattern-loadout {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 40rem) {
+  .su-pattern-loadout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-pattern-loadout__column--ruled {
+    border-left: var(--bw-chrome) solid var(--color-ink-20);
+    padding-left: var(--space-12);
+  }
+}
+
+/* `LoadoutMention` — one part of a pattern's loadout, as the book lists it: the
+   name (a Mention, in the list's own ink), then its framed TL cell. The name
+   wraps rather than pushing the cell off the line. A loadout under a host that
+   is down reads muted, as its Tokens once greyed. */
+.su-loadout-entry {
+  align-items: center;
+  display: flex;
+  gap: var(--space-6);
+  min-width: 0;
+  padding-block: var(--space-2);
+}
+
+.su-loadout-entry > .su-inline-ref {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.su-loadout-entry > .su-stat-cell {
+  flex: none;
+}
+
+.su-loadout-entry[data-down] {
+  color: var(--color-wk-muted);
+}
+
+/* A pattern card's loadout on a page (`PatternLoadout fill`): the TL cells
+   stand in a column at the right edge, where they scan down the list. */
+.su-pattern-loadout--fill .su-loadout-entry {
+  justify-content: space-between;
+}
+
+/* Thumb first (ruleset §4.6): each line is a 44px row under a coarse pointer,
+   and the name's hit area spans the row's height, so neighbouring names never
+   overlap. */
+@media (pointer: coarse) {
+  .su-loadout-entry {
+    min-height: 44px;
+    padding-block: 0;
+  }
+
+  .su-loadout-entry > .su-inline-ref {
+    position: relative;
+  }
+
+  .su-loadout-entry > .su-inline-ref::after {
+    content: '';
+    height: 44px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+/* `pattern/*` — a pattern's equipment groups, side by side from `lg`. */
+.su-pattern-equipment {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 64rem) {
+  .su-pattern-equipment {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* `pattern/*` — the `space-y-*` stacks (`stackClassName` in
+   `referenceEntityTypes.ts`): a child-selector rule.
+   `:where()` keeps it at zero specificity, so a child's
+   own margin class still wins over the stack's. */
+:where(.su-pattern-stack > :not(:last-child)) {
+  margin-block-start: 0;
+}
+
+:where(.su-pattern-stack--6 > :not(:last-child)) {
+  margin-block-end: var(--space-6);
+}
+
+:where(.su-pattern-stack--8 > :not(:last-child)) {
+  margin-block-end: var(--space-8);
+}
+
+:where(.su-pattern-stack--12 > :not(:last-child)) {
+  margin-block-end: var(--space-12);
+}
+
+:where(.su-pattern-stack--16 > :not(:last-child)) {
+  margin-block-end: var(--space-16);
+}

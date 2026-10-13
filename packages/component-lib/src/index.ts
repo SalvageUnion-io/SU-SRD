@@ -53,6 +53,7 @@ export { Textarea } from './components/atoms/inputs'
  */
 export {
   FOCUS_RING,
+  FOCUS_RING_ON_TONE,
   INPUT_FOCUS,
 } from './components/atoms/interaction'
 export { KvRow } from './components/atoms/KvRow'
@@ -97,9 +98,13 @@ export { Colophon } from './components/compositions/Colophon'
 // ITUN's Dashboard display panel lays out entity controls with it directly.
 export { ControlButtons } from './components/compositions/ControlButtons'
 export { heroImageSizes } from './components/compositions/cardImageSizes'
-export { CopyFeedbackProvider } from './components/compositions/copyFeedbackContext'
-// digestRollTable — a banded d20 table as rows, highest first (the book's order)
-export { digestRollTable } from './components/compositions/digestRollTable'
+// digestRollTable — a banded d20 table as rows, highest first (the book's order);
+// digestColumnsTable — a two-roll columns table (Callsign) as its columns
+export type {
+  DigestedColumnsColumn,
+  RollTableType,
+} from './components/compositions/digestRollTable'
+export { digestColumnsTable, digestRollTable } from './components/compositions/digestRollTable'
 export { EntitySearcher } from './components/compositions/EntitySearcher'
 export type { FooterFoot } from './components/compositions/Footer'
 export { Footer } from './components/compositions/Footer'
@@ -123,7 +128,9 @@ export {
 // The searcher picker's modal width — for a bare ModalShell wrapping a
 // multi-select EntitySearcher (ITUN's SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './components/compositions/pickerModalWidth'
-export { RollTable } from './components/compositions/RollTable'
+// RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
+// the SRD roll-table page's bands, banded in the surface tone
+export { RollTableInstrument } from './components/compositions/RollTableInstrument'
 // StepButton is deliberately NOT exported: it is an internal atom composed by
 // CountStepper (its only consumer), demonstrated via its own co-located story.
 // Every hand-assembled '-'/value/'+' cluster in the apps now renders through
@@ -170,6 +177,13 @@ export { entityGuideToneColor } from './components/referenceEntity/card/entityCa
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './components/referenceEntity/card/entityPage'
+// The book's starting builds: the stamp, its sentence and the stored-tag test,
+// for a page band that wears the stamp outside the card.
+export {
+  isLegalStartingPatternOf,
+  LEGAL_STARTING_PATTERN,
+  LEGAL_STARTING_PATTERN_NOTE,
+} from './components/referenceEntity/card/legalStartingPattern'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'
@@ -239,6 +253,8 @@ export { cn } from './utils/cn'
 // @randsum/salvageunion, every other die through @randsum/roller.
 export type { TableDie } from './utils/dice'
 export { dieForTable, rollD20, rollForTable } from './utils/dice'
+// Prose with its `[[Trait]]` references drawn as Mentions (ITUN's RollTable).
+export { useParseTraitReferences } from './utils/parseTraitReferences'
 // The one place a schema id becomes a human label ('crawler-bays' →
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't
 // spell the same schema differently.

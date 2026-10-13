@@ -76,7 +76,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    5. **Gauge** — segmented current/max: `VitalGauge`.
    6. **Btn** — rust action, the only mutator: `Button` / `buttonVariants`.
    7. **Slab** — section stamp + leader rule: `Slab`.
-   8. **RollTable** — banded d20 map: `RollTable`.
+   8. **RollTable** — banded d20 map in the surface tone: `RollTableInstrument`.
    9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.

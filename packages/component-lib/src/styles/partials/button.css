@@ -1,0 +1,229 @@
+/*
+ * The package stylesheet, part 2 of 21: Button: its variants and size ladder,
+ * and the cost pennant as the action button. `../index.css` imports the parts
+ * in cascade order.
+ */
+
+/* ══ Button ═════════════════════════════════════════════════════════════════
+ *
+ * The `.btn` recipe (design-spec §2.4), ported from the `buttonVariants` cva.
+ *
+ * ALL of it is here, geometry and type included — not just the stateful half.
+ * `buttonVariants` is a public class-string export that both apps put on `<a>`
+ * elements the library never renders, so there is no element for a style object
+ * to attach to. That is the class-string exemption in this package's CLAUDE.md,
+ * and it is why this block is larger than the split rule alone would predict.
+ *
+ * ORDER MATTERS TWICE in here, and both are single-class specificity, so source
+ * position is the tiebreak:
+ *   · size modifiers come after the base, so `--mini` can override the base gap
+ *     and radius;
+ *   · the whole block sits BEFORE `.su-caps`, so the caps recipe wins
+ *     `font-family` on the two rungs that compose it (`--mini`, `--instrument`).
+ */
+.su-btn {
+  align-items: center;
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-chrome);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  gap: var(--space-8);
+  justify-content: center;
+  letter-spacing: normal;
+  transition:
+    color 120ms,
+    background-color 120ms,
+    border-color 120ms;
+  white-space: nowrap;
+}
+
+/* ── Variants. Colour only, and every one of the three colour properties is
+      overridden on :hover or :disabled, so all three keep their RESTING value
+      here rather than inline — see the per-property note at the top of the
+      stateful section. ── */
+.su-btn--default {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-btn--default:hover:not(:disabled) {
+  background-color: var(--color-ink-8);
+}
+
+.su-btn--ghost {
+  background-color: transparent;
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-btn--ghost:hover:not(:disabled) {
+  background-color: var(--color-ink-8);
+}
+
+/* The rust allowlist's stylesheet half (ruleset §3.1): rust is Button's.
+   These four lines are the only rust in this file, and each says so. */
+.su-btn--primary {
+  background-color: var(--color-rust); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
+  border-color: var(--color-rust); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
+  color: var(--color-paper);
+}
+
+.su-btn--primary:hover:not(:disabled) {
+  background-color: var(--color-rust-hi); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
+  border-color: var(--color-rust-hi); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
+}
+
+.su-btn--danger {
+  background-color: var(--color-status-bad);
+  border-color: var(--color-status-bad);
+  color: var(--color-paper);
+}
+
+.su-btn--danger:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+/*
+ * The DRAINED disabled treatment, for the FILLED variants only.
+ *
+ * The shared 40% fade (`.su-disabled`) is right for an outline button and wrong
+ * for a solid fill: rust at 40% is a pastel salmon and red at 40% is pink, and
+ * both read as an enabled variant nobody recognises rather than as an off
+ * control. A disabled control should look DRAINED, not tinted, so the fill is
+ * emptied to a flat ink wash. `opacity: 1` cancels the shared fade, exactly as
+ * `disabled:opacity-100` did.
+ */
+.su-btn--primary:disabled,
+.su-btn--danger:disabled {
+  background-color: var(--color-ink-8);
+  border-color: var(--color-ink-30);
+  color: var(--color-ink-50);
+  opacity: 1;
+}
+
+/*
+ * "You are here" on a ghost button (NavDrawer's current page): the inverse
+ * plate — ink with paper text — never the rust primary, because the current
+ * page is a state, not an action (ruleset §3.1). Two classes, so it outranks
+ * the plain ghost resting and hover colours without leaning on source order.
+ */
+.su-btn--ghost.su-btn--here,
+.su-btn--ghost.su-btn--here:hover:not(:disabled) {
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/*
+ * INSTRUMENT × ghost — an ink hairline on the cream instrument chassis, going to
+ * a paper fill on hover. The one variant the dashboard HUD uses.
+ *
+ * This was a cva `compoundVariant`, and a compound SELECTOR is the natural CSS
+ * shape for it — which also gives it the 2-class specificity it needs to beat
+ * plain `.su-btn--ghost` above without depending on source order.
+ */
+.su-btn--instrument.su-btn--ghost {
+  background-color: transparent;
+  border-color: var(--color-ink-30);
+  color: var(--color-ink);
+}
+
+.su-btn--instrument.su-btn--ghost:hover:not(:disabled) {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink-50);
+}
+
+/* ── The size ladder (styles/sizing.ts). The odd numbers are the arbitrary
+      values carried verbatim from the first port — 22px, 6px, 3px —
+      because rounding them onto the space scale would resize every button. ── */
+.su-btn--full {
+  font-size: var(--text-lede);
+  padding: var(--space-12) 22px;
+}
+
+.su-btn--compact {
+  font-size: var(--text-xs);
+  padding: var(--space-6) 11px;
+}
+
+/* The compact uppercase action chip ('⇄ Swap', '✕ Remove'): badge radius,
+   tighter gap, and deliberately NO letterspacing. Its condensed caps come from
+   the `capsLabel` classes the recipe composes in, not from here. */
+.su-btn--mini {
+  border-radius: var(--radius-badge);
+  gap: var(--space-4);
+  padding: 3px var(--space-8);
+}
+
+/*
+ * The SQUARE icon-only rung — a glyph with no label (a close ✕, a collapse
+ * chevron, a search magnifier).
+ *
+ * A size rung rather than its own component because an icon button differs from
+ * a worded one only in geometry: same frame, variants, focus ring and disabled
+ * treatment, including the visible focus ring a hand-rolled square forgets.
+ *
+ * 36px is the resting geometry, comfortably past the WCAG 2.5.8 24px minimum. A
+ * call site that must line up with a neighbouring control overrides width and
+ * height at the call site.
+ */
+.su-btn--icon-only {
+  flex-shrink: 0;
+  font-size: var(--text-base);
+  gap: 0;
+  height: 36px;
+  line-height: 1;
+  padding: 0;
+  width: 36px;
+}
+
+/*
+ * A show page's top controls, one height in both apps: the srd entity page's
+ * "Build with this", the ITUN sheet bar's back, Share, "⋯" and phone switch,
+ * and the sheet band's Read | Edit and "Make a copy". Each was sized by its
+ * own rung (a compact link, a 38px square, a 40px toggle, a full button), so a
+ * row of them stepped. Height only: each keeps its own padding and type. Under
+ * a coarse pointer the 44px floor lifts them all alike.
+ */
+.su-page-action {
+  height: var(--space-40);
+}
+
+/* ══ The entity card's cost pennant as the action button ════════════════════
+ *
+ * In the Dashboard the pennant on an action's ink banner IS the action button
+ * (ruleset §1, board E3): the same size, shape and place as the read pennant,
+ * filled rust. The rust pennant is a `buttonVariants` span (the allowlist's
+ * painter, §3.1); this button is its INVISIBLE hit area — 44px under every
+ * pointer (§4.6) — pulled back by negative margins so the band keeps the
+ * pennant's own size. A clip-path on the button itself would clip the hit
+ * area too, which is why the shape lives on the span. `CardPennant.tsx`.
+ */
+.su-ec-pennant-btn {
+  align-items: center;
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  margin: calc(-1 * var(--space-12)) calc(-1 * var(--space-8));
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-8);
+}
+
+/* Spent or locked: the pennant drains to the read pennant's paper, its text
+   faded — state, not a second hue. */
+.su-ec-pennant-btn:disabled {
+  cursor: default;
+}
+
+.su-ec-pennant-btn:disabled > .su-btn--primary {
+  background-color: var(--color-paper);
+  color: var(--color-ink-50);
+}

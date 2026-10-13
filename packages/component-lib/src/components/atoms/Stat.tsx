@@ -58,6 +58,26 @@ const STATE_BORDER: Record<StatBorderState, string> = {
   critical: color.statusBad,
 }
 
+/**
+ * The horizontal cell's border by state, as a class: the cell repeats on every
+ * row of a listing, so its frame is `.su-stat-cell` (ink) plus one of these,
+ * not a style object (ADR-046, repeated elements). Mirrors `STATE_BORDER`.
+ */
+const STATE_BORDER_CLASS: Record<StatBorderState, string | undefined> = {
+  default: undefined,
+  good: 'su-stat-cell--good',
+  modified: undefined,
+  caution: 'su-stat-cell--caution',
+  critical: 'su-stat-cell--critical',
+}
+
+/** The plate halves' type, by rung (`.su-stat-plate--<rung>`). */
+const PLATE_RUNG: Record<SizeRung, string> = {
+  full: 'su-stat-plate--full',
+  compact: 'su-stat-plate--compact',
+  mini: 'su-stat-plate--mini',
+}
+
 /** `modified`'s extra 1px ink ring rides a class, not the style object: on the
  * clickable box an inline `box-shadow` would mask the shared focus ring. */
 const STATE_RING_CLASS = 'su-stat--modified'
@@ -122,6 +142,7 @@ type StatPropKey =
   | 'ariaLabel'
   | 'className'
   | 'truncate'
+  | 'wrap'
 
 /** `T`, plus every stat prop NOT in `T` forbidden (`?: never`) — the exclusion
  * that makes the anatomies genuinely non-overlapping at the type level. */
@@ -215,6 +236,14 @@ type HorizontalValueProps = Exact<{
    * cut mid-word by the row's clip. The label never shrinks.
    */
   truncate?: boolean
+  /**
+   * A cell in a wrapping row whose value may be longer than the row is wide
+   * (a hybrid class's `REQ | Augmentation or Gladiatorial` in a catalog
+   * tile): alone on its line, the cell narrows to the row and its value wraps
+   * onto more lines, rather than being clipped by the frame. A cell that fits
+   * is unchanged. The label never wraps.
+   */
+  wrap?: boolean
   className?: string
 }>
 
@@ -307,16 +336,9 @@ function HorizontalValue({
   stepperLabel,
   hoverText,
   truncate = false,
+  wrap = false,
   className,
 }: HorizontalValueProps) {
-  // Both halves of the cell take the rung's type; line-height is 1 throughout.
-  const plateType = {
-    fontSize: size === 'mini' ? fontSize.badge : size === 'compact' ? fontSize.xs : fontSize.sm,
-    fontWeight:
-      size === 'mini' ? weight.bold : size === 'compact' ? weight.normal : weight.semibold,
-    lineHeight: 1,
-    textTransform: 'uppercase',
-  } satisfies CSSProperties
   const mainSurface: StampSurface = inverse ? 'inverse' : 'on-ink'
   const valueSurface: StampSurface = inverse ? 'on-ink' : 'inverse'
 
@@ -353,51 +375,39 @@ function HorizontalValue({
     )
   }
 
+  // The cell and both plate halves are classes, not style objects: a listing
+  // repeats the cell on every row (ADR-046, repeated elements). Callers also
+  // override the cell's `display` and `flex-shrink` by className (the sheet's
+  // condensed bar folds cells with `su-sheet-live-stat-fold`), which an inline
+  // style would beat. Only the chip role's tint stays inline.
   const cell = (
     <span
-      // `display` and `flex-shrink` stay in a class: callers override them by
-      // className (the sheet's condensed bar folds cells with `hidden sm:inline-flex`).
       className={classes(
         'su-stat-cell',
+        STATE_BORDER_CLASS[state],
         !inline && 'su-stat-cell--block',
         truncate && 'su-stat-cell--truncate',
+        wrap && 'su-stat-cell--wrap',
         state === 'modified' && STATE_RING_CLASS,
         className
       )}
-      style={{
-        alignItems: 'stretch',
-        borderColor: STATE_BORDER[state],
-        borderRadius: radius.badge,
-        borderStyle: 'solid',
-        borderWidth: borderWidth.hairline,
-        cursor: 'default',
-        flexGrow: 0,
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-        width: 'fit-content',
-        ...(truncate ? { minWidth: 0 } : undefined),
-      }}
     >
       <Badge
         shape="stamp"
         size="mini"
         surface={mainSurface}
-        // Stretch to the FULL cell height (overriding the stamp's inline-block)
-        // so the label's ink background always covers the whole cell, and
-        // center the text vertically — even when the row stretches it. The
-        // CELL draws the single rounded border; the `inverse` plate's own
-        // inset ring would double it, so both halves suppress it.
-        style={{
-          ...plateType,
-          alignItems: 'center',
-          alignSelf: 'stretch',
-          boxShadow: 'none',
-          display: 'flex',
-          // Two-line label cell (e.g. "Tech" / "Level") when a bottomLabel is set.
-          ...(bottomLabel !== undefined ? { flexDirection: 'column' } : undefined),
-          justifyContent: 'center',
-          ...(bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined),
-        }}
+        // Stretched to the FULL cell height (over the stamp's inline-block) so
+        // the label's ink covers the whole cell, its text centred even when
+        // the row stretches it; a two-line label (`bottomLabel`) stacks. The
+        // CELL draws the single rounded border, so neither half keeps the
+        // `inverse` plate's inset ring.
+        className={classes(
+          'su-stat-plate',
+          PLATE_RUNG[size],
+          'su-stat-plate--label',
+          bottomLabel !== undefined && 'su-stat-plate--stack'
+        )}
+        style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
       >
         {bottomLabel !== undefined ? (
           <>
@@ -413,22 +423,16 @@ function HorizontalValue({
           shape="stamp"
           size="mini"
           surface={valueSurface}
-          style={{
-            ...plateType,
-            alignSelf: 'stretch',
-            boxShadow: 'none',
-            // A block when truncating, so the ellipsis applies (a flex box's
-            // text never gets one).
-            ...(truncate
-              ? {
-                  display: 'block',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }
-              : { alignItems: 'center', display: 'flex', gap: '1px' }),
-          }}
+          // A block when truncating, so the ellipsis applies (a flex box's
+          // text never gets one).
+          className={classes(
+            'su-stat-plate',
+            PLATE_RUNG[size],
+            truncate ? 'su-stat-plate--truncate' : 'su-stat-plate--value',
+            // Wrapping, it narrows with its cell; a word longer than the row
+            // breaks rather than being clipped.
+            wrap && !truncate && 'su-stat-plate--wrap'
+          )}
         >
           {value}
           {max !== undefined && (

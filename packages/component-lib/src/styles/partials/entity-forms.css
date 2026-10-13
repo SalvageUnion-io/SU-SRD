@@ -1,0 +1,418 @@
+/*
+ * The package stylesheet, part 3 of 21: the entity forms: Row and Token.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ The entity forms: Row and Token (entity display language) ═════════════
+ *
+ * `src/entity/forms/`. A ROW is an inline-size container, so its art column
+ * appears by ROOM (E10): only once the row is 18rem wide, whatever the
+ * viewport. Its floor is a Token's ceiling (E3, 12rem), so a Row in a
+ * shrink-wrapped slot never collapses to nothing. A link-mode Row is an `<a>`
+ * and keeps the page's ink, not a link's colour or underline.
+ *
+ * Every part's static geometry is here, not in a style object, because a
+ * listing repeats it on every row and token (ADR-046, repeated elements). The
+ * paint (a tone, ink, grey when down) is the component's, inline.
+ */
+.su-entity-row {
+  color: inherit;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  position: relative;
+  text-decoration: none;
+}
+
+/* The frame: ink on paper, dashed when player-made (ruleset §3.9). */
+.su-entity-row__frame {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-entity-compact);
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.su-entity-row__frame[data-user-made] {
+  border-style: dashed;
+}
+
+/* A Row that is its head alone (`data-bodyless`: a base class, a roll table,
+   with no facts and no lead to show) is its head's height wherever it stands:
+   stretched by a grid or a flex line beside bodied Rows, its frame keeps the
+   head's height instead of opening an empty paper strip under it. */
+.su-entity-row__frame[data-bodyless] {
+  flex: none;
+}
+
+.su-entity-row__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* HEAD (`entity/parts/Head.tsx`): the band, wearing the paint and its grain. */
+.su-entity-row__head {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-6) var(--space-10);
+}
+
+/* The one line that never wraps: tier, name and labels, hint, stamps,
+   pennant, affordance. */
+.su-entity-row__line {
+  align-items: center;
+  column-gap: var(--space-8);
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+/* The name and its labels: the row's room, the labels right after the name. */
+.su-entity-row__name {
+  align-items: center;
+  column-gap: var(--space-8);
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* The title: two lines, then "…" (its full name in a tooltip). Beside its
+   labels it gives way first, wrapping at spaces (a high shrink), but keeps its
+   longest word whole: only then do the labels give way. */
+.su-entity-row__title {
+  display: -webkit-box;
+  flex: 0 100 auto;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.05;
+  margin: 0;
+  min-width: min-content;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* An ability's tier numeral, at the left: the title's face, dimmed. */
+.su-entity-row__tier {
+  display: inline;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.05;
+  margin: 0;
+  min-width: 0;
+  opacity: 0.75;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* The labels give way once the name cannot wrap further, truncating with "…". */
+.su-entity-row__labels {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* The paper body: the facts, the tags, the lead. */
+.su-entity-row__body {
+  align-content: flex-start;
+  align-items: center;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-10) var(--space-6);
+}
+
+/* The art column: the row's full height, ruled off in ink. A listing may size
+   it through `--su-head-art-width` / `--su-head-art-min` on an ancestor. The
+   line art is printed on white, so `multiply` lays it onto the paper. */
+.su-entity-row__art {
+  align-items: center;
+  align-self: stretch;
+  background-color: var(--color-paper);
+  border-right: var(--bw-chrome) solid var(--color-ink);
+  display: none;
+  flex: none;
+  justify-content: center;
+  min-height: var(--su-head-art-min, 4.75rem);
+  position: relative;
+  width: var(--su-head-art-width, 4rem);
+}
+
+.su-entity-row__art img {
+  height: calc(100% - 2 * var(--space-4));
+  inset: var(--space-4);
+  mix-blend-mode: multiply;
+  object-fit: contain;
+  position: absolute;
+  width: calc(100% - 2 * var(--space-4));
+}
+
+@container (min-width: 18rem) {
+  .su-entity-row__art {
+    display: flex;
+  }
+}
+
+@media (max-width: 40rem) {
+  .su-entity-row__art {
+    min-height: var(--su-head-art-min-phone, 4.25rem);
+    width: var(--su-head-art-width-phone, 3.5rem);
+  }
+}
+
+/* A Row as a listbox option (a search's results): the option the arrow keys
+   highlight wears the ink selection ring, as a selected Row does. */
+.su-entity-row[aria-selected='true'] {
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 3px var(--color-ink);
+}
+
+/*
+ * THE TILE (`src/entity/forms/Tile.tsx`): a listing's Catalog view, art first.
+ * The art at 3:4 on paper (the line art multiplied onto it), then the tone
+ * band with the name notched into its foot on a cut-out of the paper below,
+ * in ink (ruleset, "Chapter band"), then the value cells. The art box holds
+ * its ratio before the image arrives, so a lazy image never shifts the grid.
+ */
+.su-entity-tile {
+  color: inherit;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.su-entity-tile__frame {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.su-entity-tile__frame[data-user-made] {
+  border-style: dashed;
+}
+
+.su-entity-tile__art {
+  aspect-ratio: 3 / 4;
+  background-color: var(--color-paper);
+  display: flex;
+  position: relative;
+}
+
+.su-entity-tile__art img {
+  height: calc(100% - 2 * var(--space-10));
+  inset: var(--space-10);
+  mix-blend-mode: multiply;
+  object-fit: contain;
+  position: absolute;
+  transition: transform 160ms ease-out;
+  width: calc(100% - 2 * var(--space-10));
+}
+
+.su-entity-tile:hover .su-entity-tile__art img {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .su-entity-tile__art img {
+    transition: none;
+  }
+
+  .su-entity-tile:hover .su-entity-tile__art img {
+    transform: none;
+  }
+}
+
+/* The plate of a tile with no art place (`Tile.tsx`): a tech level's numeral,
+   or another entity's monogram, set as large as the plate holds in the
+   condensed face, in ink on paper. The band below carries the tone. */
+.su-entity-tile__art--numeral {
+  align-items: center;
+  aspect-ratio: 2 / 1;
+  container-type: inline-size;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.su-entity-tile__numeral {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: 44cqi;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  transition: transform 160ms ease-out;
+}
+
+.su-entity-tile:hover .su-entity-tile__numeral {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .su-entity-tile__numeral {
+    transition: none;
+  }
+
+  .su-entity-tile:hover .su-entity-tile__numeral {
+    transform: none;
+  }
+}
+
+/* The band: the tone, with the name's cut-out sitting on its foot and the
+   pennant and chevron at the right. Its top edge rules the art off. */
+.su-entity-tile__band {
+  align-items: flex-end;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  min-height: calc(2.1 * var(--text-title) + var(--space-10));
+  padding: var(--space-8) var(--space-8) 0;
+}
+
+.su-entity-tile__band > :not(.su-entity-tile__notch) {
+  align-self: center;
+  flex: none;
+  margin-bottom: var(--space-4);
+}
+
+/* The notch: a cut-out of the paper below, its foot open into the cells. */
+.su-entity-tile__notch {
+  background-color: var(--color-paper);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  flex: 0 1 auto;
+  margin-right: auto;
+  min-width: 0;
+  padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
+.su-entity-tile__cells {
+  align-content: flex-start;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-8) var(--space-8);
+}
+
+.su-entity-token {
+  color: inherit;
+  display: inline-flex;
+  max-width: 100%;
+  text-decoration: none;
+}
+
+/* TOKEN (`entity/forms/Token.tsx`): the pill, `[kind] name [fact]`, dashed
+   when player-made. It wraps as a whole, never mid-token. */
+.su-entity-token__pill {
+  align-items: center;
+  align-self: flex-start;
+  border-color: var(--color-ink);
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-chrome);
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-6);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3px var(--space-6) 3px var(--space-4);
+  position: relative;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.su-entity-token__pill[data-user-made] {
+  border-style: dashed;
+}
+
+.su-entity-token__kind {
+  background-color: var(--color-ink);
+  border: var(--bw-hairline) solid var(--color-ink);
+  color: var(--color-paper);
+  flex: none;
+  font-size: var(--text-badge);
+  letter-spacing: var(--tracking-caps-snug);
+  padding: 1px var(--space-4);
+}
+
+/* On an ink pill (a thing you do) the kind stamp keeps a paper edge. */
+.su-entity-token__kind--on-ink {
+  border-color: var(--color-paper);
+}
+
+/* The name wins: it wraps onto a second line rather than being clipped. */
+.su-entity-token__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/*
+ * AN ENTITY GRID (`data-entity-grid` on the list): every Row in it is the same
+ * height, and the parts line up. The grid's rows are equal, each cell's Row
+ * fills it (the paper body grows, the art runs the full height), and every
+ * head reserves its title's two lines, so the heads end on one line and the
+ * bodies start on one, even when one name wraps. Outside a grid a Row is its
+ * own height.
+ */
+[data-entity-grid] {
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+[data-entity-grid] > * {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+[data-entity-grid] > * > * {
+  flex: 1 1 auto;
+}
+
+/* A Row that is its head alone (`data-bodyless`: a roll table with no opening
+   prose) keeps its head's height: stretched to its cell it was an empty paper
+   strip under the head. A grid holding one sizes each line to its own content,
+   so a line of heads is a head tall; a bodied Row still fills its line. */
+[data-entity-grid]:has(.su-entity-row__frame[data-bodyless]) {
+  grid-auto-rows: auto;
+}
+
+[data-entity-grid] > * > .su-entity-row:has(> .su-entity-row__frame[data-bodyless]) {
+  flex: none;
+}
+
+/* Two title lines (22px at 1.05) on the head's title line, so every head in
+   the grid is one height and the name centres in its line. */
+[data-entity-grid] .su-entity-row__line {
+  min-height: calc(2.1 * var(--text-title));
+}

@@ -1,5 +1,10 @@
 import type { EntityPageMeta } from 'component-lib'
-import { Badge, StatColumn } from 'component-lib'
+import {
+  Badge,
+  LEGAL_STARTING_PATTERN,
+  LEGAL_STARTING_PATTERN_NOTE,
+  StatColumn,
+} from 'component-lib'
 import { space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
@@ -18,6 +23,8 @@ import type { CSSProperties } from 'react'
 
 type EntityPageStampsProps = {
   meta: EntityPageMeta
+  /** A pattern the book sanctions as a starting build: its stamp after the type's. */
+  legalStartingPattern?: boolean
 }
 
 const ROW = {
@@ -27,12 +34,22 @@ const ROW = {
   gap: space[8],
 } satisfies CSSProperties
 
-export function EntityPageStamps({ meta }: EntityPageStampsProps) {
+export function EntityPageStamps({ meta, legalStartingPattern = false }: EntityPageStampsProps) {
   return (
     <div style={ROW}>
       {meta.typeLabel && (
         <Badge shape="stamp" size="compact" className="srd-entity-stamp">
           {meta.typeLabel}
+        </Badge>
+      )}
+      {legalStartingPattern && (
+        <Badge
+          shape="stamp"
+          size="compact"
+          className="srd-entity-stamp"
+          title={LEGAL_STARTING_PATTERN_NOTE}
+        >
+          {LEGAL_STARTING_PATTERN}
         </Badge>
       )}
       {meta.numeral && (

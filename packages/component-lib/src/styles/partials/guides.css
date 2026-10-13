@@ -1,0 +1,525 @@
+/*
+ * The package stylesheet, part 8 of 21: guide steps, the entity hero and
+ * pattern rows. `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ Guide steps (`GuideSteps`) ═════════════════════════════════════════════
+ *
+ * A guide's procedure as the book prints a how-to: an ordered list whose every
+ * step opens on an ink banner with a rounded tail (ruleset §4.4 — one of the
+ * two places rounding copies the book), numeral then name, the same device as
+ * the home page's "New to the Union?" steps. A `section` is a solid `Slab`
+ * over the steps it holds. Under the banner everything keeps the banner's left
+ * edge: prose, the page-pointer notes, the option cards, the table.
+ *
+ * On an entity page (`presentation="page"`, `CardPage`'s `guide`) the steps
+ * take the prose column's measure and reading size, so they continue the
+ * introduction above them rather than restarting at card size.
+ */
+.su-guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  min-width: 0;
+}
+
+.su-guide__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.su-guide__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-guide__step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+/* The how-to banner: ink, paper flecks (`.su-grain--paper`), a rounded tail. It
+ * hugs its words, so a step reads as a heading and not as a bar. */
+.su-guide__head {
+  align-items: center;
+  align-self: flex-start;
+  background-color: var(--color-ink);
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+  color: var(--color-paper);
+  display: flex;
+  gap: var(--space-12);
+  margin: 0;
+  max-width: 100%;
+  min-height: 40px;
+  padding: var(--space-4) var(--space-24) var(--space-4) var(--space-12);
+}
+
+.su-guide__num {
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+}
+
+.su-guide__name {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.15;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.su-guide__head > :last-child:not(.su-guide__name) {
+  flex: none;
+}
+
+.su-guide__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+/* A page pointer ("Full details on Pilot Stats can be found on p. 20."): on
+ * the left edge with the prose, one step back from it. */
+.su-guide__note {
+  color: var(--color-wk-muted);
+  font-size: 0.9em;
+  font-style: italic;
+  margin: 0;
+}
+
+/* The options a step selects from, as compact cards. */
+.su-guide__cards {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  padding-top: var(--space-12);
+}
+
+/* A progression ladder (crawler tech levels) reads down a narrow column
+ * beside the step's prose; on a phone it follows the prose. */
+.su-guide__ladder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.su-guide__ladder-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+  padding-top: var(--space-12);
+}
+
+.su-guide__ladder-prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+@media (min-width: 48rem) {
+  /* The ladder stands on the left of the prose it illustrates. */
+  .su-guide__ladder {
+    align-items: flex-start;
+    flex-direction: row-reverse;
+  }
+
+  .su-guide__ladder-cards {
+    flex: 0 0 40%;
+    min-width: 0;
+  }
+
+  .su-guide__ladder-prose {
+    flex: 1 1 0;
+  }
+}
+
+/* A wide table (Callsign's five columns) scrolls in its own box. */
+.su-guide__table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.su-entity-page > .su-guide {
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  max-width: 52rem;
+}
+
+.su-entity-page > .su-guide .su-guide__steps {
+  gap: var(--space-40);
+}
+
+.su-entity-page > .su-guide .su-guide__step {
+  gap: var(--space-16);
+}
+
+.su-entity-page > .su-guide .su-guide__head {
+  min-height: 48px;
+  padding-left: var(--space-16);
+}
+
+.su-entity-page > .su-guide .su-guide__num {
+  font-size: var(--text-display);
+}
+
+.su-entity-page > .su-guide .su-guide__name {
+  font-size: var(--text-xl);
+}
+
+@media (max-width: 40rem) {
+  .su-entity-page > .su-guide {
+    font-size: 17px;
+  }
+
+  .su-entity-page > .su-guide .su-guide__name {
+    font-size: var(--text-readout);
+  }
+}
+
+/*
+ * A guide on its own page (`GuideSteps`'s `page`): the hierarchy and the rail.
+ *
+ * A section ("Post-Session") opens on the page's H2: condensed caps at the
+ * display size over a chrome rule, a rung above the step banners it holds —
+ * where it was a 12px stamp, below them. Every head is an anchor target.
+ *
+ * The contents ("On this page") are a sticky rail in the column's right third
+ * on a wide screen, beside the 52rem measure; narrower, the same list folds
+ * into a disclosure above the steps, so a phone never scrolls sideways.
+ */
+.su-guide__section-head {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  margin: 0 0 var(--space-16);
+  padding-bottom: var(--space-6);
+  text-transform: uppercase;
+}
+
+.su-guide--page .su-guide__section {
+  gap: 0;
+}
+
+.su-guide--page .su-guide__section + .su-guide__section {
+  margin-top: var(--space-24);
+}
+
+.su-guide--page .su-guide__section-head,
+.su-guide--page .su-guide__head {
+  scroll-margin-top: var(--space-24);
+}
+
+.su-guide__flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  min-width: 0;
+}
+
+.su-guide__toc-fold {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.su-guide__toc-summary {
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  min-height: 44px;
+  padding: var(--space-12) var(--space-16);
+  text-transform: uppercase;
+}
+
+.su-guide__rail {
+  display: none;
+}
+
+.su-guide__toc-title {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  margin: 0 0 var(--space-8);
+  padding-bottom: var(--space-6);
+  text-transform: uppercase;
+}
+
+.su-guide__toc,
+.su-guide__toc-steps {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-guide__toc {
+  gap: var(--space-8);
+}
+
+.su-guide__toc-fold > .su-guide__toc {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  padding: var(--space-8) var(--space-16) var(--space-12);
+}
+
+.su-guide__toc-link {
+  align-items: baseline;
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-2);
+  text-decoration: none;
+}
+
+.su-guide__toc-link:hover {
+  text-decoration: underline;
+}
+
+.su-guide__toc-link:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.su-guide__toc-link--section {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-guide__toc-num {
+  flex: none;
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  min-width: 1.5ch;
+}
+
+@media (min-width: 72rem) {
+  .su-entity-page > .su-guide--page {
+    align-items: start;
+    column-gap: var(--space-48);
+    display: grid;
+    grid-template-columns: minmax(0, 52rem) minmax(12rem, 16rem);
+    max-width: none;
+  }
+
+  .su-guide--page .su-guide__toc-fold {
+    display: none;
+  }
+
+  .su-guide--page .su-guide__rail {
+    display: block;
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    max-height: calc(100vh - var(--space-48));
+    overflow-y: auto;
+    position: sticky;
+    top: var(--space-24);
+  }
+}
+
+/* The hero: the line art on a paper plate, the full width of its column. */
+.su-entity-hero {
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  margin: 0;
+  padding: var(--space-16);
+}
+
+.su-entity-hero--missing {
+  display: flex;
+  justify-content: center;
+}
+
+.su-entity-hero__img {
+  display: block;
+  height: auto;
+  margin-inline: auto;
+  max-height: var(--su-hero-max-h);
+  max-width: 100%;
+  object-fit: contain;
+  transition: opacity 300ms;
+}
+
+/* The tallest the art draws: most of a phone's screen; beside the flowing
+   page's text, capped lower (see `.su-entity-page--flow` below). */
+.su-entity-hero {
+  --su-hero-max-h: 70vh;
+}
+
+/* Cropped to the line art (`heroArtCrop`): the artwork's canvas
+   carries a margin that differs per image, so the plate takes the ink's own
+   aspect (`--su-art-aspect`) and the window shows only the ink's box; the
+   image inside is scaled and offset by its inline style. The plate is as wide
+   as the art drawn at its tallest, or its column, whichever is narrower, so a
+   tall figure no longer sits in a wide box of empty paper. */
+.su-entity-hero--crop {
+  margin-inline: auto;
+  max-width: 100%;
+  width: calc(
+    var(--su-hero-max-h) *
+    var(--su-art-aspect) +
+    2 *
+    var(--space-16) +
+    2 *
+    var(--bw-hairline)
+  );
+}
+
+.su-entity-hero__window {
+  aspect-ratio: var(--su-art-aspect);
+  overflow: hidden;
+  position: relative;
+}
+
+.su-entity-hero__img--crop {
+  max-height: none;
+  max-width: none;
+  position: absolute;
+}
+
+/* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
+ * Each pattern is a card in the Row's language: its host's tone in the head
+ * (the link, with the chevron), a paper body with the pattern's opening as a
+ * clamped lead and its loadout, Systems beside Modules, one full-width Token
+ * a line (links of their own, so outside the head's anchor). One card a line.
+ * On a phone only two show until "Show all" targets the list (`:target`),
+ * which needs no script.
+ */
+.su-pattern-rows {
+  scroll-margin-top: var(--space-64);
+}
+
+.su-pattern-rows__list {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: minmax(0, 1fr);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-pattern-rows__item {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.su-pattern-rows__head {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+.su-pattern-rows__body {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-10) var(--space-10);
+}
+
+/* What the pattern changes (`PatternUniques`): its loadout Tokens, or the
+   actions a Bio-Titan pattern adds. */
+.su-pattern-rows__unique {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-pattern-rows__more {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  justify-content: center;
+  letter-spacing: var(--tracking-caps-tight);
+  margin-top: var(--space-12);
+  min-height: 44px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+@media (max-width: 39.99rem) {
+  .su-pattern-rows:not(:target) .su-pattern-rows__item:nth-child(n + 3) {
+    display: none;
+  }
+
+  .su-pattern-rows:target .su-pattern-rows__more {
+    display: none;
+  }
+}
+
+@media (min-width: 40rem) {
+  .su-pattern-rows__more {
+    display: none;
+  }
+}
+
+/* The link-preview scale (`scale="og"`, OgCard, issue 1280): a band drawn at
+   one fixed size inside a 1200 × 630 card, never responsive. The eyebrow (the
+   kicker and its stamps) sits at the top, the notch at the foot, and the band
+   fills the height the card gives it. The selectors outrank the responsive
+   rules above, so a 1200px viewport's `@media` padding never reaches it. */
+.su-chapter-band[data-scale='og'] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__eyebrow {
+  max-width: none;
+  padding: var(--space-48) calc(var(--space-48) + var(--space-8)) 0;
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__row {
+  align-items: flex-end;
+  flex-direction: row;
+  margin-inline: 0;
+  max-width: none;
+  padding: 0 calc(var(--space-48) + var(--space-8));
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__title {
+  font-size: 120px;
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--space-12) var(--space-24) 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

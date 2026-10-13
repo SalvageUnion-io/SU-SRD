@@ -3,7 +3,9 @@
     "raw-color": 0,
     "arbitrary-font-size": 0
   },
-  "styling": {},
+  "styling": {
+    "style-object-annotation": 531
+  },
   "srd-css": {},
   "tone-ground": {}
 }

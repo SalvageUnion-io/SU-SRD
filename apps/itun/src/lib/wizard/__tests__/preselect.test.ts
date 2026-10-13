@@ -6,6 +6,8 @@ import {
   preselectedChassis,
   preselectedClassId,
   preselectedCrawlerType,
+  preselectedPattern,
+  withMechPreselection,
   withPreselection,
 } from '../preselect'
 
@@ -72,5 +74,45 @@ describe('withPreselection', () => {
     expect(withPreselection(EMPTY_MECH_FORM_STATE, 'chassisName', undefined)).toBe(
       EMPTY_MECH_FORM_STATE
     )
+  })
+})
+
+describe('preselectedPattern', () => {
+  test("a Tech 1 chassis's legal starting pattern resolves", () => {
+    expect(preselectedPattern('mule', 'hauler')?.name).toBe('Hauler')
+  })
+
+  test('a pattern the wizard never offers, or a chassis it never offers, is dropped', () => {
+    expect(preselectedPattern('mule', 'crusher')).toBeUndefined()
+    expect(preselectedPattern('mule', 'not-a-pattern')).toBeUndefined()
+    expect(preselectedPattern('not-a-chassis', 'hauler')).toBeUndefined()
+    expect(preselectedPattern(undefined, 'hauler')).toBeUndefined()
+    expect(preselectedPattern('mule', undefined)).toBeUndefined()
+    // A pattern slug only means anything on its own chassis.
+    expect(preselectedPattern('mazona', 'hauler')).toBeUndefined()
+  })
+})
+
+describe('withMechPreselection', () => {
+  const hauler = () => {
+    const pattern = preselectedPattern('mule', 'hauler')
+    if (!pattern) throw new Error('Hauler fixture missing')
+    return pattern
+  }
+
+  test('a fresh form takes the chassis and the pattern loadout', () => {
+    const form = withMechPreselection(EMPTY_MECH_FORM_STATE, 'mule', hauler())
+    expect(form.chassisName).toBe('mule')
+    expect(form.patternName).toBe('Hauler')
+    expect(form.name).toBe('Hauler')
+    expect(form.systems.length).toBeGreaterThan(0)
+    expect(form.modules.length).toBeGreaterThan(0)
+  })
+
+  test('a draft on another chassis, or with a loadout begun, is left alone', () => {
+    const elsewhere = { ...EMPTY_MECH_FORM_STATE, chassisName: 'jackhammer' }
+    expect(withMechPreselection(elsewhere, 'mule', hauler())).toBe(elsewhere)
+    const begun = { ...EMPTY_MECH_FORM_STATE, chassisName: 'mule', systems: ['zoom-optics'] }
+    expect(withMechPreselection(begun, 'mule', hauler())).toBe(begun)
   })
 })

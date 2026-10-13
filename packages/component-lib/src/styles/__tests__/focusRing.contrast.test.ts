@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { contrastRatio as contrast } from '../../design/contrast'
 import { color } from '../../design/tokens'
+import { readPackageStylesheet } from './packageStylesheet'
 
 /**
  * Focus-ring contrast guard.
@@ -27,8 +26,7 @@ import { color } from '../../design/tokens'
  * assertion. Parsing the declaration sidesteps the trap entirely.
  */
 
-const CSS_PATH = join(import.meta.dir, '../index.css')
-const css = readFileSync(CSS_PATH, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
 
 /** `rgb(168, 82, 34)` / `rgb(168 82 34 / 0.25)` → a triple. Alpha is rejected, not ignored. */
 function parseRgb(value: string): [number, number, number] {
@@ -53,7 +51,7 @@ const GROUNDS = {
 /** The two rings `--focus-ring-shadow` is built from, innermost first. */
 function ringLayers(): { offset: [number, number, number]; ring: [number, number, number] } {
   const decl = css.match(/--focus-ring-shadow:\s*([^;]+);/)
-  if (!decl?.[1]) throw new Error('--focus-ring-shadow is not declared in index.css')
+  if (!decl?.[1]) throw new Error('--focus-ring-shadow is not declared in the package stylesheet')
   const vars = [...decl[1].matchAll(/var\(--color-([a-z0-9-]+)\)/g)].map((m) => m[1])
   if (vars.length !== 2) {
     throw new Error(`expected a two-ring shadow built from two colour tokens, got: ${decl[1]}`)

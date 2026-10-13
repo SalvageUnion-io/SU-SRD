@@ -30,6 +30,24 @@ describe('the raw-markup scan', () => {
     expect(findRawMarkup(html)).toBeUndefined()
   })
 
+  it('ignores script blocks whatever their case, closed with or without space', () => {
+    const html =
+      '<HTML><BODY><p>Clean.</p><SCRIPT type="application/json">{"t":"[[Burn]]"}</SCRIPT >' +
+      '<Script>"[[Heat]]"</sCrIpT\n></BODY></HTML>'
+    expect(renderedBody(html)).toBe('<BODY><p>Clean.</p></BODY></HTML>')
+    expect(findRawMarkup(html)).toBeUndefined()
+  })
+
+  it('cuts until nothing changes, so the pieces around a cut cannot form a new block', () => {
+    const html = '<body><scr<script>x</script>ipt>[[Burn]]</script><p>Clean.</p></body>'
+    expect(renderedBody(html)).toBe('<body><p>Clean.</p></body>')
+  })
+
+  it('still scans after an unterminated <script, and past a tag that only starts like one', () => {
+    expect(findRawMarkup('<body><script>[[Burn]]</body>')).toContain('[[Burn]]')
+    expect(findRawMarkup('<body><scripts>[[Burn]]</scripts></body>')).toContain('[[Burn]]')
+  })
+
   it('refuses the build when any page carried raw markup', () => {
     expect(() => assertNoRawMarkup([])).not.toThrow()
     expect(() => assertNoRawMarkup(['/a/: …[[Burn]]…'])).toThrow(/1 page\(s\) render raw/)

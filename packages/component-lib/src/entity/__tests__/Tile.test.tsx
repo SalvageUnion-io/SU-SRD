@@ -53,6 +53,17 @@ describe('Tile lead', () => {
   })
 })
 
+describe('Tile cells', () => {
+  test("a hybrid's requirements wrap in the tile rather than being clipped", () => {
+    const cyborg = need(SalvageUnionReference.Classes.getByName('Cyborg'), 'cyborg')
+    const { container } = render(<Entity form="tile" entity={cyborg} lead />)
+    const req = [...cellsOf(container).querySelectorAll('.su-stat-cell')].find(
+      (cell) => cell.firstElementChild?.textContent === 'REQ'
+    )
+    expect(req?.classList.contains('su-stat-cell--wrap')).toBe(true)
+  })
+})
+
 describe('Tile plate', () => {
   test('a tech level with no art wears its numeral', () => {
     const tl = need(SalvageUnionReference.CrawlerTechLevels.all()[2], 'crawler tech level 3')

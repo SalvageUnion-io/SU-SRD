@@ -16,9 +16,13 @@
  * ITUN (salvageunion.io/build) is that one constant.
  */
 
-import type { SURefEntity } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { isLegalCreationChassis, isLegalCreationClass } from 'salvageunion-reference/rules'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  isLegalCreationChassis,
+  isLegalCreationClass,
+  isLegalStartingPattern,
+} from 'salvageunion-reference/rules'
 import { ITUN_URL } from './constants'
 import { itemHref } from './entityHref'
 
@@ -33,9 +37,8 @@ function itunHref(path: string): string {
  * `ITUN_URL` + a `/…/new` path, opened straight on the guided wizard, with
  * `param` preselected when there is one.
  */
-function wizardHref(path: string, preselect?: { param: string; slug: string }): string {
-  const search = new URLSearchParams({ mode: 'guided' })
-  if (preselect) search.set(preselect.param, preselect.slug)
+function wizardHref(path: string, preselect: Record<string, string> = {}): string {
+  const search = new URLSearchParams({ mode: 'guided', ...preselect })
   return `${itunHref(path)}?${search}`
 }
 
@@ -54,24 +57,48 @@ export function buildLinkFor(schemaId: string, item: SURefEntity): BuildLink | n
         item.techLevel !== undefined &&
         isLegalCreationChassis(item.techLevel)
         ? {
-            href: wizardHref('/mechs/new', { param: 'chassis', slug }),
+            href: wizardHref('/mechs/new', { chassis: slug }),
             label: 'Build a mech with this',
           }
         : null
     case 'classes':
       return 'coreTrees' in item && isLegalCreationClass(item.coreTrees)
         ? {
-            href: wizardHref('/pilots/new', { param: 'class', slug }),
+            href: wizardHref('/pilots/new', { class: slug }),
             label: 'Build a pilot with this',
           }
         : null
     case 'crawlers':
       return {
-        href: wizardHref('/crawlers/new', { param: 'type', slug }),
+        href: wizardHref('/crawlers/new', { type: slug }),
         label: 'Build a crawler with this',
       }
     default:
       return null
+  }
+}
+
+/**
+ * A pattern page's "Build this mech": the mech wizard on the pattern's chassis
+ * with the pattern's loadout prefilled (`/mechs/new?chassis=mule&pattern=hauler`).
+ * Offered only for a pattern the wizard's own pattern strip offers — a
+ * `legalStarting` pattern of a Tech 1 chassis — so a Bio-Titan's or a
+ * higher-tech pattern has none.
+ */
+export function patternBuildLinkFor(
+  schemaId: string,
+  host: SURefEntity,
+  pattern: SURefObjectAnyPattern
+): BuildLink | null {
+  if (schemaId !== 'chassis' || !('techLevel' in host) || host.techLevel === undefined) return null
+  if (!isLegalCreationChassis(host.techLevel)) return null
+  if (!('legalStarting' in pattern) || !isLegalStartingPattern(pattern.legalStarting)) return null
+  return {
+    href: wizardHref('/mechs/new', {
+      chassis: getEntitySlug(host),
+      pattern: nameToSlug(pattern.name),
+    }),
+    label: 'Build this mech',
   }
 }
 

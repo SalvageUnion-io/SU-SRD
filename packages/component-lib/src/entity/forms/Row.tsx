@@ -5,7 +5,6 @@ import { CardLabels } from '../../components/referenceEntity/card/CardLabels'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import { CardPennant } from '../../components/referenceEntity/card/CardPennant'
-import { space } from '../../design/tokens'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -61,44 +60,25 @@ export type RowProps = {
   mode?: EntityMode
   /** The opening prose, in browse contexts only (E11). */
   lead?: boolean
-  /** Facts by key to leave out, `kind` for the type stamp, `art` for the art column. */
+  /**
+   * Facts by key to leave out, `kind` for the type stamp, `art` for the art
+   * column, `tier` for an ability's numeral (a class page sets it on the track).
+   */
   omit?: readonly EntityOmit[]
   /** Hover, focus or a long press Peeks the Row (a pattern's loadout). Off in listings. */
   peek?: boolean
-  /**
-   * A "do" entity's head wears its own tone instead of the ink banner: an
-   * ability's tier fill (Core brick, Advanced pilot, Legendary crawler), where
-   * the tiers are the point (a class page's trees).
-   */
-  toned?: boolean
   slots?: RowSlots
 }
 
 const READ: EntityMode = { kind: 'read' }
 
-const BODY: CSSProperties = {
-  alignContent: 'flex-start',
-  alignItems: 'center',
-  borderTop: 'var(--bw-chrome) solid var(--color-ink)',
-  display: 'flex',
-  flex: '1 1 auto',
-  flexWrap: 'wrap',
-  gap: space[4],
-  padding: `${space[4]} ${space[10]} ${space[6]}`,
-}
-
-/** The frame: ink on paper, dashed when player-made (ruleset §3.9). */
-function frameOf(userMade: boolean, selected: boolean): CSSProperties {
-  return {
-    backgroundColor: 'var(--color-paper)',
-    borderColor: 'var(--color-ink)',
-    borderRadius: 'var(--radius-card)',
-    borderStyle: userMade ? 'dashed' : 'solid',
-    borderWidth: 'var(--bw-entity-compact)',
-    overflow: 'hidden',
-    ...(selected ? SELECTED_RING : {}),
-  }
-}
+/*
+ * The frame (ink on paper, dashed when player-made: ruleset §3.9) and the body
+ * are `.su-entity-row__frame` / `__body` classes (`styles/index.css`): every
+ * row of a listing repeats them, so they are stylesheet rules, not style
+ * objects (ADR-046, repeated elements). The selection ring, a caller's frame
+ * and a down row's dimming stay inline.
+ */
 
 /**
  * ROW — the workhorse form (entity display language §3): every list of
@@ -117,7 +97,6 @@ export function Row({
   lead = false,
   omit = [],
   peek = false,
-  toned = false,
   slots = {},
 }: RowProps) {
   const surface = useEntitySurface()
@@ -125,7 +104,7 @@ export function Row({
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
-  const fill = model.kind.nature === 'do' && !toned ? 'ink' : model.tone
+  const fill = model.kind.nature === 'do' ? 'ink' : model.tone
   const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
   const title = instance?.title ?? model.title
@@ -171,7 +150,11 @@ export function Row({
       className="su-entity-row__frame"
       data-user-made={userMade || undefined}
       data-bodyless={!hasBody || undefined}
-      style={{ ...frameOf(userMade, selected), ...slots.frameStyle }}
+      style={
+        selected || slots.frameStyle
+          ? { ...(selected ? SELECTED_RING : {}), ...slots.frameStyle }
+          : undefined
+      }
     >
       {slots.art !== false && !omit.includes('art') && <Art art={model.art} />}
       <div className="su-entity-row__main">
@@ -180,7 +163,7 @@ export function Row({
           titleAs={slots.titleAs}
           titleSlot={slots.titleSlot}
           paint={paint}
-          tier={model.tier}
+          tier={omit.includes('tier') ? undefined : model.tier}
           stamps={slots.stamps ?? actionTypeStamps(model.actionType, model.mechActionType)}
           hint={slots.hint}
           pennant={pennant}
@@ -188,10 +171,7 @@ export function Row({
           labels={labels}
         />
         {hasBody && (
-          <div
-            className="su-entity-row__body"
-            style={{ ...BODY, ...(down ? { opacity: 0.6 } : {}) }}
-          >
+          <div className="su-entity-row__body" style={down ? { opacity: 0.6 } : undefined}>
             {slots.leading}
             <Facts cells={facts} />
             <Tags tags={tags} linkable={mode.kind === 'read' && !slots.outer} />
