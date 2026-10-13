@@ -18,7 +18,7 @@
  *
  * ## Usage
  *
- *   R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… \
+ *   op run --env-file=tools/r2.op.env -- \
  *     bun tools/upload-lp-assets.ts <dir> [--bucket <name>] [--dry-run]
  *
  * Mint the token scoped to this one bucket — see `tools/lib/r2.ts`.
@@ -74,7 +74,7 @@ async function main(): Promise<void> {
 
   if (!root) {
     console.error(
-      'usage: R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… \\\n' +
+      'usage: op run --env-file=tools/r2.op.env -- \\\n' +
         '         bun tools/upload-lp-assets.ts <image-dir> [--bucket <name>] [--dry-run]'
     )
     process.exit(1)
