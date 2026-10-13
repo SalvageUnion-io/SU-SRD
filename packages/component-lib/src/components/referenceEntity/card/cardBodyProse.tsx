@@ -54,6 +54,7 @@ export type CardBodyInput = Pick<
   | 'foldTables'
   | 'afterExtraContent'
   | 'abilitiesSection'
+  | 'showChassisAbility'
 > & {
   data: ReferenceCardEntity
   entity: SURefMetaEntity
@@ -125,6 +126,7 @@ export function resolveBodyProse(input: CardBodyInput) {
     scalingParent,
     selections,
     onSelectionChange,
+    showChassisAbility,
     NestedCard,
   } = input
   const editableChoices = !!onSelectionChange
@@ -158,6 +160,7 @@ export function resolveBodyProse(input: CardBodyInput) {
     pattern,
     isCatalog,
     onPage,
+    showChassisAbility,
     depth,
     isGrantingAbility,
     foldedAction,
@@ -261,9 +264,11 @@ export function resolveBodyProse(input: CardBodyInput) {
       : []
 
   // What this card prints, for its nested children to not repeat.
-  const inlineActionEntities: ReferenceCardEntity[] = !hide?.actions
-    ? [...sections.chassisAbilityEntities, ...sections.gridActions, ...sections.titanicActions]
-    : []
+  // A builder pick shows the chassis ability under the picker's `hide.actions`.
+  const inlineActionEntities: ReferenceCardEntity[] = [
+    ...(!hide?.actions || showChassisAbility ? sections.chassisAbilityEntities : []),
+    ...(!hide?.actions ? [...sections.gridActions, ...sections.titanicActions] : []),
+  ]
   const printedProse = [
     ...leadBlocks,
     ...bodyBlocks,

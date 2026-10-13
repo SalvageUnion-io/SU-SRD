@@ -89,6 +89,8 @@ export function MechChassisPickerModal({
           // rendering the pattern list here would be the tallest section of the
           // tallest card, for a choice this modal cannot make.
           hide={{ patterns: true }}
+          // Choosing a chassis needs its ability (E19's builder exception).
+          showChassisAbility
           // "Chosen only / Not yet added" is meaningless when the answer is
           // always exactly one entity.
           facets={{ status: false }}

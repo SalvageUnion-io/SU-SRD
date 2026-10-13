@@ -53,6 +53,13 @@ export type ReferenceEntityCardProps = {
    */
   presentation?: 'card' | 'page'
   /**
+   * BUILDER PICK — a chassis (or its pattern) card shows the chassis ability,
+   * as a page does (E19's one exception: ITUN's mech-builder pick cards, where
+   * choosing needs it). It shows even under `hide.actions`, which a picker
+   * sets. Off everywhere else; nested cards never inherit it.
+   */
+  showChassisAbility?: boolean
+  /**
    * INLINE — this card is an action sitting inside its host card (board E1): a
    * flush ink band, its "//" line and body, with no frame, labels or footer.
    * Set by the host when it lays out its actions; not a consumer prop.

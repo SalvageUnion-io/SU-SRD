@@ -1,7 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { normalizePatternName, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  getChassisAbilities,
+  normalizePatternName,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { space, fontSize as typeScale, weight } from '../../../design/tokens'
 import { Badge } from '../../atoms/Badge'
 import { Slab } from '../../atoms/Slab'
@@ -15,6 +19,7 @@ import {
   getReferenceEntitySpacing,
   stackClassName,
 } from '../referenceEntityTypes'
+import { ChassisAbilitiesContent } from './ChassisAbilitiesContent'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { computeSvOverride, resolvePatternOverride } from './patternOverrideUtils'
 import { quotePatternName } from './quotePatternName'
@@ -49,8 +54,8 @@ type ChassisPatternConfig = {
   statsOverride: StatItem[]
   /** Show only primary stats in header */
   primaryStatsOnly: boolean
-  /** The pattern's own section (its stamps and prose). A pattern CARD never
-   * carries the chassis ability: that shows only on a page. */
+  /** The pattern's own section (its stamps and prose), then — only with
+   * `showChassisAbility` — the chassis ability (E19: a builder pick needs it). */
   abilitiesSection: ReactNode | null
   /** The pattern systems/modules block for extra content */
   afterExtraContent: ReactNode | null
@@ -65,7 +70,9 @@ type ChassisPatternConfig = {
 export function useChassisPatternConfig(
   data: SURefEntity,
   patternOverride: PatternOverrideData | undefined,
-  compact: boolean
+  compact: boolean,
+  /** ITUN's mech-builder pick card: the chassis ability shows (E19). Off by default. */
+  { showChassisAbility = false }: { showChassisAbility?: boolean } = {}
 ): ChassisPatternConfig | null {
   const spacing = useMemo(() => getReferenceEntitySpacing(compact), [compact])
   const fontSize = useMemo(() => getReferenceEntityFontSizes(compact), [compact])
@@ -83,6 +90,10 @@ export function useChassisPatternConfig(
   const svOverride = useMemo(
     () => (patternOverride ? computeSvOverride(data, patternOverride) : undefined),
     [data, patternOverride]
+  )
+  const chassisAbilities = useMemo(
+    () => (showChassisAbility ? getChassisAbilities(data) : undefined),
+    [data, showChassisAbility]
   )
 
   const resolvedSystems = useMemo(
@@ -144,7 +155,7 @@ export function useChassisPatternConfig(
   ]
   const primaryStatsOnly = compact
 
-  const abilitiesSection = overridePatternData ? (
+  const patternInfo = overridePatternData ? (
     <div className={stackClassName(spacing.smallGap)}>
       {/*
        * The row is `items-center`, so `self-start` is load-bearing: these
@@ -176,6 +187,19 @@ export function useChassisPatternConfig(
       )}
     </div>
   ) : null
+  const abilitiesSection =
+    chassisAbilities && chassisAbilities.length > 0 ? (
+      <div className={stackClassName(spacing.sectionGap)}>
+        {patternInfo}
+        <ChassisAbilitiesContent
+          chassisName={chassisName}
+          compact={compact}
+          chassisAbilities={chassisAbilities}
+        />
+      </div>
+    ) : (
+      patternInfo
+    )
 
   const hasSystems = resolvedSystems.length > 0
   const hasModules = resolvedModules.length > 0

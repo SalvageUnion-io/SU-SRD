@@ -94,7 +94,9 @@ function PatternSelCard({
   const config = useChassisPatternConfig(
     chassis,
     { name: pattern.name, systems: pattern.systems, modules: pattern.modules },
-    true
+    true,
+    // Choosing a pattern needs its chassis ability (E19's builder exception).
+    { showChassisAbility: true }
   )
   return (
     <ReferenceEntityCard
@@ -169,6 +171,8 @@ export function MechChassisStep({
               selectable={!reason}
               onCardClick={reason ? undefined : () => onSelectChassis(nameToSlug(chassis.name))}
               hide={{ actions: true, choices: true, patterns: true }}
+              // Choosing a chassis needs its ability (E19's builder exception).
+              showChassisAbility
               footMeta={[
                 { label: 'Costs', value: `${cost} scrap` },
                 ...(reason ? [{ label: reason, value: '' }] : []),

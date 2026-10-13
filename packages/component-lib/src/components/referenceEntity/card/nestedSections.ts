@@ -34,6 +34,7 @@ export function resolveNestedSections({
   pattern,
   isCatalog,
   onPage,
+  showChassisAbility = false,
   depth,
   isGrantingAbility,
   foldedAction,
@@ -46,6 +47,8 @@ export function resolveNestedSections({
   isCatalog: boolean
   /** The card IS the page (`presentation="page"` at the top level). */
   onPage: boolean
+  /** A builder pick card shows the chassis ability off the page too. */
+  showChassisAbility?: boolean
   depth: number
   /** A granting ability's own actions belong to the granted entity. */
   isGrantingAbility: boolean
@@ -65,8 +68,10 @@ export function resolveNestedSections({
   // Chassis abilities are name refs into the ACTIONS schema (resolved by
   // `getChassisAbilities`), NOT the pilot-abilities schema. They show ONLY on a
   // page: the chassis page and its pattern pages (a pattern's `entity` IS its
-  // chassis) — never on a card, a modal, a peek, a nested card or a pattern row.
-  const chassisAbilityEntities = canExpand && onPage ? (getChassisAbilities(entity) ?? []) : []
+  // chassis) — and on ITUN's builder pick cards (`showChassisAbility`); never on
+  // any other card, a modal, a peek, a nested card or a pattern row.
+  const chassisAbilityEntities =
+    canExpand && (onPage || showChassisAbility) ? (getChassisAbilities(entity) ?? []) : []
   // A pattern view keeps its host's actions: a Bio-Titan pattern INHERITS them
   // (a chassis carries none, so its pattern view is unchanged).
   const allActions = canExpand && !isGrantingAbility ? (extractVisibleActions(entity) ?? []) : []

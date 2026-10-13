@@ -297,4 +297,23 @@ describe('nestedSections', () => {
       expect(card.chassisAbilityEntities).toEqual([])
     }
   })
+
+  test('a builder pick (`showChassisAbility`) resolves the chassis ability off the page, never on a tile', () => {
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as SURefMetaEntity
+    const common = {
+      entity: chassis,
+      schemaName: 'chassis' as const,
+      pattern: undefined,
+      onPage: false,
+      showChassisAbility: true,
+      depth: 0,
+      isGrantingAbility: false,
+      foldedAction: undefined,
+      droneLoadout: undefined,
+    }
+    expect(
+      resolveNestedSections({ ...common, isCatalog: false }).chassisAbilityEntities.length
+    ).toBeGreaterThan(0)
+    expect(resolveNestedSections({ ...common, isCatalog: true }).chassisAbilityEntities).toEqual([])
+  })
 })

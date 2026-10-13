@@ -239,6 +239,7 @@ function ReferenceEntityCardInner({
   extent = 'full',
   depth: depthProp = 0,
   presentation = 'card',
+  showChassisAbility,
   inline = false,
   shownProse,
   userMade = false,
@@ -283,10 +284,9 @@ function ReferenceEntityCardInner({
   scalingParent,
   expand,
 }: ReferenceEntityCardProps) {
-  // Section bands are h2s (their nested cards' titles h3s) only when this card
-  // IS the page — see `sectionHeadingLevel`. A PAGE is the page whatever
-  // `titleAs` says: its title is the page's h1, in the chapter band. Only a
-  // top-level card takes the page presentation.
+  // Section bands are h2s (nested titles h3s) only when this card IS the page
+  // (`sectionHeadingLevel`), whatever `titleAs` says: a page's title is its h1,
+  // in the chapter band. Only a top-level card takes the page presentation.
   const onPage = presentation === 'page' && !inline && depthProp === 0
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
@@ -296,9 +296,8 @@ function ReferenceEntityCardInner({
   const isMultiSelect = !!onCountChange
   const selected = selectedProp ?? (isMultiSelect ? countValue >= 1 : undefined)
 
-  // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName`
-  // discriminant that isn't reflected in the static `SURefEntity` union type —
-  // the same cast-at-the-boundary pattern used throughout the display system.
+  // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName` the
+  // static `SURefEntity` union omits: the display system's boundary cast.
   const entity = data as SURefMetaEntity
   // Hooks run above every early return below.
   const externalLinkNode = useEntityExternalLink(data as SURefEntity)
@@ -640,6 +639,7 @@ function ReferenceEntityCardInner({
     foldTables,
     afterExtraContent,
     abilitiesSection,
+    showChassisAbility,
     NestedCard: ReferenceEntityCardInner,
   }
   const resolved = resolveBodyProse(bodyInput)

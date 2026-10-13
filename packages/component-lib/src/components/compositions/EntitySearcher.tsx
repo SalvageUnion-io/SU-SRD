@@ -115,6 +115,9 @@ type EntitySearcherProps = {
    * surface, so it is the caller's call rather than a schema check in here.
    */
   hide?: ReferenceEntityCardHideConfig
+  /** The mech builder's chassis picker: each pick card shows its chassis
+   * ability despite the forced `hide.actions` (E19). */
+  showChassisAbility?: boolean
   /**
    * Actions pinned beneath the selection — e.g. the Apply/Cancel pair a
    * destructive picker needs. Always visible: at the foot of the rail column,
@@ -147,6 +150,7 @@ export function EntitySearcher({
   subtitle,
   onClose,
   hide,
+  showChassisAbility,
   railActions,
 }: EntitySearcherProps) {
   // Actions/choices are never pickable inside a picker; anything else is the
@@ -246,6 +250,7 @@ export function EntitySearcher({
               selectionSeal={chosenLabel}
               onCardClick={() => onToggle?.(idOf(item))}
               hide={cardHide}
+              showChassisAbility={showChassisAbility}
             />
           )
         })}

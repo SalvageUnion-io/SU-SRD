@@ -56,6 +56,8 @@ describe('MechChassisPickerModal', () => {
     expect(screen.getByText(/showing \d+ of \d+/i)).toBeDefined()
     // The current chassis is pre-selected.
     expect(screen.getByTestId('rail-entry').textContent).toContain(current.name)
+    // A pick card shows its chassis ability (E19's builder exception): once.
+    expect((document.body.textContent ?? '').split('Integrated Cargo Bay').length - 1).toBe(1)
   })
 
   it('will not apply an EMPTY chassis after the selection is cleared', () => {

@@ -10,7 +10,8 @@
  * 3. The full pattern view reads chassis prose → pattern prose → systems →
  *    modules, so the pattern is framed by the chassis it belongs to.
  * 4. The chassis ability shows only on a PAGE — the chassis page and its
- *    pattern pages — never on a card, a catalog tile or a nested card.
+ *    pattern pages — and on ITUN's builder pick cards (`showChassisAbility`),
+ *    never on any other card, a catalog tile or a nested card.
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
@@ -28,6 +29,7 @@ import {
   EntityHrefProvider,
   PatternHrefProvider,
 } from '../../entityHrefContext'
+import { useChassisPatternConfig } from '../../pattern/useChassisPatternConfig'
 import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -129,6 +131,49 @@ describe('the chassis ability shows only on a page', () => {
       expect(abilityCount(container)).toBe(0)
     })
   }
+
+  // ITUN's builder pick cards opt in: choosing a chassis or a pattern needs it.
+  const PICK_HIDE = { actions: true, choices: true, patterns: true } as const
+
+  test("the builder's chassis pick card shows it once, under the picker's hide.actions", () => {
+    const { container } = render(
+      <ReferenceEntityCard data={mule()} size="medium" hide={PICK_HIDE} showChassisAbility />
+    )
+    expect(abilityCount(container)).toBe(1)
+  })
+
+  test('the opt-in does not reach a catalog tile', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={mule()} extent="catalog" showChassisAbility />
+    )
+    expect(abilityCount(container)).toBe(0)
+  })
+
+  /** The builder's pattern pick card, as `MechChassisStep` renders it. */
+  function PatternPick({ showChassisAbility }: { showChassisAbility?: boolean }) {
+    const { name, systems, modules } = hauler()
+    const config = useChassisPatternConfig(mule(), { name, systems, modules }, true, {
+      showChassisAbility,
+    })
+    return (
+      <ReferenceEntityCard
+        data={mule()}
+        size="medium"
+        hide={{ actions: true, choices: true }}
+        {...(config ?? {})}
+      />
+    )
+  }
+
+  test("the builder's pattern pick card shows it once", () => {
+    const { container } = render(<PatternPick showChassisAbility />)
+    expect(abilityCount(container)).toBe(1)
+  })
+
+  test('a pattern config card without the opt-in does not show it', () => {
+    const { container } = render(<PatternPick />)
+    expect(abilityCount(container)).toBe(0)
+  })
 })
 
 describe('full pattern view reading order', () => {
