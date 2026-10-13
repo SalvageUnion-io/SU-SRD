@@ -53,7 +53,7 @@ Each is checkable; breaking one needs an amendment here first.
 
 ## Which form, where
 
-1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link.
+1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern's loadout on a card or a host's pattern list** — Mention with a framed TL Stat, the book's plain list of names (Core Book p.101); the part's tone stays on its own Row, Card and Page.
 2. **Search, both apps** — Row (no lead), link. **Any prose** — Mention: Peek, then Page.
 3. **ITUN wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **ITUN dense slots** (inventory strip, bays, loadouts) — Token, link. **Deck, resolve** — Row / Card.

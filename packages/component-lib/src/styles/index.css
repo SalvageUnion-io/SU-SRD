@@ -2493,18 +2493,6 @@ body {
   padding: 0;
 }
 
-/* A pattern card's loadout on a page (`PatternLoadout fill`): each Token the
-   full width of its column, its name taking the slack so its fact sits at the
-   right edge. The pill sets no width of its own, so this needs no override. */
-.su-pattern-loadout--fill .su-entity-token {
-  display: flex;
-  width: 100%;
-}
-
-.su-pattern-loadout--fill .su-entity-token > span {
-  flex: 1 1 auto;
-}
-
 .su-pattern-rows__item {
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
@@ -4363,6 +4351,61 @@ body {
   .su-pattern-loadout__column--ruled {
     border-left: var(--bw-chrome) solid var(--color-ink-20);
     padding-left: var(--space-12);
+  }
+}
+
+/* `LoadoutMention` — one part of a pattern's loadout, as the book lists it: the
+   name (a Mention, in the list's own ink), then its framed TL cell. The name
+   wraps rather than pushing the cell off the line. A loadout under a host that
+   is down reads muted, as its Tokens once greyed. */
+.su-loadout-entry {
+  align-items: center;
+  display: flex;
+  gap: var(--space-6);
+  min-width: 0;
+  padding-block: var(--space-2);
+}
+
+.su-loadout-entry > .su-inline-ref {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.su-loadout-entry > .su-stat-cell {
+  flex: none;
+}
+
+.su-loadout-entry[data-down] {
+  color: var(--color-wk-muted);
+}
+
+/* A pattern card's loadout on a page (`PatternLoadout fill`): the TL cells
+   stand in a column at the right edge, where they scan down the list. */
+.su-pattern-loadout--fill .su-loadout-entry {
+  justify-content: space-between;
+}
+
+/* Thumb first (ruleset §4.6): each line is a 44px row under a coarse pointer,
+   and the name's hit area spans the row's height, so neighbouring names never
+   overlap. */
+@media (pointer: coarse) {
+  .su-loadout-entry {
+    min-height: 44px;
+    padding-block: 0;
+  }
+
+  .su-loadout-entry > .su-inline-ref {
+    position: relative;
+  }
+
+  .su-loadout-entry > .su-inline-ref::after {
+    content: '';
+    height: 44px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 

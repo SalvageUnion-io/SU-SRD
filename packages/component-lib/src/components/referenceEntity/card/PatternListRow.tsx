@@ -35,7 +35,7 @@ import { resolvePatternGroups } from './resolveNestedEntities'
  * With no `PatternHrefProvider` above it (any app whose patterns have no pages)
  * the row renders exactly as it always did — inert, not a link to nowhere.
  *
- * The uniques sit OUTSIDE the anchor: their tokens and cards are links and
+ * The uniques sit OUTSIDE the anchor: their names and cards are links and
  * controls of their own, which cannot nest inside another link.
  */
 export function PatternListRow({
@@ -130,10 +130,10 @@ export function PatternList({
  * language, Row): the host's tone in the head with the pattern's quoted name
  * and the chevron, then a paper body with the pattern's opening paragraph
  * clamped as a lead, and under it what the pattern changes: its loadout,
- * Systems beside Modules, one full-width Token a line (`PatternLoadout fill`),
- * or the actions a Bio-Titan pattern adds (`PatternUniques`). The HEAD is the
- * link to the pattern's page; the body cannot be, because its Tokens are links
- * of their own.
+ * Systems beside Modules, one name a line with its TL at the column's edge
+ * (`PatternLoadout fill`), or the actions a Bio-Titan pattern adds
+ * (`PatternUniques`). The HEAD is the link to the pattern's page; the body
+ * cannot be, because its names are links of their own.
  */
 function PatternLinkRow({
   chassis,
