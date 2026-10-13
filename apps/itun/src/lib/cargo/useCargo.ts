@@ -17,6 +17,7 @@ import { mechMaxCargo } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { failureMessage } from '../connection/useServerAction'
 import type {
   CargoBoundaryState,
   CargoTransferAction,
@@ -106,8 +107,10 @@ async function commitUpdates(
     await run()
     return result
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    return { ok: false, reason: `Could not save that change: ${message}` }
+    return {
+      ok: false,
+      reason: failureMessage(error, 'That change could not be saved. Try again.'),
+    }
   }
 }
 

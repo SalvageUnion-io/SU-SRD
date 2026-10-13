@@ -34,8 +34,8 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import type { CrawlerReading } from '../mediator/crawlerReading.model'
-import { failureMessage } from '../shared/useConfirm'
 import { HubSection } from './HubSection'
 import { HUB_COPY } from './hubStyles.model'
 
@@ -130,7 +130,10 @@ export function DowntimeTrack({
   const spendUpkeep = useMutation(api.downtime.spendUpkeep)
   const { canWrite } = useConnection()
   const [confirmEnd, setConfirmEnd] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const write = useServerAction((send: () => Promise<unknown>) => send(), {
+    failure: 'That did not reach the table. Try again.',
+  })
+  const { error } = write
 
   const steps = downtimeStepNames()
   const running = state?.running ?? false
@@ -138,12 +141,7 @@ export function DowntimeTrack({
   const last = index !== null && index >= steps.length - 1
   const upkeepStep = isUpkeepStep(index)
 
-  const run = (write: () => Promise<unknown>) => () => {
-    setError(null)
-    void write().catch((err: unknown) =>
-      setError(failureMessage(err, 'That did not reach the table. Try again.'))
-    )
-  }
+  const run = (send: () => Promise<unknown>) => () => void write.run(send)
 
   const upkeep =
     crawler === null

@@ -10,7 +10,7 @@
 import { Button, toast } from 'component-lib'
 import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
@@ -36,24 +36,20 @@ type ExportAllButtonProps = {
 }
 
 export function ExportAllButton({ className, onInk = false }: ExportAllButtonProps = {}) {
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  async function handleExportAll() {
-    setBusy(true)
-    setError(null)
-    try {
+  const exportAll = useServerAction(
+    async () => {
       const bundle = await buildExportBundle(useEntityStore.getState())
       const date = new Date().toISOString().slice(0, 10)
       downloadJson(`itun-backup-${date}.json`, bundle)
-      toast.success('Backup downloaded.')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Export failed.'
-      setError(message)
-      toast.error(message)
-    } finally {
-      setBusy(false)
-    }
+    },
+    { failure: 'The backup could not be downloaded. Try again.' }
+  )
+  const { pending: busy, error } = exportAll
+
+  async function handleExportAll() {
+    const result = await exportAll.run()
+    if (result.ok) toast.success('Backup downloaded.')
+    else toast.error(result.error)
   }
 
   return (

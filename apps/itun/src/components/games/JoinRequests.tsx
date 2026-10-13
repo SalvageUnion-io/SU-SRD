@@ -10,14 +10,14 @@
  * not shown: `pendingRequests` does not return the invite's grant names.
  */
 
-import { Button, toast, tokens } from 'component-lib'
+import { Button, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { ago } from '../mediator/proposalLine.model'
-import { failureMessage } from '../shared/useConfirm'
 import { HubSection } from './HubSection'
 import { HUB_COPY } from './hubStyles.model'
 
@@ -63,12 +63,12 @@ export function JoinRequests({ gameId }: { gameId: Id<'games'> }) {
   const { canWrite } = useConnection()
   const now = Date.now()
 
+  const reply = useServerAction(
+    (requestId: Id<'joinRequests'>, approve: boolean) => decide({ requestId, approve }),
+    { failure: 'That answer did not land. Try again.', toastId: 'join-request' }
+  )
   const answer = (requestId: Id<'joinRequests'>, approve: boolean) =>
-    void decide({ requestId, approve }).catch((err: unknown) =>
-      toast.error(failureMessage(err, 'That answer did not land. Try again.'), {
-        id: 'join-request',
-      })
-    )
+    void reply.run(requestId, approve)
 
   return (
     <HubSection id="asking-to-join-heading" title="Asking to join">

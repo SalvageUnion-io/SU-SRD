@@ -13,13 +13,12 @@
 import { Button, toast } from 'component-lib'
 import { useMutation } from 'convex/react'
 import { Link2 } from 'lucide-react'
-import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { appRoot } from '../../lib/appUrl'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
-import { failureMessage } from '../shared/useConfirm'
 
 type CopyInviteLinkProps = {
   gameId: Id<'games'>
@@ -47,25 +46,25 @@ function ConnectedCopyInviteLink({
   clipboardWriter = writeClipboardPromise,
 }: CopyInviteLinkProps) {
   const link = useMutation(api.invites.link)
-  const [busy, setBusy] = useState(false)
+  // Both calls start inside the press: the action runs synchronously up to its
+  // first await, which is what keeps WebKit's gesture alive for the clipboard.
+  const copyLink = useServerAction(
+    () => clipboardWriter(link({ gameId }).then((token) => inviteUrl(appRoot(), token))),
+    { failure: 'The invite link could not be copied. Try again.', toastId: 'invite-link-copy' }
+  )
 
   async function copy(): Promise<void> {
-    setBusy(true)
-    try {
-      const url = link({ gameId }).then((token) => inviteUrl(appRoot(), token))
-      await clipboardWriter(url)
-      toast.success('Invite link copied', { id: 'invite-link-copy', duration: 2000 })
-    } catch (err) {
-      toast.error(failureMessage(err, 'The invite link could not be copied. Try again.'), {
-        id: 'invite-link-copy',
-      })
-    } finally {
-      setBusy(false)
-    }
+    const result = await copyLink.run()
+    if (result.ok) toast.success('Invite link copied', { id: 'invite-link-copy', duration: 2000 })
   }
 
   return (
-    <Button variant="default" size="compact" disabled={busy} onClick={() => void copy()}>
+    <Button
+      variant="default"
+      size="compact"
+      disabled={copyLink.pending}
+      onClick={() => void copy()}
+    >
       <Link2 aria-hidden="true" size={16} />
       Copy invite link
     </Button>

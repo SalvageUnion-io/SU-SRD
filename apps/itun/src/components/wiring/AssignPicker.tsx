@@ -54,12 +54,12 @@ import { useState } from 'react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { useCrawlers, useMechs, usePilots } from '../../hooks/entities'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { failureMessage } from '../../lib/connection/useServerAction'
 import { assignLink } from '../../lib/links/assignLink'
 import { LinkRefused } from '../../lib/links/linkRefused'
 import { readReference } from '../../lib/readReference'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
-import { failureMessage } from '../shared/useConfirm'
 import type { SoftLinkStore } from './useSoftLinks'
 
 type Kind = EntityRef['type']

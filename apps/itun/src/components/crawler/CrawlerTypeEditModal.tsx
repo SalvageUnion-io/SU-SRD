@@ -16,6 +16,7 @@ import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
@@ -63,17 +64,27 @@ export function CrawlerTypeEditModal({
 }: CrawlerTypeEditModalProps) {
   const [selected, setSelected] = useState<string | null>(crawler.type ?? null)
   const [confirming, setConfirming] = useState(false)
-  const [busy, setBusy] = useState(false)
+  // One atomic multi-write: the new type field + reset typeNpc + drop the old
+  // type's orphaned bayChoices key, all in a single record update (crew is
+  // empty here — bays' live state is untouched). Passing the type into the
+  // helper means no separate pre-write that could half-apply.
+  const change = useServerAction(
+    (from: string | null, to: string) => {
+      const form: CrawlerWizardFormState = { ...EMPTY_CRAWLER_FORM_STATE, type: to, crew: {} }
+      return applyCrawlerCrewAndTypeEdit(storeState, crawler.id, form, from, to)
+    },
+    { failure: 'The crawler type could not be changed. Try again.', toastId: 'crawler-type' }
+  )
+  const busy = change.pending
 
   // Reset the picker to the crawler's current type each time it opens. Depends
   // on `open` ONLY: the atomic type write flips crawler.type as it completes, so
-  // depending on it here would reset busy/confirming mid-write (a UI flicker).
+  // depending on it here would reset the confirm mid-write (a UI flicker).
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset on open only, by design
   useEffect(() => {
     if (open) {
       setSelected(crawler.type ?? null)
       setConfirming(false)
-      setBusy(false)
     }
   }, [open])
 
@@ -83,26 +94,13 @@ export function CrawlerTypeEditModal({
 
   async function applyChange() {
     if (!selected || !changed) return
-    setBusy(true)
-    try {
-      // One atomic multi-write: the new type field + reset typeNpc + drop the
-      // old type's orphaned bayChoices key, all in a single record update (crew
-      // is empty here — bays' live state is untouched). Passing the type into
-      // the helper means no separate pre-write that could half-apply.
-      const form: CrawlerWizardFormState = {
-        ...EMPTY_CRAWLER_FORM_STATE,
-        type: selected,
-        crew: {},
-      }
-      await applyCrawlerCrewAndTypeEdit(storeState, crawler.id, form, currentType, selected)
-
-      toast.success(`Changed crawler type to ${selectedEntity?.name ?? 'new type'}.`)
-      onClose()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to change crawler type.')
-      setBusy(false)
+    const result = await change.run(currentType, selected)
+    if (!result.ok) {
       setConfirming(false)
+      return
     }
+    toast.success(`Changed crawler type to ${selectedEntity?.name ?? 'new type'}.`)
+    onClose()
   }
 
   return (

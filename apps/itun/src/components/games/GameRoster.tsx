@@ -51,10 +51,10 @@ import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/entities'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
 import {
   crawlerRows,
@@ -157,8 +157,6 @@ const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
 const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
-  const [busy, setBusy] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const rowActions = useRowActions(confirm)
@@ -167,7 +165,11 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
 
-  const setPrimaryCrawler = useMutation(api.games.setPrimaryCrawler)
+  const makePrimary = useServerAction(useMutation(api.games.setPrimaryCrawler), {
+    failure: 'That crawler could not be made primary. Try again.',
+  })
+  const busy = makePrimary.pending
+  const error = makePrimary.error
 
   // Local copies decide what opens without a round trip, so the columns need
   // the local stores hydrated even though the listing itself is remote.
@@ -207,18 +209,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     }),
   }
 
-  async function run(key: string, work: () => Promise<void>) {
-    setBusy(key)
-    setError(null)
-    try {
-      await work()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'That did not work.')
-    } finally {
-      setBusy(null)
-    }
-  }
-
   function renderRow(row: RosterRow): ReactNode {
     return (
       <li key={row.serverId} style={ITEM}>
@@ -239,7 +229,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
               <OwnerSeal
                 owner={row.owner}
                 claimable={row.can.claim}
-                disabled={busy !== null}
+                disabled={busy}
                 onClaim={() => rowActions.pickUp(row)}
               />
             )
@@ -254,7 +244,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                 <Button
                   variant="ghost"
                   size="mini"
-                  disabled={busy !== null}
+                  disabled={busy}
                   onClick={() => rowActions.offer(row)}
                 >
                   Offer to the crew
@@ -267,7 +257,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                 <Button
                   variant="ghost"
                   size="mini"
-                  disabled={busy !== null}
+                  disabled={busy}
                   onClick={() => rowActions.copy(row)}
                 >
                   Copy to your shelves
@@ -281,7 +271,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                 <Button
                   variant="ghost"
                   size="mini"
-                  disabled={busy !== null}
+                  disabled={busy}
                   onClick={() => rowActions.removeFromGame(row, gameName)}
                 >
                   Remove from game
@@ -291,7 +281,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                 <Button
                   variant="ghost"
                   size="mini"
-                  disabled={busy !== null}
+                  disabled={busy}
                   onClick={() => rowActions.remove(row)}
                 >
                   Delete
@@ -301,13 +291,11 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                 <Button
                   variant="ghost"
                   size="mini"
-                  disabled={busy !== null}
+                  disabled={busy}
                   onClick={() =>
-                    void run(`primary-${row.serverId}`, async () => {
-                      await setPrimaryCrawler({
-                        gameId: gameId as Id<'games'>,
-                        crawlerId: row.serverId as Id<'crawlers'>,
-                      })
+                    void makePrimary.run({
+                      gameId: gameId as Id<'games'>,
+                      crawlerId: row.serverId as Id<'crawlers'>,
                     })
                   }
                 >
@@ -318,7 +306,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                 <Button
                   variant="ghost"
                   size="mini"
-                  disabled={busy !== null}
+                  disabled={busy}
                   onClick={() => rowActions.scrap(row)}
                 >
                   Scrap

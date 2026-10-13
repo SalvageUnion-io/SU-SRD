@@ -4,10 +4,10 @@ import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'
 import { SignInControl } from '../account/SignInControl'
 import { useShowContainer } from '../container/useShowContainer'
-import { failureMessage } from '../shared/useConfirm'
 import { WayOutLink } from '../shared/WayOutLink'
 
 /**
@@ -121,26 +121,29 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const decline = useMutation(api.invites.decline)
   const showContainer = useShowContainer()
 
-  const [error, setError] = useState<string | null>(null)
+  const join = useServerAction(() => redeem({ code: token }), {
+    failure: 'That invite could not be used. Try again.',
+  })
+  const leave = useServerAction(() => decline({ code: token }), {
+    failure: 'That invite could not be declined. Try again.',
+  })
+  const error = join.error ?? leave.error
+  const working = join.pending || leave.pending
   const [pending, setPending] = useState(false)
   const [declined, setDeclined] = useState(false)
   // The arrival join runs once, whatever the live preview does after it.
   const arrived = useRef(false)
 
-  const accept = () => {
-    setError(null)
-    void redeem({ code: token })
-      .then((result) => {
-        if (result.kind === 'pending') {
-          setPending(true)
-          return
-        }
-        // Joined (or already in it): open the Game's own page.
-        showContainer({ kind: 'game', gameId: result.gameId })
-      })
-      .catch((err: unknown) =>
-        setError(failureMessage(err, 'That invite could not be used. Try again.'))
-      )
+  const accept = async () => {
+    leave.clearError()
+    const result = await join.run()
+    if (!result.ok) return
+    if (result.value.kind === 'pending') {
+      setPending(true)
+      return
+    }
+    // Joined (or already in it): open the Game's own page.
+    showContainer({ kind: 'game', gameId: result.value.gameId })
   }
 
   const live =
@@ -152,7 +155,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   useEffect(() => {
     if (!joinOnArrival || !live || arrived.current) return
     arrived.current = true
-    accept()
+    void accept()
   }, [joinOnArrival, live])
 
   if (preview === undefined) return <Text>Checking that invite…</Text>
@@ -224,13 +227,10 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
     )
   }
 
-  const refuse = () => {
-    setError(null)
-    void decline({ code: token })
-      .then(() => setDeclined(true))
-      .catch((err: unknown) =>
-        setError(failureMessage(err, 'That invite could not be declined. Try again.'))
-      )
+  const refuse = async () => {
+    join.clearError()
+    const result = await leave.run()
+    if (result.ok) setDeclined(true)
   }
 
   return (
@@ -258,13 +258,13 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
             : 'Everyone at a table can read each other’s sheets.'}
         </Text>
         <div style={ACTIONS}>
-          <Button variant="primary" size="compact" onClick={accept}>
+          <Button variant="primary" size="compact" disabled={working} onClick={() => void accept()}>
             {preview.requiresApproval ? 'Ask to join' : 'Join this game'}
           </Button>
           {/* Only an invite addressed to you can be declined: an open link may
               be meant for the whole table (ADR-039). */}
           {preview.addressed !== null && (
-            <Button variant="ghost" size="compact" onClick={refuse}>
+            <Button variant="ghost" size="compact" disabled={working} onClick={() => void refuse()}>
               Decline
             </Button>
           )}

@@ -55,6 +55,7 @@ import {
 } from '../../hooks/entities'
 import { useHydrateOnMount } from '../../hooks/entities/useHydrateEntities'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
 import { buildEntityExport, buildPatternExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
@@ -252,6 +253,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const [filter, setFilter] = useState<ShelfFilter>('everything')
   const [moving, setMoving] = useState<MoveSubject | null>(null)
   const [importResult, setImportResult] = useState<string | null>(null)
+  // Menu items have no line of their own, so a failed export is a toast.
+  const exportOne = useServerAction(
+    async (type: AssignableType, id: string, name: string) => {
+      const bundle = await buildEntityExport(type, id, useEntityStore.getState())
+      downloadJson(`itun-${type}-${fileStem(name)}.json`, bundle)
+    },
+    { failure: 'That export did not download. Try again.', toastId: 'shelf-export' }
+  )
 
   const hydratedUnits = useHydrateEntities(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   const hydratedPatterns = useHydrateOnMount(() => usePatternStore.getState().hydrate())
@@ -291,13 +300,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   /** Write verbs exist only where a write could land. */
   const writable = (run: () => void): (() => void) | undefined => (canWrite ? run : undefined)
 
-  function exportUnit(type: AssignableType, id: string, name: string) {
-    void buildEntityExport(type, id, useEntityStore.getState())
-      .then((bundle) => {
-        downloadJson(`itun-${type}-${fileStem(name)}.json`, bundle)
-        toast.success(`Exported ${name}.`)
-      })
-      .catch((err: unknown) => toast.error(err instanceof Error ? err.message : 'Export failed.'))
+  async function exportUnit(type: AssignableType, id: string, name: string) {
+    const result = await exportOne.run(type, id, name)
+    if (result.ok) toast.success(`Exported ${name}.`)
   }
 
   function unitMenu(
@@ -342,7 +347,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               },
             ]
           : []),
-        { id: 'export', label: 'Export', onSelect: () => exportUnit(type, unit.id, unit.name) },
+        {
+          id: 'export',
+          label: 'Export',
+          onSelect: () => void exportUnit(type, unit.id, unit.name),
+        },
       ],
       [
         {

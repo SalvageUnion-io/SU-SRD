@@ -1,4 +1,4 @@
-import { Button, Card, ChapterBand, Input, PageHeading, Text } from 'component-lib'
+import { Button, Card, ChapterBand, FieldError, Input, PageHeading, Text } from 'component-lib'
 import { space } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
 import { useMutation, useQuery } from 'convex/react'
@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { ConvexPending } from '../shared/ConvexPending'
 import { SignInControl } from './SignInControl'
 
@@ -61,8 +62,12 @@ function download(filename: string, data: unknown): void {
 function SignedInAccount() {
   const me = useQuery(api.account.me, {})
   const exported = useQuery(api.account.exportMine, {})
-  const updateProfile = useMutation(api.account.updateProfile)
-  const deleteAccount = useMutation(api.account.deleteAccount)
+  const save = useServerAction(useMutation(api.account.updateProfile), {
+    failure: 'Your display name could not be saved. Try again.',
+  })
+  const erase = useServerAction(useMutation(api.account.deleteAccount), {
+    failure: 'Your account could not be deleted. Try again.',
+  })
 
   const [name, setName] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
@@ -95,11 +100,13 @@ function SignedInAccount() {
             <Button
               variant="primary"
               size="compact"
-              onClick={() => void updateProfile({ displayName: value })}
+              disabled={save.pending}
+              onClick={() => void save.run({ displayName: value })}
             >
-              Save
+              {save.pending ? 'Saving…' : 'Save'}
             </Button>
           </div>
+          <FieldError>{save.error}</FieldError>
         </div>
       </Card>
 
@@ -138,10 +145,23 @@ function SignedInAccount() {
           <div>
             {confirming ? (
               <div style={ACTIONS}>
-                <Button variant="danger" size="compact" onClick={() => void deleteAccount({})}>
-                  Permanently delete
+                <Button
+                  variant="danger"
+                  size="compact"
+                  disabled={erase.pending}
+                  onClick={() => void erase.run({})}
+                >
+                  {erase.pending ? 'Deleting…' : 'Permanently delete'}
                 </Button>
-                <Button variant="ghost" size="compact" onClick={() => setConfirming(false)}>
+                <Button
+                  variant="ghost"
+                  size="compact"
+                  disabled={erase.pending}
+                  onClick={() => {
+                    erase.clearError()
+                    setConfirming(false)
+                  }}
+                >
                   Cancel
                 </Button>
               </div>
@@ -151,6 +171,7 @@ function SignedInAccount() {
               </Button>
             )}
           </div>
+          <FieldError>{erase.error}</FieldError>
         </div>
       </Card>
     </div>

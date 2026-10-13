@@ -62,9 +62,9 @@ import { useQuery } from 'convex/react'
 import type { Container, ContainerFields } from 'itun-domain/container'
 import { containerOf, moveTo } from 'itun-domain/container'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
@@ -112,8 +112,6 @@ function ConnectedMoveToContainerControl({
   className,
 }: MoveToContainerControlProps) {
   const games = useQuery(api.games.listMine)
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const current = containerOf(entity)
   const destinations = moveDestinations({ kind: entityType, current, games: games ?? [] })
@@ -136,17 +134,8 @@ function ConnectedMoveToContainerControl({
     onChanged?.()
   }
 
-  async function moveNow(next: Container) {
-    setPending(true)
-    setError(null)
-    try {
-      await move(next)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to move this build.')
-    } finally {
-      setPending(false)
-    }
-  }
+  const moveNow = useServerAction(move, { failure: 'This build could not be moved. Try again.' })
+  const { pending, error } = moveNow
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     // Out of a Game always asks; into one asks only when it clears an
@@ -161,7 +150,7 @@ function ConnectedMoveToContainerControl({
       gameName,
       confirm,
       move,
-      moveNow: (next) => void moveNow(next),
+      moveNow: (next) => void moveNow.run(next),
     })
   }
 

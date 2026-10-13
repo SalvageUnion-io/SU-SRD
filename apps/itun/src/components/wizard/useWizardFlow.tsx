@@ -20,6 +20,7 @@
 import { toast } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
@@ -67,7 +68,7 @@ export type WizardFlowOptions<
   /** Validated with a throwaway id before the create write. */
   schema: WizardValidationSchema
   toCreateInput: (form: TForm) => CreateInput<T>
-  /** Copy shown when the write throws. Verbatim — the three differ. */
+  /** Copy shown when the write fails with a defect. Verbatim — the three differ. */
   failureMessage: string
   /** Called with the new entity's id once the create has landed. */
   onComplete: (entityId: string) => void
@@ -124,17 +125,13 @@ export function useWizardFlow<
   onOffRules,
 }: WizardFlowOptions<TStep, TForm, T>): WizardFlow<TStep> {
   const [step, setStep] = useState<TStep>(initialStep)
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  // The form's own words for what it is missing; a failed write is `save.error`.
+  const [invalid, setInvalid] = useState<string | null>(null)
 
   const currentIndex = steps.indexOf(step)
 
-  async function handleSubmit() {
-    setSubmitError(null)
-    setIsSubmitting(true)
-
-    try {
-      const store = useEntityStore.getState()
+  const save = useServerAction(
+    async () => {
       const now = new Date().toISOString()
       const rawInput = toCreateInput(form)
 
@@ -148,19 +145,22 @@ export function useWizardFlow<
       })
       if (!validation.success) {
         const messages = (validation.error?.issues ?? []).map((e) => e.message).join('; ')
-        setSubmitError(`Validation error: ${messages}`)
-        setIsSubmitting(false)
-        return
+        setInvalid(`Validation error: ${messages}`)
+        return null
       }
 
-      const created = await store.create(entityType, rawInput)
-      toast.success(`Saved ${form.name.trim() || noun}.`)
-      clearWizardDraft(draftKey)
-      onComplete(created.id)
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : failureMessage)
-      setIsSubmitting(false)
-    }
+      return useEntityStore.getState().create(entityType, rawInput)
+    },
+    { failure: failureMessage }
+  )
+
+  async function handleSubmit() {
+    setInvalid(null)
+    const result = await save.run()
+    if (!result.ok || result.value === null) return
+    toast.success(`Saved ${form.name.trim() || noun}.`)
+    clearWizardDraft(draftKey)
+    onComplete(result.value.id)
   }
 
   function goNext() {
@@ -184,7 +184,7 @@ export function useWizardFlow<
   return {
     step,
     gate,
-    submitError,
+    submitError: invalid ?? save.error,
     shell: {
       steps: steps.map((s) => stepLabels[s]),
       active: currentIndex,
@@ -202,7 +202,7 @@ export function useWizardFlow<
       confirmCancel: formDirty,
       onNext: goNext,
       nextDisabled: !gate.ok,
-      busy: isSubmitting,
+      busy: save.pending,
     },
   }
 }

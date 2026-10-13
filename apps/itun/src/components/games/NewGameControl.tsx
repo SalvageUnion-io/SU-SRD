@@ -24,8 +24,8 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { useShowContainer } from '../container/useShowContainer'
-import { failureMessage } from '../shared/useConfirm'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
 
@@ -80,12 +80,16 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
   const showContainer = useShowContainer()
 
   const [name, setName] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const start = useServerAction(
+    (from: { name: string } | { templateId: TemplateId }) =>
+      'templateId' in from ? createFromTemplate(from) : create(from),
+    { failure: 'That game could not be created. Try again.' }
+  )
+  const { pending: busy, error } = start
 
   function openDialog(next: boolean) {
     setOpen(next)
-    if (next) setError(null)
+    if (next) start.clearError()
   }
 
   /** Open the new Game's own page; the dialog has done its job. */
@@ -95,29 +99,10 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
     setOpen(false)
   }
 
-  async function attempt(work: () => Promise<void>, failure: string) {
-    setBusy(true)
-    setError(null)
-    try {
-      await work()
-    } catch (err) {
-      // A refusal is worded by the server for the player; anything else gets
-      // a plain line and a report.
-      setError(failureMessage(err, failure))
-    } finally {
-      setBusy(false)
-    }
+  async function startGame(from: { name: string } | { templateId: TemplateId }) {
+    const result = await start.run(from)
+    if (result.ok) enter(result.value)
   }
-
-  const startNamed = () =>
-    attempt(async () => {
-      enter(await create({ name }))
-    }, 'That game could not be created. Try again.')
-
-  const startFromTemplate = (templateId: TemplateId) =>
-    attempt(async () => {
-      enter(await createFromTemplate({ templateId }))
-    }, 'That game could not be created. Try again.')
 
   return (
     <>
@@ -150,7 +135,7 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
                 variant="primary"
                 size="compact"
                 disabled={busy || name.trim().length === 0}
-                onClick={() => void startNamed()}
+                onClick={() => void startGame({ name })}
               >
                 Create
               </Button>
@@ -180,7 +165,7 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
                     size="compact"
                     disabled={busy}
                     // `t.id`, not a hardcoded template id — see `templates.list`.
-                    onClick={() => void startFromTemplate(t.id)}
+                    onClick={() => void startGame({ templateId: t.id })}
                   >
                     Start this game
                   </Button>

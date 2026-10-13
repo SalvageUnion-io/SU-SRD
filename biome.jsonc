@@ -82,6 +82,19 @@
       // Convex functions only: a test reads its own handful of fixture rows.
       "path": "./packages/gates/biome/noChangeLogCollect.grit",
       "includes": ["**/apps/itun/convex/**", "!**/_generated/**"]
+    },
+    {
+      // ITUN's client, where a caught error's text reaches a player. A test
+      // asserts on messages; the route error screen's dump is development-only
+      // and is for the developer.
+      "path": "./packages/gates/biome/noRawErrorMessage.grit",
+      "includes": [
+        "**/apps/itun/src/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/__tests__/**",
+        "!**/apps/itun/src/components/shared/RouteErrors.tsx"
+      ]
     }
   ],
   "files": {

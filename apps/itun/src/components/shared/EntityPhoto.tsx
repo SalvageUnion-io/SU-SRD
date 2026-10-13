@@ -13,16 +13,16 @@
  * there is no picture.
  */
 
-import { assetSrcSetFor, Button, Text, toast, tokens } from 'component-lib'
+import { assetSrcSetFor, Button, Text, tokens } from 'component-lib'
 import type { Photo } from 'itun-domain/schemas/photo'
 import { photoUrl } from 'itun-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { serverMessage } from '../../lib/connection/serverError'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import type { PhotoUploader } from '../../lib/photos/uploadPhoto'
-import { postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
+import { PhotoRefused, postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
 
 /** Default art from the artwork CDN, which serves `-440`/`-880` derivatives. */
 export type DefaultArt = { url: string; alt: string }
@@ -82,15 +82,35 @@ const UPLOADER: PhotoUploader = {
   post: postPhoto,
 }
 
+/** A photo the player can fix says why; see `PhotoRefused`. */
+const PHOTO_PLAYER_ERRORS = [PhotoRefused]
+
 /** The frame is at most this wide; `sizes` tells the browser so. */
 const SIZES = '(max-width: 30rem) 100vw, 16rem'
 
 export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPhotoProps) {
-  const [busy, setBusy] = useState<'upload' | 'remove' | null>(null)
   // A photo whose file is gone (deleted alongside its last holder while a copy
   // still names it) falls back rather than showing a broken image.
   const [failed, setFailed] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
+
+  const upload = useServerAction(
+    async (file: File) => {
+      if (!onChange) return
+      await onChange(await uploadPhoto(await shrinkPhoto(file), UPLOADER))
+      setFailed(null)
+    },
+    {
+      failure: 'The photo could not be saved. Try again.',
+      toastId: 'entity-photo',
+      playerErrors: PHOTO_PLAYER_ERRORS,
+    }
+  )
+  const removal = useServerAction(async () => onChange?.(undefined), {
+    failure: 'The photo could not be removed. Try again.',
+    toastId: 'entity-photo',
+  })
+  const busy = upload.pending || removal.pending
 
   const own = photo ? photoUrl(photo) : undefined
   const ownShown = own !== undefined && own !== failed
@@ -98,34 +118,6 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
   // The CDN serves derivatives; an uploaded file is already sheet-sized.
   const cdn = !ownShown || photo?.kind === 'asset'
   if (src === undefined && onChange === undefined) return null
-
-  async function pick(file: File) {
-    if (!onChange) return
-    setBusy('upload')
-    try {
-      const next = await uploadPhoto(await shrinkPhoto(file), UPLOADER)
-      await onChange(next)
-      setFailed(null)
-    } catch (err) {
-      toast.error(
-        serverMessage(err) ?? (err instanceof Error ? err.message : 'The photo could not be saved.')
-      )
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  async function remove() {
-    if (!onChange) return
-    setBusy('remove')
-    try {
-      await onChange(undefined)
-    } catch (err) {
-      toast.error(serverMessage(err) ?? 'The photo could not be removed. Try again.')
-    } finally {
-      setBusy(null)
-    }
-  }
 
   return (
     <figure style={FIGURE} className="su-entity-photo">
@@ -152,21 +144,21 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
           <Button
             size="compact"
             variant="ghost"
-            disabled={busy !== null}
+            disabled={busy}
             onClick={() => input.current?.click()}
             aria-label={`${photo ? 'Replace' : 'Upload'} ${name}'s photo`}
           >
-            {busy === 'upload' ? 'Uploading…' : photo ? 'Replace photo' : 'Upload photo'}
+            {upload.pending ? 'Uploading…' : photo ? 'Replace photo' : 'Upload photo'}
           </Button>
           {photo && (
             <Button
               size="compact"
               variant="ghost"
-              disabled={busy !== null}
-              onClick={() => void remove()}
+              disabled={busy}
+              onClick={() => void removal.run()}
               aria-label={`Remove ${name}'s photo`}
             >
-              {busy === 'remove' ? 'Removing…' : 'Remove photo'}
+              {removal.pending ? 'Removing…' : 'Remove photo'}
             </Button>
           )}
           <input
@@ -179,7 +171,7 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
             onChange={(e) => {
               const file = e.currentTarget.files?.[0]
               e.currentTarget.value = ''
-              if (file) void pick(file)
+              if (file) void upload.run(file)
             }}
           />
         </div>

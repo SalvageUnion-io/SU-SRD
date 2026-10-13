@@ -49,6 +49,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../hooks/entities'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { assignCrew } from '../../lib/links/assignLink'
 import type { CrewAssignment, CrewSlotView } from '../../lib/npcs/npcModel'
 import {
@@ -472,8 +473,19 @@ function SlotPanel({
   onDone: () => void
 }) {
   const [draft, setDraft] = useState<CrewDraft>({})
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+  // The form's own complaint; a failed save is `save.error`.
+  const [invalid, setInvalid] = useState<string | null>(null)
+  const save = useServerAction(
+    () => useEntityStore.getState().create('npc', crewDraftToCreateInput(slot, draft, gameId)),
+    { failure: 'The NPC could not be saved. Try again.' }
+  )
+  // Said by the caller as a toast: a failed assignment after a save that
+  // landed has to say the NPC was saved.
+  const assign = useServerAction((npcId: string) => assignCrew(npcId, crawler.id, slot.slot), {
+    failure: `That NPC could not be assigned to the ${slot.name}. Try again.`,
+  })
+  const busy = save.pending || assign.pending
+  const error = invalid ?? save.error
   const [announcement, setAnnouncement] = useState('')
   const titleId = `crew-slot-${nameToSlug(slot.key)}`
 
@@ -529,45 +541,31 @@ function SlotPanel({
   async function saveAndAssign() {
     const gate = npcNameGate(draft.Name ?? '')
     if (!gate.ok) {
-      setError(gate.reason ?? 'Give the NPC a name.')
+      setInvalid(gate.reason ?? 'Give the NPC a name.')
       return
     }
-    setError(null)
-    setBusy(true)
-    try {
-      const created = await useEntityStore
-        .getState()
-        .create('npc', crewDraftToCreateInput(slot, draft, gameId))
-      try {
-        await assignCrew(created.id, crawler.id, slot.slot)
-        toast.success(`${created.name} crews the ${slot.name}.`)
-        onDone()
-      } catch (err) {
-        // The NPC stays saved: the two writes are separate on purpose (D8).
-        toast.error(
-          err instanceof Error
-            ? `${created.name} is saved, but not assigned: ${err.message}`
-            : `${created.name} is saved, but could not be assigned to the ${slot.name}.`
-        )
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'The NPC could not be saved. Try again.')
-    } finally {
-      setBusy(false)
+    setInvalid(null)
+    const saved = await save.run()
+    if (!saved.ok) return
+    const created = saved.value
+    const assigned = await assign.run(created.id)
+    if (!assigned.ok) {
+      // The NPC stays saved: the two writes are separate on purpose (D8).
+      toast.error(`${created.name} is saved, but not assigned: ${assigned.error}`)
+      return
     }
+    toast.success(`${created.name} crews the ${slot.name}.`)
+    onDone()
   }
 
   async function assignExisting(npc: Npc) {
-    setBusy(true)
-    try {
-      await assignCrew(npc.id, crawler.id, slot.slot)
-      toast.success(`${npc.name} crews the ${slot.name}.`)
-      onDone()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : `${npc.name} could not be assigned.`)
-    } finally {
-      setBusy(false)
+    const assigned = await assign.run(npc.id)
+    if (!assigned.ok) {
+      toast.error(assigned.error)
+      return
     }
+    toast.success(`${npc.name} crews the ${slot.name}.`)
+    onDone()
   }
 
   if (!writer) {

@@ -30,7 +30,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { appUrl } from '../../lib/appUrl'
-import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import {
   patternChoices,
@@ -86,14 +86,8 @@ const QR_ROW = { ...ROW, gap: tokens.space[12] } satisfies CSSProperties
 
 const QR_NOTE = { ...MUTED_CAPTION, margin: 0 } satisfies CSSProperties
 
-/** What every write's failure says: the server's own words when it refused. */
-function failureMessage(err: unknown): string {
-  // Server refusals carry a message meant for the player; anything else does
-  // not, and rendering String(err) would leak a redacted stack.
-  return isServerRefusal(err)
-    ? (serverMessage(err) ?? 'That could not be saved. Try again.')
-    : 'That could not be saved. Try again.'
-}
+/** What a defect says; a refusal says the server's own words. */
+const SHARE_FAILURE = { failure: 'That could not be saved. Try again.' }
 
 export function ShareSettings(props: ShareSettingsProps) {
   return props.kind === 'pattern' ? (
@@ -113,8 +107,11 @@ function SheetShareSettings({
   const setPublic = useMutation(api.publicSheet.setPublic)
   const published = useQuery(api.publicSheet.get, { kind, appId })
   const games = useQuery(api.games.listMine, gameId === null ? 'skip' : {})
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const share = useServerAction(
+    (next: Visibility) => setPublic({ kind, appId, isPublic: next === 'link' }),
+    SHARE_FAILURE
+  )
+  const { pending: busy, error } = share
 
   const inGame = typeof gameId === 'string'
   const gameName = games?.find((g) => g._id === gameId)?.name ?? null
@@ -122,25 +119,13 @@ function SheetShareSettings({
   const value =
     published === undefined ? null : sheetVisibility({ isPublic: published !== null, inGame })
 
-  async function choose(next: Visibility): Promise<void> {
-    setBusy(true)
-    setError(null)
-    try {
-      await setPublic({ kind, appId, isPublic: next === 'link' })
-    } catch (err) {
-      setError(failureMessage(err))
-    } finally {
-      setBusy(false)
-    }
-  }
-
   return (
     <div style={STACK}>
       <WhoCanSee
         name={`share-${kind}-${appId}`}
         choices={sheetChoices({ inGame, gameName })}
         value={value}
-        onChange={(next) => void choose(next)}
+        onChange={(next) => void share.run(next)}
         disabled={busy}
       />
       {value === 'link' && (
@@ -157,8 +142,16 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
   const sharing = useQuery(api.shelf.patternSharing, {})
   const games = useQuery(api.games.listMine, {})
   const [pickedGame, setPickedGame] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const share = useServerAction(
+    (next: Visibility, nextGame: string | null) =>
+      setVisibility({
+        patternId: appId,
+        visibility: next,
+        ...(next === 'game' && nextGame ? { gameId: nextGame as Id<'games'> } : {}),
+      }),
+    SHARE_FAILURE
+  )
+  const { pending: busy, error } = share
 
   const mine = sharing?.find((s) => s.appId === appId)
   const value = sharing === undefined ? null : (mine?.visibility ?? 'private')
@@ -167,21 +160,8 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
   const gameId = pickedGame ?? mine?.gameId ?? gameChoices[0]?._id ?? null
   const gameName = gameChoices.find((g) => g._id === gameId)?.name ?? mine?.gameName ?? null
 
-  async function choose(next: Visibility, nextGame: string | null = gameId): Promise<void> {
-    setBusy(true)
-    setError(null)
-    try {
-      await setVisibility({
-        patternId: appId,
-        visibility: next,
-        ...(next === 'game' && nextGame ? { gameId: nextGame as Id<'games'> } : {}),
-      })
-    } catch (err) {
-      setError(failureMessage(err))
-    } finally {
-      setBusy(false)
-    }
-  }
+  const choose = (next: Visibility, nextGame: string | null = gameId) =>
+    void share.run(next, nextGame)
 
   return (
     <div style={STACK}>
@@ -189,7 +169,7 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
         name={`share-pattern-${appId}`}
         choices={patternChoices({ gameName: gameChoices.length > 0 ? gameName : null })}
         value={value}
-        onChange={(next) => void choose(next)}
+        onChange={(next) => choose(next)}
         disabled={busy}
       >
         {value === 'game' && gameChoices.length > 1 && (
@@ -199,7 +179,7 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
               value={gameId ?? ''}
               onChange={(e) => {
                 setPickedGame(e.target.value)
-                void choose('game', e.target.value)
+                choose('game', e.target.value)
               }}
             >
               {gameChoices.map((g) => (

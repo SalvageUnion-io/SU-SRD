@@ -37,7 +37,7 @@ import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
 import { useHydrateEntities, useMech } from '../../../hooks/entities'
 import { useConnection } from '../../../lib/connection/connectionContext'
-import { serverMessage } from '../../../lib/connection/serverError'
+import { useServerAction } from '../../../lib/connection/useServerAction'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
   asReferencePattern,
@@ -164,6 +164,9 @@ type SavePatternPageProps = {
   onCancel: () => void
 }
 
+/** What a pattern is cut from: a mech's chassis and loadout. */
+type PatternSource = Parameters<typeof patternFromMech>[0]
+
 export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPageProps) {
   const hydrated = useHydrateEntities(['mech'])
   const mech = useMech(mechId)
@@ -177,8 +180,26 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
   const [notes, setNotes] = useState('')
   const [visibility, setVisibilityChoice] = useState<PatternVisibility>('private')
   const [pickedGame, setPickedGame] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // The form's own complaint; a failed save is `savePattern.error`.
+  const [invalid, setInvalid] = useState<string | null>(null)
+  const savePattern = useServerAction(
+    async (source: PatternSource, patternName: string, gameId: string | null) => {
+      const pattern = await usePatternStore
+        .getState()
+        .create(patternFromMech(source, { name: patternName, notes }))
+      if (visibility !== 'private') {
+        await setVisibility({
+          patternId: pattern.id,
+          visibility,
+          ...(visibility === 'game' && gameId ? { gameId: gameId as Id<'games'> } : {}),
+        })
+      }
+      return pattern.id
+    },
+    { failure: 'The pattern could not be saved. Try again.' }
+  )
+  const saving = savePattern.pending
+  const error = invalid ?? savePattern.error
 
   // Not "not found" before the shelf has loaded: that would flash on every visit.
   if (!mech && !hydrated) return null
@@ -208,27 +229,12 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
   async function save() {
     if (!mech) return
     if (!patternName.trim()) {
-      setError('A pattern needs a name.')
+      setInvalid('A pattern needs a name.')
       return
     }
-    setSaving(true)
-    setError(null)
-    try {
-      const pattern = await usePatternStore
-        .getState()
-        .create(patternFromMech(mech, { name: patternName, notes }))
-      if (visibility !== 'private') {
-        await setVisibility({
-          patternId: pattern.id,
-          visibility,
-          ...(visibility === 'game' && gameId ? { gameId: gameId as Id<'games'> } : {}),
-        })
-      }
-      onSaved(pattern.id, visibility)
-    } catch (err) {
-      setError(serverMessage(err) ?? 'The pattern could not be saved. Try again.')
-      setSaving(false)
-    }
+    setInvalid(null)
+    const result = await savePattern.run(mech, patternName, gameId)
+    if (result.ok) onSaved(result.value, visibility)
   }
 
   const systemsCount = `${slotsUsed(loadout.systems)} / ${chassis?.systemSlots ?? '–'} slots`

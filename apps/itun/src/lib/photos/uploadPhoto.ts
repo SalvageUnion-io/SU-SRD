@@ -14,6 +14,18 @@
 
 import type { Photo } from 'itun-domain/schemas/photo'
 
+/**
+ * A photo the browser or the server would not take, in words for the player:
+ * the file is theirs to change. `EntityPhoto` shows the message; any other
+ * failure is a defect, and gets a generic line and a report.
+ */
+export class PhotoRefused extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options)
+    this.name = 'PhotoRefused'
+  }
+}
+
 /** The longest edge a stored photo keeps. */
 export const MAX_PHOTO_EDGE = 1600
 
@@ -44,14 +56,14 @@ export async function shrinkPhoto(file: Blob): Promise<Blob> {
   try {
     bitmap = await createImageBitmap(file)
   } catch (cause) {
-    throw new Error('That file is not an image this browser can read.', { cause })
+    throw new PhotoRefused('That file is not an image this browser can read.', { cause })
   }
   const { width, height } = fitWithin(bitmap.width, bitmap.height)
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
   const context = canvas.getContext('2d')
-  if (context === null) throw new Error('This browser cannot prepare the photo.')
+  if (context === null) throw new PhotoRefused('This browser cannot prepare the photo.')
   context.drawImage(bitmap, 0, 0, width, height)
   bitmap.close()
 
@@ -60,7 +72,7 @@ export async function shrinkPhoto(file: Blob): Promise<Blob> {
   const webp = await encode('image/webp')
   if (webp?.type === 'image/webp') return webp
   const jpeg = await encode('image/jpeg')
-  if (jpeg === null) throw new Error('This browser cannot prepare the photo.')
+  if (jpeg === null) throw new PhotoRefused('This browser cannot prepare the photo.')
   return jpeg
 }
 
@@ -68,11 +80,13 @@ export async function shrinkPhoto(file: Blob): Promise<Blob> {
 export async function uploadPhoto(blob: Blob, uploader: PhotoUploader): Promise<Photo> {
   const url = await uploader.generateUploadUrl()
   const response = await uploader.post(url, blob)
-  if (!response.ok) throw new Error(`The photo upload failed (${response.status}). Try again.`)
+  if (!response.ok)
+    throw new PhotoRefused(`The photo upload failed (${response.status}). Try again.`)
   const { storageId } = (await response.json()) as { storageId?: unknown }
   if (typeof storageId !== 'string') throw new Error('The photo upload returned no file id.')
   const photo = await uploader.claim({ storageId })
-  if (photo === null) throw new Error('A photo must be a WebP, JPEG or PNG image under 4 MB.')
+  if (photo === null)
+    throw new PhotoRefused('A photo must be a WebP, JPEG or PNG image under 4 MB.')
   return photo
 }
 

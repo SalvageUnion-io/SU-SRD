@@ -1,11 +1,11 @@
-import { Button, toast, tokens } from 'component-lib'
+import { Button, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { fieldLabel } from 'itun-domain/games/proposals'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { failureMessage } from '../shared/useConfirm'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { HubSection } from './HubSection'
 
 /**
@@ -68,18 +68,17 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
   const apply = useMutation(api.proposals.apply)
   const decline = useMutation(api.proposals.decline)
   const { canWrite } = useConnection()
+  const reply = useServerAction((send: () => Promise<unknown>) => send(), {
+    failure: 'Your answer did not land. Try again.',
+    toastId: 'proposal-answer',
+  })
 
   if (pending === undefined) return null
   if (pending.length === 0) return null
 
   const show = (value: unknown): string =>
     value === null || value === undefined ? '—' : String(value)
-  const answer = (write: Promise<unknown>) =>
-    void write.catch((err: unknown) =>
-      toast.error(failureMessage(err, 'Your answer did not land. Try again.'), {
-        id: 'proposal-answer',
-      })
-    )
+  const answer = (send: () => Promise<unknown>) => void reply.run(send)
 
   return (
     <HubSection id="proposal-inbox-heading" title="Awaiting your answer">
@@ -98,7 +97,7 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
                   size="compact"
                   disabled={!canWrite}
                   aria-label={`Apply ${what}`}
-                  onClick={() => answer(apply({ proposalId: p._id as Id<'changeLog'> }))}
+                  onClick={() => answer(() => apply({ proposalId: p._id as Id<'changeLog'> }))}
                 >
                   Apply
                 </Button>
@@ -107,7 +106,7 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
                   size="compact"
                   disabled={!canWrite}
                   aria-label={`Decline ${what}`}
-                  onClick={() => answer(decline({ proposalId: p._id as Id<'changeLog'> }))}
+                  onClick={() => answer(() => decline({ proposalId: p._id as Id<'changeLog'> }))}
                 >
                   Decline
                 </Button>

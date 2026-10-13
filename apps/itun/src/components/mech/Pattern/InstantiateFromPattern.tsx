@@ -19,6 +19,7 @@ import { Button, FieldError, ModalShell, tokens } from 'component-lib'
 import type { MechPattern } from 'itun-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
 import '../../../styles/wizard.css'
@@ -42,20 +43,15 @@ type InstantiateFromPatternProps = {
 
 export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPatternProps) {
   const [confirming, setConfirming] = useState(false)
-  const [isInstantiating, setIsInstantiating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const build = useServerAction(
+    () => useEntityStore.getState().create('mech', mechFromPattern(pattern)),
+    { failure: 'The mech could not be built from this pattern. Try again.' }
+  )
+  const { pending: isInstantiating, error } = build
 
   async function handleInstantiate() {
-    setIsInstantiating(true)
-    setError(null)
-
-    try {
-      const mech = await useEntityStore.getState().create('mech', mechFromPattern(pattern))
-      onSuccess(mech.id)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create mech from pattern.')
-      setIsInstantiating(false)
-    }
+    const result = await build.run()
+    if (result.ok) onSuccess(result.value.id)
   }
 
   return (

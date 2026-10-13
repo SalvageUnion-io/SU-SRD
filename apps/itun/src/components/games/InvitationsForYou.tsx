@@ -29,9 +29,9 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { humanExpiry } from '../../lib/games/inviteExpiry'
 import { useShowContainer } from '../container/useShowContainer'
-import { failureMessage } from '../shared/useConfirm'
 
 const LIST = {
   display: 'flex',
@@ -98,8 +98,10 @@ function ConnectedInvitations() {
   const invitations = useQuery(api.invites.forMe, {})
   const redeem = useMutation(api.invites.redeem)
   const showContainer = useShowContainer()
-  const [busy, setBusy] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const accept = useServerAction((code: string) => redeem({ code }), {
+    failure: 'That invite could not be accepted. Try again.',
+  })
+  const { pending: busy, error } = accept
   // "Not now" answers nothing: it only puts the banner away for this visit.
   const [putAway, setPutAway] = useState<ReadonlySet<string>>(new Set())
 
@@ -107,16 +109,8 @@ function ConnectedInvitations() {
   if (shown.length === 0) return null
 
   async function join(code: string) {
-    setBusy(code)
-    setError(null)
-    try {
-      const result = await redeem({ code })
-      showContainer({ kind: 'game', gameId: result.gameId })
-    } catch (err) {
-      setError(failureMessage(err, 'That invite could not be accepted. Try again.'))
-    } finally {
-      setBusy(null)
-    }
+    const result = await accept.run(code)
+    if (result.ok) showContainer({ kind: 'game', gameId: result.value.gameId })
   }
 
   return (
@@ -138,14 +132,14 @@ function ConnectedInvitations() {
               <Button
                 variant="primary"
                 size="compact"
-                disabled={busy !== null}
+                disabled={busy}
                 onClick={() => void join(invite.code)}
               >
                 Join the Game
               </Button>
               <Button
                 size="compact"
-                disabled={busy !== null}
+                disabled={busy}
                 onClick={() => setPutAway((was) => new Set([...was, invite._id]))}
               >
                 Not now

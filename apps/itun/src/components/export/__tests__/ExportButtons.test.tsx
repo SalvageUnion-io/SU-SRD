@@ -73,20 +73,23 @@ describe('ExportAllButton', () => {
     expect((await downloaded()).entities.pilots.map((p) => p.name)).toEqual(['Rook'])
   })
 
-  test('a failed download says so, and a retry that lands clears it', async () => {
+  test('a failed download says so in its own words, and a retry that lands clears it', async () => {
     failCreate = true
     render(<ExportAllButton />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
 
-    await waitFor(() => expect(screen.getByText('Disk full')).toBeTruthy())
+    const failure = 'The backup could not be downloaded. Try again.'
+    await waitFor(() => expect(screen.getByText(failure)).toBeTruthy())
+    // What was thrown is a defect's text, not the player's to read.
+    expect(screen.queryByText('Disk full')).toBeNull()
     expect(downloads).toHaveLength(0)
 
     failCreate = false
     fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
     await waitFor(() => expect(downloads).toHaveLength(1))
     // The retry clears the stale error rather than leaving it beside a success.
-    expect(screen.queryByText('Disk full')).toBeNull()
+    expect(screen.queryByText(failure)).toBeNull()
   })
 })
 

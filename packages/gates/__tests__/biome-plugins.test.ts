@@ -46,6 +46,8 @@ const BIG_LIB = 'packages/component-lib/src/__biome_fixture__/big.tsx'
 /** A Convex function file, where collecting the Change Log is banned. */
 const CONVEX = 'apps/itun/convex/__biome_fixture__/z.ts'
 const BIG_APP = 'apps/itun/src/__biome_fixture__/big.tsx'
+/** ITUN's route error screen, whose development-only dump is exempt from the raw-message ban. */
+const ROUTE_ERRORS = 'apps/itun/src/components/shared/RouteErrors.tsx'
 
 const FIXTURES: Record<string, string> = {
   [SOURCE]: [
@@ -60,6 +62,12 @@ const FIXTURES: Record<string, string> = {
     "export const inArrow = () => SalvageUnionReference.search('x')",
     'export const hp = (p: { currentDamage?: number }, max: number) => p.currentDamage ?? max', // 10: flagged
     "export const label = (p: { currentName?: string }) => p.currentName ?? 'none'",
+    "export const shown = (err: unknown) => (err instanceof Error ? err.message : 'x')", // 12: flagged
+    "export const mixed = (a: unknown, b: Error) => (a instanceof Error ? b.message : 'x')",
+    '',
+  ].join('\n'),
+  [ROUTE_ERRORS]: [
+    "export const dump = (error: unknown) => (error instanceof Error ? error.message : 'x')",
     '',
   ].join('\n'),
   [TEST_FILE]: [
@@ -81,6 +89,7 @@ const FIXTURES: Record<string, string> = {
     'export const stamp = new Date().toISOString()', // 16: flagged
     'export const fixed = new Date(0).toISOString()',
     "export const log = (ctx: any) => ctx.db.query('changeLog').collect()",
+    "export const said = (err: unknown) => (err instanceof Error ? err.message : 'x')",
     '',
   ].join('\n'),
   [CONVEX]: [
@@ -211,6 +220,17 @@ describe('noChangeLogCollect', () => {
 
   test('does not apply to tests, which read their own fixture rows', () => {
     expect(flagged(TEST_FILE, 'plugin', 'Do not collect the Change Log')).toEqual([])
+  })
+})
+
+describe('noRawErrorMessage', () => {
+  test("flags showing a caught error's own message in ITUN source, not a mismatched pair", () => {
+    expect(flagged(SOURCE, 'plugin', 'Do not show a caught error')).toEqual([12])
+  })
+
+  test('does not apply to tests or the development-only route error dump', () => {
+    expect(flagged(TEST_FILE, 'plugin', 'Do not show a caught error')).toEqual([])
+    expect(flagged(ROUTE_ERRORS, 'plugin', 'Do not show a caught error')).toEqual([])
   })
 })
 

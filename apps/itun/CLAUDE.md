@@ -131,9 +131,9 @@ No others.
   user-facing message thrown as a plain `Error` is written and then discarded.
   `NotAuthorized` (`convex/model/permissions.ts`) extends `ConvexError` for
   exactly this reason; parse failures and broken invariants stay plain. On the
-  client, read it with `serverMessage()` / `isServerRefusal()` from
-  `src/lib/connection/serverError.ts` — never by string-matching `'Server Error'`,
-  and never by rendering `String(err)` from a mutation.
+  client, say a failed write with `useServerAction` / `failureMessage`
+  (`src/lib/connection/useServerAction.ts`) — never by string-matching
+  `'Server Error'` or rendering the caught error's text.
 - **Build every Convex mutation with `mutation` / `internalMutation` from
   `convex/model/entities.ts`, never from `_generated/server`.** Those wrap the
   generated builders with the triggers that keep `games.summary` (a Game's

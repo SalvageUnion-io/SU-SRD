@@ -8,7 +8,7 @@
 import { Button, toast } from 'component-lib'
 import { color, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
@@ -32,29 +32,24 @@ type ExportEntityButtonProps = {
 }
 
 export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) {
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  async function handleExport() {
-    setBusy(true)
-    setError(null)
-    try {
-      const entityStore = useEntityStore.getState()
-      const bundle = await buildEntityExport(type, id, entityStore)
+  const exportOne = useServerAction(
+    async () => {
+      const bundle = await buildEntityExport(type, id, useEntityStore.getState())
       // Sanitise the name for use as a filename.
       const safeName = name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .slice(0, 40)
       downloadJson(`itun-${type}-${safeName}.json`, bundle)
-      toast.success(`Exported ${name}.`)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Export failed.'
-      setError(message)
-      toast.error(message)
-    } finally {
-      setBusy(false)
-    }
+    },
+    { failure: `${name} could not be exported. Try again.` }
+  )
+  const { pending: busy, error } = exportOne
+
+  async function handleExport() {
+    const result = await exportOne.run()
+    if (result.ok) toast.success(`Exported ${name}.`)
+    else toast.error(result.error)
   }
 
   return (

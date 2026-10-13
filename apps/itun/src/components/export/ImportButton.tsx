@@ -16,9 +16,10 @@ import { Button, FieldError, toast } from 'component-lib'
 import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'
-import { parseImportBundle } from '../../lib/export/parseImportBundle'
+import { ImportRefused, parseImportBundle } from '../../lib/export/parseImportBundle'
 import { useEntityStore } from '../../stores/entityStore'
 
 const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
@@ -41,6 +42,8 @@ function summaryText(summary: MergeSummary): string {
   }`
 }
 
+const IMPORT_PLAYER_ERRORS = [ImportRefused]
+
 type ImportButtonProps = {
   /** Extra classes for the button (the Shelves band's on-ink outline). */
   className?: string
@@ -56,9 +59,26 @@ type ImportButtonProps = {
 
 export function ImportButton({ className, onInk = false, onResult }: ImportButtonProps = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<MergeSummary | null>(null)
+
+  const importFile = useServerAction(
+    async (file: File) =>
+      mergeImport(parseImportBundle(await file.text()), useEntityStore.getState()),
+    {
+      failure: 'That backup could not be imported. Try again.',
+      // A file that is not a backup is the player's to fix, and its reason is
+      // written for them.
+      playerErrors: IMPORT_PLAYER_ERRORS,
+    }
+  )
+  const busy = importFile.pending
+
+  function refuse(message: string) {
+    setError(message)
+    onResult?.(message)
+    toast.error(message)
+  }
 
   function handleClick() {
     fileInputRef.current?.click()
@@ -68,32 +88,23 @@ export function ImportButton({ className, onInk = false, onResult }: ImportButto
     const file = e.target.files?.[0]
     if (!file) return
 
-    setBusy(true)
     setError(null)
     setSummary(null)
     onResult?.(null)
 
-    try {
-      const text = await file.text()
-      const bundle = parseImportBundle(text)
-      const entityStore = useEntityStore.getState()
-      const result = await mergeImport(bundle, entityStore)
-      setSummary(result)
-      onResult?.(summaryText(result))
-      const total = result.created.pilots + result.created.mechs + result.created.crawlers
-      toast.success(`Import complete — ${total} entit${total === 1 ? 'y' : 'ies'} created.`)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Import failed.'
-      setError(message)
-      onResult?.(message)
-      toast.error(message)
-    } finally {
-      setBusy(false)
-      // Reset input so the same file can be re-selected.
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
+    const result = await importFile.run(file)
+    // Reset input so the same file can be re-selected.
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
+
+    if (!result.ok) return refuse(result.error)
+
+    const merged = result.value
+    setSummary(merged)
+    onResult?.(summaryText(merged))
+    const total = merged.created.pilots + merged.created.mechs + merged.created.crawlers
+    toast.success(`Import complete — ${total} entit${total === 1 ? 'y' : 'ies'} created.`)
   }
 
   return (

@@ -31,10 +31,10 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { appRoot } from '../../lib/appUrl'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { expiresIn, usedLine } from '../../lib/games/inviteExpiry'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { ConvexPending } from '../shared/ConvexPending'
-import { failureMessage } from '../shared/useConfirm'
 import { HubSection } from './HubSection'
 import { HUB_COPY } from './hubStyles.model'
 
@@ -169,7 +169,15 @@ export function InvitePanel({
   const [role, setRole] = useState<'player' | 'mediator'>('player')
   const [days, setDays] = useState<number>(7)
   const [requiresApproval, setRequiresApproval] = useState(false)
-  const [making, setMaking] = useState(false)
+  const makeLink = useServerAction(
+    () => createInvite({ gameId, role, requiresApproval, expiresInMs: days * DAY_MS }),
+    { failure: 'The link could not be made. Try again.', toastId: 'invite-link-make' }
+  )
+  const making = makeLink.pending
+  const revokeLink = useServerAction((inviteId: Id<'invites'>) => revoke({ inviteId }), {
+    failure: 'That link is still open. Try again.',
+    toastId: 'invite-link-revoke',
+  })
 
   const now = Date.now()
   const origin = appRoot()
@@ -187,22 +195,14 @@ export function InvitePanel({
       )
   }
 
-  const make = () => {
-    setMaking(true)
-    void createInvite({ gameId, role, requiresApproval, expiresInMs: days * DAY_MS })
-      .then((token) => {
-        setRole('player')
-        setDays(7)
-        setRequiresApproval(false)
-        // A new link is made to be sent, so it goes straight to the clipboard.
-        copy(token)
-      })
-      .catch((err: unknown) =>
-        toast.error(failureMessage(err, 'The link could not be made. Try again.'), {
-          id: 'invite-link-make',
-        })
-      )
-      .finally(() => setMaking(false))
+  const make = async () => {
+    const result = await makeLink.run()
+    if (!result.ok) return
+    setRole('player')
+    setDays(7)
+    setRequiresApproval(false)
+    // A new link is made to be sent, so it goes straight to the clipboard.
+    copy(result.value)
   }
 
   const live = invites?.filter((invite) => invite.status === 'active') ?? []
@@ -263,13 +263,7 @@ export function InvitePanel({
                       size="compact"
                       disabled={!canWrite}
                       aria-label={`Revoke ${seat.toLowerCase()} link`}
-                      onClick={() =>
-                        void revoke({ inviteId: invite._id }).catch((err: unknown) =>
-                          toast.error(failureMessage(err, 'That link is still open. Try again.'), {
-                            id: 'invite-link-revoke',
-                          })
-                        )
-                      }
+                      onClick={() => void revokeLink.run(invite._id)}
                     >
                       Revoke
                     </Button>
@@ -348,7 +342,7 @@ export function InvitePanel({
           size="full"
           style={FULL}
           disabled={!canWrite || making}
-          onClick={make}
+          onClick={() => void make()}
         >
           Make link
         </Button>

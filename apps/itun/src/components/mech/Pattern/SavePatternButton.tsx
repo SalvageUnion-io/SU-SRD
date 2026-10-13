@@ -16,6 +16,7 @@
 import { Button, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
 import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import { useState } from 'react'
+import { useServerAction } from '../../../lib/connection/useServerAction'
 import { usePatternStore } from '../../../stores/patternStore'
 import '../../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle } from '../../wizard/wizardStyles.model'
@@ -43,46 +44,43 @@ export function SavePatternButton({
 }: SavePatternButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [patternName, setPatternName] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  // The form's own complaint; a failed save is `save.error`.
+  const [invalid, setInvalid] = useState<string | null>(null)
+  const save = useServerAction(
+    (name: string) =>
+      usePatternStore
+        .getState()
+        .create({ schemaVersion: 1, name, chassisRef, systems, modules, cargoLots }),
+    { failure: 'The pattern could not be saved. Try again.' }
+  )
+  const isSaving = save.pending
+  const saveError = invalid ?? save.error
 
   function handleOpen() {
     setPatternName(mechName)
-    setSaveError(null)
+    setInvalid(null)
+    save.clearError()
     setIsOpen(true)
   }
 
   function handleCancel() {
     setIsOpen(false)
-    setSaveError(null)
+    setInvalid(null)
+    save.clearError()
   }
 
   async function handleSave() {
     if (!patternName.trim()) {
-      setSaveError('Pattern name is required.')
+      setInvalid('Pattern name is required.')
       return
     }
+    setInvalid(null)
 
-    setIsSaving(true)
-    setSaveError(null)
-
-    try {
-      const pattern = await usePatternStore.getState().create({
-        schemaVersion: 1,
-        name: patternName.trim(),
-        chassisRef,
-        systems,
-        modules,
-        cargoLots,
-      })
-      setIsOpen(false)
-      toast.success(`Saved pattern ${pattern.name}.`)
-      onSaved?.(pattern.id)
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save pattern.')
-    } finally {
-      setIsSaving(false)
-    }
+    const result = await save.run(patternName.trim())
+    if (!result.ok) return
+    setIsOpen(false)
+    toast.success(`Saved pattern ${result.value.name}.`)
+    onSaved?.(result.value.id)
   }
 
   return (

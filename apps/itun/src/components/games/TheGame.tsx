@@ -21,6 +21,7 @@ import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { failureMessage } from '../../lib/connection/useServerAction'
 import { HubSection } from './HubSection'
 
 const { color, font, fontSize, space, tracking, weight } = tokens
@@ -156,6 +157,9 @@ export function TheGame({
           </>
         }
         confirmLabel={appointing ? 'Appoint' : 'Hand over'}
+        describeError={(err) =>
+          failureMessage(err, 'The table could not be handed over. Try again.')
+        }
         onConfirm={async () => {
           if (chosen === '') return
           // Appoint first, so the table is never left without a Mediator.
