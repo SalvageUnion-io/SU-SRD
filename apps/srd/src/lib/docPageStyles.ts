@@ -122,13 +122,14 @@ export const LAST_UPDATED_STAMP = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** A tip or aside: an ink rule down its left edge on the page ground. */
+/** A tip or aside: a framed callout on the page ground — a full chrome-weight
+ *  ink frame, never a left rail (ruleset §3.10). */
 export const ASIDE = {
   backgroundColor: color.wkBg,
   borderColor: color.ink,
   borderRadius: radius.panel,
   borderStyle: 'solid',
-  borderWidth: '0 0 0 4px',
+  borderWidth: borderWidth.chrome,
   paddingBlock: space[12],
   paddingInline: space[16],
 } satisfies CSSProperties

@@ -24,7 +24,12 @@ import { EntityPageFrame, entityPageFoot } from '../../../../../../components/En
 import { EntityView } from '../../../../../../components/EntityView'
 import { chapterForSchema } from '../../../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../../../lib/componentEmbed'
-import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../../../lib/constants'
+import {
+  CONTENTS_CRUMB,
+  META_DESCRIPTION_MAX,
+  SITE_URL,
+  TITLE_SUFFIX,
+} from '../../../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../../../lib/entityHref'
 import { getReferenceEntityData } from '../../../../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../../../../lib/ogCard'
@@ -121,7 +126,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       // The art is the page's hero now, so the preload repeats ITS `sizes`.
       preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
       breadcrumbs: [
-        { name: 'Contents', url: `${SITE_URL}/` },
+        CONTENTS_CRUMB,
         ...(chapter.href === '/'
           ? []
           : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),

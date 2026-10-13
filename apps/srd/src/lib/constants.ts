@@ -1,7 +1,13 @@
 // Re-exported, not re-declared. This origin was hardcoded in four places
 // (here, itun's deep-link builder, and twice inside the Discord bot); the
 // dataset owns it now, beside ASSET_BASE_URL, so a domain change is one edit.
+import { SRD_SITE_URL } from 'salvageunion-reference'
+
 export { SRD_SITE_URL as SITE_URL } from 'salvageunion-reference'
+
+/** Every breadcrumb trail's root: the home page is the book's Contents, on
+ *  every page that has a trail (never "Home" on some and "Contents" on others). */
+export const CONTENTS_CRUMB = { name: 'Contents', url: `${SRD_SITE_URL}/` } as const
 
 /**
  * In The Union Now — the companion character builder & game manager, served

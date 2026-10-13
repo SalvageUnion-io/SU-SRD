@@ -15,7 +15,7 @@ M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the G
    7. **Q7 Downtime** — Ten rules steps, not the board's five; Begin and End are buttons; upkeep is 5 Scrap of the crawler's TL; End before the last step confirms.
    8. **Q8 Proposals** — The dock (Target, Field, To, optional reason ≤140 chars, preview) shows under every tab; the Proposals tab pages 20 at a time.
       Fields: pilot HP/AP, mech SP/Heat. Rows give state in words (Superseded struck through) and cover every Mediator's proposals.
-   9. **Q9 Opposition** — Hidden from players: each NPC a head-extent `ReferenceEntityCard` with an HP stepper and Morale; Morale is stored on the NPC, never logged.
+   9. **Q9 Opposition** — Hidden from players: each NPC a head-extent `ReferenceEntityCard` with an HP gauge (a compact `VitalGauge`) and Morale; Morale is stored on the NPC, never logged.
       An NPC at 0 shows as down and is never auto-removed; Remove confirms.
    10. **Q10 M2 sections** — Mediator: crawler band, open M1, Downtime controls, Proposals sent. Organizer: invites, Asking to join, Hand over. Everyone: crew, Downtime track.
    11. **Q11 Crew & seats** — Crawler card, then one row per member's pilot (what they have; M1 shows where they are); open seats are unclaimed pilots; no presence column.

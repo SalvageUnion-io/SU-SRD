@@ -7,7 +7,13 @@ import { borderWidth, color, font, fontSize, space, tracking } from 'component-l
 import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
-import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import {
+  CONTENTS_CRUMB,
+  DISCORD_INSTALL_URL,
+  ITUN_URL,
+  SITE_URL,
+  TITLE_SUFFIX,
+} from '../lib/constants'
 import {
   ASIDE,
   BOLD,
@@ -128,10 +134,7 @@ function page(): PageResult {
           url: `${SITE_URL}/`,
         },
       },
-      breadcrumbs: [
-        { name: 'Home', url: `${SITE_URL}/` },
-        { name: 'Discord Bot', url: `${SITE_URL}/discord/` },
-      ],
+      breadcrumbs: [CONTENTS_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/discord/` }],
     },
     children: (
       <div style={DOC_PAGE}>

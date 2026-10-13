@@ -6,8 +6,9 @@
  *
  * Each NPC is its reference card at `size="medium"`, `extent="head"`, carrying
  * the instance's own name; tapping it opens the full reference card in the
- * detail modal (listings never expand in place). Beside it, a `CountStepper`
- * for its HP or SP and a **Morale** button: a d20 on the reference Morale
+ * detail modal (listings never expand in place). Beside it, a compact
+ * `VitalGauge` for its HP or SP (ruleset §2.1: a vital is a `VitalGauge`, never a bare
+ * stepper) and a **Morale** button: a d20 on the reference Morale
  * table (Workshop Manual p.268), kept on the NPC and shown under its row —
  * never on the Game's log, which the crew reads.
  *
@@ -19,15 +20,16 @@
  * Presentational: the Dashboard reads the tray and makes the writes.
  */
 
+import type { CSSVarStyle } from 'component-lib'
 import {
   Button,
   ConfirmDialog,
-  CountStepper,
   Entity,
   EntitySearcher,
   Select,
   tokens,
   useDetailModal,
+  VitalGauge,
 } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
@@ -66,9 +68,18 @@ const LIST: CSSProperties = {
   gap: space[10],
 }
 
+/** The gauge's bay: wide enough for six pips a row at a legible size. */
+const GAUGE_WIDTH = '8rem'
+
+/** The fieldset that names a gauge, without the browser's frame. */
+const GAUGE_GROUP: CSSProperties = { border: 0, margin: 0, minWidth: 0, padding: 0 }
+
+/** The gauge lights in the opposition's own tone, the one its Row's band wears. */
+const ADVERSARY_TONE: CSSVarStyle = { '--tone': color.adversary, '--tone-deep': color.adversary }
+
 const ROW: CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) auto auto',
+  gridTemplateColumns: `minmax(0, 1fr) ${GAUGE_WIDTH} auto`,
   alignItems: 'center',
   gap: space[8],
 }
@@ -135,15 +146,19 @@ function NpcRow({
           )}
         </div>
         {npc.maxHp > 0 ? (
-          <CountStepper
-            count={npc.currentHp}
-            max={npc.maxHp}
-            label={stat}
-            subject={`${npc.name} ${stat}`}
-            surface="instrument"
-            disabled={!canWrite}
-            onChange={(next) => void writes.setHp(npc, next).catch(onFailure)}
-          />
+          // The gauge's slider is named by its stat alone ("HP"); the group
+          // names whose it is, as every row has one.
+          <fieldset aria-label={`${npc.name} ${stat}`} style={GAUGE_GROUP}>
+            <VitalGauge
+              size="compact"
+              label={stat}
+              value={npc.currentHp}
+              max={npc.maxHp}
+              readOnly={!canWrite}
+              onChange={(next) => void writes.setHp(npc, next).catch(onFailure)}
+              style={ADVERSARY_TONE}
+            />
+          </fieldset>
         ) : (
           <span />
         )}

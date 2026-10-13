@@ -10,7 +10,7 @@ import { Changelog, ChapterBand, InlineRef } from 'component-lib'
 import { readChangelog } from 'component-lib/changelog/git'
 import { space } from 'component-lib/design/tokens'
 import type { PageModule, PageResult } from '../../ssg/types'
-import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, DOC_PAGE, docMeasure, PROSE } from '../lib/docPageStyles'
 
 const MEASURE = docMeasure('48rem', space[32])
@@ -37,10 +37,7 @@ function page(): PageResult {
           url: `${SITE_URL}/`,
         },
       },
-      breadcrumbs: [
-        { name: 'Home', url: `${SITE_URL}/` },
-        { name: 'Changelog', url: `${SITE_URL}/changelog/` },
-      ],
+      breadcrumbs: [CONTENTS_CRUMB, { name: 'Changelog', url: `${SITE_URL}/changelog/` }],
     },
     children: (
       <div style={DOC_PAGE}>

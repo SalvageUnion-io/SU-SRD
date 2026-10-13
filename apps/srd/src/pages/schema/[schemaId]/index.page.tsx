@@ -27,7 +27,7 @@ import { getAssetUrl, getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
 import { ListingRail } from '../../../components/islands/ListingRail'
 import { chapterForSchema } from '../../../lib/chapters'
-import { SITE_URL, TITLE_SUFFIX } from '../../../lib/constants'
+import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../../../lib/constants'
 import { itemHref, schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
 import type { ListingGroup, ListingShape, TechLevel } from '../../../lib/listingGroups'
@@ -156,7 +156,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         },
       },
       breadcrumbs: [
-        { name: 'Contents', url: `${SITE_URL}/` },
+        CONTENTS_CRUMB,
         ...(chapter.href === '/'
           ? []
           : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),

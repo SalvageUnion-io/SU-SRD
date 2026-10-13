@@ -216,11 +216,15 @@ describe('see the problem, propose the fix', () => {
 })
 
 describe('the opposition', () => {
-  test('hidden from players, with an HP stepper and a Morale roll per NPC', async () => {
+  test('hidden from players, with an HP gauge and a Morale roll per NPC', async () => {
     await renderView()
     expect(screen.getByText('Hidden from players · 1 on the field')).toBeTruthy()
+    const hp = within(screen.getByRole('group', { name: 'Rifle Squad HP' })).getByRole('slider', {
+      name: 'HP',
+    })
+    expect(hp.getAttribute('aria-valuetext')).toBe('HP 7 of 10')
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Remove one Rifle Squad HP' }))
+      fireEvent.keyDown(hp, { key: 'ArrowLeft' })
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll Morale for Rifle Squad' }))
@@ -273,6 +277,10 @@ describe('offline or outdated', () => {
         .disabled
     ).toBe(true)
     expect((screen.getByLabelText('Target') as HTMLSelectElement).disabled).toBe(true)
+    // The NPC's HP gauge reads out and cannot be set.
+    const hp = screen.getByRole('group', { name: 'Rifle Squad HP' })
+    expect(within(hp).queryByRole('slider')).toBeNull()
+    expect(within(hp).getByRole('img', { name: 'HP 7 of 10' })).toBeTruthy()
     // The table is still there to read.
     expect(screen.getByRole('button', { name: /^Pickle, / })).toBeTruthy()
   })
