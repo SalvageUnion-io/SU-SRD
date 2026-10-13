@@ -21,25 +21,10 @@ import schema from '../../convex/schema'
  * `http.ts` routes.
  */
 /**
- * This harness lives OUTSIDE `convex/` on purpose. Do not move it back.
- *
- * Convex codegen registers every file under `convex/` as a deployable module.
- * While this file sat in `convex/__tests__/`, `_generated/api.d.ts` carried
- * `"__tests__/harness": typeof __tests___harness` — so the test harness was
- * shipped to the backend as part of the deployment, and `api.d.ts` imported
- * this file while this file imports `api`, making `api`'s mapped type
- * reference itself (TS2615) and cascading every `useQuery` result in `src/`
- * to an implicit any.
- *
- * Both problems have the same cause and the same fix: a test harness is not a
- * Convex function module, so it does not belong in the directory codegen
- * scans. Moving it here removed its two lines from `_generated/api.d.ts`,
- * which is exactly what codegen emits now that the file is gone from
- * `convex/` — the generated output is a pure function of that directory's
- * contents.
- *
- * None of it was visible until `convex/` was added to `apps/itun/tsconfig.json`;
- * before that the whole backend was type-checked by nothing.
+ * Lives OUTSIDE `convex/` on purpose; do not move it back. Codegen registers every file
+ * there as a deployable module, so a harness inside it ships to the backend, and because it
+ * imports `api`, `api`'s type references itself (TS2615) and every `useQuery` result in
+ * `src/` degrades to an implicit any.
  */
 const CONVEX_DIR = join(import.meta.dir, '../../convex')
 const NOT_LOADED = new Set(['auth.ts', 'http.ts', 'schema.ts', 'auth.config.ts', 'botHttp.ts'])

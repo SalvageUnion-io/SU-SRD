@@ -18,10 +18,10 @@ import type {
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { internalQuery } from './_generated/server'
+import { displayNameOf } from './account'
 import {
   bindChannelAs,
   bindingForChannel,
-  displayNameOf,
   gamesForUser,
   resolveActor,
   unbindChannelAs,
@@ -29,7 +29,7 @@ import {
 } from './model/bot'
 import { parseInviteInteraction } from './model/discordInteraction'
 import { internalMutation, primaryCrawlerOf } from './model/entities'
-import { liveDiscordInvite, mintInvite } from './model/invites'
+import { inviteByCode, liveDiscordInvite, mintInvite } from './model/invites'
 import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permissions'
 
 /**
@@ -111,7 +111,7 @@ async function ownerNames(ctx: QueryCtx, gameId: Id<'games'>): Promise<Map<strin
   const out = new Map<string, string>()
   for (const member of members) {
     const user = await ctx.db.get(member.userId)
-    out.set(member.userId, displayNameOf(user))
+    out.set(member.userId, displayNameOf(user, 'Crewmate'))
   }
   return out
 }
@@ -133,7 +133,7 @@ export const me = internalQuery({
       ok: true,
       user: {
         userId: user._id,
-        displayName: displayNameOf(user),
+        displayName: displayNameOf(user, 'Crewmate'),
         avatarUrl: user.avatarUrl ?? user.image ?? null,
       },
       games: await gamesForUser(ctx, user._id),
@@ -243,8 +243,7 @@ export const crew = internalQuery({
         .query('mechs')
         .withIndex('by_game', (q) => q.eq('gameId', gameId))
         .collect(),
-      // The PRIMARY crawler (ADR-037) — the one the table is anchored to. It
-      // was `crawlers[0]`, whichever the index met first.
+      // The PRIMARY crawler (ADR-037) — the one the table is anchored to.
       primaryCrawlerOf(ctx, gameId),
     ])
     const names = await ownerNames(ctx, gameId)
@@ -517,7 +516,7 @@ export const invite = internalMutation({
       outcome: 'invited',
       code: row.code,
       gameName: game.name,
-      invitedBy: displayNameOf(user),
+      invitedBy: displayNameOf(user, 'Crewmate'),
       inviteeDiscordId: parsed.invitee.id,
       inviteeName,
       role: row.role,
@@ -547,10 +546,7 @@ export const inviteDelivery = internalMutation({
     const user = await userByDiscordId(ctx, args.discordId)
     if (user === null) return fail('unlinked')
 
-    const row = await ctx.db
-      .query('invites')
-      .withIndex('by_code', (q) => q.eq('code', args.code.trim().toUpperCase()))
-      .unique()
+    const row = await inviteByCode(ctx, args.code)
     if (row === null) return fail('not-found')
 
     try {

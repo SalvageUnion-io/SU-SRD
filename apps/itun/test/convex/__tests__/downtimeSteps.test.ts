@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { downtimeGuideSteps } from 'itun-domain/rules/downtime'
 import { api } from '../../../convex/_generated/api'
 import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
@@ -13,11 +13,6 @@ import { testConvex } from '../harness'
  * The book is the source: Core Book p.227-228 walks ten named steps, "Tally
  * Salvage" through "Prepare for the next Salvage Run".
  */
-
-function downtimeGuideSteps() {
-  const guide = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')
-  return guide?.steps ?? []
-}
 
 describe('Convex Downtime steps come from the dataset', () => {
   test('the guide is actually there (guards a vacuous pass)', () => {

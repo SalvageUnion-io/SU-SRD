@@ -5,6 +5,7 @@ import type { MutationCtx } from '../_generated/server'
 import {
   crawlerEnteredGame,
   crawlerLeftGame,
+  oldestByAppId,
   parseBody,
   pruneLinksAcrossContainers,
   pruneLinksOfRow,
@@ -71,30 +72,9 @@ export async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers
   }
 }
 
-/**
- * Look a crawler up by the app-level UUID the client holds.
- *
- * Tolerant of duplicates for exactly the reasons `byAppId` is: `by_app_id` is
- * not a uniqueness constraint, and `.unique()` would turn a duplicate into a
- * thrown error on every write, locking the player out of their own crawler
- * over a row they cannot see. So this resolves the oldest row, warns, and lets
- * the write land. The crawler has no duplicates in production today, and that
- * is luck rather than a constraint: nothing in the index stops a second row.
- */
+/** `oldestByAppId` for a crawler, warning on a duplicate. */
 async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'crawlers'> | null> {
-  const matches = await ctx.db
-    .query('crawlers')
-    .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()
-
-  if (matches.length === 0) return null
-  if (matches.length === 1) return matches[0] ?? null
-
-  console.warn(
-    `[itun] ${matches.length} crawlers share appId="${appId}" — resolving to the oldest; this game needs de-duplicating`
-  )
-
-  return matches.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
+  return (await oldestByAppId(ctx, 'crawlers', appId, { warn: true })) as Doc<'crawlers'> | null
 }
 
 /** `patchCrawlerByAppId`'s write, shared with `transfer`. */

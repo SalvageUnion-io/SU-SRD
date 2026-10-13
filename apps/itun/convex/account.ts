@@ -16,6 +16,11 @@ import { deleteGameApparatus, releaseSeatsOf } from './model/seats'
  * data" cannot drift apart.
  */
 
+/** A user's display name, or the caller's fallback when they have none. */
+export function displayNameOf<F>(user: Doc<'users'> | null, fallback: F): string | F {
+  return user?.displayName ?? user?.name ?? fallback
+}
+
 /** The signed-in user's own profile. Never exposes another user's row. */
 export const me = query({
   args: {},
@@ -34,7 +39,7 @@ export const me = query({
     if (user === null) return null
     return {
       _id: user._id,
-      displayName: user.displayName ?? user.name ?? null,
+      displayName: displayNameOf(user, null),
       avatarUrl: user.avatarUrl ?? user.image ?? null,
       email: user.email ?? null,
     }

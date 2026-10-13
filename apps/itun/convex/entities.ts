@@ -24,6 +24,7 @@ import {
   resolveLinkEnd,
   rowsInGame,
   sameContainerRows,
+  TABLE_OF_KIND,
   writeSoftLink,
 } from './model/entities'
 import {
@@ -226,8 +227,6 @@ function servedLink(l: Doc<'softLinks'>): Infer<typeof servedLinkValidator> {
   }
 }
 
-const LOCATE_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc: 'npcs' } as const
-
 /**
  * Where one sheet lives and whether the caller may edit it — the question the
  * live sheet route (`/sheet/$kind/$id`) asks of anything this browser does not
@@ -264,7 +263,7 @@ export const locate = query({
     const userId = await getAuthUserId(ctx)
     if (userId === null) return null
 
-    const rowId = ctx.db.normalizeId(LOCATE_TABLE[args.kind], args.id)
+    const rowId = ctx.db.normalizeId(TABLE_OF_KIND[args.kind], args.id)
     let row: ContainedRow | null = rowId === null ? null : await ctx.db.get(rowId)
     row ??= await resolveLinkEnd(ctx, { type: args.kind, id: args.id }, null)
     if (row === null) {
@@ -397,10 +396,8 @@ export const listMine = query({
       // `encounterNpcs` below, which is the Mediator's tray.
       npcs: builtNpcs.map(versioned),
       mechPatterns: patterns.map((r) => ({ body: r.body })),
-      // Without this the shelf tray was WRITE-ONLY. `games.destroy` writes
-      // `encounterNpcs`, and no query read them back: `mediator.npcs`
-      // requires a `gameId`, so a tray on a shelf was reachable by nothing.
-      // It went up and never came down.
+      // `encounterNpcs` must be in the shelf bundle: `mediator.npcs` needs a
+      // `gameId`, so a shelved tray is readable by nothing else.
       encounterNpcs: npcs.map((r) => ({ body: r.body })),
     }
   },

@@ -1,14 +1,11 @@
 import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
-import { displayNameOf } from './model/bot'
+import { displayNameOf } from './account'
 import type { LoggedTable } from './model/entities'
-import { loadLogged, logIdOf, mutation } from './model/entities'
+import { loadLogged, logIdOf, mutation, TABLE_OF_KIND } from './model/entities'
 import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
 import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } from './schema'
-
-/** The table each sheet kind's row lives in. */
-const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc: 'npcs' } as const
 
 /**
  * Append client-originated Change Log rows (ADR-022 / ADR-034 P4b).
@@ -27,7 +24,7 @@ const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc:
  * absent. A field set for the first time has no `before` and a field cleared
  * has no `after`; both are `undefined` on the client, which the Convex client
  * drops when it serialises the args. Requiring the key refused the whole batch
- * for one missing side (ITUN-CONVEX-3/-4), from every bundle that sent one.
+ * for one missing side, from every bundle that sent one.
  *
  * Batched because the emitter batches: one edit that touches three fields is
  * three rows, and sending them individually would triple the round trips on
@@ -97,7 +94,7 @@ export const appendChangeLog = mutation({
         e.entityType === 'crawler' ||
         e.entityType === 'npc'
       ) {
-        const table = LOGGED_TABLE[e.entityType]
+        const table = TABLE_OF_KIND[e.entityType]
         logged.set(`${table}:${e.entityId}`, { table, entityId: e.entityId })
       }
     }
@@ -172,7 +169,7 @@ export const rolls = query({
     const names = new Map<Id<'users'>, string>()
     for (const actorId of new Set(rows.flatMap((r) => (r.actorId === null ? [] : [r.actorId])))) {
       const user = await ctx.db.get(actorId)
-      names.set(actorId, displayNameOf(user))
+      names.set(actorId, displayNameOf(user, 'Crewmate'))
     }
 
     return rows.map((r) => {
@@ -229,7 +226,7 @@ export const forEntity = query({
   ),
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx)
-    const row = await loadLogged(ctx, LOGGED_TABLE[args.entityType], args.entityId)
+    const row = await loadLogged(ctx, TABLE_OF_KIND[args.entityType], args.entityId)
     if (row === null) return []
     if (row.ownerId !== userId) {
       if (row.gameId === null) throw new NotAuthorized('That is not yours to read')

@@ -8,6 +8,7 @@ import {
   assignToPrimary,
   countPatternBuild,
   linkIdOf,
+  oldestByAppId,
   parseBody,
   pruneLinksAcrossContainers,
   pruneLinksOfRow,
@@ -74,54 +75,13 @@ async function assertMayAddToContainer(
   if (membership === null) throw new NotAuthorized('Not a member of this Game')
 }
 
-/**
- * Look a row up by the app-level UUID the client holds.
- *
- * This is the whole point of the `appId` column: a client that only knows its
- * local UUID can still address the server row, so updates and deletes work
- * without a mapping table. One indexed lookup, not a scan.
- *
- * ## Why this tolerates duplicates instead of asking for `.unique()`
- *
- * `by_app_id` is an ordinary Convex index, **not a uniqueness constraint** —
- * nothing in the database has ever stopped two rows sharing an `appId`, and in
- * production several did (a since-deleted bulk upload inserted blindly, so
- * running it from a second browser duplicated the roster).
- *
- * `.unique()` would turn that *data* condition into a thrown `Server Error` on
- * every write to the entity, locking the player out of their own build over a
- * row they cannot see. A duplicate is a repair job, not a reason to refuse
- * the write, so this resolves one row, warns, and lets the write land.
- *
- * **The oldest row wins, deterministically.** It is the row every earlier
- * write already landed on, so choosing it keeps editing the copy the client has
- * been addressing all along rather than silently migrating to a younger one.
- * `_creationTime` is used rather than index order because index order is not a
- * documented guarantee, and a winner that moves between calls would be worse
- * than the throw it replaces.
- */
+/** `oldestByAppId` over the owned tables, warning on a duplicate. */
 export async function byAppId(
   ctx: MutationCtx,
   table: OwnedTable,
   appId: string
 ): Promise<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | null> {
-  const matches = (await ctx.db
-    .query(table)
-    .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()) as Array<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'>>
-
-  if (matches.length === 0) return null
-  if (matches.length === 1) return matches[0] ?? null
-
-  // Logged every time rather than silently absorbed: the write now succeeds, so
-  // this line is the only remaining signal that a roster needs de-duplicating.
-  // It lands in the deployment log stream, which is the one place a Convex
-  // server-side message is readable at all (there is no Sentry SDK in here).
-  console.warn(
-    `[itun] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
-  )
-
-  return matches.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
+  return (await oldestByAppId(ctx, table, appId, { warn: true })) as Doc<OwnedTable> | null
 }
 
 /**

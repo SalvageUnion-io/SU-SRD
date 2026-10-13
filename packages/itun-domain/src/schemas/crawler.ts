@@ -58,6 +58,9 @@ export type CrawlerNpcState = z.infer<typeof CrawlerNpcStateSchema>
 
 /**
  * Crawler tech levels are I–VI per the Salvage Union ruleset.
+ *
+ * Optional fields read as their documented default when absent, so records
+ * written before a field existed still parse.
  */
 export const CrawlerSchema = z
   .object({
@@ -65,8 +68,8 @@ export const CrawlerSchema = z
     schemaVersion: z.literal(1),
     name: z.string().min(1),
     /**
-     * Freeform crawler description. Additive-optional (no DB migration — absent
-     * reads as undefined). Rendered on the crawler sheet, edited in the wizard.
+     * Freeform crawler description. Rendered on the crawler sheet, edited in the
+     * wizard.
      */
     description: z.string().optional(),
     /** Tech level (I–VI) expressed as a string slug, e.g. "tech-1" */
@@ -116,8 +119,7 @@ export const CrawlerSchema = z
      * persists the player's selection so it survives reloads.
      *
      * Optional: when absent or a key is missing, the display layer treats that
-     * bay as having no selections. Additive optional field — no DB migration
-     * needed (same tactic as Pilot.equipmentChoices / crawlerBays).
+     * bay as having no selections.
      */
     bayChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
     ...containerFields,
@@ -137,7 +139,7 @@ export const CrawlerSchema = z
     currentSP: z.number().int().min(0).optional(),
     // ---------------------------------------------------------------------------
     // Shared party economy + cargo.
-    // All additive-optional — absent reads as the documented default.
+    // Absent reads as the documented default.
     // ---------------------------------------------------------------------------
     /** Shared scrap pool bucketed by TL 1–6. Absent = all buckets 0. */
     scrapPool: ScrapPoolSchema.optional(),

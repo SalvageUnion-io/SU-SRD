@@ -14,6 +14,7 @@ import { MechSchema } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import { linkIdOf } from './model/entities'
 import { requireMember, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
@@ -158,20 +159,16 @@ export const vitals = query({
     const names = new Map<string, string>()
     for (const m of members) {
       const user = await ctx.db.get(m.userId)
-      names.set(m.userId, user?.displayName ?? user?.name ?? 'Crewmate')
+      names.set(m.userId, displayNameOf(user, 'Crewmate'))
     }
 
     /**
      * Read a numeric field off an opaque body without trusting its shape.
      *
-     * **The key must match the Zod schema exactly, including case.** These
-     * originally read `currentHp` / `currentAp` / `currentSp` while
-     * `itun-domain/schemas/` defines `currentHP` / `currentAP` / `currentSP`, so
-     * every pilot's HP and AP and every mech's SP came back null and the crew
-     * strip rendered a full row of em-dashes — indistinguishable from "nobody
-     * has taken damage yet", which is why it survived review. The body is
-     * `v.any()` on this side of the wire, so nothing but this comment and the
-     * test below will catch it next time.
+     * **Keys must match the Zod schema exactly, including case**
+     * (`currentHP` / `currentAP` / `currentSP`). A mismatch reads as null,
+     * which renders the same as "undamaged". The body is `v.any()`, so only
+     * the test below catches it.
      */
     const num = (body: unknown, key: string): number | null => {
       const value = (body as Record<string, unknown> | null)?.[key]

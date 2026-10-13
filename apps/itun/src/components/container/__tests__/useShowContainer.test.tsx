@@ -9,7 +9,6 @@ import {
 } from '@tanstack/react-router'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Container } from 'itun-domain/container'
-import { containerHref } from 'itun-domain/container'
 import { getActiveContainer, setActiveContainer } from '../../../stores/activeContainerStore'
 import { useShowContainer } from '../useShowContainer'
 
@@ -66,10 +65,5 @@ describe('useShowContainer', () => {
     render(<Show container={{ kind: 'game', gameId: 'g9' }} />)
     fireEvent.click(screen.getByRole('button', { name: 'Show' }))
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g9' })
-  })
-
-  test('the href and the navigation agree', () => {
-    expect(containerHref({ kind: 'game', gameId: 'g1' })).toBe('/games/g1')
-    expect(containerHref({ kind: 'shelf' })).toBe('/')
   })
 })

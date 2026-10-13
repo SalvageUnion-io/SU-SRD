@@ -3,8 +3,16 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import { logIdOf, mutation } from './model/entities'
-import { discordIdOfUser, inviteStatus, mayRedeem, mintInvite, statusOf } from './model/invites'
+import {
+  discordIdOfUser,
+  inviteByCode,
+  inviteStatus,
+  mayRedeem,
+  mintInvite,
+  statusOf,
+} from './model/invites'
 import {
   getMembership,
   NotAuthorized,
@@ -164,7 +172,7 @@ export const list = query({
       const redeemers: string[] = []
       for (const redemption of redemptions) {
         const user = await ctx.db.get(redemption.userId)
-        redeemers.push(user?.displayName ?? user?.name ?? 'Crewmate')
+        redeemers.push(displayNameOf(user, 'Crewmate'))
       }
 
       out.push({
@@ -244,13 +252,7 @@ export const preview = query({
     v.null()
   ),
   handler: async (ctx, args) => {
-    const code = args.code.trim().toUpperCase()
-    if (code.length === 0) return null
-
-    const invite = await ctx.db
-      .query('invites')
-      .withIndex('by_code', (q) => q.eq('code', code))
-      .unique()
+    const invite = await inviteByCode(ctx, args.code)
     if (invite === null) return null
 
     const game = await ctx.db.get(invite.gameId)
@@ -266,7 +268,7 @@ export const preview = query({
 
     return {
       gameName: game.name,
-      invitedBy: inviter?.displayName ?? inviter?.name ?? 'the Organiser',
+      invitedBy: displayNameOf(inviter, 'the Organiser'),
       role: invite.role,
       requiresApproval: invite.requiresApproval,
       grantCount: invite.grants?.length ?? 0,
@@ -400,12 +402,7 @@ export const redeem = mutation({
   args: { code: v.string() },
   handler: async (ctx, args): Promise<RedeemResult> => {
     const userId = await requireUser(ctx)
-    const code = args.code.trim().toUpperCase()
-
-    const invite = await ctx.db
-      .query('invites')
-      .withIndex('by_code', (q) => q.eq('code', code))
-      .unique()
+    const invite = await inviteByCode(ctx, args.code)
     if (invite === null) throw new NotAuthorized('That invite link is not valid')
 
     // Membership is checked before spendability: someone already seated is home
@@ -465,12 +462,7 @@ export const decline = mutation({
   args: { code: v.string() },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
-    const code = args.code.trim().toUpperCase()
-
-    const invite = await ctx.db
-      .query('invites')
-      .withIndex('by_code', (q) => q.eq('code', code))
-      .unique()
+    const invite = await inviteByCode(ctx, args.code)
     if (invite === null) throw new NotAuthorized('That invite link is not valid')
     if (invite.target === undefined) {
       throw new NotAuthorized('Only an invite sent to you can be declined')
@@ -529,7 +521,7 @@ export const forMe = query({
         _id: invite._id,
         code: invite.code,
         gameName: game.name,
-        invitedBy: inviter?.displayName ?? inviter?.name ?? 'the Organiser',
+        invitedBy: displayNameOf(inviter, 'the Organiser'),
         role: invite.role,
         grantCount: invite.grants?.length ?? 0,
         expiresAt: invite.expiresAt,
@@ -564,7 +556,7 @@ export const pendingRequests = query({
       const invite = await ctx.db.get(request.inviteId)
       out.push({
         _id: request._id,
-        displayName: user?.displayName ?? user?.name ?? 'Someone',
+        displayName: displayNameOf(user, 'Someone'),
         requestedAt: request.requestedAt,
         inviteLabel: invite?.label ?? null,
         role: invite?.role ?? 'player',

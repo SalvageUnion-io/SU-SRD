@@ -23,9 +23,9 @@ import { PHOTO_TABLES, trackPhoto } from './photos'
  * Shared entity-document helpers for the mutation modules (ADR-030).
  *
  * Three obligations live here, and they are here because every one of those
- * modules owes them. The first two had each grown a copy per module; the third
- * — the mutation builders at the bottom, which run the `games.summary`
- * triggers — only works if every module takes it from one place.
+ * modules owes them. The third — the mutation builders at the bottom, which run
+ * the `games.summary` triggers — only works if every module takes it from one
+ * place.
  *
  * ## The edge parse
  *
@@ -45,8 +45,7 @@ import { PHOTO_TABLES, trackPhoto } from './photos'
  * table does not hold — a `mechPatterns` id through the `mechs` endpoint would
  * have been parsed with the mech schema and patched, and an id from a table
  * nobody may claim through could have reached the ownership writes. An id that
- * is not this table's is simply not there, which is also what the old
- * `'ownerId' in doc` guard was groping for.
+ * is not this table's is simply not there.
  */
 
 /** The two entity tables that carry an owner. Crawlers are communal by design. */
@@ -70,8 +69,7 @@ export type OwnedTable = OwnableTable | 'npcs'
  * carry only a name, and `mediator.updateNpc` re-parses them on every change:
  * demanding the full record would strand those rows.
  *
- * What it still buys, and what the table had none of before: a body must be an
- * object, every field it *does* carry must be the shape the local store will
+ * What it still buys: a body must be an object, every field it *does* carry must be the shape the local store will
  * read, nothing outside the schema can be written at all (it is `.strict()`),
  * and a name must be there — the one field every reader of this table uses.
  */
@@ -146,6 +144,76 @@ export async function loadOwnable(
 export type LoggedTable = 'pilots' | 'mechs' | 'crawlers' | 'npcs'
 
 /**
+ * The four sheet tables by kind, which are also the public-sheet surface
+ * (`publicSheet.ts`). Never widened to `encounterNpcs`.
+ */
+export const TABLE_OF_KIND = {
+  pilot: 'pilots',
+  mech: 'mechs',
+  crawler: 'crawlers',
+  npc: 'npcs',
+} as const
+
+export type SheetKind = keyof typeof TABLE_OF_KIND
+
+/** The oldest of these rows, or null when there are none. */
+export function oldestOf<T extends { _creationTime: number }>(rows: readonly T[]): T | null {
+  return rows.reduce<T | null>(
+    (oldest, row) => (oldest === null || row._creationTime < oldest._creationTime ? row : oldest),
+    null
+  )
+}
+
+/**
+ * Look a row up by the app-level UUID the client holds.
+ *
+ * This is the whole point of the `appId` column: a client that only knows its
+ * local UUID can still address the server row, so updates and deletes work
+ * without a mapping table. One indexed lookup, not a scan.
+ *
+ * ## Why this tolerates duplicates instead of asking for `.unique()`
+ *
+ * `by_app_id` is an ordinary Convex index, **not a uniqueness constraint** —
+ * nothing in the database stops two rows sharing an `appId`, and in
+ * production several have.
+ *
+ * `.unique()` would turn that *data* condition into a thrown `Server Error` on
+ * every write to the entity, locking the player out of their own build over a
+ * row they cannot see. A duplicate is a repair job, not a reason to refuse
+ * the write, so this resolves one row and lets the write land.
+ *
+ * **The oldest row wins, deterministically.** It is the row every earlier
+ * write already landed on, so choosing it keeps editing the copy the client has
+ * been addressing all along rather than silently migrating to a younger one.
+ * `_creationTime` is used rather than index order because index order is not a
+ * documented guarantee, and a winner that moves between calls would be worse
+ * than the throw it replaces.
+ *
+ * `warn` is for the write paths: there the write succeeds, so the warning is
+ * the only remaining signal that a roster needs de-duplicating. It lands in the
+ * deployment log stream, the one place a Convex server-side message is
+ * readable at all (there is no Sentry SDK in here). Reactive queries leave it
+ * off, since they re-run on every change.
+ */
+export async function oldestByAppId(
+  ctx: QueryCtx | MutationCtx,
+  table: LoggedTable,
+  appId: string,
+  { warn = false }: { warn?: boolean } = {}
+): Promise<Doc<LoggedTable> | null> {
+  const matches = (await ctx.db
+    .query(table)
+    .withIndex('by_app_id', (q) => q.eq('appId', appId))
+    .collect()) as Doc<LoggedTable>[]
+  if (warn && matches.length > 1) {
+    console.warn(
+      `[itun] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
+    )
+  }
+  return oldestOf(matches)
+}
+
+/**
  * The id a Change Log row names an entity by: its `appId`, the id the client
  * addresses it by and the one `appendChangeLog` rows carry, or — for a row
  * seeded server-side that has none — its row id. Every server-side writer of a
@@ -158,7 +226,7 @@ export function logIdOf(row: Doc<LoggedTable>): string {
 
 /**
  * The row a Change Log `entityId` names, or null: by `appId` first (the oldest
- * row on a duplicate, as `byAppId` resolves it), then as a row id — which is
+ * row on a duplicate, as `oldestByAppId` resolves it), then as a row id — which is
  * what a row seeded without an `appId` is named by, and what every proposal
  * and ownership row written before `logIdOf` carries.
  */
@@ -167,14 +235,7 @@ export async function loadLogged(
   table: LoggedTable,
   entityId: string
 ): Promise<Doc<LoggedTable> | null> {
-  const matches = (await ctx.db
-    .query(table)
-    .withIndex('by_app_id', (q) => q.eq('appId', entityId))
-    .collect()) as Doc<LoggedTable>[]
-  const oldest = matches.reduce<Doc<LoggedTable> | null>(
-    (best, row) => (best === null || row._creationTime < best._creationTime ? row : best),
-    null
-  )
+  const oldest = await oldestByAppId(ctx, table, entityId)
   if (oldest !== null) return oldest
   const id = ctx.db.normalizeId(table, entityId)
   return id === null ? null : await ctx.db.get(id)
@@ -265,8 +326,7 @@ export function patternVisibilityOf(row: Doc<'mechPatterns'>): PatternVisibility
 
 /**
  * One pattern by the id inside its body, whoever made it — the pattern page's
- * address. `by_app_id` is not a uniqueness constraint, so a duplicate resolves
- * to the oldest row, as every other app-id lookup here does.
+ * address. A duplicate resolves to the oldest row, as in `oldestByAppId`.
  */
 export async function patternByAppId(
   ctx: QueryCtx | MutationCtx,
@@ -276,8 +336,7 @@ export async function patternByAppId(
     .query('mechPatterns')
     .withIndex('by_app_id', (q) => q.eq('appId', appId))
     .collect()
-  if (rows.length === 0) return null
-  return rows.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
+  return oldestOf(rows)
 }
 
 /**
@@ -329,14 +388,6 @@ export async function countPatternBuild(
 /** A row that sits in a container: every table a link end can name. */
 export type ContainedRow = Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'> | Doc<'npcs'>
 
-/** Which table each link-end kind lives in. */
-const TABLE_FOR_END = {
-  pilot: 'pilots',
-  mech: 'mechs',
-  crawler: 'crawlers',
-  npc: 'npcs',
-} as const
-
 /**
  * The id links use for a row: its `appId`, or — for a row seeded server-side
  * by a template, which has none — the id inside its body, which is what the
@@ -362,63 +413,14 @@ export function sameContainerRows(a: ContainedRow, b: ContainedRow): boolean {
   return a.ownerId !== null && a.ownerId === b.ownerId
 }
 
-async function rowsByAppId(
-  ctx: QueryCtx | MutationCtx,
-  type: LinkShape['from']['type'],
-  appId: string
-): Promise<ContainedRow[]> {
-  // Spelled out per table: `withIndex` cannot be typed over a union of tables.
-  if (type === 'pilot') {
-    return await ctx.db
-      .query('pilots')
-      .withIndex('by_app_id', (q) => q.eq('appId', appId))
-      .collect()
-  }
-  if (type === 'mech') {
-    return await ctx.db
-      .query('mechs')
-      .withIndex('by_app_id', (q) => q.eq('appId', appId))
-      .collect()
-  }
-  if (type === 'npc') {
-    return await ctx.db
-      .query('npcs')
-      .withIndex('by_app_id', (q) => q.eq('appId', appId))
-      .collect()
-  }
-  return await ctx.db
-    .query('crawlers')
-    .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()
-}
-
 /** Every row of one kind in a Game. */
 export async function rowsInGame(
   ctx: QueryCtx | MutationCtx,
   type: LinkShape['from']['type'],
   gameId: Id<'games'>
 ): Promise<ContainedRow[]> {
-  const table = TABLE_FOR_END[type]
-  if (table === 'pilots') {
-    return await ctx.db
-      .query('pilots')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .collect()
-  }
-  if (table === 'mechs') {
-    return await ctx.db
-      .query('mechs')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .collect()
-  }
-  if (table === 'npcs') {
-    return await ctx.db
-      .query('npcs')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .collect()
-  }
   return await ctx.db
-    .query('crawlers')
+    .query(TABLE_OF_KIND[type])
     .withIndex('by_game', (q) => q.eq('gameId', gameId))
     .collect()
 }
@@ -426,10 +428,9 @@ export async function rowsInGame(
 /**
  * The row a link end names, or null when there is none.
  *
- * Addressed by `appId`, resolving a duplicate to the oldest row exactly as
- * `byAppId` does in `entities.ts`. When nothing carries that app id and a Game
- * is named, the Game's own rows are searched for one with **no** `appId` whose
- * body id matches: a template seeds its crew without app ids, and its links
+ * Addressed by `appId` through `oldestByAppId`, as every write is. When
+ * nothing carries that app id and a Game is named, the Game's own rows are
+ * searched for one with **no** `appId` whose body id matches: a template seeds its crew without app ids, and its links
  * point at body ids, so without this a template's crawler could never be
  * assigned to. Scoped to one Game because template body ids repeat across
  * every Game seeded from the same template.
@@ -439,12 +440,8 @@ export async function resolveLinkEnd(
   ref: { type: LinkShape['from']['type']; id: string },
   gameHint: Id<'games'> | null
 ): Promise<ContainedRow | null> {
-  const matches = await rowsByAppId(ctx, ref.type, ref.id)
-  if (matches.length > 0) {
-    return matches.reduce((oldest, row) =>
-      row._creationTime < oldest._creationTime ? row : oldest
-    )
-  }
+  const match = await oldestByAppId(ctx, TABLE_OF_KIND[ref.type], ref.id)
+  if (match !== null) return match
   if (gameHint === null) return null
   const seeded = await rowsInGame(ctx, ref.type, gameHint)
   return seeded.find((row) => row.appId === undefined && bodyAppId(row.body) === ref.id) ?? null
@@ -647,8 +644,7 @@ export async function computeGameSummary(
       .query('mechs')
       .withIndex('by_game', (q) => q.eq('gameId', gameId))
       .collect(),
-    // The PRIMARY crawler's name: it is the one the table is anchored to, and
-    // with several crawlers "the first" was whichever the index met first.
+    // The PRIMARY crawler's name: it is the one the table is anchored to.
     primaryCrawlerOf(ctx, gameId),
   ])
   return {

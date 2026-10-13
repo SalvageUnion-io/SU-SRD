@@ -21,8 +21,8 @@ import { z } from 'salvageunion-reference/zod'
  *   - `asset` — licensed artwork on the CDN, by object key. The Starter Set
  *     crew carry their portraits this way, and a copy keeps it.
  *
- * Additive-optional on every schema that takes it: records written before it
- * still validate (no version bump / migration).
+ * Optional on every schema that takes it (`photoFields`): absent reads as no
+ * photo.
  */
 export const PhotoSchema = z.discriminatedUnion('kind', [
   z

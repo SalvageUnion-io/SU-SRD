@@ -162,8 +162,3 @@ export async function gamesForUser(
   }
   return out
 }
-
-/** A member's display name, with the same fallback every other surface uses. */
-export function displayNameOf(user: Doc<'users'> | null): string {
-  return user?.displayName ?? user?.name ?? 'Crewmate'
-}

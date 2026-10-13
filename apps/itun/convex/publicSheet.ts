@@ -4,18 +4,22 @@ import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
+import type { SheetKind } from './model/entities'
 import {
   linksTouching,
   mayReadPattern,
   mutation,
+  oldestByAppId,
   parseBody,
   patternByAppId,
   patternVisibility,
   patternVisibilityOf,
   resolveLinkEnd,
   sameContainerRows,
+  TABLE_OF_KIND,
 } from './model/entities'
-import { statusOf } from './model/invites'
+import { inviteByCode, statusOf } from './model/invites'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
 import { entityRef, entityRefType, inviteRole, softLinkType } from './schema'
 
@@ -45,7 +49,7 @@ import { entityRef, entityRefType, inviteRole, softLinkType } from './schema'
  *   one.
  * - **No `encounterNpcs`.** The Mediator's prepared opposition is not an
  *   ownable entity, has no `publicRead` column, and is not reachable from here
- *   by any argument — the table union below is the whole surface.
+ *   by any argument — `TABLE_OF_KIND` is the whole surface.
  * - **No refusal.** A non-public entity returns `null`, exactly as a
  *   nonexistent one does. "This sheet is private" is itself a disclosure.
  *
@@ -53,7 +57,7 @@ import { entityRef, entityRefType, inviteRole, softLinkType } from './schema'
  *
  * A saved mech pattern is the one thing a player MAKES that can be published
  * here, at `/p/pattern/:appId`, with the same `publicRead` opt-in. It has its
- * own query, `pattern`, rather than a fourth `KIND_TO_TABLE` entry: a pattern
+ * own query, `pattern`, rather than a `TABLE_OF_KIND` entry: a pattern
  * has no assignments and no maxima, and it has a second audience — a Game's
  * crew — that a sheet reaches through the Game view instead. The rules above
  * hold for it unchanged: no listing, and private reads as nonexistent.
@@ -66,37 +70,12 @@ import { entityRef, entityRefType, inviteRole, softLinkType } from './schema'
  * names them for an NPC, as `pattern` does for a pattern.
  */
 
-/** The four tables a public sheet can be. Never widened to `encounterNpcs`. */
-const KIND_TO_TABLE = {
-  pilot: 'pilots',
-  mech: 'mechs',
-  crawler: 'crawlers',
-  npc: 'npcs',
-} as const
-
-type Kind = keyof typeof KIND_TO_TABLE
-type PublicTable = (typeof KIND_TO_TABLE)[Kind]
+type Kind = SheetKind
+/** The four tables a public sheet can be. */
+type PublicTable = (typeof TABLE_OF_KIND)[Kind]
 
 /** A sheet's kind: `EntityRefSchema.type`, built from Zod in `schema.ts`. */
 const kindValidator = entityRefType
-
-/** Look one entity up by the client-minted app id the URL carries. */
-async function byAppId(
-  ctx: QueryCtx | MutationCtx,
-  table: PublicTable,
-  appId: string
-): Promise<Doc<PublicTable> | null> {
-  // `by_app_id` is an ordinary index and NOT a uniqueness constraint, so a
-  // duplicate is possible. Resolving to the OLDEST match is what the rest of
-  // the codebase does (`entities.byAppId`), so a public link and a write agree
-  // on which row is the entity.
-  const rows = await ctx.db
-    .query(table)
-    .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()
-  if (rows.length === 0) return null
-  return rows.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
-}
 
 /** One assignment of a published entity, as the reader's sheet draws it. */
 const publicLink = v.object({ type: softLinkType, from: entityRef, to: entityRef })
@@ -149,7 +128,7 @@ export const get = query({
   args: { kind: kindValidator, appId: v.string() },
   returns: v.union(publicSheet, v.null()),
   handler: async (ctx, args): Promise<Infer<typeof publicSheet> | null> => {
-    const row = await byAppId(ctx, KIND_TO_TABLE[args.kind], args.appId)
+    const row = await oldestByAppId(ctx, TABLE_OF_KIND[args.kind], args.appId)
     // Not-public and not-found are the same answer on purpose: distinguishing
     // them would confirm that a given entity exists.
     if (row === null || row.publicRead !== true) return null
@@ -160,7 +139,7 @@ export const get = query({
       ...(args.kind === 'mech' ? { pilotAbilities: await pilotAbilitiesForMech(ctx, row) } : {}),
       ...(args.kind === 'npc'
         ? {
-            madeBy: displayNameOf(row.ownerId ? await ctx.db.get(row.ownerId) : null) ?? 'a player',
+            madeBy: displayNameOf(row.ownerId ? await ctx.db.get(row.ownerId) : null, 'a player'),
           }
         : {}),
       ...(await assignmentsOf(ctx, row, args.appId)),
@@ -270,7 +249,7 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
 
   // Soft links address entities by APP id (ADR-027), the same id this route
   // takes — not by Convex row id.
-  const pilot = await byAppId(ctx, 'pilots', link.to.id)
+  const pilot = await oldestByAppId(ctx, 'pilots', link.to.id)
   if (pilot === null) return []
 
   // The pilot must be the mech owner's own, or unclaimed alongside it.
@@ -284,7 +263,7 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   // module rests on. An unclaimed pilot in the same Game has no owner to ask
   // and is already visible to the table, so it stays allowed.
   //
-  // Both ends are read through an `in` guard because `byAppId` returns the row
+  // Both ends are read through an `in` guard because `oldestByAppId` returns the row
   // union — `crawlers` has no `ownerId` column at all — and narrowing it by the
   // table argument is not something Convex's index typing survives.
   //
@@ -348,14 +327,10 @@ async function assertMayPublish(
   }
   if (row.ownerId === userId) return
   if (row.ownerId === null) {
-    // **Unclaimed blocks publishing, never UN-publishing.** Mirroring
-    // `assertMayWrite` here was wrong in one direction: `ownership.release`
-    // nulls an `ownerId` on a row that is still in the Game, so a published
-    // sheet whose owner walks away would have become permanently un-revocable
-    // — still served to anonymous readers, with "Stop sharing" refusing for as
-    // long as nobody claimed it. That directly
-    // falsifies what ADR-032 §6 and the panel copy both promise. Withdrawal is
-    // always allowed; it can only ever reduce what is exposed.
+    // **Unclaimed blocks publishing, never UN-publishing.** `ownership.release`
+    // nulls `ownerId` on a row still in the Game, so refusing withdrawal would
+    // leave a published sheet un-revocable (ADR-032 §6). Withdrawal only
+    // reduces exposure.
     if (!isPublic) return
     throw new NotAuthorized(
       'That entity is unclaimed — it must be assigned before it can be shared'
@@ -375,8 +350,8 @@ export const setPublic = mutation({
   args: { kind: kindValidator, appId: v.string(), isPublic: v.boolean() },
   handler: async (ctx, args): Promise<{ isPublic: boolean }> => {
     const userId = await requireUser(ctx)
-    const table = KIND_TO_TABLE[args.kind]
-    const row = await byAppId(ctx, table, args.appId)
+    const table = TABLE_OF_KIND[args.kind]
+    const row = await oldestByAppId(ctx, table, args.appId)
     if (row === null) throw new NotAuthorized('That entity no longer exists')
 
     await assertMayPublish(ctx, table, row, userId, args.isPublic)
@@ -388,12 +363,9 @@ export const setPublic = mutation({
     // render, so this fails HERE — where the owner is standing and
     // can see it — rather than on a page they have already given somebody.
     //
-    // Both branches throw `ConvexError`, and that is the load-bearing part.
     // `parseBody` throws a plain `Error`, which Convex redacts to "Server
-    // Error" before the client sees it — so re-throwing as `ConvexError` is
-    // what makes this message actually reach the owner instead of being
-    // written and then discarded. Without it the promise above ("fails HERE,
-    // where the owner can see it") would have held for crawlers only.
+    // Error" before the client sees it, so it is re-thrown as `ConvexError`:
+    // that is what makes this message reach the owner.
     if (args.isPublic) {
       try {
         parseBody(table, row.body)
@@ -425,7 +397,7 @@ const patternAnswer = v.object({
 type PatternAnswer = Infer<typeof patternAnswer>
 
 /**
- * One saved mech pattern, or null (board P2).
+ * One saved mech pattern, or null.
  *
  * **Unauthenticated by design**, like `get`: a pattern shared by link is
  * readable with no account. A signed-in reader also reaches one shared with a
@@ -445,7 +417,7 @@ export const pattern = query({
     const mine = row.ownerId === userId
     return {
       body: row.body,
-      madeBy: maker?.displayName ?? maker?.name ?? 'a player',
+      madeBy: displayNameOf(maker, 'a player'),
       sharedAt: row.sharedAt ?? null,
       builtCount: row.builtCount ?? 0,
       mine,
@@ -477,11 +449,6 @@ const previewAnswer = v.object({
 })
 type PreviewAnswer = Infer<typeof previewAnswer>
 
-/** A user's display name, the way every credit in the app reads it. */
-function displayNameOf(user: Doc<'users'> | null): string | null {
-  return user?.displayName ?? user?.name ?? null
-}
-
 /**
  * One player thing, as its link preview shows it to a STRANGER,
  * or null.
@@ -508,18 +475,18 @@ export const preview = query({
       return {
         kind: 'pattern',
         body: row.body,
-        ownerName: displayNameOf(await ctx.db.get(row.ownerId)) ?? 'a player',
+        ownerName: displayNameOf(await ctx.db.get(row.ownerId), 'a player'),
         gameName: null,
       }
     }
-    const row = await byAppId(ctx, KIND_TO_TABLE[args.kind], args.appId)
+    const row = await oldestByAppId(ctx, TABLE_OF_KIND[args.kind], args.appId)
     if (row === null || row.publicRead !== true) return null
     const ownerId = 'ownerId' in row ? row.ownerId : null
     const game = row.gameId !== null ? await ctx.db.get(row.gameId) : null
     return {
       kind: args.kind,
       body: row.body,
-      ownerName: ownerId ? displayNameOf(await ctx.db.get(ownerId)) : null,
+      ownerName: ownerId ? displayNameOf(await ctx.db.get(ownerId), null) : null,
       gameName: game?.name ?? null,
       ...(args.kind === 'pilot'
         ? { mechChassisRef: await publishedMechOf(ctx, row, args.appId) }
@@ -563,8 +530,7 @@ const invitePreviewAnswer = v.object({
 type InvitePreviewAnswer = Infer<typeof invitePreviewAnswer>
 
 /**
- * A Game invite, as its link preview shows it (board PV1): the
- * Game's name, who mediates and the expiry, or null for a code that is not
+ * A Game invite, as its link preview shows it: the Game's name, who mediates and the expiry, or null for a code that is not
  * live. **Unauthenticated**, like `invites.preview`, which already tells a
  * link holder the Game's name and who invited them; this adds only the
  * Mediator's name, the one person a player is asking to join.
@@ -573,12 +539,7 @@ export const invitePreview = query({
   args: { code: v.string() },
   returns: v.union(invitePreviewAnswer, v.null()),
   handler: async (ctx, args): Promise<InvitePreviewAnswer | null> => {
-    const code = args.code.trim().toUpperCase()
-    if (code.length === 0) return null
-    const invite = await ctx.db
-      .query('invites')
-      .withIndex('by_code', (q) => q.eq('code', code))
-      .unique()
+    const invite = await inviteByCode(ctx, args.code)
     if (invite === null || statusOf(invite, Date.now()) !== 'active') return null
     const game = await ctx.db.get(invite.gameId)
     if (game === null) return null
@@ -590,7 +551,7 @@ export const invitePreview = query({
     ).find((membership) => membership.mediator)
     return {
       gameName: game.name,
-      mediatedBy: mediator ? displayNameOf(await ctx.db.get(mediator.userId)) : null,
+      mediatedBy: mediator ? displayNameOf(await ctx.db.get(mediator.userId), null) : null,
       role: invite.role,
       requiresApproval: invite.requiresApproval,
       expiresAt: invite.expiresAt,

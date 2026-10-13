@@ -36,7 +36,6 @@ describe('byAppId tolerates duplicate rows', () => {
       }
     })
 
-    // Before this, `unique() query returned more than one result` — swallowed.
     await u.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
       appId: 'dupe-1',

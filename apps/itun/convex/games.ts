@@ -3,7 +3,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { displayNameOf } from './model/bot'
+import { displayNameOf } from './account'
 import { mutation, refreshGameSummary, summaryOf } from './model/entities'
 import {
   getMembership,
@@ -286,7 +286,7 @@ export const members = query({
         const user = await ctx.db.get(m.userId)
         return {
           userId: m.userId,
-          displayName: displayNameOf(user),
+          displayName: displayNameOf(user, 'Crewmate'),
           avatarUrl: user?.avatarUrl ?? user?.image,
           mediator: m.mediator,
           organizer: m.organizer,

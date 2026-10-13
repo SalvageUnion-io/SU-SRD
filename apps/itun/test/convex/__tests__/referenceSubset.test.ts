@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
+import { downtimeGuideSteps } from 'itun-domain/rules/downtime'
 import { nameToSlug, resetAllForTesting, SalvageUnionReference } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -147,7 +148,7 @@ describe('Convex derives on the schemas it deploys', () => {
       userId: organizer.userId,
       mediator: true,
     })
-    const steps = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps ?? []
+    const steps = downtimeGuideSteps()
     const upkeepStep = steps.findIndex((s) => s.name === 'Upkeep & Upgrade')
     expect(upkeepStep).toBeGreaterThan(0)
 

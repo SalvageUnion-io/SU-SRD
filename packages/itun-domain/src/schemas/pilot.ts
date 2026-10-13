@@ -90,6 +90,9 @@ export type GenericInventoryEntry = z.infer<typeof GenericInventoryEntrySchema>
 /**
  * classRef: slug reference to a class in salvageunion-reference.
  * Resolution against game data is handled at the presentation/query layer.
+ *
+ * Optional fields read as their documented default when absent, so records
+ * written before a field existed still parse.
  */
 
 export const PilotSchema = z
@@ -105,9 +108,6 @@ export const PilotSchema = z
     /**
      * The pilot's pronouns, as free text — never a picker. A closed list gets
      * someone wrong, and this is the pilot's own word for themselves.
-     *
-     * Additive-optional, so records written before this field still validate on
-     * read (no version bump / migration).
      */
     pronouns: z.string().optional(),
 
@@ -131,9 +131,8 @@ export const PilotSchema = z
      * no abilities yet, one holding only trees the hybrid grants anyway, or a
      * free-edited pilot whose trees point two ways at once.
      *
-     * Additive-optional — absent reads as "derive it" (no version bump /
-     * migration). It deliberately CANNOT be backfilled: unlike `seedRef`, no
-     * stored value implies it.
+     * Absent reads as "derive it". It deliberately CANNOT be backfilled: unlike
+     * `seedRef`, no stored value implies it.
      */
     originClassRef: z.string().optional(),
 
@@ -156,8 +155,7 @@ export const PilotSchema = z
     background: z.string().default(''),
 
     /**
-     * Freeform bio / backstory. Additive-optional (no DB migration — absent
-     * reads as undefined); distinct from `background` (the short Background
+     * Freeform bio / backstory, distinct from `background` (the short Background
      * archetype). Rendered on the pilot sheet, edited in the wizard.
      */
     description: z.string().optional(),
@@ -208,8 +206,6 @@ export const PilotSchema = z
      * Persisted granted-equipment choice selections, keyed by equipment slug,
      * then by choiceId → selected option values. Optional: when absent or a key
      * is missing, the display layer treats that item as having no selections.
-     * Additive optional field — no DB migration needed (same tactic as
-     * equipmentConditions).
      */
     equipmentChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
 
@@ -227,24 +223,21 @@ export const PilotSchema = z
      * "at each Tech Level you may select an additional Modification") and the
      * Stat Training bonus to max HP/AP (`pilotMaxHPParts`). Only used
      * when the pilot is NOT linked to a crawler; when a crawler is associated its
-     * techLevel takes precedence (see resolveEffectiveCrawlerLevel). Optional and
-     * additive — no DB migration needed (same tactic as equipmentChoices).
+     * techLevel takes precedence (see resolveEffectiveCrawlerLevel).
      */
     crawlerLevel: z.number().int().min(1).max(6).optional(),
 
     /**
-     * Slugs of pilot abilities that have been "used" this rest (live-play, Slice
-     * D). Used for once-per-rest abilities: the per-ability toggle adds/removes a
-     * slug here. When absent or a slug is missing, the ability reads as available
-     * (not yet used). Additive optional field — no DB migration needed (same
-     * tactic as equipmentChoices).
+     * Slugs of pilot abilities that have been "used" this rest. Used for
+     * once-per-rest abilities: the per-ability toggle adds/removes a slug here.
+     * When absent or a slug is missing, the ability reads as available (not yet
+     * used).
      */
     usedAbilities: z.array(z.string()).optional(),
 
     // ---------------------------------------------------------------------------
     // Advancement + derived-maxima state.
-    // All additive-optional — no DB migration required; absent reads as the
-    // documented default.
+    // Absent reads as the documented default.
     // ---------------------------------------------------------------------------
     /** Training Points available to spend (+1 per Downtime). Absent = 0. */
     trainingPoints: z.number().int().min(0).optional(),
@@ -326,7 +319,7 @@ export const PilotSchema = z
 
     /**
      * The most recent Critical Injury Table result (rolled on reaching 0
-     * HP). Additive optional field, snapshot-safe plain data.
+     * HP). Snapshot-safe plain data.
      */
     lastCriticalInjury: CriticalInjuryResultSchema.optional(),
     createdAt: z.string().datetime(),

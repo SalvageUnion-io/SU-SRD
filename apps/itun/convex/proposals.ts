@@ -7,6 +7,7 @@ import { PilotSchema } from 'itun-domain/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
 import { changeLogEntityType, changeLogState } from './schema'
@@ -286,7 +287,7 @@ export const sent = query({
         const cached = names.get(row.actorId)
         if (cached === undefined) {
           const user = await ctx.db.get(row.actorId)
-          actorName = user?.displayName ?? user?.name ?? 'Another Mediator'
+          actorName = displayNameOf(user, 'Another Mediator')
           names.set(row.actorId, actorName)
         } else {
           actorName = cached

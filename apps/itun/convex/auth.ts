@@ -84,7 +84,7 @@ const discordProfile: NonNullable<typeof discord.profile> = rawDiscordProfile
  * Discord returns `email: null` for an account with no verified address. The
  * result was not a missing email — it was a schema violation thrown from inside
  * the auth mutation, so **sign-in failed outright** for that account and there
- * was no way for the player to get past it (issue ITUN-CONVEX-2).
+ * was no way for the player to get past it.
  *
  * Dropping the key rather than widening the validator is the right side of that
  * disagreement to fix. `defaultCreateOrUpdateUser` guards its account-linking

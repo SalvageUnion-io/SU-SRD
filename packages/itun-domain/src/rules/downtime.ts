@@ -91,9 +91,14 @@ export const DOWNTIME_UPKEEP_SCRAP = 5
  */
 export const UPKEEP_STEP_NAME = 'Upkeep & Upgrade'
 
+/** The Crawler Downtime guide's steps, in order; empty when the guide is missing. */
+export function downtimeGuideSteps() {
+  return SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps ?? []
+}
+
 /** How many steps the Downtime procedure has (the reference guide's). */
 export function downtimeStepCount(): number {
-  return SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps?.length ?? 0
+  return downtimeGuideSteps().length
 }
 
 /**
@@ -102,8 +107,7 @@ export function downtimeStepCount(): number {
  * draws these, so it shows the guide's ten rather than a board's five.
  */
 export function downtimeStepNames(): string[] {
-  const steps = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps
-  return (steps ?? []).map((step) => step.name)
+  return downtimeGuideSteps().map((step) => step.name)
 }
 
 /**
@@ -113,8 +117,7 @@ export function downtimeStepNames(): string[] {
  */
 export function isUpkeepStep(stepIndex: number | null): boolean {
   if (stepIndex === null) return false
-  const steps = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps
-  return steps?.[stepIndex]?.name === UPKEEP_STEP_NAME
+  return downtimeGuideSteps()[stepIndex]?.name === UPKEEP_STEP_NAME
 }
 
 // ---------------------------------------------------------------------------

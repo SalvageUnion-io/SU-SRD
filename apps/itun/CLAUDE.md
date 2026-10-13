@@ -160,9 +160,8 @@ No others.
   uniqueness constraint — so nothing in the database stops a second row.
   Prevention is the rule: look the app id up (`byAppId`) before any insert.
 
-  The lookups (`byAppId` / `crawlerByAppId`, `patternByAppId`) do **not** throw
-  on a duplicate: they resolve to the oldest row (the first two also
-  `console.warn`).
+  The lookups (`oldestByAppId`, `patternByAppId`) do **not** throw on a
+  duplicate: they resolve to the oldest row (write paths also `console.warn`).
 - **A copy gets a new UUID; a move keeps its own.** These pull in opposite
   directions, so both matter:
   - **Copy → new id.** Importing a bundle (`mergeImport`) mints a fresh UUID

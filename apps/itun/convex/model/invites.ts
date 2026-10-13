@@ -26,6 +26,19 @@ export const DEFAULT_EXPIRY_MS = DAY_MS * 14
  */
 export const TARGETED_EXPIRY_MS = DAY_MS * 7
 
+/**
+ * The invite a code names, or null. Codes are matched trimmed and
+ * case-insensitively, so every door that takes one agrees on what it names.
+ */
+export async function inviteByCode(ctx: AnyCtx, raw: string): Promise<Doc<'invites'> | null> {
+  const code = raw.trim().toUpperCase()
+  if (code.length === 0) return null
+  return await ctx.db
+    .query('invites')
+    .withIndex('by_code', (q) => q.eq('code', code))
+    .unique()
+}
+
 /** What an invite is currently worth, derived rather than stored. */
 export const inviteStatus = v.union(
   v.literal('active'),

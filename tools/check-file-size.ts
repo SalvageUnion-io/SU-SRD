@@ -43,9 +43,9 @@ const SCAN_FLOOR = 630
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/discord-bot/src/gameCards.ts': 916,
-  'apps/itun/convex/entities.ts': 855,
-  'apps/itun/convex/invites.ts': 614,
-  'apps/itun/convex/model/entities.ts': 933,
+  'apps/itun/convex/entities.ts': 852,
+  'apps/itun/convex/invites.ts': 606,
+  'apps/itun/convex/model/entities.ts': 929,
   'apps/itun/convex/schema.ts': 782,
   'apps/itun/src/components/dashboard/Dashboard.tsx': 675,
   'apps/itun/src/components/dashboard/RollTable.tsx': 947,

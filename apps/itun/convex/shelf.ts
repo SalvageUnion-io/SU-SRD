@@ -3,6 +3,7 @@ import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import type { PatternVisibility } from './model/entities'
 import {
   bodyAppId,
@@ -71,7 +72,7 @@ export const removeMechPattern = mutation({
 })
 
 /**
- * Who may read one of the caller's patterns (board P1): only them, anyone
+ * Who may read one of the caller's patterns: only them, anyone
  * with the link, or one Game's crew.
  *
  * The maker's act and nobody else's, like publishing a sheet (ADR-032 §2) — a
@@ -154,7 +155,7 @@ export const crewPatterns = query({
         out.push({
           appId: row.appId,
           body: row.body,
-          madeBy: maker?.displayName ?? maker?.name ?? 'A crewmate',
+          madeBy: displayNameOf(maker, 'A crewmate'),
           gameName: game.name,
         })
       }

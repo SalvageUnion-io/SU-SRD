@@ -96,6 +96,9 @@ const CriticalDamageResultSchema = z
  * encounter `refSlug`. They resolve through `salvageunion-reference/rules`
  * (`resolveChassisRef`, `resolveSystemRef`, `resolveModuleRef`) at the
  * rules/presentation layer.
+ *
+ * Optional fields read as their documented default when absent, so records
+ * written before a field existed still parse.
  */
 
 export const MechSchema = z
@@ -119,10 +122,10 @@ export const MechSchema = z
     /** Optional: name of the paint/visual pattern applied */
     patternName: z.string().optional(),
 
-    /** Short freeform quirk note (the poster's "Quirk"). Additive-optional. */
+    /** Short freeform quirk note (the poster's "Quirk"). */
     quirk: z.string().optional(),
 
-    /** Freeform appearance note (the poster's "Appearance"). Additive-optional. */
+    /** Freeform appearance note (the poster's "Appearance"). */
     appearance: z.string().optional(),
 
     /**
@@ -225,7 +228,7 @@ export const MechSchema = z
      * Drone, Big Brother's four Big Brother Drones. Distinct from a pilot's
      * ability-granted partners: these belong to the machine, not its pilot, and
      * their tech level is fixed by the stat block rather than tracking the Union
-     * Crawler. Additive-optional; absent reads as none.
+     * Crawler. Absent reads as none.
      */
     partners: z.array(PartnerInstanceSchema).optional(),
 
@@ -283,7 +286,7 @@ export const MechSchema = z
 
     /**
      * The most recent Critical Damage Table result (rolled on reaching 0
-     * SP). Additive optional field, snapshot-safe plain data.
+     * SP). Snapshot-safe plain data.
      */
     lastCriticalDamage: CriticalDamageResultSchema.optional(),
     createdAt: z.string().datetime(),
