@@ -113,7 +113,7 @@ describe('invite management', () => {
   })
 })
 
-describe('invites carry a seat and a hand-out', () => {
+describe('invites carry a seat', () => {
   test('a mediator invite seats the joiner as Mediator', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)

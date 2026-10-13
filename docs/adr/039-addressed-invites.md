@@ -10,7 +10,7 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 39, which
 
 **Accepted.** Extends the invite amendment of
 [ADR-030](030-accounts-games-server-of-record.md) — an invite already
-carries a seat, a hand-out and an optional approval door; it may now also carry
+carries a seat and an optional approval door; it may now also carry
 an **address**: one Discord account. Bearer codes are unchanged and remain the
 default.
 
