@@ -4,10 +4,10 @@
  * type facet as the listings' segmented control, and the hits as listing Rows.
  * It ends on the same band (`foot`), as a schema listing does.
  *
- * `SearchResultsIsland` was `client:only="react"`, which is `client="only"` +
- * `ssr={false}` here. Per the `<Island>` contract, an `ssr={false}` island is
- * passed NO children — that keeps the component out of the Bun SSR module graph
- * entirely, which also sidesteps its `window` access at build time.
+ * `SearchResultsIsland` is `client="only"` + `ssr={false}`. Per the `<Island>`
+ * contract, an `ssr={false}` island is passed NO children — that keeps the
+ * component out of the Bun SSR module graph entirely, which also sidesteps its
+ * `window` access at build time.
  */
 
 import { ChapterBand } from 'component-lib'

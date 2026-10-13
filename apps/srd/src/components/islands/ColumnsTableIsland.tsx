@@ -1,7 +1,8 @@
 import { rollD20 } from 'component-lib'
 import { useState } from 'react'
-import type { ColumnsRollState, ColumnsTablePageData } from '../../lib/columnsTablePage'
-import { recordColumnsRoll } from '../../lib/columnsTablePage'
+import type { ColumnsRoll, ColumnsTablePageData } from '../../lib/columnsTablePage'
+import type { RollState } from '../../lib/rollTablePage'
+import { recordRoll } from '../../lib/rollTablePage'
 import { ColumnsTableView } from '../ColumnsTableView'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -19,12 +20,12 @@ type ColumnsTableIslandProps = {
  * the page's table, digested at build time, so the island reads no game data.
  */
 export function ColumnsTableIsland({ data, tone, d20 = rollD20 }: ColumnsTableIslandProps) {
-  const [state, setState] = useState<ColumnsRollState>({ roll: null, history: [] })
+  const [state, setState] = useState<RollState<ColumnsRoll>>({ roll: null, history: [] })
 
   const onRoll = () => {
     const column = d20()
     const entry = d20()
-    setState((current) => recordColumnsRoll(current, { column, entry }))
+    setState((current) => recordRoll(current, { column, entry }))
   }
 
   return (

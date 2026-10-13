@@ -1,25 +1,14 @@
 import type { PageRefIndex } from 'component-lib'
-import {
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-  PatternHrefProvider,
-  ReferenceEntityCard,
-  Toaster,
-} from 'component-lib'
-import { Suspense, useLayoutEffect, useMemo } from 'react'
+import { Toaster } from 'component-lib'
+import { Suspense, useLayoutEffect } from 'react'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
-import { getClassSelections } from '../../lib/classSelections'
-import { srdEntityHref } from '../../lib/entityHref'
-import { srdPatternHref } from '../../lib/patternHref'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
-import { ClassAbilityTree } from '../ClassAbilityTree'
-import { ReferenceSurface } from '../ReferenceSurface'
+import { EntityCardStatic } from '../EntityCardStatic'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
   item: SURefEntity
-  compact?: boolean
   /** Render one of `item`'s patterns (chassis only) instead of the chassis
    *  itself — the pattern page's view. */
   pattern?: SURefObjectAnyPattern
@@ -49,15 +38,11 @@ function DropStaticFallback() {
 
 export function ReferenceEntityIsland({
   item,
-  compact = false,
   pattern,
   preloadSchemas,
   artSlot = false,
   pageRefs,
 }: ReferenceEntityIslandProps) {
-  const classSelections = useMemo(() => getClassSelections(item), [item])
-  const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
-
   // The static SEO/no-JS fallback (`StaticEntityContent`) stays on screen,
   // for JS readers too, until the card can draw: the gate and the Suspense
   // boundary render nothing rather than a skeleton, and the card's commit drops
@@ -66,32 +51,9 @@ export function ReferenceEntityIsland({
   return (
     <IslandErrorBoundary>
       <GameDataGate schemas={preloadSchemas} fallback={null}>
-        {/* The card is the page's body (`presentation="page"`): the page's
-            chapter band and foot band frame it, as on the static path. */}
         <Suspense fallback={null}>
           <DropStaticFallback />
-          <EntityHrefProvider value={srdEntityHref}>
-            <EntityDetailLinkProvider value={true}>
-              {/* Pattern rows on a chassis card link to the pattern's own
-                    page. Harmless on the pattern page itself, whose card is a
-                    pattern view and so carries no pattern list. */}
-              <PatternHrefProvider value={srdPatternHref}>
-                <ReferenceSurface pageRefs={pageRefs}>
-                  <ReferenceEntityCard
-                    data={item}
-                    pattern={pattern}
-                    size={compact ? 'medium' : 'large'}
-                    presentation={compact ? 'card' : 'page'}
-                    artSlot={artSlot}
-                    afterExtraContent={
-                      classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
-                    }
-                    asideLead={!!classEntity}
-                  />
-                </ReferenceSurface>
-              </PatternHrefProvider>
-            </EntityDetailLinkProvider>
-          </EntityHrefProvider>
+          <EntityCardStatic item={item} pattern={pattern} artSlot={artSlot} pageRefs={pageRefs} />
           {/* Where a roll on the card's tables lands (`ReferenceSurface`). */}
           <Toaster />
         </Suspense>

@@ -3,6 +3,7 @@ import { Glob } from 'bun'
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import { storyGroups, storySubgroups } from 'component-lib/stories/groups'
+import { STORY_GLOBS } from '../storyRoots'
 
 /**
  * Story catalog guard — the executable half of the story standard documented in
@@ -25,16 +26,10 @@ import { storyGroups, storySubgroups } from 'component-lib/stories/groups'
 const SRC = join(import.meta.dir, '../../../../packages/component-lib/src')
 
 /**
- * Barrel-exported components that intentionally have no standalone story.
- *
- * One entry, below. Every earlier entry
- * (`CardImage`, `ControlButtons`, `ChassisAbilitiesContent`,
- * `SectionSeparator`) was an internal sub-part that had been published from the
- * barrel with no consumer outside this package; the barrel prune un-exported
- * them, so they are no longer public and need no exemption. Add a name here
- * only when a genuine sub-part must be public and is demonstrated through its
- * parent's story — with a one-line rationale. The stale-entry test below keeps
- * this list honest.
+ * Barrel-exported components that intentionally have no standalone story. Add
+ * a name here only when a genuine sub-part must be public and is demonstrated
+ * through its parent's story — with a one-line rationale. The stale-entry test
+ * below keeps this list honest.
  */
 const ALLOWLIST = new Set<string>([
   // SearchField's button twin, demonstrated in the Union bar it exists for
@@ -57,30 +52,6 @@ const CATALOG_PAGES = new Set([
   'RenderingMatrix',
 ])
 
-/**
- * The bounded exception to "one component = one story": frozen "BEFORE" CAPTURES
- * from the style-unification refresh. Each reproduces an ITUN wizard surface
- * inline — app components can't be imported cross-package — so the refreshed
- * primitives can be compared against the legacy appearance they replace.
- *
- * They are deliberately FROZEN: they do not track the ITUN components they
- * mirror, because their whole job is to preserve the "before" state. So do NOT
- * "fix drift" against the app, and do NOT extract a component out of them —
- * that would defeat the capture. They are retired by DELETION once the refresh
- * they document has landed (a sibling pass already deleted 16 comparison-only
- * captures and kept these two as the app-surface ones).
- *
- * Listed explicitly so the exception stays visible and countable rather than
- * silently becoming the norm — a new componentless story fails CI until it is
- * justified here.
- */
-// Deliberately EMPTY, and annotated so it stays typed as a string set rather
-// than inferring `never[]`. It held two entries — MechInstallStep (a story for
-// a component that existed nowhere) and NewEntityScreen (a mock-up of a
-// component that lives in ITUN); both stories were deleted rather than
-// re-justified. An empty allowlist is the intended steady state.
-const PROTOTYPE_STORIES = new Set<string>([])
-
 function read(rel: string): string {
   return readFileSync(join(SRC, rel), 'utf8')
 }
@@ -88,13 +59,17 @@ function read(rel: string): string {
 const barrel = read('index.ts')
 
 /**
- * App-owned component folders whose stories this catalog also serves (see
- * `STORY_GLOBS`). Components that only one app used were moved out of the
- * library in the component-lib boundary audit and took their stories
- * with them; the catalog still shows them, so the taxonomy and co-location
- * rules below still apply to them. Paths are relative to SRC, like the rest.
+ * App-owned component folders whose stories this catalog also serves, derived
+ * from `STORY_GLOBS` so the taxonomy and co-location rules below cover every
+ * root the catalog shows. Paths are relative to SRC, like the rest.
  */
-const APP_STORY_ROOTS = ['../../../apps/itun/src/components', '../../../apps/srd/src/components']
+const STORY_TAIL = /\/\*\*\/\*\.stories\.tsx$/
+const APP_STORY_ROOTS = STORY_GLOBS.filter((g) => !g.startsWith('packages/component-lib/')).map(
+  (g) => {
+    if (!STORY_TAIL.test(g)) throw new Error(`${g}: expected a '<dir>/**/*.stories.tsx' glob`)
+    return `../../../${g.replace(STORY_TAIL, '')}`
+  }
+)
 
 /** `**` + pattern under SRC and every app root, as SRC-relative paths. */
 function scan(pattern: string, { apps }: { apps: boolean }): string[] {
@@ -350,23 +325,14 @@ describe('Story catalog: co-location', () => {
     // mock-up dropped into an unrelated folder) is caught rather than ignored.
     const offenders = stories
       .filter((s) => !s.file.startsWith('stories/'))
-      .filter((s) => !PROTOTYPE_STORIES.has(s.file))
       .filter((s) => ![...s.imports].some((n) => isDefinedIn(n, s.dir)))
       .map(
         (s) =>
           `${s.file}: imports no component defined in its own directory —` +
-          ' co-locate it beside what it demonstrates, or list it in PROTOTYPE_STORIES'
+          ' co-locate it beside what it demonstrates'
       )
       .sort()
     expect(offenders).toEqual([])
-  })
-
-  test('the prototype list has no stale entries', () => {
-    const stale = [...PROTOTYPE_STORIES]
-      .filter((f) => !storyFiles.includes(f))
-      .map((f) => `${f} no longer exists — prune it from PROTOTYPE_STORIES`)
-      .sort()
-    expect(stale).toEqual([])
   })
 
   test('every catalog page in src/stories/ is a Foundations story', () => {

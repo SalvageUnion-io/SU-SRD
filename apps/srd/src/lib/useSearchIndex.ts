@@ -58,7 +58,7 @@ function ensureLoaded(): Promise<CompactSearchEntry[]> {
 /**
  * @param options.defer When true, the fetch does not start on mount — it
  * waits until `load()` is called (first user intent, e.g. focusing the
- * search input). Mirrors `useGameData`'s `defer` option.
+ * search input).
  */
 export function useSearchIndex(options?: { defer?: boolean }): {
   ready: boolean

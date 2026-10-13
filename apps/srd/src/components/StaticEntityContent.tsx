@@ -1,8 +1,7 @@
-import { InlineRef, Slab } from 'component-lib'
+import { InlineRef, mentionRef, Slab } from 'component-lib'
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 import { refText } from '../lib/rollTablePage'
-import { resolveMentionRef } from '../lib/staticLinks'
 import { MentionProse } from './MentionProse'
 
 /**
@@ -15,7 +14,7 @@ import { MentionProse } from './MentionProse'
  * between them.
  *
  * Every trait or keyword it names, in its prose or its trait list, is a
- * Mention resolved at build time (`resolveMentionRef`): a link to its page
+ * Mention resolved at build time (`mentionRef`): a link to its page
  * with its Peek. The summary keeps its prose's `[[Trait]]` markup
  * (`keepReferences`) for exactly that; a summary without it reads as words.
  * The parent link is an `InlineRef`. Layout is `pages.css`'s `.srd-static*`.
@@ -23,7 +22,7 @@ import { MentionProse } from './MentionProse'
 
 /** Prose with its references drawn as Mentions. */
 function Prose({ text }: { text: string }) {
-  return <MentionProse parts={refText(text, resolveMentionRef)} />
+  return <MentionProse parts={refText(text, mentionRef)} />
 }
 
 type StaticEntityContentProps = {
@@ -126,7 +125,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
           {summary.traits.map((t, i) => (
             <Fragment key={t}>
               {i > 0 && ', '}
-              <MentionProse parts={[{ text: t, ref: resolveMentionRef(t) }]} />
+              <MentionProse parts={[{ text: t, ref: mentionRef(t) ?? null }]} />
             </Fragment>
           ))}
         </p>

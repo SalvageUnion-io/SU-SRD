@@ -19,14 +19,14 @@ import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-re
 export type RefText = (string | { text: string; ref: EntityRef | null })[]
 
 /** Split prose on its `[[Trait]]` markup, resolving each name through `resolve`. */
-export function refText(text: string, resolve: (name: string) => EntityRef | null): RefText {
+export function refText(text: string, resolve: (name: string) => EntityRef | undefined): RefText {
   const parts: RefText = []
   let at = 0
   for (const match of parseTraitReferences(text)) {
     if (match.startIndex > at) parts.push(text.slice(at, match.startIndex))
     const words =
       match.parameter === undefined ? match.traitName : `${match.traitName} (${match.parameter})`
-    parts.push({ text: words, ref: resolve(match.traitName) })
+    parts.push({ text: words, ref: resolve(match.traitName) ?? null })
     at = match.startIndex + match.fullMatch.length
   }
   if (at < text.length) parts.push(text.slice(at))
@@ -103,7 +103,7 @@ export function rollTableDensity(rows: RollTableRow[], description: string[]): R
 }
 
 /** How many earlier rolls the panel keeps. */
-export const EARLIER_ROLLS = 5
+const EARLIER_ROLLS = 5
 
 /** A range key as the book sets it: "11-19" → "11–19" (an en dash). */
 export function rangeLabel(key: string): string {
@@ -134,15 +134,15 @@ export function outcomeLabel(table: SURefObjectTable, rows: RollTableRow[], roll
   return row ? (row.label ?? `Roll ${roll}`) : NO_EFFECT
 }
 
-export type RollState = {
+export type RollState<T = number> = {
   /** The roll the table reads, or `null` before the first one. */
-  roll: number | null
+  roll: T | null
   /** Earlier rolls, newest first. */
-  history: number[]
+  history: T[]
 }
 
 /** Record a new roll: the previous one moves to the top of the earlier rolls. */
-export function recordRoll(state: RollState, roll: number): RollState {
+export function recordRoll<T>(state: RollState<T>, roll: T): RollState<T> {
   return {
     roll,
     history:

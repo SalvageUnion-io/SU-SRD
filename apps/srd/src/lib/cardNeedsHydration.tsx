@@ -35,7 +35,7 @@ export function cardNeedsHydration(item: SURefEntity, pattern?: SURefObjectAnyPa
     const markup = renderToStaticMarkup(<EntityCardStatic item={item} pattern={pattern} />)
     return NEEDS_A_LISTENER.test(markup)
   } catch {
-    // The island renders the card too; if the static render cannot, ship the
+    // The island renders this same component; if the static render cannot, ship the
     // island. The snapshot gate shows any page that changed path.
     return true
   }

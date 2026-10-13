@@ -30,8 +30,9 @@ function resultUrl(result: SearchResult): string {
 /**
  * Full, uncapped search results for `/search?q=…`. Unlike the dropdown combobox
  * (capped at ~10 rows), this renders every hit and offers a lightweight
- * schema-type facet. Rendered `client:only` — it is inherently dynamic, has no
- * SEO content to server-render, and the page is `noindex`.
+ * schema-type facet. Rendered `client="only"` with `ssr={false}` — it is
+ * inherently dynamic, has no SEO content to server-render, and the page is
+ * `noindex`.
  */
 export function SearchResultsIsland() {
   const [query, setQuery] = useState(() => readQueryParam())

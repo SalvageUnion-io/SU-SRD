@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../components/RollTablePage'
-import type { RollTableRow } from '../rollTablePage'
+import type { RollState, RollTableRow } from '../rollTablePage'
 import {
   outcomeLabel,
   plainText,
@@ -35,7 +35,7 @@ describe('refText', () => {
       slug: 'vulnerable',
       name: 'Vulnerable',
     }
-    const resolve = (name: string) => (name === 'Vulnerable' ? vulnerable : null)
+    const resolve = (name: string) => (name === 'Vulnerable' ? vulnerable : undefined)
     const parts = refText('It gains the [[Vulnerable]] Trait and [[[Burn](X)]].', resolve)
     expect(parts).toEqual([
       'It gains the ',
@@ -153,7 +153,7 @@ describe('outcomeLabel — the earlier rolls', () => {
 
 describe('the roll log', () => {
   test('a new roll pushes the previous one onto the earlier rolls, newest first', () => {
-    let state = recordRoll({ roll: null, history: [] }, 7)
+    let state: RollState = recordRoll({ roll: null, history: [] }, 7)
     expect(state).toEqual({ roll: 7, history: [] })
     state = recordRoll(state, 20)
     state = recordRoll(state, 3)

@@ -132,27 +132,9 @@ test.describe('bundle-size budget', () => {
     // Total JS (react-vendor + shared island framework + the small ALWAYS_CORE
     // data chunks).
     //
-    // ⚠️ This threshold was RAISED from 550_000 on 2026-08-05, and that is a
-    // recorded regression, not a rubber stamp. Read before touching it.
-    //
-    // 550_000 was ~2x headroom over a ~277 KB measurement taken when the budget
-    // was written. The route now ships **703,506 bytes**, measured identically
-    // on macOS/arm64 and on CI's Linux/x64 runner, with a frozen install and a
-    // fresh production build. So the payload has grown ~2.5x past the figure
-    // this guard was built around.
-    //
-    // It was not caught earlier because the assertion was not reliably running:
-    // locally the suite ran against `bun run dev`, where no `/assets/*.js` exists
-    // and every total summed 0 (see the beforeAll above), and on CI it passed
-    // while measuring less than a full page load. The number below is the first
-    // one that reflects a complete, reproducible measurement on both platforms.
-    //
-    // Raising it keeps a REAL guard (it now fails on any further growth) instead
-    // of a nominal one that passed without measuring. It is explicitly NOT an
-    // endorsement of 703 KB: the forbidden-chunk assertions above still pass, so
-    // this is not data leaking onto the route — it is the shared `src-*.js`
-    // chunk (~490 KB) plus react-vendor (~190 KB). Shrinking that is follow-up
-    // work; when it lands, drop this number to match.
+    // A ratchet: it fails on any growth past the measured 703,506 bytes. It is
+    // NOT an endorsement of that figure — it is the shared `src-*.js` chunk
+    // (~490 KB) plus react-vendor (~190 KB); when they shrink, lower it to match.
     expect(totals.bytes).toBeLessThan(720_000)
   })
 

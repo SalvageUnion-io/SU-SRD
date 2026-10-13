@@ -11,13 +11,12 @@
  * readout.
  */
 
-import { digestColumnsTable, digestRollTable } from 'component-lib'
+import { digestColumnsTable, digestRollTable, mentionRef } from 'component-lib'
 import type { SURefEntity, SURefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary } from 'salvageunion-reference'
 import type { ColumnsTablePageData } from '../lib/columnsTablePage'
 import type { RollTablePageData } from '../lib/rollTablePage'
 import { refText } from '../lib/rollTablePage'
-import { resolveMentionRef } from '../lib/staticLinks'
 import { Island } from '../runtime/Island'
 import { ColumnsTableView } from './ColumnsTableView'
 import { RollTableView } from './RollTableView'
@@ -43,7 +42,7 @@ export function rollTablePageData(item: SURefEntity): RollTablePageData | null {
   const rows = digestRollTable(table).map(({ key, label, value }) => ({
     key,
     label,
-    value: refText(value, resolveMentionRef),
+    value: refText(value, mentionRef),
   }))
   if (rows.length === 0) return null
   return {

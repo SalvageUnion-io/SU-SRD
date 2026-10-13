@@ -6,7 +6,8 @@ import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { columnsHit, rangeHolds, recordColumnsRoll } from '../../../lib/columnsTablePage'
+import { columnsHit, rangeHolds } from '../../../lib/columnsTablePage'
+import { recordRoll } from '../../../lib/rollTablePage'
 import { ColumnsTableView } from '../../ColumnsTableView'
 import { columnsTablePageData, rollTablePageData } from '../../RollTablePage'
 import { ColumnsTableIsland } from '../ColumnsTableIsland'
@@ -50,8 +51,8 @@ describe('the columns table’s data', () => {
   })
 
   test('a new roll pushes the last onto the earlier rolls', () => {
-    const first = recordColumnsRoll({ roll: null, history: [] }, { column: 1, entry: 1 })
-    const second = recordColumnsRoll(first, { column: 20, entry: 20 })
+    const first = recordRoll({ roll: null, history: [] }, { column: 1, entry: 1 })
+    const second = recordRoll(first, { column: 20, entry: 20 })
     expect(second.roll).toEqual({ column: 20, entry: 20 })
     expect(second.history).toEqual([{ column: 1, entry: 1 }])
   })

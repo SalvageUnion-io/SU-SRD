@@ -21,7 +21,7 @@ function coreMechanic(): RollTablePageData | null {
     rows: digestRollTable(data).map(({ key, label, value }) => ({
       key,
       label,
-      value: refText(value, () => null),
+      value: refText(value, () => undefined),
     })),
     table: data,
   }

@@ -10,13 +10,13 @@
  * no longer has is left off rather than drawn empty.
  */
 
+import { mentionRef } from 'component-lib'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../components/RollTablePage'
 import { itemHref, schemaHref } from './entityHref'
 import type { RefText, RollTablePageData } from './rollTablePage'
 import { refText } from './rollTablePage'
-import { resolveMentionRef } from './staticLinks'
 
 /** The screen's URL. */
 export const SCREEN_HREF = '/screen/'
@@ -85,7 +85,7 @@ function idFor(title: string): string {
   return `screen-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 }
 
-const prose = (text: string): RefText => refText(text, resolveMentionRef)
+const prose = (text: string): RefText => refText(text, mentionRef)
 
 function table(section: string, name: string): ScreenPanel[] {
   const entity = find('roll-tables', name)

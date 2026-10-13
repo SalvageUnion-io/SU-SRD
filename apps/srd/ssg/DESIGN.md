@@ -54,7 +54,7 @@ Canonical URLs always carry a trailing slash.
 | `PeekIsland`            | idle    | false    | every page, no props: the one Peek host; loads on the first Peek |
 | `WikiLinkIsland`        | idle    | false    | chrome, mounted twice; the WIKI link rolls 1 in 100 per page load |
 
-`EntityCardStatic` is not an island: it renders into the page and ships no JS. Keep it that way.
+`EntityCardStatic` ships no JS on the static path; `ReferenceEntityIsland` reuses it only for cards `cardNeedsHydration` flags.
 
 ## Build (`ssg/build.ts`)
 

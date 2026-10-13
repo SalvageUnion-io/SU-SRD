@@ -89,12 +89,9 @@ function getReadySnapshot(key: string, schemas: SchemaList, projection: Projecti
 }
 
 /**
- * Server snapshot: ALWAYS false. SSR has no preloaded data and runs no effects,
- * so islands must server-render the fallback. React reuses this value for the
- * first client (hydration) render too, so the initial client tree matches the
- * SSR HTML — reading the live load state here instead caused a hydration
- * mismatch (React #418) on islands that hydrate after the shared preload
- * finished (client:idle / client:visible).
+ * Server snapshot: ALWAYS false, so `ssr: true` islands server-render the
+ * fallback (SSR has no preload). Islands mount with `createRoot`, so the client
+ * never uses this value for hydration.
  */
 function getReadyServerSnapshot(): boolean {
   return false
@@ -125,31 +122,16 @@ function ensurePreloaded(key: string, schemas: SchemaList, projection: Projectio
 }
 
 /**
- * @param options.defer When true, the preload does not start on mount —
- * it waits until `load()` is called (first user intent, e.g. focusing the
- * search input). Keeps the data corpus off the critical path of pages that
- * only need it on interaction. Defaults to eager preload.
  * @param options.schemas Which schemas to preload — defaults to `'all'`.
  * Pass the per-route list from `schemaPreloadDeps.ts` to load only what the
  * page actually needs instead of the full corpus.
  * @param options.projection `'list'` for a listing that never prints an
  * action's prose — see {@link Projection}. Defaults to `'full'`.
- *
- * Note: the preload promise is shared per exact schema list, so `defer` only
- * keeps data off the critical path on pages that render *no* eager consumer
- * requesting an overlapping list. On a page that also mounts an eager
- * `useGameData()` for the same list, that eager consumer starts the shared
- * preload on mount and the deferred consumer simply rides the in-flight
- * promise — by design, not a missed optimization.
  */
-function useGameData(options?: {
-  defer?: boolean
-  schemas?: SchemaList
-  projection?: Projection
-}): {
+function useGameData(options?: { schemas?: SchemaList; projection?: Projection }): {
   ready: boolean
   error: Error | null
-  load: () => void
+  retry: () => void
 } {
   const schemas = options?.schemas ?? 'all'
   const projection = options?.projection ?? 'full'
@@ -162,19 +144,16 @@ function useGameData(options?: {
     () => getReadySnapshot(key, schemas, projection),
     [key, schemas, projection]
   )
-  // `ready` is read through useSyncExternalStore so the server (and the first
-  // hydration render) always sees the fallback while the client tracks the live
-  // preload state — keeping hydration consistent without seeding state from a
-  // client-only value during render.
+  // `ready` is read through useSyncExternalStore so the server always sees the
+  // fallback while the client tracks the live preload state.
   const ready = useSyncExternalStore(subscribe, getSnapshot, getReadyServerSnapshot)
-  const [wanted, setWanted] = useState(!options?.defer)
   const [error, setError] = useState<Error | null>(null)
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: `key` is the stable, order-independent identity of `schemas` and `projection` — depending on the (often fresh-per-render) array itself would re-run the effect every render
   useEffect(() => {
-    // After a failure, `error` blocks re-fetching until load() clears it —
+    // After a failure, `error` blocks re-fetching until retry() clears it —
     // clearing it re-runs this effect, which retries the (reset) preload.
-    if (ready || !wanted || error) return
+    if (ready || error) return
     let cancelled = false
     ensurePreloaded(key, schemas, projection).catch((e: unknown) => {
       // Reset this key's state so a retry issues a fresh request instead of
@@ -185,17 +164,11 @@ function useGameData(options?: {
     return () => {
       cancelled = true
     }
-  }, [ready, wanted, error, key])
+  }, [ready, error, key])
 
-  // Stable identity: consumers (e.g. SearchIsland) put `load` in callback
-  // dependency arrays, so recreating it each render would churn their memoized
-  // handlers. setWanted/setError are stable, so [] deps are correct.
-  const load = useCallback(() => {
-    setWanted(true)
-    setError(null)
-  }, [])
+  const retry = useCallback(() => setError(null), [])
 
-  return { ready, error, load }
+  return { ready, error, retry }
 }
 
 const FAILED = {
@@ -232,12 +205,12 @@ export function GameDataGate({
 }) {
   // useGameData keys its preload effect off `keyFor(schemas)` (content-, not
   // reference-based), so a fresh `[...]` array literal each render is safe.
-  const { ready, error, load } = useGameData({ schemas, projection })
+  const { ready, error, retry } = useGameData({ schemas, projection })
   if (error) {
     return (
       <div style={FAILED}>
         <p style={FAILED_MESSAGE}>Failed to load game data.</p>
-        <Button variant="ghost" onClick={load}>
+        <Button variant="ghost" onClick={retry}>
           Retry loading game data
         </Button>
       </div>

@@ -32,15 +32,11 @@
  * serves. `styles.entry.ts` is linked as a *script* rather than a stylesheet —
  * in dev Vite injects css from JS, which is what buys css HMR.
  *
- * ## Verified against prod
+ * ## Parity with prod
  *
- * Every document this serves was diffed whole against the file `ssg/build.ts`
- * emitted for the same route (landing, about, schema index, item, pattern,
- * changelog, search, bot pages, the two standalone documents, 404) and is
- * byte-identical once three dev-only things are removed: `@vite/client`, the
- * react-refresh preamble, and the asset urls (hashed in prod, source paths plus
- * Vite's `?t=` cache-buster here). All five endpoint families match byte for
- * byte, with no normalization at all.
+ * Every document this serves should match the file `ssg/build.ts` emits for
+ * the same route, apart from three dev-only things: `@vite/client`, the
+ * react-refresh preamble, and the asset urls.
  */
 
 import { readdirSync } from 'node:fs'
@@ -241,11 +237,9 @@ async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerRespo
   const started = Date.now()
   const url = new URL(req.url ?? '/', 'http://localhost')
 
-  // Inside the try, NOT above it. `decodeURIComponent` throws URIError on a
-  // malformed escape — a bare `/%`, or `/%zz` — and this ran before the
-  // handler, so one such request escaped the catch entirely and took the
-  // request (and the developer's attention) with it. A dev server should
-  // answer a nonsense URL with a 500 page, not fall over.
+  // `decodeURIComponent` throws URIError on a malformed escape — a bare `/%`,
+  // or `/%zz` — so it stays inside a try: a nonsense URL must 404 or 500, not
+  // escape the handler.
   let pathname = url.pathname
   try {
     pathname = decodeURIComponent(url.pathname)

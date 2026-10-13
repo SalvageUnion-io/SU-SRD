@@ -28,9 +28,9 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build as viteBuild } from 'vite'
-// Type-only, so it is erased before Bun ever resolves `./document` — that module
-// reaches `BaseLayout` -> `component-lib` -> `*.css` and must not be loaded here
-// ahead of the css-stub plugin below.
+// Type-only, so it is erased before Bun resolves `./document`, whose graph
+// (`BaseLayout` -> `component-lib` -> third-party deps) must load only after the
+// css-stub plugin below is registered.
 import type { BuildAssets } from './document'
 import { outputPathFor } from './outputPath'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
@@ -191,8 +191,10 @@ async function main(): Promise<void> {
     )
   }
 
-  // Dynamic, so the css-stub plugin above is already registered when the SSR
-  // module graph (pages -> component-lib -> *.css) is first loaded.
+  // Dynamic, so the css-stub plugin above is registered before the SSR module
+  // graph (pages -> component-lib -> deps) is first loaded. That graph is
+  // css-free by the srd-css gate; the stub guards what the gate does not scan
+  // (node_modules, other workspaces).
   const { routes } = await import('./routes')
 
   let count = 0

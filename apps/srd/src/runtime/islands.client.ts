@@ -5,10 +5,10 @@
  * `islandRegistry`, and mounts it with **`createRoot`, never `hydrateRoot`**
  * (`mountIsland`).
  *
- * That choice is the whole reason this migration is tractable (see
- * `ssg/DESIGN.md`): `useGameData`'s server snapshot is hardcoded `false`, so a
- * hydrating card renders its fallback on the client's first pass while the
- * server rendered the real thing — React #418. Client-only mounting has no
+ * `createRoot` because `useGameData`'s server snapshot is hardcoded `false`
+ * (see `ssg/DESIGN.md`), so a hydrating card would render its fallback on the
+ * client's first pass while the server rendered the real thing — React #418.
+ * Client-only mounting has no
  * mismatch class at all, because the server markup is discarded rather than
  * matched. React's first commit into the root is what discards it, in the same
  * step that inserts the island, which keeps an `ssr: true` island from

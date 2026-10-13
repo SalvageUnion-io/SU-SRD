@@ -27,8 +27,7 @@ const hasBody = (entity: object) =>
   )
 
 /**
- * One entity per schema: every schema's page body and compact card draw
- * through the island. The whole corpus is rendered by `ssg/build.ts`
+ * One entity per schema: every schema's page body draws through the island. The whole corpus is rendered by `ssg/build.ts`
  * (`build-srd`), so this sweep does not draw every entity a second time. The
  * entity sampled is the first with a body, so the body assertion has teeth.
  */
@@ -49,11 +48,6 @@ for (const schema of entitySchemas) {
       const { container } = render(<ReferenceEntityIsland item={sample} />)
       expect(container.querySelector('.su-entity-page')).not.toBeNull()
       if (hasBody(sample)) expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0)
-    })
-
-    it(`renders "${sampleName}" in compact mode`, () => {
-      const { container } = render(<ReferenceEntityIsland item={sample} compact />)
-      expect(container.textContent).toContain(sampleName)
     })
   })
 }

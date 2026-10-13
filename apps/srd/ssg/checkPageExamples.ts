@@ -1,19 +1,11 @@
 /**
  * Post-build gate: every example the site prints must actually resolve.
  *
- * ## What this catches
+ * ## What it asserts
  *
- * The `/api` page shipped a worked example that was fabricated three ways at
- * once — a chassis ("Iron Mongrel") that exists in no data file, so its URL and
- * the `.json` beside it both 404'd; `id` shown as a readable slug when it is a
- * UUID; and `hull` / `armor` documented as chassis fields when they have never
- * been. A developer following the page got a 404, and coding against the
- * documented shape meant coding against fields that do not exist.
- *
- * `/discord` carried the same fiction plus three more names that do not
- * resolve: `heavy laser`, and "Keepsakes"/"Mottos" where the real tables are
- * singular — plurals that read as correct and simply fail the bot's
- * autocomplete.
+ * Every example URL, field and table/autocomplete name the pages print must
+ * resolve against the built site and its data — catching a nonexistent entity,
+ * a wrong field shape, or a plural where the real table name is singular.
  *
  * ## Why it is a gate step rather than a test
  *

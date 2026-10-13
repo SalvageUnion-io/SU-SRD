@@ -67,12 +67,12 @@ export type DocumentMeta = {
 export type DocumentShell = 'base' | 'bare'
 
 /**
- * Where a book page ends (board 07): when the page has a citation, the footer
- * bands it in the page's chapter tone — the page number set large and the book
- * (and any reprint) — above the licence row, which is the Union bar's ink on
- * every page. A listing passes only its measure; other pages leave it out.
+ * A book page's foot: the shared `Footer`'s (component-lib), named for the
+ * page. When the page has a citation, the footer bands it in the page's chapter
+ * tone — the page number set large and the book (and any reprint) — above the
+ * licence row, which is the Union bar's ink on every page. A listing passes
+ * only its measure; other pages leave it out.
  */
-/** A book page's foot: the shared `Footer`'s (component-lib), named for the page. */
 export type PageFoot = FooterFoot
 
 /** What a page returns: its head metadata, its body tree and, for a book page, its foot. */
