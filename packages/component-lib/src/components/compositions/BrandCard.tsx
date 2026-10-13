@@ -10,9 +10,9 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH } from './ogCardText'
  * rules pages; every ITUN route but a shared sheet or invite).
  *
  * It is the Discord bot's profile banner (`apps/discord-bot/brand/banner.png`)
- * redrawn at the 1200 × 630 of a link preview, so every surface a player
+ * redrawn to fill the 1200 × 630 of a link preview, so every surface a player
  * meets the Union on wears one face: the rules-blue chapter band with ink
- * speckle, a kicker top left, "SALVAGE UNION.io" notched in ink on the page
+ * speckle, a kicker across the top, "SALVAGE UNION.io" notched in ink on the page
  * ground, and the book's five chapter colours along the foot in book order.
  *
  * Each app draws it on its own render surface and commits the screenshot as
@@ -24,7 +24,7 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH } from './ogCardText'
  */
 
 export type BrandCardProps = {
-  /** The line top left, set in caps over two lines. */
+  /** The line across the top, set in caps. */
   kicker: string
 }
 
@@ -50,49 +50,55 @@ const CARD = {
   width: OG_CARD_WIDTH,
 } satisfies CSSProperties
 
-const ROW = {
+/** The band: the kicker on one line, the notch filling everything under it. */
+const BODY = {
   display: 'flex',
   flex: '1 1 auto',
-  gap: space[32],
-  justifyContent: 'space-between',
+  flexDirection: 'column',
+  gap: space[16],
   minHeight: 0,
-  padding: `${space[40]} ${space[40]} 0 ${space[48]}`,
+  padding: `${space[24]} ${space[32]} 0`,
 } satisfies CSSProperties
 
 const KICKER = {
   fontFamily: font.cond,
-  fontSize: '48px',
+  fontSize: '52px',
   fontWeight: weight.extrabold,
   letterSpacing: tracking.capsTight,
-  lineHeight: 1.15,
+  lineHeight: 1,
   margin: 0,
-  maxWidth: '7.5em',
-  paddingTop: space[12],
+  paddingInline: space[8],
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** The notch: the page ground, standing on the foot as the banner's does. */
+/**
+ * The notch: the page ground, full width and standing on the foot. Unlike the
+ * banner, a link preview has no avatar to clear, so the wordmark takes the
+ * whole card.
+ */
 const NOTCH = {
+  alignItems: 'center',
   backgroundColor: color.wkBg,
   boxSizing: 'border-box',
   display: 'flex',
-  flex: '0 0 62%',
-  flexDirection: 'column',
+  flex: '1 1 auto',
   justifyContent: 'center',
-  padding: `0 ${space[40]}`,
+  minHeight: 0,
+  // Caps sit low in their line box; this centres the ink, not the box.
+  paddingBottom: space[24],
 } satisfies CSSProperties
 
 const TITLE = {
   fontFamily: font.cond,
-  fontSize: '178px',
+  fontSize: '284px',
   fontWeight: weight.extrabold,
-  lineHeight: 0.98,
+  lineHeight: 0.84,
   margin: 0,
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
 /** ".io", set small on the second line's baseline. */
-const TLD = { fontSize: '80px', textTransform: 'none' } satisfies CSSProperties
+const TLD = { fontSize: '128px', textTransform: 'none' } satisfies CSSProperties
 
 const FOOT = {
   borderTopColor: color.ink,
@@ -106,7 +112,7 @@ export function BrandCard({ kicker }: BrandCardProps) {
   return (
     <div data-brand-card="" style={CARD}>
       <Speckle grain="ink" />
-      <div style={ROW}>
+      <div style={BODY}>
         <p style={KICKER}>{kicker}</p>
         <div style={NOTCH}>
           <p style={TITLE}>
