@@ -13,23 +13,13 @@ pre-commit:
       stage_fixed: true
 
 pre-push:
-  # In order: checks first, then tests with every core. Run side by side,
-  # typecheck/knip/biome starved itun's renders past Bun's 5 s test timeout.
-  piped: true
   commands:
     checks:
       # Every gate except the test suite, from the ONE registry in
       # tools/check.ts — the same list `bun run check` and CI's static-checks
       # job run, with a different profile. Do not add a gate here: add it to
       # that registry, and every path picks it up. `pre-push` = the fast profile
-      # plus generated-file drift, the likeliest avoidable CI bounce.
-      priority: 1
+      # plus generated-file drift, the likeliest avoidable CI bounce. No tests:
+      # beside these checks they timed out on 8-core machines, and CI's
+      # `coverage` job runs every suite with its floors in about a minute.
       run: bun tools/check.ts --profile=pre-push
-
-    test:
-      # The changed workspaces' suites plus their dependents', from the
-      # manifest graph — Bun's `--changed` stops at a workspace boundary. No
-      # coverage: the floors are CI's gate alone. The why and the selection
-      # rules: tools/pre-push-test.ts.
-      priority: 2
-      run: bun tools/pre-push-test.ts

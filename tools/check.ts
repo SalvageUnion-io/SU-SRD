@@ -20,8 +20,8 @@
  *   fast      the inner loop (~8 s warm, ~22 s from a cold typecheck on 4
  *             cores): no test suite, no network, no regeneration —
  *             `bun run check:fast`
- *   pre-push  fast + generated-file drift (the suite runs separately, scoped
- *             by the workspace graph — see tools/pre-push-test.ts)
+ *   pre-push  fast + generated-file drift (no suite: CI's `coverage` job
+ *             runs it, in about a minute)
  *   ci        everything except the test suite, which runs in CI's own
  *             `coverage` job
  *

@@ -1,13 +1,12 @@
 /**
  * The branch this one merges into, for anything that measures "the branch":
- * pre-push's test selection (`tools/pre-push-test.ts`), the session status
- * hook (`.claude/hooks/session-status.sh`) and the open-pr skill's `--base`.
+ * the session status hook (`.claude/hooks/session-status.sh`) and the open-pr
+ * skill's `--base`.
  *
  * Diffing against `origin/main` was right while every branch came off main.
  * A branch cut from a release branch such as `design-refresh` carries that
- * branch's whole diff against main: pre-push tested every workspace on each
- * push, and the status line counted the release branch's commits as this
- * one's. So the base is resolved, first answer wins:
+ * branch's whole diff against main: the status line counted the release
+ * branch's commits as this one's. So the base is resolved, first answer wins:
  *
  *   1. `$SU_BASE`, set by hand (`main`, `origin/design-refresh`, …);
  *   2. the open PR's `base.ref`, through `gh api` REST (a cloud session's

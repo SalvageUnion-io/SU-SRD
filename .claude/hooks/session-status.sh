@@ -16,8 +16,7 @@
 #     deadline, falling back to the last fetch.
 #   * Ahead/behind is counted against the branch this one merges into, from
 #     packages/gates/lib/baseBranch.ts ($SU_BASE, the PR's base, the upstream,
-#     else the nearer of main and design-refresh) — the same base pre-push
-#     diffs against.
+#     else the nearer of main and design-refresh).
 
 set -uo pipefail
 

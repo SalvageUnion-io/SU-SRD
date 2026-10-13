@@ -57,7 +57,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 ### Git hooks (Lefthook)
 
 - **Pre-commit:** `biome check --write` on staged files only (lint + safe fixes + format in one pass). No typecheck.
-- **Pre-push (in order):** `bun tools/check.ts --profile=pre-push` (every gate but the suite and the network ones), then `bun tools/pre-push-test.ts`: tests the workspaces changed since the merge-base with its base (`baseBranch.ts`), their dependents by `workspace:` edges (`--changed` stops at a workspace boundary), and always `gates` and `tools`. No coverage: floors are CI's `test:coverage` alone. Raise a test's timeout only for a measured intrinsic cost, never for contention.
+- **Pre-push:** `bun tools/check.ts --profile=pre-push` (every gate but the suite and the network ones). No tests: CI's `test:coverage` runs the suite and its floors in about a minute; run the suites you touched before pushing. Raise a test's timeout only for a measured intrinsic cost, never for contention.
 
 ## Repository Overview
 
