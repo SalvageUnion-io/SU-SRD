@@ -444,23 +444,16 @@
 }
 
 /*
- * The type and cost stamps beside an entity page's Tech Level
- * (`EntityPageStamps`): the height and type of the stat column's ink label
- * (`.su-stat-column__label`), so the row reads as one size.
+ * The type and cost stamps beside an entity page's stats
+ * (`EntityPageStamps`): the height and type of the band's compact stat label
+ * (`.su-stat-column__label` on a `ChapterBand`), so the row reads as one size.
  */
 .srd-entity-stamp {
   align-items: center;
   display: inline-flex;
-  font-size: var(--text-caption);
-  min-height: 40px;
+  font-size: var(--text-badge);
+  min-height: 32px;
   padding-inline: var(--space-8);
-}
-
-@media (min-width: 40rem) {
-  .srd-entity-stamp {
-    font-size: var(--text-sm);
-    padding-inline: var(--space-12);
-  }
 }
 
 /*

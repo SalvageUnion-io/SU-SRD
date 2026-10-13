@@ -98,16 +98,13 @@ function pageMetaOf(model: EntityModel) {
     // The kind, for the title's screen-reader text (never a stamp, E9).
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    // The band's stats: every book stat but a chassis's (its column stays in the body).
-    stats:
-      model.kind.type === 'Chassis' || model.kind.type === 'Pattern'
-        ? []
-        : model.bookStats.map((fact) => ({
-            key: fact.key,
-            label: fact.label,
-            value: fact.value,
-            ...(fact.hint ? { hoverText: fact.hint } : {}),
-          })),
+    // The band's stats: every book stat, a chassis's too.
+    stats: model.bookStats.map((fact) => ({
+      key: fact.key,
+      label: fact.label,
+      value: fact.value,
+      ...(fact.hint ? { hoverText: fact.hint } : {}),
+    })),
     numeral: model.tier,
     page: model.cite.page,
     citation: model.cite.citation,

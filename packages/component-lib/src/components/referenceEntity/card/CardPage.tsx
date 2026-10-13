@@ -1,13 +1,7 @@
 import type { ElementType, ReactNode } from 'react'
-import type {
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-} from 'salvageunion-reference'
+import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
-import { StatColumn } from '../../atoms/StatColumn'
-import { buildBookStats } from '../referenceEntityStatsConfig'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -16,9 +10,9 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * CardPage — the card when it IS the page (`presentation="page"`, boards 07
  * and 08). No frame, header or footer: the page's `ChapterBand` carries
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
- * hero on the left; beside it the prose, a chassis's stat column (every other
- * entity's stats ride the band) and, beneath the stats, the chassis ability; then everything the entity carries, full
- * width — its table, its other actions, its nested cards and its patterns as
+ * hero on the left; beside it the prose and the chassis ability (every
+ * entity's stats ride the band: srd's `EntityPageStamps`); then everything
+ * the entity carries, full width — its table, its other actions, its nested cards and its patterns as
  * link rows. A pattern page leads the right column with the pattern itself
  * (`opening`), then the base chassis's prose under its own slab.
  *
@@ -29,11 +23,9 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
 
 type CardPageProps = {
   entity: SURefMetaEntity
-  /** The title, for the stat column's name. */
-  name: string
   /** The artwork, as `CardImage hero`. */
   hero: ReactNode
-  /** Chassis abilities: framed cards in the right column, beneath the stats. */
+  /** Chassis abilities: framed cards in the right column, beneath the prose. */
   leadActions: ReferenceCardEntity[]
   /** Every other action: framed cards under an "Actions" stamp, full width. */
   otherActions: ReferenceCardEntity[]
@@ -50,8 +42,6 @@ type CardPageProps = {
   subLine: ReactNode
   /** The prose body (`bodyContent`), or null when there is none. */
   body: ReactNode
-  /** The stat column's source; `null` hides it. */
-  stats: { techLevel?: number | 'B' | 'N'; schemaName?: SURefEnumSchemaName } | null
   /** The entity's own roll table, framed on the page. */
   table: ReactNode
   /** A consumer's replacement for the actions (`abilitiesSection`). */
@@ -76,7 +66,6 @@ type CardPageProps = {
 
 export function CardPage({
   entity,
-  name,
   hero,
   leadActions,
   otherActions,
@@ -85,7 +74,6 @@ export function CardPage({
   bodyLabel,
   subLine,
   body,
-  stats,
   table,
   abilitiesSection,
   guide,
@@ -95,13 +83,6 @@ export function CardPage({
   sectionAs,
   action,
 }: CardPageProps) {
-  // The page's band carries the Tech Level (srd's `EntityPageStamps`), and for
-  // everything but a chassis the rest of the stats too (`resolveEntityPageMeta`):
-  // only a chassis keeps its stat column here, beside its art.
-  const bookStats =
-    stats && stats.schemaName === 'chassis'
-      ? buildBookStats(entity, stats).filter((stat) => stat.key !== 'tech-level')
-      : []
   const { NestedCard } = action
   // `titleAs` is the card title's element: an `h3` only where a section band's
   // `h2` holds the card (`nestedTitleLevel`), else the header's `span`.
@@ -127,8 +108,7 @@ export function CardPage({
 
   // A page with nothing to lead with (a guide whose words are all in its steps,
   // "Salvaging") opens on its sections, not on an empty row and its gap.
-  const hasMain =
-    !!hero || !!opening || !!subLine || !!body || bookStats.length > 0 || leadActions.length > 0
+  const hasMain = !!hero || !!opening || !!subLine || !!body || leadActions.length > 0
 
   return (
     <div
@@ -148,11 +128,6 @@ export function CardPage({
                 {bodyLabel && <Slab as={sectionAs} variant="solid" label={bodyLabel} />}
                 {subLine}
                 {body}
-              </div>
-            )}
-            {bookStats.length > 0 && (
-              <div className="su-entity-page__stats">
-                <StatColumn stats={bookStats} label={`${name} stats`} />
               </div>
             )}
             {leadActions.length > 0 && (

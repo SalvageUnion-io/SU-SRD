@@ -650,7 +650,6 @@ function ReferenceEntityCardInner({
     return (
       <CardPage
         entity={entity}
-        name={name}
         hero={heroNode}
         leadActions={hide?.actions ? [] : chassisAbilityEntities}
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
@@ -669,10 +668,6 @@ function ReferenceEntityCardInner({
             ? `${resolvedChassisName ?? entityName} ${isBioTitanPattern(pattern) ? 'Bio-Titan' : 'chassis'}`
             : undefined
         }
-        stats={{
-          techLevel: techLevelDisplay,
-          schemaName: schemaName === 'actions' ? undefined : schemaName,
-        }}
         table={rollTableNode}
         abilitiesSection={abilitiesSection}
         guide={guideStepsNode}

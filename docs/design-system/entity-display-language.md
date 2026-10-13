@@ -53,7 +53,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E17** No "//" line: all chips are one head group: action type in the book's words ("Turn Action", "Reaction"), facts, traits (`[Burn | 2]`), then the cost, the book's pointy box (`2 EP`; a Dashboard button). Right of the title, or under it when narrow; the title never shrinks for it. On ink each chip has a paper rule.
 - **E18** No form cuts a name, stamp or chip to "…": it wraps or widens.
 - **E19** A chassis ability shows only on its chassis's and its patterns' pages (either app) and in ITUN's builder pick cards, where choosing needs it; never in a dialog, Row, Tile, Peek, nested or other Card.
-- **E20** On a show page (either app) only the breadcrumb sits above the title: every stamp, stat (not a chassis's) and control is one cluster right of it, below it on a phone (`ChapterBand asideAt="notch"`).
+- **E20** On a show page (either app) only the breadcrumb sits above the title: every stamp, stat and control is one cluster right of it, below it on a phone (`ChapterBand asideAt="notch"`).
 
 ## Which form, where
 

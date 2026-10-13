@@ -110,6 +110,7 @@ export function EntityPageFrame({
         aside={
           <EntityPageStamps
             meta={meta}
+            name={typeof title === 'string' ? title : undefined}
             legalStartingPattern={legalStartingPattern}
             lead={parent && <ParentLink {...parent} />}
             end={

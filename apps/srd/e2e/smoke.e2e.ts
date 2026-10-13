@@ -79,8 +79,9 @@ test('the home page indexes the book’s chapters', async ({ page }) => {
 })
 
 // (e) An entity page at a phone's width and a desktop's (boards 07, 08): the
-// stat column sits clear of the title — the phone bug where the stat strip
-// covered it — and nothing scrolls sideways.
+// stats ride the band's cluster, clear of the title (under it on a phone,
+// right of it from `sm`; the phone bug was a stat strip over it), and
+// nothing scrolls sideways.
 for (const width of [375, 1440]) {
   test(`an entity page at ${width}px keeps its stats clear of its title`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
@@ -93,17 +94,19 @@ for (const width of [375, 1440]) {
     const statsBox = await stats.boundingBox()
     expect(titleBox && statsBox).toBeTruthy()
     if (titleBox && statsBox) {
-      expect(statsBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height)
+      if (width === 1440) expect(statsBox.x).toBeGreaterThanOrEqual(titleBox.x + titleBox.width)
+      else expect(statsBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height)
     }
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth
     )
     expect(overflow).toBeLessThanOrEqual(0)
-    if (width === 1440) {
-      // Board 07: the line-art hero on the left, the stat column on the right.
-      const art = await page.locator('.su-entity-page__art').first().boundingBox()
-      expect(art).toBeTruthy()
-      if (art && statsBox) expect(art.x).toBeLessThan(statsBox.x)
+    if (width === 1440 && statsBox) {
+      // A chassis's eight stats take two lines at most beside the title.
+      const cells = await stats.locator('.su-stat-column__cell').all()
+      const tops = new Set<number>()
+      for (const cell of cells) tops.add(Math.round((await cell.boundingBox())?.y ?? 0))
+      expect(tops.size).toBeLessThanOrEqual(2)
     }
   })
 }

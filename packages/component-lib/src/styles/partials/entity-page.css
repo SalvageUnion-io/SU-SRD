@@ -76,11 +76,40 @@
 }
 
 /* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
-   are a row of cells sized to their labels that wraps, not a grid whose empty
-   columns would push the aside off the notch. */
+   carry every entity's stats, a chassis's eight too, so they are the column's
+   compact cells: a smaller framed numeral and label, a row of cells sized to
+   their labels that wraps, not a grid whose empty columns would push the
+   aside off the notch. On a phone (the cluster under the title) five or more
+   take two cells a line; from `sm` they take four, two lines at most. */
 .su-chapter-band[data-aside='notch'] .su-stat-column {
   display: flex;
   flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column__cell {
+  min-height: 32px;
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column__value {
+  font-size: var(--text-readout);
+  width: 36px;
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column__label {
+  font-size: var(--text-badge);
+  padding: 0 var(--space-8);
+}
+
+@media (min-width: 40rem) {
+  .su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) {
+    grid-template-columns: repeat(4, auto);
+  }
 }
 
 /* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════

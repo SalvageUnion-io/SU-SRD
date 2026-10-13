@@ -12,9 +12,9 @@ import type { CSSProperties, ReactNode } from 'react'
  * EntityPageStamps — what an entity page's chapter band carries right of its
  * title (boards 07, 08; EDL E20), as one line that wraps: `lead` (a pattern's
  * parent link), the Legal Starting Pattern stamp, an ability's level, then
- * the book's stats (Tech Level among them, in the book's order; a chassis
- * keeps the rest in its body column, so its band shows the Tech Level alone).
- * Never the kind (E9: the title says it to screen readers)
+ * the book's stats (Tech Level among them, in the book's order: every
+ * entity's, a chassis's too, at the band's compact size, two lines at most
+ * from `sm`; the page body has no stat column). Never the kind (E9: the title says it to screen readers)
  * and never the cost (a chip in the page's chip group, E17). Each is at the
  * stat column's height and type: the level and Tech Level as its
  * framed-numeral cells, the stamps sized to match (`.srd-entity-stamp`). Tech Level is the first thing a table asks of anything it
@@ -28,6 +28,8 @@ import type { CSSProperties, ReactNode } from 'react'
 
 type EntityPageStampsProps = {
   meta: EntityPageMeta
+  /** The page's title, naming its stats for a screen reader ("Gopher stats"). */
+  name?: string
   /** A pattern the book sanctions as a starting build: its stamp after the parent link. */
   legalStartingPattern?: boolean
   /** Before the stamps: the link to what the entity is built on. */
@@ -45,6 +47,7 @@ const ROW = {
 
 export function EntityPageStamps({
   meta,
+  name,
   legalStartingPattern = false,
   lead,
   end,
@@ -66,7 +69,7 @@ export function EntityPageStamps({
         <StatColumn stats={[{ key: 'level', label: 'LVL', value: meta.numeral }]} label="Level" />
       )}
       {meta.stats.length > 0 ? (
-        <StatColumn stats={meta.stats} label="Stats" />
+        <StatColumn stats={meta.stats} label={name ? `${name} stats` : 'Stats'} />
       ) : (
         meta.techLevel && (
           <StatColumn

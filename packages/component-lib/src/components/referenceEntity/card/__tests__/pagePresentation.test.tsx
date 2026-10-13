@@ -4,8 +4,8 @@
  * Rendered through the real card with real SRD data:
  * - no frame, seam, header or footer: the page's chapter band carries the
  *   title, so the card prints no heading of its own;
- * - the line art is the hero, and the stat column is the book's, in its order
- *   and its words (`buildBookStats`);
+ * - the line art is the hero; the stats are the book's, in its order and its
+ *   words (`buildBookStats`), and ride the band, never the body;
  * - a chassis ability is a framed card stamped "Chassis Ability";
  * - the page's section bands are h2s and the cards nested under them title
  *   themselves h3 (`nestedTitleLevel`), a Bio-Titan pattern's "Pattern
@@ -102,19 +102,15 @@ describe('the card as a page', () => {
     expect(container.querySelector('.su-entity-page__art img')).not.toBeNull()
   })
 
-  test('the stat column reads the book’s labels, one cell per stat, Tech Level in the band', () => {
+  test('a chassis’s stats ride the band in the book’s words and order, not the body', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
-    const column = container.querySelector('dl.su-stat-column')
-    expect(column?.getAttribute('aria-label')).toBe('Gopher stats')
-    const terms = [...(column?.querySelectorAll('dt') ?? [])].map((el) => el.textContent)
-    const values = [...(column?.querySelectorAll('dd') ?? [])].map((el) => el.textContent)
-    // The page's band carries the Tech Level at full size; the column leaves it out.
-    const expected = buildBookStats(gopher(), { techLevel: getTechLevel(gopher()) }).filter(
-      (s) => s.key !== 'tech-level'
-    )
-    expect(terms).not.toContain('Tech Level')
-    expect(terms).toEqual(expected.map((s) => s.label))
-    expect(values).toEqual(expected.map((s) => s.value))
+    // Every entity's stats are the band's (`resolveEntityPageMeta`), a chassis's too.
+    expect(container.querySelector('dl.su-stat-column')).toBeNull()
+    const stats = resolveEntityPageMeta(gopher()).stats
+    const expected = buildBookStats(gopher(), { techLevel: getTechLevel(gopher()) })
+    expect(stats.map((s) => s.label)).toEqual(expected.map((s) => s.label))
+    expect(stats.map((s) => s.value)).toEqual(expected.map((s) => s.value))
+    expect(stats.map((s) => s.label)).toContain('Tech Level')
   })
 
   test('the chassis ability is a framed card stamped "Chassis Ability" atop the right column', () => {
@@ -156,13 +152,12 @@ describe('the card as a page', () => {
     )
     const loadout = container.querySelector('.su-entity-page__loadout')
     expect(loadout).not.toBeNull()
-    // pattern → chassis ability → Systems → Modules: after the stat column and
-    // the chassis ability, never in the opening above the chassis's prose.
+    // pattern → chassis ability → Systems → Modules: after the chassis ability,
+    // never in the opening above the chassis's prose.
     const following = (before: Element | null) =>
       !!before &&
       !!loadout &&
       !!(before.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
-    expect(following(container.querySelector('.su-entity-page__stats'))).toBe(true)
     expect(following(container.querySelector('.su-entity-page__lead'))).toBe(true)
     expect(container.querySelector('.su-entity-page__opening .su-entity-token')).toBeNull()
     // One Token a line, never a grid of Rows.
