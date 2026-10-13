@@ -38,6 +38,7 @@ import { foldControl } from '../foldControl'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { CardFacets } from './CardFacets'
+import { CardHead } from './CardHead'
 import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
 import { CardPage } from './CardPage'
@@ -58,7 +59,6 @@ import type { CardGrain } from './cardGrain'
 import { MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
 import { resolveCardSections } from './cardSections'
 import { CardTextureContext } from './cardTexture'
-import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import type { AxisMarker } from './entityCardTone'
 import {
@@ -70,7 +70,7 @@ import {
   titleSizeRung,
 } from './entityCardTone'
 import type { SplitFacets } from './facetSplit'
-import { splitFacets } from './facetSplit'
+import { splitFacets, withHeadFacts } from './facetSplit'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
@@ -118,17 +118,16 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * actions and depth rows (`NestedCards`). The pure cell/stat builders are in
  * `cardCells.ts`, the chrome rules in `cardChrome.ts`.
  *
- * The sections that render nested cards receive this card as `NestedCard`
- * rather than importing it, which keeps every section module free of a
- * circular import back to this one.
+ * Sections that nest cards receive this card as `NestedCard`, never importing
+ * it, so no section module imports back into this one.
  */
 
 /**
  * What a card hides. CATALOG — the SRD index tile — keeps artwork and
- * description ONLY, so every nested element is suppressed here rather than at
- * each call-site. TERMINAL (ruleset §1, board E3): inside a tooltip popup
- * nothing acts, so the roll-table controls go too (the link, depth-2 rows and
- * the actions chip are handled where they render).
+ * description ONLY, so every nested element is suppressed here, not at each
+ * call-site. TERMINAL (ruleset §1, board E3): inside a tooltip popup nothing
+ * acts, so the roll-table controls go too (the link, depth-2 rows and the
+ * actions chip are handled where they render).
  */
 function resolveHide(
   hideProp: ReferenceEntityCardHideConfig | undefined,
@@ -140,9 +139,8 @@ function resolveHide(
 }
 
 /**
- * The title's type step: by size, stepping down with depth (`titleSizeClass`).
- * The ink banner's large title sits one rung under the tone header's, beside
- * its numeral (board E1); an inline action band takes its own rung.
+ * The title's type step: by size, stepping down with depth (`titleSizeClass`). The ink
+ * banner's large title sits a rung under the tone header's (board E1); an inline band its own.
  */
 function resolveTitleSize(inline: boolean, fill: HeaderFill, depth: number, size: CardSize) {
   if (inline) return INLINE_TITLE[size]
@@ -248,6 +246,7 @@ function ReferenceEntityCardInner({
   texture,
   foldTables = false,
   parentSeal,
+  cutOut: cutOutProp = false,
   readable = false,
   pattern,
   hostName,
@@ -472,14 +471,15 @@ function ReferenceEntityCardInner({
     perTechLevelByLabel,
     effTechLevel,
   })
-  // E17: the action type is a head stamp, the facets Stat cells, the traits Tags.
-  const facets = splitFacets(cells)
-  const hasSubLine = !!suggestedNode || facets.facts.length > 0 || facets.tags.length > 0
-
-  // The head extent is the Row (and, small, the Token): see below.
+  // The head extent is the Row (and, small, the Token): see below. A cut-out card wears its head.
   const isHead = extent === 'head'
+  const cutOut = cutOutProp && !inline && !isHead && !onPage
+  // E17: the action type is a head stamp, the facets Stat cells, the traits Tags.
+  const facets = withHeadFacts(splitFacets(cells), cutOut ? effectiveHeaderStats : [])
+  const hasSubLine = !!suggestedNode || facets.facts.length > 0 || facets.tags.length > 0
   const header = (
-    <EntityCardHeader
+    <CardHead
+      cutOut={cutOut}
       title={name}
       fill={fill}
       titleAs={titleAs}

@@ -35,6 +35,13 @@ export type ReferenceEntityCardProps = {
    * type stamp), in a distinct tone — lets a group brand its nested cards
    * (e.g. GRANTS) without a separator row. */
   parentSeal?: { label: string; tone: string }
+  /**
+   * CUT-OUT — the card's head is the Row's (`entity/parts/Head`): its name on
+   * the paper cut-out notched into the band, its labels right of it, and its
+   * value cells in the facts row under the head (E17), as a bodied Row's. An
+   * embedded crew NPC (a crawler's, a bay's) wears it, set by its group.
+   */
+  cutOut?: boolean
   /** Set the nested card's prose at the regular reading size (14px) instead of
    * the compact one. The page's chassis ability uses it (board 07). */
   readable?: boolean

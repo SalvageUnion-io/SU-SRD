@@ -20,7 +20,7 @@ Status: agreed. Code: `packages/component-lib/src/entity/`.
    **Tile** — the SRD Catalog's Row: 3:4 art, name notched into the band, compact facts, lead; link only.
 4. **Card** — the whole entity in place: head (the title, its labels — kind stamp, pills, User-made — right of it, in flow), facts, prose, actions as bands, children as Rows, table as a roll bar, cite; comfortable (≥ 30rem) or compact.
 5. **Page** — the detail view: an SRD route, ITUN's detail dialog. From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
-   Ability trees and pattern rows clear the art; a tray spans the column (`CardTray`'s `flush`); on a phone the art stacks above.
+   Ability trees and pattern rows clear the art; a stack spans the column, 52rem with no art; a phone stacks the art above.
 6. **Peek** — a compact Card, read-only, children as Tokens. A Mention or Tag carries only `data-peek`; one `PeekHost` per app opens it and loads it lazily.
 
 ## Modes

@@ -224,7 +224,9 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
             context={prose}
           />
         )}
-      {!hide?.damagedEffect && damagedEffect && <DamagedEffectCallout effect={damagedEffect} />}
+      {!hide?.damagedEffect && damagedEffect && (
+        <DamagedEffectCallout effect={damagedEffect} onPage={onPage} />
+      )}
       {/* On a page the steps stand as a page section (`CardPage`'s `guide`). */}
       {!onPage && guideStepsNode}
     </>
@@ -275,6 +277,8 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
             entities={group.entities}
             host={nestedHost}
             write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
+            // An embedded crew NPC wears the Row's head: its name on the cut-out.
+            cutOut={group.label === 'NPCs'}
             seal={
               group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
             }

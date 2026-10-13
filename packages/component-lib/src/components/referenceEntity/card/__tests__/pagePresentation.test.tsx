@@ -212,6 +212,29 @@ describe('the card as a page', () => {
     expect(screen.getByRole('heading', { name: npc, level: 2 })).toBeTruthy()
   })
 
+  test('a bay’s crew NPC wears the cut-out head, its HP a cell in the facts row', () => {
+    const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
+    render(<ReferenceEntityCard data={bay} presentation="page" />)
+    const title = screen.getByRole('heading', { name: 'Chef', level: 2 })
+    const head = need(title.closest('.su-entity-row__head') ?? undefined, 'cut-out head')
+    expect(head.getAttribute('data-notch')).toBe('true')
+    expect(head.querySelector('.su-entity-row__notch')?.contains(title)).toBe(true)
+    // One kind stamp, right of the name; the HP cell is not on the band.
+    expect(head.textContent).toBe('ChefNPC')
+    const frame = need(head.parentElement ?? undefined, 'frame')
+    expect(frame.textContent).toContain('HP4')
+  })
+
+  test('"When damaged" is a framed callout, its stamp riding the border', () => {
+    const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
+    render(<ReferenceEntityCard data={bay} presentation="page" />)
+    const stamp = screen.getByText('When Damaged')
+    expect(stamp.className).toContain('su-stamp-seam')
+    const frame = need(stamp.parentElement ?? undefined, 'callout')
+    expect(frame.style.borderWidth).toBe('var(--bw-chrome)')
+    expect(frame.textContent).toContain(bay.damagedEffect ?? '')
+  })
+
   test('the chassis ability and its seal stay spans: no band holds them', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     const lead = need(container.querySelector('.su-entity-page__lead') ?? undefined, 'lead')

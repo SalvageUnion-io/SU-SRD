@@ -164,14 +164,19 @@
   overflow: hidden;
 }
 
-/* With no art the body is one reading column, but for the tags, which run
-   to the page's far end under the band's stamps. */
+/* With no art the page is one reading column, but for the tags, which run
+   to the page's far end under the band's stamps: the prose, its callouts and
+   stats, and everything the page carries after them (its table, actions and
+   nested entities) share the one 52rem measure. A guide keeps its own (its
+   rail stands beside the measure, `guides.css`). */
 .su-entity-page__main:not(.su-entity-page__main--art)
   > .su-entity-page__side
   > :not(.su-entity-page__prose),
 .su-entity-page__main:not(.su-entity-page__main--art)
   .su-entity-page__prose
-  > :not(.su-entity-page__tags) {
+  > :not(.su-entity-page__tags),
+.su-entity-page:not(.su-entity-page--flow)
+  > :not(.su-entity-page__main, .su-entity-page__wide, .su-guide) {
   max-width: 52rem;
 }
 
