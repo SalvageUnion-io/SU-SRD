@@ -130,8 +130,8 @@ export function PatternList({
  * language, Row): the host's tone in the head with the pattern's quoted name
  * and the chevron, then a paper body with the pattern's opening paragraph
  * clamped as a lead, and under it what the pattern changes: its loadout,
- * Systems beside Modules, one name a line with its TL at the column's edge
- * (`PatternLoadout fill`), or the actions a Bio-Titan pattern adds
+ * Systems beside Modules, one full-width Token a line with its TL at the
+ * column's edge (`PatternLoadout`), or the actions a Bio-Titan pattern adds
  * (`PatternUniques`). The HEAD is the link to the pattern's page; the body
  * cannot be, because its names are links of their own.
  */
@@ -166,9 +166,11 @@ function PatternLinkRow({
       onInk={paint.ink}
     />
   ) : undefined
+  // The name on the paper cut-out (Head's `notch`): the body below is paper.
   const head = (
     <Head
       title={`“${name}”`}
+      notch
       paint={paint}
       labels={labels}
       affordance={href ? <LinkChevron /> : undefined}
@@ -200,7 +202,6 @@ function PatternLinkRow({
             groups={loadout}
             sectionAs={undefined}
             hostDown={host.hostDown}
-            fill
             owner={name}
           />
         )}

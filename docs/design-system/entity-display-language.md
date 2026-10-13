@@ -15,7 +15,7 @@ Status: agreed. Code: `packages/component-lib/src/entity/`.
 
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
 2. **Token** — `[kind] name [one fact]`, one size; always opens its entity; Peeks on hover or long-press.
-3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier, name with the kind stamp right of it, cost pennant, mode slot), paper body (facts, traits, lead while browsing).
+3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier and name, on the paper cut-out over a body as a Tile's, the kind stamp right of it, cost pennant, mode slot), paper body, no rule above it (facts, traits, lead while browsing).
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
    **Tile** — the SRD Catalog's Row: 3:4 art, name notched into the band, compact facts, lead; link only.
 4. **Card** — the whole entity in place: head (the title, its labels — kind stamp, pills, User-made — right of it, in flow), facts, prose, actions as bands, children as Rows, table as a roll bar, cite; comfortable (≥ 30rem) or compact.
@@ -34,8 +34,8 @@ Status: agreed. Code: `packages/component-lib/src/entity/`.
 Each is checkable; breaking one needs an amendment here first.
 
 - **E1** Choose the form by the job and the room, never by the app.
-- **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). Except the SRD Catalog: Tiles where the schema has art, default at ≥ 75rem; the reader's choice is kept.
-- **E3** Use a Token only when a Row will not fit: three or more on a line, or a slot under 12rem.
+- **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). Except the SRD Catalog: Tiles where the schema has art, default at ≥ 75rem, each line filled to the margin; the reader's choice is kept.
+- **E3** Use a Token only when a Row will not fit: three or more on a line, a slot under 12rem, or a pattern's loadout.
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page (in ITUN, the detail dialog): no new-tab `window.open`.
 - **E6** Nest one form down, two levels deep (Page → Row, Card → Row, Row → count chip); a third level is a link or a Peek.
@@ -50,10 +50,11 @@ Each is checkable; breaking one needs an amendment here first.
 - **E15** No hand-built entity markup outside `component-lib/src/entity/`.
 - **E16** A Peek is read-only and terminal.
 - **E17** There is no "//" line: the action type is a head stamp, facets are Stat cells after the entity's facts, traits are Tags with a parameter cell (`[Burn | 2]`).
+- **E18** No form cuts a name, stamp or chip to "…": it wraps or widens.
 
 ## Which form, where
 
-1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern's loadout on a card or a host's pattern list** — Mention with a framed TL Stat, the book's plain list of names (Core Book p.101); the part's tone stays on its own Row, Card and Page.
+1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — head on the cut-out, chassis ability, then Systems and Modules as full-width Tokens, one a line (card, page, a host's pattern list).
 2. **Search, both apps** — Row (no lead), link. **Any prose** — Mention: Peek, then Page.
 3. **ITUN wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **ITUN dense slots** (inventory strip, bays, loadouts) — Token, link. **Deck, resolve** — Row / Card.

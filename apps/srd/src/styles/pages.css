@@ -1034,8 +1034,11 @@
 /*
  * THE CATALOG (`data-view="catalog"`): the art-first Tiles (component-lib's
  * `.su-entity-tile`), the default at a desktop measure where the schema has
- * art (`lib/listingView.ts`, `CATALOG_QUERY`). Five or six across at the
- * page's measure; a tile's art box holds 3:4 before its image loads.
+ * art (`lib/listingView.ts`, `CATALOG_QUERY`). Every group fills its line to
+ * the page's margin: as many 13.5rem-or-wider tracks as the measure holds
+ * (five or six at the page's), stretched to share the room, the remainder on
+ * a shorter last line. Every tile on the page is one width. A tile's art box
+ * holds 3:4 before its image loads.
  */
 .srd-listing__tiles {
   align-items: stretch;
@@ -1051,43 +1054,6 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-
-/* A group's columns (`data-balanced`, `lib/tileColumns.ts`): where its line
-   fits N tiles (N × 13.5rem and the 12px gaps; the group, `srd-group`, is the
-   container), it sets `--srd-tiles-N` of them — the fewest lines the group
-   needs, its tiles shared evenly across them — so no tile is left alone on a
-   last line. Each column keeps the width it has in a full line of N, so every
-   tile on the page is one size and a balanced group is a narrower block, not
-   larger tiles. Narrower than two tiles, the grid's one column stands. */
-@container srd-group (min-width: 27.75rem) {
-  .srd-listing__tiles[data-balanced] {
-    grid-template-columns: repeat(var(--srd-tiles-2), calc((100cqi - var(--space-12)) / 2));
-  }
-}
-
-@container srd-group (min-width: 42rem) {
-  .srd-listing__tiles[data-balanced] {
-    grid-template-columns: repeat(var(--srd-tiles-3), calc((100cqi - 2 * var(--space-12)) / 3));
-  }
-}
-
-@container srd-group (min-width: 56.25rem) {
-  .srd-listing__tiles[data-balanced] {
-    grid-template-columns: repeat(var(--srd-tiles-4), calc((100cqi - 3 * var(--space-12)) / 4));
-  }
-}
-
-@container srd-group (min-width: 70.5rem) {
-  .srd-listing__tiles[data-balanced] {
-    grid-template-columns: repeat(var(--srd-tiles-5), calc((100cqi - 4 * var(--space-12)) / 5));
-  }
-}
-
-@container srd-group (min-width: 84.75rem) {
-  .srd-listing__tiles[data-balanced] {
-    grid-template-columns: repeat(var(--srd-tiles-6), calc((100cqi - 5 * var(--space-12)) / 6));
-  }
 }
 
 /* A tile's place while the data loads, in the tile's own structure: its 3:4
@@ -1137,22 +1103,6 @@
   }
 }
 
-/* …and a group's balanced columns, as its tiles will (above). The Catalog's
-   measure holds five at the least, so only the five and six steps apply. */
-@media (min-width: 75rem) {
-  @container srd-group (min-width: 70.5rem) {
-    .srd-listing[data-art] .srd-listing__cards[data-balanced] {
-      grid-template-columns: repeat(var(--srd-tiles-5), calc((100cqi - 4 * var(--space-12)) / 5));
-    }
-  }
-
-  @container srd-group (min-width: 84.75rem) {
-    .srd-listing[data-art] .srd-listing__cards[data-balanced] {
-      grid-template-columns: repeat(var(--srd-tiles-6), calc((100cqi - 5 * var(--space-12)) / 6));
-    }
-  }
-}
-
 /*
  * A Catalog-only listing (`CATALOG_LISTINGS`): a handful of tiles whose lead
  * is the content, so wider columns — three across at the page's measure, two
@@ -1170,34 +1120,6 @@
   gap: var(--space-12);
   grid-auto-rows: auto;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-}
-
-/* Its groups balance on its own 20rem tracks (N × 20rem and the gaps); these
-   outrank the 13.5rem steps above, whatever the width. */
-.srd-listing[data-catalog] .srd-listing__tiles[data-balanced],
-.srd-listing[data-catalog] .srd-listing__cards[data-balanced] {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-}
-
-@container srd-group (min-width: 40.75rem) {
-  .srd-listing[data-catalog] .srd-listing__tiles[data-balanced],
-  .srd-listing[data-catalog] .srd-listing__cards[data-balanced] {
-    grid-template-columns: repeat(var(--srd-tiles-2), calc((100cqi - var(--space-12)) / 2));
-  }
-}
-
-@container srd-group (min-width: 61.5rem) {
-  .srd-listing[data-catalog] .srd-listing__tiles[data-balanced],
-  .srd-listing[data-catalog] .srd-listing__cards[data-balanced] {
-    grid-template-columns: repeat(var(--srd-tiles-3), calc((100cqi - 2 * var(--space-12)) / 3));
-  }
-}
-
-@container srd-group (min-width: 82.25rem) {
-  .srd-listing[data-catalog] .srd-listing__tiles[data-balanced],
-  .srd-listing[data-catalog] .srd-listing__cards[data-balanced] {
-    grid-template-columns: repeat(var(--srd-tiles-4), calc((100cqi - 3 * var(--space-12)) / 4));
-  }
 }
 
 .srd-listing[data-catalog] .srd-listing__tile-skeleton::before {

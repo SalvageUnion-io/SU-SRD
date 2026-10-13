@@ -20,13 +20,28 @@ const headOf = (name: string) => {
   return head
 }
 
+/** The name's box on the band: its paper cut-out over a body, else the title itself. */
+const nameBox = (name: string) => {
+  const title = screen.getByText(name)
+  return title.closest('.su-entity-row__notch') ?? title
+}
+
 describe('Row labels', () => {
   test('the kind stamp sits right of the name, on its line', () => {
     render(<Entity form="row" entity={drill()} />)
     const head = headOf('Salvaging Drill')
     expect(head.firstElementChild?.className).toBe('su-entity-row__line')
-    const labels = screen.getByText('Salvaging Drill').nextElementSibling
+    const labels = nameBox('Salvaging Drill').nextElementSibling
     expect(labels?.textContent).toBe('System')
+  })
+
+  test('over a body the name sits on the paper cut-out, its labels on the band beside it', () => {
+    render(<Entity form="row" entity={drill()} />)
+    const head = headOf('Salvaging Drill')
+    expect(head.dataset.notch).toBe('true')
+    const notch = nameBox('Salvaging Drill')
+    expect(notch.className).toBe('su-entity-row__notch')
+    expect(notch.contains(screen.getByText('System'))).toBe(false)
   })
 
   test('omitting the kind drops the stamp from the name line', () => {
@@ -39,7 +54,7 @@ describe('Row labels', () => {
     render(<Entity form="row" entity={juryRig()} />)
     const head = headOf('Jury Rig')
     expect(head.dataset.fill).toBe('ink')
-    const labels = screen.getByText('Jury Rig').nextElementSibling
+    const labels = nameBox('Jury Rig').nextElementSibling
     expect(labels?.textContent).toContain('Ability')
     expect(head.contains(labels ?? null)).toBe(true)
   })

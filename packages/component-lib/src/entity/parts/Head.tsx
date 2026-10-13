@@ -46,11 +46,18 @@ export type HeadProps = {
   affordance?: ReactNode
   /** The labels (`CardLabels`): on the name's line, right after the name. */
   labels?: ReactNode
+  /**
+   * The cut-out (ruleset, "Chapter band"): the tier and name notched into the
+   * band's foot on a tab of the paper below, in ink, as a catalog Tile's. For
+   * a head with a paper body under it (a bodied Row, a pattern row).
+   */
+  notch?: boolean
 }
 
 /**
- * HEAD — a Row's band: one line that never wraps: the tier, the name (two
- * lines, then clamped) with its labels to its right, a hint, the action-type stamp (E17), the condition,
+ * HEAD — a Row's band: one line that never wraps: the tier, the name (it
+ * wraps, never clipped; with `notch`, both on the paper cut-out at the band's
+ * foot) with its labels to its right, a hint, the action-type stamp (E17), the condition,
  * the cost pennant and the mode's affordance, in that order. The band wears
  * the paint (`paintFor`): the tone or ink, grey when down.
  */
@@ -66,21 +73,37 @@ export function Head({
   pennant,
   affordance,
   labels,
+  notch = false,
 }: HeadProps) {
+  const tierNode = tier && <span className="su-entity-row__tier">{tier}</span>
+  const titleNode = titleSlot ?? (
+    <TitleTag
+      className="su-entity-row__title"
+      title={title}
+      // On the notch's paper the name is ink (the class's), whatever the band.
+      style={notch ? undefined : { color: paint.color }}
+    >
+      {paint.nameOnPaper && !notch ? <span style={PAPER_NAME}>{title}</span> : title}
+    </TitleTag>
+  )
   return (
     <div
       className={cn('su-entity-row__head', grainClass(paint.grain))}
       data-fill={paint.ink ? 'ink' : 'tone'}
       data-grain={paint.grain}
+      data-notch={notch || undefined}
       style={{ backgroundColor: paint.background, color: paint.color }}
     >
       <div className="su-entity-row__line">
-        {tier && <span className="su-entity-row__tier">{tier}</span>}
+        {notch ? null : tierNode}
         <div className="su-entity-row__name">
-          {titleSlot ?? (
-            <TitleTag className="su-entity-row__title" title={title} style={{ color: paint.color }}>
-              {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
-            </TitleTag>
+          {notch ? (
+            <span className="su-entity-row__notch">
+              {tierNode}
+              {titleNode}
+            </span>
+          ) : (
+            titleNode
           )}
           {labels && <div className="su-entity-row__labels">{labels}</div>}
         </div>

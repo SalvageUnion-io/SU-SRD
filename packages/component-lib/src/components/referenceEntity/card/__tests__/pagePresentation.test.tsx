@@ -143,7 +143,7 @@ describe('the card as a page', () => {
     expect(sizes).not.toContain('0.75rem')
   })
 
-  test('a pattern page lists its loadout under the stats as Rows that Peek', () => {
+  test('a pattern page lists its loadout after its chassis ability, as full-width Tokens that Peek', () => {
     const chassis = gopher()
     const pattern = need(
       chassis.patterns?.find((p) => (p.systems?.length ?? 0) > 0),
@@ -156,14 +156,24 @@ describe('the card as a page', () => {
     )
     const loadout = container.querySelector('.su-entity-page__loadout')
     expect(loadout).not.toBeNull()
-    // After the stat column, never in the opening above the chassis's prose.
-    const stats = container.querySelector('.su-entity-page__stats')
-    if (stats && loadout) {
-      expect(stats.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    }
+    // pattern → chassis ability → Systems → Modules: after the stat column and
+    // the chassis ability, never in the opening above the chassis's prose.
+    const following = (before: Element | null) =>
+      !!before &&
+      !!loadout &&
+      !!(before.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(following(container.querySelector('.su-entity-page__stats'))).toBe(true)
+    expect(following(container.querySelector('.su-entity-page__lead'))).toBe(true)
     expect(container.querySelector('.su-entity-page__opening .su-entity-token')).toBeNull()
-    const rows = loadout?.querySelectorAll('.su-entity-row[data-peek]') ?? []
-    expect(rows.length).toBeGreaterThan(0)
+    // One Token a line, never a grid of Rows.
+    expect(loadout?.querySelector('.su-entity-row')).toBeNull()
+    const lists = loadout?.querySelectorAll('ul.su-entity-token-list') ?? []
+    expect(lists.length).toBeGreaterThan(0)
+    for (const list of lists) {
+      for (const item of list.children) {
+        expect(item.querySelectorAll('.su-entity-token[data-peek]')).toHaveLength(1)
+      }
+    }
   })
 
   test('patterns are full-width link rows, with a phone’s "Show all" link', () => {

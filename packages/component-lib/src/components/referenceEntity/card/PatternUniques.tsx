@@ -3,20 +3,9 @@ import type { SURefObjectAnyPattern } from 'salvageunion-reference'
 import { extractPatternActions, normalizePatternName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { cardKey } from './cardHelpers'
-import { LoadoutMention } from './PatternLoadout'
+import { LoadoutToken } from './PatternLoadout'
 import type { NestedCard } from './referenceEntityCardTypes'
 import { resolvePatternGroups } from './resolveNestedEntities'
-
-/** The loadout's lines run on, wrapping, under a card's pattern row: a column a part would outgrow the row. */
-const MENTIONS: CSSProperties = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  columnGap: space[12],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-}
 
 const CARDS: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[8] }
 
@@ -27,7 +16,7 @@ const CARDS: CSSProperties = { display: 'flex', flexDirection: 'column', gap: sp
  * pattern and already on the page; a row carries only the difference:
  *
  * - a MECH pattern's loadout — every system, module and drone it installs, as
- *   the pattern view's name-and-TL line (`LoadoutMention`), multiples repeated
+ *   the pattern view's full-width Token a line (`LoadoutToken`), multiples repeated
  *   as the pattern view prints them;
  * - a BIO-TITAN pattern's added actions, as embedded action cards — there is
  *   no loadout, and an added rule is the whole of the difference, so it is
@@ -67,10 +56,10 @@ export function PatternUniques({
   return (
     <div className={className}>
       {loadout.length > 0 && (
-        <ul aria-label={`${name} loadout`} style={MENTIONS}>
+        <ul aria-label={`${name} loadout`} className="su-entity-token-list">
           {loadout.map((item, index) => (
-            <li key={cardKey(item, index)} style={{ minWidth: 0 }}>
-              <LoadoutMention data={item} hostDown={hostDown} />
+            <li key={cardKey(item, index)}>
+              <LoadoutToken data={item} hostDown={hostDown} />
             </li>
           ))}
         </ul>

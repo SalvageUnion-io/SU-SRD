@@ -211,36 +211,27 @@
 }
 
 /* The head band's labels (`card/CardLabels.tsx`): the stamps, then the
- * User-made stamp. The stamps never run past the band: on a phone they share
- * the room and the last gives way. The type stamp (`__lead`) gives way LAST:
- * it never shrinks, and only when it alone overflows does it truncate. */
+ * User-made stamp. No stamp is ever cut to "…": short of room, the stamps
+ * wrap onto a second line, and the cluster is never narrower than its widest
+ * stamp (the name beside it gives way first). */
 .su-ec-labels {
   align-items: center;
   display: flex;
   gap: var(--space-6);
-  min-width: 0;
 }
 
 .su-ec-labels__stamps {
   align-items: center;
   display: flex;
   flex: 1 1 auto;
-  gap: var(--space-6);
-  min-width: 0;
-  overflow: hidden;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
 }
 
 .su-ec-labels__truncate,
 .su-ec-labels__lead {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.su-ec-labels__lead {
   flex: none;
-  max-width: 100%;
+  white-space: nowrap;
 }
 
 /* `atoms/SmallButtons.tsx` (`StepButton`): the ground hovers to the sheet's

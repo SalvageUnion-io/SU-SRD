@@ -82,58 +82,32 @@
   }
 }
 
-/* `LoadoutMention` — one part of a pattern's loadout, as the book lists it: the
-   name (a Mention, in the list's own ink), then its framed TL cell. The name
-   wraps rather than pushing the cell off the line. A loadout under a host that
-   is down reads muted, as its Tokens once greyed. */
-.su-loadout-entry {
-  align-items: center;
+/* A TOKEN LIST (`.su-entity-token-list`: a pattern's Systems and Modules):
+   one Token a line, each running the list's full width, its name taking the
+   room and its fact at the right edge, where the facts scan down the list.
+   Under a coarse pointer each line is a 44px target (ruleset §4.6). */
+.su-entity-token-list {
   display: flex;
-  gap: var(--space-6);
+  flex-direction: column;
+  gap: var(--space-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-entity-token-list > li {
+  display: flex;
   min-width: 0;
-  padding-block: var(--space-2);
 }
 
-.su-loadout-entry > .su-inline-ref {
-  min-width: 0;
-  overflow-wrap: break-word;
+.su-entity-token-list .su-entity-token,
+.su-entity-token-list .su-entity-token__pill {
+  flex: 1 1 auto;
 }
 
-.su-loadout-entry > .su-stat-cell {
-  flex: none;
-}
-
-.su-loadout-entry[data-down] {
-  color: var(--color-wk-muted);
-}
-
-/* A pattern card's loadout on a page (`PatternLoadout fill`): the TL cells
-   stand in a column at the right edge, where they scan down the list. */
-.su-pattern-loadout--fill .su-loadout-entry {
-  justify-content: space-between;
-}
-
-/* Thumb first (ruleset §4.6): each line is a 44px row under a coarse pointer,
-   and the name's hit area spans the row's height, so neighbouring names never
-   overlap. */
 @media (pointer: coarse) {
-  .su-loadout-entry {
+  .su-entity-token-list .su-entity-token__pill {
     min-height: 44px;
-    padding-block: 0;
-  }
-
-  .su-loadout-entry > .su-inline-ref {
-    position: relative;
-  }
-
-  .su-loadout-entry > .su-inline-ref::after {
-    content: '';
-    height: 44px;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
   }
 }
 

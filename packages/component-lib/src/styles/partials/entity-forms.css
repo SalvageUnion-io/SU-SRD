@@ -85,11 +85,11 @@
   min-width: 0;
 }
 
-/* The title: two lines, then "…" (its full name in a tooltip). Beside its
-   labels it gives way first, wrapping at spaces (a high shrink), but keeps its
-   longest word whole: only then do the labels give way. */
+/* The title: it wraps at spaces, never clipped (a name is never cut to "…").
+   Beside its labels it gives way first (a high shrink), but keeps its longest
+   word whole. */
 .su-entity-row__title {
-  display: -webkit-box;
+  display: block;
   flex: 0 100 auto;
   font-family: var(--font-cond);
   font-size: var(--text-title);
@@ -98,11 +98,8 @@
   line-height: 1.05;
   margin: 0;
   min-width: min-content;
-  overflow: hidden;
   overflow-wrap: break-word;
   text-transform: uppercase;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 /* An ability's tier numeral, at the left: the title's face, dimmed. */
@@ -124,18 +121,53 @@
   -webkit-line-clamp: 2;
 }
 
-/* The labels give way once the name cannot wrap further, truncating with "…". */
+/* The labels give way once the name cannot wrap further: their stamps wrap
+   onto a second line, never cut to "…" (`.su-ec-labels`). */
 .su-entity-row__labels {
   display: flex;
   flex: 0 1 auto;
-  min-width: 0;
 }
 
-/* The paper body: the facts, the tags, the lead. */
+/*
+ * THE CUT-OUT (`Head`'s `notch`: a Row with a body, a pattern row): the tier
+ * and name sit on a tab of the paper below, notched into the band's foot, in
+ * ink, as a catalog Tile's (ruleset, "Chapter band"). The tab opens into the
+ * paper body, so no rule runs between head and body. The labels, stamps,
+ * pennant and affordance stay on the band, centred on it.
+ */
+.su-entity-row__head[data-notch] {
+  padding: var(--space-8) var(--space-10) 0;
+}
+
+.su-entity-row__head[data-notch] .su-entity-row__line > :not(.su-entity-row__name),
+.su-entity-row__head[data-notch] .su-entity-row__labels {
+  align-self: center;
+  margin-bottom: var(--space-4);
+}
+
+.su-entity-row__head[data-notch] .su-entity-row__line,
+.su-entity-row__head[data-notch] .su-entity-row__name {
+  align-items: flex-end;
+}
+
+.su-entity-row__notch {
+  align-items: baseline;
+  background-color: var(--color-paper);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  color: var(--color-ink);
+  column-gap: var(--space-8);
+  display: flex;
+  flex: 0 100 auto;
+  margin-left: calc(-1 * var(--space-2));
+  min-width: min-content;
+  padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
+/* The paper body: the facts, the tags, the lead. No rule above it: the
+   head's cut-out opens into it. */
 .su-entity-row__body {
   align-content: flex-start;
   align-items: center;
-  border-top: var(--bw-chrome) solid var(--color-ink);
   display: flex;
   flex: 1 1 auto;
   flex-wrap: wrap;

@@ -83,7 +83,9 @@ const READ: EntityMode = { kind: 'read' }
 /**
  * ROW — the workhorse form (entity display language §3): every list of
  * entities. An art column (by schema and room, E10), a head (tier, name,
- * action-type stamp, cost pennant, the mode's affordance) and a paper body
+ * action-type stamp, cost pennant, the mode's affordance; over a body, the
+ * tier and name on the paper cut-out notched into the band's foot, as a
+ * Tile's, with no rule between head and body) and a paper body
  * whose first row is the facts and facets as Stats, then the traits as Tags
  * (E17: no "//" line), then the lead while browsing (E11). Fill follows kind
  * (E12): a "have" entity's tone, a "do" entity's ink banner with paper flecks
@@ -169,6 +171,8 @@ export function Row({
           pennant={pennant}
           affordance={affordance}
           labels={labels}
+          // A pattern wears the cut-out even as a bodyless list row.
+          notch={hasBody || !!model.ref.pattern}
         />
         {hasBody && (
           <div className="su-entity-row__body" style={down ? { opacity: 0.6 } : undefined}>

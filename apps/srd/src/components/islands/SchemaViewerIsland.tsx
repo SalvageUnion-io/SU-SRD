@@ -21,7 +21,6 @@ import {
 } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
 import { PARAM_VIEW, useListingView } from '../../lib/listingView'
-import { tileColumnStyle } from '../../lib/tileColumns'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
 import { EntityListingRow } from './EntityListingRow'
@@ -323,11 +322,7 @@ function SchemaViewer({
               <section key={group.key} className="srd-listing__group" aria-label={group.label}>
                 {group.label && <Slab variant="solid" label={group.label} />}
                 {view === 'catalog' ? (
-                  <ul
-                    className="srd-listing__tiles"
-                    data-balanced=""
-                    style={tileColumnStyle(group.items.length)}
-                  >
+                  <ul className="srd-listing__tiles">
                     {group.items.map((item: SURefEntity) => (
                       <li key={item.id}>
                         <Entity
@@ -405,11 +400,7 @@ function ListingSkeleton({
           <section key={group.key} className="srd-listing__group">
             {group.label && <Slab variant="solid" label={group.label} />}
             {catalog ? (
-              <ul
-                className="srd-listing__tiles"
-                data-balanced=""
-                style={tileColumnStyle(group.count)}
-              >
+              <ul className="srd-listing__tiles">
                 {Array.from({ length: group.count }, (_, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
                   <li key={i} className="srd-listing__tile-skeleton" />

@@ -42,7 +42,7 @@ type CardPageProps = {
    * pattern prose, before the base chassis it is built on.
    */
   opening?: ReactNode
-  /** A pattern page's loadout (`PatternLoadoutRows`, nothing when empty), under the stat column. */
+  /** A pattern page's loadout (`PatternLoadoutRows`, nothing when empty), under the chassis ability. */
   loadout?: ReactNode
   /** A solid slab naming the prose when something else leads ("Mazona chassis"). */
   bodyLabel?: string
@@ -147,7 +147,6 @@ export function CardPage({
                 <StatColumn stats={bookStats} label={`${name} stats`} />
               </div>
             )}
-            {loadout}
             {leadActions.length > 0 && (
               <div className="su-entity-page__lead">
                 {/* No band holds the chassis ability (the page's h1 is the
@@ -158,6 +157,9 @@ export function CardPage({
                 )}
               </div>
             )}
+            {/* A pattern page's Systems and Modules follow its chassis
+                ability: pattern → chassis ability → Systems → Modules. */}
+            {loadout}
           </div>
         </div>
       )}

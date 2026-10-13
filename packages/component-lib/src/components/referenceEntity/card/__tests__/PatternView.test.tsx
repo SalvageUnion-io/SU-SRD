@@ -144,7 +144,7 @@ describe('full pattern view reading order', () => {
  * six full-length, identical .50 Cal Machine Gun cards for Thunder Storm — or
  * painting a TL-toned pill per part.
  */
-describe('pattern loadout mentions', () => {
+describe('pattern loadout tokens', () => {
   /** Stands in for srd's entity route builder. */
   const testEntityHref = (entity: SURefEntity) =>
     `/${'schemaName' in entity ? String(entity.schemaName) : ''}/${
@@ -215,20 +215,21 @@ describe('pattern loadout mentions', () => {
     expect(opened.map((ref) => ref.name)).toEqual(['.50 Cal Machine Gun'])
   })
 
-  test('each entry is a name and a framed TL, never a toned Token', () => {
+  test('each entry is one full-width Token: its kind, its name, its TL cell', () => {
     const { chassis, pattern } = thunderStorm()
     render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
     const systems = screen.getByRole('list', { name: 'Systems installed' })
-    // No Token, so no tone pill: the part's tone stays on its own Row, Card and Page.
-    expect(systems.querySelector('.su-entity-token')).toBeNull()
-    const entries = Array.from(systems.querySelectorAll('li'))
+    expect(systems.classList.contains('su-entity-token-list')).toBe(true)
+    const entries = Array.from(systems.querySelectorAll(':scope > li'))
     expect(entries.length).toBeGreaterThan(0)
     for (const entry of entries) {
-      const line = entry.querySelector('.su-loadout-entry')
-      expect(line?.querySelector('a.su-inline-ref')).not.toBeNull()
-      // The TL is a Stat cell beside the name, outside the link.
-      expect(line?.querySelector(':scope > .su-stat-cell')?.textContent).toMatch(/^TL\s*\d+$/)
-      expect(line?.querySelector('a')?.textContent).not.toContain('TL')
+      // One Token a line, the link itself.
+      const tokens = entry.querySelectorAll('a.su-entity-token')
+      expect(tokens).toHaveLength(1)
+      const pill = tokens[0]?.querySelector('.su-entity-token__pill')
+      expect(pill?.querySelector('.su-entity-token__kind')?.textContent).toBe('System')
+      // The TL is a Stat cell after the name, inside the pill.
+      expect(pill?.querySelector(':scope > .su-stat-cell')?.textContent).toMatch(/^TL\s*\d+$/)
     }
   })
 

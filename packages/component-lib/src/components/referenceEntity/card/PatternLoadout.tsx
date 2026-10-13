@@ -1,13 +1,9 @@
 import type { CSSProperties, ElementType } from 'react'
-import { useMemo } from 'react'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
-import { toEntityModel } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Entity } from '../../../entity/Entity'
-import { Mention } from '../../../entity/forms/Mention'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
-import { Stat } from '../../atoms/Stat'
 import { useEntityHref } from '../entityHrefContext'
 import { cardKey } from './cardHelpers'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -34,21 +30,8 @@ const columnStyle = {
 } satisfies CSSProperties
 
 /**
- * The book's plain list (Core Book p.101: a SYSTEMS / MODULES column of names):
- * one part a line, never a wrap of pills. Each line is a `.su-loadout-entry`,
- * which takes the 44px coarse-pointer floor.
- */
-const entryListStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
-/**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
- * dashed Slab over the book's plain list of names (see `LoadoutMention`).
+ * dashed Slab over one full-width Token a line (see `LoadoutToken`).
  *
  * One block, not one per group, because the two columns only line up if a
  * single grid owns both: a pattern installs far more systems than modules
@@ -64,19 +47,11 @@ export function PatternLoadout({
   groups,
   sectionAs,
   hostDown,
-  fill = false,
   owner,
 }: {
   groups: NestedGroup[]
   sectionAs: ElementType | undefined
   hostDown: boolean
-  /**
-   * Each line the column's full width, its TL badge at the right edge
-   * (`.su-pattern-loadout--fill`): a pattern's card in its host's list on a
-   * page, where the card spans the page and the badges are easier to scan in a
-   * column of their own than ragged after each name.
-   */
-  fill?: boolean
   /**
    * Whose loadout, prefixed to each list's name ("Hauler Systems installed"):
    * a page lists many patterns, and a bare "Systems installed" would not say
@@ -85,10 +60,7 @@ export function PatternLoadout({
   owner?: string
 }) {
   return (
-    <div
-      className={fill ? 'su-pattern-loadout su-pattern-loadout--fill' : 'su-pattern-loadout'}
-      style={gridStyle}
-    >
+    <div className="su-pattern-loadout" style={gridStyle}>
       {groups.map((group, index) => (
         <div
           key={group.label}
@@ -104,14 +76,15 @@ export function PatternLoadout({
           <Slab variant="dashed" label={group.label} as={sectionAs} />
           {/* A real LIST: the loadout is a countable set of installed parts, so
               a screen reader should announce "list, 6 items" rather than a run
-              of anonymous links. `listStyle: none` keeps the markers off. */}
+              of anonymous links. Each Token runs the column's width, its TL
+              cell at the right edge (`.su-entity-token-list`). */}
           <ul
             aria-label={`${owner ? `${owner} ` : ''}${group.label} installed`}
-            style={entryListStyle}
+            className="su-entity-token-list"
           >
             {group.entities.map((item, itemIndex) => (
-              <li key={cardKey(item, itemIndex)} style={{ minWidth: 0 }}>
-                <LoadoutMention data={item} hostDown={hostDown} />
+              <li key={cardKey(item, itemIndex)}>
+                <LoadoutToken data={item} hostDown={hostDown} />
               </li>
             ))}
           </ul>
@@ -122,49 +95,41 @@ export function PatternLoadout({
 }
 
 /**
- * `LoadoutMention` — one installed system/module in a pattern's loadout, as
- * the book prints it (Core Book p.101: a plain SYSTEMS / MODULES list of
- * names): a MENTION (E4) of the part, then its Tech Level in a framed Stat.
+ * `LoadoutToken` — one installed system/module in a pattern's loadout: a
+ * TOKEN (`[kind] name [TL | n]`) running the list's full width, one part a
+ * line (entity display language, "Which form, where"). The part's tone reads
+ * at a glance; the Token opens its Page and Peeks its whole card; its name
+ * wraps, never clipped (E18).
  *
  * A pattern is a BUILD LIST, not rules to read: its systems and modules are
- * ordinary catalogue entities whose full text lives on their own pages, and
- * printing all of it inline made the loadout the longest thing on the page
- * while burying what the pattern itself says — Atlas's Thunder Storm expanded
- * to six identical, full-length .50 Cal Machine Gun cards. The name gives the
- * build at a glance, the Peek the whole card, and one click its Page.
- *
- * NOT a Token: a chassis page prints every pattern's loadout, and nine
- * TL-toned pills a pattern painted the Mule's page a long block of saturated
- * blue under its green band. The part's tone stays where the part is the
- * subject — its own Row, Card and Page; here it is one line of ink, and the TL
- * reads from the framed `[TL | n]` cell, ink on paper whatever the tone.
+ * ordinary catalogue entities whose full text lives on their own pages, so the
+ * loadout names them rather than printing every card in full.
  *
  * MULTIPLES REPEAT. Six machine guns are six lines, matching the loadout the
  * pattern actually installs (and `resolvePatternGroups`, which emits one entry
- * per copy) — a "×6" count would compress the shape of the build out of a list
+ * per copy) — a "x6" count would compress the shape of the build out of a list
  * whose whole job is showing it.
  *
- * Where the name goes is the SURFACE's (`Mention`): the SRD's route, ITUN's
- * Page opener, or an inert word that still Peeks. Its accessible name is the
- * entity's alone, never the TL glued onto it (".50 Cal Machine Gun TL 1", six
- * times over on Thunder Storm). Each line is `.su-loadout-entry`: 44px tall
- * under a coarse pointer, the name's hit area the line's full height.
+ * Where it goes is the host's route (`useEntityHref`), else the SURFACE's (the
+ * SRD's route, ITUN's Page opener). Its accessible name is the entity's alone,
+ * never the TL glued onto it. Under a host that is down it greys, as the
+ * host's band does.
  */
-export function LoadoutMention({
+export function LoadoutToken({
   data,
   hostDown,
 }: {
   data: ReferenceCardEntity
   hostDown?: boolean
 }) {
-  const model = useMemo(() => toEntityModel(data as SURefMetaEntity), [data])
+  const href = useEntityHref(data as SURefEntity)
   return (
-    <span className="su-loadout-entry" data-down={hostDown || undefined}>
-      <Mention entityRef={model.ref}>{model.title}</Mention>
-      {model.techLevel != null && (
-        <Stat orientation="horizontal" label="TL" value={String(model.techLevel)} size="mini" />
-      )}
-    </span>
+    <Entity
+      form="token"
+      entity={data as SURefMetaEntity}
+      mode={href ? { kind: 'link', href } : { kind: 'link' }}
+      {...(hostDown ? { instance: { condition: 'damaged' as const } } : {})}
+    />
   )
 }
 
@@ -172,22 +137,10 @@ const LOADOUT_PAGE: CSSProperties = { display: 'flex', flexDirection: 'column', 
 
 const LOADOUT_GROUP: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[8] }
 
-/** Rows two or three abreast as the column allows, every one of a group the same height. */
-const LOADOUT_ROWS: CSSProperties = {
-  display: 'grid',
-  gap: space[8],
-  gridTemplateColumns: 'repeat(auto-fill, minmax(16rem, 1fr))',
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-}
-
 /**
- * A pattern PAGE's loadout, under its stats: each group (Systems, Modules) a
- * solid Slab with its count over a grid of ROWS, where the card lists names.
- * On its own page the build is the subject, so each part shows its
- * head and facts, links to its page and Peeks its whole card (the Row's
- * `peek`). No art column: the page's hero is the pattern's.
+ * A pattern PAGE's loadout, under its chassis ability: each group (Systems,
+ * Modules) a solid Slab over one full-width Token a line, as on the pattern's
+ * card (`LoadoutToken`): each opens its page and Peeks its whole card.
  */
 export function PatternLoadoutRows({
   groups,
@@ -205,29 +158,15 @@ export function PatternLoadoutRows({
       {groups.map((group) => (
         <section key={group.label} style={LOADOUT_GROUP}>
           <Slab variant="solid" as={sectionAs} label={group.label} />
-          <ul aria-label={`${group.label} installed`} data-entity-grid="" style={LOADOUT_ROWS}>
+          <ul aria-label={`${group.label} installed`} className="su-entity-token-list">
             {group.entities.map((item, index) => (
-              <li key={cardKey(item, index)} style={{ minWidth: 0 }}>
-                <LoadoutRow data={item} hostDown={hostDown} />
+              <li key={cardKey(item, index)}>
+                <LoadoutToken data={item} hostDown={hostDown} />
               </li>
             ))}
           </ul>
         </section>
       ))}
     </div>
-  )
-}
-
-function LoadoutRow({ data, hostDown }: { data: ReferenceCardEntity; hostDown: boolean }) {
-  const href = useEntityHref(data as SURefEntity)
-  return (
-    <Entity
-      form="row"
-      entity={data as SURefMetaEntity}
-      mode={href ? { kind: 'link', href } : { kind: 'read' }}
-      omit={['art']}
-      peek
-      {...(hostDown ? { instance: { condition: 'damaged' as const } } : {})}
-    />
   )
 }

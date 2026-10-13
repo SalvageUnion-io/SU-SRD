@@ -10,13 +10,10 @@ import { UserMadeStamp } from './UserMadeStamp'
  * elements).
  *
  * - `.su-ec-labels`: the stamps, then the User-made stamp.
- * - `__stamps`: they never run past the band; on a phone they share the room
- *   and the last (the Legal Starting Pattern) gives way instead of running
- *   off the edge.
- * - `__truncate`: a stamp that gives way with "…" when the line runs out.
- * - `__lead`: the type stamp (or the seal in its place) gives way LAST: it
- *   never shrinks, so the stamps after it go first, and only when it alone
- *   overflows does it truncate with "…" rather than being cut mid-letter.
+ * - `__stamps`: short of room they wrap onto a second line; no stamp is ever
+ *   cut to "…" (entity display language E18).
+ * - `__truncate` / `__lead`: a stamp that keeps its whole word (the Legal
+ *   Starting Pattern; the type stamp or the seal in its place).
  */
 const LEAD = 'su-ec-labels__lead'
 
@@ -81,9 +78,6 @@ export function CardLabels({
             label={marker.label}
             value={marker.value}
             size="mini"
-            // A long value ("Chassis | Little Sestra") truncates with "…" on a
-            // phone rather than being cut mid-word.
-            truncate
           />
         ))}
         {/* A pattern the book sanctions as a starting loadout wears a stamp RIGHT
