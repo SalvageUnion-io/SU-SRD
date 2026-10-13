@@ -18,6 +18,7 @@
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { RangeBand } from 'itun-domain/schemas/seat'
 import type {
   SURefAbility,
   SURefEquipment,
@@ -46,7 +47,6 @@ import {
   performPush,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import type { RangeBand } from '../schemas/seat'
 import { heatCheckPatch } from './heatCheck'
 import type { MechItemEconomy } from './mechItems'
 import { resolveModule, resolveSystem } from './mechItems'

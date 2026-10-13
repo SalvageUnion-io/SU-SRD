@@ -34,13 +34,14 @@
 import { useRouter } from '@tanstack/react-router'
 import { Button, ModalShell, Radio, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { hasMediator } from 'itun-domain/games/roles'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useHydrateEntities, usePilots } from '../../hooks/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
-import { gameHasMediator, groupColumn, ownableRows } from '../../lib/games/gameRoster'
+import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 
 const BAR = {
   alignItems: 'center',
@@ -112,7 +113,7 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   // Nothing until the crew is known: a button that appears and then vanishes
   // when the members answer would be worse than a beat of nothing.
   if (members === undefined) return null
-  if (!gameHasMediator(members)) {
+  if (!hasMediator(members)) {
     return (
       <div style={BAR}>
         <Text variant="hint" style={HINT}>

@@ -110,7 +110,7 @@ export const vitals = query({
      *
      * **The key must match the Zod schema exactly, including case.** These
      * originally read `currentHp` / `currentAp` / `currentSp` while
-     * `src/lib/schemas/` defines `currentHP` / `currentAP` / `currentSP`, so
+     * `itun-domain/schemas/` defines `currentHP` / `currentAP` / `currentSP`, so
      * every pilot's HP and AP and every mech's SP came back null and the crew
      * strip rendered a full row of em-dashes — indistinguishable from "nobody
      * has taken damage yet", which is why it survived review. The body is

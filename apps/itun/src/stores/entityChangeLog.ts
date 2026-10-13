@@ -6,7 +6,7 @@
  */
 
 import { containerOf } from 'itun-domain/container'
-import type { ChangeLogKind } from '../lib/schemas/changeLog'
+import type { ChangeLogKind } from 'itun-domain/schemas/changeLog'
 import { commitChangeLog } from './entityBackend'
 import type { EntityForType, EntityType } from './types'
 

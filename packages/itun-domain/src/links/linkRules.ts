@@ -1,8 +1,8 @@
 /**
  * The assignment model: what a soft link may join, how many of each an entity
  * may hold, and where both ends must live
- * ([ADR-037](../../../../../docs/ARCHITECTURE.md#decisions), and
- * [ADR-044](../../../../../docs/ARCHITECTURE.md#decisions) for crew slots).
+ * ([ADR-037](../../../../docs/ARCHITECTURE.md#decisions), and
+ * [ADR-044](../../../../docs/ARCHITECTURE.md#decisions) for crew slots).
  *
  * Pure, and shared by the client store and the Convex backend on purpose. The
  * server is the authority — `convex/entities.ts` refuses what these rules

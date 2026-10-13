@@ -32,12 +32,12 @@ import { useNavigate } from '@tanstack/react-router'
 import { ChapterBand, PageShell, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { containerOf } from 'itun-domain/container'
+import { hasMediator } from 'itun-domain/games/roles'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { gameHasMediator } from '../../lib/games/gameRoster'
 import { useEntityStore } from '../../stores/entityStore'
 import { ConvexPending } from '../shared/ConvexPending'
 import { WayOutLink } from '../shared/WayOutLink'
@@ -170,7 +170,7 @@ function SignedInGate({ id, offline }: { id: string; offline: boolean }) {
     )
   }
 
-  if (!gameHasMediator(members ?? [])) {
+  if (!hasMediator(members ?? [])) {
     return (
       <DashboardRefusal
         title="This Game has no Mediator"

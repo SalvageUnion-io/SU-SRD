@@ -28,7 +28,7 @@ import { PHOTO_TABLES, trackPhoto } from './photos'
  * ## The edge parse
  *
  * `schema.ts` stores entity bodies as `v.any()` so the Zod schemas in
- * `src/lib/schemas/` stay the single source of truth rather than being forked
+ * `itun-domain/schemas/` stay the single source of truth rather than being forked
  * into a second, hand-maintained set of Convex validators. The price is stated
  * plainly in that file's header: **Convex cannot reject a malformed body on
  * write, so the mutation has to.** `parseBody` is where that is paid, and

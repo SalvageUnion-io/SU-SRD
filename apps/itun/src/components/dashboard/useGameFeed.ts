@@ -14,11 +14,11 @@ import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { containerOf } from 'itun-domain/container'
 import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SeatResolving } from 'itun-domain/schemas/seat'
 import { coreRollBandLabel, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { SeatResolving } from '../../lib/schemas/seat'
 import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */

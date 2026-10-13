@@ -19,7 +19,7 @@
  */
 
 import type { Mech } from 'itun-domain/schemas/mech'
-import type { SeatMount, SeatResolving } from '../../lib/schemas/seat'
+import type { SeatMount, SeatResolving } from 'itun-domain/schemas/seat'
 
 /** A pilot or mech row as `entities.listForGame` returns it. */
 export type CrewRow = {

@@ -18,7 +18,7 @@ export type CrewSlot = z.infer<typeof CrewSlotSchema>
  * `pruneLinksOfRow`).
  *
  * Relationship types (ADR-037, ADR-044 — cardinality and the same-container
- * rule live in `lib/links/linkRules.ts`):
+ * rule live in `links/linkRules.ts`):
  *   'mech-to-pilot'    — a mech is assigned to carry a pilot (1:1)
  *   'pilot-to-crawler' — a pilot belongs to a crawler crew (many pilots : 1)
  *   'mech-to-crawler'  — a mech docks in a crawler's bay, independently of its

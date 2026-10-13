@@ -4,7 +4,7 @@ import { photoFields } from './photo'
 
 /**
  * A built NPC: the fourth owned entity, beside pilots, mechs and crawlers
- * ([ADR-044](../../../../../docs/ARCHITECTURE.md#decisions); the model is
+ * ([ADR-044](../../../../docs/ARCHITECTURE.md#decisions); the model is
  * `docs/architecture/npc-builder.md`).
  *
  * It combines the data's two NPC shapes. The stat block takes its names from

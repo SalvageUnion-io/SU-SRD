@@ -17,6 +17,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SeatResolving } from 'itun-domain/schemas/seat'
 import { useState } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -33,7 +34,6 @@ import {
   hasVariableHot,
   hotHeatFor,
 } from '../../../lib/rules/playActions'
-import type { SeatResolving } from '../../../lib/schemas/seat'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'

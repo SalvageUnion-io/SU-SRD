@@ -12,7 +12,7 @@ import { ConvexError } from 'convex/values'
  * top of it.
  *
  * Shared by `convex/` (which throws it) and the client (which reads it), the
- * way `lib/links/linkRules.ts` shares its refusal copy.
+ * way `links/linkRules.ts` shares its refusal copy.
  */
 
 /** The player-facing refusal. Neutral about who moved the row: it may have been this tab. */

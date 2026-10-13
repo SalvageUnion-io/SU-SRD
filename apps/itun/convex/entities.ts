@@ -44,7 +44,7 @@ import { crewSlot, entityRefType, softLinkType } from './schema'
  * ## Every write Zod-parses before it persists
  *
  * The schema stores entity bodies as `v.any()` so the Zod schemas in
- * `src/lib/schemas/` stay the single source of truth rather than being forked
+ * `itun-domain/schemas/` stay the single source of truth rather than being forked
  * into a second, hand-maintained set of Convex validators. The price of that is
  * stated plainly in the schema header: **Convex cannot reject a malformed body,
  * so the mutation has to.** `parseBody` and its `PARSERS` map live in

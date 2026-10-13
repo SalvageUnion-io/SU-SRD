@@ -64,7 +64,7 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permis
  */
 
 /*
- * Every success payload below is annotated with its `model/botWire.ts` type.
+ * Every success payload below is annotated with its `itun-domain/botWire` type.
  * That module is also what the Discord bot imports (`import type`), so a change
  * to a return shape here is a compile error on both sides of the wire rather
  * than a silent drift between two hand-kept copies.

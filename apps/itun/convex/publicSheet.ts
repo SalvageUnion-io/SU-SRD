@@ -374,7 +374,7 @@ export const setPublic = mutation({
     await assertMayPublish(ctx, table, row, userId, args.isPublic)
 
     // Parse before publishing, exactly as every other mutation parses before
-    // persisting (ADR-030): the Zod schemas in `src/lib/schemas/` are the
+    // persisting (ADR-030): the Zod schemas in `itun-domain/schemas/` are the
     // source of truth and Convex stores bodies opaquely. A body that cannot be
     // parsed would hand the public route something it will refuse to
     // render, so this fails HERE — where the owner is standing and

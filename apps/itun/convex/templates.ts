@@ -19,7 +19,7 @@ import { requireUser } from './model/permissions'
  * out as players join, which turns pre-generated characters from a curiosity
  * into the onboarding path.
  *
- * The Starter Set data is imported straight from `src/lib/starterSet/`. That
+ * The Starter Set data is imported straight from `itun-domain/starterSet/`. That
  * module is deliberately static plain data with no runtime reference-data
  * resolution (see its header), so it bundles into a Convex function safely and
  * there is exactly one copy of the roster rather than a server-side duplicate

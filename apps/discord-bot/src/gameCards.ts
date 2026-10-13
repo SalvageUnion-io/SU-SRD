@@ -1,4 +1,7 @@
 import { PRODUCT } from 'component-lib/product'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { ItemCondition, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
@@ -82,40 +85,31 @@ const SP = STAT_LABELS.structurePoints.short
 const HEAT = STAT_LABELS.heatCapacity.short
 
 /**
- * Read a number off an opaque body, trying each name in order.
+ * A field name off one of the entity schemas.
  *
- * Several names rather than one, because the field names below are a **cross-
- * workspace contract that nothing checks at build time**: the Zod schemas in
- * `apps/itun/src/lib/schemas/` are the source of truth, Convex stores the body
- * as `v.any()`, and the bot cannot import those schemas. A misspelling here
- * therefore compiles, passes any test written from the same misspelling, and
- * renders a confidently wrong number.
- *
- * That is not hypothetical. `crew.vitals` shipped reading `currentHp` while the
- * schema defines `currentHP`, so **every vital on the Mediator's crew strip was
- * null** and rendered as an em-dash indistinguishable from an undamaged crew
- * (found and fixed in #656). This code was written from that same wrong
- * spelling.
- *
- * So these reads try the canonical name first and the historical variant
- * second. Being
- * tolerant costs one array lookup; being wrong costs a table a session.
+ * Convex stores the body as `v.any()`, so the bot reads it by name, and the
+ * names are the Zod schemas' in `itun-domain/schemas/`. Typing the key against
+ * them (types only: the bot bundles no Zod) makes a misspelling a compile
+ * error. That is not hypothetical: `crew.vitals` once read `currentHp` while
+ * the schema defines `currentHP`, so every vital on the Mediator's crew strip
+ * was null and rendered as an em-dash indistinguishable from an undamaged crew
+ * (#656).
  */
-function num(body: EntityBody, ...keys: string[]): number | null {
-  for (const key of keys) {
-    const value = body[key]
-    if (typeof value === 'number' && Number.isFinite(value)) return value
-  }
-  return null
+type BodyKey = keyof Pilot | keyof Mech | keyof Crawler
+
+/** Read a finite number off an opaque body, or null. */
+function num(body: EntityBody, key: BodyKey): number | null {
+  const value = body[key]
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
 /** Read a string off an opaque body, or null when absent/blank/not a string. */
-function str(body: EntityBody, key: string): string | null {
+function str(body: EntityBody, key: BodyKey): string | null {
   const value = body[key]
   return typeof value === 'string' && value.trim().length > 0 ? value : null
 }
 
-function strArray(body: EntityBody, key: string): string[] {
+function strArray(body: EntityBody, key: BodyKey): string[] {
   const value = body[key]
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
 }
@@ -185,13 +179,12 @@ function pilotStats(body: EntityBody): {
   const maxHp = pilotMaxHP(input)
   const maxAp = pilotMaxAP(input)
   return {
-    // Canonical spellings come from apps/itun/src/lib/schemas/{pilot,mech}.ts.
     // The absent-means-FULL rule is `resolvePool` in the reference package.
     // Defaulting to 0 instead would render a fresh, undamaged crew as wiped
     // out, which is precisely backwards on the one surface built to show it.
-    hp: resolvePool(num(body, 'currentHP', 'currentHp') ?? undefined, maxHp),
+    hp: resolvePool(num(body, 'currentHP') ?? undefined, maxHp),
     maxHp,
-    ap: resolvePool(num(body, 'currentAP', 'currentAp') ?? undefined, maxAp),
+    ap: resolvePool(num(body, 'currentAP') ?? undefined, maxAp),
     maxAp,
   }
 }
@@ -215,7 +208,7 @@ function mechStats(body: EntityBody): {
   const maxSp = mechMaxSP(input)
   return {
     // Absent SP means full, as above.
-    sp: resolvePool(num(body, 'currentSP', 'currentSp') ?? undefined, maxSp),
+    sp: resolvePool(num(body, 'currentSP') ?? undefined, maxSp),
     maxSp,
     // Heat is the exception and reads the other way: absent means COLD, which
     // is 0. A mech starts at no heat and gains it, where SP starts full and is
@@ -394,7 +387,7 @@ export function gamesCard(games: GameSummary[], webUrl: string): ContainerData {
 
 /** `/su my-stuff` — what you own that is in no game (ITUN's My Stuff). */
 export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
-  const name = (body: EntityBody, keys: string[]): string => {
+  const name = (body: EntityBody, keys: BodyKey[]): string => {
     for (const key of keys) {
       const value = str(body, key)
       if (value !== null) return value
@@ -823,11 +816,11 @@ function mechSheet(body: EntityBody): RenderedSheet {
  * them structurally instead of through `strArray`.
  */
 function crawlerSheet(body: EntityBody): RenderedSheet {
-  const typeRef = str(body, 'typeRef') ?? str(body, 'type')
+  const typeRef = str(body, 'type')
   const techLevel = str(body, 'techLevel')
   const fields: CardField[] = []
 
-  const sp = num(body, 'currentSP', 'currentSp')
+  const sp = num(body, 'currentSP')
   const maxSp = num(body, 'maxSpOverride')
   fields.push({
     name: SP,

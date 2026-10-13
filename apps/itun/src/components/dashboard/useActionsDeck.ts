@@ -33,6 +33,8 @@ import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { RangeBand, SeatResolving } from 'itun-domain/schemas/seat'
+import { RANGE_BANDS } from 'itun-domain/schemas/seat'
 import { useState } from 'react'
 import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
@@ -70,8 +72,6 @@ import {
   tabMatchesAction,
 } from '../../lib/rules/playActions'
 import { runWrite } from '../../lib/runWrite'
-import type { RangeBand, SeatResolving } from '../../lib/schemas/seat'
-import { RANGE_BANDS } from '../../lib/schemas/seat'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { DeckListModel, DeckRow } from './DeckList'

@@ -7,7 +7,8 @@
  * `convex/model/permissions.ts` and `convex/entities.ts`, and a second copy
  * written inline across a component's JSX would drift from them silently. Kept
  * here they can be tested side by side with the mutations they mirror, which is
- * exactly what `__tests__/gameRoster.test.ts` does.
+ * exactly what `__tests__/gameRoster.test.ts` does. Who runs the table is not
+ * mirrored at all: both ends call `itun-domain/games/roles`.
  *
  * **None of this is a boundary.** The server refuses what it refuses whatever
  * this file says; hiding a control the caller cannot use is a courtesy that
@@ -17,6 +18,7 @@
 
 import type { Container } from 'itun-domain/container'
 import { sameContainer } from 'itun-domain/container'
+import { hasMediator, runsTable } from 'itun-domain/games/roles'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 
@@ -116,28 +118,17 @@ export type TableCapabilities = {
 }
 
 /**
- * The viewer's standing in this Game.
- *
- * Mirrors `isTableRunner`: Mediator, or Organizer *only while nobody mediates*.
- * The fallback is computed from the roster rather than assumed, so appointing a
- * Mediator withdraws it here at the same moment it does on the server.
+ * The viewer's standing in this Game: `runsTable` from `itun-domain/games/roles`,
+ * the predicate the server's `isTableRunner` uses, read off this roster. The
+ * Organizer fallback is computed from the roster rather than assumed, so
+ * appointing a Mediator withdraws it here at the same moment it does on the
+ * server.
  */
 export function isTableRunner(viewerId: string | null, members: readonly GameMember[]): boolean {
   if (viewerId === null) return false
   const me = members.find((m) => m.userId === viewerId)
   if (me === undefined) return false
-  if (me.mediator) return true
-  return me.organizer && !members.some((m) => m.mediator)
-}
-
-/**
- * Whether anybody mediates this Game. Mirrors `gameHasMediator` in
- * `convex/model/permissions.ts`. The Dashboard opens only when this is true
- * (ADR-038 §1), so the Game hub offers Launch Dashboard by it and the route
- * checks it live.
- */
-export function gameHasMediator(members: readonly GameMember[]): boolean {
-  return members.some((m) => m.mediator)
+  return runsTable(me, hasMediator(members))
 }
 
 /**

@@ -1,5 +1,6 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError } from 'convex/values'
+import { hasMediator, runsTable } from 'itun-domain/games/roles'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
@@ -22,6 +23,11 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
  * over a pilot, a mech, or the crawler is whatever their base role already
  * gave them. The single exception is documented on `isTableRunner` below,
  * and it is a considered one.
+ *
+ * The role predicates themselves are pure and shared with the client
+ * (`itun-domain/games/roles`), so the Game surface hides exactly what this
+ * module refuses. This module reads the roster and throws; the answer is
+ * theirs.
  */
 
 type AnyCtx = QueryCtx | MutationCtx
@@ -154,7 +160,7 @@ export async function gameHasMediator(ctx: AnyCtx, gameId: Id<'games'>): Promise
     .query('memberships')
     .withIndex('by_game', (q) => q.eq('gameId', gameId))
     .collect()
-  return members.some((m) => m.mediator)
+  return hasMediator(members)
 }
 
 /**
@@ -192,8 +198,9 @@ export async function isTableRunner(
   gameId: Id<'games'>,
   membership: Doc<'memberships'>
 ): Promise<boolean> {
-  if (membership.mediator) return true
-  return membership.organizer && !(await gameHasMediator(ctx, gameId))
+  // Only an Organizer who does not mediate needs the roster read.
+  const fallback = membership.organizer && !membership.mediator
+  return runsTable(membership, fallback && (await gameHasMediator(ctx, gameId)))
 }
 
 export async function requireTableRunner(

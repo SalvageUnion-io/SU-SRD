@@ -1,6 +1,6 @@
 /**
  * Change Log (provenance) — the per-entity, append-only audit trail
- * ([ADR-022](../../../../../docs/ARCHITECTURE.md#decisions)).
+ * ([ADR-022](../../../../docs/ARCHITECTURE.md#decisions)).
  *
  * Every mutation to a player entity, on every surface, appends a Change Log
  * entry — _all_ changes, not just overrides. Each entry is tagged with its
@@ -21,6 +21,9 @@
  * copy, and it never travels with a public sheet.
  */
 
-/** Provenance classes, in the order ADR-022 lists them. */
-const CHANGE_LOG_KINDS = ['transaction', 'override', 'manual'] as const
+/**
+ * Provenance classes, in the order ADR-022 lists them. `convex/schema.ts` builds
+ * the `changeLog.kind` union from this list.
+ */
+export const CHANGE_LOG_KINDS = ['transaction', 'override', 'manual'] as const
 export type ChangeLogKind = (typeof CHANGE_LOG_KINDS)[number]

@@ -2,7 +2,7 @@
  * partnerGrants — where a partner comes from, and when it goes away.
  *
  * A partner has no independent existence: it is granted, and it "cannot outlive
- * the thing that grants it" (see `lib/schemas/partner.ts`). This module is what
+ * the thing that grants it" (see `itun-domain/schemas/partner`). This module is what
  * CREATES a `PartnerInstance`, on both grant paths:
  *
  *   - Building a Little Sestra fields its Sestra Drone, and a Big Brother on

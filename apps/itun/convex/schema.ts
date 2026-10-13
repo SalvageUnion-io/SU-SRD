@@ -1,6 +1,10 @@
 import { authTables } from '@convex-dev/auth/server'
 import { defineSchema, defineTable } from 'convex/server'
+import type { GenericId, GenericValidator, Infer } from 'convex/values'
 import { v } from 'convex/values'
+import { CHANGE_LOG_KINDS } from 'itun-domain/schemas/changeLog'
+import type { Seat, SeatMount, SeatResolving } from 'itun-domain/schemas/seat'
+import { CORE_ROLL_BAND_NAMES, RANGE_BANDS } from 'itun-domain/schemas/seat'
 
 /**
  * Convex schema for ITUN accounts, Games, and entity ownership.
@@ -19,7 +23,7 @@ import { v } from 'convex/values'
  *
  * ## Why entity bodies are `v.any()`
  *
- * `Pilot`, `Mech`, and `Crawler` are large Zod schemas in `src/lib/schemas/`,
+ * `Pilot`, `Mech`, and `Crawler` are large Zod schemas in `itun-domain/schemas/`,
  * and those schemas are the single source of truth — `schemas/*.schema.json` in
  * `salvageunion-reference` is already generated from Zod at build time.
  * Re-declaring every field as a Convex validator would fork that source of truth
@@ -40,8 +44,38 @@ import { v } from 'convex/values'
  * as `string` meant every `row.state === 'proposed'` in `proposals.ts` compared
  * two arbitrary strings, so a typo read as "no rows match" rather than as a type
  * error. The unions below are the checked version of comments that were already
- * there, each kept in step with its Zod counterpart in `src/lib/schemas/`.
+ * there, each kept in step with its Zod counterpart in `itun-domain/schemas/`.
+ *
+ * Where the Zod side is a list of names, the union is built from that list
+ * (`literalUnion`), so there is nothing to keep in step. Where it is a shape,
+ * the validator is written out and `mirrors` refuses to compile it when it
+ * stops accepting exactly what the Zod type does.
  */
+
+/** A `v.union` of literals built from a Zod enum's own list. */
+function literalUnion<const T extends string>(values: readonly T[]) {
+  return v.union(...values.map((value) => v.literal(value)))
+}
+
+/**
+ * True only when `A` and `B` are the same type, optional fields and all: mutual
+ * assignability would let either side grow an optional field unnoticed.
+ */
+type Same<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
+
+/**
+ * Hands `validator` back unchanged, and fails to compile when what it accepts
+ * is not exactly `Z`, the Zod type it mirrors. Curried so `Z` is named and the
+ * validator's own type is inferred.
+ */
+function mirrors<Z>() {
+  return <V extends GenericValidator>(
+    validator: V,
+    ..._exact: Same<Infer<V>, Z> extends true
+      ? []
+      : ['this validator has drifted from its Zod type']
+  ): V => validator
+}
 
 /**
  * Mirrors `EntityRefSchema.type` (itun-domain/schemas/entity) — ADR-027.
@@ -103,8 +137,8 @@ export const changeLogEntityType = v.union(
   v.literal('game')
 )
 
-/** Mirrors `ChangeLogKind` (src/lib/schemas/changeLog.ts) — ADR-022. */
-const changeLogKind = v.union(v.literal('transaction'), v.literal('override'), v.literal('manual'))
+/** `CHANGE_LOG_KINDS` (itun-domain/schemas/changeLog) — ADR-022. */
+const changeLogKind = literalUnion(CHANGE_LOG_KINDS)
 
 /**
  * Proposal lifecycle (ADR-030 §4). No Zod counterpart: proposals are made and
@@ -118,42 +152,40 @@ const changeLogState = v.union(
 )
 
 /**
- * Mirrors `RANGE_BANDS` (src/lib/schemas/seat.ts) — ADR-038. Exported for
- * `test/convex/__tests__/seatSchemaParity.test.ts`, which keeps the two in step.
+ * `RANGE_BANDS` (itun-domain/schemas/seat) — ADR-038. Exported so `seats.setRange`
+ * takes its argument against this same union.
  */
-export const seatRange = v.union(
-  v.literal('Close'),
-  v.literal('Medium'),
-  v.literal('Long'),
-  v.literal('Far')
+export const seatRange = literalUnion(RANGE_BANDS)
+
+/** A `Seat` as its row stores it: the Game is a Convex id rather than a string. */
+type SeatRow = {
+  [K in keyof Seat]: K extends 'gameId' ? GenericId<'games'> : Seat[K]
+}
+
+/** Mirrors `SeatMount` (itun-domain/schemas/seat). */
+const seatMount = mirrors<SeatMount>()(
+  v.union(
+    v.object({ kind: v.literal('foot') }),
+    v.object({ kind: v.literal('boarded'), mechId: v.string() })
+  )
 )
 
-/** Mirrors `SeatMountSchema` (src/lib/schemas/seat.ts). Exported: see above. */
-export const seatMount = v.union(
-  v.object({ kind: v.literal('foot') }),
-  v.object({ kind: v.literal('boarded'), mechId: v.string() })
-)
+/** `CORE_ROLL_BAND_NAMES` (itun-domain/schemas/seat), the Core Mechanic's five bands. */
+const seatRollBand = literalUnion(CORE_ROLL_BAND_NAMES)
 
 /**
- * Mirrors `CORE_ROLL_BAND_NAMES` (src/lib/schemas/seat.ts), the Core Mechanic's
- * five bands. Exported: see above.
+ * Mirrors `SeatResolving` (itun-domain/schemas/seat). Exported so
+ * `seats.setResolving` takes its argument against this same validator.
  */
-export const seatRollBand = v.union(
-  v.literal('nailed'),
-  v.literal('success'),
-  v.literal('tough'),
-  v.literal('failure'),
-  v.literal('cascade')
+export const seatResolving = mirrors<SeatResolving>()(
+  v.object({
+    ref: v.string(),
+    name: v.string(),
+    activated: v.boolean(),
+    roll: v.optional(v.object({ roll: v.number(), band: seatRollBand })),
+    applied: v.boolean(),
+  })
 )
-
-/** Mirrors `SeatResolvingSchema` (src/lib/schemas/seat.ts). Exported: see above. */
-export const seatResolving = v.object({
-  ref: v.string(),
-  name: v.string(),
-  activated: v.boolean(),
-  roll: v.optional(v.object({ roll: v.number(), band: seatRollBand })),
-  applied: v.boolean(),
-})
 
 /** The columns and indexes `pilots`, `mechs`, `crawlers` and `npcs` share: one table shape, four tables. */
 function containerTable() {
@@ -714,7 +746,8 @@ export default defineSchema({
 
   /**
    * A pilot's seat at a Game: the Dashboard's play state, shared with the crew
-   * and saved on the Game (ADR-038 §2). Zod source: `src/lib/schemas/seat.ts`.
+   * and saved on the Game (ADR-038 §2). Zod source: `itun-domain/schemas/seat`,
+   * which this row mirrors column for column (the Game is a Convex id here).
    *
    * One row per pilot, not per member, so a member covering for an absent
    * player runs two. The pilot and boarded mech are app ids, like softLink
@@ -726,23 +759,27 @@ export default defineSchema({
    * and the crew watches it live. It is optional, so a seat that never
    * resolved anything, and every row written before it existed, validates.
    */
-  seats: defineTable({
-    gameId: v.id('games'),
-    /** The pilot's app id. */
-    pilotId: v.string(),
-    mount: seatMount,
-    range: seatRange,
-    /** Refs of the activated contributions that are switched on (ADR-029 §4). */
-    activeEffects: v.array(v.string()),
-    /** The deck action being resolved; absent when none is. */
-    resolving: v.optional(seatResolving),
-    /**
-     * True from an Eject until the pilot next boards or dismounts, so the crew
-     * sees who ejected (`crew.vitals`). Absent means they did not.
-     */
-    ejected: v.optional(v.boolean()),
-    updatedAt: v.number(),
-  })
+  seats: defineTable(
+    mirrors<SeatRow>()(
+      v.object({
+        gameId: v.id('games'),
+        /** The pilot's app id. */
+        pilotId: v.string(),
+        mount: seatMount,
+        range: seatRange,
+        /** Refs of the activated contributions that are switched on (ADR-029 §4). */
+        activeEffects: v.array(v.string()),
+        /** The deck action being resolved; absent when none is. */
+        resolving: v.optional(seatResolving),
+        /**
+         * True from an Eject until the pilot next boards or dismounts, so the crew
+         * sees who ejected (`crew.vitals`). Absent means they did not.
+         */
+        ejected: v.optional(v.boolean()),
+        updatedAt: v.number(),
+      })
+    )
+  )
     // `gameId` alone is a prefix of this: the crew's seats in one read, and
     // one pilot's seat by both.
     .index('by_game_pilot', ['gameId', 'pilotId']),

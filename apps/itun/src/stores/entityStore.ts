@@ -25,7 +25,7 @@
  * Assignments (ADR-037): creating a SoftLink goes through the assignment
  * model — it is refused across containers and REPLACES the links it conflicts
  * with in one write — and moving an entity drops the links the move leaves
- * straddling two containers. The rules are `lib/links/linkRules.ts`, shared
+ * straddling two containers. The rules are `itun-domain/links/linkRules`, shared
  * with the server, which enforces the same ones.
  */
 

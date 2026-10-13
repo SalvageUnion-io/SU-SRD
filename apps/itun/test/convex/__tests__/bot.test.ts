@@ -488,7 +488,7 @@ describe('the read surfaces', () => {
       })
     })
 
-    // Typed by `model/botWire.ts` — the same declaration the bot imports — so
+    // Typed by `itun-domain/botWire` — the same declaration the bot imports — so
     // this narrows instead of casting to a hand-written shape.
     const result = await t.query(internal.botClient.shelf, {
       discordId: 'discord-player',

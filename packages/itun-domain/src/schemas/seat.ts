@@ -3,16 +3,16 @@ import { z } from 'salvageunion-reference/zod'
 /**
  * A pilot's seat at a Game: the Dashboard's play state, shared with the crew
  * and saved on the Game
- * ([ADR-038](../../../../../docs/adr/038-dashboard-game-surface.md) §2).
+ * ([ADR-038](../../../../docs/adr/038-dashboard-game-surface.md) §2).
  *
  * One seat per pilot, not per member: a member covering for an absent player
  * runs two. A seat points at its pilot and boarded mech by app id, the way
  * soft-link ends do, and is never a field on either record. That keeps mount
  * state out of sheets and public sheets.
  *
- * This is the source of truth for `seats` in `convex/schema.ts`, whose unions
- * mirror the enums below; `test/convex/__tests__/seatSchemaParity.test.ts` keeps them in
- * step.
+ * This is the source of truth for `seats` in `apps/itun/convex/schema.ts`: its
+ * range and roll-band unions are built from the enums below, and its mount and
+ * resolve validators are checked against these types when it compiles.
  *
  * "In Downtime" is deliberately absent: it is the Game's `downtime` row, not
  * per-seat state. The deck action being resolved is on it, as an optional
@@ -67,3 +67,4 @@ export const SeatSchema = z.object({
   ejected: z.boolean().optional(),
   updatedAt: z.number(),
 })
+export type Seat = z.infer<typeof SeatSchema>
