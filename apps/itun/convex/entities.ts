@@ -1,32 +1,46 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
-import type { Infer, ObjectType } from 'convex/values'
+import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
-import { staleWriteError } from 'itun-domain/connection/staleWrite'
 import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'itun-domain/links/linkRules'
-import type { SoftLink } from 'itun-domain/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
-import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import type { ContainedRow, OwnedTable } from './model/entities'
 import {
-  assignToPrimary,
-  countPatternBuild,
+  assertMayScrapCrawler,
+  CRAWLER_PATCH,
+  moveCrawlerRow,
+  patchCrawler,
+  removeCrawlerRow,
+} from './model/crawlerWrites'
+import type { ContainedRow } from './model/entities'
+import {
   crawlerEnteredGame,
   crawlerLeftGame,
-  findSoftLink,
   linkIdOf,
   loadOwnable,
   mutation,
   parseBody,
   primaryCrawlerOf,
-  pruneLinksAcrossContainers,
   pruneLinksOfRow,
   resolveLinkEnd,
   rowsInGame,
   sameContainerRows,
-  unsetCrawlerFields,
   writeSoftLink,
 } from './model/entities'
+import {
+  assertSlotMatchesType,
+  drawCrewLink,
+  LINK,
+  SOFT_LINK_FROM_TABLE,
+  unwireSoftLink,
+} from './model/linkWrites'
+import {
+  assertMayWrite,
+  byAppId,
+  OWNABLE_WRITE,
+  OWNED,
+  removeOwnable,
+  writeOwnable,
+} from './model/ownableWrites'
 import {
   getMembership,
   isTableRunner,
@@ -91,74 +105,11 @@ import { crewSlot, entityRef, entityRefType, ownableTable, softLinkType } from '
  *
  *  - `shelf.ts` — the shelf-only collections, saved patterns and the NPC tray.
  *  - `changeLog.ts` — the client's Change Log append.
- */
-
-/** The tables written whole by their owner: pilots, mechs and built NPCs (ADR-044). */
-const OWNED = v.union(v.literal('pilots'), v.literal('mechs'), v.literal('npcs'))
-
-/** A pilot, mech or NPC body write, addressed by app id (`upsertByAppId`). */
-const OWNABLE_WRITE = {
-  table: OWNED,
-  appId: v.string(),
-  gameId: v.union(v.id('games'), v.null()),
-  body: v.any(),
-  /** The row version the client's copy came from; `null` when it holds none. */
-  expectedUpdatedAt: v.union(v.number(), v.null()),
-}
-
-/** A crawler field patch, addressed by app id (`patchCrawlerByAppId`). */
-const CRAWLER_PATCH = {
-  appId: v.string(),
-  patch: v.any(),
-  unset: v.optional(v.array(v.string())),
-}
-
-/** A soft link, addressed by its endpoints (and, for crew, its slot). */
-const LINK = {
-  from: entityRef,
-  to: entityRef,
-  type: softLinkType,
-  slot: v.optional(crewSlot),
-}
-
-/**
- * Who may write an entity.
  *
- * Synchronous and ctx-free on purpose: the answer depends only on the row's
- * own `ownerId`. There is deliberately no lookup that could grant a Mediator a
- * privileged write here — changing someone else's sheet goes through a
- * proposal (ADR-030 §4), and giving this function a ctx would invite exactly that.
+ * The helpers these mutations share with `transfer` live in `model/`, one
+ * module per kind of write: `ownableWrites.ts` (pilots, mechs and built NPCs),
+ * `crawlerWrites.ts` and `linkWrites.ts`.
  */
-export function assertMayWrite(
-  doc: Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'>,
-  userId: Id<'users'>
-): void {
-  if (doc.ownerId === userId) return
-  if (doc.ownerId === null) {
-    throw new NotAuthorized(
-      'That entity is unclaimed — it must be assigned before it can be edited'
-    )
-  }
-  throw new NotAuthorized("You cannot edit another player's entity")
-}
-
-/**
- * Whether this user may add a pilot or mech to this container — by creating it
- * there or moving their own in.
- *
- * The shelf is unconditional: it is your own. A Game takes a member's builds
- * whether or not it has a crawler yet (ADR-037 dropped that gate); being a
- * member is the whole rule.
- */
-async function assertMayAddToContainer(
-  ctx: QueryCtx | MutationCtx,
-  gameId: Id<'games'> | null,
-  userId: Id<'users'>
-): Promise<void> {
-  if (gameId === null) return
-  const membership = await getMembership(ctx, gameId, userId)
-  if (membership === null) throw new NotAuthorized('Not a member of this game')
-}
 
 const nullableAppId = v.union(v.string(), v.null())
 const nullableOwner = v.union(v.id('users'), v.null())
@@ -664,100 +615,6 @@ export const removeCrawler = mutation({
 })
 
 /**
- * Who may write a crawler's body — it depends on which container holds it.
- *
- * In a Game the crawler is the Mediator's (ADR-038 §5): Salvage,
- * Craft, Trade, Upkeep, Upgrade, damage and Scrap a mech are all theirs, and a
- * player asks at the table. While a Game has no Mediator the Organizer holds
- * it, as they hold raising and scrapping one (`requireTableRunner`), so a
- * crawler is never left with nobody to keep it.
- * On a shelf it is an ordinary owned entity and only its owner may touch it.
- *
- * Split out from the two call sites rather than inlined at each, because a
- * container-dependent rule written twice is a rule that will eventually be
- * written two different ways.
- */
-async function assertMayEditCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Promise<void> {
-  if (doc.gameId !== null) {
-    await requireTableRunner(ctx, doc.gameId)
-    return
-  }
-  const userId = await requireUser(ctx)
-  if (doc.ownerId !== userId) {
-    throw new NotAuthorized("You cannot edit another player's crawler")
-  }
-}
-
-/**
- * Who may scrap a crawler — the same people who may edit one
- * (`assertMayEditCrawler`), kept separate only for its refusal message.
- *
- * In a Game it is the **table runner's** act, as every write to the crawler is
- * (ADR-038 §5); no other member edits or scraps it. On a shelf the owner
- * decides, exactly as they do for their own pilots and mechs.
- */
-async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Promise<void> {
-  if (doc.gameId !== null) {
-    await requireTableRunner(ctx, doc.gameId)
-    return
-  }
-  const userId = await requireUser(ctx)
-  if (doc.ownerId !== userId) {
-    throw new NotAuthorized("You cannot scrap another player's crawler")
-  }
-}
-
-/**
- * Look a row up by the app-level UUID the client holds.
- *
- * This is the whole point of the `appId` column: a client that only knows its
- * local UUID can still address the server row, so updates and deletes work
- * without a mapping table. One indexed lookup, not a scan.
- *
- * ## Why this tolerates duplicates instead of asking for `.unique()`
- *
- * `by_app_id` is an ordinary Convex index, **not a uniqueness constraint** —
- * nothing in the database has ever stopped two rows sharing an `appId`, and in
- * production several did (a since-deleted bulk upload inserted blindly, so
- * running it from a second browser duplicated the roster).
- *
- * `.unique()` would turn that *data* condition into a thrown `Server Error` on
- * every write to the entity, locking the player out of their own build over a
- * row they cannot see. A duplicate is a repair job, not a reason to refuse
- * the write, so this resolves one row, warns, and lets the write land.
- *
- * **The oldest row wins, deterministically.** It is the row every earlier
- * write already landed on, so choosing it keeps editing the copy the client has
- * been addressing all along rather than silently migrating to a younger one.
- * `_creationTime` is used rather than index order because index order is not a
- * documented guarantee, and a winner that moves between calls would be worse
- * than the throw it replaces.
- */
-async function byAppId(
-  ctx: MutationCtx,
-  table: OwnedTable,
-  appId: string
-): Promise<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | null> {
-  const matches = (await ctx.db
-    .query(table)
-    .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()) as Array<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'>>
-
-  if (matches.length === 0) return null
-  if (matches.length === 1) return matches[0] ?? null
-
-  // Logged every time rather than silently absorbed: the write now succeeds, so
-  // this line is the only remaining signal that a roster needs de-duplicating.
-  // It lands in the deployment log stream, which is the one place a Convex
-  // server-side message is readable at all (there is no Sentry SDK in here).
-  console.warn(
-    `[itun] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
-  )
-
-  return matches.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
-}
-
-/**
  * Write an entity to the server of record, addressed by app id — the target of
  * the store's awaited `commitEntityWrite`.
  *
@@ -788,141 +645,6 @@ export const upsertByAppId = mutation({
   handler: async (ctx, args): Promise<{ updatedAt: number }> =>
     writeOwnable(ctx, await requireUser(ctx), args),
 })
-
-/**
- * A claimed template pre-gen the writer owns, addressed by its body id.
- *
- * `templates.createGame` seeds its crew with no `appId`. A claimed pre-gen is
- * cached in the browser under its body id (`listMine` serves the body), so its
- * writes arrive addressed by that id, which `byAppId` cannot find: the write
- * would insert a second copy of the character. Only the owner may write a row
- * (`assertMayWrite`), so the row is looked for among the writer's own, wherever
- * it is (a write that moves it to the shelf names the shelf, not its Game).
- *
- * The id is NOT stamped on the row as its `appId`. Every Game made from a
- * template carries the same body ids, and `byAppId` and `resolveLinkEnd` look
- * an app id up across every Game, so a stamped pre-gen would answer for its
- * namesake in the next Game (boarding a second table's Scrapper found the
- * first's).
- *
- * `gameId` narrows the search to the write's own Game (`undefined` searches
- * every container the writer holds rows in).
- */
-async function ownedTemplateRow(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  table: OwnedTable,
-  gameId: Id<'games'> | null | undefined,
-  bodyId: string
-): Promise<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | null> {
-  const owned = (await ctx.db
-    .query(table)
-    .withIndex('by_owner_game', (q) =>
-      gameId === undefined ? q.eq('ownerId', userId) : q.eq('ownerId', userId).eq('gameId', gameId)
-    )
-    .collect()) as Array<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'>>
-  return owned.find((r) => r.appId === undefined && linkIdOf(r) === bodyId) ?? null
-}
-
-/**
- * The row a write addressed by `appId` lands on.
- *
- * The writer's own seeded pre-gen in the write's Game answers first. Only then
- * is the app id looked up, because rows stamped with a template body id exist
- * (edits to claimed pre-gens inserted them before `ownedTemplateRow` did), and
- * `byAppId` searches every account and Game: answering with another player's
- * stamped row refused the write as theirs, and the writer's own stamped row in
- * another Game was moved into this one, leaving the seeded row unwritten.
- *
- * A stamped row the writer does not own still loses to a seeded row of theirs
- * elsewhere (a claimed pre-gen moved to the shelf names the shelf).
- */
-async function writeTarget(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  args: Pick<ObjectType<typeof OWNABLE_WRITE>, 'table' | 'gameId' | 'appId'>
-): Promise<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | null> {
-  const seededHere = await ownedTemplateRow(ctx, userId, args.table, args.gameId, args.appId)
-  if (seededHere !== null) return seededHere
-  const stamped = await byAppId(ctx, args.table, args.appId)
-  if (stamped !== null && stamped.ownerId === userId) return stamped
-  return (await ownedTemplateRow(ctx, userId, args.table, undefined, args.appId)) ?? stamped
-}
-
-/** `upsertByAppId`'s write, shared with `transfer`. */
-async function writeOwnable(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  args: ObjectType<typeof OWNABLE_WRITE>
-): Promise<{ updatedAt: number }> {
-  const body = parseBody(args.table, args.body)
-
-  // A built NPC is owned like a pilot but plays no part in the primary
-  // crawler's crew or a seat: it boards nothing and is never auto-assigned.
-  const kind = args.table === 'pilots' ? 'pilot' : args.table === 'mechs' ? 'mech' : null
-  const existing = await writeTarget(ctx, userId, args)
-  const updatedAt = Date.now()
-  if (existing === null) {
-    await assertMayAddToContainer(ctx, args.gameId, userId)
-    const id = await ctx.db.insert(args.table, {
-      gameId: args.gameId,
-      ownerId: userId,
-      appId: args.appId,
-      body,
-      updatedAt,
-    })
-    // Created in a Game: aboard its primary crawler from the start (ADR-037).
-    const created = await ctx.db.get(id)
-    if (created !== null && kind !== null) {
-      await assignToPrimary(ctx, kind, created as Doc<'pilots'> | Doc<'mechs'>)
-    }
-    // Built from a saved pattern: the pattern page counts it (#1276). Only on
-    // the create — editing a mech built from one never counts it again.
-    if (args.table === 'mechs') await countPatternBuild(ctx, body, userId)
-    return { updatedAt }
-  }
-
-  assertMayWrite(existing, userId)
-  // After the ownership check, so the refusal hands the row only to its owner.
-  if (args.expectedUpdatedAt !== null && existing.updatedAt > args.expectedUpdatedAt) {
-    throw staleWriteError(existing)
-  }
-
-  /**
-   * The write also re-homes the row when the client has moved it.
-   *
-   * The move is a create *into* the target container as far as the rules are
-   * concerned, so it answers to the same gate; leaving the source is
-   * unconditional.
-   */
-  const previousGameId = existing.gameId
-  const moved = previousGameId !== args.gameId
-  if (moved) {
-    await assertMayAddToContainer(ctx, args.gameId, userId)
-    await ctx.db.patch(existing._id, { gameId: args.gameId })
-  }
-
-  await ctx.db.patch(existing._id, { body, updatedAt })
-
-  // A link may not straddle two containers (ADR-037), so a move takes with
-  // it only the links whose other end is already where it is going, and
-  // drops the rest in the same mutation.
-  if (moved) {
-    const row = await ctx.db.get(existing._id)
-    if (row !== null) {
-      await pruneLinksAcrossContainers(ctx, row, previousGameId)
-      if (kind !== null) {
-        const crew = row as Doc<'pilots'> | Doc<'mechs'>
-        // Moved out of a Game: a pilot's seat there goes, and a mech leaves
-        // whoever was aboard it on foot (ADR-038).
-        await releaseSeatsOf(ctx, kind, crew, previousGameId)
-        // Moved into a Game: aboard its primary crawler (ADR-037).
-        await assignToPrimary(ctx, kind, crew)
-      }
-    }
-  }
-  return { updatedAt }
-}
 
 /**
  * Write a crawler, addressed by app id, as a **field-level merge**
@@ -956,46 +678,11 @@ export const patchCrawlerByAppId = mutation({
   handler: async (ctx, args): Promise<void> => patchCrawler(ctx, args),
 })
 
-/** `patchCrawlerByAppId`'s write, shared with `transfer`. */
-async function patchCrawler(
-  ctx: MutationCtx,
-  args: ObjectType<typeof CRAWLER_PATCH>
-): Promise<void> {
-  const existing = await crawlerByAppId(ctx, args.appId)
-  if (existing === null) return
-
-  await assertMayEditCrawler(ctx, existing)
-
-  // A field patch never moves a crawler. Its container is the row's column
-  // and the body's `gameId` together, and only `moveCrawler` writes them — a
-  // body-only `gameId` here would leave a "moved" crawler put on the server
-  // while every client read it somewhere else. The same goes for `unset`: clearing `gameId` would split the body from the column.
-  const { gameId: _container, ...fields } = (args.patch ?? {}) as Record<string, unknown>
-  const merged = unsetCrawlerFields(
-    { ...(existing.body as Record<string, unknown>), ...fields },
-    (args.unset ?? []).filter((key) => key !== 'gameId')
-  )
-  const body = parseBody('crawlers', merged)
-
-  await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
-}
-
 /** Scrap a crawler addressed by app id. Table runner only, like `removeCrawler`. */
 export const removeCrawlerByAppId = mutation({
   args: { appId: v.string() },
   handler: async (ctx, args): Promise<void> => removeCrawlerRow(ctx, args.appId),
 })
-
-/** `removeCrawlerByAppId`'s delete, shared with `transfer`. */
-async function removeCrawlerRow(ctx: MutationCtx, appId: string): Promise<void> {
-  const existing = await crawlerByAppId(ctx, appId)
-  if (existing === null) return
-
-  await assertMayScrapCrawler(ctx, existing)
-  await ctx.db.delete(existing._id)
-  await pruneLinksOfRow(ctx, existing)
-  if (existing.gameId !== null) await crawlerLeftGame(ctx, existing.gameId, existing._id)
-}
 
 /**
  * Move a crawler between a Game and its table runner's shelf (ADR-037).
@@ -1022,181 +709,6 @@ export const moveCrawler = mutation({
   handler: async (ctx, args): Promise<void> =>
     moveCrawlerRow(ctx, await requireUser(ctx), args.appId, args.gameId),
 })
-
-/** `moveCrawler`'s write, shared with `transfer`. */
-async function moveCrawlerRow(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  appId: string,
-  to: Id<'games'> | null
-): Promise<void> {
-  const existing = await crawlerByAppId(ctx, appId)
-  if (existing === null) return
-  const from = existing.gameId
-  if (from === to) return
-
-  if (from !== null && to !== null) {
-    throw new NotAuthorized(
-      'Move the crawler to My Stuff first, then into the other game — a crawler changes tables one step at a time'
-    )
-  }
-  if (from === null) {
-    if (existing.ownerId !== userId) {
-      throw new NotAuthorized("You cannot move another player's crawler")
-    }
-    await requireTableRunner(ctx, to as Id<'games'>)
-  } else {
-    await requireTableRunner(ctx, from)
-  }
-
-  const body = parseBody('crawlers', {
-    ...(existing.body as Record<string, unknown>),
-    gameId: to,
-  })
-  await ctx.db.patch(existing._id, {
-    gameId: to,
-    ownerId: to === null ? userId : null,
-    body,
-    updatedAt: Date.now(),
-  })
-
-  const row = await ctx.db.get(existing._id)
-  if (row === null) return
-  await pruneLinksAcrossContainers(ctx, row, from)
-  if (from !== null) await crawlerLeftGame(ctx, from, row._id)
-  if (to !== null) await crawlerEnteredGame(ctx, row)
-}
-
-/**
- * Look a crawler up by the app-level UUID the client holds.
- *
- * Tolerant of duplicates for exactly the reasons `byAppId` is: `by_app_id` is
- * not a uniqueness constraint, and `.unique()` would turn a duplicate into a
- * thrown error on every write, locking the player out of their own crawler
- * over a row they cannot see. So this resolves the oldest row, warns, and lets
- * the write land. The crawler has no duplicates in production today, and that
- * is luck rather than a constraint: nothing in the index stops a second row.
- */
-async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'crawlers'> | null> {
-  const matches = await ctx.db
-    .query('crawlers')
-    .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()
-
-  if (matches.length === 0) return null
-  if (matches.length === 1) return matches[0] ?? null
-
-  console.warn(
-    `[itun] ${matches.length} crawlers share appId="${appId}" — resolving to the oldest; this game needs de-duplicating`
-  )
-
-  return matches.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
-}
-
-/**
- * Which ownable table a link's `from` endpoint lives in.
- *
- * The `from` end is always ownable — a mech in `mech-to-pilot` and
- * `mech-to-crawler`, a pilot in `pilot-to-crawler` — which is what lets one
- * lookup answer both questions a link write has to ask: may this user draw the
- * link, and which container does it belong to.
- */
-const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnedTable> = {
-  'mech-to-pilot': 'mechs',
-  'pilot-to-crawler': 'pilots',
-  'mech-to-crawler': 'mechs',
-  'npc-to-crawler': 'npcs',
-}
-
-/**
- * A crew slot names the slot it fills, and only a crew link has one. The client
- * builds both from `CrewSlotSchema`'s refinement, so a mismatch is a defect,
- * not a player's mistake.
- */
-function assertSlotMatchesType(args: ObjectType<typeof LINK>): void {
-  const slotted = isSlotted(args.type)
-  if (slotted && args.slot === undefined) {
-    throw new Error('An npc-to-crawler link names the crew slot it fills')
-  }
-  if (!slotted && args.slot !== undefined) {
-    throw new Error(`A ${args.type} link has no crew slot`)
-  }
-}
-
-/** The copy a player sees when they may not assign or unassign this crawler's crew. */
-const CREW_REFUSAL =
-  'Only whoever runs the table assigns crawler crew — design an NPC on your shelf and move it into this Game to offer it.'
-
-/**
- * Who may draw or delete an `npc-to-crawler` link: whoever may write the
- * crawler (ADR-044) — its owner on a shelf, the table runner in a Game. The one
- * link authorised by its `to` end, because in a Game the NPC is often a
- * player's while the crawler is the Mediator's.
- */
-async function assertMayCrew(ctx: MutationCtx, crawler: Doc<'crawlers'>): Promise<void> {
-  const userId = await requireUser(ctx)
-  if (crawler.gameId === null) {
-    if (crawler.ownerId !== userId) throw new NotAuthorized(CREW_REFUSAL)
-    return
-  }
-  const membership = await getMembership(ctx, crawler.gameId, userId)
-  if (membership === null || !(await isTableRunner(ctx, crawler.gameId, membership))) {
-    throw new NotAuthorized(CREW_REFUSAL)
-  }
-}
-
-/** Whether a crawler body has the slot: the bay installed, or a type chosen. */
-function crawlerHasSlot(body: unknown, slot: NonNullable<ObjectType<typeof LINK>['slot']>) {
-  const crawler = (body ?? {}) as { type?: unknown; crawlerBays?: unknown }
-  if (slot.kind === 'type') return typeof crawler.type === 'string' && crawler.type.length > 0
-  return (
-    Array.isArray(crawler.crawlerBays) &&
-    crawler.crawlerBays.some((bay) => (bay as { bayRef?: unknown })?.bayRef === slot.bayRef)
-  )
-}
-
-/**
- * Draw an `npc-to-crawler` link (ADR-044). The NPC and the crawler share a
- * container, the caller may write the crawler, and the crawler has the slot.
- * Drawing it replaces the NPC's old slot and whoever filled this one, in this
- * same mutation (`writeSoftLink`). Neither end's body is written: the
- * crawler's inline crew stays exactly as it was, so unlinking restores it.
- */
-async function drawCrewLink(ctx: MutationCtx, args: ObjectType<typeof LINK>): Promise<void> {
-  const npc = await byAppId(ctx, 'npcs', args.from.id)
-  if (npc === null) return
-  const target = await resolveLinkEnd(ctx, args.to, npc.gameId)
-  if (target === null) return
-  const crawler = target as Doc<'crawlers'>
-  await assertMayCrew(ctx, crawler)
-  if (!sameContainerRows(npc, crawler)) throw new ConvexError(CROSS_CONTAINER_REFUSAL)
-  if (args.slot === undefined || !crawlerHasSlot(crawler.body, args.slot)) {
-    throw new ConvexError('That crawler has no such crew slot.')
-  }
-  await writeSoftLink(ctx, args, crawler.gameId)
-}
-
-/**
- * Delete an `npc-to-crawler` link: the crawler's writer only, as drawing it is.
- * When the crawler is gone the link is a stale pointer, and the NPC's owner
- * may clear it.
- */
-async function unwireCrewLink(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  args: ObjectType<typeof LINK>
-): Promise<void> {
-  const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
-  if (existing === null) return
-  const crawler = await resolveLinkEnd(ctx, args.to, existing.gameId)
-  if (crawler === null) {
-    const npc = await byAppId(ctx, 'npcs', args.from.id)
-    if (npc !== null) assertMayWrite(npc, userId)
-  } else {
-    await assertMayCrew(ctx, crawler as Doc<'crawlers'>)
-  }
-  await ctx.db.delete(existing._id)
-}
 
 /**
  * Write a soft link to the server of record — an **assignment** (ADR-037). A
@@ -1275,58 +787,12 @@ export const removeSoftLink = mutation({
   handler: async (ctx, args): Promise<void> => unwireSoftLink(ctx, await requireUser(ctx), args),
 })
 
-/** `removeSoftLink`'s delete, shared with `transfer`. */
-async function unwireSoftLink(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  args: ObjectType<typeof LINK>
-): Promise<void> {
-  if (isSlotted(args.type)) {
-    await unwireCrewLink(ctx, userId, args)
-    return
-  }
-  const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
-  if (anchor === null) return
-  assertMayWrite(anchor, userId)
-
-  const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
-  if (existing === null) return
-
-  await ctx.db.delete(existing._id)
-}
-
 /** Delete by app id. A row that is already gone is not an error. */
 export const removeByAppId = mutation({
   args: { table: OWNED, appId: v.string() },
   handler: async (ctx, args): Promise<void> =>
     removeOwnable(ctx, await requireUser(ctx), args.table, args.appId),
 })
-
-/**
- * `removeByAppId`'s delete, shared with `transfer`. The row's links go with it
- * (`pruneLinksOfRow`), as they do on every remove path.
- */
-async function removeOwnable(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  table: OwnedTable,
-  appId: string
-): Promise<void> {
-  const existing = await byAppId(ctx, table, appId)
-  if (existing === null) return
-
-  assertMayWrite(existing, userId)
-  await ctx.db.delete(existing._id)
-  // An NPC's crew link goes too, so the slot falls back to the book's line.
-  await pruneLinksOfRow(ctx, existing)
-  if (table === 'npcs') return
-  await releaseSeatsOf(
-    ctx,
-    table === 'pilots' ? 'pilot' : 'mech',
-    existing as Doc<'pilots'> | Doc<'mechs'>,
-    existing.gameId
-  )
-}
 
 /**
  * Move value between entities — cargo stow/load, a scrap hand-off — in ONE

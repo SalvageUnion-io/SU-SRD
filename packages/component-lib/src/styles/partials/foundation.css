@@ -96,7 +96,7 @@ button {
  * its own rung, and an explicit ancestor size beats the body default. So the
  * controls were raised individually, at their own call sites, where the floor
  * is documented as a functional requirement rather than a preference:
- * `atoms/SearchField.tsx`, `atoms/inputs.tsx`, `compositions/EntitySearcher.tsx`.
+ * `atoms/SearchField.tsx`, `atoms/inputs.tsx`, `compositions/EntitySearcherFilters.tsx`.
  *
  * The blast radius is narrower than it looks: this is a DEFAULT, so it moves
  * only text that sets no size of its own. Anything on an explicit rung —

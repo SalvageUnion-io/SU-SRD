@@ -23,7 +23,7 @@ import { join } from 'node:path'
  * way, not by reading source.
  */
 
-const PRIMITIVES = ['inputs.tsx', 'SearchField.tsx', '../compositions/EntitySearcher.tsx']
+const PRIMITIVES = ['inputs.tsx', 'SearchField.tsx', '../compositions/EntitySearcherFilters.tsx']
 
 /** Type rungs below 16px that must never land on a text-entry control. */
 const TOO_SMALL = ['text-badge', 'text-note', 'text-caption', 'text-xs', 'text-sm']

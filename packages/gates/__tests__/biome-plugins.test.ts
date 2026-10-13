@@ -1,6 +1,6 @@
 /**
- * The GritQL plugins in `packages/gates/biome/` and the component-lib function-size cap
- * are wired up by `includes` globs in biome.jsonc, and the real tree is clean.
+ * The GritQL plugins in `packages/gates/biome/` and the component-lib and ITUN
+ * function-size caps are wired up by `includes` globs in biome.jsonc, and the real tree is clean.
  * A bad glob, or a Biome update that changes how plugins match, would make a
  * rule check nothing while `bun run check`
  * stays green. These lint fixture files and assert each rule still fires.
@@ -30,11 +30,23 @@ const REPO = join(import.meta.dir, '..', '..', '..')
 const BIOME = join(REPO, 'node_modules', '.bin', 'biome')
 const CONFIG = readFileSync(join(REPO, 'biome.jsonc'), 'utf8')
 
-const capMatch = CONFIG.match(/"noExcessiveLinesPerFunction":\s*\{[^}]*"maxLines":\s*(\d+)/)
-if (!capMatch) throw new Error('biome.jsonc no longer sets noExcessiveLinesPerFunction maxLines')
-const CAP = Number(capMatch[1])
+/** The `noExcessiveLinesPerFunction` cap in the override whose `includes` opens with `glob`. */
+function capFor(glob: string): number {
+  const escaped = glob.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const match = CONFIG.match(
+    new RegExp(
+      `"includes":\\s*\\[\\s*"${escaped}"[^\\]]*\\][^{]*\\{[^{]*\\{[^{]*\\{\\s*"noExcessiveLinesPerFunction":\\s*\\{[^}]*"maxLines":\\s*(\\d+)`
+    )
+  )
+  if (!match) throw new Error(`biome.jsonc no longer caps function length for ${glob}`)
+  return Number(match[1])
+}
+const CAP = capFor('packages/component-lib/**')
+const ITUN_CAP = capFor('apps/itun/**')
 
-const bigFunction = `export function big(f: () => void) {\n${'  f()\n'.repeat(CAP + 50)}}\n`
+/** A function Biome counts as `lines` long: it counts the lines between the braces. */
+const bigFunction = (lines: number) =>
+  `export function big(f: () => void) {\n${'  f()\n'.repeat(lines)}}\n`
 
 const SOURCE = 'apps/itun/src/__biome_fixture__/x.ts'
 const TEST_FILE = 'apps/itun/src/__biome_fixture__/x.test.tsx'
@@ -46,6 +58,12 @@ const BIG_LIB = 'packages/component-lib/src/__biome_fixture__/big.tsx'
 /** A Convex function file, where collecting the Change Log is banned. */
 const CONVEX = 'apps/itun/convex/__biome_fixture__/z.ts'
 const BIG_APP = 'apps/itun/src/__biome_fixture__/big.tsx'
+/** An ITUN function exactly at the cap. */
+const AT_CAP_APP = 'apps/itun/src/__biome_fixture__/atCap.tsx'
+const BIG_CONVEX = 'apps/itun/convex/__biome_fixture__/big.ts'
+const BIG_APP_TEST = 'apps/itun/src/__biome_fixture__/big.test.tsx'
+/** An app with no function cap. */
+const BIG_SRD = 'apps/srd/src/__biome_fixture__/big.tsx'
 /** ITUN's route error screen, whose development-only dump is exempt from the raw-message ban. */
 const ROUTE_ERRORS = 'apps/itun/src/components/shared/RouteErrors.tsx'
 
@@ -114,8 +132,12 @@ const FIXTURES: Record<string, string> = {
     "SalvageUnionReference.preload('all')",
     '',
   ].join('\n'),
-  [BIG_LIB]: bigFunction,
-  [BIG_APP]: bigFunction,
+  [BIG_LIB]: bigFunction(CAP + 1),
+  [BIG_APP]: bigFunction(ITUN_CAP + 1),
+  [AT_CAP_APP]: bigFunction(ITUN_CAP),
+  [BIG_CONVEX]: bigFunction(ITUN_CAP + 1),
+  [BIG_APP_TEST]: bigFunction(ITUN_CAP + 1),
+  [BIG_SRD]: bigFunction(CAP + 1),
 }
 
 type Diagnostic = {
@@ -241,7 +263,17 @@ describe('noExcessiveLinesPerFunction', () => {
     expect(flagged(BIG_LIB, rule)).toEqual([1])
   })
 
-  test('does not apply outside component-lib', () => {
-    expect(flagged(BIG_APP, rule)).toEqual([])
+  test(`fires on a function over the ${ITUN_CAP}-line cap in ITUN and its Convex backend`, () => {
+    expect(flagged(BIG_APP, rule)).toEqual([1])
+    expect(flagged(BIG_CONVEX, rule)).toEqual([1])
+  })
+
+  test('a function exactly at the ITUN cap passes', () => {
+    expect(flagged(AT_CAP_APP, rule)).toEqual([])
+  })
+
+  test('does not apply to an ITUN test or an uncapped app', () => {
+    expect(flagged(BIG_APP_TEST, rule)).toEqual([])
+    expect(flagged(BIG_SRD, rule)).toEqual([])
   })
 })

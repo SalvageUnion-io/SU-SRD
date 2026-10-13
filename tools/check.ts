@@ -198,6 +198,14 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'file-size',
+    guards: 'no source file over 600 lines; the files already over are held at their size',
+    fix: 'split the file into modules; lower its OVER_BUDGET entry in tools/check-file-size.ts when it shrinks, delete it once within 600 lines; never raise or add one',
+    cmd: ['bun', 'tools/check-file-size.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'barrel-consumers',
     guards:
       'every component-lib export has an app importer, and none is a composition only one app renders',

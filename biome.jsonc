@@ -373,10 +373,10 @@
     {
       // Function-size ratchet for component-lib. `ReferenceEntityCardInner` was
       // once a ~1,870-line body that six workstreams edited at once; audit PK-08
-      // decomposed it, and the cap sits at what is left, so one more line in the
-      // largest body fails. Biome counts the whole function without comment
-      // lines, which is why this reads lower than the 856-line body the old
-      // AST check measured. Lower it when a seam lands; never raise it.
+      // decomposed it, refit K6 moved its body and sections out
+      // (`cardBodyProse.tsx`, `cardSections.tsx`), and the cap sits at what is
+      // left, so one more line in the largest body fails. Biome counts the whole
+      // function without comment lines. Lower it when a seam lands; never raise it.
       "includes": [
         "packages/component-lib/**",
         "!**/*.test.ts",
@@ -386,7 +386,22 @@
       "linter": {
         "rules": {
           "complexity": {
-            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 742 } }
+            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 460 } }
+          }
+        }
+      }
+    },
+    {
+      // The same ratchet for ITUN, which had no function-length cap at all.
+      // It sits at today's largest body (`Dashboard`, apps/itun/src/components/
+      // dashboard/Dashboard.tsx), so one more line there, or any longer
+      // function anywhere in the app or its Convex backend, fails. Lower it
+      // when a split lands; never raise it.
+      "includes": ["apps/itun/**", "!**/*.test.ts", "!**/*.test.tsx", "!**/*.stories.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 394 } }
           }
         }
       }
