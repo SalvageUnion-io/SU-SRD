@@ -39,6 +39,8 @@ export function accentDeepColor(
  */
 const TEXT_BAND: Partial<Record<string, string>> = {
   'var(--color-crawler)': 'var(--color-crawler-band)',
+  // The crawler sheet's tone is the same pink under its sheet alias.
+  'var(--color-sheet-crawler)': 'var(--color-crawler-band)',
 }
 
 /**

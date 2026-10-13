@@ -27,7 +27,11 @@
  *                    colour, padding, font, border, layout.
  *   Stylesheet class anything stateful or conditional: `:hover`,
  *                    `:focus-visible`, `:disabled`, `@media`,
- *                    pseudo-elements, sibling/child selectors.
+ *                    pseudo-elements, sibling/child selectors. And static
+ *                    values repeated on many elements per page (a listing
+ *                    row's parts, a stat cell, card chrome): srd's static HTML
+ *                    writes a style object out on every element, so those
+ *                    are classes too, the per-instance values left inline.
  *
  * A component may use both — the object on `style=`, the class on `className=`.
  * The full statement lives in this package's CLAUDE.md.
@@ -611,6 +615,10 @@ body {
  * viewport. Its floor is a Token's ceiling (E3, 12rem), so a Row in a
  * shrink-wrapped slot never collapses to nothing. A link-mode Row is an `<a>`
  * and keeps the page's ink, not a link's colour or underline.
+ *
+ * Every part's static geometry is here, not in a style object, because a
+ * listing repeats it on every row and token (ADR-046, repeated elements). The
+ * paint (a tone, ink, grey when down) is the component's, inline.
  */
 .su-entity-row {
   color: inherit;
@@ -622,10 +630,29 @@ body {
   text-decoration: none;
 }
 
+/* The frame: ink on paper, dashed when player-made (ruleset §3.9). */
 .su-entity-row__frame {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-entity-compact);
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
+}
+
+.su-entity-row__frame[data-user-made] {
+  border-style: dashed;
+}
+
+/* A Row that is its head alone (`data-bodyless`: a base class, a roll table,
+   with no facts and no lead to show) is its head's height wherever it stands:
+   stretched by a grid or a flex line beside bodied Rows, its frame keeps the
+   head's height instead of opening an empty paper strip under it. */
+.su-entity-row__frame[data-bodyless] {
+  flex: none;
 }
 
 .su-entity-row__main {
@@ -633,6 +660,92 @@ body {
   flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
+}
+
+/* HEAD (`entity/parts/Head.tsx`): the band, wearing the paint and its grain. */
+.su-entity-row__head {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-6) var(--space-10);
+}
+
+/* The one line that never wraps: tier, name and labels, hint, stamps,
+   pennant, affordance. */
+.su-entity-row__line {
+  align-items: center;
+  column-gap: var(--space-8);
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+/* The name and its labels: the row's room, the labels right after the name. */
+.su-entity-row__name {
+  align-items: center;
+  column-gap: var(--space-8);
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* The title: two lines, then "…" (its full name in a tooltip). Beside its
+   labels it gives way first, wrapping at spaces (a high shrink), but keeps its
+   longest word whole: only then do the labels give way. */
+.su-entity-row__title {
+  display: -webkit-box;
+  flex: 0 100 auto;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.05;
+  margin: 0;
+  min-width: min-content;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* An ability's tier numeral, at the left: the title's face, dimmed. */
+.su-entity-row__tier {
+  display: inline;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.05;
+  margin: 0;
+  min-width: 0;
+  opacity: 0.75;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* The labels give way once the name cannot wrap further, truncating with "…". */
+.su-entity-row__labels {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* The paper body: the facts, the tags, the lead. */
+.su-entity-row__body {
+  align-content: flex-start;
+  align-items: center;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-10) var(--space-6);
 }
 
 /* The art column: the row's full height, ruled off in ink. A listing may size
@@ -815,6 +928,57 @@ body {
   display: inline-flex;
   max-width: 100%;
   text-decoration: none;
+}
+
+/* TOKEN (`entity/forms/Token.tsx`): the pill, `[kind] name [fact]`, dashed
+   when player-made. It wraps as a whole, never mid-token. */
+.su-entity-token__pill {
+  align-items: center;
+  align-self: flex-start;
+  border-color: var(--color-ink);
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-chrome);
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-6);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3px var(--space-6) 3px var(--space-4);
+  position: relative;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.su-entity-token__pill[data-user-made] {
+  border-style: dashed;
+}
+
+.su-entity-token__kind {
+  background-color: var(--color-ink);
+  border: var(--bw-hairline) solid var(--color-ink);
+  color: var(--color-paper);
+  flex: none;
+  font-size: var(--text-badge);
+  letter-spacing: var(--tracking-caps-snug);
+  padding: 1px var(--space-4);
+}
+
+/* On an ink pill (a thing you do) the kind stamp keeps a paper edge. */
+.su-entity-token__kind--on-ink {
+  border-color: var(--color-paper);
+}
+
+/* The name wins: it wraps onto a second line rather than being clipped. */
+.su-entity-token__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 /*
@@ -2115,7 +2279,7 @@ body {
   min-width: 0;
 }
 
-/* The how-to banner: ink, paper flecks (`grainStyle`), a rounded tail. It
+/* The how-to banner: ink, paper flecks (`.su-grain--paper`), a rounded tail. It
  * hugs its words, so a step reads as a heading and not as a bar. */
 .su-guide__head {
   align-items: center;
@@ -2493,18 +2657,6 @@ body {
   padding: 0;
 }
 
-/* A pattern card's loadout on a page (`PatternLoadout fill`): each Token the
-   full width of its column, its name taking the slack so its fact sits at the
-   right edge. The pill sets no width of its own, so this needs no override. */
-.su-pattern-loadout--fill .su-entity-token {
-  display: flex;
-  width: 100%;
-}
-
-.su-pattern-loadout--fill .su-entity-token > span {
-  flex: 1 1 auto;
-}
-
 .su-pattern-rows__item {
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
@@ -2843,12 +2995,36 @@ body {
 }
 
 /* ── Stat ── */
-/* `atoms/Stat.tsx`. The horizontal cell's `display` and `flex-shrink`: callers
- * override both by className (`hidden sm:inline-flex`), which an inline style
- * would beat. */
+/* `atoms/Stat.tsx`. The horizontal `[label | value]` cell: one rounded ink
+ * border around the two plate halves. A class, not a style object: a listing
+ * repeats it on every row (ADR-046, repeated elements), and callers override
+ * its `display` and `flex-shrink` by className (the sheet's condensed bar folds
+ * cells), which an inline style would beat. Its state rides the border. */
 .su-stat-cell {
+  align-items: stretch;
+  border-color: var(--color-ink);
+  border-radius: var(--radius-badge);
+  border-style: solid;
+  border-width: var(--bw-hairline);
+  cursor: default;
   display: inline-flex;
+  flex-grow: 0;
   flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.su-stat-cell--good {
+  border-color: var(--color-mech);
+}
+
+.su-stat-cell--caution {
+  border-color: var(--color-status-warn);
+}
+
+.su-stat-cell--critical {
+  border-color: var(--color-status-bad);
 }
 
 .su-stat-cell--block {
@@ -2857,6 +3033,21 @@ body {
 
 .su-stat-cell--truncate {
   flex-shrink: 1;
+  min-width: 0;
+}
+
+/* `wrap`: alone on a line too narrow for it, the cell narrows to the line and
+ * its value wraps. */
+.su-stat-cell--wrap {
+  flex-shrink: 1;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+
+/* A cell asked to both truncate and wrap truncates: one line. */
+.su-stat-cell--wrap.su-stat-cell--truncate {
+  white-space: nowrap;
 }
 
 /* `state="modified"`: the heavier frame's 1px ink ring. A class, so the
@@ -3249,6 +3440,120 @@ body {
 .su-badge--on-tone {
   background-color: transparent;
   color: var(--color-ink);
+}
+
+/* The parameter cell a chip runs to its right edge (`param`). */
+.su-badge__param {
+  align-items: center;
+  align-self: stretch;
+  background-color: var(--color-paper);
+  border-inline-start: var(--bw-hairline) solid currentColor;
+  color: var(--color-ink);
+  display: flex;
+  font-variant-numeric: tabular-nums;
+  margin-inline-start: var(--space-6);
+  padding: 0 var(--space-6);
+}
+
+/* ── Stamps on a stamp ──
+ * Classes laid over a `shape="stamp"` Badge, so they sit AFTER the stamp's own
+ * rules above (`.su-badge-stamp`, `.su-badge--*`, the rung and caps classes):
+ * at one class each, source order is what lets them restate `display`,
+ * `font-*` and the inset ring. */
+
+/* Stat's two plate halves (`atoms/Stat.tsx`): stretched to the full cell
+ * height, so the label's ink covers the whole cell; the CELL draws the one
+ * rounded border, so neither keeps the `inverse` plate's inset ring. Both
+ * take the rung's type, line-height 1 throughout. */
+.su-stat-plate {
+  align-self: stretch;
+  box-shadow: none;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.su-stat-plate--full {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.su-stat-plate--compact {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-normal);
+}
+
+.su-stat-plate--mini {
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+}
+
+/* The label: its text centred, even when the row stretches the cell, and one
+ * line when the value wraps beside it. */
+.su-stat-plate--label {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* A two-line label ("Tech" / "Level"). */
+.su-stat-plate--stack {
+  flex-direction: column;
+}
+
+.su-stat-plate--value {
+  align-items: center;
+  display: flex;
+  gap: 1px;
+}
+
+/* A `wrap` cell's value narrows with its cell; a word longer than the row
+ * breaks rather than being clipped. */
+.su-stat-plate--wrap {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A value that may be cut: a block, so the ellipsis applies. */
+.su-stat-plate--truncate {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The head band's labels (`card/CardLabels.tsx`): the stamps, then the
+ * User-made stamp. The stamps never run past the band: on a phone they share
+ * the room and the last gives way. The type stamp (`__lead`) gives way LAST:
+ * it never shrinks, and only when it alone overflows does it truncate. */
+.su-ec-labels {
+  align-items: center;
+  display: flex;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.su-ec-labels__stamps {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--space-6);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.su-ec-labels__truncate,
+.su-ec-labels__lead {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.su-ec-labels__lead {
+  flex: none;
+  max-width: 100%;
 }
 
 /* `atoms/SmallButtons.tsx` (`StepButton`): the ground hovers to the sheet's
@@ -3780,37 +4085,353 @@ body {
 
 /* — Compositions — */
 
-/* ── compositions/RollTable ── */
+/* ── end group A ── */
+
+/* ── compositions/RollTableInstrument ── */
 
 /*
- * RollTable's collapsible-header Show/Hide toggle. Its colour is a class
- * because it brightens on :hover (paper at 80% → full paper); everything
- * static on it is a style object in RollTable.tsx.
+ * THE roll table (`RollTableInstrument`, EDL E14): the bar, the host's
+ * readout, then the bands. Classes rather than style objects because the
+ * page's split and density answer to the viewport. The row fills (paper, the
+ * surface tone's band, the rolled row's ink) are the component's own inline
+ * style, so a test reads them straight off the row.
  */
-.su-roll-table__toggle {
-  color: var(--color-paper-80);
+.su-roll {
+  --su-roll-pad-x: var(--space-12);
+  --su-roll-range: 4.5rem;
+  --su-roll-range-size: var(--text-xl);
+  --su-roll-label-size: var(--text-lg);
+  --su-roll-value-size: var(--text-base);
+  --su-roll-title-size: var(--text-readout);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  min-width: 0;
 }
 
-.su-roll-table__toggle:hover {
+.su-roll[data-size='medium'] {
+  --su-roll-pad-x: var(--space-8);
+  --su-roll-range: 4rem;
+  --su-roll-range-size: var(--text-readout);
+  --su-roll-label-size: var(--text-readout);
+  --su-roll-value-size: var(--text-sm);
+}
+
+.su-roll[data-size='small'] {
+  --su-roll-pad-x: var(--space-8);
+  --su-roll-range: 3rem;
+  --su-roll-range-size: var(--text-readout);
+  --su-roll-label-size: var(--text-lede);
+  --su-roll-value-size: var(--text-xs);
+  --su-roll-title-size: var(--text-lede);
+}
+
+.su-roll[data-frame='box'] {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.su-roll[data-frame='rule'] {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+}
+
+.su-roll__bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--su-roll-pad-x);
+}
+
+/* The book's "ROLL THE DIE:" (ruleset, "The source"): an underlined ink stamp. */
+.su-roll__stamp {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  padding: 3px var(--space-6);
+  text-decoration: underline;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The name WRAPS at word breaks (never clips): when the controls drop to a
+   second row the name keeps its whole title. `contain` still keeps a long
+   name from widening a width-less ancestor. */
+.su-roll__title {
+  contain: inline-size;
+  flex: 1 1 8rem;
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-title-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  text-transform: uppercase;
+}
+
+.su-roll__hint {
+  color: var(--color-ink-2);
+  flex: 1 1 8rem;
+  font-size: var(--text-sm);
+  min-width: 0;
+}
+
+.su-roll__bands {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.su-roll__rows {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-roll__row {
+  align-items: stretch;
+  display: flex;
+}
+
+.su-roll__row + .su-roll__row,
+.su-roll__rows + .su-roll__rows > .su-roll__row:first-child {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-roll__range {
+  align-items: center;
+  background-color: var(--color-wk-bg);
+  border-right: var(--bw-hairline) solid var(--color-ink);
+  color: var(--color-ink);
+  display: flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-range-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  line-height: 1.1;
+  width: var(--su-roll-range);
+}
+
+.su-roll__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-8) var(--space-12);
+}
+
+.su-roll__head {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-roll__label {
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-label-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.su-roll__value {
+  font-size: var(--su-roll-value-size);
+  line-height: 1.45;
+}
+
+/* The rolled row is set in ink, its range cell and pennant on paper. */
+.su-roll__row[data-rolled] {
   color: var(--color-paper);
 }
 
-/*
- * The header title as a table-picker trigger (`titleSelect`). Border colour
- * and fill both change on :hover, so both live here; the fill's resting value
- * is the transparent a button gets from the preflight reset.
- */
-.su-roll-table__title-select {
-  border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
-  background-color: transparent;
+.su-roll__row[data-rolled] .su-roll__range {
+  background-color: var(--color-paper);
 }
 
-.su-roll-table__title-select:hover {
-  border-color: var(--color-paper);
-  background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
+.su-roll__tag {
+  background-color: var(--color-paper);
+  clip-path: polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%);
+  color: var(--color-ink);
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  padding: 3px var(--space-6) 3px var(--space-12);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* ── end group A ── */
+/* A columns table: the columns' ranges across an ink head, the entry numbers
+   down both outer edges. A narrow column scrolls the grid inside its frame. */
+.su-roll__grid {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  overflow-x: auto;
+  /* Holds the visually hidden labels inside the scroller, not the page. */
+  position: relative;
+}
+
+.su-roll__table {
+  border-collapse: collapse;
+  font-size: var(--su-roll-value-size);
+  min-width: 34rem;
+  width: 100%;
+}
+
+.su-roll__table thead th {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-size: var(--su-roll-label-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  padding: var(--space-2) var(--space-8);
+  text-align: left;
+}
+
+.su-roll__table thead th[data-rolled] {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-roll__table tbody tr + tr > * {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-roll__edge {
+  background-color: var(--color-wk-bg);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  text-align: center;
+  width: 2.75rem;
+}
+
+.su-roll__table tbody .su-roll__edge:first-child {
+  border-right: var(--bw-hairline) solid var(--color-ink);
+}
+
+.su-roll__table tbody .su-roll__edge:last-child {
+  border-left: var(--bw-hairline) solid var(--color-ink);
+}
+
+.su-roll__cell {
+  line-height: 1.25;
+  padding: var(--space-2) var(--space-8);
+}
+
+.su-roll__cell + .su-roll__cell {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-roll__cell[data-rolled] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (min-width: 64rem) {
+  /*
+   * A long or wordy page table (`split`) sets its halves side by side: the
+   * first with its ranges on the left edge, the rest with theirs on the right,
+   * so the numbers stay on the outside. Under `lg` the halves stack as one list.
+   */
+  .su-roll__bands[data-split] {
+    align-items: start;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-roll__bands[data-split] > .su-roll__rows[data-side='right'] {
+    border-left: var(--bw-hairline) solid var(--color-ink);
+  }
+
+  .su-roll__bands[data-split] .su-roll__rows + .su-roll__rows > .su-roll__row:first-child {
+    border-top: 0;
+  }
+
+  .su-roll__rows[data-side='right'] > .su-roll__row {
+    flex-direction: row-reverse;
+  }
+
+  .su-roll__rows[data-side='right'] .su-roll__range {
+    border-left: var(--bw-hairline) solid var(--color-ink);
+    border-right: 0;
+  }
+
+  .su-roll__bands[data-split] {
+    --su-roll-range: 3.5rem;
+    --su-roll-value-size: var(--text-sm);
+  }
+
+  .su-roll__bands[data-split] .su-roll__body {
+    padding: var(--space-6) var(--space-8);
+  }
+
+  /*
+   * A wordy page (`density`, the SRD's `rollTableDensity`) sets tighter so it
+   * ends above the fold: `compact` sets the rows smaller; `dense` also runs
+   * each band's label in ahead of its text, at the caption size, with
+   * narrower ranges.
+   */
+  .su-roll[data-density='compact'] {
+    --su-roll-label-size: var(--text-base);
+    --su-roll-value-size: var(--text-sm);
+  }
+
+  .su-roll[data-density='compact'] .su-roll__body {
+    padding: var(--space-6) var(--space-12);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] {
+    --su-roll-range: 2.75rem;
+    --su-roll-range-size: var(--text-lg);
+    --su-roll-label-size: var(--text-sm);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__body {
+    display: block;
+    font-size: var(--text-caption);
+    line-height: 1.25;
+    padding: var(--space-4) var(--space-8);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__head {
+    display: inline-flex;
+    margin-right: var(--space-6);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__value {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* The columns grid's twenty rows set tighter, so it ends above the fold. */
+  .su-roll[data-density] .su-roll__table {
+    font-size: var(--text-sm);
+  }
+
+  .su-roll[data-density] .su-roll__table tbody th,
+  .su-roll[data-density] .su-roll__table tbody td {
+    line-height: 1.2;
+  }
+}
 
 /* ── compositions/EntitySearcher ── */
 
@@ -4050,6 +4671,61 @@ body {
   }
 }
 
+/* `LoadoutMention` — one part of a pattern's loadout, as the book lists it: the
+   name (a Mention, in the list's own ink), then its framed TL cell. The name
+   wraps rather than pushing the cell off the line. A loadout under a host that
+   is down reads muted, as its Tokens once greyed. */
+.su-loadout-entry {
+  align-items: center;
+  display: flex;
+  gap: var(--space-6);
+  min-width: 0;
+  padding-block: var(--space-2);
+}
+
+.su-loadout-entry > .su-inline-ref {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.su-loadout-entry > .su-stat-cell {
+  flex: none;
+}
+
+.su-loadout-entry[data-down] {
+  color: var(--color-wk-muted);
+}
+
+/* A pattern card's loadout on a page (`PatternLoadout fill`): the TL cells
+   stand in a column at the right edge, where they scan down the list. */
+.su-pattern-loadout--fill .su-loadout-entry {
+  justify-content: space-between;
+}
+
+/* Thumb first (ruleset §4.6): each line is a 44px row under a coarse pointer,
+   and the name's hit area spans the row's height, so neighbouring names never
+   overlap. */
+@media (pointer: coarse) {
+  .su-loadout-entry {
+    min-height: 44px;
+    padding-block: 0;
+  }
+
+  .su-loadout-entry > .su-inline-ref {
+    position: relative;
+  }
+
+  .su-loadout-entry > .su-inline-ref::after {
+    content: '';
+    height: 44px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
 /* `pattern/*` — a pattern's equipment groups, side by side from `lg`. */
 .su-pattern-equipment {
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -4203,4 +4879,182 @@ body {
 /* On a dark band the black mark reverses to paper, as Leyline's white mark does. */
 .su-footer__mark--paper {
   filter: invert(1);
+}
+
+/* ══ Repeated card chrome ═══════════════════════════════════════════════════
+ *
+ * The parts every card, band and action on a page repeats, as classes rather
+ * than style objects (ADR-046, repeated elements): inline, each copy of them
+ * was written into every element of every static page. What varies by card
+ * (a band's fill and padding, a title's size and colour, a frame's weight)
+ * stays inline. Last in the file: the pennant restates a button's and a caps
+ * label's type, and at one class each only source order lets it.
+ */
+
+/* The light speckle (ruleset §3.5, board 05c). `atoms/Speckle.tsx`: one SVG
+ * layer per grain, laid behind a band's content; the band is
+ * `position: relative` with `isolation: isolate`, so `z-index: -1` paints the
+ * layer above the band's own fill and below every in-flow child. */
+.su-grain-layer {
+  height: 100%;
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: -1;
+}
+
+/* The header grain (`card/cardGrain.ts`): ink speckle on a tone, paper flecks
+ * on ink, as a background over the band's fill. The images are `grainSvg`'s
+ * output (`__tests__/stylesheetParity.test.ts` holds them to the tokens), and
+ * the bundler inlines them here once. */
+.su-grain--ink {
+  background-image: url('./grain/ink.svg');
+}
+
+.su-grain--paper {
+  background-image: url('./grain/paper.svg');
+}
+
+/* The card's frame box (`card/ReferenceEntityCard.tsx`): the frame lives on
+ * this INNER clipping element; its weight, dash and selection ring are the
+ * card's own. */
+.su-ec-frame {
+  background-color: var(--color-paper);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* The header band (`card/EntityCardHeader.tsx`). `--full`: the title takes
+ * the row and the cells follow it, wrapping beneath when the band is too
+ * narrow. `--head`, the compact card: one row that never wraps. `--ruled`: the
+ * ink rule that closes the band. */
+.su-ec-band {
+  align-items: center;
+  display: flex;
+  min-width: 0;
+  width: 100%;
+}
+
+.su-ec-band--head {
+  column-gap: var(--space-8);
+  flex-wrap: nowrap;
+}
+
+.su-ec-band--full {
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-14);
+}
+
+.su-ec-band--ruled {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+}
+
+/* The title's caps face (also the tier numeral's). No line height of its own:
+ * it inherits the band's. */
+.su-ec-band__title {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+/* The compact title: the row's room, two lines, then "…". `min-width: 0`
+ * keeps a long name out of the row's min-content, so it cannot push a
+ * width-less ancestor past the viewport. */
+.su-ec-band__title--clamp {
+  display: -webkit-box;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Beside its labels the title wraps at spaces first (a high shrink) but keeps
+ * its longest word whole; only then do the labels give way. */
+.su-ec-band__title--wrap {
+  flex: 0 100 auto;
+  min-width: min-content;
+  overflow-wrap: break-word;
+}
+
+.su-ec-band__numeral {
+  flex: none;
+  opacity: 0.75;
+}
+
+/* The name group: the title, its labels right after it. It shares the row
+ * with the cells at medium and small; a large header gives it the row. */
+.su-ec-band__name {
+  align-items: center;
+  column-gap: var(--space-8);
+  display: flex;
+  flex: 1 1 0;
+  min-width: min-content;
+}
+
+.su-ec-band__name--large {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-ec-band__labels {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* The value cells, the stamps and the pennant, at the band's right. */
+.su-ec-band__cluster {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+/* The cost pennant (`card/CardPennant.tsx`), ruleset §5, board E1: a box with
+ * a pointed tail (`PENNANT_SHAPE`, held equal by
+ * `__tests__/stylesheetParity.test.ts`). `--read` is the paper pennant on the
+ * ink; `--button` lays the cut over the rust `buttonVariants` plate, whose
+ * radius and border it drops. */
+.su-pennant {
+  clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%);
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.2;
+  padding: var(--space-2) var(--space-14) var(--space-2) var(--space-6);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.su-pennant--large {
+  font-size: var(--text-caption);
+}
+
+.su-pennant--medium {
+  font-size: var(--text-xs);
+}
+
+.su-pennant--small {
+  font-size: var(--text-badge);
+}
+
+.su-pennant--read {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  flex: none;
+}
+
+.su-pennant--button {
+  border-radius: 0;
+  border-width: 0;
 }

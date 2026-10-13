@@ -14,9 +14,12 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, within } from '@testing-library/react'
-import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { malformed } from 'salvageunion-reference/testing'
 import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
+import { rollBandColor } from '../../../compositions/rollTableBands'
+import { entityGuideToneColor } from '../entityCardTone'
 import { chunkGuideStepProse } from '../guideStepProse'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -244,6 +247,37 @@ describe('GuideSteps on the page', () => {
       <ReferenceEntityCard data={guide('Create a Pilot')} presentation="page" />
     )
     expect(container.querySelectorAll('.su-guide__table').length).toBeGreaterThan(0)
+  })
+
+  // The card hands its guide tone to GuideSteps, which hands it to each step
+  // table: Create a Pilot (its Callsign columns table among them) bands in
+  // pilot and Heat in mech, never the cream a tone-less table falls back to.
+  test.each(['Create a Pilot', 'Heat'])('%s bands its step tables in its own tone', (name) => {
+    const found = guide(name)
+    const tone = entityGuideToneColor(found)
+    if (!tone) throw new Error(`fixture has no guide tone: ${name}`)
+    const { container } = render(<ReferenceEntityCard data={found} presentation="page" />)
+    const tables = [...container.querySelectorAll<HTMLElement>('.su-guide__table .su-roll')]
+    expect(tables.length).toBeGreaterThan(0)
+    for (const table of tables) {
+      expect(table.style.getPropertyValue('--su-roll-band')).toBe(rollBandColor(tone))
+      expect(table.style.getPropertyValue('--su-roll-band')).not.toBe('var(--color-band-cream)')
+    }
+  })
+
+  test('a table the toned entity owns bands in the same tone', () => {
+    // No shipped guide owns a table, so this borrows a real one: the card's
+    // own table takes the card's tone exactly as a step table does.
+    const [rollTable] = SalvageUnionReference.RollTables.all()
+    if (!rollTable) throw new Error('the dataset ships no roll tables')
+    const heat = guide('Heat')
+    const tone = entityGuideToneColor(heat)
+    if (!tone) throw new Error('fixture has no guide tone: Heat')
+    const owning = malformed<SURefMetaEntity>({ ...heat, steps: [], table: rollTable.table })
+    const { container } = render(<ReferenceEntityCard data={owning} presentation="page" />)
+    const table = container.querySelector<HTMLElement>('.su-roll')
+    expect(table).not.toBeNull()
+    expect(table?.style.getPropertyValue('--su-roll-band')).toBe(rollBandColor(tone))
   })
 })
 

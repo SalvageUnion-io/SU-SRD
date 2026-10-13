@@ -1,12 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import type { EntitySurfaceValue } from 'component-lib'
-import {
-  CopyFeedbackProvider,
-  EntityHrefProvider,
-  EntitySurfaceProvider,
-  Toaster,
-  toast,
-} from 'component-lib'
+import { EntityHrefProvider, EntitySurfaceProvider, Toaster, toast } from 'component-lib'
 import { useState } from 'react'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
@@ -16,6 +10,7 @@ import {
   HeaderMobileActions,
 } from '../components/account/HeaderAccount'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
+import { CopyFeedbackProvider } from '../components/dashboard/useCopyFeedback'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppHeader } from '../components/shared/AppHeader'
 import { AppLink } from '../components/shared/AppLink'

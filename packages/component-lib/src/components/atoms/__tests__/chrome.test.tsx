@@ -91,6 +91,20 @@ describe('ModeDoor', () => {
     expect(onSelect).toHaveBeenCalled()
   })
 
+  test('guided prints the sheet’s onTone pair, not paper on the bare tone', () => {
+    // Paper on `--tone` measured 2.4:1 on pilot; theme.css sets the pair per
+    // sheet and contrast.test.ts holds it to onTone.
+    render(
+      <ModeDoor variant="guided" tab="▶" headline="Guided">
+        Step through the rules.
+      </ModeDoor>
+    )
+    const door = screen.getByRole('button')
+    expect(door.style.background).toBe('var(--tone-band)')
+    expect(door.style.color).toBe('var(--on-tone-band)')
+    expect(screen.getByText('Guided').style.color).toBe('')
+  })
+
   test('blank variant is the dashed paper escape hatch', () => {
     render(
       <ModeDoor variant="blank" tab="✎" headline="Blank">

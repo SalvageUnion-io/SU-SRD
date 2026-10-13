@@ -23,6 +23,19 @@ editor needs:
   `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling selectors)
   → a `.su-*` class, **resting value included** — an inline `style=` beats every
   stylesheet rule, so a split property's hover silently never fires.
+- **Repeated on many elements per page → a class too.** srd renders static
+  HTML, so a style object is written out in full on every element that wears
+  it: a listing row's parts, a stat cell, a card's chrome, the speckle layer.
+  Those static styles are `.su-*` classes as well (they were 42% of srd's
+  HTML); only what varies by instance (a tone, a size, a caller's frame) stays
+  inline. A class laid over another component's classes (a Badge stamp) must
+  come after that component's rules in `index.css`, since at one class each
+  source order decides. Moving an inline style into a class also lets an app's
+  unlayered element rule beat it (ITUN's heading face, `print.css`'s `span` and
+  `h1`–`h3` sizes), and drops it out of a rule that matched the inline style
+  (`print.css`'s `[style*='border']` ink): check both apps, print included.
+  ITUN hands a class back with `revert-layer` (`styles/libHandback.css`,
+  `print.css`) and names it in the border-ink rule.
 - **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /
   `DISABLED` / `SELECTION_RING*` vocabulary) are stylesheet-only, and their
   `.su-*` names are public API. The exemption does not extend to components.

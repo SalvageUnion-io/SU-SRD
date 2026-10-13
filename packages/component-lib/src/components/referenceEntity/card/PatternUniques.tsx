@@ -3,15 +3,16 @@ import type { SURefObjectAnyPattern } from 'salvageunion-reference'
 import { extractPatternActions, normalizePatternName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { cardKey } from './cardHelpers'
-import { LoadoutBadge } from './PatternLoadout'
+import { LoadoutMention } from './PatternLoadout'
 import type { NestedCard } from './referenceEntityCardTypes'
 import { resolvePatternGroups } from './resolveNestedEntities'
 
-const TOKENS: CSSProperties = {
-  alignItems: 'flex-start',
+/** The loadout's lines run on, wrapping, under a card's pattern row: a column a part would outgrow the row. */
+const MENTIONS: CSSProperties = {
+  alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
-  gap: space[6],
+  columnGap: space[12],
   listStyle: 'none',
   margin: 0,
   padding: 0,
@@ -26,11 +27,11 @@ const CARDS: CSSProperties = { display: 'flex', flexDirection: 'column', gap: sp
  * pattern and already on the page; a row carries only the difference:
  *
  * - a MECH pattern's loadout — every system, module and drone it installs, as
- *   the card's shortform token (`LoadoutBadge`), multiples repeated as the
- *   pattern view prints them;
+ *   the pattern view's name-and-TL line (`LoadoutMention`), multiples repeated
+ *   as the pattern view prints them;
  * - a BIO-TITAN pattern's added actions, as embedded action cards — there is
  *   no loadout, and an added rule is the whole of the difference, so it is
- *   printed in full rather than compressed to a token.
+ *   printed in full rather than compressed to a name.
  *
  * Read off the pattern's shape (`resolvePatternGroups` / `extractPatternActions`
  * each answer empty for the other kind), never the host's schema. Renders
@@ -66,10 +67,10 @@ export function PatternUniques({
   return (
     <div className={className}>
       {loadout.length > 0 && (
-        <ul aria-label={`${name} loadout`} style={TOKENS}>
+        <ul aria-label={`${name} loadout`} style={MENTIONS}>
           {loadout.map((item, index) => (
             <li key={cardKey(item, index)} style={{ minWidth: 0 }}>
-              <LoadoutBadge data={item} hostDown={hostDown} />
+              <LoadoutMention data={item} hostDown={hostDown} />
             </li>
           ))}
         </ul>

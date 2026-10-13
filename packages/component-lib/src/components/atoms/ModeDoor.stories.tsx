@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { ModeDoor } from './ModeDoor'
 import { Sel } from './Sel'
 
@@ -11,14 +10,12 @@ export default {
   title: 'Atoms/Mode Door',
 }
 
-// The doors read `--tone` (plate fill) and `--ground` (halo gap) from the sheet
-// surface; stand them in inline for the story.
-const SURFACE: CSSVarStyle = {
-  '--tone': '#b8532a',
-  '--ground': '#f3ece2',
-  background: 'var(--ground)',
-  padding: space[32],
-}
+// The doors read the sheet surface: `--tone-band` / `--on-tone-band` (the
+// guided plate and its text) and `--ground` (the halo gap). The story renders
+// them on each real `.sheet--*` class, so a tone that fails its text shows here.
+const SURFACE = { background: 'var(--ground)', padding: space[32] } satisfies CSSProperties
+
+const SHEETS = ['pilot', 'mech', 'crawler'] as const
 
 /** One column, two from the `sm` breakpoint (40rem) up: `.su-story-door-grid`. */
 const DOORS = { display: 'grid', gap: space[24], marginTop: space[16] } satisfies CSSProperties
@@ -39,44 +36,48 @@ const CUSTOM_BUILD = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** The two onboarding doors side by side, plus the ink-double Sel ring. */
+/** The two onboarding doors side by side on each sheet, plus the ink-double Sel ring. */
 export const Default: Story = () => {
   const [chosen, setChosen] = useState<string | null>(null)
   return (
-    <div style={SURFACE}>
-      <Caption>
-        Guided (filled tone + double-ink halo) and Blank (dashed paper escape hatch). Chosen:{' '}
-        {chosen ?? 'none'}
-      </Caption>
-      <div className="su-story-door-grid" style={DOORS}>
-        <ModeDoor
-          variant="guided"
-          tab="▶"
-          headline="Guided"
-          cite="The Pilot Bay begins on p. 18."
-          onSelect={() => setChosen('guided')}
-        >
-          Step through the Pilot Bay rules, one card at a time — class, abilities, equipment,
-          identity.
-        </ModeDoor>
-        <ModeDoor
-          variant="blank"
-          tab="✎"
-          headline="Blank"
-          cite="For veterans, imports, and homebrew."
-          onSelect={() => setChosen('blank')}
-        >
-          An empty sheet. No steps, no limits. Fill it in on the live sheet.
-        </ModeDoor>
-      </div>
+    <div>
+      {SHEETS.map((sheet) => (
+        <div key={sheet} className={`sheet--${sheet}`} style={SURFACE}>
+          <Caption>
+            .sheet--{sheet}: Guided (filled tone band + double-ink halo) and Blank (dashed paper
+            escape hatch). Chosen: {chosen ?? 'none'}
+          </Caption>
+          <div className="su-story-door-grid" style={DOORS}>
+            <ModeDoor
+              variant="guided"
+              tab="▶"
+              headline="Guided"
+              cite="The Pilot Bay begins on p. 18."
+              onSelect={() => setChosen(`${sheet} guided`)}
+            >
+              Step through the Pilot Bay rules, one card at a time — class, abilities, equipment,
+              identity.
+            </ModeDoor>
+            <ModeDoor
+              variant="blank"
+              tab="✎"
+              headline="Blank"
+              cite="For veterans, imports, and homebrew."
+              onSelect={() => setChosen(`${sheet} blank`)}
+            >
+              An empty sheet. No steps, no limits. Fill it in on the live sheet.
+            </ModeDoor>
+          </div>
+        </div>
+      ))}
 
-      <div style={{ marginTop: space[32] }}>
+      <div className="sheet--pilot" style={SURFACE}>
         <Caption>Sel ring="ink-double" — the custom-build door's selection halo.</Caption>
-      </div>
-      <div style={{ marginTop: space[12], width: 'fit-content' }}>
-        <Sel selected ring="ink-double" ariaLabel="Custom build" onToggle={() => {}}>
-          <div style={CUSTOM_BUILD}>Custom Build</div>
-        </Sel>
+        <div style={{ marginTop: space[12], width: 'fit-content' }}>
+          <Sel selected ring="ink-double" ariaLabel="Custom build" onToggle={() => {}}>
+            <div style={CUSTOM_BUILD}>Custom Build</div>
+          </Sel>
+        </div>
       </div>
     </div>
   )

@@ -5,14 +5,11 @@
  * island's chunk carries no ORM.
  */
 
-import type { SURefObjectTable } from 'salvageunion-reference'
+import type { DigestedColumnsColumn } from 'component-lib'
 import { EARLIER_ROLLS } from './rollTablePage'
 
-/** One column: its d20 range ("9-12") and its entries, by their own key. */
-export type ColumnsTableColumn = {
-  key: string
-  entries: { key: string; value: string }[]
-}
+/** One column: its d20 range ("9-12") and its entries (`digestColumnsTable`). */
+export type ColumnsTableColumn = DigestedColumnsColumn
 
 /** Everything the page and its island need, serialised once as island props. */
 export type ColumnsTablePageData = {
@@ -29,21 +26,6 @@ export type ColumnsRollState = {
   roll: ColumnsRoll | null
   /** The earlier rolls, newest first. */
   history: ColumnsRoll[]
-}
-
-const isEntry = (value: unknown): value is { value: string } =>
-  !!value && typeof value === 'object' && typeof (value as { value?: unknown }).value === 'string'
-
-/** A `columns` table's columns, in the book's order; empty for any other table. */
-export function digestColumnsTable(table: SURefObjectTable): ColumnsTableColumn[] {
-  if (table.type !== 'columns') return []
-  return Object.entries(table).flatMap(([key, column]): ColumnsTableColumn[] => {
-    if (key === 'type' || !column || typeof column !== 'object') return []
-    const entries = Object.entries(column).flatMap(([entryKey, entry]) =>
-      isEntry(entry) ? [{ key: entryKey, value: entry.value }] : []
-    )
-    return entries.length > 0 ? [{ key, entries }] : []
-  })
 }
 
 /** Whether a range key ("9-12", "7") holds a roll. */

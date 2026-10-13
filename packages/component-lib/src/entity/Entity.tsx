@@ -22,14 +22,12 @@ export type EntityProps = EntitySource & {
   mode?: EntityMode
   /** Row and Tile: the opening prose, in browse contexts (E11). */
   lead?: boolean
-  /** Facts the context already states, by key, or `kind` under a slab that names it. */
+  /** Facts the context already states, by key, `kind` under a slab that names it, or `tier`. */
   omit?: readonly EntityOmit[]
   /** Token only: the fact the context counts, in place of its default. */
   fact?: TokenFact | null
   /** Row only: hover, focus or a long press Peeks it (a Token always does). */
   peek?: boolean
-  /** Row only: a "do" entity's head wears its tone (an ability's tier), not the ink banner. */
-  toned?: boolean
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
   titleAs?: ElementType
 }
@@ -42,7 +40,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, fact, peek, toned, titleAs } = props
+  const { form, instance, mode, lead, omit, fact, peek, titleAs } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -60,7 +58,6 @@ export function Entity(props: EntityProps) {
           lead={lead}
           omit={omit}
           peek={peek}
-          toned={toned}
           slots={titleAs ? { titleAs } : undefined}
         />
       )

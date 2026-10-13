@@ -9,7 +9,7 @@ import type { NestedGroup } from './resolveNestedEntities'
 
 /**
  * The PATTERN view's own section — the pattern's prose, then what it changes:
- * a mech pattern's side-by-side loadout of shortform badges, or the actions a
+ * a mech pattern's side-by-side loadout of names and Tech Levels, or the actions a
  * Bio-Titan pattern adds, as cards under a "Pattern Actions" stamp. The card
  * places it: after a chassis ability (a mech pattern reads chassis → chassis
  * ability → pattern → systems → modules), ahead of every other action (a

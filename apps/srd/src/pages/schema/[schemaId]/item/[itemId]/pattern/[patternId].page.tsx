@@ -7,7 +7,12 @@
  * other page's.
  */
 
-import { assetSrcSetFor, heroImageSizes, resolveEntityPageMeta } from 'component-lib'
+import {
+  assetSrcSetFor,
+  heroImageSizes,
+  isLegalStartingPatternOf,
+  resolveEntityPageMeta,
+} from 'component-lib'
 import type {
   EnhancedSchemaMetadata,
   SURefEntity,
@@ -22,6 +27,7 @@ import type {
 } from '../../../../../../../ssg/types'
 import { EntityPageFrame, entityPageFoot } from '../../../../../../components/EntityPageFrame'
 import { EntityView } from '../../../../../../components/EntityView'
+import { patternBuildLinkFor } from '../../../../../../lib/buildLink'
 import { chapterForSchema } from '../../../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../../../lib/componentEmbed'
 import {
@@ -142,6 +148,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         tone={chapter.tone}
         meta={pageMeta}
         parent={{ label: 'Pattern of', name: hostName, href: itemHref(schemaId, itemId) }}
+        legalStartingPattern={isLegalStartingPatternOf(pattern)}
+        build={patternBuildLinkFor(schemaId, host, pattern)}
       >
         {/* The pattern renders through the same Entity unit as every other page —
             the interactive island card (in its pattern view) plus the static

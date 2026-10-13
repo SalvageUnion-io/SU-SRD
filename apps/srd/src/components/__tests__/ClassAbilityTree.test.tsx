@@ -36,3 +36,39 @@ describe('ClassAbilityTree headings', () => {
     expect(trees).toContain('Forging')
   })
 })
+
+describe('ClassAbilityTree banners and track', () => {
+  test('every ability banner is ink; a tracked tier sets its numeral on the track', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const heads = [
+      ...document.querySelectorAll<HTMLElement>('.srd-ability-tree__tier .su-entity-row__head'),
+    ]
+    expect(heads.length).toBeGreaterThan(0)
+    for (const head of heads) expect(head.dataset.fill).toBe('ink')
+
+    const forging = screen.getByRole('heading', { level: 2, name: 'Forging' }).closest('section')
+    if (!forging) throw new Error('no Forging tree')
+    const tiers = [...forging.querySelectorAll('.srd-ability-tree__tier')]
+    expect(
+      tiers.map((tier) => tier.querySelector('.srd-ability-tree__numeral')?.textContent)
+    ).toEqual(['1', '2', '3'])
+    // The numeral sits outside the banner: the band leads with the name.
+    for (const tier of tiers) {
+      const line = tier.querySelector('.su-entity-row__line')
+      expect(line?.firstElementChild?.querySelector('h3')).not.toBeNull()
+    }
+  })
+
+  test('a Legendary tree (pick one) has no track, so no numerals', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const legendary = screen
+      .getAllByRole('heading', { level: 2, name: 'Legendary Engineer' })
+      .map((h) => h.closest('section'))
+      .find((section) => section?.querySelector('.srd-ability-tree__track'))
+    if (!legendary) throw new Error('no Legendary tree')
+    expect(legendary.querySelector('.srd-ability-tree__track')?.hasAttribute('data-track')).toBe(
+      false
+    )
+    expect(legendary.querySelector('.srd-ability-tree__numeral')).toBeNull()
+  })
+})

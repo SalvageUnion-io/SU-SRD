@@ -14,14 +14,22 @@
  * Never on paper, buttons, fields, the Dashboard or tooltips: the card turns it
  * off there (`texture={false}`), and `tokens/texture-placement` keeps the token
  * references out of those files.
+ *
+ * Every header band on a listing wears one, so the image is a stylesheet class
+ * (`.su-grain--ink` / `.su-grain--paper` in `styles/index.css`), not an inline
+ * style (ADR-046, repeated elements): inline, its ~1.9 KB data URI on every
+ * band was over a tenth of srd's HTML. The classes read `styles/grain/*.svg`,
+ * which the bundler inlines into the built stylesheet once; those files are
+ * this function's output, and `__tests__/stylesheetParity.test.ts` fails when
+ * one drifts from the `speckle` tokens.
  */
 
-import type { CSSProperties } from 'react'
 import { speckle } from '../../../design/tokens'
 
 export type CardGrain = keyof typeof speckle.grains
 
-function grainSvg(grain: CardGrain): string {
+/** The grain's SVG, from the `speckle` tokens: what `styles/grain/<grain>.svg` holds. */
+export function grainSvg(grain: CardGrain): string {
   const layers = speckle.grains[grain]
   const filters = layers
     .map(({ filter }) => {
@@ -41,16 +49,11 @@ function grainSvg(grain: CardGrain): string {
         `<rect width='100%' height='100%' fill='${fill}' opacity='${opacity}' filter='url(#${speckle.filters[filter].id})'/>`
     )
     .join('')
-  return `<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'>${filters}${rects}</svg>`
+  // Decorative: `aria-hidden` says so (and satisfies the SVG lint on the files).
+  return `<svg xmlns='http://www.w3.org/2000/svg' aria-hidden='true' width='100%' height='100%'>${filters}${rects}</svg>`
 }
 
-/** Built once per grain: the string is the same for every card. */
-const GRAIN_IMAGE: Record<CardGrain, string> = {
-  ink: `url("data:image/svg+xml,${encodeURIComponent(grainSvg('ink'))}")`,
-  paper: `url("data:image/svg+xml,${encodeURIComponent(grainSvg('paper'))}")`,
-}
-
-/** The background layer a header band wears for `grain` (none when absent). */
-export function grainStyle(grain: CardGrain | undefined): CSSProperties | undefined {
-  return grain ? { backgroundImage: GRAIN_IMAGE[grain] } : undefined
+/** The class whose background layer a header band wears for `grain` (none when absent). */
+export function grainClass(grain: CardGrain | undefined): string | undefined {
+  return grain ? `su-grain--${grain}` : undefined
 }

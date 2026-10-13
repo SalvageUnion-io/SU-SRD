@@ -78,6 +78,8 @@ type EntityPageFrameProps = {
   measure?: string
   /** What the entity is built on, linked above the title: a pattern's chassis. */
   parent?: { label: string; name: string; href: string }
+  /** A pattern the book sanctions as a starting build: the band wears its stamp. */
+  legalStartingPattern?: boolean
   /** "Build with this": the deep link into ITUN's builder (`buildLinkFor`), atop the body. */
   build?: BuildLink | null
   /** A creation guide's way out (`guideExitsFor`), under the body. */
@@ -92,6 +94,7 @@ export function EntityPageFrame({
   meta,
   measure = ENTITY_PAGE_MEASURE,
   parent,
+  legalStartingPattern,
   build,
   exits,
   children,
@@ -102,7 +105,7 @@ export function EntityPageFrame({
         tone={tone}
         fill={fill}
         measure={measure}
-        aside={<EntityPageStamps meta={meta} />}
+        aside={<EntityPageStamps meta={meta} legalStartingPattern={legalStartingPattern} />}
         asideAt="notch"
         eyebrow={parent && <ParentLink {...parent} />}
       >

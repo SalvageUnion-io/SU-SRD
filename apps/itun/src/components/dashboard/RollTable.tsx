@@ -1,8 +1,13 @@
-import { Copy, X } from 'lucide-react'
-import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
-import { resultForColumnsTable, resultForTable } from 'salvageunion-reference'
+import type { RollTableType } from 'component-lib'
+import {
+  Badge,
+  Button,
+  cn,
+  digestRollTable,
+  FOCUS_RING_ON_TONE,
+  Text,
+  useParseTraitReferences,
+} from 'component-lib'
 import {
   borderWidth,
   color,
@@ -12,25 +17,21 @@ import {
   space,
   tracking,
   weight,
-} from '../../design/tokens'
-import type { SizeRung } from '../../styles/sizing'
-import { cn } from '../../utils/cn'
-import { dieForTable, rollD20 } from '../../utils/dice'
-import { useParseTraitReferences } from '../../utils/parseTraitReferences'
-import { Badge } from '../atoms/Badge'
-import { Button } from '../atoms/Button'
-import { FOCUS_RING_ON_TONE } from '../atoms/interaction'
-import { Text } from '../atoms/Text'
-import { useCopyFeedback } from './copyFeedbackContext'
-import type { RollTableType } from './digestRollTable'
-import { digestRollTable } from './digestRollTable'
+} from 'component-lib/design/tokens'
+import { Copy, X } from 'lucide-react'
+import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
+import { resultForColumnsTable, resultForTable } from 'salvageunion-reference'
+import { dieForTable, rollD20 } from '../../lib/rollTableDice'
+import { useCopyFeedback } from './useCopyFeedback'
 
 type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
 
 /*
  * Styling is tokens in style objects (ADR-046). The three
  * properties with a `:hover` — the expand toggle's colour, the title trigger's
- * border and fill — live in `.su-roll-table__*` (styles/index.css), resting
+ * border and fill — live in `.su-roll-table__*` (`styles/controls.css`), resting
  * value included. `RollTable` takes no `className`, so no consumer override
  * has to survive here.
  */
@@ -119,7 +120,7 @@ type RollTableDisplayProps = {
    * reading table; `compact` tightens rows, result text and action chips for
    * dense listings / nested content.
    */
-  size?: Extract<SizeRung, 'full' | 'compact'>
+  size?: 'full' | 'compact'
   tableName?: string
   /** Called with the result text (and roll key) when the built-in roll button is used */
   onRollResult?: (text: string, key: string) => void

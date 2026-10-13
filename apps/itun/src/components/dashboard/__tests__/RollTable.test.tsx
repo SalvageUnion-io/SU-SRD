@@ -7,7 +7,7 @@
  *
  * Two seams make that testable without a production change:
  *
- *  - **The die.** `RollTable.tsx` takes its dice from `utils/dice` inline with
+ *  - **The die.** `RollTable.tsx` takes its dice from `rollTableDice` inline with
  *    no injected roller, so that module is replaced here with the real one
  *    plus a `rollD20` and a `dieForTable` that serve a queue of chosen d20
  *    values. `mock.module` is process-global (see
@@ -33,7 +33,7 @@ import {
   test,
 } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { CopyFeedbackProvider } from '../copyFeedbackContext'
+import { CopyFeedbackProvider } from '../useCopyFeedback'
 
 const ROLL_BUTTON = 'Roll on this table'
 /** The reveal delay both variants wrap their state update in. */
@@ -52,12 +52,12 @@ function nextRoll(): number {
 
 // Capture before mocking: a module namespace is a live view, so the spread has
 // to happen while it still reads as the real module.
-const realDice = { ...(await import('../../../utils/dice')) }
+const realDice = { ...(await import('../../../lib/rollTableDice')) }
 
 /** The table names the component asked a die for, in order. */
 const asked: string[] = []
 
-mock.module('../../../utils/dice', () => ({
+mock.module('../../../lib/rollTableDice', () => ({
   ...realDice,
   rollD20: () => nextRoll(),
   dieForTable: async (tableName: string) => {
@@ -69,16 +69,16 @@ mock.module('../../../utils/dice', () => ({
 const { RollTable } = await import('../RollTable')
 
 afterAll(async () => {
-  mock.module('../../../utils/dice', () => realDice)
+  mock.module('../../../lib/rollTableDice', () => realDice)
 
   // Prove the restore actually took. A leaked mock would surface as "roll
   // queue exhausted" thrown from some unrelated file — exactly the confusing,
   // far-away failure the capture-and-restore dance exists to prevent. Assert
   // it here instead.
-  const { rollD20 } = await import('../../../utils/dice')
+  const { rollD20 } = await import('../../../lib/rollTableDice')
   const total = rollD20()
   if (!Number.isInteger(total) || total < 1 || total > 20) {
-    throw new Error(`utils/dice was not restored: rollD20() gave ${total}`)
+    throw new Error(`rollTableDice was not restored: rollD20() gave ${total}`)
   }
 })
 

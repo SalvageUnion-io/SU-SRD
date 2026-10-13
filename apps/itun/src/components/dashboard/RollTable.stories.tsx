@@ -1,12 +1,12 @@
+import { color, font, fontSize, space } from 'component-lib/design/tokens'
+import type { Story } from 'component-lib/stories/harness'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, font, fontSize, space } from '../../design/tokens'
-import type { Story } from '../../stories/_harness'
 import { RollTable } from './RollTable'
 
 export default {
-  title: 'Compositions/Catalog/Roll Table',
+  title: 'Compositions/Dashboard/Roll Table',
 }
 
 // A real SRD roll table drives the gallery.

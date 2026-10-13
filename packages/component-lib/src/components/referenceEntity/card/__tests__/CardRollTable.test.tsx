@@ -1,6 +1,8 @@
 /**
  * The embedded roll table (board E4): one bar in every state, the result as a
- * readout whether or not the table is open, and the rolled row marked.
+ * readout whether or not the table is open, and the rolled row marked. It is
+ * the shared `RollTableInstrument`, banded in its surface's tone, and a
+ * columns table is the same instrument.
  */
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -8,6 +10,12 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
 import type { AnnouncedRoll } from '../../../../entity/entitySurfaceContext'
 import { CardRollTable } from '../CardRollTable'
+
+const callsigns = () => {
+  const table = SalvageUnionReference.RollTables.getByName('Callsign Table')?.table
+  if (!table) throw new Error('Callsign Table fixture missing')
+  return table
+}
 
 const coreMechanic = () => {
   const table = SalvageUnionReference.RollTables.getByName('Core Mechanic')?.table
@@ -143,7 +151,7 @@ describe('CardRollTable', () => {
     expect(screen.queryByText(/You rolled · lands on/)).toBeNull()
   })
 
-  test('the rows are banded d20: paper, then the cream band, in turn', () => {
+  test('the rows are banded d20: paper, then the band (cream with no tone), in turn', () => {
     render(
       <CardRollTable
         table={coreMechanic()}
@@ -156,10 +164,53 @@ describe('CardRollTable', () => {
     const fills = screen.getAllByRole('listitem').map((row) => row.style.backgroundColor)
     expect(fills).toEqual([
       'var(--color-paper)',
-      'var(--color-band-cream)',
+      'var(--su-roll-band)',
       'var(--color-paper)',
-      'var(--color-band-cream)',
+      'var(--su-roll-band)',
       'var(--color-paper)',
     ])
+    const instrument = screen.getAllByRole('listitem')[0]?.closest('.su-roll') as HTMLElement
+    expect(instrument.style.getPropertyValue('--su-roll-band')).toBe('var(--color-band-cream)')
+  })
+
+  test('on a toned surface the band is the tone’s, cut into paper', () => {
+    render(
+      <CardRollTable
+        table={coreMechanic()}
+        name="Core Mechanic"
+        size="medium"
+        collapsible={false}
+        disabled={false}
+        tone="var(--color-pilot)"
+      />
+    )
+    const fills = screen.getAllByRole('listitem').map((row) => row.style.backgroundColor)
+    expect(fills[0]).toBe('var(--color-paper)')
+    expect(fills[1]).toBe('var(--su-roll-band)')
+    const instrument = screen.getAllByRole('listitem')[0]?.closest('.su-roll') as HTMLElement
+    expect(instrument.style.getPropertyValue('--su-roll-band')).toBe(
+      'color-mix(in srgb, var(--color-pilot) 25%, var(--color-paper))'
+    )
+  })
+
+  test('a columns table is the same instrument: the bar, the grid, a marked cell', () => {
+    render(
+      <CardRollTable
+        table={callsigns()}
+        name="Callsign Table"
+        size="large"
+        collapsible={false}
+        disabled={false}
+        tone="var(--color-pilot)"
+      />
+    )
+    expect(screen.getByText('Roll twice:')).toBeTruthy()
+    const grid = screen.getByRole('table', { name: 'Callsign Table' })
+    expect(grid.querySelectorAll('tbody tr')).toHaveLength(20)
+    expect(screen.getByText('Sparkles')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Roll on this table' }))
+    expect(screen.getByText(/You rolled · column/)).toBeTruthy()
+    expect(grid.querySelectorAll('td[aria-current="true"]')).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Reroll on this table' })).toBeTruthy()
   })
 })

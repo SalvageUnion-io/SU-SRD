@@ -1,7 +1,7 @@
+import { digestColumnsTable } from 'component-lib'
 import type { SURefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary, SalvageUnionReference } from 'salvageunion-reference'
 import type { ColumnsTablePageData } from '../lib/columnsTablePage'
-import { digestColumnsTable } from '../lib/columnsTablePage'
 import { ColumnsTableView } from './ColumnsTableView'
 import { ColumnsTableIsland } from './islands/ColumnsTableIsland'
 

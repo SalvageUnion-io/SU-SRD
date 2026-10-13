@@ -1,15 +1,15 @@
-import { Button } from 'component-lib'
+import { Button, CHAPTER_BAND_COLOR, RollTableInstrument } from 'component-lib'
 import { NO_EFFECT } from 'salvageunion-reference'
 import { rangeLabel, rowForRoll } from '../lib/rollTablePage'
 import type { ScreenReference, ScreenTable } from '../lib/screenPage'
 import { MentionProse } from './MentionProse'
-import { RollBands } from './RollBands'
 
 /**
  * The Mediator Screen's panels (`/screen/`): each table the Quick Reference
  * Sheet sets on its first page, at a glance, with a Roll that marks its row
- * where the table sits. A table's bands are the roll-table page's own
- * (`RollBands`), at `compact`.
+ * where the table sits. A table is the shared `RollTableInstrument`, the one
+ * every card, guide step and roll-table page draws, at `small` and banded in
+ * the rules tone of the page's band.
  *
  * Presentational, so the server and the island draw the same panel: the
  * server renders a table with no roll and an inert button (the bands are real
@@ -67,7 +67,16 @@ export function ScreenTableView({ panel, roll, onRoll }: ScreenTableViewProps) {
         </p>
       </div>
       <div className="srd-screen__table">
-        <RollBands name={panel.title} rows={data.rows} roll={roll} hit={hit} size="compact" />
+        <RollTableInstrument
+          name={panel.title}
+          size="small"
+          tone={CHAPTER_BAND_COLOR.rules}
+          table={{
+            kind: 'bands',
+            rows: data.rows.map((row) => ({ ...row, value: <MentionProse parts={row.value} /> })),
+            mark: hit && roll !== null ? { key: hit.key, roll } : undefined,
+          }}
+        />
       </div>
     </section>
   )

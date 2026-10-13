@@ -97,14 +97,23 @@ export function PatternProse({
   content,
   context,
   onPage = false,
+  note,
 }: {
   name: string
   content: SURefObjectContentBlock[]
   context: CardProseContext
   /** On its own page the band's title already names the pattern: no stamp. */
   onPage?: boolean
+  /**
+   * A closing sentence the book prints under the pattern's prose — a legal
+   * starting pattern's (`LEGAL_STARTING_PATTERN_NOTE`).
+   */
+  note?: string
 }) {
-  if (onPage) return <CardProse body={content} context={context} />
+  const body: SURefObjectContentBlock[] = note
+    ? [...content, { type: 'paragraph', value: note }]
+    : content
+  if (onPage) return <CardProse body={body} context={context} />
   return (
     <div className="su-ec-block" style={STACK}>
       {/* `.su-ec-name-tab` (fit-content) scopes the title to ITSELF on a card: the solid Slab's leader
@@ -113,7 +122,7 @@ export function PatternProse({
           pattern block below it. Shrink-to-fit collapses the rule to its
           `min-w-3` stub, leaving a tight name tab. */}
       <Slab variant="solid" label={normalizePatternName(name)} className="su-ec-name-tab" />
-      <CardProse body={content} context={context} />
+      <CardProse body={body} context={context} />
     </div>
   )
 }

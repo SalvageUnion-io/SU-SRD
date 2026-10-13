@@ -72,3 +72,28 @@ export function digestRollTable(table: RollTableType): DigestedRollTable[] {
     })
     .filter((item): item is DigestedRollTable => item.value !== undefined)
 }
+
+/** One column of a two-roll `columns` table: its d20 range ("9-12") and its entries. */
+export type DigestedColumnsColumn = {
+  key: string
+  entries: { key: string; value: string }[]
+}
+
+const isColumnsEntry = (value: unknown): value is { value: string } =>
+  !!value && typeof value === 'object' && typeof (value as { value?: unknown }).value === 'string'
+
+/**
+ * A `columns` table's columns (Callsign: one d20 picks the column, a second
+ * the entry), in the book's order; empty for any other table. Shared by the
+ * entity card's table (`CardRollTable`) and the SRD's roll-table page.
+ */
+export function digestColumnsTable(table: SURefObjectTable): DigestedColumnsColumn[] {
+  if (table.type !== 'columns') return []
+  return Object.entries(table).flatMap(([key, column]): DigestedColumnsColumn[] => {
+    if (key === 'type' || !column || typeof column !== 'object') return []
+    const entries = Object.entries(column).flatMap(([entryKey, entry]) =>
+      isColumnsEntry(entry) ? [{ key: entryKey, value: entry.value }] : []
+    )
+    return entries.length > 0 ? [{ key, entries }] : []
+  })
+}

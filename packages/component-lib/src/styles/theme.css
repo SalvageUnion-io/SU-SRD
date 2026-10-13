@@ -416,11 +416,25 @@
   --tone-card-ink: var(--color-ink);
 }
 
+/* POSTER TEXT ON THE TONE — the `onTone` rule (ruleset §3.8) as two
+   variables per sheet, for the bands that carry text: the wizard banner, the
+   mode chooser's h1 and the guided ModeDoor.
+     --tone-band     the band a tone paints when it carries text (`textBand`):
+                     the tone itself, or crawler pink's deeper crawler band.
+     --on-tone-band  the foreground on it (`onTone`): ink or paper, whichever
+                     contrasts more.
+   Paper on the tone measured 2.4:1 on pilot and ink 4.17:1 on crawler pink;
+   these pairs measure 4.5:1 and over. `contrast.test.ts` ("poster text")
+   reads these rules and holds them to `onTone` and to 4.5:1. They follow the
+   sheet's default tone: a `--sheet-tone` override does not re-pick them. */
+
 .sheet--pilot {
   --tone-default: var(--color-sheet-pilot);
   --tone-deep: var(--color-sheet-pilot-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
   --ground-2: oklch(from var(--tone) 0.985 0.012 h);
+  --tone-band: var(--tone);
+  --on-tone-band: var(--color-ink);
 }
 
 .sheet--mech {
@@ -428,6 +442,8 @@
   --tone-deep: var(--color-sheet-mech-deep);
   --ground: oklch(from var(--tone) 0.955 0.022 h);
   --ground-2: oklch(from var(--tone) 0.985 0.01 h);
+  --tone-band: var(--tone);
+  --on-tone-band: var(--color-ink);
 }
 
 .sheet--crawler {
@@ -435,6 +451,8 @@
   --tone-deep: var(--color-sheet-crawler-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
   --ground-2: oklch(from var(--tone) 0.985 0.012 h);
+  --tone-band: var(--color-crawler-band);
+  --on-tone-band: var(--color-paper);
 }
 
 /* Mobile-first touch targets (ruleset §4.6: every target is at least 44px

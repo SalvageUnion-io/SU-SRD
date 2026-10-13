@@ -35,7 +35,7 @@
  * Upkeep bay (`CrawlerSlot.tsx`), once per Downtime.
  */
 
-import { Badge, Button, Content, entityGuideToneColor, RollTable } from 'component-lib'
+import { Badge, Button, Content, entityGuideToneColor } from 'component-lib'
 import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import {
   allDowntimeSteps,
@@ -55,6 +55,7 @@ import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import { RollTable } from './RollTable'
 import type { DowntimeHandle } from './useDowntime'
 
 /** The guideType that identifies the Union Crawler Downtime procedure. */
