@@ -378,11 +378,14 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
   // live in the action that IS it. An ability's description is its lead.
   const folded = model.folded ? SalvageUnionReference.get('actions', model.folded.id) : undefined
   const foldedProse = folded ? toEntityModel(folded as SURefMetaEntity).prose : []
+  // Where the entry and its self-action carry the same paragraph (pilot
+  // equipment, some NPCs and squads), the card prints it once.
   const own = contentMarkdown(model.prose, chassisName)
+  const ownSet = new Set(own)
   const prose = [
     ...(model.kind.domain === 'pilot' && model.lead && own.length === 0 ? [model.lead] : []),
     ...own,
-    ...contentMarkdown(foldedProse, chassisName),
+    ...contentMarkdown(foldedProse, chassisName).filter((paragraph) => !ownSet.has(paragraph)),
   ]
 
   // A chassis ability shows only on the chassis and pattern PAGES; a card in
