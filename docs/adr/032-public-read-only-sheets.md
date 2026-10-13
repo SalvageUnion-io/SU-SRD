@@ -151,9 +151,9 @@ no account to open, is always current, and requires no publishing step.
   without their contributions ([ADR-029](029-contribution-model.md)).
   A live query runs with the whole `softLinks` graph in reach and can resolve
   the piloting pilot properly.
-- **Solo still works and is untouched.** `publicRead` is a Convex column, so a
-  Solo user simply has no public sheets — the toggle is absent rather than
-  broken, exactly as every other account-shaped feature behaves.
+- **~~Solo still works and is untouched.~~ Withdrawn by
+  [ADR-034](../ARCHITECTURE.md#decisions)**: there is no Solo mode; signed out
+  is read-only.
 - **A public sheet is crawlable in principle.** ITUN ships no `robots.txt` and no
   sitemap, and `/p/:kind/:appId` is a client-rendered route with no link graph
   pointing at it — so it is discoverable by nobody in

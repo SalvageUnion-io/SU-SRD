@@ -1,6 +1,6 @@
 /**
  * When an island mounts, by its `data-client` directive (the island protocol in
- * apps/srd/CLAUDE.md). Its own module so it can be tested without importing
+ * apps/srd/ssg/DESIGN.md, item 5, Scheduling). Its own module so it can be tested without importing
  * `islands.client.ts`, which mounts every island on the page as it loads.
  */
 

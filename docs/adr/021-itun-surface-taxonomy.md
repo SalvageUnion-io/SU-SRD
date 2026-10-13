@@ -13,7 +13,7 @@ game rules. **Where it conflicts with any prior ADR, this ADR wins** (scope and
 the specific overrides are listed under [Supersession](#supersession--precedence)).
 
 Built: Guided Creation on the Wizard's create path, the Dashboard and
-ADR-022's Change Log. The living, authoritative placement table is the matrix in
+ADR-022's Change Log. The living, authoritative placement table is
 [rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) — keep
 placements in sync **there**, not by re-editing the summary below. This ADR
 records _why_ the taxonomy exists; the arch doc records _what goes where_.
@@ -64,7 +64,7 @@ procedure.
 | **Frozen**          | Public sheet (`/p/`), a crewmate's sheet     | Read-only, live (snapshots retired by ADR-036).                      |
 | **Adjudicate**      | Mediator Dashboard (`/mediator/$gameId`)     | Mediator tooling; surfaces rules, enforces nothing on player sheets. |
 
-**Rule placement** (full matrix in
+**Rule placement** (summary in
 [rules and ITUN surfaces](../ARCHITECTURE.md#surfaces)):
 
 - **Lifecycle transactions** (use a system → EP/Heat/uses, Push, Scrap/TP costs,
@@ -110,13 +110,13 @@ Concretely it overrides:
   system ([ADR-008](../ARCHITECTURE.md#decisions)'s activation) relocate to
   the Dashboard; the Live Sheet becomes pure Free Edit plus overrides.
 
-Prior ADRs on **orthogonal concerns remain in force on their own subjects** —
-[ADR-001](../ARCHITECTURE.md#decisions) (the local-first foundation this rests
-on), [ADR-002](../ARCHITECTURE.md#decisions)/[ADR-003](../ARCHITECTURE.md#decisions)
-(persistence), [ADR-004](../ARCHITECTURE.md#decisions) (snapshots),
+Prior ADRs on **orthogonal concerns remain in force on their own subjects**:
 [ADR-005](../ARCHITECTURE.md#decisions)/[ADR-006](../ARCHITECTURE.md#decisions)
-(data & rules math), [ADR-011](../ARCHITECTURE.md#decisions)–[ADR-014](../ARCHITECTURE.md#decisions)
-(infra). This ADR only takes precedence where a prior decision speaks to _how hard
+(data & rules math), [ADR-011](../ARCHITECTURE.md#decisions),
+[ADR-013](../ARCHITECTURE.md#decisions), [ADR-014](../ARCHITECTURE.md#decisions)
+and [ADR-031](../ARCHITECTURE.md#decisions) (infra). ADR-001–004 and ADR-012,
+once listed here, are superseded (see [Decisions](../ARCHITECTURE.md#decisions)).
+This ADR only takes precedence where a prior decision speaks to _how hard
 a rule is enforced on which surface_:
 
 - [ADR-007](007-automation-boundary.md) (automation boundary) is **retained and

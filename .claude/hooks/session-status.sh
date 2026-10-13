@@ -17,7 +17,7 @@
 #   * Ahead/behind is counted against the branch this one merges into, from
 #     packages/gates/lib/baseBranch.ts ($SU_BASE, the PR's base, the upstream,
 #     else the nearer of main and design-refresh) — the same base pre-push
-#     diffs against. Against main, a branch off design-refresh was "145 ahead".
+#     diffs against.
 
 set -uo pipefail
 

@@ -9,8 +9,7 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 
 - **Runtime:** a Cloudflare Worker (workerd); Bun runs the tooling and tests
 - **Library:** `@discordjs/builders` (commands + Components V2),
-  `@discordjs/rest`, `discord-api-types`. **Not `discord.js`** — nothing here
-  needs its gateway client.
+  `@discordjs/rest`, `discord-api-types`.
 - **Data:** `salvageunion-reference` workspace package. From `component-lib` it
   imports only the dependency-free `component-lib/product` subpath (the product's
   names), never the barrel.
@@ -23,27 +22,14 @@ deployed by `wrangler.jsonc`). There is no Node gateway and no `start` script;
 Sentry through `observability/cloudflare`. Wire types and `Routes` come from
 `discord-api-types`; the Worker and `deploy-commands.ts` talk to Discord through
 `@discordjs/rest`; reply payloads are the local `ReplyPayload` /
-`EditReplyPayload` in `src/commands/interactions.ts`. Never add `discord.js`,
-even for a type: its value import cannot run on workerd.
+`EditReplyPayload` in `src/commands/interactions.ts`. Never add `discord.js`
+(the gateway client nothing here needs), even for a type: its value import
+cannot run on workerd.
 
 ## Structure
 
-- `src/worker/` - THE entry point (`index.ts`), request verification, and the
-  adapter from raw interactions to the narrow types in `src/commands/interactions.ts`
-- `src/commands/` - Slash command definitions and handlers
-- `src/buttons.ts` + `src/customId.ts` - stateless button routing (`su:<action>:<payload>`)
-- `src/container.ts` - the Components V2 seam: pure `ContainerData` → `ContainerBuilder`,
-  and `entityCard()`, the one render for sheets and Game cards
-- `src/lookupCard.ts` - the `/su lookup` card: the entry's one Discord card
-  (`discordEntryCard` in `salvageunion-reference`, block for block the SRD's
-  Component Embed) plus its roll buttons. A pattern is its own entry.
-- `src/gameCards.ts` - Game cards (`data → entityCard`)
-- `src/termFinder.ts`, `src/commands/lookUpMessage.ts` - "Look up in Salvage
-  Union", the message context menu
-- `src/rollContainer.ts`, `src/errorContainer.ts`, `src/inviteContainer.ts`,
-  `src/screenContainer.ts` - surfaces that author their own blocks
-- `src/deploy-commands.ts` - Command registration CLI (run from source); the
-  only file that reads `process.env`
+`src/container.ts` is the one Components V2 seam (see `.claude/rules/discord-bot.md`);
+`src/termFinder.ts` + `src/commands/lookUpMessage.ts` are the "Look up in Salvage Union" message context menu.
 
 ## Commands
 

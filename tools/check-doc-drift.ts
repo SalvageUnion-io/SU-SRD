@@ -963,9 +963,7 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 11_682,
-  /** With its `@AGENTS.md` import. */
-  'CLAUDE.md': 10_167,
+  'apps/itun/CLAUDE.md': 8_266,
 }
 
 /**
@@ -1047,9 +1045,9 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  * so); raise one only on purpose, saying why in the commit.
  */
 const SESSION_CEILINGS: Record<string, number> = {
-  srd: 30_748,
-  'itun+component-lib': 71_591,
-  bot: 27_255,
+  srd: 25_183,
+  'itun+component-lib': 64_524,
+  bot: 23_148,
 }
 
 // ─── runner ─────────────────────────────────────────────────────────────────

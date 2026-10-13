@@ -63,21 +63,11 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 
 Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static reference site, a character builder, a Discord bot, and shared packages.
 
-**Workspace structure:**
+Workspaces: [README.md](README.md)'s table; dependency graph: [packages](docs/ARCHITECTURE.md#packages).
 
-- `apps/srd/` - Static SRD reference site: in-house SSG on Vite, React 19 islands. No auth, no backend. Read [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md) first.
-- `apps/itun/` - Character builder & game manager (React 19, TanStack Router, Zustand, Convex, Vite). Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md); storage modes and the account gate are [`.claude/rules/itun-data-access.md`](.claude/rules/itun-data-access.md) — **read it before touching data.**
-- `apps/catalog/` - Dev-only story catalog: `bun run stories`.
-- `apps/discord-bot/` - Discord bot on a Cloudflare Worker (HTTP interactions, Components V2 replies); also an ITUN Game client.
-- `apps/su-assets/` - Worker (`assets.salvageunion.io`) serving licensed artwork from R2 `su-lp-assets`, `-440`/`-880` via Cloudflare Images. Image bytes never live in git; both apps' artwork depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
-- `packages/component-lib/` - Shared React components (Base UI primitives, entity display system, typography, tokens). No build step.
-- `packages/gates/` - The gates' library, imported by `tools/` and the apps' e2e.
-- `packages/itun-domain/` - schemas and rules shared by ITUN, Convex and the bot.
-- `packages/observability/` - Sentry wiring: `/cloudflare` for Workers, `/browser` for both apps.
-- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON game data. Ships TS source; `schemas/` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
-- `tools/` - The gates' CLI entry points and baselines: [`tools/CLAUDE.md`](tools/CLAUDE.md).
+- Licensed artwork bytes never live in git: `apps/su-assets/` serves them from R2 (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
 
-The dependency graph is [packages](docs/ARCHITECTURE.md#packages). "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#display) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
+"Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#display) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
 
 ## Code Conventions
 
@@ -86,7 +76,6 @@ The dependency graph is [packages](docs/ARCHITECTURE.md#packages). "Build & Vali
 - Game-data types come from `salvageunion-reference` as `SURef*` (`SURefChassis`, `SURefSchemaName`, …).
 - Generated files (`routeTree.gen.ts`, `schemas/*.schema.json`, `lib/generated/`) are never hand-edited.
 - When a prop must reach nested entity cards, pass it explicitly (there is no shared display context; card size is the `size` × `extent` pair in `packages/component-lib/src/components/containers/displayMode.ts`) and typecheck immediately.
-- **Sentry fails silently**: no DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin blocks every event. The rules are [`packages/observability/CLAUDE.md`](packages/observability/CLAUDE.md)'s, gated by the `observability` check; **change the CSP or Sentry region in every source for that app together.**
 
 ### Data conventions
 

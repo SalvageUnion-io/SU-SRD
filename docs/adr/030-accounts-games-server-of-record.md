@@ -63,11 +63,12 @@ Dashboard"**, and a **"dedicated Mediator layer"** as out of scope and
 _explicitly gated on revisiting ADR-001_. Nothing here is a surprise to the
 architecture; this ADR opens the gate ADR-021 described.
 
-Three existing decisions turned out to be well-shaped for this and are carried
-over unchanged:
+Three existing decisions turned out to be well-shaped for this and were carried
+over:
 
-- **[ADR-004](../ARCHITECTURE.md#decisions)** (immutable, unauthenticated
-  snapshots) remains the account-free way to hand someone a pilot. It is untouched.
+- **~~[ADR-004](../ARCHITECTURE.md#decisions) (immutable, unauthenticated
+  snapshots) remains the account-free way to hand someone a pilot.~~ Retired by
+  [ADR-036](../ARCHITECTURE.md#decisions).**
 - **[ADR-027](../ARCHITECTURE.md#decisions)/[ADR-028](../ARCHITECTURE.md#decisions)**
   made partner ownership _intrinsic_ — partners ride their host through snapshots
   and export bundles with no orphan cleanup. That ports to per-user ownership with

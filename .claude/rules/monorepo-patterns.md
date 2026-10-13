@@ -17,10 +17,9 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
   is every workspace — nothing here is published to npm
   ([ADR-014](../../docs/ARCHITECTURE.md#decisions):
   the dataset's public interface is the served JSON API).
-- One version, one place: a dev tool more than one workspace runs is a root
-  devDependency, and a runtime package more than one workspace imports is a
-  root `workspaces.catalog` entry, named `catalog:` per manifest
-  ([declare what you import](../../docs/ARCHITECTURE.md#dependencies)).
+- One version, one place: see
+  [dependencies](../../docs/ARCHITECTURE.md#dependencies) (root `catalog:` /
+  root devDependency).
 - Workspace dependencies use the `workspace:*` protocol
   (e.g. `"salvageunion-reference": "workspace:*"`).
 - Run `bun install` from the root to install for all workspaces.
@@ -51,13 +50,7 @@ on the same commit, per file, before changing the split or the shard count.
 
 ## Generated files
 
-Generated files — `routeTree.gen.ts` from TanStack Router, `schemas/*.schema.json`
-and `lib/generated/` in `salvageunion-reference` — are lint-ignored and must not
-be hand-edited. `Edit(...)` deny rules in `.claude/settings.json` block edits to them,
-and `bun run check generated` (`tools/check-generated.ts`) fails on drift of the
-committed ones — locally, at pre-push and in CI. The reference package's
-`schemas/` and `lib/generated/` are gitignored instead: never
-commit them; the package's `su-ref-generate` bin (`packages/salvageunion-reference/tools/ensureGenerated.ts`) rebuilds them,
-once per run: postinstall, the root `typecheck`, `test` and `build`, `bun run check`,
-srd's, ITUN's and the catalog's `dev`, the test preload and the package's own
-`typecheck`. Every other workspace's `typecheck` is plain `tsc -b`.
+Generated output and where `su-ref-generate` runs:
+`packages/salvageunion-reference/CLAUDE.md` (drift: `bun run check generated`).
+Never add `su-ref-generate` to another workspace's script: every workspace's
+`typecheck` except the reference package's is plain `tsc -b`.

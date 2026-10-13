@@ -59,8 +59,7 @@ What an editor needs:
   stylesheets stay unlayered so an app rule outranks a package rule
   (`package-stylesheet-import` guards it). Catalog-only CSS goes in
   `src/stories/_stories.css`.
-- **No `.pc-*` class** (the retired Dashboard scope); `dash-class-contract`
-  holds `su-dash-*` usage and definitions to each other.
+- `dash-class-contract` holds `su-dash-*` usage and definitions to each other.
 - **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a
   real key press. Checking layer order by block position lies: read the
   `@layer` declaration.

@@ -2,30 +2,16 @@
 
 React app for building and running Salvage Union pilots, mechs, and crawlers.
 
-**Storage modes (Solo / Connected / Disconnected / Outdated) — read them before
-touching data.** They live in
-[`.claude/rules/itun-data-access.md`](../../.claude/rules/itun-data-access.md),
-which loads with the stores, hooks, `src/lib/connection/`, `convex/` and
-`e2e/`. In short: signed out, ITUN is read-only and holds nothing; signed in,
-Convex is the truth and the stores hold its rows in memory. Nothing
-player-owned is kept on the device
+**Storage modes — read
+[`.claude/rules/itun-data-access.md`](../../.claude/rules/itun-data-access.md)
+before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
+`convex/` and `e2e/`). Nothing player-owned is kept on the device
 ([no device cache](../../docs/ARCHITECTURE.md#no-device-cache)).
 
-**One account-free way to share: the public sheet
-([ADR-032](../../docs/ARCHITECTURE.md)).** A **live**
-read-only page at `/p/:kind/:appId`, opt-in per entity via the `publicRead`
-Convex column, served by one deliberately unauthenticated query
-(`convex/publicSheet.ts`). Off by default; turning it off revokes everywhere at
-once, because the URL is derived rather than minted.
-
-**Snapshots are retired**
-([ADR-036](../../docs/ARCHITECTURE.md)): an old `/s/:id` link shows a
-static "retired" page and reads nothing. Nothing binds the `su-itun-snapshots`
-R2 bucket; deleting it is the owner's call, never an agent's.
-
-Every read-only sheet (a crewmate's at `/sheet/:kind/:id`, the public one)
-is the live `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.model.ts`.
-No others.
+- Never delete the `su-itun-snapshots` R2 bucket: that is the owner's call.
+- Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live
+  `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.model.ts`;
+  build no other.
 
 ## Stack
 
@@ -49,13 +35,8 @@ No others.
   change (`src/lib/sw/softUpdate.ts`); a breaking one raises the build floor
   (`convex/buildFloor.ts`, by hand), which reloads stale tabs.
 
-## Persistence (read before touching data)
+## Persistence and state (read before touching data)
 
-- Record kinds (`src/stores/records.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
-  `mechPatterns`, `encounterNpcs`. The Change Log
-  ([ADR-022](../../docs/ARCHITECTURE.md)) has no device store: it is
-  the Convex `changeLog` table, written by `commitChangeLog` and read by
-  `changeLog.forEntity`.
 - **Zod schemas (`packages/itun-domain/src/schemas/`, imported as
   `itun-domain/schemas/*`) are the source of truth** for entity shape;
   every create, update and adopted server row parses strictly
@@ -64,11 +45,6 @@ No others.
 - Records store **slug references** into `salvageunion-reference` (e.g.
   `classRef: 'salvager'` on a pilot), never copies of game data; resolve them
   against `SalvageUnionReference` at render time.
-
-## State flow (`src/stores/`)
-
-- `entityStore` (pilots/mechs/crawlers/npcs/softLinks), plus `activeContainerStore`,
-  `patternStore` and `encounterStore`.
 - **There are no workspaces.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** — encoded as one
   nullable `gameId` and resolved through `itun-domain/container`. Filter with `containerOf` +
@@ -79,51 +55,25 @@ No others.
 - **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md)):
   draw soft links only via `assignLink`; the rules are
   `itun-domain/links/linkRules`, shared with Convex.
-- **Hydration:** `hydrate(type)` waits for `ShelfSync`'s first answer, or
-  resolves at once when no rows are coming (`src/stores/rowArrival.ts`); reads
-  are synchronous ([ADR-003](../../docs/ARCHITECTURE.md)).
-- **Server first:** `update`/`create`/`delete` commit to Convex, then update
-  in-memory state; a refused write changes nothing, and
-  other tabs hear it from Convex
-  ([ADR-034](../../docs/ARCHITECTURE.md)).
 
 ## Combat / rules
 
-- Pure math lives in `salvageunion-reference` — `lib/rules/` (heat check, take
-  damage, core mechanic, derived maxima, …); import it from the
-  `salvageunion-reference/rules` subpath export, never the main barrel and
-  never through a local re-export. `src/lib/rules/` holds only ITUN's
-  app-local rules: e.g. `heatCheck.ts` adds `heatCheckPatch` (effect →
-  `Partial<Mech>`). Every die is component-lib's Randsum `utils/dice.ts`.
-- **Play actions live on the Dashboard, not the Live Sheet.** Activation and
-  heat check are assembled as patches in
-  `src/lib/rules/playActions.ts` (`activationPatch`,
-  `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
-  `useActionsDeck.ts` and the slots (`MechSlot.tsx`, `PilotSlot.tsx`,
-  `CrawlerSlot.tsx`) as one write-through
-  ([ADR-008](../../docs/ARCHITECTURE.md),
-  [ADR-021](../../docs/ARCHITECTURE.md)).
-- Non-destructive heat-check outcomes auto-apply; destructive condition changes
-  stay player-driven via the card status badge (`StatusBadge` from
-  `component-lib`, wired through `MechItemCard.tsx` → `cycleItemCondition` in
-  `src/components/sheet/MechSheet.tsx`)
-  ([ADR-007](../../docs/ARCHITECTURE.md),
-  [ADR-009](../../docs/ARCHITECTURE.md)).
-- The one sheet-local play control is `CrawlerEconomyControl.tsx`.
-- Full picture: [combat loop](../../docs/ARCHITECTURE.md#combat).
+- Pure math: the `salvageunion-reference/rules` subpath, never the main barrel
+  or a local re-export; `src/lib/rules/` is ITUN's app-local rules only. Every
+  die is component-lib's `utils/dice.ts`.
+- Play actions go on the Dashboard; the one sheet-local play control is
+  `CrawlerEconomyControl.tsx`.
+- Destructive condition changes stay player-driven via `StatusBadge` →
+  `cycleItemCondition`.
+- Full picture: [dashboard §5](../../docs/architecture/dashboard.md),
+  [combat loop](../../docs/ARCHITECTURE.md#combat).
 
 ## Conventions
 
 - Reuse `component-lib` components before building new UI; choices stay
   persistence-agnostic in the shared library — ITUN owns the selections
   ([ADR-010](../../docs/ARCHITECTURE.md)).
-- **Do not add a Sentry SDK to `convex/`.** The browser bundle
-  (`src/lib/observability.ts`) and the Worker (`src/worker/index.ts`, via
-  `observability/cloudflare`) each own one; Convex uses its first-party
-  Exception Reporting integration (a dashboard toggle, no code — queries and
-  mutations have no `fetch`). **A quiet Sentry project is not evidence of a
-  healthy backend:** re-verify by forcing an error and comparing against
-  `bunx convex logs --deployment alex-jarvis:suref-itun:prod`. Runbook:
+- No Sentry SDK in `convex/`; verify reporting by probe, see
   [convex-ops](../../.claude/skills/convex-ops/SKILL.md).
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
   is not.** Convex redacts every non-`ConvexError` throw to
@@ -134,15 +84,8 @@ No others.
   client, say a failed write with `useServerAction` / `failureMessage`
   (`src/lib/connection/useServerAction.ts`) — never by string-matching
   `'Server Error'` or rendering the caught error's text.
-- **Build every Convex mutation with `mutation` / `internalMutation` from
-  `convex/model/entities.ts`, never from `_generated/server`.** Those wrap the
-  generated builders with the triggers that keep `games.summary` (a Game's
-  counts) current; a mutation built without them writes rows the summary
-  never hears about. Biome enforces it inside `convex/`. Every public
-  query/mutation also needs a caller in `src/` —
+- Every public Convex query/mutation needs a caller in `src/` —
   `tools/check-convex-callers.ts` fails on one nobody calls.
-- **Render crashes are reported once, by `createRoot`'s error hooks, never from
-  an `errorComponent`**; see `.claude/rules/tanstack-router.md`.
 - **A caught error is either reported or explained — never just dropped.**
   Catching is what keeps an error away from Sentry's global handlers, so a
   `catch` must do one of three things: produce an outcome the user or caller

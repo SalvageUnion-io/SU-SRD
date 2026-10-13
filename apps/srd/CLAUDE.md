@@ -4,11 +4,8 @@ The static SRD reference site for Salvage Union game data. Read-only — choices
 ephemerally/non-editably
 ([ADR-010](../../docs/ARCHITECTURE.md#decisions)).
 
-> **srd is not an Astro app** — it runs on an in-house static-site generator in
-> [`ssg/`](ssg/) ([ADR-031](../../docs/ARCHITECTURE.md#decisions), superseding
-> ADR-012). No `.astro` files, no `astro.config.mjs`, no `client:*` directives,
-> no file-based routing. The contract is [`ssg/DESIGN.md`](ssg/DESIGN.md) —
-> **read it first.** This file is the canonical statement of this; others point here.
+In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decisions)); the contract is
+[`ssg/DESIGN.md`](ssg/DESIGN.md) — **read it first.**
 
 ## Stack
 
@@ -26,23 +23,6 @@ ephemerally/non-editably
   `/build*` on the same host is ITUN's Worker route, not srd's (ADR-048).
 
 ## Architecture
-
-### The SSG (`ssg/` — build-time only, never imported by client code)
-
-| file            | role                                                                          |
-| --------------- | ----------------------------------------------------------------------------- |
-| `types.ts`      | `PageModule` / `EndpointModule` / `RouteContext` / `DocumentMeta`             |
-| `routes.ts`     | the **explicit** route registry                                               |
-| `endpoints.ts`  | non-HTML outputs (`*.json`, `llms.txt`, search index)                         |
-| `render.tsx`    | render one route → HTML string                                                |
-| `document.tsx`  | the `<html>` shell: head tags, JSON-LD, script/style injection                |
-| `build.ts`      | orchestrator: vite client build → render every route → emit                   |
-| `dev.ts`        | dev server; Vite in middleware mode, **same `render.tsx` path**               |
-| `sitemap.ts`    | `sitemap-index.xml` + `sitemap-0.xml`                                         |
-| `vite.config.ts` | the client build: PWA, Sentry source maps, the `react-vendor` chunk          |
-| `pwa.ts`        | workbox options for `vite-plugin-pwa` in `ssg/vite.config.ts`                 |
-| `linkAudit.ts`  | fails the build on an entity link by UUID instead of slug                     |
-| `outputPath.ts` | URL → dist file mapping (`/404` → `404.html`, everything else `…/index.html`) |
 
 ### Routes are registered, not discovered
 
@@ -64,15 +44,6 @@ all — `/greembeem` ships as `public/greembeem/index.html`, which Vite copies
 into `dist` like any public file. Non-HTML outputs are `src/endpoints/*.ts`
 wired through `ssg/endpoints.ts` — **endpoints are not routes.**
 
-### The island protocol
-
-`<Island name client props ssr>` and the per-island table are
-[`ssg/DESIGN.md`](ssg/DESIGN.md)'s. Two that get "helpfully" undone: every
-`src/runtime/islandRegistry.ts` specifier is a **static string literal** (a
-computed one collapses the registry into one eager chunk), and
-**`MobileNavIsland` takes zero props on purpose** (a prop would inline its
-catalog blob into every page).
-
 ## Pages as the Workshop Manual sets them
 
 - **Chapters** (`src/lib/chapters.ts`): the book's five chapters over the
@@ -87,13 +58,12 @@ catalog blob into every page).
 - Page layouts are `src/styles/pages.css`, imported by `global.css` and
   `apps/catalog/src/catalog.css`.
 
-## Hard rules
+## Not in DESIGN.md
 
-[`ssg/DESIGN.md`](ssg/DESIGN.md)'s hard rules hold. What they rest on: a `.css`
-import reachable from SSR does **not** break the build (`ssg/build.ts`'s
-`ssg-css-stub` resolves it to an object), so the stylesheet silently never
-ships. `src/runtime/assets.entry.ts` is likewise the only importer of
-`src/assets/`; pages address the emitted file through `RouteContext.builtAssets`.
+- A `.css` import reachable from SSR builds green, because `ssg/build.ts`'s
+  `ssg-css-stub` resolves it to an object, so the stylesheet silently never ships.
+- `src/runtime/assets.entry.ts` is the only importer of `src/assets/`; pages
+  address the emitted file through `RouteContext.builtAssets`.
 
 ## Verification
 
@@ -108,8 +78,6 @@ smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
 - Search: the build-time `/search-index.json`, matched in the browser by
   `src/lib/searchCompactIndex.ts` with the reference package's ranking
   functions; no ORM ships to the browser. Cmd+K / Ctrl+K focuses it.
-- Dev: `bun run dev` renders through production's `render.tsx` **on purpose**
-  (DESIGN.md rule 5) — never "optimize" it into a client-rendered SPA.
 
 ## Social preview images (og:image)
 

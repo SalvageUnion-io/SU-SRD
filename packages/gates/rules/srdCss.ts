@@ -1,14 +1,14 @@
 /**
  * srd's stylesheet entry rule — the `srd-css` rule set of `tools/check-styling.ts`.
  *
- * `apps/srd/CLAUDE.md` states this as **hard rule 1**: all css is imported from
+ * `apps/srd/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
  * `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
  * else, and `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
  * `src/runtime/Island.tsx` must stay stylesheet-free.
  *
  * ## The rule was enforced by nothing, in either direction
  *
- * Both that file and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
+ * `apps/srd/CLAUDE.md` and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
  * graph **breaks the build**. It does not. Measured under this repo's Bun: a
  * `.css` import in an SSR module resolves and returns an object, exit 0 —
  * including a package import, and including a file with an unresolvable

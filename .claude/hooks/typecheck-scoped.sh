@@ -5,11 +5,8 @@
 # The edited file maps to a set of projects (see `case "$REL"` below), checked
 # by ONE `tsc -b` — never one process per project, which would race to build
 # the shared libraries' declarations into `.tsbuild/`. A referenced library is
-# built first only when it is out of date. Measured warm (TS 7, build mode):
-# an edit inside a project ~0.4–1.6 s (su-assets, tools, srd, itun,
-# discord-bot); a component-lib or salvageunion-reference edit that keeps its
-# declarations ~0.7–0.9 s, one that changes them re-checks the consumers:
-# component-lib ~8 s, salvageunion-reference (every project) ~13 s.
+# built first only when it is out of date; a library edit that changes its
+# declarations re-checks its consumers.
 #
 # A scoped edit also leaves a marker in the git dir, so `typecheck-full.sh`
 # (the Stop hook) runs the whole-repo typecheck once at the end of the turn and
