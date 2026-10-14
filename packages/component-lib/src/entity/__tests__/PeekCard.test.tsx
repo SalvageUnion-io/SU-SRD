@@ -5,6 +5,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
+import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../../components/referenceEntity/card/ReferenceEntityCard'
 import { PeekCard } from '../PeekCard'
@@ -41,7 +42,8 @@ describe('Peek of a chassis ability', () => {
   const action = (name: string) => {
     const found = SalvageUnionReference.getByNameIn('actions', name)
     if (!found) throw new Error(`fixture missing: ${name}`)
-    return found
+    // A Peek opens any ref, an action's included (`PeekHost`).
+    return found as unknown as SURefEntity
   }
 
   test('names its one chassis where the book says [(CHASSIS)]', () => {
