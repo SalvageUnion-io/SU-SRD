@@ -18,7 +18,7 @@ type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
  */
 type StampSize = SizeRung
 /** Stamp plate (`shape="stamp"`). */
-export type StampSurface = 'on-ink' | 'inverse'
+export type StampSurface = 'on-ink' | 'inverse' | 'dashed'
 
 /*
  * Every chip and stamp property lives in a `.su-badge*` class (`styles/index.css`),
@@ -75,6 +75,7 @@ const STAMP_SIZE: Record<StampSize, string> = {
 const STAMP_SURFACE: Record<StampSurface, string> = {
   'on-ink': 'su-badge--on-ink',
   inverse: 'su-badge--inverse',
+  dashed: 'su-badge--dashed',
 }
 
 /** The tech-level swatch: a 14px ink-ruled square before the label. */
@@ -139,6 +140,8 @@ type BadgeStampProps = {
    * The plate the stamp sits on:
    * - `on-ink` (default) — ink block, white text: the canonical label/header.
    * - `inverse` — paper block, ink text, inset ink ring.
+   * - `dashed` — paper block, ink text, a dashed ink edge: the User-made
+   *   stamp (ruleset §3.9, homebrew is dashed).
    */
   surface?: StampSurface
   /**
