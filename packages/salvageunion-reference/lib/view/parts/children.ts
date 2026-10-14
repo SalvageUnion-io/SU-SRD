@@ -14,6 +14,8 @@ import type {
   SURefMetaEntity,
   SURefObjectAnyPattern,
 } from '../../schemas/index'
+import { getEntitySlug } from '../../slug'
+import type { EntityRef } from '../types'
 
 /** A labelled group of nested entities. */
 export type NestedGroup = { label: string; entities: SURefEntity[] }
@@ -76,6 +78,28 @@ export function nestedEntityGroups(entity: SURefMetaEntity): NestedGroup[] {
   }
 
   return [...groups.entries()].map(([label, entities]) => ({ label, entities }))
+}
+
+/**
+ * The drones a chassis's abilities name (the Little Sestra's Sestra Drone),
+ * once each, in the abilities' order; a name the dataset lacks is dropped.
+ */
+export function abilityDrones(abilities: EntityRef[]): EntityRef[] {
+  const drones: EntityRef[] = []
+  for (const ref of abilities) {
+    const record = SalvageUnionReference.get('actions', ref.id)
+    const name = record && 'drone' in record ? record.drone : undefined
+    if (typeof name !== 'string') continue
+    const drone = SalvageUnionReference.getByNameIn('drones', name)
+    if (!drone || drones.some((one) => one.id === drone.id)) continue
+    drones.push({
+      schemaName: 'drones',
+      id: drone.id,
+      slug: getEntitySlug(drone as SURefEntity),
+      name: drone.name,
+    })
+  }
+  return drones
 }
 
 /**

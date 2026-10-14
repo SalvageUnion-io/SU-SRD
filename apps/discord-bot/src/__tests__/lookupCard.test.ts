@@ -212,8 +212,29 @@ describe('lookupCard — the card', () => {
     // A line to each stat group, TL first; Cargo and Heat are its Page's.
     expect(text).toContain('**TL** 2 · **SV** 8\n**SP** 13 · **EP** 11\n**SYS** 18 · **MODS** 3')
     expect(text).not.toContain('**Cargo**')
-    // The chassis ability shows only on the chassis and pattern pages.
-    expect(text).not.toContain('Scrap Plating')
+    // Its chassis ability prints whole, as an action does.
+    expect(text).toContain('### Scrap Plating\n-# **Passive**\nThe Goliath counts as having')
+  })
+
+  test('a chassis draws the drone its ability names as a row, Read opening the drone', () => {
+    const card = lookupCard(hit('chassis', 'little-sestra'))
+    expect(cardText(card)).toContain('### Sestra Drone Controller')
+    expect(cardText(card)).toContain('-# DRONES (1)')
+    expect(childRows(card).map(readKey)).toEqual(['drones::sestra-drone'])
+    expect(cardText(readCard('drones::sestra-drone') ?? { accent: 0, blocks: [] })).toContain(
+      '## [Sestra Drone](https://salvageunion.io/drones/sestra-drone)'
+    )
+  })
+
+  test('a chassis with several abilities indexes them, each Read opening one', () => {
+    const card = lookupCard(hit('chassis', 'shaitan'))
+    const ids = card.blocks.flatMap((block) =>
+      block.kind === 'section' && block.button?.kind === 'action' ? [block.button.customId] : []
+    )
+    expect(ids).toContain('su:read:chassis::shaitan|integrated-vtu-system')
+    expect(cardText(readCard('chassis::shaitan|fast') ?? { accent: 0, blocks: [] })).toContain(
+      'Fast'
+    )
   })
 
   test('a weapon system prints its facets as label-first chips and its traits as links', () => {
@@ -353,6 +374,8 @@ describe('lookupCard — patterns are entries of their own', () => {
     const text = cardText(lookupCard(one))
     expect(text).toContain('-# PATTERN OF MULE')
     expect(text).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
+    // Its host's ability is the host card's, never repeated here.
+    expect(text).not.toContain('Integrated Cargo Bay')
   })
 
   test('a Bio-Titan pattern shows the rules it adds', () => {

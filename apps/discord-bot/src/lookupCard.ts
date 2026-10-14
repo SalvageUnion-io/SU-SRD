@@ -18,7 +18,7 @@
  * short card; anyone can open any part. A Component Embed cannot carry a
  * button, so a pasted link keeps the full card.
  *
- * The card's nested **systems and modules** (a pattern's, a drone's, …) are
+ * The card's nested **systems, modules and drones** (a pattern's, a chassis's, …) are
  * index rows too, each with a Read button that answers privately with that
  * entry's card (`childRows`), as many as fit Discord's ceilings. A pasted link
  * lists them as linked names.
@@ -261,10 +261,10 @@ function partsOf(hit: LookupHit): ReturnType<typeof discordCardParts> {
 }
 
 /** The nested entries a card draws as rows, each with its own Read button. */
-const ROW_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules'])
+const ROW_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules', 'drones'])
 
 /**
- * A card's nested systems and modules as index rows, the shape a long entry's
+ * A card's nested systems, modules and drones as index rows, the shape a long entry's
  * actions take: name and stat line, with a **Read** button that answers
  * privately with that entry's card. Other groups keep their linked names.
  *
@@ -372,13 +372,13 @@ function indexCard(hit: LookupHit, full: CardData): CardData | null {
 
 /**
  * The Read button's answer: one action of an entry, whole, under the entry's
- * name and over its citation; or, for a nested system's or module's row (a key
+ * name and over its citation; or, for a nested entry's row (a key
  * with no action), that entry's own card. Null when the entry or the action is
  * gone.
  */
 export function readCard(payload: string): ContainerData | null {
   const cut = payload.lastIndexOf('|')
-  // A nested system's or module's row: its whole card.
+  // A nested entry's row: its whole card.
   if (cut === -1) return openCard(payload)
   const hit = entityFromKey(payload.slice(0, cut))
   if (!hit) return null
@@ -405,7 +405,7 @@ export function readCard(payload: string): ContainerData | null {
 }
 
 /**
- * A card with the bot's controls: its nested systems and modules as Read rows,
+ * A card with the bot's controls: its nested systems, modules and drones as Read rows,
  * then the linked-entries menu for the rest, then the Roll buttons, the Full
  * entry button when the card was shed, and the Buy link.
  */
