@@ -103,9 +103,14 @@ const BODY = {
   flexDirection: 'column',
   gap: space[20],
   minHeight: 0,
-  padding: `${space[28]} ${GUTTER} 0`,
+  padding: `${space[28]} ${GUTTER}`,
 } satisfies CSSProperties
 
+/**
+ * The foot line stands on the body's foot, a gutter over the Union bar, so
+ * every card's cite sits on one baseline however many chip rows or lines of
+ * rules text come before it.
+ */
 const LINE = {
   color: color.ink2,
   fontFamily: font.body,
@@ -113,6 +118,7 @@ const LINE = {
   fontWeight: weight.semibold,
   lineHeight: 1.2,
   margin: 0,
+  marginTop: 'auto',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',

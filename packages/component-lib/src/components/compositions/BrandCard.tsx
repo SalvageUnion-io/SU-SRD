@@ -49,6 +49,14 @@ export type BrandCardProps = {
 /** The frame: twice the entity card's 3px, as `OgCard`'s. */
 const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
 
+/**
+ * The one text edge. The notch stands `space[32]` in from the frame; every
+ * line on the card (the kicker or quote, its credit, the wordmark and, on the
+ * right, the address) starts or ends `TEXT_INSET` inside the notch's edges, so
+ * the band's lines and the notch's share a left edge and a right edge.
+ */
+const TEXT_INSET = space[48]
+
 /** The chapter colours along the foot, in the book's order. */
 const FOOT_TONES = ['rules', 'pilot', 'mech', 'crawler', 'denizen'] as const
 
@@ -72,7 +80,7 @@ const BODY = {
   display: 'flex',
   flex: '1 1 auto',
   flexDirection: 'column',
-  gap: space[16],
+  gap: space[24],
   minHeight: 0,
   padding: `${space[24]} ${space[32]} 0`,
 } satisfies CSSProperties
@@ -84,7 +92,6 @@ const KICKER = {
   letterSpacing: tracking.capsTight,
   lineHeight: 1,
   margin: 0,
-  paddingInline: space[8],
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
@@ -99,8 +106,10 @@ const NOTCH = {
   boxSizing: 'border-box',
   display: 'flex',
   flex: '1 1 auto',
-  justifyContent: 'center',
   minHeight: 0,
+  // Set flush left on the card's text edge, not centred: a centred wordmark
+  // starts wherever its own width puts it, never on the kicker's edge.
+  paddingInline: TEXT_INSET,
   // Caps sit low in their line box; this centres the ink, not the box.
   paddingBottom: space[24],
 } satisfies CSSProperties
@@ -110,17 +119,19 @@ const TITLE = {
   fontSize: '284px',
   fontWeight: weight.extrabold,
   lineHeight: 0.84,
-  margin: 0,
+  // The face's side bearing grows with its size: pull the wordmark's ink back
+  // onto the edge the kicker's ink starts on.
+  margin: '0 0 0 -0.03em',
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** ".io", set small on the second line's baseline. */
 /** The kicker's line: the kicker, and the address at its right when there is one. */
 const KICKER_ROW = {
   alignItems: 'baseline',
   display: 'flex',
   gap: space[24],
   justifyContent: 'space-between',
+  paddingInline: TEXT_INSET,
 } satisfies CSSProperties
 
 /** The wordmark under a quote, which stands taller than a kicker's one line. */
@@ -131,9 +142,17 @@ const QUOTE = {
   fontSize: '68px',
   fontWeight: weight.semibold,
   lineHeight: 0.95,
-  margin: 0,
-  paddingInline: space[8],
+  // A script face sets its first capital well inside its box: pull the
+  // quote's first letter back onto the text edge the credit starts on.
+  margin: '0 0 0 -0.2em',
+  position: 'relative',
 } satisfies CSSProperties
+
+/**
+ * The opening mark hangs in the margin, so the quote's first letter, not its
+ * punctuation, sits on the text edge with the credit under it.
+ */
+const HANGING_MARK = { position: 'absolute', right: '100%' } satisfies CSSProperties
 
 /** Who said it: the kicker's caps, small and italic, in the band's ink. */
 const QUOTE_BY = {
@@ -142,8 +161,7 @@ const QUOTE_BY = {
   fontStyle: 'italic',
   fontWeight: weight.bold,
   letterSpacing: tracking.eyebrow,
-  margin: `${space[4]} 0 0`,
-  paddingInline: space[8],
+  margin: `${space[8]} 0 0`,
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
@@ -156,6 +174,7 @@ const ADDRESS = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
+/** ".io", set small on the second line's baseline. */
 const TLD = { fontSize: '128px', textTransform: 'none' } satisfies CSSProperties
 
 const FOOT = {
@@ -177,7 +196,8 @@ export function BrandCard({ kicker, quote, title, tone = 'rules', address }: Bra
           {quote ? (
             <figure style={{ margin: 0 }}>
               <blockquote style={{ ...QUOTE, color: color.paper, fontFamily: quote.font }}>
-                “{quote.text}”
+                <span style={HANGING_MARK}>“</span>
+                {quote.text}”
               </blockquote>
               <figcaption style={{ ...QUOTE_BY, color: kickerColor }}>— {quote.by}</figcaption>
             </figure>
