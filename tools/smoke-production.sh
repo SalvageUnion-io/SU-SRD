@@ -107,7 +107,9 @@ check http://salvageunion.io/ 301 "srd http redirect"
 check http://www.salvageunion.io/ 301 "srd www http redirect"
 check http://intheunionnow.com/ 301 "itun http redirect"
 check http://www.intheunionnow.com/ 301 "itun www http redirect"
-check http://assets.salvageunion.io/robots.txt 301 "artwork http redirect"
+# Not `/robots.txt`: with the zone's AI bot policies on, Cloudflare's managed
+# robots.txt answers that path over http itself (200) before the redirect.
+check http://assets.salvageunion.io/ 301 "artwork http redirect"
 # The CSP must also admit Sentry's EU ingest host, or every event is blocked in
 # the browser while the project looks quiet (tools/check-observability.ts pins
 # the same host in the repo's CSP sources).
