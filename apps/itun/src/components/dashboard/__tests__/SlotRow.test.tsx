@@ -143,7 +143,7 @@ describe('a Minor shows only what needs watching', () => {
     expect(within(minor).getByText('In Iron Mongrel · no injuries')).toBeTruthy()
   })
 
-  test('the Mech Minor shows SP, Heat and EP as text, and a damaged system', () => {
+  test('the Mech Minor shows SP, Heat and EP as chips, and a damaged system', () => {
     const damaged = {
       ...mech,
       shutdown: true,
@@ -152,7 +152,15 @@ describe('a Minor shows only what needs watching', () => {
     renderRow({ mount: 'pilot', mech: damaged })
     const minor = screen.getByRole('region', { name: 'Mech · Iron Mongrel' })
     expect(within(minor).getByRole('img', { name: /SP/ })).toBeTruthy()
-    expect(within(minor).getByText(/^Heat \d+\/\d+ · EP \d+\/\d+$/)).toBeTruthy()
+    // `HEAT | n/cap` and `EP | n/cap`, label-first chips.
+    const chips = [...minor.querySelectorAll('.su-stat-cell')].map((c) => c.textContent)
+    expect(chips).toHaveLength(2)
+    expect(chips[0]).toMatch(/^Heat\d+\/\d+$/)
+    expect(chips[1]).toMatch(/^EP\d+\/\d+$/)
+    // A long name wraps rather than cutting to "…" (E18).
+    const name = within(minor).getByRole('heading', { name: 'Iron Mongrel' })
+    expect(name.style.textOverflow).toBe('')
+    expect(name.style.whiteSpace).toBe('')
     expect(within(minor).getByText('Shut down')).toBeTruthy()
     expect(within(minor).getByText('not-a-system damaged')).toBeTruthy()
   })

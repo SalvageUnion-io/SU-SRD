@@ -19,6 +19,8 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { CargoLotRow } from '../shared/CargoLotRow'
+import type { BandStat } from './BandStats'
+import { BandStats } from './BandStats'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
 import { useDashboardForm } from './dashboardForm.model'
@@ -75,7 +77,9 @@ type BandText = {
 export type BandBay = {
   label: string
   gauges?: BandGauge[]
-  /** One-line readouts under the gauges (Tech Level, the scrap pool, Upkeep). */
+  /** Counts under the gauges, as label-first chips (the Upgrade pool, Upkeep). */
+  stats?: BandStat[]
+  /** One-line readouts that are not counts (the scrap pool, Upkeep's status). */
   lines?: BandText[]
   /** Names shown as chips (the pilot's Kit and Abilities, the crawler's bays). */
   chips?: BandText[]
@@ -279,7 +283,7 @@ function Lines({ lines }: { lines: BandText[] }) {
 
 /** A bay with nothing but its button grid. */
 function buttonsOnly(bay: BandBay): boolean {
-  return !bay.gauges?.length && !bay.lines?.length && !bay.chips?.length
+  return !bay.gauges?.length && !bay.stats?.length && !bay.lines?.length && !bay.chips?.length
 }
 
 /** One bay's content: label, gauges, readouts, chips, then the button grid. */
@@ -289,6 +293,7 @@ function BayBody({ bay }: { bay: BandBay }) {
     <>
       <span className="su-dash-bay-lab">{bay.label}</span>
       {bay.gauges && bay.gauges.length > 0 && <Gauges gauges={bay.gauges} large={bay.large} />}
+      {bay.stats && <BandStats stats={bay.stats} />}
       {bay.lines && bay.lines.length > 0 && <Lines lines={bay.lines} />}
       {bay.chips && bay.chips.length > 0 && (
         <ul

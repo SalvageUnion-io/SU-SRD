@@ -250,12 +250,6 @@
   justify-content: space-between;
   gap: 10px;
 }
-.su-dash-deck-cost {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-size: var(--text-note);
-  color: var(--color-wk-muted);
-}
 .su-dash-deck-controls {
   display: flex;
   gap: 8px;

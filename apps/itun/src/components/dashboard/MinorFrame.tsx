@@ -14,6 +14,8 @@
 
 import { Button } from 'component-lib'
 import type { CSSProperties } from 'react'
+import type { BandStat } from './BandStats'
+import { BandStats } from './BandStats'
 import { DashboardGauge } from './DashboardGauge'
 import type { BandGauge } from './MajorFrame'
 import { slotRule } from './slotLayout.model'
@@ -25,7 +27,9 @@ export type MinorModel = {
   /** A short qualifier beside the name: "boarded", "parked", "TL2". */
   aside?: string
   gauges: BandGauge[]
-  /** One-line readouts that don't earn a gauge (Heat and EP while parked). */
+  /** Counts that don't earn a gauge, as label-first chips (Heat and EP). */
+  stats?: BandStat[]
+  /** One-line readouts that are not counts (the scrap pool). */
   lines: string[]
   /** What needs attention: an injury, a damaged system, a damaged bay. */
   problems: string[]
@@ -49,12 +53,11 @@ const FRAME: CSSProperties = {
 
 const HEAD: CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }
 
+// A long name wraps rather than cutting to "…" (E18).
 const NAME: CSSProperties = {
   margin: 0,
   minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  overflowWrap: 'anywhere',
   fontFamily: 'var(--font-cond)',
   fontWeight: 700,
   textTransform: 'uppercase',
@@ -152,6 +155,7 @@ export function MinorFrame({
           ))}
         </div>
       )}
+      {view.stats && <BandStats stats={view.stats} />}
       {view.lines.map((line) => (
         <p key={line} style={TEXT}>
           {line}
