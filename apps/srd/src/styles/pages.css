@@ -1749,15 +1749,44 @@ a.srd-class-path__head:focus-visible {
   color: var(--color-wk-muted);
 }
 
-/* The entry's date, set on `PageHeading`, which takes a className and no style.
-   Its `subheading` rung brings `text-lg`'s 1.75rem line-height with it, which
-   outranks a class here; `!important` sets the date's tighter one. */
+/* A changelog entry (`components/Changelog.tsx`): a card's frame, its
+   cut-out head — the band, the date on a paper tab notched into its foot, the
+   area stamp beside it — and the paper body the tab opens into. */
+.srd-changelog__entry {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.srd-changelog__band {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-10) 0;
+}
+
 .srd-changelog__date {
+  background-color: var(--color-paper);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
   color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
   font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
-  /* biome-ignore lint/complexity/noImportantStyles: PageHeading's own text-lg line-height outranks a class */
-  line-height: 1.25 !important;
+  line-height: 1.1;
+  margin: 0;
+  padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
+/* The area stamp stays on the band, centred on the tab's line. */
+.srd-changelog__area {
+  align-self: center;
+}
+
+.srd-changelog__items {
+  padding: var(--space-8) var(--space-12) var(--space-12) var(--space-16);
 }
 
 /* The About page's colophon (`components/Colophon.tsx`): one column, two from `md` (48rem) up. */
