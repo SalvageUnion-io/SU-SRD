@@ -77,7 +77,7 @@ export function WideSubHeader({
   search: ReactNode
 }) {
   return (
-    <div style={WIDE_SUBHEADER_STYLE}>
+    <div style={SUBHEADER_STYLE}>
       {facetRows.map((row) => (
         <FacetRow key={row.label} row={row} />
       ))}
@@ -107,7 +107,7 @@ export function NarrowSubHeader({
   search: ReactNode
 }) {
   return (
-    <div style={NARROW_SUBHEADER_STYLE}>
+    <div style={SUBHEADER_STYLE}>
       <div style={SEARCH_ROW_STYLE}>
         <div style={SEARCH_SLOT_STYLE}>{search}</div>
         {rows.length > 0 && (
@@ -169,14 +169,16 @@ const SEARCH_INPUT_STYLE = {
   outlineStyle: 'none',
 } satisfies CSSProperties
 
-/** Wide: the facet rows, then the Show row with the search field opposite it.
- * The search slot's width is responsive, so it is `.su-searcher__search-slot`. */
-const WIDE_SUBHEADER_STYLE = {
+/** Both sub-headers: a full-width column. */
+const SUBHEADER_STYLE = {
   display: 'flex',
   width: '100%',
   flexDirection: 'column',
   gap: space[8],
 } satisfies CSSProperties
+
+/** Wide: the facet rows, then the Show row with the search field opposite it.
+ * The search slot's width is responsive, so it is `.su-searcher__search-slot`. */
 const WIDE_SEARCH_ROW_STYLE = {
   display: 'flex',
   flexWrap: 'wrap',
@@ -186,12 +188,6 @@ const WIDE_SEARCH_ROW_STYLE = {
   rowGap: space[8],
 } satisfies CSSProperties
 
-const NARROW_SUBHEADER_STYLE = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[8],
-  width: '100%',
-} satisfies CSSProperties
 const SEARCH_ROW_STYLE = {
   display: 'flex',
   alignItems: 'center',
