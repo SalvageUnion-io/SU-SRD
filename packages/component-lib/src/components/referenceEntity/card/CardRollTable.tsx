@@ -48,7 +48,7 @@ function TraitText({ text }: { text: string }) {
  * bar holds the same place in all of them: the table's name, the Table / Hide
  * toggle and, at the far right, the Roll the Die button (press it again to
  * reroll). Rolling never needs the table
- * open.
+ * open, so every table starts hidden, on the server as in the browser.
  *
  * The result is a READOUT, not a row hunt: the number, the outcome and its
  * text in an ink strip under the bar, at reading size, open or not. An open
@@ -70,8 +70,8 @@ export function CardRollTable({
   table,
   name,
   size,
-  collapsible,
   disabled,
+  defaultOpen = false,
   defaultRoll,
   framed = false,
   tone,
@@ -81,10 +81,10 @@ export function CardRollTable({
   /** The table's name, for the bar. */
   name: string
   size: CardSize
-  /** Starts hidden (a nested card, a catalog tile); otherwise open. */
-  collapsible: boolean
   /** A damaged host: the table reads, but there is no Roll. */
   disabled: boolean
+  /** Start open (a story's fixed state). Every table starts hidden otherwise. */
+  defaultOpen?: boolean
   /** Start rolled at this die (a story's fixed state, a restored roll). */
   defaultRoll?: number
   /**
@@ -98,7 +98,7 @@ export function CardRollTable({
   onRollResult?: (text: string, key: string) => void
 }) {
   const { announceRoll } = useEntitySurface()
-  const [expanded, setExpanded] = useState(!collapsible)
+  const [expanded, setExpanded] = useState(defaultOpen)
   const isColumns = table.type === 'columns'
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
     defaultRoll != null && !isColumns

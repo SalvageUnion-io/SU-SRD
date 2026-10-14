@@ -51,7 +51,6 @@ export type CardBodyInput = Pick<
   | 'scalingParent'
   | 'selections'
   | 'onSelectionChange'
-  | 'foldTables'
   | 'afterExtraContent'
   | 'abilitiesSection'
   | 'showChassisAbility'

@@ -24,15 +24,9 @@ const coreMechanic = () => {
 }
 
 describe('CardRollTable', () => {
-  test('collapsed: the bar alone — the name, the Table toggle and the Roll the Die button', () => {
+  test('hidden by default: the bar alone — the name, the Table toggle and the Roll the Die button', () => {
     render(
-      <CardRollTable
-        table={coreMechanic()}
-        name="Core Mechanic"
-        size="medium"
-        collapsible
-        disabled={false}
-      />
+      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="medium" disabled={false} />
     )
     expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }).textContent).toBe(
       'Roll the Die'
@@ -49,7 +43,6 @@ describe('CardRollTable', () => {
         table={coreMechanic()}
         name="Core Mechanic"
         size="medium"
-        collapsible
         disabled={false}
         defaultRoll={14}
       />
@@ -67,7 +60,7 @@ describe('CardRollTable', () => {
         table={coreMechanic()}
         name="Core Mechanic"
         size="medium"
-        collapsible={false}
+        defaultOpen
         disabled={false}
         defaultRoll={14}
       />
@@ -81,13 +74,7 @@ describe('CardRollTable', () => {
 
   test('rolling never needs the table open, and the toggle opens it', async () => {
     render(
-      <CardRollTable
-        table={coreMechanic()}
-        name="Core Mechanic"
-        size="medium"
-        collapsible
-        disabled={false}
-      />
+      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="medium" disabled={false} />
     )
     fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     // The dice load on the first roll (`dieForTable`), so the readout is awaited.
@@ -102,7 +89,7 @@ describe('CardRollTable', () => {
         table={coreMechanic()}
         name="Core Mechanic"
         size="medium"
-        collapsible={false}
+        defaultOpen
         disabled
       />
     )
@@ -118,7 +105,7 @@ describe('CardRollTable', () => {
           table={coreMechanic()}
           name="Core Mechanic"
           size="large"
-          collapsible={false}
+          defaultOpen
           disabled={false}
         />
       </EntitySurfaceProvider>
@@ -141,7 +128,7 @@ describe('CardRollTable', () => {
         table={coreMechanic()}
         name="Core Mechanic"
         size="medium"
-        collapsible={false}
+        defaultOpen
         disabled={false}
       />
     )
@@ -163,7 +150,7 @@ describe('CardRollTable', () => {
         table={coreMechanic()}
         name="Core Mechanic"
         size="medium"
-        collapsible={false}
+        defaultOpen
         disabled={false}
         tone="var(--color-pilot)"
       />
@@ -183,7 +170,7 @@ describe('CardRollTable', () => {
         table={callsigns()}
         name="Callsign Table"
         size="large"
-        collapsible={false}
+        defaultOpen
         disabled={false}
         tone="var(--color-pilot)"
       />

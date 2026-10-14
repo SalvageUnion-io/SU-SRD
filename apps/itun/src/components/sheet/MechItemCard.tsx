@@ -261,7 +261,6 @@ export function MechItemCard({
         data={entity}
         size="medium"
         collapsible
-        foldTables
         hide={HIDE_CHOICES}
         status={condition}
         onStatusClick={readOnly ? undefined : onStatusCycle}

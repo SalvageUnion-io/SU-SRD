@@ -49,21 +49,15 @@ const column = {
 /** All four states, plus the table as the roll-tables entity's own card renders it. */
 export const Default: Story = () => (
   <div style={column}>
-    <InCard label="1 · Collapsed — the default inside a card">
-      <CardRollTable
-        table={table}
-        name="Core Mechanic"
-        size="medium"
-        collapsible
-        disabled={false}
-      />
+    <InCard label="1 · Hidden — the default everywhere">
+      <CardRollTable table={table} name="Core Mechanic" size="medium" disabled={false} />
     </InCard>
     <InCard label="2 · Expanded — every outcome, nothing rolled">
       <CardRollTable
         table={table}
         name="Core Mechanic"
         size="medium"
-        collapsible={false}
+        defaultOpen
         disabled={false}
       />
     </InCard>
@@ -72,7 +66,6 @@ export const Default: Story = () => (
         table={table}
         name="Core Mechanic"
         size="medium"
-        collapsible
         disabled={false}
         defaultRoll={14}
       />
@@ -82,7 +75,7 @@ export const Default: Story = () => (
         table={table}
         name="Core Mechanic"
         size="medium"
-        collapsible={false}
+        defaultOpen
         disabled={false}
         defaultRoll={14}
       />

@@ -127,7 +127,7 @@ const rows: MatrixRow[] = [
           table={rollTable}
           name={rollTableEntity?.name ?? 'Roll table'}
           size="small"
-          collapsible={false}
+          defaultOpen
           disabled
           framed
         />

@@ -169,7 +169,7 @@ export function CrawlerIdentityPanel({
             assigned={typeCrew}
             ability={abilities.map((ability) => (
               <div key={ability.id} style={ABILITY}>
-                <ReferenceEntityCard data={ability} size="medium" foldTables hide={HIDE_CHOICES} />
+                <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />
               </div>
             ))}
           />
