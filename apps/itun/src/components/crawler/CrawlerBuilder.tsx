@@ -246,9 +246,6 @@ export function CrawlerBuilder({
   const selectedType = form.type ? (resolveCrawlerType(form.type) ?? undefined) : undefined
   // Bays with an embedded crew NPC (the 10 base bays) — the Crew step's roster.
   const crewBays = allBays.filter((b) => (b as { npc?: unknown }).npc != null)
-  // The auto-seeded base set (expansion-tagged bays never appear — a STORED
-  // data flag, never computed).
-  const baseBayCount = allBays.filter((b) => !(b as { expansion?: boolean }).expansion).length
 
   /**
    * The Armament-Bay catalog: WEAPONS systems only (the bay holds nothing
@@ -418,7 +415,6 @@ export function CrawlerBuilder({
           techLevel={selectedTechLevel}
           selectedType={selectedType}
           systems={chosenSystems}
-          bayCount={baseBayCount}
           submitError={submitError}
         />
       )}

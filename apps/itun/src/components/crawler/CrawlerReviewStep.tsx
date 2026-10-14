@@ -32,8 +32,6 @@ type CrawlerReviewStepProps = {
   selectedType: SURefCrawler | undefined
   /** Chosen systems resolved from the form's system ids. */
   systems: SURefSystem[]
-  /** Number of SRD bays the crawler ships with (seeded automatically). */
-  bayCount: number
   submitError: string | null
 }
 
@@ -51,7 +49,6 @@ export function CrawlerReviewStep({
   techLevel,
   selectedType,
   systems,
-  bayCount,
   submitError,
 }: CrawlerReviewStepProps) {
   const scrap = toScrapPoolPatch(form.scrapPool)
@@ -85,7 +82,7 @@ export function CrawlerReviewStep({
     ],
     ['Crawler', techLevel ? `${techLevel.name} · Tech Level ${techLevel.techLevel}` : null],
     ['Structure', spSummary],
-    ['Bays', `Full base set · ${bayCount} bays, seeded automatically · all Intact`],
+    ['Bays', 'Full base set, seeded automatically · all Intact'],
     ['Weapons', systems.length > 0 ? systems.map((s) => s.name).join(', ') : null],
     ['Scrap Pool', scrapSummary || '—'],
     ['Crew', crewNames.length > 0 ? crewNames.join(', ') : 'Unnamed — fill in during play'],

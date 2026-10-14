@@ -33,18 +33,12 @@ export function mechChassisStats(chassisRef: string): EntityRowStat[] | undefine
 }
 
 /**
- * A crawler row's stats: `TL | 2`, `BAYS | 3`.
- *
- * Was the caption string "TL 2 · 3 bays" — the same two-facts-one-separator
- * shape the chassis had, and the same fix. These are the labels the crew roster
- * already used, so the two surfaces now read identically.
+ * A crawler row's stats: `TL | 2`. A crawler never lists its count of bays
+ * (owner's call, 2026-10-14); the crew roster reads the same.
  */
-export function crawlerStats(techLevel: string, bayCount: number): EntityRowStat[] {
+export function crawlerStats(techLevel: string): EntityRowStat[] {
   const tl = techLevel.replace(/[^0-9]/g, '')
-  const stats: EntityRowStat[] = []
-  if (tl) stats.push({ label: 'TL', value: tl })
-  stats.push({ label: 'Bays', value: bayCount })
-  return stats
+  return tl ? [{ label: 'TL', value: tl }] : []
 }
 
 /**

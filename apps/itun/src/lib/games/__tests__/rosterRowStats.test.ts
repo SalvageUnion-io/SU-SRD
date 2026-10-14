@@ -44,12 +44,9 @@ describe('rosterRowStats', () => {
     ])
   })
 
-  test('a crawler states its tech level digits and bay count; HP/AP never appear', () => {
+  test('a crawler states its tech level digits; no bay count, HP/AP never appear', () => {
     expect(
       rosterRowStats(row('crawler', 'Home', { techLevel: 'tech-3', crawlerBays: [{}, {}] }))
-    ).toEqual([
-      { label: 'TL', value: '3' },
-      { label: 'Bays', value: 2 },
-    ])
+    ).toEqual([{ label: 'TL', value: '3' }])
   })
 })
