@@ -1675,22 +1675,6 @@ a.srd-class-path__head:focus-visible {
   border-top-right-radius: 0;
 }
 
-/* "Engineer only": a lone-label caps badge, frameless (§7.1). */
-.srd-class-path__or {
-  color: var(--color-wk-muted);
-  font-family: var(--font-cond);
-  font-size: var(--text-badge);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-wide);
-  text-transform: uppercase;
-}
-
-/* On the band the "or" / "Engineer only" label is ink: the muted grey does
-   not hold its contrast on pilot. */
-.srd-class-path__head .srd-class-path__or {
-  color: var(--color-ink);
-}
-
 /* The path's text, at the head of the body over its trees. */
 .srd-class-path__note {
   color: var(--color-ink);
@@ -1700,8 +1684,13 @@ a.srd-class-path__head:focus-visible {
   max-width: 72ch;
 }
 
+/* A path's trees split the card in equal columns, the same in every path
+   card on the page (its own Advanced and Legendary trees, each Hybrid
+   Class's): as many as fit at 16rem, one each on a phone. */
 .srd-class-path__trees {
+  display: grid;
   gap: var(--space-8) var(--space-24);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 }
 
 .srd-class-path__foot {

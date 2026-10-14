@@ -151,16 +151,12 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   )
 }
 
-/** "Engineer only" by the requirement, a quiet caps label like a lone-label badge. */
-function Or({ children }: { children: string }) {
-  return <span className="srd-class-path__or">{children}</span>
-}
-
 /**
  * What opens a path, as one continuous chip: REQ, then the trees any one of
  * which opens it, each "or" an ink label cell between them ("REQ | FORGING |
  * OR | ELECTRONICS"), the tree this class trains first leading. The class's
- * own path adds that only this class walks it ("ENGINEER ONLY").
+ * own path adds that only this class walks it ("ENGINEER ONLY"), the same
+ * lone-label chip as the path's kind beside it.
  */
 function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
   const own = !path.hybrid || !path.via
@@ -181,7 +177,7 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
           />
         ))}
       </span>
-      {own && <Or>{`${classEntity.name} only`}</Or>}
+      {own && <Stat orientation="horizontal" label={`${classEntity.name} only`} size="compact" />}
     </span>
   )
 }
