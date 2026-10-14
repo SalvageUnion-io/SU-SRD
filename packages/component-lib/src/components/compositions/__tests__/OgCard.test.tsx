@@ -186,7 +186,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
       kind: 'do',
       title: 'Mass Field Repair',
       printed: 'Mass Field Repair',
-      tone: color.inkDeep,
+      tone: 'var(--color-pilot)',
       cells: [],
       lines: [
         'You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition. They must be of a Tech Level equal to or lower than your Union Crawler.',
@@ -389,7 +389,9 @@ describe('OgCard', () => {
   test('theme-color is the band: the tone, resolved to a literal', () => {
     expect(ogCardThemeColor(SHEET)).toBe(color.pilot)
     expect(ogCardThemeColor(THING)).toBe(color.mech)
-    expect(ogCardThemeColor(DO)).toBe(color.inkDeep)
+    // An ability wears its tier (Core orange), as its page band and Discord stripe do.
+    expect(ogCardThemeColor(DO)).toBe(color.pilot)
+    expect(ogCardThemeColor({ ...DO, tone: undefined } as OgCardProps)).toBe(color.inkDeep)
     expect(ogCardThemeColor(PRIVATE)).toBe(color.inkDeep)
   })
 

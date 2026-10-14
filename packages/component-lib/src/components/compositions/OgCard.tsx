@@ -310,7 +310,13 @@ export function OgCard({
       </span>
     ) : props.kind === 'do' && (props.tier || props.cost) ? (
       <span style={STAMPS}>
-        {props.tier && <span style={NUMERAL}>{props.tier}</span>}
+        {props.tier && (
+          <span
+            style={{ ...NUMERAL, ...(ink ? { borderColor: color.ink, color: color.ink } : {}) }}
+          >
+            {props.tier}
+          </span>
+        )}
         {props.cost && <span style={PENNANT}>{props.cost}</span>}
       </span>
     ) : undefined

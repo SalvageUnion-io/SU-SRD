@@ -36,15 +36,16 @@ import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
 /**
  * The accent stripe for each tone, as the `0xRRGGBB` integer Discord takes.
  * A mirror of `--color-<tone>` in `packages/component-lib/src/styles/theme.css`
- * (`discordCard.test.ts` holds them in lockstep), with ONE deliberate change:
+ * (`discordCard.test.ts` holds them in lockstep), with two deliberate changes:
  * `ink` and `ink-2` paint the rules blue (`--color-wk-line`), the band the
  * glossary chapters wear, because a near-black stripe vanishes on Discord's
- * dark theme.
+ * dark theme; and `crawler` paints the crawler band, the pink every crawler
+ * header on the web paints, so a crawler is one pink everywhere.
  */
 export const DISCORD_TONE_ACCENT: Readonly<Record<string, number>> = {
   pilot: 0xef894f,
   mech: 0x7a978a,
-  crawler: 0xce5898,
+  crawler: 0xb84a86,
   'crawler-band': 0xb84a86,
   'denizen-band': 0x2f4a66,
   adversary: 0x8c4b38,

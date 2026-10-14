@@ -66,6 +66,7 @@ export function ogCardForEntity(options: {
     ]
     return {
       kind: 'do',
+      ...(isAbility(entity) ? { tone: toneOf(schemaName, entity) } : {}),
       kicker: joinKicker(kicker),
       title: name,
       tier: resolveTierNumeral(entity),

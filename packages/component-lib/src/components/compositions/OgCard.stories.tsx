@@ -26,7 +26,7 @@ const STACK = {
  * both at build), a player's sheet, a user-made pattern and NPC, a Game
  * invite, and the plain card for anything private (ITUN renders these on
  * request). The SRD builds its two from the entity with `ogCardForEntity`;
- * these carry the same Scrapper and Mass Field Repair values.
+ * these carry the same Scrapper and Mass Field Repair (Core: orange) values.
  */
 export const Default: Story = () => (
   <div style={STACK}>
@@ -53,9 +53,12 @@ export const Default: Story = () => (
     )}
     {repair && (
       <div>
-        <Caption>reference do — the ink band, tier numeral, cost pennant, rules</Caption>
+        <Caption>
+          reference do — an ability on its tier's band, numeral, cost pennant, rules
+        </Caption>
         <OgCard
           kind="do"
+          tone="var(--color-pilot)"
           kicker={`Ability · ${repair.tree} · Long · Close`}
           title={repair.name}
           tier={String(repair.level)}

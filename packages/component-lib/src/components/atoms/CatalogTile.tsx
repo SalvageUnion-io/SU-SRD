@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { foregroundOn } from '../../design/contrast'
 import { color, font, fontSize, tracking, weight } from '../../design/tokens'
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { FOCUS_RING } from './interaction'
@@ -49,7 +50,6 @@ const TILE = {
 // (0.04em) replace a hand-set 16px size and 0.02em tracking. The 1px and
 // 0.02em deltas are the price of being on the scale.
 const NAME = {
-  color: color.paper,
   fontFamily: font.cond,
   fontSize: fontSize.lede,
   fontWeight: weight.semibold,
@@ -58,8 +58,8 @@ const NAME = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** The drop shadow the bare name needs on a tone; the label plate replaces it. */
-const NAME_SHADOW = { textShadow: `0 1px 2px ${color.ink75}` } satisfies CSSProperties
+/** The name in ink or paper, whichever passes on the ground it sits on (§3.8). */
+const FOREGROUND = { ink: color.ink, paper: color.paper } as const
 
 export function CatalogTile({ onActivate, name, catalogBg, catalogLabel }: CatalogTileProps) {
   const style: CSSVarStyle = {
@@ -77,7 +77,7 @@ export function CatalogTile({ onActivate, name, catalogBg, catalogLabel }: Catal
     >
       <span
         className={catalogLabel ? 'su-catalog-tile__label' : undefined}
-        style={catalogLabel ? NAME : { ...NAME, ...NAME_SHADOW }}
+        style={{ ...NAME, color: FOREGROUND[foregroundOn(catalogLabel ?? catalogBg)] }}
       >
         {name}
       </span>

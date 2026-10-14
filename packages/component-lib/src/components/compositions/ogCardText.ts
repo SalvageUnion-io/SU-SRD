@@ -40,6 +40,8 @@ export type OgCardProps =
     })
   | (OgCardBase & {
       kind: 'do'
+      /** An ability's tier tone (any CSS colour); without one, the ink band. */
+      tone?: string
       /** The book's tier numeral, for an ability. */
       tier?: string
       /** The cost as the pennant prints it: "2 AP". */
@@ -83,16 +85,18 @@ export type OgCardKind = OgCardProps['kind']
 export const REFERENCE_KINDS: ReadonlySet<OgCardKind> = new Set(['thing', 'do'])
 
 /**
- * The band's colour for a card — the entity's tone, the ink of a thing you do,
- * or the ink-deep of a private card. Also the page's `theme-color`, so
+ * The band's colour for a card — the entity's tone, an ability's tier tone
+ * (as its page band and Discord stripe wear it), the ink of any other thing
+ * you do, or the ink-deep of a private card. Also the page's `theme-color`, so
  * Discord's side bar matches the band: see `ogCardThemeColor`. The kicker
  * sits on the band, so a tone that carries no text paints its deeper band
  * (ruleset §3.8), as an entity card's header does: crawler pink → the
  * crawler band.
  */
 export function bandColor(props: OgCardProps): string {
-  if (props.kind === 'do' || props.kind === 'private') return color.inkDeep
-  return textBand(props.tone) ?? props.tone
+  if (props.kind === 'private' || (props.kind === 'do' && !props.tone)) return color.inkDeep
+  const tone = props.tone ?? color.inkDeep
+  return textBand(tone) ?? tone
 }
 
 /**
