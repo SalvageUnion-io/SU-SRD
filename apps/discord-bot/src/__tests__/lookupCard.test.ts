@@ -127,8 +127,19 @@ describe('lookupCard — the card', () => {
       '**Tech Level** 2 · **Salvage Value** 8\n**Structure Points** 13 · **Energy Points** 11\n**System Slots** 18 · **Module Slots** 3'
     )
     expect(text).not.toContain('**Cargo')
-    // The chassis ability shows only on the chassis and pattern pages.
-    expect(text).not.toContain('Scrap Plating')
+    // Its chassis ability prints whole, as an action does.
+    expect(text).toContain('### Scrap Plating\n-# **Passive**\nThe Goliath counts as having')
+  })
+
+  test('a chassis links the drone its ability names, and the menu opens it', () => {
+    const card = lookupCard(hit('chassis', 'little-sestra'))
+    expect(cardText(card)).toContain('### Sestra Drone Controller')
+    expect(cardText(card)).toContain('-# DRONES (1)')
+    expect(cardText(card)).toContain('-# PATTERNS (3)')
+    expect(menuOf(card)?.options.map((option) => option.value)).toContain('drones::sestra-drone')
+    expect(cardText(openCard('drones::sestra-drone') ?? { accent: 0, blocks: [] })).toContain(
+      '## [Sestra Drone](https://salvageunion.io/drones/sestra-drone)'
+    )
   })
 
   test('a weapon system prints its facets as label-first chips and its traits as links', () => {
@@ -136,7 +147,7 @@ describe('lookupCard — the card', () => {
     expect(text).toContain(
       '## [.50 Cal Machine Gun](https://salvageunion.io/systems/50-cal-machine-gun)'
     )
-    expect(text).toContain('**Range** Close · **Damage** 2 SP')
+    expect(text).toContain('**Range** Close · **Damage** 2 Structure Points')
     expect(text).toContain('[Ballistic](https://salvageunion.io/traits/ballistic)')
     expect(text.toLowerCase()).toContain('ballistic weapon')
   })
@@ -230,11 +241,14 @@ describe('lookupCard — tables and roll buttons', () => {
 })
 
 describe('lookupCard — patterns are entries of their own', () => {
-  test('a host’s card lists none of its patterns, and has no tabs or picker', () => {
+  test('a host’s card links its patterns by name only, and has no tabs', () => {
     const card = lookupCard(hit('chassis', 'mule'))
     const text = cardText(card)
-    expect(text).not.toContain('PATTERNS (')
-    expect(text).not.toContain('/pattern/hauler')
+    expect(text).toContain(
+      '-# PATTERNS (6)\n[Hauler](https://salvageunion.io/chassis/mule/pattern/hauler) · '
+    )
+    expect(card.blocks.some((block) => block.kind === 'section' && block.button)).toBe(false)
+    expect(menuOf(card)?.options.map((option) => option.value)).toContain('chassis::mule::hauler')
     expect(labels(card)).not.toContain('Overview')
   })
 
@@ -245,6 +259,8 @@ describe('lookupCard — patterns are entries of their own', () => {
     const text = cardText(lookupCard(one))
     expect(text).toContain('-# PATTERN OF MULE')
     expect(text).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
+    // Its host's ability is the host card's, never repeated here.
+    expect(text).not.toContain('Integrated Cargo Bay')
   })
 
   test('a Bio-Titan pattern shows the rules it adds', () => {

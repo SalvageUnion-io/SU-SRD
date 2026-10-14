@@ -10,8 +10,8 @@
  * the bot never sheds a part the pasted link keeps, or keeps one it sheds.
  *
  * A pattern's card (a chassis or Bio-Titan pattern) is the same card for its
- * own page and its own lookup: patterns are entries in their own right, never
- * listed on their host's card.
+ * own page and its own lookup: patterns are entries in their own right, which
+ * a chassis's card only links by name.
  */
 
 import { SRD_SITE_URL } from '../assets'

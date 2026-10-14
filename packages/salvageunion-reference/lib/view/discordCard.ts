@@ -30,6 +30,7 @@ import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { chipLines, costChip, factChips } from './discordChips'
+import { chassisCardGroups } from './parts/children'
 import { opensGroup, splitStatLine } from './parts/facts'
 import { formatActionType } from './parts/traits'
 import { toEntityModel } from './toEntityModel'
@@ -387,16 +388,20 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
     ...contentMarkdown(foldedProse, chassisName).filter((paragraph) => !ownSet.has(paragraph)),
   ]
 
-  // A chassis ability shows only on the chassis and pattern PAGES; a card in
-  // Discord is a card, so it carries the other actions alone.
-  const actions = model.actions.flatMap((ref) => {
+  // A chassis's card carries its abilities, ahead of any other action, and
+  // links its patterns. A pattern's card is its own entry and never repeats them.
+  const isHost = model.ref.schemaName === 'chassis' && !model.parent
+  const abilities = isHost ? model.abilities : []
+  const actions = [...abilities, ...model.actions].flatMap((ref) => {
     const band = actionBand(ref, model.title, chassisName)
     return band ? [band] : []
   })
 
   const table = model.table ? tableParts(model.table) : undefined
 
-  const children = model.children.map((group) => discordChildGroup(group.label, group.items))
+  const children = [...model.children, ...(isHost ? chassisCardGroups(model.ref) : [])].map(
+    (group) => discordChildGroup(group.label, group.items)
+  )
 
   return {
     tone: model.tone,

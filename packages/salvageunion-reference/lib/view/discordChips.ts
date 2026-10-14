@@ -5,14 +5,25 @@
  * pointy box.
  */
 
+import { STAT_LABELS } from './parts/facts'
 import type { EntityModel, Fact } from './types'
+
+/** The pool a damage comes off, spelled out: `9 SP` → `9 Structure Points`. */
+const DAMAGE_POOL: Record<string, string> = {
+  SP: STAT_LABELS.structurePoints.label,
+  HP: STAT_LABELS.hitPoints.label,
+}
 
 /** A fact as a chip, its full label first: `**Structure Points** 12`. */
 function factChip(fact: Fact): string {
-  return `**${fact.label}** ${fact.value}`
+  const value =
+    fact.key === 'damage'
+      ? fact.value.replace(/ (SP|HP)$/, (_, pool: string) => ` ${DAMAGE_POOL[pool]}`)
+      : fact.value
+  return `**${fact.label}** ${value}`
 }
 
-/** The facts that have a value, as chips: `**Range** Long`, `**Damage** 9 SP`. */
+/** The facts that have a value, as chips: `**Range** Long`, `**Damage** 9 Structure Points`. */
 export function factChips(facts: Fact[]): string[] {
   return facts.filter((fact) => fact.value !== '').map(factChip)
 }
