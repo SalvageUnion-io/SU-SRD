@@ -46,21 +46,19 @@ cd "$ROOT" || exit 0
 ensure_install || exit 2
 
 # The edited project plus every project that imports it. `tools` typechecks
-# `test/` too and imports every package (and the catalog's route helpers, in
-# `shot.test.ts`); srd's and itun's e2e configs and the catalog's
-# `vite.config.ts` import `packages/gates`.
+# `test/` too and imports every package; srd's and itun's e2e configs import
+# `packages/gates`.
 # Repo-root config belongs to no project — leave it to CI.
 case "$REL" in
   packages/salvageunion-reference/*) TARGETS="*" ;;
-  packages/component-lib/*) TARGETS="packages/component-lib apps/srd apps/itun apps/catalog tools" ;;
+  packages/component-lib/*) TARGETS="packages/component-lib apps/srd apps/itun tools" ;;
   packages/observability/*) TARGETS="packages/observability apps/discord-bot apps/itun apps/srd apps/su-assets tools" ;;
   packages/itun-domain/*) TARGETS="packages/itun-domain apps/discord-bot apps/itun tools" ;;
   apps/discord-bot/*) TARGETS="apps/discord-bot" ;;
   apps/itun/*) TARGETS="apps/itun" ;;
   apps/srd/*) TARGETS="apps/srd" ;;
   apps/su-assets/*) TARGETS="apps/su-assets" ;;
-  apps/catalog/*) TARGETS="apps/catalog tools" ;;
-  packages/gates/*) TARGETS="packages/gates apps/srd apps/itun apps/catalog tools" ;;
+  packages/gates/*) TARGETS="packages/gates apps/srd apps/itun tools" ;;
   tools/* | test/*) TARGETS="tools" ;;
   *) exit 0 ;;
 esac

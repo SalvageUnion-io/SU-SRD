@@ -8,7 +8,7 @@
  *
  *  - when `ShelfSync` marks the store arrived (its first emission applied), or
  *  - as soon as no rows are on their way: signed out, Disconnected, outdated,
- *    or signed in with no sync mounted (a unit test, a story).
+ *    or signed in with no sync mounted (a unit test).
  *
  * While the auth handshake is still in flight (`connecting`) rows may be on
  * their way, so it waits: a route opened at boot shows its skeleton rather than

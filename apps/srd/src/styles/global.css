@@ -3,7 +3,7 @@
  * cascade order, come from the one shared entry; see its header.
  */
 @import 'component-lib/styles/entry.css';
-/* The page layouts — their own file so the story catalog loads them too. */
+/* The page layouts. */
 @import './pages.css';
 
 /*

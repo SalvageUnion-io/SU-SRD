@@ -1,8 +1,0 @@
-/*
- * The story catalog's stylesheet: the shared entry, plus the app stylesheet
- * only the catalog needs.
- */
-@import 'component-lib/styles/entry.css';
-/* srd's page layouts, so its stories (Home Contents, Entity Page Frame, Roll
- * Table View) render as they do on the site. */
-@import '../../srd/src/styles/pages.css';

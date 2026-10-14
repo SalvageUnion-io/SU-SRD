@@ -13,13 +13,6 @@
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "dev:itun"],
       "port": 5173
-    },
-    {
-      "name": "stories",
-      "runtimeExecutable": "bun",
-      "runtimeArgs": ["run", "stories"],
-      "port": 61000,
-      "autoPort": true
     }
   ]
 }

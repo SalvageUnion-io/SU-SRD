@@ -5,8 +5,7 @@
  * style object over component-lib's `tokens`.
  *
  * Unlayered, so it sits over the shared `su-base` layer.
- * The app loads it from `index.css`; the sheet's stories import it directly,
- * since the catalog does not load ITUN's stylesheet.
+ * The app loads it from `index.css`.
  */
 @import './sheet/chrome.css';
 @import './sheet/pilot.css';

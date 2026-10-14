@@ -402,9 +402,7 @@ describe('poster text on the sheet tones', () => {
  * Chromium does: OKLab there and back, each channel clipped to sRGB. That
  * gives the fills axe measured (pilot #ffc09d, mech #aabdb4, crawler
  * #e296bb). Copy printed straight on the card takes `--tone-card-ink` (onTone:
- * ink on every card); `wkMuted` printed there fails on all three. ITUN's
- * "Compositions/Wizard/Step Card" stories put every step on the real card for
- * the catalog's axe scan.
+ * ink on every card); `wkMuted` printed there fails on all three.
  */
 describe('the wizard step card', () => {
   const css = readFileSync(join(import.meta.dir, '../../styles/theme.css'), 'utf8').replace(

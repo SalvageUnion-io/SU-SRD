@@ -1,7 +1,0 @@
-[test]
-# No preload: the catalog's tests read story files' source and the route
-# helpers, never the DOM or the reference data.
-
-# Coverage counts this workspace's own files, not the other workspaces'
-# sources its tests load (tools/run-coverage.ts gates on this total).
-coveragePathIgnorePatterns = ["../**"]

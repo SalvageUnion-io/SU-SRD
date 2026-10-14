@@ -28,7 +28,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
-const APP_DIRS = ['apps/itun/src', 'apps/srd/src', 'apps/catalog/src'] as const
+const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
 const DASHBOARD_DIR = 'apps/itun/src/styles/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
@@ -163,8 +163,8 @@ function scanAppTheme(c: Corpus): Finding[] {
 function classSelectorsInCss(css: string): { name: string; line: number }[] {
   // Quoted strings are blanked first (length-preserving is unnecessary — only
   // line numbers are reported). A path in an at-rule prelude is not a
-  // selector: `@source not '../src/**/*.stories.tsx';` would otherwise report
-  // a dead `.stories` class, and `@import 'x/theme.css'` a `.css` one.
+  // selector: `@import 'x/theme.css'` would otherwise report a dead `.css`
+  // class.
   const clean = stripCssComments(css).replace(/'[^'\n]*'|"[^"\n]*"/g, "''")
   const lines = clean.split('\n')
   const out: { name: string; line: number }[] = []
@@ -258,8 +258,8 @@ function scanDashContract(c: Corpus): Finding[] {
     })
   }
 
-  // USED: exact `su-dash-*` tokens appearing in any .tsx/.ts (incl. tests +
-  // stories) repo-wide. Exact-token extraction (not prefix matching) is
+  // USED: exact `su-dash-*` tokens appearing in any .tsx/.ts (incl. tests)
+  // repo-wide. Exact-token extraction (not prefix matching) is
   // load-bearing: `su-dash-display` and `su-dash-display-light` are DIFFERENT
   // classes, and a prefix match would let one usage falsely "cover" the other.
   //
@@ -313,16 +313,12 @@ function scanDashContract(c: Corpus): Finding[] {
 const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
 
 /**
- * Every stylesheet that loads the package — the two app entries and the story catalog's.
+ * Every stylesheet that loads the package — the two app entries.
  * Named explicitly rather than discovered, because the property being checked
  * is about these files SPECIFICALLY: a partial like `print.css` neither should
  * nor could carry the import.
  */
-const ENTRY_CONSUMERS = [
-  'apps/itun/src/index.css',
-  'apps/srd/src/styles/global.css',
-  'apps/catalog/src/catalog.css',
-] as const
+const ENTRY_CONSUMERS = ['apps/itun/src/index.css', 'apps/srd/src/styles/global.css'] as const
 
 /**
  * The package-stylesheet wiring, in the one file that owns it, and the one
@@ -470,7 +466,7 @@ const TAILWIND_AT_RULE =
 
 /**
  * Tailwind is gone (ADR-046) and this keeps it gone. A one-off crawl of every
- * built page and story for a class from built CSS's `@layer utilities` found
+ * built page for a class from built CSS's `@layer utilities` found
  * none. A utility can only reach built CSS again
  * through a Tailwind package (it generates them) or a Tailwind directive in
  * a stylesheet (the compiler reads them), so this checks both sources, every
@@ -558,7 +554,7 @@ const RULES: OwnershipRule[] = [
     id: 'package-stylesheet-import',
     mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, layered under the apps (#799, epic #802)',
-    fix: "Every consumer (both apps and the story catalog) imports 'component-lib/styles/entry.css' and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
+    fix: "Every consumer (both apps) imports 'component-lib/styles/entry.css' and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
   {

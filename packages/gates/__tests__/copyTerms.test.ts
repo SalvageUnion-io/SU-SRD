@@ -217,7 +217,6 @@ describe('the rule set', () => {
       [PRODUCT_FILE]: "export const PRODUCT = { name: 'In the Union now', shortName: 'ITUN' }",
       'apps/itun/src/A.tsx': 'export const A = () => <p>Build a mech in Itun</p>',
       'apps/itun/src/__tests__/A.test.tsx': 'export const B = () => <p>a mech</p>',
-      'apps/srd/src/B.stories.tsx': 'export const C = () => <p>a mech</p>',
     })
     const r = copyTerms.scan(root)
     expect(r['lowercase-term']?.map((f) => f.file)).toEqual(['apps/itun/src/A.tsx'])

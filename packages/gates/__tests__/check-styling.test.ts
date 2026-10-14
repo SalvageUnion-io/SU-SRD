@@ -304,7 +304,6 @@ const ENTRY = 'packages/component-lib/src/styles/entry.css'
 const STYLING_BASE: Record<string, string> = {
   [ENTRY]:
     "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
-  'apps/catalog/src/catalog.css': "@import 'component-lib/styles/entry.css';\n",
   'apps/itun/src/index.css': "@import 'component-lib/styles/entry.css';\n",
   'apps/srd/src/styles/global.css': "@import 'component-lib/styles/entry.css';\n",
   'apps/itun/src/styles/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
@@ -528,13 +527,13 @@ describe('srd-css rule set', () => {
     expect(found['srd-css-entry']?.[0]?.detail).toContain('imports no stylesheet')
   })
 
-  test('component-lib may not import css, except from stories and tests', () => {
+  test('component-lib may not import css, except from tests', () => {
     const found = srdCss.scan(
       fixture({
         ...entry,
         'packages/component-lib/src/A.tsx': "import './a.css'\n",
-        'packages/component-lib/src/A.stories.tsx': "import './a.css'\n",
-        'packages/component-lib/src/stories/B.tsx': "import './b.css'\n",
+        'packages/component-lib/src/A.test.tsx': "import './a.css'\n",
+        'packages/component-lib/src/__tests__/B.tsx': "import './b.css'\n",
       })
     )
     expect(found['lib-css-import']?.map((f) => f.file)).toEqual([

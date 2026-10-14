@@ -12,7 +12,7 @@ export type BadgeTone = 'pilot' | 'mech' | 'crawler' | 'game' | 'ok' | 'warn' | 
 type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
 /**
  * Stamp text scale — the canonical FULL / COMPACT / MINI ladder (see
- * `src/styles/sizing.ts`, `Foundations/Sizing`). Badge is the reference
+ * `src/styles/sizing.ts`). Badge is the reference
  * implementation of that vocabulary: every three-step size axis in the system
  * uses these names, so a size means the same thing wherever it is read.
  */

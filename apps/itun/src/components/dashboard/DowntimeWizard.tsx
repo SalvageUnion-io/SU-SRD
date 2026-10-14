@@ -227,7 +227,7 @@ const PIP_WAITING: CSSProperties = { ...PIP, background: 'transparent' }
 const CONTROL: CSSProperties = { flex: 1 }
 
 /** One member's ready pip. */
-export type ReadyPip = { userId: string; name: string; done: boolean }
+type ReadyPip = { userId: string; name: string; done: boolean }
 
 type DowntimeWizardFrameProps = {
   /** The step the Game is on (clamped to the guide's range). */
@@ -247,10 +247,8 @@ type DowntimeWizardFrameProps = {
 /**
  * The presentational half: the step, the ready pips and the writes are the
  * caller's, and the rules gate readout is injected via `renderStepGate`.
- * Exported for the story, which drives it with the real guide and local
- * state instead of the Game's row.
  */
-export function DowntimeWizardFrame({
+function DowntimeWizardFrame({
   stepIndex,
   ready,
   doneByMe,

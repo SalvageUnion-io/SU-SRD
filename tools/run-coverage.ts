@@ -30,7 +30,6 @@ import { assertCoversWorkspaces } from 'gates/lib/workspaceCoverage'
 const FLOORS: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference': 96.5,
   'packages/component-lib': 95.5,
-  'apps/catalog': 100,
   'apps/srd': 99,
   'apps/itun': 97,
   'apps/discord-bot': 96.5,

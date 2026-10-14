@@ -11,8 +11,7 @@ name: E2E (nightly)
 # notification service or webhook secret.
 #
 # srd has no job here: its whole Playwright suite gates every srd PR in
-# ci.yml's `build-srd`, and srd is a hermetic static build. The story
-# catalog's axe scan (`stories-a11y`) runs here rather than per PR.
+# ci.yml's `build-srd`, and srd is a hermetic static build.
 #
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
@@ -112,47 +111,6 @@ jobs:
           path: apps/itun/playwright-report/
           retention-days: 7
 
-  stories-a11y:
-    # WCAG 2.2 AA on every story `bun run stories:ids` lists, at desktop and as
-    # a phone, less the rules about a whole page's landmarks. A ratchet: it
-    # fails on any violation not in tools/baselines/stories-a11y-baseline.json,
-    # and on an entry there that passes now. Nightly, not per PR: it took ten
-    # minutes, the whole PR critical path, while the apps' own a11y specs scan
-    # real pages per PR in ci.yml. The catalog has no build: its dev server
-    # serves the stories (`apps/catalog/playwright.config.ts`).
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/catalog
-        run: bunx playwright install chromium
-
-      - name: Run the stories a11y spec
-        working-directory: apps/catalog
-        run: bunx playwright test stories-a11y.e2e.ts
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: playwright-report-stories-a11y
-          path: apps/catalog/playwright-report/
-          retention-days: 7
-
   production-smoke:
     # The post-deploy smoke list from deploy-cloudflare.yml, re-run daily. A
     # deploy only proves production answered at the moment it shipped; a DNS
@@ -239,7 +197,7 @@ jobs:
   # dispatch (blocked by the production environment's main-only policy, so red
   # with zero steps) would otherwise open a false alarm or close a real one.
   notify:
-    needs: [e2e-itun, stories-a11y, production-smoke, audit, environments]
+    needs: [e2e-itun, production-smoke, audit, environments]
     if: always() && !cancelled() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —

@@ -55,8 +55,7 @@ wired through `ssg/endpoints.ts` — **endpoints are not routes.**
   `Footer`'s: the page module returns `foot: entityPageFoot(...)` in its
   `PageResult`, and the footer cites it in that chapter's band; under it, as on
   every other page, the licence row ends the page in the Union bar's ink.
-- Page layouts are `src/styles/pages.css`, imported by `global.css` and
-  `apps/catalog/src/catalog.css`.
+- Page layouts are `src/styles/pages.css`, imported by `global.css`.
 
 ## Not in DESIGN.md
 

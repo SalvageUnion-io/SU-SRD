@@ -11,7 +11,7 @@
  * every hop.
  *
  * The mode is the route's (`SheetView` provides it). A `<Sheet>` with no
- * provider (a component test, a story, the public sheet's frozen render) has no
+ * provider (a component test, the public sheet's frozen render) has no
  * mode and keeps the behaviour it always had: writable when its caller lets it
  * write. A sheet the viewer cannot write (a crewmate's, the Starter Set's) has
  * no toggle — it is always Read.

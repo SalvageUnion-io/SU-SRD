@@ -53,6 +53,6 @@ describe('portFor', () => {
 
   test("this checkout's port is the base plus its offset", () => {
     const offset = portOffset(CHECKOUT_ROOT, isPrimaryCheckout(CHECKOUT_ROOT))
-    expect(portFor('stories', { ci: false })).toBe(BASE_PORTS.stories + offset)
+    expect(portFor('srd', { ci: false })).toBe(BASE_PORTS.srd + offset)
   })
 })

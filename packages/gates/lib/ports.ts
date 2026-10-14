@@ -2,7 +2,7 @@
  * ports — each checkout's own dev-server ports, so parallel worktrees never
  * share one.
  *
- * On fixed ports (srd's dev server on 4321, the story catalog on 61000), a
+ * On a fixed port (srd's dev server on 4321), a
  * second worktree either fails to start its server or, worse, `bun run shot`
  * and srd's Playwright suite reuse the first checkout's server and silently
  * measure that checkout's code.
@@ -33,7 +33,7 @@ import { fileURLToPath } from 'node:url'
  * with no backend, `bun run shot itun:/route`'s own server; `bun run dev:itun`
  * is not on it, and stays on 5173, where its local Convex backend expects it.
  */
-export const BASE_PORTS = { srd: 4321, stories: 61000, itun: 5180 } as const
+export const BASE_PORTS = { srd: 4321, itun: 5180 } as const
 
 /** `bun run dev:itun`'s port: Vite's default, where its local Convex backend expects it. */
 export const ITUN_DEV_PORT = 5173

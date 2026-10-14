@@ -54,11 +54,9 @@ What an editor needs:
   `src/design/__tests__/tokens.parity.test.ts` fails if they disagree.
 - **The one entry:** `packages/component-lib/src/styles/entry.css` declares
   `@layer su-reset, su-base;`, imports `theme.css` unlayered, `reset.css` into
-  `su-reset` and `index.css` into `su-base`. The two apps and
-  `apps/catalog/src/catalog.css` import it, never `index.css`, and their own
-  stylesheets stay unlayered so an app rule outranks a package rule
-  (`package-stylesheet-import` guards it). Catalog-only CSS goes in
-  `src/stories/_stories.css`.
+  `su-reset` and `index.css` into `su-base`. The two apps import it, never
+  `index.css`, and their own stylesheets stay unlayered so an app rule
+  outranks a package rule (`package-stylesheet-import` guards it).
 - `dash-class-contract` holds `su-dash-*` usage and definitions to each other.
 - **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a
   real key press. Checking layer order by block position lies: read the

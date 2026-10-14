@@ -40,7 +40,7 @@ const COMPONENTS_FLOOR = 280
 const VIEW_MODEL = /\.model\.ts$/
 /** A React hook module: `useSeat.ts`. */
 const HOOK = /(?:^|\/)use[A-Z][^/]*\.ts$/
-const TEST_FILE = /\.(?:test|spec|stories)\.tsx?$/
+const TEST_FILE = /\.(?:test|spec)\.tsx?$/
 
 /** Every specifier in `import … from`, `export … from`, `import(…)` and bare `import '…'`. */
 const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])([^'"]+)\1/g
