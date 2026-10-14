@@ -157,13 +157,13 @@ describe('MechSheet — readOnly', () => {
 })
 
 describe('MechSheet — the Chassis stats', () => {
-  test("print on the Chassis card's head, in the official sheet's words", () => {
+  test("print in the hero's top-right corner, in the official sheet's words", () => {
     // A real chassis, so every figure resolves from the reference data.
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
     )
-    const text = container.querySelector('section[aria-label="Chassis"]')?.textContent ?? ''
+    const text = container.querySelector('dl[aria-label="Chassis stats"]')?.textContent ?? ''
     // The machine's figures, in the sheet's order: capacities, not what is in
     // use (the Systems and Modules counts and The Hold say that).
     const pairs = [
@@ -182,8 +182,8 @@ describe('MechSheet — the Chassis stats', () => {
   })
 })
 
-describe('MechSheet — the Chassis card', () => {
-  test("the chassis is its own reference card, apart from the player's hero", () => {
+describe('MechSheet — the hero and the Chassis card', () => {
+  test('the hero is image | text | stats + ability; the card keeps the chassis prose', () => {
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
@@ -192,15 +192,28 @@ describe('MechSheet — the Chassis card', () => {
     const card = container.querySelector('section[aria-label="Chassis"]')
     expect(hero).not.toBeNull()
     expect(card).not.toBeNull()
-    // The hero is the player's photo (the chassis art until changed) and what
-    // they wrote; nothing read off the chassis.
+    // The hero: the player's photo (the chassis art until changed), what they
+    // wrote, then the chassis stats and the chassis ability as a library Row.
     expect(hero?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
-    expect(hero?.querySelector('dl[aria-label="Chassis stats"]')).toBeNull()
-    expect(hero?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
-    expect(hero?.textContent).not.toContain('Spectrum')
-    // The card: the chassis's name, art and description, with its ability a Token.
+    expect(hero?.querySelector('dl[aria-label="Chassis stats"]')).not.toBeNull()
+    const ability = hero?.querySelector('ul[aria-label="Chassis ability"] li')
+    expect(ability?.textContent).toContain('Data Scanner')
+    // Read leaves the pattern name out: it is the band's title.
+    expect(hero?.textContent).not.toContain('Pattern name')
+    // The card: the chassis's name, art and description, and nothing the hero has.
     expect(card?.textContent).toContain('Spectrum')
     expect(card?.querySelector('img')).not.toBeNull()
-    expect(card?.querySelector('ul[aria-label="Chassis ability"] li')).not.toBeNull()
+    expect(card?.querySelector('dl[aria-label="Chassis stats"]')).toBeNull()
+    expect(card?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
+  })
+
+  test("the ability's lead names the chassis, not the book's placeholder", () => {
+    const mazona: Mech = { ...fakeMech, chassisRef: 'mazona', systems: [], cargoLots: [] }
+    const { container } = render(
+      <MechSheet mech={mazona} store={makeStubStore(mazona)} crawler={fakeCrawler} readOnly />
+    )
+    const ability = container.querySelector('ul[aria-label="Chassis ability"] li')
+    expect(ability?.textContent).toContain('The Mazona has an Integrated Hover')
+    expect(ability?.textContent).not.toContain('[(CHASSIS)]')
   })
 })

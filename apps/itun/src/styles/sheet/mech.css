@@ -97,6 +97,44 @@
   padding-top: 14px;
 }
 
+/* The hero's fields card is image | text | stats + ability: the player's
+   fields, then a right column with the chassis stats in its top-right corner
+   and the chassis ability under them. Queries `.su-photo-beside` (the card
+   body's container), so the column goes beside the fields only where the card
+   has room; below that it follows them. */
+.su-sheet-mech-hero-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  height: 100%;
+}
+
+.su-sheet-mech-hero-split > :first-child {
+  flex: 1 1 auto;
+}
+
+.su-sheet-mech-hero-chassis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+@container (width >= 40rem) {
+  .su-sheet-mech-hero-split {
+    flex-direction: row;
+  }
+
+  .su-sheet-mech-hero-split > :first-child {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .su-sheet-mech-hero-chassis {
+    flex: 0 0 19rem;
+  }
+}
+
 /* Appearance takes the identity card's remaining height (`Field` takes a
    className, no style). */
 .su-sheet-mech-fill {
