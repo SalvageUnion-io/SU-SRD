@@ -17,6 +17,7 @@ import {
   getChassisAbilities,
   getPatterns,
   isTitanicAction,
+  vehicleSystemNames,
 } from 'salvageunion-reference'
 import { MAX_DEPTH } from './cardHelpers'
 import type { DroneLoadout } from './resolveNestedEntities'
@@ -74,7 +75,13 @@ export function resolveNestedSections({
     canExpand && (onPage || showChassisAbility) ? (getChassisAbilities(entity) ?? []) : []
   // A pattern view keeps its host's actions: a Bio-Titan pattern INHERITS them
   // (a chassis carries none, so its pattern view is unchanged).
-  const allActions = canExpand && !isGrantingAbility ? (extractVisibleActions(entity) ?? []) : []
+  // A vehicle's systems (`vehicleSystemNames`) are drawn as its system cards,
+  // the drone way, not as actions.
+  const vehicleSystems = new Set(vehicleSystemNames(entity))
+  const allActions =
+    canExpand && !isGrantingAbility
+      ? (extractVisibleActions(entity) ?? []).filter((a) => !vehicleSystems.has(a.name))
+      : []
 
   // PATTERN view: the chosen pattern's systems/modules loadout (its drones render
   // as drone cards instead), or the actions a Bio-Titan pattern adds. BASIC
@@ -110,12 +117,14 @@ export function resolveNestedSections({
         : []
     : []
 
-  // THIS card's own drone loadout (when it IS a drone): the parent-provided
-  // `droneLoadout`, else the drone's own systems/modules. Rendered as listings
-  // INSIDE this card's body — never leaked to the parent (chassis) body.
+  // THIS card's own drone loadout (when it IS a drone, or a vehicle): the
+  // parent-provided `droneLoadout`, else its own systems/modules. Rendered as
+  // listings INSIDE this card's body — never leaked to the parent (chassis) body.
   const ownDroneLoadout =
     droneLoadout ??
-    (schemaName === 'drones' && canExpand ? resolveDroneOwnLoadout(entity) : undefined)
+    ((schemaName === 'drones' || schemaName === 'vehicles') && canExpand
+      ? resolveDroneOwnLoadout(entity)
+      : undefined)
 
   return {
     canExpand,

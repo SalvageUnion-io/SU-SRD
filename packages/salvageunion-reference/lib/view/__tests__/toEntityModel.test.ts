@@ -208,3 +208,25 @@ describe('headerFill (E12)', () => {
     expect(headerFill(action, 'row')).toBe('ink')
   })
 })
+
+describe('a vehicle’s systems', () => {
+  const vehicle = (name: string) =>
+    need(SalvageUnionReference.getByNameIn('vehicles', name), name) as SURefMetaEntity
+
+  test('an action name that is a systems entry is a Systems child, the drone way', () => {
+    const model = toEntityModel(vehicle('Fighting Box Wheel'))
+    expect(model.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Locomotion System', '.50 Cal Machine Gun']],
+    ])
+    expect(model.actions).toEqual([])
+  })
+
+  test('a name with no systems entry stays an action', () => {
+    const model = toEntityModel(vehicle('Power Loader'))
+    expect(model.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Locomotion System']],
+    ])
+    // "Rigging Arm (Vehicle)", the vehicle's own action, printed "Rigging Arm".
+    expect(model.actions.map((a) => a.name)).toContain('Rigging Arm')
+  })
+})

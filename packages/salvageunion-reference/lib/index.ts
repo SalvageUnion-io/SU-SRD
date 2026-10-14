@@ -169,6 +169,7 @@ export {
   nestedEntityGroups,
   patternGroups,
   resolveLoadout,
+  vehicleSystemNames,
 } from './view/parts/children'
 export {
   type AdditionalSource,
