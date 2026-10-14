@@ -561,9 +561,10 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] name [chips]`, dashed
-   when player-made. It wraps as a whole, never mid-token. */
+   when player-made, its name on the cut-out (below). It wraps as a whole,
+   never mid-token. */
 .su-entity-token__pill {
-  align-items: center;
+  align-items: stretch;
   align-self: flex-start;
   border-color: var(--color-ink);
   border-radius: var(--radius-card);
@@ -578,7 +579,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   line-height: 1.2;
   max-width: 100%;
   overflow: hidden;
-  padding: 3px var(--space-6) 3px var(--space-4);
+  padding: 3px var(--space-6) 0 var(--space-4);
   position: relative;
   text-transform: uppercase;
   white-space: nowrap;
@@ -685,4 +686,29 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 
 [data-entity-fit] .su-entity-row__body {
   contain: inline-size;
+}
+
+/*
+ * THE TOKEN CUT-OUT (`.su-entity-token__notch`): the name sits on a tab of
+ * the paper, in ink, as a Row's and a Tile's head do, but at the Token's one
+ * height: the tab runs from a thin strip of the paint down into the pill's
+ * foot, so the pill grows no taller. Its corners are square. The paint shows
+ * above and left of the tab and behind the chips; the note stamp stays on
+ * the paint, left of the tab, where a Row keeps its tier.
+ */
+.su-entity-token__pill > :not(.su-entity-token__notch) {
+  align-self: center;
+  margin-bottom: 3px;
+}
+
+.su-entity-token__notch {
+  align-items: center;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  display: flex;
+  flex: 0 1 auto;
+  margin-left: calc(-1 * var(--space-2));
+  margin-right: auto;
+  min-width: 0;
+  padding: 1px var(--space-6) 3px;
 }
