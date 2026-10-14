@@ -35,6 +35,13 @@
   padding-inline: var(--space-16);
 }
 
+/* The mark is the bar's one control height too, so the logo lines up with
+   the switcher, the search and the buttons beside it. */
+.su-union-bar__mark {
+  height: var(--su-union-bar-control);
+  width: var(--su-union-bar-control);
+}
+
 /* The bar's controls, one height and one corner. The search field's height
    is its border box, so its block padding goes, and it takes the buttons'
    card radius; the hamburger and the phone's icon buttons
@@ -207,17 +214,11 @@
    three-control cluster (ITUN signed in: search, avatar, menu, each on the
    44px coarse floor) in one row. The default spacing needs 405px for that,
    so the hamburger ran off a 375px screen; this tightening gets it to about
-   354px, inside a 360px phone, without dropping a control. The mark steps
-   down to 32px here, in both tools, to keep that sum with one bar height. */
+   354px, inside a 360px phone, without dropping a control. */
 @media (max-width: 24.99rem) {
   .su-union-bar__row {
     gap: var(--space-8);
     padding-inline: var(--space-12);
-  }
-
-  .su-union-bar__mark {
-    height: 32px;
-    width: 32px;
   }
 
   .su-union-bar__tab {

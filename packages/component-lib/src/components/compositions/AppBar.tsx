@@ -18,7 +18,7 @@ import { Speckle } from '../atoms/Speckle'
  * ## One geometry
  *
  * Both tools wear the same bar (one product at one domain): one
- * 56px row at every width, the 40px mark, one height for every control in it
+ * 56px row at every width, one height for the mark and every control in it
  * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (`SearchField` / `SearchFieldTrigger`). There are no
