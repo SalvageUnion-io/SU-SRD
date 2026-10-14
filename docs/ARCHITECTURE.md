@@ -69,14 +69,14 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
     Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
 22. **Display system** <a id="display"></a>
-    Entity forms (Mention, Token, Row, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
+    Entity forms (Mention, Token, Row, Tile, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
     `/su me`, `games` and `sheet` call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`.
     Read-only; Convex unreachable means every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
-    No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
+    No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
 25. **Accessibility** <a id="a11y"></a>
     Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, ITUN signed in.
     Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
@@ -182,11 +182,11 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted: a partner is a `ReferenceEntityCard` on its host's sheet with instance state; no partner sheet or route.
     Supersedes ADR-027.
 29. **ADR-029 Unified contribution model and stat provenance** · [full text](adr/029-contribution-model.md)
-    Accepted, built: one source / op / target model (`packages/salvageunion-reference/lib/rules/contributions.ts`).
+    Accepted, built (§4 amended by ADR-038): one source / op / target model (`packages/salvageunion-reference/lib/rules/contributions.ts`).
     Derivations return parts, so provenance shows wherever a value does; duration effects are never persisted.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Accepted, governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal.
-    Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037 and ADR-039.
+    Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037 and ADR-038 (ADR-039's amendment retired with it).
 31. **ADR-031 srd builds on an in-house Vite SSG**
     Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/srd/ssg/DESIGN.md`.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -207,7 +207,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Amends ADR-030; amended by ADR-044. Code: `packages/itun-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
-    Supersedes ADR-015; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
+    Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
 39. **ADR-039 Addressed invites by Discord account** · [full text](adr/039-addressed-invites.md)
     Retired with `/su invite`: a Game joins only through its one invite URL (ADR-030), and an addressed row opens nothing.
     Amended ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).

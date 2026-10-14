@@ -99,7 +99,9 @@ that can deploy production. The bar it is held to:
   start without them.
 - Stored as a secret of the `production` GitHub Environment, restricted to
   `main`, with no reviewers. Never at repository
-  level, in a `wrangler.jsonc`, or in a `.env` git can see.
+  level, in a `wrangler.jsonc`, or in a `.env` git can see. The same
+  Environment holds `DISCORD_TOKEN`, with which a bot deploy registers the
+  slash commands (#1513); `plan` refuses a bot deploy without it.
 - [Worker Previews](../ARCHITECTURE.md#previews) run from any PR branch, so
   the `preview` Environment admits every branch and holds a copy of the token
   (it cannot be narrowed to the previews). It has no required reviewer: the

@@ -66,7 +66,7 @@ redeem it, and the Organizer chose that person.
 The bot's bearer credential (`ITUN_BOT_SECRET`) **asserts** a Discord id; the
 [bot authentication](../ARCHITECTURE.md#bot-game-client) is explicit that
 its holder can claim to be any linked player, and bounds the damage by what the
-bot may do: read, record rolls, bind channels — and **never invent a
+bot could then do: read, record rolls, bind channels (read-only since #1459) — and **never invent a
 membership**. An invite command that trusted the asserted id would break that
 bound: a leaked secret could pose as any Organizer and invite itself in.
 

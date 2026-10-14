@@ -17,7 +17,10 @@ import { INPUT_FOCUS } from './interaction'
 import { STAMP_SEAM } from './stampSeam'
 
 type FieldCommon = {
-  /** Uppercase cond label — the ink Stamp straddling the control's top border. */
+  /**
+   * Uppercase cond label: the ink Stamp straddling a static control's top
+   * border; edit-in-place and picker fields typeset it over the value, as Read does.
+   */
   label: ReactNode
   /** Required asterisk inside the label stamp (white on ink). */
   required?: boolean
@@ -38,7 +41,7 @@ type FieldStaticProps = FieldCommon & {
 
 /**
  * Edit-in-place / picker field (the merged `IdentityField`): renders a stored
- * `value` inside an ink-bordered value box under the same straddling stamp.
+ * `value` inside an ink-bordered value box, its label typeset over it as Read sets it.
  * ALWAYS editable when it is given a handler — there is no section Edit toggle
  * to unlock first. The value box is DASHED: on a sheet, dashed borders and
  * steppers are the only "write here" cues (ruleset §1, Live Sheet),
@@ -181,9 +184,9 @@ const VALUE_FILLED = { ...VALUE_TEXT, fontWeight: weight.medium } satisfies CSSP
 const VALUE_EMPTY = { ...VALUE_TEXT, color: color.wkMuted } satisfies CSSProperties
 
 /**
- * Form field block (design-spec §2.5 `.field`) — the ONE labelled control. The
- * label IS the ink Stamp straddling the control's top border (StampSeam), the
- * required mark riding inside it (white on ink). Three shapes share that stamp:
+ * Form field block (design-spec §2.5 `.field`) — the ONE labelled control. A
+ * static control's label is the ink Stamp straddling its top border (StampSeam),
+ * the required mark riding inside it (white on ink); the other shapes typeset it:
  *
  * 1. **static** — caller passes `children` (an `Input`/`Textarea`/`Select`); the
  *    child owns the border the stamp rides. Used by the pilot/mech wizard steps.
@@ -191,8 +194,8 @@ const VALUE_EMPTY = { ...VALUE_TEXT, color: color.wkMuted } satisfies CSSPropert
  *    a bordered value box; the dashed `EDIT_CUE_HOVER_CLASS` signals editability.
  * 3. **picker** — `value` + `onEditClick`: a button value box opening a modal.
  *
- * Shapes 2–3 are the absorbed `IdentityField`: the sheet identity rows lose the
- * old label-tab + pen framing and gain the canonical straddling stamp.
+ * Shapes 2–3 are the absorbed `IdentityField`. They set the label as Read does,
+ * small caps over the value, not the straddling stamp (Edit looks like Read).
  *
  * 4. **typeset** — `value` with neither handler: the read state. Label over
  *    value, no box, no placeholder; an empty value renders nothing, so a read

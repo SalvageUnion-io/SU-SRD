@@ -13,7 +13,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    - **Rules · Salvaging**, rules blue `--color-wk-line`: Home, Core Rules, Salvaging, Guides, Keywords.
    - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, ITUN pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, ITUN mechs.
    - **Union Crawler**, `--color-crawler`: Crawlers, Bays, Crawler TLs, ITUN crawlers. **Denizens**, `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards keep adversary brown).
-   - **ITUN's Shelves** (not the book): ink, with paper flecks (§3.5).
+   - Off-book: Shelves ink, paper flecks (§3.5); Cantina pages `cantina` (crawler pink); Home's Discord tile `--color-discord`.
 7. **Deliberate departures** — no white knockout; generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); ability Rows wear their tier (E12); rounding only where the book rounds (§4.4).
 
 ## The laws
@@ -27,9 +27,9 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    4. **The cost pennant is the action** — on the Dashboard, tapping the pennant resolves the action: read-pennant size, filled rust, 44px hit area, no separate deck button.
    5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck, depth 2): art column, one-row head, chip group (E17).
       Context changes props, never the anatomy; nothing edits or expands in place. An entity without art has no art place (a catalog with art: a censor mark).
-      Where the schema has art, the SRD Catalog draws Tiles (`<Entity form="tile">`; EDL E2 and "Which form, where" 1).
+      An SRD index draws Tiles (`form="tile"`, EDL E2).
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
-      Terminal: no buttons, links, nested Peeks or steppers; children are Tokens, Mentions inert.
+      Terminal: no buttons, links, nested Peeks or steppers; children are Tokens (chassis ability: Row), Mentions inert.
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Dashboard → Listing → Peek).
@@ -39,7 +39,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    4. **Rolls** — `RollTableInstrument` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only.
    6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4). A wider gap parts groups.
-   7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1); a section header is a Slab.
+   7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` (the cost pennant included) and `InlineRef`, and no token aliases it.
       Focus and selection rings, "you are here" and chrome accents are ink. Enforced by `tokens/rust-allowlist`.
@@ -50,7 +50,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       Each sanctioned pattern (Slab leader, tile ramps, user-made hatch) is in `EXEMPTIONS` (`packages/gates/rules/designTokens.ts`).
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
          Never on paper, buttons, fields, the Dashboard or the Peek (`tokens/texture-placement`).
-      2. **One shading exemption** — the `.pilot-panel` illustration on srd's `/about`. A ruled one-off, not precedent; anything else is a defect.
+      2. **One shading exemption** — the `.pilot-panel` illustration on srd's `/about`. A one-off, not precedent.
    6. **§3.6 Copy is 1:1 with real SRD data** — everywhere.
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
@@ -58,7 +58,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
-   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build; ITUN is the product name, spelled out on its front door; no off-site arrows between the two.
+   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build; the builder is The Cantina, named on its front door; no off-site arrows between the two.
    12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
 4. **§4 Foundations** — the token layer, one home: `packages/component-lib/src/styles/theme.css`.
@@ -82,9 +82,9 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
-   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (classification pills, User-made; never above it, never riding the frame, never the kind, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
-   - **Actions nest** — framed cards, ink banners, no Actions tray or stamp (on a Page, under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
-   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind. One tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
+   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (classification pills, User-made; never above it, never riding the frame, never the kind bar a mech sheet's CHASSIS, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
+   - **Actions nest** — framed cards, ink banners, no Actions tray or stamp (on a Page, under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar (nested: a Token, E14).
+   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind. One tone each; large → medium → a Row at depth 2 (frames 3 → 2px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.
    1. **Badge** — folds ValueDisplay, Tag, Pill, Chip, cost pennant, Range, Action-type, TL and the StatusBadge shell.
