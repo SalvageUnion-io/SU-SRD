@@ -31,7 +31,9 @@ import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { chipLines, costChip, factChips } from './discordChips'
 import { chassisCardGroups } from './parts/children'
+import { rangeStart, stripOwnerSuffix } from './parts/discordText'
 import { opensGroup, splitStatLine } from './parts/facts'
+import { splitParagraph } from './parts/paragraphs'
 import { formatActionType } from './parts/traits'
 import { toEntityModel } from './toEntityModel'
 import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
@@ -218,7 +220,9 @@ function contentMarkdown(
           line = `*${body}*`
           break
         default:
-          line = body
+          // A long paragraph reads as shorter ones in Discord's narrow column.
+          out.push(...splitParagraph(body))
+          continue
       }
     } else if (block.label) {
       line = `**${block.label}**`
@@ -329,19 +333,6 @@ function actionBand(ref: EntityRef, ownName: string, chassisName?: string): Disc
   return { name, text, summary, ...(tableName ? { tableName } : {}) }
 }
 
-/** "Chassis Repair (Fabrication Arm)" inside Fabrication Arm → "Chassis Repair". */
-function stripOwnerSuffix(name: string, ownName: string): string {
-  const match = name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/)
-  if (!match?.[1] || !match[2]) return name
-  return match[2].trim().toLowerCase() === ownName.trim().toLowerCase() ? match[1] : name
-}
-
-/** The first number of a range key: "11-19" → 11. */
-function rangeStart(key: string): number {
-  const n = Number.parseInt(key, 10)
-  return Number.isNaN(n) ? 0 : n
-}
-
 /**
  * A table's rows. A banded table prints one row per band, highest first, as the
  * book does. A two-roll (columns) table prints one row per column, its entries
@@ -412,9 +403,12 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
 
   const table = model.table ? tableParts(model.table) : undefined
 
-  const children = [...model.children, ...(isHost ? chassisCardGroups(model.ref) : [])].map(
-    (group) => discordChildGroup(group.label, group.items)
-  )
+  // A class's Core trees and its Advancement: bare links.
+  const children = [
+    ...model.children,
+    ...(model.links ?? []),
+    ...(isHost ? chassisCardGroups(model.ref) : []),
+  ].map((group) => discordChildGroup(group.label, group.items))
 
   return {
     tone: model.tone,
