@@ -35,7 +35,8 @@ describe('RollTableInstrument — the roll', () => {
     expect(roll.className).toContain('su-btn')
     expect(roll.className).toContain('su-roll__roll')
     expect(roll.className).not.toContain('su-roll__stamp')
-    expect(container.querySelector('.su-roll__bar')?.lastElementChild).toBe(roll)
+    expect(container.querySelector('.su-roll__bar')?.contains(roll)).toBe(true)
+    expect(roll.nextElementSibling).toBeNull()
     fireEvent.click(roll)
     expect(rolled).toBe(1)
   })
@@ -90,5 +91,44 @@ describe('RollTableInstrument — the rolled row', () => {
     expect(after.tag).toBe('Rolled 7')
     // The same head and value as unrolled; the pennant is the one addition.
     expect(after.shape).toEqual([...before.shape, 'su-roll__tag'])
+  })
+})
+
+describe('RollTableInstrument — the ink head’s column labels', () => {
+  const inked = (split: boolean) => (
+    <RollTableInstrument
+      name="Core Mechanic"
+      size="large"
+      onRoll={() => {}}
+      table={{ kind: 'bands', rows, split }}
+    />
+  )
+
+  test('labels the columns for sight only, the roll still the one button at its end', () => {
+    const { container } = render(inked(false))
+    const bar = container.querySelector('.su-roll__bar')
+    expect(bar?.querySelector('[aria-hidden="true"]')?.textContent).toBe('d20Result')
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+    expect(bar?.lastElementChild?.lastElementChild).toBe(
+      screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })
+    )
+  })
+
+  test('a split table repeats Result over its second half', () => {
+    const { container } = render(inked(true))
+    expect(container.querySelector('.su-roll__bar')?.getAttribute('data-split')).toBe('true')
+    expect(container.querySelectorAll('.su-roll__col-text')).toHaveLength(2)
+  })
+
+  test('a bar carrying the host’s title has no column labels', () => {
+    const { container } = render(
+      <RollTableInstrument
+        name="Core Mechanic"
+        title="Core Mechanic"
+        size="medium"
+        table={{ kind: 'bands', rows }}
+      />
+    )
+    expect(container.querySelector('.su-roll__cols')).toBeNull()
   })
 })

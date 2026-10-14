@@ -16,6 +16,8 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  *   shared `Button` reading "Roll the Die"; without it, or in static HTML
  *   before the script runs, it is the underlined "ROLL THE DIE:" stamp in the
  *   same place. No host draws a second Roll button beside it.
+ *   The bar is an ink HEAD; with nothing of the host's in it (a page's
+ *   bands) it labels the columns, d20 over the ranges and Result over the text.
  * - The READOUT slot under the bar (`readout`): a card's ink strip. The page
  *   adds its own "You rolled" panel beside the instrument instead.
  * - The BANDS: banded d20 rows in the SURFACE TONE (`tone`, the colour of the
@@ -118,6 +120,14 @@ export function RollTableInstrument({
   frame = 'box',
   density,
 }: RollTableInstrumentProps) {
+  const roll = (
+    <RollControl name={name} onRoll={onRoll}>
+      {stamp}
+    </RollControl>
+  )
+  // A bar with nothing of the host's in it (a page's table) labels the bands' columns.
+  const labelled = table.kind === 'bands' && !title && !hint && !actions
+  const split = table.kind === 'bands' && !!table.split
   return (
     <div
       className="su-roll"
@@ -126,14 +136,29 @@ export function RollTableInstrument({
       data-density={density}
       style={{ [BAND_VAR]: rollBandColor(tone) } as CSSProperties}
     >
-      <div className="su-roll__bar">
-        {title && <span className="su-roll__title">{title}</span>}
-        {hint && <span className="su-roll__hint">{hint}</span>}
-        {actions}
-        <RollControl name={name} onRoll={onRoll}>
-          {stamp}
-        </RollControl>
-      </div>
+      {labelled ? (
+        <div className="su-roll__bar" data-cols="true" data-split={split ? 'true' : undefined}>
+          <span className="su-roll__cols" aria-hidden="true">
+            <span className="su-roll__col-range">d20</span>
+            <span className="su-roll__col-text">Result</span>
+          </span>
+          <span className="su-roll__cols su-roll__cols--end">
+            {split && (
+              <span className="su-roll__col-text su-roll__col-text--half" aria-hidden="true">
+                Result
+              </span>
+            )}
+            {roll}
+          </span>
+        </div>
+      ) : (
+        <div className="su-roll__bar">
+          {title && <span className="su-roll__title">{title}</span>}
+          {hint && <span className="su-roll__hint">{hint}</span>}
+          {actions}
+          {roll}
+        </div>
+      )}
       {readout}
       {open &&
         (table.kind === 'bands' ? (
@@ -188,7 +213,7 @@ function RollControl({
     <Button
       variant="primary"
       size="compact"
-      className="su-roll__roll"
+      className="su-roll__roll su-roll__control"
       onClick={onRoll}
       aria-label={rollLabel(children, name)}
     >
@@ -239,7 +264,13 @@ function Bands({ name, table }: { name: string; table: BandsTable }) {
   const half = Math.ceil(rows.length / 2)
   const halves = split ? [rows.slice(0, half), rows.slice(half)] : [rows]
   return (
-    <div className="su-roll__bands" data-split={halves.length > 1 ? 'true' : undefined}>
+    <div
+      className="su-roll__bands"
+      data-split={halves.length > 1 ? 'true' : undefined}
+      // The halves share one row track per pair (`grid-template-rows: subgrid`),
+      // so row N on the left and row N on the right are always one height.
+      style={halves.length > 1 ? ({ '--su-roll-half': half } as CSSProperties) : undefined}
+    >
       {halves.map((part, side) => (
         <ol
           key={side === 0 ? 'left' : 'right'}
@@ -255,8 +286,9 @@ function Bands({ name, table }: { name: string; table: BandsTable }) {
                 className="su-roll__row"
                 data-rolled={marked ? 'true' : undefined}
                 aria-current={marked ? 'true' : undefined}
-                // The banding runs on across the halves: a split table bands as one.
-                style={rowFill(side * half + at, marked)}
+                // The second half bands one step off the first, so the rows
+                // side by side never share a fill.
+                style={rowFill(at + side, marked)}
               >
                 <span className="su-roll__range">{rollRangeLabel(row.key)}</span>
                 <div className="su-roll__body">
