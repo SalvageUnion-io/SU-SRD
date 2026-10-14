@@ -8,10 +8,15 @@
  * component-lib EntityGrid.test.tsx.)
  */
 
-import { beforeEach, describe, expect, test } from 'bun:test'
-import { act, render, screen, within } from '@testing-library/react'
+import { beforeEach, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { EntitySurfaceProvider } from 'component-lib'
+import type { EntityRef } from 'salvageunion-reference'
+import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { must } from '../../__tests__/must'
 import { LiveSheet } from '../LiveSheet'
+
+const ENGINEER = { label: 'Class', name: 'Engineer' }
 
 // ---------------------------------------------------------------------------
 // IntersectionObserver mock — happy-dom has no IO; capture the callback so a
@@ -149,16 +154,38 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
 
 describe('LiveSheet — the chapter band (board 10)', () => {
   test('the name is the band’s h1 (its kind for screen readers) and its detail', () => {
-    renderShell({ kindDetail: 'Engineer' })
+    renderShell({ kindDetail: ENGINEER })
     const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
     const band = within(must(title.closest<HTMLElement>('.su-chapter-band')))
     // The kind is never stamped (EDL E9).
     expect(band.queryByText('pilot')).toBeNull()
-    expect(band.getByText('Engineer')).toBeTruthy()
+    // What it is built as is a label-first chip: `CLASS | Engineer`.
+    const chip = must(band.getByText('Engineer').closest('.su-stat-cell'))
+    expect(chip.textContent).toBe('ClassEngineer')
+  })
+
+  test('a resolved detail opens and Peeks the entity it names', () => {
+    const engineer = must(SalvageUnionReference.Classes.getByName('Engineer'))
+    const entityRef = toEntityModel(engineer).ref
+    const openPage = mock((_: EntityRef) => undefined)
+    render(
+      <EntitySurfaceProvider value={{ openPage }}>
+        <LiveSheet
+          variant="pilot"
+          name="Mara Vex"
+          renderBody={() => null}
+          kindDetail={{ label: 'Class', name: 'Engineer', entityRef }}
+        />
+      </EntitySurfaceProvider>
+    )
+    const chip = screen.getByRole('button', { name: 'Class: Engineer' })
+    expect(chip.getAttribute('data-peek')).toBe(`classes:${engineer.id}`)
+    fireEvent.click(chip)
+    expect(openPage).toHaveBeenCalledTimes(1)
   })
 
   test('a detail that only repeats the name is not stamped', () => {
-    renderShell({ name: 'Scrapper', kindDetail: 'Scrapper' })
+    renderShell({ name: 'Scrapper', kindDetail: { label: 'Class', name: 'Scrapper' } })
     const title = screen.getByRole('heading', { level: 1, name: 'Scrapper (Pilot)' })
     const band = must(title.closest<HTMLElement>('.su-chapter-band'))
     expect(within(band).getAllByText('Scrapper')).toHaveLength(1)
@@ -183,11 +210,11 @@ describe('LiveSheet — the chapter band (board 10)', () => {
 
   test('the stamp and the phone switch follow the name, and nothing is in the bar at rest', () => {
     renderShell({
-      kindDetail: 'Engineer',
+      kindDetail: ENGINEER,
       actions: <button type="button">Share</button>,
       segments: [
-        { key: 'pilot', label: 'Pilot', href: '/sheet/pilot/p', active: true },
-        { key: 'mech', label: 'Mech', href: '/sheet/mech/m', active: false },
+        { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/sheet/pilot/p', active: true },
+        { key: 'mech', label: 'Mech', name: 'Iron Jaw', href: '/sheet/mech/m', active: false },
       ],
     })
     const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
@@ -198,6 +225,35 @@ describe('LiveSheet — the chapter band (board 10)', () => {
     expect(after(screen.getByRole('navigation', { name: 'Assigned sheets' }))).toBe(true)
     expect(after(screen.getByText('Engineer'))).toBe(true)
     expect(must(title.closest('.su-chapter-band')).getAttribute('data-aside')).toBe('notch')
+  })
+})
+
+describe('LiveSheet — the condensed bar’s linked units', () => {
+  test('each other unit is its named Token, linking to its sheet', () => {
+    renderShell({
+      segments: [
+        { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/sheet/pilot/p', active: true },
+        { key: 'mech', label: 'Mech', name: 'Iron Jaw', href: '/sheet/mech/m', active: false },
+      ],
+    })
+    act(() => {
+      must(observerCallbacks[0])([ioEntry(false)], observerStub)
+    })
+    const link = bar().getByRole('link', { name: 'View Iron Jaw' })
+    expect(link.getAttribute('href')).toContain('/sheet/mech/m')
+    expect(link.classList.contains('su-entity-token')).toBe(true)
+    // The sheet being read is not linked from its own bar.
+    expect(bar().queryByRole('link', { name: 'View Mara Vex' })).toBeNull()
+  })
+
+  test('the condensed name wraps rather than cutting to "…" (E18)', () => {
+    renderShell()
+    act(() => {
+      must(observerCallbacks[0])([ioEntry(false)], observerStub)
+    })
+    const stamp = bar().getByText('Mara Vex')
+    expect(stamp.style.textOverflow).toBe('')
+    expect(stamp.style.whiteSpace).toBe('normal')
   })
 })
 

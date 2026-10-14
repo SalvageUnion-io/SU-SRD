@@ -1,6 +1,7 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { buttonVariants, ChapterBand, cn, KindLabel } from 'component-lib'
+import { buttonVariants, ChapterBand, cn, EntityStat, KindLabel } from 'component-lib'
 import type { ReactNode } from 'react'
+import type { EntityRef } from 'salvageunion-reference'
 import type { PageFoot } from '../../ssg/types'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { EntityPageStamps } from './EntityPageStamps'
@@ -23,20 +24,16 @@ import { EntityPageStamps } from './EntityPageStamps'
 
 /**
  * The band's link back to what this entity is built on, leading the cluster
- * beside the title: a stamp naming the relation ("Pattern of") and the parent's name as a link,
- * with an arrow (`.srd-parent-link`).
+ * beside the title: the label-first chip every fact is (`PATTERN OF | Mule`,
+ * EDL E9), ITUN's sheet band's `CHASSIS | Mazona` chip — it opens the parent's
+ * page and Peeks it.
  */
-function ParentLink({ label, name, href }: { label: string; name: string; href: string }) {
-  return (
-    <a className="srd-parent-link" href={href}>
-      <span className="srd-parent-link__label">{label}</span>
-      <span className="srd-parent-link__name">
-        {name}
-        <span aria-hidden="true"> →</span>
-      </span>
-    </a>
-  )
+function ParentLink({ label, entityRef, href }: EntityParent) {
+  return <EntityStat label={label} entityRef={entityRef} href={href} />
 }
+
+/** What an entity is built on: the relation, the parent and its page. */
+type EntityParent = { label: string; entityRef: EntityRef; href: string }
 
 /**
  * A creation guide's foot (`guideExitsFor`): the page ends on a way out, as
@@ -80,7 +77,7 @@ type EntityPageFrameProps = {
   /** The inner row's max width; the roll-table page runs wider (board 08b). */
   measure?: string
   /** What the entity is built on, linked beside the title: a pattern's chassis. */
-  parent?: { label: string; name: string; href: string }
+  parent?: EntityParent
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
   legalStartingPattern?: boolean
   /** "Build With This": the deep link into ITUN's builder (`buildLinkFor`), ending the cluster. */

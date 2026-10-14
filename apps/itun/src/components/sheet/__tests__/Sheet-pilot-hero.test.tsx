@@ -278,10 +278,12 @@ describe('Pilot hero — readOnly identity', () => {
     const band = must(
       screen.getByRole('heading', { level: 1 }).closest<HTMLElement>('.su-chapter-band')
     )
-    const className = must(pilotStamp(pilot.classRef))
+    const className = must(pilotStamp(pilot.classRef)).name
     expect(within(band).getByText(className)).toBeTruthy()
     expect(screen.getAllByText(className)).toHaveLength(1)
-    expect(screen.queryByText('Class')).toBeNull()
+    // `CLASS | Engineer` is the band's chip; there is no Class field under it.
+    const outsideBand = (el: HTMLElement) => el.closest('.su-chapter-band') === null
+    expect(screen.queryAllByText('Class').filter(outsideBand)).toHaveLength(0)
   })
 
   test('a callsign that differs from the name still prints', () => {
@@ -299,6 +301,6 @@ describe('Pilot hero — readOnly identity', () => {
   test('Edit keeps both fields: they are where callsign and class are changed', () => {
     renderHero(makePilot({ name: 'Bonesaw', callsign: 'Bonesaw' }))
     expect(screen.getByText('Callsign')).toBeTruthy()
-    expect(screen.getByText('Class')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Change class' })).toBeTruthy()
   })
 })
