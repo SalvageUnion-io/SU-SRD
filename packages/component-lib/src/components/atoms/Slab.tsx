@@ -133,8 +133,10 @@ const COUNT_STAT = {
 } satisfies CSSProperties
 
 /** Composed with `POSTER_STAMP`, which supplies face, caps, weight and tracking. */
+/* A label longer than its row wraps (`minWidth: 0`) rather than pushing the rule off the page. */
 const SOLID_LABEL = {
-  flexShrink: 0,
+  flexShrink: 1,
+  minWidth: 0,
   fontSize: fontSize.sm,
   lineHeight: 1.625,
   paddingBottom: '3px',
@@ -144,7 +146,8 @@ const SOLID_LABEL = {
 
 const DASHED_LABEL = {
   color: 'var(--tone-deep, var(--color-ink))',
-  flexShrink: 0,
+  flexShrink: 1,
+  minWidth: 0,
   fontFamily: font.cond,
   fontSize: fontSize.sm,
   fontWeight: weight.bold,
