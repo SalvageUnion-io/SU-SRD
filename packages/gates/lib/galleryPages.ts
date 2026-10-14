@@ -1,5 +1,5 @@
 /**
- * The pages the PR gallery shoots (`tools/gallery.ts`): the screens worth a
+ * The pages the screenshot gallery shoots (`tools/gallery.ts`): the screens worth a
  * reviewer's look, grouped the way the gallery prints them. A page names its
  * site; `signedIn` pages are reached through a seeded test account
  * (`tools/gallery.ts` copies three Starter Set characters to its Shelves), and

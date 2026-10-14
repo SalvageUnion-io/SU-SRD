@@ -555,7 +555,7 @@ describe('the network edges, against a stubbed fetch', () => {
   })
 
   const API = 'https://api.github.com/repos/o/r'
-  const artifacts = (n: number) => `${API}/actions/artifacts?name=pr-gallery-${n}&per_page=5`
+  const artifacts = (n: number) => `${API}/actions/artifacts?name=gallery-${n}&per_page=5`
   const tours = `${API}/actions/artifacts?name=preview-tour&per_page=20`
   const pr = (number: number): PullRequest => ({
     number,
@@ -577,29 +577,23 @@ describe('the network edges, against a stubbed fetch', () => {
   test('githubSource: an API error throws; no unexpired artifact, a failed download or a bad zip unpacks nothing; a good one unpacks', async () => {
     const net = stub({
       [artifacts(2)]: {
-        json: { artifacts: [{ name: 'pr-gallery-2', expired: true, archive_download_url: 'x' }] },
+        json: { artifacts: [{ name: 'gallery-2', expired: true, archive_download_url: 'x' }] },
       },
       [artifacts(3)]: {
         json: {
-          artifacts: [
-            { name: 'pr-gallery-3', expired: false, archive_download_url: 'http://dl/3' },
-          ],
+          artifacts: [{ name: 'gallery-3', expired: false, archive_download_url: 'http://dl/3' }],
         },
       },
       'http://dl/3': { status: 410 },
       [artifacts(4)]: {
         json: {
-          artifacts: [
-            { name: 'pr-gallery-4', expired: false, archive_download_url: 'http://dl/4' },
-          ],
+          artifacts: [{ name: 'gallery-4', expired: false, archive_download_url: 'http://dl/4' }],
         },
       },
       'http://dl/4': { body: 'not a zip' },
       [artifacts(5)]: {
         json: {
-          artifacts: [
-            { name: 'pr-gallery-5', expired: false, archive_download_url: 'http://dl/5' },
-          ],
+          artifacts: [{ name: 'gallery-5', expired: false, archive_download_url: 'http://dl/5' }],
         },
       },
       'http://dl/5': { body: storedZip({ 'gallery.json': '{"pr":5}', 'index.html': 'five' }) },

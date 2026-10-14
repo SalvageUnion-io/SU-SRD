@@ -1,5 +1,5 @@
 /**
- * The PR gallery's page (`tools/gallery.ts` writes it beside the shots): one
+ * The screenshot gallery's page (`tools/gallery.ts` writes it beside the shots): one
  * section per `GALLERY_SECTIONS` entry, each page a desktop shot with its
  * phone shot inset, then every page's link preview (og:image, og:title,
  * og:description) the way a chat client lays it out. Pure, so it is tested

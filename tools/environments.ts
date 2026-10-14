@@ -92,7 +92,7 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
   },
   {
-    // `pr-gallery-pages.yml`: deploys the PR screenshot galleries to GitHub
+    // `gallery-pages.yml`: deploys the screenshot galleries to GitHub
     // Pages. A `workflow_run` job runs main's code, so the main-only policy
     // holds; it needs no secret (the job's own token deploys).
     name: 'github-pages',

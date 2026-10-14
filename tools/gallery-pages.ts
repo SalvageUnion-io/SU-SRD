@@ -1,13 +1,13 @@
 #!/usr/bin/env bun
 /**
- * gallery-pages — assembles the PR galleries' GitHub Pages site.
+ * gallery-pages — assembles the screenshot galleries' GitHub Pages site.
  *
  *   GITHUB_TOKEN=… GITHUB_REPOSITORY=owner/repo bun tools/gallery-pages.ts <site-dir>
  *
- * `pr-gallery-pages.yml` runs it after every `PR gallery` run. Pages serves one
+ * `gallery-pages.yml` runs it after every `Screenshot gallery` run. Pages serves one
  * site at a time, so each deploy rebuilds the whole of it: for every OPEN pull
- * request to main from a branch of this repository, the newest `pr-gallery-<n>`
- * artifact (`tools/gallery.ts`'s output, uploaded by `pr-gallery.yml`) is
+ * request to main from a branch of this repository, the newest `gallery-<n>`
+ * artifact (`tools/gallery.ts`'s output, uploaded by `gallery.yml`) is
  * unpacked to `<site-dir>/<n>/`, and `<site-dir>/index.html` lists them. A
  * closed PR's gallery drops out at the next deploy; a fork's never goes in,
  * because its artifact is HTML its author wrote, served from this
@@ -68,7 +68,7 @@ export function renderIndex(
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>PR galleries</title>
+<title>screenshot galleries</title>
 <style>
 :root { --paper: #fbfaf7; --ground: #efebe4; --ink: #282019; --ink-2: #5b5044; }
 @media (prefers-color-scheme: dark) { :root { --paper: #241d17; --ground: #1b1712; --ink: #f1ece3; --ink-2: #c4b9aa; color-scheme: dark; } }
@@ -82,7 +82,7 @@ span a { color: var(--ink-2); }
 </style>
 </head>
 <body>
-<h1>PR galleries</h1>
+<h1>screenshot galleries</h1>
 ${
   tour
     ? `<ul><li><a href="./tour/"><strong>Preview tour</strong> main, as last deployed</a>
@@ -221,7 +221,7 @@ async function unpackArtifact(
 
 /**
  * Whether a `preview-tour` artifact came from a main run of this repository.
- * A PR can edit its own copy of `pr-gallery.yml` to upload one under that name,
+ * A PR can edit its own copy of `gallery.yml` to upload one under that name,
  * so the name alone proves nothing; its run's head branch and repository do.
  */
 export function isMainTour(artifact: Artifact): boolean {
@@ -234,14 +234,14 @@ export function isMainTour(artifact: Artifact): boolean {
   )
 }
 
-/** The galleries as GitHub holds them: each PR's newest unexpired `pr-gallery-<n>` artifact, and main's newest `preview-tour`. */
+/** The galleries as GitHub holds them: each PR's newest unexpired `gallery-<n>` artifact, and main's newest `preview-tour`. */
 export function githubSource(repo: string, token: string): GallerySource {
   return {
     openPrs: () =>
       api<PullRequest[]>(`/repos/${repo}/pulls?state=open&base=main&per_page=100`, token),
     async unpack(pr, dir) {
       const { artifacts } = await api<{ artifacts: Artifact[] }>(
-        `/repos/${repo}/actions/artifacts?name=pr-gallery-${pr.number}&per_page=5`,
+        `/repos/${repo}/actions/artifacts?name=gallery-${pr.number}&per_page=5`,
         token
       )
       const artifact = artifacts.find((a) => !a.expired)
