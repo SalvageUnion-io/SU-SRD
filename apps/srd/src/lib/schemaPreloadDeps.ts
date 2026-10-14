@@ -120,6 +120,10 @@ const CHASSIS_BUNDLE: readonly string[] = [
  *  (`CatalogChoiceListing`), so both schemas must be loaded on a bay's page. */
 const CRAWLER_BAY_BUNDLE: readonly string[] = ['systems', 'actions', ...ALWAYS_CORE]
 
+/** `systems` — a body kit's chassis choice is a schema-only catalog of every
+ *  `chassis`, resolved when the reader opens Show options. */
+const SYSTEM_BUNDLE: readonly string[] = [...CONTENT_BUNDLE, 'chassis']
+
 /** Schemas whose entities are data-driven, arbitrary cross-references into
  *  any other schema (guide steps) — not safely narrowable. */
 const ARBITRARY_SCHEMAS: ReadonlySet<string> = new Set(['guides'])
@@ -138,7 +142,7 @@ const SCHEMA_PRELOAD_DEPS: Readonly<Record<string, readonly string[]>> = {
   modules: CONTENT_BUNDLE,
   npcs: CONTENT_BUNDLE,
   squads: CONTENT_BUNDLE,
-  systems: CONTENT_BUNDLE,
+  systems: SYSTEM_BUNDLE,
   vehicles: CONTENT_BUNDLE,
   // crawler-bays: resolves a Weapons System catalog (systems + actions).
   'crawler-bays': CRAWLER_BAY_BUNDLE,
