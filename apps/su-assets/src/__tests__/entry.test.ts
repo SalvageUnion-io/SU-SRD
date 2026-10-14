@@ -47,10 +47,31 @@ describe('asset worker — entrypoint', () => {
     expect(reportError).not.toHaveBeenCalled()
   })
 
+  it('404s a malformed percent-escape quietly, without a report', async () => {
+    // A scanner or a mangled link: `decodeURIComponent` throws on it, and that
+    // must read as a miss rather than a Worker fault.
+    const env = envWith({})
+    const res = await fetchVia(env, '/chassis/%E0%A4%A.webp')
+
+    expect(res.status).toBe(404)
+    expect(await res.text()).toBe('Not found')
+    expect(reportError).not.toHaveBeenCalled()
+  })
+
   it('turns an unanticipated throw into a reported 500', async () => {
-    // A malformed percent-escape makes `decodeURIComponent` throw before any
-    // guard runs; nothing inside the handler catches that, so it lands here.
-    const res = await fetchVia(envWith({}), '/chassis/%E0%A4%A.webp')
+    // A store object whose body cannot be read throws outside every guard, so
+    // it lands in the entrypoint's last-resort catch.
+    const broken = {
+      async get() {
+        return {
+          get body(): ReadableStream | null {
+            throw new Error('unreadable body')
+          },
+        }
+      },
+    }
+    const env = { LP_ASSETS: broken, IMAGES: undefined, SENTRY_DSN: '' } as unknown as Env
+    const res = await fetchVia(env, '/chassis/mule.webp')
 
     expect(res.status).toBe(500)
     expect(await res.text()).toBe('Internal Server Error')

@@ -152,7 +152,15 @@ export function makeAssetHandler(openBucket: () => AssetBucket, images?: ImagesB
       })
     }
 
-    const key = decodeURIComponent(pathname.replace(/^\/+/, ''))
+    // A malformed percent-escape (`%E0%A4%A`) makes `decodeURIComponent` throw.
+    // That is a scanner or a mangled link, not a fault: a quiet 404 like any
+    // other miss, rather than a 500 that reaches Sentry.
+    let key: string
+    try {
+      key = decodeURIComponent(pathname.replace(/^\/+/, ''))
+    } catch {
+      return plain('Not found', 404)
+    }
 
     // Reject empty keys, path traversal, and dotfiles. R2 keys are flat strings
     // so `..` has no traversal meaning to the store itself — but a request
