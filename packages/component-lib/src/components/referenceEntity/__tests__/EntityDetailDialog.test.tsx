@@ -2,8 +2,8 @@
  * ITUN's detail dialog IS the Page (EDL Form 5, E5): the chapter band with the
  * title notched in and the chips clustered beside it (E20), the card at
  * `presentation="page"` as its body (a chassis's stats leading it, the art its
- * hero), and the foot's citation in the card footer's plain text. Never the
- * framed card it used to hold. Both openers draw it: `useDetailModal` and a
+ * hero), and the foot's citation in the card footer's plain text. Never a
+ * framed card. Both openers draw it: `useDetailModal` and a
  * depth-2 Row.
  */
 import { describe, expect, test } from 'bun:test'

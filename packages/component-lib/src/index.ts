@@ -167,13 +167,9 @@ export { EntityPageStamps } from './components/referenceEntity/card/EntityPageSt
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './components/referenceEntity/card/entityPage'
-// The book's starting builds: the stamp, its sentence and the stored-tag test,
-// for a page band that wears the stamp outside the card.
-export {
-  isLegalStartingPatternOf,
-  LEGAL_STARTING_PATTERN,
-  LEGAL_STARTING_PATTERN_NOTE,
-} from './components/referenceEntity/card/legalStartingPattern'
+// The stored-tag test for the book's starting builds, for a page band that
+// wears the stamp (`EntityPageStamps`) outside the card.
+export { isLegalStartingPatternOf } from './components/referenceEntity/card/legalStartingPattern'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'
@@ -229,7 +225,6 @@ export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
 export { KindLabel } from './entity/parts/KindLabel'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
-export { Tag } from './entity/parts/Tags'
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
 export { mentionRef } from './entity/parts/tagItems'
 export type { EntityRowModel } from './entity/types'

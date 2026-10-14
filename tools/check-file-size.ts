@@ -59,7 +59,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/itun/src/stores/entityStore.ts': 715,
   'packages/component-lib/src/components/atoms/Stat.tsx': 723,
   'packages/component-lib/src/components/atoms/VitalGauge.tsx': 759,
-  'packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 853,
+  'packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 852,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 631,
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 654,
