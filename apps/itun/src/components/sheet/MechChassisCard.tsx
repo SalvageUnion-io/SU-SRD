@@ -6,13 +6,13 @@
  * rows wear).
  *
  * `InfoCutout` in the chassis's tone: its art column (fixed: the player's
- * photo is the hero's), its name on the cut-out with the mech's chassis stats
- * as chips beside it, and a paper body holding the book's description, the
- * chassis ability as a Peek Token, and — in Edit — CHANGE CHASSIS (destructive;
- * it keeps its own confirm step).
+ * photo is the hero's), its name on the cut-out, and a paper body holding the
+ * book's description and — in Edit — CHANGE CHASSIS (destructive; it keeps its
+ * own confirm step). The mech's chassis stats and the chassis ability are in
+ * the hero (owner's call, 2026-10-14).
  */
 
-import { Button, Content, Entity, Field, InfoCutout } from 'component-lib'
+import { Button, Content, Field, InfoCutout } from 'component-lib'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { ComponentProps, CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
@@ -29,20 +29,11 @@ type MechChassisCardProps = {
   entity: MechSheetModel['chassisEntity']
   /** Resolved chassis display name (falls back to the raw ref upstream). */
   chassisName: string
-  stats: MechSheetModel['chassisStats']
-  abilities: MechSheetModel['chassisAbilities']
   /** Partial merge on this mech; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
 }
 
-export function MechChassisCard({
-  mech,
-  entity,
-  chassisName,
-  stats,
-  abilities,
-  patch,
-}: MechChassisCardProps) {
+export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassisCardProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const model = useMemo(() => (entity ? toEntityModel(entity) : undefined), [entity])
 
@@ -75,28 +66,13 @@ export function MechChassisCard({
 
   return (
     <>
-      <InfoCutout
-        title={chassisName}
-        label="Chassis"
-        fill={model.tone}
-        art={model.art}
-        facts={stats}
-      >
+      <InfoCutout title={chassisName} label="Chassis" fill={model.tone} art={model.art}>
         {entity?.content && entity.content.length > 0 && (
           <Content
             body={entity.content as ComponentProps<typeof Content>['body']}
             fontSize="sm"
             chassisName={chassisName}
           />
-        )}
-        {abilities.length > 0 && (
-          <ul aria-label="Chassis ability" className="su-entity-token-list">
-            {abilities.map((ability) => (
-              <li key={ability.id}>
-                <Entity form="token" entity={ability} />
-              </li>
-            ))}
-          </ul>
         )}
         {patch && (
           <div style={CONTROLS}>

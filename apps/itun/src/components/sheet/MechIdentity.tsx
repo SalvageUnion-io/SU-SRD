@@ -1,12 +1,14 @@
 /**
- * MechIdentityPanel — the mech hero's IDENTITY card body (the mech sibling
- * of PilotIdentityPanel): only what the player wrote. The chassis — its name,
- * stats and ability — is its own card under the hero (`MechChassisCard`).
+ * MechIdentityPanel — the mech hero's IDENTITY fields (the mech sibling of
+ * PilotIdentityPanel): what the player wrote. The chassis's stats and ability
+ * sit beside them in the hero; its name, art and description are its own card
+ * under it (`MechChassisCard`).
  *
- * The PATTERN NAME is the prominent identity field — a mech's name and its
- * pattern name are the same field (redesign refinement), so the field
- * displays the canonical `mech.name` and saving writes `name` and
- * `patternName` in lockstep.
+ * The PATTERN NAME is the band's title, so Read leaves it out (owner's call,
+ * 2026-10-14) and Edit shows it as the name's edit surface, as the pilot's
+ * Name. A mech's name and its pattern name are the same field, so it displays
+ * the canonical `mech.name` and saving writes `name` and `patternName` in
+ * lockstep.
  *
  * // TODO(redesign): the mockup also shows a "Source pattern" meta line (the
  * // published pattern this mech was templated from) and a "Save as pattern"
@@ -51,12 +53,10 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
   return (
     <section aria-label="Mech identity" style={PANEL}>
       <div style={STACK}>
-        <Field
-          label="Pattern name"
-          value={mech.name}
-          onSave={patch ? savePatternName : undefined}
-          prominent
-        />
+        {/* Read omits the pattern name: it is the band's title. */}
+        {patch && (
+          <Field label="Pattern name" value={mech.name} onSave={savePatternName} prominent />
+        )}
         {after}
       </div>
     </section>

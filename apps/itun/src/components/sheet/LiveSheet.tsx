@@ -104,6 +104,11 @@ type LiveSheetProps = {
    * Not stamped when it only repeats the name (the Starter Set's Scrapper).
    */
   kindDetail?: string
+  /**
+   * The name is a mech's pattern name, which the book prints in quotes: the
+   * band's title and the condensed bar read “Mazona”.
+   */
+  quoted?: boolean
 }
 
 /** The type stamp's line beside the name. */
@@ -259,6 +264,7 @@ export function LiveSheet({
   actions,
   band,
   kindDetail,
+  quoted = false,
 }: LiveSheetProps) {
   // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
   // should seam and fill the moment you scroll past IT, rather than waiting for
@@ -269,6 +275,8 @@ export function LiveSheet({
   // A stamp that only repeats the name says nothing (the Starter Set's Scrapper).
   const stamp =
     kindDetail && kindDetail.toLowerCase() !== name.trim().toLowerCase() ? kindDetail : undefined
+
+  const title = quoted ? `“${name}”` : name
 
   const stripItems = strip.map((item) => ({
     ...item,
@@ -322,7 +330,7 @@ export function LiveSheet({
             {condensed && (
               <>
                 <Badge shape="stamp" size="full" style={NAME_STAMP}>
-                  {name}
+                  {title}
                 </Badge>
                 {stripItems.map((item) => (
                   <Stat
@@ -443,7 +451,7 @@ export function LiveSheet({
           </>
         }
       >
-        {name}
+        {title}
         {/* The kind is never stamped (EDL E9): the h1 says it to screen readers. */}
         <KindLabel kind={KIND_LABEL[variant]} />
       </ChapterBand>
