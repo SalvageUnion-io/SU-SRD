@@ -1,6 +1,6 @@
 /**
- * The SU mark: the stencil SU in paper on an ink stamp, with the book's five
- * chapter colours along the foot (ruleset §5.1 Stamp, "The book's colour map").
+ * The SU mark: the stencil SU in paper on an ink stamp with a paper edge, the
+ * book's five chapter colours along the foot (ruleset §5.1 Stamp, "The book's colour map").
  *
  * The one source of every brand file: `bun run brand` (`build.ts`) writes the
  * SVGs and rasterizes the PNGs and ICO from these strings, and
@@ -11,6 +11,11 @@ import { color } from 'component-lib/design/tokens'
 
 const SIZE = 512
 const RADIUS = 30
+/**
+ * The paper keyline inside the tile's edge, so the ink stamp stands off the
+ * ink Union bar it sits on. Its centre line, inset half its width.
+ */
+const EDGE = 18
 
 /**
  * The foot band: the chapter colours in the book's order, as `BrandCard`'s
@@ -78,8 +83,9 @@ export type MarkOptions = {
   /** The SVG's `<title>`: the name a screen reader or a tab tooltip gives it. */
   title: string
   /**
-   * Discord's avatar: square corners, and the glyphs scaled down so the
-   * circular crop clears them. Everything else is a rounded tile.
+   * Discord's avatar: square corners, no paper edge (the circular crop would
+   * cut it), and the glyphs scaled down so the crop clears them. Everything
+   * else is a rounded tile with a paper edge.
    */
   avatar?: boolean
   /** Paper flecks: only at sizes where they read as texture, not noise. */
@@ -109,6 +115,9 @@ export function markSvg({
     withFlecks ? flecks() : '',
     foot,
     '</g>',
+    avatar
+      ? ''
+      : `<rect x="${EDGE / 2}" y="${EDGE / 2}" width="${SIZE - EDGE}" height="${SIZE - EDGE}" rx="${RADIUS - EDGE / 2}" fill="none" stroke="${color.paper}" stroke-width="${EDGE}"/>`,
     avatar ? glyphs(200, 96) : glyphs(240, 72),
     '</svg>',
   ]
