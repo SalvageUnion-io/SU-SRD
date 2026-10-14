@@ -108,19 +108,6 @@ const SHEET = {
   gap: tokens.space[24],
 } satisfies CSSProperties
 
-/** Visually hidden, still read. */
-const SR_ONLY = {
-  borderWidth: 0,
-  clip: 'rect(0, 0, 0, 0)',
-  height: '1px',
-  margin: '-1px',
-  overflow: 'hidden',
-  padding: 0,
-  position: 'absolute',
-  whiteSpace: 'nowrap',
-  width: '1px',
-} satisfies CSSProperties
-
 const FIELDS = {
   display: 'flex',
   flexDirection: 'column',
@@ -315,7 +302,7 @@ export function MechSheet({
       style={SHEET}
     >
       {/* The hero already shows the name — this heading is for a11y/print. */}
-      <h2 id="mech-sheet-heading" style={SR_ONLY}>
+      <h2 id="mech-sheet-heading" className="su-sr-only">
         {mech.name}
       </h2>
 

@@ -185,16 +185,6 @@ const LINE: CSSProperties = {
 
 const WARN: CSSProperties = { color: 'var(--color-status-bad)', fontWeight: 600 }
 
-/** Read by a screen reader only: the slot's live region. */
-const HIDDEN = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  overflow: 'hidden',
-  clipPath: 'inset(50%)',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
 const CHIPS: CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
@@ -436,7 +426,7 @@ export function MajorFrame({ view }: { view: MajorModel }) {
   const titleRef = useOverlayFocus(overlay?.title)
   // Mounted before any overlay is, so a screen reader hears what it reads out.
   const live = (
-    <p aria-live="polite" style={HIDDEN}>
+    <p aria-live="polite" className="su-sr-only">
       {overlay?.announce}
     </p>
   )

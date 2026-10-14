@@ -165,15 +165,6 @@ const TAB_WARN: CSSProperties = { ...TAB, boxShadow: `inset 0 0 0 2px ${color.st
 
 const ATTENTION: CSSProperties = { marginLeft: space[4], color: color.statusBad }
 
-const HIDDEN: CSSProperties = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  overflow: 'hidden',
-  clipPath: 'inset(50%)',
-  whiteSpace: 'nowrap',
-}
-
 const PINNED: CSSProperties = {
   padding: `${space[6]} ${space[12]}`,
   background: color.bandCream,
@@ -326,7 +317,7 @@ export function DashboardPhone({
   }, [resolveScreen, opener])
 
   const live = (
-    <p aria-live="polite" style={HIDDEN}>
+    <p aria-live="polite" className="su-sr-only">
       {announce}
     </p>
   )
@@ -387,7 +378,7 @@ export function DashboardPhone({
                       <span aria-hidden="true" style={ATTENTION}>
                         ▲
                       </span>
-                      <span style={HIDDEN}>, needs attention</span>
+                      <span className="su-sr-only">, needs attention</span>
                     </>
                   ) : null}
                 </Tab>
@@ -418,7 +409,7 @@ export function DashboardPhone({
                 </button>
               )}
               <fieldset disabled={readOnly !== null} style={PLAIN}>
-                <legend style={HIDDEN}>{`${t.label} controls`}</legend>
+                <legend className="su-sr-only">{`${t.label} controls`}</legend>
                 {unit.body}
               </fieldset>
             </TabPanel>

@@ -104,16 +104,6 @@ const ITEM: CSSProperties = { width: '100%', minHeight: '48px' }
 
 const ATTENTION: CSSProperties = { marginLeft: space[6], color: color.statusBad }
 
-/** Visually hidden, still read: the word a ▲ stands for. */
-const HIDDEN: CSSProperties = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  overflow: 'hidden',
-  clipPath: 'inset(50%)',
-  whiteSpace: 'nowrap',
-}
-
 /** A panel fills the rest of the screen; the canvas's panels scroll inside it. */
 const BODY: CSSProperties = { position: 'relative', flex: 1, minHeight: '70dvh' }
 
@@ -165,7 +155,7 @@ export function PhoneMenu({
           <span aria-hidden="true" style={ATTENTION}>
             ▲
           </span>
-          <span style={HIDDEN}>, needs attention</span>
+          <span className="su-sr-only">, needs attention</span>
         </>
       ) : null}
     </Button>

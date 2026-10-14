@@ -289,7 +289,7 @@ export function PhoneResolve({
         <PinnedVitals vitals={vitals} label="Pinned vitals" />
       </div>
       <fieldset disabled={readOnly !== null} style={PLAIN}>
-        <legend style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}>
+        <legend className="su-sr-only">
           {resolving ? `Resolving ${resolving.entity.name}` : 'Resolving'}
         </legend>
         <div style={BODY}>
