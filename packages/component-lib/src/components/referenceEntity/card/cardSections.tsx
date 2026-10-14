@@ -50,7 +50,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     compact,
     onPage,
     isAction,
-    isCatalog,
     isDown,
     isLegalStartingPatternCard,
     hasSubLine,
@@ -61,7 +60,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     assetUrl,
     assetSrcSet,
     sectionAs,
-    foldTables = false,
     afterExtraContent,
     abilitiesSection,
     selections,
@@ -103,7 +101,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         table={entityTable}
         name={tableName}
         size={size}
-        collapsible={isCatalog || depth > 0 || foldTables}
         disabled={isDown}
         tone={tone.bgColor}
       />
@@ -133,7 +130,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         depth={depth}
         isDown={isDown}
         compact={compact}
-        collapsibleTables={isCatalog || depth > 0 || foldTables}
         tableTone={tone.bgColor}
         chassisName={resolvedChassisName}
         NestedCard={NestedCard}

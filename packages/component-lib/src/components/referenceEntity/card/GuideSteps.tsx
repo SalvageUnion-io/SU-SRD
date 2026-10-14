@@ -76,7 +76,6 @@ export function GuideSteps({
   depth,
   isDown,
   compact,
-  collapsibleTables,
   tableTone,
   chassisName,
   NestedCard,
@@ -89,8 +88,6 @@ export function GuideSteps({
   depth: number
   isDown: boolean
   compact: boolean
-  /** A catalog tile or nested card gets its tables collapsible. */
-  collapsibleTables: boolean
   /** The guide's own tone, whose band paints its step tables' rows. */
   tableTone?: string
   chassisName: string | undefined
@@ -176,7 +173,6 @@ export function GuideSteps({
                 table={table.table}
                 name={table.name}
                 size={compact ? 'medium' : 'large'}
-                collapsible={collapsibleTables}
                 disabled={isDown}
                 framed
                 tone={tableTone}
