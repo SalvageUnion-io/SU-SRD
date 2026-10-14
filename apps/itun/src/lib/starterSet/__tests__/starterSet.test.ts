@@ -82,8 +82,17 @@ describe('Starter Set seed — schema validity', () => {
 
   test('every pilot, mech, and the crawler carry seeded flavor text', () => {
     for (const p of STARTER_PILOTS) expect(p.description?.length ?? 0).toBeGreaterThan(0)
-    for (const m of STARTER_MECHS) expect(m.appearance?.length ?? 0).toBeGreaterThan(0)
     for (const c of STARTER_CRAWLERS) expect(c.description?.length ?? 0).toBeGreaterThan(0)
+  })
+
+  test('every mech carries its Description, Appearance and Quirk, each in its own field', () => {
+    for (const m of STARTER_MECHS) {
+      for (const text of [m.description, m.appearance, m.quirk]) {
+        expect(text?.length ?? 0).toBeGreaterThan(0)
+        // No field restates another's label: the sheet labels each one.
+        expect(text).not.toMatch(/(Description|Appearance|Quirk):/)
+      }
+    }
   })
 
   test('ids are unique across the whole seed', () => {
