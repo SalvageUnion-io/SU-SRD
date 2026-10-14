@@ -32,6 +32,8 @@
  */
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import type { Box } from 'gates/lib/inkBox'
+import { inkBox } from 'gates/lib/inkBox'
 import { nameToSlug } from 'salvageunion-reference'
 import sharp from 'sharp'
 
@@ -41,9 +43,6 @@ const OUT = join(REPO, 'packages/component-lib/src/components/compositions/heroA
 const ASSET_BASE_URL = 'https://assets.salvageunion.io'
 const ASSET_ORIGIN = new URL(ASSET_BASE_URL).origin
 const ART_KEY = /^[a-z0-9-]+\/[a-z0-9-]+$/
-
-/** The ink's box as fractions of the canvas, then its own aspect ratio in pixels. */
-type Box = readonly [x: number, y: number, w: number, h: number, aspect: number]
 
 /** `schemaName/slug` for every entity flagged `hasArtwork`, as `getAssetUrl` derives it. */
 function artKeys(): string[] {
@@ -59,38 +58,6 @@ function artKeys(): string[] {
     }
   }
   return keys.sort()
-}
-
-/**
- * The ink's bounding box in RGBA pixels (`width` × `height`, four bytes each)
- * as [x, y, w, h] fractions of the canvas and its pixel aspect ratio, or null
- * when every pixel is transparent or paper.
- */
-export function inkBox(px: Uint8Array, width: number, height: number): Box | null {
-  let left = width
-  let top = height
-  let right = -1
-  let bottom = -1
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const i = (y * width + x) * 4
-      if ((px[i + 3] ?? 0) <= 16) continue
-      if (Math.min(px[i] ?? 0, px[i + 1] ?? 0, px[i + 2] ?? 0) >= 235) continue
-      if (x < left) left = x
-      if (x > right) right = x
-      if (y < top) top = y
-      if (y > bottom) bottom = y
-    }
-  }
-  if (right < 0) return null
-  const round = (n: number) => Math.round(n * 10000) / 10000
-  return [
-    round(left / width),
-    round(top / height),
-    round((right + 1 - left) / width),
-    round((bottom + 1 - top) / height),
-    round((right + 1 - left) / (bottom + 1 - top)),
-  ]
 }
 
 async function main() {
