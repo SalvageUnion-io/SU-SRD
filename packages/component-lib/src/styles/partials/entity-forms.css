@@ -27,11 +27,11 @@
 
 /* The frame: ink on paper, dashed when player-made (ruleset §3.9). A
    surrounding diagram may recolour it through `--su-row-frame` (srd's ability
-   tracks frame their Rows in the track's hue). */
+   tracks frame their Rows in the track's hue). Square-cornered, as a show
+   page's band (owner's call, 2026-10-14). */
 .su-entity-row__frame {
   background-color: var(--color-paper);
   border-color: var(--su-row-frame, var(--color-ink));
-  border-radius: var(--radius-card);
   border-style: solid;
   border-width: var(--bw-entity-compact);
   display: flex;
@@ -177,7 +177,6 @@
 .su-entity-row__notch {
   align-items: baseline;
   background-color: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
   color: var(--color-ink);
   column-gap: var(--space-8);
   display: flex;
