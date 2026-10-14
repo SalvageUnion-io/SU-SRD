@@ -7,7 +7,7 @@
  * printed mech sheet:
  *
  *   Identity Band: the player's photo (the chassis art until changed) beside what they wrote (pattern
- *       name, quirk, appearance) ∥ SP/EP/Heat `VitalGauge`s + Conditions
+ *       name, quirk, appearance, description) ∥ SP/EP/Heat `VitalGauge`s + Conditions
  *       vitals rail.
  *   Chassis: its own small reference card under the band (`MechChassisCard`)
  *       — art, description, the mech's chassis stats and the chassis ability,
@@ -76,7 +76,7 @@ import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { MechChassisCard } from './MechChassisCard'
 import { MechConditionsEditor } from './MechConditionsEditor'
-import { MechIdentityPanel } from './MechIdentity'
+import { MechIdentityPanel, MechProseFields } from './MechIdentity'
 import { MechItemToken } from './MechItemToken'
 import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
@@ -337,19 +337,10 @@ export function MechSheet({
                 }
               />
 
-              {/* Appearance closes the card: multi-line and full width, taking
-                whatever height the slab has left (the identity slab stretches
-                to match the vitals beside it, and that space should go to a
-                field the reader can use rather than sitting as dead paper).
-                Quirk is one line, so it rides the chassis row above instead. */}
-              <Field
-                label="Appearance"
-                value={mech.appearance ?? ''}
-                multiline
-                fill
-                onSave={readOnly ? undefined : actions.saveAppearance}
-                placeholder="No appearance recorded."
-                className="su-sheet-mech-fill"
+              <MechProseFields
+                mech={mech}
+                saveAppearance={readOnly ? undefined : actions.saveAppearance}
+                saveDescription={readOnly ? undefined : actions.saveDescription}
               />
             </div>
           </PhotoBeside>

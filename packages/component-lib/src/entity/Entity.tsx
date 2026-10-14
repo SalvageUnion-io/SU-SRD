@@ -29,6 +29,11 @@ export type EntityProps = EntitySource & {
   priority?: boolean
   /** Tile only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
   missingArt?: number
+  /**
+   * Token only: the Peek address for a record with none of its own (a crawler
+   * bay's crew NPC, through its bay: `embeddedPeekAddress`).
+   */
+  peekAt?: string
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
   titleAs?: ElementType
 }
@@ -41,7 +46,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, peek, priority, titleAs, missingArt } = props
+  const { form, instance, mode, lead, omit, peek, peekAt, priority, titleAs, missingArt } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -63,7 +68,14 @@ export function Entity(props: EntityProps) {
         />
       )
     case 'token':
-      return <Token model={model} instance={instance} mode={mode} />
+      return (
+        <Token
+          model={model}
+          instance={instance}
+          mode={mode}
+          slots={peekAt ? { peekAt } : undefined}
+        />
+      )
     case 'tile':
       return (
         <Tile

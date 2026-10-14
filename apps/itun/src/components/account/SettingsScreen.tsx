@@ -124,7 +124,7 @@ function SignedInAccount() {
               variant="ghost"
               size="compact"
               disabled={exported === undefined}
-              onClick={() => exported && download('itun-account-export.json', exported)}
+              onClick={() => exported && download('cantina-account-export.json', exported)}
             >
               Download my data
             </Button>
@@ -218,7 +218,7 @@ function SettingsBody() {
 export function SettingsScreen() {
   return (
     <main style={PAGE}>
-      <ChapterBand>Settings</ChapterBand>
+      <ChapterBand tone="cantina">Settings</ChapterBand>
       <SettingsBody />
     </main>
   )

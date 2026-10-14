@@ -19,10 +19,10 @@ test('the roster loads and asks a signed-out visitor to sign in', async ({ page 
   await waitForReady(page)
 
   // App title is present
-  await expect(page).toHaveTitle(/In the Union now/i)
+  await expect(page).toHaveTitle(/The Cantina/i)
 
   // The front door's chapter band, and nothing to build with until they sign in.
-  await expect(page.getByRole('heading', { level: 1, name: /^In the Union now$/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /^The Cantina$/i })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Sign in to build' })).toBeVisible()
   await expect(
     page.getByRole('link', { name: /Build your first pilot|Create Pilot/i })

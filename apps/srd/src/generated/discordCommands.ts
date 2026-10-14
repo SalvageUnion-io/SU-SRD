@@ -41,7 +41,7 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
   },
   {
     "name": "me",
-    "description": "Your In the Union now account and Games",
+    "description": "Your The Cantina account and Games",
     "options": [],
     "needsAccount": true
   },

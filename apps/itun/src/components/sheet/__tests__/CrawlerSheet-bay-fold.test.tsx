@@ -2,7 +2,7 @@
  * CrawlerSheet — a bay shows its state and folds its prose.
  *
  * Each bay starts folded behind the card's Row ⇄ Card disclosure ("<bay>
- * details"): its crew lead, the line for the crawler's own Tech Level and its
+ * details"): its crew Token, the line for the crawler's own Tech Level and its
  * roll bar stay in view, and the rest of the bay's rules wait until the reader
  * opens it. Real SRD bays (Pilot Bay, Trading Bay), no patched rows.
  */
@@ -47,7 +47,7 @@ describe('a crawler bay on the sheet', () => {
   test('starts folded: crew lead, its Tech Level line and the roll bar, no prose', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
     expect(disclosure('Pilot Bay').getAttribute('aria-expanded')).toBe('false')
-    expect(screen.getByRole('group', { name: 'Pilot Bay crew lead' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Expand Pilot Bay crew' })).toBeTruthy()
     expect(screen.getByText(TL_3_4)).toBeTruthy()
     expect(screen.queryByText(TL_5_6)).toBeNull()
     expect(screen.queryByText('Pilot Training Points (TP)')).toBeNull()
@@ -69,7 +69,8 @@ describe('a crawler bay on the sheet', () => {
 
   test('a click inside the bay does not unfold it: only the disclosure does', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
-    fireEvent.click(screen.getByRole('group', { name: 'Pilot Bay crew lead' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Expand Pilot Bay crew' }))
+    expect(screen.getByRole('group', { name: 'Pilot Bay crew lead' })).toBeTruthy()
     expect(disclosure('Pilot Bay').getAttribute('aria-expanded')).toBe('false')
   })
 

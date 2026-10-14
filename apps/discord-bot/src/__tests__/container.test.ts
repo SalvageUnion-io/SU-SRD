@@ -180,7 +180,7 @@ describe('entityCard', () => {
       { name: 'Heat', value: '3/6', inline: true },
       { name: 'Systems — 1', value: 'Armour Plating' },
     ],
-    footer: 'In the Union now',
+    footer: 'The Cantina',
   }
 
   test('renders heading, prose, fields, then a rule and the footer', () => {
@@ -194,7 +194,7 @@ describe('entityCard', () => {
         // A full-width field is a slab: bold heading, body beneath.
         { kind: 'text', content: '**Systems — 1**\nArmour Plating' },
         { kind: 'separator' },
-        { kind: 'text', content: '-# In the Union now' },
+        { kind: 'text', content: '-# The Cantina' },
       ],
     })
   })

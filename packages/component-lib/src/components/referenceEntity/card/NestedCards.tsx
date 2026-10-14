@@ -137,6 +137,35 @@ function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
 }
 
 /**
+ * A crawler bay's crew NPC as a TOKEN that Peeks its card (owner's call,
+ * 2026-10-14: "when nesting an NPC inside of a crawler bay, use a token with
+ * peek"). The NPC is embedded in the bay, with no dataset row of its own, so
+ * it Peeks through the bay's address (`embeddedPeekAddress`).
+ */
+export function EmbeddedNpcTokens({
+  entities,
+  host,
+  peekAt,
+}: {
+  entities: ReferenceCardEntity[]
+  host: NestedCardHost
+  peekAt: string
+}) {
+  if (entities.length === 0) return null
+  return (
+    <CardStack size={host.size} flush={host.onPage}>
+      <ul className="su-entity-token-list">
+        {entities.map((npc, index) => (
+          <li key={cardKey(npc, index)}>
+            <Entity form="token" entity={npc as SURefMetaEntity} peekAt={peekAt} />
+          </li>
+        ))}
+      </ul>
+    </CardStack>
+  )
+}
+
+/**
  * A list of nested cards, stacked. Depth 1 renders the full
  * medium card; from depth 2 a child is a one-line head row that opens the
  * entity rather than expanding in place (board E2).

@@ -44,17 +44,33 @@ export type PeekAttrs = {
 }
 
 /**
- * The attributes that make an element a Peek trigger, or none: a synthetic ref
- * (built from embedded data) has no dataset row to show, a pattern is drawn by
- * its own page, and inside a Peek nothing peeks again. A `down` trigger
- * (damaged or destroyed) says so, and its Peek dulls as it does.
+ * The address of a record EMBEDDED in another (a crawler bay's crew NPC): its
+ * host's address and the part, `crawler-bays:<id>/npc`. It has no dataset row
+ * of its own, so the Peek resolves it through its host (`PeekPopup`).
  */
-export function usePeekAttrs(ref: EntityRef | undefined, down: Down = false): PeekAttrs {
+export function embeddedPeekAddress(schemaName: string, hostId: string, part: 'npc'): string {
+  return `${schemaName}:${hostId}/${part}`
+}
+
+/**
+ * The attributes that make an element a Peek trigger, or none: a synthetic ref
+ * (built from embedded data) has no dataset row to show unless its caller
+ * names one (`address`, an `embeddedPeekAddress`), a pattern is drawn by its
+ * own page, and inside a Peek nothing peeks again. A `down` trigger (damaged
+ * or destroyed) says so, and its Peek is down the same way.
+ */
+export function usePeekAttrs(
+  ref: EntityRef | undefined,
+  address?: string,
+  down: Down = false
+): PeekAttrs {
   const inside = useInsidePeek()
-  if (!ref || inside || ref.synthetic || ref.pattern) return {}
+  if (inside) return {}
+  const at = address ?? (ref && !ref.synthetic && !ref.pattern ? peekAddress(ref) : undefined)
+  if (!at) return {}
   const condition = conditionOf(down)
   return {
-    [PEEK_ATTRIBUTE]: peekAddress(ref),
+    [PEEK_ATTRIBUTE]: at,
     ...(condition ? { [PEEK_DOWN_ATTRIBUTE]: condition } : {}),
   }
 }

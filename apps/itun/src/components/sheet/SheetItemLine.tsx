@@ -29,8 +29,10 @@ const CONDITION_LABEL: Record<ItemCondition, string> = {
 }
 
 type SheetItemLineProps = {
-  /** The item's Token. */
+  /** The item's Token, or a Row (`rowForm`). */
   token: ReactNode
+  /** The item is a Row (an ability on its tree's track): the controls take the line under it. */
+  rowForm?: boolean
   /** The item's name, for the controls' accessible labels. */
   name: string
   /** The item's condition; absent for a reference with none (an ability). */
@@ -58,7 +60,11 @@ export function SheetItemLine({
   uses,
   actions,
   onRemove,
+  rowForm = false,
 }: SheetItemLineProps) {
+  const lineClass = rowForm
+    ? 'su-entity-token-line su-sheet-item su-sheet-item--row'
+    : 'su-entity-token-line su-sheet-item'
   const conditionLabel = condition && CONDITION_LABEL[condition]
   // Read: the Token alone while intact; a damaged or destroyed one names its
   // condition as a read-out stamp after it, as does any `stamp`.
@@ -66,7 +72,7 @@ export function SheetItemLine({
     const damaged = condition !== undefined && condition !== 'intact'
     if (!damaged && !stamp) return token
     return (
-      <div className="su-entity-token-line su-sheet-item">
+      <div className={lineClass}>
         {token}
         {damaged && (
           <span
@@ -83,7 +89,7 @@ export function SheetItemLine({
   }
 
   return (
-    <div className="su-entity-token-line su-sheet-item">
+    <div className={lineClass}>
       {token}
       {condition && (
         <button

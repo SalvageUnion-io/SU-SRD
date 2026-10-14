@@ -125,7 +125,7 @@ describe('an ephemeral command', () => {
   })
 
   test('reports an outage as an outage, not as a permissions problem', async () => {
-    connect({ kind: 'unavailable', message: 'In the Union now could not be reached.' })
+    connect({ kind: 'unavailable', message: 'The Cantina could not be reached.' })
     const { interaction, edits, followUps } = fakeExecute({ subcommand: 'me' })
     await meCommand.execute(interaction)
     expect(followUps).toHaveLength(0)
