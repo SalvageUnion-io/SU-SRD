@@ -56,6 +56,31 @@ describe('a folded card', () => {
   })
 })
 
+describe('a folded card with no chevron (foldChevron={false})', () => {
+  const renderRow = () =>
+    render(<ReferenceEntityCard data={drill()} size="medium" collapsible foldChevron={false} />)
+
+  test('the card itself is the disclosure: one button, named, with its state', () => {
+    renderRow()
+    const buttons = screen.getAllByRole('button')
+    expect(buttons).toHaveLength(1)
+    const card = chevron()
+    expect(card.classList.contains('su-card-fold')).toBe(false)
+    expect(card.getAttribute('aria-expanded')).toBe('false')
+    expect(card.getAttribute('tabindex')).toBe('0')
+  })
+
+  test('opened, the chevron returns to fold it back', () => {
+    renderRow()
+    fireEvent.click(chevron())
+    const fold = chevron()
+    expect(fold.classList.contains('su-card-fold')).toBe(true)
+    expect(fold.getAttribute('aria-expanded')).toBe('true')
+    fireEvent.click(fold)
+    expect(chevron().classList.contains('su-card-fold')).toBe(false)
+  })
+})
+
 describe('foldControl', () => {
   test('folded, it makes the card a pointer target only when asked', () => {
     const base = { subject: 'Pilot Bay', surfaceId: 'bay', onToggle: () => {} }

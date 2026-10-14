@@ -200,6 +200,14 @@ export function resolveCardInteraction({
                   onClick: resolvedCardClick,
                   onKeyDown: activateOnKey(resolvedCardClick),
                   ...label,
+                  // A hidden disclosure control (a chevron-less folded Row)
+                  // hands its name and state to the card that now stands in for it.
+                  ...(clickControl?.hidden && clickControl.ariaExpanded !== undefined
+                    ? {
+                        'aria-expanded': clickControl.ariaExpanded,
+                        ...(cardClickLabel ? {} : { 'aria-label': clickControl.ariaLabel }),
+                      }
+                    : {}),
                   ...(selectionRole && selected !== undefined ? { 'aria-pressed': selected } : {}),
                 },
         }

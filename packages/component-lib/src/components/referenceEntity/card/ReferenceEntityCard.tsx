@@ -787,18 +787,15 @@ export type ReferenceEntityCardWrapperProps = Omit<
   size?: CardSize
   extent?: CardExtent
   /**
-   * Let the reader fold this card down to LISTING (`extent="head"` — header
-   * only) and back. Collapsed is the DEFAULT: a long collection reads as a
-   * scannable list of names and stats, and the reader opens the one they want.
-   *
-   * Costs nothing when absent — the whole affordance is ONE `controls` entry:
-   * a visible chevron with `aria-expanded` and `aria-controls`. Folded, it is
-   * also a `cardClick` control, so a pointer click anywhere on the card opens
-   * it; the card itself stays a plain element (no role, tab stop or name), and
-   * its stats and traits stay readable. The card wrapper takes the id the
-   * chevron's `aria-controls` names (`resolveCardInteraction`).
+   * Let the reader fold this card to LISTING (`extent="head"`) and back;
+   * folded is the DEFAULT, so a long collection reads as a list of names.
+   * The affordance is ONE `controls` entry: a chevron with `aria-expanded` and
+   * `aria-controls` (the card wrapper's id, `resolveCardInteraction`), and,
+   * folded, a `cardClick` so a click anywhere opens it.
    */
   collapsible?: boolean
+  /** `false`: no chevron while folded; the card itself is the disclosure button. */
+  foldChevron?: boolean
 }
 
 /**
@@ -812,6 +809,7 @@ export function ReferenceEntityCard({
   size,
   extent,
   collapsible = false,
+  foldChevron = true,
   controls,
   texture,
   ...rest
@@ -837,6 +835,7 @@ export function ReferenceEntityCard({
           surfaceId,
           onToggle: () => setCollapsed((c) => !c),
           cardClick: true,
+          hidden: folded && !foldChevron,
         }),
       ]
 

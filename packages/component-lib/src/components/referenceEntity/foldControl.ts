@@ -19,6 +19,7 @@ export function foldControl({
   surfaceId,
   onToggle,
   cardClick = false,
+  hidden = false,
 }: {
   subject: string
   folded: boolean
@@ -26,6 +27,8 @@ export function foldControl({
   onToggle: () => void
   /** Folded, a pointer click anywhere on the card opens it too. */
   cardClick?: boolean
+  /** Not drawn: with `cardClick`, the card itself is the disclosure button. */
+  hidden?: boolean
 }): ReferenceEntityControl {
   return {
     key: '__fold',
@@ -33,6 +36,7 @@ export function foldControl({
     variant: 'ghost',
     className: 'su-card-fold',
     ...(folded && cardClick ? { cardClick: true } : {}),
+    ...(hidden ? { hidden: true } : {}),
     ariaLabel: `${subject} details`,
     title: folded ? 'Expand' : 'Collapse',
     ariaExpanded: !folded,

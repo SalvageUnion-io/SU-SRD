@@ -245,6 +245,7 @@ export function PilotAbilityItem({
       size="medium"
       extent="full"
       collapsible={folded}
+      foldChevron={false}
       foldTables
       hide={HIDE_CHOICES}
       controls={usedStamp}
