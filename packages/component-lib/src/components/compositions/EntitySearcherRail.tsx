@@ -285,10 +285,7 @@ export function SelectionRail({
   // and without them it would read "Learned3".
   const title = (
     <>
-      <span>{chosenLabel}</span>{' '}
-      <Badge shape="chip" surface="solid">
-        {entries.length}
-      </Badge>
+      <span>{chosenLabel}</span> <Badge shape="chip">{entries.length}</Badge>
       {name && (
         <>
           {' '}

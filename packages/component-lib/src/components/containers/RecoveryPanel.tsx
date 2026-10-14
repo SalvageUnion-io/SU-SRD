@@ -59,7 +59,7 @@ const MESSAGE = {
 export function RecoveryPanel({ title, message, action, children }: RecoveryPanelProps) {
   return (
     <div role="alert" className="su-recovery-panel" style={PANEL}>
-      <PageHeading variant="subheading" as="h1" className="su-recovery-panel-title">
+      <PageHeading as="h1" className="su-recovery-panel-title">
         {title}
       </PageHeading>
       <p style={MESSAGE}>{message}</p>

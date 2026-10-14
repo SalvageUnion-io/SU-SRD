@@ -122,9 +122,7 @@ export function NarrowSubHeader({
             {activeFilters > 0 && (
               <>
                 {' '}
-                <Badge shape="chip" surface="solid">
-                  {activeFilters}
-                </Badge>
+                <Badge shape="chip">{activeFilters}</Badge>
                 <span className="su-sr-only"> active</span>
               </>
             )}
