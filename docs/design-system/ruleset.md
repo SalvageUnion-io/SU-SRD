@@ -38,7 +38,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTable` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only. TL and Salvage are the TL-Salvage badge everywhere.
-   6. **Cost, range, action type** — chips (`RNG | Close` on a Page, else `RNG | C`; "Turn Action"), then the cost last in the book's pointy box (`ActivationCost`, `2 EP`); the Dashboard's cost pennant is its action button.
+   6. **Cost, range, action type** — chips (Page `RNG | Close`, else `C`; "Turn Action"), then cost last in the book's pointy box (`ActivationCost`, `2 EP`); the Dashboard's cost pennant is its action button.
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1); a section header is a Slab.
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` (the cost pennant included) and `InlineRef`, and no token aliases it.
