@@ -26,6 +26,7 @@ import { useMemo } from 'react'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
+import { READ_ONLY_BANNER, UNAVAILABLE_PAGE, UNAVAILABLE_TITLE } from './sheetChrome.model'
 
 type PublicSheetProps = {
   /** The app id the page is addressed by — the published entity's own id. */
@@ -44,36 +45,11 @@ type PublicSheetProps = {
   }
 }
 
-const UNRENDERABLE = {
-  marginInline: 'auto',
-  maxWidth: '64rem',
-  padding: tokens.space[24],
-} satisfies CSSProperties
-
-const UNRENDERABLE_TITLE = {
-  marginBottom: tokens.space[8],
-  fontSize: tokens.fontSize.xl,
-  lineHeight: 'calc(1.75 / 1.25)',
-  fontWeight: tokens.weight.bold,
-} satisfies CSSProperties
-
 const UNRENDERABLE_NOTE = {
   marginBottom: tokens.space[4],
   fontSize: tokens.fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',
   color: tokens.color.wkMuted,
-} satisfies CSSProperties
-
-/** The read-only banner; its side padding widens at `sm` (`.su-sheet-public-banner`). */
-const BANNER = {
-  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
-  backgroundColor: tokens.color.caution,
-  paddingBlock: tokens.space[8],
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  fontWeight: tokens.weight.semibold,
-  color: tokens.color.ink,
 } satisfies CSSProperties
 
 export function PublicSheet({ appId, answer }: PublicSheetProps) {
@@ -99,8 +75,8 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     // publishes precisely so the owner meets this first, but a schema that
     // moves afterwards can still land somebody here.
     return (
-      <main style={UNRENDERABLE}>
-        <h1 style={UNRENDERABLE_TITLE}>Could not render this sheet</h1>
+      <main style={UNAVAILABLE_PAGE}>
+        <h1 style={UNAVAILABLE_TITLE}>Could not render this sheet</h1>
         <p style={UNRENDERABLE_NOTE}>
           This build&rsquo;s data doesn&rsquo;t match anything this app knows how to show. It may
           have been made with a newer or older version.
@@ -115,7 +91,8 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
         role="note"
         aria-label="Read-only sheet"
         className="su-sheet-public-banner"
-        style={BANNER}
+        // Its side padding widens at `sm` (`.su-sheet-public-banner`).
+        style={READ_ONLY_BANNER}
       >
         This sheet is shared read-only. It updates as its owner plays.
       </div>

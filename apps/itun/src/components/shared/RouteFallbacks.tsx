@@ -82,7 +82,7 @@ const PENDING = {
 } satisfies CSSProperties
 
 /** Full-viewport centering shell every standalone panel screen sits in. */
-function FullPageShell({ children, ...rest }: ComponentPropsWithoutRef<'main'>) {
+export function FullPageShell({ children, ...rest }: ComponentPropsWithoutRef<'main'>) {
   return (
     <main style={SHELL} {...rest}>
       {children}

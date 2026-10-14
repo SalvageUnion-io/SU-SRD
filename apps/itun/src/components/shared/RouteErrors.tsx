@@ -25,6 +25,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { savedWorkCopy } from '../../lib/routeErrorCopy'
 import type { BackendKind } from '../../stores/entityBackend'
 import { selectBackend } from '../../stores/entityBackend'
+import { FullPageShell } from './RouteFallbacks'
 
 /** The current backend, or null if even that cannot be read in this state. */
 function currentBackend(): BackendKind | null {
@@ -52,16 +53,6 @@ const ERROR_DUMP = {
   textAlign: 'left',
 } satisfies CSSProperties
 
-/** The whole-app error screen: the panel centred on the workshop ground. */
-const ROOT_SHELL = {
-  alignItems: 'center',
-  backgroundColor: color.wkBg,
-  display: 'flex',
-  justifyContent: 'center',
-  minHeight: '100dvh',
-  padding: space[24],
-} satisfies CSSProperties
-
 /** A route's error screen: the panel centred in the route's own content. */
 const ROUTE_SHELL = {
   display: 'flex',
@@ -78,7 +69,7 @@ function DevErrorDump({ error }: { error: unknown }): ReactNode {
 /** Top-level error boundary: replaces the whole app and offers a reload. */
 export function RootErrorComponent({ error }: ErrorComponentProps) {
   return (
-    <main style={ROOT_SHELL}>
+    <FullPageShell>
       <RecoveryPanel
         title="Something went wrong"
         message={`The app hit an unexpected error. ${savedWorkCopy(currentBackend())}`}
@@ -86,7 +77,7 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
       >
         <DevErrorDump error={error} />
       </RecoveryPanel>
-    </main>
+    </FullPageShell>
   )
 }
 

@@ -25,6 +25,7 @@ import { NpcSheet } from '../npc/NpcSheet'
 import { AppLink } from '../shared/AppLink'
 import { PublicSheet } from './PublicSheet'
 import { SheetSkeleton } from './SheetSkeleton'
+import { UNAVAILABLE_PAGE, UNAVAILABLE_TITLE } from './sheetChrome.model'
 
 const KINDS = ['pilot', 'mech', 'crawler'] as const
 type PublicKind = (typeof KINDS)[number]
@@ -32,19 +33,6 @@ type PublicKind = (typeof KINDS)[number]
 function isPublicKind(value: string): value is PublicKind {
   return (KINDS as readonly string[]).includes(value)
 }
-
-const NOT_AVAILABLE = {
-  marginInline: 'auto',
-  maxWidth: '64rem',
-  padding: tokens.space[24],
-} satisfies CSSProperties
-
-const TITLE = {
-  marginBottom: tokens.space[8],
-  fontSize: tokens.fontSize.xl,
-  lineHeight: 'calc(1.75 / 1.25)',
-  fontWeight: tokens.weight.bold,
-} satisfies CSSProperties
 
 const NOTE = {
   marginBottom: tokens.space[16],
@@ -57,8 +45,8 @@ const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' | 'NPC' }) {
   return (
-    <main style={NOT_AVAILABLE}>
-      <h1 style={TITLE}>This {what} isn&rsquo;t available</h1>
+    <main style={UNAVAILABLE_PAGE}>
+      <h1 style={UNAVAILABLE_TITLE}>This {what} isn&rsquo;t available</h1>
       <p style={NOTE}>The link may be wrong, or its owner may have stopped sharing it.</p>
       <AppLink
         href="/"

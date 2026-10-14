@@ -39,12 +39,7 @@ import type { Confirm } from '../shared/useConfirm'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import { NpcInset } from '../sheet/NpcInset'
 import { NpcCard } from './NpcCard'
-
-const PAGE = {
-  backgroundColor: tokens.color.wkBg,
-  minHeight: '100%',
-  paddingBottom: tokens.space[48],
-} satisfies CSSProperties
+import { COLUMN, NOTE, PAGE, ROW } from './npcStyles.model'
 
 const COLUMNS = {
   display: 'grid',
@@ -53,13 +48,6 @@ const COLUMNS = {
   margin: '0 auto',
   maxWidth: '80rem',
   padding: `${tokens.space[24]} ${tokens.space[16]} 0`,
-} satisfies CSSProperties
-
-const COLUMN = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-  minWidth: 0,
 } satisfies CSSProperties
 
 /** The Denizens navy carries paper text (ChapterBand: the caller dresses it). */
@@ -77,24 +65,6 @@ const EYEBROW = {
 } satisfies CSSProperties
 
 const EYEBROW_LINK = { color: tokens.color.paper } satisfies CSSProperties
-
-const ROW = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-const NOTE = {
-  borderColor: tokens.color.ink,
-  borderStyle: 'dashed',
-  borderWidth: tokens.borderWidth.chrome,
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  margin: 0,
-  padding: tokens.space[12],
-} satisfies CSSProperties
 
 /** Where the NPC crews, when it does. */
 export type NpcCrewing = {

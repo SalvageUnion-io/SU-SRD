@@ -1,4 +1,5 @@
-import { buttonVariants, cn } from 'component-lib'
+import { buttonVariants, cn, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 
 /**
  * Shared app-bar chrome constants (design source clean-pilot.html `.appbar`).
@@ -24,3 +25,29 @@ export const SHEET_ICONBTN_CLASS = cn(
   'su-page-action',
   'su-sheet-iconbtn'
 )
+
+/** A public sheet or pattern that cannot be shown: the page and its heading. */
+export const UNAVAILABLE_PAGE = {
+  marginInline: 'auto',
+  maxWidth: '64rem',
+  padding: tokens.space[24],
+} satisfies CSSProperties
+
+export const UNAVAILABLE_TITLE = {
+  marginBottom: tokens.space[8],
+  fontSize: tokens.fontSize.xl,
+  lineHeight: 'calc(1.75 / 1.25)',
+  fontWeight: tokens.weight.bold,
+} satisfies CSSProperties
+
+/** The caution banner over a sheet the reader cannot edit (public, or a crewmate's). */
+export const READ_ONLY_BANNER = {
+  backgroundColor: tokens.color.caution,
+  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  fontWeight: tokens.weight.semibold,
+  lineHeight: 'calc(1.25 / 0.875)',
+  paddingBlock: tokens.space[8],
+} satisfies CSSProperties
