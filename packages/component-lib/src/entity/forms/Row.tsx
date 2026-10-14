@@ -14,7 +14,7 @@ import { actionTypeStamps } from '../parts/actionStamps'
 import { Chips } from '../parts/Chips'
 import type { ChipSet } from '../parts/chipSet'
 import { chipCount } from '../parts/chipSet'
-import { factCells } from '../parts/factCells'
+import { factCells, formFacts } from '../parts/factCells'
 import { Head } from '../parts/Head'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
@@ -119,7 +119,7 @@ export function Row({
   const chips: ChipSet = {
     durations: slots.durations ?? actionTypeStamps(model.actionType, model.mechActionType),
     ...(cost ? { cost } : {}),
-    facts: slots.facts ?? factCells(model.facts, omit),
+    facts: slots.facts ?? factCells(formFacts(model), omit),
     tags: slots.tags ?? traitTags(model.traits),
   }
   const leadText = lead ? model.lead : undefined

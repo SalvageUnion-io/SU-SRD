@@ -14,7 +14,7 @@
  *
  * - an action's type and cost → a `-#` caps kicker (never the entity's kind);
  * - the head → `## Name` as a link to its page, an ability's tier numeral first;
- * - value cells → `` `12` STRUCTURE PTS. ``, three to a line, in the book's
+ * - value cells → `` `12` STRUCTURE POINTS ``, three to a line, in the book's
  *   words and order (`bookStats`);
  * - traits → linked tags with their parameter (E17: no "//" line);
  * - a table → `ROLL THE DIE:` over one banded row per line;
@@ -224,7 +224,7 @@ function contentMarkdown(
   return out
 }
 
-/** Value cells, three to a line: `` `12` STRUCTURE PTS. · `4` ENERGY PTS. ``. */
+/** Value cells, three to a line: `` `12` STRUCTURE POINTS · `4` ENERGY POINTS ``. */
 function factCells(facts: Fact[], perLine = 3): string[] {
   const cells = facts
     .filter((fact) => fact.value !== '')

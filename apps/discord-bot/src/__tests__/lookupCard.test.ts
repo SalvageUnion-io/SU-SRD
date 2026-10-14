@@ -162,7 +162,7 @@ describe('lookupCard — the card', () => {
     expect(card.accent).toBe(0x7a978a)
     const text = cardText(card)
     expect(text).toContain('## [Goliath](https://salvageunion.io/chassis/goliath)')
-    expect(text).toContain('`13` STRUCTURE PTS. · `11` ENERGY PTS. · `12` HEAT CAP.')
+    expect(text).toContain('`13` STRUCTURE POINTS · `11` ENERGY POINTS · `12` HEAT CAPACITY')
     // The chassis ability shows only on the chassis and pattern pages.
     expect(text).not.toContain('Scrap Plating')
   })

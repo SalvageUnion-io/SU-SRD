@@ -16,3 +16,30 @@ export function factCells(facts: readonly Fact[], omit: readonly string[] = []):
       ...(fact.hint ? { hoverText: fact.hint } : {}),
     }))
 }
+
+/**
+ * A chassis's chips, the same in every form (the Catalog's set, owner's call):
+ * TL, SP, EP, SV, SYS, MODS. Cargo and Heat are its Page's.
+ */
+const CHASSIS_FACT_KEYS: ReadonlySet<string> = new Set([
+  'tech-level',
+  'ref-stat-structurePoints',
+  'ref-stat-energyPoints',
+  'ref-stat-salvageValue',
+  'ref-stat-systemSlots',
+  'ref-stat-moduleSlots',
+])
+
+/**
+ * The facts a Row, Tile or Token draws for an entity: every fact, but a
+ * chassis (and its patterns) keeps its one chip set (`CHASSIS_FACT_KEYS`) in
+ * the Catalog, search, a guide and a loadout alike.
+ */
+export function formFacts(model: {
+  ref: { schemaName: string }
+  facts: readonly Fact[]
+}): readonly Fact[] {
+  return model.ref.schemaName === 'chassis'
+    ? model.facts.filter((fact) => CHASSIS_FACT_KEYS.has(fact.key))
+    : model.facts
+}

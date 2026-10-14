@@ -32,13 +32,15 @@ const juryRig = () => need(SalvageUnionReference.Abilities.getByName('Jury Rig')
 
 const patternHref = () => '/pattern/'
 
+// The manual's eight, in its order, under their full names: a Page prints the
+// long label, never the book's abbreviations ("Structure Pts.").
 const BOOK_EIGHT = [
-  'Structure Pts.',
-  'Energy Pts.',
-  'Heat Cap.',
+  'Structure Points',
+  'Energy Points',
+  'Heat Capacity',
   'System Slots',
   'Module Slots',
-  'Cargo Cap.',
+  'Cargo Capacity',
   'Tech Level',
   'Salvage Value',
 ]
@@ -54,7 +56,7 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
   test('stats drop what the entity does not carry, and the TL when it has none', () => {
     const labels = resolveEntityPageMeta(juryRig()).stats.map((s) => s.label)
     expect(labels).not.toContain('Tech Level')
-    expect(labels).not.toContain('Structure Pts.')
+    expect(labels).not.toContain('Structure Points')
   })
 
   test('a chassis: its kind, TL and printings, its reprint after the book', () => {
@@ -349,5 +351,33 @@ describe('the card as a page', () => {
       <ReferenceEntityCard data={gopher()} presentation="page" depth={1} />
     )
     expect(container.querySelector('.su-entity-page')).toBeNull()
+  })
+})
+
+describe('nested cards read at one body size, their host’s', () => {
+  /** Every prose size set inside the page's framed (nested) cards. */
+  const nestedProseSizes = (container: HTMLElement): Set<string> =>
+    new Set(
+      Array.from(
+        container.querySelectorAll<HTMLElement>(
+          '.su-ec-frame .su-ec-block, .su-ec-frame .su-ec-block *'
+        )
+      )
+        .map((el) => el.style.fontSize)
+        .filter(Boolean)
+    )
+
+  test('a crawler page: its ability card and its NPC card alike (14px)', () => {
+    const battle = SalvageUnionReference.getByNameIn('crawlers', 'Battle')
+    if (!battle) throw new Error('fixture missing: Battle')
+    const { container } = render(<ReferenceEntityCard data={battle} presentation="page" />)
+    expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
+  })
+
+  test('a drone page: its systems read at the page’s card size too', () => {
+    const drone = SalvageUnionReference.getByNameIn('drones', 'Combat Drone')
+    if (!drone) throw new Error('fixture missing: Combat Drone')
+    const { container } = render(<ReferenceEntityCard data={drone} presentation="page" />)
+    expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
   })
 })

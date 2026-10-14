@@ -105,6 +105,18 @@
   padding-inline: var(--space-8);
 }
 
+/* One value size per band: a fact's or trait's value (`RNG | Long`,
+   `POP | 5,000–15,000`, `Explosive | 1`) takes the stat column's framed
+   numeral type, so a word and a number on one band read at one size. */
+.su-entity-stamps .su-stat-plate + .su-stat-plate {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  min-width: 36px;
+}
+
 /* The SRD page's action on the band ("Build With This"): the chips' height, not
    `.su-page-action`'s 40px, so every chip and button on the band is one size.
    A coarse pointer's 44px floor still lifts it. */

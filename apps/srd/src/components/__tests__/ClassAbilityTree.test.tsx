@@ -120,6 +120,15 @@ describe('ClassAbilityTree advancement paths', () => {
     )
   })
 
+  test('the class’s own path says it is that class’s only, as a chip like its neighbours', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Hacker')} />)
+    const own = document.querySelector('.srd-class-path[data-kind="legendary"]')
+    const only = [...(own?.querySelectorAll('.srd-class-path__req .su-stat-cell') ?? [])].find(
+      (cell) => cell.textContent === 'Hacker only'
+    )
+    expect(only).toBeDefined()
+  })
+
   test('a Hybrid Class’s requirement is one chip naming its trees, no owning class', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const hybrids = [...document.querySelectorAll('.srd-class-path[data-kind="hybrid"]')]

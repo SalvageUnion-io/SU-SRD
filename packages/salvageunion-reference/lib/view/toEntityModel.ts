@@ -202,7 +202,7 @@ export function toEntityModel(
     ? groupsOf(patternGroups(pattern), baseRef.id)
     : [
         ...groupsOf(nestedEntityGroups(entity), baseRef.id),
-        ...(schemaName === 'drones'
+        ...(schemaName === 'drones' || schemaName === 'vehicles'
           ? groupsOf(
               Object.entries(droneOwnLoadout(entity)).flatMap(([key, entities]) =>
                 entities.length > 0

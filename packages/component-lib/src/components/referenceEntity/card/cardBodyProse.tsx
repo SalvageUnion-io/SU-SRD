@@ -287,6 +287,9 @@ export function resolveBodyProse(input: CardBodyInput) {
     size,
     isDown,
     onPage,
+    // A child's prose reads at this card's size: the regular one under a page
+    // or a card that reads at it, else the compact one.
+    readableProse: onPage || readable || !prose.compact,
     entityName,
     chassisName: resolvedChassisName,
     shownProse: printedProse,

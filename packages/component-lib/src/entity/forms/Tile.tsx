@@ -8,7 +8,7 @@ import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { CostBox } from '../parts/Chips'
 import { Facts } from '../parts/Facts'
-import { factCells } from '../parts/factCells'
+import { factCells, formFacts } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
@@ -70,7 +70,7 @@ export function Tile({ model, mode = READ, omit = [], lead = false, priority = f
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
-  const facts = factCells(model.facts, omit)
+  const facts = factCells(formFacts(model), omit)
   const { art } = model
   const leadText = lead ? model.lead : undefined
   const hasChips = Boolean(model.cost) || facts.length > 0
