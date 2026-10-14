@@ -123,7 +123,7 @@ export function starterShelves(): StarterShelf[] {
         model: unitRowModel({
           kind: 'crawler',
           name: c.name,
-          readings: readings(crawlerStats(c.techLevel, c.crawlerBays?.length ?? 0)),
+          readings: readings(crawlerStats(c.techLevel)),
           art:
             photoArt(c.photo) ??
             artOf('crawler', () => (c.type ? resolveCrawlerType(c.type) : null)),

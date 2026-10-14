@@ -19,7 +19,7 @@ import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerReading } from '../mediator/crawlerReading.model'
-import { crawlerReadings } from '../mediator/crawlerReading.model'
+import { crawlerVitals } from '../mediator/crawlerReading.model'
 import { UnitRow } from '../shared/UnitRow'
 import { HubSection } from './HubSection'
 import type { SeatRow } from './seatRows.model'
@@ -111,7 +111,7 @@ export function CrewSeats({
       aside={{ label: 'Seats', value: claimed, max: total }}
     >
       {crawler !== null && (
-        <UnitRow kind="crawler" name={crawler.name} readings={crawlerReadings(crawler)} />
+        <UnitRow kind="crawler" name={crawler.name} readings={crawlerVitals(crawler)} />
       )}
       <ul style={LIST} aria-label="Seats">
         {rows.map((row) => (

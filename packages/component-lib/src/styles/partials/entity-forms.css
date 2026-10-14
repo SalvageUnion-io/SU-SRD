@@ -193,6 +193,19 @@
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
+/* Taller than its head (its art column sets the height: the Starter Set's
+   mechs and crawler), a bodyless Row's band fills the frame and its name and
+   chips sit at the foot, the tab on the bottom border, so no paper strip
+   opens under the head (owner's call, 2026-10-14). */
+.su-entity-row__frame[data-bodyless] > .su-entity-row__main > .su-entity-row__head {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+.su-entity-row__frame[data-bodyless] .su-entity-row__head > .su-entity-row__line {
+  flex: none;
+}
+
 /* CHIPS (`entity/parts/Chips.tsx`): every chip of an entity, one group, one
    style, wrapping; never a chip cut to "…" (E18). */
 .su-chips {

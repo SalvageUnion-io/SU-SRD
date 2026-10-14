@@ -43,8 +43,6 @@ type CrawlerReviewStepProps = {
   selectedType: SURefCrawler | undefined
   /** Chosen systems resolved from the form's system ids. */
   systems: SURefSystem[]
-  /** Number of SRD bays the crawler ships with (seeded automatically). */
-  bayCount: number
   submitError: string | null
 }
 
@@ -64,7 +62,6 @@ export function CrawlerReviewStep({
   techLevel,
   selectedType,
   systems,
-  bayCount,
   submitError,
 }: CrawlerReviewStepProps) {
   // Label-first chips (ruleset §3.7): each Scrap tier as `T1 | 3`, the
@@ -110,10 +107,7 @@ export function CrawlerReviewStep({
             <RecapEntity label="Type" entity={selectedType} required />
             <RecapStat label="TL" value={techLevel?.techLevel} required />
             {spChip ?? <RecapStat label="SP" value={null} required />}
-            <RecapStat
-              label="Bays"
-              value={`Full base set · ${bayCount} bays, seeded automatically · all Intact`}
-            />
+            <RecapStat label="Bays" value="Full base set, seeded automatically · all Intact" />
             {scrapChips.length > 0 && <span style={CHIPS}>{scrapChips}</span>}
             <RecapTokens label="Ability" entities={abilities} />
             <RecapTokens label="Weapons" entities={systems} empty="Required" />

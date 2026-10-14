@@ -27,7 +27,6 @@ describe('CrawlerReviewStep', () => {
         techLevel={techLevel}
         selectedType={exploratory}
         systems={[]}
-        bayCount={10}
         submitError={null}
       />
     )
