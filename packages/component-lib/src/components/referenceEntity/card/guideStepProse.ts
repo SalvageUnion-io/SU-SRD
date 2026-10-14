@@ -13,7 +13,7 @@ import type { SURefObjectContentBlock } from 'salvageunion-reference'
  *   a page broke the left edge every other line holds; the guide sets a
  *   citation (one naming a page, "p. N") as a left-aligned note, and any other
  *   hint ("In the Union, paying Upkeep is also called 'paying your dues'.")
- *   as an aside.
+ *   as an aside, stamped with its `label` ("Note") when it carries one.
  * - **`flavor`** — the one shipped flavour block is the worked example under
  *   Tough Choices' Creative Actions ("For example, a Pilot might…"): an aside.
  * - **a value-only `label`, or a sub-`heading`** — "Tech Level" then a
@@ -30,7 +30,7 @@ import type { SURefObjectContentBlock } from 'salvageunion-reference'
 export type GuideStepChunk =
   | { kind: 'prose'; blocks: SURefObjectContentBlock[] }
   | { kind: 'note'; text: string }
-  | { kind: 'aside'; text: string; flavor: boolean }
+  | { kind: 'aside'; text: string; flavor: boolean; label?: string }
 
 /** A hint that names a page ("can be found on p. 20") is a citation. */
 const PAGE_POINTER = /\bp\.\s?\d/
@@ -54,7 +54,12 @@ export function chunkGuideStepProse(
       chunks.push(
         PAGE_POINTER.test(block.value)
           ? { kind: 'note', text: block.value }
-          : { kind: 'aside', text: block.value, flavor: false }
+          : {
+              kind: 'aside',
+              text: block.value,
+              flavor: false,
+              ...(block.label ? { label: block.label } : {}),
+            }
       )
       continue
     }

@@ -290,6 +290,18 @@
   text-wrap: pretty;
 }
 
+/* A stamped aside (a hint with a `label`, "Note"): the stamp rides the frame's
+ * top border (`.su-stamp-seam`), inset from its corner, with room above for it. */
+.su-guide__aside--stamped {
+  margin-top: var(--space-8);
+  padding-top: var(--space-16);
+  position: relative;
+}
+
+.su-guide__aside-stamp {
+  left: var(--space-12);
+}
+
 .su-guide__aside--flavor > p {
   font-style: italic;
 }

@@ -2,7 +2,9 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useContext } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { InsidePeekContext } from '../../../entity/peekContext'
+import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
+import { Badge } from '../../atoms/Badge'
 import { Slab } from '../../atoms/Slab'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
@@ -21,15 +23,26 @@ function GuideNote({ text }: { text: string }) {
 /**
  * A step's aside — a tip or a worked example — as a framed callout: a full
  * chrome-weight ink frame on paper, never a left rail (ruleset §3.10), as the
- * srd's other asides are. A `note` role, not an `<aside>`: a complementary
+ * srd's other asides are. With a `label` ("Note") it is a stamped callout:
+ * the stamp rides the frame's top border (StampSeam, §7.2), as a crawler
+ * bay's WHEN DAMAGED does. A `note` role, not an `<aside>`: a complementary
  * landmark may not sit inside the page's `main`.
  */
-function GuideAside({ text, flavor }: { text: string; flavor: boolean }) {
+function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; label?: string }) {
   return (
     <div
       role="note"
-      className={flavor ? 'su-guide__aside su-guide__aside--flavor' : 'su-guide__aside'}
+      className={cn(
+        'su-guide__aside',
+        flavor && 'su-guide__aside--flavor',
+        label && 'su-guide__aside--stamped'
+      )}
     >
+      {label && (
+        <Badge shape="stamp" size="mini" seam className="su-guide__aside-stamp">
+          {label}
+        </Badge>
+      )}
       <p>{useParseTraitReferences(text)}</p>
     </div>
   )
@@ -119,8 +132,15 @@ export function GuideSteps({
         return <GuideNote key={index} text={chunk.text} />
       }
       if (chunk.kind === 'aside') {
-        // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
-        return <GuideAside key={index} text={chunk.text} flavor={chunk.flavor} />
+        return (
+          <GuideAside
+            // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
+            key={index}
+            text={chunk.text}
+            flavor={chunk.flavor}
+            label={chunk.label}
+          />
+        )
       }
       // A run-in head stamps at the full rung beside the page's reading size.
       return (
