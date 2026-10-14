@@ -50,6 +50,18 @@
     <meta name="twitter:image" content="https://salvageunion.io/build/og-image.png" />
     <!-- itun:meta:end -->
 
+    <!--
+      Cloudflare Web Analytics, loaded by URL (public/_headers' CSP allows the
+      origin). salvageunion.io's public site token, the same one srd's
+      BaseLayout uses: the Cantina is salvageunion.io/build. The beacon drops
+      page loads from any other host, so dev and Worker Previews report nothing.
+    -->
+    <script
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon='{"token":"c7ce1d45680c4c118da38645c3fc41bc"}'
+    ></script>
+
     <!-- Barlow superfamily is self-hosted via @fontsource (imported in src/routes/__root.tsx) -->
   </head>
   <body>

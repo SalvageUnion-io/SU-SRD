@@ -83,7 +83,11 @@ async function dispatch(
 
   // One line per interaction, so usage can be counted per command in Workers
   // Logs (docs/ARCHITECTURE.md#bot-game-client).
-  console.log(JSON.stringify({ evt: 'interaction', type: raw.type, name: interactionName(raw) }))
+  const name = interactionName(raw)
+  console.log(JSON.stringify({ evt: 'interaction', type: raw.type, name }))
+  // The same count, kept: Workers Analytics Engine (`USAGE` in wrangler.jsonc).
+  // blob1 is the name, double1 the interaction type; never anything about who.
+  env.USAGE?.writeDataPoint({ indexes: [name ?? ''], blobs: [name ?? ''], doubles: [raw.type] })
 
   let work: Promise<void>
 
