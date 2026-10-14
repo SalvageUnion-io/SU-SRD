@@ -264,7 +264,13 @@ function Bands({ name, table }: { name: string; table: BandsTable }) {
   const half = Math.ceil(rows.length / 2)
   const halves = split ? [rows.slice(0, half), rows.slice(half)] : [rows]
   return (
-    <div className="su-roll__bands" data-split={halves.length > 1 ? 'true' : undefined}>
+    <div
+      className="su-roll__bands"
+      data-split={halves.length > 1 ? 'true' : undefined}
+      // The halves share one row track per pair (`grid-template-rows: subgrid`),
+      // so row N on the left and row N on the right are always one height.
+      style={halves.length > 1 ? ({ '--su-roll-half': half } as CSSProperties) : undefined}
+    >
       {halves.map((part, side) => (
         <ol
           key={side === 0 ? 'left' : 'right'}
@@ -280,8 +286,9 @@ function Bands({ name, table }: { name: string; table: BandsTable }) {
                 className="su-roll__row"
                 data-rolled={marked ? 'true' : undefined}
                 aria-current={marked ? 'true' : undefined}
-                // The banding runs on across the halves: a split table bands as one.
-                style={rowFill(side * half + at, marked)}
+                // The second half bands one step off the first, so the rows
+                // side by side never share a fill.
+                style={rowFill(at + side, marked)}
               >
                 <span className="su-roll__range">{rollRangeLabel(row.key)}</span>
                 <div className="su-roll__body">

@@ -426,9 +426,16 @@
   .su-roll__bands[data-split] {
     --su-roll-range: 3.5rem;
     --su-roll-value-size: var(--text-sm);
-    align-items: start;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Each half spans every row track and borrows it, so the rows pair up
+     side by side at one height (the taller of the two). */
+  .su-roll__bands[data-split] > .su-roll__rows {
+    display: grid;
+    grid-row: span var(--su-roll-half);
+    grid-template-rows: subgrid;
   }
 
   .su-roll__bands[data-split] > .su-roll__rows[data-side='right'] {
