@@ -110,7 +110,7 @@
   max-width: 28rem;
 }
 
-/* The candidate radios, 8px apart. */
+/* The candidate Rows (select mode, one radio group), 8px apart. */
 :where(.assign-picker__candidates > :not(:last-child)) {
   margin-block-end: 8px;
   margin-block-start: 0;

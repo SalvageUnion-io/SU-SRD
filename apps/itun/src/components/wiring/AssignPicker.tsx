@@ -2,8 +2,9 @@
  * AssignPicker — the one assignment picker for every slot on a sheet's Linked
  * Units rail (ADR-037).
  *
- * A button that opens a radio list of candidates, then draws the link on
- * confirm. It replaces three near-identical dialogs (`AssignPilotToMech`,
+ * A button that opens a list of candidates — each the unit's Row in select
+ * mode (EDL "Modes": ink ring and the "Selected" seal), one radio group —
+ * then draws the link on confirm. It replaces three near-identical dialogs (`AssignPilotToMech`,
  * `AssignCrawlerToPilot`, `AssignPilotToCrawler`) that differed only in which
  * kinds they listed and which way round the link pointed — and none of which
  * looked at where anything lived, so a pilot in one Game was offered every
@@ -39,7 +40,7 @@
  * and replaced by generic copy rather than its raw message.
  */
 
-import { Button, FieldError, ModalShell, Radio } from 'component-lib'
+import { Button, Entity, FieldError, ModalShell, RadioCardGroup } from 'component-lib'
 import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { Container, ContainerFields } from 'itun-domain/container'
 import { containerOf, sameContainer } from 'itun-domain/container'
@@ -57,6 +58,8 @@ import { failureMessage } from '../../lib/connection/useServerAction'
 import { assignLink } from '../../lib/links/assignLink'
 import { LinkRefused } from '../../lib/links/linkRefused'
 import { readReference } from '../../lib/readReference'
+import type { UnitReading } from '../../lib/units/unitModel'
+import { unitRowModel } from '../../lib/units/unitModel'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLinkStore } from './useSoftLinks'
@@ -190,7 +193,8 @@ const NOUN: Record<Kind, { one: string; many: string }> = {
   npc: { one: 'NPC', many: 'NPCs' },
 }
 
-type Candidate = { id: string; name: string; description?: string }
+/** A candidate's Row: its name, what it is built as, and its readings as chips. */
+type Candidate = { id: string; name: string; note?: string | undefined; readings?: UnitReading[] }
 
 /** Chassis name for a mech row, best-effort (reference data may not be loaded). */
 function chassisName(chassisRef: string): string | undefined {
@@ -205,18 +209,18 @@ function chassisName(chassisRef: string): string | undefined {
 const pilotCandidate = (p: Pilot): Candidate => ({
   id: p.id,
   name: p.name,
-  description: p.callsign ? `“${p.callsign}”` : undefined,
+  readings: p.callsign ? [{ label: 'Callsign', value: p.callsign }] : [],
 })
 
 const mechCandidate = (m: Mech): Candidate => ({
   id: m.id,
   name: m.name,
-  description: chassisName(m.chassisRef),
+  note: chassisName(m.chassisRef),
 })
 
 const crawlerCandidate = (c: Crawler): Candidate => {
   const tl = parseCrawlerTechLevel(c.techLevel)
-  return { id: c.id, name: c.name, description: tl === undefined ? undefined : `Tech ${tl}` }
+  return { id: c.id, name: c.name, readings: tl === undefined ? [] : [{ label: 'TL', value: tl }] }
 }
 
 /**
@@ -357,19 +361,27 @@ export function AssignPicker({
           {candidates.length === 0 ? (
             <p style={EMPTY}>{emptyCopy(pick, scope, inScope > 0)}</p>
           ) : (
-            <div className="assign-picker__candidates">
+            <RadioCardGroup label={copy.title} className="assign-picker__candidates">
               {candidates.map((c) => (
-                <Radio
+                <Entity
                   key={c.id}
-                  name={`${subject.type}-${pick}-select`}
-                  value={c.id}
-                  checked={selectedId === c.id}
-                  onChange={() => setSelectedId(c.id)}
-                  label={c.name}
-                  description={c.description}
+                  form="row"
+                  model={unitRowModel({
+                    kind: pick,
+                    name: c.name,
+                    note: c.note,
+                    readings: c.readings,
+                  })}
+                  mode={{
+                    kind: 'select',
+                    role: 'radio',
+                    selected: selectedId === c.id,
+                    onSelect: () => setSelectedId(c.id),
+                    label: c.name,
+                  }}
                 />
               ))}
-            </div>
+            </RadioCardGroup>
           )}
 
           <p style={NOTE}>{copy.note}</p>
