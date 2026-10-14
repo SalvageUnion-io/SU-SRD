@@ -155,9 +155,9 @@ describe('entityTone', () => {
     }
   })
 
-  test('a guide wears rules blue whatever tone its data names', () => {
-    for (const guideTone of ['salvage', 'hazard', 'pilot', 'ink']) {
-      expect(entityTone('guides', as({ ...base, guideTone }))).toBe('wk-line')
+  test('a guide wears rules blue whatever its type', () => {
+    for (const guideType of ['character-creation', 'downtime', 'gameplay']) {
+      expect(entityTone('guides', as({ ...base, guideType }))).toBe('wk-line')
     }
   })
 

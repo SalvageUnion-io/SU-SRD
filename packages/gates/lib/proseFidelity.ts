@@ -77,7 +77,6 @@ const SKIP_KEYS = new Set([
   'lifetime',
   'field',
   'guideType',
-  'guideTone',
   'purchaseLink',
   'range',
   'chassis',

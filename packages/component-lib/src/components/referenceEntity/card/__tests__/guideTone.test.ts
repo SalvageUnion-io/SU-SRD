@@ -10,11 +10,12 @@
  *    wins over `bg` on the band, and only `bgColor` reaches a choice region and
  *    a step's table as its tone;
  * 2. no OTHER domain is disturbed — the guide branch is a data-shape check on a
- *    field nothing else carries, so gear must still ride the tech-level ramp;
- *    the other rules entries wear the same rules blue as their domain tone.
+ *    field nothing else carries (`guideType`), so gear must still ride the
+ *    tech-level ramp; the other rules entries wear the same rules blue as their
+ *    domain tone.
  *
- * Driven from the SHIPPED dataset rather than a fixture: whatever tone a
- * guide's record names, it paints rules blue.
+ * Driven from the SHIPPED dataset rather than a fixture: every guide paints
+ * rules blue.
  */
 import { describe, expect, test } from 'bun:test'
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
@@ -25,9 +26,9 @@ import { entityGuideToneColor, resolveDomainTone } from '../entityCardTone'
 const guides = SalvageUnionReference.Guides.all()
 
 describe('guide tone — the card matches the index tile', () => {
-  test('the dataset actually exercises this (guides exist, and name a tone)', () => {
+  test('the dataset actually exercises this (guides exist, each with a type)', () => {
     expect(guides.length).toBeGreaterThan(0)
-    expect(guides.every((guide) => typeof guide.guideTone === 'string')).toBe(true)
+    expect(guides.every((guide) => typeof guide.guideType === 'string')).toBe(true)
   })
 
   test('every shipped guide resolves to rules blue, the tile and the card alike', () => {
@@ -64,17 +65,17 @@ describe('guide tone — the card matches the index tile', () => {
     expect(tone.domain).toBe('glossary')
   })
 
-  test('one hue for every guide, though the data names several', () => {
-    const named = new Set(guides.map((guide) => guide.guideTone))
-    expect(named.size).toBeGreaterThan(1)
+  test('one hue for every guide, whatever its type', () => {
+    const types = new Set(guides.map((guide) => guide.guideType))
+    expect(types.size).toBeGreaterThan(1)
     const hues = new Set(guides.map((guide) => resolveDomainTone('guides', guide).bgColor))
     expect([...hues]).toEqual(['var(--color-wk-line)'])
   })
 })
 
 describe('guide tone — no other domain is disturbed', () => {
-  test('a guide record with no tone falls back to the domain tone, rules blue', () => {
-    // An unrecognised or missing name must not produce a transparent header band.
+  test('a guide record with no type falls back to the domain tone, rules blue', () => {
+    // A record missing its type must not produce a transparent header band.
     const tone = resolveDomainTone('guides', malformed<SURefMetaEntity>({}))
     expect(tone.bgColor).toBeUndefined()
     expect(tone.bg).toBe('var(--color-wk-line)')

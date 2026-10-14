@@ -14,13 +14,12 @@ const RULES_BLUE = 'wk-line'
 
 /**
  * A guide's tone token, or `undefined` for every other entity: rules blue for
- * every guide, as its page's band is (owner's call, 2026-10-14). The dataset's
- * authored `guideTone` marks the record a guide; the colour it names is no
- * longer painted, so the guides index reads as one chapter.
+ * every guide, as its page's band is (owner's call, 2026-10-14), so the guides
+ * index reads as one chapter. A guide is the record with a `guideType`.
  */
 export function guideTone(entity: SURefMetaEntity): string | undefined {
-  if (entity == null || typeof entity !== 'object' || !('guideTone' in entity)) return undefined
-  return typeof entity.guideTone === 'string' ? RULES_BLUE : undefined
+  if (entity == null || typeof entity !== 'object' || !('guideType' in entity)) return undefined
+  return typeof entity.guideType === 'string' ? RULES_BLUE : undefined
 }
 
 /** The numeric tech-level ramp: TL1–6 own a band each. */
@@ -83,8 +82,8 @@ export function entityTone(
   entity: SURefMetaEntity
 ): string {
   if (schemaName === 'actions') return 'ink'
-  const authored = guideTone(entity)
-  if (authored) return authored
+  const guide = guideTone(entity)
+  if (guide) return guide
   if (schemaDomain(schemaName) === 'gear') {
     const level = getTechLevel(entity)
     const tone = level === 'B' ? 'tl-b' : level === 'N' ? 'tl-n' : techLevelTone(level)

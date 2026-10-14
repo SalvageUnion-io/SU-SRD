@@ -137,17 +137,6 @@ describe('SalvageUnionReference.Guides', () => {
     }
   })
 
-  it('should have a known guideTone on all guides', () => {
-    // A NAME, not a colour: a hex here would make the dataset a second
-    // palette. `theme.css` owns every value; component-lib maps the
-    // name to a token (see `entityGuideToneColor`).
-    const tones = new Set(['pilot', 'mech', 'crawler', 'salvage', 'hazard', 'ink'])
-    const guides = SalvageUnionReference.Guides.all()
-    for (const guide of guides) {
-      expect(tones.has(guide.guideTone)).toBe(true)
-    }
-  })
-
   it('should have non-empty steps array on all guides', () => {
     const guides = SalvageUnionReference.Guides.all()
     for (const guide of guides) {

@@ -40,7 +40,7 @@ export {
 export { CrawlerMutationSchema } from './objects/crawlerMutations'
 export { ChoiceEffectSchema, EffectTargetSchema } from './objects/effects'
 export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase'
-export { GuideStepSchema, GuideToneSchema, GuideTypeSchema } from './objects/guides'
+export { GuideStepSchema, GuideTypeSchema } from './objects/guides'
 export { NpcSchema } from './objects/npc'
 export {
   BioTitanPatternSchema,

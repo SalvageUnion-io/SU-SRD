@@ -93,17 +93,3 @@ export const GuideTypeSchema = z
     'gameplay',
   ])
   .describe('Category of a guide (character creation, mech creation, etc.)')
-
-/**
- * Which theme tone a guide names for its header/footer band.
- *
- * A NAME, never a colour. No name is painted any more: every guide paints
- * rules blue (`guideTone()` in `lib/view/parts/fill.ts`), so the field only
- * marks the record a guide. `ink` is the fallback for a guide added without a
- * tone.
- *
- * This replaced a raw hex field. See `GuideSchema.guideTone` for what that cost.
- */
-export const GuideToneSchema = z
-  .enum(['pilot', 'mech', 'crawler', 'salvage', 'hazard', 'ink'])
-  .describe('Which theme tone paints this guide’s header/footer band')
