@@ -245,8 +245,9 @@ jobs:
           path: apps/itun/dist
 
       # A Preview, never a version or a deployment of the production Worker.
-      # Its vars are each wrangler.jsonc's `previews` block plus these; its
-      # URL is read back from the JSON, never guessed.
+      # Its vars are each wrangler.jsonc's `previews` block plus these. Its URL
+      # is read back from wrangler's output file, never guessed: `--json`
+      # still prints the asset upload's progress on stdout around the JSON.
       - name: Ship both Workers as Previews
         id: preview
         env:
@@ -255,17 +256,14 @@ jobs:
         run: |
           set -euo pipefail
           for app in srd itun; do
-            (cd "apps/$app" && bunx wrangler preview \
+            out="$RUNNER_TEMP/$app.ndjson"
+            (cd "apps/$app" && WRANGLER_OUTPUT_FILE_PATH="$out" bunx wrangler preview \
               --name "$PREVIEW_NAME" \
               --message "$PREVIEW_NAME@${SHA:0:12}" \
               --var "SENTRY_RELEASE:$SHA" \
-              --var "SENTRY_ENVIRONMENT:preview" \
-              --json > "$RUNNER_TEMP/$app.json") || {
-              # With --json, wrangler writes its error into that file.
-              cat "$RUNNER_TEMP/$app.json" >&2
-              exit 1
-            }
-            url=$(jq -r '.preview.urls[0] // empty' "$RUNNER_TEMP/$app.json")
+              --var "SENTRY_ENVIRONMENT:preview")
+            url=$(jq -rs '[.[] | select(.type == "preview")] | last | .preview_urls[0]
+              | if type == "object" then .url else . end // empty' "$out")
             if [ -z "$url" ]; then
               echo "FATAL: the $app Preview has no URL." >&2
               exit 1
