@@ -201,10 +201,10 @@ describe('signed in', () => {
     expect(screen.queryByRole('button', { name: 'Share Tow Rig' })).toBeNull()
   })
 
-  test('the stat column names stats in the manual’s wording', () => {
+  test('the stat column spells stat names out', () => {
     setQueryAnswers({ 'publicSheet:pattern': answer() })
     renderAs(SIGNED_OUT)
-    expect(screen.getByText('Structure Pts.')).toBeTruthy()
-    expect(screen.queryByText('Structure Points')).toBeNull()
+    expect(screen.getByText('Structure Points')).toBeTruthy()
+    expect(screen.queryByText('Structure Pts.')).toBeNull()
   })
 })

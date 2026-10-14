@@ -5,8 +5,8 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 ## The source: the Workshop Manual
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
-2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind as a stamp and its citation as the head band's stat cells (`WORKSHOP MANUAL | p.112`, then each reprint).
-3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE PTS. | 14`), label 14px, horizontal, in the book's order: STRUCTURE PTS., ENERGY PTS., HEAT CAP., SYSTEM SLOTS, MODULE SLOTS, CARGO CAP., TECH LEVEL, SALVAGE VALUE.
+2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind and its citation as text, never chips (`Workshop Manual · p.112`, then "Also in" each reprint), as on every card and Peek.
+3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the book's order (`bookStats`), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL).
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
@@ -36,7 +36,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    1. **Vitals** — `VitalGauge`: sheet skin, Dashboard instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
-   4. **Rolls** — `RollTable` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
+   4. **Rolls** — `RollTableInstrument` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only. TL and Salvage are the TL-Salvage badge everywhere.
    6. **Cost, range, action type** — chips (Page `RNG | Close`, else `C`; "Turn Action"), then cost last in the book's pointy box (`ActivationCost`, `2 EP`); the Dashboard's cost pennant is its action button.
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1); a section header is a Slab.
@@ -66,7 +66,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground. `contrast.test.ts` pins every pair.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) is the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
    3. **§4.3 The border map** — one meaning per weight: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (Card below large, and the Row), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value-cell frames and table rules.
-   4. **§4.4 Radius and spacing** — 3px outer on cards and Btn, `calc(3px − frame)` inside, stamps square; rounder only for the ink-banner tail and Guides how-to cards. Spacing is `{2, 4, 6, 8, 12}px`; 12px is the card gutter.
+   4. **§4.4 Radius and spacing** — 3px outer on cards and Btn, `calc(3px − frame)` inside, stamps square; rounder only for the ink-banner tail. Spacing is `{2, 4, 6, 8, 12}px`; 12px is the card gutter.
    5. **§4.5 The pip-row split** — at most 6 per row, balanced and bottom-heavy (7 → 3/4, 13 → 4/4/5), for every pip surface. The redline pip sits at 70%.
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
       Every coarse-pointer target is 44px; nothing floats over content.
@@ -83,7 +83,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (classification pills, User-made; never above it, never riding the frame, never the kind, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
-   - **Actions sit inline** — flush ink bands, no Actions tray or stamp (on a Page, framed cards under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
+   - **Actions nest** — framed cards, ink banners, no Actions tray or stamp (on a Page, under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
    - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind. One tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.

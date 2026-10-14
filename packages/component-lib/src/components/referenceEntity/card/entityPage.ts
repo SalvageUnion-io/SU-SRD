@@ -63,7 +63,7 @@ export type EntityPageMeta = {
 /** The model's facts the band does not already state as a book stat. */
 function isOwnStat(key: string): boolean {
   // `tech-level` and the `ref-stat-*` stats (`lib/view/parts/facts.ts`) are
-  // `bookStats` in the book's words; what is left are the facets.
+  // the band's `bookStats` under their full names; what is left are the facets.
   return key === 'tech-level' || key.startsWith('ref-stat-')
 }
 

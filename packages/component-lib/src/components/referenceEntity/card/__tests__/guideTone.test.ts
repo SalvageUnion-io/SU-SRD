@@ -1,21 +1,21 @@
 /**
- * A GUIDE WEARS THE COLOUR OF THE LINK THAT OPENED IT.
+ * EVERY GUIDE WEARS RULES BLUE, as its page's band does (owner's call,
+ * 2026-10-14): the guides index reads as one chapter, not a card per hue.
  *
- * The SRD index paints each guide's catalog tile with that guide's stored
- * `guideTone` (`catalogHelpers.ts` → `catalogBg`), and `resolveDomainTone` reads
- * the same stored tone for the card the tile opens. These tests pin both halves
- * of that contract:
+ * The SRD index paints each guide's catalog tile through `entityGuideToneColor`
+ * (`catalogHelpers.ts` → `catalogBg`), and `resolveDomainTone` reads the same
+ * for the card the tile opens. These tests pin both halves of that contract:
  *
- * 1. the hue arrives as `bgColor` (the guide's own colour), NOT as `bg` (the
- *    domain tone) — `bgColor` wins over `bg` on the band, and only `bgColor`
- *    reaches a choice region as its tone;
+ * 1. the hue arrives as `bgColor`, NOT as `bg` (the domain tone) — `bgColor`
+ *    wins over `bg` on the band, and only `bgColor` reaches a choice region and
+ *    a step's table as its tone;
  * 2. no OTHER domain is disturbed — the guide branch is a data-shape check on a
- *    field nothing else carries, so gear must still ride the tech-level ramp and
- *    the remaining glossary schemas must still resolve to ink.
+ *    field nothing else carries (`guideType`), so gear must still ride the
+ *    tech-level ramp; the other rules entries wear the same rules blue as their
+ *    domain tone.
  *
- * The index-parity test is driven from the SHIPPED dataset rather than a
- * fixture: it is the actual guide records, and their actual hues, that have to
- * agree with the tiles.
+ * Driven from the SHIPPED dataset rather than a fixture: every guide paints
+ * rules blue.
  */
 import { describe, expect, test } from 'bun:test'
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
@@ -26,15 +26,16 @@ import { entityGuideToneColor, resolveDomainTone } from '../entityCardTone'
 const guides = SalvageUnionReference.Guides.all()
 
 describe('guide tone — the card matches the index tile', () => {
-  test('the dataset actually exercises this (guides exist, and name a tone)', () => {
+  test('the dataset actually exercises this (guides exist, each with a type)', () => {
     expect(guides.length).toBeGreaterThan(0)
-    expect(guides.every((guide) => typeof guide.guideTone === 'string')).toBe(true)
+    expect(guides.every((guide) => typeof guide.guideType === 'string')).toBe(true)
   })
 
-  test('every shipped guide resolves to the token its tone names', () => {
+  test('every shipped guide resolves to rules blue, the tile and the card alike', () => {
     for (const guide of guides) {
       const tone = resolveDomainTone('guides', guide)
-      expect(tone.bgColor).toBe(entityGuideToneColor(guide))
+      expect(tone.bgColor).toBe('var(--color-wk-line)')
+      expect(entityGuideToneColor(guide)).toBe('var(--color-wk-line)')
     }
   })
 
@@ -64,28 +65,32 @@ describe('guide tone — the card matches the index tile', () => {
     expect(tone.domain).toBe('glossary')
   })
 
-  test('more than one distinct hue is in play', () => {
-    // A guard against a regression that resolved every guide to one colour —
-    // which would still pass the per-guide equality test if the hues collapsed.
+  test('one hue for every guide, whatever its type', () => {
+    const types = new Set(guides.map((guide) => guide.guideType))
+    expect(types.size).toBeGreaterThan(1)
     const hues = new Set(guides.map((guide) => resolveDomainTone('guides', guide).bgColor))
-    expect(hues.size).toBeGreaterThan(1)
+    expect([...hues]).toEqual(['var(--color-wk-line)'])
   })
 })
 
 describe('guide tone — no other domain is disturbed', () => {
-  test('an unknown guideTone falls back to the domain tone', () => {
-    // The schema validates the name against a closed enum, so this is a runtime
-    // guard, not an expected branch. An unrecognised name must not produce a
-    // transparent header band.
-    const tone = resolveDomainTone('guides', malformed<SURefMetaEntity>({ guideTone: 'nonsense' }))
+  test('a guide record with no type falls back to the domain tone, rules blue', () => {
+    // A record missing its type must not produce a transparent header band.
+    const tone = resolveDomainTone('guides', malformed<SURefMetaEntity>({}))
     expect(tone.bgColor).toBeUndefined()
-    expect(tone.bg).toBe('var(--color-ink-2)')
+    expect(tone.bg).toBe('var(--color-wk-line)')
   })
 
-  test('the remaining glossary schemas still resolve to ink', () => {
-    for (const schemaName of ['traits', 'keywords', 'distances'] as SURefEnumSchemaName[]) {
+  test('the other rules entries resolve to rules blue', () => {
+    for (const schemaName of [
+      'traits',
+      'keywords',
+      'distances',
+      'sources',
+      'roll-tables',
+    ] as SURefEnumSchemaName[]) {
       const tone = resolveDomainTone(schemaName, malformed<SURefMetaEntity>({}))
-      expect(tone.bg).toBe('var(--color-ink-2)')
+      expect(tone.bg).toBe('var(--color-wk-line)')
       expect(tone.bgColor).toBeUndefined()
     }
   })

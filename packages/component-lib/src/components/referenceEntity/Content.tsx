@@ -2,7 +2,8 @@ import type { CSSProperties } from 'react'
 import type { SURefObjectContentBlock, SURefObjectDataValue } from 'salvageunion-reference'
 import { glossaryRef, parseContentBlockString } from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
-import { color, space, fontSize as typeScale, weight } from '../../design/tokens'
+import { space, fontSize as typeScale, weight } from '../../design/tokens'
+import { useAppliesRules } from '../../entity/entitySurfaceContext'
 import { PeekCell } from '../../entity/parts/PeekCell'
 import { Tag } from '../../entity/parts/Tags'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
@@ -41,11 +42,14 @@ const dataValuesStyle = {
   gap: space[4],
 } satisfies CSSProperties
 
-/** The rules-bearing spine (heavier solid ink) on a paragraph the app applies (ADR-029). */
-const rulesBearingStyle = {
-  borderLeft: `4px solid ${color.ink}`,
-  paddingLeft: space[8],
+/** The AUTO stamp's seat at the head of a rules-bearing paragraph: on the line, before the words. */
+const autoStampStyle = {
+  marginRight: space[6],
+  verticalAlign: 'text-bottom',
 } satisfies CSSProperties
+
+/** What the AUTO stamp says, to a pointer's hover and to a screen reader. */
+const AUTO_NOTE = 'The app applies this rule'
 
 const listItemStyle = {
   display: 'flex',
@@ -54,6 +58,10 @@ const listItemStyle = {
 } satisfies CSSProperties
 
 const labelStampStyle = { display: 'block', marginBottom: space[4] } satisfies CSSProperties
+
+/** A measured keyword wears the chip label an action's own facet does
+ *  (`traits.ts`), so "Damage | 5 SP" in prose reads DMG like every attack. */
+const MEASURED_KEYWORD_SHORT: Record<string, string> = { Damage: 'DMG', Range: 'RNG' }
 
 /**
  * A single `datavalues` item. A `cost` item ("3 AP") uses the ActivationCost
@@ -102,7 +110,9 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
     <PeekCell peek={peek}>
       <Stat
         orientation="horizontal"
-        label={item.label}
+        label={
+          (item.type === 'keyword' && MEASURED_KEYWORD_SHORT[String(item.label)]) || item.label
+        }
         value={value}
         size={compact ? 'compact' : 'full'}
         inline={false}
@@ -127,14 +137,12 @@ type ContentProps = {
    * True when the owning record carries structured data for the mechanical
    * change its text states (ADR-029).
    *
-   * When set, a paragraph that STATES a mechanical change is marked as
-   * rules-bearing — the reader can see which clause the app actually
-   * understands, adjacent to the claim itself. Prose that states a change on a
-   * record with no data stays unmarked, so a coverage gap is visible in the
-   * product and not only in CI.
-   *
-   * Extends ADR-026 §5's "modified" language (heavier solid ink) from stat cells to a prose
-   * span; it is the same vocabulary, a third carrier.
+   * When set, and the surface applies the rules (`appliesRules`: ITUN), a
+   * paragraph that STATES a mechanical change leads with an ink AUTO stamp —
+   * the reader can see which clause the app actually applies, adjacent to the
+   * claim itself. Prose that states a change on a record with no data stays
+   * unmarked, so a coverage gap is visible in the product and not only in CI.
+   * The SRD applies nothing, so it prints the same paragraph as plain prose.
    */
   rulesBearing?: boolean
   /** A class on the run's root (a guide step's `su-guide__prose`). */
@@ -305,6 +313,7 @@ function ContentBlock({
   const type = block.type || 'paragraph'
   const blockValue = block.value
   const sizeStyle = FONT_SIZE_STYLE[fontSize]
+  const appliesRules = useAppliesRules()
 
   // Always parse the string value for the hook (even if we don't use it for datavalues)
   // This ensures React hooks are called in the same order every render
@@ -332,24 +341,18 @@ function ContentBlock({
       // deliberate: the trait parser has already turned this text into a node
       // array, so splicing a sentence-level mark back into it would be fragile
       // for no gain — these paragraphs are one or two sentences.
-      const bearing = rulesBearing && statesMechanicalChange(stringValue) !== null
+      const bearing = appliesRules && rulesBearing && statesMechanicalChange(stringValue) !== null
       return (
         <Text
           variant="body"
           as="div"
-          style={{
-            marginBottom: space[4],
-            ...sizeStyle,
-            ...(bearing ? rulesBearingStyle : {}),
-            ...breakWord,
-          }}
-          {...(bearing
-            ? {
-                'data-rules-bearing': 'true',
-                title: 'The app applies this rule',
-              }
-            : {})}
+          style={{ marginBottom: space[4], ...sizeStyle, ...breakWord }}
         >
+          {bearing && (
+            <Badge shape="stamp" size="mini" title={AUTO_NOTE} style={autoStampStyle}>
+              Auto<span className="su-sr-only">: {AUTO_NOTE.toLowerCase()}.</span>
+            </Badge>
+          )}
           {parsedValue}
         </Text>
       )

@@ -1,4 +1,5 @@
-import { ActivationCost, Slab, Stat } from 'component-lib'
+import type { TreeTrack } from 'component-lib'
+import { ActivationCost, Head, Slab, Stat } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
@@ -6,7 +7,6 @@ import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/
 import { resolveClassPlan } from '../lib/classPaths'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
-import type { TreeTrack } from './AbilityTrack'
 import { AbilityTrack } from './AbilityTrack'
 import { MentionProse } from './MentionProse'
 
@@ -96,6 +96,23 @@ function briefCards(plan: Exclude<ClassPlan, { kind: 'none' }>): BriefCard[] {
   ]
 }
 
+/** A tier's book hue (§3.8): the band its brief card and its trees' tracks wear. */
+const TIER_BAND: Record<TreeTrack, string> = {
+  core: 'var(--color-pilot)',
+  advanced: 'var(--color-tier-hybrid)',
+  hybrid: 'var(--color-tier-hybrid)',
+  legendary: 'var(--color-crawler-band)',
+}
+
+/** A cut-out head's paint in a tier's hue: the name sits on the paper tab in ink. */
+const tierPaint = (tier: TreeTrack) =>
+  ({
+    background: TIER_BAND[tier],
+    color: 'var(--color-ink)',
+    ink: false,
+    nameOnPaper: false,
+  }) as const
+
 /** A Hybrid Class's trees, with the class that owns each branch. */
 function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
   const trees: RefText = [`${plan.path.advanced.tree}`]
@@ -130,11 +147,20 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
       </div>
       <ul className="srd-class-brief__cards">
         {briefCards(plan).map((card) => (
-          <li key={card.label} className="srd-class-brief__card" data-tier={card.tier}>
-            <div className="srd-class-brief__band">
-              <span className="srd-class-brief__tab">{card.label}</span>
-              {card.cost && <ActivationCost cost={card.cost} currency="TP" compact />}
-            </div>
+          <li key={card.label} className="srd-class-brief__card">
+            <Head
+              title={card.label}
+              paint={tierPaint(card.tier)}
+              chips={
+                card.cost && (
+                  <div className="su-chips">
+                    <ActivationCost cost={card.cost} currency="TP" compact />
+                  </div>
+                )
+              }
+              notch
+              chipsBeside
+            />
             <p className="srd-class-brief__body">
               <MentionProse parts={card.value} />
             </p>
@@ -151,16 +177,12 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   )
 }
 
-/** "Engineer only" by the requirement, a quiet caps label like a lone-label badge. */
-function Or({ children }: { children: string }) {
-  return <span className="srd-class-path__or">{children}</span>
-}
-
 /**
  * What opens a path, as one continuous chip: REQ, then the trees any one of
  * which opens it, each "or" an ink label cell between them ("REQ | FORGING |
  * OR | ELECTRONICS"), the tree this class trains first leading. The class's
- * own path adds that only this class walks it ("ENGINEER ONLY").
+ * own path adds that only this class walks it ("ENGINEER ONLY"), the same
+ * lone-label chip as the path's kind beside it.
  */
 function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
   const own = !path.hybrid || !path.via
@@ -181,29 +203,12 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
           />
         ))}
       </span>
-      {own && <Or>{`${classEntity.name} only`}</Or>}
+      {own && <Stat orientation="horizontal" label={`${classEntity.name} only`} size="compact" />}
     </span>
   )
 }
 
 const articleFor = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
-
-function Chevron() {
-  return (
-    <svg
-      className="srd-class-path__chevron"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M9 5l7 7-7 7" />
-    </svg>
-  )
-}
 
 /**
  * One path a Core class advances along (the Workshop Manual's class spread
@@ -223,23 +228,27 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
     ? toEntityModel(hybrid).lead
     : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
   const head = (
-    <>
-      <span className="srd-class-path__name">{name}</span>
-      <span className="srd-class-path__band">
-        <PathRequirement path={path} classEntity={classEntity} />
-        <Stat orientation="horizontal" label={kind} size="compact" />
-      </span>
-      {hybrid && <Chevron />}
-    </>
+    <Head
+      title={name}
+      paint={tierPaint('core')}
+      chips={
+        <div className="su-chips">
+          <PathRequirement path={path} classEntity={classEntity} />
+          <Stat orientation="horizontal" label={kind} size="compact" />
+        </div>
+      }
+      notch
+      chipsBeside
+    />
   )
   return (
     <li className="srd-class-path" data-kind={kind.toLowerCase()}>
       {hybrid ? (
-        <a className="srd-class-path__head" href={classHref(hybrid)}>
+        <a className="srd-class-path__link" href={classHref(hybrid)}>
           {head}
         </a>
       ) : (
-        <div className="srd-class-path__head">{head}</div>
+        head
       )}
       <div className="srd-class-path__body">
         {note && <p className="srd-class-path__note">{note}</p>}
@@ -248,10 +257,8 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
           {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
         </div>
       </div>
-      <div className="srd-class-path__foot">
-        <span>Workshop Manual</span>
-        <span className="srd-class-path__page">p.{(hybrid ?? classEntity).page}</span>
-      </div>
+      {/* Cited as every card's footer cites: text, never chips (EDL E9). */}
+      <p className="srd-class-path__foot">Workshop Manual · p.{(hybrid ?? classEntity).page}</p>
     </li>
   )
 }

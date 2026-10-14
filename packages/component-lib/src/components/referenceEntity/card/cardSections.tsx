@@ -1,8 +1,8 @@
 /**
  * A full card's body and the sections under it, as nodes: the body box, the
  * roll table, the guide steps, the inline actions, the pattern section and the
- * nested groups. `ReferenceEntityCardInner` lays them out as a framed card, an
- * inline action band or a page; `resolveBodyProse` (`cardBodyProse.tsx`)
+ * nested groups. `ReferenceEntityCardInner` lays them out as a framed card or a
+ * page; `resolveBodyProse` (`cardBodyProse.tsx`)
  * resolves what they print.
  */
 
@@ -56,7 +56,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     size,
     depth,
     compact,
-    inline,
     onPage,
     isAction,
     isDown,
@@ -70,7 +69,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     assetSrcSet,
     sectionAs,
     afterExtraContent,
-    abilitiesSection,
     selections,
     onSelectionChange,
     NestedCard,
@@ -98,8 +96,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   // ROLL TABLE — the entity's own, or its folded action's, under its ROLL THE
   // DIE bar (board E4). In a framed card it is a nested element, so it wears
   // its own box at the nested width (owner's call, 2026-10-14: "nested
-  // elements should not be full-width"); flush on a page and in an inline
-  // action band.
+  // elements should not be full-width"); flush on a page.
   const ownTable = resolveTable(entity)
   const entityTable = ownTable ?? resolveTable(foldedAction)
   const tableSource = ownTable ? entity : foldedAction
@@ -114,7 +111,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         name={tableName}
         size={size}
         disabled={!!isDown}
-        framed={!onPage && !inline}
+        framed={!onPage}
         tone={tone.bgColor}
       />
     ) : null
@@ -190,8 +187,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
 
   // ACTIONS — inline, flush. Below depth 1 they fold behind a chip.
   const actionsNode: ReactNode =
-    abilitiesSection ??
-    (inlineActionEntities.length > 0 ? (
+    inlineActionEntities.length > 0 ? (
       depth >= 2 ? (
         <ActionsChip count={inlineActionEntities.length} size={size}>
           <InlineActions actions={inlineActionEntities} host={nestedHost} />
@@ -199,7 +195,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       ) : (
         <InlineActions actions={inlineActionEntities} host={nestedHost} />
       )
-    ) : null)
+    ) : null
 
   const bodyContent: ReactNode = (
     <>

@@ -15,7 +15,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
  * hero on the left; beside it a chassis's stats, inline and first, then the
  * prose and the chassis ability (every other entity's stats ride the band:
- * srd's `EntityPageStamps`); then everything
+ * `EntityPageStamps`); then everything
  * the entity carries, full width — its table, its other actions, its nested cards and its patterns as
  * link rows. A pattern page leads the right column with the pattern itself
  * (`opening`), then the base chassis's prose under its own slab.
@@ -48,8 +48,6 @@ type CardPageProps = {
   body: ReactNode
   /** The entity's own roll table, framed on the page. */
   table: ReactNode
-  /** A consumer's replacement for the actions (`abilitiesSection`). */
-  abilitiesSection: ReactNode
   /** A guide's steps (`GuideSteps`): on a page they follow the prose, full section. */
   guide?: ReactNode
   /** The nested cards. */
@@ -79,7 +77,6 @@ export function CardPage({
   subLine,
   body,
   table,
-  abilitiesSection,
   guide,
   sections,
   patterns,
@@ -155,8 +152,7 @@ export function CardPage({
         </div>
       )}
       {table && <div className="su-entity-page__table">{table}</div>}
-      {abilitiesSection && <div className="su-entity-page__wide">{abilitiesSection}</div>}
-      {!abilitiesSection && otherActions.length > 0 && (
+      {otherActions.length > 0 && (
         <section className="su-entity-page__section">
           <Slab as={sectionAs} variant="solid" label="Actions" />
           {otherActions.map((data, index) =>

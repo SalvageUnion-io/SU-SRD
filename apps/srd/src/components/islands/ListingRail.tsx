@@ -14,9 +14,16 @@ export function shortSource(source: string): string {
   return source.replace(/^Salvage Union /, '')
 }
 
+/**
+ * The toolbar's cut-off: a listing shows its filter toolbar — the name filter
+ * and its facets (tech level, sources, trees) — only when it lists more than
+ * this many entries; a shorter one reads at a glance.
+ */
+export const TOOLBAR_MIN_ENTRIES = 12
+
 /** What the rail offers, from build-time data: it decides which controls it has. */
 type RailFacets = {
-  /** The listing's size: the name filter shows above 12. */
+  /** The listing's size: the toolbar shows above `TOOLBAR_MIN_ENTRIES`. */
   count: number
   /** In the book's order (`orderTechLevels`). */
   techLevels: TechLevel[]
@@ -102,12 +109,14 @@ export function ListingRail({
   status,
 }: ListingRailProps) {
   const on = actions ?? IDLE
-  const hasTechLevels = techLevels.length > 1
-  const hasSources = sources.length > 1
-  const hasTrees = trees.length > 1
+  // One count rule: the toolbar (the name filter and every facet the listing
+  // has) shows only above TOOLBAR_MIN_ENTRIES, and then all of it.
+  const hasToolbar = count > TOOLBAR_MIN_ENTRIES
+  const hasTechLevels = hasToolbar && techLevels.length > 1
+  const hasSources = hasToolbar && sources.length > 1
+  const hasTrees = hasToolbar && trees.length > 1
   const hasFacets = hasTechLevels || hasSources || hasTrees
-  // Show the name input whenever the dataset is large enough to benefit from it
-  const hasNameFilter = count > 12
+  const hasNameFilter = hasToolbar
   const activeFacets = filters.techLevels.size + (filters.source ? 1 : 0) + (filters.tree ? 1 : 0)
 
   return (

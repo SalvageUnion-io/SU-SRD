@@ -1,118 +1,95 @@
 /**
  * CrewSeats — "Crew & seats" on a Game's own page (board M2;
- * docs/architecture/mediator-dashboard.md Q11): the crawler as a compact card,
- * then one row per member's pilot, then the open seats.
- *
- * A row is the member's role (MEDIATOR or PLAYER), who they are, and what
- * they **have**: "callsign · assigned mech", or "callsign · on foot". (The
- * Mediator Dashboard shows where they **are**.) A Mediator with no pilot reads
- * "Runs the table". An open seat is an unclaimed pilot: "OPEN · callsign ·
- * waiting for a player". "N of M seats" counts claimed pilots out of all of
- * them; the schema has no seat capacity, so none is invented.
+ * docs/architecture/mediator-dashboard.md Q11): the crawler as a Row, then
+ * one entry per member's pilot, then the open seats, drawn as every crew list
+ * draws them: the pilot's Row, its seat's role (MEDIATOR, PLAYER or OPEN) and
+ * who holds it right of the name, and a foot with what they **have** — their
+ * assigned mech as a Token, or "On foot". (The Mediator Dashboard shows where
+ * they **are**.) A Mediator with no pilot reads "Runs the table". An open
+ * seat is an unclaimed pilot, "Waiting for a player". The `SEATS | n/m` chip counts
+ * claimed pilots out of all of them; the schema has no seat capacity, so none
+ * is invented.
  *
  * There is no Here / Away column: nothing writes presence (see
  * `convex/mediator.ts`), and a permanently false "Here" is worse than none.
  */
 
-import { Card, Stat, tokens } from 'component-lib'
+import { Badge, Entity } from 'component-lib'
+import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerReading } from '../mediator/crawlerReading.model'
+import { crawlerVitals } from '../mediator/crawlerReading.model'
+import { UnitRow } from '../shared/UnitRow'
 import { HubSection } from './HubSection'
 import type { SeatRow } from './seatRows.model'
-
-const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 
 const LIST: CSSProperties = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
-  background: color.paper,
-  border: `${borderWidth.chrome} solid ${color.ink}`,
-  borderRadius: radius.card,
-}
-
-const ROW: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '6rem minmax(0, 1fr) minmax(0, 1.3fr)',
-  alignItems: 'center',
+  display: 'flex',
+  flexDirection: 'column',
   gap: space[12],
-  minHeight: '48px',
-  padding: `${space[8]} ${space[12]}`,
-  borderTop: `${borderWidth.hairline} solid ${color.ink15}`,
 }
 
-const FIRST_ROW: CSSProperties = { ...ROW, borderTop: `${borderWidth.hairline} solid transparent` }
+const ENTRY: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[4] }
 
-const ROLE: CSSProperties = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.caps,
-  textTransform: 'uppercase',
-  color: color.ink75,
-}
-
-const WHO: CSSProperties = {
-  minWidth: 0,
-  overflowWrap: 'anywhere',
-  fontFamily: font.body,
-  fontSize: fontSize.lede,
-  fontWeight: weight.medium,
-  color: color.ink,
-}
-
-const UNIT: CSSProperties = {
-  minWidth: 0,
-  overflowWrap: 'anywhere',
-  fontFamily: font.body,
-  fontSize: fontSize.sm,
-  color: color.ink,
-}
-
-const CRAWLER_HEAD: CSSProperties = {
+const FOOT: CSSProperties = {
+  alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: space[8],
-  width: '100%',
+  gap: `${space[4]} ${space[8]}`,
+  paddingInline: space[2],
 }
 
-const CRAWLER_NAME: CSSProperties = {
-  fontFamily: font.cond,
-  fontWeight: weight.extrabold,
-  fontSize: fontSize.title,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
-  color: color.paper,
+const TEXT: CSSProperties = {
+  color: color.ink,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  overflowWrap: 'anywhere',
 }
 
-const STATS: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: space[6] }
+/** A member with no pilot: no entity to draw, so a plain line. */
+const PLAIN: CSSProperties = { ...FOOT, minHeight: '2.75rem', paddingInline: 0 }
 
-function CrawlerCard({ crawler }: { crawler: CrawlerReading }) {
+function stamp(text: string) {
   return (
-    <Card
-      size="medium"
-      extent="head"
-      // The name sits on the band, so the band is the crawler band pink carries paper on (§3.8).
-      headerBgColor={color.crawlerBand}
-      headerContent={
-        <div style={CRAWLER_HEAD}>
-          <span style={CRAWLER_NAME}>{crawler.name}</span>
-          <span style={STATS}>
-            {crawler.techLevel !== null && (
-              <Stat label="TL" value={crawler.techLevel} orientation="horizontal" size="mini" />
-            )}
-            <Stat
-              label="SP"
-              value={`${crawler.sp}/${crawler.maxSP}`}
-              orientation="horizontal"
-              size="mini"
-            />
-          </span>
-        </div>
-      }
-    />
+    <Badge shape="stamp" size="mini" surface="on-ink">
+      {text}
+    </Badge>
+  )
+}
+
+function Seat({ row }: { row: SeatRow }) {
+  if (row.pilot === null) {
+    return (
+      <div style={PLAIN}>
+        {stamp(row.role)}
+        <span style={TEXT}>{row.who}</span>
+        <span style={TEXT}>{row.unit}</span>
+      </div>
+    )
+  }
+  return (
+    <div style={ENTRY}>
+      <UnitRow
+        kind="pilot"
+        name={row.pilot.name}
+        note={row.role}
+        labels={row.role === 'Open' ? undefined : stamp(row.who)}
+      />
+      <div style={FOOT}>
+        {row.pilot.mech === null ? (
+          <span style={TEXT}>{row.role === 'Open' ? 'Waiting for a player' : 'On foot'}</span>
+        ) : (
+          <Entity form="token" model={unitRowModel({ kind: 'mech', name: row.pilot.mech })} />
+        )}
+        {row.role === 'Open' && row.pilot.mech !== null && (
+          <span style={TEXT}>Waiting for a player</span>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -131,17 +108,15 @@ export function CrewSeats({
     <HubSection
       id="crew-seats-heading"
       title="Crew & seats"
-      aside={`${claimed} of ${total} ${total === 1 ? 'seat' : 'seats'}`}
+      aside={{ label: 'Seats', value: claimed, max: total }}
     >
-      {crawler !== null && <CrawlerCard crawler={crawler} />}
+      {crawler !== null && (
+        <UnitRow kind="crawler" name={crawler.name} readings={crawlerVitals(crawler)} />
+      )}
       <ul style={LIST} aria-label="Seats">
-        {rows.map((row, i) => (
-          <li key={row.key} style={i === 0 ? FIRST_ROW : ROW}>
-            <span style={ROLE}>{row.role}</span>
-            <span style={WHO}>{row.role === 'Open' ? '—' : row.who}</span>
-            <span style={UNIT}>
-              {row.role === 'Open' ? `${row.who} · ${row.unit.toLowerCase()}` : row.unit}
-            </span>
+        {rows.map((row) => (
+          <li key={row.key}>
+            <Seat row={row} />
           </li>
         ))}
       </ul>

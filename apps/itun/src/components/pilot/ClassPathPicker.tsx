@@ -9,7 +9,7 @@
  * question.
  */
 
-import { Callout, KvRow, RadioCardGroup, ReferenceEntityCard, Slab, tokens } from 'component-lib'
+import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
@@ -31,8 +31,22 @@ const OPTION_NOTE: CSSProperties = {
   color: tokens.color.wkMuted,
 }
 
-/** The gain / lose / keep rows. */
-const LEDGER: CSSProperties = { display: 'flex', flexDirection: 'column', gap: tokens.space[8] }
+/** The gain / lose / keep lists. */
+const LEDGER = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+/** Each list's Slab, close over its lines. */
+const LEDGER_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
+
+/** A line that names no entity (a tree, what it costs), in the body face. */
+const LEDGER_LINE = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
 
 /** List and consequences; the column split is `.wiz-class-path`. */
 const PICKER: CSSProperties = { display: 'grid', gap: tokens.space[16] }
@@ -98,12 +112,50 @@ function OptionCard({
   )
 }
 
-function Ledger({ consequence }: { consequence: ClassPathConsequence }) {
+/**
+ * One of the ledger's lists under its Slab, a line each: a class it names is
+ * its Token (it Peeks the class); a tree or a cost is a line of text, since a
+ * tree is no entity of its own.
+ */
+function LedgerList({
+  label,
+  items,
+  allClasses,
+}: {
+  label: string
+  items: readonly string[]
+  allClasses: readonly SURefClass[]
+}) {
+  if (items.length === 0) return null
+  return (
+    <section aria-label={label}>
+      <Slab label={label} style={LEDGER_SLAB} />
+      <ul className="su-entity-token-list">
+        {items.map((item) => {
+          const cls = allClasses.find((c) => c.name === item)
+          return (
+            <li key={item}>
+              {cls ? <Entity form="token" entity={cls} /> : <span style={LEDGER_LINE}>{item}</span>}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+function Ledger({
+  consequence,
+  allClasses,
+}: {
+  consequence: ClassPathConsequence
+  allClasses: readonly SURefClass[]
+}) {
   return (
     <div style={LEDGER}>
-      {consequence.gain.length > 0 && <KvRow label="Gain" value={consequence.gain.join(' · ')} />}
-      {consequence.lose.length > 0 && <KvRow label="Lose" value={consequence.lose.join(' · ')} />}
-      {consequence.keep.length > 0 && <KvRow label="Keep" value={consequence.keep.join(' · ')} />}
+      <LedgerList label="Gain" items={consequence.gain} allClasses={allClasses} />
+      <LedgerList label="Lose" items={consequence.lose} allClasses={allClasses} />
+      <LedgerList label="Keep" items={consequence.keep} allClasses={allClasses} />
     </div>
   )
 }
@@ -151,7 +203,7 @@ export function ClassPathPicker({
         {consequence === undefined ? null : (
           <>
             <Slab label={consequence.title} variant="solid" />
-            <Ledger consequence={consequence} />
+            <Ledger consequence={consequence} allClasses={allClasses} />
 
             {consequence.needsOrigin && (
               <Callout tone="ink" label="Where did they come from?">

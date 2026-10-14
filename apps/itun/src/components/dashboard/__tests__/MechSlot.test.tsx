@@ -236,7 +236,7 @@ describe('the other Reactor and Chassis verbs', () => {
     await renderMajor(laden, store)
     await click(button('Storage'))
     const hold = overlay('Cargo Hold')
-    expect(hold.getByText('Hold 3/16')).toBeTruthy()
+    expect(document.querySelector('.su-dash-cargo-usage')?.textContent).toBe('Units3/16')
     await click(hold.getByRole('button', { name: 'Jettison T1 Scrap' }))
     expect(updates).toHaveLength(1)
     expect(updates[0]?.patch.cargoLots?.map((l) => l.id)).toEqual(['lot-b'])

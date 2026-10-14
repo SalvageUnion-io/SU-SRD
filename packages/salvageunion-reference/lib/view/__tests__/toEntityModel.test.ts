@@ -156,12 +156,23 @@ describe('entityTone', () => {
   const base = { id: 'test', name: 'Test', source: 'Salvage Union Workshop Manual', page: 1 }
   const as = (record: object) => record as unknown as SURefMetaEntity
 
-  test('a glossary record without an authored tone is ink-2', () => {
-    expect(entityTone('guides', as({ ...base, blackMarket: false }))).toBe('ink-2')
+  test('a rules entry wears rules blue', () => {
+    for (const schema of [
+      'guides',
+      'keywords',
+      'traits',
+      'distances',
+      'sources',
+      'roll-tables',
+    ] as const) {
+      expect(entityTone(schema, as({ ...base, blackMarket: false }))).toBe('wk-line')
+    }
   })
 
-  test('a guide wears its authored tone', () => {
-    expect(entityTone('guides', as({ ...base, guideTone: 'salvage' }))).toBe('guide-salvage')
+  test('a guide wears rules blue whatever its type', () => {
+    for (const guideType of ['character-creation', 'downtime', 'gameplay']) {
+      expect(entityTone('guides', as({ ...base, guideType }))).toBe('wk-line')
+    }
   })
 
   test('black-market goods with no tech level are ink-2', () => {
@@ -220,5 +231,57 @@ describe('headerFill (E12)', () => {
   test('an action is ink everywhere', () => {
     const action = need(SalvageUnionReference.Actions.all()[0], 'an action')
     expect(headerFill(action, 'row')).toBe('ink')
+  })
+})
+
+describe('a vehicle’s systems', () => {
+  const vehicle = (name: string) =>
+    need(SalvageUnionReference.getByNameIn('vehicles', name), name) as SURefMetaEntity
+
+  test('an action name that is a systems entry is a Systems child, the drone way', () => {
+    const model = toEntityModel(vehicle('Fighting Box Wheel'))
+    expect(model.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Locomotion System', '.50 Cal Machine Gun']],
+    ])
+    expect(model.actions).toEqual([])
+  })
+
+  test("a name with no systems entry is a Systems child too: the vehicle's own action", () => {
+    const model = toEntityModel(vehicle('Power Loader'))
+    // The book's "Locomotion System / Rigging Arm x 2", in its order and count;
+    // "Rigging Arm (Vehicle)" is the vehicle's own action, printed "Rigging Arm".
+    expect(model.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Locomotion System', 'Rigging Arm', 'Rigging Arm']],
+    ])
+    expect(model.children[0]?.items.map((i) => i.schemaName)).toEqual([
+      'systems',
+      'actions',
+      'actions',
+    ])
+    // No ACTIONS slab: every item is a card.
+    expect(model.actions).toEqual([])
+  })
+
+  test('a vehicle with only its own actions draws them all as Systems children', () => {
+    const boat = toEntityModel(vehicle('E-Boat'))
+    expect(boat.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Integrated Amphibious Locomotion System']],
+    ])
+    expect(boat.actions).toEqual([])
+    const trackbox = toEntityModel(vehicle('Tombstone Trackbox'))
+    expect(trackbox.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Locomotion System', 'Shanty Home']],
+    ])
+    expect(trackbox.actions).toEqual([])
+  })
+
+  test('every vehicle draws every item it lists as a card, with no ACTIONS left', () => {
+    for (const v of SalvageUnionReference.Vehicles.all()) {
+      const model = toEntityModel(v as SURefMetaEntity)
+      const listed = 'actions' in v && Array.isArray(v.actions) ? v.actions.length : 0
+      const items = model.children.find((g) => g.label === 'Systems')?.items ?? []
+      expect([v.name, items.length]).toEqual([v.name, listed])
+      expect([v.name, model.actions.length]).toEqual([v.name, 0])
+    }
   })
 })

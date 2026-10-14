@@ -287,9 +287,7 @@ export const BANNED: readonly Banned[] = [
   {
     pattern: /(?<![\w-])Heat Cap(?!acity)(?![\w-])/gi,
     say: 'Heat Capacity',
-    why: 'the book writes "Heat Capacity" in prose (Core Book p.97, p.234)',
-    // The book's own Mech sheet labels its box "Heat Cap" (Core Book p.98).
-    allowWhole: /^Heat Cap\.?$/i,
+    why: 'the book writes "Heat Capacity" in prose (Core Book p.97, p.234), and every long label spells it out',
   },
   {
     // "scrapped" and "scrapping" are only ever the verb; "Scrap" is the verb

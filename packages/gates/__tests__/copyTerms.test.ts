@@ -137,7 +137,7 @@ describe('lintCopy', () => {
     ])
   })
 
-  test('bans TL and Heat Cap in prose, but not the bare sheet label', () => {
+  test('bans TL in prose and Heat Cap anywhere, a bare label included', () => {
     const r = lintCopy(
       [...at('Not enough TL 3 scrap'), ...at('exceeds its Heat Cap'), ...at('Heat Cap')],
       [],
@@ -145,6 +145,7 @@ describe('lintCopy', () => {
     )
     expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
       '"TL 3"',
+      '"Heat Cap"',
       '"Heat Cap"',
     ])
     expect(lintCopy(at('Tech 3 and Heat Capacity'), [], BANNED)['banned-variant']).toEqual([])

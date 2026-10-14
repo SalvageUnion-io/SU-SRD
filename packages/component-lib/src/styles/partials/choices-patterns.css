@@ -135,38 +135,3 @@
     min-height: 44px;
   }
 }
-
-/* `pattern/*` — a pattern's equipment groups, side by side from `lg`. */
-.su-pattern-equipment {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-@media (min-width: 64rem) {
-  .su-pattern-equipment {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* `pattern/*` — the `space-y-*` stacks (`stackClassName` in
-   `referenceEntityTypes.ts`): a child-selector rule.
-   `:where()` keeps it at zero specificity, so a child's
-   own margin class still wins over the stack's. */
-:where(.su-pattern-stack > :not(:last-child)) {
-  margin-block-start: 0;
-}
-
-:where(.su-pattern-stack--6 > :not(:last-child)) {
-  margin-block-end: var(--space-6);
-}
-
-:where(.su-pattern-stack--8 > :not(:last-child)) {
-  margin-block-end: var(--space-8);
-}
-
-:where(.su-pattern-stack--12 > :not(:last-child)) {
-  margin-block-end: var(--space-12);
-}
-
-:where(.su-pattern-stack--16 > :not(:last-child)) {
-  margin-block-end: var(--space-16);
-}

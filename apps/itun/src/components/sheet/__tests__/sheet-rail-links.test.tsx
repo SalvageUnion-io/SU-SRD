@@ -82,7 +82,7 @@ const mechToCrawler = softLinkFixture('mech-to-crawler', 'mech-1', 'crawler-1')
 // ---------------------------------------------------------------------------
 
 /**
- * The linked-unit slots render the roster's `EntityRow`, whose View link is
+ * The linked-unit slots render the library Row (`UnitRow`), whose View link is
  * labelled "View" on every row — so a link is targeted by its DESTINATION here
  * rather than by an accessible name that no longer distinguishes rows. That is
  * what these tests were ever asserting: that the cross-link points at the right
@@ -182,7 +182,7 @@ describe('Sheet — entity not found', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3. Unassigning (EntityRow's Unassign — never its Delete)
+// 3. Unassigning (UnitRow's Unassign — never a Delete)
 // ---------------------------------------------------------------------------
 
 /**

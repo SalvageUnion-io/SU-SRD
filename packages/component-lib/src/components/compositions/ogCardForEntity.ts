@@ -1,4 +1,5 @@
 import type {
+  EntityModel,
   SURefEnumSchemaName,
   SURefMetaAction,
   SURefMetaEntity,
@@ -9,35 +10,31 @@ import {
   extractVisibleActions,
   firstParagraphText,
   foldedActionOf,
-  formatCost,
   getReferenceEntityName,
-  getTechLevel,
   isAbility,
-  resolveActivationCurrency,
+  toEntityModel,
   visiblePatterns,
 } from 'salvageunion-reference'
-import {
-  isDoEntity,
-  resolveDomainTone,
-  resolveSeamLabel,
-  resolveTierNumeral,
-} from '../referenceEntity/card/entityCardTone'
+import { actionTypeStamps } from '../../entity/parts/actionStamps'
+import { isDoEntity, resolveDomainTone } from '../referenceEntity/card/entityCardTone'
 import { formatProvenance, resolveFooterProvenance } from '../referenceEntity/card/provenance'
-import { buildReferenceEntityStats } from '../referenceEntity/referenceEntityStatsConfig'
 import type { OgCardProps, OgCardStat } from './ogCardText'
 
 /**
  * A reference entity's link preview: the `thing` or `do` card
  * the SRD renders at build, one PNG per entity.
  *
- * Every field comes from the helper the entity card itself uses, so the
- * preview says what the page says: the tone (`resolveDomainTone`), have vs do
- * by data shape (`isDoEntity`), the card's type stamp, the header's short stat
- * cells, the tier numeral, the cost pennant and the footer's provenance.
+ * Its chips are the entity model's (`toEntityModel`), the facts the Page and
+ * every other form read, in E17's order: the action type as printed ("Turn
+ * Action"), the facts (`TL | 1` first, `MODS | 2`, `RNG | Close`), the traits,
+ * then the cost's pointy box. The tone (`resolveDomainTone`), have vs do by
+ * data shape (`isDoEntity`), the tier numeral and the footer's provenance come
+ * from the helpers the entity card uses, so the preview says what the page
+ * says. The kind is the model's, printed on the foot line (EDL E9).
  *
  * A chassis PATTERN is its own thing with its own page, so it takes its own
- * card: "Pattern · [chassis]" over the pattern's quoted name, the chassis's
- * stats and tone, and the pattern's own provenance.
+ * card: the pattern's name, the chassis's chips and tone, "Pattern · [chassis]"
+ * on its foot, and the pattern's own provenance.
  */
 export function ogCardForEntity(options: {
   schemaName: SURefEnumSchemaName
@@ -50,48 +47,50 @@ export function ogCardForEntity(options: {
   const name = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
   const provenance = resolveFooterProvenance(entity, pattern)
   const cite = formatProvenance(provenance.source, provenance.booklet, provenance.page)
+  const model = toEntityModel(entity, undefined, pattern ? { pattern } : undefined)
+  const stats = chipsOf(model)
 
   if (!pattern && isDoEntity(entity)) {
-    const action = selfAction(entity, name)
-    const cost =
-      action?.activationCost != null
-        ? formatCost(action.activationCost, resolveActivationCurrency(action.actionSource))
-        : undefined
-    const tree = isAbility(entity) && entity.tree ? String(entity.tree) : undefined
-    const kicker = [
-      isAbility(entity) ? 'Ability' : resolveSeamLabel(schemaName, entity),
-      tree,
-      action?.actionType,
-      action?.range?.join(', '),
-    ]
     return {
       kind: 'do',
       ...(isAbility(entity) ? { tone: toneOf(schemaName, entity) } : {}),
-      kicker: joinKicker(kicker),
+      kicker: model.kind.stamp,
       title: name,
-      tier: resolveTierNumeral(entity),
-      cost,
-      rules: rulesText(entity, action),
+      ...(model.tier ? { tier: model.tier } : {}),
+      stats,
+      ...(model.cost ? { cost: model.cost } : {}),
+      rules: rulesText(entity, selfAction(entity, name)),
       cite,
       address,
     }
   }
 
-  const techLevel = getTechLevel(entity)
   const patterns = schemaName === 'chassis' && !pattern ? patternCount(entity) : 0
   return {
     kind: 'thing',
-    kicker: joinKicker(
-      pattern
-        ? ['Pattern', name]
-        : [resolveSeamLabel(schemaName, entity), techLevelLabel(techLevel)]
-    ),
+    kicker: pattern ? `Pattern · ${name}` : model.kind.stamp,
     title: pattern ? pattern.name : name,
     tone: toneOf(schemaName, entity),
-    stats: statsOf(schemaName, entity, techLevel),
-    cite: joinKicker([cite, patterns > 0 ? `${patterns} patterns` : undefined]) || undefined,
+    stats,
+    ...(model.cost ? { cost: model.cost } : {}),
+    cite: joinLine([cite, patterns > 0 ? `${patterns} patterns` : undefined]) || undefined,
     address,
   }
+}
+
+/**
+ * The model's chips in E17's order, label first: the action type as printed,
+ * the facts by their short labels, the traits. The cost is the card's own.
+ */
+function chipsOf(model: EntityModel): OgCardStat[] {
+  return [
+    ...actionTypeStamps(model.actionType, model.mechActionType).map((label) => ({ label })),
+    ...model.facts.map((fact) => ({ label: fact.short, value: fact.value })),
+    ...model.traits.map((trait) => ({
+      label: trait.name,
+      ...(trait.param?.trim() ? { value: trait.param } : {}),
+    })),
+  ]
 }
 
 type ActionShape = Pick<
@@ -117,13 +116,6 @@ function rulesText(entity: SURefMetaEntity, action: ActionShape | undefined): st
   return typeof description === 'string' && description.length > 0 ? description : undefined
 }
 
-function techLevelLabel(techLevel: number | 'B' | 'N' | undefined): string | undefined {
-  if (techLevel === undefined) return undefined
-  if (techLevel === 'B') return 'Bio'
-  if (techLevel === 'N') return 'Nanite'
-  return `Tech Level ${techLevel}`
-}
-
 function patternCount(entity: SURefMetaEntity): number {
   const patterns = (entity as { patterns?: SURefObjectAnyPattern[] }).patterns ?? []
   return visiblePatterns(patterns).length
@@ -135,40 +127,6 @@ function toneOf(schemaName: SURefEnumSchemaName, entity: SURefMetaEntity): strin
   return bgColor ?? bg ?? 'var(--color-ink-2)'
 }
 
-/** The header's short stat cells, the tech level carried by the kicker instead. */
-function statsOf(
-  schemaName: SURefEnumSchemaName,
-  entity: SURefMetaEntity,
-  techLevel: number | 'B' | 'N' | undefined
-): OgCardStat[] {
-  const stats = buildReferenceEntityStats(entity, { compact: true, schemaName, techLevel }).flatMap(
-    (stat) =>
-      stat.value === undefined
-        ? []
-        : [
-            {
-              label: stat.label,
-              value:
-                stat.outOfMax !== undefined ? `${stat.value}/${stat.outOfMax}` : String(stat.value),
-            },
-          ]
-  )
-  return chassisRow(stats)
-}
-
-/**
- * The card draws six boxes. A chassis has seven stats and the origin's row is
- * SP / EP / HEAT / SYS / MOD / CARGO: Heat sits after EP in place of the
- * salvage value, and the module box reads "MOD".
- */
-function chassisRow(stats: OgCardStat[]): OgCardStat[] {
-  const heat = stats.find((stat) => stat.label === 'Heat')
-  if (!heat) return stats
-  const rest = stats.filter((stat) => stat !== heat && stat.label !== 'SV')
-  rest.splice(rest.findIndex((stat) => stat.label === 'EP') + 1, 0, heat)
-  return rest.map((stat) => (stat.label === 'MODS' ? { ...stat, label: 'MOD' } : stat))
-}
-
-function joinKicker(parts: (string | undefined)[]): string {
+function joinLine(parts: (string | undefined)[]): string {
   return parts.filter((part): part is string => !!part && part.length > 0).join(' · ')
 }

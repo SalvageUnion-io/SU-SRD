@@ -6,11 +6,13 @@
  * offset derives from the stamp's **own height** (`translate: 0 -50%`), never a
  * fixed margin, so it never drifts as the text grows.
  *
- * The `.su-stamp-seam` rule in `styles/index.css`; a class-string export, so
- * stylesheet-only, and the class name is public API.
+ * The `.su-stamp-seam` rule lives in `styles/partials/atoms.css`. The class
+ * string is library-internal (Field, Badge); it is not exported from the
+ * package.
  *
- * Usage: give the container `relative`, then place the stamp with
- * `className={cn(STAMP_SEAM, 'left-3')}` (the horizontal inset is the caller's).
+ * Usage: give the container `position: relative`, then place the stamp with
+ * `className={STAMP_SEAM}` and the horizontal inset as a style object
+ * (`style={{ left: space[8] }}`, as Field's `LABEL_SEAT` does).
  *
  * Rides: bordered value wells, card callouts, tooltip titles, and (to save
  * space) a Badge / horizontal-stat edge label. Does NOT ride the Slab leader or

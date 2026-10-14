@@ -167,12 +167,12 @@ describe('MechSheet — the Chassis stats', () => {
     // The machine's figures, in the sheet's order: capacities, not what is in
     // use (the Systems and Modules counts and The Hold say that).
     const pairs = [
-      'Structure Pts. 17',
-      'Energy Pts. 11',
-      'Heat Cap. 3',
+      'Structure Points 17',
+      'Energy Points 11',
+      'Heat Capacity 3',
       'System Slots 7',
       'Module Slots 4',
-      'Cargo Cap. 6',
+      'Cargo Capacity 6',
       'Tech Level 1',
       'Salvage Value 10',
     ]

@@ -3,14 +3,12 @@ import { useMemo, useState } from 'react'
 import type { SURefEntity, SURefMetaEntity, SURefObjectChoice } from 'salvageunion-reference'
 import { firstParagraphText } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
-import { color, font, fontSize, space, tracking } from '../../../design/tokens'
+import { color, font, fontSize, space } from '../../../design/tokens'
 import { Button } from '../../atoms/Button'
+import { Slab } from '../../atoms/Slab'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityTokenList } from './EntityTokenList'
-
-/** `ink/70` — no ink-opacity rung sits at 70%. */
-const ink70 = `color-mix(in oklab, ${color.ink} 70%, transparent)`
 
 const stackStyle = {
   display: 'flex',
@@ -18,21 +16,20 @@ const stackStyle = {
   gap: space[6],
 } satisfies CSSProperties
 
-/** `text-xs` with its paired line height. */
-const textXs = { fontSize: fontSize.xs, lineHeight: '1rem' } satisfies CSSProperties
-
-const promptStyle = { fontFamily: font.body, ...textXs, color: ink70 } satisfies CSSProperties
-
-const summaryStyle = {
-  cursor: 'pointer',
-  // A 12px line padded to 24px tall: the AA target size (WCAG 2.5.8).
-  paddingBlock: space[6],
-  fontFamily: font.cond,
-  textTransform: 'uppercase',
-  lineHeight: 1,
-  letterSpacing: tracking.capsTight,
-  color: ink70,
+/** The prompt: a caption (13px body face, `wkMuted`, sentence case), the
+ *  rung the type ladder names for hints. */
+const promptStyle = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+  lineHeight: 1.4,
+  margin: 0,
 } satisfies CSSProperties
+
+/** The listing's slab sits tight on what it heads. */
+const SLAB = { marginBottom: space[6] } satisfies CSSProperties
+
+const LIST = { marginTop: space[8] } satisfies CSSProperties
 
 const chooseButtonStyle = {
   width: 'fit-content',
@@ -46,14 +43,17 @@ const chooseButtonStyle = {
  * - **Editable** launches the shared `CatalogChoiceModal` (search + facets +
  *   rail) via a "Choose…" button, and shows the current pick as a real listing
  *   card. Single-select — the modal owns the pool (filtered to the catalog).
- * - **Read-only** is a static reference: an expandable listing of the qualifying
- *   entities, each a Token (`EntityTokenList`).
+ * - **Read-only** is a static reference: a Slab naming the choice, then a
+ *   "Show options" button (as a card's "Show N actions") that lists the
+ *   qualifying entities, each a Token (`EntityTokenList`). No disclosure
+ *   triangle: a chevron belongs only to Tokens, rows, the roll-table toggle
+ *   and ITUN's folds.
  *
- * The collection is resolved LAZILY — only when the picker/listing is opened —
- * so the default render touches no cross-schema collection (the target schema,
- * e.g. `systems`/`chassis`, need not be preloaded to show a bay/system).
- * Resolution is guarded: an unloaded target schema resolves to empty, never a
- * throw.
+ * The collection is resolved LAZILY — only when the picker or the listing is
+ * opened — so the default render touches no cross-schema collection (the
+ * target schema, e.g. `systems`/`chassis`, need not be preloaded to show a
+ * bay/system). Resolution is guarded: an unloaded target schema resolves to
+ * empty, never a throw.
  *
  * Rendering the editable pick goes through the `renderEntity` callback the
  * (recursive) card supplies — this file never imports the card back.
@@ -119,7 +119,8 @@ export function CatalogChoiceListing({
     )
   }
 
-  // READ-ONLY — a static reference listing, resolved lazily on expand.
+  // READ-ONLY — a static reference listing under its slab, resolved lazily
+  // when the reader asks for it.
   let entities: SURefMetaEntity[] = []
   if (open) {
     try {
@@ -131,20 +132,23 @@ export function CatalogChoiceListing({
       entities = []
     }
   }
-  const summary = chosen ? `${choice.name}: ${chosen}` : choice.name
+  const label = chosen ? `${choice.name}: ${chosen}` : choice.name
   return (
     <div style={stackStyle}>
       {prompt && <p style={promptStyle}>{prompt}</p>}
-      <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} style={textXs}>
-        <summary style={summaryStyle}>{summary}</summary>
+      <div>
+        <Slab variant="solid" label={label} style={SLAB} />
+        <Button size="compact" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          {open ? 'Hide options' : 'Show options'}
+        </Button>
         {open && (
           // The whole qualifying collection is a big grouping: Tokens
           // (owner's call, 2026-10-14).
-          <div style={{ marginTop: space[8] }}>
+          <div style={LIST}>
             <EntityTokenList entities={entities} label={choice.name} />
           </div>
         )}
-      </details>
+      </div>
     </div>
   )
 }

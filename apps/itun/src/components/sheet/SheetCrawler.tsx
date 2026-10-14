@@ -28,8 +28,8 @@ import {
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { AppLink } from '../shared/AppLink'
-import { EntityRow } from '../shared/EntityRow'
+import { EmptyUnitSlot } from '../shared/EmptyUnitSlot'
+import { UnitRow } from '../shared/UnitRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { crawlerStamp } from './bandStamps.model'
 import type { EconLozItem } from './CrawlerEcon'
@@ -128,7 +128,7 @@ export function SheetCrawler({
           {
             label: 'Upkeep',
             value: 5,
-            caption: `Scrap · Tech ${tl}+`,
+            caption: `T${tl}+ Scrap`,
             action: editable
               ? {
                   label: 'Pay',
@@ -268,20 +268,21 @@ export function SheetCrawler({
       {dockedMechs.length > 0 || withheldMechs.length > 0 ? (
         <>
           {dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
-            <EntityRow
-              key={dockedMech.id}
-              entityType="mech"
-              className="su-sheet-crawler-grow"
-              name={dockedMech.name}
-              sheetHref={hrefFor('mech', dockedMech.id)}
-              linkAs={AppLink}
-              meta="Assigned Mech"
-              metaLine={mechStatusPill(dockedMech).label}
-              stats={rowStats(
-                mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
-              )}
-              onUnassignClick={unassignFrom('mech-to-crawler', dockedMech.id)}
-            />
+            <div key={dockedMech.id} className="su-sheet-crawler-grow">
+              <UnitRow
+                kind="mech"
+                name={dockedMech.name}
+                note="Assigned Mech"
+                readings={[
+                  ...rowStats(
+                    mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
+                  ),
+                  { label: 'Condition', value: mechStatusPill(dockedMech).label },
+                ]}
+                href={hrefFor('mech', dockedMech.id)}
+                onUnassign={unassignFrom('mech-to-crawler', dockedMech.id)}
+              />
+            </div>
           ))}
           {withheldMechs.map((unit) => (
             <WithheldUnitRow key={unit.key} unit={unit} label="Assigned Mech" />
@@ -289,9 +290,8 @@ export function SheetCrawler({
           {/* The bay takes more than one, so the way to dock the next has to
               survive the first — the same trailing slot the crew list uses. */}
           {editable && (
-            <EntityRow
-              empty
-              entityType="mech"
+            <EmptyUnitSlot
+              kind="mech"
               className="su-sheet-crawler-grow"
               roleLabel="Bay"
               message="Assign another mech."
@@ -305,9 +305,8 @@ export function SheetCrawler({
           )}
         </>
       ) : (
-        <EntityRow
-          empty
-          entityType="mech"
+        <EmptyUnitSlot
+          kind="mech"
           className="su-sheet-crawler-grow"
           roleLabel="Assigned Mechs"
           /* Says how a mech actually gets here: by its own assignment to this
@@ -326,32 +325,29 @@ export function SheetCrawler({
       {composition.crawlerPilots.length > 0 || withheldPilots.length > 0 ? (
         <>
           {composition.crawlerPilots.map((crewPilot) => (
-            <EntityRow
-              key={crewPilot.id}
-              entityType="pilot"
-              className="su-sheet-crawler-grow"
-              name={crewPilot.name}
-              sheetHref={hrefFor('pilot', crewPilot.id)}
-              linkAs={AppLink}
-              meta="Pilot"
-              stats={rowStats(
-                pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
-              )}
-              onUnassignClick={unassignFrom('pilot-to-crawler', crewPilot.id)}
-            />
+            <div key={crewPilot.id} className="su-sheet-crawler-grow">
+              <UnitRow
+                kind="pilot"
+                name={crewPilot.name}
+                readings={rowStats(
+                  pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
+                )}
+                href={hrefFor('pilot', crewPilot.id)}
+                onUnassign={unassignFrom('pilot-to-crawler', crewPilot.id)}
+              />
+            </div>
           ))}
           {withheldPilots.map((unit) => (
             <WithheldUnitRow key={unit.key} unit={unit} label="Pilot" />
           ))}
           {/* A crew of one is not a full crew, so the way to add the second has
-              to survive the first. Rendered as the same `empty` EntityRow the
+              to survive the first. Rendered as the same `EmptyUnitSlot` the
               no-pilots branch uses rather than a bare button, so it inherits the
               rail's sizing instead of introducing a second layout to keep in
               step. */}
           {editable && (
-            <EntityRow
-              empty
-              entityType="pilot"
+            <EmptyUnitSlot
+              kind="pilot"
               className="su-sheet-crawler-grow"
               roleLabel="Crew"
               message="Assign another pilot."
@@ -365,9 +361,8 @@ export function SheetCrawler({
           )}
         </>
       ) : (
-        <EntityRow
-          empty
-          entityType="pilot"
+        <EmptyUnitSlot
+          kind="pilot"
           className="su-sheet-crawler-grow"
           roleLabel="Pilots"
           message="No pilots assigned to this crawler yet."
@@ -442,6 +437,7 @@ export function SheetCrawler({
           <CrawlerSheet
             crawler={crawler}
             mech={composition.mech}
+            mechHref={composition.mech ? hrefFor('mech', composition.mech.id) : undefined}
             store={store}
             readOnly={readOnly}
             economy={economy}

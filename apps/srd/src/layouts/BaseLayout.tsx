@@ -18,6 +18,7 @@ import type { DocumentMeta, PageFoot } from '../../ssg/types'
 import { TopNavigation } from '../components/TopNavigation'
 import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL, THEME_COLOR } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { Island } from '../runtime/Island'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
@@ -215,7 +216,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           <Footer
             links={SITE_LINKS}
             poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
-            foot={foot}
+            // Every page's foot sits on the one page measure; a page with no
+            // citation keeps the licence row alone.
+            foot={{ tone: 'rules', ...foot, measure: PAGE_MEASURE }}
           />
         </div>
         {/* The page's one Peek: every Mention and Tag above carries only its

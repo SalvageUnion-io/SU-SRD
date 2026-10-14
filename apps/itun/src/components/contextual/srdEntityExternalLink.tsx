@@ -4,7 +4,7 @@ import { getEntitySlug } from 'salvageunion-reference'
 import { deepLinkTo, hasSRDPage } from '../../lib/srd-deep-link'
 
 /**
- * ITUN's app-wide "View in SRD →" cross-link builder.
+ * ITUN's app-wide "View in SRD" cross-link builder.
  *
  * Supplied through component-lib's `EntityExternalLinkProvider` (wired in
  * `GameDataReady`), so every FULL — non-compact, non-listing — entity card,
@@ -24,7 +24,7 @@ export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
     <SRDLink
       href={deepLinkTo({ schemaName, slug: getEntitySlug(entity) })}
       entityName={entityName}
-      // `.srd-entity-external-link` (styles/entityRow.css): it fades on hover.
+      // `.srd-entity-external-link` (styles/unitSlot.css): it fades on hover.
       className="srd-entity-external-link"
     />
   )

@@ -60,13 +60,11 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
 
   // The mech chip is still on the pilot sheet's rail (full wired composition).
   //
-  // There is no link named "Assigned Mech: Iron Fist" — that was an older rail
-  // markup where the whole row was one anchor. `EntityRow` now renders the role
-  // as `meta` text and the navigation as a separate "View" link whose
-  // accessible name is `View <name>`. Both halves are asserted, because the
-  // point of this line is that the mech is STILL WIRED and reachable after the
-  // crawler was assigned — a name check alone would pass on a row that had lost
-  // its link.
+  // The rail's `UnitRow` renders the role as text and the navigation as a
+  // separate "View" link whose accessible name is `View <name>`. Both halves
+  // are asserted, because the point of this line is that the mech is STILL
+  // WIRED and reachable after the crawler was assigned — a name check alone
+  // would pass on a row that had lost its link.
   await expect(page.getByText('Assigned Mech')).toBeVisible()
   await expect(page.getByRole('link', { name: 'View Iron Fist' })).toBeVisible()
 })

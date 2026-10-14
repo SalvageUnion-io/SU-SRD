@@ -13,12 +13,10 @@
 import { ChapterBand } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { Island } from '../runtime/Island'
 
 const CANONICAL_URL = `${SITE_URL}/search/`
-
-/** The listing's measure — a schema listing's own. */
-const MEASURE = '87.5rem'
 
 function page(): PageResult {
   return {
@@ -30,13 +28,13 @@ function page(): PageResult {
       noindex: true,
       breadcrumbs: [CONTENTS_CRUMB, { name: 'Search', url: CANONICAL_URL }],
     },
-    foot: { tone: 'rules', measure: MEASURE },
+    foot: { tone: 'rules' },
     children: (
       <div className="srd-listing-shell">
-        <ChapterBand tone="rules" measure={MEASURE}>
+        <ChapterBand tone="rules" measure={PAGE_MEASURE}>
           Search
         </ChapterBand>
-        <div className="srd-listing-page">
+        <div className="srd-listing-page srd-page-body">
           {/* Client-only: results are inherently dynamic (query-driven), there
               is no SEO content to server-render, and the page is noindex. */}
           <Island name="SearchResultsIsland" client="only" />

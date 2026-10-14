@@ -14,6 +14,7 @@
  * pattern only its maker can see, which is the safe way round.
  */
 
+import type { SlabCount } from 'component-lib'
 import {
   Button,
   ChapterBand,
@@ -236,8 +237,16 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
     if (result.ok) onSaved(result.value, visibility)
   }
 
-  const systemsCount = `${slotsUsed(loadout.systems)} / ${chassis?.systemSlots ?? '–'} slots`
-  const modulesCount = `${slotsUsed(loadout.modules)} / ${chassis?.moduleSlots ?? '–'} slots`
+  const systemsCount: SlabCount = {
+    label: 'Slots',
+    value: slotsUsed(loadout.systems),
+    ...(chassis ? { max: chassis.systemSlots } : {}),
+  }
+  const modulesCount: SlabCount = {
+    label: 'Slots',
+    value: slotsUsed(loadout.modules),
+    ...(chassis ? { max: chassis.moduleSlots } : {}),
+  }
 
   return (
     <main style={PAGE}>
@@ -423,13 +432,13 @@ function LoadoutList({
   items,
 }: {
   label: string
-  count: string
+  count: SlabCount
   items: SURefEntity[]
 }) {
   if (items.length === 0) return null
   return (
     <>
-      <Slab variant="solid" label={`${label} · ${count}`} />
+      <Slab variant="solid" label={label} count={count} />
       <ul style={LIST} aria-label={label}>
         {items.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice

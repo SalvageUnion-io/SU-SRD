@@ -1,4 +1,4 @@
-import { Card, InlineMarkdown, PageHeading } from 'component-lib'
+import { CHAPTER_BAND_COLOR, Head, InlineMarkdown, Stat } from 'component-lib'
 import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
@@ -13,10 +13,6 @@ const LIST = {
   flexDirection: 'column',
   gap: space[16],
   listStyle: 'none',
-} satisfies CSSProperties
-
-const BODY = {
-  padding: `${space[4]} ${space[16]} ${space[12]}`,
 } satisfies CSSProperties
 
 // The bullets. Their spacing between items and their marker colour are child /
@@ -34,7 +30,7 @@ const ITEMS = {
 export type ChangelogEntry = {
   /** YYYY-MM-DD. */
   date: string
-  /** The card's seam stamp: which app's stream this is. */
+  /** Which app's stream this is: the chip right of the date. */
   area: string
   /** The day's squash titles, inline markdown (a PR link). */
   items: string[]
@@ -44,21 +40,25 @@ type ChangelogProps = {
   entries: ChangelogEntry[]
 }
 
+/** The band: the changelog's chapter, rules blue (the page's own band), ink speckled. */
+const BAND = {
+  background: CHAPTER_BAND_COLOR.rules,
+  color: 'var(--color-ink)',
+  grain: 'ink',
+  ink: false,
+  nameOnPaper: false,
+} as const
+
 /**
  * Presentational, data-source-agnostic changelog renderer for the changelog
  * both tools share (the SRD's `/changelog`).
  *
- * Each entry is a **`Card`** — the generic four-band container — not a bespoke
- * listing: the area is the card's SEAM stamp (`label`), the date is the header
- * band, and the bullets are the body. Hand-assembling that shape would let its
- * frame weight, radius, seam placement and header padding drift from every
- * other listing surface instead of inheriting the card language.
- *
- * The rungs it picks: `size="medium"` (this is a LIST of entries, so it takes
- * the listing density, not the dominant solo scale), `frame="chrome"` for the
- * 1.5px sub-panel weight the changelog has always had, and no `headerBg` — the
- * band stays on paper, so an entry reads as the quiet, chrome-level listing it
- * is rather than a toned entity card.
+ * Each entry is a framed card with the cut-out head every other card wears
+ * (the shared `Head`): a band in the page's rules blue, the date notched into
+ * its foot on a tab of the paper below (in ink), and the area ("Site", "App")
+ * as a chip right of it, as an entity's chips sit in its cut-out head (E17).
+ * The bullets are the paper body the tab opens into. The frame is
+ * `.srd-changelog__entry`.
  */
 export function Changelog({ entries }: ChangelogProps) {
   if (entries.length === 0) {
@@ -69,22 +69,22 @@ export function Changelog({ entries }: ChangelogProps) {
     <ol style={LIST}>
       {entries.map((entry) => (
         <li key={`${entry.area}-${entry.date}`}>
-          <Card
-            label={entry.area}
-            size="medium"
-            frame="chrome"
-            borderColor="var(--color-ink)"
-            bodyStyle={BODY}
-            headerContent={
-              // `h2`, not `h3`: each entry is a direct division of the
-              // changelog, which has only its own `h1` above it. `h3` skipped a
-              // level (h1 -> h3), the one heading-order violation left on the
-              // site once entity pages gained real section headings.
-              <PageHeading as="h2" className="srd-changelog__date">
-                <time dateTime={entry.date}>{entry.date}</time>
-              </PageHeading>
-            }
-          >
+          <article className="srd-changelog__entry">
+            {/* `h2`: each entry is a direct division of the changelog, under
+                its one `h1`. */}
+            <Head
+              title={entry.date}
+              titleContent={<time dateTime={entry.date}>{entry.date}</time>}
+              titleAs="h2"
+              paint={BAND}
+              chips={
+                <div className="su-chips">
+                  <Stat orientation="horizontal" label={entry.area} size="compact" />
+                </div>
+              }
+              notch
+              chipsBeside
+            />
             <ul className="srd-changelog__items" style={ITEMS}>
               {entry.items.map((item) => (
                 <li key={item}>
@@ -92,7 +92,7 @@ export function Changelog({ entries }: ChangelogProps) {
                 </li>
               ))}
             </ul>
-          </Card>
+          </article>
         </li>
       ))}
     </ol>

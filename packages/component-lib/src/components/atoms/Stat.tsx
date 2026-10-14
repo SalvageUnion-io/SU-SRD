@@ -100,8 +100,8 @@ type HorizontalValueProps = {
    * are one `label | value` cell in two materials, so the fix was this rung —
    * ruleset §3.7, every `label | value` renders through `Stat`.
    *
-   * `plain` is a text finish: `state`, `bgColor`/`textColor` and `inverse` all
-   * style the plate and are inert on it.
+   * `plain` is a text finish: `state` and `inverse` both style the plate and
+   * are inert on it.
    */
   surface?: 'plate' | 'plain'
   /** Optional max — renders the value as `value /max` (muted /max suffix on
@@ -122,11 +122,6 @@ type HorizontalValueProps = {
   inline?: boolean
   /** State overlay — drives the border colour only (see StatBorderState). */
   state?: StatBorderState
-  /** Label-plate tint (raw CSS colours) — the CHIP role only (subheader
-   * trait/datavalue cells, group labels). Tints the label cell, not a stat's
-   * value. Stat readouts stay ink-canonical and use `state` instead. */
-  bgColor?: string
-  textColor?: string
   /** Edit layer: with `mode="edit"`, render a +/- stepper column to the cell's
    * right. `min` bounds the stepper (max is the readout cap when set). */
   onChange?: (value: number) => void
@@ -185,8 +180,6 @@ function HorizontalValue({
   inverse = false,
   inline = true,
   state = 'default',
-  bgColor,
-  textColor,
   onChange,
   mode = 'read',
   min = 0,
@@ -263,7 +256,6 @@ function HorizontalValue({
           'su-stat-plate--label',
           bottomLabel !== undefined && 'su-stat-plate--stack'
         )}
-        style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
       >
         {bottomLabel !== undefined ? (
           <>

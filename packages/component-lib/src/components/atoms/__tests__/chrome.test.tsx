@@ -11,7 +11,6 @@ import { Field, Select } from '../Field'
 import { Glyph } from '../glyphs'
 import { Input, Textarea } from '../inputs'
 import { INPUT_FOCUS } from '../interaction'
-import { KvRow } from '../KvRow'
 import { ModeDoor } from '../ModeDoor'
 import { Panel } from '../Panel'
 import { Slab } from '../Slab'
@@ -64,18 +63,32 @@ describe('Field / Input', () => {
   })
 })
 
-describe('KvRow', () => {
-  test('renders the label rail and value', () => {
-    render(<KvRow label="Callsign" value="Ace" />)
-    expect(screen.getByText('Callsign')).toBeTruthy()
-    expect(screen.getByText('Ace')).toBeTruthy()
+describe('Field — typeset read state', () => {
+  test('prints the label over the value, and nothing for an empty one', () => {
+    const { container } = render(<Field label="Chassis" value="Mule" />)
+    expect(screen.getByText('Chassis')).toBeTruthy()
+    expect(screen.getByText('Mule').tagName).toBe('P')
+    cleanup()
+    const empty = render(<Field label="Chassis" value="" />)
+    expect(empty.container.firstChild).toBeNull()
+    expect(container).toBeTruthy()
   })
 
-  test('an empty value renders the muted "required" placeholder — never rust (§3.1)', () => {
-    render(<KvRow label="Motto" value={null} />)
-    const placeholder = screen.getByText('required')
-    expect(placeholder.style.color).toBe(color.ink50)
-    expect(placeholder.style.color).not.toBe(color.rust)
+  test('a read value that is a node (a Token) replaces the text; edit keeps the text', () => {
+    render(<Field label="Chassis" value="Mule" readValue={<a href="/chassis/mule/">Mule</a>} />)
+    expect(screen.getByRole('link', { name: 'Mule' })).toBeTruthy()
+    expect(screen.queryByText('Mule', { selector: 'p' })).toBeNull()
+    cleanup()
+    render(
+      <Field
+        label="Chassis"
+        value="Mule"
+        readValue={<a href="/chassis/mule/">Mule</a>}
+        onEditClick={() => undefined}
+      />
+    )
+    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Change chassis' }).textContent).toBe('Mule')
   })
 })
 
@@ -204,6 +217,28 @@ describe('Slab', () => {
     expect(screen.getByText('Choose 1').style.color).toBe(color.wkMuted)
     render(<Slab variant="solid" label="Types" count="Pick one" countInk="inherit" />)
     expect(screen.getByText('Pick one').style.color).toBe('currentcolor')
+  })
+
+  test('a value count is a label-first Stat chip, not trailing text', () => {
+    const { container } = render(
+      <Slab variant="solid" label="Systems" count={{ label: 'Slots', value: 3, max: 6 }} />
+    )
+    const chip = container.querySelector('.su-stat-cell')
+    expect(chip).not.toBeNull()
+    expect(chip?.querySelector('.su-stat-plate--label')?.textContent).toBe('Slots')
+    expect(chip?.querySelector('.su-stat-plate--value')?.textContent).toBe('3/6')
+    expect(screen.queryByText(/slots$/)).toBeNull()
+  })
+
+  test('an over-cap value count rides the critical border, its note after the chip', () => {
+    const { container } = render(
+      <Slab
+        label="Systems"
+        count={{ label: 'Slots', value: 7, max: 6, state: 'critical', note: 'as printed' }}
+      />
+    )
+    expect(container.querySelector('.su-stat-cell--critical')).not.toBeNull()
+    expect(screen.getByText('as printed').style.color).toBe(color.wkMuted)
   })
 })
 

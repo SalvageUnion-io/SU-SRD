@@ -204,13 +204,6 @@ const base = {
    *  meld, squads. NOT the action rust, despite the tone. */
   adversary: 'rgb(140, 75, 56)',
 
-  // — Guide tones that are not one of the five ontology domains. A guide's band
-  //   colour is authored per-guide; most reuse an ontology hue, and these two
-  //   cover the guides that are about none of them — the salvage/condition
-  //   procedures, and the hazard-stripe band. —
-  guideSalvage: 'rgb(90, 157, 181)',
-  guideHazard: 'rgb(184, 76, 76)',
-
   // — Class ability-tier ramp (owner's call): Advanced and Hybrid rust.
   //   Core and Legendary reuse pilot/crawler. —
   tierHybrid: 'rgb(183, 65, 14)',
@@ -303,9 +296,8 @@ const base = {
   /** Banner's caution wash — the advisory fill behind its caution border. */
   caution25: 'rgb(215 195 125 / 0.25)',
 
-  // — Cargo (storage) accent triplet —
+  // — Cargo (storage) accent pair —
   cargo: 'rgb(156, 122, 62)',
-  cargoDeep: 'rgb(111, 85, 39)',
   cargoPale: 'rgb(239, 230, 212)',
 
   // — Sheet "deep" tones that are literals rather than aliases —

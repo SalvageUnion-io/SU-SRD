@@ -9,21 +9,17 @@ import { isAbility } from '../../entityGuards'
 import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
 import { isDoEntity, isHybridTree, schemaDomain } from './kind'
 
-/** A guide's authored `guideTone` name → the token it paints. */
-const GUIDE_TONE: Record<string, string> = {
-  pilot: 'pilot',
-  mech: 'mech',
-  crawler: 'crawler',
-  salvage: 'guide-salvage',
-  hazard: 'guide-hazard',
-  ink: 'ink',
-}
+/** The rules-blue token (`--color-wk-line`): the Rules · Salvaging chapter's band. */
+const RULES_BLUE = 'wk-line'
 
-/** A guide's own authored tone token, or `undefined` for every other entity. */
+/**
+ * A guide's tone token, or `undefined` for every other entity: rules blue for
+ * every guide, as its page's band is (owner's call, 2026-10-14), so the guides
+ * index reads as one chapter. A guide is the record with a `guideType`.
+ */
 export function guideTone(entity: SURefMetaEntity): string | undefined {
-  if (entity == null || typeof entity !== 'object' || !('guideTone' in entity)) return undefined
-  const tone = entity.guideTone
-  return typeof tone === 'string' ? GUIDE_TONE[tone] : undefined
+  if (entity == null || typeof entity !== 'object' || !('guideType' in entity)) return undefined
+  return typeof entity.guideType === 'string' ? RULES_BLUE : undefined
 }
 
 /** The numeric tech-level ramp: TL1–6 own a band each. */
@@ -62,18 +58,20 @@ const SCHEMA_TONE: Partial<Record<SURefEnumSchemaName, string>> = {
   npcs: 'adversary',
   meld: 'adversary',
   squads: 'adversary',
-  keywords: 'ink-2',
-  distances: 'ink-2',
-  traits: 'ink-2',
-  guides: 'ink-2',
-  'roll-tables': 'ink-2',
-  sources: 'ink-2',
+  // Rules entries wear rules blue, as their pages' bands do.
+  keywords: RULES_BLUE,
+  distances: RULES_BLUE,
+  traits: RULES_BLUE,
+  guides: RULES_BLUE,
+  'roll-tables': RULES_BLUE,
+  sources: RULES_BLUE,
   classes: 'pilot',
 }
 
 /**
- * The tone token. An ACTION is `ink`: it has no tone of its own. A guide wears
- * its authored tone; gear rides the tech-level ramp (`tl-1`…`tl-6`, `tl-b`,
+ * The tone token. An ACTION is `ink`: it has no tone of its own. A guide and
+ * every rules entry (keyword, trait, distance, source, roll table) wear rules
+ * blue (`wk-line`); gear rides the tech-level ramp (`tl-1`…`tl-6`, `tl-b`,
  * `tl-n`) — systems and modules included, as the book heads each entry and
  * index row in its tech level's blue under the green Mech Workshop band
  * (Core Book pp. 162–164, 188–190); black-market goods are `ink-2`; abilities
@@ -84,8 +82,8 @@ export function entityTone(
   entity: SURefMetaEntity
 ): string {
   if (schemaName === 'actions') return 'ink'
-  const authored = guideTone(entity)
-  if (authored) return authored
+  const guide = guideTone(entity)
+  if (guide) return guide
   if (schemaDomain(schemaName) === 'gear') {
     const level = getTechLevel(entity)
     const tone = level === 'B' ? 'tl-b' : level === 'N' ? 'tl-n' : techLevelTone(level)

@@ -51,19 +51,18 @@ describe('have vs do', () => {
     expect(container.querySelector('[data-chip-group]')?.textContent).toMatch(/2 AP$/)
   })
 
-  test('a system is a tone header with no kind stamp: only the footer names the type', () => {
+  test('a system is a tone header with no kind stamp, nor a kind on its foot (E9: only a Page foot)', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
     expect(fills(container)[0]).toBe('tone')
-    expect(screen.getAllByText('System')).toHaveLength(1)
+    expect(screen.queryByText('System')).toBeNull()
   })
 })
 
 describe('actions nest', () => {
   test("a system's actions are self-contained framed cards, with no Action stamp", () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
-    // Each action is its own frame inset in the system's, never a flush band.
+    // Each action is its own frame inset in the system's.
     expect(container.querySelectorAll('.su-ec-frame .su-ec-frame')).toHaveLength(2)
-    expect(container.querySelector('.su-ec-inline')).toBeNull()
     // The card's own tone header, then one ink band per action.
     expect(fills(container)).toEqual(['tone', 'ink', 'ink'])
     expect(screen.queryByText('Action')).toBeNull()

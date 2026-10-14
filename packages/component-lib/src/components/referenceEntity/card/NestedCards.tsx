@@ -32,6 +32,12 @@ export type NestedCardHost = {
   isDown: Down
   /** The host IS the page: its stacks drop the frame inset (see `CardStack`). */
   onPage?: boolean
+  /**
+   * The host's prose reads at the regular size (a page, a large card, a
+   * `readable` card): its depth-1 children then read at it too, so every
+   * nested card in one host has one body size, the host's.
+   */
+  readableProse?: boolean
   /** The host's display name (lets a nested action drop its ` (Host)` suffix). */
   entityName: string
   chassisName: string | undefined
@@ -201,6 +207,7 @@ function NestedCardList({
         hostDown={host.isDown}
         data={nested}
         parentSeal={seal}
+        readable={host.readableProse}
         // On a page, a section heading of its own: no band stands above it.
         titleAs={stackedTitleLevel(host.onPage)}
         hostName={host.entityName}
@@ -217,7 +224,7 @@ function NestedCardList({
  * A DEPTH-2 child: a Row (board E2, entity display language E6), the third
  * level as a link. It opens the entity instead of expanding in place — the
  * detail page where the app links out (srd, an `EntityDetailLinkProvider` and
- * an href), else the detail modal (ITUN). A synthesised entity (no dataset
+ * an href), else the detail dialog's Page (ITUN). A synthesised entity (no dataset
  * row) and a Row inside a tooltip are read-only.
  */
 function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCardHost }) {
@@ -244,8 +251,14 @@ function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCard
     <>
       <Entity form="row" entity={data as SURefMetaEntity} instance={instance} mode={mode} />
       {mode.kind === 'link' && mode.onOpen && (
-        <EntityDetailDialog open={open} onOpenChange={setOpen} title={entityName}>
-          <NestedCard data={data} chassisName={host.chassisName} />
+        // The Page (EDL Form 5): the dialog's band and foot, the card its body.
+        <EntityDetailDialog
+          open={open}
+          onOpenChange={setOpen}
+          entity={data as SURefMetaEntity}
+          title={entityName}
+        >
+          <NestedCard data={data} chassisName={host.chassisName} presentation="page" />
         </EntityDetailDialog>
       )}
     </>
@@ -306,6 +319,7 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
       // trait and content block below.
       titleOverride={droneInfo.instanceName}
       titleAs={stackedTitleLevel(host.onPage)}
+      readable={host.readableProse}
       droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
     />
   ))
@@ -340,6 +354,7 @@ export function InlineActions({
           depth={host.depth + 1}
           hostDown={host.isDown}
           data={action}
+          readable={host.readableProse}
           hostName={host.entityName}
           chassisName={host.chassisName}
         />

@@ -41,3 +41,26 @@ export function readCrawler(row: { appId: string | null; body: unknown }): Crawl
     scrapAtTl: techLevel === null ? 0 : (pool?.[`tl${techLevel}`] ?? 0),
   }
 }
+
+/**
+ * The crawler's vitals, label first: `TL | 3`, `SP | 14/20`. The Game page's
+ * crew seats read only these: a crawler never lists its count of bays (owner's
+ * call, 2026-10-14).
+ */
+export function crawlerVitals(crawler: CrawlerReading): { label: string; value: string }[] {
+  return [
+    ...(crawler.techLevel === null ? [] : [{ label: 'TL', value: String(crawler.techLevel) }]),
+    { label: 'SP', value: `${crawler.sp}/${crawler.maxSP}` },
+  ]
+}
+
+/**
+ * The Mediator minor's readings: the vitals, then the bays still intact,
+ * `BAYS | 4/5` (a condition tracker, not a count of bays).
+ */
+export function crawlerReadings(crawler: CrawlerReading): { label: string; value: string }[] {
+  return [
+    ...crawlerVitals(crawler),
+    { label: 'Bays', value: `${crawler.baysIntact}/${crawler.bays}` },
+  ]
+}

@@ -59,7 +59,6 @@ export type EntityRowModel = Pick<
     Pick<
       EntityModel,
       | 'tier'
-      | 'tree'
       | 'techLevel'
       | 'cost'
       | 'actionType'

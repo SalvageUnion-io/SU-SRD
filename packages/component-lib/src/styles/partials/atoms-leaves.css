@@ -3,7 +3,7 @@
  * Text. `../index.css` imports the parts in cascade order.
  */
 
-/* ── Conditions, ModeDoor, Panel, Slab, PageHeading, KvRow ── */
+/* ── Conditions, ModeDoor, Panel, Slab, PageHeading ── */
 /* Conditions.tsx — the remove glyph brightens on hover. */
 .su-condition-chip__remove {
   opacity: 0.8;
@@ -42,15 +42,6 @@
   font-size: var(--text-sm);
   letter-spacing: var(--tracking-caps);
   line-height: calc(1.25 / 0.875);
-}
-
-/* KvRow.tsx — the bottom rule, cleared on the last row. */
-.su-kv-row {
-  border-bottom-width: var(--bw-hairline);
-}
-
-.su-kv-row:last-child {
-  border-width: 0;
 }
 
 /* ── ActivationCost, CatalogTile, KofiButton, SearchField, SlotGrid ── */

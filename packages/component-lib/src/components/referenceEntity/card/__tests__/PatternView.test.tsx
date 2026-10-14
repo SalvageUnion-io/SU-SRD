@@ -29,7 +29,6 @@ import {
   EntityHrefProvider,
   PatternHrefProvider,
 } from '../../entityHrefContext'
-import { useChassisPatternConfig } from '../../pattern/useChassisPatternConfig'
 import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -151,16 +150,13 @@ describe('the chassis ability shows only on a page', () => {
 
   /** The builder's pattern pick card, as `MechChassisStep` renders it. */
   function PatternPick({ showChassisAbility }: { showChassisAbility?: boolean }) {
-    const { name, systems, modules } = hauler()
-    const config = useChassisPatternConfig(mule(), { name, systems, modules }, true, {
-      showChassisAbility,
-    })
     return (
       <ReferenceEntityCard
         data={mule()}
+        pattern={hauler()}
         size="medium"
         hide={{ actions: true, choices: true }}
-        {...(config ?? {})}
+        showChassisAbility={showChassisAbility}
       />
     )
   }
@@ -170,7 +166,7 @@ describe('the chassis ability shows only on a page', () => {
     expect(abilityCount(container)).toBe(1)
   })
 
-  test('a pattern config card without the opt-in does not show it', () => {
+  test('a pattern card without the opt-in does not show it', () => {
     const { container } = render(<PatternPick />)
     expect(abilityCount(container)).toBe(0)
   })
@@ -308,7 +304,7 @@ describe('pattern loadout tokens', () => {
     expect(opened.map((ref) => ref.name)).toEqual(['.50 Cal Machine Gun'])
   })
 
-  test('each entry is one full-width Token: its name (its kind read out), then TL and Slots', () => {
+  test('each entry is one full-width Token: its name (its kind read out), then its action type, TL and Slots', () => {
     const { chassis, pattern } = thunderStorm()
     render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
     const systems = screen.getByRole('list', { name: 'Systems installed' })
@@ -323,10 +319,15 @@ describe('pattern loadout tokens', () => {
       // The kind is never stamped (E9): screen readers hear it after the name.
       expect(pill?.querySelector('.su-entity-token__kind')).toBeNull()
       expect(pill?.querySelector('.su-sr-only')?.textContent).toBe(' (System)')
-      // Its chips follow the name, inside the pill: TL first, then Slots.
-      const cells = pill?.querySelectorAll(':scope > .su-entity-token__chips > .su-stat-cell')
-      expect(cells?.[0]?.textContent).toMatch(/^TL\s*\d+$/)
-      expect(cells?.[1]?.textContent).toMatch(/^Slots\s*\d+$/)
+      // Its chips follow the name, inside the pill, in E17's order: the
+      // action type (when it has one) first, then TL, then Slots.
+      const cells = Array.from(
+        pill?.querySelectorAll(':scope > .su-entity-token__chips > .su-stat-cell') ?? []
+      ).map((cell) => cell.textContent ?? '')
+      const tl = cells.findIndex((text) => /^TL\s*\d+$/.test(text))
+      expect(tl).toBeGreaterThanOrEqual(0)
+      expect(cells[tl + 1]).toMatch(/^Slots\s*\d+$/)
+      for (const lead of cells.slice(0, tl)) expect(lead).toMatch(/Action|Reaction|Passive/)
     }
   })
 

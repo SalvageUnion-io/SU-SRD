@@ -35,11 +35,6 @@ type EntityCardHeaderProps = {
    */
   labels?: ReactNode
   size: CardSize
-  /**
-   * An INLINE action band inside its host card (board E1): flush, tighter
-   * vertical padding, the host's own gutter.
-   */
-  band?: boolean
   /** The light speckle (ruleset §3.5) — `ink` on a tone, `paper` on ink. */
   grain?: CardGrain
   /** Draw the 1.5px ink rule that closes the band, when anything follows it. */
@@ -49,13 +44,6 @@ type EntityCardHeaderProps = {
 /** The band's padding by size (board E1). */
 const PAD: Record<CardSize, string> = {
   large: `${space[12]} ${space[14]}`,
-  medium: `${space[8]} ${space[10]}`,
-  small: `${space[6]} ${space[8]}`,
-}
-
-/** An inline action band keeps its host's gutter. */
-const BAND_PAD: Record<CardSize, string> = {
-  large: `${space[8]} ${space[14]}`,
   medium: `${space[8]} ${space[10]}`,
   small: `${space[6]} ${space[8]}`,
 }
@@ -99,7 +87,6 @@ export function EntityCardHeader({
   pennant,
   labels,
   size,
-  band = false,
   grain,
   ruled = false,
 }: EntityCardHeaderProps) {
@@ -112,7 +99,7 @@ export function EntityCardHeader({
       className={cn('su-ec-band', ruled && 'su-ec-band--ruled', grainClass(grain))}
       style={{
         backgroundColor: bandColor ?? 'var(--color-paper)',
-        padding: band ? BAND_PAD[size] : PAD[size],
+        padding: PAD[size],
       }}
     >
       {numeral && (

@@ -37,10 +37,12 @@ import '../index.css'
 // the router's `defaultErrorComponent` (main.tsx). See RouteErrors.tsx.
 /**
  * The entity SURFACE every form in the app reads (entity display language §2):
- * a link-mode form navigates through the router (`AppLink`). The Page opener
- * is `EntityPageHost`'s, below (the detail dialog).
+ * a link-mode form navigates through the router (`AppLink`), and the app
+ * applies the rules the data encodes, so rules-bearing prose wears the AUTO
+ * stamp (`appliesRules`, ADR-029 §6). The Page opener is `EntityPageHost`'s,
+ * below (the detail dialog).
  */
-const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink }
+const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink, appliesRules: true }
 
 export const Route = createRootRoute({
   // The default tab title; a page with its own sets it in its route's `head`.

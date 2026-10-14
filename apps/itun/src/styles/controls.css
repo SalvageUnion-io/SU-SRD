@@ -12,7 +12,7 @@
  *     line's spacing (`FieldError` takes no style).
  *   - wiring/AssignPicker.tsx — the dialog's width cap (`ModalShell` takes a
  *     class) and the candidate list's stacking.
- *   - dashboard/RollTable.tsx — the header toggle's and title picker's hover.
+ *   - shared/CargoLotRow.tsx — a lot row's hairline, dropped on the last row.
  *
  * Every rule keeps its RESTING value beside the state or breakpoint that
  * changes it (the per-property split rule).
@@ -110,25 +110,19 @@
   max-width: 28rem;
 }
 
-/* The candidate radios, 8px apart. */
+/* The candidate Rows (select mode, one radio group), 8px apart. */
 :where(.assign-picker__candidates > :not(:last-child)) {
   margin-block-end: 8px;
   margin-block-start: 0;
 }
 
-/* dashboard/RollTable.tsx (the Dashboard's and Downtime's roll table). */
+/* ── CargoLotRow ── */
 
-/*
- * The header title as a table-picker trigger (`titleSelect`). Border colour
- * and fill both change on :hover, so both live here; the fill's resting value
- * is the transparent a button gets from the preflight reset.
- */
-.su-roll-table__title-select {
-  border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
-  background-color: transparent;
+/* A lot row's rule, dropped on the last row (a sibling selector, so a class). */
+.su-cargo-lot {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-10);
 }
 
-.su-roll-table__title-select:hover {
-  border-color: var(--color-paper);
-  background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
+.su-cargo-lot:last-child {
+  border-bottom-width: 0;
 }

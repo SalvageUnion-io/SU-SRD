@@ -12,14 +12,18 @@
  */
 
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, Button, Entity } from 'component-lib'
+import { Badge, Button, Entity, Stat, StatusBadge } from 'component-lib'
 import { radius } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
+import { CargoLotRow } from '../shared/CargoLotRow'
+import type { BandStat } from './BandStats'
+import { BandStats } from './BandStats'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
+import { DAMAGED } from './damaged.model'
 import { useDashboardForm } from './dashboardForm.model'
 import { PhoneMajorFrame } from './PhoneMajorFrame'
 import { slotRule } from './slotLayout.model'
@@ -74,9 +78,15 @@ type BandText = {
 export type BandBay = {
   label: string
   gauges?: BandGauge[]
-  /** One-line readouts under the gauges (Tech Level, the scrap pool, Upkeep). */
+  /** Counts under the gauges, as label-first chips (the Upgrade pool, Upkeep). */
+  stats?: BandStat[]
+  /** One-line readouts that are not counts (the scrap pool, Upkeep's status). */
   lines?: BandText[]
-  /** Names shown as chips (the pilot's Kit and Abilities, the crawler's bays). */
+  /**
+   * Names shown as chips (the pilot's Kit and Abilities, the crawler's bays).
+   * One with an entity is its Token; `warn` greys it as damaged and ends it
+   * in the DAMAGED `StatusBadge`.
+   */
   chips?: BandText[]
   buttons: BandButton[]
   /**
@@ -194,8 +204,8 @@ const CHIPS: CSSProperties = {
 }
 
 /**
- * A bay of named things with no entity card (the crawler's bays) lays them
- * out as TILES in a grid (board D3), not a run of pills.
+ * A bay of named things with no entity card (a crawler bay whose ref does
+ * not resolve) lays them out as TILES in a grid (board D3), not a run of pills.
  */
 const TILES: CSSProperties = {
   ...CHIPS,
@@ -278,7 +288,7 @@ function Lines({ lines }: { lines: BandText[] }) {
 
 /** A bay with nothing but its button grid. */
 function buttonsOnly(bay: BandBay): boolean {
-  return !bay.gauges?.length && !bay.lines?.length && !bay.chips?.length
+  return !bay.gauges?.length && !bay.stats?.length && !bay.lines?.length && !bay.chips?.length
 }
 
 /** One bay's content: label, gauges, readouts, chips, then the button grid. */
@@ -288,6 +298,7 @@ function BayBody({ bay }: { bay: BandBay }) {
     <>
       <span className="su-dash-bay-lab">{bay.label}</span>
       {bay.gauges && bay.gauges.length > 0 && <Gauges gauges={bay.gauges} large={bay.large} />}
+      {bay.stats && <BandStats stats={bay.stats} />}
       {bay.lines && bay.lines.length > 0 && <Lines lines={bay.lines} />}
       {bay.chips && bay.chips.length > 0 && (
         <ul
@@ -301,7 +312,12 @@ function BayBody({ bay }: { bay: BandBay }) {
           {bay.chips.map((c) =>
             c.entity ? (
               <li key={c.text}>
-                <Entity form="token" entity={c.entity} />
+                <Entity
+                  form="token"
+                  entity={c.entity}
+                  instance={c.warn ? DAMAGED : undefined}
+                  trailing={c.warn ? <StatusBadge status={DAMAGED.condition} /> : undefined}
+                />
               </li>
             ) : (
               <li
@@ -334,11 +350,16 @@ export type StorageLot = {
   code: string
   name: string
   kind: string
+  tl?: number
   qty?: number
   units: number
 }
 
-/** The cargo-hold list used inside the Storage overlay (Jettison is destructive). */
+/**
+ * The cargo-hold list used inside the Storage overlay (Jettison is destructive):
+ * the hold's `UNITS | used/cap`, then each lot as the one lot row
+ * (`CargoLotRow`), as every hold draws it.
+ */
 export function StorageBay({
   lots,
   used,
@@ -352,21 +373,22 @@ export function StorageBay({
 }) {
   return (
     <div className="su-dash-cargo">
-      <p className="su-dash-cargo-usage">
-        Hold {used}/{cap}
-      </p>
+      <span className="su-dash-cargo-usage">
+        <Stat
+          orientation="horizontal"
+          size="compact"
+          label="Units"
+          value={used}
+          max={cap}
+          state={used > cap ? 'critical' : undefined}
+        />
+      </span>
       {lots.length === 0 ? (
         <p className="su-dash-resolve-log">Cargo hold is empty.</p>
       ) : (
         <ul className="su-dash-cargo-list">
           {lots.map((lot) => (
-            <li key={lot.id} className="su-dash-cargo-row">
-              <span className="su-dash-cargo-name">
-                <span className="su-dash-cargo-code">{lot.code}</span>
-                {lot.name}
-                {lot.kind === 'bulk' && lot.qty !== undefined ? ` ×${lot.qty}` : ''}
-                <span className="su-dash-cargo-units">{lot.units}u</span>
-              </span>
+            <CargoLotRow key={lot.id} lot={lot}>
               <Button
                 variant="danger"
                 size="compact"
@@ -375,7 +397,7 @@ export function StorageBay({
               >
                 Jettison
               </Button>
-            </li>
+            </CargoLotRow>
           ))}
         </ul>
       )}

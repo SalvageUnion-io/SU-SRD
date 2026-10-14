@@ -181,7 +181,7 @@ describe('resolvePatternGroups', () => {
 
   test('an explicit `count` of 0 renders nothing, rather than one card', () => {
     // The schema permits 0, and "zero installed" must not be clamped up to one —
-    // that would invent a card and diverge from `useChassisPatternConfig`.
+    // that would invent a card the loadout does not hold.
     const groups = resolvePatternGroups({
       name: 'Fake',
       systems: [{ name: 'Green Laser', count: 0 }, { name: 'Escape Hatch' }],

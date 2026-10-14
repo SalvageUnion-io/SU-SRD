@@ -73,7 +73,7 @@
   padding: 10px var(--space-12);
 }
 
-/* `EntityRow` and `Field` take a class only: fill the remaining row/column. */
+/* A rail slot's wrapper and `Field` take a class only: fill the remaining row/column. */
 .su-sheet-pilot-fill {
   flex: 1 1 0%;
 }
@@ -89,17 +89,6 @@
   .su-sheet-pilot-split {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
-/* — PartnerHold — */
-
-/* A lot row's rule, dropped on the last row. */
-.su-sheet-partner-lot {
-  border-bottom-width: var(--bw-hairline);
-}
-
-.su-sheet-partner-lot:last-child {
-  border-bottom-width: 0;
 }
 
 /* — NpcInset — */

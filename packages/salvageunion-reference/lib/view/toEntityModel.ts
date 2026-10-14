@@ -31,7 +31,6 @@ import { entityCite } from './parts/cite'
 import { bookStats, entityStats, techLevelFact } from './parts/facts'
 import { entityTone } from './parts/fill'
 import {
-  abilityTree,
   classKind,
   entityStamp,
   entityTypeLabel,
@@ -210,7 +209,7 @@ export function toEntityModel(
     ? groupsOf(patternGroups(pattern), baseRef.id)
     : [
         ...groupsOf(nestedEntityGroups(entity), baseRef.id),
-        ...(schemaName === 'drones'
+        ...(schemaName === 'drones' || schemaName === 'vehicles'
           ? groupsOf(
               Object.entries(droneOwnLoadout(entity)).flatMap(([key, entities]) =>
                 entities.length > 0
@@ -230,7 +229,6 @@ export function toEntityModel(
     : entityLead(entity)
   const art = entityArt(entity)
   const tier = tierNumeral(entity)
-  const tree = abilityTree(entity)
   const kindMarker = classKind(entity)
   const userMade = instance?.userMade
   const title = instance?.title ?? (pattern ? pattern.name : entityName)
@@ -248,7 +246,6 @@ export function toEntityModel(
     tone: entityTone(schemaName, entity),
     ...(pattern ? { parent: { label: 'Pattern of', ref: baseRef } } : {}),
     ...(tier ? { tier } : {}),
-    ...(tree ? { tree } : {}),
     ...(techLevel != null ? { techLevel } : {}),
     ...(cost ? { cost } : {}),
     ...(facets.actionType ? { actionType: facets.actionType } : {}),

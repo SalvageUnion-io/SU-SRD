@@ -202,9 +202,9 @@ describe('MechSheet — per-item uses counters', () => {
     })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
-    expect(screen.getByText('Uses 3/5')).toBeTruthy()
+    expect(document.querySelector('.su-sheet-item__uses')?.textContent).toBe('Uses3/5')
     await act(async () => {
-      clickButton(/remove one aff coolant foam/i)
+      clickButton(/decrease aff coolant foam uses/i)
     })
 
     expect(must(captured[0]).patch).toEqual({ itemUses: { 'aff-coolant-foam': 2 } })
@@ -219,7 +219,7 @@ describe('MechSheet — per-item uses counters', () => {
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
     await act(async () => {
-      clickButton(/add one aff coolant foam/i)
+      clickButton(/increase aff coolant foam uses/i)
     })
 
     expect(must(captured[0]).patch).toEqual({ itemUses: { 'aff-coolant-foam': 4 } })

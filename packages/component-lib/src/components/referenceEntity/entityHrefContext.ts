@@ -28,21 +28,21 @@ export function useEntityHref(entity: SURefEntity | undefined): string | undefin
 const EntityDetailLinkContext = createContext<boolean>(false)
 
 /**
- * Opt nested "View details" controls into opening the entity's show page in a
- * new tab (via the provided href builder) instead of the in-place modal.
+ * Opt nested "View details" controls into opening the entity's show page, in
+ * this tab (via the provided href builder) instead of the in-place modal.
  * srd — a navigable reference site — sets this; ITUN leaves it default
  * `false` so its detail view stays an in-app modal rather than linking out.
  */
 export const EntityDetailLinkProvider = EntityDetailLinkContext.Provider
 
-/** Whether "View details" should link out (new tab) instead of opening a modal. */
+/** Whether "View details" should link out (same tab) instead of opening a modal. */
 export function useEntityDetailLink(): boolean {
   return useContext(EntityDetailLinkContext)
 }
 
 /**
  * Builds an external cross-link node for an entity (e.g. ITUN's
- * "View in SRD →" deep link out to srd). Full — non-compact,
+ * "View in SRD" deep link out to srd). Full — non-compact,
  * non-listing — entity cards render it in their foot band, which includes the
  * `useDetailModal` detail view (its content renders full). Return `undefined`
  * for entities without an external page. srd (which *is* the SRD)

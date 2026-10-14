@@ -312,6 +312,37 @@ describe('a MajorModel renders through both forms', () => {
   }
 
   for (const form of ['canvas', 'phone'] as const) {
+    test(`${form}: a damaged entity chip greys and ends in the DAMAGED badge; an intact one has none`, () => {
+      const bay = (name: string) => {
+        const entity = SalvageUnionReference.getByNameIn('crawler-bays', name)
+        if (!entity) throw new Error(`fixture missing: ${name}`)
+        return entity
+      }
+      const view: MajorModel = {
+        fam: 'crawler',
+        stampLabel: 'Parked',
+        bays: [
+          {
+            label: 'Bays',
+            chips: [
+              { text: 'Mech Bay', entity: bay('Mech Bay'), warn: true },
+              { text: 'Storage Bay', entity: bay('Storage Bay') },
+            ],
+            buttons: [],
+          },
+        ],
+      }
+      const frame = <MajorFrame view={view} />
+      const { container } = render(form === 'phone' ? <Phone>{frame}</Phone> : frame)
+      const pills = Array.from(container.querySelectorAll('.su-entity-token__pill'))
+      const pill = (name: string) => pills.find((p) => p.textContent?.includes(name))
+      const damaged = pill('Mech Bay')?.querySelector('.su-entity-token__chips')
+      expect(damaged?.lastElementChild?.textContent).toBe('Damaged')
+      expect(pill('Storage Bay')?.textContent).not.toContain('Damaged')
+    })
+  }
+
+  for (const form of ['canvas', 'phone'] as const) {
     test(`${form}: a prompt takes focus at its title, covers the bays, speaks, and gives focus back`, () => {
       function Prompted() {
         const [open, setOpen] = useState(false)
@@ -584,7 +615,7 @@ function resolveModel(
   return {
     kind: 'resolve',
     onBack: noop,
-    costLabel: '1 EP',
+    cost: { amount: 1, heat: 0, uses: 0 },
     currency: 'EP',
     entity: ACTION,
     controls: {
@@ -625,6 +656,16 @@ function bar(): string[] {
     .map((b) => b.textContent ?? '')
 }
 
+/** What the bar says activating spends: its chips, then the cost box. */
+function spend(): string[] {
+  const group = screen.getByRole('group', { name: 'Next step' })
+  return [...group.querySelectorAll('.su-stat-cell, .su-cost')].map((el) =>
+    el.classList.contains('su-cost')
+      ? (el.textContent ?? '')
+      : [...el.children].map((part) => part.textContent).join(' ')
+  )
+}
+
 function renderResolve(view: ResolveModel) {
   return render(
     <PhoneResolve
@@ -640,8 +681,21 @@ function renderResolve(view: ResolveModel) {
 describe('PhoneResolve — only the next step (D7)', () => {
   test('not activated: Activate with its cost', () => {
     renderResolve(resolveModel())
-    expect(bar()).toEqual(['Activate · 1 EP'])
+    expect(bar()).toEqual(['Activate'])
+    expect(spend()).toEqual(['1 EP'])
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Resolving' }))
+  })
+
+  test('the cost reads label-first chips, then the activation cost last (E17)', () => {
+    renderResolve(resolveModel({ cost: { amount: 2, heat: 1, uses: 3 } }))
+    expect(spend()).toEqual(['Heat +1', 'Uses 3', '2 EP'])
+  })
+
+  test('an action that spends nothing says so', () => {
+    renderResolve(resolveModel({ cost: { amount: 0, heat: 0, uses: 0 } }))
+    expect(bar()).toEqual(['Activate'])
+    expect(spend()).toEqual([])
+    expect(screen.getByText('No cost')).toBeTruthy()
   })
 
   test('activated: Roll the die', () => {
@@ -656,7 +710,7 @@ describe('PhoneResolve — only the next step (D7)', () => {
   })
 
   test('over the Heat Cap: Push is disabled and the bar says why', () => {
-    const reason = 'No Push at Heat 7/8: +2 Heat would pass the Heat Cap.'
+    const reason = 'No Push at Heat 7/8: +2 Heat would pass the Heat Capacity.'
     renderResolve(
       resolveModel(
         { roll: ROLLED },

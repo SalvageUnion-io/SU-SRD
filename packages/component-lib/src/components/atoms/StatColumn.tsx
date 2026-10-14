@@ -1,7 +1,7 @@
 /**
  * StatColumn — the Workshop Manual's stat column at page scale (ruleset, "The
  * source": the ink stamp + framed numeral): each stat is a framed numeral
- * after an ink stamp in the book's own wording, `STRUCTURE PTS. | 14`. It is
+ * after an ink stamp under its full name, `STRUCTURE POINTS | 14`. It is
  * the value-cell law (§7.1) drawn the size the book draws it, so a label is
  * never squeezed into a header cell and never clips.
  *
@@ -9,7 +9,7 @@
  * 07: two columns beside the art). The cells keep the book's order: build them
  * from the entity model's `bookStats`.
  *
- * A description list, so a screen reader reads "Structure Pts., 14", in the
+ * A description list, so a screen reader reads "Structure Points, 14", in the
  * order it is drawn: label first, as every chip and stat reads.
  */
 

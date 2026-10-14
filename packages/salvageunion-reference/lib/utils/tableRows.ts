@@ -31,9 +31,10 @@ function sortValue(key: string): number {
  * ## Why this lives in the package rather than in the card that draws it
  *
  * There are two consumers with the same question and no shared answer before
- * this: the interactive `RollTable` component, which needs rows to draw and a
- * key to highlight after a roll; and `extractStaticEntitySummary`, which needs
- * the same rows for the no-JS and crawler rendering of a roll-table page.
+ * this: the entity view's table part (`view/parts/table.ts`), whose bands the
+ * cards draw and highlight after a roll; and `extractStaticEntitySummary`,
+ * which needs the same rows for the no-JS and crawler rendering of a
+ * roll-table page.
  *
  * Those pages shipped their entire table as serialized island props and
  * rendered **none of it** as markup — measured across six tables, 0 rows in

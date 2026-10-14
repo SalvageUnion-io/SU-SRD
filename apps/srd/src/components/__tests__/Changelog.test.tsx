@@ -22,18 +22,19 @@ describe('Changelog', () => {
     expect(screen.getByText('Fixed a typo')).toBeTruthy()
   })
 
-  test('each entry is a Card, not a bespoke panel', () => {
-    // The listing composes the shared card shell, so it inherits the card
-    // language (seam stamp, frame weight, header band) instead of restating it.
+  test('each entry wears the shared cut-out head: the date on the tab, the area a chip beside it', () => {
     const entries: ChangelogEntry[] = [
       { date: '2026-07-20', area: 'Site', items: ['Added a chassis'] },
     ]
     const { container } = render(<Changelog entries={entries} />)
-    const frame = container.querySelector('li > div')
-    expect(frame?.className).toContain('su-card')
-    // Card draws its frame as longhand inline style off the border glossary;
-    // `chrome` is the sub-panel weight this listing asks for.
-    expect(frame?.getAttribute('style')).toContain('var(--bw-chrome)')
+    const head = container.querySelector('.srd-changelog__entry > .su-entity-row__head')
+    expect(head?.getAttribute('style')).toContain('background-color')
+    expect(head?.hasAttribute('data-notch')).toBe(true)
+    // The date is the notch, and the area is a chip in the head's chip group, not a stamp.
+    expect(head?.querySelector('.su-entity-row__notch h2 time')).not.toBeNull()
+    const chip = head?.querySelector('.su-entity-row__heading--cut > .su-chips')
+    expect(chip?.textContent).toBe('Site')
+    expect(chip?.querySelector('.su-stat-cell')).not.toBeNull()
   })
 
   test('renders inline markdown links in a bullet item as anchors', () => {

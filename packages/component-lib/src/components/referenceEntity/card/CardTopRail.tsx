@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { space } from '../../../design/tokens'
-import { Badge } from '../../atoms/Badge'
+import { SelectedSeal } from '../../../entity/modes/select'
 import { CountStepper } from '../../atoms/CountStepper'
 import type { EntityStatus } from '../../atoms/entityStatus'
 import { CardControlRail } from '../../containers/CardControlRail'
@@ -44,26 +44,16 @@ export function CardTopRail({
         ...(controls ?? []),
       ]
     : (controls ?? [])
-  // Selection seal — an `ok`-tone "chosen" stamp riding the top-right frame when
-  // selected (the picker-cell affordance).
-  const selectionSealNode =
-    selected && selectionSeal ? (
-      <Badge
-        surface="tone"
-        tone="ok"
-        style={{ pointerEvents: 'none' }}
-      >{`${selectionSeal} ✓`}</Badge>
-    ) : null
+  // Selection seal — select mode's ink seal (EDL Modes: "ink ring and
+  // 'Selected' seal"; §3.3: a state is a treatment, not a hue), in the
+  // caller's word, when selected (the picker-cell affordance).
+  const selectionSealNode = selected && selectionSeal ? <SelectedSeal word={selectionSeal} /> : null
   // MULTI-SELECT seal — a "Chosen" stamp + `[− n +]` CountStepper, the
   // duplicate-allowed counterpart to the single-select seal. The "Chosen"
   // stamp only lights once at least one copy is picked.
   const countSealNode = multiSelect ? (
     <div style={{ display: 'flex', alignItems: 'center', gap: space[6] }}>
-      {multiSelect.count >= 1 && (
-        <Badge surface="tone" tone="ok">
-          Chosen
-        </Badge>
-      )}
+      {multiSelect.count >= 1 && <SelectedSeal word="Chosen" />}
       <CountStepper
         subject={multiSelect.subject}
         count={multiSelect.count}

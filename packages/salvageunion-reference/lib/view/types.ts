@@ -37,8 +37,6 @@ export type Fact = {
   shortValue?: string
   /** What the stat means, for its tooltip. */
   hint?: string
-  /** One of the stats a primary-only cluster keeps. */
-  primary?: true
 }
 
 /** A named rule an entity carries: a trait, or a keyword-typed datavalue. */
@@ -130,8 +128,6 @@ export type EntityModel = {
   parent?: { label: string; ref: EntityRef }
   /** An ability's tier numeral. */
   tier?: string
-  /** An ability's tree and its level as printed (a Legendary's is "L"). */
-  tree?: { name: string; level: string }
   techLevel?: number | 'B' | 'N'
   /** The cost pennant: "2 AP", "1 EP". */
   cost?: string

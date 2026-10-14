@@ -153,6 +153,13 @@
   padding: var(--space-8) var(--space-10) 0;
 }
 
+/* Beside an art column taller than the head (a Starter mech's chassis), the
+   band runs the art's height, its cut-out on the band's foot: a Row has a
+   paper body only for a lead or stamp, never an empty one. */
+.su-entity-row__frame[data-bodyless] .su-entity-row__head {
+  flex: 1 1 auto;
+}
+
 /* Not the heading: it holds the tab, which must reach the band's foot so it
    opens into the body with no band showing under it. */
 .su-entity-row__head[data-notch]
@@ -379,8 +386,32 @@
   cursor: pointer;
 }
 
+/* A linked chip is an 18px cell, under WCAG 2.2's 24px target (2.5.8): its
+   button is 24px tall, the cell centred in it. */
+:is(a, button, [role='button']).su-chip-link {
+  align-items: center;
+  min-block-size: var(--space-24);
+}
+
 :is(a, button).su-chip-link:hover .su-stat-plate--label {
   text-decoration: underline;
+}
+
+/* An entity chip (`EntityStat`, `CLASS | Engineer`): the whole cell is the
+   target, and what it opens is the entity its value names, so the value
+   underlines, not the label. Its opener (ITUN's detail dialog) is a
+   `role="button"` div, not a button. */
+.su-chip-link--entity[role='button'],
+.su-chip-link--entity[role='button'] .su-stat-cell {
+  cursor: pointer;
+}
+
+:is(a, [role='button']).su-chip-link--entity:hover .su-stat-plate--value {
+  text-decoration: underline;
+}
+
+a.su-chip-link--entity:hover .su-stat-plate--label {
+  text-decoration: none;
 }
 
 /* The paper body: the facts, the tags, the lead. No rule above it: the
@@ -445,6 +476,36 @@
     min-height: var(--su-head-art-min-phone, 4.25rem);
     width: var(--su-head-art-width-phone, 3.5rem);
   }
+}
+
+/* The host's controls (`Head`'s `controls`, Assign / Unassign / View): the
+   band's right end, after the affordance, centred on it; they wrap among
+   themselves, never cut. */
+.su-entity-row__controls {
+  align-items: center;
+  align-self: center;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  justify-content: flex-end;
+  margin-left: auto;
+  min-width: min-content;
+}
+
+/* A link or select Row with controls (`data-covered`): the surface is an
+   empty cover over the whole Row, so the controls never nest inside its
+   `<a>` or radio, and they (and a toggle's check) sit raised above it. */
+.su-entity-row__cover {
+  border-radius: var(--radius-card);
+  inset: 0;
+  position: absolute;
+}
+
+.su-entity-row[data-covered] .su-entity-row__controls,
+.su-entity-row[data-covered] .su-entity-row__line > input {
+  position: relative;
+  z-index: 1;
 }
 
 /* A Row as a listbox option (a search's results): the option the arrow keys
@@ -600,9 +661,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   text-decoration: none;
 }
 
-/* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] name [chips]`, dashed
-   when player-made, its name on the cut-out (below). It wraps as a whole,
-   never mid-token. */
+/* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] [tier] name [chips]`,
+   dashed when player-made, its name on the cut-out (below). When the line
+   runs out the chips wrap under the name, so the name always shows (E18). */
 .su-entity-token__pill {
   align-items: stretch;
   align-self: flex-start;
@@ -610,10 +671,11 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   border-style: solid;
   border-width: var(--bw-chrome);
   display: inline-flex;
+  flex-wrap: wrap;
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
-  gap: var(--space-6);
+  gap: var(--space-4) var(--space-6);
   letter-spacing: var(--tracking-caps-tight);
   line-height: 1.2;
   max-width: 100%;
@@ -639,8 +701,14 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   box-shadow: inset 0 0 0 var(--bw-hairline) var(--color-paper);
 }
 
-/* One line: the name takes what the chips leave and ends in "…" only when
-   they need the room (E18's Token exception). */
+/* An ability's tier numeral, before its name as on its band. */
+.su-entity-token__tier {
+  flex: none;
+}
+
+/* The name keeps its line: the chips wrap under it rather than squeeze it,
+   and only a name too long for a line of its own ends in "…" (E18's Token
+   exception). */
 .su-entity-token__name {
   flex: 1 1 auto;
   min-width: 0;
@@ -649,12 +717,16 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   white-space: nowrap;
 }
 
-/* The chips (`tokenChips`, then the cost box) never shrink or wrap. */
+/* The chips (`tokenChips`, then the cost box) follow the name on its line
+   while it has room and wrap under it, as a group, when it does not; a set
+   too wide for a line of its own wraps chip by chip. */
 .su-entity-token__chips {
   align-items: center;
   display: flex;
-  flex: none;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
   gap: var(--space-4);
+  max-width: 100%;
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option

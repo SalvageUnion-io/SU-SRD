@@ -1,9 +1,17 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { buttonVariants, ChapterBand, cn, KindLabel } from 'component-lib'
+import {
+  buttonVariants,
+  ChapterBand,
+  cn,
+  EntityPageStamps,
+  EntityStat,
+  KindLabel,
+} from 'component-lib'
 import type { ReactNode } from 'react'
+import type { EntityRef } from 'salvageunion-reference'
 import type { PageFoot } from '../../ssg/types'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
-import { EntityPageStamps } from './EntityPageStamps'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
@@ -12,7 +20,7 @@ import { EntityPageStamps } from './EntityPageStamps'
  * stamps and "Build With This" (EDL E20: nothing but the breadcrumb sits
  * above a show page's title; on a phone the cluster follows the title, the
  * band's `asideAt="notch"`); then the body. The page's foot band — its kind
- * stamp and its printings (`Workshop Manual | p.112`, then any reprint) — is the site
+ * and its printings (`Workshop Manual · p.112`, then any reprint) — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * to the layout as its `PageResult.foot`.
  *
@@ -23,20 +31,16 @@ import { EntityPageStamps } from './EntityPageStamps'
 
 /**
  * The band's link back to what this entity is built on, leading the cluster
- * beside the title: a stamp naming the relation ("Pattern of") and the parent's name as a link,
- * with an arrow (`.srd-parent-link`).
+ * beside the title: the label-first chip every fact is (`PATTERN OF | Mule`,
+ * EDL E9), ITUN's sheet band's `CHASSIS | Mazona` chip — it opens the parent's
+ * page and Peeks it.
  */
-function ParentLink({ label, name, href }: { label: string; name: string; href: string }) {
-  return (
-    <a className="srd-parent-link" href={href}>
-      <span className="srd-parent-link__label">{label}</span>
-      <span className="srd-parent-link__name">
-        {name}
-        <span aria-hidden="true"> →</span>
-      </span>
-    </a>
-  )
+function ParentLink({ label, entityRef, href }: EntityParent) {
+  return <EntityStat label={label} entityRef={entityRef} href={href} />
 }
+
+/** What an entity is built on: the relation, the parent and its page. */
+type EntityParent = { label: string; entityRef: EntityRef; href: string }
 
 /**
  * A creation guide's foot (`guideExitsFor`): the page ends on a way out, as
@@ -67,9 +71,6 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
   )
 }
 
-/** An entity page's measure (board 07). */
-const ENTITY_PAGE_MEASURE = '75rem'
-
 type EntityPageFrameProps = {
   /** The page title: the entity's name, or a pattern's quoted name. */
   title: ReactNode
@@ -77,10 +78,8 @@ type EntityPageFrameProps = {
   /** The band colour when the page wears its own rather than its chapter's (`bandFillFor`). */
   fill?: string
   meta: EntityPageMeta
-  /** The inner row's max width; the roll-table page runs wider (board 08b). */
-  measure?: string
   /** What the entity is built on, linked beside the title: a pattern's chassis. */
-  parent?: { label: string; name: string; href: string }
+  parent?: EntityParent
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
   legalStartingPattern?: boolean
   /** "Build With This": the deep link into ITUN's builder (`buildLinkFor`), ending the cluster. */
@@ -95,7 +94,6 @@ export function EntityPageFrame({
   tone,
   fill,
   meta,
-  measure = ENTITY_PAGE_MEASURE,
   parent,
   legalStartingPattern,
   build,
@@ -107,7 +105,7 @@ export function EntityPageFrame({
       <ChapterBand
         tone={tone}
         fill={fill}
-        measure={measure}
+        measure={PAGE_MEASURE}
         aside={
           <EntityPageStamps
             meta={meta}
@@ -147,7 +145,7 @@ export function EntityPageFrame({
         {title}
         <KindLabel kind={meta.typeLabel} />
       </ChapterBand>
-      <div className="srd-entity__body" style={{ maxWidth: measure }}>
+      <div className="srd-entity__body srd-page-body">
         {children}
         {exits && <GuideExitsFoot {...exits} />}
       </div>
@@ -157,13 +155,9 @@ export function EntityPageFrame({
 
 /**
  * The foot of the same page, for the layout's `Footer`: the frame's chapter
- * tone (or its own `fill`) and measure, and the kind and printings `meta` carries.
+ * tone (or its own `fill`) and the kind and printings `meta` carries. The
+ * layout sets the one page measure.
  */
-export function entityPageFoot(
-  tone: ChapterTone,
-  meta: EntityPageMeta,
-  measure: string = ENTITY_PAGE_MEASURE,
-  fill?: string
-): PageFoot {
-  return { tone, fill, kind: meta.typeLabel, printings: meta.printings, measure }
+export function entityPageFoot(tone: ChapterTone, meta: EntityPageMeta, fill?: string): PageFoot {
+  return { tone, fill, kind: meta.typeLabel, printings: meta.printings }
 }

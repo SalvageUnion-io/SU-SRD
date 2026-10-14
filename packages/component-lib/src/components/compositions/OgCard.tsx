@@ -1,14 +1,15 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
 import { PRODUCT } from '../../product'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { Speckle } from '../atoms/Speckle'
+import { Stat } from '../atoms/Stat'
 import { PENNANT_SHAPE, USER_MADE_TITLE } from '../referenceEntity/card/cardChrome'
 import type { OgCardProps, OgCardStat } from './ogCardText'
 import {
   bandColor,
-  bylineOf,
+  footLineOf,
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
   ogCardPrintedTitle,
@@ -21,23 +22,26 @@ import {
  * OgCard — the link preview (origin boards PV1 and OgCard): a
  * 1200 × 630 picture of the page a link opens, built from the same parts as
  * that page. The chapter band with its speckle and the notched title
- * (`ChapterBand` at its `og` scale), framed stat boxes on the page ground, and
- * the Union bar's ink foot with the mark and the address. Because it is
- * assembled from the page's own parts rather than drawn a second time, the
- * preview cannot drift from the page; the SRD screenshots it at build, ITUN
- * on request.
+ * (`ChapterBand` at its `og` scale; nothing above the title, EDL E20), the
+ * entity's one chip group under it (E17: the page's own horizontal `Stat`
+ * cells, the cost's pointy box last), and the Union bar's ink foot with the
+ * mark and the address. The kind rides the foot line before the cite, as a
+ * Page's foot names it (E9). Because it is assembled from the page's own parts
+ * rather than drawn a second time, the preview cannot drift from the page; the
+ * SRD screenshots it at build, ITUN on request.
  *
  * ## Six cards
  *
  * - `thing` — a reference thing you HAVE (chassis, system, equipment): its
- *   tone on the band, a solid frame, stat boxes and the page cite.
- * - `do` — a thing you DO (ability, action): the ink band with the tier
- *   numeral and the cost pennant, and the rules text (two lines at most).
+ *   tone on the band, a solid frame, its chips and the page cite.
+ * - `do` — a thing you DO (ability, action): the ink band (an ability's tier
+ *   tone) with the tier numeral left of the name, its chips and cost, and the
+ *   rules text (two lines at most).
  * - `sheet` — a player's pilot, mech or crawler. Built from canon, so solid;
  *   the byline names the player and the Game.
  * - `userMade` — a pattern or NPC a player made (ruleset §3.9): dashed frame,
- *   hatched band, dashed notch and the User-made stamp; the byline is only
- *   "Made by [user]".
+ *   hatched band, dashed notch and the User-made stamp leading the chips; the
+ *   byline is only "Made by [user]".
  * - `invite` — a Game invite: the Game's name, who mediates and the expiry.
  *   The caller never hands it the token, so it cannot print one.
  * - `private` — anything set to Only me. No name, no stats, no maker: a
@@ -47,7 +51,7 @@ import {
  *
  * The notched title never wraps: it steps down from 120px to the 34px floor
  * (`ogTitleSize`), then ends in an ellipsis, so an unbounded player-typed name
- * cannot reach the stat row.
+ * cannot reach the chip row.
  *
  * ## The floor
  *
@@ -82,15 +86,8 @@ const CARD = {
   width: OG_CARD_WIDTH,
 } satisfies CSSProperties
 
-const BAND_SLOT = { flex: '0 0 294px', minHeight: 0 } satisfies CSSProperties
-
-const EYEBROW = {
-  alignItems: 'flex-start',
-  display: 'flex',
-  gap: space[24],
-  justifyContent: 'space-between',
-  width: '100%',
-} satisfies CSSProperties
+/** The band: the notch on its foot, nothing above the title (EDL E20). */
+const BAND_SLOT = { flex: '0 0 230px', minHeight: 0 } satisfies CSSProperties
 
 const CAPS = {
   fontFamily: font.cond,
@@ -100,8 +97,6 @@ const CAPS = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-const KICKER = { ...CAPS, fontSize: '36px', margin: 0 } satisfies CSSProperties
-
 const BODY = {
   display: 'flex',
   flex: '1 1 auto',
@@ -109,33 +104,6 @@ const BODY = {
   gap: space[20],
   minHeight: 0,
   padding: `${space[28]} ${GUTTER} 0`,
-} satisfies CSSProperties
-
-const STATS = { display: 'flex', gap: space[14] } satisfies CSSProperties
-
-const STAT = {
-  alignItems: 'center',
-  backgroundColor: color.paper,
-  borderColor: color.ink,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.entity,
-  boxSizing: 'border-box',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  minHeight: '113px',
-  minWidth: '166px',
-  padding: `${space[6]} ${space[16]}`,
-} satisfies CSSProperties
-
-const STAT_LABEL = { ...CAPS, fontSize: '34px' } satisfies CSSProperties
-
-const STAT_VALUE = {
-  fontFamily: font.cond,
-  fontSize: '56px',
-  fontWeight: weight.extrabold,
-  lineHeight: 1,
-  whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
 const LINE = {
@@ -177,31 +145,18 @@ const STAMP = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-const NUMERAL = {
-  ...CAPS,
-  borderColor: color.paper,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.entity,
-  color: color.paper,
-  fontSize: '44px',
-  fontWeight: weight.extrabold,
-  lineHeight: 1,
-  padding: `${space[6]} ${space[14]}`,
-} satisfies CSSProperties
-
+/** The cost, the book's pointy box (`ActivationCost`) at the preview's scale: ink on the paper. */
 const PENNANT = {
   ...CAPS,
-  backgroundColor: color.paper,
+  backgroundColor: color.ink,
   clipPath: PENNANT_SHAPE,
-  color: color.ink,
+  color: color.paper,
   fontSize: '44px',
   fontWeight: weight.extrabold,
   lineHeight: 1,
   padding: `${space[8]} ${space[48]} ${space[8]} ${space[12]}`,
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
-
-const STAMPS = { alignItems: 'center', display: 'flex', gap: space[12] } satisfies CSSProperties
 
 // The Union bar's foot: the ink-deep ground with paper flecks, the mark, the
 // wordmark and the address. Its top edge is the ink rule (see "The foot rule").
@@ -242,16 +197,37 @@ const ADDRESS = {
 
 // ── Parts ─────────────────────────────────────────────────────────────────
 
-function StatBoxes({ stats }: { stats: OgCardStat[] }) {
-  if (stats.length === 0) return null
+/**
+ * The chip group (E17): a user-made stamp first, the chips label first
+ * (`TL | 1`, "Turn Action", `[Burn | 2]`), the cost's pointy box last.
+ */
+function Chips({
+  stats,
+  cost,
+  userMade,
+}: {
+  stats: OgCardStat[]
+  cost?: string | undefined
+  userMade: boolean
+}) {
+  if (stats.length === 0 && !cost && !userMade) return null
   return (
-    <div style={STATS}>
-      {stats.slice(0, 6).map((stat) => (
-        <div key={stat.label} style={STAT}>
-          <span style={STAT_LABEL}>{stat.label}</span>
-          <span style={STAT_VALUE}>{stat.value}</span>
-        </div>
+    <div className="su-og-chips">
+      {userMade && (
+        <span title={USER_MADE_TITLE} style={STAMP}>
+          User-made
+        </span>
+      )}
+      {stats.map((stat) => (
+        <Stat
+          key={`${stat.label}-${stat.value ?? ''}`}
+          orientation="horizontal"
+          label={stat.label}
+          value={stat.value}
+          size="full"
+        />
       ))}
+      {cost && <span style={PENNANT}>{cost}</span>}
     </div>
   )
 }
@@ -277,15 +253,6 @@ function UnionFoot({
   )
 }
 
-function Eyebrow({ kicker, ink, end }: { kicker: string; ink: boolean; end?: ReactNode }) {
-  return (
-    <div style={EYEBROW}>
-      <p style={{ ...KICKER, color: ink ? color.ink : color.paper }}>{kicker}</p>
-      {end}
-    </div>
-  )
-}
-
 /**
  * `markSrc` is the SU mark's URL, the app's own copy (ITUN serves its files
  * under `/build/`, ADR-048); the root's by default.
@@ -300,26 +267,11 @@ export function OgCard({
   const reference = REFERENCE_KINDS.has(props.kind)
   const title = ogCardTitle(props)
   const printed = ogCardPrintedTitle(props)
-  const kicker = props.kind === 'private' ? PRODUCT.name : props.kicker
-  const byline = bylineOf(props)
-
-  const end =
-    props.kind === 'userMade' ? (
-      <span title={USER_MADE_TITLE} style={STAMP}>
-        User-made
-      </span>
-    ) : props.kind === 'do' && (props.tier || props.cost) ? (
-      <span style={STAMPS}>
-        {props.tier && (
-          <span
-            style={{ ...NUMERAL, ...(ink ? { borderColor: color.ink, color: color.ink } : {}) }}
-          >
-            {props.tier}
-          </span>
-        )}
-        {props.cost && <span style={PENNANT}>{props.cost}</span>}
-      </span>
-    ) : undefined
+  const footLine = footLineOf(props)
+  // An ability's numeral sits left of the name, on the band (EDL E12, its
+  // page's `lead`); the name steps down to leave it room.
+  const tier = props.kind === 'do' ? props.tier : undefined
+  const titleSize = `${ogTitleSize(tier ? `${tier} ${printed}` : printed)}px`
 
   return (
     <article
@@ -333,17 +285,23 @@ export function OgCard({
           fill={fill}
           grain={ink ? 'ink' : 'paper'}
           userMade={userMade}
-          titleSize={`${ogTitleSize(printed)}px`}
-          eyebrow={<Eyebrow kicker={kicker} ink={ink} end={end} />}
+          titleSize={titleSize}
+          lead={tier ? <span style={{ fontSize: titleSize }}>{tier}</span> : undefined}
         >
           {printed}
         </ChapterBand>
       </div>
       <div style={BODY}>
-        {'stats' in props && <StatBoxes stats={props.stats} />}
+        {'stats' in props && (
+          <Chips
+            stats={props.stats}
+            cost={'cost' in props ? props.cost : undefined}
+            userMade={userMade}
+          />
+        )}
         {props.kind === 'do' && props.rules && <p style={PROSE}>{props.rules}</p>}
         {props.kind === 'invite' && <p style={PROSE}>{props.summary}</p>}
-        {byline && <p style={LINE}>{byline}</p>}
+        {footLine && <p style={LINE}>{footLine}</p>}
       </div>
       <UnionFoot reference={reference} address={props.address} markSrc={markSrc} />
     </article>

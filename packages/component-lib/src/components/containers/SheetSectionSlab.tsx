@@ -32,17 +32,18 @@ import { useId, useState } from 'react'
 import { color, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Button } from '../atoms/Button'
+import type { SlabCount } from '../atoms/Slab'
 import { Slab } from '../atoms/Slab'
 
 type SheetSectionSlabProps = {
   /** Section title — the solid black stamp in the slab leader. */
   title: string
   /**
-   * Optional count/meta after the title, e.g. `4/6 slots`. Rendered in the
-   * slab's muted count position (not a framed tag — the slab has no band to
-   * hold one).
+   * Optional count/meta after the title: a word in the slab's muted count
+   * position, or a VALUE as a `SlabCount` — the label-first chip
+   * (`SLOTS | 4/6`).
    */
-  count?: ReactNode
+  count?: ReactNode | SlabCount | readonly SlabCount[]
   /** Trailing controls after the leader rule (the section's '+ Add' / Edit). */
   controls?: ReactNode
   /** Extra classes on the section wrapper (e.g. a grid-span). */

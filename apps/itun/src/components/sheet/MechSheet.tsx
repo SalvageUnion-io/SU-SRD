@@ -49,6 +49,7 @@
  * readOnly suppresses every edit affordance.
  */
 
+import type { SlabCount } from 'component-lib'
 import {
   Conditions,
   EntitySearcher,
@@ -129,8 +130,6 @@ const CONDITIONS_LABEL = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-const COUNT = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
-
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
 type AsPrinted = { pattern: string; cite: string } | undefined
 
@@ -142,14 +141,22 @@ function overAsPrinted(used: number, max: number, asPrinted: AsPrinted): boolean
   return asPrinted !== undefined && used > max
 }
 
-/** A section's "used/max slots", noted "as printed" (with its cite) when it is the book's. */
-function SlotCount({ used, max, asPrinted }: { used: number; max: number; asPrinted: AsPrinted }) {
+/**
+ * A section's `SLOTS | used/max` chip, noted "as printed" (with its cite) when
+ * an over-slot count is the book's; any other over-slot count is critical.
+ */
+function slotCount(used: number, max: number, asPrinted: AsPrinted): SlabCount {
   const printed = overAsPrinted(used, max, asPrinted) ? asPrinted : undefined
-  return (
-    <span style={COUNT} title={printed ? `${printed.pattern}, ${printed.cite}` : undefined}>
-      {used}/{max} slots{printed ? ' · as printed' : ''}
-    </span>
-  )
+  if (printed) {
+    return {
+      label: 'Slots',
+      value: used,
+      max,
+      note: 'as printed',
+      title: `${printed.pattern}, ${printed.cite}`,
+    }
+  }
+  return { label: 'Slots', value: used, max, ...(used > max ? { state: 'critical' } : {}) }
 }
 
 const PARTNERS = {
@@ -183,6 +190,8 @@ type MechSheetProps = {
    * repair's scrap-pool deduction; the mech's own edits stay open.
    */
   crawlerReadOnly?: boolean
+  /** The linked crawler's sheet: The Hold's stow target Token opens it. */
+  crawlerHref?: string
   /**
    * The Assigned Units rail content (pilot + crawler rail row/RailEmpty), built
    * by SheetMech from `composition` — MechSheet has no composition access of
@@ -205,18 +214,13 @@ export function MechSheet({
   readOnly = false,
   crawler = null,
   crawlerReadOnly = false,
+  crawlerHref,
   linkedUnits,
   pilotAbilities,
 }: MechSheetProps) {
   const storeState = store()
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available, never rule-gated for now).
-  // Identity / Quirk+Appearance are FIELD sections (unified edit language
-  // archetype A): their own Edit/Done toggle, rendered in the
-  // SheetSectionCard header.
-  // Quirk & Appearance now live inside the identity card, so they follow ITS
-  // Edit toggle — a second Edit button inside the same frame would have been
-  // two switches for one section.
   const [picker, setPicker] = useState<ItemKind | null>(null)
 
   const model = useMechSheetModel({
@@ -434,17 +438,19 @@ export function MechSheet({
           lists. It reads before them here. */}
       <SheetSectionSlab
         title="The Hold"
-        count={
-          <span style={COUNT}>
-            {cargo.usage.used}/{cargo.usage.cap} slots
-          </span>
-        }
+        count={{
+          label: 'Slots',
+          value: cargo.usage.used,
+          max: cargo.usage.cap,
+          ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
+        }}
       >
         <StorageManifest
           side="mech"
           cargo={cargo}
           mechName={mech.name}
           crawlerName={crawler?.name ?? null}
+          counterpartHref={crawlerHref}
           readOnly={readOnly}
         />
       </SheetSectionSlab>
@@ -453,13 +459,7 @@ export function MechSheet({
       <div className="su-sheet-mech-loadout">
         <SheetSectionSlab
           title="Systems"
-          count={
-            <SlotCount
-              used={capacity.systemSlotsUsed}
-              max={capacity.systemSlotsMax}
-              asPrinted={capacity.asPrinted}
-            />
-          }
+          count={slotCount(capacity.systemSlotsUsed, capacity.systemSlotsMax, capacity.asPrinted)}
           controls={
             readOnly ? undefined : (
               <SectionManageButton label="systems" onClick={() => setPicker('system')} />
@@ -471,13 +471,7 @@ export function MechSheet({
 
         <SheetSectionSlab
           title="Modules"
-          count={
-            <SlotCount
-              used={capacity.moduleSlotsUsed}
-              max={capacity.moduleSlotsMax}
-              asPrinted={capacity.asPrinted}
-            />
-          }
+          count={slotCount(capacity.moduleSlotsUsed, capacity.moduleSlotsMax, capacity.asPrinted)}
           controls={
             readOnly ? undefined : (
               <SectionManageButton label="modules" onClick={() => setPicker('module')} />

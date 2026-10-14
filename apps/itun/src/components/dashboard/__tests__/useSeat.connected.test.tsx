@@ -528,7 +528,8 @@ describe("the Dashboard's display: the deck, the tabs and the table", () => {
     const view = await renderDashboard()
     await openTab('Crew')
     expect(screen.getByText('Vex is resolving Crush')).toBeTruthy()
-    expect(screen.getByText('Rook (you)')).toBeTruthy()
+    // This seat's own Row says so with a You label right of the name.
+    expect(screen.getByRole('link', { name: /^Rook \(you\):/ })).toBeTruthy()
 
     // The seat moves on, on the other client: this one's subscription answers again.
     setQueryAnswers(
@@ -548,7 +549,10 @@ describe("the Dashboard's display: the deck, the tabs and the table", () => {
       )
     })
     expect(screen.getByText('Vex is resolving Crush: rolled 14, Success')).toBeTruthy()
-    expect(screen.getByText(/^In Spare · SP/)).toBeTruthy()
+    // Vex is aboard Spare now: the Row's line says so, and the mech is its Token.
+    expect(screen.getByRole('link', { name: /^Vex: .*In Spare · SP/ })).toBeTruthy()
+    const tokens = [...document.querySelectorAll('.su-entity-token')].map((t) => t.textContent)
+    expect(tokens.some((t) => t?.includes('Spare'))).toBe(true)
   })
 
   test("the Crew tab reads the server's status: a ▲, the problem, and a link to the sheet", async () => {
@@ -568,7 +572,7 @@ describe("the Dashboard's display: the deck, the tabs and the table", () => {
     })
     await openTab('Crew needs attention')
     const crew = screen.getByRole('tabpanel')
-    // The Crew table (board D2): the ▲ and the word, and the numbers in columns.
+    // The Crew tab (board D2): the ▲ and the word, and the numbers as chips.
     expect(within(crew).getByText(/Injured/)).toBeTruthy()
     const vex = within(crew).getByRole('link', { name: /^Vex: HP 3\/10, AP 5\/5/ })
     expect(vex.getAttribute('href')).toBe('/sheet/pilot/seat-vex')

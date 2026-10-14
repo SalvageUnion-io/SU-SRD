@@ -55,11 +55,9 @@ export {
   getName,
   getPageReference,
   getReferenceEntityName,
-  getSalvageValue,
   getSlotsRequired,
   getSource,
   getTechLevel,
-  getTechLevelNumber,
   getTree,
 } from './entityFields'
 export { isAbility, isBaseAdvancedClass, isCoreClass } from './entityGuards'
@@ -113,9 +111,7 @@ export type {
   SURefObjectDataValue,
   SURefObjectGuideStep,
   SURefObjectPattern,
-  SURefObjectPatternSystemModule,
   SURefObjectTable,
-  SURefObjectTableContent,
   SURefObjectTrait,
 } from './schemas/index'
 export {
@@ -174,6 +170,7 @@ export {
   nestedEntityGroups,
   patternGroups,
   resolveLoadout,
+  vehicleSystemNames,
 } from './view/parts/children'
 export {
   type AdditionalSource,
@@ -197,7 +194,6 @@ export {
   bayKind,
   classKind,
   entityStamp,
-  entityTypeLabel,
   isDoEntity,
   schemaDomain,
   tierNumeral,

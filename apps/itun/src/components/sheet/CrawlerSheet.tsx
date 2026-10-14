@@ -151,8 +151,6 @@ const POOL_LABEL = {
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
-const TABULAR = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
-
 const CREW_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 const STORAGE_BAY = { marginTop: tokens.space[24], minWidth: 0 } satisfies CSSProperties
@@ -165,6 +163,8 @@ type CrawlerSheetProps = {
    * ← Load target. Null when nothing is docked.
    */
   mech?: Mech | null
+  /** The docked mech's sheet: the Hold's load target and the Mech Bay's Token open it. */
+  mechHref?: string
   /**
    * Injectable store — defaults to useEntityStore.
    * Pass a stub in tests to avoid Zustand side effects.
@@ -201,6 +201,7 @@ type CrawlerSheetProps = {
 export function CrawlerSheet({
   crawler,
   mech = null,
+  mechHref,
   store = useEntityStore,
   readOnly = false,
   economy,
@@ -299,7 +300,7 @@ export function CrawlerSheet({
           return (
             <li key={slug}>
               {system ? (
-                <Entity form="token" entity={system} />
+                <Entity form="token" entity={system} mode={{ kind: 'link' }} />
               ) : (
                 <div style={UNKNOWN_WEAPON}>
                   <span style={TRUNCATE}>{slug}</span>
@@ -341,6 +342,7 @@ export function CrawlerSheet({
         side="crawler"
         cargo={cargo}
         mechName={mech?.name ?? null}
+        counterpartHref={mechHref}
         crawlerName={crawler.name}
         readOnly={readOnly}
       />
@@ -378,7 +380,7 @@ export function CrawlerSheet({
         seedSelections={crawler.bayChoices?.[entry.bayRef]}
         store={store}
         readOnly={readOnly}
-        dockedMechName={kind === 'mech' && mech ? mech.name : undefined}
+        dockedMech={kind === 'mech' && mech ? { name: mech.name, href: mechHref } : undefined}
         // "Mount" opens the weapons picker — the thing the verb means — rather
         // than the bay's rules text.
         onFunction={kind === 'armament' && !readOnly ? () => setSystemsModalOpen(true) : undefined}
@@ -451,11 +453,7 @@ export function CrawlerSheet({
           {bays.length > 0 && (
             <SheetSectionSlab
               title="Bays"
-              count={
-                <span style={TABULAR}>
-                  {intactBays}/{bays.length} intact
-                </span>
-              }
+              count={{ label: 'Intact', value: intactBays, max: bays.length }}
               controls={
                 crewHref === undefined ? undefined : (
                   <AppLink

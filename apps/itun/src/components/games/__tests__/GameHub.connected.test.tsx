@@ -245,12 +245,14 @@ describe('Crew & seats', () => {
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
     const rows = seats.getAllByRole('listitem').map((li) => li.textContent)
     // Join order; a Mediator with no pilot runs the table; an unclaimed pilot is an open seat.
+    // A pilot seat is the pilot's Row (role, then who holds it), its mech a Token.
     expect(rows).toEqual([
       'MediatorAsh (you)Runs the table',
-      'PlayerBeefcakePickle · Spectrum',
-      'Open—Hotdog · waiting for a player',
+      'Pickle (Pilot)PlayerBeefcakeSpectrum (Mech)',
+      'Hotdog (Pilot)OpenWaiting for a player',
     ])
-    expect(screen.getByText('1 of 2 seats')).toBeTruthy()
+    // The count is the label-first chip, `SEATS | 1/2`.
+    expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
     // No presence column: nothing writes it, and a false "Here" is worse than none.
     expect(screen.queryByText(/^(Here|Away)$/)).toBeNull()
   })
@@ -383,11 +385,11 @@ describe('Launch Dashboard', () => {
     return screen.getByRole('dialog')
   }
 
-  /** The pilots on offer, as their labels read: name, then whose. */
+  /** The pilots on offer, as their Rows read: name, kind, then whose. */
   const offered = (dialog: HTMLElement) =>
     within(dialog)
       .queryAllByRole('radio')
-      .map((r) => r.closest('label')?.textContent)
+      .map((r) => r.textContent)
 
   /** The body of `/dashboard/<id>`, signed in and connected. */
   async function openGate(id: string): Promise<void> {
@@ -443,10 +445,11 @@ describe('Launch Dashboard', () => {
     const dialog = await openPicker()
 
     // The pilot is the only choice on offer, and a crewmate's is not one.
-    const radios = within(dialog).getAllByRole('radio') as HTMLInputElement[]
+    const radios = within(dialog).getAllByRole('radio')
     expect(within(dialog).queryAllByRole('combobox')).toHaveLength(0)
-    expect(offered(dialog)).toEqual(['Vex ArloYou', 'MiraYou'])
-    expect(radios.map((r) => r.checked)).toEqual([true, false])
+    // The chosen Row wears the "Selected" seal.
+    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
+    expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
 
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Launch' }))
@@ -469,8 +472,8 @@ describe('Launch Dashboard', () => {
     await act(async () => {
       view?.rerender(<GameHub gameId="g1" activeSegment="pilot" onSegmentChange={() => {}} />)
     })
-    const radios = within(screen.getByRole('dialog')).getAllByRole('radio') as HTMLInputElement[]
-    expect(radios.map((r) => r.checked)).toEqual([true, false])
+    const radios = within(screen.getByRole('dialog')).getAllByRole('radio')
+    expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
   })
 
   test('a viewer who owns no pilot gets no pre-selection, and picks one', async () => {
@@ -484,8 +487,8 @@ describe('Launch Dashboard', () => {
 
     // Beefcake's pilot is not in this browser, so the gate could not open it.
     expect(offered(dialog)).toHaveLength(1)
-    const radio = within(dialog).getByRole('radio', { name: /Pre-gen/ }) as HTMLInputElement
-    expect(radio.checked).toBe(false)
+    const radio = within(dialog).getByRole('radio', { name: /Pre-gen/ })
+    expect(radio.getAttribute('aria-checked')).toBe('false')
     const launch = within(dialog).getByRole('button', { name: 'Launch' })
     expect(launch.hasAttribute('disabled')).toBe(true)
 

@@ -62,12 +62,6 @@ export type ReferenceEntityCardProps = {
    */
   showChassisAbility?: boolean
   /**
-   * INLINE — this card sits flush inside its host card (board E1): a flush
-   * ink band, its "//" line and body, with no frame, labels or footer. Set by
-   * the host when it lays out a chassis's abilities; not a consumer prop.
-   */
-  inline?: boolean
-  /**
    * Prose the HOST already prints, as `proseKey`s — a nested child hides any
    * paragraph that would repeat it (board E2). Threaded by the host.
    */
@@ -179,9 +173,7 @@ export type ReferenceEntityCardProps = {
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───
   titleOverride?: string
   statsOverride?: StatItem[]
-  primaryStatsOnly?: boolean
   subtitleExtra?: ReactNode
-  abilitiesSection?: ReactNode
   afterExtraContent?: ReactNode
   /** ASIDE LEAD — opt in when this card's `afterExtraContent` is a SECTION of
    * its own (the class pages' ability trees) rather than trailing body content.
@@ -190,7 +182,7 @@ export type ReferenceEntityCardProps = {
    *
    * Explicit, NOT inferred from `afterExtraContent`: that slot is generic, and
    * its other producer is a pattern's Systems/Modules loadout
-   * (`useChassisPatternConfig`). A pattern card renders with the CHASSIS as its
+   * (`PatternLoadout`). A pattern card renders with the CHASSIS as its
    * `data`, so it inherits the chassis artwork and would otherwise satisfy an
    * inferred gate — flipping every ITUN mech-wizard pattern card on an
    * artwork-bearing chassis to a layout meant only for class pages. Only the
@@ -228,6 +220,12 @@ export type ReferenceEntityCardHideConfig = {
   content?: boolean
   /** Suppress the entity's artwork (a preview that has none to show). */
   image?: boolean
+  /**
+   * Suppress the classification pill right of the title (`[Bay | Standard]`,
+   * `[Class | Base]`), where the context already says it: a bay on a crawler
+   * sheet, drawn as the SRD's bay Page draws it, wears none.
+   */
+  axisMarkers?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

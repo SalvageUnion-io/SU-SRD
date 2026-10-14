@@ -119,18 +119,6 @@
      the one action colour. */
   --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
 
-  /* Guide tones that are not one of the five ontology domains.
-
-     A guide's band colour is authored per-guide (`guideTone` in the dataset).
-     Most guides are about a pilot, a mech or a crawler and reuse those hues;
-     these two cover the guides that are about neither — the salvage/condition
-     procedures, and Tough Choices, whose band reads as a hazard stripe.
-
-     The dataset names a tone and this file owns every value, so a guide band
-     tracks a re-tone. */
-  --color-guide-salvage: rgb(90, 157, 181); /* #5a9db5 */
-  --color-guide-hazard: rgb(184, 76, 76); /* #b84c4c */
-
   /* Class ability-tier ramp (owner's call, 2026-10-13): Core = pilot orange,
      Advanced and Hybrid = this rust, Legendary = crawler pink. Core and
      Legendary reuse the ontology hues. The tier rust is its own hue, never
@@ -238,9 +226,8 @@
   --color-status-warn: var(--color-roll-failure);
   --color-status-bad: var(--color-roll-cascade);
 
-  /* Cargo (storage) accent triplet */
+  /* Cargo (storage) accent pair */
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
-  --color-cargo-deep: rgb(111, 85, 39); /* #6f5527 */
   --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
 
   /* Sheet tones (Header C live sheets) — base + deep pairs */

@@ -11,7 +11,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ClassPathPicker } from '../ClassPathPicker'
@@ -97,8 +97,9 @@ describe('ClassPathPicker — consequences', () => {
     expect(document.body.textContent).toContain('Recorded as Hacker')
     expect(screen.getByText('Gain')).toBeTruthy()
     expect(screen.getByText('Lose')).toBeTruthy()
-    // Other hybrids from Hacker close forever.
-    expect(screen.getByText(/— forever/)).toBeTruthy()
+    // Other hybrids from Hacker close forever, a line each under Lose.
+    const lose = screen.getByRole('region', { name: 'Lose' })
+    expect(within(lose).getAllByText(/— forever$/).length).toBeGreaterThan(1)
     expect(screen.queryByText('Where did they come from?')).toBeNull()
   })
 

@@ -24,7 +24,6 @@ import { PRODUCT } from 'component-lib/product'
 import { STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
-import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
@@ -129,30 +128,6 @@ const SHELF = {
   gap: tokens.space[10],
 } satisfies CSSProperties
 
-/** The shelf's head over a rule in the kind's tone: the kind, seen before it is read. */
-const SHELF_HEAD = {
-  alignItems: 'baseline',
-  borderBottomStyle: 'solid',
-  borderBottomWidth: tokens.space[6],
-  display: 'flex',
-  justifyContent: 'space-between',
-  paddingBottom: tokens.space[4],
-} satisfies CSSProperties
-
-const SHELF_TITLE = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.title,
-  fontWeight: tokens.weight.bold,
-  margin: 0,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const SHELF_COUNT = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.readout,
-  fontWeight: tokens.weight.bold,
-} satisfies CSSProperties
-
 const CARDS = {
   display: 'flex',
   flexDirection: 'column',
@@ -161,12 +136,6 @@ const CARDS = {
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
-
-const TONE: Record<StarterKind, string> = {
-  pilot: tokens.color.pilot,
-  mech: tokens.color.mech,
-  crawler: tokens.color.crawler,
-}
 
 export function FrontDoor() {
   const shelves = starterShelves()
@@ -225,10 +194,9 @@ export function FrontDoor() {
                 aria-label={`Starter Set ${shelf.title.toLowerCase()}`}
                 style={SHELF}
               >
-                <div style={{ ...SHELF_HEAD, borderBottomColor: TONE[shelf.kind] }}>
-                  <h3 style={SHELF_TITLE}>{shelf.title}</h3>
-                  <span style={SHELF_COUNT}>{shelf.builds.length}</span>
-                </div>
+                {/* Each kind's section stamp is a Slab, as on `/starter` (ruleset
+                    §3.2: slabs section). */}
+                <Slab as="h3" variant="solid" label={shelf.title} />
                 <ul style={CARDS}>
                   {shelf.builds.map((build) => (
                     <li key={build.id}>

@@ -16,6 +16,11 @@ export type SeatRow = {
   role: 'Mediator' | 'Player' | 'Open'
   who: string
   unit: string
+  /**
+   * The seat's pilot, as its Row and Token read it: the callsign, and the
+   * mech assigned to them (null on foot). Null for a member with no pilot.
+   */
+  pilot: { name: string; mech: string | null } | null
 }
 
 const text = (body: unknown, key: string): string | null => {
@@ -45,12 +50,15 @@ export function seatRows(
     const id = linkId(m)
     if (id !== null) mechName.set(id, text(m.body, 'name') ?? 'a mech')
   }
-  const unitOf = (pilot: Listing['pilots'][number]): string => {
+  const pilotOf = (pilot: Listing['pilots'][number]): { name: string; mech: string | null } => {
     const callsign = text(pilot.body, 'callsign') ?? text(pilot.body, 'name') ?? 'Pilot'
     const id = linkId(pilot)
     const mech = id === null ? undefined : mechOfPilot.get(id)
-    const name = mech === undefined ? undefined : mechName.get(mech)
-    return `${callsign} · ${name ?? 'on foot'}`
+    return { name: callsign, mech: (mech === undefined ? undefined : mechName.get(mech)) ?? null }
+  }
+  const unitOf = (pilot: Listing['pilots'][number]): string => {
+    const { name, mech } = pilotOf(pilot)
+    return `${name} · ${mech ?? 'on foot'}`
   }
 
   const rows: SeatRow[] = []
@@ -65,17 +73,24 @@ export function seatRows(
         role,
         who,
         unit: member.mediator ? 'Runs the table' : 'No pilot yet',
+        pilot: null,
       })
       continue
     }
     for (const pilot of pilots) {
-      rows.push({ key: pilot._id, role, who, unit: unitOf(pilot) })
+      rows.push({ key: pilot._id, role, who, unit: unitOf(pilot), pilot: pilotOf(pilot) })
     }
   }
   const open = listing.pilots.filter((p) => p.ownerId === null)
   for (const pilot of open) {
     const callsign = text(pilot.body, 'callsign') ?? 'Pilot'
-    rows.push({ key: pilot._id, role: 'Open', who: callsign, unit: 'Waiting for a player' })
+    rows.push({
+      key: pilot._id,
+      role: 'Open',
+      who: callsign,
+      unit: 'Waiting for a player',
+      pilot: { name: callsign, mech: pilotOf(pilot).mech },
+    })
   }
   return { rows, claimed: listing.pilots.length - open.length, total: listing.pilots.length }
 }

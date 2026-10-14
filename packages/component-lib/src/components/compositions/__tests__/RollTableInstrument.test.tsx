@@ -134,6 +134,46 @@ describe('RollTableInstrument — the ink head’s column labels', () => {
   })
 })
 
+describe('RollTableInstrument — the title as a table picker', () => {
+  const picker = (open: boolean, onOpen: () => void) => (
+    <RollTableInstrument
+      name="Core Mechanic"
+      size="medium"
+      onRoll={() => {}}
+      titleSelect={{ onOpen, open }}
+      table={{ kind: 'bands', rows }}
+    />
+  )
+
+  test('the title is the trigger: it names the table, reports its state and calls back', () => {
+    let opened = 0
+    const { container } = render(picker(false, () => opened++))
+    const trigger = screen.getByRole('button', {
+      name: 'Choose a roll table (current: Core Mechanic)',
+    })
+    expect(trigger.textContent).toBe('Core Mechanic')
+    expect(trigger.getAttribute('aria-haspopup')).toBe('dialog')
+    expect(trigger.getAttribute('aria-expanded')).toBe('false')
+    expect(container.querySelector('.su-roll__title')?.contains(trigger)).toBe(true)
+    // A titled bar: no column labels, and the roll is still the bar's last control.
+    expect(container.querySelector('.su-roll__cols')).toBeNull()
+    expect(container.querySelector('.su-roll__bar')?.lastElementChild?.textContent).toBe(
+      'Roll the Die'
+    )
+    fireEvent.click(trigger)
+    expect(opened).toBe(1)
+  })
+
+  test('an open picker flips the chevron and says so', () => {
+    const { container } = render(picker(true, () => {}))
+    const trigger = screen.getByRole('button', { name: /^Choose a roll table/ })
+    expect(trigger.getAttribute('aria-expanded')).toBe('true')
+    expect(container.querySelector('.su-roll__title-chevron')?.getAttribute('data-open')).toBe(
+      'true'
+    )
+  })
+})
+
 describe('RollTableInstrument — a roll brings its row on screen', () => {
   const realScroll = Element.prototype.scrollIntoView
   const realRect = Element.prototype.getBoundingClientRect

@@ -133,19 +133,6 @@
   flex: 0 1 auto;
 }
 
-/* An inline action (`ReferenceEntityCard`'s `inline`): its band, its body
- * and its table. One that is its band alone (the chips said everything) sits
- * on the next action's band, so a paper rule parts them; after a paper body
- * the rule is paper on paper. */
-.su-ec-inline {
-  display: flex;
-  flex-direction: column;
-}
-
-.su-ec-inline + .su-ec-inline {
-  border-top: var(--bw-chrome) solid var(--color-paper);
-}
-
 /* The end column: the Dashboard's pennant button, centred on the whole band
  * so it is never left alone on a line. */
 .su-ec-band__end {

@@ -37,9 +37,8 @@ const SCAN_DIRS = [
   'packages/component-lib/src',
   'packages/salvageunion-reference/lib',
   // The DATASET, not just the code that reads it (`.json` included): a raw hex
-  // in the data would be a second palette, and `entityCardTone.ts` gives a
-  // guide's tone precedence over the domain tone. Guides name a theme tone
-  // (`guideTone`); scanning this directory is what keeps it that way.
+  // in the data would be a second palette. The data names no colour (a guide's
+  // tone is derived, `guideTone()`); scanning this directory keeps it so.
   'packages/salvageunion-reference/data',
   'apps/srd/src',
   'apps/itun/src',

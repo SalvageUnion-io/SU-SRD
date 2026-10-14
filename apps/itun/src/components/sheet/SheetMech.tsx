@@ -25,8 +25,8 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { runWrite } from '../../lib/runWrite'
-import { AppLink } from '../shared/AppLink'
-import { EntityRow } from '../shared/EntityRow'
+import { EmptyUnitSlot } from '../shared/EmptyUnitSlot'
+import { UnitRow } from '../shared/UnitRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { mechStamp } from './bandStamps.model'
 import { LinkedUnitLink } from './LinkedUnitLink'
@@ -162,39 +162,38 @@ export function SheetMech({
   ) : (
     <>
       {composition.pilot ? (
-        <EntityRow
-          entityType="pilot"
-          className="su-sheet-rail-slot"
-          name={composition.pilot.name}
-          sheetHref={hrefFor('pilot', composition.pilot.id)}
-          linkAs={AppLink}
-          meta="Assigned Pilot"
-          stats={rowStats(
-            pilotRailItems(
-              composition.pilot,
-              resolveEffectiveCrawlerLevel(composition.pilot, pilotCrawler)
-            )
-          )}
-          actions={
-            editable ? (
-              <AssignPicker
-                subject={self}
-                container={container}
-                pick="pilot"
-                filled
-                exclude={[composition.pilot.id]}
-                size="mini"
-              />
-            ) : undefined
-          }
-          onUnassignClick={unassign(pilotLinkId)}
-        />
+        <div className="su-sheet-rail-slot">
+          <UnitRow
+            kind="pilot"
+            name={composition.pilot.name}
+            note="Assigned Pilot"
+            readings={rowStats(
+              pilotRailItems(
+                composition.pilot,
+                resolveEffectiveCrawlerLevel(composition.pilot, pilotCrawler)
+              )
+            )}
+            href={hrefFor('pilot', composition.pilot.id)}
+            controls={
+              editable ? (
+                <AssignPicker
+                  subject={self}
+                  container={container}
+                  pick="pilot"
+                  filled
+                  exclude={[composition.pilot.id]}
+                  size="mini"
+                />
+              ) : undefined
+            }
+            onUnassign={unassign(pilotLinkId)}
+          />
+        </div>
       ) : withheldPilot ? (
         <WithheldUnitRow unit={withheldPilot} label="Assigned Pilot" />
       ) : (
-        <EntityRow
-          empty
-          entityType="pilot"
+        <EmptyUnitSlot
+          kind="pilot"
           className="su-sheet-rail-slot"
           roleLabel="Assigned Pilot"
           message="No pilot assigned. Assign a pilot to speak for this machine."
@@ -209,34 +208,33 @@ export function SheetMech({
         />
       )}
       {composition.crawler ? (
-        <EntityRow
-          entityType="crawler"
-          className="su-sheet-rail-slot"
-          name={composition.crawler.name}
-          sheetHref={hrefFor('crawler', composition.crawler.id)}
-          linkAs={AppLink}
-          meta="Home Crawler"
-          stats={rowStats(crawlerRailItems(composition.crawler))}
-          actions={
-            editable ? (
-              <AssignPicker
-                subject={self}
-                container={container}
-                pick="crawler"
-                filled
-                exclude={[composition.crawler.id]}
-                size="mini"
-              />
-            ) : undefined
-          }
-          onUnassignClick={unassign(crawlerLinkId)}
-        />
+        <div className="su-sheet-rail-slot">
+          <UnitRow
+            kind="crawler"
+            name={composition.crawler.name}
+            note="Home Crawler"
+            readings={rowStats(crawlerRailItems(composition.crawler))}
+            href={hrefFor('crawler', composition.crawler.id)}
+            controls={
+              editable ? (
+                <AssignPicker
+                  subject={self}
+                  container={container}
+                  pick="crawler"
+                  filled
+                  exclude={[composition.crawler.id]}
+                  size="mini"
+                />
+              ) : undefined
+            }
+            onUnassign={unassign(crawlerLinkId)}
+          />
+        </div>
       ) : withheldCrawler ? (
         <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
       ) : (
-        <EntityRow
-          empty
-          entityType="crawler"
+        <EmptyUnitSlot
+          kind="crawler"
           className="su-sheet-rail-slot"
           roleLabel="Home Crawler"
           message="No crawler assigned. A mech is assigned to a crawler on its own, separately from its pilot."
@@ -271,6 +269,7 @@ export function SheetMech({
           readOnly={readOnly}
           crawler={composition.crawler}
           crawlerReadOnly={crawlerReadOnly}
+          crawlerHref={composition.crawler ? hrefFor('crawler', composition.crawler.id) : undefined}
           linkedUnits={rail}
           pilotAbilities={pilotAbilitiesOverride ?? composition.pilot?.abilities}
         />

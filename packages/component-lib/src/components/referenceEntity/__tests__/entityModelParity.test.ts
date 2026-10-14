@@ -166,7 +166,6 @@ describe('toEntityModel parity, every entity', () => {
         schemaName,
         asCompact: true,
         none: schemaName === 'actions',
-        primaryOnly: false,
         techLevel,
         techLevelDisplay: techLevel,
         techLevelModified: false,
@@ -289,7 +288,10 @@ describe('toEntityModel parity, every entity', () => {
     for (const row of ENTITIES) {
       const { schemaName, entity } = row
       const model = toEntityModel(entity)
-      const droneLoadout = schemaName === 'drones' ? resolveDroneOwnLoadout(entity) : undefined
+      const droneLoadout =
+        schemaName === 'drones' || schemaName === 'vehicles'
+          ? resolveDroneOwnLoadout(entity)
+          : undefined
       const expectedGroups = [
         ...resolveNestedEntities(entity).map((g) => [g.label, g.entities.map(nameOf)]),
         ...(droneLoadout && droneLoadout.systems.length > 0

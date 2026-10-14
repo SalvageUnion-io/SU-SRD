@@ -49,7 +49,7 @@
  *   CONTENT_BUNDLE schema the same shared list rather than a bespoke
  *   per-schema subset.
  * - CHASSIS_BUNDLE — `chassis` patterns embed systems/modules *by name*
- *   (useChassisPatternConfig -> `SalvageUnionReference.Systems.find` /
+ *   (the pattern loadout -> `SalvageUnionReference.Systems.find` /
  *   `.Modules.find`, both LazyModel access) — needs those two schemas
  *   (themselves CONTENT_BUNDLE members, so also need `actions`). A chassis
  *   ability can also carry a `.drone` reference, resolved via
@@ -114,11 +114,15 @@ const CHASSIS_BUNDLE: readonly string[] = [
 ]
 
 /** `crawler-bays` — the Armament Bay's Weapons System choice is a schema-only
- *  catalog resolved at render time (`resolveCatalogChoiceEntities`): it reads
- *  the whole `systems` collection and filters by referenced-action damage type
- *  (`actions`). The resolver runs even for the collapsed listing (to count the
- *  options), so both schemas must be loaded whenever a bay renders. */
+ *  catalog (`resolveCatalogChoiceEntities`): it reads the whole `systems`
+ *  collection and filters by referenced-action damage type (`actions`). The
+ *  listing resolves it when the reader opens Show options
+ *  (`CatalogChoiceListing`), so both schemas must be loaded on a bay's page. */
 const CRAWLER_BAY_BUNDLE: readonly string[] = ['systems', 'actions', ...ALWAYS_CORE]
+
+/** `systems` — a body kit's chassis choice is a schema-only catalog of every
+ *  `chassis`, resolved when the reader opens Show options. */
+const SYSTEM_BUNDLE: readonly string[] = [...CONTENT_BUNDLE, 'chassis']
 
 /** Schemas whose entities are data-driven, arbitrary cross-references into
  *  any other schema (guide steps) — not safely narrowable. */
@@ -138,7 +142,7 @@ const SCHEMA_PRELOAD_DEPS: Readonly<Record<string, readonly string[]>> = {
   modules: CONTENT_BUNDLE,
   npcs: CONTENT_BUNDLE,
   squads: CONTENT_BUNDLE,
-  systems: CONTENT_BUNDLE,
+  systems: SYSTEM_BUNDLE,
   vehicles: CONTENT_BUNDLE,
   // crawler-bays: resolves a Weapons System catalog (systems + actions).
   'crawler-bays': CRAWLER_BAY_BUNDLE,

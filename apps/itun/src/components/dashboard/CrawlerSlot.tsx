@@ -326,12 +326,10 @@ export function CrawlerMajor({
   const hull: BandBay = {
     label: 'Hull',
     gauges: [hullGauge(crawler)],
-    lines: [
-      {
-        text: [type?.name, crawlerTl === undefined ? 'Tech Level ?' : `Tech Level ${crawlerTl}`]
-          .filter(Boolean)
-          .join(' · '),
-      },
+    // Label-first chips, never a joined line: `TYPE | Augmented`, `TL | 3`.
+    stats: [
+      ...(type ? [{ label: 'Type', value: type.name }] : []),
+      { label: 'TL', value: crawlerTl ?? '?' },
     ],
     buttons: [],
   }
@@ -358,7 +356,13 @@ export function CrawlerMajor({
   const bays = bayConditions(crawler)
   const bayBay: BandBay = {
     label: 'Bays',
-    chips: bays.map((b) => ({ text: b.damaged ? `${b.name} damaged` : b.name, warn: b.damaged })),
+    // Each bay is its Token, greyed and ending in a DAMAGED badge when damaged;
+    // a bay that does not resolve keeps a named tile that says so.
+    chips: bays.map((b) =>
+      b.entity
+        ? { text: b.name, entity: b.entity, warn: b.damaged }
+        : { text: b.damaged ? `${b.name} damaged` : b.name, warn: b.damaged }
+    ),
     lines: bays.length === 0 ? [{ text: 'No bays installed.' }] : undefined,
     buttons: [],
   }
@@ -368,15 +372,14 @@ export function CrawlerMajor({
   const upkeepBay: BandBay = {
     label: 'Upkeep',
     side: true,
-    lines: [
-      {
-        text:
-          crawlerTl === undefined
-            ? `${DOWNTIME_UPKEEP_SCRAP} Scrap per Downtime`
-            : `${DOWNTIME_UPKEEP_SCRAP} Tech ${crawlerTl} Scrap per Downtime`,
-      },
-      ...(upkeep === null
-        ? []
+    // `SCRAP | 3` of `TL | n` (or higher), each Downtime.
+    stats: [
+      { label: 'Scrap', value: DOWNTIME_UPKEEP_SCRAP },
+      ...(crawlerTl === undefined ? [] : [{ label: 'TL', value: crawlerTl }]),
+    ],
+    lines:
+      upkeep === null
+        ? undefined
         : [
             {
               text: upkeep.spent
@@ -385,8 +388,7 @@ export function CrawlerMajor({
                   ? 'Outstanding'
                   : `Outstanding · paid in the ${UPKEEP_STEP_NAME} step`,
             },
-          ]),
-    ],
+          ],
     buttons:
       mediator && upkeep !== null && !upkeep.spent && upkeep.payable
         ? [
@@ -401,14 +403,14 @@ export function CrawlerMajor({
   const upgradeBay: BandBay = {
     label: 'Upgrade',
     side: true,
-    lines: [
-      {
-        text:
-          upgrade === null
-            ? 'No further Tech Level'
-            : `Pool ${crawler.upgradePool ?? 0}/${upgrade.cost} to Tech ${upgrade.toTl}`,
-      },
-    ],
+    stats:
+      upgrade === null
+        ? undefined
+        : [
+            { label: 'Pool', value: crawler.upgradePool ?? 0, max: upgrade.cost },
+            { label: 'Next Tech', value: upgrade.toTl },
+          ],
+    lines: upgrade === null ? [{ text: 'No further Tech Level' }] : undefined,
     buttons: [],
   }
   // Scrap needs a mech to break down; a pilot with none has nothing to offer.

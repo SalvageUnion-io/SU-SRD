@@ -6,7 +6,7 @@ One pilot's live-play surface in a Game (`apps/itun/src/components/dashboard/`).
    Opens only for a pilot in a Game with a Mediator; the Mediator's is [mediator-dashboard.md](mediator-dashboard.md).
 2. **§2 Layout** — Fixed 1280×800 `DashboardCanvas`, scaled and letterboxed, never scrolls: rail (`SavedIndicator`), slot row (one Major, two Minors, placed by mount),
    display (`DeckList` beside the tabs) and `DashboardStrip` (latest alert, proposal count). Hue means ontology; state is a treatment, never a second hue.
-3. **§3 Reuse** — The display draws SRD entities with `ReferenceEntityCard` and tables with `RollTable`; never fork it.
+3. **§3 Reuse** — Entities are `ReferenceEntityCard`, tables `RollTableInstrument` (`DashboardRollTable`); never fork.
 4. **§4 State** — Vitals, uses and cargo persist on the records through `entityStore.update`; mount, range, `activeEffects`, resolving and ejected live on the seat (`apps/itun/convex/seats.ts`).
    Rolls are Game rows in the change log, Downtime is the Game's `downtime` row, and maxima and crew status are derived, never stored.
 5. **§5 Rules** — A thin driver over `packages/salvageunion-reference/lib/rules`; `apps/itun/src/lib/rules/playActions.ts` is glue, never math. Destructive results are the player's act (ADR-007).

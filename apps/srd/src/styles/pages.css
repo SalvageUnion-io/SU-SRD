@@ -10,7 +10,7 @@
 
 /*
  * The home page — the manual's Contents page (board 06, `index.page.tsx` and
- * `components/HomeContents.tsx`). A 1360px measure: the index in columns and
+ * `components/HomeContents.tsx`). At the one page measure: the index in columns and
  * the "Getting started" sidebar at its right; on a phone, the title, the
  * search, "Start here", then the index.
  */
@@ -75,9 +75,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-24);
-  margin-inline: auto;
-  padding: var(--space-24) var(--space-16) var(--space-32);
-  width: 100%;
 }
 
 .srd-home__aside {
@@ -92,20 +89,13 @@
    column has no row gap, so each section carries its own. */
 .srd-home__index {
   column-gap: var(--space-28);
-  columns: 3 16rem;
+  columns: 3 15rem;
   min-width: 0;
 }
 
 .srd-home__index > * {
   break-inside: avoid;
   margin-block-end: var(--space-24);
-}
-
-@media (min-width: 40rem) {
-  .srd-home__body,
-  .srd-not-found__body {
-    padding-inline: var(--space-24);
-  }
 }
 
 /* A desktop pins the aside and the Discord bot to a 20rem sidebar at the
@@ -201,18 +191,6 @@
   min-width: 0;
 }
 
-.srd-not-found__heading {
-  border-top: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.1;
-  margin: 0;
-  padding-top: var(--space-6);
-  text-transform: uppercase;
-}
-
 /* The guesses: search-result Rows. */
 .srd-not-found__results {
   display: flex;
@@ -235,33 +213,30 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
 }
 
+/* A chapter as the home index opens one: its colour band on top
+   (`.srd-contents__band`), then its name under an ink rule. */
 .srd-not-found__chapter {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
   color: var(--color-ink);
   display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-12);
-  min-height: 44px;
-  overflow: hidden;
-  padding-right: var(--space-12);
+  flex-direction: column;
   text-decoration: none;
 }
 
-.srd-not-found__chapter:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.srd-not-found__chapter-name {
+  align-items: center;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  min-height: 44px;
+  padding: var(--space-6) 0;
 }
 
-.srd-not-found__swatch {
-  align-self: stretch;
-  border-right: var(--bw-chrome) solid var(--color-ink);
-  flex: none;
-  width: var(--space-16);
+.srd-not-found__chapter:hover .srd-not-found__chapter-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* A chapter of the index: its colour band, its name and count, its rows. */
@@ -408,94 +383,33 @@
   flex-direction: column;
 }
 
+/* A show page's body: the rest of the height, its content centred in it. */
 .srd-entity__body {
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: center;
+}
+
+/*
+ * The one page body (`.srd-page-body`): every page family's content under its
+ * band — show pages, listings, search, the Contents home, the document pages
+ * and the 404 — at the one measure (`--srd-measure`, `lib/pageMeasure.ts`),
+ * centred, its side padding the gutter: 16px on a phone, 24px from `sm`. The
+ * band's row and the foot's share the measure and the padding, so the notch,
+ * the content and the citation start on one line.
+ */
+.srd-page-body {
   margin-inline: auto;
+  max-width: var(--srd-measure);
   padding: var(--space-20) var(--space-16) var(--space-32);
   width: 100%;
 }
 
 @media (min-width: 40rem) {
-  .srd-entity__body {
+  .srd-page-body {
     padding: var(--space-24) var(--space-24) var(--space-32);
   }
-}
-
-/* An entity page's band line (`EntityPageStamps`). Under the title on a
-   phone it wraps down; beside it from `sm` it sits on the title's baseline,
-   every stamp and stat's foot on it, flush right. The chips are inline boxes
-   in a balanced block rather than flex items, so when they take two rows
-   (or more) the rows come out even instead of one long and one short.
-   Each chip's 4px margin, cancelled at the edges, is the 8px gap. */
-.srd-entity-stamps {
-  margin: calc(-1 * var(--space-4));
-  text-wrap: balance;
-}
-
-.srd-entity-stamps > *,
-.srd-entity-stamps > dl > * {
-  display: inline-flex;
-  margin: var(--space-4);
-  /* The row's balance and alignment are for the chips, not the words in them. */
-  text-align: start;
-  text-wrap: wrap;
-  vertical-align: bottom;
-}
-
-/* The stat column (`StatColumn`, a `dl`): its cells break across rows like
-   the other chips. */
-.srd-entity-stamps > dl {
-  display: inline;
-  margin: 0;
-}
-
-@media (min-width: 40rem) {
-  .srd-entity-stamps {
-    text-align: end;
-  }
-}
-
-/*
- * The type and cost stamps beside an entity page's stats
- * (`EntityPageStamps`): the height and type of the band's compact stat label
- * (`.su-stat-column__label` on a `ChapterBand`), so the row reads as one size.
- */
-.srd-entity-stamp {
-  align-items: center;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: 32px;
-  padding-inline: var(--space-8);
-}
-
-/* The facts and traits on the band (`Stat`, `Tag`): each cell at the stamps'
-   height (its plates inside the cell's hairline frame) and type, so every
-   chip on the band reads as one size. */
-.srd-entity-stamps .su-stat-plate {
-  align-items: center;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: calc(32px - 2 * var(--bw-hairline));
-  padding-inline: var(--space-8);
-}
-
-/* The page's action on the band ("Build With This"): the chips' height, not
-   `.su-page-action`'s 40px, so every chip and button on the band is one size.
-   A coarse pointer's 44px floor still lifts it. */
-.srd-entity-stamps .su-page-action {
-  height: 32px;
-}
-
-/* An ability's cost on its band: the book's pointy box at the stamps'
-   height (it stretches to its flex line), in the stamps' type. */
-.srd-entity-cost {
-  align-self: stretch;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: 32px;
 }
 
 /*
@@ -537,55 +451,6 @@
 .srd-guide-exits__starter {
   font-weight: var(--font-weight-semibold);
   text-decoration: underline;
-}
-
-/*
- * A page's link back to what its entity is built on (`EntityPageFrame`'s
- * `parent`): leading the cluster beside the title, an ink stamp naming the
- * relation joined to a paper cell carrying the parent's name. The whole pair
- * is the link; hover underlines the name.
- */
-.srd-parent-link {
-  align-items: stretch;
-  border: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-ink);
-  display: inline-flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-badge);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-snug);
-  line-height: 1;
-  /* The band's other chips' height (`.srd-entity-stamp`, the stat column). */
-  min-height: 32px;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-.srd-parent-link__label {
-  align-items: center;
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  display: flex;
-  padding-inline: var(--space-8);
-}
-
-.srd-parent-link__name {
-  align-items: center;
-  background-color: var(--color-paper);
-  display: flex;
-  padding-inline: var(--space-10);
-}
-
-.srd-parent-link:hover .srd-parent-link__name,
-.srd-parent-link:focus-visible .srd-parent-link__name {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-/* The canonical ring (paper offset under ink), so it reads on any band tone. */
-.srd-parent-link:focus-visible {
-  box-shadow: var(--focus-ring-shadow);
-  outline: 3px solid transparent;
 }
 
 /*
@@ -704,7 +569,7 @@
   }
 
   /* The page sits closer under its band: a line the fold needs. */
-  .srd-entity__body:has(.srd-roll) {
+  .srd-page-body:has(.srd-roll) {
     padding-top: var(--space-16);
   }
 }
@@ -726,13 +591,6 @@
 
 .srd-listing-page {
   background-color: var(--color-wk-bg);
-  padding: var(--space-16) var(--space-16) var(--space-32);
-}
-
-@media (min-width: 48rem) {
-  .srd-listing-page {
-    padding: var(--space-20) var(--space-32) var(--space-32);
-  }
 }
 
 .srd-listing {
@@ -742,8 +600,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
-  margin: 0 auto;
-  max-width: 87.5rem;
   width: 100%;
 }
 
@@ -1303,11 +1159,9 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-/* A tier card: the band in its book hue (ink on pilot, paper elsewhere,
-   §3.8), the tier's name on the paper cut-out tab that opens into the body,
-   no rule between them, and the TP cost in the pointy box on the band. */
+/* A tier card: its cut-out head (`Head`, in the tier's book hue, §3.8) opens
+   into the body, no rule between them. */
 .srd-class-brief__card {
-  --srd-brief-tier: var(--color-pilot);
   background: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
   border-radius: var(--radius-card);
@@ -1315,43 +1169,6 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-}
-
-.srd-class-brief__card[data-tier='advanced'],
-.srd-class-brief__card[data-tier='hybrid'] {
-  --srd-brief-tier: var(--color-tier-hybrid);
-}
-
-.srd-class-brief__card[data-tier='legendary'] {
-  --srd-brief-tier: var(--color-crawler-band);
-}
-
-.srd-class-brief__band {
-  align-items: flex-end;
-  background: var(--srd-brief-tier);
-  display: flex;
-  gap: var(--space-8);
-  justify-content: space-between;
-  padding: var(--space-8) var(--space-10) 0;
-}
-
-.srd-class-brief__band > :not(.srd-class-brief__tab) {
-  align-self: center;
-  margin-bottom: var(--space-4);
-}
-
-.srd-class-brief__tab {
-  background: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-lede);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  line-height: 1.1;
-  margin-left: calc(-1 * var(--space-2));
-  padding: var(--space-4) var(--space-8) var(--space-2);
-  text-transform: uppercase;
 }
 
 .srd-class-brief__body {
@@ -1422,92 +1239,16 @@
   overflow: hidden;
 }
 
-.srd-class-path__head {
-  align-items: flex-end;
-  background: var(--color-pilot);
+/* A Hybrid Class's head opens its page: the whole cut-out head is the link. */
+.srd-class-path__link {
   color: var(--color-ink);
-  display: flex;
-  gap: var(--space-8);
-  justify-content: space-between;
-  padding: var(--space-10) var(--space-12) 0;
+  display: block;
   text-decoration: none;
 }
 
-/* The chips, right of the name on the band (a Row's cut-out head): what
-   opens the path, then its kind, level with the name's foot; a hybrid's
-   chevron closes the line. */
-.srd-class-path__band {
-  align-items: center;
-  display: flex;
-  flex: 1 1 auto;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  justify-content: flex-end;
-  min-width: min-content;
-  padding-block: var(--space-6);
-}
-
-/* On a phone the chips flow UNDER the name, never above it: their own line on
-   the paper below the tab, the head of the body, so the tab still opens into
-   the paper (a Row's, `entity-forms.css`). The strip is painted the card's
-   full width by a clipped shadow, since the head is inset. */
-@media (max-width: 40rem) {
-  .srd-class-path__head {
-    flex-wrap: wrap;
-    row-gap: 0;
-  }
-
-  .srd-class-path__band {
-    background-color: var(--color-paper);
-    box-shadow: 0 0 0 100vmax var(--color-paper);
-    clip-path: inset(0 -100vmax -1px);
-    flex-basis: 100%;
-    justify-content: flex-start;
-    order: 1;
-    padding-block: var(--space-6) 0;
-  }
-
-  /* A hybrid's chevron stays on the band, at the name's end of the line. */
-  .srd-class-path__chevron {
-    margin-left: auto;
-  }
-}
-
-a.srd-class-path__head:hover {
-  color: var(--color-ink);
-}
-
-a.srd-class-path__head:focus-visible {
+.srd-class-path__link:focus-visible {
   outline: var(--bw-chrome) solid var(--color-ink);
   outline-offset: calc(-1 * var(--space-4));
-}
-
-/* The name on the paper cut-out, notched into the band's foot (a Row's): the
-   head draws no rule under it, so the tab opens into the paper body. */
-.srd-class-path__name {
-  background-color: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.05;
-  flex: 0 1 auto;
-  margin-left: calc(-1 * var(--space-2));
-  max-width: 100%;
-  padding: var(--space-6) var(--space-10) var(--space-2);
-  text-transform: uppercase;
-}
-
-.srd-class-path__chevron {
-  align-self: center;
-  flex: none;
-  height: 1.1rem;
-  transition: transform 120ms;
-  width: 1.1rem;
-}
-
-a.srd-class-path__head:hover .srd-class-path__chevron {
-  transform: translateX(2px);
 }
 
 .srd-class-path__body {
@@ -1540,22 +1281,6 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   border-top-right-radius: 0;
 }
 
-/* "Engineer only": a lone-label caps badge, frameless (§7.1). */
-.srd-class-path__or {
-  color: var(--color-wk-muted);
-  font-family: var(--font-cond);
-  font-size: var(--text-badge);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-wide);
-  text-transform: uppercase;
-}
-
-/* On the band the "or" / "Engineer only" label is ink: the muted grey does
-   not hold its contrast on pilot. */
-.srd-class-path__head .srd-class-path__or {
-  color: var(--color-ink);
-}
-
 /* The path's text, at the head of the body over its trees. */
 .srd-class-path__note {
   color: var(--color-ink);
@@ -1565,27 +1290,22 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   max-width: 72ch;
 }
 
+/* A path's trees split the card in equal columns, the same in every path
+   card on the page (its own Advanced and Legendary trees, each Hybrid
+   Class's): as many as fit at 16rem, one each on a phone. */
 .srd-class-path__trees {
+  display: grid;
   gap: var(--space-8) var(--space-24);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 }
 
 .srd-class-path__foot {
-  align-items: center;
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
-  color: var(--color-wk-muted);
-  display: flex;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink-2);
   font-size: var(--text-caption);
-  gap: var(--space-8);
-  justify-content: space-between;
-  padding: var(--space-6) var(--space-14);
-}
-
-.srd-class-path__page {
-  border: var(--bw-hairline) solid var(--color-ink);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-bold);
-  padding: 0 var(--space-6);
+  margin: 0;
+  padding: var(--space-8) var(--space-14);
+  text-align: right;
 }
 
 /*
@@ -1662,15 +1382,17 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   color: var(--color-wk-muted);
 }
 
-/* The entry's date, set on `PageHeading`, which takes a className and no style.
-   Its `subheading` rung brings `text-lg`'s 1.75rem line-height with it, which
-   outranks a class here; `!important` sets the date's tighter one. */
-.srd-changelog__date {
-  color: var(--color-ink);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: var(--tracking-caps-tight);
-  /* biome-ignore lint/complexity/noImportantStyles: PageHeading's own text-lg line-height outranks a class */
-  line-height: 1.25 !important;
+/* A changelog entry (`components/Changelog.tsx`): a card's frame round its
+   cut-out head (`Head`) and the paper body the tab opens into. */
+.srd-changelog__entry {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.srd-changelog__items {
+  padding: var(--space-8) var(--space-12) var(--space-12) var(--space-16);
 }
 
 /* The About page's colophon (`components/Colophon.tsx`): one column, two from `md` (48rem) up. */

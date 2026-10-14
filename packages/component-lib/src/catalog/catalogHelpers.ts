@@ -102,10 +102,9 @@ export function buildCatalogCategories({
           const display = getReferenceEntityData(item as SURefEntity)
           const rawName = item.name
           const labelText = catalogNameOverrides[rawName] ?? rawName
-          // A guide names a TONE; the colour it resolves to is owned by
-          // `theme.css` via `entityGuideToneColor`. The tile and the card the
-          // tile opens therefore paint from one place, and the dataset is
-          // never a second palette.
+          // Every guide paints rules blue (`entityGuideToneColor`, a
+          // `theme.css` token), so the tile and the card it opens paint from
+          // one place.
           const guideColor = entityGuideToneColor(item as SURefMetaEntity)
           return {
             id: item.id,

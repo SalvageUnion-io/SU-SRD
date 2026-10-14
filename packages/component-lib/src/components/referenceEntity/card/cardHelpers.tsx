@@ -16,6 +16,14 @@ import type { CardTitleTag, ReferenceCardEntity } from './referenceEntityCardTyp
 export const MAX_DEPTH = 3
 
 /**
+ * What a card's own `[(CHASSIS)]` tokens read: a chassis's name, or a vehicle's
+ * (the E-Boat's item reuses the Kraken's chassis text); nothing otherwise.
+ */
+export function chassisTokenName(schemaName: string, name: string): string | undefined {
+  return schemaName === 'chassis' || schemaName === 'vehicles' ? name : undefined
+}
+
+/**
  * Does this record carry structured data for the mechanical change its text
  * states (ADR-029)?
  *

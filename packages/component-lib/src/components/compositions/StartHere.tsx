@@ -1,13 +1,13 @@
 import type { CSSProperties } from 'react'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import { borderWidth, color, font, fontSize, space } from '../../design/tokens'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Slab } from '../atoms/Slab'
 
 /**
  * StartHere — the one onboarding both fronts show: the SRD's home and ITUN's
- * front door. Three steps in the order a new crew walks them, each an ink
- * banner with its numeral and the book's rounded tail (ruleset §4.4), then one
- * line on what the step is. The steps' words are `START_HERE_STEPS`, spelled
+ * front door. Three steps in the order a new crew walks them, each headed by a
+ * solid `Slab` — its numeral, then its title, in the stamp, as every section
+ * heading is (ruleset §3.2) — then one line on what the step is. The steps' words are `START_HERE_STEPS`, spelled
  * once here, so the two tools cannot drift into two onboardings again.
  *
  * What each tool adds is a prop: an `href` per step (the SRD opens the book's
@@ -74,37 +74,11 @@ const STEP = {
   textDecoration: 'none',
 } satisfies CSSProperties
 
-/** The step's ink banner, square on the left and rounded off on the right. */
-const BANNER = {
-  alignItems: 'center',
-  backgroundColor: color.ink,
-  borderEndEndRadius: radius.full,
-  borderStartEndRadius: radius.full,
-  color: color.paper,
-  display: 'flex',
-  gap: space[10],
-  margin: `${space[12]} ${space[24]} ${space[12]} 0`,
-  minHeight: '44px',
-  padding: `${space[6]} ${space[16]} ${space[6]} ${space[12]}`,
-} satisfies CSSProperties
-
-const NUMERAL = {
-  fontFamily: font.cond,
-  fontSize: fontSize.displayLg,
-  fontWeight: weight.extrabold,
-  lineHeight: 1,
-} satisfies CSSProperties
-
-const TITLE = {
-  fontFamily: font.cond,
-  fontSize: fontSize.title,
-  fontWeight: weight.bold,
-  letterSpacing: 'normal',
-  lineHeight: 1.1,
-  margin: 0,
-  // Set, not inherited: ITUN's base heading rule capitalises every heading,
-  // and the block reads the same on both fronts.
-  textTransform: 'none',
+/** The step's slab, inset from the box's frame. */
+const STEP_SLAB = {
+  marginBottom: space[8],
+  paddingInline: space[16],
+  paddingTop: space[16],
 } satisfies CSSProperties
 
 const BODY = {
@@ -118,14 +92,17 @@ const BODY = {
 function StepFace({ step, index }: { step: StartHereStep; index: number }) {
   return (
     <>
-      <div style={BANNER}>
-        <span aria-hidden="true" style={NUMERAL}>
-          {index + 1}
-        </span>
-        <h3 className="su-start-here__title" style={TITLE}>
-          {step.title}
-        </h3>
-      </div>
+      <Slab
+        variant="solid"
+        as="h3"
+        className="su-start-here__title"
+        style={STEP_SLAB}
+        label={
+          <>
+            <span aria-hidden="true">{index + 1}</span> {step.title}
+          </>
+        }
+      />
       <p style={BODY}>{step.body}</p>
     </>
   )

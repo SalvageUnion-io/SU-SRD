@@ -4,8 +4,8 @@
  * The rules-blue band with the home page's hero search in it; under it the
  * "did you mean" (`DidYouMeanIsland`, the missed slug run against the SRD's
  * search index) and the book's five chapters, each a link to its section of
- * the Contents. Every link is ink on paper: a chapter's colour is its swatch,
- * never a text ground (ruleset §3.8).
+ * the Contents. Every link is ink on paper: a chapter's colour is its top band,
+ * as on the home index, never a text ground (ruleset §3.8) or a left rail (§3.10).
  *
  * Emitted as `dist/404.html`, NOT `dist/404/index.html`: the Worker answers every
  * miss with it (`src/worker/index.ts`, reading `/404` through the asset binding).
@@ -13,16 +13,18 @@
  * search, so the Union bar carries none here (`BaseLayout`).
  */
 
-import { CHAPTER_BAND_COLOR, ChapterBand } from 'component-lib'
+import { CHAPTER_BAND_COLOR, ChapterBand, Slab } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
 import { buildChapters } from '../lib/chapters'
 import { TITLE_SUFFIX } from '../lib/constants'
 import '../lib/gameData'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { Island } from '../runtime/Island'
 
-/** The page's measure: the band, the guesses and the chapters share it. */
-const MEASURE = '60rem'
+/** A section's slab: the section's own gap spaces it. */
+const SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 function page(): PageResult {
   const chapters = buildChapters()
@@ -37,7 +39,7 @@ function page(): PageResult {
       <div className="srd-not-found">
         <div className="srd-not-found__band">
           <ChapterBand
-            measure={MEASURE}
+            measure={PAGE_MEASURE}
             aside={
               <div className="srd-not-found__lede">
                 <p>
@@ -53,22 +55,29 @@ function page(): PageResult {
             Page not found
           </ChapterBand>
         </div>
-        <div className="srd-not-found__body" style={{ maxWidth: MEASURE }}>
+        <div className="srd-not-found__body srd-page-body">
           <Island name="DidYouMeanIsland" client="idle" />
           <nav className="srd-not-found__chapters" aria-labelledby="not-found-chapters">
-            <h2 id="not-found-chapters" className="srd-not-found__heading">
-              Or open a chapter
-            </h2>
+            <Slab
+              variant="solid"
+              as="h2"
+              id="not-found-chapters"
+              label="Or open a chapter"
+              style={SLAB}
+            />
             <ul className="srd-not-found__chapter-list">
               {chapters.map((chapter) => (
                 <li key={chapter.id}>
+                  {/* The home index's chapter column: a top band in the
+                      chapter's colour over its name (ruleset §3.10: colour
+                      rides in top bands, never a left rail). */}
                   <a href={chapter.href} className="srd-not-found__chapter">
                     <span
                       aria-hidden="true"
-                      className="srd-not-found__swatch"
+                      className="srd-contents__band"
                       style={{ backgroundColor: CHAPTER_BAND_COLOR[chapter.tone] }}
                     />
-                    {chapter.title}
+                    <span className="srd-not-found__chapter-name">{chapter.title}</span>
                   </a>
                 </li>
               ))}

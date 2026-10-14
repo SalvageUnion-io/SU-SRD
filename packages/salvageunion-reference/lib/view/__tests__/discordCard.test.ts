@@ -1,7 +1,7 @@
 /**
  * The Discord card: what a `/su lookup` reply and a pasted salvageunion.io
- * link both draw. Pins the book's devices (stat cells in the book's words,
- * linked traits, the table) and the fit rule (whole parts shed, the page
+ * link both draw. Pins the book's devices (label-first chips in E17's order,
+ * the cost last, linked traits, the table) and the fit rule (whole parts shed, the page
  * linked), plus the accent mirror of `theme.css`.
  */
 
@@ -53,28 +53,39 @@ const text = (card: DiscordCard): string =>
     .join('\n')
 
 describe('discordCardParts', () => {
-  test('a chassis prints the book stat column, three cells to a line', () => {
+  test('a chassis prints its facts label first, three chips to a line', () => {
     const parts = partsFor('chassis', 'mule')
     expect(parts.tone).toBe('mech')
-    // No kicker: a chassis has no action type or cost, and the kind is never one.
+    // No kicker: a chassis has no parent, and the kind is never one.
     expect(parts.head[0]).toBe('## [Mule](https://salvageunion.io/chassis/mule)')
-    expect(parts.head[1]).toBe('`12` STRUCTURE PTS. · `4` ENERGY PTS. · `6` HEAT CAP.')
+    expect(parts.head[1]).toBe('**TL** 1 · **SP** 12 · **EP** 4')
+    expect(parts.head).toContain('**Cargo** 16 · **Heat** 6')
     expect(parts.thumbnail?.url).toContain('mule')
     expect(parts.cite).toBe(
-      '-# Workshop Manual p.100 · also in Salvage Union Starter Set (PC) p.12'
+      '-# Workshop Manual · p.100 · Also in Salvage Union Starter Set (PC) · p.12'
     )
   })
 
-  test('an ability leads with its tier, action type and cost, and carries its table', () => {
+  test('an ability leads with its tier; its chips run type, facts, traits, cost last', () => {
     const parts = partsFor('abilities', 'counter-hacking')
-    expect(parts.head[0]).toBe('-# REACTION · `1 AP`')
-    expect(parts.head[1]).toStartWith('## 2 · [Counter-Hacking](')
-    expect(parts.head).toContain('[Hacking](https://salvageunion.io/traits/hacking)')
+    expect(parts.head[0]).toStartWith('## 2 · [Counter-Hacking](')
+    expect(parts.head[1]).toBe('**Reaction** · **RNG** Medium')
+    expect(parts.head[2]).toBe('[Hacking](https://salvageunion.io/traits/hacking) · `1 AP`')
     expect(parts.table?.rows.map((row) => row.key)).toEqual(['20', '11-19', '6-10', '2-5', '1'])
   })
 
-  test("a system's kicker says its action type as the book prints it", () => {
-    expect(partsFor('systems', '50-cal-machine-gun').head[0]).toStartWith('-# TURN ACTION')
+  test("a system's chips open with its action type as the book prints it, under the title", () => {
+    const head = partsFor('systems', '50-cal-machine-gun').head
+    expect(head[0]).toStartWith('## [.50 Cal Machine Gun](')
+    expect(head[1]).toBe('**Turn Action** · **TL** 1 · **Slots** 2')
+  })
+
+  test("an action band's chips end on its cost", () => {
+    const patch = need(
+      partsFor('systems', 'fabrication-arm').actions.find((action) => action.name === 'Patch'),
+      'patch'
+    )
+    expect(patch.summary).toBe('**Patch**\n-# **Turn Action** · **RNG** Close · `2 EP`')
   })
 
   test('the action types read as the Core Book prints them (pp.23, 237-238)', () => {
@@ -166,20 +177,20 @@ describe('discordCard', () => {
 })
 
 describe('discordRowSummary', () => {
-  test('a system reads as an action row: linked name, type, range and damage, traits', () => {
+  test('a system reads as an action row: linked name, type, label-first range and damage, traits', () => {
     const railgun = need(findEntityBySlug('systems', 'railgun'), 'railgun')
     expect(
       discordRowSummary({ schemaName: 'systems', id: railgun.id, slug: 'railgun', name: 'Railgun' })
     ).toBe(
       [
         '**[Railgun](https://salvageunion.io/systems/railgun)**',
-        '-# Turn Action · `Long` RANGE · `9 SP` DAMAGE',
+        '-# Turn Action · **RNG** Long · **DMG** 9 SP',
         '[Ballistic](https://salvageunion.io/traits/ballistic) · [Hot](https://salvageunion.io/traits/hot) 2',
       ].join('\n')
     )
   })
 
-  test('a module shows its cost; a synthetic or missing record has no row', () => {
+  test('a module shows its cost last; a synthetic or missing record has no row', () => {
     const firewall = need(findEntityBySlug('modules', 'firewall'), 'firewall')
     expect(
       discordRowSummary({
@@ -188,7 +199,7 @@ describe('discordRowSummary', () => {
         slug: 'firewall',
         name: 'Firewall',
       })
-    ).toContain('-# Reaction · `2 EP` · `Medium` RANGE')
+    ).toContain('-# Reaction · **RNG** Medium · `2 EP`')
     expect(
       discordRowSummary({ schemaName: 'modules', id: 'x', slug: 'x', name: 'X', synthetic: true })
     ).toBeNull()

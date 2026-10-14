@@ -172,9 +172,16 @@ export function PilotAbilityItem({
       rowForm={form === 'row'}
       token={
         form === 'row' ? (
-          <Entity form="row" entity={ability} omit={OMIT_KIND_TIER} lead peek />
+          <Entity
+            form="row"
+            entity={ability}
+            mode={{ kind: 'link' }}
+            omit={OMIT_KIND_TIER}
+            lead
+            peek
+          />
         ) : (
-          <Entity form="token" entity={ability} />
+          <Entity form="token" entity={ability} mode={{ kind: 'link' }} />
         )
       }
       name={ability.name}
@@ -316,7 +323,9 @@ export function PilotEquipmentItem({
   // (board 10). It is the item in BOTH states: the name always wins, and is
   // never ellipsized to make room for a control. A damaged item's pill greys,
   // as its card's header does; it Peeks the whole card.
-  const pill = <Entity form="token" entity={equipment} instance={{ condition }} />
+  const pill = (
+    <Entity form="token" entity={equipment} instance={{ condition }} mode={{ kind: 'link' }} />
+  )
   // Only an item with choices opens its card under the line: its choices are
   // written there. Everything else the Peek already shows.
   const hasChoices = Array.isArray(equipment.choices) && equipment.choices.length > 0

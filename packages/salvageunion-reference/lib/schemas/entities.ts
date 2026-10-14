@@ -26,7 +26,6 @@ import {
   FormationMechSchema,
   GrantSchema,
   GuideStepSchema,
-  GuideToneSchema,
   GuideTypeSchema,
   MechanicalEntitySchema,
   NpcSchema,
@@ -481,26 +480,6 @@ export const VehicleSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema
  */
 export const GuideSchema = BaseEntitySchema.extend({
   guideType: GuideTypeSchema.describe('Category of this guide'),
-  guideTone: GuideToneSchema
-    // `ink` is a FALLBACK, not a shipped value. Every guide in
-    // `data/guides.json` names an explicit tone and none of them is `ink`, so
-    // nothing currently renders on this default; it exists so a guide added
-    // without a tone still parses and still gets an ink band rather than a
-    // blank one.
-    //
-    // A tone name, never a raw hex: a hex here would make the dataset a SECOND
-    // palette that never tracks a re-tone, and `entityCardTone.ts` gives this
-    // field precedence over the domain tone. The design-token gate cannot see
-    // it either: it scans `lib`, not `data`, and excludes `.json` outright.
-    //
-    // Naming a tone instead of spelling a colour keeps the value here and the
-    // colour in `theme.css`, which is the only place a colour is allowed to
-    // live. The five names map to `--color-{pilot,mech,crawler}` plus
-    // `--color-guide-{salvage,hazard}` for the two that are not an ontology
-    // domain; the mapping lives in component-lib, since the reference package
-    // must not know about CSS.
-    .default('ink')
-    .describe('Which theme tone paints this guide’s header/footer band'),
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
 })
   .strict()

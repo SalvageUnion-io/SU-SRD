@@ -42,18 +42,17 @@ export { Input, Textarea } from './components/atoms/inputs'
 // rungs rather than their own.
 export {
   FOCUS_RING,
-  FOCUS_RING_ON_TONE,
   INPUT_FOCUS,
 } from './components/atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './components/atoms/KofiButton'
-export { KvRow } from './components/atoms/KvRow'
 export { ModeDoor } from './components/atoms/ModeDoor'
 export { PageHeading } from './components/atoms/PageHeading'
 export { Panel } from './components/atoms/Panel'
 export { linesFromBreakdown, summarizeBreakdown } from './components/atoms/provenanceLines'
 export { Radio } from './components/atoms/Radio'
 export { SearchField, SearchFieldTrigger } from './components/atoms/SearchField'
+export type { SlabCount } from './components/atoms/Slab'
 export { Slab } from './components/atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './components/atoms/SlotGrid'
@@ -62,8 +61,6 @@ export type { StatState, StatTone } from './components/atoms/Stat'
 export { Stat } from './components/atoms/Stat'
 export { StatColumn } from './components/atoms/StatColumn'
 export type { ProvenanceLine } from './components/atoms/StatProvenance'
-// STAMP_SEAM — the border-riding stamp placement, as a class string (ruleset §5)
-export { STAMP_SEAM } from './components/atoms/stampSeam'
 export { Tab, TabList, TabPanel, Tabs, Toggle } from './components/atoms/Tabs'
 // Base typography
 export { Text } from './components/atoms/Text'
@@ -118,9 +115,10 @@ export {
 // multi-select EntitySearcher (ITUN's SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './components/compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
-// the SRD roll-table page's bands, banded in the surface tone. RollStamp — the
-// ROLL THE DIE stamp as a roll button (ITUN's Dashboard table wears it)
-export { RollStamp, RollTableInstrument } from './components/compositions/RollTableInstrument'
+// the SRD roll-table page's bands and ITUN's Dashboard tables, banded in the
+// surface tone; `titleSelect` makes its title a table picker's trigger
+export type { RollTableTitleSelect } from './components/compositions/RollTableInstrument'
+export { RollTableInstrument } from './components/compositions/RollTableInstrument'
 // StartHere — the one onboarding block, on the SRD's home and ITUN's front door
 export { StartHere } from './components/compositions/StartHere'
 export { StatusBadge } from './components/compositions/StatusBadge'
@@ -166,16 +164,15 @@ export { Toaster, toast } from './components/containers/Toaster'
 export type { AnnouncedRoll } from './components/containers/toastRoll'
 export { toastRoll } from './components/containers/toastRoll'
 export { Content } from './components/referenceEntity/Content'
+// The band line a Page carries right of its title (EDL E20): the SRD's entity
+// pages and ITUN's detail dialog.
+export { EntityPageStamps } from './components/referenceEntity/card/EntityPageStamps'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './components/referenceEntity/card/entityPage'
-// The book's starting builds: the stamp, its sentence and the stored-tag test,
-// for a page band that wears the stamp outside the card.
-export {
-  isLegalStartingPatternOf,
-  LEGAL_STARTING_PATTERN,
-  LEGAL_STARTING_PATTERN_NOTE,
-} from './components/referenceEntity/card/legalStartingPattern'
+// The stored-tag test for the book's starting builds, for a page band that
+// wears the stamp (`EntityPageStamps`) outside the card.
+export { isLegalStartingPatternOf } from './components/referenceEntity/card/legalStartingPattern'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'
@@ -197,7 +194,6 @@ export {
 // Entity controls: the live presets (navigateControl, foldControl).
 export { foldControl } from './components/referenceEntity/foldControl'
 export { quotePatternName } from './components/referenceEntity/pattern/quotePatternName'
-export { useChassisPatternConfig } from './components/referenceEntity/pattern/useChassisPatternConfig'
 export { navigateControl } from './components/referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
 export { useDetailModal } from './components/referenceEntity/useDetailModal'
@@ -231,13 +227,18 @@ export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
+// A fact whose value is an entity (`CLASS | Engineer`): the chip opens and Peeks it.
+export { EntityStat } from './entity/parts/EntityStat'
+// A Row's band, cut out (`notch`): the name on a paper tab, chips right of it.
+// A page's own cut-out card (the changelog, a class's paths) heads with it.
+export { Head } from './entity/parts/Head'
 export { KindLabel } from './entity/parts/KindLabel'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
-export { Tag } from './entity/parts/Tags'
+export type { TagItem } from './entity/parts/tagItems'
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
 export { mentionRef } from './entity/parts/tagItems'
 export { embeddedPeekAddress } from './entity/peekContext'
-export type { EntityRowModel } from './entity/types'
+export type { EntityMode, EntityRowModel } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and
 // links) as a section; InlineMarkdown — one line of it, links only
 export { InlineMarkdown } from './markdownSection/InlineMarkdown'
@@ -250,9 +251,8 @@ export { cn } from './utils/cn'
 // @randsum/salvageunion, every other die through @randsum/roller.
 export type { TableDie } from './utils/dice'
 export { dieForTable, rollD20, rollForTable } from './utils/dice'
-// Prose with its `[[Trait]]` references drawn as Mentions (ITUN's RollTable).
+// Prose with its `[[Trait]]` references drawn as Mentions (ITUN's `DashboardRollTable`).
 export { useParseTraitReferences } from './utils/parseTraitReferences'
-export { revealRolled } from './utils/revealRolled'
 // The one place a schema id becomes a human label ('crawler-bays' →
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't
 // spell the same schema differently.

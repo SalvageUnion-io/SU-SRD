@@ -2,18 +2,19 @@
  * StorageManifest — The Hold panel.
  *
  * One component, two sides of the mech ⇄ crawler boundary:
- *   - side='mech' (mech sheet): capacity strip (used/cap + the canonical
- *     SlotGrid cells, over-capacity rendered honestly as red cells — never
- *     clamped), cargo
- *     chits (linear list, `CargoLotItem`) with 'Stow →' (whole-lot, SCRAP
- *     deposits the crawler's TL pool bucket), counterpart = the crawler's
- *     unlimited Storage Bay.
- *   - side='crawler' (crawler sheet): '∞ unlimited' strip, a dense poster
- *     `.storegrid` of magenta `.slot` tiles (the same `CargoLotItem`, graph-paper
- *     `.storebody` backdrop) with '← Load' (cap-checked; bulk partial-fill
- *     shows a dynamic 'Load N' label), counterpart = the docked mech's
- *     capacity. The tile-grid presentation is crawler-only — the mech Hold
- *     keeps its linear list unchanged.
+ *   - side='mech' (mech sheet): capacity strip (the `UNITS | used/cap` chip and
+ *     the canonical SlotGrid cells, over-capacity rendered honestly as red
+ *     cells — never clamped), then the lots (`CargoLotItem`) with 'Stow →'
+ *     (whole-lot, SCRAP deposits the crawler's TL pool bucket); counterpart =
+ *     the crawler's unlimited Storage Bay.
+ *   - side='crawler' (crawler sheet): an unlimited strip (`UNITS` and `LOTS`
+ *     chips), the same lot rows with '← Load' (cap-checked; bulk partial-fill
+ *     shows a dynamic 'Load N' label); counterpart = the docked mech's
+ *     capacity.
+ *
+ * The Hold is a flat panel (the Live Sheet is flat) headed by a Slab, as the
+ * sheet's sections are; the linked counterpart unit is a Token
+ * (`LinkedUnitLink`).
  *
  * All transfer semantics live in the useCargo reducer — this component only
  * renders its state and dispatches. Unlinked boundary = disabled move
@@ -43,15 +44,15 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
-import { Badge, BandTitle, cn, InfoCutout, SlotGrid, tokens } from 'component-lib'
+import { BandTitle, cn, InfoCutout, SlotGrid, Stat, tokens } from 'component-lib'
 import { totalLotUnits } from 'itun-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { StorageManifestSide } from './CargoLotItem'
 import { CargoLotItem } from './CargoLotItem'
-import { GraphPaper } from './cargoBackdrops'
 import { HoldAdder } from './HoldAdder'
+import { LinkedUnitLink } from './LinkedUnitLink'
 
 type StorageManifestProps = {
   side: StorageManifestSide
@@ -60,6 +61,8 @@ type StorageManifestProps = {
   mechName: string | null
   /** Crawler name; null when no crawler is linked. */
   crawlerName: string | null
+  /** The linked counterpart unit's sheet, for its Token; without one it only reads. */
+  counterpartHref?: string
   readOnly?: boolean
 }
 
@@ -72,43 +75,8 @@ const STRIP = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
-  gap: tokens.space[12],
-  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
-  padding: `${tokens.space[8]} ${tokens.space[12]}`,
-  background: tokens.color.paper,
-} satisfies CSSProperties
-
-const STRIP_FIGURE = {
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize['2xl'],
-  fontWeight: tokens.weight.bold,
-  lineHeight: 1,
-  color: tokens.color.ink,
-} satisfies CSSProperties
-
-const STRIP_INFINITY = {
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize['3xl'],
-  fontWeight: tokens.weight.bold,
-  lineHeight: 1,
-  color: tokens.color.cargoDeep,
-} satisfies CSSProperties
-
-const STRIP_CAPS = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  color: tokens.color.ink,
-  opacity: 0.7,
-} satisfies CSSProperties
-
-const STRIP_LABEL = { ...STRIP_CAPS, letterSpacing: tokens.tracking.caps } satisfies CSSProperties
-
-const STRIP_OVER = {
-  ...STRIP_CAPS,
-  color: tokens.color.statusBad,
-  opacity: undefined,
+  gap: tokens.space[8],
+  padding: `0 ${tokens.space[12]} ${tokens.space[8]}`,
 } satisfies CSSProperties
 
 const SMALL_TEXT = {
@@ -118,44 +86,29 @@ const SMALL_TEXT = {
   color: tokens.color.ink,
 } satisfies CSSProperties
 
+const MUTED_TEXT = { ...SMALL_TEXT, color: tokens.color.wkMuted } satisfies CSSProperties
+
+const OVER_TEXT = { ...SMALL_TEXT, color: tokens.color.statusBad } satisfies CSSProperties
+
 const EMPTY = {
-  ...SMALL_TEXT,
+  ...MUTED_TEXT,
   margin: 0,
   padding: `${tokens.space[16]} ${tokens.space[12]}`,
   textAlign: 'center',
-  color: tokens.color.wkMuted,
 } satisfies CSSProperties
 
-const STORE_BODY = {
-  position: 'relative',
-  backgroundColor: tokens.color.paper,
-  padding: tokens.space[12],
-} satisfies CSSProperties
-
-const STORE_GRID = {
-  position: 'relative',
+const LOT_LIST = {
   margin: 0,
-  display: 'grid',
   listStyle: 'none',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-  gap: tokens.space[10],
-  padding: 0,
+  padding: `0 ${tokens.space[12]} ${tokens.space[6]}`,
 } satisfies CSSProperties
 
-const CHIT_LIST = {
-  margin: 0,
-  display: 'flex',
-  listStyle: 'none',
-  flexDirection: 'column',
-  gap: '7px',
-  padding: '11px',
-} satisfies CSSProperties
-
-const ADDER_WRAP = { padding: `0 ${tokens.space[12]} ${tokens.space[12]}` } satisfies CSSProperties
+const ADDER_WRAP = { padding: tokens.space[12] } satisfies CSSProperties
 
 const COUNTERPART = {
   display: 'flex',
   flexDirection: 'column',
+  alignItems: 'flex-start',
   gap: tokens.space[8],
   borderRadius: tokens.radius.card,
   borderWidth: tokens.borderWidth.pill,
@@ -184,8 +137,6 @@ const COUNTERPART_LABEL = {
   color: 'var(--tone-deep, var(--color-ink))',
 } satisfies CSSProperties
 
-const COUNTERPART_STAMP = { alignSelf: 'flex-start' } satisfies CSSProperties
-
 const NOTE = {
   margin: 0,
   fontFamily: tokens.font.body,
@@ -199,6 +150,7 @@ export function StorageManifest({
   cargo,
   mechName,
   crawlerName,
+  counterpartHref,
   readOnly = false,
 }: StorageManifestProps) {
   const lots = side === 'mech' ? cargo.state.carrierLots : cargo.state.depotLots
@@ -225,16 +177,18 @@ export function StorageManifest({
         aside={<BandTitle variant="mute">{side === 'mech' ? mechName : crawlerName}</BandTitle>}
         flush
       >
-        {/* Capacity strip — paper, like the rest of the Hold body: the
-            tone-tinted ground it once wore was off the closed palette
-            (ruleset §4.1). */}
+        {/* Capacity strip: label-first chips, as every count reads. */}
         <div style={STRIP}>
           {side === 'mech' ? (
             <>
-              <span style={STRIP_FIGURE}>
-                {used}/{cap}
-              </span>
-              <span style={STRIP_LABEL}>Units</span>
+              <Stat
+                orientation="horizontal"
+                size="compact"
+                label="Units"
+                value={used}
+                max={cap}
+                state={over ? 'critical' : undefined}
+              />
               {/* The canonical addressable-slot cells (ruleset §5 atom 10):
                   dashed = empty, cargo = filled, status-bad = over-capacity —
                   never clamped. */}
@@ -244,45 +198,27 @@ export function StorageManifest({
                 readOnly={readOnly}
                 label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
               />
-              {free > 0 && <span style={STRIP_CAPS}>{free} free</span>}
-              {over && <span style={STRIP_OVER}>Over capacity</span>}
+              {free > 0 && <span style={MUTED_TEXT}>{free} free</span>}
+              {over && <span style={OVER_TEXT}>Over capacity</span>}
             </>
           ) : (
             <>
-              <span style={STRIP_INFINITY}>&infin;</span>
-              <span style={STRIP_LABEL}>Unlimited</span>
-              <span style={SMALL_TEXT}>
-                {totalLotUnits(lots)} units stowed &middot; {lots.length}{' '}
-                {lots.length === 1 ? 'lot' : 'lots'}
-              </span>
+              <Stat
+                orientation="horizontal"
+                size="compact"
+                label="Units"
+                value={totalLotUnits(lots)}
+              />
+              <Stat orientation="horizontal" size="compact" label="Lots" value={lots.length} />
+              <span style={MUTED_TEXT}>Unlimited</span>
             </>
           )}
         </div>
 
-        {/* Lot list — the mech Hold keeps the linear CargoLotItem chit list; the
-            crawler Hold renders the poster's dense `.storegrid` of magenta
-            `.slot` tiles on a graph-paper `.storebody` backdrop. */}
         {lots.length === 0 ? (
           <p style={EMPTY}>Hold empty.</p>
-        ) : side === 'crawler' ? (
-          <div style={STORE_BODY}>
-            <GraphPaper />
-            <ul style={STORE_GRID}>
-              {lots.map((lot) => (
-                <CargoLotItem
-                  key={lot.id}
-                  lot={lot}
-                  side={side}
-                  cargo={cargo}
-                  linked={linkedCounterpart !== null}
-                  readOnly={readOnly}
-                  onRemove={() => report(cargo.removeCrawlerLot(lot.id))}
-                />
-              ))}
-            </ul>
-          </div>
         ) : (
-          <ul style={CHIT_LIST}>
+          <ul style={LOT_LIST}>
             {lots.map((lot) => (
               <CargoLotItem
                 key={lot.id}
@@ -291,7 +227,11 @@ export function StorageManifest({
                 cargo={cargo}
                 linked={linkedCounterpart !== null}
                 readOnly={readOnly}
-                onRemove={() => report(cargo.removeMechLot(lot.id))}
+                onRemove={() =>
+                  report(
+                    side === 'mech' ? cargo.removeMechLot(lot.id) : cargo.removeCrawlerLot(lot.id)
+                  )
+                }
               />
             ))}
           </ul>
@@ -321,9 +261,12 @@ export function StorageManifest({
           </span>
           {linkedCounterpart !== null ? (
             <>
-              <Badge shape="stamp" size="full" style={COUNTERPART_STAMP}>
-                {linkedCounterpart}
-              </Badge>
+              <LinkedUnitLink
+                kind={side === 'mech' ? 'crawler' : 'mech'}
+                name={linkedCounterpart}
+                href={counterpartHref}
+                stats={[]}
+              />
               {side === 'mech' ? (
                 <span style={SMALL_TEXT}>&infin; Storage Bay &middot; unlimited</span>
               ) : (

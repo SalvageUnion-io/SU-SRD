@@ -58,7 +58,7 @@ import {
   resolveHeaderHint,
 } from './cardChrome'
 import type { CardGrain } from './cardGrain'
-import { MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
+import { chassisTokenName, MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
 import { resolveCardSections } from './cardSections'
 import { CardTextureContext } from './cardTexture'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
@@ -66,7 +66,6 @@ import type { AxisMarker } from './entityCardTone'
 import {
   resolveAxisMarkers,
   resolveCardTone,
-  resolveEyebrow,
   resolveSeamLabel,
   resolveTierNumeral,
   titleSizeRung,
@@ -142,19 +141,11 @@ function resolveHide(
 
 /**
  * The title's type step: by size, stepping down with depth (`titleSizeClass`). The ink
- * banner's large title sits a rung under the tone header's (board E1); an inline band its own.
+ * banner's large title sits a rung under the tone header's (board E1).
  */
-function resolveTitleSize(inline: boolean, fill: HeaderFill, depth: number, size: CardSize) {
-  if (inline) return INLINE_TITLE[size]
+function resolveTitleSize(fill: HeaderFill, depth: number, size: CardSize) {
   const ladderTitle = titleSizeRung(depth, size)
   return fontSize[fill === 'ink' && ladderTitle === 'displayLg' ? 'display' : ladderTitle]
-}
-
-/** An inline action's title: one step under its host's (board E1). */
-const INLINE_TITLE: Record<CardSize, string> = {
-  large: fontSize.readout,
-  medium: fontSize.readout,
-  small: fontSize.lede,
 }
 
 /**
@@ -217,7 +208,6 @@ function ReferenceEntityCardInner({
   depth: depthProp = 0,
   presentation = 'card',
   showChassisAbility,
-  inline = false,
   shownProse,
   userMade = false,
   madeBy,
@@ -249,9 +239,7 @@ function ReferenceEntityCardInner({
   onSelectionChange,
   titleOverride,
   statsOverride,
-  primaryStatsOnly,
   subtitleExtra,
-  abilitiesSection,
   afterExtraContent,
   asideLead: asideLeadRequested = false,
   footMeta,
@@ -263,7 +251,7 @@ function ReferenceEntityCardInner({
   // Section bands are h2s (nested titles h3s) only when this card IS the page
   // (`sectionHeadingLevel`), whatever `titleAs` says: a page's title is its h1,
   // in the chapter band. A card the page carries takes only its chips' rung.
-  const onPage = presentation === 'page' && !inline && depthProp === 0
+  const onPage = presentation === 'page' && depthProp === 0
   const rung = presentation === 'page' && !onPage ? 'full' : 'compact'
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
@@ -292,9 +280,8 @@ function ReferenceEntityCardInner({
 
   const isAction = schemaName === 'actions'
   // A FRAMED action (the Dashboard's deck and resolve panel) is never the
-  // dominant solo card: a large one renders medium, at depth ≥ 1. An inline
-  // action keeps its host's size, so its band shares the host's gutter.
-  const size: CardSize = isAction && !inline && sizeProp === 'large' ? 'medium' : sizeProp
+  // dominant solo card: a large one renders medium, at depth ≥ 1.
+  const size: CardSize = isAction && sizeProp === 'large' ? 'medium' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   const compact = depth > 0 || size !== 'large'
   const isCatalog = extent === 'catalog'
@@ -319,11 +306,11 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const titleSize = resolveTitleSize(inline, fill, depth, size)
+  const titleSize = resolveTitleSize(fill, depth, size)
   // ARTWORK — a MINI catalog tile drops it: at the small size the image would
   // crowd out the description it exists to caption.
   const isMiniCatalog = isCatalog && size === 'small'
-  const assetUrl = isMiniCatalog || inline ? undefined : getAssetUrl(entity)
+  const assetUrl = isMiniCatalog ? undefined : getAssetUrl(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
 
   // PATTERN view — the pattern is the subject; the chassis (`entity`) supplies
@@ -340,7 +327,7 @@ function ReferenceEntityCardInner({
         ? stripHostParenthetical(entityName, hostName)
         : entityName)
   // `[(CHASSIS)]` content tokens resolve to the owning chassis name.
-  const resolvedChassisName = chassisName ?? (schemaName === 'chassis' ? entityName : undefined)
+  const resolvedChassisName = chassisName ?? chassisTokenName(schemaName, entityName)
 
   const action = isAction ? (entity as ActionFields) : undefined
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
@@ -348,17 +335,15 @@ function ReferenceEntityCardInner({
   const isTitanicMeta = isAction && isTitanicAction(entity)
   // The KIND ("System", "Ability · Forging Tree") is never stamped (E9): the
   // title carries it for screen readers. A caller's `kicker` that says more
-  // ("From Veteran") is a label.
+  // ("From Veteran") is a label. Nor is it on the foot: only a Page's foot
+  // stamps the kind (E9; ITUN's detail dialog draws its own).
   const kind = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
-  const footerType = isAction || isPattern ? undefined : resolveEyebrow(schemaName).type
   const provenance = resolveFooterProvenance(entity, pattern)
-  const axisMarkers: AxisMarker[] = isAction
-    ? []
-    : isPattern
-      ? resolvedChassisName
-        ? [{ label: 'Chassis', value: resolvedChassisName }]
-        : []
-      : resolveAxisMarkers(entity)
+  const chassisMarker = resolvedChassisName
+    ? [{ label: 'Chassis', value: resolvedChassisName }]
+    : []
+  const axisMarkers: AxisMarker[] =
+    isAction || hide?.axisMarkers ? [] : isPattern ? chassisMarker : resolveAxisMarkers(entity)
   // "Legal Starting Pattern" is a STORED data tag on the pattern.
   const isLegalStartingPatternCard = isPattern && isLegalStartingPatternOf(pattern)
   const numeral = resolveTierNumeral(entity)
@@ -394,8 +379,6 @@ function ReferenceEntityCardInner({
     schemaName,
     asCompact: true,
     none: isAction || isPatternListing,
-    // A head row keeps every cell: the one-line header sheds the ones that do not fit.
-    primaryOnly: !!primaryStatsOnly,
     techLevel,
     techLevelDisplay,
     techLevelModified,
@@ -460,11 +443,11 @@ function ReferenceEntityCardInner({
   const hasSubLine = onPage && !!suggestedNode
 
   // The head extent is the Row (and, small, the Token): see below. Every other
-  // card wears the cut-out head; a Page has its chapter band, an inline card its Row.
+  // card wears the cut-out head; a Page has its chapter band.
   const isHead = extent === 'head'
   const header = (
     <CardHead
-      cutOut={!inline && !isHead && !onPage}
+      cutOut={!isHead && !onPage}
       title={name}
       kind={kind}
       fill={fill}
@@ -475,11 +458,10 @@ function ReferenceEntityCardInner({
       numeral={numeral}
       chips={<Chips chips={chips} rung={rung} onInk={fill === 'ink'} leading={suggestedNode} />}
       pennant={pennantNode}
-      labels={inline ? undefined : labels}
+      labels={labels}
       size={size}
-      band={inline}
       grain={grain}
-      ruled={!inline}
+      ruled
     />
   )
 
@@ -499,11 +481,11 @@ function ReferenceEntityCardInner({
   })
   // A CATALOG tile carries NO footer: it is artwork + description, and
   // provenance belongs on the entity's own page, which the tile links to.
-  const rendersFooter = !inline && !isCatalog && depth === 0
+  const rendersFooter = !isCatalog && depth === 0
   // LIVE SHEET (board E3): the condition and the destructive Remove live in a
   // dashed body rail, not on the seam as green and red tabs. A head row has no
   // body, so its condition rides the seam as the same neutral tri-state.
-  const hasBodyRail = extent !== 'head' && !inline
+  const hasBodyRail = extent !== 'head'
   const removers = hasBodyRail ? (railControls ?? []).filter((c) => c.variant === 'danger') : []
   const seamControls =
     removers.length > 0 ? railControls?.filter((c) => !removers.includes(c)) : railControls
@@ -573,8 +555,8 @@ function ReferenceEntityCardInner({
           leading: suggestedNode,
           hint: headerHint,
           pennant: pennantNode,
-          art: !(isPattern || inline || hide?.image),
-          bodyless: inline || isPatternListing,
+          art: !(isPattern || hide?.image),
+          bodyless: isPatternListing,
         }}
       />
     )
@@ -592,7 +574,6 @@ function ReferenceEntityCardInner({
     size,
     depth,
     compact,
-    inline,
     onPage,
     readable,
     isAction,
@@ -621,7 +602,6 @@ function ReferenceEntityCardInner({
     selections,
     onSelectionChange,
     afterExtraContent,
-    abilitiesSection,
     showChassisAbility,
     NestedCard: ReferenceEntityCardInner,
   }
@@ -662,7 +642,6 @@ function ReferenceEntityCardInner({
             : undefined
         }
         table={rollTableNode}
-        abilitiesSection={abilitiesSection}
         guide={guideStepsNode}
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
@@ -680,18 +659,6 @@ function ReferenceEntityCardInner({
           chassisName: resolvedChassisName,
         }}
       />
-    )
-  }
-
-  // An INLINE action: the flush band, its "//" line, its body and its table —
-  // no frame, no labels, no footer (board E1).
-  if (inline) {
-    return (
-      <section className="su-ec-inline">
-        {header}
-        {body}
-        {rollTableNode}
-      </section>
     )
   }
 
@@ -752,7 +719,6 @@ function ReferenceEntityCardInner({
         {rendersFooter ? (
           // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
           <EntityCardIdentityFooter
-            typeLabel={footerType}
             source={userMade ? undefined : provenance.source}
             booklet={userMade ? undefined : provenance.booklet}
             page={userMade ? undefined : provenance.page}

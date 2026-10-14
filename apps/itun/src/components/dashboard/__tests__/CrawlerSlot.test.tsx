@@ -86,8 +86,22 @@ async function click(el: HTMLElement) {
   })
 }
 
+/** The Hull bay's chips, label then value. */
+function hullCells(): string[] {
+  const hull = screen.getByText('Hull').parentElement
+  if (!hull) throw new Error('no Hull bay')
+  return [...hull.querySelectorAll('.su-stat-cell')].map((c) => c.textContent ?? '')
+}
+
 function overlay(title: string) {
   return within(screen.getByRole('dialog', { name: title }))
+}
+
+/** Every label-first chip on the slot, as `LABEL value` strings. */
+function statChips(): string[] {
+  return [...document.querySelectorAll('.su-stat-cell')].map((cell) =>
+    [...cell.children].map((part) => part.textContent).join(' ')
+  )
 }
 
 let random: ReturnType<typeof spyOn> | null = null
@@ -104,19 +118,48 @@ afterEach(() => {
 })
 
 describe('the bays', () => {
-  test('Hull reads the Tech Level; Upgrade reads the pool against the next one', async () => {
+  test('Hull reads the Tech Level as a chip; Upgrade reads the pool against the next one', async () => {
     await renderMajor()
-    expect(screen.getByText('Tech Level 2')).toBeTruthy()
-    expect(screen.getByText(/^Pool 4\/\d+ to Tech 3$/)).toBeTruthy()
-    expect(screen.getByText('5 Tech 2 Scrap per Downtime')).toBeTruthy()
+    expect(hullCells()).toContain('TL2')
+    // Counts are label-first chips: `POOL | 4/n`, `NEXT TECH | 3`, `SCRAP | 5`, `TL | 2`.
+    const chips = statChips()
+    expect(chips.find((c) => c.startsWith('Pool'))).toMatch(/^Pool 4\/\d+$/)
+    expect(chips).toContain('Next Tech 3')
+    expect(chips).toContain('Scrap 5')
+    expect(chips).toContain('TL 2')
     expect(screen.getByText('No bays installed.')).toBeTruthy()
   })
 
   test('an unreadable Tech Level is said as unknown, and the Upkeep line drops it', async () => {
     await renderMajor({ crawler: { ...hen, techLevel: 'not-a-level' } })
-    expect(screen.getByText('Tech Level ?')).toBeTruthy()
-    expect(screen.getByText('5 Scrap per Downtime')).toBeTruthy()
+    expect(hullCells()).toContain('TL?')
+    const chips = statChips()
+    expect(chips).toContain('Scrap 5')
+    // Only the hull's own `TL | ?` remains: Upkeep drops its TL, Upgrade its pool.
+    expect(chips.filter((c) => c.startsWith('TL'))).toEqual(['TL ?'])
+    expect(chips.some((c) => c.startsWith('Pool'))).toBe(false)
     expect(screen.getByText('No further Tech Level')).toBeTruthy()
+  })
+
+  test('each bay is its Token; a damaged one greys and says DAMAGED, and a bay that does not resolve says so', async () => {
+    await renderMajor({
+      crawler: {
+        ...hen,
+        crawlerBays: [
+          { bayRef: 'mech-bay', condition: 'damaged' },
+          { bayRef: 'not-a-bay', condition: 'damaged' },
+        ],
+      },
+    })
+    const bays = screen.getByText('Bays').parentElement
+    if (!bays) throw new Error('no Bays bay')
+    const token = bays.querySelector('.su-entity-token__pill')
+    expect(token?.textContent).toContain('Mech Bay')
+    // The grey is joined by the condition chip an item line shows, last in the pill's chips.
+    const chips = token?.querySelector('.su-entity-token__chips')
+    expect(chips?.lastElementChild?.textContent).toBe('Damaged')
+    expect(within(bays).queryByText('Mech Bay damaged')).toBeNull()
+    expect(within(bays).getByText('not-a-bay damaged')).toBeTruthy()
   })
 
   test('with no mech to break down, there is no Break down', async () => {
