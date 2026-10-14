@@ -13,6 +13,9 @@ import { nameToSlug } from 'salvageunion-reference'
 
 export type UnitKind = 'pilot' | 'mech' | 'crawler' | 'pattern' | 'npc'
 
+/** One reading a unit shows, label first: `SP | 9/9`, `TL | 2`. */
+export type UnitReading = { label: string | number; value: string | number }
+
 /** The reference schema each kind is built on, the tone it wears and its domain. */
 const KIND: Record<
   UnitKind,
@@ -45,7 +48,7 @@ export function unitRowModel({
   note?: string | undefined
   name: string
   /** Its readings (`SP 9/9`), as Stat cells. */
-  readings?: { label: string; value: string }[]
+  readings?: readonly UnitReading[]
   /** A pattern or an NPC: dashed, its name quoted (ruleset §3.9). */
   userMade?: boolean
   /** The art of what it is built on (a pilot's class, a mech's chassis); none by default. */
@@ -60,7 +63,10 @@ export function unitRowModel({
     title: userMade ? `“${name}”` : name,
     kind: { stamp: label, type: label, domain, nature: 'have', ...(note ? { note } : {}) },
     tone,
-    facts: readings.map((r) => ({ key: r.label, label: r.label, short: r.label, value: r.value })),
+    facts: readings.map((r) => {
+      const label = String(r.label)
+      return { key: label, label, short: label, value: String(r.value) }
+    }),
     traits: [],
     art,
     ...(lead ? { lead } : {}),

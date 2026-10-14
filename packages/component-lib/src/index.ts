@@ -229,7 +229,7 @@ export { KindLabel } from './entity/parts/KindLabel'
 export { Tag } from './entity/parts/Tags'
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
 export { mentionRef } from './entity/parts/tagItems'
-export type { EntityRowModel } from './entity/types'
+export type { EntityMode, EntityRowModel } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and
 // links) as a section; InlineMarkdown — one line of it, links only
 export { InlineMarkdown } from './markdownSection/InlineMarkdown'

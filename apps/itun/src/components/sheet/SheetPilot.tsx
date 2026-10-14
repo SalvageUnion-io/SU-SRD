@@ -15,8 +15,8 @@ import { pilotingContext } from 'itun-domain/rules/pilotingContext'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import { pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { runWrite } from '../../lib/runWrite'
-import { AppLink } from '../shared/AppLink'
-import { EntityRow } from '../shared/EntityRow'
+import { EmptyUnitSlot } from '../shared/EmptyUnitSlot'
+import { UnitRow } from '../shared/UnitRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { pilotStamp } from './bandStamps.model'
 import { LinkedUnitLink } from './LinkedUnitLink'
@@ -120,37 +120,38 @@ export function SheetPilot({
   ) : (
     <>
       {composition.mech ? (
-        <EntityRow
-          entityType="mech"
-          className="su-sheet-pilot-fill"
-          name={composition.mech.name}
-          sheetHref={hrefFor('mech', composition.mech.id)}
-          linkAs={AppLink}
-          meta="Assigned Mech"
-          metaLine={mechStatusPill(composition.mech).label}
-          stats={rowStats(
-            mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
-          )}
-          actions={
-            editable ? (
-              <AssignPicker
-                subject={self}
-                container={container}
-                pick="mech"
-                filled
-                exclude={[composition.mech.id]}
-                size="mini"
-              />
-            ) : undefined
-          }
-          onUnassignClick={unassign(mechLinkId)}
-        />
+        <div className="su-sheet-pilot-fill">
+          <UnitRow
+            kind="mech"
+            name={composition.mech.name}
+            note="Assigned Mech"
+            readings={[
+              ...rowStats(
+                mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
+              ),
+              { label: 'Condition', value: mechStatusPill(composition.mech).label },
+            ]}
+            href={hrefFor('mech', composition.mech.id)}
+            controls={
+              editable ? (
+                <AssignPicker
+                  subject={self}
+                  container={container}
+                  pick="mech"
+                  filled
+                  exclude={[composition.mech.id]}
+                  size="mini"
+                />
+              ) : undefined
+            }
+            onUnassign={unassign(mechLinkId)}
+          />
+        </div>
       ) : withheldMech ? (
         <WithheldUnitRow unit={withheldMech} label="Assigned Mech" />
       ) : (
-        <EntityRow
-          empty
-          entityType="mech"
+        <EmptyUnitSlot
+          kind="mech"
           className="su-sheet-pilot-fill"
           roleLabel="Assigned Mech"
           message="No mech assigned — assign one of yours, or build one to track its loadout and heat from here."
@@ -165,34 +166,33 @@ export function SheetPilot({
         />
       )}
       {composition.crawler ? (
-        <EntityRow
-          entityType="crawler"
-          className="su-sheet-pilot-fill"
-          name={composition.crawler.name}
-          sheetHref={hrefFor('crawler', composition.crawler.id)}
-          linkAs={AppLink}
-          meta="Home Crawler"
-          stats={rowStats(crawlerRailItems(composition.crawler))}
-          actions={
-            editable ? (
-              <AssignPicker
-                subject={self}
-                container={container}
-                pick="crawler"
-                filled
-                exclude={[composition.crawler.id]}
-                size="mini"
-              />
-            ) : undefined
-          }
-          onUnassignClick={unassign(crawlerLinkId)}
-        />
+        <div className="su-sheet-pilot-fill">
+          <UnitRow
+            kind="crawler"
+            name={composition.crawler.name}
+            note="Home Crawler"
+            readings={rowStats(crawlerRailItems(composition.crawler))}
+            href={hrefFor('crawler', composition.crawler.id)}
+            controls={
+              editable ? (
+                <AssignPicker
+                  subject={self}
+                  container={container}
+                  pick="crawler"
+                  filled
+                  exclude={[composition.crawler.id]}
+                  size="mini"
+                />
+              ) : undefined
+            }
+            onUnassign={unassign(crawlerLinkId)}
+          />
+        </div>
       ) : withheldCrawler ? (
         <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
       ) : (
-        <EntityRow
-          empty
-          entityType="crawler"
+        <EmptyUnitSlot
+          kind="crawler"
           className="su-sheet-pilot-fill"
           roleLabel="Home Crawler"
           message="No crawler assigned. Set the crawler level by hand until your union home is assigned."

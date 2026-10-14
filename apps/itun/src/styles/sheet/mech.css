@@ -2,8 +2,8 @@
 
 /* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome, SheetRailParts) ---- */
 
-/* A rail slot's share of the Assigned Units row. `EntityRow` takes a className
-   and no style, so the static `flex` rides a class. */
+/* A rail slot's share of the Assigned Units row: its wrapper (around a
+   `UnitRow` or an `EmptyUnitSlot`) carries the static `flex` as a class. */
 .su-sheet-rail-slot {
   flex: 1 1 0%;
 }

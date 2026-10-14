@@ -29,7 +29,7 @@ import {
  * These were three components that each hand-wrote the same inline markup and
  * differed only in WHICH stats they listed. The markup itself is now the
  * canonical `Stat` (`orientation="horizontal" surface="plain"`, ruleset §3.7);
- * `rowStats` (below) adapts a list of these into the `EntityRow` stat cells the
+ * `rowStats` (below) adapts a list of these into the `UnitRow` readings the
  * text, and these functions just supply the numbers.
  *
  * The rules math stays here rather than moving into component-lib, which is
@@ -134,9 +134,9 @@ export function mechStatusPill(mech: Mech): { label: string; tone: BadgeTone } {
 }
 
 /**
- * A rail stat as an `EntityRow` stat cell: `SP 9/13`, `Bays 4/5 Intact`.
+ * A rail stat as a `UnitRow` reading: `SP 9/13`, `Bays 4/5 Intact`.
  *
- * `EntityRow` (the roster/index row the linked-unit slots now use) takes flat
+ * `UnitRow` (the library Row the linked-unit slots use) takes flat
  * `label | value` pairs, while a rail stat carries its own max and sometimes a
  * trailing word, so both fold into the value here rather than the row growing
  * a shape only these call sites would use.

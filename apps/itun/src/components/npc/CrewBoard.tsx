@@ -25,6 +25,7 @@ import {
   Badge,
   Button,
   EmptyState,
+  Entity,
   Field,
   FieldError,
   Input,
@@ -34,7 +35,6 @@ import {
   Textarea,
   toast,
   tokens,
-  UserMadeStamp,
 } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { containerOf, sameContainer } from 'itun-domain/container'
@@ -42,7 +42,7 @@ import { slotKey } from 'itun-domain/links/linkRules'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Npc } from 'itun-domain/schemas/npc'
 import { NpcSchema } from 'itun-domain/schemas/npc'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
@@ -62,6 +62,8 @@ import {
 } from '../../lib/npcs/npcModel'
 import { npcNameGate } from '../../lib/rules/creation'
 import { runWrite } from '../../lib/runWrite'
+import type { UnitReading } from '../../lib/units/unitModel'
+import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrewDraft } from '../../lib/wizard/crewFormState'
 import {
   crewChoiceField,
@@ -72,7 +74,7 @@ import { useActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { npcStats } from '../roster/rowStats.model'
 import { AppLink } from '../shared/AppLink'
-import { EntityRow } from '../shared/EntityRow'
+import { UnitRow } from '../shared/UnitRow'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import { RollTableButton } from '../wizard/RollTableButton'
 import { NpcCard } from './NpcCard'
@@ -87,43 +89,6 @@ const WIDE_QUERY = '(min-width: 48rem)'
 /** The Game rule, said where an assignment would be made (D7). */
 const GAME_RULE =
   'In a Game, only the Mediator assigns crawler crew, because the crawler is theirs. Players design an NPC on their shelf and offer it by moving it into the Game.'
-
-const SLOT_ROW_BASE = {
-  alignItems: 'center',
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink20,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  minHeight: '3rem',
-  padding: `${tokens.space[6]} ${tokens.space[12]}`,
-} satisfies CSSProperties
-
-const SLOT_SELECT = {
-  alignItems: 'center',
-  background: 'none',
-  border: 0,
-  color: tokens.color.ink,
-  cursor: 'pointer',
-  display: 'flex',
-  flex: '1 1 16rem',
-  flexWrap: 'wrap',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  gap: tokens.space[12],
-  minHeight: '2.75rem',
-  minWidth: 0,
-  padding: 0,
-  textAlign: 'left',
-} satisfies CSSProperties
-
-const SLOT_LABEL = {
-  ...CAPS,
-  flex: '0 0 9rem',
-  fontSize: tokens.fontSize.caption,
-} satisfies CSSProperties
 
 /** The phone modal's body: the gutter and rhythm the wide column gets from the page. */
 const MODAL_BODY = {
@@ -359,7 +324,12 @@ function slotTitle(slot: CrewSlotView): string {
   return `${slot.name} · the ${slot.position}`
 }
 
-/** One slot on the board: filled (dashed, User-made), the book's line, or open. */
+/**
+ * One slot on the board, a Row in select mode (EDL "Modes"): picking it opens
+ * the slot. Filled, it is the NPC (dashed, User-made); designing, the slot's
+ * position under an "Editing" seal; else the book's crew line. The slot's
+ * name is its note, the HP a chip (`HP | 4`), Design the Row's control.
+ */
 function SlotRow({
   slot,
   assignment,
@@ -374,67 +344,63 @@ function SlotRow({
   onOpen: () => void
 }) {
   const npc = assignment?.npc ?? null
-  const style: CSSProperties = current
-    ? { ...SLOT_ROW_BASE, borderColor: tokens.color.ink, borderWidth: '2.5px' }
-    : assignment
-      ? { ...SLOT_ROW_BASE, borderColor: tokens.color.ink, borderStyle: 'dashed' }
-      : SLOT_ROW_BASE
-
-  let summary: ReactNode
-  if (assignment) {
-    summary = npc ? (
-      <span>
-        <strong>{npc.name}</strong> · {npc.position ?? slot.position} · HP {npc.hitPoints}
-      </span>
-    ) : (
-      <span>Assigned NPC unavailable</span>
-    )
-  } else if (current && allowed) {
-    summary = (
-      <span>
-        <strong>{slot.position}</strong> · designing now
-      </span>
-    )
-  } else {
-    summary = (
-      <span>
-        {slot.bookName && <strong>{slot.bookName} · </strong>}
-        {slot.position} · HP {slot.hitPoints} · the book’s crew line
-      </span>
-    )
-  }
-
+  const designing = !assignment && current && allowed
+  const name = assignment
+    ? (npc?.name ?? 'Assigned NPC unavailable')
+    : designing
+      ? slot.position
+      : (slot.bookName ?? slot.position)
+  const readings: UnitReading[] = assignment
+    ? npc
+      ? [
+          { label: 'Role', value: npc.position ?? slot.position },
+          { label: 'HP', value: npc.hitPoints },
+        ]
+      : []
+    : [
+        ...(designing || !slot.bookName ? [] : [{ label: 'Role', value: slot.position }]),
+        { label: 'HP', value: slot.hitPoints },
+      ]
   return (
     <li>
-      <div style={style} aria-current={current ? 'true' : undefined}>
-        <button
-          type="button"
-          style={SLOT_SELECT}
-          onClick={onOpen}
-          aria-label={
-            assignment && npc ? `${slot.label}: ${npc.name}` : `${slot.label}: ${slot.position}`
-          }
-        >
-          <span style={SLOT_LABEL}>{slot.label}</span>
-          {summary}
-        </button>
-        {assignment ? (
-          <UserMadeStamp />
-        ) : current && allowed ? (
-          <Badge shape="stamp" size="compact">
-            Editing
-          </Badge>
-        ) : allowed ? (
-          <Button
-            size="compact"
-            variant="default"
-            onClick={onOpen}
-            aria-label={`Design ${slot.name} crew`}
-          >
-            Design
-          </Button>
-        ) : null}
-      </div>
+      <Entity
+        form="row"
+        model={unitRowModel({
+          kind: 'npc',
+          name,
+          note: slot.label,
+          userMade: !!assignment && npc !== null,
+          readings,
+        })}
+        mode={{
+          kind: 'select',
+          role: 'radio',
+          selected: current,
+          onSelect: onOpen,
+          ...(designing ? { seal: 'Editing' } : {}),
+          label:
+            assignment && npc ? `${slot.label}: ${npc.name}` : `${slot.label}: ${slot.position}`,
+        }}
+        labels={
+          assignment ? undefined : (
+            <Badge shape="stamp" size="mini" surface="on-ink">
+              {designing ? 'Designing now' : 'Book’s crew line'}
+            </Badge>
+          )
+        }
+        controls={
+          !assignment && !current && allowed ? (
+            <Button
+              size="compact"
+              variant="default"
+              onClick={onOpen}
+              aria-label={`Design ${slot.name} crew`}
+            >
+              Design
+            </Button>
+          ) : undefined
+        }
+      />
     </li>
   )
 }
@@ -659,12 +625,12 @@ function SlotPanel({
           <ul style={LIST} aria-label={`NPCs that can crew the ${slot.name}`}>
             {candidates.map((npc) => (
               <li key={npc.id}>
-                <EntityRow
-                  entityType="npc"
+                <UnitRow
+                  kind="npc"
                   name={npc.name}
-                  seal={<UserMadeStamp />}
-                  stats={npcStats(npc)}
-                  actions={
+                  userMade
+                  readings={npcStats(npc)}
+                  controls={
                     <Button
                       size="compact"
                       variant="default"

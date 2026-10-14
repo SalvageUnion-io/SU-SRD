@@ -236,7 +236,7 @@ describe('LiveSheet rail replaces the segment switcher', () => {
         softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
-    // Assigned units render the roster's `EntityRow`, whose View link is labelled
+    // Assigned units render the library Row (`UnitRow`), whose View link is labelled
     // "View" on every row — so the row is targeted by its DESTINATION, which is
     // what this test was ever asserting.
     const viewLink = screen

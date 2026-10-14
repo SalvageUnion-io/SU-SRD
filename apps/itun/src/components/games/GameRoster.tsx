@@ -5,7 +5,7 @@
  *
  * `/` shows one container at a time (`Roster`): Shelves, or a Game picked in
  * its "Showing" select. Both ask "what have we got and what can I do with it",
- * so both answer in the same three ontology-toned columns of `EntityRow`s
+ * so both answer in the same three ontology-toned columns of Rows (`UnitRow`)
  * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
  * seal on every row, a way to pick up what nobody holds, and creation gated by
  * the rules in `lib/games/gameRoster.ts`.
@@ -68,7 +68,7 @@ import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
-import { EntityRow } from '../shared/EntityRow'
+import { UnitRow } from '../shared/UnitRow'
 import { useConfirm } from '../shared/useConfirm'
 import { OwnerSeal } from './OwnerSeal'
 import { useRowActions } from './useRowActions'
@@ -212,19 +212,20 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
   function renderRow(row: RosterRow): ReactNode {
     return (
       <li key={row.serverId} style={ITEM}>
-        <EntityRow
-          entityType={row.kind}
+        <UnitRow
+          kind={row.kind}
           name={row.name}
-          stats={rosterRowStats(row)}
-          linkAs={AppLink}
+          /* The primary crawler is where new crew is assigned (ADR-037), so
+             the roster says which one it is. */
+          note={row.primary ? '★ Primary' : undefined}
+          readings={rosterRowStats(row)}
           /* Every row is a door, and there is one: View, to the live sheet —
              editable when the row is yours to edit (`row.can.openSheet`),
              read-only when it is a crewmate's (`SheetView`). */
-          sheetHref={rosterSheetHref(row)}
-          /* The primary crawler is where new crew is assigned (ADR-037), so
-             the roster says which one it is. */
-          meta={row.primary ? '★ Primary' : undefined}
-          seal={
+          href={rosterSheetHref(row)}
+          /* Who holds it sits right of the name, a label (ruleset §7.2):
+             never a stamp riding the frame. */
+          labels={
             row.owner === null ? undefined : (
               <OwnerSeal
                 owner={row.owner}
@@ -234,7 +235,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
               />
             )
           }
-          actions={
+          controls={
             <>
               {/* Picking up is the SEAL's job, not a button's — see
                   `OwnerSeal`. Any owner may hand back, not just the table
