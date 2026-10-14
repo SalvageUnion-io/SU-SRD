@@ -47,7 +47,6 @@ export {
 } from './components/atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './components/atoms/KofiButton'
-export { KvRow } from './components/atoms/KvRow'
 export { ModeDoor } from './components/atoms/ModeDoor'
 export { PageHeading } from './components/atoms/PageHeading'
 export { Panel } from './components/atoms/Panel'
