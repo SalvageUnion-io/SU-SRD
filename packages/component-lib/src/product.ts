@@ -20,7 +20,7 @@ export const PRODUCT = {
   name: 'The Cantina',
   shortName: 'Cantina',
   descriptor: 'The Salvage Union Character Builder',
-  tagline: 'You’re in the Union, now!',
+  tagline: 'You’re in The Union, now!',
   taglineBy: 'Lester “Stumpy” Owens',
   wordmark: 'salvageunion.io',
 } as const
