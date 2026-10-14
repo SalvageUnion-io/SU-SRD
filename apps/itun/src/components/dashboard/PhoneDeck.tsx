@@ -18,7 +18,7 @@
  */
 
 import type { ReferenceEntityControl } from 'component-lib'
-import { ReferenceEntityCard } from 'component-lib'
+import { ReferenceEntityCard, Toggle } from 'component-lib'
 import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import type { DeckListModel } from './DeckList'
@@ -72,30 +72,6 @@ const LOCK_NOTE: CSSProperties = {
 
 const EMPTY: CSSProperties = { ...REACH, margin: 0 }
 
-function Toggle({
-  pressed,
-  onPress,
-  label,
-  children,
-}: {
-  pressed: boolean
-  onPress: () => void
-  label?: string
-  children: string
-}) {
-  return (
-    <button
-      type="button"
-      className="su-dash-toggle"
-      aria-pressed={pressed}
-      aria-label={label}
-      onClick={onPress}
-    >
-      {children}
-    </button>
-  )
-}
-
 export function PhoneDeck({
   view,
   onOpen,
@@ -127,8 +103,8 @@ export function PhoneDeck({
           <Toggle
             key={band}
             pressed={view.activeRange === band}
-            onPress={() => view.onRange(band)}
-            label={`Range ${band}`}
+            onClick={() => view.onRange(band)}
+            aria-label={`Range ${band}`}
           >
             {band[0] ?? band}
           </Toggle>
@@ -137,21 +113,21 @@ export function PhoneDeck({
       </fieldset>
       <fieldset style={GROUP} aria-label="Filter actions by timing">
         {view.tabs.map((t) => (
-          <Toggle key={t} pressed={view.activeTab === t} onPress={() => view.onTab(t)}>
+          <Toggle key={t} pressed={view.activeTab === t} onClick={() => view.onTab(t)}>
             {t}
           </Toggle>
         ))}
       </fieldset>
       {view.sources.length > 1 && (
         <fieldset style={GROUP} aria-label="Filter actions by source">
-          <Toggle pressed={view.sourceFilter === null} onPress={() => view.onSourceFilter(null)}>
+          <Toggle pressed={view.sourceFilter === null} onClick={() => view.onSourceFilter(null)}>
             All
           </Toggle>
           {view.sources.map((src) => (
             <Toggle
               key={`${src.stamp}:${src.label}`}
               pressed={view.sourceFilter === src.label}
-              onPress={() =>
+              onClick={() =>
                 view.onSourceFilter(view.sourceFilter === src.label ? null : src.label)
               }
             >

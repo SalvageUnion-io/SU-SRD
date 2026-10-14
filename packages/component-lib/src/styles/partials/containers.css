@@ -67,32 +67,14 @@
   padding: 0;
 }
 
-/* ModalShell's close ×: ink (paper on the danger band) at 60%, full strength
-   on a faint ink wash under the pointer. */
-.su-modal-close {
-  display: flex;
-  flex-shrink: 0;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.25rem;
-  padding: var(--space-4);
-  color: color-mix(in oklab, var(--color-ink) 60%, transparent);
-  transition-property: color, background-color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.su-modal-close:hover {
-  background-color: color-mix(in oklab, var(--color-ink) 20%, transparent);
-  color: var(--color-ink);
-}
-
-.su-modal-close[data-tone='danger'] {
+/* ModalShell's close × is Button's quiet icon rung; on the danger band its
+   ink turns paper. Doubled with `.su-btn` to out-rank the quiet variant's
+   resting and hover ink. */
+.su-btn.su-modal-close[data-tone='danger'] {
   color: color-mix(in oklab, var(--color-paper) 60%, transparent);
 }
 
-.su-modal-close[data-tone='danger']:hover {
+.su-btn.su-modal-close[data-tone='danger']:hover:not(:disabled) {
   color: var(--color-paper);
 }
 

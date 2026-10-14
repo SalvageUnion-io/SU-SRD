@@ -54,7 +54,6 @@ export { Panel } from './components/atoms/Panel'
 export { linesFromBreakdown, summarizeBreakdown } from './components/atoms/provenanceLines'
 export { Radio } from './components/atoms/Radio'
 export { SearchField, SearchFieldTrigger } from './components/atoms/SearchField'
-export { Sel } from './components/atoms/Sel'
 export { Slab } from './components/atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './components/atoms/SlotGrid'
@@ -65,7 +64,7 @@ export { StatColumn } from './components/atoms/StatColumn'
 export type { ProvenanceLine } from './components/atoms/StatProvenance'
 // STAMP_SEAM — the border-riding stamp placement, as a class string (ruleset §5)
 export { STAMP_SEAM } from './components/atoms/stampSeam'
-export { Tab, TabList, TabPanel, Tabs } from './components/atoms/Tabs'
+export { Tab, TabList, TabPanel, Tabs, Toggle } from './components/atoms/Tabs'
 // Base typography
 export { Text } from './components/atoms/Text'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
@@ -151,6 +150,7 @@ export { RadioCardGroup } from './components/containers/RadioCardGroup'
 // action) behind srd's island error boundary and itun's root error component.
 export { RecoveryPanel } from './components/containers/RecoveryPanel'
 export { RosterSkeleton } from './components/containers/RosterSkeleton'
+export { Sel } from './components/containers/Sel'
 export { SheetSectionCard } from './components/containers/SheetSectionCard'
 export { SheetSectionSlab } from './components/containers/SheetSectionSlab'
 export { Skeleton } from './components/containers/Skeleton'

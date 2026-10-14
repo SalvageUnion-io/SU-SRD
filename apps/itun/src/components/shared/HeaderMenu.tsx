@@ -1,5 +1,5 @@
 import { Menu } from '@base-ui/react/menu'
-import { buttonVariants, FOCUS_RING } from 'component-lib'
+import { buttonVariants, cn, FOCUS_RING } from 'component-lib'
 import {
   borderWidth,
   color,
@@ -108,21 +108,14 @@ const TRIGGER = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-// The overflow trigger: a square, 40px, ink-outlined button (board S1). Its
-// colours change on hover and while open, so they are the class's.
-const OVERFLOW_TRIGGER = {
-  alignItems: 'center',
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
-  cursor: 'pointer',
-  display: 'inline-flex',
-  flexShrink: 0,
-  height: '40px',
-  justifyContent: 'center',
-  padding: 0,
-  width: '40px',
-} satisfies CSSProperties
+// The overflow trigger (board S1) is the sheet bar's "⋯": Button's icon rung
+// at page-action height, a 40px ink-outlined square. Only its open state, the
+// inverse plate, is `.header-menu-trigger--overflow`'s.
+const OVERFLOW_TRIGGER_CLASS = cn(
+  buttonVariants({ size: 'iconOnly' }),
+  'su-page-action',
+  'header-menu-trigger--overflow'
+)
 
 const POSITIONER = {
   // Above the masthead (z-50) and the sticky sheet bars beneath it.
@@ -196,8 +189,10 @@ export function HeaderMenu({
   const triggerClass =
     variant === 'button'
       ? `${buttonVariants({ size: 'compact' })}${className ? ` ${className}` : ''}`
-      : `header-menu-trigger${overflow ? ' header-menu-trigger--overflow' : ''} ${FOCUS_RING}`
-  const triggerStyle = variant === 'button' ? undefined : overflow ? OVERFLOW_TRIGGER : TRIGGER
+      : overflow
+        ? OVERFLOW_TRIGGER_CLASS
+        : `header-menu-trigger ${FOCUS_RING}`
+  const triggerStyle = variant === 'masthead' ? TRIGGER : undefined
 
   return (
     <Menu.Root>

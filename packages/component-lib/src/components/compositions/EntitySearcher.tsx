@@ -52,11 +52,12 @@ import { SELECTED_RING } from '../../entity/modes/selectedRing'
 import { cn } from '../../utils/cn'
 import { BandTitle } from '../atoms/BandTitle'
 import { Button } from '../atoms/Button'
+import { SearchField } from '../atoms/SearchField'
 import { Card } from '../containers/Card'
 import { MasonryColumns } from '../containers/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
-import { NarrowSubHeader, SearchField, WideSubHeader } from './EntitySearcherFilters'
+import { NarrowSubHeader, WideSubHeader } from './EntitySearcherFilters'
 import { ChosenBar, SelectionRail } from './EntitySearcherRail'
 import type { BudgetConfig, EntityLike, FacetConfig, PoolEntity } from './entitySearcherTypes'
 import { useSearcherPool } from './useSearcherPool'
@@ -178,7 +179,15 @@ export function EntitySearcher({
   const filtersId = useId()
 
   // ---- Sub-parts of the searcher Card ----
-  const searchInput = <SearchField query={query} onQueryChange={setQuery} />
+  const searchInput = (
+    <SearchField
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      placeholder="Search by name or trait…"
+      aria-label="Search"
+      autoComplete="off"
+    />
+  )
 
   const summaryNode = (
     <span style={SUMMARY_STYLE}>

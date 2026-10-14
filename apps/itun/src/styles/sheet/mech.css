@@ -2,15 +2,6 @@
 
 /* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome, SheetRailParts) ---- */
 
-/* `SHEET_ICONBTN_CLASS`'s square geometry over `buttonVariants`: a class
-   because the export is a class string (sheetChrome.model.ts). Its height is
-   `.su-page-action`'s, so the width matches it. */
-.su-sheet-iconbtn {
-  flex-shrink: 0;
-  padding: 0;
-  width: var(--space-40);
-}
-
 /* A rail slot's share of the Assigned Units row. `EntityRow` takes a className
    and no style, so the static `flex` rides a class. */
 .su-sheet-rail-slot {

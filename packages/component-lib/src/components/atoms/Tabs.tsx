@@ -1,6 +1,7 @@
 import { Tabs as BaseTabs } from '@base-ui/react/tabs'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
 import { borderWidth, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
+import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
  * Tabs — a row of tabs that switches one panel, over Base UI's Tabs.
@@ -104,6 +105,39 @@ export function Tab({
     <BaseTabs.Tab value={value} className="su-tab su-focus-ring" style={{ ...TAB, ...style }}>
       {children}
     </BaseTabs.Tab>
+  )
+}
+
+/**
+ * A Tab that switches nothing in a panel: an `aria-pressed` toggle in a row of
+ * them (a deck's timing filter, the Dashboard's reference picker, a phone
+ * deck's filter key). It is the Tab's look, one implementation, so a toggle row
+ * and a tab row never drift apart; pressed is the Tab's selected plate, ink
+ * with paper text (a state, never rust: ruleset §3.1).
+ */
+export function Toggle({
+  pressed,
+  onClick,
+  children,
+  style,
+  ...rest
+}: Omit<ComponentPropsWithRef<'button'>, 'type' | 'className' | 'aria-pressed'> & {
+  pressed: boolean
+  children: ReactNode
+  /** Geometry over the default; never a colour (see `Tab`). */
+  style?: CSSProperties
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      className={`su-tab ${FOCUS_RING} ${DISABLED}`}
+      style={{ ...TAB, ...style }}
+      onClick={onClick}
+      {...rest}
+    >
+      {children}
+    </button>
   )
 }
 

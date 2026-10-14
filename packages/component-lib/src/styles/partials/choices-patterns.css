@@ -54,17 +54,6 @@
   margin-bottom: var(--space-12);
 }
 
-/* `EntityDetailDialog.tsx` — the black close stamp: ink, ink-2 on hover.
-   Doubled with `.su-btn` so it out-ranks the ghost variant's resting and hover
-   fills it composes (`.su-btn--ghost:hover:not(:disabled)`). */
-.su-btn.su-detail-dialog__close {
-  background-color: var(--color-ink);
-}
-
-.su-btn.su-detail-dialog__close:hover:not(:disabled) {
-  background-color: var(--color-ink-2);
-}
-
 /* `card/PatternLoadout.tsx` — Systems and Modules side by side from `sm`, with
    a rule between the columns there and nowhere else. */
 .su-pattern-loadout {

@@ -151,6 +151,13 @@
   color: var(--color-ink);
 }
 
+/* The User-made stamp (ruleset §3.9): canon is solid, homebrew is dashed. */
+.su-badge--dashed {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) dashed var(--color-ink);
+  color: var(--color-ink);
+}
+
 /* ── Stamps on a stamp ──
  * Classes laid over a `shape="stamp"` Badge, so they sit AFTER the stamp's own
  * rules above (`.su-badge-stamp`, `.su-badge--*`, the rung and caps classes):

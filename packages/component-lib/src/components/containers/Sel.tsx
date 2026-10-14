@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { radius } from '../../design/tokens'
 import { cn } from '../../utils/cn'
-import { RadioCard } from '../containers/RadioCardGroup'
-import { activateOnKey, FOCUS_RING, SELECTION_RING } from './interaction'
+import { activateOnKey, FOCUS_RING, SELECTION_RING } from '../atoms/interaction'
+import { RadioCard } from './RadioCardGroup'
 
 type SelProps = {
   /** Whether the selection ring is on */
