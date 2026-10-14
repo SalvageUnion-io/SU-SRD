@@ -234,9 +234,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .srd-not-found__link {
@@ -252,9 +249,6 @@
   display: grid;
   gap: var(--space-10);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .srd-not-found__chapter {
@@ -321,9 +315,6 @@
 .srd-contents__rows {
   display: flex;
   flex-direction: column;
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .srd-contents__rows > li {
@@ -597,12 +588,6 @@
   max-width: 52rem;
 }
 
-/* `ReferenceEntityIsland` hides the fallback with `hidden` on mount; the
-   `display` above must not out-rank it. */
-.srd-static[hidden] {
-  display: none;
-}
-
 .srd-static__label {
   font-family: var(--font-cond);
   font-weight: var(--font-weight-bold);
@@ -642,16 +627,6 @@
 .srd-static__table tbody th {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-/* Named for a screen reader's table list; not drawn. */
-.srd-static__caption {
-  clip-path: inset(50%);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
 }
 
 .srd-static__section {
@@ -828,9 +803,6 @@
 .srd-roll__earlier-list {
   display: flex;
   flex-direction: column;
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .srd-roll__earlier-row {
@@ -994,9 +966,6 @@
   display: grid;
   gap: var(--space-8);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--srd-listing-min)), 1fr));
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 /* A listing's Rows (`data-entity-fit`): each as wide as its title on one line
@@ -1037,13 +1006,6 @@
   min-width: 0;
 }
 
-/* Search's grid mixes kinds (a roll table beside a chassis), so its rows are
-   each line's own height: Rows still match across a line, but a lone row on a
-   phone is never stretched to the tallest hit's height. */
-.srd-listing__cards[data-mixed] {
-  grid-auto-rows: auto;
-}
-
 .srd-listing__fallback-row {
   align-items: center;
   background-color: var(--color-paper);
@@ -1076,9 +1038,6 @@
   display: grid;
   gap: var(--space-12);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .srd-listing__tiles > li {
@@ -1118,8 +1077,7 @@
   --srd-tile-band: 8.25rem;
 }
 
-.srd-listing[data-catalog] .srd-listing__tiles,
-.srd-listing[data-catalog] .srd-listing__cards {
+.srd-listing[data-catalog] .srd-listing__tiles {
   gap: var(--space-12);
   grid-auto-rows: auto;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
@@ -1129,24 +1087,9 @@
   content: none;
 }
 
-.srd-listing[data-catalog] .srd-listing__fallback-row {
-  min-height: var(--srd-tile-band);
-  white-space: normal;
-}
-
 /* The abilities' Catalog | Tree toggle sits at the rail's end, beside the facets. */
 .srd-rail__view {
   flex: none;
-}
-
-/* Visually hidden, still read: a fieldset's legend. */
-.srd-vh {
-  clip-path: inset(50%);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
 }
 
 /*
@@ -1522,9 +1465,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--srd-track-gap);
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 /* The tier's hue, and the numeral's foreground on it (§3.8: ink on the Core
@@ -1674,9 +1614,6 @@
   display: grid;
   gap: var(--space-10);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 /* A lone card (a Core class with no paths: the Salvager) spans the area. */
@@ -1794,9 +1731,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-20);
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .srd-class-path {
@@ -2056,14 +1990,4 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   .srd-colophon {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
-/* The support section's slab spans its column and drops its own bottom margin
-   (the section's gap spaces it). Slab takes a className and no style, and its
-   own 14px bottom margin outranks a class here, so the reset needs
-   `!important`. */
-.srd-colophon__support-slab {
-  /* biome-ignore lint/complexity/noImportantStyles: Slab's own 14px bottom margin outranks a class */
-  margin-bottom: 0 !important;
-  width: 100%;
 }

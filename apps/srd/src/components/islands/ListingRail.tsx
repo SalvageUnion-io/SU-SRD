@@ -132,7 +132,7 @@ export function ListingRail({
       <span className="srd-rail__spring" />
       {views.length > 1 && (
         <fieldset className="srd-seg srd-rail__view">
-          <legend className="srd-vh">View</legend>
+          <legend className="su-sr-only">View</legend>
           {views.map((option) => (
             <button
               key={option}
@@ -150,7 +150,7 @@ export function ListingRail({
         <div className="srd-rail__facets" id="srd-rail-facets">
           {hasTechLevels && (
             <fieldset className="srd-seg srd-seg--tl">
-              <legend className="srd-vh">Tech Level</legend>
+              <legend className="su-sr-only">Tech Level</legend>
               <span className="srd-seg__stamp" aria-hidden="true">
                 TL
               </span>

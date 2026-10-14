@@ -132,7 +132,7 @@ function SearchResults({
     <SearchRail query={query} setQuery={setQuery}>
       {facets.length > 1 && (
         <fieldset className="srd-seg">
-          <legend className="srd-vh">Type</legend>
+          <legend className="su-sr-only">Type</legend>
           <button
             type="button"
             className="srd-seg__option su-focus-ring"
@@ -204,7 +204,7 @@ function SearchResults({
 
       {/* SEARCH (ruleset §1.5, entity display language E11): every result is
           a listing Row in link mode, with the lead, as a schema listing's. */}
-      <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="" data-mixed="">
+      <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="">
         {visible.map((result) => {
           const model = models.get(result.entityId)
           return (

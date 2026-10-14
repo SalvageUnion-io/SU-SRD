@@ -82,7 +82,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
       {summary.table.length > 0 && (
         <div className="srd-static__table-wrap">
           <table className="srd-static__table">
-            <caption className="srd-static__caption">{`${summary.name} roll table`}</caption>
+            <caption className="su-sr-only">{`${summary.name} roll table`}</caption>
             <thead>
               <tr>
                 <th scope="col">Roll</th>
