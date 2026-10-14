@@ -1,4 +1,5 @@
 import { SearchField, Select } from 'component-lib'
+import type { ReactNode } from 'react'
 import type { TechLevel } from '../../lib/listingGroups'
 import { tlName } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
@@ -70,12 +71,17 @@ type ListingRailProps = {
    * above the grid, so the grid does not drop when the island's rail arrives.
    */
   actions?: RailActions
+  /**
+   * What is filtered (the count, the tokens, Clear all): inline between the
+   * search and the menus where it fits, its own line beneath on a phone.
+   */
+  status?: ReactNode
 }
 
 /**
- * THE RAIL — one row of 44px controls: search, the TL badge, the menus, then
- * List | Catalog where the schema has art. On a phone the facets fold behind
- * Filters.
+ * THE RAIL — one row of 44px controls: search, what is filtered, the TL badge,
+ * the menus, then List | Catalog where the schema has art. On a phone the
+ * facets fold behind Filters.
  */
 export function ListingRail({
   facets: { count, techLevels, sources, trees, hasArt },
@@ -83,6 +89,7 @@ export function ListingRail({
   facetsOpen = false,
   view,
   actions,
+  status,
 }: ListingRailProps) {
   const on = actions ?? IDLE
   const hasTechLevels = techLevels.length > 1
@@ -119,6 +126,7 @@ export function ListingRail({
           {activeFacets > 0 && <span className="srd-rail__count">{activeFacets}</span>}
         </button>
       )}
+      {status}
       <span className="srd-rail__spring" />
       {hasArt && (
         <fieldset className="srd-seg srd-rail__view">

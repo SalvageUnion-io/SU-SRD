@@ -272,53 +272,59 @@ function SchemaViewer({
         facetsOpen={facetsOpen}
         view={view}
         actions={railActions}
+        // What is filtered, only while something is: the count, a token per
+        // filter that removes it, and Clear all.
+        status={
+          hasActiveFilters &&
+          filteredData.length > 0 && (
+            <output className="srd-rail__status" aria-live="polite">
+              <span className="srd-rail__tally">
+                {filteredData.length} of {initialData.length}
+              </span>
+              {[...techLevelFilters].map((key) => {
+                const level = orderedTechLevels.find((tl) => String(tl) === key)
+                if (level == null) return null
+                return (
+                  <FilterToken
+                    key={key}
+                    label={typeof level === 'number' ? `TL ${level}` : tlButtonLabel(level)}
+                    name={tlName(level)}
+                    onRemove={() => toggleTechLevel(level)}
+                  />
+                )
+              })}
+              {sourceFilter && (
+                <FilterToken
+                  label={shortSource(sourceFilter)}
+                  name={`source ${sourceFilter}`}
+                  onRemove={() => setSourceFilter('')}
+                />
+              )}
+              {treeFilter && (
+                <FilterToken
+                  label={treeFilter}
+                  name={`tree ${treeFilter}`}
+                  onRemove={() => setTreeFilter('')}
+                />
+              )}
+              {nameFilter && (
+                <FilterToken
+                  label={`“${nameFilter}”`}
+                  name="name filter"
+                  onRemove={() => setNameFilter('')}
+                />
+              )}
+              <button
+                type="button"
+                className="srd-rail__clear su-focus-ring"
+                onClick={clearFilters}
+              >
+                Clear all
+              </button>
+            </output>
+          )
+        }
       />
-
-      {/* What is filtered, only while something is: the count, a token per
-          filter that removes it, and Clear all. */}
-      {hasActiveFilters && filteredData.length > 0 && (
-        <output className="srd-rail__status" aria-live="polite">
-          <span className="srd-rail__tally">
-            {filteredData.length} of {initialData.length}
-          </span>
-          {[...techLevelFilters].map((key) => {
-            const level = orderedTechLevels.find((tl) => String(tl) === key)
-            if (level == null) return null
-            return (
-              <FilterToken
-                key={key}
-                label={typeof level === 'number' ? `TL ${level}` : tlButtonLabel(level)}
-                name={tlName(level)}
-                onRemove={() => toggleTechLevel(level)}
-              />
-            )
-          })}
-          {sourceFilter && (
-            <FilterToken
-              label={shortSource(sourceFilter)}
-              name={`source ${sourceFilter}`}
-              onRemove={() => setSourceFilter('')}
-            />
-          )}
-          {treeFilter && (
-            <FilterToken
-              label={treeFilter}
-              name={`tree ${treeFilter}`}
-              onRemove={() => setTreeFilter('')}
-            />
-          )}
-          {nameFilter && (
-            <FilterToken
-              label={`“${nameFilter}”`}
-              name="name filter"
-              onRemove={() => setNameFilter('')}
-            />
-          )}
-          <button type="button" className="srd-rail__clear su-focus-ring" onClick={clearFilters}>
-            Clear all
-          </button>
-        </output>
-      )}
 
       {filteredData.length === 0 ? (
         <EmptyState

@@ -1322,13 +1322,29 @@
   padding: 0 var(--space-10);
 }
 
-/* What is filtered: the count, a token per filter, Clear all. */
+/* What is filtered: the count, a token per filter, Clear all. On an index it
+   sits in the rail between the search and the menus, taking the room between
+   them (the spring steps aside) and wrapping its tokens there. Below 15rem of
+   room it is the next line's lead instead, and the controls after it follow. */
 .srd-rail__status {
   align-items: center;
   color: var(--color-ink-2);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-6) var(--space-10);
+}
+
+.srd-rail > .srd-rail__status {
+  flex: 1 1 0;
+  min-width: min(100%, 15rem);
+}
+
+.srd-rail__status > * {
+  white-space: nowrap;
+}
+
+.srd-rail__status ~ .srd-rail__spring {
+  display: none;
 }
 
 .srd-rail__tally {
@@ -1405,6 +1421,16 @@
   .srd-rail[data-open] .srd-rail__menu {
     max-width: none;
     width: 100%;
+  }
+
+  /* Below the controls and any open facets, on its own line. */
+  .srd-rail > .srd-rail__status {
+    flex-basis: 100%;
+    order: 1;
+  }
+
+  .srd-rail__status ~ .srd-rail__spring {
+    display: block;
   }
 }
 
