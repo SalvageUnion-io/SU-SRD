@@ -175,11 +175,18 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
       render(<Roster />)
     })
     const how = screen.getByRole('region', { name: 'Start here' })
-    expect(
-      within(how)
-        .getAllByRole('heading', { level: 3 })
-        .map((h) => h.textContent)
-    ).toEqual(['Create a Pilot', 'Create a Mech', 'Join or make a Crawler'])
+    // Each step's slab carries its numeral aria-hidden: the heading's name is
+    // the title alone.
+    const spoken = (h: HTMLElement) => {
+      const copy = h.cloneNode(true) as HTMLElement
+      for (const hidden of copy.querySelectorAll('[aria-hidden="true"]')) hidden.remove()
+      return copy.textContent?.trim()
+    }
+    expect(within(how).getAllByRole('heading', { level: 3 }).map(spoken)).toEqual([
+      'Create a Pilot',
+      'Create a Mech',
+      'Join or make a Crawler',
+    ])
   })
 
   test('the Starter Set is clickable rows, with one Leyline Press credit', async () => {
