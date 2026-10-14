@@ -32,6 +32,7 @@ import { build as viteBuild } from 'vite'
 // (`BaseLayout` -> `component-lib` -> third-party deps) must load only after the
 // css-stub plugin below is registered.
 import type { BuildAssets } from './document'
+import { pickFontPreloads } from './fontPreloads'
 import { outputPathFor } from './outputPath'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
 
@@ -53,6 +54,7 @@ plugin({
 type ManifestChunk = {
   file: string
   css?: string[]
+  assets?: string[]
   isEntry?: boolean
 }
 
@@ -73,7 +75,7 @@ const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
  */
 const BUILT_ASSET_PREFIX = 'src/assets/'
 
-/** Entry JS + CSS urls (in `<head>` order) plus the emitted `src/assets/` urls. */
+/** Entry JS + CSS urls (in `<head>` order), the preloaded fonts, and the emitted `src/assets/` urls. */
 async function readAssets(): Promise<BuildAssets> {
   const manifestPath = join(distDir, '.vite', 'manifest.json')
   const manifest = JSON.parse(await readFile(manifestPath, 'utf-8')) as Manifest
@@ -81,6 +83,7 @@ async function readAssets(): Promise<BuildAssets> {
   const scripts: string[] = []
   const styles: string[] = []
   const built: Record<string, string> = {}
+  const fontFiles: string[] = []
 
   for (const [key, chunk] of Object.entries(manifest)) {
     if (key.startsWith(BUILT_ASSET_PREFIX)) {
@@ -92,11 +95,12 @@ async function readAssets(): Promise<BuildAssets> {
       const href = `/${css}`
       if (!styles.includes(href)) styles.push(href)
     }
+    fontFiles.push(...(chunk.assets ?? []).filter((asset) => asset.endsWith('.woff2')))
     if (NON_LINKED_ENTRIES.some((entry) => key.endsWith(entry))) continue
     scripts.push(`/${chunk.file}`)
   }
 
-  return { scripts, styles, built }
+  return { scripts, styles, fonts: pickFontPreloads(fontFiles), built }
 }
 
 // `outputPathFor` (URL -> dist file) lives in `./outputPath` so it can be read

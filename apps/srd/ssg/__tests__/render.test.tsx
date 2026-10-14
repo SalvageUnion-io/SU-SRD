@@ -18,11 +18,12 @@ import type { BuildAssets } from '../document'
 import { register, resolveRoutes, withTrailingSlash } from '../render'
 import type { PageModule, RouteContext } from '../types'
 
-const NO_ASSETS: BuildAssets = { scripts: [], styles: [], built: {} }
+const NO_ASSETS: BuildAssets = { scripts: [], styles: [], fonts: [], built: {} }
 
 const ASSETS: BuildAssets = {
   scripts: ['/assets/islands-DEADBEEF.js'],
   styles: ['/assets/styles-CAFEBABE.css'],
+  fonts: [],
   built: { 'src/assets/map.webp': '/assets/map-F00D.webp' },
 }
 

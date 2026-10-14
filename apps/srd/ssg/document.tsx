@@ -22,6 +22,8 @@ export type BuildAssets = {
   scripts: string[]
   /** Stylesheets to link, in order. */
   styles: string[]
+  /** Webfonts to preload ahead of the stylesheet; see `./fontPreloads`. */
+  fonts: string[]
   /**
    * Emitted URLs of the static assets under `src/assets/`. Not injected into
    * `<head>` like the two above — these are handed to the page through
@@ -31,11 +33,16 @@ export type BuildAssets = {
 }
 
 function assetTags(assets: BuildAssets): string {
+  // `crossorigin` is required even same-origin: fonts are fetched in CORS mode,
+  // and a preload without it is not reused — the font downloads twice.
+  const fonts = assets.fonts
+    .map((href) => `<link rel="preload" href="${href}" as="font" type="font/woff2" crossorigin>`)
+    .join('')
   const styles = assets.styles.map((href) => `<link rel="stylesheet" href="${href}">`).join('')
   const scripts = assets.scripts
     .map((src) => `<script type="module" src="${src}"></script>`)
     .join('')
-  return styles + scripts
+  return fonts + styles + scripts
 }
 
 function islandPropsTag(props: CollectedIslandProps): string {

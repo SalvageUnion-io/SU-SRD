@@ -15,11 +15,12 @@ import type { BuildAssets } from '../document'
 import { renderDocument } from '../document'
 import type { DocumentMeta } from '../types'
 
-const NO_ASSETS: BuildAssets = { scripts: [], styles: [], built: {} }
+const NO_ASSETS: BuildAssets = { scripts: [], styles: [], fonts: [], built: {} }
 
 const ASSETS: BuildAssets = {
   scripts: ['/assets/islands-DEADBEEF.js'],
   styles: ['/assets/styles-CAFEBABE.css'],
+  fonts: ['/assets/barlow-latin-400-normal-F0E7.woff2'],
   built: { 'src/assets/map.webp': '/assets/map-F00D.webp' },
 }
 
@@ -82,8 +83,20 @@ describe('document shell', () => {
     expect(html.indexOf('styles-CAFEBABE.css')).toBeLessThan(html.indexOf('islands-DEADBEEF.js'))
   })
 
+  it('preloads the fonts ahead of the stylesheet, in CORS mode', () => {
+    // Discovered from <head> rather than from the parsed stylesheet, so the
+    // first paint is already in Barlow and the swap re-wraps nothing.
+    const html = renderAbout({}, ASSETS)
+
+    expect(html).toContain(
+      '<link rel="preload" href="/assets/barlow-latin-400-normal-F0E7.woff2" as="font" type="font/woff2" crossorigin>' +
+        '<link rel="stylesheet" href="/assets/styles-CAFEBABE.css">'
+    )
+  })
+
   it('injects nothing when there are no assets', () => {
     expect(renderAbout()).not.toContain('rel="stylesheet"')
+    expect(renderAbout()).not.toContain('as="font"')
   })
 
   it('throws rather than emitting a document it could not inject into', () => {

@@ -14,6 +14,7 @@ import { routes } from '../routes'
 const ASSETS: BuildAssets = {
   scripts: ['/assets/islands.js'],
   styles: ['/assets/styles.css'],
+  fonts: [],
   built: { [ELDRIDGE_COAST_MAP]: '/assets/eldridge-coast-map.webp' },
 }
 
