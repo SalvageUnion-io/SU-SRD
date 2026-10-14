@@ -143,10 +143,11 @@ describe('an entity page (boards 07, 08)', () => {
     expect(h1s(html)).toEqual(['Gopher (Chassis)'])
   })
 
-  it('sets the stats in the book’s stat column, in its words', () => {
+  it('sets the stats in the book’s stat column, under their full names', () => {
     expect(html).toContain('su-stat-column')
-    expect(html).toContain('Structure Pts.')
-    expect(html).toContain('Heat Cap.')
+    expect(html).toContain('Structure Points')
+    expect(html).toContain('Heat Capacity')
+    expect(html).not.toContain('Structure Pts.')
   })
 
   it('lists its patterns as link rows, and cites its page on the foot band', () => {

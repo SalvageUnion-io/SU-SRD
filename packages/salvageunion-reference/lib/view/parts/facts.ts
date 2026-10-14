@@ -28,7 +28,11 @@ export type StatLabel = {
   label: string
   /** The game's own abbreviation, or the first word where that already is one. */
   short: string
-  /** As the Workshop Manual's stat column prints it ("Structure Pts."). */
+  /**
+   * As the Workshop Manual's stat column prints it ("Structure Pts."). Kept
+   * for the ITUN sheet's book-faced plates; every page and long-label surface
+   * prints `label`, one vocabulary of full words.
+   */
   book: string
 }
 
@@ -44,7 +48,7 @@ export const STAT_LABELS = {
   energyPoints: { label: 'Energy Points', short: 'EP', book: 'Energy Pts.' },
   salvageValue: { label: 'Salvage Value', short: 'SV', book: 'Salvage Value' },
   // "Bio-Salvage", hyphenated, as the Workshop Manual prints it (p.275).
-  bioSalvageValue: { label: 'Bio SV', short: 'Bio', book: 'Bio-Salvage Value' },
+  bioSalvageValue: { label: 'Bio-Salvage Value', short: 'Bio', book: 'Bio-Salvage Value' },
   systemSlots: { label: 'System Slots', short: 'SYS', book: 'System Slots' },
   moduleSlots: { label: 'Module Slots', short: 'MODS', book: 'Module Slots' },
   cargoCapacity: { label: 'Cargo Capacity', short: 'Cargo', book: 'Cargo Cap.' },
@@ -222,7 +226,7 @@ export function entityStats(
     return [
       {
         key: `ref-stat-${config.key}`,
-        label: bio ? bioNames.book.toUpperCase() : names.label,
+        label: bio ? bioNames.label : names.label,
         short: bio ? bioNames.short : names.short,
         value,
         hint: config.hint,
@@ -260,7 +264,11 @@ const BOOK_ORDER: StatConfig['getter'][] = [
 
 const TECH_LEVEL_INDEX = BOOK_ORDER.indexOf(getSalvageValue)
 
-/** The page's stat column: every stat, in the book's order and words. */
+/**
+ * The page's stat column: every stat, in the book's order, under its full name
+ * ("Structure Points", never the book's "Structure Pts."): a Page's band and a
+ * chassis's body stats print the long label, every smaller form the short one.
+ */
 export function bookStats(
   entity: SURefMetaEntity,
   options: { schemaName?: SURefEnumSchemaName | 'actions'; techLevel?: number | 'B' | 'N' }
@@ -276,8 +284,8 @@ export function bookStats(
     const names = STAT_LABELS[config.key]
     const label =
       getter === getSalvageValue && techLevel === 'B'
-        ? STAT_LABELS.bioSalvageValue.book
-        : names.book
+        ? STAT_LABELS.bioSalvageValue.label
+        : names.label
     out.push({
       key: `book-${names.book}`,
       label,

@@ -57,7 +57,7 @@ describe('discordCardParts', () => {
     expect(parts.tone).toBe('mech')
     // No kicker: a chassis has no action type or cost, and the kind is never one.
     expect(parts.head[0]).toBe('## [Mule](https://salvageunion.io/chassis/mule)')
-    expect(parts.head[1]).toBe('`12` STRUCTURE PTS. · `4` ENERGY PTS. · `6` HEAT CAP.')
+    expect(parts.head[1]).toBe('`12` STRUCTURE POINTS · `4` ENERGY POINTS · `6` HEAT CAPACITY')
     expect(parts.thumbnail?.url).toContain('mule')
     expect(parts.cite).toBe(
       '-# Workshop Manual p.100 · also in Salvage Union Starter Set (PC) p.12'

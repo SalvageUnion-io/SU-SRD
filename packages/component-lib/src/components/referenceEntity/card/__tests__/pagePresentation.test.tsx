@@ -32,13 +32,15 @@ const juryRig = () => need(SalvageUnionReference.Abilities.getByName('Jury Rig')
 
 const patternHref = () => '/pattern/'
 
+// The manual's eight, in its order, under their full names: a Page prints the
+// long label, never the book's abbreviations ("Structure Pts.").
 const BOOK_EIGHT = [
-  'Structure Pts.',
-  'Energy Pts.',
-  'Heat Cap.',
+  'Structure Points',
+  'Energy Points',
+  'Heat Capacity',
   'System Slots',
   'Module Slots',
-  'Cargo Cap.',
+  'Cargo Capacity',
   'Tech Level',
   'Salvage Value',
 ]
@@ -54,7 +56,7 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
   test('stats drop what the entity does not carry, and the TL when it has none', () => {
     const labels = resolveEntityPageMeta(juryRig()).stats.map((s) => s.label)
     expect(labels).not.toContain('Tech Level')
-    expect(labels).not.toContain('Structure Pts.')
+    expect(labels).not.toContain('Structure Points')
   })
 
   test('a chassis: its kind, TL and printings, its reprint after the book', () => {

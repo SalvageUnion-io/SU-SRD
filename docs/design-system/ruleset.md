@@ -6,7 +6,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
 2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind and its citation in the card footer's words, text, never chips (`Workshop Manual · p.112`, then "Also in" each reprint): one citation look on every page, card and Peek.
-3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE PTS. | 14`), label 14px, horizontal, in the book's order: STRUCTURE PTS., ENERGY PTS., HEAT CAP., SYSTEM SLOTS, MODULE SLOTS, CARGO CAP., TECH LEVEL, SALVAGE VALUE.
+3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the book's order: STRUCTURE POINTS, ENERGY POINTS, HEAT CAPACITY, SYSTEM SLOTS, MODULE SLOTS, CARGO CAPACITY, TECH LEVEL, SALVAGE VALUE. A Page sets the long label, full words only (never the book's "PTS." / "CAP."); Cards, Rows, Tokens, Peeks and search the short one (TL, SP, HP, SLOTS, SV, EP, HEAT, SYS, MODS).
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
