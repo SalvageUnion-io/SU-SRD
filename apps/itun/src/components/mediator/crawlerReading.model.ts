@@ -41,3 +41,12 @@ export function readCrawler(row: { appId: string | null; body: unknown }): Crawl
     scrapAtTl: techLevel === null ? 0 : (pool?.[`tl${techLevel}`] ?? 0),
   }
 }
+
+/** The crawler's readings, label first: `TL | 3`, `SP | 14/20`, `BAYS | 4/5`. */
+export function crawlerReadings(crawler: CrawlerReading): { label: string; value: string }[] {
+  return [
+    ...(crawler.techLevel === null ? [] : [{ label: 'TL', value: String(crawler.techLevel) }]),
+    { label: 'SP', value: `${crawler.sp}/${crawler.maxSP}` },
+    { label: 'Bays', value: `${crawler.baysIntact}/${crawler.bays}` },
+  ]
+}

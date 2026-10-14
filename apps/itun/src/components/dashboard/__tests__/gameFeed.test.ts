@@ -134,6 +134,7 @@ describe('crewLines', () => {
         hp: '10/10',
         ap: '5/5',
         unit: 'On foot · Kettle parked',
+        unitMech: { name: 'Kettle', sp: '12/12', boarded: false },
         // Parked: one line, and its own trouble does not take the row's SP
         // and Heat with it.
         mech: 'Kettle parked, destroyed',
@@ -152,6 +153,7 @@ describe('crewLines', () => {
         hp: '3/10',
         ap: '5/5',
         unit: 'In Magpie · SP 12/12',
+        unitMech: { name: 'Magpie', sp: '12/12', boarded: true },
         mech: 'Magpie · SP 12/12 · Heat 4/4',
         // Boarded, its trouble is the row's problems, not its line.
         mechAttention: false,
@@ -169,6 +171,7 @@ describe('crewLines', () => {
         hp: '10/10',
         ap: '5/5',
         unit: 'On foot',
+        unitMech: null,
         mech: null,
         mechAttention: false,
         problems: ['Ejected'],

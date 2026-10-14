@@ -245,10 +245,11 @@ describe('Crew & seats', () => {
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
     const rows = seats.getAllByRole('listitem').map((li) => li.textContent)
     // Join order; a Mediator with no pilot runs the table; an unclaimed pilot is an open seat.
+    // A pilot seat is the pilot's Row (role, then who holds it), its mech a Token.
     expect(rows).toEqual([
       'MediatorAsh (you)Runs the table',
-      'PlayerBeefcakePickle · Spectrum',
-      'Open—Hotdog · waiting for a player',
+      'Pickle (Pilot)PlayerBeefcakeSpectrum (Mech)',
+      'Hotdog (Pilot)OpenWaiting for a player',
     ])
     expect(screen.getByText('1 of 2 seats')).toBeTruthy()
     // No presence column: nothing writes it, and a false "Here" is worse than none.
