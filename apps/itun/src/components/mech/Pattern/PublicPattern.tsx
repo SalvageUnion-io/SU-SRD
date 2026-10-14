@@ -47,6 +47,7 @@ import { BASE_PATH } from '../../../lib/appUrl'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
 import { itunEntityHref } from '../../../lib/entityHref'
+import { formatDay } from '../../../lib/formatDate'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
   mechFromPattern,
@@ -231,14 +232,6 @@ const VISIBILITY_COPY: Record<PatternVisibility, string> = {
   private: 'Only you can see this pattern.',
   link: 'Anyone with the link can read and copy this pattern.',
   game: 'Your Game’s crew can read this pattern and build from it.',
-}
-
-function sharedDate(at: number): string {
-  return new Date(at).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
 }
 
 /** Open a loadout part's reference page, when the book has one for it. */
@@ -479,7 +472,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         <div style={FOOT_ROW}>
           <UserMadeStamp label={`Made by ${madeBy}`} />
           <span style={FOOT_CHIP}>
-            {sharedAt !== null ? `Shared ${sharedDate(sharedAt)} · ` : ''}
+            {sharedAt !== null ? `Shared ${formatDay(sharedAt)} · ` : ''}
             {`${window.location.host}${BASE_PATH}${patternHref(pattern.id)}`}
           </span>
         </div>
