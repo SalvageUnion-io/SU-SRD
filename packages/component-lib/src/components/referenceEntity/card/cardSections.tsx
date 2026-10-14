@@ -266,7 +266,13 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
 
   // NESTED ENTITIES — each group stacked in the frame, on a card or a page
   // alike; every child wears its own type stamp, so no group is labelled.
-  const nestedGroupsNode = (
+  // Null when there are none, so a header-only card grows no empty strip.
+  const hasNestedGroups =
+    droneInfos.length > 0 ||
+    droneSystems.length > 0 ||
+    droneModules.length > 0 ||
+    (!isPattern && inFlowGroups.length > 0)
+  const nestedGroupsNode = hasNestedGroups ? (
     <>
       <DroneCards drones={droneInfos} host={nestedHost} />
       {droneSystems.length > 0 && <NestedCardGroup entities={droneSystems} host={nestedHost} />}
@@ -284,7 +290,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
           />
         ))}
     </>
-  )
+  ) : null
   return {
     rollTableNode,
     guideStepsNode,

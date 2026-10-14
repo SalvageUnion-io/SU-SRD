@@ -170,6 +170,23 @@ describe('Content — datavalues chips', () => {
     expect(screen.getByText('3 Hexes')).toBeTruthy()
   })
 
+  test("a measured keyword wears an attack facet's short label", () => {
+    render(
+      <Content
+        body={blocks({
+          type: 'datavalues',
+          value: [
+            { type: 'keyword', label: 'Damage', value: '5 SP' },
+            { type: 'keyword', label: 'Range', value: 'Medium' },
+          ],
+        })}
+      />
+    )
+    expect(screen.getByText('DMG')).toBeTruthy()
+    expect(screen.getByText('RNG')).toBeTruthy()
+    expect(screen.queryByText('Damage')).toBeNull()
+  })
+
   test('a trait datavalue renders its label as a tag', () => {
     render(
       <Content

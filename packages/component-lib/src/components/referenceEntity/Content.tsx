@@ -55,6 +55,10 @@ const listItemStyle = {
 
 const labelStampStyle = { display: 'block', marginBottom: space[4] } satisfies CSSProperties
 
+/** A measured keyword wears the chip label an action's own facet does
+ *  (`traits.ts`), so "Damage | 5 SP" in prose reads DMG like every attack. */
+const MEASURED_KEYWORD_SHORT: Record<string, string> = { Damage: 'DMG', Range: 'RNG' }
+
 /**
  * A single `datavalues` item. A `cost` item ("3 AP") uses the ActivationCost
  * atom. A CITATION of a named rule — a trait ("Missile", "Explosive (1)", the
@@ -102,7 +106,9 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
     <PeekCell peek={peek}>
       <Stat
         orientation="horizontal"
-        label={item.label}
+        label={
+          (item.type === 'keyword' && MEASURED_KEYWORD_SHORT[String(item.label)]) || item.label
+        }
         value={value}
         size={compact ? 'compact' : 'full'}
         inline={false}
