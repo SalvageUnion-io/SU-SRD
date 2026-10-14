@@ -241,7 +241,7 @@ export { cn } from './utils/cn'
 // @randsum/salvageunion, every other die through @randsum/roller.
 export type { TableDie } from './utils/dice'
 export { dieForTable, rollD20, rollForTable } from './utils/dice'
-// Prose with its `[[Trait]]` references drawn as Mentions (ITUN's RollTable).
+// Prose with its `[[Trait]]` references drawn as Mentions (ITUN's `DashboardRollTable`).
 export { useParseTraitReferences } from './utils/parseTraitReferences'
 // The one place a schema id becomes a human label ('crawler-bays' →
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't

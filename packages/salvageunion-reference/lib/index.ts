@@ -115,7 +115,6 @@ export type {
   SURefObjectPattern,
   SURefObjectPatternSystemModule,
   SURefObjectTable,
-  SURefObjectTableContent,
   SURefObjectTrait,
 } from './schemas/index'
 export {
