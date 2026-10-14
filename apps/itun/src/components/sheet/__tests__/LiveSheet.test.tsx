@@ -67,7 +67,6 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
         { key: 'hp', label: 'HP', stat: 'hp', value: 7, max: 10 },
         { key: 'cargo', label: 'Hold', stat: 'cargo', value: 0, max: 6 },
       ]}
-      back={{ href: '/', label: 'Roster' }}
       renderBody={() => (
         <>
           {/* The body owns the identity band — the shell has no hero slot. */}
@@ -82,13 +81,13 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
 
 /** The sticky bar. The name is also the chapter band's h1, below it. */
 function bar() {
-  return within(screen.getByRole('region', { name: 'Sheet controls' }))
+  // By selector: at rest the bar is `visibility: hidden`, out of the role tree.
+  return within(must(document.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')))
 }
 
 function stripWrapper(): HTMLElement {
   // The condensed block wraps the name stamp and the live readouts — empty at
-  // rest, filled and faded in once the hero scrolls out of view (Option A: the
-  // resting bar is slim, back only).
+  // rest, filled and faded in once the hero scrolls out of view.
   return must(
     document.querySelector<HTMLElement>('section[aria-label="Sheet controls"] [data-sheet-strip]')
   )
@@ -104,7 +103,24 @@ describe('LiveSheet — landmarks', () => {
     renderShell()
     expect(screen.getAllByRole('main')).toHaveLength(1)
     expect(screen.queryByRole('banner')).toBeNull()
-    expect(screen.getByRole('main').contains(bar().getByRole('link'))).toBe(true)
+    expect(screen.getByRole('main').contains(stripWrapper())).toBe(true)
+  })
+})
+
+describe('LiveSheet — no bar at rest', () => {
+  test('there is no back link, and the bar takes no room until the band scrolls away', () => {
+    renderShell()
+    expect(screen.queryByRole('link', { name: /back to/i })).toBeNull()
+    const section = must(
+      document.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
+    )
+    expect(section.style.visibility).toBe('hidden')
+    expect(section.style.position).toBe('absolute')
+    expect(must(section.parentElement).style.height).toBe('0px')
+    act(() => {
+      must(observerCallbacks[0])([ioEntry(false)], observerStub)
+    })
+    expect(section.style.visibility).toBe('visible')
   })
 })
 
@@ -112,8 +128,7 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
   test('the name is not in the bar at rest — it lives in the poster below', () => {
     renderShell()
     // The condense block mounts its contents only once the hero scrolls out of
-    // view, so the resting bar stays slim (only back shows) and the
-    // hero h1 is the one copy of the name on the page.
+    // view, so the hero h1 is the one copy of the name on the page.
     expect(bar().queryByText('Mara Vex')).toBeNull()
     expect(stripWrapper().getAttribute('aria-hidden')).toBe('true')
   })
@@ -133,25 +148,40 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
 })
 
 describe('LiveSheet — the chapter band (board 10)', () => {
-  test('the name is the band’s h1 (its kind for screen readers), its detail and provenance', () => {
-    renderShell({
-      kindDetail: 'Engineer',
-      band: { provenance: 'Starter Set · Leyline Press · read-only' },
-    })
+  test('the name is the band’s h1 (its kind for screen readers) and its detail', () => {
+    renderShell({ kindDetail: 'Engineer' })
     const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
     const band = within(must(title.closest<HTMLElement>('.su-chapter-band')))
     // The kind is never stamped (EDL E9).
     expect(band.queryByText('pilot')).toBeNull()
     expect(band.getByText('Engineer')).toBeTruthy()
-    expect(band.getByText('Starter Set · Leyline Press · read-only')).toBeTruthy()
   })
 
-  test('the band carries the sheet’s controls beside the name', () => {
-    renderShell({ band: { actions: <button type="button">Make a copy</button> } })
-    expect(screen.getByRole('button', { name: 'Make a copy' })).toBeTruthy()
+  test('a detail that only repeats the name is not stamped', () => {
+    renderShell({ name: 'Scrapper', kindDetail: 'Scrapper' })
+    const title = screen.getByRole('heading', { level: 1, name: 'Scrapper (Pilot)' })
+    const band = must(title.closest<HTMLElement>('.su-chapter-band'))
+    expect(within(band).getAllByText('Scrapper')).toHaveLength(1)
   })
 
-  test('nothing but the back link sits above the name: stamps, Share and the switch follow it', () => {
+  test('the band’s controls sit in its top-right corner, above the name', () => {
+    renderShell({
+      band: { actions: <button type="button">Make a copy</button> },
+      actions: <button type="button">Share</button>,
+    })
+    const corner = must(document.querySelector<HTMLElement>('.su-chapter-band__corner'))
+    expect(within(corner).getByRole('button', { name: 'Make a copy' })).toBeTruthy()
+    expect(within(corner).getByRole('button', { name: 'Share' })).toBeTruthy()
+    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
+    expect(title.compareDocumentPosition(corner) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
+  })
+
+  test('a sheet with no controls has no corner', () => {
+    renderShell()
+    expect(document.querySelector('.su-chapter-band__corner')).toBeNull()
+  })
+
+  test('the stamp and the phone switch follow the name, and nothing is in the bar at rest', () => {
     renderShell({
       kindDetail: 'Engineer',
       actions: <button type="button">Share</button>,
@@ -165,7 +195,6 @@ describe('LiveSheet — the chapter band (board 10)', () => {
     expect(bar().queryByRole('navigation', { name: 'Assigned sheets' })).toBeNull()
     const after = (el: Element) =>
       (title.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
-    expect(after(screen.getByRole('button', { name: 'Share' }))).toBe(true)
     expect(after(screen.getByRole('navigation', { name: 'Assigned sheets' }))).toBe(true)
     expect(after(screen.getByText('Engineer'))).toBe(true)
     expect(must(title.closest('.su-chapter-band')).getAttribute('data-aside')).toBe('notch')

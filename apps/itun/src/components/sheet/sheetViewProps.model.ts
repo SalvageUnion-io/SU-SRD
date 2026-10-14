@@ -27,19 +27,17 @@ export type SheetStoreState = EntityState
 export type WithheldUnit = { key: string; kind: EntityRef['type']; name?: string }
 
 /**
- * The sheet's chapter band (board 10), past its title: where the sheet comes
- * from, beside the type stamps, and the band's controls (Read | Edit, the
- * Starter Set's "Make a copy").
+ * The sheet's chapter band (board 10), past its title: the band's controls
+ * (Read | Edit, the Starter Set's "Sign in to make a copy" / "Make a copy"),
+ * in its top-right corner.
  */
 export type SheetBand = {
-  provenance?: string
   actions?: ReactNode
 }
 
 export type SheetViewCommonProps = {
   band: SheetBand
   composition: SheetComposition
-  back: { href: string; label: string }
   /** Top-bar trailing actions; undefined on read-only sheets. */
   actions: ReactNode
   segments?: LiveSheetSegment[]
