@@ -58,7 +58,8 @@ So the Worker↔Convex boundary stays plain HTTP with a bearer token.
 
 **6. Everything runs on the existing `alxjrvs@gmail.com` account.** A dedicated
 account was declined. Cloudflare isolates by account, not project, so this
-project shares the Workers Free quota (100k requests/day, 10 ms CPU) and the
+project shares one Workers plan (Workers Paid since 2026-10-14; Free capped the
+account at 100k requests/day and 10 ms CPU) and the
 `alxjrvs.workers.dev` subdomain with RANDSUM's two Workers, `randsum-rdn` and
 `randsum-site`; preview URLs are `<alias>-<worker>.alxjrvs.workers.dev`, and renaming
 the subdomain would move RANDSUM's Workers.
@@ -127,10 +128,14 @@ that can deploy production. The bar it is held to:
 
 ## Configuration outside the repo
 
-Three things are configured in the Cloudflare dashboard and are invisible to
+These are configured in the Cloudflare dashboard and are invisible to
 `grep`: Images Transformations (enabled per zone), **Always Use HTTPS** (SSL/TLS
 → Edge Certificates, on both zones), and one **Redirect Rule** per zone sending
-`www` to the apex.
+`www` to the apex. Also on both zones since 2026-10-14: **Minimum TLS 1.2**,
+**Tiered Cache** (Smart topology), and **Block AI bots**. Web Analytics is NOT
+one of them: its automatic setup never injects the beacon into a Worker's
+static assets, so srd's `BaseLayout` and ITUN's `index.html` load it by URL and
+each `_headers` CSP allows its two origins.
 
 A missing chunk's 404 is NOT among them: each app's Worker answers every miss
 with `no-store`, where `_headers`' `/assets/*` `immutable` rule does not reach,
