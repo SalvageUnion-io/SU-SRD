@@ -2,7 +2,8 @@
 /**
  * Tag and publish a release on merge — `bun tools/release.ts --sha <commit>`.
  *
- * Run by `.github/workflows/release.yml` on every push to `main`. The version is
+ * Run by `.github/workflows/release.yml` when a push to `main` changes the root
+ * `package.json` (a push to `design-refresh` dry-runs it). The version is
  * the root `package.json` `version`; when no tag `v<version>` exists yet, it
  * publishes a GitHub release of that name on the pushed commit (which creates
  * the tag), with the merged PR's **What changed** section as its notes, word

@@ -196,13 +196,18 @@ describe('release.yml', () => {
     jobs: Record<string, { permissions?: Record<string, string>; steps: { run?: string }[] }>
   }
 
-  test('runs the script when a push to main changes the root package.json, holding only contents: write', () => {
-    expect(workflow.on.push.branches).toEqual(['main'])
+  test('runs the script when a push to main or design-refresh changes the root package.json, holding only contents: write', () => {
+    expect(workflow.on.push.branches).toEqual(['main', 'design-refresh'])
     expect(workflow.on.push.paths).toEqual(['package.json'])
     expect(workflow.permissions).toEqual({})
     const jobs = Object.values(workflow.jobs)
     expect(jobs).toHaveLength(1)
     expect(jobs[0]?.permissions).toEqual({ contents: 'write' })
-    expect(jobs[0]?.steps.some((s) => s.run?.includes('bun tools/release.ts --sha'))).toBe(true)
+    const run = jobs[0]?.steps.find((s) => s.run?.includes('bun tools/release.ts'))?.run ?? ''
+    // Only main publishes; any other branch dry-runs.
+    expect(run).toContain(
+      'if [ "$REF" = refs/heads/main ]; then\n  bun tools/release.ts --sha "$SHA"\nelse'
+    )
+    expect(run).toContain('bun tools/release.ts --sha "$SHA" --dry-run')
   })
 })

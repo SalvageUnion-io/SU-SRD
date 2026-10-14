@@ -12,7 +12,9 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    # design-refresh only dry-runs: it prints the release a merge to main
+    # would publish, proving the PR lookup and notes before the real one.
+    branches: [main, design-refresh]
     paths: [package.json]
 
 permissions: {}
@@ -45,4 +47,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA: ${{ github.sha }}
-        run: bun tools/release.ts --sha "$SHA"
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" = refs/heads/main ]; then
+            bun tools/release.ts --sha "$SHA"
+          else
+            bun tools/release.ts --sha "$SHA" --dry-run
+          fi
