@@ -53,9 +53,12 @@
 
 .su-roll__bar {
   align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8);
+  min-height: 2.5rem;
   padding: var(--space-8) var(--su-roll-pad-x);
 }
 
@@ -116,6 +119,85 @@
   border-color: var(--color-paper);
 }
 
+/*
+ * The bar is an ink head, the same ground as the SRD page's "You rolled"
+ * panel head, with the rust Button at its end. With nothing of the host's in
+ * it (a page's bands) it labels the columns: d20 over the ranges, Result over
+ * the text, each label sitting on its column's edge. A split table repeats
+ * Result over its second half (below). Before the script runs, the stamp
+ * wears paper so it reads on the ink.
+ */
+.su-roll__bar[data-cols] {
+  flex-wrap: nowrap;
+  gap: 0;
+  padding: var(--space-6) var(--su-roll-pad-x) var(--space-6) 0;
+}
+
+.su-roll__bar .su-roll__stamp {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.su-roll__bar .su-btn:focus-visible {
+  outline-color: var(--color-paper);
+}
+
+/* The bar's buttons share one height: the Roll and a card's Table / Hide
+   toggle, at the 44px tap floor on a coarse pointer (§4.6). */
+.su-roll__control {
+  min-height: 2rem;
+}
+
+@media (pointer: coarse) {
+  .su-roll__control {
+    min-height: 44px;
+  }
+}
+
+/* The toggle on the ink: a paper outline, never a paper slab beside the rust. */
+.su-roll__bar .su-roll__toggle {
+  background-color: transparent;
+  border-color: var(--color-paper-70);
+  color: var(--color-paper);
+}
+
+.su-roll__bar .su-roll__toggle:hover:not(:disabled) {
+  background-color: var(--color-paper-15);
+  border-color: var(--color-paper);
+}
+
+.su-roll__cols {
+  align-items: center;
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1.1;
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.su-roll__cols--end {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.su-roll__col-range {
+  flex: none;
+  text-align: center;
+  width: var(--su-roll-range);
+}
+
+.su-roll__col-text {
+  color: var(--color-paper-70);
+  padding-left: var(--space-12);
+}
+
+.su-roll__col-text--half {
+  display: none;
+}
+
 /* The name WRAPS at word breaks (never clips): when the controls drop to a
    second row the name keeps its whole title. `contain` still keeps a long
    name from widening a width-less ancestor. */
@@ -133,7 +215,7 @@
 }
 
 .su-roll__hint {
-  color: var(--color-ink-2);
+  color: var(--color-paper-85);
   flex: 1 1 8rem;
   font-size: var(--text-sm);
   min-width: 0;
@@ -240,9 +322,10 @@
 }
 
 /* A columns table: the columns' ranges across an ink head, the entry numbers
-   down both outer edges. A narrow column scrolls the grid inside its frame. */
+   down both outer edges. A narrow column scrolls the grid inside its frame.
+   Its head is ink like the bar above it: a faint paper rule parts the two. */
 .su-roll__grid {
-  border-top: var(--bw-chrome) solid var(--color-ink);
+  border-top: var(--bw-chrome) solid var(--color-paper-30);
   overflow-x: auto;
   /* Holds the visually hidden labels inside the scroller, not the page. */
   position: relative;
@@ -315,6 +398,27 @@
    * first with its ranges on the left edge, the rest with theirs on the right,
    * so the numbers stay on the outside. Under `lg` the halves stack as one list.
    */
+  /* The ink head's labels sit over the split halves' columns (`.su-roll__cols`). */
+  .su-roll__bar[data-split] {
+    --su-roll-range: 3.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-roll__bar[data-split] .su-roll__col-text {
+    padding-left: var(--space-8);
+  }
+
+  .su-roll__bar[data-split] .su-roll__cols--end {
+    justify-content: space-between;
+  }
+
+  /* The second half's text starts past its hairline rule. */
+  .su-roll__bar[data-split] .su-roll__col-text--half {
+    display: block;
+    padding-left: calc(var(--space-8) + var(--bw-hairline));
+  }
+
   .su-roll__bands[data-split] {
     --su-roll-range: 3.5rem;
     --su-roll-value-size: var(--text-sm);
@@ -357,6 +461,10 @@
 
   .su-roll[data-density='compact'] .su-roll__body {
     padding: var(--space-6) var(--space-12);
+  }
+
+  .su-roll[data-density='dense'] .su-roll__bar[data-split] {
+    --su-roll-range: 2.75rem;
   }
 
   .su-roll[data-density='dense'] .su-roll__bands[data-split] {

@@ -31,14 +31,13 @@ const cond = (size: string, extra?: CSSProperties): CSSProperties => ({
   ...extra,
 })
 
-/** The Table toggle: condensed caps at the 44px touch floor (§4.6). */
+/** The Table toggle: condensed caps, at the Roll button's height (`.su-roll__control`). */
 const BAR_BUTTON: CSSProperties = {
   flex: 'none',
   fontFamily: font.cond,
   fontSize: fontSize.sm,
   fontWeight: weight.bold,
   letterSpacing: tracking.capsSnug,
-  minHeight: '44px',
   textTransform: 'uppercase',
 }
 
@@ -158,6 +157,7 @@ export function CardRollTable({
   const actions = (
     <Button
       size="compact"
+      className="su-roll__toggle su-roll__control"
       aria-expanded={expanded}
       aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
       onClick={() => setExpanded((open) => !open)}
@@ -245,7 +245,8 @@ function RollReadout({
       style={{
         alignItems: 'center',
         backgroundColor: 'var(--color-ink)',
-        borderTop: 'var(--bw-chrome) solid var(--color-ink)',
+        // Under the ink bar: a faint paper rule parts the two.
+        borderTop: 'var(--bw-chrome) solid var(--color-paper-30)',
         color: 'var(--color-paper)',
         display: 'flex',
         gap: space[12],

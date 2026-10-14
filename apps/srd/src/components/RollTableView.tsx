@@ -15,8 +15,8 @@ import { RollPanel } from './RollPanel'
  * RollTableView — a roll table's page, rolled and read (board 08b).
  *
  * The table is the shared `RollTableInstrument`, the same one every card and
- * guide step draws: its bar with the Roll the Die button at its right, then
- * the bands, banded in the page's tone. The page adds only its READOUT: the
+ * guide step draws: its ink head (d20 and Result over the columns, the Roll the
+ * Die button at its right), then the bands, banded in the page's tone. The page adds only its READOUT: the
  * "You rolled" panel with the number, the range it lands on, the outcome and
  * its text, and the earlier rolls. The table's Roll the Die button is the roll
  * (press it again to roll again); the panel has no button of its own. The die is not named: it is always a d20. A long or wordy table
