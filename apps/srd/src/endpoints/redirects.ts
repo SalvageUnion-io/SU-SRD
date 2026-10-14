@@ -13,7 +13,8 @@
  *   pattern's page (with and without the trailing slash, since a hand-typed
  *   link may have either, and under both the legacy `/schema/…/item/` grammar
  *   and the current one), and the item's `.json` to its host's, which carries
- *   the pattern.
+ *   the pattern. Its `.og.png` unfurl image 301s to the pattern's, under
+ *   both grammars too.
  *
  * The bulk move of every page out of `/schema/…/item/` is NOT here: that is one
  * pattern, not a rule per page, and the Worker answers it (`lib/legacyPaths.ts`).
@@ -27,6 +28,7 @@ import type { EndpointModule } from '../../ssg/types'
 import { itemHref } from '../lib/entityHref'
 import { getEntitySchemas, getReferenceEntityData } from '../lib/gameData'
 import { legacyItemHref } from '../lib/legacyPaths'
+import { ogImagePath } from '../lib/ogCard'
 import { srdPatternHref } from '../lib/patternHref'
 import { itemJsonPath } from './itemJson'
 
@@ -41,6 +43,15 @@ export function redirectRules(): Array<{ from: string; to: string }> {
       // Worker's legacy 301 and then this one.
       for (const oldPage of [legacyItemHref(schema.id, slug), itemHref(schema.id, slug)]) {
         rules.push({ from: oldPage, to: page }, { from: oldPage.slice(0, -1), to: page })
+      }
+      // Its unfurl image, which Discord embeds and link previews still fetch:
+      // the Worker's legacy 301 would land it on a slug with no image.
+      const patternImage = `${page.slice(0, -1)}.og.png`
+      for (const oldImage of [
+        `${legacyItemHref(schema.id, slug).slice(0, -1)}.og.png`,
+        ogImagePath(schema.id, slug),
+      ]) {
+        rules.push({ from: oldImage, to: patternImage })
       }
       rules.push({
         from: itemJsonPath(schema.id, slug),
