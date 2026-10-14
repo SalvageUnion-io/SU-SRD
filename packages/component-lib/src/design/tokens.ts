@@ -207,9 +207,10 @@ const base = {
   //   Core and Legendary reuse pilot/crawler. —
   tierHybrid: 'rgb(183, 65, 14)',
 
-  /** Discord's own blurple: the SRD home page's "Roll on Discord" band only, a
-   *  one-off exception to the tone palette (owner's call, 2026-10-14). */
-  discord: 'rgb(88, 101, 242)',
+  /** Discord's dark blurple (its own button hover): the SRD home page's Discord
+   *  button only, a one-off exception to the tone palette (owner's call,
+   *  2026-10-14). Its #5865f2 carries paper under 4.5:1. */
+  discord: 'rgb(71, 82, 196)',
 
   // — Roll result tiers: the canonical warm state ramp, shared with the bot —
   rollCascade: 'rgb(176, 67, 43)',
