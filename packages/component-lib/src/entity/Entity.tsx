@@ -1,4 +1,4 @@
-import type { ElementType } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { EntityInstance, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
@@ -29,6 +29,13 @@ export type EntityProps = EntitySource & {
   priority?: boolean
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
   titleAs?: ElementType
+  /**
+   * Row only: the host's controls (Assign, Unassign, View), the head's
+   * trailing mode slot (E7). They never nest in a link or select surface.
+   */
+  controls?: ReactNode
+  /** Row only: the host's labels, right of the title after the model's own (an owner stamp). */
+  labels?: ReactNode
 }
 
 /**
@@ -39,7 +46,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, peek, priority, titleAs } = props
+  const { form, instance, mode, lead, omit, peek, priority, titleAs, controls, labels } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -57,7 +64,15 @@ export function Entity(props: EntityProps) {
           lead={lead}
           omit={omit}
           peek={peek}
-          slots={titleAs ? { titleAs } : undefined}
+          slots={
+            titleAs || controls || labels
+              ? {
+                  ...(titleAs ? { titleAs } : {}),
+                  ...(controls ? { controls } : {}),
+                  ...(labels ? { extraLabels: labels } : {}),
+                }
+              : undefined
+          }
         />
       )
     case 'token':

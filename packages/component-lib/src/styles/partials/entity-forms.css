@@ -421,6 +421,36 @@
   }
 }
 
+/* The host's controls (`Head`'s `controls`, Assign / Unassign / View): the
+   band's right end, after the affordance, centred on it; they wrap among
+   themselves, never cut. */
+.su-entity-row__controls {
+  align-items: center;
+  align-self: center;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  justify-content: flex-end;
+  margin-left: auto;
+  min-width: min-content;
+}
+
+/* A link or select Row with controls (`data-covered`): the surface is an
+   empty cover over the whole Row, so the controls never nest inside its
+   `<a>` or radio, and they (and a toggle's check) sit raised above it. */
+.su-entity-row__cover {
+  border-radius: var(--radius-card);
+  inset: 0;
+  position: absolute;
+}
+
+.su-entity-row[data-covered] .su-entity-row__controls,
+.su-entity-row[data-covered] .su-entity-row__line > input {
+  position: relative;
+  z-index: 1;
+}
+
 /* A Row as a listbox option (a search's results): the option the arrow keys
    highlight wears the ink selection ring, as a selected Row does. */
 .su-entity-row[aria-selected='true'] {

@@ -42,6 +42,8 @@ export type HeadProps = {
   pennant?: ReactNode
   /** The mode's affordance: the "Selected" seal, a toggle's check. */
   affordance?: ReactNode
+  /** The host's controls, the trailing slot after the affordance. */
+  controls?: ReactNode
   /** The labels (`CardLabels`): on the name's line, right after the name. */
   labels?: ReactNode
   /**
@@ -79,6 +81,7 @@ export function Head({
   hint,
   pennant,
   affordance,
+  controls,
   labels,
   notch = false,
   chipsBeside = false,
@@ -139,6 +142,7 @@ export function Head({
         )}
         {pennant && <span style={{ display: 'flex', flex: 'none' }}>{pennant}</span>}
         {affordance}
+        {controls && <div className="su-entity-row__controls">{controls}</div>}
       </div>
     </div>
   )
