@@ -60,8 +60,7 @@ describe('/health', () => {
       expect(String(input)).toBe('https://discord.com/api/v10/users/@me')
       // The token must be presented as a BOT credential; `Bearer` is a
       // different authentication scheme and Discord rejects it.
-      const headers = (init?.headers ?? {}) as Record<string, string>
-      expect(headers.authorization).toBe('Bot a-token')
+      expect(new Headers(init?.headers).get('authorization')).toBe('Bot a-token')
       return Response.json({ username: 'SalvageUnion.io', id: '1' }, { status: 200 })
     })
 
@@ -87,6 +86,25 @@ describe('/health', () => {
     expect(JSON.stringify(body)).not.toContain('a-token')
     expect(JSON.stringify(body)).not.toContain('a-secret')
     expect(JSON.stringify(body)).not.toContain('Unauthorized')
+  })
+
+  test.each([
+    ['a Discord outage', 500],
+    ['a rate limit', 429],
+  ])('503s on %s, reporting the status without retrying', async (_label, status) => {
+    let calls = 0
+    stubFetch(async () => {
+      calls++
+      return Response.json({ message: 'nope', retry_after: 1, global: false }, { status })
+    })
+
+    const res = await worker.fetch(healthRequest(), envWith(), ctx)
+    const body = (await res.json()) as Record<string, unknown>
+
+    expect(res.status).toBe(503)
+    expect(body.discordStatus).toBe(status)
+    // A probe reports what Discord said now; it never waits out a retry.
+    expect(calls).toBe(1)
   })
 
   test('503s with a clear reason when no token is configured, without calling Discord', async () => {

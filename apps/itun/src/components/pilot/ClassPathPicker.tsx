@@ -48,7 +48,7 @@ const LEDGER_LINE = {
   lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
 
-/** List and consequences; the column split is `.wiz-class-path`. */
+/** List and consequences; the column split is `.su-wiz-class-path`. */
 const PICKER = { display: 'grid', gap: tokens.space[16] } satisfies CSSProperties
 
 /** One ring group (Core, Advanced, …) in the class list. */
@@ -101,7 +101,7 @@ function OptionCard({
         data={cls}
         size="medium"
         extent="catalog"
-        className="wiz-class-card"
+        className="su-wiz-class-card"
         selected={selected}
         selectionRole="radio"
         cardClickLabel={note === undefined ? cls.name : `${cls.name}, ${note}`}
@@ -176,7 +176,7 @@ export function ClassPathPicker({
     .filter((c): c is SURefClass => c !== undefined)
 
   return (
-    <div className="wiz-class-path" style={PICKER}>
+    <div className="su-wiz-class-path" style={PICKER}>
       <RadioCardGroup label="Class">
         {groups.map((group) => (
           <div key={group.kind} style={GROUP}>
@@ -220,7 +220,7 @@ export function ClassPathPicker({
                       data={cls}
                       size="small"
                       extent="head"
-                      className="wiz-class-card"
+                      className="su-wiz-class-card"
                       selected={cls.id === answeredOrigin}
                       selectionRole="radio"
                       cardClickLabel={`Came from ${cls.name}`}

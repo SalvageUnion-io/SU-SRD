@@ -295,7 +295,7 @@ export function LiveSheet({
     // one, and `Sheet`'s not-found state is itself a `<main>`, so the landmark
     // belongs here rather than around `Sheet`.
     <main
-      className={cn(`sheet--${variant}`, 'su-page-gutters')}
+      className={cn(`su-sheet--${variant}`, 'su-page-gutters')}
       style={ROOT}
       data-variant={variant}
     >

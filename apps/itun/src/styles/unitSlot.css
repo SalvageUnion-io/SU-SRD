@@ -13,12 +13,12 @@
  */
 
 /* The empty slot's dashed foot: every CTA in it shares the width equally. */
-.empty-unit-slot__actions > * {
+.su-empty-unit-slot__actions > * {
   flex: 1;
 }
 
 /* "View in SRD": a hairline underline that fades to 70% on hover. */
-.srd-entity-external-link {
+.su-srd-entity-external-link {
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
@@ -27,7 +27,7 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 @media (hover: hover) {
-  .srd-entity-external-link:hover {
+  .su-srd-entity-external-link:hover {
     opacity: 70%;
   }
 }

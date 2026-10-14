@@ -160,7 +160,7 @@ describe('NewEntityScreen — mode routing', () => {
     )
     // The chooser stays mounted underneath (base-ui inerts it while the
     // modal is open, so query structurally rather than by role).
-    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
+    expect(container.querySelector('.su-sheet--pilot')).toBeTruthy()
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(screen.getByLabelText(/callsign/i)).toBeTruthy()
   })

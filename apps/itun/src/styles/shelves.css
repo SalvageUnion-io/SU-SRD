@@ -10,20 +10,20 @@
  * `Segmented` on its ink ground.
  */
 
-.shelves-band__btn {
+.su-shelves-band__btn {
   background-color: transparent;
   border-color: var(--color-paper);
   color: var(--color-paper);
 }
-.shelves-band__btn:hover:not(:disabled) {
+.su-shelves-band__btn:hover:not(:disabled) {
   background-color: var(--color-paper-15);
 }
 
 /* The band's actions and each shelf's "+ New…" (board S1): the uppercase
    display face at the band's 40px, so they read as one row beside the Showing
    toggle. Geometry and type only; the on-ink colours are above. */
-.shelves-band__btn,
-.shelves-action {
+.su-shelves-band__btn,
+.su-shelves-action {
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
@@ -35,7 +35,7 @@
 
 /* The import result: its own line under the band's controls, never a flex item
    beside the button, so the button keeps its intrinsic width. */
-.shelves-band__status {
+.su-shelves-band__status {
   color: var(--color-paper);
   flex: 1 1 100%;
   font-family: var(--font-body);
@@ -49,13 +49,13 @@
    `.su-btn`; this names the ones whose own 40px would otherwise sit under it,
    and the menu rows, which are neither. */
 @media (pointer: coarse) {
-  .shelves-band__btn,
-  .shelves-action,
-  .header-menu-trigger--overflow,
-  .header-menu-item {
+  .su-shelves-band__btn,
+  .su-shelves-action,
+  .su-header-menu-trigger--overflow,
+  .su-header-menu-item {
     min-height: 44px;
   }
-  .header-menu-trigger--overflow {
+  .su-header-menu-trigger--overflow {
     min-width: 44px;
   }
 }

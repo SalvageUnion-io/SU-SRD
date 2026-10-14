@@ -352,9 +352,9 @@
 /* Per-sheet one-variable theming (design-spec §1.4): each sheet class sets its
    tone pair and derives the two ground colors via OKLCH relative color.
    `--sheet-tone` overrides the tone without redefining the grounds. */
-.sheet--pilot,
-.sheet--mech,
-.sheet--crawler {
+.su-sheet--pilot,
+.su-sheet--mech,
+.su-sheet--crawler {
   --tone: var(--sheet-tone, var(--tone-default));
 
   /* WIZARD STEP-CARD FILL — ONE rule for all three sheets, derived from the
@@ -381,7 +381,7 @@
      Every card therefore lands light and takes DARK ink, at 10.13 / 8.12 /
      7.11:1; `wk-muted` does not clear AA on any of them, so copy on the card
      inherits this ink. One fill rule, one ink rule, held by `contrast.test.ts`
-     ("the wizard step card"). See WizShell's step card (`.wiz-step-card` /
+     ("the wizard step card"). See WizShell's step card (`.su-wiz-step-card` /
      `stepCardTitleStyle`), whose step title inherits this ink rather than
      hardcoding white. */
   --tone-card: oklch(from var(--tone) calc(l + 0.13) calc(c * 0.62) h);
@@ -400,7 +400,7 @@
    reads these rules and holds them to `onTone` and to 4.5:1. They follow the
    sheet's default tone: a `--sheet-tone` override does not re-pick them. */
 
-.sheet--pilot {
+.su-sheet--pilot {
   --tone-default: var(--color-sheet-pilot);
   --tone-deep: var(--color-sheet-pilot-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
@@ -408,7 +408,7 @@
   --on-tone-band: var(--color-ink);
 }
 
-.sheet--mech {
+.su-sheet--mech {
   --tone-default: var(--color-sheet-mech);
   --tone-deep: var(--color-sheet-mech-deep);
   --ground: oklch(from var(--tone) 0.955 0.022 h);
@@ -416,7 +416,7 @@
   --on-tone-band: var(--color-ink);
 }
 
-.sheet--crawler {
+.su-sheet--crawler {
   --tone-default: var(--color-sheet-crawler);
   --tone-deep: var(--color-sheet-crawler-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);

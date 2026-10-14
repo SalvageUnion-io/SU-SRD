@@ -29,13 +29,15 @@
  *   always the paper one.
  * - PNGs go to the gitignored `.shots/` (or `--out`); each path is printed for
  *   the agent to Read.
- * - The browser is the pinned Playwright's own Chromium, or
- *   `/opt/pw-browsers/chromium` (the cloud image's) when that is not
- *   installed; `SHOT_CHROME_PATH` overrides both.
+ * - The browser is `launchBrowser`'s (`packages/gates/lib/chromium.ts`): the
+ *   pinned Playwright's own Chromium, or `/opt/pw-browsers/chromium` (the
+ *   cloud image's) when that is not installed; `SHOT_CHROME_PATH` overrides
+ *   both.
  */
 
-import { existsSync, mkdirSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { launchBrowser } from 'gates/lib/chromium'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 
 const REPO = resolve(import.meta.dir, '..')
@@ -43,8 +45,6 @@ const REPO = resolve(import.meta.dir, '..')
 /** The viewport widths `--width` names. */
 export const WIDTHS = { phone: 375, column: 480, page: 1200 } as const
 type Width = keyof typeof WIDTHS
-
-const FALLBACK_CHROME = '/opt/pw-browsers/chromium'
 
 export type ShotArgs = { target: string; width: Width; out: string }
 
@@ -235,16 +235,6 @@ const IMAGES_DECODED = `Promise.race([
   ),
   new Promise((resolve) => setTimeout(resolve, 5000)),
 ])`
-
-/** The pinned Playwright's Chromium, the cloud image's, or `SHOT_CHROME_PATH` (also `tools/gallery.ts`'s). */
-export async function launchBrowser() {
-  const { chromium } = await import('@playwright/test')
-  const own = chromium.executablePath()
-  const executablePath =
-    process.env.SHOT_CHROME_PATH ||
-    (existsSync(own) ? undefined : existsSync(FALLBACK_CHROME) ? FALLBACK_CHROME : undefined)
-  return chromium.launch({ executablePath })
-}
 
 /** The servers and browser `main` uses, and what it prints through. */
 export type ShotDeps = {

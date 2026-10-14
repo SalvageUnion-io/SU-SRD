@@ -38,7 +38,7 @@ const DOOR = {
 
 /** guided emphasis: a 3px solid ink frame, the full card's weight.
  *  The plate fills with the sheet's text band and prints its foreground —
- *  the `onTone` rule as `.sheet--*` sets it (`--tone-band` / `--on-tone-band`
+ *  the `onTone` rule as `.su-sheet--*` sets it (`--tone-band` / `--on-tone-band`
  *  in theme.css). Paper on the bare tone measured 2.4:1 on pilot, and ink
  *  4.17:1 on crawler pink. Headline, body and cite all inherit the colour. */
 const GUIDED = {

@@ -19,6 +19,18 @@ import { POSTER_STAMP } from './posterStamp'
 import { Stat } from './Stat'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
+import {
+  C_HEAD,
+  C_IMAGE,
+  C_LABEL,
+  C_PIP,
+  C_READOUT,
+  C_ROW,
+  C_ROWS,
+  C_SHELL,
+  C_VALUE,
+  TABULAR,
+} from './vitalGaugeCompact'
 
 /**
  * The two fields of a `StatBreakdown` the gauge reads: the override flag and
@@ -136,8 +148,6 @@ export type VitalGaugeProps = {
  * `.su-vital-gauge__*` in `styles/index.css`.
  */
 
-const TABULAR = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
-
 /** An editable segment's static half; the hover lift is `.su-vital-gauge__pip`. */
 const PIP_EDITABLE = {
   cursor: 'pointer',
@@ -145,59 +155,6 @@ const PIP_EDITABLE = {
   transitionDuration: '120ms',
   transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
 } satisfies CSSProperties
-
-// — compact —
-const C_READOUT = {
-  display: 'flex',
-  minWidth: 0,
-  flex: 1,
-  flexDirection: 'column',
-  gap: space[4],
-} satisfies CSSProperties
-const C_HEAD = {
-  display: 'flex',
-  alignItems: 'baseline',
-  justifyContent: 'space-between',
-  gap: space[8],
-} satisfies CSSProperties
-const C_LABEL = { flexShrink: 0, lineHeight: 1 } satisfies CSSProperties
-const C_VALUE = {
-  ...TABULAR,
-  flexShrink: 0,
-  whiteSpace: 'nowrap',
-  fontFamily: font.cond,
-  fontSize: fontSize.caption,
-  fontWeight: weight.bold,
-  lineHeight: 1,
-} satisfies CSSProperties
-const C_ROWS = {
-  display: 'flex',
-  minWidth: 0,
-  flexDirection: 'column',
-  gap: '3px',
-} satisfies CSSProperties
-const C_ROW = {
-  display: 'flex',
-  minWidth: 0,
-  justifyContent: 'center',
-  gap: '3px',
-} satisfies CSSProperties
-const C_PIP = {
-  height: '14px',
-  width: 'calc((100% - 15px) / 6)',
-  minWidth: 0,
-  flexShrink: 0,
-  borderRadius: radius.badge,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.hairline,
-} satisfies CSSProperties
-const C_SHELL = {
-  display: 'flex',
-  width: '100%',
-  alignItems: 'center',
-  gap: space[8],
-} satisfies CSSProperties
-const C_IMAGE = { display: 'flex', minWidth: 0, flex: 1 } satisfies CSSProperties
 
 // — full —
 const ROOT = { width: '100%', paddingBlock: space[4] } satisfies CSSProperties

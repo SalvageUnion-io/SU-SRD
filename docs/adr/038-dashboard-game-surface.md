@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-038: The Dashboard Is a Game Surface with Shared Play State
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 38, which summarises it.

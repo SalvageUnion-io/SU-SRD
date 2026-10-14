@@ -15,7 +15,7 @@
  *
  * Themes per sheet automatically via the `--tone` / `--tone-deep` CSS vars
  * (same route as `EDIT_CUE_HOVER_CLASS` / `VitalGauge`), never per-section color
- * classes. Keeps the `.sheet-section` print class for the page-break rule.
+ * classes. Keeps the `.su-sheet-section` print class for the page-break rule.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
@@ -111,7 +111,7 @@ export function SheetSectionCard({
 }: SheetSectionCardProps) {
   if (surface === 'paper') {
     return (
-      <section aria-label={title} className={cn('sheet-section', className)} style={PAPER_PANEL}>
+      <section aria-label={title} className={cn('su-sheet-section', className)} style={PAPER_PANEL}>
         {count && <div style={PAPER_COUNT}>{count}</div>}
         <div className={cn('su-sheet-section-stack', bodyClassName)}>{children}</div>
       </section>
@@ -127,9 +127,9 @@ export function SheetSectionCard({
       // the footer band then painted no colour at all.
       headerBgColor="var(--tone)"
       borderColor="var(--tone)"
-      // `.sheet-section` keeps the print page-break rule; cardStyle.className
+      // `.su-sheet-section` keeps the print page-break rule; cardStyle.className
       // REPLACES the default shadow, so sections read flat like the poster.
-      cardStyle={{ className: cn('sheet-section', className) }}
+      cardStyle={{ className: cn('su-sheet-section', className) }}
       headerContent={
         <div style={HEAD_LEFT}>
           <Badge shape="stamp" size="full">

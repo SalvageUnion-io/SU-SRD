@@ -6,7 +6,7 @@ import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import '../../styles/wizard.css'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
 
-/** Recap and cards; the column split is `.wiz-review-grid`. */
+/** Recap and cards; the column split is `.su-wiz-review-grid`. */
 const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
 
 /**
@@ -46,9 +46,9 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
     .filter((e) => e !== undefined)
 
   return (
-    <div className="wiz-review-grid" style={REVIEW_GRID}>
+    <div className="su-wiz-review-grid" style={REVIEW_GRID}>
       {/* The recap: Stats, the class as its chip, the picks as Tokens. */}
-      <Panel className="wiz-review-panel wiz-review-panel--start">
+      <Panel className="su-wiz-review-panel su-wiz-review-panel--start">
         <Recap>
           <RecapStat label="Name" value={form.name.trim()} required />
           <RecapStat label="Callsign" value={form.callsign.trim()} required />
@@ -60,11 +60,11 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           <RecapTokens label="Abilities" entities={chosenAbilities} />
           <RecapTokens label="Equipment" entities={chosenEquipment} />
         </Recap>
-        {submitError && <FieldError className="wiz-review-error">{submitError}</FieldError>}
+        {submitError && <FieldError className="su-wiz-review-error">{submitError}</FieldError>}
       </Panel>
 
       {/* chosen cards */}
-      <div className="wiz-stack wiz-stack--12">
+      <div className="su-wiz-stack su-wiz-stack--12">
         {chosenAbilities.map((ability) => (
           <ReferenceEntityCard
             key={ability.id}

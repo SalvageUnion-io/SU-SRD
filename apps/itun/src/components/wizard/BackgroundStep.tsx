@@ -27,14 +27,14 @@ export function BackgroundStep({
   _rollDeps,
 }: BackgroundStepProps) {
   return (
-    <div className="wiz-stack wiz-stack--20" style={stepColumnStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={stepColumnStyle}>
       {/* Printed straight on the step card, the intro inherits the card's ink
           (`--tone-card-ink`): `wkMuted` measured 3.78:1 on the pilot card. */}
       <p style={textSmStyle}>
         Describe your pilot&apos;s background. Roll for a random prompt or write your own story.
       </p>
       <Field label="Background" htmlFor="background-field">
-        <div className="wiz-stack wiz-stack--8">
+        <div className="su-wiz-stack su-wiz-stack--8">
           <RollTableButton
             field="background"
             onRoll={(value) => onChange(value)}

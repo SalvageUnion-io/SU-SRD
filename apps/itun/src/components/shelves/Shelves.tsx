@@ -169,7 +169,7 @@ const COLUMN = {
 const NEW_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 /** The on-ink outline the band's buttons wear (`styles/shelves.css`). */
-const ON_INK_BUTTON = 'shelves-band__btn'
+const ON_INK_BUTTON = 'su-shelves-band__btn'
 
 const FILTERS: { value: ShelfFilter; label: string }[] = [
   { value: 'everything', label: 'Everything' },
@@ -400,7 +400,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     canWrite ? (
       <AppLink
         href={href}
-        className={cn(buttonVariants({ size: 'compact' }), 'shelves-action')}
+        className={cn(buttonVariants({ size: 'compact' }), 'su-shelves-action')}
         style={NEW_LINK}
       >
         {label}
@@ -446,7 +446,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               <ExportAllButton className={ON_INK_BUTTON} onInk />
               <NewGameControl className={ON_INK_BUTTON} />
             </div>
-            <p role="status" aria-live="polite" className="shelves-band__status">
+            <p role="status" aria-live="polite" className="su-shelves-band__status">
               {importResult}
             </p>
           </div>
@@ -545,7 +545,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     <HeaderMenu
                       variant="button"
                       trigger="+ From a mech"
-                      className="shelves-action"
+                      className="su-shelves-action"
                       label="+ From a mech"
                       chevron={false}
                       sections={[fromAMech]}

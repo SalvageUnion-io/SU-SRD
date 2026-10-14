@@ -54,7 +54,7 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   })
 
   return (
-    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <div style={statRowStyle}>
         <Stat orientation="horizontal" label="TL" value={techLevel.techLevel} />
         <Stat orientation="horizontal" label="SP" value={sp.total} max={sp.total} />
@@ -63,7 +63,7 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
         <Stat orientation="horizontal" label="POOL" value={0} />
       </div>
 
-      <div className="wiz-stack wiz-stack--6" style={proseStyle}>
+      <div className="su-wiz-stack su-wiz-stack--6" style={proseStyle}>
         {sp.typeBonus > 0 && selectedType ? (
           <p style={paragraphStyle} data-testid="sp-breakdown">
             Structure Points: {sp.base} + {sp.typeBonus} type bonus ({selectedType.name}) ={' '}

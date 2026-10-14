@@ -348,13 +348,13 @@ export function AssignPicker({
           if (!next) closeDialog()
         }}
         title={copy.title}
-        maxWidth="assign-picker__dialog"
+        maxWidth="su-assign-picker__dialog"
       >
         <div style={BODY}>
           {candidates.length === 0 ? (
             <EmptyState variant="quiet" body={emptyCopy(pick, scope, inScope > 0)} />
           ) : (
-            <RadioCardGroup label={copy.title} className="assign-picker__candidates">
+            <RadioCardGroup label={copy.title} className="su-assign-picker__candidates">
               {candidates.map((c) => (
                 <Entity
                   key={c.id}

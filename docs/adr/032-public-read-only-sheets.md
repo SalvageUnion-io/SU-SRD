@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-032: Public, Read-Only Sheets
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 32, which summarises it.

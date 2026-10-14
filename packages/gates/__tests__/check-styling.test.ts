@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { Finding, RuleSet } from '../lib/ruleEngine'
 import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '../lib/ruleEngine'
+import { classPrefix } from '../rules/classPrefix'
 import { designTokens, fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
 import { stylingOwnership } from '../rules/stylingOwnership'
@@ -475,13 +476,13 @@ describe('styling rule set', () => {
       fixture({
         ...STYLING_BASE,
         'packages/component-lib/src/A.tsx': [
-          "const WIDE = { width: '100%' } satisfies CSSProperties",
+          "const WIDE: CSSProperties = { width: '100%' }",
           'const TALL: React.CSSProperties = {',
           "  height: '100%',",
           '}',
           "const OK = { width: '100%' } satisfies CSSProperties",
           'const band = (fill: string): CSSProperties => ({ background: fill })',
-          '// never `const X = {} satisfies CSSProperties`',
+          '// never `const X: CSSProperties = {}`',
           '',
         ].join('\n'),
       })
@@ -502,6 +503,32 @@ describe('styling rule set', () => {
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
       `does not import the shared stylesheet entry (${ENTRY})`,
       'imports the package stylesheet or the reset itself — a second entry beside the shared one',
+    ])
+  })
+})
+
+describe('class-prefix rule set', () => {
+  test('a clean fixture has no findings', () => {
+    const found = classPrefix.scan(
+      fixture({ 'apps/itun/src/styles/a.css': '.su-a, .su-b:hover { color: red }\n' })
+    )
+    expect(found['class-prefix']).toEqual([])
+  })
+
+  test('a package or ITUN class without the su- prefix is found, nested ones included; srd is out of scope', () => {
+    const found = classPrefix.scan(
+      fixture({
+        'apps/itun/src/styles/wizard.css':
+          '/* .wiz-old in a comment is prose */\n.su-wiz-ok, .wiz-pill:hover { color: red }\n@media (min-width: 40rem) {\n  .su-wiz-ok .npc-step { color: red }\n}\n',
+        'packages/component-lib/src/styles/theme.css':
+          ".sheet--pilot,\n.su-sheet--mech { --tone: red }\n@import 'x.css';\n",
+        'apps/srd/src/styles/pages.css': '.srd-page { color: red }\n',
+      })
+    )
+    expect(found['class-prefix']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
+      'apps/itun/src/styles/wizard.css:2 .wiz-pill is not a .su-* class',
+      'apps/itun/src/styles/wizard.css:4 .npc-step is not a .su-* class',
+      'packages/component-lib/src/styles/theme.css:1 .sheet--pilot is not a .su-* class',
     ])
   })
 })

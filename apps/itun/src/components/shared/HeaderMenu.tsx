@@ -44,7 +44,7 @@ import { Fragment } from 'react'
  * "⋯" on Shelves (board S1): `variant="overflow"` draws the trigger as a square
  * ink-outlined button on paper with the ellipsis glyph, and a row with
  * `tone: 'danger'` (Delete…) reads in the danger colour. Colour lives
- * in `.header-menu-trigger` / `.header-menu-item` (`styles/headerMenu.css`)
+ * in `.su-header-menu-trigger` / `.su-header-menu-item` (`styles/headerMenu.css`)
  * because it changes on hover, on open and on highlight (resting value included — the per-property split rule);
  * everything static is a style object.
  */
@@ -113,11 +113,11 @@ const TRIGGER = {
 
 // The overflow trigger (board S1) is the sheet bar's "⋯": Button's icon rung
 // at page-action height, a 40px ink-outlined square. Only its open state, the
-// inverse plate, is `.header-menu-trigger--overflow`'s.
+// inverse plate, is `.su-header-menu-trigger--overflow`'s.
 const OVERFLOW_TRIGGER_CLASS = cn(
   buttonVariants({ size: 'iconOnly' }),
   'su-page-action',
-  'header-menu-trigger--overflow'
+  'su-header-menu-trigger--overflow'
 )
 
 const POSITIONER = {
@@ -194,7 +194,7 @@ export function HeaderMenu({
       ? `${buttonVariants({ size: 'compact' })}${className ? ` ${className}` : ''}`
       : overflow
         ? OVERFLOW_TRIGGER_CLASS
-        : `header-menu-trigger ${FOCUS_RING}`
+        : `su-header-menu-trigger ${FOCUS_RING}`
   const triggerStyle = variant === 'masthead' ? TRIGGER : undefined
 
   return (
@@ -225,8 +225,8 @@ export function HeaderMenu({
                     key={item.id}
                     className={
                       item.tone === 'danger'
-                        ? 'header-menu-item header-menu-item--danger'
-                        : 'header-menu-item'
+                        ? 'su-header-menu-item su-header-menu-item--danger'
+                        : 'su-header-menu-item'
                     }
                     style={ITEM}
                     disabled={item.onSelect === undefined}
@@ -237,7 +237,7 @@ export function HeaderMenu({
                   >
                     <span style={ITEM_LABEL}>{item.label}</span>
                     {item.hint != null && (
-                      <span className="header-menu-item__hint" style={ITEM_HINT}>
+                      <span className="su-header-menu-item__hint" style={ITEM_HINT}>
                         {/* The two lines are separate blocks visually; this keeps
                             them separate words in the accessible name too. */}
                         <span className="su-sr-only">, </span>

@@ -118,6 +118,6 @@ describe('EmptyUnitSlot', () => {
     const { container } = render(
       <EmptyUnitSlot kind="crawler" roleLabel="Home Crawler" message="None." />
     )
-    expect(container.querySelector('.empty-unit-slot__actions')).toBeNull()
+    expect(container.querySelector('.su-empty-unit-slot__actions')).toBeNull()
   })
 })

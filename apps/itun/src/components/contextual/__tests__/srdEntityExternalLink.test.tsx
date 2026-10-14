@@ -26,7 +26,7 @@ describe('srdEntityExternalLink', () => {
     // Same tab, no arrow: the SRD is not off-site (ruleset §3.11, EDL E5).
     expect(link?.hasAttribute('target')).toBe(false)
     expect(link?.hasAttribute('rel')).toBe(false)
-    expect(link?.className).toContain('srd-entity-external-link')
+    expect(link?.className).toContain('su-srd-entity-external-link')
     expect(link?.textContent).toBe('View in SRD')
     expect(link?.getAttribute('aria-label')).toContain('Mule')
   })

@@ -29,9 +29,10 @@
  *      its own CPU time. Read `cpuTime` from `wrangler tail` instead.
  */
 
-import { REST } from '@discordjs/rest'
-import type { APIInteraction } from 'discord-api-types/v10'
-import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
+import type { ResponseLike } from '@discordjs/rest'
+import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
+import type { APIInteraction, APIUser } from 'discord-api-types/v10'
+import { InteractionResponseType, InteractionType, Routes } from 'discord-api-types/v10'
 import { reportError, withObservability } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
@@ -204,23 +205,36 @@ async function health(env: Env): Promise<Response> {
   let botUser: string | null = null
   let discordStatus: number | null = null
 
+  // One attempt, no waiting out a rate limit: a probe reports what Discord
+  // answered now. The global `fetch` is what the web build uses on workerd;
+  // spelled out so Bun (which resolves the undici build) goes through it too.
+  // The cast is only Node's and the web's `ReadableStream` typings disagreeing.
+  const rest = new REST({
+    version: '10',
+    retries: 0,
+    rejectOnRateLimit: () => true,
+    makeRequest: async (url, init) =>
+      (await fetch(url, init as RequestInit)) as unknown as ResponseLike,
+  }).setToken(env.DISCORD_TOKEN)
+
   try {
-    const res = await fetch('https://discord.com/api/v10/users/@me', {
-      headers: { authorization: `Bot ${env.DISCORD_TOKEN}` },
-    })
-    discordStatus = res.status
-    if (res.ok) {
-      const body = (await res.json()) as { username?: string; id?: string }
-      tokenValid = true
-      botUser = body.username ?? null
+    const me = (await rest.get(Routes.user())) as Partial<APIUser>
+    discordStatus = 200
+    tokenValid = true
+    botUser = me.username ?? null
+  } catch (err) {
+    if (err instanceof DiscordAPIError || err instanceof HTTPError) {
+      discordStatus = err.status
+    } else if (err instanceof RateLimitError) {
+      discordStatus = 429
+    } else {
+      // Network failure reaching Discord is not a bad token; say so rather than
+      // implying the credential is wrong.
+      return Response.json(
+        { ok: false, reason: 'could not reach Discord', configured },
+        { status: 502 }
+      )
     }
-  } catch {
-    // Network failure reaching Discord is not a bad token; say so rather than
-    // implying the credential is wrong.
-    return Response.json(
-      { ok: false, reason: 'could not reach Discord', configured },
-      { status: 502 }
-    )
   }
 
   return Response.json(

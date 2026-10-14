@@ -20,7 +20,7 @@ type CallsignStepProps = {
  */
 export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignStepProps) {
   return (
-    <div className="wiz-stack wiz-stack--20" style={stepColumnStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={stepColumnStyle}>
       <Field label="Name" required htmlFor="pilot-name">
         <Input
           id="pilot-name"

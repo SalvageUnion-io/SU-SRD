@@ -444,7 +444,7 @@ export function MechWizard({
       footerNote={footerNote}
       submitLabel="Create Mech ✦"
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="wiz-rule-brief" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
       {step === 'scrap' && <GainScrapStep />}
       {step === 'chassis' && (
         <MechChassisStep

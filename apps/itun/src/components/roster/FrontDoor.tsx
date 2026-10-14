@@ -53,7 +53,7 @@ const KICKER = {
 } satisfies CSSProperties
 
 /** The legacy tagline, quoted in a hand. Its colour and alignment are `screens.css`'s
- *  (`.front-door__quote`): paper on the band, the deep crawler pink under it. */
+ *  (`.su-front-door__quote`): paper on the band, the deep crawler pink under it. */
 const QUOTE = {
   fontFamily: SCRIPT_FONT,
   fontSize: tokens.fontSize.hero,
@@ -119,7 +119,7 @@ export function FrontDoor() {
         eyebrow={<span style={KICKER}>{PRODUCT.descriptor}</span>}
         asideAt="notch"
         aside={
-          <figure className="front-door__quote">
+          <figure className="su-front-door__quote">
             <blockquote style={QUOTE}>“{PRODUCT.tagline}”</blockquote>
             <figcaption style={QUOTE_BY}>— {PRODUCT.taglineBy}</figcaption>
           </figure>
