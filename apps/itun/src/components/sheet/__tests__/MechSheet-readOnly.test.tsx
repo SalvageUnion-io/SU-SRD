@@ -157,24 +157,24 @@ describe('MechSheet — readOnly', () => {
 })
 
 describe('MechSheet — the Chassis stats', () => {
-  test("print in the hero's top-right corner, in the official sheet's words", () => {
+  test("print in the hero's top-right corner, in the official sheet's words and the stat order", () => {
     // A real chassis, so every figure resolves from the reference data.
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
     )
     const text = container.querySelector('dl[aria-label="Chassis stats"]')?.textContent ?? ''
-    // The machine's figures, in the sheet's order: capacities, not what is in
-    // use (the Systems and Modules counts and The Hold say that).
+    // The machine's figures, in the stat order every surface keeps: capacities,
+    // not what is in use (the Systems and Modules counts and The Hold say that).
     const pairs = [
+      'Tech Level 1',
+      'Salvage Value 10',
       'Structure Points 17',
       'Energy Points 11',
       'Heat Capacity 3',
       'System Slots 7',
       'Module Slots 4',
       'Cargo Capacity 6',
-      'Tech Level 1',
-      'Salvage Value 10',
     ]
     const at = pairs.map((pair) => text.indexOf(pair.replace(/ (\d+)$/, '$1')))
     expect(at.every((index) => index >= 0)).toBe(true)

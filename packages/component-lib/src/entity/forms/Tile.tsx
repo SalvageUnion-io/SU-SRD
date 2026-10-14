@@ -10,7 +10,7 @@ import { CensorMark } from '../parts/CensorMark'
 import { CostBox } from '../parts/Chips'
 import { censorMark } from '../parts/censor'
 import { Facts } from '../parts/Facts'
-import { factCells, formFacts } from '../parts/factCells'
+import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
@@ -97,7 +97,7 @@ export function Tile({
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
   const gear = GEAR.has(model.ref.schemaName)
-  const facts = factCells(formFacts(model), omit).filter(
+  const facts = factCells(model.facts, omit).filter(
     (cell) => !(gear && GEAR_HIDDEN.has(cell.label))
   )
   const { art } = model

@@ -46,6 +46,8 @@ function toSubHeaderCell(cell: FacetCell): CardFacetCell {
     facet: {
       kind: cell.kind,
       ...(cell.short ? { short: cell.short } : {}),
+      ...(cell.shortValue ? { shortValue: cell.shortValue } : {}),
+      ...(cell.group ? { group: cell.group } : {}),
       ...(cell.actionType ? { actionType: cell.actionType } : {}),
       ...(cell.mention ? { mention: cell.mention } : {}),
       ...(cell.modified ? { modified: true as const } : {}),
@@ -195,6 +197,7 @@ export function buildHeaderStats(options: {
           label: asCompact ? 'TL' : 'Tech',
           bottomLabel: asCompact ? undefined : 'Level',
           value: String(options.techLevelDisplay),
+          group: 'provenance' as const,
           // A TL-scalable item shows the EFFECTIVE level; a heavier solid `modified`
           // frame when above base (controlled from without via `scalingParent`).
           ...(options.techLevelModified ? { state: 'modified' as const } : {}),

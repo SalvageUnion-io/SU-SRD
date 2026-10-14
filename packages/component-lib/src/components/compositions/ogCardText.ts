@@ -65,7 +65,7 @@ export type OgCardProps =
       tone?: string
       /** The book's tier numeral, for an ability: left of the name on the band. */
       tier?: string
-      /** Its chips in E17's order: action type, facts, traits. */
+      /** Its chips in the stat order (E17): stats, action type and facets, traits. */
       stats: OgCardStat[]
       /** The cost as the book's pointy box prints it, last: "2 AP". */
       cost?: string

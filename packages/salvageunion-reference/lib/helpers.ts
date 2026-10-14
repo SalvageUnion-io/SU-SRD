@@ -7,20 +7,11 @@ import { getActionType, getDamage, getRange, getTraits } from './actionResolutio
 import { getAssetUrl } from './assets'
 import type { ModelWithMetadata } from './BaseModel'
 import {
-  getCargoCapacity,
   getContent,
   getDescription,
-  getEnergyPoints,
-  getHeatCapacity,
-  getHitPoints,
-  getModuleSlots,
   getName,
   getPageReference,
-  getSalvageValue,
-  getSlotsRequired,
   getSource,
-  getStructurePoints,
-  getSystemSlots,
   getTechLevel,
   getTree,
 } from './entityFields'
@@ -28,13 +19,18 @@ import { lazyModelMap } from './generated/schemaRegistry.generated'
 import { SalvageUnionReference, SchemaToDisplayName } from './index'
 import type { EnhancedSchemaMetadata } from './ModelFactory'
 import { getSchemaCatalog } from './ModelFactory'
-import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './schemas/index'
+import type {
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefMetaEntity,
+  SURefObjectAdvancedClass,
+} from './schemas/index'
 import { getEntitySlug } from './slug'
 import { plainTraitText } from './traitText'
 import { isColumnsTable } from './utils/resultForTable'
 import type { TableRow } from './utils/tableRows'
 import { tableRows } from './utils/tableRows'
-import { STAT_LABELS } from './view/parts/facts'
+import { bookStats } from './view/parts/facts'
 
 /**
  * Get the display name for a schema
@@ -359,37 +355,11 @@ export function extractStaticEntitySummary(
     }
   }
 
-  // Collect numeric stats
-  const stats: { label: string; value: string | number }[] = []
-
-  const sp = getStructurePoints(entity)
-  if (sp != null) stats.push({ label: STAT_LABELS.structurePoints.label, value: sp })
-
-  const ep = getEnergyPoints(entity)
-  if (ep != null) stats.push({ label: STAT_LABELS.energyPoints.label, value: ep })
-
-  const hc = getHeatCapacity(entity)
-  if (hc != null) stats.push({ label: STAT_LABELS.heatCapacity.label, value: hc })
-
-  const ss = getSystemSlots(entity)
-  if (ss != null) stats.push({ label: STAT_LABELS.systemSlots.label, value: ss })
-
-  const ms = getModuleSlots(entity)
-  if (ms != null) stats.push({ label: STAT_LABELS.moduleSlots.label, value: ms })
-
-  const cc = getCargoCapacity(entity)
-  if (cc != null) stats.push({ label: STAT_LABELS.cargoCapacity.label, value: cc })
-
-  const sv = getSalvageValue(entity)
-  if (sv != null) stats.push({ label: STAT_LABELS.salvageValue.label, value: sv })
-
-  const sr = getSlotsRequired(entity)
-  if (sr != null) stats.push({ label: STAT_LABELS.slotsRequired.label, value: sr })
-
-  const hp = getHitPoints(entity)
-  if (hp != null) stats.push({ label: STAT_LABELS.hitPoints.label, value: hp })
-
-  if (techLevel != null) stats.push({ label: 'Tech Level', value: techLevel })
+  // The stats in the order every surface keeps (`bookStats`): Tech Level,
+  // then each group, under its full name; zeros are not printed.
+  const stats: { label: string; value: string | number }[] = bookStats(entity as SURefMetaEntity, {
+    techLevel,
+  }).map((fact) => ({ label: fact.label, value: fact.value }))
 
   const actionType = getActionType(entity)
   if (actionType) stats.push({ label: 'Action Type', value: actionType })

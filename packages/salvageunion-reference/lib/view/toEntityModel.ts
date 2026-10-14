@@ -96,6 +96,7 @@ function splitFacets(cells: FacetCell[]): {
             short: c.short ?? c.label,
             value: c.value ?? '',
             ...(c.shortValue ? { shortValue: c.shortValue } : {}),
+            group: c.group ?? 'action',
           },
         ]
       : []

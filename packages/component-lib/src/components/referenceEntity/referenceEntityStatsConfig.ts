@@ -40,6 +40,7 @@ export function buildReferenceEntityStats(
       label: compact ? fact.short : top,
       bottomLabel: compact ? undefined : rest.join(' '),
       value: fact.value,
+      ...(fact.group ? { group: fact.group } : {}),
       hoverText: fact.hint,
     }
   })

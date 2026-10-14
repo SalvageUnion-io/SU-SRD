@@ -187,7 +187,9 @@ export {
   bookStats,
   CONDITION_LABELS,
   entityStats,
+  opensGroup,
   STAT_LABELS,
+  splitStatLine,
 } from './view/parts/facts'
 export { entityTone, guideTone, headerFill } from './view/parts/fill'
 export {
@@ -214,6 +216,7 @@ export type {
   EntityModel,
   EntityRef,
   Fact,
+  StatGroup,
   TraitMention,
 } from './view/types'
 

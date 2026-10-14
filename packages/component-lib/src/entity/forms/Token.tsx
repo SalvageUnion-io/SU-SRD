@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
-import type { EntityInstance } from 'salvageunion-reference'
+import type { EntityInstance, Fact } from 'salvageunion-reference'
+import { splitStatLine } from 'salvageunion-reference'
 import { Badge } from '../../components/atoms/Badge'
 import { Stat } from '../../components/atoms/Stat'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
@@ -11,7 +12,6 @@ import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { actionTypeStamps } from '../parts/actionStamps'
 import { CostBox } from '../parts/Chips'
-import { formFacts } from '../parts/factCells'
 import { KindLabel } from '../parts/KindLabel'
 import { paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
@@ -25,20 +25,27 @@ type TokenChip = { label: string; value?: string }
  * Level, the slots it takes or has, its hit or structure points, a player
  * unit's live reading (`SP 7/9`) included, and its range as the book's code
  * (`RNG | C`). Everything else (SV, EP, DMG, traits) is the Row's and the
- * Page's, but a chassis keeps its one chip set (TL, SP, EP, SV, SYS, MODS)
- * in every form (`formFacts`).
+ * Page's, but a chassis keeps its one chip set (TL, SV, SP, EP, SYS, MODS:
+ * the model's `entityStats`) in every form.
  */
 const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP', 'RNG'])
 
 /**
- * A Token's own chips, in E17's order: its one action's type or, with two or
- * more, how many it has (`ACTIONS | 3`: the actions its Peek and Page list,
- * its folded self-action not among them, since that is the entity's own facts
- * and cost), then the kept facts. The cost box follows, drawn by the Token. An
- * ability's tier is its numeral before the name, never a chip.
+ * A Token's own chips, in the stat order (E17): the kept stats (TL first),
+ * then its one action's type or, with two or more, how many it has
+ * (`ACTIONS | 3`: the actions its Peek and Page list, its folded self-action
+ * not among them, since that is the entity's own facts and cost), then the
+ * action's kept facets (`RNG | C`). The cost box follows, drawn by the Token.
+ * An ability's tier is its numeral before the name, never a chip.
  */
 function tokenChips(model: EntityRowModel): TokenChip[] {
-  const chips: TokenChip[] = []
+  const chassis = model.ref.schemaName === 'chassis' && !model.ref.synthetic
+  const kept = (facts: readonly Fact[]): TokenChip[] =>
+    facts
+      .filter((fact) => chassis || TOKEN_FACTS.has(fact.short))
+      .map((fact) => ({ label: fact.short, value: fact.shortValue ?? fact.value }))
+  const { stats, action } = splitStatLine(model.facts)
+  const chips: TokenChip[] = kept(stats)
   const actions = model.actions?.length ?? 0
   // A folded self-action's type is the entity's own; one listed action beside
   // it is still a count, or its type would read as the entity's.
@@ -49,13 +56,7 @@ function tokenChips(model: EntityRowModel): TokenChip[] {
       chips.push({ label: stamp })
     }
   }
-  // A chassis keeps its one chip set in every form (`formFacts`).
-  const chassis = model.ref.schemaName === 'chassis' && !model.ref.synthetic
-  for (const fact of formFacts(model)) {
-    if (chassis || TOKEN_FACTS.has(fact.short)) {
-      chips.push({ label: fact.short, value: fact.shortValue ?? fact.value })
-    }
-  }
+  chips.push(...kept(action))
   if (chips.length === 0 && model.kind.classKind) chips.push({ label: model.kind.classKind })
   return chips
 }

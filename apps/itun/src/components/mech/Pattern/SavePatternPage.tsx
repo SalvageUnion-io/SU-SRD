@@ -34,6 +34,7 @@ import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
+import { STAT_LABELS } from 'salvageunion-reference'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
 import { useHydrateEntities, useMech } from '../../../hooks/entities'
@@ -372,15 +373,17 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
               extent="full"
               hide={{ content: true, actions: true, patterns: true, rollTable: true, image: true }}
               statsOverride={[
-                { key: 'tl', label: 'TL', value: chassis.techLevel },
+                { key: 'tl', label: 'TL', value: chassis.techLevel, group: 'provenance' },
                 {
                   key: 'sys',
-                  label: 'SYS',
+                  label: STAT_LABELS.systemSlots.short,
+                  group: 'capacity',
                   value: `${slotsUsed(loadout.systems)}/${chassis.systemSlots}`,
                 },
                 {
                   key: 'mod',
-                  label: 'MOD',
+                  label: STAT_LABELS.moduleSlots.short,
+                  group: 'capacity',
                   value: `${slotsUsed(loadout.modules)}/${chassis.moduleSlots}`,
                 },
               ]}

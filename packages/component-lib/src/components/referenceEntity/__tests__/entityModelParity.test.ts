@@ -96,7 +96,7 @@ function headFactCount(model: EntityModel): number {
 
 /** The page meta a model states, in `resolveEntityPageMeta`'s shape. */
 function pageMetaOf(model: EntityModel) {
-  // The band carries every chip: action type, facts, traits and cost.
+  // The band carries every chip: stats, action type, facts, traits and cost.
   const cost = model.cost ? costCell(model.cost) : undefined
   return {
     // The kind: the title's screen-reader text and the foot band's chip.
@@ -107,6 +107,7 @@ function pageMetaOf(model: EntityModel) {
       key: fact.key,
       label: fact.label,
       value: fact.value,
+      ...(fact.group ? { group: fact.group } : {}),
       ...(fact.hint ? { hoverText: fact.hint } : {}),
     })),
     numeral: model.tier,
@@ -118,6 +119,7 @@ function pageMetaOf(model: EntityModel) {
         key: f.key,
         label: f.short,
         value: f.value,
+        ...(f.group ? { group: f.group } : {}),
         ...(f.hint ? { hoverText: f.hint } : {}),
       })),
     tags: model.traits.map((t) => ({

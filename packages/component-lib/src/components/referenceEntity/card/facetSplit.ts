@@ -19,7 +19,10 @@ export type CardFacetCell = {
   /** The rules entity the cell names (a trait, a keyword), for its hovercard. */
   entityRef?: { schemaName: SURefEnumSchemaName; name: string }
   /** The entity model's facet this cell is. */
-  facet?: Pick<FacetCell, 'kind' | 'short' | 'actionType' | 'mention' | 'modified'>
+  facet?: Pick<
+    FacetCell,
+    'kind' | 'short' | 'shortValue' | 'group' | 'actionType' | 'mention' | 'modified'
+  >
 }
 
 /** The facets, split (E17): the head's action-type stamps, the Stat cells, the Tags. */
@@ -38,7 +41,9 @@ export function splitFacets(cells: readonly CardFacetCell[]): SplitFacets {
       facts.push({
         key: cell.key,
         label: cell.facet?.short ?? cell.label,
-        value,
+        // A Card is no Page: its range is the book's code (`RNG | C`, ruleset §2.6).
+        value: cell.facet?.shortValue ?? value,
+        group: cell.facet?.group ?? 'action',
         ...(modified ? { state: 'modified' as const } : {}),
       })
     } else if (kind === 'trait') {

@@ -207,8 +207,9 @@ describe('lookupCard — the card', () => {
     expect(card.accent).toBe(0x7a978a)
     const text = cardText(card)
     expect(text).toContain('## [Goliath](https://salvageunion.io/chassis/goliath)')
-    expect(text).toContain('**TL** 2 · **SP** 13 · **EP** 11')
-    expect(text).toContain('**Cargo** 6 · **Heat** 12')
+    // A line to each stat group, TL first; Cargo and Heat are its Page's.
+    expect(text).toContain('**TL** 2 · **SV** 8\n**SP** 13 · **EP** 11\n**SYS** 18 · **MODS** 3')
+    expect(text).not.toContain('**Cargo**')
     // The chassis ability shows only on the chassis and pattern pages.
     expect(text).not.toContain('Scrap Plating')
   })

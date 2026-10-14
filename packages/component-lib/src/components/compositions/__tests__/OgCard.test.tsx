@@ -177,13 +177,11 @@ const SEEN: [string, OgCardProps, Seen][] = [
       tone: 'var(--color-mech)',
       cells: [
         ['TL', '1'],
+        ['SV', '6'],
         ['SP', '9'],
         ['EP', '9'],
-        ['SV', '6'],
         ['SYS', '12'],
         ['MODS', '2'],
-        ['Cargo', '6'],
-        ['Heat', '8'],
       ],
       lines: ['Chassis · Workshop Manual · p.104'],
       wordmark: 'salvageunion.io',
@@ -549,16 +547,16 @@ describe('ogCardForEntity', () => {
     expect(THING.cite).toContain('p.')
   })
 
-  test('a system carries its action type as printed, RNG, DMG and traits, in E17 order', () => {
+  test('a system carries TL first, then its action type as printed, RNG, DMG and traits', () => {
     const gun = SalvageUnionReference.Systems.getByName('.50 Cal Machine Gun')
     if (!gun) throw new Error('no .50 Cal')
     const card = ogCardForEntity({ schemaName: 'systems', entity: gun, address: '/systems/x' })
     if (card.kind !== 'thing') throw new Error('a system is a thing')
     expect(card.stats.map((s) => s.label)).toEqual([
-      'Turn Action',
       'TL',
       'Slots',
       'SV',
+      'Turn Action',
       'RNG',
       'DMG',
       'Ballistic',
