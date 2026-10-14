@@ -50,7 +50,7 @@ export {
   srdSchemaUrl,
 } from './assets'
 export { bookQuote } from './bookQuote'
-export { parseContentBlockString } from './contentBlockHelpers'
+export { parseContentBlockString, replaceChassisPlaceholder } from './contentBlockHelpers'
 export {
   getName,
   getPageReference,
