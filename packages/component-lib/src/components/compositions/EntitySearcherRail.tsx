@@ -12,6 +12,7 @@ import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { Entity } from '../../entity/Entity'
+import { useDisclosure } from '../../utils/useDisclosure'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { capsLabel } from '../atoms/capsLabel'
@@ -250,10 +251,10 @@ export function SelectionRail({
 }) {
   const budgets = budgetList(budget)
   const entries = useRailEntries(schema, selected, idOf)
-  const [open, setOpen] = useState(false)
+  const list = useDisclosure()
+  const open = list.open
   const expanded = wide || open
   const headingId = useId()
-  const listId = useId()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
   const removeRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -326,9 +327,7 @@ export function SelectionRail({
               <button
                 ref={toggleRef}
                 type="button"
-                aria-expanded={open}
-                aria-controls={listId}
-                onClick={() => setOpen((v) => !v)}
+                {...list.toggleProps}
                 className={FOCUS_RING}
                 style={RAIL_TOGGLE_STYLE}
               >
@@ -342,7 +341,7 @@ export function SelectionRail({
       </div>
 
       <div
-        id={listId}
+        id={list.panelId}
         hidden={!expanded}
         className="su-searcher__rail-list"
         style={RAIL_LIST_STYLE}

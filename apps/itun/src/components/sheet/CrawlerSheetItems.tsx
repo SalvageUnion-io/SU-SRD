@@ -12,10 +12,10 @@ import {
   ReferenceEntityCard,
   tokens,
   useDetailModal,
+  useDisclosure,
 } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties, ReactNode } from 'react'
-import { useId, useState } from 'react'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
@@ -244,10 +244,11 @@ export function CrawlerBayCard({
   )
   const bay = resolveCrawlerBay(entry.bayRef)
   const detail = useDetailModal(bay ?? undefined)
-  const [folded, setFolded] = useState(true)
+  // Open is the bay's full prose; shut, it folds to its lead.
+  const prose = useDisclosure()
+  const folded = !prose.open
   // Edit: whether the crew's fields are open under their Token.
-  const [crewOpen, setCrewOpen] = useState(false)
-  const surfaceId = useId()
+  const crewFields = useDisclosure()
 
   if (!bay) {
     return <div style={UNKNOWN_BAY}>{entry.bayRef}</div>
@@ -355,15 +356,14 @@ export function CrawlerBayCard({
               <button
                 type="button"
                 className="su-sheet-ctl"
-                aria-expanded={crewOpen}
-                aria-label={`${crewOpen ? 'Collapse' : 'Expand'} ${bay.name} crew`}
-                onClick={() => setCrewOpen((open) => !open)}
+                {...crewFields.toggleProps}
+                aria-label={`${crewFields.open ? 'Collapse' : 'Expand'} ${bay.name} crew`}
               >
                 Details
               </button>
             }
           />
-          {!readOnly && crewOpen && inlineCrew}
+          {!readOnly && crewFields.open && <div id={crewFields.panelId}>{inlineCrew}</div>}
         </div>
       ) : (
         inlineCrew
@@ -410,9 +410,7 @@ export function CrawlerBayCard({
   // in the crew inset must never unfold the bay around it).
   const fold = foldControl({
     subject: bay.name,
-    folded,
-    surfaceId,
-    onToggle: () => setFolded((f) => !f),
+    disclosure: prose,
   })
 
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
