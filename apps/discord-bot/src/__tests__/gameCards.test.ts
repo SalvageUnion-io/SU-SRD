@@ -124,13 +124,7 @@ describe('denialMessage', () => {
   })
 
   test('every reason produces a non-empty message', () => {
-    for (const reason of [
-      'unlinked',
-      'unbound',
-      'not-a-member',
-      'forbidden',
-      'not-found',
-    ] as const) {
+    for (const reason of ['unlinked', 'unbound', 'not-a-member', 'not-found'] as const) {
       expect(denialMessage(reason).length).toBeGreaterThan(0)
     }
   })

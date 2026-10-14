@@ -59,7 +59,6 @@ const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
   unlinked: `No ${PRODUCT.name} account is signed in with this Discord account.`,
   unbound: 'This channel is not bound to a Game.',
   'not-a-member': 'You are not a member of the Game bound to this channel.',
-  forbidden: 'You do not have permission to do that.',
   'not-found': 'That could not be found.',
 }
 

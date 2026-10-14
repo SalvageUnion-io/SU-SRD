@@ -395,7 +395,6 @@ export function LiveSheet({
           copy", Share and "⋯" — and on a phone the Pilot/Mech/Crawler switch,
           the whole cluster below the name there. Full-bleed, like the SRD's. */}
       <ChapterBand
-        layout="bleed"
         tone={variant}
         asideAt="notch"
         aside={

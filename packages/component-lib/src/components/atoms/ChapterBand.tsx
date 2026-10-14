@@ -20,12 +20,11 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * ## Layout
  *
- * The band is full-bleed by default (`layout="bleed"`): it fills its
+ * The band is full-bleed: it fills its
  * container, and as a `PageShell`'s first child it also cancels the shell's
  * gutters, out to the shell's edges and up to its top, so the band meets the
  * masthead the way it does on the SRD. Anywhere deeper in the shell it only
- * fills its container. `layout="inset"` keeps even a leading band inside the
- * shell's gutters. `measure` caps the inner row so the
+ * fills its container. `measure` caps the inner row so the
  * notch lines up with the column of content under it. The notch's bottom edge
  * IS the band's bottom edge, and it is painted in the page ground
  * (`--color-wk-bg`), so the title reads as cut out of the band rather than
@@ -82,11 +81,6 @@ export type ChapterBandProps = {
   tone?: ChapterTone
   /** The heading element. Defaults to `h1`: the band is the page's title. */
   as?: ElementType
-  /**
-   * `bleed` (default): full-bleed, cancelling a `PageShell`'s gutters when it
-   * is the shell's first child. `inset`: inside its container's box.
-   */
-  layout?: 'bleed' | 'inset'
   /**
    * Left of the notch, on the band's foot, in the title's type: an ability
    * page's level numeral, as its Row sets it left of its name.
@@ -205,7 +199,6 @@ export function ChapterBand({
   children,
   tone = 'rules',
   as: Tag = 'h1',
-  layout = 'bleed',
   lead,
   aside,
   asideAt = 'end',
@@ -219,7 +212,7 @@ export function ChapterBand({
   titleSize,
 }: ChapterBandProps) {
   // A link preview is a picture at one size: it never bleeds.
-  const bleed = layout === 'bleed' && scale === 'page'
+  const bleed = scale === 'page'
   const titleStyle = userMade
     ? { ...TITLE, ...userMadeTitle(scale === 'og' ? OG_DASH : DASH) }
     : TITLE

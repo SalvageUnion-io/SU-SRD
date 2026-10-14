@@ -48,7 +48,7 @@ export type BotDenial =
   | 'not-a-member'
 
 /** Every reason a bot call can be refused: `BotDenial` plus the mutation cases. */
-export type BotDenialReason = BotDenial | 'forbidden' | 'not-found'
+export type BotDenialReason = BotDenial | 'not-found'
 
 /** A refusal, as `botClient` sends it. */
 export type BotFailure = { ok: false; reason: BotDenialReason; message: string }

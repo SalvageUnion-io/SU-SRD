@@ -63,13 +63,7 @@ export type ItunClientConfig = {
   botSecret: string
 }
 
-const DENIAL_REASONS: readonly string[] = [
-  'unlinked',
-  'unbound',
-  'not-a-member',
-  'forbidden',
-  'not-found',
-]
+const DENIAL_REASONS: readonly string[] = ['unlinked', 'unbound', 'not-a-member', 'not-found']
 
 function isDenial(value: unknown): value is { reason: DenialReason; message?: string } {
   const reason = (value as { reason?: unknown } | null)?.reason
