@@ -11,27 +11,20 @@ type SRDLinkProps = {
 }
 
 /**
- * Generic cross-link to a Salvage Union SRD entity page. Opens in a new tab.
+ * Generic cross-link to a Salvage Union SRD entity page, in this tab and with
+ * no arrow: the Reference and the builder are one union, so the link is not
+ * off-site (ruleset §3.11) and opens no new tab (EDL E5).
  *
  * Presentation-only: the caller resolves the destination `href` (the URL-
  * building logic is app-specific and stays in the app, per ADR-011) and passes
- * it in. This component adds the new-tab + security attributes and the
- * accessible label.
+ * it in. This component adds the accessible label.
  */
 export function SRDLink({ href, entityName, className }: SRDLinkProps) {
-  const ariaLabel = entityName
-    ? `View ${entityName} in SRD (opens in new tab)`
-    : 'View in SRD (opens in new tab)'
+  const ariaLabel = entityName ? `View ${entityName} in SRD` : 'View in SRD'
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={ariaLabel}
-      className={className}
-    >
-      View in SRD →
+    <a href={href} aria-label={ariaLabel} className={className}>
+      View in SRD
     </a>
   )
 }

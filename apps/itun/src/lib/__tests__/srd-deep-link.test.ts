@@ -51,7 +51,7 @@ describe('hasSRDPage', () => {
   })
 
   // srd's getItemStaticPaths generates pages for entity schemas ONLY, so a
-  // meta schema has no item page and a "View in SRD →" on one would 404.
+  // meta schema has no item page and a "View in SRD" on one would 404.
   // `actions` is one of the most common entity kinds in play.
   it('rejects meta schemas, which srd never generates item pages for', () => {
     expect(hasSRDPage('actions')).toBe(false)

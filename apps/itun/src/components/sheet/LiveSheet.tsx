@@ -452,7 +452,7 @@ export function LiveSheet({
           padding. */}
       <div style={BODY_FRAME}>
         <div className="su-sheet-live-body">
-          {/* No "View in SRD →" on a sheet. The app-wide builder is provided at
+          {/* No "View in SRD" on a sheet. The app-wide builder is provided at
               the root (GameDataReady), and every full entity card renders it in
               its foot band — which on a sheet is EVERY installed system, module
               and piece of equipment. A sheet is a play surface you read down,

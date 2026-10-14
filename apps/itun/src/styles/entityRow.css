@@ -6,7 +6,7 @@
  *   - `EntityRow` (components/shared/EntityRow.tsx): the empty variant's foot,
  *     whose children stretch (a child selector).
  *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
- *     the "View in SRD →" link, which fades on hover. `SRDLink` takes only a
+ *     the "View in SRD" link, which fades on hover. `SRDLink` takes only a
  *     class, so the whole treatment lives here.
  */
 
@@ -15,7 +15,7 @@
   flex: 1;
 }
 
-/* "View in SRD →": a hairline underline that fades to 70% on hover. */
+/* "View in SRD": a hairline underline that fades to 70% on hover. */
 .srd-entity-external-link {
   text-decoration-line: underline;
   text-decoration-thickness: 1px;

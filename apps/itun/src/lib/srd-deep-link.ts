@@ -22,7 +22,7 @@ type EntityRef = {
 // getSchemaCatalog().schemas.filter((s) => !s.meta). So full catalog
 // membership is NOT the test — it would claim a page for the three meta
 // schemas (actions, catalog-categories, ability-tree-requirements) and every
-// "View in SRD →" on an action would 404. Mirror the generator's own filter.
+// "View in SRD" on an action would 404. Mirror the generator's own filter.
 // Lazily cached.
 let srdSchemaIds: Set<string> | undefined
 
