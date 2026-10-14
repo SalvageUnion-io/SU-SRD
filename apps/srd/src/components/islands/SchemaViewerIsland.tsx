@@ -32,6 +32,12 @@ const PARAM_NAME = 'q'
 const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set(['tech-levels', 'crawler-tech-levels'])
 /** Cargo and Heat: a tile's chips sit beside its name, so only its page prints them. */
 const TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
+/**
+ * The Catalog's opening row: four tiles at the page's measure (17rem tracks,
+ * `pages.css`), one on a phone. Their art is the page's largest paint, so it
+ * loads at once and first rather than lazily after layout.
+ */
+const OPENING_ROW = 4
 
 /**
  * Read a single query-param value from the current URL. SSR-safe: the SSG
@@ -379,12 +385,12 @@ function SchemaViewer({
       ) : (
         <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
           <div className="srd-listing__groups">
-            {groups.map((group) => (
+            {groups.map((group, groupIndex) => (
               <section key={group.key} className="srd-listing__group" aria-label={group.label}>
                 {group.label && <Slab variant="solid" label={group.label} />}
                 {view === 'catalog' ? (
                   <ul className="srd-listing__tiles">
-                    {group.items.map((item: SURefEntity) => (
+                    {group.items.map((item: SURefEntity, index) => (
                       <li key={item.id}>
                         <Entity
                           form="tile"
@@ -392,6 +398,7 @@ function SchemaViewer({
                           mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
                           omit={tileOmit}
                           lead
+                          priority={groupIndex === 0 && index < OPENING_ROW}
                         />
                       </li>
                     ))}

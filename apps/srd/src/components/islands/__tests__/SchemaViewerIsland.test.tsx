@@ -378,12 +378,19 @@ describe('SchemaViewerIsland', () => {
       expect(tiles.length).toBe(chassisEntities().length)
       expect(container.querySelector('.srd-rail__view')).toBeNull()
       expect(screen.queryByRole('button', { name: 'List' })).toBeNull()
-      // Art from the su-assets 440 derivative, lazy, its box sized before it loads.
-      const img = required(container.querySelector('.su-entity-tile__art img'), 'a tile image')
+      // Art from the su-assets 440 derivative, its box sized before it loads.
+      // The opening row's art loads at once and first (it is the page's
+      // largest paint); every tile after it, lazily.
+      const imgs = [...container.querySelectorAll('.su-entity-tile__art img')]
+      const img = required(imgs[0], 'a tile image')
       expect(img.getAttribute('src')).toMatch(
         /^https:\/\/assets\.salvageunion\.io\/.+-440q80\.webp$/
       )
-      expect(img.getAttribute('loading')).toBe('lazy')
+      expect(imgs.map((el) => el.getAttribute('loading'))).toEqual(
+        imgs.map((_, i) => (i < 4 ? 'eager' : 'lazy'))
+      )
+      expect(img.getAttribute('fetchpriority')).toBe('high')
+      expect(imgs[4]?.getAttribute('fetchpriority')).toBeNull()
     })
 
     it('carries each entity’s lore under its cells', () => {

@@ -20,6 +20,12 @@ export type TileProps = {
   omit?: readonly EntityOmit[]
   /** The opening prose under the cells, while browsing (E11). */
   lead?: boolean
+  /**
+   * The art loads at once and first, for a tile in a listing's opening row:
+   * that art is the page's largest paint, and a lazy image is only requested
+   * after layout.
+   */
+  priority?: boolean
 }
 
 type TileMode = Extract<EntityMode, { kind: 'read' | 'link' }>
@@ -60,7 +66,7 @@ const NAME: CSSProperties = {
  * browsing, the lead clamped to three lines.
  * Layout is `index.css`'s `.su-entity-tile*`.
  */
-export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps) {
+export function Tile({ model, mode = READ, omit = [], lead = false, priority = false }: TileProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
@@ -91,7 +97,8 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
               width={440}
               height={587}
               alt=""
-              loading="lazy"
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : undefined}
               decoding="async"
             />
           </span>

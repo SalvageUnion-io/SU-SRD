@@ -25,6 +25,8 @@ export type EntityProps = EntitySource & {
   omit?: readonly EntityOmit[]
   /** Row only: hover, focus or a long press Peeks it (a Token always does). */
   peek?: boolean
+  /** Tile only: its art loads at once and first (a listing's opening row). */
+  priority?: boolean
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
   titleAs?: ElementType
 }
@@ -37,7 +39,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, peek, titleAs } = props
+  const { form, instance, mode, lead, omit, peek, priority, titleAs } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -67,6 +69,7 @@ export function Entity(props: EntityProps) {
           mode={mode?.kind === 'link' || mode?.kind === 'read' ? mode : undefined}
           omit={omit}
           lead={lead}
+          priority={priority}
         />
       )
     default: {
