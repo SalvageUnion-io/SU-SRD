@@ -286,7 +286,7 @@ export function PhoneResolve({
         <h2 id="dash-phone-resolving" ref={heading} tabIndex={-1} style={TITLE}>
           Resolving
         </h2>
-        <PinnedVitals vitals={vitals} label="Pinned vitals" />
+        <PinnedVitals vitals={vitals} />
       </div>
       <fieldset disabled={readOnly !== null} style={PLAIN}>
         <legend className="su-sr-only">

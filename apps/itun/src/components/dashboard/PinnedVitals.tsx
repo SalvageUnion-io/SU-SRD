@@ -25,10 +25,10 @@ const ROW: CSSProperties = {
   listStyle: 'none',
 }
 
-export function PinnedVitals({ vitals, label }: { vitals: PinnedVital[]; label: string }) {
+export function PinnedVitals({ vitals }: { vitals: PinnedVital[] }) {
   if (vitals.length === 0) return null
   return (
-    <ul aria-label={label} style={ROW}>
+    <ul aria-label="Pinned vitals" style={ROW}>
       {vitals.map((v) => (
         <li key={v.label}>
           <Stat

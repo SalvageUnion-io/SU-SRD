@@ -36,22 +36,14 @@ export function WithheldUnitRow({ unit, label }: { unit: WithheldUnit; label: st
 }
 
 /** Anchor CTA for rail empty slots ('+ Create'). */
-export function RailCta({
-  href,
-  label,
-  primary,
-}: {
-  href: string
-  label: string
-  primary?: boolean
-}) {
+export function RailCta({ href, primary }: { href: string; primary?: boolean }) {
   return (
     <AppLink
       href={href}
       className={buttonVariants({ variant: primary ? 'primary' : 'default', size: 'compact' })}
       style={LINK}
     >
-      {label}
+      + Create
     </AppLink>
   )
 }

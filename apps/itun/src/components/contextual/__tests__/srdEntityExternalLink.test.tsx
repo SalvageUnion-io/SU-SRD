@@ -3,7 +3,7 @@
  *
  * The builder is ITUN's app-wide EntityExternalLinkProvider value: full entity
  * cards + detail modals render its node in their foot band. It must produce a
- * ViewInSRDLink for real catalog entities and nothing for entities whose
+ * "View in SRD →" link for real catalog entities and nothing for entities whose
  * schema has no srd page.
  */
 
@@ -24,6 +24,8 @@ describe('srdEntityExternalLink', () => {
     const link = container.querySelector('a')
     expect(link?.href).toBe('https://salvageunion.io/chassis/mule')
     expect(link?.target).toBe('_blank')
+    expect(link?.rel).toBe('noopener noreferrer')
+    expect(link?.className).toContain('srd-entity-external-link')
     expect(link?.textContent).toBe('View in SRD →')
     expect(link?.getAttribute('aria-label')).toContain('Mule')
   })

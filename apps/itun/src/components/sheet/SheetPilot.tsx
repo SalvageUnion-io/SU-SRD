@@ -158,7 +158,7 @@ export function SheetPilot({
           actions={
             editable ? (
               <>
-                <RailCta href="/mechs/new" label="+ Create" primary />
+                <RailCta href="/mechs/new" primary />
                 <AssignPicker subject={self} container={container} pick="mech" />
               </>
             ) : undefined
@@ -209,7 +209,7 @@ export function SheetPilot({
           actions={
             editable ? (
               <>
-                <RailCta href="/crawlers/new" label="+ Create" primary />
+                <RailCta href="/crawlers/new" primary />
                 <AssignPicker subject={self} container={container} pick="crawler" />
               </>
             ) : undefined

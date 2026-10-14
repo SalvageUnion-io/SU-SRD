@@ -299,7 +299,7 @@ export function SheetCrawler({
               actions={
                 <>
                   {dockPicker}
-                  <RailCta href="/mechs/new" label="+ Create" />
+                  <RailCta href="/mechs/new" />
                 </>
               }
             />
@@ -318,7 +318,7 @@ export function SheetCrawler({
             editable ? (
               <>
                 {dockPicker}
-                <RailCta href="/mechs/new" label="+ Create" primary />
+                <RailCta href="/mechs/new" primary />
               </>
             ) : undefined
           }
@@ -359,7 +359,7 @@ export function SheetCrawler({
               actions={
                 <>
                   {crewPicker}
-                  <RailCta href="/pilots/new" label="+ Create" />
+                  <RailCta href="/pilots/new" />
                 </>
               }
             />
@@ -379,7 +379,7 @@ export function SheetCrawler({
             editable ? (
               <>
                 {crewPicker}
-                <RailCta href="/pilots/new" label="+ Create" primary />
+                <RailCta href="/pilots/new" primary />
               </>
             ) : undefined
           }

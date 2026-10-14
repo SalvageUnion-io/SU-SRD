@@ -6,8 +6,8 @@
  *   - `EntityRow` (components/shared/EntityRow.tsx): the empty variant's foot,
  *     whose children stretch (a child selector).
  *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
- *     the "View in SRD →" link, which fades on hover. `ViewInSRDLink` forwards
- *     only a class, so the whole treatment lives here.
+ *     the "View in SRD →" link, which fades on hover. `SRDLink` takes only a
+ *     class, so the whole treatment lives here.
  */
 
 /* The empty slot's dashed foot: every CTA in it shares the width equally. */

@@ -169,16 +169,11 @@ type GlobalSearchProps = {
   /** Whether the panel is open. Lifted to the root so the two triggers share it. */
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Binds Cmd/Ctrl+K to toggle the panel. One instance owns it; the bar's by default. */
-  shortcut?: boolean
 }
 
-export function GlobalSearch({
-  variant = 'bar',
-  open,
-  onOpenChange,
-  shortcut = variant === 'bar',
-}: GlobalSearchProps) {
+export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSearchProps) {
+  /** Binds Cmd/Ctrl+K to toggle the panel: one instance owns it, the bar's. */
+  const shortcut = variant === 'bar'
   const [detailEntity, setDetailEntity] = useState<SURefEntity | undefined>(undefined)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)

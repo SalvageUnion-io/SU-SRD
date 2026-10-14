@@ -387,7 +387,7 @@ export function DashboardPhone({
           </TabList>
           {tab !== major && pinned.length > 0 && (
             <div style={PINNED}>
-              <PinnedVitals vitals={pinned} label="Pinned vitals" />
+              <PinnedVitals vitals={pinned} />
             </div>
           )}
         </div>

@@ -202,7 +202,7 @@ export function SheetMech({
           actions={
             editable ? (
               <>
-                <RailCta href="/pilots/new" label="+ Create" primary />
+                <RailCta href="/pilots/new" primary />
                 <AssignPicker subject={self} container={container} pick="pilot" />
               </>
             ) : undefined
@@ -244,7 +244,7 @@ export function SheetMech({
           actions={
             editable ? (
               <>
-                <RailCta href="/crawlers/new" label="+ Create" primary />
+                <RailCta href="/crawlers/new" primary />
                 <AssignPicker subject={self} container={container} pick="crawler" />
               </>
             ) : undefined
