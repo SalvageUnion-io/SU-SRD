@@ -274,48 +274,36 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     )
   }
 
-  // The class's own path (its Advanced and Legendary trees) sits beside its
-  // Core trees; each Hybrid Class it may advance into runs full width below.
-  const ownPaths = plan.paths.filter((path) => !path.hybrid)
-  const hybridPaths = plan.paths.filter((path) => path.hybrid)
-  const pathList = (paths: ClassPath[]) => (
-    <ul className="srd-class-paths">
-      {paths.map((path) => (
-        <PathCard
-          key={path.hybrid?.id ?? path.advanced.tree}
-          path={path}
-          classEntity={classEntity}
-        />
-      ))}
-    </ul>
-  )
+  // The Core trees run in one column, full width; then every path the class
+  // advances along, its own (Legendary) first, then each Hybrid Class, all
+  // the same card with their trees side by side.
   return (
     <div className="srd-ability-tree">
       <ClassBrief plan={plan} />
-      {(plan.coreTrees.length > 0 || ownPaths.length > 0) && (
-        <div className="srd-ability-tree__split">
-          {plan.coreTrees.length > 0 && (
-            <section className="srd-ability-tree__section">
-              <Slab variant="dashed" label="Core trees" />
-              <div className="srd-ability-tree__row srd-ability-tree__row--stack">
-                {plan.coreTrees.map((group) => (
-                  <TreeSection key={group.tree} {...group} track="core" />
-                ))}
-              </div>
-            </section>
-          )}
-          {ownPaths.length > 0 && (
-            <section className="srd-ability-tree__section">
-              <Slab variant="dashed" label="Advancement" />
-              {pathList(ownPaths)}
-            </section>
-          )}
-        </div>
-      )}
-      {hybridPaths.length > 0 && (
+      {plan.coreTrees.length > 0 && (
         <section className="srd-ability-tree__section">
-          <Slab variant="dashed" label="Hybrid Classes" />
-          {pathList(hybridPaths)}
+          <Slab variant="dashed" label="Core trees" />
+          <div className="srd-ability-tree__row srd-ability-tree__row--stack">
+            {plan.coreTrees.map((group) => (
+              <TreeSection key={group.tree} {...group} track="core" />
+            ))}
+          </div>
+        </section>
+      )}
+      {plan.paths.length > 0 && (
+        <section className="srd-ability-tree__section">
+          <Slab variant="dashed" label="Advancement" />
+          <ul className="srd-class-paths">
+            {[...plan.paths]
+              .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
+              .map((path) => (
+                <PathCard
+                  key={path.hybrid?.id ?? path.advanced.tree}
+                  path={path}
+                  classEntity={classEntity}
+                />
+              ))}
+          </ul>
         </section>
       )}
     </div>

@@ -121,14 +121,18 @@ describe('ClassAbilityTree advancement paths', () => {
     }
   })
 
-  test('the class’s own path sits beside its Core trees; each Hybrid Class runs below', () => {
+  test('the Core trees run in one column; the class’s own path leads the Hybrid Classes', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
-    const split = document.querySelector('.srd-ability-tree__split')
-    expect(split?.querySelectorAll('.srd-class-path')).toHaveLength(1)
-    expect(split?.querySelector('.srd-class-path')?.getAttribute('data-kind')).toBe('legendary')
-    const hybrids = [...document.querySelectorAll('.srd-class-path[data-kind="hybrid"]')]
-    expect(hybrids.length).toBeGreaterThan(0)
-    for (const hybrid of hybrids) expect(split?.contains(hybrid)).toBe(false)
+    const core = document.querySelector('.srd-ability-tree__row--stack')
+    expect(core?.querySelectorAll(':scope > .srd-ability-tree__group').length).toBeGreaterThan(1)
+    expect(core?.querySelector('.srd-class-path')).toBeNull()
+    const kinds = [...document.querySelectorAll('.srd-class-paths > .srd-class-path')].map((path) =>
+      path.getAttribute('data-kind')
+    )
+    expect(kinds[0]).toBe('legendary')
+    expect(kinds.slice(1).length).toBeGreaterThan(0)
+    expect(new Set(kinds.slice(1))).toEqual(new Set(['hybrid']))
+    expect(document.querySelectorAll('.srd-class-paths')).toHaveLength(1)
   })
 })
 

@@ -1423,24 +1423,8 @@
   }
 }
 
-/* A Core class's Core trees, stacked on the left, beside its own path (its
-   Advanced and Legendary trees) on the right; its Hybrid Classes run full
-   width below. A narrower screen stacks the two. */
-.srd-ability-tree__split {
-  display: grid;
-  gap: var(--space-32) var(--space-24);
-  grid-template-columns: minmax(0, 1fr);
-}
-
-@media (min-width: 64rem) {
-  .srd-ability-tree__split {
-    align-items: start;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.srd-ability-tree__row--stack,
-.srd-class-path[data-kind='legendary'] .srd-class-path__trees {
+/* A Core class's Core trees, one column the page's width. */
+.srd-ability-tree__row--stack {
   flex-direction: column;
   flex-wrap: nowrap;
 }
@@ -1725,8 +1709,8 @@
 
 /*
  * A Core class's paths (the book's spread lists them under its Advanced and
- * Legendary Abilities and "Hybrid Classes"), one card each: the class's own
- * Advanced tree beside its Core trees, then each Hybrid Class full width.
+ * Legendary Abilities and "Hybrid Classes"), one card each, full width under
+ * its Core trees: the class's own Advanced tree first, then each Hybrid Class.
  * Every card is the same shell, one column — a pilot head with the name on
  * the paper cut-out at the band's foot (a Row's) and, right of it, what opens
  * the path and its kind; then the body, what the path is over its trees
