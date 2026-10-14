@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react'
 import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
 import {
   borderWidth,
@@ -353,8 +354,6 @@ const CHEVRON_WRAP = { display: 'inline-block', position: 'relative' } satisfies
 
 const CHEVRON = {
   color: color.wkMuted,
-  fontSize: fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
   pointerEvents: 'none',
   position: 'absolute',
   right: space[12],
@@ -387,9 +386,7 @@ export function Select({ className, chevron = false, ref, ...props }: SelectProp
   return (
     <span style={CHEVRON_WRAP}>
       {select}
-      <span aria-hidden="true" style={CHEVRON}>
-        ▾
-      </span>
+      <ChevronDown aria-hidden="true" size={12} style={CHEVRON} />
     </span>
   )
 }

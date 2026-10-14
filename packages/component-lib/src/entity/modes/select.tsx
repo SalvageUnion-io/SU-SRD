@@ -2,6 +2,7 @@ import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Badge } from '../../components/atoms/Badge'
 import { FOCUS_RING } from '../../components/atoms/interaction'
 import { RadioCard } from '../../components/containers/RadioCardGroup'
+import { cn } from '../../utils/cn'
 import type { EntityMode } from '../types'
 
 type SelectMode = Extract<EntityMode, { kind: 'select' }>
@@ -83,7 +84,7 @@ export function SelectSurface({
       <RadioCard
         selected={mode.selected}
         onSelect={mode.onSelect}
-        className={`${className} ${FOCUS_RING}`}
+        className={cn(className, FOCUS_RING)}
         style={{ ...style, cursor: 'pointer' }}
         aria-label={label}
       >

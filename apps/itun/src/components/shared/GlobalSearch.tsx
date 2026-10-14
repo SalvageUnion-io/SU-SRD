@@ -40,6 +40,7 @@ import {
   SearchFieldTrigger,
   tokens,
   useDetailModal,
+  useMediaQuery,
   useModKeyHint,
   useSearchCombobox,
 } from 'component-lib'
@@ -49,7 +50,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { useGameDataLoaded } from '../../hooks/useGameDataLoaded'
-import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 

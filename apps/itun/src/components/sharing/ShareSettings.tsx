@@ -25,6 +25,7 @@
 
 import { Button, Field, FieldError, Select, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import { Check, Copy } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -231,7 +232,7 @@ function ShareLink({
           aria-label="Copy public link"
           style={NO_SHRINK}
         >
-          {copied ? '✓' : '⧉'}
+          {copied ? <Check aria-hidden="true" size={14} /> : <Copy aria-hidden="true" size={14} />}
         </Button>
       </div>
       {/*

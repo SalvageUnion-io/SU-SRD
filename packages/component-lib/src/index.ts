@@ -262,3 +262,5 @@ export { useParseTraitReferences } from './utils/parseTraitReferences'
 export { schemaPluralLabel } from './utils/schemaLabels'
 // THE show/hide fold: open state plus the toggle's aria-expanded / aria-controls.
 export { useDisclosure } from './utils/useDisclosure'
+// The one viewport media-query hook (a breakpoint read in JS, not CSS).
+export { useMediaQuery } from './utils/useMediaQuery'

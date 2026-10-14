@@ -39,6 +39,7 @@
 import {
   buttonVariants,
   ChapterBand,
+  cn,
   RosterSkeleton,
   Segmented,
   SegmentedOption,
@@ -63,7 +64,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
 import { buildEntityExport, buildPatternExport } from '../../lib/export/buildExportBundle'
-import { downloadJson } from '../../lib/export/downloadJson'
+import { downloadJson, fileStem } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { patternCopy, patternHref } from '../../lib/patterns/patterns'
@@ -205,14 +206,6 @@ export function Shelves() {
 // ---------------------------------------------------------------------------
 // The page
 // ---------------------------------------------------------------------------
-
-/** A file-safe stem for an export: "itun-pilot-bonesaw.json". */
-function fileStem(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .slice(0, 40)
-}
 
 function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const { mode, canWrite } = useConnection()
@@ -407,7 +400,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     canWrite ? (
       <AppLink
         href={href}
-        className={`${buttonVariants({ size: 'compact' })} shelves-action`}
+        className={cn(buttonVariants({ size: 'compact' }), 'shelves-action')}
         style={NEW_LINK}
       >
         {label}

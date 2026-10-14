@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { cn } from '../../utils/cn'
 import { revealRolled } from '../../utils/revealRolled'
 import { Button } from '../atoms/Button'
 import { FOCUS_RING_ON_TONE } from '../atoms/interaction'
@@ -231,7 +232,7 @@ function TitleSelect({ title, select }: { title: ReactNode; select: RollTableTit
     <span className="su-roll__title">
       <button
         type="button"
-        className={`su-roll__title-select ${FOCUS_RING_ON_TONE}`}
+        className={cn('su-roll__title-select', FOCUS_RING_ON_TONE)}
         onClick={select.onOpen}
         aria-haspopup="dialog"
         aria-expanded={select.open ?? false}

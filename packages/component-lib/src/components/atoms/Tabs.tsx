@@ -1,6 +1,7 @@
 import { Tabs as BaseTabs } from '@base-ui/react/tabs'
 import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
 import { borderWidth, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
@@ -131,7 +132,7 @@ export function Toggle({
     <button
       type="button"
       aria-pressed={pressed}
-      className={`su-tab ${FOCUS_RING} ${DISABLED}`}
+      className={cn('su-tab', FOCUS_RING, DISABLED)}
       style={{ ...TAB, ...style }}
       onClick={onClick}
       {...rest}

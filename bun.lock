@@ -82,6 +82,7 @@
         "@fontsource/barlow-semi-condensed": "catalog:",
         "@sentry/browser": "catalog:",
         "component-lib": "workspace:*",
+        "lucide-react": "catalog:",
         "observability": "workspace:*",
         "react": "catalog:",
         "react-dom": "catalog:",

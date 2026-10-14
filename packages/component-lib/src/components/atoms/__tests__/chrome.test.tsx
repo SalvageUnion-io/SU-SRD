@@ -61,6 +61,13 @@ describe('Field / Input', () => {
       expect(el.className).toContain(INPUT_FOCUS)
     }
   })
+
+  test('the chevron rung draws a lucide chevron, hidden from assistive tech', () => {
+    const { container } = render(<Select aria-label="tier" chevron />)
+    const icon = container.querySelector('svg.lucide-chevron-down')
+    expect(icon?.getAttribute('aria-hidden')).toBe('true')
+    expect(container.textContent).not.toContain('▾')
+  })
 })
 
 describe('Field — typeset read state', () => {
@@ -103,6 +110,21 @@ describe('ModeDoor', () => {
     expect(screen.getByText('Guided')).toBeTruthy()
     fireEvent.click(screen.getByRole('button'))
     expect(onSelect).toHaveBeenCalled()
+  })
+
+  test('joins its variant class and a caller class with cn (no stray space)', () => {
+    const { rerender } = render(
+      <ModeDoor variant="guided" tab="▶" headline="Guided">
+        Body
+      </ModeDoor>
+    )
+    expect(screen.getByRole('button').className).toBe('su-mode-door su-mode-door--guided')
+    rerender(
+      <ModeDoor variant="guided" tab="▶" headline="Guided" className="extra">
+        Body
+      </ModeDoor>
+    )
+    expect(screen.getByRole('button').className).toBe('su-mode-door su-mode-door--guided extra')
   })
 
   test('guided prints the sheet’s onTone pair, not paper on the bare tone', () => {
@@ -252,6 +274,10 @@ describe('Conditions', () => {
     // The index rides along with the value so a row of repeatable strings
     // (NPC facts) can remove by position.
     expect(onRemove).toHaveBeenLastCalledWith('Stunned', 1)
+    // The remove mark is lucide's X, not a typed character.
+    expect(
+      screen.getByLabelText('Remove condition Burning').querySelector('svg.lucide-x')
+    ).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Add condition' }))
     expect(onAdd).toHaveBeenCalled()
   })

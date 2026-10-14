@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { PopoverPanel } from '../containers/PopoverPanel'
 import { capsLabel } from './capsLabel'
 import { INK_POPUP } from './inkPopup'
@@ -125,7 +126,7 @@ export function StatProvenance({
           // The dotted underline is `.su-stat-provenance__trigger` (callers
           // restyle it through `className`). `FOCUS_RING` was the three classes
           // spelled out by hand; imported so the ring can never drift.
-          className={[TRIGGER_CLASS, className].filter(Boolean).join(' ')}
+          className={cn(TRIGGER_CLASS, className)}
           aria-label={`${statLabel}: how this is derived`}
         >
           {children}

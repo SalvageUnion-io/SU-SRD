@@ -10,7 +10,7 @@
  */
 
 import type { ReferenceCardEntity } from 'component-lib'
-import { ActivationCost, Button, ReferenceEntityCard, Stat } from 'component-lib'
+import { ActivationCost, Button, cn, ReferenceEntityCard, Stat } from 'component-lib'
 import { color, font, fontSize, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
@@ -213,7 +213,7 @@ export function ResolveCost({
               +
             </Button>
           </div>
-          <span className={`su-dash-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
+          <span className={cn('su-dash-deck-hotx-proj', variableHot.over && 'is-over')}>
             {variableHot.projText}
           </span>
         </div>

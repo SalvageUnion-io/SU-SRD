@@ -21,6 +21,7 @@
 
 import { Button, Stat, StatusBadge } from 'component-lib'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 type SheetItemLineProps = {
@@ -107,7 +108,7 @@ export function SheetItemLine({
           aria-label={`Remove ${name}`}
           onClick={onRemove}
         >
-          ✕
+          <X aria-hidden="true" size={14} />
         </Button>
       )}
     </div>
