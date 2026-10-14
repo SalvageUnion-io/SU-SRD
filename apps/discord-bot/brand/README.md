@@ -19,4 +19,4 @@ reads these files.
   `bun run brand` writes both icon files from `apps/srd/scripts/brand/mark.ts`;
   `bun run brand:discord` also uploads it as the app icon and the bot's
   avatar, in place of the portal upload, with the token resolved from
-  1Password (`op read op://SUSRD/discord-bot/password`).
+  1Password (`DISCORD_TOKEN` in `apps/discord-bot/.env.example`).

@@ -64,8 +64,8 @@ function write(path: string, data: string | Buffer) {
   log(`wrote ${path}`)
 }
 
-/** The bot token in 1Password (vault SUSRD, item discord-bot). */
-const DISCORD_TOKEN_REF = 'op://SUSRD/discord-bot/password'
+/** The bot token in 1Password, by vault and item id (its "Bot Token" field). */
+const DISCORD_TOKEN_REF = 'op://3g5es2rt55ulrfxbs3d3j5fvje/m6vojy66gkpq2xxqi6g27bve3m/Bot Token'
 
 function readOnePassword(ref: string): string {
   const read = Bun.spawnSync(['op', 'read', ref], { stderr: 'inherit' })
