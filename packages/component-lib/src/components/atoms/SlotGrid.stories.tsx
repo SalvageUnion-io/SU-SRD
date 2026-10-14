@@ -15,21 +15,13 @@ const cargo = chassis?.cargoCapacity ?? 16
 
 const FRAME = { backgroundColor: color.paper, padding: space[16] } satisfies CSSProperties
 
-/** scale=pip — dense inline cells for listings / tooltips. */
-export const PipScale: Story = () => (
+/** Partly filled — solid cargo cells, then dashed fillable ones. */
+export const PartlyFilled: Story = () => (
   <div style={FRAME}>
     <Caption>
-      scale=pip · {Math.ceil(cargo * 0.6)}/{cargo} filled · {chassisName} hold
+      {Math.ceil(cargo * 0.6)}/{cargo} filled · {chassisName} hold
     </Caption>
     <SlotGrid used={Math.ceil(cargo * 0.6)} cap={cargo} />
-  </div>
-)
-
-/** scale=sheet — larger addressable cells for the Live Sheet / Dashboard. */
-export const SheetScale: Story = () => (
-  <div style={FRAME}>
-    <Caption>scale=sheet · addressable cells</Caption>
-    <SlotGrid used={Math.ceil(cargo * 0.6)} cap={cargo} scale="sheet" />
   </div>
 )
 
@@ -38,11 +30,11 @@ export const EmptyAndFull: Story = () => (
   <div style={FRAME}>
     <div style={{ marginBlockEnd: space[16] }}>
       <Caption>empty · all dashed (fillable)</Caption>
-      <SlotGrid used={0} cap={cargo} scale="sheet" />
+      <SlotGrid used={0} cap={cargo} />
     </div>
     <div>
       <Caption>full · all cargo</Caption>
-      <SlotGrid used={cargo} cap={cargo} scale="sheet" />
+      <SlotGrid used={cargo} cap={cargo} />
     </div>
   </div>
 )
@@ -51,6 +43,6 @@ export const EmptyAndFull: Story = () => (
 export const OverCapacity: Story = () => (
   <div style={FRAME}>
     <Caption>over capacity · used &gt; cap → status-bad cells</Caption>
-    <SlotGrid used={cargo + 2} cap={cargo} scale="sheet" />
+    <SlotGrid used={cargo + 2} cap={cargo} />
   </div>
 )

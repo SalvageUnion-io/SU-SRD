@@ -7,11 +7,6 @@ type SlotGridProps = {
   used: number
   /** Total slot capacity. */
   cap: number
-  /**
-   * `pip` (default) — dense inline cells for listings / tooltips.
-   * `sheet` — larger addressable cells for the Live Sheet / Dashboard.
-   */
-  scale?: 'pip' | 'sheet'
   /** Accessible label; defaults to "used of cap slots filled". */
   label?: string
   /**
@@ -19,7 +14,6 @@ type SlotGridProps = {
    * Dashed means "fillable" and a read-only sheet fills nothing.
    */
   readOnly?: boolean
-  className?: string
 }
 
 /**
@@ -46,16 +40,15 @@ const GRID = {
 
 const ROW = { display: 'flex', gap: space[4], justifyContent: 'center' } satisfies CSSProperties
 
+/** An addressable cell, sized for the Live Sheet. */
 const CELL = {
+  borderRadius: radius.badge,
   borderStyle: 'solid',
   borderWidth: borderWidth.chrome,
   display: 'inline-block',
+  height: '1.25rem',
+  width: '1.25rem',
 } satisfies CSSProperties
-
-const CELL_SCALE = {
-  pip: { borderRadius: radius.pip, height: '0.625rem', width: '0.625rem' },
-  sheet: { borderRadius: radius.badge, height: '1.25rem', width: '1.25rem' },
-} satisfies Record<'pip' | 'sheet', CSSProperties>
 
 const CELL_STATE = {
   filled: { backgroundColor: color.cargo, borderColor: color.cargo },
@@ -69,14 +62,7 @@ const CELL_STATE = {
   over: { backgroundColor: color.statusBad, borderColor: color.statusBad },
 } satisfies Record<string, CSSProperties>
 
-export function SlotGrid({
-  used,
-  cap,
-  scale = 'pip',
-  label,
-  readOnly = false,
-  className,
-}: SlotGridProps) {
+export function SlotGrid({ used, cap, label, readOnly = false }: SlotGridProps) {
   const safeCap = Math.max(0, Math.floor(cap))
   const safeUsed = Math.max(0, Math.floor(used))
   const total = Math.max(safeCap, safeUsed)
@@ -88,7 +74,6 @@ export function SlotGrid({
       aria-label={
         label ?? `${safeUsed} of ${safeCap} slots filled${over ? ' — over capacity' : ''}`
       }
-      className={className}
       style={GRID}
     >
       {statBlockRowStarts(total).map((row) => (
@@ -102,7 +87,6 @@ export function SlotGrid({
                 aria-hidden="true"
                 style={{
                   ...CELL,
-                  ...CELL_SCALE[scale],
                   ...CELL_STATE[state === 'empty' && readOnly ? 'emptyReadOnly' : state],
                 }}
               />

@@ -257,7 +257,6 @@ export function StorageManifest({
               <SlotGrid
                 used={used}
                 cap={cap}
-                scale="sheet"
                 readOnly={readOnly}
                 label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
               />
