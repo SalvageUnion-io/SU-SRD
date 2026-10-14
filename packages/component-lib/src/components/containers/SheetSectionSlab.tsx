@@ -55,12 +55,13 @@ type SheetSectionSlabProps = {
   children: ReactNode
 }
 
-/** `compact`'s 28px, the one documented override on the `iconOnly` rung: this
- *  chevron shares the slab's actions rail with the section Edit/Add buttons,
- *  which run at `compact`, so it matches THEM rather than the rung's 36px. */
+/** 32px, the one documented override on the `iconOnly` rung: this chevron
+ *  shares the slab's actions rail with the sheet's Manage buttons and the
+ *  item controls under it, which all run at 32px, so it matches THEM rather
+ *  than the rung's 36px (owner's call, 2026-10-14: one control height). */
 const FOLD_BUTTON = {
-  width: space[28],
-  height: space[28],
+  width: space[32],
+  height: space[32],
   borderColor: color.ink35,
 } satisfies CSSProperties
 

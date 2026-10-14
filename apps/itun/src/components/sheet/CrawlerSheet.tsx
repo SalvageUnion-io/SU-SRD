@@ -64,8 +64,8 @@
 import {
   buttonVariants,
   EmptyState,
+  Entity,
   MasonryColumns,
-  ReferenceEntityCard,
   SheetSectionSlab,
   Stat,
   tokens,
@@ -291,16 +291,15 @@ export function CrawlerSheet({
     crawler.systems.length === 0 ? (
       <EmptyState variant="quiet" body="No weapons mounted." />
     ) : (
-      // A full-width STACK, not a 2-up masonry: a mounted weapon reads as a
-      // listing row across the bay, and half a bay's width squeezed the card's
-      // header stats onto a second line.
-      <div style={STACK_16}>
+      // One Token a line across the bay, each Peeking its whole card
+      // (owner's call, 2026-10-14).
+      <ul aria-label="Weapons mounted" className="su-entity-token-list">
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
           return (
-            <EntityGridRow key={slug}>
+            <li key={slug}>
               {system ? (
-                <ReferenceEntityCard data={system} size="medium" collapsible />
+                <Entity form="token" entity={system} />
               ) : (
                 <div style={UNKNOWN_WEAPON}>
                   <span style={TRUNCATE}>{slug}</span>
@@ -309,10 +308,10 @@ export function CrawlerSheet({
                   )}
                 </div>
               )}
-            </EntityGridRow>
+            </li>
           )
         })}
-      </div>
+      </ul>
     )
 
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */

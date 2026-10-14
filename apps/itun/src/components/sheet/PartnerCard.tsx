@@ -29,13 +29,7 @@
  */
 
 import type { ReferenceEntityControl, StatItem } from 'component-lib'
-import {
-  Field,
-  MasonryColumns,
-  ReferenceEntityCard,
-  summarizeBreakdown,
-  tokens,
-} from 'component-lib'
+import { Field, ReferenceEntityCard, summarizeBreakdown, tokens } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { PartnerInstance } from 'itun-domain/schemas/partner'
@@ -56,7 +50,7 @@ import {
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { MechItemCard } from './MechItemCard'
+import { MechItemToken } from './MechItemToken'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay.model'
 
@@ -262,38 +256,38 @@ export function PartnerCard({
     return (
       <div style={ITEMS}>
         <h4 style={ITEMS_HEADING}>{kind === 'system' ? 'Systems' : 'Modules'}</h4>
-        {/* A partner's slot budget is small (3 systems on a Survey Drone), so a
-            single column reads better than a masonry even at full width. */}
-        <MasonryColumns maxColumns={1}>
+        {/* One Token a line, each Peeking its whole card. */}
+        <ul className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}>
           {slugs.map((slug, index) => (
-            <MechItemCard
-              key={keys[index]}
-              slug={slug}
-              entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
-              condition={conditions[slug] ?? 'intact'}
-              usesRemaining={partner.itemUses?.[slug]}
-              scrapPool={null}
-              readOnly={readOnly}
-              onStatusCycle={() => cycleItemCondition(kind, slug)}
-              onUsesChange={(next) =>
-                patch({ itemUses: { ...(partner.itemUses ?? {}), [slug]: next } })
-              }
-              // Repair means REPAIR: straight to Intact, not the next step of
-              // the cycle (which would destroy a Damaged item).
-              onRepair={() => setItemCondition(kind, slug, 'intact')}
-              onRemove={
-                editable
-                  ? () =>
-                      patch(
-                        kind === 'system'
-                          ? { systems: partner.systems.filter((_, i) => i !== index) }
-                          : { modules: partner.modules.filter((_, i) => i !== index) }
-                      )
-                  : undefined
-              }
-            />
+            <li key={keys[index]}>
+              <MechItemToken
+                slug={slug}
+                entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
+                condition={conditions[slug] ?? 'intact'}
+                usesRemaining={partner.itemUses?.[slug]}
+                scrapPool={null}
+                readOnly={readOnly}
+                onStatusCycle={() => cycleItemCondition(kind, slug)}
+                onUsesChange={(next) =>
+                  patch({ itemUses: { ...(partner.itemUses ?? {}), [slug]: next } })
+                }
+                // Repair means REPAIR: straight to Intact, not the next step of
+                // the cycle (which would destroy a Damaged item).
+                onRepair={() => setItemCondition(kind, slug, 'intact')}
+                onRemove={
+                  editable
+                    ? () =>
+                        patch(
+                          kind === 'system'
+                            ? { systems: partner.systems.filter((_, i) => i !== index) }
+                            : { modules: partner.modules.filter((_, i) => i !== index) }
+                        )
+                    : undefined
+                }
+              />
+            </li>
           ))}
-        </MasonryColumns>
+        </ul>
       </div>
     )
   }

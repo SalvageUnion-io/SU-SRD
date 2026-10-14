@@ -174,9 +174,6 @@ export {
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'
-// The card's Intact / Damaged / Destroyed tri-state, for a live sheet that sets
-// an item's condition beside its shortform pill rather than on a card's top rail.
-export { StatusTriState } from './components/referenceEntity/card/StatusRail'
 // UserMadeStamp — the dashed User-made stamp (ruleset §3.9). The card wears it
 // in its head's labels; a full user-made page leads its title with it.
 export { UserMadeStamp } from './components/referenceEntity/card/UserMadeStamp'

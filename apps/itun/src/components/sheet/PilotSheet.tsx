@@ -5,9 +5,9 @@
  * Two columns, as board 10 prints the pilot sheet; one below the
  * container's 5xl, in this reading order:
  *   - wide: the Identity card (the portrait, else the class's art, beside
- *     fields typeset in Read), then Abilities — the pilot's own class trees as
- *     full entity cards, then the Generic tree folded to rows — with Spend AP
- *     (fixed costs only) and a used/recharge toggle in a row under the body in
+ *     fields typeset in Read), then Abilities — Tokens that Peek their card,
+ *     the pilot's own class trees first, then the Generic tree — with Spend AP
+ *     (fixed costs only) and a used/recharge toggle on each Token's line in
  *     Edit;
  *   - narrow: the Vitals card (HP/AP gauges, TP and Conditions), Inventory
  *     (shortform pills and free-slot boxes in Read; in Edit each pill with its
@@ -54,7 +54,6 @@ import {
   Conditions,
   EmptyState,
   EntitySearcher,
-  MasonryColumns,
   Panel,
   SheetSectionCard,
   SheetSectionSlab,
@@ -74,7 +73,6 @@ import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { ConditionsEditor } from './ConditionsEditor'
-import { EntityGridRow } from './EntityGrid'
 import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { PilotIdentityPanel } from './PilotIdentity'
@@ -250,12 +248,6 @@ const STACK_12 = {
   gap: tokens.space[12],
 } satisfies CSSProperties
 
-const STACK_16 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
-
 const STACK_20 = {
   display: 'flex',
   flexDirection: 'column',
@@ -278,6 +270,9 @@ const CONDITIONS_CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 const OVER_CAPACITY = { color: tokens.color.statusBad } satisfies CSSProperties
 
 const PILLS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+
+/** The Edit list: one item a line; its gap is `.su-sheet-items`. */
+const EDIT_ITEMS = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
 
 const ADDER_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
 
@@ -331,14 +326,10 @@ export function PilotSheet({
 
   const { hpParts, apParts, maxHP, maxAP, hp, ap, tp } = model
 
-  /** One learned ability card — identical wherever its tree puts it, bar the fold. */
-  function renderAbility(
-    { slug, ability }: { slug: string; ability: SURefAbility },
-    folded = false
-  ) {
+  /** One learned ability — identical wherever its tree puts it. */
+  function renderAbility({ slug, ability }: { slug: string; ability: SURefAbility }) {
     return (
       <PilotAbilityItem
-        folded={folded}
         ability={ability}
         currentAP={ap}
         used={pilot.usedAbilities?.includes(slug) ?? false}
@@ -444,27 +435,21 @@ export function PilotSheet({
                 <EmptyState variant="quiet" body="No abilities learned yet." />
               ) : (
                 <div style={STACK_20}>
-                  {/* What this pilot owns first, each a full medium card so the
-                    action and range line and the body read in Read: the class's
-                    own abilities are what tell this pilot from another. */}
-                  {model.classAbilities.length > 0 && (
-                    <MasonryColumns maxColumns={3}>
-                      {model.classAbilities.map((entry) => (
-                        <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
-                      ))}
-                    </MasonryColumns>
-                  )}
-
-                  {/* Then the Generic tree every pilot has, folded to rows: eight
-                    full cards ran ~1,500px ahead of the class's first ability,
-                    and the reader opens the one they are using. */}
-                  {model.genericAbilities.length > 0 && (
-                    <MasonryColumns maxColumns={3}>
-                      {model.genericAbilities.map((entry) => (
-                        <EntityGridRow key={entry.slug}>{renderAbility(entry, true)}</EntityGridRow>
-                      ))}
-                    </MasonryColumns>
-                  )}
+                  {/* Every ability a Token that Peeks its card (owner's call,
+                    2026-10-14: "all references = peek tokens"): the class's own
+                    first, then the Generic tree every pilot has. One column:
+                    an ability's chips need the width. Edit gives each line its
+                    controls. */}
+                  <ul
+                    aria-label="Abilities"
+                    className={
+                      readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'
+                    }
+                  >
+                    {[...model.classAbilities, ...model.genericAbilities].map((entry) => (
+                      <li key={entry.slug}>{renderAbility(entry)}</li>
+                    ))}
+                  </ul>
 
                   {model.unresolvedAbilities.length > 0 && (
                     <div style={STACK_8}>
@@ -610,9 +595,9 @@ export function PilotSheet({
                   )}
                 </div>
               ) : (
-                // Edit: one item to a row, each its pill with the controls under
-                // it — the narrow column has no room for two cards side by side.
-                <div style={STACK_16}>
+                // Edit: one item to a line, its controls on the line beside its
+                // pill (`SheetItemLine`), as a mech's Systems and Modules.
+                <div className="su-sheet-items" style={EDIT_ITEMS}>
                   {model.ordinaryEquipment.map((slug) => (
                     <PilotEquipmentItem
                       key={slug}
