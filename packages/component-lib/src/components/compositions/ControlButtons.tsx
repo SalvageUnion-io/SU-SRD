@@ -149,7 +149,6 @@ function ControlButton({
   }
   const variant = control.variant ?? 'primary'
   const isDisabled = !!control.disabled
-  const hasCustomColors = !!(control.bgColor || control.textColor)
   const onClick = control.onClick ?? (() => undefined)
 
   // Every rail control is stamp-sized: the rail sits beside the card's seam
@@ -234,7 +233,7 @@ function ControlButton({
       className={cn(!isDisabled && 'su-control-button--live', control.className)}
       style={{
         ...TEXT_BUTTON,
-        borderColor: isDisabled ? color.wkMuted : (control.borderColor ?? color.ink),
+        borderColor: isDisabled ? color.wkMuted : color.ink,
         cursor: isDisabled ? 'not-allowed' : 'pointer',
       }}
       title={control.title ?? control.ariaLabel}
@@ -252,12 +251,7 @@ function ControlButton({
           ...SEGMENT,
           ...(isDisabled
             ? { backgroundColor: color.wkFaint, color: color.wkMuted }
-            : hasCustomColors
-              ? {
-                  ...(control.bgColor ? { backgroundColor: control.bgColor } : {}),
-                  ...(control.textColor ? { color: control.textColor } : {}),
-                }
-              : { backgroundColor: VARIANT[variant].bg, color: VARIANT[variant].text }),
+            : { backgroundColor: VARIANT[variant].bg, color: VARIANT[variant].text }),
         }}
       >
         {control.label ?? control.ariaLabel}
