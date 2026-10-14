@@ -36,6 +36,8 @@ export type BrandCardProps = {
   title?: readonly [string, string]
   /** The band's colour. The site's card wears rules-blue; The Cantina's its pink. */
   tone?: ChapterTone
+  /** Where the link goes, set at the right of the kicker's line, as typed. */
+  address?: string
 }
 
 /** The frame: twice the entity card's 3px, as `OgCard`'s. */
@@ -107,6 +109,23 @@ const TITLE = {
 } satisfies CSSProperties
 
 /** ".io", set small on the second line's baseline. */
+/** The kicker's line: the kicker, and the address at its right when there is one. */
+const KICKER_ROW = {
+  alignItems: 'baseline',
+  display: 'flex',
+  gap: space[24],
+  justifyContent: 'space-between',
+} satisfies CSSProperties
+
+/** The address: the kicker's face, smaller and as typed (a URL is not caps). */
+const ADDRESS = {
+  ...KICKER,
+  fontSize: '40px',
+  fontWeight: weight.bold,
+  textTransform: 'none',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
 const TLD = { fontSize: '128px', textTransform: 'none' } satisfies CSSProperties
 
 const FOOT = {
@@ -117,14 +136,17 @@ const FOOT = {
   flex: '0 0 28px',
 } satisfies CSSProperties
 
-export function BrandCard({ kicker, title, tone = 'rules' }: BrandCardProps) {
+export function BrandCard({ kicker, title, tone = 'rules', address }: BrandCardProps) {
   const band = CHAPTER_BAND_COLOR[tone]
   const kickerColor = foregroundOn(band, 'ink') === 'ink' ? color.ink : color.paper
   return (
     <div data-brand-card="" style={{ ...CARD, backgroundColor: band }}>
       <Speckle grain="ink" />
       <div style={BODY}>
-        <p style={{ ...KICKER, color: kickerColor }}>{kicker}</p>
+        <div style={KICKER_ROW}>
+          <p style={{ ...KICKER, color: kickerColor }}>{kicker}</p>
+          {address && <p style={{ ...ADDRESS, color: kickerColor }}>{address}</p>}
+        </div>
         <div style={NOTCH}>
           <p style={TITLE}>
             {title ? (
