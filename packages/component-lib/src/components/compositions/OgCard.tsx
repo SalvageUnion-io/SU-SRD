@@ -9,7 +9,7 @@ import { PENNANT_SHAPE, USER_MADE_TITLE } from '../referenceEntity/card/cardChro
 import type { OgCardChip, OgCardProps, OgCardStat } from './ogCardText'
 import {
   bandColor,
-  footLineOf,
+  footOf,
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
   OG_GUTTER,
@@ -26,9 +26,11 @@ import {
  * (`ChapterBand` at its `og` scale; nothing above the title, EDL E20), the
  * entity's one chip group beside it on the band, right-aligned on the title's
  * baseline as a show page's header chips are (E17: the page's own horizontal
- * `Stat` cells, the cost's pointy box last, extra rows stacking upward), and the Union bar's ink foot with the
- * mark and the address. The kind rides the foot line before the cite, as a
- * Page's foot names it (E9). Because it is assembled from the page's own parts
+ * `Stat` cells, the cost's pointy box last, extra rows stacking upward). The
+ * band's colour comes as far down the card as it can; under the notch only a
+ * strip of the page ground, or the rules text. The foot is the page's footer:
+ * the kind in caps and the cite on the band's colour (E9), then the Union
+ * bar's ink row with the mark and the address. Because it is assembled from the page's own parts
  * rather than drawn a second time, the preview cannot drift from the page; the
  * SRD screenshots it at build, ITUN on request.
  *
@@ -88,11 +90,12 @@ const CARD = {
 } satisfies CSSProperties
 
 /**
- * The band: the notch on its foot, nothing above the title (EDL E20). It is
- * `OG_BAND_HEIGHT` tall, taller when the chips beside the title stack higher
- * (`ogCardLayout`).
+ * The band: the notch on its foot, nothing above the title (EDL E20). The
+ * colour comes as far down the card as it can: the band takes every pixel the
+ * body and the foot leave, and never less than `ogCardLayout`'s height for the
+ * chips beside the title.
  */
-const BAND_SLOT = { flex: '0 0 auto', minHeight: 0 } satisfies CSSProperties
+const BAND_SLOT = { flex: '1 1 auto', minHeight: 0 } satisfies CSSProperties
 
 const CAPS = {
   fontFamily: font.cond,
@@ -102,29 +105,45 @@ const CAPS = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
+/** The page ground under the notch: the rules text, or a strip the notch stands on. */
 const BODY = {
-  display: 'flex',
-  flex: '1 1 auto',
-  flexDirection: 'column',
-  gap: space[20],
-  minHeight: 0,
-  padding: `${space[28]} ${OG_GUTTER}`,
+  flex: 'none',
+  padding: `${space[24]} ${OG_GUTTER}`,
 } satisfies CSSProperties
 
+const STRIP = { ...BODY, paddingBlock: space[12] } satisfies CSSProperties
+
 /**
- * The foot line stands on the body's foot, a gutter over the Union bar, so
- * every card's cite sits on one baseline however many chip rows or lines of
- * rules text come before it.
+ * The foot, as an entity page's footer is set: the band's colour with its
+ * speckle, the kind in caps on the left and the cite on the right.
  */
-const LINE = {
-  color: color.ink2,
+const FOOT = {
+  alignItems: 'baseline',
+  display: 'flex',
+  flex: 'none',
+  gap: space[24],
+  isolation: 'isolate',
+  justifyContent: 'space-between',
+  padding: `${space[20]} ${OG_GUTTER}`,
+  position: 'relative',
+} satisfies CSSProperties
+
+const FOOT_KIND = {
+  ...CAPS,
+  flex: 'none',
+  fontSize: '34px',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const FOOT_BYLINE = {
   fontFamily: font.body,
   fontSize: '34px',
-  fontWeight: weight.semibold,
+  fontWeight: weight.normal,
   lineHeight: 1.2,
   margin: 0,
-  marginTop: 'auto',
+  minWidth: 0,
   overflow: 'hidden',
+  textAlign: 'right',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
@@ -284,7 +303,10 @@ export function OgCard({
   const reference = REFERENCE_KINDS.has(props.kind)
   const title = ogCardTitle(props)
   const printed = ogCardPrintedTitle(props)
-  const footLine = footLineOf(props)
+  const foot = footOf(props)
+  const prose =
+    props.kind === 'do' ? props.rules : props.kind === 'invite' ? props.summary : undefined
+  const footColor = ink ? color.ink : color.paper
   // An ability's numeral sits left of the name, on the band (EDL E12, its
   // page's `lead`); the name steps down to leave it room.
   const tier = props.kind === 'do' ? props.tier : undefined
@@ -317,7 +339,7 @@ export function OgCard({
       data-og-card={props.kind}
       style={{ ...CARD, borderStyle: userMade ? 'dashed' : 'solid' }}
     >
-      <div style={{ ...BAND_SLOT, flexBasis: layout.bandHeight }}>
+      <div style={{ ...BAND_SLOT, minHeight: layout.bandHeight }}>
         <ChapterBand
           scale="og"
           fill={fill}
@@ -331,11 +353,15 @@ export function OgCard({
           {printed}
         </ChapterBand>
       </div>
-      <div style={BODY}>
-        {props.kind === 'do' && props.rules && <p style={PROSE}>{props.rules}</p>}
-        {props.kind === 'invite' && <p style={PROSE}>{props.summary}</p>}
-        {footLine && <p style={LINE}>{footLine}</p>}
-      </div>
+      {/* With no rules text the ground is only the strip the notch stands on. */}
+      <div style={prose ? BODY : STRIP}>{prose && <p style={PROSE}>{prose}</p>}</div>
+      {(foot.kind || foot.byline) && (
+        <div style={{ ...FOOT, backgroundColor: fill, color: footColor }}>
+          <Speckle grain={ink ? 'ink' : 'paper'} />
+          {foot.kind && <span style={FOOT_KIND}>{foot.kind}</span>}
+          {foot.byline && <p style={FOOT_BYLINE}>{foot.byline}</p>}
+        </div>
+      )}
       <UnionFoot reference={reference} address={props.address} markSrc={markSrc} />
     </article>
   )

@@ -140,7 +140,9 @@ function read(props: OgCardProps): Seen & { src: string | null } {
   const card = host.querySelector('article')
   const band = host.querySelector('.su-chapter-band')
   const body = card?.children[1]
-  const foot = card?.children[2]
+  // The page footer's row (kind and cite on the band's colour), then the bar.
+  const cite = card?.children.length === 4 ? card.children[2] : undefined
+  const foot = card?.lastElementChild
   if (!card || !band || !body || !foot) throw new Error('the card lost a part')
   const text = (el: Element | null | undefined) => el?.textContent ?? ''
   return {
@@ -152,7 +154,12 @@ function read(props: OgCardProps): Seen & { src: string | null } {
       text(cell.querySelector('.su-stat-plate--label')),
       text(cell.querySelector('.su-stat-plate--value')),
     ]),
-    lines: [...body.querySelectorAll(':scope > p')].map(text),
+    lines: [
+      ...[...body.querySelectorAll(':scope > p')].map(text),
+      ...(cite
+        ? [[...cite.querySelectorAll(':scope > span, :scope > p')].map(text).join(' · ')]
+        : []),
+    ],
     src: foot.querySelector('img')?.getAttribute('src') ?? null,
     wordmark: text(foot.querySelector('img + span')),
     address: text(foot.querySelector(':scope > span')),
@@ -178,7 +185,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Cargo', '6'],
         ['Heat', '8'],
       ],
-      lines: ['Chassis · Workshop Manual · p.104 · 5 patterns'],
+      lines: ['Chassis · Workshop Manual · p.104'],
       wordmark: 'salvageunion.io',
       address: '/chassis/scrapper',
     },

@@ -13,7 +13,6 @@ import {
   getReferenceEntityName,
   isAbility,
   toEntityModel,
-  visiblePatterns,
 } from 'salvageunion-reference'
 import { actionTypeStamps } from '../../entity/parts/actionStamps'
 import { isDoEntity, resolveDomainTone } from '../referenceEntity/card/entityCardTone'
@@ -65,7 +64,6 @@ export function ogCardForEntity(options: {
     }
   }
 
-  const patterns = schemaName === 'chassis' && !pattern ? patternCount(entity) : 0
   return {
     kind: 'thing',
     kicker: pattern ? `Pattern · ${name}` : model.kind.stamp,
@@ -73,7 +71,7 @@ export function ogCardForEntity(options: {
     tone: toneOf(schemaName, entity),
     stats,
     ...(model.cost ? { cost: model.cost } : {}),
-    cite: joinLine([cite, patterns > 0 ? `${patterns} patterns` : undefined]) || undefined,
+    ...(cite ? { cite } : {}),
     address,
   }
 }
@@ -116,17 +114,8 @@ function rulesText(entity: SURefMetaEntity, action: ActionShape | undefined): st
   return typeof description === 'string' && description.length > 0 ? description : undefined
 }
 
-function patternCount(entity: SURefMetaEntity): number {
-  const patterns = (entity as { patterns?: SURefObjectAnyPattern[] }).patterns ?? []
-  return visiblePatterns(patterns).length
-}
-
 /** The entity's tone as a CSS colour: a guide's own, else its domain tone. */
 function toneOf(schemaName: SURefEnumSchemaName, entity: SURefMetaEntity): string {
   const { bg, bgColor } = resolveDomainTone(schemaName, entity)
   return bgColor ?? bg ?? 'var(--color-ink-2)'
-}
-
-function joinLine(parts: (string | undefined)[]): string {
-  return parts.filter((part): part is string => !!part && part.length > 0).join(' · ')
 }

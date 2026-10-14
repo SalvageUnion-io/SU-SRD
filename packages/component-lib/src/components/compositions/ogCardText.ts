@@ -135,13 +135,13 @@ export function ogCardThemeColor(props: OgCardProps): string {
 }
 
 /**
- * The foot line under the body: the kind, then the cite, the byline or "Made
- * by [user]", as a Page's foot names its kind and its printing.
+ * The card's foot, set as an entity page's footer is: the kind on the left in
+ * caps, and on the right the cite, the byline or "Made by [user]".
  */
-export function footLineOf(props: OgCardProps): string | undefined {
-  if (props.kind === 'private') return bylineOf(props)
+export function footOf(props: OgCardProps): { kind?: string; byline?: string } {
   const byline = bylineOf(props)
-  return joinLine([props.kicker, byline]) || undefined
+  const kind = props.kind === 'private' ? undefined : props.kicker
+  return { ...(kind ? { kind } : {}), ...(byline ? { byline } : {}) }
 }
 
 function joinLine(parts: (string | undefined)[]): string {
@@ -221,8 +221,11 @@ const CHIPS_GAP = 24
 const CHIP_GAP = 14
 /** A chip's height at the preview's 36px plate, in px. */
 const CHIP_HEIGHT = 58
-/** The most rows of chips the band stacks over the notch's foot. */
-const CHIP_ROWS_MAX = 4
+/**
+ * The most rows of chips the band stacks over the notch's foot: what a
+ * `thing` card's band, which takes the card down to its foot, holds.
+ */
+const CHIP_ROWS_MAX = 5
 /** The band's height with no chips, or chips that fit beside the notch, in px. */
 const OG_BAND_HEIGHT = 230
 /** The band's room over its top chip row, in px. */
@@ -301,7 +304,7 @@ const NOTCH_TOP = 12
  * The band's layout for a title and its chips, which ride the band beside
  * it as a show page's header chips do. It takes the fewest rows of chips that
  * leave the title within `STACK_GAIN` of its biggest size (stacking up to
- * four, the band growing to hold them), so a long name never shrinks far for
+ * five, the band growing to hold them), so a long name never shrinks far for
  * chips that could stack. A name that would still be cut moves the chips
  * above it, to the band's top-right corner, and keeps its whole line.
  */
