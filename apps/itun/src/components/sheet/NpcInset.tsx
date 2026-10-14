@@ -3,11 +3,10 @@
  * slot (`.npc`). Each bay is run by its own crew
  * lead (name, keepsake, detail, 4 HP).
  *
- * Composes the shared `Inset` (style-unification pass §3 — the boxed
- * sub-panel: 1.5px ink frame on paper, ink head bar): a pink 'CREW' tag +
- * the lead's (editable) name on the head bar, their SRD role title riding
- * the right edge; body = sm HP Stat beside quiet Keepsake/Detail/Facts id
- * lines.
+ * Composes the shared `Inset`: the cut-out head the SRD draws the same NPC
+ * with, nested in its bay (NPC brown band, the lead's editable name on the
+ * paper tab, the role and an `HP | 4/4` chip beside it), over quiet
+ * Keepsake/Motto/Detail/Facts id lines.
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
  * bay entry; keepsake persists through the bay's SRD freeform 'Keepsake'
@@ -152,41 +151,41 @@ export function NpcInset({
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew-lead inset so multiple insets per crawler stay distinguishable; Inset exposes no aria-label of its own, and a <section> here would become a region landmark once named
     <div role="group" aria-label={`${bayName} crew lead`}>
       <Inset
-        tone="crawler"
-        // The ROLE is the tag. There is no "Crew" chip any more: every inset on
-        // a crawler is crew, so the word labelled nothing while occupying the
-        // one slot that could say WHICH crew this is.
-        tag={title}
-        label={
+        // An NPC's own tone, as the SRD draws the same crew lead nested in its
+        // bay: the cut-out head, the name on the paper tab, the chips beside.
+        tone="adversary"
+        title={name || title || 'Crew'}
+        titleContent={
           onNameChange ? (
             <InlineEditField
               value={name}
               onSave={(next) => onNameChange(String(next))}
               type="text"
               ariaLabel={`Edit ${bayName} crew name`}
-              // `.su-sheet-npc-name > span` reaches the READOUT: InlineEditField's
-              // own display span is ink, which is invisible on this dark head
-              // bar, and a colour on the wrapper alone never reached it.
-              className="su-sheet-npc-name"
-            />
-          ) : (
-            name || undefined
-          )
-        }
-        // HP rides the head bar's right edge — it is this crew member's one
-        // live number, and in the body it sat below the fold of identity lines
-        // that never change.
-        headRight={
-          maxHp > 0 ? (
-            <Stat
-              label="HP"
-              value={hp}
-              max={maxHp}
-              size="mini"
-              mode={onHpChange ? 'edit' : 'read'}
-              onChange={onHpChange}
+              placeholder={title}
             />
           ) : undefined
+        }
+        // The ROLE leads the chips (a label-only cell, as an action type is),
+        // then HP — this crew member's one live number — as its chip, with
+        // the steppers while the sheet writes it.
+        chips={
+          <>
+            {title && (name || onNameChange) && (
+              <Stat orientation="horizontal" label={title} size="compact" />
+            )}
+            {maxHp > 0 && (
+              <Stat
+                orientation="horizontal"
+                label="HP"
+                value={hp}
+                max={maxHp}
+                size="compact"
+                mode={onHpChange ? 'edit' : 'read'}
+                onChange={onHpChange}
+              />
+            )}
+          </>
         }
         bodyStyle={BODY}
       >

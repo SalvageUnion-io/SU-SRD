@@ -74,7 +74,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — bordered container, `--bw-*` weights: `Card` / `Panel`.
    3. **Badge** — the stamp-chip family: `Badge`.
-   4. **Well** — labelled value box: `Stat` (vertical).
+   4. **Well** — labelled value: `Stat`, the label-first chip (steppers when edited); no square box.
    5. **Gauge** — segmented current/max: `VitalGauge`.
    6. **Btn** — rust action, the only mutator: `Button` / `buttonVariants`.
    7. **Slab** — section stamp + leader rule: `Slab`.

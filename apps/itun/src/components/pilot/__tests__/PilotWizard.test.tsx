@@ -116,8 +116,8 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     render(<PilotWizard onComplete={onComplete} onCancel={onCancel} />)
 
     // --- Step 1: Your Stats — display-only, Next always enabled ---
-    // The fixed pilot stats render as read-only value boxes (HP 10/10, …).
-    expect(screen.getByLabelText('HP')).toBeTruthy()
+    // The fixed pilot stats render as read-only chips (HP | 10/10, …).
+    expect(screen.getByText('HP')).toBeTruthy()
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
