@@ -9,9 +9,6 @@ import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityTokenList } from './EntityTokenList'
 
-/** `ink/70` — no ink-opacity rung sits at 70%. */
-const ink70 = `color-mix(in oklab, ${color.ink} 70%, transparent)`
-
 const stackStyle = {
   display: 'flex',
   flexDirection: 'column',
@@ -21,7 +18,7 @@ const stackStyle = {
 /** `text-xs` with its paired line height. */
 const textXs = { fontSize: fontSize.xs, lineHeight: '1rem' } satisfies CSSProperties
 
-const promptStyle = { fontFamily: font.body, ...textXs, color: ink70 } satisfies CSSProperties
+const promptStyle = { fontFamily: font.body, ...textXs, color: color.ink2 } satisfies CSSProperties
 
 const summaryStyle = {
   cursor: 'pointer',
@@ -31,7 +28,7 @@ const summaryStyle = {
   textTransform: 'uppercase',
   lineHeight: 1,
   letterSpacing: tracking.capsTight,
-  color: ink70,
+  color: color.ink2,
 } satisfies CSSProperties
 
 const chooseButtonStyle = {

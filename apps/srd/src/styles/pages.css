@@ -1605,11 +1605,6 @@
     order: 1;
     padding-block: var(--space-6) 0;
   }
-
-  /* A hybrid's chevron stays on the band, at the name's end of the line. */
-  .srd-class-path__chevron {
-    margin-left: auto;
-  }
 }
 
 a.srd-class-path__head:hover {
@@ -1635,18 +1630,6 @@ a.srd-class-path__head:focus-visible {
   max-width: 100%;
   padding: var(--space-6) var(--space-10) var(--space-2);
   text-transform: uppercase;
-}
-
-.srd-class-path__chevron {
-  align-self: center;
-  flex: none;
-  height: 1.1rem;
-  transition: transform 120ms;
-  width: 1.1rem;
-}
-
-a.srd-class-path__head:hover .srd-class-path__chevron {
-  transform: translateX(2px);
 }
 
 .srd-class-path__body {
@@ -1709,22 +1692,12 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
 }
 
 .srd-class-path__foot {
-  align-items: center;
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
-  color: var(--color-wk-muted);
-  display: flex;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink-2);
   font-size: var(--text-caption);
-  gap: var(--space-8);
-  justify-content: space-between;
-  padding: var(--space-6) var(--space-14);
-}
-
-.srd-class-path__page {
-  border: var(--bw-hairline) solid var(--color-ink);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-bold);
-  padding: 0 var(--space-6);
+  margin: 0;
+  padding: var(--space-8) var(--space-14);
+  text-align: right;
 }
 
 /*

@@ -188,23 +188,6 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
 
 const articleFor = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
 
-function Chevron() {
-  return (
-    <svg
-      className="srd-class-path__chevron"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M9 5l7 7-7 7" />
-    </svg>
-  )
-}
-
 /**
  * One path a Core class advances along (the Workshop Manual's class spread
  * lists them: Advanced Abilities, then the Hybrid Classes), every one in the
@@ -229,7 +212,6 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
         <PathRequirement path={path} classEntity={classEntity} />
         <Stat orientation="horizontal" label={kind} size="compact" />
       </span>
-      {hybrid && <Chevron />}
     </>
   )
   return (
@@ -248,10 +230,8 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
           {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
         </div>
       </div>
-      <div className="srd-class-path__foot">
-        <span>Workshop Manual</span>
-        <span className="srd-class-path__page">p.{(hybrid ?? classEntity).page}</span>
-      </div>
+      {/* Cited as every card's footer cites: text, never chips (EDL E9). */}
+      <p className="srd-class-path__foot">Workshop Manual · p.{(hybrid ?? classEntity).page}</p>
     </li>
   )
 }
