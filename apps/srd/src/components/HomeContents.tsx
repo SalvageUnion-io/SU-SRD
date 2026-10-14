@@ -74,7 +74,7 @@ export function HomeStartHere({
 /**
  * The SURef Discord bot, offered beside the index: a catalog tile that is all
  * band, in Discord's blurple (a one-off exception to the tone palette, owner's
- * call 2026-10-14), its name on the cut-out and the install button at a chip's
+ * call 2026-10-14), its name on the cut-out and the install button at full
  * size beside it. The site footer links `/discord`, which documents the
  * commands.
  */
@@ -97,7 +97,7 @@ export function DiscordBot({ installHref }: { installHref: string }) {
               href={installHref}
               target="_blank"
               rel="noopener noreferrer"
-              className={buttonVariants({ variant: 'ink', size: 'mini' })}
+              className={buttonVariants({ variant: 'ink', size: 'full' })}
             >
               Add to Discord
             </a>

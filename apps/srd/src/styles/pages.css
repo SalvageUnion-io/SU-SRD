@@ -346,13 +346,18 @@
 /* The home page's Discord bot (`DiscordBot` in `HomeContents.tsx`): a catalog
    tile that is all band, in Discord's blurple (a one-off, owner's call
    2026-10-14), the name's cut-out on the frame's foot and the install button
-   at a chip's size on the band beside it. No body. */
+   at full size on the band beside it. No body. */
 .srd-discord__band {
   border-top: 0;
+  flex-wrap: wrap-reverse;
   min-height: calc(2.6 * var(--text-title) + var(--space-10));
 }
 
+/* The full-size button never shrinks below its label: where the name and the
+   button can't share a line (the desktop sidebar), the button wraps onto the
+   line above the name, still on the right. */
 .srd-discord__band > .su-entity-tile__chips {
+  flex: 1 0 auto;
   margin-bottom: var(--space-8);
 }
 
