@@ -175,9 +175,10 @@ describe('DISCORD_TONE_ACCENT', () => {
     return ((r ?? 0) << 16) | ((g ?? 0) << 8) | (b ?? 0)
   }
 
-  test('mirrors theme.css, except ink, which paints the rules blue', () => {
+  test('mirrors theme.css, except ink (the rules blue) and crawler (its band)', () => {
     for (const [tone, accent] of Object.entries(DISCORD_TONE_ACCENT)) {
-      const source = tone === 'ink' || tone === 'ink-2' ? 'wk-line' : tone
+      const source =
+        tone === 'ink' || tone === 'ink-2' ? 'wk-line' : tone === 'crawler' ? 'crawler-band' : tone
       expect([tone, accent]).toEqual([tone, token(source)])
     }
   })

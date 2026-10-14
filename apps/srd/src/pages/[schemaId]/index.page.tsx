@@ -27,7 +27,7 @@ import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference
 import { getAssetUrl, getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { ListingRail } from '../../components/islands/ListingRail'
-import { chapterForSchema } from '../../lib/chapters'
+import { chapterForSchema, listingBandFillFor } from '../../lib/chapters'
 import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../../lib/constants'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../lib/gameData'
@@ -122,6 +122,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const schemaName = schema.displayName || 'Schema'
   const pluralName = schema.displayNamePlural || schemaName
   const chapter = chapterForSchema(schemaId)
+  const fill = listingBandFillFor(schemaId)
   const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
   const description = `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
 
@@ -179,12 +180,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       breadcrumbDescription: schema.description,
     },
     // The listing ends on its chapter's band, as its entity pages do.
-    foot: { tone: chapter.tone, measure: MEASURE },
+    foot: { tone: chapter.tone, measure: MEASURE, ...(fill ? { fill: fill.foot } : {}) },
     children: (
       <div className="srd-listing-shell">
         {/* The chapter band is the visible heading: the plural name in the
             notch. The description rides the trail. */}
-        <ChapterBand tone={chapter.tone} measure={MEASURE}>
+        <ChapterBand tone={chapter.tone} fill={fill?.band} measure={MEASURE}>
           {pluralName}
         </ChapterBand>
         <div className="srd-listing-page">

@@ -203,3 +203,15 @@ export function bandFillFor(schemaId: string, entity: SURefEntity): BandFill | u
   const band = `var(--color-tl-${String(techLevel).toLowerCase()})`
   return { band, foot: FOOT_SHADE[band] ?? band }
 }
+
+/**
+ * The band a listing page wears when it wears its own rather than its
+ * chapter's: a gear listing (systems, modules, equipment, drones, vehicles)
+ * takes the lightest tech level's blue, TL1, the colour its first group of
+ * entries opens on. Every other listing wears its chapter's band (`undefined`).
+ */
+export function listingBandFillFor(schemaId: string): BandFill | undefined {
+  if (schemaDomain(schemaId) !== 'gear') return undefined
+  const band = 'var(--color-tl-1)'
+  return { band, foot: band }
+}
