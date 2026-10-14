@@ -41,7 +41,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E6** Nest one form down, two levels deep (Page → Row, Card → Row, Row → count chip); a third level is a link or a Peek.
 - **E7** Modes fill slots; they never change anatomy.
 - **E8** A Listing never expands in place (ruleset §1.5).
-- **E9** Facts, traits and citations are chips (horizontal Stats; a trait links to its entry), sections are Slabs. Only a Page's foot stamps the kind (the title reads it to screen readers); stamps that say more stay.
+- **E9** Facts and traits are chips (horizontal Stats; a trait links to its entry), sections are Slabs. A citation is text, the same on every Page, Card and Peek foot (`Workshop Manual · p.112`, then "Also in" each reprint), never chips. Only a Page's foot names the kind (the title reads it to screen readers); stamps that say more stay.
 - **E10** Art appears by room, not by prop; an entity without art has no art place, and nothing stands in for it.
 - **E11** The lead appears only while browsing (SRD listings and search page).
 - **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Card or Page, and as a Row but for an ability.

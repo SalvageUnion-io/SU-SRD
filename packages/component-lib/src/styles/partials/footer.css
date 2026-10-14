@@ -60,42 +60,37 @@
   text-decoration-thickness: 2px;
 }
 
-/* A book page's cite band: the kind stamp at the start, the printings at the
- * end as the head band's compact stat cells (`.su-chapter-band[data-aside='notch']
- * .su-stat-column*` in entity-page.css), one height (32px) across the row, so
- * the foot reads as the head does. The page sits in the framed box, which
- * widens to `p.174` rather than clipping it. */
+/* A book page's cite band: the kind at the start, the printings at the end,
+ * in the card footer's words and type (`EntityCardIdentityFooter`): caps kind,
+ * caption-size `Workshop Manual · p.112`, then "Also in" the reprints. One
+ * citation look everywhere, text, never chips. */
 .su-footer__cite .su-chapter-foot__row {
-  align-items: center;
+  align-items: baseline;
+  font-size: var(--text-caption);
 }
 
-.su-footer__kind {
-  align-items: center;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: 32px;
-  padding-inline: var(--space-8);
+.su-footer__kind,
+.su-footer__printings {
+  font-size: var(--text-caption);
 }
 
-.su-footer__cite .su-stat-column {
+.su-footer__kind,
+.su-footer__also {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-footer__printings {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4) var(--space-6);
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: right;
 }
 
-.su-footer__cite .su-stat-column__cell {
-  min-height: 32px;
-}
-
-.su-footer__cite .su-stat-column__value {
-  font-size: var(--text-readout);
-  min-width: 36px;
-  padding-inline: var(--space-6);
-  width: auto;
-}
-
-.su-footer__cite .su-stat-column__value:empty {
-  display: none;
+.su-footer__printings > p {
+  margin: 0;
 }
 
 .su-footer__cite .su-stat-column__label {

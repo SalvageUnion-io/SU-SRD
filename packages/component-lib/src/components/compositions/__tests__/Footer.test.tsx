@@ -106,7 +106,7 @@ describe('Footer', () => {
     expect(container.querySelector('.su-chapter-foot__start')?.textContent).not.toMatch(/^p\.\d/)
   })
 
-  test('a book page stamps its kind and cites itself in its chapter’s band, above the licence row', () => {
+  test('a book page names its kind and cites itself in its chapter’s band, above the licence row', () => {
     const { container } = render(
       <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={GOPHER} />
     )
@@ -115,9 +115,12 @@ describe('Footer', () => {
     expect(bands[0]?.style.backgroundColor).not.toBe(bands[1]?.style.backgroundColor)
     const cite = within(bands[0] as HTMLElement)
     expect(cite.getByText('Chassis')).toBeTruthy()
-    // Each printing a stat cell, the book naming the page: "Workshop Manual, p.112".
-    const printed = bands[0]?.querySelector('dl[aria-label="Printed in"]')
-    expect(printed?.textContent).toBe('Workshop Manualp.112Salvage Union Starter Set (PC)p.26')
+    // Cited in the card footer's words, never chips: the book, then its reprints.
+    expect(cite.getByText('Workshop Manual · p.112')).toBeTruthy()
+    expect(bands[0]?.querySelector('.su-footer__printings')?.textContent).toBe(
+      'Workshop Manual · p.112Also in Salvage Union Starter Set (PC) · p.26'
+    )
+    expect(bands[0]?.querySelector('.su-stat-column, .su-badge-stamp')).toBeNull()
     expect(bands[1]?.querySelector('.su-footer__legal')).not.toBeNull()
     for (const band of bands) {
       const row = band.querySelector<HTMLElement>('.su-chapter-foot__row')

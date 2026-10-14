@@ -1,18 +1,17 @@
 import type { ElementType } from 'react'
 import { color } from '../../design/tokens'
-import { Badge } from '../atoms/Badge'
 import { ChapterFoot } from '../atoms/ChapterFoot'
 import type { ChapterTone } from '../atoms/chapterBandColor'
-import { StatColumn } from '../atoms/StatColumn'
 
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
  * do (one product, so one foot).
  *
  * - **A book page** (entity, pattern, roll table; board 07) ends on its
- *   chapter's foot band: the entity's kind as a stamp at the start, and where
- *   it is printed at the end, each printing a cell of the band's stat column
- *   (`Workshop Manual | p.112`), as the head band draws its stats.
+ *   chapter's foot band: the entity's kind at the start, and where it is
+ *   printed at the end, in the same words a card's footer cites it
+ *   (`Workshop Manual · p.112`, then "Also in" any reprint) — one citation
+ *   look everywhere, text, never chips (owner, 2026-10-14).
  * - **Every page**, a book page's under that band, ends on the licence row in
  *   the Union bar's ink (`AppBar`): one colour on every page of both tools, so
  *   the site's head and foot match whatever chapter lies between them.
@@ -30,7 +29,7 @@ export type FooterFoot = {
   tone: ChapterTone
   /** The band colour when the page wears its own rather than its chapter's. */
   fill?: string
-  /** The entity's kind ("System"), stamped at the band's start. */
+  /** The entity's kind ("System"), at the band's start. */
   kind?: string
   /** Where it is printed: the book first, then each reprint. */
   printings?: readonly FooterPrinting[]
@@ -76,20 +75,24 @@ function Legal() {
   )
 }
 
+/** One printing as a card's footer cites it: `Workshop Manual · p.112`. */
+const cite = ({ book, page }: FooterPrinting) => (page != null ? `${book} · p.${page}` : book)
+
 /**
- * A book page's printings as the band's stat cells, the page in the framed
- * box and the book on the ink stamp. A printing with no page is the stamp alone.
+ * A book page's printings as the card footer prints them: the book first, then
+ * an "Also in" line for the reprints.
  */
 function Printings({ printings }: { printings: readonly FooterPrinting[] }) {
+  const [first, ...reprints] = printings
   return (
-    <StatColumn
-      label="Printed in"
-      stats={printings.map(({ book, page }, i) => ({
-        key: `${book}-${i}`,
-        label: book,
-        value: page != null ? `p.${page}` : '',
-      }))}
-    />
+    <div className="su-footer__printings">
+      {first && <p>{cite(first)}</p>}
+      {reprints.length > 0 && (
+        <p>
+          <span className="su-footer__also">Also in</span> {reprints.map(cite).join(', ')}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -149,13 +152,7 @@ export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }
             tone={foot.tone}
             fill={foot.fill}
             measure={measure}
-            start={
-              foot.kind ? (
-                <Badge shape="stamp" size="compact" className="su-footer__kind">
-                  {foot.kind}
-                </Badge>
-              ) : undefined
-            }
+            start={foot.kind ? <span className="su-footer__kind">{foot.kind}</span> : undefined}
             end={printings.length > 0 ? <Printings printings={printings} /> : undefined}
           />
         </div>

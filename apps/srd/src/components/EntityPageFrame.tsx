@@ -12,7 +12,7 @@ import { EntityPageStamps } from './EntityPageStamps'
  * stamps and "Build With This" (EDL E20: nothing but the breadcrumb sits
  * above a show page's title; on a phone the cluster follows the title, the
  * band's `asideAt="notch"`); then the body. The page's foot band — its kind
- * stamp and its printings (`Workshop Manual | p.112`, then any reprint) — is the site
+ * and its printings (`Workshop Manual · p.112`, then any reprint) — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * to the layout as its `PageResult.foot`.
  *
