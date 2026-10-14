@@ -43,7 +43,7 @@ export type EntityProps = EntitySource & {
    * trailing mode slot (E7). They never nest in a link or select surface.
    */
   controls?: ReactNode
-  /** Row only: the host's labels, right of the title after the model's own (an owner stamp). */
+  /** Row only: the host's labels (an owner stamp), the first of its chips. */
   labels?: ReactNode
   /**
    * Row only: linked chips after its traits — the entities a player unit is

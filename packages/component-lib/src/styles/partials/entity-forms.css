@@ -334,7 +334,8 @@
   width: 0;
 }
 
-/* A type stamp in the chip group (`Head`): its labels and chips one group,
+/* A label among the chips (a Row's labels lead its chip group; a Card's
+   type stamp shares `Head`'s chip group): its labels and chips one group,
    the chips rising above the stamp when the group wraps, the stamp drawn as
    a chip's plate (ink on a tone band, paper on the ink banner), never a
    stamp of its own style. */
@@ -346,7 +347,9 @@
   min-width: 0;
 }
 
-.su-entity-row__chip-group .su-ec-labels__stamps > .su-badge-stamp {
+.su-entity-row__chip-group .su-ec-labels__stamps > .su-badge-stamp,
+.su-entity-row__heading > .su-chips .su-ec-labels__stamps > .su-badge-stamp,
+.su-entity-row__heading > .su-chips > .su-badge-stamp:not(.su-badge--dashed) {
   background-color: var(--color-ink);
   border: var(--bw-hairline) solid var(--color-ink);
   box-shadow: none;
@@ -360,7 +363,16 @@
 .su-entity-row__head[data-fill='ink']
   .su-entity-row__chip-group
   .su-ec-labels__stamps
-  > .su-badge-stamp {
+  > .su-badge-stamp,
+.su-entity-row__head[data-fill='ink']
+  .su-entity-row__heading
+  > .su-chips
+  .su-ec-labels__stamps
+  > .su-badge-stamp,
+.su-entity-row__head[data-fill='ink']
+  .su-entity-row__heading
+  > .su-chips
+  > .su-badge-stamp:not(.su-badge--dashed) {
   background-color: var(--color-paper);
   border-color: var(--color-paper);
   color: var(--color-ink);
@@ -426,7 +438,16 @@
     .su-entity-row__heading--cut:not([data-chips='beside'])
     .su-entity-row__chip-group
     .su-ec-labels__stamps
-    > .su-badge-stamp {
+    > .su-badge-stamp,
+  .su-entity-row__head[data-fill='ink']
+    .su-entity-row__heading--cut:not([data-chips='beside'])
+    > .su-chips
+    .su-ec-labels__stamps
+    > .su-badge-stamp,
+  .su-entity-row__head[data-fill='ink']
+    .su-entity-row__heading--cut:not([data-chips='beside'])
+    > .su-chips
+    > .su-badge-stamp:not(.su-badge--dashed) {
     background-color: var(--color-ink);
     border-color: var(--color-ink);
     color: var(--color-paper);

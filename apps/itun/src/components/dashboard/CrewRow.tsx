@@ -11,7 +11,7 @@
  */
 
 import type { EntityMode } from 'component-lib'
-import { Badge, Entity } from 'component-lib'
+import { Entity, Stat } from 'component-lib'
 import { color, font, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
 import { unitRowModel } from '../../lib/units/unitModel'
@@ -88,11 +88,7 @@ export function CrewRow({
         })}
         mode={mode}
         labels={
-          line.self ? (
-            <Badge shape="stamp" size="mini" surface="on-ink">
-              You
-            </Badge>
-          ) : undefined
+          line.self ? <Stat orientation="horizontal" label="You" size="compact" /> : undefined
         }
         controls={controls}
       />

@@ -98,12 +98,20 @@ describe('Row controls', () => {
     expect(screen.getByText('Selected')).toBeTruthy()
   })
 
-  test('labels: a host label follows the model own, on the name line', () => {
+  test('labels: a host label is the first chip, before the model own', () => {
     render(<Entity form="row" model={{ ...MODEL, userMade: true }} labels={<span>Yours</span>} />)
-    const labels = screen.getByText('Yours').closest('.su-entity-row__head')
-    expect(labels?.textContent).toContain('User-made')
-    expect(labels?.textContent?.indexOf('User-made')).toBeLessThan(
-      labels?.textContent?.indexOf('Yours') ?? -1
+    const chips = screen.getByText('Yours').closest('[data-chip-group]')
+    expect(chips?.firstElementChild?.textContent).toBe('Yours')
+    expect(chips?.textContent).toContain('User-made')
+    expect(chips?.textContent).toContain('HP8/10')
+    expect(chips?.textContent?.indexOf('Yours')).toBeLessThan(
+      chips?.textContent?.indexOf('User-made') ?? -1
     )
+  })
+
+  test('labels: a host label is a chip on a Row with no other chips too', () => {
+    render(<Entity form="row" model={{ ...MODEL, facts: [] }} labels={<span>Yours</span>} />)
+    expect(screen.getByText('Yours').closest('[data-chip-group]')).not.toBeNull()
+    expect(screen.getByText('Yours').closest('.su-entity-row__name')).toBeNull()
   })
 })
