@@ -205,8 +205,9 @@ jobs:
         working-directory: apps/srd
         run: bunx playwright install chromium
 
-      # The PR-blocking browser tier, and srd's whole Playwright suite: there
-      # is no nightly srd run. Add a spec to this line; do NOT add a job.
+      # The PR-blocking browser tier, and srd's whole Playwright suite but the
+      # performance budget (perf-srd, below): there is no nightly srd run. Add
+      # a spec to this line; do NOT add a job.
       # `a11y.e2e.ts` is WCAG 2.2 AA on the pages it lists, at desktop and as a
       # phone: it blocks on any violation.
       - name: Run smoke + bundle-budget + JSON API + a11y specs
@@ -218,6 +219,51 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-e2e-web
+          path: apps/srd/playwright-report/
+          retention-days: 7
+
+  # srd's performance budget (`e2e/perf-budget.e2e.ts`): LCP, TBT and CLS on
+  # a few pages under Lighthouse's mobile throttling. Its own job, beside
+  # build-srd rather than after it, so it adds its run time to CI's wall time
+  # only where it outlasts build-srd. It builds its own `dist`; downloading
+  # build-srd's would put it on the critical path. One worker: measured loads
+  # must not share the CPU.
+  perf-srd:
+    needs: [changes]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Build srd
+        run: bun --filter srd build
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/srd
+        run: bunx playwright install chromium
+
+      - name: Run the performance budget
+        working-directory: apps/srd
+        run: bunx playwright test perf-budget.e2e.ts --workers=1 --reporter=list,github
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-perf-srd
           path: apps/srd/playwright-report/
           retention-days: 7
 
@@ -327,6 +373,7 @@ jobs:
       - static-checks
       - coverage
       - build-srd
+      - perf-srd
       - build-itun
       - build-discord-bot
       - build-su-assets
