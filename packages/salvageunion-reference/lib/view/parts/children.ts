@@ -4,7 +4,7 @@
  */
 
 import { extractVisibleActions, getChassisAbilities } from '../../actionResolution'
-import { isAbility } from '../../entityGuards'
+import { isAbility, isBaseAdvancedClass, isCoreClass } from '../../entityGuards'
 import { resolveGrantedEntities } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
 import { getPatterns, isBioTitanPattern } from '../../patterns'
@@ -19,6 +19,47 @@ import type { EntityRef } from '../types'
 
 /** A labelled group of nested entities. */
 export type NestedGroup = { label: string; entities: SURefEntity[] }
+
+/** An ability's place in its tree: 1, 2, 3, then L (Legendary), then G. */
+function levelOrder(level: number | 'L' | 'G'): number {
+  return typeof level === 'number' ? level : level === 'L' ? 90 : 99
+}
+
+/**
+ * A class's ability trees and where it advances, as its Discord card lists
+ * them: a Core class's Core trees in its page's order, each tree's abilities
+ * in level order, then ADVANCEMENT, the Hybrid Classes one of those trees
+ * opens (`ability-tree-requirements`); a Hybrid Class's own tree. Advanced and
+ * Legendary trees are not listed. A tree with no abilities is dropped; any
+ * other entity has none.
+ */
+export function classTrees(entity: SURefMetaEntity): NestedGroup[] {
+  const core = isCoreClass(entity)
+  if (!core && !isBaseAdvancedClass(entity)) return []
+  const names: readonly string[] = core
+    ? entity.coreTrees
+    : entity.advancedTree
+      ? [entity.advancedTree]
+      : []
+  const abilities = SalvageUnionReference.Abilities.all()
+  const trees = names.flatMap((tree) => {
+    const entities = abilities
+      .filter((ability) => ability.tree === tree)
+      .sort((a, b) => levelOrder(a.level) - levelOrder(b.level))
+    return entities.length > 0 ? [{ label: tree, entities }] : []
+  })
+  if (!core || !entity.advanceable) return trees
+  const requirements = new Map(
+    SalvageUnionReference.AbilityTreeRequirements.all().map((r) => [r.name, r.requirement])
+  )
+  const hybrids = SalvageUnionReference.Classes.all().filter(
+    (hybrid) =>
+      isBaseAdvancedClass(hybrid) &&
+      hybrid.advancedTree !== undefined &&
+      (requirements.get(hybrid.advancedTree) ?? []).some((tree) => names.includes(tree))
+  )
+  return hybrids.length > 0 ? [...trees, { label: 'Advancement', entities: hybrids }] : trees
+}
 
 /**
  * Every entity a card nests, grouped: GRANTS (`resolveGrantedEntities`),

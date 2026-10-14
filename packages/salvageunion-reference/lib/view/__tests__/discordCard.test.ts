@@ -148,6 +148,48 @@ describe('discordCardParts', () => {
     expect(parts.actions).toEqual([])
   })
 
+  test('a class lists its Core trees in level order, then its Advancement as links', () => {
+    const engineer = discordCardParts(
+      toEntityModel(need(findEntityBySlug('classes', 'engineer'), 'engineer'))
+    )
+    expect(engineer.children.map((group) => group.label)).toEqual([
+      'Mechanical Knowledge',
+      'Forging',
+      'Mech-Tech',
+      'Advancement',
+    ])
+    expect(engineer.children[0]?.items.map((item) => item.name)).toEqual([
+      'Engineering Expertise',
+      'Talk Shop',
+      'Mech Acquisition',
+    ])
+    expect(engineer.children[0]?.line).toStartWith(
+      '[Engineering Expertise](https://salvageunion.io/abilities/engineering-expertise)'
+    )
+    const advancement = need(engineer.children.at(-1), 'advancement')
+    expect(advancement.items.every((item) => item.schemaName === 'classes')).toBe(true)
+    expect(advancement.line).toContain('[Fabricator](https://salvageunion.io/classes/fabricator)')
+    // A Hybrid Class: its own tree; never its Legendary tree.
+    const fabricator = discordCardParts(
+      toEntityModel(need(findEntityBySlug('classes', 'fabricator'), 'fabricator'))
+    )
+    expect(fabricator.children.map((group) => group.label)).toEqual(['Fabricator'])
+    // The Salvager advances into nothing.
+    const salvager = discordCardParts(
+      toEntityModel(need(findEntityBySlug('classes', 'salvager'), 'salvager'))
+    )
+    expect(salvager.children.map((group) => group.label)).not.toContain('Advancement')
+  })
+
+  test('a long paragraph reads as shorter ones, whole sentences, the words unchanged', () => {
+    const salvager = need(findEntityBySlug('classes', 'salvager'), 'salvager')
+    const prose = discordCardParts(toEntityModel(salvager)).prose
+    expect(prose.length).toBeGreaterThan(1)
+    for (const paragraph of prose) expect(paragraph).toMatch(/[.!?]$/)
+    const source = salvager.content?.[0]?.value
+    expect(prose.join(' ')).toBe(typeof source === 'string' ? source.trim() : '')
+  })
+
   test('renders every entity without throwing, and never leaves raw [[ markup', () => {
     for (const schemaName of EntitySchemaNames) {
       for (const entity of (getModel(schemaName)?.all() ?? []) as SURefMetaEntity[]) {
