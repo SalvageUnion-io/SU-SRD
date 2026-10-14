@@ -9,24 +9,24 @@ import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawl
 import '../../styles/wizard.css'
 
 /** The step's column, capped at 48rem. */
-const COLUMN: CSSProperties = { maxWidth: '48rem' }
+const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 
 /** The step's lede, in the surrounding text colour. */
-const LEDE: CSSProperties = {
+const LEDE = {
   margin: 0,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',
   color: 'currentcolor',
-}
+} satisfies CSSProperties
 
 /** An open row's crew fields; the column count is `.wiz-crew-fields`. */
-const CREW_FIELDS: CSSProperties = {
+const CREW_FIELDS = {
   display: 'grid',
   gap: tokens.space[12],
   paddingBottom: tokens.space[8],
   paddingLeft: tokens.space[12],
-}
+} satisfies CSSProperties
 
 type NpcSource = {
   /** Stable key — the bay slug or the type slug. */

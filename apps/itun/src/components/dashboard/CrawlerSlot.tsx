@@ -58,26 +58,26 @@ export function CrawlerMinor({
   return <MinorFrame view={crawlerMinorModel(crawler)} slot="Crawler" onExpand={onExpand} />
 }
 
-const CRAFT_LIST: CSSProperties = {
+const CRAFT_LIST = {
   display: 'flex',
   flexDirection: 'column',
   gap: '4px',
   maxHeight: '40vh',
   overflowY: 'auto',
-}
+} satisfies CSSProperties
 
-const CRAFT_ROW: CSSProperties = {
+const CRAFT_ROW = {
   width: '100%',
   justifyContent: 'space-between',
   textAlign: 'left',
   gap: '12px',
-}
+} satisfies CSSProperties
 
-const CRAFT_COST: CSSProperties = {
+const CRAFT_COST = {
   flexShrink: 0,
   fontVariantNumeric: 'tabular-nums',
   opacity: 0.7,
-}
+} satisfies CSSProperties
 
 /** Cited when an action needs a numeric crawler Tech Level and the slug has none. */
 const NO_TECH_LEVEL_RULE: StepRule = {

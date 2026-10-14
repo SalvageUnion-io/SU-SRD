@@ -25,7 +25,7 @@ import { createBlank } from '../../lib/wizard/blankCreate'
 import '../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
-const noteStyle: CSSProperties = { ...dialogNoteStyle, margin: 0 }
+const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties
 
 type BlankCreateDialogProps = {
   kind: BlankCreateKind

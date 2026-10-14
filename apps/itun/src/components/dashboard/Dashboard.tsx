@@ -142,12 +142,12 @@ const SLOT_LABEL: Record<SlotKind, string> = { pilot: 'Pilot', mech: 'Mech', cra
  * The display region: the deck beside the tabs, over the strip. The ⤢ overlay
  * covers all of it.
  */
-const DISPLAY: CSSProperties = {
+const DISPLAY = {
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
-}
+} satisfies CSSProperties
 
 /**
  * Deck and tabs side by side, the deck a little wider (its tiles pack in
@@ -155,34 +155,37 @@ const DISPLAY: CSSProperties = {
  * so each side scrolls inside itself rather than pushing the strip off the
  * canvas.
  */
-const DECK_AND_TABS: CSSProperties = {
+const DECK_AND_TABS = {
   flex: 1,
   minHeight: 0,
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)',
   gridTemplateRows: 'minmax(0, 1fr)',
-}
+} satisfies CSSProperties
 
 /**
  * The Crew tab takes the whole display (board D2): a table of the crew's
  * vitals and status needs the width, and the deck has nothing to say to it.
  */
-const TABS_ALONE: CSSProperties = { ...DECK_AND_TABS, gridTemplateColumns: 'minmax(0, 1fr)' }
+const TABS_ALONE = {
+  ...DECK_AND_TABS,
+  gridTemplateColumns: 'minmax(0, 1fr)',
+} satisfies CSSProperties
 
-const DECK: CSSProperties = {
+const DECK = {
   minHeight: 0,
   borderRight: `${borderWidth.chrome} solid ${color.ink20}`,
-}
+} satisfies CSSProperties
 
 /** The Reference tab: its entity picker over the card. */
-const REFERENCE: CSSProperties = {
+const REFERENCE = {
   height: '100%',
   minHeight: 0,
   display: 'flex',
   flexDirection: 'column',
-}
+} satisfies CSSProperties
 
-const DISPLAY_BODY: CSSProperties = { flex: 1, minHeight: 0 }
+const DISPLAY_BODY = { flex: 1, minHeight: 0 } satisfies CSSProperties
 
 /** The Major a ⤢ opened, and the ⤢ to hand focus back to. */
 type Expanded = { kind: SlotKind; trigger: HTMLButtonElement }

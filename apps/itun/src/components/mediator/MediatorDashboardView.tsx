@@ -82,33 +82,37 @@ export type MediatorTableWrites = {
 }
 
 /** Rail · the table and the minors · the display, in the grid's three rows. */
-const PRIMARY: CSSProperties = {
+const PRIMARY = {
   height: '100%',
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) 218px 218px',
   gap: '10px',
-}
+} satisfies CSSProperties
 
 /** The phone column. */
-const COLUMN: CSSProperties = {
+const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[10],
   padding: `${space[8]} ${space[10]} ${space[24]}`,
-}
+} satisfies CSSProperties
 
 /** The rail outside the grid keeps `.su-dash-rail`'s look and wraps. */
-const STACKED_RAIL: CSSProperties = { minHeight: '40px', flexWrap: 'wrap', padding: space[8] }
+const STACKED_RAIL = {
+  minHeight: '40px',
+  flexWrap: 'wrap',
+  padding: space[8],
+} satisfies CSSProperties
 
-const STACKED_MINORS: CSSProperties = {
+const STACKED_MINORS = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))',
   gap: space[10],
-}
+} satisfies CSSProperties
 
-const STACKED_DISPLAY: CSSProperties = { borderRadius: '6px' }
+const STACKED_DISPLAY = { borderRadius: '6px' } satisfies CSSProperties
 
-const DISPLAY_FILL: CSSProperties = { height: '100%', minHeight: 0 }
+const DISPLAY_FILL = { height: '100%', minHeight: 0 } satisfies CSSProperties
 
 function Panels({
   view,

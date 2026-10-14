@@ -21,7 +21,7 @@ import { BODY, bandTop, HEADING } from './mediatorStyles.model'
 
 const { color, weight } = tokens
 
-const FOOT: CSSProperties = { ...BODY, marginTop: 'auto', fontWeight: weight.bold }
+const FOOT = { ...BODY, marginTop: 'auto', fontWeight: weight.bold } satisfies CSSProperties
 
 export function CrawlerMinor({
   crawler,

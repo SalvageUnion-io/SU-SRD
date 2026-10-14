@@ -50,10 +50,10 @@ const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
 const screenStyle = { minHeight: '100dvh' } satisfies CSSProperties
 
 /** Its padding grows at `sm` (`.wiz-chooser-body`). */
-const bodyStyle: CSSProperties = { marginInline: 'auto', maxWidth: '56rem', width: '100%' }
+const bodyStyle = { marginInline: 'auto', maxWidth: '56rem', width: '100%' } satisfies CSSProperties
 
 /** Its fill dims on hover, so the background is `.wiz-chooser-pattern`'s. */
-const patternLinkStyle: CSSProperties = {
+const patternLinkStyle = {
   borderRadius: tokens.radius.badge,
   color: tokens.color.paper,
   display: 'block',
@@ -70,9 +70,9 @@ const patternLinkStyle: CSSProperties = {
   textDecorationLine: 'none',
   textTransform: 'uppercase',
   width: 'fit-content',
-}
+} satisfies CSSProperties
 
-const patternAccentStyle: CSSProperties = { color: tokens.color.pilot }
+const patternAccentStyle = { color: tokens.color.pilot } satisfies CSSProperties
 
 export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]

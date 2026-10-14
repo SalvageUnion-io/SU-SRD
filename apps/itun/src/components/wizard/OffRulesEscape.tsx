@@ -11,7 +11,7 @@ import type { CSSProperties } from 'react'
 import '../../styles/wizard.css'
 
 /** Static half; the colour, which brightens on hover, is `.wiz-off-rules`. */
-const escapeStyle: CSSProperties = {
+const escapeStyle = {
   cursor: 'pointer',
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.badge,
@@ -22,7 +22,7 @@ const escapeStyle: CSSProperties = {
   textTransform: 'uppercase',
   textUnderlineOffset: '2px',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
 type OffRulesEscapeProps = {
   /** Leaves the guided flow for the blank Free-Edit path. */

@@ -44,7 +44,7 @@ import { CrawlerReviewStep } from './CrawlerReviewStep'
 import '../../styles/wizard.css'
 
 /** The RuleBrief's muted aside (the saved pilot/mech count). */
-const MUTED: CSSProperties = { color: tokens.color.wkMuted }
+const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
 
 /** Book-order steps (Union Crawler pp.212–213 + Review). */
 const STEPS: readonly CrawlerWizardStepId[] = [

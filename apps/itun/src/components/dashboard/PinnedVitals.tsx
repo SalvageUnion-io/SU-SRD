@@ -15,7 +15,7 @@ import type { CSSProperties } from 'react'
 
 export type PinnedVital = { label: string; value: number; max: number }
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
@@ -23,7 +23,7 @@ const ROW: CSSProperties = {
   margin: 0,
   padding: 0,
   listStyle: 'none',
-}
+} satisfies CSSProperties
 
 export function PinnedVitals({ vitals }: { vitals: PinnedVital[] }) {
   if (vitals.length === 0) return null

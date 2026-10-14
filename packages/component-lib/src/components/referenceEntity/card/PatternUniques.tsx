@@ -8,7 +8,7 @@ import { LoadoutToken } from './PatternLoadout'
 import type { NestedCard } from './referenceEntityCardTypes'
 import { resolvePatternGroups } from './resolveNestedEntities'
 
-const CARDS: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[8] }
+const CARDS = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
 
 /**
  * `PatternUniques` — what makes ONE pattern itself, shown under its row in a

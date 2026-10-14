@@ -72,11 +72,11 @@ const FAM_BAND: Record<SlotKind, string> = {
 }
 
 /** The open form is a centred column on a wide host (a tablet, a short window). */
-const ROOT: CSSProperties = { maxWidth: '600px', margin: '0 auto', minWidth: 0 }
+const ROOT = { maxWidth: '600px', margin: '0 auto', minWidth: 0 } satisfies CSSProperties
 
-const STICKY: CSSProperties = { position: 'sticky', top: 0, zIndex: 3 }
+const STICKY = { position: 'sticky', top: 0, zIndex: 3 } satisfies CSSProperties
 
-const BAR: CSSProperties = {
+const BAR = {
   display: 'flex',
   alignItems: 'center',
   gap: space[4],
@@ -85,17 +85,17 @@ const BAR: CSSProperties = {
   background: color.inkDeep,
   color: color.paper,
   borderBottom: `${borderWidth.hairline} solid ${color.paper15}`,
-}
+} satisfies CSSProperties
 
-const STAMP_LINK: CSSProperties = {
+const STAMP_LINK = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
   minWidth: '44px',
   minHeight: '44px',
-}
+} satisfies CSSProperties
 
-const GAME: CSSProperties = {
+const GAME = {
   flex: 1,
   minWidth: 0,
   margin: 0,
@@ -107,9 +107,9 @@ const GAME: CSSProperties = {
   fontSize: fontSize.lede,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const BAR_KEY: CSSProperties = {
+const BAR_KEY = {
   position: 'relative',
   display: 'inline-flex',
   alignItems: 'center',
@@ -121,9 +121,9 @@ const BAR_KEY: CSSProperties = {
   background: 'transparent',
   color: color.paper,
   cursor: 'pointer',
-}
+} satisfies CSSProperties
 
-const BADGE: CSSProperties = {
+const BADGE = {
   position: 'absolute',
   top: '4px',
   right: '2px',
@@ -136,50 +136,50 @@ const BADGE: CSSProperties = {
   fontWeight: weight.bold,
   fontSize: fontSize.badge,
   lineHeight: '16px',
-}
+} satisfies CSSProperties
 
-const WARN_GLYPH: CSSProperties = {
+const WARN_GLYPH = {
   position: 'absolute',
   bottom: '4px',
   right: '4px',
   color: color.statusBad,
   fontSize: fontSize.badge,
-}
+} satisfies CSSProperties
 
-const TABS: CSSProperties = {
+const TABS = {
   display: 'grid',
   gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
   gap: 0,
   background: color.paper,
   borderBottom: `${borderWidth.chrome} solid ${color.ink}`,
-}
+} satisfies CSSProperties
 
-const TAB: CSSProperties = {
+const TAB = {
   minHeight: '48px',
   borderRadius: 0,
   borderWidth: `0 ${borderWidth.hairline} 0 0`,
   fontSize: fontSize.caption,
-}
+} satisfies CSSProperties
 
-const TAB_WARN: CSSProperties = { ...TAB, boxShadow: `inset 0 0 0 2px ${color.statusBad}` }
+const TAB_WARN = { ...TAB, boxShadow: `inset 0 0 0 2px ${color.statusBad}` } satisfies CSSProperties
 
-const ATTENTION: CSSProperties = { marginLeft: space[4], color: color.statusBad }
+const ATTENTION = { marginLeft: space[4], color: color.statusBad } satisfies CSSProperties
 
-const PINNED: CSSProperties = {
+const PINNED = {
   padding: `${space[6]} ${space[12]}`,
   background: color.bandCream,
   borderBottom: `${borderWidth.hairline} solid ${color.ink20}`,
-}
+} satisfies CSSProperties
 
-const PLAIN: CSSProperties = { border: 0, margin: 0, padding: 0, minWidth: 0 }
+const PLAIN = { border: 0, margin: 0, padding: 0, minWidth: 0 } satisfies CSSProperties
 
-const BODY: CSSProperties = {
+const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
   padding: `0 ${space[12]} ${space[24]}`,
   background: color.bandCream,
-}
+} satisfies CSSProperties
 
 const BAND_WRAP = (kind: SlotKind): CSSProperties => ({
   margin: `0 -${space[12]}`,
@@ -187,7 +187,7 @@ const BAND_WRAP = (kind: SlotKind): CSSProperties => ({
   background: FAM_BAND[kind],
 })
 
-const BAND_NAME: CSSProperties = {
+const BAND_NAME = {
   display: 'inline-block',
   maxWidth: '100%',
   margin: 0,
@@ -204,16 +204,16 @@ const BAND_NAME: CSSProperties = {
   textTransform: 'uppercase',
   color: color.ink,
   outline: 'none',
-}
+} satisfies CSSProperties
 
-const NOTE: CSSProperties = {
+const NOTE = {
   margin: 0,
   fontFamily: font.body,
   fontSize: fontSize.caption,
   color: color.ink,
-}
+} satisfies CSSProperties
 
-const RESUME: CSSProperties = {
+const RESUME = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -229,7 +229,7 @@ const RESUME: CSSProperties = {
   textTransform: 'uppercase',
   color: color.ink,
   cursor: 'pointer',
-}
+} satisfies CSSProperties
 
 /** Focus the pennant, row or resume row that opened the resolve screen. */
 function refocus(root: HTMLElement | null, opener: ResolveOpener | null) {

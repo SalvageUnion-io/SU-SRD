@@ -16,51 +16,56 @@ type MobileSearchDialogProps = {
 }
 
 // The full-screen layer the sheet sits in, against its top edge.
-const VIEWPORT: CSSProperties = {
+const VIEWPORT = {
   display: 'flex',
   flexDirection: 'column',
   inset: 0,
   position: 'fixed',
   zIndex: 50,
-}
+} satisfies CSSProperties
 
 /** The sheet: the title row over the hosted search. `.su-drawer` slides it. */
-const POPUP: CSSProperties = {
+const POPUP = {
   backgroundColor: color.paper,
   boxShadow: LIFT_SHADOW,
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
   padding: space[16],
-}
+} satisfies CSSProperties
 
-const TITLE_ROW: CSSProperties = {
+const TITLE_ROW = {
   alignItems: 'center',
   display: 'flex',
   justifyContent: 'space-between',
-}
+} satisfies CSSProperties
 
-const TITLE: CSSProperties = {
+const TITLE = {
   color: color.ink,
   fontFamily: font.cond,
   fontSize: fontSize.sm,
   fontWeight: weight.bold,
   lineHeight: 'calc(1.25 / 0.875)',
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
 // The two icon buttons over the shared icon rung. Their ground is the rung's
 // (`.su-btn--ghost`), except the trigger's hover, which is
 // `.srd-mobile-search__trigger` in pages.css. The trigger takes the Union
 // bar's control height (`--su-union-bar-control`); the sheet's close is 44px.
-const ICON_BUTTON: CSSProperties = {
+const ICON_BUTTON = {
   borderColor: 'transparent',
   borderRadius: radius.panel,
-}
+} satisfies CSSProperties
 
-const TRIGGER: CSSProperties = { ...ICON_BUTTON, color: color.paper }
+const TRIGGER = { ...ICON_BUTTON, color: color.paper } satisfies CSSProperties
 
-const CLOSE: CSSProperties = { ...ICON_BUTTON, color: color.ink, height: '44px', width: '44px' }
+const CLOSE = {
+  ...ICON_BUTTON,
+  color: color.ink,
+  height: '44px',
+  width: '44px',
+} satisfies CSSProperties
 
 const iconButtonClass = buttonVariants({ variant: 'ghost', size: 'iconOnly' })
 

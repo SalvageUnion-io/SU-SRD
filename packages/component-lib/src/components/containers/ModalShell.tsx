@@ -81,16 +81,16 @@ type ModalShellProps = {
 }
 
 /** A contained modal fills its container: the scrim behind, the popup over it. */
-const CONTAINED_BACKDROP: CSSProperties = { position: 'absolute' }
-const CONTAINED_POPUP: CSSProperties = {
+const CONTAINED_BACKDROP = { position: 'absolute' } satisfies CSSProperties
+const CONTAINED_POPUP = {
   position: 'absolute',
   inset: 0,
   zIndex: 50,
   outline: 'none',
-}
+} satisfies CSSProperties
 
 /** The default popup: a fit-height box centred over the scrim. */
-const POPUP: CSSProperties = {
+const POPUP = {
   position: 'fixed',
   inset: 0,
   zIndex: 50,
@@ -99,7 +99,7 @@ const POPUP: CSSProperties = {
   width: '100%',
   backgroundColor: 'transparent',
   outline: 'none',
-}
+} satisfies CSSProperties
 
 const HEAD = {
   display: 'flex',
@@ -132,13 +132,13 @@ const SUBTITLE = {
 const CLOSE_ICON = { width: space[20], height: space[20] } satisfies CSSProperties
 
 /** A full-screen popup covers the viewport and scrolls inside itself. */
-const FULLSCREEN_POPUP: CSSProperties = {
+const FULLSCREEN_POPUP = {
   position: 'fixed',
   inset: 0,
   zIndex: 50,
   overflowY: 'auto',
   outline: 'none',
-}
+} satisfies CSSProperties
 
 export function ModalShell({
   open,
@@ -165,13 +165,13 @@ export function ModalShell({
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
   // any internal scroll. Default: a scrolling popup wrapping the Card.
-  const popupStyle: CSSProperties = {
+  const popupStyle = {
     ...POPUP,
     ...(bare ? { overflow: 'hidden' } : { overflowY: 'auto' }),
     // A caller's `maxWidth` class sets the cap; inline, the default would beat it.
     ...(maxWidth ? {} : { maxWidth: role === 'alertdialog' ? '28rem' : '48rem' }),
     margin: align === 'center' ? 'auto' : `${space[32]} auto auto`,
-  }
+  } satisfies CSSProperties
 
   // An Escape something inside the dialog already handled (an inline edit
   // cancelling, the Dashboard Major's own Take Damage prompt closing) is not a

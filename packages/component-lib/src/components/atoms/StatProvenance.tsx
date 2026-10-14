@@ -53,33 +53,37 @@ const POPUP = {
   paddingBlock: space[10],
 } satisfies CSSProperties
 
-const TITLE: CSSProperties = { marginBottom: space[6], opacity: 0.6 }
+const TITLE = { marginBottom: space[6], opacity: 0.6 } satisfies CSSProperties
 
-const LEDGER: CSSProperties = {
+const LEDGER = {
   fontSize: fontSize.caption,
   fontVariantNumeric: 'tabular-nums',
   listStyle: 'none',
   margin: 0,
   padding: 0,
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = {
+const ROW = {
   alignItems: 'baseline',
   display: 'flex',
   gap: space[16],
   justifyContent: 'space-between',
   paddingBottom: space[2],
   paddingTop: space[2],
-}
+} satisfies CSSProperties
 
 /** The rule over a subtotal: `mt-1.5 border-t border-paper-30 pt-1.5`. */
-const RULED: CSSProperties = {
+const RULED = {
   borderTop: `1px solid ${color.paper30}`,
   marginTop: space[6],
   paddingTop: space[6],
-}
+} satisfies CSSProperties
 
-const DETAIL: CSSProperties = { fontSize: fontSize.note, marginLeft: space[4], opacity: 0.6 }
+const DETAIL = {
+  fontSize: fontSize.note,
+  marginLeft: space[4],
+  opacity: 0.6,
+} satisfies CSSProperties
 
 const TRIGGER_CLASS = `su-stat-provenance__trigger ${FOCUS_RING}`
 

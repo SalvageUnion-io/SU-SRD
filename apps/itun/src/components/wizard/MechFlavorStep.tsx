@@ -5,14 +5,14 @@ import type { MechRollField, MechRollTableDeps } from './mechRollTables.model'
 import { rollForMechField } from './mechRollTables.model'
 import { stepColumnStyle } from './wizardStyles.model'
 
-const rollButtonStyle: CSSProperties = { flexShrink: 0 }
+const rollButtonStyle = { flexShrink: 0 } satisfies CSSProperties
 
-const noteStyle: CSSProperties = {
+const noteStyle = {
   color: 'currentcolor',
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
   margin: 0,
-}
+} satisfies CSSProperties
 
 type MechFlavorStepProps = {
   /** Which flavor fact this step edits (also picks the d20 roll table). */

@@ -14,18 +14,18 @@ import { Button, ModalShell } from 'component-lib'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 
 /** The title row and the Major, laid over the scrim that dims the display. */
-const FRAME: CSSProperties = {
+const FRAME = {
   position: 'absolute',
   inset: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
   padding: '10px',
-}
+} satisfies CSSProperties
 
-const HEAD: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px' }
+const HEAD = { display: 'flex', alignItems: 'center', gap: '10px' } satisfies CSSProperties
 
-const TITLE: CSSProperties = {
+const TITLE = {
   margin: 0,
   flex: 1,
   fontFamily: 'var(--font-cond)',
@@ -34,10 +34,10 @@ const TITLE: CSSProperties = {
   letterSpacing: 'var(--tracking-caps-tight)',
   fontSize: 'var(--text-caption)',
   color: 'var(--color-paper)',
-}
+} satisfies CSSProperties
 
 /** The Major keeps the height it has in the slot row. */
-const BODY: CSSProperties = { height: '208px', flex: '0 0 auto' }
+const BODY = { height: '208px', flex: '0 0 auto' } satisfies CSSProperties
 
 export function SlotOverlay({
   open,

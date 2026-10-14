@@ -28,7 +28,7 @@ import { AppLink } from '../shared/AppLink'
 import { EYEBROW, HEAD_ROW, HEADING, PANEL } from './mediatorStyles.model'
 import type { SeatCard } from './seatCards.model'
 
-const LIST: CSSProperties = {
+const LIST = {
   listStyle: 'none',
   margin: 0,
   // Room for the attention outline, which sits outside the Row.
@@ -43,20 +43,20 @@ const LIST: CSSProperties = {
   alignItems: 'start',
   overflowX: 'auto',
   scrollSnapType: 'x mandatory',
-}
+} satisfies CSSProperties
 
 /** The stacked fallback: two seats a row, no sideways scroll. */
-const LIST_STACKED: CSSProperties = {
+const LIST_STACKED = {
   ...LIST,
   gridAutoFlow: 'row',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gridAutoColumns: undefined,
   overflowX: 'visible',
-}
+} satisfies CSSProperties
 
-const SEAT: CSSProperties = { minWidth: 0, scrollSnapAlign: 'start' }
+const SEAT = { minWidth: 0, scrollSnapAlign: 'start' } satisfies CSSProperties
 
-const VIEW: CSSProperties = { textDecoration: 'none' }
+const VIEW = { textDecoration: 'none' } satisfies CSSProperties
 
 export function TableSeats({
   seats,

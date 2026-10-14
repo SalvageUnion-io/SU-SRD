@@ -18,9 +18,9 @@ import { AppLink } from '../shared/AppLink'
 
 const { color, font, fontSize, space, tracking, weight } = tokens
 
-const MARK: CSSProperties = { display: 'block', flexShrink: 0 }
+const MARK = { display: 'block', flexShrink: 0 } satisfies CSSProperties
 
-const NAME: CSSProperties = {
+const NAME = {
   margin: 0,
   minWidth: 0,
   overflow: 'hidden',
@@ -32,17 +32,17 @@ const NAME: CSSProperties = {
   letterSpacing: tracking.capsTight,
   lineHeight: 1,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const SPACER: CSSProperties = { flex: 1 }
+const SPACER = { flex: 1 } satisfies CSSProperties
 
-const COUNT: CSSProperties = {
+const COUNT = {
   fontFamily: font.body,
   fontSize: fontSize.caption,
   color: color.ink75,
   whiteSpace: 'nowrap',
   marginRight: space[8],
-}
+} satisfies CSSProperties
 
 export function MediatorRail({
   gameId,

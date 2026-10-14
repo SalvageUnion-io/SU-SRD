@@ -19,9 +19,9 @@ import { PROPOSAL_LIST } from './proposalLine.model'
 
 const { space } = tokens
 
-const MORE: CSSProperties = { alignSelf: 'flex-start', marginTop: space[8] }
+const MORE = { alignSelf: 'flex-start', marginTop: space[8] } satisfies CSSProperties
 
-const COLUMN: CSSProperties = { display: 'flex', flexDirection: 'column' }
+const COLUMN = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
 
 export function ProposalsList({
   proposals,

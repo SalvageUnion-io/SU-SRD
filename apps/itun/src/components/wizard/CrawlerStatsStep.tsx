@@ -6,17 +6,21 @@ import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import '../../styles/wizard.css'
 import { fullWidthStyle } from './wizardStyles.model'
 
-const statRowStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[16] }
+const statRowStyle = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
-const proseStyle: CSSProperties = {
+const proseStyle = {
   color: 'currentcolor',
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 1.625,
   maxWidth: '64ch',
-}
+} satisfies CSSProperties
 
-const paragraphStyle: CSSProperties = { margin: 0 }
+const paragraphStyle = { margin: 0 } satisfies CSSProperties
 
 type CrawlerStatsStepProps = {
   /** The Tech Level 1 (Hamlet Crawler) entity — creation is fixed there. */

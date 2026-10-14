@@ -6,22 +6,22 @@ import { rollCrawlerName } from './crawlerRollTables.model'
 import '../../styles/wizard.css'
 
 /** The step's column, capped at 48rem. */
-const COLUMN: CSSProperties = { maxWidth: '48rem' }
+const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 
 /** The Roll button keeps its width beside the field label. */
-const NO_SHRINK: CSSProperties = { flexShrink: 0 }
+const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties
 
 /** The Scrap Pool's hint under its Slab. */
-const SCRAP_HINT: CSSProperties = {
+const SCRAP_HINT = {
   margin: `${tokens.space[2]} 0 0`,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.xs,
   lineHeight: 'calc(1 / 0.75)',
   color: tokens.color.wkMuted,
-}
+} satisfies CSSProperties
 
 /** The bucket inputs; the column count is `.wiz-scrap-grid`. */
-const SCRAP_GRID: CSSProperties = { display: 'grid', gap: tokens.space[12] }
+const SCRAP_GRID = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
 
 const SCRAP_BUCKETS = ['tl1', 'tl2', 'tl3', 'tl4', 'tl5', 'tl6'] as const
 

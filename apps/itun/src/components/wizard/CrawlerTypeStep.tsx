@@ -13,7 +13,7 @@ import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/ru
 import '../../styles/wizard.css'
 import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 
-const bonusStyle: CSSProperties = { display: 'block', fontFamily: tokens.font.body }
+const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 
 type CrawlerTypeSelectStepProps = {
   types: SURefCrawler[]

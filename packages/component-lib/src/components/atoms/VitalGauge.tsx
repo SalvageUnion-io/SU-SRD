@@ -136,32 +136,32 @@ export type VitalGaugeProps = {
  * `.su-vital-gauge__*` in `styles/index.css`.
  */
 
-const TABULAR: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
+const TABULAR = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
 
 /** An editable segment's static half; the hover lift is `.su-vital-gauge__pip`. */
-const PIP_EDITABLE: CSSProperties = {
+const PIP_EDITABLE = {
   cursor: 'pointer',
   transitionProperty: 'transform, translate, scale, rotate',
   transitionDuration: '120ms',
   transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-}
+} satisfies CSSProperties
 
 // — compact —
-const C_READOUT: CSSProperties = {
+const C_READOUT = {
   display: 'flex',
   minWidth: 0,
   flex: 1,
   flexDirection: 'column',
   gap: space[4],
-}
-const C_HEAD: CSSProperties = {
+} satisfies CSSProperties
+const C_HEAD = {
   display: 'flex',
   alignItems: 'baseline',
   justifyContent: 'space-between',
   gap: space[8],
-}
-const C_LABEL: CSSProperties = { flexShrink: 0, lineHeight: 1 }
-const C_VALUE: CSSProperties = {
+} satisfies CSSProperties
+const C_LABEL = { flexShrink: 0, lineHeight: 1 } satisfies CSSProperties
+const C_VALUE = {
   ...TABULAR,
   flexShrink: 0,
   whiteSpace: 'nowrap',
@@ -169,20 +169,20 @@ const C_VALUE: CSSProperties = {
   fontSize: fontSize.caption,
   fontWeight: weight.bold,
   lineHeight: 1,
-}
-const C_ROWS: CSSProperties = {
+} satisfies CSSProperties
+const C_ROWS = {
   display: 'flex',
   minWidth: 0,
   flexDirection: 'column',
   gap: '3px',
-}
-const C_ROW: CSSProperties = {
+} satisfies CSSProperties
+const C_ROW = {
   display: 'flex',
   minWidth: 0,
   justifyContent: 'center',
   gap: '3px',
-}
-const C_PIP: CSSProperties = {
+} satisfies CSSProperties
+const C_PIP = {
   height: '14px',
   width: 'calc((100% - 15px) / 6)',
   minWidth: 0,
@@ -190,56 +190,56 @@ const C_PIP: CSSProperties = {
   borderRadius: radius.badge,
   borderStyle: 'solid',
   borderWidth: borderWidth.hairline,
-}
-const C_SHELL: CSSProperties = {
+} satisfies CSSProperties
+const C_SHELL = {
   display: 'flex',
   width: '100%',
   alignItems: 'center',
   gap: space[8],
-}
-const C_IMAGE: CSSProperties = { display: 'flex', minWidth: 0, flex: 1 }
+} satisfies CSSProperties
+const C_IMAGE = { display: 'flex', minWidth: 0, flex: 1 } satisfies CSSProperties
 
 // — full —
-const ROOT: CSSProperties = { width: '100%', paddingBlock: space[4] }
-const HEAD: CSSProperties = {
+const ROOT = { width: '100%', paddingBlock: space[4] } satisfies CSSProperties
+const HEAD = {
   marginBottom: space[8],
   display: 'flex',
   alignItems: 'baseline',
   justifyContent: 'space-between',
   gap: space[10],
-}
-const HEAD_LEFT: CSSProperties = {
+} satisfies CSSProperties
+const HEAD_LEFT = {
   display: 'flex',
   minWidth: 0,
   alignItems: 'baseline',
   gap: space[6],
-}
-const STAMP: CSSProperties = {
+} satisfies CSSProperties
+const STAMP = {
   padding: '0.1em 0.5em 0.16em',
   fontSize: fontSize.caption,
   lineHeight: 1.5,
-}
-const SUB_LABEL: CSSProperties = {
+} satisfies CSSProperties
+const SUB_LABEL = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
   lineHeight: 1,
   color: color.wkMuted,
-}
-const NUMERAL: CSSProperties = {
+} satisfies CSSProperties
+const NUMERAL = {
   ...TABULAR,
   whiteSpace: 'nowrap',
   fontFamily: font.cond,
   fontWeight: weight.bold,
   lineHeight: 1,
-}
-const SLASH: CSSProperties = {
+} satisfies CSSProperties
+const SLASH = {
   paddingInline: space[2],
   fontStyle: 'normal',
   fontSize: fontSize.readout,
   color: color.ink75,
-}
-const MAX_INPUT: CSSProperties = {
+} satisfies CSSProperties
+const MAX_INPUT = {
   ...TABULAR,
   width: '56px',
   borderRadius: radius.card,
@@ -251,8 +251,8 @@ const MAX_INPUT: CSSProperties = {
   textAlign: 'center',
   fontSize: fontSize.readout,
   color: color.ink,
-}
-const MAX_BUTTON: CSSProperties = {
+} satisfies CSSProperties
+const MAX_BUTTON = {
   cursor: 'pointer',
   borderRadius: radius.badge,
   paddingInline: space[2],
@@ -260,22 +260,22 @@ const MAX_BUTTON: CSSProperties = {
   textDecorationLine: 'underline',
   textDecorationStyle: 'dotted',
   textUnderlineOffset: '2px',
-}
-const MAX_TEXT: CSSProperties = { fontSize: fontSize.readout, color: color.ink75 }
-const OVERRIDE_SUP: CSSProperties = {
+} satisfies CSSProperties
+const MAX_TEXT = { fontSize: fontSize.readout, color: color.ink75 } satisfies CSSProperties
+const OVERRIDE_SUP = {
   marginLeft: space[2],
   fontSize: fontSize.badge,
   fontWeight: weight.bold,
   color: 'var(--tone-deep)',
-}
-const REVERT: CSSProperties = {
+} satisfies CSSProperties
+const REVERT = {
   marginLeft: space[4],
   cursor: 'pointer',
   verticalAlign: 'middle',
   fontSize: fontSize.caption,
   lineHeight: 1,
-}
-const PIP: CSSProperties = {
+} satisfies CSSProperties
+const PIP = {
   minHeight: 0,
   minWidth: 0,
   flex: 1,
@@ -284,10 +284,10 @@ const PIP: CSSProperties = {
   // base-layer `border: none` made an unlit pip vanish in Edit while Read drew it.
   borderStyle: 'solid',
   padding: space[0],
-}
-const PIP_DENSE: CSSProperties = { height: '18px', borderRadius: radius.badge }
-const PIP_ROOMY: CSSProperties = { height: '22px', borderRadius: radius.card }
-const CAPTION: CSSProperties = {
+} satisfies CSSProperties
+const PIP_DENSE = { height: '18px', borderRadius: radius.badge } satisfies CSSProperties
+const PIP_ROOMY = { height: '22px', borderRadius: radius.card } satisfies CSSProperties
+const CAPTION = {
   marginTop: space[6],
   display: 'flex',
   alignItems: 'center',
@@ -295,12 +295,12 @@ const CAPTION: CSSProperties = {
   gap: space[4],
   lineHeight: 1,
   color: color.ink75,
-}
-const CAPTION_OVERRIDE: CSSProperties = {
+} satisfies CSSProperties
+const CAPTION_OVERRIDE = {
   marginRight: 'auto',
   letterSpacing: tracking.capsSnug,
   color: 'var(--tone-deep)',
-}
+} satisfies CSSProperties
 
 export function VitalGauge({
   label,
@@ -437,16 +437,18 @@ export function VitalGauge({
 
   // Empty-segment fill differs by surface: recessed outline on a dark instrument
   // ground, paper on the light sheet.
-  const emptyFill: CSSProperties = onDark
-    ? { borderColor: color.paper30, backgroundColor: 'transparent' }
-    : { borderColor: color.ink50, backgroundColor: color.paper }
+  const emptyFill = (
+    onDark
+      ? { borderColor: color.paper30, backgroundColor: 'transparent' }
+      : { borderColor: color.ink50, backgroundColor: color.paper }
+  ) satisfies CSSProperties
   // An unlit pip past the redline keeps the empty ground and takes the
   // status-bad outline (boards D1, D4): the redline reads before the value
   // reaches it — on the sheet and the Dashboard alike, since both draw this gauge.
-  const redlineFill: CSSProperties = {
+  const redlineFill = {
     borderColor: color.statusBad,
     backgroundColor: onDark ? 'transparent' : color.paper,
-  }
+  } satisfies CSSProperties
   const segFill = (state: ReturnType<typeof trackSegmentState>): CSSProperties =>
     state === 'off'
       ? emptyFill
@@ -467,7 +469,7 @@ export function VitalGauge({
               const i = segRow.start + c
               const state = trackSegmentState(i, shown, max, dangerFrom)
               const on = segmentLit(state)
-              const segStyle: CSSProperties = { ...C_PIP, ...segFill(state) }
+              const segStyle = { ...C_PIP, ...segFill(state) } satisfies CSSProperties
               return editable ? (
                 <span
                   key={i}
@@ -571,7 +573,11 @@ export function VitalGauge({
   const headerControl = provenance !== undefined || (isOverridden && onRevertOverride !== undefined)
   const trackIsImage = !interactive && headerControl
   const trackGap = isDense ? '3px' : space[4]
-  const trackStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: trackGap }
+  const trackStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: trackGap,
+  } satisfies CSSProperties
   const fullRows = (
     <>
       {statBlockRowStarts(segCount).map((segRow) => (
@@ -580,11 +586,11 @@ export function VitalGauge({
             const i = segRow.start + c
             const state = trackSegmentState(i, shown, max, dangerFrom)
             const on = segmentLit(state)
-            const segStyle: CSSProperties = {
+            const segStyle = {
               ...PIP,
               ...(isDense ? PIP_DENSE : PIP_ROOMY),
               ...segFill(state),
-            }
+            } satisfies CSSProperties
             return editable ? (
               <span
                 key={i}

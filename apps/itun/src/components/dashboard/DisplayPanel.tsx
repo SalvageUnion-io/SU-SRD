@@ -244,12 +244,16 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
 }
 
 /** The entity card's document column, centred in the display. */
-const ENTITY_COLUMN: CSSProperties = { marginInline: 'auto', maxWidth: '42rem', width: '100%' }
+const ENTITY_COLUMN = {
+  marginInline: 'auto',
+  maxWidth: '42rem',
+  width: '100%',
+} satisfies CSSProperties
 
-const PICKER: CSSProperties = { padding: '8px 12px 0', flex: '0 0 auto' }
+const PICKER = { padding: '8px 12px 0', flex: '0 0 auto' } satisfies CSSProperties
 
 /** A bare fieldset: the group, without the browser's frame around it. */
-const GROUP: CSSProperties = { border: 0, margin: 0, padding: 0, minInlineSize: 0 }
+const GROUP = { border: 0, margin: 0, padding: 0, minInlineSize: 0 } satisfies CSSProperties
 
 /**
  * The Reference tab's choice of entity, as a plain row of toggle buttons. Each

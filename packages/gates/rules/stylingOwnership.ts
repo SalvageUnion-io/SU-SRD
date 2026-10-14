@@ -504,7 +504,7 @@ function scanNoTailwind(c: Corpus): Finding[] {
 /**
  * A style object is written ONE way (.claude/rules/styling.md, "The written
  * form"): `const NAME = { … } satisfies CSSProperties`. The annotated spelling,
- * `const NAME: CSSProperties = { … }`, widens every value to the whole
+ * `const NAME = { … } satisfies CSSProperties`, widens every value to the whole
  * property type, so the object no longer says what it holds, and it is the
  * second of two spellings for one thing. It was 531 lines when this rule
  * landed; the ratchet only lets that fall. A function that builds a style
@@ -568,7 +568,7 @@ const RULES: OwnershipRule[] = [
     id: 'style-object-annotation',
     mode: 'ratchet',
     rule: '.claude/rules/styling.md §the written form: a style object is `const NAME = { … } satisfies CSSProperties`',
-    fix: 'Write `const NAME = { … } satisfies CSSProperties` instead of `const NAME: CSSProperties = { … }`. A value that varies by instance spreads the object (`style={{ ...NAME, color }}`); a stateful, responsive or repeated property is a `.su-*` class. Then lower the baseline: bun tools/check-styling.ts --update-baseline.',
+    fix: 'Write `const NAME = { … } satisfies CSSProperties` instead of `const NAME = { … } satisfies CSSProperties`. A value that varies by instance spreads the object (`style={{ ...NAME, color }}`); a stateful, responsive or repeated property is a `.su-*` class. Then lower the baseline: bun tools/check-styling.ts --update-baseline.',
     scan: scanStyleObjectAnnotation,
   },
 ]

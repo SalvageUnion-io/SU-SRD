@@ -7,7 +7,7 @@ import '../../styles/wizard.css'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
 
 /** Recap and cards; the column split is `.wiz-review-grid`. */
-const REVIEW_GRID: CSSProperties = { display: 'grid', gap: tokens.space[24] }
+const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
 
 /**
  * Typed lookup surfaces for the injectable SUR seam — declared against the

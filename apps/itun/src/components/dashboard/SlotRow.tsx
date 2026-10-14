@@ -70,17 +70,17 @@ export type SlotEntities = {
   store: PlayStore
 }
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) 236px 236px',
   gap: '10px',
   height: '100%',
-}
+} satisfies CSSProperties
 
 /** Downtime: the Crawler alone, across the whole row. */
-const ROW_ALONE: CSSProperties = { ...ROW, gridTemplateColumns: 'minmax(0, 1fr)' }
+const ROW_ALONE = { ...ROW, gridTemplateColumns: 'minmax(0, 1fr)' } satisfies CSSProperties
 
-const EMPTY: CSSProperties = {
+const EMPTY = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -94,7 +94,7 @@ const EMPTY: CSSProperties = {
   fontSize: 'var(--text-note)',
   // ink-75: ink-50 on band-cream fails AA contrast for small text (3.04:1).
   color: 'var(--color-ink-75)',
-}
+} satisfies CSSProperties
 
 /** A slot whose entity the pilot doesn't have (no crawler, no mech yet). */
 function EmptySlot({ text }: { text: string }) {

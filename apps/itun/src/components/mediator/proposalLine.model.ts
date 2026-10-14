@@ -40,11 +40,11 @@ export function proposalLine(p: SentProposal): string {
 }
 
 /** A list of rows, newest first. */
-export const PROPOSAL_LIST: CSSProperties = {
+export const PROPOSAL_LIST = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[6],
-}
+} satisfies CSSProperties

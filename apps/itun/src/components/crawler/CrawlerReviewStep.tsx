@@ -10,13 +10,13 @@ import '../../styles/wizard.css'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
 
 /** Recap and cards; the column split is `.wiz-review-grid`. */
-const REVIEW_GRID: CSSProperties = { display: 'grid', gap: tokens.space[24] }
+const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
 
 /** The recap column sits at the top of its row. */
-const RECAP: CSSProperties = { alignSelf: 'start' }
+const RECAP = { alignSelf: 'start' } satisfies CSSProperties
 
 /** The Augmented reminder's body copy. */
-const REMINDER: CSSProperties = { display: 'block', fontFamily: tokens.font.body }
+const REMINDER = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 
 /** A recap value's chips and Tokens, on one wrapping line. */
 const CHIPS = {
@@ -27,13 +27,13 @@ const CHIPS = {
 } satisfies CSSProperties
 
 /** The empty-weapons line, in the surrounding text colour. */
-const EMPTY_LINE: CSSProperties = {
+const EMPTY_LINE = {
   margin: 0,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',
   color: 'currentcolor',
-}
+} satisfies CSSProperties
 
 type CrawlerReviewStepProps = {
   form: CrawlerWizardFormState

@@ -475,13 +475,13 @@ describe('styling rule set', () => {
       fixture({
         ...STYLING_BASE,
         'packages/component-lib/src/A.tsx': [
-          "const WIDE: CSSProperties = { width: '100%' }",
+          "const WIDE = { width: '100%' } satisfies CSSProperties",
           'const TALL: React.CSSProperties = {',
           "  height: '100%',",
           '}',
           "const OK = { width: '100%' } satisfies CSSProperties",
           'const band = (fill: string): CSSProperties => ({ background: fill })',
-          '// never `const X: CSSProperties = {}`',
+          '// never `const X = {} satisfies CSSProperties`',
           '',
         ].join('\n'),
       })

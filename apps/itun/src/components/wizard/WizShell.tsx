@@ -55,7 +55,7 @@ type WizShellProps = {
   submitLabel: string
 }
 
-const trackerStyle: CSSProperties = {
+const trackerStyle = {
   alignItems: 'baseline',
   backgroundColor: tokens.color.ink,
   borderRadius: tokens.radius.badge,
@@ -71,13 +71,13 @@ const trackerStyle: CSSProperties = {
   padding: `0.375rem ${tokens.space[12]}`,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
-const trackerValueStyle: CSSProperties = {
+const trackerValueStyle = {
   color: tokens.color.pilot,
   fontSize: tokens.fontSize.lede,
   letterSpacing: tokens.tracking.capsTight,
-}
+} satisfies CSSProperties
 
 /**
  * Black tracker tab: condensed-caps label
@@ -95,28 +95,28 @@ export function WizTracker({ label, value }: { label: string; value: ReactNode }
 
 /** Its vertical margin opens at lg, and a disabled tab ignores the pointer
  *  (`.wiz-rail-step`). */
-const railStepStyle: CSSProperties = {
+const railStepStyle = {
   alignItems: 'center',
   display: 'flex',
   gap: tokens.space[10],
   position: 'relative',
   textAlign: 'left',
   zIndex: 1,
-}
+} satisfies CSSProperties
 
-const railStepClickableStyle: CSSProperties = { ...railStepStyle, cursor: 'pointer' }
+const railStepClickableStyle = { ...railStepStyle, cursor: 'pointer' } satisfies CSSProperties
 
-const railTabStyle: CSSProperties = {
+const railTabStyle = {
   borderRadius: tokens.radius.badge,
   display: 'grid',
   flexShrink: 0,
   fontFamily: tokens.font.cond,
   fontWeight: tokens.weight.bold,
   placeItems: 'center',
-}
+} satisfies CSSProperties
 
 /** Its lg pull-left is `.wiz-rail-tab--active`. */
-const railTabActiveStyle: CSSProperties = {
+const railTabActiveStyle = {
   ...railTabStyle,
   backgroundColor: tokens.color.ink,
   boxShadow: '0 0 0 4px var(--tone)',
@@ -125,18 +125,18 @@ const railTabActiveStyle: CSSProperties = {
   height: '2.75rem',
   lineHeight: 1,
   width: '2.75rem',
-}
+} satisfies CSSProperties
 
-const railTabDoneStyle: CSSProperties = {
+const railTabDoneStyle = {
   ...railTabStyle,
   backgroundColor: tokens.color.ink,
   color: tokens.color.pilot,
   fontSize: tokens.fontSize.readout,
   height: '34px',
   width: '34px',
-}
+} satisfies CSSProperties
 
-const railTabFutureStyle: CSSProperties = {
+const railTabFutureStyle = {
   ...railTabStyle,
   backgroundColor: tokens.color.paper,
   boxShadow: 'inset 0 0 0 2.5px var(--color-ink)',
@@ -144,33 +144,36 @@ const railTabFutureStyle: CSSProperties = {
   fontSize: tokens.fontSize.readout,
   height: '34px',
   width: '34px',
-}
+} satisfies CSSProperties
 
 /**
  * Hidden until 721px (`.wiz-rail-label`). No lineHeight: the label inherits
  * its line height, and that is the rendered look. Don't add one.
  */
-const railLabelStyle: CSSProperties = {
+const railLabelStyle = {
   color: tokens.color.ink,
   fontFamily: tokens.font.cond,
   fontWeight: tokens.weight.bold,
   letterSpacing: tokens.tracking.capsSnug,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const railLabelActiveStyle: CSSProperties = { ...railLabelStyle, fontSize: tokens.fontSize.caption }
+const railLabelActiveStyle = {
+  ...railLabelStyle,
+  fontSize: tokens.fontSize.caption,
+} satisfies CSSProperties
 
-const railLabelDoneStyle: CSSProperties = {
+const railLabelDoneStyle = {
   ...railLabelStyle,
   fontSize: tokens.fontSize.note,
   opacity: 0.8,
-}
+} satisfies CSSProperties
 
-const railLabelFutureStyle: CSSProperties = {
+const railLabelFutureStyle = {
   ...railLabelStyle,
   fontSize: tokens.fontSize.note,
   opacity: 0.66,
-}
+} satisfies CSSProperties
 
 /** Connector-pipe rail entry — one step tab + label. */
 function RailStep({
@@ -217,22 +220,22 @@ function RailStep({
 }
 
 /** Its direction, alignment, gap and padding change at sm (`.wiz-pill`). */
-const pillStyle: CSSProperties = {
+const pillStyle = {
   backgroundColor: tokens.color.ink,
   display: 'flex',
   pointerEvents: 'auto',
-}
+} satisfies CSSProperties
 
 /** Centred on a phone, start-aligned from sm (`.wiz-pill-start`). */
-const pillTrackersStyle: CSSProperties = {
+const pillTrackersStyle = {
   alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[8],
-}
+} satisfies CSSProperties
 
 /** Centred on a phone, left-aligned from sm (`.wiz-pill-note`). */
-const pillNoteStyle: CSSProperties = {
+const pillNoteStyle = {
   color: tokens.color.pilot,
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.xs,
@@ -242,22 +245,22 @@ const pillNoteStyle: CSSProperties = {
   margin: 0,
   paddingInline: tokens.space[8],
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const pillEscapeStyle: CSSProperties = { display: 'flex', paddingInline: tokens.space[8] }
+const pillEscapeStyle = { display: 'flex', paddingInline: tokens.space[8] } satisfies CSSProperties
 
 /** A row on a phone, `display: contents` from sm (`.wiz-pill-nav`). */
-const pillNavStyle: CSSProperties = {
+const pillNavStyle = {
   alignItems: 'center',
   gap: tokens.space[8],
   justifyContent: 'flex-end',
-}
+} satisfies CSSProperties
 
 /** Full width on a phone, its own width from sm (`.wiz-pill-cta`). */
-const ctaStyle: CSSProperties = { borderRadius: tokens.radius.card }
+const ctaStyle = { borderRadius: tokens.radius.card } satisfies CSSProperties
 
 /** Locked: hollow, dashed, at full opacity though disabled. */
-const ctaLockedStyle: CSSProperties = {
+const ctaLockedStyle = {
   ...ctaStyle,
   backgroundColor: 'transparent',
   borderColor: 'color-mix(in oklab, var(--color-paper) 55%, transparent)',
@@ -267,19 +270,19 @@ const ctaLockedStyle: CSSProperties = {
   color: tokens.color.paper60,
   fontWeight: tokens.weight.normal,
   opacity: 1,
-}
+} satisfies CSSProperties
 
-const shellStyle: CSSProperties = {
+const shellStyle = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100dvh',
-}
+} satisfies CSSProperties
 
 /** A column on a phone, a row from lg (`.wiz-body`). */
-const bodyStyle: CSSProperties = { display: 'flex', flex: '1 1 0%' }
+const bodyStyle = { display: 'flex', flex: '1 1 0%' } satisfies CSSProperties
 
 /** Shown from lg (`.wiz-rail-pipe`). */
-const pipeStyle: CSSProperties = {
+const pipeStyle = {
   backgroundColor: tokens.color.ink,
   borderTopLeftRadius: '0.75rem',
   borderTopRightRadius: '0.75rem',
@@ -288,10 +291,10 @@ const pipeStyle: CSSProperties = {
   position: 'absolute',
   top: tokens.space[4],
   width: tokens.space[28],
-}
+} satisfies CSSProperties
 
 /** Shown from lg (`.wiz-rail-stub`). */
-const pipeStubStyle: CSSProperties = {
+const pipeStubStyle = {
   backgroundColor: tokens.color.ink,
   borderBottomLeftRadius: '0.5rem',
   borderBottomRightRadius: '0.5rem',
@@ -301,38 +304,38 @@ const pipeStubStyle: CSSProperties = {
   left: tokens.space[4],
   position: 'absolute',
   width: tokens.space[28],
-}
+} satisfies CSSProperties
 
-const arrowheadStyle: CSSProperties = {
+const arrowheadStyle = {
   borderLeft: '9px solid transparent',
   borderRight: '9px solid transparent',
   borderTop: `14px solid ${tokens.color.paper}`,
   height: 0,
   marginTop: tokens.space[10],
   width: 0,
-}
+} satisfies CSSProperties
 
 /** Its padding grows at lg (`.wiz-main`). */
-const mainStyle: CSSProperties = {
+const mainStyle = {
   display: 'flex',
   flex: '1 1 0%',
   flexDirection: 'column',
   minWidth: 0,
-}
+} satisfies CSSProperties
 
-const fillStyle: CSSProperties = { flex: '1 1 0%', minHeight: 0 }
+const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
 
 /** Its left padding — the number tab's gutter — opens at sm (`.wiz-step-card`). */
-const stepCardStyle: CSSProperties = {
+const stepCardStyle = {
   borderRadius: tokens.radius.card,
   paddingBottom: tokens.space[24],
   paddingRight: tokens.space[20],
   paddingTop: tokens.space[20],
   position: 'relative',
-}
+} satisfies CSSProperties
 
 /** Shown from sm (`.wiz-step-tab`). */
-const stepTabStyle: CSSProperties = {
+const stepTabStyle = {
   backgroundColor: tokens.color.ink,
   borderRadius: tokens.radius.badge,
   color: tokens.color.paper,
@@ -346,9 +349,9 @@ const stepTabStyle: CSSProperties = {
   position: 'absolute',
   top: tokens.space[24],
   width: '3.5rem',
-}
+} satisfies CSSProperties
 
-const stepCardTitleStyle: CSSProperties = {
+const stepCardTitleStyle = {
   color: 'currentcolor',
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.display,
@@ -356,11 +359,11 @@ const stepCardTitleStyle: CSSProperties = {
   lineHeight: 1.05,
   margin: 0,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const stepCardBodyStyle: CSSProperties = { marginTop: tokens.space[16] }
+const stepCardBodyStyle = { marginTop: tokens.space[16] } satisfies CSSProperties
 
-const footerPillStyle: CSSProperties = {
+const footerPillStyle = {
   bottom: tokens.space[16],
   display: 'flex',
   justifyContent: 'flex-end',
@@ -368,7 +371,7 @@ const footerPillStyle: CSSProperties = {
   pointerEvents: 'none',
   position: 'sticky',
   zIndex: 40,
-}
+} satisfies CSSProperties
 
 /**
  * Shared wizard skeleton, a poster sibling: the `.sheet--{kind}` tone context

@@ -23,9 +23,9 @@ import { color, font, fontSize, space, tracking, weight } from 'component-lib/de
 import type { CSSProperties } from 'react'
 import type { DeckListModel } from './DeckList'
 
-const ROOT: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[10] }
+const ROOT = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
 
-const HEADING: CSSProperties = {
+const HEADING = {
   margin: 0,
   fontFamily: font.cond,
   fontWeight: weight.bold,
@@ -33,9 +33,9 @@ const HEADING: CSSProperties = {
   letterSpacing: tracking.caps,
   textTransform: 'uppercase',
   color: color.ink,
-}
+} satisfies CSSProperties
 
-const GROUP: CSSProperties = {
+const GROUP = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
@@ -44,31 +44,31 @@ const GROUP: CSSProperties = {
   margin: 0,
   padding: 0,
   minInlineSize: 0,
-}
+} satisfies CSSProperties
 
-const REACH: CSSProperties = {
+const REACH = {
   fontFamily: font.body,
   fontSize: fontSize.caption,
   color: color.ink75,
-}
+} satisfies CSSProperties
 
-const ROWS: CSSProperties = {
+const ROWS = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[8],
   listStyle: 'none',
   margin: 0,
   padding: 0,
-}
+} satisfies CSSProperties
 
-const LOCKED: CSSProperties = { opacity: 0.6 }
+const LOCKED = { opacity: 0.6 } satisfies CSSProperties
 
-const LOCK_NOTE: CSSProperties = {
+const LOCK_NOTE = {
   margin: `${space[4]} 0 0`,
   fontFamily: font.body,
   fontSize: fontSize.caption,
   color: color.ink,
-}
+} satisfies CSSProperties
 
 export function PhoneDeck({
   view,

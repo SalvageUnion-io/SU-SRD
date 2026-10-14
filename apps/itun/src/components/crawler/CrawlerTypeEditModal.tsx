@@ -25,28 +25,28 @@ import type { EntityState } from '../../stores/entityStore'
 import '../../styles/wizard.css'
 
 /** The confirm dialog's body. */
-const CONFIRM_BODY: CSSProperties = {
+const CONFIRM_BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[16],
   backgroundColor: tokens.color.paper,
   padding: tokens.space[20],
-}
+} satisfies CSSProperties
 
 /** The confirm dialog's consequence copy. */
-const CONFIRM_COPY: CSSProperties = {
+const CONFIRM_COPY = {
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',
   color: tokens.color.wkMuted,
-}
+} satisfies CSSProperties
 
 /** Cancel / confirm, right-aligned. */
-const CONFIRM_ACTIONS: CSSProperties = {
+const CONFIRM_ACTIONS = {
   display: 'flex',
   justifyContent: 'flex-end',
   gap: tokens.space[8],
-}
+} satisfies CSSProperties
 
 type CrawlerTypeEditModalProps = {
   open: boolean

@@ -50,12 +50,12 @@ export function Tabs<Value extends string>({
   )
 }
 
-const LIST: CSSProperties = {
+const LIST = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: space[4],
-}
+} satisfies CSSProperties
 
 export function TabList({
   label,
@@ -74,7 +74,7 @@ export function TabList({
   )
 }
 
-const TAB: CSSProperties = {
+const TAB = {
   padding: `5px ${space[10]}`,
   borderRadius: radius.card,
   borderStyle: 'solid',
@@ -86,7 +86,7 @@ const TAB: CSSProperties = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
 export function Tab({
   value,

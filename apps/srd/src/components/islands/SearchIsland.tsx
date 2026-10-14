@@ -24,7 +24,7 @@ type SearchIslandProps = {
 }
 
 /** The results column's inset; `.su-entity-token-list` sets Tokens one a line, full width. */
-const RESULTS: CSSProperties = { padding: space[8] }
+const RESULTS = { padding: space[8] } satisfies CSSProperties
 
 /** The dropdown, hung under the field: full width in the hero, 20rem in the bar. */
 const LISTBOX = {

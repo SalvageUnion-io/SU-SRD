@@ -26,16 +26,16 @@ import type { CSSProperties } from 'react'
 import { formatClock } from '../../lib/formatDate'
 import type { AlertLine, RollLine } from './useGameFeed'
 
-const SCROLL: CSSProperties = {
+const SCROLL = {
   height: '100%',
   overflowY: 'auto',
   padding: space[12],
   display: 'flex',
   flexDirection: 'column',
   gap: space[16],
-}
+} satisfies CSSProperties
 
-const HEADING: CSSProperties = {
+const HEADING = {
   margin: `0 0 ${space[6]}`,
   fontFamily: font.cond,
   fontWeight: weight.bold,
@@ -43,38 +43,42 @@ const HEADING: CSSProperties = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   color: color.ink75,
-}
+} satisfies CSSProperties
 
-const LIST: CSSProperties = {
+const LIST = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[4],
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'flex',
   flexDirection: 'column',
   gap: '1px',
   padding: `${space[4]} ${space[8]}`,
   border: `${borderWidth.chrome} solid ${color.ink20}`,
   borderRadius: radius.card,
-}
+} satisfies CSSProperties
 
-const META: CSSProperties = {
+const META = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.badge,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   color: color.ink75,
-}
+} satisfies CSSProperties
 
-const TEXT: CSSProperties = { fontFamily: font.body, fontSize: fontSize.note, color: color.ink }
+const TEXT = {
+  fontFamily: font.body,
+  fontSize: fontSize.note,
+  color: color.ink,
+} satisfies CSSProperties
 
-const NOTE: CSSProperties = { ...TEXT, margin: 0, color: color.ink75 }
+const NOTE = { ...TEXT, margin: 0, color: color.ink75 } satisfies CSSProperties
 
 const SOURCE: Record<string, string> = { dashboard: 'Dashboard', 'discord-bot': 'Discord' }
 
