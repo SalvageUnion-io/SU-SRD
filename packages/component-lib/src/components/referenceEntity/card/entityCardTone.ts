@@ -4,7 +4,6 @@ import {
   classKind,
   entityStamp,
   entityTone,
-  entityTypeLabel,
   guideTone,
   isAbility,
   isDoEntity as isDoRecord,
@@ -165,18 +164,6 @@ export function titleSizeRung(depth: number, size: CardSize = 'large'): TitleRun
  */
 export function nestedChildSize(parentSize: CardSize): CardSize {
   return parentSize === 'small' ? 'small' : 'medium'
-}
-
-export type Eyebrow = { type: string }
-
-/**
- * Eyebrow = the schema TYPE stamp only (e.g. "Ability", "System"). The
- * categorical classification axis (ability tree, tech level) is not in this
- * Stamp — it sits beside it in the header's labels, via
- * {@link resolveAxisMarkers}.
- */
-export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): Eyebrow {
-  return { type: entityTypeLabel(schemaName) }
 }
 
 export type AxisMarker = { label: string; value?: string }

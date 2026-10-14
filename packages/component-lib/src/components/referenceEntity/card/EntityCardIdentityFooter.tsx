@@ -7,7 +7,11 @@ import type { AdditionalSource } from './provenance'
 import { formatProvenance } from './provenance'
 
 type EntityCardIdentityFooterProps = {
-  /** Entity TYPE (e.g. "Chassis") — the caps label on the LEFT of the row. */
+  /**
+   * Entity KIND (e.g. "Chassis") — the caps label on the LEFT of the row. Only
+   * a Page's foot names it (E9: ITUN's detail dialog); a card's and a Peek's
+   * pass none.
+   */
   typeLabel: string | undefined
   source: string | undefined
   booklet: string | undefined
@@ -73,8 +77,9 @@ const truncate: CSSProperties = {
  * (board E1). A Peek is the exception: its footer wears the header band
  * (`band`), so the floating card reads as one plate.
  *
- * ONE row: the entity TYPE on the LEFT, provenance (source · page) on the
- * RIGHT — "Chassis … Workshop Manual · p.128". A SECOND,
+ * ONE row: on a Page the entity KIND on the LEFT, provenance (source · page)
+ * on the RIGHT — "Chassis … Workshop Manual · p.128"; a card's foot is the
+ * provenance alone. A SECOND,
  * right-aligned line follows when the entity carries reprints
  * (`additionalSources`) — "Also in  Salvage Union Starter Set (PH) · p.38".
  * A user-made card puts its `credit` ("Made by alxjrvs") where the source goes.
