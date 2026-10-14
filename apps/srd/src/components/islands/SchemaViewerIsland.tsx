@@ -30,8 +30,8 @@ const PARAM_NAME = 'q'
 
 /** The schemas whose entity IS a tech level: its name already says the level. */
 const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set(['tech-levels', 'crawler-tech-levels'])
-/** Cargo and Heat: a chassis tile's chips sit beside its name, so only its page prints them. */
-const CHASSIS_TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
+/** Cargo and Heat: a tile's chips sit beside its name, so only its page prints them. */
+const TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
 
 /**
  * Read a single query-param value from the current URL. SSR-safe: the SSG
@@ -221,13 +221,9 @@ function SchemaViewer({
         : ['kind'],
     [groupBy, catalogOnly, schemaId]
   )
-  // A chassis tile carries its stats beside the name, so it keeps to the five
-  // that pick a chassis; its page shows every stat.
-  const chipsBeside = schemaId === 'chassis'
-  const tileOmit = useMemo(
-    () => (chipsBeside ? [...omit, ...CHASSIS_TILE_OMIT] : omit),
-    [omit, chipsBeside]
-  )
+  // A tile carries its stats beside the name, so it keeps to the ones that
+  // pick a Mech or drone; its page shows every stat.
+  const tileOmit = useMemo(() => [...omit, ...TILE_OMIT], [omit])
 
   const toggleTechLevel = (level: TechLevel) => {
     setTechLevelFilters((prev) => {
@@ -355,13 +351,7 @@ function SchemaViewer({
               <section key={group.key} className="srd-listing__group" aria-label={group.label}>
                 {group.label && <Slab variant="solid" label={group.label} />}
                 {view === 'catalog' ? (
-                  <ul
-                    className={
-                      chipsBeside
-                        ? 'srd-listing__tiles srd-listing__tiles--beside'
-                        : 'srd-listing__tiles'
-                    }
-                  >
+                  <ul className="srd-listing__tiles">
                     {group.items.map((item: SURefEntity) => (
                       <li key={item.id}>
                         <Entity
@@ -369,7 +359,6 @@ function SchemaViewer({
                           entity={item}
                           mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
                           omit={tileOmit}
-                          chipsBeside={chipsBeside}
                           lead
                         />
                       </li>
