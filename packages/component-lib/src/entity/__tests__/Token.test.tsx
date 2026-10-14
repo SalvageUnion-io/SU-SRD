@@ -2,8 +2,8 @@
  * A Token carries a short chip set after its name, in the stat order (E17):
  * TL, its slots, HP or SP, then its one action's type or how many it lists
  * (`ACTIONS | 3`, its folded self-action not counted), its range's code
- * (`RNG | C`), then the cost box, the same in every context. A chassis keeps its one chip set in every form. An ability's tier
- * numeral leads its name instead of a chip.
+ * (`RNG | C`), then the cost box, the same in every context. A chassis drops
+ * its SYS and MODS. An ability's tier numeral leads its name instead of a chip.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -63,8 +63,8 @@ describe('Token chips', () => {
     expect(chipsOf('systems', 'Red Laser')).toEqual(['TL1', 'Slots3', 'Turn Action', 'RNGC'])
   })
 
-  test('a chassis shows its one chip set: TL, SV, SP, EP, SYS, MODS', () => {
-    expect(chipsOf('chassis', 'Mule')).toEqual(['TL1', 'SV7', 'SP12', 'EP4', 'SYS16', 'MODS2'])
+  test("a chassis shows TL, SV, SP, EP: its SYS and MODS are the Row's", () => {
+    expect(chipsOf('chassis', 'Mule')).toEqual(['TL1', 'SV7', 'SP12', 'EP4'])
   })
 
   test('an NPC shows its HP and its action count', () => {

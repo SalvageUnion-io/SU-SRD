@@ -685,8 +685,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] [tier] name [chips]`,
-   dashed when player-made, its name on the cut-out (below). When the line
-   runs out the chips wrap under the name, so the name always shows (E18). */
+   dashed when player-made, its name on the cut-out (below). Always one row
+   (E18): short of room the name ends in "…", and the chips never take more
+   than 65% of the pill, dropping from the end (below). */
 .su-entity-token__pill {
   align-items: stretch;
   align-self: flex-start;
@@ -694,7 +695,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   border-style: solid;
   border-width: var(--bw-chrome);
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
@@ -729,9 +730,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: none;
 }
 
-/* The name keeps its line: the chips wrap under it rather than squeeze it,
-   and only a name too long for a line of its own ends in "…" (E18's Token
-   exception). */
+/* The name gives way first: it takes the room the chips leave and ends in
+   "…" when that is too little (E18's Token exception). */
 .su-entity-token__name {
   flex: 1 1 auto;
   min-width: 0;
@@ -740,16 +740,23 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   white-space: nowrap;
 }
 
-/* The chips (`tokenChips`, then the cost box) follow the name on its line
-   while it has room and wrap under it, as a group, when it does not; a set
-   too wide for a line of its own wraps chip by chip. */
+/* The chips (`tokenChips`, then the cost box) follow the name on its line and
+   never shrink it to make room for themselves: at most 65% of the pill is
+   theirs. A set wider than that drops chips from the end, whole, one at a
+   time, so the earliest in the stat order stay: the group wraps, and only its
+   first line shows: the clip is one mini chip high (its 11px type, padding
+   and hairline border), and the row gap keeps the next line out of it. */
 .su-entity-token__chips {
   align-items: center;
+  align-content: flex-start;
   display: flex;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   flex-wrap: wrap;
-  gap: var(--space-4);
-  max-width: 100%;
+  gap: 1.5rem var(--space-4);
+  justify-content: flex-end;
+  max-height: calc(var(--text-badge) + 2 * var(--space-2) + 2 * var(--bw-hairline));
+  max-width: 65%;
+  overflow: hidden;
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option
