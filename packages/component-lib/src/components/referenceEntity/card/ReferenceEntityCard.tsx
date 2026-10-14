@@ -72,7 +72,7 @@ import {
 } from './entityCardTone'
 import { splitFacets } from './facetSplit'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
-import { CardStack } from './NestedCards'
+import { CardLead, CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
 import { PatternLoadoutRows } from './PatternLoadout'
 import { resolveFooterProvenance } from './provenance'
@@ -698,11 +698,8 @@ function ReferenceEntityCardInner({
   return (
     <CardOuter {...outer}>
       {topRightRail}
-      {/* The frame box: the frame lives on this INNER clipping element; the
-        OUTER div is overflow-visible only so the control rail escapes the
-        clip. Its paper, radius and clip are `.su-ec-frame` (every nested
-        card repeats them: ADR-046, repeated elements); its weight, dash and
-        selection ring are this card's. */}
+      {/* The frame lives on this INNER clip, so the rail escapes it; paper,
+        radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
       <div className="su-ec-frame" style={frameStyle}>
         {header}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
@@ -712,7 +709,12 @@ function ReferenceEntityCardInner({
           </div>
         )}
         {body}
-        {rollTableNode}
+        <CardLead
+          bare={!subtitleExtra && !body}
+          nested={!!(actionsNode || nestedGroupsNode || expand)}
+          table={rollTableNode}
+          size={size}
+        />
         {patternSection}
         {actionsNode}
         {nestedGroupsNode}
@@ -735,8 +737,7 @@ function ReferenceEntityCardInner({
             {afterExtraContent}
           </div>
         )}
-        {/* SLOT: expand — after the body, before the footer (e.g. a crawler
-            bay's crew inset). */}
+        {/* SLOT: expand — before the footer (a crawler bay's crew inset). */}
         {expand && (
           <div
             style={{
@@ -749,8 +750,7 @@ function ReferenceEntityCardInner({
         {statusRail}
         {/* FOOTER — none on a catalog tile; a Peek's wears the header band. */}
         {rendersFooter ? (
-          // USER-MADE (ruleset §3.9): the credit is the maker, never a page; a player's
-          // pattern would otherwise put its chassis's "Workshop Manual · p.104" under it.
+          // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
           <EntityCardIdentityFooter
             typeLabel={footerType}
             source={userMade ? undefined : provenance.source}

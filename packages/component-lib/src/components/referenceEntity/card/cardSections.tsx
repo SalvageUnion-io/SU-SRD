@@ -48,6 +48,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     size,
     depth,
     compact,
+    inline,
     onPage,
     isAction,
     isDown,
@@ -86,8 +87,11 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     nestedHost,
   } = resolved
   const isPattern = !!pattern
-  // ROLL TABLE — the entity's own, or its folded action's: inline, flush,
-  // under its ROLL THE DIE bar (board E4).
+  // ROLL TABLE — the entity's own, or its folded action's, under its ROLL THE
+  // DIE bar (board E4). In a framed card it is a nested element, so it wears
+  // its own box at the nested width (owner's call, 2026-10-14: "nested
+  // elements should not be full-width"); flush on a page and in an inline
+  // action band.
   const ownTable = resolveTable(entity)
   const entityTable = ownTable ?? resolveTable(foldedAction)
   const tableSource = ownTable ? entity : foldedAction
@@ -102,6 +106,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         name={tableName}
         size={size}
         disabled={isDown}
+        framed={!onPage && !inline}
         tone={tone.bgColor}
       />
     ) : null

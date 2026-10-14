@@ -89,6 +89,35 @@ export function CardStack({
   return <div style={stack(size, flush)}>{children}</div>
 }
 
+/**
+ * What leads a framed card's nested elements. A GAP under the head when no
+ * body pads it, so content never touches the header; and the card's own ROLL
+ * TABLE, boxed at the nested width (owner's call, 2026-10-14: "nested elements
+ * should not be full-width").
+ */
+export function CardLead({
+  bare,
+  nested,
+  table,
+  size,
+}: {
+  /** Nothing (no body, no sub-line) pads the head. */
+  bare: boolean
+  /** Nested elements follow the table. */
+  nested: boolean
+  table: ReactNode
+  size: CardSize
+}) {
+  return (
+    <>
+      {bare && (table || nested) && <div aria-hidden="true" style={{ height: LEAD_GAP[size] }} />}
+      {table && <CardStack size={size}>{table}</CardStack>}
+    </>
+  )
+}
+
+const LEAD_GAP: Record<CardSize, string> = { large: space[12], medium: space[10], small: space[8] }
+
 /** Children inside a Peek: one read-only Token each, on a wrapping line (E16). */
 function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
   return (
