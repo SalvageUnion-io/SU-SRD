@@ -4,5 +4,6 @@
     "style-object-annotation": 415
   },
   "srd-css": {},
-  "tone-ground": {}
+  "tone-ground": {},
+  "class-prefix": {}
 }

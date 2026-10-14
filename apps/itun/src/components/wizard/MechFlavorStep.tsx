@@ -52,7 +52,7 @@ export function MechFlavorStep({
   }
 
   return (
-    <div className="wiz-stack wiz-stack--12" style={stepColumnStyle}>
+    <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
       <Field
         label={label}
         value={value}

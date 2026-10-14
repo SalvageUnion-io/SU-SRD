@@ -57,7 +57,9 @@ What an editor needs:
   `su-reset` and `index.css` into `su-base`. The two apps import it, never
   `index.css`, and their own stylesheets stay unlayered so an app rule
   outranks a package rule (`package-stylesheet-import` guards it).
-- `dash-class-contract` holds `su-dash-*` usage and definitions to each other.
+- Every package and ITUN class is `su-*` (`su-wiz-*`; srd's are `srd-*`):
+  `class-prefix`. `dash-class-contract` holds `su-dash-*` usage and
+  definitions to each other.
 - **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a
   real key press. Checking layer order by block position lies: read the
   `@layer` declaration.

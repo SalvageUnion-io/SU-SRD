@@ -20,7 +20,7 @@ const SCRAP_HINT: CSSProperties = {
   color: tokens.color.wkMuted,
 }
 
-/** The bucket inputs; the column count is `.wiz-scrap-grid`. */
+/** The bucket inputs; the column count is `.su-wiz-scrap-grid`. */
 const SCRAP_GRID: CSSProperties = { display: 'grid', gap: tokens.space[12] }
 
 const SCRAP_BUCKETS = ['tl1', 'tl2', 'tl3', 'tl4', 'tl5', 'tl6'] as const
@@ -62,7 +62,7 @@ export function CrawlerIdentityStep({
   }
 
   return (
-    <div className="wiz-stack wiz-stack--20" style={COLUMN}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={COLUMN}>
       <Field
         label="Crawler name"
         value={name}
@@ -83,7 +83,7 @@ export function CrawlerIdentityStep({
         placeholder="What the crawler is, its build and history."
       />
 
-      <Panel soft className="wiz-stack wiz-stack--16 wiz-scrap-panel">
+      <Panel soft className="su-wiz-stack su-wiz-stack--16 su-wiz-scrap-panel">
         <header>
           <Slab label="Scrap Pool" />
           <p style={SCRAP_HINT}>
@@ -92,7 +92,7 @@ export function CrawlerIdentityStep({
           </p>
         </header>
 
-        <div className="wiz-scrap-grid" style={SCRAP_GRID}>
+        <div className="su-wiz-scrap-grid" style={SCRAP_GRID}>
           {SCRAP_BUCKETS.map((bucket, i) => {
             const id = `crawler-scrap-${bucket}`
             return (

@@ -84,7 +84,7 @@ const LABEL = {
 
 /**
  * Sized to its options. Its height steps down from `sm` and it fades when
- * disabled (`.container-select`, `.move-to-container__select`).
+ * disabled (`.su-container-select`, `.su-move-to-container__select`).
  */
 const SELECT = { width: 'auto' } satisfies CSSProperties
 
@@ -165,7 +165,7 @@ function ConnectedMoveToContainerControl({
           value={serializeContainer(current)}
           onChange={handleChange}
           disabled={pending || destinations.length <= 1}
-          className="container-select move-to-container__select"
+          className="su-container-select su-move-to-container__select"
           style={SELECT}
           aria-label="Move to a Game or your shelf"
         >
@@ -192,7 +192,7 @@ function ConnectedMoveToContainerControl({
           )}
         </Select>
       </div>
-      {error && <FieldError className="move-to-container__error">{error}</FieldError>}
+      {error && <FieldError className="su-move-to-container__error">{error}</FieldError>}
     </div>
   )
 }

@@ -129,7 +129,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
         if (!next) onClose()
       }}
       title={`Blank ${label}`}
-      maxWidth="wiz-modal-md"
+      maxWidth="su-wiz-modal-md"
     >
       <div style={dialogBodyStyle}>
         <p style={noteStyle}>

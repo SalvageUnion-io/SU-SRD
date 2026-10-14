@@ -213,7 +213,9 @@ export function ResolveCost({
               +
             </Button>
           </div>
-          <span className={`su-dash-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
+          <span
+            className={`su-dash-deck-hotx-proj${variableHot.over ? ' su-dash-deck-hotx-proj--over' : ''}`}
+          >
             {variableHot.projText}
           </span>
         </div>

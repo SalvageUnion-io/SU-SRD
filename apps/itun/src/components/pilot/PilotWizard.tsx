@@ -421,7 +421,7 @@ export function PilotWizard({
       footerNote={gate.ok ? undefined : gate.reason}
       submitLabel="Create Pilot ✦"
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="wiz-rule-brief" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
       {step === 'stats' && <StatsStep />}
       {step === 'classAbility' && (
         <ClassAbilityStep

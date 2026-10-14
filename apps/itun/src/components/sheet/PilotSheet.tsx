@@ -267,10 +267,10 @@ export function PilotSheet({
   return (
     <section
       aria-label={`${pilot.name} pilot details`}
-      // `.sheet-section` is a print-stylesheet target (page-break rules);
+      // `.su-sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
-      className="sheet-section"
+      className="su-sheet-section"
       style={BODY}
     >
       {/* Dead state (max HP 0 = death). Display-only — the record

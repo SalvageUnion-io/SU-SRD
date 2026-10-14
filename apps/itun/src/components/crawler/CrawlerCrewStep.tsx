@@ -20,7 +20,7 @@ const LEDE: CSSProperties = {
   color: 'currentcolor',
 }
 
-/** An open row's crew fields; the column count is `.wiz-crew-fields`. */
+/** An open row's crew fields; the column count is `.su-wiz-crew-fields`. */
 const CREW_FIELDS: CSSProperties = {
   display: 'grid',
   gap: tokens.space[12],
@@ -100,7 +100,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
   }
 
   return (
-    <div className="wiz-stack wiz-stack--12" style={COLUMN}>
+    <div className="su-wiz-stack su-wiz-stack--12" style={COLUMN}>
       <p style={LEDE}>
         Each crewed Bay is run by its own lead, and your Crawler type brings a special NPC. Open a
         row to name and detail them now, or leave them blank and fill them in during play.
@@ -112,7 +112,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
         const showKeepsake = findNpcChoiceByName(source.npc, 'Keepsake') !== undefined
         const showMotto = findNpcChoiceByName(source.npc, 'Motto') !== undefined
         return (
-          <section key={source.ref} className="wiz-stack wiz-stack--12">
+          <section key={source.ref} className="su-wiz-stack su-wiz-stack--12">
             <ReferenceEntityCard
               data={source.entity}
               size="medium"
@@ -121,7 +121,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
               controls={[navigateControl(() => toggle(source.ref))]}
             />
             {isOpen && (
-              <div className="wiz-crew-fields" style={CREW_FIELDS}>
+              <div className="su-wiz-crew-fields" style={CREW_FIELDS}>
                 <Field
                   label="Name"
                   value={value.name ?? ''}

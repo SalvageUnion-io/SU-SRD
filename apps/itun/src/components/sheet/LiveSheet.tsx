@@ -294,7 +294,7 @@ export function LiveSheet({
     // (the live, public and Starter Set sheets): none of their routes wraps
     // one, and `Sheet`'s not-found state is itself a `<main>`, so the landmark
     // belongs here rather than around `Sheet`.
-    <main className={`sheet--${variant} su-page-gutters`} style={ROOT} data-variant={variant}>
+    <main className={`su-sheet--${variant} su-page-gutters`} style={ROOT} data-variant={variant}>
       {/* Top bar — a labelled section, not a <header>: outside a <main> a
           header is a banner landmark, a second one beside the Union bar. It
           carries `data-print="hide"`, the print stylesheet's chrome rule.

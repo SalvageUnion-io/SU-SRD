@@ -34,10 +34,10 @@ export function FlavorStep({
 }: FlavorStepProps) {
   const id = `pilot-${field}`
   return (
-    <div className="wiz-stack wiz-stack--20" style={stepColumnStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={stepColumnStyle}>
       <Field label={label} htmlFor={id}>
         {multiline ? (
-          <div className="wiz-stack wiz-stack--8">
+          <div className="su-wiz-stack su-wiz-stack--8">
             <RollTableButton
               field={field}
               onRoll={onChange}

@@ -264,7 +264,7 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
       <button
         type="button"
         aria-label={LABEL}
-        className={`${buttonVariants({ variant: 'ghost', size: 'iconOnly' })} global-search-icon`}
+        className={`${buttonVariants({ variant: 'ghost', size: 'iconOnly' })} su-global-search-icon`}
         style={TRIGGER_ICON}
       >
         <Search size={22} aria-hidden="true" />
@@ -348,7 +348,7 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
                             role="option"
                             aria-selected={index === selectedIndex}
                             onClick={() => submit(result)}
-                            className="global-search-option"
+                            className="su-global-search-option"
                             style={OPTION}
                           >
                             <span style={OPTION_TITLE}>{result.title}</span>

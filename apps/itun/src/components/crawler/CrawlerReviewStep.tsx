@@ -9,7 +9,7 @@ import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 import '../../styles/wizard.css'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
 
-/** Recap and cards; the column split is `.wiz-review-grid`. */
+/** Recap and cards; the column split is `.su-wiz-review-grid`. */
 const REVIEW_GRID: CSSProperties = { display: 'grid', gap: tokens.space[24] }
 
 /** The recap column sits at the top of its row. */
@@ -98,9 +98,9 @@ export function CrawlerReviewStep({
   const crew = crewNames.map((name) => unitRowModel({ kind: 'npc', name }))
 
   return (
-    <div className="wiz-review-grid" style={REVIEW_GRID}>
-      <div className="wiz-stack wiz-stack--12" style={RECAP}>
-        <Panel className="wiz-review-panel">
+    <div className="su-wiz-review-grid" style={REVIEW_GRID}>
+      <div className="su-wiz-stack su-wiz-stack--12" style={RECAP}>
+        <Panel className="su-wiz-review-panel">
           {/* The recap: Stats, the type as its chip, the rest as Tokens. */}
           <Recap>
             <RecapStat label="Name" value={form.name.trim()} required />
@@ -113,7 +113,7 @@ export function CrawlerReviewStep({
             <RecapTokens label="Weapons" entities={systems} empty="Required" />
             <RecapTokens label="Crew" models={crew} empty="Unnamed — fill in during play" />
           </Recap>
-          {submitError && <FieldError className="wiz-review-error">{submitError}</FieldError>}
+          {submitError && <FieldError className="su-wiz-review-error">{submitError}</FieldError>}
         </Panel>
         {isAugmented && (
           <Callout label="Reminder" tone="crawler">
@@ -126,7 +126,7 @@ export function CrawlerReviewStep({
       </div>
 
       {/* chosen cards */}
-      <div className="wiz-stack wiz-stack--12">
+      <div className="su-wiz-stack su-wiz-stack--12">
         {selectedType && (
           <ReferenceEntityCard data={selectedType} size="medium" hide={{ choices: true }} />
         )}

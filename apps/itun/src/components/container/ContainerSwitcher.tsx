@@ -38,7 +38,7 @@ const LABEL = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** Its height steps down from `sm` (`.container-select`, styles/controls.css). */
+/** Its height steps down from `sm` (`.su-container-select`, styles/controls.css). */
 const SELECT = { width: '200px' } satisfies CSSProperties
 
 type ContainerSwitcherProps = {
@@ -68,7 +68,7 @@ function ConnectedContainerSwitcher({ activeContainer, onSelect }: ContainerSwit
         id="container-switcher"
         value={serializeContainer(activeContainer)}
         onChange={handleChange}
-        className="container-select"
+        className="su-container-select"
         style={SELECT}
       >
         <option value={SHELF_VALUE}>Shelves</option>

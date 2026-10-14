@@ -226,7 +226,8 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'styling',
-    guards: 'design tokens, styling ownership, srd stylesheet entry (ratcheted)',
+    guards:
+      'design tokens, styling ownership, srd stylesheet entry, the su- class prefix (ratcheted)',
     fix: "follow the rule's printed fix; `--report` lists every finding; a ratchet that fell needs `bun tools/check-styling.ts --update-baseline` (tools/baselines/styling-baseline.json)",
     cmd: ['bun', 'tools/check-styling.ts'],
     profiles: ALL,

@@ -111,7 +111,7 @@ export function CrawlerTypeEditModal({
           if (!next) onClose()
         }}
         title="Change Crawler Type"
-        maxWidth="wiz-modal-5xl"
+        maxWidth="su-wiz-modal-5xl"
         bare
       >
         <EntitySearcher
@@ -157,7 +157,7 @@ export function CrawlerTypeEditModal({
         }}
         title="Change crawler type?"
         tone="danger"
-        maxWidth="wiz-modal-md"
+        maxWidth="su-wiz-modal-md"
       >
         <div style={CONFIRM_BODY}>
           <div style={CONFIRM_COPY}>

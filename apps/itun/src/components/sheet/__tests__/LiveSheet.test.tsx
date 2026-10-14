@@ -316,7 +316,7 @@ describe('LiveSheet — strip values and syncStats', () => {
 
   test('variant sets the sheet tone class on the root', () => {
     const { container } = renderShell()
-    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
+    expect(container.querySelector('.su-sheet--pilot')).toBeTruthy()
   })
 
   test('mobilePriority:false strip items fold below sm', () => {

@@ -70,7 +70,7 @@ const BAND_CONTROLS = {
 const NO_UNDERLINE = { textDecorationLine: 'none' } satisfies CSSProperties
 
 /** The paper outline Shelves' band buttons wear (`styles/shelves.css`). */
-const ON_BAND_BUTTON = 'shelves-band__btn'
+const ON_BAND_BUTTON = 'su-shelves-band__btn'
 
 export function Roster() {
   const activeContainer = useActiveContainer()

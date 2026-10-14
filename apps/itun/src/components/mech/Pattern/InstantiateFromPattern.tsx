@@ -73,7 +73,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
           if (!next) setConfirming(false)
         }}
         title={`Build a mech from ${pattern.name}?`}
-        maxWidth="wiz-modal-md"
+        maxWidth="su-wiz-modal-md"
       >
         <div style={dialogBodyStyle}>
           <div style={dialogNoteStyle}>

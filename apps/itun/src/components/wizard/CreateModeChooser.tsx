@@ -7,7 +7,7 @@
  * limits). For mechs a third door joins the Blank family: Instantiate from
  * Pattern, which links to the existing /mechs/patterns flow.
  *
- * The title is the ChapterBand every page wears; the `.sheet--{kind}` tone
+ * The title is the ChapterBand every page wears; the `.su-sheet--{kind}` tone
  * context colours the Guided door.
  */
 
@@ -49,10 +49,10 @@ const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
 
 const screenStyle = { minHeight: '100dvh' } satisfies CSSProperties
 
-/** Its padding grows at `sm` (`.wiz-chooser-body`). */
+/** Its padding grows at `sm` (`.su-wiz-chooser-body`). */
 const bodyStyle: CSSProperties = { marginInline: 'auto', maxWidth: '56rem', width: '100%' }
 
-/** Its fill dims on hover, so the background is `.wiz-chooser-pattern`'s. */
+/** Its fill dims on hover, so the background is `.su-wiz-chooser-pattern`'s. */
 const patternLinkStyle: CSSProperties = {
   borderRadius: tokens.radius.badge,
   color: tokens.color.paper,
@@ -80,7 +80,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
 
   return (
     <section
-      className={`sheet--${kind}`}
+      className={`su-sheet--${kind}`}
       style={screenStyle}
       aria-label={`New ${label.toLowerCase()} — choose how to create`}
     >
@@ -88,9 +88,9 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
           in the kind's chapter colour. */}
       <ChapterBand tone={kind}>New {label}</ChapterBand>
 
-      <div className="wiz-chooser-body" style={bodyStyle}>
+      <div className="su-wiz-chooser-body" style={bodyStyle}>
         {/* The two doors (mockup `.choosegrid`). */}
-        <div className="wiz-chooser-doors">
+        <div className="su-wiz-chooser-doors">
           <ModeDoor
             variant="guided"
             tab="▶"
@@ -116,7 +116,11 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
             (mockup `.thirdnote`, made actionable: links to the existing
             /mechs/patterns flow). */}
         {kind === 'mech' && (
-          <AppLink href="/mechs/patterns" className="wiz-chooser-pattern" style={patternLinkStyle}>
+          <AppLink
+            href="/mechs/patterns"
+            className="su-wiz-chooser-pattern"
+            style={patternLinkStyle}
+          >
             A third door in the Blank family —{' '}
             <span style={patternAccentStyle}>Instantiate from Pattern</span> · stamp a saved
             pattern, then edit freely

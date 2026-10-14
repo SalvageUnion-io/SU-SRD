@@ -350,7 +350,7 @@ describe('roll-table bands in the surface tone', () => {
  * The wizard banner, the mode chooser's h1 and the guided ModeDoor print on a
  * sheet's tone, and printed paper there: 2.4:1 on pilot, under even the 3:1
  * large-text floor, while the door's ink body measured 4.17:1 on crawler pink.
- * They now read `--tone-band` / `--on-tone-band`, which each `.sheet--*` rule
+ * They now read `--tone-band` / `--on-tone-band`, which each `.su-sheet--*` rule
  * in `styles/theme.css` sets. The rules are read off the stylesheet, so this
  * holds them to the `onTone` rule — the band `textBand` paints, the
  * foreground `onTone` picks — and to 4.5:1, since the door's body copy is
@@ -362,10 +362,10 @@ describe('poster text on the sheet tones', () => {
     ''
   )
   const sheet = (kind: string) => {
-    // Its own rule, not the shared `.sheet--pilot, .sheet--mech, .sheet--crawler`
+    // Its own rule, not the shared `.su-sheet--pilot, .su-sheet--mech, .su-sheet--crawler`
     // one: the own rule is the one that sets `--tone-default`.
     const body =
-      [...css.matchAll(new RegExp(`\\.sheet--${kind}\\s*\\{([^}]*)\\}`, 'g'))]
+      [...css.matchAll(new RegExp(`\\.su-sheet--${kind}\\s*\\{([^}]*)\\}`, 'g'))]
         .map((m) => m[1] ?? '')
         .find((b) => /(?:^|[;\s])--tone-default:/.test(b)) ?? ''
     const decl = (prop: string) =>
@@ -395,7 +395,7 @@ describe('poster text on the sheet tones', () => {
 })
 
 /**
- * The wizard step card (`--tone-card`, WizShell's `.wiz-step-card`).
+ * The wizard step card (`--tone-card`, WizShell's `.su-wiz-step-card`).
  *
  * The card is a relative OKLCH step off the sheet tone, which `resolveColor`
  * does not model, so this reads the step off `theme.css` and paints it as

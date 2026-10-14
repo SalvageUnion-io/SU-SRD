@@ -110,7 +110,7 @@ export function NotFoundPanel({
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>
-      <div className="not-found-panel" style={PANEL}>
+      <div className="su-not-found-panel" style={PANEL}>
         <h1 style={PANEL_TITLE}>{title}</h1>
         <p style={PANEL_MESSAGE}>{message}</p>
         <AppLink
