@@ -107,9 +107,12 @@ describe('ClassAbilityTree advancement paths', () => {
     const paths = [...document.querySelectorAll('.srd-class-path')]
     expect(paths.length).toBeGreaterThan(1)
     for (const path of paths) {
-      const head = path.querySelector('.srd-class-path__head')
-      expect(head?.firstElementChild?.className).toBe('srd-class-path__name')
-      expect(head?.querySelector('.srd-class-path__band .srd-class-path__req')).not.toBeNull()
+      // The shared cut-out head (`Head`): the name on the tab, the chips right of it.
+      const head = path.querySelector('.su-entity-row__head[data-notch]')
+      expect(head?.querySelector('.su-entity-row__notch')?.textContent).not.toBe('')
+      expect(
+        head?.querySelector('.su-entity-row__heading--cut > .su-chips .srd-class-path__req')
+      ).not.toBeNull()
       expect(head?.querySelector('.srd-class-path__note')).toBeNull()
       expect(path.querySelector('.srd-class-path__body')?.firstElementChild?.className).toBe(
         'srd-class-path__note'
@@ -146,6 +149,16 @@ describe('ClassAbilityTree advancement paths', () => {
     }
   })
 
+  test('a Hybrid Class’s whole cut-out head opens its page; the own path’s links nowhere', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const own = document.querySelector('.srd-class-path[data-kind="legendary"]')
+    expect(own?.querySelector(':scope > a')).toBeNull()
+    const hybrid = document.querySelector('.srd-class-path[data-kind="hybrid"]')
+    const link = hybrid?.querySelector('a.srd-class-path__link')
+    expect(link?.getAttribute('href')).toMatch(/^\/classes\//)
+    expect(link?.firstElementChild?.classList.contains('su-entity-row__head')).toBe(true)
+  })
+
   test('the Core trees run in one column; the class’s own path leads the Hybrid Classes', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const core = document.querySelector('.srd-ability-tree__row--stack')
@@ -164,9 +177,9 @@ describe('ClassAbilityTree advancement paths', () => {
 describe('ClassAbilityTree training brief', () => {
   test("a Hybrid Class's brief says what it takes to advance, in the book's verb (p.23)", () => {
     render(<ClassAbilityTree classEntity={classNamed('Fabricator')} />)
-    const labels = [...document.querySelectorAll('.srd-class-brief__tab')].map(
-      (tab) => tab.textContent
-    )
+    const labels = [
+      ...document.querySelectorAll('.srd-class-brief__card .su-entity-row__notch'),
+    ].map((tab) => tab.textContent)
     expect(labels).toEqual(['Advance', 'Hybrid', 'Legendary'])
     expect(labels).not.toContain('Entry')
     // Its trees, with the classes that own them, follow the cards.
@@ -178,7 +191,7 @@ describe('ClassAbilityTree training brief', () => {
     const brief = screen.getByRole('complementary', { name: 'Training' })
     const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
     expect(cards.map((card) => card.dataset.tier)).toEqual(['core', 'advanced', 'legendary'])
-    expect(cards.map((card) => card.querySelector('.srd-class-brief__band')?.textContent)).toEqual([
+    expect(cards.map((card) => card.querySelector('.su-entity-row__head')?.textContent)).toEqual([
       'Core1 TP',
       'Advanced2 TP',
       'Legendary3 TP',
@@ -193,7 +206,7 @@ describe('ClassAbilityTree training brief', () => {
     const brief = screen.getByRole('complementary', { name: 'Training' })
     const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
     expect(cards.map((card) => card.dataset.tier)).toEqual(['core'])
-    expect(cards[0]?.querySelector('.srd-class-brief__band')?.textContent).toBe('Core1 TP')
+    expect(cards[0]?.querySelector('.su-entity-row__head')?.textContent).toBe('Core1 TP')
     expect(cards[0]?.textContent).toContain(
       'You must have the preceding skill in a Core Ability Tree to train the next Ability.'
     )
