@@ -22,15 +22,15 @@ name: Deploy (Cloudflare)
 #              was already proved by its CI build job on the merged PR.
 #   build-srd  / build-itun   one job per surface that HAS a build, in
 #              parallel. Each uploads the exact `dist` it produced. Neither
-#              pushes anything anywhere.
-#   og-srd     renders srd's OG images into build-srd's `dist`. Best-effort:
-#              a failed render keeps the default og:image.
+#              pushes anything anywhere. build-srd also renders srd's OG
+#              images into its `dist`, best-effort: a failed render keeps the
+#              default og:image.
 #   push-convex  the Convex backend push, only once EVERY build is green, and
 #              before any traffic moves.
 #   deploy-srd / deploy   a leg per surface in the deploy set, in parallel:
 #              srd's own job, and a matrix over the rest. NO leg starts until
 #              EVERY build job has finished green and the backend push (when
-#              itun ships) succeeded; only srd's also waits for `og-srd`. Each
+#              itun ships) succeeded. Each
 #              leg ships the artifact its build job uploaded — nothing is
 #              rebuilt between build and deploy.
 #   smoke      the production smoke list, once, after every leg that ran.
@@ -321,7 +321,7 @@ jobs:
   # su-assets and the bot have no build: wrangler bundles their Worker source
   # at deploy time, as CI's build-su-assets and build-discord-bot did.
 
-  # srd — static. Its OG images are `og-srd`'s job, below.
+  # srd — static, with its OG images rendered into the same `dist`.
   build-srd:
     needs: plan
     if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
@@ -362,45 +362,19 @@ jobs:
             exit 1
           fi
 
-      # `include-hidden-files`: the artifact is what ships, byte for byte, so
-      # it must not silently drop a dotfile the build emitted.
-      - name: Upload the srd build
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: srd-build
-          path: apps/srd/dist/
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 7
-
-  # srd's OG images, rendered into build-srd's `dist` and re-uploaded as the
-  # artifact `deploy-srd` ships. The render never fails (a missing
-  # browser or a wedged page keeps the default og:image).
-  og-srd:
-    needs: [plan, build-srd]
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          ref: ${{ needs.plan.outputs.sha }}
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Download the srd build
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: srd-build
-          path: apps/srd/dist
-
       # Chromium, the render cache and the render: shared with
-      # deploy-preview.yml.
+      # deploy-preview.yml. Here rather than in a job of its own, which paid
+      # a second checkout, install and artifact round trip on the deploy's
+      # critical path. Best-effort: a failed render (or browser install)
+      # keeps the default og:image and never stops the deploy. Secrets reach
+      # only the steps that name them, so the browser never sees the
+      # Sentry token the build step uses.
       - name: Render srd OG images
+        continue-on-error: true
         uses: ./.github/actions/srd-og
 
+      # `include-hidden-files`: the artifact is what ships, byte for byte, so
+      # it must not silently drop a dotfile the build emitted.
       - name: Upload the srd artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -520,16 +494,11 @@ jobs:
   # ===========================================================================
   #
   # Two jobs over the same steps: `deploy-srd`, and `deploy`, a matrix over
-  # the rest of the deploy set. A matrix cannot vary `needs` per leg, and only
-  # srd ships `og-srd`'s output, so only srd waits for it. Keep the two jobs'
-  # steps in step.
+  # the rest of the deploy set. Keep the two jobs' steps in step.
   #
   # Both `need` both build jobs and the push, not just what one leg ships: a
   # failed itun build must stop srd shipping too, or the run leaves production
-  # half on the new commit. `og-srd` is not a build (its render never fails),
-  # so the other legs need not wait for it. Should its JOB fail (a runner or
-  # artifact error), srd alone stays on the old commit; smoke and record are
-  # skipped, so the next run re-ships it. A job that was SKIPPED (its
+  # half on the new commit. A job that was SKIPPED (its
   # surface did not change) is not a failure, which is why these use
   # `!cancelled() && !failure()` rather than the implicit `success()` — the
   # implicit form checks every ancestor and would skip the deploy whenever any
@@ -555,7 +524,7 @@ jobs:
   # secrets set out of band, and a deploy does not touch them. The bot leg
   # also registers the slash commands, with the Environment's DISCORD_TOKEN.
   deploy-srd:
-    needs: [plan, build-srd, og-srd, build-itun, push-convex]
+    needs: [plan, build-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'srd') }}
     runs-on: ubuntu-latest
     environment: production

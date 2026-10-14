@@ -98,7 +98,7 @@ export function parseGalleryArgs(argv: readonly string[]): GalleryArgs {
 /**
  * The entity an srd page shows, when it has a card of its own. A plain build
  * emits the DEFAULT og:image on every page (srd's CLAUDE.md, "Social preview
- * images"); the deploy's `og-srd` job rewrites it only for the cards it
+ * images"); the deploy's OG render (`.github/actions/srd-og`) rewrites it only for the cards it
  * rendered, so the gallery reads the entity off the page's own path.
  */
 export function pageEntity(

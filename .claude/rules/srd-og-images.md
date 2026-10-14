@@ -36,7 +36,7 @@ pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at
   bytes that draw the card (the og-card page, its CSS and fonts, the
   `OgCardIsland` chunk graph; never the data chunks or other islands), plus the
   script and the Playwright and sharp versions. A rendering change re-renders
-  every card; an unrelated commit restores them all. The deploy's `og-srd` job
+  every card; an unrelated commit restores them all. The deploy's OG render
   (`.github/actions/srd-og`) persists the cache under the same key
   (`og-screenshots.ts --fingerprint`).
 - **Patterns** (a chassis's, a Bio-Titan's) get their own card at

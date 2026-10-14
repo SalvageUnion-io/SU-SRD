@@ -1,10 +1,10 @@
 name: Render srd OG images
 description: Provision Chromium and render srd's per-entity OG images into apps/srd/dist
 
-# The one OG pass, shared by deploy-cloudflare.yml's `og-srd` (production) and
-# deploy-preview.yml's `og-srd` (a PR's Worker Preview). The caller has checked out
-# the tree, run ./.github/actions/setup-bun and downloaded srd's build into
-# apps/srd/dist; it uploads the result. The render never fails: a missing
+# The one OG pass, run by the `build-srd` jobs of deploy-cloudflare.yml
+# (production) and deploy-preview.yml (a PR's Worker Preview) after their
+# build, with `continue-on-error`. The caller has built srd into
+# apps/srd/dist and uploads the result. The render never fails: a missing
 # browser or a wedged page keeps the default og:image.
 runs:
   using: composite
