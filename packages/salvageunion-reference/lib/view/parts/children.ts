@@ -4,7 +4,7 @@
  */
 
 import { extractVisibleActions } from '../../actionResolution'
-import { isAbility } from '../../entityGuards'
+import { isAbility, isBaseAdvancedClass, isCoreClass } from '../../entityGuards'
 import { resolveGrantedEntities } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
 import { isBioTitanPattern } from '../../patterns'
@@ -17,6 +17,35 @@ import type {
 
 /** A labelled group of nested entities. */
 export type NestedGroup = { label: string; entities: SURefEntity[] }
+
+/** An ability's place in its tree: 1, 2, 3, then L (Legendary), then G. */
+function levelOrder(level: number | 'L' | 'G'): number {
+  return typeof level === 'number' ? level : level === 'L' ? 90 : 99
+}
+
+/**
+ * A class's OWN ability trees, in its page's order, each tree's abilities in
+ * level order: a Core class's Core trees, then its Advanced tree, then its
+ * Legendary tree; a Hybrid Class's own tree, then its Legendary tree. The
+ * Hybrid Classes a Core class can advance into are other classes' trees, not
+ * listed here. A tree with no abilities is dropped; any other entity has none.
+ */
+export function classTrees(entity: SURefMetaEntity): NestedGroup[] {
+  const core = isCoreClass(entity)
+  if (!core && !isBaseAdvancedClass(entity)) return []
+  const names = [
+    ...(core ? entity.coreTrees : []),
+    ...(entity.advancedTree ? [entity.advancedTree] : []),
+    ...(entity.legendaryTree ? [entity.legendaryTree] : []),
+  ]
+  const abilities = SalvageUnionReference.Abilities.all()
+  return names.flatMap((tree) => {
+    const entities = abilities
+      .filter((ability) => ability.tree === tree)
+      .sort((a, b) => levelOrder(a.level) - levelOrder(b.level))
+    return entities.length > 0 ? [{ label: tree, entities }] : []
+  })
+}
 
 /**
  * Every entity a card nests, grouped: GRANTS (`resolveGrantedEntities`),

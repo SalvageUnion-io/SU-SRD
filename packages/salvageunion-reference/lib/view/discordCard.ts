@@ -409,7 +409,10 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
 
   const table = model.table ? tableParts(model.table) : undefined
 
-  const children = model.children.map((group) => discordChildGroup(group.label, group.items))
+  // A class lists its own ability trees, each tree's abilities in level order.
+  const children = [...model.children, ...(model.trees ?? [])].map((group) =>
+    discordChildGroup(group.label, group.items)
+  )
 
   return {
     tone: model.tone,

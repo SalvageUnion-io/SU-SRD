@@ -161,6 +161,8 @@ export type EntityModel = {
   /** A chassis's abilities (records in the actions schema). */
   abilities: EntityRef[]
   children: EntityChildGroup[]
+  /** A class's own ability trees, in its page's order (`classTrees`). */
+  trees?: EntityChildGroup[]
   table?: EntityTable
   art: EntityArt
   cite: EntityCite

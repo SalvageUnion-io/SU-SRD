@@ -270,18 +270,22 @@ const ROW_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules'])
  *
  * As many rows as the message can carry within Discord's ceilings (`reserved`
  * components are the controls still to come), in the card's order; the rest
- * stay linked names under the rows, and in the menu.
+ * stay linked names under the rows, and in the menu. Linked names past the
+ * ceilings go whole groups at a time, from the end.
  */
 function childRows(
   card: ContainerData,
   groups: DiscordChildGroup[],
   reserved: number
 ): { blocks: ContainerBlock[]; drawn: Set<string> } {
-  const layout = (limit: number): { blocks: ContainerBlock[]; drawn: Set<string> } => {
+  const layout = (
+    limit: number,
+    kept: DiscordChildGroup[] = groups
+  ): { blocks: ContainerBlock[]; drawn: Set<string> } => {
     const drawn = new Set<string>()
     const blocks: ContainerBlock[] = []
     const other: DiscordChildGroup[] = []
-    for (const group of groups) {
+    for (const group of kept) {
       const rows: ContainerBlock[] = []
       const left: EntityRef[] = []
       const seen = new Set<string>()
@@ -325,7 +329,13 @@ function childRows(
     const laid = layout(limit)
     if (fits(laid.blocks)) return laid
   }
-  return layout(0)
+  // No row fits: the linked names alone, whole groups shed from the end (a
+  // class's later trees), as the shared card sheds them. The menu keeps them.
+  for (let kept = groups.length; kept > 0; kept--) {
+    const laid = layout(0, groups.slice(0, kept))
+    if (fits(laid.blocks)) return laid
+  }
+  return layout(0, [])
 }
 
 /**

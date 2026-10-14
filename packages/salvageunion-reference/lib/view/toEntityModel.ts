@@ -26,7 +26,13 @@ import { getEntitySlug } from '../slug'
 import { plainTraitText } from '../traitText'
 import { entityArt } from './parts/art'
 import type { NestedGroup } from './parts/children'
-import { droneOwnLoadout, entityActions, nestedEntityGroups, patternGroups } from './parts/children'
+import {
+  classTrees,
+  droneOwnLoadout,
+  entityActions,
+  nestedEntityGroups,
+  patternGroups,
+} from './parts/children'
 import { entityCite } from './parts/cite'
 import { bookStats, entityStats, techLevelFact } from './parts/facts'
 import { entityTone } from './parts/fill'
@@ -221,6 +227,7 @@ export function toEntityModel(
             )
           : []),
       ]
+  const trees = pattern ? [] : groupsOf(classTrees(entity), baseRef.id)
   const table = pattern ? undefined : entityTable(entity, folded, entityName)
   const patternLead = pattern ? firstParagraphText(pattern.content) : undefined
   const lead = pattern
@@ -260,6 +267,7 @@ export function toEntityModel(
     actions: others.map((a) => refOf(a)),
     abilities: (getChassisAbilities(entity) ?? []).map((a) => refOf(a)),
     children,
+    ...(trees.length > 0 ? { trees } : {}),
     ...(table ? { table } : {}),
     art,
     cite: entityCite(entity, pattern),

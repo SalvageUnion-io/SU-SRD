@@ -127,6 +127,36 @@ describe('discordCardParts', () => {
     expect(parts.actions).toEqual([])
   })
 
+  test("a class lists its own trees in its page's order, each in level order", () => {
+    const engineer = discordCardParts(
+      toEntityModel(need(findEntityBySlug('classes', 'engineer'), 'engineer'))
+    )
+    expect(engineer.children.map((group) => group.label)).toEqual([
+      'Mechanical Knowledge',
+      'Forging',
+      'Mech-Tech',
+      'Advanced Engineer',
+      'Legendary Engineer',
+    ])
+    expect(engineer.children[0]?.items.map((item) => item.name)).toEqual([
+      'Engineering Expertise',
+      'Talk Shop',
+      'Mech Acquisition',
+    ])
+    expect(engineer.children[0]?.line).toStartWith(
+      '[Engineering Expertise](https://salvageunion.io/abilities/engineering-expertise)'
+    )
+    // A Hybrid Class: its own tree, then its Legendary tree; never the Core
+    // trees it branches from.
+    const fabricator = discordCardParts(
+      toEntityModel(need(findEntityBySlug('classes', 'fabricator'), 'fabricator'))
+    )
+    expect(fabricator.children.map((group) => group.label)).toEqual([
+      'Fabricator',
+      'Legendary Fabricator',
+    ])
+  })
+
   test('renders every entity without throwing, and never leaves raw [[ markup', () => {
     for (const schemaName of EntitySchemaNames) {
       for (const entity of (getModel(schemaName)?.all() ?? []) as SURefMetaEntity[]) {
