@@ -268,21 +268,49 @@ const PILOT_BIOS: Record<string, string> = {
 
 /**
  * Mech Description / Appearance / Quirk (Reclamation of the Wastes sheets),
- * folded into the single appearance field, keyed by mech id.
+ * one field each, keyed by mech id.
  */
-const MECH_APPEARANCES: Record<string, string> = {
-  'starter-mech-scrapper':
-    'Originally built by Bonesaw to support his wasteland community, this build bakes in a wide range of utility — it can salvage, repair, and even hack, all of which have proved useful to the crew of Crawler #430.\n\nAppearance: Rugged and well worn, covered in anti-corpo graffiti.\nQuirk: Multiple cockpit mods including a coffee dispenser, vibrating pilot chair, and concealed mini-fridge.',
-  'starter-mech-spectrum':
-    "Pickle's Spectrum was the real star of Drone.Trap. She would mix the entire set from the cockpit, pumping out beats alongside gouts of fire — while covertly hacking into and causing mayhem within whatever Arco she was performing in.\n\nAppearance: Glossy metallic black, with a jagged rainbow sprayed across it.\nQuirk: A series of RGB lights on the exterior that flash in time to the music played out of the loudspeaker.",
-  'starter-mech-mule':
-    'The only Mech that survived the trade-caravan ambush, and the one Judge crawled out of. It is built to withstand anything the wastes throw at it and to haul cargo wherever it needs to go.\n\nAppearance: Battle-scarred and weatherworn.\nQuirk: Bulky and oversized compared to other Mules.',
-  'starter-mech-bobcat':
-    "This build favours utility, with a mining rig that can dig holes in cave networks and create hiding places to weather long nights in the wastes. Though many assume Driftwood talking to Mr Dig means she's lost her marbles, the Mech can actually reply and has basic artificial intelligence — it's just shy, and will only speak when it's alone with Driftwood.\n\nAppearance: Patches of maroon cloth and rags cover the chassis like a makeshift suit; Driftwood has painted a yellow smiley face on the underside of the magnet.\nQuirk: Rudimentary AI personality (shy and introverted).",
-  'starter-mech-mazona':
-    'A build Hotdog favoured in Neon Strip races. Though using weapons directly against other Pilots was prohibited, the mortar — if timed right — can propel the Mazona forwards with the force of the explosion, acting as a speed bump to clear gaps and obstacles.\n\nAppearance: Sleek, monochrome, and aerodynamic.\nQuirk: Hover function fumes multicoloured smoke.',
-  'starter-mech-thresher':
-    'Razor designed this Mech to get up close and personal with its dual chainsaw and laser. The Self-Destruct was added to feed her fantasies of explosive redemption in battle — at least Judge persuaded her to include the Escape Hatch.\n\nAppearance: Mil-Tech, clean and built for purpose, with a series of jagged tally marks from its own chainsaw arm counting confirmed kills.\nQuirk: Grinding, loud gears — especially the cacophonous reverb of the chainsaw.',
+const MECH_FLAVOR: Record<string, Pick<Mech, 'description' | 'appearance' | 'quirk'>> = {
+  'starter-mech-scrapper': {
+    description:
+      'Originally built by Bonesaw to support his wasteland community, this build bakes in a wide range of utility — it can salvage, repair, and even hack, all of which have proved useful to the crew of Crawler #430.',
+    appearance: 'Rugged and well worn, covered in anti-corpo graffiti.',
+    quirk:
+      'Multiple cockpit mods including a coffee dispenser, vibrating pilot chair, and concealed mini-fridge.',
+  },
+  'starter-mech-spectrum': {
+    description:
+      "Pickle's Spectrum was the real star of Drone.Trap. She would mix the entire set from the cockpit, pumping out beats alongside gouts of fire — while covertly hacking into and causing mayhem within whatever Arco she was performing in.",
+    appearance: 'Glossy metallic black, with a jagged rainbow sprayed across it.',
+    quirk:
+      'A series of RGB lights on the exterior that flash in time to the music played out of the loudspeaker.',
+  },
+  'starter-mech-mule': {
+    description:
+      'The only Mech that survived the trade-caravan ambush, and the one Judge crawled out of. It is built to withstand anything the wastes throw at it and to haul cargo wherever it needs to go.',
+    appearance: 'Battle-scarred and weatherworn.',
+    quirk: 'Bulky and oversized compared to other Mules.',
+  },
+  'starter-mech-bobcat': {
+    description:
+      "This build favours utility, with a mining rig that can dig holes in cave networks and create hiding places to weather long nights in the wastes. Though many assume Driftwood talking to Mr Dig means she's lost her marbles, the Mech can actually reply and has basic artificial intelligence — it's just shy, and will only speak when it's alone with Driftwood.",
+    appearance:
+      'Patches of maroon cloth and rags cover the chassis like a makeshift suit; Driftwood has painted a yellow smiley face on the underside of the magnet.',
+    quirk: 'Rudimentary AI personality (shy and introverted).',
+  },
+  'starter-mech-mazona': {
+    description:
+      'A build Hotdog favoured in Neon Strip races. Though using weapons directly against other Pilots was prohibited, the mortar — if timed right — can propel the Mazona forwards with the force of the explosion, acting as a speed bump to clear gaps and obstacles.',
+    appearance: 'Sleek, monochrome, and aerodynamic.',
+    quirk: 'Hover function fumes multicoloured smoke.',
+  },
+  'starter-mech-thresher': {
+    description:
+      'Razor designed this Mech to get up close and personal with its dual chainsaw and laser. The Self-Destruct was added to feed her fantasies of explosive redemption in battle — at least Judge persuaded her to include the Escape Hatch.',
+    appearance:
+      'Mil-Tech, clean and built for purpose, with a series of jagged tally marks from its own chainsaw arm counting confirmed kills.',
+    quirk: 'Grinding, loud gears — especially the cacophonous reverb of the chainsaw.',
+  },
 }
 
 /**
@@ -301,7 +329,7 @@ export const STARTER_PILOTS: readonly Pilot[] = CREW.map((c) => ({
 }))
 export const STARTER_MECHS: readonly Mech[] = CREW.map((c) => ({
   ...c.mech,
-  appearance: MECH_APPEARANCES[c.mech.id],
+  ...MECH_FLAVOR[c.mech.id],
 }))
 
 // ---------------------------------------------------------------------------

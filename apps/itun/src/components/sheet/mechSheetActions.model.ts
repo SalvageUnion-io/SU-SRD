@@ -54,6 +54,7 @@ export type MechSheetActions = {
   repairItem: (kind: ItemKind, slug: string, deductTl: number | null, cost: number) => Promise<void>
   saveQuirk: (next: string) => void
   saveAppearance: (next: string) => void
+  saveDescription: (next: string) => void
   /** Advisory soft-warning state for the confirm dialog. */
   warnings: SoftWarning[]
   warningSubtitle: string | null
@@ -219,13 +220,17 @@ export function useMechSheetActions({
     }
   }
 
-  /** Quirk / Appearance field save: trimmed, and blank clears the field. */
+  /** Quirk / Appearance / Description field save: trimmed, blank clears it. */
   function saveQuirk(next: string) {
     write({ quirk: next.trim() || undefined })
   }
 
   function saveAppearance(next: string) {
     write({ appearance: next.trim() || undefined })
+  }
+
+  function saveDescription(next: string) {
+    write({ description: next.trim() || undefined })
   }
 
   return {
@@ -238,6 +243,7 @@ export function useMechSheetActions({
     repairItem,
     saveQuirk,
     saveAppearance,
+    saveDescription,
     warnings: softWarnings.warnings,
     warningSubtitle,
     cancelBuildEdit: () => {

@@ -62,3 +62,40 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
     </section>
   )
 }
+
+type MechProseFieldsProps = {
+  mech: Mech
+  /** Field saves; omit on read-only sheets (no edit affordance). */
+  saveAppearance?: (next: string) => void
+  saveDescription?: (next: string) => void
+}
+
+/**
+ * The mech's prose fields, spanning the identity card under the pattern name
+ * and Quirk. The Description closes the card and takes whatever height the
+ * slab has left (the identity slab stretches to match the vitals beside it,
+ * and that space should go to a field the reader can use rather than sitting
+ * as dead paper), as the pilot's Bio does.
+ */
+export function MechProseFields({ mech, saveAppearance, saveDescription }: MechProseFieldsProps) {
+  return (
+    <>
+      <Field
+        label="Appearance"
+        value={mech.appearance ?? ''}
+        multiline
+        onSave={saveAppearance}
+        placeholder="No appearance recorded."
+      />
+      <Field
+        label="Description"
+        value={mech.description ?? ''}
+        multiline
+        fill
+        onSave={saveDescription}
+        placeholder="No description written yet."
+        className="su-sheet-mech-fill"
+      />
+    </>
+  )
+}

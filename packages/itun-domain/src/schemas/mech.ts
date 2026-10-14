@@ -128,6 +128,9 @@ export const MechSchema = z
     /** Freeform appearance note (the poster's "Appearance"). */
     appearance: z.string().optional(),
 
+    /** Freeform description of the build — what it is for and its story. */
+    description: z.string().optional(),
+
     /**
      * Active condition labels — the single unified conditions vocabulary for
      * the mech (Vulnerable, Prone, Immobile, Burn, Ion-locked, …). The
