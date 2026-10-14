@@ -151,24 +151,6 @@
   color: var(--color-ink);
 }
 
-.su-badge--on-tone {
-  background-color: transparent;
-  color: var(--color-ink);
-}
-
-/* The parameter cell a chip runs to its right edge (`param`). */
-.su-badge__param {
-  align-items: center;
-  align-self: stretch;
-  background-color: var(--color-paper);
-  border-inline-start: var(--bw-hairline) solid currentColor;
-  color: var(--color-ink);
-  display: flex;
-  font-variant-numeric: tabular-nums;
-  margin-inline-start: var(--space-6);
-  padding: 0 var(--space-6);
-}
-
 /* ── Stamps on a stamp ──
  * Classes laid over a `shape="stamp"` Badge, so they sit AFTER the stamp's own
  * rules above (`.su-badge-stamp`, `.su-badge--*`, the rung and caps classes):

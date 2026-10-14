@@ -57,14 +57,6 @@ const ROW = {
   gap: space[12],
 } satisfies CSSProperties
 
-/** A mech-tone ground for the `on-tone` stamp. */
-const TONE_GROUND = {
-  backgroundColor: color.mech,
-  display: 'inline-block',
-  paddingBlock: space[4],
-  paddingInline: space[8],
-} satisfies CSSProperties
-
 /** A framed body for the seam stamp to straddle. */
 const SEAM_FRAME = {
   backgroundColor: color.paper,
@@ -225,17 +217,12 @@ export const Filter: Story = () => {
 export const Stamps: Story = () => (
   <div style={STACK}>
     <div>
-      <Caption>surface — on-ink (default) / inverse / on-tone</Caption>
+      <Caption>surface — on-ink (default) / inverse</Caption>
       <Row>
         <Badge shape="stamp">{chassisName}</Badge>
         <Badge shape="stamp" surface="inverse">
           Structure
         </Badge>
-        <span style={TONE_GROUND}>
-          <Badge shape="stamp" surface="on-tone">
-            On tone
-          </Badge>
-        </span>
       </Row>
     </div>
     <div>
