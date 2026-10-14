@@ -221,10 +221,14 @@ export function Row({
     </>
   )
 
-  // A Row with controls never nests them in its own control (a link's `<a>`, a
+  // A Row with controls, or a link Row with host labels that may be one (an
+  // owner seal that claims), never nests them in its own control (a link's `<a>`, a
   // radio): the surface is an empty cover laid over the frame, and the
-  // controls (and a toggle's check) are raised above it (`[data-covered]`).
-  const covered = !!slots.controls && !slots.outer && mode.kind !== 'read'
+  // controls, labels (and a toggle's check) are raised above it
+  // (`[data-covered]`).
+  const covered =
+    !slots.outer &&
+    ((!!slots.controls && mode.kind !== 'read') || (!!slots.extraLabels && mode.kind === 'link'))
   if (covered) {
     return (
       <div className="su-entity-row" data-covered="">

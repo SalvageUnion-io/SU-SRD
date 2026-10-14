@@ -325,7 +325,10 @@ function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<
 /** A step's slab sits flush: the step's own gap spaces it, not the slab's margin. */
 const STEP_SLAB = { marginBottom: 0 } satisfies CSSProperties
 
-/** A step's slab: its numeral, then its name, in the stamp; "Optional" at the rule's end. */
+/**
+ * A step's slab: a two-cell chip, its numeral on the ink and its name on a
+ * paper cell (`9 | CHOOSE YOUR APPEARANCE`); "Optional" at the rule's end.
+ */
 function StepHead({
   as,
   id,
@@ -348,7 +351,7 @@ function StepHead({
       style={STEP_SLAB}
       label={
         <>
-          {number} {name}
+          {number} <span className="su-guide__step-name">{name}</span>
         </>
       }
       count={optional ? 'Optional' : undefined}

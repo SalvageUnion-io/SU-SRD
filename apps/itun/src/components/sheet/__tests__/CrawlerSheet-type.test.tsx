@@ -214,8 +214,10 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
 
     expect(screen.queryByText('Improved Armour and Armaments')).toBeNull()
     expect(screen.queryByLabelText('Battle crew lead')).toBeNull()
-    // The identity fields still render (Type shows its empty placeholder).
-    expect(screen.getByText('War Wagon')).toBeTruthy()
+    // The identity fields still render (Type shows its empty placeholder);
+    // Read never repeats the band's name.
+    expect(screen.getByLabelText('Crawler identity')).toBeTruthy()
+    expect(screen.queryByText('War Wagon')).toBeNull()
   })
 })
 

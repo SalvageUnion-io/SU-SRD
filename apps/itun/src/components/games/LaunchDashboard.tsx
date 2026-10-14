@@ -120,15 +120,9 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   // Nothing until the crew is known: a button that appears and then vanishes
   // when the members answer would be worse than a beat of nothing.
   if (members === undefined) return null
-  if (!hasMediator(members)) {
-    return (
-      <div style={BAR}>
-        <Text variant="hint" style={HINT}>
-          The Dashboard opens once this Game has a Mediator.
-        </Text>
-      </div>
-    )
-  }
+  // No Mediator, no Dashboard, and nothing said about it: the Game's own
+  // Mediator row already offers to appoint one.
+  if (!hasMediator(members)) return null
 
   const { yours, others } = groupColumn(
     ownableRows({

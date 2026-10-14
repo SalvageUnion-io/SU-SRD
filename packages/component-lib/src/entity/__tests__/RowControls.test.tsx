@@ -53,6 +53,24 @@ describe('Row controls', () => {
     expect(screen.getByRole('button', { name: 'Unassign' })).toBeTruthy()
   })
 
+  test('link with host labels only: a label that is a button never nests in the link', () => {
+    render(
+      <Entity
+        form="row"
+        model={MODEL}
+        mode={{ kind: 'link', href: '/sheet/pilot/ace' }}
+        labels={
+          <button type="button" onClick={() => undefined}>
+            Claim
+          </button>
+        }
+      />
+    )
+    const link = screen.getByRole('link', { name: 'Ace' })
+    expect(link.className).toContain('su-entity-row__cover')
+    expect(screen.getByRole('button', { name: 'Claim' }).closest('a')).toBeNull()
+  })
+
   test('select: the radio covers the Row, and pressing a control does not select', () => {
     const picks: number[] = []
     const presses: number[] = []
