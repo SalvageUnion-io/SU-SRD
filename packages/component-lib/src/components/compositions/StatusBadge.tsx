@@ -31,7 +31,6 @@ type StatusBadgeProps = {
    * names. Without it the label opens with the generic "Status: <Label>".
    */
   subject?: string
-  className?: string
 }
 
 /**
@@ -41,7 +40,7 @@ type StatusBadgeProps = {
  * and announces the new state in a polite live region once the write lands —
  * the handler may be async, so the announcement waits for the `status` prop.
  */
-export function StatusBadge({ status, onClick, subject, className }: StatusBadgeProps) {
+export function StatusBadge({ status, onClick, subject }: StatusBadgeProps) {
   const label = CONDITION_LABELS[status]
   const tone = STATUS_TONES[status]
   const current = subject ? `${subject} status: ${label}` : `Status: ${label}`
@@ -56,7 +55,7 @@ export function StatusBadge({ status, onClick, subject, className }: StatusBadge
   }, [current])
 
   const badge = (
-    <Badge surface="tone" tone={tone} className={className}>
+    <Badge surface="tone" tone={tone}>
       {label}
     </Badge>
   )

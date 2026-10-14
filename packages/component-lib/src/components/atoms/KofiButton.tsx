@@ -38,8 +38,6 @@ declare global {
 export type KofiButtonProps = {
   /** Ko-fi page code — the `<code>` in `ko-fi.com/<code>`. */
   code: string
-  /** Optional class on the container element. */
-  className?: string
 }
 
 const LABEL = 'Support me on Ko-fi'
@@ -51,7 +49,7 @@ const LABEL = 'Support me on Ko-fi'
  */
 const ACCENT = '#2e66c4'
 
-export function KofiButton({ code, className }: KofiButtonProps) {
+export function KofiButton({ code }: KofiButtonProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -99,5 +97,5 @@ export function KofiButton({ code, className }: KofiButtonProps) {
     }
   }, [code])
 
-  return <div ref={ref} className={className} style={CONTAINER} />
+  return <div ref={ref} style={CONTAINER} />
 }

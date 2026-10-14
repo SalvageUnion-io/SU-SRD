@@ -7,8 +7,6 @@ import { parseMarkdownSection } from './parseMarkdownSection'
 type MarkdownSectionProps = {
   /** Raw contents of a repo-root prose document. */
   markdown: string
-  /** Section modifiers (each app supplies its own body colour/spacing). */
-  className?: string
 }
 
 const SECTION = {
@@ -39,11 +37,11 @@ const LIST = {
  * code. The library stays data-source agnostic, and each app reads the file
  * the way its build allows (srd via `node:fs`, ITUN via a Vite `?raw` import).
  */
-export function MarkdownSection({ markdown, className }: MarkdownSectionProps) {
+export function MarkdownSection({ markdown }: MarkdownSectionProps) {
   const { heading, blocks } = parseMarkdownSection(markdown)
 
   return (
-    <section className={className} style={SECTION}>
+    <section style={SECTION}>
       {heading && (
         // The heading sits on the section's own gap, not the slab's resting margin.
         <Slab as="h2" variant="solid" label={heading} style={{ marginBottom: 0 }} />

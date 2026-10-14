@@ -6,7 +6,6 @@ type KvRowProps = {
   label: ReactNode
   /** Value cell. Empty (`null` / `undefined` / `''`) renders the muted "required" placeholder. */
   value?: ReactNode
-  className?: string
 }
 
 /** The bottom rule's colour and style; its WIDTH lives in `.su-kv-row`, which
@@ -49,10 +48,10 @@ const VALUE = {
  * actions) and `Field` (form label + control) — this is a read-only summary
  * line, the shape the pilot / mech / crawler Review steps each hand-rolled.
  */
-export function KvRow({ label, value, className }: KvRowProps) {
+export function KvRow({ label, value }: KvRowProps) {
   const empty = value === null || value === undefined || value === ''
   return (
-    <div className={className ? `su-kv-row ${className}` : 'su-kv-row'} style={ROOT}>
+    <div className="su-kv-row" style={ROOT}>
       <span style={LABEL}>{label}</span>
       <span style={{ ...VALUE, color: empty ? color.ink50 : color.ink }}>
         {empty ? 'required' : value}

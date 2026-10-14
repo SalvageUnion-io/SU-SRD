@@ -58,12 +58,6 @@ describe('Banner', () => {
     expect(screen.getByRole('alert')).toBeTruthy()
   })
 
-  test('accepts optional className', () => {
-    render(<Banner warnings={[warnWarning]} className="custom-class" />)
-    const alert = screen.getByRole('alert')
-    expect(alert.className).toContain('custom-class')
-  })
-
   test('renders no action buttons — the strip is purely advisory', () => {
     render(<Banner warnings={[infoWarning]} />)
     expect(screen.queryByRole('button')).toBeNull()

@@ -15,7 +15,6 @@ export type BannerWarning = {
 type BannerProps = {
   /** The advisory rows. When empty, the Banner renders nothing (zero DOM). */
   warnings: BannerWarning[]
-  className?: string
 }
 
 /**
@@ -68,11 +67,11 @@ const SEVERITY_ICON: Record<BannerSeverity, string> = {
  *
  * Grounded on ITUN's `SoftWarningBanner`, re-implemented on the shared atoms.
  */
-export function Banner({ warnings, className }: BannerProps) {
+export function Banner({ warnings }: BannerProps) {
   if (warnings.length === 0) return null
 
   return (
-    <div role="alert" aria-live="polite" className={className} style={ROOT}>
+    <div role="alert" aria-live="polite" style={ROOT}>
       <ul style={LIST}>
         {warnings.map((warning, index) => (
           <li
