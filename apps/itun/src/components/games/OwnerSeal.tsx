@@ -1,4 +1,4 @@
-import { Badge } from 'component-lib'
+import { Stat } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
 
@@ -26,8 +26,9 @@ const CLAIM = {
  * single field in two places. A seal that is always present and always in the same place
  * can be read down a list without reading anything else.
  *
- * On a Row it is a chip like the rest: the first of the Row's chips, wrapping
- * and centring with them, drawn as their plate (owner's rule, 2026-10-14).
+ * It is a chip, the label-only style of the `Stat` cell a Row's chips are:
+ * the first of the Row's chips, wrapping and centring with them, under the
+ * same rules (owner's rule, 2026-10-14).
  *
  * ## Why UNCLAIMED is the pressable one
  *
@@ -50,12 +51,8 @@ export function OwnerSeal({
   disabled: boolean
   onClaim: () => void
 }) {
-  // A Row draws its labels as chips, so the stamp takes the chip's plate there.
-  const stamp = (
-    <Badge shape="stamp" size="mini">
-      {owner.label}
-    </Badge>
-  )
+  // The label-only chip, at the Row's chip rung.
+  const stamp = <Stat orientation="horizontal" label={owner.label} size="compact" />
 
   if (!claimable) {
     // Inert: a fact about the row, not a control.

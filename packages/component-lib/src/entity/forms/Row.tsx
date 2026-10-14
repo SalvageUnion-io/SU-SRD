@@ -1,11 +1,13 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import type { EntityInstance } from 'salvageunion-reference'
+import { Stat } from '../../components/atoms/Stat'
 import type { StatItem } from '../../components/containers/statsBarTypes'
 import { CardLabels } from '../../components/referenceEntity/card/CardLabels'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import type { Down } from '../../components/referenceEntity/card/cardChrome'
 import { downOf } from '../../components/referenceEntity/card/cardChrome'
+import { UserMadeStamp } from '../../components/referenceEntity/card/UserMadeStamp'
 import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
@@ -145,34 +147,43 @@ export function Row({
     ) : selected ? (
       <SelectedSeal word={mode.seal} />
     ) : undefined
+  const note = omit.includes('kind') ? undefined : model.kind.note
   // The model's own labels (a unit's note, the User-made stamp): `CardLabels`
   // draws them only when there is a note or the Row is user-made.
   const ownLabels =
     slots.labels !== undefined ? (
       slots.labels
-    ) : userMade || (!omit.includes('kind') && model.kind.note) ? (
+    ) : userMade || note ? (
       <CardLabels
         seal={undefined}
-        note={model.kind.note}
+        note={note}
         axisMarkers={[]}
         legalStartingPattern={false}
         userMade={userMade}
         onInk={paint.ink}
       />
     ) : null
-  // The host's labels (an owner seal) lead, then the model's own (★ Primary).
-  const labels = slots.extraLabels ? (
+  // Beside chips, or with the host's, the labels are chips: the first items
+  // of the chip group, wrapping and centring with the rest, never a line of
+  // their own (owner's rule, 2026-10-14). The host's (an owner chip) lead,
+  // then the note as a label-only chip (★ Primary), then User-made.
+  const labelsAsChips =
+    (!!ownLabels || !!slots.extraLabels) && (chipCount(chips) > 0 || !!slots.extraLabels)
+  const ownChips =
+    slots.labels !== undefined ? (
+      slots.labels
+    ) : (
+      <>
+        {note && <Stat orientation="horizontal" label={note} size="compact" />}
+        {userMade && <UserMadeStamp />}
+      </>
+    )
+  const leading = labelsAsChips ? (
     <>
       {slots.extraLabels}
-      {ownLabels}
+      {ownChips}
     </>
-  ) : (
-    ownLabels
-  )
-  // Beside chips, or from the host, the labels are chips: the first items of
-  // the chip group, wrapping and centring with the rest (owner's rule,
-  // 2026-10-14), never a line of their own.
-  const labelsAsChips = !!labels && (chipCount(chips) > 0 || !!slots.extraLabels)
+  ) : undefined
 
   const frame = (
     <div
@@ -200,7 +211,7 @@ export function Row({
                 rung="compact"
                 onInk={paint.ink}
                 linkable={mode.kind === 'read' && !slots.outer}
-                leading={labelsAsChips ? labels : undefined}
+                leading={leading}
               />
             ) : undefined
           }
@@ -208,7 +219,7 @@ export function Row({
           pennant={slots.pennant}
           affordance={affordance}
           controls={slots.controls}
-          labels={labelsAsChips ? undefined : labels}
+          labels={labelsAsChips ? undefined : ownLabels}
           // Every Row wears the cut-out, bodied or not, its chips on the band
           // beside the name (owner's call, 2026-10-13).
           notch

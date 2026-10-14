@@ -14,7 +14,7 @@
  * `convex/mediator.ts`), and a permanently false "Here" is worse than none.
  */
 
-import { Badge, Entity } from 'component-lib'
+import { Badge, Entity, Stat } from 'component-lib'
 import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { unitRowModel } from '../../lib/units/unitModel'
@@ -77,7 +77,12 @@ function Seat({ row }: { row: SeatRow }) {
         kind="pilot"
         name={row.pilot.name}
         note={row.role}
-        labels={row.role === 'Open' ? undefined : stamp(row.who)}
+        // Who holds the seat: the owner chip, the Row's first chip.
+        labels={
+          row.role === 'Open' ? undefined : (
+            <Stat orientation="horizontal" label={row.who} size="compact" />
+          )
+        }
       />
       <div style={FOOT}>
         {row.pilot.mech === null ? (

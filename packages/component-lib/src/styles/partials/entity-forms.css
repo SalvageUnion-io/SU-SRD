@@ -349,8 +349,7 @@
 
 .su-entity-row__chip-group .su-ec-labels__stamps > .su-badge-stamp,
 .su-entity-row__heading > .su-chips .su-ec-labels__stamps > .su-badge-stamp,
-.su-entity-row__heading > .su-chips > .su-badge-stamp,
-.su-entity-row__heading > .su-chips > button > .su-badge-stamp {
+.su-entity-row__heading > .su-chips > .su-badge-stamp:not(.su-badge--dashed) {
   background-color: var(--color-ink);
   border: var(--bw-hairline) solid var(--color-ink);
   box-shadow: none;
@@ -370,12 +369,10 @@
   > .su-chips
   .su-ec-labels__stamps
   > .su-badge-stamp,
-.su-entity-row__head[data-fill='ink'] .su-entity-row__heading > .su-chips > .su-badge-stamp,
 .su-entity-row__head[data-fill='ink']
   .su-entity-row__heading
   > .su-chips
-  > button
-  > .su-badge-stamp {
+  > .su-badge-stamp:not(.su-badge--dashed) {
   background-color: var(--color-paper);
   border-color: var(--color-paper);
   color: var(--color-ink);
@@ -450,12 +447,7 @@
   .su-entity-row__head[data-fill='ink']
     .su-entity-row__heading--cut:not([data-chips='beside'])
     > .su-chips
-    > .su-badge-stamp,
-  .su-entity-row__head[data-fill='ink']
-    .su-entity-row__heading--cut:not([data-chips='beside'])
-    > .su-chips
-    > button
-    > .su-badge-stamp {
+    > .su-badge-stamp:not(.su-badge--dashed) {
     background-color: var(--color-ink);
     border-color: var(--color-ink);
     color: var(--color-paper);

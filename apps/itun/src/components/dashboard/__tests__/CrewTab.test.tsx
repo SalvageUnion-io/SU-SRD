@@ -91,7 +91,8 @@ describe('the Crew tab', () => {
     const cells = [...rook.querySelectorAll('.su-entity-row .su-stat-cell')].map(
       (c) => c.textContent
     )
-    expect(cells).toEqual(['HP8/10', 'AP3/5'])
+    // Your chip leads, then the label-first HP and AP.
+    expect(cells).toEqual(['You', 'HP8/10', 'AP3/5'])
     const scrapper = rook.querySelector('.su-entity-token')
     expect(scrapper?.textContent).toContain('Scrapper')
     expect(scrapper?.textContent).toContain('Parked')
