@@ -9,7 +9,8 @@
  * - `descriptor` — what it is, said plainly, wherever the name is introduced
  *   (the front door's eyebrow; the manifest and meta descriptions spell it as
  *   text).
- * - `tagline` — the old name's banner line, kept as the legacy tagline.
+ * - `tagline` — the old name's banner line, kept as the legacy tagline, and
+ *   `taglineBy`, who it is quoted from.
  * - `wordmark` — the site's own name, as the reference OG card draws it.
  *
  * Dependency-free on purpose: the Discord bot Worker imports it through the
@@ -20,5 +21,6 @@ export const PRODUCT = {
   shortName: 'Cantina',
   descriptor: 'The Salvage Union Character Builder',
   tagline: 'You’re in the Union, now!',
+  taglineBy: 'Lester “Stumpy” Owens',
   wordmark: 'salvageunion.io',
 } as const

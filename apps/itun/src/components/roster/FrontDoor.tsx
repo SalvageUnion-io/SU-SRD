@@ -5,7 +5,8 @@
  * visitor's to list, so `/` is the front door instead —
  *
  *  - the **product-name chapter band** (`PRODUCT.name`) in the cantina tone,
- *    under `PRODUCT.descriptor` and the legacy tagline, with what it is, the sign-in,
+ *    under `PRODUCT.descriptor`, with the legacy tagline quoted beside the
+ *    name (under it on a phone), then what it is, the sign-in,
  *    a way into a Starter Set sheet, and the one line about invite links (a
  *    Game is joined from a link, never a typed code);
  *  - **Start here**, the onboarding the SRD's home shows too (`StartHere`):
@@ -54,6 +55,23 @@ const KICKER = {
   fontWeight: tokens.weight.bold,
   letterSpacing: tokens.tracking.eyebrow,
   textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** The legacy tagline, quoted. Its colour and alignment are `screens.css`'s
+ *  (`.front-door__quote`): paper on the band, the deep crawler pink under it. */
+const QUOTE = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.display,
+  fontStyle: 'italic',
+  fontWeight: tokens.weight.semibold,
+  lineHeight: 1.15,
+  margin: 0,
+} satisfies CSSProperties
+
+const QUOTE_BY = {
+  ...KICKER,
+  color: tokens.color.ink,
+  margin: `${tokens.space[4]} 0 0`,
 } satisfies CSSProperties
 
 const INTRO = {
@@ -165,10 +183,13 @@ export function FrontDoor() {
       <ChapterBand
         tone="cantina"
         measure={MEASURE}
-        eyebrow={
-          <span style={KICKER}>
-            {PRODUCT.descriptor} · {PRODUCT.tagline}
-          </span>
+        eyebrow={<span style={KICKER}>{PRODUCT.descriptor}</span>}
+        asideAt="notch"
+        aside={
+          <figure className="front-door__quote">
+            <blockquote style={QUOTE}>“{PRODUCT.tagline}”</blockquote>
+            <figcaption style={QUOTE_BY}>— {PRODUCT.taglineBy}</figcaption>
+          </figure>
         }
       >
         {PRODUCT.name}
