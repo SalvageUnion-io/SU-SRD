@@ -216,10 +216,9 @@ function RailStep({
   )
 }
 
-/** Its direction, alignment, gap, radius and padding change at sm (`.wiz-pill`). */
+/** Its direction, alignment, gap and padding change at sm (`.wiz-pill`). */
 const pillStyle: CSSProperties = {
   backgroundColor: tokens.color.ink,
-  boxShadow: '0 16px 28px -12px var(--color-ink-50)',
   display: 'flex',
   pointerEvents: 'auto',
 }
@@ -255,7 +254,7 @@ const pillNavStyle: CSSProperties = {
 }
 
 /** Full width on a phone, its own width from sm (`.wiz-pill-cta`). */
-const ctaStyle: CSSProperties = { borderRadius: tokens.radius.full }
+const ctaStyle: CSSProperties = { borderRadius: tokens.radius.card }
 
 /** Locked: hollow, dashed, at full opacity though disabled. */
 const ctaLockedStyle: CSSProperties = {
@@ -325,8 +324,7 @@ const fillStyle: CSSProperties = { flex: '1 1 0%', minHeight: 0 }
 
 /** Its left padding — the number tab's gutter — opens at sm (`.wiz-step-card`). */
 const stepCardStyle: CSSProperties = {
-  borderRadius: '0.75rem',
-  boxShadow: '0 14px 26px -14px var(--color-ink-40), inset 0 0 46px var(--color-ink-8)',
+  borderRadius: tokens.radius.card,
   paddingBottom: tokens.space[24],
   paddingRight: tokens.space[20],
   paddingTop: tokens.space[20],
@@ -337,7 +335,6 @@ const stepCardStyle: CSSProperties = {
 const stepTabStyle: CSSProperties = {
   backgroundColor: tokens.color.ink,
   borderRadius: tokens.radius.badge,
-  boxShadow: '0 8px 14px -8px var(--color-ink-50)',
   color: tokens.color.paper,
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.hero,

@@ -150,10 +150,10 @@
   padding-left: var(--space-20);
 }
 
-/* The action pill: a stacked ink card on a phone, one round pill from sm. */
+/* The action bar: a flat ink card, stacked on a phone, one row from sm. */
 .wiz-pill {
   align-items: stretch;
-  border-radius: 1rem;
+  border-radius: var(--radius-card);
   flex-direction: column;
   gap: var(--space-8);
   padding: var(--space-10);
@@ -209,7 +209,6 @@
 
   .wiz-pill {
     align-items: center;
-    border-radius: 9999px;
     flex-direction: row;
     gap: var(--space-12);
     padding-left: var(--space-16);
