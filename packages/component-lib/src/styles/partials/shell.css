@@ -11,18 +11,50 @@
  * hover or with "you are here".
  *
  * One geometry for both: a 56px row at every width, the mark alone (no
- * wordmark), the product nav inline from `lg`, the search entry 14rem wide.
+ * wordmark), the product nav inline from `lg`, the search entry 14rem wide,
+ * and one control height (`--su-union-bar-control`) for everything you press
+ * in the bar: the switcher, the search, "Buy the game", the account controls
+ * and the phone's icon buttons.
  *
  * "Here" is never rust (§3.1): the switcher's current tab is the inverse stamp,
  * a paper plate with ink text on the ink bar, and a nav link's current page
  * is ruled under in paper (on ink) or ink (on paper).
  */
+.su-union-bar {
+  --su-union-bar-control: 36px;
+}
+
+/* Under a coarse pointer the bar's one height is the 44px floor
+   (`pointer-motion.css`). */
+
 .su-union-bar__row {
   align-items: center;
   display: flex;
   gap: var(--space-12);
   height: 56px;
   padding-inline: var(--space-16);
+}
+
+/* The bar's controls, one height. The search field's height is its border
+   box, so its block padding goes; the hamburger and the phone's icon buttons
+   are squares on it. */
+.su-union-bar__end .su-search-field,
+.su-union-bar__end .su-btn {
+  height: var(--su-union-bar-control);
+}
+
+.su-union-bar__end .su-search-field {
+  padding-block: 0;
+}
+
+.su-union-bar__mobile .su-btn--icon-only,
+.su-union-bar__mobile .su-nav-drawer__trigger {
+  align-items: center;
+  display: inline-flex;
+  height: var(--su-union-bar-control);
+  justify-content: center;
+  padding: 0;
+  width: var(--su-union-bar-control);
 }
 
 .su-union-bar__tab {
@@ -33,7 +65,7 @@
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
-  height: 32px;
+  height: var(--su-union-bar-control);
   letter-spacing: var(--tracking-caps-wide);
   padding-inline: var(--space-12);
   text-decoration: none;
@@ -132,7 +164,7 @@
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
   gap: var(--space-4);
-  height: 36px;
+  height: var(--su-union-bar-control);
   letter-spacing: var(--tracking-caps-snug);
   padding-inline: var(--space-14);
   text-decoration: none;
