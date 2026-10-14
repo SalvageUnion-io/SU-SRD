@@ -12,11 +12,12 @@
  * Discord paints one colour per message (the accent stripe) and none inside
  * text, so the book's devices become type and punctuation:
  *
- * - an action's type and cost → a `-#` caps kicker (never the entity's kind);
+ * - a parent → a `-#` caps kicker (`PATTERN OF MULE`), never the entity's kind;
  * - the head → `## Name` as a link to its page, an ability's tier numeral first;
- * - value cells → `` `12` STRUCTURE PTS. ``, three to a line, in the book's
- *   words and order (`bookStats`);
- * - traits → linked tags with their parameter (E17: no "//" line);
+ * - the chips under it, one head group in E17's order: the action type as the
+ *   book prints it, the facts label first in the web cards' short labels
+ *   (`**SP** 12`, three to a line), the traits as linked tags with their
+ *   parameter, then the cost last (`` `1 AP` ``, the book's pointy box);
  * - a table → `ROLL THE DIE:` over one banded row per line;
  * - children → a counted stamp over linked names (E6: a link, never a card).
  */
@@ -28,7 +29,6 @@ import { nameToSlug } from '../nameToSlug'
 import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
-import { formatProvenance } from './parts/cite'
 import { formatActionType } from './parts/traits'
 import { toEntityModel } from './toEntityModel'
 import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
@@ -224,23 +224,53 @@ function contentMarkdown(
   return out
 }
 
-/** Value cells, three to a line: `` `12` STRUCTURE PTS. · `4` ENERGY PTS. ``. */
-function factCells(facts: Fact[], perLine = 3): string[] {
-  const cells = facts
-    .filter((fact) => fact.value !== '')
-    .map((fact) => `\`${fact.value}\` ${fact.label.toUpperCase()}`)
+/** A fact as a chip, label first in the web cards' short label: `**SP** 12`. */
+function factChip(fact: Fact): string {
+  return `**${fact.short}** ${fact.value}`
+}
+
+/** Chips, three to a line: `**TL** 1 · **SP** 12 · **EP** 4`. */
+function chipLines(chips: string[], perLine = 3): string[] {
   const lines: string[] = []
-  for (let i = 0; i < cells.length; i += perLine) {
-    lines.push(cells.slice(i, i + perLine).join(' · '))
+  for (let i = 0; i < chips.length; i += perLine) {
+    lines.push(chips.slice(i, i + perLine).join(' · '))
   }
   return lines
 }
 
-/** The book's stat column where the entity has one, then any facet it lacks. */
+/** The facets in the web cards' order, then any book stat they lack. */
 function cellFacts(model: EntityModel): Fact[] {
-  if (model.bookStats.length === 0) return model.facts
-  const shown = new Set(model.bookStats.map((fact) => fact.short))
-  return [...model.bookStats, ...model.facts.filter((fact) => !shown.has(fact.short))]
+  const shown = new Set(model.facts.map((fact) => fact.short))
+  return [...model.facts, ...model.bookStats.filter((fact) => !shown.has(fact.short))]
+}
+
+/** The cost as the book's pointy box: `` `1 AP` ``. */
+function costChip(model: EntityModel): string | undefined {
+  return model.cost ? `\`${model.cost}\`` : undefined
+}
+
+/**
+ * The head group's lines (E17): the action type, the facts, the traits, then
+ * the cost last. The traits keep a line of their own (their links run long);
+ * the cost closes whichever line is last.
+ */
+function chipGroup(model: EntityModel, facts: Fact[], perLine = 3): string[] {
+  const actionType = actionTypeLine(model)
+  const lines = chipLines(
+    [
+      ...(actionType ? [`**${actionType}**`] : []),
+      ...facts.filter((fact) => fact.value !== '').map(factChip),
+    ],
+    perLine
+  )
+  if (model.traits.length > 0) lines.push(traitTags(model.traits))
+  const cost = costChip(model)
+  if (cost) {
+    const last = lines.length - 1
+    if (last >= 0) lines[last] = `${lines[last]} · ${cost}`
+    else lines.push(cost)
+  }
+  return lines
 }
 
 /** Traits as linked tags: `[Hacking](…) · [Burn](…) 2`. */
@@ -266,16 +296,14 @@ function actionTypeLine(model: EntityModel): string | undefined {
 }
 
 /**
- * The kicker: `-# REACTION · \`1 AP\``, a pattern's `-# PATTERN OF MULE`. It never
- * names the entity's kind (E9), so it is absent when nothing else is said.
+ * The kicker: a pattern's `-# PATTERN OF MULE`. It never names the entity's
+ * kind (E9), and the chips never ride above the title (E17), so it is absent
+ * when the entity has no parent.
  */
 function kicker(model: EntityModel): string | undefined {
-  const parts: string[] = []
-  if (model.parent) parts.push(`${model.parent.label} ${model.parent.ref.name}`.toUpperCase())
-  const actionType = actionTypeLine(model)
-  if (actionType) parts.push(actionType.toUpperCase())
-  if (model.cost) parts.push(`\`${model.cost}\``)
-  return parts.length > 0 ? `-# ${parts.join(' · ')}` : undefined
+  return model.parent
+    ? `-# ${`${model.parent.label} ${model.parent.ref.name}`.toUpperCase()}`
+    : undefined
 }
 
 /** The head line: `## [Mule](…)`, or `## 2 · [Counter-Hacking](…)`. */
@@ -284,30 +312,27 @@ function heading(model: EntityModel, url: string | undefined): string {
   return `## ${tier}${link(displayTitle(model.title), url)}`
 }
 
-/** `Workshop Manual p.100 · also in … (PC) p.12`. */
+/** `Workshop Manual · p.100 · Also in … (PC) · p.12`: the book, then its reprints. */
 export function discordCiteLine(model: EntityModel): string {
-  const { source, booklet, page, citation } = model.cite
-  const book = formatProvenance(source, booklet, undefined)
-  const head = [book, page !== undefined ? `p.${page}` : undefined].filter(Boolean).join(' ')
-  const reprints =
-    book && citation?.startsWith(book) ? citation.slice(book.length).replace(/ · p\./g, ' p.') : ''
-  return `${head}${reprints}` || 'Salvage Union'
+  const printings = model.cite.printings.map((printing) =>
+    [printing.book, printing.page !== undefined ? `p.${printing.page}` : undefined]
+      .filter(Boolean)
+      .join(' · ')
+  )
+  return (
+    printings.map((line, i) => (i === 1 ? `Also in ${line}` : line)).join(' · ') || 'Salvage Union'
+  )
 }
 
-/** An action as a band: name, kicker facts, traits, then its rules. */
+/** An action as a band: name, its chips (E17, cost last), then its rules. */
 function actionBand(ref: EntityRef, ownName: string, chassisName?: string): DiscordAction | null {
   const record = SalvageUnionReference.get('actions', ref.id)
   if (!record) return null
   const model = toEntityModel(record as SURefMetaEntity)
-  const meta = [
-    actionTypeLine(model),
-    model.cost ? `\`${model.cost}\`` : undefined,
-    ...factCells(model.facts, 99),
-  ].filter(Boolean)
   const name = stripOwnerSuffix(model.title, ownName)
-  const stats: string[] = []
-  if (meta.length > 0) stats.push(`-# ${meta.join(' · ')}`)
-  if (model.traits.length > 0) stats.push(traitTags(model.traits))
+  // A band's chips run on one line, the cost closing it.
+  const chips = chipGroup(model, model.facts, 99).join(' · ')
+  const stats = chips ? [`-# ${chips}`] : []
   const label = escapeMarkdownLabel(name)
   const text = [`### ${label}`, ...stats, ...contentMarkdown(model.prose, chassisName)].join('\n')
   const summary = [`**${label}**`, ...stats].join('\n')
@@ -371,8 +396,7 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
     model.ref.schemaName === 'chassis' ? (model.parent?.ref.name ?? model.title) : undefined
 
   const lead = kicker(model)
-  const head = [...(lead ? [lead] : []), heading(model, url), ...factCells(cellFacts(model))]
-  if (model.traits.length > 0) head.push(traitTags(model.traits))
+  const head = [...(lead ? [lead] : []), heading(model, url), ...chipGroup(model, cellFacts(model))]
 
   // The entity's own prose, then its folded self-action's: a system's rules
   // live in the action that IS it. An ability's description is its lead.

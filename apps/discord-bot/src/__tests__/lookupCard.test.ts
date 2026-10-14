@@ -157,22 +157,23 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
 })
 
 describe('lookupCard — the card', () => {
-  test('a chassis wears its tone and prints the book stat column', () => {
+  test('a chassis wears its tone and prints its facts label first', () => {
     const card = lookupCard(hit('chassis', 'goliath'))
     expect(card.accent).toBe(0x7a978a)
     const text = cardText(card)
     expect(text).toContain('## [Goliath](https://salvageunion.io/chassis/goliath)')
-    expect(text).toContain('`13` STRUCTURE PTS. · `11` ENERGY PTS. · `12` HEAT CAP.')
+    expect(text).toContain('**TL** 2 · **SP** 13 · **EP** 11')
+    expect(text).toContain('**Cargo** 6 · **Heat** 12')
     // The chassis ability shows only on the chassis and pattern pages.
     expect(text).not.toContain('Scrap Plating')
   })
 
-  test('a weapon system prints its facets as cells and its traits as links', () => {
+  test('a weapon system prints its facets as label-first chips and its traits as links', () => {
     const text = cardText(lookupCard(hit('systems', '50-cal-machine-gun')))
     expect(text).toContain(
       '## [.50 Cal Machine Gun](https://salvageunion.io/systems/50-cal-machine-gun)'
     )
-    expect(text).toContain('`Close` RANGE · `2 SP` DAMAGE')
+    expect(text).toContain('**RNG** Close · **DMG** 2 SP')
     expect(text).toContain('[Ballistic](https://salvageunion.io/traits/ballistic)')
     expect(text.toLowerCase()).toContain('ballistic weapon')
   })
@@ -256,7 +257,9 @@ describe('lookupCard — tables and roll buttons', () => {
     const card = lookupCard(hit('abilities', 'counter-hacking'))
     // Counter-Hacking is Advanced: the Advanced and Hybrid rust (tier-hybrid).
     expect(card.accent).toBe(0xb7410e)
-    expect(cardText(card)).toContain('-# REACTION · `1 AP`')
+    // E17: the cost closes the chips, under the title.
+    expect(cardText(card)).toContain('**Reaction** · **RNG** Medium')
+    expect(cardText(card)).toContain('[Hacking](https://salvageunion.io/traits/hacking) · `1 AP`')
     expect(labels(card)).toEqual(['Roll Counter-Hacking', 'Buy'])
   })
 })
@@ -387,7 +390,7 @@ describe('lookupCard — a long card is an index with Read buttons', () => {
     expect(text).not.toContain('pierce through the cockpit')
     const proboscis = readRows(card).find((row) => row.text[0]?.startsWith('**Proboscis**'))
     expect(proboscis?.text[0]).toBe(
-      '**Proboscis**\n-# Turn Action · `Close` RANGE\n[Melee](https://salvageunion.io/traits/melee)'
+      '**Proboscis**\n-# **Turn Action** · **RNG** Close · [Melee](https://salvageunion.io/traits/melee)'
     )
     expect(proboscis?.button).toEqual({
       kind: 'action',
@@ -415,9 +418,9 @@ describe('lookupCard — a long card is an index with Read buttons', () => {
     expect(text).toContain(
       '-# [Cortex Bio-Titan](https://salvageunion.io/bio-titans/cortex-bio-titan)'
     )
-    expect(text).toContain('### Proboscis\n-# Turn Action · `Close` RANGE')
+    expect(text).toContain('### Proboscis\n-# **Turn Action** · **RNG** Close')
     expect(text).toContain('pierce through the cockpit')
-    expect(text).toContain('-# We Were Here First! p.56')
+    expect(text).toContain('-# We Were Here First! · p.56')
     expect(readCard('bio-titans::cortex-bio-titan|nope')).toBeNull()
     expect(readCard('bio-titans::nope|proboscis')).toBeNull()
     expect(readCard('no-separator')).toBeNull()
