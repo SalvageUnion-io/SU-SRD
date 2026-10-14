@@ -1792,10 +1792,10 @@
  * A Core class's paths (the book's spread lists them under its Advanced and
  * Legendary Abilities and "Hybrid Classes"), one card each: the class's own
  * Advanced tree beside its Core trees, then each Hybrid Class full width.
- * Every card is the same shell, one column — a pilot head carrying what
- * opens the path, its kind and what it is, the name on the paper cut-out at
- * the band's foot (a Row's), then its trees (their Rows on the same track as
- * the class's own), then the citation. A hybrid's head is a link to its page;
+ * Every card is the same shell, one column — a pilot head with the name on
+ * the paper cut-out at the band's foot (a Row's) and, right of it, what opens
+ * the path and its kind; then the body, what the path is over its trees
+ * (their Rows on the same track as the class's own); then the citation. A hybrid's head is a link to its page;
  * the class's own path has no page, so its head links nowhere.
  */
 .srd-class-paths {
@@ -1815,32 +1815,54 @@
 }
 
 .srd-class-path__head {
-  align-items: flex-start;
+  align-items: flex-end;
   background: var(--color-pilot);
   color: var(--color-ink);
   display: flex;
-  flex-direction: column;
   gap: var(--space-8);
+  justify-content: space-between;
   padding: var(--space-10) var(--space-12) 0;
   text-decoration: none;
 }
 
-/* The band's top line: what opens the path, then its kind and, for a
-   hybrid, the chevron at the far end. */
+/* The chips, right of the name on the band (a Row's cut-out head): what
+   opens the path, then its kind, level with the name's foot; a hybrid's
+   chevron closes the line. */
 .srd-class-path__band {
   align-items: center;
-  align-self: stretch;
   display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   gap: var(--space-8);
+  justify-content: flex-end;
+  min-width: min-content;
+  padding-block: var(--space-6);
 }
 
-/* The kind stamp and a hybrid's chevron stay together at the line's end. */
-.srd-class-path__kind {
-  align-items: center;
-  display: flex;
-  gap: var(--space-8);
-  margin-left: auto;
+/* On a phone the chips flow UNDER the name, never above it: their own line on
+   the paper below the tab, the head of the body, so the tab still opens into
+   the paper (a Row's, `entity-forms.css`). The strip is painted the card's
+   full width by a clipped shadow, since the head is inset. */
+@media (max-width: 40rem) {
+  .srd-class-path__head {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .srd-class-path__band {
+    background-color: var(--color-paper);
+    box-shadow: 0 0 0 100vmax var(--color-paper);
+    clip-path: inset(0 -100vmax -1px);
+    flex-basis: 100%;
+    justify-content: flex-start;
+    order: 1;
+    padding-block: var(--space-6) 0;
+  }
+
+  /* A hybrid's chevron stays on the band, at the name's end of the line. */
+  .srd-class-path__chevron {
+    margin-left: auto;
+  }
 }
 
 a.srd-class-path__head:hover {
@@ -1861,6 +1883,7 @@ a.srd-class-path__head:focus-visible {
   font-size: var(--text-title);
   font-weight: var(--font-weight-bold);
   line-height: 1.05;
+  flex: 0 1 auto;
   margin-left: calc(-1 * var(--space-2));
   max-width: 100%;
   padding: var(--space-6) var(--space-10) var(--space-2);
@@ -1868,6 +1891,7 @@ a.srd-class-path__head:focus-visible {
 }
 
 .srd-class-path__chevron {
+  align-self: center;
   flex: none;
   height: 1.1rem;
   transition: transform 120ms;
@@ -1885,7 +1909,7 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
 .srd-class-path__req {
   align-items: center;
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   flex-wrap: wrap;
   gap: var(--space-6);
 }
@@ -1906,11 +1930,12 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   color: var(--color-ink);
 }
 
-/* The path's text, on the band in ink. */
+/* The path's text, at the head of the body over its trees. */
 .srd-class-path__note {
   color: var(--color-ink);
   font-size: var(--text-sm);
   line-height: 1.45;
+  margin: 0 0 var(--space-12);
   max-width: 72ch;
 }
 

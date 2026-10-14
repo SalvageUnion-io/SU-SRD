@@ -227,9 +227,10 @@ function Chevron() {
 /**
  * One path a Core class advances along (the Workshop Manual's class spread
  * lists them: Advanced Abilities, then the Hybrid Classes), every one in the
- * same card, one column: a pilot head that carries what opens the path and
- * what it is, its name on the paper cut-out at the band's foot (a Row's,
- * EDL Row), then its trees as Rows on their tracks. The class's own Advanced
+ * same card, one column: a pilot head with its name on the paper cut-out at
+ * the band's foot (a Row's, EDL Row) and, right of the name, what opens the
+ * path and its kind; then the body, what the path is over its trees as Rows
+ * on their tracks. The class's own Advanced
  * tree is no entity of its own, so its head names where it ends ("Legendary
  * Engineer") and links nowhere; a Hybrid Class's head opens its page.
  */
@@ -242,17 +243,14 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
     : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
   const head = (
     <>
+      <span className="srd-class-path__name">{name}</span>
       <span className="srd-class-path__band">
         <PathRequirement path={path} classEntity={classEntity} />
-        <span className="srd-class-path__kind">
-          <Badge shape="stamp" size="mini" style={{ flex: 'none' }}>
-            {kind}
-          </Badge>
-          {hybrid && <Chevron />}
-        </span>
+        <Badge shape="stamp" size="mini" style={{ flex: 'none' }}>
+          {kind}
+        </Badge>
       </span>
-      {note && <span className="srd-class-path__note">{note}</span>}
-      <span className="srd-class-path__name">{name}</span>
+      {hybrid && <Chevron />}
     </>
   )
   return (
@@ -265,6 +263,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
         <div className="srd-class-path__head">{head}</div>
       )}
       <div className="srd-class-path__body">
+        {note && <p className="srd-class-path__note">{note}</p>}
         <div className="srd-class-path__trees" data-entity-fit="">
           <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} />
           {path.legendary && <TreeSection {...path.legendary} track="legendary" />}

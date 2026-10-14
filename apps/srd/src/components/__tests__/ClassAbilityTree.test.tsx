@@ -91,15 +91,20 @@ describe('ClassAbilityTree banners and track', () => {
 })
 
 describe('ClassAbilityTree advancement paths', () => {
-  test('a path head carries its requirement and text, its name on the cut-out at its foot', () => {
+  test('a path head carries its name on the cut-out, its requirement right of it; its text opens the body', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
-    const heads = [...document.querySelectorAll('.srd-class-path__head')]
-    expect(heads.length).toBeGreaterThan(1)
-    for (const head of heads) {
-      expect(head.querySelector('.srd-class-path__req')).not.toBeNull()
-      expect(head.lastElementChild?.className).toBe('srd-class-path__name')
+    const paths = [...document.querySelectorAll('.srd-class-path')]
+    expect(paths.length).toBeGreaterThan(1)
+    for (const path of paths) {
+      const head = path.querySelector('.srd-class-path__head')
+      expect(head?.firstElementChild?.className).toBe('srd-class-path__name')
+      expect(head?.querySelector('.srd-class-path__band .srd-class-path__req')).not.toBeNull()
+      expect(head?.querySelector('.srd-class-path__note')).toBeNull()
+      expect(path.querySelector('.srd-class-path__body')?.firstElementChild?.className).toBe(
+        'srd-class-path__note'
+      )
     }
-    expect(heads[0]?.querySelector('.srd-class-path__note')?.textContent).toContain(
+    expect(paths[0]?.querySelector('.srd-class-path__note')?.textContent).toContain(
       'Stay an Engineer'
     )
   })
