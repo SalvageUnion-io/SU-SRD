@@ -31,6 +31,7 @@ import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { chipLines, costChip, factChips } from './discordChips'
 import { opensGroup, splitStatLine } from './parts/facts'
+import { splitParagraph } from './parts/paragraphs'
 import { formatActionType } from './parts/traits'
 import { toEntityModel } from './toEntityModel'
 import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
@@ -217,7 +218,9 @@ function contentMarkdown(
           line = `*${body}*`
           break
         default:
-          line = body
+          // A long paragraph reads as shorter ones in Discord's narrow column.
+          out.push(...splitParagraph(body))
+          continue
       }
     } else if (block.label) {
       line = `**${block.label}**`
@@ -409,8 +412,8 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
 
   const table = model.table ? tableParts(model.table) : undefined
 
-  // A class lists its own ability trees, each tree's abilities in level order.
-  const children = [...model.children, ...(model.trees ?? [])].map((group) =>
+  // A class's Core trees and its Advancement: bare links.
+  const children = [...model.children, ...(model.links ?? [])].map((group) =>
     discordChildGroup(group.label, group.items)
   )
 

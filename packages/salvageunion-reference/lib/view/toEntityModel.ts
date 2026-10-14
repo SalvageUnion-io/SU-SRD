@@ -227,7 +227,7 @@ export function toEntityModel(
             )
           : []),
       ]
-  const trees = pattern ? [] : groupsOf(classTrees(entity), baseRef.id)
+  const links = pattern ? [] : groupsOf(classTrees(entity), baseRef.id)
   const table = pattern ? undefined : entityTable(entity, folded, entityName)
   const patternLead = pattern ? firstParagraphText(pattern.content) : undefined
   const lead = pattern
@@ -267,7 +267,7 @@ export function toEntityModel(
     actions: others.map((a) => refOf(a)),
     abilities: (getChassisAbilities(entity) ?? []).map((a) => refOf(a)),
     children,
-    ...(trees.length > 0 ? { trees } : {}),
+    ...(links.length > 0 ? { links } : {}),
     ...(table ? { table } : {}),
     art,
     cite: entityCite(entity, pattern),

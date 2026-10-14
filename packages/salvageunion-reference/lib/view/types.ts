@@ -161,8 +161,11 @@ export type EntityModel = {
   /** A chassis's abilities (records in the actions schema). */
   abilities: EntityRef[]
   children: EntityChildGroup[]
-  /** A class's own ability trees, in its page's order (`classTrees`). */
-  trees?: EntityChildGroup[]
+  /**
+   * Groups only a Discord card lists, as bare links: a class's Core trees and
+   * the classes it advances into (`classTrees`).
+   */
+  links?: EntityChildGroup[]
   table?: EntityTable
   art: EntityArt
   cite: EntityCite

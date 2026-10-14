@@ -24,27 +24,39 @@ function levelOrder(level: number | 'L' | 'G'): number {
 }
 
 /**
- * A class's OWN ability trees, in its page's order, each tree's abilities in
- * level order: a Core class's Core trees, then its Advanced tree, then its
- * Legendary tree; a Hybrid Class's own tree, then its Legendary tree. The
- * Hybrid Classes a Core class can advance into are other classes' trees, not
- * listed here. A tree with no abilities is dropped; any other entity has none.
+ * A class's ability trees and where it advances, as its Discord card lists
+ * them: a Core class's Core trees in its page's order, each tree's abilities
+ * in level order, then ADVANCEMENT, the Hybrid Classes one of those trees
+ * opens (`ability-tree-requirements`); a Hybrid Class's own tree. Advanced and
+ * Legendary trees are not listed. A tree with no abilities is dropped; any
+ * other entity has none.
  */
 export function classTrees(entity: SURefMetaEntity): NestedGroup[] {
   const core = isCoreClass(entity)
   if (!core && !isBaseAdvancedClass(entity)) return []
-  const names = [
-    ...(core ? entity.coreTrees : []),
-    ...(entity.advancedTree ? [entity.advancedTree] : []),
-    ...(entity.legendaryTree ? [entity.legendaryTree] : []),
-  ]
+  const names: readonly string[] = core
+    ? entity.coreTrees
+    : entity.advancedTree
+      ? [entity.advancedTree]
+      : []
   const abilities = SalvageUnionReference.Abilities.all()
-  return names.flatMap((tree) => {
+  const trees = names.flatMap((tree) => {
     const entities = abilities
       .filter((ability) => ability.tree === tree)
       .sort((a, b) => levelOrder(a.level) - levelOrder(b.level))
     return entities.length > 0 ? [{ label: tree, entities }] : []
   })
+  if (!core || !entity.advanceable) return trees
+  const requirements = new Map(
+    SalvageUnionReference.AbilityTreeRequirements.all().map((r) => [r.name, r.requirement])
+  )
+  const hybrids = SalvageUnionReference.Classes.all().filter(
+    (hybrid) =>
+      isBaseAdvancedClass(hybrid) &&
+      hybrid.advancedTree !== undefined &&
+      (requirements.get(hybrid.advancedTree) ?? []).some((tree) => names.includes(tree))
+  )
+  return hybrids.length > 0 ? [...trees, { label: 'Advancement', entities: hybrids }] : trees
 }
 
 /**
