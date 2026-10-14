@@ -90,6 +90,34 @@ describe('Tile art', () => {
       expect(container.querySelector('.su-entity-tile--bare')).not.toBeNull()
     }
   })
+
+  test('in a catalog with art, an art-less tile keeps the art place and wears a censor mark', () => {
+    const tl = need(SalvageUnionReference.CrawlerTechLevels.all()[2], 'crawler tech level 3')
+    const { container } = render(<Entity form="tile" entity={tl} missingArt={0} />)
+    const frame = container.querySelector('.su-entity-tile__frame')
+    expect(frame?.firstElementChild?.classList).toContain('su-entity-tile__art')
+    const mark = container.querySelector('.su-entity-tile__art .su-missing-art')
+    expect(mark?.getAttribute('aria-hidden')).toBe('true')
+    expect(mark?.querySelector('.su-missing-art__backdrop')?.getAttribute('src')).toMatch(
+      /-440q\d+\.webp$/
+    )
+    expect(container.querySelector('.su-entity-tile--bare')).toBeNull()
+  })
+
+  test('the marks turn with the art-less ordinal, so neighbours differ', () => {
+    const tl = need(SalvageUnionReference.CrawlerTechLevels.all()[2], 'crawler tech level 3')
+    const variants = [0, 1, 2].map((ordinal) => {
+      const { container } = render(<Entity form="tile" entity={tl} missingArt={ordinal} />)
+      return container.querySelector('[data-missing-art]')?.getAttribute('data-missing-art')
+    })
+    expect(variants).toEqual(['file', 'row', 'removed'])
+  })
+
+  test('an entity with art ignores the censor mark', () => {
+    const { container } = render(<Entity form="tile" entity={mule()} missingArt={0} />)
+    expect(container.querySelector('.su-missing-art')).toBeNull()
+    expect(container.querySelector('.su-entity-tile__art img')).not.toBeNull()
+  })
 })
 
 describe('Tile chips for systems and modules', () => {

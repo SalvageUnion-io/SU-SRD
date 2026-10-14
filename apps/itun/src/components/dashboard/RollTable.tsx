@@ -6,6 +6,7 @@ import {
   digestRollTable,
   FOCUS_RING_ON_TONE,
   RollStamp,
+  revealRolled,
   Text,
   toast,
   useParseTraitReferences,
@@ -369,9 +370,7 @@ function ColumnsRollTable({
   const highlightedRef = useRef<HTMLTableCellElement>(null)
 
   useEffect(() => {
-    if (result && highlightedRef.current) {
-      highlightedRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
+    if (result) revealRolled(highlightedRef.current)
   }, [result])
 
   const tableData = table
@@ -526,9 +525,7 @@ function StandardRollTable({
   const highlightedRowRef = useRef<HTMLTableRowElement>(null)
 
   useEffect(() => {
-    if (highlightedKey && highlightedRowRef.current) {
-      highlightedRowRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
+    if (highlightedKey) revealRolled(highlightedRowRef.current)
   }, [highlightedKey])
 
   const handleRoll = () => {

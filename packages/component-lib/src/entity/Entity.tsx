@@ -27,6 +27,8 @@ export type EntityProps = EntitySource & {
   peek?: boolean
   /** Tile only: its art loads at once and first (a listing's opening row). */
   priority?: boolean
+  /** Tile only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
+  missingArt?: number
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
   titleAs?: ElementType
 }
@@ -39,7 +41,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, peek, priority, titleAs } = props
+  const { form, instance, mode, lead, omit, peek, priority, titleAs, missingArt } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -70,6 +72,7 @@ export function Entity(props: EntityProps) {
           omit={omit}
           lead={lead}
           priority={priority}
+          missingArt={missingArt}
         />
       )
     default: {

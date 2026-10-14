@@ -2,7 +2,7 @@ import type { ElementType } from 'react'
 import { useMemo } from 'react'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { firstParagraphText, normalizePatternName, toEntityModel } from 'salvageunion-reference'
-import { radius, space } from '../../../design/tokens'
+import { space } from '../../../design/tokens'
 import { useEntitySurface } from '../../../entity/entitySurfaceContext'
 import { Head } from '../../../entity/parts/Head'
 import { Lead } from '../../../entity/parts/Lead'
@@ -70,7 +70,7 @@ function PatternListRow({
           href={href}
           aria-label={`${normalizePatternName(pattern.name)} — ${chassisName} pattern`}
           className={FOCUS_RING}
-          style={{ display: 'block', borderRadius: radius.card }}
+          style={{ display: 'block' }}
         >
           {card}
         </a>

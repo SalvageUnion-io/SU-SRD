@@ -6,7 +6,9 @@ import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
+import { CensorMark } from '../parts/CensorMark'
 import { CostBox } from '../parts/Chips'
+import { censorMark } from '../parts/censor'
 import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
@@ -26,6 +28,13 @@ export type TileProps = {
    * after layout.
    */
   priority?: boolean
+  /**
+   * The catalog has art, so a tile without any keeps the art place and wears a
+   * censor mark there, keeping every tile one height. The number is this
+   * entity's place among the catalog's art-less entities, which turns the
+   * marks so neighbours differ. Unset, an art-less tile opens on its band.
+   */
+  missingArt?: number
 }
 
 type TileMode = Extract<EntityMode, { kind: 'read' | 'link' }>
@@ -66,8 +75,9 @@ const NAME: CSSProperties = {
 
 /**
  * TILE — the catalog form: the artwork is the hero. The art at 3:4 on paper
- * (the line art multiplied onto it); an entity without art has no art place,
- * so its tile opens on the band. Then the tone band with the name notched
+ * (the line art multiplied onto it); an entity without art wears a censor
+ * mark there in a catalog that has art (`missingArt`), and elsewhere has no
+ * art place, so its tile opens on the band. Then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
  * Manual's chapter band at a tile's scale — with the facts and the cost as
  * chips (`EP | 2`, `SLOTS | 1`) beside the name on the band (a system's or
@@ -75,7 +85,14 @@ const NAME: CSSProperties = {
  * browsing, the lead clamped to three lines.
  * Layout is `index.css`'s `.su-entity-tile*`.
  */
-export function Tile({ model, mode = READ, omit = [], lead = false, priority = false }: TileProps) {
+export function Tile({
+  model,
+  mode = READ,
+  omit = [],
+  lead = false,
+  priority = false,
+  missingArt,
+}: TileProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
@@ -85,6 +102,10 @@ export function Tile({ model, mode = READ, omit = [], lead = false, priority = f
   )
   const { art } = model
   const leadText = lead ? model.lead : undefined
+  const mark =
+    art.kind === 'none' && missingArt !== undefined
+      ? censorMark(`${model.ref.schemaName}/${model.ref.id}`, missingArt, model.cite?.page)
+      : undefined
   const hasChips = Boolean(model.cost) || facts.length > 0
   const chips = [
     ...facts.map((cell) => <Facts key={cell.key} cells={[cell]} size="compact" />),
@@ -97,7 +118,9 @@ export function Tile({ model, mode = READ, omit = [], lead = false, priority = f
     <LinkSurface
       target={target}
       label={model.title}
-      className={art.kind === 'image' ? 'su-entity-tile' : 'su-entity-tile su-entity-tile--bare'}
+      className={
+        art.kind === 'image' || mark ? 'su-entity-tile' : 'su-entity-tile su-entity-tile--bare'
+      }
     >
       <div className="su-entity-tile__frame" data-user-made={model.userMade || undefined}>
         {art.kind === 'image' && (
@@ -113,6 +136,11 @@ export function Tile({ model, mode = READ, omit = [], lead = false, priority = f
               fetchPriority={priority ? 'high' : undefined}
               decoding="async"
             />
+          </span>
+        )}
+        {mark && (
+          <span className="su-entity-tile__art">
+            <CensorMark mark={mark} />
           </span>
         )}
         <div

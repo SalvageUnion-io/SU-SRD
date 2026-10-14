@@ -246,6 +246,7 @@ export type { TableDie } from './utils/dice'
 export { dieForTable, rollD20, rollForTable } from './utils/dice'
 // Prose with its `[[Trait]]` references drawn as Mentions (ITUN's RollTable).
 export { useParseTraitReferences } from './utils/parseTraitReferences'
+export { revealRolled } from './utils/revealRolled'
 // The one place a schema id becomes a human label ('crawler-bays' →
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't
 // spell the same schema differently.

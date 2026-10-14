@@ -44,7 +44,6 @@
  * card's own. */
 .su-ec-frame {
   background-color: var(--color-paper);
-  border-radius: var(--radius-card);
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
