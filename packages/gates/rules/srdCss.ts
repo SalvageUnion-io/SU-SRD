@@ -33,8 +33,8 @@
  *
  * 1. Exactly one module in `apps/srd` may import a stylesheet, and it is
  *    `src/runtime/styles.entry.ts`.
- * 2. No **shipping** `component-lib` module may import a stylesheet (stories,
- *    tests and the catalog-only `src/stories/` tree are exempt). A component-side
+ * 2. No **shipping** `component-lib` module may import a stylesheet (tests
+ *    are exempt). A component-side
  *    `import './x.css'` rides the barrel into every consumer: that is how srd
  *    bundled — and its service worker precached — the dashboard's 20 KB of
  *    `.pc-*` rules that no srd page can use. A component's
@@ -60,11 +60,9 @@ const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 const CSS_IMPORT =
   /(?:^|\n)\s*import\s+(?:[^'"\n]*\s+from\s+)?['"]([^'"]+\.css)['"]|import\(\s*['"]([^'"]+\.css)['"]\s*\)/g
 
-/** Stories, tests and the catalog-only `src/stories/` tree never reach a consumer. */
+/** Tests never reach a consumer. */
 const isLibExempt = (rel: string): boolean =>
-  rel.includes('/__tests__/') ||
-  rel.startsWith('packages/component-lib/src/stories/') ||
-  /\.(stories|test|spec)\.[cm]?tsx?$/.test(rel)
+  rel.includes('/__tests__/') || /\.(test|spec)\.[cm]?tsx?$/.test(rel)
 
 const srdFiles = (root: string) => listFiles(root, SRD_DIRS, EXTENSIONS)
 const libFiles = (root: string) =>

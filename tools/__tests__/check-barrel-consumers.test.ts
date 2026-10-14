@@ -1,15 +1,14 @@
 import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
-import type { BarrelExport, StoryIndex } from '../check-barrel-consumers'
+import type { BarrelExport } from '../check-barrel-consumers'
 import {
   census,
   explain,
+  groupOf,
   judge,
   main,
-  metaTitle,
   namesImportedFromLib,
   parseBarrel,
-  storyFor,
 } from '../check-barrel-consumers'
 import { captured } from './fixtureTree'
 
@@ -55,64 +54,30 @@ describe('namesImportedFromLib', () => {
   })
 })
 
-describe('metaTitle', () => {
-  test('reads the default-export title, not a title in a story body', () => {
-    const source = [
-      "const card = { title: 'Cargo Hold' }",
-      "export default { title: 'Atoms/Stat' }",
-    ].join('\n')
-    expect(metaTitle(source)).toBe('Atoms/Stat')
-    expect(metaTitle("const x = { title: 'Nope' }")).toBeNull()
-  })
-})
+const lib = 'packages/component-lib/src'
 
-const lib = 'packages/component-lib/src/components'
-const story = (
-  title: string | null,
-  imports: string[],
-  names: string[] = []
-): { title: string | null; imports: string[]; names: string[] } => ({ title, imports, names })
-
-describe('storyFor', () => {
-  const stories: StoryIndex = new Map([
-    [`${lib}/chrome/Field.stories.tsx`, story('Atoms/Field', [], ['Field', 'Textarea'])],
-    [`${lib}/shared/Wiz.stories.tsx`, story('Compositions/Wizard/Wiz', [`${lib}/shared/Wiz.tsx`])],
-    [`${lib}/shared/Other.stories.tsx`, story('Atoms/Other', [`${lib}/shared/Wiz.tsx`])],
-  ])
-
-  test('prefers the story named for the export', () => {
-    expect(storyFor({ name: 'Wiz', module: `${lib}/shared/Wiz.tsx` }, stories)?.title).toBe(
-      'Compositions/Wizard/Wiz'
-    )
+describe('groupOf', () => {
+  test("a component is filed under its directory's group", () => {
+    expect(groupOf(`${lib}/components/atoms/Button.tsx`)).toBe('Atoms')
+    expect(groupOf(`${lib}/components/containers/Inset.tsx`)).toBe('Containers')
+    expect(groupOf(`${lib}/components/compositions/WizShell.tsx`)).toBe('Compositions')
+    expect(groupOf(`${lib}/markdownSection/MarkdownSection.tsx`)).toBe('Containers')
   })
 
-  test('finds a story that imports the export through a sibling module', () => {
-    expect(storyFor({ name: 'Textarea', module: `${lib}/chrome/inputs.tsx` }, stories)?.title).toBe(
-      'Atoms/Field'
-    )
-  })
-
-  test('a story in another directory does not classify an export', () => {
-    expect(storyFor({ name: 'Helper', module: `${lib}/stat/helper.ts` }, stories)).toBeNull()
+  test('a .ts module, or one outside the group directories, is unclassified', () => {
+    expect(groupOf(`${lib}/components/atoms/heatLevel.ts`)).toBeNull()
+    expect(groupOf(`${lib}/components/referenceEntity/useDetailModal.tsx`)).toBeNull()
   })
 })
 
 describe('judge', () => {
   const exports: BarrelExport[] = [
-    { name: 'Button', module: `${lib}/chrome/Button.tsx` },
-    { name: 'Avatar', module: `${lib}/chrome/Avatar.tsx` },
-    { name: 'WizShell', module: `${lib}/shared/WizShell.tsx` },
-    { name: 'heat', module: `${lib}/stat/heat.ts` },
-    { name: 'orphan', module: `${lib}/stat/orphan.ts` },
+    { name: 'Button', module: `${lib}/components/atoms/Button.tsx` },
+    { name: 'Avatar', module: `${lib}/components/atoms/Avatar.tsx` },
+    { name: 'WizShell', module: `${lib}/components/compositions/WizShell.tsx` },
+    { name: 'heat', module: `${lib}/components/atoms/heat.ts` },
+    { name: 'orphan', module: `${lib}/components/atoms/orphan.ts` },
   ]
-  const stories: StoryIndex = new Map([
-    [`${lib}/chrome/Button.stories.tsx`, story('Atoms/Button', [`${lib}/chrome/Button.tsx`])],
-    [`${lib}/chrome/Avatar.stories.tsx`, story('Atoms/Avatar', [`${lib}/chrome/Avatar.tsx`])],
-    [
-      `${lib}/shared/WizShell.stories.tsx`,
-      story('Compositions/Wizard/Wiz Shell', [`${lib}/shared/WizShell.tsx`]),
-    ],
-  ])
   const apps = (...a: string[]) => new Set(a)
   const reach = new Map([
     ['Button', apps('itun', 'srd')],
@@ -129,17 +94,22 @@ describe('judge', () => {
     ['orphan', apps()],
   ])
 
-  test('fails a single-app composition, an unused export and a storyless helper', () => {
-    const { verdicts, stale } = judge(exports, reach, direct, stories, {})
+  test('fails a single-app composition, an unused export and an unclassified helper', () => {
+    const { verdicts, stale } = judge(exports, reach, direct, {})
     expect(verdicts).toEqual([
       {
         kind: 'composition',
         name: 'WizShell',
         app: 'itun',
-        module: `${lib}/shared/WizShell.tsx`,
-        title: 'Compositions/Wizard/Wiz Shell',
+        module: `${lib}/components/compositions/WizShell.tsx`,
+        group: 'Compositions',
       },
-      { kind: 'unclassified', name: 'heat', app: 'itun', module: `${lib}/stat/heat.ts` },
+      {
+        kind: 'unclassified',
+        name: 'heat',
+        app: 'itun',
+        module: `${lib}/components/atoms/heat.ts`,
+      },
       { kind: 'unused', name: 'orphan' },
     ])
     expect(stale).toEqual([])
@@ -150,7 +120,6 @@ describe('judge', () => {
       exports.filter((e) => e.name !== 'WizShell' && e.name !== 'orphan'),
       reach,
       direct,
-      stories,
       { heat: 'the gauge reads it', Button: 'two apps render it' }
     )
     expect(verdicts).toEqual([])
@@ -162,7 +131,6 @@ describe('judge', () => {
     exports: exports.filter(keep),
     reach,
     direct,
-    stories,
     workspaces: ['apps/itun', 'apps/srd'],
     scanned: 12,
   })
@@ -181,13 +149,18 @@ describe('judge', () => {
           kind: 'composition',
           name: 'WizShell',
           app: 'itun',
-          module: `${lib}/shared/WizShell.tsx`,
-          title: 'Compositions/Wizard/Wiz Shell',
+          module: `${lib}/components/compositions/WizShell.tsx`,
+          group: 'Compositions',
         },
-        { kind: 'unclassified', name: 'heat', app: 'itun', module: `${lib}/stat/heat.ts` },
+        {
+          kind: 'unclassified',
+          name: 'heat',
+          app: 'itun',
+          module: `${lib}/components/atoms/heat.ts`,
+        },
         { kind: 'unused', name: 'orphan' },
       ].map((v) => explain(v as Parameters<typeof explain>[0]).join('\n')),
-      '✗ SINGLE_APP lists Gone, which is no longer a storyless single-app export: remove it.',
+      '✗ SINGLE_APP lists Gone, which is no longer an unclassified single-app export: remove it.',
     ])
   })
 
@@ -213,11 +186,11 @@ describe('explain', () => {
         name: 'Wiz',
         app: 'itun',
         module: 'm',
-        title: 'Compositions/W',
+        group: 'Compositions',
       })
     ).toEqual([
-      "✗ Wiz (m): only itun renders it, and its story files it under 'Compositions/W'.",
-      "  → Move it, its story and its tests into apps/itun/src/components/: a composition one app renders is that app's.",
+      "✗ Wiz (m): only itun renders it, and its directory files it under 'Compositions'.",
+      "  → Move it and its tests into apps/itun/src/components/: a composition one app renders is that app's.",
     ])
     expect(explain({ kind: 'unclassified', name: 'heat', app: 'srd', module: 'm' })[1]).toContain(
       'apps/srd/src/'
@@ -228,11 +201,10 @@ describe('explain', () => {
 describe('census of this repository', () => {
   const repo = census()
 
-  test('reads the barrel, every consuming app and the stories', () => {
+  test('reads the barrel and every consuming app', () => {
     expect(repo.workspaces).toEqual(['apps/discord-bot', 'apps/itun', 'apps/srd'])
     expect(repo.exports.length).toBeGreaterThan(60)
     expect(repo.scanned).toBeGreaterThan(270)
-    expect(repo.stories.size).toBeGreaterThan(40)
   })
 
   test('reach is transitive: srd reaches ControlButtons through the card it renders', () => {
@@ -241,7 +213,7 @@ describe('census of this repository', () => {
   })
 
   test('has no failing verdict and no stale SINGLE_APP entry', () => {
-    expect(judge(repo.exports, repo.reach, repo.direct, repo.stories)).toEqual({
+    expect(judge(repo.exports, repo.reach, repo.direct)).toEqual({
       verdicts: [],
       stale: [],
     })

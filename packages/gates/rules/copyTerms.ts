@@ -64,7 +64,7 @@ const COPY_DIRS = [
 
 /** Files in those trees that are not shipped copy. */
 const SKIP_FILE =
-  /(^|\/)(__tests__|_generated|generated)\/|\.(test|stories|d)\.tsx?$|\/proseDeviations\.ts$/
+  /(^|\/)(__tests__|_generated|generated)\/|\.(test|d)\.tsx?$|\/proseDeviations\.ts$/
 
 /**
  * JSX attributes whose value is markup, not words: a class list, an SVG path,
@@ -405,7 +405,6 @@ export const copyTerms: RuleSet = {
       TERM_FLOOR
     )
     assertCoversWorkspaces('copy', COPY_DIRS, {
-      'apps/catalog': 'the component catalog: its stories are fixtures for developers, not copy.',
       'apps/su-assets': 'a Worker that serves image bytes and short error strings; no copy.',
       'packages/observability': 'Sentry wiring only; no copy.',
       'packages/gates': 'the gates themselves; their fixtures spell the variants they catch.',

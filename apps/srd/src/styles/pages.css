@@ -3,10 +3,7 @@
  * (boards 07, 08), the roll-table page (board 08b), the listing rows and the
  * footer band, and the About and Changelog pages' parts.
  *
- * Its own file so the component catalog can load it too: `global.css`
- * imports it for the site, and the story catalog's `catalog.css` imports it so
- * srd's stories (`HomeContents`, `EntityPageFrame`, `RollTableView`) render
- * as they do on the site. Classes are `srd-*`; the shared parts they compose
+ * `global.css` imports it. Classes are `srd-*`; the shared parts they compose
  * (`ChapterBand`, `ChapterFoot`, the card's page presentation) style
  * themselves.
  */

@@ -1,8 +1,8 @@
 /**
  * slots.model — the pure half of the slot row: each entity's numbers, and its
  * Minor as a `MinorModel` (ADR-038 §3). No
- * React and no store, so the stories render the real derivations and a
- * Minor and the Major it opens into read the same maxima.
+ * React and no store, so a Minor and the Major it opens into read the same
+ * maxima.
  */
 
 import { linesFromBreakdown } from 'component-lib'

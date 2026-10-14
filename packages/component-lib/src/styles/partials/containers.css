@@ -7,7 +7,7 @@
 
 /*
  * The stateful and caller-overridable half of the Containers group
- * (`Containers/*` stories). A rule lands here, rather than in a style object,
+ * (`components/containers/`). A rule lands here, rather than in a style object,
  * when its element takes a variant (`:hover`, `@media`) or merges a caller's
  * `className`: an inline style would beat the caller's class, so the base
  * stays a class the caller can still override.

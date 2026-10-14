@@ -19,7 +19,7 @@
  * unrecorded shrink cannot linger as slack the next change spends. Never raise
  * one and never add one: split the file instead.
  *
- * Not scanned: tests, stories, e2e specs and test harnesses (a test file grows
+ * Not scanned: tests, e2e specs and test harnesses (a test file grows
  * with coverage, which is the wrong thing to discourage), and generated files,
  * which nobody edits by hand.
  *
@@ -61,7 +61,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'packages/component-lib/src/components/atoms/VitalGauge.tsx': 759,
   'packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 853,
   'packages/gates/lib/statFidelity.ts': 780,
-  'packages/gates/rules/stylingOwnership.ts': 635,
+  'packages/gates/rules/stylingOwnership.ts': 631,
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 654,
   'tools/check-doc-drift.ts': 1_076,
   'tools/check-rules-fidelity.ts': 1_014,
@@ -78,7 +78,7 @@ const SKIPPED_DIRS = new Set([
   '_generated',
   'node_modules',
 ])
-const SKIPPED_FILE = /\.(test|stories|e2e|gen)\.[^.]+$|\.d\.ts$/
+const SKIPPED_FILE = /\.(test|e2e|gen)\.[^.]+$|\.d\.ts$/
 
 /** The repo-relative paths this gate holds to a size. */
 export function scannedFiles(paths: readonly string[]): string[] {

@@ -64,9 +64,9 @@ export function CardRollTable({
   size: CardSize
   /** A damaged host: the table reads, but there is no Roll. */
   disabled: boolean
-  /** Start open (a story's fixed state). Every table starts hidden otherwise. */
+  /** Start open. Every table starts hidden otherwise. */
   defaultOpen?: boolean
-  /** Start rolled at this die (a story's fixed state, a restored roll). */
+  /** Start rolled at this die (a restored roll). */
   defaultRoll?: number
   /**
    * Inside a padded body (a guide's step) the table wears its own ink frame;

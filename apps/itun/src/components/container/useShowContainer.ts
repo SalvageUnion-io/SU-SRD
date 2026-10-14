@@ -8,7 +8,7 @@ import { getActiveContainer, setActiveContainer } from '../../stores/activeConta
  * (`routes/index.tsx`, `routes/games_/$gameId.tsx`), so navigating is the whole
  * of choosing what the hub shows.
  *
- * With no router mounted (a component test, a story), it picks the container
+ * With no router mounted (a component test), it picks the container
  * in the store instead, the way `AppLink` degrades to a plain anchor: the same
  * choice, without an address to show it at.
  */

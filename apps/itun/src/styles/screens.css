@@ -1,7 +1,7 @@
 /*
  * screens.css — the stateful/responsive half of the
  * ITUN components listed below; their static styling is style objects over
- * component-lib tokens. Loaded by `index.css`, and by the AppHeader story.
+ * component-lib tokens. Loaded by `index.css`.
  *
  *   - `components/account/SignInControl.tsx` — `.sign-in-control--dark`, the
  *     ghost Button recoloured for the dark masthead (hover included).
