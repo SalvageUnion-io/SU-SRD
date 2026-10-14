@@ -1,22 +1,24 @@
-# The bot's Discord profile art
+# The bot's Discord profile art, and the Ko-fi page's
 
-Set in the Discord Developer Portal (the app's General Information page): the
-banner by hand, the icon by hand or by the script below. Nothing in the build
-reads these files.
+`bun run brand` writes every file here from `apps/srd/scripts/brand/`
+(`mark.ts` for the icon, `banner.ts` for the banners). Nothing in the build
+reads them. `bun run brand:discord` also uploads the icon and the banner to
+Discord, with the bot token read from 1Password
+(`op://SUSRD/discord-bot/Bot Token`). Ko-fi has no API, so its avatar and
+cover go up by hand.
 
-| File | Discord slot | Spec |
+| File | Slot | Spec |
 | --- | --- | --- |
-| `banner.png` | Banner | 680 × 240 PNG (17:6) |
-| `icon.png` | App icon and bot avatar | 1024 × 1024 PNG (1:1) |
+| `banner.png` | Discord banner | 680 × 240 PNG (17:6) |
+| `icon.png` | Discord app icon and bot avatar; Ko-fi avatar | 1024 × 1024 PNG (1:1) |
 | `icon.svg` | The icon as vector | — |
+| `kofi-cover.png` | Ko-fi cover | 1500 × 500 PNG (3:1) |
 
-- **Banner:** the rules-blue chapter band with ink speckle, "SALVAGE UNION.io"
-  notched in ink on the page ground, "YOU'RE IN THE UNION NOW!" top left and
-  the book's chapter colours along the foot. The title sits in the right 60%
-  because the profile avatar covers the bottom left.
+- **Banner:** "SALVAGE UNION.io" in paper on the ink ground with paper flecks,
+  "YOU'RE IN THE UNION NOW!" top left in pilot orange, and the book's chapter
+  colours along the foot. It has no mark because Discord lays the avatar over
+  the banner, and the avatar covers the bottom left, so the title sits right.
 - **Icon:** the SU mark (stencil SU on an ink stamp, the chapter colours along
   the foot), full bleed with the glyph scaled into Discord's circular crop.
-  `bun run brand` writes both icon files from `apps/srd/scripts/brand/mark.ts`;
-  `bun run brand:discord` also uploads it as the app icon and the bot's
-  avatar, in place of the portal upload, with the token resolved from
-  1Password (`DISCORD_TOKEN` in `apps/discord-bot/.env.example`).
+- **Ko-fi cover:** the banner's materials with the mark beside the wordmark,
+  centred, because Ko-fi crops the sides on a phone.
