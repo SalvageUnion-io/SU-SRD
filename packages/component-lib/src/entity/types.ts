@@ -67,6 +67,7 @@ export type EntityRowModel = Pick<
       | 'userMade'
       | 'folded'
       | 'actions'
+      | 'cite'
     >
   >
 

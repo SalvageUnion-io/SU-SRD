@@ -372,11 +372,19 @@
 
 /*
  * An entity page (`EntityPageFrame`): band, then body. The article fills the
- * page so the site footer's citation band closes it at the foot; a page too
- * short to fill the screen sits band and body together in the middle of it,
- * and a long one runs from the bar as before.
+ * page so the site footer's citation band closes it at the foot. The band
+ * always sits flush under the site bar; the body takes the rest of the
+ * height, and a page too short to fill the screen centres its content in
+ * that space, while a long one runs on from the band as before.
  */
 .srd-entity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* A show page's body: the rest of the height, its content centred in it. */
+.srd-entity__body {
   display: flex;
   flex: 1;
   flex-direction: column;

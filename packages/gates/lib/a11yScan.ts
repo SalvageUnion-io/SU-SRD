@@ -78,7 +78,7 @@ type InPage = {
 /**
  * Why the page is not yet what a reader sees, or '' once it is: an island that
  * mounts without interaction (a `visible` one only when rendered on screen) has
- * not mounted, or a loading skeleton remains. Runs in the page.
+ * not mounted, or a loading skeleton or busy region remains. Runs in the page.
  */
 function unsettled(): string {
   const { document, innerHeight, innerWidth } = globalThis as unknown as InPage
@@ -104,7 +104,10 @@ function unsettled(): string {
   }
   if (waiting.length > 0) return `unmounted island(s): ${waiting.join(', ')}`
   const skeleton = document.querySelector('[role="status"][aria-label="Loading"]')
-  return skeleton === null ? '' : 'a loading skeleton is still showing'
+  if (skeleton !== null) return 'a loading skeleton is still showing'
+  // A router's pending screen (ITUN's `RoutePending`) is a `<main>` too, so it
+  // satisfies a `ready: 'main'` wait while the route itself has not drawn.
+  return document.querySelector('[aria-busy="true"]') === null ? '' : 'a region is still busy'
 }
 
 /** Resolves after two animation frames. Runs in the page. */
