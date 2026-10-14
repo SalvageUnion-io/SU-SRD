@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { useContext } from 'react'
+import { useContext, useEffect, useRef } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import { cn } from '../../../utils/cn'
@@ -12,6 +12,7 @@ import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
 import { cardKey } from './cardHelpers'
 import { EntityTokenList } from './EntityTokenList'
+import { watchGuideContents } from './guideContents'
 import { chunkGuideStepProse } from './guideStepProse'
 import type { NestedCard } from './referenceEntityCardTypes'
 import type { ResolvedGuideStep } from './resolveGuideSteps'
@@ -114,6 +115,10 @@ export function GuideSteps({
   const hasSections = groups.some((group) => group.section !== undefined)
   const stepAs = hasSections ? headingBelow(sectionAs) : sectionAs
   const anchors = page ? guideAnchors(groups) : undefined
+  // The contents mark the section in view (`guideContents`); a card served as
+  // static HTML runs no effect, so srd's client entry starts it there.
+  const pageRef = useRef<HTMLDivElement>(null)
+  useEffect(() => (pageRef.current ? watchGuideContents(pageRef.current) : undefined), [])
 
   const renderStep = ({ step, number, entities, table, subGuide }: ResolvedGuideStep) => {
     const card = (option: (typeof entities)[number], index: number) => (
@@ -241,7 +246,7 @@ export function GuideSteps({
 
   const contents = <GuideContents groups={groups} anchors={anchors} />
   return (
-    <div className="su-guide su-guide--page">
+    <div ref={pageRef} className="su-guide su-guide--page">
       {/* A phone lists the contents above the steps, always open under their
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}

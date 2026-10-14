@@ -201,6 +201,15 @@
   text-decoration: underline;
 }
 
+/* The section the reader is in (srd's scroll-spy sets it): the hover's
+   underline, held and heavier, on a bold name. */
+.su-guide__toc-link[aria-current] {
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-decoration-thickness: var(--bw-pill);
+  text-underline-offset: 0.2em;
+}
+
 .su-guide__toc-link:focus-visible {
   outline: 3px solid transparent;
   box-shadow: var(--focus-ring-shadow);
