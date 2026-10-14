@@ -9,7 +9,7 @@
  * the whole table; the bot's "See table" shows it whole.
  *
  * A pattern is an entry of its own (`schemaName::slug::pattern`): looked up by
- * name, it is its own page's card. Its host's card never lists it.
+ * name, it is its own page's card. A chassis's card links it by name only.
  *
  * A **long** entry (over {@link INDEX_MIN_CHARS} characters, with two or more
  * actions) is the one exception: its card is `discordEntryIndexCard`, each

@@ -221,6 +221,7 @@ describe('lookupCard — the card', () => {
     expect(cardText(card)).toContain('### Sestra Drone Controller')
     expect(cardText(card)).toContain('-# DRONES (1)')
     expect(childRows(card).map(readKey)).toEqual(['drones::sestra-drone'])
+    expect(cardText(card)).toContain('-# PATTERNS (3)')
     expect(cardText(readCard('drones::sestra-drone') ?? { accent: 0, blocks: [] })).toContain(
       '## [Sestra Drone](https://salvageunion.io/drones/sestra-drone)'
     )
@@ -359,11 +360,14 @@ describe('lookupCard — tables and roll buttons', () => {
 })
 
 describe('lookupCard — patterns are entries of their own', () => {
-  test('a host’s card lists none of its patterns, and has no tabs or picker', () => {
+  test('a host’s card links its patterns by name only, and has no tabs', () => {
     const card = lookupCard(hit('chassis', 'mule'))
     const text = cardText(card)
-    expect(text).not.toContain('PATTERNS (')
-    expect(text).not.toContain('/pattern/hauler')
+    expect(text).toContain(
+      '-# PATTERNS (6)\n[Hauler](https://salvageunion.io/chassis/mule/pattern/hauler) · '
+    )
+    expect(childRows(card)).toEqual([])
+    expect(menuOf(card)?.options.map((option) => option.value)).toContain('chassis::mule::hauler')
     expect(labels(card)).not.toContain('Overview')
   })
 

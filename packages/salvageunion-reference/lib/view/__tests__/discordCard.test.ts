@@ -73,12 +73,21 @@ describe('discordCardParts', () => {
     expect(partsFor('chassis', 'mule').actions.map((action) => action.name)).toEqual([
       'Integrated Cargo Bay',
     ])
-    expect(partsFor('chassis', 'mule').children).toEqual([])
     const sestra = partsFor('chassis', 'little-sestra')
     expect(sestra.actions.map((action) => action.name)).toEqual(['Sestra Drone Controller'])
-    expect(sestra.children.map((group) => [group.label, group.line])).toEqual([
-      ['Drones', '[Sestra Drone](https://salvageunion.io/drones/sestra-drone)'],
-    ])
+    expect(sestra.children.map((group) => group.label)).toEqual(['Drones', 'Patterns'])
+    expect(sestra.children[0]?.line).toBe(
+      '[Sestra Drone](https://salvageunion.io/drones/sestra-drone)'
+    )
+  })
+
+  test('a chassis links its patterns by name and nothing more', () => {
+    const patterns = need(
+      partsFor('chassis', 'mule').children.find((group) => group.label === 'Patterns'),
+      'patterns'
+    )
+    expect(patterns.line).toContain('[Hauler](https://salvageunion.io/chassis/mule/pattern/hauler)')
+    expect(patterns.items.every((item) => item.pattern === item.name)).toBe(true)
   })
 
   test('an ability leads with its tier; its chips run type, facts, traits, cost last', () => {

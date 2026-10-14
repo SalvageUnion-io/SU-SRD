@@ -3,11 +3,11 @@
  * pattern's loadout) — and its ACTIONS.
  */
 
-import { extractVisibleActions } from '../../actionResolution'
+import { extractVisibleActions, getChassisAbilities } from '../../actionResolution'
 import { isAbility } from '../../entityGuards'
 import { resolveGrantedEntities } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
-import { isBioTitanPattern } from '../../patterns'
+import { getPatterns, isBioTitanPattern } from '../../patterns'
 import type {
   SURefEntity,
   SURefMetaAction,
@@ -81,25 +81,31 @@ export function nestedEntityGroups(entity: SURefMetaEntity): NestedGroup[] {
 }
 
 /**
- * The drones a chassis's abilities name (the Little Sestra's Sestra Drone),
- * once each, in the abilities' order; a name the dataset lacks is dropped.
+ * What a chassis's Discord card nests beyond its model's children: DRONES its
+ * abilities name (the Little Sestra's Sestra Drone), once each, and its
+ * PATTERNS, each a link to its own page and nothing more.
  */
-export function abilityDrones(abilities: EntityRef[]): EntityRef[] {
+export function chassisCardGroups(chassis: EntityRef): { label: string; items: EntityRef[] }[] {
+  const record = SalvageUnionReference.get('chassis', chassis.id)
+  if (!record) return []
   const drones: EntityRef[] = []
-  for (const ref of abilities) {
-    const record = SalvageUnionReference.get('actions', ref.id)
-    const name = record && 'drone' in record ? record.drone : undefined
-    if (typeof name !== 'string') continue
-    const drone = SalvageUnionReference.getByNameIn('drones', name)
+  for (const ability of getChassisAbilities(record) ?? []) {
+    const name = 'drone' in ability ? ability.drone : undefined
+    const drone =
+      typeof name === 'string' ? SalvageUnionReference.getByNameIn('drones', name) : null
     if (!drone || drones.some((one) => one.id === drone.id)) continue
-    drones.push({
-      schemaName: 'drones',
-      id: drone.id,
-      slug: getEntitySlug(drone as SURefEntity),
-      name: drone.name,
-    })
+    const slug = getEntitySlug(drone as SURefEntity)
+    drones.push({ schemaName: 'drones', id: drone.id, slug, name: drone.name })
   }
-  return drones
+  const patterns = (getPatterns(record) ?? []).map((pattern) => ({
+    ...chassis,
+    name: pattern.name,
+    pattern: pattern.name,
+  }))
+  return [
+    ...(drones.length > 0 ? [{ label: 'Drones', items: drones }] : []),
+    ...(patterns.length > 0 ? [{ label: 'Patterns', items: patterns }] : []),
+  ]
 }
 
 /**
