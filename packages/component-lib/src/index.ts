@@ -74,11 +74,8 @@ export { USER_MADE_HATCH } from './components/atoms/userMadeHatch'
 export type { VitalGaugeBreakdown } from './components/atoms/VitalGauge'
 export { VitalGauge } from './components/atoms/VitalGauge'
 export { AppBar } from './components/compositions/AppBar'
-// Deliberately its own module rather than the card-image component's file.
-// `story-coverage.test.ts` decides what is public by regex-matching each
-// component NAME against this barrel's text, so exporting from that file — or
-// even naming it here in prose — marks it public and demands a story for a
-// component that is intentionally internal.
+// Deliberately its own module rather than the card-image component's file,
+// which stays internal.
 // srd's item pages need this string for their `rel=preload`: it must match the
 // `sizes` on the <img> exactly, or the preload selects a different candidate
 // and the page fetches two files instead of one.

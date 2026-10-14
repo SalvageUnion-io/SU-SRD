@@ -234,7 +234,6 @@ describe('typecheck hooks against a stub workspace', () => {
   )
 
   const WORKSPACES = [
-    'apps/catalog',
     'apps/discord-bot',
     'apps/itun',
     'apps/srd',
@@ -320,11 +319,10 @@ describe('typecheck hooks against a stub workspace', () => {
   test.each([
     ['an app', 'apps/itun/lib/x.ts', ['ROOT apps/itun']],
     ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
-    ['the catalog', 'apps/catalog/lib/x.ts', ['ROOT apps/catalog tools']],
     [
       'component-lib',
       'packages/component-lib/lib/x.ts',
-      ['ROOT packages/component-lib apps/srd apps/itun apps/catalog tools'],
+      ['ROOT packages/component-lib apps/srd apps/itun tools'],
     ],
     [
       'observability',
@@ -336,11 +334,7 @@ describe('typecheck hooks against a stub workspace', () => {
       'packages/itun-domain/lib/x.ts',
       ['ROOT packages/itun-domain apps/discord-bot apps/itun tools'],
     ],
-    [
-      'gates',
-      'packages/gates/lib/x.ts',
-      ['ROOT packages/gates apps/srd apps/itun apps/catalog tools'],
-    ],
+    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/srd apps/itun tools']],
   ])(
     'an edit to %s checks it and its consumers in one run, then asks for a full run',
     async (_l, rel, expected) => {

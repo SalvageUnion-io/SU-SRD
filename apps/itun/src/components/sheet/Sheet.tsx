@@ -183,7 +183,7 @@ export function Sheet({
   const { confirm, dialog: confirmDialog } = useConfirm()
   const { canWrite, settling } = useConnection()
   // Read | Edit (`sheetMode.model.ts`): the route's choice, or always writable when
-  // nothing provides one (a test, a story).
+  // nothing provides one (a test).
   const sheetMode = useSheetMode()
   const editing = sheetMode === null || sheetMode.editing
 

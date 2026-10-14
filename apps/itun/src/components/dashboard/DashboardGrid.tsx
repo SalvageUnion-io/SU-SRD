@@ -23,8 +23,8 @@ type DashboardGridProps = {
  * `src/styles/dashboard/DashboardGrid.css`.
  *
  * The display is always the document surface, so there is no light/dark flag.
- * `.su-dash-display-light` exists as a class because the story stages mount display
- * content outside the grid and need the same treatment on its own.
+ * `.su-dash-display-light` exists as a class because the Mediator Dashboard
+ * mounts display content outside the grid and needs the same treatment on its own.
  */
 export function DashboardGrid({ mount, rail, primary, display }: DashboardGridProps) {
   return (

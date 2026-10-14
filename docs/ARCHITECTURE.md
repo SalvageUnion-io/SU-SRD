@@ -7,7 +7,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → `component-lib` → `srd` / `itun` → `catalog`; `itun-domain` → `itun` / `discord-bot`; `component-lib/product` alone → bot, `convex/`; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → `component-lib` → `srd` / `itun`; `itun-domain` → `itun` / `discord-bot`; `component-lib/product` alone → bot, `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (its `su-ref-generate` bin).
@@ -19,7 +19,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    TypeScript source, no build; `src/index.ts` barrel; tokens in `src/styles/theme.css`, mirrored by `src/design/tokens.ts`.
    A composition one app renders lives in that app; `bun run check barrel-consumers` enforces both halves.
 5. **Stylesheet wiring** <a id="stylesheets"></a>
-   One entry, `packages/component-lib/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps and the catalog.
+   One entry, `packages/component-lib/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
    App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
 6. **srd build** <a id="srd-build"></a>
    In-house Vite SSG with React islands ([DESIGN.md](../apps/srd/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
@@ -71,51 +71,48 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 22. **Display system** <a id="display"></a>
     Entity forms (Mention, Token, Row, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
-23. **Component catalog** <a id="catalog"></a>
-    `bun run stories` serves `apps/catalog`: component-lib's and both apps' stories.
-    Story rules: [component-lib's CLAUDE.md](../packages/component-lib/CLAUDE.md), enforced by `story-coverage.test.ts`.
-24. **Discord bot as a Game client** <a id="bot-game-client"></a>
+23. **Discord bot as a Game client** <a id="bot-game-client"></a>
     `/su me`, `games` and `sheet` call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`.
     Read-only; Convex unreachable means every Game command answers `unavailable`. Each interaction logs its command.
-25. **SEO** <a id="seo"></a>
+24. **SEO** <a id="seo"></a>
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
-26. **Accessibility** <a id="a11y"></a>
-    Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, every story (ratcheted), ITUN signed in.
+25. **Accessibility** <a id="a11y"></a>
+    Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, ITUN signed in.
     Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
-27. **CI** <a id="ci"></a>
+26. **CI** <a id="ci"></a>
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered per app; `CI Success` must need every job.
     Static checks are `bun tools/check.ts --profile=ci`; tests are `bun run test:coverage` against per-workspace `FLOORS`.
-28. **Repository settings** <a id="repo-settings"></a>
+27. **Repository settings** <a id="repo-settings"></a>
     `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): linear history, strict `CI Success` + PR-title checks, CodeQL.
     Actions are allowlisted and SHA-pinned (zizmor); ruleset and Environments drift-checked nightly; no merge queue.
-29. **Deploy** <a id="deploy"></a>
+28. **Deploy** <a id="deploy"></a>
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy (srd's after `og-srd`) → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy.
-30. **Preview deploys** <a id="previews"></a>
+29. **Preview deploys** <a id="previews"></a>
     A PR into `main` labelled `preview` gets Worker Previews `pr-<n>` (srd, ITUN on staging Convex) per push, linked in a comment, deleted on close.
     The label is the approval (no Environment reviewer); staging's schema and `SITE_URL` follow the last PR shipped.
-31. **Dependencies** <a id="dependencies"></a>
+30. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.
-32. **Audit and overrides** <a id="audit"></a>
+31. **Audit and overrides** <a id="audit"></a>
     `bun run audit` fails any advisory (PRs touching manifests, and nightly); it ignores nothing.
     `overrides`: `sharp` is a floor until `miniflare` asks for the fix; `@randsum/roller` and `salvageunion-reference` pin one copy.
-33. **Dead code** <a id="dead-code"></a>
+32. **Dead code** <a id="dead-code"></a>
     `bun run knip` with `includeEntryExports`; delete what it flags; `@public` and `@knipignore` are the only escape hatches.
-34. **MCP servers** <a id="mcp"></a>
+33. **MCP servers** <a id="mcp"></a>
     `.mcp.json` is secret-free: `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (local deployment), `context7`.
     Only `context7` and `convex` are enabled; opt into the OAuth three in `.claude/settings.local.json`. `claude mcp list` proves one works.
-35. **Cloud sessions** <a id="cloud"></a>
+34. **Cloud sessions** <a id="cloud"></a>
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
-36. **Cloudflare** <a id="cloudflare"></a>
+35. **Cloudflare** <a id="cloudflare"></a>
     Workers `su-srd` (`salvageunion.io`), `su-itun` (route `/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc` and `wrangler deployments list`.
-37. **Sentry** <a id="sentry"></a>
+36. **Sentry** <a id="sentry"></a>
     Org `susrd`, EU region; projects `srd`, `itun`, `itun-convex` (a Convex dashboard toggle), `workers`.
     `tools/check-observability.ts` guards DSN gating and CSP; change an app's CSP or region in every source together.
-38. **Convex and GitHub identifiers** <a id="identifiers"></a>
+37. **Convex and GitHub identifiers** <a id="identifiers"></a>
     Project `alex-jarvis:suref-itun`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both read "unreachable").
     Repo `SalvageUnion-io/SU-SRD`, branch `main`; the deployed commit is the release (ADR-041).
 

@@ -18,8 +18,7 @@ Rules: [`.claude/rules/styling.md`](../../.claude/rules/styling.md) (loads with 
 
 No roster here: the barrel, [`src/index.ts`](src/index.ts), is the public API and the only
 list of exports — read it. The rules for that surface (what may be exported, what consumers may
-import): [component-lib](../../docs/ARCHITECTURE.md#component-lib). The rendered catalog:
-[`apps/catalog`](../../apps/catalog/) (`bun run stories`).
+import): [component-lib](../../docs/ARCHITECTURE.md#component-lib).
 
 ## Entity Display System
 
@@ -27,30 +26,18 @@ Forms per the [entity display language](../../docs/design-system/entity-display-
 
 Apps inject their renderers through **generic slot props** (`afterExtraContent`, `abilitiesSection`, `titleOverride`, …), so the library knows nothing app-specific. Schema-specific logic lives in helper hooks (`useChassisPatternConfig`) that return generic override props.
 
-## Stories
+## Groups
 
-**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** The catalog's `story-coverage.test.ts` enforces every clause; explained in [component catalog](../../docs/ARCHITECTURE.md#catalog).
+**Folder = group:** a component lives in `src/components/<group>/` (`markdownSection/` counts as a Container; `referenceEntity/` aside). The groups are membership tests, not rosters:
 
-- **The catalog also serves the apps' own components.** A composition only one app renders lives in that app's `src/components/`, story beside it; the catalog globs both ([component-lib](../../docs/ARCHITECTURE.md#component-lib)). A primitive (an Atom or a Container) stays here however many apps render it. The story's group is the classification: `bun run check barrel-consumers` fails a barrel export only one app reaches whose story files it under `Compositions/`. The rules below apply to app stories too (the guard scans all three roots); coverage is this package's barrel only. App stories take `Story` and `Caption` from `component-lib/stories/harness`.
-- **Coverage, in lockstep:** every barrel-exported visual component must be **imported by a story file in its own directory** (a story that merely names it gives it no page). Add a public component to `src/index.ts` and its story in the same change. The only escape is the guard's `ALLOWLIST`, for genuine internal sub-parts shown through their parent, each with a one-line rationale; the guard fails on **stale** entries, so prune it when you story or delete one.
-- **No multi-component gallery story files.** A story file demonstrates exactly one component; a file rendering several siblings leaves all but one with **no sidebar entry**.
-- **`src/stories/` is for catalog pages only** — the flat `Foundations/*` set `Styleguide`, `Theme`, `Typography`, `Layout`, `Sizing`, `RenderingMatrix`, plus `_`-prefixed scaffolding. No nested stories; any other `*.stories.tsx` there fails the guard.
-- **Titles:** the default-export meta `title:` starts with a sanctioned group, uses only a sanctioned sub-group, nests no deeper than `Group/Sub-group/Leaf`, and is unique across files. It is **Title Case with spaces** and its **last segment names the component** (`Atoms/Stat`, `Compositions/Entity/Content`); the file keeps the symbol name (`Stat.stories.tsx`). A sub-group may absorb a shared prefix (`Compositions/Dashboard/Gauge` is DashboardGauge). A file whose only story is a catch-all page exports it as **`Default`**.
-- **Sub-groups:** only Compositions has them (Entity, Catalog, Dashboard, Wizard, Shell), and a cluster earns one only at **3+ siblings**; Atoms and Containers stay flat. A new group or sub-group means editing `storyGroups` / `storySubgroups` in `src/stories/_groups.ts`, which the guard and the sidebar both read.
-- **The four groups are membership tests, not rosters** (the catalog is the list). **Folder = group:** a component lives in `src/components/<group>/`, `referenceEntity/` aside. In sidebar order:
-  - **Foundations** — tokens, layout scaffolding, the QA harness; no product component. Specimens are generated **from the tokens** so they cannot drift from `theme.css`.
-  - **Atoms** — a single presentational job and **no Salvage Union domain knowledge**. An atom may compose a lower atom (`Stat` composes `Text` + `Tooltip`); domain knowledge, not composition, makes a Composition (`StatusBadge` owns the condition vocabulary).
-  - **Containers** — content-agnostic wrappers / state shells that would make sense with entirely different content inside.
-  - **Compositions** — know about Salvage Union entities, or assemble atoms into a product surface.
-- **Name components for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes (`Stat`, never `StatDisplay`). A banned suffix means renaming the symbol; otherwise fix the title. **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it:** `Reference*` marks the card over a `SURefEntity`, distinct from the content-agnostic `Card` (see [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md)). An exception's prefix must carry information the bare name loses; record any new one here.
-- **Real data only — never lorem or invented content.** Drive stories from `SalvageUnionReference.*` (`SalvageUnionReference.Chassis.all()[0]`) and use real game terms for literals, fed exactly as the apps feed them, through the real components (entities via `Entity`, `Mention` or `ReferenceEntityCard`, stats via `Stat`) — never markup no app produces.
-- The catalog awaits `SalvageUnionReference.preload('all')` before importing any story; reading a model at module top level in anything a story imports before that throws "Schema not loaded".
-- **Nothing lives only in the catalog, or only in a test.** A module whose only importers are stories or tests ships in no app: delete it, or make it a **harness** file (a leading underscore, as `_harness.tsx` and ITUN's `_dashboardStage.tsx`, exempt by naming). The guard cascades: re-run it after deleting.
-- **Stories render on a global paper canvas, in Barlow:** no wrapper background; wrappers fill the frame. Import shared helpers (`Caption`) from `src/stories/_harness.tsx` rather than re-declaring them.
+- **Atoms** — a single presentational job and **no Salvage Union domain knowledge**. An atom may compose a lower atom (`Stat` composes `Text` + `Tooltip`); domain knowledge, not composition, makes a Composition (`StatusBadge` owns the condition vocabulary).
+- **Containers** — content-agnostic wrappers / state shells that would make sense with entirely different content inside.
+- **Compositions** — know about Salvage Union entities, or assemble atoms into a product surface.
 
-### Capturing a story
+A primitive (an Atom or a Container) stays here however many apps render it. A composition only one app renders lives in that app's `src/components/`: `bun run check barrel-consumers` fails a barrel export only one app reaches that sits under `components/compositions/` ([component-lib](../../docs/ARCHITECTURE.md#component-lib)).
 
-Run your own server (`bunx vite --port N --strictPort` in `apps/catalog`), find the id with `bun run stories:ids [filter]` or `?mode=index`, and open `/?story=<id>&mode=canvas&width=phone` at viewport >= preset (else it overflows): the story alone, `phone` 375, `column` 480, `page` 1200 or px. Each entity-card matrix cell is a story (`…--size-by-extent-medium-head`).
+- **Name components for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes (`Stat`, never `StatDisplay`). **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it:** `Reference*` marks the card over a `SURefEntity`, distinct from the content-agnostic `Card` (see [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md)). An exception's prefix must carry information the bare name loses; record any new one here.
+- **Nothing lives only in a test.** A module whose only importers are tests ships in no app: delete it.
 
 ## Testing
 

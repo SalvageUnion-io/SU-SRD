@@ -1,5 +1,5 @@
 /**
- * A table to run, for the Mediator Dashboard's tests and catalog story: board
+ * A table to run, for the Mediator Dashboard's tests: board
  * M1's crew — Bonesaw on foot, Pickle boarded in an overheating Spectrum,
  * Judge ejected, Driftwood in Mazona — plus Hotdog, an unclaimed pre-gen who
  * is an open seat, not a card.

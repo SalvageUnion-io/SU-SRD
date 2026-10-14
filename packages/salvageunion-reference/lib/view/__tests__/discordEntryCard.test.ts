@@ -56,6 +56,14 @@ describe('discordEntryCard', () => {
     }
   })
 
+  test('an origin with trailing slashes links without doubling them', () => {
+    const preview = 'https://pr-1-su-srd.example.workers.dev'
+    const mule = entry('chassis', 'mule')
+    expect(
+      componentEmbedJson(discordEntryCard(mule, undefined, { srdOrigin: `${preview}///` }))
+    ).toBe(componentEmbedJson(discordEntryCard(mule, undefined, { srdOrigin: preview })))
+  })
+
   test("production's origin, given, is the card without one", () => {
     const mule = entry('chassis', 'mule')
     expect(

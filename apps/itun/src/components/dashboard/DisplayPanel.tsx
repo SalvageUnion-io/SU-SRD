@@ -129,8 +129,7 @@ export type DisplayContent =
   | { kind: 'entity'; data: SURefEntity | null; note: string; controls?: ReferenceEntityControl[] }
 
 /**
- * The presentational half: renders an already-resolved `content`. Exported for
- * the story, which drives it with real reference data and no store.
+ * The presentational half: renders an already-resolved `content`.
  */
 export function DisplayPanelFrame({ content }: { content: DisplayContent }) {
   switch (content.kind) {

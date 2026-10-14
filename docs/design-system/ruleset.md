@@ -32,7 +32,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       Terminal: no buttons, links, nested Peeks or steppers; children are Tokens, Mentions inert.
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
-2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Dashboard → Listing → Peek); the `Foundations/Rendering Matrix` story shows it.
+2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Dashboard → Listing → Peek).
    1. **Vitals** — `VitalGauge`: sheet skin, Dashboard instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
@@ -51,7 +51,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
          Never on paper, buttons, fields, the Dashboard or the Peek (`tokens/texture-placement`).
       2. **One shading exemption** — the `.pilot-panel` illustration on srd's `/about`. A ruled one-off, not precedent; anything else is a defect.
-   6. **§3.6 Copy is 1:1 with real SRD data** — everywhere, catalog stories included.
+   6. **§3.6 Copy is 1:1 with real SRD data** — everywhere.
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
    8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground, bar systems and modules (book pp. 162, 188).

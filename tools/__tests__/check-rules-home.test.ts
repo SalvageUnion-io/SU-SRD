@@ -70,7 +70,6 @@ describe('misplacedRules', () => {
       [`${COMPONENTS_DIR}/dashboard/useSeat.ts`]: '',
       [`${COMPONENTS_DIR}/dashboard/__tests__/SlotRow.rules.test.tsx`]: '',
       [`${COMPONENTS_DIR}/dashboard/__tests__/fooRules.ts`]: '',
-      [`${COMPONENTS_DIR}/dashboard/SlotRow.stories.ts`]: '',
       [`${COMPONENTS_DIR}/dashboard/RulesPanel.tsx`]: '',
     })
     expect(

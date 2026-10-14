@@ -31,7 +31,7 @@ afterAll(() => {
 })
 
 describe('scannedFiles', () => {
-  test('keeps shipped and tooling source; drops tests, stories, e2e, harnesses and generated', () => {
+  test('keeps shipped and tooling source; drops tests, e2e, harnesses and generated', () => {
     expect(
       scannedFiles([
         'apps/srd/src/Card.tsx',
@@ -39,7 +39,6 @@ describe('scannedFiles', () => {
         'apps/srd/public/registerSW.js',
         'tools/check.ts',
         'apps/b/src/__tests__/Card.test.tsx',
-        'apps/b/src/Card.stories.tsx',
         'apps/b/e2e/flow.e2e.ts',
         'apps/itun/test/convex/harness.ts',
         'apps/itun/convex/_generated/api.js',

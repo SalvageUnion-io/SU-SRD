@@ -49,8 +49,6 @@ const SCAN_DIRS = [
   // the bot still fails.
   'apps/discord-bot/src',
   'apps/su-assets/src',
-  // The story catalog's chrome (sidebar, toolbar), styled from the tokens.
-  'apps/catalog/src',
   'packages/observability/src',
   'packages/itun-domain/src',
 ]
@@ -308,12 +306,6 @@ const EXEMPTIONS: Exemption[] = [
     rules: ['gradient'],
     reason:
       "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/srd, which the guard does not scan, and only became visible when it moved into component-lib to be shared with the Dashboard's SRD Explorer.",
-  },
-  {
-    file: '.stories.tsx',
-    rules: ['raw-color'],
-    reason:
-      'Stories are specimens, not shipped surfaces. Their literals are harness scaffolding: the --tone/--ground custom properties the consuming APP supplies at runtime (ModeDoor, VitalGauge), a dark backdrop to prove contrast against, a #ccc outline on a resize container (DashboardGrid/DashboardCanvas), and swatch props fed as data (FilterChip). Nothing here reaches a user, and tokenising a stand-in for app-supplied context would make the story demonstrate something other than what ships. Note the cost, since it is real: stories are where new surfaces get prototyped, so this is the one place drift can incubate un-flagged — a literal that graduates from a story into a component is caught at the component, not here. `gradient` is deliberately NOT on this list: a gradient is banned by §3.5 on shading grounds that a specimen does not escape, and no story carries one.',
   },
   {
     file: 'packages/component-lib/src/components/atoms/CatalogTile.tsx',

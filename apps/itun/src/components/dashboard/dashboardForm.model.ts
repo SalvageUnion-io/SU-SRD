@@ -8,7 +8,7 @@
  * it, and a Major reads it only to order its bays and spell its buttons out
  * where the phone has the room ("Storage · 3/6" for the canvas's "Storage").
  *
- * No provider means the canvas, so every existing caller and story keeps the
+ * No provider means the canvas, so every existing caller keeps the
  * canvas without saying so. The phone form wraps each unit tab in
  * `<DashboardFormContext value={{ form: 'phone', between }}>`.
  */

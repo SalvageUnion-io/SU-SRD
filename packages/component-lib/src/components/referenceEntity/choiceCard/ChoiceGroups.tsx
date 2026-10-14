@@ -61,7 +61,7 @@ type ChoiceGroupsProps = {
 }
 
 /** An option that IS an entity, with its selection state, for `renderEntityOption`. */
-export type EntityOption = {
+type EntityOption = {
   entity: SURefEntity
   label: string
   chosen: boolean

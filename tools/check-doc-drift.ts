@@ -1036,7 +1036,7 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  */
 const SESSION_CEILINGS: Record<string, number> = {
   srd: 24_350,
-  'itun+component-lib': 63_232,
+  'itun+component-lib': 58_927,
   bot: 22_634,
 }
 

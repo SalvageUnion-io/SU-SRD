@@ -130,10 +130,8 @@ equipment was already TL1.)
 
 ## Consequences
 
-- The design rules are demonstrable and regression-guarded: each has a story
-  (`Compositions/Entity/Reference Entity Card` and `Atoms/Stat`),
-  and the story-coverage guard keeps every barrel-exported visual component
-  storied.
+- The design rules are regression-guarded by the card's and `Stat`'s own
+  tests.
 - Rule 7 is a shared-data change: it changes the tech-level badge on srd /
   the Discord bot as well as ITUN. It is a data ruling, not a computed value —
   future granted-only equipment should be authored at TL1 directly.

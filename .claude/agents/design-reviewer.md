@@ -1,6 +1,6 @@
 ---
 name: design-reviewer
-description: Use to review a component, story or srd page against the design-system laws in docs/design-system/ruleset.md (§0–§7). Give it story ids, a route, a component or a diff; it screenshots them with `bun run shot`, reads the source, and reports each law that applies as pass or fail with evidence. It does not edit code.
+description: Use to review a component or an srd or ITUN page against the design-system laws in docs/design-system/ruleset.md (§0–§7). Give it a route, a component or a diff; it screenshots them with `bun run shot`, reads the source, and reports each law that applies as pass or fail with evidence. It does not edit code.
 tools: Bash, Read, Grep, Glob
 ---
 
@@ -14,12 +14,11 @@ renders an entity.
 
 ## Gather
 
-- **Targets.** `bun run stories:ids [filter]` lists story ids. Given a
-  component or a diff, find its `*.stories.tsx` and filter by its id; given an
-  srd page, use its route (`/chassis/mule/`); given a signed-out
+- **Targets.** Given a component or a diff, find a page that renders it; given
+  an srd page, use its route (`/chassis/mule/`); given a signed-out
   ITUN page, `itun:` and its route (`itun:/starter`).
-- **Screenshots.** `bun run shot <story-id|/route|itun:/route>` (see
-  `tools/shot.ts`); it starts the catalog, srd or ITUN server if none is up and
+- **Screenshots.** `bun run shot </route|itun:/route>` (see
+  `tools/shot.ts`); it starts the srd or ITUN server if none is up and
   prints each PNG's path. Take `--width phone` as well as the default (there is
   no dark theme to take); Read each PNG to look at it. PNGs go to the gitignored
   `.shots/`, never anywhere tracked.
@@ -32,7 +31,7 @@ renders an entity.
 ## Report
 
 One row per law that applies to the target (skip laws it cannot touch, and
-say which you skipped): **pass / fail**, the evidence (story id or route +
+say which you skipped): **pass / fail**, the evidence (route +
 what you saw, or `file:line`), and for a fail the law it breaks and the
 smallest fix. List fails first. The laws most often broken: §3.1 rust only on
 actions, §3.10 no left rails, §4.1 paper not white, §4.2 tracking tokens,
