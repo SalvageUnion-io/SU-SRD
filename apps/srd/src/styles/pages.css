@@ -400,16 +400,18 @@
 
 /*
  * An entity page (`EntityPageFrame`): band, then body. The article fills the
- * page so the site footer's citation band closes it at the foot.
+ * page so the site footer's citation band closes it at the foot; a page too
+ * short to fill the screen sits band and body together in the middle of it,
+ * and a long one runs from the bar as before.
  */
 .srd-entity {
   display: flex;
   flex: 1;
   flex-direction: column;
+  justify-content: center;
 }
 
 .srd-entity__body {
-  flex: 1;
   margin-inline: auto;
   padding: var(--space-20) var(--space-16) var(--space-32);
   width: 100%;
