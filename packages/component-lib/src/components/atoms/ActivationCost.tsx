@@ -1,12 +1,11 @@
 import type { CSSProperties } from 'react'
 import { fontSize, space, weight } from '../../design/tokens'
-import { cn } from '../../utils/cn'
 
 type ActivationCostProps = {
   cost: string | number
   currency?: string | undefined | number
   compact?: boolean
-  /** On an ink band the box is paper with ink text, so it does not sink into the ink. */
+  /** On an ink band the ink box keeps a paper edge, so it does not sink into the ink. */
   onInk?: boolean
 }
 
@@ -16,8 +15,10 @@ const TIP = '0.5em'
 // The book's pointy cost box ("2AP"): one shape, cut by `clip-path`, so the
 // tip always spans the box. It stretches to its row's height and carries the
 // bordered chips' block padding plus their 1px rule's worth, so beside them it
-// is as tall as they are, never shorter. Its colours are `.su-cost`'s, so a
-// phone's chip strip can flip an ink band's paper box back to ink.
+// is as tall as they are, never shorter. Its colours are `.su-cost`'s. On an
+// ink band it sits in `.su-cost-edge`, a paper box of the same cut 1px larger
+// all round, which takes that 1px back off the block padding so the edged box
+// is exactly as tall as a bare one.
 const BOX = {
   alignItems: 'center',
   alignSelf: 'stretch',
@@ -45,6 +46,9 @@ const BOX_FULL = {
   paddingInlineEnd: `calc(${space[6]} + ${TIP})`,
 } satisfies CSSProperties
 
+// Inside the paper edge, which supplies the 1px rule's worth itself.
+const EDGED = { paddingBlock: space[2] } satisfies CSSProperties
+
 export function ActivationCost({
   cost,
   currency = 'AP',
@@ -54,12 +58,18 @@ export function ActivationCost({
   if (cost === undefined) return null
   const displayCost = cost === 'Variable' ? 'X' : cost
 
-  return (
-    <span
-      className={cn('su-cost', onInk && 'su-cost--on-ink')}
-      style={{ ...BOX, ...(compact ? BOX_COMPACT : BOX_FULL) }}
-    >
+  const rung = compact ? BOX_COMPACT : BOX_FULL
+  const box = (
+    <span className="su-cost" style={{ ...BOX, ...rung, ...(onInk ? EDGED : {}) }}>
       {currency === '' ? displayCost : `${displayCost} ${currency}`}
     </span>
+  )
+  // The edge shares the box's type size, so its `em` point matches the box's.
+  return onInk ? (
+    <span className="su-cost-edge" style={{ fontSize: rung.fontSize }}>
+      {box}
+    </span>
+  ) : (
+    box
   )
 }

@@ -21,14 +21,11 @@ export function Tag({
   tag,
   linkable = false,
   rung = 'full',
-  onInk = false,
 }: {
   tag: TagItem
   linkable?: boolean
   /** The chip's rung: `full` in a body, `compact` in a head band. */
   rung?: SizeRung
-  /** On the ink banner: the inverse plate (`Chips`). */
-  onInk?: boolean
 }) {
   const { hrefFor, openPage } = useEntitySurface()
   const insidePeek = useInsidePeek()
@@ -42,7 +39,6 @@ export function Tag({
       label={tag.name}
       value={tag.param?.trim() ? tag.param : undefined}
       size={rung}
-      inverse={onInk}
       state={tag.modified ? 'modified' : 'default'}
     />
   )
@@ -90,17 +86,15 @@ export function Tags({
   tags,
   linkable = false,
   rung,
-  onInk,
 }: {
   tags: TagItem[]
   linkable?: boolean
   rung?: SizeRung
-  onInk?: boolean
 }) {
   return (
     <>
       {tags.map((tag) => (
-        <Tag key={tag.key} tag={tag} linkable={linkable} rung={rung} onInk={onInk} />
+        <Tag key={tag.key} tag={tag} linkable={linkable} rung={rung} />
       ))}
     </>
   )

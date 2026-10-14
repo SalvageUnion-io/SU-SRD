@@ -113,15 +113,28 @@
   width: fit-content;
 }
 
-/* The pointy cost box (`ActivationCost`): ink, or paper on an ink band. */
+/* The pointy cost box (`ActivationCost`): ink on every band. */
 .su-cost {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
 
-.su-cost--on-ink {
+/* On an ink band the box sits in a paper box of the same cut, 1px larger all
+   round, so its edge clears the band as a chip's paper rule does. The point's
+   depth matches `ActivationCost`'s TIP plus the 1px. */
+.su-cost-edge {
+  align-self: stretch;
   background-color: var(--color-paper);
-  color: var(--color-ink);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 0.5em - 1px) 0,
+    100% 50%,
+    calc(100% - 0.5em - 1px) 100%,
+    0 100%
+  );
+  display: inline-flex;
+  flex: none;
+  padding: 1px 2px 1px 1px;
 }
 
 .su-badge--on-ink {

@@ -293,8 +293,8 @@
   margin-left: auto;
 }
 
-/* On the ink banner each cell keeps a paper rule, or its paper value cell
-   would lose its edge and its ink label cell vanish into the band. */
+/* On the ink banner a chip is the same plate as on a tone band; each cell
+   keeps a paper rule, or its ink label cell would vanish into the band. */
 .su-chips--on-ink .su-stat-cell {
   border-color: var(--color-paper);
 }
@@ -322,20 +322,8 @@
 
   /* The tier, pennant and affordance stay on the band, by the name, and
      paint over the strip (its clip makes it a stacking context). */
-  /* On the paper strip an ink band's chips take their paper-side plates. */
-  .su-entity-row__heading--cut .su-chips--on-ink .su-badge--inverse,
-  .su-entity-row__heading--cut .su-chips--on-ink .su-cost--on-ink {
-    background-color: var(--color-ink);
-    color: var(--color-paper);
-  }
-
-  .su-entity-row__heading--cut .su-chips--on-ink .su-badge--on-ink {
-    background-color: var(--color-paper);
-    box-shadow: inset 0 0 0 1px var(--color-ink);
-    color: var(--color-ink);
-  }
-
-  .su-entity-row__heading--cut .su-chips--on-ink > .su-stat-cell {
+  /* On the paper strip an ink band's chips drop their paper rule. */
+  .su-entity-row__heading--cut .su-chips--on-ink .su-stat-cell {
     border-color: var(--color-ink);
   }
 

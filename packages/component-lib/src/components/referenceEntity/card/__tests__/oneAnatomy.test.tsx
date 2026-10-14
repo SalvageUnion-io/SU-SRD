@@ -73,6 +73,27 @@ describe('actions sit inline', () => {
     expect(screen.getAllByText('Melee').length).toBeGreaterThan(0)
   })
 
+  test("an action's chips are the entity's own: the same plates and the ink cost box", () => {
+    const { container } = render(<ReferenceEntityCard data={drill()} />)
+    const groups = [...container.querySelectorAll<HTMLElement>('[data-chip-group]')]
+    const [host, ...actions] = groups
+    const plates = (group: HTMLElement | undefined) =>
+      [...(group?.querySelectorAll('.su-stat-plate--label') ?? [])].map((el) =>
+        el.classList.contains('su-badge--inverse')
+      )
+    expect(actions).toHaveLength(2)
+    // Every label plate is ink on the host's tone band and on each ink band alike.
+    expect(plates(host).every((inverse) => !inverse)).toBe(true)
+    for (const group of actions) {
+      expect(plates(group).length).toBeGreaterThan(0)
+      expect(plates(group).every((inverse) => !inverse)).toBe(true)
+      // The cost is last: the ink pointy box, edged in paper so it clears the band.
+      const edge = group.lastElementChild
+      expect(edge?.classList.contains('su-cost-edge')).toBe(true)
+      expect(edge?.querySelector('.su-cost')?.textContent).toBe('1 EP')
+    }
+  })
+
   test('below depth 1 they fold behind a "Show N actions" chip', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} size="medium" depth={2} />)
     expect(fills(container)).toEqual(['tone'])

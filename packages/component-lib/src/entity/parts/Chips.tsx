@@ -15,9 +15,10 @@ import { Tags } from './Tags'
  * `Stat` cell, then last the cost in the book's pointy box (`CostBox`). The
  * group wraps; it never clips a chip (E18).
  *
- * On the ink banner (`onInk`) the cells take the inverse plate, and
- * `.su-chips--on-ink` keeps a paper rule round each so its value cell does
- * not sink into the ink.
+ * One look on every band: an action's chips on the ink banner are the same
+ * plates, rung and cost box as an entity's on its tone band. There
+ * (`onInk`) `.su-chips--on-ink` only keeps a paper rule round each cell, and
+ * the cost box its paper edge, so the ink halves do not sink into the ink.
  */
 export function Chips({
   chips,
@@ -52,16 +53,10 @@ export function Chips({
     >
       {leading}
       {chips.durations.map((duration) => (
-        <Stat
-          key={duration}
-          orientation="horizontal"
-          label={duration}
-          size={rung}
-          inverse={onInk}
-        />
+        <Stat key={duration} orientation="horizontal" label={duration} size={rung} />
       ))}
-      <Facts cells={chips.facts} size={rung} inverse={onInk} />
-      <Tags tags={chips.tags} linkable={linkable} rung={rung} onInk={onInk} />
+      <Facts cells={chips.facts} size={rung} />
+      <Tags tags={chips.tags} linkable={linkable} rung={rung} />
       {chips.cost && <CostBox cost={chips.cost} rung={rung} onInk={onInk} />}
     </div>
   )
@@ -69,7 +64,7 @@ export function Chips({
 
 /**
  * A read cost ("2 EP") as the book prints it: the ink pointy box
- * (`ActivationCost`), paper on an ink band. Every form's read cost is this box,
+ * (`ActivationCost`), with a paper edge on an ink band. Every form's read cost is this box,
  * last among its chips; the Dashboard's pennant button is the live one.
  */
 export function CostBox({
