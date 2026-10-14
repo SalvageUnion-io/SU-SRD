@@ -29,6 +29,9 @@ in order, each short:
 - **Summary** — what this PR does, in a sentence or two.
 - **Why** — the problem or decision; cite the ADR or issue (`#123`).
 - **What changed** — the change by area, not by file.
+  A PR that bumps the root `package.json` `version` is a release: this
+  section, word for word and minus `Closes #N` lines, becomes the GitHub
+  release notes when it merges to `main` (`tools/release.ts`).
 - **Verification** — what you ran (`bun run check`, a `bun run shot`) and what
   you looked at.
 - **Follow-ups** — what is left. Ideas you did not build go here,
