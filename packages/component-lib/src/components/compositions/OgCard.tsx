@@ -225,6 +225,9 @@ const ADDRESS = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
+/** The chips under a name too long to share its line: a left-aligned row on the page ground. */
+const CHIPS_BELOW = { flexWrap: 'wrap', justifyContent: 'flex-start' } satisfies CSSProperties
+
 /** The notch's baseline above the band's foot, as a share of the title's size. */
 const NOTCH_BASELINE = 0.076
 
@@ -247,8 +250,10 @@ function Chips({
   width: number
   baseline: string
 }) {
+  // Under the notch the chips read as a line of text: left-aligned, wrapping down.
+  const style = width > 0 ? { paddingBottom: baseline, width } : CHIPS_BELOW
   return (
-    <div className="su-og-chips" style={{ paddingBottom: baseline, width }}>
+    <div className="su-og-chips" style={style}>
       {userMade && (
         <span title={USER_MADE_TITLE} style={STAMP}>
           User-made
@@ -348,13 +353,15 @@ export function OgCard({
           titleSize={titleSize}
           lead={tier ? <span style={{ fontSize: titleSize }}>{tier}</span> : undefined}
           aside={layout.chips === 'beside' ? chipGroup : undefined}
-          corner={layout.chips === 'above' ? chipGroup : undefined}
         >
           {printed}
         </ChapterBand>
       </div>
-      {/* With no rules text the ground is only the strip the notch stands on. */}
-      <div style={prose ? BODY : STRIP}>{prose && <p style={PROSE}>{prose}</p>}</div>
+      {/* With no rules text or chips the ground is only the strip the notch stands on. */}
+      <div style={prose || layout.chips === 'below' ? BODY : STRIP}>
+        {layout.chips === 'below' && chipGroup}
+        {prose && <p style={PROSE}>{prose}</p>}
+      </div>
       {(foot.kind || foot.byline) && (
         <div style={{ ...FOOT, backgroundColor: fill, color: footColor }}>
           <Speckle grain={ink ? 'ink' : 'paper'} />

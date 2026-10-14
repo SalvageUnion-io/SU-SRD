@@ -283,30 +283,25 @@ function widthFor(widths: number[], rows: number): number {
 }
 
 /**
- * Where the chips go: `beside` the title on its baseline, or `above` it, in
- * the band's top-right corner, when a name too long to share its line would
- * otherwise be cut. Their width, the band's height and the title's size.
+ * Where the chips go: `beside` the title on its baseline, or `below` it, on
+ * the page ground under the notch, when a name too long to share its line
+ * would otherwise be cut (nothing goes above the title, EDL E20). Their
+ * width, the band's height and the title's size.
  */
 export type OgCardLayout = {
-  chips: 'beside' | 'above'
+  chips: 'beside' | 'below'
   chipsWidth: number
   bandHeight: number
   titleSize: number
 }
-
-/** The band's width for chips over the notch: the card less its gutters, in px. */
-const BAND_ROOM = NOTCH_ROOM + 48
-/** The notch's own height over its title's size: its 0.92 line and 12px top. */
-const NOTCH_LINE = 0.92
-const NOTCH_TOP = 12
 
 /**
  * The band's layout for a title and its chips, which ride the band beside
  * it as a show page's header chips do. It takes the fewest rows of chips that
  * leave the title within `STACK_GAIN` of its biggest size (stacking up to
  * five, the band growing to hold them), so a long name never shrinks far for
- * chips that could stack. A name that would still be cut moves the chips
- * above it, to the band's top-right corner, and keeps its whole line.
+ * chips that could stack. A name that would still be cut keeps its whole
+ * line, and the chips go under it, on the page ground.
  */
 export function ogCardLayout(printed: string, chips: readonly OgCardChip[]): OgCardLayout {
   const alone = ogTitleSize(printed)
@@ -328,14 +323,7 @@ export function ogCardLayout(printed: string, chips: readonly OgCardChip[]): OgC
   const biggest = Math.max(...layouts.map((layout) => layout.titleSize))
   const beside = layouts.find((layout) => layout.titleSize >= biggest * STACK_GAIN) as OgCardLayout
   if (!cutBeside(printed, beside.chipsWidth)) return beside
-  const rows = rowsAt(widths, BAND_ROOM)
-  const stack = BAND_HEADROOM + rows * CHIP_HEIGHT + (rows - 1) * CHIP_GAP + CHIPS_GAP
-  return {
-    chips: 'above',
-    chipsWidth: BAND_ROOM,
-    bandHeight: Math.max(OG_BAND_HEIGHT, Math.ceil(stack + alone * NOTCH_LINE + NOTCH_TOP)),
-    titleSize: alone,
-  }
+  return { chips: 'below', chipsWidth: 0, bandHeight: OG_BAND_HEIGHT, titleSize: alone }
 }
 
 /** Whether the title, beside chips `chipsWidth` wide, would be cut even at the floor. */

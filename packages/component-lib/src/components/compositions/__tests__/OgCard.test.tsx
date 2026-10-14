@@ -150,7 +150,7 @@ function read(props: OgCardProps): Seen & { src: string | null } {
     title: card.getAttribute('aria-label') ?? '',
     printed: text(host.querySelector('.su-chapter-band__title')),
     tone: band.getAttribute('style')?.match(/background-color:([^;]+)/)?.[1] ?? '',
-    cells: [...band.querySelectorAll('.su-og-chips .su-stat-cell')].map((cell) => [
+    cells: [...card.querySelectorAll('.su-og-chips .su-stat-cell')].map((cell) => [
       text(cell.querySelector('.su-stat-plate--label')),
       text(cell.querySelector('.su-stat-plate--value')),
     ]),
@@ -447,17 +447,22 @@ describe('OgCard', () => {
     })
   })
 
-  test('a name too long to share its line moves the chips above it, whole', () => {
+  test('a name too long to share its line keeps it whole, the chips under it', () => {
     const name = '\u201CSergeant Kessler of the Ninth\u201D'
     const layout = ogCardLayout(name, [
       { kind: 'stamp', text: 'User-made' },
       { kind: 'stat', label: 'HP', value: '9' },
       { kind: 'stat', label: 'Actions', value: '2' },
     ])
-    expect(layout.chips).toBe('above')
+    expect(layout.chips).toBe('below')
     expect(layout.titleSize).toBe(ogTitleSize(name))
-    // One row of chips over a stepped-down notch still fits the band.
     expect(layout.bandHeight).toBe(230)
+    // The card draws them on the page ground under the notch, User-made first.
+    const host = document.createElement('div')
+    host.innerHTML = renderToStaticMarkup(<OgCard {...LONG_NPC} />)
+    expect(host.querySelector('.su-chapter-band .su-og-chips')).toBeNull()
+    const below = host.querySelector('article > :nth-child(2) .su-og-chips')
+    expect(below?.firstElementChild?.textContent).toBe('User-made')
   })
 
   test('the chips render in the band, not the body', () => {
