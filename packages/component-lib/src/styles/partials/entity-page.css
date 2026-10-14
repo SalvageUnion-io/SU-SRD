@@ -22,8 +22,6 @@
 
 .su-stat-column__cell {
   display: flex;
-  flex-direction: row-reverse;
-  justify-content: flex-end;
   min-height: 40px;
 }
 
