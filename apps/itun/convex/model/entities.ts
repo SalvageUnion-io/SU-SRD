@@ -1,5 +1,5 @@
 import type { Infer } from 'convex/values'
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
 import { customCtx, customMutation } from 'convex-helpers/server/customFunctions'
 import { Triggers } from 'convex-helpers/server/triggers'
 import type { LinkShape } from 'itun-domain/links/linkRules'
@@ -133,10 +133,10 @@ export async function loadOwnable(
   entityId: string
 ): Promise<Doc<'pilots'> | Doc<'mechs'>> {
   const id = ctx.db.normalizeId(table, entityId)
-  if (id === null) throw new Error('That entity no longer exists')
+  if (id === null) throw new ConvexError('That entity no longer exists')
 
   const doc = await ctx.db.get(id)
-  if (doc === null) throw new Error('That entity no longer exists')
+  if (doc === null) throw new ConvexError('That entity no longer exists')
   return doc
 }
 

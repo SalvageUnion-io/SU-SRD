@@ -89,7 +89,7 @@ async function requireProposalTarget(
   entityId: string
 ): Promise<{ doc: Doc<'pilots'> | Doc<'mechs'>; gameId: Id<'games'> }> {
   const doc = await proposalTarget(ctx, entityType, entityId)
-  if (doc === null) throw new Error('That entity no longer exists')
+  if (doc === null) throw new ConvexError('That entity no longer exists')
   if (doc.gameId === null) {
     throw new NotAuthorized('A build on a shelf is not part of a Game and cannot be proposed to')
   }
@@ -323,8 +323,9 @@ export const apply = mutation({
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
     const proposal = await ctx.db.get(args.proposalId)
-    if (proposal === null) throw new Error('That proposal no longer exists')
-    if (proposal.state !== 'proposed') throw new Error('That proposal has already been answered')
+    if (proposal === null) throw new ConvexError('That proposal no longer exists')
+    if (proposal.state !== 'proposed')
+      throw new ConvexError('That proposal has already been answered')
 
     const { doc } = await requireProposalTarget(ctx, proposal.entityType, proposal.entityId)
     if (doc.ownerId !== userId) throw new NotAuthorized('Only the owner can apply this')
@@ -341,7 +342,7 @@ export const apply = mutation({
     const merged = { ...(doc.body as Record<string, unknown>), [proposal.field]: proposal.after }
     const result = parser.safeParse(merged)
     if (!result.success) {
-      throw new Error(
+      throw new ConvexError(
         `That proposal does not fit this sheet: ${result.error.issues[0]?.message ?? 'unknown'}`
       )
     }
@@ -378,7 +379,7 @@ export const broadcast = mutation({
   handler: async (ctx, args): Promise<void> => {
     const membership = await requireMediator(ctx, args.gameId)
     const message = args.message.trim()
-    if (message.length === 0) throw new Error('An alert needs a message')
+    if (message.length === 0) throw new ConvexError('An alert needs a message')
 
     await ctx.db.insert('changeLog', {
       gameId: args.gameId,

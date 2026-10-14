@@ -1,5 +1,5 @@
 import type { Infer } from 'convex/values'
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -134,7 +134,7 @@ export const create = mutation({
   handler: async (ctx, args): Promise<Id<'games'>> => {
     const userId = await requireUser(ctx)
     const name = args.name.trim()
-    if (name.length === 0) throw new Error('A Game needs a name')
+    if (name.length === 0) throw new ConvexError('A Game needs a name')
 
     const gameId = await ctx.db.insert('games', {
       name,
