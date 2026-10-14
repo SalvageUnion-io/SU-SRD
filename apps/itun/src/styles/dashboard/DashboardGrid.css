@@ -24,8 +24,9 @@
      more rows on a long track (issue 1255), so a boarded mech's SP and Cargo
      can need more than the floor; a fixed track let the bays spill over the
      display, whose controls then drew on top of them. The display takes what
-     is left. */
-  grid-template-rows: 40px minmax(208px, auto) minmax(0, 1fr);
+     is left. The rail is 40px, and grows only for a Downtime rail unit's
+     gauge, whose pips split into rows (§4.5). */
+  grid-template-rows: minmax(40px, auto) minmax(208px, auto) minmax(0, 1fr);
   grid-template-areas:
     'rail'
     'primary'
@@ -39,7 +40,7 @@
   gap: 10px;
   border: var(--bw-rail) solid color-mix(in srgb, var(--color-ink) 35%, transparent);
   border-radius: var(--radius-panel);
-  padding: 0 12px;
+  padding: 4px 12px;
   background: var(--color-band-cream);
 }
 
