@@ -2,12 +2,13 @@ import { createFileRoute } from '@tanstack/react-router'
 import { BrandCard } from 'component-lib'
 import { PRODUCT } from 'component-lib/product'
 import { pageTitle } from '../../lib/pageTitle'
+import { SCRIPT_FONT } from '../../lib/scriptFont'
 
 /**
  * `/og/brand` — the render surface of ITUN's own link preview,
  * `public/og-image.png`: the picture every route but a shared sheet or
  * invite unfurls with: "THE CANTINA" on its Legendary-pink band, under the legacy
- * tagline and the address it lives at.
+ * tagline quoted in Caveat with Stumpy's credit, and the address it lives at.
  * The root draws it without chrome; nothing requests it at runtime.
  */
 export const Route = createFileRoute('/og/brand')({
@@ -16,10 +17,10 @@ export const Route = createFileRoute('/og/brand')({
 })
 
 function BrandPreviewRoute() {
-  // The legacy tagline over the name, on The Cantina's own band.
+  // The legacy tagline, quoted as on the front door, over the name.
   return (
     <BrandCard
-      kicker={PRODUCT.tagline}
+      quote={{ text: PRODUCT.tagline, by: PRODUCT.taglineBy, font: SCRIPT_FONT }}
       title={['The', 'Cantina']}
       tone="cantina"
       address="salvageunion.io/build"

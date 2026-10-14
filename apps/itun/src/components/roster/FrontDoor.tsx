@@ -23,6 +23,7 @@ import { buttonVariants, ChapterBand, Slab, StartHere, tokens } from 'component-
 import { PRODUCT } from 'component-lib/product'
 import { STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
+import { SCRIPT_FONT } from '../../lib/scriptFont'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
 import { SignInControl } from '../account/SignInControl'
@@ -59,12 +60,8 @@ const KICKER = {
 
 /** The legacy tagline, quoted in a hand. Its colour and alignment are `screens.css`'s
  *  (`.front-door__quote`): paper on the band, the deep crawler pink under it. */
-/** The quote's hand: Caveat, self-hosted beside Barlow (`routes/__root.tsx`),
- *  so it renders offline and under the CSP like the rest of the type. */
-const SCRIPT = "'Caveat', cursive"
-
 const QUOTE = {
-  fontFamily: SCRIPT,
+  fontFamily: SCRIPT_FONT,
   fontSize: tokens.fontSize.hero,
   fontWeight: tokens.weight.semibold,
   lineHeight: 1,
