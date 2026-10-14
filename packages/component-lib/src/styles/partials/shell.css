@@ -525,7 +525,7 @@
 
 /* `asideAt="notch"`: a show page's stamps and controls, never above the
    title (EDL E20). From `sm` they are one cluster at the row's far end, its
-   last line flat on the title's baseline, so a cluster that wraps grows up
+   last line centred on the title's capitals, so a cluster that wraps grows up
    the band, never down past the name; each child of the aside is a line of
    it, right-aligned and wrapping. A phone has no room
    beside the name, so the cluster follows it: below the band, on a strip of
@@ -573,9 +573,18 @@
     flex: 0 1 auto;
     margin-inline: auto 0;
     max-width: 60%;
-    /* The notch's baseline sits this far above the band's foot: Barlow Semi
-       Condensed's descent less the half-leading of its 0.92 line. */
-    padding: 0 0 calc(var(--text-chapter) * 0.076);
+    /* Its last line (32px chips and buttons) centred on the middle of the
+       notch's capitals: the notch's baseline sits 0.076em above the band's
+       foot (Barlow Semi Condensed's descent less the half-leading of its 0.92
+       line) and its capitals' middle 0.352em above that. More lines stack up
+       the band (owner's rule, 2026-10-14). */
+    padding: 0 0 calc(var(--text-chapter) * 0.428 - 16px);
+  }
+
+  /* A quote (ITUN's front door) is not a line of chips: its foot sits on the
+     notch's baseline. */
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside:has(> figure) {
+    padding-bottom: calc(var(--text-chapter) * 0.076);
   }
 
   .su-chapter-band[data-aside='notch'] .su-chapter-band__aside > * {

@@ -59,7 +59,15 @@
   min-width: 0;
 }
 
-/* HEAD (`entity/parts/Head.tsx`): the band, wearing the paint and its grain. */
+/* HEAD (`entity/parts/Head.tsx`): the band, wearing the paint and its grain.
+   `--su-name-mid-strut` is twice the height of the name's middle (its
+   capitals') above the foot of its line: the strut that centres chips on it
+   (`.su-entity-row__heading--cut`, `.su-entity-tile__chips`). */
+.su-entity-row__head,
+.su-entity-tile__band {
+  --su-name-mid-strut: calc(0.986 * var(--text-title));
+}
+
 .su-entity-row__head {
   display: flex;
   flex-direction: column;
@@ -269,10 +277,19 @@
 }
 
 /* The chips take the rest of the band, right-aligned, at the band's foot
-   beside the tab, so one line of them sits level with the name's last line
-   however tall a grid sets the head. Short of room, name and chips give way in
-   proportion to their widths: the name wraps at its spaces, the chips onto
-   more lines, never narrower than their widest chip. */
+   beside the tab, their last line centred on the middle of the name's last
+   line (its capitals), however tall a grid sets the head. When they take more
+   lines, the lines stack up the band above it and come out even, not one long
+   and one short (owner's rule, 2026-10-14). Short of room, name and chips give
+   way in proportion to their widths: the name wraps at its spaces, the chips
+   onto more lines, never narrower than their widest chip.
+
+   The chips are inline boxes in a balanced block (as a show page's,
+   `.su-entity-stamps`), each centred on its line; their 2px margins, cancelled
+   at the edges, are the 4px gap. The last line ends in a strut as tall as
+   twice the name's mid-height (`--su-name-mid-strut`), so a chip centred
+   on it sits on the name's middle; under it is the tab's own padding
+   (`.su-entity-row__notch`). */
 .su-entity-row__heading--cut > .su-chips,
 .su-entity-row__heading--cut > .su-entity-row__chip-group {
   align-self: flex-end;
@@ -280,7 +297,41 @@
   justify-content: flex-end;
   margin-left: auto;
   min-width: min-content;
-  padding-block: var(--space-6);
+  padding-block: var(--space-6) var(--space-2);
+}
+
+.su-entity-row__heading--cut > .su-chips,
+.su-entity-tile__band > .su-entity-tile__chips:not(.su-entity-tile__chips--lines) {
+  display: block;
+  line-height: 0;
+  text-align: end;
+  text-wrap: balance;
+}
+
+.su-entity-row__heading--cut > .su-chips {
+  margin-right: calc(-1 * var(--space-2));
+  padding-block: var(--space-4) 0;
+}
+
+.su-entity-row__heading--cut > .su-chips::after,
+.su-entity-tile__band > .su-entity-tile__chips:not(.su-entity-tile__chips--lines)::after {
+  content: '';
+  display: inline-block;
+  height: var(--su-name-mid-strut);
+  margin-block: var(--space-2);
+  vertical-align: middle;
+  width: 0;
+}
+
+/* A label group (`Head`'s chip group) stays a flex group: its strut leads,
+   since it wraps upward (`wrap-reverse`) and its last line holds its first
+   item; zero wide, it gives back the gap it adds, so it never wraps a line. */
+.su-entity-row__heading--cut > .su-entity-row__chip-group::before {
+  content: '';
+  flex: none;
+  height: var(--su-name-mid-strut);
+  margin-right: calc(-1 * var(--space-4));
+  width: 0;
 }
 
 /* A type stamp in the chip group (`Head`): its labels and chips one group,
@@ -349,6 +400,19 @@
     justify-content: flex-start;
     margin-left: 0;
     padding-block: var(--space-6) 0;
+  }
+
+  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-chips {
+    margin: 0 calc(-1 * var(--space-2)) calc(-1 * var(--space-2));
+    padding-block: var(--space-4) 0;
+    text-align: start;
+    text-wrap: wrap;
+  }
+
+  /* Under the name, the chips are not beside it to centre on. */
+  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-chips::after,
+  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-entity-row__chip-group::before {
+    content: none;
   }
 
   /* The tier, pennant and affordance stay on the band, by the name, and
@@ -640,19 +704,26 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
-/* The chips beside the name: the facts and the cost right-aligned on the
-   band's foot. They wrap into rows that grow the band upward, never above
-   the name's own line. */
+/* The chips beside the name: the facts and the cost right-aligned, their
+   last line centred on the middle of the name's last line, as a Row's
+   (`.su-entity-row__heading--cut`); more lines grow the band upward, even. */
 .su-entity-tile__band > .su-entity-tile__chips {
   align-content: flex-end;
+  align-items: center;
   align-self: flex-end;
   display: flex;
   flex: 1 1 0;
   flex-wrap: wrap;
   gap: var(--space-4);
   justify-content: flex-end;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-2);
   min-width: 5.5rem;
+}
+
+/* Balanced lines (`.su-entity-row__heading--cut`'s): the margins round each
+   chip and the strut are the gap and the tab's padding. */
+.su-entity-tile__band > .su-entity-tile__chips:not(.su-entity-tile__chips--lines) {
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0 0;
 }
 
 /* A system's or module's chips keep to two lines (`--lines`): each line
@@ -670,6 +741,23 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   display: flex;
   flex-wrap: nowrap;
   gap: var(--space-4);
+}
+
+/* The last line of two is a line of inline boxes ending in the strut, as a
+   balanced block's (below), so it centres on the name and no chip stretches
+   to the strut's height. */
+.su-entity-tile__chips--lines > .su-entity-tile__line:last-child {
+  display: block;
+  line-height: 0;
+  white-space: nowrap;
+}
+
+.su-entity-tile__chips--lines > .su-entity-tile__line:last-child::after {
+  content: '';
+  display: inline-block;
+  height: var(--su-name-mid-strut);
+  vertical-align: middle;
+  width: 0;
 }
 
 .su-entity-tile__cells {
@@ -856,4 +944,24 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   margin-right: auto;
   min-width: 0;
   padding: 1px var(--space-6) 3px;
+}
+
+/* A balanced chip block's chips (`.su-entity-row__heading--cut > .su-chips`,
+   `.su-entity-tile__chips`, a two-line tile's last line): inline boxes, each
+   centred on its line. Last in
+   the file, after the grid's `> *` rules it outranks. */
+.su-entity-row__heading--cut > .su-chips > *,
+.su-entity-tile__band > .su-entity-tile__chips:not(.su-entity-tile__chips--lines) > * {
+  display: inline-flex;
+  margin: var(--space-2);
+  vertical-align: middle;
+}
+
+.su-entity-tile__chips--lines > .su-entity-tile__line:last-child > * {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.su-entity-tile__chips--lines > .su-entity-tile__line:last-child > * + * {
+  margin-left: var(--space-4);
 }

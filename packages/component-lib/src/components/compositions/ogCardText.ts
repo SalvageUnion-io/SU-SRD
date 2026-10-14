@@ -218,7 +218,7 @@ export function ogTitleSize(printed: string, chipsWidth = 0): number {
 /** The gap between the notch and the chips beside it, in px. */
 const CHIPS_GAP = 24
 /** The chips' gap between cells and between rows, in px (`.su-og-chips`). */
-const CHIP_GAP = 14
+export const OG_CHIP_GAP = 14
 /** A chip's height at the preview's 36px plate, in px. */
 const CHIP_HEIGHT = 58
 /**
@@ -265,7 +265,7 @@ function rowsAt(widths: number[], width: number): number {
   let rows = 1
   let line = 0
   for (const w of widths) {
-    const next = line === 0 ? w : line + CHIP_GAP + w
+    const next = line === 0 ? w : line + OG_CHIP_GAP + w
     if (next > width && line > 0) {
       rows += 1
       line = w
@@ -276,7 +276,7 @@ function rowsAt(widths: number[], width: number): number {
 
 /** The narrowest width, in px, that packs `widths` into `rows` rows. */
 function widthFor(widths: number[], rows: number): number {
-  const total = widths.reduce((sum, w) => sum + w, 0) + CHIP_GAP * (widths.length - 1)
+  const total = widths.reduce((sum, w) => sum + w, 0) + OG_CHIP_GAP * (widths.length - 1)
   let width = Math.max(...widths)
   while (width < total && rowsAt(widths, width) > rows) width += 4
   return Math.min(width, total)
@@ -312,12 +312,14 @@ export function ogCardLayout(printed: string, chips: readonly OgCardChip[]): OgC
   const layouts: OgCardLayout[] = []
   for (let rows = 1; rows <= Math.min(CHIP_ROWS_MAX, widths.length); rows++) {
     const chipsWidth = widthFor(widths, rows)
-    const stack = BAND_HEADROOM + rows * CHIP_HEIGHT + (rows - 1) * CHIP_GAP
+    const titleSize = ogTitleSize(printed, chipsWidth)
+    const stack =
+      BAND_HEADROOM + rows * CHIP_HEIGHT + (rows - 1) * OG_CHIP_GAP + ogChipsLift(titleSize)
     layouts.push({
       chips: 'beside',
       chipsWidth,
       bandHeight: Math.max(OG_BAND_HEIGHT, stack),
-      titleSize: ogTitleSize(printed, chipsWidth),
+      titleSize,
     })
   }
   const biggest = Math.max(...layouts.map((layout) => layout.titleSize))
@@ -330,6 +332,22 @@ export function ogCardLayout(printed: string, chips: readonly OgCardChip[]): OgC
 function cutBeside(printed: string, chipsWidth: number): boolean {
   const room = NOTCH_ROOM - chipsWidth - CHIPS_GAP
   return room / (TITLE_ADVANCE * Math.max(printed.length, 1)) < TITLE_MIN
+}
+
+/**
+ * The notch's capitals' middle above the band's foot, as a share of the
+ * title's size: its baseline (the face's descent less the half-leading of its
+ * 0.92 line) plus half Barlow Semi Condensed's cap height.
+ */
+const NOTCH_MIDDLE = 0.076 + 0.352
+
+/**
+ * How far the chips beside the title sit off the band's foot, in px: their
+ * last row centred on the middle of the title's capitals (EDL E17), never
+ * below the foot for a title shorter than a chip.
+ */
+export function ogChipsLift(titleSize: number): number {
+  return Math.max(0, Math.round(titleSize * NOTCH_MIDDLE - CHIP_HEIGHT / 2))
 }
 
 /**

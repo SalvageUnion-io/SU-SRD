@@ -13,6 +13,7 @@ import {
   ogCardPrintedTitle,
   ogCardThemeColor,
   ogCardTitle,
+  ogChipsLift,
   ogTitleSize,
 } from '../ogCardText'
 
@@ -436,7 +437,11 @@ describe('OgCard', () => {
     expect(mule.titleSize).toBe(120)
     // Eight chips stack over the notch's foot rather than spanning the band.
     expect(mule.chipsWidth).toBeLessThan(700)
-    expect(mule.bandHeight).toBe(230)
+    // Three rows, the last centred on the 120px title's capitals.
+    expect(mule.bandHeight).toBe(24 + 3 * 58 + 2 * 14 + ogChipsLift(120))
+    expect(ogChipsLift(120)).toBe(22)
+    // A title shorter than a chip keeps it on the band.
+    expect(ogChipsLift(34)).toBe(0)
     expect(ogCardLayout('Mule', [])).toEqual({
       chips: 'beside',
       chipsWidth: 0,
