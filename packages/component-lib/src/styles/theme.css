@@ -104,7 +104,6 @@
   --color-pilot: rgb(239, 137, 79); /* #ef894f */
   --color-pilot-light: rgb(245, 193, 163); /* #f5c1a3 */
   --color-mech: rgb(122, 151, 138); /* #7a978a */
-  --color-mech-dark: rgb(92, 121, 108); /* #5c796c */
   --color-crawler: rgb(206, 88, 152); /* #ce5898 */
   /* Ink on colour (ruleset §3.8, board 03). Crawler pink carries neither ink
      (4.2:1) nor paper (3.7:1) at 4.5:1, so a crawler band that carries paper
@@ -159,7 +158,6 @@
   --color-ink-30: rgb(40 32 25 / 0.3);
   --color-ink-20: rgb(40 32 25 / 0.2);
   --color-ink-15: rgb(40 32 25 / 0.15);
-  --color-ink-12: rgb(40 32 25 / 0.12);
   --color-ink-10: rgb(40 32 25 / 0.1);
   --color-ink-8: rgb(40 32 25 / 0.08);
   --color-ink-5: rgb(40 32 25 / 0.05);

@@ -29,7 +29,7 @@ import {
 import { buildLinkFor, guideExitsFor } from '../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../lib/chapters'
 import { componentEmbedFor } from '../../lib/componentEmbed'
-import { CONTENTS_CRUMB, META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../lib/constants'
+import { CONTENTS_CRUMB, entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../lib/constants'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../lib/ogCard'
@@ -141,7 +141,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   return {
     meta: {
-      title: `${itemName} - ${schemaName}${TITLE_SUFFIX}`,
+      title: entityTitle(itemName, schemaName),
       description: metaDescription,
       ...og,
       componentEmbed: componentEmbedFor(item),

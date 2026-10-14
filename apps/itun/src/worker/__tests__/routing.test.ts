@@ -224,6 +224,39 @@ describe('a client route that is not a navigation gets the shell', () => {
 })
 
 /**
+ * Search lists the front door, the Starter Set and public sheets; every other
+ * client route is private or empty to a crawler, so its shell says `noindex`.
+ */
+describe('only the public client routes are indexable', () => {
+  for (const path of ['/', '/starter', '/starter/pilot/bonesaw', '/p/pilot/abc']) {
+    it(`leaves ${path} indexable`, async () => {
+      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
+      expect(res.headers.get('x-robots-tag')).toBeNull()
+    })
+  }
+
+  for (const path of ['/sheet/pilot/xyz', '/games/g1', '/pilots/new', '/settings', '/s/AAAAAAAA']) {
+    it(`marks ${path} noindex, keeping the shell and its headers`, async () => {
+      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
+      expect(res.status).toBe(200)
+      expect(await res.text()).toBe(SHELL)
+      expect(res.headers.get('x-robots-tag')).toBe('noindex')
+      expect(res.headers.get('content-security-policy')).toBe(CSP)
+    })
+  }
+
+  it("marks an invite's unfurl noindex", async () => {
+    const res = await worker.fetch(req('/invite/abc123'), envWith())
+    expect(res.headers.get('x-robots-tag')).toBe('noindex')
+  })
+
+  it('leaves files alone', async () => {
+    const res = await worker.fetch(req('/icon-192.png'), envWith())
+    expect(res.headers.get('x-robots-tag')).toBeNull()
+  })
+})
+
+/**
  * intheunionnow.com, where ITUN lived until ADR-048: every request is a 301 to
  * the same page under salvageunion.io/build, query kept, and a retired address
  * goes straight to where it lives now. One hop, decided without the asset

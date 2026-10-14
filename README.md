@@ -13,7 +13,7 @@
 [![Biome](https://img.shields.io/badge/lint%20%26%20format-Biome-60a5fa?logo=biome&logoColor=fff)](https://biomejs.dev)
 
 [![SRD](https://img.shields.io/badge/SRD-salvageunion.io-1f2a44)](https://salvageunion.io)
-[![In the Union now](https://img.shields.io/badge/ITUN-salvageunion.io%2Fbuild-1f2a44)](https://salvageunion.io/build)
+[![The Cantina](https://img.shields.io/badge/The%20Cantina-salvageunion.io%2Fbuild-1f2a44)](https://salvageunion.io/build)
 [![JSON API](https://img.shields.io/badge/API-salvageunion.io%2Fapi-1f2a44)](https://salvageunion.io/api/)
 [![Discord](https://img.shields.io/badge/Discord-join-5865f2?logo=discord&logoColor=fff)](https://discord.gg/kMwD2bWgtC)
 [![Licence: Salvage Union OGL 1.0b](https://img.shields.io/badge/licence-Salvage%20Union%20OGL%201.0b-8a8a8a)](https://leyline.press/pages/salvage-union-open-game-licence-1-0b)
@@ -24,12 +24,12 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 | Workspace | What it is |
 | --- | --- |
 | [`apps/srd`](apps/srd) | The SRD reference site, [salvageunion.io](https://salvageunion.io): a static Vite SSG with React islands and a public [JSON API](https://salvageunion.io/api/). |
-| [`apps/itun`](apps/itun) | In the Union now, the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build): React, TanStack Router, Convex. |
-| [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in an ITUN Game. |
+| [`apps/itun`](apps/itun) | The Cantina, the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build): React, TanStack Router, Convex. |
+| [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in a Cantina Game. |
 | [`apps/su-assets`](apps/su-assets) | The Worker serving licensed entity artwork from R2. |
 | [`packages/salvageunion-reference`](packages/salvageunion-reference) | The schema-validated game dataset and its TypeScript ORM. |
 | [`packages/component-lib`](packages/component-lib) | The shared React components and design tokens. |
-| [`packages/itun-domain`](packages/itun-domain) | The schemas and rules ITUN, its Convex backend and the bot share. |
+| [`packages/itun-domain`](packages/itun-domain) | The schemas and rules The Cantina, its Convex backend and the bot share. |
 | [`packages/observability`](packages/observability) | The Sentry wiring for Workers and browsers. |
 | [`packages/gates`](packages/gates) | The library behind the repo's gates, run from [`tools/`](tools). |
 
@@ -38,7 +38,7 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 ```bash
 bun install        # Bun at the version package.json pins; also installs the git hooks
 bun run dev        # the SRD
-bun run dev:itun   # ITUN on a local Convex backend
+bun run dev:itun   # The Cantina on a local Convex backend
 bun run check      # every gate, ending in a pass/fail table
 ```
 

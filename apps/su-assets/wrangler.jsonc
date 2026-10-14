@@ -36,7 +36,10 @@
     }
   ],
 
+  // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
+  // Browser Rendering), in the dashboard next to the logs.
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "traces": { "enabled": true }
   }
 }

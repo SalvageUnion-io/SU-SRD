@@ -27,9 +27,9 @@ import { chapterForSchema } from '../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../lib/componentEmbed'
 import {
   CONTENTS_CRUMB,
+  entityTitle,
   META_DESCRIPTION_MAX,
   SITE_URL,
-  TITLE_SUFFIX,
 } from '../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../lib/entityHref'
 import { getReferenceEntityData } from '../../../../lib/gameData'
@@ -115,7 +115,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   return {
     meta: {
-      title: `${patternName} - ${hostName} Pattern${TITLE_SUFFIX}`,
+      title: entityTitle(patternName, `${hostName} Pattern`),
       description: metaDescription,
       ...og,
       componentEmbed: componentEmbedFor(host, pattern),

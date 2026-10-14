@@ -95,8 +95,13 @@ async function signedRequest(
   })
 }
 
+/** Every data point the Worker wrote to Analytics Engine, newest last. */
+let usagePoints: AnalyticsEngineDataPoint[] = []
+
 function envFor(keys: KeyPairHex): Env {
+  usagePoints = []
   return {
+    USAGE: { writeDataPoint: (point) => void usagePoints.push(point ?? {}) },
     DISCORD_PUBLIC_KEY: keys.publicKeyHex,
     DISCORD_APPLICATION_ID: APPLICATION_ID,
     DISCORD_TOKEN: 'test-token',
@@ -307,6 +312,10 @@ describe('interaction dispatch', () => {
     // commands answer synchronously and that is the UX this transport preserves.
     expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
     expect(body.data).toBeDefined()
+    // One usage data point per interaction: the command's name, nothing about who.
+    expect(usagePoints).toEqual([
+      { indexes: ['su roll'], blobs: ['su roll'], doubles: [InteractionType.ApplicationCommand] },
+    ])
   })
 
   test('autocomplete answers with a choices payload, never a defer', async () => {

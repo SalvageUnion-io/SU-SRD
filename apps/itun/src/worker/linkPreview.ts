@@ -30,7 +30,9 @@
  * - **purged on edit**: every request re-reads the answer first, so a stale
  *   version is never served, whatever `v` the URL carries;
  * - **purged when made private**: that re-read answers null, and the request
- *   gets the private card instead. The old version's entry is unreachable.
+ *   gets the private card instead. The old version's entry is unreachable;
+ * - **rate limited** per location (`OG_RENDER_LIMIT`): past the cap a fresh
+ *   render answers 404, and the unfurl goes without its picture.
  *
  * Rendering needs `CF_ACCOUNT_ID` and `BROWSER_RENDERING_TOKEN` (owner-set
  * secrets). Without them no `og:image` is advertised and the unfurl is text.
@@ -63,6 +65,13 @@ export type PreviewEnv = {
   CF_ACCOUNT_ID?: string
   /** An API token with Browser Rendering edit permission. */
   BROWSER_RENDERING_TOKEN?: string
+  /** Caps fresh renders per Cloudflare location (`ratelimits` in wrangler.jsonc). */
+  OG_RENDER_LIMIT?: RenderLimit
+}
+
+/** The slice of a Workers Rate Limiting binding this uses. */
+type RenderLimit = {
+  limit(options: { key: string }): Promise<{ success: boolean }>
 }
 
 /** The routes a player shares, and what they name. */
@@ -313,6 +322,12 @@ export async function ogImage(
   const key = new Request(`${url.origin}${base}${surface}.png?v=${version}`)
   const cached = await deps.cache?.match(key)
   if (cached) return cached
+
+  // Only a fresh render spends Browser Rendering time, so only it is capped. The
+  // cache is per location, so a burst of new links (or a crawler walking them)
+  // re-renders in each; past the cap the unfurl simply has no picture.
+  const allowed = (await env.OG_RENDER_LIMIT?.limit({ key: 'og-render' }))?.success ?? true
+  if (!allowed) return NOT_FOUND()
 
   const png = await screenshot(env, `${url.origin}${base}${surface}`, fetchImpl)
   if (png === null) return NOT_FOUND()

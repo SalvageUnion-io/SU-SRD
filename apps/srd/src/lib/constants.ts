@@ -48,6 +48,21 @@ export const DEFAULT_OG_IMAGE = '/og-image.png'
  */
 export const TITLE_SUFFIX = ' · Salvage Union SRD'
 
+/** Search results cut a title at about this many characters. */
+export const TITLE_MAX = 65
+
+/**
+ * An entity page's title: `Name - Kind · Salvage Union SRD`, shedding the kind
+ * and then the suffix when that runs past {@link TITLE_MAX}, so a long name
+ * (most are roll tables) reads whole in search results instead of being cut.
+ */
+export function entityTitle(name: string, kind: string): string {
+  const full = `${name} - ${kind}${TITLE_SUFFIX}`
+  if (full.length <= TITLE_MAX) return full
+  const named = `${name}${TITLE_SUFFIX}`
+  return named.length <= TITLE_MAX ? named : name
+}
+
 /** Meta descriptions are cut to this, ellipsis included: about what a search snippet shows. */
 export const META_DESCRIPTION_MAX = 155
 

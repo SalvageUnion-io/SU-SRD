@@ -283,7 +283,8 @@ function widthFor(widths: number[], rows: number): number {
 }
 
 /**
- * Where the chips go: `beside` the title on its baseline, or `below` it, on
+ * Where the chips go: `beside` the title (centred on its capitals,
+ * `ogChipsLift`), or `below` it, on
  * the page ground under the notch, when a name too long to share its line
  * would otherwise be cut (nothing goes above the title, EDL E20). Their
  * width, the band's height and the title's size.

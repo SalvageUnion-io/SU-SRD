@@ -337,6 +337,40 @@ describe('the picture route', () => {
     expect(shot?.body).toMatchObject({ url: 'https://salvageunion.io/build/og/private' })
   })
 
+  it('past the render cap a fresh render 404s, and a cached picture is never counted', async () => {
+    const cache = memoryCache()
+    const keys: string[] = []
+    let allow = true
+    const OG_RENDER_LIMIT = {
+      async limit({ key }: { key: string }) {
+        keys.push(key)
+        return { success: allow }
+      },
+    }
+    await ogImage(imageRequest('/og/pattern/pat-1.png'), env({ OG_RENDER_LIMIT }), {
+      base: '/build',
+      cache,
+      fetch: fakeFetch(),
+    })
+    allow = false
+    const cached = await ogImage(imageRequest('/og/pattern/pat-1.png'), env({ OG_RENDER_LIMIT }), {
+      base: '/build',
+      cache,
+      fetch: fakeFetch(),
+    })
+    expect(cached.status).toBe(200)
+    expect(keys).toEqual(['og-render'])
+
+    const capped = await ogImage(imageRequest('/og/pilot/p-1.png'), env({ OG_RENDER_LIMIT }), {
+      base: '/build',
+      cache,
+      fetch: fakeFetch(),
+    })
+    expect(capped.status).toBe(404)
+    expect(capped.headers.get('cache-control')).toBe('no-store')
+    expect(seen.some((r) => r.url.includes('/browser-rendering/screenshot'))).toBe(false)
+  })
+
   it('404s without a renderer, a dead invite, or a failed render', async () => {
     const cache = memoryCache()
     const noToken = await ogImage(
