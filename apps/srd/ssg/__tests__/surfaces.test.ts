@@ -62,40 +62,47 @@ describe('home: the manual’s Contents page (board 06)', () => {
   })
 
   it('starts a new player on the shared "Start here" block, each step opening its guide', () => {
-    const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('srd-home__index'))
-    expect(aside).toContain('>Start here<')
+    const startHere = html.slice(
+      html.indexOf('srd-home__aside'),
+      html.indexOf('<a href="https://discord.com/')
+    )
+    expect(startHere).toContain('>Start here<')
     for (const guide of ['create-a-pilot', 'create-a-mech', 'create-a-crawler']) {
-      expect(aside).toContain(`href="/guides/${guide}/"`)
+      expect(startHere).toContain(`href="/guides/${guide}/"`)
     }
-    expect(aside).not.toContain('Ready to build')
-    expect(aside).not.toContain('Build a pilot')
-    expect(aside).not.toContain('target="_blank"')
+    expect(startHere).not.toContain('Ready to build')
+    expect(startHere).not.toContain('Build a pilot')
+    expect(startHere).not.toContain('target="_blank"')
   })
 
-  it('sets "At the table" as a section of the index, and offers the Discord bot after it', () => {
-    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('srd-home__discord'))
+  it('sets "At the table" as a section of the index', () => {
+    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('<footer'))
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/roll-tables/core-mechanic/"')
+    expect(index).not.toContain('On Discord')
+  })
+
+  it('offers the Discord bot as one button straight under "Start here"', () => {
     const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('srd-home__index'))
-    expect(aside).toContain('id="start-here"')
-    expect(aside).not.toContain('Add to Discord')
-    const discord = html.slice(html.indexOf('srd-home__discord'))
-    expect(discord).toContain('Add to Discord')
+    const discord = aside.slice(aside.indexOf('<a href="https://discord.com/'))
+    expect(aside.indexOf('id="start-here"')).toBeLessThan(aside.indexOf('id="discord-bot"'))
+    expect(discord).toContain('SalvageUnion.io On Discord')
+    expect(discord).toContain('<svg')
     expect(discord).toContain('href="https://discord.com/oauth2/authorize?client_id=')
   })
 
   it('opens each chapter on its band alone, with no artwork', () => {
-    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('srd-home__discord'))
+    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('<footer'))
     expect(index).not.toContain('<img')
   })
 
-  it('puts first-timer content first: title, search, "Start here", the index, then Discord', () => {
+  it('puts first-timer content first: title, search, "Start here", Discord, then the index', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
     expect(at('<h1')).toBeLessThan(at('action="/search/"'))
     expect(at('action="/search/"')).toBeLessThan(at('id="start-here"'))
-    expect(at('id="start-here"')).toBeLessThan(at('id="pilot-bay"'))
-    expect(at('id="at-the-table"')).toBeLessThan(at('id="discord-bot"'))
+    expect(at('id="start-here"')).toBeLessThan(at('id="discord-bot"'))
+    expect(at('id="discord-bot"')).toBeLessThan(at('id="pilot-bay"'))
   })
 })
 

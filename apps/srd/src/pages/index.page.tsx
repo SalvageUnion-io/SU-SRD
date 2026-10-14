@@ -3,12 +3,12 @@
  *
  * The title, then search: beside the title on the blue Contents band on a
  * desktop, under the notch on a phone. Then the "Getting started" aside — the
- * shared "Start here" path — the index, and the Discord bot. The index is the
+ * shared "Start here" path and the Discord bot's button under it — and the
+ * index. The index is the
  * book's chapters, each opened by its band, with their real entry counts, then
  * the rules a table reaches for
- * under an ink band. The DOM order is a phone's: "Start here", the
- * index, then the Discord bot; a desktop pins the aside and the bot to a
- * right-hand sidebar.
+ * under an ink band. The DOM order is a phone's: "Start here", the Discord
+ * button, then the index; a desktop pins the aside to a right-hand sidebar.
  * The band's search is the page's search, so the Union bar carries none here.
  */
 
@@ -18,7 +18,7 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
 import type { ContentsRow } from '../components/HomeContents'
-import { ContentsChapter, DiscordBot, HomeStartHere } from '../components/HomeContents'
+import { ContentsChapter, DiscordButton, HomeStartHere } from '../components/HomeContents'
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
@@ -95,6 +95,7 @@ function page(): PageResult {
         <div className="srd-home__body srd-page-body">
           <aside className="srd-home__aside" aria-label="Getting started">
             <HomeStartHere guideHrefs={guideHrefs} />
+            <DiscordButton installHref={DISCORD_INSTALL_URL} />
           </aside>
           <div className="srd-home__index">
             {chapters.map((chapter) => (
@@ -108,9 +109,6 @@ function page(): PageResult {
               />
             ))}
             <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
-          </div>
-          <div className="srd-home__discord">
-            <DiscordBot installHref={DISCORD_INSTALL_URL} />
           </div>
         </div>
       </div>
