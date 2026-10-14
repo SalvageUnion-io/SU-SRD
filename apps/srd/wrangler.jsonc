@@ -27,6 +27,10 @@
   // (tools/smoke-production.sh).
   "workers_dev": true,
 
+  // `wrangler preview` (deploy-preview.yml) refuses a config without this
+  // block. srd has no vars or bindings, so a Preview needs nothing in it.
+  "previews": {},
+
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
