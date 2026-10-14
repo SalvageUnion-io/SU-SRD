@@ -184,3 +184,25 @@ describe('MechSheet — the Chassis Stats strip', () => {
     ])
   })
 })
+
+describe('MechSheet — the Chassis card', () => {
+  test('the chassis reads in its own card, apart from the identity hero', () => {
+    const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
+    const { container } = render(
+      <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
+    )
+    const hero = container.querySelector('section[aria-label="Snapshot Mech sheet header"]')
+    const card = container.querySelector('section[aria-label="Chassis"]')
+    expect(hero).not.toBeNull()
+    expect(card).not.toBeNull()
+    // The hero is the photo and what the player wrote; nothing chassis-derived.
+    expect(hero?.querySelector('dl[aria-label="Chassis stats"]')).toBeNull()
+    expect(hero?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
+    expect(hero?.textContent).not.toContain('Spectrum')
+    // The card holds the chassis's name, its stats as compact cells, its ability.
+    expect(card?.textContent).toContain('Spectrum')
+    const strip = card?.querySelector('dl[aria-label="Chassis stats"]')
+    expect(strip?.getAttribute('data-compact')).toBe('true')
+    expect(card?.querySelector('ul[aria-label="Chassis ability"] li')).not.toBeNull()
+  })
+})
