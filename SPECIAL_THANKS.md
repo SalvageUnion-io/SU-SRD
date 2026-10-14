@@ -21,9 +21,12 @@ Thank you to Panny and all the folks at [Leyline Press](https://leyline.press) f
 A special thanks to the #salvage-union-io crew:
 
 - Aevox
+- Crewe_alex
 - decivre
 - Grandowl
+- janernw-dot
 - kindalas
+- Lott Vanfield Eva
 - lunarsignals
 - Saving Throw
 - The_Puppeteer
