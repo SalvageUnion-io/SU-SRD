@@ -743,7 +743,6 @@ function ReferenceEntityCardInner({
         {rendersFooter ? (
           // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
           <EntityCardIdentityFooter
-            typeLabel={undefined}
             source={userMade ? undefined : provenance.source}
             booklet={userMade ? undefined : provenance.booklet}
             page={userMade ? undefined : provenance.page}

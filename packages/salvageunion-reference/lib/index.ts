@@ -189,7 +189,6 @@ export {
   bayKind,
   classKind,
   entityStamp,
-  entityTypeLabel,
   isDoEntity,
   schemaDomain,
   tierNumeral,

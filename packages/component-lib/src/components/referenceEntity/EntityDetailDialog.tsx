@@ -122,7 +122,7 @@ function EntityDetailPage({
   const meta = resolveEntityPageMeta(entity, pattern)
   const band = pageBand(entity)
   const provenance = resolveFooterProvenance(entity, pattern)
-  // ITUN's "View in SRD": the footer the card drew before the dialog was a Page.
+  // ITUN's "View in SRD" link, carried in the Page's foot.
   const externalLink = useEntityExternalLink(entity as SURefEntity)
   return (
     <>

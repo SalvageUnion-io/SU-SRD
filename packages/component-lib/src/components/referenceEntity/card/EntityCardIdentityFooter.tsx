@@ -12,7 +12,7 @@ type EntityCardIdentityFooterProps = {
    * a Page's foot names it (E9: ITUN's detail dialog); a card's and a Peek's
    * pass none.
    */
-  typeLabel: string | undefined
+  typeLabel?: string | undefined
   source: string | undefined
   booklet: string | undefined
   page: number | undefined
