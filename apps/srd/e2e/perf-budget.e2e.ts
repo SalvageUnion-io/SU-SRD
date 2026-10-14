@@ -17,23 +17,25 @@ import {
  * unthrottled warm-up.
  * It fails a PR that makes one of these pages measurably slower.
  *
- * Budgets are the medians CI's runner measured on design-refresh, plus
- * headroom for runner noise: they catch a regression, not a wobble. When a
+ * Budgets are the medians CI's runner measured (LCP 1.84–2.3 s, TBT 0, CLS 0),
+ * plus about 30% LCP headroom for runner noise: they catch a regression, not a
+ * wobble. A slower machine (a laptop, a cloud container) measures higher, so
+ * read a local failure against its own baseline. When a
  * change makes a page faster, lower its budget in the same PR to lock it in;
  * raise one only on purpose, saying why in the PR.
  *
  * It runs in CI's own `perf-srd` job, one page at a time (`--workers=1`), so
  * no other test competes for the CPU it measures. Each page's medians land in
- * the job summary.
+ * the job summary and, in Actions, as annotations on the PR.
  */
 
 const RUNS = 3
 
 const PAGES: Record<string, Budget> = {
-  '/': { lcp: 3_000, tbt: 200, cls: 0.05 },
-  '/abilities/': { lcp: 3_500, tbt: 600, cls: 0.05 },
-  '/chassis/mule/': { lcp: 3_500, tbt: 200, cls: 0.05 },
-  '/roll-tables/core-mechanic/': { lcp: 3_000, tbt: 200, cls: 0.05 },
+  '/': { lcp: 2_600, tbt: 250, cls: 0.05 },
+  '/abilities/': { lcp: 2_600, tbt: 250, cls: 0.05 },
+  '/chassis/mule/': { lcp: 3_000, tbt: 250, cls: 0.05 },
+  '/roll-tables/core-mechanic/': { lcp: 2_500, tbt: 250, cls: 0.05 },
 }
 
 /**
