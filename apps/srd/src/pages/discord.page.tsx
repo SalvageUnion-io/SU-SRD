@@ -343,9 +343,9 @@ function page(): PageResult {
 
           {/* Legal */}
           <p style={LEGAL}>
-            <InlineRef href="/bot/terms">Terms of Service</InlineRef>
+            <InlineRef href="/bot/terms/">Terms of Service</InlineRef>
             <span style={LEGAL_DOT}>·</span>
-            <InlineRef href="/bot/privacy">Privacy Policy</InlineRef>
+            <InlineRef href="/bot/privacy/">Privacy Policy</InlineRef>
           </p>
         </div>
       </div>

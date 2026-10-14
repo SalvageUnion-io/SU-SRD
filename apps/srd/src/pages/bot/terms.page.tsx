@@ -101,7 +101,7 @@ function page(): PageResult {
 
             <p style={SMALL_PRINT}>
               See also the{' '}
-              <InlineRef href="/bot/privacy" style={BOLD}>
+              <InlineRef href="/bot/privacy/" style={BOLD}>
                 Privacy Policy
               </InlineRef>
               .

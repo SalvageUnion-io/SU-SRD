@@ -102,7 +102,7 @@ function page(): PageResult {
 
             <p style={SMALL_PRINT}>
               See also the{' '}
-              <InlineRef href="/bot/terms" style={BOLD}>
+              <InlineRef href="/bot/terms/" style={BOLD}>
                 Terms of Service
               </InlineRef>
               .
