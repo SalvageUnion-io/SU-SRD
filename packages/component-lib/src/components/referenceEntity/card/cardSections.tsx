@@ -9,6 +9,7 @@
 import type { ReactNode } from 'react'
 import { resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { embeddedPeekAddress } from '../../../entity/peekContext'
 import { CardImage } from '../../compositions/CardImage'
 import type { CardSize } from '../../containers/displayMode'
 import { resolveBodyLayout } from './bodyBlocks'
@@ -18,7 +19,13 @@ import type { BodyProse, CardBodyInput } from './cardBodyProse'
 import { DamagedEffectCallout } from './DamagedEffectCallout'
 import { GuideSteps } from './GuideSteps'
 import { LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
-import { ActionsChip, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
+import {
+  ActionsChip,
+  DroneCards,
+  EmbeddedNpcTokens,
+  InlineActions,
+  NestedCardGroup,
+} from './NestedCards'
 import { PatternSection } from './PatternSection'
 import { resolveGuideSteps } from './resolveGuideSteps'
 
@@ -42,6 +49,7 @@ function bodyClassName(hasArt: boolean): string | undefined {
 export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   const {
     entity,
+    schemaName,
     pattern,
     entityName,
     resolvedChassisName,
@@ -102,7 +110,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         table={entityTable}
         name={tableName}
         size={size}
-        disabled={isDown}
+        disabled={!!isDown}
         framed={!onPage}
         tone={tone.bgColor}
       />
@@ -265,6 +273,12 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   // Nothing to nest is `null`, not an empty fragment: the card's lead gap
   // (`CardLead`) opens only for nested content, so a head-only card (a
   // creature's Stinger) closes on its head with no paper strip under it.
+  // A crawler bay's crew NPC is a Peek Token, unless its crew choices are
+  // being made here (a picker's write layer keeps the card and its inputs).
+  const bayCrewPeek =
+    schemaName === 'crawler-bays' && !onSelectionChange && typeof entity.id === 'string'
+      ? embeddedPeekAddress('crawler-bays', entity.id, 'npc')
+      : undefined
   const hasNestedGroups =
     droneInfos.length > 0 ||
     droneSystems.length > 0 ||
@@ -276,17 +290,26 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       {droneSystems.length > 0 && <NestedCardGroup entities={droneSystems} host={nestedHost} />}
       {droneModules.length > 0 && <NestedCardGroup entities={droneModules} host={nestedHost} />}
       {!isPattern &&
-        inFlowGroups.map((group) => (
-          <NestedCardGroup
-            key={group.label}
-            entities={group.entities}
-            host={nestedHost}
-            write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
-            seal={
-              group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
-            }
-          />
-        ))}
+        inFlowGroups.map((group) =>
+          bayCrewPeek && group.label === 'NPCs' ? (
+            <EmbeddedNpcTokens
+              key={group.label}
+              entities={group.entities}
+              host={nestedHost}
+              peekAt={bayCrewPeek}
+            />
+          ) : (
+            <NestedCardGroup
+              key={group.label}
+              entities={group.entities}
+              host={nestedHost}
+              write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
+              seal={
+                group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
+              }
+            />
+          )
+        )}
     </>
   ) : null
   return {

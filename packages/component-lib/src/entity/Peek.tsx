@@ -1,6 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { parsePeekAddress } from './peekContext'
+import type { Down } from '../components/referenceEntity/card/cardChrome'
+import { downOf } from '../components/referenceEntity/card/cardChrome'
+import { PEEK_DOWN_ATTRIBUTE, parsePeekAddress } from './peekContext'
 import { installPeekController } from './peekController'
 
 /** The popup, the card inside it and the data it reads load on the first Peek. */
@@ -11,7 +13,7 @@ export type PeekLoader = (schemaName: string) => Promise<void>
 
 const loadOneSchema: PeekLoader = (schemaName) => SalvageUnionReference.preload([schemaName])
 
-type Active = { anchor: HTMLElement; schemaName: string; id: string }
+type Active = { anchor: HTMLElement; schemaName: string; id: string; down: Down }
 
 /** Only the first host on a page listens; a second would open every Peek twice. */
 let hostMounted = false
@@ -45,7 +47,8 @@ export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
     controller.current = installPeekController(document, {
       open: (anchor, address) => {
         const target = parsePeekAddress(address)
-        setActive(target ? { anchor, ...target } : null)
+        const down = downOf(anchor.getAttribute(PEEK_DOWN_ATTRIBUTE) ?? undefined)
+        setActive(target ? { anchor, ...target, down } : null)
       },
       close: () => setActive(null),
     })
@@ -75,11 +78,12 @@ export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
     <Suspense fallback={null}>
       <PeekPopup
         // Another entity is another popup: its load starts over.
-        key={`${active.schemaName}:${active.id}`}
+        key={`${active.schemaName}:${active.id}:${active.down}`}
         id={popupId}
         anchor={active.anchor}
         schemaName={active.schemaName}
         entityId={active.id}
+        down={active.down}
         load={load}
         onDismiss={dismiss}
       />

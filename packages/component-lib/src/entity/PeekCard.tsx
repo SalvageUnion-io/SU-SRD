@@ -1,5 +1,6 @@
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { Down } from '../components/referenceEntity/card/cardChrome'
 import { ReferenceEntityCard } from '../components/referenceEntity/card/ReferenceEntityCard'
 import { InsidePeekContext } from './peekContext'
 
@@ -33,9 +34,10 @@ function peekChassisName(entity: SURefEntity): string | undefined {
  * speckle, ruleset §3.5), inside `InsidePeekContext`, which makes everything
  * in it act on nothing: no links (Mentions and Tags go inert), no roll-table
  * controls, no actions chip, children as Tokens, and no Peek inside it. A
- * chassis ability names its chassis (`peekChassisName`), never the raw token.
+ * chassis ability names its chassis (`peekChassisName`), never the raw token. A
+ * `down` Peek (its trigger damaged or destroyed) paints its band as the trigger does.
  */
-export function PeekCard({ entity }: { entity: SURefEntity }) {
+export function PeekCard({ entity, down = false }: { entity: SURefEntity; down?: Down }) {
   return (
     <InsidePeekContext.Provider value={true}>
       <ReferenceEntityCard
@@ -44,6 +46,7 @@ export function PeekCard({ entity }: { entity: SURefEntity }) {
         extent="full"
         texture={false}
         chassisName={peekChassisName(entity)}
+        hostDown={down}
       />
     </InsidePeekContext.Provider>
   )

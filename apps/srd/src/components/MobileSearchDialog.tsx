@@ -48,19 +48,18 @@ const TITLE: CSSProperties = {
   textTransform: 'uppercase',
 }
 
-// The two 44px icon buttons over the shared icon rung. Their ground is the
-// rung's (`.su-btn--ghost`), except the trigger's hover, which is
-// `.srd-mobile-search__trigger` in pages.css.
+// The two icon buttons over the shared icon rung. Their ground is the rung's
+// (`.su-btn--ghost`), except the trigger's hover, which is
+// `.srd-mobile-search__trigger` in pages.css. The trigger takes the Union
+// bar's control height (`--su-union-bar-control`); the sheet's close is 44px.
 const ICON_BUTTON: CSSProperties = {
   borderColor: 'transparent',
   borderRadius: radius.panel,
-  height: '44px',
-  width: '44px',
 }
 
 const TRIGGER: CSSProperties = { ...ICON_BUTTON, color: color.paper }
 
-const CLOSE: CSSProperties = { ...ICON_BUTTON, color: color.ink }
+const CLOSE: CSSProperties = { ...ICON_BUTTON, color: color.ink, height: '44px', width: '44px' }
 
 const iconButtonClass = buttonVariants({ variant: 'ghost', size: 'iconOnly' })
 

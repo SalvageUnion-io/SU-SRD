@@ -82,13 +82,11 @@ const LISTBOX = {
   overflowY: 'auto',
 } satisfies CSSProperties
 
-/** The phone's icon trigger, sized and toned for the ink bar over the ghost button. */
+/** The phone's icon trigger, toned for the ink bar over the ghost button; the bar sizes it (`--su-union-bar-control`). */
 const TRIGGER_ICON = {
   borderColor: 'transparent',
   borderRadius: tokens.radius.panel,
   color: tokens.color.paper,
-  height: '2.75rem',
-  width: '2.75rem',
 } satisfies CSSProperties
 
 /** A category row; its ground and edge follow hover and the keyboard selection (globalSearch.css). */

@@ -12,6 +12,7 @@ import { FOCUS_RING } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
 import { usePatternHref } from '../entityHrefContext'
 import { CardLabels } from './CardLabels'
+import type { Down } from './cardChrome'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
@@ -48,7 +49,7 @@ function PatternListRow({
   chassisName: string
   pattern: SURefObjectAnyPattern
   depth: number
-  hostDown?: boolean
+  hostDown?: Down
   NestedCard: NestedCard
 }) {
   const href = usePatternHref(chassis as SURefEntity, pattern)
@@ -103,7 +104,7 @@ export function PatternList({
   patterns: SURefObjectAnyPattern[]
   /** The depth the rows render at (the host's + 1). */
   depth: number
-  hostDown: boolean
+  hostDown: Down
   NestedCard: NestedCard
 }) {
   return (
@@ -207,7 +208,7 @@ function PatternLinkRow({
 /** What a page's pattern rows need to render each pattern's uniques. */
 type PatternRowsHost = {
   NestedCard: NestedCard
-  hostDown: boolean
+  hostDown: Down
   chassisName: string | undefined
 }
 

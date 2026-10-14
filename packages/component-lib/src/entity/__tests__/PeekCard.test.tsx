@@ -54,6 +54,14 @@ describe('Peek footer', () => {
     const { container } = render(<PeekCard entity={scrap()} />)
     expect(container.querySelector('[style*="--color-pilot"]')).not.toBeNull()
   })
+
+  // The dulled band is a nested color-mix() the test DOM drops, so this sees
+  // only that the plain tone is gone; paint.test.ts and cardSeams.test.ts pin
+  // the exact mix.
+  test("a damaged trigger's Peek no longer wears the plain tone", () => {
+    const { container } = render(<PeekCard entity={scrap()} down />)
+    expect(container.querySelector('[style*="--color-pilot"]')).toBeNull()
+  })
 })
 
 describe('Peek of a chassis ability', () => {

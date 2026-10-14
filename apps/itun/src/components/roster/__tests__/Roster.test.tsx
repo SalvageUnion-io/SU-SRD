@@ -162,12 +162,11 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
   })
 
-  test('says a Game is joined from an invite link, with no code to type', async () => {
+  test('carries no invite-link note', async () => {
     await act(async () => {
       render(<Roster />)
     })
-    expect(screen.getByText(/Got an invite link from your Mediator\?/)).toBeTruthy()
-    expect(screen.getByText(/no codes to type/)).toBeTruthy()
+    expect(screen.queryByText(/invite link from your Mediator/)).toBeNull()
   })
 
   test('Start here is the SRD’s three steps, and playing is not one of them', async () => {

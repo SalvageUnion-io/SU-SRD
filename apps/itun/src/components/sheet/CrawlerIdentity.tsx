@@ -2,8 +2,8 @@
  * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
  * sibling of PilotIdentityPanel / MechIdentityPanel).
  * Poster identity band: Name + Type as labeled identity fields, then the
- * crawler type's special ability as a Token that Peeks its card, beside the
- * type's own internals, then the Description panel.
+ * crawler type's special ability as a library Row (its lead, a Peek of its
+ * card) beside the type's crew NPC, then the Description panel.
  *
  * FIELD-section archetype (unified edit language). The parent
  * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
@@ -28,7 +28,7 @@ import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawl
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
-import { CrawlerTypeCard } from './CrawlerSheetItems'
+import { CrawlerTypeCard } from './CrawlerTypeCard'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
 const PANEL = { minWidth: 0 } satisfies CSSProperties
@@ -48,7 +48,15 @@ const TYPE_ROW = {
   rowGap: tokens.space[12],
 } satisfies CSSProperties
 
-const ABILITY = { minWidth: 0 } satisfies CSSProperties
+/** The special-ability Rows: a bare list, each Row the column's full width. */
+const ABILITY = {
+  display: 'grid',
+  gap: tokens.space[8],
+  listStyle: 'none',
+  margin: 0,
+  minWidth: 0,
+  padding: 0,
+} satisfies CSSProperties
 
 type CrawlerIdentityPanelProps = {
   crawler: Crawler
@@ -143,10 +151,12 @@ export function CrawlerIdentityPanel({
             assigned={typeCrew}
             ability={
               abilities.length > 0 && (
-                <ul aria-label="Special ability" className="su-entity-token-list" style={ABILITY}>
+                // A library Row with its lead, matching the crew NPC beside it
+                // (owner's call, 2026-10-14: crawler abilities are not Tokens).
+                <ul aria-label="Special ability" style={ABILITY}>
                   {abilities.map((ability) => (
                     <li key={ability.id}>
-                      <Entity form="token" entity={ability} />
+                      <Entity form="row" entity={ability} lead peek />
                     </li>
                   ))}
                 </ul>

@@ -31,6 +31,11 @@ export type EntityProps = EntitySource & {
   priority?: boolean
   /** Tile only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
   missingArt?: number
+  /**
+   * Token only: the Peek address for a record with none of its own (a crawler
+   * bay's crew NPC, through its bay: `embeddedPeekAddress`).
+   */
+  peekAt?: string
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
   titleAs?: ElementType
   /**
@@ -68,6 +73,7 @@ export function Entity(props: EntityProps) {
     lead,
     omit,
     peek,
+    peekAt,
     priority,
     titleAs,
     missingArt,
@@ -111,7 +117,11 @@ export function Entity(props: EntityProps) {
           model={model}
           instance={instance}
           mode={mode}
-          slots={trailing ? { trailing } : undefined}
+          slots={
+            trailing || peekAt
+              ? { ...(trailing ? { trailing } : {}), ...(peekAt ? { peekAt } : {}) }
+              : undefined
+          }
         />
       )
     case 'tile':

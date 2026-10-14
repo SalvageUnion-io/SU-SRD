@@ -4,7 +4,8 @@ import { Badge } from '../../components/atoms/Badge'
 import { Stat } from '../../components/atoms/Stat'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
-import { USER_MADE_TITLE } from '../../components/referenceEntity/card/cardChrome'
+import type { Down } from '../../components/referenceEntity/card/cardChrome'
+import { downOf, USER_MADE_TITLE } from '../../components/referenceEntity/card/cardChrome'
 import { cn } from '../../utils/cn'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -62,6 +63,8 @@ function tokenChips(model: EntityRowModel): TokenChip[] {
 /** The adapter's resolved parts (`ReferenceEntityCard` `size="small" extent="head"`). */
 export type TokenSlots = {
   outer?: CardOuterProps
+  /** Peek this address in place of the entity's own (`embeddedPeekAddress`). */
+  peekAt?: string
   frameStyle?: CSSProperties
   /** The kind, for screen readers (`KindLabel`). */
   kind?: string
@@ -69,7 +72,7 @@ export type TokenSlots = {
   pennant?: ReactNode
   /** A read cost ("1 EP"), as its chip. */
   cost?: string
-  down?: boolean
+  down?: Down
   /** The host's chip, last in the chip group after the cost box (a damaged thing's condition). */
   trailing?: ReactNode
 }
@@ -107,9 +110,8 @@ export function Token({
   slots?: TokenSlots
 }) {
   const target = useLinkTarget(mode, model.ref)
-  const peek = usePeekAttrs(model.ref)
-  const down =
-    slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
+  const down = slots.down ?? downOf(instance?.condition)
+  const peek = usePeekAttrs(model.ref, slots.peekAt, down)
   const paint = paintFor(model.tone, { down, texture: false })
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title

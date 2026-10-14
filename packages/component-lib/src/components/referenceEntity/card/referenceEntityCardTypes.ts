@@ -13,6 +13,7 @@ import type { CardExtent, CardSize } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
+import type { Down } from './cardChrome'
 
 /**
  * What a card can render: the plain reference union PLUS the meta union —
@@ -99,9 +100,9 @@ export type ReferenceEntityCardProps = {
    * host card already establishes that context. Display-only; the data keeps
    * the full unique name. */
   hostName?: string
-  /** The parent is damaged/destroyed — threaded down so every nested card in the
-   * subtree gets the same grey treatment as the damaged parent. */
-  hostDown?: boolean
+  /** The parent is damaged or destroyed — threaded down so every nested card
+   * in the subtree is down as its parent is (see `Down`). */
+  hostDown?: Down
   /** The owning chassis's name — threaded down so `[(CHASSIS)]` tokens in nested
    * ability/drone/pattern content resolve to the chassis name. */
   chassisName?: string

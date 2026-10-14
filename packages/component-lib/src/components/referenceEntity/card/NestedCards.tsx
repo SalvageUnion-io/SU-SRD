@@ -11,6 +11,8 @@ import type { CardSize } from '../../containers/displayMode'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
+import type { Down } from './cardChrome'
+import { conditionOf } from './cardChrome'
 import { cardKey, stackedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type {
@@ -27,7 +29,7 @@ export type NestedCardHost = {
   depth: number
   /** The host's size: a child renders medium, or small inside a small card. */
   size: CardSize
-  isDown: boolean
+  isDown: Down
   /** The host IS the page: its stacks drop the frame inset (see `CardStack`). */
   onPage?: boolean
   /**
@@ -141,6 +143,35 @@ function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
 }
 
 /**
+ * A crawler bay's crew NPC as a TOKEN that Peeks its card (owner's call,
+ * 2026-10-14: "when nesting an NPC inside of a crawler bay, use a token with
+ * peek"). The NPC is embedded in the bay, with no dataset row of its own, so
+ * it Peeks through the bay's address (`embeddedPeekAddress`).
+ */
+export function EmbeddedNpcTokens({
+  entities,
+  host,
+  peekAt,
+}: {
+  entities: ReferenceCardEntity[]
+  host: NestedCardHost
+  peekAt: string
+}) {
+  if (entities.length === 0) return null
+  return (
+    <CardStack size={host.size} flush={host.onPage}>
+      <ul className="su-entity-token-list">
+        {entities.map((npc, index) => (
+          <li key={cardKey(npc, index)}>
+            <Entity form="token" entity={npc as SURefMetaEntity} peekAt={peekAt} />
+          </li>
+        ))}
+      </ul>
+    </CardStack>
+  )
+}
+
+/**
  * A list of nested cards, stacked. Depth 1 renders the full
  * medium card; from depth 2 a child is a one-line head row that opens the
  * entity rather than expanding in place (board E2).
@@ -200,7 +231,8 @@ function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCard
   const entityName = getReferenceEntityName(data) ?? 'Entity details'
   // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
   const title = stripHostParenthetical(entityName, host.entityName)
-  const instance = { title, ...(host.isDown ? { condition: 'damaged' as const } : {}) }
+  const condition = conditionOf(host.isDown)
+  const instance = { title, ...(condition ? { condition } : {}) }
   const mode: EntityMode = insidePeek
     ? { kind: 'read' }
     : linkOut

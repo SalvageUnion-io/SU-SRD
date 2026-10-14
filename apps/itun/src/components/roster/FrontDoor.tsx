@@ -23,6 +23,7 @@ import { buttonVariants, ChapterBand, Slab, StartHere, tokens } from 'component-
 import { PRODUCT } from 'component-lib/product'
 import { STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
+import { SCRIPT_FONT } from '../../lib/scriptFont'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
@@ -58,12 +59,8 @@ const KICKER = {
 
 /** The legacy tagline, quoted in a hand. Its colour and alignment are `screens.css`'s
  *  (`.front-door__quote`): paper on the band, the deep crawler pink under it. */
-/** The quote's hand: Caveat, self-hosted beside Barlow (`routes/__root.tsx`),
- *  so it renders offline and under the CSP like the rest of the type. */
-const SCRIPT = "'Caveat', cursive"
-
 const QUOTE = {
-  fontFamily: SCRIPT,
+  fontFamily: SCRIPT_FONT,
   fontSize: tokens.fontSize.hero,
   fontWeight: tokens.weight.semibold,
   lineHeight: 1,
@@ -92,13 +89,6 @@ const LEDE = {
   lineHeight: 1.6,
   margin: 0,
   maxWidth: '40rem',
-} satisfies CSSProperties
-
-const NOTE = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  margin: `${tokens.space[16]} 0 0`,
 } satisfies CSSProperties
 
 const ACTIONS = {
@@ -187,10 +177,6 @@ export function FrontDoor() {
               )}
             </div>
           </div>
-          <p style={NOTE}>
-            Got an invite link from your Mediator? Open it and sign in to join that Game. There are
-            no codes to type.
-          </p>
         </section>
 
         <StartHere id="front-door-start" />

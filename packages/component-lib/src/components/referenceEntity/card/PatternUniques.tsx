@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import type { SURefObjectAnyPattern } from 'salvageunion-reference'
 import { extractPatternActions, normalizePatternName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import type { Down } from './cardChrome'
 import { cardKey } from './cardHelpers'
 import { LoadoutToken } from './PatternLoadout'
 import type { NestedCard } from './referenceEntityCardTypes'
@@ -39,7 +40,7 @@ export function PatternUniques({
   pattern: SURefObjectAnyPattern
   /** The depth the embedded cards render at. */
   depth: number
-  hostDown?: boolean
+  hostDown?: Down
   hostName: string
   chassisName?: string
   NestedCard: NestedCard

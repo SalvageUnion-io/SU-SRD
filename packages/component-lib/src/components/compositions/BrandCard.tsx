@@ -26,8 +26,14 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH } from './ogCardText'
  */
 
 export type BrandCardProps = {
-  /** The line across the top, set in caps. */
-  kicker: string
+  /** The line across the top, set in caps. A `quote` takes its place. */
+  kicker?: string
+  /**
+   * A quote across the top instead of the kicker: `text` in the caller's
+   * `font` (a face the render surface loads), paper on the band, and `by`
+   * under it in small caps.
+   */
+  quote?: { text: string; by: string; font: string }
   /**
    * The two lines notched in ink, for a product of the site rather than the
    * site itself (The Cantina's own preview). Without it the card says
@@ -117,6 +123,30 @@ const KICKER_ROW = {
   justifyContent: 'space-between',
 } satisfies CSSProperties
 
+/** The wordmark under a quote, which stands taller than a kicker's one line. */
+const QUOTED_TITLE_SIZE = '236px'
+
+/** The quote: large, so paper reads on any band (WCAG large text). */
+const QUOTE = {
+  fontSize: '68px',
+  fontWeight: weight.semibold,
+  lineHeight: 0.95,
+  margin: 0,
+  paddingInline: space[8],
+} satisfies CSSProperties
+
+/** Who said it: the kicker's caps, small and italic, in the band's ink. */
+const QUOTE_BY = {
+  fontFamily: font.cond,
+  fontSize: '26px',
+  fontStyle: 'italic',
+  fontWeight: weight.bold,
+  letterSpacing: tracking.eyebrow,
+  margin: `${space[4]} 0 0`,
+  paddingInline: space[8],
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
 /** The address: the kicker's face, smaller and as typed (a URL is not caps). */
 const ADDRESS = {
   ...KICKER,
@@ -136,7 +166,7 @@ const FOOT = {
   flex: '0 0 28px',
 } satisfies CSSProperties
 
-export function BrandCard({ kicker, title, tone = 'rules', address }: BrandCardProps) {
+export function BrandCard({ kicker, quote, title, tone = 'rules', address }: BrandCardProps) {
   const band = CHAPTER_BAND_COLOR[tone]
   const kickerColor = foregroundOn(band, 'ink') === 'ink' ? color.ink : color.paper
   return (
@@ -144,11 +174,20 @@ export function BrandCard({ kicker, title, tone = 'rules', address }: BrandCardP
       <Speckle grain="ink" />
       <div style={BODY}>
         <div style={KICKER_ROW}>
-          <p style={{ ...KICKER, color: kickerColor }}>{kicker}</p>
+          {quote ? (
+            <figure style={{ margin: 0 }}>
+              <blockquote style={{ ...QUOTE, color: color.paper, fontFamily: quote.font }}>
+                “{quote.text}”
+              </blockquote>
+              <figcaption style={{ ...QUOTE_BY, color: kickerColor }}>— {quote.by}</figcaption>
+            </figure>
+          ) : (
+            <p style={{ ...KICKER, color: kickerColor }}>{kicker}</p>
+          )}
           {address && <p style={{ ...ADDRESS, color: kickerColor }}>{address}</p>}
         </div>
         <div style={NOTCH}>
-          <p style={TITLE}>
+          <p style={quote ? { ...TITLE, fontSize: QUOTED_TITLE_SIZE } : TITLE}>
             {title ? (
               <>
                 {title[0]}

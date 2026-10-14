@@ -122,3 +122,24 @@ describe('formFacts — one chassis chip set in every form', () => {
     expect(formFacts(model)).toEqual(model.facts)
   })
 })
+
+describe('a down Token', () => {
+  const pill = (condition?: 'damaged' | 'destroyed') =>
+    render(
+      <Entity
+        form="token"
+        entity={get('systems', 'Red Laser')}
+        instance={condition ? { condition } : undefined}
+      />
+    ).container
+
+  test('tells its Peek how it is down, so the Peek paints the same way', () => {
+    expect(pill().querySelector('[data-peek]')?.getAttribute('data-peek-down')).toBeNull()
+    expect(pill('damaged').querySelector('[data-peek]')?.getAttribute('data-peek-down')).toBe(
+      'damaged'
+    )
+    expect(pill('destroyed').querySelector('[data-peek]')?.getAttribute('data-peek-down')).toBe(
+      'destroyed'
+    )
+  })
+})

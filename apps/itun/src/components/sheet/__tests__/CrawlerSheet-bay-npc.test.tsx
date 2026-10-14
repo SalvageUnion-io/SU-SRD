@@ -11,7 +11,7 @@
  *   3. Keepsake persists through the bay NPC's SRD freeform 'Keepsake' choice
  *      into the crawler's bayChoices map (store.update).
  *   4. The SRD role title (npc.position) renders read-only.
- *   5. readOnly shows values but exposes no edit controls.
+ *   5. readOnly draws the crew as a Token and exposes no edit controls.
  *   6. CrawlerSchema round-trips the bay entry fields (snapshot path).
  *
  * Uses the store-injection seam + a patched CrawlerBays.all. NO mock.module().
@@ -33,6 +33,15 @@ import { CrawlerSheet } from '../CrawlerSheet'
 // ---------------------------------------------------------------------------
 // SalvageUnionReference.CrawlerBays.all patch (so bays resolve in the sheet)
 // ---------------------------------------------------------------------------
+
+/** The crew's Token, by the name it wears. */
+function crewToken(name: string): Element {
+  const token = Array.from(document.querySelectorAll('.su-entity-token')).find((t) =>
+    t.textContent?.startsWith(name)
+  )
+  if (!token) throw new Error(`no crew Token named ${name}`)
+  return token
+}
 
 const KEEPSAKE_CHOICE_ID = 'command-bay-keepsake-1'
 const MOTTO_CHOICE_ID = 'command-bay-motto-1'
@@ -239,16 +248,28 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
     )
   })
 
-  test('readOnly renders crew HP without editable steppers', async () => {
+  test('readOnly renders the crew as a Token, with no HP steppers', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} readOnly />)
     expandCards()
-    const inset = screen.getByLabelText('Command Bay crew lead')
-    expect(within(inset).queryByRole('button', { name: 'Decrease HP' })).toBeNull()
-    expect(within(inset).queryByRole('button', { name: 'Increase HP' })).toBeNull()
-    // The HP value still renders (value / max). The Stat splits value and the
-    // muted /max into separate nodes, so assert on the inset's combined text.
-    expect(inset.textContent).toContain('4/4')
+    expect(screen.queryByLabelText('Command Bay crew lead')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Decrease HP' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Increase HP' })).toBeNull()
+    // The Token is named for the crew and Peeks the bay's NPC card.
+    expect(crewToken('Dax Orsund').getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
+  })
+
+  test('Edit shows the crew as a Token too, its fields behind Details', async () => {
+    restore = await patchCrawlerBays()
+    render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
+    expect(crewToken('Dax Orsund').getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
+    expect(screen.queryByLabelText('Command Bay crew lead')).toBeNull()
+    const details = screen.getByRole('button', { name: 'Expand Command Bay crew' })
+    expect(details.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(details)
+    expect(screen.getByLabelText('Command Bay crew lead')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse Command Bay crew' }))
+    expect(screen.queryByLabelText('Command Bay crew lead')).toBeNull()
   })
 })
 
@@ -455,15 +476,9 @@ describe('CrawlerSheet — crew readOnly', () => {
     )
     expandCards()
 
-    const inset = screen.getByLabelText('Command Bay crew lead')
-    expect(within(inset).getByText('Dax Orsund')).toBeTruthy()
-    expect(within(inset).getByText('A stern veteran.')).toBeTruthy()
-    expect(within(inset).getByText('Hates synths')).toBeTruthy()
-    // Read leaves an empty field out (board 10): no Keepsake or Motto row with
-    // a dash in it, when neither was ever filled in.
-    expect(within(inset).queryByText('Keepsake')).toBeNull()
-    expect(within(inset).queryByText('Motto')).toBeNull()
-    expect(within(inset).queryByText('—')).toBeNull()
+    // Read draws the crew as its Token (owner's call, 2026-10-14): no inset.
+    expect(crewToken('Dax Orsund')).toBeTruthy()
+    expect(screen.queryByLabelText('Command Bay crew lead')).toBeNull()
 
     expect(screen.queryByLabelText('Edit Command Bay crew name')).toBeNull()
     expect(screen.queryByLabelText('Edit Command Bay crew detail')).toBeNull()

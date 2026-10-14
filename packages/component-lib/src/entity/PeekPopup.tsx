@@ -2,8 +2,13 @@ import { PreviewCard } from '@base-ui/react/preview-card'
 import type { ReactNode } from 'react'
 import { Component, useEffect, useState } from 'react'
 import type { EntitySchemaName, SURefEntity } from 'salvageunion-reference'
-import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  EntitySchemaNames,
+  nestedEntityGroups,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { Skeleton } from '../components/containers/Skeleton'
+import type { Down } from '../components/referenceEntity/card/cardChrome'
 import type { PeekLoader } from './Peek'
 import { PeekCard } from './PeekCard'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
@@ -14,10 +19,19 @@ function isEntitySchema(name: string): name is EntitySchemaName {
   return names.has(name)
 }
 
-/** The entity an address names, once its schema is loaded. */
+/**
+ * The entity an address names, once its schema is loaded. `<hostId>/npc` (an
+ * `embeddedPeekAddress`) is the crew NPC embedded in that record, synthesized
+ * exactly as its host card nests it.
+ */
 function entityAt(schemaName: string, id: string): SURefEntity | undefined {
   if (!isEntitySchema(schemaName) || !SalvageUnionReference.isLoaded(schemaName)) return undefined
-  return SalvageUnionReference.get(schemaName, id) as SURefEntity | undefined
+  const [hostId, part] = id.split('/')
+  const host = SalvageUnionReference.get(schemaName, hostId ?? id) as SURefEntity | undefined
+  if (!part || !host) return host
+  return part === 'npc'
+    ? nestedEntityGroups(host).find((group) => group.label === 'NPCs')?.entities[0]
+    : undefined
 }
 
 /** A card that cannot render (a schema it reads did not load) closes its Peek. */
@@ -48,6 +62,7 @@ export function PeekPopup({
   anchor,
   schemaName,
   entityId,
+  down = false,
   load,
   onDismiss,
 }: {
@@ -55,6 +70,8 @@ export function PeekPopup({
   anchor: HTMLElement
   schemaName: string
   entityId: string
+  /** The trigger is damaged or destroyed: the card is down as it is. */
+  down?: Down
   load: PeekLoader
   onDismiss: () => void
 }) {
@@ -107,7 +124,7 @@ export function PeekPopup({
           >
             {entity ? (
               <PeekBoundary onError={onDismiss}>
-                <PeekCard entity={entity} />
+                <PeekCard entity={entity} down={down} />
               </PeekBoundary>
             ) : (
               <Skeleton />

@@ -18,7 +18,8 @@ import { Speckle } from '../atoms/Speckle'
  * ## One geometry
  *
  * Both tools wear the same bar (one product at one domain): one
- * 56px row at every width, the 40px mark, the product
+ * 56px row at every width, the 40px mark, one height for every control in it
+ * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (`SearchField` / `SearchFieldTrigger`). There are no
  * densities: the SRD's 64px bar and ITUN's 48px one were two products.
@@ -130,13 +131,16 @@ const BRAND = {
 
 const MARK = { display: 'block', flexShrink: 0 } satisfies CSSProperties
 
+// The frame is an inset outline, not a border, so the switcher is exactly its
+// tabs' height: the bar's one control height, with nothing added around it.
 const SWITCH = {
-  borderColor: color.paper30,
   borderRadius: radius.card,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
   display: 'inline-flex',
   flexShrink: 0,
+  outlineColor: color.paper30,
+  outlineOffset: `calc(-1 * ${borderWidth.chrome})`,
+  outlineStyle: 'solid',
+  outlineWidth: borderWidth.chrome,
   overflow: 'hidden',
 } satisfies CSSProperties
 

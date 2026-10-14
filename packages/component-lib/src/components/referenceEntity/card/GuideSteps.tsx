@@ -9,6 +9,7 @@ import { Slab } from '../../atoms/Slab'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
+import type { Down } from './cardChrome'
 import { cardKey } from './cardHelpers'
 import { EntityTokenList } from './EntityTokenList'
 import { chunkGuideStepProse } from './guideStepProse'
@@ -97,7 +98,7 @@ export function GuideSteps({
   sectionAs: ElementType | undefined
   /** The HOST card's depth — step entities render one level below it. */
   depth: number
-  isDown: boolean
+  isDown: Down
   compact: boolean
   /** The guide's own tone, whose band paints its step tables' rows. */
   tableTone?: string
@@ -197,7 +198,7 @@ export function GuideSteps({
                 table={table.table}
                 name={table.name}
                 size={compact ? 'medium' : 'large'}
-                disabled={isDown}
+                disabled={!!isDown}
                 framed
                 tone={tableTone}
               />

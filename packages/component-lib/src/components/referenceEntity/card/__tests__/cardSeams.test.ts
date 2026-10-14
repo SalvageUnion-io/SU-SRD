@@ -13,6 +13,8 @@ import { entityFixture } from 'salvageunion-reference/testing'
 import { resolveBodyBlocks, resolveBodyLayout } from '../bodyBlocks'
 import { bonusCells, buildHeaderStats, resolveTechScaling } from '../cardCells'
 import {
+  dullBand,
+  GREY_HEADER,
   resolveCardColors,
   resolveCardInteraction,
   resolveFrameWidth,
@@ -150,15 +152,34 @@ describe('cardChrome', () => {
     })
   })
 
-  test('an ink header is the ink banner whatever the tone; a damaged one is grey', () => {
+  test('an ink header is the ink banner whatever the tone; a damaged one dulls its band', () => {
     expect(resolveCardColors({ tone, isDown: false, fill: 'ink' })).toEqual({
       onBand: 'paper',
       bandColor: 'var(--color-ink)',
     })
+    // Damaged dulls the band toward grey, never replacing it: the ink banner
+    // stays dark and keeps paper text.
+    const inkDown = resolveCardColors({ tone, isDown: true, fill: 'ink' })
+    expect(inkDown.onBand).toBe('paper')
+    expect(inkDown.bandColor).toBe(dullBand('var(--color-ink)'))
+    expect(inkDown.bandColor).toContain('var(--color-ink) 50%')
+  })
+
+  test("a damaged tone header is that tone dulled, with the tone's own foreground", () => {
+    const pilot = { domain: 'gear' as const, bg: 'var(--color-pilot)', bgColor: undefined }
+    const up = resolveCardColors({ tone: pilot, isDown: false, fill: 'tone' })
+    const down = resolveCardColors({ tone: pilot, isDown: true, fill: 'tone' })
+    expect(down.bandColor).toBe(dullBand('var(--color-pilot)'))
+    expect(down.bandColor).toContain('var(--color-pilot) 50%')
+    expect(down.onBand).toBe(up.onBand)
+  })
+
+  test('a destroyed header is flat grey, whatever its fill', () => {
     for (const fill of ['tone', 'ink'] as const) {
-      const down = resolveCardColors({ tone, isDown: true, fill })
-      expect(down.onBand).toBe('ink')
-      expect(down.bandColor).toContain('color-mix')
+      expect(resolveCardColors({ tone, isDown: 'destroyed', fill })).toEqual({
+        onBand: 'ink',
+        bandColor: GREY_HEADER,
+      })
     }
   })
 
