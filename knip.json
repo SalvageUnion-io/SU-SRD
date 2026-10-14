@@ -1,6 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "includeEntryExports": true,
+  // A redundant entry, stale ignore or needless workspace setting fails too.
+  "treatConfigHintsAsErrors": true,
   // @public/@knipignore are the only exemptions: docs/ARCHITECTURE.md#dead-code.
   // --treat-tag-hints-as-errors does not catch a stale tag; don't add it as a guard.
   "tags": ["-public", "-knipignore"],
@@ -64,9 +66,7 @@
         // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/a11y.e2e.ts"
       ],
-      "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"],
-      // Its entries are framework contracts nothing imports.
-      "includeEntryExports": false
+      "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"]
     },
     "apps/itun": {
       "entry": [
@@ -74,9 +74,6 @@
         // The Worker entry (`src/worker/index.ts`) is NOT listed: knip's
         // wrangler plugin reads `main` from wrangler.jsonc (wrangler is a root
         // devDependency), and flags a manual entry as redundant.
-        "src/stores/entityStore.ts",
-        "src/stores/activeContainerStore.ts",
-        "src/stores/types.ts",
         // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/a11y.e2e.ts"
       ],
@@ -95,9 +92,7 @@
       // The Worker entry (`src/worker/index.ts`) comes from wrangler.jsonc's `main`
       // via knip's wrangler plugin. `project` must still cover `src/**`, or the
       // Worker and its test sit outside knip's scope.
-      "project": ["src/**/*.ts"],
-      // Its entry is a Worker contract nothing imports.
-      "includeEntryExports": false
+      "project": ["src/**/*.ts"]
     },
     "apps/discord-bot": {
       // `src/worker/index.ts` (the Worker) comes from wrangler.jsonc's `main`

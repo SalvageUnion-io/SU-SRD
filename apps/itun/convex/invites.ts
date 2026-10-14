@@ -119,6 +119,8 @@ const RETIRED_COLUMNS = [
  * would change unless passed `{ apply: true }`. Deleted with that schema change.
  * The addressed-invite fields (`target`, `declinedAt`, `delivery`,
  * `sourceInteractionId`) stay until the last addressed invite has expired.
+ *
+ * @operator Run by hand from the dashboard; nothing calls it.
  */
 export const dropRetired = internalMutation({
   args: { apply: v.optional(v.boolean()) },

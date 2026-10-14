@@ -1,19 +1,21 @@
 import { describe, expect, test } from 'bun:test'
 import { appRoot, appUrl, BASE_PATH } from '../appUrl'
-import { basePathOf, headersForBase, SITE, siteUrl } from '../site'
+import { basePathOf, headersForBase, SITE } from '../site'
+
+const siteUrl = `${SITE.origin}${SITE.base}`
 
 /** ITUN at salvageunion.io/build (ADR-048, `site.ts`). */
 describe('SITE', () => {
   test('is salvageunion.io/build', () => {
-    expect(siteUrl()).toBe('https://salvageunion.io/build/')
+    expect(siteUrl).toBe('https://salvageunion.io/build/')
     expect(basePathOf(SITE.base)).toBe('/build')
     expect(basePathOf('/')).toBe('')
   })
 
   test("the shell's sitewide og:url and og:image point there", async () => {
     const html = await Bun.file(new URL('../../../index.html', import.meta.url)).text()
-    expect(html).toContain(`<meta property="og:url" content="${siteUrl()}" />`)
-    expect(html).toContain(`content="${siteUrl()}og-image.png"`)
+    expect(html).toContain(`<meta property="og:url" content="${siteUrl}" />`)
+    expect(html).toContain(`content="${siteUrl}og-image.png"`)
     expect(html).not.toContain('intheunionnow.com/')
   })
 })

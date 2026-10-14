@@ -36,11 +36,6 @@ export function basePathOf(base: string): string {
   return base.replace(/\/+$/, '')
 }
 
-/** The app's home page, absolute: what `og:url` points at, and Convex's `SITE_URL` without the slash. */
-export function siteUrl(site: ItunSite = SITE): string {
-  return `${site.origin}${site.base}`
-}
-
 /**
  * `public/_headers` for a site under a base. Static Assets reads `_headers`
  * only at the asset root (`dist/`), and matches its rules against the request
