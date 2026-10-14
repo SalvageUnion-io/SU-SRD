@@ -437,7 +437,6 @@
 /* A Row as a listbox option (a search's results): the option the arrow keys
    highlight wears the ink selection ring, as a selected Row does. */
 .su-entity-row[aria-selected='true'] {
-  border-radius: var(--radius-card);
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
@@ -460,7 +459,6 @@
 .su-entity-tile__frame {
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
-  border-radius: var(--radius-card);
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -535,7 +533,6 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 /* The notch: a cut-out of the paper below, its foot open into the cells. */
 .su-entity-tile__notch {
   background-color: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
   flex: 0 1 auto;
   margin-right: auto;
   min-width: 0;
@@ -580,7 +577,6 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   align-items: stretch;
   align-self: flex-start;
   border-color: var(--color-ink);
-  border-radius: var(--radius-card);
   border-style: solid;
   border-width: var(--bw-chrome);
   display: inline-flex;
