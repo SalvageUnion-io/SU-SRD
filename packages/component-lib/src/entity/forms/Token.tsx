@@ -14,33 +14,27 @@ import { PAPER_NAME, paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityRowModel } from '../types'
 
-/** A fact a context counts in place of the Token's own chips: `[SLOTS | 2]`. */
-export type TokenFact = { label: string; value?: string }
+/** One Token chip: `[TL | 2]`, `[4 ACTIONS]`. */
+type TokenChip = { label: string; value?: string }
 
 /**
- * The facts a Token keeps, by key (owner's set, 2026-10-14): Tech Level, the
- * slots it takes or has, and its hit or structure points. Everything else (SV,
- * EP, RNG, DMG, traits) is the Row's and the Page's.
+ * The facts a Token keeps, by their chip label (owner's set, 2026-10-14): Tech
+ * Level, the slots it takes or has, and its hit or structure points, a
+ * player unit's live reading (`SP 7/9`) included. Everything else (SV, EP,
+ * RNG, DMG, traits) is the Row's and the Page's.
  */
-const TOKEN_FACT_KEYS: ReadonlySet<string> = new Set([
-  'tech-level',
-  'ref-stat-slotsRequired',
-  'ref-stat-systemSlots',
-  'ref-stat-moduleSlots',
-  'ref-stat-structurePoints',
-  'ref-stat-hitPoints',
-])
+const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP'])
 
 /**
  * A Token's own chips, in order: an ability's tree and level, the kept facts,
  * then its one action's type or, with two or more, how many it has (its own
  * folded action counted). The cost box follows, drawn by the Token.
  */
-function tokenChips(model: EntityRowModel): TokenFact[] {
-  const chips: TokenFact[] = []
+function tokenChips(model: EntityRowModel): TokenChip[] {
+  const chips: TokenChip[] = []
   if (model.tree) chips.push({ label: model.tree.name, value: model.tree.level })
   for (const fact of model.facts) {
-    if (TOKEN_FACT_KEYS.has(fact.key)) chips.push({ label: fact.short, value: fact.value })
+    if (TOKEN_FACTS.has(fact.short)) chips.push({ label: fact.short, value: fact.value })
   }
   const actions = (model.actions?.length ?? 0) + (model.folded ? 1 : 0)
   if (actions > 1) {
@@ -60,8 +54,6 @@ export type TokenSlots = {
   frameStyle?: CSSProperties
   /** The kind, for screen readers (`KindLabel`). */
   kind?: string
-  /** The context's one fact in place of the Token's own chips; `null` for none. */
-  fact?: TokenFact | null
   /** The Dashboard's pennant button. */
   pennant?: ReactNode
   /** A read cost ("1 EP"), as its chip. */
@@ -93,7 +85,7 @@ const VISUALLY_HIDDEN: CSSProperties = {
 /**
  * TOKEN — the shortform (§3): `name [chips]`, one size, for many on a line or
  * a slot under 12rem (E3). Its chips are a short set (`tokenChips`), then the
- * cost box; a context may count one fact of its own instead. It stays one
+ * cost box, the same in every context. It stays one
  * line: the chips never shrink, and only when they need the room does the
  * name end in "…" (E18). Its kind is never stamped (E9): screen readers
  * hear it after the name (`KindLabel`); a player unit's note ("Engineer")
@@ -106,14 +98,11 @@ export function Token({
   model,
   instance,
   mode = { kind: 'read' },
-  fact,
   slots = {},
 }: {
   model: EntityRowModel
   instance?: EntityInstance
   mode?: EntityMode
-  /** The fact the context counts, in place of the Token's own chips; `null` for none. */
-  fact?: TokenFact | null
   slots?: TokenSlots
 }) {
   const target = useLinkTarget(mode, model.ref)
@@ -123,9 +112,8 @@ export function Token({
   const paint = paintFor(model.tone, { down, texture: false })
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
-  const context = slots.fact !== undefined ? slots.fact : fact
-  const chips = context === undefined ? tokenChips(model) : context ? [context] : []
-  const cost = context === undefined ? (slots.cost ?? model.cost) : slots.cost
+  const chips = tokenChips(model)
+  const cost = slots.cost ?? model.cost
   const pill = (
     <span
       data-user-made={userMade || undefined}

@@ -1,15 +1,13 @@
 /**
  * A Token carries a short chip set after its name: an ability's tree and
  * level, TL, its slots, HP or SP, then its one action's type or how many it
- * has (its own counted), then the cost box. A context's own fact replaces
- * the set.
+ * has (its own counted), then the cost box, the same in every context.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import type { SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Entity } from '../Entity'
-import type { TokenFact } from '../forms/Token'
 
 const get = (schema: string, name: string) => {
   const entity = SalvageUnionReference.getByNameIn(schema as never, name)
@@ -18,10 +16,8 @@ const get = (schema: string, name: string) => {
 }
 
 /** Each chip's text, and the cost box's, in order. */
-const chipsOf = (schema: string, name: string, fact?: TokenFact | null) => {
-  const { container } = render(
-    <Entity form="token" entity={get(schema, name)} {...(fact !== undefined ? { fact } : {})} />
-  )
+const chipsOf = (schema: string, name: string) => {
+  const { container } = render(<Entity form="token" entity={get(schema, name)} />)
   const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
   return Array.from(chips?.children ?? []).map((chip) =>
     (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
@@ -53,12 +49,5 @@ describe('Token chips', () => {
 
   test('an NPC shows its HP and its action count', () => {
     expect(chipsOf('npcs', 'Saboteur')).toEqual(['HP6', '8 Actions'])
-  })
-
-  test("a context's fact replaces the set", () => {
-    expect(chipsOf('systems', 'Fabrication Arm', { label: 'Slots', value: '3' })).toEqual([
-      'Slots3',
-    ])
-    expect(chipsOf('systems', 'Fabrication Arm', null)).toEqual([])
   })
 })

@@ -60,7 +60,6 @@ import {
 import type { CardGrain } from './cardGrain'
 import { MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
 import { resolveCardSections } from './cardSections'
-import { shortformTail } from './cardShortform'
 import { CardTextureContext } from './cardTexture'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import type { AxisMarker } from './entityCardTone'
@@ -202,7 +201,7 @@ function HeadForm({
   pattern: SURefObjectAnyPattern | undefined
   instance: EntityInstance
   shared: Pick<RowSlots, 'outer' | 'frameStyle' | 'down'>
-  token: Pick<TokenSlots, 'kind' | 'fact' | 'pennant' | 'cost'> | false
+  token: Pick<TokenSlots, 'kind' | 'pennant' | 'cost'> | false
   row: RowSlots
 }) {
   const model = toEntityModel(entity, undefined, { pattern })
@@ -560,7 +559,6 @@ function ReferenceEntityCardInner({
         token={
           size === 'small' && {
             kind,
-            fact: shortformTail(numeral, techLevel, entity, axisMarkers[0]) ?? null,
             pennant: isAction ? pennantNode : undefined,
             cost: isAction ? chips.cost : undefined,
           }

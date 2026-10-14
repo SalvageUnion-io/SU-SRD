@@ -44,7 +44,6 @@ import {
   patternChassis,
   patternFromMech,
   patternLoadout,
-  slotsFact,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -435,7 +434,7 @@ function LoadoutList({
         {items.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice
           <li key={`${item.id}-${index}`}>
-            <Entity form="token" entity={item} fact={slotsFact(item)} />
+            <Entity form="token" entity={item} />
           </li>
         ))}
       </ul>

@@ -33,10 +33,10 @@ const BOX = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-// Match the datavalue tags' weight (normal compact / semibold).
+// The chips' weight, bold at every size.
 const BOX_COMPACT = {
   fontSize: fontSize.xs,
-  fontWeight: weight.normal,
+  fontWeight: weight.bold,
   paddingInlineStart: space[4],
   paddingInlineEnd: `calc(${space[4]} + ${TIP})`,
 } satisfies CSSProperties
@@ -45,7 +45,7 @@ const BOX_MINI = { ...BOX_COMPACT, fontSize: fontSize.badge } satisfies CSSPrope
 
 const BOX_FULL = {
   fontSize: fontSize.sm,
-  fontWeight: weight.semibold,
+  fontWeight: weight.bold,
   paddingInlineStart: space[6],
   paddingInlineEnd: `calc(${space[6]} + ${TIP})`,
 } satisfies CSSProperties

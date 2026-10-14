@@ -37,8 +37,7 @@ export function ShelfPill({ kind, note, name, reading, href, userMade = false }:
   return (
     <Entity
       form="token"
-      model={unitRowModel({ kind, note, name, userMade })}
-      fact={reading ?? null}
+      model={unitRowModel({ kind, note, name, userMade, readings: reading ? [reading] : [] })}
       mode={href === undefined ? { kind: 'read' } : { kind: 'link', href }}
     />
   )
