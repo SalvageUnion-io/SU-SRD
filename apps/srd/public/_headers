@@ -44,7 +44,13 @@
   #
   # 'unsafe-inline' stays in style-src deliberately: React's inline `style=`
   # attributes need it, and style injection is not script execution.
-  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
+  #
+  # Cloudflare Web Analytics: BaseLayout loads its beacon by URL from
+  # static.cloudflareinsights.com, and the beacon posts page loads to
+  # cloudflareinsights.com. Automatic setup never injects it into a Worker's
+  # static assets, so it is added by hand; drop either origin and the
+  # dashboard silently records nothing.
+  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.ingest.de.sentry.io;
 
 # Content-hashed bundle output (`ssg/vite.config.ts` uses Vite's default
 # assetsDir). If it ever sets a different build.assetsDir, change this with it,

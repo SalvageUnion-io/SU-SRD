@@ -25,6 +25,9 @@ const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =
   'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
 
+const WEB_ANALYTICS_BEACON = 'https://static.cloudflareinsights.com/beacon.min.js'
+const WEB_ANALYTICS_CONFIG = JSON.stringify({ token: 'c7ce1d45680c4c118da38645c3fc41bc' })
+
 /**
  * Pages whose own search (the home band's, the 404's) stands in for the Union
  * bar's: two fields on one page would both claim ⌘K. Keyed by the route's
@@ -111,6 +114,11 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <meta name="theme-color" content={themeColor} />
         {/* Service-worker registration: public/registerSW.js. */}
         <script defer src="/registerSW.js" />
+        {/* Cloudflare Web Analytics, loaded by URL (the CSP allows the origin in
+            public/_headers). The token is salvageunion.io's site token and is
+            public; the beacon drops page loads from any other host, so local
+            dev and Worker Previews report nothing. */}
+        <script defer src={WEB_ANALYTICS_BEACON} data-cf-beacon={WEB_ANALYTICS_CONFIG} />
 
         {/* Open Graph */}
         <meta property="og:title" content={ogTitle} />
