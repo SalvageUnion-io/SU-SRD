@@ -30,15 +30,13 @@ import { listingEntries } from '../../lib/listingEntries'
 import type { ListingGroup, ListingShape } from '../../lib/listingGroups'
 import { defaultGroups } from '../../lib/listingGroups'
 import { CATALOG_LISTINGS, defaultListingView } from '../../lib/listingView'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../lib/staticPaths'
 import { Island } from '../../runtime/Island'
 
 type Params = { schemaId: string }
 type Props = { schema: EnhancedSchemaMetadata; data: SURefEntity[] }
-
-/** The listing's measure — the island's own container. */
-const MEASURE = '87.5rem'
 
 function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const { schemaId } = params
@@ -112,15 +110,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       breadcrumbDescription: schema.description,
     },
     // The listing ends on its chapter's band, as its entity pages do.
-    foot: { tone: chapter.tone, measure: MEASURE, ...(fill ? { fill: fill.foot } : {}) },
+    foot: { tone: chapter.tone, measure: PAGE_MEASURE, ...(fill ? { fill: fill.foot } : {}) },
     children: (
       <div className="srd-listing-shell">
         {/* The chapter band is the visible heading: the plural name in the
             notch. The description rides the trail. */}
-        <ChapterBand tone={chapter.tone} fill={fill?.band} measure={MEASURE}>
+        <ChapterBand tone={chapter.tone} fill={fill?.band} measure={PAGE_MEASURE}>
           {pluralName}
         </ChapterBand>
-        <div className="srd-listing-page">
+        <div className="srd-listing-page srd-page-body">
           <Island
             name="SchemaViewerIsland"
             client="interaction"

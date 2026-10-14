@@ -19,10 +19,8 @@ import { HeroSearchStatic } from '../components/HeroSearch'
 import { buildChapters } from '../lib/chapters'
 import { TITLE_SUFFIX } from '../lib/constants'
 import '../lib/gameData'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { Island } from '../runtime/Island'
-
-/** The page's measure: the band, the guesses and the chapters share it. */
-const MEASURE = '60rem'
 
 function page(): PageResult {
   const chapters = buildChapters()
@@ -37,7 +35,7 @@ function page(): PageResult {
       <div className="srd-not-found">
         <div className="srd-not-found__band">
           <ChapterBand
-            measure={MEASURE}
+            measure={PAGE_MEASURE}
             aside={
               <div className="srd-not-found__lede">
                 <p>
@@ -53,7 +51,7 @@ function page(): PageResult {
             Page not found
           </ChapterBand>
         </div>
-        <div className="srd-not-found__body" style={{ maxWidth: MEASURE }}>
+        <div className="srd-not-found__body srd-page-body">
           <Island name="DidYouMeanIsland" client="idle" />
           <nav className="srd-not-found__chapters" aria-labelledby="not-found-chapters">
             <h2 id="not-found-chapters" className="srd-not-found__heading">
