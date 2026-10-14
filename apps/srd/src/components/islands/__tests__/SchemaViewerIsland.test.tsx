@@ -478,17 +478,112 @@ describe('SchemaViewerIsland', () => {
       expect(container.querySelector('.srd-listing__tiles')).toBeTruthy()
     })
 
-    it('a schema with no art has no Catalog', () => {
-      const actions = required(getModel('actions'), 'actions model').all()
-      render(
+    it('a schema with no art opens on the List and still offers its Catalog', () => {
+      const systems = required(getModel('systems'), 'systems model').all()
+      const { container } = render(
         <SchemaViewerIsland
-          schemaId="actions"
-          techLevels={getUniqueTechLevels(actions)}
-          sources={getUniqueSources(actions)}
-          hasArt={false}
+          schemaId="systems"
+          techLevels={getUniqueTechLevels(systems)}
+          sources={getUniqueSources(systems)}
         />
       )
-      expect(screen.queryByRole('button', { name: 'Catalog' })).toBeNull()
+      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
+      expect(screen.queryByRole('button', { name: 'Tree' })).toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
+      const tiles = container.querySelectorAll('.srd-listing__tiles > li > a.su-entity-tile')
+      expect(tiles.length).toBe(systems.length)
+      // Art-less tiles take the wider columns.
+      expect(container.querySelector('.srd-listing[data-catalog]')).toBeTruthy()
+    })
+
+    it('a Catalog-first listing opens on its Catalog and still offers its List', () => {
+      const factions = required(getModel('factions'), 'factions model').all()
+      const { container } = render(
+        <SchemaViewerIsland schemaId="factions" techLevels={[]} sources={[]} />
+      )
+      expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
+        'true'
+      )
+      expect(container.querySelectorAll('.srd-listing__tiles > li').length).toBe(factions.length)
+      fireEvent.click(screen.getByRole('button', { name: 'List' }))
+      expect(container.querySelector('.srd-listing__tiles')).toBeNull()
+      expect(container.querySelector('.srd-listing[data-catalog]')).toBeNull()
+      expect(container.querySelectorAll('.srd-listing__cards > li > a[aria-label]').length).toBe(
+        factions.length
+      )
+    })
+  })
+
+  // The abilities open on their Tree (each tree under its heading on its
+  // track); their List and Catalog are flat, by name.
+  describe('the abilities’ Tree', () => {
+    const abilities = () => required(getModel('abilities'), 'abilities model').all()
+    const renderAbilities = () =>
+      render(
+        <SchemaViewerIsland
+          schemaId="abilities"
+          techLevels={getUniqueTechLevels(abilities())}
+          sources={getUniqueSources(abilities())}
+          trees={getUniqueTrees(abilities())}
+        />
+      )
+
+    it('offers List | Catalog | Tree and opens on the Tree', () => {
+      const { container } = renderAbilities()
+      const views = required(
+        container.querySelector<HTMLElement>('.srd-rail__view'),
+        'the view toggle'
+      )
+      expect(
+        within(views)
+          .getAllByRole('button')
+          .map((b) => b.textContent)
+      ).toEqual(['List', 'Catalog', 'Tree'])
+      expect(screen.getByRole('button', { name: 'Tree' }).getAttribute('aria-pressed')).toBe('true')
+      expect(container.querySelector('section[aria-label="Forging Tree"]')).toBeTruthy()
+    })
+
+    it('the List is one flat run of Rows, by name, under no tree heading', () => {
+      const { container } = renderAbilities()
+      fireEvent.click(screen.getByRole('button', { name: 'List' }))
+      expect(container.querySelector('.srd-ability-tree__track')).toBeNull()
+      const groups = container.querySelectorAll('.srd-listing__group')
+      expect(groups.length).toBe(1)
+      expect(groups[0]?.getAttribute('aria-label')).toBeNull()
+      const names = [...container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')].map(
+        (row) => row.getAttribute('aria-label') ?? ''
+      )
+      expect(names.length).toBe(abilities().length)
+      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
+    })
+
+    it('the Catalog is one flat grid of Tiles', () => {
+      const { container } = renderAbilities()
+      fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
+      expect(container.querySelectorAll('.srd-listing__group').length).toBe(1)
+      expect(container.querySelectorAll('.srd-listing__tiles > li').length).toBe(abilities().length)
+    })
+
+    it('keeps its own remembered view: a List picked elsewhere leaves it on the Tree', () => {
+      window.localStorage.setItem('srd:listing-view', 'list')
+      renderAbilities()
+      expect(screen.getByRole('button', { name: 'Tree' }).getAttribute('aria-pressed')).toBe('true')
+      fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
+      expect(window.localStorage.getItem('srd:listing-view:abilities')).toBe('catalog')
+      expect(window.localStorage.getItem('srd:listing-view')).toBe('list')
+    })
+
+    it('a ?view=tree link elsewhere is ignored: only the abilities have a Tree', () => {
+      window.location.href = 'http://localhost/systems/?view=tree'
+      const systems = required(getModel('systems'), 'systems model').all()
+      render(
+        <SchemaViewerIsland
+          schemaId="systems"
+          techLevels={getUniqueTechLevels(systems)}
+          sources={getUniqueSources(systems)}
+        />
+      )
+      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
     })
   })
 

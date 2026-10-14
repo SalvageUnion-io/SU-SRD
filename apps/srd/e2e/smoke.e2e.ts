@@ -219,3 +219,25 @@ test('a listing with art opens on the Catalog at 1440px, the List at 390px', asy
   })
   await expect(page.locator('.srd-listing__tiles')).toHaveCount(0)
 })
+
+// (i) Every listing offers List | Catalog, art or none: an art-less listing's
+// Catalog is its Tiles. The abilities add a Tree, which they open on (each
+// tree on its track); their List is one flat run of Rows, under no tree.
+test('an art-less listing offers its Catalog; the abilities open on their Tree', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/systems/')
+  await page.getByRole('button', { name: 'Catalog' }).click({ timeout: 30_000 })
+  await expect(page.locator('.srd-listing__tiles a.su-entity-tile').first()).toBeVisible()
+  await expect(page).toHaveURL(/view=catalog/)
+
+  await page.goto('/abilities/')
+  const tree = page.getByRole('button', { name: 'Tree' })
+  await expect(tree).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 })
+  await expect(page.locator('.srd-ability-tree__track').first()).toBeVisible()
+  await page.getByRole('button', { name: 'List' }).click()
+  await expect(page.locator('.srd-ability-tree__track')).toHaveCount(0)
+  await expect(page.locator('.srd-listing__group')).toHaveCount(1)
+  await expect(page.locator(`${LIST} a[aria-label]`).first()).toBeVisible()
+})

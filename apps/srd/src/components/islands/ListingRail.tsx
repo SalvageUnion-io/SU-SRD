@@ -22,8 +22,8 @@ type RailFacets = {
   techLevels: TechLevel[]
   sources: string[]
   trees: string[]
-  /** Only a schema with art has List | Catalog. */
-  hasArt: boolean
+  /** The views it offers (`listingViews`): List | Catalog, and a tree listing's Tree. */
+  views: readonly ListingView[]
 }
 
 type RailFilters = {
@@ -32,6 +32,8 @@ type RailFilters = {
   tree: string
   name: string
 }
+
+const VIEW_LABELS: Record<ListingView, string> = { list: 'List', catalog: 'Catalog', tree: 'Tree' }
 
 const NO_FILTERS: RailFilters = { techLevels: new Set(), source: '', tree: '', name: '' }
 
@@ -80,11 +82,11 @@ type ListingRailProps = {
 
 /**
  * THE RAIL — one row of 44px controls: search, what is filtered, the TL badge,
- * the menus, then List | Catalog where the schema has art. On a phone the
- * facets fold behind Filters.
+ * the menus, then the views (List | Catalog, and Tree on the abilities). On a
+ * phone the facets fold behind Filters.
  */
 export function ListingRail({
-  facets: { count, techLevels, sources, trees, hasArt },
+  facets: { count, techLevels, sources, trees, views },
   filters = NO_FILTERS,
   facetsOpen = false,
   view,
@@ -128,10 +130,10 @@ export function ListingRail({
       )}
       {status}
       <span className="srd-rail__spring" />
-      {hasArt && (
+      {views.length > 1 && (
         <fieldset className="srd-seg srd-rail__view">
           <legend className="srd-vh">View</legend>
-          {(['list', 'catalog'] as const satisfies readonly ListingView[]).map((option) => (
+          {views.map((option) => (
             <button
               key={option}
               type="button"
@@ -139,7 +141,7 @@ export function ListingRail({
               aria-pressed={view === option}
               onClick={() => on.setView(option)}
             >
-              {option === 'list' ? 'List' : 'Catalog'}
+              {VIEW_LABELS[option]}
             </button>
           ))}
         </fieldset>

@@ -4,8 +4,9 @@
  * Headed by its chapter's band (the schema's plural name notched in), then the
  * listing, in the groups the book prints them in: one Row per entity, or where
  * the schema has art an art-first Tile (the Catalog, the default at a desktop
- * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (a short one with no art) is
- * a Catalog at every width, one grid with no groups. It ends on the same
+ * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (a short one with no art)
+ * opens on its Catalog at every width, one grid with no groups; the abilities
+ * open on their Tree. Every listing's rail offers List | Catalog. It ends on the same
  * chapter's band (`foot`), as an entity page does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
@@ -33,7 +34,7 @@ import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../lib
 import { listingEntries } from '../../lib/listingEntries'
 import type { ListingGroup, ListingShape, TechLevel } from '../../lib/listingGroups'
 import { defaultGroups, orderTechLevels, WIDE_LISTINGS } from '../../lib/listingGroups'
-import { CATALOG_LISTINGS } from '../../lib/listingView'
+import { CATALOG_LISTINGS, listingViews } from '../../lib/listingView'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../lib/staticPaths'
 import { Island } from '../../runtime/Island'
@@ -57,7 +58,7 @@ function SchemaItemLinks({
   sources,
   trees,
   hasArt,
-  catalogOnly,
+  catalogFirst,
 }: {
   schemaId: string
   groups: ListingGroup[]
@@ -66,18 +67,24 @@ function SchemaItemLinks({
   sources: string[]
   trees: string[]
   hasArt: boolean
-  catalogOnly: boolean
+  catalogFirst: boolean
 }) {
   return (
     <div
       className="srd-listing"
       data-art={hasArt || undefined}
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
-      data-catalog={catalogOnly || undefined}
-      data-view={catalogOnly ? undefined : 'list'}
+      data-catalog={catalogFirst || undefined}
+      data-view={catalogFirst ? undefined : 'list'}
     >
       <ListingRail
-        facets={{ count, techLevels: orderTechLevels(techLevels), sources, trees, hasArt }}
+        facets={{
+          count,
+          techLevels: orderTechLevels(techLevels),
+          sources,
+          trees,
+          views: listingViews(schemaId),
+        }}
       />
       <div className="srd-listing__groups">
         {groups.map((group) => (
@@ -118,15 +125,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
   const description = `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
 
-  // A listing whose tiles are the content is a Catalog at every width.
-  const catalogOnly = CATALOG_LISTINGS.has(schemaId)
-  // Pre-compute filter facets at build time. A Catalog-only listing is a
+  // A listing whose tiles are the content opens on its Catalog at every width.
+  const catalogFirst = CATALOG_LISTINGS.has(schemaId)
+  // Pre-compute filter facets at build time. A Catalog-first listing is a
   // handful of tiles, so it has no TL facet and no TL groups.
-  const techLevels = catalogOnly ? [] : getUniqueTechLevels(data)
+  const techLevels = catalogFirst ? [] : getUniqueTechLevels(data)
   const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
   const preloadSchemas = getSchemaPreloadList(schemaId)
-  // A schema with artwork has a Catalog view, the default at a desktop measure.
+  // A schema with artwork opens on its Catalog at a desktop measure.
   const hasArt = data.some((item) => !!getAssetUrl(item))
   // The island's default grouping, so the server render and the skeleton
   // set the same headings the grid mounts under.
@@ -192,7 +199,6 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
               trees,
               preloadSchemas,
               hasArt,
-              catalogOnly,
               shape,
               entryIds,
             }}
@@ -205,7 +211,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
               sources={sources}
               trees={trees}
               hasArt={hasArt}
-              catalogOnly={catalogOnly}
+              catalogFirst={catalogFirst}
             />
           </Island>
         </div>

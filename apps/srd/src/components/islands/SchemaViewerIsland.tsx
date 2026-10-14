@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
-import type { ListingShape, TechLevel } from '../../lib/listingGroups'
+import type { GroupBy, ListingShape, TechLevel } from '../../lib/listingGroups'
 import {
   groupEntities,
   orderTechLevels,
@@ -12,7 +12,7 @@ import {
   WIDE_LISTINGS,
 } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
-import { PARAM_VIEW, useListingView } from '../../lib/listingView'
+import { PARAM_VIEW, TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
 import { AbilityTrack, trackForTree } from '../AbilityTrack'
@@ -64,17 +64,13 @@ type SchemaViewerIslandProps = {
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this listing needs. */
   preloadSchemas?: SchemaList
-  /** Whether any entity in the schema has artwork: only then is there a
-   *  Catalog view (the default at a desktop measure, `listingView.ts`). */
+  /** Whether any entity in the schema has artwork: then the Catalog is the
+   *  default at a desktop measure (`listingView.ts`). */
   hasArt?: boolean
   /** The unfiltered listing's size and groups, from build-time data: the
    *  skeleton sets the rail and the group headings where the grid will put
    *  them. Without it the skeleton is a flat run of placeholders. */
   shape?: ListingShape
-  /** A Catalog at every width (`CATALOG_LISTINGS`): one grid of tiles, each
-   *  on its own plate. The page passes it no tech levels, so it has no
-   *  groups and no TL facet. */
-  catalogOnly?: boolean
   /** The ids the listing lists, when it lists fewer than its schema holds
    *  (the roll tables list only their top-level tables,
    *  `lib/listingEntries.ts`); absent, it lists every entry. */
@@ -95,12 +91,11 @@ type SchemaViewerIslandProps = {
 export function SchemaViewerIsland({
   preloadSchemas,
   hasArt = false,
-  catalogOnly = false,
   shape,
   ...props
 }: SchemaViewerIslandProps) {
   // Resolved here, above the gate, so the skeletons already take the view's shape.
-  const listingView = useListingView(hasArt, catalogOnly)
+  const listingView = useListingView(props.schemaId, hasArt)
   return (
     <IslandErrorBoundary>
       <GameDataGate
@@ -110,18 +105,13 @@ export function SchemaViewerIsland({
           <ListingSkeleton
             {...props}
             hasArt={hasArt}
-            catalogOnly={catalogOnly}
             shape={shape}
             view={listingView.view}
+            views={listingView.views}
           />
         }
       >
-        <SchemaViewer
-          {...props}
-          hasArt={hasArt}
-          catalogOnly={catalogOnly}
-          listingView={listingView}
-        />
+        <SchemaViewer {...props} hasArt={hasArt} listingView={listingView} />
       </GameDataGate>
     </IslandErrorBoundary>
   )
@@ -135,12 +125,11 @@ function SchemaViewer({
   sources,
   trees = [],
   hasArt,
-  catalogOnly,
   listingView,
 }: Omit<SchemaViewerIslandProps, 'preloadSchemas' | 'shape'> & {
   listingView: ReturnType<typeof useListingView>
 }) {
-  const { view, setView, fromUrl: viewInUrl } = listingView
+  const { view, views, setView, fromUrl: viewInUrl } = listingView
   const initialData = useMemo(() => {
     const all = getModel(schemaId)?.all() ?? []
     if (!entryIds) return all
@@ -199,10 +188,21 @@ function SchemaViewer({
   }, [initialData, techLevelFilters, sourceFilter, treeFilter, nameFilter])
 
   const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
-  const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
-  const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
-  // An ability listing draws each tree on its track, as the class page does:
-  // a Core, Advanced or Hybrid tree's tiers 1-2-3, a Legendary tree's "or".
+  // A tree listing's List and Catalog are flat, by name: its Tree is the grouping.
+  const flat = TREE_LISTINGS.has(schemaId) && view !== 'tree'
+  const groupBy: GroupBy = flat
+    ? 'none'
+    : resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
+  const groups = useMemo(
+    () =>
+      groupEntities(
+        flat ? [...filteredData].sort((a, b) => a.name.localeCompare(b.name)) : filteredData,
+        groupBy
+      ),
+    [filteredData, groupBy, flat]
+  )
+  // The Tree draws each tree on its track, as the class page does: a Core,
+  // Advanced or Hybrid tree's tiers 1-2-3, a Legendary tree's "or".
   const treeTracks = useMemo(
     () =>
       new Map(
@@ -213,13 +213,11 @@ function SchemaViewer({
     [groups, groupBy]
   )
   // A single-kind listing: no type stamp, and no TL cell when the tech level
-  // heads the group or names the tile (a tech-level listing's "Tech 3").
+  // heads the group or names the entity (a tech-level listing's "Tech 3").
   const omit = useMemo(
     () =>
-      groupBy === 'tl' || (catalogOnly && TECH_LEVEL_SCHEMAS.has(schemaId))
-        ? ['kind', 'tech-level']
-        : ['kind'],
-    [groupBy, catalogOnly, schemaId]
+      groupBy === 'tl' || TECH_LEVEL_SCHEMAS.has(schemaId) ? ['kind', 'tech-level'] : ['kind'],
+    [groupBy, schemaId]
   )
   // A chassis tile carries its stats beside the name, so it keeps to the five
   // that pick a chassis; its page shows every stat.
@@ -262,7 +260,7 @@ function SchemaViewer({
     <div
       className="srd-listing"
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
-      data-catalog={catalogOnly || undefined}
+      data-catalog={(view === 'catalog' && !hasArt) || undefined}
       data-view={view}
     >
       <ListingRail
@@ -271,7 +269,7 @@ function SchemaViewer({
           techLevels: orderedTechLevels,
           sources,
           trees,
-          hasArt: !!hasArt,
+          views,
         }}
         filters={{
           techLevels: techLevelFilters,
@@ -414,17 +412,25 @@ function ListingSkeleton({
   sources,
   trees = [],
   hasArt,
-  catalogOnly,
   shape,
   view,
-}: Omit<SchemaViewerIslandProps, 'preloadSchemas'> & { view: ListingView }) {
+  views,
+}: Omit<SchemaViewerIslandProps, 'preloadSchemas'> & {
+  view: ListingView
+  views: readonly ListingView[]
+}) {
   const catalog = view === 'catalog'
-  const groups = shape?.groups ?? [{ key: 'all', label: undefined, count: catalog ? 12 : 9 }]
+  // The shape is the default view's groups; a tree listing's List and Catalog are one.
+  const flat = TREE_LISTINGS.has(schemaId) && view !== 'tree'
+  const groups =
+    shape && !flat
+      ? shape.groups
+      : [{ key: 'all', label: undefined, count: shape?.count ?? (catalog ? 12 : 9) }]
   return (
     <div
       className="srd-listing"
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
-      data-catalog={catalogOnly || undefined}
+      data-catalog={(catalog && !hasArt) || undefined}
       data-view={view}
       aria-hidden="true"
     >
@@ -435,7 +441,7 @@ function ListingSkeleton({
             techLevels: orderTechLevels(techLevels),
             sources,
             trees,
-            hasArt: !!hasArt,
+            views,
           }}
           view={view}
         />

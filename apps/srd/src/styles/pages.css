@@ -1022,20 +1022,22 @@
 }
 
 /* An index's List (`data-view="list"`) is one flat column: a Row a line, each
-   its own height; the grid is the Catalog's. `:where` keeps this under the
-   desktop pre-mount Catalog columns (`data-art`) and a Catalog-only listing,
-   so the server-rendered names there still take the tiles' shape. */
-:where(.srd-listing[data-view='list']) .srd-listing__cards {
+   its own height; the grid is the Catalog's. The abilities' Tree
+   (`data-view="tree"`) stacks its tracks, and a tree's plain rows, the same
+   way. `:where` keeps this under the desktop pre-mount Catalog columns
+   (`data-art`) and a Catalog-first listing, so the server-rendered names
+   there still take the tiles' shape. */
+:where(.srd-listing:is([data-view='list'], [data-view='tree'])) .srd-listing__cards {
   grid-auto-rows: auto;
   grid-template-columns: minmax(0, 1fr);
 }
 
-.srd-listing[data-view='list'] .srd-listing__cards[data-entity-fit] {
+.srd-listing:is([data-view='list'], [data-view='tree']) .srd-listing__cards[data-entity-fit] {
   flex-direction: column;
   flex-wrap: nowrap;
 }
 
-.srd-listing[data-view='list'] .srd-listing__cards[data-entity-fit] > * {
+.srd-listing:is([data-view='list'], [data-view='tree']) .srd-listing__cards[data-entity-fit] > * {
   flex: none;
   min-width: 0;
 }
@@ -1144,11 +1146,12 @@
 }
 
 /*
- * A Catalog-only listing (`CATALOG_LISTINGS`): a handful of tiles whose lead
- * is the content, so wider columns — three across at the page's measure, two
- * on a tablet, one on a phone — hold it in two or three lines. Its tiles have
- * no art: each is its band, cells and lead, 8.25rem on the built site. Before
- * the island mounts, its skeletons and server-rendered names take that shape
+ * A Catalog of tiles with no art (`data-catalog`: a `CATALOG_LISTINGS`
+ * schema's default, or any art-less listing's Catalog): each tile is its
+ * band, cells and lead, so wider columns — three across at the page's
+ * measure, two on a tablet, one on a phone — hold the lead in two or three
+ * lines. 8.25rem on the built site. Before the island mounts, a
+ * Catalog-first listing's skeletons and server-rendered names take that shape
  * at every width.
  */
 .srd-listing[data-catalog] {
@@ -1171,7 +1174,7 @@
   white-space: normal;
 }
 
-/* The List | Catalog toggle sits at the rail's end, beside the facets. */
+/* The List | Catalog (| Tree) toggle sits at the rail's end, beside the facets. */
 .srd-rail__view {
   flex: none;
 }
