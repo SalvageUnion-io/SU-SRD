@@ -13,11 +13,12 @@ import type { ListingShape } from '../../../lib/listingGroups'
 import { resetPreloadForTests } from '../../../lib/useGameData'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
+// Over the toolbar's cut-off (`TOOLBAR_MIN_ENTRIES`), so the rail sets its facets.
 const SHAPE: ListingShape = {
-  count: 5,
+  count: 14,
   groups: [
-    { key: '1', label: 'Tech Level 1', count: 3 },
-    { key: '2', label: 'Tech Level 2', count: 2 },
+    { key: '1', label: 'Tech Level 1', count: 8 },
+    { key: '2', label: 'Tech Level 2', count: 6 },
   ],
 }
 
@@ -72,7 +73,7 @@ describe('SchemaViewerIsland skeleton', () => {
     expect(groups.map((g) => g.textContent)).toEqual([''])
     expect(
       listing.querySelectorAll('.srd-listing__tiles > li.srd-listing__tile-skeleton').length
-    ).toBe(5)
+    ).toBe(14)
     expect(listing.querySelector('.srd-listing__cards')).toBeNull()
     expect(preloadSpy).toHaveBeenCalledWith(['chassis'], { projection: 'list' })
   })
@@ -127,6 +128,6 @@ describe('SchemaViewerIsland skeleton', () => {
     const listing = skeleton(container)
     expect(listing.getAttribute('data-view')).toBe('catalog')
     const tiles = [...listing.querySelectorAll('.srd-listing__tiles')]
-    expect(tiles.map((ul) => ul.children.length)).toEqual([5])
+    expect(tiles.map((ul) => ul.children.length)).toEqual([14])
   })
 })
