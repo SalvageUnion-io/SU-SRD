@@ -47,7 +47,7 @@ function GuideAside({ text, flavor }: { text: string; flavor: boolean }) {
  * every section heading does (ruleset §3.2: slabs section), the home page's
  * "Start here" steps included. A `section` (the book's major divisions,
  * "Post-Session") opens a solid `Slab` above the steps it holds, and numbering
- * restarts inside it. Under each banner: the step's prose, its page pointers
+ * restarts inside it. Under each slab: the step's prose, its page pointers
  * as left-aligned notes, its asides (a tip, a worked example) as framed
  * callouts, the entities it selects from as Tokens (a crawler's tech-level
  * ladder as compact cards), its
@@ -326,8 +326,7 @@ function StepHead({
       style={STEP_SLAB}
       label={
         <>
-          <span className="su-guide__num">{number}</span>{' '}
-          <span className="su-guide__name">{name}</span>
+          {number} {name}
         </>
       }
       count={optional ? 'Optional' : undefined}

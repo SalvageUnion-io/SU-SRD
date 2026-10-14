@@ -241,7 +241,7 @@
 /*
  * A guide's page reads like the book's prose pages (`.su-entity-page--guide`,
  * set by `CardPage` when it holds a guide): one column for the introduction
- * and the steps alike, so banners, tables and option cards share one left
+ * and the steps alike, so slabs, tables and option cards share one left
  * edge. Its prose is set to a book measure inside it (about 70 characters a
  * line at the reading size; the tables and cards take the column's width) at
  * a book leading, paragraphs parted by a breath rather than packed, and the

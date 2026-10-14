@@ -141,8 +141,8 @@ describe('GuideSteps on the page', () => {
 
     const heads = [...container.querySelectorAll('.su-guide__head h2')]
     expect(heads).toHaveLength(pilot.steps.length)
-    expect(heads[0]?.querySelector('.su-guide__num')?.textContent).toBe('1')
-    expect(heads[0]?.querySelector('.su-guide__name')?.textContent).toBe(pilot.steps[0]?.name)
+    // The stamp reads numeral, then name.
+    expect(heads[0]?.textContent).toBe(`1 ${pilot.steps[0]?.name}`)
   })
 
   test('an optional step says so on its slab', () => {
@@ -198,7 +198,7 @@ describe('GuideSteps on the page', () => {
     sections.forEach((section, index) => {
       expect(section.querySelector('.su-guide__section-head h2')?.textContent).toBe(labels[index])
       // Numbering restarts in every section.
-      expect(section.querySelector('.su-guide__head h3 .su-guide__num')?.textContent).toBe('1')
+      expect(section.querySelector('.su-guide__head h3')?.textContent).toMatch(/^1 /)
     })
     expect(container.querySelectorAll('.su-guide__head h3')).toHaveLength(downtime.steps.length)
   })
