@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "su-ref-generate && bun scripts/assert-local-convex.ts && VITE_TEST_AUTH=true convex dev --start vite",
     "typecheck": "tsc -b",
-    "build": "bun run typecheck && vite build",
+    "build": "bun run typecheck && bun run build:untyped",
+    "build:untyped": "vite build",
     "preview": "wrangler dev",
     "test": "bun test --parallel=4 --no-isolate",
     "deploy": "wrangler deploy",
