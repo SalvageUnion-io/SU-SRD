@@ -21,7 +21,7 @@
  * follows (`useDowntime`).
  */
 
-import { Button, ConfirmDialog, Stat, tokens } from 'component-lib'
+import { Button, ConfirmDialog, FieldError, Stat, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import {
   DOWNTIME_UPKEEP_SCRAP,
@@ -252,11 +252,7 @@ export function DowntimeTrack({
           <p style={NOTE}>{upkeep}</p>
         </div>
       )}
-      {error !== null && (
-        <p role="alert" style={{ ...NOTE, color: color.ink }}>
-          {error}
-        </p>
-      )}
+      <FieldError>{error}</FieldError>
       <ConfirmDialog
         open={confirmEnd}
         onOpenChange={setConfirmEnd}

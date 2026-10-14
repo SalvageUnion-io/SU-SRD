@@ -23,6 +23,7 @@ import {
   weight,
 } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { formatClock } from '../../lib/formatDate'
 import type { AlertLine, RollLine } from './useGameFeed'
 
 const SCROLL: CSSProperties = {
@@ -75,11 +76,6 @@ const TEXT: CSSProperties = { fontFamily: font.body, fontSize: fontSize.note, co
 
 const NOTE: CSSProperties = { ...TEXT, margin: 0, color: color.ink75 }
 
-/** "14:05", in the viewer's own clock. */
-function clock(ts: number): string {
-  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
 const SOURCE: Record<string, string> = { dashboard: 'Dashboard', 'discord-bot': 'Discord' }
 
 export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: AlertLine[] }) {
@@ -93,7 +89,7 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
           <ul style={LIST}>
             {alerts.map((a) => (
               <li key={a._id} style={ROW}>
-                <span style={META}>{clock(a.ts)}</span>
+                <span style={META}>{formatClock(a.ts)}</span>
                 <span style={TEXT}>{a.message}</span>
               </li>
             ))}
@@ -114,7 +110,7 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
             {rolls.map((r) => (
               <li key={r._id} style={ROW}>
                 <span style={META}>
-                  {[clock(r.ts), r.actorName, SOURCE[r.source] ?? r.source]
+                  {[formatClock(r.ts), r.actorName, SOURCE[r.source] ?? r.source]
                     .filter((part) => part !== null)
                     .join(' · ')}
                 </span>

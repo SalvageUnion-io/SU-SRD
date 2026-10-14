@@ -6,6 +6,7 @@
 
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
 import {
+  Button,
   Entity,
   embeddedPeekAddress,
   foldControl,
@@ -352,15 +353,14 @@ export function CrawlerBayCard({
             name={`${bay.name} crew`}
             readOnly={readOnly}
             actions={
-              <button
-                type="button"
+              <Button
                 className="su-sheet-ctl"
                 aria-expanded={crewOpen}
                 aria-label={`${crewOpen ? 'Collapse' : 'Expand'} ${bay.name} crew`}
                 onClick={() => setCrewOpen((open) => !open)}
               >
                 Details
-              </button>
+              </Button>
             }
           />
           {!readOnly && crewOpen && inlineCrew}

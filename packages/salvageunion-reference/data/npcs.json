@@ -66,6 +66,7 @@
     "name": "Combat Pilot",
     "actions": ["Pistol (Combat Pilot)", "Portable Comms Unit (NPC)"],
     "hitPoints": 10,
+    "hasArtwork": true,
     "page": 298,
     "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 104 }],
     "content": [

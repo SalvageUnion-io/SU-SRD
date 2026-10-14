@@ -17,6 +17,7 @@ import type { EntityRef } from 'itun-domain/schemas/entity'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { formatDateTime } from '../../lib/formatDate'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -123,13 +124,6 @@ function formatValue(value: unknown): string {
   return json.length > 80 ? `${json.slice(0, 79)}…` : json
 }
 
-function formatTimestamp(ts: number): string {
-  return new Date(ts).toLocaleString(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
-
 function ChangeLogEntries({
   entityType,
   entityId,
@@ -156,7 +150,7 @@ function ChangeLogEntries({
               {entry.state === 'proposed' && <KindChip label="Proposed" />}
               <span style={FIELD}>{entry.field}</span>
               <time dateTime={new Date(entry.ts).toISOString()} style={TIME}>
-                {formatTimestamp(entry.ts)}
+                {formatDateTime(entry.ts)}
               </time>
             </div>
             <div style={VALUES}>

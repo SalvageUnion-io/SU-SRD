@@ -27,7 +27,7 @@
  * the tabs at once, through one `fieldset`, and says why.
  */
 
-import { Tab, TabList, TabPanel, Tabs } from 'component-lib'
+import { Button, Tab, TabList, TabPanel, Tabs } from 'component-lib'
 import {
   borderWidth,
   color,
@@ -342,11 +342,18 @@ export function DashboardPhone({
               <img src={MARK_SRC} alt="" width={28} height={28} />
             </AppLink>
             <p style={GAME}>{gameName ? `Game · ${gameName}` : 'Dashboard'}</p>
-            <button type="button" style={BAR_KEY} aria-label="Search the SRD" onClick={onSearch}>
+            <Button
+              variant="quiet"
+              size="iconOnly"
+              style={BAR_KEY}
+              aria-label="Search the SRD"
+              onClick={onSearch}
+            >
               <Search size={22} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="quiet"
+              size="iconOnly"
               style={BAR_KEY}
               aria-label={`Menu${crewAttention ? ', the crew needs attention' : ''}${
                 inbox > 0 ? `, ${inbox} proposal${inbox === 1 ? '' : 's'} waiting` : ''
@@ -365,7 +372,7 @@ export function DashboardPhone({
                   ▲
                 </span>
               ) : null}
-            </button>
+            </Button>
           </header>
           <TabList label="Units" style={TABS}>
             {PHONE_TABS.map((t) => {

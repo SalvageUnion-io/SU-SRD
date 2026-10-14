@@ -31,7 +31,7 @@
 import { Popover } from '@base-ui/react/popover'
 import type { EntitySurfaceValue, SearchComboboxResult } from 'component-lib'
 import {
-  buttonVariants,
+  Button,
   EmptyState,
   Entity,
   EntityExternalLinkProvider,
@@ -261,14 +261,15 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
         labelClassName="su-union-bar__search-input"
       />
     ) : (
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="iconOnly"
         aria-label={LABEL}
-        className={`${buttonVariants({ variant: 'ghost', size: 'iconOnly' })} global-search-icon`}
+        className="global-search-icon"
         style={TRIGGER_ICON}
       >
         <Search size={22} aria-hidden="true" />
-      </button>
+      </Button>
     )
 
   return (

@@ -190,25 +190,23 @@ export function PilotAbilityItem({
       actions={
         <>
           {apCost !== null && (
-            <button
-              type="button"
+            <Button
               className="su-sheet-ctl"
               aria-label={`Spend ${apCost} AP for ${ability.name}`}
               disabled={currentAP < apCost}
               onClick={() => onSpend(apCost)}
             >
               Spend AP
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
             className="su-sheet-ctl"
             aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
             aria-pressed={used}
             onClick={() => onToggleUsed(!used)}
           >
             {used ? 'Used' : 'Mark Used'}
-          </button>
+          </Button>
         </>
       }
     />
@@ -350,15 +348,14 @@ export function PilotEquipmentItem({
         }
         actions={
           hasChoices && (
-            <button
-              type="button"
+            <Button
               className="su-sheet-ctl"
               aria-expanded={detailsOpen}
               aria-label={`${detailsOpen ? 'Collapse' : 'Expand'} ${equipment.name}`}
               onClick={() => setDetailsOpen((open) => !open)}
             >
               Details
-            </button>
+            </Button>
           )
         }
         onRemove={onRemove}

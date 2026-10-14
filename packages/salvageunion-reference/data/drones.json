@@ -246,6 +246,7 @@
     "cargoCapacity": 2,
     "techLevel": 5,
     "salvageValue": 1,
+    "hasArtwork": true,
     "page": 62,
     "content": [
       {

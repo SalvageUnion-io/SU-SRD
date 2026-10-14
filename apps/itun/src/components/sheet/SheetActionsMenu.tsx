@@ -10,10 +10,9 @@
  * always-mounted Sheet.
  */
 
-import { PopoverPanel } from 'component-lib'
+import { Button, PopoverPanel } from 'component-lib'
 import { Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { SHEET_ICONBTN_CLASS } from './sheetChrome.model'
 
 const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 
@@ -30,9 +29,11 @@ export function SheetActionsMenu({ children }: SheetActionsMenuProps) {
     <PopoverPanel
       label="Sheet actions"
       trigger={
-        <button type="button" aria-label="More actions" className={SHEET_ICONBTN_CLASS}>
+        // The icon rung at the page-top control height (`.su-page-action`),
+        // which the library squares to it.
+        <Button size="iconOnly" aria-label="More actions" className="su-page-action">
           <Ellipsis style={ICON} aria-hidden="true" />
-        </button>
+        </Button>
       }
     >
       {children}

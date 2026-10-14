@@ -3,7 +3,7 @@ description: Start a self-hosted Convex backend in a container, push itun's func
 
 # The backend a CI job builds itun against when it must not touch production:
 # ci.yml's `build-itun` (the PR browser gate), e2e-nightly.yml's `e2e-itun`
-# (the signed-in suite) and pr-gallery.yml's `shoot`. The container dies with
+# (the signed-in suite) and gallery.yml's `shoot`. The container dies with
 # the runner, holds no data and needs no credentials, so a job using it
 # requests no secrets.
 #

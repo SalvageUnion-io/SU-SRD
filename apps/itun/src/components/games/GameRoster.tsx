@@ -46,7 +46,7 @@
  * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
  */
 
-import { Badge, buttonVariants, Text, tokens } from 'component-lib'
+import { Badge, buttonVariants, FieldError, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
@@ -120,8 +120,6 @@ const STACK = {
 } satisfies CSSProperties
 
 const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
-
-const ERROR = { ...HINT, color: tokens.color.rollCascade } satisfies CSSProperties
 
 const FOOTNOTE = {
   color: tokens.color.wkMuted,
@@ -358,9 +356,9 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
   return (
     <>
       {error !== null && (
-        <Text variant="hint" role="alert" style={ERROR}>
-          {error}
-        </Text>
+        <div style={HINT}>
+          <FieldError>{error}</FieldError>
+        </div>
       )}
 
       {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (
