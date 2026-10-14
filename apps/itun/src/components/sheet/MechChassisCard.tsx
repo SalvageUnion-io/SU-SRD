@@ -1,23 +1,27 @@
 /**
- * MechChassisCard — the mech sheet's CHASSIS card: the chassis's own reference
- * card, under the hero (owner's calls, 2026-10-14: the hero is the player's
- * photo and what they wrote; "Chassis has a reference" — a separate, smaller
- * card with the chassis description and the standard cut-out card header).
+ * MechChassisCard — the mech sheet's CHASSIS card, under the hero (owner's
+ * calls, 2026-10-14: the hero is the player's photo and what they wrote;
+ * "Chassis has a reference" — a separate, smaller card with the chassis
+ * description, in the standard Info Cutout block the Starter Set and Shelves
+ * rows wear).
  *
- * It is the reference `ReferenceEntityCard` at `small`, so it carries the
- * book's art (fixed: the player's photo is the hero's), description, stats and
- * stats exactly as every other chassis card does. Three sheet differences: the
- * stats are the mech's derived figures (`statsOverride`, as `PartnerCard`
- * does), the chassis ability is a Peek Token, and the patterns list is hidden. Edit adds a "Change
- * Chassis" control; swapping is destructive and keeps its own confirm step.
+ * `InfoCutout` in the chassis's tone: its art column (fixed: the player's
+ * photo is the hero's), its name on the cut-out with the mech's chassis stats
+ * as chips beside it, and a paper body holding the book's description, the
+ * chassis ability as a Peek Token, and — in Edit — CHANGE CHASSIS (destructive;
+ * it keeps its own confirm step).
  */
 
-import { Entity, Field, ReferenceEntityCard } from 'component-lib'
+import { Button, Content, Entity, Field, InfoCutout } from 'component-lib'
 import type { Mech } from 'itun-domain/schemas/mech'
-import { useState } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
+import { useMemo, useState } from 'react'
+import { toEntityModel } from 'salvageunion-reference'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
+
+const CONTROLS = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
 
 type MechChassisCardProps = {
   mech: Mech
@@ -40,59 +44,69 @@ export function MechChassisCard({
   patch,
 }: MechChassisCardProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const model = useMemo(() => (entity ? toEntityModel(entity) : undefined), [entity])
 
   /** Confirmed chassis swap — destructive: clears the installed loadout. */
   function changeChassis(chassisRef: string) {
     patch?.({ chassisRef, systems: [], modules: [] })
   }
 
-  return (
-    <section aria-label="Chassis">
-      {entity ? (
-        <ReferenceEntityCard
-          data={entity}
-          size="small"
-          statsOverride={stats}
-          hide={{ patterns: true }}
-          // The chassis ability as a Peek Token, as every sheet reference is
-          // (owner's call, 2026-10-14); spending its EP is the Dashboard's.
-          afterExtraContent={
-            abilities.length > 0 ? (
-              <ul aria-label="Chassis ability" className="su-entity-token-list">
-                {abilities.map((ability) => (
-                  <li key={ability.id}>
-                    <Entity form="token" entity={ability} />
-                  </li>
-                ))}
-              </ul>
-            ) : undefined
-          }
-          controls={
-            patch
-              ? [
-                  {
-                    key: 'change-chassis',
-                    label: 'Change Chassis',
-                    onClick: () => setPickerOpen(true),
-                  },
-                ]
-              : undefined
-          }
-        />
-      ) : (
+  const picker = (
+    <MechChassisPickerModal
+      open={pickerOpen}
+      currentChassisRef={mech.chassisRef}
+      onOpenChange={setPickerOpen}
+      onConfirm={changeChassis}
+    />
+  )
+
+  if (!model) {
+    return (
+      <section aria-label="Chassis">
         <Field
           label="Chassis"
           value={chassisName}
           onEditClick={patch ? () => setPickerOpen(true) : undefined}
         />
-      )}
+        {picker}
+      </section>
+    )
+  }
 
-      <MechChassisPickerModal
-        open={pickerOpen}
-        currentChassisRef={mech.chassisRef}
-        onOpenChange={setPickerOpen}
-        onConfirm={changeChassis}
-      />
-    </section>
+  return (
+    <>
+      <InfoCutout
+        title={chassisName}
+        label="Chassis"
+        fill={model.tone}
+        art={model.art}
+        facts={stats}
+      >
+        {entity?.content && entity.content.length > 0 && (
+          <Content
+            body={entity.content as ComponentProps<typeof Content>['body']}
+            fontSize="sm"
+            chassisName={chassisName}
+          />
+        )}
+        {abilities.length > 0 && (
+          <ul aria-label="Chassis ability" className="su-entity-token-list">
+            {abilities.map((ability) => (
+              <li key={ability.id}>
+                <Entity form="token" entity={ability} />
+              </li>
+            ))}
+          </ul>
+        )}
+        {patch && (
+          <div style={CONTROLS}>
+            <Button variant="default" onClick={() => setPickerOpen(true)}>
+              Change Chassis
+            </Button>
+          </div>
+        )}
+      </InfoCutout>
+      {picker}
+    </>
   )
 }

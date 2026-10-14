@@ -221,11 +221,11 @@ export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.
 export { Mention } from './entity/forms/Mention'
+export { InfoCutout } from './entity/InfoCutout'
 export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
-export { CutOutHead } from './entity/parts/CutOutHead'
 export { KindLabel } from './entity/parts/KindLabel'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
 export { Tag } from './entity/parts/Tags'

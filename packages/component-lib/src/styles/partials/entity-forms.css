@@ -373,6 +373,20 @@
 
 /* The paper body: the facts, the tags, the lead. No rule above it: the
    head's cut-out opens into it. */
+.su-info-cutout__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+  padding: var(--space-12);
+}
+
+.su-info-cutout__body[data-flush] {
+  gap: 0;
+  padding: 0;
+}
+
 .su-entity-row__body {
   align-content: flex-start;
   align-items: center;

@@ -43,7 +43,7 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
-import { Badge, BandTitle, Card, CutOutHead, cn, SlotGrid, tokens } from 'component-lib'
+import { Badge, BandTitle, cn, InfoCutout, SlotGrid, tokens } from 'component-lib'
 import { totalLotUnits } from 'itun-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
@@ -67,8 +67,6 @@ type StorageManifestProps = {
 
 /** The column template is `.su-sheet-crawler-manifest` (it splits at md). */
 const MANIFEST = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
-
-const HOLD_CARD = { boxShadow: '0 2px 8px -3px var(--color-ink-50)' } satisfies CSSProperties
 
 const STRIP = {
   display: 'flex',
@@ -220,16 +218,12 @@ export function StorageManifest({
       data-storage-side={side}
     >
       {/* Hold panel */}
-      <Card
-        headerBgColor="var(--color-ink)"
-        // The standard cut-out card head (owner's call, 2026-10-14).
-        head={
-          <CutOutHead
-            title={side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
-            aside={<BandTitle variant="mute">{side === 'mech' ? mechName : crawlerName}</BandTitle>}
-          />
-        }
-        cardStyle={{ style: HOLD_CARD }}
+      {/* The standard Info Cutout block, as the Chassis card and every
+          listing Row (owner's call, 2026-10-14). */}
+      <InfoCutout
+        title={side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
+        aside={<BandTitle variant="mute">{side === 'mech' ? mechName : crawlerName}</BandTitle>}
+        flush
       >
         {/* Capacity strip — paper, like the rest of the Hold body: the
             tone-tinted ground it once wore was off the closed palette
@@ -317,7 +311,7 @@ export function StorageManifest({
             />
           </div>
         )}
-      </Card>
+      </InfoCutout>
 
       {/* Counterpart panel */}
       {showCounterpart && (
