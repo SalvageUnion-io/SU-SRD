@@ -328,91 +328,17 @@
   }
 }
 
-/* The home page's Discord bot panel. */
-.srd-panel {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  display: flex;
-  flex-direction: column;
+/* The home page's Discord bot (`DiscordBot` in `HomeContents.tsx`): a catalog
+   tile that is all band, in Discord's blurple (a one-off, owner's call
+   2026-10-14), the name's cut-out on the frame's foot and the install button
+   at a chip's size on the band beside it. No body. */
+.srd-discord__band {
+  border-top: 0;
+  min-height: calc(2.6 * var(--text-title) + var(--space-10));
 }
 
-.srd-panel__heading {
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  margin: 0;
-  padding: var(--space-10) var(--space-14) var(--space-8);
-  text-transform: uppercase;
-}
-
-.srd-panel__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  padding: 0 var(--space-14) var(--space-4);
-}
-
-.srd-panel__body p {
-  font-size: var(--text-lede);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.srd-panel__foot {
-  border-top: var(--bw-hairline) solid var(--color-ink-20);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  margin-top: var(--space-6);
-  padding: var(--space-8) var(--space-14) var(--space-12);
-}
-
-.srd-panel__cta {
-  align-self: flex-start;
-}
-
-.srd-panel__foot--row {
-  align-items: center;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: var(--space-14);
-}
-
-.srd-panel__link {
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-semibold);
-  text-underline-offset: 3px;
-}
-
-/* The bot as the home page's foot band (`.srd-home__discord` at 80rem and
-   up): the words on the left, the buttons on the right. */
-@media (min-width: 80rem) {
-  .srd-home__discord .srd-panel {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto 1fr;
-  }
-
-  .srd-home__discord .srd-panel__heading {
-    grid-column: 1;
-  }
-
-  .srd-home__discord .srd-panel__body {
-    grid-column: 1;
-    padding-block-end: var(--space-12);
-  }
-
-  .srd-home__discord .srd-panel__foot {
-    align-content: center;
-    border-left: var(--bw-hairline) solid var(--color-ink-20);
-    border-top: 0;
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    margin-top: 0;
-    padding: var(--space-12) var(--space-14);
-  }
+.srd-discord__band > .su-entity-tile__chips {
+  margin-bottom: var(--space-8);
 }
 
 /*

@@ -29,16 +29,21 @@
 
 /* ── compositions/StartHere ── */
 
-/* The three steps are one box (the `<ol>`'s border is its style object), with
-   no rules between steps: stacked until the block is 48rem wide, then three
-   across. A class because the layout changes with the container's width. */
+/* The three steps are catalog tiles (`.su-entity-tile`): stacked until the
+   block is 48rem wide, then three across. A class because the layout changes
+   with the container's width. */
 .su-start-here {
   container-type: inline-size;
 }
 
 .su-start-here__steps {
   display: grid;
+  gap: var(--space-14);
   grid-template-columns: minmax(0, 1fr);
+}
+
+.su-start-here__item {
+  display: flex;
 }
 
 @container (min-width: 48rem) {
@@ -47,9 +52,9 @@
   }
 }
 
-/* A step that opens its guide underlines its title (the slab's stamp) on
-   hover. A class because a style object has no `:hover`. */
-.su-start-here__step:hover .su-start-here__title h3 {
+/* A step that opens its guide underlines its title on hover. A class because
+   a style object has no `:hover`. */
+.su-start-here__step:hover .su-start-here__title {
   text-decoration: underline;
   text-underline-offset: 3px;
 }

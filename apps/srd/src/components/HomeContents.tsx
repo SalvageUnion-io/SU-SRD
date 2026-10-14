@@ -1,5 +1,5 @@
 import type { ChapterTone } from 'component-lib'
-import { buttonVariants, CHAPTER_BAND_COLOR, StartHere } from 'component-lib'
+import { buttonVariants, CHAPTER_BAND_COLOR, StartHere, TILE_NAME } from 'component-lib'
 import type { ComponentProps } from 'react'
 
 /**
@@ -72,35 +72,37 @@ export function HomeStartHere({
 }
 
 /**
- * The SURef Discord bot, offered beside the index: the same lookups and every
- * table, rolled in the crew's own server. Installs from here; `/discord`
- * documents the commands.
+ * The SURef Discord bot, offered beside the index: a catalog tile that is all
+ * band, in Discord's blurple (a one-off exception to the tone palette, owner's
+ * call 2026-10-14), its name on the cut-out and the install button at a chip's
+ * size beside it. The site footer links `/discord`, which documents the
+ * commands.
  */
-export function DiscordBot({ installHref, aboutHref }: { installHref: string; aboutHref: string }) {
+export function DiscordBot({ installHref }: { installHref: string }) {
   return (
-    <section className="srd-panel" aria-labelledby="discord-bot">
-      <h2 id="discord-bot" className="srd-panel__heading">
-        Roll on Discord
-      </h2>
-      <div className="srd-panel__body">
-        <p>
-          The SURef bot brings this reference to your table&rsquo;s server: roll on every Salvage
-          Union table and look up any chassis, system or module with <code>/su</code>.
-        </p>
-        <p>Free, no account, and it asks for no server permissions.</p>
-      </div>
-      <div className="srd-panel__foot srd-panel__foot--row">
-        <a
-          href={installHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${buttonVariants({ variant: 'primary', size: 'full' })} srd-panel__cta`}
+    <section className="su-entity-tile su-entity-tile--bare" aria-labelledby="discord-bot">
+      <div className="su-entity-tile__frame">
+        <div
+          className="su-entity-tile__band su-grain--paper srd-discord__band"
+          data-grain="paper"
+          style={{ backgroundColor: 'var(--color-discord)', columnGap: 'var(--space-6)' }}
         >
-          Add to Discord
-        </a>
-        <a href={aboutHref} className="srd-panel__link">
-          See the commands
-        </a>
+          <span className="su-entity-tile__notch">
+            <h2 id="discord-bot" className="su-entity-tile__name" style={TILE_NAME}>
+              Roll on Discord
+            </h2>
+          </span>
+          <span className="su-entity-tile__chips">
+            <a
+              href={installHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: 'ink', size: 'mini' })}
+            >
+              Add to Discord
+            </a>
+          </span>
+        </div>
       </div>
     </section>
   )
