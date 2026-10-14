@@ -17,6 +17,7 @@
       "@randsum/salvageunion": "1.0.1",
       "@fontsource/barlow": "5.3.0",
       "@fontsource/barlow-semi-condensed": "5.3.0",
+      "@fontsource/caveat": "5.3.0",
       "@sentry/browser": "10.69.0",
       "convex": "1.45.0",
       "lucide-react": "1.33.0",
