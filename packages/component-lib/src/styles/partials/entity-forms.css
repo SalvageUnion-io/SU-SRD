@@ -595,6 +595,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   white-space: normal;
 }
 
+/* A Token as a listbox option (the SRD header search): the highlighted option
+   wears the ink selection ring, as a Row option does. */
+.su-entity-token[aria-selected='true'] > .su-entity-token__pill {
+  box-shadow: 0 0 0 3px var(--color-ink);
+}
+
 /*
  * AN ENTITY GRID (`data-entity-grid` on the list): every Row in it is the same
  * height, and the parts line up. The grid's rows are equal, each cell's Row

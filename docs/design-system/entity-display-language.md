@@ -58,7 +58,7 @@ Each is checkable; breaking one needs an amendment here first.
 ## Which form, where
 
 1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules as full-width Tokens, one a line.
-2. **Search, both apps** — Row (no lead), link. **Any prose** — Mention: Peek, then Page.
+2. **Search, both apps** — Row (no lead), link; SRD header dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
 3. **ITUN wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **ITUN dense slots** (inventory strip, bays, loadouts) — Token, link. **Deck, resolve** — Row / Card.
 5. **ITUN "open" anywhere** — the Page in the detail dialog. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.
