@@ -142,6 +142,20 @@ if (document.readyState === 'loading') {
   mountIslands()
 }
 
+// A guide page served as static HTML: its contents mark the section in view.
+// Plain DOM in its own chunk, fetched only on such a page; a guide card that
+// is an island starts the same watcher itself (`GuideSteps`).
+const guidePages = document.querySelectorAll('.su-guide--page')
+if (guidePages.length > 0) {
+  void import('component-lib/guideContents')
+    .then((m) => {
+      for (const root of guidePages) m.watchGuideContents(root)
+    })
+    .catch((error: unknown) => {
+      console.warn('[guide] could not watch the contents', error)
+    })
+}
+
 /**
  * Fill the offline page cache — but only for an installed app, and only once
  * the page the reader actually asked for has been dealt with.
