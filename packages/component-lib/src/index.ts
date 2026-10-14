@@ -19,7 +19,6 @@ export { buttonVariants } from './components/atoms/buttonVariants'
 export { CatalogTile } from './components/atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './components/atoms/ChapterBand'
-export { Radio } from './components/atoms/Checkbox'
 // Conditions — the entity-condition chip row. Public because ITUN's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './components/atoms/Conditions'
@@ -53,6 +52,7 @@ export { ModeDoor } from './components/atoms/ModeDoor'
 export { PageHeading } from './components/atoms/PageHeading'
 export { Panel } from './components/atoms/Panel'
 export { linesFromBreakdown, summarizeBreakdown } from './components/atoms/provenanceLines'
+export { Radio } from './components/atoms/Radio'
 export { SearchField, SearchFieldTrigger } from './components/atoms/SearchField'
 export { Sel } from './components/atoms/Sel'
 export { Slab } from './components/atoms/Slab'

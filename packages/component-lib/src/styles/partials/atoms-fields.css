@@ -1,9 +1,9 @@
 /*
  * The package stylesheet, part 12 of 21: Field, the inputs, InlineEditField,
- * Sel and Checkbox. `../index.css` imports the parts in cascade order.
+ * Sel and Radio. `../index.css` imports the parts in cascade order.
  */
 
-/* ── Field, inputs, InlineEditField, Sel, Checkbox ── */
+/* ── Field, inputs, InlineEditField, Sel, Radio ── */
 /* `atoms/inputs.tsx` + `atoms/Field.tsx`: the `Input` / `Textarea` / `Select`
  * skin. ALL of it is a class, geometry included: the three are public and
  * callers restyle them by className (`px-2 py-1.5 text-xs`, `w-auto
@@ -112,7 +112,7 @@
   line-height: calc(1.75 / 1.25);
 }
 
-/* `atoms/Checkbox.tsx`: the choice row fills on hover, and the stacked row
+/* `atoms/Radio.tsx`: the choice row fills on hover, and the stacked row
  * thickens its border (padding paying the difference) once checked. */
 .su-choice {
   background-color: var(--color-paper);
