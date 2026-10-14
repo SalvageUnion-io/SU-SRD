@@ -18,29 +18,42 @@
  * short card; anyone can open any part. A Component Embed cannot carry a
  * button, so a pasted link keeps the full card.
  *
+ * The card's nested **systems and modules** (a pattern's, a drone's, …) are
+ * index rows too, each with a Read button that answers privately with that
+ * entry's card (`childRows`), as many as fit Discord's ceilings. A pasted link
+ * lists them as linked names.
+ *
  * Otherwise what the bot adds is controls only, all stateless (`customId.ts`): a **Roll
  * button** for the entry's own table and every table its actions roll on, so a
- * chained roll is one tap, a **Buy link** when the book the entry is printed in
- * is for sale from Leyline Press (`buyLink`), and, when the card links other
- * entries (a pattern's systems and modules, a drone's systems, …), one
- * **linked-entries menu** (`linkedMenu`): picking an entry answers privately
- * with that entry's card, so the channel never fills up. A pasted link has no
- * menu, for the same reason it has no Read buttons. Older messages' `su:view`
+ * chained roll is one tap, a **Full entry** button where the shared card was
+ * shed (a pasted link prints it as a text link), a **Buy link** when the book
+ * the entry is printed in is for sale from Leyline Press (`buyLink`), and, when
+ * the card links other entries that are not rows (an ability's grants, the
+ * systems past the ceiling, …), one **linked-entries menu** (`linkedMenu`):
+ * picking an entry answers privately with that entry's card, so the channel
+ * never fills up. A pasted link has no menu, for the same reason it has no Read
+ * buttons. Older messages' `su:view`
  * tabs and `su:peek` picker are retired and answer "no longer supported".
  */
 
 import { ButtonStyle } from 'discord-api-types/v10'
 import type {
+  DiscordBlock,
+  DiscordChildGroup,
+  EntityRef,
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaEntity,
   SURefObjectAnyPattern,
 } from 'salvageunion-reference'
 import {
+  childStamp,
   discordAccent,
   discordCardParts,
+  discordChildGroup,
   discordEntryCard,
   discordEntryIndexCard,
+  discordRowSummary,
   findEntityBySlug,
   getEntitySlug,
   getPatterns,
@@ -148,7 +161,7 @@ export function buyLink(hit: LookupHit): string | null {
  * key, so a pick needs nothing but itself. Null when the card links nothing, or
  * the menu's id would not fit Discord's cap.
  */
-function linkedMenu(hit: LookupHit): ContainerBlock | null {
+function linkedMenu(hit: LookupHit, drawn: ReadonlySet<string>): ContainerBlock | null {
   const parts = discordCardParts(
     toEntityModel(
       hit.entity as SURefMetaEntity,
@@ -164,8 +177,8 @@ function linkedMenu(hit: LookupHit): ContainerBlock | null {
       if (item.synthetic || item.schemaName === 'actions' || !isSchemaName(item.schemaName)) {
         continue
       }
-      const value = `${item.schemaName}::${item.slug}${item.pattern ? `::${nameToSlug(item.pattern)}` : ''}`
-      if (seen.has(value) || value.length > 100) continue
+      const value = refKey(item)
+      if (drawn.has(value) || seen.has(value) || value.length > 100) continue
       seen.add(value)
       options.push({
         label: (item.pattern ?? item.name).slice(0, 100),
@@ -184,19 +197,135 @@ function linkedMenu(hit: LookupHit): ContainerBlock | null {
   }
 }
 
+/** A linked entry's lookup key: `schemaName::slug`, and `::pattern` for a pattern. */
+function refKey(item: EntityRef): string {
+  return `${item.schemaName}::${item.slug}${item.pattern ? `::${nameToSlug(item.pattern)}` : ''}`
+}
+
 /**
  * The linked-entries menu's answer: the picked entry's own card, with no
  * controls (read-only and terminal), or null when the entry is gone.
  */
 export function openCard(key: string): ContainerData | null {
   const hit = entityFromKey(key)
-  return hit ? entityCard(hit) : null
+  return hit ? withFullEntryButton(entityCard(hit)).card : null
 }
 
 /** The entry's one card, as the Component Embed draws it, with no controls. */
-function entityCard(hit: LookupHit): ContainerData {
+function entityCard(hit: LookupHit): CardData {
   const card = discordEntryCard(hit.entity as SURefMetaEntity, hit.pattern)
   return { accent: discordAccent(card.tone), blocks: card.blocks }
+}
+
+/** A card as the shared renderer draws it, its blocks still marked. */
+type CardData = { accent: number; blocks: (DiscordBlock | ContainerBlock)[] }
+
+/** The card's nested-entity block, which lists the groups it draws. */
+function isChildBlock(
+  block: DiscordBlock | ContainerBlock
+): block is Extract<DiscordBlock, { kind: 'text' }> & { children: DiscordChildGroup[] } {
+  return block.kind === 'text' && 'children' in block && Array.isArray(block.children)
+}
+
+/** A block as the container draws it, its renderer's marks dropped. */
+function plain(block: DiscordBlock | ContainerBlock): ContainerBlock {
+  return block.kind === 'text' ? { kind: 'text', content: block.content } : block
+}
+
+/**
+ * A shed card's closing link as a footer button: the Component Embed prints it
+ * as text, which a message can do better. The button, if any, and the card
+ * without the link.
+ */
+function withFullEntryButton(card: CardData): { card: ContainerData; button?: ButtonSpec } {
+  let button: ButtonSpec | undefined
+  const blocks: ContainerBlock[] = []
+  for (const block of card.blocks) {
+    if (block.kind === 'text' && 'more' in block && block.more) {
+      button = { kind: 'link', url: block.more.url, label: block.more.label }
+    } else blocks.push(plain(block))
+  }
+  const fixed: ContainerData = { accent: card.accent, blocks }
+  return button ? { card: fixed, button } : { card: fixed }
+}
+
+/** The entry's rendered parts, everything its card can show. */
+function partsOf(hit: LookupHit): ReturnType<typeof discordCardParts> {
+  return discordCardParts(
+    toEntityModel(
+      hit.entity as SURefMetaEntity,
+      undefined,
+      hit.pattern ? { pattern: hit.pattern } : undefined
+    )
+  )
+}
+
+/** The nested entries a card draws as rows, each with its own Read button. */
+const ROW_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules'])
+
+/**
+ * A card's nested systems and modules as index rows, the shape a long entry's
+ * actions take: name and stat line, with a **Read** button that answers
+ * privately with that entry's card. Other groups keep their linked names.
+ *
+ * As many rows as the message can carry within Discord's ceilings (`reserved`
+ * components are the controls still to come), in the card's order; the rest
+ * stay linked names under the rows, and in the menu.
+ */
+function childRows(
+  card: ContainerData,
+  groups: DiscordChildGroup[],
+  reserved: number
+): { blocks: ContainerBlock[]; drawn: Set<string> } {
+  const layout = (limit: number): { blocks: ContainerBlock[]; drawn: Set<string> } => {
+    const drawn = new Set<string>()
+    const blocks: ContainerBlock[] = []
+    const other: DiscordChildGroup[] = []
+    for (const group of groups) {
+      const rows: ContainerBlock[] = []
+      const left: EntityRef[] = []
+      const seen = new Set<string>()
+      const rowable = group.items.every((item) => ROW_SCHEMAS.has(item.schemaName))
+      for (const item of group.items) {
+        const key = refKey(item)
+        // One row per entry: a message cannot carry the same button id twice.
+        if (seen.has(key)) continue
+        seen.add(key)
+        const summary = rowable && drawn.size < limit ? discordRowSummary(item) : null
+        const customId = summary ? makeCustomId('read', key) : null
+        if (summary && customId && !drawn.has(key)) {
+          rows.push({
+            kind: 'section',
+            text: [summary],
+            button: { kind: 'action', customId, label: 'Read' },
+          })
+          drawn.add(key)
+        } else if (!drawn.has(key)) left.push(item)
+      }
+      if (rows.length === 0) {
+        other.push(group)
+        continue
+      }
+      blocks.push({ kind: 'text', content: `-# ${group.label.toUpperCase()} (${group.count})` })
+      blocks.push(...rows)
+      if (left.length > 0) other.push(discordChildGroup('More', left))
+    }
+    if (other.length > 0) blocks.push({ kind: 'text', content: other.map(childStamp).join('\n') })
+    return { blocks, drawn }
+  }
+  const fits = (blocks: ContainerBlock[]): boolean => {
+    const whole: ContainerData = { ...card, blocks: [...card.blocks, ...blocks] }
+    return (
+      containerComponentCount(whole) + reserved <= V2_LIMIT.components &&
+      containerTextLength(whole) <= V2_LIMIT.totalText
+    )
+  }
+  const rowCount = groups.reduce((n, group) => n + group.items.length, 0)
+  for (let limit = rowCount; limit > 0; limit--) {
+    const laid = layout(limit)
+    if (fits(laid.blocks)) return laid
+  }
+  return layout(0)
 }
 
 /**
@@ -215,10 +344,10 @@ function readId(hit: LookupHit, actionName: string): string | null {
  * two actions, or an action's Read id would not fit Discord's cap (the full
  * card is then the one sent, so nothing becomes unreachable).
  */
-function indexCard(hit: LookupHit, full: ContainerData): ContainerData | null {
+function indexCard(hit: LookupHit, full: CardData): CardData | null {
   if (containerTextLength(full) <= INDEX_MIN_CHARS) return null
   const card = discordEntryIndexCard(hit.entity as SURefMetaEntity, hit.pattern)
-  const blocks: ContainerBlock[] = []
+  const blocks: CardData['blocks'] = []
   let rows = 0
   for (const block of card.blocks) {
     if (block.kind === 'section' && block.action !== undefined) {
@@ -239,11 +368,14 @@ function indexCard(hit: LookupHit, full: ContainerData): ContainerData | null {
 
 /**
  * The Read button's answer: one action of an entry, whole, under the entry's
- * name and over its citation. Null when the entry or the action is gone.
+ * name and over its citation; or, for a nested system's or module's row (a key
+ * with no action), that entry's own card. Null when the entry or the action is
+ * gone.
  */
 export function readCard(payload: string): ContainerData | null {
   const cut = payload.lastIndexOf('|')
-  if (cut === -1) return null
+  // A nested system's or module's row: its whole card.
+  if (cut === -1) return openCard(payload)
   const hit = entityFromKey(payload.slice(0, cut))
   if (!hit) return null
   const slug = payload.slice(cut + 1)
@@ -269,28 +401,50 @@ export function readCard(payload: string): ContainerData | null {
 }
 
 /**
- * The lookup card: the entry's one card (a long one as its index), then its
- * linked-entries menu, Roll buttons and Buy link.
+ * A card with the bot's controls: its nested systems and modules as Read rows,
+ * then the linked-entries menu for the rest, then the Roll buttons, the Full
+ * entry button when the card was shed, and the Buy link.
  */
-export function lookupCard(hit: LookupHit): ContainerData {
-  const full = entityCard(hit)
+function withControls(hit: LookupHit, card: CardData): ContainerData {
+  const marked = card.blocks.findIndex(isChildBlock)
+  const { card: base, button: fullEntry } = withFullEntryButton({
+    ...card,
+    blocks: card.blocks.filter((_, index) => index !== marked),
+  })
+  // Every group the entry has, even one the shared card shed for the pasted
+  // link's budget: rows answer to Discord's ceilings, not that budget. They
+  // stand where the card listed the groups, else over the citation's rule.
+  const groups = partsOf(hit).children
+  const at = marked === -1 ? base.blocks.length - 2 : marked
   const buy = buyLink(hit)
   const buttons: ButtonSpec[] = [
     ...rollButtons(hit),
+    ...(fullEntry ? [fullEntry] : []),
     ...(buy ? [{ kind: 'link' as const, url: buy, label: 'Buy' }] : []),
   ]
-  const menu = linkedMenu(hit)
+  const buttonRow = buttons.length > 0 ? 1 + buttons.length : 0
+  // Two for the menu's row, which may yet come: rows never crowd out a control.
+  const { blocks: rows, drawn } = childRows(base, groups, buttonRow + 2)
+  base.blocks.splice(at, 0, ...rows)
+  const menu = linkedMenu(hit, drawn)
   const controls: ContainerBlock[] = [
     ...(menu ? [menu] : []),
     ...(buttons.length > 0 ? [{ kind: 'buttons' as const, buttons }] : []),
   ]
-  const withControls = (card: ContainerData): ContainerData =>
-    controls.length > 0 ? { ...card, blocks: [...card.blocks, ...controls] } : card
+  return { ...base, blocks: [...base.blocks, ...controls] }
+}
+
+/**
+ * The lookup card: the entry's one card (a long one as its index), then its
+ * controls.
+ */
+export function lookupCard(hit: LookupHit): ContainerData {
+  const full = entityCard(hit)
   // Each index row costs three components; an index that would pass Discord's
   // ceiling sends the full card instead, which the shared budget already fits.
   const index = indexCard(hit, full)
-  const indexed = index ? withControls(index) : null
+  const indexed = index ? withControls(hit, index) : null
   return indexed && containerComponentCount(indexed) <= V2_LIMIT.components
     ? indexed
-    : withControls(full)
+    : withControls(hit, full)
 }
