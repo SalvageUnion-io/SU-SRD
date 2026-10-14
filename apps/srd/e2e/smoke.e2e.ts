@@ -178,7 +178,10 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.srd-listing__group')).toHaveCount(1)
     await expect(page.locator('.srd-listing__group[aria-label]')).toHaveCount(0)
     await expect(page.locator('.srd-rail__view')).toHaveCount(0)
-    const box = await tile.locator('.su-entity-tile__art').boundingBox()
+    // boundingBox() does not wait, so wait for the art box to lay out first.
+    const art = tile.locator('.su-entity-tile__art')
+    await expect(art).toBeVisible()
+    const box = await art.boundingBox()
     expect(box).not.toBeNull()
     if (box) expect(Math.abs(box.width / box.height - 3 / 4)).toBeLessThan(0.02)
   })
