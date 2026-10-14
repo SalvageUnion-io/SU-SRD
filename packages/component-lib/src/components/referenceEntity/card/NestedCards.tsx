@@ -252,10 +252,10 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
 }
 
 /**
- * ACTIONS sit INLINE in their card (board E1): each a flush ink band — name
- * and cost — then its "//" line and body. No tray and no "Action" stamp: an
- * action is part of the thing that does it, not a thing it carries. Titanic
- * actions are inline too, so the full-width row they needed is the default.
+ * ACTIONS nest in their card (owner's call, 2026-10-14): each a self-contained
+ * framed card, inset in the parent's frame like any nested entity (`CardStack`),
+ * its cut-out ink head carrying the name and its chips, then its body. No tray
+ * and no "Action" stamp: an action is part of the thing that does it.
  */
 export function InlineActions({
   actions,
@@ -265,18 +265,21 @@ export function InlineActions({
   host: NestedCardHost
 }) {
   const { NestedCard } = host
-  return actions.map((action, index) => (
-    <NestedCard
-      key={cardKey(action, index)}
-      inline
-      size={host.size}
-      depth={host.depth + 1}
-      hostDown={host.isDown}
-      data={action}
-      hostName={host.entityName}
-      chassisName={host.chassisName}
-    />
-  ))
+  return (
+    <CardStack size={host.size} flush={host.onPage}>
+      {actions.map((action, index) => (
+        <NestedCard
+          key={cardKey(action, index)}
+          size={nestedChildSize(host.size)}
+          depth={host.depth + 1}
+          hostDown={host.isDown}
+          data={action}
+          hostName={host.entityName}
+          chassisName={host.chassisName}
+        />
+      ))}
+    </CardStack>
+  )
 }
 
 /** The card's gutter by size — what a chip or a section aligns to. */
