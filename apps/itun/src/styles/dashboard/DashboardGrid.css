@@ -68,8 +68,8 @@
 }
 
 /* The display is the ONE surface that reads "forward": a light SRD "paper"
-   document inset in the dark cockpit (the reused ReferenceEntityDisplay /
-   RollTable are light-themed). It is deliberately a step brighter than the
+   document inset in the dark cockpit (the reused ReferenceEntityCard and
+   RollTableInstrument are light-themed). It is deliberately a step brighter than the
    cream instruments around it. Its own scroll — the canvas never scrolls. */
 .su-dash-display-light {
   background: var(--color-paper);

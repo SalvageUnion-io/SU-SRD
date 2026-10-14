@@ -61,7 +61,7 @@ describe('have vs do', () => {
 describe('actions nest', () => {
   test("a system's actions are self-contained framed cards, with no Action stamp", () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
-    // Each action is its own frame inset in the system's, never a flush band.
+    // Each action is its own frame inset in the system's.
     expect(container.querySelectorAll('.su-ec-frame .su-ec-frame')).toHaveLength(2)
     // The card's own tone header, then one ink band per action.
     expect(fills(container)).toEqual(['tone', 'ink', 'ink'])

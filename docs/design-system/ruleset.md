@@ -83,7 +83,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (classification pills, User-made; never above it, never riding the frame, never the kind, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
-   - **Actions sit inline** — flush ink bands, no Actions tray or stamp (on a Page, framed cards under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
+   - **Actions nest** — framed cards, ink banners, no Actions tray or stamp (on a Page, under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
    - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind. One tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.
