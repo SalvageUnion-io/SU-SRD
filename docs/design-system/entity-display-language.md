@@ -42,7 +42,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E7** Modes fill slots; they never change anatomy.
 - **E8** A Listing never expands in place (ruleset §1.5).
 - **E9** Facts and traits are chips (horizontal Stats; traits link), sections Slabs. Citations are text on every foot (`Workshop Manual · p.112`). Only a Page's foot names the kind; stamps that say more stay.
-- **E10** Art appears by room, not by prop; an entity without art has no art place, and nothing stands in for it.
+- **E10** Art appears by room, not by prop; no art, no art place, save a Tile in a catalog with art (a censor mark).
 - **E11** The lead appears only while browsing (SRD listings and search page).
 - **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Card or Page, and as a Row but for an ability.
   An ability's Row wears its tier, as its track and page band do: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.

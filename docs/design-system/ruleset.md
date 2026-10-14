@@ -26,7 +26,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` for every card, `--color-paper` for the display region alone. On a phone: bar, tab body, resolve screen (ADR-045).
    4. **The cost pennant is the action** — on the Dashboard, tapping the pennant resolves the action: read-pennant size, filled rust, 44px hit area, no separate deck button.
    5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck, depth 2): art column, one-row head, value cells then the facets row.
-      Context changes props, never the anatomy; nothing edits or expands in place. An entity without art has no art place: no stand-in fill.
+      Context changes props, never the anatomy; nothing edits or expands in place. An entity without art has no art place (a catalog with art: a censor mark).
       Where the schema has art, the SRD Catalog draws Tiles (`<Entity form="tile">`; EDL E2 and "Which form, where" 1).
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links, nested Peeks or steppers; children are Tokens, Mentions inert.

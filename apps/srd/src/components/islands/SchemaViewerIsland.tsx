@@ -1,7 +1,14 @@
 import { Button, EmptyState, Entity, EntitySurfaceProvider, Skeleton, Slab } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
-import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
+import {
+  getAssetUrl,
+  getEntitySlug,
+  getModel,
+  getSource,
+  getTechLevel,
+  getTree,
+} from 'salvageunion-reference'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
 import type { GroupBy, ListingShape, TechLevel } from '../../lib/listingGroups'
 import {
@@ -176,6 +183,15 @@ function SchemaViewer({
     const listed = new Set(entryIds)
     return all.filter((item) => listed.has(item.id))
   }, [schemaId, entryIds])
+
+  // A catalog with art keeps every tile's art place: an art-less entity wears a
+  // censor mark, turned by its place among the listing's art-less entities.
+  const missingArt = useMemo(() => {
+    if (!hasArt) return undefined
+    const order = new Map<string, number>()
+    for (const item of initialData) if (!getAssetUrl(item)) order.set(item.id, order.size)
+    return order
+  }, [hasArt, initialData])
 
   // Filter state initializes from the URL on mount so a shared/bookmarked link
   // restores the exact filtered view. Lazy initializers run once; the reads are
@@ -402,6 +418,7 @@ function SchemaViewer({
                           omit={tileOmit}
                           lead
                           priority={groupIndex === 0 && index < OPENING_ROW}
+                          missingArt={missingArt?.get(item.id)}
                         />
                       </li>
                     ))}
