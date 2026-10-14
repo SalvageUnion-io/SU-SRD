@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Children, useSyncExternalStore } from 'react'
+import { Children } from 'react'
+import { useMediaQuery } from '../../utils/useMediaQuery'
 import { RadioCardGroup } from './RadioCardGroup'
 
 /** `.su-masonry` (`styles/index.css`): it collapses to one block in print. */
@@ -31,33 +32,18 @@ type MasonryColumnsProps = {
 const MD = '(min-width: 48rem)'
 const XL = '(min-width: 80rem)'
 
-function columnsForViewport(): number {
-  if (typeof window === 'undefined') return 1
-  if (window.matchMedia(XL).matches) return 3
-  if (window.matchMedia(MD).matches) return 2
-  return 1
-}
-
-// useSyncExternalStore only subscribes after hydration, so `window` is defined
-// whenever this runs.
-function subscribeColumns(onChange: () => void): () => void {
-  const md = window.matchMedia(MD)
-  const xl = window.matchMedia(XL)
-  md.addEventListener('change', onChange)
-  xl.addEventListener('change', onChange)
-  return () => {
-    md.removeEventListener('change', onChange)
-    xl.removeEventListener('change', onChange)
-  }
-}
-
 function useColumnCount(): number {
-  // The server snapshot (1 column) is used for SSR *and* the first hydration
-  // render, so the client's initial tree matches the SSR HTML; React then
-  // reconciles to the live viewport column count without a hydration mismatch
-  // (React #418). Seeding useState from `window` instead rendered 1 column on
-  // the server but 2–3 on the client's first render, breaking hydration.
-  return useSyncExternalStore(subscribeColumns, columnsForViewport, () => 1)
+  // The server snapshot (1 column: both queries answer false) is used for SSR
+  // *and* the first hydration render, so the client's initial tree matches the
+  // SSR HTML; React then reconciles to the live viewport column count without
+  // a hydration mismatch (React #418). Seeding useState from `window` instead
+  // rendered 1 column on the server but 2–3 on the client's first render,
+  // breaking hydration.
+  const xl = useMediaQuery(XL, false)
+  const md = useMediaQuery(MD, false)
+  if (xl) return 3
+  if (md) return 2
+  return 1
 }
 
 /**

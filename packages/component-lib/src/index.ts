@@ -260,3 +260,5 @@ export { useParseTraitReferences } from './utils/parseTraitReferences'
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't
 // spell the same schema differently.
 export { schemaPluralLabel } from './utils/schemaLabels'
+// The one viewport media-query hook (a breakpoint read in JS, not CSS).
+export { useMediaQuery } from './utils/useMediaQuery'
