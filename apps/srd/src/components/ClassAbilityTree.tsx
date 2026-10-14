@@ -1,4 +1,4 @@
-import { ActivationCost, Slab, Stat } from 'component-lib'
+import { ActivationCost, Head, Slab, Stat } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
@@ -96,6 +96,23 @@ function briefCards(plan: Exclude<ClassPlan, { kind: 'none' }>): BriefCard[] {
   ]
 }
 
+/** A tier's book hue (§3.8): the band its brief card and its trees' tracks wear. */
+const TIER_BAND: Record<TreeTrack, string> = {
+  core: 'var(--color-pilot)',
+  advanced: 'var(--color-tier-hybrid)',
+  hybrid: 'var(--color-tier-hybrid)',
+  legendary: 'var(--color-crawler-band)',
+}
+
+/** A cut-out head's paint in a tier's hue: the name sits on the paper tab in ink. */
+const tierPaint = (tier: TreeTrack) =>
+  ({
+    background: TIER_BAND[tier],
+    color: 'var(--color-ink)',
+    ink: false,
+    nameOnPaper: false,
+  }) as const
+
 /** A Hybrid Class's trees, with the class that owns each branch. */
 function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
   const trees: RefText = [`${plan.path.advanced.tree}`]
@@ -131,10 +148,19 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
       <ul className="srd-class-brief__cards">
         {briefCards(plan).map((card) => (
           <li key={card.label} className="srd-class-brief__card" data-tier={card.tier}>
-            <div className="srd-class-brief__band">
-              <span className="srd-class-brief__tab">{card.label}</span>
-              {card.cost && <ActivationCost cost={card.cost} currency="TP" compact />}
-            </div>
+            <Head
+              title={card.label}
+              paint={tierPaint(card.tier)}
+              chips={
+                card.cost && (
+                  <div className="su-chips">
+                    <ActivationCost cost={card.cost} currency="TP" compact />
+                  </div>
+                )
+              }
+              notch
+              chipsBeside
+            />
             <p className="srd-class-brief__body">
               <MentionProse parts={card.value} />
             </p>
@@ -202,22 +228,27 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
     ? toEntityModel(hybrid).lead
     : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
   const head = (
-    <>
-      <span className="srd-class-path__name">{name}</span>
-      <span className="srd-class-path__band">
-        <PathRequirement path={path} classEntity={classEntity} />
-        <Stat orientation="horizontal" label={kind} size="compact" />
-      </span>
-    </>
+    <Head
+      title={name}
+      paint={tierPaint('core')}
+      chips={
+        <div className="su-chips">
+          <PathRequirement path={path} classEntity={classEntity} />
+          <Stat orientation="horizontal" label={kind} size="compact" />
+        </div>
+      }
+      notch
+      chipsBeside
+    />
   )
   return (
     <li className="srd-class-path" data-kind={kind.toLowerCase()}>
       {hybrid ? (
-        <a className="srd-class-path__head" href={classHref(hybrid)}>
+        <a className="srd-class-path__link" href={classHref(hybrid)}>
           {head}
         </a>
       ) : (
-        <div className="srd-class-path__head">{head}</div>
+        head
       )}
       <div className="srd-class-path__body">
         {note && <p className="srd-class-path__note">{note}</p>}

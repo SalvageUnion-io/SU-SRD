@@ -63,7 +63,6 @@ describe('actions nest', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
     // Each action is its own frame inset in the system's, never a flush band.
     expect(container.querySelectorAll('.su-ec-frame .su-ec-frame')).toHaveLength(2)
-    expect(container.querySelector('.su-ec-inline')).toBeNull()
     // The card's own tone header, then one ink band per action.
     expect(fills(container)).toEqual(['tone', 'ink', 'ink'])
     expect(screen.queryByText('Action')).toBeNull()

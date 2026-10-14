@@ -4,8 +4,8 @@
  * lead, the inline actions, and what every nested card inherits.
  * `resolveCardSections` (`cardSections.tsx`) turns it into nodes.
  *
- * A plain function, not a component: the card lays the result out three ways
- * (the framed card, an inline action band, a page), so it needs values.
+ * A plain function, not a component: the card lays the result out two ways
+ * (the framed card, a page), so it needs values.
  */
 
 import type { ReactNode } from 'react'
@@ -63,7 +63,6 @@ export type CardBodyInput = Pick<
   size: CardSize
   depth: number
   compact: boolean
-  inline: boolean
   onPage: boolean
   readable: boolean
   isAction: boolean
@@ -102,7 +101,6 @@ export function resolveBodyProse(input: CardBodyInput) {
     size,
     depth,
     compact,
-    inline,
     onPage,
     readable,
     isCatalog,
@@ -187,8 +185,7 @@ export function resolveBodyProse(input: CardBodyInput) {
   // The card context every prose band renders with.
   const prose: CardProseContext = {
     rulesBearing: isRulesBearing(data),
-    // An inline action reads at its host's size, not a nested card's.
-    compact: inline ? size !== 'large' : compact,
+    compact,
     chassisName: resolvedChassisName,
     toneColor: tone.bgColor ?? tone.bg,
     ...(onPage ? { fontSize: 'inherit' } : readable ? { fontSize: 'sm' } : {}),

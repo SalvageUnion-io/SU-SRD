@@ -53,9 +53,9 @@ function toSubHeaderCell(cell: FacetCell): CardFacetCell {
   }
 }
 
-/** `bonusPerTechLevel` fields → "+N" vertical stat boxes (zeros/absent dropped).
- * The label splits top/bottom around the value: [field, TOP word, BOTTOM word]
- * (e.g. "Structure" / "Points"), the same two-line treatment as "Tech" / "Level". */
+/** `bonusPerTechLevel` fields → "+N" label-first chips (zeros/absent dropped).
+ * Each entry is [field, first word, second word]; the chip's label joins the
+ * two ("Structure Points"), and a Damage cell carries the second as its unit. */
 const BONUS_LABELS: [keyof SURefObjectBonusPerTechLevel, string, string][] = [
   ['structurePoints', 'Structure', 'Points'],
   ['energyPoints', 'Energy', 'Points'],

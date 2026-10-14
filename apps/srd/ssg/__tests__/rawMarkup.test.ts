@@ -74,7 +74,7 @@ describe('rendered pages', () => {
     [
       'a hybrid class, its trees and their owners',
       '/classes/fabricator',
-      'srd-class-brief__tab">Hybrid<',
+      'su-entity-row__title" title="Hybrid"><span>Hybrid<',
     ],
     ['a two-roll columns table', '/roll-tables/callsign-table', 'data-island="ColumnsTableIsland"'],
     [

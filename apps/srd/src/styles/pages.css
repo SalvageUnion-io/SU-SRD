@@ -1302,11 +1302,9 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-/* A tier card: the band in its book hue (ink on pilot, paper elsewhere,
-   §3.8), the tier's name on the paper cut-out tab that opens into the body,
-   no rule between them, and the TP cost in the pointy box on the band. */
+/* A tier card: its cut-out head (`Head`, in the tier's book hue, §3.8) opens
+   into the body, no rule between them. */
 .srd-class-brief__card {
-  --srd-brief-tier: var(--color-pilot);
   background: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
   border-radius: var(--radius-card);
@@ -1314,43 +1312,6 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-}
-
-.srd-class-brief__card[data-tier='advanced'],
-.srd-class-brief__card[data-tier='hybrid'] {
-  --srd-brief-tier: var(--color-tier-hybrid);
-}
-
-.srd-class-brief__card[data-tier='legendary'] {
-  --srd-brief-tier: var(--color-crawler-band);
-}
-
-.srd-class-brief__band {
-  align-items: flex-end;
-  background: var(--srd-brief-tier);
-  display: flex;
-  gap: var(--space-8);
-  justify-content: space-between;
-  padding: var(--space-8) var(--space-10) 0;
-}
-
-.srd-class-brief__band > :not(.srd-class-brief__tab) {
-  align-self: center;
-  margin-bottom: var(--space-4);
-}
-
-.srd-class-brief__tab {
-  background: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-lede);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  line-height: 1.1;
-  margin-left: calc(-1 * var(--space-2));
-  padding: var(--space-4) var(--space-8) var(--space-2);
-  text-transform: uppercase;
 }
 
 .srd-class-brief__body {
@@ -1421,74 +1382,16 @@
   overflow: hidden;
 }
 
-.srd-class-path__head {
-  align-items: flex-end;
-  background: var(--color-pilot);
+/* A Hybrid Class's head opens its page: the whole cut-out head is the link. */
+.srd-class-path__link {
   color: var(--color-ink);
-  display: flex;
-  gap: var(--space-8);
-  justify-content: space-between;
-  padding: var(--space-10) var(--space-12) 0;
+  display: block;
   text-decoration: none;
 }
 
-/* The chips, right of the name on the band (a Row's cut-out head): what
-   opens the path, then its kind, level with the name's foot. */
-.srd-class-path__band {
-  align-items: center;
-  display: flex;
-  flex: 1 1 auto;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  justify-content: flex-end;
-  min-width: min-content;
-  padding-block: var(--space-6);
-}
-
-/* On a phone the chips flow UNDER the name, never above it: their own line on
-   the paper below the tab, the head of the body, so the tab still opens into
-   the paper (a Row's, `entity-forms.css`). The strip is painted the card's
-   full width by a clipped shadow, since the head is inset. */
-@media (max-width: 40rem) {
-  .srd-class-path__head {
-    flex-wrap: wrap;
-    row-gap: 0;
-  }
-
-  .srd-class-path__band {
-    background-color: var(--color-paper);
-    box-shadow: 0 0 0 100vmax var(--color-paper);
-    clip-path: inset(0 -100vmax -1px);
-    flex-basis: 100%;
-    justify-content: flex-start;
-    order: 1;
-    padding-block: var(--space-6) 0;
-  }
-}
-
-a.srd-class-path__head:hover {
-  color: var(--color-ink);
-}
-
-a.srd-class-path__head:focus-visible {
+.srd-class-path__link:focus-visible {
   outline: var(--bw-chrome) solid var(--color-ink);
   outline-offset: calc(-1 * var(--space-4));
-}
-
-/* The name on the paper cut-out, notched into the band's foot (a Row's): the
-   head draws no rule under it, so the tab opens into the paper body. */
-.srd-class-path__name {
-  background-color: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.05;
-  flex: 0 1 auto;
-  margin-left: calc(-1 * var(--space-2));
-  max-width: 100%;
-  padding: var(--space-6) var(--space-10) var(--space-2);
-  text-transform: uppercase;
 }
 
 .srd-class-path__body {
@@ -1622,40 +1525,13 @@ a.srd-class-path__head:focus-visible {
   color: var(--color-wk-muted);
 }
 
-/* A changelog entry (`components/Changelog.tsx`): a card's frame, its
-   cut-out head — the band, the date on a paper tab notched into its foot, the
-   area stamp beside it — and the paper body the tab opens into. */
+/* A changelog entry (`components/Changelog.tsx`): a card's frame round its
+   cut-out head (`Head`) and the paper body the tab opens into. */
 .srd-changelog__entry {
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
   border-radius: var(--radius-card);
   overflow: hidden;
-}
-
-.srd-changelog__band {
-  align-items: flex-end;
-  display: flex;
-  gap: var(--space-8);
-  padding: var(--space-12) var(--space-10) 0;
-}
-
-.srd-changelog__date {
-  background-color: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  line-height: 1.1;
-  margin: 0;
-  padding: var(--space-4) var(--space-8) var(--space-2);
-}
-
-/* The area stamp stays on the band, centred on the tab's line. */
-.srd-changelog__area {
-  align-self: center;
 }
 
 .srd-changelog__items {

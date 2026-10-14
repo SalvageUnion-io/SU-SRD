@@ -62,6 +62,15 @@ describe('chunkGuideStepProse', () => {
     ])
   })
 
+  test("a hint's label rides along as its aside's stamp", () => {
+    const chunks = chunkGuideStepProse([
+      { type: 'hint', value: 'Paying Upkeep is paying your dues.', label: 'Note' },
+    ])
+    expect(chunks).toEqual([
+      { kind: 'aside', text: 'Paying Upkeep is paying your dues.', flavor: false, label: 'Note' },
+    ])
+  })
+
   test('a value-only label folds onto the paragraph it heads, as its stamp', () => {
     const chunks = chunkGuideStepProse([
       paragraph('An area that can be Area Salvaged has two values.'),
@@ -181,6 +190,19 @@ describe('GuideSteps on the page', () => {
     expect(runIn?.className).toContain('su-rung-label--full')
   })
 
+  test('a labelled hint is a stamped callout: its NOTE stamp rides the frame', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={guide('Crawler Downtime')} presentation="page" />
+    )
+    const stamped = [...container.querySelectorAll('.su-guide__aside--stamped')]
+    expect(stamped).toHaveLength(1)
+    expect(stamped[0]?.getAttribute('role')).toBe('note')
+    const stamp = stamped[0]?.querySelector('.su-badge-stamp.su-guide__aside-stamp')
+    expect(stamp?.textContent).toBe('Note')
+    expect(stamp?.className).toContain('su-stamp-seam')
+    expect(stamped[0]?.querySelector('p')?.textContent).toContain('paying your dues')
+  })
+
   test('a step prose run on a card keeps the compact stamp', () => {
     const { container } = render(<ReferenceEntityCard data={guide('Tough Choices')} />)
     const runIn = [...container.querySelectorAll('.su-guide__prose .su-badge-stamp')].find(
@@ -243,8 +265,12 @@ describe('GuideSteps on the page', () => {
     }
     // Every anchor is unique.
     expect(ids.size).toBe(links.length)
-    // The phone's fold carries the same list.
-    expect(container.querySelectorAll('details.su-guide__toc-fold a')).toHaveLength(links.length)
+    // The phone's block carries the same list, always open under its slab: no
+    // disclosure to fold it.
+    const block = container.querySelector('nav.su-guide__toc-block')
+    expect(block?.querySelectorAll('a')).toHaveLength(links.length)
+    expect(block?.firstElementChild?.textContent).toBe('On this page')
+    expect(container.querySelector('.su-guide details, .su-guide summary')).toBeNull()
   })
 
   test('a card has no rail and no anchors', () => {
