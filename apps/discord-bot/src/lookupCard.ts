@@ -118,9 +118,8 @@ function rollButtons(hit: LookupHit): ButtonSpec[] {
   return unique.flatMap((name, index) => {
     const customId = makeCustomId('roll', name)
     if (!customId) return []
-    // A roll table IS its table: "Roll on this table", as it always read.
-    const label =
-      hit.schemaName === 'roll-tables' && index === 0 ? 'Roll on this table' : `Roll ${name}`
+    // A roll table IS its table: "Roll the Die", as the SRD's table button reads.
+    const label = hit.schemaName === 'roll-tables' && index === 0 ? 'Roll the Die' : `Roll ${name}`
     return [{ kind: 'action' as const, customId, label, style: ButtonStyle.Primary }]
   })
 }

@@ -1,6 +1,6 @@
 /**
  * customId scheme tests — the stateless button plumbing behind "Roll again" /
- * "Roll on this table".
+ * "Roll the Die".
  *
  * `buttonInteractionHandlerFor` in `connectedMode.test.ts` covers the happy
  * `su:roll` / `su:lookup` dispatch; these pin the encoding contract directly:

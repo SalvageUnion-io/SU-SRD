@@ -209,7 +209,7 @@ export function buildSeeTableMessage(
   const die = decoded.rolls.join('·')
   const rollId = makeCustomId('roll', table.name)
   const buttons: ButtonSpec[] = rollId
-    ? [{ kind: 'action', customId: rollId, label: 'Roll on this table' }]
+    ? [{ kind: 'action', customId: rollId, label: 'Roll the Die' }]
     : []
 
   const parts = discordCardParts(toEntityModel(table))

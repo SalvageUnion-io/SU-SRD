@@ -242,7 +242,7 @@ describe('lookupCard — tables and roll buttons', () => {
     expect(text).toContain('-# ROLL THE DIE:')
     expect(text).toContain('`20` **Reactor Overdrive**')
     expect(text).toContain('`11–19` **Reactor Overheat**')
-    expect(labels(card)).toEqual(['Roll on this table', 'Buy'])
+    expect(labels(card)).toEqual(['Roll the Die', 'Buy'])
   })
 
   test('a two-roll table prints each column with its entries', () => {
