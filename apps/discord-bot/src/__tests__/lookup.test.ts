@@ -124,7 +124,7 @@ describe('buildTableLookupMessage — the "See table" button target', () => {
     expect(text).toContain('## [Core Mechanic](https://salvageunion.io/')
     // Full rows are still inlined (backtick roll keys), not just a link-out.
     expect(text).toContain('`20`')
-    // A roll-table lookup offers a one-click "Roll on this table" button.
+    // A roll-table lookup offers a one-click "Roll the Die" button.
     expect(message.data.blocks.some((b) => b.kind === 'buttons')).toBe(true)
   })
 

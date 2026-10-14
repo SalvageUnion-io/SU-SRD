@@ -21,7 +21,7 @@ const CUSTOM_ID_MAX = 100
 /**
  * The actions a button can re-invoke. `roll` re-rolls a named Salvage Union
  * table (shared by the roll subcommand's result and the lookup card's
- * "Roll on this table" button); `lookup` returns the `/su lookup` card for a
+ * "Roll the Die" button); `lookup` returns the `/su lookup` card for a
  * named roll-table (the "See table" button on a roll result); `post`
  * re-renders a PRIVATE roll publicly; `table` answers privately with the
  * whole table, the roll's row marked; `read` answers privately with one action of a long lookup card, whose index
@@ -92,7 +92,7 @@ export function encodeRollResult(tableName: string, rolls: number[]): string {
  * A re-roll REQUEST: the table, and the Discord id of the one person who may
  * press it — `<table>|<userId>`. Only the person who rolled re-rolls; anyone
  * else rolls their own with `/su roll`. A bare table name (every button posted
- * before this, and the lookup card's "Roll on this table", which is a first
+ * before this, and the lookup card's "Roll the Die", which is a first
  * roll) carries no owner and stays open to anyone. Table names hold no `|`.
  */
 export function encodeRollRequest(tableName: string, ownerId?: string, isPrivate = false): string {
