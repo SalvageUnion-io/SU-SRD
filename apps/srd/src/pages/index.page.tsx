@@ -114,7 +114,7 @@ function page(): PageResult {
             <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
           </div>
           <div className="srd-home__discord">
-            <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
+            <DiscordBot installHref={DISCORD_INSTALL_URL} />
           </div>
         </div>
       </div>

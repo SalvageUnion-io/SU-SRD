@@ -1,7 +1,6 @@
-import type { CSSProperties } from 'react'
 import { assetDerivativeUrl, assetSrcSetFor } from '../../components/compositions/assetSrcSet'
 import { grainClass } from '../../components/referenceEntity/card/cardGrain'
-import { font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
@@ -13,6 +12,7 @@ import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
+import { TILE_NAME } from '../parts/tileName'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 export type TileProps = {
@@ -54,24 +54,6 @@ const SIZES = '(min-width: 75rem) 22rem, 50vw'
  */
 const GEAR: ReadonlySet<string> = new Set(['systems', 'modules'])
 const GEAR_HIDDEN: ReadonlySet<string> = new Set(['SV', 'Bio'])
-
-/** The name on its cut-out of the paper below, in ink (ruleset, "Chapter band"). */
-const NAME: CSSProperties = {
-  color: 'var(--color-ink)',
-  display: '-webkit-box',
-  fontFamily: font.cond,
-  fontSize: fontSize.title,
-  fontWeight: weight.extrabold,
-  letterSpacing: tracking.capsTight,
-  lineHeight: 1.05,
-  margin: 0,
-  minWidth: 0,
-  overflow: 'hidden',
-  overflowWrap: 'anywhere',
-  textTransform: 'uppercase',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-}
 
 /**
  * TILE — the catalog form: the artwork is the hero. The art at 3:4 on paper
@@ -153,7 +135,7 @@ export function Tile({
           }}
         >
           <span className="su-entity-tile__notch">
-            <span className="su-entity-tile__name" title={model.title} style={NAME}>
+            <span className="su-entity-tile__name" title={model.title} style={TILE_NAME}>
               {model.title}
             </span>
           </span>

@@ -126,6 +126,10 @@
      (ruleset §3.1). It carries paper text (design/__tests__/contrast.test.ts). */
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
 
+  /* Discord's blurple: the SRD home's "Roll on Discord" band only, a one-off
+     exception to the tone palette (owner's call, 2026-10-14). */
+  --color-discord: rgb(88, 101, 242); /* #5865f2 */
+
   /* Roll result tiers — canonical warm state palette (canonical primitive
      language §3): warm, so damaged/destroyed state (via the --color-status-* aliases below) and the Discord bot's roll
      outcomes share ONE warm ramp. Web surfaces never colour roll outcomes —
