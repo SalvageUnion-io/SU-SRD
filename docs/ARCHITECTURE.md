@@ -42,8 +42,8 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 12. **No device cache** <a id="no-device-cache"></a>
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/offline.e2e.ts` pins both offline cases.
 13. **Zustand stores** <a id="stores"></a>
-    `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs.
-    A refused write changes nothing; no TanStack Query, reads are `src/hooks/entities/` and `convex/react`.
+    `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
+    No TanStack Query; reads: `src/hooks/entities/`, `convex/react`. Shared state is a store; context only carries what depends on where a component renders.
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).
