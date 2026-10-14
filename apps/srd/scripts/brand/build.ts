@@ -6,9 +6,11 @@
  * srd's favicon set and `favicon.ico`, ITUN's favicon and PWA icons, and the
  * Discord bot's profile icon. It lives in srd because srd owns sharp.
  *
- * `bun scripts/brand/build.ts --upload-discord` (from apps/srd) also sets the bot's app icon and user avatar through the
- * Discord API, reading the bot token from `DISCORD_TOKEN` (the variable
- * `deploy-commands` reads). Without the flag nothing leaves the machine.
+ * `bun run brand:discord` (this file with `--upload-discord`) also sets the
+ * bot's app icon and user avatar through the Discord API. The bot token is
+ * `DISCORD_TOKEN` when set, else read from 1Password with the `op` CLI at
+ * `DISCORD_TOKEN_REF`, the reference `apps/discord-bot/.env.example` uses.
+ * Without the flag nothing leaves the machine.
  *
  * Not covered: the Discord banner (`apps/discord-bot/brand/banner.png`) and the
  * default link previews (`og-image.png`) carry no mark, and the Ko-fi page has
@@ -17,6 +19,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import sharp from 'sharp'
+import { ICO_FILE, ICO_SIZES, PNG_FILES, SVG_FILES } from './files'
 import { markSvg } from './mark'
 
 const ROOT = join(import.meta.dir, '../../../..')
@@ -25,34 +28,6 @@ function log(message: string) {
   // biome-ignore lint/suspicious/noConsole: CLI script — progress on stdout is the point
   console.log(message)
 }
-
-/** Every SVG this script writes, by repo path. The drift test reads this list. */
-export const SVG_FILES: Record<string, string> = {
-  'apps/srd/public/logos/su-cargo-dark.svg': markSvg({ title: 'Salvage Union' }),
-  'apps/itun/public/logos/su-cargo-dark.svg': markSvg({ title: 'Salvage Union' }),
-  'apps/catalog/public/logos/su-cargo-dark.svg': markSvg({ title: 'Salvage Union' }),
-  'apps/srd/public/favicons/su/favicon.svg': markSvg({ title: 'Salvage Union SRD' }),
-  'apps/itun/public/favicon.svg': markSvg({ title: 'In the Union now' }),
-  'apps/discord-bot/brand/icon.svg': markSvg({
-    title: 'Salvage Union',
-    avatar: true,
-    flecks: true,
-    px: 1024,
-  }),
-}
-
-/** Rasters: [repo path, pixel size, source]. Flecks only from 180px up. */
-const PNG_FILES: readonly [string, number, string][] = [
-  ['apps/srd/public/favicons/su/favicon-16.png', 16, markSvg({ title: '' })],
-  ['apps/srd/public/favicons/su/favicon-32.png', 32, markSvg({ title: '' })],
-  ['apps/srd/public/favicons/su/favicon-180.png', 180, markSvg({ title: '', flecks: true })],
-  ['apps/itun/public/icon-192.png', 192, markSvg({ title: '', flecks: true })],
-  ['apps/itun/public/icon-512.png', 512, markSvg({ title: '', flecks: true })],
-  ['apps/discord-bot/brand/icon.png', 1024, markSvg({ title: '', avatar: true, flecks: true })],
-]
-
-const ICO_SIZES = [16, 32, 48] as const
-const ICO_FILE = 'apps/srd/public/favicon.ico'
 
 function png(svg: string, size: number): Promise<Buffer> {
   return sharp(Buffer.from(svg), { density: (72 * size) / 512 })
@@ -89,9 +64,18 @@ function write(path: string, data: string | Buffer) {
   log(`wrote ${path}`)
 }
 
+/** The bot token in 1Password (vault SUSRD, item discord-bot). */
+const DISCORD_TOKEN_REF = 'op://SUSRD/discord-bot/password'
+
+function readOnePassword(ref: string): string {
+  const read = Bun.spawnSync(['op', 'read', ref], { stderr: 'inherit' })
+  const value = read.stdout.toString().trim()
+  if (!read.success || !value) throw new Error(`could not read ${ref}: sign in with \`op signin\``)
+  return value
+}
+
 async function uploadDiscord(icon: Buffer) {
-  const token = process.env.DISCORD_TOKEN
-  if (!token) throw new Error('--upload-discord needs DISCORD_TOKEN (the bot token)')
+  const token = process.env.DISCORD_TOKEN ?? readOnePassword(DISCORD_TOKEN_REF)
   const image = `data:image/png;base64,${icon.toString('base64')}`
   const calls: [string, Record<string, string>][] = [
     ['applications/@me', { icon: image }],

@@ -59,6 +59,7 @@
     "deploy-commands": "bun --filter discord-bot deploy-commands",
     "deploy-commands:global": "bun --filter discord-bot deploy-commands:global",
     "brand": "bun --filter srd brand",
+    "brand:discord": "bun apps/srd/scripts/brand/build.ts --upload-discord",
     "rules:extract": "bun tools/extract-rules.ts",
     "rules:find": "bun tools/rules-find.ts",
     "typecheck": "su-ref-generate && tsc -b",

@@ -17,6 +17,6 @@ reads these files.
 - **Icon:** the SU mark (stencil SU on an ink stamp, the chapter colours along
   the foot), full bleed with the glyph scaled into Discord's circular crop.
   `bun run brand` writes both icon files from `apps/srd/scripts/brand/mark.ts`;
-  `bun apps/srd/scripts/brand/build.ts --upload-discord` with `DISCORD_TOKEN`
-  set also uploads
-  it as the app icon and the bot's avatar, in place of the portal upload.
+  `bun run brand:discord` also uploads it as the app icon and the bot's
+  avatar, in place of the portal upload, with the token resolved from
+  1Password (`op read op://SUSRD/discord-bot/password`).
