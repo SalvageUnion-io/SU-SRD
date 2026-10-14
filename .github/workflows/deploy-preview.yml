@@ -98,35 +98,10 @@ jobs:
           VITE_ITUN_ORIGIN: ${{ env.PREVIEW_ITUN_ORIGIN }}
         run: bun --filter srd build
 
-      - name: Upload the srd build
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: srd-build
-          path: apps/srd/dist/
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 1
-
-  og-srd:
-    needs: build-srd
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Download the srd build
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: srd-build
-          path: apps/srd/dist
-
+      # Best-effort, as in deploy-cloudflare.yml's build-srd: a failed render
+      # keeps the default og:image.
       - name: Render srd OG images
+        continue-on-error: true
         uses: ./.github/actions/srd-og
 
       - name: Upload the srd artifact
@@ -182,7 +157,7 @@ jobs:
   # Push the staging backend, then ship both Workers as Previews, only after
   # both builds are green.
   ship:
-    needs: [og-srd, build-itun]
+    needs: [build-srd, build-itun]
     runs-on: ubuntu-latest
     environment: preview
     outputs:

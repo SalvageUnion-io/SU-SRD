@@ -87,7 +87,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): linear history, strict `CI Success` + PR-title checks, CodeQL.
     Actions are allowlisted and SHA-pinned (zizmor); ruleset and Environments drift-checked nightly; no merge queue.
 28. **Deploy** <a id="deploy"></a>
-    `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy (srd's after `og-srd`) → smoke → record (tag `deployed/cloudflare`).
+    `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy; the bot leg registers its slash commands.
 29. **Preview deploys** <a id="previews"></a>
     A PR into `main` labelled `preview` gets Worker Previews `pr-<n>` (srd, ITUN on staging Convex) per push, linked in a comment, deleted on close.

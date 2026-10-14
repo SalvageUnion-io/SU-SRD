@@ -30,8 +30,8 @@
  *                 the smoke job needs every deploy job, and the deploy record
  *                 needs the smoke job to have SUCCEEDED.
  *                 A build job uploads an artifact built from source; a pass
- *                 that downloads one and re-uploads it (srd's OG render) is
- *                 not a build, and only what ships its output waits for it.
+ *                 that downloads one and re-uploads it is not a build, and
+ *                 only what ships its output waits for it.
  *                 Every one of those jobs sits downstream of a job that is
  *                 skipped by design, so each must carry an explicit status
  *                 function in its `if:` — the implicit `success()` is false
