@@ -221,6 +221,7 @@ export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.
 export { Mention } from './entity/forms/Mention'
+export { InfoCutout } from './entity/InfoCutout'
 export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'

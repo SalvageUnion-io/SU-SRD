@@ -68,6 +68,8 @@ const PRIMITIVE_GROUPS = new Set(['Atoms', 'Containers'])
  * classified by its directory's group, never by an entry in this list.
  */
 const SINGLE_APP: Readonly<Record<string, string>> = {
+  InfoCutout:
+    "the Row's container block (art column, cut-out band, paper body) for a panel that is not a listed entity: one block shape, owned where the entity forms own it",
   heatDangerFrom:
     "the pip index where a heat track turns red: the input to `VitalGauge`'s `danger` prop",
   linesFromBreakdown:
