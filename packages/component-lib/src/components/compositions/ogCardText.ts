@@ -1,4 +1,4 @@
-import { color } from '../../design/tokens'
+import { color, space } from '../../design/tokens'
 import { textBand } from '../referenceEntity/referenceEntityHelpers'
 
 /**
@@ -12,6 +12,17 @@ import { textBand } from '../referenceEntity/referenceEntityHelpers'
 /** The canvas: the size every unfurl draws a "large" card at. */
 export const OG_CARD_WIDTH = 1200
 export const OG_CARD_HEIGHT = 630
+
+/**
+ * The previews' one grid, shared by `OgCard` and `BrandCard` so every link
+ * preview sets its text on the same edges. `OG_GUTTER` is the outer edge,
+ * in from the frame: the notch's side, the small lines (chips, cite, kicker,
+ * quote) and, on the right, the address. `OG_NOTCH_INSET` is the inner edge:
+ * the notched title, that far inside the notch (`ChapterBand`'s og title
+ * padding, `--space-24`).
+ */
+export const OG_GUTTER = `calc(${space[48]} + ${space[8]})`
+export const OG_NOTCH_INSET = space[24]
 
 /**
  * One chip, label first, as the page's horizontal `Stat` draws it: `TL | 1`,

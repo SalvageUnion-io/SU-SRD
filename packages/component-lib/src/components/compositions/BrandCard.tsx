@@ -4,7 +4,7 @@ import { borderWidth, color, font, space, tracking, weight } from '../../design/
 import type { ChapterTone } from '../atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { Speckle } from '../atoms/Speckle'
-import { OG_CARD_HEIGHT, OG_CARD_WIDTH } from './ogCardText'
+import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCardText'
 
 /**
  * BrandCard — the site's own link preview: the picture a link unfurls with
@@ -49,14 +49,6 @@ export type BrandCardProps = {
 /** The frame: twice the entity card's 3px, as `OgCard`'s. */
 const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
 
-/**
- * The one text edge. The notch stands `space[32]` in from the frame; every
- * line on the card (the kicker or quote, its credit, the wordmark and, on the
- * right, the address) starts or ends `TEXT_INSET` inside the notch's edges, so
- * the band's lines and the notch's share a left edge and a right edge.
- */
-const TEXT_INSET = space[48]
-
 /** The chapter colours along the foot, in the book's order. */
 const FOOT_TONES = ['rules', 'pilot', 'mech', 'crawler', 'denizen'] as const
 
@@ -75,14 +67,19 @@ const CARD = {
   width: OG_CARD_WIDTH,
 } satisfies CSSProperties
 
-/** The band: the kicker on one line, the notch filling everything under it. */
+/**
+ * The band: the kicker on one line, the notch filling everything under it.
+ * It is set on the entity previews' grid (`OG_GUTTER`): the kicker, quote and
+ * credit start on the notch's side, as an entity card's chips and cite do,
+ * and the address ends on it, as the Union bar's address does.
+ */
 const BODY = {
   display: 'flex',
   flex: '1 1 auto',
   flexDirection: 'column',
   gap: space[24],
   minHeight: 0,
-  padding: `${space[24]} ${space[32]} 0`,
+  padding: `${space[24]} ${OG_GUTTER} 0`,
 } satisfies CSSProperties
 
 const KICKER = {
@@ -107,9 +104,9 @@ const NOTCH = {
   display: 'flex',
   flex: '1 1 auto',
   minHeight: 0,
-  // Set flush left on the card's text edge, not centred: a centred wordmark
-  // starts wherever its own width puts it, never on the kicker's edge.
-  paddingInline: TEXT_INSET,
+  // Set flush left at the notched title's inset, not centred: a centred
+  // wordmark starts wherever its own width puts it, never on the grid.
+  paddingInline: OG_NOTCH_INSET,
   // Caps sit low in their line box; this centres the ink, not the box.
   paddingBottom: space[24],
 } satisfies CSSProperties
@@ -120,7 +117,7 @@ const TITLE = {
   fontWeight: weight.extrabold,
   lineHeight: 0.84,
   // The face's side bearing grows with its size: pull the wordmark's ink back
-  // onto the edge the kicker's ink starts on.
+  // onto the inset an entity card's 120px title starts on.
   margin: '0 0 0 -0.03em',
   textTransform: 'uppercase',
 } satisfies CSSProperties
@@ -131,7 +128,6 @@ const KICKER_ROW = {
   display: 'flex',
   gap: space[24],
   justifyContent: 'space-between',
-  paddingInline: TEXT_INSET,
 } satisfies CSSProperties
 
 /** The wordmark under a quote, which stands taller than a kicker's one line. */

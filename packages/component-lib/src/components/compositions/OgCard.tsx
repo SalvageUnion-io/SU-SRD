@@ -12,6 +12,7 @@ import {
   footLineOf,
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
+  OG_GUTTER,
   ogCardPrintedTitle,
   ogCardTitle,
   ogTitleSize,
@@ -70,7 +71,6 @@ import {
 
 /** The frame: twice the entity card's 3px, so it reads as 2px at 400px wide. */
 const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
-const GUTTER = `calc(${space[48]} + ${space[8]})`
 
 const CARD = {
   backgroundColor: color.wkBg,
@@ -103,7 +103,7 @@ const BODY = {
   flexDirection: 'column',
   gap: space[20],
   minHeight: 0,
-  padding: `${space[28]} ${GUTTER}`,
+  padding: `${space[28]} ${OG_GUTTER}`,
 } satisfies CSSProperties
 
 /**
@@ -178,7 +178,7 @@ const BAR = {
   gap: space[16],
   isolation: 'isolate',
   justifyContent: 'space-between',
-  padding: `0 ${GUTTER}`,
+  padding: `0 ${OG_GUTTER}`,
   position: 'relative',
 } satisfies CSSProperties
 
