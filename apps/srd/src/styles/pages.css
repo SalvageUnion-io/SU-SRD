@@ -1830,7 +1830,25 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   gap: var(--space-6);
 }
 
-/* "or" / "Engineer only": a lone-label caps badge, frameless (§7.1). */
+/* The requirement as ONE chip: its cells (REQ | tree, then OR | tree for each
+   other tree) butt into one rounded cell, sharing their inner edges. */
+.srd-class-path__req-chip {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.srd-class-path__req-cell:not(:first-child) {
+  border-bottom-left-radius: 0;
+  border-left-width: 0;
+  border-top-left-radius: 0;
+}
+
+.srd-class-path__req-cell:not(:last-child) {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* "Engineer only": a lone-label caps badge, frameless (§7.1). */
 .srd-class-path__or {
   color: var(--color-wk-muted);
   font-family: var(--font-cond);

@@ -1,4 +1,4 @@
-import { ActivationCost, Badge, Slab, Stat } from 'component-lib'
+import { ActivationCost, Slab, Stat } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
@@ -51,55 +51,48 @@ const classMention = (c: SURefClass): RefText[number] => ({
 
 /**
  * One tier card of the brief: its book hue (the trees' own), what it costs,
- * and what opens it, in one short line.
+ * and what opens it, in the Workshop Manual's own words ("Gaining
+ * Abilities", p.23).
  */
 type BriefCard = { label: string; tier: TreeTrack; cost?: string; value: RefText }
 
+/** The Workshop Manual's rule for each tier, verbatim (p.23). */
+const BOOK = {
+  core: 'You must have the preceding skill in a Core Ability Tree to train the next Ability.',
+  advance:
+    'You must have training in 6 Core Abilities and 3 Abilities in the Core Ability tree linked to your Advanced or Hybrid Class to advance into the Class.',
+  advanced:
+    'You must have the preceding Ability in the Advanced or Hybrid Ability Tree before you train the next Ability.',
+  legendary:
+    'You must have 6 Core Abilities and 3 Advanced or Hybrid Class Abilities trained before you train a Legendary Ability. You may only have one Legendary Ability.',
+} as const
+
 function briefCards(plan: Exclude<ClassPlan, { kind: 'none' }>): BriefCard[] {
+  const legendary: BriefCard = {
+    label: 'Legendary',
+    tier: 'legendary',
+    cost: '3',
+    value: [BOOK.legendary],
+  }
   if (plan.kind === 'hybrid') {
-    const { path } = plan
     return [
-      {
-        // The book's verb: "to advance into the Class" (Workshop Manual p.23).
-        label: 'Advance',
-        tier: 'core',
-        value: [`6 Core Abilities and 3 in ${path.requirement.join(' or ')}.`],
-      },
-      { label: 'Hybrid', tier: 'hybrid', cost: '2', value: ['Each, in tree order.'] },
-      {
-        label: 'Legendary',
-        tier: 'legendary',
-        cost: '3',
-        value: [`Once you have every ${path.advanced.tree} Ability. Only one.`],
-      },
+      // The book's verb: "to advance into the Class".
+      { label: 'Advance', tier: 'core', value: [BOOK.advance] },
+      { label: 'Hybrid', tier: 'hybrid', cost: '2', value: [BOOK.advanced] },
+      legendary,
     ]
   }
-  if (plan.paths.length === 0) {
-    return [
-      {
-        label: 'Core',
-        tier: 'core',
-        cost: '1',
-        value: ['Each, from any Core tree, in tree order.'],
-      },
-    ]
-  }
+  const core: BriefCard = { label: 'Core', tier: 'core', cost: '1', value: [BOOK.core] }
+  if (plan.paths.length === 0) return [core]
   return [
-    { label: 'Core', tier: 'core', cost: '1', value: ['Each, in tree order.'] },
+    core,
     {
       label: 'Advanced',
       tier: 'advanced',
       cost: '2',
-      value: [
-        'Each, after 6 Core and 3 in the linked tree. Your Advanced tree or one Hybrid Class.',
-      ],
+      value: [`${BOOK.advance} ${BOOK.advanced}`],
     },
-    {
-      label: 'Legendary',
-      tier: 'legendary',
-      cost: '3',
-      value: ['After 3 Advanced or Hybrid Abilities. Only one.'],
-    },
+    legendary,
   ]
 }
 
@@ -164,9 +157,10 @@ function Or({ children }: { children: string }) {
 }
 
 /**
- * What opens a path, as one chip: the trees any one of which opens it
- * ("REQ | FORGING or ELECTRONICS"), the tree this class trains first leading.
- * The class's own path adds that only this class walks it ("ENGINEER ONLY").
+ * What opens a path, as one continuous chip: REQ, then the trees any one of
+ * which opens it, each "or" an ink label cell between them ("REQ | FORGING |
+ * OR | ELECTRONICS"), the tree this class trains first leading. The class's
+ * own path adds that only this class walks it ("ENGINEER ONLY").
  */
 function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
   const own = !path.hybrid || !path.via
@@ -175,7 +169,18 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
     : [path.via, ...path.requirement.filter((tree) => tree !== path.via)]
   return (
     <span className="srd-class-path__req">
-      <Stat orientation="horizontal" label="REQ" value={trees.join(' or ')} size="compact" />
+      <span className="srd-class-path__req-chip">
+        {trees.map((tree, index) => (
+          <Stat
+            key={tree}
+            orientation="horizontal"
+            label={index === 0 ? 'REQ' : 'or'}
+            value={tree}
+            size="compact"
+            className="srd-class-path__req-cell"
+          />
+        ))}
+      </span>
       {own && <Or>{`${classEntity.name} only`}</Or>}
     </span>
   )
@@ -222,9 +227,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefCl
       <span className="srd-class-path__name">{name}</span>
       <span className="srd-class-path__band">
         <PathRequirement path={path} classEntity={classEntity} />
-        <Badge shape="stamp" size="mini" style={{ flex: 'none' }}>
-          {kind}
-        </Badge>
+        <Stat orientation="horizontal" label={kind} size="compact" />
       </span>
       {hybrid && <Chevron />}
     </>

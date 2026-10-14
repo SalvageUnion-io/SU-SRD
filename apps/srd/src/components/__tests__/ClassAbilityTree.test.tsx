@@ -127,7 +127,12 @@ describe('ClassAbilityTree advancement paths', () => {
     for (const hybrid of hybrids) {
       const req = hybrid.querySelector('.srd-class-path__req')
       expect(req?.childElementCount).toBe(1)
-      expect(req?.textContent).toMatch(/^REQ.+ or .+$/)
+      const labels = [...(req?.querySelectorAll('.su-stat-plate--label') ?? [])].map(
+        (label) => label.textContent
+      )
+      expect(labels[0]).toBe('REQ')
+      expect(labels.slice(1)).toEqual(labels.slice(1).map(() => 'or'))
+      expect(labels.length).toBeGreaterThan(1)
       expect(req?.textContent).not.toMatch(/Hacker|Soldier|Scout|Engineer/)
     }
   })
@@ -170,6 +175,8 @@ describe('ClassAbilityTree training brief', () => {
       'Legendary3 TP',
     ])
     expect(brief.textContent).toContain('Up to 10')
+    // The Workshop Manual's words (p.23), not a paraphrase.
+    expect(cards[2]?.textContent).toContain('You may only have one Legendary Ability.')
   })
 
   test('a Core class that never advances (Salvager) gets one Core card, from any of its trees', () => {
@@ -178,6 +185,8 @@ describe('ClassAbilityTree training brief', () => {
     const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
     expect(cards.map((card) => card.dataset.tier)).toEqual(['core'])
     expect(cards[0]?.querySelector('.srd-class-brief__band')?.textContent).toBe('Core1 TP')
-    expect(cards[0]?.textContent).toContain('Each, from any Core tree, in tree order.')
+    expect(cards[0]?.textContent).toContain(
+      'You must have the preceding skill in a Core Ability Tree to train the next Ability.'
+    )
   })
 })
