@@ -250,7 +250,8 @@ describe('Crew & seats', () => {
       'PlayerBeefcakePickle · Spectrum',
       'Open—Hotdog · waiting for a player',
     ])
-    expect(screen.getByText('1 of 2 seats')).toBeTruthy()
+    // The count is the label-first chip, `SEATS | 1/2`.
+    expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
     // No presence column: nothing writes it, and a false "Here" is worse than none.
     expect(screen.queryByText(/^(Here|Away)$/)).toBeNull()
   })

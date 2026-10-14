@@ -29,7 +29,7 @@
  */
 
 import type { ReferenceEntityControl, StatItem } from 'component-lib'
-import { Field, ReferenceEntityCard, summarizeBreakdown, tokens } from 'component-lib'
+import { Field, ReferenceEntityCard, Slab, summarizeBreakdown, tokens } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { PartnerInstance } from 'itun-domain/schemas/partner'
@@ -72,14 +72,8 @@ const ITEMS = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-const ITEMS_HEADING = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.caps,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+/** The section's Slab sits on the list's own gap, not its default margin. */
+const ITEMS_SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 type PartnerCardProps = {
   /**
@@ -255,7 +249,7 @@ export function PartnerCard({
     const keys = occurrenceKeys(slugs)
     return (
       <div style={ITEMS}>
-        <h4 style={ITEMS_HEADING}>{kind === 'system' ? 'Systems' : 'Modules'}</h4>
+        <Slab as="h4" label={kind === 'system' ? 'Systems' : 'Modules'} style={ITEMS_SLAB} />
         {/* One Token a line, each Peeking its whole card. */}
         <ul className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}>
           {slugs.map((slug, index) => (

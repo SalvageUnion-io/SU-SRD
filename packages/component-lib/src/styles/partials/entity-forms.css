@@ -371,6 +371,23 @@
   text-decoration: underline;
 }
 
+/* An entity chip (`EntityStat`, `CLASS | Engineer`): the whole cell is the
+   target, and what it opens is the entity its value names, so the value
+   underlines, not the label. Its opener (ITUN's detail dialog) is a
+   `role="button"` div, not a button. */
+.su-chip-link--entity[role='button'],
+.su-chip-link--entity[role='button'] .su-stat-cell {
+  cursor: pointer;
+}
+
+:is(a, [role='button']).su-chip-link--entity:hover .su-stat-plate--value {
+  text-decoration: underline;
+}
+
+a.su-chip-link--entity:hover .su-stat-plate--label {
+  text-decoration: none;
+}
+
 /* The paper body: the facts, the tags, the lead. No rule above it: the
    head's cut-out opens into it. */
 .su-entity-row__body {

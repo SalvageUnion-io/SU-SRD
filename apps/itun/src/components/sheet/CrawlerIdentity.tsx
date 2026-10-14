@@ -23,12 +23,9 @@ import { Entity, Field, Stat, tokens } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { SURefMetaAction } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
-import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
-import { readReference } from '../../lib/readReference'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
@@ -52,23 +49,6 @@ const TYPE_ROW = {
 } satisfies CSSProperties
 
 const ABILITY = { minWidth: 0 } satisfies CSSProperties
-
-/**
- * Resolve the crawler type's special-ability action refs (names) to their SRD
- * action entities. Like the other crawler ref lookups, a missing catalog
- * resolves to an empty list rather than throwing.
- */
-function resolveTypeAbilities(typeRef: string | undefined): SURefMetaAction[] {
-  if (!typeRef) return []
-  return readReference('CrawlerIdentity.resolveTypeAbilities', () => {
-    const refs = resolveCrawlerType(typeRef)?.actions ?? []
-    if (refs.length === 0) return []
-    const actions = SalvageUnionReference.Actions.all()
-    return refs
-      .map((ref) => actions.find((a) => a.id === ref || a.name === ref))
-      .filter((a) => a !== undefined)
-  }, [])
-}
 
 type CrawlerIdentityPanelProps = {
   crawler: Crawler
@@ -105,7 +85,7 @@ export function CrawlerIdentityPanel({
   // Derived, never hand-set — the crawler's stored rung, read here beside the
   // type rather than in the economy rail.
   const techLevel = parseCrawlerTechLevel(crawler.techLevel)
-  const abilities = resolveTypeAbilities(crawler.type)
+  const abilities = resolveCrawlerTypeAbilities(crawler.type)
 
   /** Persist the crawler name (required — never write empty). */
   function saveName(next: string) {
@@ -136,9 +116,15 @@ export function CrawlerIdentityPanel({
               stored rung and never typed into, so it reads as a `TL | 1` chip
               like the mech's chassis stats — a field box implied an input. */}
           <Stat orientation="horizontal" label="TL" value={techLevel ?? '—'} />
+          {/* Read names the type as its Token, which opens and Peeks it. */}
           <Field
             label="Type"
             value={type?.name ?? ''}
+            readValue={
+              !canEdit && type ? (
+                <Entity form="token" entity={type} mode={{ kind: 'link' }} />
+              ) : undefined
+            }
             onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
           />
         </div>

@@ -19,6 +19,8 @@ import { expandCards } from '../../__tests__/expandCards'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { must } from '../../__tests__/must'
+import { slabChip } from '../../__tests__/slabChip'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)
@@ -71,7 +73,7 @@ describe('PilotSheet — inventory slot math', () => {
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText(/6 \/ 6 slots/)).toBeTruthy()
+    expect(must(slabChip('Inventory')).textContent).toBe('Slots6/6')
   })
 
   test('over-capacity totals render honestly (no clamp)', () => {
@@ -85,7 +87,8 @@ describe('PilotSheet — inventory slot math', () => {
     // 1 + 6 + 3 = 10
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText(/10 \/ 6 slots/)).toBeTruthy()
+    expect(must(slabChip('Inventory')).textContent).toBe('Slots10/6')
+    expect(must(slabChip('Inventory')).classList.contains('su-stat-cell--critical')).toBe(true)
   })
 })
 
@@ -272,7 +275,7 @@ describe('PilotSheet — inventory readOnly', () => {
     expect(screen.queryByRole('button', { name: /add scrap/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /add inventory item/i })).toBeNull()
     // The slot math still renders
-    expect(screen.getByText(/4 \/ 6 slots/)).toBeTruthy()
+    expect(must(slabChip('Inventory')).textContent).toBe('Slots4/6')
   })
 })
 

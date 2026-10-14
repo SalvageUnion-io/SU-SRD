@@ -20,10 +20,12 @@
  * // deliberately omitted rather than rendered dead.
  */
 
-import { Field, tokens } from 'component-lib'
+import { Entity, Field, tokens } from 'component-lib'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { readReference } from '../../lib/readReference'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { SheetPatch } from './sheetViewProps.model'
 
@@ -78,6 +80,11 @@ export function MechIdentityPanel({
   const [chassisPickerOpen, setChassisPickerOpen] = useState(false)
 
   const canEdit = patch !== undefined
+  // Read names the chassis as its Token, which opens and Peeks it; Edit keeps
+  // the picker field.
+  const chassis = canEdit
+    ? null
+    : readReference('MechIdentity.chassis', () => resolveChassisRef(mech.chassisRef), null)
 
   /**
    * Persist the pattern name (required — never write empty). Name and pattern
@@ -115,6 +122,9 @@ export function MechIdentityPanel({
           <Field
             label="Chassis"
             value={chassisName}
+            readValue={
+              chassis ? <Entity form="token" entity={chassis} mode={{ kind: 'link' }} /> : undefined
+            }
             onEditClick={canEdit ? () => setChassisPickerOpen(true) : undefined}
           />
           {besideChassis}

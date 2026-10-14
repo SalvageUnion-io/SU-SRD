@@ -11,7 +11,8 @@
  * rather than throwing.
  */
 
-import type { SURefCrawler, SURefCrawlerBay } from 'salvageunion-reference'
+import type { SURefCrawler, SURefCrawlerBay, SURefMetaAction } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCrawlerBayRef, resolveCrawlerRef } from 'salvageunion-reference/rules'
 import { readReference } from './readReference'
 
@@ -31,6 +32,23 @@ export type ResolvedNpc = {
  */
 export function resolveCrawlerType(ref: string): (SURefCrawler & { schemaName: string }) | null {
   return readReference('resolveCrawlerType', () => resolveCrawlerRef(ref), null)
+}
+
+/**
+ * Resolve the crawler type's special-ability action refs (names) to their SRD
+ * action entities. Like the other crawler ref lookups, a missing catalog
+ * resolves to an empty list rather than throwing.
+ */
+export function resolveCrawlerTypeAbilities(typeRef: string | undefined): SURefMetaAction[] {
+  if (!typeRef) return []
+  return readReference('resolveCrawlerTypeAbilities', () => {
+    const refs = resolveCrawlerType(typeRef)?.actions ?? []
+    if (refs.length === 0) return []
+    const actions = SalvageUnionReference.Actions.all()
+    return refs
+      .map((ref) => actions.find((a) => a.id === ref || a.name === ref))
+      .filter((a) => a !== undefined)
+  }, [])
 }
 
 /** Resolve a stored crawler-bay slug to its SRD entity. */

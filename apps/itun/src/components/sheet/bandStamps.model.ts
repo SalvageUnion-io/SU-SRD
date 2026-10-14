@@ -1,24 +1,57 @@
 /**
- * The second type stamp on a sheet's chapter band (board 10): what kind of
- * pilot, mech or crawler this is — the class, the chassis, the crawler type.
- * `undefined` when the ref does not resolve, and the band shows the kind
- * stamp alone.
+ * What a sheet's chapter band says the unit is built as (board 10), right of
+ * its name: the pilot's class, the mech's chassis, the crawler's type — a
+ * label-first chip (`CLASS | Engineer`) that opens and Peeks the entity it
+ * names. A ref that does not resolve keeps the stored name, as a chip that
+ * goes nowhere; with nothing stored there is no chip.
  */
 
-import { resolveClassName } from '../../lib/classRef'
+import type { EntityRef, SURefEntity } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { resolveClass } from '../../lib/classRef'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import { mechChassisStats } from '../roster/rowStats.model'
+import { readReference } from '../../lib/readReference'
 
-export function pilotStamp(classRef: string): string | undefined {
-  return resolveClassName(classRef) || undefined
+export type BandStamp = {
+  /** What the entity is to the unit: 'Class', 'Chassis', 'Type'. */
+  label: string
+  /** The entity's name, or the stored ref when it does not resolve. */
+  name: string
+  /** The entity, when it resolves: what the chip opens and Peeks. */
+  entityRef?: EntityRef
 }
 
-export function mechStamp(chassisRef: string): string | undefined {
-  const chassis = mechChassisStats(chassisRef)?.find((stat) => stat.label === 'Chassis')?.value
-  return chassis === undefined ? undefined : String(chassis)
+type RefSchema = 'classes' | 'chassis' | 'crawlers'
+
+function stampOf(
+  label: string,
+  schemaName: RefSchema,
+  stored: string,
+  entity: (SURefEntity & { name: string }) | null | undefined
+): BandStamp {
+  if (!entity) return { label, name: stored }
+  return {
+    label,
+    name: entity.name,
+    entityRef: { schemaName, id: entity.id, slug: getEntitySlug(entity), name: entity.name },
+  }
 }
 
-export function crawlerStamp(typeRef: string | undefined): string | undefined {
+export function pilotStamp(classRef: string): BandStamp | undefined {
+  if (!classRef) return undefined
+  return stampOf('Class', 'classes', classRef, resolveClass(classRef))
+}
+
+export function mechStamp(chassisRef: string): BandStamp | undefined {
+  if (!chassisRef) return undefined
+  const chassis = readReference('mechStamp', () => resolveChassisRef(chassisRef), null)
+  return stampOf('Chassis', 'chassis', chassisRef, chassis)
+}
+
+export function crawlerStamp(typeRef: string | undefined): BandStamp | undefined {
   if (!typeRef) return undefined
-  return resolveCrawlerType(typeRef)?.name
+  const type = resolveCrawlerType(typeRef)
+  // An unresolved crawler type stays unsaid, as it always has.
+  return type ? stampOf('Type', 'crawlers', typeRef, type) : undefined
 }

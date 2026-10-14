@@ -18,6 +18,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { LinkedCrewInset } from '../npc/LinkedCrewInset'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { LinkedUnitLink } from './LinkedUnitLink'
 import { NpcInset } from './NpcInset'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
@@ -67,17 +68,17 @@ const UNKNOWN_BAY = {
   color: tokens.color.wkMuted,
 } satisfies CSSProperties
 
+/** "Docks [mech]": the word, then the docked mech's Token. */
 const DOCKS = {
-  margin: `0 0 ${tokens.space[6]}`,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  alignItems: 'center',
+  color: tokens.color.ink,
+  display: 'flex',
+  flexWrap: 'wrap',
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
-  color: tokens.color.ink,
+  gap: tokens.space[6],
+  margin: `0 0 ${tokens.space[6]}`,
 } satisfies CSSProperties
-
-const BOLD = { fontWeight: tokens.weight.bold } satisfies CSSProperties
 
 const EXPAND_STACK = {
   display: 'flex',
@@ -172,9 +173,10 @@ type CrawlerBayCardProps = {
   readOnly: boolean
   /**
    * Docked-mech one-liner (poster: "Docks <mech>") — set on the Mech Bay when
-   * the composition has a docked mech; renders above the crew inset.
+   * the composition has a docked mech; renders above the crew inset, the mech
+   * as its Token, linking to its sheet where it has one.
    */
-  dockedMechName?: string
+  dockedMech?: { name: string; href: string | undefined }
   /**
    * Contents this bay HOLDS, rendered inside it above the crew inset — the
    * Armament Bay's mounted weapons. A bay's contents belong in the bay, not in
@@ -219,7 +221,7 @@ export function CrawlerBayCard({
   seedSelections,
   store,
   readOnly,
-  dockedMechName,
+  dockedMech,
   contents,
   onFunction,
   assigned,
@@ -316,10 +318,11 @@ export function CrawlerBayCard({
   )
   const crew = (
     <>
-      {dockedMechName && (
-        <p style={DOCKS}>
-          Docks <span style={BOLD}>{dockedMechName}</span>
-        </p>
+      {dockedMech && (
+        <div style={DOCKS}>
+          Docks
+          <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} stats={[]} />
+        </div>
       )}
       {assigned ? (
         <LinkedCrewInset slotName={bay.name} assignment={assigned} fallback={inlineCrew} />

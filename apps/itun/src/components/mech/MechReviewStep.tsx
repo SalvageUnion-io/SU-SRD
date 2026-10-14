@@ -1,8 +1,10 @@
-import { FieldError, KvRow, Panel, ReferenceEntityCard, tokens } from 'component-lib'
+import { FieldError, Panel, ReferenceEntityCard, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import '../../styles/wizard.css'
+import { readReference } from '../../lib/readReference'
+import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
 import { textSmStyle } from '../wizard/wizardStyles.model'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
@@ -29,7 +31,7 @@ type MechReviewStepProps = {
 
 /**
  * Review step (undrawn for mechs; reuses the pilot
- * pattern): kv-panel of the build's fields on the left (with Save-as-pattern
+ * pattern): a recap of the build's fields on the left (with Save-as-pattern
  * below it), the chosen system + module cards stacked on the right (fresh
  * installs carry an 'Intact' status badge).
  */
@@ -43,22 +45,23 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
     return found ? [found] : []
   })
 
-  const rows: [string, string | null][] = [
-    ['Name', form.name.trim() || null],
-    ['Chassis', form.chassisName || null],
-    ['Pattern', form.patternName.trim() || 'none'],
-    ['Systems', form.systems.length > 0 ? form.systems.join(', ') : 'none'],
-    ['Modules', form.modules.length > 0 ? form.modules.join(', ') : 'none'],
-  ]
+  const chassis = form.chassisName
+    ? (readReference('MechReviewStep.chassis', () => resolveChassisRef(form.chassisName), null) ??
+      undefined)
+    : undefined
 
   return (
     <div className="wiz-review-grid" style={LAYOUT}>
-      {/* kv-panel */}
       <div style={KV_COLUMN}>
         <Panel className="wiz-mech-review-kv">
-          {rows.map(([k, v]) => (
-            <KvRow key={k} label={k} value={v} />
-          ))}
+          {/* The recap: Stats, the chassis as its chip, the parts as Tokens. */}
+          <Recap>
+            <RecapStat label="Name" value={form.name.trim()} required />
+            <RecapEntity label="Chassis" entity={chassis} required />
+            <RecapStat label="Pattern" value={form.patternName.trim()} />
+            <RecapTokens label="Systems" entities={chosenSystems} />
+            <RecapTokens label="Modules" entities={chosenModules} />
+          </Recap>
           {submitError && <FieldError className="wiz-review-error">{submitError}</FieldError>}
         </Panel>
         <Panel data-testid="banking-callout" className="wiz-mech-banking">

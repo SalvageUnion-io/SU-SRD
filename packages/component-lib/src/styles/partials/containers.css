@@ -86,10 +86,11 @@
   flex-direction: column;
 }
 
-/* The framed surface's paper block, ruled down its left in the deep tone. */
+/* The framed surface's paper block. No left rail (ruleset §3.10): the
+   card's tone band on top carries its colour, as the paper surface's top
+   rule does. */
 .su-sheet-section-paper {
   flex: 1;
-  border-left: var(--bw-entity) solid var(--tone-deep);
   background-color: var(--color-paper);
   padding: var(--space-12) var(--space-14);
 }

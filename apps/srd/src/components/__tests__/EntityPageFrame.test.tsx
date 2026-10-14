@@ -6,7 +6,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import { resolveEntityPageMeta } from 'component-lib'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
 import { ITUN_URL } from '../../lib/constants'
 import { EntityPageFrame, entityPageFoot } from '../EntityPageFrame'
@@ -87,13 +87,16 @@ describe('EntityPageFrame', () => {
         title={`"${hauler.name}"`}
         tone="mech"
         meta={resolveEntityPageMeta(mule, hauler)}
-        parent={{ label: 'Pattern of', name: 'Mule', href: '/chassis/mule/' }}
+        parent={{ label: 'Pattern of', entityRef: toEntityModel(mule).ref, href: '/chassis/mule/' }}
       >
         <p>Hauler body</p>
       </EntityPageFrame>
     )
-    const parent = screen.getByRole('link', { name: /Pattern of\s*Mule/ })
+    // The label-first chip (`PATTERN OF | Mule`): it opens the chassis and Peeks it.
+    const parent = screen.getByRole('link', { name: 'Pattern of: Mule' })
     expect(parent.getAttribute('href')).toBe('/chassis/mule/')
+    expect(parent.getAttribute('data-peek')).toBe(`chassis:${mule.id}`)
+    expect(parent.querySelector('.su-stat-plate--label')?.textContent).toBe('Pattern of')
   })
 
   test('the body runs to the given measure', () => {

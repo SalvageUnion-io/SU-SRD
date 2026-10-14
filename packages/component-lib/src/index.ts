@@ -47,13 +47,13 @@ export {
 } from './components/atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './components/atoms/KofiButton'
-export { KvRow } from './components/atoms/KvRow'
 export { ModeDoor } from './components/atoms/ModeDoor'
 export { PageHeading } from './components/atoms/PageHeading'
 export { Panel } from './components/atoms/Panel'
 export { linesFromBreakdown, summarizeBreakdown } from './components/atoms/provenanceLines'
 export { Radio } from './components/atoms/Radio'
 export { SearchField, SearchFieldTrigger } from './components/atoms/SearchField'
+export type { SlabCount } from './components/atoms/Slab'
 export { Slab } from './components/atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './components/atoms/SlotGrid'
@@ -223,6 +223,8 @@ export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
+// A fact whose value is an entity (`CLASS | Engineer`): the chip opens and Peeks it.
+export { EntityStat } from './entity/parts/EntityStat'
 export { KindLabel } from './entity/parts/KindLabel'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.

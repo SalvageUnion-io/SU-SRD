@@ -18,7 +18,7 @@ import type {
   SURefEntity,
   SURefObjectAnyPattern,
 } from 'salvageunion-reference'
-import { truncate } from 'salvageunion-reference'
+import { toEntityModel, truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
 import { EntityPageFrame, entityPageFoot } from '../../../../components/EntityPageFrame'
 import { EntityView } from '../../../../components/EntityView'
@@ -142,7 +142,11 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         title={`“${patternName}”`}
         tone={chapter.tone}
         meta={pageMeta}
-        parent={{ label: 'Pattern of', name: hostName, href: itemHref(schemaId, itemId) }}
+        parent={{
+          label: 'Pattern of',
+          entityRef: toEntityModel(host).ref,
+          href: itemHref(schemaId, itemId),
+        }}
         legalStartingPattern={isLegalStartingPatternOf(pattern)}
         build={patternBuildLinkFor(schemaId, host, pattern)}
       >

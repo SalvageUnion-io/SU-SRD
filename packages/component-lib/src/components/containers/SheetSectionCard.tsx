@@ -6,7 +6,7 @@
  *   - 3px `var(--tone)` border (the sheet accent), radius 3;
  *   - an accent HEADER band in the `chead` shape — the black-stamp title +
  *     optional count `.tag`;
- *   - a paper BODY block with a 3px `var(--tone-deep)` LEFT rule, floating on
+ *   - a paper BODY block (no left rail, ruleset §3.10), floating on
  *     `var(--tone)` side strips (poster `.dcard-body` `margin:0 12px`);
  *   - an optional accent FOOTER band with a source line + trailing chips.
  *
@@ -145,8 +145,7 @@ export function SheetSectionCard({
         ) : undefined
       }
     >
-      {/* Accent side strips (`.dcard-body` margin) wrap the paper block; the
-          paper block carries the deep-tone LEFT rule. */}
+      {/* Accent side strips (`.dcard-body` margin) wrap the paper block. */}
       {/* The 12px foot matches the 12px side strips. Without it the card showed 12px
           of tone down each side but nothing along the bottom, so the foot was
           just the frame border and read thin against those sides — the card
