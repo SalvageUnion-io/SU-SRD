@@ -36,8 +36,14 @@
  *      The shell is `/build/` read through the binding — the directory rather
  *      than `index.html`, which the asset server's HTML handling may answer
  *      with a redirect.
- *   3. anything else      → the binding's answer, unchanged: the shell for a
- *      navigation to any client route.
+ *   3. anything else      → the binding's answer: the shell for a navigation
+ *      to any client route.
+ *
+ * Rules 2 and 3 answer with the shell, and every client route but the public
+ * ones (`indexable`) carries `X-Robots-Tag: noindex`: a game, a pilot's sheet
+ * or a sign-in screen is a private or empty page to a crawler, all under the
+ * shell's one title. Unfurls are unaffected; noindex only keeps them out of
+ * search results.
  *
  * `_headers` (every security header and the CSP; the build moves it to
  * `dist/`) is applied by the asset server, so it reaches whatever the binding
@@ -123,12 +129,30 @@ export default withObservability('su-itun', {
 
     // 2. A shared thing's link, opened by a crawler or an unfurl bot.
     const route = isNavigation(request) ? null : previewRouteOf(path)
-    if (route !== null) return sharedShell(route, url, env, base)
+    if (route !== null) return robotsFor(path, await sharedShell(route, url, env, base))
 
     // 3. Everything else: the asset server's answer, `_headers` and all.
-    return env.ASSETS.fetch(request)
+    return robotsFor(path, await env.ASSETS.fetch(request))
   },
 })
+
+/**
+ * The client routes search may index: the app's front door, the public
+ * Starter Set, and a sheet its owner chose to make public (ADR-032).
+ */
+function indexable(path: string): boolean {
+  return (
+    path === '/' || path === '/starter' || path.startsWith('/starter/') || path.startsWith('/p/')
+  )
+}
+
+/** A shell answer for a route search should not list, marked `noindex`. */
+function robotsFor(path: string, res: Response): Response {
+  if (indexable(path)) return res
+  const marked = new Response(res.body, res)
+  marked.headers.set('x-robots-tag', 'noindex')
+  return marked
+}
 
 /** Whether a path inside the base names a file: `/assets/*`, or a dot in the last segment. */
 function wantsFile(path: string): boolean {
