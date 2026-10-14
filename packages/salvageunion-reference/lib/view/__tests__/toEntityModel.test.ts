@@ -142,12 +142,23 @@ describe('entityTone', () => {
   const base = { id: 'test', name: 'Test', source: 'Salvage Union Workshop Manual', page: 1 }
   const as = (record: object) => record as unknown as SURefMetaEntity
 
-  test('a glossary record without an authored tone is ink-2', () => {
-    expect(entityTone('guides', as({ ...base, blackMarket: false }))).toBe('ink-2')
+  test('a rules entry wears rules blue', () => {
+    for (const schema of [
+      'guides',
+      'keywords',
+      'traits',
+      'distances',
+      'sources',
+      'roll-tables',
+    ] as const) {
+      expect(entityTone(schema, as({ ...base, blackMarket: false }))).toBe('wk-line')
+    }
   })
 
-  test('a guide wears its authored tone', () => {
-    expect(entityTone('guides', as({ ...base, guideTone: 'salvage' }))).toBe('guide-salvage')
+  test('a guide wears rules blue whatever tone its data names', () => {
+    for (const guideTone of ['salvage', 'hazard', 'pilot', 'ink']) {
+      expect(entityTone('guides', as({ ...base, guideTone }))).toBe('wk-line')
+    }
   })
 
   test('black-market goods with no tech level are ink-2', () => {
