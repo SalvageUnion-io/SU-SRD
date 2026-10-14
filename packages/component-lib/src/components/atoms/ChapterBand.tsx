@@ -251,6 +251,7 @@ export function ChapterBand({
       data-user-made={userMade || undefined}
       data-scale={scale === 'og' ? 'og' : undefined}
       data-layout={bleed ? 'bleed' : undefined}
+      data-measured={measure ? '' : undefined}
       data-aside={aside && asideAt === 'notch' ? 'notch' : undefined}
       style={{
         ...ROOT,

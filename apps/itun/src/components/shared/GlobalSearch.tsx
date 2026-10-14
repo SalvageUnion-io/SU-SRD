@@ -40,6 +40,7 @@ import {
   SearchFieldTrigger,
   tokens,
   useDetailModal,
+  useModKeyHint,
   useSearchCombobox,
 } from 'component-lib'
 import { Search } from 'lucide-react'
@@ -147,12 +148,6 @@ const PANEL = {
   width: '28rem',
 } satisfies CSSProperties
 
-/** "⌘K" where there is a Command key, else "Ctrl K". */
-function shortcutHint(): string {
-  const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
-  return mac ? '⌘K' : 'Ctrl K'
-}
-
 /** A result's Page opener: the entity it already holds, opened in the detail view. */
 function openerFor(
   entity: SURefEntity,
@@ -172,6 +167,7 @@ type GlobalSearchProps = {
 export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSearchProps) {
   /** Binds Cmd/Ctrl+K to toggle the panel: one instance owns it, the bar's. */
   const shortcut = variant === 'bar'
+  const keyCap = useModKeyHint()
   const [detailEntity, setDetailEntity] = useState<SURefEntity | undefined>(undefined)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -261,7 +257,7 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
         label={LABEL}
         aria-label={LABEL}
         aria-keyshortcuts="Meta+K Control+K"
-        shortcut={shortcutHint()}
+        shortcut={keyCap}
         labelClassName="su-union-bar__search-input"
       />
     ) : (

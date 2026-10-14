@@ -192,8 +192,14 @@
 }
 
 /* The search entry's width, one for both tools: the SRD's field
-   (`SearchField`'s input) and ITUN's trigger (`SearchFieldTrigger`'s label). */
-.su-union-bar__search-input {
+   (`SearchField`'s input) and ITUN's trigger (`SearchFieldTrigger`'s label).
+   Scoped to the bar so it outranks the field's own `width: 100%`
+   (atoms-leaves.css loads later), and the label a block so it takes a width:
+   unscoped, neither applied and the two tools' fields differed by 4rem. */
+.su-union-bar__end .su-union-bar__search-input {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
   width: 14rem;
 }
 
@@ -346,22 +352,44 @@
  * The shell's gutters, as custom properties as well as its padding, so a child
  * that bleeds to the shell's edges (a `ChapterBand`) can undo exactly them.
  */
-.su-page-shell {
+.su-page-shell,
+.su-page-gutters {
   --su-page-gutter-inline: var(--space-16);
   --su-page-gutter-block: var(--space-20);
+}
+
+.su-page-shell {
   padding: var(--su-page-gutter-block) var(--su-page-gutter-inline);
 }
 
 @media (min-width: 40rem) {
-  .su-page-shell {
+  .su-page-shell,
+  .su-page-gutters {
     --su-page-gutter-inline: var(--space-32);
     --su-page-gutter-block: var(--space-40);
   }
 }
 
 @media (min-width: 64rem) {
-  .su-page-shell {
+  .su-page-shell,
+  .su-page-gutters {
     --su-page-gutter-inline: var(--space-48);
+  }
+}
+
+/* A measured page's body column (an ITUN page under a band with `measure`):
+   its side padding is the measured band's own row padding, 16px on a phone
+   and 24px from `sm`, so the notch and the content start on one line, as
+   srd's `.srd-page-body` does. The caller sets the measure (`max-width`). */
+.su-page-column {
+  margin-inline: auto;
+  padding-inline: var(--space-16);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .su-page-column {
+    padding-inline: var(--space-24);
   }
 }
 
@@ -478,6 +506,20 @@
   .su-chapter-band__corner + .su-chapter-band__row {
     padding-top: var(--space-12);
   }
+}
+
+/* A page-wide band with no `measure` (an ITUN sheet, the Starter Set, a
+   builder) sets its notch, corner and eyebrow on the page's own gutter, so the
+   title's cut-out lines up with the column of content under it, as a measured
+   band's does on the SRD. `.su-page-gutters` is a page that pads its own body
+   by the same gutters without being a `PageShell` (`LiveSheet`). It comes after
+   the band's own padding so it wins at every width. */
+:is(
+  .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+  .su-page-gutters > .su-chapter-band[data-layout='bleed']
+):not([data-measured])
+:is(.su-chapter-band__row, .su-chapter-band__corner, .su-chapter-band__eyebrow) {
+  padding-inline: var(--su-page-gutter-inline);
 }
 
 /* `asideAt="notch"`: a show page's stamps and controls, never above the

@@ -39,14 +39,12 @@ const PAGE = {
   minHeight: '100vh',
 } satisfies CSSProperties
 
+// Its side padding and centring are `.su-page-column`'s: the band's row padding.
 const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[40],
-  marginInline: 'auto',
   maxWidth: MEASURE,
-  paddingInline: tokens.space[16],
-  width: '100%',
 } satisfies CSSProperties
 
 const KICKER = {
@@ -158,7 +156,7 @@ export function FrontDoor() {
         {PRODUCT.name}
       </ChapterBand>
 
-      <div style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>
+      <div className="su-page-column" style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>
         <section aria-label="Welcome">
           <div style={INTRO}>
             <p style={LEDE}>
