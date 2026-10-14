@@ -86,7 +86,7 @@ function Printings({ printings }: { printings: readonly FooterPrinting[] }) {
       label="Printed in"
       stats={printings.map(({ book, page }, i) => ({
         key: `${book}-${i}`,
-        label: i === 0 ? book : `Also in ${book}`,
+        label: book,
         value: page != null ? `p.${page}` : '',
       }))}
     />

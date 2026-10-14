@@ -117,9 +117,7 @@ describe('Footer', () => {
     expect(cite.getByText('Chassis')).toBeTruthy()
     // Each printing a stat cell, the book naming the page: "Workshop Manual, p.112".
     const printed = bands[0]?.querySelector('dl[aria-label="Printed in"]')
-    expect(printed?.textContent).toBe(
-      'Workshop Manualp.112Also in Salvage Union Starter Set (PC)p.26'
-    )
+    expect(printed?.textContent).toBe('Workshop Manualp.112Salvage Union Starter Set (PC)p.26')
     expect(bands[1]?.querySelector('.su-footer__legal')).not.toBeNull()
     for (const band of bands) {
       const row = band.querySelector<HTMLElement>('.su-chapter-foot__row')
