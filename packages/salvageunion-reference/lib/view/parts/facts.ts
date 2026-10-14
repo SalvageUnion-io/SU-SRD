@@ -28,12 +28,6 @@ export type StatLabel = {
   label: string
   /** The game's own abbreviation, or the first word where that already is one. */
   short: string
-  /**
-   * As the Workshop Manual's stat column prints it ("Structure Pts."). Kept
-   * for the ITUN sheet's book-faced plates; every page and long-label surface
-   * prints `label`, one vocabulary of full words.
-   */
-  book: string
 }
 
 /**
@@ -42,19 +36,19 @@ export type StatLabel = {
  * stat plates read these rather than spelling their own.
  */
 export const STAT_LABELS = {
-  slotsRequired: { label: 'Slots Required', short: 'Slots', book: 'Slots Required' },
-  structurePoints: { label: 'Structure Points', short: 'SP', book: 'Structure Pts.' },
-  hitPoints: { label: 'Hit Points', short: 'HP', book: 'Hit Pts.' },
-  energyPoints: { label: 'Energy Points', short: 'EP', book: 'Energy Pts.' },
-  salvageValue: { label: 'Salvage Value', short: 'SV', book: 'Salvage Value' },
+  slotsRequired: { label: 'Slots Required', short: 'Slots' },
+  structurePoints: { label: 'Structure Points', short: 'SP' },
+  hitPoints: { label: 'Hit Points', short: 'HP' },
+  energyPoints: { label: 'Energy Points', short: 'EP' },
+  salvageValue: { label: 'Salvage Value', short: 'SV' },
   // "Bio-Salvage", hyphenated, as the Workshop Manual prints it (p.275).
-  bioSalvageValue: { label: 'Bio-Salvage Value', short: 'Bio', book: 'Bio-Salvage Value' },
-  systemSlots: { label: 'System Slots', short: 'SYS', book: 'System Slots' },
-  moduleSlots: { label: 'Module Slots', short: 'MODS', book: 'Module Slots' },
-  cargoCapacity: { label: 'Cargo Capacity', short: 'Cargo', book: 'Cargo Cap.' },
-  heatCapacity: { label: 'Heat Capacity', short: 'Heat', book: 'Heat Cap.' },
-  upkeepCost: { label: 'Upkeep Cost', short: 'Upkeep', book: 'Upkeep Cost' },
-  upgradeCost: { label: 'Upgrade Cost', short: 'Upgrade', book: 'Upgrade Cost' },
+  bioSalvageValue: { label: 'Bio-Salvage Value', short: 'Bio' },
+  systemSlots: { label: 'System Slots', short: 'SYS' },
+  moduleSlots: { label: 'Module Slots', short: 'MODS' },
+  cargoCapacity: { label: 'Cargo Capacity', short: 'Cargo' },
+  heatCapacity: { label: 'Heat Capacity', short: 'Heat' },
+  upkeepCost: { label: 'Upkeep Cost', short: 'Upkeep' },
+  upgradeCost: { label: 'Upgrade Cost', short: 'Upgrade' },
 } as const satisfies Record<string, StatLabel>
 
 type StatKey = keyof typeof STAT_LABELS
@@ -287,7 +281,7 @@ export function bookStats(
         ? STAT_LABELS.bioSalvageValue.label
         : names.label
     out.push({
-      key: `book-${names.book}`,
+      key: `book-${names.label}`,
       label,
       short: names.short,
       value,

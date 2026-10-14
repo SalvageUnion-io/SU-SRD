@@ -9,7 +9,7 @@ describe('InfoCutout', () => {
         title="Mule"
         label="Chassis"
         fill="mech"
-        facts={[{ key: 'sp', label: 'Structure Pts.', value: '12' }]}
+        facts={[{ key: 'sp', label: 'Structure Points', value: '12' }]}
         aside={<span>meta</span>}
       >
         <p>Body</p>
@@ -17,7 +17,7 @@ describe('InfoCutout', () => {
     )
     const panel = container.querySelector('section[aria-label="Chassis"]')
     expect(panel?.querySelector('.su-entity-row__head[data-notch]')).not.toBeNull()
-    expect(panel?.textContent).toContain('Structure Pts.')
+    expect(panel?.textContent).toContain('Structure Points')
     expect(panel?.textContent).toContain('meta')
     expect(panel?.querySelector('.su-info-cutout__body')?.textContent).toBe('Body')
   })

@@ -29,8 +29,7 @@ import {
 import { useCargo } from '../../lib/cargo/useCargo'
 import type { useEntityStore } from '../../stores/entityStore'
 
-/** One lozenge of the chassis-stats strip: a code, a value, an optional max. */
-/** One chassis stat as the book's sheet prints it: the numeral and its stamp. */
+/** One chassis stat as the strip prints it: the numeral and its full name. */
 type ChassisStat = { key: string; label: string; value: string }
 
 /** Narrow subset of chassis data the stat derivations need. */
@@ -151,26 +150,26 @@ export function useMechSheetModel({
     typeof chassisEntity?.techLevel === 'number' ? chassisEntity.techLevel : undefined
 
   // The Chassis Stats strip, as the official mech sheet prints its own block
-  // (SU_Char Sheets 2.0, page 2): Structure Pts., Energy Pts., Heat Cap, System
-  // Slots, Module Slots, Cargo Cap., Tech Level, Salvage Value, in the book's
-  // words (`STAT_LABELS.book`). Each is the machine's figure: SP/EP/Heat are the
+  // (SU_Char Sheets 2.0, page 2): Structure Points, Energy Points, Heat Capacity,
+  // System Slots, Module Slots, Cargo Capacity, Tech Level, Salvage Value, spelled
+  // out (`STAT_LABELS.label`). Each is the machine's figure: SP/EP/Heat are the
   // derived maxima, the slots and cargo the chassis's capacities. What is in use
   // reads where it is used: the Systems and Modules counts and The Hold.
   const chassisStats: ChassisStat[] = [
-    { key: 'sp', label: STAT_LABELS.structurePoints.book, value: String(maxSP) },
-    { key: 'ep', label: STAT_LABELS.energyPoints.book, value: String(maxEP) },
-    { key: 'heat', label: STAT_LABELS.heatCapacity.book, value: String(heatCap) },
+    { key: 'sp', label: STAT_LABELS.structurePoints.label, value: String(maxSP) },
+    { key: 'ep', label: STAT_LABELS.energyPoints.label, value: String(maxEP) },
+    { key: 'heat', label: STAT_LABELS.heatCapacity.label, value: String(heatCap) },
     {
       key: 'system-slots',
-      label: STAT_LABELS.systemSlots.book,
+      label: STAT_LABELS.systemSlots.label,
       value: String(capacity.systemSlotsMax),
     },
     {
       key: 'module-slots',
-      label: STAT_LABELS.moduleSlots.book,
+      label: STAT_LABELS.moduleSlots.label,
       value: String(capacity.moduleSlotsMax),
     },
-    { key: 'cargo', label: STAT_LABELS.cargoCapacity.book, value: String(cargo.usage.cap) },
+    { key: 'cargo', label: STAT_LABELS.cargoCapacity.label, value: String(cargo.usage.cap) },
     ...(techLevel !== undefined
       ? [{ key: 'tech-level', label: 'Tech Level', value: String(techLevel) }]
       : []),
@@ -178,7 +177,7 @@ export function useMechSheetModel({
       ? [
           {
             key: 'salvage-value',
-            label: STAT_LABELS.salvageValue.book,
+            label: STAT_LABELS.salvageValue.label,
             value: String(chassisEntity.salvageValue),
           },
         ]

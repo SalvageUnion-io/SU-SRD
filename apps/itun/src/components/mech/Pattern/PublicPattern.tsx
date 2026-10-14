@@ -41,7 +41,6 @@ import {
   getAssetUrl,
   getChassisAbilities,
   getEntitySlug,
-  STAT_LABELS,
 } from 'salvageunion-reference'
 import { BASE_PATH } from '../../../lib/appUrl'
 import { useConnection } from '../../../lib/connection/connectionContext'
@@ -278,11 +277,6 @@ const VISIBILITY_COPY: Record<PatternVisibility, string> = {
   game: 'Your Game’s crew can read this pattern and build from it.',
 }
 
-/** The manual's wording for a stat label (the summary spells them out). */
-function manualLabel(label: string): string {
-  return Object.values(STAT_LABELS).find((names) => names.label === label)?.book ?? label
-}
-
 function sharedDate(at: number): string {
   return new Date(at).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -418,7 +412,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               {stats.map((s) => (
                 <div key={s.label} style={PLATE}>
                   <span style={PLATE_VALUE}>{s.value}</span>
-                  <span style={PLATE_LABEL}>{manualLabel(s.label)}</span>
+                  <span style={PLATE_LABEL}>{s.label}</span>
                 </div>
               ))}
             </div>

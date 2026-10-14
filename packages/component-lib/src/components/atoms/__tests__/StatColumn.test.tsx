@@ -3,8 +3,8 @@ import { render } from '@testing-library/react'
 import { StatColumn } from '../StatColumn'
 
 const STATS = [
-  { key: 'sp', label: 'Structure Pts.', value: '12' },
-  { key: 'ep', label: 'Energy Pts.', value: '4', hoverText: 'Energy' },
+  { key: 'sp', label: 'Structure Points', value: '12' },
+  { key: 'ep', label: 'Energy Points', value: '4', hoverText: 'Energy' },
 ]
 
 describe('StatColumn', () => {
@@ -14,7 +14,7 @@ describe('StatColumn', () => {
     const pairs = [...(list?.querySelectorAll('dt') ?? [])].map(
       (dt) => `${dt.textContent} ${dt.nextElementSibling?.textContent}`
     )
-    expect(pairs).toEqual(['Structure Pts. 12', 'Energy Pts. 4'])
+    expect(pairs).toEqual(['Structure Points 12', 'Energy Points 4'])
     expect(list?.children[1]?.getAttribute('title')).toBe('Energy')
   })
 
