@@ -152,8 +152,9 @@ for (const [path, budget] of Object.entries(PAGES)) {
     for (let i = 0; i < RUNS; i++) runs.push(await measure(browser, url))
     const measured = medianVitals(runs)
     summarise({ page: path, measured, budget })
+    // In Actions the line is an annotation, so the medians show on the PR's checks.
     process.stdout.write(
-      `${path}: LCP ${Math.round(measured.lcp)} ms, TBT ${Math.round(measured.tbt)} ms, CLS ${measured.cls.toFixed(3)} ` +
+      `${process.env.GITHUB_ACTIONS ? '::notice title=Performance budget::' : ''}${path}: LCP ${Math.round(measured.lcp)} ms, TBT ${Math.round(measured.tbt)} ms, CLS ${measured.cls.toFixed(3)} ` +
         `(runs: ${runs.map((r) => `${Math.round(r.lcp)}/${Math.round(r.tbt)}/${r.cls.toFixed(3)}`).join(', ')})\n`
     )
     expect(overBudget(path, measured, budget)).toEqual([])

@@ -257,7 +257,7 @@ jobs:
 
       - name: Run the performance budget
         working-directory: apps/srd
-        run: bunx playwright test perf-budget.e2e.ts --workers=1
+        run: bunx playwright test perf-budget.e2e.ts --workers=1 --reporter=list,github
 
       - name: Upload Playwright report on failure
         if: failure()
