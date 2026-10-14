@@ -1425,8 +1425,7 @@
 }
 
 /* The chips, right of the name on the band (a Row's cut-out head): what
-   opens the path, then its kind, level with the name's foot; a hybrid's
-   chevron closes the line. */
+   opens the path, then its kind, level with the name's foot. */
 .srd-class-path__band {
   align-items: center;
   display: flex;
