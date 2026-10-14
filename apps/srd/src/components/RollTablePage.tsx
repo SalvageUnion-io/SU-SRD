@@ -22,9 +22,6 @@ import { Island } from '../runtime/Island'
 import { ColumnsTableIsland } from './islands/ColumnsTableIsland'
 import { RollTableIsland } from './islands/RollTableIsland'
 
-/** The roll-table page's measure (board 08b): wider than an entity's. */
-export const ROLL_TABLE_PAGE_MEASURE = '85rem'
-
 /** A roll table's name, prose and table; `undefined` for any other entity. */
 function rollTableParts(item: SURefEntity) {
   if (!('schemaName' in item) || item.schemaName !== 'roll-tables') return undefined

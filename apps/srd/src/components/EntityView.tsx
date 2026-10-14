@@ -30,7 +30,7 @@ import { getEntitySlug } from 'salvageunion-reference'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { itemHref } from '../lib/entityHref'
 import { extractStaticEntitySummary } from '../lib/gameData'
-import { pageRefIndexFor } from '../lib/pageRefIndex'
+import { pageRefsFor } from '../lib/pageRefIndex'
 import { patternStaticSummary } from '../lib/patternSummary'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { Island } from '../runtime/Island'
@@ -45,7 +45,7 @@ type EntityViewProps = {
 }
 
 export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
-  const pageRefs = pageRefIndexFor(item)
+  const pageRefs = pageRefsFor(schemaId, item)
   if (!cardNeedsHydration(item, pattern)) {
     return <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />
   }

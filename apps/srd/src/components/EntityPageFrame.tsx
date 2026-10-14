@@ -11,6 +11,7 @@ import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { PageFoot } from '../../ssg/types'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
@@ -70,9 +71,6 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
   )
 }
 
-/** An entity page's measure (board 07). */
-const ENTITY_PAGE_MEASURE = '75rem'
-
 type EntityPageFrameProps = {
   /** The page title: the entity's name, or a pattern's quoted name. */
   title: ReactNode
@@ -80,8 +78,6 @@ type EntityPageFrameProps = {
   /** The band colour when the page wears its own rather than its chapter's (`bandFillFor`). */
   fill?: string
   meta: EntityPageMeta
-  /** The inner row's max width; the roll-table page runs wider (board 08b). */
-  measure?: string
   /** What the entity is built on, linked beside the title: a pattern's chassis. */
   parent?: EntityParent
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
@@ -98,7 +94,6 @@ export function EntityPageFrame({
   tone,
   fill,
   meta,
-  measure = ENTITY_PAGE_MEASURE,
   parent,
   legalStartingPattern,
   build,
@@ -110,7 +105,7 @@ export function EntityPageFrame({
       <ChapterBand
         tone={tone}
         fill={fill}
-        measure={measure}
+        measure={PAGE_MEASURE}
         aside={
           <EntityPageStamps
             meta={meta}
@@ -150,7 +145,7 @@ export function EntityPageFrame({
         {title}
         <KindLabel kind={meta.typeLabel} />
       </ChapterBand>
-      <div className="srd-entity__body" style={{ maxWidth: measure }}>
+      <div className="srd-entity__body srd-page-body">
         {children}
         {exits && <GuideExitsFoot {...exits} />}
       </div>
@@ -160,13 +155,9 @@ export function EntityPageFrame({
 
 /**
  * The foot of the same page, for the layout's `Footer`: the frame's chapter
- * tone (or its own `fill`) and measure, and the kind and printings `meta` carries.
+ * tone (or its own `fill`), the one page measure, and the kind and printings
+ * `meta` carries.
  */
-export function entityPageFoot(
-  tone: ChapterTone,
-  meta: EntityPageMeta,
-  measure: string = ENTITY_PAGE_MEASURE,
-  fill?: string
-): PageFoot {
-  return { tone, fill, kind: meta.typeLabel, printings: meta.printings, measure }
+export function entityPageFoot(tone: ChapterTone, meta: EntityPageMeta, fill?: string): PageFoot {
+  return { tone, fill, kind: meta.typeLabel, printings: meta.printings, measure: PAGE_MEASURE }
 }

@@ -1,11 +1,13 @@
 import { ChapterBand } from 'component-lib'
 import type { ReactNode } from 'react'
 import { DOC_PAGE, docMeasure } from '../lib/docPageStyles'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 
 /**
  * DocPage — the frame every plain document page wears (`/about`, `/api`,
  * `/changelog`, `/discord` and the two `/bot` policies): the page column, its
- * `ChapterBand` title, then the body in a centred measure the band shares.
+ * `ChapterBand` title, then the body on the one page measure the band shares
+ * (`.srd-page-body`), its text in a reading column from the same gutter.
  */
 export function DocPage({
   title,
@@ -14,6 +16,7 @@ export function DocPage({
   children,
 }: {
   title: string
+  /** The reading column's width, left-aligned on the page's gutter. */
   measure: '48rem' | '64rem'
   /** The gap between the body's blocks. */
   gap: string
@@ -21,8 +24,10 @@ export function DocPage({
 }) {
   return (
     <div style={DOC_PAGE}>
-      <ChapterBand measure={measure}>{title}</ChapterBand>
-      <div style={docMeasure(measure, gap)}>{children}</div>
+      <ChapterBand measure={PAGE_MEASURE}>{title}</ChapterBand>
+      <div className="srd-page-body">
+        <div style={docMeasure(measure, gap)}>{children}</div>
+      </div>
     </div>
   )
 }

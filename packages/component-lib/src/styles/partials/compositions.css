@@ -47,9 +47,9 @@
   }
 }
 
-/* A step that opens its guide underlines its title on hover. A class because
-   a style object has no `:hover`. */
-.su-start-here__step:hover .su-start-here__title {
+/* A step that opens its guide underlines its title (the slab's stamp) on
+   hover. A class because a style object has no `:hover`. */
+.su-start-here__step:hover .su-start-here__title h3 {
   text-decoration: underline;
   text-underline-offset: 3px;
 }

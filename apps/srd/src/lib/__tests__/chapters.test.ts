@@ -78,7 +78,7 @@ describe('bandFillFor', () => {
     return system
   }
 
-  test('a system, module or equipment show page wears its tech level’s blue, head and foot', () => {
+  test('a system or module show page wears its tech level’s blue, head and foot (§3.8)', () => {
     expect(bandFillFor('systems', systemAt(1))).toEqual({
       band: 'var(--color-tl-1)',
       foot: 'var(--color-tl-1)',
@@ -88,9 +88,16 @@ describe('bandFillFor', () => {
     const module = SalvageUnionReference.Modules.all().find((m) => m.techLevel === 2)
     if (!module) throw new Error('no module at tech level 2')
     expect(bandFillFor('modules', module)?.band).toBe('var(--color-tl-2)')
+  })
+
+  test('equipment, drones and vehicles wear their chapter’s band, not their tech level’s', () => {
     const equipment = SalvageUnionReference.Equipment.all().find((e) => e.techLevel === 1)
-    if (!equipment) throw new Error('no equipment at tech level 1')
-    expect(bandFillFor('equipment', equipment)?.band).toBe('var(--color-tl-1)')
+    const drone = SalvageUnionReference.Drones.all()[0]
+    const vehicle = SalvageUnionReference.Vehicles.all()[0]
+    if (!equipment || !drone || !vehicle) throw new Error('fixtures missing')
+    expect(bandFillFor('equipment', equipment)).toBeUndefined()
+    expect(bandFillFor('drones', drone)).toBeUndefined()
+    expect(bandFillFor('vehicles', vehicle)).toBeUndefined()
   })
 
   test('tech level 3’s foot takes tech level 4’s blue, which carries text', () => {

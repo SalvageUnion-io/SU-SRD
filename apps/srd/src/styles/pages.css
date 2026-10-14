@@ -10,7 +10,7 @@
 
 /*
  * The home page — the manual's Contents page (board 06, `index.page.tsx` and
- * `components/HomeContents.tsx`). A 1360px measure: the index in columns and
+ * `components/HomeContents.tsx`). At the one page measure: the index in columns and
  * the "Getting started" sidebar at its right; on a phone, the title, the
  * search, "Start here", then the index.
  */
@@ -75,9 +75,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-24);
-  margin-inline: auto;
-  padding: var(--space-24) var(--space-16) var(--space-32);
-  width: 100%;
 }
 
 .srd-home__aside {
@@ -92,20 +89,13 @@
    column has no row gap, so each section carries its own. */
 .srd-home__index {
   column-gap: var(--space-28);
-  columns: 3 16rem;
+  columns: 3 15rem;
   min-width: 0;
 }
 
 .srd-home__index > * {
   break-inside: avoid;
   margin-block-end: var(--space-24);
-}
-
-@media (min-width: 40rem) {
-  .srd-home__body,
-  .srd-not-found__body {
-    padding-inline: var(--space-24);
-  }
 }
 
 /* A desktop pins the aside and the Discord bot to a 20rem sidebar at the
@@ -201,18 +191,6 @@
   min-width: 0;
 }
 
-.srd-not-found__heading {
-  border-top: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.1;
-  margin: 0;
-  padding-top: var(--space-6);
-  text-transform: uppercase;
-}
-
 /* The guesses: search-result Rows. */
 .srd-not-found__results {
   display: flex;
@@ -235,33 +213,30 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
 }
 
+/* A chapter as the home index opens one: its colour band on top
+   (`.srd-contents__band`), then its name under an ink rule. */
 .srd-not-found__chapter {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
   color: var(--color-ink);
   display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-12);
-  min-height: 44px;
-  overflow: hidden;
-  padding-right: var(--space-12);
+  flex-direction: column;
   text-decoration: none;
 }
 
-.srd-not-found__chapter:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.srd-not-found__chapter-name {
+  align-items: center;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  min-height: 44px;
+  padding: var(--space-6) 0;
 }
 
-.srd-not-found__swatch {
-  align-self: stretch;
-  border-right: var(--bw-chrome) solid var(--color-ink);
-  flex: none;
-  width: var(--space-16);
+.srd-not-found__chapter:hover .srd-not-found__chapter-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* A chapter of the index: its colour band, its name and count, its rows. */
@@ -408,14 +383,23 @@
   justify-content: center;
 }
 
-.srd-entity__body {
+/*
+ * The one page body (`.srd-page-body`): every page family's content under its
+ * band — show pages, listings, search, the Contents home, the document pages
+ * and the 404 — at the one measure (`--srd-measure`, `lib/pageMeasure.ts`),
+ * centred, its side padding the gutter: 16px on a phone, 24px from `sm`. The
+ * band's row and the foot's share the measure and the padding, so the notch,
+ * the content and the citation start on one line.
+ */
+.srd-page-body {
   margin-inline: auto;
+  max-width: var(--srd-measure);
   padding: var(--space-20) var(--space-16) var(--space-32);
   width: 100%;
 }
 
 @media (min-width: 40rem) {
-  .srd-entity__body {
+  .srd-page-body {
     padding: var(--space-24) var(--space-24) var(--space-32);
   }
 }
@@ -577,7 +561,7 @@
   }
 
   /* The page sits closer under its band: a line the fold needs. */
-  .srd-entity__body:has(.srd-roll) {
+  .srd-page-body:has(.srd-roll) {
     padding-top: var(--space-16);
   }
 }
@@ -599,13 +583,6 @@
 
 .srd-listing-page {
   background-color: var(--color-wk-bg);
-  padding: var(--space-16) var(--space-16) var(--space-32);
-}
-
-@media (min-width: 48rem) {
-  .srd-listing-page {
-    padding: var(--space-20) var(--space-32) var(--space-32);
-  }
 }
 
 .srd-listing {
@@ -615,8 +592,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
-  margin: 0 auto;
-  max-width: 87.5rem;
   width: 100%;
 }
 
@@ -1640,15 +1615,44 @@ a.srd-class-path__head:focus-visible {
   color: var(--color-wk-muted);
 }
 
-/* The entry's date, set on `PageHeading`, which takes a className and no style.
-   Its `subheading` rung brings `text-lg`'s 1.75rem line-height with it, which
-   outranks a class here; `!important` sets the date's tighter one. */
+/* A changelog entry (`components/Changelog.tsx`): a card's frame, its
+   cut-out head — the band, the date on a paper tab notched into its foot, the
+   area stamp beside it — and the paper body the tab opens into. */
+.srd-changelog__entry {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.srd-changelog__band {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-10) 0;
+}
+
 .srd-changelog__date {
+  background-color: var(--color-paper);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
   color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
   font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
-  /* biome-ignore lint/complexity/noImportantStyles: PageHeading's own text-lg line-height outranks a class */
-  line-height: 1.25 !important;
+  line-height: 1.1;
+  margin: 0;
+  padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
+/* The area stamp stays on the band, centred on the tab's line. */
+.srd-changelog__area {
+  align-self: center;
+}
+
+.srd-changelog__items {
+  padding: var(--space-8) var(--space-12) var(--space-12) var(--space-16);
 }
 
 /* The About page's colophon (`components/Colophon.tsx`): one column, two from `md` (48rem) up. */

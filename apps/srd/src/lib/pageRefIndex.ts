@@ -59,3 +59,13 @@ export function pageRefIndexFor(item: SURefEntity): PageRefIndex | undefined {
   }
   return Object.keys(index).length > 0 ? index : undefined
 }
+
+/**
+ * The page references a show page links: none in a guide's prose, whose "see
+ * p. 212" pointers stay plain text, as every guide's other pointers are (a
+ * guide cites the book; it does not send the reader across the site
+ * mid-procedure). Any other entity's resolve through `pageRefIndexFor`.
+ */
+export function pageRefsFor(schemaId: string, item: SURefEntity): PageRefIndex | undefined {
+  return schemaId === 'guides' ? undefined : pageRefIndexFor(item)
+}

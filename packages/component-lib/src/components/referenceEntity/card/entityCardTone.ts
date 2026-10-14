@@ -37,9 +37,9 @@ export type DomainTone = {
 }
 
 /**
- * A guide's own authored tone as a CSS colour, or `undefined` for every other
- * entity. The name → token map is the entity model's (`guideTone`); the
- * colour behind each token lives in `theme.css`.
+ * A guide's tone as a CSS colour — rules blue for every guide, as its page's
+ * band (the entity model's `guideTone`) — or `undefined` for every other
+ * entity. The colour behind the token lives in `theme.css`.
  */
 export function entityGuideToneColor(entity: SURefMetaEntity): string | undefined {
   const token = guideTone(entity)
@@ -57,6 +57,7 @@ const TONE_TOKENS: ReadonlySet<string> = new Set([
   'pilot',
   'tier-hybrid',
   'ink-2',
+  'wk-line',
   'tl-1',
   'tl-2',
   'tl-3',

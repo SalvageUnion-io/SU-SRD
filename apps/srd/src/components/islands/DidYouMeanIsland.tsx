@@ -1,4 +1,5 @@
-import { Entity } from 'component-lib'
+import { Entity, Slab } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -7,6 +8,9 @@ import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
+
+/** The section's slab: the section's own gap spaces it. */
+const SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 /** How many guesses the 404 offers. */
 const LIMIT = 5
@@ -92,9 +96,13 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
   return (
     <IslandErrorBoundary>
       <section className="srd-not-found__guesses" aria-labelledby="did-you-mean">
-        <h2 id="did-you-mean" className="srd-not-found__heading">
-          {guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
-        </h2>
+        <Slab
+          variant="solid"
+          as="h2"
+          id="did-you-mean"
+          style={SLAB}
+          label={guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
+        />
         {guesses.length > 0 && (
           <ul className="srd-not-found__results">
             {guesses.map((result) => {

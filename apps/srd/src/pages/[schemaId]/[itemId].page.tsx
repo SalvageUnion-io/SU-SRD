@@ -23,7 +23,6 @@ import { EntityView } from '../../components/EntityView'
 import {
   ColumnsTablePage,
   columnsTablePageData,
-  ROLL_TABLE_PAGE_MEASURE,
   RollTablePage,
   rollTablePageData,
 } from '../../components/RollTablePage'
@@ -162,12 +161,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: itemName, url: canonicalUrl },
       ],
     },
-    foot: entityPageFoot(
-      chapter.tone,
-      pageMeta,
-      rollPage ? ROLL_TABLE_PAGE_MEASURE : undefined,
-      fill?.foot
-    ),
+    foot: entityPageFoot(chapter.tone, pageMeta, fill?.foot),
     // A roll table has no build link or guide exits: both are null for it.
     children: (
       <EntityPageFrame
@@ -175,7 +169,6 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         tone={chapter.tone}
         fill={fill?.band}
         meta={pageMeta}
-        measure={rollPage ? ROLL_TABLE_PAGE_MEASURE : undefined}
         build={buildLinkFor(schemaId, item)}
         exits={guideExitsFor(schemaId, item)}
       >

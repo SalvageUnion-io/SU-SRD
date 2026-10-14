@@ -1,7 +1,7 @@
 /**
  * The style objects srd's plain document pages share — `/about`, `/api`,
  * `/changelog`, `/discord` and the two `/bot` policies: a page column under
- * the `ChapterBand`, a centred measure, prose at the reading size, inline code.
+ * the `ChapterBand`, a reading column, prose at the reading size, inline code.
  *
  * Style objects over `tokens.ts`, not classes, because none of these has a
  * stateful or responsive variant (ADR-046). A part that does
@@ -28,16 +28,15 @@ export const DOC_PAGE = {
   width: '100%',
 } satisfies CSSProperties
 
-/** The centred measure under the band — 48rem (the policies) or 64rem. */
+/** The reading column inside the page body — 48rem (the policies) or 64rem —
+ *  on the page's one gutter, as a guide's prose column is. */
 export function docMeasure(maxWidth: '48rem' | '64rem', gap: string): CSSProperties {
   return {
     display: 'flex',
     flexDirection: 'column',
     gap,
-    marginInline: 'auto',
     maxWidth,
-    paddingInline: space[24],
-    paddingTop: space[32],
+    paddingTop: space[8],
     width: '100%',
   }
 }

@@ -22,15 +22,13 @@ import { ContentsChapter, DiscordBot, HomeStartHere } from '../components/HomeCo
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 import '../lib/gameData'
 import { Island } from '../runtime/Island'
 
 const TITLE = 'Salvage Union System Reference Document'
 const DESCRIPTION =
   'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
-
-/** The page's measure (board 06): the band, the index and the panels share it. */
-const MEASURE = '85rem'
 
 /** An entity's page by name, or nothing when the dataset no longer has it. */
 function hrefByName(schemaName: SURefEnumSchemaName, name: string): string | undefined {
@@ -82,7 +80,7 @@ function page(): PageResult {
       <div className="srd-home">
         <div className="srd-home__band">
           <ChapterBand
-            measure={MEASURE}
+            measure={PAGE_MEASURE}
             aside={
               <div className="srd-home__lede">
                 <p>
@@ -98,7 +96,7 @@ function page(): PageResult {
             The Salvage Union SRD
           </ChapterBand>
         </div>
-        <div className="srd-home__body" style={{ maxWidth: MEASURE }}>
+        <div className="srd-home__body srd-page-body">
           <aside className="srd-home__aside" aria-label="Getting started">
             <HomeStartHere guideHrefs={guideHrefs} />
           </aside>

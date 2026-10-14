@@ -6,6 +6,12 @@
 /* The page layouts. */
 @import './pages.css';
 
+/* The one page measure (`lib/pageMeasure.ts`): every page's band row, body and
+   foot cap at it, so all of them share the show page's gutter. */
+:root {
+  --srd-measure: 75rem;
+}
+
 /*
  * Cross-document view transitions.
  *
