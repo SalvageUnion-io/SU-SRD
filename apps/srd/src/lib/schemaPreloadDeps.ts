@@ -114,10 +114,10 @@ const CHASSIS_BUNDLE: readonly string[] = [
 ]
 
 /** `crawler-bays` — the Armament Bay's Weapons System choice is a schema-only
- *  catalog resolved at render time (`resolveCatalogChoiceEntities`): it reads
- *  the whole `systems` collection and filters by referenced-action damage type
- *  (`actions`). The resolver runs even for the collapsed listing (to count the
- *  options), so both schemas must be loaded whenever a bay renders. */
+ *  catalog (`resolveCatalogChoiceEntities`): it reads the whole `systems`
+ *  collection and filters by referenced-action damage type (`actions`). The
+ *  listing resolves it when the reader opens Show options
+ *  (`CatalogChoiceListing`), so both schemas must be loaded on a bay's page. */
 const CRAWLER_BAY_BUNDLE: readonly string[] = ['systems', 'actions', ...ALWAYS_CORE]
 
 /** Schemas whose entities are data-driven, arbitrary cross-references into
