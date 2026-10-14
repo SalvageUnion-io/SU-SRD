@@ -165,7 +165,10 @@ describe('a Minor shows only what needs watching', () => {
     }
     renderRow({ mount: 'pilot', crawler: worn })
     const minor = screen.getByRole('region', { name: 'Crawler · Mother Hen' })
-    expect(within(minor).getByText('TL2')).toBeTruthy()
+    // The Tech Level is a label-first chip beside the name, never "TL2".
+    const cells = [...minor.querySelectorAll('.su-stat-cell')].map((c) => c.textContent)
+    expect(cells).toContain('TL2')
+    expect(within(minor).queryByText('TL2')).toBeNull()
     expect(within(minor).getByText('Scrap T1×12 · T2×4')).toBeTruthy()
     expect(within(minor).getByText('not-a-bay damaged')).toBeTruthy()
   })
