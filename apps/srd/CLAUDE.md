@@ -70,6 +70,8 @@ There is no output snapshot. CI's `build-srd` job builds once, then runs
 `bun run check:examples` (`ssg/checkPageExamples.ts`), then the Playwright
 smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
 `dist`.
+CI's `perf-srd` job runs `perf-budget.e2e.ts` (LCP, TBT, CLS under mobile
+throttling) on its own build; lower a budget when a page gets faster.
 `ssg/__tests__/routes.test.ts` asserts every registered route emits a page.
 
 ## Conventions
