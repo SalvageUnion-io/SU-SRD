@@ -75,7 +75,12 @@ async function banners(): Promise<Map<string, Buffer>> {
     const page = await browser.newPage({ viewport: { width: layout.width, height: layout.height } })
     await page.setContent(bannerHtml(layout))
     await page.evaluate(() => document.fonts.ready)
-    out.set(path, await page.screenshot())
+    out.set(
+      path,
+      await sharp(await page.screenshot())
+        .png({ palette: true, compressionLevel: 9 })
+        .toBuffer()
+    )
     await page.close()
   }
   await browser.close()
@@ -99,22 +104,33 @@ function readOnePassword(ref: string): string {
   return value
 }
 
+/** One PATCH, retried once when the connection drops (Discord resets some uploads). */
+async function patchDiscord(token: string, route: string, body: Record<string, string>) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(`https://discord.com/api/v10/${route}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) throw new Error(`PATCH /${route}: ${res.status} ${await res.text()}`)
+      log(`updated Discord ${route} (${Object.keys(body).join(', ')})`)
+      return
+    } catch (error) {
+      if (attempt >= 2 || (error instanceof Error && error.message.startsWith('PATCH'))) throw error
+      log(`retrying ${route}: ${String(error)}`)
+      await Bun.sleep(2000)
+    }
+  }
+}
+
 async function uploadDiscord(icon: Buffer, banner: Buffer) {
   const token = process.env.DISCORD_TOKEN ?? readOnePassword(DISCORD_TOKEN_REF)
-  const image = `data:image/png;base64,${icon.toString('base64')}`
-  const calls: [string, Record<string, string>][] = [
-    ['applications/@me', { icon: image }],
-    ['users/@me', { avatar: image, banner: `data:image/png;base64,${banner.toString('base64')}` }],
-  ]
-  for (const [route, body] of calls) {
-    const res = await fetch(`https://discord.com/api/v10/${route}`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) throw new Error(`PATCH /${route}: ${res.status} ${await res.text()}`)
-    log(`updated Discord ${route}`)
-  }
+  const dataUri = (png: Buffer) => `data:image/png;base64,${png.toString('base64')}`
+  // One image per request: the avatar and banner together were reset mid-upload.
+  await patchDiscord(token, 'applications/@me', { icon: dataUri(icon) })
+  await patchDiscord(token, 'users/@me', { avatar: dataUri(icon) })
+  await patchDiscord(token, 'users/@me', { banner: dataUri(banner) })
 }
 
 async function main() {
