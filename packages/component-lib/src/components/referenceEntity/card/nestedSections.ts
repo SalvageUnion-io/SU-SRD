@@ -75,8 +75,8 @@ export function resolveNestedSections({
     canExpand && (onPage || showChassisAbility) ? (getChassisAbilities(entity) ?? []) : []
   // A pattern view keeps its host's actions: a Bio-Titan pattern INHERITS them
   // (a chassis carries none, so its pattern view is unchanged).
-  // A vehicle's systems (`vehicleSystemNames`) are drawn as its system cards,
-  // the drone way, not as actions.
+  // A vehicle's items (`vehicleSystemNames`: every one it lists) are its cards,
+  // the drone way, never an ACTIONS slab.
   const vehicleSystems = new Set(vehicleSystemNames(entity))
   const allActions =
     canExpand && !isGrantingAbility
