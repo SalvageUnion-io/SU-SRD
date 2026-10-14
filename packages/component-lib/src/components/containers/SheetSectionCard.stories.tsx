@@ -3,7 +3,6 @@ import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { Badge } from '../atoms/Badge'
-import { Button } from '../atoms/Button'
 import { SheetSectionCard } from './SheetSectionCard'
 
 export default { title: 'Containers/Sheet Section Card' }
@@ -19,17 +18,10 @@ const STACK = { display: 'flex', flexDirection: 'column', gap: space[12] } satis
 /** The poster section frame — accent header band, deep-tone left rule, footer. */
 export const Default: Story = () => (
   <div style={{ ...PILOT_TONE, ...STACK }}>
-    <Caption>
-      Accent-framed section: black title stamp + count, controls, paper body, source footer.
-    </Caption>
+    <Caption>Accent-framed section: black title stamp + count, paper body, source footer.</Caption>
     <SheetSectionCard
       title="Class Abilities"
       count={<Badge surface="outline">3</Badge>}
-      controls={
-        <Button variant="ghost" size="mini">
-          Edit
-        </Button>
-      }
       source="Salvage Union · Pilot Abilities"
     >
       <p
