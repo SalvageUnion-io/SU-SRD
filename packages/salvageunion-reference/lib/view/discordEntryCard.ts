@@ -129,19 +129,3 @@ export function discordEntryCard(
   const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
   return rebase(discordCard(parts, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
 }
-
-/**
- * The bot's index card for a long entry: the same card, its actions drawn as
- * index rows (name and stat line) that the bot hangs Read buttons on. Only the
- * bot draws it, since a Component Embed cannot carry a button; it is held to
- * the same budget, so it never sheds what the entry card keeps.
- */
-export function discordEntryIndexCard(
-  entity: SURefMetaEntity,
-  pattern?: SURefObjectAnyPattern
-): DiscordCard {
-  const parts = discordCardParts(
-    toEntityModel(entity, undefined, pattern ? { pattern } : undefined)
-  )
-  return discordCard(parts, { fits: fitsDiscordEntryBudget, indexActions: true })
-}

@@ -1,24 +1,18 @@
 /**
  * The `/su lookup` card: an entry's one Discord card (`discordEntryCard`, the
- * SRD's Component Embed too), plus its Roll buttons.
+ * SRD's Component Embed too), plus its linked-entries menu and Roll buttons.
  *
  * The load-bearing tests are the exhaustive passes: EVERY entry in EVERY
  * schema, and every pattern, goes through lookupCard. The container guard must
  * have nothing to shed, and the card must be, block for block, the card a
- * pasted salvageunion.io link draws. We can't see replies in Discord, so this
+ * pasted salvageunion.io link draws, with nothing but controls under it. We can't see replies in Discord, so this
  * is what proves a lookup arrives whole and matches the link, not the few we'd
  * pick by hand.
  */
 import { describe, expect, test } from 'bun:test'
-import type {
-  DiscordBlock,
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-} from 'salvageunion-reference'
+import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import {
   discordEntryCard,
-  discordEntryIndexCard,
   findEntityBySlug,
   getDataMaps,
   getPatterns,
@@ -27,19 +21,10 @@ import {
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerBlock, ContainerData } from '../container'
-import { containerTextLength, enforceContainerLimits } from '../container'
+import { enforceContainerLimits } from '../container'
 import { NEUTRAL_ACCENT } from '../format'
 import type { LookupHit } from '../lookupCard'
-import {
-  buyLink,
-  entityFromKey,
-  INDEX_MIN_CHARS,
-  lookupCard,
-  lookupKey,
-  openCard,
-  patternOf,
-  readCard,
-} from '../lookupCard'
+import { entityFromKey, lookupCard, lookupKey, openCard, patternOf, readCard } from '../lookupCard'
 import { cardText } from './cardText'
 
 type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
@@ -71,67 +56,16 @@ const menuOf = (data: ContainerData) =>
     (block): block is Extract<ContainerBlock, { kind: 'select' }> => block.kind === 'select'
   )
 
-/** A section carrying a Read button, and the key that button reads. */
-const readKey = (block: ContainerBlock): string | null =>
-  block.kind === 'section' && block.button?.kind === 'action'
-    ? block.button.customId.replace(/^su:read:/, '')
-    : null
-
-/** A long card's index rows: an action's Read button names the action after a `|`. */
-const readRows = (data: ContainerData) =>
-  data.blocks.filter(
-    (block): block is Extract<ContainerBlock, { kind: 'section' }> =>
-      readKey(block)?.includes('|') === true
-  )
-
-/** A card's nested systems and modules as rows: Read buttons that name a whole entry. */
-const childRows = (data: ContainerData) =>
-  data.blocks.filter(
-    (block): block is Extract<ContainerBlock, { kind: 'section' }> =>
-      readKey(block) !== null && readKey(block)?.includes('|') === false
-  )
-
-/** A nested-entity stamp (`-# SYSTEMS (3)`), and the names under it. */
-const isStamp = (block: { kind: string; content?: string }): boolean =>
-  block.kind === 'text' && /^-# [A-Z][^\n]* \(\d+\)/.test(block.content ?? '')
-
-/**
- * A card with its nested entities and its shed link set aside, as plain
- * blocks: the bot draws those as rows and a button, the pasted link as text.
- */
-const cardBody = (blocks: readonly (ContainerBlock | DiscordBlock)[]): unknown[] =>
-  blocks
-    .filter(
-      (block) =>
-        !isStamp(block) &&
-        childRowKey(block) === null &&
-        !(block.kind === 'text' && 'more' in block && block.more) &&
-        block.kind !== 'buttons' &&
-        block.kind !== 'select'
-    )
-    .map((block) => {
-      if (block.kind === 'text') return { kind: 'text', content: block.content }
-      if (block.kind === 'section' && ('action' in block || 'button' in block)) {
-        return { kind: 'section', text: block.text }
-      }
-      return block
-    })
-
-/** A child row's key, or null for any other block. */
-const childRowKey = (block: ContainerBlock | DiscordBlock): string | null => {
-  const key =
-    'button' in block || block.kind !== 'section' ? readKey(block as ContainerBlock) : null
-  return key && !key.includes('|') ? key : null
-}
+/** The card without its controls: the blocks a pasted link draws. */
+const cardBlocks = (data: ContainerData): ContainerBlock[] =>
+  data.blocks.filter((block) => block.kind !== 'buttons' && block.kind !== 'select')
 
 // One test per schema, so no one test carries the whole dataset's cost.
 describe('lookupCard — exhaustive across the whole dataset', () => {
   const { dataMap } = getDataMaps()
   let entries = 0
   let patterns = 0
-  let indexed = 0
   let menus = 0
-  let rows = 0
   for (const schema of getSchemaCatalog().schemas.filter((s) => !s.meta)) {
     const schemaName = schema.id
     test(`every ${schemaName} entry and pattern renders whole, never in rust, and IS its pasted link’s card`, () => {
@@ -153,35 +87,15 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
           // Rust means action, and only action (ruleset §3.1).
           expect(card.accent).not.toBe(NEUTRAL_ACCENT)
           expect(cardText(card)).not.toContain('[[')
-          // The pasted link's card, block for block, but for its nested
-          // systems and modules (Read rows here) and its shed link (a button);
-          // a long card is the index of that card, every row a Read button.
+          // The pasted link's card, block for block, its shed link included.
           const embed = discordEntryCard(withSchema as SURefMetaEntity, one.pattern)
-          if (readRows(card).length === 0) {
-            expect(cardBody(card.blocks), `${label}: differs from its Component Embed`).toEqual(
-              cardBody(embed.blocks)
+          expect(cardBlocks(card), `${label}: differs from its Component Embed`).toEqual(
+            embed.blocks.map((block) =>
+              block.kind === 'text' ? { kind: 'text', content: block.content } : block
             )
-          } else {
-            indexed++
-            expect(
-              containerTextLength({ accent: 0, blocks: embed.blocks }),
-              `${label}: indexed a short card`
-            ).toBeGreaterThan(INDEX_MIN_CHARS)
-            const index = discordEntryIndexCard(withSchema as SURefMetaEntity, one.pattern)
-            expect(cardBody(card.blocks), `${label}: differs from its index card`).toEqual(
-              cardBody(index.blocks)
-            )
-          }
-          for (const row of [...readRows(card), ...childRows(card)]) {
-            expect(readCard(readKey(row) ?? ''), label).not.toBeNull()
-            rows++
-          }
-          // A shed card's link is the Full entry (or Whole table) button.
-          const more = embed.blocks.some((block) => block.kind === 'text' && block.more)
-          expect(
-            labels(card).some((name) => name === 'Full entry' || name === 'Whole table'),
-            `${label}: full-entry button`
-          ).toBe(more)
+          )
+          // Controls only: rolls, never a store link or a second copy of the link.
+          for (const name of labels(card)) expect(name, label).toStartWith('Roll ')
           // Every option of the linked-entries menu opens a card.
           for (const option of menuOf(card)?.options ?? []) {
             expect(openCard(option.value), `${label}: ${option.value}`).not.toBeNull()
@@ -197,9 +111,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
     // Guard against the loop silently checking nothing (accessor drift).
     expect(entries).toBeGreaterThan(800)
     expect(patterns).toBeGreaterThan(100)
-    expect(indexed).toBeGreaterThan(10)
-    expect(menus).toBeGreaterThan(100)
-    expect(rows).toBeGreaterThan(500)
+    expect(menus).toBeGreaterThan(500)
   })
 })
 
@@ -209,9 +121,12 @@ describe('lookupCard — the card', () => {
     expect(card.accent).toBe(0x7a978a)
     const text = cardText(card)
     expect(text).toContain('## [Goliath](https://salvageunion.io/chassis/goliath)')
-    // A line to each stat group, TL first; Cargo and Heat are its Page's.
-    expect(text).toContain('**TL** 2 · **SV** 8\n**SP** 13 · **EP** 11\n**SYS** 18 · **MODS** 3')
-    expect(text).not.toContain('**Cargo**')
+    // A line to each stat group, Tech Level first, every label spelled out;
+    // Cargo and Heat are its Page's.
+    expect(text).toContain(
+      '**Tech Level** 2 · **Salvage Value** 8\n**Structure Points** 13 · **Energy Points** 11\n**System Slots** 18 · **Module Slots** 3'
+    )
+    expect(text).not.toContain('**Cargo')
     // The chassis ability shows only on the chassis and pattern pages.
     expect(text).not.toContain('Scrap Plating')
   })
@@ -221,7 +136,7 @@ describe('lookupCard — the card', () => {
     expect(text).toContain(
       '## [.50 Cal Machine Gun](https://salvageunion.io/systems/50-cal-machine-gun)'
     )
-    expect(text).toContain('**RNG** Close · **DMG** 2 SP')
+    expect(text).toContain('**Range** Close · **Damage** 2 SP')
     expect(text).toContain('[Ballistic](https://salvageunion.io/traits/ballistic)')
     expect(text.toLowerCase()).toContain('ballistic weapon')
   })
@@ -248,12 +163,15 @@ describe('lookupCard — the card', () => {
 })
 
 describe('lookupCard — the linked-entries menu', () => {
-  test('a pattern draws its systems then its modules as rows, each Read opening that entry', () => {
+  test('a pattern lists its systems then its modules as links, each in the menu', () => {
     const kelpie = hit('chassis', 'kelpie')
     const pattern = patternOf(kelpie.entity, 'sifter')
     if (!pattern) throw new Error('fixture missing: Kelpie Sifter')
     const card = lookupCard({ ...kelpie, pattern })
-    expect(childRows(card).map(readKey)).toEqual([
+    const text = cardText(card)
+    expect(text).toContain('-# SYSTEMS (3)')
+    expect(text).toContain('[Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)')
+    expect(menuOf(card)?.options.map((option) => option.value)).toEqual([
       'systems::nanite-sifter',
       'systems::cryopod-system',
       'systems::floodlights',
@@ -261,32 +179,7 @@ describe('lookupCard — the linked-entries menu', () => {
       'modules::heating-unit',
       'modules::reactor-flare',
     ])
-    expect(childRows(card)[0]?.text[0]).toStartWith(
-      '**[Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)**'
-    )
-    expect(cardText(card)).toContain('-# SYSTEMS (3)')
-    expect(cardText(readCard('systems::nanite-sifter') ?? { accent: 0, blocks: [] })).toContain(
-      '## [Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)'
-    )
-    // Every linked entry is a row, so the menu has nothing left to open.
-    expect(menuOf(card)).toBeUndefined()
-  })
-
-  test('rows stop at Discord’s ceiling; the rest stay linked and in the menu', () => {
-    const cerberus = hit('chassis', 'cerberus')
-    const pattern = patternOf(cerberus.entity, 'tac-os')
-    if (!pattern) throw new Error('fixture missing: Cerberus Tac-Os')
-    const card = lookupCard({ ...cerberus, pattern })
-    assertFits(card, 'Tac-Os')
-    const drawn = childRows(card).map(readKey)
-    expect(drawn.length).toBeGreaterThan(3)
-    const rest = menuOf(card)?.options.map((option) => option.value) ?? []
-    expect(rest.length).toBeGreaterThan(0)
-    expect(rest.filter((key) => drawn.includes(key))).toEqual([])
-    // Each entry left over is still a link on the card.
-    for (const key of rest) {
-      expect(cardText(card)).toContain(`https://salvageunion.io/${key.replace('::', '/')})`)
-    }
+    expect(card.blocks.some((block) => block.kind === 'section' && block.button)).toBe(false)
   })
 
   test('a menu answers for linked entries that are not systems or modules', () => {
@@ -294,7 +187,6 @@ describe('lookupCard — the linked-entries menu', () => {
     expect(menuOf(card)?.options.map((option) => option.value)).toEqual([
       'equipment::teleport-beacon',
     ])
-    expect(childRows(card)).toEqual([])
   })
 
   test('a card that links nothing has no menu', () => {
@@ -316,7 +208,7 @@ describe('lookupCard — tables and roll buttons', () => {
     expect(text).toContain('-# ROLL THE DIE:')
     expect(text).toContain('`20` **Reactor Overdrive**')
     expect(text).toContain('`11–19` **Reactor Overheat**')
-    expect(labels(card)).toEqual(['Roll the Die', 'Buy'])
+    expect(labels(card)).toEqual(['Roll the Die'])
   })
 
   test('a two-roll table prints each column with its entries', () => {
@@ -331,9 +223,9 @@ describe('lookupCard — tables and roll buttons', () => {
     // Counter-Hacking is Advanced: the Advanced and Hybrid rust (tier-hybrid).
     expect(card.accent).toBe(0xb7410e)
     // E17: the cost closes the chips, under the title.
-    expect(cardText(card)).toContain('**Reaction** · **RNG** Medium')
+    expect(cardText(card)).toContain('**Reaction** · **Range** Medium')
     expect(cardText(card)).toContain('[Hacking](https://salvageunion.io/traits/hacking) · `1 AP`')
-    expect(labels(card)).toEqual(['Roll Counter-Hacking', 'Buy'])
+    expect(labels(card)).toEqual(['Roll Counter-Hacking'])
   })
 })
 
@@ -359,7 +251,7 @@ describe('lookupCard — patterns are entries of their own', () => {
     const one = entityFromKey('bio-titans::typhon::hill-worm')
     if (!one) throw new Error('no Hill Worm')
     const text = cardText(lookupCard(one))
-    expect(text).toContain('**Metallic Reconstitution**')
+    expect(text).toContain('### Metallic Reconstitution')
   })
 
   test('keys round-trip, a retired slug answers with its pattern, and nonsense is refused', () => {
@@ -374,38 +266,10 @@ describe('lookupCard — patterns are entries of their own', () => {
   })
 })
 
-describe('lookupCard — the Buy link', () => {
-  const WORKSHOP_MANUAL =
-    'https://leyline.press/products/salvage-union-core-book?variant=43991343956158'
-
-  test('an entry from a Leyline Press book links its store page, after the rolls', () => {
-    const card = lookupCard(hit('chassis', 'mule'))
-    expect(buttonsOf(card).at(-1)).toEqual({ kind: 'link', url: WORKSHOP_MANUAL, label: 'Buy' })
-  })
-
-  test('an adventure module and a Starter Set booklet link their own store pages', () => {
-    expect(buyLink(hit('bio-titans', 'apophis'))).toStartWith(
-      'https://leyline.press/products/rainmaker-adventure-module'
-    )
-    expect(buyLink(hit('bio-titans', 'ygdriss'))).toBe(
-      'https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set'
-    )
-  })
-
-  test('a pattern links the book it is printed in, not its host’s', () => {
-    const hauler = entityFromKey('chassis::mule::hauler')
-    if (!hauler) throw new Error('no Hauler')
-    expect(buyLink(hauler)).toBe(WORKSHOP_MANUAL)
-  })
-
-  test('Mech Monday is not for sale, so it has no Buy link', () => {
-    expect(labels(lookupCard(hit('sources', 'mech-monday')))).not.toContain('Buy')
-    // Mech Monday patterns are hidden today, so only buyLink itself can see one.
-    const mule = hit('chassis', 'mule')
-    const all = ('patterns' in mule.entity ? mule.entity.patterns : undefined) ?? []
-    const appleseed = all.find((pattern) => pattern.name === 'Appleseed')
-    expect(appleseed?.source).toBe('Mech Monday')
-    expect(buyLink({ ...mule, pattern: appleseed })).toBeNull()
+describe('lookupCard — no store link', () => {
+  test('an entry from a book for sale has no Buy button', () => {
+    expect(labels(lookupCard(hit('chassis', 'mule')))).not.toContain('Buy')
+    expect(labels(lookupCard(hit('bio-titans', 'ygdriss')))).not.toContain('Buy')
   })
 })
 
@@ -455,34 +319,16 @@ describe('lookupCard — an entry and its self-action', () => {
   })
 })
 
-describe('lookupCard — a long card is an index with Read buttons', () => {
-  test('each action is its name and stat line, with a Read button; its rules are not on the card', () => {
+describe('lookupCard — a long card is whole, as its pasted link draws it', () => {
+  test('every action keeps its rules on the card; there are no Read rows', () => {
     const card = lookupCard(hit('bio-titans', 'cortex-bio-titan'))
     const text = cardText(card)
     expect(text).toContain('A Bio-Titan developed by the Red Mesa researchers')
-    expect(text).not.toContain('pierce through the cockpit')
-    const proboscis = readRows(card).find((row) => row.text[0]?.startsWith('**Proboscis**'))
-    expect(proboscis?.text[0]).toBe(
-      '**Proboscis**\n-# **Turn Action** · **RNG** Close · [Melee](https://salvageunion.io/traits/melee)'
-    )
-    expect(proboscis?.button).toEqual({
-      kind: 'action',
-      customId: 'su:read:bio-titans::cortex-bio-titan|proboscis',
-      label: 'Read',
-    })
-    expect(readRows(card).map((row) => row.text[0]?.split('\n')[0])).toEqual([
-      '**One Step Ahead**',
-      '**Proboscis**',
-      '**Mutant Fanatics**',
-      '**Probing Telepathy**',
-      '**Titanic Actions**',
-    ])
+    expect(text).toContain('pierce through the cockpit')
+    expect(card.blocks.some((block) => block.kind === 'section' && block.button)).toBe(false)
   })
 
-  test('a short card stays whole', () => {
-    expect(readRows(lookupCard(hit('chassis', 'mule')))).toHaveLength(0)
-  })
-
+  // Older messages keep their Read buttons: they still answer.
   test('Read answers with the whole action under its entry, and refuses what is gone', () => {
     const read = readCard('bio-titans::cortex-bio-titan|proboscis')
     if (!read) throw new Error('no Proboscis')
@@ -491,7 +337,7 @@ describe('lookupCard — a long card is an index with Read buttons', () => {
     expect(text).toContain(
       '-# [Cortex Bio-Titan](https://salvageunion.io/bio-titans/cortex-bio-titan)'
     )
-    expect(text).toContain('### Proboscis\n-# **Turn Action** · **RNG** Close')
+    expect(text).toContain('### Proboscis\n-# **Turn Action** · **Range** Close')
     expect(text).toContain('pierce through the cockpit')
     expect(text).toContain('-# We Were Here First! · p.56')
     expect(readCard('bio-titans::cortex-bio-titan|nope')).toBeNull()

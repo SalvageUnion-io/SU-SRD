@@ -1,21 +1,23 @@
 /**
- * The Discord card's chips, label first as the web cards print them (ruleset
- * §3.7): a fact as `**SP** 12`, lines of three, and the cost's pointy box.
+ * The Discord card's chips, label first (ruleset §3.7) and spelled out, as a
+ * full-size value box prints it: Discord has the room the web's compact cells
+ * lack. A fact as `**Structure Points** 12`, lines of three, and the cost's
+ * pointy box.
  */
 
 import type { EntityModel, Fact } from './types'
 
-/** A fact as a chip, label first in the web cards' short label: `**SP** 12`. */
+/** A fact as a chip, its full label first: `**Structure Points** 12`. */
 function factChip(fact: Fact): string {
-  return `**${fact.short}** ${fact.value}`
+  return `**${fact.label}** ${fact.value}`
 }
 
-/** The facts that have a value, as chips: `**RNG** Long`, `**DMG** 9 SP`. */
+/** The facts that have a value, as chips: `**Range** Long`, `**Damage** 9 SP`. */
 export function factChips(facts: Fact[]): string[] {
   return facts.filter((fact) => fact.value !== '').map(factChip)
 }
 
-/** Chips, three to a line: `**TL** 1 · **SP** 12 · **EP** 4`. */
+/** Chips, three to a line: `**Tech Level** 1 · **Structure Points** 12 · **Energy Points** 4`. */
 export function chipLines(chips: string[], perLine = 3): string[] {
   const lines: string[] = []
   for (let i = 0; i < chips.length; i += perLine) {
