@@ -4,11 +4,13 @@
  * painted, and the speckle when the surface wears it.
  *
  * The form passes the token: a "have" entity's own tone, an ability's tier
- * tone in a Row, `ink` for any other "do" entity. A condition that is down
- * greys the band, whatever its tone.
+ * tone in a Row, `ink` for any other "do" entity. A damaged entity dulls that
+ * band toward grey (`dullBand`): still its colour, at a distance. A destroyed
+ * one is grey, whatever its tone.
  */
 
-import { dullBand } from '../../components/referenceEntity/card/cardChrome'
+import type { Down } from '../../components/referenceEntity/card/cardChrome'
+import { downBand } from '../../components/referenceEntity/card/cardChrome'
 import type { CardGrain } from '../../components/referenceEntity/card/cardGrain'
 import { textBand } from '../../components/referenceEntity/referenceEntityHelpers'
 import { bandCarriesText, foregroundOn } from '../../design/contrast'
@@ -42,14 +44,14 @@ const FOREGROUND = { ink: 'var(--color-ink)', paper: 'var(--color-paper)' } as c
 
 export function paintFor(
   tone: string,
-  { down, texture }: { down?: boolean; texture: boolean }
+  { down, texture }: { down?: Down; texture: boolean }
 ): Paint {
   const ink = tone === 'ink'
   // A tone that carries neither foreground at 4.5:1 paints its deeper text
   // band (ruleset §3.8): crawler pink becomes the crawler band.
   const band = textBand(`var(--color-${tone})`) ?? 'var(--color-ink)'
   if (down) {
-    const dulled = dullBand(band)
+    const dulled = downBand(band, down)
     return {
       background: dulled,
       color: FOREGROUND[foregroundOn(dulled, 'ink')],

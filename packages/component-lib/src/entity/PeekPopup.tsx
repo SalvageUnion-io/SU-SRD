@@ -4,6 +4,7 @@ import { Component, useEffect, useState } from 'react'
 import type { EntitySchemaName, SURefEntity } from 'salvageunion-reference'
 import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference'
 import { Skeleton } from '../components/containers/Skeleton'
+import type { Down } from '../components/referenceEntity/card/cardChrome'
 import type { PeekLoader } from './Peek'
 import { PeekCard } from './PeekCard'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
@@ -56,8 +57,8 @@ export function PeekPopup({
   anchor: HTMLElement
   schemaName: string
   entityId: string
-  /** The trigger is damaged or destroyed: the card dulls as it does. */
-  down?: boolean
+  /** The trigger is damaged or destroyed: the card is down as it is. */
+  down?: Down
   load: PeekLoader
   onDismiss: () => void
 }) {

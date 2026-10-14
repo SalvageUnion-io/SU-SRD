@@ -14,6 +14,7 @@ import { resolveBodyBlocks, resolveBodyLayout } from '../bodyBlocks'
 import { bonusCells, buildHeaderStats, resolveTechScaling } from '../cardCells'
 import {
   dullBand,
+  GREY_HEADER,
   resolveCardColors,
   resolveCardInteraction,
   resolveFrameWidth,
@@ -172,6 +173,15 @@ describe('cardChrome', () => {
     expect(down.bandColor).toBe(dullBand('var(--color-pilot)'))
     expect(down.bandColor).toContain('var(--color-pilot) 50%')
     expect(down.onBand).toBe(up.onBand)
+  })
+
+  test('a destroyed header is flat grey, whatever its fill', () => {
+    for (const fill of ['tone', 'ink'] as const) {
+      expect(resolveCardColors({ tone, isDown: 'destroyed', fill })).toEqual({
+        onBand: 'ink',
+        bandColor: GREY_HEADER,
+      })
+    }
   })
 
   test('the frame steps 3 → 2 → 1.5px with size and depth', () => {

@@ -57,20 +57,23 @@ describe('Token chips', () => {
   })
 })
 
-describe('a damaged Token', () => {
-  const pill = (condition?: 'damaged') => {
-    const { container } = render(
+describe('a down Token', () => {
+  const pill = (condition?: 'damaged' | 'destroyed') =>
+    render(
       <Entity
         form="token"
         entity={get('systems', 'Red Laser')}
         instance={condition ? { condition } : undefined}
       />
-    )
-    return container
-  }
+    ).container
 
-  test('tells its Peek it is down, so the Peek dulls the same way', () => {
-    expect(pill().querySelector('[data-peek]')?.hasAttribute('data-peek-down')).toBe(false)
-    expect(pill('damaged').querySelector('[data-peek]')?.hasAttribute('data-peek-down')).toBe(true)
+  test('tells its Peek how it is down, so the Peek paints the same way', () => {
+    expect(pill().querySelector('[data-peek]')?.getAttribute('data-peek-down')).toBeNull()
+    expect(pill('damaged').querySelector('[data-peek]')?.getAttribute('data-peek-down')).toBe(
+      'damaged'
+    )
+    expect(pill('destroyed').querySelector('[data-peek]')?.getAttribute('data-peek-down')).toBe(
+      'destroyed'
+    )
   })
 })

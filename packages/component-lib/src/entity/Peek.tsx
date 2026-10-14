@@ -1,5 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { Down } from '../components/referenceEntity/card/cardChrome'
+import { downOf } from '../components/referenceEntity/card/cardChrome'
 import { PEEK_DOWN_ATTRIBUTE, parsePeekAddress } from './peekContext'
 import { installPeekController } from './peekController'
 
@@ -11,7 +13,7 @@ export type PeekLoader = (schemaName: string) => Promise<void>
 
 const loadOneSchema: PeekLoader = (schemaName) => SalvageUnionReference.preload([schemaName])
 
-type Active = { anchor: HTMLElement; schemaName: string; id: string; down: boolean }
+type Active = { anchor: HTMLElement; schemaName: string; id: string; down: Down }
 
 /** Only the first host on a page listens; a second would open every Peek twice. */
 let hostMounted = false
@@ -45,7 +47,7 @@ export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
     controller.current = installPeekController(document, {
       open: (anchor, address) => {
         const target = parsePeekAddress(address)
-        const down = anchor.hasAttribute(PEEK_DOWN_ATTRIBUTE)
+        const down = downOf(anchor.getAttribute(PEEK_DOWN_ATTRIBUTE) ?? undefined)
         setActive(target ? { anchor, ...target, down } : null)
       },
       close: () => setActive(null),

@@ -1,6 +1,8 @@
 import { useContext } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { InsidePeekContext } from '../components/atoms/insidePeek'
+import type { Down } from '../components/referenceEntity/card/cardChrome'
+import { conditionOf } from '../components/referenceEntity/card/cardChrome'
 
 export { InsidePeekContext }
 
@@ -16,7 +18,8 @@ export function useInsidePeek(): boolean {
  */
 export const PEEK_ATTRIBUTE = 'data-peek'
 
-/** Set on a trigger whose entity is damaged or destroyed: its Peek dulls too. */
+/** Set on a trigger whose entity is damaged (`damaged`) or destroyed
+ * (`destroyed`): its Peek is down the same way. */
 export const PEEK_DOWN_ATTRIBUTE = 'data-peek-down'
 
 /** A ref's address as a trigger carries it: `schema:id`. */
@@ -35,7 +38,10 @@ export function parsePeekAddress(
 }
 
 /** A Peek trigger's attributes: its address and whether it is down, or nothing. */
-export type PeekAttrs = { [PEEK_ATTRIBUTE]?: string; [PEEK_DOWN_ATTRIBUTE]?: '' }
+export type PeekAttrs = {
+  [PEEK_ATTRIBUTE]?: string
+  [PEEK_DOWN_ATTRIBUTE]?: 'damaged' | 'destroyed'
+}
 
 /**
  * The attributes that make an element a Peek trigger, or none: a synthetic ref
@@ -43,8 +49,12 @@ export type PeekAttrs = { [PEEK_ATTRIBUTE]?: string; [PEEK_DOWN_ATTRIBUTE]?: '' 
  * its own page, and inside a Peek nothing peeks again. A `down` trigger
  * (damaged or destroyed) says so, and its Peek dulls as it does.
  */
-export function usePeekAttrs(ref: EntityRef | undefined, down = false): PeekAttrs {
+export function usePeekAttrs(ref: EntityRef | undefined, down: Down = false): PeekAttrs {
   const inside = useInsidePeek()
   if (!ref || inside || ref.synthetic || ref.pattern) return {}
-  return { [PEEK_ATTRIBUTE]: peekAddress(ref), ...(down ? { [PEEK_DOWN_ATTRIBUTE]: '' } : {}) }
+  const condition = conditionOf(down)
+  return {
+    [PEEK_ATTRIBUTE]: peekAddress(ref),
+    ...(condition ? { [PEEK_DOWN_ATTRIBUTE]: condition } : {}),
+  }
 }

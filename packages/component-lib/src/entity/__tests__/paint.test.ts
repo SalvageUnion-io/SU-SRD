@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { GREY_HEADER } from '../../components/referenceEntity/card/cardChrome'
 import { paintFor } from '../parts/paint'
 
 /**
@@ -34,7 +35,7 @@ describe('paintFor: the name on paper', () => {
   })
 })
 
-/** Damaged or destroyed dulls the band toward grey (owner, 2026-10-14). */
+/** Damaged dulls the band toward grey; destroyed is grey (owner, 2026-10-14). */
 describe('paintFor: a down band', () => {
   const tones = [
     'ink',
@@ -66,6 +67,16 @@ describe('paintFor: a down band', () => {
         ink: up.ink,
         chip: false,
       })
+    }
+  })
+})
+
+describe('paintFor: a destroyed band', () => {
+  test('is flat grey whatever its tone, its foreground measured on the grey', () => {
+    for (const tone of ['ink', 'pilot', 'tl-1', 'tl-6']) {
+      const down = paintFor(tone, { down: 'destroyed', texture: false })
+      expect(down.background).toBe(GREY_HEADER)
+      expect(down.color).toBe('var(--color-ink)')
     }
   })
 })
