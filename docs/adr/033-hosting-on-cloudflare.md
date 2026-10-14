@@ -130,10 +130,11 @@ These are configured in the Cloudflare dashboard and are invisible to
 `grep`: Images Transformations (enabled per zone), **Always Use HTTPS** (SSL/TLS
 → Edge Certificates, on both zones), and one **Redirect Rule** per zone sending
 `www` to the apex. Also on both zones since 2026-10-14: **Minimum TLS 1.2**,
-**Tiered Cache** (Smart topology), and **Block AI bots**. Web Analytics is NOT
-one of them: its automatic setup never injects the beacon into a Worker's
-static assets, so srd's `BaseLayout` and ITUN's `index.html` load it by URL and
-each `_headers` CSP allows its two origins.
+**Tiered Cache** (Smart topology), and **Block AI bots**. So is **Web Analytics**
+(automatic setup, salvageunion.io): the edge injects its beacon into every HTML
+page, Worker static assets included, so neither app's source carries one, and
+each `_headers` CSP allows its two origins. Adding the beacon by hand as well
+loads it twice.
 
 A missing chunk's 404 is NOT among them: each app's Worker answers every miss
 with `no-store`, where `_headers`' `/assets/*` `immutable` rule does not reach,
