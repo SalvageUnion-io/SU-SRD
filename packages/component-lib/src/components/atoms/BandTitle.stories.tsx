@@ -4,7 +4,6 @@ import { borderWidth, color, font, fontSize, space, tracking } from '../../desig
 import type { Story } from '../../stories/_harness'
 import { Badge } from './Badge'
 import { BandTitle } from './BandTitle'
-import { Button } from './Button'
 
 export default {
   title: 'Atoms/Band Title',
@@ -48,8 +47,8 @@ function Band({ children }: { children: ReactNode }) {
  *
  *  It is deliberately NOT `Badge shape="stamp"`, and the last example shows
  *  why: a stamp is intrinsically sized (`w-fit`), which is what lets it ride a
- *  seam. A band title takes its width from the band's flex track and truncates,
- *  because the band also has to hold the controls beside it. */
+ *  seam. A band title truncates when the band is narrower than it, because
+ *  the band also has to hold what sits beside it. */
 export const Default: Story = () => {
   const chassis = SalvageUnionReference.Chassis.all()
   const short = chassis[0]?.name ?? 'Mule'
@@ -60,22 +59,9 @@ export const Default: Story = () => {
   return (
     <div style={STACK}>
       <div>
-        <div style={LABEL}>lead — fills the track</div>
+        <div style={LABEL}>lead — the band's title</div>
         <Band>
           <BandTitle>{short}</BandTitle>
-          <Button variant="default" size="iconOnly" aria-label="Close">
-            ×
-          </Button>
-        </Band>
-      </div>
-
-      <div>
-        <div style={LABEL}>lead — truncates rather than pushing the control off</div>
-        <Band>
-          <BandTitle>{longest}</BandTitle>
-          <Button variant="default" size="iconOnly" aria-label="Close">
-            ×
-          </Button>
         </Band>
       </div>
 
@@ -83,9 +69,7 @@ export const Default: Story = () => {
         <div style={LABEL}>mute — a secondary band label</div>
         <Band>
           <BandTitle>{short}</BandTitle>
-          <BandTitle variant="mute" fill={false}>
-            Salvage
-          </BandTitle>
+          <BandTitle variant="mute">Salvage</BandTitle>
         </Band>
       </div>
 

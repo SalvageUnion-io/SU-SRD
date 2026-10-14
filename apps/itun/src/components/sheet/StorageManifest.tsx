@@ -236,9 +236,7 @@ export function StorageManifest({
         headerContent={
           <>
             <span style={HOLD_TITLE}>{side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}</span>
-            <BandTitle variant="mute" fill={false}>
-              {side === 'mech' ? mechName : crawlerName}
-            </BandTitle>
+            <BandTitle variant="mute">{side === 'mech' ? mechName : crawlerName}</BandTitle>
           </>
         }
         cardStyle={{ style: HOLD_CARD }}

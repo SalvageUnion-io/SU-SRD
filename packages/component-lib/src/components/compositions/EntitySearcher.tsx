@@ -301,11 +301,9 @@ export function EntitySearcher({
               would grow the title vertically, not claim the band's width.
               The wrapper takes the track instead and the titles truncate. */}
           <div style={HEADER_TITLES_STYLE}>
-            <BandTitle fill={false} className="su-searcher__band-title">
-              {title}
-            </BandTitle>
+            <BandTitle className="su-searcher__band-title">{title}</BandTitle>
             {subtitle && (
-              <BandTitle variant="mute" fill={false} className="su-searcher__band-title">
+              <BandTitle variant="mute" className="su-searcher__band-title">
                 {subtitle}
               </BandTitle>
             )}
