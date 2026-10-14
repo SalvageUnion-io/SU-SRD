@@ -1,7 +1,15 @@
+import type { CSSProperties } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import {
+  getChassisAbilities,
+  replaceChassisPlaceholder,
+  SalvageUnionReference,
+  toEntityModel,
+} from 'salvageunion-reference'
 import type { Down } from '../components/referenceEntity/card/cardChrome'
 import { ReferenceEntityCard } from '../components/referenceEntity/card/ReferenceEntityCard'
+import { space } from '../design/tokens'
+import { Entity } from './Entity'
 import { InsidePeekContext } from './peekContext'
 
 /** What `[(CHASSIS)]` reads when more than one chassis shares the ability. */
@@ -28,6 +36,36 @@ function peekChassisName(entity: SURefEntity): string | undefined {
   }
 }
 
+const ABILITY_ROWS = {
+  display: 'grid',
+  gap: space[8],
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+} satisfies CSSProperties
+
+/**
+ * A chassis's Peek reads its chassis ability, not its patterns (owner's call,
+ * 2026-10-14): the ability as a library Row with its lead, as the mech
+ * sheet's hero shows it, its `[(CHASSIS)]` naming this chassis ("The Mule").
+ */
+function peekChassisAbilities(entity: SURefEntity) {
+  const abilities = getChassisAbilities(entity) ?? []
+  return abilities.length > 0 ? (
+    <ul aria-label="Chassis ability" style={ABILITY_ROWS}>
+      {abilities.map((ability) => {
+        const model = toEntityModel(ability)
+        const lead = model.lead && replaceChassisPlaceholder(model.lead, entity.name)
+        return (
+          <li key={ability.id}>
+            <Entity form="row" model={{ ...model, ...(lead ? { lead } : {}) }} lead />
+          </li>
+        )
+      })}
+    </ul>
+  ) : undefined
+}
+
 /**
  * The PEEK's card (E16): the entity read-only and terminal. It is
  * `ReferenceEntityCard` small, at full extent, flat (no
@@ -35,9 +73,11 @@ function peekChassisName(entity: SURefEntity): string | undefined {
  * in it act on nothing: no links (Mentions and Tags go inert), no roll-table
  * controls, no actions chip, children as Tokens, and no Peek inside it. A
  * chassis ability names its chassis (`peekChassisName`), never the raw token. A
+ * chassis shows its chassis ability (`peekChassisAbilities`), never its patterns. A
  * `down` Peek (its trigger damaged or destroyed) paints its band as the trigger does.
  */
 export function PeekCard({ entity, down = false }: { entity: SURefEntity; down?: Down }) {
+  const chassis = 'schemaName' in entity && entity.schemaName === 'chassis'
   return (
     <InsidePeekContext.Provider value={true}>
       <ReferenceEntityCard
@@ -47,6 +87,8 @@ export function PeekCard({ entity, down = false }: { entity: SURefEntity; down?:
         texture={false}
         chassisName={peekChassisName(entity)}
         hostDown={down}
+        hide={chassis ? { patterns: true } : undefined}
+        afterExtraContent={chassis ? peekChassisAbilities(entity) : undefined}
       />
     </InsidePeekContext.Provider>
   )

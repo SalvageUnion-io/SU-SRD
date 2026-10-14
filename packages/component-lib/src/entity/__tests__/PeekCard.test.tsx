@@ -84,3 +84,28 @@ describe('Peek of a chassis ability', () => {
     expect(container.textContent).toContain('The Mech')
   })
 })
+
+// Owner's call, 2026-10-14: peeking a chassis shows its chassis ability, not
+// its patterns.
+describe('Peek of a chassis', () => {
+  const mule = () => {
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule')
+    if (!chassis) throw new Error('fixture missing: Mule')
+    return chassis
+  }
+
+  test('shows its chassis ability as a Row', () => {
+    render(<PeekCard entity={mule()} />)
+    const list = screen.getByRole('list', { name: 'Chassis ability' })
+    expect(list.textContent).toContain('Integrated Cargo Bay')
+    expect(list.textContent).toContain('The Mule')
+    expect(list.textContent).not.toContain('[(CHASSIS)]')
+  })
+
+  test('lists none of its patterns', () => {
+    const { container } = render(<PeekCard entity={mule()} />)
+    for (const pattern of mule().patterns ?? []) {
+      expect(container.textContent).not.toContain(pattern.name)
+    }
+  })
+})
