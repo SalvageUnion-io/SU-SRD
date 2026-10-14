@@ -15,10 +15,13 @@ export const DOC_PAGES = {
 /**
  * Where ITUN's own `/about` and `/changelog` went: the SRD's page, which the
  * Worker 301s to (`worker/index.ts`), so a bookmark or an old link still
- * lands. Takes a path inside the base, with or without its trailing slash;
+ * lands. Takes a path inside the base, with or without its trailing slash, and
+ * the SRD to send it to (the Worker's `SRD_ORIGIN`, set on a Worker Preview);
  * null for any other path.
  */
-export function retiredDocPage(path: string): string | null {
+export function retiredDocPage(path: string, srdOrigin: string = SRD_ORIGIN): string | null {
   const name = path.replace(/^\/+|\/+$/g, '')
-  return name === 'about' || name === 'changelog' ? DOC_PAGES[name].href : null
+  return name === 'about' || name === 'changelog'
+    ? `${srdOrigin.replace(/\/+$/, '')}/${name}/`
+    : null
 }

@@ -251,6 +251,18 @@ describe('the doc pages 301 to the SRD', () => {
       expect(env.ASSETS.asked).toEqual([])
     })
   }
+
+  it("a Worker Preview's go to its own SRD (`SRD_ORIGIN`)", async () => {
+    const srd = 'https://pr-1-su-srd.example.workers.dev'
+    const env = { ...envWith(), SRD_ORIGIN: srd }
+    const res = await worker.fetch(
+      navigateTo(`https://pr-1-su-itun.example.workers.dev${BASE}/changelog`),
+      env
+    )
+
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe(`${srd}/changelog/`)
+  })
 })
 
 describe('the old host 301s to salvageunion.io/build', () => {

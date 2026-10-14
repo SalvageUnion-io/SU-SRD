@@ -20,7 +20,7 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { ITUN_URL } from '../src/lib/constants'
+import { ITUN_URL, SITE_URL } from '../src/lib/constants'
 
 const DIST = join(import.meta.dir, '../dist')
 
@@ -94,7 +94,7 @@ const apiHtml = readFileSync(join(DIST, 'api/index.html'), 'utf8')
 
 const documentedUrls = [
   ...new Set(
-    [...apiHtml.matchAll(/https:\/\/salvageunion\.io\/[a-z0-9\-./{}]*/gi)]
+    [...apiHtml.matchAll(new RegExp(`${RegExp.escape(SITE_URL)}/[a-z0-9\\-./{}]*`, 'gi'))]
       .map((m) => m[0])
       // `/schema/{schemaId}.json` and friends are illustrative, not real.
       .filter((u) => !u.includes('{'))

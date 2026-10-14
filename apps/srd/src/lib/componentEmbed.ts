@@ -13,7 +13,7 @@
 
 import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { componentEmbedJson, discordEntryCard } from 'salvageunion-reference'
-import { SERVED_SITE_URL } from './constants'
+import { SITE_URL } from './constants'
 
 export { COMPONENT_EMBED_MAX_BYTES } from 'salvageunion-reference'
 
@@ -26,5 +26,5 @@ export function componentEmbedFor(
   entity: SURefMetaEntity,
   pattern?: SURefObjectAnyPattern
 ): string {
-  return componentEmbedJson(discordEntryCard(entity, pattern, { srdOrigin: SERVED_SITE_URL }))
+  return componentEmbedJson(discordEntryCard(entity, pattern, { srdOrigin: SITE_URL }))
 }

@@ -16,7 +16,7 @@ interface ImportMetaEnv {
   readonly VITE_COMMIT_REF?: string
   /**
    * A Worker Preview's own origin (`https://pr-<n>-su-srd.<account>.workers.dev`),
-   * set by `deploy-preview.yml`. Unset → production's. See `SERVED_SITE_URL`.
+   * set by `deploy-preview.yml`. Unset → production's. See `SITE_URL`.
    */
   readonly VITE_SRD_ORIGIN?: string
   /**

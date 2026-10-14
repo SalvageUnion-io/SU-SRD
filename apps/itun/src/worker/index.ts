@@ -85,6 +85,12 @@ export type Env = ObservabilityEnv &
      * (`wrangler.jsonc`, held equal to `SITE.base` by the routing test).
      */
     BASE_PATH: string
+    /**
+     * The SRD a Worker Preview's redirects go to: the same PR's SRD Preview,
+     * passed by `deploy-preview.yml`. Unset in production, which sends them to
+     * salvageunion.io.
+     */
+    SRD_ORIGIN?: string
   }
 
 /** The Cache API's default cache, where the runtime has one (never under Bun). */
@@ -106,7 +112,7 @@ export default withObservability('su-itun', {
     const path = pathInApp(url.pathname, base)
 
     // D. A doc page ITUN no longer has: the SRD's, where both tools share it.
-    const docPage = retiredDocPage(path)
+    const docPage = retiredDocPage(path, env.SRD_ORIGIN)
     if (docPage !== null) return Response.redirect(docPage, 301)
 
     // 0. A link preview's picture — a file that exists only on request.

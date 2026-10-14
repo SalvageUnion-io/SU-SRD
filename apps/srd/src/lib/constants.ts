@@ -1,13 +1,6 @@
-// Re-exported, not re-declared. This origin was hardcoded in four places
-// (here, itun's deep-link builder, and twice inside the Discord bot); the
-// dataset owns it now, beside ASSET_BASE_URL, so a domain change is one edit.
+// The production origin is the dataset's, beside ASSET_BASE_URL, so a domain
+// change is one edit; this build's own origin is read from its environment.
 import { SRD_SITE_URL } from 'salvageunion-reference'
-
-export { SRD_SITE_URL as SITE_URL } from 'salvageunion-reference'
-
-/** Every breadcrumb trail's root: the home page is the book's Contents, on
- *  every page that has a trail (never "Home" on some and "Contents" on others). */
-export const CONTENTS_CRUMB = { name: 'Contents', url: `${SRD_SITE_URL}/` } as const
 
 /** An origin from the build's environment, without a trailing slash; `fallback` when unset. */
 function originOr(value: string | undefined, fallback: string): string {
@@ -15,14 +8,18 @@ function originOr(value: string | undefined, fallback: string): string {
 }
 
 /**
- * Where this build is served: production's `SITE_URL`, or a Worker Preview's
- * origin, which `deploy-preview.yml` passes as `VITE_SRD_ORIGIN`. What a pasted
- * link unfurls from (`og:url`, `og:image`, the Discord Component Embed's links)
- * is built on it, so a Preview's link previews show that Preview. Canonical
- * tags, structured data, the sitemap and llms.txt stay on `SITE_URL`: they name
- * the page of record, and a Preview is never it.
+ * Where this build is served, and every absolute link to a page of it:
+ * production's `SRD_SITE_URL`, or a Worker Preview's origin, which
+ * `deploy-preview.yml` passes as `VITE_SRD_ORIGIN`. Canonicals, `og:` tags, the
+ * Discord Component Embed, structured data, the sitemap and llms.txt all follow
+ * it, so a Preview names only itself. A Preview answers `noindex`, so its
+ * canonicals are never indexed.
  */
-export const SERVED_SITE_URL = originOr(import.meta.env.VITE_SRD_ORIGIN, SRD_SITE_URL)
+export const SITE_URL = originOr(import.meta.env.VITE_SRD_ORIGIN, SRD_SITE_URL)
+
+/** Every breadcrumb trail's root: the home page is the book's Contents, on
+ *  every page that has a trail (never "Home" on some and "Contents" on others). */
+export const CONTENTS_CRUMB = { name: 'Contents', url: `${SITE_URL}/` } as const
 
 /**
  * In The Union Now — the companion character builder & game manager, served

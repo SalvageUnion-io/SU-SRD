@@ -60,10 +60,11 @@ env:
   STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
   STAGING_CONVEX_URL: https://perfect-donkey-72.convex.cloud
   # Each Preview's address, known before it exists: `<name>-<worker>.<account
-  # subdomain>`. Both builds take both, so a Preview's links into the other app
-  # and its link previews (og:url, og:image, the Discord Component Embed) name
-  # this PR's Previews, never production. `ship` fails if wrangler reports any
-  # other address. Canonical tags stay production's.
+  # subdomain>`. Both builds take both, and ITUN's Worker its SRD_ORIGIN (its
+  # redirects to the SRD), so every link a Preview prints names this PR's
+  # Previews, never production: cross links, canonicals, og: tags, the Discord
+  # Component Embed, the sitemap. A Preview answers noindex, so search never
+  # sees them. `ship` fails if wrangler reports any other address.
   PREVIEW_SRD_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
   PREVIEW_ITUN_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-itun.alxjrvs.workers.dev
 
@@ -272,7 +273,8 @@ jobs:
               --name "$PREVIEW_NAME" \
               --message "$PREVIEW_NAME@${SHA:0:12}" \
               --var "SENTRY_RELEASE:$SHA" \
-              --var "SENTRY_ENVIRONMENT:preview")
+              --var "SENTRY_ENVIRONMENT:preview" \
+              --var "SRD_ORIGIN:$PREVIEW_SRD_ORIGIN")
             url=$(jq -rs '[.[] | select(.type == "preview")] | last | .preview_urls[0]
               | if type == "object" then .url else . end // empty' "$out")
             if [ -z "$url" ]; then
