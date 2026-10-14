@@ -1,8 +1,8 @@
 /**
  * MechIdentityPanel — the mech hero's IDENTITY fields (the mech sibling of
  * PilotIdentityPanel): what the player wrote. The chassis's stats and ability
- * sit beside them in the hero; its name, art and description are its own card
- * under it (`MechChassisCard`).
+ * sit beside them in the hero; its name, art and description are its callout
+ * at the hero card's foot (`MechChassisCard`).
  *
  * The PATTERN NAME is the band's title, so Read leaves it out (owner's call,
  * 2026-10-14) and Edit shows it as the name's edit surface, as the pilot's

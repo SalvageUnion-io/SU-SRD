@@ -124,12 +124,15 @@
   }
 
   .su-sheet-mech-hero-split > :first-child {
-    flex: 1 1 0%;
+    flex: 2 1 0%;
     min-width: 0;
   }
 
+  /* The chassis column takes the larger share (owner's call, 2026-10-14:
+     more room for the stats and ability), never under 19rem. */
   .su-sheet-mech-hero-chassis {
-    flex: 0 0 19rem;
+    flex: 3 1 0%;
+    min-width: 19rem;
   }
 }
 
