@@ -23,7 +23,6 @@ import {
   getSchemaCatalog,
   getTechLevel,
   SalvageUnionReference,
-  schemaDomain,
 } from 'salvageunion-reference'
 import { schemaHref } from './entityHref'
 import { listingEntries } from './listingEntries'
@@ -190,28 +189,23 @@ function abilityBandFill(entity: SURefEntity): BandFill | undefined {
 }
 
 /**
- * The bands a piece of gear's show page wears (systems, modules, equipment,
- * drones, vehicles: `schemaDomain` 'gear'): its tech level's colour, head and
- * foot, as its card's header and Row do; an ability's, its tier's colour.
- * Every other page, the listings included, wears its chapter's band (`undefined`).
+ * The schemas whose show page wears its tech level's blue: systems and
+ * modules, the one place the book sets TL blue as a ground (ruleset §3.8, book
+ * pp. 162, 188). Equipment, drones and vehicles wear their chapter's band.
+ */
+const TECH_LEVEL_BAND_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules'])
+
+/**
+ * The bands a show page wears when not its chapter's: a system's or module's,
+ * its tech level's colour, head and foot, as its card's header and Row do; an
+ * ability's, its tier's colour (E12). Every other page, every listing
+ * included, wears its chapter's band from the colour map (`undefined`).
  */
 export function bandFillFor(schemaId: string, entity: SURefEntity): BandFill | undefined {
   if (schemaId === 'abilities') return abilityBandFill(entity)
-  if (schemaDomain(schemaId) !== 'gear') return undefined
+  if (!TECH_LEVEL_BAND_SCHEMAS.has(schemaId)) return undefined
   const techLevel = getTechLevel(entity)
   if (techLevel == null) return undefined
   const band = `var(--color-tl-${String(techLevel).toLowerCase()})`
   return { band, foot: FOOT_SHADE[band] ?? band }
-}
-
-/**
- * The band a listing page wears when it wears its own rather than its
- * chapter's: a gear listing (systems, modules, equipment, drones, vehicles)
- * takes the lightest tech level's blue, TL1, the colour its first group of
- * entries opens on. Every other listing wears its chapter's band (`undefined`).
- */
-export function listingBandFillFor(schemaId: string): BandFill | undefined {
-  if (schemaDomain(schemaId) !== 'gear') return undefined
-  const band = 'var(--color-tl-1)'
-  return { band, foot: band }
 }
