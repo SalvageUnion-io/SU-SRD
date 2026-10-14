@@ -151,6 +151,8 @@ describe('toEntityModel parity, every entity', () => {
       // An ability's head-only card is its Row: it wears its tier tone (E12).
       const rowFill = schemaName === 'abilities' ? 'tone' : doFill
       agree(label(row), resolveHeaderFill(entity, 'head'), rowFill)
+      // A Peek's card wears the fill of the Token or Row that opened it.
+      agree(label(row), resolveHeaderFill(entity, 'full', true), rowFill)
     }
   })
 

@@ -62,7 +62,7 @@ type RefusalProps = {
 export function DashboardRefusal({ page = 'Dashboard', title, body, link }: RefusalProps) {
   return (
     <PageShell>
-      <ChapterBand>{page}</ChapterBand>
+      <ChapterBand tone="cantina">{page}</ChapterBand>
       <Text as="h2" style={REASON}>
         {title}
       </Text>

@@ -217,7 +217,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Mech', 'Scrapper'],
       ],
       lines: ["Pilot · Engineer · Rosa's pilot · Reclamation of the Wastes"],
-      wordmark: 'ITUN',
+      wordmark: 'The Cantina',
       address: 'itun.salvageunion.io/p/pilot/0a1b',
     },
   ],
@@ -234,7 +234,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12/12'],
       ],
       lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
-      wordmark: 'ITUN',
+      wordmark: 'The Cantina',
       address: 'itun.salvageunion.io/p/pattern/0a1b',
     },
   ],
@@ -251,7 +251,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Actions', '2'],
       ],
       lines: ['NPC · From Veteran · Made by alxjrvs'],
-      wordmark: 'ITUN',
+      wordmark: 'The Cantina',
       address: 'itun.salvageunion.io',
     },
   ],
@@ -268,7 +268,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         'Mediated by alxjrvs.',
         "You're invited · Player seat · Link expires 15 Oct · the Mediator lets you in",
       ],
-      wordmark: 'ITUN',
+      wordmark: 'The Cantina',
       address: 'itun.salvageunion.io',
     },
   ],
@@ -285,7 +285,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Actions', '2'],
       ],
       lines: ['NPC · From Veteran · Made by alxjrvs'],
-      wordmark: 'ITUN',
+      wordmark: 'The Cantina',
       address: 'itun.salvageunion.io',
     },
   ],
@@ -302,7 +302,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12/12'],
       ],
       lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
-      wordmark: 'ITUN',
+      wordmark: 'The Cantina',
       address: 'itun.salvageunion.io/p/pattern/0a1b',
     },
   ],
@@ -319,7 +319,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         'Mediated by alxjrvs.',
         "You're invited · Player seat · Link expires 15 Oct · the Mediator lets you in",
       ],
-      wordmark: 'ITUN',
+      wordmark: 'The Cantina',
       address: 'itun.salvageunion.io',
     },
   ],
@@ -333,7 +333,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
       tone: color.inkDeep,
       cells: [],
       lines: ["Its owner hasn't shared this."],
-      wordmark: 'ITUN',
+      wordmark: 'The Cantina',
       address: 'itun.salvageunion.io',
     },
   ],
@@ -393,9 +393,9 @@ describe('OgCard', () => {
     expect(ogCardDescription(PRIVATE)).toBe("Its owner hasn't shared this.")
   })
 
-  test('the reference cards say salvageunion.io; the player cards say ITUN', () => {
+  test('the reference cards say salvageunion.io; the player cards say The Cantina', () => {
     expect(renderToStaticMarkup(<OgCard {...THING} />)).toContain('salvageunion.io')
-    expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('ITUN')
+    expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('The Cantina')
   })
 
   test('theme-color is the band: the tone, resolved to a literal', () => {

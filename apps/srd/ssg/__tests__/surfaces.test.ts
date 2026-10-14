@@ -353,7 +353,7 @@ describe('/discord documents the bot it installs', () => {
     }
   })
 
-  it('says what needs an account, and opens In the Union now in the same tab', () => {
+  it('says what needs an account, and opens The Cantina in the same tab', () => {
     expect(html).not.toContain('no-account character builder')
     expect(html).toContain('sign in with Discord to build')
     expect(html).not.toMatch(/href="https:\/\/salvageunion\.io\/build\/"[^>]*target="_blank"/)

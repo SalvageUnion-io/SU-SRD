@@ -16,6 +16,12 @@ const frost = () => {
   return system
 }
 
+const scrap = () => {
+  const ability = SalvageUnionReference.Abilities.getByName('Scrap')
+  if (!ability) throw new Error('fixture missing: Scrap')
+  return ability
+}
+
 /** The footer's own block: the citation's cluster's row's parent. */
 const footerOf = () => {
   const footer = screen.getByText(/· p\.\d+/).parentElement?.parentElement?.parentElement
@@ -40,6 +46,13 @@ describe('Peek footer', () => {
   test('a card off a Peek keeps its footer on paper', () => {
     render(<ReferenceEntityCard data={frost()} size="small" extent="full" />)
     expect(footerOf().style.background).toBe('')
+  })
+
+  // The Peek wears the fill of the Token or Row that opened it (owner,
+  // 2026-10-14): an ability's tier tone, not the card's ink banner.
+  test("an ability's Peek wears its tier tone, as its Token does", () => {
+    const { container } = render(<PeekCard entity={scrap()} />)
+    expect(container.querySelector('[style*="--color-pilot"]')).not.toBeNull()
   })
 })
 

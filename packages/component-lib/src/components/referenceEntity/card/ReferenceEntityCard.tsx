@@ -287,7 +287,7 @@ function ReferenceEntityCardInner({
   const hide = resolveHide(hideProp, isCatalog, insidePeek)
   const tone = resolveCardTone(schemaName, entity)
   // HAVE vs DO, by data shape.
-  const fill: HeaderFill = resolveHeaderFill(entity, extent)
+  const fill: HeaderFill = resolveHeaderFill(entity, extent, insidePeek)
   // A damaged/destroyed card — or one nested under a damaged host — greys its
   // header; its body dims.
   const isDown = status === 'damaged' || status === 'destroyed' || !!hostDown

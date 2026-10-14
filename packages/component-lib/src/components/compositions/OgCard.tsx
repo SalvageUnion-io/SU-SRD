@@ -246,7 +246,7 @@ function UnionFoot({
       <Speckle grain="paper" />
       <div style={LOCKUP}>
         <img src={markSrc} alt="" width={56} height={56} />
-        <span style={WORDMARK}>{reference ? PRODUCT.wordmark : PRODUCT.shortName}</span>
+        <span style={WORDMARK}>{reference ? PRODUCT.wordmark : PRODUCT.name}</span>
       </div>
       <span style={ADDRESS}>{address}</span>
     </div>

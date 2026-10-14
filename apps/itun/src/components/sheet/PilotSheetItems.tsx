@@ -138,7 +138,16 @@ type PilotAbilityItemProps = {
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
   readOnly: boolean
+  /**
+   * `row` on a tree's track (the SRD's Tree view): the Row, which Peeks the
+   * card, its tier left to the track's numeral and its kind to the tree's
+   * slab, the controls on the line under it. A Token otherwise.
+   */
+  form?: 'token' | 'row'
 }
+
+/** On a track the tree's slab names the kind and the track numbers the tier. */
+const OMIT_KIND_TIER = ['kind', 'tier'] as const
 
 /**
  * One ability: its Token, which Peeks the whole card (owner's call,
@@ -155,11 +164,26 @@ export function PilotAbilityItem({
   onSpend,
   onToggleUsed,
   readOnly,
+  form = 'token',
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
   return (
     <SheetItemLine
-      token={<Entity form="token" entity={ability} mode={{ kind: 'link' }} />}
+      rowForm={form === 'row'}
+      token={
+        form === 'row' ? (
+          <Entity
+            form="row"
+            entity={ability}
+            mode={{ kind: 'link' }}
+            omit={OMIT_KIND_TIER}
+            lead
+            peek
+          />
+        ) : (
+          <Entity form="token" entity={ability} mode={{ kind: 'link' }} />
+        )
+      }
       name={ability.name}
       readOnly={readOnly}
       stamp={used ? 'Used' : undefined}

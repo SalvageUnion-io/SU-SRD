@@ -157,11 +157,11 @@ export default defineConfig({
       includeAssets: ['favicon.svg'],
       workbox: WORKBOX_OPTIONS,
       manifest: {
-        name: 'ITUN — In the Union now',
-        short_name: 'ITUN',
+        name: 'The Cantina — The Salvage Union Character Builder',
+        short_name: 'Cantina',
         // index.html's meta description, verbatim (lib/__tests__/manifestDescription.test.ts).
         description:
-          'Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic mech TTRPG.',
+          'The Salvage Union Character Builder. Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic mech TTRPG.',
         // The SU mark's ink stamp / the paper ground.
         theme_color: '#282019',
         background_color: '#f3ede2',

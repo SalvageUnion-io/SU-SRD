@@ -24,7 +24,7 @@ describe('ClassAbilityTree headings', () => {
     const abilities = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
     expect(abilities).toContain('Jury Rig')
     // Every Ability Row in a tree titles itself with a heading.
-    const rows = document.querySelectorAll('.srd-ability-tree__tier')
+    const rows = document.querySelectorAll('.su-ability-track__tier')
     expect(abilities).toHaveLength(rows.length)
   })
 
@@ -41,7 +41,7 @@ describe('ClassAbilityTree banners and track', () => {
   test('every ability banner wears its tier; a tracked tier sets its numeral on the track', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const heads = [
-      ...document.querySelectorAll<HTMLElement>('.srd-ability-tree__tier .su-entity-row__head'),
+      ...document.querySelectorAll<HTMLElement>('.su-ability-track__tier .su-entity-row__head'),
     ]
     expect(heads.length).toBeGreaterThan(0)
     for (const head of heads) expect(head.dataset.fill).toBe('tone')
@@ -60,9 +60,9 @@ describe('ClassAbilityTree banners and track', () => {
 
     const forging = screen.getByRole('heading', { level: 2, name: 'Forging' }).closest('section')
     if (!forging) throw new Error('no Forging tree')
-    const tiers = [...forging.querySelectorAll('.srd-ability-tree__tier')]
+    const tiers = [...forging.querySelectorAll('.su-ability-track__tier')]
     expect(
-      tiers.map((tier) => tier.querySelector('.srd-ability-tree__numeral')?.textContent)
+      tiers.map((tier) => tier.querySelector('.su-ability-track__numeral')?.textContent)
     ).toEqual(['1', '2', '3'])
     // The numeral sits outside the banner: the band leads with the name.
     for (const tier of tiers) {
@@ -76,24 +76,22 @@ describe('ClassAbilityTree banners and track', () => {
     const legendary = screen
       .getAllByRole('heading', { level: 2, name: 'Legendary Engineer' })
       .map((h) => h.closest('section'))
-      .find((section) => section?.querySelector('.srd-ability-tree__track'))
+      .find((section) => section?.querySelector('.su-ability-track'))
     if (!legendary) throw new Error('no Legendary tree')
-    expect(legendary.querySelector('.srd-ability-tree__track')?.getAttribute('data-track')).toBe(
+    expect(legendary.querySelector('.su-ability-track')?.getAttribute('data-track')).toBe(
       'legendary'
     )
-    expect(legendary.querySelector('.srd-ability-tree__numeral')).toBeNull()
+    expect(legendary.querySelector('.su-ability-track__numeral')).toBeNull()
     // The "or" sits on the track below each pick but the last, centred on the run to the next.
-    const tiers = [...legendary.querySelectorAll('.srd-ability-tree__tier')]
+    const tiers = [...legendary.querySelectorAll('.su-ability-track__tier')]
     expect(
-      tiers.map((tier) => tier.querySelector(':scope > .srd-ability-tree__or')?.textContent)
+      tiers.map((tier) => tier.querySelector(':scope > .su-ability-track__or')?.textContent)
     ).toEqual(tiers.map((_, index) => (index === tiers.length - 1 ? undefined : 'or')))
   })
 
   test('every Row on a track Peeks its ability', () => {
     const { container } = render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
-    const tiers = [
-      ...container.querySelectorAll('.srd-ability-tree__track > .srd-ability-tree__tier'),
-    ]
+    const tiers = [...container.querySelectorAll('.su-ability-track > .su-ability-track__tier')]
     expect(tiers.length).toBeGreaterThan(0)
     for (const tier of tiers) {
       expect(tier.querySelector('[data-peek^="abilities:"]')).not.toBeNull()
