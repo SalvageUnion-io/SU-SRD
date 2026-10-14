@@ -11,7 +11,8 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { WORKBOX_OPTIONS } from '../workbox'
+import { Glob } from 'bun'
+import { UNFETCHED_FONT_SUBSETS, WORKBOX_OPTIONS } from '../workbox'
 
 /** The slice of a fetch event's request the route matcher reads. */
 const requestOf = (mode: RequestMode) => ({ request: { mode } as Request })
@@ -69,5 +70,27 @@ describe('the route matcher survives being stringified into sw.js', () => {
 
     expect(rebuilt(requestOf('navigate'))).toBe(true)
     expect(rebuilt(requestOf('cors'))).toBe(false)
+  })
+})
+
+describe('the precache', () => {
+  // As Vite emits them: the @fontsource file name, then a hash.
+  const emitted = (subset: string) =>
+    `assets/barlow-semi-condensed-${subset}-500-normal-G0uxJNrM.woff2`
+  const ignored = new Glob(UNFETCHED_FONT_SUBSETS)
+
+  it("leaves out the font subsets the app's own text never fetches", () => {
+    expect(WORKBOX_OPTIONS.globIgnores).toContain(UNFETCHED_FONT_SUBSETS)
+    expect(ignored.match(emitted('latin-ext'))).toBe(true)
+    expect(ignored.match(emitted('vietnamese'))).toBe(true)
+  })
+
+  it('keeps the latin subset every page draws with', () => {
+    expect(ignored.match(emitted('latin'))).toBe(false)
+    expect(ignored.match('assets/barlow-latin-400-normal-qiz4-Cze.woff2')).toBe(false)
+  })
+
+  it("keeps workbox-build's default ignore, which setting globIgnores replaces", () => {
+    expect(WORKBOX_OPTIONS.globIgnores).toContain('**/node_modules/**/*')
   })
 })

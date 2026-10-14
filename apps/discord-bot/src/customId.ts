@@ -13,7 +13,7 @@
  */
 
 /** Namespace prefix for every one of this bot's component ids. */
-export const CUSTOM_ID_NS = 'su'
+const CUSTOM_ID_NS = 'su'
 
 /** Discord caps a component customId at 100 characters. */
 const CUSTOM_ID_MAX = 100
@@ -21,11 +21,18 @@ const CUSTOM_ID_MAX = 100
 /**
  * The actions a button can re-invoke. `roll` re-rolls a named Salvage Union
  * table (shared by the roll subcommand's result and the lookup card's
- * "Roll on this table" button); `lookup` returns the `/su lookup` card for a
+ * "Roll the Die" button); `lookup` returns the `/su lookup` card for a
  * named roll-table (the "See table" button on a roll result); `post`
- * re-renders a PRIVATE roll publicly.
+ * re-renders a PRIVATE roll publicly; `table` answers privately with the
+ * whole table, the roll's row marked; `read` answers privately with one action of a long lookup card, whose index
+ * row carries the button (`<entry key>|<action slug>`); `open` is a lookup
+ * card's linked-entries menu, which answers privately with the picked entry's
+ * card (the entry key rides in the option's value, the payload names the card
+ * the menu is on). `open` is deliberately not the retired `peek`: an older
+ * message's pattern picker must keep answering "no longer supported".
  *
- * `post` is the one action whose payload is a RESULT rather than a request.
+ * `post` and `table` are the actions whose payload is a RESULT rather than a
+ * request (`table` marks the row the roll landed on).
  * Every other button re-rolls, which is correct for them and wrong here: a
  * "post this to the channel" button that rolled again would share a different
  * outcome from the one the player just looked at, silently. Encoding the roll
@@ -33,7 +40,20 @@ const CUSTOM_ID_MAX = 100
  * backend — `resultForTable` is pure, so the same table and the same die give
  * the same entry forever.
  */
-export type ButtonAction = 'roll' | 'lookup' | 'post'
+export type ButtonAction = 'roll' | 'lookup' | 'post' | 'table' | 'read' | 'open'
+
+const ACTIONS: ReadonlySet<string> = new Set<ButtonAction>([
+  'roll',
+  'lookup',
+  'post',
+  'table',
+  'read',
+  'open',
+])
+
+function isButtonAction(action: string): action is ButtonAction {
+  return ACTIONS.has(action)
+}
 
 export type ParsedCustomId = { action: ButtonAction; payload: string }
 
@@ -53,9 +73,7 @@ export function parseCustomId(customId: string): ParsedCustomId | null {
   const parts = customId.split(':')
   if (parts.length < 3 || parts[0] !== CUSTOM_ID_NS) return null
   const action = parts[1]
-  if (action !== 'roll' && action !== 'lookup' && action !== 'post') {
-    return null
-  }
+  if (action === undefined || !isButtonAction(action)) return null
   return { action, payload: parts.slice(2).join(':') }
 }
 
@@ -68,6 +86,31 @@ export function parseCustomId(customId: string): ParsedCustomId | null {
  */
 export function encodeRollResult(tableName: string, rolls: number[]): string {
   return [tableName, ...rolls.map(String)].join('|')
+}
+
+/**
+ * A re-roll REQUEST: the table, and the Discord id of the one person who may
+ * press it — `<table>|<userId>`. Only the person who rolled re-rolls; anyone
+ * else rolls their own with `/su roll`. A bare table name (every button posted
+ * before this, and the lookup card's "Roll the Die", which is a first
+ * roll) carries no owner and stays open to anyone. Table names hold no `|`.
+ */
+export function encodeRollRequest(tableName: string, ownerId?: string, isPrivate = false): string {
+  if (!ownerId) return tableName
+  return isPrivate ? `${tableName}|${ownerId}|p` : `${tableName}|${ownerId}`
+}
+
+/** A decoded re-roll request. */
+export type RollRequest = { tableName: string; ownerId?: string; isPrivate: boolean }
+
+/**
+ * The inverse of {@link encodeRollRequest}. A re-roll shares its first roll's
+ * status: a trailing `|p` marks a private one, so its re-roll answers privately
+ * too.
+ */
+export function decodeRollRequest(payload: string): RollRequest {
+  const [tableName = '', ownerId, flag] = payload.split('|')
+  return ownerId ? { tableName, ownerId, isPrivate: flag === 'p' } : { tableName, isPrivate: false }
 }
 
 /** The inverse of {@link encodeRollResult}, or null if the payload is malformed. */

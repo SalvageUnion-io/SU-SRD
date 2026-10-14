@@ -9,12 +9,15 @@
  * This is read-only — the log is never mutated from the UI.
  */
 
-import { ModalShell } from 'component-lib'
+import type { BadgeTone } from 'component-lib'
+import { Badge, EmptyState, ModalShell, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { ChangeLogKind } from 'itun-domain/schemas/changeLog'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { ChangeLogKind } from '../../lib/schemas/changeLog'
-import type { EntityRef } from '../../lib/schemas/entity'
+import { formatDateTime } from '../../lib/formatDate'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -24,17 +27,93 @@ type ChangeLogDrawerProps = {
   onOpenChange: (open: boolean) => void
 }
 
-/** Kind → human label + badge tone. */
-const KIND_META: Record<ChangeLogKind, { label: string; className: string }> = {
-  transaction: { label: 'Transaction', className: 'bg-mech/15 text-mech' },
-  override: { label: 'Override', className: 'bg-pilot/15 text-pilot' },
-  manual: { label: 'Manual', className: 'bg-ink/10 text-wk-muted' },
+/** A `color-mix()` wash of a theme colour: `pct`% of it over transparent. */
+const wash = (value: string, pct: number) => `color-mix(in oklab, ${value} ${pct}%, transparent)`
+
+/** Kind → human label + its chip: a tone chip for the two kinds a rule wrote, quiet for a hand edit. */
+const KIND_META: Record<ChangeLogKind, { label: string; tone?: BadgeTone }> = {
+  transaction: { label: 'Transaction', tone: 'mech' },
+  override: { label: 'Override', tone: 'pilot' },
+  manual: { label: 'Manual' },
 }
 
-const BADGE_CLASS =
-  'rounded-card px-1.5 py-0.5 font-cond text-badge font-bold uppercase tracking-caps-tight'
+/** A kind's chip: the Badge chip, toned or quiet. */
+function KindChip({ label, tone }: { label: string; tone?: BadgeTone | undefined }) {
+  return tone ? (
+    <Badge surface="tone" tone={tone}>
+      {label}
+    </Badge>
+  ) : (
+    <Badge surface="quiet">{label}</Badge>
+  )
+}
 
-const NOTE_CLASS = 'font-body text-sm text-wk-muted'
+const NOTE = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+const LIST = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const ENTRY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[4],
+  borderRadius: tokens.radius.card,
+  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
+  backgroundColor: wash(tokens.color.ink, 3),
+  padding: `${tokens.space[8]} ${tokens.space[12]}`,
+} satisfies CSSProperties
+
+const ENTRY_HEAD = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const FIELD = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.capsTight,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const TIME = {
+  marginLeft: 'auto',
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+const VALUES = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'baseline',
+  gap: tokens.space[6],
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
+const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
+
+const BEFORE = { ...MUTED, textDecorationLine: 'line-through' } satisfies CSSProperties
+
+const AFTER = { fontWeight: tokens.weight.medium, color: tokens.color.ink } satisfies CSSProperties
+
+/** The drawer body's fill; its padding steps up at `sm` (`.su-sheet-changelog-body`). */
+const BODY = { backgroundColor: tokens.color.paper } satisfies CSSProperties
 
 /** Compact display for a logged before/after value. An absent side is stored as null. */
 function formatValue(value: unknown): string {
@@ -45,57 +124,41 @@ function formatValue(value: unknown): string {
   return json.length > 80 ? `${json.slice(0, 79)}…` : json
 }
 
-function formatTimestamp(ts: number): string {
-  return new Date(ts).toLocaleString(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
-
 function ChangeLogEntries({
   entityType,
   entityId,
 }: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId'>) {
   const entries = useQuery(api.changeLog.forEntity, { entityType, entityId })
 
-  if (entries === undefined) return <p className={NOTE_CLASS}>Loading…</p>
+  if (entries === undefined) return <p style={NOTE}>Loading…</p>
   if (entries.length === 0) {
     return (
-      <p className={NOTE_CLASS}>
-        No changes recorded yet. Edits to this {entityType} will appear here.
-      </p>
+      <EmptyState
+        variant="quiet"
+        body={`No changes recorded yet. Edits to this ${entityType} will appear here.`}
+      />
     )
   }
   return (
-    <ul className="flex flex-col gap-2">
+    <ul style={LIST}>
       {entries.map((entry) => {
         const kind = KIND_META[entry.kind]
         return (
-          <li
-            key={entry._id}
-            className="flex flex-col gap-1 rounded-card border border-ink/15 bg-ink/[0.03] px-3 py-2"
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`${BADGE_CLASS} ${kind.className}`}>{kind.label}</span>
-              {entry.state === 'proposed' && (
-                <span className={`${BADGE_CLASS} ${KIND_META.manual.className}`}>Proposed</span>
-              )}
-              <span className="font-cond text-sm font-bold uppercase tracking-caps-tight text-ink">
-                {entry.field}
-              </span>
-              <time
-                dateTime={new Date(entry.ts).toISOString()}
-                className="ml-auto font-body text-xs text-wk-muted"
-              >
-                {formatTimestamp(entry.ts)}
+          <li key={entry._id} style={ENTRY}>
+            <div style={ENTRY_HEAD}>
+              <KindChip label={kind.label} tone={kind.tone} />
+              {entry.state === 'proposed' && <KindChip label="Proposed" />}
+              <span style={FIELD}>{entry.field}</span>
+              <time dateTime={new Date(entry.ts).toISOString()} style={TIME}>
+                {formatDateTime(entry.ts)}
               </time>
             </div>
-            <div className="flex flex-wrap items-baseline gap-1.5 font-body text-sm">
-              <span className="text-wk-muted line-through">{formatValue(entry.before)}</span>
-              <span aria-hidden="true" className="text-wk-muted">
+            <div style={VALUES}>
+              <span style={BEFORE}>{formatValue(entry.before)}</span>
+              <span aria-hidden="true" style={MUTED}>
                 →
               </span>
-              <span className="font-medium text-ink">{formatValue(entry.after)}</span>
+              <span style={AFTER}>{formatValue(entry.after)}</span>
             </div>
           </li>
         )
@@ -123,14 +186,14 @@ export function ChangeLogDrawer({
       title="Change Log"
       subtitle={entityName}
       tone="danger"
-      maxWidth="max-w-2xl"
+      maxWidth="su-sheet-changelog-dialog"
       description={`Change history for ${entityName}`}
     >
-      <div className="bg-paper p-4 sm:p-5">
+      <div className="su-sheet-changelog-body" style={BODY}>
         {live ? (
           <ChangeLogEntries entityType={entityType} entityId={entityId} />
         ) : (
-          <p className={NOTE_CLASS}>
+          <p style={NOTE}>
             The Change Log is kept with your account. It shows here while you are connected.
           </p>
         )}

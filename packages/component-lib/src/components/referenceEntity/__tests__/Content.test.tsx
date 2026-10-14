@@ -1,7 +1,8 @@
 /**
  * `Content` is the block renderer every entity card's prose goes through. Each
  * `type` maps to a different atom — a `cost` datavalue becomes an
- * ActivationCost, a `trait`/`keyword` datavalue becomes a tooltip-bearing Stat,
+ * ActivationCost, a `trait` or label-only `keyword` datavalue a tooltip-bearing
+ * tag, a measured one a Stat,
  * a heading becomes a Slab, `choice` markers are stripped entirely — and an
  * unhandled type silently falls through to plain prose. None of that mapping is
  * type-checked (the block `type` is a free string), so the branches are pinned
@@ -169,7 +170,24 @@ describe('Content — datavalues chips', () => {
     expect(screen.getByText('3 Hexes')).toBeTruthy()
   })
 
-  test('a trait datavalue renders its label as a stat chip', () => {
+  test("a measured keyword wears an attack facet's short label", () => {
+    render(
+      <Content
+        body={blocks({
+          type: 'datavalues',
+          value: [
+            { type: 'keyword', label: 'Damage', value: '5 SP' },
+            { type: 'keyword', label: 'Range', value: 'Medium' },
+          ],
+        })}
+      />
+    )
+    expect(screen.getByText('DMG')).toBeTruthy()
+    expect(screen.getByText('RNG')).toBeTruthy()
+    expect(screen.queryByText('Damage')).toBeNull()
+  })
+
+  test('a trait datavalue renders its label as a tag', () => {
     render(
       <Content
         body={blocks({ type: 'datavalues', value: [{ type: 'trait', label: 'Anti-Personnel' }] })}
@@ -178,7 +196,21 @@ describe('Content — datavalues chips', () => {
     expect(screen.getByText('Anti-Personnel')).toBeTruthy()
   })
 
-  test('a keyword datavalue renders its label as a stat chip', () => {
+  test('a qualified trait datavalue is a Tag with its parameter cell (E17)', () => {
+    render(
+      <Content
+        body={blocks({
+          type: 'datavalues',
+          value: [{ type: 'trait', label: 'Explosive', value: 1 }],
+        })}
+      />
+    )
+    const tag = screen.getByText('Explosive').closest('[data-tag]')
+    expect(tag?.textContent).toBe('Explosive1')
+    expect(tag?.getAttribute('data-peek')).toStartWith('traits:')
+  })
+
+  test('a label-only keyword datavalue renders its label as a tag', () => {
     render(
       <Content
         body={blocks({ type: 'datavalues', value: [{ type: 'keyword', label: 'Melee' }] })}
@@ -189,9 +221,9 @@ describe('Content — datavalues chips', () => {
 })
 
 describe('Content — section grouping', () => {
-  // Grouping is gated on a derivable border colour: with no `headerBg` the
-  // blocks render as one flat flow, with one they split into sections led by
-  // the heading. Both shapes must still show every block.
+  // Grouping is opt-in: without `grouped` the blocks render as one flat flow,
+  // with it they split into sections led by the heading. Both shapes must
+  // still show every block.
   const body = () =>
     blocks(
       { type: 'paragraph', value: 'lead-in prose' },
@@ -199,7 +231,7 @@ describe('Content — section grouping', () => {
       { type: 'paragraph', value: 'section prose' }
     )
 
-  test('renders every block ungrouped when no header colour is supplied', () => {
+  test('renders every block ungrouped by default', () => {
     render(<Content body={body()} />)
     expect(screen.getByText('lead-in prose')).toBeTruthy()
     expect(screen.getByText('Big Heading')).toBeTruthy()
@@ -207,7 +239,7 @@ describe('Content — section grouping', () => {
   })
 
   test('renders every block when grouping into sections', () => {
-    render(<Content body={body()} headerBg="bg-pilot" />)
+    render(<Content body={body()} grouped />)
     expect(screen.getByText('lead-in prose')).toBeTruthy()
     expect(screen.getByText('Big Heading')).toBeTruthy()
     expect(screen.getByText('section prose')).toBeTruthy()
@@ -221,7 +253,7 @@ describe('Content — section grouping', () => {
           label: 'Requirements',
           value: [{ type: 'stat', label: 'Tech Level', value: '2' }],
         })}
-        headerBg="bg-pilot"
+        grouped
       />
     )
     expect(screen.getByText('Requirements')).toBeTruthy()

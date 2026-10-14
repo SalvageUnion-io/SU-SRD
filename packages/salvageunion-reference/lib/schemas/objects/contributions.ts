@@ -4,7 +4,7 @@
  * target. The trait/damage/range half lives in `effects.ts`.
  */
 
-import { z } from '../../zod.js'
+import { z } from '../../zod'
 
 /**
  * The stats a contribution may raise or lower (ADR-029).

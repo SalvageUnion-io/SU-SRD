@@ -1,9 +1,10 @@
+import type { FooterFoot } from 'component-lib'
 import type { ReactNode } from 'react'
 
 /** A JSON-LD object. */
 export type StructuredData = Record<string, unknown>
 
-export type BreadcrumbItem = { name: string; url: string }
+type BreadcrumbItem = { name: string; url: string }
 
 /** Everything BaseLayout needs to build <head>. */
 export type DocumentMeta = {
@@ -13,6 +14,21 @@ export type DocumentMeta = {
   ogType?: string
   ogImage?: string
   ogImageAlt?: string
+  /**
+   * The link preview's own title and description, when they differ
+   * from the page's: `og:title` is the thing's name and `og:description` its
+   * kicker and byline, never the body, while `<title>` and the meta description
+   * keep serving search. Unset, both mirror `title` and `description`.
+   */
+  ogTitle?: string
+  ogDescription?: string
+  /** The page's `theme-color`: an entity's tone, so an unfurl's side bar matches its card. */
+  themeColor?: string
+  /**
+   * The page's Discord Component Embed, as its JSON (`componentEmbedFor`):
+   * the card Discord draws for a pasted link to an entity page.
+   */
+  componentEmbed?: string
   structuredData?: StructuredData
   additionalStructuredData?: StructuredData[]
   noindex?: boolean
@@ -46,12 +62,27 @@ export type DocumentMeta = {
  * and the island-props script are injected into the rendered string either way,
  * and the island-collection window is open around the render. A document
  * that needs neither assets nor islands is not a page at all: it is a static
- * file in `public/` (as `greembeem` is — audit AP-18).
+ * file in `public/` (as `greembeem` is).
  */
 export type DocumentShell = 'base' | 'bare'
 
-/** What a page returns: its head metadata and its body tree. */
-export type PageResult = { meta: DocumentMeta; children: ReactNode; shell?: DocumentShell }
+/**
+ * A book page's foot: the shared `Footer`'s (component-lib), named for the
+ * page. When the page has a citation, the footer bands it in the page's chapter
+ * tone — the page number set large and the book (and any reprint) — above the
+ * licence row, which is the Union bar's ink on every page. A page without a
+ * citation (a listing, search) passes only its tone; the layout sets the one
+ * page measure on every foot.
+ */
+export type PageFoot = FooterFoot
+
+/** What a page returns: its head metadata, its body tree and, for a book page, its foot. */
+export type PageResult = {
+  meta: DocumentMeta
+  children: ReactNode
+  shell?: DocumentShell
+  foot?: PageFoot
+}
 
 /**
  * Content-hashed URLs of the static assets Vite emitted, keyed by each asset's
@@ -75,7 +106,7 @@ export type RouteContext<Params, Props> = {
   props: Props
   /** Full URL of the page being rendered, e.g. https://salvageunion.io/about/ */
   url: URL
-  /** Pathname with a trailing slash, e.g. /schema/chassis/item/aegis/ */
+  /** Pathname with a trailing slash, e.g. /chassis/aegis/ */
   pathname: string
   /** Emitted URLs of assets from `src/assets/`. See `BuiltAssets`. */
   builtAssets: BuiltAssets
@@ -84,7 +115,7 @@ export type RouteContext<Params, Props> = {
 export type StaticPath<Params, Props> = { params: Params; props: Props }
 
 export type PageModule<Params = Record<string, string>, Props = unknown> = {
-  /** Route pattern, e.g. '/schema/[schemaId]/item/[itemId]' */
+  /** Route pattern, e.g. '/[schemaId]/[itemId]' */
   pattern: string
   /** Omit for a single fixed route. */
   getStaticPaths?: () => StaticPath<Params, Props>[]

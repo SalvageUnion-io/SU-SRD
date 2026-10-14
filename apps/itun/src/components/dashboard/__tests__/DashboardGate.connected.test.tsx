@@ -7,7 +7,7 @@ import { createElement } from 'react'
  * `DashboardGate` — the body of `/dashboard/$pilotId`, and the one place that
  * decides who may open the Dashboard (ADR-038 §1).
  *
- * One test per refusal the plan names (anonymous, shelf pilot, non-member, no
+ * One test per refusal (anonymous, shelf pilot, non-member, no
  * Mediator), the live fall-back when the Mediator is removed while the
  * Dashboard is open, the redirect from an old mech-keyed URL, and the
  * Disconnected case, which is not a refusal.
@@ -144,7 +144,7 @@ describe('refusals', () => {
     setQueryAnswers({ 'games:get': GAME, 'games:members': NO_MEDIATOR })
     await renderGate('gate-rook')
     expect(heading('This Game has no Mediator')).toBeTruthy()
-    expect(screen.getByText('Ask the Organizer to name one, or edit your live sheet.')).toBeTruthy()
+    expect(screen.getByText('Ask the Organiser to name one, or edit your live sheet.')).toBeTruthy()
     expect(dashboardOpen()).toBe(false)
   })
 })

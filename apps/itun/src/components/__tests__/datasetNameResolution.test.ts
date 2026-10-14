@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { TABLE_CATEGORY_LABEL, TABLE_CATEGORY_ORDER } from '../dashboard/tableCategories'
-import { MECH_ROLL_TABLE_NAMES } from '../wizard/mechRollTables'
-import { PILOT_ROLL_TABLE_NAMES } from '../wizard/rollTableHelpers'
+import { TABLE_CATEGORY_LABEL, TABLE_CATEGORY_ORDER } from '../dashboard/tableCategories.model'
+import { MECH_ROLL_TABLE_NAMES } from '../wizard/mechRollTables.model'
+import { PILOT_ROLL_TABLE_NAMES } from '../wizard/rollTableHelpers.model'
 
 /**
  * Registries in this package bind code to a dataset entity's `name` — the most
@@ -19,8 +19,7 @@ import { PILOT_ROLL_TABLE_NAMES } from '../wizard/rollTableHelpers'
  * These tests assert the one property that matters: every name a registry
  * hard-codes still resolves to a real entity. They are deliberately NOT
  * assertions about the literal strings — comparing a map to its own literal
- * (which is what the Mediator table test used to do on its own) passes for any
- * pair of strings and never touches the dataset.
+ * passes for any pair of strings and never touches the dataset.
  */
 describe('hard-coded dataset names resolve', () => {
   test('the dataset is actually loaded (guards a vacuous pass)', () => {

@@ -1,7 +1,17 @@
-import { MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
+import { MasonryColumns, ReferenceEntityCard, Slab, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
+import { maxAddableCopies } from '../../lib/rules/creation'
+import '../../styles/wizard.css'
+import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
+
+const EMPTY_NOTE = {
+  ...textSmStyle,
+  color: 'currentcolor',
+  fontFamily: tokens.font.body,
+} satisfies CSSProperties
 
 type CraftItemsStepProps = {
   /** Which dataset this step crafts from (against its own slot budget). */
@@ -18,7 +28,7 @@ type CraftItemsStepProps = {
 
 /**
  * Steps 4–5 · Craft your Systems / Modules (Mech Workshop p.95) — create
- * mode, HARD (plan §4.2): only Tech 1 items render (package
+ * mode, HARD: only Tech 1 items render (package
  * `isLegalCreationSystem`/`isLegalCreationModule`); each copy costs its SV
  * from the shared 20-Scrap pool and its `slotsRequired` from this step's
  * slot budget. Duplicates are allowed via the SelCard count-stepper; a `+`
@@ -46,8 +56,13 @@ export function CraftItemsStep({
   const noun = kind === 'systems' ? 'System' : 'Module'
 
   return (
-    <div className="w-full space-y-5">
-      <Slab variant="solid" label={`Tech 1 ${noun}s`} count="Duplicates allowed" />
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
+      <Slab
+        variant="solid"
+        label={`Tech 1 ${noun}s`}
+        count="Duplicates allowed"
+        countInk="inherit"
+      />
       <MasonryColumns maxColumns={2}>
         {items.map((item) => {
           const name = item.name ?? item.id
@@ -59,12 +74,7 @@ export function CraftItemsStep({
           // One more copy fits iff BOTH budgets take it (§5 single source of
           // truth: the same arithmetic disables the `+`, dims the card, and
           // is re-checked by the Review gate).
-          const byScrap = sv > 0 ? Math.floor(scrapRemaining / sv) : Number.POSITIVE_INFINITY
-          const bySlots =
-            slotsRequired > 0
-              ? Math.floor(slotsRemaining / slotsRequired)
-              : Number.POSITIVE_INFINITY
-          const maxAdd = Math.max(0, Math.min(byScrap, bySlots))
+          const maxAdd = maxAddableCopies(item, { scrapRemaining, slotsRemaining })
 
           const disabledReason =
             count === 0 && maxAdd === 0
@@ -110,9 +120,7 @@ export function CraftItemsStep({
           )
         })}
       </MasonryColumns>
-      {items.length === 0 && (
-        <p className="font-body text-sm text-current">No Tech 1 {kind} found.</p>
-      )}
+      {items.length === 0 && <p style={EMPTY_NOTE}>No Tech 1 {kind} found.</p>}
     </div>
   )
 }

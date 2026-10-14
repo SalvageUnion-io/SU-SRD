@@ -12,7 +12,7 @@
  * this public repo — and it serves two production domains.
  *
  * R2 is otherwise the ONLY copy — a single point of failure. This tool is the
- * backup path (ADR-033 P1); `upload-lp-assets.ts` is the ingest path.
+ * backup path; `upload-lp-assets.ts` is the ingest path.
  *
  * ## What "verified" means here
  *
@@ -37,7 +37,7 @@
  *   op run --env-file=tools/r2.op.env -- \
  *     bun tools/export-lp-assets.ts <out-dir> [--prefix <p>] [--bucket <name>]
  *
- * Mint the token scoped to this one bucket — see `tools/lib/r2.ts`.
+ * Mint the token scoped to this one bucket — see `packages/gates/lib/r2.ts`.
  *
  * The output directory is laid out exactly as `upload-lp-assets.ts` expects, so
  * a restore is:
@@ -49,7 +49,7 @@
 import { createHash } from 'node:crypto'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve, sep } from 'node:path'
-import { credentialsFromEnv, listObjects, r2Client } from './lib/r2.ts'
+import { credentialsFromEnv, listObjects, r2Client } from 'gates/lib/r2'
 
 const DEFAULT_BUCKET = 'su-lp-assets'
 
@@ -101,32 +101,55 @@ function parseArgs(argv: string[]): { positionals: string[]; flags: Record<strin
   return { positionals, flags }
 }
 
-async function main(): Promise<void> {
-  const { positionals, flags } = parseArgs(process.argv.slice(2))
+/** The bucket as the export reads it: a listing, and one object's bytes. */
+export type ExportSource = {
+  list: (prefix: string | undefined) => Promise<Array<{ key: string }>>
+  bytes: (key: string) => Promise<Uint8Array>
+}
+
+/** The real bucket, through the R2 credentials in the environment. */
+function r2Source(bucket: string): ExportSource {
+  const client = r2Client(credentialsFromEnv(), bucket)
+  return {
+    list: (prefix) => listObjects(client, prefix),
+    bytes: (key) => client.file(key).bytes(),
+  }
+}
+
+/** Export and verify the bucket into `<out-dir>`; returns the exit code. */
+export async function main(
+  argv: readonly string[] = process.argv.slice(2),
+  {
+    connect = r2Source,
+    log = console.log,
+    error = console.error,
+  }: {
+    connect?: (bucket: string) => ExportSource
+    log?: (line: string) => void
+    error?: (line: string) => void
+  } = {}
+): Promise<number> {
+  const { positionals, flags } = parseArgs([...argv])
   const outDir = positionals[0]
   const prefix = flags['--prefix']
   const bucket = flags['--bucket'] ?? DEFAULT_BUCKET
 
   if (!outDir) {
-    console.error(
+    error(
       'usage: op run --env-file=tools/r2.op.env -- \\\n' +
         '         bun tools/export-lp-assets.ts <out-dir> [--prefix <p>] [--bucket <name>]'
     )
-    process.exit(1)
+    return 1
   }
 
-  const client = r2Client(credentialsFromEnv(), bucket)
+  const source = connect(bucket)
 
-  const listing = await listObjects(client, prefix)
+  const listing = await source.list(prefix)
   if (listing.length === 0) {
-    console.error(
-      `error: bucket "${bucket}" reported 0 objects — refusing to write an empty export`
-    )
-    process.exit(1)
+    error(`error: bucket "${bucket}" reported 0 objects — refusing to write an empty export`)
+    return 1
   }
-  console.log(
-    `bucket "${bucket}" reports ${listing.length} object(s)${prefix ? ` under "${prefix}"` : ''}`
-  )
+  log(`bucket "${bucket}" reports ${listing.length} object(s)${prefix ? ` under "${prefix}"` : ''}`)
 
   const manifest: Array<{ key: string; bytes: number; sha256: string }> = []
   const failed: string[] = []
@@ -134,32 +157,32 @@ async function main(): Promise<void> {
   for (const object of listing) {
     try {
       const dest = destinationFor(outDir, object.key)
-      const bytes = await client.file(object.key).bytes()
+      const bytes = await source.bytes(object.key)
       if (bytes.length === 0) throw new Error('received 0 bytes')
       writeTo(dest, bytes)
       manifest.push({ key: object.key, bytes: bytes.length, sha256: sha256(bytes) })
-      console.log(`  ✓ ${object.key} (${bytes.length} bytes)`)
+      log(`  ✓ ${object.key} (${bytes.length} bytes)`)
     } catch (err) {
       failed.push(object.key)
-      console.error(`  ✗ ${object.key}: ${(err as Error).message}`)
+      error(`  ✗ ${object.key}: ${(err as Error).message}`)
     }
   }
 
   if (failed.length > 0) {
-    console.error(`\n✗ ${failed.length}/${listing.length} object(s) failed to export:`)
-    for (const k of failed) console.error(`    ${k}`)
-    console.error('  → the export is INCOMPLETE. Do not treat it as a backup.')
-    process.exit(1)
+    error(`\n✗ ${failed.length}/${listing.length} object(s) failed to export:`)
+    for (const k of failed) error(`    ${k}`)
+    error('  → the export is INCOMPLETE. Do not treat it as a backup.')
+    return 1
   }
 
   // Verify pass. Re-download every key and compare hashes, because the failure
   // this guards against is a silently truncated stream — which produces a file
   // that exists, has a plausible size, and is not the artwork.
-  console.log(`\nverifying ${manifest.length} object(s) by re-download…`)
+  log(`\nverifying ${manifest.length} object(s) by re-download…`)
   const mismatched: string[] = []
   for (const entry of manifest) {
     try {
-      if (sha256(await client.file(entry.key).bytes()) !== entry.sha256) {
+      if (sha256(await source.bytes(entry.key)) !== entry.sha256) {
         mismatched.push(entry.key)
       }
     } catch (err) {
@@ -168,9 +191,9 @@ async function main(): Promise<void> {
   }
 
   if (mismatched.length > 0) {
-    console.error(`\n✗ ${mismatched.length} object(s) did not match on re-download:`)
-    for (const k of mismatched) console.error(`    ${k}`)
-    process.exit(1)
+    error(`\n✗ ${mismatched.length} object(s) did not match on re-download:`)
+    for (const k of mismatched) error(`    ${k}`)
+    return 1
   }
 
   const manifestPath = join(outDir, 'manifest.json')
@@ -180,16 +203,20 @@ async function main(): Promise<void> {
   )
 
   const totalBytes = manifest.reduce((sum, e) => sum + e.bytes, 0)
-  console.log(
+  log(
     `\n✓ exported and verified ${manifest.length} object(s), ${totalBytes} bytes total\n` +
       `  manifest: ${manifestPath}\n` +
       `  restore:  bun tools/upload-lp-assets.ts ${outDir}`
   )
+  return 0
 }
 
 if (import.meta.main) {
-  main().catch((err) => {
-    console.error(`\n✗ ${(err as Error).message}`)
-    process.exit(1)
-  })
+  main().then(
+    (code) => process.exit(code),
+    (err) => {
+      console.error(`\n✗ ${(err as Error).message}`)
+      process.exit(1)
+    }
+  )
 }

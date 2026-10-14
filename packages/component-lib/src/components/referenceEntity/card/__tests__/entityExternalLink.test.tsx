@@ -1,6 +1,6 @@
 /**
  * Regression guard for the app-supplied entity cross-link (ITUN's
- * "View in SRD →"), which reaches the card through
+ * "View in SRD"), which reaches the card through
  * `EntityExternalLinkProvider` and is read by `useEntityExternalLink`.
  *
  * WHY THIS EXISTS. This link silently disappeared once already, and nothing

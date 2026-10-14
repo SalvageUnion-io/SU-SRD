@@ -8,7 +8,6 @@
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { crawlerPopulationRange } from '../crawlerPopulationRange'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const tier = (name: string) => {
@@ -31,15 +30,14 @@ describe('crawler tech level card', () => {
     expect(text).toContain('SP')
     expect(text).toContain('Upkeep')
     expect(text).toContain('Upgrade')
-    expect(text).toContain('Population 100–500')
+    expect(text).toContain('POP100–500')
   })
 
-  test('the FULL card carries them with the long stat labels', () => {
+  test('the FULL card carries them in the same value cells', () => {
     const text = textOf(<ReferenceEntityCard data={tier('Town Crawler')} size="large" />)
     expect(text).toContain('Upkeep')
     expect(text).toContain('Upgrade')
-    expect(text).toContain('Cost')
-    expect(text).toContain('Population 2,000–5,000')
+    expect(text).toContain('POP2,000–5,000')
   })
 
   test('the MAXIMUM tier states no upgrade cost and an open-ended population', () => {
@@ -51,31 +49,15 @@ describe('crawler tech level card', () => {
     )
     expect(text).toContain('Upkeep')
     expect(text).not.toContain('Upgrade')
-    expect(text).toContain('Population 25,000+')
+    expect(text).toContain('POP25,000+')
   })
 
   test('every tier in the schema renders more than its bare name', () => {
     for (const t of SalvageUnionReference.CrawlerTechLevels.all()) {
       const text = textOf(<ReferenceEntityCard data={t} size="medium" extent="catalog" />)
       expect(text).toContain('Upkeep')
-      expect(text).toContain('Population')
+      expect(text).toContain('POP')
       cleanup()
     }
-  })
-})
-
-describe('crawlerPopulationRange', () => {
-  test('formats a bounded band with an en dash and grouped thousands', () => {
-    expect(crawlerPopulationRange(tier('City Crawler'))).toBe('5,000–15,000')
-  })
-
-  test('formats the unbounded top tier open-ended', () => {
-    expect(crawlerPopulationRange(tier('Megacity Crawler'))).toBe('25,000+')
-  })
-
-  test('returns undefined for an entity that has no population band', () => {
-    const mule = SalvageUnionReference.Chassis.getByName('Mule')
-    if (!mule) throw new Error('Mule fixture missing')
-    expect(crawlerPopulationRange(mule)).toBeUndefined()
   })
 })

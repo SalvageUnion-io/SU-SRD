@@ -16,7 +16,7 @@ import { convexAuth } from '@convex-dev/auth/server'
  *   bunx convex env set AUTH_DISCORD_SECRET <client-secret>
  *
  * Signed out, ITUN is read-only; building anything needs an account
- * ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034), as amended). Discord is
+ * ([ADR-034](../../../docs/ARCHITECTURE.md#decisions), as amended). Discord is
  * the only door for real users — see `testOnlyProviders` below for the one
  * exception and why it is not one.
  */
@@ -84,7 +84,7 @@ const discordProfile: NonNullable<typeof discord.profile> = rawDiscordProfile
  * Discord returns `email: null` for an account with no verified address. The
  * result was not a missing email — it was a schema violation thrown from inside
  * the auth mutation, so **sign-in failed outright** for that account and there
- * was no way for the player to get past it (issue ITUN-CONVEX-2).
+ * was no way for the player to get past it.
  *
  * Dropping the key rather than widening the validator is the right side of that
  * disagreement to fix. `defaultCreateOrUpdateUser` guards its account-linking
@@ -111,7 +111,7 @@ function withoutNullFields(profile: User): User {
  * ## Why it is not a second door into real accounts
  *
  * It is included **only** when `ITUN_TEST_AUTH` is exactly `'true'` on the
- * deployment. Production never sets it, and `test/convex/authProviders.test.ts`
+ * deployment. Production never sets it, and `test/convex/__tests__/authProviders.test.ts`
  * asserts that a deployment without it exposes Discord and nothing else — an
  * assertion, not a comment, because a comment cannot fail.
  *

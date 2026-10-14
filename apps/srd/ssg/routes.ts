@@ -10,6 +10,9 @@
  * the list stays a plain array without an `any` in sight.
  */
 
+import { patternPage } from '../src/pages/[schemaId]/[itemId]/pattern/[patternId].page'
+import { itemPage } from '../src/pages/[schemaId]/[itemId].page'
+import { schemaListingPage } from '../src/pages/[schemaId]/index.page'
 import { notFoundPage } from '../src/pages/404.page'
 import { aboutPage } from '../src/pages/about.page'
 import { apiPage } from '../src/pages/api.page'
@@ -19,9 +22,6 @@ import { changelogPage } from '../src/pages/changelog.page'
 import { discordPage } from '../src/pages/discord.page'
 import { indexPage } from '../src/pages/index.page'
 import { ogCardPage } from '../src/pages/og-card.page'
-import { schemaListingPage } from '../src/pages/schema/[schemaId]/index.page'
-import { patternPage } from '../src/pages/schema/[schemaId]/item/[itemId]/pattern/[patternId].page'
-import { itemPage } from '../src/pages/schema/[schemaId]/item/[itemId].page'
 import { searchPage } from '../src/pages/search.page'
 import type { RouteRegistration } from './render'
 import { register } from './render'
@@ -49,7 +49,7 @@ export const routes: RouteRegistration[] = [
   register(ogCardPage, { sitemap: false }),
   // `/greembeem` is not a route: it is a finished static document with no data
   // behind it any more, so it ships as `public/greembeem/index.html` and Vite
-  // copies it into dist like any other public file (audit AP-18).
+  // copies it into dist like any other public file.
 
   // ---------------------------------------------------------------------
   // Endpoints (llms.txt, search-index.json, schema/[schemaId].json) are NOT

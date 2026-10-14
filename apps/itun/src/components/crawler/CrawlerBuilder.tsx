@@ -1,4 +1,6 @@
-import { toast } from 'component-lib'
+import { toast, tokens } from 'component-lib'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   SURefCrawler,
@@ -6,7 +8,7 @@ import type {
   SURefMetaCrawlerTechLevel,
   SURefSystem,
 } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { bookQuote, SalvageUnionReference } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
   isLegalCreationCrawlerWeapon,
@@ -21,13 +23,13 @@ import {
   crawlerCreationStepGate,
   crawlerWeaponSlotsFor,
 } from '../../lib/rules/creation'
-import { CrawlerSchema } from '../../lib/schemas/crawler'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import {
   crawlerFormToCreateInput,
   EMPTY_CRAWLER_FORM_STATE,
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
+import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
@@ -39,8 +41,12 @@ import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
+import '../../styles/wizard.css'
 
-/** Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). */
+/** The RuleBrief's muted aside (the saved pilot/mech count). */
+const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
+
+/** Book-order steps (Union Crawler pp.212–213 + Review). */
 const STEPS: readonly CrawlerWizardStepId[] = [
   'type',
   'stats',
@@ -77,6 +83,8 @@ type CrawlerBuilderProps = {
   onCancel: () => void
   /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
+  /** A crawler-type slug to start on (`?type=`), already checked by `preselectedCrawlerType`. */
+  preselectType?: string
 }
 
 /** Slot pips for the tracker tab: ●○ (capped so the tab stays a tab). */
@@ -88,8 +96,8 @@ function slotPips(used: number, max: number): string {
 
 /**
  * Multi-step crawler wizard on the shared WizShell skeleton, restructured to
- * the Union Crawler's 5 book steps + Review (wizard-refresh Phase 5, plan
- * §4.3, mockup Screen 03 — magenta band, peach step card) with the crawler
+ * the Union Crawler's 5 book steps + Review (mockup Screen 03 — magenta band,
+ * peach step card) with the crawler
  * creation rules enforced HARD (§5):
  *
  *   - exactly 1 of 5 types (radio, entity cards); the type's stored
@@ -106,7 +114,12 @@ function slotPips(used: number, max: number): string {
  *     `scrapPool` is an explicit optional input relocated to step 5;
  *   - there is no warnings Banner — nothing can be in violation.
  */
-export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuilderProps) {
+export function CrawlerBuilder({
+  onComplete,
+  onCancel,
+  onOffRules,
+  preselectType,
+}: CrawlerBuilderProps) {
   // Read straight from the ORM: this renders inside GameDataReady, whose
   // preload('all') has already resolved, so these are synchronous. crawlers
   // drives the type selection (and its mutations-derived budgets);
@@ -122,7 +135,7 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
   const allBays = useMemo<SURefEntity[]>(() => SalvageUnionReference.CrawlerBays.all(), [])
   const types = useMemo<SURefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
 
-  // Advisory prelude context (plan §4.3 step 0): a gentle count of the pilots
+  // Advisory prelude context (step 0): a gentle count of the pilots
   // and mechs saved here — surfaced in step 1's RuleBrief, NEVER a blocker
   // (the whole table's state can't be verified).
   const pilotCount = usePilots().length
@@ -135,12 +148,19 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
   // once, by toast.
   const draftKey = wizardDraftKey('crawler')
   const clampRemovedRef = useRef<string[] | null>(null)
+  // A deep-linked pick (`?type=` — see `lib/wizard/preselect.ts`) seeds the
+  // fresh form and fills an empty draft; it is the baseline, so following the
+  // link alone leaves nothing to discard.
+  const baseline = useMemo(
+    () => withPreselection(EMPTY_CRAWLER_FORM_STATE, 'type', preselectType),
+    [preselectType]
+  )
   const [form, setForm] = useState<CrawlerWizardFormState>(() => {
     const draft = readWizardDraft<CrawlerWizardFormState>(draftKey)
-    if (!draft) return EMPTY_CRAWLER_FORM_STATE
+    if (!draft) return baseline
     const { form: clamped, removed } = clampCrawlerCreationDraft(draft)
     if (removed.length > 0) clampRemovedRef.current = removed
-    return clamped
+    return withPreselection(clamped, 'type', preselectType)
   })
   useEffect(() => {
     const removed = clampRemovedRef.current
@@ -149,7 +169,7 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
       toast.info(`Draft trimmed to the starting rules — removed ${removed.join(', ')}.`)
     }
   }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, EMPTY_CRAWLER_FORM_STATE)
+  const formDirty = useWizardDraftSync(draftKey, form, baseline)
 
   // The step machine + the create submit, shared with the pilot and mech
   // wizards (`useWizardFlow`). `toCreateInput` is a closure rather than the
@@ -226,9 +246,6 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
   const selectedType = form.type ? (resolveCrawlerType(form.type) ?? undefined) : undefined
   // Bays with an embedded crew NPC (the 10 base bays) — the Crew step's roster.
   const crewBays = allBays.filter((b) => (b as { npc?: unknown }).npc != null)
-  // The auto-seeded base set (expansion-tagged bays never appear — a STORED
-  // data flag, never computed).
-  const baseBayCount = allBays.filter((b) => !(b as { expansion?: boolean }).expansion).length
 
   /**
    * The Armament-Bay catalog: WEAPONS systems only (the bay holds nothing
@@ -246,56 +263,89 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
     .filter((s): s is SURefSystem & { schemaName: string } => s !== null)
 
   // The Armament-Bay cap comes from the type's STORED `mutations` rows
-  // (weapon_slots; Battle = 2) — plan §4.3. Selection clamps at this.
+  // (weapon_slots; Battle = 2). Selection clamps at this.
   const weaponSlots = crawlerWeaponSlotsFor(form.type)
   const installedWeaponCount = form.systems.filter((slug) => {
     const system = resolveSystemRef(slug)
     return system ? isWeaponSystem(system) : false
   }).length
 
-  // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213.
+  // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213,
+  // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
   const stepRule: StepRule = (() => {
     switch (step) {
       case 'type':
         return {
           rule: (
             <>
-              Once all players have created their Pilot and Mech, the final step is for everyone to
-              create the Union Crawler they share. Your Crawler type provides a unique Ability that
-              only it can do, as well as a special NPC who resides on the Crawler and confers their
-              own bonuses.{' '}
-              <span className="text-wk-muted">
+              {bookQuote(
+                { source: 'Salvage Union Workshop Manual', page: 212 },
+                'Once all players have created their Pilot and Mech, the final step is for everyone to create the Union Crawler they share. Your Crawler type provides a unique Ability that only it can do, as well as a special NPC who resides on the Crawler and confers their own bonuses.'
+              )}{' '}
+              <span style={MUTED}>
                 (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
                 {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
               </span>
             </>
           ),
-          cite: 'Core Book · p.212 · Crawler types pp.216–217',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 212,
+            see: [{ label: 'Crawler types', page: [216, 217] }],
+          },
         }
       case 'stats':
         return {
-          rule: 'Your Crawler has a set of statistics based on its Tech Level. This includes its Structure Points, Upkeep, and Upgrade cost. Note these down on your Crawler Sheet.',
-          cite: 'Core Book · p.212 · Crawler Stats p.218',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 212 },
+            'Your Crawler has a set of statistics based on its Tech Level. This includes its Structure Points, Upkeep, and Upgrade cost. Note these down on your Crawler Sheet.'
+          ),
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 212,
+            see: [{ label: 'Crawler Stats', page: 218 }],
+          },
         }
       case 'weapons':
         return {
-          rule: 'A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players’ choice — a Battle Crawler mounts two. Note this down on your Crawler Sheet.',
-          cite: 'Core Book · p.213 · The System list p.162',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 213 },
+            'A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players’ choice — a Battle Crawler mounts two. Note this down on your Crawler Sheet.'
+          ),
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 213,
+            see: [{ label: 'The System list', page: 162 }],
+          },
         }
       case 'crew':
         return {
-          rule: 'The Crawler is made of a number of Bays. Each Bay has an NPC assigned to it based on their experience and skill in operating the Bay. You can flesh them out with a Name, Background, Keepsake, and Motto. Each has 4 HP.',
-          cite: 'Core Book · p.213 · The Crawler Bay list p.221',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 213 },
+            'The Crawler is made of a number of Bays. Each Bay has an NPC assigned to it based on their experience and skill in operating the Bay. You can flesh them out with a Name, Background, Keepsake, and Motto. Each has 4 HP.'
+          ),
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 213,
+            see: [{ label: 'The Crawler Bay list', page: 221 }],
+          },
         }
       case 'identity':
         return {
-          rule: 'Provide your Union Crawler with a unique name and tag. For example, Crawler #132 is also known as ‘Tin Lizzy’. Note these down on your Crawler Sheet. The Scrap Pool below holds the group’s banked Scrap — including whatever your Pilots didn’t spend crafting their Mechs.',
-          cite: 'Core Book · p.212 · The Crawler Names Table p.226',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 212 },
+            'Provide your Union Crawler with a unique name and tag. For example, Crawler #132 is also known as ‘Tin Lizzy’. Note these down on your Crawler Sheet. The Scrap Pool below holds the group’s banked Scrap — including whatever your Pilots didn’t spend crafting their Mechs.'
+          ),
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 212,
+            see: [{ label: 'The Crawler Names Table', page: 226 }],
+          },
         }
       case 'review':
         return {
           rule: 'Check the build, then create your Crawler.',
-          cite: 'Core Book · pp.212–213',
+          cite: { source: 'Salvage Union Workshop Manual', page: [212, 213] },
         }
     }
   })()
@@ -327,7 +377,7 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
       footerNote={footerNote}
       submitLabel="Create Crawler ✦"
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
       {step === 'type' && (
         <CrawlerTypeSelectStep types={types} selectedType={form.type} onSelect={selectType} />
       )}
@@ -365,7 +415,6 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
           techLevel={selectedTechLevel}
           selectedType={selectedType}
           systems={chosenSystems}
-          bayCount={baseBayCount}
           submitError={submitError}
         />
       )}

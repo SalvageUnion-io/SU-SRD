@@ -1,7 +1,7 @@
 name: PR title
 
 # Squash merges make the PR title the commit subject each site's changelog
-# reads (docs/ARCHITECTURE.md#ci-pr-title). It is its own workflow, not a ci.yml
+# reads (docs/ARCHITECTURE.md#repo-settings). It is its own workflow, not a ci.yml
 # job, because ci.yml does not run on `edited`: a red title fixed in the UI
 # stayed red until someone pushed a commit, and adding `edited` to ci.yml would
 # rerun the whole suite on every title or body edit. Its job name is a required
@@ -29,9 +29,10 @@ jobs:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
-          # a conventional type, optional (scope), optional ! for a breaking
-          # change, then ": " and a non-empty description.
-          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+\))?!?: .+'
+          # a conventional type, optional (scope) or (scope,scope) for a change
+          # to several apps, optional ! for a breaking change, then ": " and a
+          # non-empty description.
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+(,[a-z0-9./-]+)*\))?!?: .+'
           if printf '%s' "$TITLE" | grep -qE "$pattern"; then
             echo "ok: $TITLE"
             exit 0

@@ -28,11 +28,13 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build as viteBuild } from 'vite'
-// Type-only, so it is erased before Bun ever resolves `./document` — that module
-// reaches `BaseLayout` -> `component-lib` -> `*.css` and must not be loaded here
-// ahead of the css-stub plugin below.
+// Type-only, so it is erased before Bun resolves `./document`, whose graph
+// (`BaseLayout` -> `component-lib` -> third-party deps) must load only after the
+// css-stub plugin below is registered.
 import type { BuildAssets } from './document'
+import { pickFontPreloads } from './fontPreloads'
 import { outputPathFor } from './outputPath'
+import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const distDir = join(appRoot, 'dist')
@@ -52,6 +54,7 @@ plugin({
 type ManifestChunk = {
   file: string
   css?: string[]
+  assets?: string[]
   isEntry?: boolean
 }
 
@@ -72,7 +75,7 @@ const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
  */
 const BUILT_ASSET_PREFIX = 'src/assets/'
 
-/** Entry JS + CSS urls (in `<head>` order) plus the emitted `src/assets/` urls. */
+/** Entry JS + CSS urls (in `<head>` order), the preloaded fonts, and the emitted `src/assets/` urls. */
 async function readAssets(): Promise<BuildAssets> {
   const manifestPath = join(distDir, '.vite', 'manifest.json')
   const manifest = JSON.parse(await readFile(manifestPath, 'utf-8')) as Manifest
@@ -80,6 +83,7 @@ async function readAssets(): Promise<BuildAssets> {
   const scripts: string[] = []
   const styles: string[] = []
   const built: Record<string, string> = {}
+  const fontFiles: string[] = []
 
   for (const [key, chunk] of Object.entries(manifest)) {
     if (key.startsWith(BUILT_ASSET_PREFIX)) {
@@ -91,11 +95,12 @@ async function readAssets(): Promise<BuildAssets> {
       const href = `/${css}`
       if (!styles.includes(href)) styles.push(href)
     }
+    fontFiles.push(...(chunk.assets ?? []).filter((asset) => asset.endsWith('.woff2')))
     if (NON_LINKED_ENTRIES.some((entry) => key.endsWith(entry))) continue
     scripts.push(`/${chunk.file}`)
   }
 
-  return { scripts, styles, built }
+  return { scripts, styles, fonts: pickFontPreloads(fontFiles), built }
 }
 
 // `outputPathFor` (URL -> dist file) lives in `./outputPath` so it can be read
@@ -190,8 +195,10 @@ async function main(): Promise<void> {
     )
   }
 
-  // Dynamic, so the css-stub plugin above is already registered when the SSR
-  // module graph (pages -> component-lib -> *.css) is first loaded.
+  // Dynamic, so the css-stub plugin above is registered before the SSR module
+  // graph (pages -> component-lib -> deps) is first loaded. That graph is
+  // css-free by the srd-css gate; the stub guards what the gate does not scan
+  // (node_modules, other workspaces).
   const { routes } = await import('./routes')
 
   let count = 0
@@ -202,6 +209,9 @@ async function main(): Promise<void> {
   // route whose pattern collides with an existing one — and the only symptom
   // would be a page quietly serving the wrong content. Refuse instead.
   const written = new Map<string, string>()
+  // Raw `[[markup]]` is checked on each page as it renders (see ./rawMarkup):
+  // the corpus is drawn once, here, and never again by a test.
+  const rawMarkup: string[] = []
   for (const registration of routes) {
     for (const { route, render } of registration.resolve()) {
       const outputPath = outputPathFor(route)
@@ -214,7 +224,10 @@ async function main(): Promise<void> {
         )
       }
       written.set(outputPath, route)
-      await writeOutput(outputPath, render(assets))
+      const html = render(assets)
+      const raw = findRawMarkup(html)
+      if (raw !== undefined) rawMarkup.push(`${route}: ${raw}`)
+      await writeOutput(outputPath, html)
       if (registration.sitemap) sitemapRoutes.push(route)
       count += 1
     }
@@ -229,6 +242,7 @@ async function main(): Promise<void> {
   if (count === 0) {
     throw new Error('[ssg] refusing to finish: the route registry rendered 0 pages.')
   }
+  assertNoRawMarkup(rawMarkup)
 
   await writeEndpoints()
   await writeSitemap(sitemapRoutes)

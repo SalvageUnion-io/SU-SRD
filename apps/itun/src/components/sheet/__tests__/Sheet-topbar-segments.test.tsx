@@ -4,7 +4,7 @@
  *   - NO sheet has a global top-bar Edit toggle (redesign: unified edit
  *     language — editing is per-section; each Identity panel owns its own
  *     Edit button).
- *   - The segmented Pilot/Mech/Crawler switch (design §3.7) renders only on
+ *   - The segmented Pilot/Mech/Crawler switch renders only on
  *     wired compositions: one segment per present counterpart, the viewed
  *     kind marked active (aria-current, rust fill), the others linking to
  *     their wired counterpart's sheet.
@@ -134,7 +134,7 @@ describe('Sheet — top-bar Edit action', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Mobile segment switch (design §3.7)
+// Mobile segment switch
 // ---------------------------------------------------------------------------
 
 describe('Sheet — mobile segment switch', () => {
@@ -147,7 +147,7 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(screen.queryByRole('navigation', { name: /wired sheets/i })).toBeNull()
+    expect(screen.queryByRole('navigation', { name: /assigned sheets/i })).toBeNull()
   })
 
   test('fully wired pilot sheet: active Pilot segment + Mech/Crawler links', () => {
@@ -159,25 +159,20 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToPilot, pilotToCrawler])}
       />
     )
-    const nav = screen.getByRole('navigation', { name: /wired sheets/i })
+    const nav = screen.getByRole('navigation', { name: /assigned sheets/i })
     expect(nav).toBeTruthy()
-    // mobile-only row, stitched into the sticky bar
-    expect(nav.className).toContain('sm:hidden')
+    // mobile-only row, stitched into the sticky bar (`display: none` from sm)
+    expect(nav.className).toContain('su-sheet-live-segments')
 
-    // Active segment = the viewed kind: primary (rust) fill, aria-current, not
-    // a link.
-    //
-    // Asserted via `buttonVariants` rather than the `bg-rust` spelling it used
-    // to emit. component-lib moved that recipe onto `.su-*` class names in
-    // #799, and the spelling was never this test's subject — "the active
-    // segment is the PRIMARY variant" is. Asking the recipe keeps that true
-    // through the rename and any future one.
+    // Active segment = the viewed kind: an INK plate, never the rust primary
+    // (a here-state is ink), with aria-current, and not a link.
     const primaryClass = buttonVariants({ variant: 'primary' })
       .split(' ')
       .find((c) => c.startsWith('su-btn--')) as string
     const active = nav.querySelector('[aria-current="page"]')
     expect(active?.textContent).toBe('Pilot')
-    expect(active?.className).toContain(primaryClass)
+    expect(active?.className).not.toContain(primaryClass)
+    expect((active as HTMLElement).style.backgroundColor).toBe('var(--color-ink)')
     expect(active?.tagName).not.toBe('A')
 
     // The other segments navigate to the wired counterparts' sheets.
@@ -200,7 +195,7 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToPilot])}
       />
     )
-    const nav = screen.getByRole('navigation', { name: /wired sheets/i })
+    const nav = screen.getByRole('navigation', { name: /assigned sheets/i })
     const active = nav.querySelector('[aria-current="page"]')
     expect(active?.textContent).toBe('Mech')
     const links = Array.from(nav.querySelectorAll('a')).map((a) => a.getAttribute('href'))

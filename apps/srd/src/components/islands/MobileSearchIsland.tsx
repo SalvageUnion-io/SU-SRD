@@ -10,9 +10,9 @@ import { SearchIsland } from './SearchIsland'
  */
 function MobileSearchIslandBody() {
   return (
-    <MobileSearchDialog triggerAriaLabel="Search the SRD">
-      {/* Force the combobox input (fixed w-52 by default) to fill the sheet. */}
-      <div className="[&_input]:w-full [&_input]:focus:w-full">
+    <MobileSearchDialog>
+      {/* Force the combobox input (the bar's fixed 14rem) to fill the sheet. */}
+      <div className="srd-mobile-search__body">
         <SearchIsland />
       </div>
     </MobileSearchDialog>

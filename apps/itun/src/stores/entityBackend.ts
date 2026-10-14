@@ -1,4 +1,7 @@
+import { PRODUCT } from 'component-lib/product'
 import type { FunctionArgs } from 'convex/server'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import type { ConnectionMode } from '../lib/connection/connectionMode'
@@ -9,17 +12,14 @@ import {
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
-import type { EntityRef } from '../lib/schemas/entity'
-import type { SoftLink } from '../lib/schemas/softLink'
 import { knownVersion, noteVersion } from './serverVersions'
 
 /**
  * Where entity writes actually go (ADR-030 §1).
  *
- * `entityStore` reaches its persistence through one indirection —
- * `dbStoreFor(type)` — so swapping the backend is a matter of changing what
- * that returns rather than rewriting the store. The store's public API, its
- * in-memory cache and its lazy hydration are untouched by this file.
+ * The stores hold rows in memory only — what this page load's subscriptions
+ * delivered (`ShelfSync`) and the writes the server accepted. This file decides
+ * whether a write may go up at all, and sends it.
  *
  * ## There are exactly three answers, and one of them is "nowhere"
  *
@@ -28,16 +28,16 @@ import { knownVersion, noteVersion } from './serverVersions'
  * auth handshake, or running a build older than the backend's floor
  * (`outdated`, `lib/connection/buildFloor.ts`). There is no fourth case.
  *
- * `signedOut` is read-only and reads nothing: there is no anonymous store at
- * all (`readableRows`). Signed out, ITUN shows reference and nothing of a
+ * `signedOut` is read-only and holds nothing: there is no anonymous store at
+ * all, and nothing syncs signed out. Signed out, ITUN shows reference and nothing of a
  * player's own (ADR-034 decision 1, as amended). The durable path the tests
  * exercise is the signed-in one (`src/stores/__tests__/signedInBackend.ts`
  * for unit tests, the `TestAuthBridge` seam for e2e).
  *
- * ## Disconnected does not fall back to IndexedDB
+ * ## Disconnected does not write locally
  *
- * A signed-in user who loses connectivity is **read-only** (ADR-030 §1), not
- * quietly-writing-to-IndexedDB. Falling back would fork their data against the
+ * A signed-in user who loses connectivity is **read-only** (ADR-030 §1): the
+ * rows already on screen stay, and nothing is written. Writing locally would fork their data against the
  * server of record and reintroduce, by accident, the conflict resolution the
  * server-of-record decision exists to avoid. Callers check `canWrite` before
  * offering the affordance; this module refuses if they do not.
@@ -77,6 +77,22 @@ let authState: AuthState = { signedIn: false, online: true, authSettled: true }
  */
 export function setEntityBackendAuthState(next: AuthState): void {
   authState = next
+  for (const listener of [...listeners]) listener()
+}
+
+const listeners = new Set<() => void>()
+
+/** Hear every auth/connectivity push. Returns the unsubscribe. */
+export function subscribeBackend(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
+/** Whether the initial auth handshake is still in flight (`connecting`). */
+export function backendSettling(): boolean {
+  return isSettlingConnection(currentMode())
 }
 
 export type BackendKind = 'remote' | 'blocked' | 'signedOut'
@@ -98,9 +114,9 @@ function currentMode(): ConnectionMode {
  * and every mode can be driven here without a Convex client.
  *
  * Anonymous (`solo`) is `signedOut` unconditionally
- * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034)
+ * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions)
  * decision 1). There is no build flag and no exemption for a browser that
- * already holds rows (ADR-035): the cache is never read signed out.
+ * already holds rows (ADR-035): there is no device cache to read signed out.
  */
 export function backendForMode(mode: ConnectionMode): BackendKind {
   if (mode === 'solo') return 'signedOut'
@@ -132,9 +148,9 @@ export type BlockedWriteReason = 'offline' | 'settling' | 'signedOut' | 'outdate
 
 const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
   settling: 'Still signing in — that change was not saved. Try again in a moment.',
-  offline: 'Not connected — your games are read-only until the connection returns',
+  offline: 'Not connected — your Games are read-only until the connection returns',
   signedOut: 'Sign in to build and edit — nothing is saved without an account.',
-  outdated: 'ITUN has been updated — that change was not saved. Reloading onto the new version.',
+  outdated: `${PRODUCT.name} has been updated — that change was not saved. Reloading onto the new version.`,
 }
 
 /**
@@ -190,12 +206,15 @@ export function crawlerPatchArgs(
   return { appId, patch, ...(unset.length > 0 ? { unset } : {}) }
 }
 
+/** The table each owned kind's whole-body write addresses (`upsertByAppId`). */
+const OWNED_TABLE = { pilot: 'pilots', mech: 'mechs', npc: 'npcs' } as const
+
 /**
  * Write one entity to the server of record, and **fail if it does not land**.
  *
- * IndexedDB is a cache of Convex (ADR-034), and a cache cannot legitimately be
- * ahead of its source: a write the server refused **did not happen**, so the
- * store awaits this before touching the cache and lets the refusal throw.
+ * Convex is the server of record (ADR-034), and the stores cannot legitimately
+ * be ahead of it: a write the server refused **did not happen**, so the store
+ * awaits this before touching its rows and lets the refusal throw.
  *
  * Returns immediately unless the backend is `remote`; the store has already
  * refused any other write (`requireWritableBackend`).
@@ -250,7 +269,7 @@ export async function commitEntityWrite(
     return
   }
 
-  const table = type === 'pilot' ? 'pilots' : 'mechs'
+  const table = OWNED_TABLE[type]
   if (op.kind === 'delete') {
     await convexClient.mutation(api.entities.removeByAppId, { table, appId: op.appId })
     return
@@ -286,7 +305,7 @@ export async function commitEntityWrite(
 export async function commitChangeLog(
   entries: readonly {
     gameId: string | null
-    entityType: 'pilot' | 'mech' | 'crawler' | 'softLink' | 'game'
+    entityType: 'pilot' | 'mech' | 'crawler' | 'npc' | 'softLink' | 'game'
     entityId: string
     ts: number
     kind: 'transaction' | 'override' | 'manual'
@@ -370,7 +389,12 @@ export async function commitSoftLink(
   // fails validation server-side for no benefit.
   if (link.from?.id === undefined || link.to?.id === undefined) return
 
-  const args = { from: link.from, to: link.to, type: link.type }
+  const args = {
+    from: link.from,
+    to: link.to,
+    type: link.type,
+    ...(link.slot === undefined ? {} : { slot: link.slot }),
+  }
   if (kind === 'upsert') {
     await convexClient.mutation(api.entities.upsertSoftLink, args)
   } else {
@@ -418,7 +442,7 @@ export function transferArgs(
         return { table: 'crawlers' as const, ...crawlerPatchArgs(record.id, patch), ...move }
       }
       return {
-        table: type === 'pilot' ? ('pilots' as const) : ('mechs' as const),
+        table: OWNED_TABLE[type],
         appId: record.id,
         gameId: (record.gameId ?? null) as Id<'games'> | null,
         body: record,
@@ -427,13 +451,21 @@ export function transferArgs(
     }),
     deletes: removals.flatMap((removal): TransferArgs['deletes'] => {
       if (removal.type !== 'softLink') {
-        const table = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+        const table = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc: 'npcs' } as const
         return [{ table: table[removal.type], appId: removal.id }]
       }
       const { link } = removal
       // Half a link has nothing to address — see `commitSoftLink`.
       if (link?.from?.id === undefined || link.to?.id === undefined) return []
-      return [{ table: 'softLinks' as const, from: link.from, to: link.to, type: link.type }]
+      return [
+        {
+          table: 'softLinks' as const,
+          from: link.from,
+          to: link.to,
+          type: link.type,
+          ...(link.slot === undefined ? {} : { slot: link.slot }),
+        },
+      ]
     }),
   }
 }
@@ -467,7 +499,7 @@ export async function commitTransfer(
  * write right now".
  *
  * `signedOut` is refused too: signed out, ITUN is read-only
- * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034) decision 1, as amended).
+ * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions) decision 1, as amended).
  */
 export function requireWritableBackend(): 'remote' {
   const backend = selectBackend()
@@ -477,20 +509,4 @@ export function requireWritableBackend(): 'remote' {
     throw new WritesBlockedOffline(isSettlingConnection(currentMode()) ? 'settling' : 'offline')
   }
   return backend
-}
-
-/**
- * The rows a store may show: its IndexedDB cache signed in (or blocked, where
- * the cache is what a Disconnected reader still opens), and **nothing** signed
- * out.
- *
- * The one read rule for every player-entity store. Signed out there is no
- * anonymous store to read — nothing can be built without an account — and the
- * cache must not stand in for one: it may still hold the last account's rows.
- * Resolved per call, like `selectBackend`, so a sign-in is seen on the next
- * read.
- */
-export async function readableRows<T>(cache: { list: () => Promise<T[]> }): Promise<T[]> {
-  if (selectBackend() === 'signedOut') return []
-  return cache.list()
 }

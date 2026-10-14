@@ -1,13 +1,12 @@
 /**
- * What the Board control offers (ADR-038 §3, §5;
- * issue #1055): one test per disabled reason, the order, and the edge
+ * What the Board control offers (ADR-038 §3, §5): one test per disabled reason, the order, and the edge
  * states (no assigned mech, assigned mech destroyed, no crawler).
  */
 
 import { describe, expect, test } from 'bun:test'
 import { mechFixture } from '../../__tests__/fixtures'
-import type { BoardSources, CrewLink, CrewRow } from '../boardMenu'
-import { boardable, boardMenu, NO_BOARD_SOURCES } from '../boardMenu'
+import type { BoardSources, CrewLink, CrewRow } from '../boardMenu.model'
+import { boardable, boardMenu, NO_BOARD_SOURCES } from '../boardMenu.model'
 
 const ME = 'user-me'
 const VEX_OWNER = 'user-vex'

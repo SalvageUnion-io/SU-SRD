@@ -1,5 +1,7 @@
+import { at } from './_base'
 import {
   advanceUntilVisible,
+  editSheet,
   fillIdentity,
   installLoadoutItem,
   pickByName,
@@ -19,7 +21,7 @@ import { expect, test } from './fixtures'
  * their content instead of counting Next clicks.
  */
 test('build a mech from scratch', async ({ page }) => {
-  await page.goto('/mechs/new?mode=guided')
+  await page.goto(at('/mechs/new?mode=guided'))
   await waitForReady(page)
 
   // Chassis — Mule is a guaranteed SU starter chassis. pickByName walks past
@@ -40,7 +42,7 @@ test('build a mech from scratch', async ({ page }) => {
   await advanceUntilVisible(page, createMech)
   await createMech.click()
 
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === at('/'), { timeout: 15_000 })
   await expect(page.getByText('Iron Fist').first()).toBeVisible({
     timeout: 15_000,
   })
@@ -54,7 +56,7 @@ test('build a mech from scratch', async ({ page }) => {
  */
 test('edit a mech loadout on its live sheet', async ({ page }) => {
   // Build first.
-  await page.goto('/mechs/new?mode=guided')
+  await page.goto(at('/mechs/new?mode=guided'))
   await waitForReady(page)
   await pickByName(page, 'Mule')
 
@@ -65,16 +67,15 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
   const createMech = page.getByRole('button', { name: /Create Mech/i })
   await advanceUntilVisible(page, createMech)
   await createMech.click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === at('/'), { timeout: 15_000 })
   await waitForReady(page)
 
   // Open the mech's live sheet from its roster row.
-  // Matched on `href`, not the label. EntityRow's sheet link reads "View" on
-  // every row, so it carries `aria-label="View <name>"` for WCAG 2.4.4 — which
-  // means its ACCESSIBLE NAME is not "View" and `/^View$/` matches nothing.
-  // The locator is already scoped to this entity's row, so the href is the
-  // contract that matters and it survives the next copy change. This is the
-  // same reasoning `openSheetFor` in `_helpers.ts` records.
+  // Matched on `href`, not the label. The shelf item's pill (`ShelfItem`) is
+  // the link to the sheet, and its accessible name is the whole pill (stamp,
+  // name, reading), so no label match is stable. The href is the contract
+  // that matters and it survives the next copy change, as `openSheetFor` in
+  // `_helpers.ts` does.
   await page.locator('li', { hasText: 'Iron Fist' }).locator('a[href*="/sheet/"]').click()
   await page.waitForURL(/\/sheet\/mech\//, { timeout: 15_000 })
   await waitForReady(page)
@@ -82,6 +83,8 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
   // The Systems section header's manage control opens the shared picker, which
   // writes through on toggle. SectionManageButton labels itself
   // `Manage ${label}` — MechSheet passes label="systems".
+  // A sheet opens in Read; its controls are Edit's.
+  await editSheet(page)
   await page.getByRole('button', { name: /^Manage systems$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
@@ -95,7 +98,7 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
 
   await expect(page.getByText('Cargo Pod').first()).toBeVisible({ timeout: 15_000 })
 
-  // Reload — the edit persisted to IndexedDB against the same record.
+  // Reload — the edit persisted on the server against the same record.
   await page.reload()
   await waitForReady(page)
   await expect(page.getByText('Cargo Pod').first()).toBeVisible({ timeout: 15_000 })

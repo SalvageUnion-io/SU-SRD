@@ -1,7 +1,7 @@
 /**
  * CrawlerBuilder responsive layout tests.
  *
- * The builder sits on the shared WizShell skeleton (design §3.2): a 196px
+ * The builder sits on the shared WizShell skeleton: a 196px
  * stepper rail beside the panes on desktop (lg:flex-row), stacked full-width
  * with a horizontal stepper on mobile. Asserts the responsive scaffolding is
  * present on initial render.
@@ -26,7 +26,9 @@ async function renderBuilder() {
 describe('CrawlerBuilder — responsive wizard layout', () => {
   test('renders the WizShell row layout (stacked on mobile, rail beside panes at lg)', async () => {
     const { container } = await renderBuilder()
-    const shell = container.querySelector('[class*="lg:flex-row"]')
+    // The rail/pane row: a column on a phone, a row from lg (`.su-wiz-body` in
+    // styles/wizard.css).
+    const shell = container.querySelector('.su-wiz-body')
     expect(shell).toBeTruthy()
   })
 

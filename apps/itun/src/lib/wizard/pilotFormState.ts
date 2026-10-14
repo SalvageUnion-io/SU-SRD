@@ -1,5 +1,5 @@
 /**
- * Pilot wizard form-state contract + entity mappers (plan 3.1).
+ * Pilot wizard form-state contract + entity mappers.
  *
  * WizardFormState is the layout-agnostic seam between the wizard UI and the
  * persisted Pilot entity:
@@ -10,9 +10,9 @@
  * All functions are pure — no store, no React.
  */
 
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { pilotMaxAP, pilotMaxHP } from 'salvageunion-reference/rules'
 import { pilotPartnerSeeds, syncPartners } from '../rules/partnerGrants'
-import type { Pilot } from '../schemas/pilot'
 
 /** Shape of form state carried through the pilot wizard. */
 export type PilotWizardFormState = {
@@ -77,7 +77,7 @@ export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardP
  * Equipment gates, abilities count: Mecha Packmaster turns one Mecha Companion
  * entry into two companions (`partnerGrantCount`).
  */
-export function pilotFormToPartners(form: PilotWizardFormState) {
+function pilotFormToPartners(form: PilotWizardFormState) {
   return syncPartners(undefined, pilotPartnerSeeds(form.equipment, form.abilities))
 }
 

@@ -1,10 +1,10 @@
 /**
  * MoveToContainerControl — live-sheet affordance for moving one entity between
- * **My Stuff** (the owner's shelf) and a **Game** (ADR-030 §2).
+ * **Shelves** (the owner's shelf) and a **Game** (ADR-030 §2).
  *
  * Replaces `AssignToWorkspaceButton`. A select, with Workspaces swapped for the
  * two real containers. Moving INTO a Game is one tap unless it clears an
- * assignment; moving OUT of one — back to My Stuff, or on to another Game —
+ * assignment; moving OUT of one — back to your shelves, or on to another Game —
  * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
  * and "Remove from game" on a Game's rows).
  *
@@ -14,7 +14,7 @@
  * reading, which is the destructive direction, so that move always goes
  * through a confirm (`leaveGame`). Putting a build into a Game takes nothing
  * from the table, but it does prune every assignment that would straddle two
- * containers (ADR-037) — a pilot loses the mech still in My Stuff it was paired
+ * containers (ADR-037) — a pilot loses the mech still in your shelves it was paired
  * with — so a move in asks (`enterGame`, naming each one) exactly when
  * `assignmentsClearedByMove` finds something, and is one tap when it does not.
  * The words are in `lib/games/rowActionCopy.ts`; the move only runs once the
@@ -46,31 +46,47 @@
  *
  * The options come from `moveDestinations` (`lib/games/gameRoster.ts`), the
  * client mirror of the server's move rules (ADR-037): a pilot or mech may go to
- * My Stuff or any Game you belong to; a crawler moves only at its table
- * runner's hand, My Stuff → a Game they run or back. With nowhere to go the
+ * Shelves or any Game you belong to; a crawler moves only at its table
+ * runner's hand, Shelves → a Game they run or back. With nowhere to go the
  * select still shows where the entity is, disabled.
  *
  * ## Solo renders nothing
  *
- * With no account there is only My Stuff, so there is nowhere to move to —
+ * With no account there is only Shelves, so there is nowhere to move to —
  * see `ContainerSwitcher` for the same branch and the reasoning behind it.
  */
 
 import { FieldError, Select } from 'component-lib'
+import { color, fontSize, space, weight } from 'component-lib/design/tokens'
 import { useQuery } from 'convex/react'
-import { useState } from 'react'
+import type { Container, ContainerFields } from 'itun-domain/container'
+import { containerOf, moveTo } from 'itun-domain/container'
+import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { Container, ContainerFields } from '../../lib/container'
-import { containerOf, moveTo, sameContainer } from '../../lib/container'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
-import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
-import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
 import type { Confirm } from '../shared/useConfirm'
+import { requestMove } from './requestMove.model'
+
+const ROW = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
+
+const LABEL = {
+  color: color.wkMuted,
+  fontSize: fontSize.sm,
+  fontWeight: weight.medium,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
+/**
+ * Sized to its options. Its height steps down from `sm` and it fades when
+ * disabled (`.su-container-select`, `.su-move-to-container__select`).
+ */
+const SELECT = { width: 'auto' } satisfies CSSProperties
 
 type MoveToContainerControlProps = {
   entityType: AssignableType
@@ -96,8 +112,6 @@ function ConnectedMoveToContainerControl({
   className,
 }: MoveToContainerControlProps) {
   const games = useQuery(api.games.listMine)
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const current = containerOf(entity)
   const destinations = moveDestinations({ kind: entityType, current, games: games ?? [] })
@@ -120,63 +134,30 @@ function ConnectedMoveToContainerControl({
     onChanged?.()
   }
 
-  async function moveNow(next: Container) {
-    setPending(true)
-    setError(null)
-    try {
-      await move(next)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to move this build.')
-    } finally {
-      setPending(false)
-    }
-  }
+  const moveNow = useServerAction(move, { failure: 'This build could not be moved. Try again.' })
+  const { pending, error } = moveNow
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const next = parseContainer(e.target.value)
-    // Either confirm shows a failure on the dialog, which outlives this
-    // control, so the move it runs is bare.
-    if (current.kind === 'game' && !sameContainer(current, next)) {
-      // Out of a Game: always ask.
-      confirm({
-        ...ROW_ACTION_COPY.leaveGame({
-          name: entity.name,
-          kind: entityType,
-          from: gameName(current.gameId),
-          to: next.kind === 'shelf' ? next : { kind: 'game', name: gameName(next.gameId) },
-        }),
-        onConfirm: () => move(next),
-      })
-      return
-    }
-    // Into a Game from My Stuff: ask only when the move clears an assignment.
-    const cleared =
-      next.kind === 'game'
-        ? assignmentsClearedByMove(
-            useEntityStore.getState(),
-            { type: entityType, id: entityId },
-            next
-          )
-        : []
-    if (next.kind === 'shelf' || cleared.length === 0) {
-      void moveNow(next)
-      return
-    }
-    confirm({
-      ...ROW_ACTION_COPY.enterGame({
-        name: entity.name,
-        kind: entityType,
-        game: gameName(next.gameId),
-        cleared,
-      }),
-      onConfirm: () => move(next),
+    // Out of a Game always asks; into one asks only when it clears an
+    // assignment (`requestMove`). Either confirm shows a failure on the
+    // dialog, which outlives this control, so the move it runs is bare.
+    requestMove({
+      entityType,
+      entityId,
+      name: entity.name,
+      current,
+      next: parseContainer(e.target.value),
+      gameName,
+      confirm,
+      move,
+      moveNow: (next) => void moveNow.run(next),
     })
   }
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-2">
-        <label htmlFor={`container-move-${entityId}`} className="text-sm font-medium text-wk-muted">
+      <div style={ROW}>
+        <label htmlFor={`container-move-${entityId}`} style={LABEL}>
           In:
         </label>
         <Select
@@ -184,8 +165,9 @@ function ConnectedMoveToContainerControl({
           value={serializeContainer(current)}
           onChange={handleChange}
           disabled={pending || destinations.length <= 1}
-          className="w-auto disabled:opacity-50 sm:min-h-9"
-          aria-label="Move to a game or My Stuff"
+          className="su-container-select su-move-to-container__select"
+          style={SELECT}
+          aria-label="Move to a Game or your shelf"
         >
           {shelfOptions.map((d) => (
             <option key="shelf" value="shelf">
@@ -195,7 +177,7 @@ function ConnectedMoveToContainerControl({
           {/* A record left in a container that is not among the user's Games —
               a v13 phantom id, or a Game they have since left — is named
               "Unknown game" by `moveDestinations` rather than passed off as
-              My Stuff, which would be a lie about where it lives. */}
+              Shelves, which would be a lie about where it lives. */}
           {gameOptions.length > 0 && (
             <optgroup label="Games">
               {gameOptions.map((d) => (
@@ -210,7 +192,7 @@ function ConnectedMoveToContainerControl({
           )}
         </Select>
       </div>
-      {error && <FieldError className="mt-1">{error}</FieldError>}
+      {error && <FieldError className="su-move-to-container__error">{error}</FieldError>}
     </div>
   )
 }

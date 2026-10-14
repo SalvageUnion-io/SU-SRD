@@ -20,7 +20,7 @@
  */
 
 /** How a paragraph duplicates another within the same record. */
-export type DupeKind =
+type DupeKind =
   /** Two paragraphs normalize to exactly the same text. */
   | 'exact'
   /** One paragraph fully contains another (the un-split "blob" shape). */

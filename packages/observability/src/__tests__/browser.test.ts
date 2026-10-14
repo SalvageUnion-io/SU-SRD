@@ -3,15 +3,10 @@ import type { BrowserSentrySdk } from '../browser'
 import { buildCaptureHint, createBrowserObservability } from '../browser'
 
 /**
- * `buildCaptureHint` was the whole of `observability/browser` — the piece the
- * itun and srd Sentry shims shared — and until this file it had no direct test.
- * `createBrowserObservability` (audit AP-12) is tested at the bottom.
- * The package's only test covered `src/node.ts`, which is deleted along with the
- * Discord bot's Node gateway, so writing this was the alternative to leaving the
- * workspace with no tests at all.
+ * `createBrowserObservability` is tested at the bottom.
  *
- * What it protects is not obvious from the function: it returns `undefined`
- * rather than `{}` because `Sentry.captureException(err, {})` and
+ * What `buildCaptureHint` protects is not obvious from the function: it returns
+ * `undefined` rather than `{}` because `Sentry.captureException(err, {})` and
  * `captureException(err)` are not the same call — an empty hint overrides
  * nothing but still travels through the SDK's hint-merging path. And the
  * fingerprint/tags fields exist because Convex's redacted errors

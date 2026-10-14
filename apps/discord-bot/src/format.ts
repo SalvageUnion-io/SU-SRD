@@ -9,7 +9,7 @@
  * subtext line, separate from the "recorded to a Game" signal so that a real,
  * personal game fact is never buried inside licensing boilerplate.
  */
-export const ROLL_ATTRIBUTION = 'Salvage Union Reference · Powered by Randsum.dev'
+export const ROLL_ATTRIBUTION = 'Powered by Randsum.dev'
 
 /**
  * Neutral SU rust accent for replies without pass/fail semantics.
@@ -40,19 +40,3 @@ export const ROLL_COLORS = {
   /** 1 · Cascade Failure — from `--color-roll-cascade: rgb(176, 67, 43)` (#b0432b). */
   cascade: 0xb0432b,
 } as const
-
-/**
- * `truncate` (from salvageunion-reference) cuts at a character count and knows
- * nothing about markdown, so a cut can land inside `[label](url)` and Discord
- * then renders the broken syntax literally. If the tail holds an unterminated
- * link (a trailing `[` with no complete `](url)` after it), drop back to before
- * that `[`.
- */
-export function stripDanglingLink(text: string): string {
-  const lastOpen = text.lastIndexOf('[')
-  if (lastOpen === -1) return text
-  const tail = text.slice(lastOpen)
-  // A complete link at the tail is fine; anything else is a dangling cut.
-  if (/^\[[^\]]*\]\([^)]*\)/.test(tail)) return text
-  return text.slice(0, lastOpen).trimEnd()
-}

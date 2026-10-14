@@ -15,10 +15,10 @@
  * endpoint that no longer resolves.
  */
 
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { useSoftLinkList } from '../../hooks/entities'
 import { assignLink } from '../../lib/links/assignLink'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
 
 /** The entity types that can be endpoints in a SoftLink (excludes 'softLink' itself). */

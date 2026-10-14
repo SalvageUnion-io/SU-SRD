@@ -1,5 +1,5 @@
 /**
- * Unit tests for scrapMech.ts — the retire-a-mech helper (design-review R-7;
+ * Unit tests for scrapMech.ts — the retire-a-mech helper (
  * Core Book p.248 "Scrap" ability, p.245 destroyed-condition rule).
  *
  * Breakdown/deposit/hand-off tests are pure arithmetic on hand-crafted
@@ -8,9 +8,9 @@
  * the test survives data edits.
  */
 import { describe, expect, it } from 'bun:test'
+import { makeScrapLot, makeUnitLot } from 'itun-domain/schemas/cargoLot'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { makeScrapLot, makeUnitLot } from '../../schemas/cargoLot'
-import type { ScrapPool } from '../../schemas/crawler'
 import type { ScrapMechComponent } from '../scrapMech'
 import {
   depositScrapDeposits,

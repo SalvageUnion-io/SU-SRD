@@ -25,7 +25,7 @@ import type { FormattingOptions } from 'jsonc-parser'
 import { applyEdits, modify, parse as parseJsonc } from 'jsonc-parser'
 
 /** Matches the repo's existing data-file style: 2-space indent, LF line endings. */
-export const DEFAULT_FORMATTING: FormattingOptions = {
+const DEFAULT_FORMATTING: FormattingOptions = {
   tabSize: 2,
   insertSpaces: true,
   eol: '\n',

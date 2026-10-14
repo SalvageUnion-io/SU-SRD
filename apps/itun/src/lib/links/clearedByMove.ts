@@ -14,22 +14,23 @@
  * the store's prune treats it; it is named by kind alone.
  */
 
-import type { Container, ContainerFields } from '../container'
-import { containerOf } from '../container'
-import type { EntityRef } from '../schemas/entity'
-import type { LinkShape, SoftLinkType } from './linkRules'
-import { linksBrokenByMove } from './linkRules'
+import type { Container, ContainerFields } from 'itun-domain/container'
+import { containerOf } from 'itun-domain/container'
+import type { LinkShape, SoftLinkType } from 'itun-domain/links/linkRules'
+import { linksBrokenByMove } from 'itun-domain/links/linkRules'
+import type { EntityRef } from 'itun-domain/schemas/entity'
 
 type EndType = EntityRef['type']
 
 /** One link end as this browser holds it: enough to place it and to name it. */
 type HeldEntity = ContainerFields & { id: string; name: string }
 
-/** What this browser holds — the entity store's three lists and its links. */
+/** What this browser holds — the entity store's four lists and its links. */
 export type HeldEntities<L extends LinkShape = LinkShape> = {
   pilots: readonly HeldEntity[]
   mechs: readonly HeldEntity[]
   crawlers: readonly HeldEntity[]
+  npcs: readonly HeldEntity[]
   softLinks: readonly L[]
 }
 
@@ -43,10 +44,11 @@ export type ClearedAssignment = {
   other: { kind: EndType; name: string | null }
 }
 
-const LIST_OF: Readonly<Record<EndType, 'pilots' | 'mechs' | 'crawlers'>> = {
+const LIST_OF: Readonly<Record<EndType, 'pilots' | 'mechs' | 'crawlers' | 'npcs'>> = {
   pilot: 'pilots',
   mech: 'mechs',
   crawler: 'crawlers',
+  npc: 'npcs',
 }
 
 function heldEnd(held: HeldEntities, ref: Moved): HeldEntity | null {

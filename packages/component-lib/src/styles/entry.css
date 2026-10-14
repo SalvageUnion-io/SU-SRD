@@ -1,0 +1,22 @@
+/*
+ * The ONE stylesheet entry. ITUN and srd import this file
+ * (`component-lib/styles/entry.css`) and add only their own stylesheets after
+ * it.
+ *
+ * THE `@layer` ORDER AND THE `layer(...)` IMPORTS ARE LOAD-BEARING — do not
+ * simplify either to a bare `@import` (#799, #802).
+ *
+ * The apps' stylesheets are unlayered, and unlayered CSS beats layered CSS
+ * whatever the specificity or source order. So an app rule always wins over a
+ * package rule on the same property, and a package rule always wins over the
+ * reset. Importing `index.css` bare would instead make it compete with every
+ * app rule on specificity, and flip whichever ones it out-specifies.
+ *
+ * `theme.css` is the token set (`:root` custom properties) plus a few
+ * deliberately unlayered rules; see its header.
+ */
+@layer su-reset, su-base;
+@import './fallback-fonts.css';
+@import './theme.css';
+@import './reset.css' layer(su-reset);
+@import './index.css' layer(su-base);

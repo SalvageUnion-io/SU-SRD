@@ -198,7 +198,8 @@
         "type": "paragraph",
         "value": "The Sestra Drone acts separately to the Little Sestra on its own turn, and is controlled by the Pilot. It functions effectively as a Mech, but cannot Push. It can be installed with Systems and Modules and restores its SP and EP in a T3 or higher Mech Bay during Downtime. If the Drone is damaged it can be repaired as though it was a Mech. If it is destroyed you may craft a new Sestra Drone for 2 Tech 3 Scrap as per the crafting rules. The Little Sestra may have one active Sestra Drone at a time."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "201462df-cb24-48b6-899a-a0c9a229d43d",
@@ -245,6 +246,7 @@
     "cargoCapacity": 2,
     "techLevel": 5,
     "salvageValue": 1,
+    "hasArtwork": true,
     "page": 62,
     "content": [
       {
@@ -276,6 +278,7 @@
         "value": "A monstrous mecha-android built specifically to house the Thatcher Steel CEO. A reinforced glass cockpit reveals her emaciated body, allowing her worshippers to look upon her terrible visage. Sustained far beyond her mortal years, she requires only 4 hours sleep."
       }
     ],
-    "techLevel": 6
+    "techLevel": 6,
+    "hasArtwork": true
   }
 ]

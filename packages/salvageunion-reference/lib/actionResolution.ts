@@ -12,17 +12,18 @@
  * consumers import.
  */
 
-import { getGrants } from './entityFields.js'
-import { getModel } from './helpers.js'
-import { getDataMaps } from './ModelFactory.js'
+import { getGrants } from './entityFields'
+import { getModel } from './helpers'
+import { getDataMaps } from './ModelFactory'
 import type {
   SURefEntity,
   SURefMetaAction,
   SURefMetaEntity,
+  SURefObjectAnyPattern,
   SURefObjectChoice,
   SURefObjectSystemModule,
   SURefObjectTrait,
-} from './schemas/index.js'
+} from './schemas/index'
 
 // Cached action map - built once since action data is static
 let _actionMap: Map<string, SURefMetaAction> | null = null
@@ -54,11 +55,11 @@ export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | und
 
 /**
  * Internal widened form of {@link extractActions}: also accepts a bare
- * `SURefObjectSystemModule` (an `actions` carrier that is not itself an
- * entity), so system-module callers don't need an entity assertion.
+ * `SURefObjectSystemModule` or a Bio-Titan pattern (`actions` carriers that are
+ * not themselves entities), so those callers don't need an entity assertion.
  */
 function extractActionsFromCarrier(
-  entity: SURefMetaEntity | SURefObjectSystemModule
+  entity: SURefMetaEntity | SURefObjectSystemModule | SURefObjectAnyPattern
 ): SURefMetaAction[] | undefined {
   if (!('actions' in entity) || !Array.isArray(entity.actions)) {
     return undefined
@@ -91,6 +92,17 @@ function extractActionsFromCarrier(
 }
 
 /**
+ * The visible actions a pattern ADDS to its host — a Bio-Titan pattern's
+ * `actions`, resolved. A mech pattern adds none (its difference is its
+ * systems and modules), so it resolves to an empty list.
+ */
+
+export function extractPatternActions(pattern: SURefObjectAnyPattern): SURefMetaAction[] {
+  if (!('actions' in pattern)) return []
+  return (extractActionsFromCarrier(pattern) ?? []).filter((action) => !action.hidden)
+}
+
+/**
  * Find action with name matching entity name
  * Used to determine if action stats should be extracted into entity header
  *
@@ -102,8 +114,8 @@ function extractActionsFromCarrier(
  * the action is something other than its entity. Matched as EITHER field rather
  * than `displayName ?? name` so the check is strictly additive.
  *
- * Kept in step with `resolveFoldedAction` in component-lib, which decides the
- * same question for the render core.
+ * Kept in step with `foldedActionOf` (`lib/view/parts/children.ts`), which
+ * decides the same question for the entity model and the card.
  *
  * @param entity - The entity to check
  * @returns The matching action or undefined

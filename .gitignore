@@ -1,10 +1,8 @@
 # Logs
-logs
 *.log
 
 # Dependencies
 node_modules
-**/node_modules
 # Another package manager's lockfile: bun.lock is the only one, so a stray
 # install's lockfile never reaches a commit.
 package-lock.json
@@ -13,12 +11,12 @@ pnpm-lock.yaml
 
 # Build outputs
 dist
-dist-ssr
-**/dist
 *.local
 *.tsbuildinfo
-core
-.design-bundle/
+# `tsc -b` declaration output of the referenced libraries (root tsconfig.json)
+.tsbuild/
+# Swift Package Manager's cache directory (a stray `swift` run at the root)
+.build/
 
 # Test/E2E output
 **/playwright-report/
@@ -34,9 +32,16 @@ core
 *.cpuprofile
 *.heapsnapshot
 
+# salvageunion-reference build output. Regenerated from lib/schemas/ by
+# the package's su-ref-generate bin (tools/ensureGenerated.ts), which postinstall,
+# the root typecheck/test/build, bun run check, each app's dev and the test
+# preload run first.
+packages/salvageunion-reference/lib/generated/
+packages/salvageunion-reference/lib/.generated.lock/
+packages/salvageunion-reference/schemas/
+
 # Vite
 .vite
-apps/srd/.vite
 
 # TanStack Router temporary files
 **/.tanstack
@@ -64,10 +69,6 @@ apps/itun/src/.routeTree.gen.*.ts
 !.vscode/extensions.json
 .idea
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
 *.sw?
 
 
@@ -78,14 +79,12 @@ apps/itun/src/.routeTree.gen.*.ts
 # `bun run rules:extract`. Only the tooling (tools/extract-rules.ts) lives here.
 rules/*
 
-# Playwright artifacts (per-app)
-apps/itun/playwright-report
-apps/itun/test-results
-.design-bundle/
-
 # wrangler's local state and build scratch. `wrangler dev` writes its bundled
 # Worker (plus the miniflare middleware it injects) into `.wrangler/tmp/`, which
 # is generated JS nobody wrote — it is not just untracked noise, it is 69 lint
 # errors the moment a dev server has run. Ignoring it keeps `bun run lint` from
 # depending on whether someone left a server up.
 .wrangler/
+
+# `bun run shot`'s screenshots (tools/shot.ts)
+/.shots/

@@ -6,7 +6,7 @@ import type { SURefObjectChoice, SURefObjectContentBlock } from 'salvageunion-re
  * `value`/`choiceId` are declared `undefined` so union-wide property reads
  * (`blockLowerText`, the body walk) stay type-safe without casts.
  */
-export type BonusMarkerBlock = { type: 'bonus'; value?: undefined; choiceId?: undefined }
+type BonusMarkerBlock = { type: 'bonus'; value?: undefined; choiceId?: undefined }
 
 /** A reference content block, or the synthetic `{type:'bonus'}` marker. */
 export type AnchoredContentBlock = SURefObjectContentBlock | BonusMarkerBlock

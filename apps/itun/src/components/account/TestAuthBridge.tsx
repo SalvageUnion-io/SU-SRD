@@ -33,7 +33,7 @@
 
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useEffect } from 'react'
-import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from './testAuthSeam'
+import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from './testAuthSeam.model'
 
 type TestSignIn = (email: string, password: string) => Promise<void>
 

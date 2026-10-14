@@ -1,21 +1,31 @@
 /**
- * `/changelog` — the site's history.
+ * `/changelog` — the history of both tools, the one changelog they share
+ * (ITUN links here and keeps no copy).
  *
  * Rendered at BUILD time from `main`'s history: `readChangelog` keeps the
- * `feat`/`fix`/`perf` squash titles scoped `srd` (ADR-041). Never a client
+ * `feat`/`fix`/`perf` squash titles scoped `srd` (the Site) and `itun` (the
+ * App), each day's entries stamped with their area (ADR-041). Never a client
  * fetch — only the rendered entries ship.
  */
 
-import { Changelog, PageHeading } from 'component-lib'
-import { readChangelog } from 'component-lib/changelog/git'
+import { InlineRef } from 'component-lib'
+import { space } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 import type { PageModule, PageResult } from '../../ssg/types'
-import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { Changelog } from '../components/Changelog'
+import { DocPage } from '../components/DocPage'
+import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { BOLD, PROSE } from '../lib/docPageStyles'
+import { readChangelog } from '../lib/gitChangelog'
 
 const TITLE = `Changelog${TITLE_SUFFIX}`
-const DESCRIPTION = 'Changes to the salvageunion.io reference site over time.'
+const DESCRIPTION = `Changes to the salvageunion.io reference site and ${PRODUCT.name} over time.`
 
 function page(): PageResult {
-  const entries = readChangelog('srd', 'Site')
+  // Newest day first; on a day both changed, the Site's entry comes first.
+  const entries = [...readChangelog('srd', 'Site'), ...readChangelog('itun', 'App')].sort((a, b) =>
+    b.date.localeCompare(a.date)
+  )
 
   return {
     meta: {
@@ -33,33 +43,26 @@ function page(): PageResult {
           url: `${SITE_URL}/`,
         },
       },
-      breadcrumbs: [
-        { name: 'Home', url: `${SITE_URL}/` },
-        { name: 'Changelog', url: `${SITE_URL}/changelog/` },
-      ],
+      breadcrumbs: [CONTENTS_CRUMB, { name: 'Changelog', url: `${SITE_URL}/changelog/` }],
     },
     children: (
-      <div className="flex w-full flex-1 flex-col py-12">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6">
-          <PageHeading>Changelog</PageHeading>
+      <DocPage title="Changelog" measure="48rem" gap={space[32]}>
+        <p style={PROSE}>
+          Features, fixes and speed-ups to the SRD site and {PRODUCT.name}, newest first. For full
+          commit history see the{' '}
+          <InlineRef
+            href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={BOLD}
+          >
+            GitHub repository
+          </InlineRef>
+          .
+        </p>
 
-          <p className="text-sm leading-relaxed">
-            Features, fixes and speed-ups to the SRD site, newest first. For full commit history see
-            the{' '}
-            <a
-              href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-rust hover:underline"
-            >
-              GitHub repository
-            </a>
-            .
-          </p>
-
-          <Changelog entries={entries} />
-        </div>
-      </div>
+        <Changelog entries={entries} />
+      </DocPage>
     ),
   }
 }

@@ -5,9 +5,8 @@
  * Adding a new schema type means:
  *   1. Writing the Zod schema in lib/schemas/entities.ts (exported from the
  *      lib/schemas barrel).
- *   2. Adding the data file (data/<id>.json) and a catalog entry in
- *      schemas/index.json (hand-authored — prose description, required
- *      fields).
+ *   2. Adding the data file (data/<id>.json). The schemas/index.json catalog
+ *      entry is generated (prose from the Zod `.describe()`, `meta` below).
  *   3. Adding ONE entry to the array below.
  *   4. Running `bun run build:package`.
  *
@@ -19,7 +18,7 @@
  * generated from this manifest by tools/generateRegistry.ts into
  * lib/generated/*.generated.ts (and, for the static accessors, injected into
  * lib/index.ts between the `GENERATED:BEGIN`/`GENERATED:END` markers).
- * lib/registryConsistency.test.ts independently verifies every generated
+ * lib/__tests__/registryConsistency.test.ts independently verifies every generated
  * registry still covers the same key set.
  *
  * This file has ZERO imports on purpose: tools/generateRegistry.ts imports
@@ -50,10 +49,21 @@ export type RegistryEntry = {
    * Set to `true` for the rules-metadata schemas (actions, ability-tree
    * requirements, crawler tech levels): they are entities, so they stay in
    * SURefMetaEntity and EntitySchemaNames, but they are left out of the
-   * narrower SURefEntity union. (Unrelated to the `meta` flag on
-   * schemas/index.json catalog entries, which is a different set.)
+   * narrower SURefEntity union. (Unrelated to `meta` below, which is a
+   * different set.)
    */
   excludeFromEntityUnion?: boolean
+  /**
+   * Set to `true` to mark the schema's schemas/index.json catalog entry
+   * `meta`: kept out of search and the catalog listing.
+   */
+  meta?: boolean
+  /**
+   * Set to `true` to also generate the schema's LIST projection
+   * (`lib/generated/<id>.list.generated.json`, rows without their prose — see
+   * `lib/listProjection.ts`), loadable with `preload(ids, { projection: 'list' })`.
+   */
+  listProjection?: boolean
 }
 
 export const registry: RegistryEntry[] = [
@@ -71,6 +81,7 @@ export const registry: RegistryEntry[] = [
     singular: 'Ability Tree Requirement',
     plural: 'Ability Tree Requirements',
     excludeFromEntityUnion: true,
+    meta: true,
   },
   {
     id: 'actions',
@@ -79,6 +90,8 @@ export const registry: RegistryEntry[] = [
     singular: 'Action',
     plural: 'Actions',
     excludeFromEntityUnion: true,
+    meta: true,
+    listProjection: true,
   },
   {
     id: 'chassis',
@@ -243,5 +256,6 @@ export const registry: RegistryEntry[] = [
     singular: 'Catalog Category',
     plural: 'Catalog Categories',
     entity: false,
+    meta: true,
   },
 ]

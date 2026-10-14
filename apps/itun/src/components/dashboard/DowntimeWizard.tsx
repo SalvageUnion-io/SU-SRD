@@ -6,7 +6,7 @@
  * The 10 steps are NOT hard-coded — they are driven from the real "Crawler
  * Downtime" Guide in the reference ORM (`SalvageUnionReference.Guides`, faithful
  * SRD p.227-228), one step at a time, rendered through the reused `Content` so it
- * matches the book verbatim, with the relevant SRD roll tables via `RollTable`.
+ * matches the book verbatim, with the relevant SRD roll tables via `DashboardRollTable`.
  *
  * **The step is the Game's, not this device's** (ADR-038 §5). It is
  * the `downtime` row's `stepIndex`, read through `useDowntime`, so every
@@ -14,13 +14,14 @@
  * Next step. The step track shows where the table is in the procedure; the
  * ready pips, one per member, fill from the row's `completedBy` as each presses
  * "I'm done". Only the Mediator moves the table on; a player cannot step ahead
- * alone. The Game hub's `DowntimePanel` reads and writes the same row.
+ * alone. The Game page's `DowntimeTrack` and the Mediator Dashboard's
+ * `DowntimeMinor` read and write the same row.
  *
  * `DowntimeWizard` binds it to ITUN's state + rules: the read-only rules gate
  * readout (bay status / upkeep / trading) is computed from the crawler and the
  * pure rules modules. `DowntimeWizardFrame` is the presentational half. They
  * were split across component-lib and ITUN, with ITUN its only consumer; one
- * file since the component-lib boundary audit (PK-03).
+ * file since the component-lib boundary audit.
  *
  * Restore WRITES (F5), to the pilot and the mech in the Minor slots, so Guided
  * Play applies the rule it describes.
@@ -34,90 +35,168 @@
  * Upkeep bay (`CrawlerSlot.tsx`), once per Downtime.
  */
 
-import { Badge, Button, Content, entityGuideToneColor, RollTable } from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
-import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
+import { Badge, Button, CHAPTER_BAND_COLOR, Content } from 'component-lib'
+import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import {
   allDowntimeSteps,
+  DOWNTIME_UPKEEP_SCRAP,
   downtimeMechPatch,
   downtimePilotPatch,
   mechBayStatus,
   medBayStatus,
-} from '../../lib/rules/downtime'
+} from 'itun-domain/rules/downtime'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
+import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import { DashboardRollTable } from './DashboardRollTable'
 import type { DowntimeHandle } from './useDowntime'
 
 /** The guideType that identifies the Union Crawler Downtime procedure. */
 const DOWNTIME_GUIDE_TYPE = 'downtime'
 
-/** Fallback tone when the guide carries no `guideTone` (crawler ontology). */
-const CRAWLER_TONE = 'var(--color-sheet-crawler-deep)'
+/** The phase stamp's fill: Downtime is the crawler's, and the stamp carries paper. */
+const PHASE_STAMP_BG = 'var(--color-crawler-band)'
+
+/** The phase stamp: paper caption type at a 9×5 inset on the crawler band. */
+const PHASE_STAMP = {
+  backgroundColor: PHASE_STAMP_BG,
+  color: 'var(--color-paper)',
+  fontSize: 'var(--text-caption)',
+  lineHeight: 'inherit',
+  paddingBlock: '5px',
+  paddingInline: '9px',
+} satisfies CSSProperties
 
 /**
  * SRD roll tables associated with a Downtime step (keyed by the guide step's
  * name). The guide content describes the roll but does not link the table
- * entity, so this presentation glue resolves it for the reused RollTable.
+ * entity, so this presentation glue resolves it for the reused roll table.
  */
 const STEP_ROLL_TABLE: Record<string, string> = {
   'Upkeep & Upgrade': 'Crawler Deterioration',
   Trade: 'Trading Bay',
 }
 
-/** The step track: one numbered marker per step, in a row. */
-const TRACK: CSSProperties = {
+/**
+ * Board D3: the procedure down the left, the step on the right. The list is
+ * the book's: each phase's label over its steps, the steps behind the table
+ * struck through with a ✓, the one it is on an ink plate.
+ */
+const SPLIT = {
+  display: 'grid',
+  gridTemplateColumns: '300px minmax(0, 1fr)',
+  height: '100%',
+  minHeight: 0,
+} satisfies CSSProperties
+
+const STEPS_COLUMN = {
+  minHeight: 0,
+  overflowY: 'auto',
+  padding: '16px 10px',
+  background: 'var(--color-wk-bg)',
+  borderRight: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+} satisfies CSSProperties
+
+const TRACK = {
   display: 'flex',
-  gap: '4px',
+  flexDirection: 'column',
+  gap: '2px',
   margin: 0,
   padding: 0,
   listStyle: 'none',
-}
+} satisfies CSSProperties
 
-const MARK: CSSProperties = {
-  flex: 1,
-  minWidth: 0,
-  padding: '2px 0',
-  borderRadius: 'var(--radius-pip)',
-  // Longhands: the current step thickens only the width, and React warns when
-  // a rerender mixes a shorthand with its longhand.
-  borderStyle: 'solid',
-  borderColor: 'var(--color-sheet-crawler-deep)',
-  borderWidth: 'var(--bw-chrome)',
+const SECTION_LABEL = {
+  display: 'block',
+  padding: '8px 6px 4px',
   fontFamily: 'var(--font-cond)',
   fontWeight: 700,
   fontSize: 'var(--text-badge)',
-  fontVariantNumeric: 'tabular-nums',
-  textAlign: 'center',
-}
-
-/** A step the table has passed: filled. */
-const MARK_PAST: CSSProperties = {
-  ...MARK,
-  background: 'var(--color-sheet-crawler-deep)',
-  color: 'var(--color-paper)',
-}
-
-/** The step the table is on: a heavy outline. */
-const MARK_NOW: CSSProperties = {
-  ...MARK,
-  borderWidth: 'var(--bw-rail)',
-  background: 'var(--color-paper)',
+  letterSpacing: 'var(--tracking-caps)',
+  textTransform: 'uppercase',
   color: 'var(--color-ink)',
-}
+} satisfies CSSProperties
 
-/** A step still to come: open. */
-const MARK_NEXT: CSSProperties = { ...MARK, background: 'transparent', color: 'var(--color-ink)' }
+const MARK = {
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: '10px',
+  padding: '7px 8px',
+  borderRadius: 'var(--radius-card)',
+  fontFamily: 'var(--font-body)',
+  fontSize: 'var(--text-caption)',
+  color: 'var(--color-ink)',
+} satisfies CSSProperties
+
+const MARK_NUMBER = {
+  width: '1.2em',
+  flexShrink: 0,
+  fontFamily: 'var(--font-cond)',
+  fontWeight: 700,
+  fontVariantNumeric: 'tabular-nums',
+} satisfies CSSProperties
+
+/** A step the table has passed: struck through, with a ✓ in its number's place. */
+const MARK_PAST = {
+  ...MARK,
+  color: 'var(--color-ink-75)',
+  textDecoration: 'line-through',
+} satisfies CSSProperties
+
+/** The step the table is on: the ink plate. */
+const MARK_NOW = {
+  ...MARK,
+  background: 'var(--color-ink)',
+  color: 'var(--color-paper)',
+  fontWeight: 600,
+} satisfies CSSProperties
+
+/** A step still to come. */
+const MARK_NEXT = MARK
+
+/**
+ * The step column: the step itself scrolls (`STEP_SCROLL`) and the controls sit
+ * in a footer below it (`STEP_FOOT`), so "I'm done" is in view however long the
+ * step runs. At the end of the scroll it was clipped by the panel's foot.
+ */
+const STEP_COLUMN = {
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 0,
+} satisfies CSSProperties
+
+const STEP_SCROLL = {
+  display: 'flex',
+  flexDirection: 'column',
+  flex: '1 1 auto',
+  minHeight: 0,
+  overflowY: 'auto',
+} satisfies CSSProperties
+
+const STEP_FOOT = {
+  flexShrink: 0,
+  padding: '10px 18px 14px',
+  borderTop: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+} satisfies CSSProperties
+
+/** The step's band, in crawler pink (board D3): the step name notched into its foot. */
+const STEP_BAND = {
+  padding: '14px 18px 0',
+  background: 'var(--color-crawler)',
+} satisfies CSSProperties
+
+const STEP_BODY = { padding: '14px 18px' } satisfies CSSProperties
 
 /** The ready pips: who has finished this step. */
-const READY: CSSProperties = {
+const READY = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
@@ -128,27 +207,27 @@ const READY: CSSProperties = {
   fontFamily: 'var(--font-body)',
   fontSize: 'var(--text-note)',
   color: 'var(--color-ink)',
-}
+} satisfies CSSProperties
 
-const READY_ITEM: CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px' }
+const READY_ITEM = { display: 'flex', alignItems: 'center', gap: '5px' } satisfies CSSProperties
 
-const PIP: CSSProperties = {
+const PIP = {
   width: '10px',
   height: '10px',
   flexShrink: 0,
   borderRadius: 'var(--radius-full)',
   border: 'var(--bw-chrome) solid var(--color-ink)',
-}
+} satisfies CSSProperties
 
 /** Done is a fill AND a ✓ in the label, never colour alone. */
-const PIP_DONE: CSSProperties = { ...PIP, background: 'var(--color-status-ok)' }
+const PIP_DONE = { ...PIP, background: 'var(--color-status-ok)' } satisfies CSSProperties
 
-const PIP_WAITING: CSSProperties = { ...PIP, background: 'transparent' }
+const PIP_WAITING = { ...PIP, background: 'transparent' } satisfies CSSProperties
 
-const CONTROL: CSSProperties = { flex: 1 }
+const CONTROL = { flex: 1 } satisfies CSSProperties
 
 /** One member's ready pip. */
-export type ReadyPip = { userId: string; name: string; done: boolean }
+type ReadyPip = { userId: string; name: string; done: boolean }
 
 type DowntimeWizardFrameProps = {
   /** The step the Game is on (clamped to the guide's range). */
@@ -168,10 +247,8 @@ type DowntimeWizardFrameProps = {
 /**
  * The presentational half: the step, the ready pips and the writes are the
  * caller's, and the rules gate readout is injected via `renderStepGate`.
- * Exported for the story, which drives it with the real guide and local
- * state instead of the Game's row.
  */
-export function DowntimeWizardFrame({
+function DowntimeWizardFrame({
   stepIndex,
   ready,
   doneByMe,
@@ -182,13 +259,13 @@ export function DowntimeWizardFrame({
   const guide = SalvageUnionReference.Guides.find((g) => g.guideType === DOWNTIME_GUIDE_TYPE)
   const steps = guide?.steps ?? []
   if (steps.length === 0) {
-    return <div className="pc-display-note">Downtime procedure not in the reference set.</div>
+    return <div className="su-dash-display-note">Downtime procedure not in the reference set.</div>
   }
 
   const idx = Math.min(Math.max(stepIndex, 0), steps.length - 1)
   const step = steps[idx]
   if (!step) {
-    return <div className="pc-display-note">Downtime procedure not in the reference set.</div>
+    return <div className="su-dash-display-note">Downtime procedure not in the reference set.</div>
   }
 
   // Phase = the most recent section label at or before the current step (the
@@ -199,7 +276,6 @@ export function DowntimeWizardFrame({
     if (sec) phase = sec
   }
 
-  const headerBg = (guide ? entityGuideToneColor(guide) : undefined) ?? CRAWLER_TONE
   const tableName = STEP_ROLL_TABLE[step.name]
   const table = tableName
     ? (SalvageUnionReference.RollTables.getByName(tableName) as SURefObjectTable | undefined)
@@ -207,68 +283,83 @@ export function DowntimeWizardFrame({
   const doneCount = ready.filter((r) => r.done).length
 
   return (
-    <div className="pc-display-scroll">
-      <div className="pc-dt">
-        <div className="pc-dt-head">
-          <Badge
-            shape="stamp"
-            className="px-[9px] py-[5px] text-caption text-paper"
-            style={{ backgroundColor: headerBg }}
-          >
-            {phase}
-          </Badge>
-          <span className="pc-dt-count">
-            Step {idx + 1} / {steps.length}
-          </span>
-        </div>
-
+    <div style={SPLIT}>
+      <nav aria-label="Downtime procedure" style={STEPS_COLUMN}>
         <ol style={TRACK} aria-label="Downtime steps">
           {steps.map((s, i) => (
             <li
               key={s.name}
-              style={i < idx ? MARK_PAST : i === idx ? MARK_NOW : MARK_NEXT}
-              title={s.name}
               aria-label={`Step ${i + 1}: ${s.name}${i < idx ? ', done' : ''}`}
               aria-current={i === idx ? 'step' : undefined}
             >
-              {i + 1}
+              {s.section && <span style={SECTION_LABEL}>{s.section}</span>}
+              <span style={i < idx ? MARK_PAST : i === idx ? MARK_NOW : MARK_NEXT}>
+                <span style={MARK_NUMBER}>{i < idx ? '✓' : i + 1}</span>
+                {s.name}
+              </span>
             </li>
           ))}
         </ol>
+      </nav>
 
-        <h3 className="pc-dt-step-name" style={{ borderColor: headerBg }}>
-          {step.name}
-        </h3>
-        {step.content && step.content.length > 0 && (
-          <Content body={step.content} headerBg={headerBg} />
-        )}
-
-        {renderStepGate?.(step)}
-
-        {table && (
-          <div className="pc-dt-table">
-            <RollTable table={table} tableName={tableName} size="compact" showCommand />
+      <div style={STEP_COLUMN}>
+        <div style={STEP_SCROLL}>
+          <div style={STEP_BAND}>
+            <h3 className="su-dash-dt-step-name">{step.name}</h3>
           </div>
-        )}
+          <div className="su-dash-dt" style={STEP_BODY}>
+            <div className="su-dash-dt-head">
+              {/* Paper on the deeper crawler band (4.6 : 1, ruleset §3.8): the
+                guide's own pink carries paper at only 3.7 : 1. */}
+              <Badge
+                shape="stamp"
+                // The caption size once merged the stamp's rung size and
+                // line-height:1 away, leaving the inherited line-height; the
+                // stamp now keeps both.
+                style={PHASE_STAMP}
+              >
+                {phase}
+              </Badge>
+              <span className="su-dash-dt-count">
+                Step {idx + 1} / {steps.length}
+              </span>
+            </div>
 
-        {ready.length > 0 ? (
-          <ul style={READY} aria-label={`Done with this step: ${doneCount} of ${ready.length}`}>
-            {ready.map((r) => (
-              <li key={r.userId} style={READY_ITEM}>
-                <span style={r.done ? PIP_DONE : PIP_WAITING} aria-hidden="true" />
-                {r.done ? `✓ ${r.name}` : r.name}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+            {step.content && step.content.length > 0 && <Content body={step.content} grouped />}
 
-        <p className="pc-dt-note">
-          {onNext
-            ? 'You move the table on. Each player marks the step done when they are.'
-            : 'The Mediator moves the table on. Mark the step done when you are.'}
-        </p>
+            {renderStepGate?.(step)}
 
-        <div className="pc-dt-controls">
+            {table && tableName && (
+              <div className="su-dash-dt-table">
+                <DashboardRollTable
+                  table={table}
+                  name={tableName}
+                  size="small"
+                  tone={CHAPTER_BAND_COLOR.crawler}
+                />
+              </div>
+            )}
+
+            {ready.length > 0 ? (
+              <ul style={READY} aria-label={`Done with this step: ${doneCount} of ${ready.length}`}>
+                {ready.map((r) => (
+                  <li key={r.userId} style={READY_ITEM}>
+                    <span style={r.done ? PIP_DONE : PIP_WAITING} aria-hidden="true" />
+                    {r.done ? `✓ ${r.name}` : r.name}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <p className="su-dash-dt-note">
+              {onNext
+                ? 'You move the table on. Each player marks the step done when they are.'
+                : 'The Mediator moves the table on. Mark the step done when you are.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="su-dash-dt-controls" style={STEP_FOOT}>
           <Button
             size="compact"
             variant={doneByMe ? 'ghost' : 'primary'}
@@ -322,7 +413,7 @@ function StepGate({
     const mechBay = mechBayStatus(crawler)
     const medBay = medBayStatus(crawler)
     return (
-      <ul className="pc-dt-gate">
+      <ul className="su-dash-dt-gate">
         <li>
           Mech Bay:{' '}
           {mechBay.operational
@@ -340,8 +431,8 @@ function StepGate({
   }
   if (step.name === 'Upkeep & Upgrade') {
     return (
-      <ul className="pc-dt-gate">
-        <li>Upkeep is {UPKEEP_SCRAP}× the crawler's Tech Level in Scrap this Downtime.</li>
+      <ul className="su-dash-dt-gate">
+        <li>Upkeep is {DOWNTIME_UPKEEP_SCRAP}× the crawler's Tech Level in Scrap this Downtime.</li>
         <li>
           {upkeepSpent
             ? 'Upkeep is paid for this Downtime.'
@@ -354,7 +445,7 @@ function StepGate({
   if (step.name === 'Trade') {
     const trading = bayGate(crawler, 'trading-bay')
     return (
-      <ul className="pc-dt-gate">
+      <ul className="su-dash-dt-gate">
         <li>
           Trading Bay:{' '}
           {trading.operational
@@ -443,11 +534,11 @@ export function DowntimeWizard({
               <>
                 <StepGate step={step} crawler={crawler} upkeepSpent={upkeepSpent} />
                 {step.name === 'Restore your Mech & Pilot' && (mech || pilot) ? (
-                  <div className="pc-dt-gate">
+                  <div className="su-dash-dt-gate">
                     <Button type="button" onClick={restore}>
                       Apply Restore
                     </Button>
-                    {restored ? <p className="pc-dt-note">{restored}</p> : null}
+                    {restored ? <p className="su-dash-dt-note">{restored}</p> : null}
                   </div>
                 ) : null}
               </>

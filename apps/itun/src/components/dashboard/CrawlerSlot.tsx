@@ -17,40 +17,36 @@
  * row (`downtime.spendUpkeep`, idempotent), and only the call that claimed it
  * draws the Scrap, so a second press or a second tab never charges twice.
  *
- * Rules run through `dashboardEconomy.ts`; the destructive Scrap Mech commits
+ * Rules run through `lib/rules/downtimeEconomy.ts`; the destructive Scrap Mech commits
  * through `transfer` as one all-or-nothing write (ADR-007).
  */
 
+import { Button, rollForTable } from 'component-lib'
+import { DOWNTIME_UPKEEP_SCRAP, UPKEEP_STEP_NAME } from 'itun-domain/rules/downtime'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { rollDie } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import {
-  crawlerUpgradeQuote,
-  payUpkeep,
-  UPKEEP_SCRAP,
-  upkeepShortfall,
-} from '../../lib/rules/crawlerEconomy'
-import { UPKEEP_STEP_NAME } from '../../lib/rules/downtime'
-import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import type { StepRule } from '../wizard/RuleBrief'
-import { RuleBrief } from '../wizard/RuleBrief'
+import { craftableAtTl } from '../../lib/rules/crafting'
+import { crawlerUpgradeQuote, payUpkeep, upkeepShortfall } from '../../lib/rules/crawlerEconomy'
 import {
   areaSalvageOutcome,
   craftOutcome,
   crawlerTechLevelOf,
   scrapMechOutcome,
-} from './dashboardEconomy'
-import { recordRoll } from './dashboardRolls'
+} from '../../lib/rules/downtimeEconomy'
+import { runWrite } from '../../lib/runWrite'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
+import { recordRoll } from './dashboardRolls.model'
 import type { BandBay, MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
 import type { PlayStore } from './SlotRow'
-import { bayConditions, crawlerMinorModel, hullGauge, scrapLine } from './slotModels'
+import { bayConditions, crawlerMinorModel, hullGauge, scrapLine } from './slots.model'
 
 export function CrawlerMinor({
   crawler,
@@ -62,31 +58,31 @@ export function CrawlerMinor({
   return <MinorFrame view={crawlerMinorModel(crawler)} slot="Crawler" onExpand={onExpand} />
 }
 
-const CRAFT_LIST: CSSProperties = {
+const CRAFT_LIST = {
   display: 'flex',
   flexDirection: 'column',
   gap: '4px',
   maxHeight: '40vh',
   overflowY: 'auto',
-}
+} satisfies CSSProperties
 
-const CRAFT_ROW: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
+const CRAFT_ROW = {
+  width: '100%',
   justifyContent: 'space-between',
+  textAlign: 'left',
   gap: '12px',
-}
+} satisfies CSSProperties
 
-const CRAFT_COST: CSSProperties = {
+const CRAFT_COST = {
   flexShrink: 0,
   fontVariantNumeric: 'tabular-nums',
   opacity: 0.7,
-}
+} satisfies CSSProperties
 
 /** Cited when an action needs a numeric crawler Tech Level and the slug has none. */
 const NO_TECH_LEVEL_RULE: StepRule = {
   rule: "This Crawler's Tech Level cannot be read, so the Tech Level of the Scrap it would find is undefined. Set a numeric Tech Level on the Crawler sheet first.",
-  cite: 'Core Book · p.245',
+  cite: { source: 'Salvage Union Workshop Manual', page: 245 },
 }
 
 /**
@@ -107,7 +103,7 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
         typeof i.name === 'string' &&
         typeof i.techLevel === 'number' &&
         typeof i.salvageValue === 'number' &&
-        i.techLevel <= crawlerTl
+        craftableAtTl(i.techLevel, crawlerTl)
     )
     .sort((a, b) => a.techLevel - b.techLevel || a.name.localeCompare(b.name))
 
@@ -127,25 +123,23 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
   }
 
   if (items.length === 0) {
-    return <p className="pc-resolve-log">Nothing is craftable at Tech {crawlerTl}.</p>
+    return <p className="su-dash-resolve-log">Nothing is craftable at Tech {crawlerTl}.</p>
   }
 
   return (
     <div style={CRAFT_LIST}>
-      {note ? <p className="pc-resolve-log">{note}</p> : null}
+      {note ? <p className="su-dash-resolve-log">{note}</p> : null}
       {items.slice(0, 40).map((item) => (
-        <button
+        <Button
           key={`${item.techLevel}-${item.name}`}
-          type="button"
           onClick={() => craft(item)}
-          className="pc-srd-row"
           style={CRAFT_ROW}
         >
           <span>{item.name}</span>
           <span style={CRAFT_COST}>
             T{item.techLevel} · {item.salvageValue} Scrap
           </span>
-        </button>
+        </Button>
       ))}
     </div>
   )
@@ -176,7 +170,7 @@ export function CrawlerMajor({
   stampLabel,
 }: {
   crawler: Crawler
-  /** The mech Scrap Mech breaks down: the pilot's own, or null with none. */
+  /** The mech "Break down" takes apart: the pilot's own, or null with none. */
   mech: Mech | null
   store: PlayStore
   /** The viewer is the Game's Mediator, who alone runs the crawler. */
@@ -192,11 +186,12 @@ export function CrawlerMajor({
   const fresh = () => store.get('crawler', crawler.id) ?? crawler
 
   /** Area Salvage (p.245) — roll, report, and deposit any scrap found. */
-  function doSalvage() {
+  async function doSalvage() {
+    const roll = await rollForTable('Area Salvage')
     const c = fresh()
     const { result, patch } = areaSalvageOutcome(c, {
       areaTl: crawlerTl ?? 1,
-      roll: rollDie,
+      roll,
     })
     const log = result.requiresPlayerChoice
       ? `${result.roll}: ${result.label} — pick a Damaged Chassis, System or Module at Tech ${result.areaTl}.`
@@ -209,7 +204,7 @@ export function CrawlerMajor({
         () => setPrompt({ kind: 'salvage', log })
       )
     // Every roll goes to the Game's log, whether or not it found scrap
-    // (`dashboardRolls.ts`).
+    // (`dashboardRolls.model.ts`).
     recordRoll(crawler, {
       description: `${crawler.name} · Area Salvage ${log}`,
       result: { kind: 'area-salvage', roll: result.roll, outcome: result.label },
@@ -229,8 +224,8 @@ export function CrawlerMajor({
       setPrompt({
         kind: 'blocked',
         rule: {
-          rule: `Upkeep is ${UPKEEP_SCRAP} Scrap of Tech ${tl} or higher, and the pool is ${upkeepShortfall(fresh().scrapPool ?? {}, tl)} short. Unpaid Upkeep is a roll on the Crawler Deterioration table, on the crawler sheet.`,
-          cite: 'Core Book · p.218',
+          rule: `Upkeep is ${DOWNTIME_UPKEEP_SCRAP} Scrap of Tech ${tl} or higher, and the pool is ${upkeepShortfall(fresh().scrapPool ?? {}, tl)} short. Unpaid Upkeep is a roll on the Crawler Deterioration table, on the crawler sheet.`,
+          cite: { source: 'Salvage Union Workshop Manual', page: 218 },
         },
       })
       return
@@ -256,7 +251,7 @@ export function CrawlerMajor({
       () =>
         setPrompt({
           kind: 'upkeep',
-          log: `Paid ${UPKEEP_SCRAP} Scrap (${drawn}). Upgrade Pool now ${upgradePool}.`,
+          log: `Paid ${DOWNTIME_UPKEEP_SCRAP} Scrap (${drawn}). Upgrade Pool now ${upgradePool}.`,
         })
     )
   }
@@ -299,22 +294,22 @@ export function CrawlerMajor({
       return {
         title: 'Area Salvage',
         onClose,
-        body: <p className="pc-resolve-log">{prompt.log}</p>,
+        body: <p className="su-dash-resolve-log">{prompt.log}</p>,
       }
     }
     if (prompt.kind === 'upkeep') {
       return {
         title: 'Upkeep',
         onClose,
-        body: <p className="pc-resolve-log">{prompt.log}</p>,
+        body: <p className="su-dash-resolve-log">{prompt.log}</p>,
       }
     }
     if (prompt.kind === 'scrap') {
       return {
-        title: 'Mech Scrapped',
+        title: 'Mech broken down',
         onClose,
         body: (
-          <p className="pc-resolve-log">
+          <p className="su-dash-resolve-log">
             {prompt.total} Scrap into the pool
             {prompt.skipped > 0 ? `; ${prompt.skipped} component(s) yielded nothing.` : '.'}
           </p>
@@ -331,12 +326,10 @@ export function CrawlerMajor({
   const hull: BandBay = {
     label: 'Hull',
     gauges: [hullGauge(crawler)],
-    lines: [
-      {
-        text: [type?.name, crawlerTl === undefined ? 'Tech Level ?' : `Tech Level ${crawlerTl}`]
-          .filter(Boolean)
-          .join(' · '),
-      },
+    // Label-first chips, never a joined line: `TYPE | Augmented`, `TL | 3`.
+    stats: [
+      ...(type ? [{ label: 'Type', value: type.name }] : []),
+      { label: 'TL', value: crawlerTl ?? '?' },
     ],
     buttons: [],
   }
@@ -353,7 +346,7 @@ export function CrawlerMajor({
             onClick: () =>
               crawlerTl === undefined
                 ? setPrompt({ kind: 'blocked', rule: NO_TECH_LEVEL_RULE })
-                : doSalvage(),
+                : void doSalvage(),
             title: 'Roll Area Salvage and deposit what you find',
           },
           { label: 'Craft', onClick: () => setPrompt({ kind: 'craft' }), title: 'Craft an item' },
@@ -363,7 +356,13 @@ export function CrawlerMajor({
   const bays = bayConditions(crawler)
   const bayBay: BandBay = {
     label: 'Bays',
-    chips: bays.map((b) => ({ text: b.damaged ? `${b.name} damaged` : b.name, warn: b.damaged })),
+    // Each bay is its Token, greyed and ending in a DAMAGED badge when damaged;
+    // a bay that does not resolve keeps a named tile that says so.
+    chips: bays.map((b) =>
+      b.entity
+        ? { text: b.name, entity: b.entity, warn: b.damaged }
+        : { text: b.damaged ? `${b.name} damaged` : b.name, warn: b.damaged }
+    ),
     lines: bays.length === 0 ? [{ text: 'No bays installed.' }] : undefined,
     buttons: [],
   }
@@ -373,15 +372,14 @@ export function CrawlerMajor({
   const upkeepBay: BandBay = {
     label: 'Upkeep',
     side: true,
-    lines: [
-      {
-        text:
-          crawlerTl === undefined
-            ? `${UPKEEP_SCRAP} Scrap per Downtime`
-            : `${UPKEEP_SCRAP} Tech ${crawlerTl} Scrap per Downtime`,
-      },
-      ...(upkeep === null
-        ? []
+    // `SCRAP | 3` of `TL | n` (or higher), each Downtime.
+    stats: [
+      { label: 'Scrap', value: DOWNTIME_UPKEEP_SCRAP },
+      ...(crawlerTl === undefined ? [] : [{ label: 'TL', value: crawlerTl }]),
+    ],
+    lines:
+      upkeep === null
+        ? undefined
         : [
             {
               text: upkeep.spent
@@ -390,15 +388,14 @@ export function CrawlerMajor({
                   ? 'Outstanding'
                   : `Outstanding · paid in the ${UPKEEP_STEP_NAME} step`,
             },
-          ]),
-    ],
+          ],
     buttons:
       mediator && upkeep !== null && !upkeep.spent && upkeep.payable
         ? [
             {
               label: 'Pay Upkeep',
               onClick: () => void doUpkeep(upkeep),
-              title: `Pay ${UPKEEP_SCRAP} Scrap of the crawler's Tech Level, once this Downtime`,
+              title: `Pay ${DOWNTIME_UPKEEP_SCRAP} Scrap of the crawler's Tech Level, once this Downtime`,
             },
           ]
         : [],
@@ -406,14 +403,14 @@ export function CrawlerMajor({
   const upgradeBay: BandBay = {
     label: 'Upgrade',
     side: true,
-    lines: [
-      {
-        text:
-          upgrade === null
-            ? 'No further Tech Level'
-            : `Pool ${crawler.upgradePool ?? 0}/${upgrade.cost} to Tech ${upgrade.toTl}`,
-      },
-    ],
+    stats:
+      upgrade === null
+        ? undefined
+        : [
+            { label: 'Pool', value: crawler.upgradePool ?? 0, max: upgrade.cost },
+            { label: 'Next Tech', value: upgrade.toTl },
+          ],
+    lines: upgrade === null ? [{ text: 'No further Tech Level' }] : undefined,
     buttons: [],
   }
   // Scrap needs a mech to break down; a pilot with none has nothing to offer.
@@ -421,12 +418,12 @@ export function CrawlerMajor({
     mediator && mech !== null
       ? [
           {
-            label: 'Scrap a mech',
+            label: 'Break down a Mech',
             side: true,
             columns: 1,
             buttons: [
               {
-                label: 'Scrap Mech',
+                label: 'Break down',
                 onClick: () => doScrap(mech),
                 variant: 'danger',
                 title: `Break ${mech.name} down into Scrap — destructive`,

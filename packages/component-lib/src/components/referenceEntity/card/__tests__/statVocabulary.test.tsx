@@ -1,13 +1,12 @@
 /**
  * The card's stat/trait VOCABULARY, checked against how the rulebook prints it.
  *
- * - A qualified trait is parenthesised: the book's own lines read
- *   "Burn (2) // Explosive (2) // Heavy // Uses (3)", and its glossary entry for
- *   the trait reads "Uses (X)" — so the parens belong to the trait, not to the
- *   value being a number. A non-numeric amount (Uses/Destroy) used to render
- *   "USES DESTROY", a shape the book never prints.
- * - A compact card labels stats with their SHORT forms (TL / SP / EP / SV /
- *   SYS / MODS); the full card keeps the two-line long form.
+ * - A qualified trait is a Tag with its parameter cell (E17): the book's
+ *   "Burn (2) // Explosive (2) // Heavy // Uses (3)" becomes `[Burn | 2]`
+ *   `[Explosive | 2]` `[Heavy]` `[Uses | 3]`, in the same order. A
+ *   non-numeric amount (Uses/Destroy) is a parameter cell like any other.
+ * - Every card labels stats with their SHORT forms (TL / SP / EP / SV / SYS /
+ *   MODS): one anatomy at every size (board E1).
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -30,28 +29,25 @@ const mule = () => {
 const textOf = (node: Parameters<typeof render>[0]) =>
   (render(node).container.textContent ?? '').replace(/\s+/g, ' ')
 
-describe('trait rendering', () => {
-  test('a NUMERIC uses amount is parenthesised', () => {
-    const text = textOf(<ReferenceEntityCard data={action('Beta Fission Gun')} />)
-    expect(text).toContain('Uses (3)')
+/** Each trait Tag's text: its name, then its parameter cell (`[Uses | 3]` reads "Uses3"). */
+const tagsOf = (node: Parameters<typeof render>[0]) =>
+  [...render(node).container.querySelectorAll<HTMLElement>('[data-tag]')].map(
+    (el) => el.textContent
+  )
+
+describe('trait rendering (E17: Tags with a parameter cell)', () => {
+  test('a NUMERIC uses amount is its parameter cell', () => {
+    expect(tagsOf(<ReferenceEntityCard data={action('Beta Fission Gun')} />)).toContain('Uses3')
   })
 
-  test('a NON-NUMERIC uses amount is parenthesised too', () => {
-    const text = textOf(<ReferenceEntityCard data={action('Armour Plating')} />)
-    expect(text).toContain('Uses (Destroy)')
-    // The bare form is exactly what this guards against.
-    expect(text).not.toContain('Uses Destroy')
+  test('a NON-NUMERIC uses amount is a parameter cell too', () => {
+    expect(tagsOf(<ReferenceEntityCard data={action('Armour Plating')} />)).toContain('UsesDestroy')
   })
 
-  test('the whole trait line matches the book', () => {
-    const text = textOf(<ReferenceEntityCard data={action('Beta Fission Gun')} />)
-    expect(text).toContain('Burn (2) // Explosive (2) // Heavy // Uses (3)')
-  })
-
-  test('a label-only trait takes no parens', () => {
-    const text = textOf(<ReferenceEntityCard data={action('Beta Fission Gun')} />)
-    expect(text).toContain('Heavy //')
-    expect(text).not.toContain('Heavy (')
+  test('the traits are Tags, alphabetical with Uses last, with no "//" line', () => {
+    const node = <ReferenceEntityCard data={action('Beta Fission Gun')} />
+    expect(tagsOf(node)).toEqual(['Burn2', 'Energy', 'Explosive2', 'Heavy', 'Uses3'])
+    expect(textOf(node)).not.toContain('//')
   })
 })
 
@@ -72,11 +68,13 @@ describe('stat label short forms', () => {
     expect(text).not.toContain('Module 2')
   })
 
-  test('a full card keeps the two-line long form', () => {
+  test('a full card wears the same value cells — one anatomy at every size', () => {
+    // Board E1: the large card's header carries the `[label | value]` cells
+    // the compact one does; the two-line value boxes are retired.
     const text = textOf(<ReferenceEntityCard data={mule()} size="large" />)
-    expect(text).toContain('Tech')
-    expect(text).toContain('Level')
-    expect(text).toContain('System')
-    expect(text).toContain('Slots')
+    for (const label of ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS']) {
+      expect(text).toContain(label)
+    }
+    expect(text).not.toContain('Tech Level')
   })
 })

@@ -1,12 +1,11 @@
 import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import type { LoggedTable } from './model/entities'
-import { loadLogged, logIdOf, mutation } from './model/entities'
+import { loadLogged, logIdOf, mutation, TABLE_OF_KIND } from './model/entities'
 import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
-
-/** The table each sheet kind's row lives in. */
-const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } from './schema'
 
 /**
  * Append client-originated Change Log rows (ADR-022 / ADR-034 P4b).
@@ -25,7 +24,7 @@ const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as 
  * absent. A field set for the first time has no `before` and a field cleared
  * has no `after`; both are `undefined` on the client, which the Convex client
  * drops when it serialises the args. Requiring the key refused the whole batch
- * for one missing side (ITUN-CONVEX-3/-4), from every bundle that sent one.
+ * for one missing side, from every bundle that sent one.
  *
  * Batched because the emitter batches: one edit that touches three fields is
  * three rows, and sending them individually would triple the round trips on
@@ -36,16 +35,10 @@ export const appendChangeLog = mutation({
     entries: v.array(
       v.object({
         gameId: v.union(v.id('games'), v.null()),
-        entityType: v.union(
-          v.literal('pilot'),
-          v.literal('mech'),
-          v.literal('crawler'),
-          v.literal('softLink'),
-          v.literal('game')
-        ),
+        entityType: changeLogEntityType,
         entityId: v.string(),
         ts: v.number(),
-        kind: v.union(v.literal('transaction'), v.literal('override'), v.literal('manual')),
+        kind: changeLogKind,
         field: v.string(),
         before: v.optional(v.any()),
         after: v.optional(v.any()),
@@ -95,8 +88,13 @@ export const appendChangeLog = mutation({
     // Distinct, as the games are, so a batch about one entity is one read.
     const logged = new Map<string, { table: LoggedTable; entityId: string }>()
     for (const e of args.entries) {
-      if (e.entityType === 'pilot' || e.entityType === 'mech' || e.entityType === 'crawler') {
-        const table = LOGGED_TABLE[e.entityType]
+      if (
+        e.entityType === 'pilot' ||
+        e.entityType === 'mech' ||
+        e.entityType === 'crawler' ||
+        e.entityType === 'npc'
+      ) {
+        const table = TABLE_OF_KIND[e.entityType]
         logged.set(`${table}:${e.entityId}`, { table, entityId: e.entityId })
       }
     }
@@ -138,7 +136,7 @@ const MAX_ROLLS = 100
 /**
  * The Game's rolls, newest first: the Dashboard's (`source 'dashboard'`) and
  * the Discord bot's (`'discord-bot'`), which both write `entityType 'game'`,
- * `field 'roll'` rows ([ADR-038](../../../docs/ARCHITECTURE.md#adr-038) §2).
+ * `field 'roll'` rows ([ADR-038](../../../docs/adr/038-dashboard-game-surface.md) §2).
  *
  * Reads only the newest `limit` rows off `by_game_field`, as
  * `proposals.alerts` does, so the subscription stays the same size however
@@ -149,6 +147,15 @@ const MAX_ROLLS = 100
  */
 export const rolls = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  returns: v.array(
+    v.object({
+      _id: v.id('changeLog'),
+      ts: v.number(),
+      source: v.string(),
+      description: v.string(),
+      actorName: v.union(v.string(), v.null()),
+    })
+  ),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 30) : 30
@@ -162,7 +169,7 @@ export const rolls = query({
     const names = new Map<Id<'users'>, string>()
     for (const actorId of new Set(rows.flatMap((r) => (r.actorId === null ? [] : [r.actorId])))) {
       const user = await ctx.db.get(actorId)
-      names.set(actorId, user?.displayName ?? user?.name ?? 'Unknown pilot')
+      names.set(actorId, displayNameOf(user, 'Crewmate'))
     }
 
     return rows.map((r) => {
@@ -191,21 +198,35 @@ const MAX_ENTITY_ROWS = 100
  * written before every writer used it name the entity by its row id, so both
  * are read.
  *
- * Read off `by_entity_state_field`, whose `field` column sits between the key
- * and the time, so the newest `MAX_ENTITY_ROWS` are found by reading the
- * entity's applied and proposed rows and sorting, not by a range scan.
+ * Read off `by_entity_state_ts`: each stream — one id, one state — yields its
+ * newest `MAX_ENTITY_ROWS` in order, and the newest `MAX_ENTITY_ROWS` overall
+ * are among those, so merging the streams and cutting the sorted result is
+ * exact. Every write appends a row, so a read that collected the entity's
+ * history would grow all campaign toward Convex's per-query read limits.
  *
  * Its owner reads it, and so does a member of the Game it is in. An entity the
  * server has no row for has no history here yet, and reads as empty.
  */
 export const forEntity = query({
   args: {
-    entityType: v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler')),
+    entityType: entityRefType,
     entityId: v.string(),
   },
+  returns: v.array(
+    v.object({
+      _id: v.id('changeLog'),
+      ts: v.number(),
+      kind: changeLogKind,
+      field: v.string(),
+      before: v.any(),
+      after: v.any(),
+      source: v.string(),
+      state: changeLogState,
+    })
+  ),
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx)
-    const row = await loadLogged(ctx, LOGGED_TABLE[args.entityType], args.entityId)
+    const row = await loadLogged(ctx, TABLE_OF_KIND[args.entityType], args.entityId)
     if (row === null) return []
     if (row.ownerId !== userId) {
       if (row.gameId === null) throw new NotAuthorized('That is not yours to read')
@@ -217,8 +238,9 @@ export const forEntity = query({
       (['applied', 'proposed'] as const).map((state) =>
         ctx.db
           .query('changeLog')
-          .withIndex('by_entity_state_field', (q) => q.eq('entityId', entityId).eq('state', state))
-          .collect()
+          .withIndex('by_entity_state_ts', (q) => q.eq('entityId', entityId).eq('state', state))
+          .order('desc')
+          .take(MAX_ENTITY_ROWS)
       )
     )
     const rows = (await Promise.all(reads))

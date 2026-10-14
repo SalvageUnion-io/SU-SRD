@@ -2,7 +2,7 @@
  * Zod enum schemas from enums.schema.json
  */
 
-import { z } from '../zod.js'
+import { z } from '../zod'
 
 /**
  * The source book or expansion for this content

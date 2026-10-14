@@ -29,12 +29,17 @@
  */
 
 import type { ReferenceEntityControl, StatItem } from 'component-lib'
-import { Field, MasonryColumns, ReferenceEntityCard, summarizeBreakdown } from 'component-lib'
+import { Field, ReferenceEntityCard, Slab, summarizeBreakdown, tokens } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { PartnerInstance } from 'itun-domain/schemas/partner'
+import type { CSSProperties } from 'react'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import type { PartnerWithHost } from '../../lib/partnerLookup'
 import { replacePartner } from '../../lib/partnerLookup'
+import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import {
   partnerCap,
   partnerDerivedStats,
@@ -43,15 +48,32 @@ import {
   resolvePartnerStatBlock,
 } from '../../lib/rules/partnerStats'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
-import type { PartnerInstance } from '../../lib/schemas/partner'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { MechItemCard } from './MechItemCard'
-import { resolveModule, resolveSystem } from './mechItemRules'
+import { MechItemToken } from './MechItemToken'
 import { PartnerHold } from './PartnerHold'
-import { partnerDisplayName } from './partnerDisplay'
+import { partnerDisplayName } from './partnerDisplay.model'
+
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
+
+const FIELDS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const ITEMS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+/** The section's Slab sits on the list's own gap, not its default margin. */
+const ITEMS_SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 type PartnerCardProps = {
   /**
@@ -148,9 +170,13 @@ export function PartnerCard({
   // SP / EP / Heat are EDITABLE stat cells; the rest are derived read-onlys.
   // Tech level is never typed in — it comes from the crawler (pilot-granted) or
   // is fixed by the stat block (mech-granted). See `partnerTechLevel`.
+  // The stat order every surface keeps (`STATS`, salvageunion-reference):
+  // Tech Level, then SP / EP / Heat, then the slots and Cargo.
   const stats: StatItem[] = [
+    { key: 'tech', label: 'Tech Level', value: techLevel, group: 'provenance' },
     {
       key: 'sp',
+      group: 'vitals',
       label: 'SP',
       value: sp,
       outOfMax: max.structurePoints,
@@ -161,6 +187,7 @@ export function PartnerCard({
     },
     {
       key: 'ep',
+      group: 'vitals',
       label: 'EP',
       value: ep,
       outOfMax: max.energyPoints,
@@ -171,6 +198,7 @@ export function PartnerCard({
     },
     {
       key: 'heat',
+      group: 'vitals',
       label: 'Heat',
       value: heat,
       outOfMax: max.heatCapacity,
@@ -179,11 +207,30 @@ export function PartnerCard({
         ? (next) => patch({ currentHeat: clamp(next, max.heatCapacity) })
         : undefined,
     },
-    { key: 'tech', label: 'Tech Level', value: techLevel },
-    { key: 'sys', label: 'System Slots', value: partner.systems.length, outOfMax: max.systemSlots },
-    { key: 'mod', label: 'Module Slots', value: partner.modules.length, outOfMax: max.moduleSlots },
+    {
+      key: 'sys',
+      label: 'System Slots',
+      value: partner.systems.length,
+      outOfMax: max.systemSlots,
+      group: 'capacity',
+    },
+    {
+      key: 'mod',
+      label: 'Module Slots',
+      value: partner.modules.length,
+      outOfMax: max.moduleSlots,
+      group: 'capacity',
+    },
     ...(max.cargoCapacity > 0
-      ? [{ key: 'cargo', label: 'Cargo', value: cargo.usage.used, outOfMax: cargo.usage.cap }]
+      ? [
+          {
+            key: 'cargo',
+            label: 'Cargo',
+            value: cargo.usage.used,
+            outOfMax: cargo.usage.cap,
+            group: 'capacity' as const,
+          },
+        ]
       : []),
   ]
 
@@ -226,42 +273,40 @@ export function PartnerCard({
     // Keyed by occurrence, not index — see occurrenceKeys.
     const keys = occurrenceKeys(slugs)
     return (
-      <div className="flex flex-col gap-2">
-        <h4 className="font-cond text-caption font-bold uppercase tracking-caps text-wk-muted">
-          {kind === 'system' ? 'Systems' : 'Modules'}
-        </h4>
-        {/* A partner's slot budget is small (3 systems on a Survey Drone), so a
-            single column reads better than a masonry even at full width. */}
-        <MasonryColumns maxColumns={1}>
+      <div style={ITEMS}>
+        <Slab as="h4" label={kind === 'system' ? 'Systems' : 'Modules'} style={ITEMS_SLAB} />
+        {/* One Token a line, each Peeking its whole card. */}
+        <ul className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}>
           {slugs.map((slug, index) => (
-            <MechItemCard
-              key={keys[index]}
-              slug={slug}
-              entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
-              condition={conditions[slug] ?? 'intact'}
-              usesRemaining={partner.itemUses?.[slug]}
-              scrapPool={null}
-              readOnly={readOnly}
-              onStatusCycle={() => cycleItemCondition(kind, slug)}
-              onUsesChange={(next) =>
-                patch({ itemUses: { ...(partner.itemUses ?? {}), [slug]: next } })
-              }
-              // Repair means REPAIR: straight to Intact, not the next step of
-              // the cycle (which would destroy a Damaged item).
-              onRepair={() => setItemCondition(kind, slug, 'intact')}
-              onRemove={
-                editable
-                  ? () =>
-                      patch(
-                        kind === 'system'
-                          ? { systems: partner.systems.filter((_, i) => i !== index) }
-                          : { modules: partner.modules.filter((_, i) => i !== index) }
-                      )
-                  : undefined
-              }
-            />
+            <li key={keys[index]}>
+              <MechItemToken
+                slug={slug}
+                entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
+                condition={conditions[slug] ?? 'intact'}
+                usesRemaining={partner.itemUses?.[slug]}
+                scrapPool={null}
+                readOnly={readOnly}
+                onStatusCycle={() => cycleItemCondition(kind, slug)}
+                onUsesChange={(next) =>
+                  patch({ itemUses: { ...(partner.itemUses ?? {}), [slug]: next } })
+                }
+                // Repair means REPAIR: straight to Intact, not the next step of
+                // the cycle (which would destroy a Damaged item).
+                onRepair={() => setItemCondition(kind, slug, 'intact')}
+                onRemove={
+                  editable
+                    ? () =>
+                        patch(
+                          kind === 'system'
+                            ? { systems: partner.systems.filter((_, i) => i !== index) }
+                            : { modules: partner.modules.filter((_, i) => i !== index) }
+                        )
+                    : undefined
+                }
+              />
+            </li>
           ))}
-        </MasonryColumns>
+        </ul>
       </div>
     )
   }
@@ -274,8 +319,8 @@ export function PartnerCard({
       statsOverride={stats}
       controls={controls.length > 0 ? controls : undefined}
       afterExtraContent={
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3">
+        <div style={STACK}>
+          <div style={FIELDS}>
             <Field
               label="Name"
               value={partner.name ?? ''}

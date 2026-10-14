@@ -1,4 +1,4 @@
-/* biome-ignore-all lint/complexity/noImportantStyles: print stylesheet — every override must beat Tailwind utility/inline styles at print time, and the pip re-assertions must beat this file's own universal `*` !important reset */
+/* biome-ignore-all lint/complexity/noImportantStyles: print stylesheet — every override must beat package rules and inline styles at print time, and the pip re-assertions must beat this file's own universal `*` !important reset */
 /**
  * print.css — THE @media print rules for ITUN. One print stylesheet per app.
  *
@@ -19,8 +19,8 @@
  *   data-print="keep"  print this even though its element type is hidden below
  *   data-print="hide"  hide this on paper even though its type is kept
  *
- * Neither is used in markup yet; both are live escape hatches for when a
- * button must print (a filled-in checkbox) or a printed block must not.
+ * `keep` prints a button that carries a value (Field's picker); `hide`
+ * drops chrome that would otherwise print (the LiveSheet top bar).
  */
 
 @media print {
@@ -34,14 +34,9 @@
     margin: 10mm;
   }
 
-  @page :first {
-    size: A4 portrait;
-    margin: 10mm;
-  }
-
   /* -------------------------------------------------------------------------
-   * Themed surface tokens → white, so anything reading them (rather than a
-   * Tailwind utility) also lands on paper-white.
+   * Themed surface tokens → white, so anything reading them also lands on
+   * paper-white.
    * ------------------------------------------------------------------------- */
   :root {
     --color-wk-bg: #fff;
@@ -104,6 +99,22 @@
     font-size: 12pt;
   }
 
+  /* The component-lib parts that set their own type in a `.su-*` class keep it
+   * on paper. This file is unlayered and those classes sit in `su-base`, so
+   * the element rules above would beat them; `revert-layer` hands each
+   * property back to the class. A part whose type is an inline style needs
+   * nothing here, since an inline style already beats these rules; a title's weight is handed back for
+   * screen and paper alike in `libHandback.css`. */
+  .su-stat-plate,
+  .su-entity-row__title,
+  .su-entity-row__tier,
+  .su-entity-token__pill,
+  .su-entity-token__kind,
+  .su-pennant {
+    font-size: revert-layer;
+    margin-bottom: revert-layer;
+  }
+
   /* -------------------------------------------------------------------------
    * Hide non-printable elements.
    *
@@ -143,7 +154,7 @@
   /* -------------------------------------------------------------------------
    * Page-break rules
    *
-   * .sheet-section:  top-level sections (PilotSheet/MechSheet/CrawlerSheet)
+   * .su-sheet-section:  top-level sections (PilotSheet/MechSheet/CrawlerSheet)
    *                  each render as <section> with aria-labelledby; we target
    *                  the rendered <section> element directly as well.
    * dl:              the stats <dl> in MechSheet
@@ -151,22 +162,15 @@
    * img:             never break inside an image
    * ------------------------------------------------------------------------- */
   section[aria-labelledby],
-  .sheet-section {
+  .su-sheet-section {
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
   section[aria-labelledby]:not(:first-child),
-  .sheet-section:not(:first-child) {
+  .su-sheet-section:not(:first-child) {
     page-break-before: auto;
     break-before: auto;
-  }
-
-  /* The restyled SU panel sections carry a border-ink class from the entity
-   * card; keep them whole across a page break. */
-  section[class*='border-ink'] {
-    page-break-inside: avoid;
-    break-inside: avoid;
   }
 
   dl {
@@ -188,8 +192,18 @@
   /* -------------------------------------------------------------------------
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */
-  .border,
-  [class*='border-'] {
+  /* An inline border is matched by its style attribute: a stylesheet
+   * `!important` still beats a plain inline declaration. The `.su-*` parts
+   * named here draw their border in a component-lib class, so they are named
+   * outright. */
+  [style*='border'],
+  .su-entity-row__frame,
+  .su-entity-row__body,
+  .su-entity-token__pill,
+  .su-entity-token__kind,
+  .su-stat-cell,
+  .su-pennant--button,
+  .su-ec-band--ruled {
     border-color: #000 !important;
   }
 

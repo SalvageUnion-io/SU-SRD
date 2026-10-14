@@ -21,7 +21,7 @@ import { color } from './tokens'
 export type Rgb = readonly [number, number, number]
 
 /** WCAG 2.x relative luminance of an sRGB triple (0–255 channels). */
-export function relativeLuminance([r, g, b]: Rgb): number {
+function relativeLuminance([r, g, b]: Rgb): number {
   const channel = (v: number) => {
     const c = v / 255
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
@@ -78,11 +78,23 @@ function resolveMix(body: string): Rgb | undefined {
 const KEYWORDS: Record<string, Rgb> = { black: [0, 0, 0], white: [255, 255, 255] }
 
 /**
+ * The token value a `var(--color-*)` names: `null` when `value` is not such a
+ * reference, `undefined` when it names no token on the scale.
+ */
+function colorToken(value: string): string | undefined | null {
+  const variable = value.match(/^var\(\s*--color-([a-z0-9-]+)\s*\)$/)
+  if (!variable) return null
+  const key = (variable[1] ?? '').replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase())
+  return (color as Record<string, string>)[key]
+}
+
+/**
  * The opaque sRGB a CSS colour string paints, or `undefined` when it cannot be
  * known without the page: an unknown variable, a translucent colour (its ground
- * decides), or a syntax this does not model. Understands rgb and six-digit hex,
- * `black`/`white`, `var(--color-*)` over the token scale,
- * and `color-mix(in srgb, …)` of any of those.
+ * decides: `resolveColorOver` composites it over a known one), or a syntax
+ * this does not model. Understands rgb and six-digit hex, `black`/`white`,
+ * `var(--color-*)` over the token scale, and `color-mix(in srgb, …)` of any of
+ * those.
  */
 export function resolveColor(css: string): Rgb | undefined {
   const value = css.trim()
@@ -95,15 +107,35 @@ export function resolveColor(css: string): Rgb | undefined {
   const hex = value.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
   if (hex)
     return [parseInt(hex[1] ?? '', 16), parseInt(hex[2] ?? '', 16), parseInt(hex[3] ?? '', 16)]
-  const variable = value.match(/^var\(\s*--color-([a-z0-9-]+)\s*\)$/)
-  if (variable) {
-    const key = (variable[1] ?? '').replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase())
-    const token = (color as Record<string, string>)[key]
-    return token ? resolveColor(token) : undefined
-  }
+  const token = colorToken(value)
+  if (token !== null) return token ? resolveColor(token) : undefined
   const mix = value.match(/^color-mix\((.*)\)$/)
   if (mix) return resolveMix(mix[1] ?? '')
   return undefined
+}
+
+/**
+ * The opaque sRGB a CSS colour paints over a KNOWN opaque `ground`: what
+ * `resolveColor` refuses because the page decides it, decided. An opaque
+ * colour paints itself; a translucent rgb colour with an alpha — directly or
+ * via a `var(--color-*)` token, such as the `ink50` rung — is composited over
+ * the ground by its alpha, as the browser does. `undefined` for what neither
+ * models.
+ */
+export function resolveColorOver(css: string, ground: Rgb): Rgb | undefined {
+  const opaque = resolveColor(css)
+  if (opaque) return opaque
+  const value = css.trim()
+  const token = colorToken(value)
+  if (token !== null) return token ? resolveColorOver(token, ground) : undefined
+  const rgba = value.match(
+    /^rgb\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*\/\s*([\d.]+)(%?)\s*\)$/
+  )
+  if (!rgba) return undefined
+  const alpha = Math.min(1, Number(rgba[4]) / (rgba[5] ? 100 : 1))
+  return [1, 2, 3].map(
+    (i, at) => Number(rgba[i]) * alpha + (ground[at] ?? 0) * (1 - alpha)
+  ) as unknown as Rgb
 }
 
 /** The two foregrounds a band may print in, by token name. */
@@ -125,4 +157,20 @@ export function foregroundOn(band: string | undefined, fallback: Foreground = 'p
   return contrastRatio(FOREGROUND.ink, ground) > contrastRatio(FOREGROUND.paper, ground)
     ? 'ink'
     : 'paper'
+}
+
+/** WCAG AA for body text: the ratio a foreground must reach to print on a band. */
+export const TEXT_CONTRAST = 4.5
+
+/**
+ * Whether ink or paper prints on `band` at {@link TEXT_CONTRAST}. A band that
+ * cannot be resolved is assumed to: the caller's fallback stands.
+ */
+export function bandCarriesText(band: string | undefined): boolean {
+  const ground = band ? resolveColor(band) : undefined
+  if (!ground) return true
+  return (
+    Math.max(contrastRatio(FOREGROUND.ink, ground), contrastRatio(FOREGROUND.paper, ground)) >=
+    TEXT_CONTRAST
+  )
 }

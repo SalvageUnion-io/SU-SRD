@@ -1,32 +1,24 @@
 /**
- * entityStore — mech and crawler CRUD write-through tests (#244).
+ * entityStore — mech and crawler CRUD write-through tests.
  *
  * entityStore.test.ts covers pilots only. This file extends coverage to mechs
- * and crawlers: create/get/update/delete round-trips against the real IndexedDB
- * (via fake-indexeddb), including a currentXxx stat-field write-through.
- *
- * fake-indexeddb/auto is preloaded via bunfig.toml.
+ * and crawlers: create/get/update/delete round-trips through the in-memory
+ * store, including a currentXxx stat-field write-through.
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
-import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
-import {
-  _resetDbSingleton,
-  clearCache,
-  crawlers as dbCrawlers,
-  mechs as dbMechs,
-} from '../../lib/db/index'
+import { crawlerFixture, mechFixture } from '../../components/__tests__/fixtures'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import type { MonotonicClock } from './monotonicClock'
+import { installMonotonicClock } from './monotonicClock'
+import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// These write, and only the signed-in backend writes. See signedInBackend.ts.
 withSignedInBackend()
 
-// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
-// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// `createdAt` / `updatedAt` come from `new Date()` inside `records.ts`. A monotonic clock makes consecutive writes distinct and
 // ordered by construction, so the ordering assertions below need no sleeping.
 let clock: MonotonicClock
 
@@ -59,29 +51,16 @@ const baseCrawlerInput = {
   systems: [],
 }
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
-
 // ---------------------------------------------------------------------------
 // Setup / teardown
 // ---------------------------------------------------------------------------
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+beforeEach(() => {
+  resetStores()
 })
 
-afterEach(async () => {
-  await clearCache()
-  resetEntityStore()
+afterEach(() => {
+  resetStores()
 })
 
 // ===========================================================================
@@ -89,15 +68,15 @@ afterEach(async () => {
 // ===========================================================================
 
 describe('entityStore — mech hydration', () => {
-  test('empty db: hydrate then list returns []', async () => {
+  test('nothing arrived: hydrate then list returns []', async () => {
     await useEntityStore.getState().hydrate('mech')
     const result = useEntityStore.getState().list('mech')
     expect(result).toEqual([])
   })
 
-  test('pre-seeded db: hydrate populates in-memory state', async () => {
-    await dbMechs.create({ ...baseMechInput, name: 'Alpha' })
-    await dbMechs.create({ ...baseMechInput, name: 'Beta' })
+  test('adopted server rows are what a hydrated list returns', async () => {
+    await useEntityStore.getState().adopt('mech', mechFixture({ id: 'a', name: 'Alpha' }))
+    await useEntityStore.getState().adopt('mech', mechFixture({ id: 'b', name: 'Beta' }))
 
     await useEntityStore.getState().hydrate('mech')
     const result = useEntityStore.getState().list('mech')
@@ -109,7 +88,7 @@ describe('entityStore — mech hydration', () => {
   })
 
   test('hydrate is idempotent for mechs', async () => {
-    await dbMechs.create(baseMechInput)
+    await useEntityStore.getState().adopt('mech', mechFixture({ id: 'a' }))
 
     await useEntityStore.getState().hydrate('mech')
     await useEntityStore.getState().hydrate('mech')
@@ -119,7 +98,7 @@ describe('entityStore — mech hydration', () => {
 })
 
 describe('entityStore — mech create', () => {
-  test('create writes to db and updates in-memory state', async () => {
+  test('create commits and updates in-memory state', async () => {
     await useEntityStore.getState().hydrate('mech')
     const created = await useEntityStore.getState().create('mech', baseMechInput)
 
@@ -130,14 +109,14 @@ describe('entityStore — mech create', () => {
     expect(inMemory.length).toBe(1)
     expect(inMemory[0]?.id).toBe(created.id)
 
-    const fromDb = await dbMechs.get(created.id)
-    expect(fromDb).not.toBeNull()
-    expect(fromDb?.name).toBe('Store Test Mech')
+    const held = useEntityStore.getState().get('mech', created.id)
+    expect(held).not.toBeNull()
+    expect(held?.name).toBe('Store Test Mech')
   })
 })
 
 describe('entityStore — mech update', () => {
-  test('update merges patch and writes through to db', async () => {
+  test('update merges the patch', async () => {
     await useEntityStore.getState().hydrate('mech')
     const created = await useEntityStore.getState().create('mech', baseMechInput)
 
@@ -157,11 +136,11 @@ describe('entityStore — mech update', () => {
     const inMemory = useEntityStore.getState().get('mech', created.id)
     expect(inMemory?.name).toBe('Renamed Mech')
 
-    const fromDb = await dbMechs.get(created.id)
-    expect(fromDb?.name).toBe('Renamed Mech')
+    const held = useEntityStore.getState().get('mech', created.id)
+    expect(held?.name).toBe('Renamed Mech')
   })
 
-  test('update with currentHP writes stat through to db', async () => {
+  test('update with currentHP writes the stat through', async () => {
     await useEntityStore.getState().hydrate('mech')
     const created = await useEntityStore.getState().create('mech', baseMechInput)
 
@@ -170,13 +149,13 @@ describe('entityStore — mech update', () => {
     const inMemory = useEntityStore.getState().get('mech', created.id)
     expect(inMemory?.currentHP).toBe(7)
 
-    const fromDb = await dbMechs.get(created.id)
-    expect(fromDb?.currentHP).toBe(7)
+    const held = useEntityStore.getState().get('mech', created.id)
+    expect(held?.currentHP).toBe(7)
   })
 })
 
 describe('entityStore — mech delete', () => {
-  test('delete removes from db and in-memory state', async () => {
+  test('delete removes it from in-memory state', async () => {
     await useEntityStore.getState().hydrate('mech')
     const created = await useEntityStore.getState().create('mech', baseMechInput)
 
@@ -185,8 +164,8 @@ describe('entityStore — mech delete', () => {
     const inMemory = useEntityStore.getState().list('mech')
     expect(inMemory.length).toBe(0)
 
-    const fromDb = await dbMechs.get(created.id)
-    expect(fromDb).toBeNull()
+    const held = useEntityStore.getState().get('mech', created.id)
+    expect(held).toBeNull()
   })
 })
 
@@ -195,15 +174,15 @@ describe('entityStore — mech delete', () => {
 // ===========================================================================
 
 describe('entityStore — crawler hydration', () => {
-  test('empty db: hydrate then list returns []', async () => {
+  test('nothing arrived: hydrate then list returns []', async () => {
     await useEntityStore.getState().hydrate('crawler')
     const result = useEntityStore.getState().list('crawler')
     expect(result).toEqual([])
   })
 
-  test('pre-seeded db: hydrate populates in-memory state', async () => {
-    await dbCrawlers.create({ ...baseCrawlerInput, name: 'Crawler A' })
-    await dbCrawlers.create({ ...baseCrawlerInput, name: 'Crawler B' })
+  test('adopted server rows are what a hydrated list returns', async () => {
+    await useEntityStore.getState().adopt('crawler', crawlerFixture({ id: 'a', name: 'Crawler A' }))
+    await useEntityStore.getState().adopt('crawler', crawlerFixture({ id: 'b', name: 'Crawler B' }))
 
     await useEntityStore.getState().hydrate('crawler')
     const result = useEntityStore.getState().list('crawler')
@@ -215,7 +194,7 @@ describe('entityStore — crawler hydration', () => {
   })
 
   test('hydrate is idempotent for crawlers', async () => {
-    await dbCrawlers.create(baseCrawlerInput)
+    await useEntityStore.getState().adopt('crawler', crawlerFixture({ id: 'a' }))
 
     await useEntityStore.getState().hydrate('crawler')
     await useEntityStore.getState().hydrate('crawler')
@@ -225,7 +204,7 @@ describe('entityStore — crawler hydration', () => {
 })
 
 describe('entityStore — crawler create', () => {
-  test('create writes to db and updates in-memory state', async () => {
+  test('create commits and updates in-memory state', async () => {
     await useEntityStore.getState().hydrate('crawler')
     const created = await useEntityStore.getState().create('crawler', baseCrawlerInput)
 
@@ -236,14 +215,14 @@ describe('entityStore — crawler create', () => {
     expect(inMemory.length).toBe(1)
     expect(inMemory[0]?.id).toBe(created.id)
 
-    const fromDb = await dbCrawlers.get(created.id)
-    expect(fromDb).not.toBeNull()
-    expect(fromDb?.name).toBe('Store Test Crawler')
+    const held = useEntityStore.getState().get('crawler', created.id)
+    expect(held).not.toBeNull()
+    expect(held?.name).toBe('Store Test Crawler')
   })
 })
 
 describe('entityStore — crawler update', () => {
-  test('update merges patch and writes through to db', async () => {
+  test('update merges the patch', async () => {
     await useEntityStore.getState().hydrate('crawler')
     const created = await useEntityStore.getState().create('crawler', baseCrawlerInput)
 
@@ -263,11 +242,11 @@ describe('entityStore — crawler update', () => {
     const inMemory = useEntityStore.getState().get('crawler', created.id)
     expect(inMemory?.name).toBe('Renamed Crawler')
 
-    const fromDb = await dbCrawlers.get(created.id)
-    expect(fromDb?.name).toBe('Renamed Crawler')
+    const held = useEntityStore.getState().get('crawler', created.id)
+    expect(held?.name).toBe('Renamed Crawler')
   })
 
-  test('update with currentSP writes stat through to db', async () => {
+  test('update with currentSP writes the stat through', async () => {
     await useEntityStore.getState().hydrate('crawler')
     const created = await useEntityStore.getState().create('crawler', baseCrawlerInput)
 
@@ -278,13 +257,13 @@ describe('entityStore — crawler update', () => {
     const inMemory = useEntityStore.getState().get('crawler', created.id)
     expect(inMemory?.currentSP).toBe(40)
 
-    const fromDb = await dbCrawlers.get(created.id)
-    expect(fromDb?.currentSP).toBe(40)
+    const held = useEntityStore.getState().get('crawler', created.id)
+    expect(held?.currentSP).toBe(40)
   })
 })
 
 describe('entityStore — crawler delete', () => {
-  test('delete removes from db and in-memory state', async () => {
+  test('delete removes it from in-memory state', async () => {
     await useEntityStore.getState().hydrate('crawler')
     const created = await useEntityStore.getState().create('crawler', baseCrawlerInput)
 
@@ -293,7 +272,7 @@ describe('entityStore — crawler delete', () => {
     const inMemory = useEntityStore.getState().list('crawler')
     expect(inMemory.length).toBe(0)
 
-    const fromDb = await dbCrawlers.get(created.id)
-    expect(fromDb).toBeNull()
+    const held = useEntityStore.getState().get('crawler', created.id)
+    expect(held).toBeNull()
   })
 })

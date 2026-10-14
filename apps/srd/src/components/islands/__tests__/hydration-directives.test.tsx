@@ -17,7 +17,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { getModel } from 'salvageunion-reference'
 import { BaseLayout } from '../../../layouts/BaseLayout'
 import { cardNeedsHydration } from '../../../lib/cardNeedsHydration'
-import { schemaListingPage } from '../../../pages/schema/[schemaId]/index.page'
+import { schemaListingPage } from '../../../pages/[schemaId]/index.page'
 import type { CollectedIslandProps } from '../../../runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../../../runtime/Island'
 import { islandRegistry } from '../../../runtime/islandRegistry'
@@ -124,7 +124,7 @@ describe('hydration directives', () => {
       // A fresh process is the only place this is observable — the test preload
       // has already loaded everything in THIS one.
       const probe = `
-        await import('./src/components/EntityView.tsx')
+        await import('./src/components/EntityView')
         const { SalvageUnionReference } = await import('salvageunion-reference')
         console.log(SalvageUnionReference.isLoaded('chassis') ? 'loaded' : 'not-loaded')
       `
@@ -161,19 +161,19 @@ describe('hydration directives', () => {
       expect(Object.keys(props[island.id] ?? {})).toEqual([
         'item',
         'pattern',
-        'titleAs',
         'preloadSchemas',
+        'pageRefs',
       ])
     })
   })
 
-  describe('below-fold islands use client="visible"', () => {
-    it('SchemaViewerIsland on the schema listing page is client="visible"', () => {
+  describe('a listing waits for its reader', () => {
+    it('SchemaViewerIsland on the schema listing page is client="interaction"', () => {
       const paths = schemaListingPage.getStaticPaths?.() ?? []
       const path = paths.find((p) => p.params.schemaId === 'keywords')
-      if (!path) throw new Error('no static path for /schema/keywords')
+      if (!path) throw new Error('no static path for /keywords')
 
-      const pathname = '/schema/keywords/'
+      const pathname = '/keywords/'
       const result = schemaListingPage.page({
         params: path.params,
         props: path.props,
@@ -184,22 +184,24 @@ describe('hydration directives', () => {
 
       const island = onlyIsland(renderIslands(result.children).islands)
       expect(island.name).toBe('SchemaViewerIsland')
-      expect(island.client).toBe('visible')
+      expect(island.client).toBe('interaction')
       // `ssr` is true here — the entity grid is this page's SEO content — so the
       // placeholder must NOT be empty.
       expect(island.inner.length).toBeGreaterThan(0)
     })
   })
 
-  describe('above-fold critical islands retain client="idle"', () => {
-    it('the chrome islands in TopNavigation are all client="idle"', () => {
-      const { islands, props } = renderIslands(<TopNavigation currentPath="/" />)
+  describe('the chrome islands wait for the reader', () => {
+    it('the chrome islands in TopNavigation are server-rendered and client="interaction"', () => {
+      const { islands, props } = renderIslands(<TopNavigation />)
 
       expect(islands.map((i) => `${i.name}:${i.client}`)).toEqual([
-        'SearchIsland:idle',
-        'MobileSearchIsland:idle',
-        'MobileNavIsland:idle',
+        'SearchIsland:interaction',
+        'MobileSearchIsland:interaction',
+        'MobileNavIsland:interaction',
       ])
+      // Each one's control is in the HTML, so there is something to reach for.
+      for (const island of islands) expect(island.inner.length).toBeGreaterThan(0)
       // Chrome takes no props at all. `MobileNavIsland` computing its own
       // catalog instead of receiving one is what keeps 17.3 MB of duplicated
       // props out of the build (ssg/DESIGN.md, "props designed out").
@@ -229,7 +231,7 @@ describe('hydration directives', () => {
       // `name` is a string the mounter looks up at runtime, so a typo is
       // silently dead UI rather than a broken import.
       const emitted = [
-        ...renderIslands(<TopNavigation currentPath="/" />).islands,
+        ...renderIslands(<TopNavigation />).islands,
         ...renderIslands(
           <EntityView item={firstEntity('roll-tables', true)} schemaId="roll-tables" />
         ).islands,

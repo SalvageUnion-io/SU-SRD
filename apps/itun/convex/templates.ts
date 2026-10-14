@@ -4,7 +4,7 @@ import {
   STARTER_MECHS,
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
-} from '../src/lib/starterSet/starterSet'
+} from 'itun-domain/starterSet/starterSet'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { mutation } from './model/entities'
@@ -19,7 +19,7 @@ import { requireUser } from './model/permissions'
  * out as players join, which turns pre-generated characters from a curiosity
  * into the onboarding path.
  *
- * The Starter Set data is imported straight from `src/lib/starterSet/`. That
+ * The Starter Set data is imported straight from `itun-domain/starterSet/`. That
  * module is deliberately static plain data with no runtime reference-data
  * resolution (see its header), so it bundles into a Convex function safely and
  * there is exactly one copy of the roster rather than a server-side duplicate
@@ -39,6 +39,9 @@ export type TemplateId = keyof typeof TEMPLATES
 /** The templates a Game can be started from. */
 export const list = query({
   args: {},
+  returns: v.array(
+    v.object({ id: v.literal('starter-set'), name: v.string(), description: v.string() })
+  ),
   handler: async () => {
     // `id` is typed as the TemplateId union rather than `string` so a caller can
     // pass the row straight to `createGame`. With a plain `string` the only way

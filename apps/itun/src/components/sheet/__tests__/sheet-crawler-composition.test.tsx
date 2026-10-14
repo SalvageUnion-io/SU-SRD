@@ -1,5 +1,5 @@
 /**
- * Sheet — crawler-wired composition mode rendering (#244).
+ * Sheet — crawler-wired composition mode rendering.
  *
  * Covers three composition scenarios NOT yet asserted by Sheet.test.tsx or
  * sheet-smoke.test.tsx in terms of sub-sheet content visibility:

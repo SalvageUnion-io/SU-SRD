@@ -1,14 +1,14 @@
 /**
  * The pure halves of what the Dashboard reads and writes about the table:
  * how a crewmate's resolve reads (ADR-038 §2), the Crew tab's lines, and the
- * change-log row a Dashboard roll becomes (`botClient.recordRoll`'s shape).
+ * change-log row a Dashboard roll becomes.
  */
 
 import { describe, expect, test } from 'bun:test'
+import type { MechStatus } from 'itun-domain/rules/crewStatus'
 import type { Id } from '../../../../convex/_generated/dataModel'
-import type { MechStatus } from '../../../lib/rules/crewStatus'
-import type { BoardSources } from '../boardMenu'
-import { rollLogEntry } from '../dashboardRolls'
+import type { BoardSources } from '../boardMenu.model'
+import { rollLogEntry } from '../dashboardRolls.model'
 import type { CrewVitals } from '../useGameFeed'
 import { crewLines, describeResolve } from '../useGameFeed'
 
@@ -131,6 +131,10 @@ describe('crewLines', () => {
         href: '/sheet/pilot/rook',
         where: 'On foot',
         vitals: 'HP 10/10 · AP 5/5',
+        hp: '10/10',
+        ap: '5/5',
+        unit: 'On foot · Kettle parked',
+        unitMech: { name: 'Kettle', sp: '12/12', boarded: false },
         // Parked: one line, and its own trouble does not take the row's SP
         // and Heat with it.
         mech: 'Kettle parked, destroyed',
@@ -146,6 +150,10 @@ describe('crewLines', () => {
         href: '/sheet/pilot/vex',
         where: 'In Magpie',
         vitals: 'HP 3/10 · AP 5/5',
+        hp: '3/10',
+        ap: '5/5',
+        unit: 'In Magpie · SP 12/12',
+        unitMech: { name: 'Magpie', sp: '12/12', boarded: true },
         mech: 'Magpie · SP 12/12 · Heat 4/4',
         // Boarded, its trouble is the row's problems, not its line.
         mechAttention: false,
@@ -160,6 +168,10 @@ describe('crewLines', () => {
         href: '/sheet/pilot/wren',
         where: 'On foot',
         vitals: 'HP 10/10 · AP 5/5',
+        hp: '10/10',
+        ap: '5/5',
+        unit: 'On foot',
+        unitMech: null,
         mech: null,
         mechAttention: false,
         problems: ['Ejected'],

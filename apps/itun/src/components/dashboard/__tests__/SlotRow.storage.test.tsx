@@ -1,13 +1,13 @@
 /**
- * Tests for the Phase-7 cargo-hold overlay on the Mech Major: the Storage button
+ * Tests for the cargo-hold overlay on the Mech Major: the Storage button
  * opens a hold listing the mech's cargo lots, and Jettison writes a cargoLots
  * patch with that lot removed (the explicit player-confirmed discard, ADR-007).
  */
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import type { CargoLot } from '../../../lib/schemas/cargoLot'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import type { PlayStore } from '../SlotRow'
@@ -81,7 +81,7 @@ describe('Mech Major cargo hold', () => {
     fireEvent.click(screen.getByText('Storage'))
     expect(screen.getByLabelText('Jettison Sealed Crate')).toBeTruthy()
     expect(screen.getByLabelText('Jettison Tech 3 Scrap')).toBeTruthy()
-    expect(screen.getByText('Hold 5/6')).toBeTruthy()
+    expect(document.querySelector('.su-dash-cargo-usage')?.textContent).toBe('Units5/6')
   })
 
   test('Jettison writes cargoLots without the discarded lot', () => {

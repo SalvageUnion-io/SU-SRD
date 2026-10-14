@@ -25,8 +25,8 @@
  */
 
 import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { installConvexMocks } from '../../__tests__/convexMock'
 import {
@@ -108,7 +108,7 @@ function makeZustandLikeStore(
 
   return makeEntityStoreMock({
     mechs,
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => mechs),
     get: mock((_type: string, id: string) => mechs.find((e) => e.id === id) ?? null),
@@ -195,7 +195,7 @@ describe('Smoke — crawler-only sheet', () => {
     expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
   })
 
-  test('crawler tech level appears in the sheet (identity Tech/Level plate)', () => {
+  test('crawler tech level appears in the sheet (identity TL chip)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -205,10 +205,9 @@ describe('Smoke — crawler-only sheet', () => {
       />
     )
     // Tech Level reads in IDENTITY beside the crawler type now, not in the
-    // economy rail — the rail keeps the things you SPEND. Its label is split
-    // across the stat plate's two lines, so the accessible name carries the
-    // whole phrase.
-    expect(screen.getByLabelText(/Tech Level/)).toBeTruthy()
+    // economy rail — the rail keeps the things you SPEND — as a `TL | n` chip.
+    const identity = screen.getByRole('region', { name: 'Crawler identity' })
+    expect(within(identity).getByText('TL')).toBeTruthy()
   })
 })
 
@@ -309,9 +308,10 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
     )
 
     await act(async () => {
-      // SP is a VitalGauge now: clicking the top-lit segment (index 4 =
-      // "Set SP to 5") steps SP 5 → 4 (pipClickValue click-to-set).
-      fireEvent.click(screen.getByRole('button', { name: 'Set SP to 5' }))
+      // SP is a VitalGauge: clicking the top-lit segment (index 4) steps
+      // SP 5 → 4 (pipClickValue click-to-set) through the track's slider.
+      const sp = screen.getByRole('slider', { name: 'SP' })
+      fireEvent.click(must(sp.querySelector('[data-pip-index="4"]')))
     })
 
     expect(captured.length).toBe(1)

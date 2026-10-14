@@ -1,8 +1,8 @@
 /**
- * Sheet — root live-sheet component on the Header C LiveSheet shell (plan
- * 4.1–4.3). Resolves the entity + its SoftLink composition (the ported
- * resolver in composition.ts), then dispatches to ONE per-kind view
- * (SheetPilot / SheetMech / SheetCrawler — audit item 19):
+ * Sheet — root live-sheet component on the Header C LiveSheet shell. Resolves
+ * the entity + its SoftLink composition (the ported
+ * resolver in composition.model.ts), then dispatches to ONE per-kind view
+ * (SheetPilot / SheetMech / SheetCrawler):
  * hero = entity-card-writ-large with live trackers, linked entities as rail
  * chips (live mini stats, whole-chip navigation), variant sheet as the body.
  *
@@ -16,35 +16,39 @@
  * live — and hands the views resolved data via props.
  */
 
-import { buttonVariants, cn } from 'component-lib'
+import { Button, buttonVariants, tokens } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EntityRef, SheetEntityKind } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
 import { ExportEntityButton } from '../export/ExportEntityButton'
+import { AppLink } from '../shared/AppLink'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { useConfirm } from '../shared/useConfirm'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
+import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
-import type { EntityLookup } from './composition'
-import { resolveSheetComposition } from './composition'
+import type { EntityLookup } from './composition.model'
+import { resolveSheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
-import { ShareStatusDialog } from './ShareStatusDialog'
 import { SheetActionsMenu } from './SheetActionsMenu'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
+import { SheetModeToggle } from './SheetModeToggle'
 import { SheetPilot } from './SheetPilot'
-import type { SheetPatch, WithheldUnit } from './sheetViewProps'
+import { useSheetMode } from './sheetMode.model'
+import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
 
 // Re-exported so existing consumers (tests) keep their import.
-export type { EntityLookup } from './composition'
+export type { EntityLookup } from './composition.model'
 
 /**
  * The sheet's own entity, resolved with its kind as a discriminant so the
@@ -57,7 +61,7 @@ type ResolvedSheetEntity =
 
 function resolveSheetEntity(
   lookup: EntityLookup,
-  kind: EntityRef['type'],
+  kind: SheetEntityKind,
   id: string
 ): ResolvedSheetEntity | null {
   switch (kind) {
@@ -77,7 +81,7 @@ function resolveSheetEntity(
 }
 
 type SheetProps = {
-  kind: EntityRef['type']
+  kind: SheetEntityKind
   id: string
   /** Injectable entity lookup for testing; the live store when omitted. */
   entityStore?: EntityLookup
@@ -103,10 +107,11 @@ type SheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * Where the sheet's back link goes. Defaults to the Roster.
+   * Where the not-found state's exit link goes. Defaults to the Shelves. The
+   * sheet itself has no back link (the band starts the page).
    *
    * A sheet reached from a Game's crew list belongs to that game for the length
-   * of the visit, and sending its back link to the personal Roster would strand
+   * of the visit, and sending its exit link to the personal Shelves would strand
    * the viewer one surface away from the crew they were reading.
    */
   back?: { href: string; label: string }
@@ -122,27 +127,38 @@ type SheetProps = {
    *
    * The public-sheet query resolves the refs server-side, and this passes them
    * in explicitly rather than fabricating a pilot record — a synthetic pilot
-   * would surface in the Linked Units rail as a unit that was never shared.
+   * would surface in the Assigned Units rail as a unit that was never shared.
    */
   pilotAbilities?: string[]
   /**
    * Entities the viewer may read but not edit — a Game's crewmates, from
-   * `listForGame` (`readOnlySheetStore.ts`). Linked units the store does not
+   * `listForGame` (`readOnlySheetStore.model.ts`). Assigned units the store does not
    * hold resolve through it, so your crawler lists its whole crew and your
    * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
-   * what only this holds (`holds` in `sheetViewProps.ts`).
+   * what only this holds (`holds` in `sheetViewProps.model.ts`).
    */
   others?: EntityLookup
   /** Where a linked unit's View goes; the live sheet route when omitted. */
   hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
-  /** Linked units to name without reading — a public sheet's private assignments. */
+  /** Assigned units to name without reading — a public sheet's private assignments. */
   withheld?: readonly WithheldUnit[]
+  /** Controls on the band (the Starter Set's "Make a copy"). */
+  bandActions?: ReactNode
 }
 
 /** The live sheet route: one address per entity, editable or read-only by who is looking. */
 const liveSheetHref = (kind: EntityRef['type'], id: string): string => `/sheet/${kind}/${id}`
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
+
+/** The bar's trailing cluster: Share (or the offline lozenge) and ⋯. */
+const ACTIONS = {
+  alignItems: 'center',
+  display: 'flex',
+  gap: tokens.space[10],
+} satisfies CSSProperties
+
+const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 export function Sheet({
   kind,
@@ -152,11 +168,12 @@ export function Sheet({
   store = useEntityStore,
   readOnly: readOnlyProp = false,
   crawlerReadOnly = false,
-  back = { href: '/', label: 'Roster' },
+  back = { href: '/', label: 'Shelves' },
   pilotAbilities,
   others,
   hrefFor = liveSheetHref,
   withheld = NONE_WITHHELD,
+  bandActions,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
@@ -165,6 +182,10 @@ export function Sheet({
   // control lives in the ⋯ menu, which unmounts on the press that answers it.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const { canWrite, settling } = useConnection()
+  // Read | Edit (`sheetMode.model.ts`): the route's choice, or always writable when
+  // nothing provides one (a test).
+  const sheetMode = useSheetMode()
+  const editing = sheetMode === null || sheetMode.editing
 
   // Signed in and offline: the server of record refuses writes (ADR-030 §1), so
   // every edit affordance on this sheet is a lie. Withdraw them rather than
@@ -178,7 +199,9 @@ export function Sheet({
   // This is orthogonal to ADR-021's surface taxonomy: it withdraws Free Edit for
   // a connectivity reason, and imposes no lifecycle enforcement on what remains.
   const writesBlocked = !canWrite && !settling
-  const readOnly = readOnlyProp || writesBlocked
+  // Read is the printed sheet: every edit affordance withdrawn, exactly as on
+  // a sheet the viewer cannot write, until Edit is pressed.
+  const readOnly = readOnlyProp || writesBlocked || !editing
 
   const own: EntityLookup = entityStore ?? {
     get: (type, entityId) => storeState.get(type, entityId),
@@ -206,7 +229,7 @@ export function Sheet({
 
   if (!resolved) {
     // Styled not-found with an exit path — this is the most-visited surface
-    // in the app; a bare one-liner stranded the user (audit item 7).
+    // in the app; a bare one-liner stranded the user.
     return (
       <NotFoundPanel
         title={`${kind} not found`}
@@ -222,21 +245,16 @@ export function Sheet({
   // clean-pilot.html `.bar-actions`): Share stays inline; Print,
   // Export and the container control tuck into the "⋯" overflow at every width — the app
   // bar's priority row is just Share + overflow.
-  // NO sheet has a global Edit toggle any more — editing is section-based
-  // (unified edit language: per-section Edit buttons, always-available
-  // collection add/remove, always-live StatBlock pips).
+  // Read | Edit is the band's (`sheetMode.model.ts`): Read withdraws every write
+  // affordance; Edit gives back the unified edit language (in-place fields,
+  // collection add/remove, live pips).
   // Print/PDF export (#82/#258): the print stylesheet (index.css @media
   // print) turns the live sheet into a clean paper layout; "Save as PDF"
   // in the browser dialog covers the PDF ask without a rendering dep.
   const printButton = (
-    <button
-      type="button"
-      aria-label={`Print this ${kind} sheet`}
-      onClick={() => window.print()}
-      className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'cursor-pointer')}
-    >
+    <Button variant="ghost" aria-label={`Print this ${kind} sheet`} onClick={() => window.print()}>
       Print
-    </button>
+    </Button>
   )
   // Entity-level admin affordances relocated from the (removed) detail page:
   // single-entity JSON export + container move. Unassigning a linked entity
@@ -249,15 +267,26 @@ export function Sheet({
   // inline on the sheet body (ADR-022). Its open-state lives here, on the
   // always-mounted Sheet, because the menu unmounts its children when closed.
   const changeLogButton = (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       aria-label={`View the change log for this ${kind}`}
       onClick={() => setChangeLogOpen(true)}
-      className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'cursor-pointer')}
     >
       Change Log
-    </button>
+    </Button>
   )
+  // A mech saves as a pattern on its own page (board P1): a write, so it
+  // is offered only where this sheet can write.
+  const savePatternLink =
+    kind === 'mech' && !writesBlocked ? (
+      <AppLink
+        href={`/mechs/patterns/new?from=${encodeURIComponent(id)}`}
+        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+        style={LINK}
+      >
+        Save as pattern
+      </AppLink>
+    ) : null
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
   // export, not less. Only Share goes — switching the public sheet on or off is
@@ -270,29 +299,29 @@ export function Sheet({
   // component could be, and it cannot disagree with what the recipient sees.
   // See ShareStatusDialog's header.
   const actions = !readOnlyProp ? (
-    <div className="flex items-center gap-2.5">
+    <div style={ACTIONS}>
       {writesBlocked ? (
         <WritesBlockedNotice />
       ) : (
-        <button
-          type="button"
+        <Button
           aria-label={`Share this ${kind}`}
           onClick={() => setShareOpen(true)}
-          className={cn(buttonVariants({ size: 'compact' }), 'min-h-11 cursor-pointer sm:min-h-9')}
+          className="su-page-action"
         >
           Share
-        </button>
+        </Button>
       )}
       <SheetActionsMenu>
         {printButton}
         {exportButton}
         {containerControl}
+        {savePatternLink}
         {changeLogButton}
       </SheetActionsMenu>
     </div>
   ) : undefined
 
-  // Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — wired sheets
+  // Mobile segmented Pilot/Mech/Crawler switch — wired sheets
   // only; each present counterpart gets a segment, the viewed kind is active.
   // A counterpart with nowhere to go (`hrefFor` → undefined) gets no segment.
   let segments: LiveSheetSegment[] | undefined
@@ -305,7 +334,9 @@ export function Sheet({
     ] as const
     for (const { key, label, unit } of counterparts) {
       const href = unit ? hrefFor(key, unit.id) : undefined
-      if (href !== undefined) segments.push({ key, label, href, active: kind === key })
+      if (unit && href !== undefined) {
+        segments.push({ key, label, name: unit.name, href, active: kind === key })
+      }
     }
   }
 
@@ -322,9 +353,27 @@ export function Sheet({
     runWrite(() => storeState.update(kind, id, fields, LIVE_SHEET_MANUAL))
   }
 
+  // The band: the type stamps' provenance, and Read | Edit only where the
+  // viewer may write. A read-only sheet (`readOnlyProp`: the Starter Set's, a
+  // crewmate's, a public one) has nothing to switch to, so it prints no toggle
+  // at all — a disabled Edit was a control that could only say no.
+  const modeToggle =
+    sheetMode !== null && !readOnlyProp && !writesBlocked ? (
+      <SheetModeToggle mode={sheetMode} kind={kind} />
+    ) : null
+  const band: SheetBand = {
+    actions:
+      modeToggle === null && bandActions === undefined ? undefined : (
+        <>
+          {modeToggle}
+          {bandActions}
+        </>
+      ),
+  }
+
   const common = {
+    band,
     composition,
-    back,
     actions,
     segments,
     editable: !readOnly,
@@ -369,7 +418,8 @@ export function Sheet({
           <ShareStatusDialog
             kind={kind}
             id={id}
-            entity={entity}
+            name={entity.name}
+            gameId={entity.gameId ?? null}
             open={shareOpen}
             onOpenChange={setShareOpen}
           />

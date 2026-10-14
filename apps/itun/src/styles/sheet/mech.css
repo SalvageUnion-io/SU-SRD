@@ -1,0 +1,176 @@
+/* The mech sheet group's rules: only what a style object cannot express. */
+
+/* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome, SheetRailParts) ---- */
+
+/* A rail slot's share of the Assigned Units row: its wrapper (around a
+   `UnitRow` or an `EmptyUnitSlot`) carries the static `flex` as a class. */
+.su-sheet-rail-slot {
+  flex: 1 1 0%;
+}
+
+/* The sheet's page gutter — the sticky bar and the read-only crew banner —
+   is every page's (`.su-page-gutters` on the sheet's main, component-lib's
+   shell.css), so the band's cut-out and the body share one left edge. */
+.su-sheet-gutter {
+  padding-inline: var(--su-page-gutter-inline);
+}
+
+/* The body column under the chapter band. */
+.su-sheet-live-body {
+  padding: var(--space-16) var(--su-page-gutter-inline) 34px;
+}
+
+@media (width >= 40rem) {
+  .su-sheet-live-body {
+    padding-block: 22px 60px;
+  }
+}
+
+/* A condensed-bar readout that folds below sm (Heat + SP lead on phones). */
+.su-sheet-live-stat-fold {
+  display: none;
+}
+
+@media (width >= 40rem) {
+  .su-sheet-live-stat-fold {
+    display: inline-flex;
+  }
+}
+
+/* The phone's Pilot/Mech/Crawler switch: phones only, never on paper. */
+.su-sheet-live-segments {
+  display: flex;
+}
+
+@media (width >= 40rem) {
+  .su-sheet-live-segments {
+    display: none;
+  }
+}
+
+@media print {
+  .su-sheet-live-segments {
+    display: none;
+  }
+}
+
+/* ---- SheetHero ---- */
+
+/* Fields beside a 260px vitals column once the SHEET (its `@container`) is
+   wide enough; stacked below that. */
+.su-sheet-hero {
+  gap: 22px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@container (width >= 48rem) {
+  .su-sheet-hero {
+    gap: var(--space-24);
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+}
+
+/* The fields card and its body: `SheetSectionCard` takes classes, no style. */
+.su-sheet-hero-fields {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.su-sheet-hero-fields-body {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ---- MechSheet ---- */
+
+/* The vitals stack: a dashed deep-tone rule between each gauge. */
+.su-sheet-mech-vitals > * + * {
+  border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
+  border-style: dashed;
+  border-top-width: 1px;
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+/* The hero's fields card is image | text | stats + ability: the player's
+   fields, then a right column with the chassis stats in its top-right corner
+   and the chassis ability under them. Queries `.su-photo-beside` (the card
+   body's container), so the column goes beside the fields only where the card
+   has room; below that it follows them. */
+.su-sheet-mech-hero-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  height: 100%;
+}
+
+.su-sheet-mech-hero-split > :first-child {
+  flex: 1 1 auto;
+}
+
+.su-sheet-mech-hero-chassis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+@container (width >= 40rem) {
+  .su-sheet-mech-hero-split {
+    flex-direction: row;
+  }
+
+  .su-sheet-mech-hero-split > :first-child {
+    flex: 2 1 0%;
+    min-width: 0;
+  }
+
+  /* The chassis column takes the larger share (owner's call, 2026-10-14:
+     more room for the stats and ability), never under 19rem. */
+  .su-sheet-mech-hero-chassis {
+    flex: 3 1 0%;
+    min-width: 19rem;
+  }
+}
+
+/* Appearance takes the identity card's remaining height (`Field` takes a
+   className, no style). */
+.su-sheet-mech-fill {
+  flex: 1 1 0%;
+}
+
+/* Assigned Units: stacked, side by side once the sheet is wide enough. */
+.su-sheet-mech-linked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+@container (width >= 48rem) {
+  .su-sheet-mech-linked {
+    flex-direction: row;
+  }
+}
+
+/* The repair confirm's width cap (`ModalShell`'s `maxWidth` is a class). */
+.su-sheet-mech-repair-modal {
+  max-width: 24rem;
+}
+
+/* Systems and Modules: stacked, side by side once the sheet is wide enough
+   (each a list of Tokens, `.su-entity-token-list`). */
+.su-sheet-mech-loadout {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@container (width >= 48rem) {
+  .su-sheet-mech-loadout {
+    align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

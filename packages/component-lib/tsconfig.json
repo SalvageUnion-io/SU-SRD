@@ -1,13 +1,14 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.dom.json",
   "compilerOptions": {
-    "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-
-    /* Bundler mode */
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "jsx": "react-jsx"
+    // A referenced library: declarations only, into the gitignored .tsbuild/
+    // (see the root tsconfig.json).
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": "../../.tsbuild/component-lib",
+    "tsBuildInfoFile": "../../.tsbuild/component-lib/tsconfig.tsbuildinfo"
   },
-  "include": ["src", "test", "vite.config.ts", "catalog.tsx", "catalogConvexClient.ts"]
+  "include": ["src"],
+  "references": [{ "path": "../salvageunion-reference" }]
 }

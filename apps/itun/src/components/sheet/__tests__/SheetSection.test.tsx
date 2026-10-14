@@ -1,8 +1,8 @@
 /**
- * Phase 1B — the unified edit-language control chrome (clean-edit.html).
+ * The unified edit-language control chrome (clean-edit.html).
  *
- *   - HButton: the container-header control button (`.hbtn`) with edit / done /
- *     add variants.
+ *   - HButton: the container-header control button (`.hbtn`), a deep-tone
+ *     outline.
  *   - the section header row: a solid `Slab` (stamp label + leader rule +
  *     trailing controls) — the shape the sheets' field/collection sections use.
  *   - SectionManageButton: rebuilt on HButton — icon + label,
@@ -12,31 +12,18 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Slab } from 'component-lib'
-import { HButton, SectionManageButton } from '../SheetSection'
+import { SectionManageButton } from '../SheetSection'
 
 describe('HButton', () => {
   test('renders as a button with the design chrome and keeps the tap floor', () => {
-    render(<HButton>Edit</HButton>)
-    const btn = screen.getByRole('button', { name: 'Edit' })
+    render(<SectionManageButton label="Abilities" onClick={() => {}} />)
+    const btn = screen.getByRole('button', { name: 'Manage abilities' })
     expect(btn.getAttribute('type')).toBe('button')
-    // 44px coarse-pointer floor collapsing to the 32px design height at sm.
-    expect(btn.className).toContain('min-h-11')
-    expect(btn.className).toContain('sm:min-h-8')
-    expect(btn.className).toContain('print:hidden')
-  })
-
-  test('done variant fills with the sheet deep tone', () => {
-    render(<HButton variant="done">Done</HButton>)
-    const btn = screen.getByRole('button', { name: 'Done' })
-    expect(btn.className).toContain('bg-[color:var(--tone-deep,var(--color-rust))]')
-    expect(btn.className).toContain('text-paper')
-  })
-
-  test('add variant is a deep-tone outline', () => {
-    render(<HButton variant="add">Add</HButton>)
-    const btn = screen.getByRole('button', { name: 'Add' })
-    expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-rust))]')
-    expect(btn.className).toContain('bg-paper')
+    // The 44px coarse-pointer floor collapsing to the 32px design height at
+    // sm, the deep-tone outline filling on hover, and the print hide, are
+    // `.su-sheet-hbtn` (styles/sheet/chrome.css).
+    expect(btn.className).toContain('su-sheet-hbtn')
+    expect(btn.style.borderWidth).toBe('2px')
   })
 })
 
@@ -61,7 +48,7 @@ describe('SectionManageButton', () => {
     // The button opens the picker, which both adds AND removes — "Add" undersold
     // it once the per-card ✕ was retired in favour of that one surface.
     expect(btn.textContent).toContain('Manage abilities')
-    expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-rust))]')
+    expect(btn.className).toContain('su-sheet-hbtn')
   })
 
   test('fires onClick when clicked', () => {

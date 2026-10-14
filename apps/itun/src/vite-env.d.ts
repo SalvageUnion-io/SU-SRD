@@ -19,17 +19,20 @@ interface ImportMetaEnv {
    * Unset in local dev — the release tag is simply omitted.
    */
   readonly VITE_COMMIT_REF?: string
+  /**
+   * A Worker Preview's SRD origin (`https://pr-<n>-su-srd.<account>.workers.dev`),
+   * set by `deploy-preview.yml`, so the Preview links its own SRD. Unset →
+   * production's. See `src/lib/srdOrigin.ts`.
+   */
+  readonly VITE_SRD_ORIGIN?: string
+  /**
+   * A Worker Preview's own origin, which the shell's default link-preview
+   * tags are rewritten onto at build time (`vite.config.ts`). Unset →
+   * production's.
+   */
+  readonly VITE_ITUN_ORIGIN?: string
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
-
-/**
- * ITUN's changelog, read from `main`'s history when `vite.config.ts` loads and
- * inlined by `define` (ADR-041). Only `routes/changelog.tsx` reads it, so it
- * ships in that route's chunk.
- */
-declare const __ITUN_CHANGELOG__: ReturnType<
-  typeof import('component-lib/changelog/git').readChangelog
->

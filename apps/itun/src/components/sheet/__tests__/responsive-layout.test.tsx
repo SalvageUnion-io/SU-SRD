@@ -1,7 +1,7 @@
 /**
- * Responsive layout tests — Phase 4.
+ * Responsive layout tests.
  *
- * These tests assert that layout-bearing Tailwind classes are present on the
+ * These tests assert that layout-bearing classes are present on the
  * correct container elements. happy-dom does not compute layout, so we verify
  * className strings directly — this is the standard pattern for layout-only
  * changes in this codebase (see mobile-responsive.test.tsx).
@@ -82,13 +82,13 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
         softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
-    expect(container.querySelector('.sheet--mech')).toBeTruthy()
+    expect(container.querySelector('.su-sheet--mech')).toBeTruthy()
     expect(container.querySelector('[data-variant="mech"]')).toBeTruthy()
   })
 
   test('Sheet crawler body is a single-column region flow with Storage as a full-width bottom band', () => {
     // Workshop-Manual crawler sheet: a single-column region stack (Identity →
-    // Bays → Weapons → Linked Units → Storage Bay), NOT the old 2-col macro
+    // Bays → Weapons → Assigned Units → Storage Bay), NOT the old 2-col macro
     // grid that stood Storage up as a full-height right column. The old
     // `54fr`-split grid is gone; the crawler section flows in one column and
     // the Storage Bay renders as its own section at the bottom.
@@ -105,7 +105,7 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     // The crawler body's region flow is a single column.
     const flow = container.querySelector('section[aria-label$="crawler sheet"] > div')
     expect(flow).toBeTruthy()
-    expect((flow as HTMLElement).className).toContain('flex-col')
+    expect((flow as HTMLElement).style.flexDirection).toBe('column')
     // The storage band is present. Asserted on its CONTENT rather than the
     // words "Storage Bay": storage now renders inside the Storage Bay's own bay
     // card when that bay is installed, and as a standalone band when it is not
@@ -119,7 +119,7 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
 // ---------------------------------------------------------------------------
 
 describe('Sheet responsive layout — single entity', () => {
-  test('mech-only Sheet renders the mech-toned shell with a sticky header', () => {
+  test('mech-only Sheet renders the mech-toned shell with a sticky bar', () => {
     const { container } = render(
       <Sheet
         kind="mech"
@@ -128,13 +128,13 @@ describe('Sheet responsive layout — single entity', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(container.querySelector('.sheet--mech')).toBeTruthy()
-    const header = container.querySelector('header')
-    expect(header).toBeTruthy()
-    expect((header as HTMLElement).className).toContain('sticky')
+    expect(container.querySelector('.su-sheet--mech')).toBeTruthy()
+    // The bar rides a sticky anchor with no height: nothing above the band at rest.
+    const bar = container.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
+    expect(bar?.parentElement?.style.position).toBe('sticky')
   })
 
-  test('pilot-only Sheet renders the pilot-toned shell with a sticky header', () => {
+  test('pilot-only Sheet renders the pilot-toned shell with a sticky bar', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -143,10 +143,10 @@ describe('Sheet responsive layout — single entity', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
-    const header = container.querySelector('header')
-    expect(header).toBeTruthy()
-    expect((header as HTMLElement).className).toContain('sticky')
+    expect(container.querySelector('.su-sheet--pilot')).toBeTruthy()
+    // The bar rides a sticky anchor with no height: nothing above the band at rest.
+    const bar = container.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
+    expect(bar?.parentElement?.style.position).toBe('sticky')
   })
 })
 
@@ -159,7 +159,7 @@ describe('CrawlerSheet responsive layout — body section', () => {
     const { container } = render(<CrawlerSheet crawler={fakeCrawler} />)
     const section = container.querySelector('section')
     expect(section).toBeTruthy()
-    expect((section as HTMLElement).className).toContain('flex-col')
+    expect((section as HTMLElement).style.flexDirection).toBe('column')
   })
 })
 

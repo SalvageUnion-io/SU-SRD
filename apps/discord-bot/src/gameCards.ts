@@ -1,6 +1,16 @@
-import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { findEntityBySlug, getAssetUrl, getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
+import { PRODUCT } from 'component-lib/product'
+import type { ItemCondition, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
+  CONDITION_LABELS,
+  discordAccent,
+  findEntityBySlug,
+  getAssetUrl,
+  getEntitySlug,
+  STAT_LABELS,
+  srdEntityUrl,
+} from 'salvageunion-reference'
+import {
+  crawlerMaxSP,
   mechMaxHeat,
   mechMaxSP,
   pilotMaxAP,
@@ -8,24 +18,22 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import type { CardField, ContainerData } from './container.js'
-import { entityCard } from './container.js'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from './format.js'
+import type { BodyKey } from './bodyRead'
+import { num, str, strArray } from './bodyRead'
+import type { CardField, ContainerData } from './container'
+import { entityCard } from './container'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
 import type {
-  ChannelResult,
-  CrewResult,
   DenialReason,
   EntityBody,
   GameSummary,
   MeResult,
-  OwnedEntity,
   SheetResult,
   SheetTable,
-  ShelfResult,
-} from './itun/types.js'
+} from './itun/types'
 
 /**
- * Card builders for the ITUN Game commands (ADR-030 Phase 6).
+ * Card builders for the ITUN commands (ADR-030).
  *
  * Pure `data → ContainerData` through `entityCard`, the same render layer
  * `lookupCard.ts` uses: every one of these is unit-testable without a Discord
@@ -36,21 +44,18 @@ import type {
  * The bot derives max HP, max SP and max Heat itself: it depends on
  * `salvageunion-reference` and preloads the whole dataset at startup, so it
  * runs the package's rules here (ADR-006: rules math lives in the package,
- * never re-implemented at a call site). Convex can derive them too now —
- * `crew.vitals` runs the same rules over the same records for the Dashboard's
- * Crew tab (`model/referenceData.ts` loads the data) — and moving the bot onto
- * those values is issue 1068.
+ * never re-implemented at a call site). Convex's `crew.vitals` runs the same
+ * rules over the same records for the Dashboard's Crew tab
+ * (`model/referenceData.ts` loads the data); the bot computes its own and does
+ * not read those values.
  *
  * Every read off a body is defensive. The body is `v.any()` on the server by
  * design, so a missing or wrong-typed field must render as "—" rather than
  * throw inside a slash command.
  */
 
-/** Neutral SU rust. Informational cards are always this. */
-const NEUTRAL = NEUTRAL_ACCENT
-
 /**
- * The one sanctioned deviation from rust (see the plan, §7 rule 4).
+ * The one sanctioned deviation from rust.
  *
  * Reused rather than invented: `theme.css` states that damaged/destroyed state
  * and the bot's roll outcomes share ONE warm ramp, and `cascade` is its
@@ -60,54 +65,33 @@ const NEUTRAL = NEUTRAL_ACCENT
 const CRITICAL = ROLL_COLORS.cascade
 
 /**
- * The canonical In The Union Now web origin. Cards link back here; it is only
- * ever used to build a URL, never called.
+ * Where In The Union Now is served, base included: salvageunion.io/build
+ * (ADR-048). Cards link back here by appending a route; it is only ever used
+ * to build a URL, never called. Old intheunionnow.com links 301 here.
  */
-export const ITUN_ORIGIN = 'https://intheunionnow.com'
+export const ITUN_ORIGIN = 'https://salvageunion.io/build'
 
-const FOOTER = 'In The Union Now'
+const FOOTER = PRODUCT.name
+
+/** The stats' short names, from the reference vocabulary the sheets print. */
+const HP = STAT_LABELS.hitPoints.short
+const SP = STAT_LABELS.structurePoints.short
+const HEAT = STAT_LABELS.heatCapacity.short
+const TL = 'TL'
 
 /**
- * Read a number off an opaque body, trying each name in order.
- *
- * Several names rather than one, because the field names below are a **cross-
- * workspace contract that nothing checks at build time**: the Zod schemas in
- * `apps/itun/src/lib/schemas/` are the source of truth, Convex stores the body
- * as `v.any()`, and the bot cannot import those schemas. A misspelling here
- * therefore compiles, passes any test written from the same misspelling, and
- * renders a confidently wrong number.
- *
- * That is not hypothetical. `crew.vitals` shipped reading `currentHp` while the
- * schema defines `currentHP`, so **every vital on the Mediator's crew strip was
- * null** and rendered as an em-dash indistinguishable from an undamaged crew
- * (found and fixed in #656). This code was written from that same wrong
- * spelling.
- *
- * So these reads try the canonical name first and the historical variant
- * second. Being
- * tolerant costs one array lookup; being wrong costs a table a session.
+ * How a vital renders: `bars` puts a glyph bar after the number, `text` is the
+ * number alone. Text is the form a screen reader reads cleanly — ten block
+ * glyphs are ten announcements.
  */
-function num(body: EntityBody, ...keys: string[]): number | null {
-  for (const key of keys) {
-    const value = body[key]
-    if (typeof value === 'number' && Number.isFinite(value)) return value
-  }
-  return null
-}
-
-/** Read a string off an opaque body, or null when absent/blank/not a string. */
-function str(body: EntityBody, key: string): string | null {
-  const value = body[key]
-  return typeof value === 'string' && value.trim().length > 0 ? value : null
-}
-
-function strArray(body: EntityBody, key: string): string[] {
-  const value = body[key]
-  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
-}
+export type GaugeStyle = 'bars' | 'text'
 
 /**
- * A proportional gauge, e.g. `██████░░░░ 6/10`.
+ * A vital as its number, then a proportional bar, e.g. `6/10 ██████░░░░`.
+ *
+ * The number comes first because it is the answer ("how bad is it") and the bar
+ * only a glance; a screen reader reaches it before the glyphs, and the `text`
+ * style drops the glyphs altogether.
  *
  * Width tracks the real maximum up to ten segments so small SU values (AP 5,
  * Heat 6) read as exact ticks rather than as a scaled approximation, and only
@@ -119,15 +103,22 @@ function strArray(body: EntityBody, key: string): string[] {
  * none is used, because a fence would cost links for an alignment nothing here
  * depends on.
  */
-export function gauge(current: number | null, max: number | null, filledGlyph = '█'): string {
+export function gauge(
+  current: number | null,
+  max: number | null,
+  filledGlyph = '█',
+  style: GaugeStyle = 'bars'
+): string {
   if (max === null || max <= 0) {
     return current === null ? '—' : String(current)
   }
+  const value = `${current ?? 0}/${max}`
+  if (style === 'text') return value
   const safeCurrent = Math.max(0, Math.min(current ?? 0, max))
   const width = Math.min(max, 10)
   const filled = Math.round((safeCurrent / max) * width)
   const bar = filledGlyph.repeat(filled) + '░'.repeat(Math.max(0, width - filled))
-  return `${bar} ${current ?? 0}/${max}`
+  return `${value} ${bar}`
 }
 
 /** The narrow view of a pilot body the derivation functions need. */
@@ -153,13 +144,12 @@ function pilotStats(body: EntityBody): {
   const maxHp = pilotMaxHP(input)
   const maxAp = pilotMaxAP(input)
   return {
-    // Canonical spellings come from apps/itun/src/lib/schemas/{pilot,mech}.ts.
     // The absent-means-FULL rule is `resolvePool` in the reference package.
     // Defaulting to 0 instead would render a fresh, undamaged crew as wiped
     // out, which is precisely backwards on the one surface built to show it.
-    hp: resolvePool(num(body, 'currentHP', 'currentHp') ?? undefined, maxHp),
+    hp: resolvePool(num(body, 'currentHP') ?? undefined, maxHp),
     maxHp,
-    ap: resolvePool(num(body, 'currentAP', 'currentAp') ?? undefined, maxAp),
+    ap: resolvePool(num(body, 'currentAP') ?? undefined, maxAp),
     maxAp,
   }
 }
@@ -183,7 +173,7 @@ function mechStats(body: EntityBody): {
   const maxSp = mechMaxSP(input)
   return {
     // Absent SP means full, as above.
-    sp: resolvePool(num(body, 'currentSP', 'currentSp') ?? undefined, maxSp),
+    sp: resolvePool(num(body, 'currentSP') ?? undefined, maxSp),
     maxSp,
     // Heat is the exception and reads the other way: absent means COLD, which
     // is 0. A mech starts at no heat and gains it, where SP starts full and is
@@ -195,25 +185,16 @@ function mechStats(body: EntityBody): {
   }
 }
 
-/** ADR-030: an entity with no owner is a STATE, never a blank. */
-const UNCLAIMED = 'Unclaimed'
-
-export function ownerLabel(entity: OwnedEntity): string {
-  if (entity.ownerId === null) return UNCLAIMED
-  return entity.ownerName ?? 'Crewmate'
-}
-
 /**
  * Web URLs. The glance lives in Discord; the surface lives in the app.
  *
  * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
  * A link that 404s is worse than no link: it reads as the app having lost the
- * thing, rather than as the bot having guessed. (`/games/$gameId` is not a
- * page of its own: it picks that Game on the ITUN hub at `/` and lands
- * there, which a bare `/` link could not do.)
+ * thing, rather than as the bot having guessed. `/games/$gameId` is the
+ * Game's own page in ITUN.
  */
-export function gameUrl(webUrl: string, gameId: string): string {
-  return `${webUrl.replace(/\/+$/, '')}/games/${encodeURIComponent(gameId)}`
+export function gameUrl(gameId: string): string {
+  return `${ITUN_ORIGIN}/games/${encodeURIComponent(gameId)}`
 }
 
 /** `pilots` → `pilot`. The web routes speak singular; the tables speak plural. */
@@ -234,14 +215,13 @@ function kindOf(table: SheetTable): string {
  * takes and what this payload already carries.
  */
 export function publicSheetUrl(
-  webUrl: string,
   table: SheetTable,
   appId: string | null,
   publicRead: boolean | undefined
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${webUrl.replace(/\/+$/, '')}/p/${kindOf(table)}/${encodeURIComponent(appId)}`
+  return `${ITUN_ORIGIN}/p/${kindOf(table)}/${encodeURIComponent(appId)}`
 }
 
 /**
@@ -254,18 +234,9 @@ export function publicSheetUrl(
  * client id back in the address bar. An unclaimed pre-gen has a row id too, so
  * it links like everything else.
  */
-export function sheetUrl(
-  webUrl: string,
-  table: SheetTable,
-  rowId: string | null | undefined
-): string | null {
+export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
   if (typeof rowId !== 'string' || rowId.length === 0) return null
-  return `${webUrl.replace(/\/+$/, '')}/sheet/${kindOf(table)}/${encodeURIComponent(rowId)}`
-}
-
-/** `name` as a markdown link when there is somewhere to go, else bare. */
-function maybeLink(name: string, url: string | null): string {
-  return url === null ? name : `[${name}](${url})`
+  return `${ITUN_ORIGIN}/sheet/${kindOf(table)}/${encodeURIComponent(rowId)}`
 }
 
 /**
@@ -276,263 +247,94 @@ function maybeLink(name: string, url: string | null): string {
  * so naming the reason leaks nothing to the channel while still explaining
  * itself. A command that silently does nothing is the worst of the options.
  */
-export function denialMessage(
-  reason: DenialReason,
-  webUrl: string,
-  serverMessage?: string
-): string {
-  // For `forbidden` and `not-found` the SERVER knows the specifics and this
-  // module does not: "that channel is already bound to another game" is a very
-  // different thing to be told than "binding is the Organizer's job", and a
-  // generic line here would actively mislead. The reasons below are the ones
-  // where the bot adds something the server cannot — a sign-in link, the name
-  // of the command that fixes it — so those keep their own wording.
-  if ((reason === 'forbidden' || reason === 'not-found') && serverMessage) {
-    return serverMessage
-  }
+export function denialMessage(reason: DenialReason, serverMessage?: string): string {
+  // For `not-found` the SERVER knows the specifics and this module does not,
+  // so its message wins when it sends one. `unlinked` keeps its own wording:
+  // the bot adds a sign-in link the server cannot.
+  if (reason === 'not-found' && serverMessage) return serverMessage
 
   switch (reason) {
     case 'unlinked':
       return [
-        '**You don’t have an In The Union Now account yet.**',
+        `**You don’t have an ${PRODUCT.name} account yet.**`,
         '',
         'Sign in with this same Discord account and the bot will recognise you here',
         'automatically — there’s nothing to copy across and no code to enter.',
         '',
-        `${webUrl.replace(/\/+$/, '')}/account`,
+        `${ITUN_ORIGIN}/account`,
       ].join('\n')
-    case 'unbound':
-      return [
-        '**This channel isn’t bound to a game.**',
-        '',
-        'An Organizer can bind it with `/su game bind`.',
-      ].join('\n')
-    case 'not-a-member':
-      return 'You’re not a member of the game bound to this channel.'
-    case 'forbidden':
-      return 'You don’t have permission to do that. Binding a channel is the Organizer’s job.'
     case 'not-found':
-      return 'That could not be found in this channel’s game.'
+      return 'That sheet could not be found, or it isn’t yours to read.'
   }
 }
 
 function roleLabel(game: { mediator: boolean; organizer: boolean }): string {
   const roles = [game.mediator ? 'Mediator' : 'Player']
-  if (game.organizer) roles.push('Organizer')
+  if (game.organizer) roles.push('Organiser')
   return roles.join(' · ')
 }
 
-function gameLines(games: GameSummary[], webUrl: string, currentGameId?: string): string {
-  if (games.length === 0) return '_No games yet._'
+function gameLines(games: GameSummary[]): string {
+  if (games.length === 0) return '_No Games yet._'
   return games
-    .map((game) => {
-      const here = game.gameId === currentGameId ? '  ← this channel' : ''
-      return `[${game.name}](${gameUrl(webUrl, game.gameId)}) — ${roleLabel(game)}${here}`
-    })
+    .map((game) => `[${game.name}](${gameUrl(game.gameId)}) — ${roleLabel(game)}`)
     .join('\n')
 }
 
 /** `/su me` — who the bot thinks you are, and what you are part of. */
-export function meCard(me: MeResult, webUrl: string, currentGameId?: string): ContainerData {
+export function meCard(me: MeResult): ContainerData {
   return entityCard({
-    title: `${me.user.displayName} — In The Union Now`,
-    url: `${webUrl.replace(/\/+$/, '')}/account`,
-    accent: NEUTRAL,
+    title: `${me.user.displayName} — ${PRODUCT.name}`,
+    url: `${ITUN_ORIGIN}/account`,
+    accent: NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
       {
-        name: `Your games (${me.games.length})`,
-        value: gameLines(me.games, webUrl, currentGameId),
+        name: `Your Games (${me.games.length})`,
+        value: gameLines(me.games),
       },
     ],
     footer: FOOTER,
   })
 }
 
-/** `/su games` — every Game you belong to. */
-export function gamesCard(games: GameSummary[], webUrl: string): ContainerData {
+/** `/su games` — every Game you belong to, linked to Shelves: ITUN has no `/games` page. */
+export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
-    title: `Your games (${games.length})`,
-    url: `${webUrl.replace(/\/+$/, '')}/games`,
-    accent: NEUTRAL,
-    description: gameLines(games, webUrl),
+    title: `Your Games (${games.length})`,
+    url: `${ITUN_ORIGIN}/`,
+    accent: NEUTRAL_ACCENT,
+    description: gameLines(games),
     fields: [],
     footer: FOOTER,
   })
 }
 
-/** `/su my-stuff` — what you own that is in no game (ITUN's My Stuff). */
-export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
-  const name = (body: EntityBody, keys: string[]): string => {
-    for (const key of keys) {
-      const value = str(body, key)
-      if (value !== null) return value
-    }
-    return 'Unnamed'
+/** The first non-blank string among `keys`, else 'Unnamed'. */
+export function bodyName(body: EntityBody, keys: BodyKey[]): string {
+  for (const key of keys) {
+    const value = str(body, key)
+    if (value !== null) return value
   }
-
-  const fields: CardField[] = []
-  if (shelf.pilots.length > 0) {
-    fields.push({
-      name: `Pilots (${shelf.pilots.length})`,
-      value: shelf.pilots
-        .map((p) => maybeLink(name(p.body, ['callsign', 'name']), sheetUrl(webUrl, 'pilots', p.id)))
-        .join('\n'),
-      inline: true,
-    })
-  }
-  if (shelf.mechs.length > 0) {
-    fields.push({
-      name: `Mechs (${shelf.mechs.length})`,
-      value: shelf.mechs
-        .map((m) => maybeLink(name(m.body, ['name']), sheetUrl(webUrl, 'mechs', m.id)))
-        .join('\n'),
-      inline: true,
-    })
-  }
-
-  return entityCard({
-    title: 'My Stuff',
-    url: `${webUrl.replace(/\/+$/, '')}/`,
-    accent: NEUTRAL,
-    description:
-      fields.length === 0
-        ? 'Nothing in My Stuff — everything you own is in a game.'
-        : 'Pilots and mechs you own that are in no game.',
-    fields,
-    footer: FOOTER,
-  })
+  return 'Unnamed'
 }
 
-/** One crewmate's block on the crew board: their pilots, then their mechs. */
-function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: string): string {
-  const lines: string[] = []
-  for (const pilot of pilots) {
-    const stats = pilotStats(pilot.body)
-    const dead = stats.maxHp <= 0 || stats.hp === 0
-    const pilotName = maybeLink(
-      str(pilot.body, 'callsign') ?? 'Pilot',
-      sheetUrl(webUrl, 'pilots', pilot.id)
-    )
-    lines.push(`**${pilotName}**${dead ? ' ✖' : ''}`)
-    lines.push(`HP ${gauge(stats.hp, stats.maxHp)}`)
-    lines.push(`AP ${gauge(stats.ap, stats.maxAp)}`)
-  }
-  for (const mech of mechs) {
-    const stats = mechStats(mech.body)
-    const destroyed = stats.sp === 0
-    const overheated = stats.heat !== null && stats.maxHeat > 0 && stats.heat >= stats.maxHeat
-    const mechName = maybeLink(str(mech.body, 'name') ?? 'Mech', sheetUrl(webUrl, 'mechs', mech.id))
-    lines.push(`${mechName}${destroyed ? ' ✖' : ''}`)
-    lines.push(`SP ${gauge(stats.sp, stats.maxSp)}`)
-    lines.push(`HT ${gauge(stats.heat, stats.maxHeat, '▲')}${overheated ? ' ⚠' : ''}`)
-  }
-  return lines.length > 0 ? lines.join('\n') : '_Nothing yet._'
+/** ADR-030: an entity with no owner is a STATE, never a blank. */
+const UNCLAIMED = 'Unclaimed'
+
+/** A pilot's critical state: max HP at or below 0 is dead, 0 HP a Critical Injury. */
+function pilotState(stats: { hp: number | null; maxHp: number }): 'dead' | 'criticalInjury' | null {
+  if (stats.maxHp <= 0) return 'dead'
+  return stats.hp === 0 ? 'criticalInjury' : null
+}
+
+/** A mech on 0 SP is taking Critical Damage. */
+function mechCritical(stats: { sp: number | null }): boolean {
+  return stats.sp === 0
 }
 
 /**
- * `/su crew` — the reason to build any of this.
- *
- * Grouped by owner, one inline field each, so each crewmate reads as a unit
- * on the rail. The unclaimed bucket is rendered last and labelled, never
- * omitted.
- */
-export function crewCard(crew: CrewResult, webUrl: string): ContainerData {
-  type Bucket = { label: string; pilots: OwnedEntity[]; mechs: OwnedEntity[] }
-
-  // Owners in a map, unclaimed in its own variable — rather than one map with a
-  // sentinel key. A sentinel has to both sort last and never collide with a
-  // user id, and those are two assumptions somebody has to keep true; holding
-  // it separately makes "unclaimed renders last, and always renders"
-  // structural instead of conventional.
-  const owned = new Map<string, Bucket>()
-  let unclaimed: Bucket | null = null
-
-  const bucketFor = (entity: OwnedEntity): Bucket => {
-    if (entity.ownerId === null) {
-      unclaimed ??= { label: UNCLAIMED, pilots: [], mechs: [] }
-      return unclaimed
-    }
-    const existing = owned.get(entity.ownerId)
-    if (existing !== undefined) return existing
-    const created: Bucket = {
-      label: ownerLabel(entity),
-      pilots: [],
-      mechs: [],
-    }
-    owned.set(entity.ownerId, created)
-    return created
-  }
-
-  for (const pilot of crew.pilots) bucketFor(pilot).pilots.push(pilot)
-  for (const mech of crew.mechs) bucketFor(mech).mechs.push(mech)
-
-  const ordered = [...owned.values()].sort((a, b) => a.label.localeCompare(b.label))
-  // Appended, so it is last without depending on how anything sorts.
-  if (unclaimed !== null) ordered.push(unclaimed)
-
-  const fields: CardField[] = ordered.map((bucket) => ({
-    name: bucket.label,
-    value: crewFieldValue(bucket.pilots, bucket.mechs, webUrl),
-    inline: true,
-  }))
-
-  const anyCritical = crew.pilots.some((p) => {
-    const stats = pilotStats(p.body)
-    return stats.maxHp <= 0 || stats.hp === 0
-  })
-  const anyWrecked = crew.mechs.some((m) => mechStats(m.body).sp === 0)
-
-  const aboard = owned.size
-
-  return entityCard({
-    title: `${crew.game.name} — Crew`,
-    url: gameUrl(webUrl, crew.game.gameId),
-    accent: anyCritical || anyWrecked ? CRITICAL : NEUTRAL,
-    description: fields.length === 0 ? 'Nothing in play yet.' : `${aboard} aboard`,
-    fields,
-    footer: FOOTER,
-  })
-}
-
-/** `/su game info` — what this channel's table is. */
-export function channelCard(channel: ChannelResult, webUrl: string): ContainerData {
-  const crew = channel.members
-    .map((m) => {
-      const roles = [m.mediator ? 'Mediator' : 'Player']
-      if (m.organizer) roles.push('Organizer')
-      return `${m.displayName} — ${roles.join(' · ')}`
-    })
-    .join('\n')
-
-  const fields: CardField[] = [
-    { name: `Crew (${channel.members.length})`, value: crew.length > 0 ? crew : '_Nobody yet._' },
-  ]
-
-  if (channel.downtime.running) {
-    fields.push({
-      name: 'Downtime',
-      value: [
-        `Step ${(channel.downtime.stepIndex ?? 0) + 1}`,
-        `${channel.downtime.completed} of ${channel.members.length} done`,
-        channel.downtime.upkeepSpent ? 'upkeep spent' : 'upkeep outstanding',
-      ].join(' · '),
-    })
-  }
-
-  return entityCard({
-    title: channel.game.name,
-    url: gameUrl(webUrl, channel.game.gameId),
-    accent: NEUTRAL,
-    description: 'This channel is bound to this game.',
-    fields,
-    footer: FOOTER,
-  })
-}
-
-/**
- * One accent per sheet, mirroring `.sheet--{pilot,mech,crawler}` in
- * `component-lib`'s `theme.css` (`--color-sheet-*`).
+ * One accent per sheet: its unit's tone, as a reference card's (`discordAccent`).
  *
  * This is a deliberate amendment to "colour carries one meaning only, and that
  * meaning is rust". The strip down a container's left edge is the one thing
@@ -542,9 +344,9 @@ export function channelCard(channel: ChannelResult, webUrl: string): ContainerDa
  * wrecked mech before it is a mech.
  */
 const SHEET_ACCENT = {
-  pilots: 0xef894f,
-  mechs: 0x7a978a,
-  crawlers: 0xce5898,
+  pilots: discordAccent('pilot'),
+  mechs: discordAccent('mech'),
+  crawlers: discordAccent('crawler'),
 } as const
 
 /** What a sheet renderer produces, before the shared shell is wrapped round it. */
@@ -596,8 +398,6 @@ function refArtwork(schemaName: SURefEnumSchemaName, slug: string | null): strin
 }
 
 /** Item condition as stored per-slug on a mech body. */
-type ItemCondition = 'intact' | 'damaged' | 'destroyed'
-
 function conditionOf(body: EntityBody, key: string, slug: string): ItemCondition {
   const map = body[key]
   if (map === null || typeof map !== 'object') return 'intact'
@@ -625,8 +425,9 @@ function collectionLines(
       const link = refLink(schemaName, slug)
       if (body === undefined || conditionKey === undefined) return link
       const condition = conditionOf(body, conditionKey, slug)
-      if (condition === 'damaged') return `${link} · damaged`
-      if (condition === 'destroyed') return `~~${link}~~ · destroyed`
+      const word = CONDITION_LABELS[condition]
+      if (condition === 'damaged') return `${link} · ${word}`
+      if (condition === 'destroyed') return `~~${link}~~ · ${word}`
       return link
     })
     .join('\n')
@@ -673,7 +474,7 @@ function pilotSheet(body: EntityBody): RenderedSheet {
   const stats = pilotStats(body)
   const classRef = str(body, 'classRef')
   const fields: CardField[] = [
-    { name: 'HP', value: gauge(stats.hp, stats.maxHp), inline: true },
+    { name: HP, value: gauge(stats.hp, stats.maxHp), inline: true },
     { name: 'AP', value: gauge(stats.ap, stats.maxAp), inline: true },
     { name: 'Class', value: refName('classes', classRef), inline: true },
   ]
@@ -702,7 +503,7 @@ function pilotSheet(body: EntityBody): RenderedSheet {
     fields,
     thumbnail: refArtwork('classes', classRef),
     // Max HP of zero is the app's own "killed in action" condition.
-    critical: stats.maxHp <= 0 || stats.hp === 0,
+    critical: pilotState(stats) !== null,
   }
 }
 
@@ -711,8 +512,8 @@ function mechSheet(body: EntityBody): RenderedSheet {
   const stats = mechStats(body)
   const chassisRef = str(body, 'chassisRef')
   const fields: CardField[] = [
-    { name: 'SP', value: gauge(stats.sp, stats.maxSp), inline: true },
-    { name: 'Heat', value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
+    { name: SP, value: gauge(stats.sp, stats.maxSp), inline: true },
+    { name: HEAT, value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
     { name: 'Chassis', value: refName('chassis', chassisRef), inline: true },
   ]
 
@@ -731,7 +532,7 @@ function mechSheet(body: EntityBody): RenderedSheet {
   const status = chipRun([
     body.shutdown === true ? 'Shutdown' : '',
     body.vulnerable === true ? 'Vulnerable' : '',
-    body.destroyed === true ? 'Destroyed' : '',
+    body.destroyed === true ? CONDITION_LABELS.destroyed : '',
     ...strArray(body, 'conditions'),
   ])
   if (status !== null) fields.push({ name: 'Status', value: status, inline: true })
@@ -742,7 +543,7 @@ function mechSheet(body: EntityBody): RenderedSheet {
     subtitle: `*${refName('chassis', chassisRef)}*${quirk === null ? '' : `\n> ${quirk}`}`,
     fields,
     thumbnail: refArtwork('chassis', chassisRef),
-    critical: body.destroyed === true || stats.sp === 0,
+    critical: body.destroyed === true || mechCritical(stats),
   }
 }
 
@@ -753,18 +554,27 @@ function mechSheet(body: EntityBody): RenderedSheet {
  * them structurally instead of through `strArray`.
  */
 function crawlerSheet(body: EntityBody): RenderedSheet {
-  const typeRef = str(body, 'typeRef') ?? str(body, 'type')
+  const typeRef = str(body, 'type')
   const techLevel = str(body, 'techLevel')
   const fields: CardField[] = []
 
-  const sp = num(body, 'currentSP', 'currentSp')
-  const maxSp = num(body, 'maxSpOverride')
+  // The max is derived, as a mech's is: the tech level's SP, the type's bonus,
+  // the modifier, or the override when one is set. An unresolvable tech level
+  // derives 0, which has no gauge to draw, so the current value stands alone.
+  const maxSp = crawlerMaxSP({
+    techLevel: techLevel ?? '',
+    type: typeRef ?? undefined,
+    maxSpModifier: num(body, 'maxSpModifier') ?? undefined,
+    maxSpOverride: num(body, 'maxSpOverride') ?? undefined,
+  })
+  const sp =
+    maxSp > 0 ? resolvePool(num(body, 'currentSP') ?? undefined, maxSp) : num(body, 'currentSP')
+  fields.push({ name: TL, value: techLevel ?? '—', inline: true })
   fields.push({
-    name: 'SP',
-    value: maxSp === null ? (sp === null ? '—' : String(sp)) : gauge(sp, maxSp),
+    name: SP,
+    value: maxSp > 0 ? gauge(sp, maxSp) : sp === null ? '—' : String(sp),
     inline: true,
   })
-  fields.push({ name: 'Tech Level', value: techLevel ?? '—', inline: true })
 
   const bayRefs = Array.isArray(body.crawlerBays)
     ? (body.crawlerBays as unknown[]).flatMap((bay) => {
@@ -790,7 +600,8 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   if (pool !== null && typeof pool === 'object') {
     const entries = Object.entries(pool as Record<string, unknown>)
       .filter(([, v]) => typeof v === 'number' && v > 0)
-      .map(([tier, v]) => `${tier.toUpperCase()} ×${String(v)}`)
+      // Label first, as every chip reads: `**T1** 3`.
+      .map(([tier, v]) => `**${tier.replace(/^tl/i, 'T')}** ${String(v)}`)
     const run = chipRun(entries)
     if (run !== null) fields.push({ name: 'Scrap Pool', value: run })
   }
@@ -822,7 +633,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
  * - sheet accent           → accent strip
  * - reserved image seat    → thumbnail beside the identity band
  */
-export function sheetCard(sheet: SheetResult, webUrl: string): ContainerData {
+export function sheetCard(sheet: SheetResult): ContainerData {
   const body = sheet.body
   const owner = sheet.ownerName ?? UNCLAIMED
 
@@ -838,7 +649,7 @@ export function sheetCard(sheet: SheetResult, webUrl: string): ContainerData {
 
   // Only when the owner has actually published it. A sheet with no public URL
   // gets no Share field at all — not a disabled one, and not a link that 404s.
-  const publicUrl = publicSheetUrl(webUrl, sheet.table, sheet.appId, sheet.publicRead)
+  const publicUrl = publicSheetUrl(sheet.table, sheet.appId, sheet.publicRead)
   if (publicUrl !== null) {
     // Inserted after the vitals rail rather than appended, because
     // `enforceContainerLimits` sheds from the END. Appended, this would be the
@@ -852,7 +663,7 @@ export function sheetCard(sheet: SheetResult, webUrl: string): ContainerData {
     })
   }
 
-  const url = sheetUrl(webUrl, sheet.table, sheet.id)
+  const url = sheetUrl(sheet.table, sheet.id)
   // The crawler is communal — it has no owner to name, and saying "Unclaimed"
   // would report a missing owner rather than an absent concept (ADR-030 §5).
   const provenance =

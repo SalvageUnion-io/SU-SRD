@@ -1,50 +1,24 @@
 # SURef Docs
 
-An intent → doc map. Most areas are a section of [ARCHITECTURE.md](ARCHITECTURE.md),
-which opens with its section index: `grep -n '^##' docs/ARCHITECTURE.md`, then
-Read with an offset and limit, never the whole file.
+Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## By intent
-
-| I'm… | Read |
-| --- | --- |
-| adding or changing a UI component | [design-system/ruleset.md](design-system/ruleset.md) (the laws), [display system](ARCHITECTURE.md#display-system), [component catalog](ARCHITECTURE.md#component-catalog) |
-| moving styling off Tailwind | [design-system/tailwind-removal.md](design-system/tailwind-removal.md) |
-| changing how data flows or persists | [data flow](ARCHITECTURE.md#data-flow), ADR-030, ADR-034, ADR-035 |
-| deciding where a rule is enforced, or touching combat | [rules and ITUN surfaces](ARCHITECTURE.md#rules-and-itun-surfaces), [combat loop](ARCHITECTURE.md#combat-loop), ADR-021, ADR-007 |
-| working on the Dashboard | [architecture/dashboard.md](architecture/dashboard.md), ADR-038 (the one decision record) |
-| sharing a sheet (public sheets; retired snapshot links) | ADR-032, ADR-036 |
-| working on accounts, Games or the Convex backend | ADR-030, [accounts and Games operations](ARCHITECTURE.md#accounts-and-games-operations) |
-| setting up a Convex deployment, repairing data, rotating auth secrets or Convex error reporting | the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill |
-| inviting someone by their Discord account | ADR-039, `apps/itun/convex/model/invites.ts` |
-| assigning pilots, mechs and crawlers to each other | ADR-037, `apps/itun/src/lib/links/linkRules.ts` |
-| working on the Discord bot as a Game client | [Discord bot](ARCHITECTURE.md#discord-bot-as-a-game-client) |
-| changing a package's public API | [packages and contracts](ARCHITECTURE.md#packages-and-contracts) |
-| changing what the public dataset API serves (`api.salvageunion.io`, srd's `/schema/*`) | ADR-043, ADR-040 |
-| changing hosting, deploys or CI | ADR-033, [CI and deploy](ARCHITECTURE.md#ci-and-deploy) |
-| changing the Claude Code cloud environment (network allowlist, setup script) | [ops/cloud-environment.md](ops/cloud-environment.md) |
-| moving a domain registration, or deleting what is left on Netlify | [ops/domain-transfer.md](ops/domain-transfer.md) (one-off runbook) |
-| adding, bumping or pinning a dependency | [dependencies](ARCHITECTURE.md#dependencies) |
-| looking for a service id, deployment or dashboard URL | [services and agent tooling](ARCHITECTURE.md#services-and-agent-tooling) |
-| shipping SEO or accessibility work | [SEO and accessibility](ARCHITECTURE.md#seo-and-accessibility) |
-| changing how `srd` is built | [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md), ADR-031 |
-| checking how a Salvage Union rule works | locally `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session, the attached `su-rules` repo's `extracted/*.txt` ([cloud sessions](ARCHITECTURE.md#cloud-sessions)) |
-
-## ADRs
-
-The [Decisions](ARCHITECTURE.md#decisions) that close ARCHITECTURE.md, one
-`## ADR-NNN` each: `grep -n '^## ADR-' docs/ARCHITECTURE.md` lists them. Each
-one's own Status block is authoritative.
-
-## Per-package guidance
-
-Each has a `CLAUDE.md` that loads when you work there:
-[`apps/srd`](../apps/srd/CLAUDE.md), [`apps/itun`](../apps/itun/CLAUDE.md),
-[`apps/discord-bot`](../apps/discord-bot/CLAUDE.md),
-[`packages/salvageunion-reference`](../packages/salvageunion-reference/CLAUDE.md),
-[`packages/component-lib`](../packages/component-lib/CLAUDE.md),
-[`packages/observability`](../packages/observability/CLAUDE.md), and
-[`tools/`](../tools/CLAUDE.md) (every checker `bun run check` runs).
-`apps/su-assets` has none: it is one Worker serving licensed artwork from R2
-(see its `wrangler.jsonc`). Path-scoped rules live in
-[`.claude/rules/`](../.claude/rules/).
+1. **UI component** — [ruleset.md](design-system/ruleset.md) (the laws); [display](ARCHITECTURE.md#display).
+2. **Drawing an entity (forms, modes, the model)** — [entity-display-language.md](design-system/entity-display-language.md).
+3. **Styling** — ADR-046; the working rules: [`.claude/rules/styling.md`](../.claude/rules/styling.md).
+4. **Design sources, the origin's boards** — [sources.md](design-system/sources.md).
+5. **Data flow or persistence** — [data flow](ARCHITECTURE.md#data-flow) to [stores](ARCHITECTURE.md#stores); ADR-030, ADR-034.
+6. **Where a rule is enforced, combat** — [surfaces](ARCHITECTURE.md#surfaces) to [combat](ARCHITECTURE.md#combat); ADR-021, ADR-007.
+7. **Dashboard** — [dashboard.md](architecture/dashboard.md); ADR-038, ADR-045.
+8. **Mediator Dashboard, a Game's page** — [mediator-dashboard.md](architecture/mediator-dashboard.md); ADR-030, ADR-038.
+9. **NPCs** — [npc-builder.md](architecture/npc-builder.md); ADR-044.
+10. **Sharing** — ADR-032, ADR-036.
+11. **Accounts, Games, Convex** — ADR-030; [deployments](ARCHITECTURE.md#deployments) to [conventions](ARCHITECTURE.md#convex-conventions); procedures: the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill.
+12. **Invites, links between entities** — ADR-030, ADR-037.
+13. **Feature names in copy (Game, Shelf, assign)** — [glossary.md](architecture/glossary.md).
+14. **Discord bot** — [Game client](ARCHITECTURE.md#bot-game-client); [its CLAUDE.md](../apps/discord-bot/CLAUDE.md)
+15. **Package API, public dataset** — [packages](ARCHITECTURE.md#packages) to [dataset API](ARCHITECTURE.md#dataset-api); ADR-040, ADR-043.
+16. **srd build** — [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md); ADR-031.
+17. **Hosting, CI, deploys** — ADR-033; [CI](ARCHITECTURE.md#ci) to [previews](ARCHITECTURE.md#previews).
+18. **Dependencies** — [dependencies](ARCHITECTURE.md#dependencies) to [dead code](ARCHITECTURE.md#dead-code).
+19. **Services, MCP, cloud sessions** — [MCP](ARCHITECTURE.md#mcp) to [identifiers](ARCHITECTURE.md#identifiers); [cloud-environment.md](ops/cloud-environment.md).
+20. **A Salvage Union rule** — the [`rules-lookup`](../.claude/agents/rules-lookup.md) agent, or `bun run rules:find <term>`; setup is AGENTS.md's Rules text.

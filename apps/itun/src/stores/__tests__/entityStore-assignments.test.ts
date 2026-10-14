@@ -8,18 +8,18 @@
  * containers. `assignLink` is the entry point surfaces call.
  *
  * Signed-in backend with server commits stubbed (see `signedInBackend.ts`), so
- * these assert what lands in IndexedDB, not just in memory.
+ * these assert the links the store holds once each write has committed.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
-import { _resetDbSingleton, clearCache, softLinks as dbSoftLinks } from '../../lib/db/index'
+import { CROSS_CONTAINER_REFUSAL } from 'itun-domain/links/linkRules'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { assignLink } from '../../lib/links/assignLink'
 import { LinkRefused } from '../../lib/links/linkRefused'
-import { CROSS_CONTAINER_REFUSAL } from '../../lib/links/linkRules'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../entityStore'
 import { CONTAINER_MOVE } from '../surfaceProvenance'
+import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
 
 withSignedInBackend()
@@ -55,20 +55,8 @@ const crawlerInput = {
   systems: [],
 }
 
-function reset(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
-
 beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  reset()
+  resetStores()
   const store = useEntityStore.getState()
   await Promise.all([
     store.hydrate('pilot'),
@@ -78,15 +66,15 @@ beforeEach(async () => {
   ])
 })
 
-afterEach(async () => {
-  await clearCache()
-  reset()
+afterEach(() => {
+  resetStores()
 })
 
 const shape = (l: SoftLink) => `${l.type}:${l.from.id}>${l.to.id}`
 
-async function persisted(): Promise<string[]> {
-  return (await dbSoftLinks.list()).map(shape).sort()
+/** The links the store holds, as sorted `type:from>to` shapes. */
+function held(): string[] {
+  return useEntityStore.getState().list('softLink').map(shape).sort()
 }
 
 describe('assignLink', () => {
@@ -101,7 +89,7 @@ describe('assignLink', () => {
     )
 
     expect(link.type).toBe('mech-to-crawler')
-    expect(await persisted()).toEqual([`mech-to-crawler:${mech.id}>${crawler.id}`])
+    expect(held()).toEqual([`mech-to-crawler:${mech.id}>${crawler.id}`])
   })
 
   test('replaces the conflicting assignment in the same write', async () => {
@@ -115,7 +103,6 @@ describe('assignLink', () => {
 
     const expected = [`pilot-to-crawler:${pilot.id}>${c2.id}`]
     expect(useEntityStore.getState().softLinks.map(shape)).toEqual(expected)
-    expect(await persisted()).toEqual(expected)
   })
 
   test('a pilot flies one mech: a second mech takes the seat', async () => {
@@ -127,7 +114,7 @@ describe('assignLink', () => {
     await assignLink({ type: 'mech', id: m1.id }, { type: 'pilot', id: pilot.id })
     await assignLink({ type: 'mech', id: m2.id }, { type: 'pilot', id: pilot.id })
 
-    expect(await persisted()).toEqual([`mech-to-pilot:${m2.id}>${pilot.id}`])
+    expect(held()).toEqual([`mech-to-pilot:${m2.id}>${pilot.id}`])
   })
 
   test('a crawler takes many: crew and bay accumulate', async () => {
@@ -141,7 +128,7 @@ describe('assignLink', () => {
     await assignLink({ type: 'pilot', id: p2.id }, { type: 'crawler', id: crawler.id })
     await assignLink({ type: 'mech', id: m1.id }, { type: 'crawler', id: crawler.id })
 
-    expect(await persisted()).toHaveLength(3)
+    expect(held()).toHaveLength(3)
   })
 
   test('drawing an existing link returns it rather than a second record', async () => {
@@ -159,7 +146,7 @@ describe('assignLink', () => {
     )
 
     expect(again.id).toBe(first.id)
-    expect(await persisted()).toHaveLength(1)
+    expect(held()).toHaveLength(1)
   })
 
   test('refuses across containers, before any write', async () => {
@@ -174,7 +161,7 @@ describe('assignLink', () => {
 
     expect(refused).toBeInstanceOf(LinkRefused)
     expect((refused as Error).message).toBe(CROSS_CONTAINER_REFUSAL)
-    expect(await persisted()).toEqual([])
+    expect(held()).toEqual([])
   })
 
   test("a server refusal arrives as a LinkRefused carrying the server's copy", async () => {
@@ -210,7 +197,6 @@ describe('a move drops the links it would leave straddling two containers', () =
     // mech's own crawler link does not touch the pilot.
     const expected = [`mech-to-crawler:${shelfMech.id}>${shelfCrawler.id}`]
     expect(useEntityStore.getState().softLinks.map(shape)).toEqual(expected)
-    expect(await persisted()).toEqual(expected)
   })
 
   test('an edit that is not a move prunes nothing', async () => {
@@ -221,7 +207,7 @@ describe('a move drops the links it would leave straddling two containers', () =
 
     await store.update('pilot', pilot.id, { name: 'Renamed' }, CONTAINER_MOVE)
 
-    expect(await persisted()).toHaveLength(1)
+    expect(held()).toHaveLength(1)
   })
 })
 
@@ -238,7 +224,6 @@ describe('forget on a link', () => {
     await useEntityStore.getState().forget('softLink', link.id)
 
     expect(useEntityStore.getState().softLinks).toEqual([])
-    expect(await persisted()).toEqual([])
     // The endpoints are untouched.
     expect(useEntityStore.getState().get('mech', mech.id)).not.toBeNull()
   })

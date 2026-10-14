@@ -1,20 +1,21 @@
 /**
  * SheetHero — the sheet's opening region (Workshop-Manual identity band):
  * a wide "thick" card of identity FIELDS beside a narrow "long" card of
- * current/max GAUGES. There is no name stamp; the name lives in its own field
- * and becomes the accessible `<h1>`.
+ * current/max GAUGES. There is no name stamp here: the name is the chapter
+ * band's notched `<h1>` above it (`LiveSheet`).
  *
  * Pure layout — all content arrives via slots so the three variant sheets
  * compose it without forking the frame.
  */
 
-import { cn, SheetSectionCard } from 'component-lib'
-import type { ReactNode } from 'react'
+import { SheetSectionCard } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
+
+/** The grid's columns and gap step up with the sheet's width (`.su-sheet-hero`). */
+const GRID = { display: 'grid' } satisfies CSSProperties
 
 type SheetHeroProps = {
   name: string
-  /** Header-right count/pill slot of the fields card (e.g. a Dead badge). */
-  meta?: ReactNode
   /**
    * The identity FIELDS card body. Both cards are `SheetSectionCard`s — the
    * ONLY framed sections on a live sheet. Every section BELOW them is a slab,
@@ -28,17 +29,9 @@ type SheetHeroProps = {
   vitals?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
-  className?: string
 }
 
-export function SheetHero({
-  name,
-  meta,
-  fields,
-  vitals,
-  fieldsTitle = 'Identity',
-  className,
-}: SheetHeroProps) {
+export function SheetHero({ name, fields, vitals, fieldsTitle = 'Identity' }: SheetHeroProps) {
   return (
     <section
       aria-label={`${name} sheet header`}
@@ -46,29 +39,32 @@ export function SheetHero({
       // the fields card takes the rest ("thick"). They stack on narrow
       // viewports so neither ever crushes.
       //
-      // No `items-start`: grid items stretch by default, so the two cards are
-      // always the SAME height whichever one is taller. `Card` is a flex
-      // column with a `flex-1` body, so the shorter card grows its paper body
+      // No `align-items: start`: grid items stretch by default, so the two
+      // cards are always the SAME height whichever one is taller. `Card` is a
+      // flex column with a growing body, so the shorter card grows its paper body
       // rather than leaving the frame short and the row ragged.
-      className={cn(
-        'grid grid-cols-1 gap-[22px] @3xl:grid-cols-[minmax(0,1fr)_260px] @3xl:gap-6',
-        className
-      )}
+      className="su-sheet-hero"
+      style={GRID}
     >
-      <h1 className="sr-only">{name}</h1>
       {/* The OPENING sections are the only ones that keep a card container:
           they are the sheet's subject and its live state, so they read as
           framed objects. Everything below them is a slab. They do not fold —
           a card has no chevron, which is exactly right here. */}
       <SheetSectionCard
         title={fieldsTitle}
-        count={meta}
-        className="flex h-full flex-col"
-        bodyClassName="flex min-h-0 flex-1 flex-col"
+        // One surface in Read and Edit (owner's call, 2026-10-14: Edit looks
+        // like Read), so switching modes never reframes the page.
+        surface="paper"
+        className="su-sheet-hero-fields"
+        bodyClassName="su-sheet-hero-fields-body"
       >
         {fields}
       </SheetSectionCard>
-      {vitals && <SheetSectionCard title="Vitals">{vitals}</SheetSectionCard>}
+      {vitals && (
+        <SheetSectionCard title="Vitals" surface="paper">
+          {vitals}
+        </SheetSectionCard>
+      )}
     </section>
   )
 }

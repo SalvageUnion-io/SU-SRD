@@ -11,51 +11,56 @@
  * makes "read this" register before you've parsed a single label.
  */
 
-.pc-grid {
+.su-dash-grid {
   display: grid;
   height: 100%;
   width: 100%;
   gap: 10px;
   padding: 8px 10px;
   grid-template-columns: minmax(0, 1fr);
-  /* The slot row (ADR-038 §3): tall enough
-     for a Major's bays — two gauges over a row of buttons — and the Minors'
-     gauges, text and a problem line. */
-  grid-template-rows: 40px 208px minmax(0, 1fr);
+  /* The slot row (ADR-038 §3): at least tall enough for a Major's bays — two
+     gauges over a row of buttons — and the Minors' gauges, text and a problem
+     line, and it grows with its content. Pips are a fixed size and wrap onto
+     more rows on a long track (issue 1255), so a boarded mech's SP and Cargo
+     can need more than the floor; a fixed track let the bays spill over the
+     display, whose controls then drew on top of them. The display takes what
+     is left. The rail is 40px, and grows only for a Downtime rail unit's
+     gauge, whose pips split into rows (§4.5). */
+  grid-template-rows: minmax(40px, auto) minmax(208px, auto) minmax(0, 1fr);
   grid-template-areas:
     'rail'
     'primary'
     'display';
 }
 
-.pc-rail {
+.su-dash-rail {
   grid-area: rail;
   display: flex;
   align-items: center;
   gap: 10px;
   border: var(--bw-rail) solid color-mix(in srgb, var(--color-ink) 35%, transparent);
   border-radius: var(--radius-panel);
-  padding: 0 12px;
+  padding: 4px 12px;
   background: var(--color-band-cream);
 }
 
 /* Active-entity tint on the rail: the entity in the Major slot. */
-.pc-grid[data-mount='mech'] .pc-rail {
+.su-dash-grid[data-mount='mech'] .su-dash-rail {
   border-color: color-mix(in oklab, var(--color-mech) 60%, transparent);
 }
-.pc-grid[data-mount='pilot'] .pc-rail {
+.su-dash-grid[data-mount='pilot'] .su-dash-rail {
   border-color: color-mix(in oklab, var(--color-pilot) 60%, transparent);
 }
-.pc-grid[data-mount='downtime'] .pc-rail {
+.su-dash-grid[data-mount='downtime'] .su-dash-rail {
   border-color: color-mix(in oklab, var(--color-crawler) 60%, transparent);
 }
 
-.pc-primary {
+.su-dash-primary {
   grid-area: primary;
   min-height: 0;
 }
 
-.pc-display {
+.su-dash-display {
   grid-area: display;
   border: var(--bw-rail) solid color-mix(in srgb, var(--color-ink) 45%, transparent);
   border-radius: var(--radius-panel);
@@ -63,10 +68,10 @@
 }
 
 /* The display is the ONE surface that reads "forward": a light SRD "paper"
-   document inset in the dark cockpit (the reused ReferenceEntityDisplay /
-   RollTable are light-themed). It is deliberately a step brighter than the
+   document inset in the dark cockpit (the reused ReferenceEntityCard and
+   RollTableInstrument are light-themed). It is deliberately a step brighter than the
    cream instruments around it. Its own scroll — the canvas never scrolls. */
-.pc-display-light {
+.su-dash-display-light {
   background: var(--color-paper);
   color: var(--color-ink);
   overflow: hidden;
@@ -75,7 +80,7 @@
 
 /* Placeholder for a surface not yet built. Carries the instrument ground: it
    stands in for a card, so it must not leave a hole in the dark canvas. */
-.pc-placeholder {
+.su-dash-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,11 +93,11 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-caption);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 
 /* Centered muted label used inside an already-bordered surface (e.g. the display). */
-.pc-fill {
+.su-dash-fill {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,5 +109,5 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-caption);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }

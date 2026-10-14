@@ -5,10 +5,12 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "typecheck": "tsc -b",
+    "test": "bun test --parallel=4 --no-isolate"
   },
   "devDependencies": {
-    "axe-core": "4.13.0"
+    "gates": "workspace:*",
+    "salvageunion-reference": "workspace:*",
+    "sharp": "0.35.5"
   }
 }

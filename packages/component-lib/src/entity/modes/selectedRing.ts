@@ -1,0 +1,8 @@
+import type { CSSProperties } from 'react'
+
+/**
+ * SELECT's ring: the 3px ink ring just outside the frame (SELECTION_RING). The
+ * one spelling of it as a style object — the Row, the entity card, a choice
+ * card and the searcher's installed count card all spread it.
+ */
+export const SELECTED_RING = { boxShadow: '0 0 0 3px var(--color-ink)' } satisfies CSSProperties

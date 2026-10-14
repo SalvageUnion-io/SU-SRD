@@ -12,14 +12,14 @@
  */
 
 import type { ReferenceCardEntity } from 'component-lib'
-import { Badge, ReferenceEntityCard } from 'component-lib'
+import { Badge, EmptyState, ReferenceEntityCard, Toggle } from 'component-lib'
 import { fontSize, radius, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
 /**
- * A render-ready action card. The action ENTITY drives a CATALOG-extent
- * `ReferenceEntityCard` tile — the same index tile the SRD catalog renders — so
- * the deck reuses the canonical action rendering instead of a hand-rolled row.
+ * A render-ready action card. The action ENTITY drives a header-only
+ * (`extent="head"`) `ReferenceEntityCard` row, so the deck reuses the canonical
+ * action rendering instead of a hand-rolled row.
  * The card states its own name, so the deck adds no describing label above it.
  * Reach/lock is resolved by the caller and layered on top (dim + tooltip), never
  * baked into the card.
@@ -48,117 +48,115 @@ export type DeckListModel =
       sources: { label: string; stamp: string }[]
       sourceFilter: string | null
       onSourceFilter: (source: string | null) => void
-      familyClass: string
-      /** Host tone the action tiles GHOST (mech vs pilot) — a resolvable CSS colour. */
-      hostTone: string
       /** The whole deck, flat — one grid, no source/timing headings above it. */
       rows: DeckRow[]
       onOpen: (key: string) => void
+      /**
+       * Open an action and pay for it in one press: the phone's pennant
+       * (ADR-045 D6). The canvas pays from the resolve's own pennant.
+       */
+      onActivate: (key: string) => void
     }
 
 /** A bare fieldset: the group, without the browser's frame around it. */
-const GROUP: CSSProperties = { border: 0, margin: 0, padding: 0, minInlineSize: 0 }
+const GROUP = { border: 0, margin: 0, padding: 0, minInlineSize: 0 } satisfies CSSProperties
 
-const STAMP: CSSProperties = {
+/** A source toggle carries its stamp before its label. */
+const SOURCE = {
+  alignItems: 'center',
+  display: 'inline-flex',
+  gap: space[4],
+  maxWidth: '100%',
+} satisfies CSSProperties
+
+const STAMP = {
   borderRadius: radius.card,
   paddingInline: space[4],
   paddingBlock: '1px',
-  fontSize: fontSize.label,
-}
+  fontSize: fontSize.badge,
+} satisfies CSSProperties
 
 export function DeckList({ view }: { view: DeckListModel }) {
   if (view.kind === 'empty') {
     return (
-      <div className="pc-display-scroll">
-        <div className="pc-deck-empty">{view.text}</div>
+      <div className="su-dash-display-scroll">
+        <EmptyState variant="quiet" body={view.text} />
       </div>
     )
   }
 
   return (
-    <div className="pc-display-scroll">
-      <div className="pc-deck-controls-bar">
-        <fieldset className="pc-deck-tabs" style={GROUP} aria-label="Filter actions by timing">
+    <div className="su-dash-display-scroll">
+      <div className="su-dash-deck-controls-bar">
+        <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Filter actions by timing">
           {view.tabs.map((t) => (
-            <button
-              key={t}
-              type="button"
-              aria-pressed={view.activeTab === t}
-              className={`pc-deck-tab${view.activeTab === t ? ' is-active' : ''}`}
-              onClick={() => view.onTab(t)}
-            >
+            <Toggle key={t} pressed={view.activeTab === t} onClick={() => view.onTab(t)}>
               {t}
-            </button>
+            </Toggle>
           ))}
         </fieldset>
 
-        <div className="pc-deck-toolrow">
-          <div className="pc-deck-range">
+        <div className="su-dash-deck-toolrow">
+          <fieldset className="su-dash-deck-range" style={GROUP} aria-label="Engagement Range">
             {view.rangeBands.map((band) => (
-              <button
+              <Toggle
                 key={band}
-                type="button"
-                aria-pressed={view.activeRange === band}
-                className={`pc-deck-range-btn${view.activeRange === band ? ' is-active' : ''}`}
+                pressed={view.activeRange === band}
                 onClick={() => view.onRange(band)}
+                aria-label={`Range ${band}`}
                 title={`Set engagement range to ${band}`}
               >
                 {band[0]}
-              </button>
+              </Toggle>
             ))}
-            <span className="pc-deck-reach">{view.reachText}</span>
-          </div>
+            <span className="su-dash-deck-reach">{view.reachText}</span>
+          </fieldset>
         </div>
 
         {view.sources.length > 1 && (
-          <div className={`pc-deck-sources ${view.familyClass}`}>
-            <button
-              type="button"
-              aria-pressed={view.sourceFilter === null}
-              className={`pc-deck-source${view.sourceFilter === null ? ' is-active' : ''}`}
-              onClick={() => view.onSourceFilter(null)}
-            >
+          <fieldset
+            className="su-dash-deck-sources"
+            style={GROUP}
+            aria-label="Filter actions by source"
+          >
+            <Toggle pressed={view.sourceFilter === null} onClick={() => view.onSourceFilter(null)}>
               All
-            </button>
+            </Toggle>
             {view.sources.map((src) => (
-              <button
+              <Toggle
                 key={`${src.stamp}:${src.label}`}
-                type="button"
-                aria-pressed={view.sourceFilter === src.label}
-                className={`pc-deck-source${view.sourceFilter === src.label ? ' is-active' : ''}`}
+                pressed={view.sourceFilter === src.label}
                 onClick={() =>
                   view.onSourceFilter(view.sourceFilter === src.label ? null : src.label)
                 }
                 title={`Filter the deck to “${src.label}” actions.`}
+                style={SOURCE}
               >
                 <Badge shape="stamp" size="mini" style={STAMP}>
                   {src.stamp}
                 </Badge>
                 {src.label}
-              </button>
+              </Toggle>
             ))}
-          </div>
+          </fieldset>
         )}
       </div>
 
       {view.rows.length === 0 ? (
-        <div className="pc-deck-empty">No actions match this filter.</div>
+        <EmptyState variant="quiet" body="No actions match this filter." />
       ) : (
-        <div className="pc-deck">
+        <div className="su-dash-deck">
           {/*
-           * ONE masonry grid over the whole deck — no source/timing headings, so
-           * an action is never filed under a name of its own; the tile already
-           * states what it is. The cards are the canonical CATALOG tile
-           * (`medium` + `catalog`), the same index tile the SRD catalog renders:
-           * it keeps the description but suppresses every nested element
-           * (sub-entities, roll tables, choices), which is what makes it safe
-           * inside this card's own `role="button"` wrapper — the full extent
-           * would embed buttons whose clicks bubble into `onOpen`. Tile heights
-           * differ with description length, which is what the masonry packing is
-           * for. `<ul>/<li>` stays — a set of actions IS a list semantically;
-           * "grid" is purely the layout.
+           * ONE grid over the whole deck — no source/timing headings, so an
+           * action is never filed under a name of its own; the entry already
+           * states what it is. Each entry is the COMPACT, header-only card
+           * (`medium` + `head`, board D1): the name, the source stamp and the
+           * cost pennant on one row, so a kitted pilot's deck stays a short
+           * list. The full card — description, roll table, choices — is the
+           * Resolve pane's, one tap on the pennant away. `<ul>/<li>` stays — a
+           * set of actions IS a list semantically.
            */}
-          <ul className="pc-deck-grid">
+          <ul className="su-dash-deck-grid">
             {view.rows.map((row) => (
               // Lock (out of range / overheat) is a caller-resolved overlay,
               // layered on the canonical card — dim + tooltip — never a
@@ -168,20 +166,29 @@ export function DeckList({ view }: { view: DeckListModel }) {
                 className={row.locked ? 'is-locked' : undefined}
                 title={row.lockTitle}
               >
+                {/* The cost pennant IS the deck's action (ruleset §1, board
+                    D1): filled rust, in the pennant's own place, and tapping it
+                    takes the action to Resolve. There is no separate deck
+                    button and no chevron beside it. */}
                 <ReferenceEntityCard
                   data={row.entity}
                   size="medium"
-                  extent="catalog"
-                  // An action's roll table survives the catalog extent by design
-                  // (it IS the content on an SRD index page), but its Show/Roll
-                  // buttons cannot nest inside this tile's own `role="button"`.
-                  // The table is one click away — the resolve panel renders the
-                  // same action as a full card.
-                  hide={{ rollTable: true }}
-                  hostTone={view.hostTone}
+                  extent="head"
+                  // The Dashboard stays flat (ruleset §3.5): no speckle.
+                  texture={false}
+                  // Dimmed, still openable: the lock is a caller-resolved
+                  // overlay (see above), and Resolve says why it cannot run.
                   disabled={row.locked}
-                  cardClickLabel={row.name}
-                  onCardClick={() => view.onOpen(row.key)}
+                  controls={[
+                    {
+                      key: 'resolve',
+                      pennant: true,
+                      label: 'Resolve',
+                      ariaLabel: `Resolve ${row.name}`,
+                      title: row.lockTitle,
+                      onClick: () => view.onOpen(row.key),
+                    },
+                  ]}
                 />
               </li>
             ))}

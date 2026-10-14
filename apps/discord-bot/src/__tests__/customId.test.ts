@@ -1,6 +1,6 @@
 /**
  * customId scheme tests — the stateless button plumbing behind "Roll again" /
- * "Roll on this table".
+ * "Roll the Die".
  *
  * `buttonInteractionHandlerFor` in `connectedMode.test.ts` covers the happy
  * `su:roll` / `su:lookup` dispatch; these pin the encoding contract directly:
@@ -9,7 +9,7 @@
  * must still render — just without a re-roll button).
  */
 import { describe, expect, test } from 'bun:test'
-import { makeCustomId, parseCustomId } from '../customId.js'
+import { makeCustomId, parseCustomId } from '../customId'
 
 describe('makeCustomId / parseCustomId', () => {
   test('roundtrips a namespaced action + payload', () => {

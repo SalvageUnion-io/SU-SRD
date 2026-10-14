@@ -3,19 +3,19 @@
  * place damage, range, activation cost, traits and embedded tables live.
  */
 
-import { z } from '../../zod.js'
+import { z } from '../../zod'
 import {
   ActivationCostSchema,
   IdSchema,
   NameSchema,
   PositiveIntegerSchema,
   TechLevelSchema,
-} from '../common.js'
-import { ActionTypeSchema, RangeSchema, SchemaNameSchema, SourceSchema } from '../enums.js'
-import { ChoiceSchema } from './choices.js'
-import { ContentSchema } from './content.js'
-import { DamageSchema, TraitSchema } from './primitives.js'
-import { TableSchema } from './tables.js'
+} from '../common'
+import { ActionTypeSchema, RangeSchema, SchemaNameSchema, SourceSchema } from '../enums'
+import { ChoiceSchema } from './choices'
+import { ContentSchema } from './content'
+import { DamageSchema, TraitSchema } from './primitives'
+import { TableSchema } from './tables'
 
 /**
  * Activation currency enum

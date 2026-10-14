@@ -12,15 +12,15 @@
  *    put their mech in its bay.
  *
  * Signed-in backend with server commits stubbed (`signedInBackend.ts`), so the
- * links asserted are the ones that landed in IndexedDB too.
+ * links asserted are the ones the in-memory store holds after the write.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import type { ReactElement } from 'react'
 import { ConnectionContext, SOLO_STATE } from '../../../lib/connection/connectionContext'
-import { _resetDbSingleton, clearCache, softLinks as dbSoftLinks } from '../../../lib/db/index'
-import type { SoftLink } from '../../../lib/schemas/softLink'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { AssignPicker } from '../AssignPicker'
@@ -63,20 +63,8 @@ const crawlerInput = {
   gameId: 'g1',
 }
 
-function reset(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
-
 beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  reset()
+  resetStores()
   const store = useEntityStore.getState()
   await Promise.all([
     store.hydrate('pilot'),
@@ -86,15 +74,13 @@ beforeEach(async () => {
   ])
 })
 
-afterEach(async () => {
+afterEach(() => {
   cleanup()
-  await clearCache()
-  reset()
+  resetStores()
 })
 
 const shape = (l: SoftLink) => `${l.type}:${l.from.id}>${l.to.id}`
 const live = () => useEntityStore.getState().softLinks.map(shape).sort()
-const persisted = async () => (await dbSoftLinks.list()).map(shape).sort()
 
 function connected(ui: ReactElement) {
   return render(
@@ -109,8 +95,8 @@ const tick = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms))
 /**
  * Confirm, and keep the whole write inside `act`.
  *
- * The write goes through IndexedDB, which settles over several macrotasks —
- * after `act`'s own flush — and the store update and the dialog closing that
+ * The write is async (the stubbed server commit, then the store update), and
+ * may settle after `act`'s own flush — the store update and the dialog closing that
  * follow it would land outside `act`, which the test preload fails on. So this
  * waits, inside the scope, for the store's links to change, then one more turn
  * for the picker's own state to follow.
@@ -156,7 +142,6 @@ describe('AssignPicker — through the store', () => {
 
     const expected = [`pilot-to-crawler:${pilot.id}>${second.id}`]
     expect(live()).toEqual(expected)
-    expect(await persisted()).toEqual(expected)
   })
 
   test('Change Mech takes the picked mech off the pilot it flew', async () => {

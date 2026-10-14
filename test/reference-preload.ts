@@ -14,6 +14,13 @@
  * `test/` directory is not a workspace, so `node_modules/salvageunion-reference`
  * does not resolve from here under the isolated linker.
  */
-import { SalvageUnionReference } from '../packages/salvageunion-reference/lib/index.js'
+import { ensureGenerated } from '../packages/salvageunion-reference/tools/ensureGenerated'
+
+// `lib/generated/` is gitignored build output that the ORM imports, so it must
+// exist (and be current) before the dynamic import below loads it. A no-op
+// when the stamp matches; see the tool's header.
+ensureGenerated()
+
+const { SalvageUnionReference } = await import('../packages/salvageunion-reference/lib/index')
 
 await SalvageUnionReference.preload('all')

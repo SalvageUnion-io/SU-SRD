@@ -1,0 +1,70 @@
+/*
+ * The package stylesheet, part 10 of 21: InlineRef, an in-prose reference.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ InlineRef: an in-prose reference ══════════════════════════════════════
+ *
+ * The word keeps its prose's type and colour (so it reads on paper, an ink
+ * band or a tone header alike); its state is the border. A link: a rust
+ * border, and rust text on hover or keyboard focus (ruleset §3.1). Inert: a
+ * dashed border in the text's own colour, at half strength, and the help
+ * cursor — it only summons a tooltip.
+ */
+.su-inline-ref {
+  border-bottom: var(--bw-chrome) solid currentColor;
+  color: inherit;
+  text-decoration: none;
+  transition: color 120ms;
+}
+
+.su-inline-ref--link {
+  border-bottom-color: var(--color-rust); /* design-tokens-ignore: InlineRef §3.1 */
+}
+
+.su-inline-ref--link:hover,
+.su-inline-ref--link:focus-visible {
+  color: var(--color-rust); /* design-tokens-ignore: InlineRef §3.1 */
+}
+
+.su-inline-ref--inert {
+  border-bottom-color: color-mix(in srgb, currentColor 50%, transparent);
+  border-bottom-style: dashed;
+  cursor: help;
+}
+
+/* The opener form (ITUN's Page): a button that reads as the same word. */
+.su-inline-ref--button {
+  background: none;
+  border-inline: 0;
+  border-top: 0;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+  text-align: inherit;
+  text-transform: inherit;
+}
+
+/* A Peek trigger: a long press opens the Peek, not the phone's link callout. */
+[data-peek] {
+  -webkit-touch-callout: none;
+}
+
+/* The flowing entity page's art (see `.su-entity-page--flow`), after the
+   hero's own rules: capped so a tall portrait does not hold the wide blocks
+   (a class's ability tree) far down the page. */
+@media (min-width: 64rem) {
+  .su-entity-page--flow .su-entity-hero {
+    --su-hero-max-h: 32rem;
+  }
+
+  /* Cropped art floats at its own width (up to the 42% column), so the text
+     beside it starts where the art ends. */
+  .su-entity-page--flow
+    > .su-entity-page__main--art
+    > .su-entity-page__art:has(.su-entity-hero--crop) {
+    max-width: 42%;
+    width: auto;
+  }
+}

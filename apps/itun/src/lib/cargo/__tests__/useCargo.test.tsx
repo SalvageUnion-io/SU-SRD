@@ -7,13 +7,13 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { renderHook } from '@testing-library/react'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import { makeScrapLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import type { useEntityStore } from '../../../stores/entityStore'
-import type { CargoLot } from '../../schemas/cargoLot'
-import { makeScrapLot } from '../../schemas/cargoLot'
-import type { Crawler } from '../../schemas/crawler'
-import type { Mech } from '../../schemas/mech'
 import { useCargo } from '../useCargo'
 
 // ---------------------------------------------------------------------------
@@ -361,7 +361,8 @@ describe('useCargo — dispatches reduce against a fresh read', () => {
   test('a rejected store write becomes a refusal, not an unhandled rejection', async () => {
     // `storeState.transfer` rejects when a patch fails its Zod parse. That must
     // reach the caller through the ordinary `{ ok: false, reason }` channel so
-    // the UI can report it, rather than escaping as an unhandled rejection.
+    // the UI can report it, rather than escaping as an unhandled rejection —
+    // in words for the player, never the developer's message it threw with.
     const mech = makeMech([lotA])
     const store = makeEntityStoreMock({
       get: () => mech,
@@ -377,6 +378,9 @@ describe('useCargo — dispatches reduce against a fresh read', () => {
 
     const outcome = await result.current.removeMechLot('lot-a')
     expect(outcome.ok).toBe(false)
-    if (!outcome.ok) expect(outcome.reason).toContain('schema parse failed')
+    if (!outcome.ok) {
+      expect(outcome.reason).toBe('That change could not be saved. Try again.')
+      expect(outcome.reason).not.toContain('schema parse failed')
+    }
   })
 })

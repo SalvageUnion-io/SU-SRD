@@ -3,36 +3,34 @@
  * These functions provide convenient access patterns used by consuming applications
  */
 
-import { getActionType, getDamage, getRange, getTraits } from './actionResolution.js'
-import { getAssetUrl } from './assets.js'
-import type { ModelWithMetadata } from './BaseModel.js'
+import { getActionType, getDamage, getRange, getTraits } from './actionResolution'
+import { getAssetUrl } from './assets'
+import type { ModelWithMetadata } from './BaseModel'
 import {
-  getCargoCapacity,
   getContent,
   getDescription,
-  getEnergyPoints,
-  getHeatCapacity,
-  getHitPoints,
-  getModuleSlots,
   getName,
   getPageReference,
-  getSalvageValue,
-  getSlotsRequired,
   getSource,
-  getStructurePoints,
-  getSystemSlots,
   getTechLevel,
   getTree,
-} from './entityFields.js'
-import { lazyModelMap } from './generated/schemaRegistry.generated.js'
-import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
-import type { EnhancedSchemaMetadata } from './ModelFactory.js'
-import { getSchemaCatalog } from './ModelFactory.js'
-import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './schemas/index.js'
-import { getEntitySlug } from './slug.js'
-import { isColumnsTable } from './utils/resultForTable.js'
-import type { TableRow } from './utils/tableRows.js'
-import { tableRows } from './utils/tableRows.js'
+} from './entityFields'
+import { lazyModelMap } from './generated/schemaRegistry.generated'
+import { SalvageUnionReference, SchemaToDisplayName } from './index'
+import type { EnhancedSchemaMetadata } from './ModelFactory'
+import { getSchemaCatalog } from './ModelFactory'
+import type {
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefMetaEntity,
+  SURefObjectAdvancedClass,
+} from './schemas/index'
+import { getEntitySlug } from './slug'
+import { plainTraitText } from './traitText'
+import { isColumnsTable } from './utils/resultForTable'
+import type { TableRow } from './utils/tableRows'
+import { tableRows } from './utils/tableRows'
+import { bookStats } from './view/parts/facts'
 
 /**
  * Get the display name for a schema
@@ -45,47 +43,23 @@ export function getDisplayName(schemaName: SURefEnumSchemaName): string {
 }
 
 /**
- * Normalize a schema name to the canonical form
- * Handles aliases like 'classes-core' -> 'classes', 'classes-hybrid' -> 'classes'
- * @param schemaName - The schema name (may be an alias)
- * @returns The normalized schema name
- */
-
-export function normalizeSchemaName(schemaName: string): SURefEnumSchemaName {
-  // Handle class schema aliases - all map to unified 'classes' schema
-  if (
-    schemaName === 'classes-core' ||
-    schemaName === 'classes.core' ||
-    schemaName === 'classes-advanced' ||
-    schemaName === 'classes.advanced' ||
-    schemaName === 'classes-hybrid' ||
-    schemaName === 'classes.hybrid'
-  ) {
-    return 'classes'
-  }
-
-  // Return as-is if it's already a valid schema name
-  return schemaName as SURefEnumSchemaName
-}
-
-/**
  * Get a model by schema name
- * Automatically normalizes schema name aliases (e.g., 'classes-core' -> 'classes')
- * @param schemaName - The schema name (may be an alias)
+ * @param schemaName - The schema name
  * @returns The model instance or undefined if not found
  */
 
 export function getModel(
   schemaName: string | SURefEnumSchemaName
 ): ModelWithMetadata<SURefEntity> | undefined {
-  const normalized = normalizeSchemaName(schemaName)
-
-  // Sole assertion: lazyModelMap's per-schema union includes meta-entity models
+  // Two assertions. The key: lazyModelMap is keyed by the schema enum, and a
+  // string id is looked up as-is — `| undefined` covers a runtime-invalid one.
+  // The value: lazyModelMap's per-schema union includes meta-entity models
   // (ability-tree-requirements, crawler-tech-levels) whose element types are not
   // in SURefEntity, so the union cannot be assigned to the declared
-  // SURefEntity-typed model. `| undefined` stays honest for runtime-invalid
-  // schema names passed through normalizeSchemaName's string overload.
-  return lazyModelMap[normalized] as ModelWithMetadata<SURefEntity> | undefined
+  // SURefEntity-typed model.
+  return lazyModelMap[schemaName as SURefEnumSchemaName] as
+    | ModelWithMetadata<SURefEntity>
+    | undefined
 }
 
 /**
@@ -127,14 +101,6 @@ export function getHybridClasses(): (SURefObjectAdvancedClass & {
       'hybrid' in c && c.hybrid === true
   )
 }
-
-// ============================================================================
-// CRAWLER HELPERS
-// ============================================================================
-
-// ============================================================================
-// GAME RULE CONSTANTS
-// ============================================================================
 
 /**
  * Resolve the activation currency for a given schema/entity category.
@@ -193,30 +159,17 @@ export function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number
 /**
  * The canonical "Tech Level, then name" comparator.
  *
- * This exists because the expression it replaces was written out by hand at
- * three call sites and one of them got it wrong — using `Number(a.techLevel)`
- * instead of {@link techLevelRank}. The failure is quieter than it first looks:
- * `Number('B') - 1` is `NaN`, and `NaN` is FALSY, so the `||` falls straight
- * through to the name tiebreak. A Bio or Nanite item is therefore not randomly
- * ordered — it is ordered purely by NAME, interleaved among the numeric tiers
- * instead of sorted after them. Plausible-looking output is exactly why it
- * survived at two call sites. It was dormant only by luck of the data:
- * `equipment.json` happens to carry no Bio or Nanite entries, while
- * `systems.json` has 7 B + 3 N and `modules.json` 3 B + 3 N — so the same
- * expression copied one file over ships a scrambled list.
- *
- * A comparator is exactly the kind of thing that should not be re-derived per
- * widget: the ordering is a property of the game's taxonomy, the bug is silent,
- * and the wrong version looks right.
+ * Do not compare with `Number(techLevel)`: `Number('B')` is `NaN`, the `||`
+ * falls through to the name tiebreak, and Bio and Nanite items end up
+ * interleaved by name among the numeric tiers instead of sorted after them.
+ * Use {@link techLevelRank}.
  *
  * **One hand-rolled comparator is deliberately NOT folded in.**
- * `component-lib/src/components/shared/EntitySearcher.tsx` composes
+ * `component-lib/src/components/compositions/EntitySearcher.tsx` composes
  * `techLevelRank` correctly — no NaN — but short-circuits to the name tiebreak
  * whenever EITHER side's Tech Level is `undefined`, where this ranks `undefined`
- * last. That is a real behavioural difference on TL-less entities, not a
- * cosmetic one, so switching it is a decision about search ordering rather than
- * a de-duplication. Left alone on purpose; noted here so "all the call sites use
- * the shared one" is not read as a claim about that file.
+ * last. That is a real behavioural difference on TL-less entities, so switching
+ * it is a decision about search ordering rather than a de-duplication.
  *
  * @param a - Entity-shaped value carrying a Tech Level and a name
  * @param b - The value to compare against
@@ -340,28 +293,17 @@ export type StaticEntitySummary = {
   traits: string[]
   /**
    * Named prose sections BELOW the entity's own content — currently a guide's
-   * `steps`, which hold most of a guide's text (28.7k of 34.2k characters
-   * across the shipped guides). Without these the no-JS/crawler rendering of a
-   * guide is its title and one intro paragraph, so the pages that carry the
-   * game's procedures were the ones indexing with almost no text.
+   * `steps`, which hold most of a guide's text. Without these the no-JS/crawler
+   * rendering of a guide is its title and one intro paragraph.
    *
    * Empty for every entity that has no such sections.
    */
   sections: { name: string; paragraphs: string[] }[]
   /**
-   * A roll table's outcome rows, highest roll first.
-   *
-   * The same defect as `sections` above, one schema over and found much later.
-   * A roll-table page shipped its whole d20 table as serialized island props
-   * and rendered NONE of it as markup — measured across six tables, 0 rows in
-   * rendered HTML and every row inside a `<script>` tag. Without JavaScript the
-   * page was its name and its source line; the table, which is the entire
-   * reason the page exists, was absent from the text a crawler, a reader-mode
-   * view, or an LLM following `llms.txt` receives.
-   *
-   * That lands on the 96 pages most likely to be opened mid-game on a bad
-   * connection: "roll on Critical Damage" is the commonest thing anyone asks
-   * this site for.
+   * A roll table's outcome rows, highest roll first. Without these the
+   * no-JS/crawler rendering of a roll-table page (what a reader-mode view or an
+   * LLM following `llms.txt` receives) lacks the table, which is the entire
+   * reason the page exists.
    *
    * `columns` tables are deliberately absent. Each of their buckets holds a
    * further 1–20 mapping, so a flat row list would misrepresent a two-roll
@@ -379,10 +321,18 @@ export type StaticEntitySummary = {
  * Collects text content, numeric stats, and trait names into a flat structure
  * suitable for rendering as static HTML at build time.
  * @param entity - The entity to extract a summary from
+ * @param options.keepReferences - Keep the prose's `[[Trait]]` markup, for a
+ *   renderer that draws each reference as a Mention (the SRD's static
+ *   fallback). By default the references read as plain words, for every
+ *   surface that prints text (meta descriptions, the roll-table page's note).
  * @returns Static summary data
  */
 
-export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySummary {
+export function extractStaticEntitySummary(
+  entity: SURefEntity,
+  options: { keepReferences?: boolean } = {}
+): StaticEntitySummary {
+  const prose = options.keepReferences ? (text: string) => text : plainTraitText
   const name = getName(entity) ?? entity.id
   const description = getDescription(entity)
   const source = getSource(entity)
@@ -400,42 +350,16 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
         (!block.type || block.type === 'paragraph') &&
         typeof block.value === 'string'
       ) {
-        contentParagraphs.push(block.value)
+        contentParagraphs.push(prose(block.value))
       }
     }
   }
 
-  // Collect numeric stats
-  const stats: { label: string; value: string | number }[] = []
-
-  const sp = getStructurePoints(entity)
-  if (sp != null) stats.push({ label: 'Structure Points', value: sp })
-
-  const ep = getEnergyPoints(entity)
-  if (ep != null) stats.push({ label: 'Energy Points', value: ep })
-
-  const hc = getHeatCapacity(entity)
-  if (hc != null) stats.push({ label: 'Heat Capacity', value: hc })
-
-  const ss = getSystemSlots(entity)
-  if (ss != null) stats.push({ label: 'System Slots', value: ss })
-
-  const ms = getModuleSlots(entity)
-  if (ms != null) stats.push({ label: 'Module Slots', value: ms })
-
-  const cc = getCargoCapacity(entity)
-  if (cc != null) stats.push({ label: 'Cargo Capacity', value: cc })
-
-  const sv = getSalvageValue(entity)
-  if (sv != null) stats.push({ label: 'Salvage Value', value: sv })
-
-  const sr = getSlotsRequired(entity)
-  if (sr != null) stats.push({ label: 'Slots Required', value: sr })
-
-  const hp = getHitPoints(entity)
-  if (hp != null) stats.push({ label: 'Hit Points', value: hp })
-
-  if (techLevel != null) stats.push({ label: 'Tech Level', value: techLevel })
+  // The stats in the order every surface keeps (`bookStats`): Tech Level,
+  // then each group, under its full name; zeros are not printed.
+  const stats: { label: string; value: string | number }[] = bookStats(entity as SURefMetaEntity, {
+    techLevel,
+  }).map((fact) => ({ label: fact.label, value: fact.value }))
 
   const actionType = getActionType(entity)
   if (actionType) stats.push({ label: 'Action Type', value: actionType })
@@ -477,7 +401,7 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
             (!block.type || block.type === 'paragraph') &&
             typeof block.value === 'string'
           ) {
-            paragraphs.push(block.value)
+            paragraphs.push(prose(block.value))
           }
         }
       }
@@ -489,12 +413,13 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
   // note on `StaticEntitySummary.table`.
   const table =
     'table' in entity && entity.table && !isColumnsTable(entity.table)
-      ? tableRows(entity.table)
+      ? tableRows(entity.table).map((row) => ({ ...row, value: prose(row.value) }))
       : []
 
   return {
     name,
-    description,
+    // Unless the caller draws references, they read as words (`prose`).
+    description: description === undefined ? undefined : prose(description),
     source,
     page,
     techLevel,

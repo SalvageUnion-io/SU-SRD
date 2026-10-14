@@ -9,14 +9,13 @@ import {
 import { expect, test } from './fixtures'
 
 /**
- * Wired build, then the share round-trip, against the Header C LiveSheet shell
- * (plan 4.8).
+ * Wired build, then the share round-trip, against the Header C LiveSheet shell.
  *
  * **The two halves are two tests on purpose.** The wiring test is about the
  * live sheets; the share test is about the live public sheet
- * ([ADR-032](../../../docs/ARCHITECTURE.md#adr-032)), which is
+ * ([ADR-032](../../../docs/adr/032-public-read-only-sheets.md)), which is
  * the only way to share
- * ([ADR-036](../../../docs/ARCHITECTURE.md#adr-036)).
+ * ([ADR-036](../../../docs/ARCHITECTURE.md#decisions)).
  *
  * Both are signed in (the default `test` from `fixtures.ts`), so both SKIP with
  * a stated reason in a build with no test sign-in seam and run for real in the
@@ -24,7 +23,7 @@ import { expect, test } from './fixtures'
  * and reading the page back is the deliberately unauthenticated
  * `publicSheet.get` — so the share test needs a Convex backend.
  *
- * IndexedDB persists across page navigations inside one context, so building
+ * The account's rows persist across page navigations inside one context, so building
  * entities before wiring works without state plumbing. Each test gets a fresh
  * context and a fresh account, which is why the second test builds its own
  * pilot rather than inheriting the first test's.
@@ -61,13 +60,11 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
 
   // The mech chip is still on the pilot sheet's rail (full wired composition).
   //
-  // There is no link named "Assigned Mech: Iron Fist" — that was an older rail
-  // markup where the whole row was one anchor. `EntityRow` now renders the role
-  // as `meta` text and the navigation as a separate "View" link whose
-  // accessible name is `View <name>`. Both halves are asserted, because the
-  // point of this line is that the mech is STILL WIRED and reachable after the
-  // crawler was assigned — a name check alone would pass on a row that had lost
-  // its link.
+  // The rail's `UnitRow` renders the role as text and the navigation as a
+  // separate "View" link whose accessible name is `View <name>`. Both halves
+  // are asserted, because the point of this line is that the mech is STILL
+  // WIRED and reachable after the crawler was assigned — a name check alone
+  // would pass on a row that had lost its link.
   await expect(page.getByText('Assigned Mech')).toBeVisible()
   await expect(page.getByRole('link', { name: 'View Iron Fist' })).toBeVisible()
 })
@@ -86,11 +83,12 @@ test('publish the live public sheet and open it with no account', async ({ page,
   // Snapshots are retired: nothing in the dialog mints one.
   await expect(dialog.getByRole('button', { name: /snapshot/i })).toHaveCount(0)
 
-  await dialog.getByRole('button', { name: /publish live sheet/i }).click()
+  // Who can see it: the same control every player thing opens.
+  await dialog.getByRole('radio', { name: /anyone with the link/i }).check()
 
   // The link appears only once the server has the sheet as public.
   await expect(
-    dialog.getByRole('button', { name: /copy public sheet link/i }),
+    dialog.getByRole('button', { name: /copy public link/i }),
     'The copy control appears only once publicSheet.setPublic succeeded.'
   ).toBeVisible()
   const link = (await dialog.locator('code').first().innerText()).trim()

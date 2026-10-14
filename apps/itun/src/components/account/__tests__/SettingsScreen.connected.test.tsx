@@ -1,5 +1,8 @@
 import { afterAll, afterEach, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { FunctionReference } from 'convex/server'
+import { getFunctionName } from 'convex/server'
+import { ConvexError } from 'convex/values'
 
 /**
  * `SettingsScreen` for somebody who has an account.
@@ -12,9 +15,9 @@ import { fireEvent, render, screen } from '@testing-library/react'
  * falls back to the Discord one rather than to nothing.
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
- * Name-keying also retires the modulo wrap the positional queue needed: a
- * state change re-renders and replays the same hooks, which used to run off
- * the end of the queue and collapse the screen back to its loading state.
+ * Name-keying needs no modulo wrap: a state change re-renders and replays the
+ * same hooks, which would run off the end of a positional queue and collapse
+ * the screen back to its loading state.
  */
 
 import type { QueryAnswers } from '../../__tests__/convexMock'
@@ -22,12 +25,29 @@ import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let authed = true
 
+/**
+ * What each account mutation throws this test, keyed by function name
+ * (`'account:deleteAccount'`); a name with no entry lands.
+ */
+let failures: Record<string, unknown> = {}
+
+function useMutationMock(ref: unknown) {
+  const name = getFunctionName(ref as FunctionReference<'mutation'>)
+  return async () => {
+    if (name in failures) throw failures[name]
+    return null
+  }
+}
+
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
 // `authReact` because the profile mounts `SignInControl`.
 const convexMocks = await installConvexMocks({
   authReact: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
+  convexReact: {
+    useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
+    useMutation: useMutationMock,
+  },
 })
 
 const { SettingsScreen } = await import('../SettingsScreen')
@@ -54,6 +74,7 @@ function setOnline(value: boolean): void {
 
 afterEach(() => {
   authed = true
+  failures = {}
   setOnline(true)
 })
 
@@ -166,6 +187,62 @@ describe('taking your data, and taking it away', () => {
     wrap()
     // A crawler is communal; deleting yourself must not delete the table's game.
     expect(screen.getByText(/Games you are in survive/i)).toBeTruthy()
+  })
+})
+
+/** Press a button whose write settles inside act(), so its failure line has rendered. */
+async function press(label: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByText(label))
+  })
+}
+
+describe('a write the server does not take says so', () => {
+  test("a refused deletion says the server's words", async () => {
+    failures = { 'account:deleteAccount': new ConvexError('You still organise a Game.') }
+    withQueries(profileQueries(ME))
+    wrap()
+
+    fireEvent.click(screen.getByText('Delete my account'))
+    await press('Permanently delete')
+    expect(screen.getByText('You still organise a Game.')).toBeTruthy()
+  })
+
+  test('a failed deletion says so in words, never its raw text', async () => {
+    failures = {
+      'account:deleteAccount': new Error('[CONVEX M(account:deleteAccount)] Server Error'),
+    }
+    withQueries(profileQueries(ME))
+    wrap()
+
+    fireEvent.click(screen.getByText('Delete my account'))
+    await press('Permanently delete')
+    expect(screen.getByText('Your account could not be deleted. Try again.')).toBeTruthy()
+    expect(screen.queryByText(/Server Error/)).toBeNull()
+  })
+
+  test('Cancel clears the failure line', async () => {
+    failures = { 'account:deleteAccount': new Error('boom') }
+    withQueries(profileQueries(ME))
+    wrap()
+
+    fireEvent.click(screen.getByText('Delete my account'))
+    await press('Permanently delete')
+    expect(screen.getByText('Your account could not be deleted. Try again.')).toBeTruthy()
+    fireEvent.click(screen.getByText('Cancel'))
+    expect(screen.queryByText('Your account could not be deleted. Try again.')).toBeNull()
+  })
+
+  test('a failed display-name save says so in words, never its raw text', async () => {
+    failures = {
+      'account:updateProfile': new Error('[CONVEX M(account:updateProfile)] Server Error'),
+    }
+    withQueries(profileQueries(ME))
+    wrap()
+
+    await press('Save')
+    expect(screen.getByText('Your display name could not be saved. Try again.')).toBeTruthy()
+    expect(screen.queryByText(/Server Error/)).toBeNull()
   })
 })
 

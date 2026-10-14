@@ -1,0 +1,337 @@
+/*
+ * The package stylesheet, part 7 of 21: the stat column and the entity page.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ The stat column (`components/atoms/StatColumn.tsx`) ═══════════════════
+ *
+ * The book's framed numeral beside its ink stamp. Two cells to a row on a
+ * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
+ * `row-reverse` draws the numeral first while the source reads label, value.
+ * The stamp is sized to its label, not to the cell: the rest of the cell is
+ * paper, so a column of stats reads as numerals with tags (the book's weight)
+ * rather than as solid ink bars that outweigh the title and the art. It may
+ * still shrink and wrap when the cell is narrower than the label.
+ */
+.su-stat-column {
+  display: grid;
+  gap: var(--space-6) var(--space-8);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.su-stat-column__cell {
+  display: flex;
+  min-height: 40px;
+}
+
+.su-stat-column__value {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  display: flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  margin: 0;
+  width: 42px;
+}
+
+.su-stat-column__label {
+  align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: flex;
+  flex: 0 1 auto;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  min-width: 0;
+  padding: 0 var(--space-8);
+  text-transform: uppercase;
+}
+
+@media (min-width: 40rem) {
+  .su-stat-column {
+    gap: var(--space-6) var(--space-14);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .su-stat-column__value {
+    width: 52px;
+  }
+
+  .su-stat-column__label {
+    font-size: var(--text-sm);
+    padding: 0 var(--space-12);
+  }
+}
+
+/* The compact column (`StatColumn compact`): the band's smaller cells, two a
+   line at every width, for a narrow column beside other content (the ITUN mech
+   sheet's hero, beside the player's fields). */
+.su-stat-column.su-stat-column--compact {
+  gap: var(--space-4) var(--space-6);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.su-stat-column--compact .su-stat-column__cell {
+  min-height: 32px;
+}
+
+.su-stat-column--compact .su-stat-column__value {
+  font-size: var(--text-readout);
+  width: 36px;
+}
+
+.su-stat-column--compact .su-stat-column__label {
+  flex: 1 1 auto;
+  font-size: var(--text-badge);
+  padding: 0 var(--space-8);
+}
+
+/* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
+   carry every entity's stats, a chassis's eight too, so they are the column's
+   compact cells: a smaller framed numeral and label, a row of cells sized to
+   their labels that wraps, not a grid whose empty columns would push the
+   aside off the notch. On a phone (the cluster under the title) five or more
+   take two cells a line; from `sm` they take four, two lines at most. */
+.su-chapter-band[data-aside='notch'] .su-stat-column {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column__cell {
+  min-height: 32px;
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column__value {
+  font-size: var(--text-readout);
+  width: 36px;
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column__label {
+  font-size: var(--text-badge);
+  padding: 0 var(--space-8);
+}
+
+@media (min-width: 40rem) {
+  .su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) {
+    grid-template-columns: repeat(4, auto);
+  }
+}
+
+/* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
+ *
+ * Boards 07 and 08. The card hands its title to the page's chapter band and
+ * its footer to the foot band, and lays its body out as a page: the line art
+ * as the hero on the left, and on the right the prose, the stat column and,
+ * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
+ * actions, nested trays, patterns) runs the full width beneath.
+ *
+ * One content order at every width, the DOM's: art, then a
+ * pattern's opening, the prose, the stat column and the chassis ability, so a
+ * keyboard and a screen reader meet them in the order the eye does. The right
+ * column is `display: contents` on a phone, so its children join the page's
+ * flex column; from `lg` it runs beside (and flows around) the art.
+ */
+.su-entity-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-entity-page__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.su-entity-page__side {
+  display: contents;
+}
+
+/* A pattern page's pattern, after the art and before the chassis prose.
+   Its prose reads at the page's reading size, as the chassis prose under it does. */
+.su-entity-page__opening {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-lg);
+  gap: var(--space-12);
+  line-height: 1.6;
+}
+
+.su-entity-page__prose {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-lg);
+  gap: var(--space-8);
+  line-height: 1.6;
+}
+
+/* The flavour line is set one step under the prose (boards 07, 08). */
+.su-entity-page__prose [data-prose='flavor'] {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A phone reads at 17px (SrdMobile). */
+@media (max-width: 40rem) {
+  .su-entity-page__opening,
+  .su-entity-page__prose {
+    font-size: 17px;
+  }
+}
+
+.su-entity-page__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.su-entity-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* An entity's own table stands on the page in a frame of its own. */
+.su-entity-page__table {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/* With no art the page is one reading column, but for the tags, which run
+   to the page's far end under the band's stamps: the prose, its callouts and
+   stats, and everything the page carries after them (its table, actions and
+   nested entities) share the one 52rem measure. A guide keeps its own (its
+   rail stands beside the measure, `guides.css`). */
+.su-entity-page__main:not(.su-entity-page__main--art)
+  > .su-entity-page__side
+  > :not(.su-entity-page__prose),
+.su-entity-page__main:not(.su-entity-page__main--art)
+  .su-entity-page__prose
+  > :not(.su-entity-page__tags),
+.su-entity-page:not(.su-entity-page--flow)
+  > :not(.su-entity-page__main, .su-entity-page__wide, .su-guide) {
+  max-width: 52rem;
+}
+
+@media (min-width: 64rem) {
+  .su-entity-page__main--art {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: var(--space-40);
+  }
+
+  .su-entity-page__main--art > .su-entity-page__art {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .su-entity-page__side {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: var(--space-24);
+    min-width: 0;
+  }
+}
+
+/*
+ * WITH ART, the page FLOWS around it (`--flow`, from 64rem): the art floats
+ * left and everything after it — the prose column, then the actions and the
+ * nested trays — runs down beside it, taking the full width once it passes
+ * the art's foot, so a short page (an NPC, a creature) leaves no column of
+ * empty paper beside the image. Each card and tray is its own formatting
+ * context, so one that starts beside the art narrows as a whole instead of
+ * running under it. Wide blocks — the roll table, a class's ability tree,
+ * the pattern rows, `after` — start below the art (`clear`), never squeezed.
+ */
+@media (min-width: 64rem) {
+  .su-entity-page--flow {
+    display: flow-root;
+  }
+
+  .su-entity-page--flow > * + * {
+    margin-top: var(--space-24);
+  }
+
+  .su-entity-page--flow > .su-entity-page__main--art {
+    display: block;
+  }
+
+  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__art {
+    float: left;
+    margin: 0 var(--space-32) var(--space-16) 0;
+    width: 42%;
+  }
+
+  /* The prose column is no column here: a flex box beside the float would
+     keep the whole of it narrow down the page. As blocks, the opening, stats
+     and chassis abilities each narrow only while the art is beside them. */
+  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__side {
+    display: block;
+  }
+
+  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__side > * + * {
+    margin-top: var(--space-24);
+  }
+
+  .su-entity-page--flow .su-entity-page__section {
+    display: block;
+  }
+
+  .su-entity-page--flow .su-entity-page__section > * + * {
+    margin-top: var(--space-12);
+  }
+
+  .su-entity-page--flow .su-entity-page__section > :not(:first-child) {
+    display: flow-root;
+  }
+
+  .su-entity-page--flow > .su-entity-page__table,
+  .su-entity-page--flow > .su-entity-page__wide {
+    clear: left;
+  }
+}
+
+.su-entity-page__wide:empty {
+  display: none;
+}
+
+/* A stat group's first cell (`StatColumn`, `data-group-start`): in the grid it
+   opens a new row, so provenance, vitals and capacity each read as a line; on
+   the band's line of cells it is a wider gap. */
+.su-stat-column__cell[data-group-start] {
+  grid-column-start: 1;
+}
+
+/* The compact column flows straight on, two a line, so a chassis's eight
+   stats fill four even lines rather than leaving holes where a group opens
+   (owner's call, 2026-10-14). The order is the stat order still. */
+.su-stat-column--compact .su-stat-column__cell[data-group-start] {
+  grid-column-start: auto;
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column > [data-group-start] {
+  margin-inline-start: var(--space-8);
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) > [data-group-start] {
+  margin-inline-start: 0;
+}

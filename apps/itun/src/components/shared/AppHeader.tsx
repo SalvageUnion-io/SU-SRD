@@ -1,71 +1,96 @@
-import type { AppBarNavItem, NavDrawerItem } from 'component-lib'
+import type { NavDrawerItem } from 'component-lib'
 import { AppBar, Badge, NavDrawer } from 'component-lib'
-import type { ElementType, ReactNode } from 'react'
-import { SRD_SITE_URL } from 'salvageunion-reference'
+import { borderWidth, color } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { MARK_SRC } from '../../lib/appUrl'
+import { DOC_PAGES } from '../../lib/docPages'
+import { SRD_ORIGIN } from '../../lib/srdOrigin'
 
 /**
- * AppHeader — the ITUN builder's masthead (app-local config over the shared
- * `AppBar`): the "In the Union Now" brand, ITUN's nav (About / Changelog +
- * outbound Discord / SRD cross-links), the "Buy the game" button, and
- * app-supplied `actions` after it (ITUN's Games and account menus). Below `lg` the nav
- * collapses into the shared `NavDrawer`, with `mobileActions` beside the
- * hamburger and `drawerExtra` inside the drawer.
+ * AppHeader — ITUN's preset of the shared Union bar (`AppBar`, ruleset §3.11):
+ * the one Union bar, on the **Build** side of the switcher, with ITUN's nav
+ * inline — Shelves · Games · Starter Set — then the search slot, "Buy the
+ * game" (from 80rem, where the row has room for it beside the nav) and the
+ * app-supplied `actions` (the account menu) at the end: the SRD's bar, plus
+ * the account. Below `lg` the nav
+ * collapses into the shared `NavDrawer`, with `mobileSearch` and
+ * `mobileActions` beside the hamburger and `drawerExtra` inside the drawer.
  *
- * One row, with no sub-header: the account cluster is those menus.
+ * About and Changelog are not destinations in the nav: they sit at the
+ * drawer's foot, in the account menu on a signed-in desktop, and
+ * in the page foot on every page (`SiteFooter`). The bar never carries them,
+ * signed in or out (board 09's bar has neither).
  *
- * No search, either. ITUN's reference search is a floating button in the
- * bottom-right corner (`Fab`, wired in ITUN's `GlobalSearch.tsx`), so this
- * preset fills nothing into `AppBar`'s `search` slot. That slot stays on
- * `AppBar`, where the SRD site's `SiteHeader` mounts its top-of-page search.
+ * The switcher replaces the old "SRD ↗" link: the reference is the other tab
+ * of the same bar, not an off-site destination. The drawer's Discord entry is
+ * the SRD's `/discord` page, so it opens in this tab too; only "Buy the game"
+ * leaves the site, in a new one.
  *
- * The three slots stay content-agnostic, so this file knows nothing about
- * accounts, Convex or Games. ITUN fills them (`src/components/account/
- * HeaderAccount.tsx`).
+ * "Games" is the app's own control (`games`), a menu rather than a link — there
+ * is no Games page; picking one sets what the Shelves hub shows — so it takes
+ * its place in the nav as a slot.
+ *
+ * Search is a slot pair: `search` (the desktop search field, in the
+ * bar from `lg`) and `mobileSearch` (the phone's icon button, in the mobile
+ * cluster before the account). Both are ITUN's `GlobalSearch`; there is no
+ * floating search button.
+ *
+ * The slots stay content-agnostic, so this file knows nothing about accounts,
+ * Convex or Games. ITUN fills them (`src/components/account/HeaderAccount.tsx`).
  *
  * There is no Encounter entry. GM opposition lives on the Mediator sheet's NPC
  * tray, backed by Convex (`api.mediator.*`), not at a top-level destination.
  *
  * Router-agnostic: internal links route through the injected `LinkComponent`
- * (ITUN passes its router-aware AppLink; defaults to a plain anchor).
+ * (ITUN passes its router-aware AppLink; defaults to a plain anchor), and
+ * `pathname` marks the page you are on.
  */
 
-const DESKTOP_NAV: AppBarNavItem[] = [
-  { label: 'About', href: '/about' },
-  { label: 'Changelog', href: '/changelog' },
-  { label: 'Discord ↗', href: `${SRD_SITE_URL}/discord/`, external: true },
-  { label: 'SRD ↗', href: SRD_SITE_URL, external: true },
-]
+const BUY_HREF = 'https://leyline.press/collections/salvage-union'
+
+const BRAND_FRAME = {
+  borderColor: color.ink,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  display: 'inline-flex',
+  flexShrink: 0,
+} satisfies CSSProperties
+
+// Narrower than the full rung's 8px inline padding.
+const BRAND_PLATE = { paddingInline: '6px' } satisfies CSSProperties
+
+// No inset ring: the outer span draws the ink frame, so the inverse plate's
+// own ring would double the seam.
+const BRAND_PLATE_INVERSE = { ...BRAND_PLATE, boxShadow: 'none' } satisfies CSSProperties
+
+/** The product name in two plates: all but its last word, then the last word inverse. */
+const BRAND_SPLIT = PRODUCT.name.lastIndexOf(' ')
 
 /** ITUN's two-tone brand tag for the mobile drawer. */
 const ITUN_DRAWER_BRAND = (
-  <span className="inline-flex shrink-0 border border-ink">
-    <Badge shape="stamp" size="full" className="px-1.5">
-      In the Union
+  <span style={BRAND_FRAME}>
+    <Badge shape="stamp" size="full" style={BRAND_PLATE}>
+      {PRODUCT.name.slice(0, BRAND_SPLIT)}
     </Badge>
-    {/* `ring-0`: the outer span draws the ink frame, so the inverse plate's own
-        ring would double the seam. */}
-    <Badge shape="stamp" size="full" surface="inverse" className="px-1.5 ring-0">
-      Now
+    <Badge shape="stamp" size="full" surface="inverse" style={BRAND_PLATE_INVERSE}>
+      {PRODUCT.name.slice(BRAND_SPLIT + 1)}
     </Badge>
   </span>
 )
 
-const DRAWER_NAV: NavDrawerItem[] = [
-  { label: 'About', href: '/about' },
-  { label: 'Changelog', href: '/changelog' },
-  { label: 'Discord ↗', href: `${SRD_SITE_URL}/discord/`, external: true },
-  { label: 'SalvageUnion.io SRD ↗', href: SRD_SITE_URL, external: true },
-  {
-    label: 'Buy the game',
-    href: 'https://leyline.press/collections/salvage-union',
-    external: true,
-  },
-]
-
 type AppHeaderProps = {
   /** Link component for internal routes. Defaults to a plain anchor; ITUN passes AppLink. */
   LinkComponent?: ElementType
-  /** Desktop controls after "Buy the game" — ITUN's Games and account menus. */
+  /** The current route, to mark "you are here" in the nav. */
+  pathname?: string
+  /** The nav's Games control (ITUN's Games menu), between Shelves and Starter Set. */
+  games?: ReactNode
+  /** Desktop search trigger, before the account control. */
+  search?: ReactNode
+  /** Phone search icon button, beside the hamburger below `lg`. */
+  mobileSearch?: ReactNode
+  /** Desktop controls at the bar's end — ITUN's account menu or sign-in. */
   actions?: ReactNode
   /** Mobile controls beside the hamburger, below `lg` — ITUN's avatar-only account menu. */
   mobileActions?: ReactNode
@@ -78,31 +103,56 @@ type AppHeaderProps = {
 
 export function AppHeader({
   LinkComponent = 'a',
+  pathname = '',
+  games,
+  search,
+  mobileSearch,
   actions,
   mobileActions,
   drawerExtra,
 }: AppHeaderProps) {
+  const onShelves = pathname === '/'
+  const onStarterSet = pathname.startsWith('/starter')
+
+  const drawerNav: NavDrawerItem[] = [
+    { label: 'Shelves', href: '/', active: onShelves },
+    { label: 'Starter Set', href: '/starter/', active: onStarterSet },
+    DOC_PAGES.discord,
+    { label: 'Buy the game', href: BUY_HREF, external: true },
+  ]
+
+  // The shared doc pages, on the SRD (`docPages.ts`).
+  const aboutLinks: NavDrawerItem[] = [DOC_PAGES.about, DOC_PAGES.changelog, DOC_PAGES.api]
+
   return (
     <AppBar
-      wordmark="IN THE UNION NOW"
-      badge="Beta"
-      eyebrow="A Salvage Union Character Manager"
-      brandShrink
+      product="build"
+      referenceHref={SRD_ORIGIN}
+      buildHref="/"
       LinkComponent={LinkComponent}
-      navItems={DESKTOP_NAV}
-      buyHref="https://leyline.press/collections/salvage-union"
-      buyLabel="Buy the game"
+      markSrc={MARK_SRC}
+      navItems={[
+        { label: 'Shelves', href: '/', active: onShelves },
+        ...(games ? [{ id: 'games', node: games }] : []),
+        { label: 'Starter Set', href: '/starter/', active: onStarterSet },
+      ]}
+      search={search}
+      buyHref={BUY_HREF}
       actions={actions}
       mobile={
         <>
+          {mobileSearch}
           {mobileActions}
           <NavDrawer
             brand={ITUN_DRAWER_BRAND}
-            navItems={DRAWER_NAV}
+            navItems={drawerNav}
+            footItems={aboutLinks}
             extra={drawerExtra}
             LinkComponent={LinkComponent}
-            triggerClassName="p-1.5"
-            panelClassName="w-72"
+            // NavDrawer takes classes, not styles, here: its own padding and
+            // width are stylesheet rules these override (`styles/screens.css`).
+            triggerClassName="su-app-header__drawer-trigger"
+            panelClassName="su-app-header__drawer-panel"
           />
         </>
       }

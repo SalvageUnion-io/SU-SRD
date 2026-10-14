@@ -2,8 +2,9 @@
  * AssignPicker — the one assignment picker for every slot on a sheet's Linked
  * Units rail (ADR-037).
  *
- * A button that opens a radio list of candidates, then draws the link on
- * confirm. It replaces three near-identical dialogs (`AssignPilotToMech`,
+ * A button that opens a list of candidates — each the unit's Row in select
+ * mode (EDL "Modes": ink ring and the "Selected" seal), one radio group —
+ * then draws the link on confirm. It replaces three near-identical dialogs (`AssignPilotToMech`,
  * `AssignCrawlerToPilot`, `AssignPilotToCrawler`) that differed only in which
  * kinds they listed and which way round the link pointed — and none of which
  * looked at where anything lived, so a pilot in one Game was offered every
@@ -11,7 +12,7 @@
  *
  * ## Which candidates
  *
- * Only entities in the SUBJECT's container: the same Game, or My Stuff, which is
+ * Only entities in the SUBJECT's container: the same Game, or your shelves, which is
  * a solo Game for this purpose. Filtering applies only when `mode ===
  * 'connected'` — signed out there is one pile, and every entity is in it.
  *
@@ -39,28 +40,52 @@
  * and replaced by generic copy rather than its raw message.
  */
 
-import { Button, cn, FieldError, ModalShell, Radio } from 'component-lib'
+import { Button, EmptyState, Entity, FieldError, ModalShell, RadioCardGroup } from 'component-lib'
+import { color, font, fontSize, space } from 'component-lib/design/tokens'
+import type { Container, ContainerFields } from 'itun-domain/container'
+import { containerOf, sameContainer } from 'itun-domain/container'
+import { linkTypeFor } from 'itun-domain/links/linkRules'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'
 import { useCrawlers, useMechs, usePilots } from '../../hooks/entities'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { Container, ContainerFields } from '../../lib/container'
-import { containerOf, sameContainer } from '../../lib/container'
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
+import { failureMessage } from '../../lib/connection/useServerAction'
 import { assignLink } from '../../lib/links/assignLink'
 import { LinkRefused } from '../../lib/links/linkRefused'
-import { linkTypeFor } from '../../lib/links/linkRules'
 import { readReference } from '../../lib/readReference'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
+import type { UnitReading } from '../../lib/units/unitModel'
+import { unitRowModel } from '../../lib/units/unitModel'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
-import { failureMessage } from '../shared/useConfirm'
 import type { SoftLinkStore } from './useSoftLinks'
 
 type Kind = EntityRef['type']
+
+const BODY = {
+  backgroundColor: color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  padding: space[20],
+} satisfies CSSProperties
+
+const NOTE = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+const ACTIONS = {
+  display: 'flex',
+  gap: space[8],
+  justifyContent: 'flex-end',
+} satisfies CSSProperties
 
 /** The store surface the picker reads and writes — injectable in tests. */
 export type AssignPickerStore = SoftLinkStore & {
@@ -130,11 +155,11 @@ const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
     assignAria: 'Assign crawler to mech',
     change: 'Change Crawler',
     changeAria: 'Change crawler for this mech',
-    title: 'Dock Mech in Crawler',
+    title: 'Assign Mech to Crawler',
     confirm: 'Assign',
     confirmAria: 'Confirm crawler assignment',
     pending: 'Assigning…',
-    note: 'A mech docks in one crawler, on its own assignment — its pilot is assigned separately.',
+    note: 'A mech is assigned to one crawler, on its own — its pilot is assigned separately.',
   },
   'crawler.pilot': {
     assign: '+ Add Crew',
@@ -142,15 +167,15 @@ const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
     confirm: 'Add to Crew',
     confirmAria: 'Confirm crew assignment',
     pending: 'Adding…',
-    note: 'A pilot crews one crawler — adding one already aboard another moves them here.',
+    note: 'A pilot crews one crawler — adding one already assigned to another moves them here.',
   },
   'crawler.mech': {
-    assign: '+ Dock Mech',
-    title: 'Dock Mech in Crawler',
-    confirm: 'Dock',
-    confirmAria: 'Confirm mech docking',
-    pending: 'Docking…',
-    note: 'A mech docks in one crawler — docking one from another bay moves it here. Its pilot is assigned separately.',
+    assign: '+ Assign Mech',
+    title: 'Assign Mech to Crawler',
+    confirm: 'Assign',
+    confirmAria: 'Confirm mech assignment',
+    pending: 'Assigning…',
+    note: 'A mech is assigned to one crawler — assigning one from another bay moves it here. Its pilot is assigned separately.',
   },
 }
 
@@ -158,9 +183,11 @@ const NOUN: Record<Kind, { one: string; many: string }> = {
   pilot: { one: 'pilot', many: 'pilots' },
   mech: { one: 'mech', many: 'mechs' },
   crawler: { one: 'crawler', many: 'crawlers' },
+  npc: { one: 'NPC', many: 'NPCs' },
 }
 
-type Candidate = { id: string; name: string; description?: string }
+/** A candidate's Row: its name, what it is built as, and its readings as chips. */
+type Candidate = { id: string; name: string; note?: string | undefined; readings?: UnitReading[] }
 
 /** Chassis name for a mech row, best-effort (reference data may not be loaded). */
 function chassisName(chassisRef: string): string | undefined {
@@ -175,18 +202,18 @@ function chassisName(chassisRef: string): string | undefined {
 const pilotCandidate = (p: Pilot): Candidate => ({
   id: p.id,
   name: p.name,
-  description: p.callsign ? `“${p.callsign}”` : undefined,
+  readings: p.callsign ? [{ label: 'Callsign', value: p.callsign }] : [],
 })
 
 const mechCandidate = (m: Mech): Candidate => ({
   id: m.id,
   name: m.name,
-  description: chassisName(m.chassisRef),
+  note: chassisName(m.chassisRef),
 })
 
 const crawlerCandidate = (c: Crawler): Candidate => {
   const tl = parseCrawlerTechLevel(c.techLevel)
-  return { id: c.id, name: c.name, description: tl === undefined ? undefined : `Tech ${tl}` }
+  return { id: c.id, name: c.name, readings: tl === undefined ? [] : [{ label: 'TL', value: tl }] }
 }
 
 /**
@@ -199,9 +226,9 @@ function emptyCopy(kind: Kind, scope: Container | null, anyAtAll: boolean): stri
     return anyAtAll ? `No other ${many} to pick.` : `No ${many} yet — create one first.`
   }
   if (scope.kind === 'game') {
-    return anyAtAll ? `No other ${many} in this game.` : `No ${many} in this game yet.`
+    return anyAtAll ? `No other ${many} in this Game.` : `No ${many} in this Game yet.`
   }
-  return anyAtAll ? `No other ${many} in My Stuff.` : `No ${many} in My Stuff.`
+  return anyAtAll ? `No other ${many} on your shelf.` : `No ${many} on your shelf.`
 }
 
 /** Player copy for a failed assignment. Never the raw message of a defect. */
@@ -226,7 +253,6 @@ type AssignPickerProps = {
   /** Inject to avoid the Zustand global in tests. */
   store?: AssignPickerStore
   onAssigned?: () => void
-  className?: string
 }
 
 export function AssignPicker({
@@ -238,7 +264,6 @@ export function AssignPicker({
   size = 'compact',
   store,
   onAssigned,
-  className,
 }: AssignPickerProps) {
   const [open, setOpen] = useState(false)
   const [selectedId, setSelectedId] = useState('')
@@ -313,7 +338,7 @@ export function AssignPicker({
 
   return (
     <>
-      <Button size={size} onClick={openDialog} className={cn(className)} aria-label={ariaLabel}>
+      <Button size={size} onClick={openDialog} aria-label={ariaLabel}>
         {label}
       </Button>
 
@@ -323,32 +348,40 @@ export function AssignPicker({
           if (!next) closeDialog()
         }}
         title={copy.title}
-        maxWidth="max-w-md"
+        maxWidth="su-assign-picker__dialog"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
+        <div style={BODY}>
           {candidates.length === 0 ? (
-            <p className="font-body text-sm text-wk-muted">{emptyCopy(pick, scope, inScope > 0)}</p>
+            <EmptyState variant="quiet" body={emptyCopy(pick, scope, inScope > 0)} />
           ) : (
-            <div className="space-y-2">
+            <RadioCardGroup label={copy.title} className="su-assign-picker__candidates">
               {candidates.map((c) => (
-                <Radio
+                <Entity
                   key={c.id}
-                  name={`${subject.type}-${pick}-select`}
-                  value={c.id}
-                  checked={selectedId === c.id}
-                  onChange={() => setSelectedId(c.id)}
-                  label={c.name}
-                  description={c.description}
+                  form="row"
+                  model={unitRowModel({
+                    kind: pick,
+                    name: c.name,
+                    note: c.note,
+                    readings: c.readings,
+                  })}
+                  mode={{
+                    kind: 'select',
+                    role: 'radio',
+                    selected: selectedId === c.id,
+                    onSelect: () => setSelectedId(c.id),
+                    label: c.name,
+                  }}
                 />
               ))}
-            </div>
+            </RadioCardGroup>
           )}
 
-          <p className="font-body text-xs text-wk-muted">{copy.note}</p>
+          <p style={NOTE}>{copy.note}</p>
 
           {error && <FieldError>{error}</FieldError>}
 
-          <div className="flex justify-end gap-2">
+          <div style={ACTIONS}>
             <Button variant="ghost" size="compact" onClick={closeDialog} disabled={pending}>
               Cancel
             </Button>

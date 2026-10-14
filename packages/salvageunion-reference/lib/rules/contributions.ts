@@ -7,12 +7,13 @@
  * attached, so a derivation can hand the provenance panel "Beefcake +7" instead
  * of an anonymous addend.
  *
- * Pure and side-effect-free ([ADR-006](../../../../docs/ARCHITECTURE.md#adr-006)):
+ * Pure and side-effect-free ([ADR-006](../../../../docs/ARCHITECTURE.md#decisions)):
  * no I/O, no ORM writes, no mutation of inputs.
  */
 
-import { SalvageUnionReference } from '../index.js'
-import { resolveInstalledRef } from './resolveRefs.js'
+import { SalvageUnionReference } from '../index'
+import type { HouseRuleId } from './houseRules'
+import { resolveInstalledRef } from './resolveRefs'
 
 /** The stat keys a contribution may target. Mirrors `ContributionStatSchema`. */
 export type ContributionStat =
@@ -56,6 +57,11 @@ export type ResolvedContribution = {
   amount: number
   /** How many copies contributed (1 unless the item stacks and is installed twice). */
   copies: number
+  /**
+   * Set when a house rule, not the book, produced this contribution: the
+   * provenance ledger labels the line "house rule" (`houseRules.ts`).
+   */
+  houseRule?: HouseRuleId
 }
 
 /**

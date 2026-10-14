@@ -9,9 +9,11 @@
  * so a miss lands here instead of on the platform's `404-page` handling:
  *
  *   1. `/assets/*` → a bare **404**.
- *   2. anything else → `404.html`, read through the asset binding, with a 404.
+ *   2. a page path from before the move out of `/schema/…/item/` → a **301**
+ *      to where it lives now (`../lib/legacyPaths.ts`).
+ *   3. anything else → `404.html`, read through the asset binding, with a 404.
  *
- * Both say `cache-control: no-store`.
+ * The 404s say `cache-control: no-store`; the 301 is permanent and cacheable.
  *
  * ## Why the script exists at all
  *
@@ -21,14 +23,16 @@
  * a chunk that is not there: a client that asked for a chunk before the deploy
  * bringing it finished kept the 404 for a year. `_headers` is not applied to a
  * response this script builds, so the 404s here carry only what is set below.
- * The page in rule 2 comes back from the binding, which does apply `_headers`
+ * The page in rule 3 comes back from the binding, which does apply `_headers`
  * (the CSP and the rest of the `/*` block) for its path, `/404`.
  *
- * A miss is never cached, whatever its path: the next deploy may bring the file.
+ * A 404 is never cached, whatever its path: the next deploy may bring the file.
+ * A legacy 301 is, for a day: nothing will be emitted under that grammar again.
  */
 
 import type { ObservabilityEnv } from 'observability/cloudflare'
 import { withObservability } from 'observability/cloudflare'
+import { currentPathFor } from '../lib/legacyPaths'
 
 export type Env = ObservabilityEnv & {
   /** Static assets (the built site), with `not_found_handling: none`. */
@@ -54,7 +58,19 @@ export default withObservability('su-srd', {
       return notFound('Not found', { 'content-type': 'text/plain;charset=UTF-8' })
     }
 
-    // 2. Every other miss: the site's own 404 page.
+    // 2. A page under the old grammar: one hop to its new address, query kept.
+    const moved = currentPathFor(url.pathname)
+    if (moved) {
+      return new Response(null, {
+        status: 301,
+        headers: {
+          location: `${moved}${url.search}`,
+          'cache-control': 'public, max-age=86400',
+        },
+      })
+    }
+
+    // 3. Every other miss: the site's own 404 page.
     const page = await env.ASSETS.fetch(
       new Request(new URL(NOT_FOUND_PAGE, url), { method: 'GET' })
     )

@@ -1,5 +1,5 @@
 /**
- * SheetActionsMenu — the sticky-bar "⋯" overflow (design review U-5).
+ * SheetActionsMenu — the sticky-bar "⋯" overflow.
  *
  * At small widths the condensed sheet bar is too crowded for every sheet
  * action, so Sheet.tsx folds the reads and admin moves (Print, Export, the
@@ -10,18 +10,18 @@
  * always-mounted Sheet.
  */
 
-import { cn, PopoverPanel } from 'component-lib'
+import { Button, PopoverPanel } from 'component-lib'
 import { Ellipsis } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { SHEET_ICONBTN_CLASS } from './sheetChrome'
+import type { CSSProperties, ReactNode } from 'react'
+
+const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 
 type SheetActionsMenuProps = {
   /** The actions — buttons and controls, not menu items. */
   children: ReactNode
-  className?: string
 }
 
-export function SheetActionsMenu({ children, className }: SheetActionsMenuProps) {
+export function SheetActionsMenu({ children }: SheetActionsMenuProps) {
   return (
     // A disclosure, not a role=menu widget: the panel holds arbitrary controls,
     // and menu semantics would promise menuitem roles and arrow-key navigation
@@ -29,13 +29,11 @@ export function SheetActionsMenu({ children, className }: SheetActionsMenuProps)
     <PopoverPanel
       label="Sheet actions"
       trigger={
-        <button
-          type="button"
-          aria-label="More actions"
-          className={cn(SHEET_ICONBTN_CLASS, 'cursor-pointer', className)}
-        >
-          <Ellipsis className="size-[18px]" aria-hidden="true" />
-        </button>
+        // The icon rung at the page-top control height (`.su-page-action`),
+        // which the library squares to it.
+        <Button size="iconOnly" aria-label="More actions" className="su-page-action">
+          <Ellipsis style={ICON} aria-hidden="true" />
+        </Button>
       }
     >
       {children}

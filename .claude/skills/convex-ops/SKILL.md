@@ -1,6 +1,6 @@
 ---
 name: convex-ops
-description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "In The Union Now is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, when a Convex tool says "No CONVEX_DEPLOYMENT set", when rotating JWT_PRIVATE_KEY/JWKS or AUTH_DISCORD_SECRET, when running a one-off data repair, or when enabling or re-verifying Convex error reporting to Sentry.
+description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "The Cantina is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, when a Convex tool says "No CONVEX_DEPLOYMENT set", when rotating JWT_PRIVATE_KEY/JWKS or AUTH_DISCORD_SECRET, when running a one-off data repair, or when enabling or re-verifying Convex error reporting to Sentry.
 allowed-tools: Bash, Read
 ---
 
@@ -11,17 +11,16 @@ Every failure on this path is **silent, and misattributes**. A missing
 `.convex.site` belongs reports "deployment unreachable", which points at the
 network rather than at the typo. The commands are trivial; the traps are not.
 
-The deployments and the seven deployment variables (what each is, what
-breaks when it is unset):
-[accounts and Games operations](../../../docs/ARCHITECTURE.md#accounts-and-games-operations).
+The deployments: [Convex deployments](../../../docs/ARCHITECTURE.md#deployments);
+the variables: [Convex environment](../../../docs/ARCHITECTURE.md#convex-env).
 This skill is the procedures.
 
 ## Before anything: which deployment?
 
 Production is `exuberant-porpoise-183` (`--prod`, or `--deployment
 alex-jarvis:suref-itun:prod`). Staging is the cloud dev deployment
-`perfect-donkey-72` (`--deployment perfect-donkey-72`), the preview
-slot's backend: only `deploy-preview.yml` pushes to it, never `dev:itun`.
+`perfect-donkey-72` (`--deployment perfect-donkey-72`), the Worker
+Previews' backend: only `deploy-preview.yml` pushes to it, never `dev:itun`.
 Without either flag, `bunx convex` targets the **local** deployment `bun run
 dev:itun` runs. Confirm which one you mean before running anything, and say so in your
 report.
@@ -46,12 +45,12 @@ bunx convex dev --configure existing --team alex-jarvis --project suref-itun \
   --dev-deployment local --once
 
 # Then, with `bun run dev:itun` running, in a second terminal:
-bunx @convex-dev/auth --web-server-url http://localhost:5173   # SITE_URL + JWT keys
+bunx @convex-dev/auth --web-server-url http://localhost:5173/build   # SITE_URL + JWT keys
 bunx convex env set ITUN_TEST_AUTH true
 ```
 
 To sign in, run `await __itunTestSignIn('<any email>', '<8+ char password>')`
-in the browser console on `http://localhost:5173`. Each call signs up a new
+in the browser console on `http://localhost:5173/build/`. Each call signs up a new
 password account (a repeated email is refused), and the session survives
 reloads. `bun run e2e:itun` starts `dev:itun` itself (or reuses a running one),
 so its signed-in specs fail until this setup is done.
@@ -75,13 +74,15 @@ so its signed-in specs fail until this setup is done.
 
 ```bash
 bunx convex env set --prod AUTH_DISCORD_ID <client-id>
-bunx convex env set --prod SITE_URL        <frontend origin>
+bunx convex env set --prod SITE_URL        https://salvageunion.io/build
 ```
 
 `AUTH_DISCORD_SECRET` and the `JWT_PRIVATE_KEY` / `JWKS` pair go in on stdin,
-as in the rotation sections below. `SITE_URL` is the **frontend** origin
-(`https://intheunionnow.com`), not `VITE_CONVEX_SITE_URL` and not the
-`.convex.site` host; nothing prompts for it. Without the JWT pair, sign-in
+as in the rotation sections below. `SITE_URL` is the **frontend** address,
+base included (`https://salvageunion.io/build`, ADR-048), not
+`VITE_CONVEX_SITE_URL` and not the `.convex.site` host; every production
+deploy of itun sets it (`deploy-cloudflare.yml`), so set it by hand only on a
+new deployment. Without the JWT pair, sign-in
 fails only after Discord redirects back, which the probe in step 3 never
 reaches, so check both by length.
 
@@ -103,11 +104,6 @@ op read 'op://<vault>/<item>/credential' | bunx wrangler secret put ITUN_BOT_SEC
 `ITUN_CONVEX_SITE_URL` is the HTTP-actions origin (`.convex.site`), not the
 client URL (`.convex.cloud`) and not the web origin.
 
-For `/su invite`, set `DISCORD_PUBLIC_KEY` to the application's public key from
-`apps/discord-bot/wrangler.jsonc`. It is not a secret, so an argument is fine.
-Set to the wrong application's key, every `/su invite` fails as unverified while
-every other command keeps working: check it first when only invites break.
-
 ## 3. Verify sign-in without signing in
 
 ```bash
@@ -127,9 +123,9 @@ answers everything looks identical to one correctly configured for Discord.
 ## Rotating `JWT_PRIVATE_KEY` / `JWKS`
 
 Rotating the pair **signs every user out**; old sessions were signed by the key
-you replaced. Generate both together, in the formats the
-[deployment variables](../../../docs/ARCHITECTURE.md#deployment-variables)
-table gives, and write both:
+you replaced. Generate both together: `bunx @convex-dev/auth`, with the
+deployment's flag, generates a matching RS256 pair and writes both (it asks
+before overwriting). A pair made elsewhere goes in on stdin, both halves:
 
 ```bash
 printf '%s' "$PEM" | bunx convex env set JWT_PRIVATE_KEY --deployment-name <name>

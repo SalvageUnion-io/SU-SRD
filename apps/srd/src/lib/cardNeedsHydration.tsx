@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { EntityCardStatic } from '../components/EntityCardStatic'
 
 /**
@@ -30,14 +30,12 @@ const NEEDS_A_LISTENER =
  * island path is the status quo and always correct, just heavier. The static
  * path is the optimization, and an optimization must never be the fallback.
  */
-export function cardNeedsHydration(item: SURefEntity, pattern?: SURefObjectPattern): boolean {
+export function cardNeedsHydration(item: SURefEntity, pattern?: SURefObjectAnyPattern): boolean {
   try {
-    const markup = renderToStaticMarkup(
-      <EntityCardStatic item={item} pattern={pattern} titleAs="h1" />
-    )
+    const markup = renderToStaticMarkup(<EntityCardStatic item={item} pattern={pattern} />)
     return NEEDS_A_LISTENER.test(markup)
   } catch {
-    // The island renders the card too; if the static render cannot, ship the
+    // The island renders this same component; if the static render cannot, ship the
     // island. The snapshot gate shows any page that changed path.
     return true
   }

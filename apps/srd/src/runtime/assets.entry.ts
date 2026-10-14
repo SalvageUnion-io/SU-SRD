@@ -27,5 +27,5 @@
 
 import eldridgeCoastMap from '../assets/eldridge-coast-map.webp'
 
-/** Keeps every import above alive through tree-shaking. Not read at runtime. */
+/** @public Keeps every import above alive through tree-shaking. Not read at runtime. */
 export const emittedAssets = [eldridgeCoastMap]

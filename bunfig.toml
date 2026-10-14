@@ -25,26 +25,12 @@ exact = true
 # `minimumReleaseAgeExcludes` below — not lowering this number.
 minimumReleaseAge = 259200 # 3 days, in seconds
 
-# `bun-types` must match packageManager EXACTLY — tools/check-workflows.ts (the
-# bun-version half) fails `bun run check` when they disagree, and it is an exact pin, so the gate turns a
-# routine Bun upgrade into a hard install error for three days. It carries no
+# `bun-types` moves with packageManager, in the same change, and it is an exact
+# pin, so the cooldown would turn a routine Bun upgrade into a hard install
+# error for three days. It carries no
 # install scripts and no runtime code (type declarations only), so the cooldown
 # buys nothing here that it does not already cost.
 minimumReleaseAgeExcludes = ["bun-types"]
 
-[test]
-# Preloads for a ROOT-level `bun test` run, which uses this bunfig for every
-# file it collects rather than each workspace's: the UNION of the workspace
-# preloads. Paths are relative to the repo root.
-preload = [
-  # First: ITUN's `convex/auth.ts` reads the Discord client env at import, and
-  # this must also precede happy-dom (see the file).
-  "./apps/itun/test/env.ts",
-  "./test/happydom.ts",
-  "./test/testing-library.ts",
-  # The ORM refuses to serve data until preloaded; without this every test that
-  # touches SalvageUnionReference throws "Schema '<x>' not loaded".
-  "./test/reference-preload.ts",
-  # ITUN's storage layer is IndexedDB-backed and has no in-memory fallback.
-  "fake-indexeddb/auto",
-]
+# No `[test]` section: each workspace's bunfig owns its preloads, so tests run
+# per workspace (`bun run test`, or a workspace's own), never a root `bun test`.

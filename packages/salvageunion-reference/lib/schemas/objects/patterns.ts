@@ -3,11 +3,11 @@
  * drone configuration entries a pattern is built from.
  */
 
-import { z } from '../../zod.js'
-import { NameSchema, NonNegativeIntegerSchema, PositiveIntegerSchema } from '../common.js'
-import { SourceSchema } from '../enums.js'
-import { ContentSchema } from './content.js'
-import { AdditionalSourceSchema } from './sources.js'
+import { z } from '../../zod'
+import { NameSchema, NonNegativeIntegerSchema, PositiveIntegerSchema } from '../common'
+import { SourceSchema } from '../enums'
+import { ContentSchema } from './content'
+import { AdditionalSourceSchema } from './sources'
 
 /**
  * Pattern system/module configuration
@@ -22,6 +22,9 @@ export const PatternSystemModuleSchema = z
       .record(z.string(), NameSchema)
       .describe('Preselected choices for this system or module, keyed by choice ID')
       .optional(),
+    head: NameSchema.describe(
+      "The chassis head this system or module is mounted on (one of its chassis's `heads`); absent means the chassis itself"
+    ).optional(),
   })
   .strict()
   .describe('System or module configuration within a pattern')
@@ -99,3 +102,44 @@ export const PatternSchema = z
       .strict()
   )
   .describe('A preset mech loadout defining systems and modules for a chassis')
+
+/**
+ * Bio-Titan pattern — a named variant of a Bio-Titan that the book prints as
+ * "uses the stats of <Bio-Titan> with the following additional special rule"
+ * (Rainmaker p.80, the Hill Worm Pattern Typhon). A DELTA, not a stat block:
+ * the pattern inherits its Bio-Titan's Structure Points and actions, and
+ * `actions` names only what it adds — so a change to the base is never
+ * restated (and never drifts) across its patterns.
+ */
+export const BioTitanPatternSchema = z
+  .object({
+    name: NameSchema.describe('Name of this Bio-Titan pattern'),
+    content: ContentSchema.describe('Descriptive content for this pattern').optional(),
+    hidden: z
+      .boolean()
+      .describe(
+        'Withhold this pattern from every rendered surface while keeping the record in the dataset (the mech-pattern `hidden` convention).'
+      )
+      .optional(),
+    source: SourceSchema.describe('Source book for this pattern').optional(),
+    page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
+    additionalSources: z
+      .array(AdditionalSourceSchema)
+      .describe('Other source books where this pattern is reprinted')
+      .optional(),
+    actions: z
+      .array(z.string())
+      .min(1)
+      .describe(
+        'Action names this pattern ADDS to its Bio-Titan; the base Structure Points and actions are inherited'
+      ),
+    formerSlugs: z
+      .array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/))
+      .min(1)
+      .describe(
+        "Slugs this pattern was once published under as a row of its host's schema (ADR-043: a published slug never dies). Each resolves, and redirects, to this pattern."
+      )
+      .optional(),
+  })
+  .strict()
+  .describe("A Bio-Titan variant: the base Bio-Titan's stats plus the actions it adds")

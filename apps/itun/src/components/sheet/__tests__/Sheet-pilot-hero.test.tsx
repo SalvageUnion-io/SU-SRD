@@ -1,5 +1,5 @@
 /**
- * Pilot hero on the LiveSheet shell (plan 4.4, design §4.2)
+ * Pilot hero on the LiveSheet shell
  *
  * Replaces the old PilotSheet-editable body-stat tests: HP/AP/TP now live as
  * hero StatBlock trackers wired straight to the entity store.
@@ -12,11 +12,13 @@
  *      identity block and persist usedToggles.
  *   5. Dead state (derived max HP ≤ 0) surfaces a Dead pill + KIA banner.
  *   6. readOnly suppresses steppers, used-toggle buttons and all writes.
+ *   7. readOnly prints no Read | Edit, and the identity card repeats
+ *      nothing the band already says (class; a callsign that is the name).
  */
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { pilotFixture } from '../../__tests__/fixtures'
@@ -26,6 +28,8 @@ import {
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
+import { must } from '../../__tests__/must'
+import { pilotStamp } from '../bandStamps.model'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -52,7 +56,7 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
   const updateMock = updateSpy ?? mock(async () => pilot)
   return makeEntityStoreMock({
     pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
     get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
@@ -86,14 +90,16 @@ describe('Pilot hero — HP/AP trackers', () => {
   })
 
   test('clicking the top-lit HP segment persists the decremented currentHP', async () => {
-    // HP/AP are now VitalGauges (poster §gauge): clicking the top-lit segment
-    // (index 6 = "Set HP to 7") steps HP 7 → 6 (pipClickValue click-to-set).
+    // HP/AP are VitalGauges (poster §gauge): clicking the top-lit segment
+    // (index 6) steps HP 7 → 6 (pipClickValue click-to-set). The segments are
+    // pointer-only; the track is the one `slider` tab stop that takes the click.
     const pilot = makePilot({ currentHP: 7 })
     const updateSpy = mock(async () => pilot)
     renderHero(pilot, updateSpy)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Set HP to 7' }))
+      const hp = screen.getByRole('slider', { name: 'HP' })
+      fireEvent.click(must(hp.querySelector('[data-pip-index="6"]')))
     })
 
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentHP: 6 }, LIVE_SHEET_MANUAL)
@@ -105,8 +111,9 @@ describe('Pilot hero — HP/AP trackers', () => {
     renderHero(pilot, updateSpy)
 
     await act(async () => {
-      // "Set AP to 5" fills the last segment → currentAP 5 (max).
-      fireEvent.click(screen.getByRole('button', { name: 'Set AP to 5' }))
+      // The last segment (index 4) fills to currentAP 5 (max).
+      const ap = screen.getByRole('slider', { name: 'AP' })
+      fireEvent.click(must(ap.querySelector('[data-pip-index="4"]')))
     })
 
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 5 }, LIVE_SHEET_MANUAL)
@@ -139,7 +146,9 @@ describe('Pilot hero — HP/AP trackers', () => {
 describe('Pilot hero — TP tracker', () => {
   test('TP renders without a max (unbounded counter)', () => {
     renderHero(makePilot({ trainingPoints: 2 }))
-    expect(screen.getByRole('group', { name: 'Training Points 2' })).toBeTruthy()
+    // A label-first chip, `TRAINING POINTS | 2`, with no `/max`.
+    const label = screen.getByText('Training Points')
+    expect(label.closest('.su-stat-cell')?.textContent).toBe('Training Points2')
   })
 
   test('increasing TP persists trainingPoints', async () => {
@@ -163,7 +172,7 @@ describe('Pilot hero — TP tracker', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Used-toggles in the identity block (rules A8–A10)
+// Used-toggles in the identity block
 // ---------------------------------------------------------------------------
 
 describe('Pilot hero — identity used-toggles', () => {
@@ -215,7 +224,7 @@ describe('Pilot hero — identity used-toggles', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Dead state (rules A2: derived max HP ≤ 0)
+// Dead state (derived max HP ≤ 0)
 // ---------------------------------------------------------------------------
 
 const DEAD_INJURIES: Pilot['injuries'] = [
@@ -255,5 +264,45 @@ describe('Pilot hero — readOnly', () => {
     expect(screen.queryByRole('button', { name: /increase/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /decrease/i })).toBeNull()
     expect(updateSpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('Pilot hero — readOnly identity', () => {
+  test('prints no Read | Edit: a read-only sheet has nothing to switch to', () => {
+    renderHero(makePilot(), undefined, true)
+    expect(screen.queryByRole('group', { name: /Read or edit/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
+  })
+
+  test('the class is the band’s stamp alone, not a field under it', () => {
+    const pilot = makePilot()
+    renderHero(pilot, undefined, true)
+    const band = must(
+      screen.getByRole('heading', { level: 1 }).closest<HTMLElement>('.su-chapter-band')
+    )
+    const className = must(pilotStamp(pilot.classRef)).name
+    expect(within(band).getByText(className)).toBeTruthy()
+    expect(screen.getAllByText(className)).toHaveLength(1)
+    // `CLASS | Engineer` is the band's chip; there is no Class field under it.
+    const outsideBand = (el: HTMLElement) => el.closest('.su-chapter-band') === null
+    expect(screen.queryAllByText('Class').filter(outsideBand)).toHaveLength(0)
+  })
+
+  test('a callsign that differs from the name still prints', () => {
+    renderHero(makePilot({ name: 'Yara Voss', callsign: 'Ghost' }), undefined, true)
+    expect(screen.getByText('Callsign')).toBeTruthy()
+    expect(screen.getByText('Ghost')).toBeTruthy()
+  })
+
+  test('a callsign that is the name is the band’s title alone', () => {
+    renderHero(makePilot({ name: 'Bonesaw', callsign: 'Bonesaw' }), undefined, true)
+    expect(screen.queryByText('Callsign')).toBeNull()
+    expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw (Pilot)' })).toBeTruthy()
+  })
+
+  test('Edit keeps both fields: they are where callsign and class are changed', () => {
+    renderHero(makePilot({ name: 'Bonesaw', callsign: 'Bonesaw' }))
+    expect(screen.getByText('Callsign')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Change class' })).toBeTruthy()
   })
 })

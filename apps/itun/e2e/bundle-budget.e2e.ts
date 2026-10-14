@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -46,7 +47,7 @@ test.use({ account: 'anonymous' })
  * failing on a real regression (a newly-eager heavy import, or a jump in the
  * data corpus).
  *
- * ## Re-baselined 2026-09-25 (audit AP-11)
+ * ## Re-baselined 2026-09-25
  *
  * Three changes moved the numbers down together: `/s/$id` and `/p/$kind/$appId`
  * stopped exporting page bodies from their route files, which had kept
@@ -57,7 +58,7 @@ test.use({ account: 'anonymous' })
  * locales from itun's client. App JS per route fell by roughly: roster
  * −202 KB, pilot wizard −199 KB, dashboard −199 KB, live sheet −44 KB.
  *
- * ## Current baseline: the Convex-backed build (audit-4 M6)
+ * ## Current baseline: the Convex-backed build
  *
  * Measured by this suite against that build (the `[bundle-budget]` lines it
  * prints), each ceiling ≈ measured × 1.2:
@@ -68,8 +69,8 @@ test.use({ account: 'anonymous' })
  *   dashboard  2,067,880 B   2,480,000 B
  *   sheet      2,161,232 B   2,590,000 B
  *
- * Bringing AP-11's whole ~200 KB back (roster → ~2.23 MB) still fits under
- * 20%, so this does not catch a revert of AP-11 on its own —
+ * Bringing the route-export split's ~200 KB back (roster → ~2.23 MB) still
+ * fits under 20%, so this does not catch that revert on its own —
  * `routeExports.test.ts` and the `Sheet-` forbidden-chunk check below do.
  * What the margin catches is growth beyond ~400 KB. The biggest single chunk
  * is `vendor` (439,550 B, the Convex client included), ahead of the `actions`
@@ -87,7 +88,7 @@ async function captureJsTotals(
   page: import('@playwright/test').Page,
   path: string
 ): Promise<JsTotals> {
-  await page.goto(path)
+  await page.goto(at(path))
   await waitForReady(page)
   await page.waitForLoadState('networkidle')
 
@@ -183,7 +184,7 @@ test.describe('bundle-size budget', () => {
     // An unknown id on purpose: the sheet route renders its own "not found"
     // state (src/components/sheet/Sheet.tsx) *after* downloading the whole
     // route chunk, so this measures the route's real JS cost without paying
-    // for a full wizard run to seed IndexedDB first.
+    // for a full wizard run to seed an entity first.
     const CEILING = 2_590_000
     const totals = await captureJsTotals(page, '/sheet/pilot/budget-probe')
     report('/sheet/pilot/:id', totals, CEILING)

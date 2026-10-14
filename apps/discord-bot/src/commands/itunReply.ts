@@ -1,14 +1,14 @@
 import { MessageFlags } from 'discord-api-types/v10'
-import type { ContainerData } from '../container.js'
-import { toContainer } from '../container.js'
-import { denialMessage, ITUN_ORIGIN } from '../gameCards.js'
-import type { ItunClient } from '../itun/client.js'
-import { createItunClient } from '../itun/client.js'
-import type { ItunResult } from '../itun/types.js'
-import type { CommandExecuteInteraction } from './interactions.js'
+import type { ContainerData } from '../container'
+import { v2Reply } from '../container'
+import { denialMessage } from '../gameCards'
+import type { ItunClient } from '../itun/client'
+import { createItunClient } from '../itun/client'
+import type { ItunResult } from '../itun/types'
+import type { CommandExecuteInteraction } from './interactions'
 
 /**
- * The shared spine of every ITUN Game command (ADR-030 Phase 6).
+ * The shared spine of every ITUN Game command (ADR-030).
  *
  * Three things are identical across all of them and are therefore in one place
  * rather than six:
@@ -54,14 +54,20 @@ export function setItunClient(next: ItunClient): () => void {
   }
 }
 
-/** The V2 payload for a rendered Game result, at the given visibility. */
-function containerPayload(data: ContainerData, ephemeral: boolean) {
-  return {
-    flags: ephemeral
-      ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-      : MessageFlags.IsComponentsV2,
-    components: [toContainer(data)],
-  }
+/**
+ * Word a denied or unavailable result into the deferred reply.
+ *
+ * The caller must already have deferred with `MessageFlags.Ephemeral`: that
+ * defer, not this edit, is what keeps the reply ephemeral.
+ */
+async function explainFailure(
+  interaction: CommandExecuteInteraction,
+  result: Exclude<ItunResult<unknown>, { kind: 'ok' }>
+): Promise<void> {
+  await interaction.editReply({
+    content:
+      result.kind === 'denied' ? denialMessage(result.reason, result.message) : result.message,
+  })
 }
 
 /**
@@ -94,27 +100,16 @@ export async function respondWithItun<T>(
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
   const result = await options.call(itun())
-  switch (result.kind) {
-    case 'ok': {
-      const ephemeral = options.visibility !== 'public'
-      // Always a follow-up: a new message carries the V2 flag from creation,
-      // where an edit of the deferred placeholder would be a toggle Discord
-      // refuses. See the note above.
-      await interaction.followUp(containerPayload(options.render(result.value), ephemeral))
-      // The placeholder still has to become something, or it sits on
-      // "thinking…" forever. Mirrors the public path's grammar.
-      await interaction.editReply({
-        content: ephemeral ? 'Rendered below.' : 'Posted to the channel.',
-      })
-      return
-    }
-    case 'denied':
-      await interaction.editReply({
-        content: denialMessage(result.reason, ITUN_ORIGIN, result.message),
-      })
-      return
-    case 'unavailable':
-      await interaction.editReply({ content: result.message })
-      return
-  }
+  if (result.kind !== 'ok') return explainFailure(interaction, result)
+
+  const ephemeral = options.visibility !== 'public'
+  // Always a follow-up: a new message carries the V2 flag from creation,
+  // where an edit of the deferred placeholder would be a toggle Discord
+  // refuses. See the note above.
+  await interaction.followUp(v2Reply(options.render(result.value), ephemeral))
+  // The placeholder still has to become something, or it sits on
+  // "thinking…" forever. Mirrors the public path's grammar.
+  await interaction.editReply({
+    content: ephemeral ? 'Rendered below.' : 'Posted to the channel.',
+  })
 }

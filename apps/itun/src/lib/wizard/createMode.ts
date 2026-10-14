@@ -1,5 +1,5 @@
 /**
- * CreateMode — the /new routes' `mode` search param (wizard-refresh Phase 1):
+ * CreateMode — the /new routes' `mode` search param:
  *   absent   → CreateModeChooser
  *   'guided' → the existing wizard, unchanged
  *   'blank'  → the Blank dialog (escape hatch)

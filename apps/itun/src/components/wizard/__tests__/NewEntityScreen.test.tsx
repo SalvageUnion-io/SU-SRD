@@ -1,19 +1,25 @@
 /**
- * NewEntityScreen + CreateModeChooser + BlankCreateDialog (wizard-refresh
- * Phase 1): mode routing renders chooser vs wizard vs blank dialog, the
+ * NewEntityScreen + CreateModeChooser + BlankCreateDialog: mode
+ * routing renders chooser vs wizard vs blank dialog, the
  * chooser doors fire their callbacks, and the Blank dialog persists a
  * schema-valid entity through createBlank.
  *
  * Conventions: toBeTruthy() not toBeInTheDocument().
- * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render as rtlRender,
+  screen,
+  waitFor,
+} from '@testing-library/react'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { PilotSchema } from '../../../lib/schemas/pilot'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
 import { installConvexMocks } from '../../__tests__/convexMock'
 
@@ -23,7 +29,7 @@ const convexMocks = await installConvexMocks({ authReact: true })
 afterAll(() => convexMocks.restore())
 
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { _resetDbSingleton, clearCache } = await import('../../../lib/db/index')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { NewEntityScreen } = await import('../NewEntityScreen')
@@ -45,26 +51,13 @@ function Connected({ children }: { children: ReactNode }) {
 /** Every render here is signed in, unless a test renders Solo on purpose. */
 const render = (ui: ReactNode) => rtlRender(ui, { wrapper: Connected })
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+beforeEach(() => {
+  resetStores()
 })
 
-afterEach(async () => {
+afterEach(() => {
   cleanup()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 const noop = () => {}
@@ -98,6 +91,28 @@ describe('NewEntityScreen — signed out', () => {
       expect(screen.queryByRole('dialog')).toBeNull()
       cleanup()
     }
+  })
+})
+
+describe('NewEntityScreen — signed out, deep-linked', () => {
+  test("signing in comes back to the route's own URL, so the preselection survives", async () => {
+    convexMocks.signIns.length = 0
+    rtlRender(
+      <NewEntityScreen
+        kind="mech"
+        mode="guided"
+        returnTo="/mechs/new?mode=guided&chassis=mule"
+        wizard={<div data-testid="stub-wizard" />}
+        onModeChange={noop}
+        onCreated={noop}
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
+    })
+    expect(convexMocks.signIns).toEqual([
+      ['discord', { redirectTo: '/mechs/new?mode=guided&chassis=mule' }],
+    ])
   })
 })
 
@@ -145,7 +160,7 @@ describe('NewEntityScreen — mode routing', () => {
     )
     // The chooser stays mounted underneath (base-ui inerts it while the
     // modal is open, so query structurally rather than by role).
-    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
+    expect(container.querySelector('.su-sheet--pilot')).toBeTruthy()
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(screen.getByLabelText(/callsign/i)).toBeTruthy()
   })

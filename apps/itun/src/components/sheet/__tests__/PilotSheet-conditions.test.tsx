@@ -1,7 +1,7 @@
 /**
- * Pilot conditions tests (W2-3, #254 — plan 4.4)
+ * Pilot conditions tests
  *
- * Conditions live in the pilot hero as the Conditions inset (design §4.2), so
+ * Conditions live in the pilot hero as the Conditions inset, so
  * these tests render the full Sheet (pilot branch) rather than the body-only
  * PilotSheet.
  *
@@ -15,7 +15,7 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { pilotFixture } from '../../__tests__/fixtures'
@@ -44,7 +44,7 @@ const basePilot = pilotFixture({
 function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
   return makeEntityStoreMock({
     pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
     get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),

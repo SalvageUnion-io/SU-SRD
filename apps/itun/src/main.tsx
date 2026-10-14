@@ -4,6 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
+import { BASE_PATH } from './lib/appUrl'
 import {
   initBrowserObservability,
   installChunkRecovery,
@@ -12,9 +13,12 @@ import {
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
 import { routeTree } from './routeTree.gen'
+import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
+  // `/build`: ITUN at salvageunion.io/build (ADR-048, lib/site.ts). Routes and links stay root-relative; the router adds it.
+  basepath: BASE_PATH || '/',
   defaultNotFoundComponent: RouteNotFound,
   defaultPendingComponent: RoutePending,
   // Every route gets its own error boundary, so a crash in one route replaces
@@ -43,6 +47,12 @@ void initBrowserObservability()
 // whose build no longer exists on the server — can be thrown by the very first
 // route the router resolves. See `installChunkRecovery` in observability/browser.
 installChunkRecovery()
+
+// Until `ConnectionProvider` reports, nobody knows yet whether there is a
+// session, so the stores treat the account's rows as on their way: a route
+// opened at boot waits for them (stores/rowArrival.ts) rather than rendering
+// an empty roster that fills a moment later.
+setEntityBackendAuthState({ signedIn: false, online: navigator.onLine, authSettled: false })
 
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('Root element not found')

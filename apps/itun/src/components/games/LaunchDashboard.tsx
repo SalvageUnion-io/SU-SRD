@@ -10,7 +10,8 @@
  *
  * ## One choice: the pilot
  *
- * The dialog lists the Game's pilots in the roster's own order — yours first
+ * The dialog lists the Game's pilots — each its Row in select mode (EDL
+ * "Modes"), who holds it right of the name — in the roster's own order: yours first
  * (`groupColumn`), then the crew's — and pre-selects the first one you own. A
  * viewer who owns none of those listed gets no pre-selection and picks one.
  * Nothing else is asked: the mech and the crawler follow from the pilot's own
@@ -32,15 +33,18 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { Button, ModalShell, Radio, Text, tokens } from 'component-lib'
+import { Button, Entity, ModalShell, RadioCardGroup, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { hasMediator } from 'itun-domain/games/roles'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useHydrateEntities, usePilots } from '../../hooks/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
-import { gameHasMediator, groupColumn, ownableRows } from '../../lib/games/gameRoster'
+import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
+import { unitRowModel } from '../../lib/units/unitModel'
+import { OwnerSeal } from './OwnerSeal'
 
 const BAR = {
   alignItems: 'center',
@@ -61,21 +65,25 @@ const BODY = {
 } satisfies CSSProperties
 
 const FIELDSET = {
-  border: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],
-  margin: 0,
   minWidth: 0,
-  padding: 0,
 } satisfies CSSProperties
 
 const LEGEND = {
   color: tokens.color.wkMuted,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
+  margin: 0,
   marginBottom: tokens.space[8],
-  padding: 0,
+} satisfies CSSProperties
+
+/** The pilots, each its Row in select mode, 8px apart. */
+const CHOICES = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 const ACTIONS = {
@@ -112,15 +120,9 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   // Nothing until the crew is known: a button that appears and then vanishes
   // when the members answer would be worse than a beat of nothing.
   if (members === undefined) return null
-  if (!gameHasMediator(members)) {
-    return (
-      <div style={BAR}>
-        <Text variant="hint" style={HINT}>
-          The Dashboard opens once this Game has a Mediator.
-        </Text>
-      </div>
-    )
-  }
+  // No Mediator, no Dashboard, and nothing said about it: the Game's own
+  // Mediator row already offers to appoint one.
+  if (!hasMediator(members)) return null
 
   const { yours, others } = groupColumn(
     ownableRows({
@@ -169,20 +171,36 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
               roster, then launch.
             </Text>
           ) : (
-            <fieldset style={FIELDSET}>
-              <legend style={LEGEND}>Which pilot are you playing?</legend>
-              {pilots.map((row) => (
-                <Radio
-                  key={row.serverId}
-                  name={`launch-pilot-${gameId}`}
-                  value={row.serverId}
-                  checked={row.serverId === selected}
-                  onChange={() => setPicked(row.serverId)}
-                  label={row.name}
-                  description={row.owner?.label}
-                />
-              ))}
-            </fieldset>
+            <div style={FIELDSET}>
+              <p style={LEGEND}>Which pilot are you playing?</p>
+              <RadioCardGroup label="Which pilot are you playing?" style={CHOICES}>
+                {pilots.map((row) => (
+                  <Entity
+                    key={row.serverId}
+                    form="row"
+                    model={unitRowModel({ kind: 'pilot', name: row.name })}
+                    mode={{
+                      kind: 'select',
+                      role: 'radio',
+                      selected: row.serverId === selected,
+                      onSelect: () => setPicked(row.serverId),
+                      label: row.name,
+                    }}
+                    /* Who holds it, right of the name (ruleset §7.2), as the roster says it. */
+                    labels={
+                      row.owner === null ? undefined : (
+                        <OwnerSeal
+                          owner={row.owner}
+                          claimable={false}
+                          disabled
+                          onClaim={() => undefined}
+                        />
+                      )
+                    }
+                  />
+                ))}
+              </RadioCardGroup>
+            </div>
           )}
           <div style={ACTIONS}>
             <Button variant="ghost" size="compact" onClick={() => setOpen(false)}>

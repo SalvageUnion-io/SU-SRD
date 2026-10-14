@@ -28,10 +28,10 @@ import {
   waitFor,
   within,
 } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -55,18 +55,10 @@ const basePilotInput = {
 }
 
 /** The pilot sheet's override tone: `--tone-deep` (rust on the pilot sheet). */
-const OVERRIDE_TONE = 'text-[var(--tone-deep)]'
+const OVERRIDE_TONE = 'var(--tone-deep)'
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
+beforeEach(() => {
+  resetStores()
 })
 
 // A failed query's default error pretty-prints its container — here the whole
@@ -152,7 +144,7 @@ async function hpMax(value: number): Promise<HTMLElement> {
 async function expectNotOverridden(value: number): Promise<void> {
   const max = await hpMax(value)
   const gauge = within(hpGauge())
-  expect(max.className).not.toContain(OVERRIDE_TONE)
+  expect(max.style.color).not.toBe(OVERRIDE_TONE)
   expect(gauge.queryByText('*')).toBeNull()
   expect(gauge.queryByRole('button', { name: /revert hp max/i })).toBeNull()
   expect(gauge.queryByText(/overridden from/i)).toBeNull()
@@ -186,7 +178,7 @@ async function ledgerText(): Promise<string> {
 async function expectOverridden(value: number, from: number): Promise<void> {
   const max = await hpMax(value)
   const gauge = within(hpGauge())
-  expect(max.className).toContain(OVERRIDE_TONE)
+  expect(max.style.color).toBe(OVERRIDE_TONE)
   expect(gauge.getByText('*')).toBeTruthy()
   expect(
     gauge.getByRole('button', { name: new RegExp(`revert hp max to derived ${from}`, 'i') })

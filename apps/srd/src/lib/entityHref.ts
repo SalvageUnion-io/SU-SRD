@@ -1,5 +1,6 @@
 import type { EntityHrefBuilder } from 'component-lib'
-import { getEntitySlug, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
+import type { EntityRef } from 'salvageunion-reference'
+import { getEntitySlug, nameToSlug, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
 
 /**
  * srd's TRAILING-SLASH policy over the shared route grammar.
@@ -22,7 +23,7 @@ export function schemaHref(schemaName: string): string {
   return `${srdSchemaPath(schemaName)}/`
 }
 
-/** An entity's show page: `/schema/<schema>/item/<slug>/`. */
+/** An entity's show page: `/<schema>/<slug>/`. */
 export function itemHref(schemaName: string, slug: string): string {
   return `${srdEntityPath(schemaName, slug)}/`
 }
@@ -39,9 +40,28 @@ export function patternHref(schemaName: string, slug: string, patternSlug: strin
  * srd's show-page route for an entity, as a `component-lib` href builder.
  * Supplied to component-lib via `EntityHrefProvider` so nested "View Details"
  * links resolve to this app's routes (the shared library stays route-agnostic).
+ *
+ * Only a dataset record has a page. A record with no `id` was assembled for
+ * display — a crawler bay's commander is its bay's embedded `npc` object,
+ * dressed as an `npcs` entity so it wears the NPC card (`resolveNestedEntities`)
+ * — and a link built from its name would 404, so it gets none and renders
+ * unlinked.
  */
 export const srdEntityHref: EntityHrefBuilder = (entity) => {
   const schemaName =
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
-  return schemaName ? itemHref(schemaName, getEntitySlug(entity)) : undefined
+  const isRecord = 'id' in entity && typeof entity.id === 'string' && entity.id.length > 0
+  return schemaName && isRecord ? itemHref(schemaName, getEntitySlug(entity)) : undefined
+}
+
+/**
+ * srd's routes as the entity SURFACE's `hrefFor` (`EntitySurfaceProvider`):
+ * an entity's page, or a pattern's under its chassis. A synthetic ref (built
+ * from embedded data, no dataset row) has no page.
+ */
+export function srdHrefFor(ref: EntityRef): string | undefined {
+  if (ref.synthetic) return undefined
+  return ref.pattern
+    ? patternHref(ref.schemaName, ref.slug, nameToSlug(ref.pattern))
+    : itemHref(ref.schemaName, ref.slug)
 }

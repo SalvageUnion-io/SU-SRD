@@ -13,13 +13,13 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { renderHook } from '@testing-library/react'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { PartnerInstance } from 'itun-domain/schemas/partner'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import type { useEntityStore } from '../../../stores/entityStore'
-import type { CargoLot } from '../../schemas/cargoLot'
-import type { Crawler } from '../../schemas/crawler'
-import type { Mech } from '../../schemas/mech'
-import type { PartnerInstance } from '../../schemas/partner'
 import { usePartnerCargo } from '../usePartnerCargo'
 
 // ---------------------------------------------------------------------------

@@ -39,7 +39,8 @@
         "type": "paragraph",
         "value": "When a player declares an action within the game that has an uncertain, risky, or potentially inter- esting outcome, they roll a 20-sided die. This is referred to as a d20, or 'the die'. Salvage Union only uses this one die, and it is all you need to resolve situations in the game."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "cdbc20d9-ff63-4272-805b-f148f0c01752",
@@ -81,7 +82,8 @@
         "type": "paragraph",
         "value": "When the group finds themselves in a combat or similar tense situation, the Mediator can decide which group in the action scene acts first.  If in doubt, one of the Pilots in the group can roll the die. This roll can be Pushed as normal. The Pilot can be chosen by the Mediator, or is whoever in the group initiated the altercation. Then check the table below to see who acts first and also determine the Group Initiative Order."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "dcd888a2-dc2d-4f45-94eb-ae6138761931",
@@ -123,7 +125,8 @@
         "type": "paragraph",
         "value": "This table determines what happens to your Pilot when they are reduced to 0 Hit Points or suffer a severe injury during play."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "aa54dcd4-efd0-4cbb-83dc-4cf6f0411066",
@@ -165,7 +168,8 @@
         "type": "paragraph",
         "value": "Roll on this table when your Mech reaches 0 Structure Points. In addition, you can roll on this table to see what happens if a Mech suffers significant critical damage within a narrative situation in game."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "0050af76-7d88-43e7-b098-1a6af7656353",
@@ -201,7 +205,14 @@
       },
       "type": "standard"
     },
-    "page": 235
+    "page": 235,
+    "indexable": true,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "You must roll on the Reactor Overload Table to see what happens to your Mech. This can result in your Mech shutting down, losing Systems or Modules, or even being destroyed."
+      }
+    ]
   },
   {
     "id": "abca780b-da93-47b0-91e6-290da910e2fd",
@@ -237,7 +248,8 @@
       },
       "type": "standard"
     },
-    "page": 248
+    "page": 248,
+    "indexable": true
   },
   {
     "id": "acdc85ee-056c-4edc-95be-e25f0ab9b319",
@@ -273,7 +285,8 @@
       },
       "type": "standard"
     },
-    "page": 248
+    "page": 248,
+    "indexable": true
   },
   {
     "id": "2bdb98de-31a2-4eb1-b8f5-cf42f44ff618",
@@ -314,7 +327,8 @@
         "type": "paragraph",
         "value": "Roll a d20 on this table when your Pilots meet a group of NPCs to determine how they react to them.  This sets the initial Reaction, and the rest of the scene can be roleplayed out from that point."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "8803b3dd-6b7b-49a3-b95c-a77082867b12",
@@ -344,7 +358,8 @@
         "type": "paragraph",
         "value": "When the Pilots encounter a meteor, roll on the below table to see the situation on their arrival."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "5dae32bc-8e38-4c3d-8c6c-dae2ed6939f2",
@@ -390,7 +405,8 @@
         "type": "paragraph",
         "value": "Harvesting from a Chimerid Meteor (Costs & Traits): It costs 1 EP (Energy Point) or 1 AP (Action Point) to harvest from a Chimerid Meteor. The Mech or Pilot must possess an item or ability with the \"Salvaging Trait.\" Each Chimerium Meteor can only be harvested once."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "9b96bc47-106b-4cb5-8e9d-e42299764c96",
@@ -432,7 +448,8 @@
         "type": "paragraph",
         "value": "Sakura is developing a cure for Chimerium Mutation, but requires Chimerium Samples to research it."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "baba591d-eb31-4fcb-bd80-d6d6ed9193af",
@@ -501,7 +518,14 @@
       },
       "type": "flat"
     },
-    "page": 11
+    "page": 11,
+    "indexable": true,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Chimerium is allegedly safe in short stints, but long-term exposure can cause an array of mutations."
+      }
+    ]
   },
   {
     "id": "3b30af52-8e82-4b55-bda8-e46e64bf141f",
@@ -536,7 +560,8 @@
         "type": "paragraph",
         "value": "When an NPC takes an action in the game, the Mediator rolls on their own table below. This table is similar to the player table, but reframes many of the options."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "30b5379a-45d5-4e7b-9dfa-45b2ecead926",
@@ -577,7 +602,8 @@
         "type": "paragraph",
         "value": "These rules cover whether or not NPCs in the game choose to retreat. The Pilots never roll Morale, and it is always the player's choice whether their Pilots retreat or not. NPCs include both those the Pilots are actively fighting as well as any allied NPCs they may have with them.  • When an NPC Mech is reduced to 50% or less of its Structure Points, make a Morale check to determine if it stays in the fight.  • When a Creature is reduced to 50% or less of its Hit Points, make a Morale check to determine if it stays in the fight. You can also apply this to an entire group rather than individual creatures or Mechs.  • When a group of NPCs suffers 50% or more overall deaths or the destruction of 50% or more Mechs, make a Morale check to determine if the entire group stays in the fight."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "70f6e979-f511-4407-a276-11b3e63f6758",
@@ -618,7 +644,8 @@
         "type": "paragraph",
         "value": "Sometimes things go wrong and retreat becomes the only option. If the Pilots or a Group of NPCs choose to retreat, roll the die on the table below to find out what happens. If using Group Initiative, retreat may be chosen at the start of anyone in the group's turn. The entire group must agree to retreat."
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "044f3890-2d62-4bbe-b851-cc978a68ae8e",
@@ -655,7 +682,8 @@
         "booklet": "PH",
         "page": 55
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "f4e866be-1092-4760-896c-fa3571b983d6",
@@ -692,7 +720,8 @@
         "booklet": "PH",
         "page": 56
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "50f0dcca-d2ac-408d-a916-55027485299b",
@@ -729,7 +758,8 @@
         "booklet": "PH",
         "page": 56
       }
-    ]
+    ],
+    "indexable": true
   },
   {
     "id": "a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6",
@@ -1050,6 +1080,12 @@
         "source": "Salvage Union Starter Set",
         "booklet": "PH",
         "page": 47
+      }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "All A.I. systems tend to have their own idiosyncracies. Roll on this table to find out exactly what kind of A.I. you’ve got."
       }
     ]
   },
@@ -1373,6 +1409,12 @@
         "booklet": "PH",
         "page": 62
       }
+    ],
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Provide your Union Crawler with a unique name and tag. For example, Crawler #132 is also known as ‘Tin Lizzy’."
+      }
     ]
   },
   {
@@ -1487,7 +1529,13 @@
       },
       "type": "flat"
     },
-    "page": 23
+    "page": 23,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The Pilots find a Salvage Cache. Roll on the Cache table."
+      }
+    ]
   },
   {
     "id": "e213dd70-6ece-4950-8036-e4b495e6dd34",
@@ -1697,7 +1745,13 @@
       },
       "type": "flat"
     },
-    "page": 8
+    "page": 8,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Roll to find out what rumour the Pilots hear."
+      }
+    ]
   },
   {
     "id": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
@@ -3714,7 +3768,13 @@
       "11-19": {
         "value": "Safe travel between the areas."
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "An enormous plateau of basalt thrusts from the earth like a gigantic beast. Surrounding the land beneath are the ruins of the TDA town of Redwall, overgrown with bio-mutated wildlife."
+      }
+    ]
   },
   {
     "id": "9f3b1e7c-5a2d-4f88-b6e1-3c8a5d7f9b2e",
@@ -3798,7 +3858,13 @@
       "11-19": {
         "value": "IED dealing 3 SP Damage (Explosive 1)"
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Monkey Wrencher boobytrap triggers. Roll on the Monkey Wrencher Boobytrap Table."
+      }
+    ]
   },
   {
     "id": "6b4f8e1c-9a3d-4e72-8f5a-2c7b1d4e9a3f",
@@ -3822,7 +3888,13 @@
       "11-19": {
         "value": "All Meld within the entire area, including the Underground Lab and Decontamination Chamber are entirely destroyed, leaving not even dust behind.  The following are also destroyed: The Generator, The Wind Turbines, The Lab Mainframe, Observation Mainframe, and all data within"
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The generator has been installed with an emergency module designed to absorb all remaining power from the facility and detonate it as an electromagnetic pulse intended to destroy the Meld."
+      }
+    ]
   },
   {
     "id": "dd4d6469-fd9d-4eeb-86fc-b8202477d5e3",
@@ -3903,7 +3975,13 @@
       "2-4": {
         "value": "Evantis"
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A random faction is encountered. Roll on the Irongrad Faction Table."
+      }
+    ]
   },
   {
     "id": "9e5f8873-5627-4e8e-8126-b9cd8c01d762",
@@ -3936,6 +4014,12 @@
       "2-4": {
         "value": "6 x Salt Termites"
       }
-    }
+    },
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A fragment of the meteor that landed upon the mesa was made of Chimerium: a mutative, bio-organic substance that is known to rapidly grow life around it."
+      }
+    ]
   }
 ]

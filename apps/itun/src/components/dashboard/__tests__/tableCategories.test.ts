@@ -6,7 +6,11 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { categorizeTable, groupTablesByCategory, TABLE_CATEGORY_ORDER } from '../tableCategories'
+import {
+  categorizeTable,
+  groupTablesByCategory,
+  TABLE_CATEGORY_ORDER,
+} from '../tableCategories.model'
 
 describe('categorizeTable', () => {
   test('curated headline tables map to their category', () => {

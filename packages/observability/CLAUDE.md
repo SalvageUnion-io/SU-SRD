@@ -6,7 +6,7 @@ there is no root export:
 
 | Subpath | Consumers | What it is |
 | --- | --- | --- |
-| `observability/cloudflare` | the four Workers (`apps/srd/src/worker`, `apps/itun/src/worker`, `apps/su-assets`, `apps/discord-bot/src/http`) | `withObservability` wraps a Worker's default export for Sentry; `reportError` logs a handled error to Workers Logs and Sentry, and is imported directly (no per-app reporter) |
+| `observability/cloudflare` | the four Workers (`apps/srd/src/worker`, `apps/itun/src/worker`, `apps/su-assets/src/worker`, `apps/discord-bot/src/worker`) | `withObservability` wraps a Worker's default export for Sentry; `reportError` logs a handled error to Workers Logs and Sentry, and is imported directly (no per-app reporter) |
 | `observability/browser` | `apps/srd` and `apps/itun` (`src/lib/observability.ts`) | `createBrowserObservability` (init, capture verbs, `installChunkRecovery`) and `buildCaptureHint` — the half of the browser shim that imports **no** Sentry code |
 | `observability/vite` | both apps' Vite configs (`apps/srd/ssg/vite.config.ts`, `apps/itun/vite.config.ts`) | `sentrySourcemaps(outDir)` — the Sentry sourcemap upload, inert without `SENTRY_AUTH_TOKEN`, `hidden` maps deleted after upload |
 
@@ -19,10 +19,6 @@ there is no root export:
   not the SDK, so the app's `if (!dsn) return` still guards its dynamic
   `import('@sentry/browser')` and Vite drops the SDK from a build with no DSN.
   Hoisting the guard in here would ship the SDK to every visitor.
-- **A new Worker must wrap its export and grant `nodejs_als`.**
-  `tools/check-observability.ts` (the `observability` check) fails otherwise — that
-  gate is also where the CSP half lives, so change a Sentry region or CSP in
-  every source for that app together.
 - `@sentry/cloudflare` is a runtime `dependency` here, not a devDependency: the
   Workers get it through this package. `@sentry/vite-plugin` likewise: the apps'
   Vite configs get it through `observability/vite` and declare it nowhere else.

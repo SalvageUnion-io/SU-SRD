@@ -7,11 +7,11 @@ import type { PageModule, RouteContext, StaticPath } from './types'
 export type ResolvedRoute<Params, Props> = {
   module: PageModule<Params, Props>
   path: StaticPath<Params, Props>
-  /** Route path WITHOUT a trailing slash, e.g. `/schema/chassis`. `/` stays `/`. */
+  /** Route path WITHOUT a trailing slash, e.g. `/chassis`. `/` stays `/`. */
   route: string
 }
 
-/** `/schema/[schemaId]` + `{schemaId: 'chassis'}` -> `/schema/chassis`. */
+/** `/[schemaId]` + `{schemaId: 'chassis'}` -> `/chassis`. */
 export function fillPattern(pattern: string, params: Record<string, string>): string {
   return pattern.replace(/\[([^\]]+)\]/g, (_match, key: string) => {
     const value = params[key]
@@ -45,7 +45,7 @@ export function resolveRoutes<Params extends Record<string, string>, Props>(
   }))
 }
 
-export function renderRoute<Params extends Record<string, string>, Props>(
+function renderRoute<Params extends Record<string, string>, Props>(
   resolved: ResolvedRoute<Params, Props>,
   assets: BuildAssets
 ): string {
@@ -58,13 +58,13 @@ export function renderRoute<Params extends Record<string, string>, Props>(
     builtAssets: assets.built,
   }
 
-  const { meta, children, shell } = resolved.module.page(ctx)
-  return renderDocument({ meta, pathname, children, assets, shell })
+  const { meta, children, shell, foot } = resolved.module.page(ctx)
+  return renderDocument({ meta, pathname, children, assets, shell, foot })
 }
 
 /** One concrete page, with its own Params/Props already erased away. */
 export type ErasedRoute = {
-  /** Route path WITHOUT a trailing slash, e.g. `/schema/chassis`. `/` stays `/`. */
+  /** Route path WITHOUT a trailing slash, e.g. `/chassis`. `/` stays `/`. */
   route: string
   render: (assets: BuildAssets) => string
 }

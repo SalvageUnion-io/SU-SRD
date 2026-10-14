@@ -1,11 +1,11 @@
 /**
- * Unit tests for crafting.ts — the Crafting Bay flow (design-review R-7;
+ * Unit tests for crafting.ts — the Crafting Bay flow (
  * Core Book p.222 + p.244).
  *
  * Pure arithmetic on hand-crafted pools/items — no reference data needed.
  */
 import { describe, expect, it } from 'bun:test'
-import type { ScrapPool } from '../../schemas/crawler'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import { craftableAtTl, craftedLot, craftQuote } from '../crafting'
 
 const RED_LASER = { name: 'Red Laser', techLevel: 1, salvageValue: 3 }

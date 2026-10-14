@@ -12,8 +12,8 @@
  * "are you sure?" makes the reader work out the consequence themselves, which
  * is the one job the dialog exists to do for them.
  *
- * The personal shelf is called **"My Stuff"** in anything a player reads — the
- * product owner's name for it, here and everywhere else in the app.
+ * The personal container is called **"your shelf"** in anything a player reads
+ * (the page is Shelves); "My Stuff" is retired.
  *
  * The tone is part of the copy because it is part of the message: `danger` for
  * anything that takes a build — or its assignments — away from you or from the
@@ -24,10 +24,10 @@ import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
 
 /** Which kind of build a confirm is about. Decides the pronoun, nothing else. */
-export type RowActionKind = 'pilot' | 'mech' | 'crawler'
+export type RowActionKind = 'pilot' | 'mech' | 'crawler' | 'npc'
 
 export type ConfirmCopy = {
-  /** The question, naming the build: "Scrap #430 Tenacity?". */
+  /** The question, naming the build: "Delete Tenacity?". */
   title: string
   /** One paragraph each: what happens, then whether and how it can be undone. */
   body: readonly string[]
@@ -41,16 +41,16 @@ export type ConfirmCopy = {
   failure: string
 }
 
-/** A pilot is a person; a mech or a crawler is a thing. */
+/** A pilot or an NPC is a person; a mech or a crawler is a thing. */
 function them(kind: RowActionKind): string {
-  return kind === 'pilot' ? 'them' : 'it'
+  return kind === 'pilot' || kind === 'npc' ? 'them' : 'it'
 }
 
 /** Where a container move is headed, by the name the reader knows it by. */
 export type MoveDestination = { kind: 'shelf' } | { kind: 'game'; name: string | null }
 
 /** A Game the reader cannot name (still loading, or one they have left). */
-const UNNAMED_GAME = 'this game'
+const UNNAMED_GAME = 'this Game'
 
 /**
  * What a move out of a Game undoes (ADR-037: a move prunes every link it would
@@ -63,6 +63,9 @@ function clearedAssignments(kind: RowActionKind, from: string): string {
   }
   if (kind === 'mech') {
     return `Its crawler assignment in ${from} is cleared, and so is the pilot flying it there, if any.`
+  }
+  if (kind === 'npc') {
+    return `Their crew slot on a crawler in ${from} is cleared, and that slot goes back to the book's crew line.`
   }
   return `Everyone in ${from} assigned to it is unassigned.`
 }
@@ -79,10 +82,10 @@ function builds(n: number): string {
 }
 
 /** Where the other end of a link cleared on the way into a Game still is. */
-const STILL_IN_MY_STUFF = '(still in My Stuff)'
+const STILL_IN_MY_STUFF = '(still on your shelf)'
 
 /**
- * What a move from My Stuff into a Game clears, one line per assignment: a
+ * What a move from your shelf into a Game clears, one line per assignment: a
  * pilot or mech's pairing first, then the crawler crew it leaves. A crawler's
  * crew is one line, naming everyone who leaves it.
  */
@@ -96,8 +99,8 @@ function clearedOnEntry(kind: RowActionKind, cleared: readonly ClearedAssignment
     ].join(' and ')
     return [`${who} ${cleared.length === 1 ? 'leaves' : 'leave'} its crew.`]
   }
-  const they = kind === 'pilot' ? 'They leave' : 'It leaves'
-  const their = kind === 'pilot' ? 'Their' : 'Its'
+  const they = kind === 'pilot' || kind === 'npc' ? 'They leave' : 'It leaves'
+  const their = kind === 'pilot' || kind === 'npc' ? 'Their' : 'Its'
   const pairings = cleared.filter((c) => c.type === 'mech-to-pilot')
   const crews = cleared.filter((c) => c.type !== 'mech-to-pilot')
   return [
@@ -124,7 +127,7 @@ export const ROW_ACTION_COPY = {
     return {
       title: `Pick up ${name}?`,
       body: [
-        `${name} is unclaimed — the Mediator left them for somebody to take. Picking them up makes you their owner: they become yours to edit, they open in this browser, and every change saves back to the game.`,
+        `${name} is unclaimed — the Mediator left them for somebody to take. Picking them up makes you their owner: they become yours to edit, they open in this browser, and every change saves back to the Game.`,
         'Changed your mind later? Hand them back with “Offer to the crew”.',
       ],
       confirmLabel: 'Pick up',
@@ -142,7 +145,7 @@ export const ROW_ACTION_COPY = {
     return {
       title: `Offer ${name} to the crew?`,
       body: [
-        `You'll stop owning ${name}, and anyone in the game can pick ${them(kind)} up.`,
+        `You'll stop owning ${name}, and anyone in the Game can pick ${them(kind)} up.`,
         `You can pick ${them(kind)} up again yourself, as long as nobody else has first.`,
       ],
       confirmLabel: 'Offer to the crew',
@@ -153,16 +156,35 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * A copy into My Stuff. Destroys nothing, but it does make something, and a
+   * A copy onto your shelf. Destroys nothing, but it does make something, and a
    * player who expected a move would otherwise find two of them — so it names
    * the copy it will make and says the two will not stay in step.
    */
   copy(name: string): ConfirmCopy {
     return {
-      title: `Copy ${name} to My Stuff?`,
+      title: `Make a copy of ${name} on your shelf?`,
       body: [
-        `This makes “${copyName(name)}” in My Stuff. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
-        "Don't want it later? Delete the copy from My Stuff.",
+        `This makes “${copyName(name)}” on your shelf. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
+        "Don't want it later? Delete the copy from your shelf.",
+      ],
+      confirmLabel: 'Make a copy',
+      pendingLabel: 'Copying…',
+      tone: 'default',
+      failure: `${name} could not be copied. Try again.`,
+    }
+  },
+
+  /**
+   * "Make a copy" on Shelves (board S1): a second build of something already on
+   * your shelf, in no Game. Same promise as `copy` — it names the copy and says
+   * the two will not stay in step — for a reader who is already on the shelf.
+   */
+  copyOnShelf(name: string): ConfirmCopy {
+    return {
+      title: `Make a copy of ${name}?`,
+      body: [
+        `This puts “${copyName(name)}” on your shelf, in no Game. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
+        "Don't want it later? Delete the copy.",
       ],
       confirmLabel: 'Make a copy',
       pendingLabel: 'Copying…',
@@ -181,8 +203,8 @@ export const ROW_ACTION_COPY = {
     return {
       title: `Delete ${name}?`,
       body: [
-        `This cannot be undone. ${name} will be removed from this game for everyone, and from this browser.`,
-        'Only leaving the table? “Offer to the crew” hands them back instead — they stay in the game for somebody else to pick up.',
+        `This cannot be undone. ${name} will be removed from this Game for everyone, and from this browser.`,
+        'Only leaving the table? “Offer to the crew” hands them back instead — they stay in the Game for somebody else to pick up.',
       ],
       confirmLabel: 'Delete',
       pendingLabel: 'Deleting…',
@@ -203,20 +225,20 @@ export const ROW_ACTION_COPY = {
     }
   },
 
-  /** Scrapping the crew's crawler — the table runner's act, and a crawler's Delete. */
+  /** Deleting the crew's crawler — the table runner's act, so it says it is for everyone. */
   scrap(name: string): ConfirmCopy {
     return {
-      title: `Scrap ${name}?`,
-      body: [`This deletes ${name} for everyone in the game and can't be undone.`],
-      confirmLabel: 'Scrap',
-      pendingLabel: 'Scrapping…',
+      title: `Delete ${name}?`,
+      body: [`This deletes ${name} for everyone in the Game and can't be undone.`],
+      confirmLabel: 'Delete',
+      pendingLabel: 'Deleting…',
       tone: 'danger',
-      failure: `${name} could not be scrapped. Try again.`,
+      failure: `${name} could not be deleted. Try again.`,
     }
   },
 
   /**
-   * Moving a build OUT of a Game — back to My Stuff, or on to another Game.
+   * Moving a build OUT of a Game — back to your shelf, or on to another Game.
    *
    * This direction always asks: moving a build out takes it off a shared
    * roster that the rest of the table was reading. (Moving one in takes nothing
@@ -245,18 +267,18 @@ export const ROW_ACTION_COPY = {
       return {
         title: `Take ${args.name} out of ${from}?`,
         body: [
-          `${args.name} leaves the game's roster and goes back to My Stuff, so the rest of the table won't see ${it} any more.`,
+          `${args.name} leaves the Game's roster and goes back to your shelf, so the rest of the table won't see ${it} any more.`,
           clearedAssignments(args.kind, from),
-          `You can move ${it} back into the game later.`,
+          `You can move ${it} back into the Game later.`,
         ],
-        confirmLabel: 'Move to My Stuff',
+        confirmLabel: 'Move to your shelf',
         pendingLabel: 'Moving…',
         tone: 'danger',
         failure,
       }
     }
 
-    const to = args.to.name ?? 'another game'
+    const to = args.to.name ?? 'another Game'
     return {
       title: `Move ${args.name} to ${to}?`,
       body: [
@@ -272,12 +294,12 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * Moving a build from My Stuff INTO a Game, when the move clears something.
+   * Moving a build from your shelf INTO a Game, when the move clears something.
    *
    * Joining a Game takes nothing from the table, so a move in with nothing to
    * clear runs straight away and never reaches this. But a move prunes every
    * assignment that would straddle two containers (ADR-037), so a build going
-   * in loses whatever it was paired with that stays in My Stuff. The callers
+   * in loses whatever it was paired with that stays on your shelf. The callers
    * ask only when `assignmentsClearedByMove` is non-empty, and this names each
    * one: the pilot or mech it was paired with, the crawler whose crew it
    * leaves — or, for a crawler, the crew that leaves it. `danger`, like
@@ -298,7 +320,7 @@ export const ROW_ACTION_COPY = {
       body: [
         `${args.name} joins ${game}'s roster.`,
         ...clearedOnEntry(args.kind, args.cleared),
-        `You can move ${them(args.kind)} back to My Stuff later, but you'll need to make ${assignments} again.`,
+        `You can move ${them(args.kind)} back to your shelf later, but you'll need to make ${assignments} again.`,
       ],
       confirmLabel: 'Move',
       pendingLabel: 'Moving…',

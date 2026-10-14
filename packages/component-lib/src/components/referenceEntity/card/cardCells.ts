@@ -3,100 +3,61 @@
  * stat cluster and the Bonus-per-Tech-Level box say, computed from the entity
  * without rendering anything.
  *
- * Split out of `ReferenceEntityCard.tsx` (audit PK-08). Everything here is a
+ * Split out of `ReferenceEntityCard.tsx`. Everything here is a
  * function of its arguments, so it is tested directly rather than through a
  * rendered card.
  */
 
 import type {
+  FacetCell,
   SURefEnumSchemaName,
   SURefMetaEntity,
   SURefObjectBonusPerTechLevel,
   SURefObjectChoice,
   SURefObjectContentBlock,
-  SURefObjectTrait,
 } from 'salvageunion-reference'
-import {
-  getTraits,
-  isAbility,
-  resolveChoiceView,
-  resolveDataValueForTechLevel,
-} from 'salvageunion-reference'
-import type { StatItem } from '../../shared/statsBarTypes'
+import { facetCells } from 'salvageunion-reference'
+import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
-import { crawlerPopulationRange } from './crawlerPopulationRange'
-import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
-import { formatClassRequirements, resolveClassRequirements } from './entityCardTone'
+import type { CardFacetCell } from './facetSplit'
 import type { ActionFields } from './referenceEntityCardTypes'
 
-function capitalize(value: string): string {
-  return value.length === 0 ? value : value.charAt(0).toUpperCase() + value.slice(1)
-}
-
-/** Entity/action traits → sub-header cells: "Explosive (1)" → label "Explosive"
- * value "1"; "Immobile" → label only. */
-export function traitCells(traits: SURefObjectTrait[]): EntityCardSubHeaderCell[] {
-  return traits.map((trait) => ({
-    key: `trait-${trait.type}`,
-    label: capitalize(trait.type),
-    value: trait.amount != null ? String(trait.amount) : undefined,
-    // The trait line is a glossary of named rules — each name summons its own
-    // entry, the same as an in-prose `[[trait]]` reference.
-    entityRef: { schemaName: 'traits' as const, name: trait.type },
-  }))
-}
-
-/** Normalize an action type into its display label: "Turn" → "Turn Action";
- * "Passive"/"Reaction"/anything already containing "action" stays as-is. */
-export function formatActionType(type: string): string {
-  const lower = type.toLowerCase()
-  if (lower.includes('action') || lower === 'passive' || lower === 'reaction') return type
-  return `${type} Action`
-}
+/** The "modified stats" colour — a choice-touched or TL-scaled cell's border.
+ * Ink, not rust: rust is an action's colour (ruleset §3.1), and a player's
+ * change reads as `Stat`'s heavier solid `modified` frame, never the pencil
+ * dash (pencil means the dash, ruleset §1, §3.9; ADR-026 §5). The sub-header
+ * renders its cells as text today, so this marks the data
+ * and draws nothing yet. */
+const MODIFIED = 'var(--color-ink)'
 
 /**
- * An action's classification + range / damage / traits as sub-header cells. The
- * action TYPE leads (a label-only cell), then range/damage/traits. The EP/AP
- * cost is the sub-header's `leading` node, rendered before all of these.
- *
- * `mechActionType` is the SPLIT: a handful of abilities cost a different action
- * depending on whether you perform them in a Mech or on foot, and the book prints
- * both — "Turn Action (Mech) // Short Action (Pilot)" (core book p.248-249). When
- * it is present the single type cell becomes two qualified cells, Mech first, in
- * the book's own order. Without it nothing changes: one unqualified cell, exactly
- * as before, which is every other action in the dataset.
+ * A facet of the entity model (`facetCells` in `salvageunion-reference`) as a
+ * sub-header cell: a named rule keeps its glossary hovercard, and a facet a
+ * choice or the Tech Level changed wears the modified border.
  */
-export function actionCells(
-  action: ActionFields,
-  mechActionType?: string
-): EntityCardSubHeaderCell[] {
-  const cells: EntityCardSubHeaderCell[] = []
-  if (mechActionType && action.actionType) {
-    cells.push({ key: 'action-type-mech', label: `${formatActionType(mechActionType)} (Mech)` })
-    cells.push({ key: 'action-type', label: `${formatActionType(action.actionType)} (Pilot)` })
-  } else if (action.actionType) {
-    cells.push({ key: 'action-type', label: formatActionType(action.actionType) })
+function toSubHeaderCell(cell: FacetCell): CardFacetCell {
+  return {
+    key: cell.key,
+    label: cell.label,
+    ...(cell.value !== undefined ? { value: cell.value } : {}),
+    ...(cell.mention ? { entityRef: cell.mention } : {}),
+    ...(cell.modified ? { borderColor: MODIFIED } : {}),
+    facet: {
+      kind: cell.kind,
+      ...(cell.short ? { short: cell.short } : {}),
+      ...(cell.shortValue ? { shortValue: cell.shortValue } : {}),
+      ...(cell.group ? { group: cell.group } : {}),
+      ...(cell.actionType ? { actionType: cell.actionType } : {}),
+      ...(cell.mention ? { mention: cell.mention } : {}),
+      ...(cell.modified ? { modified: true as const } : {}),
+    },
   }
-  if (action.range && action.range.length > 0) {
-    cells.push({ key: 'range', label: 'Range', value: action.range.join(' / ') })
-  }
-  if (action.damage) {
-    cells.push({
-      key: 'damage',
-      label: 'Damage',
-      // "4 SP", not "4SP" — the amount and the pool it comes off are two facts,
-      // and the sub-header renders this as "Damage: 4 SP".
-      value: [action.damage.amount, action.damage.damageType].filter(Boolean).join(' '),
-    })
-  }
-  if (action.traits) cells.push(...traitCells(action.traits))
-  return cells
 }
 
-/** `bonusPerTechLevel` fields → "+N" vertical stat boxes (zeros/absent dropped).
- * The label splits top/bottom around the value: [field, TOP word, BOTTOM word]
- * (e.g. "Structure" / "Points"), the same two-line treatment as "Tech" / "Level". */
+/** `bonusPerTechLevel` fields → "+N" label-first chips (zeros/absent dropped).
+ * Each entry is [field, first word, second word]; the chip's label joins the
+ * two ("Structure Points"), and a Damage cell carries the second as its unit. */
 const BONUS_LABELS: [keyof SURefObjectBonusPerTechLevel, string, string][] = [
   ['structurePoints', 'Structure', 'Points'],
   ['energyPoints', 'Energy', 'Points'],
@@ -118,12 +79,6 @@ export function bonusCells(bonus: SURefObjectBonusPerTechLevel): BonusCell[] {
   })
 }
 
-/** A datavalue as display text, with its unit appended when it has one. */
-function fmtDv(dv: { value?: unknown; unit?: string }): string {
-  const v = dv.value == null ? '' : String(dv.value)
-  return dv.unit ? `${v}${dv.unit}` : v
-}
-
 /** What the entity's Tech Level resolves to once a host may be scaling it. */
 export type TechScaling = {
   /**
@@ -138,7 +93,7 @@ export type TechScaling = {
   /** The header TL cell: the EFFECTIVE level (base, or bumped by the external
    * `scalingParent` control) on a TL-scalable entity, else the base. */
   techLevelDisplay: number | 'B' | 'N' | undefined
-  /** Scaled above base — the TL cell wears the rust `modified` border. */
+  /** Scaled above base — the TL cell wears the heavier solid `modified` frame. */
   techLevelModified: boolean
   /** A `perTechLevel` map (datavalue label, lowered → per-level increment) from
    * the entity's OWN datavalues, so a scaled value is highlighted as modified. */
@@ -215,22 +170,20 @@ export function buildHeaderStats(options: {
   asCompact: boolean
   /** Actions and pattern LISTING rows carry no header stats at all. */
   none: boolean
-  primaryOnly: boolean
   techLevel: number | 'B' | 'N' | undefined
   techLevelDisplay: number | 'B' | 'N' | undefined
   techLevelModified: boolean
 }): StatItem[] {
-  const { entity, schemaName, asCompact, none, primaryOnly, techLevel } = options
+  const { entity, schemaName, asCompact, none, techLevel } = options
   const rawHeaderStats: StatItem[] = none
     ? []
     : buildReferenceEntityStats(entity, {
         compact: asCompact,
-        primaryOnly,
         // Never 'actions' here — an action takes the `none` branch above.
         schemaName: schemaName === 'actions' ? undefined : schemaName,
         techLevel,
       })
-  // TECH LEVEL is a header headline stat (value box), NOT a seam pill — a
+  // TECH LEVEL is a header headline stat (value box), NOT a label pill — a
   // size-aware label ("Tech Level" full / "TL" compact), placed first in the
   // top-right cluster. `buildReferenceEntityStats` doesn't emit it, so add it.
   const techLevelStat: StatItem | undefined =
@@ -244,8 +197,9 @@ export function buildHeaderStats(options: {
           label: asCompact ? 'TL' : 'Tech',
           bottomLabel: asCompact ? undefined : 'Level',
           value: String(options.techLevelDisplay),
-          // A TL-scalable item shows the EFFECTIVE level; a rust `modified`
-          // border when above base (controlled from without via `scalingParent`).
+          group: 'provenance' as const,
+          // A TL-scalable item shows the EFFECTIVE level; a heavier solid `modified`
+          // frame when above base (controlled from without via `scalingParent`).
           ...(options.techLevelModified ? { state: 'modified' as const } : {}),
         }
       : undefined
@@ -258,16 +212,13 @@ export function buildHeaderStats(options: {
   ]
 }
 
-/** The "modified stats" colour — a choice-touched or TL-scaled cell gets a rust
- * border (and, for traits, a rust label ground). */
-const MODIFIED = 'var(--color-rust)'
-
 /**
  * The SUB-HEADER cells — action type/range/damage/traits, then entity traits,
  * then every datavalue, with anything a choice or the Tech Level changed
- * bordered rust.
+ * marked "modified". The facets and their order are the entity model's
+ * (`facetCells`, E17); this shapes them for the sub-header.
  *
- * CHOICE PLACEMENT: EVERYTHING INLINE (choice-plan Stage 7) — every choice
+ * CHOICE PLACEMENT: EVERYTHING INLINE — every choice
  * renders in the BODY, at its prose, in both modes; no choice is ever hoisted
  * to this row.
  */
@@ -282,111 +233,15 @@ export function resolveSubHeaderCells(options: {
   selections: ChoiceSelections | undefined
   perTechLevelByLabel: ReadonlyMap<string, number>
   effTechLevel: number | undefined
-}): EntityCardSubHeaderCell[] {
-  const { entity, entityName, action, foldedAction, entityChoices } = options
-  // A folded single action surfaces its type/range/damage/traits into the
-  // sub-header; entity traits follow, deduped so a shared trait (e.g.
-  // "Explosive") isn't listed twice.
-  // An ability carries the MECH half of a split action type; the action record
-  // carries the Pilot half. Only the ability knows both, so the split is resolved
-  // here rather than inside `actionCells`.
-  const abilityMechActionType =
-    isAbility(entity) && typeof entity.mechActionType === 'string'
-      ? entity.mechActionType
-      : undefined
-  const foldedActionCells = foldedAction ? actionCells(foldedAction, abilityMechActionType) : []
-  const entityCells = traitCells(getTraits(entity) ?? [])
-  const dedupedEntityCells = entityCells.filter(
-    (cell) => !foldedActionCells.some((folded) => folded.key === cell.key)
-  )
-  // A HYBRID class names the two ability trees it advances from, in the
-  // sub-header row and LEADING it (the requirement is the first thing a reader
-  // needs off a hybrid). The two trees are joined by "or", never a comma list —
-  // a pilot qualifies through ONE of them, not both. Base classes have no
-  // requirements entry, so this is empty for them and the row is unchanged.
-  const classRequirement = formatClassRequirements(resolveClassRequirements(entity))
-  const classRequirementCells: EntityCardSubHeaderCell[] = classRequirement
-    ? [{ key: 'class-requires', label: 'Requires', value: classRequirement }]
-    : []
-  // A Union Crawler TECH LEVEL is a table row in the book (p.218), and the
-  // population band is the one fact on that row which is not a number the header
-  // can hold: it is a RANGE, so it rides the facet line while Structure Points /
-  // Upkeep / Upgrade sit in the header's stat cluster. `populationMax: 0` is the
-  // dataset's "unbounded" marker for the top tier, which the book prints open-
-  // ended ("25,000+"). Without this the entire crawler-tech-levels catalog
-  // rendered as bare name + TL cards.
-  const populationRange = crawlerPopulationRange(entity)
-  const populationCells: EntityCardSubHeaderCell[] = populationRange
-    ? [{ key: 'population', label: 'Population', value: populationRange }]
-    : []
-  const baseCells: EntityCardSubHeaderCell[] = action
-    ? actionCells(action)
-    : [...populationCells, ...classRequirementCells, ...foldedActionCells, ...dedupedEntityCells]
-  // dvSourceContent — the content whose `datavalues` block (Damage/Range) feeds
-  // the resolver's base stats (a self-action's content for a self-action entity).
-  const entityContentForDv = 'content' in entity ? entity.content : undefined
-  const dvSourceContent =
-    (foldedAction && foldedAction.name === entityName
-      ? foldedAction.content
-      : entityContentForDv) ?? entityContentForDv
-
-  // MODIFIED-STATS LANGUAGE + DATAVALUES BUBBLE. `resolveChoiceView` applies the
-  // selected choice effects to the entity's base datavalues + traits; diffing it
-  // against the base (no selections) tells us what a choice CHANGED. Anything a
-  // choice touched gets a RUST cell BORDER (the "modified" colour) — a choice-ADDED
-  // trait (picking "Ballistic" → the Ballistic trait) and any datavalue an effect
-  // UPGRADED (Damage 2→3, Range → Far; the value itself updates too). With no
-  // selections this is just the base view — so Damage/Range still bubble normally.
-  const resolvable = {
-    content: dvSourceContent,
-    traits: getTraits(entity) ?? [],
-    choices: entityChoices,
-  }
-  const resolvedView = resolveChoiceView(resolvable, options.selections ?? {})
-  const baseView = resolveChoiceView(resolvable, {})
-  const baseTraitKeys = new Set(baseView.traits.map((t) => String(t.type).toLowerCase()))
-  const addedTraitCells: EntityCardSubHeaderCell[] = traitCells(
-    resolvedView.traits.filter((t) => !baseTraitKeys.has(String(t.type).toLowerCase()))
-  ).map((c) => ({ ...c, borderColor: MODIFIED }))
-  const baseDvMap = new Map(
-    baseView.datavalues
-      .filter((d) => d.label != null)
-      .map((d) => [String(d.label).toLowerCase(), fmtDv(d)])
-  )
-  const existingLabels = new Set(baseCells.map((c) => String(c.label).toLowerCase()))
-  const datavalueCells: EntityCardSubHeaderCell[] = resolvedView.datavalues
-    .filter((d) => d.label != null && !existingLabels.has(String(d.label).toLowerCase()))
-    .map((d) => {
-      // TL scaling rides ON TOP of any choice effect already applied by
-      // `resolveChoiceView`: the resolved value is the effective TL1 value, and
-      // `perTechLevel` adds per tech level above the first. A scaled value is
-      // "modified" (rust border), same language as a choice-touched stat.
-      const perTechLevel = options.perTechLevelByLabel.get(String(d.label).toLowerCase())
-      const scaled =
-        perTechLevel !== undefined
-          ? resolveDataValueForTechLevel(
-              { label: d.label, value: d.value, unit: d.unit, perTechLevel },
-              options.effTechLevel
-            )
-          : { value: d.value, scaled: false }
-      const val = fmtDv({ value: scaled.value, unit: d.unit })
-      const changed = baseDvMap.get(String(d.label).toLowerCase()) !== val || scaled.scaled
-      // A datavalue that IS a named rules term (`type: "trait" | "keyword"`)
-      // keeps its glossary hovercard, resolved against the traits / keywords
-      // schemas.
-      const refSchema =
-        d.type === 'trait'
-          ? ('traits' as const)
-          : d.type === 'keyword'
-            ? ('keywords' as const)
-            : undefined
-      return {
-        key: `dv-${d.label}`,
-        label: String(d.label),
-        value: val,
-        ...(refSchema ? { entityRef: { schemaName: refSchema, name: String(d.label) } } : {}),
-        ...(changed ? { borderColor: MODIFIED } : {}),
-      }
-    })
-  return [...baseCells, ...addedTraitCells, ...datavalueCells]
+}): CardFacetCell[] {
+  return facetCells({
+    entity: options.entity,
+    entityName: options.entityName,
+    action: options.action,
+    foldedAction: options.foldedAction,
+    choices: options.entityChoices,
+    selections: options.selections,
+    perTechLevelByLabel: options.perTechLevelByLabel,
+    effTechLevel: options.effTechLevel,
+  }).map(toSubHeaderCell)
 }

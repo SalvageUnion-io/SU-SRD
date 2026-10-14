@@ -2,22 +2,31 @@
  * islands.client — the one client entry every page loads.
  *
  * Scans `[data-island]` placeholders, resolves each one's chunk from
- * `islandRegistry`, and mounts it with **`createRoot`, never `hydrateRoot`**.
+ * `islandRegistry`, and mounts it with `createRoot` (`mountIsland`), or with
+ * `hydrateRoot` where the placeholder says `data-hydrate`.
  *
- * That choice is the whole reason this migration is tractable (see
- * `ssg/DESIGN.md`): `useGameData`'s server snapshot is hardcoded `false`, so a
- * hydrating card renders its fallback on the client's first pass while the
- * server rendered the real thing — React #418. Client-only mounting has no
- * mismatch class at all, because the server markup is discarded rather than
- * matched. `el.replaceChildren()` below is what discards it, and is what keeps
- * an `ssr: true` island from double-rendering.
+ * `createRoot` by default because `useGameData`'s server snapshot is hardcoded
+ * `false` (see `ssg/DESIGN.md`), so a hydrating card would render its fallback
+ * on the client's first pass while the server rendered the real thing: a
+ * hydration mismatch. Client-only mounting has no mismatch class at all, because the server
+ * markup is discarded rather than matched. React's first commit into the root
+ * is what discards it, in the same step that inserts the island, which keeps
+ * an `ssr: true` island from double-rendering without an empty frame between
+ * the two. An island that reads no game data, and whose server markup is its
+ * own first render, opts into `hydrate` and keeps the server's markup instead.
+ *
+ * An `interaction` island is not scheduled at all until the reader reaches for
+ * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
-import { createElement } from 'react'
-import { createRoot } from 'react-dom/client'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
+import { revealWikiLinks } from '../lib/wikiLink'
+import { replayInteraction, watchInteraction } from './interaction'
 import type { IslandComponent } from './islandRegistry'
 import { islandRegistry } from './islandRegistry'
+import type * as MountModule from './mountIsland'
+import { mountsNow } from './mountNow'
+import { schedule } from './scheduleIsland'
 
 // Env-gated browser error tracking, initialised from the single client entry.
 void initBrowserObservability()
@@ -40,32 +49,6 @@ function readIslandProps(): PropsById {
   }
 }
 
-function schedule(directive: string, el: Element, mount: () => void): void {
-  if (directive === 'idle') {
-    if ('requestIdleCallback' in window) window.requestIdleCallback(() => mount())
-    else setTimeout(mount, 200)
-    return
-  }
-  if (directive === 'visible') {
-    if (!('IntersectionObserver' in window)) {
-      mount()
-      return
-    }
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue
-        observer.disconnect()
-        mount()
-        return
-      }
-    })
-    observer.observe(el)
-    return
-  }
-  // 'load' and 'only' both mean "as soon as this entry runs".
-  mount()
-}
-
 function mountIslands(): void {
   const propsById = readIslandProps()
 
@@ -86,10 +69,13 @@ function mountIslands(): void {
     const id = el.dataset.islandId ?? ''
     const props = propsById[id] ?? {}
     const directive = el.dataset.client ?? 'load'
+    const hydrate = el.dataset.hydrate !== undefined
 
-    schedule(directive, el, () => {
-      loader()
-        .then((Component: IslandComponent | undefined) => {
+    const mount = (onCommit?: () => void) => {
+      // `mountIsland` (React DOM) is fetched with the island, not imported by
+      // this entry: a page whose islands never mount never loads React.
+      Promise.all([loader(props), import('./mountIsland')])
+        .then(([Component, { mountIsland }]: [IslandComponent | undefined, typeof MountModule]) => {
           // A failed chunk that chunk recovery is reloading for resolves to
           // `undefined`, not a rejection: its `preventDefault()` makes Vite's
           // preload helper swallow the error, and the registry's `.then` runs
@@ -97,10 +83,11 @@ function mountIslands(): void {
           // `createElement(undefined)` throws React's "Element type is invalid"
           // before the reload lands (SRD-H).
           if (Component === undefined) return
-          // Discard any ssr:true placeholder markup BEFORE mounting, so the
-          // island renders once rather than appending beside its own SSR copy.
-          el.replaceChildren()
-          createRoot(el).render(createElement(Component, props))
+          // No `replaceChildren()` first: the ssr:true markup stays on screen,
+          // and keeps the reader's focus and input, until the island's first
+          // commit replaces (or, hydrating, adopts) it (see `mountIsland`).
+          mountIsland(el, Component, props, { hydrate, onCommit })
+          if (name === 'SearchIsland') searchMounted = true
         })
         .catch((error: unknown) => {
           // A chunk that failed to load has already reached chunk recovery via
@@ -108,14 +95,65 @@ function mountIslands(): void {
           // when the reload is on cooldown, or the failure was something else.
           console.error(`[islands] failed to load "${name}"`, error)
         })
+    }
+
+    if (directive !== 'interaction') {
+      schedule(directive, el, () => mount())
+      continue
+    }
+    if (mountsNow(name, props)) {
+      schedule('visible', el, () => mount())
+      continue
+    }
+    // Mounts on the reader's first reach for it, then plays back what they did
+    // while it loaded (`interaction.ts`).
+    const watch = watchInteraction(el, () => mount(() => replayInteraction(el, watch.finish())), {
+      trigger: el.dataset.trigger,
     })
   }
 }
+
+/** Set once a search field has mounted; its own listener then answers Cmd+K. */
+let searchMounted = false
+
+/**
+ * Cmd+K / Ctrl+K before any search field has mounted: focus the server-rendered
+ * field on show, which wakes its island (`interaction`), and the island's
+ * mount keeps the focus. After that `SearchIsland` answers the shortcut itself.
+ */
+function onSearchShortcut(event: KeyboardEvent): void {
+  if (searchMounted || !(event.metaKey || event.ctrlKey) || event.key !== 'k') return
+  for (const input of document.querySelectorAll<HTMLInputElement>(
+    '[data-island="SearchIsland"] input'
+  )) {
+    if (input.getClientRects().length === 0) continue
+    event.preventDefault()
+    input.focus()
+    return
+  }
+}
+
+document.addEventListener('keydown', onSearchShortcut)
+revealWikiLinks(document)
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', mountIslands, { once: true })
 } else {
   mountIslands()
+}
+
+// A guide page served as static HTML: its contents mark the section in view.
+// Plain DOM in its own chunk, fetched only on such a page; a guide card that
+// is an island starts the same watcher itself (`GuideSteps`).
+const guidePages = document.querySelectorAll('.su-guide--page')
+if (guidePages.length > 0) {
+  void import('component-lib/guideContents')
+    .then((m) => {
+      for (const root of guidePages) m.watchGuideContents(root)
+    })
+    .catch((error: unknown) => {
+      console.warn('[guide] could not watch the contents', error)
+    })
 }
 
 /**

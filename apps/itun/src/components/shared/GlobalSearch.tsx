@@ -1,55 +1,63 @@
 /**
- * GlobalSearch — ITUN's reference search: the SRD's content, searched from a
- * floating button in the bottom-right corner of every route (design-review
- * P-2).
+ * GlobalSearch — ITUN's reference search, in the Union bar (ruleset §3.11,
+ * board 05: "Search · ⌘K", right side, before the account control), never a
+ * floating button: one in the bottom-right corner covers content at phone
+ * width and duplicates the bar.
  *
- * The masthead keeps only navigation and the account; search lives in
- * component-lib's `Fab`, which expands into a panel anchored at the button. (The SRD site keeps
- * its own top-of-page search, `SearchIsland`; this is ITUN's only.)
+ * Two triggers, one search. `variant="bar"` is the desktop control (the bar's
+ * `search` slot, shown from `lg`); `variant="icon"` is the phone's icon button
+ * (the bar's mobile cluster, as the SRD's). Their `open` state is lifted to the
+ * root, so they share it, and only the trigger that is on screen at the current
+ * width opens the panel — a `PopoverPanel`, non-modal, hanging under its
+ * trigger. Escape or a press outside closes it, focus back on the trigger.
  *
  * The combobox logic (debounce, category+entity blending, keyboard
  * selection, ARIA wiring) lives in component-lib's useSearchCombobox — shared
- * with srd's SearchIsland (audit item 11). This shell owns what's
+ * with srd's SearchIsland. This shell owns what's
  * ITUN-specific:
  *
- * - **Results grow upward.** The input sits at the panel's bottom edge, beside
- *   the button, and the results stack ABOVE it with the best match nearest
- *   the input — so they are in DOM order bottom-up, and the arrow keys follow
- *   the screen: ↑ moves away from the input, ↓ back toward it (onto the input
- *   again past the nearest row).
+ * - **Results hang below the input**, best match first; ↓ moves down the list.
  * - **Opening a result.** An entity opens ITUN's canonical detail affordance —
  *   component-lib's useDetailModal — and the panel collapses. Category rows
  *   (schema matches) have no in-app destination, so they open the SRD site's
  *   schema index in a new tab and leave the panel open.
- * - **Cmd/Ctrl+K** toggles the panel from anywhere and focuses the input.
- *   Escape or a press outside collapses it, focus back on the button (the
- *   `Fab`'s contract).
- * - **Where the button hides.** `fabHidden` — the root passes
- *   `fabCollides(pathname)` (`lib/searchFab.ts`), which names the routes whose
- *   own bottom-right corner it would cover. The shortcut still works there.
- * - ITUN's whole tree renders behind GameDataReady (root layout), so
- *   search() is always safe here (ready defaults to true).
- *
- * Mounted once from the root layout, inside the game-data gate.
+ * - **Cmd/Ctrl+K** toggles the panel from anywhere and focuses the input; the
+ *   `variant="bar"` instance (`shortcut`) owns the listener.
+ * - **Game data.** The bar paints before the reference dataset has loaded
+ *   (GameDataReady is a sibling below it), so the combobox is told when it is
+ *   `ready` and holds a query typed early until it is.
  */
 
-import type { SearchComboboxResult } from 'component-lib'
+import type { EntitySurfaceValue, SearchComboboxResult } from 'component-lib'
 import {
+  Button,
   EmptyState,
-  Fab,
+  Entity,
+  EntityExternalLinkProvider,
+  EntitySurfaceProvider,
+  PopoverPanel,
   SearchField,
+  SearchFieldTrigger,
   tokens,
   useDetailModal,
+  useMediaQuery,
+  useModKeyHint,
   useSearchCombobox,
 } from 'component-lib'
 import { Search } from 'lucide-react'
-import type { CSSProperties, KeyboardEvent } from 'react'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
+import { toEntityModel } from 'salvageunion-reference'
+import { useGameDataLoaded } from '../../hooks/useGameDataLoaded'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
+import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
+
+/** The Union bar's desktop layout starts here (`lg`, 64rem): below it, the drawer. */
+const DESKTOP_QUERY = '(min-width: 64rem)'
 
 /** The button's name, the panel's and the input's: one thing, one name. */
-const LABEL = 'Search the rules'
+const LABEL = 'Search the SRD'
 
 const BODY = {
   display: 'flex',
@@ -68,27 +76,118 @@ const HINT = {
 const LISTBOX = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[4],
+  gap: tokens.space[12],
   // Room for the whole result budget on a laptop; on a short screen the list
   // scrolls inside the panel rather than pushing it off the top.
   maxHeight: 'min(20rem, 50dvh)',
   overflowY: 'auto',
 } satisfies CSSProperties
 
-type GlobalSearchProps = {
-  /** Hide the collapsed button on this route; Cmd/Ctrl+K still opens the panel. */
-  fabHidden?: boolean
+/** The phone's icon trigger, toned for the ink bar over the ghost button; the bar sizes it (`--su-union-bar-control`). */
+const TRIGGER_ICON = {
+  borderColor: 'transparent',
+  borderRadius: tokens.radius.panel,
+  color: tokens.color.paper,
+} satisfies CSSProperties
+
+/** A category row; its ground and edge follow hover and the keyboard selection (globalSearch.css). */
+const OPTION = {
+  alignItems: 'baseline',
+  borderRadius: tokens.radius.card,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.chrome,
+  cursor: 'pointer',
+  display: 'flex',
+  gap: tokens.space[12],
+  justifyContent: 'space-between',
+  paddingBlock: tokens.space[8],
+  paddingInline: tokens.space[12],
+  textAlign: 'left',
+  transitionDuration: '150ms',
+  transitionProperty:
+    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  width: '100%',
+} satisfies CSSProperties
+
+const OPTION_TITLE = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  fontWeight: tokens.weight.medium,
+  lineHeight: '1.25rem',
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const OPTION_GROUP = {
+  color: tokens.color.wkMuted,
+  flexShrink: 0,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.xs,
+  fontWeight: tokens.weight.semibold,
+  letterSpacing: tokens.tracking.capsSnug,
+  lineHeight: '1rem',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const PANEL = {
+  backgroundColor: tokens.color.paper,
+  borderColor: tokens.color.ink,
+  borderRadius: tokens.radius.panel,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.chrome,
+  boxSizing: 'border-box',
+  color: tokens.color.ink,
+  maxWidth: 'calc(100vw - 2rem)',
+  outline: 'none',
+  width: '28rem',
+} satisfies CSSProperties
+
+/** A result's Page opener: the entity it already holds, opened in the detail view. */
+function openerFor(
+  entity: SURefEntity,
+  open: (entity: SURefEntity) => void
+): EntitySurfaceValue['openPage'] {
+  return () => open(entity)
 }
 
-export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
-  const [open, setOpen] = useState(false)
+type GlobalSearchProps = {
+  /** `bar` — the desktop search field (`SearchFieldTrigger`); `icon` — the phone's icon button. */
+  variant?: 'bar' | 'icon'
+  /** Whether the panel is open. Lifted to the root so the two triggers share it. */
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSearchProps) {
+  /** Binds Cmd/Ctrl+K to toggle the panel: one instance owns it, the bar's. */
+  const shortcut = variant === 'bar'
+  const keyCap = useModKeyHint()
   const [detailEntity, setDetailEntity] = useState<SURefEntity | undefined>(undefined)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const desktop = useMediaQuery(DESKTOP_QUERY)
+  const ready = useGameDataLoaded()
+  // Only the trigger on screen at this width shows the panel.
+  const shown = open && (variant === 'bar') === desktop
 
   // ITUN's canonical entity detail affordance. Rendered as a sibling of the
   // panel so it survives the panel collapsing.
   const { control: detailControl, modal: detailModal } = useDetailModal(detailEntity)
+
+  // The Page opener every result Row reads (entity display language §2): the
+  // detail modal.
+  const openEntity = useCallback(
+    (entity: SURefEntity) => {
+      onOpenChange(false)
+      setDetailEntity(entity)
+      detailControl.onClick?.()
+    },
+    [detailControl, onOpenChange]
+  )
 
   const pick = useCallback(
     (result: SearchComboboxResult) => {
@@ -97,11 +196,9 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
         window.open(deepLinkToSchema(result.schemaId), '_blank', 'noopener,noreferrer')
         return
       }
-      setOpen(false)
-      setDetailEntity(result.entity)
-      detailControl.onClick?.()
+      openEntity(result.entity)
     },
-    [detailControl]
+    [openEntity]
   )
 
   const {
@@ -116,82 +213,99 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
     optionId,
     inputProps,
     announcement,
-  } = useSearchCombobox({ onSubmit: pick })
+  } = useSearchCombobox({ onSubmit: pick, ready })
 
   // Cmd+K / Ctrl+K toggles the panel from any surface (Escape and an outside
-  // press are the Fab's).
+  // press are the Popover's).
   useEffect(() => {
+    if (!shortcut) return
     const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
-        setOpen((wasOpen) => !wasOpen)
+        onOpenChange(!open)
       }
     }
     document.addEventListener('keydown', handleGlobalKeyDown)
     return () => document.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [])
+  }, [shortcut, open, onOpenChange])
 
   // Reopening keeps the last query, a quick way back to it, but selected, so
-  // typing replaces it instead of appending ("bionic" + "mech"). The Fab moves
-  // focus into the panel after it opens, so the selection is made when that
-  // focus lands (a later click into the field places a caret as usual).
+  // typing replaces it instead of appending ("bionic" + "mech"). The Popover
+  // moves focus into the panel after it opens, so the selection is made when
+  // that focus lands (a later click into the field places a caret as usual).
   const selectOnFocus = useRef(false)
   useEffect(() => {
-    if (!open) return
+    if (!shown) return
     const field = inputRef.current
     if (field !== null && document.activeElement === field) field.select()
     else selectOnFocus.current = true
-  }, [open])
+  }, [shown])
 
-  // The arrow keys follow the screen, and the screen is upside down relative to
-  // the result order: the hook's "next result" is one row further UP.
-  const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      handleKeyDown({
-        key: e.key === 'ArrowUp' ? 'ArrowDown' : 'ArrowUp',
-        preventDefault: () => e.preventDefault(),
-      })
-      return
-    }
-    handleKeyDown(e)
-  }
-
-  // A fresh result set starts scrolled to its bottom — the best match, beside
-  // the input — and the highlighted row is kept in view as the keys move it.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run per result set, not per render
-  useLayoutEffect(() => {
-    const list = listRef.current
-    if (list) list.scrollTop = list.scrollHeight
-  }, [results])
-
+  // Keep the highlighted row in view as the keys move it.
   useEffect(() => {
     if (selectedIndex < 0) return
     document.getElementById(optionId(selectedIndex))?.scrollIntoView?.({ block: 'nearest' })
   }, [selectedIndex, optionId])
 
-  // Best match LAST, so it sits directly above the input.
-  const upward = results.map((result, index) => ({ result, index })).reverse()
+  const trigger =
+    variant === 'bar' ? (
+      // The SRD's search field, as a button (one search entry in
+      // both tools); the panel opens below it.
+      <SearchFieldTrigger
+        label={LABEL}
+        aria-label={LABEL}
+        aria-keyshortcuts="Meta+K Control+K"
+        shortcut={keyCap}
+        labelClassName="su-union-bar__search-input"
+      />
+    ) : (
+      <Button
+        variant="ghost"
+        size="iconOnly"
+        aria-label={LABEL}
+        className="su-global-search-icon"
+        style={TRIGGER_ICON}
+      >
+        <Search size={22} aria-hidden="true" />
+      </Button>
+    )
 
   return (
     <>
-      <Fab
+      <PopoverPanel
+        trigger={trigger}
         label={LABEL}
-        icon={<Search size={22} aria-hidden="true" />}
-        open={open}
-        onOpenChange={setOpen}
-        hidden={fabHidden}
+        open={shown}
+        onOpenChange={onOpenChange}
+        sideOffset={8}
+        collisionPadding={16}
+        layer="masthead"
+        panelStyle={PANEL}
         initialFocus={inputRef}
-        keyShortcuts="Meta+K Control+K"
       >
         <div style={BODY}>
-          <div className="sr-only" aria-live="polite">
+          <div className="su-sr-only" aria-live="polite">
             {announcement}
           </div>
 
-          <p style={HINT}>
-            &#8593;&#8595; to move &middot; Enter to open &middot; Esc to close &middot; category
-            rows open the SRD site in a new tab
-          </p>
+          <SearchField
+            ref={inputRef}
+            type="text"
+            name="reference-search"
+            placeholder="Search chassis, equipment, abilities…"
+            autoComplete="off"
+            value={query}
+            onChange={(e) => handleInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={(e) => {
+              if (!selectOnFocus.current) return
+              selectOnFocus.current = false
+              e.currentTarget.select()
+            }}
+            {...inputProps}
+            aria-label={LABEL}
+            aria-expanded={hasSearched && results.length > 0}
+          />
 
           {hasSearched &&
             (results.length > 0 ? (
@@ -202,56 +316,65 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
                 aria-label="Search results"
                 style={LISTBOX}
               >
-                {upward.map(({ result, index }) => (
-                  <button
-                    key={result.id}
-                    id={optionId(index)}
-                    type="button"
-                    role="option"
-                    aria-selected={index === selectedIndex}
-                    onClick={() => submit(result)}
-                    className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
-                      index === selectedIndex
-                        ? 'border-rust bg-wk-bg-2'
-                        : 'border-transparent hover:bg-wk-bg-2'
-                    }`}
-                  >
-                    <span className="min-w-0 truncate font-body text-sm font-medium text-ink">
-                      {result.title}
-                    </span>
-                    <span className="shrink-0 font-cond text-xs font-semibold uppercase tracking-caps-snug text-wk-muted">
-                      {result.group}
-                      {result.kind === 'schema' && <span aria-hidden="true"> &#8599;</span>}
-                    </span>
-                  </button>
-                ))}
+                {results.map((result, index) =>
+                  // SEARCH (entity display language §7): an entity result
+                  // is a Row in link mode, without the lead; a category
+                  // row opens the SRD site.
+                  result.kind === 'entity' ? (
+                    <EntitySurfaceProvider
+                      key={result.id}
+                      value={{ openPage: openerFor(result.entity, openEntity) }}
+                    >
+                      <Entity
+                        form="row"
+                        model={toEntityModel(result.entity)}
+                        mode={{
+                          kind: 'link',
+                          attrs: {
+                            id: optionId(index),
+                            role: 'option',
+                            tabIndex: -1,
+                            'aria-selected': index === selectedIndex,
+                          },
+                        }}
+                      />
+                    </EntitySurfaceProvider>
+                  ) : (
+                    <button
+                      key={result.id}
+                      id={optionId(index)}
+                      type="button"
+                      role="option"
+                      aria-selected={index === selectedIndex}
+                      onClick={() => submit(result)}
+                      className="su-global-search-option"
+                      style={OPTION}
+                    >
+                      <span style={OPTION_TITLE}>{result.title}</span>
+                      <span style={OPTION_GROUP}>
+                        {result.group}
+                        <span aria-hidden="true"> &#8599;</span>
+                      </span>
+                    </button>
+                  )
+                )}
               </div>
             ) : (
               <EmptyState variant="quiet" body="No results found" />
             ))}
 
-          <SearchField
-            ref={inputRef}
-            type="text"
-            name="reference-search"
-            placeholder="Search chassis, equipment, abilities…"
-            autoComplete="off"
-            value={query}
-            onChange={(e) => handleInput(e.target.value)}
-            onKeyDown={onInputKeyDown}
-            onFocus={(e) => {
-              if (!selectOnFocus.current) return
-              selectOnFocus.current = false
-              e.currentTarget.select()
-            }}
-            {...inputProps}
-            aria-label={LABEL}
-            aria-expanded={hasSearched && results.length > 0}
-          />
+          <p style={HINT}>
+            &#8593;&#8595; to move &middot; Enter to open &middot; Esc to close &middot; category
+            rows open the SRD site in a new tab
+          </p>
         </div>
-      </Fab>
+      </PopoverPanel>
 
-      {detailModal}
+      {/* The bar sits outside GameDataReady, so the detail modal brings the
+          cross-link provider that gate would otherwise have supplied. */}
+      <EntityExternalLinkProvider value={srdEntityExternalLink}>
+        {detailModal}
+      </EntityExternalLinkProvider>
     </>
   )
 }

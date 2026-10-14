@@ -1,6 +1,5 @@
 /**
- * MechConditionsEditor — the mech's unified conditions editor (plan 4.5,
- * gap 21 + gap 8).
+ * MechConditionsEditor — the mech's unified conditions editor.
  *
  * Renders ONE list — `unifiedMechConditions()` (free-form `conditions[]`
  * merged with the automation-written shutdown/vulnerable/destroyed flags) —
@@ -10,26 +9,21 @@
  * `conditions[]`. The two storage forms can never disagree on screen.
  */
 
+import type { Mech } from 'itun-domain/schemas/mech'
 import { unifiedMechConditions } from 'salvageunion-reference/rules'
-import type { Mech } from '../../lib/schemas/mech'
+import { mechConditionsPatch } from '../../lib/rules/mechItems'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { ConditionsEditor } from './ConditionsEditor'
 import { freshEntity } from './controlPrimitives'
-import { mechConditionsPatch } from './mechItemRules'
 
 type MechConditionsEditorProps = {
   mech: Mech
   /** Injectable store — defaults to useEntityStore. */
   store?: typeof useEntityStore
-  readOnly?: boolean
 }
 
-export function MechConditionsEditor({
-  mech,
-  store = useEntityStore,
-  readOnly = false,
-}: MechConditionsEditorProps) {
+export function MechConditionsEditor({ mech, store = useEntityStore }: MechConditionsEditorProps) {
   const storeState = store()
 
   async function handleChange(next: string[]) {
@@ -38,11 +32,5 @@ export function MechConditionsEditor({
     await storeState.update('mech', mech.id, mechConditionsPatch(fresh, next), LIVE_SHEET_MANUAL)
   }
 
-  return (
-    <ConditionsEditor
-      conditions={unifiedMechConditions(mech)}
-      onChange={handleChange}
-      readOnly={readOnly}
-    />
-  )
+  return <ConditionsEditor conditions={unifiedMechConditions(mech)} onChange={handleChange} />
 }

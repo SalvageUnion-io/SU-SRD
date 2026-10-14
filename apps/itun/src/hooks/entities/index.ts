@@ -1,6 +1,5 @@
 /**
- * hooks/entities — the typed reactive read layer over the Zustand stores
- * (design review T-7).
+ * hooks/entities — the typed reactive read layer over the Zustand stores.
  *
  * Components subscribe through these hooks instead of ad-hoc
  * `useEntityStore((s) => …)` selectors; event handlers keep using
@@ -8,13 +7,15 @@
  */
 
 // `useEntity` is deliberately NOT re-exported: it is the generic these are
-// built on, and its last consumer went with the share screen. `usePilot` /
+// built on. `usePilot` /
 // `useMech` are the typed way in — a caller wanting the generic is usually
 // about to lose the narrowing those give it.
 export {
   useCrawlers,
   useMech,
   useMechs,
+  useNpc,
+  useNpcs,
   usePilot,
   usePilots,
   useSoftLinkList,

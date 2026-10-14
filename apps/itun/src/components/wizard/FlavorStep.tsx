@@ -1,6 +1,8 @@
 import { Field, Input, Textarea } from 'component-lib'
+import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
-import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
+import type { PilotRollField, RollTableDeps } from './rollTableHelpers.model'
+import { fieldRowStyle, stepColumnStyle } from './wizardStyles.model'
 
 type FlavorStepProps = {
   /** Which optional flavor fact this step edits (also the roll table). */
@@ -17,7 +19,7 @@ type FlavorStepProps = {
 
 /**
  * Featherweight optional-flavor step (Pilot Bay steps 6–8: Motto, Keepsake,
- * Appearance — plan §4.1/Q10): one field + its d20 roll-table assist. Nothing
+ * Appearance): one field + its d20 roll-table assist. Nothing
  * is enforced — flavor is optional, Next is always enabled — and the roll
  * result stays editable (roll is an assist, never a commitment).
  */
@@ -32,10 +34,10 @@ export function FlavorStep({
 }: FlavorStepProps) {
   const id = `pilot-${field}`
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="su-wiz-stack su-wiz-stack--20" style={stepColumnStyle}>
       <Field label={label} htmlFor={id}>
         {multiline ? (
-          <div className="space-y-2">
+          <div className="su-wiz-stack su-wiz-stack--8">
             <RollTableButton
               field={field}
               onRoll={onChange}
@@ -51,7 +53,7 @@ export function FlavorStep({
             />
           </div>
         ) : (
-          <div className="flex gap-2">
+          <div style={fieldRowStyle}>
             <Input
               id={id}
               type="text"

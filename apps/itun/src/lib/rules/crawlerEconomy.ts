@@ -1,5 +1,5 @@
 /**
- * Union Crawler economy actions (design-review R-4).
+ * Union Crawler economy actions.
  *
  * Salvage Union Core Book p.218-223 — the Downtime economy loop around the
  * crawler's shared scrap pool:
@@ -33,11 +33,11 @@
  * module never picks for the player.
  */
 
+import { DOWNTIME_UPKEEP_SCRAP } from 'itun-domain/rules/downtime'
+import type { Crawler, ScrapPool } from 'itun-domain/schemas/crawler'
 import type { Roll, TechLevel } from 'salvageunion-reference/rules'
 import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
-import type { Crawler, ScrapPool } from '../schemas/crawler'
-import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
 
 /**
  * The numeric scrap tech levels (pool bucket keys are tl1..tl6).
@@ -130,9 +130,6 @@ export function drawFromPool(
 // Upkeep (p.218)
 // ---------------------------------------------------------------------------
 
-/** Upkeep cost: 5 Scrap of the crawler's Tech Level per Downtime. */
-export const UPKEEP_SCRAP = DOWNTIME_UPKEEP_SCRAP
-
 export type UpkeepPayment = {
   /** The pool after the draw. */
   pool: ScrapPool
@@ -144,7 +141,8 @@ export type UpkeepPayment = {
 
 /** How much scrap the pool is short of this Downtime's Upkeep (0 = covered). */
 export function upkeepShortfall(pool: ScrapPool, crawlerTl: number): number {
-  return Math.max(0, UPKEEP_SCRAP - poolAvailableAtOrAbove(pool, crawlerTl))
+  // Upkeep: 5 Scrap of the crawler's Tech Level per Downtime (p.218).
+  return Math.max(0, DOWNTIME_UPKEEP_SCRAP - poolAvailableAtOrAbove(pool, crawlerTl))
 }
 
 /**
@@ -153,9 +151,9 @@ export function upkeepShortfall(pool: ScrapPool, crawlerTl: number): number {
  * can't cover it — the caller offers the Deterioration roll instead.
  */
 export function payUpkeep(pool: ScrapPool, crawlerTl: number): UpkeepPayment | null {
-  const drawn = drawFromPool(pool, crawlerTl, UPKEEP_SCRAP)
+  const drawn = drawFromPool(pool, crawlerTl, DOWNTIME_UPKEEP_SCRAP)
   if (!drawn) return null
-  return { pool: drawn.pool, draws: drawn.draws, upgradeCredit: UPKEEP_SCRAP }
+  return { pool: drawn.pool, draws: drawn.draws, upgradeCredit: DOWNTIME_UPKEEP_SCRAP }
 }
 
 /**
@@ -294,11 +292,6 @@ export function crawlerUpgradeQuote(
 // Trading Scrap — fixed-rate TL exchange (p.223)
 // ---------------------------------------------------------------------------
 
-/** Each piece of Scrap is worth its Tech Level (p.223). */
-export function scrapValue(tl: number): number {
-  return tl
-}
-
 function gcd(a: number, b: number): number {
   return b === 0 ? a : gcd(b, a % b)
 }
@@ -321,7 +314,7 @@ export function convertedCount(fromTl: number, fromCount: number, toTl: number):
   if (fromCount <= 0 || fromTl === toTl) return null
   if (!SCRAP_TLS.includes(fromTl as (typeof SCRAP_TLS)[number])) return null
   if (!SCRAP_TLS.includes(toTl as (typeof SCRAP_TLS)[number])) return null
-  const value = scrapValue(fromTl) * fromCount
+  const value = fromTl * fromCount // each piece of Scrap is worth its Tech Level (p.223)
   return value % toTl === 0 ? value / toTl : null
 }
 

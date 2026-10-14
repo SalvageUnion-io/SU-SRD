@@ -1,8 +1,8 @@
 /**
  * The Board control in the Pilot Major's Mount bay: the split button and the
- * mech menu its ▾ opens (ADR-038 §3; #1055).
+ * mech menu its ▾ opens (ADR-038 §3).
  *
- * The menu's contents are `boardMenu.ts`'s, tested on their own in
+ * The menu's contents are `boardMenu.model.ts`'s, tested on their own in
  * `boardMenu.test.ts`; this drives what a player presses, and records what
  * reaches the seat with `fakeSeat`.
  */
@@ -10,7 +10,7 @@
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import type { BoardMenu, BoardOption } from '../boardMenu'
+import type { BoardMenu, BoardOption } from '../boardMenu.model'
 import { SlotRow } from '../SlotRow'
 import type { SeatHandle } from '../useSeat'
 import { fakeSeat } from './seatFixture'
@@ -86,7 +86,7 @@ describe('the main half', () => {
   test('no assigned mech: one "Board a mech ▾" that opens the menu', () => {
     renderBoard({ main: null, options: [spare] }, null)
     expect(screen.queryByRole('button', { name: /▶ Board/ })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Board a mech ▾' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Board a mech' }))
     expect(screen.getByRole('dialog', { name: 'Board a mech' })).toBeTruthy()
     // The Mech Minor says there is none, rather than the Dashboard refusing.
     expect(screen.getByText('No mech. Board one from the Pilot’s Mount bay.')).toBeTruthy()
@@ -158,7 +158,7 @@ describe('the ▾ menu', () => {
 
   test('nothing to board says so', () => {
     renderBoard({ main: null, options: [] }, null)
-    fireEvent.click(screen.getByRole('button', { name: 'Board a mech ▾' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Board a mech' }))
     expect(screen.getByText('No mechs to board. Assign one on the pilot’s sheet.')).toBeTruthy()
   })
 })

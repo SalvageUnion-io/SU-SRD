@@ -1,13 +1,13 @@
 /**
- * CrawlerSheet — bay action economy tests (plan 4.6; Phase 2 poster layout).
+ * CrawlerSheet — bay action economy tests (poster layout).
  *
- * The SP/Bays trackers moved into the body's economy band (SheetCrawler,
- * Phase 2); this file covers the Bays section's interactive surface:
+ * The SP/Bays trackers live in the body's economy band (SheetCrawler); this
+ * file covers the Bays section's interactive surface:
  *   1. Bay status: Intact bays lead with their function action; a Damaged bay
- *      disables the function and promotes Repair (design §4.4 / pattern 8).
+ *      disables the function and promotes Repair.
  *   2. Repair decrements 5 Scrap from the crawler-TL pool bucket, spilling
- *      into higher buckets, and flips the bay Intact (S12).
- *   3. A short pool is advisory — Repair still proceeds, never blocks (S12).
+ *      into higher buckets, and flips the bay Intact.
+ *   3. A short pool is advisory — Repair still proceeds, never blocks.
  *   4. readOnly suppresses every edit affordance.
  *   5. The Storage Bay's Scrap Pool steppers hand-edit `crawler.scrapPool`
  *      (Free Edit) — a crawler can stow arbitrary scrap by tech level.
@@ -17,9 +17,9 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { SURefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
-import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
@@ -87,7 +87,7 @@ function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEnti
   const updateCrawlerBay = spies?.updateCrawlerBay ?? mock(async () => crawler)
   return makeEntityStoreMock({
     crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [crawler]),
     get: mock((_type: string, id: string) => (id === crawler.id ? crawler : null)),
@@ -102,7 +102,7 @@ function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEnti
 // Bay action economy
 // ---------------------------------------------------------------------------
 
-describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () => {
+describe('CrawlerSheet — bay function/Repair actions', () => {
   let restore: () => void
   afterEach(() => {
     restore?.()
@@ -301,10 +301,8 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
     )
 
     expect(screen.queryByRole('button', { name: /Status:/ })).toBeNull()
-    const enabledRepairs = screen
-      .getAllByRole('button', { name: 'Repair' })
-      .filter((b) => !(b as HTMLButtonElement).disabled)
-    expect(enabledRepairs.length).toBe(0)
+    // Read draws no controls at all (board 10): no Repair, no bay function.
+    expect(screen.queryByRole('button', { name: 'Repair' })).toBeNull()
 
     expect(update).not.toHaveBeenCalled()
     expect(updateCrawlerBay).not.toHaveBeenCalled()

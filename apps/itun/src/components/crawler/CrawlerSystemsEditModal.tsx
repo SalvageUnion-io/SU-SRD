@@ -9,17 +9,18 @@
  */
 
 import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import { useMemo } from 'react'
 import type { SURefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import {
   computeCrawlerCapacity,
   isWeaponSystem,
+  parseCrawlerTechLevel,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import type { Crawler } from '../../lib/schemas/crawler'
+import { craftableAtTl } from '../../lib/rules/crafting'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean
@@ -75,7 +76,8 @@ export function CrawlerSystemsEditModal({
           const installed = crawler.systems.includes(nameToSlug(s.name))
           // Keep installed weapons visible/removable even above the current TL.
           if (installed) return isWeaponSystem(s)
-          if (typeof s.techLevel !== 'number' || tl === null || s.techLevel > tl) return false
+          if (typeof s.techLevel !== 'number' || tl === null || !craftableAtTl(s.techLevel, tl))
+            return false
           return isWeaponSystem(s)
         }}
         idOf={(item) => nameToSlug(item.name)}

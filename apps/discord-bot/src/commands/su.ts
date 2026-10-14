@@ -10,17 +10,15 @@
  * The subcommand option shapes live with their handlers (roll.ts,
  * lookup.ts); this module only composes the builder and dispatches on
  * `getSubcommand()`. Handlers read their options identically under a
- * subcommand, so their logic and tests are untouched.
+ * subcommand.
  */
 
 import { SlashCommandBuilder } from '@discordjs/builders'
-import { gamesCommand, meCommand, shelfCommand } from './account.js'
-import { crewCommand, sheetCommand } from './crew.js'
-import { gameCommand } from './game.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { inviteCommand } from './invite.js'
-import { lookupCommand } from './lookup.js'
-import { rollCommand } from './roll.js'
+import { gamesCommand, meCommand } from './account'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { lookupCommand } from './lookup'
+import { rollCommand } from './roll'
+import { sheetCommand } from './sheet'
 
 export const suCommand = {
   data: new SlashCommandBuilder()
@@ -28,26 +26,15 @@ export const suCommand = {
     .setDescription('Salvage Union reference tools')
     .addSubcommand((sub) => rollCommand.subcommand(sub))
     .addSubcommand((sub) => lookupCommand.subcommand(sub))
-    // In The Union Now (ADR-030 Phase 6). Always registered, never conditional
+    // In The Union Now (ADR-030). Always registered, never conditional
     // on configuration: a command that vanishes depending on how the bot was
     // deployed is harder to explain than one that answers that In The Union Now
     // is unavailable or not configured for this bot.
     .addSubcommand((sub) => meCommand.subcommand(sub))
     .addSubcommand((sub) => gamesCommand.subcommand(sub))
-    .addSubcommand((sub) => shelfCommand.subcommand(sub))
-    .addSubcommand((sub) => crewCommand.subcommand(sub))
-    .addSubcommand((sub) => sheetCommand.subcommand(sub))
-    .addSubcommand((sub) => inviteCommand.subcommand(sub))
-    .addSubcommandGroup((group) => gameCommand.group(group)),
+    .addSubcommand((sub) => sheetCommand.subcommand(sub)),
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    // A group is dispatched by its group name; `getSubcommand()` inside one
-    // returns the LEAF (`bind`), which would otherwise fall through to the
-    // default and throw.
-    if (interaction.options.getSubcommandGroup() === 'game') {
-      return gameCommand.execute(interaction)
-    }
-
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.execute(interaction)
@@ -57,17 +44,8 @@ export const suCommand = {
         return meCommand.execute(interaction)
       case 'games':
         return gamesCommand.execute(interaction)
-      case 'my-stuff':
-      // The subcommand's pre-rename name: Discord keeps serving it until the
-      // commands are re-registered (`bun run deploy-commands:global`).
-      case 'shelf':
-        return shelfCommand.execute(interaction)
-      case 'crew':
-        return crewCommand.execute(interaction)
       case 'sheet':
         return sheetCommand.execute(interaction)
-      case 'invite':
-        return inviteCommand.execute(interaction)
       default:
         // Unreachable while the builder above and this switch agree; loud
         // beats silent if they ever drift.
@@ -76,10 +54,6 @@ export const suCommand = {
   },
 
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
-    if (interaction.options.getSubcommandGroup() === 'game') {
-      return gameCommand.autocomplete(interaction)
-    }
-
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.autocomplete(interaction)
@@ -87,8 +61,6 @@ export const suCommand = {
         return lookupCommand.autocomplete(interaction)
       case 'sheet':
         return sheetCommand.autocomplete(interaction)
-      case 'invite':
-        return inviteCommand.autocomplete(interaction)
       default:
         await interaction.respond([])
     }

@@ -1,0 +1,176 @@
+import { z } from 'salvageunion-reference/zod'
+import { CargoLotSchema } from './cargoLot'
+import { containerFields } from './entity'
+import { photoFields } from './photo'
+import { ChoiceSelectionsSchema } from './pilot'
+
+/**
+ * The party's shared scrap pool, bucketed by tech level ("the party
+ * economy — 6 numbers"). Salvage deposits in; upkeep/craft/repair/trade
+ * withdraw. SCRAP cargo lots crossing the crawler boundary deposit/withdraw
+ * the matching bucket. Absent buckets read as 0.
+ */
+const ScrapPoolSchema = z
+  .object({
+    tl1: z.number().int().min(0).optional(),
+    tl2: z.number().int().min(0).optional(),
+    tl3: z.number().int().min(0).optional(),
+    tl4: z.number().int().min(0).optional(),
+    tl5: z.number().int().min(0).optional(),
+    tl6: z.number().int().min(0).optional(),
+  })
+  .strict()
+export type ScrapPool = z.infer<typeof ScrapPoolSchema>
+
+/**
+ * Per-NPC live state shared by crawler-bay crew leads and the crawler-type's
+ * special NPC. Extracted from the inline `crawlerBays` entry so the
+ * type NPC (`typeNpc`) reuses the same shape. The NPC's freeform identity
+ * fields (Keepsake/Motto) persist in the crawler's `bayChoices` map, NOT here —
+ * this schema holds only the structured live-play state.
+ */
+const CrawlerNpcStateSchema = z
+  .object({
+    /** Freeform name the player gave this NPC. */
+    npcName: z.string().optional(),
+    /** NPC's current HP (max from the SRD entity's `npc.hitPoints`). */
+    npcCurrentHP: z.number().int().min(0).optional(),
+    /**
+     * Player-editable freeform description of the NPC (appearance, personality,
+     * etc.). Distinct from the SRD entity's own rules text (`content`), which is
+     * read-only and resolved from the reference entity.
+     */
+    npcDescription: z.string().optional(),
+    /**
+     * Player-decided facts about the NPC — a freeform list of short strings the
+     * table has established in play (add/remove). Read sites treat a missing
+     * value as an empty list.
+     */
+    npcFacts: z.array(z.string()).optional(),
+    /**
+     * NPC condition. Intact/Damaged ONLY — never Destroyed. Absent
+     * reads as 'intact'.
+     */
+    condition: z.enum(['intact', 'damaged']).optional(),
+  })
+  .strict()
+export type CrawlerNpcState = z.infer<typeof CrawlerNpcStateSchema>
+
+/**
+ * Crawler tech levels are I–VI per the Salvage Union ruleset.
+ *
+ * Optional fields read as their documented default when absent, so records
+ * written before a field existed still parse.
+ */
+export const CrawlerSchema = z
+  .object({
+    id: z.string(),
+    schemaVersion: z.literal(1),
+    name: z.string().min(1),
+    /**
+     * Freeform crawler description. Rendered on the crawler sheet, edited in the
+     * wizard.
+     */
+    description: z.string().optional(),
+    /** Tech level (I–VI) expressed as a string slug, e.g. "tech-1" */
+    techLevel: z.string(),
+    /**
+     * Chosen crawler-type slug (the Augmented/Battle/Engineering/Exploratory/
+     * Trade Caravan type, e.g. "battle").
+     *
+     * Optional: a missing value reads as an untyped crawler.
+     */
+    type: z.string().optional(),
+    /**
+     * Live state for the crawler-type's special NPC (the Battle type's Grizzled
+     * Veteran, etc.). Same shape as a bay's embedded NPC state. The freeform
+     * Keepsake/Motto persist in `bayChoices` keyed by the type slug.
+     *
+     * Optional — absent on an untyped crawler.
+     */
+    typeNpc: CrawlerNpcStateSchema.optional(),
+    /**
+     * Installed SRD crawler bays (Command Bay, Mech Bay, Storage Bay, …). The
+     * official crawler sheets pre-print all bays as fixed sections, so every
+     * crawler is seeded with the full set on creation; the array is extensible
+     * so a crawler can gain more bays over time.
+     *
+     * Each entry tracks the bay's embedded NPC's live state (name + current
+     * HP). The NPC's max HP comes from the SRD bay's `npc.hitPoints` (4); the
+     * crew is the per-bay NPC.
+     *
+     * Optional: read sites treat a missing value as an empty list.
+     */
+    crawlerBays: z
+      .array(
+        CrawlerNpcStateSchema.extend({
+          /** Slug of the SRD crawler bay this entry installs, e.g. "mech-bay". */
+          bayRef: z.string(),
+        })
+      )
+      .optional(),
+    /** Slugs of crawler system items installed */
+    systems: z.array(z.string()),
+    /**
+     * Persisted crawler-bay choice selections, keyed by bay slug (the same
+     * `crawlerBays[].bayRef` that resolves the SRD bay), then by
+     * choiceId → selected option values. Some SRD bays carry `choices` (e.g.
+     * the Armament Bay's "Armament Bay Weapons System" permanent pick); this
+     * persists the player's selection so it survives reloads.
+     *
+     * Optional: when absent or a key is missing, the display layer treats that
+     * bay as having no selections.
+     */
+    bayChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
+    ...containerFields,
+    /** The entity's own picture; see `PhotoSchema`. */
+    ...photoFields,
+
+    /** Which built-in template row this was spawned from. See `PilotSchema.seedRef`. */
+    seedRef: z.string().optional(),
+
+    // ---------------------------------------------------------------------------
+    // Live-play current stat tracking.
+    // A freshly created crawler is seeded at its tech-level base SP from the
+    // rules data (crawler-tech-levels `structurePoints`, via crawlerFormState).
+    // Absent means full: see `resolvePool`.
+    // ---------------------------------------------------------------------------
+    /** Current structure points */
+    currentSP: z.number().int().min(0).optional(),
+    // ---------------------------------------------------------------------------
+    // Shared party economy + cargo.
+    // Absent reads as the documented default.
+    // ---------------------------------------------------------------------------
+    /** Shared scrap pool bucketed by TL 1–6. Absent = all buckets 0. */
+    scrapPool: ScrapPoolSchema.optional(),
+    /**
+     * Upgrade Pool progress: paid Upkeep accumulates here plus
+     * voluntary scrap; upgrade at 30× TL. Absent = 0.
+     */
+    upgradePool: z.number().int().min(0).optional(),
+    /**
+     * Cargo lots in the crawler's hold. Unlimited capacity (Storage Bay)
+     * — no cap math, unlike mech cargoLots. Absent = empty.
+     */
+    cargoLots: z.array(CargoLotSchema).optional(),
+    /**
+     * Hand-edited bonus to max SP on top of the tech-level base — the Battle
+     * Crawler type's +5 Max SP lives here. Derived max SP =
+     * tech-level structurePoints + this (lib/rules/derivedStats.ts). Absent = 0.
+     */
+    maxSpModifier: z.number().int().optional(),
+
+    /**
+     * Absolute pinned max SP (ADR-022 amendment, Free Edit only). When present
+     * the stat SHOWS this value and stops tracking its derivation; the derived
+     * total is still computed underneath for the "overridden from N" callout and
+     * the revert, and is never persisted. Distinct from `maxSpModifier` above,
+     * which CONTRIBUTES to the derivation rather than replacing it. See ADR-029.
+     */
+    maxSpOverride: z.number().int().nonnegative().optional(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict()
+
+export type Crawler = z.infer<typeof CrawlerSchema>

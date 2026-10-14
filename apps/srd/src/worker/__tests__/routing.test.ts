@@ -54,8 +54,39 @@ describe('/assets/* — a miss is a bare, uncacheable 404', () => {
   })
 })
 
+describe('a page under the pre-N4 `/schema/…/item/` grammar 301s to its new address', () => {
+  const moves: Array<[from: string, to: string]> = [
+    ['/schema/chassis/item/mule/', '/chassis/mule/'],
+    ['/schema/chassis/item/mule', '/chassis/mule/'],
+    ['/schema/chassis/item/mule/pattern/hauler/', '/chassis/mule/pattern/hauler/'],
+    ['/schema/chassis/item/mule.og.png', '/chassis/mule.og.png'],
+    ['/schema/chassis/', '/chassis/'],
+    ['/schema/chassis', '/chassis/'],
+    ['/schema/chassis/?view=list', '/chassis/?view=list'],
+  ]
+  for (const [from, to] of moves) {
+    it(`${from} → ${to}`, async () => {
+      const env = envWith()
+      const res = await worker.fetch(req(from), env)
+
+      expect(res.status).toBe(301)
+      expect(res.headers.get('location')).toBe(to)
+      // Decided without the binding: the old grammar is a pattern, not a file.
+      expect(env.ASSETS.asked).toEqual([])
+    })
+  }
+})
+
 describe('any other miss is the 404 page, uncacheable', () => {
-  for (const path of ['/nope-does-not-exist/', '/schema/nope/', '/favicons/missing.png']) {
+  for (const path of [
+    '/nope-does-not-exist/',
+    '/schema/',
+    '/schema/chassis/item/',
+    // The JSON API kept the old grammar: a missing row is a 404, never a page.
+    '/schema/chassis/item/nope.json',
+    '/schema/nope.json',
+    '/favicons/missing.png',
+  ]) {
     it(`serves 404.html for ${path}`, async () => {
       const env = envWith()
       const res = await worker.fetch(req(path), env)

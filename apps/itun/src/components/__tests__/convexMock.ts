@@ -1,27 +1,22 @@
 /**
  * Name-keyed Convex `useQuery` test double.
  *
- * The connected-surface tests used to answer `useQuery` **positionally** — a
- * queue drained one entry per call, in render order. That made every fixture
- * an implicit assertion about hook ordering: adding a query to a component,
- * or reordering two adjacent `useQuery` lines (GameRoster.tsx and
- * InvitePanel.tsx both have back-to-back calls), silently shifted every later
- * answer onto the wrong hook. The test kept passing while asserting nothing
- * it claimed to.
- *
- * The old comment justified this with "the generated `api` is a Proxy that
- * throws when inspected, so position is the only stable key". That is wrong:
- * `getFunctionName(api.games.get)` returns the stable string `'games:get'`,
- * which is exactly the key we want. Answers are registered by that name here.
+ * Answers are keyed by `getFunctionName(api.games.get)` (`'games:get'`), not
+ * by position. A queue drained one entry per call, in render order, makes
+ * every fixture an implicit assertion about hook ordering: adding a query to a
+ * component, or reordering two adjacent `useQuery` lines (GameRoster.tsx and
+ * GameHub.tsx both have back-to-back calls), silently shifts every later
+ * answer onto the wrong hook, and the test passes while asserting nothing it
+ * claims to. The generated `api` is a Proxy, but `getFunctionName` reads it
+ * without inspecting it.
  *
  * An unregistered name **throws** rather than returning `undefined`, so a
  * component that starts asking a new question fails loudly instead of
  * quietly rendering its loading state forever.
  *
- * `mock.module` is process-global (see `.claude/rules/testing-patterns.md`).
- * Nine connected-surface files each hand-rolled the same capture-mock-restore
- * triple, which is exactly the code where getting it wrong breaks *other*
- * files rather than your own. `installConvexMocks()` at the bottom of this
+ * `mock.module` is process-global (see `.claude/rules/testing-patterns.md`),
+ * so a capture-mock-restore triple done wrong breaks *other* files rather than
+ * your own. `installConvexMocks()` at the bottom of this
  * file owns that discipline once; `convexReactMock()` stays available on its
  * own for anything that needs to drive `mock.module` itself.
  */
@@ -83,7 +78,7 @@ export function mockUseQuery(ref: unknown, args?: unknown): unknown {
  * Pass `overrides` for the per-file bits (a mutation spy, an unauthenticated
  * `useConvexAuth`, …).
  */
-export function convexReactMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function convexReactMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     useQuery: mockUseQuery,
     // `ConnectionProvider`'s build-floor subscription (`buildFloor.ts`): every
@@ -106,7 +101,7 @@ export function convexReactMock(overrides: Record<string, unknown> = {}): Record
 }
 
 /** Extra modules to mock alongside Convex, keyed by specifier. */
-export type ExtraMocks = Record<string, () => unknown>
+type ExtraMocks = Record<string, () => unknown>
 
 export type InstallOptions = {
   /**
@@ -143,6 +138,8 @@ export type ConvexMockHandle = {
   restore: () => void
   /** Every `useNavigate()(opts)` the render made. Only fills with `router: true`. */
   navigations: unknown[]
+  /** Every `signIn(provider, params?)` call, as its argument list. Only fills with `authReact: true`. */
+  signIns: unknown[][]
 }
 
 /**
@@ -165,6 +162,7 @@ export type ConvexMockHandle = {
  */
 export async function installConvexMocks(options: InstallOptions = {}): Promise<ConvexMockHandle> {
   const navigations: unknown[] = []
+  const signIns: unknown[][] = []
 
   // --- capture, before anything is mocked (rule 1) ---
   const realConvexClient = { ...(await import('../../lib/connection/convexClient')) }
@@ -184,7 +182,12 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
 
   if (realAuthReact !== null) {
     mock.module('@convex-dev/auth/react', () => ({
-      useAuthActions: () => ({ signIn: async () => undefined, signOut: async () => undefined }),
+      useAuthActions: () => ({
+        signIn: async (...args: unknown[]) => {
+          signIns.push(args)
+        },
+        signOut: async () => undefined,
+      }),
       ConvexAuthProvider: ({ children }: { children: ReactNode }) => children,
     }))
   }
@@ -206,6 +209,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
 
   return {
     navigations,
+    signIns,
     restore() {
       mock.module('../../lib/connection/convexClient', () => realConvexClient)
       mock.module('convex/react', () => realConvexReact)

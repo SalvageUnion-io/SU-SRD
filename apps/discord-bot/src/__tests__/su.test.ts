@@ -3,21 +3,20 @@
  *
  * The handlers' behavior is covered by format.test.ts (pure functions);
  * these tests pin the registration contract: one top-level command named
- * `su` carrying the reference subcommands, the In The Union Now subcommands,
- * and the `game` subcommand GROUP, with execute/autocomplete routed by
- * getSubcommand() and getSubcommandGroup().
+ * `su` carrying the reference subcommands and the In The Union Now
+ * subcommands, with execute/autocomplete routed by getSubcommand().
  */
 import { describe, expect, test } from 'bun:test'
-import { commands } from '../commands/index.js'
-import { suCommand } from '../commands/su.js'
-import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import { commands } from '../commands/index'
+import { suCommand } from '../commands/su'
+import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 describe('/su command', () => {
-  test('is the only registered top-level command', () => {
-    expect([...commands.keys()]).toEqual(['su'])
+  test('is the one slash command, beside the message context menu', () => {
+    expect([...commands.keys()]).toEqual(['su', 'Look up in Salvage Union'])
   })
 
-  test('registers every subcommand, including the game group', () => {
+  test('registers every subcommand', () => {
     const json = suCommand.data.toJSON()
     expect(json.name).toBe('su')
     const subs = (json.options ?? []).map((o) => o.name).sort()
@@ -25,17 +24,7 @@ describe('/su command', () => {
     // appears or vanishes depending on deployment configuration is harder to
     // explain than one that answers "In The Union Now is not configured for
     // this bot" (or that it is unavailable).
-    expect(subs).toEqual([
-      'crew',
-      'game',
-      'games',
-      'invite',
-      'lookup',
-      'me',
-      'my-stuff',
-      'roll',
-      'sheet',
-    ])
+    expect(subs).toEqual(['games', 'lookup', 'me', 'roll', 'sheet'])
 
     // Discord caps a command at 25 options, and subcommands + groups both
     // count against it. Worth pinning: overflowing fails at deploy time, in a
@@ -51,22 +40,10 @@ describe('/su command', () => {
       (lookup as { options?: { name: string; autocomplete?: boolean }[] }).options?.[0]
     ).toMatchObject({ name: 'entity', autocomplete: true, required: true })
 
-    // `game` is a GROUP (type 2), not a subcommand (type 1) — the distinction
-    // is what makes `/su game bind` dispatch correctly.
-    const game = (json.options ?? []).find((o) => o.name === 'game')
-    expect((game as { type: number }).type).toBe(2)
-    expect((game as { options?: { name: string }[] }).options?.map((o) => o.name).sort()).toEqual([
-      'bind',
-      'info',
-      'unbind',
-    ])
-  })
-
-  test('the pre-rename `shelf` still reaches My Stuff until commands are re-registered', async () => {
-    // Discord keeps serving `/su shelf` until `deploy-commands:global` runs.
-    const { interaction, deferred } = fakeExecute({ subcommand: 'shelf' })
-    await suCommand.execute(interaction)
-    expect(deferred.called).toBe(true)
+    const sheet = (json.options ?? []).find((o) => o.name === 'sheet')
+    expect(
+      (sheet as { options?: { name: string; autocomplete?: boolean }[] }).options?.[0]
+    ).toMatchObject({ name: 'entity', autocomplete: true, required: true })
   })
 
   test('execute throws loudly on an unknown subcommand', async () => {

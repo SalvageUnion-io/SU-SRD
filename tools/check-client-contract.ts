@@ -5,7 +5,7 @@
  *
  * ## The incident
  *
- * ITUN-CONVEX-9 (2026-10-09): #1212 made `entities.upsertByAppId`'s
+ * ITUN-CONVEX-9 (2026-10-09): a change made `entities.upsertByAppId`'s
  * `expectedUpdatedAt` required. A tab that was open across that deploy still
  * ran the old bundle, which never sent the field, so the backend refused the
  * pilot it had just built. The build floor exists to stop such a tab before it
@@ -18,7 +18,7 @@
  * It imports every module `convex/_generated/api.d.ts` registers and reads each
  * public function's argument validator (`exportArgs()`, the same JSON
  * `convex deploy` pushes). Then it compares them against the committed
- * snapshot, `tools/convex-client-contract.json`, which records the validators
+ * snapshot, `tools/baselines/convex-client-contract.json`, which records the validators
  * as of the floor in force.
  *
  * - A change that rejects calls the snapshot's validators accepted is
@@ -34,7 +34,7 @@
  *
  * It sees argument validators only. It cannot see:
  *
- * - a `v.any()` body whose meaning changed (slug-only refs, #1267)
+ * - a `v.any()` body whose meaning changed (slug-only refs)
  * - a return shape an older tab reads
  * - a function whose behaviour changed under the same arguments
  *
@@ -47,12 +47,11 @@
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { assertScanFloor } from './lib/scanFloor'
+import { assertScanFloor } from 'gates/lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
-const CONVEX_DIR = join(ROOT, 'apps/itun/convex')
-const API_PATH = join(CONVEX_DIR, '_generated/api.d.ts')
-export const SNAPSHOT_PATH = join(ROOT, 'tools/convex-client-contract.json')
+const convexDir = (root: string) => join(root, 'apps/itun/convex')
+export const SNAPSHOT_PATH = join(ROOT, 'tools/baselines/convex-client-contract.json')
 
 /** Well under today's ~77: trips only if the import walk found next to nothing. */
 const FUNCTION_FLOOR = 50
@@ -212,8 +211,8 @@ export function verdict(snapshot: Snapshot | null, current: Contract, floor: num
 }
 
 /** The module paths `api.d.ts` registers (`model/entities`, `games`, …). */
-function registeredModules(): string[] {
-  const source = readFileSync(API_PATH, 'utf8')
+function registeredModules(convex: string): string[] {
+  const source = readFileSync(join(convex, '_generated/api.d.ts'), 'utf8')
   return [...source.matchAll(/^import type \* as \w+ from "\.\.\/([\w/.]+)\.js";$/gm)]
     .map((m) => m[1])
     .filter((path): path is string => path !== undefined)
@@ -222,11 +221,11 @@ function registeredModules(): string[] {
 type Registered = { isPublic?: boolean; exportArgs?: () => string }
 
 /** Every public function's argument validator, keyed and sorted by `module:name`. */
-async function readContract(): Promise<{ contract: Contract; modules: number }> {
-  const modules = registeredModules()
+async function readContract(convex: string): Promise<{ contract: Contract; modules: number }> {
+  const modules = registeredModules(convex)
   const entries: Array<[string, ValidatorJSON]> = []
   for (const path of modules) {
-    const mod: Record<string, unknown> = await import(join(CONVEX_DIR, `${path}.ts`))
+    const mod: Record<string, unknown> = await import(join(convex, `${path}.ts`))
     for (const [name, value] of Object.entries(mod)) {
       const fn = value as Registered | null
       if (fn?.isPublic !== true || typeof fn.exportArgs !== 'function') continue
@@ -237,44 +236,65 @@ async function readContract(): Promise<{ contract: Contract; modules: number }> 
   return { contract: Object.fromEntries(entries), modules: modules.length }
 }
 
-function readSnapshot(): Snapshot | null {
+function readSnapshot(path: string): Snapshot | null {
   try {
-    return JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8')) as Snapshot
+    return JSON.parse(readFileSync(path, 'utf8')) as Snapshot
   } catch {
     // No snapshot yet: `verdict` treats that as "record one".
     return null
   }
 }
 
-async function main(): Promise<void> {
-  const write = process.argv.includes('--write')
-  const { BUILD_FLOOR } = await import(join(CONVEX_DIR, 'buildFloor.ts'))
-  const { contract, modules } = await readContract()
-  const count = Object.keys(contract).length
-  assertScanFloor('client contract (public Convex functions)', count, FUNCTION_FLOOR)
+/** Where `main` reads and writes, and what it prints through; the defaults are the repo's. */
+export type ContractOptions = {
+  root?: string
+  snapshotPath?: string
+  functionFloor?: number
+  log?: (line: string) => void
+  error?: (line: string) => void
+}
 
-  const result = verdict(readSnapshot(), contract, BUILD_FLOOR)
+/** Run the gate (`--write` records the snapshot); returns the exit code. */
+export async function main(
+  argv: readonly string[] = process.argv,
+  {
+    root = ROOT,
+    snapshotPath = SNAPSHOT_PATH,
+    functionFloor = FUNCTION_FLOOR,
+    log = console.log,
+    error = console.error,
+  }: ContractOptions = {}
+): Promise<number> {
+  const write = argv.includes('--write')
+  const convex = convexDir(root)
+  const { BUILD_FLOOR } = await import(join(convex, 'buildFloor.ts'))
+  const { contract, modules } = await readContract(convex)
+  const count = Object.keys(contract).length
+  assertScanFloor('client contract (public Convex functions)', count, functionFloor)
+
+  const result = verdict(readSnapshot(snapshotPath), contract, BUILD_FLOOR)
   if (!result.ok) {
-    console.error(`\n✗ client contract: ${result.message}\n`)
-    process.exit(1)
+    error(`\n✗ client contract: ${result.message}\n`)
+    return 1
   }
   if (result.write && !write) {
-    console.error(
-      `\n✗ client contract: tools/convex-client-contract.json is out of date (${result.message}). Run \`bun tools/check-client-contract.ts --write\` and commit it.\n`
+    error(
+      `\n✗ client contract: tools/baselines/convex-client-contract.json is out of date (${result.message}). Run \`bun tools/check-client-contract.ts --write\` and commit it.\n`
     )
-    process.exit(1)
+    return 1
   }
   if (result.write) {
     writeFileSync(
-      SNAPSHOT_PATH,
+      snapshotPath,
       `${JSON.stringify({ floor: BUILD_FLOOR, functions: contract }, null, 2)}\n`
     )
-    console.log(`✓ client contract: recorded ${count} public functions (${result.message})`)
-    return
+    log(`✓ client contract: recorded ${count} public functions (${result.message})`)
+    return 0
   }
-  console.log(
+  log(
     `✓ client contract: ${count} public functions in ${modules} modules match the snapshot (floor ${BUILD_FLOOR})`
   )
+  return 0
 }
 
-if (import.meta.main) await main()
+if (import.meta.main) process.exit(await main())

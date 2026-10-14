@@ -4,59 +4,62 @@
  *
  * `DisplayPanel` resolves the chosen `DisplayFocus` (+ the seat and the
  * rules) into a discriminated `DisplayContent`; `DisplayPanelFrame` renders it — the faithful
- * light SRD reference document (reused ReferenceEntityCard / RollTable), the
+ * light SRD reference document (reused ReferenceEntityCard / RollTableInstrument), the
  * Tables picker or the SRD Explorer. Entity focuses resolve the entity's
  * reference data and build the entity-level controls (Load Into Mech / Full
  * sheet →). Downtime is the Game's, started by the Mediator from the rail
  * (`useDowntime`), so no card enters it. Rolls on a table go to the Game's log
- * (`dashboardRolls.ts`), which the Log tab reads.
+ * (`dashboardRolls.model.ts`), which the Log tab reads.
  *
  * The two halves were split across component-lib and ITUN, with ITUN importing
  * the library's copy `as DisplayPanelView`, although ITUN was its only consumer.
- * They share one file now (component-lib boundary audit, PK-03).
+ * They share one file now.
  */
 
 import type { ReferenceEntityControl } from 'component-lib'
-import { ControlButtons, ReferenceEntityCard, RollTable } from 'component-lib'
+import { CHAPTER_BAND_COLOR, ControlButtons, ReferenceEntityCard, Toggle } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
-import { recordRoll } from './dashboardRolls'
+import { DashboardRollTable } from './DashboardRollTable'
+import { recordRoll } from './dashboardRolls.model'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
-import type { PickableTable } from './tableCategories'
+import type { PickableTable } from './tableCategories.model'
 import type { MountState, SeatHandle } from './useSeat'
 
 const HIDE_CHOICES = { choices: true } as const
 
-/** A roll-table entity: its `table` is the actual RollTable payload. */
+/** A roll-table entity: its `table` is the actual roll-table payload. */
 type RollTableEntity = PickableTable & {
-  table: Parameters<typeof RollTable>[0]['table']
+  table: Parameters<typeof DashboardRollTable>[0]['table']
 }
 
 /** A table roll, by table, the row it landed on and that row's text. */
-export type TableRoll = (tableName: string, key: string, text: string) => void
+type TableRoll = (tableName: string, key: string, text: string) => void
 
 /**
- * TablesView — the Tables tab: the selected table rendered via the reused
- * `RollTable`, whose header TITLE is the trigger for the 5-column category
- * picker overlay. Self-contained (reads the ORM roll tables). Its rolls go to
- * `onRoll`, which writes them to the Game's log (the Log tab).
+ * TablesView — the Tables tab: the selected table, drawn by the shared roll
+ * instrument (`DashboardRollTable`) banded in the roll tables' chapter tone
+ * (Rules & Reference, as on their SRD pages), whose bar TITLE is the trigger
+ * for the 5-column category picker overlay. Self-contained (reads the ORM roll
+ * tables). Its rolls go to `onRoll`, which writes them to the Game's log (the
+ * Log tab).
  *
- * The header title is the trigger (`titleSelect`, see `RollTable`), so no
- * separate bar repeats the name the header band prints.
+ * The bar's title is the trigger (`titleSelect`), so no separate bar repeats
+ * the name the instrument's bar prints.
  */
 function TablesView({ onRoll }: { onRoll?: TableRoll }) {
   const tables: RollTableEntity[] = SalvageUnionReference.RollTables.all()
   const [tableId, setTableId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
-  // The picker covers this tab (`.pc-tables` is its positioning context).
+  // The picker covers this tab (`.su-dash-tables` is its positioning context).
   const pickerHost = useRef<HTMLDivElement>(null)
 
   const selected =
@@ -68,17 +71,17 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
     tables[0]
 
   return (
-    <div ref={pickerHost} className="pc-display-scroll pc-tables">
+    <div ref={pickerHost} className="su-dash-display-scroll su-dash-tables">
       {selected ? (
-        <RollTable
+        <DashboardRollTable
           table={selected.table}
-          tableName={selected.name}
-          showCommand
+          name={selected.name}
+          tone={CHAPTER_BAND_COLOR.rules}
           titleSelect={{ onOpen: () => setPickerOpen(true), open: pickerOpen }}
           onRollResult={(text, key) => onRoll?.(selected.name, key, text)}
         />
       ) : (
-        <div className="pc-display-note">Roll tables load here.</div>
+        <div className="su-dash-display-note">Roll tables load here.</div>
       )}
 
       <TablePickerOverlay
@@ -108,17 +111,17 @@ function EntityCard({
 }) {
   if (!data) {
     return (
-      <div className="pc-entity-fallback">
-        <p className="pc-crawler-focus-note">{note}</p>
+      <div className="su-dash-entity-fallback">
+        <p className="su-dash-crawler-focus-note">{note}</p>
         {controls && controls.length > 0 ? (
-          <div className="pc-entity-foot">
+          <div className="su-dash-entity-foot">
             <ControlButtons controls={controls} />
           </div>
         ) : null}
       </div>
     )
   }
-  return <ReferenceEntityCard data={data} hide={HIDE_CHOICES} controls={controls} />
+  return <ReferenceEntityCard data={data} hide={HIDE_CHOICES} controls={controls} texture={false} />
 }
 
 /** What the display shows — resolved by the app from the focus + store. */
@@ -129,25 +132,24 @@ export type DisplayContent =
   | { kind: 'entity'; data: SURefEntity | null; note: string; controls?: ReferenceEntityControl[] }
 
 /**
- * The presentational half: renders an already-resolved `content`. Exported for
- * the story, which drives it with real reference data and no store.
+ * The presentational half: renders an already-resolved `content`.
  */
 export function DisplayPanelFrame({ content }: { content: DisplayContent }) {
   switch (content.kind) {
     case 'note':
-      return <div className="pc-display-note">{content.text}</div>
+      return <div className="su-dash-display-note">{content.text}</div>
     case 'tables':
       return <TablesView onRoll={content.onRoll} />
     case 'srd':
       return <SrdExplorer />
     case 'entity':
       // Centre the card at a document width, the way the srd reference page
-      // does (`mx-auto w-full max-w-*`). Without it the full `large` card
+      // does (a centred 42rem column). Without it the full `large` card
       // stretches to the whole panel and reads squashed — wide-and-short header
-      // stats, over-wide art. `pc-display-scroll` only provides the scroll box.
+      // stats, over-wide art. `su-dash-display-scroll` only provides the scroll box.
       return (
-        <div className="pc-display-scroll">
-          <div className="mx-auto w-full max-w-2xl">
+        <div className="su-dash-display-scroll">
+          <div style={ENTITY_COLUMN}>
             <EntityCard data={content.data} note={content.note} controls={content.controls} />
           </div>
         </div>
@@ -200,8 +202,8 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
       if (mount === 'pilot') {
         controls.push({
           key: 'load',
-          label: 'Load Into Mech ▶',
-          ariaLabel: 'Load Into Mech',
+          label: 'Load into Mech ▶',
+          ariaLabel: 'Load into Mech',
           onClick: () => seat.board(mech.id),
           variant: 'primary',
         })
@@ -241,10 +243,17 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
   return <DisplayPanelFrame content={content} />
 }
 
-const PICKER: CSSProperties = { padding: '8px 12px 0', flex: '0 0 auto' }
+/** The entity card's document column, centred in the display. */
+const ENTITY_COLUMN = {
+  marginInline: 'auto',
+  maxWidth: '42rem',
+  width: '100%',
+} satisfies CSSProperties
+
+const PICKER = { padding: '8px 12px 0', flex: '0 0 auto' } satisfies CSSProperties
 
 /** A bare fieldset: the group, without the browser's frame around it. */
-const GROUP: CSSProperties = { border: 0, margin: 0, padding: 0, minInlineSize: 0 }
+const GROUP = { border: 0, margin: 0, padding: 0, minInlineSize: 0 } satisfies CSSProperties
 
 /**
  * The Reference tab's choice of entity, as a plain row of toggle buttons. Each
@@ -263,17 +272,11 @@ export function DisplayPicker({
 }) {
   return (
     <div style={PICKER}>
-      <fieldset className="pc-deck-tabs" style={GROUP} aria-label="Reference">
+      <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Reference">
         {options.map((o) => (
-          <button
-            key={o.focus}
-            type="button"
-            aria-pressed={focus === o.focus}
-            className={`pc-deck-tab${focus === o.focus ? ' is-active' : ''}`}
-            onClick={() => onFocus(o.focus)}
-          >
+          <Toggle key={o.focus} pressed={focus === o.focus} onClick={() => onFocus(o.focus)}>
             {o.label}
-          </button>
+          </Toggle>
         ))}
       </fieldset>
     </div>

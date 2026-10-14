@@ -1,15 +1,16 @@
 /**
- * ShelfSync — fills the local cache from the server of record.
+ * ShelfSync — brings the account's rows down from the server of record.
  *
  * The read-down half of ADR-034 decision 2: writes go **up** server-first, and
- * this brings the account's rows back **down** outside a Game, so a signed-in
- * player opening ITUN on a second device sees their roster. A cache is
- * something that can be filled, and this is what fills it.
+ * this brings the account's rows back **down**. There is no device cache, so
+ * this is the only way a row reaches the stores: every page load starts empty
+ * and fills from here, and the stores' `hydrate()` resolves once the first
+ * answer is applied (`markArrived`, `stores/rowArrival.ts`).
  *
  * ## Server wins, and that is the point
  *
  * A row that comes down newer than the version this browser last saw is
- * adopted over whatever the cache held (`planRowSync`, per row, by the row's
+ * adopted over whatever the store held (`planRowSync`, per row, by the row's
  * `updatedAt`). There is no merge and no conflict resolution, because with one
  * source of truth there is no second writer to conflict with — that is the
  * whole benefit ADR-034 buys, and reintroducing a merge here would spend it.
@@ -17,33 +18,31 @@
  * made against an older version is refused (`entities.upsertByAppId`).
  *
  * `adopt` keeps each record's own id, so the local copy **is** the entity rather
- * than a fork of it, and it deliberately skips `requireWritableBackend`: filling
- * a cache is not a user write, and a Disconnected reader must still be able to
- * open what they already pulled down.
+ * than a fork of it, and it deliberately skips `requireWritableBackend`:
+ * holding a server row is not a user write.
  *
  * ## Pruning, and the condition that makes it safe
  *
  * It also forgets local rows the server did not return, which is what makes
- * "the cache is a reflection" literally true rather than aspirational. It is
+ * "the stores are a reflection" literally true rather than aspirational. It is
  * the most destructive operation in the codebase, so the guard below is
  * load-bearing and not obvious.
  *
  * **Only rows known to be the caller's.** A local row absent from `listMine`
  * is ambiguous, and the ambiguity differs by container. `listMine` returns what
  * the caller *owns*, wherever it lives — but a Game's **unclaimed** pre-gens
- * and its communal crawler have no owner at all, and are legitimately cached
- * (`WiringSync` caches the crawler; earlier builds cached pre-gens opened from a
- * roster). So a Game row is pruned only when this browser recorded a server
+ * and its communal crawler have no owner at all, and are legitimately held
+ * (`WiringSync` brings the crawler down). So a Game row is pruned only when this browser recorded a server
  * version for it, which only `listMine` or the owner's own write does
  * (`rowMayBePruned`). A shelf row needs no such record: `gameId: null` with no
  * owner is the one combination ADR-030 calls invalid, so every shelf row must
  * be owned, and every owned row is in `listMine`. Patterns and the NPC tray are
  * personal, so the shelf rule holds for every one of them.
  *
- * Absence means deletion rather than not-yet-uploaded because every cached row
+ * Absence means deletion rather than not-yet-uploaded because every held row
  * came from the server or from a write it accepted first: signed out nothing
- * is written, and the cache belongs to the signed-in account
- * (`lib/account/cacheOwner.ts`).
+ * is written, and a tab's rows go when its session ends
+ * (`stores/sessionRows.ts`).
  *
  * ## …and its sibling, `WiringSync`, for assignments and Game crawlers
  *
@@ -64,19 +63,19 @@
  */
 
 import { useQuery } from 'convex/react'
+import { containerOf } from 'itun-domain/container'
+import type { EncounterNpc } from 'itun-domain/schemas/encounterNpc'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { containerOf } from '../../lib/container'
-import { rowMayBePruned } from '../../lib/db/pruneRules'
 import type { ServedRow } from '../../lib/links/linkSync'
 import { planCrawlerSync, planLinkSync, planRowSync } from '../../lib/links/linkSync'
 import { captureException } from '../../lib/observability'
-import type { EncounterNpc } from '../../lib/schemas/encounterNpc'
-import type { MechPattern } from '../../lib/schemas/pattern'
 import { useEncounterStore } from '../../stores/encounterStore'
-import { selectBackend } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
+import { rowMayBePruned } from '../../stores/pruneRules'
+import { registerSync } from '../../stores/rowArrival'
 import { noteVersion, serverVersions } from '../../stores/serverVersions'
 
 /** The body ids a served answer carries. */
@@ -104,20 +103,31 @@ function ConnectedShelfSync() {
     // changed nothing writes nothing, and one that changed a single body — an
     // edit on another device — adopts exactly that row.
     void (async () => {
+      try {
+        await applyMine()
+      } finally {
+        // The first answer is in, even where a row failed to parse: what
+        // arrived is what there is. A superseded run leaves it to the next.
+        if (!superseded) {
+          useEntityStore.getState().markArrived(['pilot', 'mech', 'crawler', 'npc'])
+          usePatternStore.getState().markArrived()
+          useEncounterStore.getState().markArrived()
+        }
+      }
+    })()
+
+    async function applyMine(): Promise<void> {
+      if (mine === undefined) return
       const store = useEntityStore.getState()
       const patterns = usePatternStore.getState()
       const npcs = useEncounterStore.getState()
-      await Promise.all([
-        store.hydrate('pilot'),
-        store.hydrate('mech'),
-        store.hydrate('crawler'),
-        patterns.hydrate(),
-        npcs.hydrate(),
-      ])
+      // Built NPCs (ADR-044) are owned rows like pilots, so they come down,
+      // and are pruned, on exactly the pilot's rule.
       const kinds = [
         ['pilot', mine.pilots],
         ['mech', mine.mechs],
         ['crawler', mine.crawlers],
+        ['npc', mine.npcs],
       ] as const
 
       for (const [kind, rows] of kinds) {
@@ -127,6 +137,9 @@ function ConnectedShelfSync() {
           adoptedAt: serverVersions(),
         })
         for (const { id, updatedAt, row } of plan) {
+          // A newer emission has spoken: this plan may name a row the player
+          // has deleted since, and adopting it would bring it back.
+          if (superseded) return
           try {
             await store.adopt(kind, row.body as never)
             noteVersion(id, updatedAt)
@@ -150,6 +163,7 @@ function ConnectedShelfSync() {
         adoptedAt: serverVersions(),
       })
       for (const { id, updatedAt, row } of patternPlan) {
+        if (superseded) return
         try {
           await patterns.adopt(row.body as MechPattern)
           noteVersion(id, updatedAt)
@@ -166,6 +180,7 @@ function ConnectedShelfSync() {
         adoptedAt: serverVersions(),
       })
       for (const { id, updatedAt, row } of npcPlan) {
+        if (superseded) return
         try {
           await npcs.adopt(row.body as EncounterNpc)
           noteVersion(id, updatedAt)
@@ -204,7 +219,7 @@ function ConnectedShelfSync() {
       for (const local of useEncounterStore.getState().list()) {
         if (!servedNpcs.has(local.id)) await npcs.forget(local.id)
       }
-    })()
+    }
 
     return () => {
       superseded = true
@@ -218,10 +233,10 @@ function ConnectedShelfSync() {
  * Assignments and Game crawlers, down from `entities.listWiring` (ADR-037).
  *
  * Crawlers first, then links: a link's coverage is read through the
- * containers of its cached ends, so the crawlers it points at should already
+ * containers of its held ends, so the crawlers it points at should already
  * be here when it is judged. Each emission is planned from scratch against the
- * current cache and the plans are idempotent, so an emission that changed
- * nothing this browser holds writes nothing — which is most of them, since the
+ * current store and the plans are idempotent, so an emission that changed
+ * nothing this tab holds writes nothing — which is most of them, since the
  * query also re-runs when one of the caller's own sheets is edited.
  */
 function ConnectedWiringSync() {
@@ -236,13 +251,16 @@ function ConnectedWiringSync() {
     let superseded = false
 
     void (async () => {
+      try {
+        await applyWiring()
+      } finally {
+        if (!superseded) useEntityStore.getState().markArrived(['softLink'])
+      }
+    })()
+
+    async function applyWiring(): Promise<void> {
+      if (wiring === undefined) return
       const store = useEntityStore.getState()
-      await Promise.all([
-        store.hydrate('pilot'),
-        store.hydrate('mech'),
-        store.hydrate('crawler'),
-        store.hydrate('softLink'),
-      ])
       const gameIds = new Set<string>(wiring.gameIds)
 
       const crawlerPlan = planCrawlerSync({
@@ -288,7 +306,7 @@ function ConnectedWiringSync() {
       }
       if (superseded) return
       for (const id of linkPlan.prune) await store.forget('softLink', id)
-    })()
+    }
 
     return () => {
       superseded = true
@@ -299,14 +317,13 @@ function ConnectedWiringSync() {
 }
 
 /**
- * Mounted by `AccountReconciler`'s signed-in half, not at the root on its own:
- * nothing may sync into the cache until it is confirmed to be this account's
- * (`claimCacheFor`).
+ * Mounted by `AccountReconciler` while the server of record is in play
+ * (Connected and current), so a Disconnected session does not fire a query it
+ * cannot serve. Registered while mounted, so the stores' `hydrate()` waits for
+ * its first answer (`rowArrival.ts`).
  */
 export function ShelfSync() {
-  // Only when the server of record is actually in play. `remote` rather than
-  // "signed in" so a Disconnected session does not fire a query it cannot serve.
-  if (selectBackend() !== 'remote') return null
+  useEffect(() => registerSync(), [])
   return (
     <>
       <ConnectedShelfSync />

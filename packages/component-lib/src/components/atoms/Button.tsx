@@ -1,0 +1,49 @@
+import type { ComponentPropsWithRef, ReactNode } from 'react'
+import { cn } from '../../utils/cn'
+import type { ButtonVariantProps } from './buttonVariants'
+import { buttonVariants } from './buttonVariants'
+
+type ButtonProps = ComponentPropsWithRef<'button'> &
+  ButtonVariantProps & {
+    /**
+     * Optional leading decorative glyph (e.g. the ⚄ roll die), rendered
+     * `aria-hidden` before the label. The button's flex `gap` spaces it from
+     * the text, so callers pass just the label as `children`.
+     */
+    glyph?: ReactNode
+  }
+
+/**
+ * App-chrome button (design-spec §2.4 `.btn`): paper/ink default with
+ * `primary` (rust — THE action color), `ghost`, `danger` variants and the
+ * canonical `full`/`compact`/`mini` size rungs (styles/sizing.ts). An
+ * optional leading `glyph` (e.g. '⚄ Roll') renders
+ * aria-hidden before the label. Disabled = opacity .4, pointer-events none.
+ *
+ * `surface="instrument"` re-skins the same button for the dark dashboard HUD
+ * (condensed caps; a `ghost` recolour, the one variant the HUD uses) — one
+ * Button for both the paper app chrome and the instrument scope.
+ */
+export function Button({
+  variant,
+  surface,
+  size,
+  className,
+  type = 'button',
+  glyph,
+  children,
+  ref,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      ref={ref}
+      type={type}
+      className={cn(buttonVariants({ variant, surface, size }), className)}
+      {...props}
+    >
+      {glyph != null && <span aria-hidden="true">{glyph}</span>}
+      {children}
+    </button>
+  )
+}

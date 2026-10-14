@@ -1,6 +1,8 @@
 import { Field, Input } from 'component-lib'
+import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
-import type { RollTableDeps } from './rollTableHelpers'
+import type { RollTableDeps } from './rollTableHelpers.model'
+import { fieldRowStyle, stepColumnStyle } from './wizardStyles.model'
 
 type CallsignStepProps = {
   name: string
@@ -14,11 +16,11 @@ type CallsignStepProps = {
  * Step 4 · Choose your Callsign (Pilot Bay p.19). Callsign gets the d20
  * roller on the p.88 Callsign Table (roll is an assist — the result stays
  * editable). Name rides on this step: it is the record's required field with
- * no book step of its own (plan §4.1). Next is gated on both being non-empty.
+ * no book step of its own. Next is gated on both being non-empty.
  */
 export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignStepProps) {
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="su-wiz-stack su-wiz-stack--20" style={stepColumnStyle}>
       <Field label="Name" required htmlFor="pilot-name">
         <Input
           id="pilot-name"
@@ -30,7 +32,7 @@ export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignSt
         />
       </Field>
       <Field label="Callsign" required htmlFor="pilot-callsign">
-        <div className="flex gap-2">
+        <div style={fieldRowStyle}>
           <Input
             id="pilot-callsign"
             type="text"

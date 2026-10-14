@@ -21,7 +21,11 @@ function asIsland<P>(component: ComponentType<P>): IslandComponent {
   return component as unknown as IslandComponent
 }
 
-export type IslandLoader = () => Promise<IslandComponent>
+/**
+ * Takes the island's props so a loader can finish what its first render needs
+ * before resolving (`SchemaViewerIsland`'s data); most ignore them.
+ */
+export type IslandLoader = (props: Record<string, unknown>) => Promise<IslandComponent>
 
 /**
  * No `Record<string, IslandLoader>` annotation on purpose — that would widen
@@ -35,30 +39,38 @@ export const islandRegistry = {
     import('../components/islands/MobileSearchIsland').then((m) => asIsland(m.MobileSearchIsland)),
   MobileNavIsland: () =>
     import('../components/islands/MobileNavIsland').then((m) => asIsland(m.MobileNavIsland)),
-  SchemaViewerIsland: () =>
-    import('../components/islands/SchemaViewerIsland').then((m) => asIsland(m.SchemaViewerIsland)),
+  SchemaViewerIsland: (props) =>
+    import('../components/islands/SchemaViewerIsland').then(async (m) => {
+      await m.prepareSchemaViewerIsland(props)
+      return asIsland(m.SchemaViewerIsland)
+    }),
   ReferenceEntityIsland: () =>
     import('../components/islands/ReferenceEntityIsland').then((m) =>
       asIsland(m.ReferenceEntityIsland)
     ),
+  RollTableIsland: () =>
+    import('../components/islands/RollTableIsland').then((m) => asIsland(m.RollTableIsland)),
+  ColumnsTableIsland: () =>
+    import('../components/islands/ColumnsTableIsland').then((m) => asIsland(m.ColumnsTableIsland)),
   ColophonIsland: () =>
     import('../components/islands/ColophonIsland').then((m) => asIsland(m.ColophonIsland)),
   SearchResultsIsland: () =>
     import('../components/islands/SearchResultsIsland').then((m) =>
       asIsland(m.SearchResultsIsland)
     ),
+  DidYouMeanIsland: () =>
+    import('../components/islands/DidYouMeanIsland').then((m) => asIsland(m.DidYouMeanIsland)),
   OgCardIsland: () =>
     import('../components/islands/OgCardIsland').then((m) => asIsland(m.OgCardIsland)),
+  PeekIsland: () => import('../components/islands/PeekIsland').then((m) => asIsland(m.PeekIsland)),
 } satisfies Record<string, IslandLoader>
 
 /**
  * The islands that actually exist.
  *
  * `<Island name>` is typed to this, so a typo is a compile error rather than a
- * placeholder that silently never mounts — which is exactly what happened when
- * this was `string`: renaming an island in a page left a `data-island` div in
- * the HTML that the mounter skipped, with no error anywhere, in the build or
- * the browser. This is a TYPE-only export, so importing it from the SSR side
- * costs nothing at runtime and pulls none of the client graph with it.
+ * placeholder that silently never mounts. This is a TYPE-only export, so
+ * importing it from the SSR side costs nothing at runtime and pulls none of the
+ * client graph with it.
  */
 export type IslandName = keyof typeof islandRegistry

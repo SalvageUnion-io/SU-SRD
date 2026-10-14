@@ -6,7 +6,7 @@
  *      its wired counterparts (`/sheet/<kind>/<id>`). Anchors are asserted
  *      directly (no RouterProvider → AppLink degrades to plain `<a href>`).
  *   2. Entity-not-found — an id absent from the store renders the styled
- *      "{kind} not found" surface with a "Back to Roster" exit link.
+ *      "{kind} not found" surface with a "Back to Shelves" exit link.
  *   3. Rail unassign availability — per the unified edit language the linked
  *      row's Unassign control is always available on editable sheets and
  *      never rendered on read-only (snapshot) sheets. It is "Unassign", not
@@ -20,7 +20,7 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { SoftLink } from '../../../lib/schemas/softLink'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { useEntityStore } from '../../../stores/entityStore'
 import {
   crawlerFixture,
@@ -48,7 +48,7 @@ afterEach(() => {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
   })
 })
 
@@ -82,7 +82,7 @@ const mechToCrawler = softLinkFixture('mech-to-crawler', 'mech-1', 'crawler-1')
 // ---------------------------------------------------------------------------
 
 /**
- * The linked-unit slots render the roster's `EntityRow`, whose View link is
+ * The linked-unit slots render the library Row (`UnitRow`), whose View link is
  * labelled "View" on every row — so a link is targeted by its DESTINATION here
  * rather than by an accessible name that no longer distinguishes rows. That is
  * what these tests were ever asserting: that the cross-link points at the right
@@ -153,7 +153,7 @@ describe('Sheet — rail cross-links', () => {
 // ---------------------------------------------------------------------------
 
 describe('Sheet — entity not found', () => {
-  test('unknown id renders the not-found heading + back-to-Roster link', () => {
+  test('unknown id renders the not-found heading + back-to-Shelves link', () => {
     render(
       <Sheet
         kind="pilot"
@@ -164,7 +164,7 @@ describe('Sheet — entity not found', () => {
     )
     expect(screen.getByRole('heading', { name: /pilot not found/i })).toBeTruthy()
 
-    const back = screen.getByRole('link', { name: /back to roster/i })
+    const back = screen.getByRole('link', { name: /back to shelves/i })
     expect(back.getAttribute('href')).toBe('/')
   })
 
@@ -182,7 +182,7 @@ describe('Sheet — entity not found', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3. Unassigning (EntityRow's Unassign — never its Delete)
+// 3. Unassigning (UnitRow's Unassign — never a Delete)
 // ---------------------------------------------------------------------------
 
 /**
@@ -239,7 +239,7 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
     // type is marked hydrated so no read starts a load that lands after act().
     useEntityStore.setState({
       softLinks: [mechToPilot],
-      hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+      hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
     })
 
     const { unmount } = render(
@@ -316,12 +316,12 @@ describe('Sheet — every slot can be assigned from its own sheet (ADR-037)', ()
   test('a crawler sheet adds crew and docks mechs, empty or not', () => {
     renderOver('crawler', 'crawler-1', [])
     expect(button(/^\+ Add Crew$/)).toBeTruthy()
-    expect(button(/^\+ Dock Mech$/)).toBeTruthy()
+    expect(button(/^\+ Assign Mech$/)).toBeTruthy()
     cleanup()
 
     renderOver('crawler', 'crawler-1', [pilotToCrawler, mechToCrawler])
     expect(button(/^\+ Add Crew$/)).toBeTruthy()
-    expect(button(/^\+ Dock Mech$/)).toBeTruthy()
+    expect(button(/^\+ Assign Mech$/)).toBeTruthy()
   })
 
   test('a read-only sheet offers no picker at all', () => {

@@ -1,23 +1,45 @@
-import type { ElementType } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
-import { getReferenceEntityName } from 'salvageunion-reference'
+import type { CSSProperties, ElementType } from 'react'
+import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import { space } from '../../../design/tokens'
+import { Entity } from '../../../entity/Entity'
 import { cn } from '../../../utils/cn'
-import { FOCUS_RING } from '../../chrome/interaction'
-import { Slab } from '../../chrome/Slab'
+import { Slab } from '../../atoms/Slab'
 import { useEntityHref } from '../entityHrefContext'
+import type { Down } from './cardChrome'
+import { conditionOf } from './cardChrome'
 import { cardKey } from './cardHelpers'
-import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
+import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { NestedGroup } from './resolveNestedEntities'
+
+/** The loadout grid's static half; its column count is `.su-pattern-loadout`. */
+const gridStyle = {
+  display: 'grid',
+  columnGap: space[12],
+  rowGap: space[6],
+} satisfies CSSProperties
+
+/**
+ * `minWidth: 0` is load-bearing: a grid item defaults to `min-width: auto`, so
+ * a column refuses to shrink below its widest badge and the card's
+ * `overflow-hidden` hard-clips it. "Electro-Magnetic Shield Projector" plus
+ * its TL tail overruns a two-column track.
+ */
+const columnStyle = {
+  display: 'flex',
+  minWidth: 0,
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
 
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
- * dashed Slab over a wrap of shortform badges (see `LoadoutBadge`).
+ * dashed Slab over one full-width Token a line (see `LoadoutToken`).
  *
  * One block, not one per group, because the two columns only line up if a
  * single grid owns both: a pattern installs far more systems than modules
  * (Thunder Storm, six to two), so stacked groups left the modules row alone
  * on a line under a mostly-empty one. Single column below `sm` — two columns
- * of badges on a phone would each be too narrow to hold a system name.
+ * on a phone would each be too narrow to hold a system name.
  *
  * NO float handling here, deliberately: a pattern card takes the ASIDE LEAD,
  * which drops the float entirely, so this always renders full width beneath
@@ -27,44 +49,44 @@ export function PatternLoadout({
   groups,
   sectionAs,
   hostDown,
-  NestedCard,
+  owner,
 }: {
   groups: NestedGroup[]
   sectionAs: ElementType | undefined
-  hostDown: boolean
-  NestedCard: NestedCard
+  hostDown: Down
+  /**
+   * Whose loadout, prefixed to each list's name ("Hauler Systems installed"):
+   * a page lists many patterns, and a bare "Systems installed" would not say
+   * which one a list belongs to.
+   */
+  owner?: string
 }) {
   return (
-    <div className="grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2">
+    <div className="su-pattern-loadout" style={gridStyle}>
       {groups.map((group, index) => (
         <div
           key={group.label}
-          className={cn(
-            // `min-w-0` is load-bearing: a grid item defaults to `min-width:
-            // auto`, so a column refuses to shrink below its widest badge and
-            // the card's `overflow-hidden` hard-clips it. "Electro-Magnetic
-            // Shield Projector" plus its TL tail overruns a two-column track.
-            'flex min-w-0 flex-col gap-1.5',
-            // A VERTICAL RULE between the columns. On the column itself rather
-            // than a third grid cell, so it spans whichever column is taller
-            // (Systems usually far outruns Modules) instead of standing at the
-            // height of an empty divider track. Suppressed on the first column
-            // and below `sm`, where the groups stack and the rule would sit
-            // across the flow rather than between two columns.
-            index > 0 && 'sm:border-l-chrome sm:border-ink/20 sm:pl-3'
-          )}
+          // A VERTICAL RULE between the columns (`--ruled`). On the column
+          // itself rather than a third grid cell, so it spans whichever column
+          // is taller (Systems usually far outruns Modules) instead of standing
+          // at the height of an empty divider track. Suppressed on the first
+          // column and below `sm`, where the groups stack and the rule would
+          // sit across the flow rather than between two columns.
+          className={cn(index > 0 && 'su-pattern-loadout__column--ruled')}
+          style={columnStyle}
         >
           <Slab variant="dashed" label={group.label} as={sectionAs} />
           {/* A real LIST: the loadout is a countable set of installed parts, so
               a screen reader should announce "list, 6 items" rather than a run
-              of anonymous links. `list-none` keeps the markers off. */}
+              of anonymous links. Each Token runs the column's width, its TL
+              cell at the right edge (`.su-entity-token-list`). */}
           <ul
-            aria-label={`${group.label} installed`}
-            className="flex list-none flex-wrap items-start gap-1.5"
+            aria-label={`${owner ? `${owner} ` : ''}${group.label} installed`}
+            className="su-entity-token-list"
           >
             {group.entities.map((item, itemIndex) => (
-              <li key={cardKey(item, itemIndex)} className="min-w-0">
-                <LoadoutBadge data={item} hostDown={hostDown} NestedCard={NestedCard} />
+              <li key={cardKey(item, itemIndex)}>
+                <LoadoutToken data={item} hostDown={hostDown} />
               </li>
             ))}
           </ul>
@@ -75,62 +97,80 @@ export function PatternLoadout({
 }
 
 /**
- * `LoadoutBadge` — one installed system/module in a pattern's loadout, rendered
- * as the card's own SHORTFORM token (`size="small" extent="head"`) and linking
- * to that entity's page.
+ * `LoadoutToken` — one installed system/module in a pattern's loadout: a
+ * TOKEN (`[kind] name [TL | n]`) running the list's full width, one part a
+ * line (entity display language, "Which form, where"). The part's tone reads
+ * at a glance; the Token opens its Page and Peeks its whole card; one row,
+ * its name ending in "…" where it runs out of room (E18).
  *
  * A pattern is a BUILD LIST, not rules to read: its systems and modules are
- * ordinary catalogue entities whose full text lives on their own pages, and
- * printing all of it inline made the loadout the longest thing on the page
- * while burying what the pattern itself says — Atlas's Thunder Storm expanded
- * to six identical, full-length .50 Cal Machine Gun cards. The shortform badge
- * gives the build at a glance and one click through to any entry.
+ * ordinary catalogue entities whose full text lives on their own pages, so the
+ * loadout names them rather than printing every card in full.
  *
- * The badge is the card at its smallest rung, NOT a hand-assembled chip: it
- * carries the entity's own tone band and classification tail, so the tone and
- * tech-level read survive the compression for free.
- *
- * MULTIPLES REPEAT. Six machine guns are six badges, matching the loadout the
+ * MULTIPLES REPEAT. Six machine guns are six lines, matching the loadout the
  * pattern actually installs (and `resolvePatternGroups`, which emits one entry
- * per copy) — a "×6" count would compress the shape of the build out of a row
+ * per copy) — a "x6" count would compress the shape of the build out of a list
  * whose whole job is showing it.
  *
- * A real `<a>`, for the same reasons as `PatternListRow`: middle-click, hover
- * preview, crawlable. With no `EntityHrefProvider` above it the badge renders
- * inert rather than linking nowhere.
+ * Where it goes is the host's route (`useEntityHref`), else the SURFACE's (the
+ * SRD's route, ITUN's Page opener). Its accessible name is the entity's alone,
+ * never the TL glued onto it. Under a host that is down it greys, as the
+ * host's band does.
  */
-function LoadoutBadge({
-  data,
-  hostDown,
-  NestedCard,
-}: {
-  data: ReferenceCardEntity
-  hostDown?: boolean
-  NestedCard: NestedCard
-}) {
+export function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: Down }) {
   const href = useEntityHref(data as SURefEntity)
-  const badge = (
-    <NestedCard
-      data={data}
-      size="small"
-      extent="head"
-      depth={1}
-      hostDown={hostDown}
-      cardClickable={!!href}
+  return (
+    <Entity
+      form="token"
+      entity={data as SURefMetaEntity}
+      mode={href ? { kind: 'link', href } : { kind: 'link' }}
+      {...(hostDown ? { instance: { condition: conditionOf(hostDown) } } : {})}
     />
   )
-  if (!href) return badge
+}
+
+const LOADOUT_PAGE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+} satisfies CSSProperties
+
+const LOADOUT_GROUP = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+} satisfies CSSProperties
+
+/**
+ * A pattern PAGE's loadout, under its chassis ability: each group (Systems,
+ * Modules) a solid Slab over one full-width Token a line, as on the pattern's
+ * card (`LoadoutToken`): each opens its page and Peeks its whole card.
+ */
+export function PatternLoadoutRows({
+  groups,
+  as: sectionAs,
+  hostDown,
+}: {
+  groups: NestedGroup[]
+  /** The groups' heading element on a page (`sectionHeadingLevel`). */
+  as: ElementType | undefined
+  hostDown: Down
+}) {
+  if (groups.length === 0) return null
   return (
-    // An explicit accessible name, for the same reason `PatternListRow` carries
-    // one: without it the anchor's name is scraped from the badge's contents and
-    // reads ".50 Cal Machine Gun TL 1" — the tech-level tail glued onto the name,
-    // six identical times over on Thunder Storm.
-    <a
-      href={href}
-      aria-label={getReferenceEntityName(data)}
-      className={cn('block rounded-card', FOCUS_RING)}
-    >
-      {badge}
-    </a>
+    <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
+      {groups.map((group) => (
+        <section key={group.label} style={LOADOUT_GROUP}>
+          <Slab variant="solid" as={sectionAs} label={group.label} />
+          <ul aria-label={`${group.label} installed`} className="su-entity-token-list">
+            {group.entities.map((item, index) => (
+              <li key={cardKey(item, index)}>
+                <LoadoutToken data={item} hostDown={hostDown} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
   )
 }

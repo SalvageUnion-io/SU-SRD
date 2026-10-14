@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
-import { advanceUntilVisible, fillIdentity, pickByName, waitForReady } from './_helpers'
+import { at } from './_base'
+import { advanceUntilVisible, editSheet, fillIdentity, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
@@ -9,7 +10,7 @@ import { expect, test } from './fixtures'
  * Next clicks.
  */
 async function buildIronWagon(page: Page): Promise<void> {
-  await page.goto('/crawlers/new?mode=guided')
+  await page.goto(at('/crawlers/new?mode=guided'))
   await waitForReady(page)
 
   // Crawler Type — one entity card per type.
@@ -31,7 +32,7 @@ async function buildIronWagon(page: Page): Promise<void> {
   const createCrawler = page.getByRole('button', { name: /Create Crawler/i })
   await advanceUntilVisible(page, createCrawler)
   await createCrawler.click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await page.waitForURL((url) => url.pathname === at('/'), { timeout: 15_000 })
   await waitForReady(page)
 }
 
@@ -64,12 +65,11 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   await buildIronWagon(page)
 
   // Open the crawler's live sheet from its roster row.
-  // Matched on `href`, not the label. EntityRow's sheet link reads "View" on
-  // every row, so it carries `aria-label="View <name>"` for WCAG 2.4.4 — which
-  // means its ACCESSIBLE NAME is not "View" and `/^View$/` matches nothing.
-  // The locator is already scoped to this entity's row, so the href is the
-  // contract that matters and it survives the next copy change. This is the
-  // same reasoning `openSheetFor` in `_helpers.ts` records.
+  // Matched on `href`, not the label. The shelf item's pill (`ShelfItem`) is
+  // the link to the sheet, and its accessible name is the whole pill (stamp,
+  // name, reading), so no label match is stable. The href is the contract
+  // that matters and it survives the next copy change, as `openSheetFor` in
+  // `_helpers.ts` does.
   await page.locator('li', { hasText: 'Iron Wagon' }).locator('a[href*="/sheet/"]').click()
   await page.waitForURL(/\/sheet\/crawler\//, { timeout: 15_000 })
   await waitForReady(page)
@@ -79,6 +79,8 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   // CrawlerSheetItems: Dock / Craft / Heal / Mount…), so the armament bay's
   // control is labelled 'Mount' — that verb IS "open the weapons picker".
   // The searcher runs in toggle mode: click the selectable cell, not its prose.
+  // A sheet opens in Read; its controls are Edit's.
+  await editSheet(page)
   await page.getByRole('button', { name: /^Mount$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
@@ -89,7 +91,7 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   await expect(picker).toBeHidden()
 
   // The bay's installed count is the write-through's visible effect, and it
-  // survives a reload (IndexedDB, same record — no duplicate crawler).
+  // survives a reload (the server, same record — no duplicate crawler).
   await expect(page.getByText('No weapons mounted.')).toHaveCount(0)
 
   await page.reload()

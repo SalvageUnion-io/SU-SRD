@@ -1,28 +1,14 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
-import type { StatItem } from '../shared/statsBarTypes'
+import type { SURefEntity, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
-import type { ReferenceEntityCardHideConfig } from './card/referenceEntityCardTypes'
 import { DetailIcon } from './DetailIcon'
 import { EntityDetailDialog } from './EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from './entityHrefContext'
+import { quotePatternName } from './pattern/quotePatternName'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 
 type UseDetailModalOptions = {
-  children?: ReactNode
-  /** Controls to render in the modal's entity header */
-  modalControls?: ReferenceEntityControl[]
-  /** Generic override props */
-  titleOverride?: string
-  subtitleExtra?: ReactNode
-  statsOverride?: StatItem[]
-  primaryStatsOnly?: boolean
-  abilitiesSection?: ReactNode
-  afterExtraContent?: ReactNode
-  afterChoicesContent?: ReactNode
-  footerOverride?: ReactNode
-  hide?: Partial<ReferenceEntityCardHideConfig>
   /**
    * Force the in-place modal even when the app enables link mode. Used for
    * views that have no standalone URL (e.g. chassis patterns, whose `data` is
@@ -32,6 +18,8 @@ type UseDetailModalOptions = {
    * with, so the hook still reads the ambient link mode.
    */
   forceModal?: boolean
+  /** Open the card in its PATTERN view: `data` is the pattern's host. */
+  pattern?: SURefObjectAnyPattern
 }
 
 export function useDetailModal(
@@ -44,50 +32,50 @@ export function useDetailModal(
   const [open, setOpen] = useState(false)
 
   // When the consuming app opts into link mode (srd) and the entity
-  // resolves to an href, "View details" navigates to the entity's show page in
-  // a new tab instead of opening the in-place modal. ITUN leaves link mode off,
-  // so it keeps the modal (its href would deep-link out to srd).
+  // resolves to an href, "View details" goes to the entity's show page, in
+  // this tab (EDL E5: the detail view is a Page, never a new-tab
+  // `window.open`), instead of opening the in-place modal. ITUN leaves link
+  // mode off, so it keeps the modal (its href would deep-link out to srd).
   const href = useEntityHref(data)
   const linkMode = useEntityDetailLink()
-  const openInNewTab = !options?.forceModal && linkMode && !!href
+  const linksOut = !options?.forceModal && linkMode && !!href
 
   const schemaName =
     data && 'schemaName' in data && typeof data.schemaName === 'string'
       ? data.schemaName
       : undefined
 
-  const title =
+  // The Page's title: a pattern's quoted name, else the entity's.
+  const name =
     data && 'name' in data && typeof data.name === 'string' ? data.name : 'Entity details'
+  const title = options?.pattern ? quotePatternName(options.pattern.name) : name
 
   const control: ReferenceEntityControl = {
     key: 'detail',
     icon: DetailIcon,
-    onClick: openInNewTab
-      ? () => window.open(href, '_blank', 'noopener,noreferrer')
-      : () => setOpen(true),
+    onClick: linksOut ? () => window.location.assign(href) : () => setOpen(true),
     ariaLabel: 'View details',
     hidden: true,
     cardClick: true,
   }
 
   const modal =
-    !openInNewTab && data && schemaName ? (
-      <EntityDetailDialog open={open} onOpenChange={setOpen} title={title}>
+    !linksOut && data && schemaName ? (
+      // The detail view is the Page (EDL Form 5, E5): the dialog draws its band
+      // and foot, the card at `presentation="page"` its body.
+      <EntityDetailDialog
+        open={open}
+        onOpenChange={setOpen}
+        entity={data as SURefMetaEntity}
+        pattern={options?.pattern}
+        title={title}
+      >
         <ReferenceEntityCard
           data={data}
+          pattern={options?.pattern}
+          presentation="page"
           disabled={false}
-          hide={options?.hide}
-          controls={options?.modalControls}
-          titleOverride={options?.titleOverride}
-          subtitleExtra={options?.subtitleExtra}
-          statsOverride={options?.statsOverride}
-          primaryStatsOnly={options?.primaryStatsOnly}
-          abilitiesSection={options?.abilitiesSection}
-          afterExtraContent={options?.afterExtraContent}
-          afterChoicesContent={options?.afterChoicesContent}
-          footerOverride={options?.footerOverride}
         />
-        {options?.children}
       </EntityDetailDialog>
     ) : null
 

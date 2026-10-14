@@ -32,29 +32,36 @@
  * serves. `styles.entry.ts` is linked as a *script* rather than a stylesheet —
  * in dev Vite injects css from JS, which is what buys css HMR.
  *
- * ## Verified against prod
+ * ## Parity with prod
  *
- * Every document this serves was diffed whole against the file `ssg/build.ts`
- * emitted for the same route (landing, about, schema index, item, pattern,
- * changelog, search, bot pages, the two standalone documents, 404) and is
- * byte-identical once three dev-only things are removed: `@vite/client`, the
- * react-refresh preamble, and the asset urls (hashed in prod, source paths plus
- * Vite's `?t=` cache-buster here). All five endpoint families match byte for
- * byte, with no normalization at all.
+ * Every document this serves should match the file `ssg/build.ts` emits for
+ * the same route, apart from three dev-only things: `@vite/client`, the
+ * react-refresh preamble, and the asset urls.
  */
 
 import { readdirSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createHttpServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT, ITUN_DEV_PORT, portFor } from 'gates/ports'
 import type { ViteDevServer } from 'vite'
 import { createServer as createViteServer } from 'vite'
 import type { BuildAssets } from './document'
 import type { EndpointRegistration, ResolvedEndpoint } from './endpoints'
 import type { ErasedRoute, RouteRegistration } from './render'
 
-/** Repo convention: srd's dev server lives on 4321 and is restarted in place. */
-const PORT = Number(process.env.PORT ?? 4321)
+/**
+ * Repo convention: srd's dev server lives on this checkout's port (4321 in the
+ * primary checkout, offset in a worktree: `packages/gates/lib/ports.ts`) and is
+ * restarted in place. An explicit `PORT` wins.
+ */
+const PORT = Number(process.env.PORT ?? portFor('srd'))
+
+// Links follow the env they are served from (`src/lib/constants.ts`): the dev
+// server names itself, and its ITUN links open `bun run dev:itun`. Set before
+// Vite starts, which reads them into `import.meta.env`; a value given wins.
+process.env.VITE_SRD_ORIGIN ||= `http://localhost:${PORT}`
+process.env.VITE_ITUN_ORIGIN ||= `http://localhost:${ITUN_DEV_PORT}`
 
 const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
 
@@ -62,8 +69,8 @@ const ASSETS_DIR = fileURLToPath(new URL('../src/assets/', import.meta.url))
 
 /**
  * The dev equivalent of the built manifest. Both entries are served by Vite from
- * source; neither is hashed, and there is no separate stylesheet link because
- * Vite injects css from the styles entry itself.
+ * source; neither is hashed, and there is no separate stylesheet link (or font
+ * preload) because Vite injects css from the styles entry itself.
  *
  * `built` is read off the filesystem rather than listed, so an asset added to
  * `src/assets/` (and to `src/runtime/assets.entry.ts`) needs no edit here. In
@@ -73,6 +80,7 @@ const ASSETS_DIR = fileURLToPath(new URL('../src/assets/', import.meta.url))
 const DEV_ASSETS: BuildAssets = {
   scripts: ['/src/runtime/styles.entry.ts', '/src/runtime/islands.client.ts'],
   styles: [],
+  fonts: [],
   built: Object.fromEntries(
     readdirSync(ASSETS_DIR).map((name) => [`src/assets/${name}`, `/src/assets/${name}`])
   ),
@@ -91,7 +99,7 @@ function escapeRegExp(literal: string): string {
 }
 
 /**
- * `'/schema/[schemaId]/item/[itemId]'` -> `/^\/schema\/([^/]+)\/item\/([^/]+)$/`.
+ * `'/[schemaId]/[itemId]'` -> `/^\/([^/]+)\/([^/]+)$/`.
  *
  * Used only to decide *which* registration can possibly serve a path, so the
  * request pays for one module's `getStaticPaths()` instead of all fourteen.
@@ -158,7 +166,7 @@ async function loadEndpoints(vite: ViteDevServer): Promise<EndpointRegistration[
  * The dotted routes (`/schema/chassis.json`, `/llms.txt`, `/search-index.json`).
  *
  * Checked BEFORE pages, and that order is load-bearing: `/schema/chassis.json`
- * also matches the page pattern `/schema/[schemaId]`, because a pattern segment
+ * also matches the page pattern `/[schemaId]/[itemId]`, because a pattern segment
  * happily swallows a dot. An endpoint pattern is a dist-relative path, so the
  * leading slash comes off before matching.
  */
@@ -236,11 +244,9 @@ async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerRespo
   const started = Date.now()
   const url = new URL(req.url ?? '/', 'http://localhost')
 
-  // Inside the try, NOT above it. `decodeURIComponent` throws URIError on a
-  // malformed escape — a bare `/%`, or `/%zz` — and this ran before the
-  // handler, so one such request escaped the catch entirely and took the
-  // request (and the developer's attention) with it. A dev server should
-  // answer a nonsense URL with a 500 page, not fall over.
+  // `decodeURIComponent` throws URIError on a malformed escape — a bare `/%`,
+  // or `/%zz` — so it stays inside a try: a nonsense URL must 404 or 500, not
+  // escape the handler.
   let pathname = url.pathname
   try {
     pathname = decodeURIComponent(url.pathname)
@@ -281,6 +287,8 @@ async function main(): Promise<void> {
   // "Cannot GET /…" until the process is restarted. Handling the fall-through
   // out here, and reading `vite.middlewares` per request, survives that.
   const server = createHttpServer((req, res) => {
+    // Names this checkout, so `bun run shot` can refuse another checkout's server.
+    res.setHeader(CHECKOUT_HEADER, CHECKOUT_ROOT)
     vite.middlewares(req, res, () => {
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         res.statusCode = 405
@@ -294,8 +302,9 @@ async function main(): Promise<void> {
 
   server.on('error', (error: NodeJS.ErrnoException) => {
     if (error.code === 'EADDRINUSE') {
-      // The repo convention is one dev server, restarted in place on 4321 —
-      // so this is a stop-and-fix, never a silent hop to the next free port.
+      // The repo convention is one dev server per checkout, restarted in place
+      // on its own port — so this is a stop-and-fix, never a silent hop to the
+      // next free port.
       console.error(`[dev] port ${PORT} is already in use — stop the other dev server first`)
       process.exit(1)
     }

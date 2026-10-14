@@ -1,4 +1,4 @@
-import { Colophon } from 'component-lib'
+import { Colophon } from '../Colophon'
 
 type ColophonIslandProps = {
   aboutMarkdown: string

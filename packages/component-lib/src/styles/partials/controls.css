@@ -1,0 +1,344 @@
+/*
+ * The package stylesheet, part 5 of 21: Tabs, the condensed-caps label,
+ * overlays, the entity-searcher picker and Segmented. `../index.css` imports the parts
+ * in cascade order.
+ */
+
+/* ══ Tabs (`components/atoms/Tabs.tsx`) ════════════════════════════════════
+ *
+ * Colour only: geometry and type are the component's style objects. All three
+ * colour properties change on hover or selection, so each keeps its RESTING
+ * value here. Base UI marks the open tab `data-active`. Unselected text is
+ * ink-75, not ink-50, which fails AA at this size on paper.
+ */
+.su-tab {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink-20);
+  color: var(--color-ink-75);
+}
+
+.su-tab:hover {
+  border-color: var(--color-ink-50);
+}
+
+.su-tab[data-active],
+.su-tab[aria-pressed='true'] {
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* ══ The condensed-caps label ═══════════════════════════════════════════════
+ *
+ * The `capsLabel` recipe (`components/atoms/capsLabel.ts`), as classes.
+ *
+ * WHY CLASSES AND NOT A STYLE OBJECT, given every property here is static and
+ * the split rule would otherwise send all of it inline: `capsLabel` is composed
+ * INTO `buttonVariants`, which is a public class-string export that both apps
+ * put on `<a>` elements. A recipe feeding a class string has to be a class
+ * string itself — the class-string exemption in `.claude/rules/styling.md`.
+ *
+ * The two invariants live on the base; the three genuinely-varying decisions
+ * are modifiers, exactly as the `capsLabel` recipe has them. `inherit` on weight or tracking
+ * emits NO class, which is load-bearing: a label with no weight class inherits
+ * its container's, and pinning it to 400 would silently un-bold every such
+ * label sitting inside a bold stamp or heading.
+ */
+.su-caps {
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+}
+
+/* Semantic type-ladder rungs only. A site on an inherited rem rung
+   (`text-sm`, `text-lg`, …) is deliberately NOT expressible here — moving
+   `text-sm` (14px) to `text-caption` (13px) is a per-site design call, not a
+   rename, so those keep their own size until someone rules on each one. */
+.su-caps--badge {
+  font-size: var(--text-badge);
+}
+.su-caps--note {
+  font-size: var(--text-note);
+}
+.su-caps--caption {
+  font-size: var(--text-caption);
+}
+.su-caps--lede {
+  font-size: var(--text-lede);
+}
+.su-caps--readout {
+  font-size: var(--text-readout);
+}
+.su-caps--title {
+  font-size: var(--text-title);
+}
+.su-caps--display {
+  font-size: var(--text-display);
+}
+
+/* Caps labels run bold by default; `semibold` is the chip weight. */
+.su-caps--w-normal {
+  font-weight: var(--font-weight-normal);
+}
+.su-caps--w-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+.su-caps--w-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+/* The ratified multi-rung caps ladder (ruleset §4.2) — `tight` is the default,
+   and the wider rungs exist because they are in deliberate use. `none` is for
+   the caps labels that deliberately do not letterspace (the Button mini chip). */
+.su-caps--t-none {
+  letter-spacing: normal;
+}
+.su-caps--t-tight {
+  letter-spacing: var(--tracking-caps-tight);
+}
+.su-caps--t-snug {
+  letter-spacing: var(--tracking-caps-snug);
+}
+.su-caps--t-caps {
+  letter-spacing: var(--tracking-caps);
+}
+.su-caps--t-wide {
+  letter-spacing: var(--tracking-caps-wide);
+}
+.su-caps--t-eyebrow {
+  letter-spacing: var(--tracking-eyebrow);
+}
+
+/* ══ Overlays ═══════════════════════════════════════════════════════════════
+ *
+ * Every overlay is a Base UI part (Dialog, Drawer, Popover); these are the
+ * classes they share.
+ */
+
+/* The one scrim, behind every modal: ModalShell, EntityDetailDialog, NavDrawer
+   and srd's MobileSearchDialog. Fixed to the viewport; a ModalShell portalled
+   into a `container` sets `position: absolute` on it, so it covers that box. */
+.su-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: color-mix(in srgb, var(--color-ink-deep) 80%, transparent);
+}
+
+/* A Base UI Drawer's panel slides in from the edge it is swiped away to
+   (`data-swipe-direction`), and follows the finger while it is being swiped.
+   A transition, not a keyframe: Base UI unmounts the panel when it ends, and
+   the reduced-motion backstop below shortens it rather than removing it. */
+.su-drawer {
+  transition: transform 200ms ease-out;
+}
+.su-drawer[data-swipe-direction='right'] {
+  transform: translateX(var(--drawer-swipe-movement-x, 0px));
+}
+.su-drawer[data-swipe-direction='right'][data-starting-style],
+.su-drawer[data-swipe-direction='right'][data-ending-style] {
+  transform: translateX(100%);
+}
+.su-drawer[data-swipe-direction='up'] {
+  transform: translateY(var(--drawer-swipe-movement-y, 0px));
+}
+.su-drawer[data-swipe-direction='up'][data-starting-style],
+.su-drawer[data-swipe-direction='up'][data-ending-style] {
+  transform: translateY(-100%);
+}
+.su-drawer[data-swiping] {
+  transition-duration: 0ms;
+}
+
+/* The app's `extra` block (components/compositions/NavDrawer.tsx) collapses when the
+   app renders nothing into it, so its rule never sits under an empty box. */
+.su-nav-drawer-extra:empty {
+  display: none;
+}
+
+/* ══ The entity-searcher picker ══════════════════════════════════════════════
+ *
+ * `compositions/EntitySearcher.tsx` — the "add an entity" body every sheet picker
+ * opens — and where its selection rail sits. Classes, not style objects,
+ * because every property here changes at the 80rem breakpoint (the split rule:
+ * a property with a responsive variant lives here, resting value included).
+ * The component's static properties stay on its own style objects.
+ *
+ * THE HEIGHT BUDGET. The searcher's frame is capped at the dynamic viewport
+ * (a style object on its Card), and `.su-searcher` is the body's flex child
+ * that takes whatever the header and sub-header leave — so no part of the
+ * picker can be pushed below a fold that nothing scrolls (the bare modal
+ * popup is `overflow: hidden`).
+ *
+ * Below 80rem the body is ONE scroll container filling that space, and the
+ * rail is a sticky band at its top: above the results, never over them. From
+ * 80rem it is capped at `--searcher-cap`, the rail is its own column right of
+ * the pool, and each column scrolls alone, so neither can cover the other.
+ *
+ * The breakpoint is mirrored by `WIDE_QUERY` in the component, which at the same
+ * width swaps the band's disclosure for a plain heading and the sub-header's
+ * Filters disclosure for the facet rows inline — change both or neither.
+ * `--bar` is the single-select picker (chassis, crawler type): one chosen
+ * entity and its confirm actions, which stay a band at every width.
+ */
+.su-searcher {
+  --searcher-cap: min(62vh, 640px);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.su-searcher__rail {
+  position: sticky;
+  top: 0;
+  /* Over a hovered pool card (z-10). */
+  z-index: 20;
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+}
+
+/* Expanded on a narrow screen, the list keeps most of the body for results. */
+.su-searcher__rail-list {
+  max-height: calc(var(--searcher-cap) * 0.4);
+  overflow-y: auto;
+}
+
+@media (min-width: 80rem) {
+  /* `--bar` stays one scroll container; it is only capped, as before. */
+  .su-searcher {
+    max-height: var(--searcher-cap);
+  }
+
+  /* `minmax(0, 1fr)`: the row is the container's height, so on a short window
+     — where the frame cap leaves less than `--searcher-cap` — both columns
+     shrink with it rather than overflowing it. */
+  .su-searcher:not(.su-searcher--bar) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .su-searcher:not(.su-searcher--bar) > .su-searcher__pool {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    max-height: var(--searcher-cap);
+    overflow-y: auto;
+  }
+
+  /* A column: heading and budgets pinned, the list scrolling, actions pinned. */
+  .su-searcher:not(.su-searcher--bar) > .su-searcher__rail {
+    grid-column: 2;
+    grid-row: 1;
+    position: static;
+    display: flex;
+    flex-direction: column;
+    max-height: var(--searcher-cap);
+    border-bottom: 0;
+    border-left: var(--bw-chrome) solid var(--color-ink);
+  }
+
+  .su-searcher:not(.su-searcher--bar) .su-searcher__rail-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+  }
+}
+
+/*
+ * The searcher picker modal's width — a value for `ModalShell`'s `maxWidth`,
+ * exported as `PICKER_MODAL_WIDTH` (`compositions/pickerModalWidth.ts`). 64rem until the
+ * rail becomes a column, then wide enough that the pool keeps two ~430px
+ * masonry columns beside it instead of being squeezed to ~315px.
+ */
+.su-picker-modal {
+  max-width: 64rem;
+}
+
+@media (min-width: 80rem) {
+  .su-picker-modal {
+    max-width: 78rem;
+  }
+}
+
+/* ══ Segmented (`atoms/Segmented.tsx`) ════════════════════════════════════════
+ *
+ * Options joined in one ink-ruled frame, the pressed one the inverse plate (a
+ * state, never rust: ruleset §3.1). Paper by default; on the ink band
+ * (`data-ground='ink'`) the frame and text are paper and the pressed plate is
+ * paper with ink text. Framed height 44px (`rail`), 40px at `page`, the
+ * `.su-page-action` height its neighbours share. Under a coarse pointer each
+ * option is a `button` on theme.css's 44px floor.
+ */
+.su-seg {
+  --su-seg-height: 44px;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: inline-flex;
+  margin: 0;
+  max-width: 100%;
+  min-inline-size: 0;
+  overflow-x: auto;
+  padding: 0;
+}
+.su-seg[data-size='page'] {
+  --su-seg-height: var(--space-40);
+}
+
+.su-seg__option {
+  background-color: transparent;
+  border: 0;
+  color: var(--color-ink);
+  cursor: pointer;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  min-height: calc(var(--su-seg-height) - 2 * var(--bw-chrome));
+  padding: 0 var(--space-12);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.su-seg__option + .su-seg__option {
+  border-left: 1px solid var(--color-ink-30);
+}
+.su-seg__option[data-numeral] {
+  font-size: var(--text-base);
+  min-width: 38px;
+  padding: 0 var(--space-8);
+}
+.su-seg__option:hover {
+  background-color: var(--color-band-cream);
+}
+.su-seg__option[aria-pressed='true'],
+.su-seg__option[aria-pressed='true']:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-seg[data-fill] {
+  display: flex;
+}
+.su-seg[data-fill] > .su-seg__option {
+  flex: 1 1 0;
+}
+
+.su-seg[data-ground='ink'] {
+  background-color: transparent;
+  border-color: var(--color-paper);
+}
+.su-seg[data-ground='ink'] > .su-seg__option {
+  color: var(--color-paper);
+}
+.su-seg[data-ground='ink'] > .su-seg__option + .su-seg__option {
+  border-left-color: var(--color-paper-15);
+}
+.su-seg[data-ground='ink'] > .su-seg__option:hover {
+  background-color: var(--color-paper-15);
+}
+.su-seg[data-ground='ink'] > .su-seg__option[aria-pressed='true'],
+.su-seg[data-ground='ink'] > .su-seg__option[aria-pressed='true']:hover {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}

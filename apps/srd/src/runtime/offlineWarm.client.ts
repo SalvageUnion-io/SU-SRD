@@ -38,14 +38,14 @@
  * look like it worked. Writing through the Cache API puts entries exactly where
  * the worker looks for them.
  *
- * ## Measured cost, because the plan's gate demands a number
+ * ## Measured cost
  *
  * 1,039 pages, **3.73 MB gzipped** (per-file, which is what HTTP actually
  * transfers — the 1.1 MB you get gzipping them as one stream is cross-file
  * dedup no browser will ever see). On top of the 2.0 MB shell precache, an
  * installed app costs roughly 5.7 MB.
  *
- * The 899 JSON endpoints are 0.70 MB and were the plan's first suggestion. They
+ * The 899 JSON endpoints are 0.70 MB and were the first candidate. They
  * are rejected: `srd` serves pre-rendered HTML and 82% of entity pages ship no
  * JavaScript on purpose, so JSON cannot render an unvisited page without adding
  * a client-side renderer — which would spend the site's whole design to save

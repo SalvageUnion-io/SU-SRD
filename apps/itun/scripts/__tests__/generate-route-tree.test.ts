@@ -15,8 +15,8 @@ import { replaceAtomically } from '../generate-route-tree'
 /**
  * `tools/check-generated.ts` regenerates the route tree while the pre-push
  * test suite reads every tracked file, so the committed tree must stay
- * readable for the whole run — it used to be renamed aside first, and a
- * concurrent reader failed with ENOENT.
+ * readable for the whole run: renamed aside first, a concurrent reader fails
+ * with ENOENT.
  */
 describe('replaceAtomically', () => {
   let dir: string

@@ -43,17 +43,6 @@ describe('buildReferenceEntityStats', () => {
     expect(buildReferenceEntityStats(bare, { compact: false })).toEqual([])
   })
 
-  test('primaryOnly keeps primary stats and drops non-primary ones', () => {
-    const stats = buildReferenceEntityStats(mule, { compact: false, primaryOnly: true })
-    // Structure / Energy / Salvage / Heat are flagged primary.
-    expect(byLabel(stats, 'Structure')).toBeDefined()
-    expect(byLabel(stats, 'Energy')).toBeDefined()
-    expect(byLabel(stats, 'Salvage')).toBeDefined()
-    expect(byLabel(stats, 'Heat')).toBeDefined()
-    // System Slots is NOT primary — filtered out.
-    expect(byLabel(stats, 'System')).toBeUndefined()
-  })
-
   test('compact mode uses ONE label — the short form where the stat has one', () => {
     const stats = buildReferenceEntityStats(mule, { compact: true })
     // The game's own abbreviations, not the first word of the name: a compact

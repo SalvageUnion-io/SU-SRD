@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
-import { isServerRefusal, serverMessage } from '../serverError'
+import { serverMessage } from '../serverError'
 
 /**
  * Telling a refusal apart from a defect on the client.
@@ -22,7 +22,6 @@ describe('serverMessage', () => {
     expect(serverMessage(refusal)).toBe(
       'This game has no Union Crawler yet — the Mediator raises one before the crew joins it'
     )
-    expect(isServerRefusal(refusal)).toBe(true)
   })
 
   test('returns null for a redacted server error, so nothing leaks to the UI', () => {
@@ -32,7 +31,6 @@ describe('serverMessage', () => {
     const defect = new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error')
 
     expect(serverMessage(defect)).toBeNull()
-    expect(isServerRefusal(defect)).toBe(false)
   })
 
   test('non-Error values are not refusals', () => {
@@ -52,8 +50,8 @@ describe('serverMessage', () => {
 
   test('a refusal carrying the redaction prefix is still a refusal', () => {
     // Refusal vs defect is `instanceof ConvexError`, never the prefix string.
-    const refusalWithPrefix = new ConvexError('[CONVEX M(games:create)] Only the organizer can')
+    const refusalWithPrefix = new ConvexError('[CONVEX M(games:create)] Only the Organiser can')
 
-    expect(isServerRefusal(refusalWithPrefix)).toBe(true)
+    expect(serverMessage(refusalWithPrefix)).toBe('[CONVEX M(games:create)] Only the Organiser can')
   })
 })

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { containerOf } from 'itun-domain/container'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
-import { containerOf } from '../container'
 import { copyForShelf, copyName } from '../copyEntity'
 
 /**
@@ -44,7 +44,7 @@ describe('copyForShelf', () => {
   test('keeps no identity from the source', () => {
     const copy = copyForShelf(SOURCE, 'Pilot')
 
-    // The db layer mints these on create. Carrying `id` through would produce a
+    // stores/records.ts mints these on create. Carrying `id` through would produce a
     // second row claiming to be the original — a duplicate appId by hand.
     expect(copy.id).toBeUndefined()
     expect(copy.createdAt).toBeUndefined()

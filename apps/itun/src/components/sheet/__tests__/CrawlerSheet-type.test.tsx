@@ -1,5 +1,5 @@
 /**
- * Crawler type card + special NPC tests (redesign phase 3: the type card
+ * Crawler type card + special NPC tests (the type card
  * lives in the hero's CrawlerIdentityPanel now, not a body slab).
  *
  * When `crawler.type` is set, the identity panel renders the type's special
@@ -17,9 +17,9 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { SURefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
-import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
@@ -90,7 +90,7 @@ function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): type
   const updateMock = update ?? mock(async () => crawler)
   return makeEntityStoreMock({
     crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [crawler]),
     get: mock((_t: string, id: string) => (id === crawler.id ? crawler : null)),
@@ -214,8 +214,10 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
 
     expect(screen.queryByText('Improved Armour and Armaments')).toBeNull()
     expect(screen.queryByLabelText('Battle crew lead')).toBeNull()
-    // The identity fields still render (Type shows its empty placeholder).
-    expect(screen.getByText('War Wagon')).toBeTruthy()
+    // The identity fields still render (Type shows its empty placeholder);
+    // Read never repeats the band's name.
+    expect(screen.getByLabelText('Crawler identity')).toBeTruthy()
+    expect(screen.queryByText('War Wagon')).toBeNull()
   })
 })
 
@@ -225,7 +227,7 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
 
 describe('CrawlerSchema — type/typeNpc legacy tolerance', () => {
   test('a legacy crawler (no type/typeNpc) still validates', async () => {
-    const { CrawlerSchema } = await import('../../../lib/schemas/crawler')
+    const { CrawlerSchema } = await import('itun-domain/schemas/crawler')
     const legacy = makeCrawler({ techLevel: 'tech-3' })
     const result = CrawlerSchema.safeParse(legacy)
     expect(result.success).toBe(true)
@@ -236,7 +238,7 @@ describe('CrawlerSchema — type/typeNpc legacy tolerance', () => {
   })
 
   test('round-trips type + typeNpc when present', async () => {
-    const { CrawlerSchema } = await import('../../../lib/schemas/crawler')
+    const { CrawlerSchema } = await import('itun-domain/schemas/crawler')
     const typed = makeCrawler({
       type: BATTLE_REF,
       typeNpc: { npcName: 'Vex', npcCurrentHP: 8, condition: 'intact' },

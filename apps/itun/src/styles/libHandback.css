@@ -1,0 +1,22 @@
+/*
+ * libHandback.css — component-lib classes handed back their own values over
+ * ITUN's element rules. Loaded by `index.css`.
+ *
+ * ITUN's stylesheets are unlayered and component-lib's classes sit in the
+ * `su-base` layer, so an app rule on an element (index.css's `h1`…`h6` face)
+ * beats a class on that element whatever the specificity. `revert-layer` in a
+ * class rule here outranks the element rule and hands the property back to
+ * the class.
+ *
+ * The titles a caller can render as a heading (`titleAs`): the Row's title and
+ * the card header's. Their print sizes are handed back in `print.css`. The
+ * ChapterBand's notched title is always a heading, set as on the SRD.
+ */
+.su-entity-row__title,
+.su-ec-band__title,
+.su-chapter-band__title {
+  font-family: revert-layer;
+  font-weight: revert-layer;
+  letter-spacing: revert-layer;
+  text-transform: revert-layer;
+}

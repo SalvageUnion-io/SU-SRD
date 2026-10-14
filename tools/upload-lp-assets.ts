@@ -21,7 +21,7 @@
  *   op run --env-file=tools/r2.op.env -- \
  *     bun tools/upload-lp-assets.ts <dir> [--bucket <name>] [--dry-run]
  *
- * Mint the token scoped to this one bucket — see `tools/lib/r2.ts`.
+ * Mint the token scoped to this one bucket — see `packages/gates/lib/r2.ts`.
  *
  * Re-runnable and idempotent (R2 `PUT` overwrites), which is also the workflow
  * for adding new artwork later, and for restoring from an export.
@@ -30,7 +30,7 @@
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { credentialsFromEnv, r2Client } from './lib/r2.ts'
+import { credentialsFromEnv, r2Client } from 'gates/lib/r2'
 
 const DEFAULT_BUCKET = 'su-lp-assets'
 

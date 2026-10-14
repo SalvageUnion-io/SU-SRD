@@ -1,10 +1,5 @@
-import {
-  MasonryColumns,
-  ReferenceEntityCard,
-  Sel,
-  Slab,
-  useChassisPatternConfig,
-} from 'component-lib'
+import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import type { SURefChassis } from 'salvageunion-reference'
 import {
@@ -18,6 +13,42 @@ import {
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
+import { chassisFitsCreationBudget } from '../../lib/rules/creation'
+import '../../styles/wizard.css'
+import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
+
+const HINT = {
+  ...textSmStyle,
+  color: 'currentcolor',
+  fontFamily: tokens.font.body,
+} satisfies CSSProperties
+
+/** The Custom-build door: a dashed, user-made-looking pick card. */
+const CUSTOM_CARD = {
+  backgroundColor: tokens.color.paper,
+  borderColor: tokens.color.ink55,
+  borderRadius: tokens.radius.panel,
+  borderStyle: 'dashed',
+  borderWidth: tokens.borderWidth.pill,
+  padding: tokens.space[16],
+} satisfies CSSProperties
+
+const CUSTOM_TITLE = {
+  ...textSmStyle,
+  color: tokens.color.ink,
+  fontFamily: tokens.font.cond,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.caps,
+  margin: 0,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const CUSTOM_BODY = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  margin: `${tokens.space[4]} 0 0`,
+} satisfies CSSProperties
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = SURefChassis['patterns'][number]
@@ -36,11 +67,10 @@ type MechChassisStepProps = {
 }
 
 /**
- * One pattern option as the SRD pattern reference card (the universal
- * entity-card rule): the chassis entity rendered through
- * `useChassisPatternConfig`, which supplies the quoted pattern title and the
- * stored-flag `LEGAL STARTING PATTERN` badge. A component (not an inline
- * map) because the config is a hook.
+ * One pattern option as the pattern reference card (the universal entity-card
+ * rule): the chassis rendered in its PATTERN view, as everywhere else a
+ * pattern is drawn — the quoted pattern title, the `Legal Starting Pattern`
+ * label and the loadout as Tokens.
  */
 function PatternSelCard({
   chassis,
@@ -53,28 +83,25 @@ function PatternSelCard({
   selected: boolean
   onToggle: () => void
 }) {
-  const config = useChassisPatternConfig(
-    chassis,
-    { name: pattern.name, systems: pattern.systems, modules: pattern.modules },
-    true
-  )
   return (
     <ReferenceEntityCard
       data={chassis}
+      pattern={pattern}
       size="medium"
       selected={selected}
       selectionRole="radio"
       cardClickLabel={`${pattern.name} pattern`}
       onCardClick={onToggle}
       hide={{ actions: true, choices: true }}
-      {...(config ?? {})}
+      // Choosing a pattern needs its chassis ability (E19's builder exception).
+      showChassisAbility
     />
   )
 }
 
 /**
  * Step 2 · Craft your Mech Chassis (Mech Workshop p.94) — exactly one, radio
- * semantics, enforced HARD (plan §4.2): only Tech 1 chassis render
+ * semantics, enforced HARD: only Tech 1 chassis render
  * (package `isLegalCreationChassis` — higher TLs are never shown), each card
  * foot shows its crafting cost (`COSTS n SCRAP`), and picking one debits the
  * 20-Scrap budget. Below the pick, a "Start from a pattern?" strip offers
@@ -112,15 +139,14 @@ export function MechChassisStep({
   )
 
   return (
-    <div className="w-full space-y-5">
-      <Slab variant="solid" label="Tech 1 Chassis" count="Choose 1" />
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
+      <Slab variant="solid" label="Tech 1 Chassis" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
         {chassisPool.map((chassis) => {
           const cost = chassis.salvageValue
-          const reason =
-            cost > MECH_CREATION_SCRAP_CAP
-              ? `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
-              : undefined
+          const reason = chassisFitsCreationBudget(cost)
+            ? undefined
+            : `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
           return (
             <ReferenceEntityCard
               key={chassis.id}
@@ -132,6 +158,8 @@ export function MechChassisStep({
               selectable={!reason}
               onCardClick={reason ? undefined : () => onSelectChassis(nameToSlug(chassis.name))}
               hide={{ actions: true, choices: true, patterns: true }}
+              // Choosing a chassis needs its ability (E19's builder exception).
+              showChassisAbility
               footMeta={[
                 { label: 'Costs', value: `${cost} scrap` },
                 ...(reason ? [{ label: reason, value: '' }] : []),
@@ -142,12 +170,10 @@ export function MechChassisStep({
       </MasonryColumns>
 
       {selectedChassis === undefined ? (
-        <p className="font-body text-sm text-current">
-          Pick a chassis to reveal its starting patterns.
-        </p>
+        <p style={HINT}>Pick a chassis to reveal its starting patterns.</p>
       ) : (
         <>
-          <Slab variant="solid" label="Start from a pattern?" count="Optional" />
+          <Slab variant="solid" label="Start from a pattern?" count="Optional" countInk="inherit" />
           <MasonryColumns maxColumns={2} radio ariaLabel="Starting pattern">
             {patternPool.map((pattern) => (
               <PatternSelCard
@@ -163,15 +189,11 @@ export function MechChassisStep({
               onToggle={onSelectCustom}
               ariaLabel="Custom build"
               radio
-              className={
-                isCustom ? 'shadow-[0_0_0_3px_var(--ground),0_0_0_6px_var(--color-ink)]' : undefined
-              }
+              className={isCustom ? 'su-wiz-custom-build-ring' : undefined}
             >
-              <div className="rounded-panel border-2 border-dashed border-ink/55 bg-paper px-4 py-4">
-                <p className="m-0 font-cond text-sm font-bold uppercase tracking-caps text-ink">
-                  Custom build
-                </p>
-                <p className="m-0 mt-1 font-body text-caption text-wk-muted">
+              <div style={CUSTOM_CARD}>
+                <p style={CUSTOM_TITLE}>Custom build</p>
+                <p style={CUSTOM_BODY}>
                   No prefill — craft your Systems and Modules by hand in the next steps.
                 </p>
               </div>

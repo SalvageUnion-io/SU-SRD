@@ -1,7 +1,7 @@
 /**
  * BlankCreateDialog — collects ONLY the Zod-required fields (plus the
  * optional escape-valve pick) for a Blank create, then persists via
- * createBlank and hands the new id back to the route (wizard-refresh Phase 1).
+ * createBlank and hands the new id back to the route.
  *
  *   Pilot:   Name*, Callsign*, optional class (UNFILTERED — all classes
  *            including specialisations).
@@ -15,11 +15,17 @@
  */
 
 import { Button, Field, FieldError, Input, ModalShell, Select } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { byTechLevelThenName, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { createBlank } from '../../lib/wizard/blankCreate'
+import '../../styles/wizard.css'
+import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
+
+const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties
 
 type BlankCreateDialogProps = {
   kind: BlankCreateKind
@@ -80,8 +86,6 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
   /** Optional class/chassis ref ('' = decide later on the sheet). */
   const [refPick, setRefPick] = useState('')
   const [techLevel, setTechLevel] = useState(1)
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const label = KIND_LABEL[kind]
   const pickOptions = useMemo(
@@ -92,30 +96,30 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
 
   const canSubmit = name.trim() !== '' && (kind !== 'pilot' || callsign.trim() !== '')
 
-  async function handleCreate() {
-    setPending(true)
-    setError(null)
-    try {
-      let id: string
+  const create = useServerAction(
+    () => {
       if (kind === 'pilot') {
-        id = await createBlank('pilot', {
+        return createBlank('pilot', {
           name: name.trim(),
           callsign: callsign.trim(),
           ...(refPick !== '' ? { classRef: refPick } : {}),
         })
-      } else if (kind === 'mech') {
-        id = await createBlank('mech', {
+      }
+      if (kind === 'mech') {
+        return createBlank('mech', {
           name: name.trim(),
           ...(refPick !== '' ? { chassisRef: refPick } : {}),
         })
-      } else {
-        id = await createBlank('crawler', { name: name.trim(), techLevel })
       }
-      onCreated(id)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : `Failed to create ${label.toLowerCase()}.`)
-      setPending(false)
-    }
+      return createBlank('crawler', { name: name.trim(), techLevel })
+    },
+    { failure: `The ${label.toLowerCase()} could not be created. Try again.` }
+  )
+  const { pending, error } = create
+
+  async function handleCreate() {
+    const result = await create.run()
+    if (result.ok) onCreated(result.value)
   }
 
   return (
@@ -125,10 +129,10 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
         if (!next) onClose()
       }}
       title={`Blank ${label}`}
-      maxWidth="max-w-md"
+      maxWidth="su-wiz-modal-md"
     >
-      <div className="flex flex-col gap-4 bg-paper p-5">
-        <p className="m-0 font-body text-sm text-wk-muted">
+      <div style={dialogBodyStyle}>
+        <p style={noteStyle}>
           An empty sheet — no steps, no limits. Fill in the rest on the live sheet.
         </p>
 
@@ -192,7 +196,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
 
         {error && <FieldError>{error}</FieldError>}
 
-        <div className="flex justify-end gap-2">
+        <div style={dialogActionsStyle}>
           <Button variant="ghost" size="compact" onClick={onClose} disabled={pending}>
             Cancel
           </Button>

@@ -1,4 +1,4 @@
-/** Unit tests for the mech wizard form-state mappers (plan 3.1). */
+/** Unit tests for the mech wizard form-state mappers. */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -57,8 +57,8 @@ describe('mechFormToCreateInput', () => {
   })
 
   it('seeds the drone a chassis ability grants, kitted by the chosen pattern', () => {
-    // The regression this closes: building a Little Sestra used to silently drop
-    // its Sestra Drone, because nothing in the app ever created a partner.
+    // A Little Sestra comes with its Sestra Drone: the build creates the
+    // partner, or it is silently dropped.
     const input = mechFormToCreateInput({
       ...EMPTY_MECH_FORM_STATE,
       name: 'Custos',

@@ -1,15 +1,15 @@
 /**
- * MechConditionsEditor — unified conditions vocabulary (plan 4.5, gap 21).
+ * MechConditionsEditor — unified conditions vocabulary.
  *
  * The editor renders ONE list (conditions[] + automation flags merged via
  * unifiedMechConditions) and maps edits back: removing a flag chip clears
- * the boolean flag (gap 8 manual clear), adds/removes round-trip
- * conditions[]. readOnly renders plain chips.
+ * the boolean flag (the manual clear), adds/removes round-trip
+ * conditions[].
  */
 
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -37,7 +37,7 @@ type CapturedUpdate = { patch: Partial<Mech> }
 function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
 
@@ -95,13 +95,5 @@ describe('MechConditionsEditor', () => {
     })
 
     expect(must(captured[0]).patch).toEqual({ conditions: ['Burn 2'] })
-  })
-
-  test('readOnly renders plain chips — no remove, no add', () => {
-    const mech = makeMech({ conditions: ['Prone'], shutdown: true })
-    render(<MechConditionsEditor mech={mech} store={makeStore(mech, [])} readOnly />)
-
-    expect(screen.getByText('Prone')).toBeTruthy()
-    expect(screen.queryByRole('button')).toBeNull()
   })
 })

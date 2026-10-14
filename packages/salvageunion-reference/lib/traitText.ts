@@ -161,3 +161,17 @@ export function replaceTraitReferences(
   out.push(text.slice(cursor))
   return out.join('')
 }
+
+/**
+ * The text with each trait reference read as plain words — `[[Vulnerable]]` as
+ * "Vulnerable", `[[[Hot] (3)]]` as "Hot (3)" — for a surface that prints
+ * prose without rendering references (a clamped lead, the static fallback,
+ * meta text).
+ */
+export function plainTraitText(text: string): string {
+  return replaceTraitReferences(text, (reference) =>
+    reference.parameter === undefined
+      ? reference.traitName
+      : `${reference.traitName} (${reference.parameter})`
+  )
+}

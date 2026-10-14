@@ -1,20 +1,19 @@
 import { v } from 'convex/values'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { isUpkeepStep, UPKEEP_STEP_NAME } from '../src/lib/rules/downtime'
+import { downtimeGuideSteps, isUpkeepStep, UPKEEP_STEP_NAME } from 'itun-domain/rules/downtime'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import { mutation } from './model/entities'
 import { NotAuthorized, requireMediator, requireMember } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 
 /**
- * Crew-wide Downtime (ADR-030, Phase 5).
+ * Crew-wide Downtime (ADR-030).
  *
  * Downtime is the one procedure in Salvage Union the whole crew performs **in
  * step**, which is why the phase is Game state advanced by the Mediator rather
- * than something each player tracks alone. Before this, six players ran six
- * private Downtimes and reconciled verbally.
+ * than something each player tracks alone.
  *
  * ## Upkeep is spent once, not six times
  *
@@ -66,6 +65,14 @@ async function ensureState(ctx: MutationCtx, gameId: Id<'games'>): Promise<Doc<'
 /** The table's current Downtime, plus who has finished the current step. */
 export const state = query({
   args: { gameId: v.id('games') },
+  returns: v.object({
+    running: v.boolean(),
+    stepIndex: v.union(v.number(), v.null()),
+    /** Absent while no Downtime row exists yet. */
+    startedAt: v.optional(v.union(v.number(), v.null())),
+    completedBy: v.array(v.object({ userId: v.id('users'), displayName: v.string() })),
+    upkeepSpent: v.boolean(),
+  }),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const row = await readState(ctx, args.gameId)
@@ -79,7 +86,7 @@ export const state = query({
     const names: Array<{ userId: Id<'users'>; displayName: string }> = []
     for (const userId of row.completedBy) {
       const user = await ctx.db.get(userId)
-      names.push({ userId, displayName: user?.displayName ?? user?.name ?? 'Crewmate' })
+      names.push({ userId, displayName: displayNameOf(user, 'Crewmate') })
     }
 
     return {
@@ -110,23 +117,6 @@ export const begin = mutation({
   },
 })
 
-/**
- * How many steps the Crawler Downtime procedure has.
- *
- * The book is the source: Core Book p.227-228 walks ten named steps, "Tally
- * Salvage" through "Prepare for the next Salvage Run", and says explicitly that
- * you "may go back to any of these steps". The dataset carries them as the
- * Crawler Downtime guide, which is what `DowntimeWizard` renders and what the
- * SRD publishes, and Convex reads the same guide (`model/referenceData.ts`), so
- * the count cannot drift from it.
- */
-function downtimeStepCount(): number {
-  loadReferenceData()
-  const steps = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps
-  if (!steps || steps.length === 0) throw new Error('The Crawler Downtime guide has no steps')
-  return steps.length
-}
-
 /** Move the whole table to the next step. */
 export const advance = mutation({
   args: { gameId: v.id('games') },
@@ -137,11 +127,12 @@ export const advance = mutation({
       throw new NotAuthorized('Downtime is not running')
     }
 
-    // Clamp at the last step rather than running past the end. `stepIndex` was
-    // unbounded, so `advance` could be called indefinitely and the Mediator's
-    // panel would render "Step 14 / 10" while the solo wizard — which clamps
-    // client-side — showed step 10. Same procedure, two surfaces, two answers.
-    const next = Math.min(row.stepIndex + 1, downtimeStepCount() - 1)
+    // Clamp at the last step; the solo wizard clamps client-side, and the two
+    // surfaces must agree.
+    loadReferenceData()
+    const steps = downtimeGuideSteps()
+    if (steps.length === 0) throw new Error('The Crawler Downtime guide has no steps')
+    const next = Math.min(row.stepIndex + 1, steps.length - 1)
     if (next === row.stepIndex) return
 
     await ctx.db.patch(row._id, {

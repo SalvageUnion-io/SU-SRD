@@ -1,6 +1,6 @@
 /**
  * Integration tests for CrawlerBuilder on the WizShell skeleton, in the
- * Union Crawler's book order (wizard-refresh Phase 5, pp.212–213):
+ * Union Crawler's book order (pp.212–213):
  *
  *   Choose a Crawler Type (radio entity cards) → Note your Crawler
  *   Statistics (display-only) → Arm the Armament Bay (Tech-1
@@ -9,22 +9,21 @@
  *   submit.
  *
  * Uses the real wizard, real SalvageUnionReference data, real Zod validation,
- * and a fake-indexeddb-backed entityStore (fake-indexeddb/auto and the
- * reference dataset are both preloaded via bunfig.toml).
+ * and the real in-memory entityStore, signed in with server commits stubbed
+ * (the reference dataset is preloaded via bunfig.toml).
  */
 
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
 import { CrawlerBuilder } from '../CrawlerBuilder'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
 
 // ---------------------------------------------------------------------------
@@ -32,29 +31,12 @@ withSignedInBackend()
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
-// Store reset helpers
+// Store reset
 // ---------------------------------------------------------------------------
-
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: {
-      pilots: false,
-      mechs: false,
-      crawlers: false,
-      softLinks: false,
-    },
-  })
-}
 
 beforeEach(async () => {
   sessionStorage.clear()
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
   await useEntityStore.getState().hydrate('crawler')
 })
 
@@ -63,8 +45,7 @@ afterEach(async () => {
     cleanup()
   })
   sessionStorage.clear()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 // ---------------------------------------------------------------------------
@@ -181,7 +162,7 @@ describe('CrawlerBuilder — create mode', () => {
       expect(screen.getAllByText('Grizzled Veteran').length).toBeGreaterThan(0)
     })
     expect(getNextButton().disabled).toBe(false)
-  }, 30000)
+  })
 
   it('the Augmented type surfaces the +1 Training Point callout (text only)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -191,7 +172,7 @@ describe('CrawlerBuilder — create mode', () => {
       expect(screen.getByText(/\+1 Training Point/)).toBeTruthy()
       expect(screen.getByText(/Augment ability tree only/)).toBeTruthy()
     })
-  }, 30000)
+  })
 
   it('step 2 displays fixed TL1 statistics with the derived SP breakdown (Battle 20 + 5 = 25)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -205,7 +186,7 @@ describe('CrawlerBuilder — create mode', () => {
     // Display-only: no Tech Level input exists, Next is never gated here.
     expect(screen.queryByLabelText(/Tech Level/i)).toBeNull()
     expect(getNextButton().disabled).toBe(false)
-  }, 30000)
+  })
 
   it('TL-filters the Armament step to Tech 1 weapons only (non-weapons excluded)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -224,7 +205,7 @@ describe('CrawlerBuilder — create mode', () => {
     // Higher-TL weapons are FILTERED OUT (never rendered), as are non-weapons.
     expect(screen.queryByRole('button', { name: tl2.name })).toBeNull()
     expect(screen.queryByRole('button', { name: nonWeapon.name })).toBeNull()
-  }, 30000)
+  })
 
   it('gates the Armament step on the minimum-1 weapon mount', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -241,7 +222,7 @@ describe('CrawlerBuilder — create mode', () => {
     const weapon = weaponSystemAtTL(1)
     await pick(weapon.name)
     expect(getNextButton().disabled).toBe(false)
-  }, 30000)
+  })
 
   it('hard-caps installs at the mutations-derived type allowance (Engineering = 1)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -274,7 +255,7 @@ describe('CrawlerBuilder — create mode', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: must(second).name })).toBeTruthy()
     })
-  }, 30000)
+  })
 
   it('a Battle Crawler mounts two — and a type change re-clamps with a toast', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -300,7 +281,7 @@ describe('CrawlerBuilder — create mode', () => {
     await clickNext() // Statistics
     await clickNext() // -> Armament Bay
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 / 1')
-  }, 30000)
+  })
 
   it('walks every book step and creates a TL1 Battle crawler seeded at the DERIVED full SP', async () => {
     const onComplete = mock(() => {})
@@ -386,7 +367,7 @@ describe('CrawlerBuilder — create mode', () => {
       expect(c.bayChoices?.[getEntitySlug(battle)]?.[mottoId]).toEqual(['No retreat'])
     })
     expect(onComplete).toHaveBeenCalledTimes(1)
-  }, 30000)
+  })
 
   it('name gate: cannot reach Create with an empty name', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -403,7 +384,7 @@ describe('CrawlerBuilder — create mode', () => {
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText(/Name your Crawler to continue/i)).toBeTruthy()
     expect(useEntityStore.getState().list('crawler').length).toBe(0)
-  }, 30000)
+  })
 
   it('cancel calls onCancel', async () => {
     const onCancel = mock(() => {})
@@ -423,5 +404,21 @@ describe('CrawlerBuilder — create mode', () => {
 
     expect(screen.queryByLabelText('Bay entity slug')).toBeNull()
     expect(screen.queryByRole('button', { name: /Add Bay/i })).toBeNull()
+  })
+})
+
+describe('CrawlerBuilder — preselected type', () => {
+  it('starts on the deep-linked crawler type', async () => {
+    const battle = must(SalvageUnionReference.Crawlers.getByName('Battle'))
+    render(
+      <CrawlerBuilder
+        onComplete={() => {}}
+        onCancel={() => {}}
+        preselectType={getEntitySlug(battle)}
+      />
+    )
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    expect(screen.getByRole('radio', { name: 'Battle' }).getAttribute('aria-checked')).toBe('true')
+    expect(getNextButton().disabled).toBe(false)
   }, 30000)
 })

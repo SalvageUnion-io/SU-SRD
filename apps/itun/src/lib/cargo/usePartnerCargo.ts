@@ -23,14 +23,15 @@
  * than half-built.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { failureMessage } from '../connection/useServerAction'
 import type { PartnerWithHost } from '../partnerLookup'
 import { replacePartner } from '../partnerLookup'
 import { partnerDerivedStats } from '../rules/partnerStats'
-import type { CargoLot } from '../schemas/cargoLot'
-import type { Crawler } from '../schemas/crawler'
 import type {
   CargoBoundaryState,
   CargoTransferAction,
@@ -101,7 +102,7 @@ export function usePartnerCargo({
     if (needsDepot && !crawler) {
       return {
         ok: false,
-        reason: 'No crawler is linked — nothing to transfer to or from.',
+        reason: 'No crawler is assigned — nothing to transfer to or from.',
       }
     }
     if (needsDepot && crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
@@ -130,8 +131,8 @@ export function usePartnerCargo({
     )
     if (!result.ok) return result
 
-    // Both sides commit in ONE IndexedDB transaction: a crash between two
-    // sequential writes could vanish or duplicate the moved lot.
+    // Both sides commit in ONE transfer (one Convex mutation): two sequential
+    // writes could vanish or duplicate the moved lot.
     const updates: Parameters<typeof storeState.transfer>[0]['updates'] = []
     if (result.changed.carrier) {
       updates.push({
@@ -159,8 +160,10 @@ export function usePartnerCargo({
       await storeState.transfer({ updates }, meta)
       return result
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      return { ok: false, reason: `Could not save that change: ${message}` }
+      return {
+        ok: false,
+        reason: failureMessage(error, 'That change could not be saved. Try again.'),
+      }
     }
   }
 

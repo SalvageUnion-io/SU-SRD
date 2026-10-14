@@ -19,51 +19,33 @@
  * (checked package.json first, per the harness brief) — this is deliberately
  * thorough table-driven coverage instead of generative testing.
  *
- * Formerly a known gap, now fixed: the `encounterNpcs` store previously had
- * NO representation in ExportBundleSchema at all, so a full backup silently
- * omitted GM encounter-tray state. `encounterNpcs` is now part of the bundle
- * (additive `.default([])` field, no schemaVersion bump — see
- * `exportBundle.ts`) and is covered below the same way mechPatterns is.
+ * `encounterNpcs` is part of the bundle, or a full backup silently omits GM
+ * encounter-tray state (an additive `.default([])` field, no schemaVersion
+ * bump — see `exportBundle.ts`), and is covered below the same way
+ * mechPatterns is.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { useEncounterStore } from '../../../stores/encounterStore'
 import { useEntityStore } from '../../../stores/entityStore'
+import { usePatternStore } from '../../../stores/patternStore'
 import { CONTAINER_MOVE } from '../../../stores/surfaceProvenance'
-import { _resetDbSingleton, clearCache, encounterNpcs, mechPatterns } from '../../db/index'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// Building and importing are writes, and only somebody signed in can write
+// (ADR-034 as amended). See signedInBackend.ts.
 withSignedInBackend()
 
-function resetStores(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetStores()
-})
-
-afterEach(async () => {
-  await clearCache()
-  resetStores()
-})
+beforeEach(resetStores)
+afterEach(resetStores)
 
 /** Strip the fields mergeImport intentionally re-mints/remaps on import. */
 function stable(record: Record<string, unknown>): Record<string, unknown> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _gid, ...rest } = record
   return rest
 }
@@ -71,8 +53,7 @@ function stable(record: Record<string, unknown>): Record<string, unknown> {
 /** Full round trip through the wire format (JSON), not just in-memory objects. */
 async function roundTrip(bundle: ExportBundle): Promise<ExportBundle> {
   const json = JSON.stringify(bundle)
-  _resetDbSingleton()
-  await clearCache()
+  // A fresh account: every store empty.
   resetStores()
   const summary = await mergeImport(parseImportBundle(json), useEntityStore.getState())
   void summary
@@ -273,10 +254,7 @@ describe('export round-trip — field fidelity', () => {
     const bundle = await buildExportBundle(entityStore)
     const parsed = await roundTrip(bundle)
 
-    _resetDbSingleton()
-    resetStores()
     const verifyEntityStore = useEntityStore.getState()
-    await verifyEntityStore.hydrate('pilot')
 
     const importedPilot = verifyEntityStore.list('pilot')[0]
     expect(importedPilot).toBeDefined()
@@ -303,10 +281,7 @@ describe('export round-trip — field fidelity', () => {
     const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
-    _resetDbSingleton()
-    resetStores()
     const verifyEntityStore = useEntityStore.getState()
-    await verifyEntityStore.hydrate('mech')
     const importedMech = verifyEntityStore.list('mech')[0]
     expect(importedMech).toBeDefined()
     if (!importedMech) throw new Error('expected imported mech')
@@ -323,10 +298,7 @@ describe('export round-trip — field fidelity', () => {
     const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
-    _resetDbSingleton()
-    resetStores()
     const verifyEntityStore = useEntityStore.getState()
-    await verifyEntityStore.hydrate('crawler')
     const importedCrawler = verifyEntityStore.list('crawler')[0]
     expect(importedCrawler).toBeDefined()
     if (!importedCrawler) throw new Error('expected imported crawler')
@@ -337,12 +309,12 @@ describe('export round-trip — field fidelity', () => {
   test('mechPattern: bulk SCRAP cargo lot survives', async () => {
     const entityStore = useEntityStore.getState()
 
-    const created = await mechPatterns.create(richPatternInput)
+    const created = await usePatternStore.getState().create(richPatternInput)
 
     const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
-    const imported = (await mechPatterns.list())[0]
+    const imported = usePatternStore.getState().list()[0]
     expect(imported).toBeDefined()
     if (!imported) throw new Error('expected imported record')
 
@@ -352,15 +324,15 @@ describe('export round-trip — field fidelity', () => {
   test('encounterNpc: conditions + lastMediatorRoll survive, container resets to the Shelf', async () => {
     const entityStore = useEntityStore.getState()
 
-    const created = await encounterNpcs.create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
+    const created = await useEncounterStore
+      .getState()
+      .create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
 
     const bundle = await buildExportBundle(entityStore)
     expect(bundle.encounterNpcs).toHaveLength(1)
     const parsed = await roundTrip(bundle)
 
-    _resetDbSingleton()
-    resetStores()
-    const imported = (await encounterNpcs.list())[0]
+    const imported = useEncounterStore.getState().list()[0]
     expect(imported).toBeDefined()
     if (!imported) throw new Error('expected imported record')
 
@@ -410,8 +382,8 @@ describe('mergeImport — duplicate skip branches', () => {
       type: 'pilot-to-crawler',
     })
 
-    await mechPatterns.create(richPatternInput)
-    await encounterNpcs.create(richEncounterNpcInput)
+    await usePatternStore.getState().create(richPatternInput)
+    await useEncounterStore.getState().create(richEncounterNpcInput)
 
     const bundle = await buildExportBundle(entityStore)
 
@@ -422,6 +394,7 @@ describe('mergeImport — duplicate skip branches', () => {
       pilots: 0,
       mechs: 0,
       crawlers: 0,
+      npcs: 0,
       softLinks: 0,
       mechPatterns: 0,
       encounterNpcs: 0,
@@ -430,21 +403,15 @@ describe('mergeImport — duplicate skip branches', () => {
     // 1 pilot + 1 mech + 1 crawler + 2 softLinks + 1 pattern + 1 encounterNpc
     expect(summary.skippedDuplicates).toBe(7)
 
-    // Nothing was duplicated on disk either.
-    _resetDbSingleton()
-    resetStores()
+    // Nothing was duplicated in the stores either.
     const verifyEntityStore = useEntityStore.getState()
-    await verifyEntityStore.hydrate('pilot')
-    await verifyEntityStore.hydrate('mech')
-    await verifyEntityStore.hydrate('crawler')
-    await verifyEntityStore.hydrate('softLink')
 
     expect(verifyEntityStore.list('pilot')).toHaveLength(1)
     expect(verifyEntityStore.list('mech')).toHaveLength(1)
     expect(verifyEntityStore.list('crawler')).toHaveLength(1)
     expect(verifyEntityStore.list('softLink')).toHaveLength(2)
-    expect(await mechPatterns.list()).toHaveLength(1)
-    expect(await encounterNpcs.list()).toHaveLength(1)
+    expect(usePatternStore.getState().list()).toHaveLength(1)
+    expect(useEncounterStore.getState().list()).toHaveLength(1)
   })
 
   test('a NEW soft link between already-present endpoints resolves to the existing ids (idMap identity on the skip path)', async () => {
@@ -492,10 +459,7 @@ describe('mergeImport — duplicate skip branches', () => {
     expect(summary.created.softLinks).toBe(2)
     expect(summary.remappedLinks).toBe(0)
 
-    _resetDbSingleton()
-    resetStores()
     const verifyEntityStore = useEntityStore.getState()
-    await verifyEntityStore.hydrate('softLink')
     const links = verifyEntityStore.list('softLink')
     expect(links).toHaveLength(2)
 
@@ -640,8 +604,8 @@ describe('export round-trip — cross-entity full backup', () => {
       type: 'pilot-to-crawler',
     })
 
-    await mechPatterns.create(richPatternInput)
-    await encounterNpcs.create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
+    await usePatternStore.getState().create(richPatternInput)
+    await useEncounterStore.getState().create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
 
     const bundle = await buildExportBundle(entityStore)
     expect(bundle.entities.pilots).toHaveLength(1)
@@ -653,20 +617,14 @@ describe('export round-trip — cross-entity full backup', () => {
 
     await roundTrip(bundle)
 
-    _resetDbSingleton()
-    resetStores()
     const verifyEntityStore = useEntityStore.getState()
-    await verifyEntityStore.hydrate('pilot')
-    await verifyEntityStore.hydrate('mech')
-    await verifyEntityStore.hydrate('crawler')
-    await verifyEntityStore.hydrate('softLink')
 
     const importedPilot = verifyEntityStore.list('pilot')[0]
     const importedMech = verifyEntityStore.list('mech')[0]
     const importedCrawler = verifyEntityStore.list('crawler')[0]
     const importedLinks = verifyEntityStore.list('softLink')
-    const importedPatterns = await mechPatterns.list()
-    const importedEncounterNpcs = await encounterNpcs.list()
+    const importedPatterns = usePatternStore.getState().list()
+    const importedEncounterNpcs = useEncounterStore.getState().list()
     if (!importedPilot || !importedMech || !importedCrawler) {
       throw new Error('expected imported pilot, mech and crawler')
     }

@@ -1,6 +1,6 @@
 /**
- * DisplayTabs — the display's tabs (ADR-038 §4) carry the tabs keyboard model
- * (plan layer 6, audit UX-15): ArrowRight selects the next tab, across the gap
+ * DisplayTabs — the display's tabs (ADR-038 §4) carry the tabs keyboard model:
+ * ArrowRight selects the next tab, across the gap
  * between the primary and the secondary tabs, and each tab names its panel.
  */
 

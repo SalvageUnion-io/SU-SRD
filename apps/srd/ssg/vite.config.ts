@@ -9,12 +9,11 @@
  */
 
 import { fileURLToPath } from 'node:url'
-import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import { sentrySourcemaps } from 'observability/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import { WORKBOX_OPTIONS } from './pwa.ts'
+import { WORKBOX_OPTIONS } from './pwa'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const outDir = fileURLToPath(new URL('../dist', import.meta.url))
@@ -25,7 +24,6 @@ export default defineConfig({
   publicDir: fileURLToPath(new URL('../public', import.meta.url)),
   plugins: [
     react(),
-    tailwindcss(),
     // The service worker; its options and their reasons are in ./pwa. No web
     // manifest (public/site.webmanifest is hand-written) and no injected
     // registration: there is no index.html to inject into, and
@@ -40,7 +38,7 @@ export default defineConfig({
     ...sentrySourcemaps(outDir),
   ],
   // Fixes a dev-only bug: the island deps live under component-lib/node_modules
-  // (@base-ui, sonner, lucide-react, cva) and were only DISCOVERED
+  // (@base-ui, sonner, lucide-react) and were only DISCOVERED
   // when an island first imported them, so Vite re-ran its dep optimizer
   // mid-navigation and answered in-flight island chunk requests with 504
   // "Outdated Optimize Dep" — cards stuck on their skeletons, with transient

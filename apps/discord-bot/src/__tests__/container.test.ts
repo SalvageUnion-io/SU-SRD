@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
-import type { ContainerData } from '../container.js'
+import type { ContainerData } from '../container'
 import {
   containerComponentCount,
   containerTextLength,
@@ -8,7 +8,7 @@ import {
   entityCard,
   toContainer,
   V2_LIMIT,
-} from '../container.js'
+} from '../container'
 
 const base: ContainerData = {
   accent: 0x4b86a0,
@@ -21,7 +21,7 @@ const base: ContainerData = {
       kind: 'buttons',
       buttons: [
         { kind: 'action', customId: 'su:roll:Core Mechanic', label: 'Roll again' },
-        { kind: 'link', url: 'https://salvageunion.io/schema/roll-tables', label: 'See table' },
+        { kind: 'link', url: 'https://salvageunion.io/roll-tables', label: 'See table' },
       ],
     },
   ],
@@ -116,6 +116,43 @@ describe('limit enforcement', () => {
     expect(containerTextLength(out)).toBeLessThanOrEqual(V2_LIMIT.totalText)
   })
 
+  test('a menu is a control: never shed, and it costs its row and itself', () => {
+    const menu = {
+      kind: 'select' as const,
+      customId: 'su:open:chassis::kelpie::sifter',
+      placeholder: 'Open a linked entry',
+      options: [{ label: 'Floodlights', value: 'systems::floodlights' }],
+    }
+    expect(containerComponentCount({ accent: 0, blocks: [menu] })).toBe(3)
+    const out = enforceContainerLimits({
+      accent: 0,
+      blocks: [{ kind: 'text', content: 'a'.repeat(5000) }, menu],
+    })
+    expect(out.blocks).toContainEqual(menu)
+  })
+
+  test('a menu renders as one string select in its own action row', () => {
+    const json = toContainer({
+      accent: 0,
+      blocks: [
+        {
+          kind: 'select',
+          customId: 'su:open:x',
+          placeholder: 'Open a linked entry',
+          options: Array.from({ length: 30 }, (_, i) => ({ label: `E${i}`, value: `v${i}` })),
+        },
+      ],
+    }).toJSON()
+    const row = json.components[0] as {
+      type: number
+      components: { type: number; options: unknown[] }[]
+    }
+    expect(row.type).toBe(1)
+    expect(row.components[0]?.type).toBe(3)
+    // Discord's cap is 25 options.
+    expect(row.components[0]?.options).toHaveLength(V2_LIMIT.selectOptions)
+  })
+
   test('a section takes at most three text blocks, per the builder predicate', () => {
     const out = enforceContainerLimits({
       accent: 0,
@@ -135,7 +172,7 @@ describe('limit enforcement', () => {
 describe('entityCard', () => {
   const card = {
     title: 'Rustjaw',
-    url: 'https://intheunionnow.com/games/g1',
+    url: 'https://salvageunion.io/build/games/g1',
     accent: 0x7a978a,
     description: '*Mule*',
     fields: [
@@ -143,21 +180,21 @@ describe('entityCard', () => {
       { name: 'Heat', value: '3/6', inline: true },
       { name: 'Systems — 1', value: 'Armour Plating' },
     ],
-    footer: 'In The Union Now',
+    footer: 'The Cantina',
   }
 
   test('renders heading, prose, fields, then a rule and the footer', () => {
     expect(entityCard(card)).toEqual({
       accent: 0x7a978a,
       blocks: [
-        { kind: 'text', content: '## [Rustjaw](https://intheunionnow.com/games/g1)' },
+        { kind: 'text', content: '## [Rustjaw](https://salvageunion.io/build/games/g1)' },
         { kind: 'text', content: '*Mule*' },
         // Consecutive inline fields run together as one rail.
         { kind: 'text', content: '**SP** 8/12\n**Heat** 3/6' },
         // A full-width field is a slab: bold heading, body beneath.
         { kind: 'text', content: '**Systems — 1**\nArmour Plating' },
         { kind: 'separator' },
-        { kind: 'text', content: '-# In The Union Now' },
+        { kind: 'text', content: '-# The Cantina' },
       ],
     })
   })
@@ -172,7 +209,7 @@ describe('entityCard', () => {
     const blocks = entityCard({ ...card, thumbnail: art }).blocks
     expect(blocks[0]).toEqual({
       kind: 'section',
-      text: ['## [Rustjaw](https://intheunionnow.com/games/g1)', '*Mule*'],
+      text: ['## [Rustjaw](https://salvageunion.io/build/games/g1)', '*Mule*'],
       thumbnail: { url: art, description: 'Rustjaw' },
     })
     expect(blocks[1]).toEqual({ kind: 'text', content: '**SP** 8/12\n**Heat** 3/6' })

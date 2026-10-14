@@ -4,7 +4,7 @@ import type {
   SURefEnumSchemaName,
   SURefMetaEntity,
 } from 'salvageunion-reference'
-import { isSchemaName } from 'salvageunion-reference'
+import { isSchemaName, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
 import { entityGuideToneColor } from '../components/referenceEntity/card/entityCardTone'
 
 export type CatalogCategory = {
@@ -14,7 +14,7 @@ export type CatalogCategory = {
   flat: boolean
 }
 
-export type CatalogCard = {
+type CatalogCard = {
   id: string
   href: string
   /**
@@ -102,14 +102,13 @@ export function buildCatalogCategories({
           const display = getReferenceEntityData(item as SURefEntity)
           const rawName = item.name
           const labelText = catalogNameOverrides[rawName] ?? rawName
-          // A guide names a TONE; the colour it resolves to is owned by
-          // `theme.css` via `entityGuideToneColor`. The tile and the card the
-          // tile opens therefore paint from one place, and the dataset is
-          // never a second palette.
+          // Every guide paints rules blue (`entityGuideToneColor`, a
+          // `theme.css` token), so the tile and the card it opens paint from
+          // one place.
           const guideColor = entityGuideToneColor(item as SURefMetaEntity)
           return {
             id: item.id,
-            href: `/schema/${schemaName}/item/${display.slug}/`,
+            href: `${srdEntityPath(schemaName, display.slug)}/`,
             kind: 'entity' as const,
             schemaName,
             displayName: rawName,
@@ -133,7 +132,7 @@ export function buildCatalogCategories({
         return [
           {
             id: s.id,
-            href: `/schema/${s.id}/`,
+            href: `${srdSchemaPath(s.id)}/`,
             kind: 'schema' as const,
             schemaName: s.id,
             displayName: rawDisplayName,

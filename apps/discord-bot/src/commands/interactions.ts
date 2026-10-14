@@ -1,7 +1,7 @@
 /**
  * The NARROW interaction surface the command handlers actually use.
  *
- * `http/adapter.ts` builds these objects from Discord's raw `APIInteraction`
+ * `worker/adapter.ts` builds these objects from Discord's raw `APIInteraction`
  * (`makeExecuteInteraction`, `makeAutocompleteInteraction`), and tests fake
  * them in `__tests__/fakeInteraction.ts` without any forced casts. Handlers
  * must depend on THESE types, and members are added here only when a handler
@@ -15,9 +15,9 @@ import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-type
  *
  * `@discordjs/builders`' `ContainerBuilder` / `ActionRowBuilder` satisfy this
  * through `toJSON()`, which `JSON.stringify` calls when the payload goes over
- * the wire (`http/adapter.ts`).
+ * the wire (`worker/adapter.ts`).
  */
-export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
+type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
 
 /**
  * What a handler may send as a reply or follow-up.
@@ -25,14 +25,14 @@ export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessag
  * These are the only three keys any handler sets. There is no `embeds`:
  * every reply is Components V2, which forbids them.
  */
-export type ReplyPayload = {
+type ReplyPayload = {
   content?: string
   components?: readonly ReplyComponent[]
   flags?: number
 }
 
 /** An edit may also clear the content, which a fresh reply cannot. */
-export type EditReplyPayload = Omit<ReplyPayload, 'content'> & { content?: string | null }
+type EditReplyPayload = Omit<ReplyPayload, 'content'> & { content?: string | null }
 
 /** An autocomplete choice as the handlers emit it (name + string value). */
 export type CommandChoice = { name: string; value: string }
@@ -40,17 +40,9 @@ export type CommandChoice = { name: string; value: string }
 /**
  * What `execute` handlers read off a chat-input interaction.
  *
- * `user`, `channelId` and the defer/edit pair were added for the ITUN Game
- * commands (ADR-030 Phase 6): the Discord user id IS the account key, the
- * channel decides which Game a command speaks for, and a round trip to Convex
- * does not reliably fit inside Discord's 3-second acknowledgement window, so
- * every Game subcommand defers first.
- *
- * `getSubcommandGroup` arrived with `/su game …`, the first subcommand group.
- *
- * `signed` and `directMessage` arrived with `/su invite` (ADR-039): the one
- * command Convex verifies against Discord's own signature, and the one that
- * writes to somebody other than the person who ran it.
+ * For `/su sheet` (ADR-030): the Discord user id (`user`) IS the account key,
+ * and a round trip to Convex does not reliably fit inside Discord's 3-second
+ * acknowledgement window, so it defers first (the defer/edit pair).
  */
 export type CommandExecuteInteraction = {
   options: {
@@ -61,42 +53,31 @@ export type CommandExecuteInteraction = {
     getBoolean(name: string): boolean | null
   }
   user: { id: string; displayName?: string }
-  channelId: string | null
+  /**
+   * The message a message context-menu command was used on, or null for a
+   * slash command.
+   */
+  targetMessage: { content: string; author?: string } | null
   reply(payload: ReplyPayload): Promise<unknown>
   deferReply(options?: { flags?: MessageFlags.Ephemeral }): Promise<unknown>
   editReply(payload: EditReplyPayload): Promise<unknown>
   followUp(payload: ReplyPayload): Promise<unknown>
-  /**
-   * The interaction exactly as Discord sent it — raw body and signature
-   * headers — for Convex to verify itself. Null only where there is no signed
-   * request behind the interaction (never in the Worker).
-   */
-  signed: SignedInteraction | null
-  /** DM a user. Best effort: Discord refuses when DMs are closed or no server is shared. */
-  directMessage(userId: string, payload: ReplyPayload): Promise<DirectMessageOutcome>
 }
 
-/** Discord's signed request, untouched. Re-serialising it would break the signature. */
-export type SignedInteraction = { body: string; signature: string; timestamp: string }
-
-/** Whether a DM was delivered, and Discord's error code when it was not. */
-export type DirectMessageOutcome = { ok: true } | { ok: false; code: number | null }
-
 /**
- * What the button router reads off a message-component interaction.
+ * What the button router reads off a message-component interaction (a button,
+ * or the lookup card's linked-entries menu).
  *
- * Narrow for the same reason the command surfaces are: `http/adapter.ts`
+ * Narrow for the same reason the command surfaces are: `worker/adapter.ts`
  * (`makeButtonInteraction`) builds it from the raw message-component
  * interaction, while a test builds the members it actually uses with no cast.
- * `user`/`channelId`/`editReply` are here because a re-roll is a roll and is
- * attributed exactly like a slash-command one.
  */
 export type CommandButtonInteraction = {
   customId: string
+  /** A select menu's picked option values; empty for a button. */
+  values: readonly string[]
   user: { id: string; displayName?: string }
-  channelId: string | null
   reply(payload: ReplyPayload): Promise<unknown>
-  editReply(payload: EditReplyPayload): Promise<unknown>
 }
 
 /** What `autocomplete` handlers read off an autocomplete interaction. */
@@ -107,6 +88,5 @@ export type CommandAutocompleteInteraction = {
     getFocused(): string
   }
   user: { id: string; displayName?: string }
-  channelId: string | null
   respond(choices: CommandChoice[]): Promise<unknown>
 }

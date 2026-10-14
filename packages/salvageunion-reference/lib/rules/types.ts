@@ -8,9 +8,6 @@
  * consumer's Zod-inferred types (e.g. ITUN's `src/lib/schemas/`) satisfy
  * these structural shapes automatically (TypeScript's structural type system
  * ensures compatibility at call sites); this module never imports them back.
- *
- * (Migrated from ITUN's `src/lib/rules/types.ts` — see ADR-006. Originally
- * authored with exactly this file-disjoint intent, anticipating this move.)
  */
 
 /**
@@ -71,11 +68,6 @@ export type CapacityViolation =
       details: { used: number; max: number }
     }
   | {
-      kind: 'system-requires-chassis'
-      message: string
-      details: { systemRef: string; requiredChassis: string }
-    }
-  | {
       kind: 'chassis-not-found'
       message: string
       details: { chassisRef: string }
@@ -90,6 +82,12 @@ export type MechCapacityResult = {
   moduleSlotsUsed: number
   moduleSlotsMax: number
   violations: CapacityViolation[]
+  /**
+   * Set when the loadout is exactly a pattern the book prints over its
+   * chassis's slots (`AS_PRINTED_OVERFLOW`): its over-slot counts are the
+   * book's, so they are reported here rather than as violations.
+   */
+  asPrinted?: { pattern: string; cite: string }
 }
 
 /**
@@ -119,7 +117,7 @@ export type SoftWarning = {
 }
 
 /**
- * Tier of an ability tree (advancement rules, plan S5):
+ * Tier of an ability tree (advancement rules):
  * - core: a class's three core trees (Salvager: any core tree)
  * - advanced: an Advanced/Hybrid specialisation tree (2 TP, gated on 6 core)
  * - legendary: a Legendary tree (3 TP, gated on 6 core + 3 advanced; max one)
@@ -218,7 +216,7 @@ export type EditSnapshot<T> = {
 // pure functions; see ./heatCheck.ts). These are "small outcome/result
 // record shapes, not full persisted records" (ADR-006) — a consumer's
 // Zod-inferred equivalents (e.g. ITUN's HeatCheckResultSchema /
-// ReactorOverloadOutcomeSchema in src/lib/schemas/mech.ts) satisfy them
+// ReactorOverloadOutcomeSchema in itun-domain's src/schemas/mech.ts) satisfy them
 // structurally. The union literals are kept byte-identical to ITUN's Zod
 // enums so a drift fails typecheck rather than silently diverging.
 // ---------------------------------------------------------------------------
@@ -227,19 +225,21 @@ export type EditSnapshot<T> = {
 export type Roll = (sides: number) => number
 
 /**
- * Reactor Overload outcome categories (Core Book p.234-235).
- *   1     → meltdown
- *   2-5   → system-destroyed
- *   6-10  → module-destroyed
- *   11-19 → overheat
- *   20    → safe
+ * Reactor Overload outcome categories (Core Book p.235, the Reactor Overload
+ * Table; the book's row titles in brackets).
+ *   1     → meltdown          (Reactor Overload)
+ *   2-5   → system-destroyed  (System Overload)
+ *   6-10  → module-destroyed  (Module Overload)
+ *   11-19 → overheat          (Reactor Overheat)
+ *   20    → overdrive         (Reactor Overdrive: a free additional action
+ *                              this turn, or a free Push within 10 minutes)
  */
 export type ReactorOverloadOutcome =
   | 'meltdown'
   | 'system-destroyed'
   | 'module-destroyed'
   | 'overheat'
-  | 'safe'
+  | 'overdrive'
 
 /**
  * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).

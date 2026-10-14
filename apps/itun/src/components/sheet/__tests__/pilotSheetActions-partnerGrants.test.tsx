@@ -14,12 +14,12 @@
 
 import { describe, expect, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-import { usePilotSheetActions } from '../pilotSheetActions'
-import type { SheetStoreState } from '../sheetViewProps'
+import { usePilotSheetActions } from '../pilotSheetActions.model'
+import type { SheetStoreState } from '../sheetViewProps.model'
 
 type Captured = { patch: Record<string, unknown> }
 

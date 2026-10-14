@@ -6,18 +6,17 @@
  * It reaches the loaded BaseModel directly via ModelFactory for entity lookups.
  */
 
-import { getLoadedModelBySchemaId } from './ModelFactory.js'
-import { nameToSlug } from './nameToSlug.js'
-import type { SURefEntity, SURefEnumSchemaName } from './schemas/index.js'
+import { getLoadedModelBySchemaId } from './ModelFactory'
+import { nameToSlug } from './nameToSlug'
+import type { SURefEntity, SURefEnumSchemaName } from './schemas/index'
 
 /**
  * Finds an entity in a schema by its slug
  * Returns the entity if found, null otherwise
  *
  * O(1) via `BaseModel`'s slug index (built once per model, on first use).
- * Semantics are unchanged from the previous linear scan: rows without a
- * truthy string `name` are not slug-addressable, and on a slug collision the
- * FIRST row in data order wins — exactly what `Array.prototype.find` returned.
+ * Rows without a truthy string `name` are not slug-addressable, and on a slug
+ * collision the FIRST row in data order wins.
  */
 export function findEntityBySlug(
   schemaName: SURefEnumSchemaName,

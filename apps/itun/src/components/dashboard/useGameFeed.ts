@@ -12,14 +12,14 @@
 
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
-import { CORE_ROLL_BANDS, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { containerOf } from 'itun-domain/container'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SeatResolving } from 'itun-domain/schemas/seat'
+import { coreRollBandLabel, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf } from '../../lib/container'
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { SeatResolving } from '../../lib/schemas/seat'
-import type { BoardSources } from './boardMenu'
+import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */
 export type RollLine = {
@@ -50,6 +50,20 @@ export type CrewLine = {
   where: string
   /** "HP 4/17 · AP 5/7". */
   vitals: string
+  /** "4/17" — the Crew tab's HP column (board D2). */
+  hp: string
+  /** "5/7" — the Crew tab's AP column. */
+  ap: string
+  /**
+   * Where they are and in what, as the Crew tab's Mech column reads it: "In
+   * Spectrum · SP 6/9", "On foot · Scrapper parked", or "On foot".
+   */
+  unit: string
+  /**
+   * The mech assigned to them, as its Token reads it: its name, its SP
+   * (`6/9`) and whether they are aboard. Null with none.
+   */
+  unitMech: { name: string; sp: string; boarded: boolean } | null
   /**
    * Their mech: its SP and Heat while their seat has them aboard, else one
    * line for the mech assigned to them, parked, with what is wrong with it.
@@ -69,8 +83,10 @@ export type CrewLine = {
 export type GameFeed = {
   /** The Game's name, or null before it arrives. */
   gameName: string | null
-  /** The Game's hub, where the proposal inbox is answered. */
+  /** The Game's own page, where the proposal inbox is answered. */
   gameHref: string | null
+  /** The Game, for "Copy invite link" on the Crew tab: null outside one or for anyone but its Organizer. */
+  inviteGameId: Id<'games'> | null
   /** Newest first; null while the first answer is on its way. */
   rolls: RollLine[] | null
   /** Newest first. */
@@ -103,6 +119,7 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
   return {
     gameName: game?.name ?? null,
     gameHref: gameId === null ? null : `/games/${gameId}`,
+    inviteGameId: game?.organizer ? gameId : null,
     rolls: rolls ?? null,
     alerts: alerts ?? [],
     inbox: pending?.length ?? 0,
@@ -114,7 +131,7 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
 export function describeResolve(pilotName: string, resolving: SeatResolving): string {
   const head = `${pilotName} is resolving ${resolving.name}`
   if (resolving.roll !== undefined) {
-    const label = CORE_ROLL_BANDS[resolving.roll.band].label
+    const label = coreRollBandLabel(resolving.roll.band)
     const tail = resolving.applied ? ', applied' : ''
     return `${head}: rolled ${resolving.roll.roll}, ${label}${tail}`
   }
@@ -192,13 +209,30 @@ export function crewLines(
         : [`${mech.name} parked`, ...parkedProblems(mech.status)].join(', ')
     }
     const resolving = resolvingOf.get(id) ?? null
+    const hp = pool(p.currentHP, p.maxHP)
+    const ap = pool(p.currentAP, p.maxAP)
+    const unit =
+      mech === undefined
+        ? p.boarded
+          ? 'In a mech'
+          : 'On foot'
+        : p.boarded
+          ? `In ${mech.name} · SP ${pool(mech.currentSP, mech.maxSP)}`
+          : `On foot · ${mech.name} parked`
     lines.push({
       pilotId: id,
       name: p.name,
       self: id === pilotId,
       href: `/sheet/pilot/${id}`,
       where: p.boarded ? `In ${mech?.name ?? 'a mech'}` : 'On foot',
-      vitals: `HP ${pool(p.currentHP, p.maxHP)} · AP ${pool(p.currentAP, p.maxAP)}`,
+      vitals: `HP ${hp} · AP ${ap}`,
+      hp,
+      ap,
+      unit,
+      unitMech:
+        mech === undefined
+          ? null
+          : { name: mech.name, sp: pool(mech.currentSP, mech.maxSP), boarded: p.boarded },
       mech: mechLine,
       mechAttention: !p.boarded && (mech?.attention ?? false),
       problems: [

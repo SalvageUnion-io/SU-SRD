@@ -7,8 +7,8 @@
  * transform in its own module is what breaks that cycle —
  * `BaseModel -> nameToSlug` terminates immediately.
  *
- * `nameToSlug` remains public API and is still re-exported from `lib/slug.ts`
- * and the package barrel; this module is an internal home, not a new surface.
+ * `nameToSlug` remains public API, re-exported from the package barrel; this
+ * module is an internal home, not a new surface.
  */
 
 /**

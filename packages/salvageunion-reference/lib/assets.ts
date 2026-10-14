@@ -12,8 +12,8 @@
  * consumers import.
  */
 
-import type { SURefMetaEntity } from './schemas/index.js'
-import { getEntitySlug } from './slug.js'
+import type { SURefMetaEntity } from './schemas/index'
+import { getEntitySlug } from './slug'
 
 /**
  * Base URL of the artwork CDN — the `su-assets` Cloudflare Worker, backed by the
@@ -21,7 +21,7 @@ import { getEntitySlug } from './slug.js'
  * entity's schema name and slug; see getAssetUrl().
  */
 
-export const ASSET_BASE_URL = 'https://assets.salvageunion.io'
+const ASSET_BASE_URL = 'https://assets.salvageunion.io'
 
 /**
  * Derive an entity's asset URL from its schema name and slug.
@@ -42,8 +42,19 @@ export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
   if (!('schemaName' in entity) || typeof entity.schemaName !== 'string') {
     return undefined
   }
-  const slug = getEntitySlug(entity)
-  return `${ASSET_BASE_URL}/${entity.schemaName}/${slug}.webp`
+  return assetUrl(`${entity.schemaName}/${getEntitySlug(entity)}.webp`)
+}
+
+/**
+ * The artwork CDN URL for one object key — the same base {@link getAssetUrl}
+ * derives from, for artwork that is not a reference entity's (the Starter
+ * Set crew's portraits live under `starter-set/`).
+ *
+ * @param path - The object key, without a leading slash
+ * @returns The asset URL
+ */
+export function assetUrl(path: string): string {
+  return `${ASSET_BASE_URL}/${path}`
 }
 
 /**
@@ -58,10 +69,12 @@ export const SRD_SITE_URL = 'https://salvageunion.io'
 /**
  * The reference site's ROOT-RELATIVE path for one entity's page.
  *
- * This is the site's route grammar (`/schema/{schemaName}/item/{slug}` — it
- * matches the srd `getStaticPaths`), expressed once. The srd site itself wants
- * the relative form (it is that origin); anything linking in from outside
- * prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
+ * This is the site's route grammar (`/{schemaName}/{slug}` — it matches the
+ * srd `getStaticPaths`), expressed once. The pages once lived under
+ * `/schema/{schemaName}/item/{slug}`; the srd Worker 301s that tree here, and
+ * `/schema/*` now names only the JSON API, whose paths are not this grammar.
+ * The srd site itself wants the relative form (it is that origin); anything
+ * linking in from outside prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
  *
  * Takes the SLUG rather than the entity, because callers arrive with either —
  * a resolved entity (slug it with `getEntitySlug`) or a bare name already run
@@ -73,7 +86,7 @@ export const SRD_SITE_URL = 'https://salvageunion.io'
  */
 
 export function srdEntityPath(schemaName: string, slug: string): string {
-  return `${srdSchemaPath(schemaName)}/item/${slug}`
+  return `${srdSchemaPath(schemaName)}/${slug}`
 }
 
 /**
@@ -94,7 +107,7 @@ export function srdEntityPath(schemaName: string, slug: string): string {
  * @returns The root-relative listing path
  */
 export function srdSchemaPath(schemaName: string): string {
-  return `/schema/${schemaName}`
+  return `/${schemaName}`
 }
 
 /**

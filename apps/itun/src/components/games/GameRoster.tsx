@@ -1,11 +1,11 @@
 /**
  * GameRoster — a Game's crew, in the hub's three columns.
  *
- * ## Why this looks like My Stuff
+ * ## Why this looks like Shelves
  *
- * `/` shows one container at a time (`Roster`): My Stuff, or a Game picked in
+ * `/` shows one container at a time (`Roster`): Shelves, or a Game picked in
  * its "Showing" select. Both ask "what have we got and what can I do with it",
- * so both answer in the same three ontology-toned columns of `EntityRow`s
+ * so both answer in the same three ontology-toned columns of Rows (`UnitRow`)
  * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
  * seal on every row, a way to pick up what nobody holds, and creation gated by
  * the rules in `lib/games/gameRoster.ts`.
@@ -29,7 +29,8 @@
  *
  * ## What a row opens
  *
- * Every row has one View, to the live sheet (`rosterSheetHref`). It opens
+ * Every row is a link to the live sheet (`rosterSheetHref`), its other verbs
+ * in a ⋯ menu beside it, as a shelf item's (`ShelfItem`). The sheet opens
  * editable when the row is yours to edit — your own pilots and mechs, and the
  * crawler when you run the table (ADR-038 §5) — and read-only and live
  * otherwise; `entities.locate` decides and `SheetView` renders it. No row
@@ -38,20 +39,23 @@
  *
  * ## Every verb that changes who has a build asks first
  *
- * Pick up, Offer to the crew, Copy to My Stuff, Remove from game, Delete and
+ * Pick up, Offer to the crew, Make a copy, Remove from Game, Delete and
  * Scrap each open one shared confirm (`useConfirm`) that says what will happen
  * and whether it can be undone, and do nothing until the player confirms. The
  * verbs and their words live outside this file — `useRowActions` and
  * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
  */
 
-import { Badge, Button, buttonVariants, Text, tokens } from 'component-lib'
+import { Badge, buttonVariants, FieldError, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/entities'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
 import {
   crawlerRows,
@@ -61,15 +65,15 @@ import {
   tableCapabilities,
 } from '../../lib/games/gameRoster'
 import { rosterRowStats } from '../../lib/games/rosterRowStats'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
-import { EntityRow } from '../shared/EntityRow'
+import type { HeaderMenuItem } from '../shared/HeaderMenu'
+import { HeaderMenu } from '../shared/HeaderMenu'
+import { UnitRow } from '../shared/UnitRow'
 import { useConfirm } from '../shared/useConfirm'
+import { useGo } from '../shared/useGo'
 import { OwnerSeal } from './OwnerSeal'
 import { useRowActions } from './useRowActions'
 
@@ -93,13 +97,13 @@ const COLUMNS: ReadonlyArray<{
     kind: 'pilot',
     title: 'Pilots',
     create: { href: '/pilots/new', label: 'Create Pilot' },
-    empty: 'No pilots in this game yet.',
+    empty: 'No pilots in this Game yet.',
   },
   {
     kind: 'mech',
     title: 'Mechs',
     create: { href: '/mechs/new', label: 'Create Mech' },
-    empty: 'No mechs in this game yet.',
+    empty: 'No mechs in this Game yet.',
   },
   {
     kind: 'crawler',
@@ -116,8 +120,6 @@ const STACK = {
 } satisfies CSSProperties
 
 const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
-
-const ERROR = { ...HINT, color: tokens.color.rollCascade } satisfies CSSProperties
 
 const FOOTNOTE = {
   color: tokens.color.wkMuted,
@@ -149,7 +151,14 @@ const GROUP = {
   gap: tokens.space[10],
 } satisfies CSSProperties
 
-const ITEM = { listStyle: 'none' } satisfies CSSProperties
+/** A Row and its ⋯ menu at the column's edge, as a shelf item (`ShelfItem`). */
+const ITEM = {
+  alignItems: 'start',
+  display: 'grid',
+  gap: tokens.space[8],
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  listStyle: 'none',
+} satisfies CSSProperties
 
 /** Stamps sit at their own width, not stretched across the group. */
 const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
@@ -157,17 +166,20 @@ const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
 const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
-  const [busy, setBusy] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const rowActions = useRowActions(confirm)
+  const go = useGo()
 
   const me = useQuery(api.account.me, {})
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
 
-  const setPrimaryCrawler = useMutation(api.games.setPrimaryCrawler)
+  const makePrimary = useServerAction(useMutation(api.games.setPrimaryCrawler), {
+    failure: 'That crawler could not be made primary. Try again.',
+  })
+  const busy = makePrimary.pending
+  const error = makePrimary.error
 
   // Local copies decide what opens without a round trip, so the columns need
   // the local stores hydrated even though the listing itself is remote.
@@ -207,125 +219,96 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     }),
   }
 
-  async function run(key: string, work: () => Promise<void>) {
-    setBusy(key)
-    setError(null)
-    try {
-      await work()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'That did not work.')
-    } finally {
-      setBusy(null)
+  /**
+   * A row's verbs, in its ⋯ menu as a shelf item's are (Shelves): the Row
+   * itself opens the sheet, so its band carries only its name and chips.
+   */
+  function rowMenu(row: RosterRow): HeaderMenuItem[][] {
+    const act = (run: () => void) => (busy ? undefined : run)
+    const verbs: HeaderMenuItem[] = [
+      { id: 'open', label: 'Open', onSelect: () => go(rosterSheetHref(row)) },
+    ]
+    // Picking up is the SEAL's job, not a menu row's (`OwnerSeal`). Any owner
+    // may hand back, not just the table runner: ADR-030 §4 makes ownership
+    // voluntary outward, and the pick-up confirm promises this way back out.
+    if (row.can.release) {
+      verbs.push({
+        id: 'offer',
+        label: 'Offer to the crew',
+        onSelect: act(() => rowActions.offer(row)),
+      })
     }
+    // Pilots and mechs only: copying the crawler, the crew's shared home, is
+    // a product choice nobody has made yet.
+    if (row.kind !== 'crawler') {
+      verbs.push({ id: 'copy', label: 'Make a copy', onSelect: act(() => rowActions.copy(row)) })
+    }
+    if (row.can.makePrimary) {
+      verbs.push({
+        id: 'primary',
+        label: 'Make primary',
+        onSelect: act(
+          () =>
+            void makePrimary.run({
+              gameId: gameId as Id<'games'>,
+              crawlerId: row.serverId as Id<'crawlers'>,
+            })
+        ),
+      })
+    }
+    // The move out (ADR-037): your own pilot or mech, or (for the table
+    // runner) a crawler, once this browser holds the copy the move is made on.
+    if (row.can.removeFromGame && row.localId !== null) {
+      verbs.push({
+        id: 'remove',
+        label: 'Remove from Game',
+        onSelect: act(() => rowActions.removeFromGame(row, gameName)),
+      })
+    }
+    const danger: HeaderMenuItem[] = []
+    if (row.can.delete || row.can.scrap) {
+      danger.push({
+        id: 'delete',
+        label: 'Delete…',
+        tone: 'danger',
+        onSelect: act(() => (row.can.delete ? rowActions.remove(row) : rowActions.scrap(row))),
+      })
+    }
+    return [verbs, danger]
   }
 
   function renderRow(row: RosterRow): ReactNode {
     return (
       <li key={row.serverId} style={ITEM}>
-        <EntityRow
-          entityType={row.kind}
+        <UnitRow
+          kind={row.kind}
           name={row.name}
-          stats={rosterRowStats(row)}
-          linkAs={AppLink}
-          /* Every row is a door, and there is one: View, to the live sheet —
-             editable when the row is yours to edit (`row.can.openSheet`),
-             read-only when it is a crewmate's (`SheetView`). */
-          sheetHref={rosterSheetHref(row)}
           /* The primary crawler is where new crew is assigned (ADR-037), so
              the roster says which one it is. */
-          meta={row.primary ? '★ Primary' : undefined}
-          seal={
+          note={row.primary ? '★ Primary' : undefined}
+          readings={rosterRowStats(row)}
+          /* The Row is the door to the live sheet: editable when the row is
+             yours to edit (`row.can.openSheet`), read-only when it is a
+             crewmate's (`SheetView`). */
+          mode={{ kind: 'link', href: rosterSheetHref(row) }}
+          /* Who holds it sits right of the name, a label (ruleset §7.2):
+             never a stamp riding the frame. */
+          labels={
             row.owner === null ? undefined : (
               <OwnerSeal
                 owner={row.owner}
                 claimable={row.can.claim}
-                disabled={busy !== null}
+                disabled={busy}
                 onClaim={() => rowActions.pickUp(row)}
               />
             )
           }
-          actions={
-            <>
-              {/* Picking up is the SEAL's job, not a button's — see
-                  `OwnerSeal`. Any owner may hand back, not just the table
-                  runner: ADR-030 §4 makes ownership voluntary outward, and the
-                  pick-up confirm promises exactly this as the way back out. */}
-              {row.can.release && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy !== null}
-                  onClick={() => rowActions.offer(row)}
-                >
-                  Offer to the crew
-                </Button>
-              )}
-              {/* Pilots and mechs only. Copying the crawler is a product choice
-                  nobody has made yet: it is the crew's shared home rather than
-                  a character somebody keeps. */}
-              {row.kind !== 'crawler' && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy !== null}
-                  onClick={() => rowActions.copy(row)}
-                >
-                  Copy to My Stuff
-                </Button>
-              )}
-              {/* The move out (ADR-037): your own pilot or mech, or — for the
-                  table runner — a crawler. Offered once this browser holds the
-                  copy the move is made on; `ShelfSync` and `WiringSync` bring
-                  it in moments after it appears here. */}
-              {row.can.removeFromGame && row.localId !== null && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy !== null}
-                  onClick={() => rowActions.removeFromGame(row, gameName)}
-                >
-                  Remove from game
-                </Button>
-              )}
-              {row.can.delete && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy !== null}
-                  onClick={() => rowActions.remove(row)}
-                >
-                  Delete
-                </Button>
-              )}
-              {row.can.makePrimary && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy !== null}
-                  onClick={() =>
-                    void run(`primary-${row.serverId}`, async () => {
-                      await setPrimaryCrawler({
-                        gameId: gameId as Id<'games'>,
-                        crawlerId: row.serverId as Id<'crawlers'>,
-                      })
-                    })
-                  }
-                >
-                  Make primary
-                </Button>
-              )}
-              {row.can.scrap && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy !== null}
-                  onClick={() => rowActions.scrap(row)}
-                >
-                  Scrap
-                </Button>
-              )}
-            </>
-          }
+        />
+        <HeaderMenu
+          variant="overflow"
+          trigger={null}
+          label={`More for ${row.name}`}
+          sections={rowMenu(row)}
         />
       </li>
     )
@@ -372,16 +355,10 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
 
   return (
     <>
-      <Text variant="hint" style={HINT}>
-        {caps.tableRunner
-          ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
-          : 'Everything the crew has brought to this game. Pick up anything nobody holds.'}
-      </Text>
-
       {error !== null && (
-        <Text variant="hint" role="alert" style={ERROR}>
-          {error}
-        </Text>
+        <div style={HINT}>
+          <FieldError>{error}</FieldError>
+        </div>
       )}
 
       {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (

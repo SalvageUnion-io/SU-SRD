@@ -1,8 +1,8 @@
 /**
- * The Dashboard used to silently DROP the gauge's override/provenance props:
- * `DashboardGauge` never forwarded them, and `VitalGauge`'s compact branch
- * returned before any of that chrome rendered. ADR-021 requires Guided Play to
- * teach as it enforces, so this pins the fix at both layers.
+ * The Dashboard's gauge keeps its override/provenance props: `DashboardGauge`
+ * forwards them, and `VitalGauge`'s compact branch renders that chrome too.
+ * ADR-021 requires Guided Play to teach as it enforces, so this pins both
+ * layers.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -34,8 +34,8 @@ describe('DashboardGauge — provenance (ADR-021 teach-as-you-enforce)', () => {
   })
 
   test('the override marker follows the breakdown flag, never a comparison of numbers', () => {
-    // Regression: the gauge used to infer "overridden" from derivedMax !== max,
-    // so the marker and the ledger could disagree.
+    // Never inferred from derivedMax !== max, or the marker and the ledger
+    // could disagree.
     render(
       <DashboardGauge
         label="SP"

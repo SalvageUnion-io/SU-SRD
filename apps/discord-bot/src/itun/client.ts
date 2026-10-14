@@ -1,26 +1,21 @@
-import type { SignedInteraction } from '../commands/interactions.js'
+import { PRODUCT } from 'component-lib/product'
 import type {
-  BindResult,
-  ChannelResult,
-  CrewResult,
   DenialReason,
   GamesResult,
-  InviteDeliveryState,
-  InviteResult,
   ItunResult,
   MeResult,
+  MineResult,
   SheetResult,
   SheetTable,
-  ShelfResult,
-} from './types.js'
+} from './types'
 
 /**
- * The bot's client for the ITUN Convex deployment (ADR-030 Phase 6).
+ * The bot's client for the ITUN Convex deployment (ADR-030).
  *
  * Deliberately built on `fetch` and nothing else. The `convex` package would
  * buy a websocket and reactive subscriptions, which the bot needs exactly once
- * — for pushing Mediator alerts into a channel — and that is Phase 5, which is
- * not built. Adding a dependency now for a feature later is how a Node worker
+ * — for pushing Mediator alerts into a channel — which is not built. Adding a
+ * dependency now for a feature later is how a Worker
  * quietly acquires a browser SDK.
  *
  * ## Degrading
@@ -46,45 +41,13 @@ const REQUEST_TIMEOUT_MS = 8_000
  */
 const AUTOCOMPLETE_TIMEOUT_MS = 2_000
 
-/** Ops invoked from an autocomplete handler, where the 3s deadline applies. */
-const AUTOCOMPLETE_OPS = new Set(['crew', 'games'])
-
 export type ItunClient = {
   me(discordId: string): Promise<ItunResult<MeResult>>
   games(discordId: string): Promise<ItunResult<GamesResult>>
-  shelf(discordId: string): Promise<ItunResult<ShelfResult>>
-  channel(discordId: string, channelId: string): Promise<ItunResult<ChannelResult>>
-  crew(discordId: string, channelId: string): Promise<ItunResult<CrewResult>>
-  /** As `crew`/`games`, but under the 3s autocomplete deadline. */
-  crewForAutocomplete(discordId: string, channelId: string): Promise<ItunResult<CrewResult>>
-  gamesForAutocomplete(discordId: string): Promise<ItunResult<GamesResult>>
-  sheet(
-    discordId: string,
-    channelId: string,
-    table: SheetTable,
-    entityId: string
-  ): Promise<ItunResult<SheetResult>>
-  bind(discordId: string, channelId: string, gameId: string): Promise<ItunResult<BindResult>>
-  unbind(discordId: string, channelId: string): Promise<ItunResult<Record<string, never>>>
-  recordRoll(
-    discordId: string,
-    channelId: string,
-    description: string,
-    result: unknown
-  ): Promise<ItunResult<{ game: string }>>
-  /**
-   * `/su invite` (ADR-039). Sends Discord's signed interaction **verbatim** —
-   * body and signature headers — because Convex verifies it itself rather than
-   * taking this bot's word for who is inviting whom.
-   */
-  invite(signed: SignedInteraction): Promise<ItunResult<InviteResult>>
-  /** Report whether the invite's DM arrived. */
-  inviteDelivery(
-    discordId: string,
-    code: string,
-    state: InviteDeliveryState,
-    detail?: string
-  ): Promise<ItunResult<Record<string, never>>>
+  /** What `/su sheet` autocompletes to, under the 3s autocomplete deadline. */
+  mineForAutocomplete(discordId: string): Promise<ItunResult<MineResult>>
+  /** One sheet by row id or app id: yours, a crewmate's, or a published one. */
+  sheet(discordId: string, table: SheetTable, entityId: string): Promise<ItunResult<SheetResult>>
 }
 
 export type ItunClientConfig = {
@@ -94,13 +57,7 @@ export type ItunClientConfig = {
   botSecret: string
 }
 
-const DENIAL_REASONS: readonly string[] = [
-  'unlinked',
-  'unbound',
-  'not-a-member',
-  'forbidden',
-  'not-found',
-]
+const DENIAL_REASONS: readonly string[] = ['unlinked', 'not-found']
 
 function isDenial(value: unknown): value is { reason: DenialReason; message?: string } {
   const reason = (value as { reason?: unknown } | null)?.reason
@@ -121,11 +78,11 @@ export function interpret<T>(status: number, body: unknown): ItunResult<T> {
     // not something to word as a permissions denial.
     return {
       kind: 'unavailable',
-      message: 'In The Union Now rejected this bot’s credentials.',
+      message: `${PRODUCT.name} rejected this bot’s credentials.`,
     }
   }
   if (status !== 200) {
-    return { kind: 'unavailable', message: 'In The Union Now could not be reached.' }
+    return { kind: 'unavailable', message: `${PRODUCT.name} could not be reached.` }
   }
   if ((body as { ok?: unknown } | null)?.ok === true) {
     return { kind: 'ok', value: body as T }
@@ -137,12 +94,12 @@ export function interpret<T>(status: number, body: unknown): ItunResult<T> {
       message: body.message ?? 'That is not available to you.',
     }
   }
-  return { kind: 'unavailable', message: 'In The Union Now returned an unexpected response.' }
+  return { kind: 'unavailable', message: `${PRODUCT.name} returned an unexpected response.` }
 }
 
 const UNCONFIGURED: ItunResult<never> = {
   kind: 'unavailable',
-  message: 'In The Union Now is not configured for this bot.',
+  message: `${PRODUCT.name} is not configured for this bot.`,
 }
 
 /**
@@ -169,64 +126,24 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(
-          forAutocomplete && AUTOCOMPLETE_OPS.has(op) ? AUTOCOMPLETE_TIMEOUT_MS : REQUEST_TIMEOUT_MS
-        ),
+        signal: AbortSignal.timeout(forAutocomplete ? AUTOCOMPLETE_TIMEOUT_MS : REQUEST_TIMEOUT_MS),
       })
 
       // A non-JSON body from a proxy or an error page must not throw past the
       // caller — it is just another way for the deployment to be unavailable.
-      const body: unknown = await response.json().catch(() => null)
-      return interpret<T>(response.status, body)
+      const json: unknown = await response.json().catch(() => null)
+      return interpret<T>(response.status, json)
     } catch {
       // Timeout or network failure: the bot's Degraded mode, by design. It is
       // worded to the user as an outage, and ITUN's own monitoring owns it.
-      return { kind: 'unavailable', message: 'In The Union Now could not be reached.' }
-    }
-  }
-
-  /**
-   * A signed op: the body is Discord's, not ours, so it is posted as the exact
-   * string received — parsing and re-serialising it would invalidate the
-   * signature Convex is about to check.
-   */
-  async function callSigned<T>(op: string, signed: SignedInteraction): Promise<ItunResult<T>> {
-    if (!origin || !botSecret) return UNCONFIGURED
-    try {
-      const response = await fetch(`${origin}/bot/${op}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${botSecret}`,
-          'Content-Type': 'application/json',
-          'X-Signature-Ed25519': signed.signature,
-          'X-Signature-Timestamp': signed.timestamp,
-        },
-        body: signed.body,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      })
-      const body: unknown = await response.json().catch(() => null)
-      return interpret<T>(response.status, body)
-    } catch {
-      return { kind: 'unavailable', message: 'In The Union Now could not be reached.' }
+      return { kind: 'unavailable', message: `${PRODUCT.name} could not be reached.` }
     }
   }
 
   return {
     me: (discordId) => call('me', { discordId }),
     games: (discordId) => call('games', { discordId }),
-    shelf: (discordId) => call('shelf', { discordId }),
-    channel: (discordId, channelId) => call('channel', { discordId, channelId }),
-    crew: (discordId, channelId) => call('crew', { discordId, channelId }),
-    crewForAutocomplete: (discordId, channelId) => call('crew', { discordId, channelId }, true),
-    gamesForAutocomplete: (discordId) => call('games', { discordId }, true),
-    sheet: (discordId, channelId, table, entityId) =>
-      call('sheet', { discordId, channelId, table, entityId }),
-    bind: (discordId, channelId, gameId) => call('bind', { discordId, channelId, gameId }),
-    unbind: (discordId, channelId) => call('unbind', { discordId, channelId }),
-    recordRoll: (discordId, channelId, description, result) =>
-      call('recordRoll', { discordId, channelId, description, result }),
-    invite: (signed) => callSigned<InviteResult>('invite', signed),
-    inviteDelivery: (discordId, code, state, detail) =>
-      call('inviteDelivery', { discordId, code, state, detail }),
+    mineForAutocomplete: (discordId) => call('mine', { discordId }, true),
+    sheet: (discordId, table, entityId) => call('sheet', { discordId, table, entityId }),
   }
 }

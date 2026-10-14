@@ -4,7 +4,10 @@ import { createRequire } from 'node:module'
 const resolver = createRequire(import.meta.url)
 
 /**
- * A committed `salvageunion-reference` file, byte for byte, read at build time.
+ * A `salvageunion-reference` file, byte for byte, read at build time. `data/`
+ * is committed; `schemas/*.schema.json` is generated from the Zod source by
+ * the package's `su-ref-generate` bin, which install, the root `build` and this
+ * workspace's `dev` run first.
  *
  * `/schema/<id>.json` and `/schema/<id>.schema.json` serve the package's own
  * `data/<id>.json` and `schemas/<id>.schema.json` verbatim, so what CI

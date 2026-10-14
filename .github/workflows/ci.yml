@@ -1,13 +1,12 @@
 name: CI
 
-# The reasoning behind every non-obvious choice in this file is in
-# docs/ARCHITECTURE.md#ci-and-deploy (the incidents behind them are in git history). Read it
-# before changing a trigger, a path filter, a `needs:` edge or the aggregate
-# gate. Comments here say WHAT a step guards; the doc says WHY.
+# The comments here carry the reasoning behind every non-obvious choice. Read
+# them before changing a trigger, a path filter, a `needs:` edge or the
+# aggregate gate.
 
 on:
   # No `branches:` filter: it matches the PR's BASE, so it would give stacked
-  # PRs no checks at all — and `CI Success` is required (ARCHITECTURE.md#ci-triggers).
+  # PRs no checks at all — and `CI Success` is required.
   # CI runs on PRs only: the ruleset requires `CI Success` on a branch that is
   # up to date with `main`, so a merged tree has already passed.
   pull_request:
@@ -26,7 +25,7 @@ concurrency:
 jobs:
   # ---------------------------------------------------------------------------
   # Which areas a change touches. `shared` affects everything; `docs` is prose
-  # and agent config only. See ARCHITECTURE.md#ci-path-filters before adding a path.
+  # and agent config only.
   # ---------------------------------------------------------------------------
   changes:
     runs-on: ubuntu-latest
@@ -61,7 +60,7 @@ jobs:
               - 'test/**'
               - 'bunfig.toml'
               # root prose rendered by srd + itun and asserted on by
-              # component-lib tests — the #731 incident (ARCHITECTURE.md#ci-path-filters)
+              # component-lib tests
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
@@ -69,23 +68,22 @@ jobs:
               - *shared
               - 'apps/itun/**'
               - 'packages/component-lib/**'
-              # the build job's Playwright config, axe spec and the debt it accepts
-              - 'tools/lib/a11y*.ts'
-              - 'tools/lib/playwrightBase.ts'
-              - 'tools/a11y-baseline-itun.json'
+              # schemas, link rules and wire types Convex and the client share
+              - 'packages/itun-domain/**'
+              # the build job's Playwright config and axe scan
+              - 'packages/gates/**'
             web:
               - *shared
               - 'apps/srd/**'
               - 'packages/component-lib/**'
-              - 'tools/lib/a11y*.ts'
-              - 'tools/lib/playwrightBase.ts'
-              - 'tools/a11y-baseline.json'
+              - 'packages/gates/**'
             bot:
               - *shared
               - 'apps/discord-bot/**'
-              # the bot's wire types are imported (`import type`) from here —
-              # apps/discord-bot/src/itun/types.ts
-              - 'apps/itun/convex/model/botWire.ts'
+              # the bot's wire types (`itun-domain/botWire`, `import type`)
+              - 'packages/itun-domain/**'
+              # the product's names (`component-lib/product`)
+              - 'packages/component-lib/**'
             assets:
               - *shared
               - 'apps/su-assets/**'
@@ -102,9 +100,10 @@ jobs:
               - '.github/*.yml'
             # Prose and agent config. Runs the repo-invariant checks (doc
             # drift, observability) but not the test suite or the typecheck —
-            # nothing compiles or tests these files (audit CI-11).
+            # nothing compiles or tests these files.
             docs:
               - 'docs/**'
+              - 'AGENTS.md'
               - 'CLAUDE.md'
               - 'README.md'
               - 'SECURITY.md'
@@ -171,7 +170,7 @@ jobs:
         run: bun run test:coverage
 
   # The build jobs need only `changes`: they take no artifact from the check
-  # jobs, and `CI Success` already fails on any of them (audit CI-02).
+  # jobs, and `CI Success` already fails on any of them.
   build-srd:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
@@ -186,27 +185,26 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
+      # `build:untyped` is `build` without its typecheck: static-checks
+      # typechecks every workspace already (the bot's job skips it likewise).
       - name: Build srd
-        run: bun --filter srd build
+        run: bun --filter srd build:untyped
 
       - name: Check printed examples against the built site
         run: bun --filter srd check:examples
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+      # The build emits the assets; this bundles the Worker `main` that ships.
+      - name: Bundle the Worker that actually deploys
+        run: bun --filter srd worker:bundle --outdir /tmp/srd-worker
 
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/srd
-        run: bunx playwright install chromium
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
 
-      # The PR-blocking browser tier, and srd's whole Playwright suite: there
-      # is no nightly srd run. Add a spec to this line; do NOT add a job.
-      # `a11y.e2e.ts` is WCAG 2.2 AA on the pages in tools/a11y-baseline.json,
-      # at desktop and as a phone: it blocks on any violation the baseline does
-      # not accept, and on a baseline entry that no longer fires.
+      # The PR-blocking browser tier, and srd's whole Playwright suite but the
+      # performance budget (perf-srd, below): there is no nightly srd run. Add
+      # a spec to this line; do NOT add a job.
+      # `a11y.e2e.ts` is WCAG 2.2 AA on the pages it lists, at desktop and as a
+      # phone: it blocks on any violation.
       - name: Run smoke + bundle-budget + JSON API + a11y specs
         working-directory: apps/srd
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts
@@ -216,6 +214,51 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-e2e-web
+          path: apps/srd/playwright-report/
+          retention-days: 7
+
+  # srd's performance budget (`e2e/perf-budget.e2e.ts`): LCP, TBT and CLS on
+  # a few pages under Lighthouse's mobile throttling. Its own job, beside
+  # build-srd rather than after it, so it adds its run time to CI's wall time
+  # only where it outlasts build-srd. It builds its own `dist`; downloading
+  # build-srd's would put it on the critical path. One worker per runner:
+  # measured loads must not share the CPU, so the pages are split across two
+  # runners instead (one page per test, so `--shard` splits by page).
+  perf-srd:
+    needs: [changes]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Build srd
+        run: bun --filter srd build:untyped
+
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
+
+      - name: Run the performance budget
+        working-directory: apps/srd
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: bunx playwright test perf-budget.e2e.ts --workers=1 --shard="$SHARD/2" --reporter=list,github
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-perf-srd-${{ matrix.shard }}
           path: apps/srd/playwright-report/
           retention-days: 7
 
@@ -238,34 +281,20 @@ jobs:
       # The URL is a throwaway backend carrying this PR's own functions, not
       # production: a PR's client must run against the backend it ships with,
       # and a PR gate makes no production calls.
-      - name: Start a throwaway Convex backend
-        id: convex
+      - name: Start a throwaway Convex backend and build itun against it
         uses: ./.github/actions/convex-backend
-
-      - name: Push functions and build itun against the backend
-        working-directory: apps/itun
-        env:
-          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
-          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
-        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
 
       # The build emits the assets; this bundles the Worker `main` that ships.
       - name: Bundle the Worker that actually deploys
         run: bun --filter itun worker:bundle --outdir /tmp/itun-worker
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/itun
-        run: bunx playwright install chromium
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
 
       # The PR-blocking browser tier. Add a spec to this line; do NOT add a job.
-      # `a11y.e2e.ts` is srd's scan, for ITUN: the routes in
-      # tools/a11y-baseline-itun.json, signed out, at desktop and as a phone.
+      # `a11y.e2e.ts` is srd's scan, for ITUN: the routes it lists, signed out,
+      # at desktop and as a phone. The signed-in pages are
+      # `a11y-signed-in.e2e.ts`'s, in e2e-nightly.yml: it needs the test seam.
       - name: Run smoke + bundle-budget + a11y specs
         working-directory: apps/itun
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
@@ -296,7 +325,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # The bot has no build script; wrangler bundles `src/http/worker.ts`.
+      # Its `build` is typecheck + this bundle; the typecheck already runs in
+      # static-checks, so only the bundle here.
       - name: Bundle the Worker that actually deploys
         run: bun --filter discord-bot worker:bundle --outdir /tmp/bot-worker
 
@@ -321,7 +351,7 @@ jobs:
   # The single required check. Fails if any job failed or was cancelled; a
   # path-filtered skip passes. EVERY job above must be in `needs:` —
   # tools/check-workflows.ts (aggregator) enforces it. CodeQL and the PR title
-  # are required separately (ARCHITECTURE.md#ci-aggregate-gate).
+  # are required separately (ARCHITECTURE.md#repo-settings).
   # ---------------------------------------------------------------------------
   quality-checks:
     name: CI Success
@@ -331,6 +361,7 @@ jobs:
       - static-checks
       - coverage
       - build-srd
+      - perf-srd
       - build-itun
       - build-discord-bot
       - build-su-assets

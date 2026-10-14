@@ -5,7 +5,7 @@ import { linkIdOf } from './entities'
 
 /**
  * Seat helpers shared by `seats.ts` and every path that would otherwise orphan
- * a seat ([ADR-038](../../../../docs/ARCHITECTURE.md#adr-038) §2).
+ * a seat ([ADR-038](../../../../docs/adr/038-dashboard-game-surface.md) §2).
  *
  * A seat is keyed on a pilot's app id inside one Game and points at its boarded
  * mech by app id, the way soft-link ends do. Neither end is a foreign key, so
@@ -93,14 +93,12 @@ export async function releaseSeatsOf(
  * Each one goes with the Game. `softLinks` are the table's wiring (a
  * pilot-to-crawler assignment stops being true when the crew disbands, so
  * shelved entities land unwired); `invites`, `inviteRedemptions` and
- * `joinRequests` are ways into a Game that no longer exists, and an unanswered
- * knock at a deleted door would sit pending forever; a `channelBindings` row
- * claims a Discord channel for the Game, and a stale one refuses every later
- * bind of that channel; `downtime` and `seats` are its play state (ADR-038 §2).
+ * `joinRequests` are ways into a Game that no longer exists, as is a retired
+ * `channelBindings` row; `downtime` and `seats` are its play state (ADR-038 §2).
  *
  * Every other table with a `gameId` column holds something somebody built, or
  * history, and each teardown path shelves or deletes those rows itself first.
- * `test/convex/gameTeardown.test.ts` fails when a table gains a `gameId` column
+ * `test/convex/__tests__/gameTeardown.test.ts` fails when a table gains a `gameId` column
  * without being named here or exempted there.
  */
 export const GAME_APPARATUS_TABLES = [

@@ -11,30 +11,61 @@
  * make `ssg/` a runtime dependency of the app.
  */
 
-import type { ReactNode } from 'react'
-import type { DocumentMeta } from '../../ssg/types'
-import { Footer } from '../components/Footer'
+import { Footer } from 'component-lib'
+import { color } from 'component-lib/design/tokens'
+import type { CSSProperties, ReactNode } from 'react'
+import type { DocumentMeta, PageFoot } from '../../ssg/types'
 import { TopNavigation } from '../components/TopNavigation'
-import { DEFAULT_OG_IMAGE, SITE_URL, THEME_COLOR } from '../lib/constants'
+import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL, THEME_COLOR } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { Island } from '../runtime/Island'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =
   'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
+
+const WEB_ANALYTICS_BEACON = 'https://static.cloudflareinsights.com/beacon.min.js'
+const WEB_ANALYTICS_CONFIG = JSON.stringify({ token: 'c7ce1d45680c4c118da38645c3fc41bc' })
+
+/**
+ * Pages whose own search (the home band's, the 404's) stands in for the Union
+ * bar's: two fields on one page would both claim ⌘K. Keyed by the route's
+ * pathname, so the 404 is `/404/` though it is emitted as `404.html`.
+ */
+const PAGES_WITH_SEARCH = new Set(['/', '/404/'])
 
 /** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 const SPECULATION_RULES = JSON.stringify({
   prefetch: [{ source: 'document', where: { href_matches: '/*' }, eagerness: 'moderate' }],
 })
 
+/** The page column: the bar, the content, the footer, at least a screen tall. */
+const PAGE = {
+  backgroundColor: color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh',
+} satisfies CSSProperties
+
+/** The content, on the book's page ground, taking the column's spare height. */
+const MAIN = {
+  backgroundColor: color.wkBg,
+  display: 'flex',
+  flex: 1,
+  flexDirection: 'column',
+} satisfies CSSProperties
+
 export type BaseLayoutProps = {
   meta: DocumentMeta
   /** Pathname WITH a trailing slash — the canonical URL is built from it. */
   pathname: string
   children: ReactNode
+  /** A book page's foot (chapter tone and citation); absent → the licence row alone. */
+  foot?: PageFoot
 }
 
-export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
+export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) {
   const {
     title = DEFAULT_TITLE,
     description = DEFAULT_DESCRIPTION,
@@ -42,9 +73,13 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
     ogType = 'website',
     ogImage = DEFAULT_OG_IMAGE,
     ogImageAlt,
+    ogTitle = title,
+    ogDescription = description,
+    themeColor = THEME_COLOR,
     structuredData,
     additionalStructuredData,
     noindex = false,
+    componentEmbed,
     preloadImage,
     preloadImageSrcSet,
     preloadImageSizes,
@@ -54,6 +89,13 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
 
   const canonicalUrl = canonical || new URL(pathname, SITE_URL).href
   const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_URL).href
+  // The trail's links are this site's own pages, so root-relative: a Worker
+  // Preview's trail stays on that Preview.
+  const trail = breadcrumbs?.map((crumb) =>
+    crumb.url.startsWith(SITE_URL)
+      ? { ...crumb, url: crumb.url.slice(SITE_URL.length) || '/' }
+      : crumb
+  )
 
   return (
     <html lang="en">
@@ -69,13 +111,18 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
         <link rel="icon" type="image/png" sizes="16x16" href="/favicons/su/favicon-16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content={THEME_COLOR} />
+        <meta name="theme-color" content={themeColor} />
         {/* Service-worker registration: public/registerSW.js. */}
         <script defer src="/registerSW.js" />
+        {/* Cloudflare Web Analytics, loaded by URL (the CSP allows the origin in
+            public/_headers). The token is salvageunion.io's site token and is
+            public; the beacon drops page loads from any other host, so local
+            dev and Worker Previews report nothing. */}
+        <script defer src={WEB_ANALYTICS_BEACON} data-cf-beacon={WEB_ANALYTICS_CONFIG} />
 
         {/* Open Graph */}
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content={ogType} />
         <meta property="og:site_name" content="Salvage Union SRD" />
@@ -83,13 +130,24 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
         <meta property="og:image" content={ogImageUrl} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content={ogImageAlt ?? title} />
+        <meta property="og:image:alt" content={ogImageAlt ?? ogTitle} />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDescription} />
         <meta name="twitter:image" content={ogImageUrl} />
+
+        {/* Discord's Component Embed: a pasted link to this page renders as the
+            bot's card (`src/lib/componentEmbed.ts`). Data, never run. */}
+        {componentEmbed ? (
+          <script
+            id="discord:component-embed"
+            type="application/json"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Component Embed JSON, JSON.stringify + script-escaped
+            dangerouslySetInnerHTML={{ __html: escapeJsonForScript(componentEmbed) }}
+          />
+        ) : null}
 
         {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 
@@ -137,20 +195,20 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
         />
       </head>
       <body>
-        <div className="flex min-h-screen flex-col bg-paper">
+        <div style={PAGE}>
           {/*
             Skip link — WCAG 2.4.1. Must be the FIRST focusable thing in the
             document, so it sits above TopNavigation rather than inside it.
-            Without it, a keyboard user traverses the wordmark, the main nav
+            Without it, a keyboard user traverses the home mark, the main nav
             and the breadcrumb nav before reaching content, on all 1,036 pages.
           */}
           <a href="#main-content" className="su-skip-link">
             Skip to content
           </a>
           <TopNavigation
-            currentPath={pathname}
-            breadcrumbs={breadcrumbs}
+            breadcrumbs={trail}
             breadcrumbDescription={breadcrumbDescription}
+            pageHasSearch={PAGES_WITH_SEARCH.has(pathname)}
           />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following
@@ -160,11 +218,21 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
             thing the user just asked to skip. It does not add <main> to the tab
             order; -1 means "focusable by script or fragment, not by Tab".
           */}
-          <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col bg-wk-bg">
+          <main id="main-content" tabIndex={-1} style={MAIN}>
             {children}
           </main>
-          <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
+          <Footer
+            links={SITE_LINKS}
+            poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
+            // Every page's foot sits on the one page measure; a page with no
+            // citation keeps the licence row alone.
+            foot={{ tone: 'rules', ...foot, measure: PAGE_MEASURE }}
+          />
         </div>
+        {/* The page's one Peek: every Mention and Tag above carries only its
+            entity's address, and this host shows it (no props, no SSR). It
+            mounts on the first hover, press or focus on one. */}
+        <Island name="PeekIsland" client="interaction" trigger="[data-peek]" />
       </body>
     </html>
   )

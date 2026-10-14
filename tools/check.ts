@@ -17,10 +17,11 @@
  * ## Profiles
  *
  *   full      everything — `bun run check`
- *   fast      the ~12s inner loop: no test suite, no network, no
- *             regeneration — `bun run check:fast`
- *   pre-push  fast + generated-file drift (the suite runs separately, scoped by
- *             `--changed` — see lefthook.yml)
+ *   fast      the inner loop (~8 s warm, ~22 s from a cold typecheck on 4
+ *             cores): no test suite, no network, no regeneration —
+ *             `bun run check:fast`
+ *   pre-push  fast + generated-file drift (no suite: CI's `coverage` job
+ *             runs it, in about a minute)
  *   ci        everything except the test suite, which runs in CI's own
  *             `coverage` job
  *
@@ -44,8 +45,8 @@
 import { availableParallelism } from 'node:os'
 import { join } from 'node:path'
 
-export type Profile = 'full' | 'fast' | 'pre-push' | 'ci'
-export type Area = 'code' | 'docs' | 'deps'
+type Profile = 'full' | 'fast' | 'pre-push' | 'ci'
+type Area = 'code' | 'docs' | 'deps'
 const AREAS: readonly Area[] = ['code', 'docs', 'deps']
 
 export type CheckSpec = {
@@ -78,8 +79,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'generated',
     guards:
-      'committed generated files match their generators (schemas, docs, registry, route tree)',
-    fix: 'commit the files it just regenerated; never hand-edit a generated file',
+      'committed generated files match their generators (registry block, route tree, Worker types)',
+    fix: 'commit the files it just regenerated; never hand-edit a generated file; `bun tools/check-generated.ts --force` re-runs every generator',
     cmd: ['bun', 'tools/check-generated.ts'],
     first: true,
     areas: ['code'],
@@ -103,14 +104,15 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'knip',
     guards: 'no unused files, exports or dependencies',
-    fix: 'delete what it lists; docs/ARCHITECTURE.md ("Dead-code gate") covers the two exceptions',
+    fix: 'delete what it lists; docs/ARCHITECTURE.md#dead-code covers the two exceptions',
     cmd: ['bun', 'run', 'knip'],
     areas: ['code'],
     profiles: ALL,
   },
   {
     id: 'biome',
-    guards: 'lint, format, import order and the GritQL rules in tools/biome/ (`biome ci .`)',
+    guards:
+      'lint, format, import order and the GritQL rules in packages/gates/biome/ (`biome ci .`)',
     fix: '`bun run format`, then fix what remains',
     cmd: ['bunx', 'biome', 'ci', '.'],
     profiles: ALL,
@@ -118,7 +120,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'data',
     guards: 'the reference dataset: ids, slugs, references, orphans, parity, …',
-    fix: 'fix the data: each diagnostic names the file and record',
+    fix: 'fix the data: each diagnostic names the file and record; `bun packages/salvageunion-reference/tools/validate.ts --only=<id>` reruns a subset',
     cmd: ['bun', 'tools/validate.ts'],
     cwd: 'packages/salvageunion-reference',
     areas: REPO_INVARIANT,
@@ -128,7 +130,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'rules-fidelity',
     guards:
       'every prose string in the dataset has a verdict in fidelity.lock.json for its current text (checked against the books)',
-    fix: 'where the rules extract exists: `bun tools/check-rules-fidelity.ts --update`, then commit the lock; a deleted string needs only `bun tools/check-fidelity-lock.ts --prune`',
+    fix: 'where the rules extract exists: `bun tools/check-rules-fidelity.ts --update`, then commit packages/salvageunion-reference/fidelity.lock.json; a deleted string needs only `bun tools/check-fidelity-lock.ts --prune`',
     cmd: ['bun', 'tools/check-fidelity-lock.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -136,8 +138,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'doc-drift',
     guards:
-      'cited paths, bun scripts and markdown links exist (live docs plus each ADR Status and Decision); no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the Status of any ADR it amends; agent-doc size budgets',
-    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep each ADR one bare `## ADR-NNN` under # Decisions; add the amending ADR to the amended one\'s Status; cut a doc over its size budget',
+      'cited paths, bun scripts and markdown links exist; no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the entry of any ADR it amends; ARCHITECTURE.md entries are a headline plus at most two lines; each Area carries a slug anchor and is cited by it, never by number; doc size budgets and session loads; no code comment narrates history',
+    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep entry N of ## Decisions as ADR-N, and link a docs/adr/NNN-slug.md full text (no front-matter; the status lives in the entry) from its headline; add the amending ADR to the amended one\'s entry; cite an Area as ARCHITECTURE.md#<its anchor>, and end a new Area\'s headline with <a id="slug"></a>; cut an entry to two lines or a doc to its size budget; rewrite a history comment as what is true now (packages/gates/lib/commentHistory.ts lists the phrases)',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -151,10 +153,19 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'workers',
+    guards:
+      'the four Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys',
+    fix: 'make the app match the others (tools/check-workers.ts names each rule); a new Worker joins WORKER_APPS in tools/check-generated.ts',
+    cmd: ['bun', 'tools/check-workers.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'convex-callers',
     guards:
-      'every public Convex function has a shipped caller; api.d.ts registers the modules on disk',
-    fix: 'delete the function or make it `internal*`; for api.d.ts drift, regenerate with `bunx convex dev`',
+      'every public Convex function has a shipped caller, every internal one a caller; api.d.ts registers the modules on disk',
+    fix: 'delete the function (or make a public one `internal*`, tag a hand-run one `@operator`); for api.d.ts drift, regenerate with `bunx convex dev`',
     cmd: ['bun', 'tools/check-convex-callers.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -163,16 +174,42 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'client-contract',
     guards:
       'a Convex argument change that refuses calls an open ITUN tab still makes raises the build floor',
-    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/itun/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write`',
+    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/itun/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
     cmd: ['bun', 'tools/check-client-contract.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
+    id: 'rules-home',
+    guards:
+      'Convex imports nothing from apps/itun/src/; no rules- or model-named module sits in apps/itun/src/components/',
+    fix: 'move shared logic to itun-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
+    cmd: ['bun', 'tools/check-rules-home.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
+    id: 'test-layout',
+    guards:
+      'every *.test.ts(x) sits in a __tests__/ directory; every workspace has the one test script',
+    fix: "git mv the test into a __tests__/ beside its subject (deepen its relative paths); set the workspace's test script to TEST_SCRIPT (tools/check-test-layout.ts)",
+    cmd: ['bun', 'tools/check-test-layout.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
+    id: 'file-size',
+    guards: 'no source file over 600 lines; the files already over are held at their size',
+    fix: 'split the file into modules; lower its OVER_BUDGET entry in tools/check-file-size.ts when it shrinks, delete it once within 600 lines; never raise or add one',
+    cmd: ['bun', 'tools/check-file-size.ts'],
     areas: ['code'],
     profiles: ALL,
   },
   {
     id: 'barrel-consumers',
     guards:
-      'every component-lib export has an app importer, and none is a composition only one app renders',
-    fix: "move a single-app composition into that app's src/components/; unexport what no app imports; a storyless single-app helper needs a SINGLE_APP reason",
+      "no component-lib export is a composition only one app renders (an export nothing imports is knip's)",
+    fix: "move a single-app composition into that app's src/components/; a single-app helper outside the group directories needs a SINGLE_APP reason",
     cmd: ['bun', 'tools/check-barrel-consumers.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -180,7 +217,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'workflows',
     guards:
-      'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard, deploy order, production-secret env',
+      'CI aggregate gate, path filters, bunx pinning, deploy order (incl. Convex deploy-key guard), production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
     // Reads only .github/ and the manifests, all of them `code`.
@@ -189,17 +226,27 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'styling',
-    guards: 'design tokens, styling ownership, srd stylesheet entry (ratcheted)',
-    fix: "follow the rule's printed fix; a ratchet that fell needs `bun tools/check-styling.ts --update-baseline`",
+    guards:
+      'design tokens, styling ownership, srd stylesheet entry, the su- class prefix (ratcheted)',
+    fix: "follow the rule's printed fix; `--report` lists every finding; a ratchet that fell needs `bun tools/check-styling.ts --update-baseline` (tools/baselines/styling-baseline.json)",
     cmd: ['bun', 'tools/check-styling.ts'],
+    profiles: ALL,
+  },
+  {
+    id: 'copy',
+    guards:
+      'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product (ratcheted)',
+    fix: 'write the spelling the finding names; `--report` lists every finding; a ratchet that fell needs `bun tools/check-copy.ts --update-baseline` (tools/baselines/copy-baseline.json)',
+    cmd: ['bun', 'tools/check-copy.ts'],
+    areas: ['code'],
     profiles: ALL,
   },
   {
     id: 'audit',
     guards: 'no advisory, at any severity, in the dependency tree',
-    fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#dependency-audit)',
+    fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#audit)',
     // The root `audit` script, which e2e-nightly.yml's `audit` job also runs:
-    // one command, one suppression list (docs/ARCHITECTURE.md#dependency-audit).
+    // one command, one suppression list (docs/ARCHITECTURE.md#audit).
     cmd: ['bun', 'run', 'audit'],
     // A PR that moves neither bun.lock nor a manifest cannot change the tree;
     // the nightly run catches a new advisory against the unchanged one.
@@ -238,7 +285,9 @@ export function parseArgs(argv: readonly string[]): Options {
     profile: 'full',
     areas: null,
     skip: [],
-    jobs: Math.max(2, availableParallelism()),
+    // Half the cores: typecheck, knip and biome each run threads of their own,
+    // so one check per core oversubscribes the machine.
+    jobs: Math.max(2, Math.floor(availableParallelism() / 2)),
     list: false,
     verbose: false,
   }
@@ -366,44 +415,82 @@ export function formatTable(results: readonly CheckResult[]): string {
   return [...rows, '', `  ${summary}`].join('\n')
 }
 
-async function main(argv: readonly string[]): Promise<number> {
+/** What `main` runs and prints through; the defaults are the repo's. */
+export type MainOptions = {
+  registry?: readonly CheckSpec[]
+  root?: string
+  /** The command that brings the reference package's generated files current. */
+  generate?: string[]
+  /** True in GitHub Actions: failures also print as annotations and groups. */
+  ci?: boolean
+  log?: (line: string) => void
+  error?: (line: string) => void
+  /** Raw output of a failed `generate`. */
+  stderr?: (chunk: Uint8Array) => void
+}
+
+/** Run the selected checks; returns the exit code (2 for a usage error). */
+export async function main(
+  argv: readonly string[],
+  {
+    registry = CHECKS,
+    root = join(import.meta.dir, '..'),
+    generate = [join(import.meta.dir, 'node_modules/.bin/su-ref-generate')],
+    ci = process.env.GITHUB_ACTIONS === 'true',
+    log = console.log,
+    error = console.error,
+    stderr = (chunk) => process.stderr.write(chunk),
+  }: MainOptions = {}
+): Promise<number> {
   let opts: Options
   try {
     opts = parseArgs(argv)
-  } catch (error) {
-    if (!(error instanceof UsageError)) throw error
-    console.error(`✗ ${error.message}`)
+  } catch (caught) {
+    if (!(caught instanceof UsageError)) throw caught
+    error(`✗ ${caught.message}`)
     return 2
   }
   if (opts.list) {
-    const width = Math.max(...CHECKS.map((c) => c.id.length))
-    for (const c of CHECKS) {
-      console.log(`${c.id.padEnd(width)}  [${c.profiles.join(' ')}]  ${c.guards}`)
-      console.log(`${' '.repeat(width)}  fix: ${c.fix}`)
+    const width = Math.max(...registry.map((c) => c.id.length))
+    for (const c of registry) {
+      log(`${c.id.padEnd(width)}  [${c.profiles.join(' ')}]  ${c.guards}`)
+      log(`${' '.repeat(width)}  cmd: ${c.cmd.join(' ')}`)
+      log(`${' '.repeat(width)}  fix: ${c.fix}`)
     }
     return 0
   }
-  const specs = selectChecks(CHECKS, opts)
+  const specs = selectChecks(registry, opts)
   if (specs.length === 0) {
-    console.error('✗ no checks selected')
+    error('✗ no checks selected')
     return 2
   }
   const label = opts.ids.length > 0 ? opts.ids.join(' ') : `profile ${opts.profile}`
   const areas = opts.areas === null ? '' : ` (areas: ${opts.areas.join(', ') || 'none'})`
-  console.log(`Running ${specs.length} check(s) — ${label}${areas}`)
+  log(`Running ${specs.length} check(s) — ${label}${areas}`)
+
+  // The reference package's generated files are gitignored build output that
+  // half the checks read. Bring them current once, here, rather than letting
+  // parallel checks race to do it, through the package's `su-ref-generate` bin
+  // (this workspace declares the package, so bun links the bin here).
+  const generated = Bun.spawnSync(generate)
+  if (generated.exitCode !== 0) {
+    stderr(generated.stdout)
+    stderr(generated.stderr)
+    error('✗ su-ref-generate failed: the checks read lib/generated/ and schemas/')
+    return 1
+  }
 
   // Nothing streams on success: the table at the end is the whole report.
-  const ci = process.env.GITHUB_ACTIONS === 'true'
   const results = await runChecks(specs, {
-    root: join(import.meta.dir, '..'),
+    root,
     jobs: opts.jobs,
     onDone: (r) => {
       if (r.code !== 0 || !r.output) return
-      if (opts.verbose) console.log(`${r.id}:\n${indent(r.output)}`)
+      if (opts.verbose) log(`${r.id}:\n${indent(r.output)}`)
       if (ci) {
-        console.log(`::group::${r.id} output`)
-        console.log(r.output)
-        console.log('::endgroup::')
+        log(`::group::${r.id} output`)
+        log(r.output)
+        log('::endgroup::')
       }
     },
   })
@@ -411,10 +498,10 @@ async function main(argv: readonly string[]): Promise<number> {
   const fixOf = new Map(specs.map((s) => [s.id, s.fix]))
   for (const r of results.filter((x) => x.code !== 0)) {
     const fix = fixOf.get(r.id) ?? ''
-    if (ci) console.log(`::error title=check ${r.id} failed::${fix}`)
-    console.log(`\n${formatFailure(r, fix)}`)
+    if (ci) log(`::error title=check ${r.id} failed::${fix}`)
+    log(`\n${formatFailure(r, fix)}`)
   }
-  console.log(`\n${formatTable(results)}`)
+  log(`\n${formatTable(results)}`)
   return results.every((r) => r.code === 0) ? 0 : 1
 }
 

@@ -1,0 +1,87 @@
+import { describe, expect, test } from 'bun:test'
+import { changelogFromLog, readChangelog } from '../gitChangelog'
+
+const LOG = [
+  '2026-10-09\tfeat(itun,srd): release 3.0.0 (#1344)',
+  '2026-10-08\tfeat(itun): the Starter Set is read-only reference (#1114)',
+  '2026-10-08\tfix(srd): mount nothing when chunk recovery swallows an import (#1108)',
+  '2026-10-08\tfix(itun)!: send an absent side as null (#1107)',
+  '2026-10-07\tchore(itun): bump a dependency (#1100)',
+  '2026-10-07\tfeat: an unscoped title is no app’s (#1099)',
+  '2026-10-07\tfeat(itun-docs): a scope that only starts like the app’s (#1098)',
+  '2026-10-06\tperf(itun): a direct push with no PR number',
+  'not a log line',
+].join('\n')
+
+describe('changelogFromLog', () => {
+  const itun = changelogFromLog(LOG, 'itun', 'App')
+
+  test('takes feat, fix and perf under the app’s own scope, one entry per day', () => {
+    expect(itun).toEqual([
+      {
+        date: '2026-10-09',
+        area: 'App',
+        items: ['release 3.0.0 ([#1344](https://github.com/SalvageUnion-io/SU-SRD/pull/1344))'],
+      },
+      {
+        date: '2026-10-08',
+        area: 'App',
+        items: [
+          'the Starter Set is read-only reference ([#1114](https://github.com/SalvageUnion-io/SU-SRD/pull/1114))',
+          'send an absent side as null ([#1107](https://github.com/SalvageUnion-io/SU-SRD/pull/1107))',
+        ],
+      },
+      { date: '2026-10-06', area: 'App', items: ['a direct push with no PR number'] },
+    ])
+  })
+
+  test('another app’s commits never leak in', () => {
+    expect(changelogFromLog(LOG, 'srd', 'Site')).toEqual([
+      {
+        date: '2026-10-09',
+        area: 'Site',
+        items: ['release 3.0.0 ([#1344](https://github.com/SalvageUnion-io/SU-SRD/pull/1344))'],
+      },
+      {
+        date: '2026-10-08',
+        area: 'Site',
+        items: [
+          'mount nothing when chunk recovery swallows an import ([#1108](https://github.com/SalvageUnion-io/SU-SRD/pull/1108))',
+        ],
+      },
+    ])
+  })
+
+  test('a title naming several scopes is each of theirs, and only theirs', () => {
+    expect(
+      changelogFromLog('2026-10-09\tfeat(itun,srd): both apps (#2)', 'srd', 'Site')
+    ).toHaveLength(1)
+    expect(changelogFromLog('2026-10-09\tfeat(itun,srd): both apps (#2)', 'bot', 'Bot')).toEqual([])
+  })
+
+  test('a day that comes back after an older one is still one entry, in date order', () => {
+    // A squash keeps its branch's author date, so history can run 13, 12, 13.
+    const log = [
+      '2026-10-13\tfix(itun): newest (#3)',
+      '2026-10-12\tfix(itun): older (#2)',
+      '2026-10-13\tfix(itun): same day, landed earlier (#1)',
+    ].join('\n')
+    expect(changelogFromLog(log, 'itun', 'App').map((e) => [e.date, e.items.length])).toEqual([
+      ['2026-10-13', 2],
+      ['2026-10-12', 1],
+    ])
+  })
+
+  test('an empty log is no entries', () => {
+    expect(changelogFromLog('', 'itun', 'App')).toEqual([])
+  })
+})
+
+describe('readChangelog', () => {
+  test('reads this repository’s history', () => {
+    for (const entry of readChangelog('itun', 'App')) {
+      expect(entry.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(entry.items.length).toBeGreaterThan(0)
+    }
+  })
+})

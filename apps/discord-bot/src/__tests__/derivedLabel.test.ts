@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { deriveLabel } from '../derivedLabel.js'
+import { deriveLabel } from '../derivedLabel'
 
 describe('deriveLabel', () => {
   test('promotes the leading sentence and leaves the rest for the body', () => {
@@ -44,7 +44,7 @@ describe('deriveLabel', () => {
     for (const table of SalvageUnionReference.RollTables.all()) {
       for (let roll = 1; roll <= 20; roll++) {
         const outcome = rollOnTable(table.table, () => roll)
-        if (!outcome.success) continue
+        if (!outcome.success || outcome.kind === 'no-effect') continue
         const out = deriveLabel(outcome.value)
         if (out === undefined) continue
         expect(outcome.value.startsWith(out.label)).toBe(true)

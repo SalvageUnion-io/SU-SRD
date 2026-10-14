@@ -1,17 +1,25 @@
 /**
  * Which NESTED sections a card carries, and what goes in each — pure, split out
- * of `ReferenceEntityCard.tsx` (audit PK-08). The card renders what this
+ * of `ReferenceEntityCard.tsx`. The card renders what this
  * returns; nothing here renders.
  */
 
 import type {
   SURefEntity,
   SURefEnumSchemaName,
+  SURefMetaAction,
   SURefMetaEntity,
-  SURefObjectPattern,
+  SURefObjectAnyPattern,
 } from 'salvageunion-reference'
-import { extractVisibleActions, getChassisAbilities, visiblePatterns } from 'salvageunion-reference'
-import { isTitanicAction, MAX_DEPTH } from './cardHelpers'
+import {
+  extractPatternActions,
+  extractVisibleActions,
+  getChassisAbilities,
+  getPatterns,
+  isTitanicAction,
+  vehicleSystemNames,
+} from 'salvageunion-reference'
+import { MAX_DEPTH } from './cardHelpers'
 import type { DroneLoadout } from './resolveNestedEntities'
 import {
   resolveChassisDrone,
@@ -26,6 +34,8 @@ export function resolveNestedSections({
   schemaName,
   pattern,
   isCatalog,
+  onPage,
+  showChassisAbility = false,
   depth,
   isGrantingAbility,
   foldedAction,
@@ -33,9 +43,13 @@ export function resolveNestedSections({
 }: {
   entity: SURefMetaEntity
   schemaName: SURefEnumSchemaName | 'actions'
-  /** Set on a PATTERN view, whose `entity` is the chassis. */
-  pattern: SURefObjectPattern | undefined
+  /** Set on a PATTERN view, whose `entity` is its host (chassis or Bio-Titan). */
+  pattern: SURefObjectAnyPattern | undefined
   isCatalog: boolean
+  /** The card IS the page (`presentation="page"` at the top level). */
+  onPage: boolean
+  /** A builder pick card shows the chassis ability off the page too. */
+  showChassisAbility?: boolean
   depth: number
   /** A granting ability's own actions belong to the granted entity. */
   isGrantingAbility: boolean
@@ -53,24 +67,33 @@ export function resolveNestedSections({
   const canExpandEntity = canExpand && !isPattern
   const nestedGroups = canExpandEntity ? resolveNestedEntities(entity) : []
   // Chassis abilities are name refs into the ACTIONS schema (resolved by
-  // `getChassisAbilities`), NOT the pilot-abilities schema — the earlier lookup
-  // missed them entirely. They render for both the basic chassis AND the
-  // pattern view (a pattern's `entity` IS its chassis), so gate on `canExpand`,
-  // not `canExpandEntity` (which excludes patterns).
-  const chassisAbilityEntities = canExpand ? (getChassisAbilities(entity) ?? []) : []
+  // `getChassisAbilities`), NOT the pilot-abilities schema. They show ONLY on a
+  // page: the chassis page and its pattern pages (a pattern's `entity` IS its
+  // chassis) — and on ITUN's builder pick cards (`showChassisAbility`); never on
+  // any other card, a modal, a peek, a nested card or a pattern row.
+  const chassisAbilityEntities =
+    canExpand && (onPage || showChassisAbility) ? (getChassisAbilities(entity) ?? []) : []
+  // A pattern view keeps its host's actions: a Bio-Titan pattern INHERITS them
+  // (a chassis carries none, so its pattern view is unchanged).
+  // A vehicle's items (`vehicleSystemNames`: every one it lists) are its cards,
+  // the drone way, never an ACTIONS slab.
+  const vehicleSystems = new Set(vehicleSystemNames(entity))
   const allActions =
-    canExpandEntity && !isGrantingAbility ? (extractVisibleActions(entity) ?? []) : []
+    canExpand && !isGrantingAbility
+      ? (extractVisibleActions(entity) ?? []).filter((a) => !vehicleSystems.has(a.name))
+      : []
 
   // PATTERN view: the chosen pattern's systems/modules loadout (its drones render
-  // as drone cards instead). BASIC chassis: the list of patterns. In the body, a
-  // pattern is always the FULL view (a listing row returns before the body).
+  // as drone cards instead), or the actions a Bio-Titan pattern adds. BASIC
+  // host: the list of patterns. In the body, a pattern is always the FULL view
+  // (a listing row returns before the body).
   const patternGroups = pattern
     ? resolvePatternGroups(pattern).filter((group) => group.label !== 'Drones')
     : []
-  const patternList: SURefObjectPattern[] =
-    !isPattern && !isCatalog && 'patterns' in entity && Array.isArray(entity.patterns)
-      ? visiblePatterns(entity.patterns)
-      : []
+  const patternActions: SURefMetaAction[] =
+    pattern && canExpand ? extractPatternActions(pattern) : []
+  const patternList: SURefObjectAnyPattern[] =
+    !isPattern && !isCatalog ? (getPatterns(entity) ?? []) : []
 
   // TITANIC actions always get their own full-width row (never the masonry).
   const titanicActions = allActions.filter(isTitanicAction)
@@ -94,18 +117,21 @@ export function resolveNestedSections({
         : []
     : []
 
-  // THIS card's own drone loadout (when it IS a drone): the parent-provided
-  // `droneLoadout`, else the drone's own systems/modules. Rendered as listings
-  // INSIDE this card's body — never leaked to the parent (chassis) body.
+  // THIS card's own drone loadout (when it IS a drone, or a vehicle): the
+  // parent-provided `droneLoadout`, else its own systems/modules. Rendered as
+  // listings INSIDE this card's body — never leaked to the parent (chassis) body.
   const ownDroneLoadout =
     droneLoadout ??
-    (schemaName === 'drones' && canExpand ? resolveDroneOwnLoadout(entity) : undefined)
+    ((schemaName === 'drones' || schemaName === 'vehicles') && canExpand
+      ? resolveDroneOwnLoadout(entity)
+      : undefined)
 
   return {
     canExpand,
     nestedGroups,
     chassisAbilityEntities,
     patternGroups,
+    patternActions,
     patternList,
     titanicActions,
     gridActions,

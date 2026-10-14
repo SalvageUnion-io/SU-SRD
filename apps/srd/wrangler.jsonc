@@ -27,6 +27,10 @@
   // (tools/smoke-production.sh).
   "workers_dev": true,
 
+  // `wrangler preview` (deploy-preview.yml) refuses a config without this
+  // block. srd has no vars or bindings, so a Preview needs nothing in it.
+  "previews": {},
+
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
@@ -38,8 +42,11 @@
     "not_found_handling": "none"
   },
 
+  // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
+  // Browser Rendering), in the dashboard next to the logs.
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "traces": { "enabled": true }
   },
 
   // `bun run preview` (`wrangler dev`) serves the built `dist/` exactly as

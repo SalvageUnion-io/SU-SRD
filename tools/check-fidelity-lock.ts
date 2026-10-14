@@ -9,9 +9,14 @@
  * (`check-rules-fidelity.ts`) and records its verdict for every string in the
  * lock, as a hash of the data's text plus a verdict code. No book text.
  *
+ * The numbers are held the same way: every stat block (`gates/lib/statFidelity.ts`
+ * — a chassis' stats, a pattern's parts, a System's Tech Level, an action's
+ * stat line) has an entry keyed `…@stat`, hashed over the fields as the book
+ * prints them.
+ *
  * This gate needs no book. It fails when:
  *
- *   - a prose string has no lock entry, or its entry was for different text:
+ *   - a prose string or stat block has no lock entry, or its entry was for different text:
  *     the edit has not been checked against the book. Run
  *     `bun tools/check-rules-fidelity.ts --update` where the extract exists
  *     and commit the lock;
@@ -33,17 +38,23 @@ import {
   readLockFile,
   VERDICTS,
   writeLockFile,
-} from './lib/proseFidelity'
-import { assertScanFloor } from './lib/scanFloor'
+} from 'gates/lib/proseFidelity'
+import { assertScanFloor } from 'gates/lib/scanFloor'
+import { collectStats } from 'gates/lib/statFidelity'
 
 /** ~65% of the 5,359 strings the dataset held when this gate was written. */
 const PROSE_FLOOR = 3500
+/** ~65% of the 939 stat blocks the dataset held when stats joined the lock. */
+const STAT_FLOOR = 600
 
 const FIX = 'bun tools/check-rules-fidelity.ts --update'
 
 function main() {
-  const items = collectProse()
-  assertScanFloor('rules fidelity (prose strings)', items.length, PROSE_FLOOR)
+  const prose = collectProse()
+  assertScanFloor('rules fidelity (prose strings)', prose.length, PROSE_FLOOR)
+  const stats = collectStats()
+  assertScanFloor('rules fidelity (stat blocks)', stats.length, STAT_FLOOR)
+  const items = [...prose, ...stats]
   const file = readLockFile()
   if (!file) {
     console.error(
@@ -65,7 +76,7 @@ function main() {
     const n = [...diff.entries.values()].filter((e) => e.verdict === v).length
     return `${n} ${v}`
   }).join(', ')
-  console.log(`${items.length} prose strings; lock: ${counts}`)
+  console.log(`${prose.length} prose strings, ${stats.length} stat blocks; lock: ${counts}`)
 
   let failed = false
   if (diff.malformed.length) {
@@ -77,7 +88,9 @@ function main() {
   }
   if (diff.unverified.length) {
     failed = true
-    console.error(`\n✗ ${diff.unverified.length} prose string(s) not checked against the book:`)
+    console.error(
+      `\n✗ ${diff.unverified.length} prose string(s) or stat block(s) not checked against the book:`
+    )
     for (const { item, was } of diff.unverified.slice(0, 20))
       console.error(
         `  ${item.key} ${was ? '(edited)' : '(new)'}  "${item.text.slice(0, 70)}${item.text.length > 70 ? '…' : ''}"`
@@ -94,7 +107,7 @@ function main() {
     console.error('  Run `bun tools/check-fidelity-lock.ts --prune` (no book needed).')
   }
   if (failed) process.exit(1)
-  console.log('✓ every prose string has a fidelity verdict')
+  console.log('✓ every prose string and stat block has a fidelity verdict')
 }
 
 main()

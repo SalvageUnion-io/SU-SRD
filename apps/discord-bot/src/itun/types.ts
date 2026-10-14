@@ -2,11 +2,11 @@
  * The wire shapes the ITUN Convex deployment returns to the bot.
  *
  * These are **imported**, not copied: the single declaration is
- * `apps/itun/convex/model/botWire.ts`, which `convex/botClient.ts` annotates
+ * `packages/itun-domain/src/botWire.ts`, which `convex/botClient.ts` annotates
  * every handler with. Change a `botClient` return shape and both sides fail to
  * compile until that file agrees. Importing cannot drag React into the Worker:
  * `import type` is erased at bundle time, and `botWire.ts` imports nothing at
- * all, so it type-checks cleanly under this workspace's `nodenext` settings.
+ * all, so it type-checks cleanly under this workspace's settings.
  *
  * What sharing does NOT buy is validation. This is still a network boundary and
  * the bot and the deployment ship separately, so every field is still read
@@ -14,28 +14,22 @@
  * `SheetResult.publicRead` for the worked example of a key an older deployment
  * does not send.
  *
- * Server-side coverage of these shapes: `apps/itun/test/convex/bot.test.ts`.
+ * Server-side coverage of these shapes: `apps/itun/test/convex/__tests__/bot.test.ts`.
  */
 
-import type { BotDenialReason } from '../../../itun/convex/model/botWire.js'
+import type { BotDenialReason } from 'itun-domain/botWire'
 
 export type {
-  BindResult,
-  ChannelResult,
-  CrewResult,
   EntityBody,
   GameSummary,
   GamesResult,
-  InviteDeliveryState,
-  InviteResult,
   MeResult,
-  OwnedEntity,
+  MineResult,
   SheetResult,
   SheetTable,
-  ShelfResult,
-} from '../../../itun/convex/model/botWire.js'
+} from 'itun-domain/botWire'
 
-/** Why a call could not be satisfied: `BotDenial` plus the mutation cases. */
+/** Why a call could not be satisfied. */
 export type DenialReason = BotDenialReason
 
 /**

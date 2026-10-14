@@ -99,6 +99,7 @@
     ],
     "hitPoints": 20,
     "damageType": "HP",
+    "hasArtwork": true,
     "page": 301,
     "content": [
       {
@@ -118,6 +119,7 @@
     ],
     "hitPoints": 20,
     "damageType": "HP",
+    "hasArtwork": true,
     "page": 301,
     "content": [
       {

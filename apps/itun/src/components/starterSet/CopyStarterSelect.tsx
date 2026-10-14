@@ -1,10 +1,10 @@
 /**
  * "Copy to…" on a Starter Set row or sheet: the player picks where the copy
- * goes — My Stuff, or one of their Games — and confirms.
+ * goes — Shelves, or one of their Games — and confirms.
  *
  * The destinations are the ones a build of that kind may be **moved** to
  * (`moveDestinations`, which mirrors the server's ADR-037 rules): a pilot or
- * mech into My Stuff or any Game the player belongs to, a crawler into My Stuff
+ * mech into your shelves or any Game the player belongs to, a crawler into your shelves
  * or a Game they run. A copy lands exactly where a move could have put it, so
  * the server accepts it for the same reasons.
  *
@@ -14,10 +14,10 @@
 
 import { Select, toast, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { SHELF } from 'itun-domain/container'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { SHELF } from '../../lib/container'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { copyStarter, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
@@ -71,7 +71,13 @@ function ConnectedCopyStarterSelect({ kind, templateId, name, confirm }: CopySta
   }
 
   return (
-    <Select value={NONE} onChange={handleChange} aria-label={`Copy ${name} to…`} style={SELECT}>
+    <Select
+      chevron
+      value={NONE}
+      onChange={handleChange}
+      aria-label={`Copy ${name} to…`}
+      style={SELECT}
+    >
       <option value={NONE} disabled>
         Copy to…
       </option>

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import type {
   EnvironmentSpec,
   GhApi,
@@ -14,6 +14,7 @@ import {
   compareRuleset,
   ENVIRONMENTS,
   MAIN_RULESET,
+  main,
   REPO,
   REPOSITORY_SECRETS,
   readLive,
@@ -164,22 +165,25 @@ describe('compare', () => {
 })
 
 describe('the declaration', () => {
-  test('production admits main alone, unreviewed, and holds the three deploy secrets', () => {
+  test('production admits main alone, unreviewed, and holds the four deploy secrets', () => {
     expect(ENVIRONMENTS[0]).toEqual({
       name: 'production',
       branches: ['main'],
-      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
+      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN', 'SENTRY_AUTH_TOKEN'],
     })
   })
 
-  test('preview admits every branch, so a required reviewer gates its secrets', () => {
+  test('preview admits every branch with no reviewer: dispatching it is the gate', () => {
     expect(ENVIRONMENTS[1]).toEqual({
       name: 'preview',
       branches: ['**/*'],
       secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
-      reviewers: ['alxjrvs'],
     })
-    expect(ENVIRONMENTS).toHaveLength(2)
+  })
+
+  test("github-pages admits main alone and holds no secret: its job runs main's code", () => {
+    expect(ENVIRONMENTS[2]).toEqual({ name: 'github-pages', branches: ['main'], secrets: [] })
+    expect(ENVIRONMENTS).toHaveLength(3)
   })
 
   test('no secret is allowed at repository level', () => {
@@ -236,7 +240,7 @@ describe('readLive', () => {
             ],
           },
           {
-            name: 'github-pages',
+            name: 'staging',
             deployment_branch_policy: { protected_branches: true, custom_branch_policies: false },
           },
           { name: 'old', deployment_branch_policy: null },
@@ -254,7 +258,7 @@ describe('readLive', () => {
           reviewers: ['owner', 'team:ops'],
         },
         {
-          name: 'github-pages',
+          name: 'staging',
           policy: 'protected',
           branches: null,
           secrets: null,
@@ -296,15 +300,16 @@ describe('apply', () => {
         branch_policies: [{ id: 7, name: 'release', type: 'branch' }],
       }),
       [`${E}/preview/deployment-branch-policies`]: ok({ branch_policies: [] }),
-      'users/alxjrvs': ok({ id: 42 }),
+      [`${E}/github-pages/deployment-branch-policies`]: ok({ branch_policies: [] }),
     })
     expect(apply(api)).toEqual([
       'production: custom deployment branch policy',
       'production: admits main',
       'production: no longer admits release',
       'preview: custom deployment branch policy',
-      'preview: requires alxjrvs',
       'preview: admits **/*',
+      'github-pages: custom deployment branch policy',
+      'github-pages: admits main',
     ])
     const writes = calls
       .filter((c) => c.args[0] === '-X')
@@ -313,12 +318,10 @@ describe('apply', () => {
       ['PUT', `${E}/production`, { deployment_branch_policy: policy, reviewers: [] }],
       ['POST', `${E}/production/deployment-branch-policies`, { name: 'main', type: 'branch' }],
       ['DELETE', `${E}/production/deployment-branch-policies/7`, undefined],
-      [
-        'PUT',
-        `${E}/preview`,
-        { deployment_branch_policy: policy, reviewers: [{ type: 'User', id: 42 }] },
-      ],
+      ['PUT', `${E}/preview`, { deployment_branch_policy: policy, reviewers: [] }],
       ['POST', `${E}/preview/deployment-branch-policies`, { name: '**/*', type: 'branch' }],
+      ['PUT', `${E}/github-pages`, { deployment_branch_policy: policy, reviewers: [] }],
+      ['POST', `${E}/github-pages/deployment-branch-policies`, { name: 'main', type: 'branch' }],
     ])
     expect(calls.some((c) => c.args.some((a) => a.includes('secrets')))).toBe(false)
   })
@@ -331,12 +334,14 @@ describe('apply', () => {
       [`${E}/preview/deployment-branch-policies`]: ok({
         branch_policies: [{ id: 2, name: '**/*', type: 'branch' }],
       }),
-      'users/alxjrvs': ok({ id: 42 }),
+      [`${E}/github-pages/deployment-branch-policies`]: ok({
+        branch_policies: [{ id: 3, name: 'main', type: 'branch' }],
+      }),
     })
     expect(apply(api)).toEqual([
       'production: custom deployment branch policy',
       'preview: custom deployment branch policy',
-      'preview: requires alxjrvs',
+      'github-pages: custom deployment branch policy',
     ])
   })
 })
@@ -434,5 +439,160 @@ describe('the main ruleset', () => {
     })
     expect(readRuleset('other', api)).toBeUndefined()
     expect(readRuleset('main', fakeGh({ [`repos/${REPO}/rulesets?`]: forbidden }).api)).toBeNull()
+  })
+})
+
+describe('the default gh api runner', () => {
+  type Spawned = { exitCode: number; stdout: string; stderr?: string }
+  type Call = { cmd: string[]; stdin: unknown }
+
+  /** Stub `Bun.spawnSync` so the default runner never reaches `gh`; answers by the last arg path. */
+  function stubGh(answer: (cmd: string[]) => Spawned): Call[] {
+    const calls: Call[] = []
+    const spy = spyOn(Bun, 'spawnSync')
+    spy.mockImplementation(((cmd: string[], opts: { stdin?: unknown }) => {
+      calls.push({ cmd, stdin: opts.stdin })
+      const r = answer(cmd)
+      return {
+        exitCode: r.exitCode,
+        stdout: Buffer.from(r.stdout),
+        stderr: Buffer.from(r.stderr ?? ''),
+      }
+    }) as unknown as typeof Bun.spawnSync)
+    return calls
+  }
+  afterEach(() => {
+    ;(Bun.spawnSync as unknown as { mockRestore?: () => void }).mockRestore?.()
+  })
+
+  test('runs `gh api <path>` with no stdin and parses its JSON', () => {
+    const calls = stubGh((cmd) =>
+      cmd.at(-1)?.endsWith('rulesets?per_page=100')
+        ? { exitCode: 0, stdout: '[{"id":7,"name":"other"}]\n' }
+        : { exitCode: 0, stdout: '' }
+    )
+    expect(readRuleset('main')).toBeUndefined()
+    expect(calls).toEqual([
+      { cmd: ['gh', 'api', `repos/${REPO}/rulesets?per_page=100`], stdin: 'ignore' },
+    ])
+  })
+
+  test('reads the HTTP status out of a failure: 404 is unreadable, not empty', () => {
+    stubGh(() => ({ exitCode: 1, stdout: '', stderr: 'gh: Not Found (HTTP 404)' }))
+    expect(readRuleset('main')).toBeNull()
+  })
+
+  test('a failure with no HTTP status throws with gh’s own message', () => {
+    stubGh(() => ({ exitCode: 1, stdout: '{"message":"x"}', stderr: 'gh: auth required ' }))
+    expect(() => readRuleset('main')).toThrow('GET rulesets: gh: auth required {"message":"x"}')
+  })
+
+  test('a write sends its JSON body on stdin through `--input -`; an empty answer reads as null', () => {
+    const calls = stubGh((cmd) =>
+      cmd.at(-1)?.includes('deployment-branch-policies?')
+        ? { exitCode: 0, stdout: '{"branch_policies":[{"id":1,"name":"main"}]}' }
+        : { exitCode: 0, stdout: '   ' }
+    )
+    apply()
+    const put = calls.find((c) => c.cmd.includes('PUT'))
+    expect(put?.cmd).toEqual([
+      'gh',
+      'api',
+      '-X',
+      'PUT',
+      `repos/${REPO}/environments/production`,
+      '--input',
+      '-',
+    ])
+    expect(JSON.parse(new TextDecoder().decode(put?.stdin as Uint8Array))).toEqual({
+      deployment_branch_policy: { protected_branches: false, custom_branch_policies: true },
+      reviewers: [],
+    })
+  })
+})
+
+describe('main', () => {
+  /** The live settings exactly as declared, as `gh api` returns them. */
+  const declared = (): Record<string, GhResult> => {
+    const routes: Record<string, GhResult> = {
+      [`${E}?`]: ok({
+        environments: ENVIRONMENTS.map((e) => ({
+          name: e.name,
+          deployment_branch_policy: { protected_branches: false, custom_branch_policies: true },
+        })),
+      }),
+      [`repos/${REPO}/actions/secrets`]: ok({ secrets: [] }),
+      [`repos/${REPO}/rulesets?`]: ok([{ id: 9, name: 'main' }]),
+      [`repos/${REPO}/rulesets/9`]: ok({
+        id: 9,
+        name: 'main',
+        enforcement: 'active',
+        conditions: { ref_name: { include: [...MAIN_RULESET.include], exclude: [] } },
+        bypass_actors: [],
+        rules: MAIN_RULESET.rules.map((type) =>
+          type === 'required_status_checks'
+            ? {
+                type,
+                parameters: {
+                  strict_required_status_checks_policy: true,
+                  required_status_checks: MAIN_RULESET.requiredChecks.map((context) => ({
+                    context,
+                    integration_id: ACTIONS_APP_ID,
+                  })),
+                },
+              }
+            : type === 'code_scanning'
+              ? { type, parameters: { code_scanning_tools: [...MAIN_RULESET.codeScanning] } }
+              : { type }
+        ),
+      }),
+    }
+    for (const e of ENVIRONMENTS) {
+      routes[`${E}/${encodeURIComponent(e.name)}/deployment-branch-policies`] = ok({
+        branch_policies: e.branches.map((name, id) => ({ id, name, type: 'branch' })),
+      })
+      routes[`${E}/${encodeURIComponent(e.name)}/secrets`] = ok({
+        secrets: e.secrets.map((name) => ({ name })),
+      })
+    }
+    return routes
+  }
+  const run = (argv: string[], routes: Record<string, GhResult>, env = {}) => {
+    const out: string[] = []
+    const err: string[] = []
+    const { api, calls } = fakeGh(routes)
+    const code = main(argv, { api, env, log: (l) => out.push(l), error: (l) => err.push(l) })
+    return { code, out, err, calls }
+  }
+
+  test('an unknown argument exits 2 before any API call', () => {
+    const r = run(['--force'], declared())
+    expect(r).toMatchObject({ code: 2, err: ['unknown argument --force'], calls: [] })
+  })
+
+  test('settings matching the declaration pass, listing what was checked', () => {
+    const r = run([], declared())
+    expect(r.code).toBe(0)
+    expect(r.err).toEqual([])
+    expect(r.out.at(-1)).toBe(
+      `\n${REPO}: Environments and the \`main\` ruleset match tools/environments.ts`
+    )
+    expect(r.out).toContain('checked  ruleset `main`: rules, required checks, code scanning')
+    expect(r.out.every((l) => !l.startsWith('not run'))).toBe(true)
+  })
+
+  test('--apply writes first and reports each change; --secrets-from-env runs the sentinel', () => {
+    const r = run(['--apply', '--secrets-from-env'], declared(), { CONVEX_DEPLOY_KEY: 'leak' })
+    expect(r.out[0]).toBe('applied  production: custom deployment branch policy')
+    expect(r.calls.some((c) => c.args[1] === 'PUT')).toBe(true)
+    expect(r.code).toBe(1)
+    expect(r.err[0]).toBe('\n1 drift(s) from tools/environments.ts:')
+    expect(r.err[1]).toContain('CONVEX_DEPLOY_KEY')
+  })
+
+  test('an unreadable ruleset is reported as not run, never as passed', () => {
+    const r = run([], { ...declared(), [`repos/${REPO}/rulesets?`]: forbidden })
+    expect(r.code).toBe(0)
+    expect(r.out).toContain('not run  ruleset `main` (this token cannot read rulesets)')
   })
 })

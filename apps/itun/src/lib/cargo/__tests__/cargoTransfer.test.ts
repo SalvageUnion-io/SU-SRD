@@ -1,15 +1,22 @@
 /**
- * Tests for the pure cargoTransfer reducer (plan 4.1/4.7):
+ * Tests for the pure cargoTransfer reducer:
  * stow whole-lot, cap-checked load, bulk split minting a new lot, honest
  * over-capacity reporting, and the rules-major SCRAP TL pool bucket
  * round-trip across the crawler boundary.
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { CargoLot } from '../../schemas/cargoLot'
-import { makeScrapLot } from '../../schemas/cargoLot'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import { makeScrapLot } from 'itun-domain/schemas/cargoLot'
 import type { CargoBoundaryState } from '../cargoTransfer'
-import { addToScrapPool, cargoTransfer, carrierCargoUsage, scrapPoolBucket } from '../cargoTransfer'
+import {
+  addToScrapPool,
+  cargoTransfer,
+  carrierCargoUsage,
+  loadableQty,
+  perUnitCost,
+  scrapPoolBucket,
+} from '../cargoTransfer'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -532,5 +539,31 @@ describe('remove-depot-lot', () => {
     const removed = cargoTransfer(added.state, { type: 'remove-depot-lot', lotId: 'lot-x' })
     if (!removed.ok) throw new Error(removed.reason)
     expect(removed.state.scrapPool).toEqual({ tl3: 5 })
+  })
+})
+
+describe('perUnitCost / loadableQty (the Load button and the reducer share them)', () => {
+  test('a unit lot costs its whole units and loads whole-or-not', () => {
+    const lot = unitLot({ units: 3 })
+    expect(perUnitCost(lot)).toBe(3)
+    expect(loadableQty(lot, 3)).toBe(1)
+    expect(loadableQty(lot, 2)).toBe(0)
+  })
+
+  test('a bulk lot costs per item and partial-loads what fits, never more than it holds', () => {
+    const lot = bulkLot({ qty: 5, units: 10 })
+    expect(perUnitCost(lot)).toBe(2)
+    expect(loadableQty(lot, 7)).toBe(3)
+    expect(loadableQty(lot, 40)).toBe(5)
+    expect(loadableQty(lot, 1)).toBe(0)
+  })
+
+  test('the reducer moves exactly what loadableQty says fits', () => {
+    const lot = bulkLot({ qty: 5, units: 10 })
+    const result = cargoTransfer(state({ depotLots: [lot], carrierCargoCap: 7 }), {
+      type: 'load',
+      lotId: lot.id,
+    })
+    expect(result.ok && result.moved).toBe(loadableQty(lot, 7))
   })
 })

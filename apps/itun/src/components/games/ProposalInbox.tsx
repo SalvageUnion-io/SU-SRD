@@ -1,13 +1,19 @@
-import { Badge, Button, Card, Row } from 'component-lib'
+import { Button, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import { fieldLabel } from 'itun-domain/games/proposals'
+import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
+import { HubSection } from './HubSection'
 
 /**
- * The player's side of propose-and-confirm (ADR-030 §4).
+ * The player's side of propose-and-confirm (ADR-030 §4), on a Game's own page.
  *
- * The Mediator has said what they think should change; this is where the player
- * decides, against the value they are already looking at on their own sheet.
+ * The Mediator has said what they think should change, and why when they gave
+ * a reason; this is where the player decides, against the value they
+ * are already looking at on their own sheet.
  *
  * **Decline is a peer of Apply, not a dismissal.** Declining is a recorded
  * answer, so it gets equal weight; hiding it behind an X would imply the only
@@ -16,54 +22,99 @@ import type { Id } from '../../../convex/_generated/dataModel'
  * Nothing here can be auto-applied. There is no server mutation that would let
  * it be, and no timer that would make waiting cost the player anything.
  */
+
+const { borderWidth, color, font, fontSize, radius, space, weight } = tokens
+
+const LIST = {
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[10],
+} satisfies CSSProperties
+
+const ROW = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: space[10],
+  padding: `${space[10]} ${space[12]}`,
+  background: color.paper,
+  border: `${borderWidth.chrome} solid ${color.ink}`,
+  borderRadius: radius.card,
+} satisfies CSSProperties
+
+const WHAT = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[2],
+  minWidth: 0,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  color: color.ink,
+  fontVariantNumeric: 'tabular-nums',
+} satisfies CSSProperties
+
+const HEAD = { fontWeight: weight.bold, fontSize: fontSize.lede } satisfies CSSProperties
+
+const REASON = { color: color.wkMuted } satisfies CSSProperties
+
+const ACTIONS = { display: 'flex', gap: space[6] } satisfies CSSProperties
+
 export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
   const pending = useQuery(api.proposals.pending, { gameId })
   const apply = useMutation(api.proposals.apply)
   const decline = useMutation(api.proposals.decline)
+  const { canWrite } = useConnection()
+  const reply = useServerAction((send: () => Promise<unknown>) => send(), {
+    failure: 'Your answer did not land. Try again.',
+    toastId: 'proposal-answer',
+  })
 
   if (pending === undefined) return null
   if (pending.length === 0) return null
 
   const show = (value: unknown): string =>
     value === null || value === undefined ? '—' : String(value)
+  const answer = (send: () => Promise<unknown>) => void reply.run(send)
 
   return (
-    <Card
-      headerBg="bg-ink"
-      headerContent={
-        <Badge shape="stamp" as="h3" size="full">
-          Awaiting your answer
-        </Badge>
-      }
-    >
-      <div className="flex flex-col gap-3 p-4">
-        {pending.map((p) => (
-          <Row
-            key={p._id}
-            wrap
-            name={`${p.entityType} · ${p.field}`}
-            meta={<span className="font-cond tabular-nums">→ {show(p.after)}</span>}
-            actions={
-              <>
+    <HubSection id="proposal-inbox-heading" title="Awaiting your answer">
+      <ul style={LIST} aria-label="Proposals awaiting your answer">
+        {pending.map((p) => {
+          const what = `${p.targetName ?? p.entityType} · ${fieldLabel(p.field)} → ${show(p.after)}`
+          return (
+            <li key={p._id} style={ROW}>
+              <span style={WHAT}>
+                <span style={HEAD}>{what}</span>
+                {p.reason !== null && <span style={REASON}>“{p.reason}”</span>}
+              </span>
+              <span style={ACTIONS}>
                 <Button
                   variant="primary"
                   size="compact"
-                  onClick={() => void apply({ proposalId: p._id as Id<'changeLog'> })}
+                  disabled={!canWrite}
+                  aria-label={`Apply ${what}`}
+                  onClick={() => answer(() => apply({ proposalId: p._id as Id<'changeLog'> }))}
                 >
                   Apply
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="default"
                   size="compact"
-                  onClick={() => void decline({ proposalId: p._id as Id<'changeLog'> })}
+                  disabled={!canWrite}
+                  aria-label={`Decline ${what}`}
+                  onClick={() => answer(() => decline({ proposalId: p._id as Id<'changeLog'> }))}
                 >
                   Decline
                 </Button>
-              </>
-            }
-          />
-        ))}
-      </div>
-    </Card>
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+    </HubSection>
   )
 }

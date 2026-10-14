@@ -7,25 +7,27 @@
  * lib/schemas/registry.ts by tools/generateRegistry.ts into lib/generated/ —
  * run `bun run build:package` to regenerate after editing the manifest.
  *
- * ## The trusted load path (audit PK-04)
+ * ## The trusted load path
  *
- * The data files are committed, and CI validates every one of them against
- * its Zod schema (the `schemas` data check) and proves that a Zod parse returns each
- * file UNCHANGED (`lib/dataCanonical.test.ts`: no defaults left to fill, no
- * unknown keys to strip). Re-running `z.array(schema).parse` on every load was
- * therefore pure repetition — and it was most of the cost: ~87% of a
- * `preload('all')`, in every browser tab and every Worker isolate, plus the
- * entity schemas in both client bundles.
+ * The data files are committed, and CI parses every one of them with its Zod
+ * schema and proves the parse returns each file UNCHANGED
+ * (`lib/__tests__/dataCanonical.test.ts`: no defaults left to fill, no unknown
+ * keys to strip). Re-running `z.array(schema).parse` on every load would be
+ * pure repetition.
  *
  * So every load is trusted: this module never imports Zod or the schema map,
- * which keeps both out of client bundles (`lib/loadPathBundle.test.ts`).
+ * which keeps both out of client bundles (`lib/__tests__/loadPathBundle.test.ts`).
  */
 
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
-import { BaseModel } from './BaseModel.js'
-import { dataLoaders, schemaDisplayNames } from './generated/modelFactoryRegistry.generated.js'
-import { toPascalCase } from './naming.js'
-import { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
+import { BaseModel } from './BaseModel'
+import {
+  dataLoaders,
+  listDataLoaders,
+  schemaDisplayNames,
+} from './generated/modelFactoryRegistry.generated'
+import { toPascalCase } from './naming'
+import { SchemaNotLoadedError } from './SchemaNotLoadedError'
 
 export { schemaDisplayNames, toPascalCase }
 
@@ -33,8 +35,18 @@ export { schemaDisplayNames, toPascalCase }
 // Load state
 // ---------------------------------------------------------------------------
 
-/** Set of schema IDs that have been successfully loaded */
+/** Set of schema IDs that have been successfully loaded, in either projection */
 const loadedSchemas = new Set<string>()
+
+/**
+ * The subset of {@link loadedSchemas} installed from their LIST projection
+ * (rows without their prose, `lib/listProjection.ts`). A full load removes
+ * the id: it replaces the projection.
+ */
+const listOnlySchemas = new Set<string>()
+
+/** Which copy of a schema to load: every field, or a listing's projection. */
+export type LoadProjection = 'full' | 'list'
 
 /** Live model registry — populated by preload(), keyed by PascalCase property name */
 const modelRegistry: Record<string, BaseModel<unknown>> = {}
@@ -44,36 +56,55 @@ const modelRegistry: Record<string, BaseModel<unknown>> = {}
 // ---------------------------------------------------------------------------
 
 /**
- * Returns true if the given schema ID has been loaded via preload().
+ * Returns true if the given schema ID has been loaded via preload() — in
+ * full, or (with `projection: 'list'`) at least as its list projection.
  */
-export function isSchemaLoaded(schemaId: string): boolean {
-  return loadedSchemas.has(schemaId)
+export function isSchemaLoaded(schemaId: string, projection: LoadProjection = 'full'): boolean {
+  if (!loadedSchemas.has(schemaId)) return false
+  return projection === 'list' || !listOnlySchemas.has(schemaId)
 }
 
 /**
  * Load the given schemas (or all schemas if 'all' is passed).
  * Idempotent: already-loaded schemas are skipped.
  * Returns a Promise that resolves when all requested schemas are loaded.
+ *
+ * With `projection: 'list'`, a schema that has a list projection loads that
+ * instead (the rest load in full), unless it is already loaded. A full load
+ * of a list-loaded schema replaces the projection.
  */
-export async function loadSchemas(schemas: string[] | 'all'): Promise<void> {
+export async function loadSchemas(
+  schemas: string[] | 'all',
+  projection: LoadProjection = 'full'
+): Promise<void> {
   const ids = schemas === 'all' ? Object.keys(dataLoaders) : schemas
 
-  // Only load schemas not yet loaded
-  const pending = ids.filter((id) => !loadedSchemas.has(id))
+  // Only load schemas not yet loaded (in the projection asked for)
+  const pending = ids.filter((id) => !isSchemaLoaded(id, projection))
   if (pending.length === 0) return
 
   for (const id of pending) {
     if (!dataLoaders[id]) throw new Error(`No loader found for schema ID: ${id}`)
   }
 
-  await Promise.all(pending.map((id) => loadSingleSchema(id)))
+  await Promise.all(pending.map((id) => loadSingleSchema(id, projection)))
 }
 
-async function loadSingleSchema(schemaId: string): Promise<void> {
+async function loadSingleSchema(schemaId: string, projection: LoadProjection): Promise<void> {
+  const listLoader = projection === 'list' ? listDataLoaders[schemaId] : undefined
+  if (listLoader) {
+    const rows = await listLoader()
+    // A full load that finished first wins: never replace it with the projection.
+    if (loadedSchemas.has(schemaId)) return
+    registerSchema(schemaId, rows)
+    listOnlySchemas.add(schemaId)
+    return
+  }
+
   const dataLoader = dataLoaders[schemaId]
   if (!dataLoader) throw new Error(`No loader found for schema ID: ${schemaId}`)
 
-  // Trusted: the committed file IS the parsed form (lib/dataCanonical.test.ts).
+  // Trusted: the committed file IS the parsed form (lib/__tests__/dataCanonical.test.ts).
   registerSchema(schemaId, await dataLoader())
 }
 
@@ -94,7 +125,7 @@ export function installSchemas(
   const installed: string[] = []
   for (const [schemaId, rows] of Object.entries(data)) {
     if (!dataLoaders[schemaId]) throw new Error(`No loader found for schema ID: ${schemaId}`)
-    if (rows === undefined || loadedSchemas.has(schemaId)) continue
+    if (rows === undefined || isSchemaLoaded(schemaId)) continue
     registerSchema(schemaId, [...rows])
     installed.push(schemaId)
   }
@@ -123,6 +154,7 @@ function registerSchema(schemaId: string, rawData: unknown[]): void {
   const propertyName = toPascalCase(schemaId)
   modelRegistry[propertyName] = model
   loadedSchemas.add(schemaId)
+  listOnlySchemas.delete(schemaId)
 }
 
 /**
@@ -160,6 +192,7 @@ export function getLoadedModelBySchemaId(schemaId: string): BaseModel<unknown> |
  */
 export function resetLoadStateForTesting(): void {
   loadedSchemas.clear()
+  listOnlySchemas.clear()
   for (const key of Object.keys(modelRegistry)) {
     delete modelRegistry[key]
   }
@@ -197,13 +230,14 @@ export function getDataMaps(): {
 /**
  * Registry key set, exported for the consistency test ONLY — the loader map
  * itself stays private (it must remain static-literal for bundler-analyzable
- * dynamic imports). lib/registryConsistency.test.ts checks it against
+ * dynamic imports). lib/__tests__/registryConsistency.test.ts checks it against
  * zodSchemaMap, which it imports from the generated module directly: a
  * static import of that module here would put the schemas back in every
  * client bundle.
  */
 export const _registryKeySets = {
   dataLoaders: Object.keys(dataLoaders),
+  listDataLoaders: Object.keys(listDataLoaders),
 }
 
 /**
@@ -217,7 +251,6 @@ export type EnhancedSchemaMetadata = {
   dataFile: string
   schemaFile: string
   itemCount: number
-  requiredFields: string[]
   displayName: string
   displayNamePlural: string
   meta?: boolean
@@ -227,15 +260,12 @@ export type EnhancedSchemaMetadata = {
  * Get schema catalog with enhanced metadata
  * Exposed for client use
  *
- * No `version` — see the note on `SchemaIndex` in tools/generateDocs.ts for why
- * embedding the package version in this generated catalog broke every release
- * PR, and why re-adding it would break them again.
+ * No `version` field: see the note on `SchemaIndex` in tools/generateDocs.ts.
  */
 export function getSchemaCatalog(): {
   $schema: string
   title: string
   description: string
-  generated: string
   schemas: EnhancedSchemaMetadata[]
 } {
   return {

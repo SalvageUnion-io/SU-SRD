@@ -1,7 +1,13 @@
-import { EmptyState, FieldError, KvRow, Panel, ReferenceEntityCard } from 'component-lib'
+import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
+import '../../styles/wizard.css'
+import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
+
+/** Recap and cards; the column split is `.su-wiz-review-grid`. */
+const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
 
 /**
  * Typed lookup surfaces for the injectable SUR seam — declared against the
@@ -22,7 +28,7 @@ type ReviewStepProps = {
 }
 
 /**
- * Review step (design §3.2 Review): kv-panel of the build's fields on the
+ * Review step: a recap of the build's fields on the
  * left, the chosen ability + equipment cards stacked on the right (equipment
  * carries an 'Intact' status badge — fresh gear).
  */
@@ -39,36 +45,26 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
     .map((slug) => surEquipment.findAll((e) => nameToSlug(e.name) === slug)[0])
     .filter((e) => e !== undefined)
 
-  const rows: [string, string | null][] = [
-    ['Name', form.name.trim() || null],
-    ['Callsign', form.callsign.trim() || null],
-    ['Class', selectedClass?.name ?? null],
-    [
-      'Abilities',
-      chosenAbilities.length > 0 ? chosenAbilities.map((a) => a.name).join(', ') : 'none',
-    ],
-    [
-      'Equipment',
-      chosenEquipment.length > 0 ? chosenEquipment.map((e) => e.name).join(', ') : 'none',
-    ],
-    ['Motto', form.motto || '—'],
-    ['Keepsake', form.keepsake || '—'],
-    ['Appearance', form.appearance || '—'],
-    ['Background', form.background || '—'],
-  ]
-
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
-      {/* kv-panel */}
-      <Panel className="self-start p-4 text-sm">
-        {rows.map(([k, v]) => (
-          <KvRow key={k} label={k} value={v} />
-        ))}
-        {submitError && <FieldError className="mt-3">{submitError}</FieldError>}
+    <div className="su-wiz-review-grid" style={REVIEW_GRID}>
+      {/* The recap: Stats, the class as its chip, the picks as Tokens. */}
+      <Panel className="su-wiz-review-panel su-wiz-review-panel--start">
+        <Recap>
+          <RecapStat label="Name" value={form.name.trim()} required />
+          <RecapStat label="Callsign" value={form.callsign.trim()} required />
+          <RecapEntity label="Class" entity={selectedClass} required />
+          <RecapStat label="Motto" value={form.motto} />
+          <RecapStat label="Keepsake" value={form.keepsake} />
+          <RecapStat label="Appearance" value={form.appearance} />
+          <RecapStat label="Background" value={form.background} />
+          <RecapTokens label="Abilities" entities={chosenAbilities} />
+          <RecapTokens label="Equipment" entities={chosenEquipment} />
+        </Recap>
+        {submitError && <FieldError className="su-wiz-review-error">{submitError}</FieldError>}
       </Panel>
 
       {/* chosen cards */}
-      <div className="space-y-3">
+      <div className="su-wiz-stack su-wiz-stack--12">
         {chosenAbilities.map((ability) => (
           <ReferenceEntityCard
             key={ability.id}
@@ -90,7 +86,7 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           />
         ))}
         {chosenAbilities.length === 0 && chosenEquipment.length === 0 && (
-          <EmptyState variant="quiet" body="No abilities or equipment chosen." />
+          <EmptyState variant="quiet" body="No abilities or equipment chosen." bodyInk="inherit" />
         )}
       </div>
     </div>

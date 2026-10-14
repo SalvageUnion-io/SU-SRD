@@ -1,7 +1,6 @@
 /**
  * Creation-legality predicates and pick budgets (Pilot Bay pp.18–19 +
- * Mech Workshop pp.94–95 + Union Crawler pp.212–213 — wizard-refresh
- * plan §5.1).
+ * Mech Workshop pp.94–95 + Union Crawler pp.212–213).
  *
  * Pure predicates over NEUTRAL structural inputs only — the exact primitive
  * values a rule reads (numbers, arrays, strings) with REQUIRED fields — in
@@ -10,12 +9,12 @@
  * primitives at the call site, so no entity-union/weak-type ambiguity ever
  * reaches this module.
  *
- * Source scope note (plan Q12): predicates are Tech-Level/tree based and
+ * Source scope note: predicates are Tech-Level/tree based and
  * deliberately allow all sources (core + expansions) — "Tech 1" and
  * "core tree" are the rules' own boundaries, source is not.
  */
 
-import { scrapCostFor } from './scrap.js'
+import { scrapCostFor } from './scrap'
 
 /**
  * The ability shape creation legality reads (level 1–3 | 'L' | 'G' + tree).
@@ -101,7 +100,7 @@ export function isPilotEquipmentPickComplete(selectedCount: number): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Mech Workshop (Core Book pp.94–95 — wizard-refresh Phase 4)
+// Mech Workshop (Core Book pp.94–95)
 // ---------------------------------------------------------------------------
 
 /**
@@ -140,8 +139,8 @@ export type CreationPatternInput = { legalStarting?: boolean }
 /**
  * A legal STARTING pattern carries the stored `legalStarting` data flag —
  * an explicit tag set only where the source book calls it out. NEVER
- * computed from tech level or salvage value (project data convention;
- * PR #292). Takes the primitive the rule reads — the record's
+ * computed from tech level or salvage value (project data convention).
+ * Takes the primitive the rule reads — the record's
  * `legalStarting` value (undefined = unflagged = not legal starting).
  */
 export function isLegalStartingPattern(legalStarting: boolean | undefined): boolean {
@@ -203,7 +202,7 @@ export function mechCreationBudget(input: MechCreationBudgetInput): MechCreation
 }
 
 // ---------------------------------------------------------------------------
-// Union Crawler (Core Book pp.212–213 — wizard-refresh Phase 5)
+// Union Crawler (Core Book pp.212–213)
 // ---------------------------------------------------------------------------
 
 /**

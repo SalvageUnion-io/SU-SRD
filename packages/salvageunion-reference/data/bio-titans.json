@@ -40,6 +40,21 @@
         "type": "paragraph",
         "value": "Vengeance of the earth. This terrifying spiked worm can even swallow a Colossus whole. Some believe the spirits of miners in the Ferrous Range, who died in industrial accidents, summoned this being in vengeance."
       }
+    ],
+    "patterns": [
+      {
+        "name": "Hill Worm",
+        "source": "Rainmaker",
+        "page": 80,
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A bloated, heavily armoured, insatiably hungry worm that lurks beneath the Wild Hills."
+          }
+        ],
+        "actions": ["Metallic Reconstitution"],
+        "formerSlugs": ["hill-worm-pattern-typhon"]
+      }
     ]
   },
   {
@@ -146,7 +161,8 @@
         "type": "paragraph",
         "value": "A towering bioluminescent tree. Her serene form is almost anthropomorphic, with many ethereal limbs and a pulsating 'heart' of Chimerium that glows orange. She is not hostile unless there is an attempt to remove her Heart or she is otherwise attacked."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "ab560707-8448-47be-9cfb-4dca5ead08c1",
@@ -160,6 +176,7 @@
       "Titanic Actions (Cortex Bio-Titan)"
     ],
     "structurePoints": 10,
+    "hasArtwork": true,
     "page": 56,
     "content": [
       {
@@ -186,32 +203,8 @@
         "type": "paragraph",
         "value": "A mutated, snake-like Bio-Titan that can crush a Mech within its coiled flesh. Its scintillating scales throw off enemy targets and allow it to hide and wait in ambush for its prey."
       }
-    ]
-  },
-  {
-    "id": "4bfca8cc-9f66-489f-a002-74fbf4e47a21",
-    "source": "Rainmaker",
-    "page": 80,
-    "name": "Hill Worm Pattern Typhon",
-    "actions": [
-      "Metallic Reconstitution",
-      "Burrower",
-      "Armour Plating (Typhon)",
-      "Swallow Whole",
-      "Spiked Carapace",
-      "Titanic Actions (Typhon)"
     ],
-    "structurePoints": 67,
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "A bloated, heavily armoured, insatiably hungry worm that lurks beneath the Wild Hills."
-      },
-      {
-        "type": "paragraph",
-        "value": "Vengeance of the earth. This terrifying spiked worm can even swallow a Colossus whole. Some believe the spirits of miners in the Ferrous Range, who died in industrial accidents, summoned this being in vengeance."
-      }
-    ]
+    "hasArtwork": true
   },
   {
     "id": "3c81e43c-63f3-4072-ba1e-280111bf8f38",
@@ -233,7 +226,8 @@
         "type": "paragraph",
         "value": "A hard, armoured shell that sprouts writhing tentacles that pummels its prey with sheer brute force, able to bludgeon steel with the sheer force of its mass. Lairs in an underwater environment where it can surprise its foes and drag them down to the depths to feed."
       }
-    ]
+    ],
+    "hasArtwork": true
   },
   {
     "id": "283e9165-721c-4543-8def-d6a88af366e3",
@@ -254,6 +248,7 @@
         "type": "paragraph",
         "value": "A sea of floating tendrils, Physalis is a Bio-Titan able to liquify a Pilot in their cockpit and turn their Mech into a marionette under its control. Its lair is surrounded by Mech carcasses and the liquified remains of their pilots."
       }
-    ]
+    ],
+    "hasArtwork": true
   }
 ]

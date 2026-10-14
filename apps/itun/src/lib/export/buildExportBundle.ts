@@ -1,9 +1,9 @@
+import type { EncounterNpc } from 'itun-domain/schemas/encounterNpc'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { usePatternStore } from '../../stores/patternStore'
 import type { EntityType } from '../../stores/types'
-import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { ExportBundle } from '../schemas/exportBundle'
-import type { MechPattern } from '../schemas/pattern'
 
 /**
  * Minimal store interface required by the build functions.
@@ -24,7 +24,7 @@ type ExportPatternStore = {
 
 /**
  * Minimal encounter-NPC source for export. Like patterns, encounterNpcs are
- * not in entityStore — they live in their own Zustand store/db object store;
+ * not in entityStore — they live in their own Zustand store;
  * tests may pass a double.
  */
 type ExportEncounterNpcStore = {
@@ -32,18 +32,15 @@ type ExportEncounterNpcStore = {
 }
 
 /**
- * Read a collection store the way the app reads it right now.
- *
- * `rehydrate`, not the IndexedDB table: the store answers with the account's
- * cache signed in and with nothing signed out (`readableRows`), so an anonymous
- * backup cannot reach into IndexedDB for rows the visitor cannot see.
+ * Read a collection store the way the app reads it right now: the account's
+ * rows once they have arrived, and nothing signed out.
  */
 function fromStore<T>(store: {
-  getState: () => { rehydrate: () => Promise<void>; list: () => T[] }
+  getState: () => { hydrate: () => Promise<void>; list: () => T[] }
 }): { list: () => Promise<T[]> } {
   return {
     async list() {
-      await store.getState().rehydrate()
+      await store.getState().hydrate()
       return store.getState().list()
     },
   }
@@ -53,7 +50,7 @@ function fromStore<T>(store: {
  * buildExportBundle — full backup of all entities and softLinks.
  *
  * Hydrates every store type first so the caller does not need to pre-hydrate.
- * The returned bundle is a plain serialisable object — no IDB references.
+ * The returned bundle is a plain serialisable object.
  */
 export async function buildExportBundle(
   entityStore: ExportStore,
@@ -66,6 +63,7 @@ export async function buildExportBundle(
     entityStore.hydrate('pilot'),
     entityStore.hydrate('mech'),
     entityStore.hydrate('crawler'),
+    entityStore.hydrate('npc'),
     entityStore.hydrate('softLink'),
   ])
 
@@ -76,6 +74,7 @@ export async function buildExportBundle(
       pilots: entityStore.list('pilot'),
       mechs: entityStore.list('mech'),
       crawlers: entityStore.list('crawler'),
+      npcs: entityStore.list('npc'),
     },
     softLinks: entityStore.list('softLink'),
     mechPatterns,
@@ -96,7 +95,7 @@ export async function buildExportBundle(
  * mechs. Including deep transitive closure would make the export ambiguous.
  */
 export async function buildEntityExport(
-  type: 'pilot' | 'mech' | 'crawler',
+  type: 'pilot' | 'mech' | 'crawler' | 'npc',
   id: string,
   entityStore: ExportStore
 ): Promise<ExportBundle> {
@@ -105,7 +104,7 @@ export async function buildEntityExport(
   const allSoftLinks = entityStore.list('softLink')
   const attachedLinks = allSoftLinks.filter((l) => l.from.id === id || l.to.id === id)
 
-  const emptyEntities = { pilots: [], mechs: [], crawlers: [] }
+  const emptyEntities = { pilots: [], mechs: [], crawlers: [], npcs: [] }
 
   switch (type) {
     case 'pilot': {
@@ -141,5 +140,32 @@ export async function buildEntityExport(
         encounterNpcs: [],
       }
     }
+    case 'npc': {
+      const npc = entityStore.list('npc').find((n) => n.id === id)
+      return {
+        schemaVersion: 2,
+        exportedAt: new Date().toISOString(),
+        entities: { ...emptyEntities, npcs: npc ? [npc] : [] },
+        softLinks: attachedLinks,
+        mechPatterns: [],
+        encounterNpcs: [],
+      }
+    }
+  }
+}
+
+/**
+ * buildPatternExport — one saved pattern on its own, for a shelf item's
+ * "Export" (Shelves, board S1). Importing it makes a copy under a new id, as
+ * every import does (`mergeImport`).
+ */
+export function buildPatternExport(pattern: MechPattern): ExportBundle {
+  return {
+    schemaVersion: 2,
+    exportedAt: new Date().toISOString(),
+    entities: { pilots: [], mechs: [], crawlers: [], npcs: [] },
+    softLinks: [],
+    mechPatterns: [pattern],
+    encounterNpcs: [],
   }
 }

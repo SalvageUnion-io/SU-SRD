@@ -1,12 +1,14 @@
-import { Button, cn, ModalShell } from 'component-lib'
-import type { ReactNode } from 'react'
+import { Button, ChapterBand, ModalShell, tokens } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
+import '../../styles/wizard.css'
+import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
-/** Sheet tone context — picks the `.sheet--{kind}` poster theming. */
-export type WizKind = 'pilot' | 'mech' | 'crawler'
+/** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */
+type WizKind = 'pilot' | 'mech' | 'crawler'
 
 type WizShellProps = {
-  /** Sheet tone context (`.sheet--{kind}`) — themes ground, band, and rail. */
+  /** Sheet tone context (`.su-sheet--{kind}`) — themes ground, band, and rail. */
   kind: WizKind
   /** Poster band banner, e.g. 'New Pilot' / 'Edit Pilot'. */
   eyebrow: string
@@ -16,18 +18,13 @@ type WizShellProps = {
   active: number
   /** When provided, completed stepper entries navigate back. */
   onStepClick?: (index: number) => void
-  /** Step heading — stamped as 'STEP n OF N · {title}' in the main pane. */
+  /** Step heading — the step card's title, read as 'Step n of N · {title}'. */
   title: string
-  /** Meta line under the title — live counts, helper copy. */
-  subtitle?: ReactNode
   /** Main pane content (detail card, Sel grid, form, review). */
   children: ReactNode
-  /** Rendered between content and footer — soft warnings, submit errors. */
-  notice?: ReactNode
   /**
-   * Black tracker tabs hosted in the action pill (mockup `.trackrow` idiom
-   * promoted into the footer slot) — live budget/count chrome. Pass
-   * `WizTracker` elements.
+   * Black tracker tabs hosted in the action pill — live budget/count chrome.
+   * Pass `WizTracker` elements.
    */
   trackers?: ReactNode
   /**
@@ -37,28 +34,11 @@ type WizShellProps = {
    */
   footerNote?: ReactNode
   /**
-   * Rich, step-specific HUD content mounted INTO the floating footer bar
-   * alongside the nav pill (the mech install steps pass their Loadout HUD —
-   * gauges + installed chips — here). When present the footer becomes a wide
-   * paper bar holding the HUD with the ink action pill nested at its right; when
-   * absent the footer stays the compact ink pill. Distinct from `trackers`
-   * (small black tabs inside the pill) — this is a full-width content region.
-   */
-  footerHud?: ReactNode
-  /**
    * Escape hatch shown inside the action pill: a link/button to abandon the
    * guided guardrails and finish the build off-rules on the Free-Edit Live
    * Sheet (ADR-021). Rendered subordinate to the CTA; omit to hide.
    */
   escapeAction?: ReactNode
-  /**
-   * OPT-IN blown-up tinted step card (mockup Screen 01 `.stepcard`): the main
-   * pane renders the heading + content inside a `var(--tone-card)` card with
-   * a flush ink number tab. Only book-order wizards should opt in (pilot as
-   * of Phase 3); the still-multi-section Mech/Crawler wizards stay untinted
-   * until their phases.
-   */
-  tintedStepCard?: boolean
   onBack?: () => void
   onCancel: () => void
   /**
@@ -75,21 +55,127 @@ type WizShellProps = {
   submitLabel: string
 }
 
+const trackerStyle = {
+  alignItems: 'baseline',
+  backgroundColor: tokens.color.ink,
+  borderRadius: tokens.radius.badge,
+  boxShadow: 'inset 0 0 0 1.5px var(--color-paper-30)',
+  color: tokens.color.paper,
+  display: 'inline-flex',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.caption,
+  fontWeight: tokens.weight.bold,
+  gap: tokens.space[8],
+  letterSpacing: tokens.tracking.caps,
+  lineHeight: 1,
+  padding: `0.375rem ${tokens.space[12]}`,
+  textTransform: 'uppercase',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const trackerValueStyle = {
+  color: tokens.color.pilot,
+  fontSize: tokens.fontSize.lede,
+  letterSpacing: tokens.tracking.capsTight,
+} satisfies CSSProperties
+
 /**
- * Black tracker tab (wizard-refresh mockup `.tracker`): condensed-caps label
- * with an amber value, hosted in the WizShell action pill. Phase 2 chrome —
- * values reflect today's wizard state; real budget math lands in Phases 3–5.
+ * Black tracker tab: condensed-caps label
+ * with an amber value, hosted in the WizShell action pill. Its value is the
+ * caller's: the tab does no budget math.
  */
 export function WizTracker({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <span className="inline-flex items-baseline gap-2 whitespace-nowrap rounded-badge bg-ink px-3 py-1.5 font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper shadow-[inset_0_0_0_1.5px_var(--color-paper-30)]">
+    <span style={trackerStyle}>
       <span>{label}</span>
-      <span className="text-lede tracking-caps-tight text-pilot">{value}</span>
+      <span style={trackerValueStyle}>{value}</span>
     </span>
   )
 }
 
-/** Connector-pipe rail entry (mockup `.rstep`/`.rtab`) — one step tab + label. */
+/** Its vertical margin opens at lg, and a disabled tab ignores the pointer
+ *  (`.su-wiz-rail-step`). */
+const railStepStyle = {
+  alignItems: 'center',
+  display: 'flex',
+  gap: tokens.space[10],
+  position: 'relative',
+  textAlign: 'left',
+  zIndex: 1,
+} satisfies CSSProperties satisfies CSSProperties
+
+const railStepClickableStyle = { ...railStepStyle, cursor: 'pointer' } satisfies CSSProperties
+
+const railTabStyle = {
+  borderRadius: tokens.radius.badge,
+  display: 'grid',
+  flexShrink: 0,
+  fontFamily: tokens.font.cond,
+  fontWeight: tokens.weight.bold,
+  placeItems: 'center',
+} satisfies CSSProperties
+
+/** Its lg pull-left is `.su-wiz-rail-tab--active`. */
+const railTabActiveStyle = {
+  ...railTabStyle,
+  backgroundColor: tokens.color.ink,
+  boxShadow: '0 0 0 4px var(--tone)',
+  color: tokens.color.paper,
+  fontSize: tokens.fontSize['2xl'],
+  height: '2.75rem',
+  lineHeight: 1,
+  width: '2.75rem',
+} satisfies CSSProperties satisfies CSSProperties
+
+const railTabDoneStyle = {
+  ...railTabStyle,
+  backgroundColor: tokens.color.ink,
+  color: tokens.color.pilot,
+  fontSize: tokens.fontSize.readout,
+  height: '34px',
+  width: '34px',
+} satisfies CSSProperties
+
+const railTabFutureStyle = {
+  ...railTabStyle,
+  backgroundColor: tokens.color.paper,
+  boxShadow: 'inset 0 0 0 2.5px var(--color-ink)',
+  color: tokens.color.ink,
+  fontSize: tokens.fontSize.readout,
+  height: '34px',
+  width: '34px',
+} satisfies CSSProperties
+
+/**
+ * Hidden until 721px (`.su-wiz-rail-label`). No lineHeight: the label inherits
+ * its line height, and that is the rendered look. Don't add one.
+ */
+const railLabelStyle = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.cond,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.capsSnug,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const railLabelActiveStyle = {
+  ...railLabelStyle,
+  fontSize: tokens.fontSize.caption,
+} satisfies CSSProperties
+
+const railLabelDoneStyle = {
+  ...railLabelStyle,
+  fontSize: tokens.fontSize.note,
+  opacity: 0.8,
+} satisfies CSSProperties
+
+const railLabelFutureStyle = {
+  ...railLabelStyle,
+  fontSize: tokens.fontSize.note,
+  opacity: 0.66,
+} satisfies CSSProperties
+
+/** Connector-pipe rail entry — one step tab + label. */
 function RailStep({
   label,
   index,
@@ -111,35 +197,21 @@ function RailStep({
       disabled={!clickable && !active}
       aria-current={active ? 'step' : undefined}
       onClick={clickable ? onClick : undefined}
-      className={cn(
-        'relative z-[1] flex items-center gap-2.5 text-left disabled:pointer-events-none lg:my-[6px]',
-        clickable && 'cursor-pointer'
-      )}
+      className="su-wiz-rail-step"
+      style={clickable ? railStepClickableStyle : railStepStyle}
     >
       {/* Sharp ink number tab: done = amber check, active = enlarged + tone
           ring, future = hollow ink-outlined block (never opacity-faded). */}
       <span
         aria-hidden="true"
-        className={cn(
-          'grid shrink-0 place-items-center rounded-badge font-cond font-bold',
-          active
-            ? 'h-11 w-11 bg-ink text-2xl leading-none text-paper shadow-[0_0_0_4px_var(--tone)] lg:-ml-[5px]'
-            : 'h-[34px] w-[34px]',
-          !active && done && 'bg-ink text-readout text-pilot',
-          !active &&
-            !done &&
-            'bg-paper text-readout text-ink shadow-[inset_0_0_0_2.5px_var(--color-ink)]'
-        )}
+        className={active ? 'su-wiz-rail-tab--active' : undefined}
+        style={active ? railTabActiveStyle : done ? railTabDoneStyle : railTabFutureStyle}
       >
         {done ? '✓' : index + 1}
       </span>
       <span
-        className={cn(
-          'hidden font-cond font-bold uppercase leading-[1.15] tracking-caps-snug text-ink min-[721px]:block',
-          active ? 'text-caption' : 'text-note',
-          done && !active && 'opacity-80',
-          !done && !active && 'opacity-[0.66]'
-        )}
+        className="su-wiz-rail-label"
+        style={active ? railLabelActiveStyle : done ? railLabelDoneStyle : railLabelFutureStyle}
       >
         {label}
       </span>
@@ -147,17 +219,170 @@ function RailStep({
   )
 }
 
+/** Its direction, alignment, gap and padding change at sm (`.su-wiz-pill`). */
+const pillStyle = {
+  backgroundColor: tokens.color.ink,
+  display: 'flex',
+  pointerEvents: 'auto',
+} satisfies CSSProperties satisfies CSSProperties
+
+/** Centred on a phone, start-aligned from sm (`.su-wiz-pill-start`). */
+const pillTrackersStyle = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties satisfies CSSProperties
+
+/** Centred on a phone, left-aligned from sm (`.su-wiz-pill-note`). */
+const pillNoteStyle = {
+  color: tokens.color.pilot,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.xs,
+  fontWeight: tokens.weight.semibold,
+  letterSpacing: tokens.tracking.caps,
+  lineHeight: 'calc(1 / 0.75)',
+  margin: 0,
+  paddingInline: tokens.space[8],
+  textTransform: 'uppercase',
+} satisfies CSSProperties satisfies CSSProperties
+
+const pillEscapeStyle = { display: 'flex', paddingInline: tokens.space[8] } satisfies CSSProperties
+
+/** A row on a phone, `display: contents` from sm (`.su-wiz-pill-nav`). */
+const pillNavStyle = {
+  alignItems: 'center',
+  gap: tokens.space[8],
+  justifyContent: 'flex-end',
+} satisfies CSSProperties satisfies CSSProperties
+
+/** Full width on a phone, its own width from sm (`.su-wiz-pill-cta`). */
+const ctaStyle = { borderRadius: tokens.radius.card } satisfies CSSProperties
+
+/** Locked: hollow, dashed, at full opacity though disabled. */
+const ctaLockedStyle = {
+  ...ctaStyle,
+  backgroundColor: 'transparent',
+  borderColor: 'color-mix(in oklab, var(--color-paper) 55%, transparent)',
+  borderStyle: 'dashed',
+  borderWidth: '2px',
+  boxShadow: 'none',
+  color: tokens.color.paper60,
+  fontWeight: tokens.weight.normal,
+  opacity: 1,
+} satisfies CSSProperties
+
+const shellStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100dvh',
+} satisfies CSSProperties
+
+/** A column on a phone, a row from lg (`.su-wiz-body`). */
+const bodyStyle = { display: 'flex', flex: '1 1 0%' } satisfies CSSProperties
+
+/** Shown from lg (`.su-wiz-rail-pipe`). */
+const pipeStyle = {
+  backgroundColor: tokens.color.ink,
+  borderTopLeftRadius: '0.75rem',
+  borderTopRightRadius: '0.75rem',
+  bottom: tokens.space[48],
+  left: tokens.space[4],
+  position: 'absolute',
+  top: tokens.space[4],
+  width: tokens.space[28],
+} satisfies CSSProperties satisfies CSSProperties
+
+/** Shown from lg (`.su-wiz-rail-stub`). */
+const pipeStubStyle = {
+  backgroundColor: tokens.color.ink,
+  borderBottomLeftRadius: '0.5rem',
+  borderBottomRightRadius: '0.5rem',
+  bottom: tokens.space[12],
+  height: '2.25rem',
+  justifyContent: 'center',
+  left: tokens.space[4],
+  position: 'absolute',
+  width: tokens.space[28],
+} satisfies CSSProperties satisfies CSSProperties
+
+const arrowheadStyle = {
+  borderLeft: '9px solid transparent',
+  borderRight: '9px solid transparent',
+  borderTop: `14px solid ${tokens.color.paper}`,
+  height: 0,
+  marginTop: tokens.space[10],
+  width: 0,
+} satisfies CSSProperties
+
+/** Its padding grows at lg (`.su-wiz-main`). */
+const mainStyle = {
+  display: 'flex',
+  flex: '1 1 0%',
+  flexDirection: 'column',
+  minWidth: 0,
+} satisfies CSSProperties satisfies CSSProperties
+
+const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
+
+/** Its left padding — the number tab's gutter — opens at sm (`.su-wiz-step-card`). */
+const stepCardStyle = {
+  borderRadius: tokens.radius.card,
+  paddingBottom: tokens.space[24],
+  paddingRight: tokens.space[20],
+  paddingTop: tokens.space[20],
+  position: 'relative',
+} satisfies CSSProperties satisfies CSSProperties
+
+/** Shown from sm (`.su-wiz-step-tab`). */
+const stepTabStyle = {
+  backgroundColor: tokens.color.ink,
+  borderRadius: tokens.radius.badge,
+  color: tokens.color.paper,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.hero,
+  fontWeight: tokens.weight.extrabold,
+  height: tokens.space[64],
+  left: `-${tokens.space[20]}`,
+  lineHeight: 1,
+  placeItems: 'center',
+  position: 'absolute',
+  top: tokens.space[24],
+  width: '3.5rem',
+} satisfies CSSProperties satisfies CSSProperties
+
+const stepCardTitleStyle = {
+  color: 'currentcolor',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.display,
+  fontWeight: tokens.weight.bold,
+  lineHeight: 1.05,
+  margin: 0,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const stepCardBodyStyle = { marginTop: tokens.space[16] } satisfies CSSProperties
+
+const footerPillStyle = {
+  bottom: tokens.space[16],
+  display: 'flex',
+  justifyContent: 'flex-end',
+  marginTop: tokens.space[24],
+  pointerEvents: 'none',
+  position: 'sticky',
+  zIndex: 40,
+} satisfies CSSProperties
+
 /**
- * Shared wizard skeleton, reskinned as a poster sibling (wizard-refresh
- * Phase 2, mockup Screens 01/02): the `.sheet--{kind}` tone context on the
- * `var(--ground)` page, a tone band banner up top, the manual's connector-pipe
- * stepper rail (196px) and a flex-1 main pane
- * headed by an ink-stamp 'STEP n OF N · {title}' h1 with a floating ink
- * action pill (ghost Back/Cancel + primary CTA + tracker tabs + gate text).
+ * Shared wizard skeleton, a poster sibling: the `.su-sheet--{kind}` tone context
+ * on the `var(--ground)` page, a tone band banner up top, the manual's
+ * connector-pipe stepper rail (196px) and a flex-1 main pane holding the
+ * tinted step card, with a floating ink action pill (ghost Back/Cancel +
+ * primary CTA + tracker tabs + gate text).
  * The shell is layout-only — all wizard state lives in the caller.
  *
  * Mobile (≤lg) stacks the panes full-width with a horizontal tab rail
- * (labels hidden ≤720px, per the mockup).
+ * (labels hidden ≤720px).
  */
 export function WizShell({
   kind,
@@ -166,14 +391,10 @@ export function WizShell({
   active,
   onStepClick,
   title,
-  subtitle,
   children,
-  notice,
   trackers,
   footerNote,
-  footerHud,
   escapeAction,
-  tintedStepCard = false,
   onBack,
   onCancel,
   onNext,
@@ -185,58 +406,29 @@ export function WizShell({
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const isLast = active >= steps.length - 1
   const ctaLabel = isLast ? submitLabel : `Next · ${steps[active + 1]} →`
-  // The sticky footer overlaps content when pinned, so the main pane reserves
-  // scroll room beneath it. A HUD footer is taller (a full paper bar, not the
-  // compact pill), so it reserves proportionally more.
-  const contentPad = footerHud ? 'pb-52' : 'pb-24'
-
-  const heading = (
-    <header>
-      <h1 className="m-0">
-        {/* Ink-stamp step heading: paper text on an ink band that wraps per line. */}
-        <span className="inline bg-ink box-decoration-clone px-2 pb-[3px] pt-[2px] font-cond text-title font-bold uppercase leading-[1.35] tracking-normal text-paper">
-          <span className="text-pilot">
-            Step {active + 1} of {steps.length}
-          </span>
-          {' · '}
-          <span>{title}</span>
-        </span>
-      </h1>
-      {subtitle && <div className="mt-2 font-body text-caption text-wk-muted">{subtitle}</div>}
-    </header>
-  )
-
-  // The ink action pill (mockup `.pill`): trackers + gate note + escape + nav
-  // buttons + CTA. Rendered standalone in the footer by default; with a
-  // `footerHud` it is MOUNTED at the right of the wide paper footer bar. Its own
-  // dark ground keeps the ghost buttons legible in either home.
+  // The ink action pill: trackers + gate note + escape + nav buttons + CTA.
+  // Its own dark ground keeps the ghost buttons legible.
   const actionPill = (
-    <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-2xl bg-ink p-2.5 shadow-[0_16px_28px_-12px_var(--color-ink-50)] sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:rounded-full sm:pl-4">
+    <div className="su-wiz-pill" style={pillStyle}>
       {trackers && (
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+        <div className="su-wiz-pill-start" style={pillTrackersStyle}>
           {trackers}
         </div>
       )}
       {footerNote && (
-        <p
-          role="status"
-          className="m-0 px-2 text-center font-cond text-xs font-semibold uppercase tracking-caps text-pilot sm:text-left"
-        >
+        <p role="status" className="su-wiz-pill-note" style={pillNoteStyle}>
           {footerNote}
         </p>
       )}
       {escapeAction && (
-        <div className="flex justify-center px-2 sm:justify-start">{escapeAction}</div>
+        <div className="su-wiz-pill-start" style={pillEscapeStyle}>
+          {escapeAction}
+        </div>
       )}
       {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
-      <div className="flex items-center justify-end gap-2 sm:contents">
+      <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            disabled={busy}
-            className="border-paper/40 text-paper hover:bg-paper/10"
-          >
+          <Button variant="ghost" onClick={onBack} disabled={busy} className="su-wiz-pill-ghost">
             Back
           </Button>
         )}
@@ -244,7 +436,7 @@ export function WizShell({
           variant="ghost"
           onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
           disabled={busy}
-          className="border-paper/40 text-paper hover:bg-paper/10"
+          className="su-wiz-pill-ghost"
         >
           Cancel
         </Button>
@@ -255,13 +447,11 @@ export function WizShell({
           }}
           title="Discard this draft?"
           tone="danger"
-          maxWidth="max-w-md"
+          maxWidth="su-wiz-modal-md"
         >
-          <div className="flex flex-col gap-4 bg-paper p-5">
-            <div className="font-body text-sm text-wk-muted">
-              Your unsaved changes will be lost.
-            </div>
-            <div className="flex justify-end gap-2">
+          <div style={dialogBodyStyle}>
+            <div style={dialogNoteStyle}>Your unsaved changes will be lost.</div>
+            <div style={dialogActionsStyle}>
               <Button variant="ghost" size="compact" onClick={() => setConfirmingCancel(false)}>
                 Keep editing
               </Button>
@@ -279,17 +469,13 @@ export function WizShell({
           </div>
         </ModalShell>
       </div>
-      {/* Locked CTA (mockup `.next.locked`): hollow, dashed, dimmed weight —
+      {/* Locked CTA: hollow, dashed, dimmed weight —
           the blocking reason lives in the footerNote text. */}
       <Button
         variant="primary"
         size="full"
-        className={cn(
-          'w-full rounded-full sm:w-auto',
-          nextDisabled &&
-            !busy &&
-            'border-2 border-dashed border-paper/55 bg-transparent font-normal text-paper/60 shadow-none disabled:opacity-100'
-        )}
+        className="su-wiz-pill-cta"
+        style={nextDisabled && !busy ? ctaLockedStyle : ctaStyle}
         onClick={onNext}
         disabled={nextDisabled || busy}
       >
@@ -299,41 +485,21 @@ export function WizShell({
   )
 
   return (
-    <div
-      className={cn(`sheet--${kind}`, 'flex min-h-dvh flex-col')}
-      style={{ background: 'var(--ground)' }}
-    >
-      {/* Poster band (mockup `.band`/`.banner`): tone ground, white condensed
-          banner, a white rule then a thin tone bandtail below it. */}
-      <header
-        className="border-b-4 border-paper/95 px-5 pb-2.5 pt-5 sm:px-7"
-        style={{ background: 'var(--tone)' }}
-      >
-        <p className="m-0 font-cond text-[clamp(26px,4vw,40px)] font-bold uppercase leading-[0.98] tracking-normal text-paper [text-shadow:0_2px_0_var(--color-ink-20)]">
-          {eyebrow}
-        </p>
-      </header>
-      <div className="h-2 shrink-0" style={{ background: 'var(--tone)' }} aria-hidden="true" />
+    <div className={`su-sheet--${kind}`} style={shellStyle}>
+      {/* The page title as every other page sets it. A paragraph: the step
+          card's title is the page's h1. */}
+      <ChapterBand tone={kind} as="p">
+        {eyebrow}
+      </ChapterBand>
 
-      <div className="flex flex-1 flex-col lg:flex-row">
-        {/* (a) 196px connector-pipe stepper rail (mockup `.rail`): a thick ink
+      <div className="su-wiz-body" style={bodyStyle}>
+        {/* (a) 196px connector-pipe stepper rail: a thick ink
             pipe with an arrow-capped end runs behind the step tabs on lg;
             mobile keeps the horizontal wrap without the pipe. */}
-        <aside
-          className={cn(
-            'shrink-0 border-b-chrome border-ink px-4 py-4 lg:border-b-0 lg:border-r-0 lg:px-4 lg:py-7',
-            'lg:w-[196px]'
-          )}
-        >
-          <nav
-            aria-label="Steps"
-            className="relative flex flex-row flex-wrap gap-x-3 gap-y-2 lg:flex-col lg:gap-0 lg:pb-16 lg:pl-1"
-          >
+        <aside className="su-wiz-rail">
+          <nav aria-label="Steps" className="su-wiz-rail-nav">
             {/* The pipe — thick, runs behind the tabs (lg only). */}
-            <span
-              aria-hidden="true"
-              className="absolute bottom-12 left-[4px] top-1 hidden w-7 rounded-t-xl bg-ink lg:block"
-            />
+            <span aria-hidden="true" className="su-wiz-rail-pipe" style={pipeStyle} />
             {steps.map((label, i) => (
               <RailStep
                 key={label}
@@ -346,106 +512,60 @@ export function WizShell({
               />
             ))}
             {/* Black stub at the pipe's end with a chunky white arrowhead. */}
-            <span
-              aria-hidden="true"
-              className="absolute bottom-3 left-[4px] hidden h-9 w-7 justify-center rounded-b-lg bg-ink lg:flex"
-            >
-              <span className="mt-2.5 h-0 w-0 border-x-[9px] border-t-[14px] border-x-transparent border-t-paper" />
+            <span aria-hidden="true" className="su-wiz-rail-stub" style={pipeStubStyle}>
+              <span style={arrowheadStyle} />
             </span>
           </nav>
         </aside>
 
         {/* (b) flex-1 main pane — always owns the step heading */}
-        <main className="flex min-w-0 flex-1 flex-col px-5 py-5 lg:px-10 lg:py-[30px]">
-          {tintedStepCard ? (
-            /* Blown-up tinted step card (mockup `.stepcard`): tone-card fill,
-               flush ink number tab, condensed step head in the card ink. */
-            <div className={cn('min-h-0 flex-1 sm:pl-5', contentPad)}>
-              <article
-                /* `sm:pl-12` (48px) is LOAD-BEARING, not a taste-level inset: it
-                   is the gutter the overhanging number tab below is measured
-                   against. The tab is `w-14` (56px) at `-left-5` (-20px), so its
-                   right edge lands 36px inside the card — at 32px the content box
-                   would start 4px to the LEFT of that, and the black tab would
-                   print over the step title's first glyph and the RuleBrief
-                   panel's left edge. 48px clears it by 12px.
-                   Same overhang-plus-clearance relationship as `ModeDoor`'s tab.
-                   Move one of the three numbers and you must move the others. */
-                className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_var(--color-ink-40),inset_0_0_46px_var(--color-ink-8)] sm:pl-12"
-                style={{
-                  background: 'var(--tone-card, var(--tone))',
-                  // Card ink, ONE rule for all three sheets: every step card is
-                  // now a light tint derived from its page tone, so all of them
-                  // take dark ink (6.8–9.7:1). Content sitting directly on the
-                  // card — the step head included — inherits via `text-current`.
-                  color: 'var(--tone-card-ink, var(--color-ink))',
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  className="absolute -left-5 top-6 hidden h-16 w-14 place-items-center rounded-badge bg-ink font-cond text-hero font-extrabold leading-none text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)] sm:grid"
-                >
-                  {active + 1}
-                </span>
-                <header>
-                  {/* The title INHERITS `--tone-card-ink` from the article
-                      (`text-current`) instead of hardcoding `text-paper`. White
-                      was safe only while the step cards were dark book literals;
-                      now that every card is a light tint derived from its page
-                      tone, a white title measures 1.54:1 on the pilot fill and
-                      1.91 / 2.18 on mech and crawler — invisible.
+        <main className="su-wiz-main" style={mainStyle}>
+          {/* Tinted step card: tone-card fill, flush ink number tab, condensed
+              step head in the card ink. */}
+          {/* The sticky footer overlaps content when pinned, so the frame
+              reserves scroll room beneath it. */}
+          <div className="su-wiz-step-frame" style={{ ...fillStyle, paddingBottom: '6rem' }}>
+            <article
+              className="su-wiz-step-card"
+              style={{
+                ...stepCardStyle,
+                background: 'var(--tone-card, var(--tone))',
+                // Card ink, ONE rule for all three sheets: every step card is
+                // a light tint derived from its page tone, so all of them
+                // take dark ink (6.8–9.7:1). Content sitting directly on the
+                // card — the step head included — inherits it.
+                color: 'var(--tone-card-ink, var(--color-ink))',
+              }}
+            >
+              <span aria-hidden="true" className="su-wiz-step-tab" style={stepTabStyle}>
+                {active + 1}
+              </span>
+              <header>
+                {/* The title INHERITS `--tone-card-ink` from the article
+                      (`currentcolor`) instead of hardcoding paper: on these
+                      light tints a white title measures 1.54:1 on the pilot
+                      fill and 1.91 / 2.18 on mech and crawler — invisible.
                       Inheriting keeps the title and the body copy on the same
-                      ink rule, so a future dark card flips both together. The
-                      dark `text-shadow` went with it: it existed to lift white
-                      type off a saturated fill and only muddies dark type. */}
-                  <h1 className="m-0 font-cond text-display font-bold uppercase leading-[1.05] text-current">
-                    <span className="sr-only">
-                      Step {active + 1} of {steps.length} ·{' '}
-                    </span>
-                    {title}
-                  </h1>
-                  {subtitle && (
-                    <div className="mt-2 font-body text-caption text-wk-muted">{subtitle}</div>
-                  )}
-                </header>
-                <div className="mt-4">{children}</div>
-              </article>
-            </div>
-          ) : (
-            <>
-              {heading}
-              <div className={cn('mt-5 min-h-0 flex-1', contentPad)}>{children}</div>
-            </>
-          )}
-
-          {notice && <div className="mt-6">{notice}</div>}
+                      ink rule, so a future dark card flips both together. */}
+                <h1 style={stepCardTitleStyle}>
+                  <span className="su-sr-only">
+                    Step {active + 1} of {steps.length} ·{' '}
+                  </span>
+                  {title}
+                </h1>
+              </header>
+              <div style={stepCardBodyStyle}>{children}</div>
+            </article>
+          </div>
 
           {/* Footer — floats sticky at the bottom-right of the viewport as the
               content scrolls, so confirm/nav stays reachable without a
               full-width bar eating vertical space. The footer itself is
-              click-through (pointer-events-none); only the ink action pill
-              (mockup `.pill`) is interactive. Below the sm endpoint the pill
-              stacks with a full-width primary CTA on EVERY step (design review
-              U-6) — Back/Cancel share a row above it.
-
-              With a `footerHud`, the pill is MOUNTED inside a wide paper bar that
-              also carries the step HUD (the mech Loadout gauges + chips) — one
-              floating interface, no second overlay competing for the corner. */}
-          <footer
-            className={cn(
-              'pointer-events-none sticky bottom-4 z-40 mt-6 flex',
-              footerHud ? 'justify-center sm:justify-end' : 'justify-end'
-            )}
-          >
-            {footerHud ? (
-              <div className="pointer-events-auto flex w-full flex-col gap-2.5 rounded-2xl border-chrome border-ink bg-paper p-2.5 shadow-[0_16px_28px_-12px_var(--color-ink-50)] sm:w-auto sm:max-w-4xl sm:flex-row sm:items-stretch sm:gap-3 sm:pl-3.5">
-                <div className="flex min-w-0 flex-1 items-center">{footerHud}</div>
-                {actionPill}
-              </div>
-            ) : (
-              actionPill
-            )}
-          </footer>
+              click-through (`pointer-events: none`); only the ink action pill
+              is interactive. Below the sm endpoint the pill stacks with a
+              full-width primary CTA on EVERY step — Back/Cancel share a row
+              above it. */}
+          <footer style={footerPillStyle}>{actionPill}</footer>
         </main>
       </div>
     </div>

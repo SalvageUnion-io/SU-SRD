@@ -1,15 +1,14 @@
 /**
- * Live Sheet soft warnings (REQ-012, ADR-021) — the wired-in behaviour of
+ * Live Sheet soft warnings (ADR-021) — the wired-in behaviour of
  * `useSoftWarnings` + `SoftWarningDialog`.
  *
  * Asserts the confirm-and-proceed contract on BUILD edits:
  *   1. A warning-triggering ability removal opens the dialog and persists
- *      NOTHING until confirmed.
+ *      NOTHING until confirmed; Cancel then persists nothing.
  *   2. "Save anyway" persists the previewed patch (warnings never block).
- *   3. Cancel persists nothing.
- *   4. A clean edit persists immediately with no dialog — the flow is
+ *   3. A clean edit persists immediately with no dialog — the flow is
  *      invisible when nothing is wrong.
- *   5. Mech system removal previews (no dependency data in the SRD dataset →
+ *   4. Mech system removal previews (no dependency data in the SRD dataset →
  *      no warnings → it saves straight through).
  *
  * Real reference data only: the Engineer class's "Mechanical Knowledge" core
@@ -19,8 +18,8 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -60,7 +59,7 @@ function makePilotStore(pilot: Pilot, captured: CapturedUpdate[]): typeof useEnt
   let current = pilot
   return makeEntityStoreMock({
     pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((type: string, id: string) =>
@@ -107,7 +106,7 @@ function makeMechStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntity
   let current = mech
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((type: string, id: string) =>
@@ -139,8 +138,14 @@ async function removeViaPicker(manage: RegExp, item: RegExp) {
   await click(item)
 }
 
+/**
+ * Each test renders a live sheet and drives its picker, so the dialog's opening
+ * and its Cancel share one render rather than two. Up to 1.1 s a test inside
+ * itun's 4-worker suite, and under 2.7 s with srd, component-lib and tools
+ * running beside it (junit), well under Bun's 5 s default, so they keep it.
+ */
 describe('PilotSheet — soft warnings on ability edits', () => {
-  test('a tree-order-breaking removal opens the dialog and persists nothing', async () => {
+  test('a tree-order-breaking removal opens the dialog; cancel persists nothing', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
@@ -152,6 +157,11 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     expect(screen.getByRole('button', { name: /save anyway/i })).toBeTruthy()
     // …and nothing has been written yet.
     expect(captured).toHaveLength(0)
+
+    await click(/^cancel$/i)
+
+    expect(captured).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
   })
 
   test('"Save anyway" persists the previewed patch — warnings never block', async () => {
@@ -164,18 +174,6 @@ describe('PilotSheet — soft warnings on ability edits', () => {
 
     expect(captured).toHaveLength(1)
     expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L2_SLUG] })
-  })
-
-  test('cancelling discards the edit — nothing is persisted', async () => {
-    const captured: CapturedUpdate[] = []
-    const pilot = makePilot()
-    render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
-
-    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L1}$`, 'i'))
-    await click(/^cancel$/i)
-
-    expect(captured).toHaveLength(0)
-    expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
   })
 
   test('a clean removal persists immediately with no dialog', async () => {

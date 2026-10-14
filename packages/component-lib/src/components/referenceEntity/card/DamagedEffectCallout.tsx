@@ -1,24 +1,55 @@
-import { ghostActionTone } from './entityCardTone'
+import type { CSSProperties } from 'react'
+import { color, fontSize, space } from '../../../design/tokens'
+import { Badge } from '../../atoms/Badge'
+
+/** The frame: a chrome-weight ink frame on its ground, no band and no rail (ruleset §3.10). */
+const FRAME = {
+  borderColor: color.ink,
+  borderRadius: 'var(--radius-card)',
+  borderStyle: 'solid',
+  borderWidth: 'var(--bw-chrome)',
+  // The seam stamp stands half above the frame: room for it.
+  marginTop: space[8],
+  position: 'relative',
+} satisfies CSSProperties
+
+/** The stamp's inset from the frame's left corner (the seam's vertical seat is its own). */
+const STAMP = { left: space[12] } satisfies CSSProperties
+
+const EFFECT = {
+  color: color.ink,
+  lineHeight: 1.5,
+  margin: 0,
+} satisfies CSSProperties
+
+/** By where it stands: a page's reading column, or a card's body. */
+const EFFECT_PAD = {
+  page: { fontSize: fontSize.base, padding: `${space[16]} ${space[16]} ${space[12]}` },
+  card: { fontSize: fontSize.xs, padding: `${space[12]} ${space[10]} ${space[8]}` },
+} satisfies Record<string, CSSProperties>
 
 /**
- * CRAWLER BAY "WHEN DAMAGED" callout — action-card style (ghosted bands +
- * black name-tab + paper body), tinted from the RED danger token
- * (`--color-status-bad`) so it clearly signals the damaged effect. The card
- * filters the same string out of its body prose, so it is said once.
+ * CRAWLER BAY "WHEN DAMAGED" — the framed callout: a chrome-weight ink frame
+ * on the ground it stands on, its WHEN DAMAGED stamp riding the top border by
+ * its own height (StampSeam, ruleset §7.2), the effect beneath. The damage
+ * reads as a treatment on the bay's rules, not as a second hue (ruleset
+ * §3.3), so it wears no danger tint. The card filters the same string out of
+ * its body prose, so it is said once.
  */
-export function DamagedEffectCallout({ effect }: { effect: string }) {
-  const bands = ghostActionTone('var(--color-status-bad)')
+export function DamagedEffectCallout({
+  effect,
+  onPage = false,
+}: {
+  effect: string
+  /** On a page the effect reads a step under the page's prose; in a card, at its body's size. */
+  onPage?: boolean
+}) {
   return (
-    <div className="overflow-hidden rounded-card" style={{ border: `3px solid ${bands.frame}` }}>
-      <div className="flex items-center px-3 py-1.5" style={{ backgroundColor: bands.header }}>
-        <span
-          className="block bg-ink px-1 py-0.5 font-cond text-xs font-bold uppercase tracking-caps-tight text-paper"
-          style={{ lineHeight: 1 }}
-        >
-          When Damaged
-        </span>
-      </div>
-      <p className="bg-paper p-2 text-xs leading-snug text-ink">{effect}</p>
+    <div style={FRAME}>
+      <Badge shape="stamp" size="mini" seam style={STAMP}>
+        When Damaged
+      </Badge>
+      <p style={{ ...EFFECT, ...EFFECT_PAD[onPage ? 'page' : 'card'] }}>{effect}</p>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 /**
- * MechSheet — readOnly prop tests (#242, plan 4.5; Phase 2 poster regions)
+ * MechSheet — readOnly prop tests (poster regions)
  *
  * When readOnly is true (e.g. in PublicSheet), the body suppresses every
  * edit affordance: no Identity/Quirk-Appearance Edit buttons, no Vitals gauge
@@ -10,9 +10,9 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { makeScrapLot } from '../../../lib/schemas/cargoLot'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
+import { makeScrapLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -63,7 +63,7 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
   return makeEntityStoreMock({
     mechs: [mech],
     crawlers: [fakeCrawler],
-    hydrated: { pilots: false, mechs: true, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
     get: mock((type: string, id: string) => {
@@ -118,6 +118,21 @@ describe('MechSheet — readOnly', () => {
     expect(screen.getByText('Shutdown')).toBeTruthy()
   })
 
+  test('Read leaves out an empty Conditions field instead of drawing a box', () => {
+    const calm: Mech = { ...fakeMech, shutdown: false, conditions: [] }
+    render(
+      <MechSheet
+        mech={calm}
+        chassis={fakeChassis}
+        store={makeStubStore(calm)}
+        crawler={fakeCrawler}
+        readOnly
+      />
+    )
+    expect(screen.queryByText('Conditions')).toBeNull()
+    expect(screen.queryByText('None')).toBeNull()
+  })
+
   test('store.update is never called from a readOnly body', async () => {
     const updateSpy = mock(async () => fakeMech)
     const { container } = render(
@@ -138,5 +153,70 @@ describe('MechSheet — readOnly', () => {
     })
 
     expect(updateSpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('MechSheet — the Chassis stats', () => {
+  test("print in the hero's top-right corner, in the official sheet's words and the stat order", () => {
+    // A real chassis, so every figure resolves from the reference data.
+    const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
+    const { container } = render(
+      <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
+    )
+    const text = container.querySelector('dl[aria-label="Chassis stats"]')?.textContent ?? ''
+    // The machine's figures, in the stat order every surface keeps: capacities,
+    // not what is in use (the Systems and Modules counts and The Hold say that).
+    const pairs = [
+      'Tech Level 1',
+      'Salvage Value 10',
+      'Structure Points 17',
+      'Energy Points 11',
+      'Heat Capacity 3',
+      'System Slots 7',
+      'Module Slots 4',
+      'Cargo Capacity 6',
+    ]
+    const at = pairs.map((pair) => text.indexOf(pair.replace(/ (\d+)$/, '$1')))
+    expect(at.every((index) => index >= 0)).toBe(true)
+    expect([...at].sort((x, y) => x - y)).toEqual(at)
+  })
+})
+
+describe('MechSheet — the hero and the Chassis card', () => {
+  test('the hero is image | text | stats + ability, closed by the chassis callout', () => {
+    const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
+    const { container } = render(
+      <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
+    )
+    const hero = container.querySelector('section[aria-label="Snapshot Mech sheet header"]')
+    const card = container.querySelector('section[aria-label="Chassis"]')
+    expect(hero).not.toBeNull()
+    expect(card).not.toBeNull()
+    // The hero: the player's photo (the chassis art until changed), what they
+    // wrote, then the chassis stats and the chassis ability as a library Row.
+    expect(hero?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
+    expect(hero?.querySelector('dl[aria-label="Chassis stats"]')).not.toBeNull()
+    const ability = hero?.querySelector('ul[aria-label="Chassis ability"] li')
+    expect(ability?.textContent).toContain('Data Scanner')
+    // Read leaves the pattern name out: it is the band's title.
+    expect(hero?.textContent).not.toContain('Pattern name')
+    // The card: the chassis's name, art and description, and nothing the hero has.
+    expect(card?.textContent).toContain('Spectrum')
+    // The callout closes the hero, with a CHASSIS chip beside its name.
+    expect(hero?.contains(card ?? null)).toBe(true)
+    expect(card?.querySelector('[data-chip-group]')?.textContent).toMatch(/chassis/i)
+    expect(card?.querySelector('img')).not.toBeNull()
+    expect(card?.querySelector('dl[aria-label="Chassis stats"]')).toBeNull()
+    expect(card?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
+  })
+
+  test("the ability's lead names the chassis, not the book's placeholder", () => {
+    const mazona: Mech = { ...fakeMech, chassisRef: 'mazona', systems: [], cargoLots: [] }
+    const { container } = render(
+      <MechSheet mech={mazona} store={makeStubStore(mazona)} crawler={fakeCrawler} readOnly />
+    )
+    const ability = container.querySelector('ul[aria-label="Chassis ability"] li')
+    expect(ability?.textContent).toContain('The Mazona has an Integrated Hover')
+    expect(ability?.textContent).not.toContain('[(CHASSIS)]')
   })
 })

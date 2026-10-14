@@ -2,80 +2,77 @@
 paths:
   - 'apps/itun/src/stores/**'
   - 'apps/itun/src/hooks/**'
-  - 'apps/itun/src/lib/db/**'
   - 'apps/itun/src/lib/connection/**'
-  - 'apps/itun/src/lib/account/**'
   - 'apps/itun/src/lib/export/**'
   - 'apps/itun/src/components/account/**'
   - 'apps/itun/src/components/container/**'
   - 'apps/itun/src/components/games/**'
   - 'apps/itun/convex/**'
+  - 'apps/itun/e2e/**'
+  - 'packages/itun-domain/**'
 ---
 
-# Data access in ITUN — stores and Convex
+# Data access in ITUN — storage modes, stores and Convex
 
-Two persistence domains; work out which one you are in before writing a hook.
-The storage modes themselves (Solo / Connected / Disconnected) are owned by
-[`apps/itun/CLAUDE.md`](../../apps/itun/CLAUDE.md).
+Why: [ADR-030, 034, 035](../../docs/ARCHITECTURE.md#decisions).
+
+| Mode | When | Source of truth |
+| --- | --- | --- |
+| **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: **read-only** — writes refused (`signedOut`); no Dashboard |
+| **Connected** | signed in, online | Convex; the stores hold its rows in memory |
+| **Disconnected** | signed in, offline | read-only: what is on screen stays; not a write queue |
+| **Outdated** | bundle below `build.floor` | read-only until it reloads |
+
+Resolve the mode with `useConnection()` or `resolveConnectionMode()` /
+`writesAllowed()` from `src/lib/connection/` — never `navigator.onLine` or an
+auth flag. Two persistence domains; know which you are in before writing a hook:
 
 | Domain | Path | Truth |
 | --- | --- | --- |
-| **Player entities** — pilots, mechs, crawlers, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, over `src/lib/db/` | Convex when signed in (IndexedDB is its cache); nothing when anonymous (read-only) |
-| **Accounts, Games, invites, ownership, proposals, crew** | Convex `useQuery` / `useMutation` from `convex/react` | Convex, always |
-
-Resolve the connection mode with `useConnection()` or
-`resolveConnectionMode()` / `writesAllowed()` from `src/lib/connection/` —
-never `navigator.onLine` or an auth flag.
+| **Player entities** — pilots, mechs, crawlers, built NPCs, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, in memory | Convex when signed in; nothing signed out |
+| **Accounts, Games, invites, ownership, proposals, crew** | `useQuery` / `useMutation` from `convex/react` | Convex, always |
 
 ## Player entities — go through the store
 
 ```typescript
-// read (synchronous after lazy hydration)
-const pilots = useEntityStore((s) => s.list('pilots'))
-// write (server-first, then the cache; refused signed out)
-await useEntityStore.getState().update('pilots', id, { hp: next })
+const pilots = useEntityStore((s) => s.list('pilots')) // sync; rows arrive via ShelfSync
+await useEntityStore.getState().update('pilots', id, { hp: next }) // server-first
 ```
 
-The store's call shape is the same in every mode. `src/stores/entityBackend.ts`
-picks the backend (`selectBackend()` → `remote | blocked | signedOut`):
-`signedOut` is any anonymous visitor, in every build, and is **read-only** —
-building needs an account, so its writes are refused — and reads nothing: every
-store goes through `readableRows`, never IndexedDB; `blocked` is
-signed-in-and-offline or mid-handshake — read-only too, not a write queue. Check
-`canWrite` before offering any edit affordance. A unit test that writes runs
-signed in via `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
+- **There is no anonymous backend.** `selectBackend()` (`src/stores/entityBackend.ts`)
+  is `signedOut | remote | blocked`. `signedOut` holds nothing and refuses
+  writes; `blocked` is offline, mid-handshake or Outdated, read-only too.
+  Check `canWrite` before offering an edit affordance. A unit test that writes calls
+  `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
+- **[No device cache](../../docs/ARCHITECTURE.md#no-device-cache).** Nothing player-owned goes in IndexedDB or
+  `localStorage`. `AccountReconciler` (root-mounted) mounts `ShelfSync` while
+  Connected; `hydrate()` waits for its first answer (`src/stores/rowArrival.ts`),
+  and a tab's rows go when its session ends (`src/stores/sessionRows.ts`).
+- **A container written twice is written together** — the row's `gameId`
+  column and the body's `gameId`; where they disagree, the column wins.
+- **e2e durability specs need an account** (`e2e/fixtures.ts`): without
+  `VITE_TEST_AUTH` in the build and `ITUN_TEST_AUTH` on the deployment they
+  SKIP; the nightly `e2e-itun` job runs them against a throwaway backend.
 
 ## Accounts / Games / ownership — Convex hooks
 
-```typescript
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-
-const members = useQuery(api.games.members, { gameId })
-```
-
-- **Loading is `undefined`**, not a flag (`CrewVitals.tsx` is the reference).
-- **The provider is always there** (`AppConvexProvider`): every build has a
-  deployment. A unit test that renders a Convex consumer mocks the hooks with
-  `installConvexMocks()` (`src/components/__tests__/convexMock.ts`).
+`useQuery(api.games.members, { gameId })`. **Loading is `undefined`**, not a
+flag (`DowntimeTrack.tsx`). The provider (`AppConvexProvider`) is always there;
+a unit test rendering a Convex consumer mocks the hooks with
+`installConvexMocks()` (`src/components/__tests__/convexMock.ts`).
 
 ## Do not
 
-- **Add an IndexedDB store without a Convex commit seam** —
-  `apps/itun/src/lib/db/__tests__/storeSeams.test.ts` fails on one.
-  [ADR-034](../../docs/ARCHITECTURE.md#adr-034) and
-  [ADR-035](../../docs/ARCHITECTURE.md#adr-035) make Convex
-  the only source of truth; a row with no Convex counterpart is a defect. If
-  the schema cannot say where a record lives, **the schema moves** (#871:
-  `crawlers` gained `ownerId` and a nullable `gameId`).
-- Add a new Convex-backed collection by hand: copy the `commit` seam on
+- **Add a record kind without a Convex table and commit seam** —
+  `apps/itun/test/convex/__tests__/containerParity.test.ts` fails on one. A row with
+  no Convex counterpart is a defect; if the schema cannot say where a record
+  lives, **the schema moves**.
+- Add a Convex-backed collection by hand: copy the `commit` seam on
   `makeHydratedCollectionSlice` (`mechPatterns`, `encounterNpcs`) or
-  `commitChangeLog`. The Change Log commit is the one deliberate
-  fire-and-forget write; everything else awaits.
-- Build a local duplicate of something Convex owns (membership, ownership,
-  invites, proposals, crew vitals) — check `apps/itun/convex/` first.
-- Add a query cache: entity reads are the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
-  use `convex/react`.
+  `commitChangeLog` — the one deliberate fire-and-forget write.
+- Duplicate locally what Convex owns (membership, ownership, invites,
+  proposals, crew vitals) — check `apps/itun/convex/` first.
+- Add a query cache: entity reads are the hooks in `src/hooks/entities/`.
 
-Full picture: [data flow](../../docs/ARCHITECTURE.md#data-flow),
-[accounts](../../docs/ARCHITECTURE.md#accounts-and-games-operations).
+More: [data flow](../../docs/ARCHITECTURE.md#data-flow),
+[accounts](../../docs/ARCHITECTURE.md#convex).

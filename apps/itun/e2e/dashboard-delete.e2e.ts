@@ -4,7 +4,7 @@ import { expect, test } from './fixtures'
 /**
  * Dashboard delete flow: create a pilot, confirm the delete dialog, verify
  * the pilot disappears. Catches regressions in the Roster's delete confirm
- * (component-lib `ConfirmDialog`) and the EntityRow delete button wiring.
+ * (component-lib `ConfirmDialog`) and the shelf item's ⋯ menu Delete wiring.
  *
  * Pilot creation wizard steps:
  *   1. Class    — pick a class card (div[role="button"] via EntityChoiceCard)
@@ -19,14 +19,13 @@ import { expect, test } from './fixtures'
  * completes — not while still on "/pilots/new" (whose path also contains
  * "/pilots/", which a looser regex would match).
  *
- * Dashboard entity hydration is async (IndexedDB read inside useEffect). We
+ * Dashboard entity hydration is async (the account's rows arrive from Convex). We
  * wait for the pilot's name to become visible in the entity list rather than
  * relying solely on waitForReady (which only signals game-data preload).
  *
- * The delete button uses aria-label="Delete <name>" on EntityListItem, so
- * getByRole('button', { name: /Delete <name>/i }) is the robust selector.
- * The confirm is an alert dialog (role="alertdialog") with a "Delete" confirm
- * button.
+ * Delete lives in each shelf item's ⋯ menu (Shelves, board S1): the trigger is
+ * named "More for <name>", and the row is the menuitem "Delete…". The confirm
+ * is an alert dialog (role="alertdialog") with a "Delete" confirm button.
  */
 
 test('create then delete a pilot from the dashboard', async ({ page }) => {
@@ -37,7 +36,7 @@ test('create then delete a pilot from the dashboard', async ({ page }) => {
   await waitForReady(page)
 
   // ── Step 2: Verify pilot appears and trigger delete ─────────────────────────
-  // Wait for IndexedDB entity hydration to complete (hydratedAll = true)
+  // Wait for entity hydration to complete (hydratedAll = true)
   // and the pilot to appear in the Pilots list.
   await expect(page.getByLabel('Loading saved builds')).not.toBeVisible({
     timeout: 20_000,
@@ -46,8 +45,9 @@ test('create then delete a pilot from the dashboard', async ({ page }) => {
     timeout: 15_000,
   })
 
-  // EntityListItem renders: <Button aria-label="Delete {name}">Delete</Button>
-  await page.getByRole('button', { name: /^Delete Delete Me$/i }).click()
+  // The item's ⋯ menu, then Delete….
+  await page.getByRole('button', { name: 'More for Delete Me' }).click()
+  await page.getByRole('menuitem', { name: 'Delete…' }).click()
 
   // ── Step 3: Confirm dialog ──────────────────────────────────────────────────
   // ConfirmDialog renders the "Delete {name}?" title twice (the visible header
@@ -81,7 +81,8 @@ test('cancel delete keeps the pilot visible', async ({ page }) => {
     timeout: 15_000,
   })
 
-  await page.getByRole('button', { name: /^Delete Keep Me$/i }).click()
+  await page.getByRole('button', { name: 'More for Keep Me' }).click()
+  await page.getByRole('menuitem', { name: 'Delete…' }).click()
 
   await expect(page.getByRole('alertdialog')).toBeVisible({ timeout: 10_000 })
 

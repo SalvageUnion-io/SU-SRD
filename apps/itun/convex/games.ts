@@ -1,7 +1,9 @@
-import { v } from 'convex/values'
+import type { Infer } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import { mutation, refreshGameSummary, summaryOf } from './model/entities'
 import {
   getMembership,
@@ -13,6 +15,7 @@ import {
   requireUser,
 } from './model/permissions'
 import { deleteGameApparatus } from './model/seats'
+import { gameSummary } from './schema'
 
 /**
  * Games — the shared container (ADR-030 §2).
@@ -24,25 +27,22 @@ import { deleteGameApparatus } from './model/seats'
  */
 
 /** Shape returned to the client for a Game the caller belongs to. */
-type GameSummary = {
-  _id: Id<'games'>
-  name: string
-  templateOrigin: string | undefined
-  mediator: boolean
-  organizer: boolean
+const gameRead = v.object({
+  _id: v.id('games'),
+  name: v.string(),
+  templateOrigin: v.optional(v.string()),
+  mediator: v.boolean(),
+  organizer: v.boolean(),
   /**
    * Whether the caller runs this table — Mediator, or Organizer while there is
    * none. The client offers crawler moves into and out of a Game by it
    * (`moveDestinations`), so it has to be the server's answer, which depends on
    * the other memberships too.
    */
-  tableRunner: boolean
-  memberCount: number
-  /** The primary crawler's name, or null before one exists. */
-  crawlerName: string | null
-  pilotCount: number
-  mechCount: number
-}
+  tableRunner: v.boolean(),
+  ...gameSummary.fields,
+})
+type GameSummary = Infer<typeof gameRead>
 
 /**
  * Collapse a Game + the caller's membership into the summary every Game
@@ -79,6 +79,7 @@ async function summarize(
 /** Every Game the signed-in user belongs to, with their role in each. */
 export const listMine = query({
   args: {},
+  returns: v.array(gameRead),
   handler: async (ctx): Promise<GameSummary[]> => {
     const userId = await requireUser(ctx)
     const memberships = await ctx.db
@@ -107,6 +108,7 @@ export const listMine = query({
  */
 export const get = query({
   args: { gameId: v.id('games') },
+  returns: v.union(gameRead, v.null()),
   handler: async (ctx, args): Promise<GameSummary | null> => {
     const userId = await requireUser(ctx)
     const membership = await getMembership(ctx, args.gameId, userId)
@@ -132,7 +134,7 @@ export const create = mutation({
   handler: async (ctx, args): Promise<Id<'games'>> => {
     const userId = await requireUser(ctx)
     const name = args.name.trim()
-    if (name.length === 0) throw new Error('A game needs a name')
+    if (name.length === 0) throw new ConvexError('A Game needs a name')
 
     const gameId = await ctx.db.insert('games', {
       name,
@@ -154,7 +156,7 @@ export const create = mutation({
  *
  * **Organizer only.** Ending a shared campaign is administrative in the sense
  * ADR-030 §3 means it — it is about the table's existence, not about what is on
- * it — so it sits with the Organizer's other acts (`setMediator`, invites)
+ * it — so it sits with the Organizer's other acts (`setMediator`, the invite URL)
  * rather than with the table-runner acts. It is deliberately NOT `requireTableRunner`: that helper
  * falls back to the Organizer only while a Game has no Mediator, which would
  * make who may end a campaign depend on whether one has been appointed yet.
@@ -197,7 +199,8 @@ export const destroy = mutation({
     const membership = await requireOrganizer(ctx, args.gameId)
     const organizerId = membership.userId
 
-    for (const table of ['pilots', 'mechs'] as const) {
+    // Built NPCs are owned like pilots, so they fall back the same way.
+    for (const table of ['pilots', 'mechs', 'npcs'] as const) {
       const rows = await ctx.db
         .query(table)
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
@@ -241,6 +244,17 @@ export const destroy = mutation({
       await ctx.db.patch(npc._id, { gameId: null, ownerId: organizerId })
     }
 
+    // A pattern shared with this Game's crew stays its maker's and falls back
+    // to "Only me": the crew it was shared with no longer exists, and widening
+    // it to anyone else is not the maker's choice to have made for them.
+    const patterns = await ctx.db
+      .query('mechPatterns')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    for (const pattern of patterns) {
+      await ctx.db.patch(pattern._id, { gameId: null, sharedAt: undefined })
+    }
+
     // What is left has no personal counterpart, so it goes with the Game: the
     // table's own apparatus, listed and explained at `GAME_APPARATUS_TABLES`.
     await deleteGameApparatus(ctx, args.gameId)
@@ -250,6 +264,16 @@ export const destroy = mutation({
 /** The Game's roster, with each member's role. Any member may read it. */
 export const members = query({
   args: { gameId: v.id('games') },
+  returns: v.array(
+    v.object({
+      userId: v.id('users'),
+      displayName: v.string(),
+      avatarUrl: v.optional(v.string()),
+      mediator: v.boolean(),
+      organizer: v.boolean(),
+      joinedAt: v.number(),
+    })
+  ),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const rows = await ctx.db
@@ -262,7 +286,7 @@ export const members = query({
         const user = await ctx.db.get(m.userId)
         return {
           userId: m.userId,
-          displayName: user?.displayName ?? user?.name ?? 'Unknown pilot',
+          displayName: displayNameOf(user, 'Crewmate'),
           avatarUrl: user?.avatarUrl ?? user?.image,
           mediator: m.mediator,
           organizer: m.organizer,
@@ -288,7 +312,7 @@ export const setPrimaryCrawler = mutation({
     await requireTableRunner(ctx, args.gameId)
     const crawler = await ctx.db.get(args.crawlerId)
     if (crawler === null || crawler.gameId !== args.gameId) {
-      throw new NotAuthorized('That crawler is not in this game')
+      throw new NotAuthorized('That crawler is not in this Game')
     }
     await ctx.db.patch(args.gameId, { primaryCrawlerId: args.crawlerId })
     await refreshGameSummary(ctx, args.gameId)
@@ -301,7 +325,7 @@ export const setMediator = mutation({
   handler: async (ctx, args): Promise<void> => {
     await requireOrganizer(ctx, args.gameId)
     const target = await getMembership(ctx, args.gameId, args.userId)
-    if (target === null) throw new NotAuthorized('That user is not a member of this game')
+    if (target === null) throw new NotAuthorized('That user is not a member of this Game')
     await ctx.db.patch(target._id, { mediator: args.mediator })
   },
 })

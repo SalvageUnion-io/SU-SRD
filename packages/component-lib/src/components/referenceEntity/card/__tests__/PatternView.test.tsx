@@ -7,14 +7,29 @@
  *    pattern's own page, resolved through `PatternHrefProvider`.
  * 2. With no provider (an app whose patterns have no pages) the row stays inert
  *    rather than linking nowhere.
- * 3. The full pattern view reads chassis prose → chassis ability → pattern prose
- *    → systems → modules, so the pattern is framed by the chassis it belongs to.
+ * 3. The full pattern view reads chassis prose → pattern prose → systems →
+ *    modules, so the pattern is framed by the chassis it belongs to.
+ * 4. The chassis ability shows only on a PAGE — the chassis page and its
+ *    pattern pages — and on ITUN's builder pick cards (`showChassisAbility`),
+ *    never on any other card, a catalog tile or a nested card.
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { ReactNode } from 'react'
+import type {
+  EntityRef,
+  SURefEntity,
+  SURefObjectAnyPattern,
+  SURefObjectPattern,
+} from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
-import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
+import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
+import {
+  EntityDetailLinkProvider,
+  EntityHrefProvider,
+  PatternHrefProvider,
+} from '../../entityHrefContext'
+import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The Mule — a chassis carrying patterns, a chassis ability and chassis prose. */
@@ -25,7 +40,7 @@ const mule = () => {
 }
 
 /** Stands in for srd's route builder. */
-const testPatternHref = (chassis: SURefEntity, pattern: SURefObjectPattern) =>
+const testPatternHref = (chassis: SURefEntity, pattern: SURefObjectAnyPattern) =>
   `/chassis/${'name' in chassis ? nameToSlug(String(chassis.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
 
 describe('chassis pattern rows', () => {
@@ -69,8 +84,96 @@ describe('chassis pattern rows', () => {
   })
 })
 
+/** How many times the Mule's chassis ability prints. */
+const abilityCount = (container: HTMLElement) =>
+  (container.textContent ?? '').split('Integrated Cargo Bay').length - 1
+
+describe('the chassis ability shows only on a page', () => {
+  const hauler = () => {
+    const pattern = mule().patterns?.find((p) => p.name === 'Hauler')
+    if (!pattern) throw new Error('Hauler pattern fixture missing')
+    return pattern
+  }
+
+  test('the chassis page shows it once', () => {
+    const { container } = render(<ReferenceEntityCard data={mule()} presentation="page" />)
+    expect(abilityCount(container)).toBe(1)
+    expect(container.querySelector('.su-entity-page__lead')).not.toBeNull()
+  })
+
+  test('the pattern page shows it once, ahead of its Systems and Modules', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={mule()} pattern={hauler()} presentation="page" />
+    )
+    expect(abilityCount(container)).toBe(1)
+    const lead = container.querySelector('.su-entity-page__lead')
+    const loadout = container.querySelector('.su-entity-page__loadout')
+    expect(lead && loadout).toBeTruthy()
+    expect(
+      !!lead &&
+        !!loadout &&
+        !!(lead.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
+  })
+
+  for (const [form, card] of [
+    ['a chassis card', () => <ReferenceEntityCard data={mule()} size="large" />],
+    ['a chassis catalog tile', () => <ReferenceEntityCard data={mule()} extent="catalog" />],
+    ['a pattern card', () => <ReferenceEntityCard data={mule()} pattern={hauler()} />],
+    [
+      'a nested chassis card on a page',
+      () => <ReferenceEntityCard data={mule()} depth={1} presentation="page" />,
+    ],
+  ] as const) {
+    test(`${form} does not show it`, () => {
+      const { container } = render(card())
+      expect(abilityCount(container)).toBe(0)
+    })
+  }
+
+  // ITUN's builder pick cards opt in: choosing a chassis or a pattern needs it.
+  const PICK_HIDE = { actions: true, choices: true, patterns: true } as const
+
+  test("the builder's chassis pick card shows it once, under the picker's hide.actions", () => {
+    const { container } = render(
+      <ReferenceEntityCard data={mule()} size="medium" hide={PICK_HIDE} showChassisAbility />
+    )
+    expect(abilityCount(container)).toBe(1)
+  })
+
+  test('the opt-in does not reach a catalog tile', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={mule()} extent="catalog" showChassisAbility />
+    )
+    expect(abilityCount(container)).toBe(0)
+  })
+
+  /** The builder's pattern pick card, as `MechChassisStep` renders it. */
+  function PatternPick({ showChassisAbility }: { showChassisAbility?: boolean }) {
+    return (
+      <ReferenceEntityCard
+        data={mule()}
+        pattern={hauler()}
+        size="medium"
+        hide={{ actions: true, choices: true }}
+        showChassisAbility={showChassisAbility}
+      />
+    )
+  }
+
+  test("the builder's pattern pick card shows it once", () => {
+    const { container } = render(<PatternPick showChassisAbility />)
+    expect(abilityCount(container)).toBe(1)
+  })
+
+  test('a pattern card without the opt-in does not show it', () => {
+    const { container } = render(<PatternPick />)
+    expect(abilityCount(container)).toBe(0)
+  })
+})
+
 describe('full pattern view reading order', () => {
-  test('reads chassis prose → chassis ability → pattern prose → systems → modules', () => {
+  test('reads chassis prose → pattern prose → systems → modules', () => {
     const chassis = mule()
     const pattern = chassis.patterns?.find((p) => p.name === 'Hauler')
     if (!pattern) throw new Error('Hauler pattern fixture missing')
@@ -81,30 +184,28 @@ describe('full pattern view reading order', () => {
     const text = container.textContent ?? ''
 
     const chassisProse = text.indexOf("The 'M-63' Mule was developed")
-    const chassisAbility = text.indexOf('Integrated Cargo Bay')
     const patternProse = text.indexOf('This Mule, favoured by wastelanders')
     const systems = text.indexOf('Transport Hold')
     const modules = text.indexOf('Reactor Flare')
 
-    for (const index of [chassisProse, chassisAbility, patternProse, systems, modules]) {
+    for (const index of [chassisProse, patternProse, systems, modules]) {
       expect(index).toBeGreaterThan(-1)
     }
-    expect(chassisProse).toBeLessThan(chassisAbility)
-    expect(chassisAbility).toBeLessThan(patternProse)
+    expect(chassisProse).toBeLessThan(patternProse)
     expect(patternProse).toBeLessThan(systems)
     expect(systems).toBeLessThan(modules)
   })
 
   test('a system installed six times renders six badges, not one', () => {
-    // The end-to-end guard for the multiplicity fix in `resolvePatternGroups`.
-    // Atlas's Thunder Storm prints as ".50 Cal Machine Gun x6" in the book; the
-    // card used to de-duplicate the loadout by entity id, so the whole pattern
-    // rendered a single machine gun and read as a far lighter build than it is.
+    // The end-to-end guard for multiplicity in `resolvePatternGroups`. Atlas's
+    // Thunder Storm prints as ".50 Cal Machine Gun x6" in the book; a loadout
+    // de-duplicated by entity id renders a single machine gun and reads as a
+    // far lighter build than it is.
     //
-    // The loadout is now a row of SHORTFORM badges rather than full cards, and
-    // multiplicity still REPEATS: six copies are six badges, not one badge
-    // reading "×6". A count collapses the shape of the build out of the one row
-    // whose job is showing it.
+    // The loadout is the book's plain list of names rather than full cards,
+    // and multiplicity REPEATS: six copies are six lines, not one
+    // reading "×6". A count collapses the shape of the build out of the one
+    // list whose job is showing it.
     const chassis = SalvageUnionReference.Chassis.getByName('Atlas')
     if (!chassis) throw new Error('Atlas fixture missing')
     const pattern = chassis.patterns?.find((p) => p.name === 'Thunder Storm')
@@ -114,7 +215,7 @@ describe('full pattern view reading order', () => {
 
     render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
 
-    // One name node per rendered badge.
+    // One name node per rendered line.
     expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
     // No collapsed count anywhere — the copies are the count.
     expect(screen.queryByText(/×6/)).toBeNull()
@@ -125,16 +226,17 @@ describe('full pattern view reading order', () => {
 })
 
 /**
- * THE LOADOUT IS A ROW OF LINKED BADGES. A pattern's systems and modules are
+ * THE LOADOUT IS THE BOOK'S PLAIN LIST. A pattern's systems and modules are
  * ordinary catalogue entities whose full text lives on their own pages, so the
- * pattern view cites them at the card's shortform rung and links out, rather
- * than reprinting every rule inline — Thunder Storm used to expand to six
- * full-length, identical .50 Cal Machine Gun cards.
+ * pattern view names each one as a Mention with its framed TL, as Core Book
+ * p.101 lists them, and links out, rather than reprinting every rule inline —
+ * six full-length, identical .50 Cal Machine Gun cards for Thunder Storm — or
+ * painting a TL-toned pill per part.
  */
-describe('pattern loadout badges', () => {
+describe('pattern loadout tokens', () => {
   /** Stands in for srd's entity route builder. */
   const testEntityHref = (entity: SURefEntity) =>
-    `/schema/${'schemaName' in entity ? String(entity.schemaName) : ''}/item/${
+    `/${'schemaName' in entity ? String(entity.schemaName) : ''}/${
       'name' in entity ? nameToSlug(String(entity.name)) : ''
     }`
 
@@ -146,23 +248,26 @@ describe('pattern loadout badges', () => {
     return { chassis, pattern }
   }
 
+  /** The SRD's setup: a href builder, and the surface links out through it. */
+  const srdLinks = (children: ReactNode) => (
+    <EntityHrefProvider value={testEntityHref}>
+      <EntityDetailLinkProvider value={true}>{children}</EntityDetailLinkProvider>
+    </EntityHrefProvider>
+  )
+
   test('every loadout entry links to its own page', () => {
     const { chassis, pattern } = thunderStorm()
-    render(
-      <EntityHrefProvider value={testEntityHref}>
-        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
-      </EntityHrefProvider>
-    )
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
 
     // All six machine-gun copies are links, each to the system's one page.
     const guns = screen.getAllByRole('link', { name: /\.50 Cal Machine Gun/ })
     expect(guns).toHaveLength(6)
     for (const gun of guns) {
-      expect(gun.getAttribute('href')).toBe('/schema/systems/item/50-cal-machine-gun')
+      expect(gun.getAttribute('href')).toBe('/systems/50-cal-machine-gun')
     }
     // Modules link out through the same builder.
     expect(screen.getByRole('link', { name: /Comms Module/ }).getAttribute('href')).toBe(
-      '/schema/modules/item/comms-module'
+      '/modules/comms-module'
     )
   })
 
@@ -176,25 +281,63 @@ describe('pattern loadout badges', () => {
     expect(container.textContent).not.toContain('This simple ballistic weapon')
   })
 
-  test('without a href builder the badges are not links', () => {
+  test('without a route the names are not links', () => {
     const { chassis, pattern } = thunderStorm()
     render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
     expect(screen.queryAllByRole('link', { name: /\.50 Cal Machine Gun/ })).toHaveLength(0)
-    // The badges themselves still render — they just aren't navigable.
+    // The names themselves still render — they just aren't navigable.
     expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
+  })
+
+  test('on a surface with a Page opener, each name opens its Page', () => {
+    // ITUN: no route, a detail dialog. The Mention follows the surface.
+    const { chassis, pattern } = thunderStorm()
+    const opened: EntityRef[] = []
+    render(
+      <EntitySurfaceProvider value={{ openPage: (ref) => opened.push(ref) }}>
+        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
+      </EntitySurfaceProvider>
+    )
+    const guns = screen.getAllByRole('button', { name: '.50 Cal Machine Gun' })
+    expect(guns).toHaveLength(6)
+    guns[0]?.click()
+    expect(opened.map((ref) => ref.name)).toEqual(['.50 Cal Machine Gun'])
+  })
+
+  test('each entry is one full-width Token: its name (its kind read out), then its action type, TL and Slots', () => {
+    const { chassis, pattern } = thunderStorm()
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
+    const systems = screen.getByRole('list', { name: 'Systems installed' })
+    expect(systems.classList.contains('su-entity-token-list')).toBe(true)
+    const entries = Array.from(systems.querySelectorAll(':scope > li'))
+    expect(entries.length).toBeGreaterThan(0)
+    for (const entry of entries) {
+      // One Token a line, the link itself.
+      const tokens = entry.querySelectorAll('a.su-entity-token')
+      expect(tokens).toHaveLength(1)
+      const pill = tokens[0]?.querySelector('.su-entity-token__pill')
+      // The kind is never stamped (E9): screen readers hear it after the name.
+      expect(pill?.querySelector('.su-entity-token__kind')).toBeNull()
+      expect(pill?.querySelector('.su-sr-only')?.textContent).toBe(' (System)')
+      // Its chips follow the name, inside the pill, in E17's order: the
+      // action type (when it has one) first, then TL, then Slots.
+      const cells = Array.from(
+        pill?.querySelectorAll(':scope > .su-entity-token__chips > .su-stat-cell') ?? []
+      ).map((cell) => cell.textContent ?? '')
+      const tl = cells.findIndex((text) => /^TL\s*\d+$/.test(text))
+      expect(tl).toBeGreaterThanOrEqual(0)
+      expect(cells[tl + 1]).toMatch(/^Slots\s*\d+$/)
+      for (const lead of cells.slice(0, tl)) expect(lead).toMatch(/Action|Reaction|Passive/)
+    }
   })
 
   test('each loadout group is an announced list', () => {
     // The loadout is a countable set of installed parts, so it is a real `ul`:
     // a screen reader says "list, 6 items" instead of reading a run of
     // anonymous links. The links carry their own name (the entity's), NOT the
-    // badge's scraped text — that would read ".50 Cal Machine Gun TL 1".
+    // line's scraped text — that would read ".50 Cal Machine Gun TL 1".
     const { chassis, pattern } = thunderStorm()
-    render(
-      <EntityHrefProvider value={testEntityHref}>
-        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
-      </EntityHrefProvider>
-    )
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
     expect(screen.getByRole('list', { name: 'Systems installed' })).toBeTruthy()
     expect(screen.getByRole('list', { name: 'Modules installed' })).toBeTruthy()
     // Exact accessible name, tail excluded.
@@ -278,13 +421,13 @@ describe('pattern footer provenance', () => {
 })
 
 /**
- * The "Legal Starting Pattern" seam stamp. It rides the seam RIGHT of the
+ * The "Legal Starting Pattern" stamp. It sits in the header labels RIGHT of the
  * `[Chassis | …]` marker specifically so it survives the LISTING extent — the
  * pattern rows under a chassis are header-only, and that list is where a reader
  * choosing a starting mech actually looks. Driven purely by the stored
  * `legalStarting` data tag; never computed from tech level or salvage value.
  */
-describe('legal starting pattern seam stamp', () => {
+describe('legal starting pattern stamp', () => {
   const patternOf = (name: string): SURefObjectPattern => {
     const found = mule().patterns?.find((p) => p.name === name)
     if (!found) throw new Error(`${name} pattern fixture missing`)
@@ -301,11 +444,116 @@ describe('legal starting pattern seam stamp', () => {
     expect(screen.queryByText('Legal Starting Pattern')).toBeNull()
   })
 
+  test('no pattern card or row wears a standalone "Pattern" tag', () => {
+    render(<ReferenceEntityCard data={mule()} pattern={patternOf('Hauler')} />)
+    expect(screen.queryByText(/^Pattern$/i)).toBeNull()
+    cleanup()
+    render(<ReferenceEntityCard data={mule()} presentation="page" />)
+    expect(screen.queryByText(/^Pattern$/i)).toBeNull()
+  })
+
   test('the chassis pattern LISTING stamps exactly its tagged patterns', () => {
     const chassis = mule()
     render(<ReferenceEntityCard data={chassis} />)
     const tagged = (chassis.patterns ?? []).filter((p) => p.legalStarting === true)
     expect(tagged.length).toBeGreaterThan(0)
     expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
+  })
+
+  test("a chassis PAGE's pattern rows stamp exactly its tagged patterns", () => {
+    const chassis = mule()
+    render(<ReferenceEntityCard data={chassis} presentation="page" />)
+    const tagged = (chassis.patterns ?? []).filter((p) => p.legalStarting === true)
+    expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
+  })
+
+  for (const presentation of ['card', 'page'] as const) {
+    test(`a tagged pattern closes its prose on the book's sentence (${presentation})`, () => {
+      render(
+        <ReferenceEntityCard
+          data={mule()}
+          pattern={patternOf('Hauler')}
+          presentation={presentation}
+        />
+      )
+      expect(screen.getAllByText(LEGAL_STARTING_PATTERN_NOTE).length).toBe(1)
+    })
+
+    test(`an untagged pattern carries no such sentence (${presentation})`, () => {
+      render(
+        <ReferenceEntityCard
+          data={mule()}
+          pattern={patternOf('Crusher')}
+          presentation={presentation}
+        />
+      )
+      expect(screen.queryByText(LEGAL_STARTING_PATTERN_NOTE)).toBeNull()
+    })
+  }
+})
+
+/**
+ * A HOST'S PATTERN ROWS SHOW WHAT EACH PATTERN CHANGES. The host's stats and
+ * abilities are shared by every pattern, so a row carries only the difference:
+ * a mech pattern's loadout by name and TL, a Bio-Titan pattern's added
+ * actions as embedded cards. Both sit beside the row's link, never inside it —
+ * they are links and controls of their own.
+ */
+describe('pattern rows show what each pattern changes', () => {
+  const typhon = () => {
+    const found = SalvageUnionReference.BioTitans.getByName('Typhon')
+    if (!found) throw new Error('Typhon fixture missing')
+    return found
+  }
+  const testHref = (host: SURefEntity, pattern: SURefObjectAnyPattern) =>
+    `/${'name' in host ? nameToSlug(String(host.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
+
+  for (const presentation of ['card', 'page'] as const) {
+    test(`a mech pattern row lists its loadout by name (${presentation})`, () => {
+      render(<ReferenceEntityCard data={mule()} presentation={presentation} />)
+      // A card wraps one list of names; a page's card splits Systems from
+      // Modules, each list named for its pattern.
+      const [systems, modules] =
+        presentation === 'page'
+          ? [
+              screen.getByRole('list', { name: 'Hauler Systems installed' }),
+              screen.getByRole('list', { name: 'Hauler Modules installed' }),
+            ]
+          : [screen.getByRole('list', { name: 'Hauler loadout' })]
+      expect(systems?.textContent).toContain('Transport Hold')
+      expect((modules ?? systems)?.textContent).toContain('Reactor Flare')
+    })
+
+    test(`a Bio-Titan pattern row embeds the action it adds (${presentation})`, () => {
+      render(
+        <PatternHrefProvider value={testHref}>
+          <ReferenceEntityCard data={typhon()} presentation={presentation} />
+        </PatternHrefProvider>
+      )
+      const row = screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })
+      const added = screen.getByText('Metallic Reconstitution')
+      expect(added).toBeTruthy()
+      // The embedded card is not nested inside the row's link.
+      expect(row.contains(added)).toBe(false)
+    })
+  }
+})
+
+describe('Bio-Titan pattern view', () => {
+  test('reads pattern prose → its added action → the actions it inherits', () => {
+    const host = SalvageUnionReference.BioTitans.getByName('Typhon')
+    const pattern = host?.patterns?.find((p) => p.name === 'Hill Worm')
+    if (!host || !pattern) throw new Error('Hill Worm fixture missing')
+
+    const { container } = render(<ReferenceEntityCard data={host} pattern={pattern} size="large" />)
+    const text = container.textContent ?? ''
+
+    const patternProse = text.indexOf('lurks beneath the Wild Hills')
+    const added = text.indexOf('Metallic Reconstitution')
+    const inherited = text.indexOf('Burrower')
+    for (const index of [patternProse, added, inherited]) expect(index).toBeGreaterThan(-1)
+    expect(patternProse).toBeLessThan(added)
+    expect(added).toBeLessThan(inherited)
+    expect(screen.getByText('Pattern Actions')).toBeTruthy()
   })
 })

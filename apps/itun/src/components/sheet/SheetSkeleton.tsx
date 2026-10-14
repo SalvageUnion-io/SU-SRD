@@ -1,6 +1,6 @@
 /**
  * SheetSkeleton — shimmer placeholder for /sheet/:kind/:id while the route
- * loader hydrates the entity store (design review U-2).
+ * loader hydrates the entity store.
  *
  * Mirrors the LiveSheet shell (sticky top bar → hero band → body slabs) so
  * the swap to the real sheet doesn't shift the page: same min-h-[58px] bar,
@@ -9,19 +9,107 @@
  * `Skeleton` atom (§0: one skeleton implementation), sized per region here.
  */
 
-import { Ghost } from 'component-lib'
+import { Ghost, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
+
+// Responsive padding, the slab rhythm and the slab grid's columns are
+// `.su-sheet-skeleton-*` in `styles/sheet/chrome.css`; the rest is below.
+
+const GHOST_LABEL = {
+  height: tokens.space[16],
+  backgroundColor: tokens.color.ink15,
+} satisfies CSSProperties
+
+const SLAB_HEAD = {
+  marginBottom: tokens.space[14],
+  display: 'flex',
+  alignItems: 'center',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const SLAB_LEADER = { height: tokens.space[2], flex: '1 1 0%' } satisfies CSSProperties
+
+const SLAB_GRID = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
+
+const SLAB_CARD = {
+  height: '80px',
+  borderRadius: tokens.radius.panel,
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink15}`,
+  backgroundColor: tokens.color.paper,
+} satisfies CSSProperties
+
+const ROOT = { minHeight: '100vh', backgroundColor: tokens.color.wkBg } satisfies CSSProperties
+
+const BAR = {
+  display: 'flex',
+  minHeight: '58px',
+  alignItems: 'center',
+  gap: tokens.space[16],
+  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink20}`,
+  paddingBlock: tokens.space[8],
+} satisfies CSSProperties
+
+const BAR_ACTIONS = {
+  marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  gap: tokens.space[10],
+} satisfies CSSProperties
+
+const BAR_BUTTON = {
+  height: tokens.space[28],
+  width: tokens.space[64],
+  borderRadius: tokens.radius.card,
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink10}`,
+  backgroundColor: tokens.color.paper,
+} satisfies CSSProperties
+
+const HERO = { paddingBottom: tokens.space[6] } satisfies CSSProperties
+
+const HERO_FRAME = {
+  borderRadius: tokens.radius.panel,
+  border: `${tokens.borderWidth.entity} solid ${tokens.color.ink20}`,
+  backgroundColor: tokens.color.paper,
+} satisfies CSSProperties
+
+const HERO_TITLE = {
+  height: tokens.space[32],
+  backgroundColor: tokens.color.ink15,
+} satisfies CSSProperties
+
+const HERO_SUB = {
+  marginTop: tokens.space[12],
+  height: tokens.space[16],
+  width: '33.333333%',
+} satisfies CSSProperties
+
+const HERO_STATS = {
+  marginTop: tokens.space[24],
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const HERO_STAT = {
+  height: '56px',
+  width: '96px',
+  // A bare 0.25rem rounding: no rung on the radius ladder.
+  borderRadius: '0.25rem',
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink10}`,
+  backgroundColor: tokens.color.wkBg,
+} satisfies CSSProperties
 
 function SkeletonSlab() {
   return (
-    <div className="mt-7 first:mt-0">
+    <div className="su-sheet-skeleton-slab">
       {/* Slab header: label + dashed leader (component-lib `Slab` shape) */}
-      <div className="mb-3.5 flex items-center gap-3">
-        <Ghost className="h-4 w-28 bg-ink/15" />
-        <Ghost className="h-0.5 flex-1" />
+      <div style={SLAB_HEAD}>
+        <Ghost style={{ ...GHOST_LABEL, width: '112px' }} />
+        <Ghost style={SLAB_LEADER} />
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="h-20 rounded-panel border-chrome border-ink/15 bg-paper" />
-        <div className="h-20 rounded-panel border-chrome border-ink/15 bg-paper" />
+      <div className="su-sheet-skeleton-grid" style={SLAB_GRID}>
+        <div style={SLAB_CARD} />
+        <div style={SLAB_CARD} />
       </div>
     </div>
   )
@@ -29,39 +117,32 @@ function SkeletonSlab() {
 
 export function SheetSkeleton() {
   return (
-    <div
-      role="status"
-      aria-label="Loading sheet"
-      className="min-h-screen motion-safe:animate-pulse bg-wk-bg"
-    >
+    <div role="status" aria-label="Loading sheet" className="su-pulse" style={ROOT}>
       {/* Sticky-bar placeholder (LiveSheet top bar footprint) */}
-      <div className="flex min-h-[58px] items-center gap-4 border-b-2 border-ink/20 px-4 py-2 sm:px-[30px]">
-        <Ghost className="h-4 w-24 bg-ink/15" />
-        <div className="ml-auto flex items-center gap-2.5">
-          <div className="h-7 w-16 rounded-card border-chrome border-ink/10 bg-paper" />
-          <div className="h-7 w-16 rounded-card border-chrome border-ink/10 bg-paper" />
+      <div className="su-sheet-skeleton-bar" style={BAR}>
+        <Ghost style={{ ...GHOST_LABEL, width: '96px' }} />
+        <div style={BAR_ACTIONS}>
+          <div style={BAR_BUTTON} />
+          <div style={BAR_BUTTON} />
         </div>
       </div>
 
       {/* Hero band placeholder */}
-      <div className="px-4 pb-1.5 pt-4 sm:px-[30px] sm:pt-[22px]">
-        <div className="rounded-panel border-entity border-ink/20 bg-paper p-5 sm:p-6">
-          <Ghost className="h-8 w-1/2 bg-ink/15 sm:w-2/5" />
-          <Ghost className="mt-3 h-4 w-1/3" />
-          <div className="mt-6 flex flex-wrap gap-3">
+      <div className="su-sheet-skeleton-hero" style={HERO}>
+        <div className="su-sheet-skeleton-frame" style={HERO_FRAME}>
+          <Ghost className="su-sheet-skeleton-title" style={HERO_TITLE} />
+          <Ghost style={HERO_SUB} />
+          <div style={HERO_STATS}>
             {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                // biome-ignore lint/suspicious/noArrayIndexKey: ghost tiles are positional
-                key={i}
-                className="h-14 w-24 rounded border-chrome border-ink/10 bg-wk-bg"
-              />
+              // biome-ignore lint/suspicious/noArrayIndexKey: ghost tiles are positional
+              <div key={i} style={HERO_STAT} />
             ))}
           </div>
         </div>
       </div>
 
       {/* Body slab placeholders */}
-      <div className="px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6">
+      <div className="su-sheet-skeleton-body">
         <SkeletonSlab />
         <SkeletonSlab />
       </div>

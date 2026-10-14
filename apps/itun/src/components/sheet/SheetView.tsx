@@ -11,10 +11,10 @@
  *  - **Readable but not yours** — a crewmate's pilot or mech, an unclaimed
  *    pre-gen, and for a player the Game's crawler, which is the Mediator's
  *    (ADR-038 §5) — the same `<Sheet>`, read-only, from a store built out of
- *    `entities.listForGame` (`readOnlySheetStore.ts`). Every body and link in
+ *    `entities.listForGame` (`readOnlySheetStore.model.ts`). Every body and link in
  *    the Game is in it, so the sheet shows their mech and crawler, and the query
- *    is reactive, so it stays current as they play. Nothing is cached locally:
- *    a crewmate's sheet in your IndexedDB would be an editor whose every save
+ *    is reactive, so it stays current as they play. Nothing is adopted into the
+ *    entity store: a crewmate's sheet there would be an editor whose every save
  *    the server refuses (ADR-037).
  *  - **Neither** — not found, the same answer as no such entity.
  *
@@ -34,22 +34,24 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
+import { containerOf } from 'itun-domain/container'
+import type { SheetEntityKind } from 'itun-domain/schemas/entity'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf } from '../../lib/container'
 import { pageTitle } from '../../lib/pageTitle'
-import type { EntityRef } from '../../lib/schemas/entity'
 import { useEntityStore } from '../../stores/entityStore'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
-import type { EntityLookup } from './composition'
-import type { GameListing } from './readOnlySheetStore'
-import { makeReadOnlySheetStore, sheetDataFromListing } from './readOnlySheetStore'
+import type { EntityLookup } from './composition.model'
+import type { GameListing } from './readOnlySheetStore.model'
+import { makeReadOnlySheetStore, sheetDataFromListing } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
 import { SheetSkeleton } from './SheetSkeleton'
+import { READ_ONLY_BANNER } from './sheetChrome.model'
+import { SheetModeContext, useSheetModeStore } from './sheetMode.model'
 
-type SheetViewProps = { kind: EntityRef['type']; id: string }
+type SheetViewProps = { kind: SheetEntityKind; id: string }
 
 /**
  * Names the tab after the entity, and follows a rename. The route's `head`
@@ -59,7 +61,7 @@ type SheetViewProps = { kind: EntityRef['type']; id: string }
  * rewrites the tab on the next navigation, since every other route's title
  * differs from the sheet's.
  */
-function useSheetTabTitle(kind: EntityRef['type'], id: string) {
+function useSheetTabTitle(kind: SheetEntityKind, id: string) {
   const name = useEntityStore((s) => s.get(kind, id)?.name ?? null)
   useEffect(() => {
     document.title = pageTitle(name || 'Sheet')
@@ -67,7 +69,7 @@ function useSheetTabTitle(kind: EntityRef['type'], id: string) {
 }
 
 /** Whether the listing carries a row for this entity, parseable or not. */
-function listed(listing: GameListing, kind: EntityRef['type'], id: string): boolean {
+function listed(listing: GameListing, kind: SheetEntityKind, id: string): boolean {
   const rows =
     kind === 'pilot' ? listing.pilots : kind === 'mech' ? listing.mechs : listing.crawlers
   return rows.some((row) => (row.appId ?? (row.body as { id?: unknown } | null)?.id) === id)
@@ -77,6 +79,9 @@ export function SheetView({ kind, id }: SheetViewProps) {
   useSheetTabTitle(kind, id)
   const { mode } = useConnection()
   const router = useRouter({ warn: false })
+  const editing = useSheetModeStore((s) => s.editing)
+  const setEditing = useSheetModeStore((s) => s.setEditing)
+  const sheetMode = useMemo(() => ({ editing, setEditing }), [editing, setEditing])
   const held = useEntityStore((s) => s.get(kind, id))
 
   const online = mode === 'connected'
@@ -113,13 +118,17 @@ export function SheetView({ kind, id }: SheetViewProps) {
     })
   }, [canonical, id, kind, router])
 
-  // `/games/$gameId` opens that Game on the hub (the route picks it, then lands
-  // on `/`) — a plain `/` could not say which Game to show.
+  // `/games/$gameId` is that Game's own page — a plain `/` is the shelf.
   const crew = gameId === null ? undefined : { href: `/games/${gameId}`, label: 'the crew' }
 
-  // Yours: the local copy, editable — unless the server says otherwise.
+  // Yours: the local copy, editable — unless the server says otherwise. It
+  // opens in Read, and the band's Read | Edit switches (`sheetMode.model.ts`).
   if (held !== null && (located == null || located.mayEdit)) {
-    return <Sheet kind={kind} id={id} others={others} crawlerReadOnly={crawlerReadOnly} />
+    return (
+      <SheetModeContext.Provider value={sheetMode}>
+        <Sheet kind={kind} id={id} others={others} crawlerReadOnly={crawlerReadOnly} />
+      </SheetModeContext.Provider>
+    )
   }
 
   if (!online) {
@@ -130,7 +139,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
     return (
       <NotFoundPanel
         title={`${kind} unavailable offline`}
-        message={`This ${kind} is not saved in this browser, and reading a crewmate's sheet needs a connection.`}
+        message={`This ${kind} was not loaded before the connection dropped, and loading it needs a connection.`}
       />
     )
   }
@@ -139,7 +148,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   // Not yours, not at a table of yours, or nothing at all — one answer for all
   // three, as `listForGame` gives a non-member.
   if (located === null) return <Sheet kind={kind} id={id} />
-  // Yours, and on its way into this browser's cache (`ShelfSync`): wait for it
+  // Yours, and on its way into the store (`ShelfSync`): wait for it
   // rather than flash a read-only copy of your own sheet.
   if (located.mayEdit) return <SheetSkeleton />
 
@@ -157,14 +166,16 @@ export function SheetView({ kind, id }: SheetViewProps) {
   }
 
   return (
-    <div>
+    <div className="su-page-gutters">
       {/* Saying WHY it is read-only matters more than saying that it is: a
           player who cannot edit a crewmate's pilot should read that as the rule
           of the table, not as something broken. */}
       <div
         role="note"
         aria-label="Read-only crew sheet"
-        className="border-b-2 border-ink bg-caution px-4 py-2 font-body text-sm font-semibold text-ink sm:px-[30px]"
+        className="su-sheet-gutter"
+        // Its gutter is `.su-sheet-gutter`.
+        style={READ_ONLY_BANNER}
       >
         {kind === 'crawler'
           ? 'This is the crew’s crawler. Only the Mediator changes it; ask at the table.'

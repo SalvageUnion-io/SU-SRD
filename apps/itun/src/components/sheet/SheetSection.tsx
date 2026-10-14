@@ -19,45 +19,49 @@
  * section-edit fields and per-card controls (StatBlocks carry no cue).
  */
 
-import { Button, cn, FOCUS_RING, Glyph, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
-import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from 'react'
+import { Button, Glyph, ModalShell, PICKER_MODAL_WIDTH, tokens } from 'component-lib'
+import type { ComponentPropsWithoutRef, CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html
-// :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps; the
-// `edit` default hovers to an ink fill, `done` is a filled deep-tone chip, and
-// `add` is a deep-tone outline with a circled-plus that fills on hover. The
-// 44px coarse-pointer floor (min-h-11) collapses to the 32px design height at
-// `sm`.
+// :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps: a
+// deep-tone outline with a circled-plus that fills on hover. The 44px
+// coarse-pointer floor collapses to the 32px design height at `sm`.
+//
+// Everything with a hover, breakpoint or print variant — display, min-height
+// and the colours — is `.su-sheet-hbtn` in `styles/sheet/chrome.css`; the rest
+// is the style object below, which sits over `Button`'s own geometry.
 // ---------------------------------------------------------------------------
 
-type HButtonVariant = 'edit' | 'done' | 'add'
-
-const HBTN_BASE = `inline-flex cursor-pointer items-center gap-1.5 rounded-card border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 ${FOCUS_RING} print:hidden`
-
-const HBTN_VARIANT: Record<HButtonVariant, string> = {
-  edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
-  done: 'border-[color:var(--tone-deep,var(--color-rust))] bg-[color:var(--tone-deep,var(--color-rust))] text-paper hover:border-ink hover:bg-ink',
-  add: 'border-[color:var(--tone-deep,var(--color-rust))] bg-paper text-[color:var(--tone-deep,var(--color-rust))] hover:bg-[color:var(--tone-deep,var(--color-rust))] hover:text-paper',
-}
-
-type HButtonProps = ComponentPropsWithoutRef<'button'> & {
-  variant?: HButtonVariant
-}
+const HBTN = {
+  cursor: 'pointer',
+  alignItems: 'center',
+  gap: tokens.space[6],
+  borderRadius: tokens.radius.card,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.pill,
+  paddingBlock: 0,
+  paddingInline: tokens.space[12],
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tokens.tracking.capsWide,
+  whiteSpace: 'nowrap',
+  transitionProperty:
+    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionDuration: '150ms',
+} satisfies CSSProperties
 
 /** Container-header control button (design `.hbtn`). */
-export function HButton({
-  variant = 'edit',
-  className,
-  type = 'button',
-  children,
-  ...props
-}: HButtonProps) {
+function HButton({ children, ...props }: ComponentPropsWithoutRef<'button'>) {
   return (
-    <button type={type} className={cn(HBTN_BASE, HBTN_VARIANT[variant], className)} {...props}>
+    <Button className="su-sheet-hbtn" style={HBTN} {...props}>
       {children}
-    </button>
+    </Button>
   )
 }
 
@@ -69,24 +73,31 @@ type SectionManageButtonProps = {
   /** What gets added, for the accessible label, e.g. 'ability'. */
   label: string
   onClick: () => void
-  className?: string
 }
+
+/** The circled plus: a 16px ring in the button's own colour. */
+const MANAGE_RING = {
+  display: 'flex',
+  height: tokens.space[16],
+  width: tokens.space[16],
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: tokens.radius.full,
+  border: `${tokens.borderWidth.pill} solid currentColor`,
+} satisfies CSSProperties
+
+const MANAGE_GLYPH = { height: tokens.space[8], width: tokens.space[8] } satisfies CSSProperties
 
 /**
  * Always-visible, always-ENABLED '+ Add' for a collection section header.
  * // TODO(redesign): rule-gate add/remove (TP / maxAbilities / slots / scrap
  * economy) — deferred; users self-manage for now.
  */
-export function SectionManageButton({ label, onClick, className }: SectionManageButtonProps) {
+export function SectionManageButton({ label, onClick }: SectionManageButtonProps) {
   return (
-    <HButton
-      variant="add"
-      aria-label={`Manage ${label.toLowerCase()}`}
-      onClick={onClick}
-      className={className}
-    >
-      <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-current">
-        <Glyph name="plus" className="h-2 w-2" />
+    <HButton aria-label={`Manage ${label.toLowerCase()}`} onClick={onClick}>
+      <span style={MANAGE_RING}>
+        <Glyph name="plus" style={MANAGE_GLYPH} />
       </span>
       Manage {label}
     </HButton>
@@ -103,18 +114,17 @@ type CardRemoveButtonProps = {
   /** The card's entity name, for the accessible label. */
   name: string
   onRemove: () => void
-  className?: string
 }
 
 /** Per-card remove (✕) control — always available; carries the editing cue. */
-export function CardRemoveButton({ name, onRemove, className }: CardRemoveButtonProps) {
+export function CardRemoveButton({ name, onRemove }: CardRemoveButtonProps) {
   return (
     <Button
       size="mini"
       variant="danger"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
-      className={cn('min-h-11 sm:min-h-6 print:hidden', className)}
+      className="su-sheet-remove"
     >
       &#10005; Remove
     </Button>
@@ -125,15 +135,15 @@ export function CardRemoveButton({ name, onRemove, className }: CardRemoveButton
 // The ONE shared picker modal (collections + single-select pickers)
 // ---------------------------------------------------------------------------
 
+const PICKER_BODY = {
+  backgroundColor: tokens.color.paper,
+  padding: tokens.space[20],
+} satisfies CSSProperties
+
 type SheetPickerModalProps = {
   open: boolean
   onClose: () => void
   title: string
-  /**
-   * ModalShell max width. Defaults to `PICKER_MODAL_WIDTH` for a `floating`
-   * searcher picker, and to 80% of the viewport for a framed picker body.
-   */
-  maxWidth?: string
   /**
    * The searcher-picker layout: render a BARE ModalShell and hand the single
    * `EntitySearcher` child its own frame by injecting this modal's
@@ -161,7 +171,6 @@ export function SheetPickerModal({
   open,
   onClose,
   title,
-  maxWidth,
   floating = false,
   children,
 }: SheetPickerModalProps) {
@@ -182,7 +191,7 @@ export function SheetPickerModal({
           if (!next) onClose()
         }}
         title={title}
-        maxWidth={maxWidth ?? PICKER_MODAL_WIDTH}
+        maxWidth={PICKER_MODAL_WIDTH}
         bare
       >
         {searcher}
@@ -197,9 +206,10 @@ export function SheetPickerModal({
         if (!next) onClose()
       }}
       title={title}
-      maxWidth={maxWidth ?? 'max-w-[80vw]'}
+      // 80% of the viewport for a framed picker body.
+      maxWidth="su-sheet-picker-framed"
     >
-      <div className="bg-paper p-5">{children}</div>
+      <div style={PICKER_BODY}>{children}</div>
     </ModalShell>
   )
 }

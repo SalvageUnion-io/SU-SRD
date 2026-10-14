@@ -1,5 +1,6 @@
 import type { Page, TestInfo } from '@playwright/test'
 import { test as base, expect } from '@playwright/test'
+import { at } from './_base'
 import { waitForReady } from './_helpers'
 
 /**
@@ -47,7 +48,7 @@ type AccountFixture = {
   account: 'signed-in' | 'anonymous'
 }
 
-/** Kept in step with `testAuthSeam.ts` by `TestAuthBridge.test.tsx`. */
+/** Kept in step with `testAuthSeam.model.ts` by `TestAuthBridge.test.tsx`. */
 const TEST_SIGN_IN_GLOBAL = '__itunTestSignIn'
 
 /** A fresh account per test — a reused one would inherit the last run's roster. */
@@ -131,7 +132,7 @@ export const test = base.extend<AccountFixture>({
   account: ['signed-in', { option: true }],
   page: async ({ page, account }, use, testInfo) => {
     if (account === 'signed-in') {
-      await page.goto('/')
+      await page.goto(at('/'))
       await waitForReady(page)
       requireSeam(await seamIsPresent(page), testInfo)
       await signInFresh(page)

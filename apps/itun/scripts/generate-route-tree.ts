@@ -23,8 +23,8 @@ type ConfigResolvedHook = (config: { root: string }) => Promise<void>
  * The committed tree is never moved, truncated or deleted: the scratch file
  * replaces it with one atomic rename, and only when the content differs. The
  * pre-push hook runs `tools/check-generated.ts` alongside the test suite, and
- * tests read every tracked file — this used to move the tree aside while the
- * generator ran, and a test reading it in that window failed with ENOENT.
+ * tests read every tracked file: a tree moved aside while the generator ran
+ * fails a test reading it in that window with ENOENT.
  *
  * The scratch file starts absent, so "it exists afterwards" proves the
  * generator ran: a plugin upgrade that keeps the hook but stops writing fails

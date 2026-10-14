@@ -25,9 +25,9 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { SURefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
-import type { Crawler } from '../../../lib/schemas/crawler'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
@@ -88,7 +88,7 @@ function makeCrawlerStubStore(initial: Crawler, updateSpy?: ReturnType<typeof mo
 
   const store = makeEntityStoreMock({
     crawlers: [current],
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((_type: string, id: string) => (id === current.id ? current : null)),
@@ -107,7 +107,7 @@ function makeEmptyStore() {
     throw new Error('update should not be called in read-only snapshot')
   })
   const store = makeEntityStoreMock({
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => []),
     get: mock(() => null),
@@ -243,20 +243,14 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     expect(autocannon.getAttribute('aria-pressed')).toBe('false')
   })
 
-  test('readOnly: choice cards render but toggling does not persist', async () => {
+  test('readOnly: an unmade pick draws no choice cards, so there is nothing to toggle', async () => {
     restore = await patchCrawlerBays()
     const crawler = makeCrawler()
     const { store, updateMock } = makeCrawlerStubStore(crawler)
     render(<CrawlerSheet crawler={crawler} store={store} readOnly />)
     expandCards()
 
-    const autocannon = screen.getByRole('button', { name: /Autocannon/i })
-    expect(autocannon).toBeTruthy()
-
-    await act(async () => {
-      fireEvent.click(autocannon)
-    })
-
+    expect(screen.queryByRole('button', { name: /Autocannon/i })).toBeNull()
     expect(updateMock).not.toHaveBeenCalled()
   })
 })

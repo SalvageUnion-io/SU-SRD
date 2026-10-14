@@ -1,6 +1,6 @@
 /**
- * useCargo — store-backed wrapper around the pure `cargoTransfer` reducer
- * (plan 4.1/4.7). Owns persistence only: state is derived from the passed
+ * useCargo — store-backed wrapper around the pure `cargoTransfer` reducer.
+ * Owns persistence only: state is derived from the passed
  * entities on every render, an action runs the reducer, and on success the
  * changed sides are written back through the entity store (mech `cargoLots`;
  * crawler `cargoLots` + `scrapPool`).
@@ -10,13 +10,14 @@
  * round-trip) live in cargoTransfer.ts.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { mechMaxCargo } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import type { CargoLot } from '../schemas/cargoLot'
-import type { Crawler } from '../schemas/crawler'
-import type { Mech } from '../schemas/mech'
+import { failureMessage } from '../connection/useServerAction'
 import type {
   CargoBoundaryState,
   CargoTransferAction,
@@ -106,8 +107,10 @@ async function commitUpdates(
     await run()
     return result
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    return { ok: false, reason: `Could not save that change: ${message}` }
+    return {
+      ok: false,
+      reason: failureMessage(error, 'That change could not be saved. Try again.'),
+    }
   }
 }
 
@@ -135,12 +138,12 @@ export function useCargo({
     if (!mech)
       return {
         ok: false,
-        reason: 'No mech is docked — nothing to transfer to or from.',
+        reason: 'No mech is assigned — nothing to transfer to or from.',
       }
     if (!crawler) {
       return {
         ok: false,
-        reason: 'No crawler is linked — nothing to transfer to or from.',
+        reason: 'No crawler is assigned — nothing to transfer to or from.',
       }
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
@@ -148,9 +151,9 @@ export function useCargo({
     const result = cargoTransfer(state, action)
     if (!result.ok) return result
 
-    // Both sides of the boundary commit together — one server mutation and one
-    // IDB transaction — so a refusal or a crash between two sequential writes
-    // cannot vanish or duplicate the moved lot (audit item 2).
+    // Both sides of the boundary commit together, in one server mutation, so a
+    // refusal or a crash between two sequential writes cannot vanish or
+    // duplicate the moved lot.
     const updates: Parameters<typeof storeState.transfer>[0]['updates'] = []
     if (result.changed.carrier) {
       updates.push({ type: 'mech', id: mech.id, patch: { cargoLots: result.state.carrierLots } })
@@ -172,7 +175,7 @@ export function useCargo({
   async function dispatchMechLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
     if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
     if (!mech) {
-      return { ok: false, reason: 'No mech is docked — nothing to store cargo in.' }
+      return { ok: false, reason: 'No mech is assigned — nothing to store cargo in.' }
     }
 
     // Reduce against a FRESH read, not the render-time `state` snapshot. These
@@ -212,7 +215,7 @@ export function useCargo({
   async function dispatchCrawlerLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
     if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
     if (!crawler) {
-      return { ok: false, reason: 'No crawler is linked — nothing to store cargo in.' }
+      return { ok: false, reason: 'No crawler is assigned — nothing to store cargo in.' }
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 

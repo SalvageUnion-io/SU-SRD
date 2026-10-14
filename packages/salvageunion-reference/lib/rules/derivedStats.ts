@@ -1,5 +1,5 @@
 /**
- * Derived maxima for all three entities (plan 2.5, gap 11).
+ * Derived maxima for all three entities.
  *
  * "Many maxima are derived, not fixed" (rules digest): store modifiers,
  * compute totals. This module is the single source for those computations.
@@ -9,8 +9,8 @@
  *            maxAP = 5 + 1×(crawler tech − 1) + maxApModifier
  *   Mech:    max{SP,EP,Heat,Cargo} = chassis stat + max*Modifier
  *   Crawler: maxSP = tech-level structurePoints (ORM) + the chosen TYPE's
- *            `max_sp_bonus` mutations (Battle +5, applied at read —
- *            wizard-refresh Phase 5) + maxSpModifier (a pure hand-edit)
+ *            `max_sp_bonus` mutations (Battle +5, applied at
+ *            read) + maxSpModifier (a pure hand-edit)
  *
  * All functions are pure — no side effects, no async, no React. Parameter
  * types are small structural shapes (not full persisted records) — a
@@ -18,11 +18,11 @@
  * `src/lib/schemas/`) satisfy them automatically.
  */
 
-import { SalvageUnionReference } from '../index.js'
-import type { ActiveEffects, ResolvedContribution } from './contributions.js'
-import { abilityContributions, installedContributions, sumContributions } from './contributions.js'
-import { crawlerMaxSpBonus } from './creation.js'
-import { resolveChassisRef, resolveCrawlerRef } from './resolveRefs.js'
+import { SalvageUnionReference } from '../index'
+import type { ActiveEffects, ResolvedContribution } from './contributions'
+import { abilityContributions, installedContributions, sumContributions } from './contributions'
+import { crawlerMaxSpBonus } from './creation'
+import { resolveChassisRef, resolveCrawlerRef } from './resolveRefs'
 
 // ---------------------------------------------------------------------------
 // Pilot
@@ -110,7 +110,7 @@ export function resolveGauge(current: number | undefined, max?: number): number 
   return max === undefined ? value : Math.min(value, max)
 }
 
-/** A single pilot injury (rules A11): minor −1 max HP, major −2. */
+/** A single pilot injury: minor −1 max HP, major −2. */
 type Injury = { severity: 'minor' | 'major'; note: string }
 
 type PilotDerivationInput = {
@@ -136,7 +136,7 @@ type PilotDerivationInput = {
   maxInventorySlotsOverride?: number
 }
 
-/** Total max-HP penalty from injuries: minor −1, major −2 (rules A2/A11). */
+/** Total max-HP penalty from injuries: minor −1, major −2. */
 export function injuryMaxHpPenalty(injuries: Injury[] | undefined): number {
   return (injuries ?? []).reduce((sum, injury) => sum + (injury.severity === 'major' ? 2 : 1), 0)
 }
@@ -151,7 +151,8 @@ const STAT_TRAINING_AP_PER_TIER = 1
  * RULES: the Pilot Bay's "Stat Training" grants a one-off +2 HP / +1 AP for
  * training during Downtime in each of a Tech 2..6 Pilot Bay, in order.
  *
- * HOUSE CHOICE (product decision, deliberately simpler than the book): the
+ * HOUSE RULE `stat-training-follows-crawler` (registered in `houseRules.ts`,
+ * which cites the book; the line is tagged so the ledger says so): the
  * bonus is ALWAYS derived from the crawler's tech level — +2 HP and +1 AP per
  * tier above Tech 1 — with no per-pilot record of which tiers were actually
  * trained. A pilot aboard a Tech 3 crawler reads 14 HP / 7 AP whether or not
@@ -172,13 +173,20 @@ function pilotStatTrainingContributions(
   if (tiers === 0) return []
   const perTier = stat === 'maxHp' ? STAT_TRAINING_HP_PER_TIER : STAT_TRAINING_AP_PER_TIER
   return [
-    { source: `Crawler Tech ${tech}`, ref: 'Pilot Bay', stat, amount: perTier * tiers, copies: 1 },
+    {
+      source: `Crawler Tech ${tech}`,
+      ref: 'Pilot Bay',
+      stat,
+      amount: perTier * tiers,
+      copies: 1,
+      houseRule: 'stat-training-follows-crawler',
+    },
   ]
 }
 
 /**
  * Derived max HP. Can legitimately reach 0 or below — that is the dead state
- * (rules A2: "if Max HP reaches 0 the Pilot dies") and is surfaced by
+ * ("if Max HP reaches 0 the Pilot dies") and is surfaced by
  * isPilotDead(), not clamped away here.
  */
 export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
@@ -197,8 +205,8 @@ export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
     pilot.maxHpOverride,
     hpSources
   )
-  // Max HP may legitimately reach 0 or below — that is the dead state
-  // (rules A2), surfaced by isPilotDead() rather than clamped away. Recompute
+  // Max HP may legitimately reach 0 or below — that is the dead state,
+  // surfaced by isPilotDead() rather than clamped away. Recompute
   // unfloored so a lethal injury total is not hidden behind breakdownOf's floor.
   if (parts.overridden) return parts
   const unfloored =
@@ -223,7 +231,7 @@ export function pilotMaxAP(pilot: PilotDerivationInput): number {
 }
 
 /**
- * Derived pilot inventory capacity (rules A13: 6 base) + the hand-edited
+ * Derived pilot inventory capacity (6 base) + the hand-edited
  * `maxInventorySlotsModifier` + ability contributions (Beefcake +4), with the
  * same absolute `maxInventorySlotsOverride` pin HP and AP already honour.
  *
@@ -278,9 +286,8 @@ type MechDerivationInput = {
   maxEpOverride?: number
   maxHeatOverride?: number
   maxCargoOverride?: number
-  // Optional so the legacy single-arg call form (e.g. tests, cargo cap) still
-  // compiles; absent means "no installed bonuses to sum" and the derivation
-  // falls back to chassis stat + modifier.
+  // Absent means "no installed bonuses to sum": the derivation falls back to
+  // chassis stat + modifier.
   systems?: string[]
   modules?: string[]
 }
@@ -298,8 +305,8 @@ export type PilotingContext = {
   /** The mech's Tech Level, for `perTechLevel` amounts (Beefcake's 3+X). */
   techLevel?: number
   /**
-   * Which `duration: 'activated'` contributions are switched on right now
-   * (F1). Ephemeral play state, never persisted — an activated effect that is
+   * Which `duration: 'activated'` contributions are switched on right now.
+   * Ephemeral play state, never persisted — an activated effect that is
    * off contributes nothing, exactly as if it were absent.
    */
   active?: ActiveEffects
@@ -410,7 +417,7 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
 /**
  * Derived mech maxima: chassis stat + hand-edited modifier + every declared
  * `contribution` from the pilot's abilities and the mech's installed
- * systems/modules (heat sinks, capacitance banks, holds — rules B2/B4/B6/B14),
+ * systems/modules (heat sinks, capacitance banks, holds),
  * each counted per installed copy and attributed by name. Pass a pre-resolved
  * `chassis` to avoid repeated ORM lookups; floored at 0 so a negative total
  * never produces a negative maximum. `contributions` is the only numeric
@@ -543,7 +550,7 @@ export function mechMaxCargo(
 }
 
 /**
- * The unified read-time conditions vocabulary for a mech (plan 2.3): the
+ * The unified read-time conditions vocabulary for a mech: the
  * free-form `conditions[]` merged with the automation-written boolean flags
  * (shutdown → 'Shutdown', vulnerable → 'Vulnerable', destroyed → 'Destroyed'),
  * deduplicated case-insensitively. Display layers render THIS list so the
@@ -573,8 +580,8 @@ type CrawlerDerivationInput = {
   /**
    * Chosen crawler-type slug — the type's stored
    * `max_sp_bonus` mutations (Battle +5) apply AT READ, so the record keeps
-   * the BARE tech-level value and type swaps re-derive in both directions
-   * (wizard-refresh Phase 5). Absent/unresolvable = no type bonus.
+   * the BARE tech-level value and type swaps re-derive in both directions.
+   * Absent/unresolvable = no type bonus.
    */
   type?: string
   maxSpModifier?: number
@@ -583,14 +590,8 @@ type CrawlerDerivationInput = {
 /**
  * Parse a crawler techLevel slug (e.g. "tech-3") to its numeric level (3).
  * Returns undefined when no digits are present.
- *
- * A duplicate of ITUN's `src/lib/crawlerLevel.ts#parseCrawlerTechLevel` — kept
- * local rather than imported so this module has no dependency on an ITUN app
- * file. `crawlerLevel.ts` also owns `resolveEffectiveCrawlerLevel`, which
- * depends on ITUN's Pilot/Crawler Zod types and is out of this migration's
- * scope (only this module's own rules functions were being relocated).
  */
-function parseCrawlerTechLevel(techLevel: string): number | undefined {
+export function parseCrawlerTechLevel(techLevel: string): number | undefined {
   const digits = techLevel.replace(/[^0-9]/g, '')
   if (digits.length === 0) {
     return undefined

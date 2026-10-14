@@ -1,25 +1,124 @@
 /**
  * PilotSheetItems — the pilot sheet's per-item building blocks (abilities,
- * equipment, generic entries, injuries), extracted from PilotSheet.tsx
- * (audit item 19). Purely presentational and callback-driven — PilotSheet
+ * equipment, generic entries, injuries), extracted from PilotSheet.tsx.
+ * Purely presentational and callback-driven — PilotSheet
  * owns all persistence.
  */
 
-import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
-import { Button, Input, Panel, ReferenceEntityCard, Stat, StatusBadge } from 'component-lib'
+import type { ChoiceSelections } from 'component-lib'
+import {
+  Button,
+  Entity,
+  Input,
+  Panel,
+  ReferenceEntityCard,
+  Stat,
+  StatusBadge,
+  tokens,
+  useDisclosure,
+} from 'component-lib'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { GenericInventoryEntry } from 'itun-domain/schemas/pilot'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
-import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
+import {
+  equipmentMaxUses,
+  genericEntrySlots,
+  resolveEquipment,
+} from '../../lib/rules/pilotInventory'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import { equipmentMaxUses, genericEntrySlots, resolveEquipment } from './pilotInventory'
+import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
 
-const HIDE_CHOICES = { choices: true } as const
+/** An inventory item in Edit: the pill, its control row, then any details. */
+const ITEM_EDIT = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+  minWidth: 0,
+} satisfies CSSProperties
 
-/** Per-item condition cycle (design §4.5: Intact → Damaged → Destroyed → Intact). */
+const ROW_TEXT = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
+const TRUNCATE = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+/** An unresolved equipment slug: still shown, muted. */
+const UNRESOLVED_SLUG = {
+  ...ROW_TEXT,
+  ...TRUNCATE,
+  color: tokens.color.wkMuted,
+  flex: '1 1 0%',
+  minWidth: 0,
+} satisfies CSSProperties
+
+const ENTRY_TEXT = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+
+const ENTRY_NAME = {
+  ...ROW_TEXT,
+  ...TRUNCATE,
+  color: tokens.color.ink,
+  fontWeight: tokens.weight.medium,
+} satisfies CSSProperties
+
+const ENTRY_QTY = {
+  color: tokens.color.wkMuted,
+  marginLeft: tokens.space[4],
+} satisfies CSSProperties
+
+const ENTRY_NOTE = {
+  ...TRUNCATE,
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+const ADDER = {
+  alignItems: 'center',
+  border: `${tokens.borderWidth.chrome} dashed ${tokens.color.wkFaint}`,
+  borderRadius: tokens.radius.card,
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+  padding: tokens.space[10],
+} satisfies CSSProperties
+
+/** The adder's inputs, a rung smaller than the `Input` skin. */
+const COMPACT_INPUT = {
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  paddingBlock: tokens.space[6],
+  paddingInline: tokens.space[8],
+} satisfies CSSProperties
+
+const NAME_INPUT = { ...COMPACT_INPUT, flex: '1 1 0%', width: '9rem' } satisfies CSSProperties
+
+const NUMBER_INPUT = { ...COMPACT_INPUT, width: '3.5rem' } satisfies CSSProperties
+
+const ADDER_LABEL = {
+  alignItems: 'center',
+  color: tokens.color.wkMuted,
+  display: 'flex',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  gap: tokens.space[4],
+  letterSpacing: '0.025em',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** Per-item condition cycle (Intact → Damaged → Destroyed → Intact). */
 const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
   intact: 'damaged',
   damaged: 'destroyed',
@@ -40,12 +139,24 @@ type PilotAbilityItemProps = {
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
   readOnly: boolean
+  /**
+   * `row` on a tree's track (the SRD's Tree view): the Row, which Peeks the
+   * card, its tier left to the track's numeral and its kind to the tree's
+   * slab, the controls on the line under it. A Token otherwise.
+   */
+  form?: 'token' | 'row'
 }
 
+/** On a track the tree's slab names the kind and the track numbers the tier. */
+const OMIT_KIND_TIER = ['kind', 'tier'] as const
+
 /**
- * One ability card. AP cost resolves from the ability's actions
- * (resolveAbilityApCost): `null` means no FIXED numeric cost (variable 'X' or
- * none) — no spend button renders, we never spend an undefined amount.
+ * One ability: its Token, which Peeks the whole card (owner's call,
+ * 2026-10-14: "all references = peek tokens"), with Spend AP and the used
+ * toggle on its line in Edit, and a "Used" stamp in Read. AP cost resolves
+ * from the ability's actions (resolveAbilityApCost): `null` means no FIXED
+ * numeric cost (variable 'X' or none) — no spend control renders, we never
+ * spend an undefined amount. The cost itself is the Token's own chip.
  */
 export function PilotAbilityItem({
   ability,
@@ -54,54 +165,51 @@ export function PilotAbilityItem({
   onSpend,
   onToggleUsed,
   readOnly,
+  form = 'token',
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
-  const canSpend = apCost !== null && currentAP >= apCost
-
-  // No `footMeta` here. ReferenceEntityCard already renders the ability's
-  // activation cost from its own action — "1 AP" for a fixed cost, "X AP" for a
-  // variable one — so an "AP Cost" pair restated it. On the variable abilities
-  // it was worse than redundant: `apCost` is null there, so the footer printed
-  // "AP Cost —" beside a card plainly saying "X AP", replacing the one useful
-  // fact (the cost scales with what you spend) with an em-dash. The cost still
-  // reaches the player as an affordance — the Spend AP control names it.
-  //
-  // All interactivity rides the controls bar (no footer actions). Read-only
-  // shows a static Used stamp; editable shows Spend AP + the used toggle, with
-  // the per-card remove (✕) last, in the card HEADER (G4).
-  const controls: ReferenceEntityControl[] = []
-  if (readOnly) {
-    if (used) controls.push({ key: 'used', badge: 'Used' })
-  } else {
-    if (apCost !== null) {
-      controls.push({
-        key: 'spend',
-        label: 'Spend AP',
-        ariaLabel: `Spend ${apCost} AP for ${ability.name}`,
-        onClick: () => {
-          onSpend(apCost)
-        },
-        variant: 'primary',
-        disabled: !canSpend,
-      })
-    }
-    controls.push({
-      key: 'toggle-used',
-      label: used ? 'Recharge' : 'Mark Used',
-      ariaLabel: used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`,
-      onClick: () => {
-        onToggleUsed(!used)
-      },
-    })
-  }
-
   return (
-    <ReferenceEntityCard
-      data={ability}
-      size="medium"
-      collapsible
-      hide={HIDE_CHOICES}
-      controls={controls.length > 0 ? controls : undefined}
+    <SheetItemLine
+      rowForm={form === 'row'}
+      token={
+        form === 'row' ? (
+          <Entity
+            form="row"
+            entity={ability}
+            mode={{ kind: 'link' }}
+            omit={OMIT_KIND_TIER}
+            lead
+            peek
+          />
+        ) : (
+          <Entity form="token" entity={ability} mode={{ kind: 'link' }} />
+        )
+      }
+      name={ability.name}
+      readOnly={readOnly}
+      stamp={used ? 'Used' : undefined}
+      actions={
+        <>
+          {apCost !== null && (
+            <Button
+              className="su-sheet-ctl"
+              aria-label={`Spend ${apCost} AP for ${ability.name}`}
+              disabled={currentAP < apCost}
+              onClick={() => onSpend(apCost)}
+            >
+              Spend AP
+            </Button>
+          )}
+          <Button
+            className="su-sheet-ctl"
+            aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
+            aria-pressed={used}
+            onClick={() => onToggleUsed(!used)}
+          >
+            {used ? 'Used' : 'Mark Used'}
+          </Button>
+        </>
+      }
     />
   )
 }
@@ -121,7 +229,7 @@ type PilotEquipmentItemProps = {
    */
   seedSelections: ChoiceSelections | undefined
   condition: ItemCondition
-  /** Uses remaining for this item; undefined = full (rules A14). */
+  /** Uses remaining for this item; undefined = full. */
   usesLeft: number | undefined
   onConditionChange: (slug: string, next: ItemCondition) => void
   onUsesChange: (slug: string, next: number) => void
@@ -141,8 +249,9 @@ type PilotEquipmentItemProps = {
 }
 
 /**
- * One inventory equipment card: choice cards enabled, condition cycled via the
- * card's status badge, uses counted in the foot with Use / Restock actions.
+ * One inventory item: the shortform pill in both states. Edit adds a row under
+ * it — the condition tri-state, uses with Use / Restock, Details (the full card,
+ * with its choices) and Remove.
  *
  * Extracted from the map body so it can legally call the useEntityChoices hook.
  */
@@ -168,12 +277,14 @@ export function PilotEquipmentItem({
     seedSelections,
     store
   )
+  // Edit: whether the full card (its text and any choices) is open under the row.
+  const details = useDisclosure()
 
   if (!equipment) {
     // Unresolved slug — still shown, still counted (1 slot), still toggleable.
     return (
-      <Panel className="flex items-center gap-3 px-3 py-2.5">
-        <span className="min-w-0 flex-1 truncate font-body text-sm text-wk-muted">{slug}</span>
+      <Panel className="su-sheet-pilot-panel-row">
+        <span style={UNRESOLVED_SLUG}>{slug}</span>
         <Stat orientation="horizontal" label="Slots" value={1} />
         <StatusBadge
           status={condition}
@@ -200,64 +311,72 @@ export function PilotEquipmentItem({
   // than duplicating one. Either way it is not part of the SRD card, and the
   // inventory band already states slot usage against capacity, once. `Uses`
   // stays: that is live sheet state, not a restatement of reference data.
-  const footMeta: CardFootMeta[] = [
-    ...(maxUses !== null ? [{ label: 'Uses', value: `${uses}/${maxUses}` }] : []),
-  ]
-  // Use / Restock ride the controls bar (no footer actions); the per-card
-  // remove (✕) stays last, beside the status control in the header (G4).
-  const controls: ReferenceEntityControl[] = []
-  if (!readOnly && maxUses !== null && uses !== null) {
-    controls.push({
-      key: 'use',
-      label: 'Use',
-      ariaLabel: `Use ${equipment.name}`,
-      onClick: () => {
-        onUsesChange(slug, Math.max(0, uses - 1))
-      },
-      disabled: uses <= 0,
-    })
-    controls.push({
-      key: 'restock',
-      label: 'Restock',
-      ariaLabel: `Restock ${equipment.name}`,
-      onClick: () => {
-        onUsesChange(slug, maxUses)
-      },
-      variant: 'ghost',
-      disabled: uses >= maxUses,
-    })
-  }
-
+  //
   // Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
   // never reaches this component. A granting slug is rendered by `PartnerCard`
   // instead — full width, with the instance's own stats, loadout, conditions
   // and hold — because the grant and the granted thing are one entry to the
   // player (ADR-028). PilotSheet filters those slugs out before mapping here.
 
+  // The shortform pill — the item named, typed and tech-levelled on one line
+  // (board 10). It is the item in BOTH states: the name always wins, and is
+  // never ellipsized to make room for a control. A damaged item's pill greys,
+  // as its card's header does; it Peeks the whole card.
+  const pill = (
+    <Entity form="token" entity={equipment} instance={{ condition }} mode={{ kind: 'link' }} />
+  )
+  // Only an item with choices opens its card under the line: its choices are
+  // written there. Everything else the Peek already shows.
+  const hasChoices = Array.isArray(equipment.choices) && equipment.choices.length > 0
+
+  // Read: the pill alone (the inventory wraps its pills on a line). Edit: the
+  // same line as a mech's Systems and Modules (`SheetItemLine`), Details
+  // where there are choices to make.
+  if (readOnly) return pill
+
   return (
-    <ReferenceEntityCard
-      data={equipment}
-      size="medium"
-      collapsible
-      selections={selections}
-      onSelectionChange={readOnly ? undefined : setSelections}
-      scalingParent={scalingParent}
-      status={condition}
-      onStatusClick={
-        readOnly
-          ? undefined
-          : () => {
-              onConditionChange(slug, CONDITION_CYCLE[condition])
-            }
-      }
-      footMeta={footMeta}
-      controls={controls.length > 0 ? controls : undefined}
-    />
+    <div style={ITEM_EDIT}>
+      <SheetItemLine
+        token={pill}
+        name={equipment.name}
+        condition={condition}
+        readOnly={false}
+        onConditionCycle={() => onConditionChange(slug, CONDITION_CYCLE[condition])}
+        uses={
+          maxUses !== null && uses !== null
+            ? { remaining: uses, max: maxUses, onChange: (next) => onUsesChange(slug, next) }
+            : undefined
+        }
+        actions={
+          hasChoices && (
+            <Button
+              className="su-sheet-ctl"
+              {...details.toggleProps}
+              aria-label={`${details.open ? 'Collapse' : 'Expand'} ${equipment.name}`}
+            >
+              Details
+            </Button>
+          )
+        }
+        onRemove={onRemove}
+      />
+      {details.open && (
+        <div id={details.panelId}>
+          <ReferenceEntityCard
+            data={equipment}
+            size="medium"
+            selections={selections}
+            onSelectionChange={setSelections}
+            scalingParent={scalingParent}
+          />
+        </div>
+      )}
+    </div>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Inventory — generic entries (plan S7: Scrap at slotCost 3, etc.)
+// Inventory — generic entries (Scrap at slotCost 3, etc.)
 // ---------------------------------------------------------------------------
 
 type GenericEntryCardProps = {
@@ -268,13 +387,13 @@ type GenericEntryCardProps = {
 export function GenericEntryCard({ entry, onRemove }: GenericEntryCardProps) {
   const qty = entry.qty ?? 1
   return (
-    <Panel className="flex items-center gap-3 px-3 py-2.5">
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-body text-sm font-medium text-ink">
+    <Panel className="su-sheet-pilot-panel-row">
+      <div style={ENTRY_TEXT}>
+        <div style={ENTRY_NAME}>
           {entry.name}
-          {qty > 1 && <span className="ml-1 text-wk-muted">×{qty}</span>}
+          {qty > 1 && <span style={ENTRY_QTY}>×{qty}</span>}
         </div>
-        {entry.note && <div className="truncate font-body text-xs text-wk-muted">{entry.note}</div>}
+        {entry.note && <div style={ENTRY_NOTE}>{entry.note}</div>}
       </div>
       <Stat orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
       {onRemove && (
@@ -296,8 +415,8 @@ type GenericEntryAdderProps = {
 }
 
 /**
- * Minimal generic-entry intake (design-review item: 'generic inventory
- * slot-cost entry'). '+ Scrap' is the rules-blessed shortcut (3 slots each);
+ * Minimal generic-entry intake (a generic inventory slot-cost
+ * entry). '+ Scrap' is the rules-blessed shortcut (3 slots each);
  * the free form covers everything else with an explicit slot cost.
  */
 export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
@@ -319,10 +438,8 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
     setQty(1)
   }
 
-  const compactInput = 'px-2 py-1.5 text-xs'
-
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-card border-chrome border-dashed border-wk-faint p-2.5">
+    <div style={ADDER}>
       <Button
         size="compact"
         aria-label="Add Scrap (3 slots)"
@@ -338,12 +455,9 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         aria-label="New item name"
         placeholder="Item name"
         onChange={(e) => setName(e.target.value)}
-        className={`${compactInput} w-36 flex-1`}
+        style={NAME_INPUT}
       />
-      <label
-        htmlFor="new-item-slots"
-        className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
-      >
+      <label htmlFor="new-item-slots" style={ADDER_LABEL}>
         Slots
         <Input
           id="new-item-slots"
@@ -353,13 +467,10 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           value={slots}
           aria-label="New item slot cost"
           onChange={(e) => setSlots(Number(e.target.value))}
-          className={`${compactInput} w-14`}
+          style={NUMBER_INPUT}
         />
       </label>
-      <label
-        htmlFor="new-item-qty"
-        className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
-      >
+      <label htmlFor="new-item-qty" style={ADDER_LABEL}>
         Qty
         <Input
           id="new-item-qty"
@@ -369,7 +480,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           value={qty}
           aria-label="New item quantity"
           onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
-          className={`${compactInput} w-14`}
+          style={NUMBER_INPUT}
         />
       </label>
       <Button
@@ -384,7 +495,6 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   )
 }
 
-// Injuries — the "Injuries" slab + `InjuryRow` (the poster redesign: no poster
-// counterpart) were dropped from the pilot sheet body; tracked for a future
-// off-sheet re-home as #408. `Injury`/`injuries` and the max-HP derivation
-// that reads them stay live in lib/rules/derivedStats.ts.
+// Injuries have no slab on the pilot sheet body (the poster has none).
+// `Injury`/`injuries` and the max-HP derivation that reads them stay live in
+// lib/rules/derivedStats.ts.

@@ -1,5 +1,5 @@
 /**
- * Take Damage / Critical Damage / Critical Injury rules (design-review R-1).
+ * Take Damage / Critical Damage / Critical Injury rules.
  *
  * Salvage Union Core Book p.239-242 — damage intake, the most error-prone
  * live math in the game.
@@ -48,7 +48,7 @@ import type {
   CriticalInjuryOutcome,
   CriticalInjuryResult,
   Roll,
-} from './types.js'
+} from './types'
 
 /** What the incoming weapon lists in its profile (drives the p.240/241 conversions). */
 export type DamageKind = 'sp' | 'hp'
@@ -60,19 +60,11 @@ export type DamageKind = 'sp' | 'hp'
 /**
  * Apply SP damage to a mech.
  *
- * Per Salvage Union rules:
- * - newSp = max(0, currentSp - damage)
- * - hpDamage = floor(damage / 2)
- *
- * Returns the new SP value and the HP damage that flows through to the pilot.
+ * newSp = max(0, currentSp - damage) — "A Mech's Structure Points can only be
+ * reduced to 0 SP" (p.239). No damage passes through to the Pilot.
  */
-export function applySpDamage(
-  currentSp: number,
-  damage: number
-): { newSp: number; hpDamage: number } {
-  const newSp = Math.max(0, currentSp - damage)
-  const hpDamage = Math.floor(damage / 2)
-  return { newSp, hpDamage }
+export function applySpDamage(currentSp: number, damage: number): { newSp: number } {
+  return { newSp: Math.max(0, currentSp - damage) }
 }
 
 /**

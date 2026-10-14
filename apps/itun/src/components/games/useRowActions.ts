@@ -16,9 +16,9 @@
 
 import { toast } from 'component-lib'
 import { useMutation } from 'convex/react'
+import { moveTo, SHELF } from 'itun-domain/container'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { moveTo, SHELF } from '../../lib/container'
 import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
@@ -36,10 +36,10 @@ export type RowActions = {
   pickUp: (row: RosterRow) => void
   /** Hand a character you hold back to the crew. */
   offer: (row: RosterRow) => void
-  /** Copy a pilot or mech into My Stuff. */
+  /** Copy a pilot or mech into your shelves. */
   copy: (row: RosterRow) => void
   /**
-   * Take a build out of the Game it is in, to My Stuff — same record, same id
+   * Take a build out of the Game it is in, to your shelves — same record, same id
    * (a move, never a copy). `gameName` names the Game in the confirm.
    */
   removeFromGame: (row: RosterRow, gameName: string | null) => void
@@ -104,7 +104,7 @@ export function useRowActions(confirm: Confirm): RowActions {
               row.kind === 'pilot' ? 'pilot' : 'mech',
               copyForShelf(row.body, row.name) as never
             )
-          toast.success(`Copied ${created.name} to My Stuff.`)
+          toast.success(`Copied ${created.name} to your shelf.`)
         },
       }),
 

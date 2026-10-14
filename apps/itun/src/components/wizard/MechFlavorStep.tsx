@@ -1,6 +1,18 @@
-import { Button, Field } from 'component-lib'
-import type { MechRollField, MechRollTableDeps } from './mechRollTables'
-import { rollForMechField } from './mechRollTables'
+import { Button, Field, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
+import '../../styles/wizard.css'
+import type { MechRollField, MechRollTableDeps } from './mechRollTables.model'
+import { rollForMechField } from './mechRollTables.model'
+import { stepColumnStyle } from './wizardStyles.model'
+
+const rollButtonStyle = { flexShrink: 0 } satisfies CSSProperties
+
+const noteStyle = {
+  color: 'currentcolor',
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  margin: 0,
+} satisfies CSSProperties
 
 type MechFlavorStepProps = {
   /** Which flavor fact this step edits (also picks the d20 roll table). */
@@ -19,8 +31,8 @@ type MechFlavorStepProps = {
 
 /**
  * Featherweight mech flavor step (Mech Workshop steps 6–8: Quirk, Appearance,
- * Pattern Name — plan §4.2): the sheets' IdentityField (Phase-3 review minor
- * (ii) — the wizard previews exactly the live sheet's identity idiom) plus a
+ * Pattern Name): the sheets' IdentityField (the wizard previews exactly the
+ * live sheet's identity idiom) plus a
  * d20 roll-table assist. The roll result writes into the field and stays
  * editable — roll is an assist, never a commitment.
  */
@@ -40,7 +52,7 @@ export function MechFlavorStep({
   }
 
   return (
-    <div className="max-w-3xl space-y-3">
+    <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
       <Field
         label={label}
         value={value}
@@ -48,12 +60,12 @@ export function MechFlavorStep({
         multiline={multiline}
         placeholder={placeholder}
         labelAction={
-          <Button size="compact" glyph="⚄" onClick={handleRoll} className="shrink-0">
+          <Button size="compact" glyph="⚄" onClick={handleRoll} style={rollButtonStyle}>
             Roll
           </Button>
         }
       />
-      {note && <p className="m-0 font-body text-caption text-current">{note}</p>}
+      {note && <p style={noteStyle}>{note}</p>}
     </div>
   )
 }

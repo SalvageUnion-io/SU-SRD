@@ -1,6 +1,6 @@
 /**
- * CrawlerSheet — the crawler variant BODY for the LiveSheet shell (design
- * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
+ * CrawlerSheet — the crawler variant BODY for the LiveSheet shell, in the
+ * poster layout.
  *
  * The body OWNS the identity band now (Workshop-Manual crawler sheet):
  * This body renders `SheetHero` as its first region.
@@ -11,7 +11,7 @@
  *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
  *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
  *     by SheetCrawler and passed as `economy`) → Bays (3-column masonry)
- *     → Armament Bay Weapons (3-column) → Linked Units (bare section, no card
+ *     → Armament Bay Weapons (3-column) → Assigned Units (bare section, no card
  *     frame) → Storage Bay.
  *   Storage Bay is the FULL-WIDTH band at the very BOTTOM (printed sheet p.2 —
  *     Storage Bay spans the whole width beneath the bays), NOT a full-height
@@ -20,18 +20,16 @@
  * Economy (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges) is built by
  * `SheetCrawler` (it owns the economy-dialog state + `patch`) and handed
  * down as the `economy` slot, rendered inside the Identity card below the
- * identity fields. Full `.econ` magenta-frame + Pay/Fund action-lozenge
- * fidelity is Phase 3/4 — this slice only moves the region out of the hero
- * and into the body.
+ * identity fields.
  *
- * Bays stay ONE unified grid (no crew/functional split — redesign
- * refinement; the poster's homebrew/custom-bay split is blocked on a
- * data-model flag, #403 — leave unified) as compact entity cards (max 2
- * columns), each with Intact/Damaged status (rules C8), its crew lead as an
+ * Bays stay ONE unified grid (no crew/functional split; the poster's
+ * homebrew/custom-bay split needs a data-model flag the schema does not have)
+ * as compact entity cards (max 2
+ * columns), each with Intact/Damaged status, its crew lead as an
  * NpcInset, a "Docks <mech>" one-liner on the Mech Bay, and a
  * function/Repair action pair. Repair decrements 5 Scrap from the
  * crawler-TL pool bucket, spilling into higher buckets — a short pool is
- * advisory, never a block (S12).
+ * advisory, never a block.
  *
  * Armament Bay Weapons — collection section (unified edit language
  * archetype B): always-available '+ Add' opening the existing weapons
@@ -46,15 +44,15 @@
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
- *   - the Tech Level stepper slab (#412) — Tech Level itself still reads
+ *   - the Tech Level stepper slab — Tech Level itself still reads
  *     live via the economy band's TL lozenge (built by SheetCrawler); only
  *     the hand-edit stepper UI drops.
- *   - the Scrap Pool slab + `ScrapPoolSlab` (#413) — the scrapPool DATA/
+ *   - the Scrap Pool slab + `ScrapPoolSlab` — the scrapPool DATA/
  *     logic (`scrapPoolBucket` / `addToScrapPool`) is KEPT: bay Repair below
  *     still spends from it, and the same helpers feed mech repair/retire
  *     from the mech sheet.
  *   - the Downtime/Salvaging/Crafting slabs + `DowntimeControl` /
- *     `SalvageControl` / `CraftingControl` (#414) — deleted outright, no
+ *     `SalvageControl` / `CraftingControl` — deleted outright, no
  *     other consumer.
  * The always-live Vitals (SP `VitalGauge`, via `economy`) and per-card
  * activation (the bays' status/repair controls) are KEPT — only the
@@ -64,32 +62,98 @@
  */
 
 import {
+  buttonVariants,
   EmptyState,
+  Entity,
   MasonryColumns,
-  ReferenceEntityCard,
   SheetSectionSlab,
   Stat,
+  tokens,
 } from 'component-lib'
-import type { ReactNode } from 'react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
-import { drawFromPool, poolAvailableAtOrAbove, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
+import type { CrewAssignment } from '../../lib/npcs/npcModel'
+import { assignmentFor } from '../../lib/npcs/npcModel'
+import { crawlerTypeArt } from '../../lib/photos/defaultArt'
+import { SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
+import {
+  bayRepairPatch,
+  bayRepairShortfall,
+  resolveCrawlerSystem,
+} from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
+import { AppLink } from '../shared/AppLink'
+import { EntityPhoto } from '../shared/EntityPhoto'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
-import { BAY_REPAIR_COST, resolveCrawlerSystem } from './crawlerSheetItemRules'
 import { EntityGridRow } from './EntityGrid'
+import { PhotoBeside } from './PhotoBeside'
 import { SheetHero } from './SheetHero'
 import { CardRemoveButton } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
+
+/** A full-width column of the given gap. */
+const column = (gap: string) =>
+  ({ display: 'flex', minWidth: 0, flexDirection: 'column', gap }) satisfies CSSProperties
+
+const STACK_16 = column(tokens.space[16])
+const STACK_24 = column(tokens.space[24])
+
+/** The section root: `@container` scopes the region grids to the sheet's own width. */
+const ROOT = {
+  containerType: 'inline-size',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[24],
+} satisfies CSSProperties
+
+/** A mounted weapon the catalog does not know: its slug and the remove ✕. */
+const UNKNOWN_WEAPON = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: tokens.space[8],
+  borderRadius: '0.25rem',
+  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
+  padding: `${tokens.space[4]} ${tokens.space[8]}`,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 1.25 / 0.875,
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+const TRUNCATE = {
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const POOL_LABEL = {
+  marginBottom: tokens.space[8],
+  display: 'block',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tokens.tracking.caps,
+  color: 'var(--tone-deep, var(--color-ink))',
+} satisfies CSSProperties
+
+const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+
+const CREW_LINK = { textDecoration: 'none' } satisfies CSSProperties
+
+const STORAGE_BAY = { marginTop: tokens.space[24], minWidth: 0 } satisfies CSSProperties
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -99,9 +163,11 @@ type CrawlerSheetProps = {
    * ← Load target. Null when nothing is docked.
    */
   mech?: Mech | null
+  /** The docked mech's sheet: the Hold's load target and the Mech Bay's Token open it. */
+  mechHref?: string
   /**
    * Injectable store — defaults to useEntityStore.
-   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
   /** Suppresses every edit affordance (published snapshots). */
@@ -114,21 +180,34 @@ type CrawlerSheetProps = {
    */
   economy?: ReactNode
   /**
-   * The Linked Units rail content (docked mech + lead pilot rail row/
+   * The Assigned Units rail content (docked mech + lead pilot rail row/
    * RailEmpty), built by SheetCrawler from `composition` — CrawlerSheet has
    * no composition access of its own, so this is passed straight through
    * into the content column's bottom section.
    */
   linkedUnits?: ReactNode
+  /**
+   * The crew slots built NPCs fill (ADR-044), resolved by the composition. A
+   * filled slot shows its NPC in place of the inline crew (Q2).
+   */
+  crew?: readonly CrewAssignment[]
+  /**
+   * Where the Bays section's one "Crew…" link goes: the crew board for this
+   * crawler (D8). Omitted, there is no link.
+   */
+  crewHref?: string
 }
 
 export function CrawlerSheet({
   crawler,
   mech = null,
+  mechHref,
   store = useEntityStore,
   readOnly = false,
   economy,
   linkedUnits,
+  crew,
+  crewHref,
 }: CrawlerSheetProps) {
   const storeState = store()
   const cargo = useCargo({ mech, crawler, store, readOnly })
@@ -139,7 +218,7 @@ export function CrawlerSheet({
   // self-manage for now.
   const [systemsModalOpen, setSystemsModalOpen] = useState(false)
   // Identity is a FIELD section (unified edit language archetype A): its own
-  // Edit/Done toggle, rendered in the SheetSectionCard header (Phase 2).
+  // Edit/Done toggle, rendered in the SheetSectionCard header.
 
   /**
    * Persist a partial patch on this crawler (fire-and-forget write). The
@@ -158,37 +237,25 @@ export function CrawlerSheet({
   const intactBays = bays.filter((b) => (b.condition ?? 'intact') === 'intact').length
   const pool = crawler.scrapPool ?? {}
 
-  // Repair affordability is advisory only — TL+ buckets count (S12).
-  const repairable = poolAvailableAtOrAbove(pool, tl)
-  const repairShortfall = Math.max(0, BAY_REPAIR_COST - repairable)
+  // Repair affordability is advisory only — TL+ buckets count.
+  const repairShortfall = bayRepairShortfall(pool, tl)
 
   /**
-   * Repair a damaged bay: decrement 5 Scrap starting at the crawler-TL
-   * bucket, spilling into higher buckets, then flip the bay Intact. A short
-   * pool still repairs — the shortfall is surfaced on the button, never a
-   * block (S12).
+   * Repair a damaged bay (`bayRepairPatch`: 5 Scrap from the crawler-TL
+   * bucket up, then the bay flips Intact). A short pool still repairs — the
+   * shortfall is surfaced on the button, never a block.
    *
    * Tagged `LIVE_SHEET_TXN`: Scrap leaves the pool by a rule, so the Change Log
    * should not call it a hand edit. One of the three sanctioned Live-Sheet
-   * transactions in `docs/ARCHITECTURE.md#sanctioned-live-sheet-transactions`.
+   * transactions in `docs/ARCHITECTURE.md#live-sheet`.
    */
   function repairBay(entry: CrawlerBayEntry, index: number) {
     if (readOnly) return
     const fresh = storeState.get('crawler', crawler.id) ?? crawler
-    // `partial` is what makes this the same draw the hand-rolled loop did:
-    // an empty or short pool spends what it has and the bay still repairs.
-    const drawn = drawFromPool(fresh.scrapPool ?? {}, tl, BAY_REPAIR_COST, { partial: true })
+    const { crawlerPatch, bayPatch } = bayRepairPatch(fresh.scrapPool ?? {}, tl)
+    runWrite(() => storeState.update('crawler', crawler.id, crawlerPatch, LIVE_SHEET_TXN))
     runWrite(() =>
-      storeState.update('crawler', crawler.id, { scrapPool: drawn.pool }, LIVE_SHEET_TXN)
-    )
-    runWrite(() =>
-      storeState.updateCrawlerBay(
-        crawler.id,
-        entry.bayRef,
-        { condition: 'intact' },
-        index,
-        LIVE_SHEET_TXN
-      )
+      storeState.updateCrawlerBay(crawler.id, entry.bayRef, bayPatch, index, LIVE_SHEET_TXN)
     )
   }
 
@@ -225,54 +292,47 @@ export function CrawlerSheet({
     crawler.systems.length === 0 ? (
       <EmptyState variant="quiet" body="No weapons mounted." />
     ) : (
-      // A full-width STACK, not a 2-up masonry: a mounted weapon reads as a
-      // listing row across the bay, and half a bay's width squeezed the card's
-      // header stats onto a second line.
-      <div className="flex min-w-0 flex-col gap-4">
+      // One Token a line across the bay, each Peeking its whole card
+      // (owner's call, 2026-10-14).
+      <ul aria-label="Weapons mounted" className="su-entity-token-list">
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
           return (
-            <EntityGridRow key={slug}>
+            <li key={slug}>
               {system ? (
-                <ReferenceEntityCard data={system} size="medium" collapsible />
+                <Entity form="token" entity={system} mode={{ kind: 'link' }} />
               ) : (
-                <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
-                  <span className="min-w-0 truncate">{slug}</span>
+                <div style={UNKNOWN_WEAPON}>
+                  <span style={TRUNCATE}>{slug}</span>
                   {!readOnly && (
                     <CardRemoveButton name={slug} onRemove={() => removeWeapon(slug)} />
                   )}
                 </div>
               )}
-            </EntityGridRow>
+            </li>
           )
         })}
-      </div>
+      </ul>
     )
 
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */
   const storageContents = (
-    <div className="flex min-w-0 flex-col gap-4">
-      {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (rules
-          S12; the bucket bay-repair spends). Per-tech-level `Stat` steppers let
+    <div style={STACK_16}>
+      {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (the
+          bucket bay-repair spends). Per-tech-level `Stat` steppers let
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       <div>
-        <span
-          className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
-          style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-        >
-          Scrap Pool
-        </span>
-        <div className="flex flex-wrap gap-2">
+        <span style={POOL_LABEL}>Scrap Pool</span>
+        <div style={POOL_ROW}>
           {SCRAP_TLS.map((t) => (
             <Stat
               key={t}
+              orientation="horizontal"
               label={`T${t}`}
               value={scrapPoolBucket(pool, t)}
               min={0}
-              size="mini"
               mode={readOnly ? 'read' : 'edit'}
-              ariaLabel={`Tech ${t} scrap`}
               onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
             />
           ))}
@@ -282,6 +342,7 @@ export function CrawlerSheet({
         side="crawler"
         cargo={cargo}
         mechName={mech?.name ?? null}
+        counterpartHref={mechHref}
         crawlerName={crawler.name}
         readOnly={readOnly}
       />
@@ -304,8 +365,12 @@ export function CrawlerSheet({
    */
   function renderBay(entry: CrawlerBayEntry, i: number) {
     const kind = bayKind(entry)
+    // A link names a bay by its slug, so only the first entry of a bay listed
+    // twice is the slot it crews (ADR-044's known limit).
+    const crewSlot = bays.findIndex((b) => b.bayRef === entry.bayRef) === i
     return (
       <CrawlerBayCard
+        assigned={crewSlot ? assignmentFor(crew, { kind: 'bay', bayRef: entry.bayRef }) : undefined}
         crawlerId={crawler.id}
         entry={entry}
         index={i}
@@ -315,7 +380,7 @@ export function CrawlerSheet({
         seedSelections={crawler.bayChoices?.[entry.bayRef]}
         store={store}
         readOnly={readOnly}
-        dockedMechName={kind === 'mech' && mech ? mech.name : undefined}
+        dockedMech={kind === 'mech' && mech ? { name: mech.name, href: mechHref } : undefined}
         // "Mount" opens the weapons picker — the thing the verb means — rather
         // than the bay's rules text.
         onFunction={kind === 'armament' && !readOnly ? () => setSystemsModalOpen(true) : undefined}
@@ -329,17 +394,18 @@ export function CrawlerSheet({
   return (
     <section
       aria-label={`${crawler.name} crawler sheet`}
-      // `.sheet-section` is a print-stylesheet target (page-break rules);
+      // `.su-sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
-      className="sheet-section @container flex flex-col gap-6"
+      className="su-sheet-section"
+      style={ROOT}
     >
       {/* ===== Single-column region flow (Workshop-Manual crawler sheet):
-          Identity → Bays → Armament Weapons → Linked Units → Storage Bay.
+          Identity → Bays → Armament Weapons → Assigned Units → Storage Bay.
           Storage is the FULL-WIDTH band at the very bottom (printed
           `Editable_..._Crawler_Sheets.pdf` p.2), not a full-height right
           column. ===== */}
-      <div className="flex min-w-0 flex-col gap-6">
+      <div style={STACK_24}>
         {/* ===== Identity Band (Workshop-Manual crawler sheet top region) =====
             Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
             rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
@@ -347,32 +413,57 @@ export function CrawlerSheet({
         <SheetHero
           name={crawler.name}
           fields={
-            <div className="flex min-w-0 flex-col gap-4">
-              <CrawlerIdentityPanel
-                crawler={crawler}
-                store={store}
-                storeState={storeState}
-                patch={readOnly ? undefined : patchCrawler}
-                readOnly={readOnly}
-              />
-            </div>
+            <PhotoBeside
+              photo={
+                <EntityPhoto
+                  photo={crawler.photo}
+                  fallback={crawlerTypeArt(crawler.type)}
+                  name={crawler.name}
+                  onChange={
+                    readOnly
+                      ? undefined
+                      : (photo) =>
+                          storeState.update('crawler', crawler.id, { photo }, LIVE_SHEET_MANUAL)
+                  }
+                />
+              }
+            >
+              <div style={STACK_16}>
+                <CrawlerIdentityPanel
+                  crawler={crawler}
+                  store={store}
+                  storeState={storeState}
+                  patch={readOnly ? undefined : patchCrawler}
+                  readOnly={readOnly}
+                  typeCrew={assignmentFor(crew, { kind: 'type' })}
+                />
+              </div>
+            </PhotoBeside>
           }
           vitals={economy}
         />
 
         {/* ----- Content region (Bays, Weapons) ----- */}
-        <div className="flex min-w-0 flex-col gap-6">
+        <div style={STACK_24}>
           {/* Bays — ONE unified grid, all bays together (no crew/functional
               split). // TODO(redesign): render homebrew/custom bays in a
               separate "Custom Bays" group underneath once the data
-              distinguishes them (#403). */}
+              distinguishes them. */}
           {bays.length > 0 && (
             <SheetSectionSlab
               title="Bays"
-              count={
-                <span className="tabular-nums">
-                  {intactBays}/{bays.length} intact
-                </span>
+              count={{ label: 'Intact', value: intactBays, max: bays.length }}
+              controls={
+                crewHref === undefined ? undefined : (
+                  <AppLink
+                    href={crewHref}
+                    className={buttonVariants({ variant: 'default', size: 'compact' })}
+                    style={CREW_LINK}
+                    aria-label={`Crew ${crawler.name}: design and assign crawler crew`}
+                  >
+                    Crew…
+                  </AppLink>
+                )
               }
             >
               {/* The Storage Bay is pulled OUT of the masonry and rendered
@@ -392,7 +483,7 @@ export function CrawlerSheet({
               {bays.map((entry, i) =>
                 bayKind(entry) === 'storage' ? (
                   // biome-ignore lint/suspicious/noArrayIndexKey: positional, as above
-                  <div key={`storage-${i}`} className="mt-6 min-w-0">
+                  <div key={`storage-${i}`} style={STORAGE_BAY}>
                     {renderBay(entry, i)}
                   </div>
                 ) : null
@@ -410,17 +501,22 @@ export function CrawlerSheet({
           <SheetSectionSlab title="Storage Bay">{storageContents}</SheetSectionSlab>
         )}
 
-        {/* Linked Units — poster renders this as a bare section header +
+        {/* Assigned Units — poster renders this as a bare section header +
             rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
-        <SheetSectionSlab
-          id="linked-units"
-          title="Linked Units"
-          // Side by side: each linked unit is one roster row, and two of them stack
-          // to a wasteful column on a sheet that has the width for both.
-          bodyClassName="flex flex-col gap-4 @3xl:flex-row"
-        >
-          {linkedUnits}
-        </SheetSectionSlab>
+        {linkedUnits && (
+          <SheetSectionSlab
+            id="linked-units"
+            title="Assigned units"
+            // A wrapping column, never a row: a row of full unit rows made the
+            // page wider than the viewport. Read stacks one-line listing cards;
+            // Edit stacks the full rows with their Assign controls.
+            bodyClassName={
+              readOnly ? 'su-sheet-crawler-linked-read' : 'su-sheet-crawler-linked-edit'
+            }
+          >
+            {linkedUnits}
+          </SheetSectionSlab>
+        )}
 
         {/* ----- Storage Bay — the crawler's own BAY, rendered as a
             full-width box rather than a plain section: the hold IS a bay (Core

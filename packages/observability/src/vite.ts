@@ -2,11 +2,7 @@
  * Sentry sourcemap upload for the two browser apps' Vite builds.
  *
  * Without maps every production event is a stack of mangled frames in a
- * content-hashed chunk: counted, and not actionable. srd and itun each carried
- * a copy of this block, and the copies had already diverged: itun built with
- * `sourcemap: true`, so every chunk shipped a `//# sourceMappingURL` comment
- * naming a `.map` the upload then deleted, and every browser's devtools fetched
- * a 404. One source means one behaviour.
+ * content-hashed chunk: counted, and not actionable.
  *
  * Entirely env-gated on `SENTRY_AUTH_TOKEN`. Absent locally and in CI, so this
  * returns no plugins and Vite emits no maps. `deploy-cloudflare.yml` is the one
@@ -29,10 +25,18 @@ export function warnUploadFailed(error: unknown): void {
 }
 
 /**
+ * Spelled out because Sentry does not export its plugin type, and the
+ * declaration `tsc -b` emits for this package must name it (TS4058).
+ */
+type SourcemapPlugin =
+  | ReturnType<typeof sentryVitePlugin>[number]
+  | { name: string; config: () => { build: { sourcemap: 'hidden' } } }
+
+/**
  * @param outDir the build's output directory; its `.map` files are deleted
  *   once uploaded, so the maps never ship.
  */
-export function sentrySourcemaps(outDir: string) {
+export function sentrySourcemaps(outDir: string): SourcemapPlugin[] {
   const authToken = process.env.SENTRY_AUTH_TOKEN
   if (!authToken) return []
 

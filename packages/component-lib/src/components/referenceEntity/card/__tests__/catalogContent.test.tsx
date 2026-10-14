@@ -12,7 +12,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getSchemaCatalog, SalvageUnionReference, SchemaToModelMap } from 'salvageunion-reference'
+import { getModel, getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** Text the tile renders, with the entity's own name removed — what a reader
@@ -35,19 +35,14 @@ function findByName(model: string, name: string): SURefEntity {
 
 describe('catalog tiles always carry content', () => {
   // The whole-dataset sweep. Every schema with a listing page (`meta: false` is
-  // what gives a schema a `/schema/<id>/` index in srd) renders a grid of these
+  // what gives a schema a `/<id>/` index in srd) renders a grid of these
   // tiles, so the guarantee has to hold for the entire dataset, not a fixture.
   const listingSchemas = getSchemaCatalog()
     .schemas.filter((schema) => !schema.meta)
     .map((schema) => schema.id)
 
   test.each(listingSchemas)('every %s tile says something beyond its name', (schemaId) => {
-    const model = SchemaToModelMap[schemaId as keyof typeof SchemaToModelMap]
-    const all = (
-      SalvageUnionReference[model as keyof typeof SalvageUnionReference] as unknown as {
-        all: () => SURefEntity[]
-      }
-    ).all()
+    const all = getModel(schemaId)?.all() ?? []
     expect(all.length).toBeGreaterThan(0)
 
     const blank = all.filter((entity) => contentBeyondName(entity).length === 0)
@@ -141,9 +136,9 @@ describe('catalog tiles carry no authorship', () => {
     const text = container.textContent ?? ''
     expect(text).not.toContain(String(chassis.source))
     expect(text).not.toContain(`p.${chassis.page}`)
-    // …and not the entity TYPE either: every tile in a listing grid is the same
-    // type, so the label is the same word repeated down the page.
-    expect(text).not.toContain('Chassis')
+    // The TYPE prints once, on the type stamp every card wears (board E1) —
+    // never a second time in a footer.
+    expect(text.match(/Chassis/g)?.length).toBe(1)
   })
 
   test('a borrowed lead is never the sentence the header already showed', () => {

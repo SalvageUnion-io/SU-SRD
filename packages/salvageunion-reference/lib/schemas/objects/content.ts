@@ -3,9 +3,9 @@
  * hangs off almost every entity.
  */
 
-import { z } from '../../zod.js'
-import { ContentTypeSchema } from '../enums.js'
-import { DataValueSchema } from './primitives.js'
+import { z } from '../../zod'
+import { ContentTypeSchema } from '../enums'
+import { DataValueSchema } from './primitives'
 
 /**
  * Block of structured content for rendering (paragraph, heading, list item, etc.)

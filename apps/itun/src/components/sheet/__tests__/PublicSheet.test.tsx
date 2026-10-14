@@ -4,7 +4,7 @@
  *
  * The server sends a linked entity's name and body only when it is published
  * itself, and nothing but its kind otherwise (`publicSheet.get`, pinned in
- * `test/convex/liveSheet.test.ts`). This pins the other half — what the page
+ * `test/convex/__tests__/liveSheet.test.ts`). This pins the other half — what the page
  * does with each: a published one is a full rail row with a View into its own
  * `/p/` page; a private one fills its slot as "Not shared", and nothing more.
  */
@@ -45,7 +45,7 @@ describe('a public sheet’s assignments', () => {
     expect(screen.queryByRole('link', { name: /^View / })).toBeNull()
     // And never reported as missing: the pilot HAS a mech and a crawler.
     expect(screen.queryByText(/No mech assigned/i)).toBeNull()
-    expect(screen.queryByText(/No crawler linked/i)).toBeNull()
+    expect(screen.queryByText(/No crawler assigned/i)).toBeNull()
   })
 
   test('a published one is a full, named row that opens its own public page', () => {

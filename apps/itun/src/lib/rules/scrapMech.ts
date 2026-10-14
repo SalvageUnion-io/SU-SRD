@@ -1,5 +1,5 @@
 /**
- * Scrap-a-mech rules (design-review R-7).
+ * Scrap-a-mech rules.
  *
  * Salvage Union Core Book p.248, the "Scrap" ability: "You break down an
  * Intact or Damaged Mech Chassis, System, Module, or Vehicle … It is
@@ -11,7 +11,7 @@
  * NOTE (verified against the extract): retiring your own mech uses the Scrap
  * ability and yields the FULL Salvage Value per component, each at its own
  * Tech Level. Half-SV applies only to the Mech Salvage 2–5 wreck band
- * (p.248) and to Repair costs — not here. The design-review table's
+ * (p.248) and to Repair costs — not here. An earlier
  * "half-SV" shorthand was corrected against pp.244–248.
  *
  * `mechScrapComponents` resolves a stored Mech into components against
@@ -20,13 +20,13 @@
  * on confirm, deposits the buckets and deletes the mech.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../cargo/cargoTransfer'
 import { readReference } from '../readReference'
-import type { CargoLot } from '../schemas/cargoLot'
-import type { ScrapPool } from '../schemas/crawler'
-import type { ItemCondition } from '../schemas/itemCondition'
-import type { Mech } from '../schemas/mech'
 import type { PoolDraw } from './crawlerEconomy'
 
 export type ScrapMechComponentKind = 'chassis' | 'system' | 'module'

@@ -11,8 +11,8 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import type { ExportBundle } from '../../../lib/schemas/exportBundle'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW, pilotFixture } from '../../__tests__/fixtures'
@@ -32,7 +32,7 @@ const realCreate = URL.createObjectURL
 const realRevoke = URL.revokeObjectURL
 const realClick = HTMLAnchorElement.prototype.click
 
-beforeEach(async () => {
+beforeEach(() => {
   downloads = []
   lastBlob = null
   failCreate = false
@@ -46,15 +46,7 @@ beforeEach(async () => {
     if (lastBlob !== null) downloads.push({ filename: this.download, blob: lastBlob })
   }
 
-  _resetDbSingleton()
-  await clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
+  resetStores()
 })
 
 afterEach(() => {
@@ -74,27 +66,38 @@ describe('ExportAllButton', () => {
     await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Rook' }))
     render(<ExportAllButton />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Download all' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
 
     await waitFor(() => expect(downloads).toHaveLength(1))
     expect(downloads[0]?.filename).toMatch(/^itun-backup-\d{4}-\d{2}-\d{2}\.json$/)
     expect((await downloaded()).entities.pilots.map((p) => p.name)).toEqual(['Rook'])
   })
 
-  test('a failed download says so, and a retry that lands clears it', async () => {
+  test('a failed download says so in its own words, and a retry that lands clears it', async () => {
     failCreate = true
     render(<ExportAllButton />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Download all' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
 
-    await waitFor(() => expect(screen.getByText('Disk full')).toBeTruthy())
+    const failure = 'The backup could not be downloaded. Try again.'
+    // The error (useState) can paint before the transition's pending flag
+    // clears, so wait for the button to settle too, or the retry finds it
+    // still 'Exporting…' and disabled.
+    await waitFor(() => {
+      expect(screen.getByText(failure)).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Export all' }).hasAttribute('disabled')).toBe(
+        false
+      )
+    })
+    // What was thrown is a defect's text, not the player's to read.
+    expect(screen.queryByText('Disk full')).toBeNull()
     expect(downloads).toHaveLength(0)
 
     failCreate = false
-    fireEvent.click(screen.getByRole('button', { name: 'Download all' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
     await waitFor(() => expect(downloads).toHaveLength(1))
     // The retry clears the stale error rather than leaving it beside a success.
-    expect(screen.queryByText('Disk full')).toBeNull()
+    expect(screen.queryByText(failure)).toBeNull()
   })
 })
 
@@ -128,6 +131,7 @@ describe('ImportButton', () => {
         pilots: [pilotFixture({ id: 'from-file', name: 'Imported' })],
         mechs: [],
         crawlers: [],
+        npcs: [],
       },
       softLinks: [],
       mechPatterns: [],

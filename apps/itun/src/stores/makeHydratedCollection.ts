@@ -1,16 +1,13 @@
 /**
  * makeHydratedCollection — the shared skeleton behind every single-collection
- * Zustand store (audit item 22).
+ * Zustand store.
  *
- * encounterStore and patternStore both follow the same
- * discipline: lazy auto-hydration from IndexedDB on first read (ADR-003) and
- * server-first persistence (server, then db, then in-memory set(); ADR-034). Another
- * tab's writes arrive through this tab's own Convex subscription: `ShelfSync`
- * adopts its creates and edits and forgets its deletes. There is no tab-to-tab
- * channel.
- * Before this factory each store hand-rolled that skeleton (~650 lines
- * across three copies) — which is exactly how mechPatterns ended up
- * BYPASSING the layer entirely (direct db reads).
+ * encounterStore and patternStore both follow the same discipline: rows held
+ * in memory, arriving from the server of record (`ShelfSync`; `hydrate()`
+ * waits for them, `rowArrival.ts`), and server-first writes (server, then
+ * in-memory set(); ADR-034). Another tab's writes arrive through this tab's
+ * own Convex subscription: `ShelfSync` adopts its creates and edits and
+ * forgets its deletes. There is no tab-to-tab channel and no device cache.
  *
  * The collection key is parametrized (`encounterNpcs`,
  * `mechPatterns`) so each store's public state shape is unchanged —
@@ -23,25 +20,19 @@
  * the philosophy, not the shape.
  */
 
-import { captureException } from '../lib/observability'
-import { readableRows, requireWritableBackend } from './entityBackend'
-
-type DbCollection<T, CreateInput> = {
-  list: () => Promise<T[]>
-  create: (input: CreateInput) => Promise<T>
-  update: (id: string, patch: Partial<T>) => Promise<T>
-  delete: (id: string) => Promise<void>
-  /** Writes a server-provided record verbatim. Used by {@link HydratedCollectionActions.adopt}. */
-  put: (record: T) => Promise<T>
-}
+import { requireWritableBackend } from './entityBackend'
+import type { RecordKind } from './records'
+import { parseServed, prepareCreate, prepareUpdate, upsertById } from './records'
+import { untilRowsArrive } from './rowArrival'
 
 /** The CRUD + hydration surface every collection store shares. */
 export type HydratedCollectionSlice<K extends string, T> = Record<K, T[]> & {
+  /** Whether the server's rows have arrived (or none are coming). */
   hydrated: boolean
-  /** Loads the collection from IndexedDB (nothing signed out). Idempotent. */
+  /** Resolves once the rows have arrived (`rowArrival.ts`). Idempotent. */
   hydrate: () => Promise<void>
-  /** Re-reads from IndexedDB even when already hydrated. */
-  rehydrate: () => Promise<void>
+  /** `ShelfSync`: the first answer is in. */
+  markArrived: () => void
   /** Sync list — returns in-memory records. Auto-triggers hydrate if needed. */
   list: () => T[]
   /** Sync get by id or null. */
@@ -49,53 +40,44 @@ export type HydratedCollectionSlice<K extends string, T> = Record<K, T[]> & {
 }
 
 export type HydratedCollectionActions<T, CreateInput> = {
-  /** Persists to db then prepends to in-memory state. Zod errors propagate. */
+  /** Commits to the server, then prepends to in-memory state. Zod errors propagate. */
   create: (input: CreateInput) => Promise<T>
-  /** Merges patch, persists to db, updates in-memory state. */
+  /** Merges patch, commits it, updates in-memory state. */
   update: (id: string, patch: Partial<T>) => Promise<T>
-  /** Deletes from db and removes from in-memory state. */
+  /** Deletes on the server, then from in-memory state. */
   delete: (id: string) => Promise<void>
   /**
-   * Fills the cache from the server of record, without writing back.
+   * Holds a row from the server of record, without writing back.
    *
    * The counterpart to `entityStore.adopt`, and it exists for the same reason:
-   * `ShelfSync` pulls the account's rows down and must place them locally
+   * `ShelfSync` brings the account's rows down and must place them locally
    * WITHOUT that placement being mistaken for a user write and sent back up.
-   *
-   * Deliberately no `requireWritableBackend()`, matching `entityStore.adopt`:
-   * filling the cache is not a user write, and refusing it while Disconnected
-   * would make going offline lose access to a record rather than merely making
-   * it read-only.
+   * Deliberately no `requireWritableBackend()`, matching `entityStore.adopt`.
    */
   adopt: (record: T) => Promise<T>
   /**
-   * Drops this browser's copy **without deleting it anywhere else** — the
+   * Drops this tab's copy **without deleting it anywhere else** — the
    * inverse of `adopt`, as `entityStore.forget` is. `ShelfSync` calls it for a
    * row the server no longer returns: the row is already gone there, and a
    * server delete would be a destructive write against whatever the server
-   * does hold. No `requireWritableBackend()`, for `adopt`'s reason.
+   * does hold.
    */
   forget: (id: string) => Promise<void>
 }
 
-type SliceConfig<K extends string, T, CreateInput> = {
+type SliceConfig<K extends string, T> = {
   /** State key holding the array — preserved per store for selector compat. */
   key: K
+  /** The record's schema; every create, update and adopted row parses against it. */
+  kind: RecordKind<T>
   /**
-   * Where this collection persists: its IndexedDB store, the account's cache.
-   * Writes reach it only through `requireWritableBackend()` (or `adopt`, from
-   * a signed-in sync); reads go through `readableRows`, which answers nothing
-   * signed out.
-   */
-  db: DbCollection<T, CreateInput>
-  /**
-   * Commit one write to the server of record, BEFORE it touches disk.
+   * Commit one write to the server of record, BEFORE the store changes.
    *
-   * Required: a collection with no server table would persist only on a
-   * device, which `lib/db/__tests__/storeSeams.test.ts` refuses.
+   * Required: a collection with no server table would hold rows nowhere but
+   * one tab's memory.
    *
    * Awaited and allowed to throw, matching `entityStore`'s server-first order:
-   * a cache cannot legitimately be ahead of its source, so a write the server
+   * the store cannot legitimately be ahead of its source, so a write the server
    * refused did not happen. The alternative — fire-and-forget with a swallowed
    * warning — is the exact shape that lost an evening of play before ADR-034.
    */
@@ -110,12 +92,13 @@ export function makeHydratedCollectionSlice<
   K extends string,
   T extends { id: string },
   CreateInput,
->(config: SliceConfig<K, T, CreateInput>) {
-  const { key, db, commit } = config
+>(config: SliceConfig<K, T>) {
+  const { key, kind, commit } = config
 
   return function slice(
     set: SetLike,
-    get: GetLike<HydratedCollectionSlice<K, T>>
+    get: GetLike<HydratedCollectionSlice<K, T>>,
+    subscribe: (listener: () => void) => () => void
   ): HydratedCollectionSlice<K, T> & HydratedCollectionActions<T, CreateInput> {
     const records = () => get()[key] as T[]
     return {
@@ -128,12 +111,12 @@ export function makeHydratedCollectionSlice<
 
       async hydrate() {
         if (get().hydrated) return
-        await get().rehydrate()
+        await untilRowsArrive(() => get().hydrated, subscribe)
+        if (!get().hydrated) set({ hydrated: true })
       },
 
-      async rehydrate() {
-        const loaded = await readableRows(db)
-        set({ [key]: loaded, hydrated: true })
+      markArrived() {
+        if (!get().hydrated) set({ hydrated: true })
       },
 
       list() {
@@ -151,55 +134,28 @@ export function makeHydratedCollectionSlice<
       },
 
       async adopt(record) {
-        const cached = await db.put(record)
-        set({
-          [key]: (() => {
-            const list = records()
-            const exists = list.some(
-              (r) => (r as { id: string }).id === (cached as { id: string }).id
-            )
-            return exists
-              ? list.map((r) =>
-                  (r as { id: string }).id === (cached as { id: string }).id ? cached : r
-                )
-              : [cached, ...list]
-          })(),
-        })
-        return cached
+        const held = parseServed(kind, record)
+        set({ [key]: upsertById(records(), held) })
+        return held
       },
 
       async forget(id) {
-        await db.delete(id)
         set({ [key]: records().filter((r) => r.id !== id) })
       },
 
       async create(input) {
         requireWritableBackend()
-        // Server first. `prepareCreate` is not available on this seam, so the
-        // record is built locally and committed before it is announced — the
-        // ordering that matters (nothing local survives a refusal) still holds,
-        // because a throw here aborts before `set`.
-        const record = await db.create(input)
-        try {
-          await commit({ kind: 'upsert', record })
-        } catch (err) {
-          // The local row already landed, so undo it rather than leave the
-          // cache ahead of the server — the one state ADR-034 forbids.
-          // If the undo itself fails, that forbidden state is exactly what is
-          // left behind — so it is reported, not swallowed. The commit error
-          // is still what the caller sees.
-          await db.delete((record as { id: string }).id).catch((undoErr: unknown) => {
-            captureException(undoErr, { source: 'makeHydratedCollection.undoCreate', key })
-          })
-          throw err
-        }
+        // Server first: build the record, commit it, and only then hold it. A
+        // throw here aborts before `set`, so a refusal leaves no trace.
+        const record = prepareCreate(kind, input as object)
+        await commit({ kind: 'upsert', record })
         set({ [key]: [record, ...records()] })
         return record
       },
 
       async update(id, patch) {
         requireWritableBackend()
-        const updated = await db.update(id, patch)
+        const updated = prepareUpdate(kind, get().get(id), id, patch)
         await commit({ kind: 'upsert', record: updated })
         set({ [key]: records().map((r) => (r.id === id ? updated : r)) })
         return updated
@@ -207,10 +163,7 @@ export function makeHydratedCollectionSlice<
 
       async delete(id) {
         requireWritableBackend()
-        // Committed BEFORE the local delete, like `entityStore.delete`: once the
-        // row is gone there is nothing left to address it by.
         await commit({ kind: 'delete', id })
-        await db.delete(id)
         set({ [key]: records().filter((r) => r.id !== id) })
       },
     }

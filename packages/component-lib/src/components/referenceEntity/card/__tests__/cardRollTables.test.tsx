@@ -1,0 +1,87 @@
+/**
+ * Roll-table data reaches the card two ways — INLINE (`table`) and BY
+ * REFERENCE (`tableName` -> the `roll-tables` schema) — and it may sit on the
+ * entity itself or on the action that folds into it. A card that reads
+ * `entity.table` only renders "System and Software Hacker" (and 87 other
+ * entities) with the d20 outcomes silently missing.
+ */
+import { describe, expect, test } from 'bun:test'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { SURefEntity } from 'salvageunion-reference'
+import { extractVisibleActions, resolveTable, SalvageUnionReference } from 'salvageunion-reference'
+import { malformed } from 'salvageunion-reference/testing'
+import { ReferenceEntityCard } from '../ReferenceEntityCard'
+
+/** The stamp is the roll: "Roll the die on <table>". */
+const ROLL_BUTTON = /^Roll the die on /
+
+/** Every table starts hidden: open it to read its rows. */
+const openTable = () => fireEvent.click(screen.getByRole('button', { name: /^Show the .* table$/ }))
+
+const find = <T extends { name?: string }>(items: readonly T[], name: string): T => {
+  const match = items.find((item) => item.name === name)
+  if (!match) throw new Error(`fixture missing: ${name}`)
+  return match
+}
+
+describe('roll tables reach the card by reference, not just inline', () => {
+  test("an ability whose self-action names a table renders that table's rows", () => {
+    const ability = find(SalvageUnionReference.Abilities.all(), 'System and Software Hacker')
+    render(<ReferenceEntityCard data={ability} />)
+
+    expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+    openTable()
+    expect(screen.getByText('The System or Module is destroyed.')).toBeTruthy()
+  })
+
+  test('a system whose self-action names a table renders it', () => {
+    const system = find(SalvageUnionReference.Systems.all(), 'Mechapult')
+    render(<ReferenceEntityCard data={system} />)
+
+    expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+    openTable()
+    expect(screen.getByText(/The Mechapult explodes and is destroyed\./)).toBeTruthy()
+  })
+
+  test('an action entity that names a table renders it on its own card', () => {
+    const action = find(SalvageUnionReference.Actions.all(), 'Area Salvage')
+    // Actions are meta entities, outside SURefEntity; the card renders them anyway.
+    render(<ReferenceEntityCard data={malformed<SURefEntity>(action)} />)
+
+    expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+  })
+
+  test('an inline `table` still renders (roll-tables entity itself)', () => {
+    const rollTable = find(SalvageUnionReference.RollTables.all(), 'Trading Bay')
+    render(<ReferenceEntityCard data={rollTable} />)
+
+    expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+    openTable()
+    expect(screen.getByText('An Intact Mech Chassis is available for trade.')).toBeTruthy()
+  })
+
+  test('a NON-self action keeps its table on its own nested card — printed once', () => {
+    // "Trade Caravan" hosts "Improved Trading Bay", which names a table. The
+    // action renders as its own nested card, so pulling the table up to the
+    // host as well would print the same table twice.
+    const crawler = find(SalvageUnionReference.Crawlers.all(), 'Trade Caravan')
+    render(<ReferenceEntityCard data={crawler} />)
+
+    expect(screen.getAllByLabelText(ROLL_BUTTON)).toHaveLength(1)
+  })
+
+  test('every ability with by-reference table data resolves a table', () => {
+    const abilities = SalvageUnionReference.Abilities.all().filter((ability) => {
+      const selfAction = (extractVisibleActions(ability) ?? []).find((a) => a.name === ability.name)
+      return selfAction !== undefined && resolveTable(selfAction) !== undefined
+    })
+    // Guard the guard: this set is non-empty in the shipped dataset.
+    expect(abilities.length).toBeGreaterThan(0)
+
+    for (const ability of abilities) {
+      render(<ReferenceEntityCard data={ability} />)
+      expect(screen.getAllByLabelText(ROLL_BUTTON).length).toBeGreaterThan(0)
+      cleanup()
+    }
+  })
+})

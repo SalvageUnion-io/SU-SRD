@@ -1,16 +1,16 @@
 /**
  * Per-schema preload lists — which `salvageunion-reference` schemas a given
- * `/schema/[schemaId]/` listing page or `/schema/[schemaId]/item/[itemId]/`
- * item page actually needs loaded client-side, instead of every island
+ * `/[schemaId]/` listing page or `/[schemaId]/[itemId]/` item
+ * page actually needs loaded client-side, instead of every island
  * calling `SalvageUnionReference.preload('all')` (the full ~1.3 MB corpus).
  *
  * This is deliberately conservative and coarse-grained (per audit advice):
  * cross-schema references in this dataset are pervasive, and a few are
  * unconditional — `ReferenceEntityCard` itself, regardless of the
- * entity's schema, always calls `resolveCardTable()` (-> `roll-tables`, for
+ * entity's schema, always calls `resolveTable()` (-> `roll-tables`, for
  * `tableName` refs), always renders `RangeValueDisplay` for any `range`
  * DataValue (-> `distances`), and always resolves ability-tree prerequisite
- * text via `resolveClassRequirements` (-> `ability-tree-requirements`).
+ * text via `classRequirements` (-> `ability-tree-requirements`).
  * So trying to compute a minimal *per-item* closure is a correctness trap —
  * a missed edge silently drops content (some lookups warn-and-degrade) or
  * throws (LazyModel access on an unloaded schema throws synchronously, and
@@ -27,12 +27,12 @@
  *
  * - ALWAYS_CORE — every `ReferenceEntityCard` render, regardless of
  *   schema, unconditionally touches:
- *   - `roll-tables`: `resolveCardTable()` (referenceEntity/card/) checks the
+ *   - `roll-tables`: `resolveTable()` (salvageunion-reference) checks the
  *     entity's own `tableName` field — and its folded action's — via a
  *     LazyModel `.find()`.
  *   - `distances`: `RangeValueDisplay` resolves any `range`-type DataValue
  *     via a LazyModel lookup.
- *   - `ability-tree-requirements`: `resolveClassRequirements`
+ *   - `ability-tree-requirements`: `classRequirements`
  *     (referenceEntity/card/entityCardTone.ts) resolves a hybrid class's
  *     prerequisite trees during render, via a LazyModel lookup keyed on the
  *     class name. Dropping it here would throw on any class card.
@@ -49,7 +49,7 @@
  *   CONTENT_BUNDLE schema the same shared list rather than a bespoke
  *   per-schema subset.
  * - CHASSIS_BUNDLE — `chassis` patterns embed systems/modules *by name*
- *   (useChassisPatternConfig -> `SalvageUnionReference.Systems.find` /
+ *   (the pattern loadout -> `SalvageUnionReference.Systems.find` /
  *   `.Modules.find`, both LazyModel access) — needs those two schemas
  *   (themselves CONTENT_BUNDLE members, so also need `actions`). A chassis
  *   ability can also carry a `.drone` reference, resolved via
@@ -71,7 +71,7 @@
 
 /** Every `ReferenceEntityCard` render touches these regardless of the
  *  entity's own schema — see file header. */
-export const ALWAYS_CORE: readonly string[] = [
+const ALWAYS_CORE: readonly string[] = [
   'roll-tables',
   'distances',
   'ability-tree-requirements',
@@ -81,7 +81,7 @@ export const ALWAYS_CORE: readonly string[] = [
 
 /** Schemas with their own `actions` field, `classes` (ability-tree lookup),
  *  and everything `abilities` can `grant`. Shared bundle — see file header. */
-export const CONTENT_BUNDLE: readonly string[] = [
+const CONTENT_BUNDLE: readonly string[] = [
   'abilities',
   'bio-titans',
   'classes',
@@ -101,7 +101,7 @@ export const CONTENT_BUNDLE: readonly string[] = [
 
 /** `chassis` itself, and any schema that resolves a full Chassis entity
  *  (currently just `factions`, via formation rosters). See file header. */
-export const CHASSIS_BUNDLE: readonly string[] = [
+const CHASSIS_BUNDLE: readonly string[] = [
   'chassis',
   'systems',
   'modules',
@@ -114,11 +114,15 @@ export const CHASSIS_BUNDLE: readonly string[] = [
 ]
 
 /** `crawler-bays` — the Armament Bay's Weapons System choice is a schema-only
- *  catalog resolved at render time (`resolveCatalogChoiceEntities`): it reads
- *  the whole `systems` collection and filters by referenced-action damage type
- *  (`actions`). The resolver runs even for the collapsed listing (to count the
- *  options), so both schemas must be loaded whenever a bay renders. */
-export const CRAWLER_BAY_BUNDLE: readonly string[] = ['systems', 'actions', ...ALWAYS_CORE]
+ *  catalog (`resolveCatalogChoiceEntities`): it reads the whole `systems`
+ *  collection and filters by referenced-action damage type (`actions`). The
+ *  listing resolves it when the reader opens Show options
+ *  (`CatalogChoiceListing`), so both schemas must be loaded on a bay's page. */
+const CRAWLER_BAY_BUNDLE: readonly string[] = ['systems', 'actions', ...ALWAYS_CORE]
+
+/** `systems` — a body kit's chassis choice is a schema-only catalog of every
+ *  `chassis`, resolved when the reader opens Show options. */
+const SYSTEM_BUNDLE: readonly string[] = [...CONTENT_BUNDLE, 'chassis']
 
 /** Schemas whose entities are data-driven, arbitrary cross-references into
  *  any other schema (guide steps) — not safely narrowable. */
@@ -138,7 +142,7 @@ const SCHEMA_PRELOAD_DEPS: Readonly<Record<string, readonly string[]>> = {
   modules: CONTENT_BUNDLE,
   npcs: CONTENT_BUNDLE,
   squads: CONTENT_BUNDLE,
-  systems: CONTENT_BUNDLE,
+  systems: SYSTEM_BUNDLE,
   vehicles: CONTENT_BUNDLE,
   // crawler-bays: resolves a Weapons System catalog (systems + actions).
   'crawler-bays': CRAWLER_BAY_BUNDLE,
@@ -154,7 +158,7 @@ const SCHEMA_PRELOAD_DEPS: Readonly<Record<string, readonly string[]>> = {
 
 /**
  * The list to pass to `SalvageUnionReference.preload(...)` (or `useGameData`
- * / `GameDataGate`'s `schemas` option) for a given `/schema/[schemaId]/`
+ * / `GameDataGate`'s `schemas` option) for a given `/[schemaId]/`
  * route. Falls back to `'all'` for `guides` and any schema not covered above
  * (new schemas default to the safe, unoptimized behavior until added here).
  */

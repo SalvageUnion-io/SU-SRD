@@ -17,7 +17,7 @@
  * **The resolve in progress lives on the seat** (`resolving`, ADR-038 §2):
  * which action, whether it is activated, the roll and whether it was applied.
  * So a reload mid-roll keeps the roll, and the crew watches it step by step.
- * Every roll and Push also goes to the Game's log (`dashboardRolls.ts`). What
+ * Every roll and Push also goes to the Game's log (`dashboardRolls.model.ts`). What
  * only this screen needs (a Hot X, the EP-or-AP choice, the Push readout)
  * stays component state.
  *
@@ -28,11 +28,19 @@
  * mount) decides what an activation spends and whether it touches Heat.
  */
 
+import { rollForTable } from 'component-lib'
+import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { RangeBand, SeatResolving } from 'itun-domain/schemas/seat'
+import { RANGE_BANDS } from 'itun-domain/schemas/seat'
 import { useState } from 'react'
 import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
   CORE_ROLL_BANDS,
-  canActivateAction,
+  canPush,
+  coreRollBandLabel,
   describePushOutcome,
   mechMaxEP,
   mechMaxHeat,
@@ -42,26 +50,16 @@ import {
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
-  rollDie,
 } from 'salvageunion-reference/rules'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { RangeBand, SeatResolving } from '../../lib/schemas/seat'
-import { RANGE_BANDS } from '../../lib/schemas/seat'
-import { useEntityStore } from '../../stores/entityStore'
-import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import type { MechItemEconomy } from '../sheet/mechItemRules'
-import type { DeckListModel, DeckRow } from './DeckList'
-import { recordRoll } from './dashboardRolls'
-import type { PlayAction, PlayActionCurrency, TimingTab } from './dashboardRules'
+import type { MechItemEconomy } from '../../lib/rules/mechItems'
+import type { PlayAction, PlayActionCurrency, TimingTab } from '../../lib/rules/playActions'
 import {
   actionReachable,
+  activationHeatGate,
   activationPatch,
   buildMechActions,
   buildPilotActions,
+  coreMechanicRowText,
   economyForActivation,
   groupBySource,
   hasCurrencyChoice,
@@ -72,7 +70,12 @@ import {
   reachSummary,
   TIMING_TABS,
   tabMatchesAction,
-} from './dashboardRules'
+} from '../../lib/rules/playActions'
+import { runWrite } from '../../lib/runWrite'
+import { useEntityStore } from '../../stores/entityStore'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { DeckListModel, DeckRow } from './DeckList'
+import { recordRoll } from './dashboardRolls.model'
 import type { ResolveModel } from './ResolvePanel'
 import type { PlayStore } from './SlotRow'
 import type { MountState } from './useSeat'
@@ -101,6 +104,11 @@ export type ActionsDeckProps = {
   onDamagePrompt?: () => void
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
+  /**
+   * The dice for a roll on a table, by its name. Injectable so a test controls
+   * the roll; defaults to component-lib's `rollForTable` (Randsum).
+   */
+  rollFor?: typeof rollForTable
 }
 
 export type ActionsDeck = {
@@ -111,7 +119,7 @@ export type ActionsDeck = {
 const HUGE_HEAT_CAP = Number.MAX_SAFE_INTEGER
 
 function bandText(roll: CoreRollResult): string {
-  return `${roll.roll}, ${CORE_ROLL_BANDS[roll.band].label}`
+  return `${roll.roll}, ${coreRollBandLabel(roll.band)}`
 }
 
 export function useActionsDeck({
@@ -125,6 +133,7 @@ export function useActionsDeck({
   onResolving,
   onDamagePrompt,
   store,
+  rollFor = rollForTable,
 }: ActionsDeckProps): ActionsDeck {
   const liveStore = useEntityStore()
   const s: PlayStore = store ?? liveStore
@@ -146,6 +155,9 @@ export function useActionsDeck({
 
   // This screen's own part of a resolve: never on the seat.
   const [pushLog, setPushLog] = useState<string | null>(null)
+  // A Push's Heat Check melted the reactor down: the player confirms the
+  // destruction (ADR-007), it is never written for them.
+  const [meltdown, setMeltdown] = useState(false)
   const [applyRouted, setApplyRouted] = useState(false)
   const [hotX, setHotX] = useState(1)
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
@@ -165,6 +177,7 @@ export function useActionsDeck({
 
   function resetLocal() {
     setPushLog(null)
+    setMeltdown(false)
     setApplyRouted(false)
     setHotX(1)
   }
@@ -261,9 +274,10 @@ export function useActionsDeck({
     step(current, { applied: true })
   }
 
-  function doRoll(current: SeatResolving, action: PlayAction) {
-    const result = performCoreRoll(rollDie)
+  async function doRoll(current: SeatResolving, action: PlayAction) {
+    const result = performCoreRoll(await rollFor('Core Mechanic'))
     setPushLog(null)
+    setMeltdown(false)
     setApplyRouted(false)
     step(current, { roll: result, applied: false })
     if (logOwner) {
@@ -274,30 +288,83 @@ export function useActionsDeck({
     }
   }
 
-  function doPush(current: SeatResolving, action: PlayAction) {
+  async function doPush(current: SeatResolving, action: PlayAction) {
     // Push is the mech reactor's move: only a boarded deck offers it.
     if (!mech) return
+    // The Heat Check's own d20 is plain; an overload rolls on Reactor Overload.
+    const heatRoll = await rollFor('Reactor Overload', { plainD20s: 1 })
+    const coreRoll = await rollFor('Core Mechanic')
     const chassis = resolveChassisRef(mech.chassisRef)
     const fresh = s.get('mech', mech.id) ?? mech
     const cap = mechMaxHeat(fresh, chassis)
-    const { patch, effect, nextHeat } = pushPatch({
+    // Core Book p.234: no Push that would take Heat past the cap. The control
+    // is disabled for it; this holds the line against a stale render too.
+    if (!canPush(resolveGauge(fresh.currentHeat, cap), cap)) return
+    const {
+      patch,
+      effect,
+      nextHeat,
+      meltdown: meltedDown,
+    } = pushPatch({
       heat: resolveGauge(fresh.currentHeat, cap),
       heatCap: cap,
       // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
       // to SP 0 — one hit from destroyed — without it ever having taken damage.
       currentSP: resolvePoolStart(fresh.currentSP, mechMaxSP(fresh, chassis)),
-      roll: rollDie,
+      roll: heatRoll,
     })
     runWrite(() => s.update('mech', mech.id, patch, DASHBOARD_TXN))
-    const result = performCoreRoll(rollDie)
+    const result = performCoreRoll(coreRoll)
     const log = describePushOutcome(nextHeat, effect)
     setPushLog(log)
+    setMeltdown(meltedDown)
     setApplyRouted(false)
     step(current, { roll: result, applied: false })
     recordRoll(mech, {
       description: `${roller} · ${action.name}, pushed: ${bandText(result)}. ${log}`,
       result: { kind: 'push', roll: result.roll, outcome: result.band },
     })
+  }
+
+  /** The player's half of a meltdown: mark the mech Destroyed (ADR-007). */
+  function confirmMeltdown() {
+    if (!mech) return
+    runWrite(
+      () => s.update('mech', mech.id, { destroyed: true }, DASHBOARD_TXN),
+      () => setMeltdown(false)
+    )
+  }
+
+  /**
+   * The phone's pennant (ADR-045 D6): open an action and pay for it in one
+   * press, through the same `activate` the resolve's own pennant calls. An
+   * action that cannot be paid for as it stands (locked, over the Heat Cap,
+   * a cost to choose) only opens, and the resolve says why.
+   */
+  function openAndActivate(action: PlayAction) {
+    setCurrency(action.currency)
+    resetLocal()
+    const current: SeatResolving = {
+      ref: action.key,
+      name: action.name,
+      activated: false,
+      applied: false,
+    }
+    const eco = economyForActivation(action.economy, action.action, 1)
+    const choice = hasCurrencyChoice(action.action) && !onFoot
+    const { ok: heatOk } = activationHeatGate({
+      currency: action.currency,
+      onFoot,
+      heat: eco.heat,
+      ...heatCtx,
+    })
+    const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
+    const payable = action.currency === 'EP' ? mech !== null : pilot != null
+    if (choice || hasVariableHot(action.action) || !heatOk || !reachable || !payable) {
+      onResolving(current)
+      return
+    }
+    activate(current, action, action.currency, eco)
   }
 
   const list = ((): DeckListModel => {
@@ -326,7 +393,7 @@ export function useActionsDeck({
       const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
       return {
         key: action.key,
-        // The raw action entity drives the canonical catalog tile.
+        // The raw action entity drives the canonical header-only card.
         entity: action.action,
         name: action.name,
         locked: !reachable,
@@ -357,13 +424,14 @@ export function useActionsDeck({
       sources,
       sourceFilter,
       onSourceFilter: setSourceFilter,
-      familyClass: onFoot ? 'pc-deck-fam-pilot' : 'pc-deck-fam-mech',
-      // Action tiles ghost the deck's host tone: pilot on foot, mech when boarded.
-      hostTone: onFoot ? 'var(--color-pilot)' : 'var(--color-mech)',
       rows,
       onOpen: (key) => {
         const action = deck.find((a) => a.key === key)
         if (action) open(action)
+      },
+      onActivate: (key) => {
+        const action = deck.find((a) => a.key === key)
+        if (action) openAndActivate(action)
       },
     }
   })()
@@ -397,24 +465,32 @@ export function useActionsDeck({
     const effCurrency: PlayActionCurrency = currencyChoice ? currency : selected.currency
 
     // Heat projection + cap gate (EP activations only; pilots carry no Heat).
-    const heatApplies = effCurrency === 'EP' && !onFoot
-    const heatOk =
-      !heatApplies ||
-      eco.heat <= 0 ||
-      canActivateAction(heatCtx.currentHeat, eco.heat, heatCtx.heatCap)
+    const { applies: heatApplies, ok: heatOk } = activationHeatGate({
+      currency: effCurrency,
+      onFoot,
+      heat: eco.heat,
+      ...heatCtx,
+    })
     const projectedHeat = heatCtx.currentHeat + eco.heat
     const apUnavailable = effCurrency === 'AP' && !pilot
     const activateDisabled = activated || !heatOk || apUnavailable
 
-    const cost: string[] = []
-    if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)
-    if (heatApplies && eco.heat > 0) cost.push(`+${eco.heat} Heat`)
-    if (eco.maxUses > 0) cost.push(`Uses ${eco.maxUses}`)
+    // Core Book p.233: a pushed roll is not pushed again. A new roll clears
+    // the Push readout, and with it this.
+    const pushed = pushLog !== null
+    // Core Book pp.233–234: a Push adds 2 Heat, and a mech never exceeds its
+    // Heat Cap, so it is refused where that would — as the Reactor bay refuses it.
+    const pushLocked = !canPush(heatCtx.currentHeat, heatCtx.heatCap)
 
     return {
       kind: 'resolve',
       onBack: close,
-      costLabel: cost.length > 0 ? cost.join(' · ') : 'No cost',
+      cost: {
+        amount: eco.epCost,
+        heat: heatApplies ? eco.heat : 0,
+        uses: eco.maxUses,
+      },
+      currency: effCurrency,
       entity: selected.action,
       currencyChoice: currencyChoice
         ? {
@@ -442,12 +518,20 @@ export function useActionsDeck({
           ? 'No pilot to spend AP'
           : heatOk
             ? undefined
-            : 'Activating would exceed the Heat Cap',
+            : 'Activating would exceed the Heat Capacity',
         onActivate: () => activate(current, selected, effCurrency, eco),
-        onRoll: () => doRoll(current, selected),
+        activated,
+        onRoll: () => void doRoll(current, selected),
         push: isPilotAction
           ? undefined
-          : { disabled: roll === null, onPush: () => doPush(current, selected) },
+          : {
+              disabled: roll === null || pushed || pushLocked,
+              pushed,
+              lockedReason: pushLocked
+                ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +2 Heat would pass the Heat Capacity.`
+                : undefined,
+              onPush: () => void doPush(current, selected),
+            },
         applyLabel: applied ? 'Applied' : 'Apply',
         applyDisabled: roll === null || applied || applyRouted,
         onApply: () => {
@@ -459,11 +543,16 @@ export function useActionsDeck({
         ? {
             roll: roll.roll,
             band: roll.band,
-            bandLabel: CORE_ROLL_BANDS[roll.band].label,
-            bandSummary: CORE_ROLL_BANDS[roll.band].summary,
+            bandRange: CORE_ROLL_BANDS[roll.band].range,
+            bandLabel: coreRollBandLabel(roll.band),
+            bandSummary: coreMechanicRowText(roll.roll),
+            destructive: isDestructiveOutcome(roll.band),
           }
         : null,
       pushLog,
+      meltdown: meltdown
+        ? { onConfirm: confirmMeltdown, onDismiss: () => setMeltdown(false) }
+        : null,
       applied,
       applyRouted,
     }

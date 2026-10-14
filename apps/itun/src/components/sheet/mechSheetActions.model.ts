@@ -1,0 +1,258 @@
+/**
+ * useMechSheetActions — every write the mech Live Sheet can make, in one place.
+ *
+ * The sibling of `pilotSheetActions.model.ts`, and the same rationale: nine handlers
+ * each re-spelling `storeState.update('mech', mech.id, …, LIVE_SHEET_MANUAL)`
+ * is what made the offline-refusal wrapper a ~45-site edit. There is one
+ * `write()` here, and one `writeAwait()` for the handlers that must sequence
+ * something after the write lands (the destroyed-undo toast, the scrap-pool
+ * deduction that follows a repair).
+ *
+ * `writeAwait` deliberately does NOT catch: catching inside would let the undo
+ * toast — and the pool deduction — proceed off a write that never landed. The
+ * rejection propagates out of the handler instead, and the sheet runs each
+ * awaited handler through `runWrite`, so a refused write is told to the player
+ * rather than left as an unhandled rejection (ITUN-D).
+ *
+ * Every handler reads the FRESHEST record via `freshEntity` rather than the
+ * render-time prop, so rapid sequential edits do not stomp each other.
+ */
+
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { Mech } from 'itun-domain/schemas/mech'
+import { useState } from 'react'
+import type { SoftWarning } from 'salvageunion-reference/rules'
+import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
+import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { runWrite } from '../../lib/runWrite'
+import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
+import { useSoftWarnings } from '../shared/useSoftWarnings'
+import { changedFields, freshEntity } from './controlPrimitives'
+import { destroyedUndoToast } from './destroyedUndoToast.model'
+import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
+
+export type ItemKind = 'system' | 'module'
+
+type MechSheetActionsOptions = {
+  mech: Mech
+  /** Injectable store hook — forwarded to `useSoftWarnings`. */
+  store: typeof useEntityStore
+  storeState: SheetStoreState
+  /** The linked home crawler, or null — the repair scrap-pool deduction target. */
+  crawler: Crawler | null
+}
+
+export type MechSheetActions = {
+  patchMech: SheetPatch
+  overrideMechMax: (fields: Partial<Mech>) => void
+  addItem: (kind: ItemKind, slug: string) => void
+  removeItem: (kind: ItemKind, index: number) => void
+  cycleItemCondition: (kind: ItemKind, slug: string) => Promise<void>
+  setItemUses: (slug: string, next: number) => Promise<void>
+  repairItem: (kind: ItemKind, slug: string, deductTl: number | null, cost: number) => Promise<void>
+  saveQuirk: (next: string) => void
+  saveAppearance: (next: string) => void
+  saveDescription: (next: string) => void
+  /** Advisory soft-warning state for the confirm dialog. */
+  warnings: SoftWarning[]
+  warningSubtitle: string | null
+  /** Discard the pending build edit (dialog "Fix it"). */
+  cancelBuildEdit: () => void
+  /** Persist the pending build edit despite its warnings (dialog "Save anyway"). */
+  confirmBuildEdit: () => void
+}
+
+export function useMechSheetActions({
+  mech,
+  store,
+  storeState,
+  crawler,
+}: MechSheetActionsOptions): MechSheetActions {
+  // Soft warnings (ADR-021) on the one mech BUILD edit the rules
+  // evaluate: system removal. Play-state writes (SP/EP/heat, conditions, item
+  // activation) deliberately bypass this — they are transient combat state.
+  // `toSnapshot` is REQUIRED: Mech.systems is a slug array, while the rules
+  // read `{ ref, requires }` structs.
+  const softWarnings = useSoftWarnings({
+    entityType: 'mech',
+    entityId: mech.id,
+    toSnapshot: (m) => ({ systems: m.systems.map((ref) => ({ ref })) }),
+    store,
+  })
+  const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
+
+  /** Freshest mech from the store — rapid actions must not stomp each other. */
+  function freshMech(): Mech {
+    return freshEntity(storeState, 'mech', mech)
+  }
+
+  /** The one fire-and-forget write on this sheet — see the header note. */
+  function write(fields: Partial<Mech>, meta: ChangeMeta = LIVE_SHEET_MANUAL): void {
+    runWrite(() => storeState.update('mech', mech.id, fields, meta))
+  }
+
+  /** The one awaited write on this sheet — see the header note. */
+  function writeAwait(
+    fields: Partial<Mech>,
+    meta: ChangeMeta = LIVE_SHEET_MANUAL
+  ): Promise<unknown> {
+    return storeState.update('mech', mech.id, fields, meta)
+  }
+
+  /** Partial merge on this mech, reading the freshest record when needed. */
+  const patchMech: SheetPatch = (input) => {
+    const fields = typeof input === 'function' ? input(freshMech()) : input
+    write(fields)
+  }
+
+  // Cap overrides (ADR-022 amendment, Free Edit): a pinned maximum is stored
+  // ABSOLUTELY in max*Override. The derivation keeps running underneath, so the
+  // gauge can show "overridden from N" and revert by clearing the pin.
+  //
+  // A pin is its own field, never a signed max*Modifier delta: one field
+  // carrying both a hand pin and every rules modifier would render an automatic
+  // contribution as an override. max*Modifier means only "manual adjustment"
+  // and contributes to the derivation. See ADR-029.
+  //
+  // Callers normalise the pin with `pinFor` (a pin equal to the derivation is
+  // written as none); a commit that changes nothing is not written at all.
+  const overrideMechMax = (fields: Partial<Mech>) => {
+    const changed = changedFields(freshMech(), fields)
+    if (changed) write(changed, LIVE_SHEET_OVERRIDE)
+  }
+
+  // Collection add/remove (unified edit language archetype B) — always
+  // available, writes through immediately (ITUN auto-saves; no Save button).
+  // Reads the FRESHEST record so rapid picker clicks don't race the async
+  // store write. Duplicates are rules-legal; capacity stays soft.
+  // Hand-editing the loadout never clears patternName — the pattern name IS
+  // the mech's identity.
+  // TODO(redesign): rule-gate add/remove (slot budgets / scrap economy) —
+  // deferred; users self-manage for now.
+  function addItem(kind: ItemKind, slug: string) {
+    const fresh = freshMech()
+    write(
+      kind === 'system'
+        ? { systems: [...fresh.systems, slug] }
+        : { modules: [...fresh.modules, slug] }
+    )
+  }
+
+  /**
+   * Remove one installed item. System removal is the one mech BUILD edit the
+   * soft-warning rules evaluate (SYSTEM_DEPENDENCY_REMOVED — "a system another
+   * system depends on is being removed"), so it previews first and confirms
+   * only when something is flagged. Module removal has no such rule and writes
+   * straight through.
+   */
+  function removeItem(kind: ItemKind, index: number) {
+    const fresh = freshMech()
+    if (kind === 'module') {
+      write({ modules: fresh.modules.filter((_, i) => i !== index) })
+      return
+    }
+    const removed = fresh.systems[index]
+    const patch = { systems: fresh.systems.filter((_, i) => i !== index) }
+    if (softWarnings.preview(patch).length === 0) {
+      void softWarnings.saveAnyway()
+      return
+    }
+    setWarningSubtitle(`Remove ${(removed && resolveSystem(removed)?.name) || removed || 'system'}`)
+  }
+
+  /** Write one item's condition (used by the cycle and the toast Undo). */
+  async function setItemCondition(kind: ItemKind, slug: string, condition: ItemCondition) {
+    const fresh = freshMech()
+    const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
+    const nextMap = { ...prev, [slug]: condition }
+    await writeAwait(
+      kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap }
+    )
+  }
+
+  async function cycleItemCondition(kind: ItemKind, slug: string) {
+    const fresh = freshMech()
+    const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
+    const prevCondition = prev[slug] ?? 'intact'
+    const next = cycleCondition(prevCondition)
+    await setItemCondition(kind, slug, next)
+    // Landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
+    if (next === 'destroyed') {
+      const name = (kind === 'system' ? resolveSystem(slug) : resolveModule(slug))?.name ?? slug
+      destroyedUndoToast(name, () => {
+        runWrite(() => setItemCondition(kind, slug, prevCondition))
+      })
+    }
+  }
+
+  async function setItemUses(slug: string, next: number) {
+    const prevUses = freshMech().itemUses ?? {}
+    await writeAwait({ itemUses: { ...prevUses, [slug]: Math.max(0, next) } })
+  }
+
+  /**
+   * Repair to Intact (half SV in Scrap — the cost is shown on the button).
+   * `deductTl` is the optional crawler pool bucket to decrement; the repair
+   * itself never blocks on the pool (S12).
+   */
+  async function repairItem(kind: ItemKind, slug: string, deductTl: number | null, cost: number) {
+    const fresh = freshMech()
+    const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
+    const nextMap: Record<string, ItemCondition> = {
+      ...prev,
+      [slug]: 'intact',
+    }
+    await writeAwait(
+      kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap }
+    )
+    if (deductTl !== null && crawler) {
+      const freshCrawler = freshEntity(storeState, 'crawler', crawler)
+      await storeState.update(
+        'crawler',
+        crawler.id,
+        {
+          scrapPool: addToScrapPool(freshCrawler.scrapPool ?? {}, deductTl, -cost),
+        },
+        LIVE_SHEET_MANUAL
+      )
+    }
+  }
+
+  /** Quirk / Appearance / Description field save: trimmed, blank clears it. */
+  function saveQuirk(next: string) {
+    write({ quirk: next.trim() || undefined })
+  }
+
+  function saveAppearance(next: string) {
+    write({ appearance: next.trim() || undefined })
+  }
+
+  function saveDescription(next: string) {
+    write({ description: next.trim() || undefined })
+  }
+
+  return {
+    patchMech,
+    overrideMechMax,
+    addItem,
+    removeItem,
+    cycleItemCondition,
+    setItemUses,
+    repairItem,
+    saveQuirk,
+    saveAppearance,
+    saveDescription,
+    warnings: softWarnings.warnings,
+    warningSubtitle,
+    cancelBuildEdit: () => {
+      softWarnings.fixIt()
+      setWarningSubtitle(null)
+    },
+    confirmBuildEdit: () => {
+      void softWarnings.saveAnyway()
+      setWarningSubtitle(null)
+    },
+  }
+}

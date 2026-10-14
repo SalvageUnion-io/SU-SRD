@@ -1,15 +1,15 @@
 /**
- * Tests for the Phase-5 rules buttons in the Major slot — a stub store captures
+ * Tests for the rules buttons in the Major slot — a stub store captures
  * every `update(...)` so we can assert the exact patch each handler writes
  * (deterministic controls only: Vent, Shutdown toggle, and self-declared SP/HP
  * damage; the d20-driven Push / Heat Check / Critical rolls are exercised in
- * dashboardRules.test.ts against an injected roller).
+ * lib/rules/__tests__/playActions.test.ts against an injected roller).
  */
 
 import { describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import type { PlayStore } from '../SlotRow'
@@ -72,7 +72,7 @@ describe('Major slot rules buttons', () => {
     expect(calls[0]?.patch).toEqual({ currentHeat: 0, vulnerable: true })
   })
 
-  test('Shutdn toggles the shutdown flag', () => {
+  test('Shut Down toggles the shutdown flag', () => {
     const { store, calls } = stubStore([mech])
     render(
       <SlotRow
@@ -84,11 +84,11 @@ describe('Major slot rules buttons', () => {
         store={store}
       />
     )
-    fireEvent.click(screen.getByText('Shutdn'))
+    fireEvent.click(screen.getByText('Shut Down'))
     expect(calls[0]?.patch).toEqual({ shutdown: true })
   })
 
-  test('Take Dmg applies the entered SP damage', async () => {
+  test('Take Damage applies the entered SP damage', async () => {
     const { store, calls } = stubStore([mech])
     render(
       <SlotRow
@@ -100,7 +100,7 @@ describe('Major slot rules buttons', () => {
         store={store}
       />
     )
-    fireEvent.click(screen.getByText('Take Dmg'))
+    fireEvent.click(screen.getByText('Take Damage'))
     // Bump damage 1 → 3, then apply.
     fireEvent.click(screen.getByLabelText('Add one damage point'))
     fireEvent.click(screen.getByLabelText('Add one damage point'))
@@ -108,7 +108,7 @@ describe('Major slot rules buttons', () => {
     expect(calls[0]?.patch).toEqual({ currentSP: 7 })
   })
 
-  test('pilot Take Dmg applies HP damage on foot', async () => {
+  test('pilot Take Damage applies HP damage on foot', async () => {
     const { store, calls } = stubStore([mech, pilot])
     render(
       <SlotRow
@@ -121,7 +121,7 @@ describe('Major slot rules buttons', () => {
         store={store}
       />
     )
-    fireEvent.click(screen.getByText('Take Dmg'))
+    fireEvent.click(screen.getByText('Take Damage'))
     await clickAndSettle(screen.getByText('Apply −1 HP'))
     expect(calls[0]).toEqual({ type: 'pilot', id: 'p1', patch: { currentHP: 9 } })
   })
@@ -187,9 +187,9 @@ describe('Major slot rules buttons', () => {
 })
 
 describe('blocked controls teach the rule (F6, ADR-021)', () => {
-  // Guided Play "teaches as it enforces". A blocked Push used to grey out with a
-  // hover title — unreachable on touch, and it taught nothing at the moment the
-  // rule actually bit.
+  // Guided Play "teaches as it enforces". A blocked Push greyed out with only a
+  // hover title is unreachable on touch, and teaches nothing at the moment the
+  // rule bites.
   const hotMech = mechFixture({
     id: 'm-hot',
     name: 'Iron Mongrel',
@@ -221,7 +221,7 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
 
     // It teaches rather than acting: the rule is shown and NOTHING is written.
     expect(screen.getByText(/Heat Cap/i)).toBeTruthy()
-    expect(screen.getByText(/Quick Ref/i)).toBeTruthy()
+    expect(screen.getByText(/Workshop Manual · p\.234/)).toBeTruthy()
     expect(calls).toHaveLength(0)
   })
 
@@ -241,7 +241,9 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
 
     await clickAndSettle(screen.getByRole('button', { name: /push/i }))
 
-    expect(screen.queryByText(/Quick Ref/i)).toBeNull()
-    expect(calls.length).toBeGreaterThan(0)
+    expect(screen.queryByText(/Workshop Manual · p\.234/)).toBeNull()
+    // The Heat Check's dice load on first use (`rollForTable`), so in a file
+    // that runs before any other loaded them the write lands a tick later.
+    await waitFor(() => expect(calls.length).toBeGreaterThan(0))
   })
 })

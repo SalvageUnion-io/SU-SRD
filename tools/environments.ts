@@ -10,14 +10,13 @@
  *
  * ## Why it exists
  *
- * #1072 (audit-3 P2) declared `environment: production` on every job that reads
- * a deploy secret and added the static gate, on the premise that the secrets
- * live only in an Environment restricted to `main`. The settings half was a
- * manual step in the PR body and never happened: on 2026-10-07 `production`
- * existed with no branch policy and no secrets, all four deploy secrets were
- * still repository-wide (readable by a workflow copy dispatched from any
- * branch), and the gate was green the whole time because it can only read
- * YAML. Settings changed by hand drift silently; this makes the drift red.
+ * Every job that reads a deploy secret declares `environment: production`, and
+ * the static gate checks that, on the premise that the secrets live only in an
+ * Environment restricted to `main`. The gate can only read YAML: on 2026-10-07
+ * `production` existed with no branch policy and no secrets, all four deploy
+ * secrets were repository-wide (readable by a workflow copy dispatched from any
+ * branch), and the gate was green. Settings changed by hand drift silently;
+ * this makes the drift red.
  *
  * ## What it checks
  *
@@ -77,25 +76,33 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     // date with `main` and passed `CI Success` (ADR-033 §Credentials).
     name: 'production',
     branches: ['main'],
-    secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
+    secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN', 'SENTRY_AUTH_TOKEN'],
   },
   {
-    // `deploy-preview.yml`: uploads Worker versions under the `preview` alias
-    // and pushes the staging Convex deployment `perfect-donkey-72`. It is
-    // dispatched from ANY branch (`**/*`), so the branch policy protects
-    // nothing; the required reviewer is the gate. The Cloudflare token cannot
-    // be narrowed to the preview (ADR-033 §Credentials: Workers Scripts: Edit
-    // reaches every Worker on the account), so without a reviewer any branch's
-    // code would hold a credential that can deploy production.
+    // `deploy-preview.yml`: ships each PR into `main` that carries the
+    // `preview` label as Worker Previews `pr-<n>`, and pushes the staging
+    // Convex deployment `perfect-donkey-72`. It runs from ANY branch (`**/*`),
+    // and the label is the gate: no required reviewer, by the owner's choice
+    // (2026-10-13). Accepted risk (ADR-033 §Credentials): the Cloudflare token
+    // cannot be narrowed to the previews (Workers Scripts: Edit reaches every
+    // Worker on the account), so a labelled branch's code holds a credential
+    // that can deploy production.
     name: 'preview',
     branches: ['**/*'],
     secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
-    reviewers: ['alxjrvs'],
+  },
+  {
+    // `gallery-pages.yml`: deploys the screenshot galleries to GitHub
+    // Pages. A `workflow_run` job runs main's code, so the main-only policy
+    // holds; it needs no secret (the job's own token deploys).
+    name: 'github-pages',
+    branches: ['main'],
+    secrets: [],
   },
 ]
 
 /** A `code_scanning` rule entry: which tool's results gate a merge, and at what severity. */
-export type CodeScanningSpec = {
+type CodeScanningSpec = {
   tool: string
   security_alerts_threshold: string
   alerts_threshold: string
@@ -521,30 +528,45 @@ export function apply(api: GhApi = gh): string[] {
   return done
 }
 
-function main() {
-  const args = new Set(process.argv.slice(2))
+/** Compare (and with `--apply`, set) the live settings; returns the exit code. */
+export function main(
+  argv: readonly string[] = process.argv.slice(2),
+  {
+    api = gh,
+    env = process.env,
+    log = console.log,
+    error = console.error,
+  }: {
+    api?: GhApi
+    env?: Record<string, string | undefined>
+    log?: (line: string) => void
+    error?: (line: string) => void
+  } = {}
+): number {
+  const args = new Set(argv)
   for (const a of args) {
     if (!['--apply', '--secrets-from-env'].includes(a)) {
-      console.error(`unknown argument ${a}`)
-      process.exit(2)
+      error(`unknown argument ${a}`)
+      return 2
     }
   }
   if (args.has('--apply')) {
-    for (const line of apply()) console.log(`applied  ${line}`)
+    for (const line of apply(api)) log(`applied  ${line}`)
   }
   const verdicts = [
-    compare(ENVIRONMENTS, REPOSITORY_SECRETS, readLive(args.has('--secrets-from-env'))),
-    compareRuleset(MAIN_RULESET, readRuleset(MAIN_RULESET.name)),
+    compare(ENVIRONMENTS, REPOSITORY_SECRETS, readLive(args.has('--secrets-from-env'), api, env)),
+    compareRuleset(MAIN_RULESET, readRuleset(MAIN_RULESET.name, api)),
   ]
   const failures = verdicts.flatMap((v) => v.failures)
-  for (const line of verdicts.flatMap((v) => v.ran)) console.log(`checked  ${line}`)
-  for (const line of verdicts.flatMap((v) => v.notRun)) console.log(`not run  ${line}`)
+  for (const line of verdicts.flatMap((v) => v.ran)) log(`checked  ${line}`)
+  for (const line of verdicts.flatMap((v) => v.notRun)) log(`not run  ${line}`)
   if (failures.length) {
-    console.error(`\n${failures.length} drift(s) from tools/environments.ts:`)
-    for (const f of failures) console.error(`  - ${f}`)
-    process.exit(1)
+    error(`\n${failures.length} drift(s) from tools/environments.ts:`)
+    for (const f of failures) error(`  - ${f}`)
+    return 1
   }
-  console.log(`\n${REPO}: Environments and the \`main\` ruleset match tools/environments.ts`)
+  log(`\n${REPO}: Environments and the \`main\` ruleset match tools/environments.ts`)
+  return 0
 }
 
-if (import.meta.main) main()
+if (import.meta.main) process.exit(main())

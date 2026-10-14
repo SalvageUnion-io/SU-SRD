@@ -1,6 +1,7 @@
 /**
- * Chassis PATTERN pages. A pattern is a nested object on its chassis — no id,
- * no `schemaName` — so its route, its slug and its SEO summary are all built
+ * PATTERN pages — a chassis's mech patterns and a Bio-Titan's variants. A
+ * pattern is a nested object on its host — no id, no `schemaName` — so its
+ * route, its slug and its SEO summary are all built
  * here rather than falling out of the entity machinery. These tests pin the
  * three properties that makes load-bearing:
  *
@@ -25,6 +26,15 @@ import { getPatternStaticPaths } from '../staticPaths'
 const chassisWithPatterns = () =>
   SalvageUnionReference.Chassis.all().filter((c) => visiblePatterns(c.patterns ?? []).length > 0)
 
+const bioTitansWithPatterns = () =>
+  SalvageUnionReference.BioTitans.all().filter((t) => visiblePatterns(t.patterns ?? []).length > 0)
+
+const typhon = () => {
+  const found = SalvageUnionReference.BioTitans.getByName('Typhon')
+  if (!found) throw new Error('Typhon fixture missing')
+  return found
+}
+
 const mule = () => {
   const found = SalvageUnionReference.Chassis.getByName('Mule')
   if (!found) throw new Error('Mule fixture missing')
@@ -34,11 +44,10 @@ const mule = () => {
 describe('getPatternStaticPaths', () => {
   const paths = getPatternStaticPaths()
 
-  it('emits one page per visible pattern of every chassis', () => {
-    const expected = chassisWithPatterns().reduce(
-      (n, c) => n + visiblePatterns(c.patterns ?? []).length,
-      0
-    )
+  it('emits one page per visible pattern of every chassis and Bio-Titan', () => {
+    const expected =
+      chassisWithPatterns().reduce((n, c) => n + visiblePatterns(c.patterns ?? []).length, 0) +
+      bioTitansWithPatterns().reduce((n, t) => n + visiblePatterns(t.patterns ?? []).length, 0)
     expect(expected).toBeGreaterThan(0)
     expect(paths).toHaveLength(expected)
   })
@@ -49,15 +58,13 @@ describe('getPatternStaticPaths', () => {
     )
     expect(hidden.length).toBeGreaterThan(0)
     const generated = new Set(
-      paths.map(
-        (p) => `/schema/${p.params.schemaId}/item/${p.params.itemId}/pattern/${p.params.patternId}/`
-      )
+      paths.map((p) => `/${p.params.schemaId}/${p.params.itemId}/pattern/${p.params.patternId}/`)
     )
     expect(hidden.filter((href) => generated.has(href))).toEqual([])
   })
 
-  it('nests every page under the chassis schema', () => {
-    expect(paths.every((p) => p.params.schemaId === 'chassis')).toBe(true)
+  it("nests every page under its host's schema", () => {
+    expect(new Set(paths.map((p) => p.params.schemaId))).toEqual(new Set(['chassis', 'bio-titans']))
   })
 
   it('gives every page a unique URL', () => {
@@ -75,22 +82,32 @@ describe('srdPatternHref', () => {
   it('resolves to a page that getPatternStaticPaths actually generates', () => {
     const generated = new Set(
       getPatternStaticPaths().map(
-        (p) => `/schema/${p.params.schemaId}/item/${p.params.itemId}/pattern/${p.params.patternId}/`
+        (p) => `/${p.params.schemaId}/${p.params.itemId}/pattern/${p.params.patternId}/`
       )
     )
-    const dangling = chassisWithPatterns().flatMap((chassis) =>
-      visiblePatterns(chassis.patterns ?? [])
-        .map((pattern) => srdPatternHref(chassis, pattern))
-        .filter((href) => !generated.has(href))
-    )
+    const dangling = [
+      ...chassisWithPatterns().flatMap((chassis) =>
+        visiblePatterns(chassis.patterns ?? []).map((pattern) => srdPatternHref(chassis, pattern))
+      ),
+      ...bioTitansWithPatterns().flatMap((titan) =>
+        visiblePatterns(titan.patterns ?? []).map((pattern) => srdPatternHref(titan, pattern))
+      ),
+    ].filter((href) => !generated.has(href))
     expect(dangling).toEqual([])
+  })
+
+  it('nests a Bio-Titan pattern under its Bio-Titan', () => {
+    const host = typhon()
+    const hillWorm = host.patterns?.find((p) => p.name === 'Hill Worm')
+    if (!hillWorm) throw new Error('Hill Worm fixture missing')
+    expect(srdPatternHref(host, hillWorm)).toBe('/bio-titans/typhon/pattern/hill-worm/')
   })
 
   it('nests the pattern under its chassis', () => {
     const chassis = mule()
     const hauler = chassis.patterns?.find((p) => p.name === 'Hauler')
     if (!hauler) throw new Error('Hauler fixture missing')
-    expect(srdPatternHref(chassis, hauler)).toBe('/schema/chassis/item/mule/pattern/hauler/')
+    expect(srdPatternHref(chassis, hauler)).toBe('/chassis/mule/pattern/hauler/')
   })
 })
 
@@ -127,13 +144,23 @@ describe('patternStaticSummary', () => {
     expect(prose).toContain('Reactor Flare')
   })
 
-  it('reads chassis prose before pattern prose', () => {
-    const chassisProse = summary.contentParagraphs.findIndex((p) => p.includes("'M-63' Mule"))
-    const patternProse = summary.contentParagraphs.findIndex((p) =>
-      p.includes('favoured by wastelanders')
-    )
-    expect(chassisProse).toBeGreaterThan(-1)
-    expect(patternProse).toBeGreaterThan(chassisProse)
+  it('leads with the pattern, then the base chassis under its own heading', () => {
+    // The pattern's prose and loadout come first (description + content) ...
+    expect(summary.description).toContain('favoured by wastelanders')
+    expect(summary.contentParagraphs.join('\n')).not.toContain("'M-63' Mule")
+    // ... and the chassis prose follows, as a section named for the chassis.
+    const [chassisSection] = summary.sections
+    expect(chassisSection?.name).toBe('Mule chassis')
+    expect(chassisSection?.paragraphs.join('\n')).toContain("'M-63' Mule")
+  })
+
+  it('never repeats a paragraph', () => {
+    const all = [
+      summary.description,
+      ...summary.contentParagraphs,
+      ...summary.sections.flatMap((s) => s.paragraphs),
+    ]
+    expect(new Set(all).size).toBe(all.length)
   })
 
   it('counts a repeated loadout entry rather than listing it twice', () => {
@@ -143,5 +170,22 @@ describe('patternStaticSummary', () => {
     if (!repeated) return // no multi-count loadout in the dataset; nothing to pin
     const line = patternStaticSummary(repeated.c, repeated.p).contentParagraphs.join('\n')
     expect(line).toContain('×')
+  })
+})
+
+describe('patternStaticSummary for a Bio-Titan pattern', () => {
+  const host = typhon()
+  const hillWorm = host.patterns?.find((p) => p.name === 'Hill Worm')
+  if (!hillWorm) throw new Error('Hill Worm fixture missing')
+  const summary = patternStaticSummary(host, hillWorm)
+
+  it('titles the page for the pattern', () => {
+    expect(summary.name).toBe('Hill Worm — Typhon Pattern')
+  })
+
+  it('spells out the action it adds, with its rule', () => {
+    const prose = summary.contentParagraphs.join('\n')
+    expect(prose).toContain('Metallic Reconstitution: ')
+    expect(prose).toContain('additional Armour Plating')
   })
 })

@@ -1,23 +1,11 @@
 import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
-import {
-  findEntityBySlug,
-  getEntitySlug,
-  isSchemaName,
-  nameToSlug,
-  search,
-} from 'salvageunion-reference'
-import type { ContainerData } from '../container.js'
-import { toContainer } from '../container.js'
-import { makeCustomId } from '../customId.js'
-import { lookupCard } from '../lookupCard.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-
-type Hit = {
-  schemaName: SURefEnumSchemaName
-  entity: SURefEntity & { schemaName: SURefEnumSchemaName }
-}
+import { findEntityBySlug, getPatterns, nameToSlug, search } from 'salvageunion-reference'
+import type { ContainerData } from '../container'
+import { v2Reply } from '../container'
+import { noEntryContainer } from '../errorContainer'
+import type { LookupHit } from '../lookupCard'
+import { entityFromKey, lookupCard, lookupKey, patternOf } from '../lookupCard'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 
 /** A `/su lookup` reply ready for `interaction.reply`, or a user-facing error. */
 export type LookupMessage =
@@ -25,40 +13,17 @@ export type LookupMessage =
   | { error: string }
 
 /**
- * Build the lookup reply for a resolved entity: the rich card, plus a "Roll on
- * this table" button when the entity is itself a roll-table. Shared by the
- * `/su lookup` slash handler and the roll result's "See table" button.
+ * Build the lookup reply for a resolved entry or pattern. Shared by the
+ * `/su lookup` slash handler, the older tab buttons (which redraw it), the older
+ * "See table" buttons and the message context menu.
  */
-export function buildLookupMessage(
-  entity: SURefEntity & { schemaName: SURefEnumSchemaName },
-  schemaName: SURefEnumSchemaName
-): { flags: number; components: [ContainerBuilder]; data: ContainerData } {
-  const data = lookupCard(entity, schemaName)
-
-  // A roll-table entity IS a rollable table — offer a one-click roll instead of
-  // making the user retype `/su roll table: <name>`. Reuses the same stateless
-  // `su:roll:<name>` button the roll results carry.
-  //
-  // Primary, not Secondary: rolling is the action, and this is the one control
-  // on the message. No ↻ repeat glyph: this is a FIRST roll, not a re-roll of
-  // something that never happened.
-  const tableName = 'name' in entity && entity.name ? String(entity.name) : null
-  const rollId = schemaName === 'roll-tables' && tableName ? makeCustomId('roll', tableName) : null
-  if (rollId) {
-    data.blocks.push({
-      kind: 'buttons',
-      buttons: [
-        {
-          kind: 'action',
-          customId: rollId,
-          label: 'Roll on this table',
-          style: ButtonStyle.Primary,
-        },
-      ],
-    })
-  }
-
-  return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
+export function buildLookupMessage(hit: LookupHit): {
+  flags: number
+  components: [ContainerBuilder]
+  data: ContainerData
+} {
+  const data = lookupCard(hit)
+  return { ...v2Reply(data), data }
 }
 
 /**
@@ -72,31 +37,55 @@ export function buildTableLookupMessage(tableName: string): LookupMessage {
   if (!entity) {
     return { error: `Could not find table: "${tableName}".` }
   }
-  return buildLookupMessage({ ...entity, schemaName: 'roll-tables' }, 'roll-tables')
+  return buildLookupMessage({
+    schemaName: 'roll-tables',
+    entity: { ...entity, schemaName: 'roll-tables' },
+  })
+}
+
+/** Autocomplete's most choices, Discord's limit. */
+const MAX_CHOICES = 25
+
+/**
+ * Autocomplete choices for a query: each entry the search finds, and any of its
+ * patterns whose name the query names, as an entry of its own (the pattern's
+ * card, not its host's). A pattern leads its host, since its name is what
+ * matched.
+ */
+export function lookupChoices(query: string): { name: string; value: string }[] {
+  const needle = query.trim().toLowerCase()
+  const choices: { name: string; value: string }[] = []
+  for (const hit of search({ query, limit: MAX_CHOICES })) {
+    const entity = { ...hit.entity, schemaName: hit.schemaName }
+    const hostName =
+      'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : hit.entity.id
+    for (const pattern of getPatterns(hit.entity) ?? []) {
+      if (!pattern.name.toLowerCase().includes(needle)) continue
+      choices.push({
+        name: `${pattern.name} (${hostName} pattern)`.slice(0, 100),
+        value: lookupKey({ schemaName: hit.schemaName, entity, pattern }),
+      })
+    }
+    choices.push({
+      name: hostName.slice(0, 100),
+      value: lookupKey({ schemaName: hit.schemaName, entity }),
+    })
+  }
+  return choices.slice(0, MAX_CHOICES)
 }
 
 /**
- * Stable autocomplete choice value: `schemaName::slug` (well under Discord's
- * 100-char value cap — the longest entity slug in the dataset is 44 chars).
- * search() indexes only non-meta schemas, so every hit has a live page on
- * salvageunion.io to deep-link.
+ * What free-typed text looks up: the top search hit, or one of its patterns
+ * when the text is that pattern's name.
  */
-function choiceValue(hit: Hit): string {
-  return `${hit.schemaName}::${getEntitySlug(hit.entity)}`
-}
-
-function findByChoiceValue(value: string): Hit | null {
-  const separator = value.indexOf('::')
-  if (separator === -1) return null
-  // The choice value round-trips through the Discord client, so validate the
-  // schema-name half at runtime rather than asserting — an unknown schema
-  // resolves to null exactly as findEntityBySlug would have returned.
-  const schemaName = value.slice(0, separator)
-  if (!isSchemaName(schemaName)) return null
-  const slug = value.slice(separator + 2)
-  const entity = findEntityBySlug(schemaName, slug)
-  if (!entity) return null
-  return { schemaName, entity: { ...entity, schemaName } }
+function typedHit(input: string): LookupHit | null {
+  const [top] = search({ query: input, limit: 1 })
+  if (!top) return null
+  const entity = { ...top.entity, schemaName: top.schemaName }
+  const pattern = patternOf(top.entity, nameToSlug(input))
+  return pattern
+    ? { schemaName: top.schemaName, entity, pattern }
+    : { schemaName: top.schemaName, entity }
 }
 
 export const lookupCommand = {
@@ -120,39 +109,25 @@ export const lookupCommand = {
       await interaction.respond([])
       return
     }
-    const results = search({ query: focusedValue, limit: 25 })
-    await interaction.respond(
-      results.slice(0, 25).map((hit) => {
-        const name =
-          'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : hit.entity.id
-        return {
-          name: name.slice(0, 100),
-          value: choiceValue({ schemaName: hit.schemaName, entity: hit.entity }),
-        }
-      })
-    )
+    await interaction.respond(lookupChoices(focusedValue))
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const input = interaction.options.getString('entity', true)
 
-    // Autocomplete selections arrive as `schemaName::slug`; free-typed text
-    // falls back to the top search hit.
-    let hit = findByChoiceValue(input)
-    if (!hit) {
-      const [top] = search({ query: input, limit: 1 })
-      if (top) hit = { schemaName: top.schemaName, entity: top.entity }
-    }
+    // Autocomplete selections arrive as `schemaName::slug[::pattern]`;
+    // free-typed text falls back to the top search hit, or its pattern.
+    const hit = entityFromKey(input) ?? typedHit(input)
 
     if (!hit) {
-      await interaction.reply({
-        content: `No entity found for "${input}". Try the autocomplete suggestions.`,
-        flags: MessageFlags.Ephemeral,
-      })
+      // An in-system 'no such entry' container pointing at `entity:`
+      // autocomplete (no suggestion buttons — the lookup already fell back to
+      // the top search hit). Errors are always ephemeral.
+      await interaction.reply(v2Reply(noEntryContainer(input), true))
       return
     }
 
-    const { data: _data, ...payload } = buildLookupMessage(hit.entity, hit.schemaName)
+    const { data: _data, ...payload } = buildLookupMessage(hit)
     await interaction.reply(payload)
   },
 }

@@ -13,8 +13,7 @@
  * both. Measured against the 2.0a books: of the 130 strings the default layer
  * could only match as "extraction artefacts", 125 match the raw layer outright,
  * where `-layout` with its columns split apart matched 4. The raw layer lives
- * in a subdirectory so the `*.txt` that `check-printed-names.ts` and readers
- * grep stay one file per book.
+ * in a subdirectory so the `*.txt` that readers grep stay one file per book.
  *
  * The PDFs and this extract are gitignored (`rules/*`) — they are copyright-
  * bearing verbatim material and must never be committed to this public repo.
@@ -58,7 +57,7 @@ export function findExtractDir(): string | undefined {
   return candidates.find((d): d is string => !!d && existsSync(d))
 }
 
-export async function extractPdf(pdfPath: string, layer: Layer = 'flow'): Promise<string> {
+async function extractPdf(pdfPath: string, layer: Layer = 'flow'): Promise<string> {
   // No -layout for `flow`: poppler's reading-order heuristic keeps two-column
   // prose more coherent than fixed-position layout mode for this book. `\f`
   // (form feed) separates pages.

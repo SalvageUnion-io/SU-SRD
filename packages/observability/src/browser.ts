@@ -57,8 +57,7 @@ export type CaptureHint = {
  * overlapping shapes whose members are mutually `never` — so the day the SDK
  * reshapes that union the breakage lands here rather than at the call site.
  * These three fields are the whole contract we use; naming them is both clearer
- * and stabler. (Keeping that reasoning is the point of moving this: it was
- * written once, in itun, and the srd copy simply lacked the capability.)
+ * and stabler.
  */
 export function buildCaptureHint(
   context?: Record<string, unknown>,
@@ -84,7 +83,7 @@ export type BrowserSentrySdk = {
 }
 
 /** What `init` is called with. Errors only: no tracing, no replay. */
-export type BrowserSentryInitOptions = {
+type BrowserSentryInitOptions = {
   dsn: string
   environment?: string
   release?: string
@@ -102,7 +101,7 @@ export type BrowserObservabilityConfig = {
 }
 
 /** The per-deploy values the app reads from `import.meta.env`. */
-export type BrowserInitEnv = {
+type BrowserInitEnv = {
   dsn: string
   environment?: string
   release?: string
@@ -169,7 +168,7 @@ type PreloadErrorEvent = Event & { payload?: unknown }
  *
  * Every field defaults to the browser's own; tests inject them.
  */
-export type ChunkRecoveryDeps = {
+type ChunkRecoveryDeps = {
   /** Where Vite dispatches `vite:preloadError`. Defaults to `window`. */
   target?: EventTarget
   /** Defaults to `sessionStorage`. */

@@ -4,17 +4,20 @@ import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { DOC_PAGES } from '../../lib/docPages'
 import { HeaderMenu } from '../shared/HeaderMenu'
-import { useSignOutAndForget } from './useSignOutAndForget'
+import { useSignOut } from './useSignOut'
 
 /**
  * The account menu — who is signed in, and the two things to do about it.
  *
  * The masthead trigger shows the player's display name beside their Discord
- * avatar in a circle (the initial when there is no avatar, or it will not
- * load); it opens a `HeaderMenu` holding **Settings** (`/settings`) and
- * **Sign out**. The `compact` form is the avatar alone, for the mobile header
- * row, which has no room for a name.
+ * avatar on a square chip (two initials when there is no avatar, or it will
+ * not load); it opens a `HeaderMenu` holding **Settings** (`/settings`) and
+ * **Sign out**, then **About** and **Changelog** — which left the bar for the
+ * drawer's foot and need a door on a desktop, which has no drawer.
+ * The `compact` form is the avatar alone, for the mobile header row, which has
+ * no room for a name.
  *
  * ## When it renders
  *
@@ -46,7 +49,7 @@ const NAME = {
 
 function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
   const me = useQuery(api.account.me, {})
-  const signOut = useSignOutAndForget()
+  const signOut = useSignOut()
   const navigate = useNavigate()
 
   const name = me?.displayName ?? null
@@ -69,6 +72,19 @@ function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
             onSelect: () => void navigate({ to: '/settings' }),
           },
           { id: 'sign-out', label: 'Sign out', onSelect: signOut },
+        ],
+        [
+          // The shared doc pages live on the SRD (`docPages.ts`).
+          {
+            id: 'about',
+            label: 'About',
+            onSelect: () => window.location.assign(DOC_PAGES.about.href),
+          },
+          {
+            id: 'changelog',
+            label: 'Changelog',
+            onSelect: () => window.location.assign(DOC_PAGES.changelog.href),
+          },
         ],
       ]}
     />

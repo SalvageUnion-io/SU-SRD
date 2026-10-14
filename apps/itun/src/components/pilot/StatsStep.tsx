@@ -1,9 +1,17 @@
-import { Stat } from 'component-lib'
+import { Stat, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import {
   PILOT_BASE_AP,
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
 } from 'salvageunion-reference/rules'
+
+/** The three stat lozenges, wrapping on a narrow column. */
+const STAT_ROW = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
 /**
  * Step 1 · Your Stats (Pilot Bay p.18) — display-only briefing step. Every
@@ -14,14 +22,14 @@ import {
  */
 export function StatsStep() {
   return (
-    <div className="flex flex-wrap gap-4">
-      <Stat label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} size="mini" />
-      <Stat label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} size="mini" />
+    <div style={STAT_ROW}>
+      <Stat orientation="horizontal" label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} />
+      <Stat orientation="horizontal" label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} />
       <Stat
+        orientation="horizontal"
         label="INV"
         value={PILOT_BASE_INVENTORY_SLOTS}
         max={PILOT_BASE_INVENTORY_SLOTS}
-        size="mini"
       />
     </div>
   )

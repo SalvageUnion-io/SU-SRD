@@ -1,0 +1,141 @@
+name: Screenshot gallery
+
+# Screenshots of the PR's own srd and ITUN builds — every page in
+# packages/gates/lib/galleryPages.ts at desktop and phone, each srd page's link
+# preview, and ITUN signed in — uploaded as the `gallery-<n>` artifact.
+# `gallery-pages.yml` publishes the artifact to GitHub Pages at
+# /<owner>.github.io/<repo>/<n>/ once this run completes.
+#
+# BY HAND ONLY, like the preview deploy. Dispatch it on a PR's branch with the
+# PR's number, or on main with none for the PREVIEW TOUR (`preview-tour`,
+# published at /<owner>.github.io/<repo>/tour/):
+#
+#   gh workflow run gallery.yml --ref <branch> -f pr=<n>
+#   gh workflow run gallery.yml --ref main
+#
+# READ-ONLY on purpose: this runs the branch's code, so it holds no write token
+# and no secret. ITUN is built against a THROWAWAY self-hosted Convex backend
+# with the test sign-in (the same setup as e2e-nightly.yml's `e2e-itun`), so
+# the gallery can sign a fresh account up and edit characters without touching
+# the staging or production backend. Publishing, which needs `pages: write`,
+# runs in the separate `workflow_run` workflow, from main's code.
+#
+# Not a required check: a red gallery never blocks a merge.
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: The pull request this branch is (empty on main for the tour)
+        required: false
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: gallery-${{ inputs.pr || 'tour' }}
+  cancel-in-progress: true
+
+jobs:
+  shoot:
+    name: Shoot the screenshot gallery
+    # A tour is main's alone; a screenshot gallery names its PR by number.
+    if: inputs.pr != '' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the PR number
+        env:
+          PR_NUMBER: ${{ inputs.pr }}
+        run: |
+          if [ -n "$PR_NUMBER" ] && ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::pr must be a pull request number, got '$PR_NUMBER'"
+            exit 1
+          fi
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Start a throwaway Convex backend and build itun against it
+        id: convex
+        uses: ./.github/actions/convex-backend
+        with:
+          test-auth: 'true'
+
+      - name: Build srd
+        run: bun --filter srd build
+
+      # tools/shot.ts asks Playwright for the headed Chromium's path.
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
+        with:
+          browser: full
+
+      # srd is static files: a plain server answers `/route/` with its
+      # index.html. ITUN is a single-page app: `vite preview` falls back to
+      # index.html for its routes. `vite preview` loads apps/itun/vite.config.ts,
+      # which refuses to start without VITE_CONVEX_URL (the build already
+      # carries it; the config only checks it is set), so pass the same URL.
+      - name: Serve both builds
+        env:
+          VITE_CONVEX_URL: ${{ steps.convex.outputs.url }}
+        run: |
+          (cd apps/srd/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
+          (cd apps/itun && bunx vite preview --port 5173 --strictPort > /tmp/itun.log 2>&1 &)
+          for url in http://127.0.0.1:4321/ http://localhost:5173/build/; do
+            for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done
+            curl -sf -o /dev/null "$url" || {
+              echo "::error::$url never answered"
+              echo "--- /tmp/srd.log"; cat /tmp/srd.log
+              echo "--- /tmp/itun.log"; cat /tmp/itun.log
+              exit 1
+            }
+          done
+
+      # A tour passes no --pr: its gallery.json carries `pr: null`, which is
+      # how gallery-pages.ts tells the tour from a PR's gallery.
+      - name: Shoot the gallery
+        env:
+          PR_NUMBER: ${{ inputs.pr }}
+          HEAD_SHA: ${{ github.sha }}
+        run: >-
+          bun run gallery --srd http://127.0.0.1:4321 --itun http://localhost:5173/build
+          --signed-in ${PR_NUMBER:+--pr "$PR_NUMBER"} --sha "$HEAD_SHA" --out gallery
+
+      # The tour keeps 90 days: Pages republishes the newest one on every
+      # rebuild, so a stretch with no deploy must not expire it.
+      - name: Upload the gallery
+        if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ inputs.pr != '' && format('gallery-{0}', inputs.pr) || 'preview-tour' }}
+          path: gallery
+          retention-days: ${{ inputs.pr != '' && 30 || 90 }}
+
+      - name: Link the gallery from the run summary
+        if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
+        env:
+          PR_NUMBER: ${{ inputs.pr }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          owner=$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')
+          if [ -n "$PR_NUMBER" ]; then
+            title="screenshot gallery" path="$PR_NUMBER" artifact="gallery-$PR_NUMBER"
+          else
+            title="Preview tour" path="tour" artifact="preview-tour"
+          fi
+          {
+            echo "### $title"
+            echo ""
+            echo "Published by **Screenshot gallery pages** once this run completes:"
+            echo "https://${owner}.github.io/${REPO}/${path}/"
+            echo ""
+            echo "The \`${artifact}\` artifact above holds the same files."
+          } >> "$GITHUB_STEP_SUMMARY"

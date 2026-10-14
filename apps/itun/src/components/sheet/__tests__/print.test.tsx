@@ -14,7 +14,7 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
@@ -79,12 +79,12 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    // PilotSheet renders <section class="sheet-section"> (print page-break target)
-    const section = container.querySelector('section.sheet-section')
+    // PilotSheet renders <section class="su-sheet-section"> (print page-break target)
+    const section = container.querySelector('section.su-sheet-section')
     expect(section).toBeTruthy()
   })
 
-  test('renders a <header> element for the LiveSheet top bar (nav-hide rule target)', () => {
+  test('marks the LiveSheet top bar data-print="hide" (the chrome-hide rule target)', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -93,25 +93,12 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    const header = container.querySelector('header')
-    expect(header).toBeTruthy()
-  })
-
-  test('top-bar back-link is inside <header> (targeted by print hide)', () => {
-    const { container } = render(
-      <Sheet
-        kind="pilot"
-        id="print-pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock()}
-      />
-    )
-    const backLink = container.querySelector('header a[aria-label="Back to roster"]')
-    expect(backLink).toBeTruthy()
+    const bar = container.querySelector('section[aria-label="Sheet controls"]')
+    expect(bar?.getAttribute('data-print')).toBe('hide')
   })
 
   /**
-   * Regression (#616). A picker `Field` renders its VALUE *inside* the button
+   * Regression. A picker `Field` renders its VALUE *inside* the button
    * rather than beside it, so the print rule `button:not([data-print='keep'])`
    * hid the pilot's class on paper — the one field saying what the pilot IS.
    * The sibling fields printed fine because `InlineEditField` renders a

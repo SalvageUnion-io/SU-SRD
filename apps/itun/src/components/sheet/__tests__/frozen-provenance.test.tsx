@@ -14,7 +14,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { render, screen, waitFor } from '@testing-library/react'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Sheet } from '../Sheet'
@@ -36,20 +36,8 @@ const basePilotInput = {
   conditions: [],
 }
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+beforeEach(() => {
+  resetStores()
 })
 
 describe('Frozen surface — overrides render as plain values (P5.2)', () => {

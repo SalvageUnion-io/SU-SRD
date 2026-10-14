@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import { makeReadOnlySheetStore, sheetDataFromListing } from '../readOnlySheetStore'
+import { makeReadOnlySheetStore, sheetDataFromListing } from '../readOnlySheetStore.model'
 
 /**
  * The read-only sheet store, fed from a Game's listing: every body filed under
@@ -18,6 +18,7 @@ const listing = {
   ],
   mechs: [{ _id: 'r4', appId: 'm1', ownerId: 'u1', body: mechFixture({ id: 'm1' }) }],
   crawlers: [{ _id: 'r5', appId: 'c1', body: crawlerFixture({ id: 'c1' }) }],
+  npcs: [],
   softLinks: [
     {
       _id: 'l1',

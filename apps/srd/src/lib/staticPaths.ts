@@ -1,13 +1,14 @@
 import type {
   EnhancedSchemaMetadata,
   SURefEntity,
-  SURefObjectPattern,
+  SURefObjectAnyPattern,
 } from 'salvageunion-reference'
 import {
+  displayTitle,
+  getPatterns,
   isSchemaName,
   nameToSlug,
   normalizePatternName,
-  visiblePatterns,
 } from 'salvageunion-reference'
 import {
   getEntitySchemas,
@@ -42,7 +43,7 @@ export function getItemStaticPaths() {
   }[] = []
 
   // Entity schemas only — meta schemas (actions, ability-tree-requirements,
-  // catalog-categories) have no /schema/<id>/ listing page (see
+  // catalog-categories) have no /<id>/ listing page (see
   // getSchemaStaticPaths above), so item pages for them would be sitemap
   // orphans with 404 breadcrumbs. Their content renders inline on the pages
   // of the entities that own it. `getEntitySchemas()` IS that filter — going
@@ -65,7 +66,9 @@ export function getItemStaticPaths() {
           props: {
             item,
             schema,
-            itemName: displayData.name,
+            // The page's words outside CSS (<title>, meta, JSON-LD,
+            // breadcrumbs) print a glossary name as the book does.
+            itemName: displayTitle(displayData.name),
             itemDescription: displayData.description ?? '',
           },
         })
@@ -79,42 +82,52 @@ export function getItemStaticPaths() {
 }
 
 /**
- * A page per chassis PATTERN, nested under its chassis:
- * `/schema/chassis/item/<chassis>/pattern/<pattern>/`.
+ * A page per PATTERN, nested under its host:
+ * `/<schema>/<host>/pattern/<pattern>/` — a chassis's mech
+ * patterns and a Bio-Titan's variants alike.
  *
- * Patterns are nested objects on a chassis rather than a schema of their own,
+ * Patterns are nested objects on their host rather than a schema of their own,
  * so they are generated here instead of falling out of `getItemStaticPaths`.
- * `schemaId` is always `chassis` — it stays a param only so the route sits in
- * the existing `/schema/<schema>/item/<item>/` tree and its breadcrumbs
- * resolve like every other page's.
+ * Any entity schema whose rows carry visible `patterns` gets them; `schemaId`
+ * is the host's, so the route sits in the existing `/<schema>/<item>/`
+ * tree and its breadcrumbs resolve like every other page's.
  */
 export function getPatternStaticPaths() {
   const paths: {
     params: { schemaId: string; itemId: string; patternId: string }
     props: {
-      chassis: SURefEntity
-      pattern: SURefObjectPattern
-      chassisName: string
+      host: SURefEntity
+      schema: EnhancedSchemaMetadata
+      pattern: SURefObjectAnyPattern
+      hostName: string
       patternName: string
     }
   }[] = []
 
-  for (const chassis of SalvageUnionReference.Chassis.all()) {
-    const displayData = getReferenceEntityData(chassis)
-    for (const pattern of visiblePatterns(chassis.patterns ?? [])) {
-      paths.push({
-        params: {
-          schemaId: 'chassis',
-          itemId: displayData.slug,
-          patternId: nameToSlug(pattern.name),
-        },
-        props: {
-          chassis,
-          pattern,
-          chassisName: displayData.name,
-          patternName: normalizePatternName(pattern.name),
-        },
-      })
+  for (const schema of getEntitySchemas()) {
+    if (!isSchemaName(schema.id)) continue
+    const model = getModel(schema.id)
+    if (!model) continue
+    for (const host of model.all()) {
+      const patterns = getPatterns(host) ?? []
+      if (patterns.length === 0) continue
+      const displayData = getReferenceEntityData(host)
+      for (const pattern of patterns) {
+        paths.push({
+          params: {
+            schemaId: schema.id,
+            itemId: displayData.slug,
+            patternId: nameToSlug(pattern.name),
+          },
+          props: {
+            host,
+            schema,
+            pattern,
+            hostName: displayData.name,
+            patternName: normalizePatternName(pattern.name),
+          },
+        })
+      }
     }
   }
 

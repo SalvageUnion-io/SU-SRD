@@ -10,9 +10,8 @@ name: E2E (nightly)
 # failure and closed on the next green run — GitHub-native, no external
 # notification service or webhook secret.
 #
-# srd has no job here. Its whole Playwright suite and the axe-core scan gate
-# every srd PR in ci.yml's `build-srd`, and srd is a hermetic static build, so
-# a nightly copy only re-ran a build `main` had already passed.
+# srd has no job here: its whole Playwright suite gates every srd PR in
+# ci.yml's `build-srd`, and srd is a hermetic static build.
 #
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
@@ -50,6 +49,10 @@ jobs:
     # runner cannot do that and needs no credentials, which is why this job
     # requests no secrets at all.
     #
+    # `a11y-signed-in.e2e.ts` runs here too: the axe scan of the pages only an
+    # account reaches (Shelves, the wizards, the sheets, the Game, the Mediator
+    # Dashboard and the Dashboard), which the PR tier's signed-out scan cannot.
+    #
     # One job, one backend, one build: the sign-in hand-off spec
     # (`signin-save.e2e.ts`) and the specs that depend on its seam cannot
     # disagree about how the build was made.
@@ -64,65 +67,13 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Start a throwaway Convex backend
-        id: convex
+      - name: Start a throwaway Convex backend and build itun against it
         uses: ./.github/actions/convex-backend
-
-      # Auth needs a JWT keypair ON the deployment. Without it the JWKS endpoint
-      # 500s and sign-in fails with nothing pointing at the cause — this repo
-      # has already lost a week to exactly that, so it is provisioned explicitly
-      # rather than assumed.
-      - name: Provision auth keys and deployment env
-        working-directory: apps/itun
-        env:
-          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
-          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
-        run: |
-          # The keypair is generated inline rather than by `bunx @convex-dev/auth`.
-          # That CLI has no `--variant` flag (verified against the pinned 0.0.94:
-          # its options are --variables/--skip-git-check/--web-server-url/--prod/
-          # --preview-name/--deployment-name), and it is interactive, so in a
-          # runner it would either error or block. This is deterministic, needs
-          # no network, and is the same pair the CLI would have set.
-          bun -e '
-            const { generateKeyPairSync } = await import("node:crypto")
-            const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 })
-            const jwk = publicKey.export({ format: "jwk" })
-            await Bun.write("jwt.key", privateKey.export({ type: "pkcs8", format: "pem" }))
-            await Bun.write("jwks.json", JSON.stringify({ keys: [{ ...jwk, use: "sig", alg: "RS256" }] }))
-          '
-          # `--from-file` rather than an inline value: JWT_PRIVATE_KEY is a
-          # multi-line PEM, and it is the documented form for exactly this.
-          bunx convex env set JWT_PRIVATE_KEY --from-file jwt.key
-          bunx convex env set JWKS --from-file jwks.json
-          rm -f jwt.key jwks.json
-          # `convex/auth.ts` gates the password provider on the exact string
-          # 'true'; anything else leaves the provider absent and the seam gone.
-          bunx convex env set ITUN_TEST_AUTH true
-          # SITE_URL is the FRONTEND origin, not the Convex site URL. Nothing
-          # prompts for it, and omitting it fails as an opaque 500.
-          bunx convex env set SITE_URL http://localhost:5173
-
-      # `--cmd` builds with VITE_CONVEX_URL injected — the same shape
-      # deploy-cloudflare.yml uses. Playwright's CI webServer reuses an existing
-      # `apps/itun/dist`, so this build is what the browser actually receives.
-      - name: Push functions and build itun against the backend
-        working-directory: apps/itun
-        env:
-          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
-          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
-          VITE_TEST_AUTH: 'true'
-        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          test-auth: 'true'
 
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/itun
-        run: bunx playwright install chromium
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
 
       # ITUN_E2E_EXPECT_AUTH_SEAM is what keeps this honest. Without it a spec
       # that needs an account SKIPS when the seam is missing (the right call in
@@ -153,15 +104,6 @@ jobs:
           path: apps/itun/playwright-report/
           retention-days: 7
 
-  # ---------------------------------------------------------------------------
-  # Notification — GitHub-native, no external service or webhook secret. On
-  # any suite result that is not `success` — failed assertions OR a job that ran
-  # out its `timeout-minutes` (which reports as `cancelled`) — open (or comment
-  # on) a single tracking issue labeled `nightly-e2e-failure`; on the next
-  # all-green run, comment + close it. Uses
-  # the default GITHUB_TOKEN (issues: write, scoped to just these two jobs) —
-  # nothing to provision.
-  # ---------------------------------------------------------------------------
   production-smoke:
     # The post-deploy smoke list from deploy-cloudflare.yml, re-run daily. A
     # deploy only proves production answered at the moment it shipped; a DNS
@@ -199,11 +141,8 @@ jobs:
   environments:
     # The live half of `secrets-env` (tools/check-workflows.ts): the GitHub
     # Environments and the `main` ruleset as configured match
-    # tools/environments.ts. #1072 declared
-    # `environment: production` on every deploy job, but the settings half was
-    # a manual step that never happened — `production` sat with no branch
-    # policy and no secrets while the deploy secrets stayed repository-wide,
-    # and every gate was green because a gate can only read YAML.
+    # tools/environments.ts — the settings half, which no gate can see
+    # because a gate can only read YAML.
     #
     # GITHUB_TOKEN can read Environments and branch policies but cannot list
     # secrets, so this job is also the SENTINEL for that half: it maps the
@@ -232,19 +171,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
           CONVEX_PREVIEW_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: bun tools/environments.ts --secrets-from-env
 
-  # ONE notifier, computed from `needs` rather than restated in two inverted
-  # `if:` expressions. The two-job version drifted twice: a job was added to
-  # `needs:` and to one condition but not the other, so a red run could fail to
-  # open the issue — or CLOSE it.
-  # Deriving the verdict from `toJSON(needs)` means a job added to `needs:`
+  # ONE notifier: on any result that is not `success` it opens (or comments
+  # on) a single tracking issue labeled `nightly-e2e-failure`; on the next
+  # all-green run it comments and closes it, with the default GITHUB_TOKEN.
+  # The verdict is derived from `toJSON(needs)`, so a job added to `needs:`
   # is reported and judged with no second list to update.
   #
   # Verdict per job: anything but `success` is broken. `cancelled` is how a
-  # job that hit `timeout-minutes` reports, and treating it as anything else is
-  # how this suite once broke silently for days. `skipped` is broken too: no
+  # timed-out job reports, so it counts as broken. `skipped` is broken too: no
   # judged job has an `if:`, so only a broken upstream can skip one.
   # `!cancelled()` still exempts a genuine cancellation of the whole run, which
   # is a human action rather than a regression.

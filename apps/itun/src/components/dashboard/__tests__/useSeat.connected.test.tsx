@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { ConvexError } from 'convex/values'
@@ -57,7 +57,7 @@ const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 const { Toaster } = await import('component-lib')
 const { getEntitySlug, SalvageUnionReference } = await import('salvageunion-reference')
-const { buildPilotActions } = await import('../dashboardRules')
+const { buildPilotActions } = await import('../../../lib/rules/playActions')
 
 const GAME_ID = 'g-seat'
 const rook = pilotFixture({ id: 'seat-rook', name: 'Rook', gameId: GAME_ID })
@@ -409,7 +409,8 @@ describe('the Dashboard reads mount from the seat', () => {
   test('on foot: the pilot runs it', async () => {
     setQueryAnswers(gameAnswers([seatRow('seat-rook')]))
     await renderDashboard()
-    expect(screen.getByText('Pilot · Rook')).toBeTruthy()
+    // The rail's stamp says where the pilot is (board D2); the Major agrees.
+    expect(screen.getByText('On foot')).toBeTruthy()
     expect(screen.getByText('On Foot')).toBeTruthy()
   })
 
@@ -418,7 +419,7 @@ describe('the Dashboard reads mount from the seat', () => {
       gameAnswers([seatRow('seat-rook', { mount: { kind: 'boarded', mechId: 'seat-spare' } })])
     )
     await renderDashboard()
-    expect(screen.getByText('Mech · Spare')).toBeTruthy()
+    expect(screen.getByText('Boarded · Spare')).toBeTruthy()
     expect(screen.getByText('Boarded')).toBeTruthy()
   })
 
@@ -458,7 +459,7 @@ describe('the Dashboard reads mount from the seat', () => {
   })
 })
 
-describe("the Dashboard's display: the deck, the tabs and the table (plan layer 6)", () => {
+describe("the Dashboard's display: the deck, the tabs and the table", () => {
   async function renderDashboard() {
     let view: ReturnType<typeof render> | null = null
     await act(async () => {
@@ -486,7 +487,9 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
       })
     )
     await renderDashboard()
-    expect(screen.getByText('● Saved to Ash Flats')).toBeTruthy()
+    // The rail names the Game beside its stamp, and says it is saving.
+    expect(screen.getByText('Game · Ash Flats')).toBeTruthy()
+    expect(screen.getByText('● Saved')).toBeTruthy()
     expect(screen.getByText('Mediator: Bio-Titan closing to Medium')).toBeTruthy()
     const inbox = screen.getByRole('link', { name: 'Inbox · 1 proposal' })
     expect(inbox.getAttribute('href')).toBe(`/games/${GAME_ID}`)
@@ -525,7 +528,8 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
     const view = await renderDashboard()
     await openTab('Crew')
     expect(screen.getByText('Vex is resolving Crush')).toBeTruthy()
-    expect(screen.getByText('Rook (you)')).toBeTruthy()
+    // This seat's own Row says so with a You label right of the name.
+    expect(screen.getByRole('link', { name: /^Rook \(you\):/ })).toBeTruthy()
 
     // The seat moves on, on the other client: this one's subscription answers again.
     setQueryAnswers(
@@ -545,7 +549,10 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
       )
     })
     expect(screen.getByText('Vex is resolving Crush: rolled 14, Success')).toBeTruthy()
-    expect(screen.getByText('In Spare')).toBeTruthy()
+    // Vex is aboard Spare now: the Row's line says so, and the mech is its Token.
+    expect(screen.getByRole('link', { name: /^Vex: .*In Spare · SP/ })).toBeTruthy()
+    const tokens = [...document.querySelectorAll('.su-entity-token')].map((t) => t.textContent)
+    expect(tokens.some((t) => t?.includes('Spare'))).toBe(true)
   })
 
   test("the Crew tab reads the server's status: a ▲, the problem, and a link to the sheet", async () => {
@@ -565,9 +572,9 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
     })
     await openTab('Crew needs attention')
     const crew = screen.getByRole('tabpanel')
-    expect(within(crew).getByText('Injured')).toBeTruthy()
-    expect(within(crew).getByText('HP 3/10 · AP 5/5')).toBeTruthy()
-    const vex = within(crew).getByRole('link', { name: /Vex/ })
+    // The Crew tab (board D2): the ▲ and the word, and the numbers as chips.
+    expect(within(crew).getByText(/Injured/)).toBeTruthy()
+    const vex = within(crew).getByRole('link', { name: /^Vex: HP 3\/10, AP 5\/5/ })
     expect(vex.getAttribute('href')).toBe('/sheet/pilot/seat-vex')
   })
 
@@ -596,11 +603,13 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
       expect(screen.getByRole('tab', { name: 'Resolve' }).getAttribute('aria-selected')).toBe(
         'true'
       )
-      expect(container.querySelector('.pc-deck-d20')?.textContent).toBe('14')
+      expect(container.querySelector('.su-dash-deck-d20')?.textContent).toBe('14')
 
       await act(async () => {
         screen.getByText('Roll').click()
       })
+      // The dice load on the first roll (component-lib's `rollForTable`).
+      await waitFor(() => expect(sent.some((w) => w.name === 'seats:setResolving')).toBe(true))
       const write = sent.find((w) => w.name === 'seats:setResolving')
       expect(write?.args).toMatchObject({
         gameId: GAME_ID,

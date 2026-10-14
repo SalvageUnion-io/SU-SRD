@@ -1,16 +1,28 @@
-import { waitForReady } from './_helpers'
+import type { Page } from '@playwright/test'
+import { at } from './_base'
+import { buildPilot, editSheet, openSheetFor, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
-
-// Anonymous on purpose: this spec is about the offline shell a visitor gets.
-test.use({ account: 'anonymous' })
 
 /**
  * Offline — the one spec that proves ITUN is actually a PWA rather than merely
- * configured as one.
+ * configured as one, and that pins what offline means for a player's data.
  *
  * ADR-034 decision 3 says an installed app works offline. The app ships a
  * service worker and a manifest, and this is the spec that exercises them —
  * the root Playwright config blocks service workers for every other spec.
+ *
+ * ## What offline promises
+ *
+ * There is no device cache (`docs/ARCHITECTURE.md#no-device-cache`): nothing
+ * player-owned is kept on the device. So offline promises two things, and this
+ * spec pins both:
+ *
+ *  - **Mid-session**, a signed-in player's open sheet stays on screen,
+ *    read-only, under the NOT CONNECTED banner. The rows are this page load's
+ *    in-memory copy; no worker is involved.
+ *  - **After a reload**, the shell boots from the worker's precache, and
+ *    nothing of the player's comes back: there is no device copy to read.
+ *    Reading sheets after an offline reload is deliberately not a requirement.
  *
  * ## Why service workers are re-enabled only here
  *
@@ -41,8 +53,6 @@ test.use({ account: 'anonymous' })
  * what deleted the precache it was still reading from — and these tests reload
  * once for exactly that reason rather than papering over it.
  */
-
-test.use({ serviceWorkers: 'allow' })
 
 /**
  * Get the page to a state where a service worker is actually serving it.
@@ -100,70 +110,145 @@ async function ensureServiceWorkerControls(
     .catch(() => false)
 }
 
-test('the app opens and reads with the network cut', async ({ page, context }) => {
-  await page.goto('/')
-  await waitForReady(page)
-
+/** Skip on a dev server, fail in CI: see the first anonymous test for why. */
+async function requireServiceWorker(page: Page): Promise<void> {
   const controlled = await ensureServiceWorkerControls(page)
-  // NOT skippable in CI. The convenience of skipping on a dev-server run, where
-  // vite-plugin-pwa emits no worker, is worth keeping — but unconditional it
-  // meant this spec went silent exactly when the thing it proves broke. If the
-  // worker stops registering or activating, `controlled` is false, both tests
-  // here skip, and nightly is green with the offline guarantee unverified.
   test.skip(
     !controlled && !process.env.CI,
     'No service worker controls the page — this is a dev-server run, where vite-plugin-pwa emits none. Runs for real against the CI preview build.'
   )
-  // In CI the skip above does not fire, so say WHY the rest is about to fail.
-  // Without this the first thing to break is `page.reload()` under
-  // `setOffline(true)`, which throws `net::ERR_INTERNET_DISCONNECTED` — that
-  // reads as a network or proxy fault, and nothing in the output mentions the
-  // service worker at all. The point of running this in CI is to learn that the
-  // worker stopped controlling the page; the failure has to say so.
   expect(controlled, 'no service worker took control of the page').toBe(true)
+}
 
-  // Cut the network at the browser, not the app: `setOffline` fails real
-  // requests, which is what a service worker either answers from cache or does
-  // not. Toggling a flag inside the app would prove nothing about the worker.
-  await context.setOffline(true)
+test.describe('signed out: the shell', () => {
+  // Anonymous on purpose: these are about the offline shell a visitor gets.
+  test.use({ account: 'anonymous', serviceWorkers: 'allow' })
 
-  await page.reload()
-  await waitForReady(page)
+  test('the app opens and reads with the network cut', async ({ page, context }) => {
+    await page.goto(at('/'))
+    await waitForReady(page)
 
-  // The shell renders from cache. This is the whole promise: an installed app
-  // opens with no network.
-  await expect(page).toHaveTitle(/In The Union Now/i)
-  await expect(page.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeVisible()
+    const controlled = await ensureServiceWorkerControls(page)
+    // NOT skippable in CI. The convenience of skipping on a dev-server run, where
+    // vite-plugin-pwa emits no worker, is worth keeping — but unconditional it
+    // meant this spec went silent exactly when the thing it proves broke. If the
+    // worker stops registering or activating, `controlled` is false, both tests
+    // here skip, and nightly is green with the offline guarantee unverified.
+    test.skip(
+      !controlled && !process.env.CI,
+      'No service worker controls the page — this is a dev-server run, where vite-plugin-pwa emits none. Runs for real against the CI preview build.'
+    )
+    // In CI the skip above does not fire, so say WHY the rest is about to fail.
+    // Without this the first thing to break is `page.reload()` under
+    // `setOffline(true)`, which throws `net::ERR_INTERNET_DISCONNECTED` — that
+    // reads as a network or proxy fault, and nothing in the output mentions the
+    // service worker at all. The point of running this in CI is to learn that the
+    // worker stopped controlling the page; the failure has to say so.
+    expect(controlled, 'no service worker took control of the page').toBe(true)
 
-  await context.setOffline(false)
+    // Cut the network at the browser, not the app: `setOffline` fails real
+    // requests, which is what a service worker either answers from cache or does
+    // not. Toggling a flag inside the app would prove nothing about the worker.
+    await context.setOffline(true)
+
+    await page.reload()
+    await waitForReady(page)
+
+    // The shell renders from cache. This is the whole promise: an installed app
+    // opens with no network.
+    await expect(page).toHaveTitle(/The Cantina/i)
+    await expect(page.getByRole('heading', { level: 1, name: /^The Cantina$/i })).toBeVisible()
+
+    await context.setOffline(false)
+  })
+
+  test('an unvisited route also resolves offline — the shell is not one page', async ({
+    page,
+    context,
+  }) => {
+    await page.goto(at('/'))
+    await waitForReady(page)
+
+    const controlled = await ensureServiceWorkerControls(page)
+    // See the note on the first test: the skip is a local convenience only, and
+    // the assertion is what makes a CI failure legible.
+    test.skip(
+      !controlled && !process.env.CI,
+      'No service worker controls the page — dev-server run.'
+    )
+    expect(controlled, 'no service worker took control of the page').toBe(true)
+
+    await context.setOffline(true)
+
+    // ITUN is a SPA, so every route is the same document. That is exactly why
+    // this is worth asserting rather than assuming: it is what distinguishes
+    // ITUN's offline story from `srd`'s, where an unvisited page genuinely 404s
+    // offline because each one is its own HTML file (ADR-034 decision 3).
+    // A REAL route this test has not visited: the SPA shell must serve it from
+    // cache and route it. (A route that does not exist would assert only that
+    // the offline not-found page carries the app title.)
+    await page.goto(at('/starter'))
+    await waitForReady(page)
+    await expect(page).toHaveTitle(/The Cantina/i)
+    await expect(page.getByText(/page not found/i)).toHaveCount(0)
+
+    await context.setOffline(false)
+  })
 })
 
-test('an unvisited route also resolves offline — the shell is not one page', async ({
-  page,
-  context,
-}) => {
-  await page.goto('/')
-  await waitForReady(page)
+test.describe('signed in: what a player keeps', () => {
+  /**
+   * Mid-session: the sheet a player has open survives the network
+   * dropping. Writes are blocked, not queued (ADR-030 §1), so the sheet leaves
+   * Edit and its Read | Edit toggle goes; it comes back with the connection.
+   * No worker is involved, so this runs with service workers blocked, on the
+   * dev server too.
+   */
+  test('the open sheet stays up, read-only, when the network drops mid-session', async ({
+    page,
+    context,
+  }) => {
+    await buildPilot(page, 'Offline Keeper', 'Lantern')
+    await openSheetFor(page, 'Offline Keeper')
+    await editSheet(page)
 
-  const controlled = await ensureServiceWorkerControls(page)
-  // See the note on the first test: the skip is a local convenience only, and
-  // the assertion is what makes a CI failure legible.
-  test.skip(!controlled && !process.env.CI, 'No service worker controls the page — dev-server run.')
-  expect(controlled, 'no service worker took control of the page').toBe(true)
+    await context.setOffline(true)
 
-  await context.setOffline(true)
+    await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
+    await expect(page.getByText('Offline Keeper').first()).toBeVisible()
+    await expect(page.getByRole('group', { name: /read or edit this/i })).toHaveCount(0)
 
-  // ITUN is a SPA, so every route is the same document. That is exactly why
-  // this is worth asserting rather than assuming: it is what distinguishes
-  // ITUN's offline story from `srd`'s, where an unvisited page genuinely 404s
-  // offline because each one is its own HTML file (ADR-034 decision 3).
-  // A REAL route this test has not visited: the SPA shell must serve it from
-  // cache and route it. (A route that does not exist would assert only that
-  // the offline not-found page carries the app title.)
-  await page.goto('/about')
-  await waitForReady(page)
-  await expect(page).toHaveTitle(/In The Union Now/i)
-  await expect(page.getByText(/page not found/i)).toHaveCount(0)
+    await context.setOffline(false)
 
-  await context.setOffline(false)
+    await expect(page.getByText('Not connected — your Games are read-only')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Edit', exact: true })).toBeVisible()
+  })
+
+  /**
+   * What is not kept, pinned so it is not quietly half-restored: an offline
+   * reload boots the precached shell, and the player's rows do not come back,
+   * because nothing kept them.
+   */
+  test.describe(() => {
+    test.use({ serviceWorkers: 'allow' })
+
+    test('an offline reload boots the shell and brings back none of their rows', async ({
+      page,
+      context,
+    }) => {
+      await buildPilot(page, 'Not On This Device', 'Ember')
+      await openSheetFor(page, 'Not On This Device')
+      await requireServiceWorker(page)
+      await expect(page.getByText('Not On This Device').first()).toBeVisible()
+
+      await context.setOffline(true)
+      await page.reload()
+      await waitForReady(page)
+
+      await expect(page).toHaveTitle(/The Cantina/i)
+      await expect(page.getByText('Not On This Device')).toHaveCount(0)
+
+      await context.setOffline(false)
+    })
+  })
 })

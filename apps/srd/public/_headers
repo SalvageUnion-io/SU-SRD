@@ -29,10 +29,10 @@
   # the Sentry org id.
   # script-src carries NO 'unsafe-inline' and NO hashes. With 'unsafe-inline',
   # an injected <script> executes and CSP's primary XSS control is gone. srd
-  # emits no executable inline script at all — the no-JS fallback is hidden by
-  # an `@media (scripting: enabled)` rule, and the /about and /greembeem scripts
-  # load by URL from public/ — so this list is literal and cannot drift. An
-  # inline <script> added later is BLOCKED by this policy: load it by URL.
+  # emits no executable inline script at all — the /about and /greembeem
+  # scripts load by URL from public/ — so this list is literal and cannot
+  # drift. An inline <script> added later is BLOCKED by this policy: load it
+  # by URL.
   #
   # 'inline-speculation-rules' covers <script type="speculationrules">, which is
   # gated by script-src but cannot be hashed. Browsers that don't know the
@@ -42,9 +42,22 @@
   # type="application/json" — DATA BLOCKS, which the browser never executes and
   # script-src does not gate. They need no hash.
   #
-  # 'unsafe-inline' stays in style-src deliberately: Tailwind needs it, and
-  # style injection is not script execution.
-  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
+  # 'unsafe-inline' stays in style-src deliberately: React's inline `style=`
+  # attributes need it, and style injection is not script execution.
+  #
+  # Cloudflare Web Analytics: BaseLayout loads its beacon by URL from
+  # static.cloudflareinsights.com, and the beacon posts page loads to
+  # cloudflareinsights.com. Automatic setup never injects it into a Worker's
+  # static assets, so it is added by hand; drop either origin and the
+  # dashboard silently records nothing.
+  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.ingest.de.sentry.io;
+
+# The production Worker's own workers.dev address serves the same pages as
+# salvageunion.io (it stays on for the smoke check). Its canonicals already name
+# salvageunion.io; noindex keeps the duplicate out of search outright. PR
+# Previews on workers.dev get the same header from Cloudflare automatically.
+https://su-srd.alxjrvs.workers.dev/*
+  X-Robots-Tag: noindex
 
 # Content-hashed bundle output (`ssg/vite.config.ts` uses Vite's default
 # assetsDir). If it ever sets a different build.assetsDir, change this with it,
@@ -57,7 +70,7 @@
 # import references (eldridge-coast-map) lands there with a hash in its name.
 # Every other image is a FIXED name replaced in place when it changes: the
 # og:image and manifest icons, the favicons, the header logos, and the
-# per-entity `*.og.png` unfurls that `og:generate` rewrites whenever the tile
+# per-entity `*.og.png` unfurls that `og:generate` rewrites whenever the card
 # rendering changes. Marking them `immutable` would mean a changed icon never
 # reaches a returning visitor; itun's `_headers` makes the same call.
 #
@@ -86,7 +99,10 @@
 /logos/*
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-/schema/*.og.png
+# The unfurls sit beside their pages (`/chassis/mule.og.png`), one per schema
+# directory, so this one rule is a root splat on the `.og.png` suffix. Nothing
+# under `/assets/` carries that suffix: a hashed name ends in its hash.
+/*.og.png
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 # HTML is the one thing that must never be cached: a deploy rotates the hashed

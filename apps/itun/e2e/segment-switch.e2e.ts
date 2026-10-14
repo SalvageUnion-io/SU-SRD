@@ -2,7 +2,7 @@ import { assignPilotOnMechSheet, buildMech, buildPilot, openSheetFor } from './_
 import { expect, test } from './fixtures'
 
 /**
- * Mobile segment switch (design §3.7, plan 4.8) — at the 390 endpoint a
+ * Mobile segment switch — at the 390 endpoint a
  * wired sheet stitches a segmented Pilot/Mech/Crawler switch into the sticky
  * top bar: one flex-1 sm btn per wired counterpart, the viewed kind active
  * (rust fill, aria-current="page"), the others navigating to their sheets.
@@ -21,7 +21,7 @@ test.describe('wired sheet segment switch', () => {
   test('switches between wired sheets at 390', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
 
-    const nav = page.getByRole('navigation', { name: /wired sheets/i })
+    const nav = page.getByRole('navigation', { name: /assigned sheets/i })
     await expect(nav).toBeVisible()
 
     // Active segment = the sheet being viewed: marked, and NOT a link.
@@ -41,7 +41,7 @@ test.describe('wired sheet segment switch', () => {
     await page.waitForURL(/\/sheet\/pilot\//, { timeout: 10_000 })
 
     // The switch follows: Pilot is now active, Mech is the link back.
-    const pilotNav = page.getByRole('navigation', { name: /wired sheets/i })
+    const pilotNav = page.getByRole('navigation', { name: /assigned sheets/i })
     await expect(pilotNav.locator('[aria-current="page"]')).toHaveText('Pilot')
     await expect(pilotNav.getByRole('link', { name: 'Mech' })).toBeVisible()
   })
@@ -49,7 +49,7 @@ test.describe('wired sheet segment switch', () => {
   test('hidden on desktop (rail chips serve navigation)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
 
-    await expect(page.getByRole('navigation', { name: /wired sheets/i })).toBeHidden()
+    await expect(page.getByRole('navigation', { name: /assigned sheets/i })).toBeHidden()
     // The rail chip remains the desktop navigation affordance.
     await expect(page.getByRole('link', { name: /View Mara Vex/i })).toBeVisible()
   })
@@ -60,6 +60,6 @@ test.describe('wired sheet segment switch', () => {
     await openSheetFor(page, 'Loner')
     await page.setViewportSize({ width: 390, height: 844 })
 
-    await expect(page.getByRole('navigation', { name: /wired sheets/i })).toHaveCount(0)
+    await expect(page.getByRole('navigation', { name: /assigned sheets/i })).toHaveCount(0)
   })
 })

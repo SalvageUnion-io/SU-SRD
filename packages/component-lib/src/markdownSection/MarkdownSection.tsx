@@ -1,14 +1,29 @@
-import { Slab } from '../components/chrome/Slab'
-import { cn } from '../utils/cn'
+import type { CSSProperties } from 'react'
+import { Slab } from '../components/atoms/Slab'
+import { fontSize, space } from '../design/tokens'
 import { InlineMarkdown } from './InlineMarkdown'
 import { parseMarkdownSection } from './parseMarkdownSection'
 
 type MarkdownSectionProps = {
   /** Raw contents of a repo-root prose document. */
   markdown: string
-  /** Section modifiers (each app supplies its own body colour/spacing). */
-  className?: string
 }
+
+const SECTION = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[12],
+  fontSize: fontSize.sm,
+  lineHeight: 1.625,
+} satisfies CSSProperties
+
+const LIST = {
+  display: 'flex',
+  listStyleType: 'disc',
+  flexDirection: 'column',
+  gap: space[4],
+  paddingLeft: space[20],
+} satisfies CSSProperties
 
 /**
  * MarkdownSection — a `#` heading plus its blocks, rendered from a raw markdown
@@ -22,15 +37,18 @@ type MarkdownSectionProps = {
  * code. The library stays data-source agnostic, and each app reads the file
  * the way its build allows (srd via `node:fs`, ITUN via a Vite `?raw` import).
  */
-export function MarkdownSection({ markdown, className }: MarkdownSectionProps) {
+export function MarkdownSection({ markdown }: MarkdownSectionProps) {
   const { heading, blocks } = parseMarkdownSection(markdown)
 
   return (
-    <section className={cn('flex flex-col gap-3 text-sm leading-relaxed', className)}>
-      {heading && <Slab as="h2" variant="solid" label={heading} className="mb-0" />}
+    <section style={SECTION}>
+      {heading && (
+        // The heading sits on the section's own gap, not the slab's resting margin.
+        <Slab as="h2" variant="solid" label={heading} style={{ marginBottom: 0 }} />
+      )}
       {blocks.map((block) =>
         block.kind === 'list' ? (
-          <ul key={block.items.join('|')} className="flex list-disc flex-col gap-1 pl-5">
+          <ul key={block.items.join('|')} style={LIST}>
             {block.items.map((item) => (
               <li key={item}>
                 <InlineMarkdown text={item} />

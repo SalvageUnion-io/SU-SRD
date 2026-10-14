@@ -3,11 +3,11 @@
  * and downtime procedures (ADR-021: a guide is never a wizard).
  */
 
-import { z } from '../../zod.js'
-import { IdSchema, NameSchema, NonNegativeIntegerSchema } from '../common.js'
-import { ChoiceConstraintsSchema, ChoiceOptionSchema } from './choices.js'
-import { ContentSchema } from './content.js'
-import { SchemaNameWithActionsSchema } from './references.js'
+import { z } from '../../zod'
+import { IdSchema, NameSchema, NonNegativeIntegerSchema } from '../common'
+import { ChoiceConstraintsSchema, ChoiceOptionSchema } from './choices'
+import { ContentSchema } from './content'
+import { SchemaNameWithActionsSchema } from './references'
 
 /**
  * Filter criteria for selecting entities in a guide step
@@ -93,19 +93,3 @@ export const GuideTypeSchema = z
     'gameplay',
   ])
   .describe('Category of a guide (character creation, mech creation, etc.)')
-
-/**
- * Which theme tone paints a guide's header/footer band.
- *
- * A NAME, never a colour. The colour each name resolves to lives in
- * `component-lib`'s `theme.css` and nowhere else — three of these reuse the
- * ontology hues (`--color-pilot` / `--color-mech` / `--color-crawler`) and two
- * name tones that exist for guides which are about none of the three
- * (`--color-guide-salvage`, `--color-guide-hazard`). `ink` is the fallback for
- * a guide added without a tone.
- *
- * This replaced a raw hex field. See `GuideSchema.guideTone` for what that cost.
- */
-export const GuideToneSchema = z
-  .enum(['pilot', 'mech', 'crawler', 'salvage', 'hazard', 'ink'])
-  .describe('Which theme tone paints this guide’s header/footer band')

@@ -1,11 +1,9 @@
 import { describe, expect, test } from 'bun:test'
-import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
-import { crewCommand } from '../commands/crew.js'
-import { gameCommand } from '../commands/game.js'
-import { inviteCommand } from '../commands/invite.js'
-import { lookupCommand } from '../commands/lookup.js'
-import { rollCommand } from '../commands/roll.js'
-import { fakeExecute } from './fakeInteraction.js'
+import { gamesCommand, meCommand } from '../commands/account'
+import { lookupCommand } from '../commands/lookup'
+import { rollCommand } from '../commands/roll'
+import { sheetCommand } from '../commands/sheet'
+import { fakeExecute } from './fakeInteraction'
 
 /**
  * **The reference bot must keep working when In The Union Now does not.**
@@ -21,7 +19,7 @@ import { fakeExecute } from './fakeInteraction.js'
  * the unconfigured client, which makes no request at all.
  */
 
-describe('with In The Union Now unavailable', () => {
+describe('with The Cantina unavailable', () => {
   test('rolling is untouched — no defer, no edit, just the reply', async () => {
     const { interaction, replies, deferred, edits } = fakeExecute({
       subcommand: 'roll',
@@ -52,15 +50,11 @@ describe('with In The Union Now unavailable', () => {
   test.each([
     ['me', meCommand],
     ['games', gamesCommand],
-    ['my-stuff', shelfCommand],
-    ['crew', crewCommand],
-    ['invite', inviteCommand],
+    ['sheet', sheetCommand],
   ])('/su %s explains itself instead of failing', async (name, command) => {
     const { interaction, edits, deferred, followUps } = fakeExecute({
       subcommand: name,
-      // `/su invite` forwards Discord's signed request; give it one, so what
-      // is under test is the unavailable deployment, not a missing signature.
-      signed: { body: '{}', signature: 'sig', timestamp: '0' },
+      strings: { entity: 'pilots:jd7k2m9p4q8r3s6t1v5w0x2y' },
     })
     await command.execute(interaction)
 
@@ -71,28 +65,16 @@ describe('with In The Union Now unavailable', () => {
     expect(deferred.ephemeral).toBe(true)
     expect(followUps).toHaveLength(0)
     expect(edits).toHaveLength(1)
-    expect(edits[0]?.content).toContain('In The Union Now')
+    expect(edits[0]?.content).toContain('The Cantina')
   })
 
-  test('/su game bind says the same thing', async () => {
-    const { interaction, edits } = fakeExecute({
-      subcommand: 'bind',
-      subcommandGroup: 'game',
-      strings: { game: 'jd7k2m9p4q8r3s6t1v5w0x2y' },
+  test('/su sheet needs no channel: a DM asks the server like anywhere else', async () => {
+    const { interaction, edits, deferred } = fakeExecute({
+      subcommand: 'sheet',
+      strings: { entity: 'pilots:jd7k2m9p4q8r3s6t1v5w0x2y' },
     })
-    await gameCommand.execute(interaction)
-    expect(edits[0]?.content).toContain('In The Union Now')
-  })
-
-  test('a Game command outside a channel says so before anything else', async () => {
-    // A DM has no channel, so there is no binding to resolve and no useful
-    // question to ask the server.
-    const { interaction, replies, deferred } = fakeExecute({
-      subcommand: 'crew',
-      channelId: null,
-    })
-    await crewCommand.execute(interaction)
-    expect(deferred.called).toBe(false)
-    expect(replies[0]?.content).toContain('has to be run in a channel')
+    await sheetCommand.execute(interaction)
+    expect(deferred.called).toBe(true)
+    expect(edits[0]?.content).toContain('The Cantina')
   })
 })

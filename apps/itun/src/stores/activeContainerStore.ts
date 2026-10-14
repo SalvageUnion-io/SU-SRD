@@ -18,9 +18,9 @@
  * value survives reloads and navigation.
  */
 
+import type { Container } from 'itun-domain/container'
+import { SHELF } from 'itun-domain/container'
 import { create } from 'zustand'
-import type { Container } from '../lib/container'
-import { SHELF } from '../lib/container'
 import { readLocal, writeLocal } from '../lib/safeLocalStorage'
 
 const STORAGE_KEY = 'itun.activeContainer'

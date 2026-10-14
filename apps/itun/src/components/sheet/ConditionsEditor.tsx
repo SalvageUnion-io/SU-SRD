@@ -1,5 +1,5 @@
 /**
- * ConditionsEditor — editable conditions block for the pilot live sheet (W2-3, #254).
+ * ConditionsEditor — editable conditions block for the pilot live sheet.
  *
  * Composes the canonical `Conditions` chip row (chrome/Conditions — Badge-built
  * warn chips with × remove + the dashed '+ Add' affordance) inside the sheet's
@@ -16,8 +16,44 @@
  * affordance — chips render as plain badges (published snapshots).
  */
 
-import { Conditions, cn, INPUT_FOCUS } from 'component-lib'
+import { Conditions, INPUT_FOCUS, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useChipDraft } from './useChipDraft'
+
+/** The sheet's bordered well around the chip row. */
+const WELL = {
+  alignItems: 'center',
+  backgroundColor: tokens.color.paper,
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
+  borderRadius: '0.25rem',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[6],
+  minHeight: '3rem',
+  padding: tokens.space[10],
+} satisfies CSSProperties
+
+const NONE = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+/** The new-condition input, set in the chip's own caps type. */
+const DRAFT_INPUT = {
+  backgroundColor: tokens.color.paper,
+  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
+  borderRadius: tokens.radius.badge,
+  color: tokens.color.ink,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  letterSpacing: tokens.tracking.caps,
+  paddingBlock: tokens.space[2],
+  paddingInline: tokens.space[6],
+  textTransform: 'uppercase',
+  width: '7rem',
+} satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
 // Types
@@ -26,20 +62,14 @@ import { useChipDraft } from './useChipDraft'
 type ConditionsEditorProps = {
   conditions: ReadonlyArray<string>
   onChange: (next: string[]) => Promise<void> | void
-  readOnly?: boolean
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function ConditionsEditor({
-  conditions,
-  onChange,
-  readOnly = false,
-}: ConditionsEditorProps) {
+export function ConditionsEditor({ conditions, onChange }: ConditionsEditorProps) {
   const draft = useChipDraft({
-    disabled: readOnly,
     onCommit: async (value) => {
       // Skip case-insensitive duplicates; conditions are a flat string set.
       const exists = conditions.some((c) => c.trim().toLowerCase() === value.toLowerCase())
@@ -51,36 +81,31 @@ export function ConditionsEditor({
 
   /** Remove the first occurrence — identical strings are indistinguishable. */
   async function remove(condition: string) {
-    if (readOnly) return
     const index = conditions.indexOf(condition)
     if (index < 0) return
     await onChange(conditions.filter((_, i) => i !== index))
   }
 
   return (
-    <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-paper p-2.5">
-      {conditions.length === 0 && !draft.adding && (
-        <span className="font-body text-xs text-wk-muted">None</span>
-      )}
+    <div style={WELL}>
+      {conditions.length === 0 && !draft.adding && <span style={NONE}>None</span>}
 
       {/* Only rendered when it has chips or the '+ Add' affordance to show —
           an empty row would still count as a flex item and double the gap. */}
-      {(conditions.length > 0 || (!readOnly && !draft.adding)) && (
+      {(conditions.length > 0 || !draft.adding) && (
         <Conditions
           conditions={[...conditions]}
-          onRemove={readOnly ? undefined : (condition) => void remove(condition)}
-          onAdd={readOnly || draft.adding ? undefined : draft.startAdd}
+          onRemove={(condition) => void remove(condition)}
+          onAdd={draft.adding ? undefined : draft.startAdd}
         />
       )}
 
-      {!readOnly && draft.adding && (
+      {draft.adding && (
         <input
           {...draft.inputProps}
           aria-label="New condition"
-          className={cn(
-            'w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink',
-            INPUT_FOCUS
-          )}
+          className={INPUT_FOCUS}
+          style={DRAFT_INPUT}
         />
       )}
     </div>

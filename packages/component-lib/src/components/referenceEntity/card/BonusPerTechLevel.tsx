@@ -1,48 +1,43 @@
-import { Stat } from '../../shared/Stat'
+import type { CSSProperties } from 'react'
+import { space } from '../../../design/tokens'
+import { Stat } from '../../atoms/Stat'
 import type { BonusCell } from './cardCells'
 
+const CELLS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: space[6],
+} satisfies CSSProperties
+
 /**
- * BONUS PER TECH LEVEL — its own distinct rendering, anchored INLINE at the
- * prose that describes it (choice-plan): the green "Bonus per Tech Level" label
- * + the "+N" deltas. Damage rides HORIZONTAL (as everywhere), other stats are
- * vertical value boxes.
+ * BONUS PER TECH LEVEL — anchored INLINE at the prose that describes it
+ * (choice-plan): one wrapping row of label-first `Stat` chips (ruleset §3.7),
+ * the ink "Bonus per Tech Level" chip leading, then each "+N" delta
+ * (`Damage | +1 SP`, `Structure Points | +3`). Every chip is the same ink
+ * plate.
  */
 export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; compact: boolean }) {
+  const size = compact ? 'compact' : 'full'
   return (
-    <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
-      <Stat
-        orientation="horizontal"
-        label="Bonus per Tech Level"
-        bgColor="var(--color-status-ok)"
-        textColor="var(--color-paper)"
-        size={compact ? 'compact' : 'full'}
-      />
-      <div className="flex flex-wrap items-start gap-1.5">
-        {cells.map((cell) =>
-          cell.label.toLowerCase() === 'damage' ? (
-            // Damage is always horizontal (label | +N SP), matching every other
-            // Damage cell; the unit rides into the value.
-            <Stat
-              key={cell.key}
-              orientation="horizontal"
-              label={cell.label}
-              value={`${cell.value}${cell.bottomLabel ? ` ${cell.bottomLabel}` : ''}`}
-              size={compact ? 'compact' : 'full'}
-            />
-          ) : (
-            <Stat
-              key={cell.key}
-              label={cell.label}
-              bottomLabel={cell.bottomLabel}
-              value={cell.value}
-              // VALUE BOX, not horizontal: its rungs sit one step down, so
-              // `compact` maps to `mini` here while the horizontal cells above
-              // map it to `compact`. Same prop, same file, different ladder.
-              size={compact ? 'mini' : 'compact'}
-            />
-          )
-        )}
-      </div>
+    <div className="su-ec-block" style={CELLS} data-bonus-per-tech-level="">
+      <Stat orientation="horizontal" label="Bonus per Tech Level" size={size} />
+      {cells.map((cell) => {
+        // Every cell is a label-first chip: Damage carries its unit in the
+        // value (`Damage | +1 SP`), any other stat its whole name in the
+        // label (`Structure Points | +1`).
+        const damage = cell.label.toLowerCase() === 'damage'
+        const unit = cell.bottomLabel ? ` ${cell.bottomLabel}` : ''
+        return (
+          <Stat
+            key={cell.key}
+            orientation="horizontal"
+            label={damage ? cell.label : `${cell.label}${unit}`}
+            value={damage ? `${cell.value}${unit}` : cell.value}
+            size={size}
+          />
+        )
+      })}
     </div>
   )
 }

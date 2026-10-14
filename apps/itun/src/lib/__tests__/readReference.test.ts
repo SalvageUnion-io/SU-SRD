@@ -3,7 +3,7 @@ import { SchemaNotLoadedError } from 'salvageunion-reference'
 import { makeReferenceReader } from '../readReference'
 
 /**
- * The bare `catch {}` this replaced (audit AP-15) treated "the schema is not
+ * The bare `catch {}` this replaced treated "the schema is not
  * preloaded" and "the resolver is broken" identically. These pin the split.
  */
 function recordingReader() {

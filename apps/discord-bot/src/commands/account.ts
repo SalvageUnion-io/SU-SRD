@@ -1,58 +1,42 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { gamesCard, ITUN_ORIGIN, meCard, shelfCard } from '../gameCards.js'
-import type { CommandExecuteInteraction } from './interactions.js'
-import { respondWithItun } from './itunReply.js'
+import { PRODUCT } from 'component-lib/product'
+import { gamesCard, meCard } from '../gameCards'
+import type { CommandExecuteInteraction } from './interactions'
+import { respondWithItun } from './itunReply'
 
 /**
- * The three **personal** ITUN subcommands: `/su me`, `/su games`, `/su my-stuff`.
+ * The two **personal** ITUN subcommands: `/su me` and `/su games`.
  *
- * Grouped in one module rather than three because they are one idea — "what
+ * Grouped in one module rather than two because they are one idea — "what
  * does In The Union Now know about *me*" — and each is a handful of lines. The
- * substantial commands (roll, check, lookup, crew) keep their own files.
+ * substantial commands (roll, lookup, sheet) keep their own files.
  *
- * All three are **ephemeral**: an account, a game list and a shelf are personal,
- * and none of them is something the table needs to see. All three also work in
- * an unbound channel or a DM, because none of them depends on a binding.
+ * Both are **ephemeral**: an account and a game list are personal, and neither
+ * is something the table needs to see. Both work in any channel or a DM.
  */
 
 export const meCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('me').setDescription('Your In The Union Now account and games')
+    return sub.setName('me').setDescription(`Your ${PRODUCT.name} account and Games`)
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     await respondWithItun(interaction, {
       call: (client) => client.me(interaction.user.id),
-      // `currentGameId` is deliberately not resolved here: it would cost a
-      // second round trip to mark one line, and `/su game info` answers
-      // "what is this channel" properly.
-      render: (value) => meCard(value, ITUN_ORIGIN),
+      render: (value) => meCard(value),
     })
   },
 }
 
 export const gamesCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('games').setDescription('Every game you belong to')
+    return sub.setName('games').setDescription('Every Game you belong to')
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     await respondWithItun(interaction, {
       call: (client) => client.games(interaction.user.id),
-      render: (value) => gamesCard(value.games, ITUN_ORIGIN),
-    })
-  },
-}
-
-export const shelfCommand = {
-  subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('my-stuff').setDescription('Your pilots and mechs in My Stuff, in no game')
-  },
-
-  async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    await respondWithItun(interaction, {
-      call: (client) => client.shelf(interaction.user.id),
-      render: (value) => shelfCard(value, ITUN_ORIGIN),
+      render: (value) => gamesCard(value.games),
     })
   },
 }

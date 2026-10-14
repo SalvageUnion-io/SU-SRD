@@ -21,10 +21,16 @@
  * Tests do not count as callers — a function that only a test calls is exactly
  * the case this exists to catch.
  *
- * `internalQuery` / `internalMutation` / `internalAction` are not public and
- * are not checked. Neither are `httpAction`s, which are reachable through the
- * router in `http.ts` rather than through `api`, nor `auth.ts`, whose exports
- * are produced by `convexAuth()` and called by the auth library by name.
+ * An `internalQuery` / `internalMutation` / `internalAction` is not attack
+ * surface, but one nothing calls is still dead code knip cannot see, for the
+ * same reason. So each must be referenced as `internal.<module>.<name>` from
+ * non-test code in `convex/` (a cron, the bot's op table, another function) or
+ * the client, unless its doc comment carries `@operator`: a one-off run by hand
+ * from the dashboard (`invites.dropRetired`), deleted once it has run.
+ *
+ * Neither check covers `httpAction`s, which are reachable through the router in
+ * `http.ts` rather than through `api`, nor `auth.ts`, whose exports are
+ * produced by `convexAuth()` and called by the auth library by name.
  *
  * Known limit: a public function is recognised by its builder's NAME —
  * `query(`, `mutation(` or `action(` directly after `export const x =`. One
@@ -39,10 +45,6 @@
  * module's name — otherwise a re-export would be reachable surface this check
  * could not see.
  *
- * If a public function is genuinely meant to be called from outside this repo,
- * list it in `ALLOWED_WITHOUT_CALLER` with the reason. That list is empty on
- * purpose.
- *
  * It also checks the committed `convex/_generated/api.d.ts` registers exactly
  * the modules on disk. `tsc` does not catch that drift: the root tsconfig sets
  * `skipLibCheck`, so an `api.d.ts` importing a deleted module still typechecks,
@@ -51,21 +53,23 @@
  * regenerating (`bunx convex dev`) stays the source of truth.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { walk } from 'gates/lib/walk'
 
 const ROOT = join(import.meta.dir, '..')
-const CONVEX_DIR = join(ROOT, 'apps/itun/convex')
-const API_PATH = join(CONVEX_DIR, '_generated/api.d.ts')
+
+/** The deployment's modules, under the repo root. */
+const convexDir = (root: string) => join(root, 'apps/itun/convex')
 
 /**
  * Where callers live: the ITUN client's non-test sources. The bot reaches
  * Convex over HTTP (`botHttp.ts`), never through `api`.
  */
-const CALLER_DIRS = [join(ROOT, 'apps/itun/src')]
+const callerDirs = (root: string) => [join(root, 'apps/itun/src')]
 
-/** `module:name` → why it has no caller in this repo. */
-const ALLOWED_WITHOUT_CALLER: Readonly<Record<string, string>> = {}
+/** Where internal functions' callers live: the client and the deployment itself. */
+const internalCallerDirs = (root: string) => [...callerDirs(root), convexDir(root)]
 
 /** Modules whose exports are not ordinary builder calls. See the header. */
 const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])
@@ -73,15 +77,8 @@ const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])
 /** Files Convex does not register as function modules: the data model and provider config. */
 const NOT_MODULES = new Set(['schema', 'auth.config'])
 
-function walk(dir: string, keep: (path: string) => boolean, out: string[] = []): string[] {
-  for (const entry of readdirSync(dir)) {
-    if (entry === '_generated' || entry === 'node_modules') continue
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) walk(full, keep, out)
-    else if (keep(full)) out.push(full)
-  }
-  return out
-}
+/** Codegen output is not source a caller or a module lives in. */
+const SKIP_DIRS = new Set(['node_modules', '_generated'])
 
 /**
  * The public functions one module's source exports, by name.
@@ -94,6 +91,19 @@ function walk(dir: string, keep: (path: string) => boolean, out: string[] = []):
 export function publicFunctionsIn(source: string): string[] {
   return [...source.matchAll(/^export const (\w+) = (?:query|mutation|action)\(/gm)]
     .map((m) => m[1])
+    .filter((name): name is string => name !== undefined)
+}
+
+/**
+ * The internal functions one module's source exports, by name, without those
+ * whose doc comment is tagged `@operator` (run by hand, so nothing calls them).
+ */
+export function internalFunctionsIn(source: string): string[] {
+  const pattern =
+    /(\/\*\*(?:(?!\*\/)[\s\S])*\*\/)?\s*^export const (\w+) = internal(?:Query|Mutation|Action)\(/gm
+  return [...source.matchAll(pattern)]
+    .filter((m) => !/@operator\b/.test(m[1] ?? ''))
+    .map((m) => m[2])
     .filter((name): name is string => name !== undefined)
 }
 
@@ -130,7 +140,7 @@ export function reExportsIn(
  * comment ("see `api.games.rename`") does not count as calling it. Line
  * comments need a non-`:` before the `//` so a URL inside a string survives.
  */
-export function withoutComments(source: string): string {
+function withoutComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1')
 }
 
@@ -145,13 +155,18 @@ export function referencesIn(raw: string): Set<string> {
   return refs
 }
 
-/** Public functions with no reference and no allowance. */
-export function uncalled(
-  defined: Iterable<string>,
-  referenced: ReadonlySet<string>,
-  allowed: Readonly<Record<string, string>> = ALLOWED_WITHOUT_CALLER
-): string[] {
-  return [...defined].filter((fn) => !referenced.has(fn) && !(fn in allowed)).sort()
+/** Every `module:name` an `internal.<module>.<name>` reference names, outside comments. */
+export function internalReferencesIn(raw: string): Set<string> {
+  const refs = new Set<string>()
+  for (const m of withoutComments(raw).matchAll(/\binternal\.(\w+)\.(\w+)/g)) {
+    refs.add(`${m[1]}:${m[2]}`)
+  }
+  return refs
+}
+
+/** Functions with no reference. */
+export function uncalled(defined: Iterable<string>, referenced: ReadonlySet<string>): string[] {
+  return [...defined].filter((fn) => !referenced.has(fn)).sort()
 }
 
 /** Every module `api.d.ts` registers — each is `import type * as X from "../<path>.js"`. */
@@ -178,9 +193,12 @@ function isTest(path: string): boolean {
   return /[\\/]__tests__[\\/]/.test(path) || /\.test\.tsx?$/.test(path)
 }
 
-function main(): void {
+/** Run the gate over the repo at `root`; returns the exit code. */
+export function main(root = ROOT, log = console.log, error = console.error): number {
+  const CONVEX_DIR = convexDir(root)
   const defined: string[] = []
-  const modules = walk(CONVEX_DIR, (p) => p.endsWith('.ts') && !p.endsWith('.d.ts'))
+  const definedInternal: string[] = []
+  const modules = walk(CONVEX_DIR, (p) => p.endsWith('.ts') && !p.endsWith('.d.ts'), SKIP_DIRS)
   const sources = new Map<string, string>()
   const ownPublic = new Map<string, string[]>()
   const onDisk = new Set<string>()
@@ -196,6 +214,7 @@ function main(): void {
   }
   for (const [module, source] of sources) {
     for (const name of ownPublic.get(module) ?? []) defined.push(`${module}:${name}`)
+    for (const name of internalFunctionsIn(source)) definedInternal.push(`${module}:${name}`)
     for (const { from, names } of reExportsIn(source)) {
       const targetPublic = ownPublic.get(from) ?? []
       const pairs: Array<[string, string]> =
@@ -207,51 +226,67 @@ function main(): void {
   }
 
   const referenced = new Set<string>()
-  for (const dir of CALLER_DIRS) {
-    for (const file of walk(dir, (p) => /\.tsx?$/.test(p) && !isTest(p))) {
+  for (const dir of callerDirs(root)) {
+    for (const file of walk(dir, (p) => /\.tsx?$/.test(p) && !isTest(p), SKIP_DIRS)) {
       for (const ref of referencesIn(readFileSync(file, 'utf-8'))) referenced.add(ref)
     }
   }
 
-  const stale = Object.keys(ALLOWED_WITHOUT_CALLER).filter((fn) => !defined.includes(fn))
+  const referencedInternal = new Set<string>()
+  for (const dir of internalCallerDirs(root)) {
+    for (const file of walk(dir, (p) => /\.tsx?$/.test(p) && !isTest(p), SKIP_DIRS)) {
+      for (const ref of internalReferencesIn(readFileSync(file, 'utf-8'))) {
+        referencedInternal.add(ref)
+      }
+    }
+  }
+
   const missing = uncalled(defined, referenced)
-  const drift = codegenDrift(onDisk, registeredModules(readFileSync(API_PATH, 'utf-8')))
+  const missingInternal = uncalled(definedInternal, referencedInternal)
+  const drift = codegenDrift(
+    onDisk,
+    registeredModules(readFileSync(join(CONVEX_DIR, '_generated/api.d.ts'), 'utf-8'))
+  )
   const drifted = drift.missing.length > 0 || drift.extra.length > 0
 
-  if (missing.length > 0 || stale.length > 0 || drifted) {
+  if (missing.length > 0 || missingInternal.length > 0 || drifted) {
     if (drifted) {
-      console.error('✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.')
+      error('✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.')
       for (const m of drift.missing) {
-        console.error(`    convex/${m}.ts exists on disk but is NOT registered in api.d.ts`)
+        error(`    convex/${m}.ts exists on disk but is NOT registered in api.d.ts`)
       }
       for (const m of drift.extra) {
-        console.error(`    api.d.ts registers convex/${m}.ts, which no longer exists`)
+        error(`    api.d.ts registers convex/${m}.ts, which no longer exists`)
       }
-      console.error(
+      error(
         '  → Regenerate with `bunx convex dev` (needs a CONVEX_DEPLOYMENT); never hand-edit\n' +
           '    convex/_generated/.'
       )
     }
     if (missing.length > 0) {
-      console.error('✗ Public Convex functions with no caller in the client:')
-      for (const fn of missing) console.error(`    ${fn.replace(':', '.')}`)
-      console.error(
+      error('✗ Public Convex functions with no caller in the client:')
+      for (const fn of missing) error(`    ${fn.replace(':', '.')}`)
+      error(
         '  → Delete it, make it internal, or call it. A public function nobody calls is\n' +
-          '    reachable surface that nothing exercises. If something outside this repo\n' +
-          '    calls it, list it in ALLOWED_WITHOUT_CALLER in tools/check-convex-callers.ts\n' +
-          '    with the reason.'
+          '    reachable surface that nothing exercises.'
       )
     }
-    for (const fn of stale) {
-      console.error(`✗ ALLOWED_WITHOUT_CALLER lists ${fn}, which no longer exists — remove it.`)
+    if (missingInternal.length > 0) {
+      error('✗ Internal Convex functions nothing calls:')
+      for (const fn of missingInternal) error(`    ${fn.replace(':', '.')}`)
+      error(
+        '  → Delete it, or tag its doc comment `@operator` if it is a one-off run by hand\n' +
+          '    from the dashboard (and delete it once it has run).'
+      )
     }
-    process.exit(1)
+    return 1
   }
 
-  console.log(
+  log(
     `✓ Convex callers: all ${defined.length} public functions have a caller, ` +
-      `and api.d.ts registers all ${onDisk.size} modules.`
+      `all ${definedInternal.length} internal functions are called, and api.d.ts registers all ${onDisk.size} modules.`
   )
+  return 0
 }
 
-if (import.meta.main) main()
+if (import.meta.main) process.exit(main())

@@ -1,11 +1,17 @@
-# Response headers for intheunionnow.com.
+# Response headers for ITUN at salvageunion.io/build (ADR-048).
 #
-# Copied verbatim into `dist/` by Vite's publicDir, and read by Workers Static
-# Assets (ADR-033). It is the app's ONLY source of security headers: Static
-# Assets answers every file and every navigation itself, in
-# single-page-application mode, and applies this file to all of them. The
-# Worker script runs only for a miss that is not a navigation (a missing chunk,
-# a crawler), and builds no document that runs script.
+# Copied into `dist/build/` by Vite's publicDir, then moved to `dist/` with its
+# `/assets/*` rule scoped to `/build/assets/*` (vite.config.ts), and read by
+# Workers Static Assets (ADR-033). It is the app's ONLY source of security
+# headers: Static Assets answers every file and every navigation under `/build/`,
+# in single-page-application mode, and applies this file to all of them. The
+# Worker script runs first for every request (`run_worker_first`) and reads
+# those answers through the asset binding, which applies this file too; what it
+# builds itself (a missing file's 404, the old host's 301s) runs no script.
+#
+# robots.txt is srd's (`salvageunion.io/robots.txt`, which allows `/build/`).
+# Shared sheets stay crawlable (ADR-032): a link pasted into Discord should
+# unfurl and resolve.
 #
 # `tools/check-observability.ts` requires the CSP here to allow Sentry's ingest
 # origin; tools/smoke-production.sh asserts the CSP and HSTS actually reach the
@@ -37,17 +43,21 @@
   # executes. The built `dist/index.html` contains zero inline scripts (Vite
   # bundles every module; the PWA registration is external). If a build ever
   # needs one, give that script a sha256 hash here, the way apps/srd does.
-  # 'unsafe-inline' stays in style-src deliberately — Tailwind and React inline
-  # styles need it, and style injection is not script execution.
+  # 'unsafe-inline' stays in style-src deliberately — React's inline `style=`
+  # attributes need it, and style injection is not script execution.
   #
-  # `https://storage.ko-fi.com` is the Ko-fi widget script (`KofiButton`).
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
+  # Cloudflare Web Analytics: index.html loads its beacon by URL from
+  # static.cloudflareinsights.com, and the beacon posts page loads to
+  # cloudflareinsights.com. Automatic setup never injects it into a Worker's
+  # static assets, so it is added by hand; drop either origin and the
+  # dashboard silently records nothing.
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
 
 # Content-hashed bundle output from Vite's default assetsDir.
 #
 # Nothing else is marked immutable, and this is the one place this file
 # deliberately differs from srd's. itun's `public/` holds `favicon.svg`,
-# `icon-192.png`, `icon-512.png` and `logos/` — FIXED names that are mutated in
+# `icon-192.png`, `icon-512.png`, `og-image.png` and `logos/` — FIXED names that are mutated in
 # place on redesign, so a year of `immutable` would mean a changed icon no
 # amount of reloading can dislodge. They, and the shell, keep the platform's
 # default `public, max-age=0, must-revalidate`: a stale shell names chunks a

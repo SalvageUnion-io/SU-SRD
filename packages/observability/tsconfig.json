@@ -1,7 +1,13 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.dom.json",
   "compilerOptions": {
-    "lib": ["ES2022", "DOM"]
+    // A referenced library: declarations only, into the gitignored .tsbuild/
+    // (see the root tsconfig.json).
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": "../../.tsbuild/observability",
+    "tsBuildInfoFile": "../../.tsbuild/observability/tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*.ts"]
 }

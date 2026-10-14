@@ -1,9 +1,8 @@
 import { ConfirmDialog } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
-import { serverMessage } from '../../lib/connection/serverError'
+import { failureMessage } from '../../lib/connection/useServerAction'
 import type { ConfirmCopy } from '../../lib/games/rowActionCopy'
-import { captureException } from '../../lib/observability'
 
 /**
  * One confirm dialog for a whole surface, opened imperatively.
@@ -31,26 +30,12 @@ import { captureException } from '../../lib/observability'
  * system working.
  */
 
-export type ConfirmRequest = ConfirmCopy & {
+type ConfirmRequest = ConfirmCopy & {
   /** The action. Runs only on confirm; a rejection keeps the dialog open. */
   onConfirm: () => void | Promise<void>
 }
 
 export type Confirm = (request: ConfirmRequest) => void
-
-/**
- * What to tell the player when an action fails.
- *
- * A refusal (`ConvexError`) carries wording the server chose for the player.
- * Anything else does not — a redacted server error reads
- * `[CONVEX M(fn)] … Server Error` — so it gets `fallback` and a report.
- */
-export function failureMessage(err: unknown, fallback: string): string {
-  const refusal = serverMessage(err)
-  if (refusal !== null) return refusal
-  captureException(err)
-  return fallback
-}
 
 export function useConfirm(): { confirm: Confirm; dialog: ReactNode } {
   // The request outlives `open`, so the dialog keeps its words while it closes

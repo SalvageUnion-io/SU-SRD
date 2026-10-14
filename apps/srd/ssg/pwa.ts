@@ -57,6 +57,12 @@
  * - `globPatterns` is js/css/woff2/svg and NOT html or images: precaching 1,039
  *   HTML pages would be a multi-megabyte install. Visited pages are covered by
  *   the `pages` runtime rule instead.
+ * - `globIgnores` drops the `latin-ext` and `vietnamese` font subsets. Each
+ *   `@fontsource` face ships three subsets split by `unicode-range`, and the
+ *   browser fetches a subset only when the page draws a glyph in its range; no
+ *   text this site renders does, so precaching them cost every first visit
+ *   about 157 KB of fonts it never loads. Their `@font-face` rules stay, so a
+ *   page that does need one still fetches it from the network.
  * - `navigateFallback: null` — this is a static site, so an unvisited page
  *   should 404 offline rather than resolve to a stale shell.
  * - `sourcemap: false`: the plugin otherwise follows `build.sourcemap`, which
@@ -96,7 +102,13 @@ export const RUNTIME_CACHING = [
     // answered from the cache only when the network fails or times out — see
     // the header. Stringified into sw.js, so it must not reference anything
     // outside its own parameters.
-    urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+    //
+    // Not under `/build`: that is ITUN's, on this origin, and ITUN's own worker
+    // (scope `/build/`) decides how its shell is fetched. Without the carve-out
+    // this worker, scoped `/`, would answer ITUN's first visit from srd's
+    // `pages` cache when the network is slow.
+    urlPattern: ({ request, url }: { request: Request; url: URL }) =>
+      request.mode === 'navigate' && !/^\/build(\/|$)/.test(url.pathname),
     handler: 'NetworkFirst' as const,
     options: { cacheName: PAGES_CACHE, networkTimeoutSeconds: NAVIGATION_TIMEOUT_SECONDS },
   },
@@ -115,6 +127,12 @@ export const RUNTIME_CACHING = [
   },
 ]
 
+/**
+ * The font subsets left out of the precache — see the header. Vite keeps the
+ * `@fontsource` file name ahead of its hash (`barlow-latin-ext-400-normal-<hash>.woff2`).
+ */
+export const UNFETCHED_FONT_SUBSETS = '**/*-{latin-ext,vietnamese}-*.woff2'
+
 /** What `ssg/vite.config.ts` hands `VitePWA({ workbox })`. */
 export const WORKBOX_OPTIONS = {
   mode: 'production',
@@ -125,6 +143,8 @@ export const WORKBOX_OPTIONS = {
   // The app shell — island JS incl. the per-schema data chunks, css, fonts,
   // icons. Deliberately NOT html or images.
   globPatterns: ['**/*.{js,css,woff2,svg}'],
+  // The first entry is workbox-build's default, which setting this replaces.
+  globIgnores: ['**/node_modules/**/*', UNFETCHED_FONT_SUBSETS],
   navigateFallback: null,
   runtimeCaching: RUNTIME_CACHING,
 } satisfies VitePWAOptions['workbox']

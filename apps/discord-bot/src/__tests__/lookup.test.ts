@@ -10,9 +10,9 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { buildTableLookupMessage, lookupCommand } from '../commands/lookup.js'
-import type { ReplyArg } from './fakeInteraction.js'
-import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import { buildTableLookupMessage, lookupChoices, lookupCommand } from '../commands/lookup'
+import type { ReplyArg } from './fakeInteraction'
+import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /** Shared narrow-interaction fakes; see fakeInteraction.ts. */
 function mockChatInput(entity: string) {
@@ -51,9 +51,38 @@ describe('lookupCommand.execute', () => {
     // The deep link survives the move to a container as a masked link in the
     // heading — a container has no title slot to carry a url.
     expect(containerTextOf(reply)).toContain(
-      '## [.50 Cal Machine Gun](https://salvageunion.io/schema/systems/item/50-cal-machine-gun)'
+      '## [.50 Cal Machine Gun](https://salvageunion.io/systems/50-cal-machine-gun)'
     )
     expect(reply.flags).toBe(MessageFlags.IsComponentsV2)
+  })
+
+  test('a choice for a retired slug answers with the pattern that now carries it', async () => {
+    // "Hill Worm Pattern Typhon" was its own Bio-Titan before it became Typhon's
+    // pattern; an autocomplete value offered before then must still resolve.
+    const { interaction, replies } = mockChatInput('bio-titans::hill-worm-pattern-typhon')
+    await lookupCommand.execute(interaction)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(containerTextOf(reply)).toContain(
+      '## [Hill Worm](https://salvageunion.io/bio-titans/typhon/pattern/hill-worm)'
+    )
+  })
+
+  test('free-typed "Hill Worm" is the pattern itself, its own entry', async () => {
+    const { interaction, replies } = mockChatInput('Hill Worm')
+    await lookupCommand.execute(interaction)
+    const reply = replies[0]
+    if (!reply) throw new Error('expected a reply')
+    expect(containerTextOf(reply)).toContain('-# PATTERN OF TYPHON')
+    expect(containerTextOf(reply)).toContain('## [Hill Worm]')
+  })
+
+  test('autocomplete offers a pattern as an entry of its own, ahead of its host', () => {
+    const choices = lookupChoices('Hauler')
+    const pattern = choices.findIndex((choice) => choice.value === 'chassis::mule::hauler')
+    expect(choices[pattern]?.name).toBe('Hauler (Mule pattern)')
+    expect(choices[pattern + 1]?.value).toBe('chassis::mule')
+    expect(choices.length).toBeLessThanOrEqual(25)
   })
 
   test('free-typed text falls back to the top search hit', async () => {
@@ -63,20 +92,22 @@ describe('lookupCommand.execute', () => {
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
     expect(reply.components).toHaveLength(1)
-    expect(containerTextOf(reply)).toContain('## [')
-    // A real hit deep-links out; the not-found path carries content instead.
+    // A heading that links its page; an ability's tier numeral leads it.
+    expect(containerTextOf(reply)).toMatch(/^## (\d+ · )?\[/m)
     expect(reply.content).toBeUndefined()
   })
 
-  test('a no-match query replies with an ephemeral "not found"', async () => {
+  test('a no-match query answers privately, in the system, with the way in that works', async () => {
     const { interaction, replies } = mockChatInput('zzzqqqxyzzy123')
     await lookupCommand.execute(interaction)
     expect(replies).toHaveLength(1)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
     expect(reply.embeds).toBeUndefined()
-    expect(reply.content).toContain('No entity found')
-    expect(reply.flags).toBe(MessageFlags.Ephemeral)
+    expect(reply.content).toBeUndefined()
+    expect(containerTextOf(reply)).toContain('-# NO SUCH ENTRY')
+    expect(containerTextOf(reply)).toContain('`entity:` option')
+    expect(reply.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
 })
 
@@ -93,7 +124,7 @@ describe('buildTableLookupMessage — the "See table" button target', () => {
     expect(text).toContain('## [Core Mechanic](https://salvageunion.io/')
     // Full rows are still inlined (backtick roll keys), not just a link-out.
     expect(text).toContain('`20`')
-    // A roll-table lookup offers a one-click "Roll on this table" button.
+    // A roll-table lookup offers a one-click "Roll the Die" button.
     expect(message.data.blocks.some((b) => b.kind === 'buttons')).toBe(true)
   })
 

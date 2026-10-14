@@ -1,5 +1,5 @@
 /**
- * Heat Check / Reactor Overload rules (Slice C, #199).
+ * Heat Check / Reactor Overload rules.
  *
  * Salvage Union Core Book p.233-235 — the central mech combat mechanic.
  *
@@ -14,12 +14,13 @@
  *     6-10  → a Module is destroyed (player picks which)
  *     11-19 → reactor overheat: mech shuts down, becomes Vulnerable, and takes
  *             SP damage equal to current Heat
- *     20    → safe (no effect)
+ *     20    → reactor overdrive: the mech may take any additional action this
+ *             turn, or Push its next roll within 10 minutes, for free (p.235)
  * - Push: re-roll a die, +2 Heat (clamped to cap), then immediately a Heat Check.
  *
  * This module is PURE: no React, no IndexedDB, no real randomness. The d20 is
  * injected via a `Roll` function so every function is deterministic in tests.
- * Production callers pass `rollDie` (`./dice.ts`). `heatCheckPatch` stays
+ * Production callers pass a Randsum-backed `Roll`. `heatCheckPatch` stays
  * app-local in `apps/itun/src/lib/rules/heatCheck.ts`: it assembles a
  * `Partial<Mech>` write-through patch, which needs ITUN's own Zod-derived
  * `Mech` type (ADR-006/ADR-007).
@@ -30,7 +31,7 @@
  * to the player via the card status badge — this module never auto-picks.
  */
 
-import type { HeatCheckEffect, PushResult, ReactorOverloadOutcome, Roll } from './types.js'
+import type { HeatCheckEffect, PushResult, ReactorOverloadOutcome, Roll } from './types'
 
 /**
  * Clamps a heat value into [0, cap]. Heat can never exceed Heat Cap (rule 1).
@@ -51,20 +52,34 @@ export function canActivateAction(currentHeat: number, heatCost: number, heatCap
   return currentHeat + heatCost <= heatCap
 }
 
+/** Heat a Push adds to the Mech (Core Book p.233). */
+export const PUSH_HEAT = 2
+
 /**
- * Maps a Reactor Overload Table d20 roll to its outcome band (p.234-235).
+ * Whether the Mech may Push: not when the Heat gained would take it over its
+ * Heat Cap (Core Book p.234 — a Mech with a Heat Capacity of 10 on 9 Heat
+ * cannot Push).
+ */
+export function canPush(currentHeat: number, heatCap: number): boolean {
+  return canActivateAction(currentHeat, PUSH_HEAT, heatCap)
+}
+
+/**
+ * Maps a Reactor Overload Table d20 roll to its outcome band (p.235).
  *   1     → meltdown
  *   2-5   → system-destroyed
  *   6-10  → module-destroyed
  *   11-19 → overheat
- *   20    → safe
+ *   20    → overdrive
+ * Each band is one row of the `Reactor Overload` roll table, which
+ * `describeOverloadOutcome` reads for the readout.
  */
 export function reactorOverloadOutcome(roll: number): ReactorOverloadOutcome {
   if (roll <= 1) return 'meltdown'
   if (roll <= 5) return 'system-destroyed'
   if (roll <= 10) return 'module-destroyed'
   if (roll <= 19) return 'overheat'
-  return 'safe'
+  return 'overdrive'
 }
 
 type HeatCheckInput = {
@@ -90,8 +105,8 @@ export function performHeatCheck({ heat, currentSP, roll, now }: HeatCheckInput)
   const clock = now ?? (() => new Date())
   const heatCheckRoll = roll(20)
   // A natural 20 is ALWAYS a success, even when current Heat >= 20 (Heat Cap can
-  // exceed 20, e.g. Cerberus chassis at Cap 30). Core Book p.30/39 / keywords
-  // 'heat check'. Otherwise the reactor overloads when the roll is <= current Heat.
+  // exceed 20, e.g. Cerberus chassis at Cap 30). Core Book p.234. Otherwise the
+  // reactor overloads when the roll is <= current Heat.
   const overloaded = heatCheckRoll !== 20 && heatCheckRoll <= heat
 
   if (!overloaded) {
@@ -155,7 +170,7 @@ type PushInput = {
  * Check at the new heat. Returns both the new heat and the check effect.
  */
 export function performPush({ heat, heatCap, currentSP, roll, now }: PushInput): PushResult {
-  const nextHeat = clampHeat(heat + 2, heatCap)
+  const nextHeat = clampHeat(heat + PUSH_HEAT, heatCap)
   const effect = performHeatCheck({ heat: nextHeat, currentSP, roll, now })
   return { nextHeat, effect }
 }

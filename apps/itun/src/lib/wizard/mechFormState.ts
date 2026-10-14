@@ -1,5 +1,5 @@
 /**
- * Mech wizard form-state contract + entity mappers (plan 3.1).
+ * Mech wizard form-state contract + entity mappers.
  *
  * MechWizardFormState is the layout-agnostic seam between the wizard UI and
  * the persisted Mech entity:
@@ -11,10 +11,12 @@
  * the reference ORM (chassis stats) and so requires `chassis` preloaded.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { SURefChassis } from 'salvageunion-reference'
+import { nameToSlug } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
-import type { CargoLot } from '../schemas/cargoLot'
-import type { Mech } from '../schemas/mech'
 
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {
@@ -49,6 +51,30 @@ export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
   appearance: '',
 }
 
+/** One of a chassis's printed patterns: a name and its loadout. */
+export type MechPattern = SURefChassis['patterns'][number]
+
+/**
+ * The canonical starting-pattern prefill: the pattern's name (and the mech's,
+ * while it has none) and its loadout as slug refs, one per copy (`count`).
+ */
+export function withPatternPrefill(
+  form: MechWizardFormState,
+  pattern: MechPattern
+): MechWizardFormState {
+  return {
+    ...form,
+    patternName: pattern.name,
+    name: form.name.trim() === '' ? pattern.name : form.name,
+    systems: pattern.systems.flatMap((s) =>
+      new Array<string>(s.count ?? 1).fill(nameToSlug(s.name))
+    ),
+    modules: pattern.modules.flatMap((m) =>
+      new Array<string>(m.count ?? 1).fill(nameToSlug(m.name))
+    ),
+  }
+}
+
 /** Wizard-owned mech fields — the ones the form captures. */
 type MechWizardPatch = Pick<
   Mech,
@@ -76,13 +102,13 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
 }
 
 /** The drones a fresh mech's chassis grants, kitted by its pattern. */
-export function mechFormToPartners(form: MechWizardFormState) {
+function mechFormToPartners(form: MechWizardFormState) {
   return syncPartners(undefined, mechPartnerSeeds(form.chassisName, form.patternName))
 }
 
 /**
  * Create payload for a fresh mech. Fresh mechs start at full SP/EP from the
- * chassis and Heat 0 (plan 2.3, gap 7) — never Heat-at-capacity.
+ * chassis and Heat 0 — never Heat-at-capacity.
  *
  * Drones granted by the chassis ability (and kitted by the pattern) are seeded
  * here: they are part of the machine being built, not something the player adds

@@ -1,0 +1,56 @@
+name: Release
+
+# Tags and publishes a GitHub release when a merge to `main` bumps the root
+# `package.json` version: `tools/release.ts` publishes `v<version>` on the
+# merge commit, its notes the merged PR's **What changed** section word for
+# word (no generated notes, no `Closes #N` lines). A merge that did not bump the
+# version finds the tag already there and does nothing; the `paths` filter
+# skips merges that leave the root package.json alone.
+#
+# Separate from deploy-cloudflare.yml: a release needs no deploy credentials,
+# and a failed deploy is re-run by hand without re-releasing.
+
+on:
+  push:
+    # design-refresh only dry-runs: it prints the release a merge to main
+    # would publish, proving the PR lookup and notes before the real one.
+    branches: [main, design-refresh]
+    paths: [package.json]
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag and publish the release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      # Creating a release creates its tag.
+      contents: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The script imports nothing installed, so no `bun install`.
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - name: Publish the release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" = refs/heads/main ]; then
+            bun tools/release.ts --sha "$SHA"
+          else
+            bun tools/release.ts --sha "$SHA" --dry-run
+          fi

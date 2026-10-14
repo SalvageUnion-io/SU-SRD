@@ -8,15 +8,15 @@
  * entry point: moving it there would either add a name to that entry point's
  * public surface or remove one from the main barrel, and this split is meant to
  * be invisible from outside the package. Its one consumer
- * (`apps/itun/src/components/sheet/pilotInventory.ts`) imports it from the main
+ * (`apps/itun/src/lib/rules/pilotInventory.ts`) imports it from the main
  * barrel today.
  *
  * The package barrel (`lib/index.ts`) re-exports, by name, only what
  * consumers import.
  */
 
-import { getTraits } from './actionResolution.js'
-import type { SURefMetaEntity } from './schemas/index.js'
+import { getTraits } from './actionResolution'
+import type { SURefMetaEntity } from './schemas/index'
 
 /**
  * Get the number of inventory slots an equipment entity occupies.

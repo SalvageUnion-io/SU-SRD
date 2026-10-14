@@ -32,6 +32,17 @@
  * Unverified is recorded, not blocked: the lock is a ledger of what has been
  * checked, and the drift in it is a to-do list for prose fixes.
  *
+ * ## Stat blocks
+ *
+ * The numbers get the same treatment (`gates/lib/statFidelity.ts`): every
+ * chassis, pattern, System, Module, drone, NPC and Squad stat block and every
+ * action's stat line (Ability costs among them) is read from the Core Book's
+ * content-stream layer by a per-schema extractor and compared field by field.
+ * Its lock key ends `@stat`; its verdict is `verbatim` when every field
+ * matches, `unverified stat-mismatch` when one differs, `unverified no-match`
+ * when the extractor cannot find the block, and `unverified-source` when the
+ * block's own citation is a book with no extractor yet (every expansion).
+ *
  * ## Matching
  *
  * Each book is read in two text layers (see `extract-rules.ts`): poppler's
@@ -43,149 +54,52 @@
  * every book. A miss is aligned token-by-token against the likeliest passage
  * and the differences classified.
  *
- * Books are matched by FILENAME PATTERN, so a new edition dropped into
- * `rules/` is picked up without a code change (the latest by version wins).
+ * Books are matched by FILENAME PATTERN (`gates/lib/rulesBooks.ts`), so a new
+ * edition dropped into `rules/` is picked up without a code change.
  *
  * Requires the gitignored extract: `bun run rules:extract`. With none present
- * this exits 0 with a notice, like `check-printed-names.ts`: a local check,
- * not a CI gate. Where it looks: `findExtractDir` in `extract-rules.ts`.
+ * this exits 0 with a notice: a local check, not a CI gate. Where it looks: `findExtractDir` in `extract-rules.ts`.
  *
  * Run:  bun tools/check-rules-fidelity.ts            # verify; report what the lock would change
  *       bun tools/check-rules-fidelity.ts --update   # ... and rewrite the lock
  *       bun tools/check-rules-fidelity.ts --show=paraphrase,omission   # list those, with diffs
- *       bun tools/check-rules-fidelity.ts --summary  # drift summary as markdown (no book text)
+ *       bun tools/check-rules-fidelity.ts --show=stat-mismatch          # stat blocks that differ
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import type { ProseRuleId } from '../packages/salvageunion-reference/lib/proseDeviations'
-import {
-  BOILERPLATE_MIN_REPEATS,
-  BOOK_TYPOS,
-  CHASSIS_PLACEHOLDERS,
-  CHASSIS_STAND_INS,
-  NAME_DEVIATIONS,
-  OWNER_SUFFIX,
-  TRAIT_MARKUP,
-} from '../packages/salvageunion-reference/lib/proseDeviations'
-import type { Layer } from './extract-rules'
-import { findExtractDir, LAYER_DIR } from './extract-rules'
-import type { Anchor, Lock, LockEntry, ProseItem, Reason } from './lib/proseFidelity'
+import type {
+  Anchor,
+  DRIFT_REASONS,
+  Lock,
+  LockEntry,
+  ProseItem,
+  Reason,
+} from 'gates/lib/proseFidelity'
 import {
   collectProse,
   compareWithLock,
-  DRIFT_REASONS,
   fold,
   proseHash,
   readLockFile,
   toLockFile,
   VERDICTS,
   writeLockFile,
-} from './lib/proseFidelity'
-
-// ---------------------------------------------------------------------------
-// Books
-// ---------------------------------------------------------------------------
-
-type BookSpec = {
-  /** Label used in output and in the lock's `editions`. */
-  id: string
-  /** The extract, matched by filename so a new edition needs no code change. */
-  file: RegExp
-  /**
-   * The data anchors this book answers for. Empty: a fallback-only text.
-   * `partial`: the anchor also covers material with no local text, so a miss
-   * there is `unverified-source`, not drift.
-   */
-  answers: { source: string; booklet?: string; partial?: boolean }[]
-  /** Load every matching file (a series of one-off PDFs), not only the latest edition. */
-  series?: boolean
-  /**
-   * For a series whose files each cover one thing: the entity a file covers,
-   * from its name. A record of that series is verifiable only when a file
-   * covers it (or what owns it); the series' other files are still searched.
-   */
-  scopeOf?: (file: string) => string | undefined
-}
-
-const STARTER = 'Salvage Union Starter Set'
-const BOOK_SPECS: BookSpec[] = [
-  {
-    id: 'Core Book',
-    // Anchored: the expansions share the "Digital Edition" suffix.
-    file: /^salvage union digital edition/i,
-    answers: [{ source: 'Salvage Union Workshop Manual' }],
-  },
-  { id: 'False Flag', file: /^false flag/i, answers: [{ source: 'False Flag' }] },
-  { id: 'Rainmaker', file: /^rainmaker/i, answers: [{ source: 'Rainmaker' }] },
-  {
-    id: 'We Were Here First!',
-    file: /^we were here first/i,
-    answers: [{ source: 'We Were Here First!' }],
-  },
-  {
-    id: 'Reclamation of the Wastes',
-    file: /^reclamation of the wastes/i,
-    answers: [{ source: 'Reclamation of the Wastes' }],
-  },
-  // The Starter Set is five booklets, each paginated from 1, so `booklet` picks
-  // the text. Its Asset Pack ("AP") holds the three adventure booklets, each
-  // also sold on its own, and a deck of item cards that has no local text.
-  {
-    id: 'Mech Monday',
-    file: /^mech monday/i,
-    // One file per chassis ("Mech Monday Mule Patterns", "… Goliath Template"),
-    // plus the transcribed blog posts. A chassis with no file of its own (the
-    // Scrapper patterns survive only as an image) stays unverified-source.
-    answers: [{ source: 'Mech Monday' }],
-    series: true,
-    scopeOf: (file) =>
-      file.match(/^mech monday (.+?) (?:patterns|template)\b/i)?.[1]?.toLowerCase(),
-  },
-  {
-    id: 'SUSS Core Rulebook',
-    file: /^suss core rulebook/i,
-    answers: [{ source: STARTER, booklet: 'CR' }],
-  },
-  {
-    id: 'SUSS Pilots Handbook',
-    file: /^suss pilots handbook/i,
-    answers: [{ source: STARTER, booklet: 'PH' }],
-  },
-  {
-    id: 'SUSS Parts Catalogue',
-    file: /^suss parts catalogue/i,
-    answers: [{ source: STARTER, booklet: 'PC' }],
-  },
-  {
-    id: 'SUSS Rules Reference',
-    file: /^suss rules reference/i,
-    answers: [{ source: STARTER, booklet: 'RR' }],
-  },
-  {
-    id: 'Relics of a Time Gone By',
-    file: /^relics of a time gone by/i,
-    answers: [
-      { source: 'Relics of a Time Gone By' },
-      { source: STARTER, booklet: 'AP', partial: true },
-    ],
-  },
-  {
-    id: "Thatcher's Mech Base",
-    file: /^thatcher'?s mech base/i,
-    answers: [
-      { source: "Thatcher's Mech Base" },
-      { source: STARTER, booklet: 'AP', partial: true },
-    ],
-  },
-  {
-    id: 'The Hive',
-    file: /^the hive/i,
-    answers: [{ source: 'The Hive' }, { source: STARTER, booklet: 'AP', partial: true }],
-  },
-  // Reprint core text; searched only as a fallback, never cited.
-  { id: 'Quick Ref Sheets', file: /^su_quick ref sheets digital/i, answers: [] },
-  { id: 'Quickstart', file: /^salvage union quickstart/i, answers: [] },
-]
+} from 'gates/lib/proseFidelity'
+import { ruling } from 'gates/lib/proseRuling'
+import type { BookSpec } from 'gates/lib/rulesBooks'
+import { pickFiles, readPages } from 'gates/lib/rulesBooks'
+import type { StatResult } from 'gates/lib/statFidelity'
+import { collectStats, parsePages, statContext, statVerdict } from 'gates/lib/statFidelity'
+import type { ProseRuleId } from 'salvageunion-reference/proseDeviations'
+import {
+  BOOK_TYPOS,
+  CHASSIS_PLACEHOLDERS,
+  CHASSIS_STAND_INS,
+  OWNER_SUFFIX,
+  TRAIT_MARKUP,
+} from 'salvageunion-reference/proseDeviations'
+import type { Layer } from './extract-rules'
+import { findExtractDir, LAYER_DIR } from './extract-rules'
 
 /** A cited page and its neighbours: a paragraph may run over a page break. */
 const NEAR = 2
@@ -241,20 +155,7 @@ function pageOfPos(starts: number[], nums: number[], pos: number): number {
 }
 
 function loadBook(spec: BookSpec, layer: Layer, path: string): Book {
-  const parts = readFileSync(path, 'utf8').split(/<!-- page (\d+) -->/)
-  const pages = new Map<number, string>()
-  // Lines that are only a page number, a slot/tech digit, a rotated stamp letter
-  // or two, or a "T2" tech tag are layout glyphs. Dropping them is a PDF-side
-  // clean-up, never a data one.
-  const GLYPH = /^\s*(\d{1,3}|(?![AI]$)[A-Z]{1,3}|T\d|[×x] _)\s*$/
-  for (let i = 1; i < parts.length; i += 2)
-    pages.set(
-      Number(parts[i]),
-      (parts[i + 1] ?? '')
-        .split('\n')
-        .filter((l) => !GLYPH.test(l))
-        .join('\n')
-    )
+  const pages = readPages(path, { dropGlyphs: true })
   const views = new Map<View, { text: string; starts: number[]; nums: number[] }>()
   for (const v of VIEWS) {
     let text = ''
@@ -324,22 +225,6 @@ function pageWindow(b: Book, page: number): [number, number] {
 // ---------------------------------------------------------------------------
 // Locating the extract
 // ---------------------------------------------------------------------------
-
-/**
- * The extract(s) for each book present: the latest edition (names compared
- * with numeric collation), or for a series every file.
- */
-function pickFiles(dir: string): Map<BookSpec, string[]> {
-  const files = readdirSync(dir).filter((f) => f.endsWith('.txt'))
-  const out = new Map<BookSpec, string[]>()
-  for (const spec of BOOK_SPECS) {
-    const found = files
-      .filter((f) => spec.file.test(f))
-      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
-    if (found.length) out.set(spec, spec.series ? found.reverse() : found.slice(0, 1))
-  }
-  return out
-}
 
 // ---------------------------------------------------------------------------
 // Search
@@ -832,7 +717,6 @@ function candidates(item: ProseItem): { text: string; rule?: ProseRuleId }[] {
 function verify(lib: Library, items: ProseItem[]): Result[] {
   const freq = new Map<string, number>()
   for (const it of items) freq.set(it.text, (freq.get(it.text) ?? 0) + 1)
-  const nameDeviations = new Set(NAME_DEVIATIONS.map((d) => d.name))
   const results: Result[] = []
 
   for (const item of items) {
@@ -869,17 +753,10 @@ function verify(lib: Library, items: ProseItem[]): Result[] {
     }
     if (matched) continue
 
-    // 2. rulings and boilerplate
-    const suffixBase = item.text.match(OWNER_SUFFIX)?.[1]
-    if (
-      item.kind === 'name' &&
-      (nameDeviations.has(item.text) || (suffixBase && nameDeviations.has(suffixBase)))
-    ) {
-      done({ verdict: 'deviation', reason: 'printed-name' })
-      continue
-    }
-    if (item.kind === 'prose' && (freq.get(item.text) ?? 0) >= BOILERPLATE_MIN_REPEATS) {
-      done({ verdict: 'authored', reason: 'boilerplate' })
+    // 2. rulings and boilerplate (`ruling`)
+    const ruled = ruling(item, freq.get(item.text) ?? 0)
+    if (ruled) {
+      done(ruled)
       continue
     }
 
@@ -980,50 +857,22 @@ function printSummary(results: Result[]) {
   }
 }
 
-/** Escape text for a markdown table or list: backslashes first, then pipes. */
-function mdEscape(s: string): string {
-  return s.replace(/\\/g, '\\\\').replace(/\|/g, '\\|')
+/** Stat verdicts by schema, in the same shape as the prose summary. */
+function printStatSummary(results: StatResult[]) {
+  const kind = (r: StatResult) =>
+    `${r.item.kind}${r.item.path.startsWith('.actions[') ? ' action' : ''}`
+  console.log('\nStat blocks (verbatim / stat-mismatch / no-match / unverified-source)')
+  for (const [k] of countBy(results, kind).sort((a, b) => a[0].localeCompare(b[0]))) {
+    const rs = results.filter((r) => kind(r) === k)
+    const n = (f: (r: StatResult) => boolean) => rs.filter(f).length
+    console.log(
+      `  ${k.padEnd(18)} ${String(rs.length).padStart(5)}  ${n((r) => r.verdict === 'verbatim')}/${n((r) => r.reason === 'stat-mismatch')}/${n((r) => r.reason === 'no-match')}/${n((r) => r.verdict === 'unverified-source')}`
+    )
+  }
 }
 
 function excerpt(s: string, n = 90): string {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s
-}
-
-/** Markdown drift summary for a PR body. Data text only — never book text. */
-function markdownSummary(results: Result[], editions: Record<string, string>): string {
-  const out: string[] = []
-  const unv = results.filter((r) => r.verdict === 'unverified')
-  out.push(`Verified ${results.length} prose strings against:`)
-  for (const [k, v] of Object.entries(editions)) out.push(`- ${k}: \`${v}\``)
-  out.push('', '| Verdict | Reason | Strings |', '| --- | --- | ---: |')
-  for (const [l, n] of countBy(results, label)) {
-    const [v, r = ''] = l.split(' ')
-    out.push(`| ${v} | ${r} | ${n} |`)
-  }
-  out.push('', `**Drift (\`unverified\`): ${unv.length} strings.** By file:`, '')
-  out.push(
-    `| File | ${DRIFT_REASONS.join(' | ')} |`,
-    `| --- |${DRIFT_REASONS.map(() => ' ---: |').join('')}`
-  )
-  for (const [file] of countBy(unv, (r) => r.item.file)) {
-    const rs = unv.filter((r) => r.item.file === file)
-    out.push(
-      `| ${file} | ${DRIFT_REASONS.map((d) => rs.filter((r) => r.reason === d).length || '').join(' | ')} |`
-    )
-  }
-  for (const reason of DRIFT_REASONS) {
-    const rs = unv
-      .filter((r) => r.reason === reason)
-      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || a.item.key.localeCompare(b.item.key))
-    if (rs.length === 0) continue
-    out.push('', `<details><summary><code>${reason}</code>: ${rs.length}</summary>`, '')
-    for (const r of rs.slice(0, 8))
-      out.push(
-        `- \`${r.item.file}\` **${r.item.entityName}** \`${r.item.path}\`${r.book ? ` (nearest: ${r.book} p.${r.page}${r.score !== undefined ? `, score ${r.score}` : ''})` : ''} — “${mdEscape(excerpt(r.item.text))}”`
-      )
-    out.push('', '</details>')
-  }
-  return out.join('\n')
 }
 
 // ---------------------------------------------------------------------------
@@ -1033,7 +882,6 @@ function markdownSummary(results: Result[], editions: Record<string, string>): s
 async function main() {
   const args = process.argv.slice(2)
   const update = args.includes('--update')
-  const summary = args.includes('--summary')
   const show = args
     .find((a) => a.startsWith('--show='))
     ?.slice('--show='.length)
@@ -1079,11 +927,22 @@ async function main() {
   const t0 = performance.now()
   const items = collectProse()
   const results = verify(lib, items)
+  // Stat blocks read the Core Book's content-stream layer unfiltered: the
+  // layout digits that the prose search drops are the stats.
+  const core = [...files].find(([spec]) => spec.id === 'Core Book')?.[1][0]
+  const corePath = core && join(dir, LAYER_DIR.raw, core)
+  const ctx =
+    corePath && existsSync(corePath)
+      ? statContext(parsePages(readFileSync(corePath, 'utf8')))
+      : undefined
+  const statItems = collectStats()
+  const stats = statItems.map((i) => statVerdict(ctx, i))
   console.log(
-    `Rules fidelity: ${items.length} strings against ${files.size} books (${dir}), ${Math.round(performance.now() - t0)} ms`
+    `Rules fidelity: ${items.length} strings and ${statItems.length} stat blocks against ${files.size} books (${dir}), ${Math.round(performance.now() - t0)} ms`
   )
   for (const [k, v] of Object.entries(editions)) console.log(`  ${k.padEnd(26)} ${v}`)
   printSummary(results)
+  printStatSummary(stats)
 
   if (show) {
     for (const r of results.filter((r) => show.includes(r.reason ?? r.verdict))) {
@@ -1094,13 +953,21 @@ async function main() {
       console.log(`  data: ${JSON.stringify(excerpt(r.item.text, 160))}`)
       if (r.diff) console.log(`  diff: ${r.diff}`)
     }
+    for (const r of stats.filter((r) => show.includes(r.reason ?? r.verdict))) {
+      const a = r.item.anchors[0]
+      console.log(
+        `\n${label(r)}  ${r.item.key}  "${r.item.entityName}"${r.item.name ? ` ${r.item.name}` : ''}`
+      )
+      console.log(`  cited ${a ? `${a.source}:${a.page ?? '?'}` : '-'}`)
+      console.log(`  data: ${r.item.text}`)
+      if (r.diff) console.log(`  diff: ${r.diff}`)
+    }
   }
-  if (summary) console.log(`\n${markdownSummary(results, editions)}`)
 
   const lock: Lock = {
     editions,
     entries: new Map(
-      results.map((r) => [
+      [...results, ...stats].map((r) => [
         r.item.key,
         {
           hash: proseHash(r.item.text),
@@ -1121,8 +988,8 @@ async function main() {
     process.exitCode = 1
     return
   }
-  const diff = compareWithLock(items, committed)
-  const changed = results.filter((r) => {
+  const diff = compareWithLock([...items, ...statItems], committed)
+  const changed = [...results, ...stats].filter((r) => {
     const e = diff.entries.get(r.item.key)
     return e && e.hash === proseHash(r.item.text) && label(e) !== label(r)
   })

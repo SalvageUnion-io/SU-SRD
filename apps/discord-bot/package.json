@@ -7,17 +7,22 @@
   "scripts": {
     "deploy-commands": "bun run src/deploy-commands.ts",
     "deploy-commands:global": "DEPLOY_GLOBAL=true bun run src/deploy-commands.ts",
-    "typecheck": "tsc --noEmit",
-    "test": "bun test",
-    "clean": "true",
+    "gen:command-list": "bun run src/gen-command-list.ts",
+    "typecheck": "tsc -b",
+    "test": "bun test --parallel=4 --no-isolate",
     "deploy": "wrangler deploy",
-    "worker:bundle": "wrangler deploy --dry-run"
+    "worker:bundle": "wrangler deploy --dry-run",
+    "dev": "wrangler dev",
+    "build": "bun run typecheck && bun run worker:bundle"
   },
   "dependencies": {
     "@discordjs/builders": "1.14.1",
     "@discordjs/rest": "2.6.3",
-    "@randsum/roller": "4.0.0",
+    "@randsum/roller": "catalog:",
+    "@randsum/salvageunion": "catalog:",
+    "component-lib": "workspace:*",
     "discord-api-types": "0.38.53",
+    "itun-domain": "workspace:*",
     "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
   }

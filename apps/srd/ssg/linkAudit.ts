@@ -36,9 +36,9 @@ async function htmlFiles(dir: string): Promise<string[]> {
   return out
 }
 
-export type UuidLink = { file: string; href: string }
+type UuidLink = { file: string; href: string }
 
-export async function findUuidLinks(distDir: string): Promise<UuidLink[]> {
+async function findUuidLinks(distDir: string): Promise<UuidLink[]> {
   const found: UuidLink[] = []
   for (const file of await htmlFiles(distDir)) {
     const html = await readFile(file, 'utf-8')

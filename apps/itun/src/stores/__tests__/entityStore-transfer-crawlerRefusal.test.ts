@@ -17,15 +17,14 @@
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import { makeUnitLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { api } from '../../../convex/_generated/api'
 import type { Ctx, User } from '../../../test/convex/fixtures'
 import { addCrawler, crawlerBody, mechBody, seedTable } from '../../../test/convex/fixtures'
 import { testConvex } from '../../../test/convex/harness'
-import { _resetDbSingleton, clearCache } from '../../lib/db/index'
-import type { CargoLot } from '../../lib/schemas/cargoLot'
-import { makeUnitLot } from '../../lib/schemas/cargoLot'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
 import { withSignedInBackend } from './signedInBackend'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -56,18 +55,11 @@ afterAll(() => {
 })
 
 const { useEntityStore } = await import('../entityStore')
+const { resetStores } = await import('./resetStores')
 const { useCargo } = await import('../../lib/cargo/useCargo')
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
+beforeEach(() => {
+  resetStores()
   seam = null
   committed.length = 0
 })
@@ -75,7 +67,7 @@ beforeEach(async () => {
 /**
  * A Game with its crawler, raised by the Organizer (who runs the table while
  * there is no Mediator), and a mech for `holder` carrying `lots`. The same
- * bodies go to the server and into this browser's cache, as `ShelfSync` and
+ * bodies go to the server and into the store, as `ShelfSync` and
  * `WiringSync` would leave them.
  */
 async function seedHold(holder: 'organizer' | 'player', mechLots: CargoLot[], bayLots: CargoLot[]) {

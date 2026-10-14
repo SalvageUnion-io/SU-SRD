@@ -1,7 +1,19 @@
-import { Callout, EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
+import {
+  Callout,
+  EmptyState,
+  MasonryColumns,
+  ReferenceEntityCard,
+  Slab,
+  tokens,
+} from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { SURefCrawler } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
+import '../../styles/wizard.css'
+import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
+
+const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 
 type CrawlerTypeSelectStepProps = {
   types: SURefCrawler[]
@@ -18,7 +30,7 @@ const AUGMENTED_CRAWLER_ID = '8bffb508-8c8f-418d-b6ce-f24f7266e41b'
 /**
  * Step 1 · Choose a Crawler Type (Union Crawler p.212) — exactly one of the
  * five types, radio semantics, each rendered as the SRD entity card inside a
- * SelCard (the universal entity-card rule; wizard-refresh Phase 5). A type's
+ * SelCard (the universal entity-card rule). A type's
  * stored `mutations` surface as footMeta badges (Battle: 2 weapon slots ·
  * +5 max SP — read from the data, never string-matched). The selected type's
  * FULL card renders below the grid — its unique Ability, its special NPC, and
@@ -35,8 +47,8 @@ export function CrawlerTypeSelectStep({
   const isAugmented = selected?.id === AUGMENTED_CRAWLER_ID
 
   return (
-    <div className="w-full space-y-5">
-      <Slab variant="solid" label="Crawler Types" count="Choose 1" />
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
+      <Slab variant="solid" label="Crawler Types" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Crawler type">
         {types.map((type) => {
           const slots = crawlerWeaponSlots(type.mutations)
@@ -62,12 +74,17 @@ export function CrawlerTypeSelectStep({
 
       {selected ? (
         <>
-          <Slab variant="solid" label="Your Crawler Type" count={selected.name} />
-          <div className="max-w-3xl space-y-3">
+          <Slab
+            variant="solid"
+            label="Your Crawler Type"
+            count={selected.name}
+            countInk="inherit"
+          />
+          <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
             <ReferenceEntityCard data={selected} />
             {isAugmented && (
               <Callout label="Augmented Bonus" tone="crawler">
-                <span className="block font-body">
+                <span style={bonusStyle}>
                   Every Pilot gains <strong>+1 Training Point</strong>, spendable on the{' '}
                   <strong>Augment ability tree only</strong>. Apply it on each Pilot&rsquo;s sheet
                   yourself — the wizard never writes to other characters.
@@ -78,7 +95,7 @@ export function CrawlerTypeSelectStep({
         </>
       ) : (
         <EmptyState
-          headline="No Type Selected"
+          headline="No type selected"
           body="Pick a type to preview its unique Ability and special NPC."
         />
       )}

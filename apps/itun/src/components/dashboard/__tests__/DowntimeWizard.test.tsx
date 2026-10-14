@@ -11,7 +11,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { EntityHrefProvider } from 'component-lib'
+import { CHAPTER_BAND_COLOR, EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture } from '../../__tests__/fixtures'
 import { DowntimeWizard } from '../DowntimeWizard'
@@ -47,13 +47,13 @@ function renderWizard({
 describe('DowntimeWizard', () => {
   test("drives the Game's step from the reference guide (name + phase)", () => {
     const { container } = renderWizard()
-    expect(container.querySelector('.pc-dt')).toBeTruthy()
+    expect(container.querySelector('.su-dash-dt')).toBeTruthy()
     // Step 1 of the SRD procedure is "Tally Salvage" in the Post-Session phase.
     expect(container.textContent).toContain('Tally Salvage')
-    expect(container.querySelector('.pc-dt-head')?.firstElementChild?.textContent).toBe(
+    expect(container.querySelector('.su-dash-dt-head')?.firstElementChild?.textContent).toBe(
       'Post-Session'
     )
-    expect(container.querySelector('.pc-dt-count')?.textContent).toContain('Step 1 /')
+    expect(container.querySelector('.su-dash-dt-count')?.textContent).toContain('Step 1 /')
   })
 
   test('the step track marks where the table is', () => {
@@ -107,12 +107,18 @@ describe('DowntimeWizard', () => {
     expect(next.disabled).toBe(true)
   })
 
-  test('Trade step renders its reused RollTable (Trading Bay)', () => {
+  test('Trade step renders its roll table (Trading Bay) in the crawler tone', () => {
     const guide = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')
     const idx = (guide?.steps ?? []).findIndex((s) => s.name === 'Trade')
     expect(idx).toBeGreaterThan(-1)
     const { container } = renderWizard({ stepIndex: idx })
     expect(container.textContent).toContain('Trade')
-    expect(container.querySelector('.pc-dt-table table')).toBeTruthy()
+    expect(
+      container.querySelector('.su-dash-dt-table ol[aria-label="Trading Bay table"]')
+    ).toBeTruthy()
+    const instrument = container.querySelector<HTMLElement>('.su-dash-dt-table .su-roll')
+    expect(instrument?.style.getPropertyValue('--su-roll-band')).toContain(
+      CHAPTER_BAND_COLOR.crawler
+    )
   })
 })

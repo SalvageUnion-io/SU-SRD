@@ -1,4 +1,4 @@
-import type { ContainerData } from '../container.js'
+import type { ContainerData } from '../container'
 
 /**
  * Read a built card the way Discord renders it, for assertions.

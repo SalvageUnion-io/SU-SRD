@@ -1,5 +1,5 @@
 /**
- * U-6 — destroyed-undo toast tests.
+ * Destroyed-undo toast tests.
  *
  * Cycling an item's status badge onto 'destroyed' persists the change (the
  * player stays in control per ADR-007) AND fires a toast whose Undo action
@@ -10,7 +10,7 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { Toaster, toast } from 'component-lib'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -70,7 +70,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
   })
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((_type: string, id: string) => (id === current.id ? current : null)),
@@ -80,7 +80,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
   })
 }
 
-describe('MechSheet — destroyed-undo toast (U-6)', () => {
+describe('MechSheet — destroyed-undo toast', () => {
   test('cycling onto destroyed persists, toasts, and Undo restores the previous condition', async () => {
     const captured: CapturedUpdate[] = []
     render(

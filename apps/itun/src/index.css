@@ -1,37 +1,29 @@
 /*
- * Tailwind, the token set and the package stylesheet, in their load-bearing
+ * The token set, the reset and the package stylesheet, in their load-bearing
  * cascade order, come from the one shared entry; see its header.
  */
-@import 'component-lib/styles/tailwind.css';
+@import 'component-lib/styles/entry.css';
 /* The app's ONE print stylesheet. index.css declares no print rules of its own
    — a second block here is what let six rules duplicate and one contradict. */
 @import './styles/print.css';
 /* HeaderMenu's hover/open/highlight colours (the per-property split rule). */
 @import './styles/headerMenu.css';
-
-/*
- * ITUN's own components keep their stories beside them (the Dashboard
- * instruments, sheet presentation and wizard steps that left the library in
- * audit PK-02); their demo markup is not the app's.
- */
-@source not './**/*.stories.tsx';
-
-/*
- * Indeterminate loader bar (branded loading states, e.g. GameDataReady).
- * Registered through @theme so `animate-loader-slide` is a real utility.
- */
-@theme {
-  --animate-loader-slide: loader-slide 1.4s ease-in-out infinite;
-
-  @keyframes loader-slide {
-    0% {
-      transform: translateX(-150%);
-    }
-    100% {
-      transform: translateX(400%);
-    }
-  }
-}
+/* GlobalSearch's result-row hover/selected ground. */
+@import './styles/globalSearch.css';
+/* The NPC designer's responsive rules (step strip, phone preview). */
+@import './styles/npc.css';
+/* The Shelves band's paper-on-ink controls. */
+@import './styles/shelves.css';
+/* The stateful halves of ITUN's other components. */
+@import './styles/unitSlot.css';
+@import './styles/routeStates.css';
+@import './styles/screens.css';
+@import './styles/controls.css';
+/* The live and public sheet. */
+@import './styles/sheet.css';
+/* component-lib classes handed back their own type over this file's heading
+   rule. */
+@import './styles/libHandback.css';
 
 /* === Base layout === */
 html,
@@ -39,26 +31,18 @@ body {
   min-height: 100dvh;
 }
 
+/* The workshop ground across the whole window: each route's <main> is
+   width-capped and centred, so the body paints the rest. The face is the
+   package's (foundation.css); ITUN adds macOS's grayscale smoothing. */
 body {
-  /*
-   * Full-viewport blue-pale background. The SRD's BaseLayout puts blue-pale
-   * on the <main> element, but ITUN's per-route <main> tags are width-
-   * constrained (`mx-auto max-w-Nxl`), which left the rest of the viewport
-   * unstyled. Setting the colour at the <body> level paints the whole
-   * window; the centred content inside each route inherits the colour and
-   * sits over it.
-   */
   background-color: var(--color-wk-bg);
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /*
- * Base heading rules — use Barlow Semi Condensed (font-cond) for all
- * headings to match the .sec-label / .h1 pattern in the design system.
- * Additive only; does not override any component-level typography.
+ * Every heading in ITUN wears the condensed caps face. Unlayered, so it beats
+ * a package class on a heading; `styles/libHandback.css` hands those classes
+ * their own type back.
  */
 h1,
 h2,

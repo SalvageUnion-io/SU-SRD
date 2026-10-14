@@ -1,5 +1,5 @@
 /**
- * CrawlerEconomyControl — crawler economy action tests (design-review R-4).
+ * CrawlerEconomyControl — crawler economy action tests.
  *
  * ADR-007 coverage:
  *   1. Pay Upkeep auto-draws 5× TL Scrap from the pool and credits the
@@ -19,8 +19,8 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
-import type { Crawler } from '../../../lib/schemas/crawler'
 import type { ChangeMeta } from '../../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
 import { crawlerFixture } from '../../__tests__/fixtures'
@@ -60,7 +60,7 @@ function makeStubStore(crawler: Crawler) {
   >(async () => crawler)
   const store = makeEntityStoreMock({
     crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [crawler]),
     get: mock((_type: string, id: string) => (id === crawler.id ? crawler : null)),
@@ -100,7 +100,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
         store={store}
         open="upkeep"
         onClose={() => {}}
-        roll={seqRoll(1)}
+        rollFor={async () => seqRoll(1)}
       />
     )
 
@@ -127,7 +127,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
         store={store}
         open="upkeep"
         onClose={() => {}}
-        roll={seqRoll(4, 2)}
+        rollFor={async () => seqRoll(4, 2)}
       />
     )
 
@@ -158,7 +158,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
         store={store}
         open="upkeep"
         onClose={() => {}}
-        roll={seqRoll(15)}
+        rollFor={async () => seqRoll(15)}
       />
     )
 
@@ -167,6 +167,10 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
 
     expect(update.mock.calls[0]).toEqual(['crawler', crawler.id, { currentSP: 5 }, LIVE_SHEET_TXN])
     expect(updateCrawlerBay).not.toHaveBeenCalled()
+    // The readout is the table's row (p.219), then what was applied.
+    expect(screen.getByRole('status').textContent).toContain(
+      'Deterioration 15: Your Union Crawler loses 5 Structure Points. SP now 5.'
+    )
   })
 
   test('the 6-10 band only advises the player to choose a Bay (ADR-007)', async () => {
@@ -178,7 +182,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
         store={store}
         open="upkeep"
         onClose={() => {}}
-        roll={seqRoll(7)}
+        rollFor={async () => seqRoll(7)}
       />
     )
 
@@ -292,7 +296,7 @@ describe('CrawlerEconomyControl — Trading Bay', () => {
         store={store}
         open="trade"
         onClose={() => {}}
-        roll={seqRoll(20)}
+        rollFor={async () => seqRoll(20)}
       />
     )
 

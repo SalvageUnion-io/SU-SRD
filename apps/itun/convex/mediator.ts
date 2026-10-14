@@ -1,4 +1,5 @@
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
+import { MediatorRollResultSchema } from 'itun-domain/schemas/encounterNpc'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -6,7 +7,7 @@ import { bodyAppId, mutation, parseBody } from './model/entities'
 import { NotAuthorized, requireMediator, requireUser } from './model/permissions'
 
 /**
- * The Mediator surface's server layer (ADR-030 §6, Phase 3).
+ * The Mediator surface's server layer (ADR-030 §6).
  *
  * ## The NPC tray is the one genuinely secret thing
  *
@@ -17,28 +18,18 @@ import { NotAuthorized, requireMediator, requireUser } from './model/permissions
  * before it happens, which is the one leak that changes how the game is played
  * rather than merely who can edit what.
  *
- * ## There is no presence here any more
+ * ## There is no presence
  *
- * A `presence` table, a `heartbeat` mutation and a `presence` query used to
- * live in this file, with the design note that storing `lastSeen` and letting
- * readers decide what counts as present avoids inventing an online/offline
- * state the app has to keep truthful. The reasoning was sound; the feature was
- * never finished. **No client ever called `heartbeat`** — not the web app, not
- * the bot — so the table had no writer, the query always returned nothing, and
- * `PresenceList` returned null on every render.
- *
- * It was not merely invisible. `botClient.channel` *read* it, so `/su game
- * channel` rendered "0 at the table" and no `●` markers no matter who was
- * actually there — a permanently-false indicator, which is worse than an absent
- * one. All of it is gone rather than left as scaffolding. Rebuild it with the
- * writer in the same change.
+ * Who is at the table is not tracked. A presence reader ships with its writer
+ * (a heartbeat some client calls) in the same change: a reader with no writer
+ * shows "0 at the table" whoever is there, a permanently-false indicator, which
+ * is worse than an absent one.
  *
  * ## The tray owes the same edge parse every other write does
  *
  * `encounterNpcs.body` is `v.any()`, so Convex cannot reject a malformed one —
- * `schema.ts` says in that many words that the mutation must. These two wrote
- * straight through for a while, which meant the one table only a Mediator can
- * see was also the one nothing validated. `parseBody` is shared with
+ * `schema.ts` says in that many words that the mutation must, or the one table
+ * only a Mediator can see is the one nothing validates. `parseBody` is shared with
  * `entities.ts`; what it accepts here is deliberately looser than the local
  * store's record, and `model/entities.ts` says why.
  */
@@ -46,6 +37,7 @@ import { NotAuthorized, requireMediator, requireUser } from './model/permissions
 /** The Mediator's prepared opposition. Mediator-only, by design. */
 export const npcs = query({
   args: { gameId: v.id('games') },
+  returns: v.array(v.object({ _id: v.id('encounterNpcs'), body: v.any() })),
   handler: async (ctx, args) => {
     await requireMediator(ctx, args.gameId)
     const rows = await ctx.db
@@ -87,6 +79,53 @@ export const removeNpc = mutation({
 })
 
 /**
+ * Change one tray NPC as the fight goes: its HP or SP, its
+ * conditions, its name, or the last Morale roll made for it.
+ *
+ * Only these four fields, merged into the stored body and parsed before it is
+ * written, like every other write to this table. HP is clamped to the
+ * instance's own `maxHp` (and 0), so a stale tab cannot push it past either
+ * end. A Morale result is stored here, on the NPC, and nowhere else: the
+ * Game's log is crew-readable, and the tray is the one thing ADR-030 §5 hides.
+ */
+export const updateNpc = mutation({
+  args: {
+    npcId: v.id('encounterNpcs'),
+    patch: v.object({
+      currentHp: v.optional(v.number()),
+      conditions: v.optional(v.array(v.string())),
+      name: v.optional(v.string()),
+      lastMediatorRoll: v.optional(v.any()),
+    }),
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const doc = await ctx.db.get(args.npcId)
+    if (doc === null) throw new ConvexError('That NPC is no longer on the tray')
+    await requireNpcWriter(ctx, doc)
+
+    const body = doc.body as Record<string, unknown>
+    const next: Record<string, unknown> = { ...body }
+    const { currentHp, conditions, name, lastMediatorRoll } = args.patch
+    if (currentHp !== undefined) {
+      const max = typeof body.maxHp === 'number' ? body.maxHp : Number.POSITIVE_INFINITY
+      next.currentHp = Math.min(Math.max(0, Math.round(currentHp)), max)
+    }
+    if (conditions !== undefined) next.conditions = conditions
+    if (name !== undefined) {
+      const trimmed = name.trim()
+      if (trimmed.length === 0) throw new ConvexError('An NPC needs a name')
+      next.name = trimmed
+    }
+    if (lastMediatorRoll !== undefined) {
+      next.lastMediatorRoll = MediatorRollResultSchema.parse(lastMediatorRoll)
+    }
+    if (typeof body.updatedAt === 'string') next.updatedAt = new Date().toISOString()
+
+    await ctx.db.patch(doc._id, { body: parseBody('encounterNpcs', next) })
+  },
+})
+
+/**
  * Who may write an NPC — it depends on which container holds it.
  *
  * In a Game, the Mediator and nobody else: the tray is the one thing §5 keeps
@@ -119,6 +158,7 @@ async function requireNpcWriter(ctx: MutationCtx, doc: Doc<'encounterNpcs'>): Pr
  */
 export const amMediator = query({
   args: { gameId: v.id('games') },
+  returns: v.boolean(),
   handler: async (ctx, args): Promise<boolean> => {
     const userId = await requireUser(ctx)
     const membership = await ctx.db

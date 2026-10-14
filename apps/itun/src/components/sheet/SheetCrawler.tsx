@@ -1,12 +1,12 @@
 /**
  * SheetCrawler — the crawler branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
+ * Sheet.tsx), in the poster layout.
  *
  * The body owns the identity band now (Workshop-Manual layout): `CrawlerSheet`
  * renders the `SheetHero` band as its first region.
  * This component's remaining job is composing the economy band (the poster
  * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
- * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the R-4 action entry points),
+ * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the economy action entry points),
  * which is handed to `CrawlerSheet` as `economy` and rendered as the identity
  * band's vitals rail, plus the docked-mech/lead-pilot rail content handed down
  * as `linkedUnits`. Owns the economy-dialog state (it was hoisted to Sheet
@@ -14,41 +14,54 @@
  */
 
 import { linesFromBreakdown, VitalGauge } from 'component-lib'
+import { containerOf } from 'itun-domain/container'
+import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
+import { pilotingContext } from 'itun-domain/rules/pilotingContext'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import { useState } from 'react'
-import { crawlerMaxSPParts, pinFor, resolvePool } from 'salvageunion-reference/rules'
-import { containerOf } from '../../lib/container'
-import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
+import {
+  crawlerMaxSPParts,
+  parseCrawlerTechLevel,
+  pinFor,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { AppLink } from '../shared/AppLink'
-import { EntityRow } from '../shared/EntityRow'
+import { EmptyUnitSlot } from '../shared/EmptyUnitSlot'
+import { UnitRow } from '../shared/UnitRow'
 import { AssignPicker } from '../wiring/AssignPicker'
+import { crawlerStamp } from './bandStamps.model'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { changedFields, freshEntity } from './controlPrimitives'
+import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
-import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
+import {
+  bayStates,
+  mechRailItems,
+  mechStatusPill,
+  pilotRailItems,
+  rowStats,
+} from './railStats.model'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
-import type { SheetViewCommonProps } from './sheetViewProps'
+import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 
-/** The Upgrade pool's cap (rules C4). */
+/** The Upgrade pool's cap. */
 const UPGRADE_POOL_MAX = 30
 
 export function SheetCrawler({
   crawler,
   composition,
-  back,
   actions,
   segments,
+  band,
   editable,
   readOnly,
   store,
@@ -59,7 +72,7 @@ export function SheetCrawler({
   withheld,
   patch,
 }: SheetCrawlerProps) {
-  // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges (R-4).
+  // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges.
   const [econDialog, setEconDialog] = useState<CrawlerEconomyDialog | null>(null)
 
   const spParts = crawlerMaxSPParts(crawler)
@@ -98,12 +111,12 @@ export function SheetCrawler({
       : []),
   ]
 
-  // Tech LVL / UPKEEP / UPGRADE-pool / TRADE / CREW lozenges (design §4.4,
-  // poster `.lozrow`): upkeep is 5 Scrap of crawler TL per Downtime (rules
-  // C3); the Upgrade Pool fills toward 30× TL (rules C4); the Trading Bay
-  // sources TL+1 wares (p.223); crew leads = one per installed bay (rules
-  // C11). On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
-  // are the R-4 action entry points (CrawlerEconomyControl); Tech LVL and
+  // Tech LVL / UPKEEP / UPGRADE-pool / TRADE / CREW lozenges (poster
+  // `.lozrow`): upkeep is 5 Scrap of crawler TL per Downtime;
+  // the Upgrade Pool fills toward 30× TL; the Trading Bay
+  // sources TL+1 wares (p.223); crew leads = one per installed bay.
+  // On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
+  // are the economy action entry points (CrawlerEconomyControl); Tech LVL and
   // Crew are read-only readouts.
   const trading = bayGate(crawler, 'trading-bay')
   const econItems: EconLozItem[] = [
@@ -115,7 +128,7 @@ export function SheetCrawler({
           {
             label: 'Upkeep',
             value: 5,
-            caption: `Scrap · Tech ${tl}+`,
+            caption: `T${tl}+ Scrap`,
             action: editable
               ? {
                   label: 'Pay',
@@ -198,7 +211,7 @@ export function SheetCrawler({
       : undefined
   }
   // The pickers offer only what lives where this crawler does — its Game, or
-  // My Stuff — and never what is already aboard.
+  // Shelves — and never what is already aboard.
   const self = { type: 'crawler', id: crawler.id } as const
   const container = containerOf(crawler)
   const crewPicker = (
@@ -218,61 +231,92 @@ export function SheetCrawler({
     />
   )
 
-  const rail = (
+  // Read (board 10): each linked unit is one compact line, the same listing
+  // card the pilot sheet uses, and an empty slot is left out. With nothing
+  // linked there is no section.
+  const readRail = [
+    ...dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
+      <LinkedUnitLink
+        key={dockedMech.id}
+        kind="mech"
+        name={dockedMech.name}
+        href={hrefFor('mech', dockedMech.id)}
+        stats={rowStats(
+          mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
+        )}
+      />
+    )),
+    ...withheldMechs.map((unit) => (
+      <WithheldUnitRow key={unit.key} unit={unit} label="Assigned Mech" />
+    )),
+    ...composition.crawlerPilots.map((crewPilot) => (
+      <LinkedUnitLink
+        key={crewPilot.id}
+        kind="pilot"
+        name={crewPilot.name}
+        href={hrefFor('pilot', crewPilot.id)}
+        stats={rowStats(
+          pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
+        )}
+      />
+    )),
+    ...withheldPilots.map((unit) => <WithheldUnitRow key={unit.key} unit={unit} label="Pilot" />),
+  ]
+
+  const editRail = (
     <>
       {dockedMechs.length > 0 || withheldMechs.length > 0 ? (
         <>
           {dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
-            <EntityRow
-              key={dockedMech.id}
-              entityType="mech"
-              className="flex-[1_1_0%]"
-              name={dockedMech.name}
-              sheetHref={hrefFor('mech', dockedMech.id)}
-              linkAs={AppLink}
-              meta="Docked Mech"
-              metaLine={mechStatusPill(dockedMech).label}
-              stats={rowStats(
-                mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
-              )}
-              onUnassignClick={unassignFrom('mech-to-crawler', dockedMech.id)}
-            />
+            <div key={dockedMech.id} className="su-sheet-crawler-grow">
+              <UnitRow
+                kind="mech"
+                name={dockedMech.name}
+                note="Assigned Mech"
+                readings={[
+                  ...rowStats(
+                    mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
+                  ),
+                  { label: 'Condition', value: mechStatusPill(dockedMech).label },
+                ]}
+                href={hrefFor('mech', dockedMech.id)}
+                onUnassign={unassignFrom('mech-to-crawler', dockedMech.id)}
+              />
+            </div>
           ))}
           {withheldMechs.map((unit) => (
-            <WithheldUnitRow key={unit.key} unit={unit} label="Docked Mech" />
+            <WithheldUnitRow key={unit.key} unit={unit} label="Assigned Mech" />
           ))}
           {/* The bay takes more than one, so the way to dock the next has to
               survive the first — the same trailing slot the crew list uses. */}
           {editable && (
-            <EntityRow
-              empty
-              entityType="mech"
-              className="flex-[1_1_0%]"
+            <EmptyUnitSlot
+              kind="mech"
+              className="su-sheet-crawler-grow"
               roleLabel="Bay"
-              message="Dock another mech."
+              message="Assign another mech."
               actions={
                 <>
                   {dockPicker}
-                  <RailCta href="/mechs/new" label="+ Create" />
+                  <RailCta href="/mechs/new" />
                 </>
               }
             />
           )}
         </>
       ) : (
-        <EntityRow
-          empty
-          entityType="mech"
-          className="flex-[1_1_0%]"
-          roleLabel="Docked Mechs"
+        <EmptyUnitSlot
+          kind="mech"
+          className="su-sheet-crawler-grow"
+          roleLabel="Assigned Mechs"
           /* Says how a mech actually gets here: by its own assignment to this
              crawler (ADR-037), not by its pilot joining the crew. */
-          message="No mechs in the bay. Dock a mech here — it is assigned on its own, separately from its pilot."
+          message="No mechs in the bay. Assign a mech here — on its own, separately from its pilot."
           actions={
             editable ? (
               <>
                 {dockPicker}
-                <RailCta href="/mechs/new" label="+ Create" primary />
+                <RailCta href="/mechs/new" primary />
               </>
             ) : undefined
           }
@@ -281,51 +325,47 @@ export function SheetCrawler({
       {composition.crawlerPilots.length > 0 || withheldPilots.length > 0 ? (
         <>
           {composition.crawlerPilots.map((crewPilot) => (
-            <EntityRow
-              key={crewPilot.id}
-              entityType="pilot"
-              className="flex-[1_1_0%]"
-              name={crewPilot.name}
-              sheetHref={hrefFor('pilot', crewPilot.id)}
-              linkAs={AppLink}
-              meta="Pilot"
-              stats={rowStats(
-                pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
-              )}
-              onUnassignClick={unassignFrom('pilot-to-crawler', crewPilot.id)}
-            />
+            <div key={crewPilot.id} className="su-sheet-crawler-grow">
+              <UnitRow
+                kind="pilot"
+                name={crewPilot.name}
+                readings={rowStats(
+                  pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
+                )}
+                href={hrefFor('pilot', crewPilot.id)}
+                onUnassign={unassignFrom('pilot-to-crawler', crewPilot.id)}
+              />
+            </div>
           ))}
           {withheldPilots.map((unit) => (
             <WithheldUnitRow key={unit.key} unit={unit} label="Pilot" />
           ))}
           {/* A crew of one is not a full crew, so the way to add the second has
-              to survive the first. Rendered as the same `empty` EntityRow the
+              to survive the first. Rendered as the same `EmptyUnitSlot` the
               no-pilots branch uses rather than a bare button, so it inherits the
               rail's sizing instead of introducing a second layout to keep in
               step. */}
           {editable && (
-            <EntityRow
-              empty
-              entityType="pilot"
-              className="flex-[1_1_0%]"
+            <EmptyUnitSlot
+              kind="pilot"
+              className="su-sheet-crawler-grow"
               roleLabel="Crew"
-              message="Bring another pilot aboard."
+              message="Assign another pilot."
               actions={
                 <>
                   {crewPicker}
-                  <RailCta href="/pilots/new" label="+ Create" />
+                  <RailCta href="/pilots/new" />
                 </>
               }
             />
           )}
         </>
       ) : (
-        <EntityRow
-          empty
-          entityType="pilot"
-          className="flex-[1_1_0%]"
+        <EmptyUnitSlot
+          kind="pilot"
+          className="su-sheet-crawler-grow"
           roleLabel="Pilots"
-          message="No pilots wired to this crawler yet."
+          message="No pilots assigned to this crawler yet."
           /* Both verbs, because they answer different questions. `+ Create` was
              the only one here, which quietly assumed the pilot you wanted did
              not exist yet — at a table, they almost always already do. */
@@ -333,7 +373,7 @@ export function SheetCrawler({
             editable ? (
               <>
                 {crewPicker}
-                <RailCta href="/pilots/new" label="+ Create" primary />
+                <RailCta href="/pilots/new" primary />
               </>
             ) : undefined
           }
@@ -341,6 +381,7 @@ export function SheetCrawler({
       )}
     </>
   )
+  const rail = editable ? editRail : readRail.length > 0 ? readRail : null
 
   // Economy band (poster `.econ`: SP `VitalGauge` over the Tech-LVL/Upkeep/
   // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +
@@ -361,7 +402,7 @@ export function SheetCrawler({
               : undefined
           }
           breakdown={editable ? spParts : undefined}
-          provenance={spLines}
+          provenance={editable ? spLines : undefined}
           onRevertOverride={
             editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
           }
@@ -388,17 +429,23 @@ export function SheetCrawler({
         variant="crawler"
         name={crawler.name}
         strip={strip}
-        back={back}
         segments={segments}
+        band={band}
+        kindDetail={crawlerStamp(crawler.type)}
         actions={actions}
         renderBody={() => (
           <CrawlerSheet
             crawler={crawler}
             mech={composition.mech}
+            mechHref={composition.mech ? hrefFor('mech', composition.mech.id) : undefined}
             store={store}
             readOnly={readOnly}
             economy={economy}
             linkedUnits={rail}
+            crew={composition.crew}
+            crewHref={
+              readOnly ? undefined : `/npcs/new?view=crew&crawler=${encodeURIComponent(crawler.id)}`
+            }
           />
         )}
       />

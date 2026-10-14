@@ -1,0 +1,259 @@
+/*
+ * The package stylesheet, part 11 of 21: the Atoms group's class strings,
+ * Stat and VitalGauge. `../index.css` imports the parts in cascade order.
+ */
+
+/* — Atoms — ═════════════════════════════════════════════════════════════════
+ *
+ * The rules the `Atoms/*` components need: the stateful, responsive and
+ * class-string halves of the split.
+ * Static values live in each component's style objects.
+ */
+
+/* The size ladder's class strings (`styles/sizing.ts`: `RUNG_TYPE`,
+ * `RUNG_INLINE_PADDING`). The two inherited rungs carry their paired
+ * line-height (`text-sm` 1.25rem, `text-xs` 1rem); the semantic rungs set
+ * size alone. */
+.su-rung-label--full {
+  font-size: var(--text-sm);
+  line-height: calc(1.25 / 0.875);
+}
+
+.su-rung-label--compact {
+  font-size: var(--text-xs);
+  line-height: calc(1 / 0.75);
+}
+
+.su-rung-label--mini {
+  font-size: var(--text-badge);
+}
+
+.su-rung-body--full {
+  font-size: var(--text-lede);
+}
+
+.su-rung-body--compact {
+  font-size: var(--text-caption);
+}
+
+.su-rung-body--mini {
+  font-size: var(--text-note);
+}
+
+.su-rung-pad--full {
+  padding-block: var(--space-4);
+  padding-inline: var(--space-8);
+}
+
+.su-rung-pad--compact {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-6);
+}
+
+.su-rung-pad--mini {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+}
+
+/* `STAMP_SEAM` (`atoms/stampSeam.ts`): a stamp centred on its container's
+ * top border by its own height. The horizontal inset is the caller's. */
+.su-stamp-seam {
+  position: absolute;
+  top: 0;
+  translate: 0 -50%;
+  z-index: 10;
+}
+
+/* `POSTER_STAMP` (`atoms/posterStamp.ts`), after `capsLabel`: the wrapping
+ * ink label whose ground repeats on every line. */
+.su-poster-stamp {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: inline;
+}
+
+/* `EDIT_CUE_HOVER_CLASS` (`atoms/editLanguage.ts`): the dashed edit outline
+ * in the sheet's deep tone, on hover or keyboard focus. */
+.su-edit-cue {
+  outline-color: var(--tone-deep, var(--color-ink));
+  outline-offset: 2px;
+}
+
+.su-edit-cue:hover,
+.su-edit-cue:focus-within {
+  outline-style: dashed;
+  outline-width: 2px;
+}
+
+/* Visually hidden, still announced. */
+.su-sr-only {
+  border-width: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* ── Stat ── */
+/* `atoms/Stat.tsx`. The horizontal `[label | value]` cell: one rounded ink
+ * border around the two plate halves. A class, not a style object: a listing
+ * repeats it on every row (ADR-046, repeated elements), and callers override
+ * its `display` and `flex-shrink` by className (the sheet's condensed bar folds
+ * cells), which an inline style would beat. Its state rides the border. */
+.su-stat-cell {
+  align-items: stretch;
+  border-color: var(--color-ink);
+  border-radius: var(--radius-badge);
+  border-style: solid;
+  border-width: var(--bw-hairline);
+  cursor: default;
+  display: inline-flex;
+  flex-grow: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.su-stat-cell--good {
+  border-color: var(--color-mech);
+}
+
+.su-stat-cell--caution {
+  border-color: var(--color-status-warn);
+}
+
+.su-stat-cell--critical {
+  border-color: var(--color-status-bad);
+}
+
+.su-stat-cell--block {
+  display: flex;
+}
+
+/* `wrap`: alone on a line too narrow for it, the cell narrows to the line and
+ * its value wraps. */
+.su-stat-cell--wrap {
+  flex-shrink: 1;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+
+/* `state="modified"`: the heavier frame's 1px ink ring. */
+.su-stat--modified {
+  box-shadow: 0 0 0 1px var(--color-ink);
+}
+
+/* The +/- steppers: a 44px coarse-pointer floor that drops at sm, and a
+ * resting fill/ink that swaps on hover
+ * while the stepper is live (not at its limit). */
+.su-stat-step {
+  min-height: 44px;
+}
+
+@media (min-width: 40rem) {
+  .su-stat-step {
+    min-height: 0;
+  }
+}
+
+.su-stat-step--on-paper {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.su-stat-step--on-paper.su-stat-step--live:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-stat-step--on-ink {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-stat-step--on-ink.su-stat-step--live:hover {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* ── VitalGauge ── */
+/* components/atoms/VitalGauge.tsx — the hover halves; the rest is inline.
+ * An editable segment lifts a pixel on hover, unless motion is reduced. */
+.su-vital-gauge__pip {
+  translate: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .su-vital-gauge__pip:hover {
+    translate: 0 -1px;
+  }
+}
+
+/* The ↺ revert glyph: muted, inking on hover. */
+.su-vital-gauge__revert {
+  color: var(--color-wk-muted);
+}
+
+.su-vital-gauge__revert:hover {
+  color: var(--color-ink);
+}
+
+/* The provenance triggers. `StatProvenance` takes no `style`, so every
+ * property is a class; each is compounded with the trigger's own class so it
+ * outranks `.su-stat-provenance__trigger`'s dotted underline. */
+.su-stat-provenance__trigger.su-vital-gauge__prov-compact {
+  align-items: center;
+  border-width: 0;
+  color: var(--color-wk-muted);
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: var(--text-badge);
+  justify-content: center;
+  line-height: 1;
+  min-height: 24px;
+  min-width: 24px;
+}
+
+.su-stat-provenance__trigger.su-vital-gauge__prov-compact:hover {
+  color: var(--color-ink);
+}
+
+.su-stat-provenance__trigger.su-vital-gauge__prov-compact--on-dark {
+  color: var(--color-paper-60);
+}
+
+.su-stat-provenance__trigger.su-vital-gauge__prov-compact--on-dark:hover {
+  color: var(--color-paper);
+}
+
+/* The overridden-max `*`, superscript in the deep tone. */
+.su-stat-provenance__trigger.su-vital-gauge__prov-mark {
+  border-bottom-width: 0;
+  color: var(--tone-deep);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  margin-left: var(--space-2);
+  vertical-align: super;
+}
+
+/* The ⓘ beside an un-overridden max. */
+.su-stat-provenance__trigger.su-vital-gauge__prov-info {
+  border-bottom-width: 0;
+  color: var(--color-wk-muted);
+  font-size: var(--text-badge);
+  line-height: 1;
+  margin-left: var(--space-4);
+  vertical-align: middle;
+}
+
+.su-stat-provenance__trigger.su-vital-gauge__prov-info:hover {
+  color: var(--color-ink);
+}

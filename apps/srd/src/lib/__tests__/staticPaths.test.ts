@@ -1,7 +1,7 @@
 /**
- * Static-path generation (audit item 5): item pages exist ONLY for entity
+ * Static-path generation: item pages exist ONLY for entity
  * (non-meta) schemas. Meta schemas (actions, ability-tree-requirements,
- * catalog-categories) have no /schema/<id>/ listing page, so item pages for
+ * catalog-categories) have no /<id>/ listing page, so item pages for
  * them would be sitemap orphans whose breadcrumbs 404.
  */
 import { describe, expect, it } from 'bun:test'
@@ -35,5 +35,12 @@ describe('getItemStaticPaths', () => {
     for (const id of ['chassis', 'systems', 'modules', 'equipment', 'roll-tables']) {
       expect(itemSchemaIds.has(id)).toBe(true)
     }
+  })
+
+  it("names a glossary page as the book prints it, for the words CSS can't reach", () => {
+    const bioTitan = itemPaths.find(
+      (p) => p.params.schemaId === 'keywords' && p.params.itemId === 'bio-titan'
+    )
+    expect(bioTitan?.props.itemName).toBe('Bio-Titan')
   })
 })

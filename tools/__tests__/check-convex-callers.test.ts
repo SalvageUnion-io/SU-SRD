@@ -2,12 +2,16 @@ import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
 import {
   codegenDrift,
+  internalFunctionsIn,
+  internalReferencesIn,
+  main,
   publicFunctionsIn,
   reExportsIn,
   referencesIn,
   registeredModules,
   uncalled,
 } from '../check-convex-callers'
+import { captured, fixtureTrees } from './fixtureTree'
 
 /**
  * `tools/check-convex-callers.ts` gates merges, so its parsing is pinned here:
@@ -27,6 +31,36 @@ describe('publicFunctionsIn', () => {
       'const notExported = query({',
     ].join('\n')
     expect(publicFunctionsIn(source)).toEqual(['listMine', 'create', 'run'])
+  })
+})
+
+describe('internalFunctionsIn', () => {
+  test('finds internal builders and skips public ones and `@operator` one-offs', () => {
+    const source = [
+      '/** Called by a cron. */',
+      'export const sweep = internalMutation({',
+      'export const peek = internalQuery({',
+      'export const run = internalAction({',
+      'export const listMine = query({',
+      '/**',
+      ' * A one-off repair.',
+      ' *',
+      ' * @operator Run by hand.',
+      ' */',
+      'export const repair = internalMutation({',
+    ].join('\n')
+    expect(internalFunctionsIn(source)).toEqual(['sweep', 'peek', 'run'])
+  })
+})
+
+describe('internalReferencesIn', () => {
+  test('reads internal references outside comments', () => {
+    const source = [
+      "crons.hourly('sweep', { minuteUTC: 37 }, internal.photos.sweep)",
+      '// internal.games.retired is only mentioned here',
+      'const QUERIES = { me: internal.botClient.me }',
+    ].join('\n')
+    expect([...internalReferencesIn(source)].sort()).toEqual(['botClient:me', 'photos:sweep'])
   })
 })
 
@@ -95,13 +129,10 @@ describe('referencesIn', () => {
 })
 
 describe('uncalled', () => {
-  test('reports what nothing references, minus what is allowed', () => {
+  test('reports what nothing references', () => {
     const defined = ['games:listMine', 'games:rename', 'crew:readEntity']
     const referenced = new Set(['games:listMine'])
-    expect(uncalled(defined, referenced, {})).toEqual(['crew:readEntity', 'games:rename'])
-    expect(uncalled(defined, referenced, { 'games:rename': 'called by an admin script' })).toEqual([
-      'crew:readEntity',
-    ])
+    expect(uncalled(defined, referenced)).toEqual(['crew:readEntity', 'games:rename'])
   })
 })
 
@@ -130,5 +161,75 @@ test('the repository passes', async () => {
   ])
   expect(stderr).toBe('')
   expect(exitCode).toBe(0)
-  expect(stdout).toMatch(/all \d+ public functions have a caller/)
+  expect(stdout).toMatch(
+    /all \d+ public functions have a caller, all \d+ internal functions are called/
+  )
+})
+
+describe('main', () => {
+  const tree = fixtureTrees('convex-callers')
+  const api = (...modules: string[]) =>
+    modules.map((m, i) => `import type * as m${i} from "../${m}.js";`).join('\n')
+
+  /** A deployment where every function is called and api.d.ts registers each module. */
+  const healthy: Record<string, string> = {
+    'apps/itun/convex/games.ts': [
+      'export const list = query({ handler: async () => [] })',
+      'export const prune = internalMutation({ handler: async () => {} })',
+      '/** @operator run once by hand */',
+      'export const backfill = internalMutation({ handler: async () => {} })',
+    ].join('\n'),
+    'apps/itun/convex/crons.ts': 'crons.daily("prune", {}, internal.games.prune)\n',
+    'apps/itun/convex/schema.ts': 'export default defineSchema({})\n',
+    'apps/itun/convex/_generated/api.d.ts': api('crons', 'games'),
+    'apps/itun/src/Games.tsx': 'useQuery(api.games.list)\n',
+    'apps/itun/src/__tests__/Games.test.tsx': 'useQuery(api.games.unused)\n',
+  }
+
+  test('passes and counts what it checked when every function is called and registered', () => {
+    const io = captured()
+    expect(main(tree(healthy), io.log, io.error)).toBe(0)
+    expect(io.err).toEqual([])
+    expect(io.out).toEqual([
+      '✓ Convex callers: all 1 public functions have a caller, all 1 internal functions are called, and api.d.ts registers all 2 modules.',
+    ])
+  })
+
+  test('fails on codegen drift, an uncalled public function and an uncalled internal one', () => {
+    const root = tree({
+      ...healthy,
+      'apps/itun/convex/games.ts': `${healthy['apps/itun/convex/games.ts']}\nexport const rename = mutation({ handler: async () => {} })\nexport const sweep = internalAction({ handler: async () => {} })`,
+      // `entities` re-exports `rename`, so it is public under both names.
+      'apps/itun/convex/entities.ts': "export { rename as retitle } from './games'\n",
+      'apps/itun/convex/_generated/api.d.ts': api('crons', 'games', 'gone'),
+    })
+    const io = captured()
+    expect(main(root, io.log, io.error)).toBe(1)
+    expect(io.out).toEqual([])
+    expect(io.err.join('\n')).toBe(
+      [
+        '✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.',
+        '    convex/entities.ts exists on disk but is NOT registered in api.d.ts',
+        '    api.d.ts registers convex/gone.ts, which no longer exists',
+        '  → Regenerate with `bunx convex dev` (needs a CONVEX_DEPLOYMENT); never hand-edit\n    convex/_generated/.',
+        '✗ Public Convex functions with no caller in the client:',
+        '    entities.retitle',
+        '    games.rename',
+        '  → Delete it, make it internal, or call it. A public function nobody calls is\n    reachable surface that nothing exercises.',
+        '✗ Internal Convex functions nothing calls:',
+        '    games.sweep',
+        '  → Delete it, or tag its doc comment `@operator` if it is a one-off run by hand\n    from the dashboard (and delete it once it has run).',
+      ].join('\n')
+    )
+  })
+
+  test('a caller only a test references still counts as uncalled', () => {
+    const root = tree({
+      ...healthy,
+      'apps/itun/src/Games.tsx': '// api.games.list is mentioned only in a comment\n',
+    })
+    const io = captured()
+    expect(main(root, io.log, io.error)).toBe(1)
+    expect(io.err).toContain('    games.list')
+  })
 })

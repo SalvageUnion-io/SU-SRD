@@ -1,9 +1,7 @@
 import type {
   CommandAutocompleteInteraction,
   CommandExecuteInteraction,
-  DirectMessageOutcome,
-  SignedInteraction,
-} from '../commands/interactions.js'
+} from '../commands/interactions'
 
 /**
  * Fakes for the narrow interaction contracts in `commands/interactions.ts`.
@@ -13,7 +11,7 @@ import type {
  * first place.
  *
  * These satisfy the types **structurally**, with no casts. That is deliberate:
- * a cast would let a fake drift from what `http/adapter.ts` builds and still
+ * a cast would let a fake drift from what `worker/adapter.ts` builds and still
  * compile, and the whole reason the handlers depend on a narrow type is so
  * that cannot happen.
  */
@@ -42,8 +40,6 @@ export type FakeExecute = {
   followUps: ReplyArg[]
   /** Whether `deferReply` was called, and with what. */
   deferred: { called: boolean; ephemeral: boolean }
-  /** Every `directMessage` call, in order: whom, and what. */
-  directMessages: { userId: string; payload: ReplyArg }[]
 }
 
 export type FakeExecuteOptions = {
@@ -53,13 +49,10 @@ export type FakeExecuteOptions = {
   strings?: Record<string, string | null>
   /** Values returned by `getBoolean`, keyed by option name. */
   booleans?: Record<string, boolean>
-  channelId?: string | null
   userId?: string
   displayName?: string
-  /** The signed request behind the interaction; null by default, as in a test. */
-  signed?: SignedInteraction | null
-  /** What `directMessage` answers. Delivered, by default. */
-  dmOutcome?: DirectMessageOutcome
+  /** The message a context-menu command was used on; none by default. */
+  targetMessage?: { content: string; author?: string } | null
 }
 
 export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
@@ -67,12 +60,11 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
   const edits: ReplyArg[] = []
   const followUps: ReplyArg[] = []
   const deferred = { called: false, ephemeral: false }
-  const directMessages: { userId: string; payload: ReplyArg }[] = []
   const strings = options.strings ?? {}
   const booleans = options.booleans ?? {}
 
   // Overload-declared to mirror the required-form getString that
-  // `http/adapter.ts` builds on `stringOption`, though unlike it this fake
+  // `worker/adapter.ts` builds on `stringOption`, though unlike it this fake
   // returns null rather than throwing on a missing required option.
   function getString(name: string, required: true): string
   function getString(name: string, required?: boolean): string | null
@@ -88,7 +80,7 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
       getBoolean: (name: string) => booleans[name] ?? null,
     },
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
-    channelId: options.channelId === undefined ? 'chan-1' : options.channelId,
+    targetMessage: options.targetMessage ?? null,
     reply: (arg: ReplyArg) => {
       replies.push(arg)
       return Promise.resolve()
@@ -106,14 +98,9 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
       followUps.push(arg)
       return Promise.resolve()
     },
-    signed: options.signed ?? null,
-    directMessage: (userId: string, payload: ReplyArg) => {
-      directMessages.push({ userId, payload })
-      return Promise.resolve(options.dmOutcome ?? { ok: true })
-    },
   }
 
-  return { interaction, replies, edits, followUps, deferred, directMessages }
+  return { interaction, replies, edits, followUps, deferred }
 }
 
 export type FakeAutocomplete = {
@@ -127,7 +114,6 @@ export function fakeAutocomplete(
     subcommand?: string
     subcommandGroup?: string | null
     focused?: string
-    channelId?: string | null
     userId?: string
     displayName?: string
   } = {}
@@ -141,7 +127,6 @@ export function fakeAutocomplete(
       getFocused: () => options.focused ?? '',
     },
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
-    channelId: options.channelId === undefined ? 'chan-1' : options.channelId,
     respond: (choices: { name: string; value: string }[]) => {
       responses.push(choices)
       return Promise.resolve()

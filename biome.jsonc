@@ -4,29 +4,28 @@
 // single-formatter toolchain; add a step in lefthook.yml if Biome ships those
 // formatters. The salvageunion-reference generators shell out to this same
 // pinned Biome binary (packages/salvageunion-reference/tools/formatWithBiome.ts),
-// so generated output cannot drift from `format:check`.
+// so generated output cannot drift from `bun run check biome`.
 {
   "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
   "root": true,
   // Rules Biome has no built-in for, written in GritQL. Each file states what
   // it matches and why.
   "plugins": [
-    "./tools/biome/noModelFindByKey.grit",
+    "./packages/gates/biome/noModelFindByKey.grit",
     // Shipped source in every workspace: `apps/*/src` and `packages/*/src`
-    // match a new workspace without anyone listing it. Tests, stories and
+    // match a new workspace without anyone listing it. Tests and
     // test bootstraps run after a preload, so module-scope access is safe there.
     // A plugin's `includes` is matched against the file's absolute path (unlike
     // `files.includes`), so every positive glob needs its leading `**/`: a bare
     // `apps/*/src/**` matches nothing and the rule silently checks no file.
     {
-      "path": "./tools/biome/noModuleScopeReferenceCall.grit",
+      "path": "./packages/gates/biome/noModuleScopeReferenceCall.grit",
       "includes": [
         "**/apps/*/src/**",
         "**/packages/*/src/**",
         "**/packages/salvageunion-reference/lib/**",
         "!**/*.test.ts",
         "!**/*.test.tsx",
-        "!**/*.stories.tsx",
         "!**/__tests__/**",
         "!**/test/**",
         "!**/e2e/**",
@@ -34,14 +33,13 @@
       ]
     },
     {
-      "path": "./tools/biome/noInlinePoolDefault.grit",
+      "path": "./packages/gates/biome/noInlinePoolDefault.grit",
       "includes": [
         "**/apps/*/src/**",
         "**/packages/*/src/**",
         "**/packages/salvageunion-reference/lib/**",
         "!**/*.test.ts",
         "!**/*.test.tsx",
-        "!**/*.stories.tsx",
         "!**/__tests__/**",
         "!**/test/**",
         "!**/e2e/**",
@@ -49,34 +47,50 @@
       ]
     },
     {
-      "path": "./tools/biome/noBareCleanupHook.grit",
+      "path": "./packages/gates/biome/noBareCleanupHook.grit",
       "includes": ["**/*.test.ts", "**/*.test.tsx"]
     },
     {
-      "path": "./tools/biome/noTestReferencePreload.grit",
+      "path": "./packages/gates/biome/noTestReferencePreload.grit",
       "includes": [
         "**/*.test.ts",
         "**/*.test.tsx",
         // Each of these asserts on load behaviour itself: it resets the ORM
         // and re-preloads on purpose, so the shared preload is the thing under
         // test rather than the thing being duplicated.
-        // Narrow schema lists render identically.
-        "!**/apps/srd/src/lib/__tests__/schemaPreloadDeps.test.tsx",
         // Convex functions run on only the schemas the deployment installs.
-        "!**/apps/itun/test/convex/referenceSubset.test.ts",
+        "!**/apps/itun/test/convex/__tests__/referenceSubset.test.ts",
         // The preload API is the unit under test.
-        "!**/packages/salvageunion-reference/lib/preload.test.ts",
+        "!**/packages/salvageunion-reference/lib/__tests__/preload.test.ts",
         // preload() invalidates the search index and result cache.
-        "!**/packages/salvageunion-reference/lib/search.test.ts"
+        "!**/packages/salvageunion-reference/lib/__tests__/search.test.ts"
       ]
     },
     {
-      "path": "./tools/biome/noLiveClockFixture.grit",
+      "path": "./packages/gates/biome/noLiveClockFixture.grit",
       "includes": ["**/apps/itun/**/*.test.ts", "**/apps/itun/**/*.test.tsx"]
     },
     {
-      "path": "./tools/biome/noPartialModelPatch.grit",
+      "path": "./packages/gates/biome/noPartialModelPatch.grit",
       "includes": ["**/*.test.ts", "**/*.test.tsx"]
+    },
+    {
+      // Convex functions only: a test reads its own handful of fixture rows.
+      "path": "./packages/gates/biome/noChangeLogCollect.grit",
+      "includes": ["**/apps/itun/convex/**", "!**/_generated/**"]
+    },
+    {
+      // ITUN's client, where a caught error's text reaches a player. A test
+      // asserts on messages; the route error screen's dump is development-only
+      // and is for the developer.
+      "path": "./packages/gates/biome/noRawErrorMessage.grit",
+      "includes": [
+        "**/apps/itun/src/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/__tests__/**",
+        "!**/apps/itun/src/components/shared/RouteErrors.tsx"
+      ]
     }
   ],
   "files": {
@@ -88,24 +102,21 @@
       // Agent worktrees are full checkouts, each carrying its own copy of THIS
       // file with `"root": true`. Biome 2.5+ hard-errors on a nested root
       // config, and that discovery walk is independent of the includes above —
-      // so without this line `bun run lint` / `format:check` (and therefore
-      // `check`) exit 1 from the repo root for anyone who has ever used the
-      // documented agent-worktree workflow. CI never saw it (fresh checkout,
-      // no worktrees), pre-commit never saw it (explicit staged paths don't
-      // trigger discovery), and pre-push doesn't run lint at all. Bare
-      // `!.claude` is the form Biome itself prescribes for ignoring a folder;
-      // `!.claude/**` also works but emits a warning.
+      // so without this line `bun run lint` (and therefore `check`) exits 1
+      // from the repo root of any checkout that holds an agent worktree. CI
+      // (fresh checkout) and pre-commit (explicit staged paths don't trigger
+      // discovery) never see it. Bare `!.claude` is the form Biome itself
+      // prescribes for ignoring a folder; `!.claude/**` also works but emits a
+      // warning.
       "!.claude",
       "!**/node_modules",
       "!**/dist",
       "!**/build",
       // `wrangler dev` writes its bundled Worker — plus the miniflare error
-      // middleware it injects — into `.wrangler/tmp/`. That is generated JS
-      // nobody wrote, and linting it produced 69 errors from a running dev
-      // server. Biome does NOT read `.gitignore` (there is no `vcs` block in
-      // this file), so ignoring it there is not enough; it has to be said here
-      // too, or `bun run lint` passes or fails depending on whether someone
-      // happens to have a server up.
+      // middleware it injects — into `.wrangler/tmp/`: generated JS nobody
+      // wrote. Biome does NOT read `.gitignore` (there is no `vcs` block in
+      // this file), so it has to be said here too, or `bun run lint` passes or
+      // fails depending on whether someone happens to have a server up.
       "!**/.wrangler",
       "!**/.vite",
       "!**/coverage",
@@ -120,34 +131,21 @@
       // committed copy differ from what the generator emits, which is exactly
       // what ssg/__tests__/navCatalog.drift.test.ts asserts against.
       "!apps/srd/src/generated",
-      // srd's `/greembeem` easter egg: a Wikipedia pastiche that used to be a
-      // TSX page rendering this exact markup, and is now the rendered document
-      // itself (audit AP-18). It is a byte-for-byte build artefact — its dead
-      // `href="#"` anchors and `role="button"` edit links ARE the page, which the
-      // TSX carried as `biome-ignore-all` — and formatting it would change what
-      // ships.
+      // srd's `/greembeem` easter egg, a Wikipedia pastiche. It is a
+      // byte-for-byte build artefact — its dead `href="#"` anchors and
+      // `role="button"` edit links ARE the page — and formatting it would
+      // change what ships.
       "!apps/srd/public/greembeem",
       "!**/convex/_generated",
       "!packages/salvageunion-reference/lib/generated",
-      // Astro's old codegen cache. apps/srd has not built through Astro since
-      // ADR-031, but `.astro/` survives on any working copy that predates the
-      // migration — it is gitignored, so it is invisible to `git status` while
-      // Biome formats `types.d.ts` and `content.d.ts` and `format:check` exits
-      // 1 on an otherwise-clean tree. CI never sees it (fresh checkout), so it
-      // only ever hits developers, which is how people learn `--no-verify`.
-      // Biome reads no `.gitignore` without a `vcs` block, so gitignored-ness
-      // alone excludes nothing — this list is the only mechanism.
-      "!**/.astro",
-      // Game-data JSON is crawler-sourced; CLAUDE.md's "Data Conventions"
-      // section forbids automated formatters reformatting these arrays
-      // (`json.dump`-style tools reflow crawler-authored line breaks). Biome's
-      // JSON formatter collapses some multi-line arrays that Prettier left
-      // alone (verified: packages/salvageunion-reference/data/actions.json),
-      // so keep this directory out of scope entirely, same as before.
+      // Game-data JSON is crawler-sourced; AGENTS.md's "Data Conventions"
+      // section forbids automated formatters reformatting these arrays.
+      // Biome's JSON formatter collapses crawler-authored multi-line arrays
+      // (packages/salvageunion-reference/data/actions.json, for one), so keep
+      // this directory out of scope entirely.
       "!packages/salvageunion-reference/data",
       "!apps/srd/package.json",
       "!**/*.md",
-      "!**/*.mdx",
       "!**/*.yml",
       "!**/*.yaml"
     ]
@@ -155,16 +153,8 @@
   "assist": {
     "actions": {
       "source": {
-        // Import ORDER was the last big convention asserted by nobody and held
-        // by nobody: 73 of 977 source files re-opened a bare-package import
-        // after their first relative one, and two sibling `ActionsDeck.tsx`
-        // files in the same feature disagreed with each other. No doc declared
-        // an order, so there was nothing to violate — and this assist, which
-        // fixes it mechanically, was switched off.
-        //
-        // Groups below are the order the ~93% majority already used. Blank
-        // lines between groups are preserved by the formatter, so the result
-        // reads the way the best files already do.
+        // Import order, fixed mechanically. Blank lines between groups are
+        // preserved by the formatter.
         "organizeImports": {
           "level": "on",
           "options": {
@@ -197,14 +187,8 @@
     }
   },
   "css": {
-    // Tailwind v4 CSS (@theme, @utility, @source, @plugin, @custom-variant)
-    // used in apps/itun, apps/srd, packages/component-lib.
-    "parser": {
-      "tailwindDirectives": true
-    },
     "formatter": {
-      // Prettier's global singleQuote:true applied to CSS too; match it
-      // (Biome's CSS default is double quotes).
+      // Single quotes, as in JS (Biome's CSS default is double quotes).
       "quoteStyle": "single"
     }
   },
@@ -219,18 +203,15 @@
         "noAssignInExpressions": "warn",
         // An empty block is either a mistake or a decision with no reason
         // written down, and in a `catch` it is an error nobody will ever hear
-        // about (audit AP-15). A block holding only a comment passes, so the
-        // fix for a deliberate one is to say why. Off for tests and stories via
+        // about. A block holding only a comment passes, so the
+        // fix for a deliberate one is to say why. Off for tests via
         // an override below, where `() => {}` is the idiom for a no-op prop.
         "noEmptyBlockStatements": "error"
       },
       "style": {
         // House rule: "Prefer `type` over `interface` for object types (unless
-        // extending)". That convention was once asserted in a rules doc and
-        // enforced by nothing, so it held only where a reviewer
-        // happened to look. Note the explicit `style: "type"` option — Biome's
-        // DEFAULT for this rule is the opposite direction ("interface"), which
-        // would flag ~613 correct `type X = { … }` declarations instead.
+        // extending)". The explicit `style: "type"` option is load-bearing —
+        // Biome's DEFAULT for this rule is the opposite direction ("interface").
         //
         // Genuine, permanent exemptions (module augmentation and declaration
         // merging REQUIRE `interface`; `type` cannot express either) are listed
@@ -239,24 +220,18 @@
           "level": "error",
           "options": { "style": "type" }
         },
-        // House rule: "Import types with `import type` syntax". Same story as
-        // the rule above — asserted in prose, enforced by nothing, so BOTH
-        // shapes survived: 225 files use a separate
-        // `import type { … }` statement alongside a value import from the same
-        // specifier, while ~100 sites inline `{ type X, Y }`. Neither is wrong;
-        // having both for the same job is. `separatedType` is the majority
-        // form and the one the old rules doc's wording implied.
+        // House rule: "Import types with `import type` syntax", in one shape:
+        // a separate `import type { … }` statement, never an inline `{ type X }`.
         "useImportType": {
           "level": "error",
           "options": { "style": "separatedType" }
         },
-        // "Named exports everywhere except route components" (root CLAUDE.md's
+        // "Named exports everywhere except route components" (root AGENTS.md's
         // code conventions) is enforced here, not by prose.
         //
-        // The two exemptions are real framework contracts, not preferences:
-        // TanStack Router route modules, and story `meta` — both are read
-        // as a default export (stories by component-lib's catalog). Cloudflare Workers and
-        // the Convex http router are the same shape. All are listed as
+        // The exemptions are real framework contracts, not preferences:
+        // TanStack Router route modules are read as a default export.
+        // Cloudflare Workers and the Convex http router are the same shape. All are listed as
         // overrides at the bottom rather than suppressed per-file.
         "noDefaultExport": "error",
         // Prefer `const` over `let` where never reassigned, and template
@@ -264,6 +239,11 @@
         // currently drifting quietly.
         "useConst": "error",
         "useTemplate": "error",
+        // A warning is invisible to every gate (`bun run lint` exits 0 on
+        // one), so a recommended rule that defaults to "warn" and holds at zero
+        // is an error here. useComponentExportOnlyModules, the other, is set
+        // in the `apps/itun/**` override below.
+        "noDescendingSpecificity": "error",
         "noParameterAssign": "error",
         "useSelfClosingElements": "error",
         "useShorthandFunctionType": "error",
@@ -314,23 +294,10 @@
           }
         }
       },
-      //
-      // --- These were downgraded from Biome's default "error" to "warn" during
-      // the ESLint→Biome swap, so that migration stayed a tooling change rather
-      // than a lint-cleanup pass. They were explicitly "a deliberate follow-up
-      // list, not silenced" — but nothing ratcheted them, and a warning is
-      // invisible to every gate: `bun run lint` exits 0 while printing them, so
-      // CI and pre-push both pass with violations present.
-      //
-      // The burn-down is now done. The list stood at 7 warnings + 2 infos; all
-      // are fixed, so `bun run lint` reports zero. Promoting the whole set to
-      // "error" is what makes that stick — at zero violations the promotion
-      // costs nothing today and prevents the list silently regrowing.
-      //
-      // A genuinely-correct idiom that trips one of these gets a per-site
-      // `biome-ignore` WITH a reason (see StatProvenance / parseTraitReferences
-      // for the two that earned one), not a downgrade back to "warn".
-      //
+      // Errors, not warnings: a warning is invisible to every gate (`bun run
+      // lint` exits 0 while printing one). A genuinely-correct idiom that trips
+      // one of these gets a per-site `biome-ignore` WITH a reason (see
+      // StatProvenance / parseTraitReferences), not a downgrade back to "warn".
       "a11y": {
         "useButtonType": "error",
         "useSemanticElements": "error",
@@ -358,38 +325,38 @@
   },
   "overrides": [
     {
-      // Function-size ratchet for component-lib. `ReferenceEntityCardInner` was
-      // once a ~1,870-line body that six workstreams edited at once; audit PK-08
-      // decomposed it, and the cap sits at what is left, so one more line in the
-      // largest body fails. Biome counts the whole function without comment
-      // lines, which is why this reads lower than the 856-line body the old
-      // AST check measured. Lower it when a seam lands; never raise it.
-      "includes": [
-        "packages/component-lib/**",
-        "!**/*.test.ts",
-        "!**/*.test.tsx",
-        "!**/*.stories.tsx"
-      ],
+      // Function-size ratchet for component-lib. The cap is the current largest
+      // body, so one more line there fails. Biome counts the whole function
+      // without comment lines. Lower it when a seam lands; never raise it.
+      "includes": ["packages/component-lib/**", "!**/*.test.ts", "!**/*.test.tsx"],
       "linter": {
         "rules": {
           "complexity": {
-            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 742 } }
+            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 460 } }
+          }
+        }
+      }
+    },
+    {
+      // The same ratchet for ITUN.
+      // It sits at today's largest body (`Dashboard`, apps/itun/src/components/
+      // dashboard/Dashboard.tsx), so one more line there, or any longer
+      // function anywhere in the app or its Convex backend, fails. Lower it
+      // when a split lands; never raise it.
+      "includes": ["apps/itun/**", "!**/*.test.ts", "!**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 394 } }
           }
         }
       }
     },
     {
       // A no-op callback (`onChange={() => {}}`, `mock(() => {})`) is the whole
-      // point in a test or a story, so `noEmptyBlockStatements` — which exists
+      // point in a test, so `noEmptyBlockStatements` — which exists
       // to catch swallowed errors in shipped code — is off here.
-      "includes": [
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "**/__tests__/**",
-        "**/*.stories.tsx",
-        "**/test/**",
-        "**/e2e/**"
-      ],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**", "**/test/**", "**/e2e/**"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -403,7 +370,7 @@
       "linter": {
         "rules": {
           "style": {
-            "useComponentExportOnlyModules": "warn"
+            "useComponentExportOnlyModules": "error"
           },
           "suspicious": {
             "noConsole": {
@@ -412,28 +379,6 @@
                 "allow": ["warn", "error"]
               }
             }
-          }
-        }
-      }
-    },
-    {
-      // Story files MUST export a `default` meta object alongside their
-      // named story components — it is the required shape, not a smell. The
-      // useComponentExportOnlyModules rule (a React Fast-Refresh guard) does
-      // not apply to a dev-only story catalog, so it is disabled for stories
-      // here rather than suppressed with a per-file `biome-ignore` on every
-      // one of ~100 story files. This override sorts AFTER the block above
-      // that enables the rule, so it wins for the matched paths.
-      "includes": ["**/*.stories.tsx"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useComponentExportOnlyModules": "off",
-            // The catalog (component-lib's `catalog.tsx`) reads
-            // a story file's `meta` as its DEFAULT export — a contract, not a
-            // style choice. All 107 of the
-            // repo's `export default`s outside `src/routes/` are this.
-            "noDefaultExport": "off"
           }
         }
       }
@@ -450,19 +395,13 @@
         // Each entry location is named
         // explicitly rather than globbing `src/**`, so an ordinary module in the
         // same app cannot quietly acquire a default export under this exemption.
-        // These three globs are the `main` of the four wrangler configs; another
-        // Worker adds a fourth line here, deliberately.
-        "apps/*/src/worker.ts",
+        // This glob is the `main` of all four wrangler configs (the `workers`
+        // check holds them to it).
         "apps/*/src/worker/index.ts",
-        "apps/*/src/http/worker.ts",
         "apps/itun/convex/http.ts",
         "apps/itun/convex/crons.ts",
         "apps/itun/convex/schema.ts",
         "**/*.config.ts",
-        "**/*.config.mts",
-        "**/*.config.js",
-        "**/*.config.mjs",
-        "**/playwright.config.ts",
         // Ambient module declarations for asset imports (`declare module
         // '*.md?raw'`) must re-declare the bundler's own default export — the
         // shape is dictated by Vite, not chosen.
@@ -640,21 +579,8 @@
         }
       }
     },
-    {
-      // component-lib's story catalog is a page entry, not a module: it mounts
-      // its own components and exports nothing, so there is no export for
-      // Fast Refresh to keep.
-      "includes": ["packages/component-lib/catalog.tsx"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useComponentExportOnlyModules": "off"
-          }
-        }
-      }
-    },
     // -------------------------------------------------------------------
-    // Architecture invariants (previously prose-only) that map onto Biome's
+    // Architecture invariants that map onto Biome's
     // configurable rules. The ones it has no rule for (no module-scope
     // SalvageUnionReference call, no inlined pool default) are the GritQL
     // plugins declared at the top of this file.
@@ -663,7 +589,7 @@
       // ADR-013: no app/package outside the canonical module may import zod
       // directly. salvageunion-reference gets an extra restriction on top:
       // it must never import from apps/* (one-way dependency rule, see
-      // docs/ARCHITECTURE.md#one-way-dependencies). Restates the root `zod` path + `@/*`
+      // docs/ARCHITECTURE.md#packages). Restates the root `zod` path + `@/*`
       // pattern because overrides replace (not merge into) a rule's options
       // for matched files.
       "includes": ["packages/salvageunion-reference/**"],
@@ -683,7 +609,7 @@
                   },
                   {
                     "group": ["**/apps/**"],
-                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/ARCHITECTURE.md#one-way-dependencies)."
+                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/ARCHITECTURE.md#packages)."
                   }
                 ]
               }
@@ -710,8 +636,7 @@
     },
     {
       // ADR-010 ("the shared library never persists"): component-lib must stay
-      // free of storage-layer imports. `idb` is ITUN's IndexedDB wrapper (see
-      // docs/ARCHITECTURE.md#itun-consumes) — it doesn't belong in the shared component library. Zustand is
+      // free of storage-layer imports, so `idb` and `indexedDB` are blocked. Zustand is
       // deliberately NOT blocked here: it's a state-management library, not
       // itself a storage layer (ADR-010's literal contract is "never
       // persists"), and component-lib doesn't use it today — blocking it would
@@ -737,14 +662,11 @@
                     "group": ["@/*"],
                     "message": "Use relative imports instead of @/ path aliases."
                   },
-                  // The fourth boundary edge. `salvageunion-reference` already
-                  // banned this for itself; component-lib sits at the same
-                  // level in the graph and had no equivalent guard, so the
-                  // shared library could have taken a dependency on one of its
-                  // own consumers. Zero such imports today.
+                  // The shared library must never depend on one of its own
+                  // consumers, as for `salvageunion-reference`.
                   {
                     "group": ["**/apps/**", "itun/**", "srd/**"],
-                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/ARCHITECTURE.md#one-way-dependencies)."
+                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/ARCHITECTURE.md#packages)."
                   },
                   {
                     "group": ["salvageunion-reference/lib/**"],
@@ -779,14 +701,11 @@
       // preference. Rewriting any of these as `type` is a compile error, so
       // this list is a statement of fact, not a burn-down.
       //
-      // `**/*.d.ts` no longer needs listing here: the three `linter.enabled:
-      // false` overrides now sort LAST in this array (see the block at the very
-      // bottom), so nothing can re-enable them. This list is now only the real
-      // source files that need the exemption.
+      // `**/*.d.ts` is exempted by the separate last override.
       "includes": [
         "apps/itun/src/main.tsx",
         "apps/srd/src/components/islands/OgCardIsland.tsx",
-        "packages/component-lib/src/components/shared/KofiButton.tsx"
+        "packages/component-lib/src/components/atoms/KofiButton.tsx"
       ],
       "linter": {
         "rules": {
@@ -810,9 +729,8 @@
       // catch.
       //
       // This sits AFTER the `apps/itun/**` / `packages/component-lib/**` block
-      // that sets that rule to "warn", because Biome applies overrides in array
-      // order and the later one wins. Placed near the top of this array, it was
-      // silently overridden back to "warn".
+      // that sets that rule to "error", because Biome applies overrides in array
+      // order and the later one wins: placed earlier, it would be overridden.
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
       "linter": {
         "rules": {

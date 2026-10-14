@@ -1,5 +1,5 @@
 /**
- * MechSheet — unresolved chassis tests (#243, plan 4.5; Phase 2 poster regions)
+ * MechSheet — unresolved chassis tests (poster regions)
  *
  * When chassis cannot be resolved (null), the body must still render — the
  * accessible alert names the bogus chassisRef, the Identity/Vitals poster
@@ -9,7 +9,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -34,7 +34,7 @@ const fakeMech: Mech = {
 function makeStubStore(mech: Mech): typeof useEntityStore {
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
 

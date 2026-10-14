@@ -3,17 +3,25 @@
  * generateRegistry — codegen for the schema registration mechanism.
  *
  * Reads the single manifest (lib/schemas/registry.ts) and emits four
- * committed, human-reviewable generated files:
+ * gitignored, human-readable generated files (`tools/ensureGenerated.ts` runs
+ * this):
  *
  *   - lib/generated/modelFactoryRegistry.generated.ts
  *       dataLoaders (literal per-id `import()` calls — required for bundler
  *       code-splitting to statically analyze them) plus schemaDisplayNames.
  *       It imports NO Zod: this module is on every consumer's load path.
  *
+ *       It also emits listDataLoaders, the same for each entry marked
+ *       `listProjection`, pointing at that entry's projection file:
+ *
+ *   - lib/generated/<id>.list.generated.json
+ *       the entry's rows without their prose (lib/listProjection.ts), which
+ *       `preload(ids, { projection: 'list' })` loads for listings.
+ *
  *   - lib/generated/zodSchemaMap.generated.ts
  *       zodSchemaMap — the entity Zod schemas keyed by schema id. Kept in its
  *       own module because only tools and tests import it; the runtime loader
- *       never does, so the entity schemas stay out of client chunks (audit PK-04).
+ *       never does, so the entity schemas stay out of client chunks.
  *
  *   - lib/generated/entityTypes.generated.ts
  *       the SURef* entity type aliases (`z.infer` of each registry schema)
@@ -33,21 +41,21 @@
  * between the `// GENERATED:BEGIN` / `// GENERATED:END` marker comments
  * (which must already exist in that file). This — rather than a runtime
  * mixin/base-class trick — keeps every static property a true *own* property
- * of the class, which lib/index.test.ts depends on via
+ * of the class, which lib/__tests__/index.test.ts depends on via
  * `Object.getOwnPropertyNames(SalvageUnionReference)`.
  *
- * Run via `bun run build:package` (before generate:json-schemas, since
- * generateJsonSchemas.ts imports zodSchemaMap from the generated file this
- * script produces).
+ * Run via `bun run build:package` (before tools/generateJsonSchemas.ts, which
+ * imports zodSchemaMap from the generated file this script produces).
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { toPascalCase } from '../lib/naming.js'
-import type { RegistryEntry } from '../lib/schemas/registry.js'
-import { registry } from '../lib/schemas/registry.js'
-import { formatWithBiome, TS_FORMAT_PATH } from './formatWithBiome.js'
+import { toListRow } from '../lib/listProjection'
+import { toPascalCase } from '../lib/naming'
+import type { RegistryEntry } from '../lib/schemas/registry'
+import { registry } from '../lib/schemas/registry'
+import { formatWithBiome, TS_FORMAT_PATH } from './formatWithBiome'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -111,10 +119,10 @@ function generateEntityTypes(entries: RegistryEntry[]): string {
 
   return (
     GENERATED_HEADER +
-    `import type { z } from '../zod.js'
+    `import type { z } from '../zod'
 import type {
 ${zodImports}
-} from '../schemas/entities.js'
+} from '../schemas/entities'
 
 // One alias per registry entry: the entity type is the schema's inferred type.
 ${aliases}
@@ -142,6 +150,14 @@ function generateModelFactoryRegistry(entries: RegistryEntry[]): string {
     )
     .join('\n')
 
+  const listDataLoaders = entries
+    .filter((e) => e.listProjection)
+    .map(
+      (e) =>
+        `  '${e.id}': () => import('./${e.id}.list.generated.json').then((m) => m.default as unknown[]),`
+    )
+    .join('\n')
+
   const schemaDisplayNames = entries
     .map(
       (e) =>
@@ -166,6 +182,14 @@ ${dataLoaders}
 }
 
 /**
+ * List-projection loaders (rows without their prose; see lib/listProjection.ts),
+ * for the schemas whose registry entry sets \`listProjection\`.
+ */
+export const listDataLoaders: Record<string, () => Promise<unknown[]>> = {
+${listDataLoaders}
+}
+
+/**
  * Schema display name mappings
  */
 export const schemaDisplayNames: Record<string, { singular: string; plural: string }> = {
@@ -185,19 +209,19 @@ function generateZodSchemaMap(entries: RegistryEntry[]): string {
 
   return (
     GENERATED_HEADER +
-    `import type { z } from '../zod.js'
+    `import type { z } from '../zod'
 import {
 ${zodImports}
-} from '../schemas/index.js'
+} from '../schemas/index'
 
 /**
  * Zod schema map — the entity schemas keyed by schema id.
  *
- * The \`schemas\` data check (tools/validate.ts) and \`generate:json-schemas\`
- * import this directly, so data is validated against the exact schemas the runtime would
+ * The \`dataCanonical\` test (lib/__tests__/dataCanonical.test.ts) and
+ * tools/generateJsonSchemas.ts import this directly, so data is validated against the exact schemas the runtime would
  * use rather than a parallel literal that could drift. No runtime module
  * imports it — \`preload()\` trusts the committed data — or every client bundle
- * would carry the schemas again (\`lib/loadPathBundle.test.ts\`).
+ * would carry the schemas again (\`lib/__tests__/loadPathBundle.test.ts\`).
  */
 export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
 ${zodSchemaMap}
@@ -235,10 +259,10 @@ function generateSchemaRegistry(entries: RegistryEntry[]): string {
 
   return (
     GENERATED_HEADER +
-    `import { LazyModel } from '../LazyModel.js'
+    `import { LazyModel } from '../LazyModel'
 import type {
 ${typeImports}
-} from '../schemas/index.js'
+} from '../schemas/index'
 
 // Type mapping from schema names to entity types (includes entity schemas and meta schemas)
 export type SchemaToEntityMap = {
@@ -324,9 +348,9 @@ async function main() {
   console.log('Generating registry files from lib/schemas/registry.ts...\n')
 
   // lib/generated/** is biome-ignored (same treatment as routeTree.gen.ts) so
-  // it's never a format:check/lint requirement, but running it through the
-  // formatter anyway keeps the committed, human-reviewable output pleasant to
-  // review. Because Biome would return an ignored path untouched, these go
+  // it's never a `bun run check biome` requirement, but running it through the
+  // formatter anyway keeps the human-readable output pleasant to
+  // read. Because Biome would return an ignored path untouched, these go
   // through the synthetic TS_FORMAT_PATH rather than their own paths.
   const formatGenerated = (source: string) => formatWithBiome(source, TS_FORMAT_PATH)
 
@@ -342,12 +366,24 @@ async function main() {
   writeFileSync(schemaRegistryOut, formatGenerated(generateSchemaRegistry(registry)))
   console.log('✓ Generated lib/generated/schemaRegistry.generated.ts')
 
+  for (const entry of registry.filter((e) => e.listProjection)) {
+    const rows: Record<string, unknown>[] = JSON.parse(
+      readFileSync(join(packageRoot, 'data', `${entry.id}.json`), 'utf-8')
+    )
+    // Compact: the file is bundled as-is into a client chunk, and is never read by hand.
+    writeFileSync(
+      join(generatedDir, `${entry.id}.list.generated.json`),
+      `${JSON.stringify(rows.map(toListRow))}\n`
+    )
+    console.log(`✓ Generated lib/generated/${entry.id}.list.generated.json`)
+  }
+
   const indexSource = readFileSync(indexPath, 'utf-8')
   const injected = injectStaticAccessors(indexSource, registry)
 
   // lib/index.ts is hand-written (only the marker region is generated), and is
   // NOT biome-ignored, so format the whole file — under its own path — to keep
-  // it format:check-clean and the drift check idempotent.
+  // it `bun run check biome`-clean and the drift check idempotent.
   const formatted = formatWithBiome(injected, indexPath)
   writeFileSync(indexPath, formatted)
   console.log('✓ Injected static accessors into lib/index.ts')

@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
-import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../constants'
-import { PilotSchema } from '../pilot'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
+import {
+  PILOT_CREATION_ABILITY_PICKS,
+  PILOT_CREATION_EQUIPMENT_PICKS,
+} from 'salvageunion-reference/rules'
 
 const validPilot = {
   id: 'pilot-001',
@@ -65,30 +68,30 @@ describe('PilotSchema', () => {
     expect(() => PilotSchema.parse({ ...validPilot, callsign: '' })).toThrow()
   })
 
-  // Advancement (plan 2.2): the schema does not cap abilities — growth past
+  // Advancement: the schema does not cap abilities — growth past
   // the creation budget persists; the rules cap (10/12) is a SOFT warning.
-  test(`accepts abilities array exceeding STARTING_ABILITY_BUDGET (${STARTING_ABILITY_BUDGET})`, () => {
-    const grown = Array.from({ length: STARTING_ABILITY_BUDGET + 1 }, (_, i) => `ability-${i}`)
+  test(`accepts abilities array exceeding PILOT_CREATION_ABILITY_PICKS (${PILOT_CREATION_ABILITY_PICKS})`, () => {
+    const grown = Array.from({ length: PILOT_CREATION_ABILITY_PICKS + 1 }, (_, i) => `ability-${i}`)
     const result = PilotSchema.parse({ ...validPilot, abilities: grown })
-    expect(result.abilities).toHaveLength(STARTING_ABILITY_BUDGET + 1)
+    expect(result.abilities).toHaveLength(PILOT_CREATION_ABILITY_PICKS + 1)
   })
 
-  test(`accepts abilities array exactly at STARTING_ABILITY_BUDGET (${STARTING_ABILITY_BUDGET})`, () => {
-    const atMax = Array.from({ length: STARTING_ABILITY_BUDGET }, (_, i) => `ability-${i}`)
+  test(`accepts abilities array exactly at PILOT_CREATION_ABILITY_PICKS (${PILOT_CREATION_ABILITY_PICKS})`, () => {
+    const atMax = Array.from({ length: PILOT_CREATION_ABILITY_PICKS }, (_, i) => `ability-${i}`)
     const result = PilotSchema.parse({ ...validPilot, abilities: atMax })
-    expect(result.abilities).toHaveLength(STARTING_ABILITY_BUDGET)
+    expect(result.abilities).toHaveLength(PILOT_CREATION_ABILITY_PICKS)
   })
 
-  // Equipment is likewise uncapped at the schema level (plan 2.2).
-  test(`accepts equipment array exceeding STARTING_EQUIPMENT_BUDGET (${STARTING_EQUIPMENT_BUDGET})`, () => {
-    const grown = Array.from({ length: STARTING_EQUIPMENT_BUDGET + 1 }, (_, i) => `item-${i}`)
+  // Equipment is likewise uncapped at the schema level.
+  test(`accepts equipment array exceeding PILOT_CREATION_EQUIPMENT_PICKS (${PILOT_CREATION_EQUIPMENT_PICKS})`, () => {
+    const grown = Array.from({ length: PILOT_CREATION_EQUIPMENT_PICKS + 1 }, (_, i) => `item-${i}`)
     const result = PilotSchema.parse({ ...validPilot, equipment: grown })
-    expect(result.equipment).toHaveLength(STARTING_EQUIPMENT_BUDGET + 1)
+    expect(result.equipment).toHaveLength(PILOT_CREATION_EQUIPMENT_PICKS + 1)
   })
 
-  test(`accepts equipment array exactly at STARTING_EQUIPMENT_BUDGET (${STARTING_EQUIPMENT_BUDGET})`, () => {
-    const atMax = Array.from({ length: STARTING_EQUIPMENT_BUDGET }, (_, i) => `item-${i}`)
+  test(`accepts equipment array exactly at PILOT_CREATION_EQUIPMENT_PICKS (${PILOT_CREATION_EQUIPMENT_PICKS})`, () => {
+    const atMax = Array.from({ length: PILOT_CREATION_EQUIPMENT_PICKS }, (_, i) => `item-${i}`)
     const result = PilotSchema.parse({ ...validPilot, equipment: atMax })
-    expect(result.equipment).toHaveLength(STARTING_EQUIPMENT_BUDGET)
+    expect(result.equipment).toHaveLength(PILOT_CREATION_EQUIPMENT_PICKS)
   })
 })

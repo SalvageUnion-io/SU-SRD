@@ -7,8 +7,8 @@
  * the server refuses is reported once rather than failing the edit.
  *
  * The Convex client is a recorder (`appendChangeLog` batches are kept, every
- * other commit answers as `upsertByAppId` and `transfer` do), so the store runs signed in
- * against fake-indexeddb with its server commits observed.
+ * other commit answers as `upsertByAppId` and `transfer` do), so the in-memory
+ * store runs signed in with its server commits observed.
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
@@ -57,11 +57,11 @@ const convexMocks = await installConvexMocks({
   },
 })
 
-const { _resetDbSingleton, clearCache } = await import('../../lib/db/index')
 const { useEntityStore } = await import('../entityStore')
 const { DASHBOARD_TXN, LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } = await import(
   '../surfaceProvenance'
 )
+const { resetStores } = await import('./resetStores')
 const { withSignedInBackend } = await import('./signedInBackend')
 
 afterAll(() => {
@@ -85,23 +85,11 @@ const basePilotInput = {
   conditions: [],
 }
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
-
-beforeEach(async () => {
+beforeEach(() => {
   appended.length = 0
   captured.length = 0
   refuseAppend = false
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 async function seedPilot() {
@@ -136,7 +124,7 @@ describe('Change Log — write-through chokepoint', () => {
   })
 
   test('transfer() logs every updated entity — the chokepoint hole (ADR-022)', async () => {
-    // transfer() commits cross-entity writes in one IDB transaction, bypassing
+    // transfer() commits cross-entity writes in one server mutation, bypassing
     // update(). Before this was wired it emitted nothing, so cargo stow/load
     // and scrap hand-offs mutated entities with no provenance at all.
     const pilot = await seedPilot()

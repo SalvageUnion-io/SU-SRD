@@ -11,26 +11,28 @@ const techLevelGradient = [1, 2, 3, 4, 5, 6]
 
 const techLevelBg = `linear-gradient(to right, ${techLevelGradient})`
 
-/** The three ability tiers, in book order: Core (brick) · Advanced (orange) · Legendary (pink). */
+/** The three ability tiers, in book order: Core (orange) · Advanced (rust) · Legendary (pink). */
 const abilityGradient =
-  'linear-gradient(to right, var(--color-tier-core) 0%, var(--color-tier-core) 33%, var(--color-pilot) 33%, var(--color-pilot) 66%, var(--color-crawler) 66%, var(--color-crawler) 100%)'
+  'linear-gradient(to right, var(--color-pilot) 0%, var(--color-pilot) 33%, var(--color-tier-hybrid) 33%, var(--color-tier-hybrid) 66%, var(--color-crawler) 66%, var(--color-crawler) 100%)'
 
-/** Core classes vs the hybrid classes they branch into. */
+/** Core classes vs the hybrid classes they branch into: Hybrid is rust, as its tier is. */
 const classGradient =
-  'linear-gradient(to right, var(--color-pilot) 0%, var(--color-pilot) 60%, var(--color-crawler) 60%, var(--color-crawler) 100%)'
+  'linear-gradient(to right, var(--color-pilot) 0%, var(--color-pilot) 60%, var(--color-tier-hybrid) 60%, var(--color-tier-hybrid) 100%)'
 
 /**
- * Catalog tile background PER DOMAIN. The schema → domain grouping itself is
- * NOT restated here — it comes from `resolveSchemaDomain` in component-lib, so
- * a new schema can't silently fall through to a wrong default the way a
- * hand-keyed schema list allowed (the card had exactly that bug).
+ * Catalog tile background PER DOMAIN, in the colour the domain's entities wear
+ * (`entityTone`): a tile that carries its name in text paints the band an
+ * entity header with text paints, so crawler pink is the crawler band (ruleset
+ * §3.8). The schema → domain grouping itself is NOT restated here — it comes
+ * from `resolveSchemaDomain` in component-lib, so a new schema can't silently
+ * fall through to a wrong default the way a hand-keyed schema list allowed.
  *
  * `gear` rides the tech-level ramp, matching how gear entities are toned.
  */
 const DOMAIN_BG: Record<CardDomain, string> = {
   pilot: 'var(--color-pilot)',
-  mech: 'var(--color-mech-dark)',
-  crawler: 'var(--color-crawler)',
+  mech: 'var(--color-mech)',
+  crawler: 'var(--color-crawler-band)',
   actor: 'var(--color-adversary)',
   gear: techLevelBg,
   glossary: 'var(--color-ink-2)',
@@ -51,17 +53,11 @@ export function getCatalogBg(schemaId: string): string {
 }
 
 /**
- * Tiles whose background is a GRADIENT need their name on a solid chip to stay
- * legible. Keyed off the domain for the same reason as above.
+ * A tile whose background is a GRADIENT (the tech-level ramp, the tier
+ * spreads) carries no single foreground, so its name sits on a paper chip,
+ * as an entity's name does on a band no text passes on. Flat tiles print the
+ * name straight on the tone.
  */
-const schemaLabelColors: Record<string, string> = {
-  equipment: 'var(--color-rust)',
-  systems: 'var(--color-mech-dark)',
-  modules: 'var(--color-mech-dark)',
-  drones: 'var(--color-adversary)',
-  vehicles: 'var(--color-adversary)',
-}
-
 export function getCatalogLabel(schemaId: string): string | undefined {
-  return schemaLabelColors[schemaId]
+  return getCatalogBg(schemaId).startsWith('linear-gradient(') ? 'var(--color-paper)' : undefined
 }

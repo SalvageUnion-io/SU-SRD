@@ -11,14 +11,14 @@
 # inert. `node_modules` never gets populated, so even commands
 # that do not need the lockfile fail on missing binaries.
 #
-# That is not a hypothetical: it is how the repo was found in an audit session,
-# where the toolchain had to be installed by hand before any check could run.
-#
 # DESIGN RULES.
 #   * Idempotent and cheap when already correct — the common case is a no-op.
 #   * NEVER fails the session. A hook that blocks startup on a network hiccup is
 #     worse than the problem it solves, so every failure prints a diagnosis and
-#     exits 0. `tools/check-bun-version.ts` is the hard guard; this is the fixer.
+#     exits 0. In CI, `./.github/actions/setup-bun` installs exactly the pin
+#     (it reads `packageManager`); here this is the fixer, and the only one.
+#   * Its PATH fix reaches the main agent shell only, not subagent shells, so
+#     the packageManager pin should track the image's Bun.
 #   * Never writes to tracked files. `--frozen-lockfile` does no resolution and
 #     cannot rewrite `bun.lock`.
 
@@ -63,11 +63,9 @@ if [ "$HAVE" != "$WANT" ]; then
       exit 0
     fi
   fi
-  # Persist for the agent's later Bash calls. `$CLAUDE_ENV_FILE` is the supported
-  # channel: Claude Code sources it before every tool shell. Appending to
-  # ~/.bashrc did NOT work — its `[ -z "$PS1" ] && return` guard stops a
-  # non-interactive tool shell before it reaches the appended line, so every
-  # cloud session kept the image's Bun and `check-bun-version` failed.
+  # Persist PATH through $CLAUDE_ENV_FILE, which Claude Code sources before every
+  # tool shell. ~/.bashrc cannot carry it: its `[ -z "$PS1" ] && return` guard
+  # exits non-interactive tool shells before an appended line runs.
   if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
     echo "export PATH=\"${PREFIX}:\$PATH\"" >>"$CLAUDE_ENV_FILE"
   else
@@ -102,7 +100,7 @@ fi
 
 # A cloud session has no Convex login, so `convex dev` (and with it
 # `bun run dev:itun`) would stop at the sign-in prompt. Anonymous agent mode runs
-# a local deployment with no account, which `scripts/assert-local-convex.ts`
+# a local deployment with no account, which `apps/itun/scripts/assert-local-convex.ts`
 # already accepts. Cloud only: on a laptop it would bypass the configured project.
 if [ "${CLAUDE_CODE_REMOTE:-}" = "true" ] && [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   echo 'export CONVEX_AGENT_MODE=anonymous' >>"$CLAUDE_ENV_FILE"

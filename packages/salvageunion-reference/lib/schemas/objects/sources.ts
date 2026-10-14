@@ -2,9 +2,9 @@
  * Reprint provenance: where else a record appears besides its primary source.
  */
 
-import { z } from '../../zod.js'
-import { PositiveIntegerSchema } from '../common.js'
-import { SourceSchema } from '../enums.js'
+import { z } from '../../zod'
+import { PositiveIntegerSchema } from '../common'
+import { SourceSchema } from '../enums'
 
 /**
  * Reprint of an entity in a secondary source book

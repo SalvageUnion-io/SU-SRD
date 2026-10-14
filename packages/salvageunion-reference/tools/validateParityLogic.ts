@@ -1,4 +1,4 @@
-import { statesMechanicalChange } from '../lib/rules/rulesBearing.js'
+import { statesMechanicalChange } from '../lib/rules/rulesBearing'
 
 /**
  * Rules-parity audit (ADR-029 §5) — does content DENOTE the mechanical change
@@ -44,7 +44,7 @@ const PLAYER_CONTENT = new Set([
   'drones.json',
 ])
 
-export type ParityClass = 'cap' | 'effect'
+type ParityClass = 'cap' | 'effect'
 
 export type ParityFinding = {
   /** Display name of the owning record. */
@@ -67,7 +67,7 @@ export type ParityFinding = {
  * established by a real record — not a one-off excuse. Adding an entry is a
  * design decision; adding one without a reason is not possible.
  */
-export const PARITY_EXEMPTIONS: Record<string, string> = {
+const PARITY_EXEMPTIONS: Record<string, string> = {
   // Chassis-integrated: the bonus is already folded into the chassis's own
   // absolute stat. Verified: Mule cargoCapacity IS 16, Gopher 12, Atlas 30.
   // Encoding these as contributions would DOUBLE-COUNT them.
@@ -110,7 +110,7 @@ export const PARITY_EXEMPTIONS: Record<string, string> = {
   'Offensive Protocols': "effect-of-an-effect — raises a Weapons System's damage, not a stat",
 
   // Activated: a per-use choice, not a standing property. Belongs to Dashboard
-  // play state (ADR-038 §2) with the other duration-bound effects (F1).
+  // play state (ADR-038 §2) with the other duration-bound effects.
   Snipe: 'activated — a per-attack Range Band increase, chosen at use',
   'Weapon Guidance': 'activated — grants Guided to a chosen system when activated',
 }
@@ -119,9 +119,8 @@ export const PARITY_EXEMPTIONS: Record<string, string> = {
  * The remaining backlog — records that state a change, are not exempt, and are
  * not yet encodable.
  *
- * Both need the SAME missing capability, and it is not the one the plan assumed.
- * The plan called for "effects declarable directly on a system/ability" (C3),
- * but declaring them is not the blocker: `ChoiceEffectSchema` has no TARGET, and
+ * Both need the SAME missing capability, and it is not the one first assumed.
+ * Declaring effects directly on a system/ability is not the blocker: `ChoiceEffectSchema` has no TARGET, and
  * neither of these effects lands on the record that declares it.
  *
  *   Bio-Wings         "Your Mech gains the Fly Trait" — targets the HOST MECH.

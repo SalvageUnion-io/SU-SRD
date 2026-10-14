@@ -29,40 +29,48 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
-import { PageHeading, PageShell, Text, tokens } from 'component-lib'
+import { ChapterBand, PageShell, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { containerOf } from 'itun-domain/container'
+import { hasMediator } from 'itun-domain/games/roles'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf } from '../../lib/container'
-import { gameHasMediator } from '../../lib/games/gameRoster'
 import { useEntityStore } from '../../stores/entityStore'
-import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import { WayOutLink } from '../shared/WayOutLink'
 import { Dashboard } from './Dashboard'
 
 const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
 
 const PENDING = { padding: tokens.space[24] } satisfies CSSProperties
 
+const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSProperties
+
 type RefusalProps = {
+  /** The page's name, the band's title: "Dashboard" unless a screen says otherwise. */
+  page?: string
+  /** What is missing, as the heading under the band. */
   title: string
   body: string
   link: { href: string; label: string }
 }
 
-/** The shell every refusal renders: what is missing, and where to go instead. */
-function DashboardRefusal({ title, body, link }: RefusalProps) {
+/** The shell every refusal renders: the page's name, what is missing, and where to go instead. */
+export function DashboardRefusal({ page = 'Dashboard', title, body, link }: RefusalProps) {
   return (
     <PageShell>
-      <PageHeading>{title}</PageHeading>
+      <ChapterBand tone="cantina">{page}</ChapterBand>
+      <Text as="h2" style={REASON}>
+        {title}
+      </Text>
       <Text variant="hint" style={BODY}>
         {body}
       </Text>
       <div>
-        <AppLink href={link.href}>{link.label}</AppLink>
+        <WayOutLink href={link.href} label={link.label} />
       </div>
     </PageShell>
   )
@@ -170,11 +178,11 @@ function SignedInGate({ id, offline }: { id: string; offline: boolean }) {
     )
   }
 
-  if (!gameHasMediator(members ?? [])) {
+  if (!hasMediator(members ?? [])) {
     return (
       <DashboardRefusal
         title="This Game has no Mediator"
-        body="Ask the Organizer to name one, or edit your live sheet."
+        body="Ask the Organiser to name one, or edit your live sheet."
         link={sheet}
       />
     )

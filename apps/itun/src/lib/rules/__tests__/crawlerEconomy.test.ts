@@ -1,7 +1,7 @@
 /**
  * Unit tests for crawlerEconomy.ts — Upkeep, Deterioration, Upgrade quotes,
  * fixed-rate Scrap exchange, and the Trading Bay availability roll
- * (design-review R-4; Core Book p.218-223).
+ * (Core Book p.218-223).
  *
  * Upgrade-cost tests use REAL data from salvageunion-reference
  * (crawler-tech-levels.json); everything else is pure arithmetic on
@@ -9,8 +9,10 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import { DOWNTIME_UPKEEP_SCRAP } from 'itun-domain/rules/downtime'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
+import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
-import type { ScrapPool } from '../../schemas/crawler'
 import {
   bayGate,
   contributeToUpgradePool,
@@ -27,7 +29,6 @@ import {
   poolAvailableAtOrAbove,
   tradingAvailability,
   tradingSourceTl,
-  UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../crawlerEconomy'
 
@@ -124,7 +125,7 @@ describe('payUpkeep', () => {
     const payment = payUpkeep({ tl3: 7 }, 3)
     expect(payment).not.toBeNull()
     expect(payment?.pool).toEqual({ tl3: 2 })
-    expect(payment?.upgradeCredit).toBe(UPKEEP_SCRAP)
+    expect(payment?.upgradeCredit).toBe(DOWNTIME_UPKEEP_SCRAP)
   })
 
   it('accepts higher-TL scrap when the exact bucket is short', () => {
@@ -145,7 +146,7 @@ describe('upkeepShortfall', () => {
   it('is 0 when covered and the missing amount when short', () => {
     expect(upkeepShortfall({ tl2: 5 }, 2)).toBe(0)
     expect(upkeepShortfall({ tl2: 3, tl5: 1 }, 2)).toBe(1)
-    expect(upkeepShortfall({}, 2)).toBe(UPKEEP_SCRAP)
+    expect(upkeepShortfall({}, 2)).toBe(DOWNTIME_UPKEEP_SCRAP)
   })
 })
 
@@ -175,6 +176,20 @@ describe('deteriorationOutcome', () => {
     expect(deteriorationOutcome(11)).toBe('lose-sp')
     expect(deteriorationOutcome(19)).toBe('lose-sp')
     expect(deteriorationOutcome(20)).toBe('safe')
+  })
+
+  it('each band is one row of the Crawler Deterioration table', () => {
+    const table = SalvageUnionReference.RollTables.getByName('Crawler Deterioration')?.table
+    const rows: Record<string, string[]> = {}
+    for (let face = 1; face <= 20; face++) {
+      const row = resultForTable(table, face)
+      expect(row.success).toBe(true)
+      const keys = rows[deteriorationOutcome(face)] ?? []
+      if (!keys.includes(row.key)) rows[deteriorationOutcome(face)] = [...keys, row.key]
+    }
+    for (const keys of Object.values(rows)) expect(keys).toHaveLength(1)
+    const claimed = Object.values(rows).flat()
+    expect(new Set(claimed).size).toBe(claimed.length)
   })
 })
 

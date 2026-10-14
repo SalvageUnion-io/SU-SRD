@@ -1,6 +1,6 @@
 /**
- * Blank entities render on their live sheets (wizard-refresh Phase 1,
- * Open Question 4): a blank pilot (classRef ''), blank mech (chassisRef '')
+ * Blank entities render on their live sheets: a blank pilot (classRef ''),
+ * blank mech (chassisRef '')
  * and blank crawler (TL only, no type) — exactly what createBlank persists —
  * must render /sheet/{kind}/{id} without crashing.
  *
@@ -10,9 +10,9 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { seedDefaultCrawlerBays } from '../../../lib/wizard/crawlerFormState'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'

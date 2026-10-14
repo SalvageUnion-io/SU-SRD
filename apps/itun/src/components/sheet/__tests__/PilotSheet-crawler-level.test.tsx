@@ -3,14 +3,14 @@
  *
  * The "Crawler Level" slab UI (manual-fallback editor + linked-crawler
  * readout) was dropped from the pilot sheet body in the redesign poster
- * conformance pass (#410) — it has no poster counterpart. What survives
+ * conformance pass — it has no poster counterpart. What survives
  * is the underlying SCALING SOURCE: `resolveEffectiveCrawlerLevel` still
  * feeds choice caps (e.g. the Modification choice) regardless of whether a
  * crawler-level control renders anywhere.
  *
  * Asserts that:
  *   1. The dropped manual-fallback editor and linked-crawler readout no
- *      longer render on the pilot sheet body (#410).
+ *      longer render on the pilot sheet body.
  *   2. The effective level still feeds the Modification choice cap: the
  *      `n/max` counter resolves to the effective level from a linked crawler.
  *   3. With neither a crawler nor a manual level, the Modification cap floors at
@@ -24,10 +24,10 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { SoftLink } from '../../../lib/schemas/softLink'
 import { expandCards } from '../../__tests__/expandCards'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
@@ -93,7 +93,7 @@ function makeStore(opts: {
     pilots: [pilot],
     crawlers: crawler ? [crawler] : [],
     softLinks,
-    hydrated: { pilots: true, mechs: false, crawlers: !!crawler, softLinks: true },
+    hydrated: { pilots: true, mechs: false, crawlers: !!crawler, npcs: !!crawler, softLinks: true },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
     get: mock((type: string, id: string) => {

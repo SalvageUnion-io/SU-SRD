@@ -2,8 +2,9 @@
  * Rule-enforcement utilities barrel (ADR-006 — pure rules logic lives here).
  *
  * Pure TypeScript — no React, no IndexedDB, no app dependency.
- * All functions are synchronous; same input always yields same output, except
- * `rollDie`, the real-RNG `Roll` that callers inject into the rest.
+ * All functions are synchronous; same input always yields same output. There
+ * is no randomness here: every die arrives as an injected `Roll`, which
+ * production callers back with Randsum (component-lib's `rollDie`).
  *
  * Prerequisites: the salvageunion-reference schemas used by these utilities
  * must be preloaded before the first call:
@@ -11,32 +12,28 @@
  * or, where dynamic `import()` is unavailable (Convex), installed from the
  * imported files with `SalvageUnionReference.install({ chassis, … })`.
  *
- * Migrated from apps/itun/src/lib/rules/ — see ADR-006. Tier 1/2
- * modules (fully portable pure math) live here; Tier 3 modules (deep coupling
- * to full persisted records + app-storage conventions like CargoLot /
- * crypto.randomUUID()) remain app-local in ITUN for now.
- *
  * Every name is re-exported explicitly, and only names with a consumer outside
  * the package are listed; add a name when something imports it.
  */
 
-export type { AdvancementOption } from './advancement.js'
-export { advancementOptionsFor, originsForHybrid, resolveAdvancementTrees } from './advancement.js'
-export { liveAdvancementDataset, offeredAbilityTrees } from './advancementDataset.js'
-export { computeMechCapacity } from './capacity.js'
-export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog.js'
-export { abilityContributions, sumContributions } from './contributions.js'
-export type { CoreRollBand, CoreRollResult } from './coreMechanic.js'
+export type { AdvancementOption } from './advancement'
+export { advancementOptionsFor, originsForHybrid, resolveAdvancementTrees } from './advancement'
+export { liveAdvancementDataset, offeredAbilityTrees } from './advancementDataset'
+export { computeMechCapacity } from './capacity'
+export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog'
+export { abilityContributions, sumContributions } from './contributions'
+export type { CoreRollBand, CoreRollResult } from './coreMechanic'
 export {
   CORE_ROLL_BANDS,
   coreRollBand,
+  coreRollBandLabel,
   describeOverloadOutcome,
   describePushOutcome,
   performCoreRoll,
-} from './coreMechanic.js'
-export { computeCrawlerCapacity } from './crawlerCapacity.js'
-export { isWeaponSystem } from './crawlerSystems.js'
-export type { CrawlerMutationInput, MechCreationBudget } from './creation.js'
+} from './coreMechanic'
+export { computeCrawlerCapacity } from './crawlerCapacity'
+export { isWeaponSystem } from './crawlerSystems'
+export type { CrawlerMutationInput, MechCreationBudget } from './creation'
 export {
   crawlerMaxSpBonus,
   crawlerWeaponSlots,
@@ -58,8 +55,8 @@ export {
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
-} from './creation.js'
-export type { ChassisStats, StatBreakdown } from './derivedStats.js'
+} from './creation'
+export type { StatBreakdown } from './derivedStats'
 export {
   crawlerMaxSP,
   crawlerMaxSPParts,
@@ -74,6 +71,7 @@ export {
   PILOT_BASE_AP,
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
+  parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxAPParts,
   pilotMaxHP,
@@ -84,10 +82,16 @@ export {
   resolvePool,
   resolvePoolStart,
   unifiedMechConditions,
-} from './derivedStats.js'
-export { rollDie } from './dice.js'
-export { canActivateAction, clampHeat, performHeatCheck, performPush } from './heatCheck.js'
-export { enrichPilotSnapshot } from './pilotSnapshot.js'
+} from './derivedStats'
+export {
+  canActivateAction,
+  canPush,
+  clampHeat,
+  performHeatCheck,
+  performPush,
+} from './heatCheck'
+export { HOUSE_RULES } from './houseRules'
+export { enrichPilotSnapshot } from './pilotSnapshot'
 export {
   resolveChassisRef,
   resolveCrawlerBayRef,
@@ -95,22 +99,24 @@ export {
   resolveInstalledRef,
   resolveModuleRef,
   resolveSystemRef,
-} from './resolveRefs.js'
-export { statesMechanicalChange } from './rulesBearing.js'
-export { scrapCostFor, tierUpgradeCost } from './scrap.js'
-export { evaluateSoftWarnings } from './softWarnings.js'
+} from './resolveRefs'
+export { statesMechanicalChange } from './rulesBearing'
+export type { AreaSalvageResult } from './salvage'
+export { performAreaSalvage } from './salvage'
+export { scrapCostFor, tierUpgradeCost } from './scrap'
+export { evaluateSoftWarnings } from './softWarnings'
 export type {
   CriticalDamageEffect,
   CriticalInjuryEffect,
   MechDamageEffect,
   PilotDamageEffect,
-} from './takeDamage.js'
+} from './takeDamage'
 export {
   applyMechDamage,
   applyPilotDamage,
   performCriticalDamage,
   performCriticalInjury,
-} from './takeDamage.js'
+} from './takeDamage'
 export type {
   HeatCheckEffect,
   MechSnapshot,
@@ -119,4 +125,4 @@ export type {
   SoftWarning,
   SoftWarningContext,
   TechLevel,
-} from './types.js'
+} from './types'

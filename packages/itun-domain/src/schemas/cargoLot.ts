@@ -1,0 +1,94 @@
+import { z } from 'salvageunion-reference/zod'
+
+/**
+ * CargoLot — the unified cargo model shared by mechs, mech patterns, and
+ * crawlers.
+ *
+ * Shape: `{ id, kind: 'bulk' | 'unit', name, cat, tl?, qty?, units, code }`
+ *   - `kind: 'bulk'`  — arbitrary ×N quantity, splittable when moved (qty set).
+ *   - `kind: 'unit'`  — atomic entity, moves whole-or-not (qty absent).
+ *   - `units`         — total cargo-slot cost of the lot (bulk: per the whole lot).
+ *   - `cat`           — display/economy category. SCRAP lots MUST carry `tl`
+ *                       (1–6) so scrap can deposit/withdraw the matching
+ *                       crawler scrap-pool bucket when crossing the crawler
+ *                       boundary.
+ *   - `code`          — short display code rendered on cargo chits ('CAT · CODE').
+ */
+const CargoLotCategorySchema = z.enum(['SCRAP', 'POWER', 'SEALED', 'SYSTEM'])
+export type CargoLotCategory = z.infer<typeof CargoLotCategorySchema>
+
+export const CargoLotSchema = z
+  .object({
+    id: z.string(),
+    kind: z.enum(['bulk', 'unit']),
+    name: z.string().min(1),
+    cat: CargoLotCategorySchema,
+    /** Scrap tech level (1–6). Required when cat === 'SCRAP'. */
+    tl: z.number().int().min(1).max(6).optional(),
+    /** Bulk quantity (×N). Only meaningful on kind === 'bulk'. */
+    qty: z.number().int().min(0).optional(),
+    /** Cargo-slot cost of the whole lot. */
+    units: z.number().int().min(0),
+    /** Short display code for cargo chits. */
+    code: z.string(),
+  })
+  .strict()
+  .superRefine((lot, ctx) => {
+    if (lot.cat === 'SCRAP' && lot.tl === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A Scrap lot must carry a Tech Level (tl)',
+        path: ['tl'],
+      })
+    }
+  })
+
+export type CargoLot = z.infer<typeof CargoLotSchema>
+
+/** Derive a short chit code from a lot name, e.g. "Salvaged plating" → "SAL". */
+function codeFromName(name: string): string {
+  const letters = name
+    .replace(/[^a-z0-9]/gi, '')
+    .slice(0, 3)
+    .toUpperCase()
+  return letters.length > 0 ? letters : 'LOT'
+}
+
+/**
+ * Build a single-unit (atomic) cargo lot from a free-text name. `units`
+ * defaults to 1 slot.
+ */
+export function makeUnitLot(
+  name: string,
+  options: { cat?: CargoLotCategory; units?: number; tl?: number } = {}
+): CargoLot {
+  const { cat = 'SEALED', units = 1, tl } = options
+  return {
+    id: crypto.randomUUID(),
+    kind: 'unit',
+    name,
+    cat,
+    ...(tl !== undefined ? { tl } : {}),
+    units,
+    code: codeFromName(name),
+  }
+}
+
+/** Build a bulk SCRAP lot of `qty` scrap at tech level `tl` (1 slot per scrap on a mech). */
+export function makeScrapLot(tl: number, qty: number): CargoLot {
+  return {
+    id: crypto.randomUUID(),
+    kind: 'bulk',
+    name: `Tech ${tl} Scrap`,
+    cat: 'SCRAP',
+    tl,
+    qty,
+    units: qty,
+    code: `SCR-T${tl}`,
+  }
+}
+
+/** Total cargo-slot usage across a list of lots. */
+export function totalLotUnits(lots: ReadonlyArray<Pick<CargoLot, 'units'>>): number {
+  return lots.reduce((sum, lot) => sum + lot.units, 0)
+}

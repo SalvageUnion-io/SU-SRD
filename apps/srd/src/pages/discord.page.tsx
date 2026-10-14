@@ -1,10 +1,40 @@
 /**
  * `/discord` — the Discord bot landing page.
+ *
+ * The command list is the bot's own: `DISCORD_COMMANDS` is generated from the
+ * registered `/su` builder (`apps/discord-bot/src/commandList.ts`), so every
+ * subcommand is here under the name and description Discord shows. The
+ * reference tools each get a panel with worked examples (`commandDetail`); the
+ * In the Union now commands are listed under the account they need.
  */
 
-import { buttonVariants, cn, PageHeading, Panel, Slab } from 'component-lib'
+import { buttonVariants, InlineRef, Panel, Slab } from 'component-lib'
+import { borderWidth, color, font, fontSize, space } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
+import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
-import { ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { DocPage } from '../components/DocPage'
+import type { DiscordCommand } from '../generated/discordCommands'
+import { DISCORD_COMMANDS } from '../generated/discordCommands'
+import {
+  CONTENTS_CRUMB,
+  DISCORD_INSTALL_URL,
+  ITUN_URL,
+  SITE_URL,
+  TITLE_SUFFIX,
+} from '../lib/constants'
+import {
+  ASIDE,
+  BOLD,
+  bulletList,
+  column,
+  ITALIC,
+  inlineCode,
+  PANEL_BODY,
+  PANEL_HEAD,
+  PANEL_TITLE,
+  proseColumn,
+} from '../lib/docPageStyles'
 import { SalvageUnionReference } from '../lib/gameData'
 
 /**
@@ -38,20 +68,130 @@ const DESCRIPTION =
   'Add the SURef bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
 
 // The install CTA is an <a> styled as THE primary (rust) action — the lib
-// Button recipe as a class string (buttonVariants), keeping the condensed
-// uppercase treatment this hero link uses.
-const installButtonClass = cn(
-  buttonVariants({ variant: 'primary' }),
-  'font-cond text-base uppercase tracking-caps-snug'
-)
+// Button recipe as a class string (buttonVariants), at the home page's CTA size.
+const installButtonClass = buttonVariants({ variant: 'primary', size: 'full' })
 
-// The client id is public by design — it appears in every Discord invite
-// URL. The bot itself authenticates with its token, never this id.
-const DISCORD_CLIENT_ID = '1442878052823470172'
-const INSTALL_URL = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&scope=bot%20applications.commands&permissions=0`
+const PROSE_12 = proseColumn(space[12])
+const PROSE_16 = proseColumn(space[16])
+const COLUMN_24 = column(space[24])
+const CODE = inlineCode()
+const LIST_4 = bulletList(space[4], 'margin')
+const LIST_8 = bulletList(space[8], 'margin')
+
+/** The site's search shortcut, as a key cap in prose. */
+const KEY_CAP = {
+  ...inlineCode(),
+  borderColor: color.wkFaint,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  paddingInline: space[6],
+} satisfies CSSProperties
+
+const LEGAL = {
+  color: color.wkMuted,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  textAlign: 'center',
+} satisfies CSSProperties
+
+const ATTRIBUTION = {
+  ...LEGAL,
+  borderColor: color.wkFaint,
+  borderStyle: 'solid',
+  borderWidth: `${borderWidth.hairline} 0 0`,
+  paddingTop: space[24],
+} satisfies CSSProperties
+
+const LEGAL_DOT = { color: color.wkFaint, paddingInline: space[6] } satisfies CSSProperties
+
+/** A command as Discord's picker spells it: optional options in brackets, every option italic. */
+function Usage({ command }: { command: DiscordCommand }) {
+  return (
+    <>
+      /su {command.name}
+      {command.options.map((option) => (
+        <span key={option.name} style={ITALIC}>
+          {' '}
+          {option.required ? option.name : `[${option.name}]`}
+        </span>
+      ))}
+    </>
+  )
+}
+
+/** The worked examples under a reference tool's panel, by subcommand. */
+function commandDetail(
+  name: string,
+  examples: ReturnType<typeof buildExamples>
+): ReactNode | undefined {
+  switch (name) {
+    case 'roll':
+      return (
+        <>
+          <p>
+            Rolls a d20 on any Salvage Union table. Leave <code style={CODE}>table</code> empty to
+            roll on the <strong>Core Mechanic</strong> table — the game&rsquo;s basic d20 resolution
+            roll.
+          </p>
+          <p>
+            Start typing a table name and autocomplete suggests matches from all{' '}
+            {examples.rollTableCount} tables — Critical Damage, Reactor Overload, Area Salvage, NPC
+            generators, Keepsake, Motto, and every table from the expansions. Column tables (like
+            the NPC tables) roll two d20s: one for the column, one for the entry.
+          </p>
+          <p>
+            <strong>Examples:</strong>
+          </p>
+          <ul style={LIST_4}>
+            <li>
+              <code style={CODE}>/su roll</code> — Core Mechanic d20
+            </li>
+            <li>
+              <code style={CODE}>/su roll table: Critical Damage</code> — what happens at 0 SP
+            </li>
+            <li>
+              <code style={CODE}>/su roll table: Group Initiative</code> — who acts first
+            </li>
+          </ul>
+        </>
+      )
+    case 'lookup':
+      return (
+        <>
+          <p>
+            Looks up any entity in the reference — the same search as this site&rsquo;s
+            <kbd style={KEY_CAP}>Cmd&nbsp;K</kbd> box. Autocomplete searches as you type (multi-word
+            queries and small typos are fine); the reply shows the entity&rsquo;s key stats and
+            links to its full page here.
+          </p>
+          <p>
+            <strong>Examples:</strong>
+          </p>
+          <ul style={LIST_4}>
+            <li>
+              <code style={CODE}>/su lookup entity: green laser</code>
+            </li>
+            <li>
+              <code style={CODE}>/su lookup entity: {examples.lookupExample.toLowerCase()}</code>
+            </li>
+            <li>
+              <code style={CODE}>/su lookup entity: overheat</code>
+            </li>
+          </ul>
+        </>
+      )
+    default:
+      return undefined
+  }
+}
 
 function page(): PageResult {
   const examples = buildExamples()
+  const reference = DISCORD_COMMANDS.filter((command) => !command.needsAccount)
+  const withAccount = DISCORD_COMMANDS.filter((command) => command.needsAccount)
 
   return {
     meta: {
@@ -73,191 +213,126 @@ function page(): PageResult {
           url: `${SITE_URL}/`,
         },
       },
-      breadcrumbs: [
-        { name: 'Home', url: `${SITE_URL}/` },
-        { name: 'Discord Bot', url: `${SITE_URL}/discord/` },
-      ],
+      breadcrumbs: [CONTENTS_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/discord/` }],
     },
     children: (
-      <div className="flex w-full flex-1 flex-col py-12">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6">
-          <PageHeading>Discord Bot</PageHeading>
-
-          {/* Overview + install */}
-          <section className="flex flex-col gap-4 text-sm leading-relaxed">
-            <p>
-              The SURef bot brings this reference to your table&rsquo;s Discord server: roll on
-              every Salvage Union table and look up any game entity — chassis, systems, modules,
-              equipment, keywords, and more — without leaving the conversation. Results link back to
-              the full entry on this site.
-            </p>
-            <p>
-              It asks for no server permissions — it only ever replies to slash commands. Free, no
-              account, no configuration.
-            </p>
-            <p>
-              <a
-                href={INSTALL_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={installButtonClass}
-              >
-                Add to your Discord server
-              </a>
-            </p>
-          </section>
-
-          {/* Commands */}
-          <section className="flex flex-col gap-6">
-            <Slab as="h2" variant="solid" label="Commands" />
-
-            <Panel soft>
-              <div className="border-b-chrome border-wk-faint px-5 py-3">
-                <p className="mt-1 font-body text-base font-bold">
-                  /su roll <span className="text-rust">[table]</span>
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
-                <p>
-                  Rolls a d20 on any Salvage Union table. Leave{' '}
-                  <code className="rounded-card bg-wk-bg px-1 py-0.5">table</code> empty to roll on
-                  the <strong>Core Mechanic</strong> table — the game&rsquo;s basic d20 resolution
-                  roll.
-                </p>
-                <p>
-                  Start typing a table name and autocomplete suggests matches from all{' '}
-                  {examples.rollTableCount} tables — Critical Damage, Reactor Overload, Area
-                  Salvage, NPC generators, Keepsake, Motto, and every table from the expansions.
-                  Column tables (like the NPC tables) roll two d20s: one for the column, one for the
-                  entry.
-                </p>
-                <p>
-                  <strong>Examples:</strong>
-                </p>
-                <ul className="ml-5 flex list-disc flex-col gap-1">
-                  <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">/su roll</code> — Core
-                    Mechanic d20
-                  </li>
-                  <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su roll table: Critical Damage
-                    </code>{' '}
-                    — what happens at 0 SP
-                  </li>
-                  <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su roll table: Group Initiative
-                    </code>{' '}
-                    — who acts first
-                  </li>
-                </ul>
-              </div>
-            </Panel>
-
-            <Panel soft>
-              <div className="border-b-chrome border-wk-faint px-5 py-3">
-                <p className="mt-1 font-body text-base font-bold">
-                  /su lookup <span className="text-rust">entity</span>
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
-                <p>
-                  Looks up any entity in the reference — the same search as this site&rsquo;s
-                  <kbd className="rounded-card border border-wk-faint bg-wk-bg px-1.5 py-0.5 font-body text-xs">
-                    Cmd&nbsp;K
-                  </kbd>{' '}
-                  box. Autocomplete searches as you type (multi-word queries and small typos are
-                  fine); the reply shows the entity&rsquo;s key stats and links to its full page
-                  here.
-                </p>
-                <p>
-                  <strong>Examples:</strong>
-                </p>
-                <ul className="ml-5 flex list-disc flex-col gap-1">
-                  <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su lookup entity: green laser
-                    </code>
-                  </li>
-                  <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su lookup entity: {examples.lookupExample.toLowerCase()}
-                    </code>
-                  </li>
-                  <li>
-                    <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su lookup entity: overheat
-                    </code>
-                  </li>
-                </ul>
-              </div>
-            </Panel>
-          </section>
-
-          {/* Notes */}
-          <section className="flex flex-col gap-3 text-sm leading-relaxed">
-            <Slab as="h2" variant="solid" label="Good to know" />
-            <ul className="ml-5 flex list-disc flex-col gap-2">
-              <li>
-                Typing <code className="rounded-card bg-wk-bg px-1 py-0.5">/su</code> filters
-                Discord&rsquo;s command picker to just this bot — no more fishing your roll out of a
-                pile of identically-named commands from other bots.
-              </li>
-              <li>
-                The bot serves the same dataset as this site, including expansion content and the
-                community Mech Monday patterns. It updates automatically when the reference does.
-              </li>
-              <li>
-                It never reads messages — its only Discord capability is answering slash commands.
-              </li>
-            </ul>
-            <p className="rounded-panel border-l-4 border-rust bg-wk-bg px-4 py-3">
-              <strong>Running a campaign?</strong> Pair the bot with{' '}
-              <a
-                href={ITUN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold text-rust hover:underline"
-              >
-                In The Union Now
-              </a>
-              {/*
-                "no-account" means usable without one: signed out, ITUN is
-                read-only, and building needs an account (ADR-034). It must
-                never be reworded to claim building or keeping work without one.
-              */}
-              , the no-account character builder &amp; game manager — sheets can be shared into
-              Discord as live public links.
-            </p>
-          </section>
-
-          {/* Attribution */}
-          <p className="border-t border-wk-faint pt-6 text-center text-xs text-wk-muted">
-            Dice rolling powered by{' '}
+      <DocPage title="Discord Bot" measure="48rem" gap={space[32]}>
+        {/* Overview + install */}
+        <section style={PROSE_16}>
+          <p>
+            The SURef bot brings this reference to your table&rsquo;s Discord server: roll on every
+            Salvage Union table and look up any game entity — chassis, systems, modules, equipment,
+            keywords, and more — without leaving the conversation. Results link back to the full
+            entry on this site.
+          </p>
+          <p>
+            It asks for no server permissions — it only ever replies to slash commands. Free and
+            with no configuration; rolling and lookups need no account.
+          </p>
+          <p>
             <a
-              href="https://randsum.dev"
+              href={DISCORD_INSTALL_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-rust hover:underline"
+              className={installButtonClass}
             >
-              Randsum.dev
+              Add to your Discord server
             </a>
-            .
           </p>
+        </section>
 
-          {/* Legal */}
-          <p className="text-center text-xs text-wk-muted">
-            <a href="/bot/terms" className="underline hover:text-rust">
-              Terms of Service
-            </a>
-            <span className="px-1.5 text-wk-faint">·</span>
-            <a href="/bot/privacy" className="underline hover:text-rust">
-              Privacy Policy
-            </a>
+        {/* Commands: every /su subcommand, from the bot's own builder */}
+        <section style={COLUMN_24}>
+          <Slab as="h2" variant="solid" label="Commands" />
+
+          {reference.map((command) => (
+            <Panel key={command.name} soft>
+              <div style={PANEL_HEAD}>
+                <p style={PANEL_TITLE}>
+                  <Usage command={command} />
+                </p>
+              </div>
+              <div style={PANEL_BODY}>
+                {commandDetail(command.name, examples) ?? <p>{command.description}.</p>}
+              </div>
+            </Panel>
+          ))}
+        </section>
+
+        <section style={PROSE_12}>
+          <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />
+          <p>
+            These read your {PRODUCT.name} account and its Games. Sign in to{' '}
+            <InlineRef href={ITUN_URL} style={BOLD}>
+              {PRODUCT.name}
+            </InlineRef>{' '}
+            with the same Discord account and the bot knows you; until then each one says how.
           </p>
-        </div>
-      </div>
+          <ul style={LIST_8}>
+            {withAccount.map((command) => (
+              <li key={command.name}>
+                <code style={CODE}>
+                  <Usage command={command} />
+                </code>{' '}
+                — {command.description}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Notes */}
+        <section style={PROSE_12}>
+          <Slab as="h2" variant="solid" label="Good to know" />
+          <ul style={LIST_8}>
+            <li>
+              Typing <code style={CODE}>/su</code> filters Discord&rsquo;s command picker to just
+              this bot — no more fishing your roll out of a pile of identically-named commands from
+              other bots.
+            </li>
+            <li>
+              The bot serves the same dataset as this site, including expansion content and the
+              community Mech Monday patterns. It updates automatically when the reference does.
+            </li>
+            <li>
+              It never reads messages — its only Discord capability is answering slash commands.
+            </li>
+          </ul>
+          <p style={ASIDE}>
+            <strong>Running a campaign?</strong> Pair the bot with{' '}
+            <InlineRef href={ITUN_URL} style={BOLD}>
+              {PRODUCT.name}
+            </InlineRef>
+            {/*
+                Signed out, ITUN is read-only; building needs an account
+                (ADR-034). Never reword this to claim building or keeping work
+                without one.
+              */}
+            , the character builder &amp; Game manager: read the Starter Set with no account, and
+            sign in with Discord to build. Sheets can be shared into Discord as live public links.
+          </p>
+        </section>
+
+        {/* Attribution */}
+        <p style={ATTRIBUTION}>
+          Dice rolling powered by{' '}
+          <InlineRef
+            href="https://randsum.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={BOLD}
+          >
+            Randsum.dev
+          </InlineRef>
+          .
+        </p>
+
+        {/* Legal */}
+        <p style={LEGAL}>
+          <InlineRef href="/bot/terms/">Terms of Service</InlineRef>
+          <span style={LEGAL_DOT}>·</span>
+          <InlineRef href="/bot/privacy/">Privacy Policy</InlineRef>
+        </p>
+      </DocPage>
     ),
   }
 }

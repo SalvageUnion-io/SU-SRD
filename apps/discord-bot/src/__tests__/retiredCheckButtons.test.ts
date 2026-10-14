@@ -14,12 +14,24 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { parseCustomId } from '../customId.js'
-import { buttonInteractionHandlerFor } from './helpers.js'
+import { parseCustomId } from '../customId'
+import { buttonInteractionHandlerFor } from './helpers'
 
 describe('buttons left behind by the retired /su check', () => {
   test('no longer parse', () => {
     expect(parseCustomId('su:check:2d6+3')).toBeNull()
+  })
+
+  test('nor do an older lookup card’s tab and pattern-picker controls', () => {
+    expect(parseCustomId('su:view:chassis::mule|1')).toBeNull()
+    expect(parseCustomId('su:peek:chassis::mule')).toBeNull()
+  })
+
+  test('the linked-entries menu is a new action, not the retired picker', () => {
+    expect(parseCustomId('su:open:chassis::kelpie::sifter')).toEqual({
+      action: 'open',
+      payload: 'chassis::kelpie::sifter',
+    })
   })
 
   test('answer with an ephemeral notice rather than failing silently', async () => {

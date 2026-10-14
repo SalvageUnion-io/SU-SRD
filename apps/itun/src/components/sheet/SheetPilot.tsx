@@ -1,6 +1,6 @@
 /**
  * SheetPilot — the pilot branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
+ * Sheet.tsx), in the poster layout.
  *
  * The body owns the identity band (Workshop-Manual layout): `PilotSheet`
  * renders the `SheetHero` band as its first region. This
@@ -9,30 +9,32 @@
  */
 
 import { Stat } from 'component-lib'
+import { containerOf } from 'itun-domain/container'
+import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
+import { pilotingContext } from 'itun-domain/rules/pilotingContext'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
-import { containerOf } from '../../lib/container'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { runWrite } from '../../lib/runWrite'
-import type { Pilot } from '../../lib/schemas/pilot'
-import { AppLink } from '../shared/AppLink'
-import { EntityRow } from '../shared/EntityRow'
+import { EmptyUnitSlot } from '../shared/EmptyUnitSlot'
+import { UnitRow } from '../shared/UnitRow'
 import { AssignPicker } from '../wiring/AssignPicker'
+import { pilotStamp } from './bandStamps.model'
+import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { PilotSheet } from './PilotSheet'
-import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
+import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats.model'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
-import type { SheetViewCommonProps } from './sheetViewProps'
+import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
 
 export function SheetPilot({
   pilot,
   composition,
-  back,
   actions,
   segments,
+  band,
   editable,
   readOnly,
   crawlerReadOnly,
@@ -45,9 +47,9 @@ export function SheetPilot({
 }: SheetPilotProps) {
   // Softlink ids for the rail's Unassign control (relocated from the removed
   // detail page). Derived from the live link set — composition only exposes
-  // resolved entities, not the link records. Per the unified edit language,
-  // link add/remove is always available on editable sheets (no edit mode), and
-  // needs no confirm: an assignment is reversible bookkeeping (ADR-007).
+  // resolved entities, not the link records. Link add/remove is available
+  // whenever the sheet is in Edit, and needs no confirm: an assignment is
+  // reversible bookkeeping (ADR-007).
   // A mech link is undrawn from its mech, so only one this sheet holds offers it
   // — a crewmate's mech flying this pilot is theirs to unassign.
   const mechLinkId = storeState.softLinks.find(
@@ -60,7 +62,7 @@ export function SheetPilot({
   )?.id
   const unassign = (linkId: string | undefined) =>
     editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
-  // Both slots pick from where the pilot lives — its Game, or My Stuff.
+  // Both slots pick from where the pilot lives — its Game, or your shelves.
   const self = { type: 'pilot', id: pilot.id } as const
   const container = containerOf(pilot)
   // Stat Training follows the pilot's crawler tier (linked crawler, else the
@@ -79,50 +81,84 @@ export function SheetPilot({
     { key: 'ap', label: 'AP', stat: 'ap', value: ap, max: maxAP },
   ]
 
-  // Linked Units rail content (poster R3, span 5) — built here because it
+  // Read (board 10): each linked unit is one line, and an empty slot is left
+  // out, as an empty field is. With nothing linked, there is no section.
+  const readRail = [
+    composition.mech ? (
+      <LinkedUnitLink
+        key="mech"
+        kind="mech"
+        name={composition.mech.name}
+        href={hrefFor('mech', composition.mech.id)}
+        stats={rowStats(
+          mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
+        )}
+      />
+    ) : withheldMech ? (
+      <WithheldUnitRow key="mech" unit={withheldMech} label="Assigned Mech" />
+    ) : null,
+    composition.crawler ? (
+      <LinkedUnitLink
+        key="crawler"
+        kind="crawler"
+        name={composition.crawler.name}
+        href={hrefFor('crawler', composition.crawler.id)}
+        stats={rowStats(crawlerRailItems(composition.crawler))}
+      />
+    ) : withheldCrawler ? (
+      <WithheldUnitRow key="crawler" unit={withheldCrawler} label="Home Crawler" />
+    ) : null,
+  ].filter((unit) => unit !== null)
+
+  // Assigned Units rail content (poster R3, span 5) — built here because it
   // needs `composition` (resolved mech/crawler), which PilotSheet does not
   // receive; handed down as `linkedUnits`.
-  const rail = (
+  const rail = !editable ? (
+    readRail.length > 0 ? (
+      readRail
+    ) : null
+  ) : (
     <>
       {composition.mech ? (
-        <EntityRow
-          entityType="mech"
-          className="flex-[1_1_0%]"
-          name={composition.mech.name}
-          sheetHref={hrefFor('mech', composition.mech.id)}
-          linkAs={AppLink}
-          meta="Assigned Mech"
-          metaLine={mechStatusPill(composition.mech).label}
-          stats={rowStats(
-            mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
-          )}
-          actions={
-            editable ? (
-              <AssignPicker
-                subject={self}
-                container={container}
-                pick="mech"
-                filled
-                exclude={[composition.mech.id]}
-                size="mini"
-              />
-            ) : undefined
-          }
-          onUnassignClick={unassign(mechLinkId)}
-        />
+        <div className="su-sheet-pilot-fill">
+          <UnitRow
+            kind="mech"
+            name={composition.mech.name}
+            note="Assigned Mech"
+            readings={[
+              ...rowStats(
+                mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
+              ),
+              { label: 'Condition', value: mechStatusPill(composition.mech).label },
+            ]}
+            href={hrefFor('mech', composition.mech.id)}
+            controls={
+              editable ? (
+                <AssignPicker
+                  subject={self}
+                  container={container}
+                  pick="mech"
+                  filled
+                  exclude={[composition.mech.id]}
+                  size="mini"
+                />
+              ) : undefined
+            }
+            onUnassign={unassign(mechLinkId)}
+          />
+        </div>
       ) : withheldMech ? (
         <WithheldUnitRow unit={withheldMech} label="Assigned Mech" />
       ) : (
-        <EntityRow
-          empty
-          entityType="mech"
-          className="flex-[1_1_0%]"
+        <EmptyUnitSlot
+          kind="mech"
+          className="su-sheet-pilot-fill"
           roleLabel="Assigned Mech"
           message="No mech assigned — assign one of yours, or build one to track its loadout and heat from here."
           actions={
             editable ? (
               <>
-                <RailCta href="/mechs/new" label="+ Create" primary />
+                <RailCta href="/mechs/new" primary />
                 <AssignPicker subject={self} container={container} pick="mech" />
               </>
             ) : undefined
@@ -130,39 +166,39 @@ export function SheetPilot({
         />
       )}
       {composition.crawler ? (
-        <EntityRow
-          entityType="crawler"
-          className="flex-[1_1_0%]"
-          name={composition.crawler.name}
-          sheetHref={hrefFor('crawler', composition.crawler.id)}
-          linkAs={AppLink}
-          meta="Home Crawler"
-          stats={rowStats(crawlerRailItems(composition.crawler))}
-          actions={
-            editable ? (
-              <AssignPicker
-                subject={self}
-                container={container}
-                pick="crawler"
-                filled
-                exclude={[composition.crawler.id]}
-                size="mini"
-              />
-            ) : undefined
-          }
-          onUnassignClick={unassign(crawlerLinkId)}
-        />
+        <div className="su-sheet-pilot-fill">
+          <UnitRow
+            kind="crawler"
+            name={composition.crawler.name}
+            note="Home Crawler"
+            readings={rowStats(crawlerRailItems(composition.crawler))}
+            href={hrefFor('crawler', composition.crawler.id)}
+            controls={
+              editable ? (
+                <AssignPicker
+                  subject={self}
+                  container={container}
+                  pick="crawler"
+                  filled
+                  exclude={[composition.crawler.id]}
+                  size="mini"
+                />
+              ) : undefined
+            }
+            onUnassign={unassign(crawlerLinkId)}
+          />
+        </div>
       ) : withheldCrawler ? (
         <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
       ) : (
-        <EntityRow
-          empty
-          entityType="crawler"
-          className="flex-[1_1_0%]"
+        <EmptyUnitSlot
+          kind="crawler"
+          className="su-sheet-pilot-fill"
           roleLabel="Home Crawler"
-          message="No crawler linked. Set the crawler level by hand until your union home is wired in."
+          message="No crawler assigned. Set the crawler level by hand until your union home is assigned."
           mock={
             <Stat
+              orientation="horizontal"
               label="CRAWLER"
               value={pilot.crawlerLevel ?? 1}
               max={6}
@@ -173,7 +209,7 @@ export function SheetPilot({
           actions={
             editable ? (
               <>
-                <RailCta href="/crawlers/new" label="+ Create" primary />
+                <RailCta href="/crawlers/new" primary />
                 <AssignPicker subject={self} container={container} pick="crawler" />
               </>
             ) : undefined
@@ -188,8 +224,9 @@ export function SheetPilot({
       variant="pilot"
       name={pilot.name}
       strip={strip}
-      back={back}
       segments={segments}
+      band={band}
+      kindDetail={pilotStamp(pilot.classRef)}
       actions={actions}
       renderBody={() => (
         <PilotSheet

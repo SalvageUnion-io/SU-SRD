@@ -5,79 +5,21 @@ pre-commit:
   parallel: true
   commands:
     biome-check:
-      # Staged files only — linting the whole monorepo on every commit was
-      # too slow (~60s); pre-push/CI still run the full check. Biome combines
-      # lint + format in one pass (`check --write`), applying only SAFE
-      # fixes. biome.jsonc's `files.includes` scopes this to apps/**,
-      # packages/**, tools/** and excludes .md/.yml/.yaml/data/** — staged
-      # files outside that scope (e.g. root docs/*.md, or a root-level config
-      # like package.json/knip.json) are silently skipped when mixed with
-      # in-scope files, so this glob can stay broad.
-      # --no-errors-on-unmatched is required, not cosmetic: Biome hard-errors
-      # (exit 1) rather than silently skipping when EVERY staged file in the
-      # glob is out of scope (verified — a commit touching only a root-level
-      # config file failed pre-commit without this flag).
+      # Staged files only; pre-push and CI run the full check.
+      # --no-errors-on-unmatched is required: Biome exits 1 when every staged
+      # file is outside files.includes.
       glob: '*.{ts,tsx,js,jsx,json,css}'
       run: bunx biome check --write --no-errors-on-unmatched {staged_files}
       stage_fixed: true
 
-    # There is deliberately no Markdown/YAML formatting step. Prettier was
-    # removed (Biome is the single formatter) and Biome still does not parse
-    # either language — verified against 2.5.7, which returns .md/.yaml stdin
-    # untouched. Those files are therefore unformatted by tooling; keep them
-    # tidy by hand. Add a step back here if Biome ships the formatters.
-
 pre-push:
-  parallel: true
   commands:
     checks:
       # Every gate except the test suite, from the ONE registry in
       # tools/check.ts — the same list `bun run check` and CI's static-checks
       # job run, with a different profile. Do not add a gate here: add it to
       # that registry, and every path picks it up. `pre-push` = the fast profile
-      # plus generated-file drift, the likeliest avoidable CI bounce.
+      # plus generated-file drift, the likeliest avoidable CI bounce. No tests:
+      # beside these checks they timed out on 8-core machines, and CI's
+      # `coverage` job runs every suite with its floors in about a minute.
       run: bun tools/check.ts --profile=pre-push
-
-    test:
-      # Runs only the test files the push can affect, via Bun's `--changed`,
-      # which selects by module graph rather than by path: editing
-      # packages/component-lib/src/components/shared/displayMode.ts selects 37 of
-      # component-lib's 84 test files (2.3s), and a push touching only docs
-      # selects none at all instead of paying the full ~32s.
-      #
-      # CRITICAL: `--changed` DOES NOT CROSS WORKSPACE BOUNDARIES, so it cannot
-      # be used alone here. Measured: edit
-      # packages/salvageunion-reference/lib/utilities.ts (since split into
-      # per-concern modules) and
-      # `bun --filter salvageunion-reference test --changed` correctly selects
-      # 27/49 — while `bun --filter component-lib test --changed` reports "no
-      # test files are affected" and runs ZERO, even though component-lib
-      # consumes that module. Relying on it for a shared-package edit would skip
-      # exactly the cross-app regressions this repo tells you to go looking for.
-      #
-      # So the shared surface is diffed FIRST and forces the full suite. The list
-      # mirrors ci.yml's `shared` path filter (which treats these as affecting
-      # everything) plus `apps/*/package.json`, since a dependency change in one
-      # app can still move the resolved tree for all of them. Only a change
-      # confined to app source takes the fast path.
-      #
-      # The base is the merge-base with origin/main — everything this branch is
-      # about to push, not just the last commit. On a long-lived branch that
-      # over-selects, which is the safe direction.
-      #
-      # The full suite here is `test:coverage`, CI's own gate (coverage floors
-      # included), so a floor breach fails the push rather than CI. The fast
-      # path is not a narrowing of that gate: CI runs it on every code PR.
-      # A missing base falls back to the full suite, never to "nothing to test".
-      run: |
-        base=$(git merge-base HEAD origin/main 2>/dev/null || true)
-        if [ -z "$base" ]; then
-          echo "pre-push: no origin/main to diff against — running CI's test gate"
-          bun run test:coverage
-        elif git diff --name-only "$base" -- packages test bunfig.toml package.json bun.lock 'apps/*/package.json' | grep -q .; then
-          echo "pre-push: shared code or dependency manifests changed — running CI's test gate"
-          echo "          (bun test --changed does not cross workspace boundaries)"
-          bun run test:coverage
-        else
-          bun --filter "*" test --changed="$base"
-        fi

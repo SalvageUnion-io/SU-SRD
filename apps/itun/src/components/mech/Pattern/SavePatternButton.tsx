@@ -3,7 +3,7 @@
  *
  * Renders as a Button. On click, opens a ModalShell dialog where the user
  * enters a pattern name. On confirm, builds a MechPattern from the supplied
- * configuration and persists it via the patternStore (audit item 22).
+ * configuration and persists it via the patternStore.
  *
  * Design choice: the pattern name defaults to the mech name so the user can
  * confirm quickly. It is editable so patterns can have descriptive template names
@@ -13,10 +13,13 @@
  * toast so the user can retry without losing the dialog state.
  */
 
-import { Button, cn, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
+import { Button, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import { useState } from 'react'
-import type { CargoLot } from '../../../lib/schemas/cargoLot'
+import { useServerAction } from '../../../lib/connection/useServerAction'
 import { usePatternStore } from '../../../stores/patternStore'
+import '../../../styles/wizard.css'
+import { dialogActionsStyle, dialogBodyStyle } from '../../wizard/wizardStyles.model'
 
 type SavePatternButtonProps = {
   /** Name of the source mech — pre-fills the pattern name field. */
@@ -27,7 +30,6 @@ type SavePatternButtonProps = {
   cargoLots: CargoLot[]
   /** Called after the pattern is successfully saved. */
   onSaved?: (patternId: string) => void
-  className?: string
 }
 
 export function SavePatternButton({
@@ -37,60 +39,51 @@ export function SavePatternButton({
   modules,
   cargoLots,
   onSaved,
-  className,
 }: SavePatternButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [patternName, setPatternName] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  // The form's own complaint; a failed save is `save.error`.
+  const [invalid, setInvalid] = useState<string | null>(null)
+  const save = useServerAction(
+    (name: string) =>
+      usePatternStore
+        .getState()
+        .create({ schemaVersion: 1, name, chassisRef, systems, modules, cargoLots }),
+    { failure: 'The pattern could not be saved. Try again.' }
+  )
+  const isSaving = save.pending
+  const saveError = invalid ?? save.error
 
   function handleOpen() {
     setPatternName(mechName)
-    setSaveError(null)
+    setInvalid(null)
+    save.clearError()
     setIsOpen(true)
   }
 
   function handleCancel() {
     setIsOpen(false)
-    setSaveError(null)
+    setInvalid(null)
+    save.clearError()
   }
 
   async function handleSave() {
     if (!patternName.trim()) {
-      setSaveError('Pattern name is required.')
+      setInvalid('Pattern name is required.')
       return
     }
+    setInvalid(null)
 
-    setIsSaving(true)
-    setSaveError(null)
-
-    try {
-      const pattern = await usePatternStore.getState().create({
-        schemaVersion: 1,
-        name: patternName.trim(),
-        chassisRef,
-        systems,
-        modules,
-        cargoLots,
-      })
-      setIsOpen(false)
-      toast.success(`Saved pattern ${pattern.name}.`)
-      onSaved?.(pattern.id)
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save pattern.')
-    } finally {
-      setIsSaving(false)
-    }
+    const result = await save.run(patternName.trim())
+    if (!result.ok) return
+    setIsOpen(false)
+    toast.success(`Saved pattern ${result.value.name}.`)
+    onSaved?.(result.value.id)
   }
 
   return (
     <>
-      <Button
-        type="button"
-        onClick={handleOpen}
-        className={cn(className)}
-        aria-label="Save as pattern"
-      >
+      <Button type="button" onClick={handleOpen} aria-label="Save as pattern">
         Save as pattern
       </Button>
 
@@ -100,9 +93,9 @@ export function SavePatternButton({
           if (!next) handleCancel()
         }}
         title="Save as pattern"
-        maxWidth="max-w-md"
+        maxWidth="su-wiz-modal-md"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
+        <div style={dialogBodyStyle}>
           <Field label="Pattern name" htmlFor="pattern-name-input">
             <Input
               id="pattern-name-input"
@@ -119,7 +112,7 @@ export function SavePatternButton({
 
           {saveError && <FieldError>{saveError}</FieldError>}
 
-          <div className="flex justify-end gap-2">
+          <div style={dialogActionsStyle}>
             <Button
               type="button"
               variant="ghost"

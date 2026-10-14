@@ -1,21 +1,21 @@
 /**
- * Integration tests for MechWizard (wizard-refresh Phase 4): the Mech
+ * Integration tests for MechWizard: the Mech
  * Workshop's 8 book steps + Review (pp.94–95) with HARD 20-Scrap + slot
  * enforcement.
  *
  * Exercises the flow Gain Scrap → Chassis → Statistics → Systems → Modules →
  * Quirk → Appearance → Pattern Name → Review → submit using the real wizard,
- * real SalvageUnionReference data, real Zod validation, and a
- * fake-indexeddb-backed entityStore.
+ * real SalvageUnionReference data, real Zod validation, and the real
+ * in-memory entityStore (signed in, server commits stubbed).
  *
- * fake-indexeddb/auto and SalvageUnionReference are preloaded via bunfig.toml.
+ * SalvageUnionReference is preloaded via bunfig.toml.
  */
 
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
@@ -29,29 +29,12 @@ withSignedInBackend()
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
-// Store reset helpers
+// Store reset
 // ---------------------------------------------------------------------------
-
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: {
-      pilots: false,
-      mechs: false,
-      crawlers: false,
-      softLinks: false,
-    },
-  })
-}
 
 beforeEach(async () => {
   sessionStorage.clear()
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
   await useEntityStore.getState().hydrate('mech')
 })
 
@@ -60,8 +43,7 @@ afterEach(async () => {
     cleanup()
   })
   sessionStorage.clear()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 // ---------------------------------------------------------------------------
@@ -87,7 +69,7 @@ function moduleByName(name: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Interaction helpers (WizShell skeleton, Phase-4 layout)
+// Interaction helpers (WizShell skeleton)
 // ---------------------------------------------------------------------------
 
 /** Chassis / pattern picks are radio Sel rings named by the entity. */
@@ -207,7 +189,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
-  }, 45000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -232,7 +214,7 @@ describe('MechWizard — hard creation enforcement', () => {
     expect(
       screen.queryByRole('button', { name: `Add one ${must(higherTlSystem).name}` })
     ).toBeNull()
-  }, 45000)
+  })
 
   it('gates the chassis and the pattern name; systems/modules stay optional', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -246,7 +228,7 @@ describe('MechWizard — hard creation enforcement', () => {
     await clickNext() // → Stats
     await clickNext() // → Systems
 
-    // ZERO systems does not block (plan Q11) — the footer says so.
+    // ZERO systems does not block — the footer says so.
     expect(getNextButton().disabled).toBe(false)
     expect(screen.getByText(/Systems are optional/i)).toBeTruthy()
     await clickNext() // → Modules
@@ -261,7 +243,7 @@ describe('MechWizard — hard creation enforcement', () => {
     expect(useEntityStore.getState().list('mech').length).toBe(0)
     await typeIdentity('Edit name / pattern', 'Iron Fist')
     expect(getNextButton().disabled).toBe(false)
-  }, 45000)
+  })
 
   it('changing the chassis refunds its scrap and wipes the loadout with a toast', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -286,7 +268,7 @@ describe('MechWizard — hard creation enforcement', () => {
     // Loadout wiped — the Cargo Pod copy is gone (sr-only status readout).
     expect(screen.getByText('Cargo Pod count: 0')).toBeTruthy()
     expect(screen.getByTestId('system-slot-count').textContent).toContain('0 /')
-  }, 45000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -340,5 +322,77 @@ describe('MechWizard — legalStarting pattern strip', () => {
       expect(m.systems).toEqual(expectedSystems)
       expect(m.modules).toEqual(expectedModules)
     })
-  }, 45000)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Deep-link preselection (`?chassis=` from an SRD chassis page)
+// ---------------------------------------------------------------------------
+
+describe('MechWizard — preselected chassis', () => {
+  it('starts on the deep-linked chassis, debited, with nothing to discard', async () => {
+    const onCancel = mock(() => {})
+    render(<MechWizard onComplete={() => {}} onCancel={onCancel} preselectChassis="mule" />)
+
+    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
+      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue} /`
+    )
+    await clickNext()
+    expect(screen.getByRole('radio', { name: 'Mule' }).getAttribute('aria-checked')).toBe('true')
+    expect(getNextButton().disabled).toBe(false)
+
+    // The preselection is the baseline: cancelling asks nothing.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    })
+    expect(onCancel).toHaveBeenCalledTimes(1)
+  }, 30000)
+
+  it('a deep-linked pattern starts with its loadout prefilled, with nothing to discard', async () => {
+    const hauler = must(mule().patterns.find((p) => p.name === 'Hauler'))
+    const onCancel = mock(() => {})
+    render(
+      <MechWizard
+        onComplete={() => {}}
+        onCancel={onCancel}
+        preselectChassis="mule"
+        preselectPattern={hauler}
+      />
+    )
+    // The pattern's loadout is debited along with the chassis.
+    expect(screen.getByTestId('scrap-remaining').textContent).not.toContain(
+      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue} /`
+    )
+    await clickNext()
+    expect(
+      screen.getByRole('radio', { name: `${hauler.name} pattern` }).getAttribute('aria-checked')
+    ).toBe('true')
+    // The preselection is the baseline: cancelling asks nothing.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    })
+    expect(onCancel).toHaveBeenCalledTimes(1)
+  }, 30000)
+
+  it('never overrides the chassis of a build in progress', async () => {
+    const { unmount } = render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    await clickNext()
+    await pickRadio('Mule')
+    await act(async () => {
+      unmount()
+    })
+
+    const other = must(
+      SalvageUnionReference.Chassis.all().find((c) => c.techLevel === 1 && c.name !== 'Mule')
+    )
+    render(
+      <MechWizard
+        onComplete={() => {}}
+        onCancel={() => {}}
+        preselectChassis={nameToSlug(other.name)}
+      />
+    )
+    await clickNext()
+    expect(screen.getByRole('radio', { name: 'Mule' }).getAttribute('aria-checked')).toBe('true')
+  }, 30000)
 })

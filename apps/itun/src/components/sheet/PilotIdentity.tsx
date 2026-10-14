@@ -1,9 +1,9 @@
 /**
- * PilotIdentityPanel — the pilot poster's IDENTITY card body (redesign Phase
- * 2): the poster's labeled fields — Name / Callsign / Class / Appearance
+ * PilotIdentityPanel — the pilot poster's IDENTITY card body: the poster's
+ * labeled fields — Name / Callsign / Class / Appearance
  * (left) and Motto / Keepsake / Background with their once-per-Downtime USED
- * toggles (rules A8–A10) on the right, plus a folded-in Bio field (#409 — the
- * dropped live-play Bio section's data still needs a home) — rendered via the
+ * toggles on the right, plus a folded-in Bio field (the Bio's home: the sheet
+ * has no Bio section) — rendered via the
  * shared IdentityField primitive.
  *
  * FIELD-section archetype (unified edit language). The parent
@@ -14,7 +14,7 @@
  * (changing class KEEPS abilities).
  *
  * Its body is `ClassPathPicker`, NOT the shared `EntitySearcher` that every
- * other reference-entity picker in this app routes through (#713). This is the
+ * other reference-entity picker in this app routes through. This is the
  * deliberate exception: a class change is a move around the advancement ring,
  * so the options are grouped by where this pilot can actually go and a hybrid
  * destination may have to ASK which Core class they came from before it can
@@ -27,20 +27,76 @@
  * affordance renders regardless).
  */
 
-import { Badge, Button, cn, Field } from 'component-lib'
+import { Badge, Button, Field, tokens } from 'component-lib'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { resolveClassName } from '../../lib/classRef'
-import type { Pilot } from '../../lib/schemas/pilot'
+import { classChangePatch } from '../../lib/rules/classPath'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
-import { classChangePatch } from '../pilot/classPathOptions'
-import { selectableClasses } from '../wizard/classOptions'
+import { selectableClasses } from '../wizard/classOptions.model'
 import { SheetPickerModal } from './SheetSection'
-import type { SheetPatch } from './sheetViewProps'
+import type { SheetPatch } from './sheetViewProps.model'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
 
+/** The used pip: a hollow chip in the stamp's current colour. */
+const PIP = {
+  border: `${tokens.borderWidth.pill} solid currentColor`,
+  borderRadius: tokens.radius.badge,
+  flexShrink: 0,
+  height: '12px',
+  width: '16px',
+} satisfies CSSProperties
+
+/** Set: the pip fills with the sheet's tone. */
+const PIP_SET = {
+  backgroundColor: 'var(--tone, var(--color-pilot))',
+  borderColor: 'var(--tone, var(--color-pilot))',
+} satisfies CSSProperties
+
+const USED_CHIP = { gap: tokens.space[6] } satisfies CSSProperties
+
+const PANEL = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  height: '100%',
+  minWidth: 0,
+} satisfies CSSProperties
+
+/** A field grid; its two-column split from `sm` is `.su-sheet-pilot-split`. */
+const FIELD_GRID = {
+  columnGap: tokens.space[16],
+  display: 'grid',
+  rowGap: tokens.space[12],
+} satisfies CSSProperties
+
+const ONE_COLUMN = { gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' } satisfies CSSProperties
+
+const FIELD_COLUMN = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  minWidth: 0,
+} satisfies CSSProperties
+
+const BIO = {
+  display: 'flex',
+  flex: '1 1 0%',
+  flexDirection: 'column',
+  minHeight: 0,
+} satisfies CSSProperties
+
+const PICKER_ACTIONS = {
+  display: 'flex',
+  gap: tokens.space[8],
+  justifyContent: 'flex-end',
+  paddingTop: tokens.space[16],
+} satisfies CSSProperties
+
 // ---------------------------------------------------------------------------
-// Used chip (once-per-Downtime toggles, rules A8–A10) — live-play control,
+// Used chip (once-per-Downtime toggles) — live-play control,
 // always available while editable (not gated behind the section edit).
 // ---------------------------------------------------------------------------
 
@@ -59,21 +115,13 @@ function UsedChip({
   // stable and the eye isn't asked to re-read the label to learn the state.
   // ONLY the pip carries it — a small CHIP (the stamp's own rectangular
   // vocabulary), hollow when unset and tone-filled when set.
-  const pip = (
-    <span
-      aria-hidden="true"
-      className={cn(
-        'h-3 w-4 shrink-0 rounded-badge border-2 border-current',
-        used && 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
-      )}
-    />
-  )
+  const pip = <span aria-hidden="true" style={{ ...PIP, ...(used && PIP_SET) }} />
   if (!onToggle) {
     // Read-only: the stamp shows only when set (nothing to toggle, so an unset
     // one would be a control that isn't).
     if (!used) return null
     return (
-      <Badge shape="chip" surface="solid" className="gap-1.5">
+      <Badge shape="chip" style={USED_CHIP}>
         {pip}
         Used
       </Badge>
@@ -85,11 +133,10 @@ function UsedChip({
     <Badge
       as="button"
       shape="chip"
-      surface="solid"
       aria-pressed={used}
       aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
       onClick={() => onToggle(!used)}
-      className="gap-1.5"
+      style={USED_CHIP}
     >
       {pip}
       Used
@@ -105,21 +152,15 @@ type PilotIdentityPanelProps = {
   pilot: Pilot
   /**
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
-   * Edit/Done button (Phase 2: the chead row lives in the card, not here).
+   * Edit/Done button (the chead row lives in the card, not here).
    */
   /** Persist a used-flag change; omit on read-only sheets (static stamps). */
   onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
   /** Partial merge on this pilot; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
-  className?: string
 }
 
-export function PilotIdentityPanel({
-  pilot,
-  onToggleUsed,
-  patch,
-  className,
-}: PilotIdentityPanelProps) {
+export function PilotIdentityPanel({ pilot, onToggleUsed, patch }: PilotIdentityPanelProps) {
   const [classPickerOpen, setClassPickerOpen] = useState(false)
   // Class picker holds a pending selection until confirmed (destructive-ish:
   // it re-homes the pilot's class; abilities are intentionally kept).
@@ -136,6 +177,14 @@ export function PilotIdentityPanel({
   const allClasses = [...base, ...specialisations]
 
   const canEdit = patch !== undefined
+  // The band's title is the name; a callsign that only repeats it adds nothing
+  // in Read. Edit always shows it: it is the callsign's edit surface.
+  const showCallsign =
+    canEdit || pilot.callsign.trim().toLowerCase() !== pilot.name.trim().toLowerCase()
+  // In Read a Field with no value renders nothing, so the left column can be
+  // empty (a Starter pilot: callsign is the name, no pronouns). Drop it then,
+  // rather than leave half the card blank beside the Motto column.
+  const leftColumn = canEdit || showCallsign || (pilot.pronouns ?? '').trim() !== ''
 
   /** Persist a trimmed freeform field (empty allowed). */
   const saveText = (field: keyof Pilot) => (next: string) => {
@@ -173,48 +222,61 @@ export function PilotIdentityPanel({
   )
 
   return (
-    // `h-full` + a flex column: the identity card is stretched to match the
+    // Full height + a flex column: the identity card is stretched to match the
     // vitals card beside it, so the panel spends that height on its fields
     // (the Bio grows into whatever is left) instead of leaving dead paper.
-    <div className={cn('flex h-full min-w-0 flex-col gap-3', className)}>
+    <div style={PANEL}>
       {/* Poster field grid — left / right columns; single column on mobile in
           the poster's reading order. The columns keep their natural row rhythm
           — spreading them independently pulled Keepsake/Background out of line
           with Callsign/Class, since each column distributes its own slack. All
           the leftover height goes to the Bio instead. */}
-      <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-        <div className="flex min-w-0 flex-col gap-3">
-          {/* Callsign and Class lead TOGETHER, at the same prominence: what a
+      <div
+        className={leftColumn ? 'su-sheet-pilot-split' : undefined}
+        style={leftColumn ? FIELD_GRID : { ...FIELD_GRID, ...ONE_COLUMN }}
+      >
+        {leftColumn && (
+          <div style={FIELD_COLUMN}>
+            {/* Callsign and Class lead TOGETHER, at the same prominence: what a
               pilot is called and what they do are the two facts you identify
-              them by. Name lives here too — with the global Edit toggle gone,
-              this is the pilot's name edit surface (the hero title mirrors it). */}
-          <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+              them by. Name lives here too, in Edit: this is the pilot's name edit
+              surface (the band's title mirrors it).
+
+              Read prints only what the band does not: its eyebrow stamps the
+              class and its title is the name, so Class goes, and Callsign goes
+              when it is the name. Repeating them straight under the band read
+              as a subtitle saying the title twice. */}
+            {(canEdit || showCallsign) && (
+              <div className="su-sheet-pilot-split" style={FIELD_GRID}>
+                {showCallsign && (
+                  <Field
+                    label="Callsign"
+                    value={pilot.callsign}
+                    onSave={canEdit ? saveRequired('callsign') : undefined}
+                    prominent
+                  />
+                )}
+                {canEdit && (
+                  <Field
+                    label="Class"
+                    value={resolveClassName(pilot.classRef)}
+                    onEditClick={openClassPicker}
+                    prominent
+                  />
+                )}
+              </div>
+            )}
+            {/* Read omits the name: it is the band's title. */}
+            {canEdit && <Field label="Name" value={pilot.name} onSave={saveRequired('name')} />}
             <Field
-              label="Callsign"
-              value={pilot.callsign}
-              onSave={canEdit ? saveRequired('callsign') : undefined}
-              prominent
-            />
-            <Field
-              label="Class"
-              value={resolveClassName(pilot.classRef)}
-              onEditClick={canEdit ? openClassPicker : undefined}
-              prominent
+              label="Pronouns"
+              value={pilot.pronouns ?? ''}
+              onSave={canEdit ? saveText('pronouns') : undefined}
+              placeholder="—"
             />
           </div>
-          <Field
-            label="Name"
-            value={pilot.name}
-            onSave={canEdit ? saveRequired('name') : undefined}
-          />
-          <Field
-            label="Pronouns"
-            value={pilot.pronouns ?? ''}
-            onSave={canEdit ? saveText('pronouns') : undefined}
-            placeholder="—"
-          />
-        </div>
-        <div className="flex min-w-0 flex-col gap-3">
+        )}
+        <div style={FIELD_COLUMN}>
           <Field
             label="Motto"
             value={pilot.motto}
@@ -249,7 +311,7 @@ export function PilotIdentityPanel({
       />
 
       {/* Bio — the freeform backstory, a full-width identity field. */}
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div style={BIO}>
         <Field
           label="Bio"
           value={pilot.description ?? ''}
@@ -257,7 +319,7 @@ export function PilotIdentityPanel({
           fill
           onSave={canEdit ? saveText('description') : undefined}
           placeholder="No bio written yet."
-          className="flex-1"
+          className="su-sheet-pilot-fill"
         />
       </div>
 
@@ -266,8 +328,8 @@ export function PilotIdentityPanel({
       {/* NOT `floating`. That branch renders a bare shell and hands the frame
           to a single `EntitySearcher` child; this body is a ClassPathPicker, so
           it wants the modal's own frame. And since `SheetPickerModal` has no
-          `footer` prop by design (#713 removed it — a `floating` + `footer`
-          call silently dropped its confirm buttons), the actions render here,
+          `footer` prop by design (a `floating` + `footer` call would silently
+          drop its confirm buttons), the actions render here,
           as the picker's siblings. */}
       <SheetPickerModal
         open={classPickerOpen}
@@ -282,7 +344,7 @@ export function PilotIdentityPanel({
           answeredOrigin={answeredOrigin}
           onAnswerOrigin={setAnsweredOrigin}
         />
-        <div className="flex justify-end gap-2 pt-4">
+        <div style={PICKER_ACTIONS}>
           <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
             Cancel
           </Button>

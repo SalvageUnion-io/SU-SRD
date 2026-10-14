@@ -3,7 +3,7 @@
  * (ADR-038 §5).
  *
  * Downtime is Game state, not the device's: the `downtime` row
- * (`convex/downtime.ts`) the Game hub's `DowntimePanel` already runs. The
+ * (`convex/downtime.ts`) the Game page's `DowntimeTrack` also runs. The
  * Mediator starts, advances and ends it, and every member's Dashboard follows
  * through one `downtime.state` subscription: while a step is running the
  * Crawler takes the Major slot, and when it ends each player is back wherever
@@ -18,17 +18,17 @@
  */
 
 import { useMutation, useQuery } from 'convex/react'
+import { containerOf } from 'itun-domain/container'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf } from '../../lib/container'
 import { reportWriteFailure } from '../../lib/runWrite'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { reportRefusedWrite } from './useSeat'
 
 /** A member of the Game, as a ready pip names them. */
-export type DowntimeMember = { userId: string; displayName: string }
+type DowntimeMember = { userId: string; displayName: string }
 
 /** What the Dashboard reads off the Game's Downtime. */
 export type DowntimeView = {

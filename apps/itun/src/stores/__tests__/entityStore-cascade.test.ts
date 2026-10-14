@@ -1,20 +1,17 @@
 /**
- * entityStore integrity tests (plan 2.7, gap 9):
+ * entityStore integrity tests:
  *   - deleting a pilot/mech/crawler prunes every SoftLink referencing it
- *   - updateCrawlerBay merges a single bay entry onto the freshest persisted
- *     record (per-bay merge, no whole-array clobber)
- *
- * fake-indexeddb/auto is preloaded via bunfig.toml.
+ *   - updateCrawlerBay merges a single bay entry onto the record held in
+ *     memory right now (per-bay merge, no whole-array clobber)
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { _resetDbSingleton, clearCache, softLinks as dbSoftLinks } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// These write, and only the signed-in backend writes. See signedInBackend.ts.
 withSignedInBackend()
 
 const basePilotInput = {
@@ -52,30 +49,12 @@ const baseCrawlerInput = {
   ],
 }
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: {
-      pilots: false,
-      mechs: false,
-      crawlers: false,
-      softLinks: false,
-    },
-  })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+beforeEach(() => {
+  resetStores()
 })
 
-afterEach(async () => {
-  await clearCache()
-  resetEntityStore()
+afterEach(() => {
+  resetStores()
 })
 
 describe('entity delete cascades to softLinks', () => {
@@ -107,14 +86,9 @@ describe('entity delete cascades to softLinks', () => {
 
     await useEntityStore.getState().delete('pilot', pilot.id)
 
-    // In-memory state pruned…
-    const remaining = useEntityStore.getState().softLinks
-    expect(remaining.find((l) => l.id === mechLink.id)).toBeUndefined()
-    expect(remaining.find((l) => l.id === crawlerLink.id)).toBeUndefined()
-
-    // …and persisted state too.
-    expect(await dbSoftLinks.get(mechLink.id)).toBeNull()
-    expect(await dbSoftLinks.get(crawlerLink.id)).toBeNull()
+    // Both links are pruned from the store.
+    expect(useEntityStore.getState().get('softLink', mechLink.id)).toBeNull()
+    expect(useEntityStore.getState().get('softLink', crawlerLink.id)).toBeNull()
 
     // Unrelated entities survive.
     expect(useEntityStore.getState().get('mech', mech.id)).not.toBeNull()
@@ -139,20 +113,22 @@ describe('entity delete cascades to softLinks', () => {
 
     await useEntityStore.getState().delete('pilot', victim.id)
 
-    expect(await dbSoftLinks.get(survivorLink.id)).not.toBeNull()
+    expect(useEntityStore.getState().get('softLink', survivorLink.id)).not.toBeNull()
   })
 })
 
 describe('updateCrawlerBay — per-bay merge', () => {
-  test('patches one bay entry against the freshest persisted record', async () => {
+  test('patches one bay entry against the record held right now', async () => {
     const store = useEntityStore.getState()
     await store.hydrate('crawler')
     const crawler = await store.create('crawler', baseCrawlerInput)
 
-    // Simulate ANOTHER writer (another tab) landing a change this tab's
-    // in-memory copy has not seen: command-bay NPC renamed directly in IDB.
-    const { crawlers: dbCrawlers } = await import('../../lib/db/index')
-    await dbCrawlers.update(crawler.id, {
+    // ANOTHER writer (another tab or device) lands a change after the caller
+    // read its copy: the server sends the crawler back with the command-bay
+    // NPC renamed, and the store adopts it.
+    await useEntityStore.getState().adopt('crawler', {
+      ...crawler,
+      updatedAt: new Date(Date.parse(crawler.updatedAt) + 1000).toISOString(),
       crawlerBays: [
         {
           bayRef: 'command-bay',
@@ -163,7 +139,7 @@ describe('updateCrawlerBay — per-bay merge', () => {
       ],
     })
 
-    // This tab patches the OTHER bay. A whole-array write from stale memory
+    // The caller patches the OTHER bay. A whole-array write from stale memory
     // would clobber the rename; the per-bay merge must not.
     const updated = await useEntityStore
       .getState()

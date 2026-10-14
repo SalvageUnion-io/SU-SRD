@@ -58,6 +58,7 @@
  */
 
 import type { RegisterSWOptions } from 'vite-plugin-pwa/types'
+import { BASE_PATH } from '../appUrl'
 import { captureException } from '../observability'
 
 export type RegisterOptions = {
@@ -96,8 +97,10 @@ const MIN_CHECK_GAP_MS = 60 * 1000
  * `/` → `index.html` mapping included, in a worker built before
  * `directoryIndex: null` — so the answer is the network's, not the cache's.
  * The Worker serves `/` for it like any other request; assets ignore the query.
+ * Under the app's base (`/build/` on salvageunion.io), not the
+ * origin's root, which is another app's page there.
  */
-const SHELL_PROBE = '/?sw-shell-probe'
+const SHELL_PROBE = `${BASE_PATH}/?sw-shell-probe`
 
 /** The entry chunk `registerServiceWorker` was told this page booted from. */
 let bootedEntryChunk: string | undefined

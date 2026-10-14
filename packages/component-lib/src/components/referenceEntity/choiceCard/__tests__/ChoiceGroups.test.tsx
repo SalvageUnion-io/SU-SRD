@@ -51,7 +51,7 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
     expect(screen.getByText('Ballistic')).toBeTruthy()
     expect(screen.getByText('Energy')).toBeTruthy()
     // New style: unchosen options carry no stamp; only a chosen option gets "Chosen".
-    expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.queryByText(/^Chosen/)).toBeNull()
     expect(screen.getByRole('button', { name: /Ballistic/ }).getAttribute('aria-pressed')).toBe(
       'false'
     )
@@ -62,11 +62,11 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
     const ballistic = screen.getByRole('button', { name: /Ballistic/ })
     fireEvent.click(ballistic)
     expect(ballistic.getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByText('Chosen')).toBeTruthy()
+    expect(screen.getByText(/^Chosen/)).toBeTruthy()
 
     fireEvent.click(ballistic)
     expect(ballistic.getAttribute('aria-pressed')).toBe('false')
-    expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.queryByText(/^Chosen/)).toBeNull()
   })
 })
 
@@ -153,7 +153,7 @@ describe('ChoiceGroups — free-text choice', () => {
     expect(field).toBeTruthy()
     // Free-text input cards carry no Chosen / Not Chosen status stamp.
     expect(screen.queryByText('Not Chosen')).toBeNull()
-    expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.queryByText(/^Chosen/)).toBeNull()
 
     fireEvent.change(field, { target: { value: 'Rex' } })
     expect(field.value).toBe('Rex')
@@ -226,19 +226,21 @@ const tableChoice: SURefObjectChoice = {
 describe('ChoiceGroups — table choice (A.I. Personality)', () => {
   test('renders the cited table header (title + roll), rows collapsed', () => {
     render(<ChoiceGroups choices={[tableChoice]} readOnly />)
-    // the header names the table and exposes the Roll button…
+    // the header names the table, and its ROLL THE DIE stamp is the roll…
     expect(screen.getByText('A.I. Personality Table')).toBeTruthy()
-    expect(screen.getByRole('button', { name: /Roll on this table/i })).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'Roll the die on A.I. Personality Table' })
+    ).toBeTruthy()
     // …but the rows are collapsed by default (no <table> in the DOM yet)
-    expect(screen.queryAllByRole('table').length).toBe(0)
+    expect(screen.queryAllByRole('listitem').length).toBe(0)
     // read-only: no input
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
   test('expands the table rows via the Show toggle', () => {
     render(<ChoiceGroups choices={[tableChoice]} readOnly />)
-    expect(screen.queryAllByRole('table').length).toBe(0)
-    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
-    expect(screen.getAllByRole('table').length).toBeGreaterThan(0)
+    expect(screen.queryAllByRole('listitem').length).toBe(0)
+    fireEvent.click(screen.getByRole('button', { name: /Show the A.I. Personality Table table/i }))
+    expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0)
   })
 })

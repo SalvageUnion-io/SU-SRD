@@ -15,11 +15,12 @@ import type { BuildAssets } from '../document'
 import { renderDocument } from '../document'
 import type { DocumentMeta } from '../types'
 
-const NO_ASSETS: BuildAssets = { scripts: [], styles: [], built: {} }
+const NO_ASSETS: BuildAssets = { scripts: [], styles: [], fonts: [], built: {} }
 
 const ASSETS: BuildAssets = {
   scripts: ['/assets/islands-DEADBEEF.js'],
   styles: ['/assets/styles-CAFEBABE.css'],
+  fonts: ['/assets/barlow-latin-400-normal-F0E7.woff2'],
   built: { 'src/assets/map.webp': '/assets/map-F00D.webp' },
 }
 
@@ -82,8 +83,20 @@ describe('document shell', () => {
     expect(html.indexOf('styles-CAFEBABE.css')).toBeLessThan(html.indexOf('islands-DEADBEEF.js'))
   })
 
+  it('preloads the fonts ahead of the stylesheet, in CORS mode', () => {
+    // Discovered from <head> rather than from the parsed stylesheet, so the
+    // first paint is already in Barlow and the swap re-wraps nothing.
+    const html = renderAbout({}, ASSETS)
+
+    expect(html).toContain(
+      '<link rel="preload" href="/assets/barlow-latin-400-normal-F0E7.woff2" as="font" type="font/woff2" crossorigin>' +
+        '<link rel="stylesheet" href="/assets/styles-CAFEBABE.css">'
+    )
+  })
+
   it('injects nothing when there are no assets', () => {
     expect(renderAbout()).not.toContain('rel="stylesheet"')
+    expect(renderAbout()).not.toContain('as="font"')
   })
 
   it('throws rather than emitting a document it could not inject into', () => {
@@ -136,14 +149,18 @@ describe('island props payload', () => {
   })
 
   it('collects the chrome islands BaseLayout renders, not only the page’s own', () => {
-    // TopNavigation's three islands are part of every base-shell page, so they
+    // TopNavigation's chrome islands are part of every base-shell page, so they
     // take the first ids and the page's own island follows them.
     const html = renderAbout()
-    expect(html).toContain('data-island="SearchIsland" data-client="idle" data-island-id="i0"')
     expect(html).toContain(
-      'data-island="MobileSearchIsland" data-client="idle" data-island-id="i1"'
+      'data-island="SearchIsland" data-client="interaction" data-island-id="i0"'
     )
-    expect(html).toContain('data-island="MobileNavIsland" data-client="idle" data-island-id="i2"')
+    expect(html).toContain(
+      'data-island="MobileSearchIsland" data-client="interaction" data-island-id="i1"'
+    )
+    expect(html).toContain(
+      'data-island="MobileNavIsland" data-client="interaction" data-island-id="i2"'
+    )
     // …and none of them carries props, so the page ships no props tag at all.
     // MobileNavIsland taking zero props is what removed 17.3 MB from the build.
     expect(html).not.toContain('data-island-props')
@@ -225,6 +242,28 @@ describe('head assembly from DocumentMeta', () => {
 
   it("emits the manifest's theme-color on every page", () => {
     expect(metaContent(renderAbout(), 'theme-color')).toBe(THEME_COLOR)
+  })
+
+  it('gives a link preview its own title, description and theme-color (issue 1280)', () => {
+    const html = renderAbout({
+      title: 'Scrapper - Chassis - Salvage Union SRD',
+      description: 'The body, for search.',
+      ogTitle: 'Scrapper',
+      ogDescription: 'Chassis · Tech Level 1 · Workshop Manual · p.104',
+      themeColor: 'var-free-tone',
+    })
+    expect(html).toContain('<title>Scrapper - Chassis - Salvage Union SRD</title>')
+    expect(metaContent(html, 'description')).toBe('The body, for search.')
+    expect(metaContent(html, 'og:title')).toBe('Scrapper')
+    expect(metaContent(html, 'twitter:title')).toBe('Scrapper')
+    expect(metaContent(html, 'og:description')).toBe(
+      'Chassis · Tech Level 1 · Workshop Manual · p.104'
+    )
+    expect(metaContent(html, 'twitter:description')).toBe(
+      'Chassis · Tech Level 1 · Workshop Manual · p.104'
+    )
+    expect(metaContent(html, 'og:image:alt')).toBe('Scrapper')
+    expect(metaContent(html, 'theme-color')).toBe('var-free-tone')
   })
 
   it('emits robots only for a noindex page', () => {

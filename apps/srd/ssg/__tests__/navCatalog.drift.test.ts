@@ -32,7 +32,7 @@ describe('generated nav catalog', () => {
       expect(section.label).toBeTruthy()
       expect(section.schemas.length).toBeGreaterThan(0)
       for (const schema of section.schemas) {
-        expect(schema.href).toStartWith('/schema/')
+        expect(schema.href).toBe(`/${schema.id}/`)
       }
     }
   })

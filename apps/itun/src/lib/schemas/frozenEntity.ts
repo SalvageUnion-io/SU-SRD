@@ -4,7 +4,7 @@
  * ## Why this is its own module
  *
  * It began beside the read-only Zustand store that renders the result (now
- * `components/sheet/readOnlySheetStore.ts`). It moved here when the snapshot
+ * `components/sheet/readOnlySheetStore.model.ts`). It moved here when the snapshot
  * publish handler in the Cloudflare Worker needed the same parse, because that
  * store imports `zustand` and the entity store and esbuild follows the module,
  * not the call. Publishing is retired (ADR-036), so today every caller is a
@@ -13,19 +13,22 @@
  * every caller is an adapter around it.
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import type { Npc } from 'itun-domain/schemas/npc'
+import { NpcSchema } from 'itun-domain/schemas/npc'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { isRecord } from '../isRecord'
-import type { Crawler } from './crawler'
-import { CrawlerSchema } from './crawler'
-import type { Mech } from './mech'
-import { MechSchema } from './mech'
-import type { Pilot } from './pilot'
-import { PilotSchema } from './pilot'
 
 /** A parsed frozen entity, or the reason it could not be parsed. */
 export type FrozenParse =
   | { ok: true; kind: 'pilot'; entity: Pilot }
   | { ok: true; kind: 'mech'; entity: Mech }
   | { ok: true; kind: 'crawler'; entity: Crawler }
+  | { ok: true; kind: 'npc'; entity: Npc }
   | { ok: false; reason: string }
 
 /**
@@ -61,6 +64,13 @@ export function parseFrozenEntity(kind: unknown, entity: unknown): FrozenParse {
     return parsed.success
       ? { ok: true, kind: 'crawler', entity: parsed.data }
       : { ok: false, reason: `Invalid crawler data: ${parsed.error.message}` }
+  }
+
+  if (kind === 'npc') {
+    const parsed = NpcSchema.safeParse(entity)
+    return parsed.success
+      ? { ok: true, kind: 'npc', entity: parsed.data }
+      : { ok: false, reason: `Invalid NPC data: ${parsed.error.message}` }
   }
 
   return { ok: false, reason: `Unknown entity kind: ${String(kind)}` }

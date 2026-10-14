@@ -1,5 +1,5 @@
 /**
- * Tests for the hooks/entities layer (design review T-7).
+ * Tests for the hooks/entities layer.
  *
  * Covers the contract the migrated components rely on:
  *   - list/by-id hooks read the store's in-memory state
@@ -11,13 +11,14 @@
  *   - (workspace hooks were removed with Workspaces themselves; container
  *     render-stable
  *
- * Conventions: real stores + fake-indexeddb, no mock.module(),
+ * Conventions: real in-memory stores, no mock.module(),
  * toBeTruthy()/toBeFalsy() (no jest-dom augmentation).
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -54,27 +55,12 @@ const baseMechInput = {
   conditions: [],
 }
 
-function resetStores(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
+beforeEach(resetStores)
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetStores()
-})
-
-afterEach(async () => {
+afterEach(() => {
   // Unmount before the reset: this hook runs before the preload's cleanup, and a
   // mounted subscriber answers the reset by starting hydrations that resolve after act().
   cleanup()
-  await clearCache()
   resetStores()
 })
 
@@ -106,10 +92,13 @@ describe('usePilots', () => {
   })
 
   test('auto-triggers lazy hydration for an unhydrated type', async () => {
-    // Seed IndexedDB, then wipe in-memory state so pilots are unhydrated.
-    await useEntityStore.getState().hydrate('pilot')
-    await useEntityStore.getState().create('pilot', basePilotInput)
-    resetStores()
+    // A row the server sent, held while pilots are still unhydrated.
+    await useEntityStore.getState().adopt('pilot', {
+      ...basePilotInput,
+      id: crypto.randomUUID(),
+      createdAt: FIXTURE_NOW,
+      updatedAt: FIXTURE_NOW,
+    })
     expect(useEntityStore.getState().hydrated.pilots).toBe(false)
 
     function PilotList() {

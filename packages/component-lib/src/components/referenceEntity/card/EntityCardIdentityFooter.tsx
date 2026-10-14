@@ -1,21 +1,18 @@
-import type { ReactNode } from 'react'
-import { cn } from '../../../utils/cn'
-import type { CardFootMeta } from '../../shared/Card'
+import type { CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import type { CardFootMeta } from '../../containers/Card'
+import type { CardSize } from '../../containers/displayMode'
+import type { CardColors } from './cardChrome'
 import type { AdditionalSource } from './provenance'
 import { formatProvenance } from './provenance'
 
 type EntityCardIdentityFooterProps = {
-  /** Darker shade of the domain/tech-level tone (a raw CSS colour). */
-  bgColor: string
   /**
-   * Foreground for `bgColor`, chosen by contrast (`onToneText`). Every line
-   * prints in it at full strength: this is 12px text, so it owes 4.5:1, and a
-   * muted `paper/70` measures 3.99:1 on mech's deep shade.
-   * Hierarchy comes from weight and case, not from a fade.
+   * Entity KIND (e.g. "Chassis") — the caps label on the LEFT of the row. Only
+   * a Page's foot names it (E9: ITUN's detail dialog); a card's and a Peek's
+   * pass none.
    */
-  onBandText: string
-  /** Entity TYPE (e.g. "Chassis") — plain muted text on the LEFT of the row. */
-  typeLabel: string | undefined
+  typeLabel?: string | undefined
   source: string | undefined
   booklet: string | undefined
   page: number | undefined
@@ -31,33 +28,63 @@ type EntityCardIdentityFooterProps = {
    * footer's right side, before the source/page. */
   footMeta?: CardFootMeta[]
   /**
-   * App-supplied cross-link (ITUN's "View in SRD →"), sourced from
+   * App-supplied cross-link (ITUN's "View in SRD"), sourced from
    * `EntityExternalLinkProvider`. Full extent only — the card passes
    * `undefined` for head/catalog so listings stay uncluttered.
    */
   externalLink?: ReactNode
-  compact?: boolean
+  size: CardSize
+  /** USER-MADE (ruleset §3.9): the footer rule is dashed. */
+  dashed?: boolean
+  /**
+   * USER-MADE credit (ruleset §3.9): "Made by [user]", in the place a page
+   * citation takes on a canon card. It replaces the book citation and the
+   * reprints line — a homebrew card has no page to cite, and the card passes
+   * no source with it.
+   */
+  credit?: string
+  /**
+   * PEEK only: the header band's colours (`resolveCardColors`). The footer
+   * paints the same band, so a Peek reads as one coloured plate top and
+   * bottom, in the foreground already measured against it. Absent ⇒ ink type
+   * on the card's own paper.
+   */
+  band?: CardColors
 }
 
+const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
+
+const capsLabel = {
+  fontFamily: font.cond,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsTight,
+  lineHeight: 1,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const truncate = {
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
 /**
- * EntityCardIdentityFooter — the card's FOOTER band (depth-0 / full cards only).
+ * EntityCardIdentityFooter — the card's FOOTER (depth-0 / full cards only):
+ * ink-2 type on the card's own paper, under a 1.5px ink rule (dashed on a
+ * user-made card). Not a band in the tone's deep shade: the frame, the "//"
+ * line and the footer are ink on paper, so the tone lives in the header alone
+ * (board E1). A Peek is the exception: its footer wears the header band
+ * (`band`), so the floating card reads as one plate.
  *
- * ONE muted row: the entity TYPE on the LEFT, provenance (source · page) on the
- * RIGHT — e.g. "Chassis … Salvage Union Workshop Manual · p.128". The type is
- * PLAIN muted text in the exact footer treatment (not a Stamp/pseudoheader);
- * the type stamp moved OUT of the seam to here on full cards. (Nested/compact
- * cards have no footer, so they keep the type stamp in the seam.)
- *
- * A SECOND, right-aligned line follows when the entity carries reprints
- * (`additionalSources`) — "Also in  Salvage Union Starter Set (PH) · p.38". It
- * is the same muted treatment as the primary line with an `Also in` label in the
- * footer's existing label vocabulary, because it is the SAME kind of fact (which
- * book, which page), just a secondary printing. With no reprints the band is
- * byte-for-byte what it was: one row, same padding.
+ * ONE row: on a Page the entity KIND on the LEFT, provenance (source · page)
+ * on the RIGHT — "Chassis … Workshop Manual · p.128"; a card's foot is the
+ * provenance alone. A SECOND,
+ * right-aligned line follows when the entity carries reprints
+ * (`additionalSources`) — "Also in  Salvage Union Starter Set (PH) · p.38".
+ * A user-made card puts its `credit` ("Made by alxjrvs") where the source goes.
  */
 export function EntityCardIdentityFooter({
-  bgColor,
-  onBandText,
   typeLabel,
   source,
   booklet,
@@ -65,65 +92,112 @@ export function EntityCardIdentityFooter({
   additionalSources,
   footMeta,
   externalLink,
-  compact = false,
+  size,
+  dashed = false,
+  credit,
+  band,
 }: EntityCardIdentityFooterProps) {
-  const primary = formatProvenance(source, booklet, page)
-  const reprints = (additionalSources ?? [])
+  const primary = credit ?? formatProvenance(source, booklet, page)
+  const reprints = (credit ? [] : (additionalSources ?? []))
     .map((entry) => formatProvenance(entry.source, entry.booklet, entry.page))
     .filter((line): line is string => !!line)
-  // Foot extras force the band even without source/page data — they are
+  // Foot extras force the footer even without source/page data — they are
   // affordances, not source chrome.
   const hasFootExtras = (footMeta?.length ?? 0) > 0 || !!externalLink
 
   if (!typeLabel && !primary && reprints.length === 0 && !hasFootExtras) return null
 
-  const textClass = cn('truncate font-body text-xs font-normal normal-case', onBandText)
-
   return (
     <div
-      className={cn(
-        // px-3 so the type's left edge lines up with the seam/title/sub-header.
-        'flex w-full flex-col gap-1',
-        // The band was 4px/6px of padding around a 12px line — a 24px strip
-        // that read as a hairline rather than a footer, especially on the live
-        // sheets (every card there is `medium`, so it took the compact rung).
-        compact ? 'px-3 py-2' : 'px-3 py-2.5'
-      )}
-      style={{ backgroundColor: bgColor }}
+      style={{
+        borderTopColor: 'var(--color-ink)',
+        borderTopStyle: dashed ? 'dashed' : 'solid',
+        borderTopWidth: 'var(--bw-chrome)',
+        background: band?.bandColor,
+        color: band?.bandColor ? `var(--color-${band.onBand})` : color.ink2,
+        display: 'flex',
+        flexDirection: 'column',
+        fontSize: fontSize.caption,
+        gap: space[4],
+        marginTop: 'auto',
+        padding: `${space[8]} ${PAD_X[size]}`,
+        width: '100%',
+      }}
     >
-      <div className="flex w-full items-center justify-between gap-3">
-        <span className={textClass}>{typeLabel ?? ''}</span>
-        {/* Foot extras — inline meta pairs (cost / SV) folded into the band, then
+      <div
+        style={{
+          alignItems: 'baseline',
+          display: 'flex',
+          gap: space[12],
+          justifyContent: 'space-between',
+          width: '100%',
+        }}
+      >
+        <span style={{ ...capsLabel, flex: 'none', whiteSpace: 'nowrap' }}>{typeLabel ?? ''}</span>
+        {/* Foot extras — inline meta pairs (cost / SV) folded into the row, then
           the source/page on the far right. */}
-        <div className="flex min-w-0 items-center justify-end gap-2">
+        <div
+          style={{
+            alignItems: 'baseline',
+            display: 'flex',
+            gap: space[8],
+            justifyContent: 'flex-end',
+            minWidth: 0,
+            flex: '1 1 0',
+          }}
+        >
           {footMeta?.map(({ label, value }, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list; index disambiguates repeated labels
-            <span key={`${label}-${i}`} className="inline-flex shrink-0 items-baseline gap-1">
-              <span
-                className={cn('font-cond text-xs font-bold uppercase leading-none', onBandText)}
-              >
-                {label}
-              </span>
-              <span className={cn('font-body text-xs font-bold leading-none', onBandText)}>
-                {value}
-              </span>
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list; index disambiguates repeated labels
+              key={`${label}-${i}`}
+              style={{
+                alignItems: 'baseline',
+                display: 'inline-flex',
+                flexShrink: 0,
+                gap: space[4],
+              }}
+            >
+              <span style={capsLabel}>{label}</span>
+              <span style={{ fontWeight: weight.bold, lineHeight: 1 }}>{value}</span>
             </span>
           ))}
-          {primary && <span className={textClass}>{primary}</span>}
-          {externalLink && <span className={cn(textClass, 'shrink-0')}>{externalLink}</span>}
+          {/* `contain: inline-size`: a long source adds nothing to the card's
+              min-content, so it WRAPS in the narrow column instead of widening
+              the page. The citation is a readout: it never clips, so the page
+              number always shows. */}
+          {primary && (
+            <span
+              style={{
+                contain: 'inline-size',
+                flex: '1 1 0',
+                minWidth: 0,
+                overflowWrap: 'break-word',
+                textAlign: 'right',
+              }}
+            >
+              {primary}
+            </span>
+          )}
+          {externalLink && <span style={{ ...truncate, flexShrink: 0 }}>{externalLink}</span>}
         </div>
       </div>
       {/* REPRINTS — the additional-printings line. Right-aligned under the
           primary source it extends; wraps rather than truncating, since a second
           printing is a whole book title and a clipped one names nothing. */}
       {reprints.length > 0 && (
-        <div className="flex w-full flex-wrap items-baseline justify-end gap-x-2 gap-y-0.5">
-          <span className={cn('font-cond text-xs font-bold uppercase leading-none', onBandText)}>
-            Also in
-          </span>
-          <span className={cn('font-body text-xs font-normal normal-case', onBandText)}>
-            {reprints.join(', ')}
-          </span>
+        <div
+          style={{
+            alignItems: 'baseline',
+            columnGap: space[8],
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-end',
+            rowGap: space[2],
+            width: '100%',
+          }}
+        >
+          <span style={capsLabel}>Also in</span>
+          <span>{reprints.join(', ')}</span>
         </div>
       )}
     </div>

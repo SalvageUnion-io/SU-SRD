@@ -5,27 +5,29 @@
  * when the Dashboard is read-only (ADR-030 §1).
  *
  * It reads `useConnection()`, the one source for the storage mode. Solo has no
- * Dashboard (ADR-038 §1), so it shows nothing there.
+ * Dashboard (ADR-038 §1), so it shows nothing there. The rail names the Game
+ * beside the stamp, so the rail passes no `gameName` and this
+ * reads "Saved".
  */
 
 import { color, font, fontSize, tracking, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 
-const BASE: CSSProperties = {
+const BASE = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
-const SAVED: CSSProperties = { ...BASE, color: color.ink75 }
+const SAVED = { ...BASE, color: color.ink75 } satisfies CSSProperties
 
-const OFFLINE: CSSProperties = { ...BASE, color: color.ink }
+const OFFLINE = { ...BASE, color: color.ink } satisfies CSSProperties
 
-export function SavedIndicator({ gameName }: { gameName: string | null }) {
+export function SavedIndicator({ gameName = null }: { gameName?: string | null }) {
   const { mode } = useConnection()
   if (mode === 'connected') {
     return (

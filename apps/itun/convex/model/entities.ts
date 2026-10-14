@@ -1,32 +1,36 @@
+import type { Infer } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
 import { customCtx, customMutation } from 'convex-helpers/server/customFunctions'
 import { Triggers } from 'convex-helpers/server/triggers'
-import type { LinkShape } from '../../src/lib/links/linkRules'
-import { conflictingLinks, LINK_ENDS, sameLink } from '../../src/lib/links/linkRules'
-import { CrawlerSchema } from '../../src/lib/schemas/crawler'
-import { EncounterNpcSchema } from '../../src/lib/schemas/encounterNpc'
-import { MechSchema } from '../../src/lib/schemas/mech'
-import { MechPatternSchema } from '../../src/lib/schemas/pattern'
-import { PilotSchema } from '../../src/lib/schemas/pilot'
-import type { SoftLink } from '../../src/lib/schemas/softLink'
+import type { LinkShape } from 'itun-domain/links/linkRules'
+import { conflictingLinks, LINK_ENDS, sameLink } from 'itun-domain/links/linkRules'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import { EncounterNpcSchema } from 'itun-domain/schemas/encounterNpc'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import { NpcSchema } from 'itun-domain/schemas/npc'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import type { DataModel, Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import {
   internalMutation as rawInternalMutation,
   mutation as rawMutation,
 } from '../_generated/server'
+import { PHOTO_TABLES, trackPhoto } from './photos'
 
 /**
  * Shared entity-document helpers for the mutation modules (ADR-030).
  *
  * Three obligations live here, and they are here because every one of those
- * modules owes them. The first two had each grown a copy per module; the third
- * — the mutation builders at the bottom, which run the `games.summary`
- * triggers — only works if every module takes it from one place.
+ * modules owes them. The third — the mutation builders at the bottom, which run
+ * the `games.summary` triggers — only works if every module takes it from one
+ * place.
  *
  * ## The edge parse
  *
  * `schema.ts` stores entity bodies as `v.any()` so the Zod schemas in
- * `src/lib/schemas/` stay the single source of truth rather than being forked
+ * `itun-domain/schemas/` stay the single source of truth rather than being forked
  * into a second, hand-maintained set of Convex validators. The price is stated
  * plainly in that file's header: **Convex cannot reject a malformed body on
  * write, so the mutation has to.** `parseBody` is where that is paid, and
@@ -41,26 +45,31 @@ import {
  * table does not hold — a `mechPatterns` id through the `mechs` endpoint would
  * have been parsed with the mech schema and patched, and an id from a table
  * nobody may claim through could have reached the ownership writes. An id that
- * is not this table's is simply not there, which is also what the old
- * `'ownerId' in doc` guard was groping for.
+ * is not this table's is simply not there.
  */
 
 /** The two entity tables that carry an owner. Crawlers are communal by design. */
 export type OwnableTable = 'pilots' | 'mechs'
 
 /**
+ * Every table whose rows are always their owner's and written whole by
+ * `upsertByAppId`: the ownable pair, plus built NPCs (ADR-044). NPCs are kept
+ * out of `OwnableTable` because claiming, releasing and proposals are about a
+ * player's character, and none of them reach an NPC.
+ */
+export type OwnedTable = OwnableTable | 'npcs'
+
+/**
  * What the Mediator's opposition tray may write.
  *
  * Deliberately a *partial* of the local `EncounterNpcSchema` rather than the
  * whole thing. That schema describes a tracked instance in the local store —
- * reference slug, HP track, conditions, timestamps — whereas the tray on the
- * server holds prepared opposition that has not been instantiated yet, and the
- * Mediator surface sends only a name. Demanding the full record here would
- * reject every write the app actually makes, which is a broken feature rather
- * than a validated one.
+ * reference slug, HP track, conditions, timestamps. The Mediator Dashboard's
+ * Opposition tab sends a whole instance, but rows written before it
+ * carry only a name, and `mediator.updateNpc` re-parses them on every change:
+ * demanding the full record would strand those rows.
  *
- * What it still buys, and what the table had none of before: a body must be an
- * object, every field it *does* carry must be the shape the local store will
+ * What it still buys: a body must be an object, every field it *does* carry must be the shape the local store will
  * read, nothing outside the schema can be written at all (it is `.strict()`),
  * and a name must be there — the one field every reader of this table uses.
  */
@@ -73,6 +82,7 @@ export const PARSERS = {
   pilots: PilotSchema,
   mechs: MechSchema,
   crawlers: CrawlerSchema,
+  npcs: NpcSchema,
   encounterNpcs: EncounterNpcBodySchema,
   mechPatterns: MechPatternSchema,
 } as const
@@ -123,15 +133,85 @@ export async function loadOwnable(
   entityId: string
 ): Promise<Doc<'pilots'> | Doc<'mechs'>> {
   const id = ctx.db.normalizeId(table, entityId)
-  if (id === null) throw new Error('That entity no longer exists')
+  if (id === null) throw new ConvexError('That entity no longer exists')
 
   const doc = await ctx.db.get(id)
-  if (doc === null) throw new Error('That entity no longer exists')
+  if (doc === null) throw new ConvexError('That entity no longer exists')
   return doc
 }
 
-/** The three tables a Change Log row's entity lives in. */
-export type LoggedTable = 'pilots' | 'mechs' | 'crawlers'
+/** The tables a Change Log row's entity lives in. */
+export type LoggedTable = 'pilots' | 'mechs' | 'crawlers' | 'npcs'
+
+/**
+ * The four sheet tables by kind, which are also the public-sheet surface
+ * (`publicSheet.ts`). Never widened to `encounterNpcs`.
+ */
+export const TABLE_OF_KIND = {
+  pilot: 'pilots',
+  mech: 'mechs',
+  crawler: 'crawlers',
+  npc: 'npcs',
+} as const
+
+export type SheetKind = keyof typeof TABLE_OF_KIND
+
+/** The oldest of these rows, or null when there are none. */
+export function oldestOf<T extends { _creationTime: number }>(rows: readonly T[]): T | null {
+  return rows.reduce<T | null>(
+    (oldest, row) => (oldest === null || row._creationTime < oldest._creationTime ? row : oldest),
+    null
+  )
+}
+
+/**
+ * Look a row up by the app-level UUID the client holds.
+ *
+ * This is the whole point of the `appId` column: a client that only knows its
+ * local UUID can still address the server row, so updates and deletes work
+ * without a mapping table. One indexed lookup, not a scan.
+ *
+ * ## Why this tolerates duplicates instead of asking for `.unique()`
+ *
+ * `by_app_id` is an ordinary Convex index, **not a uniqueness constraint** —
+ * nothing in the database stops two rows sharing an `appId`, and in
+ * production several have.
+ *
+ * `.unique()` would turn that *data* condition into a thrown `Server Error` on
+ * every write to the entity, locking the player out of their own build over a
+ * row they cannot see. A duplicate is a repair job, not a reason to refuse
+ * the write, so this resolves one row and lets the write land.
+ *
+ * **The oldest row wins, deterministically.** It is the row every earlier
+ * write already landed on, so choosing it keeps editing the copy the client has
+ * been addressing all along rather than silently migrating to a younger one.
+ * `_creationTime` is used rather than index order because index order is not a
+ * documented guarantee, and a winner that moves between calls would be worse
+ * than the throw it replaces.
+ *
+ * `warn` is for the write paths: there the write succeeds, so the warning is
+ * the only remaining signal that a roster needs de-duplicating. It lands in the
+ * deployment log stream, the one place a Convex server-side message is
+ * readable at all (there is no Sentry SDK in here). Reactive queries leave it
+ * off, since they re-run on every change.
+ */
+export async function oldestByAppId(
+  ctx: QueryCtx | MutationCtx,
+  table: LoggedTable,
+  appId: string,
+  { warn = false }: { warn?: boolean } = {}
+): Promise<Doc<LoggedTable> | null> {
+  const matches = (await ctx.db
+    .query(table)
+    .withIndex('by_app_id', (q) => q.eq('appId', appId))
+    .collect()) as Doc<LoggedTable>[]
+  if (warn && matches.length > 1) {
+    console.warn(
+      `[itun] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
+    )
+  }
+  return oldestOf(matches)
+}
 
 /**
  * The id a Change Log row names an entity by: its `appId`, the id the client
@@ -146,7 +226,7 @@ export function logIdOf(row: Doc<LoggedTable>): string {
 
 /**
  * The row a Change Log `entityId` names, or null: by `appId` first (the oldest
- * row on a duplicate, as `byAppId` resolves it), then as a row id — which is
+ * row on a duplicate, as `oldestByAppId` resolves it), then as a row id — which is
  * what a row seeded without an `appId` is named by, and what every proposal
  * and ownership row written before `logIdOf` carries.
  */
@@ -155,14 +235,7 @@ export async function loadLogged(
   table: LoggedTable,
   entityId: string
 ): Promise<Doc<LoggedTable> | null> {
-  const matches = (await ctx.db
-    .query(table)
-    .withIndex('by_app_id', (q) => q.eq('appId', entityId))
-    .collect()) as Doc<LoggedTable>[]
-  const oldest = matches.reduce<Doc<LoggedTable> | null>(
-    (best, row) => (best === null || row._creationTime < best._creationTime ? row : best),
-    null
-  )
+  const oldest = await oldestByAppId(ctx, table, entityId)
   if (oldest !== null) return oldest
   const id = ctx.db.normalizeId(table, entityId)
   return id === null ? null : await ctx.db.get(id)
@@ -234,14 +307,86 @@ export async function findSoftLink(
 }
 
 /* -------------------------------------------------------------------------- */
+/* Shared mech patterns                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Who may read a saved pattern: its maker's choice of three, held in the
+ * `publicRead` and `gameId` columns (see `mechPatterns` in `schema.ts`).
+ */
+export const patternVisibility = v.union(v.literal('private'), v.literal('link'), v.literal('game'))
+export type PatternVisibility = Infer<typeof patternVisibility>
+
+/** The visibility a pattern row's columns encode. */
+export function patternVisibilityOf(row: Doc<'mechPatterns'>): PatternVisibility {
+  if (row.publicRead === true) return 'link'
+  if (row.gameId !== null) return 'game'
+  return 'private'
+}
+
+/**
+ * One pattern by the id inside its body, whoever made it — the pattern page's
+ * address. A duplicate resolves to the oldest row, as in `oldestByAppId`.
+ */
+export async function patternByAppId(
+  ctx: QueryCtx | MutationCtx,
+  appId: string
+): Promise<Doc<'mechPatterns'> | null> {
+  const rows = await ctx.db
+    .query('mechPatterns')
+    .withIndex('by_app_id', (q) => q.eq('appId', appId))
+    .collect()
+  return oldestOf(rows)
+}
+
+/**
+ * Whether `userId` (null: nobody is signed in) may read this pattern: its
+ * maker always; anyone at all when it is shared by link (ADR-032's opt-in);
+ * a member of its Game when it is shared with the crew. Nobody else — and the
+ * caller answers "no" exactly as it answers "no such pattern".
+ */
+export async function mayReadPattern(
+  ctx: QueryCtx | MutationCtx,
+  row: Doc<'mechPatterns'>,
+  userId: Id<'users'> | null
+): Promise<boolean> {
+  if (row.publicRead === true) return true
+  if (userId === null) return false
+  if (row.ownerId === userId) return true
+  const gameId = row.gameId
+  if (gameId === null) return false
+  const membership = await ctx.db
+    .query('memberships')
+    .withIndex('by_game_user', (q) => q.eq('gameId', gameId).eq('userId', userId))
+    .unique()
+  return membership !== null
+}
+
+/**
+ * Count a mech built from a pattern, in the same mutation that creates it.
+ *
+ * Read from the new mech's `body.sourcePattern`. Only a pattern the builder may
+ * read is counted, so a forged id cannot inflate a stranger's private pattern,
+ * and a missing one (deleted since) is simply not counted.
+ */
+export async function countPatternBuild(
+  ctx: MutationCtx,
+  body: unknown,
+  userId: Id<'users'>
+): Promise<void> {
+  const source = (body as { sourcePattern?: unknown } | null)?.sourcePattern
+  if (typeof source !== 'string') return
+  const row = await patternByAppId(ctx, source)
+  if (row === null || !(await mayReadPattern(ctx, row, userId))) return
+  await ctx.db.patch(row._id, { builtCount: (row.builtCount ?? 0) + 1 })
+}
+
+/* -------------------------------------------------------------------------- */
 /* The assignment model (ADR-037)                                             */
 /* -------------------------------------------------------------------------- */
 
 /** A row that sits in a container: every table a link end can name. */
-export type ContainedRow = Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'>
-
-/** Which table each link-end kind lives in. */
-const TABLE_FOR_END = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+export type ContainedRow = Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'> | Doc<'npcs'>
 
 /**
  * The id links use for a row: its `appId`, or — for a row seeded server-side
@@ -257,8 +402,8 @@ export function linkIdOf(row: ContainedRow): string | undefined {
  * that is about *where*, not *how many*.
  *
  * The same Game, or the same owner's shelf. The second clause is the one
- * `lib/container.ts`'s `sameContainer` cannot express: every player's shelf has
- * the same `null` game id, and "My Stuff" is a solo Game per person, not one
+ * `itun-domain/container`'s `sameContainer` cannot express: every player's shelf has
+ * the same `null` game id, and a shelf is a solo container per person, not one
  * shared bucket. A shelf row with no owner is the invalid row (ADR-030 §2), so
  * it shares a container with nothing.
  */
@@ -268,51 +413,14 @@ export function sameContainerRows(a: ContainedRow, b: ContainedRow): boolean {
   return a.ownerId !== null && a.ownerId === b.ownerId
 }
 
-async function rowsByAppId(
-  ctx: QueryCtx | MutationCtx,
-  type: LinkShape['from']['type'],
-  appId: string
-): Promise<ContainedRow[]> {
-  // Spelled out per table: `withIndex` cannot be typed over a union of tables.
-  if (type === 'pilot') {
-    return await ctx.db
-      .query('pilots')
-      .withIndex('by_app_id', (q) => q.eq('appId', appId))
-      .collect()
-  }
-  if (type === 'mech') {
-    return await ctx.db
-      .query('mechs')
-      .withIndex('by_app_id', (q) => q.eq('appId', appId))
-      .collect()
-  }
-  return await ctx.db
-    .query('crawlers')
-    .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()
-}
-
 /** Every row of one kind in a Game. */
 export async function rowsInGame(
   ctx: QueryCtx | MutationCtx,
   type: LinkShape['from']['type'],
   gameId: Id<'games'>
 ): Promise<ContainedRow[]> {
-  const table = TABLE_FOR_END[type]
-  if (table === 'pilots') {
-    return await ctx.db
-      .query('pilots')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .collect()
-  }
-  if (table === 'mechs') {
-    return await ctx.db
-      .query('mechs')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .collect()
-  }
   return await ctx.db
-    .query('crawlers')
+    .query(TABLE_OF_KIND[type])
     .withIndex('by_game', (q) => q.eq('gameId', gameId))
     .collect()
 }
@@ -320,10 +428,9 @@ export async function rowsInGame(
 /**
  * The row a link end names, or null when there is none.
  *
- * Addressed by `appId`, resolving a duplicate to the oldest row exactly as
- * `byAppId` does in `entities.ts`. When nothing carries that app id and a Game
- * is named, the Game's own rows are searched for one with **no** `appId` whose
- * body id matches: a template seeds its crew without app ids, and its links
+ * Addressed by `appId` through `oldestByAppId`, as every write is. When
+ * nothing carries that app id and a Game is named, the Game's own rows are
+ * searched for one with **no** `appId` whose body id matches: a template seeds its crew without app ids, and its links
  * point at body ids, so without this a template's crawler could never be
  * assigned to. Scoped to one Game because template body ids repeat across
  * every Game seeded from the same template.
@@ -333,12 +440,8 @@ export async function resolveLinkEnd(
   ref: { type: LinkShape['from']['type']; id: string },
   gameHint: Id<'games'> | null
 ): Promise<ContainedRow | null> {
-  const matches = await rowsByAppId(ctx, ref.type, ref.id)
-  if (matches.length > 0) {
-    return matches.reduce((oldest, row) =>
-      row._creationTime < oldest._creationTime ? row : oldest
-    )
-  }
+  const match = await oldestByAppId(ctx, TABLE_OF_KIND[ref.type], ref.id)
+  if (match !== null) return match
   if (gameHint === null) return null
   const seeded = await rowsInGame(ctx, ref.type, gameHint)
   return seeded.find((row) => row.appId === undefined && bodyAppId(row.body) === ref.id) ?? null
@@ -373,7 +476,7 @@ export async function linksTouching(
  * The cardinality invariant's single server-side writer: `upsertSoftLink`, the
  * claim, and the primary-crawler auto-assignment all draw through here, so
  * "a pilot crews one crawler" cannot hold on one path and not another. The
- * rule itself is `conflictingLinks` (`src/lib/links/linkRules.ts`), shared with
+ * rule itself is `conflictingLinks` (`itun-domain/links/linkRules`), shared with
  * the client.
  *
  * The caller has already decided the link is allowed — who may draw it, and
@@ -383,8 +486,8 @@ export async function linksTouching(
  *
  * ## Which neighbours count
  *
- * Conflicts on the `to` end (a pilot flies one mech) are looked for only among
- * links filed in the same container, and so are the `from` end's when
+ * Conflicts on the `to` end (a pilot flies one mech; a crew slot holds one
+ * NPC) are looked for only among links filed in the same container, and so are the `from` end's when
  * `fromScope` is `'container'`. Both exist for template-seeded rows: they carry
  * no `appId`, their links name body ids, and those ids repeat across every
  * Game seeded from the same template — a pilot in another Game is not this
@@ -406,7 +509,7 @@ export async function writeSoftLink(
       .query('softLinks')
       .withIndex('by_from', (q) => q.eq('from.id', link.from.id))
       .collect(),
-    LINK_ENDS[link.type].exclusiveTo
+    LINK_ENDS[link.type].exclusiveTo || LINK_ENDS[link.type].slotted
       ? ctx.db
           .query('softLinks')
           .withIndex('by_to', (q) => q.eq('to.id', link.to.id))
@@ -440,6 +543,7 @@ export async function writeSoftLink(
     from: { type: link.from.type, id: link.from.id },
     to: { type: link.to.type, id: link.to.id },
     type: link.type,
+    ...(link.slot === undefined ? {} : { slot: link.slot }),
   })
   return 'inserted'
 }
@@ -540,8 +644,7 @@ export async function computeGameSummary(
       .query('mechs')
       .withIndex('by_game', (q) => q.eq('gameId', gameId))
       .collect(),
-    // The PRIMARY crawler's name: it is the one the table is anchored to, and
-    // with several crawlers "the first" was whichever the index met first.
+    // The PRIMARY crawler's name: it is the one the table is anchored to.
     primaryCrawlerOf(ctx, gameId),
   ])
   return {
@@ -809,6 +912,14 @@ triggers.register('crawlers', async (ctx, change) => {
   )
   for (const gameId of touched) await refreshGameSummary(ctx, gameId)
 })
+
+// Photo files are reference-counted by the entity rows that hold them
+// (`model/photos.ts`), so every write and delete of those rows moves the count.
+for (const table of PHOTO_TABLES) {
+  triggers.register(table, async (ctx, change) => {
+    await trackPhoto(ctx, change.oldDoc?.body, change.newDoc?.body)
+  })
+}
 
 /**
  * The mutation builders every Convex module uses. Identical to the generated

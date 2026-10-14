@@ -1,5 +1,5 @@
 /**
- * Scrap economy rule utilities (REQ-014, REQ-015).
+ * Scrap economy rule utilities.
  *
  * Salvage Union uses a tiered scrap currency: each tech level (TL1–TL6) is a
  * distinct denomination. Scrap at a higher tech level is worth more, but the
@@ -13,14 +13,15 @@
  * All functions are pure — no side effects, no async, no React.
  */
 
-import { SalvageUnionReference } from '../index.js'
-import type { ScrapableItem, TechLevel } from './types.js'
+import { SalvageUnionReference } from '../index'
+import type { ScrapableItem, TechLevel } from './types'
 
 /**
  * Returns the buy (install) cost of an item in units of its own tech level's
  * scrap. Per SRD rules the purchase cost equals the salvage value.
  *
- * SRD reference: Workshop Manual p.162–163 ("Salvage and Scrap" rules).
+ * SRD reference: Core Book p.244 ("To craft a Mech Chassis, System, or Module
+ * you must spend an amount of Scrap equal to Salvage Value").
  */
 export function scrapCostFor(item: ScrapableItem): number {
   // Cost equals salvage value — items are bought and sold at the same scrap price.

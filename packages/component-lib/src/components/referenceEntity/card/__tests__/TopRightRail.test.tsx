@@ -21,15 +21,15 @@ const equipment = () => {
 }
 
 /**
- * The rail itself — the one absolutely-positioned flex row. Cells sit at
+ * The rail itself (`data-card-rail`) — the one absolutely-positioned flex row. Cells sit at
  * varying depths inside it (a control rides its own `ControlButtons` cluster,
  * a seal is a direct child), so this climbs to the row rather than to the
  * nearest `div.flex`, which would stop at a cluster wrapper.
  */
 function rail(el: HTMLElement): HTMLElement {
-  const parent = el.closest('div.absolute.flex')
+  const parent = el.closest('[data-card-rail]')
   if (!(parent instanceof HTMLElement))
-    throw new Error('no absolute flex ancestor — the cell is not in the rail')
+    throw new Error('no rail ancestor — the cell is not in the rail')
   return parent
 }
 
@@ -38,6 +38,7 @@ describe('top-right rail', () => {
     render(
       <ReferenceEntityCard
         data={equipment()}
+        extent="head"
         status="damaged"
         onStatusClick={() => {}}
         controls={[{ key: 'remove', ariaLabel: 'Remove', label: 'Remove', onClick: () => {} }]}
@@ -55,6 +56,7 @@ describe('top-right rail', () => {
     const { container } = render(
       <ReferenceEntityCard
         data={equipment()}
+        extent="head"
         status="intact"
         onStatusClick={() => {}}
         controls={[{ key: 'swap', ariaLabel: 'Swap', label: 'Swap', onClick: () => {} }]}
@@ -64,8 +66,8 @@ describe('top-right rail', () => {
     const status = screen.getByRole('button', { name: /intact/i })
     const row = rail(status)
 
-    expect(row.className).toContain('absolute')
-    expect(row.className).toContain('flex-wrap')
+    expect(row.style.position).toBe('absolute')
+    expect(row.style.flexWrap).toBe('wrap')
     // A cell that re-grows its own `absolute` is the exact regression: it would
     // leave the row and re-stack on whatever else claims that coordinate.
     // Checked over every descendant, not just direct children, since cells now
@@ -74,5 +76,66 @@ describe('top-right rail', () => {
       expect(cell.classList.contains('absolute')).toBe(false)
     }
     expect(container.querySelectorAll('.z-30').length).toBeLessThanOrEqual(2)
+  })
+
+  test('a full card puts the condition and a danger Remove in the body rail, not on the seam', () => {
+    render(
+      <ReferenceEntityCard
+        data={equipment()}
+        status="damaged"
+        onStatusClick={() => {}}
+        controls={[
+          {
+            key: 'remove',
+            ariaLabel: 'Remove',
+            label: 'Remove',
+            variant: 'danger',
+            onClick: () => {},
+          },
+        ]}
+      />
+    )
+    const status = screen.getByRole('button', { name: /status: damaged/i })
+    const remove = screen.getByRole('button', { name: 'Remove' })
+    expect(status.closest('[data-card-rail]')).toBeNull()
+    expect(remove.closest('[data-card-rail]')).toBeNull()
+    // State is a treatment: the current segment is marked, none is a hue.
+    expect(status.querySelector('[aria-current="true"]')?.textContent).toBe('Damaged')
+  })
+})
+
+// Print reads, pencil writes (ruleset §1): a card with no status handler is a
+// read, so its condition is a read-out, never the three-way switch.
+describe('read-state condition', () => {
+  test.each(['head', 'full'] as const)('Intact prints nothing on a read %s card', (extent) => {
+    render(<ReferenceEntityCard data={equipment()} extent={extent} status="intact" />)
+    expect(screen.queryByText('Intact')).toBeNull()
+    expect(screen.queryByText('Damaged')).toBeNull()
+    expect(screen.queryByText('Destroyed')).toBeNull()
+  })
+
+  test.each(['head', 'full'] as const)(
+    'a damaged read %s card prints one stamp, not the switch',
+    (extent) => {
+      render(<ReferenceEntityCard data={equipment()} extent={extent} status="damaged" />)
+      expect(screen.getByText('Damaged')).toBeTruthy()
+      expect(screen.queryByText('Intact')).toBeNull()
+      expect(screen.queryByText('Destroyed')).toBeNull()
+      expect(screen.queryByRole('button', { name: /status/i })).toBeNull()
+    }
+  )
+
+  test('with a handler the switch keeps all three states', () => {
+    render(
+      <ReferenceEntityCard
+        data={equipment()}
+        extent="head"
+        status="intact"
+        onStatusClick={() => {}}
+      />
+    )
+    const status = screen.getByRole('button', { name: /intact/i })
+    expect(status.textContent).toContain('Damaged')
+    expect(status.textContent).toContain('Destroyed')
   })
 })

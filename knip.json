@@ -1,22 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreExportsUsedInFile": true,
   "includeEntryExports": true,
-  // Exports tagged `@public` or `@knipignore` are excluded from analysis. When
-  // to reach for either is in docs/ARCHITECTURE.md ("Dead-code gate (knip)")
-  // — delete by default; these two are the only exemptions.
-  //
-  // `--treat-tag-hints-as-errors` does NOT catch a tag that has outlived its
-  // reason, despite reading like it would. Measured against knip 6.32 with this
-  // config: it exits 0 even with a deliberately redundant `@public` on an
-  // already-imported export. It was going to be added to the `knip` script
-  // until that probe ran — recorded here so the next reader does not add it
-  // believing it guards something.
-  //
-  // So a stale tag is found by a human, and its cost is misleading PROSE rather
-  // than a hidden finding: five `@public` tags were pruned in 2026-08, every one
-  // justified by a fork that had already been deleted, each telling a reader to
-  // go de-duplicate files that no longer existed.
+  // A redundant entry, stale ignore or needless workspace setting fails too.
+  "treatConfigHintsAsErrors": true,
+  // @public/@knipignore are the only exemptions: docs/ARCHITECTURE.md#dead-code.
+  // --treat-tag-hints-as-errors does not catch a stale tag; don't add it as a guard.
   "tags": ["-public", "-knipignore"],
   "workspaces": {
     // The root holds no code of its own now that `tools/` is a workspace.
@@ -25,10 +13,14 @@
     },
     "tools": {
       // Every top-level script is run directly (`bun tools/<name>.ts`), by a
-      // root script, the check registry or a workflow. `rules/*.ts` is listed
-      // because knip reads `.gitignore`'s `rules/*` (the local rules extract)
-      // as matching `tools/rules/` too, and would not otherwise follow it.
-      "entry": ["*.ts", "rules/*.ts"]
+      // root script, the check registry or a workflow.
+      "entry": ["*.ts"]
+    },
+    "packages/gates": {
+      // `rules/*.ts` is listed because knip reads `.gitignore`'s `rules/*`
+      // (the local rules extract) as matching `packages/gates/rules/` too, and
+      // would not otherwise follow it.
+      "entry": ["rules/*.ts"]
     },
     "packages/salvageunion-reference": {
       "entry": ["tools/**/*.ts"],
@@ -40,19 +32,14 @@
       // redundant pattern.
       "project": ["src/**/*.ts"]
     },
+    "packages/itun-domain": {
+      // No `entry`: knip derives the subpaths from the manifest's `exports`
+      // wildcard, as for `packages/observability`.
+      "project": ["src/**/*.ts"]
+    },
     "packages/component-lib": {
-      // `includeEntryExports` is ON here, unlike the app workspaces below.
-      //
-      // For an app, the entry is a framework contract nothing imports, so
-      // checking its exports is noise. For this package the barrel IS the
-      // public API — `src/index.ts` is the only thing the apps may import from
-      // — so switching the check off made the one workspace where barrel rot
-      // matters most the one workspace where it could not be seen. 28 dead
-      // re-exports accumulated behind it.
-      //
-      // Turning it on is only possible because those 28 are gone. If this ever
-      // needs to go back to `false`, the reason belongs here, because the cost
-      // is invisible by construction.
+      // Pinned on (the root default) because src/index.ts is the package's
+      // whole public API; see biome.jsonc's component-lib/src/** rule.
       "project": ["src/**/*.{ts,tsx}"],
       "includeEntryExports": true
     },
@@ -67,11 +54,10 @@
         "src/runtime/islands.client.ts",
         "src/runtime/styles.entry.ts",
         "src/runtime/assets.entry.ts",
-        // The one spec whose import reaches `tools/` (`tools/lib/a11yScan.ts`).
+        // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/a11y.e2e.ts"
       ],
-      "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"],
-      "includeEntryExports": false
+      "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"]
     },
     "apps/itun": {
       "entry": [
@@ -79,13 +65,7 @@
         // The Worker entry (`src/worker/index.ts`) is NOT listed: knip's
         // wrangler plugin reads `main` from wrangler.jsonc (wrangler is a root
         // devDependency), and flags a manual entry as redundant.
-        "src/lib/db/index.ts",
-        "src/lib/db/stores.ts",
-        "src/lib/db/crud.ts",
-        "src/stores/entityStore.ts",
-        "src/stores/activeContainerStore.ts",
-        "src/stores/types.ts",
-        // The one spec whose import reaches `tools/` (`tools/lib/a11yScan.ts`).
+        // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/a11y.e2e.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
@@ -100,15 +80,13 @@
       ]
     },
     "apps/su-assets": {
-      // The Worker entry (`src/worker.ts`) comes from wrangler.jsonc's `main`
-      // via knip's wrangler plugin. `project` must still cover `src/**`: when
-      // it did not, the whole Worker and its test sat OUTSIDE knip's scope and
-      // the gate passed by not looking.
-      "project": ["src/**/*.ts"],
-      "includeEntryExports": false
+      // The Worker entry (`src/worker/index.ts`) comes from wrangler.jsonc's `main`
+      // via knip's wrangler plugin. `project` must still cover `src/**`, or the
+      // Worker and its test sit outside knip's scope.
+      "project": ["src/**/*.ts"]
     },
     "apps/discord-bot": {
-      // `src/http/worker.ts` (the Worker) comes from wrangler.jsonc's `main`
+      // `src/worker/index.ts` (the Worker) comes from wrangler.jsonc's `main`
       // via knip's wrangler plugin, and `src/deploy-commands.ts` from the
       // package.json scripts, so neither is listed. If the wrangler plugin
       // ever stops applying (wrangler removed from the root manifest), knip will

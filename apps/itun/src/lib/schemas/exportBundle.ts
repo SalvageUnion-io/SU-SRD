@@ -1,10 +1,11 @@
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import { EncounterNpcSchema } from 'itun-domain/schemas/encounterNpc'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import { NpcSchema } from 'itun-domain/schemas/npc'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
+import { SoftLinkSchema } from 'itun-domain/schemas/softLink'
 import { z } from 'salvageunion-reference/zod'
-import { CrawlerSchema } from './crawler'
-import { EncounterNpcSchema } from './encounterNpc'
-import { MechSchema } from './mech'
-import { MechPatternSchema } from './pattern'
-import { PilotSchema } from './pilot'
-import { SoftLinkSchema } from './softLink'
 
 /**
  * ExportBundle — the envelope written to disk during a full backup or
@@ -32,10 +33,15 @@ export const ExportBundleSchema = z.object({
     pilots: z.array(PilotSchema),
     mechs: z.array(MechSchema),
     crawlers: z.array(CrawlerSchema),
+    /**
+     * Built NPCs (ADR-044). Defaulted, as the arrays below are, so a bundle
+     * written before NPCs existed still imports.
+     */
+    npcs: z.array(NpcSchema).default([]),
   }),
   softLinks: z.array(SoftLinkSchema),
   /**
-   * Saved mech patterns (gap 6: export is the ONLY backup path for work that is
+   * Saved mech patterns (export is the ONLY backup path for work that is
    * not in an account — omitting patterns silently loses them). Defaulted so bundles
    * written before this field existed still import.
    */

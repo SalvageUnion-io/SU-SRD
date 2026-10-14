@@ -1,22 +1,22 @@
 /**
  * Integration tests for PilotWizard on the WizShell skeleton, in the Pilot
- * Bay's book order (wizard-refresh Phase 3):
+ * Bay's book order:
  *
  *   Stats → Class & Ability (merged) → Equipment → Callsign → Background →
  *   Motto → Keepsake → Appearance → Review → submit
  *
  * Creation is HARD-enforced (1 ability radio, exactly 2 Tech-1 equipment
  * via count-steppers, gated Next). Uses the real wizard, real
- * SalvageUnionReference data, real Zod validation, and a
- * fake-indexeddb-backed entityStore.
+ * SalvageUnionReference data, real Zod validation, and the real in-memory
+ * entityStore (signed in, server commits stubbed).
  *
- * fake-indexeddb/auto and SalvageUnionReference are preloaded via bunfig.toml.
+ * SalvageUnionReference is preloaded via bunfig.toml.
  */
 
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
@@ -30,29 +30,12 @@ withSignedInBackend()
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
-// Store reset helpers
+// Store reset
 // ---------------------------------------------------------------------------
-
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: {
-      pilots: false,
-      mechs: false,
-      crawlers: false,
-      softLinks: false,
-    },
-  })
-}
 
 beforeEach(async () => {
   sessionStorage.clear()
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
   await useEntityStore.getState().hydrate('pilot')
 })
 
@@ -61,8 +44,7 @@ afterEach(async () => {
     cleanup()
   })
   sessionStorage.clear()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 // ---------------------------------------------------------------------------
@@ -134,8 +116,8 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     render(<PilotWizard onComplete={onComplete} onCancel={onCancel} />)
 
     // --- Step 1: Your Stats — display-only, Next always enabled ---
-    // The fixed pilot stats render as read-only value boxes (HP 10/10, …).
-    expect(screen.getByLabelText('HP')).toBeTruthy()
+    // The fixed pilot stats render as read-only chips (HP | 10/10, …).
+    expect(screen.getByText('HP')).toBeTruthy()
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
@@ -201,7 +183,7 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
-  }, 30000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -220,7 +202,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
     expect(getPickByName('Jury Rig').getAttribute('aria-pressed')).toBe('true')
     expect(getPickByName('Engineering Expertise').getAttribute('aria-pressed')).toBe('false')
-  }, 30000)
+  })
 
   it('changing class clears a now-illegal ability (cross-step invalidation)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -230,7 +212,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Soldier') // Mechanical Knowledge ∉ Soldier trees
     expect(screen.getByTestId('ability-count').textContent).toContain('0 / 1')
     expect(getNextButton().disabled).toBe(true)
-  }, 30000)
+  })
 
   it('keeps a still-legal ability across a class change (Salvager shares core trees)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -239,7 +221,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Engineering Expertise') // Mechanical Knowledge L1 — also a Salvager tree
     await pick('Salvager')
     expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
-  }, 30000)
+  })
 
   it('offers the Salvager all 15 core-tree Level-1 abilities and no specialisation classes', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -269,7 +251,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     for (const ability of advanced) {
       expect(screen.queryByRole('button', { name: ability.name })).toBeNull()
     }
-  }, 30000)
+  })
 
   it('equipment count-stepper supports duplicates and the − removes a copy', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -296,7 +278,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     })
     expect(screen.getByTestId('equipment-count').textContent).toContain('1 / 2')
     expect(plus().disabled).toBe(false)
-  }, 30000)
+  })
 
   it('slot preview uses pilotInventory math, not pick count', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -306,7 +288,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await clickNext()
     // 0 picks → 0 / 6 slots (base capacity).
     expect(screen.getByTestId('slot-preview').textContent).toContain('/ 6')
-  }, 30000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -344,11 +326,11 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
     expect(getPickByName('Mass Field Maintenance').getAttribute('aria-pressed')).toBe('true')
     await clickNext() // → Equipment
     expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
-  }, 30000)
+  })
 })
 
 // ---------------------------------------------------------------------------
-// Draft persistence (audit item 3): unmount → remount restores the session
+// Draft persistence: unmount → remount restores the session
 // draft; a confirmed Cancel discards it.
 // ---------------------------------------------------------------------------
 
@@ -380,5 +362,21 @@ describe('PilotWizard — session drafts', () => {
     })
     expect(onCancel).toHaveBeenCalledTimes(1)
     expect(sessionStorage.getItem('itun-wizard-draft:pilot:new')).toBeNull()
+  })
+})
+
+describe('PilotWizard — preselected class', () => {
+  it('starts on the deep-linked class (`?class=engineer`, resolved to its id)', async () => {
+    render(
+      <PilotWizard
+        onComplete={() => {}}
+        onCancel={() => {}}
+        preselectClassId={idOf('Engineer', SalvageUnionReference.Classes)}
+      />
+    )
+    await clickNext() // Stats → Class & Ability
+    expect(getPickByName('Engineer').getAttribute('aria-pressed')).toBe('true')
+    // The ability is still the player's pick.
+    expect(screen.getByText('Choose your first Ability to continue')).toBeTruthy()
   }, 30000)
 })

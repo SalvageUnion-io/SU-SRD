@@ -11,18 +11,19 @@
  * itself uses (microsoft/TypeScript#30581).
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Npc } from 'itun-domain/schemas/npc'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { create } from 'zustand'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
 import type { CreateInput, EntityForType, EntityType } from '../../stores/types'
-import type { EntityLookup } from '../sheet/composition'
+import type { EntityLookup } from '../sheet/composition.model'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 
-type AnyEntity = Pilot | Mech | Crawler | SoftLink
+type AnyEntity = Pilot | Mech | Crawler | Npc | SoftLink
 
 /**
  * Overridable state members, with the production generics widened to their
@@ -33,10 +34,11 @@ export type EntityStoreMockOverrides = {
   pilots?: Pilot[]
   mechs?: Mech[]
   crawlers?: Crawler[]
+  npcs?: Npc[]
   softLinks?: SoftLink[]
   hydrated?: EntityState['hydrated']
   hydrate?: (type: EntityType) => Promise<void>
-  rehydrate?: (type: EntityType) => Promise<void>
+  markArrived?: (types: readonly EntityType[]) => void
   list?: (type: EntityType) => AnyEntity[]
   get?: (type: EntityType, id: string) => AnyEntity | null
   create?: (type: EntityType, input: CreateInput<EntityType>) => Promise<AnyEntity | null>
@@ -57,6 +59,7 @@ const KEY = {
   pilot: 'pilots',
   mech: 'mechs',
   crawler: 'crawlers',
+  npc: 'npcs',
   softLink: 'softLinks',
 } as const
 
@@ -72,6 +75,7 @@ export function makeEntityStoreMock(
     pilots: overrides.pilots ?? [],
     mechs: overrides.mechs ?? [],
     crawlers: overrides.crawlers ?? [],
+    npcs: overrides.npcs ?? [],
     softLinks: overrides.softLinks ?? [],
   }
 
@@ -81,9 +85,15 @@ export function makeEntityStoreMock(
 
   const state: EntityState = {
     ...arrays,
-    hydrated: overrides.hydrated ?? { pilots: true, mechs: true, crawlers: true, softLinks: true },
+    hydrated: overrides.hydrated ?? {
+      pilots: true,
+      mechs: true,
+      crawlers: true,
+      npcs: true,
+      softLinks: true,
+    },
     hydrate: overrides.hydrate ?? (async () => {}),
-    rehydrate: overrides.rehydrate ?? (async () => {}),
+    markArrived: overrides.markArrived ?? (() => {}),
     list: overrides.list ? (overrides.list as EntityState['list']) : listOf,
     get: overrides.get
       ? (overrides.get as EntityState['get'])

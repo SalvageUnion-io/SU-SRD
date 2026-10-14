@@ -4,7 +4,7 @@
  * crawler's embedded commander, and a pattern's systems/modules/drone loadout.
  * If a resolver silently returns nothing the card renders a *plausible* page
  * with the nested content missing, which is exactly the failure mode that made
- * roll tables vanish (see `resolveCardTable.test.tsx`). These tests pin the
+ * roll tables vanish (see `cardRollTables.test.tsx`). These tests pin the
  * grouping, the name -> entity resolution, and the "nothing to resolve" exits.
  */
 import { describe, expect, test } from 'bun:test'
@@ -130,9 +130,8 @@ describe('resolvePatternGroups', () => {
 
   test('a `count` renders one card per installed copy', () => {
     // Atlas's Thunder Storm is the printed case: the book's pattern block reads
-    // ".50 Cal Machine Gun x6". This resolver used to de-duplicate by entity id,
-    // so all six collapsed into one card and the pattern silently under-reported
-    // its armament.
+    // ".50 Cal Machine Gun x6". De-duplicated by entity id, all six collapse
+    // into one card and the pattern silently under-reports its armament.
     const groups = resolvePatternGroups(pattern('Atlas', 'Thunder Storm'))
     expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual([
       '.50 Cal Machine Gun',
@@ -182,7 +181,7 @@ describe('resolvePatternGroups', () => {
 
   test('an explicit `count` of 0 renders nothing, rather than one card', () => {
     // The schema permits 0, and "zero installed" must not be clamped up to one —
-    // that would invent a card and diverge from `useChassisPatternConfig`.
+    // that would invent a card the loadout does not hold.
     const groups = resolvePatternGroups({
       name: 'Fake',
       systems: [{ name: 'Green Laser', count: 0 }, { name: 'Escape Hatch' }],

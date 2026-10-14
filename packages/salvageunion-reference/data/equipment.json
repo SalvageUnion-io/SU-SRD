@@ -4,6 +4,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "First Aid Kit",
     "techLevel": 1,
+    "hasArtwork": true,
     "page": 80,
     "actions": ["First Aid Kit"],
     "additionalSources": [
@@ -25,6 +26,7 @@
       "Chassis Repair",
       "Handheld Riveting Gun"
     ],
+    "hasArtwork": true,
     "page": 80,
     "additionalSources": [
       {
@@ -114,6 +116,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Portable Comms Unit",
     "techLevel": 1,
+    "hasArtwork": true,
     "page": 81,
     "actions": ["Portable Comms Unit"],
     "additionalSources": [
@@ -159,6 +162,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Holofoil Tent",
     "techLevel": 2,
+    "hasArtwork": true,
     "page": 81,
     "actions": ["Holofoil Tent"],
     "additionalSources": [
@@ -189,6 +193,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Disposable Camera",
     "techLevel": 2,
+    "hasArtwork": true,
     "page": 81,
     "actions": ["Disposable Camera"],
     "additionalSources": [
@@ -280,6 +285,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Red Laser Pistol",
     "techLevel": 2,
+    "hasArtwork": true,
     "page": 82,
     "actions": ["Red Laser Pistol"],
     "additionalSources": [
@@ -1630,6 +1636,6 @@
     "page": 2,
     "name": "Steel Billy Club",
     "techLevel": 1,
-    "actions": []
+    "actions": ["Melee Armament"]
   }
 ]

@@ -5,7 +5,7 @@
  * mixing prose and dashes stays a paragraph and renders exactly as it did
  * before lists existed.
  */
-export type MarkdownBlock = { kind: 'paragraph'; text: string } | { kind: 'list'; items: string[] }
+type MarkdownBlock = { kind: 'paragraph'; text: string } | { kind: 'list'; items: string[] }
 
 export type MarkdownSectionContent = {
   /** The `#` heading, used as the section head. */

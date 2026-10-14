@@ -28,10 +28,10 @@
  * pinned by tests rather than left to the call sites.
  */
 
+import type { PartnerInstance } from 'itun-domain/schemas/partner'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-import type { PartnerInstance } from '../schemas/partner'
 import { partnerGrantCount } from './partnerGrants'
 
 /** Mecha Companion's floor — "equal to your Union Crawler (Tech 3 minimum)". */

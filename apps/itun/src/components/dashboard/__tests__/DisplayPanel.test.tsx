@@ -2,7 +2,7 @@
  * Tests for DisplayPanel — what the display's Reference, Tables and SRD tabs
  * show. Verifies each focus renders without throwing and reuses the real
  * reference components: a resolvable chassis → a ReferenceEntityCard card;
- * Tables → a RollTable whose rolls are handed on for the Game's log;
+ * Tables → the roll instrument, whose rolls are handed on for the Game's log;
  * unresolvable slugs → a graceful note (never a crash).
  *
  * Reference content needs the ORM, so preload('all') runs once. A real chassis
@@ -50,14 +50,14 @@ describe('DisplayPanel', () => {
     const focus: DisplayFocus = 'mech'
     const { container } = renderDV(focus)
     // The reference card renders real content, not the fallback note.
-    expect(container.querySelector('.pc-display-note')).toBeNull()
-    expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
+    expect(container.querySelector('.su-dash-display-note')).toBeNull()
+    expect(container.querySelector('.su-dash-display-scroll')).toBeTruthy()
   })
 
   test('mech focus → an unresolvable chassis falls back to a note, no throw', () => {
     const focus: DisplayFocus = 'mech'
     const { container } = renderDV(focus, 'definitely-not-a-chassis')
-    expect(container.querySelector('.pc-entity-fallback')?.textContent).toContain(
+    expect(container.querySelector('.su-dash-entity-fallback')?.textContent).toContain(
       'not in the reference set'
     )
   })
@@ -81,38 +81,40 @@ describe('DisplayPanel', () => {
 
   const tablesFocus: DisplayFocus = 'tables'
 
-  test('Tables focus → a RollTable whose title is the picker trigger', () => {
+  test('Tables focus → the roll instrument, whose title is the picker trigger', () => {
     const { container } = renderDV(tablesFocus)
-    expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
-    // The trigger lives IN the RollTable header band — the band that also
-    // carries the Roll control — rather than in a bar above it repeating the
-    // name that band already prints.
+    expect(container.querySelector('.su-dash-display-scroll')).toBeTruthy()
+    // The trigger lives IN the instrument's bar — the bar that also carries
+    // the Roll control — rather than in a bar above it repeating the name that
+    // bar already prints.
     const trigger = container.querySelector('[aria-haspopup="dialog"]')
     expect(trigger).toBeTruthy()
     expect(
-      trigger?.closest('div')?.querySelector('button[aria-label="Roll on this table"]')
+      trigger
+        ?.closest('.su-roll__bar')
+        ?.querySelector('button[aria-label="Roll the die on Core Mechanic"]')
     ).toBeTruthy()
     expect(trigger?.textContent).toContain('Core Mechanic')
     expect(trigger?.getAttribute('aria-expanded')).toBe('false')
     expect(container.querySelector('select')).toBeNull()
-    // The reused RollTable renders a real table (not the fallback note).
-    expect(container.querySelector('table')).toBeTruthy()
-    expect(container.querySelector('.pc-display-note')).toBeNull()
+    // The instrument renders the table's bands (not the fallback note).
+    expect(container.querySelector('ol[aria-label="Core Mechanic table"]')).toBeTruthy()
+    expect(container.querySelector('.su-dash-display-note')).toBeNull()
   })
 
   test('Tables picker → opens a 5-column category overlay', () => {
     const { container, getByLabelText } = renderDV(tablesFocus)
-    expect(container.querySelector('.pc-tablepick')).toBeNull()
+    expect(container.querySelector('.su-dash-tablepick')).toBeNull()
     const openBtn = container.querySelector('[aria-haspopup="dialog"]') as HTMLButtonElement
     fireEvent.click(openBtn)
     const overlay = container.querySelector('[role="dialog"]')
     expect(overlay).toBeTruthy()
     expect(openBtn.getAttribute('aria-expanded')).toBe('true')
-    const cats = [...container.querySelectorAll('.pc-tablepick-cat')].map((c) => c.textContent)
+    const cats = [...container.querySelectorAll('.su-dash-tablepick-cat')].map((c) => c.textContent)
     expect(cats).toEqual(['Combat', 'Pilot', 'Salvage', 'Crawler', 'Downtime'])
     // Closing removes the overlay.
     fireEvent.click(getByLabelText('Close table picker'))
-    expect(container.querySelector('.pc-tablepick')).toBeNull()
+    expect(container.querySelector('.su-dash-tablepick')).toBeNull()
   })
 
   test('Tables picker → takes focus, closes on Escape and hands focus back', async () => {
@@ -127,23 +129,23 @@ describe('DisplayPanel', () => {
     await act(async () => {
       fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' })
     })
-    expect(container.querySelector('.pc-tablepick')).toBeNull()
+    expect(container.querySelector('.su-dash-tablepick')).toBeNull()
     expect(document.activeElement).toBe(openBtn)
   })
 
   test('Tables picker → picking a table retitles the table and closes', () => {
     const { container } = renderDV(tablesFocus)
     fireEvent.click(container.querySelector('[aria-haspopup="dialog"]') as HTMLButtonElement)
-    const items = [...container.querySelectorAll('.pc-tablepick-item')] as HTMLButtonElement[]
+    const items = [...container.querySelectorAll('.su-dash-tablepick-item')] as HTMLButtonElement[]
     const initiative = items.find((b) => b.textContent === 'Group Initiative')
     expect(initiative).toBeTruthy()
     fireEvent.click(initiative as HTMLButtonElement)
     // Overlay closed and the header title now names the picked table.
-    expect(container.querySelector('.pc-tablepick')).toBeNull()
+    expect(container.querySelector('.su-dash-tablepick')).toBeNull()
     expect(container.querySelector('[aria-haspopup="dialog"]')?.textContent).toContain(
       'Group Initiative'
     )
-    expect(container.querySelector('caption')?.textContent).toBe('Group Initiative')
+    expect(container.querySelector('ol[aria-label="Group Initiative table"]')).toBeTruthy()
   })
 
   test('Tables → a roll is handed on for the Game log, and kept nowhere here', async () => {
@@ -159,7 +161,7 @@ describe('DisplayPanel', () => {
       </EntityHrefProvider>
     )
     const rollBtn = container.querySelector(
-      'button[aria-label="Roll on this table"]'
+      'button[aria-label="Roll the die on Core Mechanic"]'
     ) as HTMLButtonElement
     expect(rollBtn).toBeTruthy()
     fireEvent.click(rollBtn)
@@ -175,8 +177,8 @@ describe('DisplayPanel', () => {
     // (asserted there against `buildCatalogSections`); here we only care that
     // the real explorer mounted.
     expect(container.querySelector('input[role="combobox"]')).toBeTruthy()
-    expect(container.querySelectorAll('.pc-srd-catalog-grid button').length).toBeGreaterThan(0)
-    expect(container.querySelector('.pc-display-note')).toBeNull()
+    expect(container.querySelectorAll('section button').length).toBeGreaterThan(0)
+    expect(container.querySelector('.su-dash-display-note')).toBeNull()
   })
 })
 

@@ -1,0 +1,601 @@
+/*
+ * The package stylesheet, part 8 of 21: guide steps, the entity hero and
+ * pattern rows. `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ Guide steps (`GuideSteps`) ═════════════════════════════════════════════
+ *
+ * A guide's procedure as the book prints a how-to: an ordered list whose every
+ * step opens on a solid `Slab` — its numeral, then its name, in the stamp — as
+ * every section heading does, the "Start here" steps (`StartHere`) included. A
+ * `section` is a solid `Slab` over the steps it holds. Under the slab
+ * everything keeps its left edge: prose, the page-pointer notes, the option
+ * cards, the table.
+ *
+ * On an entity page (`presentation="page"`, `CardPage`'s `guide`) the steps
+ * take the prose column's measure and reading size, so they continue the
+ * introduction above them rather than restarting at card size.
+ *
+ * `.su-guide__flow` is the reading column of a guide on its own page (below):
+ * the same column, so it shares this rule.
+ */
+.su-guide,
+.su-guide__flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  min-width: 0;
+}
+
+.su-guide__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.su-guide__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-guide__step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+/* A step's head is a two-cell chip, as a stat's `label | value`: the numeral
+   on the slab's ink, the name on a paper cell that runs to the stamp's edges,
+   inside its ink rule (`GuideSteps`'s `StepHead`). */
+.su-guide__step-name {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
+  color: var(--color-ink);
+  display: inline-block;
+  margin-block: calc(-1 * var(--space-2)) -3px;
+  margin-inline: var(--space-4) calc(-1 * var(--space-8));
+  padding: var(--space-2) var(--space-8) 3px;
+}
+
+/* A step's body, and the prose a ladder stands beside (below). */
+.su-guide__body,
+.su-guide__ladder-prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+/* A page pointer ("Full details on Pilot Stats can be found on p. 20."): on
+ * the left edge with the prose, one step back from it. */
+.su-guide__note {
+  color: var(--color-wk-muted);
+  font-size: 0.9em;
+  font-style: italic;
+  margin: 0;
+}
+
+/* The options a step selects from, as Tokens (`EntityTokenList`). */
+.su-guide__cards {
+  padding-top: var(--space-12);
+}
+
+/* A progression ladder (crawler tech levels) reads down a narrow column
+ * beside the step's prose; on a phone it follows the prose. */
+.su-guide__ladder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.su-guide__ladder-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+  padding-top: var(--space-12);
+}
+
+@media (min-width: 48rem) {
+  /* The ladder stands on the left of the prose it illustrates. */
+  .su-guide__ladder {
+    align-items: flex-start;
+    flex-direction: row-reverse;
+  }
+
+  .su-guide__ladder-cards {
+    flex: 0 0 40%;
+    min-width: 0;
+  }
+
+  .su-guide__ladder-prose {
+    flex: 1 1 0;
+  }
+}
+
+/* A wide table (Callsign's five columns) scrolls in its own box. */
+.su-guide__table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.su-entity-page > .su-guide {
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  max-width: var(--su-guide-measure, 52rem);
+}
+
+.su-entity-page > .su-guide .su-guide__steps {
+  gap: var(--space-48);
+}
+
+.su-entity-page > .su-guide .su-guide__step {
+  gap: var(--space-20);
+}
+
+@media (max-width: 40rem) {
+  .su-entity-page > .su-guide {
+    font-size: 17px;
+  }
+}
+
+/*
+ * A guide on its own page (`GuideSteps`'s `page`): the hierarchy and the rail.
+ *
+ * A section ("Post-Session") opens on its solid `Slab` as the page's H2, the
+ * steps it holds on theirs below it. Every head is an anchor target.
+ *
+ * The contents ("On this page") are a sticky right sidebar on a desktop
+ * (from 64rem), beside the reading column; narrower, the same list stands open
+ * under its slab above the steps, so a phone never scrolls sideways.
+ */
+.su-guide--page .su-guide__section {
+  gap: 0;
+}
+
+.su-guide--page .su-guide__section + .su-guide__section {
+  margin-top: var(--space-24);
+}
+
+.su-guide--page .su-guide__section-head [id],
+.su-guide--page .su-guide__head [id] {
+  scroll-margin-top: var(--space-24);
+}
+
+/* The phone's contents: the list, always open, under its solid slab. */
+.su-guide__toc-block {
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.su-guide__rail {
+  display: none;
+}
+
+.su-guide__toc-title {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  margin: 0 0 var(--space-8);
+  padding-bottom: var(--space-6);
+  text-transform: uppercase;
+}
+
+.su-guide__toc,
+.su-guide__toc-steps {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-guide__toc {
+  gap: var(--space-8);
+}
+
+.su-guide__toc-link {
+  align-items: baseline;
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-2);
+  text-decoration: none;
+}
+
+.su-guide__toc-link:hover {
+  text-decoration: underline;
+}
+
+/* The section the reader is in (srd's scroll-spy sets it): the hover's
+   underline, held and heavier, on a bold name. */
+.su-guide__toc-link[aria-current] {
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-decoration-thickness: var(--bw-pill);
+  text-underline-offset: 0.2em;
+}
+
+.su-guide__toc-link:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.su-guide__toc-link--section {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-guide__toc-num {
+  flex: none;
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  min-width: 1.5ch;
+}
+
+/*
+ * A guide's page reads like the book's prose pages (`.su-entity-page--guide`,
+ * set by `CardPage` when it holds a guide): one column for the introduction
+ * and the steps alike, so slabs, tables and option cards share one left
+ * edge. Its prose is set to a book measure inside it (about 70 characters a
+ * line at the reading size; the tables and cards take the column's width) at
+ * a book leading, paragraphs parted by a breath rather than packed, and the
+ * asides framed.
+ */
+.su-entity-page--guide {
+  --su-guide-measure: 46rem;
+  --su-guide-prose: 56ch;
+}
+
+.su-entity-page--guide .su-entity-page__prose,
+.su-entity-page--guide .su-guide__body {
+  gap: 0.75em;
+}
+
+.su-entity-page--guide .su-entity-page__prose .su-text.su-text--body,
+.su-entity-page--guide .su-entity-page__prose .su-text.su-text--flavor,
+.su-entity-page--guide .su-guide__prose .su-text.su-text--body {
+  line-height: 1.6;
+  max-width: var(--su-guide-prose);
+}
+
+/* Paragraphs inside one run part like the runs do. */
+.su-entity-page--guide .su-entity-page__prose .su-text + .su-text,
+.su-entity-page--guide .su-guide__prose .su-text + .su-text {
+  margin-top: 0.6em;
+}
+
+.su-entity-page--guide .su-guide__note {
+  max-width: var(--su-guide-prose);
+}
+
+/* The aside (`GuideAside`): a tip or a worked example, framed on paper in
+ * chrome-weight ink, as the srd's other asides are — a frame,
+ * never a left rail (ruleset §3.10). */
+.su-guide__aside {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  padding: var(--space-12) var(--space-16);
+}
+
+.su-guide__aside > p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+/* A stamped aside (a hint with a `label`, "Note"): the stamp rides the frame's
+ * top border (`.su-stamp-seam`), inset from its corner, with room above for it. */
+.su-guide__aside--stamped {
+  margin-top: var(--space-8);
+  padding-top: var(--space-16);
+  position: relative;
+}
+
+.su-guide__aside-stamp {
+  left: var(--space-12);
+}
+
+.su-guide__aside--flavor > p {
+  font-style: italic;
+}
+
+.su-entity-page--guide .su-guide__aside {
+  max-width: calc(var(--su-guide-prose) + 2 * var(--space-16));
+}
+
+/*
+ * On a desktop (from 64rem: the 46rem column, the gap and the rail's 12rem
+ * floor fit inside a 1024px screen's margins) the whole page is two columns:
+ * the reading column, and the rail
+ * beside it from the band down — beside the introduction too, not only the
+ * steps. `GuideSteps`'s own box steps aside (`display: contents`) so its rail
+ * is a cell of the page's grid; the rail spans both rows (the introduction,
+ * then the steps) and sticks while they scroll by. It stands at the page's far
+ * edge, under the band's stamps, as the column stands under its title.
+ */
+@media (min-width: 64rem) {
+  .su-entity-page--guide {
+    align-items: start;
+    column-gap: var(--space-40);
+    display: grid;
+    grid-template-columns: minmax(0, var(--su-guide-measure)) minmax(12rem, 16rem);
+    grid-template-rows: auto 1fr;
+    justify-content: space-between;
+    row-gap: 0;
+  }
+
+  .su-entity-page--guide > *,
+  .su-entity-page--guide .su-guide__flow {
+    grid-column: 1;
+  }
+
+  .su-entity-page--guide > .su-guide--page {
+    display: contents;
+  }
+
+  .su-entity-page--guide > .su-entity-page__main ~ .su-guide .su-guide__flow {
+    margin-top: var(--space-40);
+  }
+
+  .su-guide--page .su-guide__toc-block {
+    display: none;
+  }
+
+  .su-guide--page .su-guide__rail {
+    align-self: start;
+    display: block;
+    font-size: var(--text-sm);
+    grid-column: 2;
+    grid-row: 1 / -1;
+    line-height: 1.4;
+    max-height: calc(100vh - var(--space-48));
+    overflow-y: auto;
+    position: sticky;
+    top: var(--space-24);
+  }
+}
+
+/* The hero: the line art on a paper plate, the full width of its column. The
+   plate hugs the art: a small even inset inside the hairline, and the art's
+   white canvas multiplied onto the paper so no second ground shows around it.
+   `--su-hero-max-h` is the tallest the art draws: most of a phone's screen;
+   beside the flowing page's text, capped lower (see `.su-entity-page--flow`
+   below). */
+.su-entity-hero {
+  --su-hero-inset: var(--space-6);
+  --su-hero-max-h: 70vh;
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  margin: 0;
+  padding: var(--su-hero-inset);
+}
+
+.su-entity-hero__img {
+  display: block;
+  height: auto;
+  margin-inline: auto;
+  max-height: var(--su-hero-max-h);
+  max-width: 100%;
+  mix-blend-mode: multiply;
+  object-fit: contain;
+  transition: opacity 300ms;
+}
+
+/* Cropped to the line art (`heroArtCrop`): the artwork's canvas
+   carries a margin that differs per image, so the plate takes the ink's own
+   aspect (`--su-art-aspect`) and the window shows only the ink's box; the
+   image inside is scaled and offset by its inline style. The plate is as wide
+   as the art drawn at its tallest, or its column, whichever is narrower, so a
+   tall figure never sits in a wide box of empty paper. */
+.su-entity-hero--crop {
+  margin-inline: auto;
+  max-width: 100%;
+  width: calc(
+    var(--su-hero-max-h) *
+    var(--su-art-aspect) +
+    2 *
+    var(--su-hero-inset) +
+    2 *
+    var(--bw-hairline)
+  );
+}
+
+.su-entity-hero__window {
+  aspect-ratio: var(--su-art-aspect);
+  overflow: hidden;
+  position: relative;
+}
+
+.su-entity-hero__img--crop {
+  max-height: none;
+  max-width: none;
+  position: absolute;
+}
+
+/* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
+ * Each pattern is a card in the Row's language: its host's tone in the head
+ * (the link), a paper body with the pattern's opening as a
+ * clamped lead and its loadout, Systems beside Modules, one full-width Token
+ * a line (links of their own, so outside the head's anchor). One card a line.
+ * On a phone only two show until "Show all" targets the list (`:target`),
+ * which needs no script.
+ */
+.su-pattern-rows {
+  scroll-margin-top: var(--space-64);
+}
+
+.su-pattern-rows__list {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: minmax(0, 1fr);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-pattern-rows__item {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.su-pattern-rows__head {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+/* No rule under the head: its name's cut-out tab opens into this paper. */
+.su-pattern-rows__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-10) var(--space-10);
+}
+
+/* What the pattern changes (`PatternUniques`): its loadout Tokens, or the
+   actions a Bio-Titan pattern adds. */
+.su-pattern-rows__unique {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-pattern-rows__more {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  justify-content: center;
+  letter-spacing: var(--tracking-caps-tight);
+  margin-top: var(--space-12);
+  min-height: 44px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+@media (max-width: 39.99rem) {
+  .su-pattern-rows:not(:target) .su-pattern-rows__item:nth-child(n + 3) {
+    display: none;
+  }
+
+  .su-pattern-rows:target .su-pattern-rows__more {
+    display: none;
+  }
+}
+
+@media (min-width: 40rem) {
+  .su-pattern-rows__more {
+    display: none;
+  }
+}
+
+/* The link-preview scale (`scale="og"`, OgCard, issue 1280): a band drawn at
+   one fixed size inside a 1200 × 630 card, never responsive. The eyebrow (the
+   kicker and its stamps) sits at the top, the notch at the foot, and the band
+   fills the height the card gives it. The selectors outrank the responsive
+   rules above, so a 1200px viewport's `@media` padding never reaches it. */
+.su-chapter-band[data-scale='og'] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__eyebrow {
+  max-width: none;
+  padding: var(--space-48) calc(var(--space-48) + var(--space-8)) 0;
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__row {
+  align-items: flex-end;
+  column-gap: var(--space-24);
+  flex-direction: row;
+  margin-inline: 0;
+  max-width: none;
+  padding: 0 calc(var(--space-48) + var(--space-8));
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__title {
+  font-size: 120px;
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--space-12) var(--space-24) 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Without an eyebrow (an entity's card: nothing above its title, EDL E20)
+   the notch still sits on the band's foot. */
+.su-chapter-band[data-scale='og'] .su-chapter-band__row {
+  margin-top: auto;
+}
+
+/* An ability's tier numeral left of the notch, as on its page band; the
+   notch beside it gives way first. */
+.su-chapter-band[data-scale='og'] .su-chapter-band__heading {
+  gap: var(--space-24);
+  min-width: 0;
+}
+
+/* THE OG CHIPS (`OgCard`): the entity's one chip group (E17), the page's own
+   horizontal `Stat` cells drawn at the preview's scale, so nothing reads under
+   the 34px source floor at Discord's 400px draw (ruleset §4.6). */
+.su-og-chips {
+  line-height: 0;
+  margin: calc(-1 * var(--space-14)) 0 0 calc(-1 * var(--space-14));
+  text-align: end;
+  text-wrap: balance;
+}
+
+/* Inline boxes in a balanced block, as a show page's chips, so the rows come
+   out even; each chip's top and leading margin is the gap, cancelled at the
+   block's edges (`OgCard` widens the block by one gap). */
+.su-og-chips > * {
+  display: inline-flex;
+  margin: var(--space-14) 0 0 var(--space-14);
+  vertical-align: bottom;
+}
+
+/* The chips ride the band beside the title, as a show page's header chips
+   do: right-aligned, the last row centred on the notch's capitals
+   (`ogChipsLift`), extra rows stacking upward, even. Their width is set by
+   `ogCardLayout`, so the title never gives way to them. */
+.su-chapter-band[data-scale='og'] .su-chapter-band__aside {
+  flex: none;
+  margin-left: auto;
+  padding-bottom: 0;
+}
+
+.su-og-chips .su-stat-cell {
+  border-radius: calc(var(--radius-badge) * 2);
+  border-width: var(--bw-entity);
+}
+
+.su-og-chips .su-stat-plate {
+  font-family: var(--font-cond);
+  font-size: 36px;
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-8) var(--space-14);
+}

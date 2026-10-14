@@ -13,8 +13,11 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SeatResolving } from 'itun-domain/schemas/seat'
 import { useState } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -24,15 +27,19 @@ import {
   pilotMaxAP,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { SeatResolving } from '../../../lib/schemas/seat'
+import { itemEconomy, resolveModule, resolveSystem } from '../../../lib/rules/mechItems'
+import {
+  buildMechActions,
+  hasCurrencyChoice,
+  hasVariableHot,
+  hotHeatFor,
+} from '../../../lib/rules/playActions'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
 import { DeckList } from '../DeckList'
-import { buildMechActions, hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
+import { PhoneDeck } from '../PhoneDeck'
+import type { ResolveModel } from '../ResolvePanel'
 import { ResolvePanel } from '../ResolvePanel'
 import type { PlayStore } from '../SlotRow'
 import type { ActionsDeckProps } from '../useActionsDeck'
@@ -145,6 +152,19 @@ function ignoreRange(): void {
 }
 
 /**
+ * The deck's dice, injected: every die shows 14. A Core Mechanic Success; a
+ * Heat Check at Heat 14 or more overloads, and Reactor Overload 14 Overheats.
+ */
+const rollFourteen: NonNullable<ActionsDeckProps['rollFor']> = async () => () => 14
+
+/** Click a resolve control whose handler rolls, and let the (async) dice land. */
+async function clickRolling(text: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByText(text))
+  })
+}
+
+/**
  * The deck as the Dashboard mounts it — the list beside the Resolve tab — with
  * the seat's `resolving` held in component state, as `useSeat`'s optimistic
  * update holds it. `written` records every write to the seat.
@@ -159,6 +179,7 @@ function ActionsDeck({
 }) {
   const [resolving, setResolving] = useState<SeatResolving | null>(initial)
   const deck = useActionsDeck({
+    rollFor: rollFourteen,
     ...props,
     resolving,
     onResolving: (next) => {
@@ -188,16 +209,21 @@ function timing(name: string): HTMLElement {
   return within(group).getByRole('button', { name })
 }
 
-/** The deck cards are catalog-extent `ReferenceEntityCard` tiles laid out as one
- * masonry grid: each is a clickable card exposing `role="button"` +
- * `aria-label` = the action name. */
+/** The deck rows are head-extent `ReferenceEntityCard`s laid out as one grid.
+ * Each row's cost pennant IS its action (ruleset §1): the one button on the
+ * row, named "Resolve <action>". These are those pennants. */
 function deckCards(container: HTMLElement): HTMLElement[] {
-  return [...container.querySelectorAll<HTMLElement>('.pc-deck-grid > li [role="button"]')]
+  return [...container.querySelectorAll<HTMLElement>('.su-dash-deck-grid > li button')]
 }
 
-/** Click the deck badge whose action name (aria-label) matches exactly. */
+/** The action a deck pennant resolves. */
+function deckLabel(el: HTMLElement): string | undefined {
+  return el.getAttribute('aria-label')?.replace(/^Resolve /, '')
+}
+
+/** Tap the deck pennant whose action name matches exactly. */
 function clickActionByName(container: HTMLElement, name: string) {
-  const card = deckCards(container).find((el) => el.getAttribute('aria-label') === name)
+  const card = deckCards(container).find((el) => deckLabel(el) === name)
   fireEvent.click(card as Element)
 }
 
@@ -207,9 +233,7 @@ function clickPrimaryAction(container: HTMLElement): { epCost: number } {
   if (!item) throw new Error(`unresolved system ${costedSystemId}`)
   const actions = SalvageUnionReference.resolveActions(item) ?? []
   const primary = actions.find((a) => typeof a.activationCost === 'number') ?? actions[0]
-  const card = deckCards(container).find(
-    (el) => el.getAttribute('aria-label') === (primary?.name ?? '')
-  )
+  const card = deckCards(container).find((el) => deckLabel(el) === (primary?.name ?? ''))
   fireEvent.click(card as Element)
   const epCost = typeof primary?.activationCost === 'number' ? primary.activationCost : 0
   return { epCost }
@@ -223,8 +247,10 @@ describe('the Actions deck', () => {
     const { container } = renderDeck(mech, store)
     // Every card lives in a single grid; the deck files none of them under a
     // heading of its own name (the source names survive only as filter chips).
-    expect(container.querySelectorAll('.pc-deck-grid')).toHaveLength(1)
-    expect(container.querySelector('.pc-deck h1, .pc-deck h2, .pc-deck h3')).toBeNull()
+    expect(container.querySelectorAll('.su-dash-deck-grid')).toHaveLength(1)
+    expect(
+      container.querySelector('.su-dash-deck h1, .su-dash-deck h2, .su-dash-deck h3')
+    ).toBeNull()
     expect(deckCards(container).length).toBeGreaterThan(0)
   })
 
@@ -241,15 +267,15 @@ describe('the Actions deck', () => {
     })
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
-    const card = deckCards(container).find((el) => el.getAttribute('aria-label') === mod.actionName)
+    const card = deckCards(container).find((el) => deckLabel(el) === mod.actionName)
     expect(card).toBeTruthy()
-    // The tile's roll table (Show toggle + Roll button) is suppressed: a control
-    // inside the card would be invalid markup and its click would bubble into
-    // `onOpen`. The table is still one click away, in the resolve panel.
-    expect(card?.querySelectorAll('button, [role="button"]')).toHaveLength(0)
+    // The tile's roll table (Show toggle + Roll button) is suppressed: the
+    // pennant is the row's one control, and the table is one tap away, in the
+    // resolve panel.
+    expect(card?.closest('li')?.querySelectorAll('button, [role="button"]')).toHaveLength(1)
     // …and the resolve panel DOES render it.
     fireEvent.click(card as Element)
-    expect(screen.getByText('Roll the Die')).toBeTruthy()
+    expect(screen.getByText(/Roll the Die/)).toBeTruthy()
   })
 
   test('selecting an action opens the resolve panel with Activate + Roll', () => {
@@ -257,8 +283,8 @@ describe('the Actions deck', () => {
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    expect(screen.getByText('Activate')).toBeTruthy()
-    expect(screen.getByText('Roll')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Activate\b/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Roll' })).toBeTruthy()
   })
 
   test('Activate writes the EP-spend patch through the store', () => {
@@ -266,21 +292,21 @@ describe('the Actions deck', () => {
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     const { epCost } = clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('mech')
     expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - epCost))
   })
 
-  test('Roll shows a Core Mechanic band readout', () => {
+  test('Roll shows a Core Mechanic band readout', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    expect(container.querySelector('.pc-deck-roll')).toBeNull()
-    fireEvent.click(screen.getByText('Roll'))
-    expect(container.querySelector('.pc-deck-roll')).toBeTruthy()
-    expect(container.querySelector('.pc-deck-d20')).toBeTruthy()
+    expect(container.querySelector('.su-dash-deck-roll')).toBeNull()
+    await clickRolling('Roll')
+    expect(container.querySelector('.su-dash-deck-roll')).toBeTruthy()
+    expect(container.querySelector('.su-dash-deck-d20')).toBeTruthy()
   })
 
   test('the timing filter is toggle buttons, not tabs without a keyboard model', () => {
@@ -298,26 +324,27 @@ describe('the Actions deck', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
-    const before = container.querySelectorAll('.pc-deck-grid > li').length
+    const before = container.querySelectorAll('.su-dash-deck-grid > li').length
     expect(before).toBeGreaterThan(0)
     // Pick a timing tab that the system's actions do NOT match by intersecting
     // with a type absent from the deck. DownTime is not a tab, so use React
     // (Reaction) — most weapon systems are Turn actions, so React empties it.
     fireEvent.click(timing('React'))
-    const reactItems = container.querySelectorAll('.pc-deck-grid > li').length
+    const reactItems = container.querySelectorAll('.su-dash-deck-grid > li').length
     // Either the deck filtered down, or it shows the no-match note.
-    const emptied = reactItems < before || container.querySelector('.pc-deck-empty') !== null
+    const emptied =
+      reactItems < before || (container.textContent ?? '').includes('No actions match this filter.')
     expect(emptied).toBe(true)
     // Back to All restores the full deck.
     fireEvent.click(timing('All'))
-    expect(container.querySelectorAll('.pc-deck-grid > li').length).toBe(before)
+    expect(container.querySelectorAll('.su-dash-deck-grid > li').length).toBe(before)
   })
 
   test('a range readout renders with the reach count', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
-    expect(container.querySelector('.pc-deck-reach')?.textContent).toContain('in reach')
+    expect(container.querySelector('.su-dash-deck-reach')?.textContent).toContain('in reach')
   })
 
   test('the range band is read from the seat, and a new one is sent to it', () => {
@@ -336,7 +363,20 @@ describe('the Actions deck', () => {
     expect(sent).toEqual(['Far'])
   })
 
-  test('resolve panel exposes Back / Clear and an Apply gated on a roll', () => {
+  test('the roll and Apply are spoken by a live region mounted before the roll', async () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    clickPrimaryAction(container)
+    const live = container.querySelector('.su-dash-display-scroll > [aria-live="polite"]')
+    expect(live?.textContent).toBe('')
+    await clickRolling('Roll')
+    expect(live?.textContent).toMatch(/^Rolled 14: \S/)
+    fireEvent.click(screen.getByText('Apply'))
+    expect(live?.textContent).toMatch(/Result applied$/)
+  })
+
+  test('resolve panel exposes Back / Clear and an Apply gated on a roll', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
@@ -346,24 +386,24 @@ describe('the Actions deck', () => {
     // Apply is disabled until there is a roll to commit.
     const apply = screen.getByText<HTMLButtonElement>('Apply')
     expect(apply.disabled).toBe(true)
-    fireEvent.click(screen.getByText('Roll'))
+    await clickRolling('Roll')
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Clear resets the resolve state (the roll readout disappears).
     fireEvent.click(screen.getByText('Clear'))
-    expect(container.querySelector('.pc-deck-roll')).toBeNull()
+    expect(container.querySelector('.su-dash-deck-roll')).toBeNull()
   })
 
-  test('Apply commits a rolled outcome without ever auto-writing a destructive condition', () => {
+  test('Apply commits a rolled outcome without ever auto-writing a destructive condition', async () => {
     const mech = makeMech()
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Roll'))
+    await clickRolling('Roll')
     fireEvent.click(screen.getByText('Apply'))
     // Either the non-destructive auto-commit or the Cascade-Failure route note —
     // never both, and neither writes a destructive condition through the store.
-    const applied = container.querySelector('.pc-deck-applied')
-    const routed = container.querySelector('.pc-deck-apply-route')
+    const applied = container.querySelector('.su-dash-deck-applied')
+    const routed = container.querySelector('.su-dash-deck-apply-route')
     expect(Boolean(applied) !== Boolean(routed)).toBe(true)
     // Apply performs no store write at all (the cost lands at Activate; a
     // destructive band is routed to the Mech's Major slot, never auto-applied).
@@ -385,11 +425,11 @@ describe('the Actions deck', () => {
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickActionByName(container, sys.actionName)
-    const proj = container.querySelector('.pc-deck-hotx-proj')
+    const proj = container.querySelector('.su-dash-deck-hotx-proj')
     expect(proj?.textContent).toContain('Heat 1/')
     fireEvent.click(screen.getByLabelText('Increase Hot'))
-    expect(container.querySelector('.pc-deck-hotx-proj')?.textContent).toContain('Heat 2/')
-    fireEvent.click(screen.getByText('Activate'))
+    expect(container.querySelector('.su-dash-deck-hotx-proj')?.textContent).toContain('Heat 2/')
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     const resolvedSystem = resolveSystem(sys.id)
     if (!resolvedSystem) throw new Error(`unresolved system ${sys.id}`)
     const action = SalvageUnionReference.resolveActions(resolvedSystem)?.find(
@@ -442,7 +482,7 @@ describe('the Actions deck', () => {
     // Both radios render; pick AP, then Activate → a pilot AP spend, not a mech write.
     const apRadio = screen.getByLabelText('1 AP')
     fireEvent.click(apRadio)
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('pilot')
     expect(calls[0]?.patch.currentAP).toBe(4)
@@ -466,7 +506,7 @@ describe('the Actions deck', () => {
         />
       </EntityHrefProvider>
     )
-    const labels = deckCards(container).map((el) => el.getAttribute('aria-label'))
+    const labels = deckCards(container).map(deckLabel)
     // The mech's own system actions are there…
     expect(mechActionNames().some((n) => labels.includes(n))).toBe(true)
     // …and so is the pilot's ability action — the pilot is in the cockpit.
@@ -489,7 +529,7 @@ describe('the Actions deck', () => {
         />
       </EntityHrefProvider>
     )
-    const labels = deckCards(container).map((el) => el.getAttribute('aria-label'))
+    const labels = deckCards(container).map(deckLabel)
     expect(ability.actionNames.some((n) => labels.includes(n))).toBe(true)
     // The mech is left behind — none of its actions are reachable on foot.
     expect(mechActionNames().some((n) => labels.includes(n))).toBe(false)
@@ -521,12 +561,12 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     const { epCost } = clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
 
     const epMax = mechMaxEP(mech, resolveChassisRef(CHASSIS))
     expect(epMax).toBeGreaterThan(epCost)
     expect(calls).toHaveLength(1)
-    // Previously Math.max(0, 0 - epCost) === 0 — the mech's EP was zeroed.
+    // Not Math.max(0, 0 - epCost) === 0, which zeroes the mech's EP.
     expect(calls[0]?.patch.currentEP).toBe(epMax - epCost)
   })
 
@@ -569,48 +609,127 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     )
     clickActionByName(container, mod.actionName)
     fireEvent.click(screen.getByLabelText('1 AP'))
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
 
     const apMax = pilotMaxAP(pilot)
     expect(apMax).toBeGreaterThan(1)
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('pilot')
-    // Previously Math.max(0, 0 - 1) === 0 — the pilot's AP was zeroed.
+    // Not Math.max(0, 0 - 1) === 0, which zeroes the pilot's AP.
     expect(calls[0]?.patch.currentAP).toBe(apMax - 1)
   })
 
-  test('Push damages SP from the full pool when SP was never stored', () => {
-    // Leviathan is SP 76 / Heat Cap 18. Starting at Heat 17 every Push clamps to
-    // the cap, so the Heat Check overloads on any d20 except a natural 20 (90%)
-    // and the 11-19 Overheat band (45%) then writes SP — ~40% of pushes. Over 80
-    // pushes at least one SP write is a certainty for any practical purpose.
-    // The damage is Heat-sized, so the expected write is 76 - 18 = 58, never 0.
+  test('Push damages SP from the full pool when SP was never stored', async () => {
+    // Leviathan is SP 76 / Heat Cap 18. Starting at Heat 16 the Push lands on
+    // the cap exactly (the last Push the cap allows, Quick Ref p.233), so the
+    // Heat Check's 14 overloads and Reactor Overload's 14 lands in the 11-19
+    // Overheat band, which writes SP. The damage is Heat-sized, so the expected
+    // write is 76 - 18 = 58, never 0.
     const mech = mechFixture({
       id: 'm1',
       name: 'Rig',
       chassisRef: CHASSIS,
       systems: [costedSystemId],
-      currentHeat: 17,
+      currentHeat: 16,
     })
     expect(mech.currentSP).toBeUndefined()
     const chassis = resolveChassisRef(CHASSIS)
     const spMax = mechMaxSP(mech, chassis)
     const heatAtCheck = mechMaxHeat(mech, chassis)
+    expect(mech.currentHeat).toBe(heatAtCheck - 2)
     expect(spMax).toBeGreaterThan(heatAtCheck)
 
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Roll')) // Push stays disabled until a roll exists
-    for (let i = 0; i < 80; i += 1) fireEvent.click(screen.getByText('Push'))
+    // Push stays disabled until a roll exists (Core Book p.233).
+    await clickRolling('Roll')
+    await clickRolling('Push')
 
     const spWrites = calls
       .map((c) => c.patch.currentSP)
       .filter((v): v is number => typeof v === 'number')
     expect(spWrites.length).toBeGreaterThan(0)
-    // Previously every one of these was Math.max(0, 0 - heat) === 0: an undamaged
-    // mech recorded at SP 0, one hit from destroyed.
+    // Not Math.max(0, 0 - heat) === 0, which records an undamaged mech at SP 0,
+    // one hit from destroyed.
     for (const v of spWrites) expect(v).toBe(spMax - heatAtCheck)
+  })
+})
+
+/**
+ * Quick Ref p.233: a Push adds 2 Heat, and a mech never exceeds its Heat Cap,
+ * so the resolve refuses a Push that would — as the Reactor bay does
+ * (`MechSlot`), rather than re-rolling and clamping the Heat at the cap.
+ */
+describe('useActionsDeck — Push and the Heat Cap', () => {
+  type Resolving = Extract<ResolveModel, { kind: 'resolve' }>
+
+  /** The hook alone; `seen` holds the resolve model of the latest render. */
+  function Harness({
+    seen,
+    ...props
+  }: Omit<ActionsDeckProps, 'resolving' | 'onResolving'> & {
+    seen: { view: ResolveModel | null }
+  }) {
+    const [resolving, setResolving] = useState<SeatResolving | null>(null)
+    const deck = useActionsDeck({ ...props, resolving, onResolving: setResolving })
+    seen.view = deck.resolve
+    return <DeckList view={deck.list} />
+  }
+
+  /** Open the costed action at `heat` on Leviathan (Heat Cap 18) and roll. */
+  async function rolledAt(heat: number) {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'leviathan',
+      systems: [costedSystemId],
+      currentHeat: heat,
+    })
+    expect(mechMaxHeat(mech, resolveChassisRef('leviathan'))).toBe(18)
+    const { store, calls } = stubStore(mech)
+    const seen: { view: ResolveModel | null } = { view: null }
+    const { container } = render(
+      <EntityHrefProvider value={() => undefined}>
+        <Harness mech={mech} range="Close" onRange={ignoreRange} store={store} seen={seen} />
+      </EntityHrefProvider>
+    )
+    clickPrimaryAction(container)
+    const resolve = (): Resolving => {
+      if (seen.view?.kind !== 'resolve') throw new Error('no resolve open')
+      return seen.view
+    }
+    // The roll is async (Randsum); flush it before reading the model.
+    await act(async () => resolve().controls.onRoll())
+    return { resolve, calls }
+  }
+
+  test("the resolve carries the activation's spend as numbers, for its chips", async () => {
+    const { resolve } = await rolledAt(0)
+    const { cost, currency } = resolve()
+    expect(currency).toBe('EP')
+    expect(cost.amount).toBeGreaterThan(0)
+    expect(cost.heat).toBeGreaterThanOrEqual(0)
+    expect(cost.uses).toBeGreaterThanOrEqual(0)
+  })
+
+  test('at Heat 17/18 Push is disabled, says why, and writes nothing', async () => {
+    const { resolve, calls } = await rolledAt(17)
+    const push = resolve().controls.push
+    expect(push?.disabled).toBe(true)
+    expect(push?.lockedReason).toBe('No Push at Heat 17/18: +2 Heat would pass the Heat Capacity.')
+    await act(async () => push?.onPush())
+    expect(calls).toHaveLength(0)
+    expect(resolve().pushLog).toBeNull()
+  })
+
+  test('at Heat 16/18 Push is offered, and lands the Heat on the cap', async () => {
+    const { resolve, calls } = await rolledAt(16)
+    const push = resolve().controls.push
+    expect(push?.disabled).toBe(false)
+    expect(push?.lockedReason).toBeUndefined()
+    await act(async () => push?.onPush())
+    expect(calls[0]?.patch.currentHeat).toBe(18)
   })
 })
 
@@ -620,7 +739,7 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
  * reopens on it.
  */
 describe('the resolve on the seat', () => {
-  test('open, activate, roll and back are each written to the seat', () => {
+  test('open, activate, roll and back are each written to the seat', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const written: (SeatResolving | null)[] = []
@@ -636,8 +755,8 @@ describe('the resolve on the seat', () => {
       </EntityHrefProvider>
     )
     clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Activate'))
-    fireEvent.click(screen.getByText('Roll'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
+    await clickRolling('Roll')
     fireEvent.click(screen.getByText('◀ Back'))
 
     const key = buildMechActions(mech)[0]?.key
@@ -671,8 +790,8 @@ describe('the resolve on the seat', () => {
         />
       </EntityHrefProvider>
     )
-    expect(container.querySelector('.pc-deck-d20')?.textContent).toBe('14')
-    expect(screen.getByText('Activated')).toBeTruthy()
+    expect(container.querySelector('.su-dash-deck-d20')?.textContent).toBe('14')
+    expect(screen.getByRole('button', { name: /^Activated\b/ })).toBeTruthy()
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Restoring rolls nothing and writes nothing.
     expect(calls).toHaveLength(0)
@@ -697,5 +816,78 @@ describe('the resolve on the seat', () => {
     expect(screen.getByText('Crush is no longer in this deck.')).toBeTruthy()
     fireEvent.click(screen.getByText('Clear'))
     expect(written).toEqual([null])
+  })
+})
+
+/**
+ * The phone's deck (ADR-045 D6): the pennant opens an action AND pays for it,
+ * through the same activation the resolve's own pennant writes; the row's body
+ * only opens it.
+ */
+describe('the phone deck', () => {
+  function PhoneDeckHarness({
+    written,
+    ...props
+  }: Omit<ActionsDeckProps, 'resolving' | 'onResolving'> & { written: (SeatResolving | null)[] }) {
+    const [resolving, setResolving] = useState<SeatResolving | null>(null)
+    const deck = useActionsDeck({
+      ...props,
+      resolving,
+      onResolving: (next) => {
+        written.push(next)
+        setResolving(next)
+      },
+    })
+    if (deck.list.kind !== 'list') return null
+    return (
+      <PhoneDeck view={deck.list} onOpen={deck.list.onOpen} onActivate={deck.list.onActivate} />
+    )
+  }
+
+  function renderPhoneDeck(mech: Mech, store: PlayStore, written: (SeatResolving | null)[]) {
+    return render(
+      <EntityHrefProvider value={() => undefined}>
+        <PhoneDeckHarness
+          mech={mech}
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+          written={written}
+        />
+      </EntityHrefProvider>
+    )
+  }
+
+  test('the pennant opens and pays in one press: one EP write, one activated step', () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const written: (SeatResolving | null)[] = []
+    const { container } = renderPhoneDeck(mech, store, written)
+    const action = buildMechActions(mech).find((a) => typeof a.action.activationCost === 'number')
+    if (!action) throw new Error('the costed system has no costed action')
+    const row = container.querySelector(`[data-deck-key="${action.key}"]`)
+    const pennant = row?.querySelector<HTMLButtonElement>('.su-ec-pennant-btn')
+    if (!pennant) throw new Error('the row has no pennant')
+    fireEvent.click(pennant)
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.patch.currentEP).toBe(6 - Number(action.action.activationCost))
+    expect(written).toEqual([
+      { ref: action.key, name: action.name, activated: true, applied: false },
+    ])
+  })
+
+  test('the row’s body only opens it', () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const written: (SeatResolving | null)[] = []
+    const { container } = renderPhoneDeck(mech, store, written)
+    const action = buildMechActions(mech)[0]
+    if (!action) throw new Error('the costed system has no action')
+    const row = container.querySelector(`[data-deck-key="${action.key}"]`)
+    fireEvent.click(row?.querySelector('[role="button"]') as Element)
+    expect(calls).toHaveLength(0)
+    expect(written).toEqual([
+      { ref: action.key, name: action.name, activated: false, applied: false },
+    ])
   })
 })

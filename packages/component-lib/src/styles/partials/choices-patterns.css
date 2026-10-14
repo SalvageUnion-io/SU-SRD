@@ -1,0 +1,137 @@
+/*
+ * The package stylesheet, part 18 of 21: choices, content and patterns.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ── choices, content and patterns ── */
+
+/* `choiceCard/ChoiceGroups.tsx` — the option masonry. One column, two from `sm`
+   unless compact: the column count is responsive, so it lives here. */
+.su-choice-options {
+  columns: 1;
+}
+
+@media (min-width: 40rem) {
+  .su-choice-options--split {
+    columns: 2;
+  }
+}
+
+/* The free-text field's border colour: ink at 20%, full ink while focused. */
+.su-stampseal-field__input {
+  border-color: var(--color-ink-20);
+}
+
+.su-stampseal-field__input:focus {
+  border-color: var(--color-ink);
+}
+
+/* The field's floating stamp label. It rides the field's top border; while
+   the field is empty and unfocused (a single-space placeholder makes
+   `:placeholder-shown` mean "empty") it drops inside like a placeholder, and
+   focus snaps it back up. Sibling-state driven, so a class; the focus rule
+   comes last and wins when both match. */
+.su-stampseal-field__label {
+  top: 0;
+  translate: 0 -50%;
+}
+
+.su-stampseal-field__input:placeholder-shown ~ .su-stampseal-field__label {
+  top: var(--space-14);
+  translate: 0 0;
+  opacity: 0.6;
+}
+
+.su-stampseal-field__input:focus ~ .su-stampseal-field__label {
+  top: 0;
+  translate: 0 -50%;
+  opacity: 1;
+}
+
+/* `card/ChoiceRegion.tsx` — a choice sits 12px above whatever follows it, and
+   flush when it is last (a structural `:not(:last-child)`). */
+.su-choice-region:not(:last-child) {
+  margin-bottom: var(--space-12);
+}
+
+/* `card/PatternLoadout.tsx` — Systems and Modules side by side from `sm`, with
+   a rule between the columns there and nowhere else. */
+.su-pattern-loadout {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 40rem) {
+  .su-pattern-loadout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-pattern-loadout__column--ruled {
+    border-left: var(--bw-chrome) solid var(--color-ink-20);
+    padding-left: var(--space-12);
+  }
+}
+
+/* A TOKEN LIST (`.su-entity-token-list`: a pattern's Systems and Modules):
+   one Token a line, each running the list's full width, its name taking the
+   room and its fact at the right edge, where the facts scan down the list.
+   Under a coarse pointer each line is a 44px target (ruleset §4.6). */
+.su-entity-token-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-entity-token-list > li {
+  display: flex;
+  min-width: 0;
+}
+
+.su-entity-token-list .su-entity-token,
+.su-entity-token-list .su-entity-token__pill {
+  flex: 1 1 auto;
+}
+
+/* A Token with controls on its line (`.su-entity-token-line`: ITUN's installed
+   sheet items): a phone gives the Token its own line and the controls the one
+   under it; from `sm` they share one, and the pill takes the line's height. */
+.su-entity-token-line {
+  align-items: stretch;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.su-entity-token-line > .su-entity-token {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.su-entity-token-line > .su-entity-token > .su-entity-token__pill {
+  align-self: stretch;
+  flex: 1 1 auto;
+}
+
+@media (min-width: 40rem) {
+  .su-entity-token-line > .su-entity-token {
+    flex-basis: 12rem;
+  }
+}
+
+/* A big grouping's Tokens (`EntityTokenList`): as many full-width columns as
+   the measure holds, one on a phone. */
+.su-entity-token-list--grid {
+  column-gap: var(--space-12);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+}
+
+@media (pointer: coarse) {
+  .su-entity-token-list .su-entity-token__pill {
+    min-height: 44px;
+  }
+}

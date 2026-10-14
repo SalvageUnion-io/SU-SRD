@@ -1,22 +1,8 @@
 name: Setup Bun
 description: Set up Bun and install dependencies
 
-# There is deliberately NO `actions/cache` step here, and it was removed rather
-# than never added. Measured on this repo:
-#
-#   bun install --frozen-lockfile, EMPTY bun cache   10.8 s
-#   bun install --frozen-lockfile, warm bun cache     1.6 s
-#   actions/cache restore of that cache              20.9 s   (644 MB)
-#
-# Bun's install cache stores EXTRACTED packages, so it is 644–752 MB. Restoring
-# it cost ~21 s to save ~9 s of install — a net loss on every job, paid 12 times
-# per PR (~145 runner-seconds), plus a save race on any lockfile change.
-#
-# It was also crowding the 10 GB Actions cache quota (9.63 GB in use, ten
-# 600 MB+ `bun-Linux-*` entries), which evicts the Playwright browser cache —
-# and THAT one genuinely earns its keep: 269 MB, restores in 4–7 s, saves 11–18 s
-# of browser install. It is kept, in the jobs that need it.
-#
+# No actions/cache: restoring bun's extracted-package cache costs more than a
+# cold install, and its size evicts the Playwright browser cache.
 # `oven-sh/setup-bun` has its own small binary cache and stays.
 runs:
   using: composite

@@ -1,0 +1,83 @@
+import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
+
+/**
+ * A deterministic wall clock for the tests that care about record ordering.
+ *
+ * `records.ts` stamps `createdAt` / `updatedAt` with `new Date().toISOString()`,
+ * and a store prepends each new record. A test that wants two records in a
+ * known order must not sleep between the writes and hope the clock ticked:
+ * that bets on host clock resolution, costs time on every run, and is flaky
+ * *by construction*: a coarse timer makes two writes share a millisecond and the ordering assertion fails for a
+ * reason that has nothing to do with the code under test.
+ *
+ * There is no injectable now-source in the stores (that would be a
+ * production API change on the write path of every entity), so this replaces
+ * the global instead — narrowly:
+ *
+ *  - `new Date()` (no args) returns the cursor and advances it.
+ *  - `Date.now()` does the same.
+ *  - **Every other form is untouched.** `new Date(isoString)` still parses,
+ *    which every assertion here relies on, and instances are real `Date`s
+ *    (`Reflect.construct` on the original), so `instanceof` still works.
+ *
+ * Install in `beforeAll` and restore in `afterAll` — `globalThis.Date` is
+ * process-wide, so a clock left installed follows every later test file.
+ */
+
+const REAL_DATE = Date
+
+export type MonotonicClock = {
+  /** Put the real `Date` back. Always call this — the global is process-wide. */
+  restore: () => void
+  /** Jump the cursor forward, e.g. to test an explicitly stale record. */
+  advance: (ms: number) => void
+  /** The value the next zero-arg `new Date()` / `Date.now()` will report. */
+  peek: () => number
+}
+
+export type MonotonicClockOptions = {
+  /** Epoch ms the first reading reports. Default: `FIXTURE_NOW`. */
+  start?: number
+  /** How far each reading advances the cursor. Default: 1000ms. */
+  stepMs?: number
+}
+
+/**
+ * Freeze `Date` to a counter that advances one step per reading, so two
+ * consecutive writes are guaranteed distinct and ordered with no sleeping.
+ */
+export function installMonotonicClock(options: MonotonicClockOptions = {}): MonotonicClock {
+  let cursor = options.start ?? REAL_DATE.parse(FIXTURE_NOW)
+  const step = options.stepMs ?? 1000
+
+  function tick(): number {
+    const at = cursor
+    cursor += step
+    return at
+  }
+
+  const patched = new Proxy(REAL_DATE, {
+    construct(target, args, newTarget) {
+      if (args.length === 0) return Reflect.construct(target, [tick()], newTarget)
+      return Reflect.construct(target, args, newTarget)
+    },
+    get(target, prop, receiver) {
+      if (prop === 'now') return tick
+      return Reflect.get(target, prop, receiver)
+    },
+  })
+
+  globalThis.Date = patched
+
+  return {
+    restore() {
+      globalThis.Date = REAL_DATE
+    },
+    advance(ms: number) {
+      cursor += ms
+    },
+    peek() {
+      return cursor
+    },
+  }
+}

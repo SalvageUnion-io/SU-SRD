@@ -1,14 +1,16 @@
 /*
- * Tailwind, the token set and the package stylesheet, in their load-bearing
+ * The token set, the reset and the package stylesheet, in their load-bearing
  * cascade order, come from the one shared entry; see its header.
  */
-@import 'component-lib/styles/tailwind.css';
+@import 'component-lib/styles/entry.css';
+/* The page layouts. */
+@import './pages.css';
 
-/*
- * srd's own site-only components keep their stories beside them (see
- * `packages/component-lib/catalog.tsx`); their demo markup is not srd's.
- */
-@source not '../**/*.stories.tsx';
+/* The one page measure (`lib/pageMeasure.ts`): every page's band row, body and
+   foot cap at it, so all of them share the show page's gutter. */
+:root {
+  --srd-measure: 75rem;
+}
 
 /*
  * Cross-document view transitions.
@@ -26,26 +28,8 @@
   navigation: auto;
 }
 
-/*
- * SEO / no-JS entity fallback (data-static-fallback): hidden pre-paint for
- * JS-capable browsers. `scripting: enabled` is decided by the browser before
- * first paint, and this stylesheet is render-blocking, so the static text block
- * never flashes before the hydrated card appears. No-JS users and crawlers keep
- * the fallback content. See `ReferenceEntityIsland.tsx`.
- *
- * A media query rather than a `.js` class set by an inline script: srd emits no
- * executable inline script, which is what keeps its CSP `script-src` a literal
- * (`public/_headers`). A browser too old to know `scripting` shows the fallback
- * until the island hides it — a flash, never a lost page.
- */
-@media (scripting: enabled) {
-  [data-static-fallback] {
-    display: none;
-  }
-}
-
 /* Buttons, masthead, section headers and catalog tiles are component-lib's
-   (`Button`, `AppBar`, `SectionHeader` / `PageHeading`, `CatalogTile`); no srd
+   (`Button`, `AppBar`, `ChapterBand` / `Slab`, `CatalogTile`); no srd
    class restates them. */
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */
@@ -191,12 +175,9 @@
   filter: url(#paint-peel);
 }
 
-/* Base styles */
+/* The page ground and face are the package's (foundation.css); srd adds only
+   macOS's grayscale smoothing. */
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
@@ -209,15 +190,14 @@ body {
  *   data-print="keep"  print this even though its element type is hidden
  *
  * One attribute, two values: never two attribute names one letter apart that
- * mean opposite things. Neither is used in markup yet; both stay as escape
- * hatches.
+ * mean opposite things.
  */
 @media print {
   body,
   main {
-    /* biome-ignore lint/complexity/noImportantStyles: print override must beat theme utilities and inline backgrounds regardless of specificity/layer */
+    /* biome-ignore lint/complexity/noImportantStyles: print override must beat package rules and inline backgrounds regardless of specificity/layer */
     background: #fff !important;
-    /* biome-ignore lint/complexity/noImportantStyles: print override must beat theme utilities and inline colors regardless of specificity/layer */
+    /* biome-ignore lint/complexity/noImportantStyles: print override must beat package rules and inline colors regardless of specificity/layer */
     color: #000 !important;
   }
   /* Page chrome — TopNavigation renders two <nav> elements; Footer renders <footer>.
@@ -226,7 +206,7 @@ body {
   nav,
   footer,
   [data-print='hide'] {
-    /* biome-ignore lint/complexity/noImportantStyles: page chrome must stay hidden in print even against display utilities */
+    /* biome-ignore lint/complexity/noImportantStyles: page chrome must stay hidden in print even against display rules */
     display: none !important;
   }
   main a {
@@ -234,9 +214,10 @@ body {
     color: inherit;
   }
   /* Browsers strip backgrounds when printing, so light-on-dark labels
-     (pseudoheaders, NPC name spans) would print white-on-white. Force dark. */
-  main .text-paper {
-    /* biome-ignore lint/complexity/noImportantStyles: must out-rank the Tailwind utility it deliberately inverts for print */
+     (pseudoheaders, NPC name spans) would print white-on-white. Force dark.
+     `.srd-print-ink` marks the srd ones whose paper text is a style object. */
+  main .srd-print-ink {
+    /* biome-ignore lint/complexity/noImportantStyles: must out-rank the inline paper colour it deliberately inverts for print */
     color: #000 !important;
   }
 }

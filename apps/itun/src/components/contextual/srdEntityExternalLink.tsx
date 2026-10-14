@@ -1,16 +1,17 @@
 import type { EntityExternalLinkBuilder } from 'component-lib'
+import { SRDLink } from 'component-lib'
 import { getEntitySlug } from 'salvageunion-reference'
-import { hasSRDPage } from '../../lib/srd-deep-link'
-import { ViewInSRDLink } from './ViewInSRDLink'
+import { deepLinkTo, hasSRDPage } from '../../lib/srd-deep-link'
 
 /**
- * ITUN's app-wide "View in SRD →" cross-link builder (design review P-3).
+ * ITUN's app-wide "View in SRD" cross-link builder.
  *
  * Supplied through component-lib's `EntityExternalLinkProvider` (wired in
  * `GameDataReady`), so every FULL — non-compact, non-listing — entity card,
  * including the `useDetailModal` detail view, uniformly renders the link in
  * its foot band. Compact/listing cards stay uncluttered by design; entities
- * whose schema has no srd page get no link.
+ * whose schema has no srd page get no link. The srd URL is resolved here, in
+ * the app (`deepLinkTo`, ADR-011), and handed to the generic `SRDLink`.
  */
 export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
   const schemaName =
@@ -20,11 +21,11 @@ export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
   const entityName = 'name' in entity && typeof entity.name === 'string' ? entity.name : undefined
 
   return (
-    <ViewInSRDLink
-      schemaName={schemaName}
-      slug={getEntitySlug(entity)}
+    <SRDLink
+      href={deepLinkTo({ schemaName, slug: getEntitySlug(entity) })}
       entityName={entityName}
-      className="underline decoration-1 underline-offset-2 transition-opacity hover:opacity-70"
+      // `.su-srd-entity-external-link` (styles/unitSlot.css): it fades on hover.
+      className="su-srd-entity-external-link"
     />
   )
 }

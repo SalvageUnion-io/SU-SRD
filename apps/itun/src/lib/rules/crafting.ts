@@ -1,5 +1,5 @@
 /**
- * Crafting Bay rules (design-review R-7).
+ * Crafting Bay rules.
  *
  * Salvage Union Core Book p.222 + p.244:
  * - A Crafting Bay lets you craft any Mech Chassis, System, or Module of the
@@ -16,11 +16,11 @@
  * `quote.pool` and deposits `craftedLot(item)` into the crawler hold.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import { makeUnitLot } from 'itun-domain/schemas/cargoLot'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import type { TechLevel } from 'salvageunion-reference/rules'
 import { scrapCostFor } from 'salvageunion-reference/rules'
-import type { CargoLot } from '../schemas/cargoLot'
-import { makeUnitLot } from '../schemas/cargoLot'
-import type { ScrapPool } from '../schemas/crawler'
 import type { PoolDraw } from './crawlerEconomy'
 import { drawFromPool, poolAvailableAtOrAbove } from './crawlerEconomy'
 

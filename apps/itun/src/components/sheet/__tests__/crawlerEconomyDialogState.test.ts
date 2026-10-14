@@ -6,7 +6,7 @@ import {
   tradeReducer,
   tradeStep,
   upkeepReducer,
-} from '../crawlerEconomyDialogState'
+} from '../crawlerEconomyDialogState.model'
 
 describe('upkeepReducer', () => {
   test('a failed payment explains itself but leaves the dialog open', () => {

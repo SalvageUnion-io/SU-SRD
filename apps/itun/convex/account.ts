@@ -2,7 +2,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { mutation } from './model/entities'
+import { mutation, pruneLinksOfRow } from './model/entities'
 import { requireUser } from './model/permissions'
 import { deleteGameApparatus, releaseSeatsOf } from './model/seats'
 
@@ -16,16 +16,30 @@ import { deleteGameApparatus, releaseSeatsOf } from './model/seats'
  * data" cannot drift apart.
  */
 
+/** A user's display name, or the caller's fallback when they have none. */
+export function displayNameOf<F>(user: Doc<'users'> | null, fallback: F): string | F {
+  return user?.displayName ?? user?.name ?? fallback
+}
+
 /** The signed-in user's own profile. Never exposes another user's row. */
 export const me = query({
   args: {},
+  returns: v.union(
+    v.object({
+      _id: v.id('users'),
+      displayName: v.union(v.string(), v.null()),
+      avatarUrl: v.union(v.string(), v.null()),
+      email: v.union(v.string(), v.null()),
+    }),
+    v.null()
+  ),
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
     const user = await ctx.db.get(userId)
     if (user === null) return null
     return {
       _id: user._id,
-      displayName: user.displayName ?? user.name ?? null,
+      displayName: displayNameOf(user, null),
       avatarUrl: user.avatarUrl ?? user.image ?? null,
       email: user.email ?? null,
     }
@@ -71,6 +85,21 @@ export const updateProfile = mutation({
  */
 export const exportMine = query({
   args: {},
+  returns: v.object({
+    exportedAt: v.string(),
+    pilots: v.array(v.any()),
+    mechs: v.array(v.any()),
+    npcs: v.array(v.any()),
+    mechPatterns: v.array(v.any()),
+    games: v.array(
+      v.object({
+        gameId: v.id('games'),
+        mediator: v.boolean(),
+        organizer: v.boolean(),
+        joinedAt: v.number(),
+      })
+    ),
+  }),
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
 
@@ -80,6 +109,10 @@ export const exportMine = query({
       .collect()
     const mechs = await ctx.db
       .query('mechs')
+      .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+      .collect()
+    const npcs = await ctx.db
+      .query('npcs')
       .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
       .collect()
     const mechPatterns = await ctx.db
@@ -95,6 +128,7 @@ export const exportMine = query({
       exportedAt: new Date().toISOString(),
       pilots: pilots.map((p) => p.body),
       mechs: mechs.map((m) => m.body),
+      npcs: npcs.map((n) => n.body),
       mechPatterns: mechPatterns.map((p) => p.body),
       games: memberships.map((m) => ({
         gameId: m.gameId,
@@ -168,7 +202,7 @@ export const deleteAccount = mutation({
           // Last member out: the Game has nobody left to run or play it, and
           // what it held has nowhere to go — unclaimed entities in a Game with
           // no members included.
-          for (const table of ['crawlers', 'encounterNpcs', 'pilots', 'mechs'] as const) {
+          for (const table of ['crawlers', 'encounterNpcs', 'pilots', 'mechs', 'npcs'] as const) {
             const rows = await ctx.db
               .query(table)
               .withIndex('by_game', (q) => q.eq('gameId', membership.gameId))
@@ -183,8 +217,7 @@ export const deleteAccount = mutation({
       await ctx.db.delete(membership._id)
     }
 
-    // Knocks at other Games' doors. A pending one would otherwise sit in an
-    // Organizer's queue naming somebody who no longer exists.
+    // Asks to join other Games that name this account.
     const requests = await ctx.db
       .query('joinRequests')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -207,9 +240,19 @@ export const deleteAccount = mutation({
         .query('mechPatterns')
         .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
         .collect(),
+      ctx.db
+        .query('npcs')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect(),
     ])
-    const [pilots, mechs, patterns] = personal
+    const [pilots, mechs, patterns, npcs] = personal
     for (const row of patterns) await ctx.db.delete(row._id)
+    // A deleted NPC's crew link goes with it, so its bay falls back to the
+    // book's line (ADR-044).
+    for (const row of npcs) {
+      await ctx.db.delete(row._id)
+      await pruneLinksOfRow(ctx, row)
+    }
     // A deleted pilot's seat goes with it, and a deleted mech leaves whoever
     // was aboard it on foot (ADR-038).
     for (const row of pilots) {

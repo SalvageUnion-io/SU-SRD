@@ -3,7 +3,10 @@
   // Endpoint URL points here. No `nodejs_compat`: the portable Discord packages
   // run on workerd unaided, and the shim would hide a Node-only import.
   "name": "su-discord-bot",
-  "main": "src/http/worker.ts",
+  "main": "src/worker/index.ts",
+  // Explicit, and what it was while unset: with no `routes`, the
+  // Interactions Endpoint URL is su-discord-bot's workers.dev address.
+  "workers_dev": true,
 
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",
@@ -23,12 +26,15 @@
     "required": ["SENTRY_DSN", "DISCORD_TOKEN", "ITUN_BOT_SECRET", "ITUN_CONVEX_SITE_URL"]
   },
 
-  // Empty, not absent: only `[]` removes deployed crons.
-  "triggers": {
-    "crons": []
-  },
+  // Per-command usage, one data point per interaction (src/worker/index.ts),
+  // queryable with SQL for months; Workers Logs keep the same line for days.
+  // The dataset is created on the first write.
+  "analytics_engine_datasets": [{ "binding": "USAGE", "dataset": "su_discord_bot_usage" }],
 
+  // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
+  // Browser Rendering), in the dashboard next to the logs.
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "traces": { "enabled": true }
   }
 }

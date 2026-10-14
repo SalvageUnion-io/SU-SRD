@@ -1,6 +1,6 @@
 /**
  * What a Game roster row states as `label | value` — pure, so the roster
- * component only lays the stats out (split from `GameRoster.tsx`, audit AP-16).
+ * component only lays the stats out (split from `GameRoster.tsx`).
  */
 
 import { resolveChassisRef } from 'salvageunion-reference/rules'
@@ -55,9 +55,8 @@ export function rosterRowStats(row: RosterRow): Array<{ label: string; value: st
   }
   if (row.kind === 'crawler') {
     const tl = String(row.body.techLevel ?? '').replace(/[^0-9]/g, '')
+    // No count of bays: a crawler never lists one (owner's call, 2026-10-14).
     if (tl) out.push({ label: 'TL', value: tl })
-    const bays = Array.isArray(row.body.crawlerBays) ? row.body.crawlerBays.length : 0
-    out.push({ label: 'Bays', value: bays })
   }
   return out
 }

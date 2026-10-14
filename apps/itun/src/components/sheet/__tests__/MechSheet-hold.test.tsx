@@ -1,5 +1,5 @@
 /**
- * MechSheet — The Hold (StorageManifest side='mech', plan 4.5/4.7).
+ * MechSheet — The Hold (StorageManifest side='mech').
  *
  * The hold renders the mech's cargo lots over the useCargo boundary:
  *   - Stow → moves a whole lot to the linked crawler's hold.
@@ -13,13 +13,15 @@
  */
 
 import { describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
-import { makeScrapLot, makeUnitLot } from '../../../lib/schemas/cargoLot'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { color } from 'component-lib/design/tokens'
+import { makeScrapLot, makeUnitLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import { slabChip } from '../../__tests__/slabChip'
 import { MechSheet } from '../MechSheet'
 
 function makeMech(overrides: Partial<Mech>): Mech {
@@ -52,7 +54,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
   return makeEntityStoreMock({
     mechs: [mech],
     crawlers: crawler ? [crawler] : [],
-    hydrated: { pilots: false, mechs: true, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
     get: mock((type: string, id: string) => {
@@ -127,7 +129,7 @@ describe('MechSheet — The Hold (Stow →)', () => {
 
     const stow = screen.getByRole('button', { name: /stow sealed crate/i })
     expect((stow as HTMLButtonElement).disabled).toBe(true)
-    expect(stow.getAttribute('title')).toMatch(/no crawler linked/i)
+    expect(stow.getAttribute('title')).toMatch(/no crawler assigned/i)
   })
 
   test("Stow is closed with the reason on a player's mech, whose crawler the Mediator keeps", async () => {
@@ -170,18 +172,50 @@ describe('MechSheet — The Hold (Stow →)', () => {
     const grid = screen.getByRole('img', {
       name: /hold 8 of 6 slots used — over capacity/i,
     })
-    expect(grid.querySelectorAll('.bg-status-bad').length).toBe(2)
-    expect(grid.querySelectorAll('.bg-cargo').length).toBe(6)
+    const cells = Array.from(grid.querySelectorAll<HTMLElement>('[aria-hidden="true"]'))
+    expect(cells.filter((c) => c.style.backgroundColor === color.statusBad).length).toBe(2)
+    expect(cells.filter((c) => c.style.backgroundColor === color.cargo).length).toBe(6)
     expect(screen.getByText(/over capacity/i)).toBeTruthy()
   })
 
-  test('the slab counts lots and slots truthfully', () => {
+  test("the slab reads the hold's slots truthfully, without tallying its lots", () => {
     const mech = makeMech({
       cargoLots: [makeUnitLot('Sealed Crate', { units: 2 }), makeScrapLot(1, 1)],
     })
     render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    expect(screen.getByText(/2 lots · 3\/6 slots/i)).toBeTruthy()
+    expect(must(slabChip('The Hold')).textContent).toBe('Slots3/6')
+    expect(screen.queryByText(/2 lots/i)).toBeNull()
+  })
+})
+
+describe('MechSheet — The Hold panel', () => {
+  test('a flat panel under a Slab; capacity is a label-first chip; the stow target is a Token', () => {
+    const mech = makeMech({ cargoLots: [makeUnitLot('Sealed Crate', { units: 2 })] })
+    const crawler = makeCrawler()
+    const { container } = render(
+      <MechSheet
+        mech={mech}
+        crawler={crawler}
+        crawlerHref="/sheet/crawler/crawler-hold-1"
+        store={makeStore(mech, [], crawler)}
+      />
+    )
+    const manifest = must(container.querySelector<HTMLElement>('[data-storage-side="mech"]'))
+    // The head is the sheet's Slab, not a hand-built ink bar, and nothing in
+    // the Hold casts a shadow (the Live Sheet is flat).
+    expect(within(manifest).getByText('Mech Hold')).toBeTruthy()
+    for (const el of manifest.querySelectorAll<HTMLElement>('[style]')) {
+      expect(el.style.boxShadow).toBe('')
+    }
+    // `UNITS | 2/6`, label first.
+    const units = [...manifest.querySelectorAll('.su-stat-cell')].find((cell) =>
+      cell.textContent?.startsWith('Units')
+    )
+    expect(units?.textContent).toBe('Units2/6')
+    // The linked crawler is a Token that opens its sheet, never a stamp of its name.
+    const token = screen.getByRole('link', { name: 'View Hold Crawler' })
+    expect(token.getAttribute('href')).toBe('/sheet/crawler/crawler-hold-1')
   })
 })
 

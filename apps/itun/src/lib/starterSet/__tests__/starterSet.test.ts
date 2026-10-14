@@ -1,19 +1,32 @@
 /**
  * Starter Set seed guards.
  *
- * The seed rows are written into IndexedDB by an upgrade migration that bypasses
- * crud.ts's Zod parse, and they reference the `salvageunion-reference` dataset
- * by hard-coded slug. These tests are the safety net for both:
+ * The seed rows are static templates (`starterSet.ts`), read as reference data
+ * and never stored; a player plays one only by copying it (`copyStarter.ts`).
+ * They reference the `salvageunion-reference` dataset by hard-coded slug. These
+ * tests are the safety net:
  *   1. Every row strict-parses its Zod schema (an invalid row fails CI, not a
- *      user's disk).
+ *      player's copy).
  *   2. Every reference ref still resolves (a dataset rename fails CI instead of
  *      silently orphaning a seeded mech/pilot/crawler).
- *   3. The v7 upgrade actually lands the whole roster and it re-parses.
+ *   3. Copying a template lands a fresh, parsing build in the store, in the
+ *      container the player chose, and leaves the template untouched.
  *
- * fake-indexeddb/auto and the reference dataset are preloaded via bunfig.toml.
+ * The reference dataset is preloaded via bunfig.toml.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { SHELF } from 'itun-domain/container'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
+import { SoftLinkSchema } from 'itun-domain/schemas/softLink'
+import {
+  STARTER_CRAWLERS,
+  STARTER_MECHS,
+  STARTER_PILOTS,
+  STARTER_SOFT_LINKS,
+} from 'itun-domain/starterSet/starterSet'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
@@ -26,19 +39,13 @@ import {
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
-import { SHELF } from '../../container'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
-import { _resetDbSingleton, clearCache, mechs, pilots } from '../../db/index'
-import { CrawlerSchema } from '../../schemas/crawler'
-import { MechSchema } from '../../schemas/mech'
-import { PilotSchema } from '../../schemas/pilot'
-import { SoftLinkSchema } from '../../schemas/softLink'
 import { seedDefaultCrawlerBays } from '../../wizard/crawlerFormState'
 import { copyStarter } from '../copyStarter'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from '../starterSet'
 
 // Copying is a write, and building needs an account: these run signed in.
 withSignedInBackend()
@@ -75,8 +82,17 @@ describe('Starter Set seed — schema validity', () => {
 
   test('every pilot, mech, and the crawler carry seeded flavor text', () => {
     for (const p of STARTER_PILOTS) expect(p.description?.length ?? 0).toBeGreaterThan(0)
-    for (const m of STARTER_MECHS) expect(m.appearance?.length ?? 0).toBeGreaterThan(0)
     for (const c of STARTER_CRAWLERS) expect(c.description?.length ?? 0).toBeGreaterThan(0)
+  })
+
+  test('every mech carries its Description, Appearance and Quirk, each in its own field', () => {
+    for (const m of STARTER_MECHS) {
+      for (const text of [m.description, m.appearance, m.quirk]) {
+        expect(text?.length ?? 0).toBeGreaterThan(0)
+        // No field restates another's label: the sheet labels each one.
+        expect(text).not.toMatch(/(Description|Appearance|Quirk):/)
+      }
+    }
   })
 
   test('ids are unique across the whole seed', () => {
@@ -231,29 +247,16 @@ describe('Starter Set seed — soft link integrity', () => {
 })
 
 describe('Starter Set — copying a template', () => {
-  beforeEach(async () => {
-    _resetDbSingleton()
-    await clearCache()
-    useEntityStore.setState({
-      pilots: [],
-      mechs: [],
-      crawlers: [],
-      softLinks: [],
-      hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-    })
-  })
-
-  afterEach(async () => {
-    await clearCache()
-  })
+  beforeEach(resetStores)
+  afterEach(resetStores)
 
   const [pilotTemplate] = STARTER_PILOTS
   if (pilotTemplate === undefined) throw new Error('The Starter Set has no pilots')
 
-  test('lands in My Stuff as a build of the player’s own, and parses', async () => {
+  test('lands in your shelves as a build of the player’s own, and parses', async () => {
     const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
 
-    const [stored] = await pilots.list()
+    const [stored] = useEntityStore.getState().list('pilot')
     expect(stored?.id).toBe(copied.id)
     expect(stored?.name).toBe(pilotTemplate.name)
     expect(stored?.gameId).toBeNull()
@@ -262,7 +265,7 @@ describe('Starter Set — copying a template', () => {
 
   test('lands in the Game the player chose', async () => {
     await copyStarter('mech', STARTER_MECHS[0]?.id as string, { kind: 'game', gameId: 'g1' })
-    const [stored] = await mechs.list()
+    const [stored] = useEntityStore.getState().list('mech')
     expect(stored?.gameId).toBe('g1')
   })
 
@@ -279,7 +282,8 @@ describe('Starter Set — copying a template', () => {
     expect(first.id).not.toBe(pilotTemplate.id)
     expect(first.id).not.toBe(second.id)
     expect(first.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/i)
-    for (const row of await pilots.list()) expect(row.seedRef).toBe(pilotTemplate.id)
+    for (const row of useEntityStore.getState().list('pilot'))
+      expect(row.seedRef).toBe(pilotTemplate.id)
   })
 
   test('leaves the template exactly as it was', async () => {
@@ -294,6 +298,6 @@ describe('Starter Set — copying a template', () => {
 
   test('copies nothing that is not in the Starter Set', async () => {
     await expect(copyStarter('pilot', 'not-a-template', SHELF)).rejects.toThrow(/no Starter Set/)
-    expect(await pilots.list()).toHaveLength(0)
+    expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
   })
 })

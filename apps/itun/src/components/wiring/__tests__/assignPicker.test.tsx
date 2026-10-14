@@ -4,9 +4,9 @@
  * What it must get right, and what each block below pins:
  *
  *  - **Where candidates come from.** Only the subject's container — the same
- *    Game, or My Stuff — and only when signed in; signed out there is one pile
- *    and nothing is filtered. A pilot in one Game used to be offered every
- *    crawler in every Game, and the server refused the pick.
+ *    Game, or your shelves — and only when signed in; signed out there is one pile
+ *    and nothing is filtered. A pilot in one Game is never offered a crawler
+ *    in another, which the server would refuse.
  *  - **Which way the link points.** The schema decides, not the sheet: the
  *    picked mech is `from` on a pilot sheet, the mech itself is on its own.
  *  - **Refusals land in the dialog,** in player copy — never a raw defect.
@@ -17,19 +17,19 @@
  */
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { ConvexError } from 'convex/values'
+import type { Container } from 'itun-domain/container'
+import { SHELF } from 'itun-domain/container'
+import { CROSS_CONTAINER_REFUSAL } from 'itun-domain/links/linkRules'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import type { ReactElement } from 'react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { ConnectionContext, SOLO_STATE } from '../../../lib/connection/connectionContext'
-import type { Container } from '../../../lib/container'
-import { SHELF } from '../../../lib/container'
 import { LinkRefused } from '../../../lib/links/linkRefused'
-import { CROSS_CONTAINER_REFUSAL } from '../../../lib/links/linkRules'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { SoftLink } from '../../../lib/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import type { AssignPickerStore } from '../AssignPicker'
@@ -129,7 +129,8 @@ async function confirm(name: RegExp) {
   })
 }
 
-const offered = () => screen.queryAllByRole('radio').map((r) => r.getAttribute('value'))
+/** The candidates offered, by name: each is a unit Row in select mode, a radio. */
+const offered = () => screen.queryAllByRole('radio').map((r) => r.getAttribute('aria-label'))
 
 describe('AssignPicker — candidates share the subject’s container', () => {
   test('signed in, a pilot in a Game is offered only that Game’s crawlers', () => {
@@ -143,10 +144,10 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign crawler to pilot/i)
-    expect(offered()).toEqual(['c-game'])
+    expect(offered()).toEqual(['Game Crawler'])
   })
 
-  test('signed in, a pilot in My Stuff is offered only My Stuff’s crawlers', () => {
+  test('signed in, a pilot in your shelves is offered only Shelves’s crawlers', () => {
     inMode(
       CONNECTED,
       <AssignPicker
@@ -157,7 +158,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign crawler to pilot/i)
-    expect(offered()).toEqual(['c-shelf'])
+    expect(offered()).toEqual(['Shelf Crawler'])
   })
 
   test('signed out there is one pile, so nothing is filtered', () => {
@@ -171,7 +172,28 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign crawler to pilot/i)
-    expect(offered()).toEqual(['c-game', 'c-other', 'c-shelf'])
+    expect(offered()).toEqual(['Game Crawler', 'Other Game Crawler', 'Shelf Crawler'])
+  })
+
+  test('each candidate is its unit Row in select mode, its readings as chips', () => {
+    inMode(
+      CONNECTED,
+      <AssignPicker
+        subject={{ type: 'pilot', id: 'p1' }}
+        container={GAME}
+        pick="crawler"
+        store={makeStore({ crawlers })}
+      />
+    )
+    open(/assign crawler to pilot/i)
+    const group = screen.getByRole('radiogroup', { name: 'Assign Pilot to Crawler' })
+    const row = within(group).getByRole('radio', { name: 'Game Crawler' })
+    expect(row.getAttribute('aria-checked')).toBe('false')
+    // Label first: `TL | 2`.
+    expect(within(row).getByText('TL')).toBeTruthy()
+    expect(within(row).getByText('2')).toBeTruthy()
+    fireEvent.click(row)
+    expect(row.getAttribute('aria-checked')).toBe('true')
   })
 
   test('mechs and pilots are scoped the same way', () => {
@@ -189,7 +211,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign mech to pilot/i)
-    expect(offered()).toEqual(['m-game'])
+    expect(offered()).toEqual(['Iron Fist'])
     unmount()
 
     inMode(
@@ -202,7 +224,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign pilot to mech/i)
-    expect(offered()).toEqual(['p-shelf'])
+    expect(offered()).toEqual(['Dag'])
   })
 
   test('says where it looked when nothing qualifies', () => {
@@ -217,7 +239,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign crawler to pilot/i)
-    expect(screen.getByText('No crawlers in this game yet.')).toBeTruthy()
+    expect(screen.getByText('No crawlers in this Game yet.')).toBeTruthy()
     expect(
       (screen.getByRole('button', { name: /confirm crawler assignment/i }) as HTMLButtonElement)
         .disabled
@@ -234,8 +256,8 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign crawler to mech/i)
-    // "My Stuff", never "Shelf", in anything a player reads.
-    expect(screen.getByText('No crawlers in My Stuff.')).toBeTruthy()
+    // "your shelf", never "My Stuff", in anything a player reads.
+    expect(screen.getByText('No crawlers on your shelf.')).toBeTruthy()
   })
 
   test('the slot’s occupant is not offered back, and the trigger says Change', () => {
@@ -254,7 +276,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     open(/change crawler for this pilot/i)
     // The only crawler here is already this pilot's: "other", not "none".
     expect(offered()).toEqual([])
-    expect(screen.getByText('No other crawlers in this game.')).toBeTruthy()
+    expect(screen.getByText('No other crawlers in this Game.')).toBeTruthy()
   })
 
   test('Add Crew leaves out pilots already aboard', () => {
@@ -271,7 +293,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/add crew/i)
-    expect(offered()).toEqual(['p-new'])
+    expect(offered()).toEqual(['Dag'])
   })
 })
 
@@ -328,11 +350,11 @@ describe('AssignPicker — the link points the way the schema says', () => {
       type: 'pilot-to-crawler',
     },
     {
-      name: 'crawler sheet, Dock Mech: the picked mech docks',
+      name: 'crawler sheet, Assign Mech: the picked mech is assigned',
       subject: { type: 'crawler', id: 'c1' },
       pick: 'mech',
-      trigger: /dock mech/i,
-      confirmName: /confirm mech docking/i,
+      trigger: /assign mech/i,
+      confirmName: /confirm mech assignment/i,
       store: { mechs: [mech('m1', 'Iron Fist')] },
       expected: { from: { type: 'mech', id: 'm1' }, to: { type: 'crawler', id: 'c1' } },
       type: 'mech-to-crawler',

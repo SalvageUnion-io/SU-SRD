@@ -1,10 +1,10 @@
 /**
- * PilotSheet — Inventory slab (plan 4.4, design §4.2)
+ * PilotSheet — Inventory slab
  *
  * Asserts that:
  *   1. The slab count shows truthful slot math (equipment 1 / Heavy 2,
  *      generic entries at explicit slotCost — Scrap 3, capacity 6).
- *   2. Per-item uses counters: Use decrements equipmentUses, Restock refills
+ *   2. Per-item uses counters: − takes one off equipmentUses, + gives one back
  *      to the trait max, Use disabled at 0.
  *   3. Generic entries: + Scrap quick-add, free-form add, per-entry remove.
  *   4. readOnly suppresses every inventory edit affordance.
@@ -12,13 +12,15 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { GenericInventoryEntry, Pilot } from '../../../lib/schemas/pilot'
+import type { GenericInventoryEntry, Pilot } from 'itun-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { must } from '../../__tests__/must'
+import { slabChip } from '../../__tests__/slabChip'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)
@@ -48,7 +50,7 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
   const updateMock = updateSpy ?? mock(async () => pilot)
   return makeEntityStoreMock({
     pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
     get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
@@ -62,7 +64,7 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
 // Slot math
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — inventory slot math (rules A13)', () => {
+describe('PilotSheet — inventory slot math', () => {
   test('counts equipment 1 / Heavy 2 / Scrap 3 against capacity 6', () => {
     // Rifle 1 + Rocket Launcher (Heavy) 2 + Scrap 3 = 6
     const pilot = makePilot({
@@ -71,7 +73,7 @@ describe('PilotSheet — inventory slot math (rules A13)', () => {
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText(/6 \/ 6 slots/)).toBeTruthy()
+    expect(must(slabChip('Inventory')).textContent).toBe('Slots6/6')
   })
 
   test('over-capacity totals render honestly (no clamp)', () => {
@@ -85,15 +87,16 @@ describe('PilotSheet — inventory slot math (rules A13)', () => {
     // 1 + 6 + 3 = 10
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText(/10 \/ 6 slots/)).toBeTruthy()
+    expect(must(slabChip('Inventory')).textContent).toBe('Slots10/6')
+    expect(must(slabChip('Inventory')).classList.contains('su-stat-cell--critical')).toBe(true)
   })
 })
 
 // ---------------------------------------------------------------------------
-// Uses counters (rules A14)
+// Uses counters
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — per-item uses counters (rules A14)', () => {
+describe('PilotSheet — per-item uses counters', () => {
   test('shows uses remaining out of the trait max', () => {
     const pilot = makePilot({
       equipment: ['first-aid-kit'],
@@ -101,17 +104,17 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText('1/3')).toBeTruthy()
+    expect(document.querySelector('.su-sheet-item__uses')?.textContent).toBe('Uses1/3')
   })
 
   test('absent key reads as full uses', () => {
     const pilot = makePilot({ equipment: ['first-aid-kit'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText('3/3')).toBeTruthy()
+    expect(document.querySelector('.su-sheet-item__uses')?.textContent).toBe('Uses3/3')
   })
 
-  test('Use decrements the per-item counter', async () => {
+  test('− takes one off the per-item counter', async () => {
     const pilot = makePilot({
       equipment: ['first-aid-kit'],
       equipmentUses: { 'first-aid-kit': 2 },
@@ -121,7 +124,7 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
     expandCards()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Use First Aid Kit' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Decrease First Aid Kit uses' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith(
@@ -134,7 +137,7 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
     )
   })
 
-  test('Use is disabled at 0; Restock refills to max', async () => {
+  test('− is disabled at 0; + gives one back', async () => {
     const pilot = makePilot({
       equipment: ['first-aid-kit'],
       equipmentUses: { 'first-aid-kit': 0 },
@@ -144,19 +147,19 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
     expandCards()
 
     const useBtn = screen.getByRole<HTMLButtonElement>('button', {
-      name: 'Use First Aid Kit',
+      name: 'Decrease First Aid Kit uses',
     })
     expect(useBtn.disabled).toBe(true)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Restock First Aid Kit' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Increase First Aid Kit uses' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith(
       'pilot',
       pilot.id,
       {
-        equipmentUses: { 'first-aid-kit': 3 },
+        equipmentUses: { 'first-aid-kit': 1 },
       },
       LIVE_SHEET_MANUAL
     )
@@ -166,15 +169,15 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
     const pilot = makePilot({ equipment: ['rifle'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.queryByRole('button', { name: /use rifle/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /one rifle/i })).toBeNull()
   })
 })
 
 // ---------------------------------------------------------------------------
-// Generic entries (plan S7)
+// Generic entries
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — generic inventory entries (plan S7)', () => {
+describe('PilotSheet — generic inventory entries', () => {
   test('+ Scrap quick-adds a 3-slot Scrap entry', async () => {
     const pilot = makePilot()
     const updateSpy = mock(async () => pilot)
@@ -272,7 +275,7 @@ describe('PilotSheet — inventory readOnly', () => {
     expect(screen.queryByRole('button', { name: /add scrap/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /add inventory item/i })).toBeNull()
     // The slot math still renders
-    expect(screen.getByText(/4 \/ 6 slots/)).toBeTruthy()
+    expect(must(slabChip('Inventory')).textContent).toBe('Slots4/6')
   })
 })
 

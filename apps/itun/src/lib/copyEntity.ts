@@ -40,7 +40,7 @@
  * `ownerId` to the caller, `games.destroy` gives
  * an unclaimed row the Organizer as it shelves it, an unclaimed row cannot be
  * written (so cannot be moved out of its Game), and `ownership.release`
- * refuses a shelved build (*"A build in your My Stuff is already yours"*).
+ * refuses a shelved build (*"A build in your Shelves is already yours"*).
  * Unclaimed is a thing a character can be **inside a Game**, waiting for
  * somebody to take it; a shelf is already somebody's.
  */
@@ -51,7 +51,8 @@ export type CopyableBody = Record<string, unknown>
 /**
  * Fields the copy must not inherit.
  *
- * `id`/`createdAt`/`updatedAt` are minted by the db layer on create, so
+ * `id`/`createdAt`/`updatedAt` are minted on create
+ * (stores/records.ts (prepareCreate / parseServed)), so
  * carrying them through would either be overwritten or — worse for `id` —
  * produce a second record claiming to be the original, which is the exact
  * duplicate-`appId` condition that took a play session down.

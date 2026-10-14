@@ -8,15 +8,15 @@ import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { buildPostedRollMessage, buildRollMessage } from '../commands/roll.js'
-import type { ContainerData } from '../container.js'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format.js'
-import { buildRollContainerData, isTieredTable, rollTableUrl } from '../rollContainer.js'
+import { buildPostedRollMessage, buildRollMessage } from '../commands/roll'
+import type { ContainerData } from '../container'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format'
+import { buildRollContainerData, isTieredTable } from '../rollContainer'
 
 // No preload here. `apps/discord-bot/bunfig.toml` preloads
 // `../../test/reference-preload.ts`, which loads every schema once for the
 // whole workspace — a per-file `preload('all')` is at best a no-op and at
-// worst hides an ordering bug, which is why `tools/biome/noTestReferencePreload.grit` bans it.
+// worst hides an ordering bug, which is why `packages/gates/biome/noTestReferencePreload.grit` bans it.
 
 function table(name: string): SURefRollTable {
   const found = SalvageUnionReference.RollTables.getByName(name)
@@ -27,7 +27,8 @@ function table(name: string): SURefRollTable {
 /** Build the container data for a fixed roll. */
 function rollOf(name: string, roll: number, context = {}): ContainerData {
   const outcome = rollOnTable(table(name).table, () => roll)
-  if (!outcome.success) throw new Error(`no entry for ${roll} on ${name}`)
+  if (!outcome.success || outcome.kind === 'no-effect')
+    throw new Error(`no entry for ${roll} on ${name}`)
   return buildRollContainerData(table(name), outcome, context)
 }
 
@@ -48,7 +49,7 @@ describe('the headline is never a bare die number', () => {
     for (const t of SalvageUnionReference.RollTables.all()) {
       for (let roll = 1; roll <= 20; roll++) {
         const outcome = rollOnTable(t.table, () => roll)
-        if (!outcome.success) continue
+        if (!outcome.success || outcome.kind === 'no-effect') continue
         const line = headline(buildRollContainerData(t, outcome))
         expect(line).not.toContain('Roll:')
       }
@@ -68,9 +69,9 @@ describe('the headline is never a bare die number', () => {
   })
 
   test('a long unlabelled value is quoted into the headline, not left in the body', () => {
-    // Previously this rendered `## 14` alone with the whole value beneath.
-    // The entry's own leading sentence now carries the headline, and the body
-    // picks up from the next one rather than repeating it.
+    // Never `## 14` alone with the whole value beneath: the entry's own
+    // leading sentence carries the headline, and the body picks up from the
+    // next one rather than repeating it.
     const data = rollOf('Crawler Damage', 14)
     expect(headline(data)).toContain('14')
     expect(headline(data)).toContain('INOPERABLE AND GROUNDED')
@@ -153,22 +154,26 @@ describe('every roll renders the same furniture', () => {
     for (const table of SalvageUnionReference.RollTables.all()) {
       for (let roll = 1; roll <= 20; roll++) {
         const outcome = rollOnTable(table.table, () => roll)
-        if (!outcome.success) continue
+        if (!outcome.success || outcome.kind === 'no-effect') continue
         expect(headline(buildRollContainerData(table, outcome))).not.toMatch(/—\s*$/)
       }
     }
   })
 
-  test('one footer line, and it is the attribution', () => {
-    // A roll carries no provenance line (die, band, page): the die is already
-    // in the headline, so the only small print is the context line and the
-    // attribution.
+  test('three small lines: the context, where it landed, and the cite with the credit', () => {
     const small = text(rollOf('Crawler Damage', 14))
       .split('\n')
       .filter((line) => line.startsWith('-# '))
-    expect(small).toHaveLength(2) // context line + attribution
-    expect(small.at(-1)).toBe('-# Salvage Union Reference · Powered by Randsum.dev')
-    expect(text(rollOf('Crawler Damage', 14))).not.toContain('p.219')
+    expect(small).toHaveLength(3)
+    expect(small[1]).toBe('-# Lands on 11–19')
+    expect(small.at(-1)).toStartWith('-# Workshop Manual · p.')
+    expect(small.at(-1)).toEndWith(' · Powered by Randsum.dev')
+  })
+
+  test('links the traits an outcome names, and never prints their markup', () => {
+    const body = text(rollOf('Reactor Overload', 14))
+    expect(body).toContain('[Vulnerable](https://salvageunion.io/traits/vulnerable)')
+    expect(body).not.toContain('[[')
   })
 })
 
@@ -178,27 +183,13 @@ describe('context', () => {
       'rolled by Vex Marrow'
     )
   })
-
-  test('the Game signal is its own line, not appended to attribution boilerplate', () => {
-    const body = text(rollOf('Core Mechanic', 14, { loggedTo: 'Tenacity' }))
-    expect(body).toContain('-# LOGGED TO TENACITY')
-  })
-
-  test('no Game signal when the roll was not recorded', () => {
-    expect(text(rollOf('Core Mechanic', 14))).not.toContain('LOGGED TO')
-  })
-})
-
-test('the See table link resolves to the reference site, with no trailing slash', () => {
-  const url = rollTableUrl(table('Core Mechanic'))
-  expect(url).toBe('https://salvageunion.io/schema/roll-tables/item/core-mechanic')
 })
 
 describe('a dramatic table miss is a result, not an error', () => {
   // Blinding Blue Laser Rifle and Bio-Talon carry only a `20` key, so
-  // resultForTable reports failure on 19 of every 20 rolls. Its internal
-  // diagnostic — "No result found for roll 7" — must never reach the user as an
-  // error. That is not an error; it is what the book means.
+  // rollOnTable answers `no-effect` on 19 of every 20 rolls. resultForTable's
+  // internal diagnostic — "No result found for roll 7" — must never reach the
+  // user as an error. That is not an error; it is what the book means.
   test.each([1, 7, 19])('a %i renders NO EFFECT publicly', (roll) => {
     const message = buildRollMessage('Bio-Talon', 'Vex Marrow', () => roll)
     if ('error' in message) throw new Error('a miss must not be an error')

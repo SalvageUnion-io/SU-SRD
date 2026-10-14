@@ -1,26 +1,33 @@
 /**
- * Tests for MechPattern schema and db.mechPatterns CRUD (AC-1, AC-2, #192).
+ * Tests for MechPattern schema and the patternStore CRUD.
  *
  * Covers:
  * - Schema validation: valid input passes, missing required fields throw
  * - Schema strictness: unknown fields throw
- * - db.mechPatterns CRUD round-trip: create → get → list → delete
- * - Instantiate path: pattern fields copied to new mech with fresh id + timestamps
+ * - patternStore CRUD round-trip: create → get → list → delete
+ * - Instantiate path: mechFromPattern builds a fresh mech (new id, exact name, empty hold, sourcePattern)
  *
- * fake-indexeddb/auto is preloaded via bunfig.toml.
- * No mock.module() — no global leak risk.
+ * The stores hold rows in memory; writes run signed in, with server commits
+ * stubbed by the test preload. No mock.module() — no global leak risk.
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import type { MonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
-import { installMonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
-import { _resetDbSingleton, clearCache, mechPatterns, mechs } from '../../../../lib/db/index'
-import { MechPatternSchema } from '../../../../lib/schemas/pattern'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
+import { mechFromPattern } from '../../../../lib/patterns/patterns'
+import type { MonotonicClock } from '../../../../stores/__tests__/monotonicClock'
+import { installMonotonicClock } from '../../../../stores/__tests__/monotonicClock'
+import { resetStores } from '../../../../stores/__tests__/resetStores'
+import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
+import { useEntityStore } from '../../../../stores/entityStore'
+import { usePatternStore } from '../../../../stores/patternStore'
 import { FIXTURE_NOW } from '../../../__tests__/fixtures'
 import { must } from '../../../__tests__/must'
 
-// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
-// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// Saving a pattern needs an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
+
+// `createdAt` / `updatedAt` come from `new Date()` inside `records.ts`, and the
+// store prepends each new record. A monotonic clock makes consecutive writes distinct and
 // ordered by construction, so the ordering assertions below need no sleeping.
 let clock: MonotonicClock
 
@@ -33,16 +40,16 @@ afterAll(() => {
 })
 
 // ---------------------------------------------------------------------------
-// DB reset between tests
+// Store reset between tests
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
+  resetStores()
+  await usePatternStore.getState().hydrate()
 })
 
-afterEach(async () => {
-  await clearCache()
+afterEach(() => {
+  resetStores()
 })
 
 // ---------------------------------------------------------------------------
@@ -155,12 +162,12 @@ describe('MechPatternSchema — invalid input', () => {
 })
 
 // ---------------------------------------------------------------------------
-// db.mechPatterns CRUD round-trip
+// patternStore CRUD round-trip
 // ---------------------------------------------------------------------------
 
-describe('db.mechPatterns — create + get round-trip', () => {
+describe('patternStore — create + get round-trip', () => {
   test('create returns a pattern with a generated id and createdAt', async () => {
-    const created = await mechPatterns.create(validPatternBase)
+    const created = await usePatternStore.getState().create(validPatternBase)
 
     expect(typeof created.id).toBe('string')
     expect(created.id.length).toBeGreaterThan(0)
@@ -172,8 +179,8 @@ describe('db.mechPatterns — create + get round-trip', () => {
   })
 
   test('get retrieves the created pattern by id', async () => {
-    const created = await mechPatterns.create(validPatternBase)
-    const fetched = await mechPatterns.get(created.id)
+    const created = await usePatternStore.getState().create(validPatternBase)
+    const fetched = usePatternStore.getState().get(created.id)
 
     expect(fetched).not.toBeNull()
     expect(must(fetched).id).toBe(created.id)
@@ -182,55 +189,57 @@ describe('db.mechPatterns — create + get round-trip', () => {
   })
 
   test('get returns null for a non-existent id', async () => {
-    const result = await mechPatterns.get('does-not-exist')
+    const result = usePatternStore.getState().get('does-not-exist')
     expect(result).toBeNull()
   })
 })
 
-describe('db.mechPatterns — list', () => {
+describe('patternStore — list', () => {
   test('list returns all patterns, newest first', async () => {
-    const p1 = await mechPatterns.create({ ...validPatternBase, name: 'Alpha' })
-    const p2 = await mechPatterns.create({ ...validPatternBase, name: 'Beta' })
+    const p1 = await usePatternStore.getState().create({ ...validPatternBase, name: 'Alpha' })
+    const p2 = await usePatternStore.getState().create({ ...validPatternBase, name: 'Beta' })
 
-    const all = await mechPatterns.list()
+    const all = usePatternStore.getState().list()
     expect(all.length).toBe(2)
     expect(must(all[0]).id).toBe(p2.id) // newest first
     expect(must(all[1]).id).toBe(p1.id)
   })
 
   test('list returns empty array when no patterns exist', async () => {
-    const all = await mechPatterns.list()
+    const all = usePatternStore.getState().list()
     expect(all).toEqual([])
   })
 })
 
-describe('db.mechPatterns — delete', () => {
+describe('patternStore — delete', () => {
   test('delete removes the pattern; subsequent get returns null', async () => {
-    const created = await mechPatterns.create(validPatternBase)
-    await mechPatterns.delete(created.id)
-    const fetched = await mechPatterns.get(created.id)
+    const created = await usePatternStore.getState().create(validPatternBase)
+    await usePatternStore.getState().delete(created.id)
+    const fetched = usePatternStore.getState().get(created.id)
     expect(fetched).toBeNull()
   })
 
   test('delete is a silent no-op for an unknown id', async () => {
     // Should not throw
-    await mechPatterns.delete('does-not-exist')
+    await usePatternStore.getState().delete('does-not-exist')
   })
 })
 
-describe('db.mechPatterns — Zod rejection', () => {
+describe('patternStore — Zod rejection', () => {
   test('create rejects a pattern with an empty name', async () => {
-    await expect(mechPatterns.create({ ...validPatternBase, name: '' })).rejects.toThrow()
+    await expect(
+      usePatternStore.getState().create({ ...validPatternBase, name: '' })
+    ).rejects.toThrow()
   })
 })
 
 // ---------------------------------------------------------------------------
-// Instantiate path: pattern → fresh mech (AC-2)
+// Instantiate path: pattern → fresh mech
 // ---------------------------------------------------------------------------
 
 describe('instantiate from pattern — fresh mech with pattern fields', () => {
   test('mech created from pattern has a new id and fresh timestamps', async () => {
-    const pattern = await mechPatterns.create({
+    const pattern = await usePatternStore.getState().create({
       schemaVersion: 1,
       name: 'Heavy Hauler',
       chassisRef: 'mule',
@@ -248,16 +257,8 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
       ],
     })
 
-    // Instantiate: create a fresh mech from the pattern's fields
-    const mech = await mechs.create({
-      schemaVersion: 1,
-      name: `${pattern.name} (from pattern)`,
-      chassisRef: pattern.chassisRef,
-      systems: [...pattern.systems],
-      modules: [...pattern.modules],
-      cargoLots: pattern.cargoLots.map((lot) => ({ ...lot, id: crypto.randomUUID() })),
-      conditions: [],
-    })
+    // Instantiate through the same builder InstantiateFromPattern uses
+    const mech = await useEntityStore.getState().create('mech', mechFromPattern(pattern))
 
     // Fresh identity — not the same id as the pattern
     expect(mech.id).not.toBe(pattern.id)
@@ -267,20 +268,16 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
       new Date(pattern.createdAt).getTime()
     )
 
-    // Pattern fields are copied verbatim
+    // Loadout is copied; the pattern's exact name is kept; the hold starts empty
     expect(mech.chassisRef).toBe(pattern.chassisRef)
     expect(mech.systems).toEqual(pattern.systems)
     expect(mech.modules).toEqual(pattern.modules)
-    // Cargo lots are copied with fresh lot ids
-    const withoutId = (lot: (typeof mech.cargoLots)[number]) => ({ ...lot, id: 'ignored' })
-    expect(mech.cargoLots.map(withoutId)).toEqual(pattern.cargoLots.map(withoutId))
-    expect(mech.cargoLots[0]?.id).not.toBe(pattern.cargoLots[0]?.id)
-
-    // Name convention
-    expect(mech.name).toBe('Heavy Hauler (from pattern)')
+    expect(mech.name).toBe('Heavy Hauler')
+    expect(mech.cargoLots).toEqual([])
+    expect(mech.sourcePattern).toBe(pattern.id)
 
     // Pattern itself is unmodified
-    const refetched = await mechPatterns.get(pattern.id)
+    const refetched = usePatternStore.getState().get(pattern.id)
     expect(refetched).not.toBeNull()
     expect(must(refetched).id).toBe(pattern.id)
   })

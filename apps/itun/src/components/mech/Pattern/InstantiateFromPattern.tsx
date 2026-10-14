@@ -1,26 +1,39 @@
 /**
  * InstantiateFromPattern — creates a fresh Mech from a MechPattern.
  *
- * Copies the pattern's chassis/systems/modules/cargoLots into a new Mech
- * input (cargo lots get fresh ids), appends ' (from pattern)' to the name,
- * and calls entityStore.create('mech'). The new mech gets a fresh id and
- * fresh timestamps from the db layer, and is seeded with live stats exactly
- * like the MechWizard path (plan 2.3, gap 7): full SP/EP from the chassis
- * and currentHeat 0 — never Heat-at-capacity.
+ * The new mech is `mechFromPattern`'s: the pattern's chassis and
+ * loadout under the pattern's name, full SP/EP from the chassis, Heat 0, an
+ * empty hold — a mech built from a pattern starts fresh — and the pattern it
+ * came from in `sourcePattern`, which the pattern page counts. The db
+ * layer gives it a fresh id and timestamps.
  *
- * Enforcement regime: NONE, deliberately (wizard-refresh plan §5.2) —
+ * Enforcement regime: NONE, deliberately —
  * instantiate is a Blank-family shortcut and its write path is untouched.
- * Phase 4 adds PRESENTATION only: saved MechPatterns carry no stored
+ * It adds PRESENTATION only: saved MechPatterns carry no stored
  * `legalStarting` data tag (the flag is never computed — project data
  * convention), so the confirm dialog names the freeform nature before
  * stamping the mech.
  */
 
-import { Button, FieldError, ModalShell } from 'component-lib'
+import { Button, FieldError, ModalShell, tokens } from 'component-lib'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
-import type { MechPattern } from '../../../lib/schemas/pattern'
+import { useServerAction } from '../../../lib/connection/useServerAction'
+import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
+import '../../../styles/wizard.css'
+import {
+  dialogActionsStyle,
+  dialogBodyStyle,
+  dialogNoteStyle,
+} from '../../wizard/wizardStyles.model'
+
+const ROOT = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[4],
+} satisfies CSSProperties
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -30,60 +43,44 @@ type InstantiateFromPatternProps = {
 
 export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPatternProps) {
   const [confirming, setConfirming] = useState(false)
-  const [isInstantiating, setIsInstantiating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const build = useServerAction(
+    () => useEntityStore.getState().create('mech', mechFromPattern(pattern)),
+    { failure: 'The mech could not be built from this pattern. Try again.' }
+  )
+  const { pending: isInstantiating, error } = build
 
   async function handleInstantiate() {
-    setIsInstantiating(true)
-    setError(null)
-
-    try {
-      const chassis = resolveChassisRef(pattern.chassisRef)
-      const mech = await useEntityStore.getState().create('mech', {
-        schemaVersion: 1,
-        name: `${pattern.name} (from pattern)`,
-        chassisRef: pattern.chassisRef,
-        systems: [...pattern.systems],
-        modules: [...pattern.modules],
-        cargoLots: pattern.cargoLots.map((lot) => ({ ...lot, id: crypto.randomUUID() })),
-        conditions: [],
-        // Fresh mechs start at full SP/EP from the chassis; Heat starts at 0.
-        currentSP: chassis?.structurePoints,
-        currentEP: chassis?.energyPoints,
-        currentHeat: 0,
-      })
-      onSuccess(mech.id)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create mech from pattern.')
-      setIsInstantiating(false)
-    }
+    const result = await build.run()
+    if (result.ok) onSuccess(result.value.id)
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div style={ROOT}>
       <Button
         type="button"
         size="compact"
         onClick={() => setConfirming(true)}
         disabled={isInstantiating}
-        aria-label={`Instantiate mech from pattern ${pattern.name}`}
+        // "Build With This", as every build action reads (owner's call,
+        // 2026-10-13); the accessible name starts with it and says what it builds.
+        aria-label={`Build With This: a mech from ${pattern.name}`}
       >
-        {isInstantiating ? 'Creating…' : 'Instantiate'}
+        {isInstantiating ? 'Building…' : 'Build With This'}
       </Button>
       <ModalShell
         open={confirming}
         onOpenChange={(next) => {
           if (!next) setConfirming(false)
         }}
-        title={`Instantiate ${pattern.name}?`}
-        maxWidth="max-w-md"
+        title={`Build a mech from ${pattern.name}?`}
+        maxWidth="su-wiz-modal-md"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
+        <div style={dialogBodyStyle}>
+          <div style={dialogNoteStyle}>
             This may exceed the starting rules — a freeform build, like Blank. It stamps the mech
             exactly as saved; edit freely on its live sheet.
           </div>
-          <div className="flex justify-end gap-2">
+          <div style={dialogActionsStyle}>
             <Button variant="ghost" size="compact" onClick={() => setConfirming(false)}>
               Cancel
             </Button>
@@ -95,7 +92,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
                 void handleInstantiate()
               }}
             >
-              Instantiate
+              Build
             </Button>
           </div>
         </div>

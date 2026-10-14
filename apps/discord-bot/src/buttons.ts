@@ -1,5 +1,5 @@
 /**
- * Button interaction router. The Worker (`http/worker.ts`) dispatches every
+ * Button interaction router. The Worker (`worker/index.ts`) dispatches every
  * message-component interaction here; we parse the namespaced customId (see customId.ts) and
  * re-invoke the matching roll, replying with a fresh message that carries its
  * own "Roll again" button so the chain continues indefinitely.
@@ -10,12 +10,25 @@
  */
 
 import { MessageFlags } from 'discord-api-types/v10'
-import type { CommandButtonInteraction } from './commands/interactions.js'
-import { buildTableLookupMessage } from './commands/lookup.js'
-import { buildPostedRollMessage, buildRollMessage } from './commands/roll.js'
-import { attributeRoll } from './commands/rollAttribution.js'
-import type { ContainerData } from './container.js'
-import { parseCustomId } from './customId.js'
+import type { CommandButtonInteraction } from './commands/interactions'
+import type { LookupMessage } from './commands/lookup'
+import { buildLookupMessage, buildTableLookupMessage } from './commands/lookup'
+import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from './commands/roll'
+import type { ContainerData } from './container'
+import { v2Reply } from './container'
+import { decodeRollRequest, parseCustomId } from './customId'
+import { dieForTable } from './dice'
+import { entityFromKey, openCard, readCard } from './lookupCard'
+
+/**
+ * A `su:lookup` payload: an entry key (`schemaName::slug`, from "Post to
+ * channel" on a found term) or, as every older button carries, a table name.
+ */
+function lookupFromPayload(payload: string): LookupMessage {
+  if (!payload.includes('::')) return buildTableLookupMessage(payload)
+  const hit = entityFromKey(payload)
+  return hit ? buildLookupMessage(hit) : { error: 'That entry is no longer in the reference.' }
+}
 
 export async function handleButtonInteraction(
   interaction: CommandButtonInteraction
@@ -39,42 +52,94 @@ export async function handleButtonInteraction(
   // rather than rolling again, so what reaches the channel is provably the
   // outcome the player was looking at when they pressed the button.
   if (parsed.action === 'post') {
-    const posted = buildPostedRollMessage(parsed.payload, roller)
+    const posted = buildPostedRollMessage(parsed.payload, roller, interaction.user.id)
     if ('error' in posted) {
       await interaction.reply({ content: posted.error, flags: MessageFlags.Ephemeral })
       return
     }
-    const { data, ...payload } = posted
+    const { data: _data, ...payload } = posted
     await interaction.reply(payload)
-    await attributeRoll(interaction, data, `Rolled on ${data.tableName}`, {
-      table: data.tableName,
-      posted: true,
+    return
+  }
+
+  // A long card's Read button: that one action, privately, so the channel
+  // keeps the short card. Anyone may press it; nothing is recorded.
+  if (parsed.action === 'read') {
+    const read = readCard(parsed.payload)
+    if (!read) {
+      await interaction.reply({
+        content: 'That entry is no longer in the reference.',
+        flags: MessageFlags.Ephemeral,
+      })
+      return
+    }
+    await interaction.reply(v2Reply(read, true))
+    return
+  }
+
+  // A lookup card's linked-entries menu: the picked entry's card, privately,
+  // so the channel keeps the one card. Anyone may pick; nothing is recorded.
+  if (parsed.action === 'open') {
+    const picked = interaction.values[0]
+    const open = picked ? openCard(picked) : null
+    if (!open) {
+      await interaction.reply({
+        content: 'That entry is no longer in the reference.',
+        flags: MessageFlags.Ephemeral,
+      })
+      return
+    }
+    await interaction.reply(v2Reply(open, true))
+    return
+  }
+
+  // `table` answers privately and is not a roll: nothing to record.
+  if (parsed.action === 'table') {
+    const seen = buildSeeTableMessage(parsed.payload, roller)
+    if ('error' in seen) {
+      await interaction.reply({ content: seen.error, flags: MessageFlags.Ephemeral })
+      return
+    }
+    const { data: _data, ...payload } = seen
+    await interaction.reply(payload)
+    return
+  }
+
+  // A re-roll belongs to whoever rolled: anyone else is told, privately, how
+  // to roll it themselves. A button with no owner (one posted before this, or
+  // the lookup card's "Roll the Die", a first roll) is open to anyone.
+  const request = parsed.action === 'roll' ? decodeRollRequest(parsed.payload) : null
+  if (request?.ownerId !== undefined && request.ownerId !== interaction.user.id) {
+    await interaction.reply({
+      content: `Only the person who rolled can roll this again. Roll it yourself with \`/su roll table: ${request.tableName}\`.`,
+      flags: MessageFlags.Ephemeral,
     })
     return
   }
 
-  const message =
-    parsed.action === 'roll'
-      ? buildRollMessage(parsed.payload, roller)
-      : buildTableLookupMessage(parsed.payload)
+  // Always a NEW message: a roll is never redrawn in place, so every roll
+  // stays in the channel's history (and in the Game's log).
+  const message = request
+    ? buildRollMessage(
+        request.tableName,
+        roller,
+        await dieForTable(request.tableName),
+        // A re-roll shares its first roll's status: private stays private.
+        request.isPrivate,
+        interaction.user.id
+      )
+    : lookupFromPayload(parsed.payload)
 
   if ('error' in message) {
     await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
     return
   }
 
-  // `data` rides along on every V2 payload so attributeRoll can rebuild the
-  // container; a lookup is not a roll, so its copy is simply unused.
-  const { data, ...payload } = message as typeof message & { data?: ContainerData }
+  // `data` and `ephemeral` are ours, not Discord's: the flags already carry it.
+  const {
+    data: _data,
+    ephemeral: _ephemeral,
+    ...payload
+  } = message as typeof message & { data?: ContainerData; ephemeral?: true }
   await interaction.reply(payload)
-
-  // A re-roll is a roll. Recording only the slash-command form would mean the
-  // Change Log quietly disagreed with the channel about what happened at the
-  // table — and "why is my re-roll missing?" is a worse question than any this
-  // saves. `lookup` is not a roll and is deliberately excluded.
-  if (parsed.action === 'roll' && data !== undefined) {
-    await attributeRoll(interaction, data, `Rolled on ${parsed.payload}`, {
-      rerolled: parsed.payload,
-    })
-  }
 }

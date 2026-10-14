@@ -1,4 +1,22 @@
+import { borderWidth, color, fontSize, radius, space, weight } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
+
+const LOZENGE = {
+  alignItems: 'center',
+  borderColor: color.rollFailure,
+  borderRadius: radius.badge,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.pill,
+  color: color.rollFailure,
+  display: 'inline-flex',
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  gap: space[6],
+  paddingBlock: space[4],
+  paddingInline: space[8],
+  textTransform: 'uppercase',
+} satisfies CSSProperties
 
 /**
  * The in-place "this surface is read-only right now" lozenge (ADR-030 §1).
@@ -23,16 +41,8 @@ export function WritesBlockedNotice() {
   const { canWrite, settling, mode, outdated } = useConnection()
   if (canWrite || settling) return null
 
-  // Plain class string rather than `cn()`, matching NotConnectedBanner: there is
-  // nothing to merge here, and cn's tailwind-merge must have every custom
-  // utility registered or it treats an unknown `text-*`/`tracking-*` as a colour
-  // and strips the real one.
   return (
-    <span
-      role="status"
-      aria-live="polite"
-      className="inline-flex items-center gap-1.5 rounded-badge border-2 border-[var(--color-roll-failure)] px-2 py-1 text-badge font-bold uppercase text-[var(--color-roll-failure)]"
-    >
+    <span role="status" aria-live="polite" style={LOZENGE}>
       <span aria-hidden="true">◆</span>
       <span>
         {mode === 'solo'

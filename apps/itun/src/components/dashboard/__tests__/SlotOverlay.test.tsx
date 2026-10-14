@@ -67,8 +67,8 @@ describe('⤢ overlay', () => {
   test("opens the entity's Major controls over the display, and takes focus", async () => {
     const { dialog } = await openMech()
     // Portalled into the display region, not the document body: the Major's
-    // `.pc-*` styling needs the canvas's `.pc-root` scope.
-    expect(dialog.closest('.pc-root')).toBeTruthy()
+    // `.su-dash-*` styling needs the canvas's `.su-dash-root` scope.
+    expect(dialog.closest('.su-dash-root')).toBeTruthy()
     expect(dialog.contains(document.activeElement)).toBe(true)
     // The parked mech's Reactor and Chassis, without boarding it.
     expect(within(dialog).getByText('Reactor')).toBeTruthy()
@@ -80,9 +80,14 @@ describe('⤢ overlay', () => {
     const { dialog } = await openMech()
     expect(dialog).toBeTruthy()
     // The pilot still holds the Major; the Mech is still a Minor. (Behind the
-    // modal, so hidden from the accessibility tree while it is open.)
+    // modal, so hidden from the accessibility tree while it is open: the modal
+    // hides each sibling of the Major's live region, the Minor's own section
+    // among them, and an aria-hidden node has no accessible name to query by.)
     expect(screen.getByText('On Foot')).toBeTruthy()
-    expect(screen.getByRole('region', { name: 'Mech · Scrapper', hidden: true })).toBeTruthy()
+    const minor = screen
+      .getAllByRole('region', { hidden: true })
+      .find((el) => el.getAttribute('aria-label') === 'Mech · Scrapper')
+    expect(minor?.closest('[aria-hidden="true"]')).toBeTruthy()
   })
 
   test('closes on Escape and returns focus to ⤢', async () => {
@@ -109,7 +114,7 @@ describe('⤢ overlay', () => {
   test('Escape inside a prompt closes the prompt, not the overlay', async () => {
     const { dialog } = await openMech()
     await act(async () => {
-      fireEvent.click(within(dialog).getByText('Take Dmg'))
+      fireEvent.click(within(dialog).getByText('Take Damage'))
     })
     expect(within(dialog).getByRole('dialog', { name: 'Take Structure Damage' })).toBeTruthy()
     await act(async () => {

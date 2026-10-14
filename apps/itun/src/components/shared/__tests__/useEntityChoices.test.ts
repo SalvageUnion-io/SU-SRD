@@ -14,7 +14,7 @@
 import '@testing-library/jest-dom'
 import { describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -51,7 +51,7 @@ function makeStore(initial: Pilot) {
 
   const store = makeEntityStoreMock({
     pilots: [current],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((_type: string, id: string) => (id === current.id ? current : null)),
@@ -81,8 +81,7 @@ describe('useEntityChoices — seeding', () => {
     )
     expect(result.current.selections).toEqual({})
     // The empty reference is stable across renders. There is no downstream
-    // React.memo on ReferenceEntityCard today — this comment used to say there
-    // was — but identity stability is the precondition for adding one, and this
+    // React.memo on ReferenceEntityCard, but identity stability is the precondition for adding one, and this
     // assertion is what keeps that precondition true.
     const first = result.current.selections
     rerender()

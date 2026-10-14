@@ -1,12 +1,11 @@
 /**
- * Soft-warning rule evaluation (REQ-012).
+ * Soft-warning rule evaluation.
  *
  * Soft warnings are non-blocking rule violations surfaced at save time. The
  * user sees them in a confirm-and-proceed dialog and may dismiss them. They do
  * not prevent saving — they inform and protect against common mistakes.
  *
- * This module is intentionally kept to documented cases only. Additional
- * warning rules belong in M4 story #225 (REQ-NF-21).
+ * This module is intentionally kept to documented cases only.
  *
  * All functions are pure — no side effects, no async, no React.
  */
@@ -19,7 +18,7 @@ import type {
   PilotSnapshot,
   SoftWarning,
   SoftWarningContext,
-} from './types.js'
+} from './types'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -30,7 +29,7 @@ function warn(code: string, message: string): SoftWarning {
 }
 
 // ---------------------------------------------------------------------------
-// Pilot warning checks (advancement prerequisites, plan S5 / 3.3–3.4)
+// Pilot warning checks (advancement prerequisites)
 //
 // All checks are tier/tree-driven and evaluate the AFTER state — they need an
 // enriched snapshot (enrichPilotSnapshot resolves tree/level/tier from
@@ -160,7 +159,7 @@ function checkClassPrerequisite(before: PilotSnapshot, after: PilotSnapshot): So
 }
 
 /**
- * The pilot ability soft cap (plan 2.2): 10 abilities, 12 for Salvager.
+ * The pilot ability soft cap: 10 abilities, 12 for Salvager.
  * The schema does not cap the array — exceeding the rules cap is a soft
  * warning, never a parse failure or a blocked save.
  *
@@ -259,7 +258,7 @@ function checkTechLevelDowngrade(context: SoftWarningContext): SoftWarning[] {
 /**
  * Evaluate soft warnings for a pilot edit.
  *
- * Documented cases (all advisory, never blocking — plan 3.3/3.4):
+ * Documented cases (all advisory, never blocking):
  * - Tree order violated (level n taken without the levels below it)
  * - Advanced/Hybrid ability without the 6-core gate
  * - Legendary ability without 6 core + 3 advanced; more than one Legendary
@@ -307,7 +306,8 @@ export function evaluateMechWarnings(
  * Dispatches to the appropriate entity-specific evaluator based on
  * `context.entityType`. For 'pilot', `before`/`after` must be `PilotSnapshot`.
  * For 'mech', they must be `MechSnapshot`. For 'crawler', only the
- * tech-level downgrade check applies (crawler-specific rules are M4).
+ * tech-level downgrade check applies (crawler-specific rules beyond it are not
+ * enforced yet).
  *
  * When `entityType` is 'crawler', pass any object satisfying `MechSnapshot`
  * (only the `techLevel` field is read; `systems` can be an empty array).
@@ -327,7 +327,7 @@ export function evaluateSoftWarnings(
     case 'mech':
       return evaluateMechWarnings(snapshot as EditSnapshot<MechSnapshot>, context)
     case 'crawler':
-      // Crawler-specific rules beyond tech-level downgrade are deferred to M4.
+      // Crawler-specific rules beyond the tech-level downgrade are not enforced yet.
       return checkTechLevelDowngrade(context)
     default: {
       // Exhaustiveness guard — TypeScript will catch this at compile time if

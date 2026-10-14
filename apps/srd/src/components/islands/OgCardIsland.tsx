@@ -1,28 +1,28 @@
-import { EntityDetailLinkProvider, EntityHrefProvider } from 'component-lib'
+import { BrandCard, OgCard } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
-import type { SURefEntity, SURefEnumSchemaName, SURefObjectPattern } from 'salvageunion-reference'
+import type {
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefObjectAnyPattern,
+} from 'salvageunion-reference'
 import {
   getEntitySlug,
   nameToSlug,
   SalvageUnionReference,
   visiblePatterns,
 } from 'salvageunion-reference'
-import { itemHref, patternHref, srdEntityHref } from '../../lib/entityHref'
+import { ogCardFor } from '../../lib/ogCard'
 import { GameDataGate } from '../../lib/useGameData'
-import { EntityCatalogTile } from './EntityCatalogTile'
 
 /**
  * Build-only OG-card surface.
  *
- * Renders the REAL catalog tile — the same `ReferenceEntityCard` with the same
- * props, providers and wrapper the schema index emits (see SchemaViewerIsland's
- * entity grid) — so `scripts/og-screenshots.ts` screenshots a 1:1 image of the
- * Catalog view of each entity rather than a bespoke OG-only approximation.
- *
- * The tile is fixed at CATALOG_TILE_WIDTH (its measured index-page width at a
- * desktop viewport) because the index tile is fluid — a `flex-1` masonry column
- * — and so has no intrinsic width of its own. Pinning it reproduces the tile a
- * desktop reader actually sees.
+ * Renders the entity's link preview, `OgCard`: the same
+ * ChapterBand, stat boxes and Union bar the pages are built from, at its own
+ * 1200 × 630, so `scripts/og-screenshots.ts` photographs it 1:1. It replaced
+ * the screenshot of the Catalog tile: the card keeps that pipeline's reason
+ * (the preview is drawn by the page's own parts, so it cannot drift from
+ * them) at the size a link preview is drawn.
  *
  * The entity is swappable from outside via `window.__ogSetEntity(schema, item)`,
  * so the screenshot tool loads this page ONCE per worker (game-data corpus +
@@ -92,11 +92,11 @@ function OgCardResolved() {
   // chassis's VISIBLE patterns, keyed by nameToSlug. A pattern target that
   // doesn't resolve must not silently fall back to the chassis tile — that would
   // ship the wrong card — so it reports MISSING below and is skipped.
-  const pattern = useMemo<SURefObjectPattern | null>(() => {
+  const pattern = useMemo<SURefObjectAnyPattern | null>(() => {
     if (!entity || !target.pattern) return null
     // `patterns` lives on chassis only, so it isn't on the SURefEntity union —
     // read it through a narrow accessor rather than widening the union.
-    const patterns = (entity as { patterns?: SURefObjectPattern[] }).patterns ?? []
+    const patterns = (entity as { patterns?: SURefObjectAnyPattern[] }).patterns ?? []
     return visiblePatterns(patterns).find((p) => nameToSlug(p.name) === target.pattern) ?? null
   }, [entity, target.pattern])
 
@@ -110,23 +110,21 @@ function OgCardResolved() {
 
   if (!entity || !resolved) return null
 
-  // The SAME `EntityCatalogTile` the schema index renders, under the same providers —
-  // that shared component is what makes the og:image a true 1:1 of the Catalog
-  // view rather than a look-alike that can drift.
-  const href = pattern
-    ? patternHref(target.schema, target.item, target.pattern)
-    : itemHref(target.schema, target.item)
-
   return (
-    <EntityHrefProvider value={srdEntityHref}>
-      <EntityDetailLinkProvider value={true}>
-        <div data-og-tile="">
-          <EntityCatalogTile entity={entity} href={href} pattern={pattern ?? undefined} />
-        </div>
-      </EntityDetailLinkProvider>
-    </EntityHrefProvider>
+    <OgCard
+      {...ogCardFor(
+        target.schema,
+        target.item,
+        entity,
+        pattern ?? undefined,
+        target.pattern || undefined
+      )}
+    />
   )
 }
+
+/** The default preview's kicker; the Discord banner's says ITUN's. */
+const SRD_KICKER = 'The Salvage Union SRD'
 
 /**
  * Deliberately NOT wrapped in `IslandErrorBoundary`: this is rendered by the
@@ -135,6 +133,11 @@ function OgCardResolved() {
  * resolve reference data at runtime.
  */
 export function OgCardIsland() {
+  // `?brand` draws the site's own preview, `public/og-image.png`: every page
+  // without a card of its own unfurls with it. It needs no game data.
+  if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('brand')) {
+    return <BrandCard kicker={SRD_KICKER} />
+  }
   return (
     <GameDataGate fallback={null}>
       <OgCardResolved />

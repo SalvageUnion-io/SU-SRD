@@ -27,7 +27,7 @@ import type {
   SURefObjectContentBlock,
   SURefObjectDataValue,
   SURefObjectTrait,
-} from './schemas/index.js'
+} from './schemas/index'
 
 /**
  * Selections keyed by choice id, each holding the selected option values.
@@ -37,7 +37,7 @@ export type ChoiceSelections = Record<string, string[]>
 /**
  * Unresolved required-choice prompt surfaced in the dataview row.
  */
-export type ChoicePrompt = {
+type ChoicePrompt = {
   choiceId: string
   label: string
   text: string

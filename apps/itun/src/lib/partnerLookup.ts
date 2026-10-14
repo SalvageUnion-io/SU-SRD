@@ -10,9 +10,9 @@
  * single entry of a host's array.
  */
 
-import type { Mech } from './schemas/mech'
-import type { PartnerInstance } from './schemas/partner'
-import type { Pilot } from './schemas/pilot'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { PartnerInstance } from 'itun-domain/schemas/partner'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 
 /** A partner together with the host that owns it. */
 export type PartnerWithHost =

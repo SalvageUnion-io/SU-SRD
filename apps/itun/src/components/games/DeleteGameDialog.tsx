@@ -13,13 +13,13 @@
  *
  * A generic "this is permanent" would be both frightening and wrong. Deleting a
  * Game destroys the *table* and nothing anybody built: pilots and mechs fall
- * back to their owners' My Stuff, and the crawler plus anything unclaimed comes
- * to the My Stuff of whoever is doing the deleting. The dialog names those
+ * back to their owners' shelves, and the crawler plus anything unclaimed comes
+ * to the shelves of whoever is doing the deleting. The dialog names those
  * outcomes with the actual counts in front of the reader, because "4 pilots"
  * and "2 mechs" is what makes the sentence checkable against the row they just
  * clicked.
  *
- * What genuinely does not survive is named too — invites, join requests, the
+ * What genuinely does not survive is named too — the invite link, the
  * opposition tray, and the crew's wiring. Softening that would be the failure
  * mode of a confirm dialog: it exists to be read once, correctly.
  *
@@ -29,13 +29,15 @@
  */
 
 import { ConfirmDialog, Text } from 'component-lib'
+import { space } from 'component-lib/design/tokens'
 import { useMutation } from 'convex/react'
+import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { failureMessage } from '../shared/useConfirm'
+import { failureMessage } from '../../lib/connection/useServerAction'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
-export type DeletableGame = {
+type DeletableGame = {
   _id: Id<'games'>
   name: string
   crawlerName: string | null
@@ -51,12 +53,29 @@ type Props = {
   /**
    * Called after the server confirms the deletion, never optimistically.
    *
-   * The hub uses it to show My Stuff before its `games.get` resolves to `null`
+   * The hub uses it to show Shelves before its `games.get` resolves to `null`
    * and renders "you are not in this game". Passing the intent in keeps this
    * component ignorant of what the caller shows next.
    */
   onDeleted?: () => void
 }
+
+const SURVIVORS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+} satisfies CSSProperties
+
+const SURVIVOR_LIST = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[4],
+  listStyleType: 'disc',
+  paddingLeft: space[20],
+} satisfies CSSProperties
+
+/** The hint rung is centred; these asides read as a left-set list. */
+const LEFT = { textAlign: 'left' } satisfies CSSProperties
 
 /** "4 pilots", "1 pilot", or null when there are none to mention. */
 function countPhrase(n: number, singular: string): string | null {
@@ -89,7 +108,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       }}
       title={`Delete ${game?.name ?? ''}?`}
       tone="danger"
-      confirmLabel="Delete game"
+      confirmLabel="Delete Game"
       pendingLabel="Deleting…"
       onConfirm={handleConfirm}
       // A refusal carries wording the server chose for the player —
@@ -99,38 +118,38 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       // generic line and an operator report instead. Either way the dialog
       // stays open with the reason on it; closing silently would look like the
       // game had been deleted.
-      describeError={(err) => failureMessage(err, 'That game could not be deleted. Try again.')}
+      describeError={(err) => failureMessage(err, 'That Game could not be deleted. Try again.')}
       body={
         <>
           <Text>
             This ends the table for all {game?.memberCount ?? 0} of you. It cannot be undone.
           </Text>
 
-          <div className="flex flex-col gap-2">
-            <Text variant="hint" className="text-left">
+          <div style={SURVIVORS}>
+            <Text variant="hint" style={LEFT}>
               Nothing anybody built is destroyed:
             </Text>
-            <ul className="flex list-disc flex-col gap-1 pl-5">
+            <ul style={SURVIVOR_LIST}>
               {surviving.length > 0 && (
                 <li>
-                  <Text variant="hint" className="text-left">
-                    {surviving.join(' and ')} go back to whoever owns them, in their My Stuff.
+                  <Text variant="hint" style={LEFT}>
+                    {surviving.join(' and ')} go back to whoever owns them, on their shelf.
                   </Text>
                 </li>
               )}
               <li>
-                <Text variant="hint" className="text-left">
+                <Text variant="hint" style={LEFT}>
                   {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? 'Anything unclaimed comes to you, in My Stuff.'
-                    : `${game.crawlerName} and anything unclaimed come to you, in My Stuff.`}
+                    ? 'Anything unclaimed comes to you, on your shelf.'
+                    : `${game.crawlerName} and anything unclaimed come to you, on your shelf.`}
                 </Text>
               </li>
             </ul>
           </div>
 
-          <Text variant="hint" className="text-left">
-            The crew, its invites, any pending join requests, the opposition tray and the wiring
-            between everyone's builds go with the game.
+          <Text variant="hint" style={LEFT}>
+            The crew, its invite link, the opposition tray and the assignments between everyone's
+            builds go with the Game.
           </Text>
         </>
       }

@@ -1,8 +1,8 @@
 /**
  * Unit tests for lib/export/* utilities.
  *
- * Uses fake-indexeddb (preloaded via bunfig.toml) + the real entityStore /
- * the entity store so we exercise the full CRUD path without a real browser.
+ * Uses the real in-memory entityStore, signed in with the server commits
+ * stubbed, so we exercise the full CRUD path without a real browser.
  *
  * Test matrix:
  *   - parseImportBundle: valid bundle, malformed JSON, wrong schemaVersion
@@ -13,16 +13,16 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { _resetDbSingleton, clearCache } from '../../db/index'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildEntityExport, buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// Building and importing are writes, and only somebody signed in can write
+// (ADR-034 as amended). See signedInBackend.ts.
 withSignedInBackend()
 
 // ---------------------------------------------------------------------------
@@ -64,26 +64,8 @@ const baseCrawlerInput = {
 // Reset helpers
 // ---------------------------------------------------------------------------
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-  })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
-})
-
-afterEach(async () => {
-  await clearCache()
-  resetEntityStore()
-})
+beforeEach(resetStores)
+afterEach(resetStores)
 
 // ---------------------------------------------------------------------------
 // parseImportBundle
@@ -94,7 +76,7 @@ describe('parseImportBundle', () => {
     const bundle: ExportBundle = {
       schemaVersion: 2,
       exportedAt: FIXTURE_NOW,
-      entities: { pilots: [], mechs: [], crawlers: [] },
+      entities: { pilots: [], mechs: [], crawlers: [], npcs: [] },
       softLinks: [],
       mechPatterns: [],
       encounterNpcs: [],
@@ -283,10 +265,8 @@ describe('mergeImport — round-trip', () => {
 
     const bundle = await buildExportBundle(sourceEntityStore)
 
-    // ---- reset to simulate a fresh target store ----
-    _resetDbSingleton()
-    await clearCache()
-    resetEntityStore()
+    // ---- empty every store to simulate a fresh target account ----
+    resetStores()
 
     const targetEntityStore = useEntityStore.getState()
 
@@ -297,13 +277,8 @@ describe('mergeImport — round-trip', () => {
     expect(summary.created.softLinks).toBe(1)
     expect(summary.skippedDuplicates).toBe(0)
 
-    // Re-hydrate to verify state
-    _resetDbSingleton()
-    resetEntityStore()
+    // Verify against the store's state after the import.
     const verifyEntityStore = useEntityStore.getState()
-    await verifyEntityStore.hydrate('pilot')
-    await verifyEntityStore.hydrate('mech')
-    await verifyEntityStore.hydrate('softLink')
 
     const importedPilots = verifyEntityStore.list('pilot')
     const importedMechs = verifyEntityStore.list('mech')
@@ -355,9 +330,7 @@ describe('mergeImport — round-trip', () => {
     // Build bundle — note imaginary-crawler-id is NOT in entities.crawlers
     const bundle = await buildExportBundle(sourceEntityStore)
 
-    _resetDbSingleton()
-    await clearCache()
-    resetEntityStore()
+    resetStores()
 
     const targetEntityStore = useEntityStore.getState()
 
@@ -367,12 +340,7 @@ describe('mergeImport — round-trip', () => {
     expect(summary.created.softLinks).toBe(1)
 
     // Verify all imported link ids are valid
-    _resetDbSingleton()
-    resetEntityStore()
     const verifyStore = useEntityStore.getState()
-    await verifyStore.hydrate('pilot')
-    await verifyStore.hydrate('mech')
-    await verifyStore.hydrate('softLink')
 
     const pilots = verifyStore.list('pilot')
     const mechs = verifyStore.list('mech')
@@ -406,6 +374,7 @@ describe('mergeImport — round-trip', () => {
         pilots: [existingPilot],
         mechs: [],
         crawlers: [],
+        npcs: [],
       },
       softLinks: [],
       mechPatterns: [],
@@ -419,11 +388,28 @@ describe('mergeImport — round-trip', () => {
     expect(summary.skippedDuplicates).toBe(1)
 
     // Only one pilot should exist.
-    _resetDbSingleton()
-    resetEntityStore()
-    const verifyStore = useEntityStore.getState()
-    await verifyStore.hydrate('pilot')
-    expect(verifyStore.list('pilot')).toHaveLength(1)
+    expect(useEntityStore.getState().list('pilot')).toHaveLength(1)
+  })
+
+  test('a unit deleted from the account comes back when its backup is imported', async () => {
+    const entityStore = useEntityStore.getState()
+
+    await entityStore.hydrate('pilot')
+    const pilot = await entityStore.create('pilot', { ...basePilotInput, name: 'Backed Up' })
+    const bundle = await buildExportBundle(entityStore)
+
+    await entityStore.delete('pilot', pilot.id)
+    expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
+
+    const summary = await mergeImport(bundle, useEntityStore.getState())
+
+    expect(summary.skippedDuplicates).toBe(0)
+    expect(summary.created.pilots).toBe(1)
+    const back = useEntityStore.getState().list('pilot')
+    expect(back).toHaveLength(1)
+    expect(back[0]?.name).toBe('Backed Up')
+    // A copy: fresh id, never the deleted unit's own.
+    expect(back[0]?.id).not.toBe(pilot.id)
   })
 })
 
@@ -450,9 +436,7 @@ describe('mergeImport — remappedLinks counter', () => {
 
     const bundle = await buildExportBundle(sourceEntityStore)
 
-    _resetDbSingleton()
-    await clearCache()
-    resetEntityStore()
+    resetStores()
 
     const targetEntityStore = useEntityStore.getState()
 

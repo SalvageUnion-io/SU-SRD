@@ -69,8 +69,8 @@ async function captureJsTotals(
  * server on 4321). The dev server serves ES modules straight from source under
  * `/src/…`, `/@fs/…` and `/node_modules/.vite/…` — the `/assets/…` prefix that
  * this file measures exists ONLY in a Rollup build. So a plain local
- * `bunx playwright test` used to report two confusing failures here: the
- * dead-selector guard saw zero chunks, and the byte budget summed zero.
+ * `bunx playwright test` would report two confusing failures here: the
+ * dead-selector guard sees zero chunks, and the byte budget sums zero.
  *
  * That is a harness mismatch, not a payload regression, and it should not read
  * as one. Detect it up front and fail with the command that fixes it, rather
@@ -80,7 +80,7 @@ async function captureJsTotals(
 test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage()
   try {
-    await page.goto('/schema/traits/item/missile/', { waitUntil: 'domcontentloaded' })
+    await page.goto('/traits/missile/', { waitUntil: 'domcontentloaded' })
     const built = await page.evaluate(() =>
       Array.from(document.querySelectorAll('script[src]')).some((s) =>
         (s as HTMLScriptElement).src.includes('/assets/')
@@ -109,7 +109,7 @@ test.describe('bundle-size budget', () => {
   // So assert the capture is non-empty FIRST. A budget guard that cannot fail
   // is worse than no guard, because it is also reassuring.
   test('the capture actually sees JS chunks (guards against a dead selector)', async ({ page }) => {
-    const totals = await captureJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
+    const totals = await captureJsTotals(page, () => page.goto('/traits/missile/'))
     expect(totals.count).toBeGreaterThan(0)
     expect(totals.bytes).toBeGreaterThan(0)
   })
@@ -117,7 +117,7 @@ test.describe('bundle-size budget', () => {
   test('a leaf-schema item page never loads the large content/chassis data chunks', async ({
     page,
   }) => {
-    const totals = await captureJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
+    const totals = await captureJsTotals(page, () => page.goto('/traits/missile/'))
     expect(totals.count).toBeGreaterThan(0)
 
     // The big, schema-specific data chunks (actions ~360KB, chassis ~150KB,
@@ -129,37 +129,19 @@ test.describe('bundle-size budget', () => {
       expect(totals.names.some((n) => n.startsWith(name))).toBe(false)
     }
 
-    // Total JS (react-vendor + shared island framework + the small ALWAYS_CORE
-    // data chunks).
+    // Total JS on a page nobody has touched: the island entry and its runtime.
+    // Every island here waits for a reader (`interaction`), so React and the
+    // data chunks load only when one is reached for.
     //
-    // ⚠️ This threshold was RAISED from 550_000 on 2026-08-05, and that is a
-    // recorded regression, not a rubber stamp. Read before touching it.
-    //
-    // 550_000 was ~2x headroom over a ~277 KB measurement taken when the budget
-    // was written. The route now ships **703,506 bytes**, measured identically
-    // on macOS/arm64 and on CI's Linux/x64 runner, with a frozen install and a
-    // fresh production build. So the payload has grown ~2.5x past the figure
-    // this guard was built around.
-    //
-    // It was not caught earlier because the assertion was not reliably running:
-    // locally the suite ran against `bun run dev`, where no `/assets/*.js` exists
-    // and every total summed 0 (see the beforeAll above), and on CI it passed
-    // while measuring less than a full page load. The number below is the first
-    // one that reflects a complete, reproducible measurement on both platforms.
-    //
-    // Raising it keeps a REAL guard (it now fails on any further growth) instead
-    // of a nominal one that passed without measuring. It is explicitly NOT an
-    // endorsement of 703 KB: the forbidden-chunk assertions above still pass, so
-    // this is not data leaking onto the route — it is the shared `src-*.js`
-    // chunk (~490 KB) plus react-vendor (~190 KB). Shrinking that is follow-up
-    // work; when it lands, drop this number to match.
-    expect(totals.bytes).toBeLessThan(720_000)
+    // A ratchet: it fails on any growth past the measured ~13 KB. Something
+    // loading React or game data at page load again lands far above it.
+    expect(totals.bytes).toBeLessThan(20_000)
   })
 
   test('a chassis item page loads chassis-bundle data but not unrelated content schemas', async ({
     page,
   }) => {
-    const totals = await captureJsTotals(page, () => page.goto('/schema/chassis/item/mule/'))
+    const totals = await captureJsTotals(page, () => page.goto('/chassis/mule/'))
 
     // Schemas with no chassis-pattern relationship (per CHASSIS_BUNDLE in
     // schemaPreloadDeps.ts) should never be fetched on a chassis page.
@@ -168,9 +150,9 @@ test.describe('bundle-size budget', () => {
       expect(totals.names.some((n) => n.startsWith(name))).toBe(false)
     }
 
-    // ~2x headroom over the measured baseline (~461 KB — the most
-    // data-heavy page category, chassis + systems + modules + actions).
-    expect(totals.bytes).toBeLessThan(900_000)
+    // The same ratchet as the leaf page: a chassis page's card is static HTML,
+    // and nothing on it loads React or data until a reader reaches for it.
+    expect(totals.bytes).toBeLessThan(20_000)
   })
 
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({
@@ -183,7 +165,12 @@ test.describe('bundle-size budget', () => {
       if (response.url().endsWith('/search-index.json')) sawSearchIndex = true
     })
 
-    const search = page.getByRole('combobox', { name: /search the srd/i }).first()
+    // Served as a plain field; it becomes the combobox when reached for.
+    const name = /search the srd/i
+    const search = page
+      .getByRole('combobox', { name })
+      .or(page.getByRole('searchbox', { name }))
+      .first()
     await search.click()
     await search.fill('Mule')
     await expect(page.getByRole('listbox').getByRole('option').first()).toBeVisible({

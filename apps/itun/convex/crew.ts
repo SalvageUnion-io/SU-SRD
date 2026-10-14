@@ -1,5 +1,6 @@
+import type { Infer } from 'convex/values'
 import { v } from 'convex/values'
-import type { MechStatus, PilotStatus } from '../src/lib/rules/crewStatus'
+import type { MechStatus, PilotStatus } from 'itun-domain/rules/crewStatus'
 import {
   mechMaxima,
   mechNeedsAttention,
@@ -7,16 +8,18 @@ import {
   pilotMaxima,
   pilotNeedsAttention,
   pilotStatus,
-} from '../src/lib/rules/crewStatus'
-import type { Mech } from '../src/lib/schemas/mech'
-import { MechSchema } from '../src/lib/schemas/mech'
-import type { Pilot } from '../src/lib/schemas/pilot'
-import { PilotSchema } from '../src/lib/schemas/pilot'
+} from 'itun-domain/rules/crewStatus'
+import type { Mech } from 'itun-domain/schemas/mech'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import { linkIdOf } from './model/entities'
 import { requireMember, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 import { seatsInGame } from './model/seats'
+import { mirrors } from './schema'
 
 /**
  * Crew visibility inside a Game (ADR-030 §5), and the crew's derived
@@ -33,7 +36,7 @@ import { seatsInGame } from './model/seats'
  *
  * Max HP, AP, SP, EP and Heat, and each crewmate's status (dead, injured,
  * ejected; destroyed, shut down, overheating, destroyed systems and modules),
- * are computed here with the rules the client uses (`src/lib/rules/crewStatus.ts`
+ * are computed here with the rules the client uses (`itun-domain/rules/crewStatus`
  * over `salvageunion-reference/rules`), from the stored records and the seats.
  * One answer for the whole table: the Crew tab's ▲ and red outlines read it,
  * so every client agrees on who needs looking at. Nothing derived is stored.
@@ -51,26 +54,80 @@ import { seatsInGame } from './model/seats'
  * derive the maxima and never leave.
  */
 
+const nullableNumber = v.union(v.number(), v.null())
+const nullableString = v.union(v.string(), v.null())
+
+/** `PilotStatus` (itun-domain/rules/crewStatus). */
+const pilotStatusValidator = mirrors<PilotStatus>()(
+  v.object({ dead: v.boolean(), injured: v.boolean(), ejected: v.boolean() })
+)
+
+/** `MechStatus` (itun-domain/rules/crewStatus). */
+const mechStatusValidator = mirrors<MechStatus>()(
+  v.object({
+    destroyed: v.boolean(),
+    shutdown: v.boolean(),
+    overheating: v.boolean(),
+    destroyedSystems: v.array(v.string()),
+    destroyedModules: v.array(v.string()),
+  })
+)
+
 /** A pilot's derived numbers, or nulls when their body is not a readable pilot. */
-type PilotDerived = {
-  maxHP: number | null
-  maxAP: number | null
-  status: PilotStatus
-  attention: boolean
-}
+const pilotDerived = v.object({
+  maxHP: nullableNumber,
+  maxAP: nullableNumber,
+  status: pilotStatusValidator,
+  attention: v.boolean(),
+})
+type PilotDerived = Infer<typeof pilotDerived>
 
 /** A mech's derived numbers, or nulls when its body is not a readable mech. */
-type MechDerived = {
-  maxSP: number | null
-  maxEP: number | null
-  maxHeat: number | null
-  status: MechStatus | null
-  attention: boolean
+const mechDerived = v.object({
+  maxSP: nullableNumber,
+  maxEP: nullableNumber,
+  maxHeat: nullableNumber,
+  status: v.union(mechStatusValidator, v.null()),
+  attention: v.boolean(),
+})
+type MechDerived = Infer<typeof mechDerived>
+
+/** One crewmate's row: who it is, whose it is, and what it reads at a glance. */
+const crewRow = {
+  appId: nullableString,
+  linkId: nullableString,
+  ownerId: v.union(v.id('users'), v.null()),
+  ownerName: nullableString,
+  name: v.string(),
 }
 
 /** Every crewmate's vitals, their derived maxima and status, and who the rows belong to. */
 export const vitals = query({
   args: { gameId: v.id('games') },
+  returns: v.object({
+    viewerId: v.id('users'),
+    pilots: v.array(
+      v.object({
+        _id: v.id('pilots'),
+        ...crewRow,
+        currentHP: nullableNumber,
+        currentAP: nullableNumber,
+        boarded: v.boolean(),
+        mechId: nullableString,
+        ...pilotDerived.fields,
+      })
+    ),
+    mechs: v.array(
+      v.object({
+        _id: v.id('mechs'),
+        ...crewRow,
+        currentSP: nullableNumber,
+        currentEP: nullableNumber,
+        currentHeat: nullableNumber,
+        ...mechDerived.fields,
+      })
+    ),
+  }),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const viewerId = await requireUser(ctx)
@@ -102,20 +159,16 @@ export const vitals = query({
     const names = new Map<string, string>()
     for (const m of members) {
       const user = await ctx.db.get(m.userId)
-      names.set(m.userId, user?.displayName ?? user?.name ?? 'Crewmate')
+      names.set(m.userId, displayNameOf(user, 'Crewmate'))
     }
 
     /**
      * Read a numeric field off an opaque body without trusting its shape.
      *
-     * **The key must match the Zod schema exactly, including case.** These
-     * originally read `currentHp` / `currentAp` / `currentSp` while
-     * `src/lib/schemas/` defines `currentHP` / `currentAP` / `currentSP`, so
-     * every pilot's HP and AP and every mech's SP came back null and the crew
-     * strip rendered a full row of em-dashes — indistinguishable from "nobody
-     * has taken damage yet", which is why it survived review. The body is
-     * `v.any()` on this side of the wire, so nothing but this comment and the
-     * test below will catch it next time.
+     * **Keys must match the Zod schema exactly, including case**
+     * (`currentHP` / `currentAP` / `currentSP`). A mismatch reads as null,
+     * which renders the same as "undamaged". The body is `v.any()`, so only
+     * the test below catches it.
      */
     const num = (body: unknown, key: string): number | null => {
       const value = (body as Record<string, unknown> | null)?.[key]

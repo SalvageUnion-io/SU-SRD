@@ -4,17 +4,18 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { Container } from '../../container'
-import { SHELF } from '../../container'
+import type { Container } from 'itun-domain/container'
+import { SHELF } from 'itun-domain/container'
+import type { LinkShape } from 'itun-domain/links/linkRules'
 import type { HeldEntities } from '../clearedByMove'
 import { assignmentsClearedByMove, linksClearedByMove } from '../clearedByMove'
-import type { LinkShape } from '../linkRules'
 
 function l(type: LinkShape['type'], from: string, to: string): LinkShape {
   const ends = {
     'mech-to-pilot': ['mech', 'pilot'],
     'pilot-to-crawler': ['pilot', 'crawler'],
     'mech-to-crawler': ['mech', 'crawler'],
+    'npc-to-crawler': ['npc', 'crawler'],
   } as const
   const [fromType, toType] = ends[type]
   return { type, from: { type: fromType, id: from }, to: { type: toType, id: to } }
@@ -34,6 +35,10 @@ function held(softLinks: LinkShape[]): HeldEntities {
       { id: 'c1', name: 'Big Sal', gameId: null },
       { id: 'cg', name: '#430 Tenacity', gameId: 'g1' },
     ],
+    npcs: [
+      { id: 'n1', name: 'Doc Ambrose', gameId: null },
+      { id: 'ng', name: 'Ilsa Varn', gameId: 'g1' },
+    ],
     softLinks,
   }
 }
@@ -41,13 +46,13 @@ function held(softLinks: LinkShape[]): HeldEntities {
 const PILOT = { type: 'pilot', id: 'p1' } as const
 
 describe('assignmentsClearedByMove', () => {
-  test('a pilot moving into a game loses its pairing with a mech left in My Stuff', () => {
+  test('a pilot moving into a game loses its pairing with a mech left in your shelves', () => {
     expect(assignmentsClearedByMove(held([l('mech-to-pilot', 'm1', 'p1')]), PILOT, G1)).toEqual([
       { type: 'mech-to-pilot', other: { kind: 'mech', name: 'Thresher' } },
     ])
   })
 
-  test('and the crew of a crawler left in My Stuff', () => {
+  test('and the crew of a crawler left in your shelves', () => {
     expect(
       assignmentsClearedByMove(
         held([l('mech-to-pilot', 'm1', 'p1'), l('pilot-to-crawler', 'p1', 'c1')]),

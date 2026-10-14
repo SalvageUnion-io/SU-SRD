@@ -15,8 +15,8 @@
  *
  * Builders take data and return `ContainerData`. That is not only for
  * testability: a sent container has no seam to mutate, so changing one means
- * rebuilding it, and a pure builder makes "rebuild with one more line" a
- * re-invocation rather than a special case. See `rollAttribution.ts`.
+ * rebuilding it, and a pure builder makes that a re-invocation rather than a
+ * special case.
  *
  * ## Two shapes of builder
  *
@@ -33,10 +33,12 @@ import {
   ContainerBuilder,
   SectionBuilder,
   SeparatorBuilder,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from '@discordjs/builders'
-import { ButtonStyle, SeparatorSpacingSize } from 'discord-api-types/v10'
+import { ButtonStyle, MessageFlags, SeparatorSpacingSize } from 'discord-api-types/v10'
 import { truncate } from 'salvageunion-reference'
 
 /**
@@ -56,24 +58,35 @@ export const V2_LIMIT = {
   textDisplay: 4000,
   /** Buttons in one action row. */
   rowButtons: 5,
+  /** Options in one select menu. */
+  selectOptions: 25,
 } as const
 
 /** A button that re-invokes the bot, or one that just opens a URL. */
 export type ButtonSpec =
-  | { kind: 'action'; customId: string; label: string; style?: ButtonStyle }
+  | { kind: 'action'; customId: string; label: string; style?: ButtonStyle; disabled?: boolean }
   | { kind: 'link'; url: string; label: string }
 
 /** One block in a container, in render order. */
 export type ContainerBlock =
   | { kind: 'text'; content: string }
-  | { kind: 'separator'; divider?: boolean; large?: boolean }
+  | { kind: 'separator' }
   | {
       kind: 'section'
       /** 1–3 text blocks, per the builder's own predicate. */
       text: string[]
       thumbnail?: { url: string; description?: string }
+      /** Or a button beside the text, which acts on that line. */
+      button?: ButtonSpec
     }
   | { kind: 'buttons'; buttons: ButtonSpec[] }
+  | {
+      kind: 'select'
+      customId: string
+      placeholder: string
+      /** At most {@link V2_LIMIT.selectOptions}; each value at most 100 characters. */
+      options: { label: string; value: string; description?: string }[]
+    }
 
 /** Everything needed to render one container. Pure data — no builders. */
 export type ContainerData = {
@@ -97,9 +110,13 @@ export function containerTextLength(data: ContainerData): number {
  */
 export function containerComponentCount(data: ContainerData): number {
   const cost = (block: ContainerBlock): number => {
-    // the section, its text blocks, and the thumbnail accessory
-    if (block.kind === 'section') return 1 + block.text.length + (block.thumbnail ? 1 : 0)
+    // the section, its text blocks, and its accessory
+    if (block.kind === 'section') {
+      return 1 + block.text.length + (block.thumbnail || block.button ? 1 : 0)
+    }
     if (block.kind === 'buttons') return 1 + block.buttons.length
+    // the row and its one menu
+    if (block.kind === 'select') return 2
     return 1
   }
   // 1 for the container itself.
@@ -110,9 +127,9 @@ export function containerComponentCount(data: ContainerData): number {
  * Trim a container to fit, shedding whole blocks from the end.
  *
  * Shedding from the end is deliberate: the blocks that matter most — the headline and the outcome —
- * are authored first, and half a provenance line is worse than none. Buttons
- * are never shed, because a roll result that loses its "Roll again" stops being
- * the thing people use.
+ * are authored first, and half a provenance line is worse than none. Controls
+ * (buttons and menus) are never shed, because a roll result that loses its
+ * "Roll again" stops being the thing people use.
  */
 export function enforceContainerLimits(data: ContainerData): ContainerData {
   const blocks = data.blocks.map((block) =>
@@ -124,14 +141,14 @@ export function enforceContainerLimits(data: ContainerData): ContainerData {
   )
 
   const trimmed: ContainerData = { ...data, blocks }
-  const isButtons = (b: ContainerBlock): boolean => b.kind === 'buttons'
+  const isControl = (b: ContainerBlock): boolean => b.kind === 'buttons' || b.kind === 'select'
   while (
     (containerTextLength(trimmed) > V2_LIMIT.totalText ||
       containerComponentCount(trimmed) > V2_LIMIT.components) &&
-    trimmed.blocks.some((b) => !isButtons(b))
+    trimmed.blocks.some((b) => !isControl(b))
   ) {
-    // Drop the last non-button block.
-    const index = trimmed.blocks.map(isButtons).lastIndexOf(false)
+    // Drop the last block that is not a control.
+    const index = trimmed.blocks.map(isControl).lastIndexOf(false)
     if (index === -1) break
     trimmed.blocks.splice(index, 1)
   }
@@ -234,6 +251,7 @@ function toButton(spec: ButtonSpec): ButtonBuilder {
         .setStyle(spec.style ?? ButtonStyle.Secondary)
         .setCustomId(spec.customId)
         .setLabel(spec.label)
+        .setDisabled(spec.disabled === true)
 }
 
 /**
@@ -251,9 +269,7 @@ export function toContainer(data: ContainerData): ContainerBuilder {
         break
       case 'separator':
         container.addSeparatorComponents(
-          new SeparatorBuilder()
-            .setDivider(block.divider ?? true)
-            .setSpacing(block.large ? SeparatorSpacingSize.Large : SeparatorSpacingSize.Small)
+          new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small)
         )
         break
       case 'section': {
@@ -264,6 +280,8 @@ export function toContainer(data: ContainerData): ContainerBuilder {
           const thumb = new ThumbnailBuilder().setURL(block.thumbnail.url)
           if (block.thumbnail.description) thumb.setDescription(block.thumbnail.description)
           section.setThumbnailAccessory(thumb)
+        } else if (block.button) {
+          section.setButtonAccessory(toButton(block.button))
         }
         container.addSectionComponents(section)
         break
@@ -277,7 +295,43 @@ export function toContainer(data: ContainerData): ContainerBuilder {
         }
         break
       }
+      case 'select': {
+        const options = block.options.slice(0, V2_LIMIT.selectOptions).map((option) => {
+          const built = new StringSelectMenuOptionBuilder()
+            .setLabel(option.label)
+            .setValue(option.value)
+          if (option.description) built.setDescription(option.description)
+          return built
+        })
+        if (options.length > 0) {
+          container.addActionRowComponents(
+            new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+              new StringSelectMenuBuilder()
+                .setCustomId(block.customId)
+                .setPlaceholder(block.placeholder)
+                .addOptions(...options)
+            )
+          )
+        }
+        break
+      }
     }
   }
   return container
+}
+
+/**
+ * The reply payload for one container. A container needs `IsComponentsV2`, so
+ * that flag is paired with the optional `Ephemeral` here, once.
+ */
+export function v2Reply(
+  data: ContainerData,
+  ephemeral = false
+): { flags: number; components: [ContainerBuilder] } {
+  return {
+    flags: ephemeral
+      ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      : MessageFlags.IsComponentsV2,
+    components: [toContainer(data)],
+  }
 }

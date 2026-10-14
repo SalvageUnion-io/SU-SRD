@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { at, BASE } from './_base'
 
 /**
  * Shared helpers for ITUN end-to-end tests.
@@ -65,7 +66,7 @@ export async function gotoStable(page: Page, path: string): Promise<void> {
   let lastError: unknown
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      await page.goto(path)
+      await page.goto(at(path))
       return
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -104,11 +105,11 @@ export async function waitForReady(page: Page): Promise<void> {
 /**
  * Advance a guided wizard forward until `target` shows up, then stop.
  *
- * Specs that want to exercise ONE step used to `goto('/<kind>/new')` and assume
- * that step was the landing step. Both assumptions have now broken once each: a
- * `CreateModeChooser` gate was added in front of every wizard (hence
- * `?mode=guided`), and the pilot wizard gained a "Your Stats" step ahead of
- * "Class & Ability". Each time, the spec sat waiting for an element that was one
+ * A spec that wants to exercise ONE step must not `goto('/<kind>/new')` and
+ * assume that step is the landing step: a `CreateModeChooser` gate stands in
+ * front of every wizard (hence `?mode=guided`), and the pilot wizard has a
+ * "Your Stats" step ahead of "Class & Ability". A spec that assumed either sat
+ * waiting for an element that was one
  * click away until it burned its whole timeout.
  *
  * So don't encode WHICH step index a thing lives on — walk forward until it is
@@ -201,16 +202,9 @@ export async function clickNext(page: Page): Promise<void> {
   await page.getByRole('button', { name: /^Next( ·|$)/ }).click()
 }
 
-/**
- * Click a top-level navigation control by accessible name.
- */
-export async function clickNavLink(page: Page, name: RegExp | string): Promise<void> {
-  await page.getByRole('link', { name }).click()
-}
-
 // ---------------------------------------------------------------------------
-// Entity builders — drive the Phase-3 WizShell wizards end to end.
-// Each returns once the dashboard redirect lands (the IndexedDB write is
+// Entity builders — drive the WizShell wizards end to end.
+// Each returns once the dashboard redirect lands (the server write is
 // complete), so subsequent steps can rely on the entity existing.
 // ---------------------------------------------------------------------------
 
@@ -220,8 +214,7 @@ export async function clickNavLink(page: Page, name: RegExp | string): Promise<v
  * These are not plain inputs. `Field` with `value` + `onSave` renders an
  * `InlineEditField`: a `role="button"` readout that swaps to an input only once
  * activated, and it labels both halves `Edit <label lowercased>`. So filling one
- * is click-then-type, and `getByLabel(/^Name$/)` — what these helpers used to
- * do — matches nothing at all.
+ * is click-then-type, and `getByLabel(/^Name$/)` matches nothing at all.
  *
  * Falls back to a direct fill for the steps that do render a real input.
  */
@@ -246,8 +239,15 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
   return false
 }
 
+/** Shelves at `/`, or a Game's own page: where a finished build returns to. */
+function isContainerPage(pathname: string): boolean {
+  return pathname === at('/') || new RegExp(`^${BASE}/games/[^/]+/?$`).test(pathname)
+}
+
 /**
- * Drive a `/new` wizard to completion and return once the redirect to `/` lands.
+ * Drive a `/new` wizard to completion and return once the redirect to the
+ * active container's page lands: `/` for Shelves, or `/games/<id>` when a Game
+ * is active (`useReturnToContainer`), so a pilot built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —
  * the pilot went from 6 steps to 9, the mech to 9, the crawler to 6, and a
@@ -284,7 +284,7 @@ async function runWizard(
     const create = page.getByRole('button', { name: createLabel }).first()
     if (await create.isVisible().catch(() => false)) {
       await create.click()
-      await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
+      await page.waitForURL((url) => isContainerPage(url.pathname), { timeout: 30_000 })
       return
     }
 
@@ -385,23 +385,38 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Open the live sheet for the named entity from the Roster's saved rows.
+ * Open the live sheet for the named entity from Shelves (board S1).
  *
- * Each row is an <li> rendering component-lib's `EntityRow`, whose sheet link
- * is labelled **"View"**. Match the link by its `/sheet/` href, not its text:
- * the href is the contract this helper depends on, and it survives a copy
- * change that would otherwise leave the helper waiting until the job's
- * 30-minute ceiling.
+ * Each item on a shelf is one line, a link to its sheet whose text carries the
+ * entity's name. Match the link by its `/sheet/` href and that text, not by
+ * the row around it: an item's chips name the units linked to it ("Linked:
+ * Stomper"), so the first row mentioning a name may be somebody else's. The
+ * href is the contract this helper depends on, and it survives a copy change
+ * that would otherwise leave the helper waiting until the job's 30-minute
+ * ceiling.
  */
 export async function openSheetFor(page: Page, name: string): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
-  const row = page.locator('li', { hasText: name }).first()
-  await expect(row, `roster row for "${name}" should render`).toBeVisible({
+  const line = page.locator('a[href*="/sheet/"]', { hasText: name }).first()
+  await expect(line, `shelf item for "${name}" should render`).toBeVisible({
     timeout: 15_000,
   })
-  await row.locator('a[href*="/sheet/"]').first().click()
+  await line.click()
   await page.waitForURL(/\/sheet\//, { timeout: 20_000 })
+}
+
+/**
+ * Put the open sheet in Edit. A sheet opens in Read (board 10:
+ * "print reads, pencil writes"), so every Manage, Assign and bay control is
+ * one press of the band's Edit away. Pressing it when it is already on is a
+ * no-op, and the choice holds for the rest of the visit.
+ */
+export async function editSheet(page: Page): Promise<void> {
+  const edit = page.getByRole('button', { name: 'Edit', exact: true })
+  await expect(edit).toBeVisible({ timeout: 15_000 })
+  if ((await edit.getAttribute('aria-pressed')) !== 'true') await edit.click()
+  await expect(edit).toHaveAttribute('aria-pressed', 'true')
 }
 
 /**
@@ -409,6 +424,7 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
  * 'Assign Pilot' dialog. Resolves when the pilot's rail row renders.
  */
 export async function assignPilotOnMechSheet(page: Page, pilotName: string): Promise<void> {
+  await editSheet(page)
   await page.getByRole('button', { name: /assign pilot to mech/i }).click()
   await page.getByRole('dialog').getByText(pilotName).click()
   await page.getByRole('button', { name: /confirm pilot assignment/i }).click()
@@ -422,6 +438,7 @@ export async function assignPilotOnMechSheet(page: Page, pilotName: string): Pro
  * 'Assign Crawler' dialog. Resolves when the crawler's rail row renders.
  */
 export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string): Promise<void> {
+  await editSheet(page)
   await page.getByRole('button', { name: /assign crawler to pilot/i }).click()
   await page.getByRole('dialog').getByText(crawlerName).click()
   await page.getByRole('button', { name: /confirm crawler assignment/i }).click()

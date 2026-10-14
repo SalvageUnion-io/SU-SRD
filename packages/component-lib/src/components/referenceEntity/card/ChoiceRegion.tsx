@@ -19,7 +19,6 @@ export function ChoiceRegion({
   compact,
   toneColor,
   depth,
-  hostTone,
   chassisName,
   NestedCard,
 }: {
@@ -32,7 +31,6 @@ export function ChoiceRegion({
   toneColor: string | undefined
   /** The HOST card's depth — listed entities render one level below it. */
   depth: number
-  hostTone: string
   chassisName: string | undefined
   NestedCard: NestedCard
 }) {
@@ -45,7 +43,7 @@ export function ChoiceRegion({
   // to ChoiceGroups.
   if (isSchemaOnlyCatalogChoice(choice)) {
     return (
-      <div className="[&:not(:last-child)]:mb-3">
+      <div className="su-choice-region">
         <CatalogChoiceListing
           choice={choice}
           techLevel={typeof effTechLevel === 'number' ? effTechLevel : undefined}
@@ -58,7 +56,6 @@ export function ChoiceRegion({
               extent="head"
               depth={depth + 1}
               data={resolved}
-              hostTone={hostTone}
               chassisName={chassisName}
             />
           )}
@@ -67,7 +64,7 @@ export function ChoiceRegion({
     )
   }
   return (
-    <div className="[&:not(:last-child)]:mb-3">
+    <div className="su-choice-region">
       <ChoiceGroups
         choices={[choice]}
         parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}
@@ -76,6 +73,28 @@ export function ChoiceRegion({
         readOnly={!editableChoices}
         compact={compact}
         toneColor={toneColor}
+        // An option that IS an entity is its compact card (ruleset §5, nesting),
+        // carrying the option's selection the way a picker cell does.
+        renderEntityOption={(option) => (
+          <NestedCard
+            size="medium"
+            extent="head"
+            depth={depth + 1}
+            data={option.entity}
+            chassisName={chassisName}
+            selected={option.chosen}
+            selectionSeal="Chosen"
+            {...(option.readOnly
+              ? {}
+              : {
+                  selectionRole: 'toggle' as const,
+                  selectable: option.chosen,
+                  disabled: option.disabled,
+                  onCardClick: option.onToggle,
+                  cardClickLabel: option.label,
+                })}
+          />
+        )}
       />
     </div>
   )

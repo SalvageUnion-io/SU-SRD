@@ -1,5 +1,5 @@
 /**
- * `public/sw-takeover.js` — the one-time takeover from a pre-#1026 worker —
+ * `public/sw-takeover.js` — the one-time takeover from a legacy worker —
  * run against a fake worker global. It is plain JS evaluated in the worker's
  * scope, so the test evaluates its source with `self` bound to the fake.
  */

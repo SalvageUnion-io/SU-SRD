@@ -9,9 +9,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // The canonical schema-id -> Zod map lives in ModelFactory (one registry); the
 // generator keeps no copy.
-import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated.js'
-import { z } from '../lib/zod.js'
-import { formatWithBiome } from './formatWithBiome.js'
+import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated'
+import { z } from '../lib/zod'
+import { formatWithBiome } from './formatWithBiome'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)

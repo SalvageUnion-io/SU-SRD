@@ -19,8 +19,8 @@
     }
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "typecheck": "tsc -b",
+    "test": "bun test --parallel=4 --no-isolate"
   },
   "dependencies": {
     "@sentry/cloudflare": "10.69.0",

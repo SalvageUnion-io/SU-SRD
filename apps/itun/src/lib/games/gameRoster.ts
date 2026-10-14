@@ -7,7 +7,8 @@
  * `convex/model/permissions.ts` and `convex/entities.ts`, and a second copy
  * written inline across a component's JSX would drift from them silently. Kept
  * here they can be tested side by side with the mutations they mirror, which is
- * exactly what `__tests__/gameRoster.test.ts` does.
+ * exactly what `__tests__/gameRoster.test.ts` does. Who runs the table is not
+ * mirrored at all: both ends call `itun-domain/games/roles`.
  *
  * **None of this is a boundary.** The server refuses what it refuses whatever
  * this file says; hiding a control the caller cannot use is a courtesy that
@@ -15,8 +16,9 @@
  * the server is right and this file is the bug.
  */
 
-import type { Container } from '../container'
-import { sameContainer } from '../container'
+import type { Container } from 'itun-domain/container'
+import { sameContainer } from 'itun-domain/container'
+import { hasMediator, runsTable } from 'itun-domain/games/roles'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 
@@ -46,7 +48,7 @@ export type GameMember = {
 }
 
 /** What the viewer may do with one row. */
-export type RowCapabilities = {
+type RowCapabilities = {
   /**
    * The row's sheet opens EDITABLE for the viewer. Mirrors `assertMayWrite`.
    * Every row opens (`rosterSheetHref`); this only says whether it opens to edit.
@@ -61,7 +63,7 @@ export type RowCapabilities = {
   /** Crawler only: the table runner may make it the Game's primary (ADR-037). */
   makePrimary: boolean
   /**
-   * The viewer may take this row out of the Game, to My Stuff — the move rules
+   * The viewer may take this row out of the Game, to your shelves — the move rules
    * of ADR-037 read from inside the Game: a pilot or mech by its owner, a
    * crawler by the table runner (`entities.moveCrawler`). `moveDestinations`
    * is the same rule read from the entity's side.
@@ -116,28 +118,17 @@ export type TableCapabilities = {
 }
 
 /**
- * The viewer's standing in this Game.
- *
- * Mirrors `isTableRunner`: Mediator, or Organizer *only while nobody mediates*.
- * The fallback is computed from the roster rather than assumed, so appointing a
- * Mediator withdraws it here at the same moment it does on the server.
+ * The viewer's standing in this Game: `runsTable` from `itun-domain/games/roles`,
+ * the predicate the server's `isTableRunner` uses, read off this roster. The
+ * Organizer fallback is computed from the roster rather than assumed, so
+ * appointing a Mediator withdraws it here at the same moment it does on the
+ * server.
  */
 export function isTableRunner(viewerId: string | null, members: readonly GameMember[]): boolean {
   if (viewerId === null) return false
   const me = members.find((m) => m.userId === viewerId)
   if (me === undefined) return false
-  if (me.mediator) return true
-  return me.organizer && !members.some((m) => m.mediator)
-}
-
-/**
- * Whether anybody mediates this Game. Mirrors `gameHasMediator` in
- * `convex/model/permissions.ts`. The Dashboard opens only when this is true
- * (ADR-038 §1), so the Game hub offers Launch Dashboard by it and the route
- * checks it live.
- */
-export function gameHasMediator(members: readonly GameMember[]): boolean {
-  return members.some((m) => m.mediator)
+  return runsTable(me, hasMediator(members))
 }
 
 /**
@@ -161,7 +152,7 @@ export function tableCapabilities(args: {
     hasCrawler,
     canRaiseCrawler: tableRunner,
     canAddCrew,
-    addCrewBlocked: canAddCrew ? null : 'Only members of this game can bring builds into it.',
+    addCrewBlocked: canAddCrew ? null : 'Only members of this Game can bring builds into it.',
     canOfferUnclaimed: tableRunner,
   }
 }
@@ -176,22 +167,23 @@ export type MoveDestination = { container: Container; label: string }
  * Where the viewer may move one of their entities to — mirroring the server's
  * move rules (ADR-037), so the control lists only what would be accepted.
  *
- *  - A **pilot or mech** may go to My Stuff or to any Game the viewer belongs
+ *  - A **pilot or mech** may go to your shelves or to any Game the viewer belongs
  *    to (`upsertByAppId` + `assertMayAddToContainer`; leaving needs only
  *    ownership, which a live sheet already implies).
  *  - A **crawler** moves only at its table runner's hand
- *    (`entities.moveCrawler`): from My Stuff into a Game they run, or from a
- *    Game they run back to My Stuff — never Game to Game.
+ *    (`entities.moveCrawler`): from your shelves into a Game they run, or from a
+ *    Game they run back to your shelves — never Game to Game.
  *
  * The current container is always first, so a control can show where the
  * entity is even when it may go nowhere else.
  */
 export function moveDestinations(args: {
-  kind: RosterKind
+  /** A built NPC moves as a pilot does: by its owner, into any Game they belong to. */
+  kind: RosterKind | 'npc'
   current: Container
   games: readonly MoveTargetGame[]
 }): MoveDestination[] {
-  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'My Stuff' }
+  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'Shelves' }
   const toGame = (g: MoveTargetGame): MoveDestination => ({
     container: { kind: 'game', gameId: g._id },
     label: g.name,
@@ -200,13 +192,13 @@ export function moveDestinations(args: {
   const currentGame =
     current.kind === 'game' ? args.games.find((g) => g._id === current.gameId) : undefined
   // A record filed under a Game the viewer is not in (left, or a v13 phantom)
-  // is shown as such rather than as My Stuff, which would lie about where it is.
+  // is shown as such rather than as Shelves, which would lie about where it is.
   const here: MoveDestination =
     current.kind === 'shelf'
       ? shelf
       : currentGame !== undefined
         ? toGame(currentGame)
-        : { container: current, label: 'Unknown game' }
+        : { container: current, label: 'Unknown Game' }
   const others = (destinations: MoveDestination[]) =>
     destinations.filter((d) => !sameContainer(d.container, current))
 
@@ -249,7 +241,7 @@ export function groupColumn(rows: readonly RosterRow[]): RosterColumnGroups {
  * pre-gen has none and goes by its body id, and a row with neither by its row
  * id. The sheet route and the Dashboard's both take it.
  */
-export function rosterEntityId(row: RosterRow): string {
+function rosterEntityId(row: RosterRow): string {
   const bodyId = typeof row.body.id === 'string' && row.body.id.length > 0 ? row.body.id : null
   return row.appId ?? bodyId ?? row.serverId
 }
@@ -267,6 +259,12 @@ export function rosterSheetHref(row: RosterRow): string {
 function nameOf(body: unknown, fallback: string): string {
   const value = (body as Record<string, unknown> | null)?.name
   return typeof value === 'string' && value.length > 0 ? value : fallback
+}
+
+/** The id inside an opaque server body, when it carries one. */
+function bodyIdOf(body: unknown): string | null {
+  const value = (body as Record<string, unknown> | null)?.id
+  return typeof value === 'string' && value.length > 0 ? value : null
 }
 
 /** The body as a record, so callers can read known fields without casting. */
@@ -308,7 +306,10 @@ export function ownableRows(args: {
   return args.rows.map((row) => {
     const owner = ownerChipFor(row.ownerId, lookup)
     const mine = owner.mine
-    const localId = row.appId !== null && args.localIds.has(row.appId) ? row.appId : null
+    // A template pre-gen has no app id: a claimed one is held here under its
+    // body id (`listMine` serves the body), so that is the id it is found by.
+    const heldAs = row.appId ?? bodyIdOf(row.body)
+    const localId = heldAs !== null && args.localIds.has(heldAs) ? heldAs : null
 
     return {
       kind: args.kind,

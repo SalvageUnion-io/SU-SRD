@@ -1,4 +1,13 @@
-import { Badge, FilterRow, SearchField, schemaPluralLabel } from 'component-lib'
+import {
+  EmptyState,
+  Entity,
+  SearchField,
+  Segmented,
+  SegmentedOption,
+  Skeleton,
+  schemaPluralLabel,
+} from 'component-lib'
+import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -29,8 +38,9 @@ function resultUrl(result: SearchResult): string {
 /**
  * Full, uncapped search results for `/search?q=…`. Unlike the dropdown combobox
  * (capped at ~10 rows), this renders every hit and offers a lightweight
- * schema-type facet. Rendered `client:only` — it is inherently dynamic, has no
- * SEO content to server-render, and the page is `noindex`.
+ * schema-type facet. Rendered `client="only"` with `ssr={false}` — it is
+ * inherently dynamic, has no SEO content to server-render, and the page is
+ * `noindex`.
  */
 export function SearchResultsIsland() {
   const [query, setQuery] = useState(() => readQueryParam())
@@ -54,40 +64,54 @@ export function SearchResultsIsland() {
 
   return (
     <IslandErrorBoundary>
-      <div className="mx-auto flex w-full max-w-[900px] flex-col gap-6">
-        {/* biome-ignore lint/a11y/useSemanticElements: role="search" on <form> is the established search-landmark pattern; the <search> element is not a form, so swapping would change Enter-key submit semantics */}
-        <form role="search" onSubmit={(e) => e.preventDefault()}>
-          <SearchField
-            type="search"
-            name="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search the SRD…"
-            aria-label="Search the SRD"
-            glyphSize={16}
-            containerClassName="py-2 text-sm"
-            autoFocus
-          />
-        </form>
-
-        {ready ? (
-          <SearchResults query={query} index={index} />
-        ) : (
-          <p className="text-sm text-wk-muted">Loading search index…</p>
-        )}
+      {/* Mixed kinds, chassis among them: the wide listing's column. */}
+      <div className="srd-listing" data-wide="">
+        <SearchResults query={query} setQuery={setQuery} ready={ready} index={index} />
       </div>
     </IslandErrorBoundary>
   )
 }
 
-function SearchResults({ query, index }: { query: string; index: CompactSearchEntry[] }) {
+type QueryProps = { query: string; setQuery: (query: string) => void }
+
+/** The listing's rail: the search box, then (with results) the type facet. */
+function SearchRail({ query, setQuery, children }: QueryProps & { children?: ReactNode }) {
+  return (
+    <div className="srd-rail">
+      {/* biome-ignore lint/a11y/useSemanticElements: role="search" on <form> is the established search-landmark pattern; the <search> element is not a form, so swapping would change Enter-key submit semantics */}
+      <form role="search" className="srd-rail__search" onSubmit={(e) => e.preventDefault()}>
+        <SearchField
+          type="search"
+          name="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search the SRD…"
+          aria-label="Search the SRD"
+          containerClassName="srd-rail__field"
+          glyphSize={18}
+          autoFocus
+        />
+      </form>
+      <span className="srd-rail__spring" />
+      {children}
+    </div>
+  )
+}
+
+/** The rail, then the hits; the rail stays mounted while the index loads. */
+function SearchResults({
+  query,
+  setQuery,
+  ready,
+  index,
+}: QueryProps & { ready: boolean; index: CompactSearchEntry[] }) {
   const trimmed = query.trim()
   const [schemaFacet, setSchemaFacet] = useState<string | null>(null)
 
   // Uncapped: no `limit`, so the full result set comes back.
   const results = useMemo(
-    () => (trimmed ? searchCompactIndex(index, { query: trimmed }) : []),
-    [trimmed, index]
+    () => (trimmed && ready ? searchCompactIndex(index, { query: trimmed }) : []),
+    [trimmed, ready, index]
   )
 
   // Facet options: distinct schemas present in the current result set, with counts.
@@ -110,66 +134,97 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
     schemaFacet && facets.some((f) => f.schemaName === schemaFacet) ? schemaFacet : null
 
   const visible = activeFacet ? results.filter((r) => r.schemaName === activeFacet) : results
+  const models = useMemo(() => new Map(index.map((entry) => [entry.id, entry.model])), [index])
+
+  const rail = (
+    <SearchRail query={query} setQuery={setQuery}>
+      {facets.length > 1 && (
+        <Segmented label="Type">
+          <SegmentedOption pressed={activeFacet === null} onClick={() => setSchemaFacet(null)}>
+            All
+          </SegmentedOption>
+          {facets.map((f) => (
+            <SegmentedOption
+              key={f.schemaName}
+              pressed={activeFacet === f.schemaName}
+              onClick={() => setSchemaFacet(f.schemaName)}
+            >
+              {`${f.label} (${f.count})`}
+            </SegmentedOption>
+          ))}
+        </Segmented>
+      )}
+    </SearchRail>
+  )
+
+  if (!ready) {
+    return (
+      <>
+        {rail}
+        <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="">
+          {Array.from({ length: 4 }, (_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static 4-item skeleton placeholder list, never reordered — index is stable
+            <li key={i}>
+              <Skeleton />
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
 
   if (!trimmed) {
-    return <p className="text-sm text-wk-muted">Enter a search term to see results.</p>
+    return (
+      <>
+        {rail}
+        <EmptyState headline="Search the SRD" body="Enter a search term to see results." />
+      </>
+    )
   }
 
   if (results.length === 0) {
     return (
-      <p className="text-sm text-wk-muted" aria-live="polite">
-        No results found for “{trimmed}”.
-      </p>
+      <>
+        {rail}
+        <output aria-live="polite">
+          <EmptyState headline="Nothing here" body={`No results found for “${trimmed}”.`} />
+        </output>
+      </>
     )
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-wk-muted" aria-live="polite">
-        {results.length} result{results.length === 1 ? '' : 's'} for “{trimmed}”
-      </p>
+    <>
+      {rail}
+      <output className="srd-rail__status" aria-live="polite">
+        <span className="srd-rail__tally">
+          {results.length} result{results.length === 1 ? '' : 's'} for “{trimmed}”
+        </span>
+      </output>
 
-      {facets.length > 1 && (
-        <FilterRow label="Type">
-          <Badge
-            shape="chip"
-            as="button"
-            aria-pressed={activeFacet === null}
-            surface={activeFacet === null ? 'solid' : 'ghost'}
-            onClick={() => setSchemaFacet(null)}
-          >
-            All
-          </Badge>
-          {facets.map((f) => (
-            <Badge
-              key={f.schemaName}
-              shape="chip"
-              as="button"
-              aria-pressed={activeFacet === f.schemaName}
-              surface={activeFacet === f.schemaName ? 'solid' : 'ghost'}
-              onClick={() => setSchemaFacet(f.schemaName)}
-            >
-              {`${f.label} (${f.count})`}
-            </Badge>
-          ))}
-        </FilterRow>
-      )}
-
-      <ul className="flex flex-col divide-y divide-wk-faint rounded-card border border-wk-faint bg-paper">
-        {visible.map((result) => (
-          <li key={result.entityId}>
-            <a
-              href={resultUrl(result)}
-              className="flex items-center justify-between gap-3 px-4 py-3 no-underline transition-colors hover:bg-wk-bg"
-            >
-              <span className="font-medium text-ink">{result.entityName}</span>
-              <span className="shrink-0 font-cond text-xs uppercase tracking-wide text-wk-muted">
-                {schemaLabel(result)}
-              </span>
-            </a>
-          </li>
-        ))}
+      {/* SEARCH (ruleset §1.5, entity display language E11): every result is
+          a listing Row in link mode, with the lead, as a schema listing's. */}
+      <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="">
+        {visible.map((result) => {
+          const model = models.get(result.entityId)
+          return (
+            <li key={result.entityId}>
+              {model ? (
+                <Entity
+                  form="row"
+                  model={model}
+                  mode={{ kind: 'link', href: resultUrl(result) }}
+                  lead
+                />
+              ) : (
+                <a href={resultUrl(result)} className="srd-listing__fallback-row">
+                  {result.entityName}
+                </a>
+              )}
+            </li>
+          )
+        })}
       </ul>
-    </div>
+    </>
   )
 }

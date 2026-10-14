@@ -1,12 +1,13 @@
 /**
  * Blank create — the escape hatch that skips the wizard and ALL creation-rule
- * limits (wizard-refresh Phase 1).
+ * limits.
  *
  * `createBlank` builds a minimal create() payload through the EXISTING pure
  * form mappers (pilotFormState / mechFormState / crawlerFormState) and calls
  * the entity store's create() directly — the same persistence path
  * InstantiateFromPattern and merge-import already use. No WizShell, no rule
- * gates, no validation beyond the db layer's own strict Zod parse.
+ * gates, no validation beyond the strict Zod parse in
+ * stores/records.ts (prepareCreate / parseServed).
  *
  * Seeds collect ONLY the Zod-required fields plus the optional escape-valve
  * picks (class / chassis / tech level) that would otherwise strand the user
@@ -51,7 +52,7 @@ type BlankSeed = BlankPilotSeed | BlankMechSeed | BlankCrawlerSeed
 /**
  * Creates a blank entity of the given kind and returns its id.
  *
- * The db layer still strict-parses the record (Zod is the source of truth) —
+ * stores/records.ts (prepareCreate / parseServed) still strict-parses the record (Zod is the source of truth) —
  * but no creation-rule budget, tech-level filter, or scrap cost applies.
  */
 export async function createBlank(kind: 'pilot', seed: BlankPilotSeed): Promise<string>

@@ -2,14 +2,15 @@
  * Deep-link URL builder for srd entity pages.
  *
  * Verified srd URL pattern (from apps/srd/src/pages/):
- *   Base: https://salvageunion.io
- *   Item route: /schema/[schemaId]/item/[itemSlug]
+ *   Base: `SRD_ORIGIN` (https://salvageunion.io, or a Worker Preview's SRD)
+ *   Item route: /[schemaId]/[itemSlug]
  *   Uses slugs (never UUIDs) per CLAUDE.md data convention
  *
- * See: apps/srd/src/pages/schema/[schemaId]/item/[itemId].page.tsx
+ * See: apps/srd/src/pages/[schemaId]/[itemId].page.tsx
  */
 
-import { getEntitySchemas, srdEntityUrl, srdSchemaUrl } from 'salvageunion-reference'
+import { getEntitySchemas, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
+import { SRD_ORIGIN } from './srdOrigin'
 
 type EntityRef = {
   schemaName: string
@@ -21,7 +22,7 @@ type EntityRef = {
 // getSchemaCatalog().schemas.filter((s) => !s.meta). So full catalog
 // membership is NOT the test — it would claim a page for the three meta
 // schemas (actions, catalog-categories, ability-tree-requirements) and every
-// "View in SRD →" on an action would 404. Mirror the generator's own filter.
+// "View in SRD" on an action would 404. Mirror the generator's own filter.
 // Lazily cached.
 let srdSchemaIds: Set<string> | undefined
 
@@ -43,14 +44,14 @@ export function hasSRDPage(schemaName: string): boolean {
  * @returns Absolute URL to the entity on srd
  */
 export function deepLinkTo({ schemaName, slug }: EntityRef): string {
-  return srdEntityUrl(schemaName, slug)
+  return `${SRD_ORIGIN}${srdEntityPath(schemaName, slug)}`
 }
 
 /**
  * Build a deep-link URL to a srd schema index page (the category
- * listing, e.g. /schema/chassis). Used by reference search's category rows —
+ * listing, e.g. /chassis). Used by reference search's category rows —
  * ITUN has no in-app schema list routes.
  */
 export function deepLinkToSchema(schemaName: string): string {
-  return srdSchemaUrl(schemaName)
+  return `${SRD_ORIGIN}${srdSchemaPath(schemaName)}`
 }

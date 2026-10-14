@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { advanceUntilVisible, buildPilot, openSheetFor, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -12,7 +13,7 @@ import { expect, test } from './fixtures'
 
 test.describe('class step displays meaningful class info', () => {
   test('class card surfaces ability tree names', async ({ page }) => {
-    await page.goto('/pilots/new?mode=guided')
+    await page.goto(at('/pilots/new?mode=guided'))
     await waitForReady(page)
 
     // Master-detail: selecting a class row renders its full card + ability
@@ -25,7 +26,7 @@ test.describe('class step displays meaningful class info', () => {
   })
 
   test('selected class reveals trees + abilities listing', async ({ page }) => {
-    await page.goto('/pilots/new?mode=guided')
+    await page.goto(at('/pilots/new?mode=guided'))
     await waitForReady(page)
     await pickByName(page, 'Engineer')
 
@@ -38,7 +39,7 @@ test.describe('class step displays meaningful class info', () => {
 
 test.describe('ability cards show their descriptions', () => {
   test('Engineering Expertise card includes its rules text', async ({ page }) => {
-    await page.goto('/pilots/new?mode=guided')
+    await page.goto(at('/pilots/new?mode=guided'))
     await waitForReady(page)
     // The first-Ability pool lives on the SAME step as the class, so the
     // ability's rules text is on screen as soon as a class is picked; a
@@ -56,7 +57,7 @@ test.describe('ability cards show their descriptions', () => {
 
 test.describe('chassis cards show stats from the SRD', () => {
   test('Mule chassis card renders its name and at least one stat', async ({ page }) => {
-    await page.goto('/mechs/new?mode=guided')
+    await page.goto(at('/mechs/new?mode=guided'))
     await waitForReady(page)
 
     // The mech wizard opens on the informational "Gain Scrap" step, so the
@@ -67,11 +68,12 @@ test.describe('chassis cards show stats from the SRD', () => {
     await expect(page.getByText(/^Mule$/).first()).toBeVisible()
 
     // Master-detail: selecting the Mule row renders its full card in the detail
-    // pane, where ReferenceEntityCard surfaces the chassis stat blocks
-    // (Structure Points, System Slots, Heat Capacity, …) as labelled values.
-    // Assert a stat label renders (proves the stats block mounted).
+    // pane, where ReferenceEntityCard surfaces the chassis stats as its header's
+    // `[label | value]` cells (SP, SYS, MODS, …) — the short form at every size
+    // since the one-anatomy card. Assert a stat label renders (proves
+    // the stats block mounted).
     await pickByName(page, 'Mule')
-    await expect(page.getByText(/SLOTS|CAPACITY|POINTS/i).first()).toBeVisible()
+    await expect(page.getByText(/^(SP|SYS|MODS)$/).first()).toBeVisible()
   })
 })
 
@@ -84,20 +86,12 @@ test.describe('dashboard surfaces created entities with their identity', () => {
 
     // Name is displayed.
     await expect(page.getByText('Display Test Pilot').first()).toBeVisible({ timeout: 15_000 })
-    // EntityRow renders one link per entity, to its live sheet.
-    //
-    // Matched on the FULL accessible name, not the visible text. The visible
-    // label is "View" on every row, so the link carries
-    // `aria-label="View <name>"` — without it a screen-reader user hears
-    // "View, View, View" with no way to tell which unit each opens (WCAG 2.4.4).
-    //
-    // `/^View$/` therefore stopped matching the moment that aria-label landed,
-    // and this spec had been red every night since. Asserting the composed name
-    // fixes the break AND pins the accessibility fix, which a match on `href`
-    // alone would silently let regress.
-    await expect(page.getByRole('link', { name: 'View Display Test Pilot' })).toBeVisible({
-      timeout: 15_000,
-    })
+    // Each shelf item is one line that opens its live sheet (Shelves, board
+    // S1), and the line is named by what it is — kind, class, name, HP — so a
+    // screen-reader user can tell which unit each opens (WCAG 2.4.4).
+    const line = page.getByRole('link', { name: /Display Test Pilot/ })
+    await expect(line).toBeVisible({ timeout: 15_000 })
+    await expect(line).toHaveAttribute('href', /\/sheet\/pilot\//)
   })
 })
 

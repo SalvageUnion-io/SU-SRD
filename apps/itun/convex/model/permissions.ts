@@ -1,5 +1,6 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError } from 'convex/values'
+import { hasMediator, runsTable } from 'itun-domain/games/roles'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
@@ -22,6 +23,11 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
  * over a pilot, a mech, or the crawler is whatever their base role already
  * gave them. The single exception is documented on `isTableRunner` below,
  * and it is a considered one.
+ *
+ * The role predicates themselves are pure and shared with the client
+ * (`itun-domain/games/roles`), so the Game surface hides exactly what this
+ * module refuses. This module reads the roster and throws; the answer is
+ * theirs.
  */
 
 type AnyCtx = QueryCtx | MutationCtx
@@ -36,9 +42,8 @@ type AnyCtx = QueryCtx | MutationCtx
  * `ConvexError` is the documented opt-out: its `data` is sent over the wire
  * intact.
  *
- * Without it, every carefully-worded refusal here — "This game has no Union
- * Crawler yet — the Mediator raises one before the crew joins it", "You cannot
- * edit another player's entity" — would be thrown away at the boundary, and a
+ * Without it, every carefully-worded refusal here — "You cannot edit another
+ * player's entity" — would be thrown away at the boundary, and a
  * player who tried something the rules disallow would get the same opaque
  * "Server Error" as a genuine crash.
  *
@@ -83,7 +88,7 @@ export async function getMembership(
  *
  * Every check below comes in two forms: one that reads the actor from the
  * Convex auth token, and one taking the actor explicitly. They exist for the
- * Discord bot (ADR-030 Phase 6), which authenticates over HTTP with a bot
+ * Discord bot (ADR-030), which authenticates over HTTP with a bot
  * credential and resolves its actor from a linked Discord id — so it has a
  * `userId` in hand but no token for `getAuthUserId` to read.
  *
@@ -101,7 +106,7 @@ export async function requireMemberAs(
   userId: Id<'users'>
 ): Promise<Doc<'memberships'>> {
   const membership = await getMembership(ctx, gameId, userId)
-  if (membership === null) throw new NotAuthorized('Not a member of this game')
+  if (membership === null) throw new NotAuthorized('Not a member of this Game')
   return membership
 }
 
@@ -129,23 +134,14 @@ export async function requireMediator(
   return await requireMediatorAs(ctx, gameId, await requireUser(ctx))
 }
 
-/** Membership with `organizer: true` for an explicit actor, or a throw. */
-export async function requireOrganizerAs(
-  ctx: AnyCtx,
-  gameId: Id<'games'>,
-  userId: Id<'users'>
-): Promise<Doc<'memberships'>> {
-  const membership = await requireMemberAs(ctx, gameId, userId)
-  if (!membership.organizer) throw new NotAuthorized('Only the Organizer can do that')
-  return membership
-}
-
 /** Membership with `organizer: true`, or a throw. Administrative acts only. */
 export async function requireOrganizer(
   ctx: AnyCtx,
   gameId: Id<'games'>
 ): Promise<Doc<'memberships'>> {
-  return await requireOrganizerAs(ctx, gameId, await requireUser(ctx))
+  const membership = await requireMemberAs(ctx, gameId, await requireUser(ctx))
+  if (!membership.organizer) throw new NotAuthorized('Only the Organiser can do that')
+  return membership
 }
 
 /** True when `gameId` has at least one member flagged as Mediator. */
@@ -154,7 +150,7 @@ export async function gameHasMediator(ctx: AnyCtx, gameId: Id<'games'>): Promise
     .query('memberships')
     .withIndex('by_game', (q) => q.eq('gameId', gameId))
     .collect()
-  return members.some((m) => m.mediator)
+  return hasMediator(members)
 }
 
 /**
@@ -192,8 +188,9 @@ export async function isTableRunner(
   gameId: Id<'games'>,
   membership: Doc<'memberships'>
 ): Promise<boolean> {
-  if (membership.mediator) return true
-  return membership.organizer && !(await gameHasMediator(ctx, gameId))
+  // Only an Organizer who does not mediate needs the roster read.
+  const fallback = membership.organizer && !membership.mediator
+  return runsTable(membership, fallback && (await gameHasMediator(ctx, gameId)))
 }
 
 export async function requireTableRunner(
@@ -203,6 +200,6 @@ export async function requireTableRunner(
   const membership = await requireMember(ctx, gameId)
   if (await isTableRunner(ctx, gameId, membership)) return membership
   throw new NotAuthorized(
-    'Only the Mediator can do that (or the Organizer, when the game has no Mediator)'
+    'Only the Mediator can do that (or the Organiser, when the Game has no Mediator)'
   )
 }

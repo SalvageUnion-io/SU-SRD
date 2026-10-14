@@ -5,15 +5,12 @@
  * Models are loaded lazily via SalvageUnionReference.preload().
  */
 
-// Imported from the concrete module rather than the ./utilities.js barrel: the
-// action-resolution module already imports this one (it needs
-// SalvageUnionReference), so going through the barrel would pull every other
-// utilities module into that cycle for no reason.
-import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution.js'
-import type { ModelWithMetadata } from './BaseModel.js'
-import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
-import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js'
-import type { LazyModel } from './LazyModel.js'
+import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution'
+import type { ModelWithMetadata } from './BaseModel'
+import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated'
+import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.generated'
+import type { LazyModel } from './LazyModel'
+import type { LoadProjection } from './ModelFactory'
 import {
   getLoadedModel,
   installSchemas,
@@ -21,18 +18,14 @@ import {
   loadSchemas,
   resetLoadStateForTesting,
   toPascalCase,
-} from './ModelFactory.js'
-import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaAction,
-  SURefMetaEntity,
-} from './schemas/index.js'
-import { invalidateSearchIndex } from './search.js'
+} from './ModelFactory'
+import type { SURefMetaAction, SURefMetaEntity } from './schemas/index'
+import { invalidateSearchIndex } from './search'
 
 // ---------------------------------------------------------------------------
 // Public API — every name below is re-exported EXPLICITLY, and each one has a
-// consumer outside this package (srd, itun, component-lib or the Discord bot).
+// consumer outside this package (srd, itun, component-lib or the Discord bot;
+// their tests count, since the exports map blocks deep imports).
 //
 // A wildcard makes the surface whatever the modules happen to export; a list
 // makes adding a name a reviewable decision. To expose
@@ -41,66 +34,44 @@ import { invalidateSearchIndex } from './search.js'
 // ---------------------------------------------------------------------------
 
 export {
+  extractPatternActions,
   extractVisibleActions,
   getChassisAbilities,
   getChoices,
   getTraits,
-} from './actionResolution.js'
+} from './actionResolution'
 export {
+  assetUrl,
   getAssetUrl,
   SRD_SITE_URL,
   srdEntityPath,
   srdEntityUrl,
   srdSchemaPath,
   srdSchemaUrl,
-} from './assets.js'
+} from './assets'
+export { bookQuote } from './bookQuote'
+export { parseContentBlockString, replaceChassisPlaceholder } from './contentBlockHelpers'
 export {
-  parseContentBlockString,
-  replaceChassisPlaceholder,
-  resolveDataValueForTechLevel,
-} from './contentBlockHelpers.js'
-export {
-  getBioSalvageValue,
-  getBlackMarket,
-  getBooklet,
-  getCargoCapacity,
-  getEnergyPoints,
-  getHeatCapacity,
-  getHitPoints,
-  getModuleSlots,
   getName,
   getPageReference,
   getReferenceEntityName,
-  getSalvageValue,
   getSlotsRequired,
   getSource,
-  getStructurePoints,
-  getSystemSlots,
   getTechLevel,
-  getTechLevelNumber,
   getTree,
-  getUpgradeCost,
-  getUpkeepCost,
-} from './entityFields.js'
-export {
-  isAbility,
-  isBaseAdvancedClass,
-  isCoreClass,
-  isEntityData,
-  isKeyword,
-} from './entityGuards.js'
+} from './entityFields'
+export { isAbility, isBaseAdvancedClass, isCoreClass } from './entityGuards'
+export { formerSlugsIn, resolveFormerSlug } from './formerSlugs'
 // Every SURef* entity type and the SURefEntity / SURefMetaEntity unions,
 // generated from lib/schemas/registry.ts. Exported as a family rather than
 // name by name: they are 1:1 with SchemaToEntityMap (below), so each is already
 // reachable as `SchemaToEntityMap['<id>']`, and a new registry entry should not
 // need a barrel edit to get its type.
-export type * from './generated/entityTypes.generated.js'
+export type * from './generated/entityTypes.generated'
 export {
   byTechLevelThenName,
   extractStaticEntitySummary,
-  getDisplayName,
   getEntitySchemas,
-  getHybridClasses,
   getModel,
   getReferenceEntityData,
   getUniqueSources,
@@ -110,56 +81,144 @@ export {
   resolveGrantedEntities,
   type StaticEntitySummary,
   techLevelRank,
-} from './helpers.js'
-export { getInventorySlots } from './inventorySlots.js'
-export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js'
-export { nameToSlug } from './nameToSlug.js'
-export { getPatterns, normalizePatternName, visiblePatterns } from './patterns.js'
-export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView.js'
-export { type RollOnTableOutcome, rollOnTable } from './rollOnTable.js'
-export { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
+} from './helpers'
+export { getInventorySlots } from './inventorySlots'
+export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory'
+export { nameToSlug } from './nameToSlug'
+export { displayTitle } from './naming'
+export {
+  getPatterns,
+  isBioTitanPattern,
+  normalizePatternName,
+  visiblePatterns,
+} from './patterns'
+export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView'
+export {
+  d20ForTable,
+  NO_EFFECT,
+  type RollOnTableOutcome,
+  rollOnTable,
+  type TableDice,
+} from './rollOnTable'
+export { SchemaNotLoadedError } from './SchemaNotLoadedError'
 export type {
   SURefEnumSchemaName,
+  SURefObjectAnyPattern,
   SURefObjectBonusPerTechLevel,
   SURefObjectChoice,
-  SURefObjectContent,
   SURefObjectContentBlock,
   SURefObjectDamage,
   SURefObjectDataValue,
   SURefObjectGuideStep,
   SURefObjectPattern,
-  SURefObjectPatternSystemModule,
   SURefObjectTable,
-  SURefObjectTableContent,
   SURefObjectTrait,
-} from './schemas/index.js'
+} from './schemas/index'
 export {
   extractContentText,
   // Search primitives. Public because every consumer that needs them today had
   // forked them instead (discord-bot + component-lib forked `isSchemaName`).
   // One implementation, one behaviour.
   isSchemaName,
+  patternSearchText,
   type SearchOptions,
   type SearchResult,
   search,
   searchIn,
-} from './search.js'
+} from './search'
 // The pure matching + ranking rules both matchers share: the ORM `search()`
-// above and srd's compact client index (audit PK-11). No ORM import, so a
+// above and srd's compact client index. No ORM import, so a
 // browser bundle pays only for these functions.
 export {
   matchSearchTokens,
   scoreSearchMatch,
   searchNameWords,
   tokenizeSearchQuery,
-} from './searchRanking.js'
-export { findEntityBySlug, getEntitySlug } from './slug.js'
-export { parseTraitReferences, replaceTraitReferences } from './traitText.js'
-export { truncate } from './truncate.js'
-export { resultForColumnsTable, resultForTable } from './utils/resultForTable.js'
-
-import type { SearchOptions, SearchResult } from './search.js'
-import { search as searchFn, searchIn as searchInFn } from './search.js'
+} from './searchRanking'
+export { findEntityBySlug, getEntitySlug } from './slug'
+export { topLevelRollTables } from './topLevelRollTables'
+export { parseTraitReferences, plainTraitText } from './traitText'
+export { truncate } from './truncate'
+export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
+export {
+  childStamp,
+  type DiscordBlock,
+  type DiscordChildGroup,
+  discordAccent,
+  discordCard,
+  discordCardParts,
+  discordChildGroup,
+  discordCiteLine,
+  linkTraitReferences,
+  rangeLabel,
+} from './view/discordCard'
+export {
+  COMPONENT_EMBED_MAX_BYTES,
+  componentEmbedJson,
+  discordEntryCard,
+  discordEntryIndexCard,
+} from './view/discordEntryCard'
+export { discordRowSummary } from './view/discordRowSummary'
+// The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
+// entity resolved once into what every form draws. Its parts are public too,
+// for component-lib's card helpers, which read them rather than keep a copy.
+export {
+  droneOwnLoadout,
+  foldedActionOf,
+  isTitanicAction,
+  type NestedGroup,
+  nestedEntityGroups,
+  patternGroups,
+  resolveLoadout,
+  vehicleSystemNames,
+} from './view/parts/children'
+export {
+  type AdditionalSource,
+  type BookCite,
+  bookName,
+  formatCite,
+  formatProvenance,
+  resolveAdditionalSources,
+  resolveProvenance,
+} from './view/parts/cite'
+export type { ItemCondition, StatLabel } from './view/parts/facts'
+export {
+  ACTION_TYPE_LABELS,
+  bookStats,
+  CONDITION_LABELS,
+  entityStats,
+  opensGroup,
+  STAT_LABELS,
+  splitStatLine,
+} from './view/parts/facts'
+export { entityTone, guideTone, headerFill } from './view/parts/fill'
+export {
+  bayKind,
+  classKind,
+  entityStamp,
+  isDoEntity,
+  schemaDomain,
+  tierNumeral,
+} from './view/parts/kind'
+export { firstParagraphText } from './view/parts/lead'
+export { resolveTable } from './view/parts/table'
+export {
+  type FacetCell,
+  facetCells,
+  formatActionType,
+  formatCost,
+} from './view/parts/traits'
+export { glossaryRef, toEntityModel } from './view/toEntityModel'
+export type {
+  EntityArt,
+  EntityDomain,
+  EntityInstance,
+  EntityModel,
+  EntityRef,
+  Fact,
+  StatGroup,
+  TraitMention,
+} from './view/types'
 
 // ---------------------------------------------------------------------------
 // Lazy model registry — LazyModel is defined in ./LazyModel.js; the ~27
@@ -192,13 +251,6 @@ export const EntitySchemaNames = new Set<EntitySchemaName>(
     .map(([k]) => k)
 )
 
-// Runtime mapping from schema names to model property names (derived from registry)
-export const SchemaToModelMap = Object.fromEntries(
-  Object.entries(SCHEMA_REGISTRY).map(([k, v]) => [k, v.model])
-) as {
-  readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['model']
-}
-
 // Runtime mapping from schema names to display names (derived from registry)
 export const SchemaToDisplayName = Object.fromEntries(
   Object.entries(SCHEMA_REGISTRY).map(([k, v]) => [k, v.display])
@@ -212,7 +264,7 @@ export const SchemaToDisplayName = Object.fromEntries(
  * Data is loaded lazily. Call `SalvageUnionReference.preload('all')` (or a
  * specific array of schema IDs) before accessing any model.
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: `SalvageUnionReference.{Model}` static accessors are the package's public API (consumed across all apps); the generator injects statics into this class body, and lib/index.test.ts asserts they are own properties of the class.
+// biome-ignore lint/complexity/noStaticOnlyClass: `SalvageUnionReference.{Model}` static accessors are the package's public API (consumed across all apps); the generator injects statics into this class body, and lib/__tests__/index.test.ts asserts they are own properties of the class.
 export class SalvageUnionReference {
   // Static model properties — these are LazyModel instances that throw until
   // preload() is called. Each is exposed under its public ModelWithMetadata
@@ -224,7 +276,7 @@ export class SalvageUnionReference {
   // injected verbatim between the markers. It is intentionally still real,
   // hand-inspectable class-body source (not a runtime mixin/base class) so
   // every property below stays a true *own* property of this class — see
-  // lib/index.test.ts's `Object.getOwnPropertyNames(SalvageUnionReference)`.
+  // lib/__tests__/index.test.ts's `Object.getOwnPropertyNames(SalvageUnionReference)`.
   // GENERATED:BEGIN — see tools/generateRegistry.ts
   static Abilities: ModelWithMetadata<SchemaToEntityMap['abilities']> = lazyModelMap.abilities
   static AbilityTreeRequirements: ModelWithMetadata<
@@ -273,6 +325,9 @@ export class SalvageUnionReference {
    * proves them parse-stable (see the header of `ModelFactory.ts`).
    *
    * @param schemas - Array of schema IDs to load, or `'all'` to load everything.
+   * @param options.projection - `'list'` loads a schema's list projection
+   *   (rows without their prose, `lib/listProjection.ts`) where it has one, for
+   *   a listing that never prints that prose. A later full `preload` replaces it.
    * @returns Promise that resolves when all requested schemas are loaded.
    *
    * @example
@@ -281,9 +336,15 @@ export class SalvageUnionReference {
    *
    * // Load only what you need (enables code-splitting):
    * await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
+   *
+   * // A listing: actions without their prose
+   * await SalvageUnionReference.preload(['systems', 'actions'], { projection: 'list' })
    */
-  public static async preload(schemas: string[] | 'all'): Promise<void> {
-    await loadSchemas(schemas)
+  public static async preload(
+    schemas: string[] | 'all',
+    options?: { projection?: LoadProjection }
+  ): Promise<void> {
+    await loadSchemas(schemas, options?.projection)
     bindLoadedModels(schemas === 'all' ? Object.keys(lazyModelsById) : schemas)
   }
 
@@ -310,10 +371,12 @@ export class SalvageUnionReference {
    * Check whether a schema has been loaded.
    *
    * @param schemaId - The schema ID to check (e.g. `'chassis'`, `'abilities'`).
-   * @returns `true` if the schema has been loaded via `preload()`, `false` otherwise.
+   * @param options.projection - `'list'` also counts a list-projection load.
+   * @returns `true` if the schema has been loaded in full via `preload()`
+   *   (or, with `projection: 'list'`, in either projection), `false` otherwise.
    */
-  public static isLoaded(schemaId: string): boolean {
-    return isSchemaLoaded(schemaId)
+  public static isLoaded(schemaId: string, options?: { projection?: LoadProjection }): boolean {
+    return isSchemaLoaded(schemaId, options?.projection)
   }
 
   // ---------------------------------------------------------------------------
@@ -378,81 +441,6 @@ export class SalvageUnionReference {
   }
 
   /**
-   * Check if an entity exists by schema name and ID
-   */
-  public static exists<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): boolean {
-    return SalvageUnionReference.get(schemaName, id) !== undefined
-  }
-
-  /**
-   * Get multiple entities by schema name and IDs
-   */
-  public static getMany(requests: Array<{ schemaName: keyof SchemaToEntityMap; id: string }>): (
-    | (SchemaToEntityMap[keyof SchemaToEntityMap] & {
-        schemaName: keyof SchemaToEntityMap
-      })
-    | undefined
-  )[] {
-    return requests.map((req) => SalvageUnionReference.get(req.schemaName, req.id))
-  }
-
-  /**
-   * Parse a reference string into schema name and ID
-   */
-  public static parseRef(ref: string): {
-    schemaName: SURefEnumSchemaName
-    id: string
-  } | null {
-    const parts = ref.split('::')
-    if (parts.length !== 2) return null
-
-    const schemaName = parts[0]
-    const id = parts[1]
-    if (!schemaName || !id) return null
-    if (!(schemaName in SchemaToModelMap)) return null
-
-    // Sole assertion: the registry key set is a superset of SURefEnumSchemaName
-    // ('actions' and 'catalog-categories' are registered but not in the zod
-    // enum), and this public signature predates that split. Narrowing the
-    // guard to the enum would reject 'actions::…' refs — a behavior change.
-    return { schemaName: schemaName as SURefEnumSchemaName, id }
-  }
-
-  /**
-   * Get an entity by reference string
-   */
-  public static getByRef(ref: string):
-    | (SchemaToEntityMap[keyof SchemaToEntityMap] & {
-        schemaName: keyof SchemaToEntityMap
-      })
-    | undefined {
-    const parsed = SalvageUnionReference.parseRef(ref)
-    if (!parsed) return undefined
-    if (parsed.schemaName in SchemaToModelMap) {
-      return SalvageUnionReference.get(parsed.schemaName, parsed.id)
-    }
-    return undefined
-  }
-
-  /**
-   * Search across all or specific schemas
-   */
-  public static search(options: SearchOptions): SearchResult[] {
-    return searchFn(options)
-  }
-
-  /**
-   * Search within a specific schema
-   */
-  public static searchIn<T extends SURefEntity>(
-    schemaName: SURefEnumSchemaName,
-    query: string,
-    options?: { limit?: number }
-  ): (T & { schemaName: SURefEnumSchemaName })[] {
-    return searchInFn(schemaName, query, options)
-  }
-
-  /**
    * Resolve actions from any entity that might have actions
    */
   public static resolveActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
@@ -492,7 +480,7 @@ function bindLoadedModels(ids: readonly string[]): void {
   for (const id of ids) {
     const lazyModel = lazyModelsById[id]
     if (!lazyModel) continue
-    if (!isSchemaLoaded(id)) continue
+    if (!isSchemaLoaded(id, 'list')) continue
 
     try {
       const backing = getLoadedModel(id, toPascalCase(id))
@@ -525,7 +513,7 @@ export function resetAllForTesting(): void {
 // ---------------------------------------------------------------------------
 // Rules — pure game-rules logic (ADR-006) lives in ./rules/, exposed via the
 // 'salvageunion-reference/rules' subpath export (package.json), NOT re-exported
-// from this main barrel. Re-exporting `export * from './rules/index.js'` here
+// from this main barrel. Re-exporting `export * from './rules/index'` here
 // would make every consumer of the main package entrypoint (including ones
 // that never touch rules, like the Discord bot's lookup/roll commands)
 // transitively load all rules modules via ESM's eager re-export semantics —

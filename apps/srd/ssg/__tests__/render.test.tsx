@@ -13,15 +13,17 @@
 
 import { describe, expect, it } from 'bun:test'
 import { SITE_URL } from '../../src/lib/constants'
+import { notFoundPage } from '../../src/pages/404.page'
 import type { BuildAssets } from '../document'
 import { register, resolveRoutes, withTrailingSlash } from '../render'
 import type { PageModule, RouteContext } from '../types'
 
-const NO_ASSETS: BuildAssets = { scripts: [], styles: [], built: {} }
+const NO_ASSETS: BuildAssets = { scripts: [], styles: [], fonts: [], built: {} }
 
 const ASSETS: BuildAssets = {
   scripts: ['/assets/islands-DEADBEEF.js'],
   styles: ['/assets/styles-CAFEBABE.css'],
+  fonts: [],
   built: { 'src/assets/map.webp': '/assets/map-F00D.webp' },
 }
 
@@ -65,7 +67,7 @@ describe('resolveRoutes', () => {
 
   it('gives one route per static path, with the params substituted in', () => {
     const { module } = spyPage<{ schemaId: string }, { label: string }>({
-      pattern: '/schema/[schemaId]',
+      pattern: '/[schemaId]',
       getStaticPaths: () => [
         { params: { schemaId: 'chassis' }, props: { label: 'Chassis' } },
         { params: { schemaId: 'systems' }, props: { label: 'Systems' } },
@@ -74,13 +76,13 @@ describe('resolveRoutes', () => {
 
     const resolved = resolveRoutes(module)
 
-    expect(resolved.map((entry) => entry.route)).toEqual(['/schema/chassis', '/schema/systems'])
+    expect(resolved.map((entry) => entry.route)).toEqual(['/chassis', '/systems'])
     expect(resolved.map((entry) => entry.path.props.label)).toEqual(['Chassis', 'Systems'])
   })
 
   it('emits nothing for a module whose getStaticPaths returns nothing', () => {
     const { module } = spyPage<{ id: string }, undefined>({
-      pattern: '/schema/[id]',
+      pattern: '/[id]',
       getStaticPaths: () => [],
     })
 
@@ -91,7 +93,7 @@ describe('resolveRoutes', () => {
 describe('the RouteContext a page is handed', () => {
   it('carries the params, the props, and a trailing-slashed url + pathname', () => {
     const { module, contexts } = spyPage<{ schemaId: string; itemId: string }, { rank: number }>({
-      pattern: '/schema/[schemaId]/item/[itemId]',
+      pattern: '/[schemaId]/[itemId]',
       getStaticPaths: () => [
         { params: { schemaId: 'chassis', itemId: 'aegis' }, props: { rank: 3 } },
       ],
@@ -102,8 +104,8 @@ describe('the RouteContext a page is handed', () => {
     const ctx = contexts[0]
     expect(ctx?.params).toEqual({ schemaId: 'chassis', itemId: 'aegis' })
     expect(ctx?.props).toEqual({ rank: 3 })
-    expect(ctx?.pathname).toBe('/schema/chassis/item/aegis/')
-    expect(ctx?.url.href).toBe(`${SITE_URL}/schema/chassis/item/aegis/`)
+    expect(ctx?.pathname).toBe('/chassis/aegis/')
+    expect(ctx?.url.href).toBe(`${SITE_URL}/chassis/aegis/`)
     expect(ctx?.url.origin).toBe(SITE_URL)
   })
 
@@ -133,7 +135,7 @@ describe('the RouteContext a page is handed', () => {
 describe('register', () => {
   it('exposes the pattern and every concrete route, generics erased', () => {
     const { module } = spyPage<{ schemaId: string }, undefined>({
-      pattern: '/schema/[schemaId]',
+      pattern: '/[schemaId]',
       getStaticPaths: () => [
         { params: { schemaId: 'chassis' }, props: undefined },
         { params: { schemaId: 'systems' }, props: undefined },
@@ -142,11 +144,8 @@ describe('register', () => {
 
     const registration = register(module)
 
-    expect(registration.pattern).toBe('/schema/[schemaId]')
-    expect(registration.resolve().map((route) => route.route)).toEqual([
-      '/schema/chassis',
-      '/schema/systems',
-    ])
+    expect(registration.pattern).toBe('/[schemaId]')
+    expect(registration.resolve().map((route) => route.route)).toEqual(['/chassis', '/systems'])
   })
 
   it('opts a page INTO the sitemap by default, and out only when asked', () => {
@@ -179,5 +178,14 @@ describe('register', () => {
 
     routes[0]?.render(NO_ASSETS)
     expect(contexts).toHaveLength(1)
+  })
+
+  it('gives the 404 one search: its band, not the Union bar too', () => {
+    // `/404` is emitted as `404.html`, but the layout reads the route's own
+    // pathname (`/404/`), so `BaseLayout` still drops the bar's field.
+    const html = register(notFoundPage).resolve()[0]?.render(NO_ASSETS) ?? ''
+
+    expect(html.match(/data-island="SearchIsland"/g)).toHaveLength(1)
+    expect(html).toContain('srd-hero-search')
   })
 })

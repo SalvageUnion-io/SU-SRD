@@ -92,7 +92,8 @@
         "booklet": "PH",
         "page": 57
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "3234f326-0fae-4ec1-a31e-900be859c156",
@@ -199,7 +200,8 @@
         "booklet": "PH",
         "page": 57
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "4522e605-a384-4c3d-b556-c377e4cc2a97",
@@ -290,7 +292,8 @@
         "booklet": "PH",
         "page": 58
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "6b0e9620-06ed-40ee-9feb-5f635518e48e",
@@ -407,7 +410,8 @@
         "booklet": "PH",
         "page": 58
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "e4612293-d3a1-4533-889a-977c92ea1313",
@@ -506,7 +510,8 @@
         "booklet": "PH",
         "page": 58
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "2a4ac355-95fc-451b-8b46-cf8ba5eec31b",
@@ -637,7 +642,8 @@
         "booklet": "PH",
         "page": 59
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "0850a891-19e3-4372-af35-0a1679130c8f",
@@ -743,7 +749,8 @@
         "booklet": "PH",
         "page": 60
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "74904a14-92be-41e0-80d9-63fce02b8851",
@@ -962,7 +969,8 @@
         "booklet": "PH",
         "page": 60
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "3075663e-0ee6-4e82-8697-4778f303adc7",
@@ -1057,7 +1065,8 @@
         "booklet": "PH",
         "page": 62
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "674a412f-486b-4693-b912-1838cc39b77d",
@@ -1152,7 +1161,8 @@
         "booklet": "PH",
         "page": 62
       }
-    ]
+    ],
+    "expansion": false
   },
   {
     "id": "9ed4cb34-718a-4515-a1a5-b718c2cbe23d",

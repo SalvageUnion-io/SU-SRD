@@ -6,13 +6,16 @@
  * `buildCatalogSections()` the landing page and top nav use, so a schema added
  * to the SRD catalog appears here too.
  *
- * Two differences from the landing page, both forced by living in a panel:
+ * Three views, every one of them a shared component-lib surface:
  *
- *  1. Tiles **drill in place** (`onActivate`) rather than navigating — a link
- *     would take the player off the Dashboard.
- *  2. Search sits above the catalog rather than in the header, driven by
- *     component-lib's shared `useSearchCombobox` (the same hook behind the
- *     global search). It is the header's one function worth keeping in-panel.
+ *  1. **Home** — the catalog, with search above it. Search is component-lib's
+ *     `useSearchCombobox` (the hook behind ITUN's GlobalSearch and srd's
+ *     SearchIsland) in the shared `SearchField`; tiles **drill in place**
+ *     (`onActivate`) rather than navigating, which would leave the Dashboard.
+ *  2. **Category** — that schema in `EntitySearcher`: its text search and
+ *     tech-level / trait facets, the pool as reference cards. `mode="browse"`:
+ *     nothing is being picked, so there is no rail and a card's click opens it.
+ *  3. **Entity** — the faithful `ReferenceEntityCard`, with a way back.
  *
  * Preload hazard: the catalog and the schema listings read the ORM, so they are
  * built only once `ready` is true (`isLoaded` seed + an idempotent
@@ -23,31 +26,68 @@ import {
   Button,
   buildCatalogSections,
   CatalogTile,
-  Input,
+  EmptyState,
+  Entity,
+  EntitySearcher,
   ReferenceEntityCard,
-  SectionHeader,
+  SearchField,
+  Slab,
+  tokens,
   useSearchCombobox,
 } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
-import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 
 const HIDE_CHOICES = { choices: true } as const
+const NOTHING_SELECTED: string[] = []
 
-/** Sort rows by name for a predictable listing. */
-function sortRows(entities: SURefEntity[]): SURefEntity[] {
-  return [...entities].sort((a, b) => {
-    const an = a.name ?? ''
-    const bn = b.name ?? ''
-    return an.localeCompare(bn)
-  })
-}
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
-/** Every entity in a schema, empty when the id isn't a real schema name. */
-function entitiesIn(schemaName: string): SURefEntity[] {
-  if (!isSchemaName(schemaName)) return []
-  return sortRows(SalvageUnionReference.findAllIn(schemaName, () => true))
-}
+const SECTIONS = { ...STACK, gap: tokens.space[16] } satisfies CSSProperties
+const SECTION = { ...STACK, gap: tokens.space[8] } satisfies CSSProperties
+
+/** auto-fill rather than the landing page's viewport breakpoints: those measure
+ * the WINDOW, so a narrow display panel on a wide screen would be handed three
+ * columns of unreadably small tiles. auto-fill tracks the panel's own width. */
+const TILE_GRID = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const LISTBOX = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  maxHeight: 260,
+  overflowY: 'auto',
+} satisfies CSSProperties
+
+/** A category hit: the shared Button, spread across the list's width. */
+const CATEGORY_HIT = {
+  width: '100%',
+  justifyContent: 'space-between',
+  textAlign: 'left',
+} satisfies CSSProperties
+
+/** The keyboard-highlighted hit wears the Button's own hover wash. */
+const CATEGORY_HIT_ACTIVE = {
+  ...CATEGORY_HIT,
+  backgroundColor: tokens.color.ink8,
+} satisfies CSSProperties
+
+const CATEGORY_GROUP = {
+  color: tokens.color.wkMuted,
+  flexShrink: 0,
+} satisfies CSSProperties
+
+const BACK_ROW = { marginBottom: tokens.space[10] } satisfies CSSProperties
 
 /** Home view: the search box + the SRD catalog's category sections. */
 function SrdHome({
@@ -88,51 +128,71 @@ function SrdHome({
   const open = results.length > 0
 
   return (
-    <div className="pc-srd-home">
-      <div className="pc-srd-search">
-        <Input
+    <div style={STACK}>
+      <div>
+        <SearchField
+          type="text"
+          name="srd-explorer-search"
           placeholder="Search the SRD — chassis, systems, abilities, tables…"
+          autoComplete="off"
           value={query}
           onChange={(e) => handleInput(e.target.value)}
           onKeyDown={handleKeyDown}
           {...inputProps}
           aria-label="Search the SRD"
-          role="combobox"
           aria-expanded={open}
           aria-controls={listboxId}
         />
-        <div className="pc-srd-live" aria-live="polite">
+        <div className="su-sr-only" aria-live="polite">
           {announcement}
         </div>
         {open ? (
-          <div className="pc-srd-results" id={listboxId} role="listbox">
-            {results.map((r, i) => (
-              <button
-                key={r.id}
-                type="button"
-                id={optionId(i)}
-                role="option"
-                aria-selected={i === selectedIndex}
-                className="pc-srd-result"
-                data-active={i === selectedIndex ? '' : undefined}
-                onClick={() => submit(r)}
-              >
-                <span className="pc-srd-result-title">{r.title}</span>
-                <span className="pc-srd-result-group">{r.group}</span>
-              </button>
-            ))}
+          <div id={listboxId} role="listbox" aria-label="Search results" style={LISTBOX}>
+            {/* SEARCH (entity display language §7): every result is a Row in
+                link mode, without the lead; a category opens its listing. */}
+            {results.map((r, i) =>
+              r.kind === 'entity' ? (
+                <Entity
+                  key={r.id}
+                  form="row"
+                  model={toEntityModel(r.entity)}
+                  mode={{
+                    kind: 'link',
+                    onOpen: () => submit(r),
+                    attrs: {
+                      id: optionId(i),
+                      role: 'option',
+                      tabIndex: -1,
+                      'aria-selected': i === selectedIndex,
+                    },
+                  }}
+                />
+              ) : (
+                <Button
+                  key={r.id}
+                  id={optionId(i)}
+                  role="option"
+                  aria-selected={i === selectedIndex}
+                  style={i === selectedIndex ? CATEGORY_HIT_ACTIVE : CATEGORY_HIT}
+                  onClick={() => submit(r)}
+                >
+                  <span>{r.title}</span>
+                  <span style={CATEGORY_GROUP}>{r.group}</span>
+                </Button>
+              )
+            )}
           </div>
         ) : hasSearched && query.trim() ? (
-          <div className="pc-srd-noresults">No matches.</div>
+          <EmptyState variant="quiet" body="No matches." />
         ) : null}
       </div>
 
       {ready ? (
-        <div className="pc-srd-catalog">
+        <div style={SECTIONS}>
           {sections.map((section) => (
-            <div key={section.label}>
-              <SectionHeader label={section.label} className="mb-2" />
-              <div className="pc-srd-catalog-grid">
+            <section key={section.label} style={SECTION}>
+              <Slab as="h2" variant="solid" label={section.label} />
+              <div style={TILE_GRID}>
                 {section.schemas.map((card) => (
                   <CatalogTile
                     key={card.id}
@@ -144,58 +204,21 @@ function SrdHome({
                         onPickSchema(card.schemaName, card.label)
                         return
                       }
-                      const entity = entitiesIn(card.schemaName).find((e) => e.id === card.id)
+                      if (!isSchemaName(card.schemaName)) return
+                      const entity = SalvageUnionReference.findIn(
+                        card.schemaName,
+                        (e) => e.id === card.id
+                      )
                       if (entity) onPickEntity(entity)
                     }}
                   />
                 ))}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       ) : (
-        <div className="pc-display-note">Loading reference data…</div>
-      )}
-    </div>
-  )
-}
-
-/** Category view: a breadcrumb + a listing of that schema's entities. */
-function SrdCategoryList({
-  schemaName,
-  label,
-  onBack,
-  onPickEntity,
-}: {
-  schemaName: string
-  label: string
-  onBack: () => void
-  onPickEntity: (entity: SURefEntity) => void
-}) {
-  const rows = entitiesIn(schemaName)
-  return (
-    <div className="pc-srd-list">
-      <div className="pc-srd-crumb">
-        <Button size="mini" onClick={onBack}>
-          ◀ Catalog
-        </Button>
-        <span className="pc-srd-crumb-title">{label}</span>
-      </div>
-      {rows.length === 0 ? (
-        <div className="pc-display-note">No entries.</div>
-      ) : (
-        <ul className="pc-srd-rows">
-          {rows.map((entity) => {
-            const row = entity
-            return (
-              <li key={row.id}>
-                <button type="button" className="pc-srd-row" onClick={() => onPickEntity(entity)}>
-                  {row.name ?? row.id}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+        <div className="su-dash-display-note">Loading reference data…</div>
       )}
     </div>
   )
@@ -204,18 +227,18 @@ function SrdCategoryList({
 /** Entity view: the faithful reference card + a back affordance. */
 function SrdEntity({ entity, onBack }: { entity: SURefEntity; onBack: () => void }) {
   return (
-    <div className="pc-srd-entity">
-      <div className="pc-srd-crumb">
+    <div>
+      <div style={BACK_ROW}>
         <Button size="mini" onClick={onBack}>
           ◀ Back
         </Button>
       </div>
-      <ReferenceEntityCard data={entity} hide={HIDE_CHOICES} />
+      <ReferenceEntityCard data={entity} hide={HIDE_CHOICES} texture={false} />
     </div>
   )
 }
 
-type SrdCategoryRef = { schemaName: string; label: string }
+type SrdCategoryRef = { schemaName: SURefEnumSchemaName; label: string }
 
 type SrdView =
   | { kind: 'home' }
@@ -242,7 +265,7 @@ export function SrdExplorer() {
   if (view.kind === 'entity') {
     const from = view.from
     return (
-      <div className="pc-display-scroll pc-srd">
+      <div className="su-dash-display-scroll">
         <SrdEntity
           entity={view.entity}
           onBack={() => setView(from === 'home' ? { kind: 'home' } : { kind: 'category', ...from })}
@@ -254,28 +277,33 @@ export function SrdExplorer() {
   if (view.kind === 'category') {
     if (!ready) {
       return (
-        <div className="pc-display-scroll pc-srd">
-          <div className="pc-display-note">Loading reference data…</div>
+        <div className="su-dash-display-scroll">
+          <div className="su-dash-display-note">Loading reference data…</div>
         </div>
       )
     }
     const { schemaName, label } = view
     return (
-      <div className="pc-display-scroll pc-srd">
-        <SrdCategoryList
-          schemaName={schemaName}
-          label={label}
-          onBack={() => setView({ kind: 'home' })}
-          onPickEntity={(entity) =>
-            setView({ kind: 'entity', entity, from: { schemaName, label } })
-          }
+      <div className="su-dash-display-scroll">
+        <EntitySearcher
+          schema={schemaName}
+          mode="browse"
+          selected={NOTHING_SELECTED}
+          title={label}
+          emptyMessage="No entries."
+          onClose={() => setView({ kind: 'home' })}
+          onOpen={(id) => {
+            const entity = SalvageUnionReference.findIn(schemaName, (e) => e.id === id)
+            if (entity) setView({ kind: 'entity', entity, from: { schemaName, label } })
+          }}
+          idOf={(item) => item.id}
         />
       </div>
     )
   }
 
   return (
-    <div className="pc-display-scroll pc-srd">
+    <div className="su-dash-display-scroll">
       <SrdHome
         ready={ready}
         onPickSchema={(schemaName, label) => {

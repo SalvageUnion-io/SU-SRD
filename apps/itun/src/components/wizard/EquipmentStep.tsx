@@ -2,6 +2,7 @@ import { EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { SURefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
+import { fullWidthStyle } from './wizardStyles.model'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -19,8 +20,8 @@ type EquipmentStepProps = {
 }
 
 /**
- * Step 3 · Choose your Equipment (Pilot Bay p.19), enforced HARD (plan
- * §4.1): only Tech 1 equipment renders (package `isLegalCreationEquipment` —
+ * Step 3 · Choose your Equipment (Pilot Bay p.19), enforced HARD:
+ * only Tech 1 equipment renders (package `isLegalCreationEquipment` —
  * higher TLs are never shown), exactly `budget` (2) picks via per-card
  * count-steppers, DUPLICATES ALLOWED; at the budget every `+` disables (cards
  * stay legible, never dimmed).
@@ -50,7 +51,7 @@ export function EquipmentStep({
   const remaining = Math.max(0, budget - totalPicked)
 
   return (
-    <div className="w-full">
+    <div style={fullWidthStyle}>
       <MasonryColumns maxColumns={2}>
         {equipment.map((item) => {
           const slug = getEntitySlug(item)

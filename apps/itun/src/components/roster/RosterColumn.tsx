@@ -2,20 +2,20 @@
  * The hub's three columns — Pilots, Mechs, Crawlers — and the phone switch
  * between them (design-spec §3.7).
  *
- * `/` shows one container at a time: My Stuff (`Roster`) or a Game
- * (`GameRoster`). Both answer "what have I got, and what can I do with it" of a
- * different container, so they share these columns rather than drawing two
- * vocabularies for one question. What goes INSIDE a column is the caller's: a
- * flat list on My Stuff, yours-then-everyone-else's in a Game.
+ * A Game's page (`GameRoster`) and the Starter Set (`StarterSetRoster`) lay
+ * their units out in these columns. What goes INSIDE a column is the caller's:
+ * yours-then-everyone-else's in a Game, the book's crew in the Starter Set.
+ * Shelves (`components/shelves/`) has shelves of its own, board S1.
  *
  * At the mobile endpoint (≤ md) the three columns collapse to one, behind a
  * segmented switch the page owns — so the segment a player picked survives
- * switching between My Stuff and a Game.
+ * switching between Games.
  */
 
-import { Button, buttonVariants, cn, EmptyState } from 'component-lib'
+import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from 'component-lib'
+import { color, space } from 'component-lib/design/tokens'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { AppLink } from '../shared/AppLink'
 
 export type SegmentKind = 'pilot' | 'mech' | 'crawler'
@@ -29,7 +29,25 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 /** The column's create CTA. `onClick` runs before the wizard opens. */
 export type ColumnCreate = { href: string; label: string; onClick?: () => void }
 
-/** Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7). */
+/** The switch row; it hides from `md` up (`.su-segment-switch`, styles/controls.css). */
+const SWITCH = { marginTop: space[20] } satisfies CSSProperties
+
+/** The switch spans the row: each segment takes its share. */
+const FILL = { width: '100%' } satisfies CSSProperties
+
+/** The grid's gutter; its columns and top margin change at `md` (`.su-roster-grid`). */
+const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
+
+const LIST = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
+
+const NO_UNDERLINE = { textDecorationLine: 'none' } satisfies CSSProperties
+
+/** The Slab row wraps its controls under the stamp on a narrow column. */
+const HEAD = { flexWrap: 'wrap', marginBottom: space[12] } satisfies CSSProperties
+
+const ICON = { height: '28px', width: '28px' } satisfies CSSProperties
+
+/** Mobile-endpoint segmented Pilot/Mech/Crawler switch. */
 export function SegmentSwitch({
   active,
   onChange,
@@ -38,42 +56,45 @@ export function SegmentSwitch({
   onChange: (kind: SegmentKind) => void
 }) {
   return (
-    <div className="mt-5 flex gap-2 md:hidden">
-      {SEGMENTS.map((seg) => (
-        <Button
-          key={seg.kind}
-          size="compact"
-          variant={active === seg.kind ? 'primary' : 'default'}
-          aria-pressed={active === seg.kind}
-          onClick={() => onChange(seg.kind)}
-          className="min-h-11 flex-1"
-        >
-          {seg.label}
-        </Button>
-      ))}
+    <div className="su-segment-switch" style={SWITCH}>
+      <Segmented label="Show" fill style={FILL}>
+        {SEGMENTS.map((seg) => (
+          <SegmentedOption
+            key={seg.kind}
+            pressed={active === seg.kind}
+            onClick={() => onChange(seg.kind)}
+          >
+            {seg.label}
+          </SegmentedOption>
+        ))}
+      </Segmented>
     </div>
   )
 }
 
 /** One column on a phone, three from `md` up. */
 export function RosterGrid({ children }: { children: ReactNode }) {
-  return <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 md:grid-cols-3">{children}</div>
+  return (
+    <div className="su-roster-grid" style={GRID}>
+      {children}
+    </div>
+  )
 }
 
 /** A column's rows; `labelledBy` names a sub-list (a Game's YOURS group). */
 export function RosterList({ labelledBy, children }: { labelledBy?: string; children: ReactNode }) {
   return (
-    <ul aria-labelledby={labelledBy} className="flex flex-col gap-2.5">
+    <ul aria-labelledby={labelledBy} style={LIST}>
       {children}
     </ul>
   )
 }
 
-/** Entity-tone glyph shown above a column's empty state (design review U-6). */
+/** Entity-tone glyph shown above a column's empty state. */
 const EMPTY_ICON: Record<SegmentKind, ReactNode> = {
-  pilot: <UserRound className="size-7 text-sheet-pilot-deep" />,
-  mech: <Bot className="size-7 text-sheet-mech-deep" />,
-  crawler: <Warehouse className="size-7 text-sheet-crawler-deep" />,
+  pilot: <UserRound style={{ ...ICON, color: color.sheetPilotDeep }} />,
+  mech: <Bot style={{ ...ICON, color: color.sheetMechDeep }} />,
+  crawler: <Warehouse style={{ ...ICON, color: color.sheetCrawlerDeep }} />,
 }
 
 type RosterColumnProps = {
@@ -103,32 +124,38 @@ export function RosterColumn({
 }: RosterColumnProps) {
   const headingId = `${kind}s-heading`
   return (
-    <section aria-labelledby={headingId} className={cn(!active && 'hidden md:block')}>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2
-          id={headingId}
-          className="font-cond text-base font-bold uppercase tracking-widest text-rust"
-        >
-          {title}
-        </h2>
-        <div className="flex items-center gap-1.5">
-          {headExtra}
-          {/* One create CTA per column: the header link shows only when the
-              column has rows; the empty state renders its own create CTA. */}
-          {create !== undefined && !empty && (
-            <AppLink
-              href={create.href}
-              onClick={create.onClick}
-              className={cn(
-                buttonVariants({ variant: 'default', size: 'compact' }),
-                'no-underline'
+    <section
+      aria-labelledby={headingId}
+      className={active ? undefined : 'su-roster-column--inactive'}
+    >
+      {/* The column heading is the ink section stamp (`Slab`), its controls at
+          the end of the leader rule. */}
+      <Slab
+        as="h2"
+        id={headingId}
+        variant="solid"
+        label={title}
+        style={HEAD}
+        actions={
+          headExtra !== undefined || (create !== undefined && !empty) ? (
+            <>
+              {headExtra}
+              {/* One create CTA per column: the header link shows only when the
+                  column has rows; the empty state renders its own create CTA. */}
+              {create !== undefined && !empty && (
+                <AppLink
+                  href={create.href}
+                  onClick={create.onClick}
+                  className={buttonVariants({ variant: 'default', size: 'compact' })}
+                  style={NO_UNDERLINE}
+                >
+                  + {create.label}
+                </AppLink>
               )}
-            >
-              + {create.label}
-            </AppLink>
-          )}
-        </div>
-      </div>
+            </>
+          ) : undefined
+        }
+      />
       {empty ? (
         <EmptyState
           variant="quiet"
@@ -139,10 +166,8 @@ export function RosterColumn({
               <AppLink
                 href={create.href}
                 onClick={create.onClick}
-                className={cn(
-                  buttonVariants({ variant: 'primary', size: 'compact' }),
-                  'no-underline'
-                )}
+                className={buttonVariants({ variant: 'primary', size: 'compact' })}
+                style={NO_UNDERLINE}
               >
                 {create.label}
               </AppLink>

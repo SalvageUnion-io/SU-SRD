@@ -7,14 +7,14 @@
  *
  * Two independent flags have to be wrong at once for the seam to be reachable:
  * `VITE_TEST_AUTH` in the build (this file) and `ITUN_TEST_AUTH` on the
- * deployment (`test/convex/authProviders.test.ts`). Each is pinned separately so
+ * deployment (`test/convex/__tests__/authProviders.test.ts`). Each is pinned separately so
  * neither can drift into the other's blind spot.
  */
 
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { TestAuthBridge } from '../TestAuthBridge'
-import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from '../testAuthSeam'
+import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from '../testAuthSeam.model'
 
 describe('the seam is off unless a build asks for it', () => {
   test('the flag defaults to off', () => {

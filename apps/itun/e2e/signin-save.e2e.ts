@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import { at } from './_base'
 import { buildPilot, gotoStable, waitForReady } from './_helpers'
 import { expect, requireSeam, seamIsPresent, signInFresh, test } from './fixtures'
 
@@ -43,38 +43,10 @@ test.use({ account: 'anonymous' })
  *   bun --filter itun exec playwright test signin-save.e2e.ts
  */
 
-/**
- * How many pilots this origin's IndexedDB holds — the signed-in cache, which a
- * build reaches only once the server of record has taken it.
- */
-async function cachedPilotCount(page: Page): Promise<number> {
-  return await page.evaluate(
-    () =>
-      new Promise<number>((resolve) => {
-        const open = indexedDB.open('itun-v1')
-        open.onerror = () => resolve(0)
-        open.onsuccess = () => {
-          const idb = open.result
-          if (!idb.objectStoreNames.contains('pilots')) {
-            idb.close()
-            resolve(0)
-            return
-          }
-          const req = idb.transaction('pilots').objectStore('pilots').count()
-          req.onsuccess = () => {
-            idb.close()
-            resolve(req.result)
-          }
-          req.onerror = () => resolve(0)
-        }
-      })
-  )
-}
-
 test('a signed-out visitor is asked to sign in, and what they build then is saved', async ({
   page,
 }, testInfo) => {
-  await page.goto('/')
+  await page.goto(at('/'))
   await waitForReady(page)
 
   // Skips in an ordinary build, THROWS in a run that provisioned the seam —
@@ -88,19 +60,19 @@ test('a signed-out visitor is asked to sign in, and what they build then is save
   await waitForReady(page)
   await expect(page.getByRole('heading', { name: 'Sign in to build a pilot' })).toBeVisible()
   await expect(page.getByRole('button', { name: /guided/i })).toHaveCount(0)
-  expect(await cachedPilotCount(page)).toBe(0)
 
   await signInFresh(page)
   await buildPilot(page, 'Saved By Signing In', 'Keeper')
-  await expect.poll(() => cachedPilotCount(page), { timeout: 30_000 }).toBeGreaterThan(0)
+  await expect(page.getByText('Saved By Signing In').first()).toBeVisible({ timeout: 30_000 })
 
-  // Reload to prove it is DURABLE — on the server, not merely in this tab.
+  // Reload to prove it is DURABLE — on the server, not merely in this tab:
+  // nothing is kept on the device, so what shows after a reload came from Convex.
   await page.reload()
   await waitForReady(page)
   // The roster is `/` (`src/routes/index.tsx`); there is no `/roster` route.
   await gotoStable(page, '/')
   await waitForReady(page)
 
-  await expect(page.getByRole('heading', { name: /Saved Builds/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Shelves' })).toBeVisible()
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible()
 })

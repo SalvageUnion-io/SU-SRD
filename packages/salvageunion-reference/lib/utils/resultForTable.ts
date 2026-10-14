@@ -1,4 +1,4 @@
-import type { SURefObjectTable, SURefObjectTableContent } from '../schemas/index.js'
+import type { SURefObjectTable, SURefObjectTableContent } from '../schemas/index'
 
 /**
  * Column range keys for columns-type tables
@@ -159,6 +159,20 @@ export function resultForTable(table: SURefObjectTable | undefined, roll: number
   }
 
   return findRangeResult(tableData, roll)
+}
+
+/**
+ * Whether `roll` (1–20) misses every row of a well-formed flat table: the table
+ * has rows, and none of their keys covers the roll. A `dramatic` table prints
+ * only its 20, so every other roll has no effect. A malformed table (no rows,
+ * unreadable content), a columns table or an impossible roll is not a miss: it
+ * is a fault.
+ */
+export function isNoEffectRoll(table: SURefObjectTable | undefined, roll: number): boolean {
+  if (!table || isColumnsTable(table)) return false
+  if (!Number.isInteger(roll) || roll < 1 || roll > 20) return false
+  const keys = Object.keys(table).filter((k) => /^\d+(-\d+)?$/.test(k))
+  return keys.length > 0 && !keys.some((key) => rollInRange(roll, key))
 }
 
 /**

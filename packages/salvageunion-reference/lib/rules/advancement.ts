@@ -1,7 +1,7 @@
 /**
  * Pilot class advancement — which trees a pilot may draw from once they have
  * specialised into their Advanced tree or become a Hybrid Class (Core Book
- * pp. 22-23, 26, 224, 321).
+ * pp. 22-23, 26, 224, 321, 323).
  *
  * Pure functions over NEUTRAL structural inputs (ADR-006), in the style of
  * `creation.ts`: a consumer narrows its resolved reference records to the
@@ -26,7 +26,7 @@
  * Sealed does NOT mean lost. Abilities already trained in a sealed tree are
  * kept permanently and stay usable — the pilot simply cannot train NEW ones
  * ("they can retain any Abilities they have previously picked from that tree",
- * p. 321).
+ * p. 323).
  *
  * The Salvager is outside the ring entirely: all 15 trees, 12 abilities, and
  * `advanceable: false`, so it is never an origin and has no destination.

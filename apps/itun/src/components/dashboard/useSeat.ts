@@ -1,7 +1,7 @@
 /**
  * useSeat — the pilot's seat in its Game: mount, range band, activated effects
  * and the deck action being resolved, read from and written to Convex
- * ([ADR-038](../../../../../docs/ARCHITECTURE.md#adr-038) §2;
+ * ([ADR-038](../../../../../docs/adr/038-dashboard-game-surface.md) §2;
  * `convex/seats.ts`).
  *
  * Every member reads the whole crew's seats through one `seats.forGame`
@@ -25,14 +25,14 @@
 import { toast } from 'component-lib'
 import type { OptimisticLocalStore } from 'convex/browser'
 import { useMutation, useQuery } from 'convex/react'
+import { containerOf } from 'itun-domain/container'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { RangeBand, SeatMount, SeatResolving } from 'itun-domain/schemas/seat'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { serverMessage } from '../../lib/connection/serverError'
-import { containerOf } from '../../lib/container'
 import { reportWriteFailure } from '../../lib/runWrite'
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { RangeBand, SeatMount, SeatResolving } from '../../lib/schemas/seat'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 
 /** What the Dashboard reads off a seat. */

@@ -1,15 +1,25 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { setActiveContainer } from '../../stores/activeContainerStore'
-
 /**
- * `/mediator/$gameId` was the Mediator page. Its instruments are the hub's
- * Mediator section now, shown under the Game's roster to the Game's Mediator,
- * so the old address picks that Game and lands on `/` — the same as
- * `/games/$gameId`, and for the same reason. Never on a preload.
+ * Mediator Dashboard route — /mediator/:gameId
+ * (docs/architecture/mediator-dashboard.md).
+ *
+ * The address was kept for exactly this surface: it redirected to the Game
+ * page while the Mediator's instruments lived there, and it is the Mediator's
+ * own screen again. Who may open it, in each storage mode, is `MediatorGate`'s
+ * question, asked live in the component, not here: loaders never read player
+ * entities (`.claude/rules/tanstack-router.md`), and a Mediator who hands the
+ * table over must fall back at once.
  */
+
+import { createFileRoute } from '@tanstack/react-router'
+import { MediatorGate } from '../../components/mediator/MediatorGate'
+import { pageTitle } from '../../lib/pageTitle'
+
 export const Route = createFileRoute('/mediator/$gameId')({
-  beforeLoad: ({ params, preload }) => {
-    if (!preload) setActiveContainer({ kind: 'game', gameId: params.gameId })
-    throw redirect({ to: '/', replace: true })
-  },
+  head: () => ({ meta: [{ title: pageTitle('Mediator') }] }),
+  component: MediatorPage,
 })
+
+function MediatorPage() {
+  const { gameId } = Route.useParams()
+  return <MediatorGate gameId={gameId} />
+}

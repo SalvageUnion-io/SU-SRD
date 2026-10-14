@@ -12,8 +12,8 @@ import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtu
 import type { CrawlerUpkeep } from '../CrawlerSlot'
 import type { PlayStore } from '../SlotRow'
 import { SlotRow } from '../SlotRow'
-import type { SlotKind } from '../slotLayout'
-import { slotsFor } from '../slotLayout'
+import type { SlotKind } from '../slotLayout.model'
+import { slotsFor } from '../slotLayout.model'
 import type { MountState, SeatHandle } from '../useSeat'
 import { boardedSeat, fakeSeat } from './seatFixture'
 
@@ -66,8 +66,8 @@ describe('slotsFor — who holds the Major', () => {
     expect(slotsFor('mech')).toEqual({ major: 'mech', minors: ['pilot', 'crawler'] })
   })
 
-  test('in Downtime, the Crawler is Major; Pilot and Mech are Minors', () => {
-    expect(slotsFor('downtime')).toEqual({ major: 'crawler', minors: ['pilot', 'mech'] })
+  test('in Downtime, the Crawler takes the whole row (board D3)', () => {
+    expect(slotsFor('downtime')).toEqual({ major: 'crawler', minors: [] })
   })
 })
 
@@ -92,14 +92,14 @@ describe('SlotRow follows the mount and Downtime', () => {
     expect(minorNames()).toEqual(['Pilot · Vesh', 'Crawler · Mother Hen'])
   })
 
-  test('Downtime → the Crawler Major (Hull, Stores, Bays), Pilot and Mech Minors', () => {
+  test('Downtime → the Crawler Major (Hull, Stores, Bays) alone; pilot and mech ride the rail', () => {
     const { container } = renderRow({ mount: 'downtime' })
     expect(container.firstElementChild?.getAttribute('data-major')).toBe('crawler')
     expect(screen.getByText('Downtime')).toBeTruthy()
     for (const bay of ['Hull', 'Stores', 'Bays', 'Upkeep', 'Upgrade']) {
       expect(screen.getByText(bay)).toBeTruthy()
     }
-    expect(minorNames()).toEqual(['Pilot · Vesh', 'Mech · Iron Mongrel'])
+    expect(screen.queryAllByRole('region')).toHaveLength(0)
   })
 
   test('the slot row uses no listbox or option roles', () => {
@@ -143,7 +143,7 @@ describe('a Minor shows only what needs watching', () => {
     expect(within(minor).getByText('In Iron Mongrel · no injuries')).toBeTruthy()
   })
 
-  test('the Mech Minor shows SP, Heat and EP as text, and a damaged system', () => {
+  test('the Mech Minor shows SP, Heat and EP as chips, and a damaged system', () => {
     const damaged = {
       ...mech,
       shutdown: true,
@@ -152,7 +152,15 @@ describe('a Minor shows only what needs watching', () => {
     renderRow({ mount: 'pilot', mech: damaged })
     const minor = screen.getByRole('region', { name: 'Mech · Iron Mongrel' })
     expect(within(minor).getByRole('img', { name: /SP/ })).toBeTruthy()
-    expect(within(minor).getByText(/^Heat \d+\/\d+ · EP \d+\/\d+$/)).toBeTruthy()
+    // `HEAT | n/cap` and `EP | n/cap`, label-first chips.
+    const chips = [...minor.querySelectorAll('.su-stat-cell')].map((c) => c.textContent)
+    expect(chips).toHaveLength(2)
+    expect(chips[0]).toMatch(/^Heat\d+\/\d+$/)
+    expect(chips[1]).toMatch(/^EP\d+\/\d+$/)
+    // A long name wraps rather than cutting to "…" (E18).
+    const name = within(minor).getByRole('heading', { name: 'Iron Mongrel' })
+    expect(name.style.textOverflow).toBe('')
+    expect(name.style.whiteSpace).toBe('')
     expect(within(minor).getByText('Shut down')).toBeTruthy()
     expect(within(minor).getByText('not-a-system damaged')).toBeTruthy()
   })
@@ -165,7 +173,10 @@ describe('a Minor shows only what needs watching', () => {
     }
     renderRow({ mount: 'pilot', crawler: worn })
     const minor = screen.getByRole('region', { name: 'Crawler · Mother Hen' })
-    expect(within(minor).getByText('TL2')).toBeTruthy()
+    // The Tech Level is a label-first chip beside the name, never "TL2".
+    const cells = [...minor.querySelectorAll('.su-stat-cell')].map((c) => c.textContent)
+    expect(cells).toContain('TL2')
+    expect(within(minor).queryByText('TL2')).toBeNull()
     expect(within(minor).getByText('Scrap T1×12 · T2×4')).toBeTruthy()
     expect(within(minor).getByText('not-a-bay damaged')).toBeTruthy()
   })
@@ -188,15 +199,15 @@ describe("the crawler is the Mediator's", () => {
   test('a player sees the numbers and bays, but no crawler verbs', () => {
     renderRow({ mount: 'downtime', mediator: false })
     expect(screen.getByText('Hull')).toBeTruthy()
-    for (const verb of ['Salvage', 'Craft', 'Scrap Mech']) {
+    for (const verb of ['Salvage', 'Craft', 'Break down']) {
       expect(screen.queryByText(verb)).toBeNull()
     }
     expect(screen.getByText(/The Mediator runs the crawler/)).toBeTruthy()
   })
 
-  test('the Mediator gets Salvage, Craft and Scrap Mech', () => {
+  test('the Mediator gets Salvage, Craft and Break down', () => {
     renderRow({ mount: 'downtime', mediator: true })
-    for (const verb of ['Salvage', 'Craft', 'Scrap Mech']) {
+    for (const verb of ['Salvage', 'Craft', 'Break down']) {
       expect(screen.getByText(verb)).toBeTruthy()
     }
   })

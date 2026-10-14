@@ -13,11 +13,10 @@
  *   prose, then the pattern proper — its flavour and the Systems/Modules it
  *   installs — which reads as a section, so it belongs below the fold.
  *
- * The second case reverses an earlier ruling that patterns must keep the float.
- * That ruling was about not being caught ACCIDENTALLY by the generic-slot gate
- * (a pattern card's `data` IS the chassis, so it inherits chassis artwork and
- * used to fill `afterExtraContent` with its loadout). The loadout now renders
- * inline as shortform badges, and the layout is chosen rather than inherited.
+ * A pattern card's `data` IS the chassis, so it inherits chassis artwork; it is
+ * not caught ACCIDENTALLY by the generic-slot gate, because its loadout renders
+ * inline rather than in `afterExtraContent`. The layout is chosen rather than
+ * inherited.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -25,7 +24,7 @@ import { SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The float layout emits this class on the artwork; the aside layout drops it. */
-const FLOAT = 'md:float-left'
+const FLOAT = 'su-ec-art--float'
 
 /** The Engineer — a class with artwork and ability trees. */
 const engineer = () => {

@@ -1,4 +1,5 @@
-import { advanceUntilVisible, clickNext, pickByName, waitForReady } from './_helpers'
+import { at } from './_base'
+import { advanceUntilVisible, clickNext, editSheet, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
@@ -15,7 +16,7 @@ import { expect, test } from './fixtures'
  * the test to whatever the app currently does.
  */
 test('build a pilot from scratch, then edit to add a second ability', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
 
   // Step 1: Your Stats — derived starting values, nothing to choose.
@@ -64,12 +65,11 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // The live sheet is the Free Edit surface (ADR-021): you edit in place
   // rather than replaying Guided Creation. What matters is that an ability
   // beyond the creation budget can be added, and that it persists.
-  // Matched on `href`, not the label. EntityRow's sheet link reads "View" on
-  // every row, so it carries `aria-label="View <name>"` for WCAG 2.4.4 — which
-  // means its ACCESSIBLE NAME is not "View" and `/^View$/` matches nothing.
-  // The locator is already scoped to this entity's row, so the href is the
-  // contract that matters and it survives the next copy change. This is the
-  // same reasoning `openSheetFor` in `_helpers.ts` records.
+  // Matched on `href`, not the label. The shelf item's pill (`ShelfItem`) is
+  // the link to the sheet, and its accessible name is the whole pill (stamp,
+  // name, reading), so no label match is stable. The href is the contract
+  // that matters and it survives the next copy change, as `openSheetFor` in
+  // `_helpers.ts` does.
   await page.locator('a[href*="/sheet/"]').first().click()
   await page.waitForURL(/\/sheet\/pilot\//, { timeout: 15_000 })
   await waitForReady(page)
@@ -81,6 +81,8 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // `Manage ${label}` and PilotSheet passes label="abilities", the same label
   // `sheet/__tests__/sheet-soft-warnings.test.tsx` uses. `mech-build.e2e.ts`
   // uses the same `/^Manage systems$/i` shape.
+  // A sheet opens in Read; its controls are Edit's.
+  await editSheet(page)
   await page.getByRole('button', { name: /^Manage abilities$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
@@ -95,13 +97,13 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
     timeout: 15_000,
   })
 
-  // Reload — the edit persisted to IndexedDB (no duplicate pilot).
+  // Reload — the edit persisted on the server (no duplicate pilot).
   await page.reload()
   await waitForReady(page)
   await expect(page.getByText('Talk Shop').first()).toBeVisible({
     timeout: 15_000,
   })
-  await page.goto('/')
+  await page.goto(at('/'))
   await waitForReady(page)
   // One sheet link on the roster. Matched by href rather than by label for the
   // reason above — and by href specifically because this asserts a COUNT across
@@ -110,7 +112,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
 })
 
 test('the creation ability budget caps at one pick', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
 
   await pickByName(page, 'Engineer')

@@ -2,16 +2,16 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { assertMayWrite } from './entities'
 import { linkIdOf, mutation, resolveLinkEnd, rowsInGame } from './model/entities'
+import { assertMayWrite } from './model/ownableWrites'
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
 import type { SeatState } from './model/seats'
 import { defaultSeat, readSeat, seatsInGame } from './model/seats'
-import { seatRange, seatResolving } from './schema'
+import { seatMount, seatRange, seatResolving } from './schema'
 
 /**
  * Seats: each pilot's play state in a Game, shared with the crew and saved on
- * the Game ([ADR-038](../../../docs/ARCHITECTURE.md#adr-038) §2).
+ * the Game ([ADR-038](../../../docs/adr/038-dashboard-game-surface.md) §2).
  *
  * A seat says whether its pilot is on foot or boarded (and in which mech), the
  * range band they declared, which activated effects are switched on, and the
@@ -53,7 +53,7 @@ async function writablePilot(
   await requireMember(ctx, gameId)
   const row = await resolveLinkEnd(ctx, { type: 'pilot', id: pilotId }, gameId)
   if (row === null || row.gameId !== gameId) {
-    throw new NotAuthorized('That pilot is not in this game')
+    throw new NotAuthorized('That pilot is not in this Game')
   }
   // A `pilot` end only ever resolves to a row of the `pilots` table.
   const pilot = row as Doc<'pilots'>
@@ -104,6 +104,16 @@ type SeatRead = Omit<SeatState, 'resolving' | 'ejected'> & {
  */
 export const forGame = query({
   args: { gameId: v.id('games') },
+  returns: v.array(
+    v.object({
+      pilotId: v.string(),
+      mount: seatMount,
+      range: seatRange,
+      activeEffects: v.array(v.string()),
+      resolving: v.union(seatResolving, v.null()),
+      updatedAt: v.union(v.number(), v.null()),
+    })
+  ),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const [pilots, rows] = await Promise.all([
@@ -148,7 +158,7 @@ export const board = mutation({
 
     const row = await resolveLinkEnd(ctx, { type: 'mech', id: args.mechId }, args.gameId)
     if (row === null || row.gameId !== args.gameId) {
-      throw new NotAuthorized('That mech is not in this game')
+      throw new NotAuthorized('That mech is not in this Game')
     }
     // A `mech` end only ever resolves to a row of the `mechs` table.
     const mech = row as Doc<'mechs'>

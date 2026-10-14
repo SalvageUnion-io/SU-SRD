@@ -7,17 +7,16 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { rollCommand } from '../commands/roll.js'
-import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import { buildRollMessage, buildSeeTableMessage, rollCommand } from '../commands/roll'
+import type { ContainerData } from '../container'
+import { cardText } from './cardText'
+import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /** Shared narrow-interaction fakes; see fakeInteraction.ts. */
 function mockChatInput(table: string | null) {
   const { interaction, replies } = fakeExecute({
     subcommand: 'roll',
     strings: { table },
-    // Unbound: roll attribution is a no-op, so these assert the roll output
-    // itself, unchanged from before ITUN existed.
-    channelId: null,
   })
   return { interaction, replies }
 }
@@ -109,5 +108,48 @@ describe('rollCommand.autocomplete', () => {
     const { interaction, responses } = mockAutocomplete('zzzqqqxyzzy123')
     await rollCommand.autocomplete(interaction)
     expect(responses[0]).toEqual([])
+  })
+})
+
+describe('the roll result buttons', () => {
+  const buttonsOf = (data: ContainerData) =>
+    data.blocks.flatMap((block) => (block.kind === 'buttons' ? block.buttons : []))
+
+  test('one row: Roll again, then See table, which carries the result', () => {
+    const message = buildRollMessage('Reactor Overload', 'Alex', () => 14)
+    if ('error' in message) throw new Error(message.error)
+    const buttons = buttonsOf(message.data)
+    expect(buttons.map((button) => button.label)).toEqual(['↻ Roll again', 'See table'])
+    const see = buttons[1]
+    expect(see?.kind === 'action' ? see.customId : '').toBe('su:table:Reactor Overload|14')
+  })
+
+  test('a private roll puts Post to channel between them', () => {
+    const message = buildRollMessage('Reactor Overload', 'Alex', () => 14, true)
+    if ('error' in message) throw new Error(message.error)
+    expect(buttonsOf(message.data).map((button) => button.label)).toEqual([
+      '↻ Roll again',
+      'Post to channel',
+      'See table',
+    ])
+  })
+})
+
+describe('buildSeeTableMessage', () => {
+  test('answers privately with the whole table, the rolled row marked', () => {
+    const message = buildSeeTableMessage('Reactor Overload|14', 'Alex')
+    if ('error' in message) throw new Error(message.error)
+    expect(message.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+    const body = cardText(message.data)
+    expect(body).toContain('-# ROLL THE DIE:')
+    expect(body).toContain('> **▶** `11–19` **Reactor Overheat**')
+    expect(body).toContain('> -# ROLLED 14 · Alex')
+    expect(body).toContain('`1` **Reactor Overload**')
+  })
+
+  test('an unreadable payload is an error, not a throw', () => {
+    expect(buildSeeTableMessage('nonsense')).toEqual({
+      error: 'That button is no longer readable.',
+    })
   })
 })

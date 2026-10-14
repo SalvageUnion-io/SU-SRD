@@ -158,7 +158,7 @@ describe('Sheet — crawler-only (no links)', () => {
       />
     )
     // The slot is "Pilots" now, not a single lead.
-    expect(screen.getByText(/No pilots wired to this crawler/)).toBeTruthy()
+    expect(screen.getByText(/No pilots assigned to this crawler/)).toBeTruthy()
   })
 })
 
@@ -276,7 +276,7 @@ describe('Sheet — ConditionToggle renders in editable sheet context', () => {
       />
     )
     // fakePilot has equipment: ['pistol'] — its condition cycles via the card
-    // status badge (design §4.5)
+    // status badge
     const toggle = screen.getByRole('button', { name: /status: intact/i })
     expect(toggle).toBeTruthy()
   })

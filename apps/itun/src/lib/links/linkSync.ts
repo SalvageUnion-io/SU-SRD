@@ -5,10 +5,10 @@
  *
  * `entities.listWiring` is the server's answer to "every assignment you can
  * see, and every crawler at your tables". These functions turn one answer plus
- * the local cache into the writes that make the cache reflect it — the same
+ * the local store into the writes that make the store reflect it — the same
  * "server wins" reconcile `ShelfSync` does for owned rows. They live here, as
  * functions, so the tests assert the rule itself rather than a copy of it
- * (the reason `lib/db/pruneRules.ts` exists too).
+ * (the reason `stores/pruneRules.ts` exists too).
  *
  * ## Absence means deleted only where the server spoke
  *
@@ -19,12 +19,12 @@
  * not this answer's to judge and is left alone.
  */
 
-import type { Container } from '../container'
-import { containerOf } from '../container'
-import type { EntityRef } from '../schemas/entity'
-import type { SoftLink } from '../schemas/softLink'
-import type { EndContainer } from './linkRules'
-import { linkKey } from './linkRules'
+import type { Container } from 'itun-domain/container'
+import { containerOf } from 'itun-domain/container'
+import type { EndContainer } from 'itun-domain/links/linkRules'
+import { linkKey } from 'itun-domain/links/linkRules'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { CrewSlot, SoftLink } from 'itun-domain/schemas/softLink'
 
 /** A link row as `entities.listWiring` returns it. */
 export type ServedLink = {
@@ -34,6 +34,8 @@ export type ServedLink = {
   from: EntityRef
   to: EntityRef
   type: SoftLink['type']
+  /** The crew slot of an `npc-to-crawler` link (ADR-044); absent otherwise. */
+  slot?: CrewSlot
 }
 
 /** A Game crawler as `entities.listWiring` returns it. */
@@ -48,7 +50,7 @@ export type ServedCrawler = {
  * The local record for a served link.
  *
  * A server link has no id of its own — its identity is the (type, from, to)
- * triple — so the Convex row id stands in: stable, unique, and the same on
+ * triple, plus its crew slot — so the Convex row id stands in: stable, unique, and the same on
  * every device that syncs it. A link drawn in this browser keeps the id it was
  * minted with; the two never need to agree, because nothing addresses a link
  * by id across the wire.
@@ -59,6 +61,7 @@ export function softLinkFromServer(row: ServedLink): SoftLink {
     from: { type: row.from.type, id: row.from.id },
     to: { type: row.to.type, id: row.to.id },
     type: row.type,
+    ...(row.slot === undefined ? {} : { slot: row.slot }),
     createdAt: new Date(row._creationTime).toISOString(),
   }
 }

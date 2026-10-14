@@ -2,7 +2,9 @@ import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { selectableClasses } from './classOptions'
+import { selectableClasses } from './classOptions.model'
+import '../../styles/wizard.css'
+import { fullWidthStyle } from './wizardStyles.model'
 
 type SURClassesAccessor = {
   all: () => unknown[]
@@ -24,8 +26,8 @@ type ClassAbilityStepProps = {
 }
 
 /**
- * Step 2 · Choose your Pilot and your first Ability (Pilot Bay p.18, merged
- * per plan §4.1) — master-detail in one pane, mockup Screen 01: pick 1 of the
+ * Step 2 · Choose your Pilot and your first Ability (Pilot Bay p.18, merged)
+ * — master-detail in one pane, mockup Screen 01: pick 1 of the
  * six CORE classes (SelCard entity cards, radio semantics), which reveals the
  * Level-1 ability picker for that class's trees. Only LEGAL abilities render
  * (package `legalCreationAbilities`: level 1 ∧ tree ∈ coreTrees — the
@@ -78,19 +80,19 @@ export function ClassAbilityStep({
   )
 
   // The class's legal Level-1 pool, flat. The card names its own tree in the
-  // seam pill (`[Forging | 1]`), so the pool needs no extra label.
+  // label pill (`[Forging | 1]`), so the pool needs no extra label.
   const legalPool = legalCreationAbilities(allAbilities, selectedClass?.coreTrees).sort((a, b) =>
     a.tree.localeCompare(b.tree)
   )
 
   return (
-    <div className="w-full space-y-5">
-      <Slab variant="solid" label="Pilot Class" count="Choose 1" />
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
+      <Slab variant="solid" label="Pilot Class" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2}>{legalClasses.map(renderClassCard)}</MasonryColumns>
 
       {selectedClass === undefined ? (
         <EmptyState
-          headline="No Class Selected"
+          headline="No Class selected"
           body="Pick a class to reveal its first-Ability choices."
         />
       ) : (
@@ -99,6 +101,7 @@ export function ClassAbilityStep({
             variant="solid"
             label={`First Ability · ${selectedClass.name} Trees · Level 1`}
             count="Choose 1"
+            countInk="inherit"
           />
           <MasonryColumns maxColumns={2}>{legalPool.map(renderAbilityCard)}</MasonryColumns>
           {legalPool.length === 0 && (

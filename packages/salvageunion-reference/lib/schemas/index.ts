@@ -8,34 +8,33 @@
  * (SURefObject*), which have no registry entry, are written below.
  */
 
-import type { z } from '../zod.js'
+import type { z } from '../zod'
 
-export type * from '../generated/entityTypes.generated.js'
-export * from './common.js'
-export * from './entities.js'
+export type * from '../generated/entityTypes.generated'
+export * from './common'
+export * from './entities'
 // Re-export all schemas
-export * from './enums.js'
-export * from './objects.js'
+export * from './enums'
+export * from './objects'
 
 // Import schemas for type inference
-import type { SchemaNameSchema } from './enums.js'
+import type { SchemaNameSchema } from './enums'
 import type {
   AdvancedClassSchema,
+  BioTitanPatternSchema,
   ChoiceSchema,
   ContentBlockSchema,
-  ContentSchema,
   DamageSchema,
   DataValueSchema,
   GrantSchema,
   GuideStepSchema,
   PatternSchema,
-  PatternSystemModuleSchema,
   StatsSchema,
   SystemModuleSchema,
   TableContentSchema,
   TableSchema,
   TraitSchema,
-} from './objects.js'
+} from './objects'
 
 // Inferred types, exported under the SURef* prefix used across the monorepo.
 
@@ -46,13 +45,14 @@ export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>
 export type SURefObjectTrait = z.infer<typeof TraitSchema>
 export type SURefObjectDataValue = z.infer<typeof DataValueSchema>
 export type SURefObjectContentBlock = z.infer<typeof ContentBlockSchema>
-export type SURefObjectContent = z.infer<typeof ContentSchema>
 export type SURefObjectTableContent = z.infer<typeof TableContentSchema>
 export type SURefObjectTable = z.infer<typeof TableSchema>
-export type SURefObjectPatternSystemModule = z.infer<typeof PatternSystemModuleSchema>
 export type SURefObjectSystemModule = z.infer<typeof SystemModuleSchema>
 export type SURefObjectChoice = z.infer<typeof ChoiceSchema>
 export type SURefObjectPattern = z.infer<typeof PatternSchema>
+export type SURefObjectBioTitanPattern = z.infer<typeof BioTitanPatternSchema>
+/** A pattern of either host: a mech pattern (on a chassis) or a Bio-Titan's. */
+export type SURefObjectAnyPattern = SURefObjectPattern | SURefObjectBioTitanPattern
 export type SURefObjectDamage = z.infer<typeof DamageSchema>
 export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>

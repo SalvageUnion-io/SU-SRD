@@ -2,7 +2,6 @@ import { describe, expect, test } from 'bun:test'
 import type { GameMember } from '../gameRoster'
 import {
   crawlerRows,
-  gameHasMediator,
   groupColumn,
   isTableRunner,
   moveDestinations,
@@ -63,18 +62,6 @@ describe('who runs the table', () => {
 
   test('somebody who is not in the game never does', () => {
     expect(isTableRunner('u-stranger', ALL)).toBe(false)
-  })
-})
-
-describe('whether the game has a Mediator', () => {
-  test('it does when any member mediates', () => {
-    expect(gameHasMediator(ALL)).toBe(true)
-  })
-
-  test('an Organizer is not a Mediator', () => {
-    // The Dashboard needs a real Mediator (ADR-038 §1); the Organizer's
-    // table-runner fallback does not count.
-    expect(gameHasMediator([ORGANIZER, PLAYER])).toBe(false)
   })
 })
 
@@ -149,6 +136,19 @@ describe('rows carry ownership as a state, never a blank', () => {
     expect(built('u-play', ['a1'])[0]?.localId).toBe('a1')
   })
 
+  test('a claimed template pre-gen, with no app id, is held by its body id', () => {
+    const [row] = ownableRows({
+      kind: 'pilot',
+      rows: [{ _id: 's4', appId: null, ownerId: 'u-play', body: { id: 'bonesaw', name: 'B' } }],
+      viewerId: 'u-play',
+      members: ALL,
+      localIds: new Set(['bonesaw']),
+    })
+    // `LaunchDashboard` lists only rows with a local copy, so without this a
+    // Starter Set table could never launch the Dashboard.
+    expect(row?.localId).toBe('bonesaw')
+  })
+
   test('a body with no name still renders something', () => {
     const [row] = ownableRows({
       kind: 'mech',
@@ -196,7 +196,7 @@ describe('deleting from a game', () => {
     expect(mine?.can.delete).toBe(true)
   })
 
-  test('only the owner may take a pilot or mech out of the game, to My Stuff', () => {
+  test('only the owner may take a pilot or mech out of the game, to your shelves', () => {
     // Mirrors the server's move rule (ADR-037): leaving a Game needs ownership
     // and nothing else, so an unclaimed pre-gen and a crewmate's stay put.
     const [mine, pregen, theirs] = built('u-play')
@@ -265,39 +265,39 @@ describe('moveDestinations — the move control lists only what the server accep
   ]
   const labels = (d: ReturnType<typeof moveDestinations>) => d.map((x) => x.label)
 
-  test('a pilot or mech may go to My Stuff or any Game I belong to', () => {
+  test('a pilot or mech may go to your shelves or any Game I belong to', () => {
     expect(labels(moveDestinations({ kind: 'pilot', current: { kind: 'shelf' }, games }))).toEqual([
-      'My Stuff',
+      'Shelves',
       'Run by me',
       'Run by someone else',
     ])
     expect(
       labels(moveDestinations({ kind: 'mech', current: { kind: 'game', gameId: 'g2' }, games }))
-    ).toEqual(['Run by someone else', 'My Stuff', 'Run by me'])
+    ).toEqual(['Run by someone else', 'Shelves', 'Run by me'])
   })
 
   test('a shelf crawler may go only into a Game I run', () => {
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'shelf' }, games }))
-    ).toEqual(['My Stuff', 'Run by me'])
+    ).toEqual(['Shelves', 'Run by me'])
   })
 
   test('a Game crawler may come out to my shelf only if I run that Game — never Game to Game', () => {
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g1' }, games }))
-    ).toEqual(['Run by me', 'My Stuff'])
+    ).toEqual(['Run by me', 'Shelves'])
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g2' }, games }))
     ).toEqual(['Run by someone else'])
   })
 
-  test('a Game I am not in is named, not passed off as My Stuff', () => {
+  test('a Game I am not in is named, not passed off as Shelves', () => {
     const [here] = moveDestinations({
       kind: 'pilot',
       current: { kind: 'game', gameId: 'phantom' },
       games,
     })
-    expect(here?.label).toBe('Unknown game')
+    expect(here?.label).toBe('Unknown Game')
     expect(here?.container).toEqual({ kind: 'game', gameId: 'phantom' })
   })
 })

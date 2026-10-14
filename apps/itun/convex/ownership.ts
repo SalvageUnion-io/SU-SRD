@@ -4,6 +4,7 @@ import type { MutationCtx } from './_generated/server'
 import type { OwnableTable } from './model/entities'
 import { loadOwnable, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
+import { ownableTable } from './schema'
 
 /**
  * Entity ownership (ADR-030 §3–4).
@@ -18,29 +19,22 @@ import { NotAuthorized, requireMember, requireUser } from './model/permissions'
  *
  * ## Players self-claim what is offered (amends ADR-030 §4)
  *
- * ADR-030 originally said assignment was the Mediator's alone and players never
- * self-claimed. That has been amended, and the reason is what the unclaimed
- * state is actually *for*: a Mediator pre-builds characters, or a template
- * seeds six of them, precisely so people can arrive and take one. Making the
- * Mediator hand each one over individually adds a round trip to the table's
- * first ten minutes and buys nothing — an unclaimed entity is already an offer
- * to the crew, and `claim` is a player accepting it.
+ * See the ADR-030 amendment. The reason is what the unclaimed state is *for*:
+ * a Mediator pre-builds characters, or a template seeds six of them, precisely
+ * so people can arrive and take one. Making the Mediator hand each one over
+ * individually adds a round trip to the table's first ten minutes and buys
+ * nothing — an unclaimed entity is already an offer to the crew, and `claim` is
+ * a player accepting it.
  *
- * What did **not** change is the boundary the original rule protected: claiming
- * touches only what is *free*. An entity somebody already holds cannot be taken
- * — it must be released first, by its owner or the Mediator — so no player can
- * ever pull a character out from under a crewmate.
+ * Claiming touches only what is *free*. An entity somebody already holds cannot
+ * be taken — it must be released first, by its owner or the Mediator — so no
+ * player can ever pull a character out from under a crewmate.
  *
  * There is no table-runner `assign` (placing an entity with a *particular*
- * person) and no `leaveGame`. Both existed as public mutations that no client
- * ever called; they were removed rather than left as reachable, untested-in-
- * product surface. Nobody can place a character with a particular person
- * today: it is released (by its owner or the Mediator) and any member claims
- * it. `invites.create` accepts `grants`, but it is Organizer-only and no client
- * sends them.
+ * person) and no `leaveGame`. Nobody can place a character with a particular
+ * person: it is released (by its owner or the Mediator) and any member claims
+ * it.
  */
-
-const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
 
 /**
  * Record an ownership change on the Change Log.
@@ -51,8 +45,7 @@ const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
  * on *who holds* an entity rather than on its contents, which is the boundary
  * the propose-and-confirm rule actually protects.
  */
-/* Exported so invite-driven grants log identically — see `invites.ts`. */
-export async function logOwnershipChange(
+async function logOwnershipChange(
   ctx: MutationCtx,
   args: {
     table: OwnableTable
@@ -96,7 +89,7 @@ export const claim = mutation({
   handler: async (ctx, args): Promise<void> => {
     const doc = await loadOwnable(ctx, args.table, args.entityId)
     if (doc.gameId === null) {
-      throw new NotAuthorized('That build is in somebody’s My Stuff, not in a game')
+      throw new NotAuthorized('That build is on somebody’s shelf, not in a Game')
     }
 
     const membership = await requireMember(ctx, doc.gameId)
@@ -148,7 +141,7 @@ export const release = mutation({
        * it was teaching the wrong model to the person least able to check it.
        */
       throw new NotAuthorized(
-        'A build in your My Stuff is already yours — there is no crew here to release it to. Move it into a game first.'
+        'A build on your shelf is already yours — there is no crew here to release it to. Move it into a Game first.'
       )
     }
     if (doc.ownerId === null) return

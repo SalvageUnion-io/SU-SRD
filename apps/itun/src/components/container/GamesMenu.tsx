@@ -1,14 +1,11 @@
 /**
  * The masthead's Games menu — pick what the Roster shows (ADR-030 §2).
  *
- * "My Stuff" (the personal Shelf) heads the list, then every Game the player is
- * in, each with their role in it. Picking one sets the active container and
- * goes to `/`, the Roster, which shows that container. It is the same decision
- * the Roster's own "Showing" select (`ContainerSwitcher`) makes, offered from
- * every route rather than only from the Roster.
- *
- * There is no Games page to link to: a Game's roster and every action on it
- * are on the hub, so picking a Game here is choosing what the hub shows.
+ * "Shelves" (the personal shelf) heads the list, then every Game the player is
+ * in, each with their role in it. Picking one opens where it is shown: Shelves
+ * at `/`, or the Game's own page at `/games/$gameId`. It is the same
+ * decision the Roster's own "Showing" select (`ContainerSwitcher`) makes,
+ * offered from every route rather than only from the Roster.
  *
  * Two renderings of one list, because the masthead has two shapes:
  *
@@ -26,23 +23,22 @@
  * hook always has a provider.
  */
 
-import { useNavigate } from '@tanstack/react-router'
-import { Badge, buttonVariants, Text, tokens } from 'component-lib'
+import { Badge, Button, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { Container } from 'itun-domain/container'
+import { SHELF } from 'itun-domain/container'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { Container } from '../../lib/container'
-import { SHELF } from '../../lib/container'
-import { setActiveContainer } from '../../stores/activeContainerStore'
 import type { HeaderMenuItem } from '../shared/HeaderMenu'
 import { HeaderMenu } from '../shared/HeaderMenu'
+import { useShowContainer } from './useShowContainer'
 
 /** One row of the list: what it says, and the container it picks. */
 type Entry = { id: string; label: string; hint?: string; container: Container }
 
 /** What the player calls the Shelf. */
-const SHELF_ENTRY: Entry = { id: 'shelf', label: 'My Stuff', container: SHELF }
+const SHELF_ENTRY: Entry = { id: 'shelf', label: 'Shelves', container: SHELF }
 
 /**
  * The Games, as rows — `undefined` while the subscription is in flight.
@@ -61,18 +57,9 @@ function useGameEntries(): Entry[] | undefined {
   }))
 }
 
-/** Show `container` on the Roster: make it active, then go there. */
-function usePickContainer(): (container: Container) => void {
-  const navigate = useNavigate()
-  return (container) => {
-    setActiveContainer(container)
-    void navigate({ to: '/' })
-  }
-}
-
-function ConnectedGamesMenu() {
+function ConnectedGamesMenu({ active }: { active: boolean }) {
   const games = useGameEntries()
-  const pick = usePickContainer()
+  const pick = useShowContainer()
 
   const asItem = (entry: Entry): HeaderMenuItem => ({
     id: entry.id,
@@ -85,18 +72,21 @@ function ConnectedGamesMenu() {
   // states stay inside the menu a screen reader is walking.
   const gameItems: HeaderMenuItem[] =
     games === undefined
-      ? [{ id: 'loading', label: 'Loading your games…' }]
+      ? [{ id: 'loading', label: 'Loading your Games…' }]
       : games.length === 0
-        ? [{ id: 'none', label: 'No games yet' }]
+        ? [{ id: 'none', label: 'No Games yet' }]
         : games.map(asItem)
 
-  return <HeaderMenu trigger="Games" sections={[[asItem(SHELF_ENTRY)], gameItems]} />
+  return (
+    <HeaderMenu trigger="Games" active={active} sections={[[asItem(SHELF_ENTRY)], gameItems]} />
+  )
 }
 
-export function GamesMenu() {
+/** `active`: the page is a Game's own (`/games/…`), so the menu is where you are. */
+export function GamesMenu({ active = false }: { active?: boolean }) {
   const { mode } = useConnection()
   if (mode !== 'connected') return null
-  return <ConnectedGamesMenu />
+  return <ConnectedGamesMenu active={active} />
 }
 
 const LIST = {
@@ -121,13 +111,12 @@ const ROLE = {
 
 function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
   const games = useGameEntries()
-  const pick = usePickContainer()
+  const pick = useShowContainer()
 
   const row = (entry: Entry) => (
-    <button
+    <Button
       key={entry.id}
-      type="button"
-      className={buttonVariants({ variant: 'ghost' })}
+      variant="ghost"
       style={ROW}
       onClick={() => {
         pick(entry.container)
@@ -136,7 +125,7 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
     >
       {entry.label}
       {entry.hint && <span style={ROLE}> · {entry.hint}</span>}
-    </button>
+    </Button>
   )
 
   return (
@@ -145,8 +134,8 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
         <Badge shape="stamp">Games</Badge>
       </div>
       {row(SHELF_ENTRY)}
-      {games === undefined && <Text variant="hint">Loading your games…</Text>}
-      {games?.length === 0 && <Text variant="hint">No games yet</Text>}
+      {games === undefined && <Text variant="hint">Loading your Games…</Text>}
+      {games?.length === 0 && <Text variant="hint">No Games yet</Text>}
       {games?.map(row)}
     </nav>
   )

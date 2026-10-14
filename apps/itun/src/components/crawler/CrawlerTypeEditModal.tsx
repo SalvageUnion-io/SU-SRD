@@ -11,15 +11,42 @@
  * guards the change.
  */
 
-import { Button, EntitySearcher, ModalShell, toast } from 'component-lib'
+import { Button, EntitySearcher, ModalShell, toast, tokens } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import type { Crawler } from '../../lib/schemas/crawler'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
 import type { EntityState } from '../../stores/entityStore'
+import '../../styles/wizard.css'
+
+/** The confirm dialog's body. */
+const CONFIRM_BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+  backgroundColor: tokens.color.paper,
+  padding: tokens.space[20],
+} satisfies CSSProperties
+
+/** The confirm dialog's consequence copy. */
+const CONFIRM_COPY = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+/** Cancel / confirm, right-aligned. */
+const CONFIRM_ACTIONS = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: tokens.space[8],
+} satisfies CSSProperties
 
 type CrawlerTypeEditModalProps = {
   open: boolean
@@ -37,17 +64,27 @@ export function CrawlerTypeEditModal({
 }: CrawlerTypeEditModalProps) {
   const [selected, setSelected] = useState<string | null>(crawler.type ?? null)
   const [confirming, setConfirming] = useState(false)
-  const [busy, setBusy] = useState(false)
+  // One atomic multi-write: the new type field + reset typeNpc + drop the old
+  // type's orphaned bayChoices key, all in a single record update (crew is
+  // empty here — bays' live state is untouched). Passing the type into the
+  // helper means no separate pre-write that could half-apply.
+  const change = useServerAction(
+    (from: string | null, to: string) => {
+      const form: CrawlerWizardFormState = { ...EMPTY_CRAWLER_FORM_STATE, type: to, crew: {} }
+      return applyCrawlerCrewAndTypeEdit(storeState, crawler.id, form, from, to)
+    },
+    { failure: 'The crawler type could not be changed. Try again.', toastId: 'crawler-type' }
+  )
+  const busy = change.pending
 
   // Reset the picker to the crawler's current type each time it opens. Depends
   // on `open` ONLY: the atomic type write flips crawler.type as it completes, so
-  // depending on it here would reset busy/confirming mid-write (a UI flicker).
+  // depending on it here would reset the confirm mid-write (a UI flicker).
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset on open only, by design
   useEffect(() => {
     if (open) {
       setSelected(crawler.type ?? null)
       setConfirming(false)
-      setBusy(false)
     }
   }, [open])
 
@@ -57,26 +94,13 @@ export function CrawlerTypeEditModal({
 
   async function applyChange() {
     if (!selected || !changed) return
-    setBusy(true)
-    try {
-      // One atomic multi-write: the new type field + reset typeNpc + drop the
-      // old type's orphaned bayChoices key, all in a single record update (crew
-      // is empty here — bays' live state is untouched). Passing the type into
-      // the helper means no separate pre-write that could half-apply.
-      const form: CrawlerWizardFormState = {
-        ...EMPTY_CRAWLER_FORM_STATE,
-        type: selected,
-        crew: {},
-      }
-      await applyCrawlerCrewAndTypeEdit(storeState, crawler.id, form, currentType, selected)
-
-      toast.success(`Changed crawler type to ${selectedEntity?.name ?? 'new type'}.`)
-      onClose()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to change crawler type.')
-      setBusy(false)
+    const result = await change.run(currentType, selected)
+    if (!result.ok) {
       setConfirming(false)
+      return
     }
+    toast.success(`Changed crawler type to ${selectedEntity?.name ?? 'new type'}.`)
+    onClose()
   }
 
   return (
@@ -87,7 +111,7 @@ export function CrawlerTypeEditModal({
           if (!next) onClose()
         }}
         title="Change Crawler Type"
-        maxWidth="max-w-5xl"
+        maxWidth="su-wiz-modal-5xl"
         bare
       >
         <EntitySearcher
@@ -118,7 +142,7 @@ export function CrawlerTypeEditModal({
                 disabled={!changed}
                 onClick={() => setConfirming(true)}
               >
-                Change Type…
+                Change type…
               </Button>
             </>
           }
@@ -133,15 +157,15 @@ export function CrawlerTypeEditModal({
         }}
         title="Change crawler type?"
         tone="danger"
-        maxWidth="max-w-md"
+        maxWidth="su-wiz-modal-md"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
+        <div style={CONFIRM_BODY}>
+          <div style={CONFIRM_COPY}>
             Change to <strong>{selectedEntity?.name}</strong>? This resets the crawler's special NPC
             to the new type's default (its name, description and HP are cleared) and drops the old
             type's Keepsake/Motto. Your bays and their crew are kept.
           </div>
-          <div className="flex justify-end gap-2">
+          <div style={CONFIRM_ACTIONS}>
             <Button
               variant="ghost"
               size="compact"
@@ -156,7 +180,7 @@ export function CrawlerTypeEditModal({
               onClick={() => void applyChange()}
               disabled={busy}
             >
-              {busy ? 'Changing…' : 'Change Type'}
+              {busy ? 'Changing…' : 'Change type'}
             </Button>
           </div>
         </div>

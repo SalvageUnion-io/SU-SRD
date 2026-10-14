@@ -4,7 +4,7 @@
  * Unified validation runner.
  *
  * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
- * 11 checks (it replaced separate per-check processes, each re-reading the corpus):
+ * 11 checks:
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - duplicate-keys   (validateDuplicateKeysLogic.ts — reads the raw text)
@@ -32,22 +32,22 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { checkAllFiles } from './checkUniqueIdsLogic.js'
-import type { DataBag } from './loadData.js'
-import { dataDir, listDataFiles, loadAllDataFiles } from './loadData.js'
-import type { CheckId } from './selectChecks.js'
-import { CHECK_IDS, selectChecks } from './selectChecks.js'
-import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
-import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
-import { runContentDupeCheck } from './validateContentDupesLogic.js'
-import { findDuplicateKeys, findSelfCitations } from './validateDuplicateKeysLogic.js'
-import { runOrphanCheck } from './validateOrphansLogic.js'
-import { auditParity, KNOWN_UNRESOLVED, unresolvedFindings } from './validateParityLogic.js'
-import { findReferenceErrors } from './validateReferencesLogic.js'
-import { findSlugCollisions } from './validateSlugsLogic.js'
-import { findTraitIssues } from './validateTraitsLogic.js'
-import type { Diagnostic } from './validationTypes.js'
-import { groupByCheck } from './validationTypes.js'
+import { checkAllFiles } from './checkUniqueIdsLogic'
+import type { DataBag } from './loadData'
+import { dataDir, listDataFiles, loadAllDataFiles } from './loadData'
+import type { CheckId } from './selectChecks'
+import { CHECK_IDS, selectChecks } from './selectChecks'
+import { runActionBackrefCheck } from './validateActionBackrefsLogic'
+import { findActionReferenceErrors } from './validateActionReferencesLogic'
+import { runContentDupeCheck } from './validateContentDupesLogic'
+import { findDuplicateKeys, findSelfCitations } from './validateDuplicateKeysLogic'
+import { runOrphanCheck } from './validateOrphansLogic'
+import { auditParity, KNOWN_UNRESOLVED, unresolvedFindings } from './validateParityLogic'
+import { findReferenceErrors } from './validateReferencesLogic'
+import { findSlugCollisions } from './validateSlugsLogic'
+import { findTraitIssues } from './validateTraitsLogic'
+import type { Diagnostic } from './validationTypes'
+import { groupByCheck } from './validationTypes'
 
 // ─── per-check adapters: native result shape -> Diagnostic[] ───────────────
 
@@ -155,17 +155,8 @@ function actionBackrefsCheck(data: DataBag): Diagnostic[] {
 }
 
 function orphansCheck(data: DataBag): Diagnostic[] {
-  const { staleRootFiles, unexpected, staleAllowlist } = runOrphanCheck(data)
+  const { unexpected, staleAllowlist } = runOrphanCheck(data)
   const diagnostics: Diagnostic[] = []
-
-  for (const file of staleRootFiles) {
-    diagnostics.push({
-      check: 'orphans',
-      file,
-      path: '(ROOT_FILES)',
-      message: `Stale ROOT_FILES entry in validateOrphansLogic.ts — file no longer exists in data/`,
-    })
-  }
 
   for (const orphan of unexpected) {
     diagnostics.push({

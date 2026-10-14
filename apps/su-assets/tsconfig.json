@@ -1,4 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
-  "include": ["src/**/*.ts", "worker-configuration.d.ts"]
+  "extends": "../../tsconfig.worker.json",
+  "include": ["src/**/*.ts", "worker-configuration.d.ts"],
+  "references": [{ "path": "../../packages/observability" }]
 }

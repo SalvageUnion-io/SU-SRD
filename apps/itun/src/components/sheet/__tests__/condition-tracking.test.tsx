@@ -1,5 +1,5 @@
 /**
- * Condition tracking tests — REQ-011 (#240)
+ * Condition tracking tests
  *
  * Asserts that:
  *   1. Clicking a mech system ConditionToggle calls store.update with the
@@ -14,8 +14,8 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
@@ -34,7 +34,7 @@ beforeAll(hydrateStores)
 function makeMechStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
     get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
@@ -50,7 +50,7 @@ function makePilotStubStore(
 ): typeof useEntityStore {
   return makeEntityStoreMock({
     pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
     get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
@@ -121,8 +121,8 @@ const fakePilotWithConditions: Pilot = {
 // Mech system condition tests
 // ---------------------------------------------------------------------------
 
-describe('MechSheet — system status badge (REQ-011 #240, plan 4.5)', () => {
-  // Item condition now cycles via the card status badge (design §4.5):
+describe('MechSheet — system status badge (#240)', () => {
+  // Item condition now cycles via the card status badge:
   // aria label is `Status: <Label> — click to change`.
   test('clicking a system status badge calls store.update with systemConditions patch', async () => {
     const updateSpy = mock(async () => fakeMech)
@@ -180,7 +180,7 @@ describe('MechSheet — system status badge (REQ-011 #240, plan 4.5)', () => {
 // Mech module condition tests
 // ---------------------------------------------------------------------------
 
-describe('MechSheet — module status badge (REQ-011 #240, plan 4.5)', () => {
+describe('MechSheet — module status badge (#240)', () => {
   test('clicking a module status badge calls store.update with moduleConditions patch', async () => {
     const updateSpy = mock(async () => fakeMech)
     const mech: Mech = { ...fakeMech, systems: [] } // one badge only
@@ -208,8 +208,8 @@ describe('MechSheet — module status badge (REQ-011 #240, plan 4.5)', () => {
 // Pilot equipment condition tests
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
-  // Equipment condition now cycles via the card status badge (design §4.5):
+describe('PilotSheet — equipment condition toggle (#240)', () => {
+  // Equipment condition now cycles via the card status badge:
   // aria label is `Status: <Label> — click to change`.
   test('clicking an equipment status badge calls store.update with equipmentConditions patch', async () => {
     const updateSpy = mock(async () => fakePilot)
@@ -249,9 +249,10 @@ describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
       <PilotSheet pilot={fakePilot} store={makePilotStubStore(fakePilot, updateSpy)} readOnly />
     )
 
-    // In readOnly mode the badge renders as a static span, not a button
+    // Read state (board 10): the item is its shortform pill, with no status
+    // control to press — and nothing is written.
     expect(screen.queryByRole('button', { name: /status:/i })).toBeNull()
-    expect(screen.getByText('Intact')).toBeTruthy()
+    expect(screen.getAllByText(/pistol/i).length).toBeGreaterThan(0)
     expect(updateSpy).not.toHaveBeenCalled()
   })
 })
@@ -277,6 +278,7 @@ describe('MechSheet — condition merge reads live store, not stale prop (#240 r
         pilots: false,
         mechs: true,
         crawlers: false,
+        npcs: false,
         softLinks: false,
       },
       hydrate: mock(async () => {}),

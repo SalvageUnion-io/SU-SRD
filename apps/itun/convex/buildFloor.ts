@@ -15,11 +15,11 @@
  *
  * - a public function is deleted or renamed
  * - an argument becomes required, or a validator narrows (the
- *   `tools/convex-client-contract.json` gate catches these two kinds)
+ *   `tools/baselines/convex-client-contract.json` gate catches these two kinds)
  * - a stored shape changes in a way older code cannot read or would write
- *   wrongly, such as slug-only refs (#1267), which the gate cannot see
+ *   wrongly, such as slug-only refs, which the gate cannot see
  *
  * Never lower it. A value lower than one already deployed would let back in
  * tabs that this backend refuses.
  */
-export const BUILD_FLOOR = 1791587077
+export const BUILD_FLOOR = 1791930756

@@ -1,0 +1,668 @@
+/*
+ * The package stylesheet, part 6 of 21: the Union bar, breadcrumbs, the page
+ * shell, the chapter band, the nav drawer's index and the foot band.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ The Union bar (`components/compositions/AppBar.tsx`) ═════════════════════════
+ *
+ * One masthead for both tools (ruleset §3.11, board 05). Everything static is
+ * the component's style objects; what is here changes at a breakpoint, on
+ * hover or with "you are here".
+ *
+ * One geometry for both: a 56px row at every width, the mark alone (no
+ * wordmark), the product nav inline from `lg`, the search entry 14rem wide,
+ * and one control height (`--su-union-bar-control`) for everything you press
+ * in the bar: the switcher, the search, "Buy the game", the account controls
+ * and the phone's icon buttons.
+ *
+ * "Here" is never rust (§3.1): the switcher's current tab is the inverse stamp,
+ * a paper plate with ink text on the ink bar, and a nav link's current page
+ * is ruled under in paper (on ink) or ink (on paper).
+ */
+.su-union-bar {
+  --su-union-bar-control: 36px;
+}
+
+/* Under a coarse pointer the bar's one height is the 44px floor
+   (`pointer-motion.css`). */
+
+.su-union-bar__row {
+  align-items: center;
+  display: flex;
+  gap: var(--space-12);
+  height: 56px;
+  padding-inline: var(--space-16);
+}
+
+/* The mark is the bar's one control height too, so the logo lines up with
+   the switcher, the search and the buttons beside it. */
+.su-union-bar__mark {
+  height: var(--su-union-bar-control);
+  width: var(--su-union-bar-control);
+}
+
+/* The bar's controls, one height and one corner. The search field's height
+   is its border box, so its block padding goes, and it takes the buttons'
+   card radius; the hamburger and the phone's icon buttons
+   are squares on it. */
+.su-union-bar__end .su-search-field,
+.su-union-bar__end .su-btn {
+  height: var(--su-union-bar-control);
+}
+
+.su-union-bar__end .su-search-field {
+  border-radius: var(--radius-card);
+  padding-block: 0;
+}
+
+.su-union-bar__mobile .su-btn--icon-only,
+.su-union-bar__mobile .su-nav-drawer__trigger {
+  align-items: center;
+  display: inline-flex;
+  height: var(--su-union-bar-control);
+  justify-content: center;
+  padding: 0;
+  width: var(--su-union-bar-control);
+}
+
+.su-union-bar__tab {
+  align-items: center;
+  background-color: transparent;
+  color: var(--color-paper-70);
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  height: var(--su-union-bar-control);
+  letter-spacing: var(--tracking-caps-wide);
+  padding-inline: var(--space-12);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    color 120ms,
+    background-color 120ms;
+}
+
+.su-union-bar__tab:hover {
+  color: var(--color-paper);
+}
+
+.su-union-bar__tab[aria-current] {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* The product nav, inline beside the switcher, ruled off from it. */
+.su-union-bar__nav {
+  align-items: center;
+  align-self: stretch;
+  border-left: var(--bw-hairline) solid var(--color-paper-30);
+  display: none;
+  gap: var(--space-20);
+  padding-left: var(--space-16);
+}
+
+.su-union-bar__link {
+  align-items: center;
+  align-self: stretch;
+  border-bottom: var(--bw-pill) solid transparent;
+  border-top: var(--bw-pill) solid transparent;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    color 120ms,
+    border-color 120ms;
+  color: var(--color-paper-70);
+}
+
+.su-union-bar__link:hover,
+.su-union-bar__link[aria-current='page'] {
+  color: var(--color-paper);
+}
+
+.su-union-bar__link[aria-current='page'] {
+  border-bottom-color: var(--color-paper);
+}
+
+/* Quiet links (About, Changelog): mixed case, a step back from the nav. */
+.su-union-bar__quiet {
+  color: var(--color-paper-70);
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  text-decoration: none;
+  transition: color 120ms;
+}
+
+.su-union-bar__quiet:hover,
+.su-union-bar__quiet[aria-current='page'] {
+  color: var(--color-paper);
+}
+
+.su-union-bar__end {
+  align-items: center;
+  display: none;
+  flex-shrink: 0;
+  gap: var(--space-20);
+  margin-left: auto;
+}
+
+.su-union-bar__mobile {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+  margin-left: auto;
+}
+
+/* "Buy the game ↗" — an outline on the ink bar, never a rust fill (§3.1). */
+.su-union-bar__buy {
+  align-items: center;
+  border: var(--bw-chrome) solid var(--color-paper-60);
+  border-radius: var(--radius-card);
+  color: var(--color-paper);
+  display: inline-flex;
+  flex-shrink: 0;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-4);
+  height: var(--su-union-bar-control);
+  letter-spacing: var(--tracking-caps-snug);
+  padding-inline: var(--space-14);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: border-color 120ms;
+}
+
+.su-union-bar__buy:hover {
+  border-color: var(--color-paper);
+}
+
+/* A bar with a product nav (ITUN's) has no room for "Buy the game" until
+   80rem: from `lg` to there it would push the row past the viewport. Below
+   `lg` the drawer carries it. */
+.su-union-bar__nav ~ .su-union-bar__end .su-union-bar__buy {
+  display: none;
+}
+
+@media (min-width: 80rem) {
+  .su-union-bar__nav ~ .su-union-bar__end .su-union-bar__buy {
+    display: inline-flex;
+  }
+}
+
+/* The search entry's width, one for both tools: the SRD's field
+   (`SearchField`'s input) and ITUN's trigger (`SearchFieldTrigger`'s label).
+   Scoped to the bar so it outranks the field's own `width: 100%`
+   (atoms-leaves.css loads later), and the label a block so it takes a width:
+   unscoped, neither applied and the two tools' fields differed by 4rem. */
+.su-union-bar__end .su-union-bar__search-input {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  width: 14rem;
+}
+
+/* A narrow phone (under 400px) has to fit the mark, the switcher and a
+   three-control cluster (ITUN signed in: search, avatar, menu, each on the
+   44px coarse floor) in one row. The default spacing needs 405px for that,
+   so the hamburger ran off a 375px screen; this tightening gets it to about
+   354px, inside a 360px phone, without dropping a control. */
+@media (max-width: 24.99rem) {
+  .su-union-bar__row {
+    gap: var(--space-8);
+    padding-inline: var(--space-12);
+  }
+
+  .su-union-bar__tab {
+    letter-spacing: var(--tracking-caps-snug);
+    padding-inline: var(--space-8);
+  }
+
+  .su-union-bar__mobile {
+    gap: 0;
+  }
+}
+
+@media (min-width: 40rem) {
+  .su-union-bar__row {
+    gap: var(--space-16);
+    padding-inline: var(--space-32);
+  }
+}
+
+@media (min-width: 64rem) {
+  .su-union-bar__nav,
+  .su-union-bar__end {
+    display: flex;
+  }
+
+  .su-union-bar__mobile {
+    display: none;
+  }
+}
+
+/* ══ Breadcrumbs (the Union bar's trail) ════════════════════════════════════
+ *
+ * One list, two placements: in the bar on desktop, in paper with the current
+ * page in bold (`--bar`), and on a row of its own under the bar below `lg`
+ * (`--row`), where the bar has no room. Exactly one is displayed at any width.
+ */
+.su-crumbs {
+  align-items: baseline;
+  column-gap: var(--space-8);
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  min-width: 0;
+}
+
+.su-crumbs__list {
+  column-gap: var(--space-6);
+}
+
+.su-crumbs__link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 120ms;
+}
+
+.su-crumbs__here {
+  font-weight: var(--font-weight-bold);
+}
+
+.su-crumbs--bar {
+  color: var(--color-paper);
+  display: none;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.su-crumbs--bar .su-crumbs__link {
+  color: var(--color-paper-85);
+}
+
+.su-crumbs--bar .su-crumbs__link:hover {
+  color: var(--color-paper);
+}
+
+.su-crumbs--bar .su-crumbs__separator,
+.su-crumbs--bar .su-crumbs__description {
+  color: var(--color-paper-60);
+}
+
+.su-crumbs--row {
+  background-color: var(--color-paper);
+  border-bottom: var(--bw-hairline) solid var(--color-ink-15);
+  color: var(--color-ink);
+  display: flex;
+  flex-wrap: wrap;
+  padding: var(--space-8) var(--space-16);
+  position: sticky;
+  row-gap: var(--space-4);
+  top: 0;
+  z-index: 40;
+}
+
+.su-crumbs--row .su-crumbs__list {
+  flex-wrap: wrap;
+}
+
+.su-crumbs--row .su-crumbs__link {
+  color: var(--color-ink);
+}
+
+.su-crumbs--row .su-crumbs__link:hover {
+  color: var(--color-ink-75);
+}
+
+.su-crumbs--row .su-crumbs__separator,
+.su-crumbs--row .su-crumbs__description {
+  color: var(--color-wk-muted);
+}
+
+/* The trail row lines up with the bar above it. */
+@media (min-width: 40rem) {
+  .su-crumbs--row {
+    padding-inline: var(--space-32);
+  }
+}
+
+/* The bar holds the trail only from 80rem: between `lg` and there the switcher,
+   the search and the account leave a deep trail no room (the current page
+   would fall outside the clipped box), so the row stays. */
+@media (min-width: 80rem) {
+  .su-crumbs--bar {
+    display: flex;
+  }
+
+  .su-crumbs--row {
+    display: none;
+  }
+}
+
+/* ══ The page shell (`components/containers/PageShell.tsx`) ══════════════════════
+ *
+ * The shell's gutters, as custom properties as well as its padding, so a child
+ * that bleeds to the shell's edges (a `ChapterBand`) can undo exactly them.
+ */
+.su-page-shell,
+.su-page-gutters {
+  --su-page-gutter-inline: var(--space-16);
+  --su-page-gutter-block: var(--space-20);
+}
+
+.su-page-shell {
+  padding: var(--su-page-gutter-block) var(--su-page-gutter-inline);
+}
+
+@media (min-width: 40rem) {
+  .su-page-shell,
+  .su-page-gutters {
+    --su-page-gutter-inline: var(--space-32);
+    --su-page-gutter-block: var(--space-40);
+  }
+}
+
+@media (min-width: 64rem) {
+  .su-page-shell,
+  .su-page-gutters {
+    --su-page-gutter-inline: var(--space-48);
+  }
+}
+
+/* A measured page's body column (an ITUN page under a band with `measure`):
+   its side padding is the measured band's own row padding, 16px on a phone
+   and 24px from `sm`, so the notch and the content start on one line, as
+   srd's `.srd-page-body` does. The caller sets the measure (`max-width`). */
+.su-page-column {
+  margin-inline: auto;
+  padding-inline: var(--space-16);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .su-page-column {
+    padding-inline: var(--space-24);
+  }
+}
+
+/* ══ The chapter band (`components/atoms/ChapterBand.tsx`) ═════════════════
+ *
+ * Layout only — the band's colour, its speckle and the notch's ink on the page
+ * ground are the component's. A phone stacks the aside above the notch and
+ * sets the title at hero; from `sm` they share one row and the title is the
+ * chapter size.
+ */
+/* `layout="bleed"` (the default) fills its container; a band that is a page
+   shell's first child also reaches out to the shell's edges and up to its top,
+   by the shell's own gutters. The gutter properties inherit to every
+   descendant, so this selector, not their presence, is what stops a band
+   deeper in the shell (mid-page, in a column) from bleeding past its box. */
+.su-chapter-band[data-layout='bleed'] {
+  width: 100%;
+}
+
+.su-page-shell > .su-chapter-band[data-layout='bleed']:first-child {
+  margin-inline: calc(-1 * var(--su-page-gutter-inline));
+  margin-top: calc(-1 * var(--su-page-gutter-block));
+  width: calc(100% + 2 * var(--su-page-gutter-inline));
+}
+
+.su-chapter-band__row {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-12);
+  margin-inline: auto;
+  padding: var(--space-32) var(--space-16) 0;
+}
+
+.su-chapter-band__title {
+  font-size: var(--text-hero);
+  padding: var(--space-8) var(--space-12) 0;
+}
+
+.su-chapter-band__aside {
+  align-items: center;
+  padding-bottom: var(--space-12);
+}
+
+/* `lead` (an ability page's level numeral) beside the notch, both on the
+   band's foot; the numeral at the title's size, which changes at `sm`. */
+.su-chapter-band__heading {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--space-12);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.su-chapter-band__heading > .su-chapter-band__title,
+.su-chapter-band[data-aside] .su-chapter-band__heading > .su-chapter-band__title {
+  align-self: flex-end;
+  min-width: 0;
+}
+
+.su-chapter-band__lead {
+  font-size: var(--text-hero);
+}
+
+/* The eyebrow (a breadcrumb) takes the band's top padding, so the title row
+   under it closes up to it. */
+.su-chapter-band__eyebrow {
+  padding: var(--space-24) var(--space-16) 0;
+}
+
+.su-chapter-band__eyebrow + .su-chapter-band__row {
+  padding-top: var(--space-12);
+}
+
+/* The corner (a page's controls) takes the band's top padding, at its right,
+   so the title row under it closes up to it. */
+.su-chapter-band__corner {
+  padding: var(--space-12) var(--space-16) 0;
+}
+
+.su-chapter-band__corner + .su-chapter-band__row {
+  padding-top: var(--space-12);
+}
+
+@media (min-width: 40rem) {
+  .su-chapter-band__row {
+    align-items: flex-end;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: var(--space-48) var(--space-24) 0;
+  }
+
+  .su-chapter-band__title {
+    font-size: var(--text-chapter);
+    padding: var(--space-12) var(--space-20) 0;
+  }
+
+  .su-chapter-band__lead {
+    font-size: var(--text-chapter);
+  }
+
+  .su-chapter-band__eyebrow {
+    padding: var(--space-32) var(--space-24) 0;
+  }
+
+  .su-chapter-band__eyebrow + .su-chapter-band__row {
+    padding-top: var(--space-12);
+  }
+
+  .su-chapter-band__corner {
+    padding: var(--space-16) var(--space-24) 0;
+  }
+
+  .su-chapter-band__corner + .su-chapter-band__row {
+    padding-top: var(--space-12);
+  }
+}
+
+/* A page-wide band with no `measure` (an ITUN sheet, the Starter Set, a
+   builder) sets its notch, corner and eyebrow on the page's own gutter, so the
+   title's cut-out lines up with the column of content under it, as a measured
+   band's does on the SRD. `.su-page-gutters` is a page that pads its own body
+   by the same gutters without being a `PageShell` (`LiveSheet`). It comes after
+   the band's own padding so it wins at every width. */
+:is(
+  .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+  .su-page-gutters > .su-chapter-band[data-layout='bleed']
+):not([data-measured])
+:is(.su-chapter-band__row, .su-chapter-band__corner, .su-chapter-band__eyebrow) {
+  padding-inline: var(--su-page-gutter-inline);
+}
+
+/* `asideAt="notch"`: a show page's stamps and controls, never above the
+   title (EDL E20). From `sm` they are one cluster at the row's far end, its
+   last line centred on the title's capitals, so a cluster that wraps grows up
+   the band, never down past the name; each child of the aside is a line of
+   it, right-aligned and wrapping. A phone has no room
+   beside the name, so the cluster follows it: below the band, on a strip of
+   the page ground the width of the band. */
+.su-chapter-band[data-aside='notch'] .su-chapter-band__row {
+  align-items: stretch;
+  gap: 0;
+  flex-direction: column;
+}
+
+.su-chapter-band[data-aside='notch'] .su-chapter-band__title,
+.su-chapter-band[data-aside='notch'] .su-chapter-band__heading {
+  align-self: flex-start;
+}
+
+.su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
+  align-items: flex-start;
+  background-color: var(--color-wk-bg);
+  flex-direction: column;
+  margin-inline: calc(-1 * var(--space-16));
+  padding: var(--space-12) var(--space-16) 0;
+}
+
+.su-chapter-band[data-aside='notch'] .su-chapter-band__aside > * {
+  justify-content: flex-start;
+}
+
+@media (min-width: 40rem) {
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__row {
+    align-items: flex-end;
+    column-gap: var(--space-24);
+    flex-direction: row;
+  }
+
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__title,
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__heading {
+    align-self: flex-end;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
+    align-items: flex-end;
+    background-color: transparent;
+    flex: 0 1 auto;
+    margin-inline: auto 0;
+    max-width: 60%;
+    /* Its last line (32px chips and buttons) centred on the middle of the
+       notch's capitals: the notch's baseline sits 0.076em above the band's
+       foot (Barlow Semi Condensed's descent less the half-leading of its 0.92
+       line) and its capitals' middle 0.352em above that. More lines stack up
+       the band (owner's rule, 2026-10-14). */
+    padding: 0 0 calc(var(--text-chapter) * 0.428 - 16px);
+  }
+
+  /* A quote (ITUN's front door) is not a line of chips: its foot sits on the
+     notch's baseline. */
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside:has(> figure) {
+    padding-bottom: calc(var(--text-chapter) * 0.076);
+  }
+
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside > * {
+    justify-content: flex-end;
+  }
+}
+
+/* ══ The nav drawer's index (`components/compositions/NavDrawer.tsx`) ═════════════
+ *
+ * A section stamp over compact rows (board 08): each row the full width, the
+ * name at its start and the count at its end, 44px tall — the drawer is a
+ * phone's nav, so its rows sit on the touch floor at every pointer.
+ */
+.su-nav-drawer__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: var(--space-12);
+}
+
+.su-nav-drawer__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-nav-drawer__rows > li + li {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+.su-nav-drawer__row {
+  align-items: center;
+  color: var(--color-ink);
+  display: flex;
+  font-size: var(--text-base);
+  gap: var(--space-12);
+  justify-content: space-between;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.su-nav-drawer__count {
+  color: var(--color-ink-2);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ══ The foot band (`components/atoms/ChapterFoot.tsx`) ════════════════════
+ *
+ * Layout only — colour, speckle and the ink rule are the component's. The
+ * page number is set large at the start; the citation (or the site links)
+ * sits at the end, and wraps under it on a phone.
+ */
+.su-chapter-foot__row {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-24);
+  justify-content: space-between;
+  margin-inline: auto;
+  padding: var(--space-12) var(--space-16);
+}
+
+.su-chapter-foot__start {
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+.su-chapter-foot__end {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+@media (min-width: 40rem) {
+  .su-chapter-foot__row {
+    padding-inline: var(--space-24);
+  }
+}

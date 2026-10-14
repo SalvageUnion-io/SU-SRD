@@ -1,38 +1,60 @@
 #!/usr/bin/env bun
 /**
- * Doc drift — `bun run check doc-drift`. Six checks, each asking whether
- * what a doc tells a reader is still true:
+ * Doc drift — `bun run check doc-drift`. Eleven checks, each asking whether
+ * what a doc, or a comment, tells a reader is still true:
  *
- *   paths    every backticked repo path in a live-instruction doc exists,
- *            unless the words beside it mark it as history or a proposal.
- *            Under `# Decisions`, only the Status and Decision of an ADR that
- *            still carries a Decision are scanned: they state what governs
- *            now; the rest of an ADR is the record of how it was decided.
+ *   paths    every backticked repo path in a live-instruction doc or a
+ *            Claude hook's text exists, unless the words beside it mark it as
+ *            history or a proposal.
  *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
  *            `bun run check <id>` in that same text, or in a Claude hook,
  *            names a real script or check id.
- *   claims   no agent doc (the live text of the docs above, the hooks and
- *            `.env.example`) repeats a claim the repo has retired
- *            (`RETIRED_CLAIMS`).
- *   decisions every ADR is one bare `## ADR-NNN` heading under `# Decisions`
- *            in docs/ARCHITECTURE.md, none missing or repeated, docs/adrs/
- *            stays gone, and an ADR whose Status amends, supersedes or
- *            reverses another is named in that other ADR's Status.
+ *   fixes    every repo path and bun command in a `tools/check.ts` fix hint
+ *            (printed under a failed gate) exists.
+ *   claims   no agent doc (the docs above, the hooks and `.env.example`;
+ *            the ADR entries excepted, which record what was retired) repeats
+ *            a claim the repo has retired (`RETIRED_CLAIMS`).
+ *   decisions every ADR is entry N of the numbered list under `## Decisions`
+ *            in docs/ARCHITECTURE.md (`N. **ADR-NNN Title**`), none missing or
+ *            repeated, and an entry that amends,
+ *            supersedes or reverses another is named in that other entry.
+ *            An ADR whose full text is kept (the ones code cites by §) is
+ *            one `docs/adr/NNN-slug.md` opening on `# ADR-NNN: Title`, linked
+ *            from entry N's headline. It has no front-matter: the status is
+ *            recorded once, in entry N.
+ *   shape    a terse doc (`TERSE_DOCS`) is numbered entries under `## `
+ *            sections: a bold headline, then at most two lines.
  *   links    every relative markdown link in a tracked `.md` file resolves,
  *            and its `#fragment`, into a `.md` file or the same file, names a
- *            heading there.
+ *            heading or an `<a id>` anchor there.
+ *   areas    every entry under `## Areas` in docs/ARCHITECTURE.md carries one
+ *            `<a id="slug"></a>` anchor, and every tracked file cites an Area
+ *            by that slug: no bare "Areas N" (the numbers shift whenever an
+ *            Area is inserted), and every `ARCHITECTURE.md#fragment` names an
+ *            anchor there other than the whole-section `#areas`.
  *   size     root and per-directory CLAUDE.md files stay under 8,000
- *            characters and `.claude/rules/*.md` under 4,000.
+ *            characters and `.claude/rules/*.md` under 4,000. A CLAUDE.md
+ *            counts the files it imports by an `@path` line (the root's
+ *            `@AGENTS.md`), since they load with it.
  *            They load into every agent session in scope, so growth costs
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
- *            budget on its live text: it replaced a folder, and terse is the
- *            point; the ADRs below it are an append-only record.
+ *            budget: terse is the point.
+ *   load     each named session profile (`SESSION_PROFILES`: srd,
+ *            itun+component-lib, bot) totals what it loads (the root
+ *            CLAUDE.md and its imports, each CLAUDE.md under its directories,
+ *            every rule whose `paths:` match a file there, and the docs its
+ *            text says to read first), held to a ratchet (`SESSION_CEILINGS`).
+ *   history  no comment in tracked code under apps/, packages/ or tools/
+ *            narrates history (`gates/lib/commentHistory`'s phrases, at zero).
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { CHECK_IDS } from './check'
-import { assertScanFloor } from './lib/scanFloor'
+import { checkCommentHistory } from 'gates/lib/commentHistory'
+import { assertScanFloor } from 'gates/lib/scanFloor'
+import type { SessionProfile } from 'gates/lib/sessionLoad'
+import { checkSessionLoad, gitignoredMatcher, importsOf, markdownIn } from 'gates/lib/sessionLoad'
+import { CHECK_IDS, CHECKS as GATES } from './check'
 
 const repoRoot = join(import.meta.dir, '..')
 
@@ -40,18 +62,6 @@ const repoRoot = join(import.meta.dir, '..')
 export type CheckResult = { ok: string; failures: string[] }
 
 const read = (root: string, relPath: string): string => readFileSync(join(root, relPath), 'utf-8')
-
-/** Repo-relative paths of the `.md` files at or below `dir`, sorted. */
-function markdownIn(root: string, dir: string): string[] {
-  const full = join(root, dir)
-  if (!existsSync(full)) return []
-  const found: string[] = []
-  for (const entry of readdirSync(full, { withFileTypes: true })) {
-    if (entry.isDirectory()) found.push(...markdownIn(root, `${dir}/${entry.name}`))
-    else if (entry.name.endsWith('.md')) found.push(`${dir}/${entry.name}`)
-  }
-  return found.sort()
-}
 
 /** Files in `dir` with extension `ext`, sorted, repo-relative. */
 function filesIn(root: string, dir: string, ext: string): string[] {
@@ -80,6 +90,7 @@ const LIVE_INSTRUCTION_DOC_DIRS = ['.claude/rules', '.claude/skills', 'docs/arch
 
 function liveInstructionDocs(root: string): string[] {
   return [
+    'AGENTS.md',
     'CLAUDE.md',
     'README.md',
     'docs/ARCHITECTURE.md',
@@ -89,6 +100,9 @@ function liveInstructionDocs(root: string): string[] {
 }
 
 const hookScripts = (root: string): string[] => filesIn(root, '.claude/hooks', '.sh')
+
+/** A hook script read as prose: comment markers dropped, so its comments split into sentences. */
+const hookProse = (source: string): string => source.replace(/^[ \t]*#+[ \t]?/gm, '')
 
 /** Markdown text split into blocks (blank-line separated; list items apart), fences dropped. */
 export function splitMarkdownBlocks(source: string): { line: number; text: string }[] {
@@ -122,76 +136,51 @@ const lineOf = (block: { line: number; text: string }, index: number): number =>
   block.line + (block.text.slice(0, index).match(/\n/g)?.length ?? 0)
 
 /** The heading that opens the architecture decision records. */
-const DECISIONS_HEADING = /^# Decisions$/m
+const DECISIONS_HEADING = /^## Decisions$/m
 
 /**
- * A markdown doc up to its `# Decisions` heading: the part that describes the
- * code as it is now.
+ * A markdown doc up to its `## Decisions` heading: the part that describes the
+ * code as it is now. The ADR entries below also record what was retired.
  */
-export function liveTextOf(source: string): string {
+function liveTextOf(source: string): string {
   const at = source.search(DECISIONS_HEADING)
   return at === -1 ? source : source.slice(0, at)
 }
 
-/** One `## ADR-NNN` section: its number and its lines, `start` 0-based in the doc. */
-type AdrSection = { n: number; start: number; lines: string[] }
+/** One numbered list entry: its number, the ADR it names (if any), its lines and their 0-based indices. */
+type Entry = { n: number; adr: number | undefined; start: number; lines: string[]; at: number[] }
 
-/** The ADR sections under `# Decisions`, each running to the next `## ` heading. */
-export function adrSections(source: string): AdrSection[] {
-  const lines = source.split('\n')
-  const decisions = lines.findIndex((line) => DECISIONS_HEADING.test(line))
-  if (decisions === -1) return []
-  const sections: AdrSection[] = []
+/** An entry's opening line: `12. **ADR-012 Title**` or `3. **Headline**`. */
+const ENTRY_START = /^(\d+)\.\s+\*\*(?:ADR-(\d+)\b)?/
+
+/** The numbered entries of each `## ` section, each with its continuation lines. */
+function entriesOf(source: string): (Entry & { section: string })[] {
+  const entries: (Entry & { section: string })[] = []
+  let section = ''
   let inFence = false
-  for (let i = decisions + 1; i < lines.length; i++) {
-    const line = lines[i] as string
+  for (const [i, line] of source.split('\n').entries()) {
     if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
     if (inFence) continue
-    const adr = line.match(/^##\s+ADR-(\d+)/)
-    if (adr) sections.push({ n: Number(adr[1]), start: i, lines: [] })
-    else if (/^##\s/.test(line)) sections.push({ n: Number.NaN, start: i, lines: [] })
-    sections.at(-1)?.lines.push(line)
-  }
-  return sections.filter((section) => !Number.isNaN(section.n))
-}
-
-/** Line offsets (within the section) of its `### <name>` subsection's body. */
-function subsectionLines(section: AdrSection, name: string): number[] {
-  const out: number[] = []
-  let inside = false
-  for (const [i, line] of section.lines.entries()) {
-    if (/^###\s/.test(line)) inside = line.trim() === `### ${name}`
-    else if (inside) out.push(i)
-  }
-  return out
-}
-
-/** The text of an ADR's `### Status`. */
-const statusOf = (section: AdrSection): string =>
-  subsectionLines(section, 'Status')
-    .map((i) => section.lines[i])
-    .join('\n')
-
-/**
- * The part of a doc whose paths and scripts must exist: its live text, plus the
- * Status and Decision of every ADR that still carries a `### Decision` (a
- * superseded ADR is a stub: heading, Status and a `git show` pointer). Every
- * other line is blanked, so line numbers still match the file.
- */
-export function checkedTextOf(source: string): string {
-  const at = source.search(DECISIONS_HEADING)
-  if (at === -1) return source
-  const lines = source.split('\n')
-  const keep = new Set<number>()
-  for (let i = 0; i < source.slice(0, at).split('\n').length - 1; i++) keep.add(i)
-  for (const section of adrSections(source)) {
-    if (!section.lines.some((line) => line.trim() === '### Decision')) continue
-    for (const name of ['Status', 'Decision']) {
-      for (const i of subsectionLines(section, name)) keep.add(section.start + i)
+    if (/^#{1,6}\s/.test(line)) {
+      section = line.replace(/^#+\s+/, '')
+      entries.push({ n: Number.NaN, adr: undefined, start: i, lines: [], at: [], section })
+      continue
+    }
+    const m = line.match(ENTRY_START)
+    if (m) {
+      const adr = m[2] === undefined ? undefined : Number(m[2])
+      entries.push({ n: Number(m[1]), adr, start: i, lines: [line], at: [i], section })
+    } else if (line.trim() !== '') {
+      entries.at(-1)?.lines.push(line)
+      entries.at(-1)?.at.push(i)
     }
   }
-  return lines.map((line, i) => (keep.has(i) ? line : '')).join('\n')
+  return entries.filter((entry) => !Number.isNaN(entry.n))
 }
+
+/** The ADR entries under `## Decisions`. */
+const adrEntries = (source: string) =>
+  entriesOf(source).filter((entry) => entry.section === 'Decisions' && entry.adr !== undefined)
 
 // ─── paths ──────────────────────────────────────────────────────────────────
 
@@ -253,35 +242,6 @@ export function pathCandidate(token: string): string | null {
   return null
 }
 
-/**
- * "This path is gitignored at the repo root": absent in CI by design, so its
- * existence proves nothing. Handles the rule shapes the root `.gitignore` uses.
- */
-export function gitignoredMatcher(root: string): (candidate: string) => boolean {
-  const file = join(root, '.gitignore')
-  if (!existsSync(file)) return () => false
-  const rules = readFileSync(file, 'utf-8')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line !== '' && !line.startsWith('#') && !line.startsWith('!'))
-  return (candidate) =>
-    rules.some((line) => {
-      const rule = line.replace(/^\//, '')
-      const bare = rule.replace(/\/$/, '')
-      // An unanchored pattern with no inner slash matches that name at any depth.
-      if (!line.startsWith('/') && !bare.includes('/') && !bare.includes('*')) {
-        return candidate.split('/').includes(bare)
-      }
-      if (rule.startsWith('**/')) {
-        const name = rule.slice(3)
-        return candidate.startsWith(name) || candidate.includes(`/${name}`)
-      }
-      if (rule.endsWith('/*')) return candidate.startsWith(rule.slice(0, -1))
-      if (rule.includes('*')) return false
-      return candidate === rule || candidate.startsWith(rule.endsWith('/') ? rule : `${rule}/`)
-    })
-}
-
 /** Docs cite modules the way code imports them, without an extension. */
 const existsAsModule = (path: string): boolean =>
   ['', '.ts', '.tsx', '/index.ts', '/index.tsx'].some((suffix) => existsSync(`${path}${suffix}`))
@@ -308,7 +268,7 @@ function resolvesFrom(root: string, doc: string, candidate: string, workspaces: 
  * any closing markup before whitespace; every table row and list item is its
  * own unit, so one history word cannot excuse a whole table.
  */
-function sentenceBounds(text: string, index: number): [number, number] {
+export function sentenceBounds(text: string, index: number): [number, number] {
   const boundary = /[.!?;][*_)\]`'"]*(?=\s)|\n\s*\n|\n(?=\s*(?:\||[-*+]\s|\d+[.)]\s))/g
   let start = 0
   let end = text.length
@@ -321,11 +281,6 @@ function sentenceBounds(text: string, index: number): [number, number] {
     }
   }
   return [start, end]
-}
-
-export function sentenceAround(text: string, index: number): string {
-  const [start, end] = sentenceBounds(text, index)
-  return text.slice(start, end)
 }
 
 const proseOf = (text: string): string => text.replace(/`[^`]*`/g, ' code ').toLowerCase()
@@ -369,8 +324,11 @@ export function checkBacktickedPathsExist(root: string): CheckResult {
     )
   }
 
-  for (const doc of liveInstructionDocs(root)) {
-    const source = checkedTextOf(read(root, doc))
+  const sources = [
+    ...liveInstructionDocs(root).map((doc) => [doc, read(root, doc)] as const),
+    ...hookScripts(root).map((hook) => [hook, hookProse(read(root, hook))] as const),
+  ]
+  for (const [doc, source] of sources) {
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
     for (const block of splitMarkdownBlocks(source)) {
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
@@ -412,66 +370,146 @@ function workspaceManifests(root: string): Map<string, string> {
 const owningManifest = (doc: string): string | undefined =>
   doc.match(/^((?:apps|packages)\/[^/]+)\//)?.[1]?.concat('/package.json')
 
-export function checkReferencedScripts(root: string): CheckResult {
+/** What a bun command reference is judged against. */
+type ScriptContext = {
+  rootScripts: Set<string>
+  manifests: Map<string, string>
+  scriptsIn: (manifest: string) => Set<string>
+}
+
+function scriptContext(root: string): ScriptContext {
+  return {
+    rootScripts: scriptsOf(root, 'package.json'),
+    manifests: workspaceManifests(root),
+    scriptsIn: (manifest) => scriptsOf(root, manifest),
+  }
+}
+
+/**
+ * Failures for each `bun run <script>`, `bun run check <id>` and
+ * `bun --filter <ws> <script>` in `text`, with the number of references judged.
+ * `owner` is the manifest whose scripts `text` may name without `--filter`.
+ */
+function scriptReferenceFailures(
+  label: string,
+  text: string,
+  ctx: ScriptContext,
+  owner: string | undefined
+): { failures: string[]; checked: number } {
   const failures: string[] = []
-  const rootScripts = scriptsOf(root, 'package.json')
-  const manifests = workspaceManifests(root)
+  const localScripts = owner ? ctx.scriptsIn(owner) : new Set<string>()
   let checked = 0
 
-  for (const doc of [...liveInstructionDocs(root), ...hookScripts(root)]) {
-    const text = doc.endsWith('.md') ? checkedTextOf(read(root, doc)) : read(root, doc)
-    const owner = owningManifest(doc)
-    const localScripts = owner ? scriptsOf(root, owner) : new Set<string>()
-
-    for (const m of text.matchAll(/\bbun run ([a-z][\w:-]*)/g)) {
-      const script = m[1] as string
-      checked++
-      if (!rootScripts.has(script) && !localScripts.has(script)) {
-        failures.push(
-          `${doc} references \`bun run ${script}\`, which is not a script in the root ` +
-            `package.json${owner ? ` or ${owner}` : ''}.`
-        )
-      }
+  for (const m of text.matchAll(/\bbun run ([a-z][\w:-]*)/g)) {
+    const script = m[1] as string
+    checked++
+    if (!ctx.rootScripts.has(script) && !localScripts.has(script)) {
+      failures.push(
+        `${label} references \`bun run ${script}\`, which is not a script in the root ` +
+          `package.json${owner ? ` or ${owner}` : ''}.`
+      )
     }
+  }
 
-    // `bun run check data doc-drift`: the words after `check` are registry ids, but only
-    // where the command visibly ends (a closing backtick or quote, or end of line / `#`).
-    for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[`'"]|[ \t]*(?:#|$))/gm)) {
-      for (const id of (m[1] ?? '').trim().split(' ')) {
-        checked++
-        if (!CHECK_IDS.includes(id)) {
-          failures.push(
-            `${doc} references \`bun run check ${id}\`, but \`${id}\` is not a check id in ` +
-              `tools/check.ts (known: ${CHECK_IDS.join(', ')}).`
-          )
-        }
-      }
-    }
-
-    for (const m of text.matchAll(/\bbun --filter ([\w-]+) ([a-z][\w:-]*)/g)) {
-      const [, workspace, script] = m as unknown as [string, string, string]
+  // `bun run check data doc-drift`: the words after `check` are registry ids, but only
+  // where the command visibly ends (a closing backtick or quote, or end of line / `#`).
+  for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[`'"]|[ \t]*(?:#|$))/gm)) {
+    for (const id of (m[1] ?? '').trim().split(' ')) {
       checked++
-      const manifest = manifests.get(workspace)
-      if (manifest === undefined) {
-        failures.push(`${doc} references \`bun --filter ${workspace}\`, which is no workspace.`)
-      } else if (!scriptsOf(root, manifest).has(script)) {
+      if (!CHECK_IDS.includes(id)) {
         failures.push(
-          `${doc} references \`bun --filter ${workspace} ${script}\`, which is not a script in ${manifest}.`
+          `${label} references \`bun run check ${id}\`, but \`${id}\` is not a check id in ` +
+            `tools/check.ts (known: ${CHECK_IDS.join(', ')}).`
         )
       }
     }
   }
 
+  for (const m of text.matchAll(/\bbun --filter ([\w-]+) ([a-z][\w:-]*)/g)) {
+    const [, workspace, script] = m as unknown as [string, string, string]
+    checked++
+    const manifest = ctx.manifests.get(workspace)
+    if (manifest === undefined) {
+      failures.push(`${label} references \`bun --filter ${workspace}\`, which is no workspace.`)
+    } else if (!ctx.scriptsIn(manifest).has(script)) {
+      failures.push(
+        `${label} references \`bun --filter ${workspace} ${script}\`, which is not a script in ${manifest}.`
+      )
+    }
+  }
+
+  return { failures, checked }
+}
+
+export function checkReferencedScripts(root: string): CheckResult {
+  const failures: string[] = []
+  const ctx = scriptContext(root)
+  let checked = 0
+
+  for (const doc of [...liveInstructionDocs(root), ...hookScripts(root)]) {
+    const found = scriptReferenceFailures(doc, read(root, doc), ctx, owningManifest(doc))
+    failures.push(...found.failures)
+    checked += found.checked
+  }
+
   return { ok: `documented bun scripts exist (${checked} references checked)`, failures }
+}
+
+// ─── fixes ──────────────────────────────────────────────────────────────────
+
+/** A gate's one-line fix hint, as the `tools/check.ts` registry prints it under a failure. */
+export type FixHint = { id: string; fix: string }
+
+const REGISTRY_FIX_HINTS: FixHint[] = GATES.map(({ id, fix }) => ({ id, fix }))
+
+/** A repo-rooted path in running text, backticked or bare: `tools/x.ts`, docs/A.md#anchor. */
+const FIX_HINT_PATH = new RegExp(
+  `(?<![\\w./-])((?:${REPO_PATH_ROOTS.map((r) => r.replace('.', '\\.')).join('|')})/[\\w./-]*[\\w/])`,
+  'g'
+)
+
+/** A path template, not a path: `docs/adr/NNN-slug.md`. */
+const FIX_HINT_TEMPLATE = /\bN{3,}\b/
+
+/**
+ * The fix hints are instructions too, read at the worst moment: under a red
+ * gate. Every repo path one names must exist, and every bun command name a
+ * real script or check id.
+ */
+export function checkFixHints(root: string, hints: FixHint[] = REGISTRY_FIX_HINTS): CheckResult {
+  const failures: string[] = []
+  const workspaces = workspaceDirs(root)
+  const ctx = scriptContext(root)
+  let checked = 0
+
+  for (const { id, fix } of hints) {
+    const label = `tools/check.ts fix hint for \`${id}\``
+    for (const m of fix.matchAll(FIX_HINT_PATH)) {
+      const candidate = (m[1] as string).replace(/\/$/, '')
+      if (FIX_HINT_TEMPLATE.test(candidate)) continue
+      checked++
+      if (!resolvesFrom(root, 'tools/check.ts', candidate, workspaces)) {
+        failures.push(`${label} names ${candidate}, which does not exist. Fix the hint.`)
+      }
+    }
+    const found = scriptReferenceFailures(label, fix, ctx, undefined)
+    failures.push(...found.failures)
+    checked += found.checked
+  }
+
+  return { ok: `check.ts fix hints name real paths and scripts (${checked} checked)`, failures }
 }
 
 // ─── claims ─────────────────────────────────────────────────────────────────
 
 /** Claims the repo has retired, each with what is true instead. */
-export const RETIRED_CLAIMS: [RegExp, string][] = [
+const RETIRED_CLAIMS: [RegExp, string][] = [
   [/local-first/i, 'ITUN is account-gated: persistence requires an account (ADR-034)'],
   [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
-  [/in-memory (?:backend|only)/i, 'signed out, ITUN is read-only: see apps/itun/CLAUDE.md'],
+  [
+    /in-memory (?:backend|only)/i,
+    'signed out, ITUN is read-only: see .claude/rules/itun-data-access.md',
+  ],
   [/\bEntityDisplay\b|\bDisplayCard\b/, 'the card shells are ReferenceEntityCard and Card'],
   [/prettier/i, 'Biome is the only formatter'],
   [/"bun test"/, 'the gate is `bun run test`'],
@@ -486,11 +524,11 @@ export const RETIRED_CLAIMS: [RegExp, string][] = [
   [/salvage-tolerant/i, 'cache reads are strict: an unreadable row is skipped and refilled'],
   [
     /`gh` (?:CLI )?is (?:usually )?absent|\(no `gh`/i,
-    'cloud sessions have `gh`, REST only: `gh pr`/`gh issue` get 403 (docs/ARCHITECTURE.md#cloud-sessions)',
+    'cloud sessions have `gh`, REST only: `gh pr`/`gh issue` get 403 (docs/ARCHITECTURE.md, Cloud sessions)',
   ],
 ]
 
-/** Every doc an agent reads as instructions: live text only, so ADRs keep their history. */
+/** Every doc an agent reads as instructions: live text only, so ADR entries keep their history. */
 const agentDocs = (root: string): string[] => [
   ...liveInstructionDocs(root),
   ...hookScripts(root),
@@ -552,7 +590,13 @@ export function headingSlug(heading: string): string {
     .replace(/\s/g, '-')
 }
 
-/** Every heading anchor in a markdown source, fences skipped, repeats suffixed `-1`, `-2`. */
+/** An anchor GitHub keeps in rendered markdown: `<a id="slug">` or `<a name="slug">`. */
+const HTML_ANCHOR = /<a\s+(?:id|name)="([^"]+)"/g
+
+/**
+ * Every anchor in a markdown source, fences skipped: each heading's slug,
+ * repeats suffixed `-1`, `-2`, and each `<a id>` / `<a name>`.
+ */
 function headingSlugs(source: string): Set<string> {
   const slugs = new Set<string>()
   const seen = new Map<string, number>()
@@ -562,7 +606,11 @@ function headingSlugs(source: string): Set<string> {
       inFence = !inFence
       continue
     }
-    const heading = inFence ? null : line.match(/^\s{0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/)
+    if (inFence) continue
+    for (const anchor of line.replace(/`[^`]*`/g, '').matchAll(HTML_ANCHOR)) {
+      slugs.add(anchor[1] as string)
+    }
+    const heading = line.match(/^\s{0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/)
     if (!heading) continue
     const base = headingSlug(heading[1] as string)
     const repeat = seen.get(base) ?? 0
@@ -609,7 +657,7 @@ export function checkMarkdownLinks(
         if (fragment === undefined || fragment === '' || !resolved.endsWith('.md')) continue
         if (!slugsOf(resolved).has(decodeURIComponent(fragment))) {
           failures.push(
-            `${at} links to \`${target}\`, whose #${fragment} is no heading in ${resolved}.`
+            `${at} links to \`${target}\`, whose #${fragment} is no heading or anchor in ${resolved}.`
           )
         }
       }
@@ -621,119 +669,269 @@ export function checkMarkdownLinks(
   }
 }
 
-// ─── decisions ──────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 areas \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
-/** The one file the ADRs live in, under its `# Decisions` heading. */
+/** The doc whose `## Areas` entries the rest of the repo cites. */
+const AREAS_DOC = 'docs/ARCHITECTURE.md'
+
+/** An Area's anchor, closing its headline line: ` <a id="slug"></a>`, the slug lowercase and hyphenated. */
+const AREA_ANCHOR = / <a id="([a-z0-9]+(?:-[a-z0-9]+)*)"><\/a>$/
+
+/** "Areas 17", "Area 9\u201312": an Area cited by a number, which shifts whenever one is inserted. */
+const AREA_NUMBER = /\bAreas?\s+\d+/g
+
+/** `ARCHITECTURE.md#fragment`, as a link target or a path in a comment. */
+const AREAS_DOC_FRAGMENT = /\bARCHITECTURE\.md#([\w%-]+)/g
+
+/** `ARCHITECTURE.md ("Title")`, `ARCHITECTURE.md, "Title"` or `ARCHITECTURE.md § Title`: a title nothing resolves. */
+const AREAS_DOC_TITLE = /\bARCHITECTURE\.md(?: \("|, "| §)/g
+
+/** The checker and its tests, whose fixtures cite fragments that do not exist on purpose. */
+const AREA_CITATION_EXEMPT = new Set([
+  'tools/check-doc-drift.ts',
+  'tools/__tests__/check-doc-drift.test.ts',
+])
+
+/** Every tracked text file that cites `ARCHITECTURE.md#…`, a section by title, or an Area by number. */
+function filesCitingAreas(root: string): string[] {
+  const out = Bun.spawnSync(
+    [
+      'git',
+      'grep',
+      '-lIE',
+      '-e',
+      'ARCHITECTURE\\.md#',
+      '-e',
+      'ARCHITECTURE\\.md( \\("|, "| §)',
+      '-e',
+      'Areas? +[0-9]',
+    ],
+    { cwd: root }
+  )
+  // git grep exits 1 when nothing matches.
+  if (out.exitCode > 1) throw new Error(`git grep failed: ${out.stderr.toString()}`)
+  return out.stdout
+    .toString()
+    .split('\n')
+    .filter((file) => file !== '' && !AREA_CITATION_EXEMPT.has(file))
+}
+
+export function checkAreaCitations(
+  root: string,
+  files: string[] = filesCitingAreas(root)
+): CheckResult {
+  const failures: string[] = []
+  const source = read(root, AREAS_DOC)
+  const areas = entriesOf(source).filter((entry) => entry.section === 'Areas')
+  if (areas.length === 0) failures.push(`${AREAS_DOC} has no numbered entries under \`## Areas\`.`)
+  const seen = new Set<string>()
+  for (const entry of areas) {
+    const at = `${AREAS_DOC}:${entry.start + 1}`
+    const slug = entry.lines[0]?.match(AREA_ANCHOR)?.[1]
+    if (slug === undefined) {
+      failures.push(
+        `${at} is an Area with no anchor. End its headline line with \` <a id="slug"></a>\` (lowercase, hyphenated).`
+      )
+    } else if (seen.has(slug)) {
+      failures.push(`${at} repeats the anchor #${slug}. Give each Area its own.`)
+    } else {
+      seen.add(slug)
+    }
+  }
+  const anchors = headingSlugs(source)
+  let cited = 0
+  for (const file of files) {
+    for (const [index, line] of read(root, file).split('\n').entries()) {
+      const at = `${file}:${index + 1}`
+      for (const m of line.matchAll(AREA_NUMBER)) {
+        failures.push(
+          `${at} cites "${m[0]}" by number, which shifts when an Area is inserted. Cite its anchor: \`ARCHITECTURE.md#slug\`.`
+        )
+      }
+      for (const m of line.matchAll(AREAS_DOC_TITLE)) {
+        failures.push(
+          `${at} cites ARCHITECTURE.md by a section title (\`${m[0].slice(m[0].indexOf(' '))}\`), which nothing resolves. Cite its anchor: \`ARCHITECTURE.md#slug\`.`
+        )
+      }
+      for (const m of line.matchAll(AREAS_DOC_FRAGMENT)) {
+        cited++
+        const fragment = decodeURIComponent(m[1] as string)
+        if (fragment === 'areas') {
+          failures.push(
+            `${at} cites ARCHITECTURE.md#areas, the whole section. Cite the Area's own anchor.`
+          )
+        } else if (!anchors.has(fragment)) {
+          failures.push(
+            `${at} cites ARCHITECTURE.md#${fragment}, which is no heading or anchor in ${AREAS_DOC}.`
+          )
+        }
+      }
+    }
+  }
+  return {
+    ok: `${areas.length} Areas anchored; ${cited} ARCHITECTURE.md# citations in ${files.length} files resolve`,
+    failures,
+  }
+}
+
+// \u2500\u2500\u2500 decisions \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+/** The one file the ADRs live in, as the numbered entries under its `## Decisions`. */
 const DECISIONS_DOC = 'docs/ARCHITECTURE.md'
 
-/** The ADR count when docs/adrs/ was folded into DECISIONS_DOC: none may go missing. */
-const ADR_FLOOR = 39
+/** The ADR count when the ADRs became one-entry summaries: none may go missing. */
+const ADR_FLOOR = 45
 
 const adrId = (n: number): string => `ADR-${String(n).padStart(3, '0')}`
 
-/** "Amends [ADR-022]", "**Supersedes ADR-004**", "reverses ADR-019": one ADR acting on another. */
+/** "Amends ADR-022", "Supersedes ADR-004", "reverses ADR-019": one ADR acting on another. */
 const ACTS_ON = /\b(amends|supersedes|reverses|replaces)\b[\s*_]*\[?ADR-(\d{3})\b/gi
 
-/** "**Also amends:**": a lead-in whose list items below it each open on the ADR acted on. */
-const ACTS_ON_LIST = /\b(amends|supersedes|reverses|replaces)\b[^\n]*:[\s*_]*$/i
-
-/** "- [ADR-030](#adr-030) §5: …": the ADR a list item under an ACTS_ON_LIST lead-in names first. */
-const LIST_ITEM_ADR = /^\s*[-*+]\s+[*_]*\[?ADR-(\d{3})\b/
-
-/** Every (verb, target ADR) a Status states, inline or as a list under a lead-in. */
-function actsOn(status: string): { verb: string; target: number }[] {
-  const acts = [...status.matchAll(ACTS_ON)].map((m) => ({
-    verb: (m[1] as string).toLowerCase(),
-    target: Number(m[2]),
-  }))
-  let listVerb: string | undefined
-  for (const line of status.split('\n')) {
-    const leadIn = line.match(ACTS_ON_LIST)
-    if (leadIn) {
-      listVerb = (leadIn[1] as string).toLowerCase()
-      continue
-    }
-    if (listVerb === undefined) continue
-    // The list runs while its lines are items or their indented continuations.
-    if (!/^(\s+\S|[-*+]\s)/.test(line)) {
-      listVerb = undefined
-      continue
-    }
-    const item = line.match(LIST_ITEM_ADR)
-    if (item) acts.push({ verb: listVerb, target: Number(item[1]) })
-  }
-  return acts
-}
-
 /**
- * An ADR whose Status amends, supersedes or reverses another must be named in
- * that other ADR's Status, which is where a reader of it looks first.
+ * An ADR entry that amends, supersedes or reverses another must be named in
+ * that other entry, which is where a reader of it looks first.
  */
-export function missingBackReferences(source: string): string[] {
-  const sections = adrSections(source)
-  const status = new Map(sections.map((section) => [section.n, statusOf(section)]))
+function missingBackReferences(source: string): string[] {
+  const text = new Map(adrEntries(source).map((entry) => [entry.adr, entry.lines.join('\n')]))
   const failures: string[] = []
-  for (const section of sections) {
-    const self = adrId(section.n)
-    for (const { verb, target } of actsOn(status.get(section.n) ?? '')) {
-      if (target === section.n || !status.has(target)) continue
-      if (status.get(target)?.includes(self)) continue
+  for (const [n, body] of text) {
+    const self = adrId(n as number)
+    for (const m of body.matchAll(ACTS_ON)) {
+      const target = Number(m[2])
+      if (target === n || !text.has(target) || text.get(target)?.includes(self)) continue
       failures.push(
-        `${DECISIONS_DOC}: ${self} ${verb} ${adrId(target)}, but ` +
-          `${adrId(target)}'s Status does not name ${self}. Add a dated line there ` +
-          `("**Amended by [${self}](#${self.toLowerCase()})** …").`
+        `${DECISIONS_DOC}: ${self} ${(m[1] as string).toLowerCase()} ${adrId(target)}, but ` +
+          `${adrId(target)}'s entry does not name ${self}. Add "amended by ${self}" there.`
       )
     }
   }
   return failures
 }
 
+/** Where an ADR's full text lives when it is kept: `docs/adr/NNN-slug.md`. */
+const ADR_DIR = 'docs/adr'
+const ADR_FILE = /^(\d{3})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/
+
+/** Every way a `docs/adr/` file breaks the layout or loses its entry's link. */
+function adrFileFailures(root: string, source: string): { count: number; failures: string[] } {
+  const failures: string[] = []
+  const dir = join(root, ADR_DIR)
+  const names = existsSync(dir) ? readdirSync(dir).sort() : []
+  const entries = new Map(adrEntries(source).map((entry) => [entry.adr, entry]))
+  const seen = new Map<number, string>()
+  for (const name of names) {
+    const doc = `${ADR_DIR}/${name}`
+    const m = name.match(ADR_FILE)
+    if (!m) {
+      failures.push(`${doc} is not an ADR file. Name it \`NNN-slug.md\` (lowercase, hyphenated).`)
+      continue
+    }
+    const n = Number(m[1])
+    const other = seen.get(n)
+    if (other) failures.push(`${adrId(n)} has two files, ${other} and ${doc}. Keep one.`)
+    seen.set(n, doc)
+    const entry = entries.get(n)
+    if (entry === undefined) {
+      failures.push(`${doc} has no ${adrId(n)} entry under \`## Decisions\` in ${DECISIONS_DOC}.`)
+    } else if (!(entry.lines[0] ?? '').includes(`](adr/${name})`)) {
+      failures.push(
+        `${DECISIONS_DOC}:${entry.start + 1} is ${adrId(n)}, whose full text is ${doc}: link it from the headline (\`· [full text](adr/${name})\`).`
+      )
+    }
+    const title = read(root, doc).split('\n')[0] ?? ''
+    if (title === '---') {
+      failures.push(
+        `${doc} has front-matter. Drop it: an ADR's status is recorded once, in its entry under \`## Decisions\` in ${DECISIONS_DOC}.`
+      )
+    } else if (!title.startsWith(`# ${adrId(n)}: `)) {
+      failures.push(`${doc} opens on "${title}"; its first line is \`# ${adrId(n)}: Title\`.`)
+    }
+  }
+  return { count: seen.size, failures }
+}
+
 export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckResult {
   const failures: string[] = []
-  if (existsSync(join(root, 'docs/adrs'))) {
-    failures.push(
-      `docs/adrs/ exists again. An ADR is a \`## ADR-NNN\` section under \`# Decisions\` in ${DECISIONS_DOC}: move it there.`
-    )
-  }
   if (!existsSync(join(root, DECISIONS_DOC))) {
     failures.push(`${DECISIONS_DOC}, which holds the ADRs, does not exist.`)
     return { ok: '', failures }
   }
-  const count = new Map<number, number>()
-  let inFence = false
-  let inDecisions = false
-  for (const [index, line] of read(root, DECISIONS_DOC).split('\n').entries()) {
-    if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
-    if (inFence) continue
-    if (DECISIONS_HEADING.test(line)) inDecisions = true
-    const adr = line.match(/^##\s+ADR-(\d+)/)
-    if (!adr) continue
-    const at = `${DECISIONS_DOC}:${index + 1}`
-    if (!/^## ADR-\d{3}$/.test(line)) {
+  const source = read(root, DECISIONS_DOC)
+  for (const [index, line] of source.split('\n').entries()) {
+    if (/^#{1,6}\s+ADR-\d/.test(line)) {
       failures.push(
-        `${at} heads an ADR "${line}". The heading is bare (\`## ADR-NNN\`); the title goes on the line below.`
+        `${DECISIONS_DOC}:${index + 1} heads an ADR. An ADR is a numbered entry under \`## Decisions\`, not a heading.`
       )
-    } else if (!inDecisions) {
-      failures.push(`${at} is an ADR above \`# Decisions\`. Move it into that section.`)
     }
-    const n = Number(adr[1])
-    count.set(n, (count.get(n) ?? 0) + 1)
+  }
+  const count = new Map<number, number>()
+  for (const entry of entriesOf(source)) {
+    if (entry.adr === undefined) continue
+    const at = `${DECISIONS_DOC}:${entry.start + 1}`
+    if (entry.section !== 'Decisions') {
+      failures.push(`${at} is an ADR entry outside \`## Decisions\`. Move it there.`)
+    } else if (entry.n !== entry.adr) {
+      failures.push(`${at} numbers ${adrId(entry.adr)} as entry ${entry.n}. Entry N is ADR-N.`)
+    }
+    count.set(entry.adr, (count.get(entry.adr) ?? 0) + 1)
   }
   const highest = Math.max(floor, ...count.keys())
   for (let n = 1; n <= highest; n++) {
     const seen = count.get(n) ?? 0
     if (seen === 0)
       failures.push(
-        `${DECISIONS_DOC} has no \`## ${adrId(n)}\`. ADRs are never deleted or renumbered: restore it.`
+        `${DECISIONS_DOC} has no ${adrId(n)} entry. ADRs are never deleted or renumbered: restore it.`
       )
     if (seen > 1)
       failures.push(
-        `${DECISIONS_DOC} heads \`## ${adrId(n)}\` ${seen} times. Give the new decision the next number.`
+        `${DECISIONS_DOC} lists ${adrId(n)} ${seen} times. Give the new decision the next number.`
       )
   }
-  failures.push(...missingBackReferences(read(root, DECISIONS_DOC)))
+  failures.push(...missingBackReferences(source))
+  const files = adrFileFailures(root, source)
+  failures.push(...files.failures)
   return {
-    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under # Decisions in ${DECISIONS_DOC}, every amendment named in the Status it amends`,
+    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under ## Decisions in ${DECISIONS_DOC}, every amendment named in the entry it amends; ${files.count} full-text ADR files, each linked from its entry`,
+    failures,
+  }
+}
+
+// ─── shape ──────────────────────────────────────────────────────────────────
+
+/** Docs that are numbered entries only: a bold headline, then at most two lines. */
+const TERSE_DOCS = ['docs/ARCHITECTURE.md']
+
+/** Description lines an entry may carry under its headline. */
+const ENTRY_LINES = 2
+
+export function checkTerseShape(root: string, docs: string[] = TERSE_DOCS): CheckResult {
+  const failures: string[] = []
+  let entries = 0
+  for (const doc of docs) {
+    if (!existsSync(join(root, doc))) {
+      failures.push(`TERSE_DOCS names ${doc}, which does not exist. Remove the entry.`)
+      continue
+    }
+    const source = read(root, doc)
+    for (const entry of entriesOf(source)) {
+      entries++
+      const at = `${doc}:${entry.start + 1}`
+      const extra = entry.lines.slice(1)
+      if (extra.length > ENTRY_LINES) {
+        failures.push(
+          `${at} runs ${extra.length} lines under its headline; the limit is ${ENTRY_LINES}. Cut it: history is in git.`
+        )
+      }
+      const stray = extra.findIndex((line) => !/^\s+\S/.test(line))
+      if (stray !== -1) {
+        failures.push(
+          `${doc}:${(entry.at[stray + 1] as number) + 1} is prose between entries. Fold it into an entry or cut it.`
+        )
+      }
+    }
+  }
+  return {
+    ok: `${entries} entries in ${docs.length} terse doc(s) within ${ENTRY_LINES} lines`,
     failures,
   }
 }
@@ -748,24 +946,24 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  // +464 for the `convex-ai` block `convex ai-files` writes and maintains.
-  'apps/itun/CLAUDE.md': 13_618,
-  'apps/srd/CLAUDE.md': 11_748,
-  'CLAUDE.md': 12_065,
-  'packages/component-lib/CLAUDE.md': 15_948,
-  'packages/salvageunion-reference/CLAUDE.md': 9_333,
+  'apps/itun/CLAUDE.md': 8_266,
 }
 
 /**
- * A doc that replaced a folder of docs, and the budget that keeps its live
- * text (`liveTextOf`: everything above `# Decisions`) terse. The ADRs below
- * are an append-only record and are not counted. Raise one only on purpose,
- * saying why in the PR.
+ * Context docs collapsed to terse lists, each held near its collapsed size so
+ * prose cannot creep back. Raise one only on purpose, saying why in the PR.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
-  // The architecture sections as measured when the budget moved to live text,
-  // plus "Preview deploys" and the staging backend (#preview-deploys).
-  'docs/ARCHITECTURE.md': 56_610,
+  'apps/srd/ssg/DESIGN.md': 5_400,
+  'docs/ARCHITECTURE.md': 20_500,
+  'docs/README.md': 2_600,
+  'docs/architecture/dashboard.md': 3_000,
+  'docs/architecture/mediator-dashboard.md': 4_500,
+  'docs/architecture/npc-builder.md': 2_000,
+  'docs/design-system/entity-display-language.md': 6_000,
+  'docs/design-system/ruleset.md': 13_350,
+  'docs/design-system/sources.md': 3_600,
+  'docs/ops/cloud-environment.md': 3_800,
 }
 
 export function checkDocSizes(
@@ -788,11 +986,17 @@ export function checkDocSizes(
   }
   for (const [doc, base] of budgeted) {
     const budget = overBudget[doc] ?? base
-    const text = doc in collapsed ? liveTextOf(read(root, doc)) : read(root, doc)
-    const size = [...text].length
+    const text = read(root, doc)
+    const imported = importsOf(doc, text)
+    let size = [...text].length
+    for (const path of imported) {
+      if (existsSync(join(root, path))) size += [...read(root, path)].length
+      else failures.push(`${doc} imports @${path}, which does not exist.`)
+    }
     if (size > budget) {
+      const what = imported.length > 0 ? `${doc} with ${imported.join(', ')}` : doc
       failures.push(
-        `${doc} is ${size} characters, over its ${budget}-character budget. Cut it: no rosters, ` +
+        `${what} is ${size} characters, over its ${budget}-character budget. Cut it: no rosters, ` +
           'no history, no restating what a check or --list already says.'
       )
     }
@@ -805,34 +1009,61 @@ export function checkDocSizes(
   return { ok: `${budgeted.length} agent docs within their size budgets`, failures }
 }
 
+// ─── load ───────────────────────────────────────────────────────────────────
+
+/** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
+const SESSION_PROFILES: Record<string, SessionProfile> = {
+  srd: { dirs: ['apps/srd'], reads: [] },
+  /** The Convex CLI writes the guidelines; a Convex upgrade that grows them raises this on purpose. */
+  'itun+component-lib': {
+    dirs: ['apps/itun', 'packages/component-lib'],
+    reads: ['apps/itun/convex/_generated/ai/guidelines.md'],
+  },
+  bot: { dirs: ['apps/discord-bot'], reads: [] },
+}
+
+/**
+ * Characters each profile loads, held at today's total: a ratchet. Lower an
+ * entry when its total drops more than `SESSION_SLACK` under it (the check says
+ * so); raise one only on purpose, saying why in the commit.
+ */
+const SESSION_CEILINGS: Record<string, number> = {
+  srd: 24_350,
+  'itun+component-lib': 58_927,
+  bot: 22_634,
+}
+
 // ─── runner ─────────────────────────────────────────────────────────────────
 
 const CHECKS = [
   checkBacktickedPathsExist,
   checkReferencedScripts,
+  (root: string) => checkFixHints(root),
   (root: string) => checkRetiredClaims(root),
   (root: string) => checkMarkdownLinks(root),
+  (root: string) => checkAreaCitations(root),
   (root: string) => checkDecisions(root),
+  (root: string) => checkTerseShape(root),
   (root: string) => checkDocSizes(root),
+  (root: string) => checkSessionLoad(root, SESSION_PROFILES, SESSION_CEILINGS),
+  checkCommentHistory,
 ] as const
 
-if (import.meta.main) {
-  // A collapsed corpus (a renamed doc directory) would pass every check. The floor is
-  // floor(0.65 × N) for N = 21, the count once the workspace READMEs, CONTRIBUTING.md
-  // and the done plans in docs/architecture/ were cut (#1149).
-  const liveDocs = liveInstructionDocs(repoRoot)
+/** Run every check over the docs under `root` (floored: a collapsed corpus passes all); exit code. */
+export function main(root = repoRoot, checks: readonly ((r: string) => CheckResult)[] = CHECKS) {
+  const liveDocs = liveInstructionDocs(root)
   assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 13)
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
   const failures: string[] = []
-  for (const check of CHECKS) {
-    const result = check(repoRoot)
+  for (const check of checks) {
+    const result = check(root)
     if (result.failures.length === 0) console.log(`✓ ${result.ok}`)
     failures.push(...result.failures)
   }
   for (const message of failures) console.error(`✗ ${message}`)
-  if (failures.length > 0) {
-    console.error(`\n${failures.length} doc-drift failure(s)`)
-    process.exit(1)
-  }
+  if (failures.length > 0) console.error(`\n${failures.length} doc-drift failure(s)`)
+  return failures.length > 0 ? 1 : 0
 }
+
+if (import.meta.main) process.exit(main())

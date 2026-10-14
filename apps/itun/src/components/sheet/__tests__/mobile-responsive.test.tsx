@@ -1,9 +1,10 @@
 /**
  * Mobile-responsive regression tests for sheet components.
  *
- * AC-1: Sheet renders without horizontal overflow at 320px viewport width.
- * AC-5: the top-bar Share control and InlineEditField display state have ≥44px touch targets
- *       (verified via class attribute containing min-h-11).
+ * Sheet renders without horizontal overflow at 320px viewport width.
+ * The top-bar Share control and InlineEditField display state have ≥44px touch targets
+ *       (verified via the coarse-pointer floor every `.su-btn` gets, the Share control
+ *       included, and the inline `min-height: 2.75rem` on InlineEditField's display state).
  *
  * Design choices:
  * - 320px overflow check: happy-dom does not implement a full layout engine, so
@@ -12,9 +13,11 @@
  *   (entity content appears without throwing). Real 320px overflow verification
  *   requires a browser engine — this is tracked in the M3 a11y/perf work and
  *   should be covered by a Playwright / puppeteer visual regression test.
- * - Touch target: we assert the display-state span/button carries `min-h-11`
- *   in its className string, matching the Tailwind class applied in the source.
- *   This is the most reliable assertion in happy-dom (no computed styles).
+ * - Touch target: we assert the Share button is a `.su-btn` at the page-top
+ *   height (`.su-page-action`), and that `theme.css`'s coarse-pointer floor
+ *   lifts every `.su-btn` to 44px; and InlineEditField's display span its inline
+ *   `minHeight` (a style object). Both are the most
+ *   reliable assertions in happy-dom (no computed styles).
  *
  * Conventions:
  * - toBeTruthy() not toBeInTheDocument()
@@ -23,6 +26,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
 import { render, screen } from '@testing-library/react'
 import { InlineEditField } from 'component-lib'
 import {
@@ -79,7 +83,7 @@ const fakeCrawler = crawlerFixture({
 })
 
 // ---------------------------------------------------------------------------
-// AC-1: No horizontal overflow at 320px
+// No horizontal overflow at 320px
 // ---------------------------------------------------------------------------
 
 describe('Mobile responsive — renders without error at 320px container', () => {
@@ -153,11 +157,11 @@ describe('Mobile responsive — renders without error at 320px container', () =>
 })
 
 // ---------------------------------------------------------------------------
-// AC-5: Touch targets ≥44px on mobile
+// Touch targets ≥44px on mobile
 // ---------------------------------------------------------------------------
 
-describe('Mobile responsive — touch targets min-h-11', () => {
-  test('InlineEditField display state carries min-h-11 class', () => {
+describe('Mobile responsive — 44px touch targets', () => {
+  test('InlineEditField display state carries a 44px min-height', () => {
     render(
       <InlineEditField
         value={42}
@@ -168,20 +172,20 @@ describe('Mobile responsive — touch targets min-h-11', () => {
     )
     // Display state renders a span with role=button
     const displayEl = screen.getByRole('button')
-    expect((displayEl as HTMLElement).className).toContain('min-h-11')
+    expect((displayEl as HTMLElement).style.minHeight).toBe('2.75rem')
   })
 
-  test('InlineEditField readOnly display state also carries min-h-11 class', () => {
+  test('InlineEditField readOnly display state also carries a 44px min-height', () => {
     const { container } = render(
       <InlineEditField value={42} onSave={() => Promise.resolve()} type="number" readOnly />
     )
     // readOnly renders no button role — get via container querySelector
     const span = container.querySelector('span')
     expect(span).toBeTruthy()
-    expect((span as HTMLElement).className).toContain('min-h-11')
+    expect((span as HTMLElement).style.minHeight).toBe('2.75rem')
   })
 
-  test('the top-bar Share control carries min-h-11 (AC-5 touch target)', () => {
+  test('the top-bar Share control carries the 44px touch-target floor', () => {
     render(
       <Sheet
         kind="pilot"
@@ -192,13 +196,20 @@ describe('Mobile responsive — touch targets min-h-11', () => {
     )
     // A button since the share screen was deleted — same target, same rule.
     const share = screen.getByRole('button', { name: /share this pilot/i })
-    expect((share as HTMLElement).className).toContain('min-h-11')
+    const className = (share as HTMLElement).className
+    expect(className).toContain('su-btn')
+    expect(className).toContain('su-page-action')
+    // …and a touch screen lifts every `.su-btn` to the 44px floor.
+    const css = readFileSync(new URL(import.meta.resolve('component-lib/styles/theme.css')), 'utf8')
+    expect(css).toMatch(
+      /@media \(pointer: coarse\) \{[^}]*\.su-btn:not\(\.su-btn--mini\)[^}]*min-height: 44px;/
+    )
   })
 })
 
 // ---------------------------------------------------------------------------
-// LiveSheet shell: linked entities live in the rail (the #255 segment
-// switcher was removed with the Header C rebuild — one entity per sheet).
+// LiveSheet shell: linked entities live in the rail, not a segment switcher
+// (one entity per sheet).
 // ---------------------------------------------------------------------------
 
 describe('LiveSheet rail replaces the segment switcher', () => {
@@ -225,7 +236,7 @@ describe('LiveSheet rail replaces the segment switcher', () => {
         softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
-    // Linked units render the roster's `EntityRow`, whose View link is labelled
+    // Assigned units render the library Row (`UnitRow`), whose View link is labelled
     // "View" on every row — so the row is targeted by its DESTINATION, which is
     // what this test was ever asserting.
     const viewLink = screen

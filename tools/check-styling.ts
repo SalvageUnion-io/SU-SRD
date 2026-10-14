@@ -2,46 +2,61 @@
 /**
  * Styling gates — `bun run check styling`.
  *
- * One engine (`tools/lib/ruleEngine.ts`), three rule sets:
+ * One engine (`packages/gates/lib/ruleEngine.ts`), five rule sets:
  *
- *   - `tokens`   — design-token laws (tools/rules/designTokens.ts)
- *   - `styling`  — component-lib owns shared styling (tools/rules/stylingOwnership.ts)
- *   - `srd-css`  — srd's single stylesheet entry (tools/rules/srdCss.ts)
+ *   - `tokens`   — design-token laws (packages/gates/rules/designTokens.ts)
+ *   - `styling`  — component-lib owns shared styling (packages/gates/rules/stylingOwnership.ts)
+ *   - `srd-css`  — srd's single stylesheet entry (packages/gates/rules/srdCss.ts)
+ *   - `tone-ground` — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
+ *   - `class-prefix` — every package and ITUN class is `su-*` (packages/gates/rules/classPrefix.ts)
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
- * a test. A deleted Tailwind token stops generating its utility, a stray app
+ * a test. A deleted token leaves its `var()` resolving to nothing, a stray app
  * `@theme` compiles, a stylesheet imported from an SSR module silently never
  * ships. Each rule set's header carries its full reasoning.
  *
  * A rule is `zero` (any finding fails) or a `ratchet` counted against
- * `tools/styling-baseline.json`. A ratchet fails when its count RISES, and also
- * when it FALLS without the baseline falling with it — an unrecorded
- * improvement is slack that the next regression spends without anyone seeing.
+ * `tools/baselines/styling-baseline.json`. Every rule is `zero` but
+ * `styling/style-object-annotation`, the one with a backlog left. A ratchet
+ * fails when its count RISES, and also when it FALLS without the baseline
+ * falling with it — an unrecorded improvement is slack that the next
+ * regression spends without anyone seeing. A styling baseline only falls:
+ * `--update-baseline` refuses a rise outright.
  *
  * Usage:
- *   bun tools/check-styling.ts                      # all three sets
+ *   bun tools/check-styling.ts                      # every set
  *   bun tools/check-styling.ts --only=tokens        # one set (comma-separate for more)
  *   bun tools/check-styling.ts --update-baseline    # lower the ratchets to today's counts
- *   bun tools/check-styling.ts --update-baseline --allow-increase
- *                                                   # ONLY in a commit that makes a rule stricter,
- *                                                   # or that splits files without adding a
- *                                                   # utility (see tools/lib/ruleEngine.ts)
  *   bun tools/check-styling.ts --report             # print every finding; never fails
  */
 
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Baseline, RuleSet } from './lib/ruleEngine'
-import { evaluate, formatFailures, increases, ratchetCounts, readBaseline } from './lib/ruleEngine'
-import { designTokens } from './rules/designTokens'
-import { srdCss } from './rules/srdCss'
-import { stylingOwnership } from './rules/stylingOwnership'
+import type { Baseline, RuleSet } from 'gates/lib/ruleEngine'
+import {
+  evaluate,
+  formatFailures,
+  increases,
+  ratchetCounts,
+  readBaseline,
+} from 'gates/lib/ruleEngine'
+import { classPrefix } from 'gates/rules/classPrefix'
+import { designTokens } from 'gates/rules/designTokens'
+import { srdCss } from 'gates/rules/srdCss'
+import { stylingOwnership } from 'gates/rules/stylingOwnership'
+import { toneGround } from 'gates/rules/toneGround'
 
 const ROOT = join(import.meta.dir, '..')
-const BASELINE_PATH = join(import.meta.dir, 'styling-baseline.json')
+const BASELINE_PATH = join(import.meta.dir, 'baselines', 'styling-baseline.json')
 const UPDATE = 'bun tools/check-styling.ts --update-baseline'
 
-export const RULE_SETS: readonly RuleSet[] = [designTokens, stylingOwnership, srdCss]
+const RULE_SETS: readonly RuleSet[] = [
+  designTokens,
+  stylingOwnership,
+  srdCss,
+  toneGround,
+  classPrefix,
+]
 
 function selectedSets(argv: readonly string[]): RuleSet[] {
   const only = argv.find((a) => a.startsWith('--only='))?.slice('--only='.length)
@@ -83,20 +98,18 @@ function main(argv: readonly string[]): void {
       raised.push(...increases(baseline[set.id] ?? {}, counts).map((r) => `${set.id}/${r}`))
       next[set.id] = counts
     }
-    if (raised.length > 0 && !argv.includes('--allow-increase')) {
+    if (raised.length > 0) {
       console.error('✗ refusing to RAISE a ratchet baseline:')
       for (const r of raised) console.error(`    ${r}`)
       console.error(
-        '\n  A baseline only goes down. The two exceptions are the commit that makes a rule\n' +
-          '  STRICTER (it counts literals that were always there) and a pure FILE SPLIT (a\n' +
-          '  per-file count rises with no literal written) — pass --allow-increase there,\n' +
-          '  and write the reason and the evidence into the rule set.'
+        '\n  A styling baseline only goes down. Fix the new findings, or exempt a\n' +
+          '  genuinely-correct case in the rule set with a written reason.'
       )
       process.exit(1)
     }
     const ordered = Object.fromEntries(RULE_SETS.map((s) => [s.id, next[s.id] ?? {}]))
     writeFileSync(BASELINE_PATH, `${JSON.stringify(ordered, null, 2)}\n`)
-    console.log(`✓ baseline written: tools/styling-baseline.json`)
+    console.log(`✓ baseline written: tools/baselines/styling-baseline.json`)
     for (const set of sets) {
       for (const [id, n] of Object.entries(ordered[set.id] ?? {}))
         console.log(`   ${set.id}/${id}: ${n}`)

@@ -1,9 +1,9 @@
 /**
  * PublicSheet — one published sheet, read-only, for a reader with no account
- * ([ADR-032](../../../../../docs/ARCHITECTURE.md#adr-032)).
+ * ([ADR-032](../../../../../docs/adr/032-public-read-only-sheets.md)).
  *
  * Rendered by the same live `<Sheet>` as every other surface, from a store built
- * out of `publicSheet.get` (`readOnlySheetStore.ts`), so it adds no rendering
+ * out of `publicSheet.get` (`readOnlySheetStore.model.ts`), so it adds no rendering
  * code of its own. That query is reactive: the page reflects the sheet as it
  * stands right now, assignments included — its mech, its crawler, a crawler's
  * crew.
@@ -19,11 +19,13 @@
  * republishes, your crewmate's.
  */
 
+import type { EntityRef } from 'itun-domain/schemas/entity'
 import { useMemo } from 'react'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { PublicSheetAnswer } from './readOnlySheetStore'
-import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore'
+import { NotFoundPanel } from '../shared/RouteFallbacks'
+import type { PublicSheetAnswer } from './readOnlySheetStore.model'
+import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
+import { READ_ONLY_BANNER } from './sheetChrome.model'
 
 type PublicSheetProps = {
   /** The app id the page is addressed by — the published entity's own id. */
@@ -65,13 +67,15 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     // publishes precisely so the owner meets this first, but a schema that
     // moves afterwards can still land somebody here.
     return (
-      <main className="mx-auto max-w-5xl p-6">
-        <h1 className="mb-2 text-xl font-bold">Could not render this sheet</h1>
-        <p className="text-wk-muted mb-1 text-sm">
-          This build&rsquo;s data doesn&rsquo;t match anything this app knows how to show. It may
-          have been made with a newer or older version.
-        </p>
-      </main>
+      <NotFoundPanel
+        title="Could not render this sheet"
+        message={
+          <>
+            This build&rsquo;s data doesn&rsquo;t match anything this app knows how to show. It may
+            have been made with a newer or older version.
+          </>
+        }
+      />
     )
   }
 
@@ -80,7 +84,9 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
       <div
         role="note"
         aria-label="Read-only sheet"
-        className="border-b-2 border-ink bg-caution px-4 py-2 font-body text-sm font-semibold text-ink sm:px-[30px]"
+        className="su-sheet-public-banner"
+        // Its side padding widens at `sm` (`.su-sheet-public-banner`).
+        style={READ_ONLY_BANNER}
       >
         This sheet is shared read-only. It updates as its owner plays.
       </div>

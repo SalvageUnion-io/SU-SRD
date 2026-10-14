@@ -29,7 +29,7 @@ export type BackrefViolation = {
 
 // Every `actionSource` value maps 1:1 to a data file of the same basename. Any
 // source with no same-named entity is simply a no-op for this check.
-export const ACTION_SOURCE_FILES = [
+const ACTION_SOURCE_FILES = [
   'abilities',
   'systems',
   'modules',

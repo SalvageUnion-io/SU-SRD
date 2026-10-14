@@ -2,19 +2,21 @@
  * Zod entity schemas - all 24 entity types
  */
 
-import { z } from '../zod.js'
+import { z } from '../zod'
 import {
   IdSchema,
   NameSchema,
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
   TechLevelSchema,
-} from './common.js'
-import { ActionTypeSchema, DamageTypeSchema, SchemaNameSchema, TreeSchema } from './enums.js'
+} from './common'
+import { ActionTypeSchema, DamageTypeSchema, SchemaNameSchema, TreeSchema } from './enums'
 import {
   ActionSchema,
   AdvancedClassSchema,
   BaseEntitySchema,
+  BioTitanPatternSchema,
+  ChassisHeadSchema,
   ChassisStatsSchema,
   ChoicesSchema,
   CombatEntitySchema,
@@ -24,7 +26,6 @@ import {
   FormationMechSchema,
   GrantSchema,
   GuideStepSchema,
-  GuideToneSchema,
   GuideTypeSchema,
   MechanicalEntitySchema,
   NpcSchema,
@@ -34,7 +35,7 @@ import {
   SystemModuleSchema,
   TableSchema,
   TraitSchema,
-} from './objects.js'
+} from './objects'
 
 /**
  * Ability level can be number 1-3 or 'L' (Legendary) or 'G' (Generic)
@@ -94,12 +95,17 @@ export const MetaActionSchema = ActionSchema.describe(
  * Instinctual, mech-scale creatures (e.g. Scylla, Typhon, Chrysalis) with a
  * structurePoints + actions statblock — actions often include a "Titanic
  * Actions" entry. Bio-salvage extracted from a Bio-Titan equals its starting
- * Structure Points (derived at the display layer).
+ * Structure Points (derived at the display layer). A Bio-Titan may carry
+ * `patterns` — variants that add actions to its stats (`BioTitanPatternSchema`).
  */
 export const BioTitanSchema = BaseEntitySchema.extend({
   structurePoints: StructurePointsSchema.describe('Structure points of this bio-titan'),
   actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
+  patterns: z
+    .array(BioTitanPatternSchema)
+    .describe('Named variants of this bio-titan, each adding actions to its stats')
+    .optional(),
 })
   .strict()
   .describe('Mech-scale biological monsters')
@@ -114,6 +120,13 @@ export const ChassisSchema = BaseEntitySchema.extend({
     chassisAbilities: z
       .array(z.string())
       .describe('Array of chassis ability names that reference actions.json'),
+    heads: z
+      .array(ChassisHeadSchema)
+      .min(1)
+      .describe(
+        'Separately-crafted heads, each with its own stats and slots; the chassis stats are the body that carries them'
+      )
+      .optional(),
     patterns: z.array(PatternSchema).describe('Available mech patterns for this chassis'),
   })
   .strict()
@@ -153,7 +166,7 @@ export const ClassSchema = z
  * Expansion "upgrade" bays (e.g. Bio-Mech Bay, Nanite Processing Bay) are
  * bought with a mix of Scrap (at a given Tech level) and/or Bio-Salvage.
  */
-export const CrawlerBayCostSchema = z
+const CrawlerBayCostSchema = z
   .object({
     scrap: NonNegativeIntegerSchema.describe(
       'Amount of Scrap required to build this bay'
@@ -399,6 +412,12 @@ export const NPCSchema = BaseEntitySchema.extend({
 export const RollTableSchema = BaseEntitySchema.extend({
   table: TableSchema.describe('The roll table data with outcomes keyed by roll ranges'),
   content: ContentSchema.describe('Descriptive content for this roll table').optional(),
+  indexable: z
+    .literal(true)
+    .describe(
+      "A named Salvage Union table: @randsum/salvageunion's SALVAGE_UNION_TABLE_NAMES, which every roll on it goes through"
+    )
+    .optional(),
 })
   .strict()
   .describe('Random tables and roll tables')
@@ -461,26 +480,6 @@ export const VehicleSchema = BaseEntitySchema.extend({ ...MechanicalEntitySchema
  */
 export const GuideSchema = BaseEntitySchema.extend({
   guideType: GuideTypeSchema.describe('Category of this guide'),
-  guideTone: GuideToneSchema
-    // `ink` is a FALLBACK, not a shipped value. Every guide in
-    // `data/guides.json` names an explicit tone and none of them is `ink`, so
-    // nothing currently renders on this default; it exists so a guide added
-    // without a tone still parses and still gets an ink band rather than a
-    // blank one.
-    //
-    // A tone name, never a raw hex: a hex here would make the dataset a SECOND
-    // palette that never tracks a re-tone, and `entityCardTone.ts` gives this
-    // field precedence over the domain tone. The design-token gate cannot see
-    // it either: it scans `lib`, not `data`, and excludes `.json` outright.
-    //
-    // Naming a tone instead of spelling a colour keeps the value here and the
-    // colour in `theme.css`, which is the only place a colour is allowed to
-    // live. The five names map to `--color-{pilot,mech,crawler}` plus
-    // `--color-guide-{salvage,hazard}` for the two that are not an ontology
-    // domain; the mapping lives in component-lib, since the reference package
-    // must not know about CSS.
-    .default('ink')
-    .describe('Which theme tone paints this guide’s header/footer band'),
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
 })
   .strict()
@@ -491,10 +490,9 @@ export const GuideSchema = BaseEntitySchema.extend({
  */
 export const SourceEntitySchema = BaseEntitySchema.extend({
   /**
-   * Kept deliberately, though no code reads it. Every one of the 10 source
-   * records carries a real publisher storefront URL (Leyline Press / BackerKit),
-   * and that is researched data about where to buy the books this dataset
-   * transcribes — not cruft. Owner decision: retain unread rather than delete.
+   * The publisher storefront URL (Leyline Press / BackerKit) where the book
+   * this dataset transcribes can be bought. The Discord bot's `/su lookup`
+   * card reads it for its Buy link (`buyLink` in `apps/discord-bot`).
    */
   purchaseLink: z.string().url().describe('URL where this source can be purchased').optional(),
   version: z

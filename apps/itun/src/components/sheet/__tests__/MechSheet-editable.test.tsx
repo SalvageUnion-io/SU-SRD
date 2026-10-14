@@ -1,5 +1,5 @@
 /**
- * MechSheet — per-item action economy (plan 4.5, S12).
+ * MechSheet — per-item action economy.
  *
  * Stat editing moved to the hero trackers (Sheet.tsx); the body's edit
  * surface is the per-card action economy:
@@ -7,7 +7,7 @@
  *   - Damaged DISABLES Use and promotes Repair to primary, showing the
  *     half-SV scrap cost.
  *   - Repair flips the item to Intact; the crawler scrap-pool deduction is
- *     optional and never blocks (S12) — both paths covered.
+ *     optional and never blocks — both paths covered.
  *   - Uses steppers persist per-item counters for systems AND modules.
  *   - Chassis ability Use spends EP and is blocked while shut down.
  *
@@ -19,8 +19,8 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -82,7 +82,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
   return makeEntityStoreMock({
     mechs: [mech],
     crawlers: crawler ? [crawler] : [],
-    hydrated: { pilots: false, mechs: true, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [currentMech]),
     get: mock((type: string, id: string) => {
@@ -148,7 +148,7 @@ describe('MechSheet — Damaged promotes Repair (S12)', () => {
     })
     const deduct = screen.getByRole('button', { name: /deduct scrap/i })
     expect((deduct as HTMLButtonElement).disabled).toBe(true)
-    expect(deduct.getAttribute('title')).toMatch(/no crawler linked/i)
+    expect(deduct.getAttribute('title')).toMatch(/no crawler assigned/i)
 
     await act(async () => {
       clickButton(/repair smoke machine without deducting/i)
@@ -193,7 +193,7 @@ describe('MechSheet — Damaged promotes Repair (S12)', () => {
   })
 })
 
-describe('MechSheet — per-item uses counters (rules B13)', () => {
+describe('MechSheet — per-item uses counters', () => {
   test('the stepper decrements the per-item uses counter', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech({
@@ -202,9 +202,9 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
     })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
-    expect(screen.getByText('Uses 3/5')).toBeTruthy()
+    expect(document.querySelector('.su-sheet-item__uses')?.textContent).toBe('Uses3/5')
     await act(async () => {
-      clickButton(/remove one aff coolant foam/i)
+      clickButton(/decrease aff coolant foam uses/i)
     })
 
     expect(must(captured[0]).patch).toEqual({ itemUses: { 'aff-coolant-foam': 2 } })
@@ -219,7 +219,7 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
     await act(async () => {
-      clickButton(/add one aff coolant foam/i)
+      clickButton(/increase aff coolant foam uses/i)
     })
 
     expect(must(captured[0]).patch).toEqual({ itemUses: { 'aff-coolant-foam': 4 } })

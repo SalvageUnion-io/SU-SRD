@@ -148,20 +148,61 @@ async function renderAs(
   })
 }
 
+/** Open a row's ⋯ menu (`More for <name>`) and return it. */
+async function openMenu(name: string): Promise<HTMLElement> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: `More for ${name}` }))
+  })
+  return screen.getByRole('menu')
+}
+
+/** Close the open ⋯ menu, so the next row's can be opened alone. */
+async function closeMenu(menu: HTMLElement): Promise<void> {
+  await act(async () => {
+    fireEvent.keyDown(menu, { key: 'Escape' })
+  })
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+}
+
+/** The verbs a row's ⋯ menu lists, in order; the menu is closed again after. */
+async function verbsOf(name: string): Promise<string[]> {
+  const menu = await openMenu(name)
+  const verbs = within(menu)
+    .getAllByRole('menuitem')
+    .map((item) => item.textContent ?? '')
+  await closeMenu(menu)
+  return verbs
+}
+
+/** The rows (by name) whose ⋯ menu offers `verb`. */
+async function rowsOffering(names: readonly string[], verb: string): Promise<string[]> {
+  const offering: string[] = []
+  for (const name of names) {
+    if ((await verbsOf(name)).includes(verb)) offering.push(name)
+  }
+  return offering
+}
+
 describe('what a row offers', () => {
-  test('your own pilot opens the live sheet — one View, no separate Edit', async () => {
+  test('your own pilot’s whole row opens the live sheet — no separate Edit', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     expect(screen.getByText('Roach-Boy')).toBeTruthy()
     // One door per row, to the one sheet: it opens editable because it is
     // yours (`SheetView`), so there is no second verb for editing.
-    const view = screen.getByRole('link', { name: 'View Roach-Boy' })
-    expect(view.getAttribute('href')).toBe('/sheet/pilot/a-mine')
+    const row = screen.getByRole('link', { name: 'Roach-Boy' })
+    expect(row.getAttribute('href')).toBe('/sheet/pilot/a-mine')
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
+    expect(await verbsOf('Roach-Boy')).not.toContain('Edit')
+  })
+
+  test('the ⋯ menu’s Open goes to the same sheet as the row', async () => {
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    expect((await verbsOf('Roach-Boy'))[0]).toBe('Open')
   })
 
   test('a pre-gen with no app id opens by its body id', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
-    const view = screen.getByRole('link', { name: 'View Pre-gen' })
+    const view = screen.getByRole('link', { name: 'Pre-gen' })
     expect(view.getAttribute('href')).toBe('/sheet/pilot/a-free')
   })
 
@@ -177,12 +218,12 @@ describe('what a row offers', () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     // Ownership is voluntary outward (ADR-030 §4), and the pick-up confirm
     // promises this as the way back out — so it cannot be Mediator-only.
-    expect(screen.getByRole('button', { name: 'Offer to the crew' })).toBeTruthy()
+    expect(await verbsOf('Roach-Boy')).toContain('Offer to the crew')
   })
 
   test("but a crewmate's cannot", async () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
-    expect(screen.queryByRole('button', { name: 'Offer to the crew' })).toBeNull()
+    expect(await verbsOf('Ash')).not.toContain('Offer to the crew')
   })
 
   test("a crewmate's pilot names its holder and opens the same live sheet", async () => {
@@ -193,8 +234,8 @@ describe('what a row offers', () => {
     expect(screen.getByText('Mediator')).toBeTruthy()
     // Readable: a shared table whose crew you cannot look at is not shared.
     // The same address as your own rows; `SheetView` renders it read-only.
-    const view = screen.getByRole('link', { name: /^View / })
-    expect(view.getAttribute('href')).toBe('/sheet/pilot/a-theirs')
+    const row = screen.getByRole('link', { name: 'Ash' })
+    expect(row.getAttribute('href')).toBe('/sheet/pilot/a-theirs')
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     // Nor is it takeable: somebody already holds it.
     expect(screen.queryByRole('button', { name: /Unclaimed/i })).toBeNull()
@@ -204,9 +245,9 @@ describe('what a row offers', () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     // Game rows carry no trash at all — leaving a character you hold is
-    // "Offer to the crew", and the crawler's Scrap is the table runner's.
+    // "Offer to the crew", and deleting the crawler is the table runner's.
     // Nothing here can destroy somebody else's build.
-    expect(screen.queryByRole('button', { name: /Delete Ash/i })).toBeNull()
+    expect(await verbsOf('Ash')).toEqual(['Open', 'Make a copy'])
   })
 })
 
@@ -269,30 +310,47 @@ describe('what the game will accept', () => {
     }
     const rows = listing({ crawlers: [CRAWLER, SECOND], primaryCrawlerId: CRAWLER._id })
 
+    const crawlers = ['#430 Tenacity', 'Second Wind']
     await renderAs(ME, rows)
     expect(screen.getByText('★ Primary')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Make primary' })).toBeNull()
+    expect(await rowsOffering(crawlers, 'Make primary')).toEqual([])
 
     cleanup()
     await renderAs({ ...ME, _id: 'u-med' }, rows)
-    // One button: the primary is already primary.
-    expect(screen.getAllByRole('button', { name: 'Make primary' })).toHaveLength(1)
+    // Only the other one: the primary is already primary.
+    expect(await rowsOffering(crawlers, 'Make primary')).toEqual(['Second Wind'])
   })
 
-  test('only the table runner may scrap a crawler', async () => {
+  test('Make primary runs at once, for the crawler it was chosen on', async () => {
+    const SECOND = {
+      _id: 's-crawler-2',
+      appId: 'a-crawler-2',
+      body: { id: 'a-crawler-2', name: 'Second Wind', techLevel: '1' },
+    }
+    await renderAs(
+      { ...ME, _id: 'u-med' },
+      listing({ crawlers: [CRAWLER, SECOND], primaryCrawlerId: CRAWLER._id })
+    )
+    await choose(await openMenu('Second Wind'), 'Make primary')
+    expect(mutations).toEqual([
+      { name: 'games:setPrimaryCrawler', args: { gameId: 'g1', crawlerId: 's-crawler-2' } },
+    ])
+  })
+
+  test('only the table runner may delete a crawler', async () => {
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-    expect(screen.queryByRole('button', { name: 'Scrap' })).toBeNull()
+    expect(await verbsOf('#430 Tenacity')).not.toContain('Delete…')
 
     cleanup()
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    expect(screen.getByRole('button', { name: 'Scrap' })).toBeTruthy()
+    expect(await verbsOf('#430 Tenacity')).toContain('Delete…')
   })
 
   test('the crawler opens for every member to read', async () => {
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
 
     expect(screen.getByText('#430 Tenacity')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'View #430 Tenacity' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: '#430 Tenacity' }).getAttribute('href')).toBe(
       '/sheet/crawler/a-crawler'
     )
     // It has no owner at all, so it carries no ownership seal — neither a
@@ -335,14 +393,15 @@ describe('yours first, then everyone else', () => {
       body: { id: 'a-crawler-2', name: 'Second Wind', techLevel: '1' },
     }
     await renderAs(ME, listing({ crawlers: [SECOND, CRAWLER], primaryCrawlerId: CRAWLER._id }))
+    // The rows, in order — each Row is a link named for its unit.
     const names = screen
-      .getAllByRole('link', { name: /^View / })
+      .getAllByRole('link', { name: /^(#430 Tenacity|Second Wind)$/ })
       .map((link) => link.getAttribute('aria-label'))
-    expect(names).toEqual(['View #430 Tenacity', 'View Second Wind'])
+    expect(names).toEqual(['#430 Tenacity', 'Second Wind'])
   })
 })
 
-describe('copy to My Stuff', () => {
+describe('make a copy', () => {
   test('every character offers it, including ones you do not own', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
 
@@ -350,7 +409,7 @@ describe('copy to My Stuff', () => {
     // view of every row, so copying what is on screen escalates nothing. It is
     // also the only way to keep a character when you walk away from the table:
     // releasing one leaves it behind, unclaimed.
-    expect(screen.getAllByRole('button', { name: 'Copy to My Stuff' })).toHaveLength(3)
+    expect(await rowsOffering(['Roach-Boy', 'Ash', 'Pre-gen'], 'Make a copy')).toHaveLength(3)
   })
 
   test('the crawler does not — a deliberate hold, no longer an impossibility', async () => {
@@ -362,7 +421,7 @@ describe('copy to My Stuff', () => {
     // somebody keeps, so offering "copy the table's crawler to your shelf" is a
     // product decision that has not been made — and this test is what will fail
     // first, loudly and in the right place, when somebody makes it.
-    expect(screen.queryByRole('button', { name: 'Copy to My Stuff' })).toBeNull()
+    expect(await verbsOf('#430 Tenacity')).not.toContain('Make a copy')
   })
 })
 
@@ -373,15 +432,22 @@ const localPilotNames = () =>
     .list('pilot')
     .map((p) => p.name)
 
-/** Press a row verb and return the confirm it opened. */
-function press(name: string): HTMLElement {
-  fireEvent.click(screen.getByRole('button', { name }))
+/** Choose a verb in an open ⋯ menu. */
+async function choose(menu: HTMLElement, verb: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(within(menu).getByRole('menuitem', { name: verb }))
+  })
+}
+
+/** Choose `verb` in `row`'s ⋯ menu and return the confirm it opened. */
+async function press(row: string, verb: string): Promise<HTMLElement> {
+  await choose(await openMenu(row), verb)
   return screen.getByRole('alertdialog')
 }
 
 /**
- * Drive store work that outlasts one act() scope (IndexedDB) to completion in
- * small act() blocks, polling `done` between them. Bounded at ~1s.
+ * Drive store work that outlasts one act() scope (the stubbed server commit)
+ * to completion in small act() blocks, polling `done` between them. Bounded at ~1s.
  */
 async function settle(done: () => boolean): Promise<void> {
   for (let i = 0; i < 200 && !done(); i++) {
@@ -401,7 +467,7 @@ async function confirmWith(label: string): Promise<void> {
 describe('every verb that changes who has a build asks first', () => {
   test('Offer to the crew says what you give up, and releases nothing until confirmed', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = press('Offer to the crew')
+    const dialog = await press('Roach-Boy', 'Offer to the crew')
 
     expect(dialog.textContent).toContain('Offer Roach-Boy to the crew?')
     expect(dialog.textContent).toContain("You'll stop owning Roach-Boy")
@@ -414,32 +480,32 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
-  test('Copy to My Stuff says the copy is separate, and copies nothing until confirmed', async () => {
+  test('Make a copy says the copy is separate, and copies nothing until confirmed', async () => {
     // Signed in: building needs an account. The backend's auth state is
     // process-global, so it is set here rather than assumed.
     setEntityBackendAuthState(SIGNED_IN)
     await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
-    const dialog = press('Copy to My Stuff')
+    const dialog = await press('Vex Arlo', 'Make a copy')
 
-    expect(dialog.textContent).toContain('Copy Vex Arlo to My Stuff?')
+    expect(dialog.textContent).toContain('Make a copy of Vex Arlo on your shelf?')
     expect(dialog.textContent).toContain("won't sync back")
     expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
 
     await confirmWith('Make a copy')
-    // A signed-in create writes the IndexedDB cache, which settles after `act`.
+    // A signed-in create commits to the (stubbed) server first, and settles after `act`.
     await waitFor(() => expect(localPilotNames()).toContain('COPY OF Vex Arlo'))
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
-  test('Scrap says it is for everyone and permanent, and scraps nothing until confirmed', async () => {
+  test('Deleting the crawler says it is for everyone and permanent, and deletes nothing until confirmed', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    const dialog = press('Scrap')
+    const dialog = await press('#430 Tenacity', 'Delete…')
 
-    expect(dialog.textContent).toContain('Scrap #430 Tenacity?')
-    expect(dialog.textContent).toContain("for everyone in the game and can't be undone")
+    expect(dialog.textContent).toContain('Delete #430 Tenacity?')
+    expect(dialog.textContent).toContain("for everyone in the Game and can't be undone")
     expect(mutations).toHaveLength(0)
 
-    await confirmWith('Scrap')
+    await confirmWith('Delete')
     expect(mutations).toEqual([
       { name: 'entities:removeCrawler', args: { crawlerId: 's-crawler' } },
     ])
@@ -447,7 +513,7 @@ describe('every verb that changes who has a build asks first', () => {
 
   test('Delete keeps its cannot-be-undone warning, and deletes nothing until confirmed', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = press('Delete')
+    const dialog = await press('Roach-Boy', 'Delete…')
 
     expect(dialog.textContent).toContain('This cannot be undone.')
     expect(mutations).toHaveLength(0)
@@ -471,12 +537,12 @@ describe('every verb that changes who has a build asks first', () => {
 
   test.each([
     ['Offer to the crew', MY_PILOT],
-    ['Copy to My Stuff', MY_PILOT],
-    ['Delete', MY_PILOT],
+    ['Make a copy', MY_PILOT],
+    ['Delete…', MY_PILOT],
   ] as const)('Cancel on %s leaves everything as it was', async (verb, pilot) => {
     await renderAs(ME, listing({ pilots: [pilot] }))
     const before = localPilotNames()
-    press(verb)
+    await press('Roach-Boy', verb)
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -484,9 +550,9 @@ describe('every verb that changes who has a build asks first', () => {
     expect(localPilotNames()).toEqual(before)
   })
 
-  test('Cancel on Scrap leaves the crawler alone', async () => {
+  test('Cancel on deleting the crawler leaves it alone', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    press('Scrap')
+    await press('#430 Tenacity', 'Delete…')
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -495,23 +561,23 @@ describe('every verb that changes who has a build asks first', () => {
 
   test('a refusal stays on the dialog, in the words the server chose', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    press('Offer to the crew')
-    mutationError = new ConvexError('A build in your My Stuff is already yours')
+    await press('Roach-Boy', 'Offer to the crew')
+    mutationError = new ConvexError('A build in your Shelves is already yours')
 
     await confirmWith('Offer to the crew')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(screen.getByRole('alert').textContent).toBe('A build in your My Stuff is already yours')
+    expect(screen.getByRole('alert').textContent).toBe('A build in your Shelves is already yours')
   })
 
   test('any other failure stays on the dialog with a plain reason, never the raw error', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    press('Scrap')
+    await press('#430 Tenacity', 'Delete…')
     mutationError = new Error('[CONVEX M(entities:removeCrawler)] Server Error')
 
-    await confirmWith('Scrap')
+    await confirmWith('Delete')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(screen.getByRole('alert').textContent).toBe(
-      '#430 Tenacity could not be scrapped. Try again.'
+      '#430 Tenacity could not be deleted. Try again.'
     )
   })
 })
@@ -528,22 +594,23 @@ describe('remove from game', () => {
 
   test('is offered on your own pilot once its copy is here, and on nobody else’s', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
+    const pilots = ['Roach-Boy', 'Ash', 'Pre-gen']
     // Not yet in this browser: nothing to move from here.
-    expect(screen.queryByRole('button', { name: 'Remove from game' })).toBeNull()
+    expect(await rowsOffering(pilots, 'Remove from Game')).toEqual([])
 
     cleanup()
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
-    expect(screen.getAllByRole('button', { name: 'Remove from game' })).toHaveLength(1)
+    expect(await rowsOffering(pilots, 'Remove from Game')).toEqual(['Roach-Boy'])
   })
 
   test('asks first — naming the game and the assignments it clears — and moves nothing until confirmed', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = press('Remove from game')
+    const dialog = await press('Roach-Boy', 'Remove from Game')
 
     expect(dialog.textContent).toContain('Take Roach-Boy out of Tenacity?')
-    expect(dialog.textContent).toContain('goes back to My Stuff')
+    expect(dialog.textContent).toContain('goes back to your shelf')
     expect(dialog.textContent).toContain('Their crawler assignment in Tenacity is cleared')
     expect(gameIdOf('a-mine')).toBe('g1')
 
@@ -551,13 +618,13 @@ describe('remove from game', () => {
     expect(gameIdOf('a-mine')).toBe('g1')
   })
 
-  test('confirming moves the same record to My Stuff', async () => {
+  test('confirming moves the same record to your shelves', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    press('Remove from game')
+    await press('Roach-Boy', 'Remove from Game')
 
-    await confirmWith('Move to My Stuff')
-    // The move writes through IndexedDB, which outlasts one act() scope.
+    await confirmWith('Move to your shelf')
+    // The move commits to the (stubbed) server first, which outlasts one act() scope.
     await settle(() => screen.queryByRole('alertdialog') === null)
     expect(screen.queryByRole('alertdialog')).toBeNull()
     // A move, never a copy: same id, `gameId` cleared.
@@ -571,11 +638,11 @@ describe('remove from game', () => {
       .adopt('crawler', crawlerFixture({ id: 'a-crawler', name: '#430 Tenacity', gameId: 'g1' }))
 
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-    expect(screen.queryByRole('button', { name: 'Remove from game' })).toBeNull()
+    expect(await verbsOf('#430 Tenacity')).not.toContain('Remove from Game')
 
     cleanup()
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    const dialog = press('Remove from game')
+    const dialog = await press('#430 Tenacity', 'Remove from Game')
     expect(dialog.textContent).toContain('Everyone in Tenacity assigned to it is unassigned')
   })
 })

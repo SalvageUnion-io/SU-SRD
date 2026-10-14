@@ -1,9 +1,9 @@
 /**
- * MechSheet — system/module entity cards on the LiveSheet body (plan 4.5).
+ * MechSheet — system/module entity cards on the LiveSheet body.
  *
  * Systems and modules render as EntityGridRow'd full ReferenceEntityCard cards with
  * a status badge (Intact → Damaged → Destroyed cycle persists through the
- * store) — the per-item conditions vocabulary from rules B12.
+ * store) — the per-item conditions vocabulary.
  *
  * Asserts:
  *   1. A real system resolves and renders as a card (name + a stat).
@@ -17,7 +17,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { WritesBlockedOffline } from '../../../stores/entityBackend'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -60,7 +60,7 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
   const updateMock = updateSpy ?? mock(async () => mech)
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
 
@@ -71,7 +71,7 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
   })
 }
 
-describe('MechSheet — system/module entity cards (plan 4.5)', () => {
+describe('MechSheet — system/module entity cards', () => {
   test('a real system renders as a card with its name and a stat', () => {
     const mech = makeMech({ systems: [REAL_SYSTEM] })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStubStore(mech)} />)

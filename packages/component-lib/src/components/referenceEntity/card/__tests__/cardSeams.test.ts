@@ -1,8 +1,8 @@
 /**
- * The pure seams `ReferenceEntityCard` was split along (audit PK-08).
+ * The pure seams `ReferenceEntityCard` was split along.
  *
- * Each of these used to be inline in the card's 1,880-line body, reachable only
- * through a full render. The rendered behaviour is pinned by the card's own
+ * Each is a pure function, reachable without a full render. The rendered
+ * behaviour is pinned by the card's own
  * suites and by the srd output gate; these pin the rules directly, so a change
  * to one fails here, next to the rule, rather than as a text diff on a page.
  */
@@ -11,35 +11,20 @@ import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-refe
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
 import { resolveBodyBlocks, resolveBodyLayout } from '../bodyBlocks'
-import { actionCells, bonusCells, buildHeaderStats, resolveTechScaling } from '../cardCells'
-import { resolveCardColors, resolveCardInteraction, resolveHeaderHint } from '../cardChrome'
+import { bonusCells, buildHeaderStats, resolveTechScaling } from '../cardCells'
+import {
+  dullBand,
+  GREY_HEADER,
+  resolveCardColors,
+  resolveCardInteraction,
+  resolveFrameWidth,
+  resolveHeaderHint,
+} from '../cardChrome'
 import { resolveNestedSections } from '../nestedSections'
 
 const paragraph = (value: string): SURefObjectContentBlock => ({ type: 'paragraph', value })
 
 describe('cardCells', () => {
-  test('actionCells leads with the type, then range / damage / traits', () => {
-    const cells = actionCells({
-      actionType: 'Turn',
-      range: ['Close', 'Medium'],
-      damage: { amount: 4, damageType: 'SP' },
-      traits: [{ type: 'explosive', amount: 1 }],
-    })
-    expect(cells.map((c) => [c.label, c.value])).toEqual([
-      ['Turn Action', undefined],
-      ['Range', 'Close / Medium'],
-      ['Damage', '4 SP'],
-      ['Explosive', '1'],
-    ])
-  })
-
-  test('a split action type reads Mech first, as the book prints it', () => {
-    expect(actionCells({ actionType: 'Short' }, 'Turn').map((c) => c.label)).toEqual([
-      'Turn Action (Mech)',
-      'Short Action (Pilot)',
-    ])
-  })
-
   test('bonusCells drops zero and absent fields', () => {
     expect(bonusCells({ structurePoints: 2, energyPoints: 0 })).toEqual([
       { key: 'bonus-structurePoints', label: 'Structure', bottomLabel: 'Points', value: '+2' },
@@ -70,7 +55,6 @@ describe('cardCells', () => {
     const base = {
       entity: chassis as SURefMetaEntity,
       schemaName: 'chassis' as const,
-      primaryOnly: false,
       techLevel: 2 as const,
       techLevelDisplay: 2 as const,
       techLevelModified: false,
@@ -136,7 +120,6 @@ describe('bodyBlocks', () => {
     const layout = (over: Partial<Parameters<typeof resolveBodyLayout>[0]>) =>
       resolveBodyLayout({
         showImage: true,
-        hasNpcAnchor: false,
         isPattern: false,
         asideLeadRequested: false,
         hasTrailingSection: false,
@@ -147,59 +130,103 @@ describe('bodyBlocks', () => {
     // Opted in, but with no trailing section there is nothing to lead into.
     expect(layout({ asideLeadRequested: true })).toEqual({ asideLead: false, flat: true })
     expect(layout({ asideLeadRequested: true, hasTrailingSection: true }).asideLead).toBe(true)
-    expect(layout({ showImage: false, hasNpcAnchor: true })).toEqual({
-      asideLead: false,
-      flat: true,
-    })
     expect(layout({ showImage: false })).toEqual({ asideLead: false, flat: false })
   })
 })
 
 describe('cardChrome', () => {
-  const tone = { domain: 'gear' as const, bg: 'bg-x', bgColor: 'red' }
+  const tone = { domain: 'gear' as const, bg: 'var(--color-x)', bgColor: 'red' }
 
-  test('each band reads ink or paper by its own contrast', () => {
-    // TL1 is light: ink on its header, paper on its deep shade below.
-    const tl1 = { domain: 'gear' as const, bg: 'bg-tl-1', bgColor: undefined }
-    expect(
-      resolveCardColors({ tone: tl1, isDown: false, isGhosted: false, hostTone: undefined })
-    ).toMatchObject({ onBandText: 'text-ink', onDarkText: 'text-paper' })
-    // The damaged grey is light on top and dark below, like any tone.
-    const tl6 = { domain: 'gear' as const, bg: 'bg-tl-6', bgColor: undefined }
-    expect(
-      resolveCardColors({ tone: tl6, isDown: true, isGhosted: false, hostTone: undefined })
-    ).toMatchObject({ onBandText: 'text-ink', onDarkText: 'text-paper' })
+  test('a tone header reads ink or paper by its own contrast', () => {
+    // TL1 is light: ink on its header.
+    const tl1 = { domain: 'gear' as const, bg: 'var(--color-tl-1)', bgColor: undefined }
+    expect(resolveCardColors({ tone: tl1, isDown: false, fill: 'tone' })).toEqual({
+      onBand: 'ink',
+      bandColor: 'var(--color-tl-1)',
+    })
+    // A band it cannot resolve reads paper, the solid-tone case; a guide's
+    // own colour wins over the domain tone.
+    expect(resolveCardColors({ tone, isDown: false, fill: 'tone' })).toEqual({
+      onBand: 'paper',
+      bandColor: 'red',
+    })
   })
 
-  test('a band it cannot resolve reads paper when solid; ghosted and damaged ones read ink', () => {
-    expect(
-      resolveCardColors({ tone, isDown: false, isGhosted: false, hostTone: undefined })
-    ).toMatchObject({ onBandText: 'text-paper', headerBg: 'bg-x', headerBgColor: 'red' })
-    const ghosted = resolveCardColors({ tone, isDown: false, isGhosted: true, hostTone: 'blue' })
-    expect(ghosted.onBandText).toBe('text-ink')
-    expect(ghosted.headerBg).toBeUndefined()
-    const down = resolveCardColors({ tone, isDown: true, isGhosted: false, hostTone: undefined })
-    expect(down.onBandText).toBe('text-ink')
-    expect(down.headerBgColor).toContain('color-mix')
+  test('an ink header is the ink banner whatever the tone; a damaged one dulls its band', () => {
+    expect(resolveCardColors({ tone, isDown: false, fill: 'ink' })).toEqual({
+      onBand: 'paper',
+      bandColor: 'var(--color-ink)',
+    })
+    // Damaged dulls the band toward grey, never replacing it: the ink banner
+    // stays dark and keeps paper text.
+    const inkDown = resolveCardColors({ tone, isDown: true, fill: 'ink' })
+    expect(inkDown.onBand).toBe('paper')
+    expect(inkDown.bandColor).toBe(dullBand('var(--color-ink)'))
+    expect(inkDown.bandColor).toContain('var(--color-ink) 50%')
+  })
+
+  test("a damaged tone header is that tone dulled, with the tone's own foreground", () => {
+    const pilot = { domain: 'gear' as const, bg: 'var(--color-pilot)', bgColor: undefined }
+    const up = resolveCardColors({ tone: pilot, isDown: false, fill: 'tone' })
+    const down = resolveCardColors({ tone: pilot, isDown: true, fill: 'tone' })
+    expect(down.bandColor).toBe(dullBand('var(--color-pilot)'))
+    expect(down.bandColor).toContain('var(--color-pilot) 50%')
+    expect(down.onBand).toBe(up.onBand)
+  })
+
+  test('a destroyed header is flat grey, whatever its fill', () => {
+    for (const fill of ['tone', 'ink'] as const) {
+      expect(resolveCardColors({ tone, isDown: 'destroyed', fill })).toEqual({
+        onBand: 'ink',
+        bandColor: GREY_HEADER,
+      })
+    }
+  })
+
+  test('the frame steps 3 → 2 → 1.5px with size and depth', () => {
+    expect(resolveFrameWidth({ size: 'large', extent: 'full', depth: 0 })).toBe('var(--bw-entity)')
+    expect(resolveFrameWidth({ size: 'medium', extent: 'full', depth: 1 })).toBe(
+      'var(--bw-entity-compact)'
+    )
+    expect(resolveFrameWidth({ size: 'medium', extent: 'head', depth: 2 })).toBe('var(--bw-chrome)')
+    expect(resolveFrameWidth({ size: 'small', extent: 'full', depth: 0 })).toBe('var(--bw-chrome)')
+  })
+
+  const base = {
+    onCardClick: () => {},
+    controls: undefined,
+    cardClickable: undefined,
+    disabled: undefined,
+    selectable: undefined,
+    className: undefined,
+    cardClickLabel: 'Mule',
+    frameWidth: 'var(--bw-entity)',
+    dashed: false,
+  }
+
+  test('the frame is ink, and dashed on a user-made card', () => {
+    const solid = resolveCardInteraction({ ...base, selectionRole: undefined, selected: undefined })
+    expect(solid.frameStyle).toMatchObject({
+      borderColor: 'var(--color-ink)',
+      borderStyle: 'solid',
+      borderTopWidth: 'var(--bw-entity)',
+    })
+    const userMade = resolveCardInteraction({
+      ...base,
+      dashed: true,
+      selectionRole: undefined,
+      selected: undefined,
+    })
+    expect(userMade.frameStyle.borderStyle).toBe('dashed')
   })
 
   test('a whole-card click announces selection by role', () => {
-    const base = {
-      onCardClick: () => {},
-      controls: undefined,
-      cardClickable: undefined,
-      disabled: undefined,
-      selectable: undefined,
-      className: undefined,
-      cardClickLabel: 'Mule',
-      frameColor: 'red',
-    }
     // A radio is a RadioCard: it carries the name and the checked state, and
     // Base UI's Radio supplies the role.
     const radio = resolveCardInteraction({ ...base, selectionRole: 'radio', selected: true })
     expect(radio.outer.interaction).toEqual({ 'aria-label': 'Mule' })
     expect(radio.outer.radio?.selected).toBe(true)
-    expect(radio.frameStyle.boxShadow).toContain('--color-rust')
+    expect(radio.frameStyle.boxShadow).toContain('--color-ink')
     const toggle = resolveCardInteraction({ ...base, selectionRole: 'toggle', selected: false })
     expect(toggle.outer.interaction).toMatchObject({ role: 'button', 'aria-pressed': false })
     expect(toggle.outer.radio).toBeUndefined()
@@ -234,6 +261,7 @@ describe('nestedSections', () => {
     const common = {
       entity: chassis,
       pattern: undefined,
+      onPage: false,
       depth: 0,
       isGrantingAbility: false,
       foldedAction: undefined,
@@ -246,5 +274,44 @@ describe('nestedSections', () => {
     const page = resolveNestedSections({ ...common, schemaName: 'chassis', isCatalog: false })
     expect(page.canExpand).toBe(true)
     expect(page.patternList.length).toBeGreaterThan(0)
+  })
+
+  test('the chassis ability resolves only on a page, for a chassis and its pattern', () => {
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as SURefMetaEntity
+    const pattern = SalvageUnionReference.Chassis.getByName('Mule')?.patterns?.[0]
+    const common = {
+      entity: chassis,
+      schemaName: 'chassis' as const,
+      isCatalog: false,
+      depth: 0,
+      isGrantingAbility: false,
+      foldedAction: undefined,
+      droneLoadout: undefined,
+    }
+    for (const view of [undefined, pattern]) {
+      const page = resolveNestedSections({ ...common, pattern: view, onPage: true })
+      expect(page.chassisAbilityEntities.length).toBeGreaterThan(0)
+      const card = resolveNestedSections({ ...common, pattern: view, onPage: false })
+      expect(card.chassisAbilityEntities).toEqual([])
+    }
+  })
+
+  test('a builder pick (`showChassisAbility`) resolves the chassis ability off the page, never on a tile', () => {
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as SURefMetaEntity
+    const common = {
+      entity: chassis,
+      schemaName: 'chassis' as const,
+      pattern: undefined,
+      onPage: false,
+      showChassisAbility: true,
+      depth: 0,
+      isGrantingAbility: false,
+      foldedAction: undefined,
+      droneLoadout: undefined,
+    }
+    expect(
+      resolveNestedSections({ ...common, isCatalog: false }).chassisAbilityEntities.length
+    ).toBeGreaterThan(0)
+    expect(resolveNestedSections({ ...common, isCatalog: true }).chassisAbilityEntities).toEqual([])
   })
 })

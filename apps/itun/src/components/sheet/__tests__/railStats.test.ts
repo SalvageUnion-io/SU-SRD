@@ -9,7 +9,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { mechFixture } from '../../__tests__/fixtures'
-import { mechRailItems } from '../railStats'
+import { mechRailItems } from '../railStats.model'
 
 describe('mechRailItems', () => {
   test('a mech with no stored Heat reads 0/cap', () => {

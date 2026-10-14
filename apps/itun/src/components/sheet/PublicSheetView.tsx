@@ -5,13 +5,22 @@
  * `Route`: any other export stops TanStack Router's `autoCodeSplitting` from
  * moving the route component out of the entry chunk, which is how
  * `PublicSheet` and the whole sheet tree it renders ended up downloaded on
- * every route (audit AP-11). Tests render it directly.
+ * every route. Tests render it directly.
+ *
+ * A saved mech pattern joins the route as `/p/pattern/:appId`: its own
+ * query and its own page (`PublicPattern`), the same "not available" for
+ * anything the reader may not see. A built NPC is `/p/npc/:appId`: the sheets'
+ * query, drawn as its own read-only page (`NpcSheet`).
  */
 
-import { buttonVariants, cn } from 'component-lib'
+import { PRODUCT } from 'component-lib/product'
 import { useQuery } from 'convex/react'
+import { NpcSchema } from 'itun-domain/schemas/npc'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
 import { api } from '../../../convex/_generated/api'
-import { AppLink } from '../shared/AppLink'
+import { PublicPattern } from '../mech/Pattern/PublicPattern'
+import { NpcSheet } from '../npc/NpcSheet'
+import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { PublicSheet } from './PublicSheet'
 import { SheetSkeleton } from './SheetSkeleton'
 
@@ -22,20 +31,13 @@ function isPublicKind(value: string): value is PublicKind {
   return (KINDS as readonly string[]).includes(value)
 }
 
-function NotAvailable() {
+function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' | 'NPC' }) {
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-2 text-xl font-bold">This sheet isn&rsquo;t available</h1>
-      <p className="mb-4 text-sm text-wk-muted">
-        The link may be wrong, or its owner may have stopped sharing it.
-      </p>
-      <AppLink
-        href="/"
-        className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
-      >
-        &larr; In The Union Now
-      </AppLink>
-    </main>
+    <NotFoundPanel
+      title={<>This {what} isn&rsquo;t available</>}
+      message="The link may be wrong, or its owner may have stopped sharing it."
+      back={{ href: '/', label: PRODUCT.name }}
+    />
   )
 }
 
@@ -51,11 +53,45 @@ function PublicSheetQuery({ kind, appId }: { kind: PublicKind; appId: string }) 
   return <PublicSheet appId={appId} answer={result} />
 }
 
+/** A saved pattern: readable by link, by its Game's crew, or by its maker. */
+function PublicPatternQuery({ appId }: { appId: string }) {
+  const result = useQuery(api.publicSheet.pattern, { appId })
+  if (result === undefined) return <SheetSkeleton />
+  if (result === null) return <NotAvailable what="pattern" />
+
+  // The body is `v.any()` on the server; parse it as every reader does.
+  const parsed = MechPatternSchema.safeParse(result.body)
+  if (!parsed.success) return <NotAvailable what="pattern" />
+  return <PublicPattern answer={{ ...result, pattern: parsed.data }} />
+}
+
+/** A built NPC someone shared by link: its own page, read-only and credited to its maker. */
+function PublicNpcQuery({ appId }: { appId: string }) {
+  const result = useQuery(api.publicSheet.get, { kind: 'npc', appId })
+  if (result === undefined) return <SheetSkeleton />
+  if (result === null) return <NotAvailable what="NPC" />
+
+  // The body is `v.any()` on the server; parse it as every reader does.
+  const parsed = NpcSchema.safeParse(result.body)
+  if (!parsed.success) return <NotAvailable what="NPC" />
+  return (
+    <NpcSheet
+      npc={{ ...parsed.data, id: appId }}
+      madeBy={result.madeBy ?? 'a player'}
+      readOnly
+      back={{ href: '/', label: PRODUCT.name }}
+      readOnlyNote="A shared NPC, read-only. Only whoever made it can change it."
+    />
+  )
+}
+
 /**
  * Everything the route decides, minus the router. Exported so a test can
  * render it directly rather than through a `RouterProvider`.
  */
 export function PublicSheetView({ kind, appId }: { kind: string; appId: string }) {
+  if (kind === 'pattern') return <PublicPatternQuery appId={appId} />
+  if (kind === 'npc') return <PublicNpcQuery appId={appId} />
   // A hand-typed path earns an explanation and a way back, not a validation
   // error from the server.
   if (!isPublicKind(kind)) return <NotAvailable />

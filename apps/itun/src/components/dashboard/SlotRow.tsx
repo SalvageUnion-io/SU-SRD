@@ -3,7 +3,7 @@
  * (ADR-038 §3).
  *
  * Which entity holds the Major is the mount, and nothing else (`slotsFor` in
- * `slotLayout.ts`). The mount comes from the pilot's seat, and Downtime from
+ * `slotLayout.model.ts`). The mount comes from the pilot's seat, and Downtime from
  * the Game's `downtime` row (`useDowntime`): the Crawler is Major while a step
  * is running, for every member at once.
  *
@@ -11,8 +11,8 @@
  * `CrawlerSlot`); this file only places them. `SlotMajor` is also what the ⤢
  * overlay renders, so a Minor opens into exactly the controls its Major has.
  *
- * Every band runs its verbs through the pure rules engine (`dashboardRules.ts` /
- * `dashboardEconomy.ts` → `lib/rules/*`) and the entity store under the
+ * Every band runs its verbs through the pure rules engine (`lib/rules/playActions.ts` /
+ * `lib/rules/downtimeEconomy.ts`) and the entity store under the
  * ADR-007 automation boundary:
  *
  *   - Auto-apply (single click): Push, Heat Check, Vent, Shutdown toggle, the
@@ -21,20 +21,20 @@
  *     Injury *roll* when a hit hits 0, marking the mech Destroyed, and Eject.
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { EntityState } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
-import type { BoardMenu } from './boardMenu'
-import { boardMenu, NO_BOARD_SOURCES } from './boardMenu'
+import type { BoardMenu } from './boardMenu.model'
+import { boardMenu, NO_BOARD_SOURCES } from './boardMenu.model'
 import type { CrawlerUpkeep } from './CrawlerSlot'
 import { CrawlerMajor, CrawlerMinor } from './CrawlerSlot'
 import { MechMajor, MechMinor } from './MechSlot'
 import { PilotMajor, PilotMinor } from './PilotSlot'
-import type { SlotKind } from './slotLayout'
-import { slotsFor } from './slotLayout'
+import type { SlotKind } from './slotLayout.model'
+import { NO_CRAWLER, NO_MECH, slotsFor } from './slotLayout.model'
 import type { MountState, SeatHandle } from './useSeat'
 
 /** The store surface the slots need — injectable so tests can assert patches. */
@@ -61,7 +61,7 @@ export type SlotEntities = {
   boarded: boolean
   /** The pilot's seat: Board, Dismount, Eject and the activated effects. */
   seat: SeatHandle
-  /** What the Pilot's Board control offers (`boardMenu.ts`). */
+  /** What the Pilot's Board control offers (`boardMenu.model.ts`). */
   board: BoardMenu
   /** The viewer is the Game's Mediator, who alone runs the crawler. */
   mediator: boolean
@@ -70,14 +70,17 @@ export type SlotEntities = {
   store: PlayStore
 }
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) 236px 236px',
   gap: '10px',
   height: '100%',
-}
+} satisfies CSSProperties
 
-const EMPTY: CSSProperties = {
+/** Downtime: the Crawler alone, across the whole row. */
+const ROW_ALONE = { ...ROW, gridTemplateColumns: 'minmax(0, 1fr)' } satisfies CSSProperties
+
+const EMPTY = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -91,15 +94,12 @@ const EMPTY: CSSProperties = {
   fontSize: 'var(--text-note)',
   // ink-75: ink-50 on band-cream fails AA contrast for small text (3.04:1).
   color: 'var(--color-ink-75)',
-}
+} satisfies CSSProperties
 
 /** A slot whose entity the pilot doesn't have (no crawler, no mech yet). */
 function EmptySlot({ text }: { text: string }) {
   return <div style={EMPTY}>{text}</div>
 }
-
-const NO_CRAWLER = 'No crawler. Assign one on the pilot’s sheet.'
-const NO_MECH = 'No mech. Board one from the Pilot’s Mount bay.'
 
 /**
  * One entity's Major form. The slot row's copy hosts the deck's Take Damage
@@ -223,7 +223,7 @@ export function SlotRow({
   }
   const { major, minors } = slotsFor(mount)
   return (
-    <div style={ROW} data-major={major}>
+    <div style={minors.length === 0 ? ROW_ALONE : ROW} data-major={major}>
       <SlotMajor kind={major} mount={mount} damagePrompt={damagePrompt} {...e} />
       {minors.map((kind) => (
         <SlotMinor key={kind} kind={kind} onExpand={(trigger) => onExpand(kind, trigger)} {...e} />

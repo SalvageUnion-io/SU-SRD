@@ -1,10 +1,9 @@
 /**
- * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (redesign
- * Phase 2, the crawler sibling of PilotIdentityPanel / MechIdentityPanel).
- * Poster identity band: Name + Type as labeled identity fields, then the
- * crawler type's special ability and the type itself as compact
- * ReferenceEntityCard entity cards (max 2 columns), then the Description
- * panel.
+ * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
+ * sibling of PilotIdentityPanel / MechIdentityPanel).
+ * Poster identity band: Tech Level + Type (Name too, in Edit), then the
+ * crawler type's special ability as a library Row (its lead, a Peek of its
+ * card) beside the type's crew NPC, then the Description panel.
  *
  * FIELD-section archetype (unified edit language). The parent
  * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
@@ -20,38 +19,52 @@
  * card strips them to avoid double-rendering.
  */
 
-import { cn, Field, ReferenceEntityCard, Stat } from 'component-lib'
+import { Entity, Field, Stat, tokens } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { SURefMetaAction } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
-import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import { readReference } from '../../lib/readReference'
-import type { Crawler } from '../../lib/schemas/crawler'
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
+import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
+import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
-import { CrawlerTypeCard } from './CrawlerSheetItems'
-import type { SheetPatch, SheetStoreState } from './sheetViewProps'
+import { CrawlerTypeCard } from './CrawlerTypeCard'
+import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
-/** The standalone ability card never re-renders the action's choice UI. */
-const HIDE_CHOICES = { choices: true } as const
+const PANEL = { minWidth: 0 } satisfies CSSProperties
 
-/**
- * Resolve the crawler type's special-ability action refs (names) to their SRD
- * action entities. Like the other crawler ref lookups, a missing catalog
- * resolves to an empty list rather than throwing.
- */
-function resolveTypeAbilities(typeRef: string | undefined): SURefMetaAction[] {
-  if (!typeRef) return []
-  return readReference('CrawlerIdentity.resolveTypeAbilities', () => {
-    const refs = resolveCrawlerType(typeRef)?.actions ?? []
-    if (refs.length === 0) return []
-    const actions = SalvageUnionReference.Actions.all()
-    return refs
-      .map((ref) => actions.find((a) => a.id === ref || a.name === ref))
-      .filter((a) => a !== undefined)
-  }, [])
-}
+const STACK = {
+  display: 'flex',
+  minWidth: 0,
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+/** Tech Level ∥ Type; the column template is `.su-sheet-crawler-identity-row` (it steps at sm). */
+const TYPE_ROW = {
+  display: 'grid',
+  alignItems: 'end',
+  columnGap: tokens.space[16],
+  rowGap: tokens.space[12],
+} satisfies CSSProperties
+
+/** Read's TL chip and type Token on one line, the chip as tall as the Token. */
+const TYPE_LINE = {
+  display: 'flex',
+  alignItems: 'stretch',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+/** The special-ability Rows: a bare list, each Row the column's full width. */
+const ABILITY = {
+  display: 'grid',
+  gap: tokens.space[8],
+  listStyle: 'none',
+  margin: 0,
+  minWidth: 0,
+  padding: 0,
+} satisfies CSSProperties
 
 type CrawlerIdentityPanelProps = {
   crawler: Crawler
@@ -63,12 +76,13 @@ type CrawlerIdentityPanelProps = {
   patch?: SheetPatch
   /**
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
-   * Edit/Done button (Phase 2: the chead row lives in the card, not here).
+   * Edit/Done button (the chead row lives in the card, not here).
    */
   /** CrawlerTypeCard's NPC inset needs an explicit flag — it writes through
    * the store directly (typeNpc), independent of `patch`. */
   readOnly?: boolean
-  className?: string
+  /** The built NPC filling the type's NPC slot, if any (ADR-044). */
+  typeCrew?: CrewAssignment
 }
 
 export function CrawlerIdentityPanel({
@@ -77,7 +91,7 @@ export function CrawlerIdentityPanel({
   storeState,
   patch,
   readOnly = false,
-  className,
+  typeCrew,
 }: CrawlerIdentityPanelProps) {
   const [typePickerOpen, setTypePickerOpen] = useState(false)
 
@@ -87,7 +101,11 @@ export function CrawlerIdentityPanel({
   // Derived, never hand-set — the crawler's stored rung, read here beside the
   // type rather than in the economy rail.
   const techLevel = parseCrawlerTechLevel(crawler.techLevel)
-  const abilities = resolveTypeAbilities(crawler.type)
+  const abilities = resolveCrawlerTypeAbilities(crawler.type)
+  const tlValue = techLevel ?? '—'
+  // Read names the type as its Token, which opens and Peeks it.
+  const readType =
+    !canEdit && type ? <Entity form="token" entity={type} mode={{ kind: 'link' }} /> : null
 
   /** Persist the crawler name (required — never write empty). */
   function saveName(next: string) {
@@ -101,34 +119,31 @@ export function CrawlerIdentityPanel({
   }
 
   return (
-    <section aria-label="Crawler identity" className={cn('min-w-0', className)}>
-      <div className="flex min-w-0 flex-col gap-3">
-        {/* Name leads at full prominence (the crawler's own name, like a
-            pilot's callsign). Tech Level sits to the LEFT of the type: it is
-            the crawler's rung, read alongside what kind of crawler it is,
-            rather than buried in the economy rail. */}
-        <Field
-          label="Name"
-          value={crawler.name}
-          onSave={canEdit ? saveName : undefined}
-          prominent
-        />
-        <div className="grid grid-cols-1 items-end gap-x-4 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)]">
+    <section aria-label="Crawler identity" style={PANEL}>
+      <div style={STACK}>
+        {/* The band already names the crawler, so Read never repeats it;
+            Edit keeps the field to rename it, as a pilot's Name. Tech Level
+            sits to the LEFT of the type: the crawler's rung, read alongside
+            what kind of crawler it is. */}
+        {canEdit && <Field label="Name" value={crawler.name} onSave={saveName} prominent />}
+        <div className="su-sheet-crawler-identity-row" style={TYPE_ROW}>
           {/* A STAT, not a Field: the tech level is derived from the crawler's
-              stored rung and never typed into, so it reads as a number plate
+              stored rung and never typed into, so it reads as a `TL | 1` chip
               like the mech's chassis stats — a field box implied an input.
-              Split across the plate's two label lines (Tech / Level) rather
-              than one wide line, which stretched the plate out of square. */}
-          <Stat
-            label="Tech"
-            bottomLabel="Level"
-            value={techLevel ?? '—'}
-            size="compact"
-            ariaLabel={`Tech Level ${techLevel ?? '—'}`}
-          />
+              Read sets it on the type's line, stretched to its Token's
+              height, so the two read as one pair of the same size. */}
+          {readType === null && <Stat orientation="horizontal" label="TL" value={tlValue} />}
           <Field
             label="Type"
             value={type?.name ?? ''}
+            readValue={
+              readType && (
+                <span style={TYPE_LINE}>
+                  <Stat orientation="horizontal" label="TL" value={tlValue} />
+                  {readType}
+                </span>
+              )
+            }
             onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
           />
         </div>
@@ -144,11 +159,20 @@ export function CrawlerIdentityPanel({
             seedSelections={crawler.bayChoices?.[crawler.type]}
             store={store}
             readOnly={readOnly}
-            ability={abilities.map((ability) => (
-              <div key={ability.id} className="min-w-0">
-                <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />
-              </div>
-            ))}
+            assigned={typeCrew}
+            ability={
+              abilities.length > 0 && (
+                // A library Row with its lead, matching the crew NPC beside it
+                // (owner's call, 2026-10-14: crawler abilities are not Tokens).
+                <ul aria-label="Special ability" style={ABILITY}>
+                  {abilities.map((ability) => (
+                    <li key={ability.id}>
+                      <Entity form="row" entity={ability} lead peek />
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
           />
         )}
 

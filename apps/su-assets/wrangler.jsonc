@@ -1,11 +1,11 @@
 {
   // assets.salvageunion.io — entity artwork from R2 (ADR-033). The Worker
-  // answers every path, robots.txt included; see src/worker.ts.
+  // answers every path, robots.txt included; see src/worker/index.ts.
   "name": "su-assets",
   "routes": [{ "pattern": "assets.salvageunion.io", "custom_domain": true }],
   // The smoke list probes the custom domain only (tools/smoke-production.sh).
   "workers_dev": false,
-  "main": "src/worker.ts",
+  "main": "src/worker/index.ts",
 
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",
@@ -13,7 +13,7 @@
   "compatibility_flags": ["nodejs_als"],
 
   // Workers Caching: a repeat request is answered from the edge without running
-  // the Worker, keyed on the `Cache-Control` each response sets (src/worker.ts).
+  // the Worker, keyed on the `Cache-Control` each response sets (src/worker/index.ts).
   "cache": {
     "enabled": true
   },
@@ -36,7 +36,10 @@
     }
   ],
 
+  // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
+  // Browser Rendering), in the dashboard next to the logs.
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "traces": { "enabled": true }
   }
 }

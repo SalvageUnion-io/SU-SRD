@@ -5,7 +5,7 @@
  * The hook is exercised via renderHook so that React's rules are satisfied,
  * but the store is controlled by the test.
  *
- * AC-3 coverage:
+ * Coverage:
  *   - assign() creates a SoftLink via store.create
  *   - unassign() removes a SoftLink via store.delete
  *   - orphan: after the target entity is removed from the store, the SoftLink
@@ -14,8 +14,8 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import { resolveLinkType } from '../../../lib/links/linkRules'
-import type { SoftLink } from '../../../lib/schemas/softLink'
+import { resolveLinkType } from 'itun-domain/links/linkRules'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { must } from '../../__tests__/must'

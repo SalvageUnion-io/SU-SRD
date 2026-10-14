@@ -1,0 +1,120 @@
+/*
+ * The package stylesheet, part 20 of 21: the Footer. `../index.css` imports
+ * the parts in cascade order.
+ */
+
+/* ══ The Footer ════════════════════════════════════════════════════════════ */
+/*
+ * The Footer (`compositions/Footer.tsx`): both tools' page foot band. Its licence
+ * row is one slim row — the licence in one small paragraph at the start, the
+ * tool's pages and the mark at the end. The row wraps (`.su-chapter-foot__row`), so a phone
+ * stacks the licence over the links.
+*
+ * Last in the file: `touchFloor.test.ts` reads the first coarse-pointer block
+ * as the shared touch floor, and this one floors only the footer's links.
+ */
+.su-footer {
+  display: block;
+  font-family: var(--font-body);
+}
+
+.su-footer__legal {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 52rem;
+}
+
+.su-footer__end {
+  align-items: center;
+  display: flex;
+  gap: var(--space-16);
+}
+
+.su-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-16);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Chrome, not prose: the band's own text colour (ink, or paper on a dark band), underlined. */
+.su-footer__link {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  min-height: 32px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.su-footer__link:hover,
+.su-footer__link:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+/* A book page's cite band: the kind at the start, the printings at the end,
+ * in the card footer's words and type (`EntityCardIdentityFooter`): caps kind,
+ * caption-size `Workshop Manual · p.112`, then "Also in" the reprints. One
+ * citation look everywhere, text, never chips. */
+.su-footer__cite .su-chapter-foot__row {
+  align-items: baseline;
+  font-size: var(--text-caption);
+}
+
+.su-footer__kind,
+.su-footer__printings {
+  font-size: var(--text-caption);
+}
+
+.su-footer__kind,
+.su-footer__also {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-footer__printings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: right;
+}
+
+.su-footer__printings > p {
+  margin: 0;
+}
+
+.su-footer__cite .su-stat-column__label {
+  font-size: var(--text-badge);
+  padding: 0 var(--space-8);
+}
+
+/* Thumb first (ruleset §4.6): 44px targets under a coarse pointer. */
+@media (pointer: coarse) {
+  .su-footer__link {
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+.su-footer__mark {
+  display: block;
+  flex: none;
+  height: 40px;
+  width: 40px;
+}
+
+/* On a dark band the black mark reverses to paper, as Leyline's white mark does. */
+.su-footer__mark--paper {
+  filter: invert(1);
+}

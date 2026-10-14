@@ -12,7 +12,7 @@
  * gets its own deploy, and two things stop that — a deploy that fails, and the
  * deploy concurrency group, which drops all but one queued run. Either way the
  * next deploy diffed a single commit and left the skipped commit's surface on
- * the old build, with every run green (audit CI-01). A tree diff against the recorded
+ * the old build, with every run green. A tree diff against the recorded
  * deploy is also right for a rollback dispatch to an OLDER commit.
  *
  * Fails SAFE in every direction: no record, `--force-all`, or any change to a
@@ -28,7 +28,7 @@
  * deploy an older commit and move the record back to it.
  *
  * Usage: bun tools/deploy-surfaces.ts [--force-all] [--allow-backwards]
- * docs/ARCHITECTURE.md#ci-deploy-set.
+ * docs/ARCHITECTURE.md#deploy.
  */
 
 import { appendFileSync } from 'node:fs'
@@ -49,8 +49,8 @@ type Surface = keyof typeof SURFACES
  * A change under any of these can move every surface, so all of them ship.
  *
  * The three root prose files are rendered INTO srd's about page and bundled
- * `?raw` into ITUN (ci.yml's `shared` filter carries them for the same reason,
- * after #731), so an edit to one changes what those surfaces serve even though
+ * `?raw` into ITUN (ci.yml's `shared` filter carries them for the same
+ * reason), so an edit to one changes what those surfaces serve even though
  * nothing under `apps/` moved. Of `.github/`, only this deploy's own workflow
  * and the setup action its jobs run can change what ships.
  */
@@ -104,13 +104,20 @@ export function planDeploy(
   return { stale: false, surfaces: decideSurfaces(changed, forceAll) }
 }
 
-function git(args: string[]): { ok: boolean; out: string } {
-  const proc = Bun.spawnSync(['git', ...args], { stdout: 'pipe', stderr: 'pipe' })
-  return { ok: proc.exitCode === 0, out: proc.stdout.toString().trim() }
-}
+/** Where the git commands run and what they inherit; the defaults are the process's. */
+export type GitContext = { cwd?: string; env?: Record<string, string | undefined> }
+
+type Git = (args: string[]) => { ok: boolean; out: string }
+
+const gitIn =
+  ({ cwd, env }: GitContext): Git =>
+  (args) => {
+    const proc = Bun.spawnSync(['git', ...args], { cwd, env, stdout: 'pipe', stderr: 'pipe' })
+    return { ok: proc.exitCode === 0, out: proc.stdout.toString().trim() }
+  }
 
 /** The recorded deploy's commit, or null when there is no usable record. */
-function recordedDeploy(): string | null {
+function recordedDeploy(git: Git, log: (line: string) => void): string | null {
   const fetched = git([
     'fetch',
     '--no-tags',
@@ -121,11 +128,11 @@ function recordedDeploy(): string | null {
   if (!fetched.ok) return null
   const base = git(['rev-parse', `refs/tags/${DEPLOY_RECORD}^{commit}`])
   if (!base.ok) return null
-  console.log(`last recorded deploy: ${base.out}`)
+  log(`last recorded deploy: ${base.out}`)
   return base.out
 }
 
-function ancestryOf(base: string | null): Ancestry {
+function ancestryOf(git: Git, base: string | null): Ancestry {
   if (base === null) return 'none'
   const head = git(['rev-parse', 'HEAD']).out
   if (head === base) return 'same'
@@ -135,7 +142,7 @@ function ancestryOf(base: string | null): Ancestry {
 }
 
 /** Files that differ between the recorded deploy and HEAD, or null with no record. */
-function changedSince(base: string | null): string[] | null {
+function changedSince(git: Git, base: string | null): string[] | null {
   if (base === null) return null
   const diff = git(['diff', '--name-only', base, 'HEAD'])
   if (!diff.ok) return null
@@ -143,29 +150,34 @@ function changedSince(base: string | null): string[] | null {
   return diff.out.split('\n')
 }
 
-function main(): void {
-  const forceAll = process.argv.includes('--force-all')
-  const allowBackwards = process.argv.includes('--allow-backwards')
-  const base = recordedDeploy()
-  const ancestry = ancestryOf(base)
-  const changed = forceAll ? [] : changedSince(base)
+/** Decide and report the deploy for the checkout at `context.cwd`; writes `$GITHUB_OUTPUT`. */
+export function main(
+  argv: readonly string[] = process.argv,
+  context: GitContext = {},
+  log: (line: string) => void = console.log
+): void {
+  const git = gitIn(context)
+  const forceAll = argv.includes('--force-all')
+  const allowBackwards = argv.includes('--allow-backwards')
+  const base = recordedDeploy(git, log)
+  const ancestry = ancestryOf(git, base)
+  const changed = forceAll ? [] : changedSince(git, base)
 
   const plan = planDeploy(changed, forceAll, ancestry, allowBackwards)
   if (plan.stale)
-    console.log(
+    log(
       `HEAD is older than the recorded deploy ${base} — a newer commit already shipped. ` +
         'Deploying nothing and leaving the record alone (dispatch with `sha` to roll back).'
     )
-  else if (forceAll) console.log('force_all — deploying every surface')
-  else if (changed === null)
-    console.log(`no usable ${DEPLOY_RECORD} record — deploying every surface`)
+  else if (forceAll) log('force_all — deploying every surface')
+  else if (changed === null) log(`no usable ${DEPLOY_RECORD} record — deploying every surface`)
 
   const ship: string[] = []
   for (const [key, deploy] of Object.entries(plan.surfaces) as [Surface, boolean][]) {
-    console.log(`  ${deploy ? 'deploy' : 'skip  '} ${SURFACES[key]}`)
+    log(`  ${deploy ? 'deploy' : 'skip  '} ${SURFACES[key]}`)
     if (deploy) ship.push(SURFACES[key])
   }
-  const output = process.env.GITHUB_OUTPUT
+  const output = (context.env ?? process.env).GITHUB_OUTPUT
   if (output) appendFileSync(output, `stale=${plan.stale}\ndeploy=${JSON.stringify(ship)}\n`)
 }
 

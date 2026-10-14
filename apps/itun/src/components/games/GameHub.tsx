@@ -1,20 +1,27 @@
 /**
- * GameHub — what `/` shows when a Game is picked in its "Showing" select.
+ * GameHub — a Game's own page, `/games/$gameId`.
  *
- * One place per table: the hub at `/` lists a Game the way it lists My Stuff
- * and puts everything you can do about the table below the lists —
+ * One place per table: the hub lists a Game the way Shelves lists your things
+ * and puts everything you can do about the table below the lists, as board M2
+ * draws it (docs/architecture/mediator-dashboard.md Q10–Q13):
  *
- *  0. **Launch Dashboard** (`LaunchDashboard`), at the top: the one way into
- *     the Dashboard, for players and the Mediator alike, while the Game has a
- *     Mediator. It asks only which pilot to play.
- *  1. **The roster** (`GameRoster`): the three columns, yours first.
- *  2. **Game** — every member: the answer queue, Downtime; and, for the
- *     Organizer, invites, who mediates, and ending the game.
- *  3. **Mediator** — the Mediator alone (`MediatorSection`): vitals, propose,
- *     tell the table, the opposition.
+ *  0. **The band** (`GameBand`): the page's controls (`Roster`'s), the
+ *     Game's name on the crawler's pink, and
+ *     for its Mediator a YOU MEDIATE stamp and **Open the Mediator
+ *     dashboard** (`/mediator/$gameId`), where the Mediator's instruments
+ *     live now.
+ *  1. **Launch Dashboard** (`LaunchDashboard`): the one way into the player
+ *     Dashboard, for players and the Mediator alike.
+ *  2. **The roster** (`GameRoster`): the three columns, yours first.
+ *  3. Two columns of sections. **Every member:** Crew & seats, the Downtime
+ *     track, and the proposals awaiting their answer. **The Mediator:**
+ *     Downtime's controls and Proposals you sent. **The Organizer:** the
+ *     Invite link (copy and reset) and The Game's Hand over, which the
+ *     server refuses anyone else (`requireOrganizer`).
  *
- * Starting or joining a Game is "+ New game" at the top of the hub
- * (`NewGameControl`), so nothing here is about choosing a table.
+ * Starting a Game is "+ New Game" at the top of the hub (`NewGameControl`), and
+ * joining one is an invite link (`InviteScreen`), so nothing here is about
+ * choosing a table.
  *
  * Connected only: `Roster` mounts this only when the mode is Connected and the
  * active container is a Game, so every hook below has a provider.
@@ -23,28 +30,35 @@
 import { Button, Card, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
-import type { CSSProperties } from 'react'
+import { SHELF } from 'itun-domain/container'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { SHELF } from '../../lib/container'
-import { setActiveContainer } from '../../stores/activeContainerStore'
+import { useShowContainer } from '../container/useShowContainer'
+import { readCrawler } from '../mediator/crawlerReading.model'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { ConvexPending } from '../shared/ConvexPending'
+import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
+import { CrewSeats } from './CrewSeats'
 import { DeleteGameDialog } from './DeleteGameDialog'
-import { DowntimePanel } from './DowntimePanel'
-import { GamePanel, GameSection } from './GamePanel'
+import { DowntimeTrack } from './DowntimeTrack'
+import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
-import { InvitePanel } from './InvitePanel'
+import { HubSection } from './HubSection'
+import { GAME_BODY, HUB_COLUMN, HUB_COLUMNS, HUB_COPY } from './hubStyles.model'
 import { LaunchDashboard } from './LaunchDashboard'
-import { MediatorPanel } from './MediatorPanel'
-import { MediatorSection } from './MediatorTools'
 import { ProposalInbox } from './ProposalInbox'
+import { ProposalsSent } from './ProposalsSent'
+import { seatRows } from './seatRows.model'
+import { TheGame } from './TheGame'
 
 type Game = NonNullable<FunctionReturnType<typeof api.games.get>>
 
 type GameHubProps = {
   gameId: string
+  /** The page's controls, on the band above the Game's name (`Roster`'s). */
+  controls?: ReactNode
   activeSegment: SegmentKind
   onSegmentChange: (kind: SegmentKind) => void
 }
@@ -58,6 +72,12 @@ const NOT_IN = {
   padding: tokens.space[16],
 } satisfies CSSProperties
 
+const INVITE_ACTIONS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
 const NOT_IN_CARD = { marginTop: tokens.space[24] } satisfies CSSProperties
 
 /**
@@ -66,17 +86,17 @@ const NOT_IN_CARD = { marginTop: tokens.space[24] } satisfies CSSProperties
  * — a non-member must not be able to tell an existing Game from a deleted one.
  */
 function NotInGame() {
+  const showContainer = useShowContainer()
   return (
     <div style={NOT_IN_CARD}>
       <Card>
         <div style={NOT_IN}>
           <Text>
-            You are not in this game. Ask whoever organises it for an invite code, then join with “+
-            New game”.
+            You are not in this Game. Ask its Organiser for the invite link, then open it to join.
           </Text>
           <div>
-            <Button variant="default" size="compact" onClick={() => setActiveContainer(SHELF)}>
-              Show My Stuff
+            <Button variant="default" size="compact" onClick={() => showContainer(SHELF)}>
+              Back to Shelves
             </Button>
           </div>
         </div>
@@ -85,89 +105,113 @@ function NotInGame() {
   )
 }
 
-/** The Game section: what every member does about the table, and the Organizer's admin. */
-function GameActions({ game }: { game: Game }) {
+/** The sections under the roster, in board M2's two columns. */
+function GameSections({ game }: { game: Game }) {
   const gameId = game._id as Id<'games'>
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const showContainer = useShowContainer()
+  const listing = useQuery(api.entities.listForGame, { gameId })
+  const members = useQuery(api.games.members, { gameId })
+  const me = useQuery(api.account.me, {})
+  const viewerId = me?._id ?? null
+
+  const primary =
+    listing?.crawlers.find((c) => c._id === listing.primaryCrawlerId) ??
+    listing?.crawlers[0] ??
+    null
+  const crawler = primary === null ? null : readCrawler(primary)
+  const seats =
+    listing === undefined || members === undefined ? null : seatRows(listing, members, viewerId)
 
   return (
     <>
-      <GameSection
-        id="game-section-heading"
-        title="Game"
-        hint={
-          game.organizer
-            ? 'You organize this game: invites, who mediates, and ending it are yours.'
-            : undefined
-        }
-      >
-        {/* Renders nothing until the Mediator has asked something. */}
-        <ProposalInbox gameId={gameId} />
-        <DowntimePanel gameId={gameId} />
-        {/* Invites are administrative, so only the Organizer sees them
-            (ADR-030 §3); the server refuses `invites.list` to anyone else. */}
-        {game.organizer && (
-          <GamePanel title="Invite someone">
-            <InvitePanel gameId={gameId} />
-          </GamePanel>
-        )}
-        {/* Appointing the Mediator is the ONLY way the flag is set:
-            `games.create` seats its creator with `mediator: false`. */}
-        {game.organizer && <MediatorPanel gameId={gameId} />}
-        {/* Last, and the Organizer's alone: ending the campaign. */}
-        {game.organizer && (
-          <GamePanel title="End this game">
-            <Text>
-              Deleting {game.name} disbands the crew for everyone in it. Every pilot and mech goes
-              back to its owner&rsquo;s My Stuff, and the crawler comes to yours — but the table,
-              its invites and its wiring are gone for good.
-            </Text>
-            <div>
-              <Button variant="danger" size="compact" onClick={() => setConfirmingDelete(true)}>
-                Delete this game
-              </Button>
-            </div>
-          </GamePanel>
-        )}
-      </GameSection>
+      <div style={HUB_COLUMNS}>
+        <div style={HUB_COLUMN}>
+          {seats === null ? (
+            <ConvexPending label="the crew" />
+          ) : (
+            <CrewSeats
+              crawler={crawler}
+              rows={seats.rows}
+              claimed={seats.claimed}
+              total={seats.total}
+            />
+          )}
+          <DowntimeTrack gameId={gameId} mediator={game.mediator} crawler={crawler} />
+          {/* Renders nothing until the Mediator has asked something. */}
+          <ProposalInbox gameId={gameId} />
+          {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}
+          {game.mediator && <ProposalsSent gameId={gameId} />}
+        </div>
+        <div style={HUB_COLUMN}>
+          {/* The invite URL is administrative, so only the Organizer sees it
+              (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
+          {game.organizer && (
+            <HubSection id="invite-link-heading" title="Invite link">
+              <p style={HUB_COPY}>
+                Anyone signed in who opens this link joins as a player. Resetting it makes a new
+                link; the old one stops working.
+              </p>
+              <div style={INVITE_ACTIONS}>
+                <CopyInviteLink gameId={gameId} />
+                <ResetInviteLink gameId={gameId} />
+              </div>
+            </HubSection>
+          )}
+          <TheGame
+            gameId={gameId}
+            viewerId={viewerId}
+            organizer={game.organizer}
+            onDelete={() => setConfirmingDelete(true)}
+          />
+        </div>
+      </div>
 
       <DeleteGameDialog
         game={confirmingDelete ? game : null}
         onClose={() => setConfirmingDelete(false)}
-        // Back to My Stuff BEFORE `games.get` resolves to `null`, which would
+        // Back to Shelves BEFORE `games.get` resolves to `null`, which would
         // otherwise show "You are not in this game" — true, and read as an
         // error by someone who just deleted it.
-        onDeleted={() => setActiveContainer(SHELF)}
+        onDeleted={() => showContainer(SHELF)}
       />
     </>
   )
 }
 
-export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps) {
+export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: GameHubProps) {
   // `games.get` rather than listMine-and-find: it distinguishes "still
   // loading" from "not a member" without fetching every table you are in.
   const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
 
-  if (game === undefined) {
-    return (
-      <div style={PENDING}>
-        <ConvexPending label="this game" />
-      </div>
-    )
-  }
-  if (game === null) return <NotInGame />
-
   return (
     <>
-      <LaunchDashboard gameId={gameId} />
-      <GameRoster
+      <GameBand
         gameId={gameId}
-        gameName={game.name}
-        activeSegment={activeSegment}
-        onSegmentChange={onSegmentChange}
+        name={game ? game.name : 'Game'}
+        mediator={game?.mediator}
+        controls={controls}
       />
-      <GameActions game={game} />
-      <MediatorSection gameId={gameId as Id<'games'>} />
+      <div className="su-page-column" style={GAME_BODY}>
+        {game === undefined ? (
+          <div style={PENDING}>
+            <ConvexPending label="this Game" />
+          </div>
+        ) : game === null ? (
+          <NotInGame />
+        ) : (
+          <>
+            <LaunchDashboard gameId={gameId} />
+            <GameRoster
+              gameId={gameId}
+              gameName={game.name}
+              activeSegment={activeSegment}
+              onSegmentChange={onSegmentChange}
+            />
+            <GameSections game={game} />
+          </>
+        )}
+      </div>
     </>
   )
 }
