@@ -1,6 +1,6 @@
 /**
  * A Token carries a short chip set after its name: an ability's tree and
- * level, TL, its slots, HP or SP, then its one action's type or how many it
+ * level, TL, its slots, HP or SP, its range's code, then its one action's type or how many it
  * has (its own counted), then the cost box, the same in every context.
  */
 import { describe, expect, test } from 'bun:test'
@@ -33,6 +33,7 @@ describe('Token chips', () => {
     expect(chipsOf('systems', 'Electro-Magnetic Shield Projector')).toEqual([
       'TL3',
       'Slots2',
+      'RNGC',
       'Reaction',
       '2 EP',
     ])
@@ -41,6 +42,10 @@ describe('Token chips', () => {
   test('an ability leads with its tree and level', () => {
     expect(chipsOf('abilities', 'Union Engineer')).toEqual(['Advanced Engineer1', '2 Actions'])
     expect(chipsOf('abilities', 'Tip Top Shape')[0]).toBe('Legendary EngineerL')
+  })
+
+  test("a range is the book's code", () => {
+    expect(chipsOf('systems', 'Red Laser')).toEqual(['TL1', 'Slots3', 'RNGC', 'Turn Action'])
   })
 
   test('a chassis shows TL, SP and its system and module slots', () => {

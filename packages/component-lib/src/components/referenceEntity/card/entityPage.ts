@@ -99,7 +99,11 @@ export function resolveEntityPageMeta(
     stats: statsInBody(entity) ? [] : bookStatsOf(model),
     numeral: model.tier,
     actionTypes: actionTypeStamps(model.actionType, model.mechActionType),
-    facts: factCells(model.facts.filter((fact) => !isOwnStat(fact.key))),
+    facts: factCells(
+      model.facts.filter((fact) => !isOwnStat(fact.key)),
+      [],
+      'full'
+    ),
     tags: traitTags(model.traits),
     ...(cost
       ? { cost: { value: cost.value ?? cost.label, currency: cost.value ? cost.label : '' } }

@@ -558,6 +558,23 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   min-width: 5.5rem;
 }
 
+/* A system's or module's chips keep to two lines (`--lines`): each line
+   whole, the block its widest line, so the name wraps and then ends in "…"
+   rather than the chips stacking a third row. */
+.su-entity-tile__band > .su-entity-tile__chips--lines {
+  align-items: flex-end;
+  flex: none;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.su-entity-tile__line {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-4);
+}
+
 .su-entity-tile__cells {
   align-content: flex-start;
   display: flex;

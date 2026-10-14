@@ -70,6 +70,20 @@ describe('toEntityModel', () => {
     expect(model.bookStats).toEqual([])
   })
 
+  test("a range carries the book's codes for compact cells, the full bands as its value", () => {
+    const action = need(
+      SalvageUnionReference.Actions.all().find((a) => (a.range?.length ?? 0) > 1),
+      'action with two range bands'
+    )
+    const range = need(
+      toEntityModel(action).facts.find((f) => f.key === 'range'),
+      'range fact'
+    )
+    const bands = need(action.range, 'range bands')
+    expect(range.value).toBe(bands.join(' / '))
+    expect(range.shortValue).toBe(bands.map((band) => band.charAt(0)).join('/'))
+  })
+
   test('a split action type keeps both halves, Mech and Pilot', () => {
     const ability = need(
       SalvageUnionReference.Abilities.all().find((a) => typeof a.mechActionType === 'string'),
