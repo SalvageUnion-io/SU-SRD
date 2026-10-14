@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import type { CardFootMeta } from '../../containers/Card'
 import type { CardSize } from '../../containers/displayMode'
+import type { CardColors } from './cardChrome'
 import type { AdditionalSource } from './provenance'
 import { formatProvenance } from './provenance'
 
@@ -38,6 +39,13 @@ type EntityCardIdentityFooterProps = {
    * no source with it.
    */
   credit?: string
+  /**
+   * PEEK only: the header band's colours (`resolveCardColors`). The footer
+   * paints the same band, so a Peek reads as one coloured plate top and
+   * bottom, in the foreground already measured against it. Absent ⇒ ink type
+   * on the card's own paper.
+   */
+  band?: CardColors
 }
 
 const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
@@ -62,7 +70,8 @@ const truncate: CSSProperties = {
  * ink-2 type on the card's own paper, under a 1.5px ink rule (dashed on a
  * user-made card). Not a band in the tone's deep shade: the frame, the "//"
  * line and the footer are ink on paper, so the tone lives in the header alone
- * (board E1).
+ * (board E1). A Peek is the exception: its footer wears the header band
+ * (`band`), so the floating card reads as one plate.
  *
  * ONE row: the entity TYPE on the LEFT, provenance (source · page) on the
  * RIGHT — "Chassis … Workshop Manual · p.128". A SECOND,
@@ -81,6 +90,7 @@ export function EntityCardIdentityFooter({
   size,
   dashed = false,
   credit,
+  band,
 }: EntityCardIdentityFooterProps) {
   const primary = credit ?? formatProvenance(source, booklet, page)
   const reprints = (credit ? [] : (additionalSources ?? []))
@@ -98,7 +108,8 @@ export function EntityCardIdentityFooter({
         borderTopColor: 'var(--color-ink)',
         borderTopStyle: dashed ? 'dashed' : 'solid',
         borderTopWidth: 'var(--bw-chrome)',
-        color: color.ink2,
+        background: band?.bandColor,
+        color: band?.bandColor ? `var(--color-${band.onBand})` : color.ink2,
         display: 'flex',
         flexDirection: 'column',
         fontSize: fontSize.caption,

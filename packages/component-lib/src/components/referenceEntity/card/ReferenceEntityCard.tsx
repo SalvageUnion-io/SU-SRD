@@ -754,11 +754,10 @@ function ReferenceEntityCardInner({
           </div>
         )}
         {statusRail}
-        {/* FOOTER — the catalog extent suppresses it entirely. */}
+        {/* FOOTER — none on a catalog tile; a Peek's wears the header band. */}
         {rendersFooter ? (
-          // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
-          // A player's pattern rides on a chassis whose provenance would
-          // otherwise put "Workshop Manual · p.104" under homebrew.
+          // USER-MADE (ruleset §3.9): the credit is the maker, never a page; a player's
+          // pattern would otherwise put its chassis's "Workshop Manual · p.104" under it.
           <EntityCardIdentityFooter
             typeLabel={footerType}
             source={userMade ? undefined : provenance.source}
@@ -773,6 +772,7 @@ function ReferenceEntityCardInner({
             size={size}
             dashed={userMade}
             credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
+            band={insidePeek ? { onBand, bandColor } : undefined}
           />
         ) : null}
       </div>
