@@ -235,7 +235,9 @@ describe('lookupCard — tables and roll buttons', () => {
     expect(card.accent).toBe(0xb7410e)
     // E17: the cost closes the chips, under the title.
     expect(cardText(card)).toContain('**Reaction** · **Range** Medium')
-    expect(cardText(card)).toContain('[Hacking](https://salvageunion.io/traits/hacking) · `1 AP`')
+    expect(cardText(card)).toContain(
+      '[Hacking](https://salvageunion.io/traits/hacking) · `1 Ability Point`'
+    )
     expect(labels(card)).toEqual(['Roll Counter-Hacking'])
   })
 })

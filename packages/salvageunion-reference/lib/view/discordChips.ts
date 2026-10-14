@@ -37,7 +37,15 @@ export function chipLines(chips: string[], perLine = 3): string[] {
   return lines
 }
 
-/** The cost as the book's pointy box: `` `1 AP` ``. */
+/** A cost's currency spelled out, singular: `AP` is Ability Point. */
+const CURRENCY: Record<string, string> = { AP: 'Ability Point', EP: 'Energy Point' }
+
+/** The cost as the book's pointy box, spelled out: `` `1 Ability Point` ``, `` `2 Energy Points` ``. */
 export function costChip(model: EntityModel): string | undefined {
-  return model.cost ? `\`${model.cost}\`` : undefined
+  if (!model.cost) return undefined
+  const cost = model.cost.replace(/^(\S+) (AP|EP)$/, (_, amount: string, currency: string) => {
+    const name = CURRENCY[currency]
+    return `${amount} ${name}${amount === '1' ? '' : 's'}`
+  })
+  return `\`${cost}\``
 }

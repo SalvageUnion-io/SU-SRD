@@ -93,7 +93,9 @@ describe('discordCardParts', () => {
     const parts = partsFor('abilities', 'counter-hacking')
     expect(parts.head[0]).toStartWith('## 2 · [Counter-Hacking](')
     expect(parts.head[1]).toBe('**Reaction** · **Range** Medium')
-    expect(parts.head[2]).toBe('[Hacking](https://salvageunion.io/traits/hacking) · `1 AP`')
+    expect(parts.head[2]).toBe(
+      '[Hacking](https://salvageunion.io/traits/hacking) · `1 Ability Point`'
+    )
     expect(parts.table?.rows.map((row) => row.key)).toEqual(['20', '11-19', '6-10', '2-5', '1'])
   })
 
@@ -109,7 +111,9 @@ describe('discordCardParts', () => {
       partsFor('systems', 'fabrication-arm').actions.find((action) => action.name === 'Patch'),
       'patch'
     )
-    expect(patch.text).toStartWith('### Patch\n-# **Turn Action** · **Range** Close · `2 EP`')
+    expect(patch.text).toStartWith(
+      '### Patch\n-# **Turn Action** · **Range** Close · `2 Energy Points`'
+    )
   })
 
   test('the action types read as the Core Book prints them (pp.23, 237-238)', () => {
