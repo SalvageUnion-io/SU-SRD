@@ -1,23 +1,23 @@
 # Entity Display Language
 
-The law for **how an entity is drawn**, in the SRD and ITUN alike; [ruleset.md](ruleset.md) governs primitives, tokens and contexts (amend one first where they disagree).
+The law for **how an entity is drawn**, SRD and ITUN alike; [ruleset.md](ruleset.md) governs primitives, tokens and contexts (amend one first where they disagree).
 Status: agreed. Code: `packages/component-lib/src/entity/`.
 
 ## Pipeline
 
 1. **Entity** — a `salvageunion-reference` record plus an optional instance (condition, uses, count, notes, title, user-made).
 2. **Model** — `toEntityModel(entity, instance?)` in `packages/salvageunion-reference/lib/view/`: pure, serialisable, shared by both apps and the bot.
-   Resolves identity, kind, tone, facts, traits, lead, prose, actions, children, table, art and citation once; no form computes a fact.
+   Resolves identity, tone, facts, traits, prose, actions, children, table, art and cite once; no form computes a fact.
 3. **Form** — which parts to draw, in a fixed order. **Mode** — which affordances fill the form's slots. Only these two are React.
-4. **Surface context** — reference resolution, band texture and the user-made treatment are supplied once, never per call.
+4. **Surface context** — reference resolution, band texture and the user-made treatment come once, never per call.
 
 ## Forms
 
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
-2. **Token** — `name [chips]`, one line, name cut out; links and Peeks as a Mention.
+2. **Token** — `name [chips]`, one row, name cut out; links and Peeks as a Mention.
 3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it, as on a Card), a paper body only for a lead or stamp.
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
-   **Tile** — the SRD Catalog's Row: 3:4 art, name notched into the band, compact facts, lead; link only.
+   **Tile** — the SRD Catalog's Row: 3:4 art, name notched in the band, facts, lead; link only.
 4. **Card** — the whole entity in place: head (title, labels — pills, User-made — and chips), prose, actions as bands, children as Rows, table as a roll bar, cite; comfortable (≥ 30rem) or compact.
 5. **Page** — the detail view: an SRD route, ITUN's detail dialog. From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
    Ability trees and pattern rows clear the art; a stack spans the column, 52rem with no art; a phone stacks the art above.
@@ -31,9 +31,9 @@ Status: agreed. Code: `packages/component-lib/src/entity/`.
 
 ## Hard rules
 
-Each is checkable; breaking one needs an amendment here first.
+Each is checkable; breaking one needs an amendment here.
 
-- **E1** Choose the form by the job and the room, never by the app.
+- **E1** Choose the form by the job and room, never the app.
 - **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). Except the SRD Catalog: Tiles where the schema has art, default at ≥ 75rem, each line filled to the margin; the reader's choice is kept.
 - **E3** Use a Token only when a Row will not fit: three or more on a line, a slot under 12rem, or a pattern's loadout.
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
@@ -48,10 +48,10 @@ Each is checkable; breaking one needs an amendment here first.
   An ability's Row wears its tier, as its track and page band do: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
 - **E13** Texture and the user-made treatment come from the surface and the instance.
 - **E14** Tables are the Table instrument: a roll bar in a Card, the roll instrument on a Page or panel; its ROLL THE DIE stamp is the roll button.
-- **E15** No hand-built entity markup outside `component-lib/src/entity/`.
+- **E15** No hand-built entity markup outside `entity/`.
 - **E16** A Peek is read-only and terminal.
-- **E17** No "//" line: all chips are one head group, in the stat order (ruleset §2.6): stats, action type ("Turn Action") and facets, traits (`[Burn | 2]`), the cost's pointy box (`2 EP`). Right of the title, under it on a phone, never above it. On ink each chip has a paper rule.
-- **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens.
+- **E17** No "//" line: all chips are one head group, in the stat order (ruleset §2.6): stats, action type ("Turn Action") and facets, traits (`[Burn | 2]`), the cost's pointy box (`2 EP`). Right of the title, under it on a phone. On ink each chip has a paper rule.
+- **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token is one row: its chips fill ≤ 65%, dropped whole from the end; its name ends in "…".
 - **E19** A chassis ability shows only on its chassis's and its patterns' pages (either app) and in ITUN's builder pick cards, where choosing needs it; never in a picker dialog, Row, Tile, Peek, nested or other Card.
 - **E20** Above a show page's title: only the breadcrumb (ITUN sheet: controls top right, `corner`); stamps, chips, other controls cluster right of it, under it on a phone (`asideAt="notch"`); a chassis's stats lead its body.
 

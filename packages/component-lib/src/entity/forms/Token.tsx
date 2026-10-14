@@ -90,11 +90,11 @@ export type TokenSlots = {
  * TOKEN — the shortform (§3): `name [chips]`, one size, for many on a line or
  * a slot under 12rem (E3). Its chips are a short set (`tokenChips`), then the
  * cost box, the same in every context; an ability's tier numeral sits before
- * its name, as on its band. When the line runs out of room the chips wrap
- * under the name, so the name always shows; only a name too long for a line
- * of its own ends in "…" (E18). Its kind is never stamped (E9): screen readers
- * hear it after the name (`KindLabel`); a player unit's note ("Engineer")
- * leads in its place. A tone pill for a thing you have, the tier
+ * its name, as on its band. It is always one row (E18): the chips take at
+ * most 65% of it, dropping whole from the end until they fit, and the name
+ * takes the rest, ending in "…" when that is too little. Its kind is never
+ * stamped (E9): screen readers hear it after the name (`KindLabel`); a player
+ * unit's note ("Engineer") leads in its place. A tone pill for a thing you have, the tier
  * tone or ink for a thing you do, dashed when player-made. It wraps as a
  * whole, never mid-token; in link mode it opens its entity. Hover, focus or a
  * long press Peeks it: the whole card, read-only (E16).
