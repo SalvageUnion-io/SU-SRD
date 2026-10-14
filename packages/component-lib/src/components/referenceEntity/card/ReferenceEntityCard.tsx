@@ -50,6 +50,7 @@ import { resolveBodyProse } from './cardBodyProse'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from './cardCells'
 import type { HeaderFill } from './cardChrome'
 import {
+  cardDown,
   resolveCardColors,
   resolveCardInteraction,
   resolveFrameWidth,
@@ -301,9 +302,8 @@ function ReferenceEntityCardInner({
   const tone = resolveCardTone(schemaName, entity)
   // HAVE vs DO, by data shape.
   const fill: HeaderFill = resolveHeaderFill(entity, extent, insidePeek)
-  // A damaged/destroyed card — or one nested under a damaged host — greys its
-  // header; its body dims.
-  const isDown = status === 'damaged' || status === 'destroyed' || !!hostDown
+  // Damaged dulls the header, destroyed greys it (`cardDown`); the body dims.
+  const isDown = cardDown(status, hostDown)
   const { onBand, bandColor } = resolveCardColors({ tone, isDown, fill })
   const grain: CardGrain | undefined =
     textured && !isDown ? (fill === 'ink' ? 'paper' : 'ink') : undefined

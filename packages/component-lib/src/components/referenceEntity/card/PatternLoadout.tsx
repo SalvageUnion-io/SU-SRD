@@ -5,6 +5,8 @@ import { Entity } from '../../../entity/Entity'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
 import { useEntityHref } from '../entityHrefContext'
+import type { Down } from './cardChrome'
+import { conditionOf } from './cardChrome'
 import { cardKey } from './cardHelpers'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { NestedGroup } from './resolveNestedEntities'
@@ -51,7 +53,7 @@ export function PatternLoadout({
 }: {
   groups: NestedGroup[]
   sectionAs: ElementType | undefined
-  hostDown: boolean
+  hostDown: Down
   /**
    * Whose loadout, prefixed to each list's name ("Hauler Systems installed"):
    * a page lists many patterns, and a bare "Systems installed" would not say
@@ -115,20 +117,14 @@ export function PatternLoadout({
  * never the TL glued onto it. Under a host that is down it greys, as the
  * host's band does.
  */
-export function LoadoutToken({
-  data,
-  hostDown,
-}: {
-  data: ReferenceCardEntity
-  hostDown?: boolean
-}) {
+export function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: Down }) {
   const href = useEntityHref(data as SURefEntity)
   return (
     <Entity
       form="token"
       entity={data as SURefMetaEntity}
       mode={href ? { kind: 'link', href } : { kind: 'link' }}
-      {...(hostDown ? { instance: { condition: 'damaged' as const } } : {})}
+      {...(hostDown ? { instance: { condition: conditionOf(hostDown) } } : {})}
     />
   )
 }
@@ -150,7 +146,7 @@ export function PatternLoadoutRows({
   groups: NestedGroup[]
   /** The groups' heading element on a page (`sectionHeadingLevel`). */
   as: ElementType | undefined
-  hostDown: boolean
+  hostDown: Down
 }) {
   if (groups.length === 0) return null
   return (

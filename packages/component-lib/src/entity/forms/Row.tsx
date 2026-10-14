@@ -4,6 +4,8 @@ import type { StatItem } from '../../components/containers/statsBarTypes'
 import { CardLabels } from '../../components/referenceEntity/card/CardLabels'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
+import type { Down } from '../../components/referenceEntity/card/cardChrome'
+import { downOf } from '../../components/referenceEntity/card/cardChrome'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -53,7 +55,7 @@ export type RowSlots = {
   art?: boolean
   /** A row that is its head alone. */
   bodyless?: boolean
-  down?: boolean
+  down?: Down
 }
 
 export type RowProps = {
@@ -104,9 +106,8 @@ export function Row({
 }: RowProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
-  const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
-  const down =
-    slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
+  const down = slots.down ?? downOf(instance?.condition)
+  const peekAttrs = usePeekAttrs(peek ? model.ref : undefined, undefined, down)
   const ability = model.ref.schemaName === 'abilities'
   // An ability's Row wears its tier tone (E12); any other "do" entity the ink banner.
   const fill = model.kind.nature === 'do' && !ability ? 'ink' : model.tone

@@ -11,6 +11,8 @@ import type { CardSize } from '../../containers/displayMode'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
+import type { Down } from './cardChrome'
+import { conditionOf } from './cardChrome'
 import { cardKey, stackedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type {
@@ -27,7 +29,7 @@ export type NestedCardHost = {
   depth: number
   /** The host's size: a child renders medium, or small inside a small card. */
   size: CardSize
-  isDown: boolean
+  isDown: Down
   /** The host IS the page: its stacks drop the frame inset (see `CardStack`). */
   onPage?: boolean
   /** The host's display name (lets a nested action drop its ` (Host)` suffix). */
@@ -222,7 +224,8 @@ function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCard
   const entityName = getReferenceEntityName(data) ?? 'Entity details'
   // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
   const title = stripHostParenthetical(entityName, host.entityName)
-  const instance = { title, ...(host.isDown ? { condition: 'damaged' as const } : {}) }
+  const condition = conditionOf(host.isDown)
+  const instance = { title, ...(condition ? { condition } : {}) }
   const mode: EntityMode = insidePeek
     ? { kind: 'read' }
     : linkOut

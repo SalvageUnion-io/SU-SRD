@@ -113,7 +113,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         table={entityTable}
         name={tableName}
         size={size}
-        disabled={isDown}
+        disabled={!!isDown}
         framed={!onPage && !inline}
         tone={tone.bgColor}
       />

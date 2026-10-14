@@ -3,6 +3,7 @@ import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-refere
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
+import type { Down } from './cardChrome'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { pageBodyStats } from './entityPage'
 import { PatternLinkRows } from './PatternListRow'
@@ -61,7 +62,7 @@ type CardPageProps = {
   /** How each action card renders: the card itself, at depth 1. */
   action: {
     NestedCard: NestedCard
-    hostDown: boolean
+    hostDown: Down
     hostName: string
     chassisName: string | undefined
   }

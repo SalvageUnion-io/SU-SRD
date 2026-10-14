@@ -14,6 +14,7 @@ import {
   parseContentBlockString,
 } from 'salvageunion-reference'
 import type { Foreground } from '../../../design/contrast'
+import { foregroundOn } from '../../../design/contrast'
 import { SELECTED_RING } from '../../../entity/modes/selectedRing'
 import { cn } from '../../../utils/cn'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
@@ -32,9 +33,50 @@ export const PENNANT_SHAPE = 'polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%)'
 /** What the User-made stamp and pill say when hovered (ruleset §3.9). */
 export const USER_MADE_TITLE = 'Made by a player, not from the Workshop Manual'
 
-/** The flat grey header of a damaged/destroyed card: ink half-mixed into paper —
- * the same warm material at distance. */
+/** The greys a damaged band dulls toward: ink mixed into paper —
+ * the same warm material at distance. A band that prints ink dulls toward the
+ * light one and a band that prints paper toward the dark one, so a dulled band
+ * keeps its foreground and its contrast (5.2:1 at worst across the palette). */
+const DULL_GREY = {
+  ink: 'color-mix(in srgb, var(--color-ink) 30%, var(--color-paper))',
+  paper: 'color-mix(in srgb, var(--color-ink) 70%, var(--color-paper))',
+} as const
+
+/** A DESTROYED band: flat grey, ink half-mixed into paper, whatever its tone. */
 export const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
+
+/** A DAMAGED band (owner, 2026-10-14): its own colour dulled toward grey, not
+ * replaced by it, so it still reads as the same entity. Every form (Token,
+ * Row, Tile, Card, Peek) dulls the same band the same way. */
+export function dullBand(band: string): string {
+  return `color-mix(in srgb, ${band} 50%, ${DULL_GREY[foregroundOn(band, 'paper')]})`
+}
+
+/** Whether an entity is down, and how: `false` intact, `true` damaged (its
+ * band dulls), `'destroyed'` (its band goes flat grey). A host threads it to
+ * everything nested under it. */
+export type Down = boolean | 'destroyed'
+
+/** The `Down` an instance condition gives. */
+export function downOf(condition: string | undefined): Down {
+  return condition === 'destroyed' ? 'destroyed' : condition === 'damaged'
+}
+
+/** The instance condition a `Down` stands for, for a child drawn under a down host. */
+export function conditionOf(down: Down): 'damaged' | 'destroyed' | undefined {
+  return down === 'destroyed' ? 'destroyed' : down ? 'damaged' : undefined
+}
+
+/** A card's `Down`: destroyed outranks damaged, from its own status or its host's. */
+export function cardDown(status: string | undefined, hostDown: Down | undefined): Down {
+  if (status === 'destroyed' || hostDown === 'destroyed') return 'destroyed'
+  return status === 'damaged' || !!hostDown
+}
+
+/** A band as a down entity paints it: grey when destroyed, dulled when damaged. */
+export function downBand(band: string, down: Down): string {
+  return down === 'destroyed' ? GREY_HEADER : down ? dullBand(band) : band
+}
 
 /**
  * The header's two fills (ruleset §5, board E1): a TONE header for things you
@@ -77,7 +119,8 @@ export type CardColors = {
  *   Crawler pink carries neither ink nor paper at 4.5:1, so a crawler header
  *   paints the deeper crawler band and prints paper (ruleset §3.8, `textBand`).
  * - INK fill: `--color-ink`, paper text.
- * - DAMAGED/DESTROYED (write layer): the header goes flat grey, whatever the fill.
+ * - DAMAGED (write layer): the band dulls toward grey (`dullBand`), keeping its
+ *   foreground. DESTROYED: flat grey (`GREY_HEADER`), whatever the fill.
  *
  * FOREGROUNDS go by WCAG contrast against the band actually painted
  * (`onTone`): "solid tones read paper" measured 1.79:1 on TL1, 2.41:1 on
@@ -89,15 +132,21 @@ export function resolveCardColors({
   fill,
 }: {
   tone: DomainTone
-  isDown: boolean
+  isDown: Down
   fill: HeaderFill
 }): CardColors {
-  if (isDown) return { onBand: onTone(GREY_HEADER, 'ink'), bandColor: GREY_HEADER }
-  if (fill === 'ink') return { onBand: 'paper', bandColor: 'var(--color-ink)' }
+  if (fill === 'ink') {
+    if (!isDown) return { onBand: 'paper', bandColor: 'var(--color-ink)' }
+    const dulled = downBand('var(--color-ink)', isDown)
+    return { onBand: onTone(dulled, 'paper'), bandColor: dulled }
+  }
   // A tone that carries neither foreground at 4.5:1 paints its deeper text
   // band instead (ruleset §3.8): crawler pink becomes the crawler band, paper text.
-  const band = tone.bgColor ?? tone.bg
-  return { onBand: onTone(band, 'paper'), bandColor: textBand(band) }
+  const band = textBand(tone.bgColor ?? tone.bg)
+  if (!isDown) return { onBand: onTone(tone.bgColor ?? tone.bg, 'paper'), bandColor: band }
+  // A band left paper dulls from paper.
+  const dulled = downBand(band ?? 'var(--color-paper)', isDown)
+  return { onBand: onTone(dulled, 'paper'), bandColor: dulled }
 }
 
 /**

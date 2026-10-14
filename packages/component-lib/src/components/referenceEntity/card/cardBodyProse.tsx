@@ -27,6 +27,7 @@ import type { CardProseContext } from './CardProse'
 import { ChoiceRegion } from './ChoiceRegion'
 import type { BonusCell } from './cardCells'
 import { bonusCells } from './cardCells'
+import type { Down } from './cardChrome'
 import { blockPlainText, choiceRendersNothing, isRulesBearing } from './cardHelpers'
 import { resolveCatalogLeadBlocks } from './catalogLead'
 import type { AnchoredContentBlock } from './choiceAnchoring'
@@ -69,7 +70,7 @@ export type CardBodyInput = Pick<
   readable: boolean
   isAction: boolean
   isCatalog: boolean
-  isDown: boolean
+  isDown: Down
   isTitanicMeta: boolean
   isLegalStartingPatternCard: boolean
   hasSubLine: boolean

@@ -1,6 +1,8 @@
 import { useContext } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { InsidePeekContext } from '../components/atoms/insidePeek'
+import type { Down } from '../components/referenceEntity/card/cardChrome'
+import { conditionOf } from '../components/referenceEntity/card/cardChrome'
 
 export { InsidePeekContext }
 
@@ -15,6 +17,10 @@ export function useInsidePeek(): boolean {
  * attribute, renders the same on the server, and works in static HTML.
  */
 export const PEEK_ATTRIBUTE = 'data-peek'
+
+/** Set on a trigger whose entity is damaged (`damaged`) or destroyed
+ * (`destroyed`): its Peek is down the same way. */
+export const PEEK_DOWN_ATTRIBUTE = 'data-peek-down'
 
 /** A ref's address as a trigger carries it: `schema:id`. */
 function peekAddress(ref: EntityRef): string {
@@ -31,8 +37,11 @@ export function parsePeekAddress(
   return { schemaName: address.slice(0, at), id: address.slice(at + 1) }
 }
 
-/** A Peek trigger's attributes: its address, or nothing. */
-export type PeekAttrs = { [PEEK_ATTRIBUTE]?: string }
+/** A Peek trigger's attributes: its address and whether it is down, or nothing. */
+export type PeekAttrs = {
+  [PEEK_ATTRIBUTE]?: string
+  [PEEK_DOWN_ATTRIBUTE]?: 'damaged' | 'destroyed'
+}
 
 /**
  * The address of a record EMBEDDED in another (a crawler bay's crew NPC): its
@@ -47,12 +56,21 @@ export function embeddedPeekAddress(schemaName: string, hostId: string, part: 'n
  * The attributes that make an element a Peek trigger, or none: a synthetic ref
  * (built from embedded data) has no dataset row to show unless its caller
  * names one (`address`, an `embeddedPeekAddress`), a pattern is drawn by its
- * own page, and inside a Peek nothing peeks again.
+ * own page, and inside a Peek nothing peeks again. A `down` trigger (damaged
+ * or destroyed) says so, and its Peek is down the same way.
  */
-export function usePeekAttrs(ref: EntityRef | undefined, address?: string): PeekAttrs {
+export function usePeekAttrs(
+  ref: EntityRef | undefined,
+  address?: string,
+  down: Down = false
+): PeekAttrs {
   const inside = useInsidePeek()
   if (inside) return {}
-  if (address) return { [PEEK_ATTRIBUTE]: address }
-  if (!ref || ref.synthetic || ref.pattern) return {}
-  return { [PEEK_ATTRIBUTE]: peekAddress(ref) }
+  const at = address ?? (ref && !ref.synthetic && !ref.pattern ? peekAddress(ref) : undefined)
+  if (!at) return {}
+  const condition = conditionOf(down)
+  return {
+    [PEEK_ATTRIBUTE]: at,
+    ...(condition ? { [PEEK_DOWN_ATTRIBUTE]: condition } : {}),
+  }
 }
