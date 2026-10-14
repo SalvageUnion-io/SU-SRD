@@ -569,12 +569,12 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   })
   const sp =
     maxSp > 0 ? resolvePool(num(body, 'currentSP') ?? undefined, maxSp) : num(body, 'currentSP')
+  fields.push({ name: TL, value: techLevel ?? '—', inline: true })
   fields.push({
     name: SP,
     value: maxSp > 0 ? gauge(sp, maxSp) : sp === null ? '—' : String(sp),
     inline: true,
   })
-  fields.push({ name: TL, value: techLevel ?? '—', inline: true })
 
   const bayRefs = Array.isArray(body.crawlerBays)
     ? (body.crawlerBays as unknown[]).flatMap((bay) => {

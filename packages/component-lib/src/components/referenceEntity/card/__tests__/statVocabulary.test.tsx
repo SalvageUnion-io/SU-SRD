@@ -44,9 +44,9 @@ describe('trait rendering (E17: Tags with a parameter cell)', () => {
     expect(tagsOf(<ReferenceEntityCard data={action('Armour Plating')} />)).toContain('UsesDestroy')
   })
 
-  test('the traits are Tags in the book order, with no "//" line', () => {
+  test('the traits are Tags, alphabetical with Uses last, with no "//" line', () => {
     const node = <ReferenceEntityCard data={action('Beta Fission Gun')} />
-    expect(tagsOf(node)).toEqual(['Energy', 'Burn2', 'Explosive2', 'Heavy', 'Uses3'])
+    expect(tagsOf(node)).toEqual(['Burn2', 'Energy', 'Explosive2', 'Heavy', 'Uses3'])
     expect(textOf(node)).not.toContain('//')
   })
 })

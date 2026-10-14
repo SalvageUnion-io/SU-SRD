@@ -313,3 +313,18 @@
 .su-entity-page__wide:empty {
   display: none;
 }
+
+/* A stat group's first cell (`StatColumn`, `data-group-start`): in the grid it
+   opens a new row, so provenance, vitals and capacity each read as a line; on
+   the band's line of cells it is a wider gap. */
+.su-stat-column__cell[data-group-start] {
+  grid-column-start: 1;
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column > [data-group-start] {
+  margin-inline-start: var(--space-8);
+}
+
+.su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) > [data-group-start] {
+  margin-inline-start: 0;
+}

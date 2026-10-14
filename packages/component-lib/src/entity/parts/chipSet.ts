@@ -2,9 +2,9 @@ import type { StatItem } from '../../components/containers/statsBarTypes'
 import type { TagItem } from './tagItems'
 
 /**
- * Every chip an entity carries (E17), gathered once: ONE group, in this
- * order: the action type, the facts, the traits, each a horizontal `Stat`
- * cell, then the cost, the book's pointy box (`Chips`).
+ * Every chip an entity carries (E17), gathered once: ONE group, in the stat
+ * order: the stats, the action type and the action's facts, the traits, each
+ * a horizontal `Stat` cell, then the cost, the book's pointy box (`Chips`).
  */
 export type ChipSet = {
   /** The action type as the book prints it ("Turn Action", "Reaction"). */

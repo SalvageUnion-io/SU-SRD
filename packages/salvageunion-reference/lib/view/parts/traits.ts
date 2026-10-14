@@ -20,6 +20,7 @@ import type {
   SURefObjectDamage,
   SURefObjectTrait,
 } from '../../schemas/index'
+import type { StatGroup } from '../types'
 import { ACTION_TYPE_LABELS } from './facts'
 import { classRequirements } from './kind'
 
@@ -44,6 +45,8 @@ export type FacetCell = {
   actionType?: string
   /** A fact's short form. */
   short?: string
+  /** A fact's part of the stat order (`StatGroup`): an action's, unless it says. */
+  group?: StatGroup
   /** A fact's value in short form, for compact cells (`rangeCodes`). */
   shortValue?: string
   /** A named rule's glossary lookup. */
@@ -203,6 +206,7 @@ export function facetCells(options: {
           {
             key: 'class-requires',
             label: 'Requires',
+            group: 'provenance',
             short: 'REQ',
             // A disjunction: a pilot advances from ONE of the trees.
             value: requirements.join(' or '),
@@ -212,7 +216,16 @@ export function facetCells(options: {
       : []
   const population = populationRange(entity)
   const populationCells: FacetCell[] = population
-    ? [{ key: 'population', label: 'Population', short: 'POP', value: population, kind: 'fact' }]
+    ? [
+        {
+          key: 'population',
+          label: 'Population',
+          short: 'POP',
+          value: population,
+          kind: 'fact',
+          group: 'capacity',
+        },
+      ]
     : []
   const baseCells = action
     ? actionFacets(action)
@@ -267,7 +280,23 @@ export function facetCells(options: {
         ...(changed ? { modified: true as const } : {}),
       }
     })
-  return [...baseCells, ...addedTraitCells, ...datavalueCells]
+  return orderTraits([...baseCells, ...addedTraitCells, ...datavalueCells])
+}
+
+/**
+ * The trait order (owner, 2026-10-14): alphabetical, as the book mostly
+ * prints them, with Uses last (".50 Cal Machine Gun: Ballistic // Jamming //
+ * Pinning", Workshop Manual p.164; "… // Missile // Uses (6)", p.175). The
+ * other cells keep their order, ahead of the traits.
+ */
+function orderTraits(cells: FacetCell[]): FacetCell[] {
+  const rank = (cell: FacetCell) => (cell.label.toLowerCase() === 'uses' ? 1 : 0)
+  const traits = cells
+    .filter((cell) => cell.kind === 'trait')
+    .sort(
+      (a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label, 'en', { sensitivity: 'base' })
+    )
+  return [...cells.filter((cell) => cell.kind !== 'trait'), ...traits]
 }
 
 /**

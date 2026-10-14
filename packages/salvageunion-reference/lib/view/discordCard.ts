@@ -30,6 +30,7 @@ import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { chipLines, costChip, factChips } from './discordChips'
+import { opensGroup, splitStatLine } from './parts/facts'
 import { formatActionType } from './parts/traits'
 import { toEntityModel } from './toEntityModel'
 import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
@@ -230,22 +231,25 @@ function contentMarkdown(
   return out
 }
 
-/** The facets in the web cards' order, then any book stat they lack. */
-function cellFacts(model: EntityModel): Fact[] {
-  const shown = new Set(model.facts.map((fact) => fact.short))
-  return [...model.facts, ...model.bookStats.filter((fact) => !shown.has(fact.short))]
-}
-
 /**
- * The head group's lines (E17): the action type, the facts, the traits, then
- * the cost last. The traits keep a line of their own (their links run long);
- * the cost closes whichever line is last.
+ * The head group's lines (E17), in the stat order: a line for each group of
+ * stats (TL and SV, then SP, EP and Heat, then the slots), a line for the
+ * action (its type, then its facets), a line for the traits (their links run
+ * long), the cost closing whichever line is last. A group longer than
+ * `perLine` chips breaks across lines of its own.
  */
 function chipGroup(model: EntityModel, facts: Fact[], perLine = 3): string[] {
+  const { stats, action } = splitStatLine(facts)
+  const groups: Fact[][] = []
+  stats.forEach((fact, index) => {
+    const last = groups[groups.length - 1]
+    if (last && !opensGroup(stats, index)) last.push(fact)
+    else groups.push([fact])
+  })
+  const lines = groups.flatMap((group) => chipLines(factChips(group), perLine))
   const actionType = actionTypeLine(model)
-  const lines = chipLines(
-    [...(actionType ? [`**${actionType}**`] : []), ...factChips(facts)],
-    perLine
+  lines.push(
+    ...chipLines([...(actionType ? [`**${actionType}**`] : []), ...factChips(action)], perLine)
   )
   if (model.traits.length > 0) lines.push(traitTags(model.traits))
   const cost = costChip(model)
@@ -380,7 +384,7 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
     model.ref.schemaName === 'chassis' ? (model.parent?.ref.name ?? model.title) : undefined
 
   const lead = kicker(model)
-  const head = [...(lead ? [lead] : []), heading(model, url), ...chipGroup(model, cellFacts(model))]
+  const head = [...(lead ? [lead] : []), heading(model, url), ...chipGroup(model, model.facts)]
 
   // The entity's own prose, then its folded self-action's: a system's rules
   // live in the action that IS it. An ability's description is its lead.

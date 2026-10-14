@@ -1,7 +1,7 @@
 /**
- * A Token carries a short chip set after its name (E17's order): its one
- * action's type or how many it lists (`ACTIONS | 3`, its folded self-action
- * not counted), TL, its slots, HP or SP, its range's code
+ * A Token carries a short chip set after its name, in the stat order (E17):
+ * TL, its slots, HP or SP, then its one action's type or how many it lists
+ * (`ACTIONS | 3`, its folded self-action not counted), its range's code
  * (`RNG | C`), then the cost box, the same in every context. A chassis keeps its one chip set in every form. An ability's tier
  * numeral leads its name instead of a chip.
  */
@@ -10,7 +10,6 @@ import { render } from '@testing-library/react'
 import type { SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Entity } from '../Entity'
-import { formFacts } from '../parts/factCells'
 
 const get = (schema: string, name: string) => {
   const entity = SalvageUnionReference.getByNameIn(schema as never, name)
@@ -28,18 +27,18 @@ const chipsOf = (schema: string, name: string) => {
 }
 
 describe('Token chips', () => {
-  test('a system with several actions counts those it lists, label first, first (E17)', () => {
-    expect(chipsOf('systems', 'Fabrication Arm')).toEqual(['Actions3', 'TL3', 'Slots3'])
+  test('a system with several actions counts those it lists after its stats, label first (E17)', () => {
+    expect(chipsOf('systems', 'Fabrication Arm')).toEqual(['TL3', 'Slots3', 'Actions3'])
     const { container } = render(<Entity form="token" entity={get('systems', 'Fabrication Arm')} />)
-    const count = container.querySelector('.su-entity-token__chips > :first-child')
+    const count = container.querySelector('.su-entity-token__chips > :last-child')
     expect(count?.firstElementChild?.textContent).toBe('Actions')
   })
 
-  test('one action leads with its type, then the facts, then the cost box last (E17)', () => {
+  test('TL leads, then the stats, the action type, its range, and the cost box last (E17)', () => {
     expect(chipsOf('systems', 'Electro-Magnetic Shield Projector')).toEqual([
-      'Reaction',
       'TL3',
       'Slots2',
+      'Reaction',
       'RNGC',
       '2 EP',
     ])
@@ -61,15 +60,15 @@ describe('Token chips', () => {
   })
 
   test("a range is the book's code", () => {
-    expect(chipsOf('systems', 'Red Laser')).toEqual(['Turn Action', 'TL1', 'Slots3', 'RNGC'])
+    expect(chipsOf('systems', 'Red Laser')).toEqual(['TL1', 'Slots3', 'Turn Action', 'RNGC'])
   })
 
-  test('a chassis shows its one chip set: TL, SP, EP, SV, SYS, MODS', () => {
-    expect(chipsOf('chassis', 'Mule')).toEqual(['TL1', 'SP12', 'EP4', 'SV7', 'SYS16', 'MODS2'])
+  test('a chassis shows its one chip set: TL, SV, SP, EP, SYS, MODS', () => {
+    expect(chipsOf('chassis', 'Mule')).toEqual(['TL1', 'SV7', 'SP12', 'EP4', 'SYS16', 'MODS2'])
   })
 
   test('an NPC shows its HP and its action count', () => {
-    expect(chipsOf('npcs', 'Saboteur')).toEqual(['Actions8', 'HP6'])
+    expect(chipsOf('npcs', 'Saboteur')).toEqual(['HP6', 'Actions8'])
   })
 
   test("a host's trailing chip comes last, after the cost box", () => {
@@ -98,28 +97,20 @@ describe('Token chips', () => {
   })
 })
 
-describe('formFacts — one chassis chip set in every form', () => {
-  test('a chassis keeps TL, SP, EP, SV, SYS, MODS; Cargo and Heat are its Page’s', () => {
+describe('one chassis chip set in every form', () => {
+  test('a chassis keeps TL, SV, SP, EP, SYS, MODS; Cargo and Heat are its Page’s', () => {
     const model = toEntityModel(get('chassis', 'Mule'))
-    expect(formFacts(model).map((fact) => fact.short)).toEqual([
+    expect(model.facts.map((fact) => fact.short)).toEqual(['TL', 'SV', 'SP', 'EP', 'SYS', 'MODS'])
+    expect(model.bookStats.map((fact) => fact.short)).toEqual([
       'TL',
+      'SV',
       'SP',
       'EP',
-      'SV',
+      'Heat',
       'SYS',
       'MODS',
+      'Cargo',
     ])
-  })
-
-  test("a player's mech (a synthetic chassis ref) keeps its live readings", () => {
-    const facts = [{ key: 'SP', label: 'SP', short: 'SP', value: '6/9' }]
-    const unit = { ref: { schemaName: 'chassis', synthetic: true as const }, facts }
-    expect(formFacts(unit)).toEqual(facts)
-  })
-
-  test('any other entity keeps every fact', () => {
-    const model = toEntityModel(get('systems', 'Electro-Magnetic Shield Projector'))
-    expect(formFacts(model)).toEqual(model.facts)
   })
 })
 

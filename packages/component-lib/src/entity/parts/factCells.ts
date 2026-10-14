@@ -19,34 +19,7 @@ export function factCells(
       key: fact.key,
       label: fact.short,
       value: values === 'short' ? (fact.shortValue ?? fact.value) : fact.value,
+      ...(fact.group ? { group: fact.group } : {}),
       ...(fact.hint ? { hoverText: fact.hint } : {}),
     }))
-}
-
-/**
- * A chassis's chips, the same in every form (the Catalog's set, owner's call):
- * TL, SP, EP, SV, SYS, MODS. Cargo and Heat are its Page's.
- */
-const CHASSIS_FACT_KEYS: ReadonlySet<string> = new Set([
-  'tech-level',
-  'ref-stat-structurePoints',
-  'ref-stat-energyPoints',
-  'ref-stat-salvageValue',
-  'ref-stat-systemSlots',
-  'ref-stat-moduleSlots',
-])
-
-/**
- * The facts a Row, Tile or Token draws for an entity: every fact, but a
- * chassis (and its patterns) keeps its one chip set (`CHASSIS_FACT_KEYS`) in
- * the Catalog, search, a guide and a loadout alike. A player's unit (a
- * synthetic ref: a mech's live `SP | 6/9`) keeps the readings it was given.
- */
-export function formFacts(model: {
-  ref: { schemaName: string; synthetic?: true }
-  facts: readonly Fact[]
-}): readonly Fact[] {
-  return model.ref.schemaName === 'chassis' && !model.ref.synthetic
-    ? model.facts.filter((fact) => CHASSIS_FACT_KEYS.has(fact.key))
-    : model.facts
 }

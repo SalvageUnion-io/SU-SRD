@@ -20,18 +20,17 @@ describe('ogCardFor', () => {
   it("draws a chassis's chips from its entity model, as its other forms do: TL first, MODS", () => {
     const card = ogCardFor('chassis', 'scrapper', scrapper)
     if (!('stats' in card)) throw new Error('no stats')
+    // Its one chip set, in the stat order: Cargo and Heat are its Page's.
     expect(card.stats.map((stat) => stat.label.toUpperCase())).toEqual([
       'TL',
+      'SV',
       'SP',
       'EP',
-      'SV',
       'SYS',
       'MODS',
-      'CARGO',
-      'HEAT',
     ])
-    expect(card.stats.find((stat) => stat.label === 'Heat')?.value).toBe(
-      String(scrapper.heatCapacity)
+    expect(card.stats.find((stat) => stat.label === 'SP')?.value).toBe(
+      String(scrapper.structurePoints)
     )
   })
 

@@ -16,7 +16,7 @@ import { actionTypeStamps } from '../parts/actionStamps'
 import { Chips } from '../parts/Chips'
 import type { ChipSet } from '../parts/chipSet'
 import { chipCount } from '../parts/chipSet'
-import { factCells, formFacts } from '../parts/factCells'
+import { factCells } from '../parts/factCells'
 import { Head } from '../parts/Head'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
@@ -96,7 +96,7 @@ const READ: EntityMode = { kind: 'read' }
 /**
  * ROW — the workhorse form (entity display language §3): every list of
  * entities. An art column (by schema and room, E10), a head (tier, name, the
- * chip group — action type, cost, facts, traits (E17) — right of the name or
+ * chip group — stats, action type and facets, traits, cost (E17) — right of the name or
  * under it, the mode's affordance) and, only when something is left to show,
  * a paper body: a leading stamp and the lead while browsing (E11). A bodied
  * head with no chips keeps its tier on the band and sets its name on the paper
@@ -129,7 +129,7 @@ export function Row({
   const chips: ChipSet = {
     durations: slots.durations ?? actionTypeStamps(model.actionType, model.mechActionType),
     ...(cost ? { cost } : {}),
-    facts: slots.facts ?? factCells(formFacts(model), omit),
+    facts: slots.facts ?? factCells(model.facts, omit),
     tags: slots.tags ?? traitTags(model.traits),
   }
   const leadText = lead ? model.lead : undefined

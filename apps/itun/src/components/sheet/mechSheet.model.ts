@@ -16,6 +16,7 @@ import { linesFromBreakdown } from 'component-lib'
 import { pilotingContext } from 'itun-domain/rules/pilotingContext'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
+import type { StatGroup } from 'salvageunion-reference'
 import { parseContentBlockString, SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
 import {
   computeMechCapacity,
@@ -30,7 +31,7 @@ import { useCargo } from '../../lib/cargo/useCargo'
 import type { useEntityStore } from '../../stores/entityStore'
 
 /** One chassis stat as the strip prints it: the numeral and its full name. */
-type ChassisStat = { key: string; label: string; value: string }
+type ChassisStat = { key: string; label: string; value: string; group: StatGroup }
 
 /** Narrow subset of chassis data the stat derivations need. */
 export type ChassisLike = {
@@ -159,29 +160,23 @@ export function useMechSheetModel({
   const techLevel =
     typeof chassisEntity?.techLevel === 'number' ? chassisEntity.techLevel : undefined
 
-  // The Chassis Stats strip, as the official mech sheet prints its own block
-  // (SU_Char Sheets 2.0, page 2): Structure Points, Energy Points, Heat Capacity,
-  // System Slots, Module Slots, Cargo Capacity, Tech Level, Salvage Value, spelled
-  // out (`STAT_LABELS.label`). Each is the machine's figure: SP/EP/Heat are the
-  // derived maxima, the slots and cargo the chassis's capacities. What is in use
-  // reads where it is used: the Systems and Modules counts and The Hold.
+  // The Chassis Stats strip, in the stat order every surface keeps (`STATS`,
+  // salvageunion-reference): Tech Level and Salvage Value, then Structure
+  // Points, Energy Points and Heat Capacity, then System Slots, Module Slots
+  // and Cargo Capacity, spelled out (`STAT_LABELS.label`), each group opening
+  // a new row. Each is the machine's figure: SP/EP/Heat are the derived
+  // maxima, the slots and cargo the chassis's capacities. What is in use reads
+  // where it is used: the Systems and Modules counts and The Hold.
   const chassisStats: ChassisStat[] = [
-    { key: 'sp', label: STAT_LABELS.structurePoints.label, value: String(maxSP) },
-    { key: 'ep', label: STAT_LABELS.energyPoints.label, value: String(maxEP) },
-    { key: 'heat', label: STAT_LABELS.heatCapacity.label, value: String(heatCap) },
-    {
-      key: 'system-slots',
-      label: STAT_LABELS.systemSlots.label,
-      value: String(capacity.systemSlotsMax),
-    },
-    {
-      key: 'module-slots',
-      label: STAT_LABELS.moduleSlots.label,
-      value: String(capacity.moduleSlotsMax),
-    },
-    { key: 'cargo', label: STAT_LABELS.cargoCapacity.label, value: String(cargo.usage.cap) },
     ...(techLevel !== undefined
-      ? [{ key: 'tech-level', label: 'Tech Level', value: String(techLevel) }]
+      ? [
+          {
+            key: 'tech-level',
+            label: 'Tech Level',
+            value: String(techLevel),
+            group: 'provenance' as const,
+          },
+        ]
       : []),
     ...(typeof chassisEntity?.salvageValue === 'number'
       ? [
@@ -189,9 +184,36 @@ export function useMechSheetModel({
             key: 'salvage-value',
             label: STAT_LABELS.salvageValue.label,
             value: String(chassisEntity.salvageValue),
+            group: 'provenance' as const,
           },
         ]
       : []),
+    {
+      key: 'sp',
+      label: STAT_LABELS.structurePoints.label,
+      value: String(maxSP),
+      group: 'vitals',
+    },
+    { key: 'ep', label: STAT_LABELS.energyPoints.label, value: String(maxEP), group: 'vitals' },
+    { key: 'heat', label: STAT_LABELS.heatCapacity.label, value: String(heatCap), group: 'vitals' },
+    {
+      key: 'system-slots',
+      label: STAT_LABELS.systemSlots.label,
+      value: String(capacity.systemSlotsMax),
+      group: 'capacity',
+    },
+    {
+      key: 'module-slots',
+      label: STAT_LABELS.moduleSlots.label,
+      value: String(capacity.moduleSlotsMax),
+      group: 'capacity',
+    },
+    {
+      key: 'cargo',
+      label: STAT_LABELS.cargoCapacity.label,
+      value: String(cargo.usage.cap),
+      group: 'capacity',
+    },
   ]
 
   const scrapPool = crawler ? (crawler.scrapPool ?? {}) : null

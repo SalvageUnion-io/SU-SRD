@@ -216,6 +216,13 @@
   min-width: 0;
 }
 
+/* A seam (`Seam`): an empty item between two groups of chips, so the gap
+   falls twice there. */
+.su-chips__seam {
+  flex: none;
+  width: 0;
+}
+
 .su-chips--end {
   justify-content: flex-end;
 }

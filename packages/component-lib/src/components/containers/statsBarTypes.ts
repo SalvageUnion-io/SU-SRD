@@ -1,9 +1,12 @@
+import type { StatGroup } from 'salvageunion-reference'
 import type { StatBorderState } from '../atoms/Stat'
 
 export type StatItem = {
   key: string
   label: string
   value: number | string | undefined
+  /** Its part of the stat order: a new group opens after a wider gap (`Chips`). */
+  group?: StatGroup
   outOfMax?: number
   bottomLabel?: string
   // Visual

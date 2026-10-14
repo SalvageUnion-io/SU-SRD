@@ -170,9 +170,13 @@ export function PartnerCard({
   // SP / EP / Heat are EDITABLE stat cells; the rest are derived read-onlys.
   // Tech level is never typed in — it comes from the crawler (pilot-granted) or
   // is fixed by the stat block (mech-granted). See `partnerTechLevel`.
+  // The stat order every surface keeps (`STATS`, salvageunion-reference):
+  // Tech Level, then SP / EP / Heat, then the slots and Cargo.
   const stats: StatItem[] = [
+    { key: 'tech', label: 'Tech Level', value: techLevel, group: 'provenance' },
     {
       key: 'sp',
+      group: 'vitals',
       label: 'SP',
       value: sp,
       outOfMax: max.structurePoints,
@@ -183,6 +187,7 @@ export function PartnerCard({
     },
     {
       key: 'ep',
+      group: 'vitals',
       label: 'EP',
       value: ep,
       outOfMax: max.energyPoints,
@@ -193,6 +198,7 @@ export function PartnerCard({
     },
     {
       key: 'heat',
+      group: 'vitals',
       label: 'Heat',
       value: heat,
       outOfMax: max.heatCapacity,
@@ -201,11 +207,30 @@ export function PartnerCard({
         ? (next) => patch({ currentHeat: clamp(next, max.heatCapacity) })
         : undefined,
     },
-    { key: 'tech', label: 'Tech Level', value: techLevel },
-    { key: 'sys', label: 'System Slots', value: partner.systems.length, outOfMax: max.systemSlots },
-    { key: 'mod', label: 'Module Slots', value: partner.modules.length, outOfMax: max.moduleSlots },
+    {
+      key: 'sys',
+      label: 'System Slots',
+      value: partner.systems.length,
+      outOfMax: max.systemSlots,
+      group: 'capacity',
+    },
+    {
+      key: 'mod',
+      label: 'Module Slots',
+      value: partner.modules.length,
+      outOfMax: max.moduleSlots,
+      group: 'capacity',
+    },
     ...(max.cargoCapacity > 0
-      ? [{ key: 'cargo', label: 'Cargo', value: cargo.usage.used, outOfMax: cargo.usage.cap }]
+      ? [
+          {
+            key: 'cargo',
+            label: 'Cargo',
+            value: cargo.usage.used,
+            outOfMax: cargo.usage.cap,
+            group: 'capacity' as const,
+          },
+        ]
       : []),
   ]
 
