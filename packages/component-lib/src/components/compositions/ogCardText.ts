@@ -138,7 +138,7 @@ function joinLine(parts: (string | undefined)[]): string {
 }
 
 /** What the card says of where it comes from: the cite, the byline, or "Made by [user]". */
-export function bylineOf(props: OgCardProps): string | undefined {
+function bylineOf(props: OgCardProps): string | undefined {
   switch (props.kind) {
     case 'thing':
     case 'do':

@@ -60,7 +60,6 @@ import {
   Field,
   FieldError,
   heatDangerFrom,
-  ReferenceEntityCard,
   SheetSectionSlab,
   StatColumn,
   tokens,
@@ -80,6 +79,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import { MechChassisAbilities } from './MechChassisAbilities'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemToken } from './MechItemToken'
@@ -117,13 +117,6 @@ const FIELDS = {
 
 /** The gauge stack; the dashed rule between gauges is `.su-sheet-mech-vitals`. */
 const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
-
-/** The chassis ability cards, one under another. */
-const ABILITIES = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
 
 const CONDITIONS = {
   display: 'flex',
@@ -357,22 +350,10 @@ export function MechSheet({
                       as the official mech sheet prints its own block ahead of
                       the Chassis Ability (SU_Char Sheets 2.0, page 2). */}
                     <StatColumn stats={model.chassisStats} label="Chassis stats" />
-                    {/* The chassis's ability: its Card, as the SRD's chassis
-                      page draws it, `[(CHASSIS)]` reading the chassis's name
-                      (EDL E19: never a Token or Peek). Spending its EP is the
-                      Dashboard's (ADR-021). */}
-                    {model.chassisAbilities.length > 0 && (
-                      <section aria-label="Chassis ability" style={ABILITIES}>
-                        {model.chassisAbilities.map((ability) => (
-                          <ReferenceEntityCard
-                            key={ability.id}
-                            data={ability}
-                            size="medium"
-                            chassisName={model.chassisName}
-                          />
-                        ))}
-                      </section>
-                    )}
+                    <MechChassisAbilities
+                      abilities={model.chassisAbilities}
+                      chassisName={model.chassisName}
+                    />
                   </>
                 }
               />

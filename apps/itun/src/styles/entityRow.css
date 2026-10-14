@@ -41,7 +41,7 @@
   position: relative;
 }
 
-.su-starter-card > .su-entity-row {
+.su-starter-card > :first-child {
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -52,7 +52,7 @@
   position: absolute;
 }
 
-.su-starter-card .su-chip-link {
+.su-starter-card [data-peek] {
   position: relative;
   z-index: 1;
 }

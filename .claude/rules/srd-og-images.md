@@ -12,13 +12,10 @@ paths:
 
 Each entity page's `og:image` is its **link preview card**, `OgCard` from
 component-lib: the chapter band with speckle, the notched title,
-the label-first chips (`Stat`, from `toEntityModel`'s facts in E17 order)
-and the Union bar's foot, the same parts the pages are built
-from, so the preview cannot drift from the page. A reference thing (chassis,
-system, equipment) takes its tone, chips and page cite; a thing you do (ability,
-action) its band (an ability's tree tone, else ink) with the tier numeral left
-of the name, the cost pennant last and the rules. The kind is printed on the
-foot line, never as a kicker above the title. `ogCardForEntity`
+the model's chips (E17) and the Union bar's foot, the same parts the pages are
+built from, so the preview cannot drift from the page. A thing you do (ability,
+action) adds the tier numeral, cost pennant and rules; the kind and cite are
+the foot line. `ogCardForEntity`
 builds the card from the entity, and `apps/srd/src/lib/ogCard.ts` (`ogCardFor`,
 `ogMetaFor`, `ogImagePath`) is the one place the island, the generator and the
 pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at

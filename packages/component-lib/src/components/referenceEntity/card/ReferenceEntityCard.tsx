@@ -353,14 +353,11 @@ function ReferenceEntityCardInner({
   const footerType =
     isAction || isPattern || hide?.footKind ? undefined : resolveEyebrow(schemaName).type
   const provenance = resolveFooterProvenance(entity, pattern)
+  const chassisMarker = resolvedChassisName
+    ? [{ label: 'Chassis', value: resolvedChassisName }]
+    : []
   const axisMarkers: AxisMarker[] =
-    isAction || hide?.axisMarkers
-      ? []
-      : isPattern
-        ? resolvedChassisName
-          ? [{ label: 'Chassis', value: resolvedChassisName }]
-          : []
-        : resolveAxisMarkers(entity)
+    isAction || hide?.axisMarkers ? [] : isPattern ? chassisMarker : resolveAxisMarkers(entity)
   // "Legal Starting Pattern" is a STORED data tag on the pattern.
   const isLegalStartingPatternCard = isPattern && isLegalStartingPatternOf(pattern)
   const numeral = resolveTierNumeral(entity)

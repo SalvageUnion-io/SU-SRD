@@ -42,7 +42,7 @@ const SCAN_FLOOR = 630
  * within MAX_LINES.
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
-  'apps/discord-bot/src/gameCards.ts': 699,
+  'apps/discord-bot/src/gameCards.ts': 683,
   'apps/itun/convex/entities.ts': 852,
   'apps/itun/convex/model/entities.ts': 929,
   'apps/itun/convex/schema.ts': 726,
@@ -52,14 +52,14 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/itun/src/components/npc/CrewBoard.tsx': 688,
   'apps/itun/src/components/shared/EntityRow.tsx': 648,
   'apps/itun/src/components/sheet/CrawlerEconomyControl.tsx': 695,
-  'apps/itun/src/components/sheet/MechSheet.tsx': 632,
+  'apps/itun/src/components/sheet/MechSheet.tsx': 624,
   'apps/itun/src/components/sheet/PilotSheet.tsx': 750,
   'apps/itun/src/components/shelves/Shelves.tsx': 670,
   'apps/itun/src/lib/rules/creation.ts': 722,
   'apps/itun/src/stores/entityStore.ts': 715,
   'packages/component-lib/src/components/atoms/Stat.tsx': 723,
   'packages/component-lib/src/components/atoms/VitalGauge.tsx': 759,
-  'packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 853,
+  'packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 852,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 631,
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 654,
