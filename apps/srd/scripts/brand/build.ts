@@ -6,19 +6,22 @@
  * srd's favicon set and `favicon.ico`, ITUN's favicon and PWA icons, and the
  * Discord bot's profile icon. It lives in srd because srd owns sharp.
  *
+ * It also screenshots the profile banners (`banner.ts`): Discord's and the Ko-fi
+ * cover, `apps/discord-bot/brand/{banner,kofi-cover}.png`.
+ *
  * `bun run brand:discord` (this file with `--upload-discord`) also sets the
- * bot's app icon and user avatar through the Discord API. The bot token is
+ * bot's app icon, user avatar and profile banner through the Discord API. The bot token is
  * `DISCORD_TOKEN` when set, else read from 1Password with the `op` CLI at
  * `DISCORD_TOKEN_REF`, the reference `apps/discord-bot/.env.example` uses.
  * Without the flag nothing leaves the machine.
  *
- * Not covered: the Discord banner (`apps/discord-bot/brand/banner.png`) and the
- * default link previews (`og-image.png`) carry no mark, and the Ko-fi page has
- * no API, so its avatar is uploaded by hand from `icon.png`.
+ * Not covered: the default link previews (`og-image.png`) carry no mark, and
+ * Ko-fi has no API, so its avatar (`icon.png`) and cover go up by hand.
  */
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import sharp from 'sharp'
+import { BANNERS, bannerHtml } from './banner'
 import { ICO_FILE, ICO_SIZES, PNG_FILES, SVG_FILES } from './files'
 import { markSvg } from './mark'
 
@@ -57,6 +60,28 @@ function ico(images: readonly { size: number; data: Buffer }[]): Buffer {
   return Buffer.concat([header, ...entries, ...images.map((i) => i.data)])
 }
 
+/** The cloud image's Chromium when Playwright's own is not installed (as `tools/shot.ts`). */
+const FALLBACK_CHROME = '/opt/pw-browsers/chromium'
+
+/** Screenshots each banner page at its exact size; the wordmark needs a browser's text. */
+async function banners(): Promise<Map<string, Buffer>> {
+  const { chromium } = await import('@playwright/test')
+  const own = chromium.executablePath()
+  const browser = await chromium.launch({
+    executablePath: existsSync(own) ? undefined : FALLBACK_CHROME,
+  })
+  const out = new Map<string, Buffer>()
+  for (const [path, layout] of Object.entries(BANNERS)) {
+    const page = await browser.newPage({ viewport: { width: layout.width, height: layout.height } })
+    await page.setContent(bannerHtml(layout))
+    await page.evaluate(() => document.fonts.ready)
+    out.set(path, await page.screenshot())
+    await page.close()
+  }
+  await browser.close()
+  return out
+}
+
 function write(path: string, data: string | Buffer) {
   const abs = join(ROOT, path)
   mkdirSync(dirname(abs), { recursive: true })
@@ -74,12 +99,12 @@ function readOnePassword(ref: string): string {
   return value
 }
 
-async function uploadDiscord(icon: Buffer) {
+async function uploadDiscord(icon: Buffer, banner: Buffer) {
   const token = process.env.DISCORD_TOKEN ?? readOnePassword(DISCORD_TOKEN_REF)
   const image = `data:image/png;base64,${icon.toString('base64')}`
   const calls: [string, Record<string, string>][] = [
     ['applications/@me', { icon: image }],
-    ['users/@me', { avatar: image }],
+    ['users/@me', { avatar: image, banner: `data:image/png;base64,${banner.toString('base64')}` }],
   ]
   for (const [route, body] of calls) {
     const res = await fetch(`https://discord.com/api/v10/${route}`, {
@@ -105,7 +130,12 @@ async function main() {
     ICO_SIZES.map(async (size) => ({ size, data: await png(plain, size) }))
   )
   write(ICO_FILE, ico(images))
-  if (process.argv.includes('--upload-discord') && discordIcon) await uploadDiscord(discordIcon)
+  const rendered = await banners()
+  for (const [path, data] of rendered) write(path, data)
+  const discordBanner = rendered.get('apps/discord-bot/brand/banner.png')
+  if (process.argv.includes('--upload-discord') && discordIcon && discordBanner) {
+    await uploadDiscord(discordIcon, discordBanner)
+  }
 }
 
 if (import.meta.main) await main()
