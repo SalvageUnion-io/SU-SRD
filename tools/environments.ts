@@ -79,14 +79,14 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
   },
   {
-    // `deploy-preview.yml`: uploads Worker versions under the `preview` alias
-    // and pushes the staging Convex deployment `perfect-donkey-72`. It is
-    // dispatched by hand from ANY branch (`**/*`), and the dispatch is the
-    // gate: no required reviewer, by the owner's choice (2026-10-13). Accepted
-    // risk (ADR-033 §Credentials): the Cloudflare token cannot be narrowed to
-    // the preview (Workers Scripts: Edit reaches every Worker on the account),
-    // so a dispatched branch's code holds a credential that can deploy
-    // production.
+    // `deploy-preview.yml`: ships each PR into `main` that carries the
+    // `preview` label as Worker Previews `pr-<n>`, and pushes the staging
+    // Convex deployment `perfect-donkey-72`. It runs from ANY branch (`**/*`),
+    // and the label is the gate: no required reviewer, by the owner's choice
+    // (2026-10-13). Accepted risk (ADR-033 §Credentials): the Cloudflare token
+    // cannot be narrowed to the previews (Workers Scripts: Edit reaches every
+    // Worker on the account), so a labelled branch's code holds a credential
+    // that can deploy production.
     name: 'preview',
     branches: ['**/*'],
     secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],

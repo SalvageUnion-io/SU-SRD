@@ -264,7 +264,7 @@ describe('outside the base on any other host', () => {
       'https://salvageunion.io/build',
       'https://salvageunion.io/build?x=1',
       'http://localhost:5173/',
-      'https://preview-su-itun.alxjrvs.workers.dev/',
+      'https://pr-1-su-itun.alxjrvs.workers.dev/',
     ]) {
       const res = await worker.fetch(navigateTo(url), envWith())
       expect(res.status).toBe(301)
@@ -289,6 +289,7 @@ describe('wrangler.jsonc', () => {
     compatibility_date: string
     routes: { pattern: string; zone_name?: string; custom_domain?: boolean }[]
     vars?: Record<string, string>
+    previews?: { vars?: Record<string, string> }
     assets: Record<string, unknown>
     env?: unknown
   }
@@ -375,6 +376,20 @@ describe('wrangler.jsonc', () => {
     const built = workflow.match(/^\s*ITUN_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
     expect(built).toBeString()
     expect(config.vars?.CONVEX_URL).toBe(built)
+  })
+
+  it('points a Worker Preview at the staging deployment its SPA is built against', async () => {
+    const config = await load()
+    const workflow = await Bun.file(
+      new URL('../../../../../.github/workflows/deploy-preview.yml', import.meta.url)
+    ).text()
+    const built = workflow.match(/^\s*STAGING_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
+    expect(built).toBeString()
+    // A preview inherits none of the top-level vars.
+    expect(config.previews?.vars).toEqual({
+      CONVEX_URL: built as string,
+      BASE_PATH: basePathOf(SITE.base),
+    })
   })
 
   it("sets Convex Auth's SITE_URL to where the app is served, on every deploy", async () => {

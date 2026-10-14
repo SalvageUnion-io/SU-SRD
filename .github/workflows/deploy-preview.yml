@@ -1,55 +1,60 @@
 name: Deploy preview (Cloudflare)
 
-# Publishes any ref to ONE stable preview slot, by hand:
+# A Cloudflare Worker Preview per pull request into `main`, once it carries the
+# `preview` label:
 #
-#   gh workflow run deploy-preview.yml --ref <branch>
+#   srd   https://pr-<n>-su-srd.alxjrvs.workers.dev
+#   itun  https://pr-<n>-su-itun.alxjrvs.workers.dev/build, against the
+#         staging Convex deployment perfect-donkey-72
 #
-#   srd   https://preview-su-srd.alxjrvs.workers.dev
-#   itun  https://preview-su-itun.alxjrvs.workers.dev/build, against the staging
-#         Convex deployment perfect-donkey-72
+# Adding the label builds and ships the PR; each later push to it ships again;
+# closing it deletes both Previews. The run's summary and one PR comment carry
+# the URLs. docs/ARCHITECTURE.md#previews has the trade-offs.
 #
-# The last dispatch wins; the run's summary names the ref and commit the slot
-# now serves. docs/ARCHITECTURE.md#previews has the trade-offs.
+# IT CANNOT MOVE PRODUCTION. `wrangler preview` makes a Preview, which is
+# neither a version nor a deployment of the production Worker: its traffic,
+# vars and secrets are its own (each wrangler.jsonc's `previews` block), and
+# plain `wrangler secret put` on the production Worker keeps working. The
+# Convex push takes a deploy key that the `ship` job refuses unless it is the
+# dev key for perfect-donkey-72, so a production key stored here by mistake
+# fails the run before anything is pushed.
 #
-# IT CANNOT MOVE PRODUCTION. Each Worker gets a new VERSION (`wrangler versions
-# upload --preview-alias preview`), never a deployment: production traffic
-# stays on the version deploy-cloudflare.yml deployed, and the alias URL serves
-# the uploaded one. The Convex push takes a deploy key that the `ship` job
-# refuses unless it is the dev key for perfect-donkey-72, so a production key
-# stored here by mistake fails the run before anything is pushed.
+# THE GATE IS THE LABEL. Only a labelled PR from this repository ships (a
+# fork's run gets no secrets and is skipped), so the `preview` Environment
+# admits every branch and has no required reviewer: adding the label is the
+# approval (owner's call, 2026-10-13). The accepted risk is that a labelled
+# branch's code, the workflow file included, holds the Cloudflare token, which
+# can deploy any Worker on the account (ADR-033 §Credentials). Only `ship` and
+# `teardown` name the Environment, and `ship` only after every build is green.
 #
-# THE GATE IS THE DISPATCH. The workflow runs only when someone dispatches it
-# (no push or PR trigger), and any branch may be dispatched, so the `preview`
-# Environment admits every branch and has no required reviewer: asking for the
-# run is the approval (owner's call, 2026-10-13). The accepted risk is that a
-# branch's code holds the Cloudflare token, which can deploy any Worker on the
-# account (ADR-033 §Credentials). Only `ship` names the Environment, and only
-# after every build is green.
+# ONE STAGING BACKEND. Every Preview's itun talks to perfect-donkey-72, and each
+# run pushes its PR's Convex functions and schema there and points its
+# SITE_URL (the sign-in callback) at its own Preview: the last PR shipped wins
+# both, so two labelled PRs with different schemas, or a sign-in on an older
+# one, collide.
 #
 # THE BUILDS HOLD NO SECRET. They are deploy-cloudflare.yml's builds minus
 # Sentry: the browser bundles carry no DSN (a preview's errors would otherwise
 # land in the production projects as `environment: production`) and upload no
-# source maps. The Workers keep their Sentry secret and report as
-# SENTRY_ENVIRONMENT=preview.
+# source maps. The Workers report as SENTRY_ENVIRONMENT=preview when the
+# Preview base config holds a SENTRY_DSN; without one their SDK is off.
 
 on:
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [labeled, synchronize, reopened, closed]
 
-# One preview slot, so one run at a time. Never cancelled mid-upload; GitHub
-# keeps one pending run, so the newest dispatch replaces any queued one.
+# One run per PR at a time. Never cancelled mid-upload; GitHub keeps one
+# pending run per PR, so the newest push replaces any queued one.
 concurrency:
-  group: deploy-preview
+  group: deploy-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 permissions:
   contents: read
 
 env:
-  PREVIEW_ALIAS: preview
-  SRD_PREVIEW_URL: https://preview-su-srd.alxjrvs.workers.dev
-  # ITUN is served under /build (ADR-048), on the slot as in production; the
-  # slot's root 301s there.
-  ITUN_PREVIEW_URL: https://preview-su-itun.alxjrvs.workers.dev/build
+  PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
   # The staging backend: the project's cloud dev deployment. Public, like
   # production's (docs/ARCHITECTURE.md#previews).
   STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
@@ -57,6 +62,13 @@ env:
 
 jobs:
   build-srd:
+    # A labelled PR from this repository, on the push or the label that asks
+    # for it; a fork's run gets no secrets, and another label is no request.
+    if: >-
+      github.event.action != 'closed'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && contains(github.event.pull_request.labels.*.name, 'preview')
+      && (github.event.action != 'labeled' || github.event.label.name == 'preview')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -73,7 +85,7 @@ jobs:
 
       - name: Build srd
         env:
-          VITE_COMMIT_REF: ${{ github.sha }}
+          VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: bun --filter srd build
 
       - name: Upload the srd build
@@ -117,6 +129,13 @@ jobs:
           retention-days: 1
 
   build-itun:
+    # A labelled PR from this repository, on the push or the label that asks
+    # for it; a fork's run gets no secrets, and another label is no request.
+    if: >-
+      github.event.action != 'closed'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && contains(github.event.pull_request.labels.*.name, 'preview')
+      && (github.event.action != 'labeled' || github.event.label.name == 'preview')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -136,7 +155,7 @@ jobs:
         working-directory: apps/itun
         env:
           VITE_CONVEX_URL: ${{ env.STAGING_CONVEX_URL }}
-          VITE_COMMIT_REF: ${{ github.sha }}
+          VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: bun run build
 
       - name: Upload the itun artifact
@@ -148,12 +167,15 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # The only job holding a secret: push the staging backend, then upload both
-  # Worker versions, only after both builds are green.
+  # Push the staging backend, then ship both Workers as Previews, only after
+  # both builds are green.
   ship:
     needs: [og-srd, build-itun]
     runs-on: ubuntu-latest
     environment: preview
+    outputs:
+      srd: ${{ steps.preview.outputs.srd }}
+      itun: ${{ steps.preview.outputs.itun }}
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -187,7 +209,7 @@ jobs:
             exit 1
           fi
 
-      # The slot is public. With ITUN_TEST_AUTH on, anyone could sign up a
+      # Previews are public. With ITUN_TEST_AUTH on, anyone could sign up a
       # password account against it (convex/auth.ts); production never has it.
       - name: Refuse a staging backend with the test sign-in on
         working-directory: apps/itun
@@ -210,14 +232,6 @@ jobs:
             against $STAGING_CONVEX_URL." >&2; exit 1; }
         run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
 
-      # Every run: the OAuth callback redirects to SITE_URL, which must be the
-      # preview's address, base included. Not a secret.
-      - name: Point the staging backend's SITE_URL at the preview
-        working-directory: apps/itun
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
-        run: bunx convex env set SITE_URL "$ITUN_PREVIEW_URL"
-
       - name: Download the srd artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -230,31 +244,110 @@ jobs:
           name: itun-dist
           path: apps/itun/dist
 
-      # `versions upload`, never `deploy`: a version under an alias serves at
-      # <alias>-<worker>.alxjrvs.workers.dev and takes no production traffic.
-      - name: Upload the Worker versions
+      # A Preview, never a version or a deployment of the production Worker.
+      # Its vars are each wrangler.jsonc's `previews` block plus these; its
+      # URL is read back from the JSON, never guessed.
+      - name: Ship both Workers as Previews
+        id: preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          SHA: ${{ github.sha }}
-          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           for app in srd itun; do
-            (cd "apps/$app" && bunx wrangler versions upload \
-              --preview-alias "$PREVIEW_ALIAS" \
-              --message "preview: ${REF_NAME:0:60}@${SHA:0:12}" \
+            (cd "apps/$app" && bunx wrangler preview \
+              --name "$PREVIEW_NAME" \
+              --message "$PREVIEW_NAME@${SHA:0:12}" \
               --var "SENTRY_RELEASE:$SHA" \
-              --var "SENTRY_ENVIRONMENT:preview")
+              --var "SENTRY_ENVIRONMENT:preview" \
+              --json > "$RUNNER_TEMP/$app.json")
+            url=$(jq -r '.preview.urls[0] // empty' "$RUNNER_TEMP/$app.json")
+            if [ -z "$url" ]; then
+              echo "FATAL: the $app Preview has no URL." >&2
+              exit 1
+            fi
+            echo "$app=${url%/}" >> "$GITHUB_OUTPUT"
           done
+
+      # Every run: the OAuth callback redirects to SITE_URL, which must be the
+      # Preview's address, base included. Not a secret.
+      - name: Point the staging backend's SITE_URL at this Preview
+        working-directory: apps/itun
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+          ITUN_URL: ${{ steps.preview.outputs.itun }}
+        run: bunx convex env set SITE_URL "$ITUN_URL/build"
 
       - name: Summary
         env:
-          SHA: ${{ github.sha }}
-          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          SRD_URL: ${{ steps.preview.outputs.srd }}
+          ITUN_URL: ${{ steps.preview.outputs.itun }}
         run: |
           {
-            echo "### Preview slot now serves \`$REF_NAME\` at \`$SHA\`"
+            echo "### \`$PREVIEW_NAME\` now serves \`$SHA\`"
             echo
-            echo "- srd: $SRD_PREVIEW_URL"
-            echo "- itun: $ITUN_PREVIEW_URL (Convex \`$STAGING_CONVEX_DEPLOYMENT\`)"
+            echo "- srd: $SRD_URL"
+            echo "- itun: $ITUN_URL/build (Convex \`$STAGING_CONVEX_DEPLOYMENT\`)"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # One comment per PR carrying the URLs, edited in place on every ship. Its own
+  # job: the only one that can write to the PR, and it holds no deploy secret.
+  comment:
+    needs: ship
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post or update the Preview comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          SRD_URL: ${{ needs.ship.outputs.srd }}
+          ITUN_URL: ${{ needs.ship.outputs.itun }}
+        run: |
+          set -euo pipefail
+          marker='<!-- deploy-preview -->'
+          body=$(printf '%s\n**Preview** of %s\n\n- srd: %s\n- itun: %s/build (staging Convex, shared by every Preview)\n' \
+            "$marker" "${SHA:0:12}" "$SRD_URL" "$ITUN_URL")
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+            --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\")))][0].id // empty")
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh api "repos/$REPO/issues/$PR/comments" -f body="$body" > /dev/null
+          fi
+
+  # A closed PR's Previews go, both Workers, if it ever had the label.
+  teardown:
+    if: >-
+      github.event.action == 'closed'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && contains(github.event.pull_request.labels.*.name, 'preview')
+    runs-on: ubuntu-latest
+    environment: preview
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # Each config names an assets directory, absent without a build. A
+      # Preview that never shipped (a failed first run) is no failure here.
+      - name: Delete both Previews
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -uo pipefail
+          for app in srd itun; do
+            mkdir -p "apps/$app/dist"
+            (cd "apps/$app" && bunx wrangler preview delete --name "$PREVIEW_NAME" -y) ||
+              echo "::warning::no $PREVIEW_NAME Preview of $app to delete"
+          done

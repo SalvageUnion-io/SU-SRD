@@ -43,7 +43,7 @@
  *                 Environment a job names is declared there. The secrets live
  *                 only in Environments: `production` admits `main` alone, and
  *                 `preview` admits any branch, but only from a job that names
- *                 it, in a run someone dispatched by hand. The nightly
+ *                 it, on a PR someone labelled `preview`. The nightly
  *                 repository-secret sentinel is the
  *                 one exemption, and it must stay outside every Environment.
  *                 zizmor's `secrets-outside-env` runs only under

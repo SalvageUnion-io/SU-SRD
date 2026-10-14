@@ -13,7 +13,7 @@ import { retiredTarget } from './retiredRedirects'
  *   address (`retiredRedirects.ts`) mapped to where it lives now on the way:
  *   one hop. Only the old host gets an absolute, cross-origin `Location`.
  * - **anything else**: the route's own `salvageunion.io/build` without the
- *   slash, the preview slot's and `wrangler dev`'s root. The app's root and
+ *   slash, a Worker Preview's and `wrangler dev`'s root. The app's root and
  *   `/build` itself 301 to `/build/`; any other path is a 404, `no-store`.
  *   ITUN serves nothing outside its base.
  *
