@@ -227,6 +227,17 @@ export type ReferenceEntityCardHideConfig = {
   content?: boolean
   /** Suppress the entity's artwork (a preview that has none to show). */
   image?: boolean
+  /**
+   * Suppress the classification pill right of the title (`[Bay | Standard]`,
+   * `[Class | Base]`), where the context already says it: a bay on a crawler
+   * sheet, drawn as the SRD's bay Page draws it, wears none.
+   */
+  axisMarkers?: boolean
+  /**
+   * Suppress the kind on the card's foot ("Crawler Bay"): only a Page's foot
+   * names the kind (EDL E9).
+   */
+  footKind?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

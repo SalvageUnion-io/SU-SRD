@@ -350,15 +350,17 @@ function ReferenceEntityCardInner({
   // title carries it for screen readers. A caller's `kicker` that says more
   // ("From Veteran") is a label.
   const kind = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
-  const footerType = isAction || isPattern ? undefined : resolveEyebrow(schemaName).type
+  const footerType =
+    isAction || isPattern || hide?.footKind ? undefined : resolveEyebrow(schemaName).type
   const provenance = resolveFooterProvenance(entity, pattern)
-  const axisMarkers: AxisMarker[] = isAction
-    ? []
-    : isPattern
-      ? resolvedChassisName
-        ? [{ label: 'Chassis', value: resolvedChassisName }]
-        : []
-      : resolveAxisMarkers(entity)
+  const axisMarkers: AxisMarker[] =
+    isAction || hide?.axisMarkers
+      ? []
+      : isPattern
+        ? resolvedChassisName
+          ? [{ label: 'Chassis', value: resolvedChassisName }]
+          : []
+        : resolveAxisMarkers(entity)
   // "Legal Starting Pattern" is a STORED data tag on the pattern.
   const isLegalStartingPatternCard = isPattern && isLegalStartingPatternOf(pattern)
   const numeral = resolveTierNumeral(entity)
