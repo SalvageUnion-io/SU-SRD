@@ -8,14 +8,6 @@
 /* The search input's text colour. A class, not a style object, because the
    `::placeholder` recolours it — the resting `color` comes along so the two
    live in one place. Every other input property is the component's style. */
-.su-searcher__input {
-  color: var(--color-ink);
-}
-
-.su-searcher__input::placeholder {
-  color: var(--color-wk-muted);
-}
-
 /* The wide sub-header's search slot: the full row until `sm` (40rem), then a
    fixed 280px opposite the Show facet. A class because the width is
    responsive. */
@@ -110,17 +102,6 @@
 
 .su-nav-drawer__panel {
   width: 100%;
-}
-
-/* The close button's fill and ink change on hover. */
-.su-nav-drawer__close {
-  background-color: transparent;
-  color: var(--color-ink-60);
-}
-
-.su-nav-drawer__close:hover {
-  background-color: var(--color-ink-10);
-  color: var(--color-ink);
 }
 
 /* The search slot: its field fills the drawer whatever width the app's own

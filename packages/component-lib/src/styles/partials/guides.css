@@ -105,11 +105,8 @@
   margin: 0;
 }
 
-/* The options a step selects from, as compact cards. */
+/* The options a step selects from, as Tokens (`EntityTokenList`). */
 .su-guide__cards {
-  display: grid;
-  gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
   padding-top: var(--space-12);
 }
 

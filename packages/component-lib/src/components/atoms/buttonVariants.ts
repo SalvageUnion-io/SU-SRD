@@ -47,6 +47,10 @@ export const buttonVariants = cva(`su-btn ${FOCUS_RING} ${DISABLED}`, {
       primary: 'su-btn--primary',
       ghost: 'su-btn--ghost',
       danger: 'su-btn--danger',
+      /** Filled ink, paper text: a close stamp on a lifted plate. */
+      ink: 'su-btn--ink',
+      /** Frameless, ink at 60%: an icon control inside a header (a close ×). */
+      quiet: 'su-btn--quiet',
     },
     surface: {
       // Light app chrome — the paper/ink/rust world (the existing default).

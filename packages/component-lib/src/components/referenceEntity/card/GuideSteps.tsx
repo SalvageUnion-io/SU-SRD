@@ -10,6 +10,7 @@ import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import { grainClass } from './cardGrain'
 import { cardKey } from './cardHelpers'
+import { EntityTokenList } from './EntityTokenList'
 import { chunkGuideStepProse } from './guideStepProse'
 import type { NestedCard } from './referenceEntityCardTypes'
 import type { ResolvedGuideStep } from './resolveGuideSteps'
@@ -51,7 +52,8 @@ function GuideAside({ text, flavor }: { text: string; flavor: boolean }) {
  * "Post-Session") opens a solid `Slab` above the steps it holds, and numbering
  * restarts inside it. Under each banner: the step's prose, its page pointers
  * as left-aligned notes, its asides (a tip, a worked example) as framed
- * callouts, the entities it selects from as compact cards, its
+ * callouts, the entities it selects from as Tokens (a crawler's tech-level
+ * ladder as compact cards), its
  * roll table and any sub-guide — every one through the primitive its kind
  * already has.
  *
@@ -150,7 +152,13 @@ export function GuideSteps({
         </div>
       )
     } else if (entities.length > 0) {
-      options = <div className="su-guide__cards">{entities.map(card)}</div>
+      // A step's options are a big grouping (5 to 21 across the dataset):
+      // Tokens, not compact cards (owner's call, 2026-10-14).
+      options = (
+        <div className="su-guide__cards">
+          <EntityTokenList entities={entities} label={step.name} />
+        </div>
+      )
     }
     return (
       <li key={step.id} className="su-guide__step" data-optional={step.optional || undefined}>

@@ -3,7 +3,9 @@ import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { color, fontSize, space } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { Badge } from '../atoms/Badge'
+import { buttonVariants } from '../atoms/buttonVariants'
 import { Card } from './Card'
 
 type ModalShellProps = {
@@ -222,7 +224,10 @@ export function ModalShell({
                   )}
                 </div>
                 <Dialog.Close
-                  className="su-modal-close"
+                  className={cn(
+                    buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
+                    'su-modal-close'
+                  )}
                   data-tone={isDanger ? 'danger' : undefined}
                 >
                   <X style={CLOSE_ICON} />

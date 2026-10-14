@@ -7,43 +7,12 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
+import { space } from '../../design/tokens'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
-import { FOCUS_WITHIN } from '../atoms/interaction'
 import { FilterRow } from '../containers/FilterRow'
 import { chevronStyle } from './entitySearcherChrome'
 import type { FacetRowConfig } from './entitySearcherTypes'
-
-/** The live text search, at the 16px floor iOS Safari needs. */
-export function SearchField({
-  query,
-  onQueryChange,
-}: {
-  query: string
-  onQueryChange: (query: string) => void
-}) {
-  return (
-    <label className={FOCUS_WITHIN} style={SEARCH_FIELD_STYLE}>
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style={SEARCH_ICON_STYLE}>
-        <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
-        <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
-      </svg>
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => onQueryChange(e.target.value)}
-        placeholder="Search by name or trait…"
-        aria-label="Search"
-        autoComplete="off"
-        // `text-base`, not `text-sm`: iOS Safari zooms the viewport on a focused
-        // control below 16px. See the note in `atoms/inputs.tsx`.
-        className="su-searcher__input"
-        style={SEARCH_INPUT_STYLE}
-      />
-    </label>
-  )
-}
 
 function FacetRow({ row }: { row: FacetRowConfig }) {
   return (
@@ -145,28 +114,6 @@ export function NarrowSubHeader({
 
 /** The search field's frame. The focus ring is `FOCUS_WITHIN`'s box-shadow,
  * the one property that changes, so everything here is static. */
-const SEARCH_FIELD_STYLE = {
-  display: 'flex',
-  width: '100%',
-  alignItems: 'center',
-  gap: space[8],
-  borderRadius: radius.card,
-  border: `${borderWidth.chrome} solid ${color.ink}`,
-  backgroundColor: color.paper,
-  padding: `${space[8]} ${space[12]}`,
-} satisfies CSSProperties
-const SEARCH_ICON_STYLE = { opacity: 0.7 } satisfies CSSProperties
-/** `color` is not here: the placeholder recolours it, so it lives in
- * `.su-searcher__input` (styles/index.css), resting value included. */
-const SEARCH_INPUT_STYLE = {
-  width: '100%',
-  backgroundColor: 'transparent',
-  fontFamily: font.body,
-  fontSize: fontSize.base,
-  lineHeight: '1.5rem',
-  outlineStyle: 'none',
-} satisfies CSSProperties
-
 /** Both sub-headers: a full-width column. */
 const SUBHEADER_STYLE = {
   display: 'flex',

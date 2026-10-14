@@ -89,6 +89,34 @@
   opacity: 0.9;
 }
 
+/* Filled ink: the close stamp on a lifted plate (the detail dialog, the /about
+   lightbox) and every other ink-plate control. Paper text; the fill lifts to
+   the second ink step under the pointer. */
+.su-btn--ink {
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-btn--ink:hover:not(:disabled) {
+  background-color: var(--color-ink-2);
+}
+
+/* Frameless: an icon control in a header that already frames it (a dialog's
+   or the nav drawer's close ×). Ink at 60%, full ink on a faint wash under the
+   pointer. The border stays, transparent, so a quiet button is exactly as big
+   as a framed one at the same rung. */
+.su-btn--quiet {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-ink-60);
+}
+
+.su-btn--quiet:hover:not(:disabled) {
+  background-color: var(--color-ink-10);
+  color: var(--color-ink);
+}
+
 /*
  * The DRAINED disabled treatment, for the FILLED variants only.
  *
@@ -191,6 +219,12 @@
  */
 .su-page-action {
   height: var(--space-40);
+}
+
+/* The icon rung at page-action height is square at that height too: the ITUN
+   sheet bar's back and "⋯", and a shelf item's "⋯". */
+.su-btn--icon-only.su-page-action {
+  width: var(--space-40);
 }
 
 /* ══ The entity card's cost pennant as the action button ════════════════════

@@ -9,7 +9,8 @@
  * This is read-only — the log is never mutated from the UI.
  */
 
-import { ModalShell, tokens } from 'component-lib'
+import type { BadgeTone } from 'component-lib'
+import { Badge, ModalShell, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { ChangeLogKind } from 'itun-domain/schemas/changeLog'
 import type { EntityRef } from 'itun-domain/schemas/entity'
@@ -28,31 +29,23 @@ type ChangeLogDrawerProps = {
 /** A `color-mix()` wash of a theme colour: `pct`% of it over transparent. */
 const wash = (value: string, pct: number) => `color-mix(in oklab, ${value} ${pct}%, transparent)`
 
-/** Kind → human label + badge tone. */
-const KIND_META: Record<ChangeLogKind, { label: string; style: CSSProperties }> = {
-  transaction: {
-    label: 'Transaction',
-    style: { backgroundColor: wash(tokens.color.mech, 15), color: tokens.color.mech },
-  },
-  override: {
-    label: 'Override',
-    style: { backgroundColor: wash(tokens.color.pilot, 15), color: tokens.color.pilot },
-  },
-  manual: {
-    label: 'Manual',
-    style: { backgroundColor: tokens.color.ink10, color: tokens.color.wkMuted },
-  },
+/** Kind → human label + its chip: a tone chip for the two kinds a rule wrote, quiet for a hand edit. */
+const KIND_META: Record<ChangeLogKind, { label: string; tone?: BadgeTone }> = {
+  transaction: { label: 'Transaction', tone: 'mech' },
+  override: { label: 'Override', tone: 'pilot' },
+  manual: { label: 'Manual' },
 }
 
-const BADGE = {
-  borderRadius: tokens.radius.card,
-  padding: `${tokens.space[2]} ${tokens.space[6]}`,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.capsTight,
-} satisfies CSSProperties
+/** A kind's chip: the Badge chip, toned or quiet. */
+function KindChip({ label, tone }: { label: string; tone?: BadgeTone | undefined }) {
+  return tone ? (
+    <Badge surface="tone" tone={tone}>
+      {label}
+    </Badge>
+  ) : (
+    <Badge surface="quiet">{label}</Badge>
+  )
+}
 
 const NOTE = {
   fontFamily: tokens.font.body,
@@ -154,10 +147,8 @@ function ChangeLogEntries({
         return (
           <li key={entry._id} style={ENTRY}>
             <div style={ENTRY_HEAD}>
-              <span style={{ ...BADGE, ...kind.style }}>{kind.label}</span>
-              {entry.state === 'proposed' && (
-                <span style={{ ...BADGE, ...KIND_META.manual.style }}>Proposed</span>
-              )}
+              <KindChip label={kind.label} tone={kind.tone} />
+              {entry.state === 'proposed' && <KindChip label="Proposed" />}
               <span style={FIELD}>{entry.field}</span>
               <time dateTime={new Date(entry.ts).toISOString()} style={TIME}>
                 {formatTimestamp(entry.ts)}

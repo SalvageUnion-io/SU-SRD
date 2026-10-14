@@ -13,6 +13,7 @@ import type {
   SURefObjectBonusPerTechLevel,
 } from 'salvageunion-reference'
 import { entityStats } from 'salvageunion-reference'
+import type { StatColumnCell } from '../atoms/StatColumn'
 import type { StatItem } from '../containers/statsBarTypes'
 
 type BuildReferenceEntityStatsOptions = {
@@ -48,9 +49,4 @@ export function buildReferenceEntityStats(
 }
 
 /** One cell of the book's stat column: `STRUCTURE PTS. | 14` */
-export type BookStat = {
-  key: string
-  label: string
-  value: string
-  hoverText?: string
-}
+export type BookStat = StatColumnCell

@@ -16,8 +16,9 @@
  *       toggle. Tech Level is NOT a field — it is chassis-derived and reads off
  *       the static-stats strip.
  *   Systems & Modules — KEPT as two sections (each its own `SheetSectionSlab`,
- *       3-column card grids): different collections with different '+ Add'
- *       pickers/slot budgets, so folding them into one grid is not trivial.
+ *       side by side from 48rem, one Token a line): different collections
+ *       with different '+ Add' pickers/slot budgets, so folding them into one
+ *       list is not trivial.
  *   The Hold (`StorageManifest side='mech'`) reads BEFORE Systems & Modules —
  *       cargo is reached for mid-session and was buried under two long loadout
  *       lists at the printed sheet's bottom-of-page-2 placement.
@@ -55,12 +56,11 @@
 
 import {
   Conditions,
+  Entity,
   EntitySearcher,
   Field,
   FieldError,
   heatDangerFrom,
-  MasonryColumns,
-  ReferenceEntityCard,
   SheetSectionSlab,
   StatColumn,
   tokens,
@@ -80,10 +80,9 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
-import { EntityGridRow } from './EntityGrid'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
-import { MechItemCard } from './MechItemCard'
+import { MechItemToken } from './MechItemToken'
 import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
 import type { ItemKind } from './mechSheetActions.model'
@@ -113,13 +112,6 @@ const FIELDS = {
   flexDirection: 'column',
   gap: tokens.space[16],
   height: '100%',
-  minWidth: 0,
-} satisfies CSSProperties
-
-const ABILITIES = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
   minWidth: 0,
 } satisfies CSSProperties
 
@@ -257,11 +249,15 @@ export function MechSheet({
     // Keyed by occurrence, not index: removing one item must not remount (and
     // hand local state to) the items after it. See occurrenceKeys.
     const keys = occurrenceKeys(slugs)
+    // One Token a line, each Peeking its whole card (owner's call, 2026-10-14).
     return (
-      <MasonryColumns maxColumns={3}>
+      <ul
+        aria-label={kind === 'system' ? 'Systems installed' : 'Modules installed'}
+        className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}
+      >
         {slugs.map((slug, index) => (
-          <EntityGridRow key={keys[index]}>
-            <MechItemCard
+          <li key={keys[index]}>
+            <MechItemToken
               slug={slug}
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
               condition={conditions[slug] ?? 'intact'}
@@ -269,12 +265,8 @@ export function MechSheet({
               scrapPool={model.scrapPool}
               scrapPoolLocked={cargo.crawlerLocked}
               readOnly={readOnly}
-              onStatusCycle={() => {
-                runWrite(() => actions.cycleItemCondition(kind, slug))
-              }}
-              onUsesChange={(next) => {
-                runWrite(() => actions.setItemUses(slug, next))
-              }}
+              onStatusCycle={() => runWrite(() => actions.cycleItemCondition(kind, slug))}
+              onUsesChange={(next) => runWrite(() => actions.setItemUses(slug, next))}
               onRepair={(deductTl, cost) => {
                 runWrite(() => actions.repairItem(kind, slug, deductTl, cost))
               }}
@@ -286,9 +278,9 @@ export function MechSheet({
                     }
               }
             />
-          </EntityGridRow>
+          </li>
         ))}
-      </MasonryColumns>
+      </ul>
     )
   }
 
@@ -358,34 +350,17 @@ export function MechSheet({
                       as the official mech sheet prints its own block ahead of
                       the Chassis Ability (SU_Char Sheets 2.0, page 2). */}
                     <StatColumn stats={model.chassisStats} label="Chassis stats" />
-                    {/* The chassis's ability: always visible, never folded —
-                      there is nothing to manage or choose here, so a fold would
-                      hide the one thing that distinguishes this chassis from
-                      another. */}
+                    {/* The chassis's ability: a Token that Peeks its card
+                      (owner's call, 2026-10-14: "all references = peek
+                      tokens"). Spending its EP is the Dashboard's (ADR-021). */}
                     {model.chassisAbilities.length > 0 && (
-                      <div style={ABILITIES}>
+                      <ul aria-label="Chassis ability" className="su-entity-token-list">
                         {model.chassisAbilities.map((ability) => (
-                          // Activating an ability (spending its EP) is a
-                          // Guided-Play transaction — it lives on the Dashboard,
-                          // not the Free-Edit Live Sheet (ADR-021). EP is spent
-                          // here by hand-editing the EP gauge (free state).
-                          //
-                          // No `footMeta`: the ability's EP cost is the CARD's to
-                          // render and it already does, as its own "2 EP" box.
-                          <EntityGridRow key={ability.id}>
-                            <ReferenceEntityCard
-                              data={ability}
-                              size="large"
-                              // `[(CHASSIS)]` in the ability's text resolves to
-                              // the PATTERN name, not the chassis's: on a live
-                              // sheet the reader is looking at this machine, and
-                              // "Increases the Cargo Capacity of Bad Penny" is
-                              // what the sentence is actually about.
-                              chassisName={mech.name}
-                            />
-                          </EntityGridRow>
+                          <li key={ability.id}>
+                            <Entity form="token" entity={ability} />
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     )}
                   </>
                 }
@@ -501,44 +476,44 @@ export function MechSheet({
         />
       </SheetSectionSlab>
 
-      {/* ===== R3: Systems & Modules — kept as two sections (different
-          collections/pickers; not a trivial unify), each led by its own
-          SheetSectionSlab. ===== */}
-      <SheetSectionSlab
-        title="Systems"
-        count={
-          <SlotCount
-            used={capacity.systemSlotsUsed}
-            max={capacity.systemSlotsMax}
-            asPrinted={capacity.asPrinted}
-          />
-        }
-        controls={
-          readOnly ? undefined : (
-            <SectionManageButton label="systems" onClick={() => setPicker('system')} />
-          )
-        }
-      >
-        {renderItems('system', mech.systems)}
-      </SheetSectionSlab>
+      {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
+      <div className="su-sheet-mech-loadout">
+        <SheetSectionSlab
+          title="Systems"
+          count={
+            <SlotCount
+              used={capacity.systemSlotsUsed}
+              max={capacity.systemSlotsMax}
+              asPrinted={capacity.asPrinted}
+            />
+          }
+          controls={
+            readOnly ? undefined : (
+              <SectionManageButton label="systems" onClick={() => setPicker('system')} />
+            )
+          }
+        >
+          {renderItems('system', mech.systems)}
+        </SheetSectionSlab>
 
-      <SheetSectionSlab
-        title="Modules"
-        count={
-          <SlotCount
-            used={capacity.moduleSlotsUsed}
-            max={capacity.moduleSlotsMax}
-            asPrinted={capacity.asPrinted}
-          />
-        }
-        controls={
-          readOnly ? undefined : (
-            <SectionManageButton label="modules" onClick={() => setPicker('module')} />
-          )
-        }
-      >
-        {renderItems('module', mech.modules)}
-      </SheetSectionSlab>
+        <SheetSectionSlab
+          title="Modules"
+          count={
+            <SlotCount
+              used={capacity.moduleSlotsUsed}
+              max={capacity.moduleSlotsMax}
+              asPrinted={capacity.asPrinted}
+            />
+          }
+          controls={
+            readOnly ? undefined : (
+              <SectionManageButton label="modules" onClick={() => setPicker('module')} />
+            )
+          }
+        >
+          {renderItems('module', mech.modules)}
+        </SheetSectionSlab>
+      </div>
 
       {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
           Sestra's Sestra Drone, Big Brother's four). Its own region rather than

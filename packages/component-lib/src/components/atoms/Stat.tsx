@@ -1,7 +1,5 @@
 import type { CSSProperties, ReactElement } from 'react'
-import type { EntityRef } from 'salvageunion-reference'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
-import { usePeekAttrs } from '../../entity/peekContext'
 import type { SizeRung } from '../../styles/sizing'
 import type { StampSurface } from './Badge'
 import { Badge } from './Badge'
@@ -152,9 +150,6 @@ type HorizontalValueProps = {
    * name from the caller; this keeps that contract when they fold onto Stat.
    */
   stepperLabel?: string
-  /** The glossary entry the cell's label names (a measured keyword, "Damage |
-   * 2 SP"): the cell Peeks it on hover (entity display language E4). */
-  peek?: EntityRef
   /** Plain-text hover explanation (the stat's glossary line). Same contract as
    * the value box's `hoverText` — a compact header cell states the SAME stat as
    * the full box, so it must be able to explain itself too. */
@@ -173,18 +168,6 @@ type HorizontalValueProps = {
 type StatProps = HorizontalValueProps
 
 export function Stat(props: StatProps) {
-  const inner = renderStat(props)
-  const peek = usePeekAttrs('peek' in props ? props.peek : undefined)
-  if (!peek['data-peek']) return inner
-  // The cell carries the Peek's address; the page's PeekHost does the rest.
-  return (
-    <span {...peek} style={{ display: 'inline-flex', flex: 'none', lineHeight: 1 }}>
-      {inner}
-    </span>
-  )
-}
-
-function renderStat(props: StatProps) {
   return <HorizontalValue {...props} />
 }
 

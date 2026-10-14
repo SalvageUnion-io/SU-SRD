@@ -5,7 +5,7 @@
  * owns all persistence.
  */
 
-import type { ChoiceSelections, ReferenceEntityControl } from 'component-lib'
+import type { ChoiceSelections } from 'component-lib'
 import {
   Button,
   Entity,
@@ -14,7 +14,6 @@ import {
   ReferenceEntityCard,
   Stat,
   StatusBadge,
-  StatusTriState,
   tokens,
 } from 'component-lib'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
@@ -30,9 +29,8 @@ import {
 } from '../../lib/rules/pilotInventory'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
-
-const HIDE_CHOICES = { choices: true } as const
 
 /** An inventory item in Edit: the pill, its control row, then any details. */
 const ITEM_EDIT = {
@@ -40,37 +38,6 @@ const ITEM_EDIT = {
   flexDirection: 'column',
   gap: tokens.space[8],
   minWidth: 0,
-} satisfies CSSProperties
-
-const ITEM_CONTROLS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const ITEM_USES = {
-  alignItems: 'center',
-  display: 'inline-flex',
-  fontFamily: tokens.font.cond,
-  fontWeight: tokens.weight.bold,
-  gap: tokens.space[6],
-} satisfies CSSProperties
-
-const ITEM_USES_LABEL = {
-  color: tokens.color.ink75,
-  fontSize: tokens.fontSize.badge,
-  letterSpacing: tokens.tracking.caps,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-/** An ability card's Edit row: Spend AP and the used toggle, under the body. */
-const ABILITY_ACTIONS = {
-  borderTop: `${tokens.borderWidth.chrome} dashed ${tokens.color.ink40}`,
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  paddingTop: tokens.space[8],
 } satisfies CSSProperties
 
 const ROW_TEXT = {
@@ -171,17 +138,15 @@ type PilotAbilityItemProps = {
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
   readOnly: boolean
-  /**
-   * Fold the card to its header row, opened on demand: the Generic tree every
-   * pilot shares, which reads as reference after the class's own abilities.
-   */
-  folded?: boolean
 }
 
 /**
- * One ability card. AP cost resolves from the ability's actions
- * (resolveAbilityApCost): `null` means no FIXED numeric cost (variable 'X' or
- * none) — no spend button renders, we never spend an undefined amount.
+ * One ability: its Token, which Peeks the whole card (owner's call,
+ * 2026-10-14: "all references = peek tokens"), with Spend AP and the used
+ * toggle on its line in Edit, and a "Used" stamp in Read. AP cost resolves
+ * from the ability's actions (resolveAbilityApCost): `null` means no FIXED
+ * numeric cost (variable 'X' or none) — no spend control renders, we never
+ * spend an undefined amount. The cost itself is the Token's own chip.
  */
 export function PilotAbilityItem({
   ability,
@@ -190,65 +155,38 @@ export function PilotAbilityItem({
   onSpend,
   onToggleUsed,
   readOnly,
-  folded = false,
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
-  const canSpend = apCost !== null && currentAP >= apCost
-
-  // No `footMeta` here. ReferenceEntityCard already renders the ability's
-  // activation cost from its own action — "1 AP" for a fixed cost, "X AP" for a
-  // variable one — so an "AP Cost" pair restated it. On the variable abilities
-  // it was worse than redundant: `apCost` is null there, so the footer printed
-  // "AP Cost —" beside a card plainly saying "X AP", replacing the one useful
-  // fact (the cost scales with what you spend) with an em-dash. The cost still
-  // reaches the player as an affordance — the Spend AP control names it.
-  //
-  // Read shows a static Used stamp on the seam. Edit's Spend AP and the used
-  // toggle do NOT ride the seam: there they sat on the "Ability · … tree" label
-  // strip and cut it short. They are the card's own row instead, under the
-  // body, above the source footer.
-  const usedStamp: ReferenceEntityControl[] | undefined =
-    readOnly && used ? [{ key: 'used', badge: 'Used' }] : undefined
-
-  const actionRow = readOnly ? undefined : (
-    <div style={ABILITY_ACTIONS}>
-      {apCost !== null && (
-        <Button
-          size="compact"
-          variant="primary"
-          aria-label={`Spend ${apCost} AP for ${ability.name}`}
-          disabled={!canSpend}
-          onClick={() => {
-            onSpend(apCost)
-          }}
-        >
-          Spend AP
-        </Button>
-      )}
-      <Button
-        size="compact"
-        variant="ghost"
-        aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
-        aria-pressed={used}
-        onClick={() => {
-          onToggleUsed(!used)
-        }}
-      >
-        {used ? 'Recharge' : 'Mark used'}
-      </Button>
-    </div>
-  )
-
   return (
-    <ReferenceEntityCard
-      data={ability}
-      size="medium"
-      extent="full"
-      collapsible={folded}
-      foldChevron={false}
-      hide={HIDE_CHOICES}
-      controls={usedStamp}
-      expand={actionRow}
+    <SheetItemLine
+      token={<Entity form="token" entity={ability} />}
+      name={ability.name}
+      readOnly={readOnly}
+      stamp={used ? 'Used' : undefined}
+      actions={
+        <>
+          {apCost !== null && (
+            <button
+              type="button"
+              className="su-sheet-ctl"
+              aria-label={`Spend ${apCost} AP for ${ability.name}`}
+              disabled={currentAP < apCost}
+              onClick={() => onSpend(apCost)}
+            >
+              Spend AP
+            </button>
+          )}
+          <button
+            type="button"
+            className="su-sheet-ctl"
+            aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
+            aria-pressed={used}
+            onClick={() => onToggleUsed(!used)}
+          >
+            {used ? 'Used' : 'Mark Used'}
+          </button>
+        </>
+      }
     />
   )
 }
@@ -360,68 +298,45 @@ export function PilotEquipmentItem({
   // The shortform pill — the item named, typed and tech-levelled on one line
   // (board 10). It is the item in BOTH states: the name always wins, and is
   // never ellipsized to make room for a control. A damaged item's pill greys,
-  // as its card's header does.
+  // as its card's header does; it Peeks the whole card.
   const pill = <Entity form="token" entity={equipment} instance={{ condition }} />
+  // Only an item with choices opens its card under the line: its choices are
+  // written there. Everything else the Peek already shows.
+  const hasChoices = Array.isArray(equipment.choices) && equipment.choices.length > 0
 
-  // Read state: the pill and nothing else. Uses, condition and choices are
-  // the Edit state's.
+  // Read: the pill alone (the inventory wraps its pills on a line). Edit: the
+  // same line as a mech's Systems and Modules (`SheetItemLine`), Details
+  // where there are choices to make.
   if (readOnly) return pill
 
-  // Edit state: the same pill, with its controls in a row of their own under
-  // it — the condition tri-state, the uses counter, Remove — so nothing rides
-  // above the item or over its neighbour. Details opens the full card (its
-  // text and any choices) under the row.
   return (
     <div style={ITEM_EDIT}>
-      {pill}
-      <div style={ITEM_CONTROLS}>
-        <StatusTriState
-          status={condition}
-          onClick={() => {
-            onConditionChange(slug, CONDITION_CYCLE[condition])
-          }}
-          subject={equipment.name}
-        />
-        {maxUses !== null && uses !== null && (
-          <span style={ITEM_USES}>
-            <span style={ITEM_USES_LABEL}>Uses</span>
-            <span>{`${uses}/${maxUses}`}</span>
-            <Button
-              size="compact"
-              aria-label={`Use ${equipment.name}`}
-              disabled={uses <= 0}
-              onClick={() => {
-                onUsesChange(slug, Math.max(0, uses - 1))
-              }}
+      <SheetItemLine
+        token={pill}
+        name={equipment.name}
+        condition={condition}
+        readOnly={false}
+        onConditionCycle={() => onConditionChange(slug, CONDITION_CYCLE[condition])}
+        uses={
+          maxUses !== null && uses !== null
+            ? { remaining: uses, max: maxUses, onChange: (next) => onUsesChange(slug, next) }
+            : undefined
+        }
+        actions={
+          hasChoices && (
+            <button
+              type="button"
+              className="su-sheet-ctl"
+              aria-expanded={detailsOpen}
+              aria-label={`${detailsOpen ? 'Collapse' : 'Expand'} ${equipment.name}`}
+              onClick={() => setDetailsOpen((open) => !open)}
             >
-              Use
-            </Button>
-            <Button
-              size="compact"
-              variant="ghost"
-              aria-label={`Restock ${equipment.name}`}
-              disabled={uses >= maxUses}
-              onClick={() => {
-                onUsesChange(slug, maxUses)
-              }}
-            >
-              Restock
-            </Button>
-          </span>
-        )}
-        <Button
-          size="compact"
-          variant="ghost"
-          aria-expanded={detailsOpen}
-          aria-label={`${detailsOpen ? 'Collapse' : 'Expand'} ${equipment.name}`}
-          onClick={() => {
-            setDetailsOpen((open) => !open)
-          }}
-        >
-          Details
-        </Button>
-        {onRemove && <CardRemoveButton name={equipment.name} onRemove={onRemove} />}
-      </div>
+              Details
+            </button>
+          )
+        }
+        onRemove={onRemove}
+      />
       {detailsOpen && (
         <ReferenceEntityCard
           data={equipment}

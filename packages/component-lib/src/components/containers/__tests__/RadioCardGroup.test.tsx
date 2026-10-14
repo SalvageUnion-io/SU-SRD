@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
-import { Sel } from '../../atoms/Sel'
 import { RadioCardGroup } from '../RadioCardGroup'
+import { Sel } from '../Sel'
 
 /**
  * The radio pattern for card pickers: one tab stop (the chosen card), the

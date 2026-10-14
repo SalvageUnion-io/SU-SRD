@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { EntityInstance } from 'salvageunion-reference'
+import { Badge } from '../../components/atoms/Badge'
 import { Stat } from '../../components/atoms/Stat'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
@@ -111,9 +112,13 @@ export function Token({
       {/* Read by assistive tech only: the dashes are the pill's only visual user-made cue. */}
       {userMade && <span className="su-sr-only">User-made </span>}
       {model.kind.note && (
-        <span className={cn('su-entity-token__kind', paint.ink && 'su-entity-token__kind--on-ink')}>
+        <Badge
+          shape="stamp"
+          size="mini"
+          className={cn('su-entity-token__kind', paint.ink && 'su-entity-token__kind--on-ink')}
+        >
           {model.kind.note}
-        </span>
+        </Badge>
       )}
       <span className="su-entity-token__name">
         {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}

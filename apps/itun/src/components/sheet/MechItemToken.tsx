@@ -1,34 +1,20 @@
 /**
- * MechItemCard — ONE installed system/module as an EntityGridRow'd COMPACT entity card
- * (compact listing cards, max 2-up).
+ * MechItemToken — ONE installed system/module as the entity display language's
+ * TOKEN (owner's call, 2026-10-14: a sheet's Systems, Modules and Assigned
+ * Units are Tokens that Peek, not cards that expand). Hover, focus or a long
+ * press Peeks the whole card; a damaged or destroyed item's pill greys.
  *
- * Every affordance rides the card's controls overlay (no footer actions), and
- * the card carries NO `footMeta`: a sheet card is the SRD reference card plus
- * this sheet's interactions, never plus a second copy of the card's own data.
- * ReferenceEntityCard already renders `slotsRequired` as a "Slots" stat, each
- * action's activation cost as its own `2 EP` box, and Hot as a `Hot (2)` trait
- * badge — so the EP/Heat/Slots footer figures restated all three. The EP one
- * also flattened a multi-action item to its PRIMARY action's cost, printing
- * "EP Cost 2" beside a card openly listing 2 EP / 2 EP / 4 EP.
+ * Its controls sit ON the Token's line (`SheetItemLine`, which a pilot's
+ * equipment shares): the condition, Uses, Repair (Damaged only: shows the
+ * half-SV scrap cost and opens a MODAL confirm offering an OPTIONAL crawler
+ * scrap-pool deduction; the no-deduction path is always available —
+ * advisory, never blocks, but never a silent free flip either) and Remove.
  *
- *   - Repair (Damaged only, danger control): shows the half-SV scrap cost and
- *     opens a MODAL confirm offering an OPTIONAL crawler scrap-pool deduction.
- *     The no-deduction path is always available — advisory, never blocks,
- *     but never a silent free flip either: the cost is on the control.
- *   - Uses stepper: manual ± counter for systems AND modules.
- *   - Remove (✕): per-card uninstall — always available on editable sheets
- *     (unified edit language archetype B, never gated behind a mode).
- *
- * The status badge cycles Intact → Damaged → Destroyed by hand (manual
- * edits stay possible alongside the automation). An unresolvable slug falls
- * back to a plain chit (raw slug + status badge) so unknown data never
- * crashes the sheet.
- *
- * readOnly suppresses every affordance: no foot actions, no status cycle.
+ * An unresolvable slug falls back to a plain chit (raw slug + status badge)
+ * so unknown data never crashes the sheet.
  */
 
-import type { ReferenceEntityControl } from 'component-lib'
-import { Button, ModalShell, ReferenceEntityCard, StatusBadge, tokens } from 'component-lib'
+import { Button, Entity, ModalShell, StatusBadge, tokens } from 'component-lib'
 import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
@@ -40,18 +26,8 @@ import {
   repairPoolTl,
   repairScrapCost,
 } from '../../lib/rules/mechItems'
+import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
-
-/**
- * Stable hide literal — hoisted so its identity does not change per render.
- *
- * NOT because `ReferenceEntityCard` is memoized. It is a plain
- * `export function` and `React.memo` appears nowhere in this repo. A stable
- * identity is the precondition for adding one, which is the reason worth
- * keeping; claiming the memo already exists is what made three separate call
- * sites look like they were maintaining something they were not.
- */
-const HIDE_CHOICES = { choices: true } as const
 
 /** The fallback chit for a slug that does not resolve. */
 const CHIT = {
@@ -96,7 +72,7 @@ const CONFIRM_ACTIONS = {
   justifyContent: 'flex-end',
 } satisfies CSSProperties
 
-type MechItemCardProps = {
+type MechItemTokenProps = {
   /** System/module slug as stored on the mech. */
   slug: string
   /** Resolved reference entity, or null when the slug does not resolve. */
@@ -115,18 +91,18 @@ type MechItemCardProps = {
   readOnly: boolean
   /** Cycle this item's condition (Intact → Damaged → Destroyed). */
   onStatusCycle: () => void
-  /** Set the uses counter (already clamped 0..max by the card). */
+  /** Set the uses counter (0..max). */
   onUsesChange: (next: number) => void
   /** Repair to Intact; deductTl = pool bucket to decrement, null = none. */
   onRepair: (deductTl: number | null, cost: number) => void
   /**
-   * Per-card remove (✕) — uninstall this item. Always available on editable
+   * Per-item remove (✕) — uninstall this item. Always available on editable
    * sheets (unified edit language archetype B). Omit on read-only sheets.
    */
   onRemove?: () => void
 }
 
-export function MechItemCard({
+export function MechItemToken({
   slug,
   entity,
   condition,
@@ -138,7 +114,7 @@ export function MechItemCard({
   onUsesChange,
   onRepair,
   onRemove,
-}: MechItemCardProps) {
+}: MechItemTokenProps) {
   const [confirmingRepair, setConfirmingRepair] = useState(false)
 
   if (!entity) {
@@ -171,41 +147,6 @@ export function MechItemCard({
         : scrapPool
           ? `Not enough TL ${itemTl ?? 1}+ scrap in the crawler pool`
           : 'No crawler assigned — no pool to deduct from'
-
-  // All per-card interactivity rides the controls overlay (no footer actions):
-  // the uses stepper and Repair (which opens a modal confirm), plus the
-  // per-card remove (✕). The status toggle is added by ReferenceEntityCard.
-  const controls: ReferenceEntityControl[] = readOnly
-    ? []
-    : [
-        ...(maxUses > 0
-          ? [
-              {
-                key: 'uses',
-                stepper: {
-                  count: remaining,
-                  onChange: onUsesChange,
-                  subject: entity.name,
-                  min: 0,
-                  max: maxUses,
-                  label: 'Uses',
-                },
-              } satisfies ReferenceEntityControl,
-            ]
-          : []),
-        ...(condition === 'damaged'
-          ? [
-              {
-                key: 'repair',
-                label: 'Repair',
-                segmentText: `${cost} Scrap`,
-                ariaLabel: `Repair ${entity.name}`,
-                onClick: () => setConfirmingRepair(true),
-                variant: 'danger',
-              } satisfies ReferenceEntityControl,
-            ]
-          : []),
-      ]
 
   // Repair confirm — a modal (design: no inline confirm cluster / footer).
   const repairModal =
@@ -257,14 +198,27 @@ export function MechItemCard({
 
   return (
     <>
-      <ReferenceEntityCard
-        data={entity}
-        size="medium"
-        collapsible
-        hide={HIDE_CHOICES}
-        status={condition}
-        onStatusClick={readOnly ? undefined : onStatusCycle}
-        controls={controls.length ? controls : undefined}
+      <SheetItemLine
+        token={<Entity form="token" entity={entity} instance={{ condition }} />}
+        name={entity.name}
+        condition={condition}
+        readOnly={readOnly}
+        onConditionCycle={onStatusCycle}
+        uses={maxUses > 0 ? { remaining, max: maxUses, onChange: onUsesChange } : undefined}
+        actions={
+          condition === 'damaged' && (
+            <Button
+              size="compact"
+              variant="danger"
+              className="su-sheet-item__repair"
+              aria-label={`Repair ${entity.name}`}
+              onClick={() => setConfirmingRepair(true)}
+            >
+              Repair · {cost} Scrap
+            </Button>
+          )
+        }
+        onRemove={onRemove}
       />
       {repairModal}
     </>

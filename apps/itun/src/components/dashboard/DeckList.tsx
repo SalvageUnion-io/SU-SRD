@@ -12,7 +12,7 @@
  */
 
 import type { ReferenceCardEntity } from 'component-lib'
-import { Badge, ReferenceEntityCard } from 'component-lib'
+import { Badge, ReferenceEntityCard, Toggle } from 'component-lib'
 import { fontSize, radius, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
@@ -83,15 +83,9 @@ export function DeckList({ view }: { view: DeckListModel }) {
       <div className="su-dash-deck-controls-bar">
         <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Filter actions by timing">
           {view.tabs.map((t) => (
-            <button
-              key={t}
-              type="button"
-              aria-pressed={view.activeTab === t}
-              className={`su-dash-deck-tab${view.activeTab === t ? ' is-active' : ''}`}
-              onClick={() => view.onTab(t)}
-            >
+            <Toggle key={t} pressed={view.activeTab === t} onClick={() => view.onTab(t)}>
               {t}
-            </button>
+            </Toggle>
           ))}
         </fieldset>
 

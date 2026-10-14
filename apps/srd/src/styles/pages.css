@@ -1768,15 +1768,7 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   background-color: color-mix(in oklab, var(--color-ink) 70%, transparent);
 }
 
-.srd-about-lightbox__close {
-  background-color: var(--color-ink);
-}
-
 @media (hover: hover) {
-  .srd-about-lightbox__close:hover {
-    background-color: var(--color-ink-2);
-  }
-
   .srd-about-lightbox__credit:hover {
     text-decoration-line: underline;
   }

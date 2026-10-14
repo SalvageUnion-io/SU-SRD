@@ -3,6 +3,7 @@ import type { SURefObjectContentBlock, SURefObjectDataValue } from 'salvageunion
 import { glossaryRef, parseContentBlockString } from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
 import { color, space, fontSize as typeScale, weight } from '../../design/tokens'
+import { PeekCell } from '../../entity/parts/PeekCell'
 import { Tag } from '../../entity/parts/Tags'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { ActivationCost } from '../atoms/ActivationCost'
@@ -98,14 +99,15 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
   }
   const peek = item.type === 'keyword' ? glossaryRef('keywords', String(item.label)) : undefined
   return (
-    <Stat
-      orientation="horizontal"
-      label={item.label}
-      value={value}
-      size={compact ? 'compact' : 'full'}
-      inline={false}
-      peek={peek}
-    />
+    <PeekCell peek={peek}>
+      <Stat
+        orientation="horizontal"
+        label={item.label}
+        value={value}
+        size={compact ? 'compact' : 'full'}
+        inline={false}
+      />
+    </PeekCell>
   )
 }
 

@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { Sel } from '../../containers/Sel'
 import { SELECTION_RING } from '../interaction'
-import { Sel } from '../Sel'
 
 describe('Sel', () => {
   test('selection ring toggles without layout shift (box-shadow only)', () => {

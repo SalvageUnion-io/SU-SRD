@@ -4,7 +4,7 @@
  * Asserts that:
  *   1. The slab count shows truthful slot math (equipment 1 / Heavy 2,
  *      generic entries at explicit slotCost — Scrap 3, capacity 6).
- *   2. Per-item uses counters: Use decrements equipmentUses, Restock refills
+ *   2. Per-item uses counters: − takes one off equipmentUses, + gives one back
  *      to the trait max, Use disabled at 0.
  *   3. Generic entries: + Scrap quick-add, free-form add, per-entry remove.
  *   4. readOnly suppresses every inventory edit affordance.
@@ -101,17 +101,17 @@ describe('PilotSheet — per-item uses counters', () => {
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText('1/3')).toBeTruthy()
+    expect(screen.getByText('Uses 1/3')).toBeTruthy()
   })
 
   test('absent key reads as full uses', () => {
     const pilot = makePilot({ equipment: ['first-aid-kit'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText('3/3')).toBeTruthy()
+    expect(screen.getByText('Uses 3/3')).toBeTruthy()
   })
 
-  test('Use decrements the per-item counter', async () => {
+  test('− takes one off the per-item counter', async () => {
     const pilot = makePilot({
       equipment: ['first-aid-kit'],
       equipmentUses: { 'first-aid-kit': 2 },
@@ -121,7 +121,7 @@ describe('PilotSheet — per-item uses counters', () => {
     expandCards()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Use First Aid Kit' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Remove one First Aid Kit' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith(
@@ -134,7 +134,7 @@ describe('PilotSheet — per-item uses counters', () => {
     )
   })
 
-  test('Use is disabled at 0; Restock refills to max', async () => {
+  test('− is disabled at 0; + gives one back', async () => {
     const pilot = makePilot({
       equipment: ['first-aid-kit'],
       equipmentUses: { 'first-aid-kit': 0 },
@@ -144,19 +144,19 @@ describe('PilotSheet — per-item uses counters', () => {
     expandCards()
 
     const useBtn = screen.getByRole<HTMLButtonElement>('button', {
-      name: 'Use First Aid Kit',
+      name: 'Remove one First Aid Kit',
     })
     expect(useBtn.disabled).toBe(true)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Restock First Aid Kit' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Add one First Aid Kit' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith(
       'pilot',
       pilot.id,
       {
-        equipmentUses: { 'first-aid-kit': 3 },
+        equipmentUses: { 'first-aid-kit': 1 },
       },
       LIVE_SHEET_MANUAL
     )
@@ -166,7 +166,7 @@ describe('PilotSheet — per-item uses counters', () => {
     const pilot = makePilot({ equipment: ['rifle'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.queryByRole('button', { name: /use rifle/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /one rifle/i })).toBeNull()
   })
 })
 
