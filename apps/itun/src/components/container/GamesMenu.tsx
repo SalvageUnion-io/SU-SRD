@@ -1,11 +1,11 @@
 /**
  * The masthead's Games menu — pick what the Roster shows (ADR-030 §2).
  *
- * "Shelves" (the personal shelf) heads the list, then every Game the player is
- * in, each with their role in it. Picking one opens where it is shown: Shelves
- * at `/`, or the Game's own page at `/games/$gameId`. It is the same
- * decision the Roster's own "Showing" select (`ContainerSwitcher`) makes,
- * offered from every route rather than only from the Roster.
+ * Every Game the player is in, each with their role in it. Picking one opens
+ * the Game's own page at `/games/$gameId`. Shelves is not listed: it has its
+ * own nav link beside the menu. It is the same decision the Roster's own
+ * "Showing" select (`ContainerSwitcher`) makes, offered from every route
+ * rather than only from the Roster.
  *
  * Two renderings of one list, because the masthead has two shapes:
  *
@@ -26,7 +26,6 @@
 import { Badge, Button, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { Container } from 'itun-domain/container'
-import { SHELF } from 'itun-domain/container'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -36,9 +35,6 @@ import { useShowContainer } from './useShowContainer'
 
 /** One row of the list: what it says, and the container it picks. */
 type Entry = { id: string; label: string; hint?: string; container: Container }
-
-/** What the player calls the Shelf. */
-const SHELF_ENTRY: Entry = { id: 'shelf', label: 'Shelves', container: SHELF }
 
 /**
  * The Games, as rows — `undefined` while the subscription is in flight.
@@ -77,9 +73,7 @@ function ConnectedGamesMenu({ active }: { active: boolean }) {
         ? [{ id: 'none', label: 'No Games yet' }]
         : games.map(asItem)
 
-  return (
-    <HeaderMenu trigger="Games" active={active} sections={[[asItem(SHELF_ENTRY)], gameItems]} />
-  )
+  return <HeaderMenu trigger="Games" active={active} sections={[gameItems]} />
 }
 
 /** `active`: the page is a Game's own (`/games/…`), so the menu is where you are. */
@@ -133,7 +127,6 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
       <div>
         <Badge shape="stamp">Games</Badge>
       </div>
-      {row(SHELF_ENTRY)}
       {games === undefined && <Text variant="hint">Loading your Games…</Text>}
       {games?.length === 0 && <Text variant="hint">No Games yet</Text>}
       {games?.map(row)}
