@@ -258,6 +258,19 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
     // The Token is named for the crew and Peeks the bay's NPC card.
     expect(crewToken('Dax Orsund').getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
   })
+
+  test('Edit shows the crew as a Token too, its fields behind Details', async () => {
+    restore = await patchCrawlerBays()
+    render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
+    expect(crewToken('Dax Orsund').getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
+    expect(screen.queryByLabelText('Command Bay crew lead')).toBeNull()
+    const details = screen.getByRole('button', { name: 'Expand Command Bay crew' })
+    expect(details.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(details)
+    expect(screen.getByLabelText('Command Bay crew lead')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse Command Bay crew' }))
+    expect(screen.queryByLabelText('Command Bay crew lead')).toBeNull()
+  })
 })
 
 // ---------------------------------------------------------------------------

@@ -31,7 +31,7 @@ import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
-import { CrawlerTypeCard } from './CrawlerSheetItems'
+import { CrawlerTypeCard } from './CrawlerTypeCard'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
 const PANEL = { minWidth: 0 } satisfies CSSProperties
