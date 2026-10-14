@@ -80,7 +80,7 @@ export function Changelog({ entries }: ChangelogProps) {
               // changelog, which has only its own `h1` above it. `h3` skipped a
               // level (h1 -> h3), the one heading-order violation left on the
               // site once entity pages gained real section headings.
-              <PageHeading variant="subheading" as="h2" className="srd-changelog__date">
+              <PageHeading as="h2" className="srd-changelog__date">
                 <time dateTime={entry.date}>{entry.date}</time>
               </PageHeading>
             }

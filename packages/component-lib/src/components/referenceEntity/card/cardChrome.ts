@@ -14,6 +14,7 @@ import {
   parseContentBlockString,
 } from 'salvageunion-reference'
 import type { Foreground } from '../../../design/contrast'
+import { SELECTED_RING } from '../../../entity/modes/selectedRing'
 import { cn } from '../../../utils/cn'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
 import type { CardExtent, CardSize } from '../../containers/displayMode'
@@ -225,7 +226,7 @@ export function resolveCardInteraction({
     borderBottomWidth: frameWidth,
     borderLeftWidth: frameWidth,
   }
-  const frameStyle = selected ? { ...frame, boxShadow: '0 0 0 3px var(--color-ink)' } : frame
+  const frameStyle = selected ? { ...frame, ...SELECTED_RING } : frame
   return { outer, frameStyle }
 }
 

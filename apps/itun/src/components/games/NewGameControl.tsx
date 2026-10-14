@@ -152,9 +152,7 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
             )}
             {templates?.map((t) => (
               <div key={t.id} style={SECTION}>
-                <PageHeading variant="subheading" as="h4">
-                  {t.name}
-                </PageHeading>
+                <PageHeading as="h4">{t.name}</PageHeading>
                 <Text variant="hint" style={HINT}>
                   {t.description}
                 </Text>

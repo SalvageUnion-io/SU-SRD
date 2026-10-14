@@ -69,19 +69,6 @@ export type TokenSlots = {
  * ride `data-user-made`.
  */
 
-/** Read by assistive tech only: the dashes are the pill's only visual user-made cue. */
-const VISUALLY_HIDDEN: CSSProperties = {
-  border: 0,
-  clip: 'rect(0, 0, 0, 0)',
-  height: '1px',
-  margin: '-1px',
-  overflow: 'hidden',
-  padding: 0,
-  position: 'absolute',
-  whiteSpace: 'nowrap',
-  width: '1px',
-}
-
 /**
  * TOKEN — the shortform (§3): `name [chips]`, one size, for many on a line or
  * a slot under 12rem (E3). Its chips are a short set (`tokenChips`), then the
@@ -121,7 +108,8 @@ export function Token({
       className="su-entity-token__pill"
       style={{ backgroundColor: paint.background, color: paint.color, ...slots.frameStyle }}
     >
-      {userMade && <span style={VISUALLY_HIDDEN}>User-made </span>}
+      {/* Read by assistive tech only: the dashes are the pill's only visual user-made cue. */}
+      {userMade && <span className="su-sr-only">User-made </span>}
       {model.kind.note && (
         <span className={cn('su-entity-token__kind', paint.ink && 'su-entity-token__kind--on-ink')}>
           {model.kind.note}

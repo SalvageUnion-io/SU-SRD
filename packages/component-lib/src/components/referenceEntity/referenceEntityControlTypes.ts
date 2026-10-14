@@ -51,12 +51,6 @@ export type ReferenceEntityControl = {
   icon?: (props: { className?: string }) => ReactNode
   variant?: ReferenceEntityControlVariant
   disabled?: boolean
-  /** Override the primary segment background color (CSS value, e.g. 'var(--color-mech)') */
-  bgColor?: string
-  /** Override the primary segment text color */
-  textColor?: string
-  /** Override the border color */
-  borderColor?: string
   /** Secondary segment text (renders in inverse style, like the value part of ValueDisplay) */
   segmentText?: string
   className?: string

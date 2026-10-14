@@ -25,7 +25,5 @@ describe('ReferenceSurface', () => {
     expect(toast).not.toBeNull()
     // The outcome follows as the toast's description.
     expect(toast?.querySelector('[data-description]')?.textContent?.length ?? 0).toBeGreaterThan(0)
-    // The card keeps no readout of its own.
-    expect(screen.queryByText(/You rolled · lands on/)).toBeNull()
   })
 })

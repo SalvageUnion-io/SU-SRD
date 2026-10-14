@@ -121,7 +121,7 @@ function UsedChip({
     // one would be a control that isn't).
     if (!used) return null
     return (
-      <Badge shape="chip" surface="solid" style={USED_CHIP}>
+      <Badge shape="chip" style={USED_CHIP}>
         {pip}
         Used
       </Badge>
@@ -133,7 +133,6 @@ function UsedChip({
     <Badge
       as="button"
       shape="chip"
-      surface="solid"
       aria-pressed={used}
       aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
       onClick={() => onToggle(!used)}

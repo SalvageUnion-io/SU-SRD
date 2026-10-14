@@ -5,7 +5,7 @@
  * island's chunk carries no ORM.
  */
 
-import type { DigestedColumnsColumn } from 'component-lib'
+import type { AnnouncedRoll, DigestedColumnsColumn } from 'component-lib'
 
 /** One column: its d20 range ("9-12") and its entries (`digestColumnsTable`). */
 export type ColumnsTableColumn = DigestedColumnsColumn
@@ -35,4 +35,23 @@ export function columnsHit(
   const column = columns.find((c) => rangeHolds(c.key, roll.column))
   const entry = column?.entries.find((e) => rangeHolds(e.key, roll.entry))
   return column && entry ? { column, entry } : undefined
+}
+
+/**
+ * A pair of rolls as its toast reads it (`toastRoll`): the entry's die, the
+ * column it lands in, then the entry; `undefined` when the pair hits no cell.
+ */
+export function columnsAnnouncement(
+  data: ColumnsTablePageData,
+  roll: ColumnsRoll
+): AnnouncedRoll | undefined {
+  const hit = columnsHit(data.columns, roll)
+  if (!hit) return undefined
+  return {
+    table: data.name,
+    roll: roll.entry,
+    // The book's en dash, as `rangeLabel` sets it (not imported: no ORM here).
+    range: `column ${hit.column.key.replace('-', '–')}`,
+    text: hit.entry.value,
+  }
 }

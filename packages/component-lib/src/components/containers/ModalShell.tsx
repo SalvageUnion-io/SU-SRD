@@ -91,19 +91,6 @@ const POPUP: CSSProperties = {
   outline: 'none',
 }
 
-/** Visually hidden, still read: the popup's title and description. */
-const SR_ONLY: CSSProperties = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  padding: 0,
-  margin: '-1px',
-  overflow: 'hidden',
-  clipPath: 'inset(50%)',
-  whiteSpace: 'nowrap',
-  borderWidth: 0,
-}
-
 const HEAD = {
   display: 'flex',
   width: '100%',
@@ -198,9 +185,9 @@ export function ModalShell({
         className={container || fullscreen ? undefined : maxWidth}
         style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : popupStyle}
       >
-        <Dialog.Title style={SR_ONLY}>{title}</Dialog.Title>
+        <Dialog.Title className="su-sr-only">{title}</Dialog.Title>
         {description !== null && (
-          <Dialog.Description style={SR_ONLY}>{description ?? title}</Dialog.Description>
+          <Dialog.Description className="su-sr-only">{description ?? title}</Dialog.Description>
         )}
 
         {bare ? (
@@ -239,7 +226,7 @@ export function ModalShell({
                   data-tone={isDanger ? 'danger' : undefined}
                 >
                   <X style={CLOSE_ICON} />
-                  <span style={SR_ONLY}>Close</span>
+                  <span className="su-sr-only">Close</span>
                 </Dialog.Close>
               </div>
             }

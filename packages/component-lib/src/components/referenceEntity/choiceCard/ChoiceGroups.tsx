@@ -3,6 +3,7 @@ import { useCallback, useContext, useState } from 'react'
 import type { SURefEntity, SURefObjectChoice } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import { SELECTED_RING } from '../../../entity/modes/selectedRing'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import type { CSSVarStyle } from '../../../styles/cssVars'
 import { cn } from '../../../utils/cn'
@@ -188,8 +189,8 @@ function ChoiceOption({
     borderStyle: 'solid',
     borderWidth: compact ? FRAME_WIDTH.compact : FRAME_WIDTH.regular,
     borderRadius: 'var(--radius-card)',
-    boxShadow: chosen ? '0 0 0 3px var(--color-ink)' : undefined,
     overflow: 'hidden',
+    ...(chosen ? SELECTED_RING : undefined),
   }
   const head: CSSProperties = {
     backgroundColor: band ?? 'var(--color-ink)',

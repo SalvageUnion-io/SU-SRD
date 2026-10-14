@@ -3,18 +3,6 @@
 import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 
-export const VISUALLY_HIDDEN = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  margin: '-1px',
-  padding: space[0],
-  overflow: 'hidden',
-  clip: 'rect(0, 0, 0, 0)',
-  whiteSpace: 'nowrap',
-  borderWidth: space[0],
-} satisfies CSSProperties
-
 export function chevronStyle(open: boolean): CSSProperties {
   return {
     width: space[16],

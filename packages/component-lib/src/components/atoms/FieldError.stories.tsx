@@ -2,8 +2,9 @@ import type { CSSProperties } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
-import { Field, Input } from './Field'
+import { Field } from './Field'
 import { FieldError } from './FieldError'
+import { Input } from './inputs'
 
 export default {
   title: 'Atoms/Field Error',

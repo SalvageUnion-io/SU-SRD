@@ -17,6 +17,7 @@ import { cn } from '../../utils/cn'
 import { Badge } from '../atoms/Badge'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { FOCUS_RING } from '../atoms/interaction'
+import { TRANSITION_COLORS } from '../atoms/transition'
 
 /**
  * NavDrawer — the shared hamburger + slide-in mobile nav drawer (unifies the
@@ -137,14 +138,6 @@ const VIEWPORT = {
   zIndex: 50,
 } satisfies CSSProperties
 
-/** The colour transition: the colour properties over 150ms, standard easing. */
-const TRANSITION_COLORS = {
-  transitionDuration: '150ms',
-  transitionProperty:
-    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-} satisfies CSSProperties
-
 // The hamburger. Its padding and ink are on `.su-nav-drawer__trigger` instead,
 // because `triggerClassName` overrides them (ITUN passes `p-1.5`).
 const TRIGGER = { ...TRANSITION_COLORS, borderRadius: radius.panel } satisfies CSSProperties
@@ -158,19 +151,6 @@ const PANEL = {
   height: '100%',
   maxWidth: '85vw',
   padding: space[16],
-} satisfies CSSProperties
-
-/** Visually hidden, still read. */
-const SR_ONLY = {
-  borderWidth: 0,
-  clip: 'rect(0, 0, 0, 0)',
-  height: '1px',
-  margin: '-1px',
-  overflow: 'hidden',
-  padding: 0,
-  position: 'absolute',
-  whiteSpace: 'nowrap',
-  width: '1px',
 } satisfies CSSProperties
 
 const BRAND_ROW = {
@@ -244,7 +224,7 @@ export function NavDrawer({
             className={cn('su-drawer su-nav-drawer__panel', panelClassName)}
             style={PANEL}
           >
-            <Drawer.Title style={SR_ONLY}>Navigation menu</Drawer.Title>
+            <Drawer.Title className="su-sr-only">Navigation menu</Drawer.Title>
 
             {/* Brand row: lockup | Close */}
             <div style={BRAND_ROW}>

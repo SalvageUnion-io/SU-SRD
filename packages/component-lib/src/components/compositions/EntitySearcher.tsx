@@ -48,6 +48,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useId, useState, useSyncExternalStore } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { color, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
+import { SELECTED_RING } from '../../entity/modes/selectedRing'
 import { cn } from '../../utils/cn'
 import { BandTitle } from '../atoms/BandTitle'
 import { Button } from '../atoms/Button'
@@ -300,11 +301,9 @@ export function EntitySearcher({
               would grow the title vertically, not claim the band's width.
               The wrapper takes the track instead and the titles truncate. */}
           <div style={HEADER_TITLES_STYLE}>
-            <BandTitle fill={false} className="su-searcher__band-title">
-              {title}
-            </BandTitle>
+            <BandTitle className="su-searcher__band-title">{title}</BandTitle>
             {subtitle && (
-              <BandTitle variant="mute" fill={false} className="su-searcher__band-title">
+              <BandTitle variant="mute" className="su-searcher__band-title">
                 {subtitle}
               </BandTitle>
             )}
@@ -437,7 +436,7 @@ const COUNT_CARD_STYLE = { borderRadius: radius.panel } satisfies CSSProperties
 /** The installed ring — a 3px ink spread, as the `shadow-[…]` it ports drew. */
 const COUNT_CARD_INSTALLED_STYLE = {
   ...COUNT_CARD_STYLE,
-  boxShadow: `0 0 0 3px ${color.ink}`,
+  ...SELECTED_RING,
 } satisfies CSSProperties
 const COUNT_FOOT_STYLE = {
   marginTop: space[6],

@@ -1,10 +1,8 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
-import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
-import { useEntitySurface } from '../../../entity/entitySurfaceContext'
 import { dieForTable, rollD20 } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Button } from '../../atoms/Button'
@@ -12,24 +10,13 @@ import { digestColumnsTable, digestRollTable } from '../../compositions/digestRo
 import { RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
 import type { CardSize } from '../../containers/displayMode'
+import { toastRoll } from '../../containers/toastRoll'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }
 
 /** A pair of rolls on a columns table: where they landed, and the entry's die. */
 type ColumnsRoll = { column: string; entry: string; roll: number; value: string }
-
-const PAD_X: Record<CardSize, string> = { large: space[12], medium: space[8], small: space[8] }
-
-const cond = (size: string, extra?: CSSProperties): CSSProperties => ({
-  fontFamily: font.cond,
-  fontSize: size,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
-  lineHeight: 1.1,
-  textTransform: 'uppercase',
-  ...extra,
-})
 
 /** The Table toggle: the Roll button's type and height (`.su-roll__control`). */
 const BAR_BUTTON = { flex: 'none' } satisfies CSSProperties
@@ -41,30 +28,24 @@ function TraitText({ text }: { text: string }) {
 
 /**
  * An entity's own ROLL TABLE, inline in its card like an action (board E4):
- * the shared `RollTableInstrument`, with the card's controls in its bar and
- * its readout under it.
+ * the shared `RollTableInstrument`, with the card's controls in its bar.
  *
- * Two switches — shown or hidden, rolled or not — give four states, and ONE
- * bar holds the same place in all of them: the table's name, the Table / Hide
- * toggle and, at the far right, the Roll the Die button (press it again to
- * reroll). Rolling never needs the table
- * open, so every table starts hidden, on the server as in the browser.
+ * Shown or hidden, rolled or not, ONE bar holds the same place: the table's
+ * name, the Table / Hide toggle and, at the far right, the Roll the Die button
+ * (press it again to reroll). Rolling never needs the table open, so every
+ * table starts hidden, on the server as in the browser.
  *
- * The result is a READOUT, not a row hunt: the number, the outcome and its
- * text in an ink strip under the bar, at reading size, open or not. An open
- * table also marks the matching row, the instrument's mark: the same whatever
- * the outcome, so the web never colours a roll by how it went (ruleset §3.4).
+ * The result is a TOAST (`toastRoll`), as every roll's is: the number, the
+ * range it lands on, the outcome and its text, open or not. An open table also
+ * marks the matching row, the instrument's mark: the same whatever the
+ * outcome, so the web never colours a roll by how it went (ruleset §3.4).
  *
  * The rows are banded in the SURFACE TONE (`tone`: a guide's own colour, for
  * the tables in its steps), cream on a surface with none.
  *
- * A surface that announces rolls (`EntitySurfaceValue.announceRoll` — the
- * SRD's toast) gets the result there instead of the readout; the open table
- * still marks the row.
- *
  * A COLUMNS table (Callsign, a d20 × d20) is the same instrument and the same
- * bar: its Roll twice button rolls both dice, the readout names the column, and the grid marks
- * the column's head and the entry's cell.
+ * bar: its Roll twice button rolls both dice, the toast names the column, and
+ * the grid marks the column's head and the entry's cell.
  */
 export function CardRollTable({
   table,
@@ -97,7 +78,6 @@ export function CardRollTable({
   /** Called with the outcome's text (and its range key) on every roll. */
   onRollResult?: (text: string, key: string) => void
 }) {
-  const { announceRoll } = useEntitySurface()
   const [expanded, setExpanded] = useState(defaultOpen)
   const isColumns = table.type === 'columns'
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
@@ -108,7 +88,6 @@ export function CardRollTable({
   const [rolledColumns, setRolledColumns] = useState<ColumnsRoll | null>(null)
 
   const rows = isColumns ? [] : digestRollTable(table)
-  const hit = rolled ? rows.find((row) => row.key === rolled.key) : undefined
 
   const rollBands = () => {
     // A named table (the Core Mechanic's own card) rolls through
@@ -121,7 +100,7 @@ export function CardRollTable({
       const entry = rows.find((row) => row.key === key)
       if (!entry) return
       onRollResult?.(entry.label ? `${entry.label}: ${entry.value}` : entry.value, key)
-      announceRoll?.({
+      toastRoll({
         table: name,
         roll: die,
         range: rollRangeLabel(key),
@@ -139,7 +118,7 @@ export function CardRollTable({
     const { columnKey, entryKey, result } = res
     setRolledColumns({ column: columnKey, entry: entryKey, roll: entryRoll, value: result.value })
     onRollResult?.(result.value, entryKey)
-    announceRoll?.({
+    toastRoll({
       table: name,
       roll: entryRoll,
       range: `column ${rollRangeLabel(columnKey)}`,
@@ -165,30 +144,6 @@ export function CardRollTable({
     </Button>
   )
 
-  // The live region is always mounted, so the announcement fires on the first
-  // roll too. A surface that announces rolls shows its own.
-  const readout = announceRoll ? null : (
-    <div aria-live="polite">
-      {rolled && hit && (
-        <RollReadout
-          roll={rolled.roll}
-          where={`lands on ${rollRangeLabel(hit.key)}`}
-          label={hit.label}
-          text={<TraitText text={hit.value} />}
-          size={size}
-        />
-      )}
-      {rolledColumns && (
-        <RollReadout
-          roll={rolledColumns.roll}
-          where={`column ${rollRangeLabel(rolledColumns.column)}`}
-          label={rolledColumns.value}
-          size={size}
-        />
-      )}
-    </div>
-  )
-
   return (
     <RollTableInstrument
       name={name}
@@ -199,7 +154,6 @@ export function CardRollTable({
       stamp={isColumns ? 'Roll twice:' : undefined}
       onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
       actions={actions}
-      readout={readout}
       open={expanded}
       table={
         isColumns
@@ -215,76 +169,5 @@ export function CardRollTable({
             }
       }
     />
-  )
-}
-
-/** The result readout: the die, where it landed, the outcome and its text. */
-function RollReadout({
-  roll,
-  where,
-  label,
-  text,
-  size,
-}: {
-  roll: number
-  /** Where the roll landed: "lands on 11–19", "column 9–12". */
-  where: string
-  label: string | null
-  text?: ReactNode
-  size: CardSize
-}) {
-  return (
-    <div
-      style={{
-        alignItems: 'center',
-        backgroundColor: 'var(--color-ink)',
-        // Under the ink bar: a faint paper rule parts the two.
-        borderTop: 'var(--bw-chrome) solid var(--color-paper-30)',
-        color: 'var(--color-paper)',
-        display: 'flex',
-        gap: space[12],
-        padding: `${space[8]} ${PAD_X[size]}`,
-      }}
-    >
-      <span
-        style={{
-          backgroundColor: 'var(--color-paper)',
-          color: color.ink,
-          flex: 'none',
-          fontFamily: font.cond,
-          fontSize: size === 'small' ? fontSize.display : fontSize.hero,
-          fontVariantNumeric: 'tabular-nums',
-          fontWeight: weight.extrabold,
-          lineHeight: 1,
-          minWidth: '2ch',
-          padding: `${space[2]} ${space[8]} ${space[4]}`,
-          textAlign: 'center',
-        }}
-      >
-        {roll}
-      </span>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: space[2], minWidth: 0 }}>
-        <span style={cond(fontSize.badge, { letterSpacing: tracking.capsSnug })}>
-          You rolled · {where}
-        </span>
-        {label && (
-          <span
-            style={cond(size === 'small' ? fontSize.readout : fontSize.title, { lineHeight: 1 })}
-          >
-            {label}
-          </span>
-        )}
-        {text && (
-          <span
-            style={{
-              fontSize: size === 'small' ? fontSize.caption : fontSize.lede,
-              lineHeight: 1.4,
-            }}
-          >
-            {text}
-          </span>
-        )}
-      </div>
-    </div>
   )
 }

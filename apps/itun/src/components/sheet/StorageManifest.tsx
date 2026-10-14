@@ -236,9 +236,7 @@ export function StorageManifest({
         headerContent={
           <>
             <span style={HOLD_TITLE}>{side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}</span>
-            <BandTitle variant="mute" fill={false}>
-              {side === 'mech' ? mechName : crawlerName}
-            </BandTitle>
+            <BandTitle variant="mute">{side === 'mech' ? mechName : crawlerName}</BandTitle>
           </>
         }
         cardStyle={{ style: HOLD_CARD }}
@@ -259,7 +257,6 @@ export function StorageManifest({
               <SlotGrid
                 used={used}
                 cap={cap}
-                scale="sheet"
                 readOnly={readOnly}
                 label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
               />

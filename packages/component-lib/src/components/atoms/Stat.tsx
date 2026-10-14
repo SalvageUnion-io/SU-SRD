@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactElement } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { usePeekAttrs } from '../../entity/peekContext'
@@ -7,8 +7,8 @@ import type { SizeRung } from '../../styles/sizing'
 import type { StampSurface } from './Badge'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
-import { FOCUS_RING } from './interaction'
 import { Tooltip } from './Tooltip'
+import { TRANSITION_COLORS } from './transition'
 
 /**
  * The canonical stat/value primitive (canonical primitive language §2). One
@@ -78,8 +78,7 @@ const PLATE_RUNG: Record<SizeRung, string> = {
   mini: 'su-stat-plate--mini',
 }
 
-/** `modified`'s extra 1px ink ring rides a class, not the style object: on the
- * clickable box an inline `box-shadow` would mask the shared focus ring. */
+/** `modified`'s extra 1px ink ring rides a class, not the style object. */
 const STATE_RING_CLASS = 'su-stat--modified'
 
 /** Joins the truthy class names (the plain-concatenation half of `cn`). */
@@ -87,14 +86,6 @@ function classes(...names: (string | false | null | undefined)[]): string | unde
   const joined = names.filter(Boolean).join(' ')
   return joined === '' ? undefined : joined
 }
-
-/** The colour transition: the colour properties over 150ms, standard easing. */
-const TRANSITION_COLORS = {
-  transitionDuration: '150ms',
-  transitionProperty:
-    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-} satisfies CSSProperties
 
 /** The inherited `text-xs` / `text-sm` rungs carry their paired line-height. */
 const LINE_HEIGHT_XS = 'calc(1 / 0.75)'
@@ -129,19 +120,14 @@ type StatPropKey =
   | 'inverse'
   | 'size'
   | 'onChange'
-  | 'onClick'
   | 'hoverText'
   | 'peek'
-  | 'flash'
-  | 'disabled'
   | 'state'
   | 'bgColor'
   | 'textColor'
   | 'inline'
-  | 'labelId'
   | 'ariaLabel'
   | 'className'
-  | 'truncate'
   | 'wrap'
 
 /** `T`, plus every stat prop NOT in `T` forbidden (`?: never`) — the exclusion
@@ -231,12 +217,6 @@ type HorizontalValueProps = Exact<{
    * the full box, so it must be able to explain itself too. */
   hoverText?: string
   /**
-   * A cell in a row that may be too narrow for it (a seam marker on a phone):
-   * the cell may shrink, and its value truncates with "…" rather than being
-   * cut mid-word by the row's clip. The label never shrinks.
-   */
-  truncate?: boolean
-  /**
    * A cell in a wrapping row whose value may be longer than the row is wide
    * (a hybrid class's `REQ | Augmentation or Gladiatorial` in a catalog
    * tile): alone on its line, the cell narrows to the row and its value wraps
@@ -266,9 +246,6 @@ type ValueBoxProps = Exact<{
   min?: number
   /** Bottom stamp. */
   bottomLabel?: string
-  labelId?: string
-  disabled?: boolean
-  onClick?: () => void
   onChange?: (value: number) => void
   mode?: 'read' | 'edit'
   /** State overlay — drives the border colour only (see StatBorderState). */
@@ -288,7 +265,6 @@ type ValueBoxProps = Exact<{
    * cannot.
    */
   size?: SizeRung
-  flash?: boolean
   inverse?: boolean
   hoverText?: string
   className?: string
@@ -335,7 +311,6 @@ function HorizontalValue({
   step = 1,
   stepperLabel,
   hoverText,
-  truncate = false,
   wrap = false,
   className,
 }: HorizontalValueProps) {
@@ -386,7 +361,6 @@ function HorizontalValue({
         'su-stat-cell',
         STATE_BORDER_CLASS[state],
         !inline && 'su-stat-cell--block',
-        truncate && 'su-stat-cell--truncate',
         wrap && 'su-stat-cell--wrap',
         state === 'modified' && STATE_RING_CLASS,
         className
@@ -423,15 +397,13 @@ function HorizontalValue({
           shape="stamp"
           size="mini"
           surface={valueSurface}
-          // A block when truncating, so the ellipsis applies (a flex box's
-          // text never gets one).
           className={classes(
             'su-stat-plate',
             PLATE_RUNG[size],
-            truncate ? 'su-stat-plate--truncate' : 'su-stat-plate--value',
+            'su-stat-plate--value',
             // Wrapping, it narrows with its cell; a word longer than the row
             // breaks rather than being clipped.
-            wrap && !truncate && 'su-stat-plate--wrap'
+            wrap && 'su-stat-plate--wrap'
           )}
         >
           {value}
@@ -528,36 +500,20 @@ function ValueBox({
   max,
   min = 0,
   bottomLabel,
-  labelId,
-  disabled,
-  onClick,
   onChange,
   mode = 'read',
   state = 'default',
   ariaLabel,
   size = 'compact',
-  flash = false,
   inverse = false,
   hoverText,
   className,
 }: ValueBoxProps) {
-  const [isFlashing, setIsFlashing] = useState(false)
-
   const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
   const trueBg = inverse ? color.ink : color.paper
   const trueValueColor = inverse ? color.paper : color.ink
   const mutedMaxColor = inverse ? color.paper70 : color.wkMuted
   const trueBorderColor = STATE_BORDER[state]
-
-  useEffect(() => {
-    if (!flash) return
-    const startTimer = setTimeout(() => setIsFlashing(true), 0)
-    const endTimer = setTimeout(() => setIsFlashing(false), 3000)
-    return () => {
-      clearTimeout(startTimer)
-      clearTimeout(endTimer)
-    }
-  }, [flash])
 
   const boxRef = useRef<HTMLDivElement>(null)
   const topLabelRef = useRef<HTMLSpanElement>(null)
@@ -596,10 +552,6 @@ function ValueBox({
       : size === 'full'
         ? { height: space[64], minWidth: space[64], paddingInline: space[4] }
         : { height: space[48], width: space[48] }
-  // Disabled state: reduce overall opacity to signal disabled while preserving
-  // foreground/background contrast. The default paper / ink pair has a 16:1
-  // base ratio; at 60% opacity the effective ratio is ~9.6:1, still well above
-  // the WCAG AA threshold of 4.5:1 for normal text.
   const boxStyle = {
     ...boxSize,
     alignItems: 'center',
@@ -660,10 +612,7 @@ function ValueBox({
     zIndex: 1,
   } satisfies CSSProperties
 
-  const boxClass = classes(
-    state === 'modified' && STATE_RING_CLASS,
-    isFlashing && 'su-stat__box--flash'
-  )
+  const boxClass = state === 'modified' ? STATE_RING_CLASS : undefined
 
   const box = (
     // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the flex stat-box layout; role="group" carries the same semantics
@@ -677,7 +626,6 @@ function ValueBox({
         gap: 0,
         overflow: 'visible',
         ...(size === 'mini' ? { minWidth: space[32] } : { width: space[48] }),
-        ...(disabled ? { opacity: 0.6 } : undefined),
       }}
       aria-label={combinedAriaLabel}
     >
@@ -691,35 +639,12 @@ function ValueBox({
         shape="stamp"
         size="mini"
         style={{ ...labelStampStyle, marginBottom: `-${space[8]}` }}
-        id={labelId}
       >
         {label}
       </Badge>
-      {onClick ? (
-        <button
-          ref={boxRef as React.Ref<HTMLButtonElement>}
-          type="button"
-          onClick={onClick}
-          disabled={disabled}
-          aria-disabled={disabled || undefined}
-          className={classes(boxClass, !disabled && `su-stat__box--clickable ${FOCUS_RING}`)}
-          style={{
-            ...boxStyle,
-            // Above `mini` the clickable box has always rendered borderless: its
-            // `border-chrome` set a width but no style, so the button's reset
-            // `none` held (the div box takes `solid` from the universal reset).
-            ...(size === 'mini' ? undefined : { borderStyle: 'none' }),
-            ...(disabled ? { pointerEvents: 'none' } : { cursor: 'pointer' }),
-          }}
-          aria-label={combinedAriaLabel}
-        >
-          {valueReadout}
-        </button>
-      ) : (
-        <div ref={boxRef} className={boxClass} style={boxStyle}>
-          {valueReadout}
-        </div>
-      )}
+      <div ref={boxRef} className={boxClass} style={boxStyle}>
+        {valueReadout}
+      </div>
       <Badge
         ref={bottomLabelRef}
         shape="stamp"

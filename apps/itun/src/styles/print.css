@@ -203,8 +203,7 @@
   .su-entity-token__kind,
   .su-stat-cell,
   .su-pennant--button,
-  .su-ec-band--ruled,
-  .su-badge__param {
+  .su-ec-band--ruled {
     border-color: #000 !important;
   }
 

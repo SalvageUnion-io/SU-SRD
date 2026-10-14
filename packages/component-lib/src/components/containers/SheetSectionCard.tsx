@@ -4,10 +4,8 @@
  * Composes the shared `Card` (never a hand-rolled div) into the poster's
  * accent-framed section card:
  *   - 3px `var(--tone)` border (the sheet accent), radius 3;
- *   - an accent HEADER band in the `chead` shape — a left group (black-stamp
- *     title + optional count `.tag`) and a right group pinned `ml-auto` for the
- *     section controls (the `HButton` / `SectionChead` vocabulary, lifted
- *     verbatim into this header);
+ *   - an accent HEADER band in the `chead` shape — the black-stamp title +
+ *     optional count `.tag`;
  *   - a paper BODY block with a 3px `var(--tone-deep)` LEFT rule, floating on
  *     `var(--tone)` side strips (poster `.dcard-body` `margin:0 12px`);
  *   - an optional accent FOOTER band with a source line + trailing chips.
@@ -34,8 +32,6 @@ type SheetSectionCardProps = {
    * `<Stat orientation="horizontal" size="compact" label=… value=… />` LABEL·VALUE chip.
    */
   count?: ReactNode
-  /** Header-right controls (the section's `HButton` — Edit/Done or + Add). */
-  controls?: ReactNode
   /** Footer source line (poster `.dcard-foot .src`), e.g. 'Salvage Union · Pilot Abilities'. */
   source?: ReactNode
   /** Extra classes on the card wrapper (e.g. a grid-span). */
@@ -65,7 +61,7 @@ const PAPER_PANEL = {
   padding: `${space[16]} ${space[20]}`,
 } satisfies CSSProperties
 
-const PAPER_CONTROLS = {
+const PAPER_COUNT = {
   marginBottom: space[12],
   display: 'flex',
   alignItems: 'center',
@@ -76,13 +72,6 @@ const PAPER_CONTROLS = {
 const HEAD_LEFT = {
   display: 'flex',
   minWidth: 0,
-  alignItems: 'center',
-  gap: space[8],
-} satisfies CSSProperties
-
-const HEAD_RIGHT = {
-  marginLeft: 'auto',
-  display: 'flex',
   alignItems: 'center',
   gap: space[8],
 } satisfies CSSProperties
@@ -113,7 +102,6 @@ const STRIPS = {
 export function SheetSectionCard({
   title,
   count,
-  controls,
   source,
   className,
   bodyClassName,
@@ -123,12 +111,7 @@ export function SheetSectionCard({
   if (surface === 'paper') {
     return (
       <section aria-label={title} className={cn('sheet-section', className)} style={PAPER_PANEL}>
-        {(count || controls) && (
-          <div style={PAPER_CONTROLS}>
-            {count}
-            {controls}
-          </div>
-        )}
+        {count && <div style={PAPER_COUNT}>{count}</div>}
         <div className={cn('su-sheet-section-stack', bodyClassName)}>{children}</div>
       </section>
     )
@@ -147,15 +130,12 @@ export function SheetSectionCard({
       // REPLACES the default shadow, so sections read flat like the poster.
       cardStyle={{ className: cn('sheet-section', className) }}
       headerContent={
-        <>
-          <div style={HEAD_LEFT}>
-            <Badge shape="stamp" size="full">
-              {title}
-            </Badge>
-            {count}
-          </div>
-          {controls && <div style={HEAD_RIGHT}>{controls}</div>}
-        </>
+        <div style={HEAD_LEFT}>
+          <Badge shape="stamp" size="full">
+            {title}
+          </Badge>
+          {count}
+        </div>
       }
       footerContent={
         source ? (

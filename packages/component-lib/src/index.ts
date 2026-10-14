@@ -19,14 +19,13 @@ export { buttonVariants } from './components/atoms/buttonVariants'
 export { CatalogTile } from './components/atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './components/atoms/ChapterBand'
-export { Radio } from './components/atoms/Checkbox'
 // Conditions — the entity-condition chip row. Public because ITUN's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './components/atoms/Conditions'
 export { CountStepper } from './components/atoms/CountStepper'
 export type { ChapterTone } from './components/atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './components/atoms/chapterBandColor'
-export { Field, Input, Select } from './components/atoms/Field'
+export { Field, Select } from './components/atoms/Field'
 // FieldError — the one single-message validation line (role="alert", danger tone)
 export { FieldError } from './components/atoms/FieldError'
 // Skeletons
@@ -38,7 +37,7 @@ export { InlineEditField } from './components/atoms/InlineEditField'
 // The one link look (ruleset §3.1): rust is painted only by Button and by
 // InlineRef, so a prose link in either app is an InlineRef.
 export { InlineRef } from './components/atoms/InlineRef'
-export { Textarea } from './components/atoms/inputs'
+export { Input, Textarea } from './components/atoms/inputs'
 // The focus vocabulary — exported so the apps' focus treatment uses these
 // rungs rather than their own.
 export {
@@ -53,6 +52,7 @@ export { ModeDoor } from './components/atoms/ModeDoor'
 export { PageHeading } from './components/atoms/PageHeading'
 export { Panel } from './components/atoms/Panel'
 export { linesFromBreakdown, summarizeBreakdown } from './components/atoms/provenanceLines'
+export { Radio } from './components/atoms/Radio'
 export { SearchField, SearchFieldTrigger } from './components/atoms/SearchField'
 export { Sel } from './components/atoms/Sel'
 export { Slab } from './components/atoms/Slab'
@@ -161,6 +161,8 @@ export { Skeleton } from './components/containers/Skeleton'
 export type { StatItem } from './components/containers/statsBarTypes'
 // UI primitives
 export { Toaster, toast } from './components/containers/Toaster'
+export type { AnnouncedRoll } from './components/containers/toastRoll'
+export { toastRoll } from './components/containers/toastRoll'
 export { Content } from './components/referenceEntity/Content'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
@@ -217,7 +219,7 @@ export * as tokens from './design/tokens'
 // how refs resolve, texture and the user-made treatment once.
 export { Entity } from './entity/Entity'
 export { EntitySurfaceProvider } from './entity/EntitySurface'
-export type { AnnouncedRoll, EntitySurfaceValue } from './entity/entitySurfaceContext'
+export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
 // MENTION and PEEK (E4, E16): an entity named in prose, and the page's one
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.

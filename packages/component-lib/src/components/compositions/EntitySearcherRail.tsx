@@ -18,7 +18,7 @@ import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { PageHeading } from '../atoms/PageHeading'
 import { BudgetSummary, BudgetTrack } from './EntitySearcherBudget'
-import { chevronStyle, VISUALLY_HIDDEN } from './entitySearcherChrome'
+import { chevronStyle } from './entitySearcherChrome'
 import type { BudgetConfig, EntityLike, PoolEntity } from './entitySearcherTypes'
 
 /**
@@ -285,10 +285,7 @@ export function SelectionRail({
   // and without them it would read "Learned3".
   const title = (
     <>
-      <span>{chosenLabel}</span>{' '}
-      <Badge shape="chip" surface="solid">
-        {entries.length}
-      </Badge>
+      <span>{chosenLabel}</span> <Badge shape="chip">{entries.length}</Badge>
       {name && (
         <>
           {' '}
@@ -394,7 +391,7 @@ export function SelectionRail({
       </div>
 
       {actions && <div style={RAIL_ACTIONS_STYLE}>{actions}</div>}
-      <span role="status" aria-live="polite" style={VISUALLY_HIDDEN}>
+      <span role="status" aria-live="polite" className="su-sr-only">
         {announcement}
       </span>
     </section>

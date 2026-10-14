@@ -18,7 +18,7 @@ type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
  */
 type StampSize = SizeRung
 /** Stamp plate (`shape="stamp"`). */
-export type StampSurface = 'on-ink' | 'inverse' | 'on-tone'
+export type StampSurface = 'on-ink' | 'inverse'
 
 /*
  * Every chip and stamp property lives in a `.su-badge*` class (`styles/index.css`),
@@ -75,7 +75,6 @@ const STAMP_SIZE: Record<StampSize, string> = {
 const STAMP_SURFACE: Record<StampSurface, string> = {
   'on-ink': 'su-badge--on-ink',
   inverse: 'su-badge--inverse',
-  'on-tone': 'su-badge--on-tone',
 }
 
 /** The tech-level swatch: a 14px ink-ruled square before the label. */
@@ -113,13 +112,6 @@ type BadgeChipProps = {
    */
   swatch?: string
   /**
-   * A PARAMETER cell after the label, ruled off on paper: the TAG form a
-   * trait takes on an entity (`[Burn | 2]`, entity display language E17). A
-   * tag names a rule and its parameter; a measured `label | value` is still a
-   * Stat.
-   */
-  param?: ReactNode
-  /**
    * Render as a different element. The chip's escape hatch is interactivity:
    * `as="button"` turns the chip into a toggle. When overridden the chip gains
    * a pointer cursor + the shared focus ring, and a `button` defaults to
@@ -147,7 +139,6 @@ type BadgeStampProps = {
    * The plate the stamp sits on:
    * - `on-ink` (default) — ink block, white text: the canonical label/header.
    * - `inverse` — paper block, ink text, inset ink ring.
-   * - `on-tone` — no fill, ink text: a stamp sitting directly on a tone surface.
    */
   surface?: StampSurface
   /**
@@ -155,15 +146,6 @@ type BadgeStampProps = {
    * pass the horizontal inset via `className` (e.g. `left-3`).
    */
   seam?: boolean
-  /**
-   * Meant to override the stamp's line-height for a wrapping display headline
-   * (a leading class, e.g. `leading-[1.28]`). **Inert:** it never reaches the
-   * DOM. The stamp's line-height is its rung's (`.su-rung-
-   * label--*`); a call site that needs another passes it through `className`
-   * or `style`, which do reach it. Kept so call sites compile; wiring it up is
-   * a visible change, not a port.
-   */
-  leading?: string
   as?: ElementType
   className?: string
 } & Omit<HTMLAttributes<HTMLElement>, 'children' | 'className'>
@@ -195,7 +177,6 @@ export function Badge(props: BadgeProps) {
       size = DEFAULT_RUNG,
       surface = 'on-ink',
       seam = false,
-      leading: _leading,
       as: Tag = 'span',
       className,
       shape: _shape,
@@ -231,7 +212,6 @@ export function Badge(props: BadgeProps) {
     surface = 'solid',
     tone,
     swatch,
-    param,
     as: Tag = 'span',
     className,
     shape: _shape,
@@ -240,7 +220,6 @@ export function Badge(props: BadgeProps) {
     ...rest
   } = props
   const interactive = Tag !== 'span'
-  const hasParam = param != null && param !== ''
   return (
     <Tag
       ref={ref}
@@ -258,17 +237,11 @@ export function Badge(props: BadgeProps) {
         surface === 'tone' && tone && BADGE_TONES[tone],
         className
       )}
-      // The parameter cell runs to the chip's right edge.
-      style={{
-        ...(surface === 'quiet' ? QUIET_GROUND : undefined),
-        ...style,
-        ...(hasParam ? { overflow: 'hidden', paddingInlineEnd: 0 } : undefined),
-      }}
+      style={{ ...(surface === 'quiet' ? QUIET_GROUND : undefined), ...style }}
       {...rest}
     >
       {swatch != null && <i aria-hidden="true" style={{ ...SWATCH, background: swatch }} />}
       {children}
-      {hasParam && <span className="su-badge__param">{param}</span>}
     </Tag>
   )
 }

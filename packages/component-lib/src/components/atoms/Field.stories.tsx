@@ -13,7 +13,8 @@ import {
 } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
-import { Field, Input, Select, Textarea } from './Field'
+import { Field, Select } from './Field'
+import { Input, Textarea } from './inputs'
 
 export default {
   title: 'Atoms/Field',

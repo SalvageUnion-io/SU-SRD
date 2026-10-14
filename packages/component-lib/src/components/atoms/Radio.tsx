@@ -3,7 +3,7 @@ import { color, font, fontSize, radius, space, weight } from '../../design/token
 import { cn } from '../../utils/cn'
 import { INPUT_FOCUS } from './interaction'
 
-type ChoiceProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
+type RadioProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
   /** Primary label (bold ink) — the option's name. */
   label: ReactNode
   /** Optional secondary line (muted) — a callsign, tech level, chassis, … */
@@ -18,8 +18,9 @@ type ChoiceProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
 }
 
 /**
- * The framed choice row shared by `Checkbox` and `Radio`: a paper card with a
- * 1.5px ink border (the same paper / ink chrome `Input` wears), a native `<input>` at the left, then the bold-ink label and an
+ * The framed choice row: a paper card with a 1.5px ink border (the same
+ * paper / ink chrome `Input` wears), a native `<input>` at the left, then the
+ * bold-ink label and an
  * optional muted description. Clicking anywhere on the row toggles it because
  * the whole row IS the `<label>` — native semantics, so screen readers get the
  * right role and radio groups arrow-key between options for free.
@@ -37,7 +38,7 @@ const CHOICE_ROW = {
 /** Stacked: the label sits on the hint's first line, not centred on the pair. */
 const CHOICE_ROW_STACKED = { ...CHOICE_ROW, alignItems: 'flex-start' } satisfies CSSProperties
 
-/** The native input in the form vocabulary: an ink check/fill. */
+/** The native input in the form vocabulary: an ink fill. */
 const CHOICE_INPUT = { accentColor: color.ink } satisfies CSSProperties
 const CHOICE_INPUT_STACKED = { ...CHOICE_INPUT, marginTop: space[2] } satisfies CSSProperties
 
@@ -64,15 +65,22 @@ const STACK = {
   minWidth: 0,
 } satisfies CSSProperties
 
-function ChoiceControl({
-  type,
+/**
+ * Single-choice radio in the form vocabulary (sibling of `Field`/`Input`): a
+ * real `<input type="radio">` inside a framed `<label>` row, so the label
+ * selects it and the native round shape carries the mutually-exclusive
+ * semantics (group members share a `name`; arrow keys move between them
+ * natively). Same paper / 1.5px-ink chrome and focus ring as `Input`. Use for a
+ * one-of-many selector dialog.
+ */
+export function Radio({
   label,
   description,
   stacked = false,
   className,
   style,
   ...props
-}: ChoiceProps & { type: 'checkbox' | 'radio' }) {
+}: RadioProps) {
   const text = (
     <>
       <span style={stacked ? LABEL_TEXT_STACKED : LABEL_TEXT}>{label}</span>
@@ -85,7 +93,7 @@ function ChoiceControl({
       style={stacked ? CHOICE_ROW_STACKED : CHOICE_ROW}
     >
       <input
-        type={type}
+        type="radio"
         className={INPUT_FOCUS}
         style={{ ...(stacked ? CHOICE_INPUT_STACKED : CHOICE_INPUT), ...style }}
         {...props}
@@ -93,24 +101,4 @@ function ChoiceControl({
       {stacked ? <span style={STACK}>{text}</span> : text}
     </label>
   )
-}
-
-/**
- * Boolean checkbox in the form vocabulary (sibling of `Field`/`Input`): a real
- * `<input type="checkbox">` inside a framed `<label>` row, so the label toggles
- * it and the native square/checkmark carry the semantics. Same paper / 1.5px-ink
- * chrome and focus ring as `Input`.
- */
-export function Checkbox(props: ChoiceProps) {
-  return <ChoiceControl type="checkbox" {...props} />
-}
-
-/**
- * Single-choice radio in the form vocabulary — the `Checkbox` sibling: identical
- * framed-row chrome, differing only in the native round shape and mutually-
- * exclusive semantics (group members share a `name`; arrow keys move between
- * them natively). Use for a one-of-many selector dialog.
- */
-export function Radio(props: ChoiceProps) {
-  return <ChoiceControl type="radio" {...props} />
 }

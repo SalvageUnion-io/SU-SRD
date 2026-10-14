@@ -308,14 +308,10 @@ export function Field(props: FieldProps) {
   )
 }
 
-// `Input` and `Textarea` now live in the leaf module `./inputs`, and are
-// re-exported here so every existing import path still resolves.
-//
-// They moved to break a two-node runtime import cycle: this file imports
-// `InlineEditField`, which imported `Input`/`Textarea` back from here. srd's SSR
-// pass evaluates this source under Bun with no bundler, where a cycle is
+// `Input` and `Textarea` live in the leaf module `./inputs`, not here: this
+// file imports `InlineEditField`, which imports them, and srd's SSR pass
+// evaluates this source under Bun with no bundler, where an import cycle is
 // TDZ-sensitive and evaluation-order dependent.
-export { Input, Textarea } from './inputs'
 
 type SelectProps = ComponentPropsWithRef<'select'> & {
   /**

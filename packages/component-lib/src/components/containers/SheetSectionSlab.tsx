@@ -18,9 +18,9 @@
  * the "blocky group" this container exists to undo. A slab announces the
  * region and then gets out of the cards' way.
  *
- * The API is deliberately `SheetSectionCard`'s (title / count / controls /
- * children) so a section moves between the two containers by changing the
- * element name and nothing else.
+ * The API is deliberately `SheetSectionCard`'s (title / count / children, plus
+ * the slab's own `controls`) so a section moves between the two containers by
+ * changing the element name.
  *
  * Composes the existing `Slab` (variant 'solid' — the poster `.sect` shape)
  * rather than restating its markup, so the leader stays one implementation.

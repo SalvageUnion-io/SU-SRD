@@ -10,9 +10,9 @@ import { color, font, fontSize, tracking, weight } from '../../design/tokens'
  * obvious cleanup is to make it one. It is not, and the difference is not
  * cosmetic: **a stamp is intrinsically sized.** `w-fit` is what a stamp IS; it
  * is a plate cut to its text, which is what lets it ride a seam and sit at any
- * width without stretching. A band title is the opposite: it takes its width
- * from the band's flex track (`flex: 1`, `min-width: 0`) and truncates when the title
- * outgrows it, because the band also has to hold the controls next to it.
+ * width without stretching. A band title is the opposite: it truncates with
+ * "…" when the band is narrower than the title (a caller bounds it, e.g. with
+ * `max-width`), because the band also has to hold what sits next to it.
  *
  * Adding a truncating rung to the stamp would have made "sizes to its content"
  * conditional, and that invariant is load-bearing everywhere else the stamp is
@@ -26,12 +26,6 @@ export type BandTitleProps = {
   children: ReactNode
   /** `lead` — the band's primary title. `mute` — a secondary label beside it. */
   variant?: 'lead' | 'mute'
-  /**
-   * Take the band's remaining width and truncate. On by default, because that
-   * is the whole reason this exists; pass `false` for a title that shares the
-   * track with another flexing element.
-   */
-  fill?: boolean
   className?: string
 }
 
@@ -45,9 +39,6 @@ const BASE = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-/** Take the band's remaining width. */
-const FILL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
-
 const VARIANT = {
   lead: {
     color: color.paper,
@@ -59,12 +50,9 @@ const VARIANT = {
   mute: { color: color.paper60, fontSize: fontSize.xs, lineHeight: 'calc(1 / 0.75)' },
 } as const satisfies Record<string, CSSProperties>
 
-export function BandTitle({ children, variant = 'lead', fill = true, className }: BandTitleProps) {
+export function BandTitle({ children, variant = 'lead', className }: BandTitleProps) {
   return (
-    <span
-      className={className}
-      style={{ ...BASE, ...(fill ? FILL : undefined), ...VARIANT[variant] }}
-    >
+    <span className={className} style={{ ...BASE, ...VARIANT[variant] }}>
       {children}
     </span>
   )

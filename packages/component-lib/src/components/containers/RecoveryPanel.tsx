@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
-import { cn } from '../../utils/cn'
 import { Button } from '../atoms/Button'
 import { PageHeading } from '../atoms/PageHeading'
 
@@ -20,7 +19,6 @@ type RecoveryPanelProps = {
    * DEV-only error dump. Omitted, the panel is just title / message / button.
    */
   children?: ReactNode
-  className?: string
 }
 
 /** The card; its padding is `.su-recovery-panel`'s, which steps up at `sm`. */
@@ -58,10 +56,10 @@ const MESSAGE = {
  * announced wherever it mounts; the app supplies only the surrounding layout
  * (full-viewport centering, inline island slot, …).
  */
-export function RecoveryPanel({ title, message, action, children, className }: RecoveryPanelProps) {
+export function RecoveryPanel({ title, message, action, children }: RecoveryPanelProps) {
   return (
-    <div role="alert" className={cn('su-recovery-panel', className)} style={PANEL}>
-      <PageHeading variant="subheading" as="h1" className="su-recovery-panel-title">
+    <div role="alert" className="su-recovery-panel" style={PANEL}>
+      <PageHeading as="h1" className="su-recovery-panel-title">
         {title}
       </PageHeading>
       <p style={MESSAGE}>{message}</p>
