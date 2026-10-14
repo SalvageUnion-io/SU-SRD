@@ -19,6 +19,7 @@ import {
   discordCardParts,
   linkTraitReferences,
 } from '../discordCard'
+import { discordRowSummary } from '../discordRowSummary'
 import { ACTION_TYPE_LABELS } from '../parts/facts'
 import { formatActionType } from '../parts/traits'
 import { toEntityModel } from '../toEntityModel'
@@ -149,6 +150,51 @@ describe('discordCard', () => {
     const card = discordCard(parts, { fits: (c) => discordCardTextLength(c) <= 300 })
     expect(text(card)).not.toContain('ROLL THE DIE')
     expect(text(card)).toContain('[The full entry on salvageunion.io](')
+    // The bot draws the same link as its footer button.
+    expect(card.blocks.find((block) => block.kind === 'text' && block.more)).toMatchObject({
+      more: { label: 'Full entry', url: 'https://salvageunion.io/systems/mechapult' },
+    })
+  })
+
+  test('the children block carries its groups, for the bot to draw as rows', () => {
+    const parts = partsFor('drones', 'the-iron-lady')
+    const block = discordCard(parts).blocks.find((one) => one.kind === 'text' && one.children)
+    expect(block?.kind === 'text' ? block.children?.map((group) => group.label) : []).toEqual([
+      'Modules',
+    ])
+  })
+})
+
+describe('discordRowSummary', () => {
+  test('a system reads as an action row: linked name, type, range and damage, traits', () => {
+    const railgun = need(findEntityBySlug('systems', 'railgun'), 'railgun')
+    expect(
+      discordRowSummary({ schemaName: 'systems', id: railgun.id, slug: 'railgun', name: 'Railgun' })
+    ).toBe(
+      [
+        '**[Railgun](https://salvageunion.io/systems/railgun)**',
+        '-# Turn Action · `Long` RANGE · `9 SP` DAMAGE',
+        '[Ballistic](https://salvageunion.io/traits/ballistic) · [Hot](https://salvageunion.io/traits/hot) 2',
+      ].join('\n')
+    )
+  })
+
+  test('a module shows its cost; a synthetic or missing record has no row', () => {
+    const firewall = need(findEntityBySlug('modules', 'firewall'), 'firewall')
+    expect(
+      discordRowSummary({
+        schemaName: 'modules',
+        id: firewall.id,
+        slug: 'firewall',
+        name: 'Firewall',
+      })
+    ).toContain('-# Reaction · `2 EP` · `Medium` RANGE')
+    expect(
+      discordRowSummary({ schemaName: 'modules', id: 'x', slug: 'x', name: 'X', synthetic: true })
+    ).toBeNull()
+    expect(
+      discordRowSummary({ schemaName: 'modules', id: 'nope', slug: 'nope', name: 'Nope' })
+    ).toBeNull()
   })
 
   test('marks the rolled row and keeps it while shedding', () => {
