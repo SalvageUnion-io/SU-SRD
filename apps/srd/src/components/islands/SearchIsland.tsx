@@ -23,13 +23,8 @@ type SearchIslandProps = {
   variant?: 'bar' | 'hero'
 }
 
-/** The results column: Rows in link mode. */
-const RESULTS: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[12],
-  padding: `${space[12]} ${space[8]} ${space[8]}`,
-}
+/** The results column's inset; `.su-entity-token-list` sets Tokens one a line, full width. */
+const RESULTS: CSSProperties = { padding: space[8] }
 
 /** The dropdown, hung under the field: full width in the hero, 20rem in the bar. */
 const LISTBOX = {
@@ -238,9 +233,10 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       {!ready ? (
         <div style={STATUS}>Loading search index…</div>
       ) : results.length > 0 ? (
-        // SEARCH (entity display language §7): every entity result is a Row
-        // in link mode, without the lead (E11); a category is a plain link.
-        <div style={RESULTS}>
+        // HEADER SEARCH (entity display language, "Which form, where"): every
+        // entity result is a Token in link mode, one a line; a category is a
+        // plain link. The full /search page keeps its Rows.
+        <div className="su-entity-token-list" style={RESULTS}>
           {results.map((result, index) => {
             const option = {
               id: optionId(index),
@@ -251,7 +247,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
             return model ? (
               <Entity
                 key={result.id}
-                form="row"
+                form="token"
                 model={model}
                 mode={{ kind: 'link', href: resultUrl(result), attrs: option }}
               />
