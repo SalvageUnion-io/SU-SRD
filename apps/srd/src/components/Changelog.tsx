@@ -42,7 +42,6 @@ export type ChangelogEntry = {
 
 type ChangelogProps = {
   entries: ChangelogEntry[]
-  className?: string
 }
 
 /**
@@ -61,17 +60,13 @@ type ChangelogProps = {
  * band stays on paper, so an entry reads as the quiet, chrome-level listing it
  * is rather than a toned entity card.
  */
-export function Changelog({ entries, className }: ChangelogProps) {
+export function Changelog({ entries }: ChangelogProps) {
   if (entries.length === 0) {
-    return (
-      <p className={className} style={EMPTY}>
-        No changelog entries yet.
-      </p>
-    )
+    return <p style={EMPTY}>No changelog entries yet.</p>
   }
 
   return (
-    <ol className={className} style={LIST}>
+    <ol style={LIST}>
       {entries.map((entry) => (
         <li key={`${entry.area}-${entry.date}`}>
           <Card

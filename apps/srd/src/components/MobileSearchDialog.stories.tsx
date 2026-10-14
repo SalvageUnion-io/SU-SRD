@@ -41,7 +41,7 @@ export const Default = () => {
     <div style={BAR}>
       <span style={WORDMARK}>Salvage Union</span>
       <div style={TRAILING}>
-        <MobileSearchDialog triggerAriaLabel="Search the SRD">
+        <MobileSearchDialog>
           <div className="srd-mobile-search__body">
             <SearchField
               type="search"

@@ -12,8 +12,6 @@ type MobileSearchDialogProps = {
    * open. The caller owns any content-specific styling (input width, etc.).
    */
   children: ReactNode
-  /** Accessible label for the trigger icon button. Defaults to "Search". */
-  triggerAriaLabel?: string
 }
 
 // The full-screen layer the sheet sits in, against its top edge.
@@ -77,10 +75,7 @@ const iconButtonClass = buttonVariants({ variant: 'ghost', size: 'iconOnly' })
  * caller injects the search UI. Base UI's Drawer only mounts the sheet (and its
  * children) while open, so it adds no cost to the closed state.
  */
-export function MobileSearchDialog({
-  children,
-  triggerAriaLabel = 'Search',
-}: MobileSearchDialogProps) {
+export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -95,7 +90,7 @@ export function MobileSearchDialog({
             type="button"
             className={`${iconButtonClass} srd-mobile-search__trigger`}
             style={TRIGGER}
-            aria-label={triggerAriaLabel}
+            aria-label="Search the SRD"
           >
             <svg
               width="22"

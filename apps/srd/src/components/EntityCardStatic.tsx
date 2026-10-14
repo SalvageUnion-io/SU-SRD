@@ -34,7 +34,7 @@ function classOf(item: SURefEntity): SURefClass | undefined {
  *
  * This is the same `ReferenceEntityCard` the builder app uses — NOT a
  * simplified stand-in. On the static page path it renders straight into the
- * page's static markup and ships no JS, exactly as `SiteHeader` does.
+ * page's static markup and ships no JS, exactly as the site header does.
  *
  * That is only possible because the SRD is a Reference surface (ADR-021): it
  * passes no `controls`, and `EntityDetailLinkProvider` puts nested entities in

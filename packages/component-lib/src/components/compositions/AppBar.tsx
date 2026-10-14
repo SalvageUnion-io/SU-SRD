@@ -6,7 +6,7 @@ import { Speckle } from '../atoms/Speckle'
 
 /**
  * AppBar — the Union bar: the one masthead both SU tools wear (ruleset §3.11,
- * "One union, two tools"; origin board 05). The SRD `SiteHeader` and the ITUN
+ * "One union, two tools"; origin board 05). The SRD `TopNavigation` and the ITUN
  * `AppHeader` are thin presets over it.
  *
  * One lockup (the SU mark alone, no wordmark), then the **Reference | Build**

@@ -1,4 +1,4 @@
-import { cn, KofiButton, MarkdownSection, Slab } from 'component-lib'
+import { KofiButton, MarkdownSection, Slab } from 'component-lib'
 import { fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
@@ -12,15 +12,15 @@ type ColophonProps = {
   specialThanksMarkdown: string
   /** Ko-fi page code — the `<code>` in `ko-fi.com/<code>`. */
   kofiCode: string
-  /** Block modifiers (the page supplies its body colour/spacing). */
-  className?: string
 }
 
 // Two columns from `md` up: the column template is `.srd-colophon`, the rest is
-// static. Consumers' `className` adds spacing/colour, none of it these.
+// static.
 const ROOT = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
 const COLUMN = { display: 'flex', flexDirection: 'column', gap: space[32] } satisfies CSSProperties
+
+const SUPPORT_SLAB = { marginBottom: 0, width: '100%' } satisfies CSSProperties
 
 const SUPPORT = {
   alignItems: 'flex-start',
@@ -50,10 +50,9 @@ export function Colophon({
   llmMarkdown,
   specialThanksMarkdown,
   kofiCode,
-  className,
 }: ColophonProps) {
   return (
-    <div className={cn('srd-colophon', className)} style={ROOT}>
+    <div className="srd-colophon" style={ROOT}>
       <div style={COLUMN}>
         <MarkdownSection markdown={aboutMarkdown} />
 
@@ -64,7 +63,8 @@ export function Colophon({
             as="h2"
             variant="solid"
             label="Support the Project"
-            className="srd-colophon__support-slab"
+            // The section's gap spaces it, so it drops its own bottom margin.
+            style={SUPPORT_SLAB}
             actions={<KofiButton code={kofiCode} />}
           />
         </section>

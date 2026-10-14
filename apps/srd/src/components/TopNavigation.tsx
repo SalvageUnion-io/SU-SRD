@@ -1,7 +1,8 @@
 /**
  * TopNavigation — the site header.
  *
- * Static brand chrome via the shared React `SiteHeader`; the interactive search
+ * Static brand chrome via the shared Union bar (`AppBar`, ruleset §3.11) on its
+ * **Reference** side; the interactive search
  * + mobile nav are slotted in as independently-mounted islands so the shared
  * component ships no client JS of its own.
  *
@@ -12,9 +13,9 @@
  * shows its link on one page load in a hundred.
  */
 
+import { AppBar } from 'component-lib'
 import { ITUN_URL } from '../lib/constants'
 import { Island } from '../runtime/Island'
-import { SiteHeader } from './SiteHeader'
 
 type BreadcrumbItem = {
   name: string
@@ -39,8 +40,11 @@ export function TopNavigation({
   pageHasSearch = false,
 }: TopNavigationProps) {
   return (
-    <SiteHeader
-      itunUrl={ITUN_URL}
+    <AppBar
+      product="reference"
+      referenceHref="/"
+      buildHref={ITUN_URL}
+      buyHref="https://leyline.press/collections/salvage-union"
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}
       // Cross-document view transitions (`@view-transition { navigation: auto }`)

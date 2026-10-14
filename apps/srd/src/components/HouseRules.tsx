@@ -3,10 +3,6 @@ import { fontSize, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { HOUSE_RULES } from 'salvageunion-reference/rules'
 
-type HouseRulesProps = {
-  className?: string
-}
-
 // Colour and face inherit from the page, so each app's About page sets them.
 const ROOT = {
   display: 'flex',
@@ -37,9 +33,9 @@ const CITE = { fontSize: fontSize.xs, fontStyle: 'normal', opacity: 0.75 } satis
  * book's own rule by page. The stat provenance ledger labels a line a house
  * rule produced, and this list is where that label is explained.
  */
-export function HouseRules({ className }: HouseRulesProps) {
+export function HouseRules() {
   return (
-    <section className={className} style={ROOT}>
+    <section style={ROOT}>
       <Slab as="h2" variant="solid" label="House rules" style={{ marginBottom: 0 }} />
       <p>
         Where these tools deliberately depart from the book, the change is listed here, and a stat
