@@ -11,7 +11,7 @@ import { FOCUS_RING } from './interaction'
  *
  * The tile fill (and optional label chip fill) are driven by the `catalogBg` /
  * `catalogLabel` colour strings, applied as CSS custom properties so a caller
- * can pass any gradient or token. The fill (`.su-catalog-tile--fill`) uses the
+ * can pass any gradient or token. The fill (on `.su-catalog-tile`) uses the
  * `background` shorthand, not `background-color`, because `--catalog-bg` may
  * be a gradient — the tech-level and ability-tier ramps — and
  * `background-color` silently drops a `linear-gradient()`, which once left
@@ -72,7 +72,7 @@ export function CatalogTile({ onActivate, name, catalogBg, catalogLabel }: Catal
     <button
       type="button"
       onClick={onActivate}
-      className={`su-catalog-tile su-catalog-tile--fill ${FOCUS_RING}`}
+      className={`su-catalog-tile ${FOCUS_RING}`}
       style={style}
     >
       <span
