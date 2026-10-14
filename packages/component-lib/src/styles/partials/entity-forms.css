@@ -25,10 +25,12 @@
   text-decoration: none;
 }
 
-/* The frame: ink on paper, dashed when player-made (ruleset §3.9). */
+/* The frame: ink on paper, dashed when player-made (ruleset §3.9). A
+   surrounding diagram may recolour it through `--su-row-frame` (srd's ability
+   tracks frame their Rows in the track's hue). */
 .su-entity-row__frame {
   background-color: var(--color-paper);
-  border-color: var(--color-ink);
+  border-color: var(--su-row-frame, var(--color-ink));
   border-radius: var(--radius-card);
   border-style: solid;
   border-width: var(--bw-entity-compact);

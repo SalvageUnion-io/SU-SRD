@@ -1525,6 +1525,12 @@
   top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
 }
 
+/* A Row on a track is framed in the track's hue (component-lib's
+   `--su-row-frame`), so the stub runs into a border of its own colour. */
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier {
+  --su-row-frame: var(--srd-track-color);
+}
+
 /* The tier numeral, set on the track outside the banner: a square stamp
    (§4.4) in the tier's hue. */
 .srd-ability-tree__numeral {
