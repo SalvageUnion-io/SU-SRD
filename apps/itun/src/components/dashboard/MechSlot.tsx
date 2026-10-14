@@ -535,7 +535,6 @@ export function MechMajor({
             size="medium"
             // The Dashboard stays flat (ruleset §3.5): no speckle.
             texture={false}
-            parentSeal={{ label: 'Chassis Ability', tone: 'var(--color-ink)' }}
             // `[(CHASSIS)]` reads as this machine, as on the Live Sheet.
             chassisName={mech.name}
           />

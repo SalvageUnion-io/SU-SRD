@@ -6,7 +6,7 @@
  *   title, so the card prints no heading of its own;
  * - the line art is the hero; the stats are the book's, in its order and its
  *   words (`resolveEntityPageMeta`), and ride the band, never the body;
- * - a chassis ability is a framed card stamped "Chassis Ability";
+ * - a chassis ability is a framed card with no "Chassis Ability" stamp;
  * - the page's section bands are h2s and the cards nested under them title
  *   themselves h3 (`nestedTitleLevel`), a Bio-Titan pattern's "Pattern
  *   Actions" among them; a card no band holds (the chassis ability, a page's
@@ -115,11 +115,11 @@ describe('the card as a page', () => {
     expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT)
   })
 
-  test('the chassis ability is a framed card stamped "Chassis Ability" atop the right column', () => {
+  test('the chassis ability is a framed card atop the right column, with no "Chassis Ability" stamp', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     const lead = container.querySelector('.su-entity-page__lead')
     expect(lead).not.toBeNull()
-    expect(lead?.textContent).toContain('Chassis Ability')
+    expect(lead?.textContent).not.toContain('Chassis Ability')
   })
 
   test('page prose carries no leaf size class, so it reads at the page’s 18px', () => {
