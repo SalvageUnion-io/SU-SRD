@@ -5,6 +5,8 @@ import { toEntityModel } from 'salvageunion-reference'
 import { Row } from './forms/Row'
 import { Tile } from './forms/Tile'
 import { Token } from './forms/Token'
+import type { TagItem } from './parts/tagItems'
+import { traitTags } from './parts/tagItems'
 import type { EntityForm, EntityMode, EntityOmit, EntityRowModel } from './types'
 
 type EntitySource =
@@ -36,6 +38,12 @@ export type EntityProps = EntitySource & {
   controls?: ReactNode
   /** Row only: the host's labels, right of the title after the model's own (an owner stamp). */
   labels?: ReactNode
+  /**
+   * Row only: linked chips after its traits — the entities a player unit is
+   * built on (`CLASS | Engineer`, `CHASSIS | Mule`), each a Tag that Peeks and
+   * opens its entity where the Row is not itself a link.
+   */
+  links?: TagItem[]
 }
 
 /**
@@ -46,7 +54,8 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, peek, priority, titleAs, controls, labels } = props
+  const { form, instance, mode, lead, omit, peek, priority, titleAs, controls, labels, links } =
+    props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -65,11 +74,12 @@ export function Entity(props: EntityProps) {
           omit={omit}
           peek={peek}
           slots={
-            titleAs || controls || labels
+            titleAs || controls || labels || links
               ? {
                   ...(titleAs ? { titleAs } : {}),
                   ...(controls ? { controls } : {}),
                   ...(labels ? { extraLabels: labels } : {}),
+                  ...(links ? { tags: [...traitTags(model.traits), ...links] } : {}),
                 }
               : undefined
           }

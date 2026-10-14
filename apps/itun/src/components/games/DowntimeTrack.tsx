@@ -21,7 +21,7 @@
  * follows (`useDowntime`).
  */
 
-import { Button, ConfirmDialog, tokens } from 'component-lib'
+import { Button, ConfirmDialog, Stat, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import {
   DOWNTIME_UPKEEP_SCRAP,
@@ -143,10 +143,19 @@ export function DowntimeTrack({
 
   const run = (send: () => Promise<unknown>) => () => void write.run(send)
 
+  // The Scrap tier is the crawler sheet storage's own label, `T1 | 5`.
+  const tier = `T${crawler?.techLevel ?? 1}`
   const upkeep =
-    crawler === null
-      ? `Upkeep: ${DOWNTIME_UPKEEP_SCRAP} scrap of the crawler's tech level.`
-      : `Upkeep due: ${DOWNTIME_UPKEEP_SCRAP} TL${crawler.techLevel ?? 1} scrap. The crawler has ${crawler.scrapAtTl}.`
+    crawler === null ? (
+      `Upkeep: ${DOWNTIME_UPKEEP_SCRAP} scrap of the crawler's tech level.`
+    ) : (
+      <>
+        Upkeep due:{' '}
+        <Stat label={tier} value={DOWNTIME_UPKEEP_SCRAP} orientation="horizontal" size="mini" />.
+        The crawler has{' '}
+        <Stat label={tier} value={crawler.scrapAtTl} orientation="horizontal" size="mini" />.
+      </>
+    )
 
   return (
     <HubSection

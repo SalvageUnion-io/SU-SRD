@@ -39,17 +39,20 @@ const BAY_FUNCTIONS: Record<string, string> = {
 }
 
 /**
- * The card's OWN "When Damaged" block is always suppressed: the clause is held
- * back while the bay is INTACT — it describes a state you are not in, and
- * printed inline it read as though it applied now — and when the bay IS damaged
- * it is re-rendered as a centred callout over the dimmed card instead.
+ * A bay on the sheet is drawn as the SRD's bay Page draws it: no kind pill
+ * right of its title (its foot names no kind off a Page, EDL E9). An INTACT
+ * bay shows its "When Damaged" callout, as the book prints it; a DAMAGED bay
+ * re-renders the clause as a centred callout over the dimmed card instead, so
+ * the card's own is held back then.
  */
-const HIDE_DAMAGED = { damagedEffect: true } as const
+const HIDE_INTACT = { axisMarkers: true } as const
+const HIDE_DAMAGED = { ...HIDE_INTACT, damagedEffect: true } as const
 /**
  * Read draws no unchosen pick: a "Choose a …" disclosure is a write cue (board
  * 10). A pick that WAS made still reads, so it is the unmade one that hides.
  */
-const HIDE_DAMAGED_READ = { damagedEffect: true, choices: true } as const
+const HIDE_INTACT_READ = { ...HIDE_INTACT, choices: true } as const
+const HIDE_DAMAGED_READ = { ...HIDE_DAMAGED, choices: true } as const
 
 /**
  * Several bays ALSO restate their damaged clause as a trailing content
@@ -380,8 +383,8 @@ export function CrawlerBayCard({
   })
 
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
-  // expand inset instead — and without the "when damaged" clause,
-  // which is held back until it applies (see WHEN_DAMAGED).
+  // expand inset instead — and without the prose restating the "when damaged"
+  // clause (see WHEN_DAMAGED): its callout says it once.
   const { normal: bayRules } = splitBayContent(bay.content)
   const normal = folded ? foldedBayContent(bayRules, crawlerTl) : bayRules
   const damagedText =
@@ -395,7 +398,15 @@ export function CrawlerBayCard({
       <ReferenceEntityCard
         data={cardData}
         size="medium"
-        hide={readOnly && !hasPick ? HIDE_DAMAGED_READ : HIDE_DAMAGED}
+        hide={
+          readOnly && !hasPick
+            ? damaged
+              ? HIDE_DAMAGED_READ
+              : HIDE_INTACT_READ
+            : damaged
+              ? HIDE_DAMAGED
+              : HIDE_INTACT
+        }
         // Read draws no controls (board 10): no condition tri-state for an
         // intact bay, no function or Repair. A damaged bay keeps its status,
         // which greys the card — that is the fact to read.

@@ -128,7 +128,7 @@ export function SheetCrawler({
           {
             label: 'Upkeep',
             value: 5,
-            caption: `Scrap · Tech ${tl}+`,
+            caption: `T${tl}+ Scrap`,
             action: editable
               ? {
                   label: 'Pay',

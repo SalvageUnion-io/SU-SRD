@@ -198,9 +198,11 @@ describe('MechSheet — the Chassis card', () => {
     expect(hero?.querySelector('dl[aria-label="Chassis stats"]')).toBeNull()
     expect(hero?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
     expect(hero?.textContent).not.toContain('Spectrum')
-    // The card: the chassis's name, art and description, with its ability a Token.
+    // The card: the chassis's name, art and description, with its ability's Card.
     expect(card?.textContent).toContain('Spectrum')
     expect(card?.querySelector('img')).not.toBeNull()
-    expect(card?.querySelector('ul[aria-label="Chassis ability"] li')).not.toBeNull()
+    const ability = card?.querySelector('section[aria-label="Chassis ability"]')
+    expect(ability?.childElementCount).toBeGreaterThan(0)
+    expect(ability?.querySelector('.su-entity-token')).toBeNull()
   })
 })

@@ -351,13 +351,11 @@ function ReferenceEntityCardInner({
   // stamps the kind (E9; ITUN's detail dialog draws its own).
   const kind = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
   const provenance = resolveFooterProvenance(entity, pattern)
-  const axisMarkers: AxisMarker[] = isAction
-    ? []
-    : isPattern
-      ? resolvedChassisName
-        ? [{ label: 'Chassis', value: resolvedChassisName }]
-        : []
-      : resolveAxisMarkers(entity)
+  const chassisMarker = resolvedChassisName
+    ? [{ label: 'Chassis', value: resolvedChassisName }]
+    : []
+  const axisMarkers: AxisMarker[] =
+    isAction || hide?.axisMarkers ? [] : isPattern ? chassisMarker : resolveAxisMarkers(entity)
   // "Legal Starting Pattern" is a STORED data tag on the pattern.
   const isLegalStartingPatternCard = isPattern && isLegalStartingPatternOf(pattern)
   const numeral = resolveTierNumeral(entity)

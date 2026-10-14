@@ -17,18 +17,22 @@ describe('ogCardFor', () => {
     expect(ogCardFor('chassis', 'scrapper', scrapper).address).toBe('/chassis/scrapper')
   })
 
-  it("draws a chassis's row as the origin does: SP, EP, Heat, SYS, MOD, Cargo", () => {
+  it("draws a chassis's chips from its entity model, as its other forms do: TL first, MODS", () => {
     const card = ogCardFor('chassis', 'scrapper', scrapper)
     if (!('stats' in card)) throw new Error('no stats')
     expect(card.stats.map((stat) => stat.label.toUpperCase())).toEqual([
+      'TL',
       'SP',
       'EP',
-      'HEAT',
+      'SV',
       'SYS',
-      'MOD',
+      'MODS',
       'CARGO',
+      'HEAT',
     ])
-    expect(card.stats[2]?.value).toBe(String(scrapper.heatCapacity))
+    expect(card.stats.find((stat) => stat.label === 'Heat')?.value).toBe(
+      String(scrapper.heatCapacity)
+    )
   })
 
   it('addresses a pattern by its own page', () => {
@@ -60,8 +64,8 @@ describe('ogMetaFor', () => {
     expect(meta.ogTitle).toBe('Scrapper')
   })
 
-  it('describes it by the kicker and cite, never the body', () => {
-    expect(meta.ogDescription.startsWith('Chassis · Tech Level 1 · ')).toBe(true)
+  it('describes it by its kind and cite, never the body', () => {
+    expect(meta.ogDescription.startsWith('Chassis · Workshop Manual · ')).toBe(true)
   })
 
   it('takes the theme colour from the band, as a literal a meta tag can carry', () => {

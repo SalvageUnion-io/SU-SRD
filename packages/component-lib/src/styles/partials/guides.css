@@ -528,3 +528,38 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Without an eyebrow (an entity's card: nothing above its title, EDL E20)
+   the notch still sits on the band's foot. */
+.su-chapter-band[data-scale='og'] .su-chapter-band__row {
+  margin-top: auto;
+}
+
+/* An ability's tier numeral left of the notch, as on its page band; the
+   notch beside it gives way first. */
+.su-chapter-band[data-scale='og'] .su-chapter-band__heading {
+  gap: var(--space-24);
+  min-width: 0;
+}
+
+/* THE OG CHIPS (`OgCard`): the entity's one chip group (E17), the page's own
+   horizontal `Stat` cells drawn at the preview's scale, so nothing reads under
+   the 34px source floor at Discord's 400px draw (ruleset §4.6). */
+.su-og-chips {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-14);
+}
+
+.su-og-chips .su-stat-cell {
+  border-radius: calc(var(--radius-badge) * 2);
+  border-width: var(--bw-entity);
+}
+
+.su-og-chips .su-stat-plate {
+  font-family: var(--font-cond);
+  font-size: 36px;
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-8) var(--space-14);
+}

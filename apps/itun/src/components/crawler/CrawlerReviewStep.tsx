@@ -1,4 +1,4 @@
-import { Callout, FieldError, Panel, ReferenceEntityCard, tokens } from 'component-lib'
+import { Callout, FieldError, Panel, ReferenceEntityCard, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { SURefCrawler, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
@@ -17,6 +17,14 @@ const RECAP: CSSProperties = { alignSelf: 'start' }
 
 /** The Augmented reminder's body copy. */
 const REMINDER: CSSProperties = { display: 'block', fontFamily: tokens.font.body }
+
+/** A recap value's chips and Tokens, on one wrapping line. */
+const CHIPS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[6],
+} satisfies CSSProperties
 
 /** The empty-weapons line, in the surrounding text colour. */
 const EMPTY_LINE: CSSProperties = {
@@ -44,9 +52,11 @@ type CrawlerReviewStepProps = {
  * Review (Union Crawler pp.212–213): recap
  * of type / ability / weapon(s) / stat block / scrap pool / crew on the left;
  * the chosen type and weapon entity cards stacked on the right (the universal
- * entity-card rule — fresh weapons carry an 'Intact' badge). Structure Points
- * render through the derived-at-read arithmetic (`20 + 5 type bonus = 25` for
- * Battle). The Augmented type re-surfaces its +1 Training Point reminder —
+ * entity-card rule — fresh weapons carry an 'Intact' badge). The recap is
+ * label-first chips: the type opens and Peeks it, `TL | 1`, Structure
+ * (`SP | 25/25`, the derived-at-read `20 + 5 type bonus` in its hover) and
+ * each Scrap tier (`T1 | 3`). The Augmented type re-surfaces its +1 Training
+ * Point reminder —
  * TEXT ONLY, never a cross-pilot write (ADR-007).
  */
 export function CrawlerReviewStep({
@@ -57,19 +67,30 @@ export function CrawlerReviewStep({
   bayCount,
   submitError,
 }: CrawlerReviewStepProps) {
+  // Label-first chips (ruleset §3.7): each Scrap tier as `T1 | 3`, the
+  // crawler sheet's storage labels.
   const scrap = toScrapPoolPatch(form.scrapPool)
-  const scrapSummary = Object.entries(scrap)
-    .map(([bucket, qty]) => `T${bucket.slice(2)} ×${qty}`)
-    .join(' · ')
+  const scrapChips = Object.entries(scrap).map(([bucket, qty]) => (
+    <Stat key={bucket} label={`T${bucket.slice(2)}`} value={qty} orientation="horizontal" />
+  ))
 
+  // A crawler starts at full: `SP | 20/20`, the type bonus in its hover.
   const sp = techLevel
     ? crawlerMaxSPParts({ techLevel: `tech-${techLevel.techLevel}`, type: form.type ?? undefined })
     : undefined
-  const spSummary = sp
-    ? sp.typeBonus > 0
-      ? `${sp.base} + ${sp.typeBonus} type bonus = ${sp.total} SP (starts at full)`
-      : `${sp.total} SP (starts at full)`
-    : null
+  const spChip = sp ? (
+    <Stat
+      label="SP"
+      value={sp.total}
+      max={sp.total}
+      orientation="horizontal"
+      hoverText={
+        sp.typeBonus > 0
+          ? `${sp.base} + ${sp.typeBonus} type bonus = ${sp.total}; starts at full`
+          : 'Starts at full'
+      }
+    />
+  ) : null
 
   const crewNames = Object.values(form.crew)
     .map((entry) => entry.name?.trim())
@@ -87,17 +108,13 @@ export function CrawlerReviewStep({
           <Recap>
             <RecapStat label="Name" value={form.name.trim()} required />
             <RecapEntity label="Type" entity={selectedType} required />
-            <RecapStat
-              label="Crawler"
-              value={techLevel ? `${techLevel.name} · Tech Level ${techLevel.techLevel}` : null}
-              required
-            />
-            <RecapStat label="Structure" value={spSummary} required />
+            <RecapStat label="TL" value={techLevel?.techLevel} required />
+            {spChip ?? <RecapStat label="SP" value={null} required />}
             <RecapStat
               label="Bays"
               value={`Full base set · ${bayCount} bays, seeded automatically · all Intact`}
             />
-            <RecapStat label="Scrap Pool" value={scrapSummary} />
+            {scrapChips.length > 0 && <span style={CHIPS}>{scrapChips}</span>}
             <RecapTokens label="Ability" entities={abilities} />
             <RecapTokens label="Weapons" entities={systems} empty="Required" />
             <RecapTokens label="Crew" models={crew} empty="Unnamed — fill in during play" />

@@ -6,7 +6,7 @@
  * or chassis cells, and a pilot's motto as the lead.
  */
 
-import type { EntityRowModel } from 'component-lib'
+import type { EntityRowModel, TagItem } from 'component-lib'
 import type { Photo } from 'itun-domain/schemas/photo'
 import { photoUrl } from 'itun-domain/schemas/photo'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
@@ -20,7 +20,11 @@ import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
 
-export type StarterBuild = { id: string; name: string; model: EntityRowModel }
+/**
+ * One build: its Row model, and the entity it is built on (a pilot's class, a
+ * mech's chassis) as a linked chip that Peeks and opens it.
+ */
+export type StarterBuild = { id: string; name: string; model: EntityRowModel; links: TagItem[] }
 
 export type StarterShelf = { kind: StarterKind; title: string; builds: StarterBuild[] }
 
@@ -43,8 +47,31 @@ function artOf(source: string, entity: () => SURefMetaEntity | null | undefined)
   )
 }
 
+/** The labels a build's stats name its source entity under: drawn as its linked chip. */
+const SOURCE_LABELS: ReadonlySet<string> = new Set(['Class', 'Chassis'])
+
 function readings(stats: UnitReading[] | undefined) {
-  return (stats ?? []).map((s) => ({ label: String(s.label), value: String(s.value) }))
+  return (stats ?? [])
+    .filter((s) => !SOURCE_LABELS.has(String(s.label)))
+    .map((s) => ({ label: String(s.label), value: String(s.value) }))
+}
+
+/**
+ * The entity a build is made from as one linked chip, `CLASS | Engineer`:
+ * a Tag carrying its ref, so it Peeks and opens the entity (EDL E4). None when
+ * it cannot be read.
+ */
+function sourceLink(
+  label: string,
+  source: string,
+  entity: () => SURefMetaEntity | null | undefined
+): TagItem[] {
+  return readReference(`StarterCard.${source}`, () => {
+    const found = entity()
+    if (!found) return []
+    const { ref, title } = toEntityModel(found)
+    return [{ key: `${source}-${ref.id}`, name: label, param: title, ref }]
+  }, [])
 }
 
 function findClass(ref: string) {
@@ -69,6 +96,7 @@ export function starterShelves(): StarterShelf[] {
           art: photoArt(p.photo) ?? artOf('class', () => findClass(p.classRef)),
           lead: p.motto || undefined,
         }),
+        links: sourceLink('Class', 'class', () => findClass(p.classRef)),
       })),
     },
     {
@@ -83,6 +111,7 @@ export function starterShelves(): StarterShelf[] {
           readings: readings(mechChassisStats(m.chassisRef)),
           art: artOf('chassis', () => resolveChassisRef(m.chassisRef)),
         }),
+        links: sourceLink('Chassis', 'chassis', () => resolveChassisRef(m.chassisRef)),
       })),
     },
     {
@@ -99,6 +128,7 @@ export function starterShelves(): StarterShelf[] {
             photoArt(c.photo) ??
             artOf('crawler', () => (c.type ? resolveCrawlerType(c.type) : null)),
         }),
+        links: [],
       })),
     },
   ]

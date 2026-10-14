@@ -8,16 +8,17 @@
  * `InfoCutout` in the chassis's tone: its art column (fixed: the player's
  * photo is the hero's), its name on the cut-out with the mech's chassis stats
  * as chips beside it, and a paper body holding the book's description, the
- * chassis ability as a Peek Token, and — in Edit — CHANGE CHASSIS (destructive;
- * it keeps its own confirm step).
+ * chassis ability as its Card (`MechChassisAbilities`), and — in Edit —
+ * CHANGE CHASSIS (destructive; it keeps its own confirm step).
  */
 
-import { Button, Content, Entity, Field, InfoCutout } from 'component-lib'
+import { Button, Content, Field, InfoCutout } from 'component-lib'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { ComponentProps, CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
+import { MechChassisAbilities } from './MechChassisAbilities'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
 
@@ -89,15 +90,7 @@ export function MechChassisCard({
             chassisName={chassisName}
           />
         )}
-        {abilities.length > 0 && (
-          <ul aria-label="Chassis ability" className="su-entity-token-list">
-            {abilities.map((ability) => (
-              <li key={ability.id}>
-                <Entity form="token" entity={ability} />
-              </li>
-            ))}
-          </ul>
-        )}
+        <MechChassisAbilities abilities={abilities} chassisName={chassisName} />
         {patch && (
           <div style={CONTROLS}>
             <Button variant="default" onClick={() => setPickerOpen(true)}>

@@ -18,8 +18,9 @@ import {
 /**
  * OgCard (board PV1): the link preview, one layout for both apps.
  * Each kind's card is read back for what a reader sees in the unfurl (the
- * title, the band's tone, the mark, the stat cells, the lines and the foot)
+ * title, the band's tone, the mark, the chips, the lines and the foot)
  * rather than snapshotted, so a token change does not rewrite every card.
+ * Nothing sits above the title (EDL E20): the kind rides the foot line.
  */
 
 const SHEET: OgCardProps = {
@@ -146,9 +147,9 @@ function read(props: OgCardProps): Seen & { src: string | null } {
     title: card.getAttribute('aria-label') ?? '',
     printed: text(host.querySelector('.su-chapter-band__title')),
     tone: band.getAttribute('style')?.match(/background-color:([^;]+)/)?.[1] ?? '',
-    cells: [...body.querySelectorAll(':scope > div > div')].map((cell) => [
-      text(cell.children[0]),
-      text(cell.children[1]),
+    cells: [...body.querySelectorAll('.su-og-chips .su-stat-cell')].map((cell) => [
+      text(cell.querySelector('.su-stat-plate--label')),
+      text(cell.querySelector('.su-stat-plate--value')),
     ]),
     lines: [...body.querySelectorAll(':scope > p')].map(text),
     src: foot.querySelector('img')?.getAttribute('src') ?? null,
@@ -167,14 +168,16 @@ const SEEN: [string, OgCardProps, Seen][] = [
       printed: 'Scrapper',
       tone: 'var(--color-mech)',
       cells: [
+        ['TL', '1'],
         ['SP', '9'],
         ['EP', '9'],
-        ['Heat', '8'],
+        ['SV', '6'],
         ['SYS', '12'],
-        ['MOD', '2'],
+        ['MODS', '2'],
         ['Cargo', '6'],
+        ['Heat', '8'],
       ],
-      lines: ['Workshop Manual · p.104 · 5 patterns'],
+      lines: ['Chassis · Workshop Manual · p.104 · 5 patterns'],
       wordmark: 'salvageunion.io',
       address: '/chassis/scrapper',
     },
@@ -187,10 +190,13 @@ const SEEN: [string, OgCardProps, Seen][] = [
       title: 'Mass Field Repair',
       printed: 'Mass Field Repair',
       tone: 'var(--color-pilot)',
-      cells: [],
+      cells: [
+        ['Long Action', ''],
+        ['RNG', 'Close'],
+      ],
       lines: [
         'You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition. They must be of a Tech Level equal to or lower than your Union Crawler.',
-        'Workshop Manual · p.29',
+        'Ability · Mech-Tech Tree · Workshop Manual · p.29',
       ],
       wordmark: 'salvageunion.io',
       address: '/abilities/mass-field-repair',
@@ -210,7 +216,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['TP', '2'],
         ['Mech', 'Scrapper'],
       ],
-      lines: ["Rosa's pilot · Reclamation of the Wastes"],
+      lines: ["Pilot · Engineer · Rosa's pilot · Reclamation of the Wastes"],
       wordmark: 'ITUN',
       address: 'itun.salvageunion.io/p/pilot/0a1b',
     },
@@ -227,7 +233,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['TL', '1'],
         ['SYS', '12/12'],
       ],
-      lines: ['Made by alxjrvs'],
+      lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
       wordmark: 'ITUN',
       address: 'itun.salvageunion.io/p/pattern/0a1b',
     },
@@ -244,7 +250,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['HP', '9'],
         ['Actions', '2'],
       ],
-      lines: ['Made by alxjrvs'],
+      lines: ['NPC · From Veteran · Made by alxjrvs'],
       wordmark: 'ITUN',
       address: 'itun.salvageunion.io',
     },
@@ -258,7 +264,10 @@ const SEEN: [string, OgCardProps, Seen][] = [
       printed: 'Reclamation of the Wastes',
       tone: color.crawlerBand,
       cells: [],
-      lines: ['Mediated by alxjrvs.', 'Link expires 15 Oct · the Mediator lets you in'],
+      lines: [
+        'Mediated by alxjrvs.',
+        "You're invited · Player seat · Link expires 15 Oct · the Mediator lets you in",
+      ],
       wordmark: 'ITUN',
       address: 'itun.salvageunion.io',
     },
@@ -275,7 +284,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['HP', '9'],
         ['Actions', '2'],
       ],
-      lines: ['Made by alxjrvs'],
+      lines: ['NPC · From Veteran · Made by alxjrvs'],
       wordmark: 'ITUN',
       address: 'itun.salvageunion.io',
     },
@@ -292,7 +301,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['TL', '1'],
         ['SYS', '12/12'],
       ],
-      lines: ['Made by alxjrvs'],
+      lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
       wordmark: 'ITUN',
       address: 'itun.salvageunion.io/p/pattern/0a1b',
     },
@@ -306,7 +315,10 @@ const SEEN: [string, OgCardProps, Seen][] = [
       printed: LONG,
       tone: color.crawlerBand,
       cells: [],
-      lines: ['Mediated by alxjrvs.', 'Link expires 15 Oct · the Mediator lets you in'],
+      lines: [
+        'Mediated by alxjrvs.',
+        "You're invited · Player seat · Link expires 15 Oct · the Mediator lets you in",
+      ],
       wordmark: 'ITUN',
       address: 'itun.salvageunion.io',
     },
@@ -466,7 +478,7 @@ describe('OgCard', () => {
     expect(html).toContain('the Mediator lets you in')
   })
 
-  test('every title and kicker is set in the condensed display face the SRD loads', () => {
+  test('every title is set in the condensed display face the SRD loads', () => {
     for (const [, props] of KINDS) {
       const html = renderToStaticMarkup(<OgCard {...props} />)
       expect(html).toContain('font-family:&#x27;Barlow Semi Condensed&#x27;')
@@ -475,23 +487,54 @@ describe('OgCard', () => {
 })
 
 describe('ogCardForEntity', () => {
-  test('a chassis is a thing: its tone, its stats, its cite', () => {
+  test('a chassis is a thing: its tone, its model chips (TL first, MODS), its cite', () => {
     expect(THING.kind).toBe('thing')
     if (THING.kind !== 'thing') return
     expect(THING.title).toBe('Scrapper')
-    expect(THING.kicker).toBe('Chassis · Tech Level 1')
+    expect(THING.kicker).toBe('Chassis')
     expect(THING.tone).toBe('var(--color-mech)')
-    expect(THING.stats.map((s) => s.label)).toContain('SP')
+    expect(THING.stats[0]).toEqual({ label: 'TL', value: '1' })
+    expect(THING.stats.map((s) => s.label)).toContain('MODS')
     expect(THING.cite).toContain('p.')
   })
 
-  test('an ability is a thing you do: tier numeral, cost pennant, rules', () => {
+  test('a system carries its action type as printed, RNG, DMG and traits, in E17 order', () => {
+    const gun = SalvageUnionReference.Systems.getByName('.50 Cal Machine Gun')
+    if (!gun) throw new Error('no .50 Cal')
+    const card = ogCardForEntity({ schemaName: 'systems', entity: gun, address: '/systems/x' })
+    if (card.kind !== 'thing') throw new Error('a system is a thing')
+    expect(card.stats.map((s) => s.label)).toEqual([
+      'Turn Action',
+      'TL',
+      'Slots',
+      'SV',
+      'RNG',
+      'DMG',
+      'Ballistic',
+      'Jamming',
+      'Pinning',
+    ])
+  })
+
+  test('an ability is a thing you do: tier numeral, chips, cost last, rules', () => {
     expect(DO.kind).toBe('do')
     if (DO.kind !== 'do') return
-    expect(DO.kicker.startsWith('Ability · Mech-Tech')).toBe(true)
+    expect(DO.kicker).toBe('Ability · Mech-Tech Tree')
     expect(DO.tier).toBe('3')
+    expect(DO.stats[0]).toEqual({ label: 'Long Action' })
     expect(DO.cost).toBe('X AP')
     expect(DO.rules).toContain('You repair any number')
+  })
+
+  test('the tier numeral sits left of the name on the band, never above it', () => {
+    const host = document.createElement('div')
+    host.innerHTML = renderToStaticMarkup(<OgCard {...DO} />)
+    const heading = host.querySelector('.su-chapter-band__heading')
+    expect(heading?.querySelector('.su-chapter-band__lead')?.textContent).toBe('3')
+    expect(host.querySelector('.su-chapter-band__eyebrow')).toBeNull()
+    // The cost is the last chip.
+    const chips = host.querySelector('.su-og-chips')
+    expect(chips?.lastElementChild?.textContent).toBe('X AP')
   })
 
   test('a pattern is its own thing, under its chassis', () => {
@@ -508,5 +551,6 @@ describe('ogCardForEntity', () => {
     if (card.kind !== 'thing') return
     expect(card.title).toBe(pattern.name)
     expect(card.kicker).toBe('Pattern · Scrapper')
+    expect(card.stats[0]).toEqual({ label: 'TL', value: '1' })
   })
 })

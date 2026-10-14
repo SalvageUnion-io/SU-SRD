@@ -1,8 +1,9 @@
 /**
  * A Token carries a short chip set after its name (E17's order): its one
- * action's type or how many it has (its own counted), an ability's tree and
- * level, TL, its slots, HP or SP, then the cost box, the same in every
- * context. A chassis keeps its one chip set in every form.
+ * action's type or how many it lists (`ACTIONS | 3`, its folded self-action
+ * not counted), TL, its slots, HP or SP, then the cost box, the same in every
+ * context. A chassis keeps its one chip set in every form. An ability's tier
+ * numeral leads its name instead of a chip.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -27,8 +28,11 @@ const chipsOf = (schema: string, name: string) => {
 }
 
 describe('Token chips', () => {
-  test('a system with several actions counts them all, its own included, first (E17)', () => {
-    expect(chipsOf('systems', 'Fabrication Arm')).toEqual(['4 Actions', 'TL3', 'Slots3'])
+  test('a system with several actions counts those it lists, label first, first (E17)', () => {
+    expect(chipsOf('systems', 'Fabrication Arm')).toEqual(['Actions3', 'TL3', 'Slots3'])
+    const { container } = render(<Entity form="token" entity={get('systems', 'Fabrication Arm')} />)
+    const count = container.querySelector('.su-entity-token__chips > :first-child')
+    expect(count?.firstElementChild?.textContent).toBe('Actions')
   })
 
   test('one action leads with its type, then the facts, then the cost box last (E17)', () => {
@@ -40,9 +44,19 @@ describe('Token chips', () => {
     ])
   })
 
-  test('an ability shows its tree and level after its action type', () => {
-    expect(chipsOf('abilities', 'Union Engineer')).toEqual(['2 Actions', 'Advanced Engineer1'])
-    expect(chipsOf('abilities', 'Tip Top Shape')).toContain('Legendary EngineerL')
+  test('an ability sets its tier numeral before its name, never a tree chip', () => {
+    const { container } = render(<Entity form="token" entity={get('abilities', 'Jury Rig')} />)
+    const pill = container.querySelector('.su-entity-token__pill')
+    const tier = pill?.querySelector('.su-entity-token__tier')
+    expect(tier?.textContent).toBe('1')
+    expect(tier?.nextElementSibling?.className).toBe('su-entity-token__notch')
+    expect(chipsOf('abilities', 'Jury Rig').some((chip) => chip.startsWith('Forging'))).toBe(false)
+    // A Legendary has no numeral, as on its band.
+    const legendary = render(<Entity form="token" entity={get('abilities', 'Tip Top Shape')} />)
+    expect(legendary.container.querySelector('.su-entity-token__tier')).toBeNull()
+    expect(chipsOf('abilities', 'Tip Top Shape').some((chip) => chip.startsWith('Legendary'))).toBe(
+      false
+    )
   })
 
   test('a chassis shows its one chip set: TL, SP, EP, SV, SYS, MODS', () => {
@@ -50,7 +64,7 @@ describe('Token chips', () => {
   })
 
   test('an NPC shows its HP and its action count', () => {
-    expect(chipsOf('npcs', 'Saboteur')).toEqual(['8 Actions', 'HP6'])
+    expect(chipsOf('npcs', 'Saboteur')).toEqual(['Actions8', 'HP6'])
   })
 })
 

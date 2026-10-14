@@ -42,7 +42,7 @@ const SCAN_FLOOR = 630
  * within MAX_LINES.
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
-  'apps/discord-bot/src/gameCards.ts': 699,
+  'apps/discord-bot/src/gameCards.ts': 683,
   'apps/itun/convex/entities.ts': 852,
   'apps/itun/convex/model/entities.ts': 929,
   'apps/itun/convex/schema.ts': 726,
@@ -56,7 +56,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/itun/src/lib/rules/creation.ts': 722,
   'apps/itun/src/stores/entityStore.ts': 715,
   'packages/component-lib/src/components/atoms/VitalGauge.tsx': 759,
-  'packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 852,
+  'packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 850,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 631,
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 654,

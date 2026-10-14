@@ -13,11 +13,18 @@ import { textBand } from '../referenceEntity/referenceEntityHelpers'
 export const OG_CARD_WIDTH = 1200
 export const OG_CARD_HEIGHT = 630
 
-/** One framed stat box: a short label over its value ("SP" over "9"). */
-export type OgCardStat = { label: string; value: string }
+/**
+ * One chip, label first, as the page's horizontal `Stat` draws it: `TL | 1`,
+ * a bare "Turn Action", a trait `[Burn | 2]`.
+ */
+export type OgCardStat = { label: string; value?: string }
 
 type OgCardBase = {
-  /** The caps line on the band: "Chassis · Tech Level 1". */
+  /**
+   * The kind, "Chassis", "Pilot · Engineer": printed on the card's foot line
+   * before its cite or byline, as a Page's foot names its kind (EDL E9), never
+   * above the title (E20).
+   */
   kicker: string
   /** The notched title: the thing's name. */
   title: string
@@ -34,7 +41,10 @@ export type OgCardProps =
       kind: 'thing'
       /** The band colour: the entity's tone, any CSS colour. */
       tone: string
+      /** Its chips in E17's order: action type, facts (TL first), traits. */
       stats: OgCardStat[]
+      /** The cost as the book's pointy box prints it, last: "2 EP". */
+      cost?: string
       /** The page cite: "Workshop Manual · p.104". */
       cite?: string
     })
@@ -42,9 +52,11 @@ export type OgCardProps =
       kind: 'do'
       /** An ability's tier tone (any CSS colour); without one, the ink band. */
       tone?: string
-      /** The book's tier numeral, for an ability. */
+      /** The book's tier numeral, for an ability: left of the name on the band. */
       tier?: string
-      /** The cost as the pennant prints it: "2 AP". */
+      /** Its chips in E17's order: action type, facts, traits. */
+      stats: OgCardStat[]
+      /** The cost as the book's pointy box prints it, last: "2 AP". */
       cost?: string
       /** The rules text, clamped to two lines. */
       rules?: string
@@ -88,8 +100,8 @@ export const REFERENCE_KINDS: ReadonlySet<OgCardKind> = new Set(['thing', 'do'])
  * The band's colour for a card — the entity's tone, an ability's tier tone
  * (as its page band and Discord stripe wear it), the ink of any other thing
  * you do, or the ink-deep of a private card. Also the page's `theme-color`, so
- * Discord's side bar matches the band: see `ogCardThemeColor`. The kicker
- * sits on the band, so a tone that carries no text paints its deeper band
+ * Discord's side bar matches the band: see `ogCardThemeColor`. An ability's
+ * numeral sits on the band, so a tone that carries no text paints its deeper band
  * (ruleset §3.8), as an entity card's header does: crawler pink → the
  * crawler band.
  */
@@ -111,8 +123,22 @@ export function ogCardThemeColor(props: OgCardProps): string {
   return (color as Record<string, string>)[key] ?? band
 }
 
-/** The line under the stats: the cite, the byline, or "Made by [user]". */
-export function bylineOf(props: OgCardProps): string | undefined {
+/**
+ * The foot line under the body: the kind, then the cite, the byline or "Made
+ * by [user]", as a Page's foot names its kind and its printing.
+ */
+export function footLineOf(props: OgCardProps): string | undefined {
+  if (props.kind === 'private') return bylineOf(props)
+  const byline = bylineOf(props)
+  return joinLine([props.kicker, byline]) || undefined
+}
+
+function joinLine(parts: (string | undefined)[]): string {
+  return parts.filter((part) => part && part.length > 0).join(' · ')
+}
+
+/** What the card says of where it comes from: the cite, the byline, or "Made by [user]". */
+function bylineOf(props: OgCardProps): string | undefined {
   switch (props.kind) {
     case 'thing':
     case 'do':
@@ -140,7 +166,7 @@ export function ogCardTitle(props: OgCardProps): string {
 export function ogCardDescription(props: OgCardProps): string {
   if (props.kind === 'private') return PRIVATE_LINE
   const byline = props.kind === 'invite' ? props.summary : bylineOf(props)
-  return [props.kicker, byline].filter((part) => part && part.length > 0).join(' · ')
+  return joinLine([props.kicker, byline])
 }
 
 const PRIVATE_TITLE = 'Private'

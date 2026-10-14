@@ -69,7 +69,7 @@ export function ogAddress(href: string): string {
 /**
  * The head tags a preview needs beyond the image: `og:title` is the name as
  * the book prints it (the card sets it in caps; the tag is plain text),
- * `og:description` the kicker and byline (never the body), and `theme-color`
+ * `og:description` the kind and byline (never the body), and `theme-color`
  * the band's tone so Discord's side bar matches the card.
  */
 export function ogMetaFor(card: OgCardProps): {

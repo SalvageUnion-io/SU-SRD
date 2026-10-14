@@ -5,6 +5,8 @@
  *
  *   - `EmptyUnitSlot` (components/shared/EmptyUnitSlot.tsx): the dashed
  *     foot, whose children stretch (a child selector).
+ *   - `StarterCard` (components/starterSet/StarterCard.tsx): the sheet's link
+ *     laid over the whole Row, its linked chips raised above it.
  *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
  *     the "View in SRD" link, which fades on hover. `SRDLink` takes only a
  *     class, so the whole treatment lives here.
@@ -28,4 +30,29 @@
   .srd-entity-external-link:hover {
     opacity: 70%;
   }
+}
+
+/* A Starter Set card: the Row reads, and the sheet's link covers it whole, so
+   the class or chassis chip in its head can be a link of its own (no nested
+   interactive content). The chips sit above the cover; the rest of the card
+   is the cover's. */
+.su-starter-card {
+  display: flex;
+  position: relative;
+}
+
+.su-starter-card > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-starter-card__link {
+  border-radius: var(--radius-card);
+  inset: 0;
+  position: absolute;
+}
+
+.su-starter-card [data-peek] {
+  position: relative;
+  z-index: 1;
 }
