@@ -8,8 +8,7 @@ import {
   StatColumn,
   Tag,
 } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 /**
  * EntityPageStamps — what an entity page's chapter band carries right of its
@@ -39,13 +38,6 @@ type EntityPageStampsProps = {
   end?: ReactNode
 }
 
-// Its wrap and alignment are `.srd-entity-stamps`': from `sm` a second line
-// goes above.
-const ROW = {
-  display: 'flex',
-  gap: space[8],
-} satisfies CSSProperties
-
 export function EntityPageStamps({
   meta,
   name,
@@ -54,7 +46,8 @@ export function EntityPageStamps({
   end,
 }: EntityPageStampsProps) {
   return (
-    <div className="srd-entity-stamps" style={ROW}>
+    // Its wrap, gap and alignment are `.srd-entity-stamps`': balanced rows.
+    <div className="srd-entity-stamps">
       {lead}
       {legalStartingPattern && (
         <Badge
