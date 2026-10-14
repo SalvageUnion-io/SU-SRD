@@ -56,13 +56,12 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(labels).not.toContain('Structure Pts.')
   })
 
-  test('a chassis: its kind (for screen readers), TL and citation with its reprint', () => {
+  test('a chassis: its kind, TL and printings, its reprint after the book', () => {
     const meta = resolveEntityPageMeta(gopher())
     expect(meta.typeLabel).toBe('Chassis')
     expect(meta.techLevel).toBe('2')
-    expect(meta.page).toBe(gopher().page)
-    expect(meta.citation).toStartWith('Workshop Manual')
-    expect(meta.citation).toContain('also in Salvage Union Starter Set (PC) · p.26')
+    expect(meta.printings[0]).toEqual({ book: 'Workshop Manual', page: gopher().page })
+    expect(meta.printings[1]).toEqual({ book: 'Salvage Union Starter Set (PC)', page: 26 })
   })
 
   test('an ability: its tree in its kind, its tier numeral, and its action type and cost on the band', () => {

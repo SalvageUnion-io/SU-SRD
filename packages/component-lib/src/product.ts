@@ -6,8 +6,7 @@
  *
  * - `name` — the character builder & game manager, in copy and titles.
  * - `shortName` — its short form, fine in copy where space is tight.
- * - `wordmark` — the site's own name, as the lockup and the reference OG card
- *   draw it.
+ * - `wordmark` — the site's own name, as the reference OG card draws it.
  *
  * Dependency-free on purpose: the Discord bot Worker imports it through the
  * `component-lib/product` subpath without pulling in React.

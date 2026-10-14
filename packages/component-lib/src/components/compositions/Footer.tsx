@@ -1,14 +1,18 @@
 import type { ElementType } from 'react'
 import { color } from '../../design/tokens'
+import { Badge } from '../atoms/Badge'
 import { ChapterFoot } from '../atoms/ChapterFoot'
 import type { ChapterTone } from '../atoms/chapterBandColor'
+import { StatColumn } from '../atoms/StatColumn'
 
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
  * do (one product, so one foot).
  *
  * - **A book page** (entity, pattern, roll table; board 07) ends on its
- *   chapter's foot band: the page cite set large and the book at the end.
+ *   chapter's foot band: the entity's kind as a stamp at the start, and where
+ *   it is printed at the end, each printing a cell of the band's stat column
+ *   (`Workshop Manual | p.112`), as the head band draws its stats.
  * - **Every page**, a book page's under that band, ends on the licence row in
  *   the Union bar's ink (`AppBar`): one colour on every page of both tools, so
  *   the site's head and foot match whatever chapter lies between them.
@@ -18,15 +22,18 @@ import type { ChapterTone } from '../atoms/chapterBandColor'
  * "Powered by Salvage" mark, reversed to paper on the ink.
  */
 
-/** A book page's foot: its chapter tone and citation, banded above the licence row. */
+/** One printing a book page cites: the book (and booklet), and its page. */
+type FooterPrinting = { book: string; page?: number }
+
+/** A book page's foot: its chapter tone, kind and printings, banded above the licence row. */
 export type FooterFoot = {
   tone: ChapterTone
   /** The band colour when the page wears its own rather than its chapter's. */
   fill?: string
-  /** The page number the citation leads with (`p.112`). */
-  page?: number
-  /** The book, then any reprints. */
-  citation?: string
+  /** The entity's kind ("System"), stamped at the band's start. */
+  kind?: string
+  /** Where it is printed: the book first, then each reprint. */
+  printings?: readonly FooterPrinting[]
   /** The inner row's max width, matching the page's own measure. */
   measure?: string
 }
@@ -66,6 +73,23 @@ function Legal() {
       are used with permission of Leyline Press, under the Salvage Union Open Game Licence 1.0b. All
       Workshop Manual Images are used with special permission from Leyline Press.
     </p>
+  )
+}
+
+/**
+ * A book page's printings as the band's stat cells, the page in the framed
+ * box and the book on the ink stamp. A printing with no page is the stamp alone.
+ */
+function Printings({ printings }: { printings: readonly FooterPrinting[] }) {
+  return (
+    <StatColumn
+      label="Printed in"
+      stats={printings.map(({ book, page }, i) => ({
+        key: `${book}-${i}`,
+        label: i === 0 ? book : `Also in ${book}`,
+        value: page != null ? `p.${page}` : '',
+      }))}
+    />
   )
 }
 
@@ -110,17 +134,26 @@ function End({
 
 export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }: FooterProps) {
   const measure = foot?.measure ?? SITE_MEASURE
-  const cited = foot != null && (foot.page != null || !!foot.citation)
+  const printings = foot?.printings ?? []
+  const cited = foot != null && (!!foot.kind || printings.length > 0)
   return (
     <footer className="su-footer">
       {cited && (
-        <ChapterFoot
-          tone={foot.tone}
-          fill={foot.fill}
-          measure={measure}
-          start={foot.page != null ? `p.${foot.page}` : undefined}
-          end={foot.citation}
-        />
+        <div className="su-footer__cite">
+          <ChapterFoot
+            tone={foot.tone}
+            fill={foot.fill}
+            measure={measure}
+            start={
+              foot.kind ? (
+                <Badge shape="stamp" size="compact" className="su-footer__kind">
+                  {foot.kind}
+                </Badge>
+              ) : undefined
+            }
+            end={printings.length > 0 ? <Printings printings={printings} /> : undefined}
+          />
+        </div>
       )}
       <ChapterFoot
         fill={SITE_FILL}

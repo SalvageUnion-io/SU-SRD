@@ -6,7 +6,7 @@
 
 import { getBooklet, getPageReference, getSource } from '../../entityFields'
 import type { SURefMetaEntity, SURefObjectAnyPattern } from '../../schemas/index'
-import type { EntityCite } from '../types'
+import type { EntityCite, EntityPrinting } from '../types'
 
 /**
  * The core book: the `source` the data records, the name a cite prints (its
@@ -129,6 +129,15 @@ export function entityCite(entity: SURefMetaEntity, pattern?: SURefObjectAnyPatt
   const reprints = provenance.additionalSources
     .map((entry) => formatProvenance(entry.source, entry.booklet, entry.page))
     .filter((line): line is string => !!line)
+  const printings: EntityPrinting[] = [
+    ...(book
+      ? [{ book, ...(provenance.page !== undefined ? { page: provenance.page } : {}) }]
+      : []),
+    ...provenance.additionalSources.map((entry) => ({
+      book: formatProvenance(entry.source, entry.booklet, undefined) ?? entry.source,
+      page: entry.page,
+    })),
+  ]
   const citation = [book, ...reprints.map((line, i) => (i === 0 ? `also in ${line}` : line))]
     .filter((part): part is string => !!part)
     .join(' · ')
@@ -137,5 +146,6 @@ export function entityCite(entity: SURefMetaEntity, pattern?: SURefObjectAnyPatt
     ...(provenance.booklet ? { booklet: provenance.booklet } : {}),
     ...(provenance.page !== undefined ? { page: provenance.page } : {}),
     ...(citation ? { citation } : {}),
+    printings,
   }
 }

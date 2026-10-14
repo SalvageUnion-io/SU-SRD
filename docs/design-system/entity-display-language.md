@@ -41,7 +41,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E6** Nest one form down, two levels deep (Page → Row, Card → Row, Row → count chip); a third level is a link or a Peek.
 - **E7** Modes fill slots; they never change anatomy.
 - **E8** A Listing never expands in place (ruleset §1.5).
-- **E9** Facts, traits and citations are chips (horizontal Stats; a trait links to its entry), sections are Slabs. No form stamps an entity's kind (the title reads it to screen readers); stamps that say more stay.
+- **E9** Facts, traits and citations are chips (horizontal Stats; a trait links to its entry), sections are Slabs. Only a Page's foot stamps the kind (the title reads it to screen readers); stamps that say more stay.
 - **E10** Art appears by room, not by prop; an entity without art has no art place, and nothing stands in for it.
 - **E11** The lead appears only while browsing (SRD listings and search page).
 - **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Card or Page, and as a Row but for an ability.
@@ -58,7 +58,7 @@ Each is checkable; breaking one needs an amendment here first.
 ## Which form, where
 
 1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules as full-width Tokens, one a line.
-2. **Search, both apps** — Row (no lead), link. **Any prose** — Mention: Peek, then Page.
+2. **Search, both apps** — Row (no lead), link; SRD header dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
 3. **ITUN wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **ITUN dense slots** (inventory strip, bays, loadouts) — Token, link. **Deck, resolve** — Row / Card.
 5. **ITUN "open" anywhere** — the Page in the detail dialog. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.

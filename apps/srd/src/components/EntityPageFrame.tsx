@@ -11,8 +11,8 @@ import { EntityPageStamps } from './EntityPageStamps'
  * it, one cluster of everything else the head carries — the parent link, the
  * stamps and "Build With This" (EDL E20: nothing but the breadcrumb sits
  * above a show page's title; on a phone the cluster follows the title, the
- * band's `asideAt="notch"`); then the body. The page's foot band — the citation
- * ("p.112 · Workshop Manual · also in …") — is the site
+ * band's `asideAt="notch"`); then the body. The page's foot band — its kind
+ * stamp and its printings (`Workshop Manual | p.112`, then any reprint) — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * to the layout as its `PageResult.foot`.
  *
@@ -157,7 +157,7 @@ export function EntityPageFrame({
 
 /**
  * The foot of the same page, for the layout's `Footer`: the frame's chapter
- * tone (or its own `fill`) and measure, and the citation `meta` carries.
+ * tone (or its own `fill`) and measure, and the kind and printings `meta` carries.
  */
 export function entityPageFoot(
   tone: ChapterTone,
@@ -165,5 +165,5 @@ export function entityPageFoot(
   measure: string = ENTITY_PAGE_MEASURE,
   fill?: string
 ): PageFoot {
-  return { tone, fill, page: meta.page, citation: meta.citation, measure }
+  return { tone, fill, kind: meta.typeLabel, printings: meta.printings, measure }
 }

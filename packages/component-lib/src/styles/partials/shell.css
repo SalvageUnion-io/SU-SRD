@@ -10,8 +10,8 @@
  * the component's style objects; what is here changes at a breakpoint, on
  * hover or with "you are here".
  *
- * One geometry for both: a 56px row at every width, the wordmark
- * from 40rem, the product nav inline from `lg`, the search entry 14rem wide.
+ * One geometry for both: a 56px row at every width, the mark alone (no
+ * wordmark), the product nav inline from `lg`, the search entry 14rem wide.
  *
  * "Here" is never rust (§3.1): the switcher's current tab is the inverse stamp,
  * a paper plate with ink text on the ink bar, and a nav link's current page
@@ -23,11 +23,6 @@
   gap: var(--space-12);
   height: 56px;
   padding-inline: var(--space-16);
-}
-
-/* The wordmark leaves a phone's bar to the mark and the switcher. */
-.su-union-bar__wordmark {
-  display: none;
 }
 
 .su-union-bar__tab {
@@ -199,10 +194,6 @@
   .su-union-bar__row {
     gap: var(--space-16);
     padding-inline: var(--space-32);
-  }
-
-  .su-union-bar__wordmark {
-    display: inline;
   }
 }
 

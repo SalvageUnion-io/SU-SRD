@@ -107,7 +107,7 @@ export async function handleButtonInteraction(
 
   // A re-roll belongs to whoever rolled: anyone else is told, privately, how
   // to roll it themselves. A button with no owner (one posted before this, or
-  // the lookup card's "Roll on this table", a first roll) is open to anyone.
+  // the lookup card's "Roll the Die", a first roll) is open to anyone.
   const request = parsed.action === 'roll' ? decodeRollRequest(parsed.payload) : null
   if (request?.ownerId !== undefined && request.ownerId !== interaction.user.id) {
     await interaction.reply({

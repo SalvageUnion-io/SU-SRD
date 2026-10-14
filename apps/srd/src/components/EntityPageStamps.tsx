@@ -16,7 +16,7 @@ import type { CSSProperties, ReactNode } from 'react'
  * and cost (its level is the band's `lead`, left of the title), then
  * the book's stats (Tech Level among them, in the book's order: every
  * entity's, a chassis's too, at the band's compact size, two lines at most
- * from `sm`; the page body has no stat column). Never the kind (E9: the title says it to screen readers),
+ * from `sm`; the page body has no stat column). Never the kind (E9: the title says it to screen readers, the foot band stamps it),
  * and no other entity's cost (a chip in the page's chip group, E17). Each is at the
  * stat column's height and type: the level and Tech Level as its
  * framed-numeral cells, the stamps sized to match (`.srd-entity-stamp`). Tech Level is the first thing a table asks of anything it

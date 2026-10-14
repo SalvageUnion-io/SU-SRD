@@ -1,7 +1,6 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
-import { PRODUCT } from '../../product'
+import { borderWidth, color, radius, space } from '../../design/tokens'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
 
@@ -10,7 +9,7 @@ import { Speckle } from '../atoms/Speckle'
  * "One union, two tools"; origin board 05). The SRD `SiteHeader` and the ITUN
  * `AppHeader` are thin presets over it.
  *
- * One lockup (the SU mark and the `PRODUCT.wordmark`), then the **Reference | Build**
+ * One lockup (the SU mark alone, no wordmark), then the **Reference | Build**
  * product switcher, then the product's own nav, the search slot, "Buy the
  * game" and the app's account controls. Crossing products is a tab on the same
  * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
@@ -19,7 +18,7 @@ import { Speckle } from '../atoms/Speckle'
  * ## One geometry
  *
  * Both tools wear the same bar (one product at one domain): one
- * 56px row at every width, the 40px mark, the wordmark from 40rem, the product
+ * 56px row at every width, the 40px mark, the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (`SearchField` / `SearchFieldTrigger`). There are no
  * densities: the SRD's 64px bar and ITUN's 48px one were two products.
@@ -130,22 +129,6 @@ const BRAND = {
 } satisfies CSSProperties
 
 const MARK = { display: 'block', flexShrink: 0 } satisfies CSSProperties
-
-const WORDMARK = {
-  color: color.paper,
-  fontFamily: font.cond,
-  fontSize: fontSize.title,
-  fontWeight: weight.bold,
-  lineHeight: 1,
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-const WORDMARK_ACCENT = { color: color.paper60 } satisfies CSSProperties
-
-/** The wordmark drawn in two tones: the name, then its quieter top-level domain. */
-const WORDMARK_DOT = PRODUCT.wordmark.lastIndexOf('.')
-const WORDMARK_NAME = PRODUCT.wordmark.slice(0, WORDMARK_DOT)
-const WORDMARK_TLD = PRODUCT.wordmark.slice(WORDMARK_DOT)
 
 const SWITCH = {
   borderColor: color.paper30,
@@ -287,8 +270,7 @@ export function AppBar({
       >
         <Speckle grain="paper" />
         <div className="su-union-bar__row">
-          {/* The lockup. The mark's alt names the link; the wordmark is the
-              same name drawn, so it is hidden from the accessibility tree. */}
+          {/* The lockup is the mark alone; its alt names the link. */}
           <LinkComponent href="/" className={`su-union-bar__brand ${FOCUS_RING}`} style={BRAND}>
             <img
               src={markSrc}
@@ -298,10 +280,6 @@ export function AppBar({
               className="su-union-bar__mark"
               style={MARK}
             />
-            <span aria-hidden="true" className="su-union-bar__wordmark" style={WORDMARK}>
-              {WORDMARK_NAME}
-              <span style={WORDMARK_ACCENT}>{WORDMARK_TLD}</span>
-            </span>
           </LinkComponent>
 
           <nav aria-label="Salvage Union tools" style={SWITCH}>
