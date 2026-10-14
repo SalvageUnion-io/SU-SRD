@@ -12,17 +12,20 @@ paths:
 
 Each entity page's `og:image` is its **link preview card**, `OgCard` from
 component-lib: the chapter band with speckle, the notched title,
-the stat boxes and the Union bar's foot, the same parts the pages are built
+the label-first chips (`Stat`, from `toEntityModel`'s facts in E17 order)
+and the Union bar's foot, the same parts the pages are built
 from, so the preview cannot drift from the page. A reference thing (chassis,
-system, equipment) takes its tone, stats and page cite; a thing you do (ability,
-action) the ink band, tier numeral, cost pennant and rules. `ogCardForEntity`
+system, equipment) takes its tone, chips and page cite; a thing you do (ability,
+action) its band (an ability's tree tone, else ink) with the tier numeral left
+of the name, the cost pennant last and the rules. The kind is printed on the
+foot line, never as a kicker above the title. `ogCardForEntity`
 builds the card from the entity, and `apps/srd/src/lib/ogCard.ts` (`ogCardFor`,
 `ogMetaFor`, `ogImagePath`) is the one place the island, the generator and the
 pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at
 1200×630 into `dist/{schemaId}/{itemId}.og.png`, beside the page.
 
 - The page's other preview tags come from the same card: `og:title` is the
-  name, `og:description` the kicker and cite (never the body), and
+  name, `og:description` the kind and cite (never the body), and
   `theme-color` the band's tone (`DocumentMeta.ogTitle` / `ogDescription` /
   `themeColor`); `<title>` and the meta description still serve search.
 - Run it with `bun --filter srd og:generate` (chromium via `og:install-browser`).
