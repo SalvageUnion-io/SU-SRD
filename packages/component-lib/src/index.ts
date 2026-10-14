@@ -223,6 +223,9 @@ export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
 // A fact whose value is an entity (`CLASS | Engineer`): the chip opens and Peeks it.
 export { EntityStat } from './entity/parts/EntityStat'
+// A Row's band, cut out (`notch`): the name on a paper tab, chips right of it.
+// A page's own cut-out card (the changelog, a class's paths) heads with it.
+export { Head } from './entity/parts/Head'
 export { KindLabel } from './entity/parts/KindLabel'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
 export type { TagItem } from './entity/parts/tagItems'
