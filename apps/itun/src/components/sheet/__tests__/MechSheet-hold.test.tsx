@@ -13,7 +13,7 @@
  */
 
 import { describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { color } from 'component-lib/design/tokens'
 import { makeScrapLot, makeUnitLot } from 'itun-domain/schemas/cargoLot'
 import type { Crawler } from 'itun-domain/schemas/crawler'
@@ -186,6 +186,36 @@ describe('MechSheet — The Hold (Stow →)', () => {
 
     expect(must(slabChip('The Hold')).textContent).toBe('Slots3/6')
     expect(screen.queryByText(/2 lots/i)).toBeNull()
+  })
+})
+
+describe('MechSheet — The Hold panel', () => {
+  test('a flat panel under a Slab; capacity is a label-first chip; the stow target is a Token', () => {
+    const mech = makeMech({ cargoLots: [makeUnitLot('Sealed Crate', { units: 2 })] })
+    const crawler = makeCrawler()
+    const { container } = render(
+      <MechSheet
+        mech={mech}
+        crawler={crawler}
+        crawlerHref="/sheet/crawler/crawler-hold-1"
+        store={makeStore(mech, [], crawler)}
+      />
+    )
+    const manifest = must(container.querySelector<HTMLElement>('[data-storage-side="mech"]'))
+    // The head is the sheet's Slab, not a hand-built ink bar, and nothing in
+    // the Hold casts a shadow (the Live Sheet is flat).
+    expect(within(manifest).getByText('Mech Hold')).toBeTruthy()
+    for (const el of manifest.querySelectorAll<HTMLElement>('[style]')) {
+      expect(el.style.boxShadow).toBe('')
+    }
+    // `UNITS | 2/6`, label first.
+    const units = [...manifest.querySelectorAll('.su-stat-cell')].find((cell) =>
+      cell.textContent?.startsWith('Units')
+    )
+    expect(units?.textContent).toBe('Units2/6')
+    // The linked crawler is a Token that opens its sheet, never a stamp of its name.
+    const token = screen.getByRole('link', { name: 'View Hold Crawler' })
+    expect(token.getAttribute('href')).toBe('/sheet/crawler/crawler-hold-1')
   })
 })
 

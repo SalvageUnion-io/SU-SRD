@@ -163,6 +163,8 @@ type CrawlerSheetProps = {
    * ← Load target. Null when nothing is docked.
    */
   mech?: Mech | null
+  /** The docked mech's sheet: the Hold's load target and the Mech Bay's Token open it. */
+  mechHref?: string
   /**
    * Injectable store — defaults to useEntityStore.
    * Pass a stub in tests to avoid Zustand side effects.
@@ -194,20 +196,18 @@ type CrawlerSheetProps = {
    * crawler (D8). Omitted, there is no link.
    */
   crewHref?: string
-  /** The docked mech's sheet, for its Token in the Mech Bay. */
-  mechHref?: string
 }
 
 export function CrawlerSheet({
   crawler,
   mech = null,
+  mechHref,
   store = useEntityStore,
   readOnly = false,
   economy,
   linkedUnits,
   crew,
   crewHref,
-  mechHref,
 }: CrawlerSheetProps) {
   const storeState = store()
   const cargo = useCargo({ mech, crawler, store, readOnly })
@@ -342,6 +342,7 @@ export function CrawlerSheet({
         side="crawler"
         cargo={cargo}
         mechName={mech?.name ?? null}
+        counterpartHref={mechHref}
         crawlerName={crawler.name}
         readOnly={readOnly}
       />

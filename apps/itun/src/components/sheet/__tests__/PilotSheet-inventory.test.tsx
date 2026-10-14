@@ -104,14 +104,14 @@ describe('PilotSheet — per-item uses counters', () => {
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText('Uses 1/3')).toBeTruthy()
+    expect(document.querySelector('.su-sheet-item__uses')?.textContent).toBe('Uses1/3')
   })
 
   test('absent key reads as full uses', () => {
     const pilot = makePilot({ equipment: ['first-aid-kit'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByText('Uses 3/3')).toBeTruthy()
+    expect(document.querySelector('.su-sheet-item__uses')?.textContent).toBe('Uses3/3')
   })
 
   test('− takes one off the per-item counter', async () => {
@@ -124,7 +124,7 @@ describe('PilotSheet — per-item uses counters', () => {
     expandCards()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Remove one First Aid Kit' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Decrease First Aid Kit uses' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith(
@@ -147,12 +147,12 @@ describe('PilotSheet — per-item uses counters', () => {
     expandCards()
 
     const useBtn = screen.getByRole<HTMLButtonElement>('button', {
-      name: 'Remove one First Aid Kit',
+      name: 'Decrease First Aid Kit uses',
     })
     expect(useBtn.disabled).toBe(true)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Add one First Aid Kit' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Increase First Aid Kit uses' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith(

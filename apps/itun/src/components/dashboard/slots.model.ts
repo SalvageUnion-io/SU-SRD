@@ -169,7 +169,11 @@ export function mechMinorModel(
         breakdown: spParts,
       },
     ],
-    lines: [`Heat ${s.heat}/${s.maxHeat} · EP ${s.ep}/${s.maxEP}`],
+    stats: [
+      { label: 'Heat', value: s.heat, max: s.maxHeat },
+      { label: 'EP', value: s.ep, max: s.maxEP },
+    ],
+    lines: [],
     problems,
   }
 }

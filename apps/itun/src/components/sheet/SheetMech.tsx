@@ -268,6 +268,7 @@ export function SheetMech({
           readOnly={readOnly}
           crawler={composition.crawler}
           crawlerReadOnly={crawlerReadOnly}
+          crawlerHref={composition.crawler ? hrefFor('crawler', composition.crawler.id) : undefined}
           linkedUnits={rail}
           pilotAbilities={pilotAbilitiesOverride ?? composition.pilot?.abilities}
         />

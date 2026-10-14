@@ -12,14 +12,15 @@
  */
 
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, Button, Entity } from 'component-lib'
+import { Badge, Button, Entity, Stat } from 'component-lib'
 import { radius } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
-import { BayStats } from './BayStats'
-import type { BandStat } from './bayStats.model'
+import { CargoLotRow } from '../shared/CargoLotRow'
+import type { BandStat } from './BandStats'
+import { BandStats } from './BandStats'
 import { DAMAGED } from './bayStats.model'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
@@ -77,9 +78,9 @@ type BandText = {
 export type BandBay = {
   label: string
   gauges?: BandGauge[]
-  /** Numbers under the gauges, as label-first chips (the hull's Type and TL). */
+  /** Counts under the gauges, as label-first chips (the Upgrade pool, Upkeep). */
   stats?: BandStat[]
-  /** One-line readouts under the gauges (the scrap pool, Upkeep). */
+  /** One-line readouts that are not counts (the scrap pool, Upkeep's status). */
   lines?: BandText[]
   /**
    * Names shown as chips (the pilot's Kit and Abilities, the crawler's bays).
@@ -296,7 +297,7 @@ function BayBody({ bay }: { bay: BandBay }) {
     <>
       <span className="su-dash-bay-lab">{bay.label}</span>
       {bay.gauges && bay.gauges.length > 0 && <Gauges gauges={bay.gauges} large={bay.large} />}
-      {bay.stats && bay.stats.length > 0 && <BayStats stats={bay.stats} />}
+      {bay.stats && <BandStats stats={bay.stats} />}
       {bay.lines && bay.lines.length > 0 && <Lines lines={bay.lines} />}
       {bay.chips && bay.chips.length > 0 && (
         <ul
@@ -343,11 +344,16 @@ export type StorageLot = {
   code: string
   name: string
   kind: string
+  tl?: number
   qty?: number
   units: number
 }
 
-/** The cargo-hold list used inside the Storage overlay (Jettison is destructive). */
+/**
+ * The cargo-hold list used inside the Storage overlay (Jettison is destructive):
+ * the hold's `UNITS | used/cap`, then each lot as the one lot row
+ * (`CargoLotRow`), as every hold draws it.
+ */
 export function StorageBay({
   lots,
   used,
@@ -361,21 +367,22 @@ export function StorageBay({
 }) {
   return (
     <div className="su-dash-cargo">
-      <p className="su-dash-cargo-usage">
-        Hold {used}/{cap}
-      </p>
+      <span className="su-dash-cargo-usage">
+        <Stat
+          orientation="horizontal"
+          size="compact"
+          label="Units"
+          value={used}
+          max={cap}
+          state={used > cap ? 'critical' : undefined}
+        />
+      </span>
       {lots.length === 0 ? (
         <p className="su-dash-resolve-log">Cargo hold is empty.</p>
       ) : (
         <ul className="su-dash-cargo-list">
           {lots.map((lot) => (
-            <li key={lot.id} className="su-dash-cargo-row">
-              <span className="su-dash-cargo-name">
-                <span className="su-dash-cargo-code">{lot.code}</span>
-                {lot.name}
-                {lot.kind === 'bulk' && lot.qty !== undefined ? ` ×${lot.qty}` : ''}
-                <span className="su-dash-cargo-units">{lot.units}u</span>
-              </span>
+            <CargoLotRow key={lot.id} lot={lot}>
               <Button
                 variant="danger"
                 size="compact"
@@ -384,7 +391,7 @@ export function StorageBay({
               >
                 Jettison
               </Button>
-            </li>
+            </CargoLotRow>
           ))}
         </ul>
       )}

@@ -584,7 +584,7 @@ function resolveModel(
   return {
     kind: 'resolve',
     onBack: noop,
-    costLabel: '1 EP',
+    cost: { amount: 1, heat: 0, uses: 0 },
     currency: 'EP',
     entity: ACTION,
     controls: {
@@ -625,6 +625,16 @@ function bar(): string[] {
     .map((b) => b.textContent ?? '')
 }
 
+/** What the bar says activating spends: its chips, then the cost box. */
+function spend(): string[] {
+  const group = screen.getByRole('group', { name: 'Next step' })
+  return [...group.querySelectorAll('.su-stat-cell, .su-cost')].map((el) =>
+    el.classList.contains('su-cost')
+      ? (el.textContent ?? '')
+      : [...el.children].map((part) => part.textContent).join(' ')
+  )
+}
+
 function renderResolve(view: ResolveModel) {
   return render(
     <PhoneResolve
@@ -640,8 +650,21 @@ function renderResolve(view: ResolveModel) {
 describe('PhoneResolve — only the next step (D7)', () => {
   test('not activated: Activate with its cost', () => {
     renderResolve(resolveModel())
-    expect(bar()).toEqual(['Activate · 1 EP'])
+    expect(bar()).toEqual(['Activate'])
+    expect(spend()).toEqual(['1 EP'])
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Resolving' }))
+  })
+
+  test('the cost reads label-first chips, then the activation cost last (E17)', () => {
+    renderResolve(resolveModel({ cost: { amount: 2, heat: 1, uses: 3 } }))
+    expect(spend()).toEqual(['Heat +1', 'Uses 3', '2 EP'])
+  })
+
+  test('an action that spends nothing says so', () => {
+    renderResolve(resolveModel({ cost: { amount: 0, heat: 0, uses: 0 } }))
+    expect(bar()).toEqual(['Activate'])
+    expect(spend()).toEqual([])
+    expect(screen.getByText('No cost')).toBeTruthy()
   })
 
   test('activated: Roll the die', () => {

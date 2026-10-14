@@ -5,9 +5,10 @@
  * height (`.su-sheet-ctl`, `styles/sheet/items.css`): 32px from `sm`, the
  * 44px tap floor on a phone, where the controls take the line under the Token.
  *
- *   - the condition: one control naming its state, which steps it on
- *     (Intact → Damaged → Destroyed); Read stamps it only when not intact;
- *   - Uses `[− USES 3/5 +]`, when the item has uses;
+ *   - the condition: the tri-state `StatusBadge`, which steps it on
+ *     (Intact → Damaged → Destroyed); Read shows it only when not intact;
+ *   - Uses: the horizontal `Stat` in edit mode, `[USES | 3/5] − +`, when the
+ *     item has uses;
  *   - `actions`: the caller's own (a mech item's Repair, an equipment's
  *     Details), each at the same height;
  *   - Remove: a square ✕.
@@ -18,15 +19,9 @@
  * share one control.
  */
 
+import { Stat, StatusBadge } from 'component-lib'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { ReactNode } from 'react'
-
-/** The condition's name on its control. */
-const CONDITION_LABEL: Record<ItemCondition, string> = {
-  intact: 'Intact',
-  damaged: 'Damaged',
-  destroyed: 'Destroyed',
-}
 
 type SheetItemLineProps = {
   /** The item's Token. */
@@ -59,7 +54,6 @@ export function SheetItemLine({
   actions,
   onRemove,
 }: SheetItemLineProps) {
-  const conditionLabel = condition && CONDITION_LABEL[condition]
   // Read: the Token alone while intact; a damaged or destroyed one names its
   // condition as a read-out stamp after it, as does any `stamp`.
   if (readOnly) {
@@ -68,15 +62,7 @@ export function SheetItemLine({
     return (
       <div className="su-entity-token-line su-sheet-item">
         {token}
-        {damaged && (
-          <span
-            className="su-sheet-ctl su-sheet-ctl--condition su-sheet-ctl--readout"
-            data-state={condition}
-            title={`${name}: ${conditionLabel}`}
-          >
-            {conditionLabel}
-          </span>
-        )}
+        {damaged && <StatusBadge status={condition} />}
         {stamp && <span className="su-sheet-ctl su-sheet-ctl--readout">{stamp}</span>}
       </div>
     )
@@ -86,43 +72,27 @@ export function SheetItemLine({
     <div className="su-entity-token-line su-sheet-item">
       {token}
       {condition && (
-        <button
-          type="button"
-          className="su-sheet-ctl su-sheet-ctl--condition"
-          data-state={condition}
-          aria-label={`${name} status: ${conditionLabel} — click to change`}
-          onClick={onConditionCycle}
-        >
-          {conditionLabel}
-        </button>
+        // The one-height rule rides the wrapper (`.su-sheet-item__condition`).
+        <span className="su-sheet-item__condition">
+          <StatusBadge status={condition} subject={name} onClick={onConditionCycle} />
+        </span>
       )}
       {uses && uses.max > 0 && (
-        <span className="su-sheet-ctl su-sheet-ctl--uses">
-          <button
-            type="button"
-            className="su-sheet-ctl__step"
-            aria-label={`Remove one ${name}`}
-            disabled={uses.remaining <= 0}
-            onClick={() => uses.onChange(uses.remaining - 1)}
-          >
-            −
-          </button>
-          <span aria-hidden="true" className="su-sheet-ctl__readout">
-            {`Uses ${uses.remaining}/${uses.max}`}
-          </span>
+        <>
+          <Stat
+            orientation="horizontal"
+            label="Uses"
+            value={uses.remaining}
+            max={uses.max}
+            mode="edit"
+            onChange={uses.onChange}
+            stepperLabel={`${name} uses`}
+            className="su-sheet-item__uses"
+          />
           <span role="status" aria-live="polite" className="su-sr-only">
             {name} uses: {uses.remaining}
           </span>
-          <button
-            type="button"
-            className="su-sheet-ctl__step"
-            aria-label={`Add one ${name}`}
-            disabled={uses.remaining >= uses.max}
-            onClick={() => uses.onChange(uses.remaining + 1)}
-          >
-            +
-          </button>
-        </span>
+        </>
       )}
       {actions}
       {onRemove && (

@@ -190,6 +190,8 @@ type MechSheetProps = {
    * repair's scrap-pool deduction; the mech's own edits stay open.
    */
   crawlerReadOnly?: boolean
+  /** The linked crawler's sheet: The Hold's stow target Token opens it. */
+  crawlerHref?: string
   /**
    * The Assigned Units rail content (pilot + crawler rail row/RailEmpty), built
    * by SheetMech from `composition` — MechSheet has no composition access of
@@ -212,18 +214,13 @@ export function MechSheet({
   readOnly = false,
   crawler = null,
   crawlerReadOnly = false,
+  crawlerHref,
   linkedUnits,
   pilotAbilities,
 }: MechSheetProps) {
   const storeState = store()
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available, never rule-gated for now).
-  // Identity / Quirk+Appearance are FIELD sections (unified edit language
-  // archetype A): their own Edit/Done toggle, rendered in the
-  // SheetSectionCard header.
-  // Quirk & Appearance now live inside the identity card, so they follow ITS
-  // Edit toggle — a second Edit button inside the same frame would have been
-  // two switches for one section.
   const [picker, setPicker] = useState<ItemKind | null>(null)
 
   const model = useMechSheetModel({
@@ -463,6 +460,7 @@ export function MechSheet({
           cargo={cargo}
           mechName={mech.name}
           crawlerName={crawler?.name ?? null}
+          counterpartHref={crawlerHref}
           readOnly={readOnly}
         />
       </SheetSectionSlab>

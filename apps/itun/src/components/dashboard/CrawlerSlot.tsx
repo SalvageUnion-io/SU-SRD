@@ -372,15 +372,14 @@ export function CrawlerMajor({
   const upkeepBay: BandBay = {
     label: 'Upkeep',
     side: true,
-    lines: [
-      {
-        text:
-          crawlerTl === undefined
-            ? `${DOWNTIME_UPKEEP_SCRAP} Scrap per Downtime`
-            : `${DOWNTIME_UPKEEP_SCRAP} Tech ${crawlerTl} Scrap per Downtime`,
-      },
-      ...(upkeep === null
-        ? []
+    // `SCRAP | 3` of `TL | n` (or higher), each Downtime.
+    stats: [
+      { label: 'Scrap', value: DOWNTIME_UPKEEP_SCRAP },
+      ...(crawlerTl === undefined ? [] : [{ label: 'TL', value: crawlerTl }]),
+    ],
+    lines:
+      upkeep === null
+        ? undefined
         : [
             {
               text: upkeep.spent
@@ -389,8 +388,7 @@ export function CrawlerMajor({
                   ? 'Outstanding'
                   : `Outstanding · paid in the ${UPKEEP_STEP_NAME} step`,
             },
-          ]),
-    ],
+          ],
     buttons:
       mediator && upkeep !== null && !upkeep.spent && upkeep.payable
         ? [
@@ -405,14 +403,14 @@ export function CrawlerMajor({
   const upgradeBay: BandBay = {
     label: 'Upgrade',
     side: true,
-    lines: [
-      {
-        text:
-          upgrade === null
-            ? 'No further Tech Level'
-            : `Pool ${crawler.upgradePool ?? 0}/${upgrade.cost} to Tech ${upgrade.toTl}`,
-      },
-    ],
+    stats:
+      upgrade === null
+        ? undefined
+        : [
+            { label: 'Pool', value: crawler.upgradePool ?? 0, max: upgrade.cost },
+            { label: 'Next Tech', value: upgrade.toTl },
+          ],
+    lines: upgrade === null ? [{ text: 'No further Tech Level' }] : undefined,
     buttons: [],
   }
   // Scrap needs a mech to break down; a pilot with none has nothing to offer.

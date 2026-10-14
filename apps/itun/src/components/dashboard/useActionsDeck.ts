@@ -483,15 +483,14 @@ export function useActionsDeck({
     // Heat Cap, so it is refused where that would — as the Reactor bay refuses it.
     const pushLocked = !canPush(heatCtx.currentHeat, heatCtx.heatCap)
 
-    const cost: string[] = []
-    if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)
-    if (heatApplies && eco.heat > 0) cost.push(`Heat +${eco.heat}`)
-    if (eco.maxUses > 0) cost.push(`Uses ${eco.maxUses}`)
-
     return {
       kind: 'resolve',
       onBack: close,
-      costLabel: cost.length > 0 ? cost.join(' · ') : 'No cost',
+      cost: {
+        amount: eco.epCost,
+        heat: heatApplies ? eco.heat : 0,
+        uses: eco.maxUses,
+      },
       currency: effCurrency,
       entity: selected.action,
       currencyChoice: currencyChoice

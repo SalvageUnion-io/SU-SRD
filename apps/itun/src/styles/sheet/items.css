@@ -35,17 +35,31 @@
   white-space: nowrap;
 }
 
-/* The condition: one width for all three states, so a list's Tokens end in
-   one line however their items stand. */
-.su-sheet-ctl--condition {
-  min-width: 6.5rem;
+/* Uses: the horizontal `Stat` in edit mode (`[USES | 3/5] − +`), its cell
+   at the control's height; the steps stretch to it (the lib's own 44px
+   floor below sm matches the phone's). */
+.su-sheet-item__uses {
+  min-height: var(--sheet-ctl-h);
 }
 
-/* A damaged or destroyed item's condition: the inverted state, not a hue. */
-.su-sheet-ctl[data-state='damaged'],
-.su-sheet-ctl[data-state='destroyed'] {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
+/* The cell's two plate halves (Badges, 22px of their own). */
+.su-sheet-item__uses > span {
+  height: auto;
+}
+
+/* The condition is the tri-state `StatusBadge`, held to the control's
+   height, and to one width for all three states, so a list's Tokens end in
+   one line however their items stand. */
+.su-sheet-item__condition {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+/* The badge inside the StatusBadge's button. */
+.su-sheet-item__condition > button > span {
+  height: var(--sheet-ctl-h);
+  justify-content: center;
+  min-width: 6.5rem;
 }
 
 /* A toggle that is on (an ability marked Used): inverted, as a condition. */
@@ -78,36 +92,8 @@
   min-height: var(--sheet-ctl-h);
 }
 
-/* Uses: `[− USES 3/5 +]`, one frame, its steps square. */
-.su-sheet-ctl--uses {
-  cursor: default;
-  gap: 0;
-  padding: 0;
-}
-
-.su-sheet-ctl__step {
-  align-self: stretch;
-  background: none;
-  border: 0;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  min-width: var(--sheet-ctl-h);
-  padding: 0;
-}
-
-.su-sheet-ctl__step:disabled {
-  cursor: default;
-  opacity: 0.35;
-}
-
-.su-sheet-ctl__readout {
-  padding: 0 var(--space-4);
-}
-
 @media (hover: hover) {
-  .su-sheet-ctl:not(.su-sheet-ctl--readout, .su-sheet-ctl--uses, :disabled):hover,
-  .su-sheet-ctl__step:not(:disabled):hover {
+  .su-sheet-ctl:not(.su-sheet-ctl--readout, :disabled):hover {
     background-color: var(--color-ink);
     color: var(--color-paper);
   }

@@ -83,41 +83,6 @@
   margin-left: auto;
 }
 
-/* The stamp as the roll (`RollStamp`, ITUN's Dashboard table head): a real button that keeps the stamp's
-   look. Hover inverts it to paper, never rust: rust is `Button`'s alone
-   (ruleset §3.1). It is at least 24px tall (WCAG 2.5.8's target size), and
-   a coarse pointer gets the 44px tap floor (§4.6). */
-.su-roll__stamp--button {
-  align-items: center;
-  border: var(--bw-hairline) solid var(--color-ink);
-  border-radius: 0;
-  cursor: pointer;
-  display: inline-flex;
-  margin: 0;
-  min-height: 24px;
-}
-
-.su-roll__stamp--button:hover {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-@media (pointer: coarse) {
-  .su-roll__stamp--button {
-    min-height: 44px;
-  }
-}
-
-/* On an ink band (ITUN's Dashboard table head) the stamp's ink frame would
-   vanish, so the button wears a paper plate, as the band's title trigger does. */
-.su-roll__stamp--on-ink.su-roll__stamp--button {
-  border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
-}
-
-.su-roll__stamp--on-ink.su-roll__stamp--button:hover {
-  border-color: var(--color-paper);
-}
-
 /*
  * The bar is an ink head, the same ground as the SRD page's "You rolled"
  * panel head, with the rust Button at its end. With nothing of the host's in
@@ -211,6 +176,45 @@
   min-width: 0;
   overflow-wrap: break-word;
   text-transform: uppercase;
+}
+
+.su-roll__title-select {
+  align-items: center;
+  background-color: transparent;
+  border: var(--bw-hairline) solid var(--color-paper-70);
+  border-radius: var(--radius-badge);
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--space-6);
+  letter-spacing: inherit;
+  max-width: 100%;
+  min-height: 2rem;
+  padding: var(--space-2) var(--space-8);
+  text-align: left;
+  /* A button resets `text-transform`; the title is caps. */
+  text-transform: inherit;
+}
+
+.su-roll__title-select:hover {
+  background-color: var(--color-paper-15);
+  border-color: var(--color-paper);
+}
+
+@media (pointer: coarse) {
+  .su-roll__title-select {
+    min-height: 44px;
+  }
+}
+
+.su-roll__title-chevron {
+  flex: none;
+  transition: rotate 150ms ease;
+}
+
+.su-roll__title-chevron[data-open] {
+  rotate: 180deg;
 }
 
 .su-roll__hint {

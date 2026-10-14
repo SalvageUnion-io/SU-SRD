@@ -3,11 +3,12 @@
  * Storage Bay.
  *
  * A deliberately smaller surface than `StorageManifest`, which renders the
- * mech⇄crawler boundary. That component is built around two named sides with
- * two distinct presentations (a linear chit list and a poster tile grid) and a
- * scrap-pool round trip; a partner carries between 1 and 3 slots, so a third
- * side there would have cost far more than it returned. The transfer semantics
- * are not duplicated — both go through the same `cargoTransfer` reducer.
+ * mech⇄crawler boundary. That component is built around two named sides, a
+ * counterpart panel and a scrap-pool round trip; a partner carries between 1
+ * and 3 slots, so a third side there would have cost far more than it
+ * returned. The transfer semantics
+ * are not duplicated — both go through the same `cargoTransfer` reducer — and
+ * nor is the lot: every lot is the one `CargoLotRow`.
  *
  * Vocabulary matches the mech hold, because a partner "uses the same rules as
  * Mechs": Load in, Unload out, Stow across to the Storage Bay. The Bay keeps
@@ -21,10 +22,10 @@
  */
 
 import { Button, EmptyState, Slab, Stat, tokens } from 'component-lib'
-import type { CargoLot } from 'itun-domain/schemas/cargoLot'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
+import { CargoLotRow } from '../shared/CargoLotRow'
 
 type PartnerHoldProps = {
   cargo: UsePartnerCargoResult
@@ -51,46 +52,6 @@ const LOCKED_NOTE = {
 
 const LOT_LIST = { listStyleType: 'none' } satisfies CSSProperties
 
-/** A lot row; its rule's width drops on the last row (`.su-sheet-partner-lot`). */
-const LOT = {
-  alignItems: 'center',
-  borderBottomColor: tokens.color.ink10,
-  borderBottomStyle: 'solid',
-  display: 'flex',
-  gap: tokens.space[8],
-  paddingBlock: tokens.space[6],
-} satisfies CSSProperties
-
-const LOT_NAME = {
-  color: tokens.color.ink,
-  flex: '1 1 0%',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-const LOT_UNITS = {
-  color: tokens.color.wkMuted,
-  flexShrink: 0,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontVariantNumeric: 'tabular-nums',
-} satisfies CSSProperties
-
-function LotRow({ lot, children }: { lot: CargoLot; children?: ReactNode }) {
-  return (
-    <li className="su-sheet-partner-lot" style={LOT}>
-      <span style={LOT_NAME}>{lot.name}</span>
-      <span style={LOT_UNITS}>{lot.units}</span>
-      {children}
-    </li>
-  )
-}
-
 export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerHoldProps) {
   const { state, usage, crawlerLocked } = cargo
   const editable = !readOnly
@@ -111,7 +72,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
         ) : (
           <ul style={LOT_LIST}>
             {state.carrierLots.map((lot) => (
-              <LotRow key={lot.id} lot={lot}>
+              <CargoLotRow key={lot.id} lot={lot}>
                 {editable && (
                   <>
                     <Button
@@ -132,7 +93,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                     </Button>
                   </>
                 )}
-              </LotRow>
+              </CargoLotRow>
             ))}
           </ul>
         )}
@@ -149,7 +110,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           ) : (
             <ul style={LOT_LIST}>
               {state.depotLots.map((lot) => (
-                <LotRow key={lot.id} lot={lot}>
+                <CargoLotRow key={lot.id} lot={lot}>
                   {editable && (
                     <Button
                       variant="ghost"
@@ -161,7 +122,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                       ← Load
                     </Button>
                   )}
-                </LotRow>
+                </CargoLotRow>
               ))}
             </ul>
           )}

@@ -97,6 +97,13 @@ function overlay(title: string) {
   return within(screen.getByRole('dialog', { name: title }))
 }
 
+/** Every label-first chip on the slot, as `LABEL value` strings. */
+function statChips(): string[] {
+  return [...document.querySelectorAll('.su-stat-cell')].map((cell) =>
+    [...cell.children].map((part) => part.textContent).join(' ')
+  )
+}
+
 let random: ReturnType<typeof spyOn> | null = null
 
 // The table dice load on first use (a dynamic import); loaded here, a roll is
@@ -114,15 +121,23 @@ describe('the bays', () => {
   test('Hull reads the Tech Level as a chip; Upgrade reads the pool against the next one', async () => {
     await renderMajor()
     expect(hullCells()).toContain('TL2')
-    expect(screen.getByText(/^Pool 4\/\d+ to Tech 3$/)).toBeTruthy()
-    expect(screen.getByText('5 Tech 2 Scrap per Downtime')).toBeTruthy()
+    // Counts are label-first chips: `POOL | 4/n`, `NEXT TECH | 3`, `SCRAP | 5`, `TL | 2`.
+    const chips = statChips()
+    expect(chips.find((c) => c.startsWith('Pool'))).toMatch(/^Pool 4\/\d+$/)
+    expect(chips).toContain('Next Tech 3')
+    expect(chips).toContain('Scrap 5')
+    expect(chips).toContain('TL 2')
     expect(screen.getByText('No bays installed.')).toBeTruthy()
   })
 
   test('an unreadable Tech Level is said as unknown, and the Upkeep line drops it', async () => {
     await renderMajor({ crawler: { ...hen, techLevel: 'not-a-level' } })
     expect(hullCells()).toContain('TL?')
-    expect(screen.getByText('5 Scrap per Downtime')).toBeTruthy()
+    const chips = statChips()
+    expect(chips).toContain('Scrap 5')
+    // Only the hull's own `TL | ?` remains: Upkeep drops its TL, Upgrade its pool.
+    expect(chips.filter((c) => c.startsWith('TL'))).toEqual(['TL ?'])
+    expect(chips.some((c) => c.startsWith('Pool'))).toBe(false)
     expect(screen.getByText('No further Tech Level')).toBeTruthy()
   })
 
