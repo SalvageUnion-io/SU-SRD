@@ -44,6 +44,8 @@ export type FacetCell = {
   actionType?: string
   /** A fact's short form. */
   short?: string
+  /** A fact's value in short form, for compact cells (`rangeCodes`). */
+  shortValue?: string
   /** A named rule's glossary lookup. */
   mention?: { schemaName: 'traits' | 'keywords'; name: string }
   /** Changed by a choice or scaled by the Tech Level. */
@@ -66,6 +68,19 @@ export function formatActionType(type: string): string {
 export function formatCost(cost: string | number, currency: string | number | undefined): string {
   const displayCost = cost === 'Variable' ? 'X' : cost
   return `${displayCost} ${currency ?? 'AP'}`
+}
+
+/** The book's range codes (Salvage Union 2.0a p.23: "C: Close // M: Medium // L: Long // F: Far"). */
+const RANGE_CODES: Partial<Record<string, string>> = {
+  Close: 'C',
+  Medium: 'M',
+  Long: 'L',
+  Far: 'F',
+}
+
+/** Range bands as their codes, for compact cells: ["Close", "Medium"] is "C/M". */
+function rangeCodes(range: readonly string[]): string {
+  return range.map((band) => RANGE_CODES[band] ?? band).join('/')
 }
 
 /** Traits → cells: "Explosive (1)" is name Explosive, value 1. */
@@ -113,6 +128,7 @@ export function actionFacets(action: ActionFacets, mechActionType?: string): Fac
       label: 'Range',
       short: 'RNG',
       value: action.range.join(' / '),
+      shortValue: rangeCodes(action.range),
       kind: 'fact',
     })
   }

@@ -915,7 +915,7 @@
 .srd-listing[data-catalog] .srd-listing__tiles {
   gap: var(--space-12);
   grid-auto-rows: auto;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
 }
 
 .srd-listing[data-catalog] .srd-listing__tile-skeleton::before {

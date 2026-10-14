@@ -20,11 +20,12 @@ type TokenChip = { label: string; value?: string }
 
 /**
  * The facts a Token keeps, by their chip label (owner's set, 2026-10-14): Tech
- * Level, the slots it takes or has, and its hit or structure points, a
- * player unit's live reading (`SP 7/9`) included. Everything else (SV, EP,
- * RNG, DMG, traits) is the Row's and the Page's.
+ * Level, the slots it takes or has, its hit or structure points, a player
+ * unit's live reading (`SP 7/9`) included, and its range as the book's code
+ * (`RNG | C`, 2026-10-14). Everything else (SV, EP, DMG, traits) is the Row's
+ * and the Page's.
  */
-const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP'])
+const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP', 'RNG'])
 
 /**
  * A Token's own chips, in order: an ability's tree and level, the kept facts,
@@ -35,7 +36,8 @@ function tokenChips(model: EntityRowModel): TokenChip[] {
   const chips: TokenChip[] = []
   if (model.tree) chips.push({ label: model.tree.name, value: model.tree.level })
   for (const fact of model.facts) {
-    if (TOKEN_FACTS.has(fact.short)) chips.push({ label: fact.short, value: fact.value })
+    if (TOKEN_FACTS.has(fact.short))
+      chips.push({ label: fact.short, value: fact.shortValue ?? fact.value })
   }
   const actions = (model.actions?.length ?? 0) + (model.folded ? 1 : 0)
   if (actions > 1) {

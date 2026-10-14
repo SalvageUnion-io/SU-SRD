@@ -90,7 +90,15 @@ function splitFacets(cells: FacetCell[]): {
   const own = types.find((c) => c.key === 'action-type')?.actionType
   const facts = cells.flatMap((c): Fact[] =>
     c.kind === 'fact'
-      ? [{ key: c.key, label: c.label, short: c.short ?? c.label, value: c.value ?? '' }]
+      ? [
+          {
+            key: c.key,
+            label: c.label,
+            short: c.short ?? c.label,
+            value: c.value ?? '',
+            ...(c.shortValue ? { shortValue: c.shortValue } : {}),
+          },
+        ]
       : []
   )
   const traits = cells.flatMap((c): TraitMention[] =>
