@@ -24,10 +24,14 @@ import { RollTableView } from './RollTableView'
 /** The roll-table page's measure (board 08b): wider than an entity's. */
 export const ROLL_TABLE_PAGE_MEASURE = '85rem'
 
-function tableOf(item: SURefEntity): SURefObjectTable | undefined {
-  return 'table' in item && item.table && typeof item.table === 'object'
-    ? (item.table as SURefObjectTable)
-    : undefined
+/** A roll table's name, prose and table; `undefined` for any other entity. */
+function rollTableParts(item: SURefEntity) {
+  if (!('schemaName' in item) || item.schemaName !== 'roll-tables') return undefined
+  const table =
+    'table' in item && item.table && typeof item.table === 'object'
+      ? (item.table as SURefObjectTable)
+      : undefined
+  return { name: item.name, description: extractStaticEntitySummary(item).contentParagraphs, table }
 }
 
 /**
@@ -36,34 +40,24 @@ function tableOf(item: SURefEntity): SURefObjectTable | undefined {
  * (Callsign), which has its own page (`columnsTablePageData`).
  */
 export function rollTablePageData(item: SURefEntity): RollTablePageData | null {
-  if (!('schemaName' in item) || item.schemaName !== 'roll-tables') return null
-  const table = tableOf(item)
-  if (!table || table.type === 'columns') return null
+  const parts = rollTableParts(item)
+  const table = parts?.table
+  if (!parts || !table || table.type === 'columns') return null
   const rows = digestRollTable(table).map(({ key, label, value }) => ({
     key,
     label,
     value: refText(value, mentionRef),
   }))
   if (rows.length === 0) return null
-  return {
-    name: item.name,
-    description: extractStaticEntitySummary(item).contentParagraphs,
-    rows,
-    table,
-  }
+  return { name: parts.name, description: parts.description, rows, table }
 }
 
 /** The page's data for a two-roll `columns` table (Callsign), or `null`. */
 export function columnsTablePageData(item: SURefEntity): ColumnsTablePageData | null {
-  if (!('schemaName' in item) || item.schemaName !== 'roll-tables') return null
-  const table = tableOf(item)
-  const columns = table ? digestColumnsTable(table) : []
-  if (columns.length === 0) return null
-  return {
-    name: item.name,
-    description: extractStaticEntitySummary(item).contentParagraphs,
-    columns,
-  }
+  const parts = rollTableParts(item)
+  const columns = parts?.table ? digestColumnsTable(parts.table) : []
+  if (!parts || columns.length === 0) return null
+  return { name: parts.name, description: parts.description, columns }
 }
 
 /**

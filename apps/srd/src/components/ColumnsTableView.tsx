@@ -3,7 +3,7 @@ import type { ColumnsRoll, ColumnsTablePageData } from '../lib/columnsTablePage'
 import { columnsHit } from '../lib/columnsTablePage'
 import type { RollState } from '../lib/rollTablePage'
 import { rangeLabel } from '../lib/rollTablePage'
-import { RollPanel } from './RollPanel'
+import { RollPanel, RollReadout } from './RollPanel'
 
 /**
  * ColumnsTableView — a two-roll `columns` table's page (Callsign Table, board
@@ -39,16 +39,11 @@ export function ColumnsTableView({ data, tone, state, onRoll }: ColumnsTableView
       prompt="Roll twice: the first d20 picks the column, the second the entry down it."
       result={
         roll === null || !hit ? undefined : (
-          <div className="srd-roll__readout">
-            <span className="srd-roll__number">{roll.entry}</span>
-            <div className="srd-roll__outcome">
-              <span className="srd-roll__lands">
-                <span className="srd-roll__lands-label">Column {roll.column}</span>
-                <span className="srd-roll__lands-range">{rangeLabel(hit.column.key)}</span>
-              </span>
-              <span className="srd-roll__outcome-title">{hit.entry.value}</span>
-            </div>
-          </div>
+          <RollReadout
+            n={roll.entry}
+            lands={{ label: `Column ${roll.column}`, range: rangeLabel(hit.column.key) }}
+            title={hit.entry.value}
+          />
         )
       }
       history={history.map((earlier) => ({
@@ -57,12 +52,8 @@ export function ColumnsTableView({ data, tone, state, onRoll }: ColumnsTableView
       }))}
       // Twenty rows of five columns under a note: always the compact setting.
       density="compact"
+      description={data.description}
     >
-      {data.description.map((paragraph) => (
-        <p key={paragraph} className="srd-roll__description">
-          {paragraph}
-        </p>
-      ))}
       <RollTableInstrument
         name={data.name}
         size="large"

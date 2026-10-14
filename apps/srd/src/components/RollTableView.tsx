@@ -9,7 +9,7 @@ import {
   splitRows,
 } from '../lib/rollTablePage'
 import { MentionProse } from './MentionProse'
-import { RollPanel } from './RollPanel'
+import { RollPanel, RollReadout } from './RollPanel'
 
 /**
  * RollTableView — a roll table's page, rolled and read (board 08b).
@@ -50,20 +50,11 @@ export function RollTableView({ data, tone, state, onRoll }: RollTableViewProps)
       result={
         roll === null ? undefined : (
           <>
-            <div className="srd-roll__readout">
-              <span className="srd-roll__number">{roll}</span>
-              <div className="srd-roll__outcome">
-                {hit && (
-                  <span className="srd-roll__lands">
-                    <span className="srd-roll__lands-label">Lands on</span>
-                    <span className="srd-roll__lands-range">{rangeLabel(hit.key)}</span>
-                  </span>
-                )}
-                <span className="srd-roll__outcome-title">
-                  {hit ? (hit.label ?? `Roll ${roll}`) : NO_EFFECT}
-                </span>
-              </div>
-            </div>
+            <RollReadout
+              n={roll}
+              lands={hit && { label: 'Lands on', range: rangeLabel(hit.key) }}
+              title={hit ? (hit.label ?? `Roll ${roll}`) : NO_EFFECT}
+            />
             {hit && (
               <p className="srd-roll__text">
                 <MentionProse parts={hit.value} />
@@ -74,12 +65,8 @@ export function RollTableView({ data, tone, state, onRoll }: RollTableViewProps)
       }
       history={history.map((n) => ({ n, label: outcomeLabel(data.table, data.rows, n) }))}
       density={density}
+      description={data.description}
     >
-      {data.description.map((paragraph) => (
-        <p key={paragraph} className="srd-roll__description">
-          {paragraph}
-        </p>
-      ))}
       <RollTableInstrument
         name={data.name}
         size="large"

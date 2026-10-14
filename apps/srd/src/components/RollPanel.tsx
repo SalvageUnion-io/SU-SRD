@@ -12,7 +12,9 @@ type RollPanelProps = {
   history: { n: number; label: string }[]
   /** The page's density setting (`rollTableDensity`, or always `compact`). */
   density: string
-  /** The page's main column: the table's prose and its instrument. */
+  /** The table's prose, a paragraph each, over the instrument. */
+  description: readonly string[]
+  /** The page's main column under the prose: the table's instrument. */
   children: ReactNode
 }
 
@@ -24,7 +26,15 @@ type RollPanelProps = {
  * announced here, in the panel's polite live region. `RollTableView` and
  * `ColumnsTableView` differ only in what they put in it.
  */
-export function RollPanel({ name, result, prompt, history, density, children }: RollPanelProps) {
+export function RollPanel({
+  name,
+  result,
+  prompt,
+  history,
+  density,
+  description,
+  children,
+}: RollPanelProps) {
   return (
     <div className="srd-roll" data-density={density}>
       <section className="srd-roll__panel" aria-labelledby="roll-panel-title">
@@ -56,6 +66,11 @@ export function RollPanel({ name, result, prompt, history, density, children }: 
       </section>
 
       <div className="srd-roll__main">
+        {description.map((paragraph) => (
+          <p key={paragraph} className="srd-roll__description">
+            {paragraph}
+          </p>
+        ))}
         {children}
         <p className="srd-roll__credit">
           Dice rolling powered by{' '}
@@ -63,6 +78,35 @@ export function RollPanel({ name, result, prompt, history, density, children }: 
             Randsum.dev
           </InlineRef>
         </p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The current roll's readout: the number, then where it landed (`lands`, when
+ * the roll hit a row or column) over the outcome's title.
+ */
+export function RollReadout({
+  n,
+  lands,
+  title,
+}: {
+  n: number
+  lands?: { label: string; range: string }
+  title: ReactNode
+}) {
+  return (
+    <div className="srd-roll__readout">
+      <span className="srd-roll__number">{n}</span>
+      <div className="srd-roll__outcome">
+        {lands && (
+          <span className="srd-roll__lands">
+            <span className="srd-roll__lands-label">{lands.label}</span>
+            <span className="srd-roll__lands-range">{lands.range}</span>
+          </span>
+        )}
+        <span className="srd-roll__outcome-title">{title}</span>
       </div>
     </div>
   )
