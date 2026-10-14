@@ -60,7 +60,7 @@ describe('class card rendering', () => {
       )
       expect(stamps).toHaveLength(1)
       expect(stamps[0]?.parentElement?.classList.contains('su-stat-cell')).toBe(true)
-      expect(stamps[0]?.previousElementSibling?.textContent).toBe('HYBRID')
+      expect(stamps[0]?.nextElementSibling?.textContent).toBe('HYBRID')
       unmount()
     }
   })

@@ -26,28 +26,28 @@ const chipsOf = (schema: string, name: string) => {
 
 describe('Token chips', () => {
   test('a system with several actions counts them all, its own included', () => {
-    expect(chipsOf('systems', 'Fabrication Arm')).toEqual(['3TL', '3Slots', '4 Actions'])
+    expect(chipsOf('systems', 'Fabrication Arm')).toEqual(['TL3', 'Slots3', '4 Actions'])
   })
 
   test('one action shows its type, then the cost box last', () => {
     expect(chipsOf('systems', 'Electro-Magnetic Shield Projector')).toEqual([
-      '3TL',
-      '2Slots',
+      'TL3',
+      'Slots2',
       'Reaction',
       '2 EP',
     ])
   })
 
   test('an ability leads with its tree and level', () => {
-    expect(chipsOf('abilities', 'Union Engineer')).toEqual(['1Advanced Engineer', '2 Actions'])
-    expect(chipsOf('abilities', 'Tip Top Shape')[0]).toBe('LLegendary Engineer')
+    expect(chipsOf('abilities', 'Union Engineer')).toEqual(['Advanced Engineer1', '2 Actions'])
+    expect(chipsOf('abilities', 'Tip Top Shape')[0]).toBe('Legendary EngineerL')
   })
 
   test('a chassis shows TL, SP and its system and module slots', () => {
-    expect(chipsOf('chassis', 'Mule')).toEqual(['1TL', '12SP', '16SYS', '2MODS'])
+    expect(chipsOf('chassis', 'Mule')).toEqual(['TL1', 'SP12', 'SYS16', 'MODS2'])
   })
 
   test('an NPC shows its HP and its action count', () => {
-    expect(chipsOf('npcs', 'Saboteur')).toEqual(['6HP', '8 Actions'])
+    expect(chipsOf('npcs', 'Saboteur')).toEqual(['HP6', '8 Actions'])
   })
 })

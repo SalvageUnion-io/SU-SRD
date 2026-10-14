@@ -176,7 +176,6 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
             orientation="horizontal"
             label={index === 0 ? 'REQ' : 'or'}
             value={tree}
-            lead="label"
             size="compact"
             className="srd-class-path__req-cell"
           />

@@ -71,8 +71,8 @@ describe('actions nest', () => {
     // the facts, the traits. No "//" line.
     expect(container.textContent).not.toContain('//')
     expect(screen.getAllByText('Turn Action').length).toBeGreaterThan(0)
-    expect(container.textContent).toContain('CloseRNG')
-    expect(container.textContent).toContain('1 SPDMG')
+    expect(container.textContent).toContain('RNGClose')
+    expect(container.textContent).toContain('DMG1 SP')
     expect(screen.getAllByText('Melee').length).toBeGreaterThan(0)
   })
 
