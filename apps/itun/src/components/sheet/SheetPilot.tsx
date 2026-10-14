@@ -198,6 +198,7 @@ export function SheetPilot({
           message="No crawler assigned. Set the crawler level by hand until your union home is assigned."
           mock={
             <Stat
+              orientation="horizontal"
               label="CRAWLER"
               value={pilot.crawlerLevel ?? 1}
               max={6}

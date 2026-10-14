@@ -151,24 +151,16 @@
   box-shadow: 0 0 0 1px var(--color-ink);
 }
 
-/* The +/- steppers: a 44px coarse-pointer floor that drops at sm (the box's
- * square steppers floor both axes), and a resting fill/ink that swaps on hover
+/* The +/- steppers: a 44px coarse-pointer floor that drops at sm, and a
+ * resting fill/ink that swaps on hover
  * while the stepper is live (not at its limit). */
 .su-stat-step {
   min-height: 44px;
 }
 
-.su-stat-step--square {
-  min-width: 44px;
-}
-
 @media (min-width: 40rem) {
   .su-stat-step {
     min-height: 0;
-  }
-
-  .su-stat-step--square {
-    min-width: 0;
   }
 }
 

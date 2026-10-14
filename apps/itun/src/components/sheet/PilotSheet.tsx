@@ -90,14 +90,8 @@ import { SectionManageButton, SheetPickerModal } from './SheetSection'
 // TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`
 // beside Conditions.
 //
-// This was a hand-assembled `.tpblock` (stamp / 30px numeral / caption / a
-// bespoke StepButton pair) arguing the poster's framed TP readout was its own
-// thing. It is not: it is the canonical value box at its headline rung —
-// `Stat` `size="full"` is stamp / 26px numeral / bottom stamp with the +/-
-// stepper column, which is the same anatomy the HP and AP gauges above it
-// already use. `ariaLabel` keeps the unbounded-counter accessible contract
-// (role="group" named "Training Points {value}", with Increase/Decrease
-// Training Points steppers — the visible label is split across the two lines).
+// A label-first chip (`TRAINING POINTS | 3`) with the +/- steppers while the
+// sheet writes it, as every stat reads.
 // ---------------------------------------------------------------------------
 
 function TpBlock({
@@ -111,14 +105,9 @@ function TpBlock({
 }) {
   return (
     <Stat
-      label="Training"
+      orientation="horizontal"
+      label="Training Points"
       value={value}
-      bottomLabel="Points"
-      size="full"
-      ariaLabel={`Training Points ${value}`}
-      // Without this the steppers would read "Increase Training" — the label is
-      // now only the first half of the two-line readout.
-      stepperLabel="Training Points"
       mode={editable ? 'edit' : 'read'}
       onChange={editable ? onChange : undefined}
     />

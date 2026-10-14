@@ -15,8 +15,7 @@ const CELLS = {
 /**
  * BONUS PER TECH LEVEL — its own distinct rendering, anchored INLINE at the
  * prose that describes it (choice-plan): the green "Bonus per Tech Level" label
- * + the "+N" deltas. Damage rides HORIZONTAL (as everywhere), other stats are
- * vertical value boxes.
+ * + the "+N" deltas, each a label-first chip (`Damage | +1 SP`).
  */
 export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; compact: boolean }) {
   return (
@@ -29,30 +28,22 @@ export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; comp
         size={compact ? 'compact' : 'full'}
       />
       <div style={CELLS}>
-        {cells.map((cell) =>
-          cell.label.toLowerCase() === 'damage' ? (
-            // Damage is always horizontal (label | +N SP), matching every other
-            // Damage cell; the unit rides into the value.
+        {cells.map((cell) => {
+          // Every cell is a label-first chip: Damage carries its unit in the
+          // value (`Damage | +1 SP`), any other stat its whole name in the
+          // label (`Structure Points | +1`).
+          const damage = cell.label.toLowerCase() === 'damage'
+          const unit = cell.bottomLabel ? ` ${cell.bottomLabel}` : ''
+          return (
             <Stat
               key={cell.key}
               orientation="horizontal"
-              label={cell.label}
-              value={`${cell.value}${cell.bottomLabel ? ` ${cell.bottomLabel}` : ''}`}
+              label={damage ? cell.label : `${cell.label}${unit}`}
+              value={damage ? `${cell.value}${unit}` : cell.value}
               size={compact ? 'compact' : 'full'}
             />
-          ) : (
-            <Stat
-              key={cell.key}
-              label={cell.label}
-              bottomLabel={cell.bottomLabel}
-              value={cell.value}
-              // VALUE BOX, not horizontal: its rungs sit one step down, so
-              // `compact` maps to `mini` here while the horizontal cells above
-              // map it to `compact`. Same prop, same file, different ladder.
-              size={compact ? 'mini' : 'compact'}
-            />
           )
-        )}
+        })}
       </div>
     </div>
   )

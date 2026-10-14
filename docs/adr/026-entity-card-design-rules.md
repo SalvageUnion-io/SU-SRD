@@ -73,18 +73,15 @@ changing the _data shape_ over special-casing the renderer.
 - Demo: `Compositions/Entity/Reference Entity Card` → **ChoiceEquipment**
   (multiple-choice) / **InlineChoices** (freeform and table, both inline).
 
-### 4. The stat atom has two anatomies — and NO pips
+### 4. The stat atom has one anatomy — and NO pips
 
-A `Stat` is the vertical value box (the default) or the horizontal
-`[label | value]` cell (`orientation="horizontal"`); `size` picks its rung of the
-sizing ladder in either. Editable stats grow a `+/-` stepper column. The entity
-header uses the horizontal cell at every size.
+A `Stat` is the label-first `[label | value]` chip; `size` picks its rung of the
+sizing ladder. Editable stats grow a `+/-` stepper pair. The vertical value box
+it once also drew was retired for chips (2026-10-14), crew-lead HP first.
 
-**`Stat` has no pip mode.** A value/max tracker is the value box (a fill bar is
-`VitalGauge`); individual pips live only in `VitalGauge`, never inside a stat
-cell.
-
-- Demo: `Atoms/Stat` → **Anatomies** / **ValueBox** / **Horizontal**.
+**`Stat` has no pip mode.** A value/max tracker is the chip's `value /max` (a
+fill bar is `VitalGauge`); individual pips live only in `VitalGauge`, never
+inside a stat cell.
 
 ### 5. "Modified stats" — the heavier-frame language
 

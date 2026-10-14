@@ -118,14 +118,3 @@
     grid-column: span 2 / span 2;
   }
 }
-
-/* The crew name on the dark head bar. `> span` reaches InlineEditField's own
-   readout, which is ink at rest and invisible here otherwise. */
-.su-sheet-npc-name,
-.su-sheet-npc-name > span {
-  color: var(--color-paper);
-}
-
-.su-sheet-npc-name > span {
-  opacity: 1;
-}

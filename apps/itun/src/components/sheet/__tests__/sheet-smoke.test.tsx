@@ -25,7 +25,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { installConvexMocks } from '../../__tests__/convexMock'
@@ -195,7 +195,7 @@ describe('Smoke — crawler-only sheet', () => {
     expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
   })
 
-  test('crawler tech level appears in the sheet (identity Tech/Level plate)', () => {
+  test('crawler tech level appears in the sheet (identity TL chip)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -205,10 +205,9 @@ describe('Smoke — crawler-only sheet', () => {
       />
     )
     // Tech Level reads in IDENTITY beside the crawler type now, not in the
-    // economy rail — the rail keeps the things you SPEND. Its label is split
-    // across the stat plate's two lines, so the accessible name carries the
-    // whole phrase.
-    expect(screen.getByLabelText(/Tech Level/)).toBeTruthy()
+    // economy rail — the rail keeps the things you SPEND — as a `TL | n` chip.
+    const identity = screen.getByRole('region', { name: 'Crawler identity' })
+    expect(within(identity).getByText('TL')).toBeTruthy()
   })
 })
 
