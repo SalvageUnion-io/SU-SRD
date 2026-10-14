@@ -35,12 +35,24 @@ export function parsePeekAddress(
 export type PeekAttrs = { [PEEK_ATTRIBUTE]?: string }
 
 /**
- * The attributes that make an element a Peek trigger, or none: a synthetic ref
- * (built from embedded data) has no dataset row to show, a pattern is drawn by
- * its own page, and inside a Peek nothing peeks again.
+ * The address of a record EMBEDDED in another (a crawler bay's crew NPC): its
+ * host's address and the part, `crawler-bays:<id>/npc`. It has no dataset row
+ * of its own, so the Peek resolves it through its host (`PeekPopup`).
  */
-export function usePeekAttrs(ref: EntityRef | undefined): PeekAttrs {
+export function embeddedPeekAddress(schemaName: string, hostId: string, part: 'npc'): string {
+  return `${schemaName}:${hostId}/${part}`
+}
+
+/**
+ * The attributes that make an element a Peek trigger, or none: a synthetic ref
+ * (built from embedded data) has no dataset row to show unless its caller
+ * names one (`address`, an `embeddedPeekAddress`), a pattern is drawn by its
+ * own page, and inside a Peek nothing peeks again.
+ */
+export function usePeekAttrs(ref: EntityRef | undefined, address?: string): PeekAttrs {
   const inside = useInsidePeek()
-  if (!ref || inside || ref.synthetic || ref.pattern) return {}
+  if (inside) return {}
+  if (address) return { [PEEK_ATTRIBUTE]: address }
+  if (!ref || ref.synthetic || ref.pattern) return {}
   return { [PEEK_ATTRIBUTE]: peekAddress(ref) }
 }
