@@ -14,12 +14,11 @@ import type { CommandButtonInteraction } from './commands/interactions'
 import type { LookupMessage } from './commands/lookup'
 import { buildLookupMessage, buildTableLookupMessage } from './commands/lookup'
 import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from './commands/roll'
-import { attributeRoll } from './commands/rollAttribution'
 import type { ContainerData } from './container'
 import { v2Reply } from './container'
 import { decodeRollRequest, parseCustomId } from './customId'
 import { dieForTable } from './dice'
-import { entityCard, entityFromKey, patternOf, readCard, viewPayloadKey } from './lookupCard'
+import { entityFromKey, readCard } from './lookupCard'
 
 /**
  * A `su:lookup` payload: an entry key (`schemaName::slug`, from "Post to
@@ -58,47 +57,8 @@ export async function handleButtonInteraction(
       await interaction.reply({ content: posted.error, flags: MessageFlags.Ephemeral })
       return
     }
-    const { data, ...payload } = posted
+    const { data: _data, ...payload } = posted
     await interaction.reply(payload)
-    await attributeRoll(interaction, data, `Rolled on ${data.tableName}`, {
-      table: data.tableName,
-      posted: true,
-    })
-    return
-  }
-
-  // An older message's tab or page: the lookup has no tabs now, so it redraws
-  // the entry's one card, for everyone who sees it. Nothing new is posted.
-  if (parsed.action === 'view') {
-    const key = viewPayloadKey(parsed.payload)
-    const hit = key ? entityFromKey(key) : null
-    if (!hit) {
-      await interaction.reply({
-        content: 'That entry is no longer in the reference.',
-        flags: MessageFlags.Ephemeral,
-      })
-      return
-    }
-    const { data: _data, ...payload } = buildLookupMessage(hit)
-    await interaction.update(payload)
-    return
-  }
-
-  // An older message's pattern picker: the picked pattern's own card, privately
-  // — read-only and terminal, so it carries no controls of its own.
-  if (parsed.action === 'peek') {
-    const hit = entityFromKey(parsed.payload)
-    const pattern =
-      hit && interaction.values[0] ? patternOf(hit.entity, interaction.values[0]) : null
-    const peek = hit && pattern ? entityCard({ ...hit, pattern }) : null
-    if (!peek) {
-      await interaction.reply({
-        content: 'That pattern is no longer in the reference.',
-        flags: MessageFlags.Ephemeral,
-      })
-      return
-    }
-    await interaction.reply(v2Reply(peek, true))
     return
   }
 
@@ -159,25 +119,11 @@ export async function handleButtonInteraction(
     return
   }
 
-  // `data` rides along on every V2 payload so attributeRoll can rebuild the
-  // container; a lookup is not a roll, so its copy is simply unused.
-  // `ephemeral` is ours, not Discord's: the flags already carry it.
+  // `data` and `ephemeral` are ours, not Discord's: the flags already carry it.
   const {
-    data,
+    data: _data,
     ephemeral: _ephemeral,
     ...payload
   } = message as typeof message & { data?: ContainerData; ephemeral?: true }
   await interaction.reply(payload)
-
-  // A re-roll is a roll. Recording only the slash-command form would mean the
-  // Change Log quietly disagreed with the channel about what happened at the
-  // table — and "why is my re-roll missing?" is a worse question than any this
-  // saves. `lookup` is not a roll and is deliberately excluded.
-  // A private roll has not happened at the table until it is posted, so,
-  // like `/su roll private`, its re-roll records nothing yet.
-  if (request && !request.isPrivate && data !== undefined) {
-    await attributeRoll(interaction, data, `Rolled on ${request.tableName}`, {
-      rerolled: request.tableName,
-    })
-  }
 }

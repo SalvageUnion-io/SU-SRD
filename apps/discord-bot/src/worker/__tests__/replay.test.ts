@@ -372,38 +372,6 @@ describe('interaction dispatch', () => {
     expect(body.data?.content).toBeUndefined()
   })
 
-  test('an older lookup tab redraws the message it sits on (UPDATE_MESSAGE)', async () => {
-    const keys = await generateKeyPair()
-    const { ctx, settled } = executionContext()
-    const res = await worker.fetch(
-      await signedRequest(interaction.button('su:view:chassis::mule|patterns'), keys),
-      envFor(keys),
-      ctx
-    )
-    await settled()
-    const body = (await res.json()) as { type: number; data?: { components?: unknown[] } }
-    expect(body.type).toBe(InteractionResponseType.UpdateMessage)
-    expect(JSON.stringify(body.data?.components)).toContain('## [Mule](')
-  })
-
-  test('the pattern picker reads the select value and answers privately', async () => {
-    const keys = await generateKeyPair()
-    const { ctx, settled } = executionContext()
-    const res = await worker.fetch(
-      await signedRequest(interaction.select('su:peek:chassis::mule', ['hauler']), keys),
-      envFor(keys),
-      ctx
-    )
-    await settled()
-    const body = (await res.json()) as {
-      type: number
-      data?: { flags?: number; components?: unknown[] }
-    }
-    expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
-    expect((body.data?.flags ?? 0) & 64).toBe(64)
-    expect(JSON.stringify(body.data?.components)).toContain('PATTERN OF MULE')
-  })
-
   test('the message context menu reads the target message', async () => {
     const keys = await generateKeyPair()
     const { ctx, settled } = executionContext()

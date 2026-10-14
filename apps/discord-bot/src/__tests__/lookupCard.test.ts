@@ -32,7 +32,6 @@ import {
   lookupCard,
   lookupKey,
   readCard,
-  viewPayloadKey,
 } from '../lookupCard'
 import { cardText } from './cardText'
 
@@ -243,12 +242,6 @@ describe('lookupCard — patterns are entries of their own', () => {
     expect(entityFromKey('chassis::mule::no-such-pattern')).toBeNull()
     expect(entityFromKey('chassis::mule::hauler::extra')).toBeNull()
     expect(entityFromKey('nonsense::mule')).toBeNull()
-  })
-
-  test('an older tab’s payload still names its entry', () => {
-    expect(viewPayloadKey('chassis::mule|patterns|2')).toBe('chassis::mule')
-    expect(viewPayloadKey('chassis::mule|overview')).toBe('chassis::mule')
-    expect(viewPayloadKey('chassis::mule|nonsense')).toBeNull()
   })
 })
 

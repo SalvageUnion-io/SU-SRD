@@ -317,9 +317,15 @@ describe('dropRetired', () => {
         userId: joiner.userId,
         redeemedAt: Date.now(),
       })
+      await ctx.db.insert('channelBindings', {
+        gameId,
+        channelId: 'chan-1',
+        boundBy: organizer.userId,
+        boundAt: Date.now(),
+      })
     })
 
-    const counts = { invites: 1, joinRequests: 1, inviteRedemptions: 1 }
+    const counts = { invites: 1, joinRequests: 1, inviteRedemptions: 1, channelBindings: 1 }
     expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
     expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
 
@@ -328,6 +334,7 @@ describe('dropRetired', () => {
       invites: 0,
       joinRequests: 0,
       inviteRedemptions: 0,
+      channelBindings: 0,
     })
     const legacy = await t.run(async (ctx) =>
       ctx.db

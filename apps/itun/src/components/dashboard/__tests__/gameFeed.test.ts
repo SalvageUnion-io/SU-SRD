@@ -1,7 +1,7 @@
 /**
  * The pure halves of what the Dashboard reads and writes about the table:
  * how a crewmate's resolve reads (ADR-038 §2), the Crew tab's lines, and the
- * change-log row a Dashboard roll becomes (`botClient.recordRoll`'s shape).
+ * change-log row a Dashboard roll becomes.
  */
 
 import { describe, expect, test } from 'bun:test'

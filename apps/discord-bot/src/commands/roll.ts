@@ -15,7 +15,6 @@ import { dieForTable, rollD20 } from '../dice'
 import { noEffectContainer, unknownTableContainer } from '../errorContainer'
 import { buildRollContainerData } from '../rollContainer'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
-import { attributeRoll } from './rollAttribution'
 
 type RollTable = ReturnType<typeof SalvageUnionReference.RollTables.all>[number]
 
@@ -54,8 +53,7 @@ function replayResult(payload: string):
 
 /**
  * A Components V2 payload ready for `interaction.reply`, or a user-facing
- * error. `data` rides along so `attributeRoll` can rebuild the container with
- * one more line rather than mutating a sent message — see rollAttribution.ts.
+ * error. `data` is the pure container it was rendered from.
  */
 export type RollMessage =
   | { flags: number; components: [ContainerBuilder]; data: ContainerData; ephemeral?: true }
@@ -281,16 +279,7 @@ export const rollCommand = {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
     }
-    const { data, ephemeral, ...payload } = message
+    const { data: _data, ephemeral: _ephemeral, ...payload } = message
     await interaction.reply(payload)
-    // Nothing to record for an error container, and nothing YET for a private
-    // roll — it has not happened at the table until it is posted. The Post to
-    // channel button records it then.
-    if (ephemeral === true) return
-    // After the reply, never before it: a bound channel adds a footer line, an
-    // unbound one costs the roller nothing. See rollAttribution.ts.
-    await attributeRoll(interaction, data, `Rolled on ${tableName}`, {
-      table: tableName,
-    })
   },
 }

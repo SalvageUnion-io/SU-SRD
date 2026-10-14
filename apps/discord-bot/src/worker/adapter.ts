@@ -192,16 +192,15 @@ type RawActor = {
 }
 
 /**
- * Who ran an interaction, and in which channel.
+ * Who ran an interaction.
  *
  * `user` is top-level in DMs and nested under `member` in a guild. Reading
  * only one of them is how a command works everywhere except where it is
  * actually used.
  */
-function actorOf(raw: RawActor): Pick<CommandExecuteInteraction, 'user' | 'channelId'> {
+function actorOf(raw: RawActor): Pick<CommandExecuteInteraction, 'user'> {
   return {
     user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
-    channelId: raw.channel_id ?? null,
   }
 }
 
@@ -309,23 +308,12 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
 
 /** Build the button surface `handleButtonInteraction` expects. */
 export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInteraction {
-  const raw = ctx.raw as RawActor & { data?: { custom_id?: string; values?: string[] } }
-  const members = replyMembers(ctx)
+  const raw = ctx.raw as RawActor & { data?: { custom_id?: string } }
 
   return {
     customId: raw.data?.custom_id ?? '',
-    values: raw.data?.values ?? [],
     ...actorOf(raw),
-    ...members,
-    // Redraw the message the control is on. First, it IS the HTTP response
-    // (UPDATE_MESSAGE); after that, the component's message is `@original`.
-    async update(payload: unknown): Promise<unknown> {
-      if (!ctx.sink.settled) {
-        ctx.sink.send({ type: InteractionResponseType.UpdateMessage, data: payload })
-        return undefined
-      }
-      return members.editReply(payload)
-    },
+    ...replyMembers(ctx),
   } as CommandButtonInteraction
 }
 

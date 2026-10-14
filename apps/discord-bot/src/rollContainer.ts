@@ -155,8 +155,7 @@ function landsOn(outcome: Extract<RollOnTableOutcome, { kind: 'flat' | 'columns'
  * Shape a table roll into container data.
  *
  * Pure: takes the resolved table, the outcome and optional context, and returns
- * blocks. The Game's LOGGED TO line is spliced in after the reply by
- * `commands/rollAttribution.ts`.
+ * blocks.
  */
 export function buildRollContainerData(
   table: SURefRollTable,

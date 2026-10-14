@@ -1,7 +1,5 @@
-import type { BotDenial } from 'itun-domain/botWire'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
-import { getMembership } from './permissions'
 
 /**
  * Shared logic for the Discord bot as a Game participant (ADR-030).
@@ -13,8 +11,6 @@ import { getMembership } from './permissions'
  */
 
 type AnyCtx = QueryCtx | MutationCtx
-
-export type BotResolution<T> = { ok: true; value: T } | { ok: false; reason: BotDenial }
 
 /**
  * The account behind a Discord id, or null when nobody has signed in as it.
@@ -40,55 +36,6 @@ export async function userByDiscordId(
   if (account === null) return null
 
   return await ctx.db.get(account.userId)
-}
-
-/** The binding for a channel, or null when the channel speaks for no Game. */
-async function bindingForChannel(
-  ctx: AnyCtx,
-  channelId: string
-): Promise<Doc<'channelBindings'> | null> {
-  return await ctx.db
-    .query('channelBindings')
-    .withIndex('by_channel', (q) => q.eq('channelId', channelId.trim()))
-    .unique()
-}
-
-/**
- * Resolve a Discord user, in a Discord channel, to a member of a Game.
- *
- * This is the bot's entire authorization story in one function: the channel
- * decides *which* Game, the Discord id decides *who*, and membership decides
- * whether those two have anything to do with each other. The bot never names
- * an actor — it can only report the Discord id Discord handed it, and that id
- * is worth nothing unless somebody has signed in with it and been invited.
- */
-export async function resolveActor(
-  ctx: AnyCtx,
-  channelId: string,
-  discordId: string
-): Promise<
-  BotResolution<{
-    gameId: Id<'games'>
-    game: Doc<'games'>
-    user: Doc<'users'>
-    membership: Doc<'memberships'>
-  }>
-> {
-  const binding = await bindingForChannel(ctx, channelId)
-  if (binding === null) return { ok: false, reason: 'unbound' }
-
-  const game = await ctx.db.get(binding.gameId)
-  // A binding whose Game is gone is a bug, not a state to render — but the
-  // channel is, in every sense that matters to the caller, unbound.
-  if (game === null) return { ok: false, reason: 'unbound' }
-
-  const user = await userByDiscordId(ctx, discordId)
-  if (user === null) return { ok: false, reason: 'unlinked' }
-
-  const membership = await getMembership(ctx, binding.gameId, user._id)
-  if (membership === null) return { ok: false, reason: 'not-a-member' }
-
-  return { ok: true, value: { gameId: binding.gameId, game, user, membership } }
 }
 
 /** Every Game a user belongs to, with their role in each. */

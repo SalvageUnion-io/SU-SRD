@@ -2,14 +2,12 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { gamesCommand, meCommand } from '../commands/account'
 import { setItunClient } from '../commands/itunReply'
-import { rollCommand } from '../commands/roll'
 import { parseSheetTarget, sheetCommand } from '../commands/sheet'
 import { suCommand } from '../commands/su'
 import type { ItunClient } from '../itun/client'
 import type { ItunResult } from '../itun/types'
 import type { ReplyArg } from './fakeInteraction'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
-import { buttonInteractionHandlerFor } from './helpers'
 
 /**
  * The Game commands with an ITUN deployment configured.
@@ -34,7 +32,6 @@ function clientReturning(result: ItunResult<unknown>): ItunClient {
     games: answer,
     mineForAutocomplete: answer,
     sheet: answer,
-    recordRoll: answer,
   }
 }
 
@@ -211,7 +208,7 @@ describe('/su sheet', () => {
 
   test('autocomplete works outside a channel', async () => {
     connect(OK_MINE)
-    const { interaction, responses } = fakeAutocomplete({ subcommand: 'sheet', channelId: null })
+    const { interaction, responses } = fakeAutocomplete({ subcommand: 'sheet' })
     await sheetCommand.autocomplete(interaction)
     expect(responses[0]).toHaveLength(3)
   })
@@ -280,82 +277,5 @@ describe('/su dispatch', () => {
     const { interaction, responses } = fakeAutocomplete({ subcommand: 'sheet', focused: '' })
     await suCommand.autocomplete(interaction)
     expect(responses[0]).toHaveLength(3)
-  })
-})
-
-/**
- * The rendered text of a V2 container edit, where the Game signal is its own
- * line.
- */
-function editedText(edit: { components?: readonly unknown[] } | undefined): string {
-  const container = edit?.components?.[0] as { toJSON(): { components: unknown[] } } | undefined
-  if (!container) throw new Error('expected a container on the edit')
-  return container
-    .toJSON()
-    .components.map((c) => (c as { content?: string }).content ?? '')
-    .join('\n')
-}
-
-describe('roll attribution', () => {
-  test('a recorded roll gains a line saying where it landed', async () => {
-    connect({ kind: 'ok', value: { ok: true, game: 'Tenacity' } })
-    const { interaction, replies, edits } = fakeExecute({
-      subcommand: 'roll',
-      strings: { table: 'Core Mechanic' },
-    })
-    await rollCommand.execute(interaction)
-
-    // The roll itself is replied to FIRST and unchanged; the container is
-    // rebuilt afterwards, only once the recording actually landed.
-    expect(replies).toHaveLength(1)
-    expect(edits).toHaveLength(1)
-    // The edit must carry the V2 flag: a message created with it keeps it.
-    expect(edits[0]?.flags).toBe(MessageFlags.IsComponentsV2)
-    expect(editedText(edits[0])).toContain('LOGGED TO TENACITY')
-  })
-
-  test('an unrecorded roll is left exactly as it was', async () => {
-    connect({ kind: 'denied', reason: 'not-a-member', message: 'no' })
-    const { interaction, replies, edits } = fakeExecute({
-      subcommand: 'roll',
-      strings: { table: 'Core Mechanic' },
-    })
-    await rollCommand.execute(interaction)
-
-    // Silent: the roll still rolled, and naming the reason in a public channel
-    // would announce who has an account.
-    expect(replies).toHaveLength(1)
-    expect(edits).toHaveLength(0)
-  })
-
-  test('a thrown client never escapes past the user’s roll', async () => {
-    restore = setItunClient({
-      ...clientReturning({ kind: 'unavailable', message: 'x' }),
-      recordRoll: () => Promise.reject(new Error('network exploded')),
-    })
-    const { interaction, replies, edits } = fakeExecute({
-      subcommand: 'roll',
-      strings: { table: 'Core Mechanic' },
-    })
-
-    // The user already has their roll by this point, so there is no failure
-    // here worth surfacing to them — it goes to Sentry instead.
-    await rollCommand.execute(interaction)
-    expect(replies).toHaveLength(1)
-    expect(edits).toHaveLength(0)
-  })
-
-  test('a re-roll button records too', async () => {
-    connect({ kind: 'ok', value: { ok: true, game: 'Tenacity' } })
-    const { handle, edits } = buttonInteractionHandlerFor('su:roll:Core Mechanic')
-    await handle()
-    expect(editedText(edits[0])).toContain('LOGGED TO TENACITY')
-  })
-
-  test('a lookup button is not a roll and records nothing', async () => {
-    connect({ kind: 'ok', value: { ok: true, game: 'Tenacity' } })
-    const { handle, edits } = buttonInteractionHandlerFor('su:lookup:Core Mechanic')
-    await handle()
-    expect(edits).toHaveLength(0)
   })
 })

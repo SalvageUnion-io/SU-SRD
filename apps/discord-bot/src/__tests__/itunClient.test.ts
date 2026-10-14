@@ -140,11 +140,6 @@ describe('the transport', () => {
       (c: ReturnType<typeof createItunClient>) => c.sheet('d1', 'pilots', 'p1'),
       { discordId: 'd1', table: 'pilots', entityId: 'p1' },
     ],
-    [
-      'recordRoll',
-      (c: ReturnType<typeof createItunClient>) => c.recordRoll('d1', 'c1', 'Rolled', { t: 1 }),
-      { discordId: 'd1', channelId: 'c1', description: 'Rolled', result: { t: 1 } },
-    ],
   ])('%s sends the arguments the server declares', async (op, call, expected) => {
     // Guards the one genuinely untyped seam in the system: these payloads are
     // validated by Convex's own arg validators at the far end, so a renamed
