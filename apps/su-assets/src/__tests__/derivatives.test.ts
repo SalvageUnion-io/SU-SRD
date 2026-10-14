@@ -123,6 +123,25 @@ describe('asset worker — derivatives', () => {
     expect(reportError.mock.calls[0]?.[1]).toMatchObject({ op: 'images.transform', width: 440 })
   })
 
+  it('503s and reports when the MASTER cannot be read, rather than 404ing', async () => {
+    // The derivative miss is normal; the store then failing on the master is an
+    // outage, and must look like one (503 plus an event), not like missing art.
+    const bucket = {
+      async get(key: string) {
+        if (key === 'chassis/mule.webp') throw new Error('R2 down')
+        return null
+      },
+    }
+    const images = imagesStub()
+    const res = await makeAssetHandler(() => bucket, images)(req('/chassis/mule-440.webp'))
+
+    expect(res.status).toBe(503)
+    expect(await res.text()).toBe('Asset storage unavailable')
+    expect(images.calls).toEqual([])
+    expect(reportError).toHaveBeenCalledTimes(1)
+    expect(reportError.mock.calls[0]?.[1]).toMatchObject({ op: 'r2.get', key: 'chassis/mule.webp' })
+  })
+
   it('does not treat a non-derivative miss as a transformation request', async () => {
     const bucket = bucketWith({})
     const images = imagesStub()

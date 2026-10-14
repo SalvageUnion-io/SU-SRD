@@ -81,4 +81,40 @@ describe('SearchResultsIsland', () => {
       replaceSpy.mockRestore()
     }
   })
+
+  test('with no term it asks for one, and clearing the field drops ?q= from the URL', async () => {
+    render(<SearchResultsIsland />)
+    expect(await screen.findByText('Enter a search term to see results.')).toBeTruthy()
+
+    cleanup()
+    window.location.href = 'http://localhost/search?q=mule'
+    const replaceSpy = spyOn(window.history, 'replaceState')
+    try {
+      render(<SearchResultsIsland />)
+      const input = await screen.findByRole('searchbox', { name: 'Search the SRD' })
+      fireEvent.change(input, { target: { value: '   ' } })
+      expect(await screen.findByText('Enter a search term to see results.')).toBeTruthy()
+      const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
+      expect(urls.at(-1)).toBe('/search')
+    } finally {
+      replaceSpy.mockRestore()
+    }
+  })
+
+  test('an index entry without a Row model is listed as a plain link to its page', async () => {
+    const slim = index.map(({ model: _model, ...entry }) => entry)
+    fetchSpy?.mockImplementation(
+      Object.assign(
+        async () =>
+          new Response(JSON.stringify(slim), { headers: { 'Content-Type': 'application/json' } }),
+        { preconnect: fetch.preconnect }
+      )
+    )
+    window.location.href = 'http://localhost/search?q=gopher'
+    const { container } = render(<SearchResultsIsland />)
+    const link = await screen.findByRole('link', { name: 'Gopher' })
+    expect(link.getAttribute('href')).toBe('/chassis/gopher/')
+    expect(link.className).toBe('srd-listing__fallback-row')
+    expect(container.querySelector('.su-entity-row')).toBeNull()
+  })
 })

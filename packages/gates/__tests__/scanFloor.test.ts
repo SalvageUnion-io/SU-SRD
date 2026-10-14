@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
+import { assertScanFloor } from '../lib/scanFloor'
+import { Exited, trapExit } from './trapExit'
 
 const TOOLS = join(import.meta.dir, '..')
 
@@ -63,5 +65,25 @@ describe('assertScanFloor', () => {
   test('names the gate so a CI failure says which one broke', async () => {
     const { stderr } = await runFloor(0, 10)
     expect(stderr).toContain('probe')
+  })
+})
+
+/**
+ * The same contract in-process, with `process.exit` trapped: the subprocess
+ * cases above prove the real exit, these prove the message a CI log carries.
+ */
+describe('assertScanFloor (exit trapped)', () => {
+  const { errors } = trapExit()
+
+  test('returns silently at or above the floor', () => {
+    expect(() => assertScanFloor('probe', 10, 10)).not.toThrow()
+    expect(errors).toEqual([])
+  })
+
+  test('below the floor it exits 1 and tells the author how to lower it legitimately', () => {
+    expect(() => assertScanFloor('styling (app CSS)', 1, 2)).toThrow(new Exited(1))
+    const out = errors.join('\n')
+    expect(out).toContain('styling (app CSS): scanned 1 files, expected at least 2')
+    expect(out).toContain('lower the floor')
   })
 })

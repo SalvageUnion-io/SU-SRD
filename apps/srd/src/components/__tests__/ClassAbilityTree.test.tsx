@@ -144,4 +144,13 @@ describe('ClassAbilityTree training brief', () => {
     ])
     expect(brief.textContent).toContain('Up to 10')
   })
+
+  test('a Core class that never advances (Salvager) gets one Core card, from any of its trees', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Salvager')} />)
+    const brief = screen.getByRole('complementary', { name: 'Training' })
+    const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
+    expect(cards.map((card) => card.dataset.tier)).toEqual(['core'])
+    expect(cards[0]?.querySelector('.srd-class-brief__band')?.textContent).toBe('Core1 TP')
+    expect(cards[0]?.textContent).toContain('Each, from any Core tree, in tree order.')
+  })
 })

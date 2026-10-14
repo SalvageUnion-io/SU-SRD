@@ -22,6 +22,7 @@ import {
   coreMechanicRowText,
   critDamagePatch,
   critInjuryPatch,
+  describeCritInjury,
   economyForActivation,
   groupBySource,
   hasCurrencyChoice,
@@ -148,6 +149,18 @@ describe('damage patches', () => {
     expect(fatal.effect.fatal).toBe(true)
     expect(fatal.patch.currentHP).toBeUndefined()
   })
+
+  test('describeCritInjury reads each band of the Critical Injury table', () => {
+    // 1 fatal · 2–5 major · 6–10 minor · 11–19 unconscious · 20 miraculous.
+    const read = (roll: number) => describeCritInjury(critInjuryPatch(seqRoll([roll])).effect)
+    expect(read(1)).toBe('Critical Injury 1: Fatal Injury — the pilot dies (confirm on the sheet).')
+    expect(read(3)).toBe('Critical Injury 3: Major Injury — −2 max HP until healed + Unconscious.')
+    expect(read(8)).toBe('Critical Injury 8: Minor Injury — −1 max HP until healed + Unconscious.')
+    expect(read(15)).toBe(
+      'Critical Injury 15: Unconscious — stable at 0 HP until they regain ≥1 HP.'
+    )
+    expect(read(20)).toBe('Critical Injury 20: Miraculous Survival — 1 HP, conscious.')
+  })
 })
 
 describe('activationPatch', () => {
@@ -245,6 +258,32 @@ describe('buildPilotActions', () => {
     expect(deck.length).toBeGreaterThan(0)
     expect(deck.every((pa) => pa.stamp === 'ABL')).toBe(true)
     expect(deck.every((pa) => pa.currency === 'AP')).toBe(true)
+  })
+
+  test("carried equipment's actions join the deck as EQP on AP, with the item's condition", () => {
+    const kit = SalvageUnionReference.Equipment.getByName('First Aid Kit')
+    const gun = SalvageUnionReference.Equipment.getByName('Handheld Riveting Gun')
+    if (!kit || !gun) throw new Error('reference equipment missing')
+    const kitSlug = getEntitySlug(kit)
+    const gunSlug = getEntitySlug(gun)
+    const pilot = pilotFixture({
+      id: 'p3',
+      name: 'Medic',
+      equipment: [kitSlug, 'not-an-item', gunSlug],
+      equipmentConditions: { [gunSlug]: 'damaged' },
+    })
+    const deck = buildPilotActions(pilot)
+    // The unknown slug is skipped, not a crash.
+    expect(deck.every((pa) => pa.kind === 'equipment' && pa.stamp === 'EQP')).toBe(true)
+    expect(deck.every((pa) => pa.currency === 'AP')).toBe(true)
+    const kitActions = deck.filter((pa) => pa.slug === kitSlug)
+    const gunActions = deck.filter((pa) => pa.slug === gunSlug)
+    expect(kitActions.length).toBeGreaterThan(0)
+    expect(gunActions.length).toBeGreaterThan(0)
+    expect(kitActions.every((pa) => pa.ownerName === 'First Aid Kit')).toBe(true)
+    expect(kitActions.every((pa) => pa.condition === 'intact')).toBe(true)
+    expect(gunActions.every((pa) => pa.condition === 'damaged')).toBe(true)
+    expect(deck.every((pa) => pa.key.startsWith('equipment:'))).toBe(true)
   })
 
   test('empty for a pilot with no abilities or equipment', () => {

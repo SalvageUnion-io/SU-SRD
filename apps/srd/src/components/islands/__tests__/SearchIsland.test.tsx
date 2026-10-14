@@ -222,4 +222,120 @@ describe('SearchIsland', () => {
     const categoryRows = options.filter((opt) => opt.textContent?.includes('Category'))
     expect(categoryRows.length).toBeLessThanOrEqual(3)
   })
+
+  test('Escape closes the dropdown and lets go of focus; focusing again reopens it', async () => {
+    render(<SearchIsland navigate={mock(() => {})} />)
+    const input = screen.getByRole('combobox')
+    await act(async () => {
+      input.focus()
+    })
+    await typeAndSettle(input, 'chassis')
+    expect(screen.getByRole('listbox')).toBeTruthy()
+
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Escape' })
+    })
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(input.getAttribute('aria-expanded')).toBe('false')
+    expect(document.activeElement).not.toBe(input)
+
+    await act(async () => {
+      fireEvent.focus(input)
+    })
+    expect(screen.getByRole('listbox')).toBeTruthy()
+  })
+
+  test('a click outside closes the dropdown; a click inside keeps it open', async () => {
+    const { container } = render(
+      <div>
+        <SearchIsland navigate={mock(() => {})} />
+        <p>elsewhere</p>
+      </div>
+    )
+    const input = screen.getByRole('combobox')
+    await typeAndSettle(input, 'chassis')
+
+    await act(async () => {
+      fireEvent.click(input)
+    })
+    expect(screen.getByRole('listbox')).toBeTruthy()
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('elsewhere'))
+    })
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(container.querySelector('[role="combobox"]')?.getAttribute('aria-expanded')).toBe(
+      'false'
+    )
+  })
+
+  test('Cmd+K and Ctrl+K focus the search from anywhere on the page', async () => {
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox')
+    expect(document.activeElement).not.toBe(input)
+
+    const meta = new KeyboardEvent('keydown', { key: 'k', metaKey: true, cancelable: true })
+    await act(async () => {
+      document.dispatchEvent(meta)
+    })
+    expect(document.activeElement).toBe(input)
+    expect(meta.defaultPrevented).toBe(true)
+
+    await act(async () => {
+      input.blur()
+    })
+    await act(async () => {
+      fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
+    })
+    expect(document.activeElement).toBe(input)
+
+    // A bare "k" is just typing.
+    await act(async () => {
+      input.blur()
+    })
+    await act(async () => {
+      fireEvent.keyDown(document, { key: 'k' })
+    })
+    expect(document.activeElement).not.toBe(input)
+  })
+
+  test('without a navigate prop, Enter sends the window to the results page', async () => {
+    const assign = spyOn(window.location, 'assign').mockImplementation(() => {})
+    try {
+      render(<SearchIsland />)
+      const input = screen.getByRole('combobox')
+      await typeAndSettle(input, 'mule pattern')
+      await act(async () => {
+        fireEvent.keyDown(input, { key: 'Enter' })
+      })
+      expect(assign).toHaveBeenCalledWith('/search?q=mule%20pattern')
+    } finally {
+      assign.mockRestore()
+    }
+  })
+
+  describe('the hero variant', () => {
+    test('submitting the form opens the results page for the trimmed term', async () => {
+      const navigate = mock(() => {})
+      render(<SearchIsland variant="hero" navigate={navigate} />)
+      const input = screen.getByRole('combobox')
+      expect(input.getAttribute('name')).toBe('q')
+      await typeAndSettle(input, '  mule  ')
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+      })
+      expect(navigate).toHaveBeenCalledWith('/search?q=mule')
+    })
+
+    test('submitting an empty form goes nowhere and puts focus in the field', async () => {
+      const navigate = mock(() => {})
+      render(<SearchIsland variant="hero" navigate={navigate} />)
+      const input = screen.getByRole('combobox')
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+      })
+      expect(navigate).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(input)
+    })
+  })
 })

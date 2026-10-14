@@ -40,6 +40,8 @@ describe('isPrimaryCheckout', () => {
   test('a .git directory is the primary checkout, a .git file a linked worktree', () => {
     expect(isPrimaryCheckout(primary)).toBe(true)
     expect(isPrimaryCheckout(linked)).toBe(false)
+    // An exported tree has no `.git` at all and shares its ports with nothing.
+    expect(isPrimaryCheckout(join(dir, 'exported'))).toBe(true)
     rmSync(dir, { recursive: true, force: true })
   })
 })
