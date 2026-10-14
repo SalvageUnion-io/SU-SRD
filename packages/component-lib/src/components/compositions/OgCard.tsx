@@ -6,15 +6,16 @@ import { ChapterBand } from '../atoms/ChapterBand'
 import { Speckle } from '../atoms/Speckle'
 import { Stat } from '../atoms/Stat'
 import { PENNANT_SHAPE, USER_MADE_TITLE } from '../referenceEntity/card/cardChrome'
-import type { OgCardProps, OgCardStat } from './ogCardText'
+import type { OgCardChip, OgCardProps, OgCardStat } from './ogCardText'
 import {
   bandColor,
-  footLineOf,
+  footOf,
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
+  OG_GUTTER,
+  ogCardLayout,
   ogCardPrintedTitle,
   ogCardTitle,
-  ogTitleSize,
   REFERENCE_KINDS,
 } from './ogCardText'
 
@@ -23,10 +24,13 @@ import {
  * 1200 × 630 picture of the page a link opens, built from the same parts as
  * that page. The chapter band with its speckle and the notched title
  * (`ChapterBand` at its `og` scale; nothing above the title, EDL E20), the
- * entity's one chip group under it (E17: the page's own horizontal `Stat`
- * cells, the cost's pointy box last), and the Union bar's ink foot with the
- * mark and the address. The kind rides the foot line before the cite, as a
- * Page's foot names it (E9). Because it is assembled from the page's own parts
+ * entity's one chip group beside it on the band, right-aligned on the title's
+ * baseline as a show page's header chips are (E17: the page's own horizontal
+ * `Stat` cells, the cost's pointy box last, extra rows stacking upward). The
+ * band's colour comes as far down the card as it can; under the notch only a
+ * strip of the page ground, or the rules text. The foot is the page's footer:
+ * the kind in caps and the cite on the band's colour (E9), then the Union
+ * bar's ink row with the mark and the address. Because it is assembled from the page's own parts
  * rather than drawn a second time, the preview cannot drift from the page; the
  * SRD screenshots it at build, ITUN on request.
  *
@@ -70,7 +74,6 @@ import {
 
 /** The frame: twice the entity card's 3px, so it reads as 2px at 400px wide. */
 const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
-const GUTTER = `calc(${space[48]} + ${space[8]})`
 
 const CARD = {
   backgroundColor: color.wkBg,
@@ -86,8 +89,13 @@ const CARD = {
   width: OG_CARD_WIDTH,
 } satisfies CSSProperties
 
-/** The band: the notch on its foot, nothing above the title (EDL E20). */
-const BAND_SLOT = { flex: '0 0 230px', minHeight: 0 } satisfies CSSProperties
+/**
+ * The band: the notch on its foot, nothing above the title (EDL E20). The
+ * colour comes as far down the card as it can: the band takes every pixel the
+ * body and the foot leave, and never less than `ogCardLayout`'s height for the
+ * chips beside the title.
+ */
+const BAND_SLOT = { flex: '1 1 auto', minHeight: 0 } satisfies CSSProperties
 
 const CAPS = {
   fontFamily: font.cond,
@@ -97,23 +105,45 @@ const CAPS = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
+/** The page ground under the notch: the rules text, or a strip the notch stands on. */
 const BODY = {
-  display: 'flex',
-  flex: '1 1 auto',
-  flexDirection: 'column',
-  gap: space[20],
-  minHeight: 0,
-  padding: `${space[28]} ${GUTTER} 0`,
+  flex: 'none',
+  padding: `${space[24]} ${OG_GUTTER}`,
 } satisfies CSSProperties
 
-const LINE = {
-  color: color.ink2,
+const STRIP = { ...BODY, paddingBlock: space[12] } satisfies CSSProperties
+
+/**
+ * The foot, as an entity page's footer is set: the band's colour with its
+ * speckle, the kind in caps on the left and the cite on the right.
+ */
+const FOOT = {
+  alignItems: 'baseline',
+  display: 'flex',
+  flex: 'none',
+  gap: space[24],
+  isolation: 'isolate',
+  justifyContent: 'space-between',
+  padding: `${space[20]} ${OG_GUTTER}`,
+  position: 'relative',
+} satisfies CSSProperties
+
+const FOOT_KIND = {
+  ...CAPS,
+  flex: 'none',
+  fontSize: '34px',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const FOOT_BYLINE = {
   fontFamily: font.body,
   fontSize: '34px',
-  fontWeight: weight.semibold,
+  fontWeight: weight.normal,
   lineHeight: 1.2,
   margin: 0,
+  minWidth: 0,
   overflow: 'hidden',
+  textAlign: 'right',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
@@ -172,7 +202,7 @@ const BAR = {
   gap: space[16],
   isolation: 'isolate',
   justifyContent: 'space-between',
-  padding: `0 ${GUTTER}`,
+  padding: `0 ${OG_GUTTER}`,
   position: 'relative',
 } satisfies CSSProperties
 
@@ -195,6 +225,12 @@ const ADDRESS = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
+/** The chips under a name too long to share its line: a left-aligned row on the page ground. */
+const CHIPS_BELOW = { flexWrap: 'wrap', justifyContent: 'flex-start' } satisfies CSSProperties
+
+/** The notch's baseline above the band's foot, as a share of the title's size. */
+const NOTCH_BASELINE = 0.076
+
 // ── Parts ─────────────────────────────────────────────────────────────────
 
 /**
@@ -205,14 +241,19 @@ function Chips({
   stats,
   cost,
   userMade,
+  width,
+  baseline,
 }: {
   stats: OgCardStat[]
   cost?: string | undefined
   userMade: boolean
+  width: number
+  baseline: string
 }) {
-  if (stats.length === 0 && !cost && !userMade) return null
+  // Under the notch the chips read as a line of text: left-aligned, wrapping down.
+  const style = width > 0 ? { paddingBottom: baseline, width } : CHIPS_BELOW
   return (
-    <div className="su-og-chips">
+    <div className="su-og-chips" style={style}>
       {userMade && (
         <span title={USER_MADE_TITLE} style={STAMP}>
           User-made
@@ -267,11 +308,35 @@ export function OgCard({
   const reference = REFERENCE_KINDS.has(props.kind)
   const title = ogCardTitle(props)
   const printed = ogCardPrintedTitle(props)
-  const footLine = footLineOf(props)
+  const foot = footOf(props)
+  const prose =
+    props.kind === 'do' ? props.rules : props.kind === 'invite' ? props.summary : undefined
+  const footColor = ink ? color.ink : color.paper
   // An ability's numeral sits left of the name, on the band (EDL E12, its
   // page's `lead`); the name steps down to leave it room.
   const tier = props.kind === 'do' ? props.tier : undefined
-  const titleSize = `${ogTitleSize(tier ? `${tier} ${printed}` : printed)}px`
+  const stats = 'stats' in props ? props.stats : []
+  const cost = 'cost' in props ? props.cost : undefined
+  const chips: OgCardChip[] = [
+    ...(userMade ? [{ kind: 'stamp', text: 'User-made' } as const] : []),
+    ...stats.map((stat) => ({ kind: 'stat', label: stat.label, value: stat.value }) as const),
+    ...(cost ? [{ kind: 'cost', text: cost } as const] : []),
+  ]
+  const layout = ogCardLayout(tier ? `${tier} ${printed}` : printed, chips)
+  const titlePx = layout.titleSize
+  const titleSize = `${titlePx}px`
+  const chipGroup =
+    chips.length > 0 ? (
+      <Chips
+        stats={stats}
+        cost={cost}
+        userMade={userMade}
+        width={layout.chipsWidth}
+        // Beside the title, on its baseline as a show page's header chips sit:
+        // the face's descent less the half-leading of the notch's line.
+        baseline={layout.chips === 'beside' ? `${Math.round(titlePx * NOTCH_BASELINE)}px` : '0px'}
+      />
+    ) : undefined
 
   return (
     <article
@@ -279,7 +344,7 @@ export function OgCard({
       data-og-card={props.kind}
       style={{ ...CARD, borderStyle: userMade ? 'dashed' : 'solid' }}
     >
-      <div style={BAND_SLOT}>
+      <div style={{ ...BAND_SLOT, minHeight: layout.bandHeight }}>
         <ChapterBand
           scale="og"
           fill={fill}
@@ -287,22 +352,23 @@ export function OgCard({
           userMade={userMade}
           titleSize={titleSize}
           lead={tier ? <span style={{ fontSize: titleSize }}>{tier}</span> : undefined}
+          aside={layout.chips === 'beside' ? chipGroup : undefined}
         >
           {printed}
         </ChapterBand>
       </div>
-      <div style={BODY}>
-        {'stats' in props && (
-          <Chips
-            stats={props.stats}
-            cost={'cost' in props ? props.cost : undefined}
-            userMade={userMade}
-          />
-        )}
-        {props.kind === 'do' && props.rules && <p style={PROSE}>{props.rules}</p>}
-        {props.kind === 'invite' && <p style={PROSE}>{props.summary}</p>}
-        {footLine && <p style={LINE}>{footLine}</p>}
+      {/* With no rules text or chips the ground is only the strip the notch stands on. */}
+      <div style={prose || layout.chips === 'below' ? BODY : STRIP}>
+        {layout.chips === 'below' && chipGroup}
+        {prose && <p style={PROSE}>{prose}</p>}
       </div>
+      {(foot.kind || foot.byline) && (
+        <div style={{ ...FOOT, backgroundColor: fill, color: footColor }}>
+          <Speckle grain={ink ? 'ink' : 'paper'} />
+          {foot.kind && <span style={FOOT_KIND}>{foot.kind}</span>}
+          {foot.byline && <p style={FOOT_BYLINE}>{foot.byline}</p>}
+        </div>
+      )}
       <UnionFoot reference={reference} address={props.address} markSrc={markSrc} />
     </article>
   )

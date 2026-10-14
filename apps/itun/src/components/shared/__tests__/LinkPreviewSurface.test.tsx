@@ -30,8 +30,10 @@ describe('LinkPreviewSurface', () => {
     const { container } = render(<LinkPreviewSurface kind="pattern" id="pat-1" />)
 
     expect(screen.getByRole('heading', { name: '“Tow Rig”' })).toBeTruthy()
-    // The kind leads the foot line; the kicker above the title is gone.
-    expect(screen.getByText('Mech Pattern · Scrapper · Made by alxjrvs')).toBeTruthy()
+    // The foot is set as a page's footer: the kind, then the byline; the
+    // kicker above the title is gone.
+    expect(screen.getByText('Mech Pattern · Scrapper')).toBeTruthy()
+    expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
     expect(container.querySelector('[data-og-card="userMade"]')).not.toBeNull()
     await waitFor(() => {
       expect(document.documentElement.hasAttribute('data-og-ready')).toBe(true)

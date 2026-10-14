@@ -9,6 +9,7 @@ import { ogCardForEntity } from '../ogCardForEntity'
 import type { OgCardProps } from '../ogCardText'
 import {
   ogCardDescription,
+  ogCardLayout,
   ogCardPrintedTitle,
   ogCardThemeColor,
   ogCardTitle,
@@ -139,7 +140,9 @@ function read(props: OgCardProps): Seen & { src: string | null } {
   const card = host.querySelector('article')
   const band = host.querySelector('.su-chapter-band')
   const body = card?.children[1]
-  const foot = card?.children[2]
+  // The page footer's row (kind and cite on the band's colour), then the bar.
+  const cite = card?.children.length === 4 ? card.children[2] : undefined
+  const foot = card?.lastElementChild
   if (!card || !band || !body || !foot) throw new Error('the card lost a part')
   const text = (el: Element | null | undefined) => el?.textContent ?? ''
   return {
@@ -147,11 +150,16 @@ function read(props: OgCardProps): Seen & { src: string | null } {
     title: card.getAttribute('aria-label') ?? '',
     printed: text(host.querySelector('.su-chapter-band__title')),
     tone: band.getAttribute('style')?.match(/background-color:([^;]+)/)?.[1] ?? '',
-    cells: [...body.querySelectorAll('.su-og-chips .su-stat-cell')].map((cell) => [
+    cells: [...card.querySelectorAll('.su-og-chips .su-stat-cell')].map((cell) => [
       text(cell.querySelector('.su-stat-plate--label')),
       text(cell.querySelector('.su-stat-plate--value')),
     ]),
-    lines: [...body.querySelectorAll(':scope > p')].map(text),
+    lines: [
+      ...[...body.querySelectorAll(':scope > p')].map(text),
+      ...(cite
+        ? [[...cite.querySelectorAll(':scope > span, :scope > p')].map(text).join(' · ')]
+        : []),
+    ],
     src: foot.querySelector('img')?.getAttribute('src') ?? null,
     wordmark: text(foot.querySelector('img + span')),
     address: text(foot.querySelector(':scope > span')),
@@ -175,7 +183,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12'],
         ['MODS', '2'],
       ],
-      lines: ['Chassis · Workshop Manual · p.104 · 5 patterns'],
+      lines: ['Chassis · Workshop Manual · p.104'],
       wordmark: 'salvageunion.io',
       address: '/chassis/scrapper',
     },
@@ -417,6 +425,49 @@ describe('OgCard', () => {
     expect(ogTitleSize('Scrapper')).toBe(120)
     expect(ogTitleSize('Reclamation of the Wastes')).toBeLessThan(120)
     expect(ogTitleSize('x'.repeat(200))).toBe(34)
+  })
+
+  test('chips ride the band beside the title, stacking before the title shrinks far', () => {
+    const chassis = ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS', 'Cargo', 'Heat'].map(
+      (label) => ({ kind: 'stat', label, value: '16' }) as const
+    )
+    const mule = ogCardLayout('Mule', chassis)
+    expect(mule.chips).toBe('beside')
+    expect(mule.titleSize).toBe(120)
+    // Eight chips stack over the notch's foot rather than spanning the band.
+    expect(mule.chipsWidth).toBeLessThan(700)
+    expect(mule.bandHeight).toBe(230)
+    expect(ogCardLayout('Mule', [])).toEqual({
+      chips: 'beside',
+      chipsWidth: 0,
+      bandHeight: 230,
+      titleSize: 120,
+    })
+  })
+
+  test('a name too long to share its line keeps it whole, the chips under it', () => {
+    const name = '\u201CSergeant Kessler of the Ninth\u201D'
+    const layout = ogCardLayout(name, [
+      { kind: 'stamp', text: 'User-made' },
+      { kind: 'stat', label: 'HP', value: '9' },
+      { kind: 'stat', label: 'Actions', value: '2' },
+    ])
+    expect(layout.chips).toBe('below')
+    expect(layout.titleSize).toBe(ogTitleSize(name))
+    expect(layout.bandHeight).toBe(230)
+    // The card draws them on the page ground under the notch, User-made first.
+    const host = document.createElement('div')
+    host.innerHTML = renderToStaticMarkup(<OgCard {...LONG_NPC} />)
+    expect(host.querySelector('.su-chapter-band .su-og-chips')).toBeNull()
+    const below = host.querySelector('article > :nth-child(2) .su-og-chips')
+    expect(below?.firstElementChild?.textContent).toBe('User-made')
+  })
+
+  test('the chips render in the band, not the body', () => {
+    const host = document.createElement('div')
+    host.innerHTML = renderToStaticMarkup(<OgCard {...THING} />)
+    expect(host.querySelector('.su-chapter-band .su-og-chips')).not.toBeNull()
+    expect(host.querySelector('article > :nth-child(2) .su-og-chips')).toBeNull()
   })
 
   test('the notch is sized from the string it prints, quotes included', () => {
