@@ -70,7 +70,7 @@ export type PreviewEnv = {
 }
 
 /** The slice of a Workers Rate Limiting binding this uses. */
-export type RenderLimit = {
+type RenderLimit = {
   limit(options: { key: string }): Promise<{ success: boolean }>
 }
 
