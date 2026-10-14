@@ -57,14 +57,8 @@ pass them as generic slot props. Read the current props off the component;
 they are deliberately not listed here.
 
 ```tsx
-// Good: the caller decides, the card takes generic slots
-// (apps/srd/src/components/EntityCardStatic.tsx)
-const classEntity = classOf(item)
-<ReferenceEntityCard
-  data={item}
-  afterExtraContent={classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined}
-  asideLead={!!classEntity}
-/>
+// Good: the caller computes the overrides (srd's EntityCardStatic)
+<ReferenceEntityCard data={item} afterExtraContent={tree} asideLead={!!tree} />
 ```
 
 Prefer data-shape checks (`'coreTrees' in data`) over schema-name checks, so the
