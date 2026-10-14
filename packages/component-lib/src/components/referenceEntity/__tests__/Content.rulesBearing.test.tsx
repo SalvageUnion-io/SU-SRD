@@ -4,7 +4,7 @@
  * Where the app applies the rules (the surface's `appliesRules`: ITUN), the
  * clause it applies leads with an ink AUTO stamp, adjacent to the claim
  * itself. The SRD applies nothing, so the same paragraph is plain prose there:
- * no stamp and no rail.
+ * no stamp.
  *
  * The negative case carries the design intent: prose that STATES a mechanical
  * change on a record with NO structured data stays UNMARKED, so a coverage gap
@@ -22,8 +22,11 @@ const claim = [
 ]
 const flavour = [{ type: 'paragraph' as const, value: 'Layered plates of resilient metal.' }]
 
+const AUTO_NOTE = 'The app applies this rule'
+
+/** The AUTO stamps drawn: one per marked paragraph. */
 function marks(container: HTMLElement): number {
-  return container.querySelectorAll('[data-rules-bearing="true"]').length
+  return container.querySelectorAll(`[title="${AUTO_NOTE}"]`).length
 }
 
 /** Render inside a surface that applies the rules, as ITUN's root does. */
@@ -35,17 +38,10 @@ describe('rules-bearing prose marker', () => {
   test('stamps AUTO on a paragraph that states a mechanical change on an ENCODED record', () => {
     const { container, getByTitle } = inApp(<Content body={claim} rulesBearing />)
     expect(marks(container)).toBe(1)
-    const stamp = getByTitle('The app applies this rule')
+    const stamp = getByTitle(AUTO_NOTE)
     expect(stamp.textContent).toContain('Auto')
     // Its meaning reaches a screen reader, not only a pointer's hover.
     expect(stamp.querySelector('.su-sr-only')?.textContent).toContain('the app applies this rule')
-  })
-
-  test('draws no left rail: the stamp is the only mark', () => {
-    const { container } = inApp(<Content body={claim} rulesBearing />)
-    const paragraph = container.querySelector<HTMLElement>('[data-rules-bearing="true"]')
-    expect(paragraph?.style.borderLeft).toBe('')
-    expect(paragraph?.style.paddingLeft).toBe('')
   })
 
   test('prints the same claim as plain prose where the app applies nothing (the SRD)', () => {

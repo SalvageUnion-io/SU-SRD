@@ -347,7 +347,6 @@ function ContentBlock({
           variant="body"
           as="div"
           style={{ marginBottom: space[4], ...sizeStyle, ...breakWord }}
-          {...(bearing ? { 'data-rules-bearing': 'true' } : {})}
         >
           {bearing && (
             <Badge shape="stamp" size="mini" title={AUTO_NOTE} style={autoStampStyle}>
