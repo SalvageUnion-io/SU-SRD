@@ -56,11 +56,11 @@
 
 import {
   Conditions,
-  Entity,
   EntitySearcher,
   Field,
   FieldError,
   heatDangerFrom,
+  ReferenceEntityCard,
   SheetSectionSlab,
   StatColumn,
   tokens,
@@ -117,6 +117,13 @@ const FIELDS = {
 
 /** The gauge stack; the dashed rule between gauges is `.su-sheet-mech-vitals`. */
 const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
+
+/** The chassis ability cards, one under another. */
+const ABILITIES = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 const CONDITIONS = {
   display: 'flex',
@@ -350,17 +357,21 @@ export function MechSheet({
                       as the official mech sheet prints its own block ahead of
                       the Chassis Ability (SU_Char Sheets 2.0, page 2). */}
                     <StatColumn stats={model.chassisStats} label="Chassis stats" />
-                    {/* The chassis's ability: a Token that Peeks its card
-                      (owner's call, 2026-10-14: "all references = peek
-                      tokens"). Spending its EP is the Dashboard's (ADR-021). */}
+                    {/* The chassis's ability: its Card, as the SRD's chassis
+                      page draws it, `[(CHASSIS)]` reading the chassis's name
+                      (EDL E19: never a Token or Peek). Spending its EP is the
+                      Dashboard's (ADR-021). */}
                     {model.chassisAbilities.length > 0 && (
-                      <ul aria-label="Chassis ability" className="su-entity-token-list">
+                      <section aria-label="Chassis ability" style={ABILITIES}>
                         {model.chassisAbilities.map((ability) => (
-                          <li key={ability.id}>
-                            <Entity form="token" entity={ability} />
-                          </li>
+                          <ReferenceEntityCard
+                            key={ability.id}
+                            data={ability}
+                            size="medium"
+                            chassisName={model.chassisName}
+                          />
                         ))}
-                      </ul>
+                      </section>
                     )}
                   </>
                 }

@@ -36,3 +36,23 @@ describe('Peek footer', () => {
     expect(footerOf().style.background).toBe('')
   })
 })
+
+describe('Peek of a chassis ability', () => {
+  const action = (name: string) => {
+    const found = SalvageUnionReference.getByNameIn('actions', name)
+    if (!found) throw new Error(`fixture missing: ${name}`)
+    return found
+  }
+
+  test('names its one chassis where the book says [(CHASSIS)]', () => {
+    const { container } = render(<PeekCard entity={action('Integrated Cargo Bay')} />)
+    expect(container.textContent).not.toContain('[(CHASSIS)]')
+    expect(container.textContent).toContain('The Mule')
+  })
+
+  test('an ability several chassis share reads "The Mech"', () => {
+    const { container } = render(<PeekCard entity={action('Fast')} />)
+    expect(container.textContent).not.toContain('[(CHASSIS)]')
+    expect(container.textContent).toContain('The Mech')
+  })
+})
