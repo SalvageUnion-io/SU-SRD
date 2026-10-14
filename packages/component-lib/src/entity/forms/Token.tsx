@@ -7,22 +7,51 @@ import { USER_MADE_TITLE } from '../../components/referenceEntity/card/cardChrom
 import { cn } from '../../utils/cn'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
+import { actionTypeStamps } from '../parts/actionStamps'
 import { CostBox } from '../parts/Chips'
 import { KindLabel } from '../parts/KindLabel'
 import { PAPER_NAME, paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityRowModel } from '../types'
 
-/** The one fact a Token carries: `[TL | 2]`, `[LVL | 1]`, `[HP | 9]`. */
+/** A fact a context counts in place of the Token's own chips: `[SLOTS | 2]`. */
 export type TokenFact = { label: string; value?: string }
 
-/** The fact a context counts by default: tier, Tech Level, hit points, a class's kind. */
-function defaultFact(model: EntityRowModel): TokenFact | undefined {
-  if (model.tier) return { label: 'LVL', value: model.tier }
-  if (model.techLevel != null) return { label: 'TL', value: String(model.techLevel) }
-  const vital = model.facts.find((f) => f.short === 'HP' || f.short === 'SP')
-  if (vital) return { label: vital.short, value: vital.value }
-  return model.kind.classKind ? { label: model.kind.classKind } : undefined
+/**
+ * The facts a Token keeps, by key (owner's set, 2026-10-14): Tech Level, the
+ * slots it takes or has, and its hit or structure points. Everything else (SV,
+ * EP, RNG, DMG, traits) is the Row's and the Page's.
+ */
+const TOKEN_FACT_KEYS: ReadonlySet<string> = new Set([
+  'tech-level',
+  'ref-stat-slotsRequired',
+  'ref-stat-systemSlots',
+  'ref-stat-moduleSlots',
+  'ref-stat-structurePoints',
+  'ref-stat-hitPoints',
+])
+
+/**
+ * A Token's own chips, in order: an ability's tree and level, the kept facts,
+ * then its one action's type or, with two or more, how many it has (its own
+ * folded action counted). The cost box follows, drawn by the Token.
+ */
+function tokenChips(model: EntityRowModel): TokenFact[] {
+  const chips: TokenFact[] = []
+  if (model.tree) chips.push({ label: model.tree.name, value: model.tree.level })
+  for (const fact of model.facts) {
+    if (TOKEN_FACT_KEYS.has(fact.key)) chips.push({ label: fact.short, value: fact.value })
+  }
+  const actions = (model.actions?.length ?? 0) + (model.folded ? 1 : 0)
+  if (actions > 1) {
+    chips.push({ label: `${actions} Actions` })
+  } else {
+    for (const stamp of actionTypeStamps(model.actionType, model.mechActionType)) {
+      chips.push({ label: stamp })
+    }
+  }
+  if (chips.length === 0 && model.kind.classKind) chips.push({ label: model.kind.classKind })
+  return chips
 }
 
 /** The adapter's resolved parts (`ReferenceEntityCard` `size="small" extent="head"`). */
@@ -31,6 +60,7 @@ export type TokenSlots = {
   frameStyle?: CSSProperties
   /** The kind, for screen readers (`KindLabel`). */
   kind?: string
+  /** The context's one fact in place of the Token's own chips; `null` for none. */
   fact?: TokenFact | null
   /** The Dashboard's pennant button. */
   pennant?: ReactNode
@@ -61,8 +91,11 @@ const VISUALLY_HIDDEN: CSSProperties = {
 }
 
 /**
- * TOKEN — the shortform (§3): `name [fact]`, one size, for many on a line or
- * a slot under 12rem (E3). Its kind is never stamped (E9): screen readers
+ * TOKEN — the shortform (§3): `name [chips]`, one size, for many on a line or
+ * a slot under 12rem (E3). Its chips are a short set (`tokenChips`), then the
+ * cost box; a context may count one fact of its own instead. It stays one
+ * line: the chips never shrink, and only when they need the room does the
+ * name end in "…" (E18). Its kind is never stamped (E9): screen readers
  * hear it after the name (`KindLabel`); a player unit's note ("Engineer")
  * leads in its place. A tone pill for a thing you have, the tier
  * tone or ink for a thing you do, dashed when player-made. It wraps as a
@@ -79,7 +112,7 @@ export function Token({
   model: EntityRowModel
   instance?: EntityInstance
   mode?: EntityMode
-  /** The fact the context counts, in place of the default; `null` for none. */
+  /** The fact the context counts, in place of the Token's own chips; `null` for none. */
   fact?: TokenFact | null
   slots?: TokenSlots
 }) {
@@ -90,8 +123,9 @@ export function Token({
   const paint = paintFor(model.tone, { down, texture: false })
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
-  const shown =
-    slots.fact !== undefined ? slots.fact : fact !== undefined ? fact : defaultFact(model)
+  const context = slots.fact !== undefined ? slots.fact : fact
+  const chips = context === undefined ? tokenChips(model) : context ? [context] : []
+  const cost = context === undefined ? (slots.cost ?? model.cost) : slots.cost
   const pill = (
     <span
       data-user-made={userMade || undefined}
@@ -110,10 +144,21 @@ export function Token({
         <KindLabel kind={slots.kind ?? model.kind.type} />
       </span>
       {slots.pennant}
-      {shown && (
-        <Stat orientation="horizontal" label={shown.label} value={shown.value} size="mini" />
+      {(chips.length > 0 || cost) && (
+        <span className="su-entity-token__chips">
+          {chips.map((chip) => (
+            <Stat
+              key={chip.label}
+              orientation="horizontal"
+              label={chip.label}
+              value={chip.value}
+              size="mini"
+              inverse={paint.ink}
+            />
+          ))}
+          {cost && <CostBox cost={cost} rung="mini" onInk={paint.ink} />}
+        </span>
       )}
-      {slots.cost && <CostBox cost={slots.cost} rung="mini" onInk={paint.ink} />}
     </span>
   )
   if (slots.outer) {

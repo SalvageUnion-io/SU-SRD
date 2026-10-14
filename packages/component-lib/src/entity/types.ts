@@ -58,7 +58,16 @@ export type EntityRowModel = Pick<
   Partial<
     Pick<
       EntityModel,
-      'tier' | 'techLevel' | 'cost' | 'actionType' | 'mechActionType' | 'lead' | 'userMade'
+      | 'tier'
+      | 'tree'
+      | 'techLevel'
+      | 'cost'
+      | 'actionType'
+      | 'mechActionType'
+      | 'lead'
+      | 'userMade'
+      | 'folded'
+      | 'actions'
     >
   >
 

@@ -5,6 +5,8 @@ type ActivationCostProps = {
   cost: string | number
   currency?: string | undefined | number
   compact?: boolean
+  /** Beside `mini` chips (a Token): their type size, so it is no taller than they are. */
+  mini?: boolean
   /** On an ink band the ink box keeps a paper edge, so it does not sink into the ink. */
   onInk?: boolean
 }
@@ -39,6 +41,8 @@ const BOX_COMPACT = {
   paddingInlineEnd: `calc(${space[4]} + ${TIP})`,
 } satisfies CSSProperties
 
+const BOX_MINI = { ...BOX_COMPACT, fontSize: fontSize.badge } satisfies CSSProperties
+
 const BOX_FULL = {
   fontSize: fontSize.sm,
   fontWeight: weight.semibold,
@@ -53,12 +57,13 @@ export function ActivationCost({
   cost,
   currency = 'AP',
   compact = false,
+  mini = false,
   onInk = false,
 }: ActivationCostProps) {
   if (cost === undefined) return null
   const displayCost = cost === 'Variable' ? 'X' : cost
 
-  const rung = compact ? BOX_COMPACT : BOX_FULL
+  const rung = mini ? BOX_MINI : compact ? BOX_COMPACT : BOX_FULL
   const box = (
     <span className="su-cost" style={{ ...BOX, ...rung, ...(onInk ? EDGED : {}) }}>
       {currency === '' ? displayCost : `${displayCost} ${currency}`}
