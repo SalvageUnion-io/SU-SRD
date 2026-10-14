@@ -2,7 +2,9 @@ import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { SURefEntity, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import { toEntityModel } from 'salvageunion-reference'
 import { borderWidth, color, space } from '../../design/tokens'
+import { EntityStat } from '../../entity/parts/EntityStat'
 import { KindLabel } from '../../entity/parts/KindLabel'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { ChapterBand } from '../atoms/ChapterBand'
@@ -109,9 +111,11 @@ function pageBand(entity: SURefMetaEntity): { tone: ChapterTone; fill?: string }
 /**
  * The Page inside the dialog (EDL Form 5): the chapter band with the title
  * notched in and the chips clustered beside it (E20), the body, and the foot's
- * citation in the card footer's plain text ("Workshop Manual · p.128"). Its own
- * component so a closed dialog resolves none of it: a list renders a dialog
- * per Row.
+ * citation in the card footer's plain text ("Workshop Manual · p.128"). A
+ * pattern's Page leads the cluster with its chassis (`PATTERN OF | Mule`), the
+ * `EntityStat` chip the SRD's pattern page carries: the surface opens it (ITUN's
+ * Page opener, so in the dialog) and Peeks it. Its own component so a closed
+ * dialog resolves none of it: a list renders a dialog per Row.
  */
 function EntityDetailPage({
   entity,
@@ -124,6 +128,7 @@ function EntityDetailPage({
   const provenance = resolveFooterProvenance(entity, pattern)
   // ITUN's "View in SRD" link, carried in the Page's foot.
   const externalLink = useEntityExternalLink(entity as SURefEntity)
+  const parent = pattern ? toEntityModel(entity, undefined, { pattern }).parent : undefined
   return (
     <>
       <ChapterBand
@@ -135,6 +140,7 @@ function EntityDetailPage({
             meta={meta}
             name={title}
             legalStartingPattern={isLegalStartingPatternOf(pattern)}
+            lead={parent && <EntityStat label={parent.label} entityRef={parent.ref} />}
           />
         }
         asideAt="notch"
