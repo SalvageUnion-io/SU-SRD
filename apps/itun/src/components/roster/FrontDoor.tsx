@@ -6,9 +6,9 @@
  *
  *  - the **product-name chapter band** (`PRODUCT.name`) in the cantina tone,
  *    under `PRODUCT.descriptor`, with the legacy tagline quoted beside the
- *    name (under it on a phone), then what it is, the sign-in,
- *    a way into a Starter Set sheet, and the one line about invite links (a
- *    Game is joined from a link, never a typed code);
+ *    name (under it on a phone). No intro band under it (owner, 2026-10-14):
+ *    signing in is the header's, and the Starter Set is the header's tab and
+ *    this page's own section;
  *  - **Start here**, the onboarding the SRD's home shows too (`StartHere`):
  *    Create a Pilot → Create a Mech → Join or make a Crawler. Playing a Game
  *    happens from the Crawler, so it is not a step of its own;
@@ -19,14 +19,11 @@
  * Style objects and tokens only (ADR-046).
  */
 
-import { buttonVariants, ChapterBand, Slab, StartHere, tokens } from 'component-lib'
+import { ChapterBand, Slab, StartHere, tokens } from 'component-lib'
 import { PRODUCT } from 'component-lib/product'
-import { STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
-import { SignInControl } from '../account/SignInControl'
-import { AppLink } from '../shared/AppLink'
 import { StarterCard } from '../starterSet/StarterCard'
 import { starterShelves } from '../starterSet/starterShelves.model'
 
@@ -72,30 +69,6 @@ const QUOTE_BY = {
   margin: `${tokens.space[4]} 0 0`,
 } satisfies CSSProperties
 
-const INTRO = {
-  alignItems: 'flex-start',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[24],
-  justifyContent: 'space-between',
-} satisfies CSSProperties
-
-const LEDE = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.readout,
-  lineHeight: 1.6,
-  margin: 0,
-  maxWidth: '40rem',
-} satisfies CSSProperties
-
-const ACTIONS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
 const SECTION = {
   display: 'flex',
   flexDirection: 'column',
@@ -137,7 +110,6 @@ const CARDS = {
 
 export function FrontDoor() {
   const shelves = starterShelves()
-  const firstSheet = STARTER_PILOTS[0]
 
   return (
     <main style={PAGE}>
@@ -157,26 +129,6 @@ export function FrontDoor() {
       </ChapterBand>
 
       <div className="su-page-column" style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>
-        <section aria-label="Welcome">
-          <div style={INTRO}>
-            <p style={LEDE}>
-              Build your pilots, mechs and Union Crawler straight from the Workshop Manual.
-              Everything saves to your account and is ready to bring to a Game.
-            </p>
-            <div style={ACTIONS}>
-              <SignInControl label="Sign in to build" size="full" />
-              {firstSheet && (
-                <AppLink
-                  href={`/starter/pilot/${firstSheet.id}`}
-                  className={buttonVariants({ variant: 'default', size: 'full' })}
-                >
-                  Read a Starter Set sheet
-                </AppLink>
-              )}
-            </div>
-          </div>
-        </section>
-
         <StartHere id="front-door-start" />
 
         <section aria-labelledby="front-door-starter" style={SECTION}>

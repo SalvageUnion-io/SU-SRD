@@ -150,13 +150,15 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
   // build lives in an account (ADR-034 as amended), so there is nothing of
   // theirs to list, create or import — but the Starter Set is reference, and
   // reading it needs no account.
-  test('the chapter band, the sign-in, and no create, import or game UI', async () => {
+  test('the chapter band, and no intro, create, import or game UI', async () => {
     await act(async () => {
       render(<Roster />)
     })
 
     expect(screen.getByRole('heading', { level: 1, name: 'The Cantina' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Sign in to build' })).toBeTruthy()
+    // The intro band is gone (owner, 2026-10-14): signing in is the header's.
+    expect(screen.queryByRole('region', { name: 'Welcome' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Sign in to build' })).toBeNull()
     expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Import' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
@@ -203,7 +205,6 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
     expect(within(starter).getByRole('region', { name: 'Starter Set pilots' })).toBeTruthy()
     expect(within(starter).getByRole('region', { name: 'Starter Set mechs' })).toBeTruthy()
     expect(within(starter).getByRole('region', { name: 'Starter Set crawler' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Read a Starter Set sheet' })).toBeTruthy()
   })
 })
 
