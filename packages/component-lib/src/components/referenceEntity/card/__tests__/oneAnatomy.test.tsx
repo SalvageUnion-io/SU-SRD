@@ -99,8 +99,9 @@ describe('actions nest', () => {
 
   test("on a Page an action's chips take the page's rung, as the host's own do", () => {
     const { container } = render(<ReferenceEntityCard data={drill()} presentation="page" />)
+    // The drill's own chips ride the page's band; its two actions keep theirs.
     const groups = [...container.querySelectorAll<HTMLElement>('[data-chip-group]')]
-    expect(groups.length).toBe(3)
+    expect(groups.length).toBe(2)
     for (const group of groups) {
       expect(group.querySelector('.su-stat-plate--full')).not.toBeNull()
       expect(group.querySelector('.su-stat-plate--compact')).toBeNull()

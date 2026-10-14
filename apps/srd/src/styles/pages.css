@@ -451,6 +451,24 @@
   padding-inline: var(--space-8);
 }
 
+/* The facts and traits on the band (`Stat`, `Tag`): each cell at the stamps'
+   height (its plates inside the cell's hairline frame) and type, so every
+   chip on the band reads as one size. */
+.srd-entity-stamps .su-stat-plate {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: calc(32px - 2 * var(--bw-hairline));
+  padding-inline: var(--space-8);
+}
+
+/* The page's action on the band ("Build With This"): the chips' height, not
+   `.su-page-action`'s 40px, so every chip and button on the band is one size.
+   A coarse pointer's 44px floor still lifts it. */
+.srd-entity-stamps .su-page-action {
+  height: 32px;
+}
+
 /* An ability's cost on its band: the book's pointy box at the stamps'
    height (it stretches to its flex line), in the stamps' type. */
 .srd-entity-cost {
@@ -513,12 +531,12 @@
   color: var(--color-ink);
   display: inline-flex;
   font-family: var(--font-cond);
-  font-size: var(--text-caption);
+  font-size: var(--text-badge);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-snug);
   line-height: 1;
-  /* The band's other stamps' height (`.srd-entity-stamp`, the stat column). */
-  min-height: 40px;
+  /* The band's other chips' height (`.srd-entity-stamp`, the stat column). */
+  min-height: 32px;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -536,16 +554,6 @@
   background-color: var(--color-paper);
   display: flex;
   padding-inline: var(--space-10);
-}
-
-@media (min-width: 40rem) {
-  .srd-parent-link {
-    font-size: var(--text-sm);
-  }
-
-  .srd-parent-link__label {
-    padding-inline: var(--space-12);
-  }
 }
 
 .srd-parent-link:hover .srd-parent-link__name,

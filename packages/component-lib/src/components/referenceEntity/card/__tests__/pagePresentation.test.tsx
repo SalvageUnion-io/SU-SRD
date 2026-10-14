@@ -20,7 +20,7 @@ import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
-import { resolveEntityPageMeta } from '../entityPage'
+import { pageBodyStats, resolveEntityPageMeta } from '../entityPage'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const need = <T,>(value: T | undefined, label: string): T => {
@@ -44,8 +44,9 @@ const BOOK_EIGHT = [
 ]
 
 describe('resolveEntityPageMeta — what the page’s bands say', () => {
-  test('a chassis’s stats read the manual’s eight, in its order', () => {
-    const stats = resolveEntityPageMeta(gopher()).stats
+  test('a chassis’s stats read the manual’s eight, in its order, in the body', () => {
+    expect(resolveEntityPageMeta(gopher()).stats).toEqual([])
+    const stats = pageBodyStats(gopher())
     expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT)
     expect(stats[0]?.value).toBe(String(gopher().structurePoints))
   })
@@ -73,9 +74,22 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(meta.cost).toEqual({ value: '2', currency: 'AP' })
   })
 
-  test('any other entity leaves its action type and cost to the chip group', () => {
+  test("every chip rides the band: a system's action type, range, damage and traits", () => {
+    const missilePod = need(SalvageUnionReference.Systems.getByName('Missile Pod'), 'Missile Pod')
+    const meta = resolveEntityPageMeta(missilePod)
+    expect(meta.actionTypes).toEqual(['Turn Action'])
+    expect(meta.facts.map((f) => [f.label, f.value])).toEqual([
+      ['RNG', 'Long'],
+      ['DMG', '8 SP'],
+    ])
+    expect(meta.tags.map((t) => t.name)).toEqual(['Explosive', 'Hot', 'Missile', 'Uses'])
+  })
+
+  test('a chassis has no chips past its stats', () => {
     const meta = resolveEntityPageMeta(gopher())
     expect(meta.actionTypes).toEqual([])
+    expect(meta.facts).toEqual([])
+    expect(meta.tags).toEqual([])
     expect(meta).not.toHaveProperty('cost')
   })
 
@@ -106,12 +120,12 @@ describe('the card as a page', () => {
     expect(container.querySelector('.su-entity-page__art img')).not.toBeNull()
   })
 
-  test('a chassis’s stats ride the band in the book’s words and order, not the body', () => {
+  test('a chassis’s stats lead the body, inline, in the book’s words and order', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
-    // Every entity's stats are the band's (`resolveEntityPageMeta`), a chassis's too.
-    expect(container.querySelector('dl.su-stat-column')).toBeNull()
-    const stats = resolveEntityPageMeta(gopher()).stats
-    expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT)
+    const column = container.querySelector('.su-entity-page__side > .su-entity-page__stats dl')
+    expect(column?.getAttribute('aria-label')).toBe('Gopher stats')
+    const labels = [...(column?.querySelectorAll('dt') ?? [])].map((dt) => dt.textContent)
+    expect(labels).toEqual(BOOK_EIGHT)
   })
 
   test('the chassis ability is a framed card atop the right column, with no "Chassis Ability" stamp', () => {

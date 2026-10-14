@@ -29,7 +29,6 @@ import type { TokenSlots } from '../../../entity/forms/Token'
 import { Token } from '../../../entity/forms/Token'
 import { Chips } from '../../../entity/parts/Chips'
 import type { ChipSet } from '../../../entity/parts/chipSet'
-import { chipCount } from '../../../entity/parts/chipSet'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
@@ -71,7 +70,6 @@ import {
   resolveTierNumeral,
   titleSizeRung,
 } from './entityCardTone'
-import { pageChipSet } from './entityPage'
 import { splitFacets } from './facetSplit'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { CardStack } from './NestedCards'
@@ -158,31 +156,33 @@ const INLINE_TITLE: Record<CardSize, string> = {
   small: fontSize.lede,
 }
 
-/** A page's chip group (E17): it leads the prose column, after any `subtitleExtra`. */
+/**
+ * What leads a page's prose column: any `subtitleExtra`, then a "Suggested"
+ * stamp. The page's chips are its chapter band's (`resolveEntityPageMeta`).
+ */
 function PageSubLine({
   extra,
-  chips,
   children,
 }: {
   extra: ReactNode
-  chips: ChipSet
-  /** The group's leading stamp ("Suggested"). */
+  /** The leading stamp ("Suggested"). */
   children: ReactNode
 }) {
   return (
     <>
       {extra}
       <Chips
-        chips={chips}
+        chips={NO_CHIPS}
         rung="full"
         leading={children}
-        linkable
         align="end"
         className="su-entity-page__tags"
       />
     </>
   )
 }
+
+const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
 
 /**
  * The head extent as the entity forms (the adapter): the SHORTFORM
@@ -457,8 +457,8 @@ function ReferenceEntityCardInner({
     facts: [...effectiveHeaderStats, ...facets.facts],
     tags: facets.tags,
   }
-  const pageChips = pageChipSet(entity, chips, facets.facts)
-  const hasSubLine = onPage && (!!suggestedNode || chipCount(pageChips) > 0)
+  // A page's chips ride its band (`resolveEntityPageMeta`); its body keeps "Suggested".
+  const hasSubLine = onPage && !!suggestedNode
 
   // The head extent is the Row (and, small, the Token): see below. Every other
   // card wears the cut-out head; a Page has its chapter band, an inline card its Row.
@@ -652,9 +652,7 @@ function ReferenceEntityCardInner({
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
         subLine={
           (subtitleExtra || hasSubLine) && (
-            <PageSubLine extra={subtitleExtra} chips={pageChips}>
-              {suggestedNode}
-            </PageSubLine>
+            <PageSubLine extra={subtitleExtra}>{suggestedNode}</PageSubLine>
           )
         }
         body={bodyHasContent ? bodyContent : null}

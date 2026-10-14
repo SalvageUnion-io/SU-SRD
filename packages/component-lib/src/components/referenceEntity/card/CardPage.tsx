@@ -2,7 +2,9 @@ import type { ElementType, ReactNode } from 'react'
 import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
+import { StatColumn } from '../../atoms/StatColumn'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
+import { pageBodyStats } from './entityPage'
 import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
@@ -10,8 +12,9 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * CardPage — the card when it IS the page (`presentation="page"`, boards 07
  * and 08). No frame, header or footer: the page's `ChapterBand` carries
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
- * hero on the left; beside it the prose and the chassis ability (every
- * entity's stats ride the band: srd's `EntityPageStamps`); then everything
+ * hero on the left; beside it a chassis's stats, inline and first, then the
+ * prose and the chassis ability (every other entity's stats ride the band:
+ * srd's `EntityPageStamps`); then everything
  * the entity carries, full width — its table, its other actions, its nested cards and its patterns as
  * link rows. A pattern page leads the right column with the pattern itself
  * (`opening`), then the base chassis's prose under its own slab.
@@ -84,6 +87,8 @@ export function CardPage({
   action,
 }: CardPageProps) {
   const { NestedCard } = action
+  // A chassis's stats lead its body, a pattern page's too (they are the chassis's).
+  const stats = pageBodyStats(entity)
   // `titleAs` is the card title's element: an `h3` only where a section band's
   // `h2` holds the card (`nestedTitleLevel`), else the header's `span`.
   const actionCard = (data: ReferenceCardEntity, index: number, titleAs: 'h3' | undefined) => (
@@ -106,7 +111,8 @@ export function CardPage({
 
   // A page with nothing to lead with (a guide whose words are all in its steps,
   // "Salvaging") opens on its sections, not on an empty row and its gap.
-  const hasMain = !!hero || !!opening || !!subLine || !!body || leadActions.length > 0
+  const hasMain =
+    !!hero || stats.length > 0 || !!opening || !!subLine || !!body || leadActions.length > 0
 
   return (
     <div
@@ -120,6 +126,11 @@ export function CardPage({
         <div className={cn('su-entity-page__main', !!hero && 'su-entity-page__main--art')}>
           {hero && <div className="su-entity-page__art">{hero}</div>}
           <div className="su-entity-page__side">
+            {stats.length > 0 && (
+              <div className="su-entity-page__stats">
+                <StatColumn stats={stats} label={`${action.hostName} stats`} />
+              </div>
+            )}
             {opening && <div className="su-entity-page__opening">{opening}</div>}
             {(subLine || body) && (
               <div className="su-entity-page__prose">

@@ -11,6 +11,8 @@ const entitySchemas = getEntitySchemas()
  * Whether the entity has anything for its page BODY to print. A name and a
  * Tech Level alone (Camouflage Fatigues) is a whole page in its band: the
  * title and the `TECH LEVEL` cell (`EntityPageStamps`), and an empty body.
+ * The band carries every chip too, so a crawler tech level's stats and
+ * population leave its body empty.
  */
 const BAND_ONLY = new Set([
   'id',
@@ -20,6 +22,11 @@ const BAND_ONLY = new Set([
   'name',
   'techLevel',
   'additionalSources',
+  'structurePoints',
+  'upkeepCost',
+  'upgradeCost',
+  'populationMin',
+  'populationMax',
 ])
 const hasBody = (entity: object) =>
   Object.entries(entity).some(

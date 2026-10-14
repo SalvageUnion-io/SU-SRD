@@ -96,22 +96,37 @@ function headFactCount(model: EntityModel): number {
 
 /** The page meta a model states, in `resolveEntityPageMeta`'s shape. */
 function pageMetaOf(model: EntityModel) {
-  // An ability's band carries its action type and cost (`bandCarriesAction`).
-  const onBand = model.kind.type === 'Ability'
-  const cost = onBand && model.cost ? costCell(model.cost) : undefined
+  // The band carries every chip: action type, facts, traits and cost.
+  const cost = model.cost ? costCell(model.cost) : undefined
   return {
     // The kind: the title's screen-reader text and the foot band's chip.
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    // The band's stats: every book stat, a chassis's too.
-    stats: model.bookStats.map((fact) => ({
+    // The band's stats: every book stat but a chassis's, which lead its body.
+    stats: (model.ref.schemaName === 'chassis' ? [] : model.bookStats).map((fact) => ({
       key: fact.key,
       label: fact.label,
       value: fact.value,
       ...(fact.hint ? { hoverText: fact.hint } : {}),
     })),
     numeral: model.tier,
-    actionTypes: onBand ? actionTypeStamps(model.actionType, model.mechActionType) : [],
+    actionTypes: actionTypeStamps(model.actionType, model.mechActionType),
+    // The facts past the head's (Tech Level and the stats), label first.
+    facts: model.facts
+      .filter((f) => f.key !== 'tech-level' && !f.key.startsWith('ref-stat-'))
+      .map((f) => ({
+        key: f.key,
+        label: f.short,
+        value: f.value,
+        ...(f.hint ? { hoverText: f.hint } : {}),
+      })),
+    tags: model.traits.map((t) => ({
+      key: `${t.schemaName}-${t.name}`,
+      name: t.name,
+      ...(t.param !== undefined ? { param: t.param } : {}),
+      schemaName: t.schemaName,
+      ...(t.ref ? { ref: t.ref } : {}),
+    })),
     ...(cost
       ? { cost: { value: cost.value ?? cost.label, currency: cost.value ? cost.label : '' } }
       : {}),
