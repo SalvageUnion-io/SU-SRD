@@ -15,7 +15,7 @@ import { PAPER_NAME, paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityRowModel } from '../types'
 
-/** One Token chip: `[TL | 2]`, `[4 ACTIONS]`. */
+/** One Token chip, label first: `[TL | 2]`, `[ACTIONS | 3]`. */
 type TokenChip = { label: string; value?: string }
 
 /**
@@ -27,19 +27,22 @@ type TokenChip = { label: string; value?: string }
 const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP'])
 
 /**
- * A Token's own chips, in order: an ability's tree and level, the kept facts,
- * then its one action's type or, with two or more, how many it has (its own
- * folded action counted). The cost box follows, drawn by the Token.
+ * A Token's own chips, in order: the kept facts, then its one action's type
+ * or, with two or more, how many it has (`ACTIONS | 3`: the actions its Peek
+ * and Page list, its folded self-action not among them, since that is the
+ * entity's own facts and cost). The cost box follows, drawn by the Token. An
+ * ability's tier is its numeral before the name, never a chip.
  */
 function tokenChips(model: EntityRowModel): TokenChip[] {
   const chips: TokenChip[] = []
-  if (model.tree) chips.push({ label: model.tree.name, value: model.tree.level })
   for (const fact of model.facts) {
     if (TOKEN_FACTS.has(fact.short)) chips.push({ label: fact.short, value: fact.value })
   }
-  const actions = (model.actions?.length ?? 0) + (model.folded ? 1 : 0)
-  if (actions > 1) {
-    chips.push({ label: `${actions} Actions` })
+  const actions = model.actions?.length ?? 0
+  // A folded self-action's type is the entity's own; one listed action beside
+  // it is still a count, or its type would read as the entity's.
+  if (actions > 1 || (actions === 1 && model.folded)) {
+    chips.push({ label: 'Actions', value: String(actions) })
   } else {
     for (const stamp of actionTypeStamps(model.actionType, model.mechActionType)) {
       chips.push({ label: stamp })
@@ -73,9 +76,10 @@ export type TokenSlots = {
 /**
  * TOKEN — the shortform (§3): `name [chips]`, one size, for many on a line or
  * a slot under 12rem (E3). Its chips are a short set (`tokenChips`), then the
- * cost box, the same in every context. It stays one
- * line: the chips never shrink, and only when they need the room does the
- * name end in "…" (E18). Its kind is never stamped (E9): screen readers
+ * cost box, the same in every context; an ability's tier numeral sits before
+ * its name, as on its band. When the line runs out of room the chips wrap
+ * under the name, so the name always shows; only a name too long for a line
+ * of its own ends in "…" (E18). Its kind is never stamped (E9): screen readers
  * hear it after the name (`KindLabel`); a player unit's note ("Engineer")
  * leads in its place. A tone pill for a thing you have, the tier
  * tone or ink for a thing you do, dashed when player-made. It wraps as a
@@ -120,6 +124,7 @@ export function Token({
           {model.kind.note}
         </Badge>
       )}
+      {model.tier && <span className="su-entity-token__tier">{model.tier}</span>}
       <span className="su-entity-token__name">
         {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
         <KindLabel kind={slots.kind ?? model.kind.type} />

@@ -560,8 +560,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   text-decoration: none;
 }
 
-/* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] name [chips]`, dashed
-   when player-made. It wraps as a whole, never mid-token. */
+/* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] [tier] name [chips]`,
+   dashed when player-made. When the line runs out the chips wrap under the
+   name, so the name always shows (E18). */
 .su-entity-token__pill {
   align-items: center;
   align-self: flex-start;
@@ -570,10 +571,11 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   border-style: solid;
   border-width: var(--bw-chrome);
   display: inline-flex;
+  flex-wrap: wrap;
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
-  gap: var(--space-6);
+  gap: var(--space-4) var(--space-6);
   letter-spacing: var(--tracking-caps-tight);
   line-height: 1.2;
   max-width: 100%;
@@ -599,8 +601,14 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   box-shadow: inset 0 0 0 var(--bw-hairline) var(--color-paper);
 }
 
-/* One line: the name takes what the chips leave and ends in "…" only when
-   they need the room (E18's Token exception). */
+/* An ability's tier numeral, before its name as on its band. */
+.su-entity-token__tier {
+  flex: none;
+}
+
+/* The name keeps its line: the chips wrap under it rather than squeeze it,
+   and only a name too long for a line of its own ends in "…" (E18's Token
+   exception). */
 .su-entity-token__name {
   flex: 1 1 auto;
   min-width: 0;
@@ -609,12 +617,16 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   white-space: nowrap;
 }
 
-/* The chips (`tokenChips`, then the cost box) never shrink or wrap. */
+/* The chips (`tokenChips`, then the cost box) follow the name on its line
+   while it has room and wrap under it, as a group, when it does not; a set
+   too wide for a line of its own wraps chip by chip. */
 .su-entity-token__chips {
   align-items: center;
   display: flex;
-  flex: none;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
   gap: var(--space-4);
+  max-width: 100%;
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option
