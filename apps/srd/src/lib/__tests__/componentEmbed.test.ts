@@ -22,7 +22,7 @@ describe('componentEmbedFor', () => {
     expect(embed.component.accent_color).toBe(0x7a978a)
     const json = JSON.stringify(embed)
     expect(json).toContain('## [Mule](https://salvageunion.io/chassis/mule)')
-    expect(json).toContain('**SP** 12')
+    expect(json).toContain('**Structure Points** 12')
   })
 
   it('holds every entity and pattern page under Discord’s 3,000 bytes, with no nested container', () => {

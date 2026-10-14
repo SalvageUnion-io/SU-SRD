@@ -19,8 +19,8 @@ import {
   discordCardParts,
   linkTraitReferences,
 } from '../discordCard'
-import { discordRowSummary } from '../discordRowSummary'
 import { ACTION_TYPE_LABELS } from '../parts/facts'
+import { splitSentences } from '../parts/paragraphs'
 import { formatActionType } from '../parts/traits'
 import { toEntityModel } from '../toEntityModel'
 
@@ -59,9 +59,9 @@ describe('discordCardParts', () => {
     // No kicker: a chassis has no parent, and the kind is never one.
     expect(parts.head[0]).toBe('## [Mule](https://salvageunion.io/chassis/mule)')
     expect(parts.head.slice(1)).toEqual([
-      '**TL** 1 · **SV** 7',
-      '**SP** 12 · **EP** 4',
-      '**SYS** 16 · **MODS** 2',
+      '**Tech Level** 1 · **Salvage Value** 7',
+      '**Structure Points** 12 · **Energy Points** 4',
+      '**System Slots** 16 · **Module Slots** 2',
     ])
     expect(parts.thumbnail?.url).toContain('mule')
     expect(parts.cite).toBe(
@@ -93,16 +93,18 @@ describe('discordCardParts', () => {
   test('an ability leads with its tier; its chips run type, facts, traits, cost last', () => {
     const parts = partsFor('abilities', 'counter-hacking')
     expect(parts.head[0]).toStartWith('## 2 · [Counter-Hacking](')
-    expect(parts.head[1]).toBe('**Reaction** · **RNG** Medium')
-    expect(parts.head[2]).toBe('[Hacking](https://salvageunion.io/traits/hacking) · `1 AP`')
+    expect(parts.head[1]).toBe('**Reaction** · **Range** Medium')
+    expect(parts.head[2]).toBe(
+      '[Hacking](https://salvageunion.io/traits/hacking) · `1 Ability Point`'
+    )
     expect(parts.table?.rows.map((row) => row.key)).toEqual(['20', '11-19', '6-10', '2-5', '1'])
   })
 
   test("a system's chips open with TL, then its action type as the book prints it", () => {
     const head = partsFor('systems', '50-cal-machine-gun').head
     expect(head[0]).toStartWith('## [.50 Cal Machine Gun](')
-    expect(head[1]).toBe('**TL** 1 · **Slots** 2 · **SV** 2')
-    expect(head[2]).toBe('**Turn Action** · **RNG** Close · **DMG** 2 SP')
+    expect(head[1]).toBe('**Tech Level** 1 · **Slots Required** 2 · **Salvage Value** 2')
+    expect(head[2]).toBe('**Turn Action** · **Range** Close · **Damage** 2 Structure Points')
   })
 
   test("an action band's chips end on its cost", () => {
@@ -110,7 +112,9 @@ describe('discordCardParts', () => {
       partsFor('systems', 'fabrication-arm').actions.find((action) => action.name === 'Patch'),
       'patch'
     )
-    expect(patch.summary).toBe('**Patch**\n-# **Turn Action** · **RNG** Close · `2 EP`')
+    expect(patch.text).toStartWith(
+      '### Patch\n-# **Turn Action** · **Range** Close · `2 Energy Points`'
+    )
   })
 
   test('the action types read as the Core Book prints them (pp.23, 237-238)', () => {
@@ -181,13 +185,21 @@ describe('discordCardParts', () => {
     expect(salvager.children.map((group) => group.label)).not.toContain('Advancement')
   })
 
-  test('a long paragraph reads as shorter ones, whole sentences, the words unchanged', () => {
+  test('a paragraph prints one sentence to a line, the words unchanged', () => {
     const salvager = need(findEntityBySlug('classes', 'salvager'), 'salvager')
-    const prose = discordCardParts(toEntityModel(salvager)).prose
-    expect(prose.length).toBeGreaterThan(1)
-    for (const paragraph of prose) expect(paragraph).toMatch(/[.!?]$/)
+    const [paragraph] = discordCardParts(toEntityModel(salvager)).prose
+    const lines = paragraph?.split('\n') ?? []
+    expect(lines.length).toBeGreaterThan(1)
+    for (const line of lines) expect(line).toMatch(/[.!?]['"]?$/)
     const source = salvager.content?.[0]?.value
-    expect(prose.join(' ')).toBe(typeof source === 'string' ? source.trim() : '')
+    expect(lines.join(' ')).toBe(typeof source === 'string' ? source.trim() : '')
+  })
+
+  test('an abbreviation or a page cite never breaks a sentence', () => {
+    expect(splitSentences('See p.23 for e.g. a Mech. Then roll.')).toEqual([
+      'See p.23 for e.g. a Mech.',
+      'Then roll.',
+    ])
   })
 
   test('renders every entity without throwing, and never leaves raw [[ markup', () => {
@@ -227,56 +239,13 @@ describe('discordCard', () => {
     expect(parts.prose.length).toBeGreaterThan(0)
     const card = discordCard(parts, { fits: (c) => discordCardTextLength(c) <= 300 })
     expect(text(card)).not.toContain('ROLL THE DIE')
-    expect(text(card)).toContain('[The full entry on salvageunion.io](')
-    // The bot draws the same link as its footer button.
-    expect(card.blocks.find((block) => block.kind === 'text' && block.more)).toMatchObject({
-      more: { label: 'Full entry', url: 'https://salvageunion.io/systems/mechapult' },
-    })
-  })
-
-  test('the children block carries its groups, for the bot to draw as rows', () => {
-    const parts = partsFor('drones', 'the-iron-lady')
-    const block = discordCard(parts).blocks.find((one) => one.kind === 'text' && one.children)
-    expect(block?.kind === 'text' ? block.children?.map((group) => group.label) : []).toEqual([
-      'Modules',
-    ])
+    expect(text(card)).toContain(
+      '[The full entry on salvageunion.io](https://salvageunion.io/systems/mechapult)'
+    )
   })
 })
 
-describe('discordRowSummary', () => {
-  test('a system reads as an action row: linked name, type, label-first range and damage, traits', () => {
-    const railgun = need(findEntityBySlug('systems', 'railgun'), 'railgun')
-    expect(
-      discordRowSummary({ schemaName: 'systems', id: railgun.id, slug: 'railgun', name: 'Railgun' })
-    ).toBe(
-      [
-        '**[Railgun](https://salvageunion.io/systems/railgun)**',
-        '-# Turn Action · **RNG** Long · **DMG** 9 SP',
-        '[Ballistic](https://salvageunion.io/traits/ballistic) · [Hot](https://salvageunion.io/traits/hot) 2',
-      ].join('\n')
-    )
-  })
-
-  test('a module shows its cost last; a synthetic or missing record has no row', () => {
-    const firewall = need(findEntityBySlug('modules', 'firewall'), 'firewall')
-    expect(
-      discordRowSummary({
-        schemaName: 'modules',
-        id: firewall.id,
-        slug: 'firewall',
-        name: 'Firewall',
-      })
-    ).toContain(
-      '-# Reaction · **RNG** Medium\n[Hacking](https://salvageunion.io/traits/hacking) · `2 EP`'
-    )
-    expect(
-      discordRowSummary({ schemaName: 'modules', id: 'x', slug: 'x', name: 'X', synthetic: true })
-    ).toBeNull()
-    expect(
-      discordRowSummary({ schemaName: 'modules', id: 'nope', slug: 'nope', name: 'Nope' })
-    ).toBeNull()
-  })
-
+describe('discordCard — a rolled table', () => {
   test('marks the rolled row and keeps it while shedding', () => {
     const parts = partsFor('roll-tables', 'anomalous-zone')
     const card = discordCard(parts, {

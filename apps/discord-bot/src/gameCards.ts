@@ -73,11 +73,11 @@ export const ITUN_ORIGIN = 'https://salvageunion.io/build'
 
 const FOOTER = PRODUCT.name
 
-/** The stats' short names, from the reference vocabulary the sheets print. */
-const HP = STAT_LABELS.hitPoints.short
-const SP = STAT_LABELS.structurePoints.short
+/** The stats' full names, from the reference vocabulary (a gauge is Heat, not its capacity). */
+const HP = STAT_LABELS.hitPoints.label
+const SP = STAT_LABELS.structurePoints.label
 const HEAT = STAT_LABELS.heatCapacity.short
-const TL = 'TL'
+const TL = 'Tech Level'
 
 /**
  * How a vital renders: `bars` puts a glyph bar after the number, `text` is the
@@ -475,7 +475,7 @@ function pilotSheet(body: EntityBody): RenderedSheet {
   const classRef = str(body, 'classRef')
   const fields: CardField[] = [
     { name: HP, value: gauge(stats.hp, stats.maxHp), inline: true },
-    { name: 'AP', value: gauge(stats.ap, stats.maxAp), inline: true },
+    { name: 'Ability Points', value: gauge(stats.ap, stats.maxAp), inline: true },
     { name: 'Class', value: refName('classes', classRef), inline: true },
   ]
 

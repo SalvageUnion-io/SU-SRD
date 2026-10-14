@@ -141,13 +141,10 @@ export { parseTraitReferences, plainTraitText } from './traitText'
 export { truncate } from './truncate'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
 export {
-  childStamp,
   type DiscordBlock,
-  type DiscordChildGroup,
   discordAccent,
   discordCard,
   discordCardParts,
-  discordChildGroup,
   discordCiteLine,
   linkTraitReferences,
   rangeLabel,
@@ -156,9 +153,7 @@ export {
   COMPONENT_EMBED_MAX_BYTES,
   componentEmbedJson,
   discordEntryCard,
-  discordEntryIndexCard,
 } from './view/discordEntryCard'
-export { discordRowSummary } from './view/discordRowSummary'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
 // for component-lib's card helpers, which read them rather than keep a copy.

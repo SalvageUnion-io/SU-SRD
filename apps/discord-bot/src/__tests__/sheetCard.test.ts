@@ -68,14 +68,14 @@ describe('pilot sheet', () => {
 
   test('leads with the vitals rail', () => {
     const card = sheet('pilots', { callsign: 'Vex', classRef: 'salvager' })
-    // The first block after the identity band is the rail, HP then AP.
-    const rail = blockStarting(card, '**HP** ')
+    // The first block after the identity band is the rail, HP then AP, spelled out.
+    const rail = blockStarting(card, '**Hit Points** ')
     expect(
       rail
         ?.split('\n')
         .slice(0, 2)
-        .map((line) => line.split(' ')[0])
-    ).toEqual(['**HP**', '**AP**'])
+        .map((line) => line.slice(0, line.indexOf('** ') + 2))
+    ).toEqual(['**Hit Points**', '**Ability Points**'])
   })
 
   test('carries the motto as a quote, like the identity band', () => {
@@ -153,9 +153,9 @@ describe('crawler sheet', () => {
     const card = sheet('crawlers', { name: 'The Ossuary', techLevel: '1', type: 'exploratory' })
     const sp = cardText(card)
       .split('\n')
-      .find((line) => line.startsWith('**SP** '))
-    expect(sp).toStartWith('**SP** 20/20')
-    expect(cardText(card)).toContain('**TL** 1')
+      .find((line) => line.startsWith('**Structure Points** '))
+    expect(sp).toStartWith('**Structure Points** 20/20')
+    expect(cardText(card)).toContain('**Tech Level** 1')
   })
 
   test('reads its Scrap Pool label first, T1 | 3', () => {
