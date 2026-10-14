@@ -122,3 +122,25 @@ describe('useDetailModal — link mode (srd)', () => {
     expect(screen.getByRole('dialog')).toBeTruthy()
   })
 })
+
+describe('DetailIcon — the control glyph', () => {
+  function IconHarness({ className }: { className?: string }) {
+    const { control } = useDetailModal(system('Red Laser'))
+    const Icon = control.icon
+    return Icon ? <Icon className={className} /> : null
+  }
+
+  test('paints itself paper when no class is given', () => {
+    const { container } = render(<IconHarness />)
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('aria-hidden')).toBe('true')
+    expect(svg?.getAttribute('style')).toContain('color')
+  })
+
+  test("a caller's class takes the colour over entirely", () => {
+    const { container } = render(<IconHarness className="ink" />)
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('class')).toBe('ink')
+    expect(svg?.getAttribute('style')).toBeNull()
+  })
+})
