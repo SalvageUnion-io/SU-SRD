@@ -95,6 +95,8 @@ export function CardPage({
     <NestedCard
       key={cardKey(data, index)}
       data={data}
+      // Its chips take the page's rung, as the host's own do.
+      presentation="page"
       size="medium"
       depth={1}
       titleAs={titleAs}

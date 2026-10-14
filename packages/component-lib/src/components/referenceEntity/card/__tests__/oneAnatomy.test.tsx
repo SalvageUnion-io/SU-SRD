@@ -94,6 +94,16 @@ describe('actions sit inline', () => {
     }
   })
 
+  test("on a Page an action's chips take the page's rung, as the host's own do", () => {
+    const { container } = render(<ReferenceEntityCard data={drill()} presentation="page" />)
+    const groups = [...container.querySelectorAll<HTMLElement>('[data-chip-group]')]
+    expect(groups.length).toBe(3)
+    for (const group of groups) {
+      expect(group.querySelector('.su-stat-plate--full')).not.toBeNull()
+      expect(group.querySelector('.su-stat-plate--compact')).toBeNull()
+    }
+  })
+
   test('below depth 1 they fold behind a "Show N actions" chip', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} size="medium" depth={2} />)
     expect(fills(container)).toEqual(['tone'])

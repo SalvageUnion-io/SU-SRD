@@ -49,7 +49,8 @@ export type ReferenceEntityCardProps = {
    * resolved by `resolveEntityPageMeta`). The body lays out as a page: the line
    * art as the hero, the chassis ability, the prose and the book's stat column
    * beside it, and everything the entity carries beneath. Only a top-level
-   * card takes it; nested cards stay cards.
+   * card takes it; nested cards stay cards, except that an action a Page carries
+   * takes it to set its chips at the page's rung.
    */
   presentation?: 'card' | 'page'
   /**

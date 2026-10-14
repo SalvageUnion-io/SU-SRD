@@ -263,8 +263,9 @@ function ReferenceEntityCardInner({
 }: ReferenceEntityCardProps) {
   // Section bands are h2s (nested titles h3s) only when this card IS the page
   // (`sectionHeadingLevel`), whatever `titleAs` says: a page's title is its h1,
-  // in the chapter band. Only a top-level card takes the page presentation.
+  // in the chapter band. A card the page carries takes only its chips' rung.
   const onPage = presentation === 'page' && !inline && depthProp === 0
+  const rung = presentation === 'page' && !onPage ? 'full' : 'compact'
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
   // MULTI-SELECT: a card driven by `onCountChange` reads as selected whenever its
@@ -463,10 +464,9 @@ function ReferenceEntityCardInner({
   // The head extent is the Row (and, small, the Token): see below. Every other
   // card wears the cut-out head; a Page has its chapter band, an inline card its Row.
   const isHead = extent === 'head'
-  const cutOut = !inline && !isHead && !onPage
   const header = (
     <CardHead
-      cutOut={cutOut}
+      cutOut={!inline && !isHead && !onPage}
       title={name}
       kind={kind}
       fill={fill}
@@ -475,7 +475,7 @@ function ReferenceEntityCardInner({
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} rung="compact" onInk={fill === 'ink'} leading={suggestedNode} />}
+      chips={<Chips chips={chips} rung={rung} onInk={fill === 'ink'} leading={suggestedNode} />}
       pennant={pennantNode}
       labels={inline ? undefined : labels}
       size={size}
