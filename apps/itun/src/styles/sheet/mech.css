@@ -156,7 +156,14 @@
   }
 }
 
-/* Edit hangs a control row under each Token: room between the items. */
+/* Edit: each Token carries its controls; a phone sets them on a line of their
+   own, so the items take more air there. */
 .su-sheet-mech-items {
-  gap: var(--space-16);
+  gap: var(--space-12);
+}
+
+@media (min-width: 40rem) {
+  .su-sheet-mech-items {
+    gap: var(--space-6);
+  }
 }

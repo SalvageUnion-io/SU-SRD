@@ -4,11 +4,14 @@
  * Units are Tokens that Peek, not cards that expand). Hover, focus or a long
  * press Peeks the whole card; a damaged or destroyed item's pill greys.
  *
- * Read state is the Token, and its condition stamp when it is not intact. Edit adds a row under it, as a
- * pilot's equipment does (`PilotEquipmentItem`):
+ * Its controls sit ON the Token's line (owner's call, 2026-10-14: one
+ * consistent control, not a row of mismatched ones), every one the sheet
+ * control's height (`.su-sheet-ctl`, `styles/sheet/items.css`):
  *
- *   - the condition tri-state (Intact / Damaged / Destroyed), set by hand;
- *   - the Uses stepper (±), for systems AND modules that have uses;
+ *   - the condition, one control naming the state that steps it on
+ *     (Intact → Damaged → Destroyed) by hand; Read stamps it only when the
+ *     item is not intact;
+ *   - Uses `[− USES 3/5 +]`, for systems AND modules that have uses;
  *   - Repair (Damaged only): shows the half-SV scrap cost and opens a MODAL
  *     confirm offering an OPTIONAL crawler scrap-pool deduction. The
  *     no-deduction path is always available — advisory, never blocks, but
@@ -19,15 +22,7 @@
  * so unknown data never crashes the sheet.
  */
 
-import {
-  Button,
-  CountStepper,
-  Entity,
-  ModalShell,
-  StatusBadge,
-  StatusTriState,
-  tokens,
-} from 'component-lib'
+import { Button, Entity, ModalShell, StatusBadge, tokens } from 'component-lib'
 import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
@@ -69,30 +64,12 @@ const CHIT_END = {
   gap: tokens.space[6],
 } satisfies CSSProperties
 
-/** The Token, then its Edit row under it; it fills its list line. */
-const ITEM_EDIT = {
-  display: 'flex',
-  flex: '1 1 auto',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-  minWidth: 0,
-} satisfies CSSProperties
-
-/** Read: a damaged or destroyed item's Token, its condition stamped after it. */
-const ITEM_READ = {
-  alignItems: 'center',
-  display: 'flex',
-  flex: '1 1 auto',
-  gap: tokens.space[8],
-  minWidth: 0,
-} satisfies CSSProperties
-
-const ITEM_CONTROLS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties
+/** The condition's name on its control. */
+const CONDITION_LABEL: Record<ItemCondition, string> = {
+  intact: 'Intact',
+  damaged: 'Damaged',
+  destroyed: 'Destroyed',
+}
 
 const CONFIRM = {
   backgroundColor: tokens.color.paper,
@@ -234,45 +211,86 @@ export function MechItemToken({
     ) : null
 
   const pill = <Entity form="token" entity={entity} instance={{ condition }} />
+  const conditionLabel = CONDITION_LABEL[condition]
   // Read: the Token alone while intact; a damaged or destroyed one names its
-  // condition as a read-out stamp, as its card's status badge did.
+  // condition as a read-out stamp after it.
   if (readOnly) {
     if (condition === 'intact') return pill
     return (
-      <div style={ITEM_READ}>
+      <div className="su-entity-token-line su-sheet-item">
         {pill}
-        <StatusTriState status={condition} onClick={undefined} subject={entity.name} />
+        <span
+          className="su-sheet-ctl su-sheet-ctl--condition su-sheet-ctl--readout"
+          data-state={condition}
+          title={`${entity.name}: ${conditionLabel}`}
+        >
+          {conditionLabel}
+        </span>
       </div>
     )
   }
 
   return (
-    <div style={ITEM_EDIT}>
+    <div className="su-entity-token-line su-sheet-item">
       {pill}
-      <div style={ITEM_CONTROLS}>
-        <StatusTriState status={condition} onClick={onStatusCycle} subject={entity.name} />
-        {maxUses > 0 && (
-          <CountStepper
-            count={remaining}
-            onChange={onUsesChange}
-            subject={entity.name}
-            min={0}
-            max={maxUses}
-            label="Uses"
-          />
-        )}
-        {condition === 'damaged' && (
-          <Button
-            size="compact"
-            variant="danger"
-            aria-label={`Repair ${entity.name}`}
-            onClick={() => setConfirmingRepair(true)}
+      <button
+        type="button"
+        className="su-sheet-ctl su-sheet-ctl--condition"
+        data-state={condition}
+        aria-label={`${entity.name} status: ${conditionLabel} — click to change`}
+        onClick={onStatusCycle}
+      >
+        {conditionLabel}
+      </button>
+      {maxUses > 0 && (
+        <span className="su-sheet-ctl su-sheet-ctl--uses">
+          <button
+            type="button"
+            className="su-sheet-ctl__step"
+            aria-label={`Remove one ${entity.name}`}
+            disabled={remaining <= 0}
+            onClick={() => onUsesChange(remaining - 1)}
           >
-            Repair · {cost} Scrap
-          </Button>
-        )}
-        {onRemove && <CardRemoveButton name={entity.name} onRemove={onRemove} />}
-      </div>
+            −
+          </button>
+          <span aria-hidden="true" className="su-sheet-ctl__readout">
+            {`Uses ${remaining}/${maxUses}`}
+          </span>
+          <span role="status" aria-live="polite" className="su-sr-only">
+            {entity.name} uses: {remaining}
+          </span>
+          <button
+            type="button"
+            className="su-sheet-ctl__step"
+            aria-label={`Add one ${entity.name}`}
+            disabled={remaining >= maxUses}
+            onClick={() => onUsesChange(remaining + 1)}
+          >
+            +
+          </button>
+        </span>
+      )}
+      {condition === 'damaged' && (
+        <Button
+          size="compact"
+          variant="danger"
+          className="su-sheet-item__repair"
+          aria-label={`Repair ${entity.name}`}
+          onClick={() => setConfirmingRepair(true)}
+        >
+          Repair · {cost} Scrap
+        </Button>
+      )}
+      {onRemove && (
+        <button
+          type="button"
+          className="su-sheet-ctl su-sheet-ctl--square"
+          aria-label={`Remove ${entity.name}`}
+          onClick={onRemove}
+        >
+          ✕
+        </button>
+      )}
       {repairModal}
     </div>
   )

@@ -105,6 +105,33 @@
   flex: 1 1 auto;
 }
 
+/* A Token with controls on its line (`.su-entity-token-line`: ITUN's installed
+   sheet items): a phone gives the Token its own line and the controls the one
+   under it; from `sm` they share one, and the pill takes the line's height. */
+.su-entity-token-line {
+  align-items: stretch;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.su-entity-token-line > .su-entity-token {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.su-entity-token-line > .su-entity-token > .su-entity-token__pill {
+  align-self: stretch;
+}
+
+@media (min-width: 40rem) {
+  .su-entity-token-line > .su-entity-token {
+    flex-basis: 12rem;
+  }
+}
+
 /* A big grouping's Tokens (`EntityTokenList`): as many full-width columns as
    the measure holds, one on a phone. */
 .su-entity-token-list--grid {
