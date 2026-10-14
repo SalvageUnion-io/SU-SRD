@@ -1,6 +1,7 @@
 import { Drawer } from '@base-ui/react/drawer'
 import { buttonVariants } from 'component-lib'
 import { color, font, fontSize, radius, space, weight } from 'component-lib/design/tokens'
+import { Search, X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { LIFT_SHADOW } from '../lib/liftShadow'
@@ -91,20 +92,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
             style={TRIGGER}
             aria-label="Search the SRD"
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+            <Search aria-hidden="true" size={22} strokeWidth={2.5} />
           </button>
         }
       />
@@ -123,21 +111,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
                     style={CLOSE}
                     aria-label="Close search"
                   >
-                    <svg
-                      width="24"
-                      height="24"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <X aria-hidden="true" size={24} />
                   </button>
                 }
               />

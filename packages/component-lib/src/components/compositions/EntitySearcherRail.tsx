@@ -5,7 +5,7 @@
  * one-line single-select band.
  */
 
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
@@ -382,7 +382,8 @@ export function SelectionRail({
                 }
                 style={REMOVE_STYLE}
               >
-                ✕ Remove
+                <X aria-hidden="true" size={12} />
+                Remove
               </Button>
             </div>
           ))}

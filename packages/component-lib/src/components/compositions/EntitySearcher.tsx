@@ -44,6 +44,7 @@
  * the rail (`EntitySearcherRail`) and its budgets (`EntitySearcherBudget`).
  */
 
+import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useId, useState, useSyncExternalStore } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
@@ -325,7 +326,7 @@ export function EntitySearcher({
               aria-label="Close"
               style={CLOSE_STYLE}
             >
-              ✕
+              <X aria-hidden="true" size={16} />
             </Button>
           )}
         </div>

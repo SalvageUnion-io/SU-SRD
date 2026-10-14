@@ -140,7 +140,7 @@ describe('DetailIcon — the control glyph', () => {
   test("a caller's class takes the colour over entirely", () => {
     const { container } = render(<IconHarness className="ink" />)
     const svg = container.querySelector('svg')
-    expect(svg?.getAttribute('class')).toBe('ink')
+    expect(svg?.classList.contains('ink')).toBe(true)
     expect(svg?.getAttribute('style')).toBeNull()
   })
 })

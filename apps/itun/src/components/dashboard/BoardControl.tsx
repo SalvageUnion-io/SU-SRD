@@ -18,6 +18,7 @@
  */
 
 import { Button, EmptyState } from 'component-lib'
+import { ChevronDown } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import type { BoardMenu, BoardOption } from './boardMenu.model'
@@ -92,7 +93,8 @@ export function BoardControl({
         aria-haspopup="dialog"
         onClick={(e) => onOpenMenu(e.currentTarget)}
       >
-        Board a mech ▾
+        Board a mech
+        <ChevronDown aria-hidden="true" size={14} />
       </Button>
     )
   }
@@ -120,7 +122,7 @@ export function BoardControl({
           aria-haspopup="dialog"
           onClick={(e) => onOpenMenu(e.currentTarget)}
         >
-          ▾
+          <ChevronDown aria-hidden="true" size={14} />
         </Button>
       </div>
       {enabled ? null : (

@@ -47,6 +47,6 @@ describe('Dashboard shell', () => {
     render(<Dashboard pilotId="dash-lone-pilot" />)
     expect(screen.getByText('On foot')).toBeTruthy()
     expect(screen.getByText('On Foot')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Board a mech ▾' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Board a mech' })).toBeTruthy()
   })
 })

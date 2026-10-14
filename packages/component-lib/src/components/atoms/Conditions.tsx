@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { borderWidth, font, radius, space } from '../../design/tokens'
 import { Badge } from './Badge'
@@ -64,7 +65,7 @@ const ADD_BUTTON = {
 
 /**
  * Condition chip (design-spec §2.10 `.cond__chip`): the solid warn fill, with
- * an optional '×' remove button beside the label.
+ * an optional ✕ remove button beside the label.
  *
  * The frame is `Badge`, never hand-rolled chip geometry — the drift the
  * one-label-chip rule exists to kill. It maps onto the canonical surfaces (`tone`+`warn`), so a condition chip
@@ -99,7 +100,7 @@ export function ConditionChip({
           className="su-condition-chip__remove"
           style={REMOVE_BUTTON}
         >
-          ×
+          <X aria-hidden="true" size={12} />
         </button>
       )}
     </Badge>
