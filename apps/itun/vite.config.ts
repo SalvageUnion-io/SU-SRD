@@ -120,12 +120,12 @@ export default defineConfig({
         // index.html's meta description, verbatim (lib/__tests__/manifestDescription.test.ts).
         description:
           'Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic mech TTRPG.',
-        // Cargo hazard-stripe brand: ink plate / paper ground.
+        // The SU mark's ink stamp / the paper ground.
         theme_color: '#282019',
         background_color: '#f3ede2',
         display: 'standalone',
         icons: [
-          // Rasterized from public/favicon.svg (Cargo hazard-stripe plate).
+          // Written by `bun run brand` (apps/srd/scripts/brand), as is public/favicon.svg.
           {
             src: 'icon-192.png',
             sizes: '192x192',

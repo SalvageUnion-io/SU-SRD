@@ -1,17 +1,24 @@
-# The bot's Discord profile art
+# The bot's Discord profile art, and the Ko-fi page's
 
-Uploaded by hand in the Discord Developer Portal (the app's General Information
-page); nothing in the build reads these files.
+`bun run brand` writes every file here from `apps/srd/scripts/brand/`
+(`mark.ts` for the icon, `banner.ts` for the banners). Nothing in the build
+reads them. `bun run brand:discord` also uploads the icon and the banner to
+Discord, with the bot token read from 1Password
+(`op://SUSRD/discord-bot/Bot Token`). Ko-fi has no API, so its avatar and
+cover go up by hand.
 
-| File | Discord slot | Spec |
+| File | Slot | Spec |
 | --- | --- | --- |
-| `banner.png` | Banner | 680 × 240 PNG (17:6) |
-| `icon.png` | App icon | 1024 × 1024 PNG (1:1) |
-| `icon.svg` | The icon's source | — |
+| `banner.png` | Discord banner | 680 × 240 PNG (17:6) |
+| `icon.png` | Discord app icon and bot avatar; Ko-fi avatar | 1024 × 1024 PNG (1:1) |
+| `icon.svg` | The icon as vector | — |
+| `kofi-cover.png` | Ko-fi cover | 1500 × 500 PNG (3:1) |
 
-- **Banner:** the rules-blue chapter band with ink speckle, "SALVAGE UNION.io"
-  notched in ink on the page ground, "YOU'RE IN THE UNION NOW!" top left and
-  the book's chapter colours along the foot. The title sits in the right 60%
-  because the profile avatar covers the bottom left.
-- **Icon:** the SU mark from `apps/srd/public/logos/su-cargo-dark.svg`, full
-  bleed with the glyph scaled into Discord's circular crop.
+- **Banner:** "SALVAGE UNION.io" in paper on the ink ground with paper flecks,
+  "YOU'RE IN THE UNION NOW!" top left in pilot orange, and the book's chapter
+  colours along the foot. It has no mark because Discord lays the avatar over
+  the banner, and the avatar covers the bottom left, so the title sits right.
+- **Icon:** the SU mark (stencil SU on an ink stamp, the chapter colours along
+  the foot), full bleed with the glyph scaled into Discord's circular crop.
+- **Ko-fi cover:** the banner's materials with the mark beside the wordmark,
+  centred, because Ko-fi crops the sides on a phone.
