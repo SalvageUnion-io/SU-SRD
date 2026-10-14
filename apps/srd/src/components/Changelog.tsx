@@ -1,8 +1,6 @@
+import { Card, InlineMarkdown, PageHeading } from 'component-lib'
+import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
-import { PageHeading } from '../components/atoms/PageHeading'
-import { Card } from '../components/containers/Card'
-import { color, font, fontSize, space } from '../design/tokens'
-import { InlineMarkdown } from '../markdownSection/InlineMarkdown'
 
 const EMPTY = {
   color: color.wkMuted,
@@ -22,7 +20,7 @@ const BODY = {
 } satisfies CSSProperties
 
 // The bullets. Their spacing between items and their marker colour are child /
-// pseudo-element selectors, so those two are `.su-changelog__items`.
+// pseudo-element selectors, so those two are `.srd-changelog__items`.
 const ITEMS = {
   color: color.wkMuted,
   fontFamily: font.body,
@@ -48,8 +46,8 @@ type ChangelogProps = {
 }
 
 /**
- * Presentational, data-source-agnostic changelog renderer. Shared by both sites
- * so they render identically.
+ * Presentational, data-source-agnostic changelog renderer for the changelog
+ * both tools share (the SRD's `/changelog`).
  *
  * Each entry is a **`Card`** — the generic four-band container — not a bespoke
  * listing: the area is the card's SEAM stamp (`label`), the date is the header
@@ -87,12 +85,12 @@ export function Changelog({ entries, className }: ChangelogProps) {
               // changelog, which has only its own `h1` above it. `h3` skipped a
               // level (h1 -> h3), the one heading-order violation left on the
               // site once entity pages gained real section headings.
-              <PageHeading variant="subheading" as="h2" className="su-changelog__date">
+              <PageHeading variant="subheading" as="h2" className="srd-changelog__date">
                 <time dateTime={entry.date}>{entry.date}</time>
               </PageHeading>
             }
           >
-            <ul className="su-changelog__items" style={ITEMS}>
+            <ul className="srd-changelog__items" style={ITEMS}>
               {entry.items.map((item) => (
                 <li key={item}>
                   <InlineMarkdown text={item} />

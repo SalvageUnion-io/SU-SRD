@@ -229,6 +229,30 @@ describe('a client route that is not a navigation gets the shell', () => {
  * goes straight to where it lives now. One hop, decided without the asset
  * binding.
  */
+/**
+ * ITUN keeps no About or Changelog of its own: both tools share the SRD's, so
+ * the old addresses, under the base or on the old host, 301 straight there.
+ */
+describe('the doc pages 301 to the SRD', () => {
+  const cases: [string, string][] = [
+    [`https://salvageunion.io${BASE}/about`, 'https://salvageunion.io/about/'],
+    [`https://salvageunion.io${BASE}/about/`, 'https://salvageunion.io/about/'],
+    [`https://salvageunion.io${BASE}/changelog`, 'https://salvageunion.io/changelog/'],
+    ['https://intheunionnow.com/about', 'https://salvageunion.io/about/'],
+    ['https://www.intheunionnow.com/changelog', 'https://salvageunion.io/changelog/'],
+  ]
+  for (const [from, to] of cases) {
+    it(`${from} → ${to}`, async () => {
+      const env = envWith()
+      const res = await worker.fetch(navigateTo(from), env)
+
+      expect(res.status).toBe(301)
+      expect(res.headers.get('location')).toBe(to)
+      expect(env.ASSETS.asked).toEqual([])
+    })
+  }
+})
+
 describe('the old host 301s to salvageunion.io/build', () => {
   const cases: [string, string][] = [
     ['https://intheunionnow.com/', '/'],
@@ -236,7 +260,7 @@ describe('the old host 301s to salvageunion.io/build', () => {
     ['https://intheunionnow.com/invite/A1B2C3D4?ref=dm', '/invite/A1B2C3D4?ref=dm'],
     ['https://intheunionnow.com/sheet/mech/row-2', '/sheet/mech/row-2'],
     ['https://intheunionnow.com/assets/index-DEADBEEF.js', '/assets/index-DEADBEEF.js'],
-    ['https://www.intheunionnow.com/about', '/about'],
+    ['https://www.intheunionnow.com/settings', '/settings'],
     // The retired addresses, mapped on the way.
     ['https://intheunionnow.com/games', '/'],
     ['https://intheunionnow.com/games?from=discord', '/?from=discord'],

@@ -187,7 +187,7 @@ test.describe('signed out: the shell', () => {
     // A REAL route this test has not visited: the SPA shell must serve it from
     // cache and route it. (A route that does not exist would assert only that
     // the offline not-found page carries the app title.)
-    await page.goto(at('/about'))
+    await page.goto(at('/starter'))
     await waitForReady(page)
     await expect(page).toHaveTitle(/In the Union now/i)
     await expect(page.getByText(/page not found/i)).toHaveCount(0)

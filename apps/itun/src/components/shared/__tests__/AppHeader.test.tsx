@@ -63,7 +63,7 @@ describe('AppHeader', () => {
     expect(nav.getByRole('link', { name: 'Shelves' }).getAttribute('aria-current')).toBeNull()
   })
 
-  test('About and Changelog are not in the bar: they sit at the drawer’s foot', () => {
+  test('About, Changelog and API are not in the bar: the SRD’s pages sit at the drawer’s foot', () => {
     render(<AppHeader />)
     const banner = within(screen.getByRole('banner'))
     expect(banner.queryByRole('link', { name: 'About' })).toBeFalsy()
@@ -71,8 +71,11 @@ describe('AppHeader', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     const foot = within(screen.getByRole('navigation', { name: 'More' }))
-    expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about')
-    expect(foot.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
+    expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe(`${SRD}/about/`)
+    expect(foot.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe(
+      `${SRD}/changelog/`
+    )
+    expect(foot.getByRole('link', { name: 'API' }).getAttribute('href')).toBe(`${SRD}/api/`)
   })
 
   test('search is the bar’s slot, and its phone form sits beside the hamburger', () => {

@@ -14,8 +14,6 @@ import { at } from './_base'
  */
 const PAGES = [
   '/',
-  '/about',
-  '/changelog',
   '/pilots/new',
   '/mechs/new',
   '/crawlers/new',

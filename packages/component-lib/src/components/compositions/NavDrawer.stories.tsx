@@ -116,8 +116,8 @@ export const WithFoot: Story = () => {
           { label: 'Discord', href: '/discord/', external: true },
         ]}
         footItems={[
-          { label: 'About', href: '/about' },
-          { label: 'Changelog', href: '/changelog' },
+          { label: 'About', href: 'https://salvageunion.io/about/' },
+          { label: 'Changelog', href: 'https://salvageunion.io/changelog/' },
         ]}
         panelClassName="su-story-nav-drawer-narrow"
       />

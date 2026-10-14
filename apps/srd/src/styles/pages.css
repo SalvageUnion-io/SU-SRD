@@ -1,7 +1,7 @@
 /*
  * srd's page layouts — the Contents home (board 06), the entity page frame
  * (boards 07, 08), the roll-table page (board 08b), the listing rows and the
- * footer band.
+ * footer band, and the About and Changelog pages' parts.
  *
  * Its own file so the component catalog can load it too: `global.css`
  * imports it for the site, and the story catalog's `catalog.css` imports it so
@@ -1980,4 +1980,47 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   .srd-api__wide-cell {
     display: table-cell;
   }
+}
+
+/* The changelog page's entries (`components/Changelog.tsx`). The bullets' spacing and marker colour
+   are child and pseudo-element selectors. */
+.srd-changelog__items > :not(:last-child) {
+  margin-block-end: var(--space-4);
+}
+
+.srd-changelog__items *::marker,
+.srd-changelog__items::marker {
+  color: var(--color-wk-muted);
+}
+
+/* The entry's date, set on `PageHeading`, which takes a className and no style.
+   Its `subheading` rung brings `text-lg`'s 1.75rem line-height with it, which
+   outranks a class here; `!important` sets the date's tighter one. */
+.srd-changelog__date {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-caps-tight);
+  /* biome-ignore lint/complexity/noImportantStyles: PageHeading's own text-lg line-height outranks a class */
+  line-height: 1.25 !important;
+}
+
+/* The About page's colophon (`components/Colophon.tsx`): one column, two from `md` (48rem) up. */
+.srd-colophon {
+  grid-template-columns: none;
+}
+
+@media (min-width: 48rem) {
+  .srd-colophon {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The support section's slab spans its column and drops its own bottom margin
+   (the section's gap spaces it). Slab takes a className and no style, and its
+   own 14px bottom margin outranks a class here, so the reset needs
+   `!important`. */
+.srd-colophon__support-slab {
+  /* biome-ignore lint/complexity/noImportantStyles: Slab's own 14px bottom margin outranks a class */
+  margin-bottom: 0 !important;
+  width: 100%;
 }

@@ -187,9 +187,9 @@ describe('census of this repository', () => {
     expect(repo.stories.size).toBeGreaterThan(40)
   })
 
-  test('reach is transitive: srd reaches Card through ReferenceEntityCard', () => {
-    expect(repo.direct.get('Card')).toEqual(new Set(['itun']))
-    expect(repo.reach.get('Card')).toEqual(new Set(['itun', 'srd']))
+  test('reach is transitive: srd reaches ControlButtons through the card it renders', () => {
+    expect(repo.direct.get('ControlButtons')).toEqual(new Set(['itun']))
+    expect(repo.reach.get('ControlButtons')).toEqual(new Set(['itun', 'srd']))
   })
 
   test('has no failing verdict and no stale SINGLE_APP entry', () => {

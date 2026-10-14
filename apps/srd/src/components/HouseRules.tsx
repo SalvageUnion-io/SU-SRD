@@ -1,7 +1,7 @@
+import { Slab } from 'component-lib'
+import { fontSize, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { HOUSE_RULES } from 'salvageunion-reference/rules'
-import { fontSize, space, weight } from '../../design/tokens'
-import { Slab } from '../atoms/Slab'
 
 type HouseRulesProps = {
   className?: string
@@ -31,7 +31,7 @@ const CITE = { fontSize: fontSize.xs, fontStyle: 'normal', opacity: 0.75 } satis
 
 /**
  * HouseRules — every place the tools depart from the book, listed from the
- * registry (`HOUSE_RULES`, salvageunion-reference); shared by both about pages.
+ * registry (`HOUSE_RULES`, salvageunion-reference), on the About page both tools share.
  *
  * Each entry names the rule, says what the tools do instead, and cites the
  * book's own rule by page. The stat provenance ledger labels a line a house

@@ -218,7 +218,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, built: `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`.
     Supersedes ADR-025; amends ADR-014 and ADR-024; amended by ADR-043.
 41. **ADR-041 The deployed commit is the release**
-    Accepted, built: no app versions; each site's changelog is `main`'s first-parent history filtered by scope.
+    Accepted, built: no app versions; one changelog (srd's, ITUN links it): `main`'s first-parent history by scope.
     Supersedes ADR-024.
 42. **ADR-042 Mid-tab updates**
     Accepted, built: `apps/itun/convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.

@@ -1,11 +1,12 @@
 import { Footer, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { publicPath } from '../../lib/appUrl'
-import { AppLink } from './AppLink'
+import { DOC_PAGES } from '../../lib/docPages'
 
 /**
  * SiteFooter — ITUN's page foot: the shared `Footer` both tools end on, here
- * on the rules-blue band with the licence row and ITUN's About and Changelog.
+ * on the rules-blue band with the licence row and the doc pages both tools
+ * share, which live on the SRD (`docPages.ts`).
  *
  * It ends every page, signed in or out, at every width. It sits in
  * normal flow after the route, so nothing pinned can cover it: the bars that
@@ -15,10 +16,8 @@ import { AppLink } from './AppLink'
  * viewport, so the page scrolls on to it.
  */
 
-const LINKS = [
-  { label: 'About', href: '/about' },
-  { label: 'Changelog', href: '/changelog' },
-] as const
+/** The SRD's own footer links, in its order (`apps/srd/src/lib/constants.ts`). */
+const LINKS = [DOC_PAGES.changelog, DOC_PAGES.api, DOC_PAGES.discord, DOC_PAGES.about]
 
 /** Room between the page and its foot band, as the old hairline foot had. */
 const GAP = { marginTop: tokens.space[48] } satisfies CSSProperties
@@ -29,7 +28,7 @@ const MARK = publicPath('Powered_by_Salvage_Black.webp')
 export function SiteFooter() {
   return (
     <div style={GAP}>
-      <Footer links={LINKS} poweredBySalvageUrl={MARK} LinkComponent={AppLink} />
+      <Footer links={LINKS} poweredBySalvageUrl={MARK} />
     </div>
   )
 }

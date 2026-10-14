@@ -24,10 +24,11 @@ const SRD_LINKS = [
   { label: 'About', href: '/about/' },
 ]
 
-const ITUN_LINKS = [
-  { label: 'About', href: '/about' },
-  { label: 'Changelog', href: '/changelog' },
-]
+/** ITUN keeps no doc pages of its own: it links to the SRD's. */
+const ITUN_LINKS = SRD_LINKS.map((link) => ({
+  ...link,
+  href: `https://salvageunion.io${link.href}`,
+}))
 
 function footFor(
   tone: FooterFoot['tone'],
@@ -41,7 +42,7 @@ function footFor(
 /** The SRD's home, listings, guides and own pages: the licence row alone, in the Union bar's ink. */
 export const Site = () => <Footer links={SRD_LINKS} poweredBySalvageUrl={MARK} />
 
-/** Every ITUN page: the same licence row, ITUN's own pages at the end. */
+/** Every ITUN page: the same licence row and the same pages, on the SRD. */
 export const Itun = () => <Footer links={ITUN_LINKS} poweredBySalvageUrl={MARK} />
 
 /** A Mech Workshop page (board 07): the Gopher's citation in the mech band, over the licence row. */

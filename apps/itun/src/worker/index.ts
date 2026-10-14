@@ -21,6 +21,8 @@
  *
  * Under `/build/` this script reads the path inside the base (`basePath.ts`):
  *
+ *   D. `/about`, `/changelog` → a 301 to the SRD's page (`docPages.ts`); ITUN
+ *      keeps no copy of the doc pages both tools share.
  *   0. `/og/*.png`        → a link preview's picture (`linkPreview.ts`),
  *      rendered on request and cached by version.
  *   1. `/assets/*`, or a dot in the last segment: a FILE, asked of the asset
@@ -64,6 +66,7 @@
 
 import type { ObservabilityEnv } from 'observability/cloudflare'
 import { withObservability } from 'observability/cloudflare'
+import { retiredDocPage } from '../lib/docPages'
 import { pathInApp } from './basePath'
 import { inBase, outsideBase } from './legacyHost'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
@@ -101,6 +104,10 @@ export default withObservability('su-itun', {
     // Every rule below reads the path inside the app; a URL it builds puts the
     // base back.
     const path = pathInApp(url.pathname, base)
+
+    // D. A doc page ITUN no longer has: the SRD's, where both tools share it.
+    const docPage = retiredDocPage(path)
+    if (docPage !== null) return Response.redirect(docPage, 301)
 
     // 0. A link preview's picture — a file that exists only on request.
     if (isOgImagePath(path)) return ogImage(request, env, { cache: defaultCache(), base })

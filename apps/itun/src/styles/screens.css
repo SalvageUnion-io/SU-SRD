@@ -1,12 +1,8 @@
 /*
  * screens.css — the stateful/responsive half of the
  * ITUN components listed below; their static styling is style objects over
- * component-lib tokens. Loaded by `index.css`, and by the AboutScreen and
- * AppHeader stories.
+ * component-lib tokens. Loaded by `index.css`, and by the AppHeader story.
  *
- *   - `components/shared/AboutScreen.tsx` and `routes/changelog.tsx` —
- *     `.info-screen`, the page frame whose padding steps up at `sm` and `lg`;
- *     `.about-screen__colophon`, because `Colophon` takes a class, not a style.
  *   - `components/account/SignInControl.tsx` — `.sign-in-control--dark`, the
  *     ghost Button recoloured for the dark masthead (hover included).
  *   - `components/shared/AppHeader.tsx` — `.app-header__drawer-trigger` /
@@ -16,34 +12,6 @@
  * These rules are unlayered, so they outrank component-lib's `su-base` layer —
  * which is what the overrides above rely on.
  */
-
-/* About + Changelog page frame: 16px/32px, then 32px/48px from `sm`, and 48px
-   inline from `lg`. */
-.info-screen {
-  padding-block: var(--space-32);
-  padding-inline: var(--space-16);
-}
-@media (width >= 40rem) {
-  .info-screen {
-    padding-block: var(--space-48);
-    padding-inline: var(--space-32);
-  }
-}
-@media (width >= 64rem) {
-  .info-screen {
-    padding-inline: var(--space-48);
-  }
-}
-
-/* The About page's Colophon: an ink rule above, body type in ink. */
-.about-screen__colophon {
-  border-top-color: var(--color-ink);
-  border-top-style: solid;
-  border-top-width: 2px;
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  padding-top: var(--space-24);
-}
 
 /* Sign in / out on the dark masthead: a paper hairline at 40% that goes to full
    paper with a faint paper wash on hover. Background is restated at rest so the

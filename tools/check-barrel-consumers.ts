@@ -29,8 +29,8 @@
  *
  * "Reaches" is transitive. An app reaches an export when it imports any export
  * whose module graph inside the library contains that export's module: srd
- * imports `ReferenceEntityCard`, which renders `Card`, so srd reaches `Card`
- * though it never names it. The apps are every workspace whose manifest
+ * imports `ReferenceEntityCard`, whose `Card` rail renders `ControlButtons`,
+ * so srd reaches `ControlButtons` though it never names it. The apps are every workspace whose manifest
  * depends on `component-lib`; their `src/` and `ssg/` trees are scanned.
  */
 

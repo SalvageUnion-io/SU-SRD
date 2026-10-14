@@ -4,6 +4,7 @@ import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { DOC_PAGES } from '../../lib/docPages'
 import { HeaderMenu } from '../shared/HeaderMenu'
 import { useSignOut } from './useSignOut'
 
@@ -73,11 +74,16 @@ function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
           { id: 'sign-out', label: 'Sign out', onSelect: signOut },
         ],
         [
-          { id: 'about', label: 'About', onSelect: () => void navigate({ to: '/about' }) },
+          // The shared doc pages live on the SRD (`docPages.ts`).
+          {
+            id: 'about',
+            label: 'About',
+            onSelect: () => window.location.assign(DOC_PAGES.about.href),
+          },
           {
             id: 'changelog',
             label: 'Changelog',
-            onSelect: () => void navigate({ to: '/changelog' }),
+            onSelect: () => window.location.assign(DOC_PAGES.changelog.href),
           },
         ],
       ]}

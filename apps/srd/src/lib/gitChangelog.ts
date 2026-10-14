@@ -1,17 +1,17 @@
 /**
  * The changelog is `main`'s history, read at build time (ADR-041). Node-only:
- * the apps call it from a build step (srd's SSR pass, ITUN's `vite.config.ts`)
- * and ship only the entries, never this module.
+ * srd's SSR pass calls it for `/changelog`, the changelog both tools share, and
+ * ships only the entries, never this module.
  *
  * A squash title is the entry. Only `feat`, `fix` and `perf` count, and only
- * under the app's own scope: `feat(itun): …` is ITUN's, so an ITUN change never
- * shows on the SRD's page, whatever files it touched. A title may name several
+ * under an app's own scope: `feat(itun): …` is ITUN's, so it lands in the App's
+ * entries, never the Site's, whatever files it touched. A title may name several
  * (`feat(itun,srd): …`, a release of both); an unscoped title is no app's.
  */
 
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import type { ChangelogEntry } from './Changelog'
+import type { ChangelogEntry } from '../components/Changelog'
 
 const REPO = 'https://github.com/SalvageUnion-io/SU-SRD'
 const SUBJECT = /^(?:feat|fix|perf)\(([a-z0-9./-]+(?:,[a-z0-9./-]+)*)\)!?: (.+?)(?: \(#(\d+)\))?$/

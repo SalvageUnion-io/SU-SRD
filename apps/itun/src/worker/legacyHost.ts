@@ -1,3 +1,4 @@
+import { retiredDocPage } from '../lib/docPages'
 import { LEGACY_HOSTS, SITE } from '../lib/site'
 import { retiredTarget } from './retiredRedirects'
 
@@ -11,7 +12,8 @@ import { retiredTarget } from './retiredRedirects'
  *   where every link already posted points. Each is a **301** to the same page
  *   under `SITE` (`https://salvageunion.io/build/…`), query kept, a retired
  *   address (`retiredRedirects.ts`) mapped to where it lives now on the way:
- *   one hop. Only the old host gets an absolute, cross-origin `Location`.
+ *   one hop. `/about` and `/changelog` go straight to the SRD's page
+ *   (`docPages.ts`). Only the old host gets an absolute, cross-origin `Location`.
  * - **anything else**: the route's own `salvageunion.io/build` without the
  *   slash, a Worker Preview's and `wrangler dev`'s root. The app's root and
  *   `/build` itself 301 to `/build/`; any other path is a 404, `no-store`.
@@ -33,6 +35,8 @@ export const RUN_WORKER_FIRST = true
 
 export function outsideBase(url: URL, base: string): Response {
   if (LEGACY_HOSTS.includes(url.hostname.toLowerCase())) {
+    const docPage = retiredDocPage(url.pathname)
+    if (docPage !== null) return redirect(docPage)
     const path = retiredTarget(url.pathname) ?? url.pathname
     return redirect(`${SITE.origin}${base}${path}${url.search}`)
   }

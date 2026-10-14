@@ -4,6 +4,7 @@ import thanksMd from '../../../../SPECIAL_THANKS.md?raw'
 import { space } from '../design/tokens'
 import type { Story } from '../stories/_harness'
 import { Caption } from '../stories/_harness'
+import { InlineMarkdown } from './InlineMarkdown'
 import { MarkdownSection } from './MarkdownSection'
 
 export default { title: 'Containers/Markdown Section' }
@@ -27,4 +28,14 @@ export const Default: Story = () => (
     <Caption>LLM_STATEMENT.md</Caption>
     <MarkdownSection markdown={statementMd} />
   </div>
+)
+
+/**
+ * One line through `InlineMarkdown`, the renderer's inline half: plain text with
+ * `[label](href)` links, as each SRD changelog entry is set.
+ */
+export const Inline: Story = () => (
+  <p style={{ maxWidth: '42rem' }}>
+    <InlineMarkdown text="Derive the changelog from conventional-commit PR titles ([#398](https://github.com/SalvageUnion-io/SU-SRD/pull/398))" />
+  </p>
 )

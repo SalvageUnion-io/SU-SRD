@@ -64,8 +64,8 @@ const PLAYER = 'Rook'
 const itunDrawerNav = [
   { label: 'Shelves', href: '/', active: true },
   { label: 'Starter Set', href: '/starter/' },
-  { label: 'About', href: '/about' },
-  { label: 'Changelog', href: '/changelog' },
+  { label: 'About', href: 'https://salvageunion.io/about/' },
+  { label: 'Changelog', href: 'https://salvageunion.io/changelog/' },
 ]
 
 const srdSearch = (

@@ -1,7 +1,7 @@
+import { space } from 'component-lib/design/tokens'
+import type { Story } from 'component-lib/stories/harness'
+import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties } from 'react'
-import { space } from '../design/tokens'
-import type { Story } from '../stories/_harness'
-import { Caption } from '../stories/_harness'
 import type { ChangelogEntry } from './Changelog'
 import { Changelog } from './Changelog'
 

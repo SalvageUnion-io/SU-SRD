@@ -2,7 +2,6 @@ import { copyFileSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
-import { readChangelog } from 'component-lib/changelog/git'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT } from 'gates/ports'
 import { sentrySourcemaps } from 'observability/vite'
 import type { Plugin } from 'vite'
@@ -71,8 +70,6 @@ function siteLayout(base: string): Plugin {
 export default defineConfig({
   // `/build/`: ITUN at salvageunion.io/build (ADR-048).
   base: SITE.base,
-  // `feat`/`fix`/`perf` squash titles scoped `itun` (ADR-041).
-  define: { __ITUN_CHANGELOG__: JSON.stringify(readChangelog('itun', 'App')) },
   plugins: [
     requireConvexUrl(),
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),

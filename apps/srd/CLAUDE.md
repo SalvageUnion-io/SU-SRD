@@ -86,4 +86,4 @@ Entity and pattern pages carry a Discord Component Embed
 
 ## Changelog
 
-A `feat(srd):` (or `fix`/`perf`) PR title reaches the generated `/changelog` page.
+A `feat(srd):` or `feat(itun):` (or `fix`/`perf`) PR title reaches the generated `/changelog` page, the one changelog both tools share (as Site or App entries). The About page is shared the same way: ITUN links to both and keeps no copy.

@@ -1,25 +1,32 @@
 /**
- * `/changelog` — the site's history.
+ * `/changelog` — the history of both tools, the one changelog they share
+ * (ITUN links here and keeps no copy).
  *
  * Rendered at BUILD time from `main`'s history: `readChangelog` keeps the
- * `feat`/`fix`/`perf` squash titles scoped `srd` (ADR-041). Never a client
+ * `feat`/`fix`/`perf` squash titles scoped `srd` (the Site) and `itun` (the
+ * App), each day's entries stamped with their area (ADR-041). Never a client
  * fetch — only the rendered entries ship.
  */
 
-import { Changelog, ChapterBand, InlineRef } from 'component-lib'
-import { readChangelog } from 'component-lib/changelog/git'
+import { ChapterBand, InlineRef } from 'component-lib'
 import { space } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 import type { PageModule, PageResult } from '../../ssg/types'
+import { Changelog } from '../components/Changelog'
 import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, DOC_PAGE, docMeasure, PROSE } from '../lib/docPageStyles'
+import { readChangelog } from '../lib/gitChangelog'
 
 const MEASURE = docMeasure('48rem', space[32])
 
 const TITLE = `Changelog${TITLE_SUFFIX}`
-const DESCRIPTION = 'Changes to the salvageunion.io reference site over time.'
+const DESCRIPTION = `Changes to the salvageunion.io reference site and ${PRODUCT.name} over time.`
 
 function page(): PageResult {
-  const entries = readChangelog('srd', 'Site')
+  // Newest day first; on a day both changed, the Site's entry comes first.
+  const entries = [...readChangelog('srd', 'Site'), ...readChangelog('itun', 'App')].sort((a, b) =>
+    b.date.localeCompare(a.date)
+  )
 
   return {
     meta: {
@@ -44,8 +51,8 @@ function page(): PageResult {
         <ChapterBand measure="48rem">Changelog</ChapterBand>
         <div style={MEASURE}>
           <p style={PROSE}>
-            Features, fixes and speed-ups to the SRD site, newest first. For full commit history see
-            the{' '}
+            Features, fixes and speed-ups to the SRD site and {PRODUCT.name}, newest first. For full
+            commit history see the{' '}
             <InlineRef
               href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
               target="_blank"

@@ -1,11 +1,9 @@
 <!--
   The canonical author bio for this project.
 
-  Rendered verbatim in the colophon on both about pages, alongside
-  `LLM_STATEMENT.md` — srd's `/about` (`apps/srd/src/pages/about.page.tsx`, read at
-  build time with node:fs) and ITUN's `/about` (`apps/itun/src/routes/about.tsx`,
-  inlined via a Vite `?raw` import). Edit the wording here and both sites change
-  together; there is no second copy.
+  Rendered verbatim in the colophon on the About page both tools share,
+  alongside `LLM_STATEMENT.md` — srd's `/about` (`apps/srd/src/pages/about.page.tsx`,
+  read at build time with node:fs). ITUN links there and keeps no copy.
 
   Format contract (see `packages/component-lib/src/markdownSection/`): one `#`
   heading, then blank-line-separated paragraphs. `[label](href)` links are the

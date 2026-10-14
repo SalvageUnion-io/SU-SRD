@@ -10,9 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccountRouteImport } from './routes/account'
-import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as DashboardPilotIdRouteImport } from './routes/dashboard/$pilotId'
@@ -38,19 +36,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChangelogRoute = ChangelogRouteImport.update({
-  id: '/changelog',
-  path: '/changelog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -151,9 +139,7 @@ const StarterKindIdRoute = StarterKindIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/account': typeof AccountRoute
-  '/changelog': typeof ChangelogRoute
   '/settings': typeof SettingsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
@@ -176,9 +162,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/account': typeof AccountRoute
-  '/changelog': typeof ChangelogRoute
   '/settings': typeof SettingsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
@@ -202,9 +186,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/account': typeof AccountRoute
-  '/changelog': typeof ChangelogRoute
   '/settings': typeof SettingsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
@@ -229,9 +211,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
     | '/account'
-    | '/changelog'
     | '/settings'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
@@ -254,9 +234,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
     | '/account'
-    | '/changelog'
     | '/settings'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
@@ -279,9 +257,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/about'
     | '/account'
-    | '/changelog'
     | '/settings'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
@@ -305,9 +281,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
-  ChangelogRoute: typeof ChangelogRoute
   SettingsRoute: typeof SettingsRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
   DashboardPilotIdRoute: typeof DashboardPilotIdRoute
@@ -338,25 +312,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/account': {
       id: '/account'
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/changelog': {
-      id: '/changelog'
-      path: '/changelog'
-      fullPath: '/changelog'
-      preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -497,9 +457,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
-  ChangelogRoute: ChangelogRoute,
   SettingsRoute: SettingsRoute,
   CrawlersNewRoute: CrawlersNewRoute,
   DashboardPilotIdRoute: DashboardPilotIdRoute,

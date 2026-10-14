@@ -2,8 +2,6 @@
 // Dashboard SRD Explorer renders them. (srd's own index is its chapters,
 // `apps/srd/src/lib/chapters.ts`.)
 export { buildCatalogSections } from './catalog/catalogSections'
-// Changelog view; its build-time git reader is the `./changelog/git` subpath
-export { Changelog } from './changelog/Changelog'
 export { ActivationCost } from './components/atoms/ActivationCost'
 // Avatar — a person's picture in a circle, falling back to their initial
 export { Avatar } from './components/atoms/Avatar'
@@ -48,6 +46,8 @@ export {
   FOCUS_RING_ON_TONE,
   INPUT_FOCUS,
 } from './components/atoms/interaction'
+// KofiButton — the Ko-fi support widget, with a plain link until its script loads
+export { KofiButton } from './components/atoms/KofiButton'
 export { KvRow } from './components/atoms/KvRow'
 export { ModeDoor } from './components/atoms/ModeDoor'
 export { PageHeading } from './components/atoms/PageHeading'
@@ -86,8 +86,6 @@ export { AppBar } from './components/compositions/AppBar'
 export { assetSrcSetFor } from './components/compositions/assetSrcSet'
 // BrandCard — the site's own 1200 × 630 link preview, the Discord banner's face.
 export { BrandCard } from './components/compositions/BrandCard'
-// Colophon (renders the repo-root ABOUT_JRVS.md + LLM_STATEMENT.md on both about pages)
-export { Colophon } from './components/compositions/Colophon'
 // ControlButtons — the control strip Card's rail renders; public because
 // ITUN's Dashboard display panel lays out entity controls with it directly.
 export { ControlButtons } from './components/compositions/ControlButtons'
@@ -102,8 +100,6 @@ export { digestColumnsTable, digestRollTable } from './components/compositions/d
 export { EntitySearcher } from './components/compositions/EntitySearcher'
 export type { FooterFoot } from './components/compositions/Footer'
 export { Footer } from './components/compositions/Footer'
-// HouseRules (the house-rule registry, listed on both about pages)
-export { HouseRules } from './components/compositions/HouseRules'
 export type { NavDrawerCategory, NavDrawerItem } from './components/compositions/NavDrawer'
 export { NavDrawer } from './components/compositions/NavDrawer'
 // OgCard — the 1200 × 630 link preview, built from ChapterBand and
@@ -237,6 +233,10 @@ export { KindLabel } from './entity/parts/KindLabel'
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
 export { mentionRef } from './entity/parts/tagItems'
 export type { EntityRowModel } from './entity/types'
+// MarkdownSection — a repo-root markdown file (one heading, paragraphs and
+// links) as a section; InlineMarkdown — one line of it, links only
+export { InlineMarkdown } from './markdownSection/InlineMarkdown'
+export { MarkdownSection } from './markdownSection/MarkdownSection'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from './styles/cssVars'
 // Utilities — the ONE cn(): joins class names, dropping falsy entries.

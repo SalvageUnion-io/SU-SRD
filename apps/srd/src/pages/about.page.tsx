@@ -20,14 +20,16 @@
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { ChapterBand, HouseRules, InlineRef, Slab } from 'component-lib'
+import { ChapterBand, InlineRef, Slab } from 'component-lib'
 import { color, font, fontSize, radius, space, tracking, weight } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
+import { HouseRules } from '../components/HouseRules'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
-import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, DOC_PAGE, docMeasure, PROSE } from '../lib/docPageStyles'
 import { Island } from '../runtime/Island'
 
@@ -35,15 +37,14 @@ import { Island } from '../runtime/Island'
 const repoRootFile = (name: string): string =>
   fileURLToPath(new URL(`../../../../${name}`, import.meta.url))
 
-// The shared colophon prose, read at build time from the repo root so both this
-// site and ITUN render the same words.
+// The shared colophon prose, read at build time from the repo root. This page
+// is the About page of both tools: ITUN links here and keeps no copy.
 const aboutJrvsMd = readFileSync(repoRootFile('ABOUT_JRVS.md'), 'utf8')
 const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
 const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 
 const TITLE = `About${TITLE_SUFFIX}`
-const DESCRIPTION =
-  'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press. Community-built reference tool.'
+const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and ${PRODUCT.name}, its character builder. Community-built tools.`
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -352,7 +353,16 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 . It provides a searchable, browsable reference for all game content released under
                 the Salvage Union OGL.
               </p>
-              <p style={PARAGRAPH}>The site is open source and contributions are welcome.</p>
+              <p style={PARAGRAPH}>
+                <InlineRef href={ITUN_URL} style={BOLD}>
+                  {PRODUCT.name}
+                </InlineRef>{' '}
+                is its character builder and game manager: build pilots, mechs, and crawlers, then
+                run them at the table with live sheets you can share. Reading needs no account: the
+                Starter Set and any sheet shared by link open signed out. Sign in with Discord to
+                build, and everything you make saves to your account.
+              </p>
+              <p style={PARAGRAPH}>Both are open source and contributions are welcome.</p>
               <p>
                 I am not the owner or publisher of this content. Salvage Union and all associated
                 names, marks, characters, and artwork are the property of Leyline Press. Game text
@@ -371,11 +381,10 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               </p>
             </section>
 
-            {/* House rules: where the tools depart from the book (shared with ITUN). */}
+            {/* House rules: where the tools depart from the book. */}
             <HouseRules />
 
-            {/* Colophon: About the Dev + Special Thanks + support | LLM Statement
-                (shared with ITUN).
+            {/* Colophon: About the Dev + Special Thanks + support | LLM Statement.
                 `ssr` per DESIGN.md's per-island table — the prose is worth indexing. */}
             <Island
               name="ColophonIsland"

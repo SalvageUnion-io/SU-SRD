@@ -5,6 +5,7 @@ import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { SRD_SITE_URL } from 'salvageunion-reference'
 import { MARK_SRC } from '../../lib/appUrl'
+import { DOC_PAGES } from '../../lib/docPages'
 
 /**
  * AppHeader — ITUN's preset of the shared Union bar (`AppBar`, ruleset §3.11):
@@ -116,14 +117,12 @@ export function AppHeader({
   const drawerNav: NavDrawerItem[] = [
     { label: 'Shelves', href: '/', active: onShelves },
     { label: 'Starter Set', href: '/starter/', active: onStarterSet },
-    { label: 'Discord', href: `${SRD_SITE_URL}/discord/` },
+    DOC_PAGES.discord,
     { label: 'Buy the game', href: BUY_HREF, external: true },
   ]
 
-  const aboutLinks: NavDrawerItem[] = [
-    { label: 'About', href: '/about', active: pathname.startsWith('/about') },
-    { label: 'Changelog', href: '/changelog', active: pathname.startsWith('/changelog') },
-  ]
+  // The shared doc pages, on the SRD (`docPages.ts`).
+  const aboutLinks: NavDrawerItem[] = [DOC_PAGES.about, DOC_PAGES.changelog, DOC_PAGES.api]
 
   return (
     <AppBar
