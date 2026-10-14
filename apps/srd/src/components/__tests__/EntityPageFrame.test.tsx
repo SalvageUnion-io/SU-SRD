@@ -9,7 +9,6 @@ import { resolveEntityPageMeta } from 'component-lib'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
 import { ITUN_URL } from '../../lib/constants'
-import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { EntityPageFrame, entityPageFoot } from '../EntityPageFrame'
 
 function must<T>(value: T | undefined | null): T {
@@ -109,24 +108,21 @@ describe('EntityPageFrame', () => {
     )
     const body = container.querySelector<HTMLElement>('.srd-entity__body')
     expect(body?.classList.contains('srd-page-body')).toBe(true)
-    expect(body?.style.maxWidth).toBe('')
   })
 })
 
 describe('entityPageFoot', () => {
-  test('carries the tone, fill, measure and the kind and printings from meta', () => {
+  test('carries the tone, fill and the kind and printings from meta', () => {
     const meta = resolveEntityPageMeta(guide('Heat'))
     expect(entityPageFoot('rules', meta)).toEqual({
       tone: 'rules',
       fill: undefined,
       kind: meta.typeLabel,
       printings: meta.printings,
-      measure: PAGE_MEASURE,
     })
     expect(entityPageFoot('mech', meta, '#123456')).toMatchObject({
       tone: 'mech',
       fill: '#123456',
-      measure: PAGE_MEASURE,
     })
   })
 })

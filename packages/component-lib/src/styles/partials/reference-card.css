@@ -136,7 +136,7 @@
 /* ══ The detail dialog's Page (`referenceEntity/EntityDetailDialog.tsx`) ════
  *
  * ITUN's detail view is the Page (EDL Form 5): its body sits under the band
- * at the SRD entity page's gutters (`.srd-entity__body`), which change at `sm`.
+ * at the SRD page body's gutters (`.srd-page-body`), which change at `sm`.
  */
 .su-entity-dialog__body {
   padding: var(--space-20) var(--space-16) var(--space-32);

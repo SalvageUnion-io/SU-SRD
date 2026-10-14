@@ -28,7 +28,7 @@ function page(): PageResult {
       noindex: true,
       breadcrumbs: [CONTENTS_CRUMB, { name: 'Search', url: CANONICAL_URL }],
     },
-    foot: { tone: 'rules', measure: PAGE_MEASURE },
+    foot: { tone: 'rules' },
     children: (
       <div className="srd-listing-shell">
         <ChapterBand tone="rules" measure={PAGE_MEASURE}>

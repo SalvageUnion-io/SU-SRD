@@ -155,9 +155,9 @@ export function EntityPageFrame({
 
 /**
  * The foot of the same page, for the layout's `Footer`: the frame's chapter
- * tone (or its own `fill`), the one page measure, and the kind and printings
- * `meta` carries.
+ * tone (or its own `fill`) and the kind and printings `meta` carries. The
+ * layout sets the one page measure.
  */
 export function entityPageFoot(tone: ChapterTone, meta: EntityPageMeta, fill?: string): PageFoot {
-  return { tone, fill, kind: meta.typeLabel, printings: meta.printings, measure: PAGE_MEASURE }
+  return { tone, fill, kind: meta.typeLabel, printings: meta.printings }
 }

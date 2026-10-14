@@ -109,7 +109,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       breadcrumbDescription: schema.description,
     },
     // The listing ends on its chapter's band, as its entity pages do.
-    foot: { tone: chapter.tone, measure: PAGE_MEASURE },
+    foot: { tone: chapter.tone },
     children: (
       <div className="srd-listing-shell">
         {/* The chapter band is the visible heading: the plural name in the

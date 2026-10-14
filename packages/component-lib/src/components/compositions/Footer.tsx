@@ -50,7 +50,7 @@ type FooterProps = {
   LinkComponent?: ElementType
 }
 
-/** The SRD's widest measure, matching the Contents band at the page's head. */
+/** The measure when the host passes none: ITUN's (the SRD passes its page measure). */
 const SITE_MEASURE = '85rem'
 
 /** The licence row's band: the Union bar's own ink, paper text and paper flecks. */
