@@ -370,9 +370,6 @@ export function VitalGauge({
   const isDense = max >= 12
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
-  // The Current / Max caption: a read-out prints without it, since the numeral
-  // already says current / max.
-  const showCaption = !readOnly
 
   const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
   // The slider's spoken value: the summary, plus the redline once a lit
@@ -738,20 +735,15 @@ export function VitalGauge({
         </div>
       )}
 
-      {/* Caption — right-aligned Current / Max; an override note sits left. */}
-      {(showCaption || isOverridden) && (
+      {/* No Current / Max caption, in Read or Edit: the numeral already says
+          current / max (owner's call, 2026-10-14: Edit looks like Read). An
+          override note still says where the max came from. */}
+      {isOverridden && (
         <div
           className={capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' })}
           style={CAPTION}
         >
-          {isOverridden && <span style={CAPTION_OVERRIDE}>overridden from {overriddenFrom}</span>}
-          {showCaption && (
-            <>
-              <span>Current</span>
-              <span>/</span>
-              <span>Max</span>
-            </>
-          )}
+          <span style={CAPTION_OVERRIDE}>overridden from {overriddenFrom}</span>
         </div>
       )}
     </div>

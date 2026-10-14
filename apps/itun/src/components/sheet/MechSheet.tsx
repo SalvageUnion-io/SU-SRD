@@ -305,7 +305,6 @@ export function MechSheet({
           Photo + the player's fields ∥ SP/EP/Heat + Conditions vitals rail. */}
       <SheetHero
         name={mech.name}
-        surface={readOnly ? 'paper' : 'frame'}
         fields={
           <PhotoBeside
             photo={

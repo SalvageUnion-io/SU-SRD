@@ -39,10 +39,11 @@ type SheetSectionCardProps = {
   /** Extra classes on the paper body block (e.g. the `Ecflow` grid gaps). */
   bodyClassName?: string
   /**
-   * `frame` (default) is the accent-framed card with its header band — the
-   * Edit state. `paper` is the printed read state (board 10): a flat paper
-   * panel under a one-unit-colour top rule. It prints no title: the section is
-   * named for assistive tech, and the contents say what they are.
+   * `frame` (default) is the accent-framed card with its header band (a
+   * wizard's rule brief). `paper` is a live sheet's opening panel, in Read and
+   * Edit alike (board 10): a flat paper panel under a one-unit-colour top
+   * rule. It prints no title: the section is named for assistive tech, and
+   * the contents say what they are.
    */
   surface?: 'frame' | 'paper'
   children: ReactNode

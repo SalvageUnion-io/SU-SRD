@@ -105,6 +105,9 @@ const TYPESET_LABEL = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
+/** Edit's label: Read's, with the value box a step under it. */
+const EDIT_LABEL = { ...TYPESET_LABEL, marginBottom: space[4] } satisfies CSSProperties
+
 const TYPESET_VALUE = {
   color: color.ink,
   fontFamily: font.body,
@@ -141,8 +144,10 @@ const PICKER_BOX = {
   cursor: 'pointer',
   display: 'flex',
   fontFamily: font.body,
-  fontSize: fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
+  // Read's value size, so a picked value (a class, a type) reads as the
+  // typed ones beside it do.
+  fontSize: fontSize.readout,
+  lineHeight: 1.5,
   minHeight: '2.75rem',
   paddingInline: space[12],
   textAlign: 'left',
@@ -260,10 +265,15 @@ export function Field(props: FieldProps) {
     )
   }
 
-  const stamp = (
-    <span className={STAMP_SEAM} style={LABEL_SEAT}>
-      {stampBadge}
-    </span>
+  // Edit sets the label as Read does, small caps over the value, so a sheet
+  // reads the same in both modes; only the dashed box says "write here"
+  // (owner's call, 2026-10-14: Edit looks like Read).
+  const typesetLabel = (
+    <div style={EDIT_LABEL}>
+      {label}
+      {required && <span aria-hidden="true">*</span>}
+      {labelAction}
+    </div>
   )
   const valueSpan = <span style={value ? VALUE_FILLED : VALUE_EMPTY}>{value || placeholder}</span>
 
@@ -271,8 +281,7 @@ export function Field(props: FieldProps) {
   if (onEditClick) {
     return (
       <div className={className} style={FIELD_ROOT}>
-        {stamp}
-        {action}
+        {typesetLabel}
         <button
           type="button"
           aria-label={`Change ${labelText.toLowerCase()}`}
@@ -302,8 +311,7 @@ export function Field(props: FieldProps) {
   // edit it. (Without one the field was typeset above.)
   return (
     <div className={className} style={fill ? FIELD_ROOT_FILL : FIELD_ROOT}>
-      {stamp}
-      {action}
+      {typesetLabel}
       <InlineEditField
         bordered
         value={value}

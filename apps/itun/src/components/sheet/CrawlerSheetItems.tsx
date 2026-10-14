@@ -336,7 +336,7 @@ export function CrawlerBayCard({
         // The crew is a Token named for them, Peeking the bay's NPC card
         // (owner's calls, 2026-10-14). Edit puts Details on its line, opening
         // the crew's fields under it, as a pilot's equipment does.
-        <div style={CREW_STACK}>
+        <div className="su-sheet-crew" style={CREW_STACK}>
           <SheetItemLine
             token={
               <Entity

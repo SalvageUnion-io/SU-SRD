@@ -300,7 +300,7 @@ export function PilotSheet({
         <div className="su-sheet-pilot-column">
           <SheetSectionCard
             title="Identity"
-            surface={readOnly ? 'paper' : 'frame'}
+            surface="paper"
             count={
               model.dead ? (
                 <Badge surface="tone" tone="bad">
@@ -354,7 +354,7 @@ export function PilotSheet({
           />
         </div>
         <div className="su-sheet-pilot-column">
-          <SheetSectionCard title="Vitals" surface={readOnly ? 'paper' : 'frame'}>
+          <SheetSectionCard title="Vitals" surface="paper">
             <div className="su-sheet-pilot-vitals" style={VITALS}>
               <VitalGauge
                 label="HP"
@@ -367,7 +367,7 @@ export function PilotSheet({
                     : (next) => actions.overridePilotMax({ maxHpOverride: pinFor(next, hpParts) })
                 }
                 breakdown={readOnly ? undefined : hpParts}
-                subLabel={readOnly ? 'Hit Points' : undefined}
+                subLabel="Hit Points"
                 provenance={readOnly ? undefined : model.hpLines}
                 onRevertOverride={
                   readOnly
@@ -387,7 +387,7 @@ export function PilotSheet({
                     : (next) => actions.overridePilotMax({ maxApOverride: pinFor(next, apParts) })
                 }
                 breakdown={readOnly ? undefined : apParts}
-                subLabel={readOnly ? 'Ability Points' : undefined}
+                subLabel="Ability Points"
                 provenance={readOnly ? undefined : model.apLines}
                 onRevertOverride={
                   readOnly
@@ -449,38 +449,28 @@ export function PilotSheet({
               {pilot.equipment.length === 0 && model.genericInventory.length === 0 ? (
                 <EmptyState variant="quiet" body="Nothing carried." />
               ) : readOnly ? (
-                // Read (board 10): the shortform pills, then the SlotGrid of
-                // every slot, filled and free, so capacity reads at a glance.
-                <>
-                  <div className="su-sheet-pills" style={PILLS}>
-                    {model.ordinaryEquipment.map((slug) => (
-                      <PilotEquipmentItem
-                        key={slug}
-                        slug={slug}
-                        pilotId={pilot.id}
-                        seedSelections={pilot.equipmentChoices?.[slug]}
-                        condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                        usesLeft={pilot.equipmentUses?.[slug]}
-                        onConditionChange={() => undefined}
-                        onUsesChange={() => undefined}
-                        readOnly
-                        scalingParent={model.scalingParent}
-                        store={store}
-                      />
-                    ))}
-                    {model.genericInventory.map((entry) => (
-                      <GenericEntryCard key={entry.id} entry={entry} />
-                    ))}
-                  </div>
-                  <div style={SLOTS}>
-                    <SlotGrid
-                      used={model.slotsUsed}
-                      cap={model.slotsCap}
-                      label={`Inventory: ${model.slotsUsed} of ${model.slotsCap} slots filled${model.overCapacity ? ' — over capacity' : ''}`}
+                // Read (board 10): the shortform pills. Both modes then draw
+                // the SlotGrid of every slot, so capacity reads at a glance.
+                <div className="su-sheet-pills" style={PILLS}>
+                  {model.ordinaryEquipment.map((slug) => (
+                    <PilotEquipmentItem
+                      key={slug}
+                      slug={slug}
+                      pilotId={pilot.id}
+                      seedSelections={pilot.equipmentChoices?.[slug]}
+                      condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                      usesLeft={pilot.equipmentUses?.[slug]}
+                      onConditionChange={() => undefined}
+                      onUsesChange={() => undefined}
                       readOnly
+                      scalingParent={model.scalingParent}
+                      store={store}
                     />
-                  </div>
-                </>
+                  ))}
+                  {model.genericInventory.map((entry) => (
+                    <GenericEntryCard key={entry.id} entry={entry} />
+                  ))}
+                </div>
               ) : (
                 // Edit: one item to a line, its controls on the line beside its
                 // pill (`SheetItemLine`), as a mech's Systems and Modules.
@@ -526,6 +516,16 @@ export function PilotSheet({
                       }
                     />
                   ))}
+                </div>
+              )}
+              {(pilot.equipment.length > 0 || model.genericInventory.length > 0) && (
+                <div style={SLOTS}>
+                  <SlotGrid
+                    used={model.slotsUsed}
+                    cap={model.slotsCap}
+                    label={`Inventory: ${model.slotsUsed} of ${model.slotsCap} slots filled${model.overCapacity ? ' — over capacity' : ''}`}
+                    readOnly
+                  />
                 </div>
               )}
               {!readOnly && (
