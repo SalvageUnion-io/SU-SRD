@@ -15,7 +15,6 @@ import {
   fontSize,
   radius,
   space,
-  tracking,
   weight,
 } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
@@ -116,13 +115,6 @@ export const PANEL_BODY = {
 } satisfies CSSProperties
 
 export const ITALIC = { fontStyle: 'italic' } satisfies CSSProperties
-
-/** The policies' "Last updated" stamp. */
-export const LAST_UPDATED_STAMP = {
-  ...SMALL_PRINT,
-  letterSpacing: tracking.capsSnug,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
 
 /** A tip or aside: a framed callout on the page ground — a full chrome-weight
  *  ink frame, never a left rail (ruleset §3.10). */

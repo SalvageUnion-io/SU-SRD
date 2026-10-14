@@ -9,7 +9,7 @@
  */
 
 import { buttonVariants, ChapterBand, InlineRef, Panel, Slab } from 'component-lib'
-import { borderWidth, color, font, fontSize, space, tracking } from 'component-lib/design/tokens'
+import { borderWidth, color, font, fontSize, space } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
@@ -69,18 +69,8 @@ const DESCRIPTION =
   'Add the SURef bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
 
 // The install CTA is an <a> styled as THE primary (rust) action — the lib
-// Button recipe as a class string (buttonVariants), keeping the condensed
-// uppercase treatment this hero link uses. None of those four properties
-// changes on hover, so they sit inline over the recipe.
-const installButtonClass = buttonVariants({ variant: 'primary' })
-
-const INSTALL_TYPE = {
-  fontFamily: font.cond,
-  fontSize: fontSize.base,
-  letterSpacing: tracking.capsSnug,
-  lineHeight: 1.5,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+// Button recipe as a class string (buttonVariants), at the home page's CTA size.
+const installButtonClass = buttonVariants({ variant: 'primary', size: 'full' })
 
 const MEASURE = docMeasure('48rem', space[32])
 const PROSE_12 = proseColumn(space[12])
@@ -249,7 +239,6 @@ function page(): PageResult {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={installButtonClass}
-                style={INSTALL_TYPE}
               >
                 Add to your Discord server
               </a>

@@ -13,7 +13,6 @@ import {
   bulletList,
   DOC_PAGE,
   docMeasure,
-  LAST_UPDATED_STAMP,
   proseColumn,
   SMALL_PRINT,
 } from '../../lib/docPageStyles'
@@ -36,7 +35,7 @@ function page(): PageResult {
       <div style={DOC_PAGE}>
         <ChapterBand measure="48rem">Salvage Union Bot — Privacy Policy</ChapterBand>
         <div style={MEASURE}>
-          <p style={LAST_UPDATED_STAMP}>Last updated: {LAST_UPDATED}</p>
+          <p style={SMALL_PRINT}>Last updated: {LAST_UPDATED}</p>
 
           <section style={BODY}>
             <p style={BOLD}>

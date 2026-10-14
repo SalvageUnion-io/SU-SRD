@@ -8,14 +8,7 @@ import { ChapterBand, InlineRef, Slab } from 'component-lib'
 import { space } from 'component-lib/design/tokens'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { TITLE_SUFFIX } from '../../lib/constants'
-import {
-  BOLD,
-  DOC_PAGE,
-  docMeasure,
-  LAST_UPDATED_STAMP,
-  proseColumn,
-  SMALL_PRINT,
-} from '../../lib/docPageStyles'
+import { BOLD, DOC_PAGE, docMeasure, proseColumn, SMALL_PRINT } from '../../lib/docPageStyles'
 
 const MEASURE = docMeasure('48rem', space[24])
 const BODY = proseColumn(space[16])
@@ -33,7 +26,7 @@ function page(): PageResult {
       <div style={DOC_PAGE}>
         <ChapterBand measure="48rem">Salvage Union Bot — Terms of Service</ChapterBand>
         <div style={MEASURE}>
-          <p style={LAST_UPDATED_STAMP}>Last updated: {LAST_UPDATED}</p>
+          <p style={SMALL_PRINT}>Last updated: {LAST_UPDATED}</p>
 
           <section style={BODY}>
             <p>

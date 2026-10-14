@@ -113,10 +113,13 @@
   width: fit-content;
 }
 
-/* The pointy cost box (`ActivationCost`): ink on every band. */
+/* The pointy cost box (`ActivationCost`): ink on every band, in the chips'
+   condensed caps face, whatever face its row inherits. */
 .su-cost {
   background-color: var(--color-ink);
   color: var(--color-paper);
+  font-family: var(--font-cond);
+  letter-spacing: var(--tracking-caps-tight);
 }
 
 /* On an ink band the box sits in a paper box of the same cut, 1px larger all

@@ -9,10 +9,12 @@
  * the class.
  *
  * The titles a caller can render as a heading (`titleAs`): the Row's title and
- * the card header's. Their print sizes are handed back in `print.css`.
+ * the card header's. Their print sizes are handed back in `print.css`. The
+ * ChapterBand's notched title is always a heading, set as on the SRD.
  */
 .su-entity-row__title,
-.su-ec-band__title {
+.su-ec-band__title,
+.su-chapter-band__title {
   font-family: revert-layer;
   font-weight: revert-layer;
   letter-spacing: revert-layer;
