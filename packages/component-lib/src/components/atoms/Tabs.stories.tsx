@@ -56,7 +56,7 @@ export const Default: Story = () => {
   )
 }
 
-const ROW: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: space[4] }
+const ROW = { display: 'flex', flexWrap: 'wrap', gap: space[4] } satisfies CSSProperties
 
 /** The same look as a row of `aria-pressed` toggles: the Dashboard deck's timing filter. */
 export const Toggles: Story = () => {

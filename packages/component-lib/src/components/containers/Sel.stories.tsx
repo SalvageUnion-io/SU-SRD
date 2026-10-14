@@ -4,12 +4,12 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
-import { RadioCardGroup } from '../containers/RadioCardGroup'
-import { Sel } from '../containers/Sel'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { RadioCardGroup } from './RadioCardGroup'
+import { Sel } from './Sel'
 
 export default {
-  title: 'Atoms/Sel',
+  title: 'Containers/Sel',
 }
 
 const stack = (gap: string) =>
