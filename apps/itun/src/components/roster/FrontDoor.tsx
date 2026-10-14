@@ -92,13 +92,6 @@ const LEDE = {
   maxWidth: '40rem',
 } satisfies CSSProperties
 
-const NOTE = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  margin: `${tokens.space[16]} 0 0`,
-} satisfies CSSProperties
-
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
@@ -215,10 +208,6 @@ export function FrontDoor() {
               )}
             </div>
           </div>
-          <p style={NOTE}>
-            Got an invite link from your Mediator? Open it and sign in to join that Game. There are
-            no codes to type.
-          </p>
         </section>
 
         <StartHere id="front-door-start" />
