@@ -32,7 +32,7 @@ export type DomainTone = {
   domain: CardDomain
   /** The domain tone as a CSS colour (`var(--color-mech)`). */
   bg: string | undefined
-  /** A guide's own authored tone, which wins over `bg`. */
+  /** A guide's tone (rules blue, every guide), which wins over `bg`. */
   bgColor: string | undefined
 }
 
@@ -75,9 +75,9 @@ function toneColor(token: string): string | undefined {
 
 /**
  * The tone resolution: DOMAIN from the exhaustive map, ACCENT from the entity
- * model's tone token (`entityTone`). A guide's authored tone comes back as a
- * raw colour (`bgColor`), which wins over the domain tone; every other tone
- * as `bg`, its token's colour.
+ * model's tone token (`entityTone`). A guide's tone (rules blue, every guide)
+ * comes back as a raw colour (`bgColor`), which wins over the domain tone;
+ * every other tone as `bg`, its token's colour.
  */
 export function resolveDomainTone(
   schemaName: SURefEnumSchemaName,

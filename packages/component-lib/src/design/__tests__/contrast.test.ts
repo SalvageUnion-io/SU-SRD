@@ -317,7 +317,7 @@ describe('ink on colour — the refresh pairs', () => {
  * Every other row of a roll table wears its surface's band: a quarter of the
  * tone into paper (`rollBandColor`), cream where the surface has none. The
  * rows print ink at body size, so each band a surface can pass owes 4.5:1:
- * every chapter band (the SRD's roll-table pages), every guide's own tone (a
+ * every chapter band (the SRD's roll-table pages), the guides' rules blue (a
  * guide step's table) and every tech-level band a show page can wear.
  */
 describe('roll-table bands in the surface tone', () => {

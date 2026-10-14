@@ -95,14 +95,12 @@ export const GuideTypeSchema = z
   .describe('Category of a guide (character creation, mech creation, etc.)')
 
 /**
- * Which theme tone paints a guide's header/footer band.
+ * Which theme tone a guide names for its header/footer band.
  *
- * A NAME, never a colour. The colour each name resolves to lives in
- * `component-lib`'s `theme.css` and nowhere else — three of these reuse the
- * ontology hues (`--color-pilot` / `--color-mech` / `--color-crawler`) and two
- * name tones that exist for guides which are about none of the three
- * (`--color-guide-salvage`, `--color-guide-hazard`). `ink` is the fallback for
- * a guide added without a tone.
+ * A NAME, never a colour. No name is painted any more: every guide paints
+ * rules blue (`guideTone()` in `lib/view/parts/fill.ts`), so the field only
+ * marks the record a guide. `ink` is the fallback for a guide added without a
+ * tone.
  *
  * This replaced a raw hex field. See `GuideSchema.guideTone` for what that cost.
  */
