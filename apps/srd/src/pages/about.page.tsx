@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url'
 import { buttonVariants, cn, InlineRef, Slab } from 'component-lib'
 import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
+import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
@@ -45,7 +46,7 @@ const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
 const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 
 const TITLE = `About${TITLE_SUFFIX}`
-const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and ${PRODUCT.name}, its character builder. Community-built tools.`
+const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and ${PRODUCT.name}, its character builder.`
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -456,7 +457,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               id="close-modal"
               aria-label="Close"
             >
-              &times;
+              <X aria-hidden="true" size={20} />
             </button>
             <div style={LIGHTBOX_BODY}>
               {/* Vite does not transcode images, so the webp is pre-encoded

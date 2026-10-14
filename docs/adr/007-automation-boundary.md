@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-007: Automation Boundary — Smart Bookkeeping, No Automatic Destruction
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 7, which summarises it.

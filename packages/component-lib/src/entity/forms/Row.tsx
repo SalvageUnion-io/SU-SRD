@@ -6,6 +6,7 @@ import type { CardOuterProps } from '../../components/referenceEntity/card/CardO
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import type { Down } from '../../components/referenceEntity/card/cardChrome'
 import { downOf } from '../../components/referenceEntity/card/cardChrome'
+import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -253,7 +254,7 @@ export function Row({
   }
   if (slots.outer) {
     return (
-      <CardOuter {...slots.outer} className={`${slots.outer.className} su-entity-row`}>
+      <CardOuter {...slots.outer} className={cn(slots.outer.className, 'su-entity-row')}>
         {parts}
       </CardOuter>
     )

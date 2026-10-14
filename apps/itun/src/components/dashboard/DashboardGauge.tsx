@@ -66,7 +66,7 @@ export type DashboardGaugeProps = {
 }
 
 /** The numeral cell: a paper value cell with an ink frame (ruleset §7.1). */
-const CELL: CSSProperties = {
+const CELL = {
   display: 'flex',
   alignItems: 'flex-end',
   justifyContent: 'space-between',
@@ -76,11 +76,11 @@ const CELL: CSSProperties = {
   background: color.paper,
   border: `${borderWidth.chrome} solid ${color.ink}`,
   borderRadius: radius.badge,
-}
+} satisfies CSSProperties
 
-const STAMP: CSSProperties = { fontSize: fontSize.caption, lineHeight: 1.4 }
+const STAMP = { fontSize: fontSize.caption, lineHeight: 1.4 } satisfies CSSProperties
 
-const NUMERAL: CSSProperties = {
+const NUMERAL = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.displayLg,
@@ -88,11 +88,11 @@ const NUMERAL: CSSProperties = {
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',
   color: color.ink,
-}
+} satisfies CSSProperties
 
-const OVER: CSSProperties = { ...NUMERAL, color: color.statusBad }
+const OVER = { ...NUMERAL, color: color.statusBad } satisfies CSSProperties
 
-const MAX: CSSProperties = { fontSize: fontSize.readout, color: color.ink75 }
+const MAX = { fontSize: fontSize.readout, color: color.ink75 } satisfies CSSProperties
 
 export function DashboardGauge({
   label,

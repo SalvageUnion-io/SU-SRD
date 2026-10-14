@@ -1,9 +1,9 @@
-import { cva } from 'class-variance-authority'
+import { cn } from '../../utils/cn'
 import { capsLabel } from './capsLabel'
 import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
- * The `.btn` cva recipe (design-spec §2.4), exported for non-button elements
+ * The `.btn` class recipe (design-spec §2.4), exported for non-button elements
  * (e.g. links styled as buttons) so consumers don't re-inline the class string.
  * Lives in its own file so Button.tsx only exports components (react-refresh).
  *
@@ -40,55 +40,57 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * Both `instrument` and `mini` still compose `capsLabel`, which is why that
  * recipe must itself stay a class-string emitter (see its own note).
  */
-export const buttonVariants = cva(`su-btn ${FOCUS_RING} ${DISABLED}`, {
-  variants: {
-    variant: {
-      default: 'su-btn--default',
-      primary: 'su-btn--primary',
-      ghost: 'su-btn--ghost',
-      danger: 'su-btn--danger',
-      /** Filled ink, paper text: a close stamp on a lifted plate. */
-      ink: 'su-btn--ink',
-      /** Frameless, ink at 60%: an icon control inside a header (a close ×). */
-      quiet: 'su-btn--quiet',
-    },
-    surface: {
-      // Light app chrome — the paper/ink/rust world (the existing default).
-      paper: '',
-      // Dashboard HUD — condensed-caps typography; the ghost recolour (the one
-      // variant the HUD uses) rides on the compoundVariant below. Size rides on
-      // the `size` axis, so the recipe is role-only.
-      instrument: `su-btn--instrument ${capsLabel()}`,
-    },
-    // The canonical size ladder (styles/sizing.ts) — full / compact / mini.
-    size: {
-      /** The reading size for a primary CTA. */
-      full: 'su-btn--full',
-      /** The default workhorse scale. */
-      compact: 'su-btn--compact',
-      /**
-       * A compact uppercase action chip for
-       * secondary controls like '⇄ Swap' / '✕ Remove'. Its geometry is
-       * `.su-btn--mini`; its condensed caps come from the recipe below, which
-       * is why the two are composed rather than duplicated.
-       */
-      mini: `su-btn--mini ${capsLabel({ size: 'badge', weight: 'semibold', tracking: 'none' })}`,
-      /** The SQUARE icon-only rung — a glyph with no label. */
-      iconOnly: 'su-btn--icon-only',
-    },
-  },
-  // NO `compoundVariants`, and the absence is deliberate.
-  //
-  // The instrument × ghost recolour (ink: the cockpit chassis is cream) is the
-  // compound SELECTOR
+const VARIANT = {
+  default: 'su-btn--default',
+  primary: 'su-btn--primary',
+  ghost: 'su-btn--ghost',
+  danger: 'su-btn--danger',
+  /** Filled ink, paper text: a close stamp on a lifted plate. */
+  ink: 'su-btn--ink',
+  /** Frameless, ink at 60%: an icon control inside a header (a close ×). */
+  quiet: 'su-btn--quiet',
+} as const
+
+const SURFACE = {
+  // Light app chrome — the paper/ink/rust world (the default).
+  paper: '',
+  // Dashboard HUD — condensed-caps typography; the ghost recolour (the one
+  // variant the HUD uses) is the compound selector
   // `.su-btn--instrument.su-btn--ghost` in index.css, whose two-class
   // specificity beats plain `.su-btn--ghost` without relying on source order.
-  // Both classes are already emitted by the `surface` and `variant` axes, so a
-  // cva entry here would have to carry an empty `class` to do nothing, and dead
-  // configuration that looks load-bearing is worse than none.
-  defaultVariants: {
-    variant: 'default',
-    surface: 'paper',
-    size: 'compact',
-  },
-})
+  instrument: `su-btn--instrument ${capsLabel()}`,
+} as const
+
+// The canonical size ladder (styles/sizing.ts) — full / compact / mini.
+const SIZE = {
+  /** The reading size for a primary CTA. */
+  full: 'su-btn--full',
+  /** The default workhorse scale. */
+  compact: 'su-btn--compact',
+  /**
+   * A compact uppercase action chip for
+   * secondary controls like '⇄ Swap' / '✕ Remove'. Its geometry is
+   * `.su-btn--mini`; its condensed caps come from the recipe below, which
+   * is why the two are composed rather than duplicated.
+   */
+  mini: `su-btn--mini ${capsLabel({ size: 'badge', weight: 'semibold', tracking: 'none' })}`,
+  /** The SQUARE icon-only rung — a glyph with no label. */
+  iconOnly: 'su-btn--icon-only',
+} as const
+
+export type ButtonVariantProps = {
+  variant?: keyof typeof VARIANT | null
+  surface?: keyof typeof SURFACE | null
+  size?: keyof typeof SIZE | null
+}
+
+export function buttonVariants({ variant, surface, size }: ButtonVariantProps = {}): string {
+  return cn(
+    'su-btn',
+    FOCUS_RING,
+    DISABLED,
+    VARIANT[variant ?? 'default'],
+    SURFACE[surface ?? 'paper'],
+    SIZE[size ?? 'compact']
+  )
+}

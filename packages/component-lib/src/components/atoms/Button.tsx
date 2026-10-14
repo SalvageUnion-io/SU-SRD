@@ -1,10 +1,10 @@
-import type { VariantProps } from 'class-variance-authority'
 import type { ComponentPropsWithRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import type { ButtonVariantProps } from './buttonVariants'
 import { buttonVariants } from './buttonVariants'
 
 type ButtonProps = ComponentPropsWithRef<'button'> &
-  VariantProps<typeof buttonVariants> & {
+  ButtonVariantProps & {
     /**
      * Optional leading decorative glyph (e.g. the ⚄ roll die), rendered
      * `aria-hidden` before the label. The button's flex `gap` spaces it from

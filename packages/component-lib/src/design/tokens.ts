@@ -192,7 +192,6 @@ const base = {
   pilot: 'rgb(239, 137, 79)',
   pilotLight: 'rgb(245, 193, 163)',
   mech: 'rgb(122, 151, 138)',
-  mechDark: 'rgb(92, 121, 108)',
   crawler: 'rgb(206, 88, 152)',
   /** The deeper crawler band that carries paper text (4.6:1) — crawler pink
    *  carries neither ink nor paper at 4.5:1 (ruleset §3.8). */
@@ -244,7 +243,6 @@ const base = {
   ink30: 'rgb(40 32 25 / 0.3)',
   ink20: 'rgb(40 32 25 / 0.2)',
   ink15: 'rgb(40 32 25 / 0.15)',
-  ink12: 'rgb(40 32 25 / 0.12)',
   ink10: 'rgb(40 32 25 / 0.1)',
   ink8: 'rgb(40 32 25 / 0.08)',
   /** The faintest rung on the ramp — RosterSkeleton's resting shimmer. */

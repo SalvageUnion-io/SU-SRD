@@ -17,35 +17,35 @@ export const GAME_MEASURE = '75rem'
  * `.su-page-column`'s, the band's row padding; the height reserves a stable
  * footprint, so the roster replacing the skeleton does not shift the page.
  */
-export const GAME_BODY: CSSProperties = {
+export const GAME_BODY = {
   maxWidth: GAME_MEASURE,
   minHeight: '60vh',
   paddingBottom: space[48],
   paddingTop: space[20],
-}
+} satisfies CSSProperties
 
 /** The two columns of sections under the roster. */
-export const HUB_COLUMNS: CSSProperties = {
+export const HUB_COLUMNS = {
   alignItems: 'start',
   display: 'grid',
   gap: `${space[32]} ${space[32]}`,
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
   marginTop: space[40],
-}
+} satisfies CSSProperties
 
 /** One column: its sections stacked. */
-export const HUB_COLUMN: CSSProperties = {
+export const HUB_COLUMN = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[32],
   minWidth: 0,
-}
+} satisfies CSSProperties
 
 /** Copy under a section's stamp. */
-export const HUB_COPY: CSSProperties = {
+export const HUB_COPY = {
   margin: 0,
   fontFamily: font.body,
   fontSize: fontSize.sm,
   lineHeight: 1.5,
   color: color.wkMuted,
-}
+} satisfies CSSProperties

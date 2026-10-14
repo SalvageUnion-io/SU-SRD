@@ -100,8 +100,8 @@ export function PatternLoadout({
  * `LoadoutToken` — one installed system/module in a pattern's loadout: a
  * TOKEN (`[kind] name [TL | n]`) running the list's full width, one part a
  * line (entity display language, "Which form, where"). The part's tone reads
- * at a glance; the Token opens its Page and Peeks its whole card; its name
- * wraps, never clipped (E18).
+ * at a glance; the Token opens its Page and Peeks its whole card; one row,
+ * its name ending in "…" where it runs out of room (E18).
  *
  * A pattern is a BUILD LIST, not rules to read: its systems and modules are
  * ordinary catalogue entities whose full text lives on their own pages, so the
@@ -129,9 +129,17 @@ export function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; ho
   )
 }
 
-const LOADOUT_PAGE: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[16] }
+const LOADOUT_PAGE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+} satisfies CSSProperties
 
-const LOADOUT_GROUP: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[8] }
+const LOADOUT_GROUP = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+} satisfies CSSProperties
 
 /**
  * A pattern PAGE's loadout, under its chassis ability: each group (Systems,

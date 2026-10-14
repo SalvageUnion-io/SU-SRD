@@ -56,7 +56,7 @@ export function CraftItemsStep({
   const noun = kind === 'systems' ? 'System' : 'Module'
 
   return (
-    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <Slab
         variant="solid"
         label={`Tech 1 ${noun}s`}

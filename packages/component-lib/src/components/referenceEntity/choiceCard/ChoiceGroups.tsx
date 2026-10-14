@@ -169,7 +169,7 @@ function ChoiceOption({
   const parsedDescription = useParseTraitReferences(description ?? '')
   const band = textBand(toneColor)
   const onBand = onTone(band, 'ink') === 'paper' ? color.paper : color.ink
-  const button: CSSProperties = {
+  const button = {
     background: 'none',
     border: 0,
     borderRadius: 'var(--radius-card)',
@@ -182,8 +182,8 @@ function ChoiceOption({
     textAlign: 'left',
     transition: 'opacity 150ms',
     width: '100%',
-  }
-  const frame: CSSProperties = {
+  } satisfies CSSProperties
+  const frame = {
     backgroundColor: 'var(--color-paper)',
     borderColor: 'var(--color-ink)',
     borderStyle: 'solid',
@@ -191,8 +191,8 @@ function ChoiceOption({
     borderRadius: 'var(--radius-card)',
     overflow: 'hidden',
     ...(chosen ? SELECTED_RING : undefined),
-  }
-  const head: CSSProperties = {
+  } satisfies CSSProperties
+  const head = {
     backgroundColor: band ?? 'var(--color-ink)',
     borderBottom: description ? 'var(--bw-chrome) solid var(--color-ink)' : undefined,
     color: band ? onBand : color.paper,
@@ -203,13 +203,13 @@ function ChoiceOption({
     lineHeight: 1.15,
     padding: compact ? `${space[6]} ${space[8]}` : `${space[8]} ${space[10]}`,
     textTransform: 'uppercase',
-  }
-  const body: CSSProperties = {
+  } satisfies CSSProperties
+  const body = {
     color: color.ink,
     fontSize: compact ? fontSize.badge : fontSize.xs,
     lineHeight: 1.375,
     padding: compact ? `${space[6]} ${space[8]}` : `${space[8]} ${space[10]}`,
-  }
+  } satisfies CSSProperties
   return (
     <button
       type="button"

@@ -152,16 +152,16 @@ const STAMP_BG: Record<MajorModel['fam'], string> = {
   crawler: 'var(--color-sheet-crawler-deep)',
 }
 
-const STAMP: CSSProperties = {
+const STAMP = {
   padding: '5px 9px',
   fontSize: 'var(--text-caption)',
   color: 'var(--color-paper)',
-}
+} satisfies CSSProperties
 
 /** The bay row: the main bays, then the side column. */
-const BAYS: CSSProperties = { gap: 0 }
+const BAYS = { gap: 0 } satisfies CSSProperties
 
-const SIDE: CSSProperties = {
+const SIDE = {
   display: 'flex',
   flex: '0 0 172px',
   flexDirection: 'column',
@@ -173,52 +173,52 @@ const SIDE: CSSProperties = {
   borderLeft: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent)',
   borderRadius: 'var(--radius-card)',
   background: 'var(--color-ink-8)',
-}
+} satisfies CSSProperties
 
 /**
  * The bigger stat rows: the same single-row gauge, drawn larger. `zoom`
  * scales its label, track and numeral together and takes the space it draws
  * in, which a `transform` would not.
  */
-const LARGE: CSSProperties = { zoom: 1.5, gap: '6px' }
+const LARGE = { zoom: 1.5, gap: '6px' } satisfies CSSProperties
 
-const SIDE_BAY: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px' }
+const SIDE_BAY = { display: 'flex', flexDirection: 'column', gap: '4px' } satisfies CSSProperties
 
-const LINE: CSSProperties = {
+const LINE = {
   margin: 0,
   fontFamily: 'var(--font-body)',
   fontSize: 'var(--text-note)',
   lineHeight: 1.3,
   color: 'var(--color-ink)',
-}
+} satisfies CSSProperties
 
-const WARN: CSSProperties = { color: 'var(--color-status-bad)', fontWeight: 600 }
+const WARN = { color: 'var(--color-status-bad)', fontWeight: 600 } satisfies CSSProperties
 
-const CHIPS: CSSProperties = {
+const CHIPS = {
   display: 'flex',
   flexWrap: 'wrap',
   alignContent: 'flex-start',
   gap: '4px',
   minHeight: 0,
   overflowY: 'auto',
-}
+} satisfies CSSProperties
 
 /**
  * A bay of named things with no entity card (a crawler bay whose ref does
  * not resolve) lays them out as TILES in a grid (board D3), not a run of pills.
  */
-const TILES: CSSProperties = {
+const TILES = {
   ...CHIPS,
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
-}
+} satisfies CSSProperties
 
 /**
  * One named tile: square-cornered on the 3px canon (ruleset §4.4 — rounding
  * beyond it only where it copies a book style, and a bay is not one), framed in
  * ink, condensed caps as board D3 sets them.
  */
-const CHIP: CSSProperties = {
+const CHIP = {
   padding: '6px 8px',
   border: 'var(--bw-chrome) solid var(--color-ink)',
   borderRadius: radius.card,
@@ -229,7 +229,7 @@ const CHIP: CSSProperties = {
   letterSpacing: 'var(--tracking-caps-tight)',
   lineHeight: 1.2,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
 /**
  * A bay/overlay action, rendered on the standard `Button` (dark instrument
@@ -239,8 +239,10 @@ const CHIP: CSSProperties = {
  * auto-width with a 140px floor.
  */
 function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
-  const style: CSSProperties = full ? { width: '100%' } : { minWidth: '140px' }
-  if (btn.wide) style.gridColumn = 'span 2'
+  const style = {
+    ...(full ? { width: '100%' } : { minWidth: '140px' }),
+    ...(btn.wide ? { gridColumn: 'span 2' } : {}),
+  } satisfies CSSProperties
   return (
     <Button
       variant={btn.variant === undefined ? 'default' : 'primary'}

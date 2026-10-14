@@ -29,44 +29,46 @@ const PRIMARY: readonly { tab: MediatorTab; label: string }[] = [
 
 const SECONDARY: readonly { tab: MediatorTab; label: string }[] = [{ tab: 'log', label: 'Log' }]
 
-const ROOT: CSSProperties = {
+const ROOT = {
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
   minHeight: 0,
-}
+} satisfies CSSProperties
 
-const LIST: CSSProperties = {
+const LIST = {
   flex: '0 0 auto',
   padding: `${space[8]} ${space[8]}`,
   borderBottom: `${borderWidth.chrome} solid ${color.ink}`,
-}
+} satisfies CSSProperties
 
-const SPACER: CSSProperties = { flex: 1 }
+const SPACER = { flex: 1 } satisfies CSSProperties
 
 /** The canvas's control height (48 design units), as Begin Downtime has. */
-const TAB: CSSProperties = { minHeight: '48px' }
+const TAB = { minHeight: '48px' } satisfies CSSProperties
 
 /** The open tab beside the dock; each side scrolls inside itself. */
-const SPLIT: CSSProperties = {
+const SPLIT = {
   flex: 1,
   minHeight: 0,
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)',
   gridTemplateRows: 'minmax(0, 1fr)',
-}
+} satisfies CSSProperties
 
 /** The phone column: the open tab over the dock, at their own heights. */
-const STACKED: CSSProperties = { display: 'flex', flexDirection: 'column' }
+const STACKED = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
 
-const PANEL: CSSProperties = { position: 'relative', minHeight: 0, height: '100%' }
+const PANEL = { position: 'relative', minHeight: 0, height: '100%' } satisfies CSSProperties
 
-const DOCK: CSSProperties = {
+const DOCK = {
   minHeight: 0,
   borderLeft: `${borderWidth.chrome} solid ${color.ink20}`,
-}
+} satisfies CSSProperties
 
-const DOCK_STACKED: CSSProperties = { borderTop: `${borderWidth.chrome} solid ${color.ink20}` }
+const DOCK_STACKED = {
+  borderTop: `${borderWidth.chrome} solid ${color.ink20}`,
+} satisfies CSSProperties
 
 export function MediatorDisplay({
   tab,

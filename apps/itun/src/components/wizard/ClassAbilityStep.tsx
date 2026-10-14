@@ -86,7 +86,7 @@ export function ClassAbilityStep({
   )
 
   return (
-    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <Slab variant="solid" label="Pilot Class" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2}>{legalClasses.map(renderClassCard)}</MasonryColumns>
 

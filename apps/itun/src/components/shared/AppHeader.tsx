@@ -151,8 +151,8 @@ export function AppHeader({
             LinkComponent={LinkComponent}
             // NavDrawer takes classes, not styles, here: its own padding and
             // width are stylesheet rules these override (`styles/screens.css`).
-            triggerClassName="app-header__drawer-trigger"
-            panelClassName="app-header__drawer-panel"
+            triggerClassName="su-app-header__drawer-trigger"
+            panelClassName="su-app-header__drawer-panel"
           />
         </>
       }

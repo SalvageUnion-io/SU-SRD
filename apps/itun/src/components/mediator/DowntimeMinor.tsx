@@ -41,18 +41,18 @@ export type DowntimeWrites = {
   spendUpkeep: () => Promise<unknown>
 }
 
-const ACTIONS: CSSProperties = {
+const ACTIONS = {
   marginTop: 'auto',
   display: 'flex',
   flexDirection: 'column',
   gap: space[6],
-}
+} satisfies CSSProperties
 
-const PAIR: CSSProperties = { display: 'flex', gap: space[6] }
+const PAIR = { display: 'flex', gap: space[6] } satisfies CSSProperties
 
-const GROW: CSSProperties = { flex: 1 }
+const GROW = { flex: 1 } satisfies CSSProperties
 
-const STEP: CSSProperties = { ...BODY, ...NUMBERS, fontWeight: weight.bold }
+const STEP = { ...BODY, ...NUMBERS, fontWeight: weight.bold } satisfies CSSProperties
 
 export function DowntimeMinor({
   downtime,

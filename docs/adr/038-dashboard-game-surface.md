@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-038: The Dashboard Is a Game Surface with Shared Play State
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 38, which summarises it.
@@ -166,7 +162,7 @@ the player's confirmed act. A player never writes another player's state.
 ### 7. Reuse the SRD display; the instruments are bespoke
 
 The display renders the same `component-lib` entity display the rest of the
-app shows (`ReferenceEntityCard`, `RollTable`), with entity-level
+app shows (`ReferenceEntityCard`, `RollTableInstrument`), with entity-level
 interactivity passed as typed `controls`. Only the instruments (gauges, bays,
 slots, buttons) are Dashboard components. One display system means one place
 to fix reference rendering.
@@ -216,8 +212,8 @@ replaced the rotate-to-landscape notice.
 ## Consequences
 
 - **Fewer people can use the Dashboard.** Anonymous visitors, shelf play and
-  Games without a Mediator have none, as [data flow](../ARCHITECTURE.md#data-flow) and
-  [combat loop](../ARCHITECTURE.md#combat) say.
+  Games without a Mediator have none, as
+  [dashboard.md](../architecture/dashboard.md) §1 says.
 - **There is server surface.** A `seats` table and its functions. Seats are
   cleaned up when a Game, pilot or account is deleted and when a pilot or mech
   leaves the Game. Every toggle is a mutation, so the client uses optimistic

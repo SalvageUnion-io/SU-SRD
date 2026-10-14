@@ -18,45 +18,51 @@
  */
 
 import { Button, EmptyState } from 'component-lib'
+import { ChevronDown } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import type { BoardMenu, BoardOption } from './boardMenu.model'
 import { boardable } from './boardMenu.model'
 import { usePhoneForm } from './dashboardForm.model'
 
-const SPLIT: CSSProperties = { display: 'flex', gap: '2px', minWidth: 0 }
+const SPLIT = { display: 'flex', gap: '2px', minWidth: 0 } satisfies CSSProperties
 
-const MAIN: CSSProperties = { flex: '1 1 auto', minWidth: 0, paddingInline: '8px' }
+const MAIN = { flex: '1 1 auto', minWidth: 0, paddingInline: '8px' } satisfies CSSProperties
 
 /**
  * A long mech name WRAPS inside its button rather than widening it or trailing
  * off: the control's label must not lose the unit's name (board D2 prints
  * "Board Scrapper" whole).
  */
-const LABEL: CSSProperties = {
+const LABEL = {
   minWidth: 0,
   overflowWrap: 'anywhere',
   textAlign: 'center',
   whiteSpace: 'normal',
-}
+} satisfies CSSProperties
 
-const CARET: CSSProperties = { flex: '0 0 auto', minWidth: '28px', paddingInline: '6px' }
+const CARET = { flex: '0 0 auto', minWidth: '28px', paddingInline: '6px' } satisfies CSSProperties
 
 /** On a phone the caret holds the 44px touch floor (ruleset §4.6, ADR-045 D14). */
-const PHONE_CARET: CSSProperties = { ...CARET, minWidth: '44px' }
+const PHONE_CARET = { ...CARET, minWidth: '44px' } satisfies CSSProperties
 
-const WHOLE: CSSProperties = { width: '100%' }
+const WHOLE = { width: '100%' } satisfies CSSProperties
 
-const NOTE: CSSProperties = {
+const NOTE = {
   margin: 0,
   fontFamily: 'var(--font-body)',
   fontSize: 'var(--text-note)',
   lineHeight: 1.3,
   // ink-75: ink-50 on band-cream fails AA contrast for small text.
   color: 'var(--color-ink-75)',
-}
+} satisfies CSSProperties
 
-const COLUMN: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }
+const COLUMN = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  minWidth: 0,
+} satisfies CSSProperties
 
 /** What a press on an option does: board your own, or confirm a spare's claim. */
 export type BoardHandlers = {
@@ -92,7 +98,8 @@ export function BoardControl({
         aria-haspopup="dialog"
         onClick={(e) => onOpenMenu(e.currentTarget)}
       >
-        Board a mech ▾
+        Board a mech
+        <ChevronDown aria-hidden="true" size={14} />
       </Button>
     )
   }
@@ -120,7 +127,7 @@ export function BoardControl({
           aria-haspopup="dialog"
           onClick={(e) => onOpenMenu(e.currentTarget)}
         >
-          ▾
+          <ChevronDown aria-hidden="true" size={14} />
         </Button>
       </div>
       {enabled ? null : (
@@ -136,7 +143,7 @@ export function BoardControl({
  * Two columns, so a crew's mechs fit the Major's height; more than that
  * scrolls the list rather than spilling it over the overlay's title.
  */
-const LIST: CSSProperties = {
+const LIST = {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   alignContent: 'start',
@@ -146,11 +153,20 @@ const LIST: CSSProperties = {
   margin: 0,
   padding: '2px',
   listStyle: 'none',
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }
+const ROW = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  minWidth: 0,
+} satisfies CSSProperties
 
-const PICK: CSSProperties = { flex: '0 0 190px', minWidth: 0, justifyContent: 'flex-start' }
+const PICK = {
+  flex: '0 0 190px',
+  minWidth: 0,
+  justifyContent: 'flex-start',
+} satisfies CSSProperties
 
 /** What an option's button says: what pressing it does, or just the mech. */
 function optionLabel(option: BoardOption): string {

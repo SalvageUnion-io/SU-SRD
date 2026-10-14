@@ -2,14 +2,14 @@ import { Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 
-const rowStyle: CSSProperties = {
+const rowStyle = {
   alignItems: 'flex-start',
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[16],
-}
+} satisfies CSSProperties
 
-const briefStyle: CSSProperties = {
+const briefStyle = {
   alignSelf: 'center',
   color: 'currentcolor',
   fontFamily: tokens.font.body,
@@ -17,7 +17,7 @@ const briefStyle: CSSProperties = {
   lineHeight: 1.625,
   margin: 0,
   maxWidth: '52ch',
-}
+} satisfies CSSProperties
 
 /**
  * Step 1 · Gain Scrap (Mech Workshop p.94) — display-only briefing step. You

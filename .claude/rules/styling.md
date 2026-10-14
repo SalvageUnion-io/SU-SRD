@@ -28,7 +28,7 @@ What an editor needs:
     spreading the static object (`style={{ ...NAME, color }}`), or a
     function returning `CSSProperties` when several uses share it;
   - stateful, responsive or repeated → a `.su-*` class, joined with `cn`;
-    a component's class variants are a `cva` class-string export.
+    class variants are `as const` lookup maps joined with `cn`.
 - **The split is per-PROPERTY.** A property with no stateful or responsive
   variant on that element → style object. A property with **any** (`:hover`,
   `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling selectors)
@@ -57,7 +57,9 @@ What an editor needs:
   `su-reset` and `index.css` into `su-base`. The two apps import it, never
   `index.css`, and their own stylesheets stay unlayered so an app rule
   outranks a package rule (`package-stylesheet-import` guards it).
-- `dash-class-contract` holds `su-dash-*` usage and definitions to each other.
+- Every package and ITUN class is `su-*` (`su-wiz-*`; srd's are `srd-*`):
+  `class-prefix`. `dash-class-contract` holds `su-dash-*` usage and
+  definitions to each other.
 - **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a
   real key press. Checking layer order by block position lies: read the
   `@layer` declaration.

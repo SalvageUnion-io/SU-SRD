@@ -14,18 +14,18 @@ import { color, font, fontSize, tracking, weight } from 'component-lib/design/to
 import type { CSSProperties } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 
-const BASE: CSSProperties = {
+const BASE = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.badge,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
-const SAVED: CSSProperties = { ...BASE, color: color.ink75 }
+const SAVED = { ...BASE, color: color.ink75 } satisfies CSSProperties
 
-const OFFLINE: CSSProperties = { ...BASE, color: color.ink }
+const OFFLINE = { ...BASE, color: color.ink } satisfies CSSProperties
 
 export function SavedIndicator({ gameName = null }: { gameName?: string | null }) {
   const { mode } = useConnection()

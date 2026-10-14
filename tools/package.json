@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "gates": "workspace:*",
-    "salvageunion-reference": "workspace:*"
+    "salvageunion-reference": "workspace:*",
+    "sharp": "0.35.5"
   }
 }

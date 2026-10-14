@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-021: ITUN Surface Taxonomy — Enforcement Modes & Rule Placement
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 21, which summarises it.

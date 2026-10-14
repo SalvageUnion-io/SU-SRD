@@ -21,7 +21,7 @@
  * follows (`useDowntime`).
  */
 
-import { Button, ConfirmDialog, Stat, tokens } from 'component-lib'
+import { Button, ConfirmDialog, FieldError, Stat, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import {
   DOWNTIME_UPKEEP_SCRAP,
@@ -44,7 +44,7 @@ const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = 
 /** The narrowest a step cell gets: "Equipment," or "Customise" on one line. */
 const STEP_MIN = '8rem'
 
-const GRID: CSSProperties = {
+const GRID = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
@@ -55,11 +55,11 @@ const GRID: CSSProperties = {
   // keeps rounding from dropping a column.
   gridTemplateColumns: `repeat(auto-fill, minmax(max(${STEP_MIN}, calc((100% - 4 * ${space[6]}) / 5 - 0.1px), min(calc(50% - ${space[6]} / 2 - 0.1px), calc((5 * ${STEP_MIN} + 4 * ${space[6]} - 100%) * 999))), 1fr))`,
   gap: space[6],
-}
+} satisfies CSSProperties
 
 // Longhands only, so the NOW cell swaps values rather than mixing a shorthand
 // with its longhands across renders.
-const CELL: CSSProperties = {
+const CELL = {
   minWidth: 0,
   minHeight: '4.5rem',
   display: 'flex',
@@ -71,29 +71,29 @@ const CELL: CSSProperties = {
   borderColor: color.ink35,
   borderRadius: radius.card,
   background: 'transparent',
-}
+} satisfies CSSProperties
 
-const CELL_NOW: CSSProperties = {
+const CELL_NOW = {
   ...CELL,
   borderStyle: 'solid',
   borderWidth: borderWidth.pill,
   borderColor: color.ink,
   background: color.paper,
-}
+} satisfies CSSProperties
 
-const NUMBER: CSSProperties = {
+const NUMBER = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.badge,
   letterSpacing: tracking.caps,
   textTransform: 'uppercase',
   color: color.ink75,
-}
+} satisfies CSSProperties
 
 /** The step the table is on: ink, the "here" state (ruleset §3.1 keeps rust for action). */
-const NOW: CSSProperties = { ...NUMBER, color: color.ink }
+const NOW = { ...NUMBER, color: color.ink } satisfies CSSProperties
 
-const NAME: CSSProperties = {
+const NAME = {
   fontFamily: font.body,
   fontSize: fontSize.caption,
   fontWeight: weight.medium,
@@ -101,16 +101,16 @@ const NAME: CSSProperties = {
   color: color.ink,
   // Wrap at words: `anywhere` split "Upgrade" and left "Chassis," its comma.
   overflowWrap: 'normal',
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const NOTE: CSSProperties = { ...HUB_COPY, fontSize: fontSize.caption }
+const NOTE = { ...HUB_COPY, fontSize: fontSize.caption } satisfies CSSProperties
 
 export function DowntimeTrack({
   gameId,
@@ -252,11 +252,7 @@ export function DowntimeTrack({
           <p style={NOTE}>{upkeep}</p>
         </div>
       )}
-      {error !== null && (
-        <p role="alert" style={{ ...NOTE, color: color.ink }}>
-          {error}
-        </p>
-      )}
+      <FieldError>{error}</FieldError>
       <ConfirmDialog
         open={confirmEnd}
         onOpenChange={setConfirmEnd}

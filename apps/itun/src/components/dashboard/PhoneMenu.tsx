@@ -43,16 +43,16 @@ const PANEL_TITLE: Record<PhonePanel, string> = {
   srd: 'SRD',
 }
 
-const SHEET: CSSProperties = {
+const SHEET = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100%',
   maxWidth: '600px',
   margin: '0 auto',
   background: color.paper,
-}
+} satisfies CSSProperties
 
-const HEAD: CSSProperties = {
+const HEAD = {
   position: 'sticky',
   top: 0,
   zIndex: 2,
@@ -62,9 +62,9 @@ const HEAD: CSSProperties = {
   padding: space[4],
   background: color.inkDeep,
   color: color.paper,
-}
+} satisfies CSSProperties
 
-const TITLE: CSSProperties = {
+const TITLE = {
   flex: 1,
   minWidth: 0,
   margin: 0,
@@ -75,37 +75,37 @@ const TITLE: CSSProperties = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   outline: 'none',
-}
+} satisfies CSSProperties
 
-const ICON: CSSProperties = { minWidth: '44px', minHeight: '44px', color: color.paper }
+const ICON = { minWidth: '44px', minHeight: '44px', color: color.paper } satisfies CSSProperties
 
-const LIST: CSSProperties = {
+const LIST = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[16],
   padding: space[16],
-}
+} satisfies CSSProperties
 
-const GROUP: CSSProperties = {
+const GROUP = {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const GAME: CSSProperties = {
+const GAME = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[8],
   padding: space[8],
   border: `${borderWidth.chrome} solid ${color.ink20}`,
-}
+} satisfies CSSProperties
 
-const ITEM: CSSProperties = { width: '100%', minHeight: '48px' }
+const ITEM = { width: '100%', minHeight: '48px' } satisfies CSSProperties
 
-const ATTENTION: CSSProperties = { marginLeft: space[6], color: color.statusBad }
+const ATTENTION = { marginLeft: space[6], color: color.statusBad } satisfies CSSProperties
 
 /** A panel fills the rest of the screen; the canvas's panels scroll inside it. */
-const BODY: CSSProperties = { position: 'relative', flex: 1, minHeight: '70dvh' }
+const BODY = { position: 'relative', flex: 1, minHeight: '70dvh' } satisfies CSSProperties
 
 export function PhoneMenu({
   open,

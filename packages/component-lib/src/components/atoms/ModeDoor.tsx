@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { capsLabel } from './capsLabel'
 
 type ModeDoorProps = {
@@ -37,7 +38,7 @@ const DOOR = {
 
 /** guided emphasis: a 3px solid ink frame, the full card's weight.
  *  The plate fills with the sheet's text band and prints its foreground —
- *  the `onTone` rule as `.sheet--*` sets it (`--tone-band` / `--on-tone-band`
+ *  the `onTone` rule as `.su-sheet--*` sets it (`--tone-band` / `--on-tone-band`
  *  in theme.css). Paper on the bare tone measured 2.4:1 on pilot, and ink
  *  4.17:1 on crawler pink. Headline, body and cite all inherit the colour. */
 const GUIDED = {
@@ -120,7 +121,7 @@ export function ModeDoor({
     <button
       type="button"
       onClick={onSelect}
-      className={`su-mode-door su-mode-door--${variant}${className ? ` ${className}` : ''}`}
+      className={cn('su-mode-door', `su-mode-door--${variant}`, className)}
       style={{ ...DOOR, ...(guided ? GUIDED : BLANK) }}
     >
       <span style={TAB} aria-hidden="true">

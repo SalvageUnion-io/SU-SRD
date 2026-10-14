@@ -51,21 +51,21 @@ const MAX_SCALE = 2.6
 
 /** The caller's own fallback below the floor: it fills the host and scrolls. */
 /** The canvas form's host: the dark ground, the canvas centred in it. */
-const HOST: CSSProperties = {
+const HOST = {
   alignItems: 'center',
   background: 'var(--color-ink-deep)',
   display: 'flex',
   justifyContent: 'center',
   overflow: 'hidden',
   width: '100%',
-}
+} satisfies CSSProperties
 
-const REFLOW_HOST: CSSProperties = {
+const REFLOW_HOST = {
   alignSelf: 'stretch',
   width: '100%',
   height: '100%',
   overflowY: 'auto',
-}
+} satisfies CSSProperties
 
 type DashboardCanvasProps = {
   /** The canvas form: the fixed 1280×800 grid. */

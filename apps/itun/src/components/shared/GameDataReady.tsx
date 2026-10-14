@@ -64,14 +64,14 @@ function GameDataFallback() {
         alt=""
         width={96}
         height={96}
-        className="game-data-fallback__mark"
+        className="su-game-data-fallback__mark"
         style={MARK}
       />
       <p style={STATUS}>Loading reference data…</p>
       {/* motion-safe: prefers-reduced-motion users get a static bar instead
           of the infinite translateX sweep (matches the heat-pulse guard). */}
       <div aria-hidden="true" style={TRACK}>
-        <div className="game-data-fallback__bar" style={BAR} />
+        <div className="su-game-data-fallback__bar" style={BAR} />
       </div>
     </div>
   )

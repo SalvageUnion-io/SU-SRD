@@ -44,7 +44,7 @@ import { CrawlerReviewStep } from './CrawlerReviewStep'
 import '../../styles/wizard.css'
 
 /** The RuleBrief's muted aside (the saved pilot/mech count). */
-const MUTED: CSSProperties = { color: tokens.color.wkMuted }
+const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
 
 /** Book-order steps (Union Crawler pp.212–213 + Review). */
 const STEPS: readonly CrawlerWizardStepId[] = [
@@ -377,7 +377,7 @@ export function CrawlerBuilder({
       footerNote={footerNote}
       submitLabel="Create Crawler ✦"
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="wiz-rule-brief" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
       {step === 'type' && (
         <CrawlerTypeSelectStep types={types} selectedType={form.type} onSelect={selectType} />
       )}

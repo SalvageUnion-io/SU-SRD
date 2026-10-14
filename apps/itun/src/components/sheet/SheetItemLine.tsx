@@ -19,8 +19,9 @@
  * share one control.
  */
 
-import { Stat, StatusBadge } from 'component-lib'
+import { Button, Stat, StatusBadge } from 'component-lib'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 type SheetItemLineProps = {
@@ -102,14 +103,13 @@ export function SheetItemLine({
       )}
       {actions}
       {onRemove && (
-        <button
-          type="button"
+        <Button
           className="su-sheet-ctl su-sheet-ctl--square"
           aria-label={`Remove ${name}`}
           onClick={onRemove}
         >
-          ✕
-        </button>
+          <X aria-hidden="true" size={14} />
+        </Button>
       )}
     </div>
   )

@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-026: Entity Card Design Rules (the single reference-entity renderer)
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 26, which summarises it.
@@ -23,9 +19,9 @@ Peek draws this card at small size.
 The reference-entity display was reconciled from a 57-file legacy render core
 (`ReferenceEntityDisplay/`, "RED") onto a single card. That migration settled a set of **design rules** along the way — about how choices render, how
 stats read, how tech-level scaling looks, and which data carries a tech level.
-Those rules were decided interactively and proven in the story catalog, but were only
+Those rules were decided interactively and proven in the story catalog (since deleted), but were only
 recorded in commit messages. This ADR enshrines them so they are not
-re-litigated, and points at the stories that demonstrate each.
+re-litigated; the card's and `Stat`'s tests now hold them.
 
 See also: [ADR-010](../ARCHITECTURE.md#decisions) (choices
 ephemeral vs persisted), [ADR-021](021-itun-surface-taxonomy.md) (surface/mode
@@ -70,9 +66,6 @@ changing the _data shape_ over special-casing the renderer.
   stampseal** (no rust selection ring). Options are always a
   `button[aria-pressed]` so the chosen state stays queryable in both modes
   (read-only is inert).
-- Demo: `Compositions/Entity/Reference Entity Card` → **ChoiceEquipment**
-  (multiple-choice) / **InlineChoices** (freeform and table, both inline).
-
 ### 4. The stat atom has one anatomy — and NO pips
 
 A `Stat` is the label-first `[label | value]` chip; `size` picks its rung of the
@@ -95,9 +88,6 @@ dashes are the pencil/override cue of the edit state and the homebrew cue
 The value itself updates. This applies to **statblocks / `Stat`
 cells only** — not `VitalGauge`.
 
-- Demo: `Compositions/Entity/Reference Entity Card` → **ChoiceEquipment** /
-  **TechLevelScaling**.
-
 ### 6. Effective / editable tech level drives scaling
 
 Some granted, TL-scalable pilot equipment (e.g. Custom Sniper Rifle) resolves an
@@ -113,8 +103,6 @@ Some granted, TL-scalable pilot equipment (e.g. Custom Sniper Rifle) resolves an
   read-only.
 - Damage scaling is resolved by `resolveDataValueForTechLevel` and surfaced with
   the "modified" border (rule 5).
-- Demo: `Compositions/Entity/Reference Entity Card` → **TechLevelScaling**.
-
 ### 7. Data rule: granted-only pilot equipment is TL1
 
 Equipment that exists **solely to be granted** by an ability and has **no

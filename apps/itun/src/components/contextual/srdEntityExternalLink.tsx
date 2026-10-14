@@ -24,8 +24,8 @@ export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
     <SRDLink
       href={deepLinkTo({ schemaName, slug: getEntitySlug(entity) })}
       entityName={entityName}
-      // `.srd-entity-external-link` (styles/unitSlot.css): it fades on hover.
-      className="srd-entity-external-link"
+      // `.su-srd-entity-external-link` (styles/unitSlot.css): it fades on hover.
+      className="su-srd-entity-external-link"
     />
   )
 }

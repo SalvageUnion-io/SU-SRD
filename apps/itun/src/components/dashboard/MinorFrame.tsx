@@ -39,7 +39,7 @@ export type MinorModel = {
   status?: string
 }
 
-const FRAME: CSSProperties = {
+const FRAME = {
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
@@ -51,12 +51,17 @@ const FRAME: CSSProperties = {
   background: 'var(--color-band-cream)',
   border: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent)',
   borderRadius: 'var(--radius-panel)',
-}
+} satisfies CSSProperties
 
-const HEAD: CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }
+const HEAD = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  minWidth: 0,
+} satisfies CSSProperties
 
 // A long name wraps rather than cutting to "…" (E18).
-const NAME: CSSProperties = {
+const NAME = {
   margin: 0,
   minWidth: 0,
   overflowWrap: 'anywhere',
@@ -66,9 +71,9 @@ const NAME: CSSProperties = {
   letterSpacing: 'var(--tracking-caps-tight)',
   fontSize: 'var(--text-caption)',
   color: 'var(--color-ink)',
-}
+} satisfies CSSProperties
 
-const ASIDE: CSSProperties = {
+const ASIDE = {
   flex: '1 0 auto',
   fontFamily: 'var(--font-cond)',
   fontWeight: 600,
@@ -76,31 +81,35 @@ const ASIDE: CSSProperties = {
   // ink-75, not ink-50: on band-cream ink-50 measures 3.04:1, under the 4.5:1
   // AA floor for text this small; ink-75 measures about 6.5:1.
   color: 'var(--color-ink-75)',
-}
+} satisfies CSSProperties
 
-const TEXT: CSSProperties = {
+const TEXT = {
   margin: 0,
   fontFamily: 'var(--font-body)',
   fontSize: 'var(--text-note)',
   lineHeight: 1.3,
   color: 'var(--color-ink)',
   fontVariantNumeric: 'tabular-nums',
-}
+} satisfies CSSProperties
 
-const PROBLEM: CSSProperties = { ...TEXT, color: 'var(--color-status-bad)', fontWeight: 600 }
+const PROBLEM = {
+  ...TEXT,
+  color: 'var(--color-status-bad)',
+  fontWeight: 600,
+} satisfies CSSProperties
 
-const STATUS: CSSProperties = { ...TEXT, marginTop: 'auto', color: 'var(--color-ink-75)' }
+const STATUS = { ...TEXT, marginTop: 'auto', color: 'var(--color-ink-75)' } satisfies CSSProperties
 
 // The mini rung renders ⤢ just under the WCAG 2.5.8 24×24px target minimum,
 // and the canvas scales everything down a little more. 28px holds 24 down to
 // a canvas scale of 0.86; the negative block margin keeps the head row's
 // height where the mini rung left it.
-const EXPAND: CSSProperties = {
+const EXPAND = {
   flex: '0 0 auto',
   minWidth: '28px',
   minHeight: '28px',
   margin: '-2px 0 -2px auto',
-}
+} satisfies CSSProperties
 
 /**
  * A Minor slot. `slot` names the entity kind for the ⤢ label ("Open the Mech
@@ -117,13 +126,13 @@ export function MinorFrame({
   onExpand: (trigger: HTMLButtonElement) => void
 }) {
   const troubled = view.problems.length > 0
-  const frame: CSSProperties = {
+  const frame = {
     ...FRAME,
     borderTop: slotRule(view.fam),
     // The red outline is the "look here" signal. An inset ring, so the
     // slot never changes size when it appears.
     boxShadow: troubled ? 'inset 0 0 0 2px var(--color-status-bad)' : undefined,
-  }
+  } satisfies CSSProperties
   return (
     <section aria-label={`${slot} · ${view.name}`} data-fam={view.fam} style={frame}>
       <div style={HEAD}>

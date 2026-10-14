@@ -15,6 +15,7 @@ import {
   Stat,
   StatusBadge,
   tokens,
+  useDisclosure,
 } from 'component-lib'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { GenericInventoryEntry } from 'itun-domain/schemas/pilot'
@@ -190,25 +191,23 @@ export function PilotAbilityItem({
       actions={
         <>
           {apCost !== null && (
-            <button
-              type="button"
+            <Button
               className="su-sheet-ctl"
               aria-label={`Spend ${apCost} AP for ${ability.name}`}
               disabled={currentAP < apCost}
               onClick={() => onSpend(apCost)}
             >
               Spend AP
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
             className="su-sheet-ctl"
             aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
             aria-pressed={used}
             onClick={() => onToggleUsed(!used)}
           >
             {used ? 'Used' : 'Mark Used'}
-          </button>
+          </Button>
         </>
       }
     />
@@ -279,7 +278,7 @@ export function PilotEquipmentItem({
     store
   )
   // Edit: whether the full card (its text and any choices) is open under the row.
-  const [detailsOpen, setDetailsOpen] = useState(false)
+  const details = useDisclosure()
 
   if (!equipment) {
     // Unresolved slug — still shown, still counted (1 slot), still toggleable.
@@ -350,27 +349,27 @@ export function PilotEquipmentItem({
         }
         actions={
           hasChoices && (
-            <button
-              type="button"
+            <Button
               className="su-sheet-ctl"
-              aria-expanded={detailsOpen}
-              aria-label={`${detailsOpen ? 'Collapse' : 'Expand'} ${equipment.name}`}
-              onClick={() => setDetailsOpen((open) => !open)}
+              {...details.toggleProps}
+              aria-label={`${details.open ? 'Collapse' : 'Expand'} ${equipment.name}`}
             >
               Details
-            </button>
+            </Button>
           )
         }
         onRemove={onRemove}
       />
-      {detailsOpen && (
-        <ReferenceEntityCard
-          data={equipment}
-          size="medium"
-          selections={selections}
-          onSelectionChange={setSelections}
-          scalingParent={scalingParent}
-        />
+      {details.open && (
+        <div id={details.panelId}>
+          <ReferenceEntityCard
+            data={equipment}
+            size="medium"
+            selections={selections}
+            onSelectionChange={setSelections}
+            scalingParent={scalingParent}
+          />
+        </div>
       )}
     </div>
   )

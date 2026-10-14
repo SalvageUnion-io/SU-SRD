@@ -36,22 +36,22 @@ const SECONDARY: readonly { tab: DisplayTab; label: string }[] = [
   { tab: 'crew', label: 'Crew' },
 ]
 
-const ROOT: CSSProperties = {
+const ROOT = {
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
   minHeight: 0,
-}
+} satisfies CSSProperties
 
-const LIST: CSSProperties = { padding: `${space[8]} ${space[12]} 0`, flex: '0 0 auto' }
+const LIST = { padding: `${space[8]} ${space[12]} 0`, flex: '0 0 auto' } satisfies CSSProperties
 
 /** Pushes the secondary tabs to the far end of the row. */
-const SPACER: CSSProperties = { flex: 1 }
+const SPACER = { flex: 1 } satisfies CSSProperties
 
 /** The open panel fills the rest, and scrolls inside itself. */
-const PANEL: CSSProperties = { position: 'relative', flex: 1, minHeight: 0 }
+const PANEL = { position: 'relative', flex: 1, minHeight: 0 } satisfies CSSProperties
 
-const ATTENTION: CSSProperties = { marginLeft: space[4], color: color.statusBad }
+const ATTENTION = { marginLeft: space[4], color: color.statusBad } satisfies CSSProperties
 
 export function DisplayTabs({
   tab,

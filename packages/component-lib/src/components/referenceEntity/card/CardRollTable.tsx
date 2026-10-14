@@ -5,6 +5,7 @@ import type { SURefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
+import { useDisclosure } from '../../../utils/useDisclosure'
 import { Button } from '../../atoms/Button'
 import { digestColumnsTable, digestRollTable } from '../../compositions/digestRollTable'
 import { RollControl, RollTableInstrument } from '../../compositions/RollTableInstrument'
@@ -92,7 +93,8 @@ export function CardRollTable({
   /** Called with the outcome's text (and its range key) on every roll. */
   onRollResult?: (text: string, key: string) => void
 }) {
-  const [expanded, setExpanded] = useState(defaultOpen)
+  const fold = useDisclosure(defaultOpen)
+  const expanded = fold.open
   const isColumns = table.type === 'columns'
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
     defaultRoll != null && !isColumns
@@ -144,9 +146,8 @@ export function CardRollTable({
     <Button
       size="compact"
       className="su-roll__toggle su-roll__control"
-      aria-expanded={expanded}
+      {...fold.toggleProps}
       aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
-      onClick={() => setExpanded((open) => !open)}
       style={BAR_BUTTON}
     >
       {expanded ? 'Hide' : 'Table'}
@@ -193,6 +194,7 @@ export function CardRollTable({
       onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
       actions={actions}
       open={expanded}
+      panelId={fold.panelId}
       table={
         isColumns
           ? {

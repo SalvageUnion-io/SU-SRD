@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers.model'
 import { rollForPilotField, rollOnNamedTable } from './rollTableHelpers.model'
 
-const rollButtonStyle: CSSProperties = { alignSelf: 'center', flexShrink: 0 }
+const rollButtonStyle = { alignSelf: 'center', flexShrink: 0 } satisfies CSSProperties
 
 type RollTableButtonProps = (
   | {

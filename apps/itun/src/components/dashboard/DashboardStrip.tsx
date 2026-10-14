@@ -25,7 +25,7 @@ import type { CSSProperties } from 'react'
 import { AppLink } from '../shared/AppLink'
 import type { AlertLine } from './useGameFeed'
 
-const STRIP: CSSProperties = {
+const STRIP = {
   flex: '0 0 auto',
   display: 'flex',
   alignItems: 'center',
@@ -33,9 +33,9 @@ const STRIP: CSSProperties = {
   minHeight: '36px',
   padding: `${space[4]} ${space[12]}`,
   borderTop: `${borderWidth.chrome} solid ${color.ink20}`,
-}
+} satisfies CSSProperties
 
-const LABEL: CSSProperties = {
+const LABEL = {
   flex: '0 0 auto',
   fontFamily: font.cond,
   fontWeight: weight.bold,
@@ -43,9 +43,9 @@ const LABEL: CSSProperties = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   color: color.ink75,
-}
+} satisfies CSSProperties
 
-const ALERT: CSSProperties = {
+const ALERT = {
   minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -56,34 +56,34 @@ const ALERT: CSSProperties = {
   fontFamily: font.body,
   fontSize: fontSize.note,
   color: color.ink,
-}
+} satisfies CSSProperties
 
-const SPACER: CSSProperties = { flex: 1 }
+const SPACER = { flex: 1 } satisfies CSSProperties
 
-const QUIET: CSSProperties = { ...LABEL, textTransform: 'none', letterSpacing: 'normal' }
+const QUIET = { ...LABEL, textTransform: 'none', letterSpacing: 'normal' } satisfies CSSProperties
 
 /**
  * The phone menu's Game box (ADR-045 D9): one row each, so a long Game name
  * wraps instead of pushing the Inbox past the screen's edge. The box draws
  * its own frame, so no rule above.
  */
-const STACKED: CSSProperties = {
+const STACKED = {
   ...STRIP,
   flexDirection: 'column',
   alignItems: 'flex-start',
   gap: space[4],
   padding: 0,
   borderTop: 0,
-}
+} satisfies CSSProperties
 
-const STACKED_LABEL: CSSProperties = {
+const STACKED_LABEL = {
   ...LABEL,
   flex: '0 1 auto',
   maxWidth: '100%',
   overflowWrap: 'anywhere',
-}
+} satisfies CSSProperties
 
-const STACKED_ALERT: CSSProperties = { ...ALERT, maxWidth: '100%' }
+const STACKED_ALERT = { ...ALERT, maxWidth: '100%' } satisfies CSSProperties
 
 function proposals(n: number): string {
   return n === 1 ? '1 proposal' : `${n} proposals`

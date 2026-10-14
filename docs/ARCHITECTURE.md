@@ -17,7 +17,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
 4. **component-lib** <a id="component-lib"></a>
    TypeScript source, no build; `src/index.ts` barrel; tokens in `src/styles/theme.css`, mirrored by `src/design/tokens.ts`.
-   A composition one app renders lives in that app; `bun run check barrel-consumers` enforces both halves.
+   One app's composition lives in that app (`barrel-consumers`); unused exports: [knip](#dead-code).
 5. **Stylesheet wiring** <a id="stylesheets"></a>
    One entry, `packages/component-lib/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
    App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
@@ -42,8 +42,8 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 12. **No device cache** <a id="no-device-cache"></a>
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/offline.e2e.ts` pins both offline cases.
 13. **Zustand stores** <a id="stores"></a>
-    `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs.
-    A refused write changes nothing; no TanStack Query, reads are `src/hooks/entities/` and `convex/react`.
+    `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
+    No TanStack Query; reads: `src/hooks/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).
@@ -69,14 +69,14 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
     Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
 22. **Display system** <a id="display"></a>
-    Entity forms (Mention, Token, Row, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
+    Entity forms (Mention, Token, Row, Tile, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
     `/su me`, `games` and `sheet` call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`.
     Read-only; Convex unreachable means every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
-    No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
+    No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
 25. **Accessibility** <a id="a11y"></a>
     Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, ITUN signed in.
     Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
@@ -182,11 +182,11 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted: a partner is a `ReferenceEntityCard` on its host's sheet with instance state; no partner sheet or route.
     Supersedes ADR-027.
 29. **ADR-029 Unified contribution model and stat provenance** · [full text](adr/029-contribution-model.md)
-    Accepted, built: one source / op / target model (`packages/salvageunion-reference/lib/rules/contributions.ts`).
+    Accepted, built (§4 amended by ADR-038): one source / op / target model (`packages/salvageunion-reference/lib/rules/contributions.ts`).
     Derivations return parts, so provenance shows wherever a value does; duration effects are never persisted.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Accepted, governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal.
-    Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037 and ADR-039.
+    Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037 and ADR-038 (ADR-039's amendment retired with it).
 31. **ADR-031 srd builds on an in-house Vite SSG**
     Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/srd/ssg/DESIGN.md`.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -198,7 +198,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted: signed out is read-only, every record is Convex-backed, both apps are PWAs; the pre-account migration is gone.
     Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022. [No device cache](#no-device-cache) followed.
 35. **ADR-035 No isolated local-only data**
-    Partly superseded, amended: anonymous visitors get the `signedOut` backend; no legacy claim.
+    Partly superseded by its 2026-10-08 amendment and by [no device cache](#no-device-cache): anonymous visitors get the `signedOut` backend; no legacy claim.
 36. **ADR-036 Retire snapshot shares**
     Accepted: the public sheet is the only account-free share; no `/api/snapshots`.
     Supersedes ADR-004; amends ADR-032.
@@ -207,7 +207,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Amends ADR-030; amended by ADR-044. Code: `packages/itun-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
-    Supersedes ADR-015; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
+    Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
 39. **ADR-039 Addressed invites by Discord account** · [full text](adr/039-addressed-invites.md)
     Retired with `/su invite`: a Game joins only through its one invite URL (ADR-030), and an addressed row opens nothing.
     Amended ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).

@@ -163,6 +163,26 @@ describe('one stat order on every surface', () => {
     expect(sequence).toEqual(['TL', 'SV', '|', 'SP', 'EP', '|', 'SYS', 'MODS'])
   })
 
+  test('the cost, the pointy box, comes last in every chip group that has one', () => {
+    let checked = 0
+    for (const schemaName of ['systems', 'modules', 'abilities'] as const) {
+      for (const entity of fixtures(schemaName)) {
+        for (const form of ['row', 'token'] as const) {
+          const { container, unmount } = render(<Entity form={form} entity={entity} />)
+          const group = container.querySelector('[data-chip-group]')
+          const cost = group?.querySelector('.su-cost')
+          if (group && cost) {
+            checked += 1
+            const last = group.lastElementChild
+            expect({ form, last: last?.contains(cost) }).toEqual({ form, last: true })
+          }
+          unmount()
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0)
+  })
+
   test('traits run alphabetically, Uses last', () => {
     for (const schemaName of ['systems', 'modules', 'equipment'] as const) {
       for (const entity of SalvageUnionReference.findAllIn(

@@ -193,7 +193,7 @@ export {
   EntityHrefProvider,
   PatternHrefProvider,
 } from './components/referenceEntity/entityHrefContext'
-// Entity controls: the live presets (navigateControl, foldControl).
+// Entity controls: the live presets (navigateControl, foldControl — built on useDisclosure).
 export { foldControl } from './components/referenceEntity/foldControl'
 export { quotePatternName } from './components/referenceEntity/pattern/quotePatternName'
 export { navigateControl } from './components/referenceEntity/referenceEntityControls'
@@ -260,3 +260,7 @@ export { useParseTraitReferences } from './utils/parseTraitReferences'
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't
 // spell the same schema differently.
 export { schemaPluralLabel } from './utils/schemaLabels'
+// THE show/hide fold: open state plus the toggle's aria-expanded / aria-controls.
+export { useDisclosure } from './utils/useDisclosure'
+// The one viewport media-query hook (a breakpoint read in JS, not CSS).
+export { useMediaQuery } from './utils/useMediaQuery'

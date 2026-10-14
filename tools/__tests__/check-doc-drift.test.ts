@@ -708,7 +708,7 @@ describe('checkDecisions', () => {
       'docs/ARCHITECTURE.md': doc(
         `1. **ADR-001 Title** · [full text](adr/001-one.md)\n   Accepted.\n${entry(2, 'Accepted.')}`
       ),
-      'docs/adr/001-one.md': '---\nstatus: accepted\n---\n\n# ADR-001: One\n\nBody.\n',
+      'docs/adr/001-one.md': '# ADR-001: One\n\nBody.\n',
     })
     expect(checkDecisions(root, 2).failures).toEqual([])
   })
@@ -716,10 +716,10 @@ describe('checkDecisions', () => {
   it('fails an ADR file that is misnamed, unlinked, orphaned, repeated or malformed', () => {
     const root = fixture({
       'docs/ARCHITECTURE.md': doc(entry(1, 'Accepted.') + entry(2, 'Accepted.')),
-      'docs/adr/001-one.md': '---\nstatus: accepted\n---\n\n# ADR-001: One\n',
-      'docs/adr/002-two.md': '---\nstatus: superseded\n---\n\n# ADR-003: Wrong\n',
-      'docs/adr/002-again.md': '# ADR-002: No front-matter\n',
-      'docs/adr/009-orphan.md': '---\nstatus: accepted\n---\n\n# ADR-009: Orphan\n',
+      'docs/adr/001-one.md': '# ADR-001: One\n',
+      'docs/adr/002-two.md': '# ADR-003: Wrong\n',
+      'docs/adr/002-again.md': '---\nstatus: accepted\n---\n\n# ADR-002: Again\n',
+      'docs/adr/009-orphan.md': '# ADR-009: Orphan\n',
       'docs/adr/ADR-004.md': '# ADR-004\n',
     })
     const failures = checkDecisions(root, 2).failures.join('\n')
@@ -730,8 +730,7 @@ describe('checkDecisions', () => {
     expect(failures).toContain(
       'ADR-002 has two files, docs/adr/002-again.md and docs/adr/002-two.md'
     )
-    expect(failures).toContain('docs/adr/002-two.md needs front-matter')
-    expect(failures).toContain('docs/adr/002-again.md needs front-matter')
+    expect(failures).toContain('docs/adr/002-again.md has front-matter')
     expect(failures).toContain('docs/adr/002-two.md opens on "# ADR-003: Wrong"')
     expect(failures).toContain('docs/adr/009-orphan.md has no ADR-009 entry')
   })

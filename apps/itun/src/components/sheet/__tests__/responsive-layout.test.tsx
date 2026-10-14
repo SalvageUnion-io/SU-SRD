@@ -82,7 +82,7 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
         softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
-    expect(container.querySelector('.sheet--mech')).toBeTruthy()
+    expect(container.querySelector('.su-sheet--mech')).toBeTruthy()
     expect(container.querySelector('[data-variant="mech"]')).toBeTruthy()
   })
 
@@ -128,7 +128,7 @@ describe('Sheet responsive layout — single entity', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(container.querySelector('.sheet--mech')).toBeTruthy()
+    expect(container.querySelector('.su-sheet--mech')).toBeTruthy()
     // The bar rides a sticky anchor with no height: nothing above the band at rest.
     const bar = container.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
     expect(bar?.parentElement?.style.position).toBe('sticky')
@@ -143,7 +143,7 @@ describe('Sheet responsive layout — single entity', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
+    expect(container.querySelector('.su-sheet--pilot')).toBeTruthy()
     // The bar rides a sticky anchor with no height: nothing above the band at rest.
     const bar = container.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
     expect(bar?.parentElement?.style.position).toBe('sticky')

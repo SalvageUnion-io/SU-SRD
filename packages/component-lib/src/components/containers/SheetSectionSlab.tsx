@@ -28,9 +28,9 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useId, useState } from 'react'
 import { color, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
+import { useDisclosure } from '../../utils/useDisclosure'
 import { Button } from '../atoms/Button'
 import type { SlabCount } from '../atoms/Slab'
 import { Slab } from '../atoms/Slab'
@@ -89,13 +89,12 @@ export function SheetSectionSlab({
   // Slabs always start OPEN — a sheet whose sections were all shut would open
   // on a page of labels telling you nothing about the character. (Entity CARDS
   // default the other way; see `ReferenceEntityCard.collapsible`.)
-  const [collapsed, setCollapsed] = useState(false)
-  const bodyId = useId()
+  const fold = useDisclosure(true)
 
   return (
-    // `.sheet-section` keeps the print page-break rule the card container also
+    // `.su-sheet-section` keeps the print page-break rule the card container also
     // carries, so moving a section between the two never changes pagination.
-    <section id={id} className={cn('sheet-section', className)}>
+    <section id={id} className={cn('su-sheet-section', className)}>
       {/* Wrapping (`.su-sheet-slab-lead`): the slab leader is one flex row of shrink-0 parts (stamp,
           count, rule, controls). A long title beside a long control — e.g.
           "Armament Bay Weapons" + "+ Add weapons system" — is 432px of content
@@ -114,17 +113,15 @@ export function SheetSectionSlab({
             <Button
               variant="ghost"
               size="iconOnly"
-              onClick={() => setCollapsed((v) => !v)}
-              aria-expanded={!collapsed}
-              aria-controls={bodyId}
+              {...fold.toggleProps}
               // The accessible name carries the section, so a screen reader
               // hears "Collapse Systems" rather than a rail of bare chevrons.
-              aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${title}`}
+              aria-label={`${fold.open ? 'Collapse' : 'Expand'} ${title}`}
               style={FOLD_BUTTON}
             >
               <ChevronDown
                 aria-hidden="true"
-                style={collapsed ? { ...CHEVRON, rotate: '-90deg' } : CHEVRON}
+                style={fold.open ? CHEVRON : { ...CHEVRON, rotate: '-90deg' }}
               />
             </Button>
           </>
@@ -133,7 +130,7 @@ export function SheetSectionSlab({
       {/* Kept mounted and hidden rather than unmounted: the cards inside hold
           their own open/closed state, and unmounting would silently reset every
           one of them each time the section was folded. */}
-      <div id={bodyId} hidden={collapsed} className={bodyClassName} style={BODY}>
+      <div id={fold.panelId} hidden={!fold.open} className={bodyClassName} style={BODY}>
         {children}
       </div>
     </section>

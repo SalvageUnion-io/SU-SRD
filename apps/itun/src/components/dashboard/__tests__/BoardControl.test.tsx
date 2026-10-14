@@ -86,7 +86,7 @@ describe('the main half', () => {
   test('no assigned mech: one "Board a mech ▾" that opens the menu', () => {
     renderBoard({ main: null, options: [spare] }, null)
     expect(screen.queryByRole('button', { name: /▶ Board/ })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Board a mech ▾' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Board a mech' }))
     expect(screen.getByRole('dialog', { name: 'Board a mech' })).toBeTruthy()
     // The Mech Minor says there is none, rather than the Dashboard refusing.
     expect(screen.getByText('No mech. Board one from the Pilot’s Mount bay.')).toBeTruthy()
@@ -158,7 +158,7 @@ describe('the ▾ menu', () => {
 
   test('nothing to board says so', () => {
     renderBoard({ main: null, options: [] }, null)
-    fireEvent.click(screen.getByRole('button', { name: 'Board a mech ▾' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Board a mech' }))
     expect(screen.getByText('No mechs to board. Assign one on the pilot’s sheet.')).toBeTruthy()
   })
 })

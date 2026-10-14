@@ -8,7 +8,7 @@ import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewReca
 import { textSmStyle } from '../wizard/wizardStyles.model'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
-/** Columns are `.wiz-review-grid` (they change at lg). */
+/** Columns are `.su-wiz-review-grid` (they change at lg). */
 const LAYOUT = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
 
 const KV_COLUMN = { alignSelf: 'flex-start' } satisfies CSSProperties
@@ -51,9 +51,9 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
     : undefined
 
   return (
-    <div className="wiz-review-grid" style={LAYOUT}>
+    <div className="su-wiz-review-grid" style={LAYOUT}>
       <div style={KV_COLUMN}>
-        <Panel className="wiz-mech-review-kv">
+        <Panel className="su-wiz-mech-review-kv">
           {/* The recap: Stats, the chassis as its chip, the parts as Tokens. */}
           <Recap>
             <RecapStat label="Name" value={form.name.trim()} required />
@@ -62,9 +62,9 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
             <RecapTokens label="Systems" entities={chosenSystems} />
             <RecapTokens label="Modules" entities={chosenModules} />
           </Recap>
-          {submitError && <FieldError className="wiz-review-error">{submitError}</FieldError>}
+          {submitError && <FieldError className="su-wiz-review-error">{submitError}</FieldError>}
         </Panel>
-        <Panel data-testid="banking-callout" className="wiz-mech-banking">
+        <Panel data-testid="banking-callout" className="su-wiz-mech-banking">
           {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
           Scrap Pool.
         </Panel>
@@ -82,7 +82,7 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
       </div>
 
       {/* chosen cards */}
-      <div className="wiz-stack wiz-stack--12">
+      <div className="su-wiz-stack su-wiz-stack--12">
         {[...chosenSystems, ...chosenModules].map((entity, i) => (
           <ReferenceEntityCard
             // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module may be chosen more than once, so the id alone is not unique; the list only appends/removes at stable positions during review

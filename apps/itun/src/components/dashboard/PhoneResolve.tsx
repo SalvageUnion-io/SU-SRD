@@ -40,14 +40,14 @@ import { PinnedVitals } from './PinnedVitals'
 import type { ResolveModel } from './ResolvePanel'
 import { ResolveCost, ResolveSpend } from './ResolvePanel'
 
-const SCREEN: CSSProperties = {
+const SCREEN = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100dvh',
   background: color.paper,
-}
+} satisfies CSSProperties
 
-const HEAD: CSSProperties = {
+const HEAD = {
   position: 'sticky',
   top: 0,
   zIndex: 2,
@@ -57,9 +57,9 @@ const HEAD: CSSProperties = {
   padding: `${space[4]} ${space[12]} ${space[4]} ${space[4]}`,
   background: color.bandCream,
   borderBottom: `${borderWidth.chrome} solid ${color.ink20}`,
-}
+} satisfies CSSProperties
 
-const TITLE: CSSProperties = {
+const TITLE = {
   flex: 1,
   minWidth: 0,
   margin: 0,
@@ -69,9 +69,9 @@ const TITLE: CSSProperties = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   outline: 'none',
-}
+} satisfies CSSProperties
 
-const ICON: CSSProperties = { minWidth: '44px', minHeight: '44px' }
+const ICON = { minWidth: '44px', minHeight: '44px' } satisfies CSSProperties
 
 /**
  * A fieldset that draws nothing: it only carries `disabled` when read-only.
@@ -80,52 +80,52 @@ const ICON: CSSProperties = { minWidth: '44px', minHeight: '44px' }
  * screen only has as a minimum, and the bar then sat under the content,
  * mid-screen, instead of at the foot (board D5).
  */
-const PLAIN: CSSProperties = { display: 'contents' }
+const PLAIN = { display: 'contents' } satisfies CSSProperties
 
-const BODY: CSSProperties = {
+const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[16],
   flex: 1,
   padding: space[16],
-}
+} satisfies CSSProperties
 
-const ROLL: CSSProperties = { display: 'flex', alignItems: 'center', gap: space[12] }
+const ROLL = { display: 'flex', alignItems: 'center', gap: space[12] } satisfies CSSProperties
 
-const ROLL_STAMP: CSSProperties = { fontSize: fontSize.caption }
+const ROLL_STAMP = { fontSize: fontSize.caption } satisfies CSSProperties
 
-const DIE: CSSProperties = {
+const DIE = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.hero,
   lineHeight: 1,
   fontVariantNumeric: 'tabular-nums',
-}
+} satisfies CSSProperties
 
-const BAND: CSSProperties = {
+const BAND = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[4],
   padding: space[12],
   border: `${borderWidth.entity} solid ${color.ink}`,
-}
+} satisfies CSSProperties
 
-const BAND_LABEL: CSSProperties = {
+const BAND_LABEL = {
   margin: 0,
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.readout,
-}
+} satisfies CSSProperties
 
-const TEXT: CSSProperties = {
+const TEXT = {
   margin: 0,
   fontFamily: font.body,
   fontSize: fontSize.caption,
   lineHeight: 1.45,
   color: color.ink,
-}
+} satisfies CSSProperties
 
-const BAR: CSSProperties = {
+const BAR = {
   position: 'sticky',
   bottom: 0,
   zIndex: 2,
@@ -138,17 +138,17 @@ const BAR: CSSProperties = {
   background: color.bandCream,
   border: 0,
   borderTop: `${borderWidth.chrome} solid ${color.ink20}`,
-}
+} satisfies CSSProperties
 
 /** The bar's buttons, side by side in equal columns. */
-const STEPS: CSSProperties = {
+const STEPS = {
   display: 'grid',
   gridAutoColumns: 'minmax(0, 1fr)',
   gridAutoFlow: 'column',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const STEP: CSSProperties = { width: '100%', minHeight: '48px' }
+const STEP = { width: '100%', minHeight: '48px' } satisfies CSSProperties
 
 /** Where focus goes when the screen opens: its heading. */
 function useFocusOnMount(ref: RefObject<HTMLElement | null>) {

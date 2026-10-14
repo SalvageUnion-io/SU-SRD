@@ -272,14 +272,14 @@ export function resolveCardInteraction({
   // The frame is INK on every card (the tone lives in the header band alone),
   // and dashed on a user-made one. Longhands, so a caller overriding one side
   // never trips React's shorthand/longhand warning.
-  const frame: CSSProperties = {
+  const frame = {
     borderStyle: dashed ? 'dashed' : 'solid',
     borderColor: 'var(--color-ink)',
     borderTopWidth: frameWidth,
     borderRightWidth: frameWidth,
     borderBottomWidth: frameWidth,
     borderLeftWidth: frameWidth,
-  }
+  } satisfies CSSProperties
   const frameStyle = selected ? { ...frame, ...SELECTED_RING } : frame
   return { outer, frameStyle }
 }

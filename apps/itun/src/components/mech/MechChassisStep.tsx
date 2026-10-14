@@ -139,7 +139,7 @@ export function MechChassisStep({
   )
 
   return (
-    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <Slab variant="solid" label="Tech 1 Chassis" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
         {chassisPool.map((chassis) => {
@@ -189,7 +189,7 @@ export function MechChassisStep({
               onToggle={onSelectCustom}
               ariaLabel="Custom build"
               radio
-              className={isCustom ? 'wiz-custom-build-ring' : undefined}
+              className={isCustom ? 'su-wiz-custom-build-ring' : undefined}
             >
               <div style={CUSTOM_CARD}>
                 <p style={CUSTOM_TITLE}>Custom build</p>

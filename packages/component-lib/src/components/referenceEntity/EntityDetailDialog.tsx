@@ -9,6 +9,7 @@ import { KindLabel } from '../../entity/parts/KindLabel'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { ChapterBand } from '../atoms/ChapterBand'
 import type { ChapterTone } from '../atoms/chapterBandColor'
+import { ModalShell } from '../containers/ModalShell'
 import { EntityCardIdentityFooter } from './card/EntityCardIdentityFooter'
 import { EntityPageStamps } from './card/EntityPageStamps'
 import { resolveCardTone } from './card/entityCardTone'
@@ -34,21 +35,6 @@ type EntityDetailDialogProps = {
   /** The Page's body: the card at `presentation="page"`. */
   children: ReactNode
 }
-
-/** Centred in the viewport, as tall as its page, at most 72rem wide. */
-const popupStyle = {
-  position: 'fixed',
-  inset: 0,
-  zIndex: 50,
-  margin: 'auto',
-  height: 'fit-content',
-  width: '100%',
-  maxWidth: '72rem',
-  backgroundColor: 'transparent',
-  paddingLeft: space[12],
-  paddingRight: space[12],
-  outlineStyle: 'none',
-} satisfies CSSProperties
 
 /**
  * The large lift shadow's tint: neutral black at 10%. There is
@@ -88,7 +74,9 @@ const pageStyle = {
   borderWidth: borderWidth.chrome,
   display: 'flex',
   flexDirection: 'column',
-  maxHeight: 'calc(100vh - 4rem)',
+  // The popup's cap (`ModalShell`'s 100vh - 4rem) less its 12px gutters above
+  // and below (`.su-entity-dialog`), which hold the close stamp's straddle.
+  maxHeight: 'calc(100vh - 5.5rem)',
   overflowY: 'auto',
 } satisfies CSSProperties
 
@@ -132,6 +120,7 @@ function EntityDetailPage({
   return (
     <>
       <ChapterBand
+        // The band's title names the dialog (`ModalShell`'s `ownTitle`).
         as={Dialog.Title}
         tone={band.tone}
         fill={band.fill}
@@ -188,32 +177,36 @@ export function EntityDetailDialog({
   children,
 }: EntityDetailDialogProps) {
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="su-backdrop" />
-        <Dialog.Popup style={popupStyle}>
-          {/* Overflow lives on the page so the close button (a sibling) isn't
-              clipped by it. The SRD black-stamp square button is
-              kitty-cornered, straddling the page's top-right corner. */}
-          <div style={{ position: 'relative' }}>
-            {/* The SRD black stamp: Button's ink variant at the icon rung, with
-                a paper edge so it reads off the band it straddles. */}
-            <Dialog.Close
-              className={buttonVariants({ variant: 'ink', size: 'iconOnly' })}
-              style={closeStyle}
-            >
-              <X style={{ width: space[20], height: space[20] }} aria-hidden="true" />
-              <span className="su-sr-only">Close</span>
-            </Dialog.Close>
-            <article style={pageStyle}>
-              <Dialog.Description className="su-sr-only">Entity display details</Dialog.Description>
-              <EntityDetailPage entity={entity} pattern={pattern} title={title}>
-                {children}
-              </EntityDetailPage>
-            </article>
-          </div>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+    // Bare: the Page owns its frame and its close stamp. `.su-entity-dialog`
+    // caps it at 72rem and holds the 12px gutters the stamp straddles into.
+    <ModalShell
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description="Entity display details"
+      ownTitle
+      maxWidth="su-entity-dialog"
+      bare
+    >
+      {/* Overflow lives on the page so the close button (a sibling) isn't
+          clipped by it. The SRD black-stamp square button is
+          kitty-cornered, straddling the page's top-right corner. */}
+      <div style={{ position: 'relative' }}>
+        {/* The SRD black stamp: Button's ink variant at the icon rung, with
+            a paper edge so it reads off the band it straddles. */}
+        <Dialog.Close
+          className={buttonVariants({ variant: 'ink', size: 'iconOnly' })}
+          style={closeStyle}
+        >
+          <X style={{ width: space[20], height: space[20] }} aria-hidden="true" />
+          <span className="su-sr-only">Close</span>
+        </Dialog.Close>
+        <article style={pageStyle}>
+          <EntityDetailPage entity={entity} pattern={pattern} title={title}>
+            {children}
+          </EntityDetailPage>
+        </article>
+      </div>
+    </ModalShell>
   )
 }

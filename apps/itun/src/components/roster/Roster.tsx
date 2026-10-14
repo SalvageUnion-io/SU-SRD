@@ -20,7 +20,7 @@
  * kept here so it survives switching between Games.
  */
 
-import { buttonVariants, RosterSkeleton, tokens } from 'component-lib'
+import { buttonVariants, cn, RosterSkeleton, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -70,7 +70,7 @@ const BAND_CONTROLS = {
 const NO_UNDERLINE = { textDecorationLine: 'none' } satisfies CSSProperties
 
 /** The paper outline Shelves' band buttons wear (`styles/shelves.css`). */
-const ON_BAND_BUTTON = 'shelves-band__btn'
+const ON_BAND_BUTTON = 'su-shelves-band__btn'
 
 export function Roster() {
   const activeContainer = useActiveContainer()
@@ -116,7 +116,7 @@ function GamePage({ gameId }: { gameId: string | null }) {
             reference you copy from rather than builds of your own. */}
         <AppLink
           href="/starter"
-          className={`${buttonVariants({ size: 'compact' })} ${ON_BAND_BUTTON}`}
+          className={cn(buttonVariants({ size: 'compact' }), ON_BAND_BUTTON)}
           style={NO_UNDERLINE}
         >
           Starter Set

@@ -23,18 +23,19 @@ import {
   weight,
 } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { formatClock } from '../../lib/formatDate'
 import type { AlertLine, RollLine } from './useGameFeed'
 
-const SCROLL: CSSProperties = {
+const SCROLL = {
   height: '100%',
   overflowY: 'auto',
   padding: space[12],
   display: 'flex',
   flexDirection: 'column',
   gap: space[16],
-}
+} satisfies CSSProperties
 
-const HEADING: CSSProperties = {
+const HEADING = {
   margin: `0 0 ${space[6]}`,
   fontFamily: font.cond,
   fontWeight: weight.bold,
@@ -42,43 +43,42 @@ const HEADING: CSSProperties = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   color: color.ink75,
-}
+} satisfies CSSProperties
 
-const LIST: CSSProperties = {
+const LIST = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[4],
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'flex',
   flexDirection: 'column',
   gap: '1px',
   padding: `${space[4]} ${space[8]}`,
   border: `${borderWidth.chrome} solid ${color.ink20}`,
   borderRadius: radius.card,
-}
+} satisfies CSSProperties
 
-const META: CSSProperties = {
+const META = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.badge,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   color: color.ink75,
-}
+} satisfies CSSProperties
 
-const TEXT: CSSProperties = { fontFamily: font.body, fontSize: fontSize.note, color: color.ink }
+const TEXT = {
+  fontFamily: font.body,
+  fontSize: fontSize.note,
+  color: color.ink,
+} satisfies CSSProperties
 
-const NOTE: CSSProperties = { ...TEXT, margin: 0, color: color.ink75 }
-
-/** "14:05", in the viewer's own clock. */
-function clock(ts: number): string {
-  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
+const NOTE = { ...TEXT, margin: 0, color: color.ink75 } satisfies CSSProperties
 
 const SOURCE: Record<string, string> = { dashboard: 'Dashboard', 'discord-bot': 'Discord' }
 
@@ -93,7 +93,7 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
           <ul style={LIST}>
             {alerts.map((a) => (
               <li key={a._id} style={ROW}>
-                <span style={META}>{clock(a.ts)}</span>
+                <span style={META}>{formatClock(a.ts)}</span>
                 <span style={TEXT}>{a.message}</span>
               </li>
             ))}
@@ -114,7 +114,7 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
             {rolls.map((r) => (
               <li key={r._id} style={ROW}>
                 <span style={META}>
-                  {[clock(r.ts), r.actorName, SOURCE[r.source] ?? r.source]
+                  {[formatClock(r.ts), r.actorName, SOURCE[r.source] ?? r.source]
                     .filter((part) => part !== null)
                     .join(' · ')}
                 </span>

@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-045: The Dashboard Has a Phone Form
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 45, which summarises it.

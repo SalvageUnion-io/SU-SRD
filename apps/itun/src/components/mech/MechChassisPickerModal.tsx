@@ -74,7 +74,7 @@ export function MechChassisPickerModal({
         open={open && !confirming}
         onOpenChange={onOpenChange}
         title="Change Chassis"
-        maxWidth="wiz-modal-5xl"
+        maxWidth="su-wiz-modal-5xl"
         bare
       >
         <EntitySearcher
@@ -119,7 +119,7 @@ export function MechChassisPickerModal({
         }}
         title="Change chassis?"
         tone="danger"
-        maxWidth="wiz-modal-md"
+        maxWidth="su-wiz-modal-md"
       >
         <div style={dialogBodyStyle}>
           <div style={dialogNoteStyle}>

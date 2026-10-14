@@ -19,8 +19,9 @@
  *            repeated, and an entry that amends,
  *            supersedes or reverses another is named in that other entry.
  *            An ADR whose full text is kept (the ones code cites by §) is
- *            one `docs/adr/NNN-slug.md` with `status` front-matter and a
- *            `# ADR-NNN: Title`, linked from entry N's headline.
+ *            one `docs/adr/NNN-slug.md` opening on `# ADR-NNN: Title`, linked
+ *            from entry N's headline. It has no front-matter: the status is
+ *            recorded once, in entry N.
  *   shape    a terse doc (`TERSE_DOCS`) is numbered entries under `## `
  *            sections: a bold headline, then at most two lines.
  *   links    every relative markdown link in a tracked `.md` file resolves,
@@ -810,7 +811,6 @@ function missingBackReferences(source: string): string[] {
 /** Where an ADR's full text lives when it is kept: `docs/adr/NNN-slug.md`. */
 const ADR_DIR = 'docs/adr'
 const ADR_FILE = /^(\d{3})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/
-const ADR_STATUSES = ['proposed', 'accepted', 'superseded-in-part']
 
 /** Every way a `docs/adr/` file breaks the layout or loses its entry's link. */
 function adrFileFailures(root: string, source: string): { count: number; failures: string[] } {
@@ -838,20 +838,13 @@ function adrFileFailures(root: string, source: string): { count: number; failure
         `${DECISIONS_DOC}:${entry.start + 1} is ${adrId(n)}, whose full text is ${doc}: link it from the headline (\`· [full text](adr/${name})\`).`
       )
     }
-    const lines = read(root, doc).split('\n')
-    const close = lines[0] === '---' ? lines.indexOf('---', 1) : -1
-    const status = lines.slice(1, close).find((line) => line.startsWith('status:'))
-    const value = status?.slice('status:'.length).trim() ?? ''
-    if (close === -1 || !ADR_STATUSES.includes(value)) {
+    const title = read(root, doc).split('\n')[0] ?? ''
+    if (title === '---') {
       failures.push(
-        `${doc} needs front-matter \`---\` / \`status: <${ADR_STATUSES.join(' | ')}>\` / \`---\` (a superseded ADR keeps only its entry).`
+        `${doc} has front-matter. Drop it: an ADR's status is recorded once, in its entry under \`## Decisions\` in ${DECISIONS_DOC}.`
       )
-    }
-    const title = lines.slice(close + 1).find((line) => line.trim() !== '') ?? ''
-    if (!title.startsWith(`# ${adrId(n)}: `)) {
-      failures.push(
-        `${doc} opens on "${title}"; its first line after the front-matter is \`# ${adrId(n)}: Title\`.`
-      )
+    } else if (!title.startsWith(`# ${adrId(n)}: `)) {
+      failures.push(`${doc} opens on "${title}"; its first line is \`# ${adrId(n)}: Title\`.`)
     }
   }
   return { count: seen.size, failures }

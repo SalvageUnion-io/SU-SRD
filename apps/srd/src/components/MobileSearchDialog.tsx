@@ -1,6 +1,7 @@
 import { Drawer } from '@base-ui/react/drawer'
-import { buttonVariants } from 'component-lib'
+import { buttonVariants, cn } from 'component-lib'
 import { color, font, fontSize, radius, space, weight } from 'component-lib/design/tokens'
+import { Search, X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { LIFT_SHADOW } from '../lib/liftShadow'
@@ -15,51 +16,56 @@ type MobileSearchDialogProps = {
 }
 
 // The full-screen layer the sheet sits in, against its top edge.
-const VIEWPORT: CSSProperties = {
+const VIEWPORT = {
   display: 'flex',
   flexDirection: 'column',
   inset: 0,
   position: 'fixed',
   zIndex: 50,
-}
+} satisfies CSSProperties
 
 /** The sheet: the title row over the hosted search. `.su-drawer` slides it. */
-const POPUP: CSSProperties = {
+const POPUP = {
   backgroundColor: color.paper,
   boxShadow: LIFT_SHADOW,
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
   padding: space[16],
-}
+} satisfies CSSProperties
 
-const TITLE_ROW: CSSProperties = {
+const TITLE_ROW = {
   alignItems: 'center',
   display: 'flex',
   justifyContent: 'space-between',
-}
+} satisfies CSSProperties
 
-const TITLE: CSSProperties = {
+const TITLE = {
   color: color.ink,
   fontFamily: font.cond,
   fontSize: fontSize.sm,
   fontWeight: weight.bold,
   lineHeight: 'calc(1.25 / 0.875)',
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
 // The two icon buttons over the shared icon rung. Their ground is the rung's
 // (`.su-btn--ghost`), except the trigger's hover, which is
 // `.srd-mobile-search__trigger` in pages.css. The trigger takes the Union
 // bar's control height (`--su-union-bar-control`); the sheet's close is 44px.
-const ICON_BUTTON: CSSProperties = {
+const ICON_BUTTON = {
   borderColor: 'transparent',
   borderRadius: radius.panel,
-}
+} satisfies CSSProperties
 
-const TRIGGER: CSSProperties = { ...ICON_BUTTON, color: color.paper }
+const TRIGGER = { ...ICON_BUTTON, color: color.paper } satisfies CSSProperties
 
-const CLOSE: CSSProperties = { ...ICON_BUTTON, color: color.ink, height: '44px', width: '44px' }
+const CLOSE = {
+  ...ICON_BUTTON,
+  color: color.ink,
+  height: '44px',
+  width: '44px',
+} satisfies CSSProperties
 
 const iconButtonClass = buttonVariants({ variant: 'ghost', size: 'iconOnly' })
 
@@ -87,24 +93,11 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           // supplies the focus ring this trigger simply did not have.
           <button
             type="button"
-            className={`${iconButtonClass} srd-mobile-search__trigger`}
+            className={cn(iconButtonClass, 'srd-mobile-search__trigger')}
             style={TRIGGER}
             aria-label="Search the SRD"
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+            <Search aria-hidden="true" size={22} strokeWidth={2.5} />
           </button>
         }
       />
@@ -123,21 +116,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
                     style={CLOSE}
                     aria-label="Close search"
                   >
-                    <svg
-                      width="24"
-                      height="24"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <X aria-hidden="true" size={24} />
                   </button>
                 }
               />

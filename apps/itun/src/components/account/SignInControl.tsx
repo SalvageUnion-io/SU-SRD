@@ -5,7 +5,7 @@ import { useSignOut } from './useSignOut'
 
 /**
  * The dark-masthead treatment: a paper hairline on the near-black bar.
- * `.sign-in-control--dark` (`styles/screens.css`) is an app rule outside the
+ * `.su-sign-in-control--dark` (`styles/screens.css`) is an app rule outside the
  * cascade layers, so it wins over the variant's own border/text colours and
  * its hover ink wash.
  *
@@ -14,7 +14,7 @@ import { useSignOut } from './useSignOut'
  * put a second rust button directly beside "Buy the game" — two identical
  * CTAs, neither reading as the primary one. The bar keeps one loud action.
  */
-const DARK_BUTTON = 'sign-in-control--dark'
+const DARK_BUTTON = 'su-sign-in-control--dark'
 
 type SignInControlProps = {
   /** Render for a dark surface (the masthead nav) instead of paper. */

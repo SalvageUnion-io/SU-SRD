@@ -12,6 +12,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  */
 
 import { getFunctionName } from 'convex/server'
+import { ConvexError } from 'convex/values'
 import type { QueryAnswers } from '../../__tests__/convexMock'
 /**
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
@@ -19,6 +20,7 @@ import type { QueryAnswers } from '../../__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 const mutations: { name: string; args: unknown }[] = []
+let mutationError: Error | null = null
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
@@ -26,6 +28,7 @@ const convexMocks = await installConvexMocks({
   convexReact: {
     useMutation: (ref: unknown) => async (args: unknown) => {
       mutations.push({ name: getFunctionName(ref as never), args })
+      if (mutationError !== null) throw mutationError
     },
   },
 })
@@ -59,6 +62,7 @@ const CRAWLER = {
 
 beforeEach(() => {
   mutations.length = 0
+  mutationError = null
 })
 
 describe('DowntimeTrack', () => {
@@ -94,6 +98,16 @@ describe('DowntimeTrack', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Begin Downtime' }))
     })
     expect(mutations.map((m) => m.name)).toEqual(['downtime:begin'])
+  })
+
+  test('a refusal is said in the server’s own words, as an inline error', async () => {
+    setQueryAnswers(state())
+    wrap(<DowntimeTrack gameId={'g1' as never} mediator crawler={CRAWLER} />)
+    mutationError = new ConvexError('Downtime is already running')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Begin Downtime' }))
+    })
+    expect(screen.getByRole('alert').textContent).toBe('Downtime is already running')
   })
 
   test('running: the current step reads Now, and who has finished it', () => {

@@ -394,10 +394,10 @@ export function CrawlerSheet({
   return (
     <section
       aria-label={`${crawler.name} crawler sheet`}
-      // `.sheet-section` is a print-stylesheet target (page-break rules);
+      // `.su-sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
-      className="sheet-section"
+      className="su-sheet-section"
       style={ROOT}
     >
       {/* ===== Single-column region flow (Workshop-Manual crawler sheet):

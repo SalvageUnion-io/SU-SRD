@@ -723,6 +723,26 @@
   contain-intrinsic-size: auto calc(9rem + 8px);
 }
 
+/* The Tree view's trees, after the first two, skip layout and paint the same
+   way: the abilities index draws 36 trees of Rows, and laying them all out
+   was what still blocked its main thread on load. The reserved height is a
+   tree's (one track of Rows) until it has been laid out once: about 18.5rem
+   at desktop widths, where most trees measure 294px, and 25rem on a phone,
+   where their Rows wrap to 380–420px. The same 4px reach keeps the Rows'
+   focus rings inside the paint containment. */
+.srd-listing[data-view='tree'] .srd-listing__group:nth-child(n + 3) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto calc(18.5rem + 8px);
+  margin: -4px;
+  padding: 4px;
+}
+
+@media (max-width: 40rem) {
+  .srd-listing[data-view='tree'] .srd-listing__group:nth-child(n + 3) {
+    contain-intrinsic-size: auto calc(25rem + 8px);
+  }
+}
+
 /* A tile's place while the data loads, in the tile's own structure: its 3:4
    art box (inside the frame's border), then a fixed band for the tone band
    (its chips beside the name) and the lore line's three lines. The band does

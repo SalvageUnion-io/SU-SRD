@@ -9,7 +9,7 @@ import { PAPER_NAME } from './paint'
 import { useChipsFit } from './useChipsFit'
 
 /** A one-line hint on the band (a pattern row's description), truncated. */
-const HINT: CSSProperties = {
+const HINT = {
   contain: 'inline-size',
   flex: '1 1 0',
   fontFamily: font.body,
@@ -19,7 +19,7 @@ const HINT: CSSProperties = {
   textAlign: 'right',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
 /*
  * The band's parts are `.su-entity-row__*` classes (`styles/index.css`), not

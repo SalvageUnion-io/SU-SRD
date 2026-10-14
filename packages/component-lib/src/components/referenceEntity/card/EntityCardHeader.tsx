@@ -91,7 +91,7 @@ export function EntityCardHeader({
   ruled = false,
 }: EntityCardHeaderProps) {
   const TitleTag = titleAs ?? 'span'
-  const titleType: CSSProperties = { color: titleColor, fontSize: titleSize }
+  const titleType = { color: titleColor, fontSize: titleSize } satisfies CSSProperties
   return (
     <div
       data-fill={fill}
