@@ -508,6 +508,7 @@
 
 .su-chapter-band[data-scale='og'] .su-chapter-band__row {
   align-items: flex-end;
+  column-gap: var(--space-24);
   flex-direction: row;
   margin-inline: 0;
   max-width: none;
@@ -542,8 +543,25 @@
 .su-og-chips {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-12) var(--space-14);
+  flex-wrap: wrap-reverse;
+  gap: var(--space-14);
+  justify-content: flex-end;
+}
+
+/* The chips ride the band beside the title, as a show page's header chips
+   do: right-aligned on the notch's baseline, extra rows stacking upward
+   (`wrap-reverse`). Their width is set by `ogChipsWidth`, so the title never
+   gives way to them. */
+/* A name too long to share its line keeps it: the chips move above it, to
+   the band's top-right corner (`ogCardLayout`). */
+.su-chapter-band[data-scale='og'] .su-chapter-band__corner {
+  padding: var(--space-24) calc(var(--space-48) + var(--space-8)) 0;
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__aside {
+  flex: none;
+  margin-left: auto;
+  padding-bottom: 0;
 }
 
 .su-og-chips .su-stat-cell {

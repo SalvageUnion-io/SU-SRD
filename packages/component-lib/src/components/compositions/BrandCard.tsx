@@ -122,9 +122,13 @@ const TITLE = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** The kicker's line: the kicker, and the address at its right when there is one. */
+/**
+ * The kicker's line: the kicker, and the address at its right when there is
+ * one. The address sits on the LAST baseline, so under a quote it reads with
+ * the credit, the quote's smaller second line, not with the quote.
+ */
 const KICKER_ROW = {
-  alignItems: 'baseline',
+  alignItems: 'last baseline',
   display: 'flex',
   gap: space[24],
   justifyContent: 'space-between',

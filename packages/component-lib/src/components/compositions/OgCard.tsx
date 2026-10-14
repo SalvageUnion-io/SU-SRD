@@ -6,16 +6,16 @@ import { ChapterBand } from '../atoms/ChapterBand'
 import { Speckle } from '../atoms/Speckle'
 import { Stat } from '../atoms/Stat'
 import { PENNANT_SHAPE, USER_MADE_TITLE } from '../referenceEntity/card/cardChrome'
-import type { OgCardProps, OgCardStat } from './ogCardText'
+import type { OgCardChip, OgCardProps, OgCardStat } from './ogCardText'
 import {
   bandColor,
   footLineOf,
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
   OG_GUTTER,
+  ogCardLayout,
   ogCardPrintedTitle,
   ogCardTitle,
-  ogTitleSize,
   REFERENCE_KINDS,
 } from './ogCardText'
 
@@ -24,8 +24,9 @@ import {
  * 1200 × 630 picture of the page a link opens, built from the same parts as
  * that page. The chapter band with its speckle and the notched title
  * (`ChapterBand` at its `og` scale; nothing above the title, EDL E20), the
- * entity's one chip group under it (E17: the page's own horizontal `Stat`
- * cells, the cost's pointy box last), and the Union bar's ink foot with the
+ * entity's one chip group beside it on the band, right-aligned on the title's
+ * baseline as a show page's header chips are (E17: the page's own horizontal
+ * `Stat` cells, the cost's pointy box last, extra rows stacking upward), and the Union bar's ink foot with the
  * mark and the address. The kind rides the foot line before the cite, as a
  * Page's foot names it (E9). Because it is assembled from the page's own parts
  * rather than drawn a second time, the preview cannot drift from the page; the
@@ -86,8 +87,12 @@ const CARD = {
   width: OG_CARD_WIDTH,
 } satisfies CSSProperties
 
-/** The band: the notch on its foot, nothing above the title (EDL E20). */
-const BAND_SLOT = { flex: '0 0 230px', minHeight: 0 } satisfies CSSProperties
+/**
+ * The band: the notch on its foot, nothing above the title (EDL E20). It is
+ * `OG_BAND_HEIGHT` tall, taller when the chips beside the title stack higher
+ * (`ogCardLayout`).
+ */
+const BAND_SLOT = { flex: '0 0 auto', minHeight: 0 } satisfies CSSProperties
 
 const CAPS = {
   fontFamily: font.cond,
@@ -201,6 +206,9 @@ const ADDRESS = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
+/** The notch's baseline above the band's foot, as a share of the title's size. */
+const NOTCH_BASELINE = 0.076
+
 // ── Parts ─────────────────────────────────────────────────────────────────
 
 /**
@@ -211,14 +219,17 @@ function Chips({
   stats,
   cost,
   userMade,
+  width,
+  baseline,
 }: {
   stats: OgCardStat[]
   cost?: string | undefined
   userMade: boolean
+  width: number
+  baseline: string
 }) {
-  if (stats.length === 0 && !cost && !userMade) return null
   return (
-    <div className="su-og-chips">
+    <div className="su-og-chips" style={{ paddingBottom: baseline, width }}>
       {userMade && (
         <span title={USER_MADE_TITLE} style={STAMP}>
           User-made
@@ -277,7 +288,28 @@ export function OgCard({
   // An ability's numeral sits left of the name, on the band (EDL E12, its
   // page's `lead`); the name steps down to leave it room.
   const tier = props.kind === 'do' ? props.tier : undefined
-  const titleSize = `${ogTitleSize(tier ? `${tier} ${printed}` : printed)}px`
+  const stats = 'stats' in props ? props.stats : []
+  const cost = 'cost' in props ? props.cost : undefined
+  const chips: OgCardChip[] = [
+    ...(userMade ? [{ kind: 'stamp', text: 'User-made' } as const] : []),
+    ...stats.map((stat) => ({ kind: 'stat', label: stat.label, value: stat.value }) as const),
+    ...(cost ? [{ kind: 'cost', text: cost } as const] : []),
+  ]
+  const layout = ogCardLayout(tier ? `${tier} ${printed}` : printed, chips)
+  const titlePx = layout.titleSize
+  const titleSize = `${titlePx}px`
+  const chipGroup =
+    chips.length > 0 ? (
+      <Chips
+        stats={stats}
+        cost={cost}
+        userMade={userMade}
+        width={layout.chipsWidth}
+        // Beside the title, on its baseline as a show page's header chips sit:
+        // the face's descent less the half-leading of the notch's line.
+        baseline={layout.chips === 'beside' ? `${Math.round(titlePx * NOTCH_BASELINE)}px` : '0px'}
+      />
+    ) : undefined
 
   return (
     <article
@@ -285,7 +317,7 @@ export function OgCard({
       data-og-card={props.kind}
       style={{ ...CARD, borderStyle: userMade ? 'dashed' : 'solid' }}
     >
-      <div style={BAND_SLOT}>
+      <div style={{ ...BAND_SLOT, flexBasis: layout.bandHeight }}>
         <ChapterBand
           scale="og"
           fill={fill}
@@ -293,18 +325,13 @@ export function OgCard({
           userMade={userMade}
           titleSize={titleSize}
           lead={tier ? <span style={{ fontSize: titleSize }}>{tier}</span> : undefined}
+          aside={layout.chips === 'beside' ? chipGroup : undefined}
+          corner={layout.chips === 'above' ? chipGroup : undefined}
         >
           {printed}
         </ChapterBand>
       </div>
       <div style={BODY}>
-        {'stats' in props && (
-          <Chips
-            stats={props.stats}
-            cost={'cost' in props ? props.cost : undefined}
-            userMade={userMade}
-          />
-        )}
         {props.kind === 'do' && props.rules && <p style={PROSE}>{props.rules}</p>}
         {props.kind === 'invite' && <p style={PROSE}>{props.summary}</p>}
         {footLine && <p style={LINE}>{footLine}</p>}

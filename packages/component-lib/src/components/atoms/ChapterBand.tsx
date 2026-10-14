@@ -263,7 +263,13 @@ export function ChapterBand({
       {corner && (
         <div
           className="su-chapter-band__corner"
-          style={measure ? { ...CORNER, maxWidth: measure } : CORNER}
+          style={{
+            ...CORNER,
+            ...(measure ? { maxWidth: measure } : {}),
+            // As the eyebrow's: an auto margin in the og band's column
+            // flexbox would shrink the corner to its content and centre it.
+            ...(scale === 'og' ? { marginInline: 0 } : {}),
+          }}
         >
           {corner}
         </div>

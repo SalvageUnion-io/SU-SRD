@@ -9,6 +9,7 @@ import { ogCardForEntity } from '../ogCardForEntity'
 import type { OgCardProps } from '../ogCardText'
 import {
   ogCardDescription,
+  ogCardLayout,
   ogCardPrintedTitle,
   ogCardThemeColor,
   ogCardTitle,
@@ -147,7 +148,7 @@ function read(props: OgCardProps): Seen & { src: string | null } {
     title: card.getAttribute('aria-label') ?? '',
     printed: text(host.querySelector('.su-chapter-band__title')),
     tone: band.getAttribute('style')?.match(/background-color:([^;]+)/)?.[1] ?? '',
-    cells: [...body.querySelectorAll('.su-og-chips .su-stat-cell')].map((cell) => [
+    cells: [...band.querySelectorAll('.su-og-chips .su-stat-cell')].map((cell) => [
       text(cell.querySelector('.su-stat-plate--label')),
       text(cell.querySelector('.su-stat-plate--value')),
     ]),
@@ -419,6 +420,44 @@ describe('OgCard', () => {
     expect(ogTitleSize('Scrapper')).toBe(120)
     expect(ogTitleSize('Reclamation of the Wastes')).toBeLessThan(120)
     expect(ogTitleSize('x'.repeat(200))).toBe(34)
+  })
+
+  test('chips ride the band beside the title, stacking before the title shrinks far', () => {
+    const chassis = ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS', 'Cargo', 'Heat'].map(
+      (label) => ({ kind: 'stat', label, value: '16' }) as const
+    )
+    const mule = ogCardLayout('Mule', chassis)
+    expect(mule.chips).toBe('beside')
+    expect(mule.titleSize).toBe(120)
+    // Eight chips stack over the notch's foot rather than spanning the band.
+    expect(mule.chipsWidth).toBeLessThan(700)
+    expect(mule.bandHeight).toBe(230)
+    expect(ogCardLayout('Mule', [])).toEqual({
+      chips: 'beside',
+      chipsWidth: 0,
+      bandHeight: 230,
+      titleSize: 120,
+    })
+  })
+
+  test('a name too long to share its line moves the chips above it, whole', () => {
+    const name = '\u201CSergeant Kessler of the Ninth\u201D'
+    const layout = ogCardLayout(name, [
+      { kind: 'stamp', text: 'User-made' },
+      { kind: 'stat', label: 'HP', value: '9' },
+      { kind: 'stat', label: 'Actions', value: '2' },
+    ])
+    expect(layout.chips).toBe('above')
+    expect(layout.titleSize).toBe(ogTitleSize(name))
+    // One row of chips over a stepped-down notch still fits the band.
+    expect(layout.bandHeight).toBe(230)
+  })
+
+  test('the chips render in the band, not the body', () => {
+    const host = document.createElement('div')
+    host.innerHTML = renderToStaticMarkup(<OgCard {...THING} />)
+    expect(host.querySelector('.su-chapter-band .su-og-chips')).not.toBeNull()
+    expect(host.querySelector('article > :nth-child(2) .su-og-chips')).toBeNull()
   })
 
   test('the notch is sized from the string it prints, quotes included', () => {
