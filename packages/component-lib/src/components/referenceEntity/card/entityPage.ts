@@ -77,6 +77,7 @@ function bookStatsOf(model: EntityModel): BookStat[] {
     key: fact.key,
     label: fact.label,
     value: fact.value,
+    ...(fact.group ? { group: fact.group } : {}),
     ...(fact.hint ? { hoverText: fact.hint } : {}),
   }))
 }

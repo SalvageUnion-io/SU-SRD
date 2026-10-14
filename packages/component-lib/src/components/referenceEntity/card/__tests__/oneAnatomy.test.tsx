@@ -70,7 +70,8 @@ describe('actions nest', () => {
     // the facts, the traits. No "//" line.
     expect(container.textContent).not.toContain('//')
     expect(screen.getAllByText('Turn Action').length).toBeGreaterThan(0)
-    expect(container.textContent).toContain('RNGClose')
+    // A Card is no Page: its range is the book's code.
+    expect(container.textContent).toContain('RNGC')
     expect(container.textContent).toContain('DMG1 SP')
     expect(screen.getAllByText('Melee').length).toBeGreaterThan(0)
   })

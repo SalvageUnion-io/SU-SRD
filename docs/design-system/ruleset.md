@@ -6,7 +6,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
 2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind and its citation as text, never chips (`Workshop Manual · p.112`, then "Also in" each reprint), as on every card and Peek.
-3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the book's order (`bookStats`), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL).
+3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the stat order (§2.6), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL).
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
@@ -25,7 +25,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    3. **Dashboard — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row. Flat: no texture.
       Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` for every card, `--color-paper` for the display region alone. On a phone: bar, tab body, resolve screen (ADR-045).
    4. **The cost pennant is the action** — on the Dashboard, tapping the pennant resolves the action: read-pennant size, filled rust, 44px hit area, no separate deck button.
-   5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck, depth 2): art column, one-row head, value cells then the facets row.
+   5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck, depth 2): art column, one-row head, chip group (E17).
       Context changes props, never the anatomy; nothing edits or expands in place. An entity without art has no art place (a catalog with art: a censor mark).
       Where the schema has art, the SRD Catalog draws Tiles (`<Entity form="tile">`; EDL E2 and "Which form, where" 1).
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
@@ -37,8 +37,8 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
-   5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only. TL and Salvage are the TL-Salvage badge everywhere.
-   6. **Cost, range, action type** — chips (Page `RNG | Close`, else `C`; "Turn Action"), then cost last in the book's pointy box (`ActivationCost`, `2 EP`); the Dashboard's cost pennant is its action button.
+   5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only.
+   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4). A wider gap parts groups.
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1); a section header is a Slab.
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` (the cost pennant included) and `InlineRef`, and no token aliases it.

@@ -1,5 +1,6 @@
 import type {
   EntityModel,
+  Fact,
   SURefEnumSchemaName,
   SURefMetaAction,
   SURefMetaEntity,
@@ -12,6 +13,7 @@ import {
   foldedActionOf,
   getReferenceEntityName,
   isAbility,
+  splitStatLine,
   toEntityModel,
   visiblePatterns,
 } from 'salvageunion-reference'
@@ -79,13 +81,17 @@ export function ogCardForEntity(options: {
 }
 
 /**
- * The model's chips in E17's order, label first: the action type as printed,
- * the facts by their short labels, the traits. The cost is the card's own.
+ * The model's chips in the stat order (E17), label first: the stats (TL
+ * first), the action type as printed and the action's facets, by their short
+ * labels, then the traits. The cost is the card's own.
  */
 function chipsOf(model: EntityModel): OgCardStat[] {
+  const { stats, action } = splitStatLine(model.facts)
+  const chip = (fact: Fact): OgCardStat => ({ label: fact.short, value: fact.value })
   return [
+    ...stats.map(chip),
     ...actionTypeStamps(model.actionType, model.mechActionType).map((label) => ({ label })),
-    ...model.facts.map((fact) => ({ label: fact.short, value: fact.value })),
+    ...action.map(chip),
     ...model.traits.map((trait) => ({
       label: trait.name,
       ...(trait.param?.trim() ? { value: trait.param } : {}),

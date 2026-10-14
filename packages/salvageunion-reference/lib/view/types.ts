@@ -26,6 +26,14 @@ export type EntityRef = {
 }
 
 /** One label | value fact: a stat, a range, a damage, a requirement. */
+/**
+ * Which part of THE stat order a fact belongs to (`parts/facts.ts`): where
+ * it comes from (TL, Slots, SV), what it can take (SP or HP, EP, Heat), what
+ * it can hold (SYS, MODS, Cargo), what its action does (RNG, DMG, Uses). The
+ * forms keep the groups in this order and set a wider gap between them.
+ */
+export type StatGroup = 'provenance' | 'vitals' | 'capacity' | 'action'
+
 export type Fact = {
   key: string
   /** The full name, as a full-size value box prints it ("Structure Points"). */
@@ -35,6 +43,8 @@ export type Fact = {
   value: string
   /** The value a compact cell prints, where it has a short form ("C/M" for "Close / Medium"). */
   shortValue?: string
+  /** Its part of the stat order (`StatGroup`). */
+  group?: StatGroup
   /** What the stat means, for its tooltip. */
   hint?: string
 }

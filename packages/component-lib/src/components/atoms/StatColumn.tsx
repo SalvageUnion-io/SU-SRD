@@ -1,3 +1,6 @@
+import type { StatGroup } from 'salvageunion-reference'
+import { opensGroup } from 'salvageunion-reference'
+
 /**
  * StatColumn — the Workshop Manual's stat column at page scale (ruleset, "The
  * source": the ink stamp + framed numeral): each stat is a framed numeral
@@ -6,8 +9,9 @@
  * never squeezed into a header cell and never clips.
  *
  * Two to a row on a phone, and as many as fit at 200px from there up (board
- * 07: two columns beside the art). The cells keep the book's order: build them
- * from the entity model's `bookStats`.
+ * 07: two columns beside the art). The cells keep the stat order: build them
+ * from the entity model's `bookStats`; each group (provenance, vitals,
+ * capacity) starts a new row of the grid, or after a wider gap on a line.
  *
  * A description list, so a screen reader reads "Structure Points, 14", in the
  * order it is drawn: label first, as every chip and stat reads.
@@ -19,6 +23,8 @@ export type StatColumnCell = {
   label: string
   value: string
   hoverText?: string
+  /** Its part of the stat order: a cell that opens a new one starts its own row (or a wider gap). */
+  group?: StatGroup
 }
 
 type StatColumnProps = {
@@ -39,8 +45,13 @@ export function StatColumn({ stats, label, compact = false }: StatColumnProps) {
       className={compact ? 'su-stat-column su-stat-column--compact' : 'su-stat-column'}
       aria-label={label}
     >
-      {stats.map((stat) => (
-        <div key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
+      {stats.map((stat, index) => (
+        <div
+          key={stat.key}
+          className="su-stat-column__cell"
+          title={stat.hoverText}
+          data-group-start={opensGroup(stats, index) || undefined}
+        >
           <dt className="su-stat-column__label">{stat.label}</dt>
           <dd className="su-stat-column__value">{stat.value}</dd>
         </div>

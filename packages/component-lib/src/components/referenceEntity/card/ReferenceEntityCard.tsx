@@ -431,7 +431,7 @@ function ReferenceEntityCardInner({
     perTechLevelByLabel,
     effTechLevel,
   })
-  // E17: every chip in ONE group: the action type, the cost, the facts, the traits.
+  // E17: every chip in ONE group, in the stat order (`Chips`).
   const facets = splitFacets(cells)
   const chips: ChipSet = {
     durations: facets.stamps,

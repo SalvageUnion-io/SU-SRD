@@ -53,13 +53,16 @@ const text = (card: DiscordCard): string =>
     .join('\n')
 
 describe('discordCardParts', () => {
-  test('a chassis prints its facts label first, three chips to a line', () => {
+  test('a chassis prints its facts label first, a line to each stat group', () => {
     const parts = partsFor('chassis', 'mule')
     expect(parts.tone).toBe('mech')
     // No kicker: a chassis has no parent, and the kind is never one.
     expect(parts.head[0]).toBe('## [Mule](https://salvageunion.io/chassis/mule)')
-    expect(parts.head[1]).toBe('**TL** 1 · **SP** 12 · **EP** 4')
-    expect(parts.head).toContain('**Cargo** 16 · **Heat** 6')
+    expect(parts.head.slice(1)).toEqual([
+      '**TL** 1 · **SV** 7',
+      '**SP** 12 · **EP** 4',
+      '**SYS** 16 · **MODS** 2',
+    ])
     expect(parts.thumbnail?.url).toContain('mule')
     expect(parts.cite).toBe(
       '-# Workshop Manual · p.100 · Also in Salvage Union Starter Set (PC) · p.12'
@@ -74,10 +77,11 @@ describe('discordCardParts', () => {
     expect(parts.table?.rows.map((row) => row.key)).toEqual(['20', '11-19', '6-10', '2-5', '1'])
   })
 
-  test("a system's chips open with its action type as the book prints it, under the title", () => {
+  test("a system's chips open with TL, then its action type as the book prints it", () => {
     const head = partsFor('systems', '50-cal-machine-gun').head
     expect(head[0]).toStartWith('## [.50 Cal Machine Gun](')
-    expect(head[1]).toBe('**Turn Action** · **TL** 1 · **Slots** 2')
+    expect(head[1]).toBe('**TL** 1 · **Slots** 2 · **SV** 2')
+    expect(head[2]).toBe('**Turn Action** · **RNG** Close · **DMG** 2 SP')
   })
 
   test("an action band's chips end on its cost", () => {
@@ -199,7 +203,9 @@ describe('discordRowSummary', () => {
         slug: 'firewall',
         name: 'Firewall',
       })
-    ).toContain('-# Reaction · **RNG** Medium · `2 EP`')
+    ).toContain(
+      '-# Reaction · **RNG** Medium\n[Hacking](https://salvageunion.io/traits/hacking) · `2 EP`'
+    )
     expect(
       discordRowSummary({ schemaName: 'modules', id: 'x', slug: 'x', name: 'X', synthetic: true })
     ).toBeNull()
