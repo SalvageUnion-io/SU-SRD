@@ -265,8 +265,12 @@ describe('GuideSteps on the page', () => {
     }
     // Every anchor is unique.
     expect(ids.size).toBe(links.length)
-    // The phone's fold carries the same list.
-    expect(container.querySelectorAll('details.su-guide__toc-fold a')).toHaveLength(links.length)
+    // The phone's block carries the same list, always open under its slab: no
+    // disclosure to fold it.
+    const block = container.querySelector('nav.su-guide__toc-block')
+    expect(block?.querySelectorAll('a')).toHaveLength(links.length)
+    expect(block?.firstElementChild?.textContent).toBe('On this page')
+    expect(container.querySelector('.su-guide details, .su-guide summary')).toBeNull()
   })
 
   test('a card has no rail and no anchors', () => {

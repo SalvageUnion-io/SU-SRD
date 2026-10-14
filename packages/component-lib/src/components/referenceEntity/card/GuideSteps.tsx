@@ -73,7 +73,7 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
  * its hierarchy and its way around: a section's slab is the page's H2, every
  * section and step is an anchor, and an "On this page" rail lists them — sticky beside the whole page (the
  * introduction too: the page is `.su-entity-page--guide`'s grid) on a wide
- * screen, a folded disclosure above the steps on a phone. Its prose takes a
+ * screen, an open list under its slab above the steps on a phone. Its prose takes a
  * book measure and leading, and a run-in head's stamp the full rung.
  *
  * Read-only by design: this is the SRD's transcription of the procedure.
@@ -241,12 +241,13 @@ export function GuideSteps({
   const contents = <GuideContents groups={groups} anchors={anchors} />
   return (
     <div className="su-guide su-guide--page">
-      {/* A phone folds the contents above the steps; a wide screen sets them
-          in the rail. Only one of the two is ever displayed. */}
-      <details className="su-guide__toc-fold">
-        <summary className="su-guide__toc-summary">On this page</summary>
+      {/* A phone lists the contents above the steps, always open under their
+          slab; a wide screen sets them in the rail. Only one of the two is
+          ever displayed. */}
+      <nav className="su-guide__toc-block" aria-label="On this page">
+        <Slab variant="solid" label="On this page" />
         {contents}
-      </details>
+      </nav>
       <div className="su-guide__flow">{body}</div>
       <nav className="su-guide__rail" aria-label="On this page">
         <p className="su-guide__toc-title" aria-hidden="true">

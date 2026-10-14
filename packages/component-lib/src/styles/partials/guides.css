@@ -137,8 +137,8 @@
  * steps it holds on theirs below it. Every head is an anchor target.
  *
  * The contents ("On this page") are a sticky right sidebar on a desktop
- * (from 64rem), beside the reading column; narrower, the same list folds
- * into a disclosure above the steps, so a phone never scrolls sideways.
+ * (from 64rem), beside the reading column; narrower, the same list stands open
+ * under its slab above the steps, so a phone never scrolls sideways.
  */
 .su-guide--page .su-guide__section {
   gap: 0;
@@ -153,22 +153,10 @@
   scroll-margin-top: var(--space-24);
 }
 
-.su-guide__toc-fold {
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
+/* The phone's contents: the list, always open, under its solid slab. */
+.su-guide__toc-block {
   font-size: var(--text-sm);
   line-height: 1.4;
-}
-
-.su-guide__toc-summary {
-  cursor: pointer;
-  font-family: var(--font-cond);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps);
-  min-height: 44px;
-  padding: var(--space-12) var(--space-16);
-  text-transform: uppercase;
 }
 
 .su-guide__rail {
@@ -197,11 +185,6 @@
 
 .su-guide__toc {
   gap: var(--space-8);
-}
-
-.su-guide__toc-fold > .su-guide__toc {
-  border-top: var(--bw-hairline) solid var(--color-ink-20);
-  padding: var(--space-8) var(--space-16) var(--space-12);
 }
 
 .su-guide__toc-link {
@@ -344,7 +327,7 @@
     margin-top: var(--space-40);
   }
 
-  .su-guide--page .su-guide__toc-fold {
+  .su-guide--page .su-guide__toc-block {
     display: none;
   }
 
