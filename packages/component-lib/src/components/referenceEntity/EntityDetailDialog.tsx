@@ -13,19 +13,6 @@ type EntityDetailDialogProps = {
   children: ReactNode
 }
 
-/** Visually hidden, still announced. */
-const srOnly = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  padding: 0,
-  margin: '-1px',
-  overflow: 'hidden',
-  clipPath: 'inset(50%)',
-  whiteSpace: 'nowrap',
-  borderWidth: 0,
-} satisfies CSSProperties
-
 /** Centred in the viewport, as tall as its card, at most 72rem wide. */
 const popupStyle = {
   position: 'fixed',
@@ -110,11 +97,11 @@ export function EntityDetailDialog({
               style={closeStyle}
             >
               <X style={{ width: space[20], height: space[20] }} aria-hidden="true" />
-              <span style={srOnly}>Close</span>
+              <span className="su-sr-only">Close</span>
             </Dialog.Close>
             <div style={scrollStyle}>
-              <Dialog.Title style={srOnly}>{title}</Dialog.Title>
-              <Dialog.Description style={srOnly}>Entity display details</Dialog.Description>
+              <Dialog.Title className="su-sr-only">{title}</Dialog.Title>
+              <Dialog.Description className="su-sr-only">Entity display details</Dialog.Description>
               {children}
             </div>
           </div>

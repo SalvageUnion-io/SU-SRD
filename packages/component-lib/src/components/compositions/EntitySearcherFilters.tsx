@@ -12,7 +12,7 @@ import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { FOCUS_WITHIN } from '../atoms/interaction'
 import { FilterRow } from '../containers/FilterRow'
-import { chevronStyle, VISUALLY_HIDDEN } from './entitySearcherChrome'
+import { chevronStyle } from './entitySearcherChrome'
 import type { FacetRowConfig } from './entitySearcherTypes'
 
 /** The live text search, at the 16px floor iOS Safari needs. */
@@ -125,7 +125,7 @@ export function NarrowSubHeader({
                 <Badge shape="chip" surface="solid">
                   {activeFilters}
                 </Badge>
-                <span style={VISUALLY_HIDDEN}> active</span>
+                <span className="su-sr-only"> active</span>
               </>
             )}
             <ChevronDown aria-hidden="true" style={chevronStyle(open)} />

@@ -160,19 +160,6 @@ const PANEL = {
   padding: space[16],
 } satisfies CSSProperties
 
-/** Visually hidden, still read. */
-const SR_ONLY = {
-  borderWidth: 0,
-  clip: 'rect(0, 0, 0, 0)',
-  height: '1px',
-  margin: '-1px',
-  overflow: 'hidden',
-  padding: 0,
-  position: 'absolute',
-  whiteSpace: 'nowrap',
-  width: '1px',
-} satisfies CSSProperties
-
 const BRAND_ROW = {
   alignItems: 'center',
   display: 'flex',
@@ -244,7 +231,7 @@ export function NavDrawer({
             className={cn('su-drawer su-nav-drawer__panel', panelClassName)}
             style={PANEL}
           >
-            <Drawer.Title style={SR_ONLY}>Navigation menu</Drawer.Title>
+            <Drawer.Title className="su-sr-only">Navigation menu</Drawer.Title>
 
             {/* Brand row: lockup | Close */}
             <div style={BRAND_ROW}>
