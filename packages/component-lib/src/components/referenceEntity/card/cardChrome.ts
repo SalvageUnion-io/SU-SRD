@@ -14,6 +14,7 @@ import {
   parseContentBlockString,
 } from 'salvageunion-reference'
 import type { Foreground } from '../../../design/contrast'
+import { foregroundOn } from '../../../design/contrast'
 import { SELECTED_RING } from '../../../entity/modes/selectedRing'
 import { cn } from '../../../utils/cn'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
@@ -32,9 +33,21 @@ export const PENNANT_SHAPE = 'polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%)'
 /** What the User-made stamp and pill say when hovered (ruleset §3.9). */
 export const USER_MADE_TITLE = 'Made by a player, not from the Workshop Manual'
 
-/** The flat grey header of a damaged/destroyed card: ink half-mixed into paper —
- * the same warm material at distance. */
-export const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
+/** The greys a damaged/destroyed band dulls toward: ink mixed into paper —
+ * the same warm material at distance. A band that prints ink dulls toward the
+ * light one and a band that prints paper toward the dark one, so a dulled band
+ * keeps its foreground and its contrast (5.2:1 at worst across the palette). */
+const DULL_GREY = {
+  ink: 'color-mix(in srgb, var(--color-ink) 30%, var(--color-paper))',
+  paper: 'color-mix(in srgb, var(--color-ink) 70%, var(--color-paper))',
+} as const
+
+/** A damaged/destroyed band (owner, 2026-10-14): its own colour dulled toward
+ * grey, not replaced by it, so it still reads as the same entity. Every form
+ * (Token, Row, Tile, Card, Peek) dulls the same band the same way. */
+export function dullBand(band: string): string {
+  return `color-mix(in srgb, ${band} 50%, ${DULL_GREY[foregroundOn(band, 'paper')]})`
+}
 
 /**
  * The header's two fills (ruleset §5, board E1): a TONE header for things you
@@ -92,12 +105,18 @@ export function resolveCardColors({
   isDown: boolean
   fill: HeaderFill
 }): CardColors {
-  if (isDown) return { onBand: onTone(GREY_HEADER, 'ink'), bandColor: GREY_HEADER }
-  if (fill === 'ink') return { onBand: 'paper', bandColor: 'var(--color-ink)' }
+  if (fill === 'ink') {
+    if (!isDown) return { onBand: 'paper', bandColor: 'var(--color-ink)' }
+    const dulled = dullBand('var(--color-ink)')
+    return { onBand: onTone(dulled, 'paper'), bandColor: dulled }
+  }
   // A tone that carries neither foreground at 4.5:1 paints its deeper text
   // band instead (ruleset §3.8): crawler pink becomes the crawler band, paper text.
-  const band = tone.bgColor ?? tone.bg
-  return { onBand: onTone(band, 'paper'), bandColor: textBand(band) }
+  const band = textBand(tone.bgColor ?? tone.bg)
+  if (!isDown) return { onBand: onTone(tone.bgColor ?? tone.bg, 'paper'), bandColor: band }
+  // A band left paper dulls from paper.
+  const dulled = dullBand(band ?? 'var(--color-paper)')
+  return { onBand: onTone(dulled, 'paper'), bandColor: dulled }
 }
 
 /**

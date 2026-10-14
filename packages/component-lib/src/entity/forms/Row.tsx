@@ -104,9 +104,9 @@ export function Row({
 }: RowProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
-  const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
+  const peekAttrs = usePeekAttrs(peek ? model.ref : undefined, down)
   const ability = model.ref.schemaName === 'abilities'
   // An ability's Row wears its tier tone (E12); any other "do" entity the ink banner.
   const fill = model.kind.nature === 'do' && !ability ? 'ink' : model.tone

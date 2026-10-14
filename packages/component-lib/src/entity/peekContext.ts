@@ -16,6 +16,9 @@ export function useInsidePeek(): boolean {
  */
 export const PEEK_ATTRIBUTE = 'data-peek'
 
+/** Set on a trigger whose entity is damaged or destroyed: its Peek dulls too. */
+export const PEEK_DOWN_ATTRIBUTE = 'data-peek-down'
+
 /** A ref's address as a trigger carries it: `schema:id`. */
 function peekAddress(ref: EntityRef): string {
   return `${ref.schemaName}:${ref.id}`
@@ -31,16 +34,17 @@ export function parsePeekAddress(
   return { schemaName: address.slice(0, at), id: address.slice(at + 1) }
 }
 
-/** A Peek trigger's attributes: its address, or nothing. */
-export type PeekAttrs = { [PEEK_ATTRIBUTE]?: string }
+/** A Peek trigger's attributes: its address and whether it is down, or nothing. */
+export type PeekAttrs = { [PEEK_ATTRIBUTE]?: string; [PEEK_DOWN_ATTRIBUTE]?: '' }
 
 /**
  * The attributes that make an element a Peek trigger, or none: a synthetic ref
  * (built from embedded data) has no dataset row to show, a pattern is drawn by
- * its own page, and inside a Peek nothing peeks again.
+ * its own page, and inside a Peek nothing peeks again. A `down` trigger
+ * (damaged or destroyed) says so, and its Peek dulls as it does.
  */
-export function usePeekAttrs(ref: EntityRef | undefined): PeekAttrs {
+export function usePeekAttrs(ref: EntityRef | undefined, down = false): PeekAttrs {
   const inside = useInsidePeek()
   if (!ref || inside || ref.synthetic || ref.pattern) return {}
-  return { [PEEK_ATTRIBUTE]: peekAddress(ref) }
+  return { [PEEK_ATTRIBUTE]: peekAddress(ref), ...(down ? { [PEEK_DOWN_ATTRIBUTE]: '' } : {}) }
 }

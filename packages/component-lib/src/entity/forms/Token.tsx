@@ -96,9 +96,9 @@ export function Token({
   slots?: TokenSlots
 }) {
   const target = useLinkTarget(mode, model.ref)
-  const peek = usePeekAttrs(model.ref)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
+  const peek = usePeekAttrs(model.ref, down)
   const paint = paintFor(model.tone, { down, texture: false })
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title

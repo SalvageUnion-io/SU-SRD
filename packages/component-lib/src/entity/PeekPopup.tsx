@@ -48,6 +48,7 @@ export function PeekPopup({
   anchor,
   schemaName,
   entityId,
+  down = false,
   load,
   onDismiss,
 }: {
@@ -55,6 +56,8 @@ export function PeekPopup({
   anchor: HTMLElement
   schemaName: string
   entityId: string
+  /** The trigger is damaged or destroyed: the card dulls as it does. */
+  down?: boolean
   load: PeekLoader
   onDismiss: () => void
 }) {
@@ -107,7 +110,7 @@ export function PeekPopup({
           >
             {entity ? (
               <PeekBoundary onError={onDismiss}>
-                <PeekCard entity={entity} />
+                <PeekCard entity={entity} down={down} />
               </PeekBoundary>
             ) : (
               <Skeleton />

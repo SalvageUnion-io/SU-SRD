@@ -33,3 +33,39 @@ describe('paintFor: the name on paper', () => {
     }
   })
 })
+
+/** Damaged or destroyed dulls the band toward grey (owner, 2026-10-14). */
+describe('paintFor: a down band', () => {
+  const tones = [
+    'ink',
+    'pilot',
+    'tier-hybrid',
+    'crawler',
+    'mech',
+    'adversary',
+    'tl-1',
+    'tl-4',
+    'tl-n',
+  ]
+
+  test('is its own tone dulled, never a flat grey', () => {
+    for (const tone of tones) {
+      const up = paintFor(tone, { texture: false })
+      const down = paintFor(tone, { down: true, texture: false })
+      expect(down.background).toStartWith(`color-mix(in srgb, ${up.background} 50%`)
+    }
+  })
+
+  test('keeps the foreground and the ink stamps its band had', () => {
+    for (const tone of tones) {
+      const up = paintFor(tone, { texture: false })
+      const down = paintFor(tone, { down: true, texture: false })
+      expect({ tone, color: down.color, ink: down.ink, chip: down.nameOnPaper }).toEqual({
+        tone,
+        color: up.color,
+        ink: up.ink,
+        chip: false,
+      })
+    }
+  })
+})

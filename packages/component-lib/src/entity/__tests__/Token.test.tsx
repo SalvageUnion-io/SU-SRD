@@ -56,3 +56,21 @@ describe('Token chips', () => {
     expect(chipsOf('npcs', 'Saboteur')).toEqual(['HP6', '8 Actions'])
   })
 })
+
+describe('a damaged Token', () => {
+  const pill = (condition?: 'damaged') => {
+    const { container } = render(
+      <Entity
+        form="token"
+        entity={get('systems', 'Red Laser')}
+        instance={condition ? { condition } : undefined}
+      />
+    )
+    return container
+  }
+
+  test('tells its Peek it is down, so the Peek dulls the same way', () => {
+    expect(pill().querySelector('[data-peek]')?.hasAttribute('data-peek-down')).toBe(false)
+    expect(pill('damaged').querySelector('[data-peek]')?.hasAttribute('data-peek-down')).toBe(true)
+  })
+})
