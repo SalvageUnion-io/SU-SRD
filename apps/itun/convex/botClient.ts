@@ -8,14 +8,13 @@ import type {
   GamesResult,
   MeResult,
   MineResult,
-  RecordRollResult,
   SheetResult,
 } from 'itun-domain/botWire'
 import type { Id } from './_generated/dataModel'
 import { internalQuery } from './_generated/server'
 import { displayNameOf } from './account'
-import { gamesForUser, resolveActor, userByDiscordId } from './model/bot'
-import { internalMutation, oldestByAppId, primaryCrawlerOf } from './model/entities'
+import { gamesForUser, userByDiscordId } from './model/bot'
+import { oldestByAppId, primaryCrawlerOf } from './model/entities'
 import { getMembership } from './model/permissions'
 
 /**
@@ -57,9 +56,6 @@ import { getMembership } from './model/permissions'
  */
 const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
   unlinked: `No ${PRODUCT.name} account is signed in with this Discord account.`,
-  unbound: 'This channel is not bound to a Game.',
-  'not-a-member': 'You are not a member of the Game bound to this channel.',
-  forbidden: 'You do not have permission to do that.',
   'not-found': 'That could not be found.',
 }
 
@@ -217,46 +213,5 @@ export const sheet = internalQuery({
       ownerName: ownerId === null ? null : displayNameOf(owner, 'Crewmate'),
       body: row.body,
     }
-  },
-})
-
-/**
- * Record a roll made in Discord against the bound Game.
- *
- * It lands as a Change Log entry, so a roll made at the table and a roll made
- * in the channel are the same kind of fact and appear in the same history.
- * There was no separate "bot events" store to invent, for the same reason
- * alerts needed no separate bus.
- *
- * The failure path is the reason this returns a result instead of throwing:
- * the bot calls it *alongside* replying with the roll, and a roll by somebody
- * with no account must still roll. Not being recorded is not an error, and the
- * channel is never told — see `BotDenial`.
- */
-export const recordRoll = internalMutation({
-  args: {
-    discordId: v.string(),
-    channelId: v.string(),
-    description: v.string(),
-    result: v.any(),
-  },
-  handler: async (ctx, args): Promise<BotFailure | BotSuccess<RecordRollResult>> => {
-    const actor = await resolveActor(ctx, args.channelId, args.discordId)
-    if (!actor.ok) return fail(actor.reason)
-
-    await ctx.db.insert('changeLog', {
-      gameId: actor.value.gameId,
-      entityType: 'game',
-      entityId: actor.value.gameId,
-      ts: Date.now(),
-      kind: 'transaction',
-      field: 'roll',
-      before: null,
-      after: { description: args.description, result: args.result },
-      source: 'discord-bot',
-      actorId: actor.value.user._id,
-      state: 'applied',
-    })
-    return { ok: true, game: actor.value.game.name }
   },
 })

@@ -53,7 +53,6 @@ describe('bearerToken', () => {
 describe('opFromPath', () => {
   test('names a known op', () => {
     expect(opFromPath('/bot/sheet')).toBe('sheet')
-    expect(opFromPath('/bot/recordRoll')).toBe('recordRoll')
   })
 
   test('refuses anything else', () => {
@@ -64,7 +63,7 @@ describe('opFromPath', () => {
     expect(opFromPath('/bot/sheet/extra')).toBeNull()
     expect(opFromPath('/bot/../auth')).toBeNull()
     // The ops the bot no longer calls are gone, not merely unused.
-    for (const op of ['bind', 'unbind', 'channel', 'invite', 'inviteDelivery']) {
+    for (const op of ['bind', 'unbind', 'channel', 'invite', 'inviteDelivery', 'recordRoll']) {
       expect(opFromPath(`/bot/${op}`)).toBeNull()
     }
   })

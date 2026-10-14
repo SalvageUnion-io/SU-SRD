@@ -227,8 +227,7 @@ test.describe('signed in: what a player keeps', () => {
   /**
    * What is not kept, pinned so it is not quietly half-restored: an offline
    * reload boots the precached shell, and the player's rows do not come back,
-   * because nothing kept them. The old IndexedDB database (`itun-v1`) is gone
-   * too (`lib/legacyCache.ts`).
+   * because nothing kept them.
    */
   test.describe(() => {
     test.use({ serviceWorkers: 'allow' })
@@ -248,10 +247,6 @@ test.describe('signed in: what a player keeps', () => {
 
       await expect(page).toHaveTitle(/In the Union now/i)
       await expect(page.getByText('Not On This Device')).toHaveCount(0)
-      const databases = await page.evaluate(async () =>
-        (await indexedDB.databases()).map((d) => d.name)
-      )
-      expect(databases).not.toContain('itun-v1')
 
       await context.setOffline(false)
     })

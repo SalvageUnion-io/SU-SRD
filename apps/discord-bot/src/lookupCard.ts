@@ -98,15 +98,6 @@ export function patternOf(host: SURefEntity, patternSlug: string): SURefObjectAn
   return (getPatterns(host) ?? []).find((p) => nameToSlug(p.name) === patternSlug) ?? null
 }
 
-/**
- * The key an older message's `su:view` tab carries (`<key>|<tab>[|<page>[|i]]`),
- * or null when it is not one. Tabs are gone; pressing one redraws the card.
- */
-export function viewPayloadKey(payload: string): string | null {
-  const [key, tab] = payload.split('|')
-  return key && (tab === 'overview' || tab === 'patterns') ? key : null
-}
-
 /** The roll buttons: the entry's own table, then each table its actions roll on. */
 function rollButtons(hit: LookupHit): ButtonSpec[] {
   const parts = discordCardParts(
@@ -150,7 +141,7 @@ export function buyLink(hit: LookupHit): string | null {
 }
 
 /** The entry's one card, as the Component Embed draws it, with no controls. */
-export function entityCard(hit: LookupHit): ContainerData {
+function entityCard(hit: LookupHit): ContainerData {
   const card = discordEntryCard(hit.entity as SURefMetaEntity, hit.pattern)
   return { accent: discordAccent(card.tone), blocks: card.blocks }
 }

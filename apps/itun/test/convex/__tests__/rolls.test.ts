@@ -79,8 +79,8 @@ describe('a Dashboard roll round-trips through the log', () => {
     expect(await player.as.query(api.changeLog.rolls, { gameId })).toEqual([])
   })
 
-  // The row `botClient.recordRoll` writes, seeded directly: its own suite
-  // (`bot.test.ts`) covers how it gets there.
+  // The row the bot wrote for a Discord roll, while it logged them: such rows
+  // stay in the history and read like any other.
   test("the bot's rolls read the same way", async () => {
     const t = testConvex()
     const { gameId } = await seedTable(t)

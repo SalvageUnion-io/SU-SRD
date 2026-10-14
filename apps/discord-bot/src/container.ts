@@ -15,8 +15,8 @@
  *
  * Builders take data and return `ContainerData`. That is not only for
  * testability: a sent container has no seam to mutate, so changing one means
- * rebuilding it, and a pure builder makes "rebuild with one more line" a
- * re-invocation rather than a special case. See `rollAttribution.ts`.
+ * rebuilding it, and a pure builder makes that a re-invocation rather than a
+ * special case.
  *
  * ## Two shapes of builder
  *

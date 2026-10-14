@@ -49,7 +49,6 @@ export type FakeExecuteOptions = {
   strings?: Record<string, string | null>
   /** Values returned by `getBoolean`, keyed by option name. */
   booleans?: Record<string, boolean>
-  channelId?: string | null
   userId?: string
   displayName?: string
   /** The message a context-menu command was used on; none by default. */
@@ -81,7 +80,6 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
       getBoolean: (name: string) => booleans[name] ?? null,
     },
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
-    channelId: options.channelId === undefined ? 'chan-1' : options.channelId,
     targetMessage: options.targetMessage ?? null,
     reply: (arg: ReplyArg) => {
       replies.push(arg)
@@ -116,7 +114,6 @@ export function fakeAutocomplete(
     subcommand?: string
     subcommandGroup?: string | null
     focused?: string
-    channelId?: string | null
     userId?: string
     displayName?: string
   } = {}
@@ -130,7 +127,6 @@ export function fakeAutocomplete(
       getFocused: () => options.focused ?? '',
     },
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
-    channelId: options.channelId === undefined ? 'chan-1' : options.channelId,
     respond: (choices: { name: string; value: string }[]) => {
       responses.push(choices)
       return Promise.resolve()

@@ -5,7 +5,7 @@ import { httpAction } from './_generated/server'
  * The bot's HTTP door (ADR-030).
  *
  * The Discord bot runs as a worker with no Convex auth token, so it cannot
- * reach a normal query or mutation. It posts here instead, presenting a bearer
+ * reach a normal query. It posts here instead, presenting a bearer
  * credential, and this module forwards to the `internal.botClient.*` functions
  * — which are unreachable from any client, so this is the only way in.
  *
@@ -38,26 +38,22 @@ const QUERIES = {
   mine: internal.botClient.mine,
 } as const
 
-const MUTATIONS = {
-  recordRoll: internal.botClient.recordRoll,
-} as const
-
 export const BOT_PATH_PREFIX = '/bot/'
 
-export type BotOp = keyof typeof QUERIES | keyof typeof MUTATIONS
+export type BotOp = keyof typeof QUERIES
 
 /**
  * Every operation name, for tests and for the 404 body.
  *
  * The `readonly string[]` annotation is LOAD-BEARING — do not "improve" it to
  * `readonly BotOp[]`. Convex codegen puts this module's exports into
- * `_generated/api.d.ts`, and `BotOp` is derived from `QUERIES`/`MUTATIONS`,
+ * `_generated/api.d.ts`, and `BotOp` is derived from `QUERIES`,
  * which read `internal.botClient.*` back out of that same api type. Annotating
  * this with `BotOp` closes the loop and TypeScript collapses `QUERIES` to `any`
  * (TS7022/TS2456/TS2502), which in turn degrades every `useQuery` result in
  * `src/` to an implicit any. Widening to `string` here is what cuts it.
  */
-export const BOT_OPS: readonly string[] = [...Object.keys(QUERIES), ...Object.keys(MUTATIONS)]
+export const BOT_OPS: readonly string[] = Object.keys(QUERIES)
 
 /**
  * Compare two secrets without leaking their common prefix through timing.
@@ -122,15 +118,11 @@ export const botRoute = httpAction(async (ctx, request) => {
     return json({ error: 'malformed body' }, 400)
   }
 
-  // `runQuery`/`runMutation` validate the args against each function's own
-  // validators, so a malformed payload fails there rather than needing a
-  // second copy of every argument shape here.
+  // `runQuery` validates the args against each function's own validators, so a
+  // malformed payload fails there rather than needing a second copy of every
+  // argument shape here.
   try {
-    const result =
-      op in QUERIES
-        ? await ctx.runQuery(QUERIES[op as keyof typeof QUERIES], args as never)
-        : await ctx.runMutation(MUTATIONS[op as keyof typeof MUTATIONS], args as never)
-    return json(result, 200)
+    return json(await ctx.runQuery(QUERIES[op], args as never), 200)
   } catch (error) {
     // The message is passed through deliberately, and it is safe to: this
     // route is already behind the bot credential, so the only reader is the

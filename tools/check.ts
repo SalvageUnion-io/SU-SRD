@@ -164,8 +164,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'convex-callers',
     guards:
-      'every public Convex function has a shipped caller; api.d.ts registers the modules on disk',
-    fix: 'delete the function or make it `internal*`; for api.d.ts drift, regenerate with `bunx convex dev`',
+      'every public Convex function has a shipped caller, every internal one a caller; api.d.ts registers the modules on disk',
+    fix: 'delete the function (or make a public one `internal*`, tag a hand-run one `@operator`); for api.d.ts drift, regenerate with `bunx convex dev`',
     cmd: ['bun', 'tools/check-convex-callers.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,

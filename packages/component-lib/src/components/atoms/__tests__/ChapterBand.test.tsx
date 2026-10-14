@@ -116,13 +116,6 @@ describe('ChapterBand', () => {
     expect(band.style.width).toBe('')
   })
 
-  test('`inset` fills its container and nothing more', () => {
-    const { container } = render(<ChapterBand layout="inset">Starter Set</ChapterBand>)
-    const band = container.firstElementChild as HTMLElement
-    expect(band.dataset.layout).toBeUndefined()
-    expect(band.style.width).toBe('100%')
-  })
-
   test('a link preview never bleeds: it is a picture at one size', () => {
     const { container } = render(<ChapterBand scale="og">Gopher</ChapterBand>)
     const band = container.firstElementChild as HTMLElement

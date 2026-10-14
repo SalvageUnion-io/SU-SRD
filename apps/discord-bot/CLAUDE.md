@@ -64,11 +64,9 @@ outage rather than a permissions problem, while `/su roll` and `/su lookup`
 behave exactly the same. `src/__tests__/degradedMode.test.ts` is the guard;
 **do not let it regress** — the reference bot is what people use.
 
-**The bot reads widely and writes narrowly.** It writes only through mutations
-that already exist, and only facts already modelled on the Change Log. No
-character editing, and no `/su damage` — a Mediator writing another player's
-sheet is forbidden on every surface (ADR-030 §4); it becomes a proposal or it
-does not exist.
+**The bot only reads.** No character editing, and no `/su damage` — a Mediator
+writing another player's sheet is forbidden on every surface (ADR-030 §4); it
+becomes a proposal or it does not exist.
 
 **Maxima are derived here, not fetched** (`gameCards.ts` header,
 [ADR-006](../../docs/ARCHITECTURE.md#decisions)); Convex's `crew.vitals` derives

@@ -71,7 +71,6 @@ describe('with In the Union now unavailable', () => {
   test('/su sheet needs no channel: a DM asks the server like anywhere else', async () => {
     const { interaction, edits, deferred } = fakeExecute({
       subcommand: 'sheet',
-      channelId: null,
       strings: { entity: 'pilots:jd7k2m9p4q8r3s6t1v5w0x2y' },
     })
     await sheetCommand.execute(interaction)

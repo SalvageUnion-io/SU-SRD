@@ -17,9 +17,6 @@ function mockChatInput(table: string | null) {
   const { interaction, replies } = fakeExecute({
     subcommand: 'roll',
     strings: { table },
-    // Unbound: roll attribution is a no-op, so these assert the roll output
-    // itself, unchanged from before ITUN existed.
-    channelId: null,
   })
   return { interaction, replies }
 }

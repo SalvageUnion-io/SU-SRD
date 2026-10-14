@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { api, internal } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
 import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
@@ -9,12 +8,10 @@ import { testConvex } from '../harness'
  * The Discord bot as a Game participant.
  *
  * The bot holds no service-role key: it cannot act as anybody. These tests
- * prove it: every path
- * resolves the actor from a *linked* Discord identity that is a *member* of the
- * *bound* Game (a `channelBindings` row; nothing creates one now, so the tests
- * insert it), and every failure of that chain is reported as a machine-
- * readable reason the bot renders **ephemerally**, because a public channel is
- * the wrong place to announce who has an account.
+ * prove it: every path resolves the actor from a *linked* Discord identity and
+ * reads only what that account may read, and every refusal is reported as a
+ * machine-readable reason the bot renders **ephemerally**, because a public
+ * channel is the wrong place to announce who has an account.
  *
  * Note what is deliberately absent: there is no `linkDiscordId`. Discord is the
  * sole auth provider, so the snowflake is already in `authAccounts` and is
@@ -22,96 +19,22 @@ import { testConvex } from '../harness'
  * exercise `backfillDiscordIds`, which reads the same source.
  */
 
-async function seedBoundGame(t: Ctx) {
+async function seedGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer', 'discord-organizer')
   const player = await makeUser(t, 'Player', 'discord-player')
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
   const code = await organizer.as.mutation(api.invites.link, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
-  await bindChannel(t, gameId, 'chan-1', organizer.userId)
   return { organizer, player, gameId }
 }
 
-/** A channel bound to a Game, as a binding row already in the database is. */
-async function bindChannel(t: Ctx, gameId: Id<'games'>, channelId: string, boundBy: Id<'users'>) {
-  await t.run(async (ctx) => {
-    await ctx.db.insert('channelBindings', { gameId, channelId, boundBy, boundAt: Date.now() })
-  })
-}
-
 describe('the bot cannot act as anybody', () => {
-  test('a linked member roll is recorded, attributed to them', async () => {
-    const t = testConvex()
-    const { player, gameId } = await seedBoundGame(t)
-
-    const result = await t.mutation(internal.botClient.recordRoll, {
-      channelId: 'chan-1',
-      discordId: 'discord-player',
-      description: 'Heat Check',
-      result: { total: 14 },
-    })
-    expect(result).toMatchObject({ ok: true })
-
-    // Read the Change Log directly: a roll IS a Change Log entry, and there is
-    // no web-facing bot query to read it through.
-    const rolls = await t.run(async (ctx) =>
-      (await ctx.db.query('changeLog').collect()).filter((e) => e.field === 'roll')
-    )
-    expect(rolls).toHaveLength(1)
-    expect(rolls[0]?.actorId).toBe(player.userId)
-    expect(rolls[0]?.gameId).toBe(gameId)
-  })
-
-  test('an unlinked Discord id records nothing', async () => {
-    const t = testConvex()
-    await seedBoundGame(t)
-
-    const result = await t.mutation(internal.botClient.recordRoll, {
-      channelId: 'chan-1',
-      discordId: 'some-stranger',
-      description: 'Heat Check',
-      result: {},
-    })
-    // The bot learns which failure it was so it can explain itself privately;
-    // the channel is never told.
-    expect(result).toMatchObject({ ok: false, reason: 'unlinked' })
-  })
-
-  test('a linked NON-member records nothing', async () => {
-    const t = testConvex()
-    await seedBoundGame(t)
-    await makeUser(t, 'Outsider', 'discord-outsider')
-
-    const result = await t.mutation(internal.botClient.recordRoll, {
-      channelId: 'chan-1',
-      discordId: 'discord-outsider',
-      description: 'Heat Check',
-      result: {},
-    })
-    // Being in the Discord channel is not membership of the Game.
-    expect(result).toMatchObject({ ok: false, reason: 'not-a-member' })
-  })
-
-  test('an unbound channel records nothing', async () => {
-    const t = testConvex()
-    await seedBoundGame(t)
-
-    const result = await t.mutation(internal.botClient.recordRoll, {
-      channelId: 'chan-nowhere',
-      discordId: 'discord-player',
-      description: 'Heat Check',
-      result: {},
-    })
-    expect(result).toMatchObject({ ok: false, reason: 'unbound' })
-  })
-
   test('a member of one table cannot read another table’s sheet', async () => {
     const t = testConvex()
-    const { organizer } = await seedBoundGame(t)
+    const { organizer } = await seedGame(t)
 
-    // A second Game, bound to a second channel, that the player is not in.
+    // A second Game that the player is not in.
     const otherGame = await organizer.as.mutation(api.games.create, { name: 'Ashfall' })
-    await bindChannel(t, otherGame, 'chan-other', organizer.userId)
     const secretPilot = await t.run(
       async (ctx) =>
         await ctx.db.insert('pilots', {
@@ -137,7 +60,7 @@ describe('the bot cannot act as anybody', () => {
 describe('the Mediator’s prepared opposition stays hidden', () => {
   test('a pilot id cannot be passed as a mech, or vice versa', async () => {
     const t = testConvex()
-    const { organizer, gameId } = await seedBoundGame(t)
+    const { organizer, gameId } = await seedGame(t)
     const pilotId = await t.run(
       async (ctx) =>
         await ctx.db.insert('pilots', {
@@ -161,7 +84,7 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
 
   test('an encounterNpcs id is not readable through the sheet surface', async () => {
     const t = testConvex()
-    const { gameId } = await seedBoundGame(t)
+    const { gameId } = await seedGame(t)
     const npcId = await t.run(
       async (ctx) =>
         await ctx.db.insert('encounterNpcs', {
@@ -185,7 +108,7 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
 
   test('a malformed id is not-found rather than a throw', async () => {
     const t = testConvex()
-    await seedBoundGame(t)
+    await seedGame(t)
     const result = await t.query(internal.botClient.sheet, {
       discordId: 'discord-player',
       table: 'pilots',
@@ -200,7 +123,7 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     // encounterNpcs row lives in the same Game, so a gameId-only check would
     // now serve it as a crawler.
     const t = testConvex()
-    const { gameId } = await seedBoundGame(t)
+    const { gameId } = await seedGame(t)
     const npcId = await t.run(
       async (ctx) =>
         await ctx.db.insert('encounterNpcs', {
@@ -223,7 +146,7 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
 describe('/su sheet reaches beyond one channel', () => {
   test('your own shelved pilot opens anywhere, by row id or app id', async () => {
     const t = testConvex()
-    const { player } = await seedBoundGame(t)
+    const { player } = await seedGame(t)
     const pilotId = await t.run(
       async (ctx) =>
         await ctx.db.insert('pilots', {
@@ -247,7 +170,7 @@ describe('/su sheet reaches beyond one channel', () => {
 
   test('a published sheet opens for anybody, account or not', async () => {
     const t = testConvex()
-    const { organizer } = await seedBoundGame(t)
+    const { organizer } = await seedGame(t)
     await t.run(
       async (ctx) =>
         await ctx.db.insert('mechs', {
@@ -270,7 +193,7 @@ describe('/su sheet reaches beyond one channel', () => {
 
   test('a private stranger sheet is not-found, or unlinked without an account', async () => {
     const t = testConvex()
-    const { organizer } = await seedBoundGame(t)
+    const { organizer } = await seedGame(t)
     const mechId = await t.run(
       async (ctx) =>
         await ctx.db.insert('mechs', {
@@ -297,7 +220,7 @@ describe('/su sheet reaches beyond one channel', () => {
 
   test('mine lists what you own and the crawler of each Game you are in', async () => {
     const t = testConvex()
-    const { player, organizer, gameId } = await seedBoundGame(t)
+    const { player, organizer, gameId } = await seedGame(t)
     await t.run(async (ctx) => {
       await ctx.db.insert('pilots', {
         gameId: null,
@@ -340,7 +263,7 @@ describe('/su sheet reaches beyond one channel', () => {
 describe('the communal crawler is readable', () => {
   test('a member may open the crawler, which has no owner at all', async () => {
     const t = testConvex()
-    const { gameId } = await seedBoundGame(t)
+    const { gameId } = await seedGame(t)
     const crawlerId = await t.run(
       async (ctx) =>
         await ctx.db.insert('crawlers', {
@@ -369,7 +292,7 @@ describe('the communal crawler is readable', () => {
 
   test('a crawler belonging to another table is not-found', async () => {
     const t = testConvex()
-    const { organizer } = await seedBoundGame(t)
+    const { organizer } = await seedGame(t)
 
     // A second Game the player is NOT in: membership of one Game must not
     // open another's crawler.
@@ -396,7 +319,7 @@ describe('the communal crawler is readable', () => {
 describe('identity comes from the sign-in itself', () => {
   test('a Discord id resolves through the account row Auth.js writes', async () => {
     const t = testConvex()
-    await seedBoundGame(t)
+    await seedGame(t)
 
     // `authAccounts` holds the snowflake; nothing copies it onto `users`.
     const result = await t.query(internal.botClient.me, { discordId: 'discord-player' })
@@ -404,34 +327,10 @@ describe('identity comes from the sign-in itself', () => {
   })
 })
 
-/**
- * There is no public reader of roll history, so no "a non-member cannot read
- * them" case: there is no surface for an outsider to be refused *from*, and the
- * assertion would be vacuous rather than reassuring. Membership gating on what the bot itself can read is covered above, against
- * `botClient`, which is the path that actually runs.
- */
-describe('rolls are Game history, not a separate store', () => {
-  test('they live in the Change Log alongside everything else', async () => {
-    const t = testConvex()
-    await seedBoundGame(t)
-    await t.mutation(internal.botClient.recordRoll, {
-      channelId: 'chan-1',
-      discordId: 'discord-player',
-      description: 'Heat Check',
-      result: { total: 9 },
-    })
-
-    // A roll at the table and a roll in the channel are the same kind of fact,
-    // so there was no separate "bot events" store to invent.
-    const entries = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
-    expect(entries.some((e) => e.source === 'discord-bot' && e.field === 'roll')).toBe(true)
-  })
-})
-
 describe('the read surfaces', () => {
   test('me answers for somebody with no account at all', async () => {
     const t = testConvex()
-    await seedBoundGame(t)
+    await seedGame(t)
 
     const result = await t.query(internal.botClient.me, { discordId: 'nobody' })
     // The whole onboarding surface: there is nothing to link, so the only
@@ -441,7 +340,7 @@ describe('the read surfaces', () => {
 
   test('me lists the games the caller actually belongs to', async () => {
     const t = testConvex()
-    await seedBoundGame(t)
+    await seedGame(t)
 
     const result = await t.query(internal.botClient.me, { discordId: 'discord-player' })
     if (!result.ok) throw new Error(`me denied: ${result.reason}`)

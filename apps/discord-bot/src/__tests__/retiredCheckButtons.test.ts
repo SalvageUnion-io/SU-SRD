@@ -22,6 +22,11 @@ describe('buttons left behind by the retired /su check', () => {
     expect(parseCustomId('su:check:2d6+3')).toBeNull()
   })
 
+  test('nor do an older lookup card’s tab and pattern-picker controls', () => {
+    expect(parseCustomId('su:view:chassis::mule|1')).toBeNull()
+    expect(parseCustomId('su:peek:chassis::mule')).toBeNull()
+  })
+
   test('answer with an ephemeral notice rather than failing silently', async () => {
     const { handle, replies } = buttonInteractionHandlerFor('su:check:2d6+3')
     await handle()

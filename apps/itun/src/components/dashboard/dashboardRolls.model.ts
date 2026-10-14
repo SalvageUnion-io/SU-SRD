@@ -5,7 +5,7 @@
  * Every die the Dashboard rolls — the core roll and its Push, a Heat Check,
  * Critical Damage and Critical Injury, a roll table, Area Salvage — becomes one
  * `changeLog` row on the Game: `entityType 'game'`, `field 'roll'`,
- * `source 'dashboard'`, the shape `botClient.recordRoll` writes for Discord.
+ * `source 'dashboard'`, the shape Discord rolls were logged in.
  * `appendChangeLog` takes it from any member, and `changeLog.rolls` reads it
  * back for the Log tab, so the crew sees every roll whichever surface made it.
  *

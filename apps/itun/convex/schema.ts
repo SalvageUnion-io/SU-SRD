@@ -120,7 +120,7 @@ export const crewSlot = zodToConvex(CrewSlotSchema)
  * What a Change Log row is about: one of the player entities, or the Game.
  *
  * `'game'` names no sheet: a table-wide alert (`proposals.broadcast`), a
- * recorded Discord roll (`botClient.recordRoll`) and a Dashboard roll
+ * Discord roll the bot once logged and a Dashboard roll
  * (`appendChangeLog`, from `dashboardRolls.model.ts`) are log rows about the Game
  * itself rather than about anybody's sheet. Everything that reads a row's target must therefore handle a
  * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
@@ -648,17 +648,7 @@ export default defineSchema({
     // reading a log that grows all campaign (`source` is 'mediator-proposal').
     .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
-  /**
-   * Which Discord channel a Game is bound to (ADR-030).
-   *
-   * The bot authenticates as a **participant**, not an admin. A binding says "rolls in this channel
-   * belong to this Game", and the actor is resolved from the Discord user id
-   * against `authAccounts.providerAccountId` (`model/bot.ts#userByDiscordId`),
-   * so the bot can never act as somebody who has not linked their account.
-   *
-   * Nothing creates a binding now; rows already here still attribute rolls
-   * (`botClient.recordRoll`) and go with their Game.
-   */
+  /** Which Discord channel a Game was bound to. Read by nothing now; `invites.dropRetired` empties it. */
   channelBindings: defineTable({
     gameId: v.id('games'),
     channelId: v.string(),

@@ -273,13 +273,10 @@ export function sheetUrl(table: SheetTable, rowId: string | null | undefined): s
  * itself. A command that silently does nothing is the worst of the options.
  */
 export function denialMessage(reason: DenialReason, serverMessage?: string): string {
-  // For `forbidden` and `not-found` the SERVER knows the specifics and this
-  // module does not, so its message wins when it sends one. The reasons below
-  // are the ones where the bot adds something the server cannot — a sign-in
-  // link — so those keep their own wording.
-  if ((reason === 'forbidden' || reason === 'not-found') && serverMessage) {
-    return serverMessage
-  }
+  // For `not-found` the SERVER knows the specifics and this module does not,
+  // so its message wins when it sends one. `unlinked` keeps its own wording:
+  // the bot adds a sign-in link the server cannot.
+  if (reason === 'not-found' && serverMessage) return serverMessage
 
   switch (reason) {
     case 'unlinked':
@@ -291,12 +288,6 @@ export function denialMessage(reason: DenialReason, serverMessage?: string): str
         '',
         `${ITUN_ORIGIN}/account`,
       ].join('\n')
-    case 'unbound':
-      return '**This channel isn’t bound to a Game.**'
-    case 'not-a-member':
-      return 'You’re not a member of the Game bound to this channel.'
-    case 'forbidden':
-      return 'You don’t have permission to do that.'
     case 'not-found':
       return 'That sheet could not be found, or it isn’t yours to read.'
   }

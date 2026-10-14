@@ -28,27 +28,15 @@
  */
 
 /**
- * Why the bot could not act, when it could not — the three resolution cases.
+ * Why the bot could not act, when it could not: no ITUN account carries this
+ * Discord id (`unlinked`), or the sheet asked for is absent or not the
+ * caller's to read (`not-found`, one answer for both so neither discloses).
  *
- * Three distinct causes with one deliberate property: the *bot* learns which
- * one it was, and a *public channel* never does. Distinguishing them in chat
- * would announce who holds an account and who sits at which table, so the bot
- * renders every one of these into an **ephemeral** reply — visible only to the
- * person who asked, which leaks nothing while still explaining itself.
- *
- * Returned rather than thrown because none of the three is exceptional. Not
- * being in a Game is the ordinary condition of most people in most channels.
+ * The bot renders each into an **ephemeral** reply, visible only to the person
+ * who asked, so a public channel never learns who holds an account. Returned
+ * rather than thrown because neither is exceptional.
  */
-export type BotDenial =
-  /** No ITUN account carries this Discord id. */
-  | 'unlinked'
-  /** This channel speaks for no Game. */
-  | 'unbound'
-  /** Linked and bound, but not a member of *that* Game. */
-  | 'not-a-member'
-
-/** Every reason a bot call can be refused: `BotDenial` plus the mutation cases. */
-export type BotDenialReason = BotDenial | 'forbidden' | 'not-found'
+export type BotDenialReason = 'unlinked' | 'not-found'
 
 /** A refusal, as `botClient` sends it. */
 export type BotFailure = { ok: false; reason: BotDenialReason; message: string }
@@ -120,5 +108,3 @@ export type SheetResult = {
   ownerName: string | null
   body: EntityBody
 }
-
-export type RecordRollResult = { game: string }

@@ -48,12 +48,6 @@ export type ItunClient = {
   mineForAutocomplete(discordId: string): Promise<ItunResult<MineResult>>
   /** One sheet by row id or app id: yours, a crewmate's, or a published one. */
   sheet(discordId: string, table: SheetTable, entityId: string): Promise<ItunResult<SheetResult>>
-  recordRoll(
-    discordId: string,
-    channelId: string,
-    description: string,
-    result: unknown
-  ): Promise<ItunResult<{ game: string }>>
 }
 
 export type ItunClientConfig = {
@@ -63,13 +57,7 @@ export type ItunClientConfig = {
   botSecret: string
 }
 
-const DENIAL_REASONS: readonly string[] = [
-  'unlinked',
-  'unbound',
-  'not-a-member',
-  'forbidden',
-  'not-found',
-]
+const DENIAL_REASONS: readonly string[] = ['unlinked', 'not-found']
 
 function isDenial(value: unknown): value is { reason: DenialReason; message?: string } {
   const reason = (value as { reason?: unknown } | null)?.reason
@@ -157,7 +145,5 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
     games: (discordId) => call('games', { discordId }),
     mineForAutocomplete: (discordId) => call('mine', { discordId }, true),
     sheet: (discordId, table, entityId) => call('sheet', { discordId, table, entityId }),
-    recordRoll: (discordId, channelId, description, result) =>
-      call('recordRoll', { discordId, channelId, description, result }),
   }
 }

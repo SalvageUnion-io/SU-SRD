@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
 import {
   codegenDrift,
+  internalFunctionsIn,
+  internalReferencesIn,
   publicFunctionsIn,
   reExportsIn,
   referencesIn,
@@ -27,6 +29,36 @@ describe('publicFunctionsIn', () => {
       'const notExported = query({',
     ].join('\n')
     expect(publicFunctionsIn(source)).toEqual(['listMine', 'create', 'run'])
+  })
+})
+
+describe('internalFunctionsIn', () => {
+  test('finds internal builders and skips public ones and `@operator` one-offs', () => {
+    const source = [
+      '/** Called by a cron. */',
+      'export const sweep = internalMutation({',
+      'export const peek = internalQuery({',
+      'export const run = internalAction({',
+      'export const listMine = query({',
+      '/**',
+      ' * A one-off repair.',
+      ' *',
+      ' * @operator Run by hand.',
+      ' */',
+      'export const repair = internalMutation({',
+    ].join('\n')
+    expect(internalFunctionsIn(source)).toEqual(['sweep', 'peek', 'run'])
+  })
+})
+
+describe('internalReferencesIn', () => {
+  test('reads internal references outside comments', () => {
+    const source = [
+      "crons.hourly('sweep', { minuteUTC: 37 }, internal.photos.sweep)",
+      '// internal.games.retired is only mentioned here',
+      'const QUERIES = { me: internal.botClient.me }',
+    ].join('\n')
+    expect([...internalReferencesIn(source)].sort()).toEqual(['botClient:me', 'photos:sweep'])
   })
 })
 
@@ -127,5 +159,7 @@ test('the repository passes', async () => {
   ])
   expect(stderr).toBe('')
   expect(exitCode).toBe(0)
-  expect(stdout).toMatch(/all \d+ public functions have a caller/)
+  expect(stdout).toMatch(
+    /all \d+ public functions have a caller, all \d+ internal functions are called/
+  )
 })
