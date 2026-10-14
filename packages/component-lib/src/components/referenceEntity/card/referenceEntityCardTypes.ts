@@ -61,12 +61,6 @@ export type ReferenceEntityCardProps = {
    */
   showChassisAbility?: boolean
   /**
-   * INLINE — this card sits flush inside its host card (board E1): a flush
-   * ink band, its "//" line and body, with no frame, labels or footer. Set by
-   * the host when it lays out a chassis's abilities; not a consumer prop.
-   */
-  inline?: boolean
-  /**
    * Prose the HOST already prints, as `proseKey`s — a nested child hides any
    * paragraph that would repeat it (board E2). Threaded by the host.
    */
