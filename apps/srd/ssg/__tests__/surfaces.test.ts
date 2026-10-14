@@ -121,8 +121,9 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html.match(/class="srd-listing__group"/g)).toHaveLength(1)
     expect(html).not.toMatch(/class="srd-listing__group" aria-label=/)
     expect(html).toContain('data-view="catalog"')
-    // The rail is its inert placeholder, above the group.
-    expect(html).toContain('<div class="srd-rail" inert="">')
+    // The rail is the island's, without its actions, above the group. It is
+    // not inert: a press on it wakes the island, which plays the press back.
+    expect(html).toContain('<div class="srd-rail">')
     expect(html.indexOf('srd-rail')).toBeLessThan(html.indexOf('srd-listing__group'))
     // The skeleton takes the same group from the island's props.
     expect(html).toContain('"groups":[{"key":"all","count":')

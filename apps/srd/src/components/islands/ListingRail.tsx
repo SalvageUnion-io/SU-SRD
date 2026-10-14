@@ -69,10 +69,17 @@ type ListingRailProps = {
   view?: ListingView
   /**
    * Without actions the rail is its own placeholder: the same controls, at the
-   * same size, `inert` — what the server render and the island's skeleton set
+   * same size, `inert` — what the island's skeleton sets
    * above the grid, so the grid does not drop when the island's rail arrives.
    */
   actions?: RailActions
+  /**
+   * The server render of a listing whose island mounts on the reader's first
+   * reach (`interaction`): the controls take focus and presses, which wake the
+   * island and are played back on its rail (`runtime/interaction.ts`), so
+   * this rail is not `inert` although it has no actions of its own.
+   */
+  awaitsIsland?: boolean
   /**
    * What is filtered (the count, the tokens, Clear all): inline between the
    * search and the menus where it fits, its own line beneath on a phone.
@@ -91,6 +98,7 @@ export function ListingRail({
   facetsOpen = false,
   view,
   actions,
+  awaitsIsland = false,
   status,
 }: ListingRailProps) {
   const on = actions ?? IDLE
@@ -103,7 +111,11 @@ export function ListingRail({
   const activeFacets = filters.techLevels.size + (filters.source ? 1 : 0) + (filters.tree ? 1 : 0)
 
   return (
-    <div className="srd-rail" data-open={facetsOpen || undefined} inert={!actions || undefined}>
+    <div
+      className="srd-rail"
+      data-open={facetsOpen || undefined}
+      inert={(!actions && !awaitsIsland) || undefined}
+    >
       {hasNameFilter && (
         <SearchField
           type="search"

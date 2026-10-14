@@ -34,6 +34,27 @@ describe('Island placeholder markup', () => {
     )
   })
 
+  it('marks a hydrating island, and renders its children as their own root', () => {
+    const { markup } = renderPage(
+      <Island name="RollTableIsland" client="idle" ssr hydrate>
+        <p>Rolled {7}</p>
+      </Island>
+    )
+    expect(markup).toContain('data-hydrate=""')
+    // `renderToString` keeps the marker between the two text nodes, which the
+    // page's `renderToStaticMarkup` would drop and `hydrateRoot` would miss.
+    expect(markup).toContain('<p>Rolled <!-- -->7</p>')
+  })
+
+  it('names a page-wide trigger for an interaction island', () => {
+    const { markup } = renderPage(
+      <Island name="PeekIsland" client="interaction" trigger="[data-peek]" />
+    )
+    expect(markup).toBe(
+      '<div data-island="PeekIsland" data-client="interaction" data-island-id="i0" data-trigger="[data-peek]"></div>'
+    )
+  })
+
   it('defaults client to "load"', () => {
     const { markup } = renderPage(<Island name="OgCardIsland" />)
     expect(markup).toContain('data-client="load"')

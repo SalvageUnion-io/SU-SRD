@@ -18,9 +18,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import type { Root } from 'react-dom/client'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import type { IslandComponent } from './islandRegistry'
 
 /** The text-entry `<input>` types whose value and caret are worth carrying. */
@@ -129,17 +129,52 @@ function CarryFormState({ container, children }: CarryFormStateProps) {
   return children
 }
 
-/** Mounts `Component` into `el`, replacing its server markup in one commit. */
+/**
+ * Calls `onCommit` once the island's first commit is on the page, and after
+ * any layout-effect work queued in it (`CarryFormState`'s restore): the
+ * moment a held gesture can be played back on controls that now listen.
+ * Renders no element of its own, so it cannot change what a hydrating island
+ * has to match.
+ */
+function AfterFirstCommit({ onCommit, children }: { onCommit: () => void; children: ReactNode }) {
+  const [callback] = useState(() => onCommit)
+  useEffect(() => {
+    const timer = setTimeout(callback, 0)
+    return () => clearTimeout(timer)
+  }, [callback])
+  return children
+}
+
+export type MountOptions = {
+  /**
+   * Adopt the server markup instead of replacing it (`hydrateRoot`): for an
+   * island whose server markup is exactly its own first render from the same
+   * props, and which reads no game data (`<Island hydrate>`).
+   */
+  hydrate?: boolean
+  /** Runs once the first commit is on the page (`AfterFirstCommit`). */
+  onCommit?: () => void
+}
+
+/**
+ * Mounts `Component` into `el`: replacing its server markup in one commit, or,
+ * with `hydrate`, adopting it, so nothing on the page is drawn twice.
+ */
 export function mountIsland(
   el: HTMLElement,
   Component: IslandComponent,
-  props: Record<string, unknown>
+  props: Record<string, unknown>,
+  { hydrate = false, onCommit }: MountOptions = {}
 ): Root {
-  const root = createRoot(el)
-  root.render(
-    <CarryFormState container={el}>
+  const island = onCommit ? (
+    <AfterFirstCommit onCommit={onCommit}>
       <Component {...props} />
-    </CarryFormState>
+    </AfterFirstCommit>
+  ) : (
+    <Component {...props} />
   )
+  if (hydrate) return hydrateRoot(el, island)
+  const root = createRoot(el)
+  root.render(<CarryFormState container={el}>{island}</CarryFormState>)
   return root
 }

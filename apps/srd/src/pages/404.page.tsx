@@ -44,7 +44,7 @@ function page(): PageResult {
                   <strong>404 · Salvage operation failed.</strong> This page was broken down,
                   relocated, or never existed. Search the SRD for it, or open a chapter.
                 </p>
-                <Island name="SearchIsland" client="idle" ssr props={{ variant: 'hero' }}>
+                <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'hero' }}>
                   <HeroSearchStatic />
                 </Island>
               </div>

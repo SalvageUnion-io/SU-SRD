@@ -11,8 +11,15 @@ import {
   tlName,
   WIDE_LISTINGS,
 } from '../../lib/listingGroups'
+import {
+  PARAM_NAME,
+  PARAM_SOURCE,
+  PARAM_TECH_LEVEL,
+  PARAM_TREE,
+  PARAM_VIEW,
+} from '../../lib/listingParams'
 import type { ListingView } from '../../lib/listingView'
-import { PARAM_VIEW, TREE_LISTINGS, useListingView } from '../../lib/listingView'
+import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate, preloadGameData } from '../../lib/useGameData'
 import { AbilityTrack, trackForTree } from '../AbilityTrack'
@@ -20,13 +27,6 @@ import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { RailActions } from './ListingRail'
 import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
-
-// URL query-param keys the filter state is synced to, so a filtered view is
-// bookmarkable/shareable and survives back-navigation.
-const PARAM_TECH_LEVEL = 'tl'
-const PARAM_SOURCE = 'source'
-const PARAM_TREE = 'tree'
-const PARAM_NAME = 'q'
 
 /** The schemas whose entity IS a tech level: its name already says the level. */
 const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set(['tech-levels', 'crawler-tech-levels'])
@@ -138,9 +138,11 @@ export function prepareSchemaViewerIsland(props: Record<string, unknown>): Promi
 }
 
 /**
- * The island's listing as the server renders it, from build-time data and with
- * the rail inert: the same markup the island's first commit draws over it, so
- * the mount repaints nothing (and a crawler or a no-JS reader gets the cards).
+ * The island's listing as the server renders it, from build-time data: the
+ * same markup the island's first commit draws over it, so the mount repaints
+ * nothing (and a crawler or a no-JS reader gets the cards). The island mounts
+ * only when a reader reaches for the rail (`interaction`), so until then this
+ * is the page; the rail's controls take the press that wakes it.
  */
 export function SchemaViewerListing({
   preloadSchemas: _preloadSchemas,
@@ -149,7 +151,7 @@ export function SchemaViewerListing({
   ...props
 }: SchemaViewerIslandProps) {
   const listingView = useListingView(props.schemaId)
-  return <SchemaViewer {...props} hasArt={hasArt} listingView={listingView} inert />
+  return <SchemaViewer {...props} hasArt={hasArt} listingView={listingView} serverRender />
 }
 
 /** Rendered only behind the gate: `getModel(…).all()` throws on an unloaded schema. */
@@ -161,11 +163,11 @@ function SchemaViewer({
   trees = [],
   hasArt,
   listingView,
-  inert = false,
+  serverRender = false,
 }: Omit<SchemaViewerIslandProps, 'preloadSchemas' | 'shape'> & {
   listingView: ReturnType<typeof useListingView>
-  /** The server render: the rail is its inert placeholder until the island mounts. */
-  inert?: boolean
+  /** The server render: the rail has no actions until the island mounts. */
+  serverRender?: boolean
 }) {
   const { view, views, setView, fromUrl: viewInUrl } = listingView
   const initialData = useMemo(() => {
@@ -315,7 +317,8 @@ function SchemaViewer({
         }}
         facetsOpen={facetsOpen}
         view={view}
-        actions={inert ? undefined : railActions}
+        actions={serverRender ? undefined : railActions}
+        awaitsIsland={serverRender}
         // What is filtered, only while something is: the count, a token per
         // filter that removes it, and Clear all.
         status={

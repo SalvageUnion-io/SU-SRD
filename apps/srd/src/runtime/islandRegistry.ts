@@ -63,8 +63,6 @@ export const islandRegistry = {
   OgCardIsland: () =>
     import('../components/islands/OgCardIsland').then((m) => asIsland(m.OgCardIsland)),
   PeekIsland: () => import('../components/islands/PeekIsland').then((m) => asIsland(m.PeekIsland)),
-  WikiLinkIsland: () =>
-    import('../components/islands/WikiLinkIsland').then((m) => asIsland(m.WikiLinkIsland)),
 } satisfies Record<string, IslandLoader>
 
 /**

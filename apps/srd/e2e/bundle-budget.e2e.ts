@@ -129,13 +129,13 @@ test.describe('bundle-size budget', () => {
       expect(totals.names.some((n) => n.startsWith(name))).toBe(false)
     }
 
-    // Total JS (react-vendor + shared island framework + the small ALWAYS_CORE
-    // data chunks).
+    // Total JS on a page nobody has touched: the island entry and its runtime.
+    // Every island here waits for a reader (`interaction`), so React and the
+    // data chunks load only when one is reached for.
     //
-    // A ratchet: it fails on any growth past the measured 703,506 bytes. It is
-    // NOT an endorsement of that figure — it is the shared `src-*.js` chunk
-    // (~490 KB) plus react-vendor (~190 KB); when they shrink, lower it to match.
-    expect(totals.bytes).toBeLessThan(720_000)
+    // A ratchet: it fails on any growth past the measured ~13 KB. Something
+    // loading React or game data at page load again lands far above it.
+    expect(totals.bytes).toBeLessThan(20_000)
   })
 
   test('a chassis item page loads chassis-bundle data but not unrelated content schemas', async ({
@@ -150,9 +150,9 @@ test.describe('bundle-size budget', () => {
       expect(totals.names.some((n) => n.startsWith(name))).toBe(false)
     }
 
-    // ~2x headroom over the measured baseline (~461 KB — the most
-    // data-heavy page category, chassis + systems + modules + actions).
-    expect(totals.bytes).toBeLessThan(900_000)
+    // The same ratchet as the leaf page: a chassis page's card is static HTML,
+    // and nothing on it loads React or data until a reader reaches for it.
+    expect(totals.bytes).toBeLessThan(20_000)
   })
 
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({
@@ -165,7 +165,12 @@ test.describe('bundle-size budget', () => {
       if (response.url().endsWith('/search-index.json')) sawSearchIndex = true
     })
 
-    const search = page.getByRole('combobox', { name: /search the srd/i }).first()
+    // Served as a plain field; it becomes the combobox when reached for.
+    const name = /search the srd/i
+    const search = page
+      .getByRole('combobox', { name })
+      .or(page.getByRole('searchbox', { name }))
+      .first()
     await search.click()
     await search.fill('Mule')
     await expect(page.getByRole('listbox').getByRole('option').first()).toBeVisible({

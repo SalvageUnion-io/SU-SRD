@@ -3,10 +3,11 @@
  * its page rolls. The page module renders this inside `EntityPageFrame` in
  * place of the entity card.
  *
- * Server-only (it digests the table at build time). The island mounts the
- * same `RollTableView` live, and the server renders that view inside the
- * island's placeholder, so the bands are in the HTML for a crawler or a no-JS
- * reader and nothing moves when the island mounts. The table is the shared
+ * Server-only (it digests the table at build time). The server renders the
+ * island itself, from the same props, inside its placeholder, so the bands are
+ * in the HTML for a crawler or a no-JS reader, and the island hydrates that
+ * markup rather than drawing it again: React adopts the bands as they are and
+ * only the roll stamp becomes a button (`RollTableInstrument`'s `useLive`). The table is the shared
  * `RollTableInstrument`, as in every card and guide; the page adds only its
  * readout.
  */
@@ -18,8 +19,8 @@ import type { ColumnsTablePageData } from '../lib/columnsTablePage'
 import type { RollTablePageData } from '../lib/rollTablePage'
 import { refText } from '../lib/rollTablePage'
 import { Island } from '../runtime/Island'
-import { ColumnsTableView } from './ColumnsTableView'
-import { RollTableView } from './RollTableView'
+import { ColumnsTableIsland } from './islands/ColumnsTableIsland'
+import { RollTableIsland } from './islands/RollTableIsland'
 
 /** The roll-table page's measure (board 08b): wider than an entity's. */
 export const ROLL_TABLE_PAGE_MEASURE = '85rem'
@@ -66,8 +67,8 @@ export function columnsTablePageData(item: SURefEntity): ColumnsTablePageData | 
  */
 export function ColumnsTablePage({ data, tone }: { data: ColumnsTablePageData; tone: string }) {
   return (
-    <Island name="ColumnsTableIsland" client="idle" ssr props={{ data, tone }}>
-      <ColumnsTableView data={data} tone={tone} state={{ roll: null, history: [] }} />
+    <Island name="ColumnsTableIsland" client="idle" ssr hydrate props={{ data, tone }}>
+      <ColumnsTableIsland data={data} tone={tone} />
     </Island>
   )
 }
@@ -75,8 +76,8 @@ export function ColumnsTablePage({ data, tone }: { data: ColumnsTablePageData; t
 /** A banded d20 table's page; `tone` is the page's band colour, as above. */
 export function RollTablePage({ data, tone }: { data: RollTablePageData; tone: string }) {
   return (
-    <Island name="RollTableIsland" client="idle" ssr props={{ data, tone }}>
-      <RollTableView data={data} tone={tone} state={{ roll: null, history: [] }} />
+    <Island name="RollTableIsland" client="idle" ssr hydrate props={{ data, tone }}>
+      <RollTableIsland data={data} tone={tone} />
     </Island>
   )
 }

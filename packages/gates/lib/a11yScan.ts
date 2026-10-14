@@ -87,6 +87,9 @@ function unsettled(skeletonIsContent: boolean): string {
   if (document.readyState !== 'complete') return 'the document is still loading'
   const waiting: string[] = []
   for (const el of document.querySelectorAll('[data-island]')) {
+    // Mounts only when a reader reaches for it: until then its server markup
+    // is the page, and that is what a reader who has not touched it meets.
+    if (el.dataset.client === 'interaction') continue
     if (el.dataset.client === 'visible') {
       const box = el.getBoundingClientRect()
       const onScreen =

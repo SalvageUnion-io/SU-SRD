@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { listingViewStorageKey, PARAM_VIEW } from './listingParams'
 
 /**
  * How a listing lays its entities out: `catalog`, one flat grid of Tiles with
@@ -42,14 +43,6 @@ export function defaultListingView(schemaId: string): ListingView {
   return TREE_LISTINGS.has(schemaId) ? 'tree' : 'catalog'
 }
 
-/** A shared link's view: `?view=catalog` or `?view=tree`. */
-export const PARAM_VIEW = 'view'
-
-/** The reader's last explicit choice on a listing, kept across visits. */
-function storageKey(schemaId: string): string {
-  return `srd:listing-view:${schemaId}`
-}
-
 /** `raw` if it names one of `views`, else null. */
 function parseView(
   raw: string | null | undefined,
@@ -67,7 +60,7 @@ function readUrlView(views: readonly ListingView[]): ListingView | null {
 /** The stored choice, or null. Storage can be absent or throw (a private window). */
 function readStoredView(schemaId: string, views: readonly ListingView[]): ListingView | null {
   try {
-    return parseView(window.localStorage.getItem(storageKey(schemaId)), views)
+    return parseView(window.localStorage.getItem(listingViewStorageKey(schemaId)), views)
   } catch {
     return null
   }
@@ -75,7 +68,7 @@ function readStoredView(schemaId: string, views: readonly ListingView[]): Listin
 
 function storeView(schemaId: string, view: ListingView) {
   try {
-    window.localStorage.setItem(storageKey(schemaId), view)
+    window.localStorage.setItem(listingViewStorageKey(schemaId), view)
   } catch {
     // Not remembered past this page; the toggle still works.
   }

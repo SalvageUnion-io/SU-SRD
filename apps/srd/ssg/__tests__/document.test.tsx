@@ -152,13 +152,15 @@ describe('island props payload', () => {
     // TopNavigation's chrome islands are part of every base-shell page, so they
     // take the first ids and the page's own island follows them.
     const html = renderAbout()
-    expect(html).toContain('data-island="WikiLinkIsland" data-client="idle" data-island-id="i0"')
-    expect(html).toContain('data-island="SearchIsland" data-client="idle" data-island-id="i1"')
-    expect(html).toContain('data-island="WikiLinkIsland" data-client="idle" data-island-id="i2"')
     expect(html).toContain(
-      'data-island="MobileSearchIsland" data-client="idle" data-island-id="i3"'
+      'data-island="SearchIsland" data-client="interaction" data-island-id="i0"'
     )
-    expect(html).toContain('data-island="MobileNavIsland" data-client="idle" data-island-id="i4"')
+    expect(html).toContain(
+      'data-island="MobileSearchIsland" data-client="interaction" data-island-id="i1"'
+    )
+    expect(html).toContain(
+      'data-island="MobileNavIsland" data-client="interaction" data-island-id="i2"'
+    )
     // …and none of them carries props, so the page ships no props tag at all.
     // MobileNavIsland taking zero props is what removed 17.3 MB from the build.
     expect(html).not.toContain('data-island-props')

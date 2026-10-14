@@ -21,7 +21,6 @@ const modulePaths: Record<keyof typeof islandRegistry, string> = {
   DidYouMeanIsland: '../../components/islands/DidYouMeanIsland',
   OgCardIsland: '../../components/islands/OgCardIsland',
   PeekIsland: '../../components/islands/PeekIsland',
-  WikiLinkIsland: '../../components/islands/WikiLinkIsland',
 }
 
 describe('islandRegistry', () => {
