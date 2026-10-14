@@ -7,19 +7,18 @@
  * `<pre>` block.
  */
 
-import { ChapterBand, InlineRef, Panel, Slab } from 'component-lib'
+import { InlineRef, Panel, Slab } from 'component-lib'
 import { color, font, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
+import { DocPage } from '../components/DocPage'
 import { apiSampleChassis } from '../lib/apiSample'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import {
   ASIDE,
   BOLD,
   column,
-  DOC_PAGE,
-  docMeasure,
   ITALIC,
   inlineCode,
   PANEL_BODY,
@@ -37,7 +36,6 @@ const DESCRIPTION =
 
 const baseUrl = SITE_URL
 
-const MEASURE = docMeasure('64rem', space[32])
 const PROSE_12 = proseColumn(space[12])
 const COLUMN_24 = column(space[24])
 const COLUMN_16 = column(space[16])
@@ -230,223 +228,217 @@ function page(): PageResult {
       },
     },
     children: (
-      <div style={DOC_PAGE}>
-        <ChapterBand measure="64rem">JSON API Reference</ChapterBand>
-        <div style={MEASURE}>
-          {/* Overview */}
-          <section style={PROSE_12}>
-            <Slab as="h2" variant="solid" label="Overview" />
-            <p>
-              All game data on salvageunion.io is available as machine-readable JSON. The API is
-              static — every endpoint is a plain file served directly from the site. No
-              authentication is required.
-            </p>
-            <p>
-              CORS is fully open (<code style={CODE}>Access-Control-Allow-Origin: *</code>
-              ), so you can fetch from any origin, including browser JavaScript.
-            </p>
-            <p>
-              <strong>Base URL:</strong> <code style={CODE}>{baseUrl}</code>
-            </p>
-            <p style={ASIDE}>
-              <strong>Tip:</strong> every page on this site has its data under{' '}
-              <code style={CODE_ON_GROUND}>/schema/</code>. For example,{' '}
-              <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code> renders the HTML index,
-              and <code style={CODE_ON_GROUND}>/schema/chassis.json</code> serves the raw array. The
-              same applies to individual entities:{' '}
-              <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code> is the page,
-              and <code style={CODE_ON_GROUND}>/schema/chassis/item/{samples.slug}.json</code> its
-              data.
-            </p>
-          </section>
+      <DocPage title="JSON API Reference" measure="64rem" gap={space[32]}>
+        {/* Overview */}
+        <section style={PROSE_12}>
+          <Slab as="h2" variant="solid" label="Overview" />
+          <p>
+            All game data on salvageunion.io is available as machine-readable JSON. The API is
+            static — every endpoint is a plain file served directly from the site. No authentication
+            is required.
+          </p>
+          <p>
+            CORS is fully open (<code style={CODE}>Access-Control-Allow-Origin: *</code>
+            ), so you can fetch from any origin, including browser JavaScript.
+          </p>
+          <p>
+            <strong>Base URL:</strong> <code style={CODE}>{baseUrl}</code>
+          </p>
+          <p style={ASIDE}>
+            <strong>Tip:</strong> every page on this site has its data under{' '}
+            <code style={CODE_ON_GROUND}>/schema/</code>. For example,{' '}
+            <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code> renders the HTML index, and{' '}
+            <code style={CODE_ON_GROUND}>/schema/chassis.json</code> serves the raw array. The same
+            applies to individual entities:{' '}
+            <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code> is the page, and{' '}
+            <code style={CODE_ON_GROUND}>/schema/chassis/item/{samples.slug}.json</code> its data.
+          </p>
+        </section>
 
-          {/* Endpoints */}
-          <section style={COLUMN_24}>
-            <Slab as="h2" variant="solid" label="Endpoints" />
+        {/* Endpoints */}
+        <section style={COLUMN_24}>
+          <Slab as="h2" variant="solid" label="Endpoints" />
 
-            {/* Schema data array */}
-            <Panel soft>
-              <div style={PANEL_HEAD}>
-                <p style={METHOD}>GET</p>
-                <p style={PANEL_TITLE}>
-                  /schema/<span style={ITALIC}>{'{schemaId}'}</span>.json
-                </p>
-              </div>
-              <div style={PANEL_BODY}>
-                <p>Returns the full data array for a schema. Each element is a game entity.</p>
-                <p>
-                  <strong>Example:</strong>{' '}
-                  <InlineRef
-                    href={`${baseUrl}/schema/chassis.json`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={EXAMPLE_LINK}
+          {/* Schema data array */}
+          <Panel soft>
+            <div style={PANEL_HEAD}>
+              <p style={METHOD}>GET</p>
+              <p style={PANEL_TITLE}>
+                /schema/<span style={ITALIC}>{'{schemaId}'}</span>.json
+              </p>
+            </div>
+            <div style={PANEL_BODY}>
+              <p>Returns the full data array for a schema. Each element is a game entity.</p>
+              <p>
+                <strong>Example:</strong>{' '}
+                <InlineRef
+                  href={`${baseUrl}/schema/chassis.json`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={EXAMPLE_LINK}
+                >
+                  {baseUrl}/schema/chassis.json
+                </InlineRef>
+              </p>
+              <CodeSample>{samples.schemaArray}</CodeSample>
+            </div>
+          </Panel>
+
+          {/* JSON Schema definition */}
+          <Panel soft>
+            <div style={PANEL_HEAD}>
+              <p style={METHOD}>GET</p>
+              <p style={PANEL_TITLE}>
+                /schema/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
+              </p>
+            </div>
+            <div style={PANEL_BODY}>
+              <p>
+                Returns the JSON Schema definition for a schema, generated from the Zod validation
+                schemas used in the SRD codebase. Useful for validating data or understanding the
+                shape of entity objects.
+              </p>
+              <p>
+                <strong>Example:</strong>{' '}
+                <InlineRef
+                  href={`${baseUrl}/schema/chassis.schema.json`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={EXAMPLE_LINK}
+                >
+                  {baseUrl}/schema/chassis.schema.json
+                </InlineRef>
+              </p>
+              <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
+            </div>
+          </Panel>
+
+          {/* Individual entity */}
+          <Panel soft>
+            <div style={PANEL_HEAD}>
+              <p style={METHOD}>GET</p>
+              <p style={PANEL_TITLE}>
+                /schema/<span style={ITALIC}>{'{schemaId}'}</span>/item/
+                <span style={ITALIC}>{'{itemId}'}</span>.json
+              </p>
+            </div>
+            <div style={PANEL_BODY}>
+              <p>
+                Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated
+                versions of the entity name (e.g., <code style={CODE}>{samples.name}</code> becomes{' '}
+                <code style={CODE}>{samples.slug}</code>). Slugs match the page URLs on the
+                reference site.
+              </p>
+              <p>
+                <strong>Example:</strong>{' '}
+                <InlineRef
+                  href={`${baseUrl}/schema/chassis/item/${samples.slug}.json`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={EXAMPLE_LINK}
+                >
+                  {baseUrl}/schema/chassis/item/{samples.slug}.json
+                </InlineRef>
+              </p>
+              <CodeSample>{samples.entity}</CodeSample>
+            </div>
+          </Panel>
+        </section>
+
+        {/* Usage example */}
+        <section style={COLUMN_12}>
+          <Slab as="h2" variant="solid" label="Usage Example" />
+          <p style={PROSE}>Fetch all chassis data in browser JavaScript:</p>
+          <CodeSample roomy>{samples.fetch}</CodeSample>
+        </section>
+
+        {/* Available schemas */}
+        <section style={COLUMN_16}>
+          <Slab as="h2" variant="solid" label="Available Schemas" />
+          <p style={PROSE}>
+            The following schema IDs are available. Use them in the endpoint patterns above.
+          </p>
+
+          <Panel soft className="srd-api__schemas">
+            <table style={TABLE}>
+              <thead>
+                <tr className="srd-print-ink" style={TABLE_HEAD}>
+                  <th style={TH}>Schema ID</th>
+                  <th style={TH}>Name</th>
+                  <th className="srd-api__wide-cell" style={TH}>
+                    Description
+                  </th>
+                  <th style={TH_END}>Items</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schemas.map((schema, i) => (
+                  <tr
+                    key={schema.id}
+                    style={{
+                      ...TABLE_ROW,
+                      backgroundColor: i % 2 === 0 ? color.paper : color.wkBg,
+                    }}
                   >
-                    {baseUrl}/schema/chassis.json
-                  </InlineRef>
-                </p>
-                <CodeSample>{samples.schemaArray}</CodeSample>
-              </div>
-            </Panel>
-
-            {/* JSON Schema definition */}
-            <Panel soft>
-              <div style={PANEL_HEAD}>
-                <p style={METHOD}>GET</p>
-                <p style={PANEL_TITLE}>
-                  /schema/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
-                </p>
-              </div>
-              <div style={PANEL_BODY}>
-                <p>
-                  Returns the JSON Schema definition for a schema, generated from the Zod validation
-                  schemas used in the SRD codebase. Useful for validating data or understanding the
-                  shape of entity objects.
-                </p>
-                <p>
-                  <strong>Example:</strong>{' '}
-                  <InlineRef
-                    href={`${baseUrl}/schema/chassis.schema.json`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={EXAMPLE_LINK}
-                  >
-                    {baseUrl}/schema/chassis.schema.json
-                  </InlineRef>
-                </p>
-                <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
-              </div>
-            </Panel>
-
-            {/* Individual entity */}
-            <Panel soft>
-              <div style={PANEL_HEAD}>
-                <p style={METHOD}>GET</p>
-                <p style={PANEL_TITLE}>
-                  /schema/<span style={ITALIC}>{'{schemaId}'}</span>/item/
-                  <span style={ITALIC}>{'{itemId}'}</span>.json
-                </p>
-              </div>
-              <div style={PANEL_BODY}>
-                <p>
-                  Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated
-                  versions of the entity name (e.g., <code style={CODE}>{samples.name}</code>{' '}
-                  becomes <code style={CODE}>{samples.slug}</code>). Slugs match the page URLs on
-                  the reference site.
-                </p>
-                <p>
-                  <strong>Example:</strong>{' '}
-                  <InlineRef
-                    href={`${baseUrl}/schema/chassis/item/${samples.slug}.json`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={EXAMPLE_LINK}
-                  >
-                    {baseUrl}/schema/chassis/item/{samples.slug}.json
-                  </InlineRef>
-                </p>
-                <CodeSample>{samples.entity}</CodeSample>
-              </div>
-            </Panel>
-          </section>
-
-          {/* Usage example */}
-          <section style={COLUMN_12}>
-            <Slab as="h2" variant="solid" label="Usage Example" />
-            <p style={PROSE}>Fetch all chassis data in browser JavaScript:</p>
-            <CodeSample roomy>{samples.fetch}</CodeSample>
-          </section>
-
-          {/* Available schemas */}
-          <section style={COLUMN_16}>
-            <Slab as="h2" variant="solid" label="Available Schemas" />
-            <p style={PROSE}>
-              The following schema IDs are available. Use them in the endpoint patterns above.
-            </p>
-
-            <Panel soft className="srd-api__schemas">
-              <table style={TABLE}>
-                <thead>
-                  <tr className="srd-print-ink" style={TABLE_HEAD}>
-                    <th style={TH}>Schema ID</th>
-                    <th style={TH}>Name</th>
-                    <th className="srd-api__wide-cell" style={TH}>
-                      Description
-                    </th>
-                    <th style={TH_END}>Items</th>
+                    <td style={TD}>
+                      <InlineRef href={schemaHref(schema.id)} style={SCHEMA_ID}>
+                        {schema.id}
+                      </InlineRef>
+                    </td>
+                    <td style={TD_NAME}>{schema.displayNamePlural}</td>
+                    <td className="srd-api__wide-cell" style={TD_DESCRIPTION}>
+                      {schema.description}
+                    </td>
+                    <td style={TD_COUNT}>{schema.itemCount}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {schemas.map((schema, i) => (
-                    <tr
-                      key={schema.id}
-                      style={{
-                        ...TABLE_ROW,
-                        backgroundColor: i % 2 === 0 ? color.paper : color.wkBg,
-                      }}
-                    >
-                      <td style={TD}>
-                        <InlineRef href={schemaHref(schema.id)} style={SCHEMA_ID}>
-                          {schema.id}
-                        </InlineRef>
-                      </td>
-                      <td style={TD_NAME}>{schema.displayNamePlural}</td>
-                      <td className="srd-api__wide-cell" style={TD_DESCRIPTION}>
-                        {schema.description}
-                      </td>
-                      <td style={TD_COUNT}>{schema.itemCount}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Panel>
-          </section>
+                ))}
+              </tbody>
+            </table>
+          </Panel>
+        </section>
 
-          {/* CORS & headers */}
-          <section style={COLUMN_12}>
-            <Slab as="h2" variant="solid" label="CORS Policy" />
-            <p style={PROSE}>
-              All <code style={CODE}>/schema/</code> endpoints include the following response
-              headers:
-            </p>
-            <CodeSample roomy>{CORS_HEADERS_SAMPLE}</CodeSample>
-            <p style={PROSE}>No preflight requests are required for standard GET requests.</p>
-          </section>
+        {/* CORS & headers */}
+        <section style={COLUMN_12}>
+          <Slab as="h2" variant="solid" label="CORS Policy" />
+          <p style={PROSE}>
+            All <code style={CODE}>/schema/</code> endpoints include the following response headers:
+          </p>
+          <CodeSample roomy>{CORS_HEADERS_SAMPLE}</CodeSample>
+          <p style={PROSE}>No preflight requests are required for standard GET requests.</p>
+        </section>
 
-          {/* Licensing note */}
-          <section style={PROSE_12}>
-            <Slab as="h2" variant="solid" label="Licensing" />
-            <p>
-              Data returned by this API is published under the{' '}
-              <InlineRef
-                href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={BOLD}
-              >
-                Salvage Union Open Game Licence (OGL 1.0b)
-              </InlineRef>
-              . Salvage Union is created and published by{' '}
-              <InlineRef
-                href="https://leyline.press"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={BOLD}
-              >
-                Leyline Press
-              </InlineRef>
-              .
-            </p>
-            <p>
-              The licence covers game text and mechanics only. Entity artwork is{' '}
-              <strong>not</strong> covered — those images are used on this site with special
-              permission from Leyline Press and may not be redistributed. Republication of licensed
-              text must include the legal notices required by the Salvage Union Open Game Licence
-              1.0b.
-            </p>
-          </section>
-        </div>
-      </div>
+        {/* Licensing note */}
+        <section style={PROSE_12}>
+          <Slab as="h2" variant="solid" label="Licensing" />
+          <p>
+            Data returned by this API is published under the{' '}
+            <InlineRef
+              href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={BOLD}
+            >
+              Salvage Union Open Game Licence (OGL 1.0b)
+            </InlineRef>
+            . Salvage Union is created and published by{' '}
+            <InlineRef
+              href="https://leyline.press"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={BOLD}
+            >
+              Leyline Press
+            </InlineRef>
+            .
+          </p>
+          <p>
+            The licence covers game text and mechanics only. Entity artwork is <strong>not</strong>{' '}
+            covered — those images are used on this site with special permission from Leyline Press
+            and may not be redistributed. Republication of licensed text must include the legal
+            notices required by the Salvage Union Open Game Licence 1.0b.
+          </p>
+        </section>
+      </DocPage>
     ),
   }
 }

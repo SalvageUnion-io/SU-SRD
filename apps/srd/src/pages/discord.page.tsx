@@ -8,11 +8,12 @@
  * In the Union now commands are listed under the account they need.
  */
 
-import { buttonVariants, ChapterBand, InlineRef, Panel, Slab } from 'component-lib'
+import { buttonVariants, InlineRef, Panel, Slab } from 'component-lib'
 import { borderWidth, color, font, fontSize, space } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
+import { DocPage } from '../components/DocPage'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
 import {
@@ -27,8 +28,6 @@ import {
   BOLD,
   bulletList,
   column,
-  DOC_PAGE,
-  docMeasure,
   ITALIC,
   inlineCode,
   PANEL_BODY,
@@ -72,7 +71,6 @@ const DESCRIPTION =
 // Button recipe as a class string (buttonVariants), at the home page's CTA size.
 const installButtonClass = buttonVariants({ variant: 'primary', size: 'full' })
 
-const MEASURE = docMeasure('48rem', space[32])
 const PROSE_12 = proseColumn(space[12])
 const PROSE_16 = proseColumn(space[16])
 const COLUMN_24 = column(space[24])
@@ -218,126 +216,123 @@ function page(): PageResult {
       breadcrumbs: [CONTENTS_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/discord/` }],
     },
     children: (
-      <div style={DOC_PAGE}>
-        <ChapterBand measure="48rem">Discord Bot</ChapterBand>
-        <div style={MEASURE}>
-          {/* Overview + install */}
-          <section style={PROSE_16}>
-            <p>
-              The SURef bot brings this reference to your table&rsquo;s Discord server: roll on
-              every Salvage Union table and look up any game entity — chassis, systems, modules,
-              equipment, keywords, and more — without leaving the conversation. Results link back to
-              the full entry on this site.
-            </p>
-            <p>
-              It asks for no server permissions — it only ever replies to slash commands. Free and
-              with no configuration; rolling and lookups need no account.
-            </p>
-            <p>
-              <a
-                href={DISCORD_INSTALL_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={installButtonClass}
-              >
-                Add to your Discord server
-              </a>
-            </p>
-          </section>
+      <DocPage title="Discord Bot" measure="48rem" gap={space[32]}>
+        {/* Overview + install */}
+        <section style={PROSE_16}>
+          <p>
+            The SURef bot brings this reference to your table&rsquo;s Discord server: roll on every
+            Salvage Union table and look up any game entity — chassis, systems, modules, equipment,
+            keywords, and more — without leaving the conversation. Results link back to the full
+            entry on this site.
+          </p>
+          <p>
+            It asks for no server permissions — it only ever replies to slash commands. Free and
+            with no configuration; rolling and lookups need no account.
+          </p>
+          <p>
+            <a
+              href={DISCORD_INSTALL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={installButtonClass}
+            >
+              Add to your Discord server
+            </a>
+          </p>
+        </section>
 
-          {/* Commands: every /su subcommand, from the bot's own builder */}
-          <section style={COLUMN_24}>
-            <Slab as="h2" variant="solid" label="Commands" />
+        {/* Commands: every /su subcommand, from the bot's own builder */}
+        <section style={COLUMN_24}>
+          <Slab as="h2" variant="solid" label="Commands" />
 
-            {reference.map((command) => (
-              <Panel key={command.name} soft>
-                <div style={PANEL_HEAD}>
-                  <p style={PANEL_TITLE}>
-                    <Usage command={command} />
-                  </p>
-                </div>
-                <div style={PANEL_BODY}>
-                  {commandDetail(command.name, examples) ?? <p>{command.description}.</p>}
-                </div>
-              </Panel>
+          {reference.map((command) => (
+            <Panel key={command.name} soft>
+              <div style={PANEL_HEAD}>
+                <p style={PANEL_TITLE}>
+                  <Usage command={command} />
+                </p>
+              </div>
+              <div style={PANEL_BODY}>
+                {commandDetail(command.name, examples) ?? <p>{command.description}.</p>}
+              </div>
+            </Panel>
+          ))}
+        </section>
+
+        <section style={PROSE_12}>
+          <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />
+          <p>
+            These read your {PRODUCT.name} account and its Games. Sign in to{' '}
+            <InlineRef href={ITUN_URL} style={BOLD}>
+              {PRODUCT.name}
+            </InlineRef>{' '}
+            with the same Discord account and the bot knows you; until then each one says how.
+          </p>
+          <ul style={LIST_8}>
+            {withAccount.map((command) => (
+              <li key={command.name}>
+                <code style={CODE}>
+                  <Usage command={command} />
+                </code>{' '}
+                — {command.description}
+              </li>
             ))}
-          </section>
+          </ul>
+        </section>
 
-          <section style={PROSE_12}>
-            <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />
-            <p>
-              These read your {PRODUCT.name} account and its Games. Sign in to{' '}
-              <InlineRef href={ITUN_URL} style={BOLD}>
-                {PRODUCT.name}
-              </InlineRef>{' '}
-              with the same Discord account and the bot knows you; until then each one says how.
-            </p>
-            <ul style={LIST_8}>
-              {withAccount.map((command) => (
-                <li key={command.name}>
-                  <code style={CODE}>
-                    <Usage command={command} />
-                  </code>{' '}
-                  — {command.description}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          {/* Notes */}
-          <section style={PROSE_12}>
-            <Slab as="h2" variant="solid" label="Good to know" />
-            <ul style={LIST_8}>
-              <li>
-                Typing <code style={CODE}>/su</code> filters Discord&rsquo;s command picker to just
-                this bot — no more fishing your roll out of a pile of identically-named commands
-                from other bots.
-              </li>
-              <li>
-                The bot serves the same dataset as this site, including expansion content and the
-                community Mech Monday patterns. It updates automatically when the reference does.
-              </li>
-              <li>
-                It never reads messages — its only Discord capability is answering slash commands.
-              </li>
-            </ul>
-            <p style={ASIDE}>
-              <strong>Running a campaign?</strong> Pair the bot with{' '}
-              <InlineRef href={ITUN_URL} style={BOLD}>
-                {PRODUCT.name}
-              </InlineRef>
-              {/*
+        {/* Notes */}
+        <section style={PROSE_12}>
+          <Slab as="h2" variant="solid" label="Good to know" />
+          <ul style={LIST_8}>
+            <li>
+              Typing <code style={CODE}>/su</code> filters Discord&rsquo;s command picker to just
+              this bot — no more fishing your roll out of a pile of identically-named commands from
+              other bots.
+            </li>
+            <li>
+              The bot serves the same dataset as this site, including expansion content and the
+              community Mech Monday patterns. It updates automatically when the reference does.
+            </li>
+            <li>
+              It never reads messages — its only Discord capability is answering slash commands.
+            </li>
+          </ul>
+          <p style={ASIDE}>
+            <strong>Running a campaign?</strong> Pair the bot with{' '}
+            <InlineRef href={ITUN_URL} style={BOLD}>
+              {PRODUCT.name}
+            </InlineRef>
+            {/*
                 Signed out, ITUN is read-only; building needs an account
                 (ADR-034). Never reword this to claim building or keeping work
                 without one.
               */}
-              , the character builder &amp; Game manager: read the Starter Set with no account, and
-              sign in with Discord to build. Sheets can be shared into Discord as live public links.
-            </p>
-          </section>
-
-          {/* Attribution */}
-          <p style={ATTRIBUTION}>
-            Dice rolling powered by{' '}
-            <InlineRef
-              href="https://randsum.dev"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={BOLD}
-            >
-              Randsum.dev
-            </InlineRef>
-            .
+            , the character builder &amp; Game manager: read the Starter Set with no account, and
+            sign in with Discord to build. Sheets can be shared into Discord as live public links.
           </p>
+        </section>
 
-          {/* Legal */}
-          <p style={LEGAL}>
-            <InlineRef href="/bot/terms/">Terms of Service</InlineRef>
-            <span style={LEGAL_DOT}>·</span>
-            <InlineRef href="/bot/privacy/">Privacy Policy</InlineRef>
-          </p>
-        </div>
-      </div>
+        {/* Attribution */}
+        <p style={ATTRIBUTION}>
+          Dice rolling powered by{' '}
+          <InlineRef
+            href="https://randsum.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={BOLD}
+          >
+            Randsum.dev
+          </InlineRef>
+          .
+        </p>
+
+        {/* Legal */}
+        <p style={LEGAL}>
+          <InlineRef href="/bot/terms/">Terms of Service</InlineRef>
+          <span style={LEGAL_DOT}>·</span>
+          <InlineRef href="/bot/privacy/">Privacy Policy</InlineRef>
+        </p>
+      </DocPage>
     ),
   }
 }

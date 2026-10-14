@@ -20,17 +20,18 @@
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { ChapterBand, InlineRef, Slab } from 'component-lib'
+import { InlineRef, Slab } from 'component-lib'
 import { color, font, fontSize, radius, space, tracking, weight } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
+import { DocPage } from '../components/DocPage'
 import { HouseRules } from '../components/HouseRules'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
 import { ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
-import { BOLD, DOC_PAGE, docMeasure, PROSE } from '../lib/docPageStyles'
+import { BOLD, PROSE } from '../lib/docPageStyles'
 import { Island } from '../runtime/Island'
 
 /** Repo root, relative to this module — `apps/srd/src/pages` -> four levels up. */
@@ -47,8 +48,6 @@ const TITLE = `About${TITLE_SUFFIX}`
 const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and ${PRODUCT.name}, its character builder. Community-built tools.`
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
-
-const MEASURE = docMeasure('64rem', space[32])
 
 /** The riveted plate's padding; `.pilot-panel` (global.css) is the plate. */
 const PANEL = {
@@ -189,221 +188,218 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
     },
     children: (
       <>
-        <div style={DOC_PAGE}>
-          <ChapterBand measure="64rem">About the Salvage Union SRD</ChapterBand>
-          <div style={MEASURE}>
-            {/* Riveted scrap metal panel */}
-            <div className="pilot-panel-shadow">
-              <div className="pilot-panel" style={PANEL}>
-                {/* Top edge rivets — inset from clipped edges */}
-                <div
-                  className="rivet rivet-green"
-                  style={{ top: '16px', left: '24px', width: '13px', height: '13px' }}
-                />
-                <div
-                  className="rivet rivet-worn"
-                  style={{ top: '14px', left: '22%', width: '10px', height: '10px' }}
-                />
-                <div
-                  className="rivet"
-                  style={{
-                    top: '15px',
-                    left: '48%',
-                    width: '11px',
-                    height: '11px',
-                    transform: 'rotate(15deg)',
-                  }}
-                />
-                <div
-                  className="rivet rivet-flush"
-                  style={{ top: '13px', left: '71%', width: '14px', height: '14px' }}
-                />
-                <div
-                  className="rivet rivet-green"
-                  style={{ top: '15px', right: '24px', width: '11px', height: '11px' }}
-                />
-                {/* Left edge rivets */}
-                <div
-                  className="rivet"
-                  style={{
-                    top: '28%',
-                    left: '16px',
-                    width: '12px',
-                    height: '12px',
-                    transform: 'rotate(-8deg)',
-                  }}
-                />
-                <div className="rivet-hole" style={{ top: '55%', left: '18px' }} />
-                {/* Right edge rivets */}
-                <div
-                  className="rivet rivet-green"
-                  style={{ top: '32%', right: '18px', width: '10px', height: '10px' }}
-                />
-                <div
-                  className="rivet"
-                  style={{
-                    top: '62%',
-                    right: '16px',
-                    width: '13px',
-                    height: '13px',
-                    transform: 'rotate(5deg)',
-                  }}
-                />
-                {/* Bottom edge rivets — one missing, uneven */}
-                <div
-                  className="rivet rivet-worn"
-                  style={{ bottom: '16px', left: '28px', width: '12px', height: '12px' }}
-                />
-                <div
-                  className="rivet rivet-flush"
-                  style={{
-                    bottom: '14px',
-                    left: '28%',
-                    width: '11px',
-                    height: '11px',
-                    transform: 'rotate(-12deg)',
-                  }}
-                />
-                <div className="rivet-hole" style={{ bottom: '15px', left: '53%' }} />
-                <div
-                  className="rivet rivet-green"
-                  style={{ bottom: '14px', left: '73%', width: '13px', height: '13px' }}
-                />
-                <div
-                  className="rivet rivet-worn"
-                  style={{
-                    bottom: '16px',
-                    right: '24px',
-                    width: '10px',
-                    height: '10px',
-                    transform: 'rotate(7deg)',
-                  }}
-                />
+        <DocPage title="About the Salvage Union SRD" measure="64rem" gap={space[32]}>
+          {/* Riveted scrap metal panel */}
+          <div className="pilot-panel-shadow">
+            <div className="pilot-panel" style={PANEL}>
+              {/* Top edge rivets — inset from clipped edges */}
+              <div
+                className="rivet rivet-green"
+                style={{ top: '16px', left: '24px', width: '13px', height: '13px' }}
+              />
+              <div
+                className="rivet rivet-worn"
+                style={{ top: '14px', left: '22%', width: '10px', height: '10px' }}
+              />
+              <div
+                className="rivet"
+                style={{
+                  top: '15px',
+                  left: '48%',
+                  width: '11px',
+                  height: '11px',
+                  transform: 'rotate(15deg)',
+                }}
+              />
+              <div
+                className="rivet rivet-flush"
+                style={{ top: '13px', left: '71%', width: '14px', height: '14px' }}
+              />
+              <div
+                className="rivet rivet-green"
+                style={{ top: '15px', right: '24px', width: '11px', height: '11px' }}
+              />
+              {/* Left edge rivets */}
+              <div
+                className="rivet"
+                style={{
+                  top: '28%',
+                  left: '16px',
+                  width: '12px',
+                  height: '12px',
+                  transform: 'rotate(-8deg)',
+                }}
+              />
+              <div className="rivet-hole" style={{ top: '55%', left: '18px' }} />
+              {/* Right edge rivets */}
+              <div
+                className="rivet rivet-green"
+                style={{ top: '32%', right: '18px', width: '10px', height: '10px' }}
+              />
+              <div
+                className="rivet"
+                style={{
+                  top: '62%',
+                  right: '16px',
+                  width: '13px',
+                  height: '13px',
+                  transform: 'rotate(5deg)',
+                }}
+              />
+              {/* Bottom edge rivets — one missing, uneven */}
+              <div
+                className="rivet rivet-worn"
+                style={{ bottom: '16px', left: '28px', width: '12px', height: '12px' }}
+              />
+              <div
+                className="rivet rivet-flush"
+                style={{
+                  bottom: '14px',
+                  left: '28%',
+                  width: '11px',
+                  height: '11px',
+                  transform: 'rotate(-12deg)',
+                }}
+              />
+              <div className="rivet-hole" style={{ bottom: '15px', left: '53%' }} />
+              <div
+                className="rivet rivet-green"
+                style={{ bottom: '14px', left: '73%', width: '13px', height: '13px' }}
+              />
+              <div
+                className="rivet rivet-worn"
+                style={{
+                  bottom: '16px',
+                  right: '24px',
+                  width: '10px',
+                  height: '10px',
+                  transform: 'rotate(7deg)',
+                }}
+              />
 
-                <div style={PANEL_BODY}>
-                  {/* Inspiration text */}
-                  <div className="engraved-text" style={INSPIRATION}>
-                    <p>Inspired by the pilots of</p>
-                    <p style={INSPIRATION_NAME}>#812 Haven</p>
-                    <p>of</p>
-                    <p style={INSPIRATION_NAME}>
-                      {/* biome-ignore lint/a11y/useValidAnchor: the lightbox script preventDefaults this href and opens the <dialog> */}
-                      <a href="#" id="map-link" style={POINTER}>
-                        The Eldridge Coast
-                      </a>
-                    </p>
-                  </div>
-
-                  <hr className="metal-separator" />
-
-                  {/* Pilot names */}
-                  <div style={PILOTS}>
-                    {pilots.map((name, i) => (
-                      <Fragment key={name}>
-                        {i > 0 && (
-                          <span className="engraved-text" style={PILOT_GAP}>
-                            &ensp;&ensp;
-                          </span>
-                        )}
-                        <span className="engraved-text" style={PILOT}>
-                          {name}
-                        </span>
-                      </Fragment>
-                    ))}
-                  </div>
-
-                  <hr className="metal-separator" />
-
-                  <p className="engraved-text" style={ENGRAVED_LINE}>
-                    And union crawlers everywhere
-                  </p>
-
-                  <hr className="metal-separator" />
-
-                  {/* Friends text */}
-                  <p className="engraved-text" style={FRIENDS}>
-                    "We get by with a little help from our friends"
+              <div style={PANEL_BODY}>
+                {/* Inspiration text */}
+                <div className="engraved-text" style={INSPIRATION}>
+                  <p>Inspired by the pilots of</p>
+                  <p style={INSPIRATION_NAME}>#812 Haven</p>
+                  <p>of</p>
+                  <p style={INSPIRATION_NAME}>
+                    {/* biome-ignore lint/a11y/useValidAnchor: the lightbox script preventDefaults this href and opens the <dialog> */}
+                    <a href="#" id="map-link" style={POINTER}>
+                      The Eldridge Coast
+                    </a>
                   </p>
                 </div>
+
+                <hr className="metal-separator" />
+
+                {/* Pilot names */}
+                <div style={PILOTS}>
+                  {pilots.map((name, i) => (
+                    <Fragment key={name}>
+                      {i > 0 && (
+                        <span className="engraved-text" style={PILOT_GAP}>
+                          &ensp;&ensp;
+                        </span>
+                      )}
+                      <span className="engraved-text" style={PILOT}>
+                        {name}
+                      </span>
+                    </Fragment>
+                  ))}
+                </div>
+
+                <hr className="metal-separator" />
+
+                <p className="engraved-text" style={ENGRAVED_LINE}>
+                  And union crawlers everywhere
+                </p>
+
+                <hr className="metal-separator" />
+
+                {/* Friends text */}
+                <p className="engraved-text" style={FRIENDS}>
+                  "We get by with a little help from our friends"
+                </p>
               </div>
             </div>
-
-            {/* What is this? */}
-            <section style={PROSE}>
-              <Slab as="h2" variant="solid" label="What is this?" />
-              <p style={PARAGRAPH}>
-                This is an unofficial, community-built System Reference Document (SRD) for{' '}
-                <InlineRef
-                  href="https://leyline.press/pages/salvage-union"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={BOLD}
-                >
-                  Salvage Union
-                </InlineRef>
-                , a post-apocalyptic mech tabletop RPG published by{' '}
-                <InlineRef
-                  href="https://leyline.press"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={BOLD}
-                >
-                  Leyline Press
-                </InlineRef>
-                . It provides a searchable, browsable reference for all game content released under
-                the Salvage Union OGL.
-              </p>
-              <p style={PARAGRAPH}>
-                <InlineRef href={ITUN_URL} style={BOLD}>
-                  {PRODUCT.name}
-                </InlineRef>{' '}
-                is its character builder and game manager: build pilots, mechs, and crawlers, then
-                run them at the table with live sheets you can share. Reading needs no account: the
-                Starter Set and any sheet shared by link open signed out. Sign in with Discord to
-                build, and everything you make saves to your account.
-              </p>
-              <p style={PARAGRAPH}>Both are open source and contributions are welcome.</p>
-              <p>
-                I am not the owner or publisher of this content. Salvage Union and all associated
-                names, marks, characters, and artwork are the property of Leyline Press. Game text
-                and mechanics are used under the{' '}
-                <InlineRef
-                  href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={BOLD}
-                >
-                  Salvage Union Open Game Licence 1.0b
-                </InlineRef>
-                . Artwork is not covered by that licence and is reproduced with the special
-                permission of Leyline Press. This is an unofficial fan project, and is not
-                affiliated with Leyline Press.
-              </p>
-            </section>
-
-            {/* House rules: where the tools depart from the book. */}
-            <HouseRules />
-
-            {/* Colophon: About the Dev + Special Thanks + support | LLM Statement.
-                `ssr` per DESIGN.md's per-island table — the prose is worth indexing. */}
-            <Island
-              name="ColophonIsland"
-              client="visible"
-              ssr
-              props={{
-                aboutMarkdown: aboutJrvsMd,
-                llmMarkdown: llmStatementMd,
-                specialThanksMarkdown: specialThanksMd,
-              }}
-            >
-              <ColophonIsland
-                aboutMarkdown={aboutJrvsMd}
-                llmMarkdown={llmStatementMd}
-                specialThanksMarkdown={specialThanksMd}
-              />
-            </Island>
           </div>
-        </div>
+
+          {/* What is this? */}
+          <section style={PROSE}>
+            <Slab as="h2" variant="solid" label="What is this?" />
+            <p style={PARAGRAPH}>
+              This is an unofficial, community-built System Reference Document (SRD) for{' '}
+              <InlineRef
+                href="https://leyline.press/pages/salvage-union"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={BOLD}
+              >
+                Salvage Union
+              </InlineRef>
+              , a post-apocalyptic mech tabletop RPG published by{' '}
+              <InlineRef
+                href="https://leyline.press"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={BOLD}
+              >
+                Leyline Press
+              </InlineRef>
+              . It provides a searchable, browsable reference for all game content released under
+              the Salvage Union OGL.
+            </p>
+            <p style={PARAGRAPH}>
+              <InlineRef href={ITUN_URL} style={BOLD}>
+                {PRODUCT.name}
+              </InlineRef>{' '}
+              is its character builder and game manager: build pilots, mechs, and crawlers, then run
+              them at the table with live sheets you can share. Reading needs no account: the
+              Starter Set and any sheet shared by link open signed out. Sign in with Discord to
+              build, and everything you make saves to your account.
+            </p>
+            <p style={PARAGRAPH}>Both are open source and contributions are welcome.</p>
+            <p>
+              I am not the owner or publisher of this content. Salvage Union and all associated
+              names, marks, characters, and artwork are the property of Leyline Press. Game text and
+              mechanics are used under the{' '}
+              <InlineRef
+                href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={BOLD}
+              >
+                Salvage Union Open Game Licence 1.0b
+              </InlineRef>
+              . Artwork is not covered by that licence and is reproduced with the special permission
+              of Leyline Press. This is an unofficial fan project, and is not affiliated with
+              Leyline Press.
+            </p>
+          </section>
+
+          {/* House rules: where the tools depart from the book. */}
+          <HouseRules />
+
+          {/* Colophon: About the Dev + Special Thanks + support | LLM Statement.
+                `ssr` per DESIGN.md's per-island table — the prose is worth indexing. */}
+          <Island
+            name="ColophonIsland"
+            client="visible"
+            ssr
+            props={{
+              aboutMarkdown: aboutJrvsMd,
+              llmMarkdown: llmStatementMd,
+              specialThanksMarkdown: specialThanksMd,
+            }}
+          >
+            <ColophonIsland
+              aboutMarkdown={aboutJrvsMd}
+              llmMarkdown={llmStatementMd}
+              specialThanksMarkdown={specialThanksMd}
+            />
+          </Island>
+        </DocPage>
 
         {/* SVG filter for peeling paint text effect */}
         <svg style={HIDDEN} aria-hidden="true">

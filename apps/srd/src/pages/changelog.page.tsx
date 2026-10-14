@@ -8,16 +8,15 @@
  * fetch — only the rendered entries ship.
  */
 
-import { ChapterBand, InlineRef } from 'component-lib'
+import { InlineRef } from 'component-lib'
 import { space } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { Changelog } from '../components/Changelog'
+import { DocPage } from '../components/DocPage'
 import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
-import { BOLD, DOC_PAGE, docMeasure, PROSE } from '../lib/docPageStyles'
+import { BOLD, PROSE } from '../lib/docPageStyles'
 import { readChangelog } from '../lib/gitChangelog'
-
-const MEASURE = docMeasure('48rem', space[32])
 
 const TITLE = `Changelog${TITLE_SUFFIX}`
 const DESCRIPTION = `Changes to the salvageunion.io reference site and ${PRODUCT.name} over time.`
@@ -47,26 +46,23 @@ function page(): PageResult {
       breadcrumbs: [CONTENTS_CRUMB, { name: 'Changelog', url: `${SITE_URL}/changelog/` }],
     },
     children: (
-      <div style={DOC_PAGE}>
-        <ChapterBand measure="48rem">Changelog</ChapterBand>
-        <div style={MEASURE}>
-          <p style={PROSE}>
-            Features, fixes and speed-ups to the SRD site and {PRODUCT.name}, newest first. For full
-            commit history see the{' '}
-            <InlineRef
-              href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={BOLD}
-            >
-              GitHub repository
-            </InlineRef>
-            .
-          </p>
+      <DocPage title="Changelog" measure="48rem" gap={space[32]}>
+        <p style={PROSE}>
+          Features, fixes and speed-ups to the SRD site and {PRODUCT.name}, newest first. For full
+          commit history see the{' '}
+          <InlineRef
+            href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={BOLD}
+          >
+            GitHub repository
+          </InlineRef>
+          .
+        </p>
 
-          <Changelog entries={entries} />
-        </div>
-      </div>
+        <Changelog entries={entries} />
+      </DocPage>
     ),
   }
 }
