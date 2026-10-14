@@ -69,6 +69,27 @@ describe('CardRollTable', () => {
     expect(document.querySelectorAll('.su-roll li')).toHaveLength(5)
   })
 
+  test('nested and folded it is a Token, its buttons beside it; Table reveals the instrument', () => {
+    render(
+      <CardRollTable
+        table={coreMechanic()}
+        name="Core Mechanic"
+        size="medium"
+        framed
+        nested
+        disabled={false}
+      />
+    )
+    const line = document.querySelector('.su-roll-token')
+    expect(line?.querySelector('.su-entity-token__name')?.textContent).toContain('Core Mechanic')
+    expect(document.querySelector('.su-roll')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Show the Core Mechanic table' }))
+    expect(document.querySelector('.su-roll-token')).toBeNull()
+    expect(document.querySelectorAll('.su-roll li')).toHaveLength(5)
+    expect(screen.getByRole('button', { name: 'Hide the Core Mechanic table' })).toBeTruthy()
+  })
+
   test('a damaged host reads the table but cannot roll it', () => {
     render(
       <CardRollTable

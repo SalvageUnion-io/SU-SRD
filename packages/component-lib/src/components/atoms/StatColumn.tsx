@@ -33,7 +33,7 @@ type StatColumnProps = {
   label: string
   /**
    * The compact cells, two a line, for a narrow column beside other content
-   * (the ITUN mech sheet's hero).
+   * (the ITUN mech sheet's hero). They flow on without a row break per group.
    */
   compact?: boolean
 }

@@ -112,6 +112,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         size={size}
         disabled={!!isDown}
         framed={!onPage}
+        nested={!onPage}
         tone={tone.bgColor}
       />
     ) : null

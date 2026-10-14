@@ -7,7 +7,7 @@ import { dieForTable, rollD20 } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Button } from '../../atoms/Button'
 import { digestColumnsTable, digestRollTable } from '../../compositions/digestRollTable'
-import { RollTableInstrument } from '../../compositions/RollTableInstrument'
+import { RollControl, RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
 import type { CardSize } from '../../containers/displayMode'
 import { toastRoll } from '../../containers/toastRoll'
@@ -20,6 +20,12 @@ type ColumnsRoll = { column: string; entry: string; roll: number; value: string 
 
 /** The Table toggle: the Roll button's type and height (`.su-roll__control`). */
 const BAR_BUTTON = { flex: 'none' } satisfies CSSProperties
+
+/** The folded nested table's pill: ink, a thing you do, as an action's Token. */
+const TOKEN_PILL = {
+  backgroundColor: 'var(--color-ink)',
+  color: 'var(--color-paper)',
+} satisfies CSSProperties
 
 /** A row's text, its trait references as Mentions. */
 function TraitText({ text }: { text: string }) {
@@ -46,6 +52,11 @@ function TraitText({ text }: { text: string }) {
  * A COLUMNS table (Callsign, a d20 × d20) is the same instrument and the same
  * bar: its Roll twice button rolls both dice, the toast names the column, and
  * the grid marks the column's head and the entry's cell.
+ *
+ * NESTED in another card (`nested`), the folded table is a TOKEN (owner's
+ * call, 2026-10-14): the ink pill with its name on the cut-out, at a Token's
+ * height, its Table and Roll buttons on the line beside it
+ * (`.su-entity-token-line`). Table reveals the whole instrument in its place.
  */
 export function CardRollTable({
   table,
@@ -55,6 +66,7 @@ export function CardRollTable({
   defaultOpen = false,
   defaultRoll,
   framed = false,
+  nested = false,
   tone,
   onRollResult,
 }: {
@@ -73,6 +85,8 @@ export function CardRollTable({
    * flush in a card it is closed by the rule above its bar.
    */
   framed?: boolean
+  /** Inside another card: folded, the table is a Token with its buttons beside it. */
+  nested?: boolean
   /** The surface's tone (a CSS colour), whose band paints every other row. */
   tone?: string
   /** Called with the outcome's text (and its range key) on every roll. */
@@ -143,6 +157,30 @@ export function CardRollTable({
       )}
     </Button>
   )
+
+  if (nested && !expanded) {
+    return (
+      <div className="su-entity-token-line su-roll-token">
+        <span className="su-entity-token">
+          <span className="su-entity-token__pill" style={TOKEN_PILL}>
+            <span className="su-entity-token__notch">
+              <span className="su-entity-token__name">
+                {name}
+                <span className="su-sr-only"> (roll table)</span>
+              </span>
+            </span>
+          </span>
+        </span>
+        {actions}
+        <RollControl
+          name={name}
+          onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
+        >
+          {isColumns ? 'Roll twice:' : 'Roll the Die:'}
+        </RollControl>
+      </div>
+    )
+  }
 
   return (
     <RollTableInstrument
