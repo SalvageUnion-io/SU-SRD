@@ -1,4 +1,12 @@
-import { Button, EmptyState, Entity, EntitySurfaceProvider, Skeleton, Slab } from 'component-lib'
+import {
+  Button,
+  EmptyState,
+  Entity,
+  EntitySurfaceProvider,
+  Skeleton,
+  Slab,
+  trackForTree,
+} from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
 import {
@@ -29,7 +37,7 @@ import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate, preloadGameData } from '../../lib/useGameData'
-import { AbilityTrack, trackForTree } from '../AbilityTrack'
+import { AbilityTrack } from '../AbilityTrack'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { RailActions } from './ListingRail'

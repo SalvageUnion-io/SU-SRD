@@ -4,9 +4,6 @@ import type { SURefAbility } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { itemHref } from '../lib/entityHref'
 
-export type { TreeTrack } from 'component-lib'
-export { trackForTree } from 'component-lib'
-
 /**
  * The tree's slab names the kind, so its Rows drop the type stamp; every tree
  * is on a track, whose numeral (or "or") sits outside the banner.

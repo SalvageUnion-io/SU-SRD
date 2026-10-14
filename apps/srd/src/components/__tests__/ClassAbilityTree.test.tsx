@@ -15,6 +15,10 @@ const classNamed = (name: string): SURefClass => {
   return found
 }
 
+/** A brief card's head band: the colour its cut-out head is painted. */
+const headBand = (card: Element) =>
+  card.querySelector<HTMLElement>('.su-entity-row__head')?.style.backgroundColor
+
 describe('ClassAbilityTree headings', () => {
   test('each tree is an h2 and each Ability under it an h3', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
@@ -188,7 +192,12 @@ describe('ClassAbilityTree training brief', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const brief = screen.getByRole('complementary', { name: 'Training' })
     const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
-    expect(cards.map((card) => card.dataset.tier)).toEqual(['core', 'advanced', 'legendary'])
+    // Each head wears its tier's book hue (§3.8), the trees' own.
+    expect(cards.map((card) => headBand(card))).toEqual([
+      'var(--color-pilot)',
+      'var(--color-tier-hybrid)',
+      'var(--color-crawler-band)',
+    ])
     expect(cards.map((card) => card.querySelector('.su-entity-row__head')?.textContent)).toEqual([
       'Core1 TP',
       'Advanced2 TP',
@@ -203,7 +212,7 @@ describe('ClassAbilityTree training brief', () => {
     render(<ClassAbilityTree classEntity={classNamed('Salvager')} />)
     const brief = screen.getByRole('complementary', { name: 'Training' })
     const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
-    expect(cards.map((card) => card.dataset.tier)).toEqual(['core'])
+    expect(cards.map((card) => headBand(card))).toEqual(['var(--color-pilot)'])
     expect(cards[0]?.querySelector('.su-entity-row__head')?.textContent).toBe('Core1 TP')
     expect(cards[0]?.textContent).toContain(
       'You must have the preceding skill in a Core Ability Tree to train the next Ability.'

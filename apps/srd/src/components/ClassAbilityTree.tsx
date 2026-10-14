@@ -1,3 +1,4 @@
+import type { TreeTrack } from 'component-lib'
 import { ActivationCost, Head, Slab, Stat } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
@@ -6,7 +7,6 @@ import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/
 import { resolveClassPlan } from '../lib/classPaths'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
-import type { TreeTrack } from './AbilityTrack'
 import { AbilityTrack } from './AbilityTrack'
 import { MentionProse } from './MentionProse'
 
@@ -147,7 +147,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
       </div>
       <ul className="srd-class-brief__cards">
         {briefCards(plan).map((card) => (
-          <li key={card.label} className="srd-class-brief__card" data-tier={card.tier}>
+          <li key={card.label} className="srd-class-brief__card">
             <Head
               title={card.label}
               paint={tierPaint(card.tier)}
