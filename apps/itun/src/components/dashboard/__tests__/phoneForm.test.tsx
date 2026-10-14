@@ -679,7 +679,7 @@ describe('PhoneResolve — only the next step (D7)', () => {
   })
 
   test('over the Heat Cap: Push is disabled and the bar says why', () => {
-    const reason = 'No Push at Heat 7/8: +2 Heat would pass the Heat Cap.'
+    const reason = 'No Push at Heat 7/8: +2 Heat would pass the Heat Capacity.'
     renderResolve(
       resolveModel(
         { roll: ROLLED },

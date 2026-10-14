@@ -519,7 +519,7 @@ export function useActionsDeck({
           ? 'No pilot to spend AP'
           : heatOk
             ? undefined
-            : 'Activating would exceed the Heat Cap',
+            : 'Activating would exceed the Heat Capacity',
         onActivate: () => activate(current, selected, effCurrency, eco),
         activated,
         onRoll: () => void doRoll(current, selected),
@@ -529,7 +529,7 @@ export function useActionsDeck({
               disabled: roll === null || pushed || pushLocked,
               pushed,
               lockedReason: pushLocked
-                ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +2 Heat would pass the Heat Cap.`
+                ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +2 Heat would pass the Heat Capacity.`
                 : undefined,
               onPush: () => void doPush(current, selected),
             },

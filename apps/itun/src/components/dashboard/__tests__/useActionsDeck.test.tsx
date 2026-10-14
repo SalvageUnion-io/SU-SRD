@@ -716,7 +716,7 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     const { resolve, calls } = await rolledAt(17)
     const push = resolve().controls.push
     expect(push?.disabled).toBe(true)
-    expect(push?.lockedReason).toBe('No Push at Heat 17/18: +2 Heat would pass the Heat Cap.')
+    expect(push?.lockedReason).toBe('No Push at Heat 17/18: +2 Heat would pass the Heat Capacity.')
     await act(async () => push?.onPush())
     expect(calls).toHaveLength(0)
     expect(resolve().pushLog).toBeNull()
