@@ -6,8 +6,7 @@ import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { columnsHit, rangeHolds } from '../../../lib/columnsTablePage'
-import { recordRoll } from '../../../lib/rollTablePage'
+import { columnsAnnouncement, columnsHit, rangeHolds } from '../../../lib/columnsTablePage'
 import { ColumnsTableView } from '../../ColumnsTableView'
 import { columnsTablePageData, rollTablePageData } from '../../RollTablePage'
 import { ColumnsTableIsland } from '../ColumnsTableIsland'
@@ -50,17 +49,20 @@ describe('the columns table’s data', () => {
     )
   })
 
-  test('a new roll pushes the last onto the earlier rolls', () => {
-    const first = recordRoll({ roll: null, history: [] }, { column: 1, entry: 1 })
-    const second = recordRoll(first, { column: 20, entry: 20 })
-    expect(second.roll).toEqual({ column: 20, entry: 20 })
-    expect(second.history).toEqual([{ column: 1, entry: 1 }])
+  test('a pair of rolls reads as its toast: the entry’s die, its column, the callsign', () => {
+    expect(columnsAnnouncement(callsigns(), { column: 11, entry: 7 })).toEqual({
+      table: 'Callsign Table',
+      roll: 7,
+      range: 'column 9–12',
+      text: 'Silverback',
+    })
+    expect(columnsAnnouncement(callsigns(), { column: 11, entry: 99 })).toBeUndefined()
   })
 })
 
 describe('the columns table’s page', () => {
   test('prints every entry with its numbers on both edges, inert until mounted', () => {
-    render(<ColumnsTableView data={callsigns()} state={{ roll: null, history: [] }} />)
+    render(<ColumnsTableView data={callsigns()} roll={null} />)
     const table = screen.getByRole('table', { name: 'Callsign Table' })
     expect(within(table).getAllByRole('columnheader')).toHaveLength(7)
     expect(within(table).getByText('Sparkles')).toBeTruthy()
@@ -77,44 +79,16 @@ describe('the columns table’s page', () => {
     expect(controls[0]?.getAttribute('aria-label')).toBe('Roll twice on Callsign Table')
   })
 
-  test('the button reads the callsign in the panel and marks its cell', async () => {
+  test('the button raises the callsign as a toast and marks its cell', async () => {
     render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7)} />)
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Roll twice on Callsign Table' }))
     })
-    const panel = screen.getByRole('region', { name: 'You rolled' })
-    expect(within(panel).getByText('Silverback')).toBeTruthy()
-    expect(within(panel).getByText('Column 11')).toBeTruthy()
+    const title = await screen.findByText('Callsign Table: rolled 7 (column 9–12)')
+    const toast = title.closest('[data-sonner-toast]')
+    expect(toast?.querySelector('[data-description]')?.textContent).toBe('Silverback')
     const cell = screen.getByRole('cell', { name: 'Silverback' })
     expect(cell.getAttribute('aria-current')).toBe('true')
-  })
-
-  test('a second roll moves the first into the earlier rolls, read by its callsign', async () => {
-    const { container } = render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7, 1, 1)} />)
-    const roll = screen.getByRole('button', { name: 'Roll twice on Callsign Table' })
-    expect(container.querySelector('.srd-roll__earlier-list')).toBeNull()
-    await act(async () => {
-      fireEvent.click(roll)
-    })
-    await act(async () => {
-      fireEvent.click(roll)
-    })
-    const earlier = container.querySelector<HTMLElement>('.srd-roll__earlier-list')
-    if (!earlier) throw new Error('no earlier rolls')
-    const items = within(earlier).getAllByRole('listitem')
-    expect(items).toHaveLength(1)
-    expect(items[0]?.textContent).toContain('7')
-    expect(items[0]?.textContent).toContain('Silverback')
-  })
-
-  test('an earlier roll that lands on no entry reads "No entry"', () => {
-    const { container } = render(
-      <ColumnsTableView
-        data={callsigns()}
-        state={{ roll: { column: 11, entry: 7 }, history: [{ column: 11, entry: 99 }] }}
-      />
-    )
-    const earlier = container.querySelector<HTMLElement>('.srd-roll__earlier-list')
-    expect(earlier?.textContent).toContain('No entry')
+    expect(screen.queryByRole('region', { name: 'You rolled' })).toBeNull()
   })
 })

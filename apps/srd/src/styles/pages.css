@@ -655,17 +655,10 @@
 }
 
 /*
- * The roll-table page (`RollTableView`, board 08b). The "You rolled" panel
- * comes first in the source, so a phone reads the result above the table;
- * from `lg` the table takes the left and the panel the right.
+ * The roll-table page (`RollTableView`, board 08b): the table's prose, the
+ * table, then the Randsum credit. A roll's result is a toast, not a panel.
  */
 .srd-roll {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24);
-}
-
-.srd-roll__main {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
@@ -679,199 +672,16 @@
   max-width: 68ch;
 }
 
-.srd-roll__panel {
-  background-color: var(--color-paper);
-  border: var(--bw-entity) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.srd-roll__panel-head {
-  align-items: center;
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-10);
-  justify-content: space-between;
-  letter-spacing: var(--tracking-caps-snug);
-  padding: var(--space-8) var(--space-14);
-  text-transform: uppercase;
-}
-
-.srd-roll__panel-title {
-  font-size: inherit;
-  margin: 0;
-}
-
-.srd-roll__panel-name {
-  color: var(--color-paper-85);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.srd-roll__result {
-  display: flex;
-  flex-direction: column;
-}
-
-.srd-roll__prompt,
-.srd-roll__text {
-  font-size: var(--text-lg);
-  line-height: 1.5;
-  margin: 0;
-  padding: var(--space-14);
-}
-
-.srd-roll__text {
-  padding-top: 0;
-}
-
-.srd-roll__readout {
-  align-items: center;
-  display: flex;
-  gap: var(--space-16);
-  padding: var(--space-16) var(--space-14) var(--space-14);
-}
-
-.srd-roll__number {
-  border: var(--bw-entity) solid var(--color-ink);
-  flex: none;
-  font-family: var(--font-cond);
-  font-size: var(--text-chapter);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-  line-height: 0.95;
-  min-width: 6rem;
-  padding: var(--space-4) var(--space-12) var(--space-8);
-  text-align: center;
-}
-
-.srd-roll__outcome {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  min-width: 0;
-}
-
-.srd-roll__lands {
-  align-self: flex-start;
-  border: var(--bw-hairline) solid var(--color-ink);
-  display: inline-flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-}
-
-.srd-roll__lands-label {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  padding: var(--space-2) var(--space-6);
-  text-transform: uppercase;
-}
-
-.srd-roll__lands-range {
-  padding: var(--space-2) var(--space-8);
-}
-
-.srd-roll__outcome-title {
-  font-family: var(--font-cond);
-  font-size: var(--text-display-lg);
-  font-weight: var(--font-weight-extrabold);
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-/* At the main column's foot, under the table: the Randsum credit, very small. */
+/* At the column's foot, under the table: the Randsum credit, very small. */
 .srd-roll__credit {
   color: var(--color-wk-muted);
   font-size: var(--text-badge);
   margin: 0;
 }
 
-.srd-roll__earlier {
-  border-top: var(--bw-hairline) solid var(--color-ink-20);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-10) var(--space-14) var(--space-12);
-}
-
-.srd-roll__earlier-title {
-  color: var(--color-ink-2);
-  font-family: var(--font-cond);
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-snug);
-  margin: 0;
-  text-transform: uppercase;
-}
-
-.srd-roll__earlier-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.srd-roll__earlier-row {
-  align-items: center;
-  border-top: var(--bw-hairline) solid var(--color-ink-12);
-  display: flex;
-  gap: var(--space-10);
-  min-height: 32px;
-}
-
-.srd-roll__earlier-n {
-  border: var(--bw-chrome) solid var(--color-ink);
-  flex: none;
-  font-family: var(--font-cond);
-  font-size: var(--text-base);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-  text-align: center;
-  width: 2.25rem;
-}
-
-.srd-roll__earlier-outcome {
-  font-family: var(--font-cond);
-  font-size: var(--text-lede);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-}
-
 @media (min-width: 64rem) {
   .srd-roll {
-    align-items: flex-start;
-    flex-direction: row-reverse;
-    gap: var(--space-32);
-  }
-
-  .srd-roll__main {
-    flex: 1 1 0;
     gap: var(--space-12);
-  }
-
-  .srd-roll__panel {
-    flex: 0 0 23rem;
-    position: sticky;
-    top: var(--space-16);
-  }
-
-  /* The result and the earlier rolls set tighter too, so the panel still
-     ends above the fold once a long outcome and five earlier rolls fill it. */
-  .srd-roll__text {
-    font-size: var(--text-base);
-    line-height: 1.45;
-  }
-
-  .srd-roll__earlier-row {
-    min-height: 28px;
   }
 
   /* Wide screens set the note tighter, so a table reads on one screen. */
@@ -882,22 +692,10 @@
 
   /*
    * A wordy page (`rollTableDensity`) sets tighter so it ends above the fold:
-   * `compact` sets the note smaller across a wider measure and narrows the
-   * panel, so the bands get the width. The bands' own setting is the
-   * instrument's (`RollTableInstrument`'s `density`, component-lib's index.css).
+   * `compact` sets the note smaller across a wider measure. The bands' own
+   * setting is the instrument's (`RollTableInstrument`'s `density`,
+   * component-lib's index.css).
    */
-  .srd-roll:is([data-density='compact'], [data-density='dense']) {
-    gap: var(--space-24);
-  }
-
-  .srd-roll[data-density='compact'] .srd-roll__panel {
-    flex-basis: 20rem;
-  }
-
-  .srd-roll[data-density='dense'] .srd-roll__panel {
-    flex-basis: 18rem;
-  }
-
   .srd-roll:is([data-density='compact'], [data-density='dense']) .srd-roll__description {
     font-size: var(--text-sm);
     line-height: 1.45;

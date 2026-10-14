@@ -51,7 +51,7 @@ export function ReferenceEntityIsland({
         <Suspense fallback={null}>
           <DropStaticFallback />
           <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />
-          {/* Where a roll on the card's tables lands (`ReferenceSurface`). */}
+          {/* Where a roll on the card's tables lands (`toastRoll`). */}
           <Toaster />
         </Suspense>
       </GameDataGate>

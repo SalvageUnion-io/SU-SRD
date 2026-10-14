@@ -161,6 +161,8 @@ export { Skeleton } from './components/containers/Skeleton'
 export type { StatItem } from './components/containers/statsBarTypes'
 // UI primitives
 export { Toaster, toast } from './components/containers/Toaster'
+export type { AnnouncedRoll } from './components/containers/toastRoll'
+export { toastRoll } from './components/containers/toastRoll'
 export { Content } from './components/referenceEntity/Content'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
@@ -220,7 +222,7 @@ export * as tokens from './design/tokens'
 // how refs resolve, texture and the user-made treatment once.
 export { Entity } from './entity/Entity'
 export { EntitySurfaceProvider } from './entity/EntitySurface'
-export type { AnnouncedRoll, EntitySurfaceValue } from './entity/entitySurfaceContext'
+export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
 // MENTION and PEEK (E4, E16): an entity named in prose, and the page's one
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.

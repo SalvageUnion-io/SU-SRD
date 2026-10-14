@@ -18,8 +18,8 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  *   same place. No host draws a second Roll button beside it.
  *   The bar is an ink HEAD; with nothing of the host's in it (a page's
  *   bands) it labels the columns, d20 over the ranges and Result over the text.
- * - The READOUT slot under the bar (`readout`): a card's ink strip. The page
- *   adds its own "You rolled" panel beside the instrument instead.
+ * - No readout: every roll's result is a toast (`toastRoll`), raised by the
+ *   host; the table only marks where the roll landed.
  * - The BANDS: banded d20 rows in the SURFACE TONE (`tone`, the colour of the
  *   page or guide the table sits on): paper, then the tone's band
  *   (`rollBandColor`), in turn; a surface with no tone bands in cream. The
@@ -84,8 +84,6 @@ export type RollTableInstrumentProps = {
   hint?: ReactNode
   /** The host's controls, before the roll at the bar's far end. */
   actions?: ReactNode
-  /** Under the bar, above the bands: the host's result readout. */
-  readout?: ReactNode
   /** Whether the bands show (a card folds them behind its Table toggle). */
   open?: boolean
   /** `box`: its own ink frame (a page, a guide step); `rule`: flush in a card. */
@@ -115,7 +113,6 @@ export function RollTableInstrument({
   title,
   hint,
   actions,
-  readout,
   open = true,
   frame = 'box',
   density,
@@ -159,7 +156,6 @@ export function RollTableInstrument({
           {roll}
         </div>
       )}
-      {readout}
       {open &&
         (table.kind === 'bands' ? (
           <Bands name={name} table={table} />

@@ -6,6 +6,7 @@
  * helper (ADR-006), not a data read.
  */
 
+import type { AnnouncedRoll } from 'component-lib'
 import type { EntityRef, SURefObjectTable } from 'salvageunion-reference'
 import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-reference'
 
@@ -102,9 +103,6 @@ export function rollTableDensity(rows: RollTableRow[], description: string[]): R
   return splitRows(rows) || chars + note >= COMPACT_CHARS ? 'compact' : 'roomy'
 }
 
-/** How many earlier rolls the panel keeps. */
-const EARLIER_ROLLS = 5
-
 /** A range key as the book sets it: "11-19" → "11–19" (an en dash). */
 export function rangeLabel(key: string): string {
   return key.replace('-', '–')
@@ -125,27 +123,18 @@ export function rowForRoll(
 }
 
 /**
- * What a roll reads as in the list of earlier rolls: the row's own label, else
- * "Roll N" (most tables label no rows), and "No effect" only when the table has
- * no row for the roll.
+ * A roll as its toast reads it (`toastRoll`): the die, the range it lands on,
+ * then the outcome's name and text. A roll with no row (a "dramatic" table
+ * prints only its 20) lands on no range and reads "No effect".
  */
-export function outcomeLabel(table: SURefObjectTable, rows: RollTableRow[], roll: number): string {
-  const row = rowForRoll(table, rows, roll)
-  return row ? (row.label ?? `Roll ${roll}`) : NO_EFFECT
-}
-
-export type RollState<T = number> = {
-  /** The roll the table reads, or `null` before the first one. */
-  roll: T | null
-  /** Earlier rolls, newest first. */
-  history: T[]
-}
-
-/** Record a new roll: the previous one moves to the top of the earlier rolls. */
-export function recordRoll<T>(state: RollState<T>, roll: T): RollState<T> {
+export function rollAnnouncement(data: RollTablePageData, roll: number): AnnouncedRoll {
+  const row = rowForRoll(data.table, data.rows, roll)
+  if (!row) return { table: data.name, roll, text: NO_EFFECT }
   return {
+    table: data.name,
     roll,
-    history:
-      state.roll === null ? state.history : [state.roll, ...state.history].slice(0, EARLIER_ROLLS),
+    range: rangeLabel(row.key),
+    ...(row.label ? { label: row.label } : {}),
+    text: plainText(row.value),
   }
 }
