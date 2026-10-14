@@ -68,7 +68,6 @@ import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
-import { chassisArt } from '../../lib/photos/defaultArt'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
@@ -309,8 +308,8 @@ export function MechSheet({
           <PhotoBeside
             photo={
               <EntityPhoto
+                // No stock-art fallback: the chassis art is the Chassis card's.
                 photo={mech.photo}
-                fallback={chassisArt(mech.chassisRef)}
                 name={mech.name}
                 onChange={
                   readOnly

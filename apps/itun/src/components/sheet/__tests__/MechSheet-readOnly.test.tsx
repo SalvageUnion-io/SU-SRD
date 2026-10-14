@@ -204,5 +204,9 @@ describe('MechSheet — the Chassis card', () => {
     const strip = card?.querySelector('dl[aria-label="Chassis stats"]')
     expect(strip?.getAttribute('data-compact')).toBe('true')
     expect(card?.querySelector('ul[aria-label="Chassis ability"] li')).not.toBeNull()
+    // The stock art is the card's, small and fixed; with no photo of its own
+    // the hero shows no picture.
+    expect(card?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
+    expect(hero?.querySelector('img')).toBeNull()
   })
 })

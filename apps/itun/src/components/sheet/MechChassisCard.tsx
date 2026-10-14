@@ -4,27 +4,21 @@
  * 2026-10-14: the hero is the photo and what the player wrote; the chassis is
  * "a separate card … smaller, isolated and contained").
  *
- * Three things, in reading order: the chassis's name (picker-backed — swapping
+ * The stock chassis art sits small at its left and never changes (the
+ * player's photo is the hero's alone). Beside it, in reading order: the chassis's name (picker-backed — swapping
  * it is destructive and keeps its own confirm step), the Chassis Stats as
  * compact cells (`StatColumn compact`), and the chassis ability as a Token
  * that Peeks its card ("all references = peek tokens"; spending its EP is the
  * Dashboard's, ADR-021).
  */
 
-import { Entity, Field, SheetSectionCard, StatColumn, tokens } from 'component-lib'
+import { Entity, Field, SheetSectionCard, StatColumn } from 'component-lib'
 import type { Mech } from 'itun-domain/schemas/mech'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { chassisArt } from '../../lib/photos/defaultArt'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
-
-const STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-  minWidth: 0,
-} satisfies CSSProperties
 
 type MechChassisCardProps = {
   mech: Mech
@@ -47,6 +41,7 @@ export function MechChassisCard({
   surface = 'frame',
 }: MechChassisCardProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const art = chassisArt(mech.chassisRef)
 
   /** Confirmed chassis swap — destructive: clears the installed loadout. */
   function changeChassis(chassisRef: string) {
@@ -55,7 +50,8 @@ export function MechChassisCard({
 
   return (
     <SheetSectionCard title="Chassis" surface={surface}>
-      <div style={STACK}>
+      <div className="su-sheet-mech-chassis">
+        {art && <img className="su-sheet-mech-chassis-art" src={art.url} alt={art.alt} />}
         <Field
           label="Chassis"
           value={chassisName}
