@@ -9,7 +9,7 @@ export default {
 
 /**
  * Where every page of both tools ends. Real data: each
- * book page's foot is its chapter tone and the citation
+ * book page's foot is its chapter tone and the kind and printings
  * `resolveEntityPageMeta` gives the SRD's page for it. The links are each
  * tool's own; the mark is the apps' public asset, which the catalog also
  * serves.
@@ -36,7 +36,7 @@ function footFor(
 ): FooterFoot | undefined {
   if (!entity) return undefined
   const meta = resolveEntityPageMeta(entity)
-  return { tone, page: meta.page, citation: meta.citation, measure: '75rem' }
+  return { tone, kind: meta.typeLabel, printings: meta.printings, measure: '75rem' }
 }
 
 /** The SRD's home, listings, guides and own pages: the licence row alone, in the Union bar's ink. */
@@ -45,7 +45,7 @@ export const Site = () => <Footer links={SRD_LINKS} poweredBySalvageUrl={MARK} /
 /** Every ITUN page: the same licence row and the same pages, on the SRD. */
 export const Itun = () => <Footer links={ITUN_LINKS} poweredBySalvageUrl={MARK} />
 
-/** A Mech Workshop page (board 07): the Gopher's citation in the mech band, over the licence row. */
+/** A Mech Workshop page (board 07): the Gopher's kind and printings in the mech band, over the licence row. */
 export const Mech = () => (
   <Footer
     links={SRD_LINKS}

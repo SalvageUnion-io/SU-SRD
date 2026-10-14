@@ -14,8 +14,11 @@ const LINKS = [
 
 const GOPHER: FooterFoot = {
   tone: 'mech',
-  page: 112,
-  citation: 'Workshop Manual · also in Salvage Union Starter Set (PC) · p.26',
+  kind: 'Chassis',
+  printings: [
+    { book: 'Workshop Manual', page: 112 },
+    { book: 'Salvage Union Starter Set (PC)', page: 26 },
+  ],
   measure: '75rem',
 }
 
@@ -103,15 +106,20 @@ describe('Footer', () => {
     expect(container.querySelector('.su-chapter-foot__start')?.textContent).not.toMatch(/^p\.\d/)
   })
 
-  test('a book page cites itself in its chapter’s band, above the licence row', () => {
+  test('a book page stamps its kind and cites itself in its chapter’s band, above the licence row', () => {
     const { container } = render(
       <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={GOPHER} />
     )
     const bands = Array.from(container.querySelectorAll<HTMLElement>('.su-chapter-foot'))
     expect(bands).toHaveLength(2)
     expect(bands[0]?.style.backgroundColor).not.toBe(bands[1]?.style.backgroundColor)
-    expect(within(bands[0] as HTMLElement).getByText('p.112')).toBeTruthy()
-    expect(within(bands[0] as HTMLElement).getByText(GOPHER.citation as string)).toBeTruthy()
+    const cite = within(bands[0] as HTMLElement)
+    expect(cite.getByText('Chassis')).toBeTruthy()
+    // Each printing a stat cell, the book naming the page: "Workshop Manual, p.112".
+    const printed = bands[0]?.querySelector('dl[aria-label="Printed in"]')
+    expect(printed?.textContent).toBe(
+      'Workshop Manualp.112Also in Salvage Union Starter Set (PC)p.26'
+    )
     expect(bands[1]?.querySelector('.su-footer__legal')).not.toBeNull()
     for (const band of bands) {
       const row = band.querySelector<HTMLElement>('.su-chapter-foot__row')

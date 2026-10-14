@@ -20,15 +20,17 @@ const STACK = { display: 'flex', flexDirection: 'column', gap: space[24] } satis
 function citation(entity: Parameters<typeof resolveEntityPageMeta>[0] | undefined) {
   const meta = entity ? resolveEntityPageMeta(entity) : undefined
   return {
-    start: meta?.page != null ? `p.${meta.page}` : undefined,
-    end: meta?.citation,
+    start: meta?.typeLabel,
+    end: meta?.printings
+      .map(({ book, page }) => (page != null ? `${book} · p.${page}` : book))
+      .join(', '),
   }
 }
 
 /**
  * The band across the foot of a Workshop Manual page: the chapter's colour and
- * ink speckle again, under an ink rule, carrying the citation — the page
- * number large at its start, the book (and any reprint) at its end. An SRD
+ * ink speckle again, under an ink rule, carrying the citation — the kind at
+ * its start, the book and page (and any reprint) at its end. An SRD
  * entity page closes on it (board 07), above the site footer's ink licence
  * row. Real citations, from `resolveEntityPageMeta`.
  */

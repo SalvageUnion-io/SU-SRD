@@ -78,7 +78,16 @@ export type EntityCite = {
   page?: number
   /** The book, then any reprints: "Workshop Manual · also in …". */
   citation?: string
+  /**
+   * The same printings one by one, the book first, then each reprint: a book
+   * by its printed name (and booklet) and the page it is on. A page's foot
+   * band draws each as its own cell.
+   */
+  printings: EntityPrinting[]
 }
+
+/** One printing of an entity: "Workshop Manual" on p.174. */
+export type EntityPrinting = { book: string; page?: number }
 
 /** A player's copy of an entity. No form draws one. */
 export type EntityInstance = {

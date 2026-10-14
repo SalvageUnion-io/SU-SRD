@@ -60,6 +60,49 @@
   text-decoration-thickness: 2px;
 }
 
+/* A book page's cite band: the kind stamp at the start, the printings at the
+ * end as the head band's compact stat cells (`.su-chapter-band[data-aside='notch']
+ * .su-stat-column*` in entity-page.css), one height (32px) across the row, so
+ * the foot reads as the head does. The page sits in the framed box, which
+ * widens to `p.174` rather than clipping it. */
+.su-footer__cite .su-chapter-foot__row {
+  align-items: center;
+}
+
+.su-footer__kind {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: 32px;
+  padding-inline: var(--space-8);
+}
+
+.su-footer__cite .su-stat-column {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+}
+
+.su-footer__cite .su-stat-column__cell {
+  min-height: 32px;
+}
+
+.su-footer__cite .su-stat-column__value {
+  font-size: var(--text-readout);
+  min-width: 36px;
+  padding-inline: var(--space-6);
+  width: auto;
+}
+
+.su-footer__cite .su-stat-column__value:empty {
+  display: none;
+}
+
+.su-footer__cite .su-stat-column__label {
+  font-size: var(--text-badge);
+  padding: 0 var(--space-8);
+}
+
 /* Thumb first (ruleset §4.6): 44px targets under a coarse pointer. */
 @media (pointer: coarse) {
   .su-footer__link {

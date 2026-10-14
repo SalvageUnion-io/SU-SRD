@@ -10,11 +10,11 @@ import { Speckle } from './Speckle'
  * ChapterFoot — the band across the foot of a Workshop Manual page (ruleset,
  * "The source": "The foot band carries the citation (page and section)"). The
  * same chapter colour and ink speckle as the `ChapterBand` at the page's head,
- * an ink rule along its top, and a row of two ends: `start` (the page number,
- * set large) and `end` (the book and section, or the site's own links).
+ * an ink rule along its top, and a row of two ends: `start` (the entity's
+ * kind, or the licence) and `end` (the book and page, or the site's own links).
  *
- * The SRD wears it twice: an entity page closes on its citation (board 07,
- * "p.112 · Workshop Manual") in its chapter's colour, and the
+ * The SRD wears it twice: an entity page closes on its kind and citation
+ * (`Footer`: "CHASSIS … p.112 | WORKSHOP MANUAL") in its chapter's colour, and the
  * site footer's licence row closes every page on the Union bar's ink.
  *
  * A foot band carries TEXT, so its colours are the ones text reads on (ruleset
@@ -35,7 +35,7 @@ const FOOT_BAND: Record<ChapterTone, { background: string; text: string }> = {
 }
 
 export type ChapterFootProps = {
-  /** The page number (or the copyright line), at the row's start. */
+  /** The entity's kind (or the licence), at the row's start. */
   start?: ReactNode
   /** The book and section (or the site links), at the row's end. */
   end?: ReactNode

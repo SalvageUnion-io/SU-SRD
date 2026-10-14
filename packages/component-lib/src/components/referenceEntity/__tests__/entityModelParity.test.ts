@@ -100,7 +100,7 @@ function pageMetaOf(model: EntityModel) {
   const onBand = model.kind.type === 'Ability'
   const cost = onBand && model.cost ? costCell(model.cost) : undefined
   return {
-    // The kind, for the title's screen-reader text (never a stamp, E9).
+    // The kind: the title's screen-reader text and the foot band's chip.
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     // The band's stats: every book stat, a chassis's too.
@@ -115,8 +115,7 @@ function pageMetaOf(model: EntityModel) {
     ...(cost
       ? { cost: { value: cost.value ?? cost.label, currency: cost.value ? cost.label : '' } }
       : {}),
-    page: model.cite.page,
-    citation: model.cite.citation,
+    printings: model.cite.printings,
   }
 }
 
