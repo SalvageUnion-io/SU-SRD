@@ -270,7 +270,7 @@ function UnionFoot({
       <Speckle grain="paper" />
       <div style={LOCKUP}>
         <img src={markSrc} alt="" width={56} height={56} />
-        <span style={WORDMARK}>{reference ? PRODUCT.wordmark : PRODUCT.shortName}</span>
+        <span style={WORDMARK}>{reference ? PRODUCT.wordmark : PRODUCT.name}</span>
       </div>
       <span style={ADDRESS}>{address}</span>
     </div>
@@ -300,7 +300,7 @@ export function OgCard({
   const reference = REFERENCE_KINDS.has(props.kind)
   const title = ogCardTitle(props)
   const printed = ogCardPrintedTitle(props)
-  const kicker = props.kind === 'private' ? PRODUCT.shortName : props.kicker
+  const kicker = props.kind === 'private' ? PRODUCT.name : props.kicker
   const byline = bylineOf(props)
 
   const end =

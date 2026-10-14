@@ -5,14 +5,20 @@
  * name cannot drift between screens again.
  *
  * - `name` — the character builder & game manager, in copy and titles.
- * - `shortName` — its short form, fine in copy where space is tight.
+ * - `shortName` — its short form, for the home-screen label and the link
+ *   preview's foot, where space is tight.
+ * - `descriptor` — what it is, said plainly: under the name wherever the name
+ *   is introduced (the front door, the link preview, the manifest).
+ * - `tagline` — the old name's banner line, kept as the legacy tagline.
  * - `wordmark` — the site's own name, as the reference OG card draws it.
  *
  * Dependency-free on purpose: the Discord bot Worker imports it through the
  * `component-lib/product` subpath without pulling in React.
  */
 export const PRODUCT = {
-  name: 'In the Union now',
-  shortName: 'ITUN',
+  name: 'The Cantina',
+  shortName: 'Cantina',
+  descriptor: 'The Salvage Union Character Builder',
+  tagline: 'You’re in the Union, now!',
   wordmark: 'salvageunion.io',
 } as const

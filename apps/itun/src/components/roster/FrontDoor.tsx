@@ -4,7 +4,8 @@
  * Signed out, ITUN is read-only (ADR-034 as amended): there is nothing of the
  * visitor's to list, so `/` is the front door instead —
  *
- *  - the **product-name chapter band** (`PRODUCT.name`), with what ITUN is, the sign-in,
+ *  - the **product-name chapter band** (`PRODUCT.name`) in the cantina tone,
+ *    under `PRODUCT.descriptor` and the legacy tagline, with what it is, the sign-in,
  *    a way into a Starter Set sheet, and the one line about invite links (a
  *    Game is joined from a link, never a typed code);
  *  - **Start here**, the onboarding the SRD's home shows too (`StartHere`):
@@ -47,7 +48,9 @@ const COLUMN = {
   width: '100%',
 } satisfies CSSProperties
 
+/** Paper: the cantina band carries paper text (ChapterBand's colour map). */
 const KICKER = {
+  color: tokens.color.paper,
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.caption,
   fontWeight: tokens.weight.bold,
@@ -162,10 +165,11 @@ export function FrontDoor() {
   return (
     <main style={PAGE}>
       <ChapterBand
+        tone="cantina"
         measure={MEASURE}
         eyebrow={
           <span style={KICKER}>
-            {PRODUCT.shortName} · Beta · Your crew, from the Workshop Manual
+            {PRODUCT.descriptor} · {PRODUCT.tagline}
           </span>
         }
       >

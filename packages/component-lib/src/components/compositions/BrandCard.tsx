@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react'
+import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
+import type { ChapterTone } from '../atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { Speckle } from '../atoms/Speckle'
 import { OG_CARD_HEIGHT, OG_CARD_WIDTH } from './ogCardText'
@@ -26,6 +28,14 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH } from './ogCardText'
 export type BrandCardProps = {
   /** The line across the top, set in caps. */
   kicker: string
+  /**
+   * The two lines notched in ink, for a product of the site rather than the
+   * site itself (The Cantina's own preview). Without it the card says
+   * "SALVAGE UNION.io".
+   */
+  title?: readonly [string, string]
+  /** The band's colour. The site's card wears rules-blue; The Cantina's its own. */
+  tone?: ChapterTone
 }
 
 /** The frame: twice the entity card's 3px, as `OgCard`'s. */
@@ -35,7 +45,6 @@ const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
 const FOOT_TONES = ['rules', 'pilot', 'mech', 'crawler', 'denizen'] as const
 
 const CARD = {
-  backgroundColor: CHAPTER_BAND_COLOR.rules,
   borderColor: color.ink,
   borderStyle: 'solid',
   borderWidth: FRAME_WIDTH,
@@ -108,17 +117,29 @@ const FOOT = {
   flex: '0 0 28px',
 } satisfies CSSProperties
 
-export function BrandCard({ kicker }: BrandCardProps) {
+export function BrandCard({ kicker, title, tone = 'rules' }: BrandCardProps) {
+  const band = CHAPTER_BAND_COLOR[tone]
+  const kickerColor = foregroundOn(band, 'ink') === 'ink' ? color.ink : color.paper
   return (
-    <div data-brand-card="" style={CARD}>
+    <div data-brand-card="" style={{ ...CARD, backgroundColor: band }}>
       <Speckle grain="ink" />
       <div style={BODY}>
-        <p style={KICKER}>{kicker}</p>
+        <p style={{ ...KICKER, color: kickerColor }}>{kicker}</p>
         <div style={NOTCH}>
           <p style={TITLE}>
-            Salvage
-            <br />
-            Union<span style={TLD}>.io</span>
+            {title ? (
+              <>
+                {title[0]}
+                <br />
+                {title[1]}
+              </>
+            ) : (
+              <>
+                Salvage
+                <br />
+                Union<span style={TLD}>.io</span>
+              </>
+            )}
           </p>
         </div>
       </div>

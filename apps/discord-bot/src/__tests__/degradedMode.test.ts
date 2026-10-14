@@ -19,7 +19,7 @@ import { fakeExecute } from './fakeInteraction'
  * the unconfigured client, which makes no request at all.
  */
 
-describe('with In the Union now unavailable', () => {
+describe('with The Cantina unavailable', () => {
   test('rolling is untouched — no defer, no edit, just the reply', async () => {
     const { interaction, replies, deferred, edits } = fakeExecute({
       subcommand: 'roll',
@@ -65,7 +65,7 @@ describe('with In the Union now unavailable', () => {
     expect(deferred.ephemeral).toBe(true)
     expect(followUps).toHaveLength(0)
     expect(edits).toHaveLength(1)
-    expect(edits[0]?.content).toContain('In the Union now')
+    expect(edits[0]?.content).toContain('The Cantina')
   })
 
   test('/su sheet needs no channel: a DM asks the server like anywhere else', async () => {
@@ -75,6 +75,6 @@ describe('with In the Union now unavailable', () => {
     })
     await sheetCommand.execute(interaction)
     expect(deferred.called).toBe(true)
-    expect(edits[0]?.content).toContain('In the Union now')
+    expect(edits[0]?.content).toContain('The Cantina')
   })
 })
