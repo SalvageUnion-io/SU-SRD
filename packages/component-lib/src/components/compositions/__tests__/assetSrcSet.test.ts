@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { getAssetUrl, SalvageUnionReference } from 'salvageunion-reference'
-import { ASSET_RENDER_WIDTHS, assetSrcSetFor } from '../assetSrcSet'
+import { ASSET_RENDER_QUALITY, ASSET_RENDER_WIDTHS, assetSrcSetFor } from '../assetSrcSet'
 
 /**
  * Artwork `srcset`.
@@ -40,7 +40,7 @@ describe('assetSrcSetFor', () => {
       expect(parts).toHaveLength(ASSET_RENDER_WIDTHS.length)
       for (const [i, width] of ASSET_RENDER_WIDTHS.entries()) {
         expect(parts[i]).toEndWith(` ${width}w`)
-        expect(parts[i]).toContain(`-${width}.webp`)
+        expect(parts[i]).toContain(`-${width}q${ASSET_RENDER_QUALITY}.webp`)
       }
     }
   })
@@ -76,5 +76,11 @@ describe('assetSrcSetFor', () => {
     // by telling anyone — so the two lists drifting apart is silent, and this
     // is the only place it can be caught.
     expect([...ASSET_RENDER_WIDTHS]).toEqual([440, 880])
+  })
+
+  test('the quality is the one the origin renders at', () => {
+    // Shared with `RENDER_QUALITY` in apps/su-assets/src/worker/index.ts, the
+    // same way as the widths: any other quality in the URL is a 404.
+    expect(ASSET_RENDER_QUALITY).toBe(80)
   })
 })

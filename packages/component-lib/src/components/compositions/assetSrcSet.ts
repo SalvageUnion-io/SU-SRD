@@ -32,6 +32,26 @@
 export const ASSET_RENDER_WIDTHS = [440, 880] as const
 
 /**
+ * The WebP quality the origin renders at, named in the URL (`mule-440q80.webp`).
+ * Mirrors `RENDER_QUALITY` in `apps/su-assets/src/worker/index.ts`.
+ *
+ * In the URL because the bare `-440`/`-880` names are spent: the first ones
+ * were baked into the bucket close to lossless (Engineer's 880 was 595 KB, its
+ * 3496px master 607 KB) and the edge and every browser hold them `immutable`
+ * for a year. A new name is the only way past both. At 80 the same Engineer
+ * 880 is 104 KB, with no difference visible at 2x.
+ */
+export const ASSET_RENDER_QUALITY = 80
+
+/** The rendered derivative of a master at one of {@link ASSET_RENDER_WIDTHS}. */
+export function assetDerivativeUrl(
+  masterUrl: string,
+  width: (typeof ASSET_RENDER_WIDTHS)[number]
+): string {
+  return masterUrl.replace(/\.webp$/, `-${width}q${ASSET_RENDER_QUALITY}.webp`)
+}
+
+/**
  * An artwork `srcset` for a master URL, or undefined when there is no artwork.
  *
  * Pair with `sizes` (see `cardImageSizes`) — without it a browser assumes
@@ -46,6 +66,6 @@ export function assetSrcSetFor(masterUrl: string | undefined): string | undefine
   // on `src`, which is what a browser uses when no candidate fits and what a
   // `srcset`-blind client gets.
   return ASSET_RENDER_WIDTHS.map(
-    (width) => `${masterUrl.replace(/\.webp$/, `-${width}.webp`)} ${width}w`
+    (width) => `${assetDerivativeUrl(masterUrl, width)} ${width}w`
   ).join(', ')
 }

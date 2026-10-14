@@ -24,7 +24,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { PhotoUploader } from '../../lib/photos/uploadPhoto'
 import { PhotoRefused, postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
 
-/** Default art from the artwork CDN, which serves `-440`/`-880` derivatives. */
+/** Default art from the artwork CDN, which serves `-440q80`/`-880q80` derivatives. */
 export type DefaultArt = { url: string; alt: string }
 
 type EntityPhotoProps = {

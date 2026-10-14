@@ -26,7 +26,7 @@ const percent = (n: number) => `${Math.round(n * 1_000_000) / 10_000}%`
 
 /** The `schemaName/slug` key of an artwork URL (`…/chassis/mule.webp`), or undefined. */
 function artKey(url: string): string | undefined {
-  const match = /\/([^/]+)\/([^/]+?)(?:-\d+)?\.webp$/.exec(url)
+  const match = /\/([^/]+)\/([^/]+?)(?:-\d+(?:q\d+)?)?\.webp$/.exec(url)
   return match ? `${match[1]}/${match[2]}` : undefined
 }
 

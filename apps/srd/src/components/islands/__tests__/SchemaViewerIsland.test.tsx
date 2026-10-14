@@ -380,7 +380,9 @@ describe('SchemaViewerIsland', () => {
       expect(screen.queryByRole('button', { name: 'List' })).toBeNull()
       // Art from the su-assets 440 derivative, lazy, its box sized before it loads.
       const img = required(container.querySelector('.su-entity-tile__art img'), 'a tile image')
-      expect(img.getAttribute('src')).toMatch(/^https:\/\/assets\.salvageunion\.io\/.+-440\.webp$/)
+      expect(img.getAttribute('src')).toMatch(
+        /^https:\/\/assets\.salvageunion\.io\/.+-440q80\.webp$/
+      )
       expect(img.getAttribute('loading')).toBe('lazy')
     })
 

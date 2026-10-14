@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { assetSrcSetFor } from '../../components/compositions/assetSrcSet'
+import { assetDerivativeUrl, assetSrcSetFor } from '../../components/compositions/assetSrcSet'
 import { grainClass } from '../../components/referenceEntity/card/cardGrain'
 import { font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
@@ -31,11 +31,6 @@ const READ: TileMode = { kind: 'read' }
  * near 22rem, so 440 covers it at 1x–1.25x and 880 at 2x and up.
  */
 const SIZES = '(min-width: 75rem) 22rem, 50vw'
-
-/** The su-assets derivative at one allowlisted width (`assetSrcSet`). */
-function derivative(url: string, width: 440 | 880): string {
-  return url.replace(/\.webp$/, `-${width}.webp`)
-}
 
 /** The name on its cut-out of the paper below, in ink (ruleset, "Chapter band"). */
 const NAME: CSSProperties = {
@@ -90,7 +85,7 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
         {art.kind === 'image' && (
           <span className="su-entity-tile__art">
             <img
-              src={derivative(art.url, 440)}
+              src={assetDerivativeUrl(art.url, 440)}
               srcSet={assetSrcSetFor(art.url)}
               sizes={SIZES}
               width={440}
