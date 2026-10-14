@@ -38,7 +38,7 @@
  *   - never fatal: a failure logs and exits 0 rather than failing the build.
  * Generate locally (`bun --filter srd og:generate`) and let the cache carry it.
  *
- * Set OG_CHROME_PATH to use a specific chromium executable.
+ * Set SHOT_CHROME_PATH to use a specific chromium executable (`gates/lib/chromium`).
  *
  * `bun scripts/og-screenshots.ts --fingerprint` prints the render key (below)
  * and exits: the deploy's `og-srd` job keys its persisted cache on it.
@@ -55,6 +55,7 @@ import {
 } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { launchBrowser } from 'gates/lib/chromium'
 import sharp from 'sharp'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../src/lib/constants'
 import { itemHref, patternHref } from '../src/lib/entityHref'
@@ -358,18 +359,9 @@ async function run() {
   }
   log(`generating ${entities.length} og:images (${CONCURRENCY} concurrent)…`)
 
-  let chromium: typeof import('@playwright/test').chromium
-  try {
-    ;({ chromium } = await import('@playwright/test'))
-  } catch (err) {
-    throw new Error('Playwright not importable — run `bun --filter srd og:install-browser`.', {
-      cause: err,
-    })
-  }
-
   const preview = await startPreview()
 
-  type Context = Awaited<ReturnType<Awaited<ReturnType<typeof chromium.launch>>['newContext']>>
+  type Context = import('@playwright/test').BrowserContext
   type Page = import('@playwright/test').Page
 
   const base = `http://127.0.0.1:${PORT}`
@@ -437,10 +429,10 @@ async function run() {
   }
 
   try {
-    const browser = await chromium.launch({
-      headless: true,
-      executablePath: process.env.OG_CHROME_PATH || undefined,
-      args: LAUNCH_ARGS,
+    const browser = await launchBrowser({ headless: true, args: LAUNCH_ARGS }).catch((err) => {
+      throw new Error('Chromium did not launch — run `bun --filter srd og:install-browser`.', {
+        cause: err,
+      })
     })
 
     try {

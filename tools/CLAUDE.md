@@ -53,6 +53,7 @@ the corpus size, not just the finding count.
 | `shot.ts` | `shot` | A full-page PNG of an srd `/route` or a signed-out ITUN `itun:/route` (no backend) at a `WIDTHS` width, scrolled so lazy art loads; paper only (no dark theme). Reuses only its own checkout's server, else starts one; prints each `.shots/` path. |
 
 `packages/gates` holds the shared library (`lib/`: rule engine, scan floors,
-workspace graph, lcov merge, prose fidelity, R2, the Playwright base), the
+workspace graph, lcov merge, prose fidelity, R2, the Playwright base, the
+one Chromium launcher `chromium.ts` with its `SHOT_CHROME_PATH` override), the
 styling rule sets (`rules/`) and the GritQL plugins (`biome/`); each file's
 docstring carries its why. Baselines live in `baselines/`.

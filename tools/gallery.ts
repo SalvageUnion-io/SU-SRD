@@ -30,12 +30,12 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import type { Browser, BrowserContext, Page } from '@playwright/test'
+import { launchBrowser } from 'gates/lib/chromium'
 import type { OgMeta } from 'gates/lib/galleryHtml'
 import { renderGallery } from 'gates/lib/galleryHtml'
 import type { GalleryPage } from 'gates/lib/galleryPages'
 import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
 import { isSchemaName } from 'salvageunion-reference'
-import { launchBrowser } from './shot'
 
 export type GalleryArgs = {
   srd: string

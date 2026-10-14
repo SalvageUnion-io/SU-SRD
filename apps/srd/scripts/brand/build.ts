@@ -18,8 +18,9 @@
  * Not covered: the default link previews (`og-image.png`) carry no mark, and
  * Ko-fi has no API, so its avatar (`icon.png`) and cover go up by hand.
  */
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { launchBrowser } from 'gates/lib/chromium'
 import sharp from 'sharp'
 import { BANNERS, bannerHtml } from './banner'
 import { ICO_FILE, ICO_SIZES, PNG_FILES, SVG_FILES } from './files'
@@ -60,16 +61,9 @@ function ico(images: readonly { size: number; data: Buffer }[]): Buffer {
   return Buffer.concat([header, ...entries, ...images.map((i) => i.data)])
 }
 
-/** The cloud image's Chromium when Playwright's own is not installed (as `tools/shot.ts`). */
-const FALLBACK_CHROME = '/opt/pw-browsers/chromium'
-
 /** Screenshots each banner page at its exact size; the wordmark needs a browser's text. */
 async function banners(): Promise<Map<string, Buffer>> {
-  const { chromium } = await import('@playwright/test')
-  const own = chromium.executablePath()
-  const browser = await chromium.launch({
-    executablePath: existsSync(own) ? undefined : FALLBACK_CHROME,
-  })
+  const browser = await launchBrowser()
   const out = new Map<string, Buffer>()
   for (const [path, layout] of Object.entries(BANNERS)) {
     const page = await browser.newPage({ viewport: { width: layout.width, height: layout.height } })

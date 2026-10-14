@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { resolve } from 'node:path'
+import type { launchBrowser } from 'gates/lib/chromium'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { Server } from '../shot'
 import {
@@ -7,7 +8,6 @@ import {
   fileName,
   ITUN_BASE,
   isOwnServer,
-  launchBrowser,
   main,
   NO_BACKEND,
   parseArgs,
@@ -238,38 +238,6 @@ describe('the dev server', () => {
     },
     { timeout: 30_000 }
   )
-})
-
-describe('launchBrowser', () => {
-  /** Launches with Playwright's `launch` stubbed, returning the options it was given. */
-  async function launchOptions(own: string, envPath: string | undefined) {
-    const { chromium } = await import('@playwright/test')
-    const executable = spyOn(chromium, 'executablePath').mockReturnValue(own)
-    const launch = spyOn(chromium, 'launch').mockImplementation(
-      (async (options: unknown) => options) as unknown as typeof chromium.launch
-    )
-    const saved = process.env.SHOT_CHROME_PATH
-    if (envPath === undefined) delete process.env.SHOT_CHROME_PATH
-    else process.env.SHOT_CHROME_PATH = envPath
-    try {
-      return (await launchBrowser()) as unknown
-    } finally {
-      if (saved === undefined) delete process.env.SHOT_CHROME_PATH
-      else process.env.SHOT_CHROME_PATH = saved
-      executable.mockRestore()
-      launch.mockRestore()
-    }
-  }
-
-  test("uses Playwright's own Chromium when it is installed", async () => {
-    expect(await launchOptions(process.execPath, undefined)).toEqual({ executablePath: undefined })
-  })
-
-  test('SHOT_CHROME_PATH overrides every other choice', async () => {
-    expect(await launchOptions(process.execPath, '/custom/chrome')).toEqual({
-      executablePath: '/custom/chrome',
-    })
-  })
 })
 
 describe('main', () => {
