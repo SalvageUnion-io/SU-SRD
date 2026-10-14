@@ -16,11 +16,12 @@ const CRUMBS = [
 ]
 
 describe('AppBar', () => {
-  test('one lockup: the mark names the home link; the wordmark is decoration', () => {
+  test('one lockup: the mark alone names the home link, with no wordmark', () => {
     render(<AppBar product="reference" referenceHref="/" buildHref="https://itun.example/" />)
     const home = screen.getByRole('link', { name: 'Salvage Union' })
     expect(home.getAttribute('href')).toBe('/')
-    expect(home.textContent).toContain('salvageunion.io')
+    expect(home.textContent).toBe('')
+    expect(home.querySelector('.su-union-bar__wordmark')).toBeNull()
   })
 
   test('the switcher: the product you are in is the current tab; the other is same-tab', () => {
@@ -63,8 +64,9 @@ describe('AppBar', () => {
     )
     const banner = screen.getByRole('banner')
     expect(banner.hasAttribute('data-density')).toBe(false)
-    // The same lockup in both tools: the wordmark is always drawn.
-    expect(banner.querySelector('.su-union-bar__wordmark')).not.toBeNull()
+    // The same lockup in both tools: the mark, never a wordmark.
+    expect(banner.querySelector('.su-union-bar__mark')).not.toBeNull()
+    expect(banner.querySelector('.su-union-bar__wordmark')).toBeNull()
   })
 
   test('"Buy the game" is an outline link out, in a new tab', () => {

@@ -152,7 +152,8 @@ describe('AppHeader', () => {
     expect(screen.getAllByRole('navigation', { name: 'Main navigation' })).toHaveLength(1)
     const banner = screen.getByRole('banner')
     expect(banner.hasAttribute('data-density')).toBe(false)
-    expect(banner.querySelector('.su-union-bar__wordmark')?.textContent).toBe('salvageunion.io')
+    expect(banner.querySelector('.su-union-bar__mark')).not.toBeNull()
+    expect(banner.querySelector('.su-union-bar__wordmark')).toBeNull()
   })
 
   test('puts the mobile actions beside the hamburger, outside the desktop nav', () => {

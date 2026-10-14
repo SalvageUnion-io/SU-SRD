@@ -73,7 +73,7 @@ button {
  *
  * Off-screen until focused, then the first thing a keyboard user lands on.
  * Before this, tabbing into any page meant traversing the whole masthead — a
- * wordmark link, the main nav, and the breadcrumb nav — before reaching
+ * home mark link, the main nav, and the breadcrumb nav — before reaching
  * content, on every page of the site, with no way past it.
  *
  * `left: -9999px` rather than `display: none` / `visibility: hidden` /
