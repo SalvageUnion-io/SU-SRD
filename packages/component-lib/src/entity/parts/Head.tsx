@@ -28,6 +28,11 @@ const HINT: CSSProperties = {
 
 export type HeadProps = {
   title: string
+  /**
+   * What the name's place shows in place of the `title` text: a live sheet's
+   * inline-edit field (a crew lead's name). `title` still names the head.
+   */
+  titleContent?: ReactNode
   /** The entity's kind, for screen readers only (`KindLabel`): never a stamp (E9). */
   kind?: string
   titleAs?: ElementType
@@ -71,6 +76,7 @@ export type HeadProps = {
  */
 export function Head({
   title,
+  titleContent,
   kind,
   titleAs: TitleTag = 'span',
   paint,
@@ -92,7 +98,11 @@ export function Head({
       // On the notch's paper the name is ink (the class's), whatever the band.
       style={cut ? undefined : { color: paint.color }}
     >
-      {paint.nameOnPaper && !cut ? <span style={PAPER_NAME}>{title}</span> : <span>{title}</span>}
+      {paint.nameOnPaper && !cut ? (
+        <span style={PAPER_NAME}>{titleContent ?? title}</span>
+      ) : (
+        <span>{titleContent ?? title}</span>
+      )}
       <KindLabel kind={kind} />
     </TitleTag>
   )
