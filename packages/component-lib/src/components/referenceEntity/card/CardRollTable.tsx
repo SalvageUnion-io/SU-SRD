@@ -31,8 +31,7 @@ const cond = (size: string, extra?: CSSProperties): CSSProperties => ({
   ...extra,
 })
 
-/** The Table toggle: the Roll button's type and height (`.su-roll__control`),
- *  in sentence case like every button (ruleset §3.12). */
+/** The Table toggle: the Roll button's type and height (`.su-roll__control`). */
 const BAR_BUTTON = { flex: 'none' } satisfies CSSProperties
 
 /** A row's text, its trait references as Mentions. */

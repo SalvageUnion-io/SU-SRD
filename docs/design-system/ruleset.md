@@ -59,8 +59,8 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build; ITUN is the product name, spelled out on its front door; no off-site arrows between the two.
-   12. **§3.12 Microcopy** — sentence case for chrome and buttons ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
-       Caps only through the stamp (`Badge shape="stamp"`). Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
+   12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
+       Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
 4. **§4 Foundations** — the token layer, one home: `packages/component-lib/src/styles/theme.css`.
    1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface (pure white retired), `--color-wk-bg` the page ground (the cool `-2` is off-palette on screen: tokens rule `cool-ground`), `--color-band-cream` the one cream.
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground. `contrast.test.ts` pins every pair.
