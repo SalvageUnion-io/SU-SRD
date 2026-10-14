@@ -253,24 +253,24 @@ describe('SchemaViewerIsland', () => {
     const trackOf = (tree: string) =>
       required(
         container.querySelector<HTMLElement>(
-          `section[aria-label="${tree} Tree"] .srd-ability-tree__track`
+          `section[aria-label="${tree} Tree"] .su-ability-track`
         ),
         `${tree}'s track`
       )
     const forging = trackOf('Forging')
     expect(forging.dataset.track).toBe('core')
     expect(
-      [...forging.querySelectorAll('.srd-ability-tree__numeral')].map((n) => n.textContent)
+      [...forging.querySelectorAll('.su-ability-track__numeral')].map((n) => n.textContent)
     ).toEqual(['1', '2', '3'])
     expect(trackOf('Advanced Engineer').dataset.track).toBe('advanced')
     expect(trackOf('Fabricator').dataset.track).toBe('hybrid')
     const legendary = trackOf('Legendary Engineer')
     expect(legendary.dataset.track).toBe('legendary')
-    expect(legendary.querySelector('.srd-ability-tree__numeral')).toBeNull()
-    expect(legendary.querySelectorAll('.srd-ability-tree__or')).toHaveLength(1)
+    expect(legendary.querySelector('.su-ability-track__numeral')).toBeNull()
+    expect(legendary.querySelectorAll('.su-ability-track__or')).toHaveLength(1)
     // The Generic Abilities have no tiers and no order: plain rows, no track.
     expect(
-      container.querySelector('section[aria-label="Generic Tree"] .srd-ability-tree__track')
+      container.querySelector('section[aria-label="Generic Tree"] .su-ability-track')
     ).toBeNull()
   })
 
@@ -475,7 +475,7 @@ describe('SchemaViewerIsland', () => {
     it('the Catalog is one flat grid of Tiles, by name, under no tree heading', () => {
       const { container } = renderAbilities()
       fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-      expect(container.querySelector('.srd-ability-tree__track')).toBeNull()
+      expect(container.querySelector('.su-ability-track')).toBeNull()
       const groups = container.querySelectorAll('.srd-listing__group')
       expect(groups.length).toBe(1)
       expect(groups[0]?.getAttribute('aria-label')).toBeNull()

@@ -13,6 +13,13 @@
   }
 }
 
+/* A Row on its tree's track (`SheetItemLine` rowForm): the Row takes the
+   whole line and its controls the line under it, at every width. */
+.su-sheet-item--row > :first-child {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
 .su-sheet-ctl {
   align-items: center;
   background-color: var(--color-paper);

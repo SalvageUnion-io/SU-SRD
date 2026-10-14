@@ -73,6 +73,9 @@ export { USER_MADE_HATCH } from './components/atoms/userMadeHatch'
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export type { VitalGaugeBreakdown } from './components/atoms/VitalGauge'
 export { VitalGauge } from './components/atoms/VitalGauge'
+// AbilityTrack — an ability tree on its track (tier numerals, a Legendary
+// tree's "or"): the SRD's class page and abilities Tree, ITUN's pilot sheet.
+export { AbilityTrack } from './components/compositions/AbilityTrack'
 export { AppBar } from './components/compositions/AppBar'
 // Deliberately its own module rather than the card-image component's file,
 // which stays internal.
@@ -121,6 +124,8 @@ export { RollStamp, RollTableInstrument } from './components/compositions/RollTa
 // StartHere — the one onboarding block, on the SRD's home and ITUN's front door
 export { StartHere } from './components/compositions/StartHere'
 export { StatusBadge } from './components/compositions/StatusBadge'
+export type { TreeTrack } from './components/compositions/treeTrack'
+export { trackForTree } from './components/compositions/treeTrack'
 export type { SearchComboboxResult } from './components/compositions/useSearchCombobox'
 export { useSearchCombobox } from './components/compositions/useSearchCombobox'
 export { Banner } from './components/containers/Banner'

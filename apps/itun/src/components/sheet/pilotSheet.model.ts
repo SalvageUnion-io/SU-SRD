@@ -12,8 +12,8 @@
  * record bugs that were already paid for once.
  */
 
-import type { ProvenanceLine } from 'component-lib'
-import { linesFromBreakdown } from 'component-lib'
+import type { ProvenanceLine, TreeTrack } from 'component-lib'
+import { linesFromBreakdown, trackForTree } from 'component-lib'
 import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { GenericInventoryEntry, Pilot } from 'itun-domain/schemas/pilot'
@@ -39,14 +39,57 @@ import type { SheetStoreState } from './sheetViewProps.model'
  * It is INTRINSIC, not chosen: it is never offered in the abilities picker and
  * never stored in `pilot.abilities`. The sheet renders it from reference data
  * (board 10 prints Bonesaw's Generic cards although the record holds only Jury
- * Rig), AFTER the abilities the pilot owns and folded to rows: every pilot has
+ * Rig), in its own section AFTER the abilities the pilot owns, as Tokens: every pilot has
  * the same eight, so they are reference, while the class's own abilities are
  * what tells this pilot from another.
  */
 const GENERIC_TREE = 'Generic'
 
 /** One learned ability, keyed by the slug the pilot record actually stores. */
-type AbilityEntry = { slug: string; ability: SURefAbility }
+export type AbilityEntry = { slug: string; ability: SURefAbility }
+
+/**
+ * One tree the pilot has trained in: its taken Abilities in the tree's own
+ * order, and the track the SRD's Tree view draws it on (`trackForTree`);
+ * none for a tree with no tiers.
+ */
+export type AbilityTreeGroup = {
+  tree: string
+  track: TreeTrack | undefined
+  abilities: AbilityEntry[]
+}
+
+/** Core trees first, then Advanced and Hybrid, then Legendary: the order a pilot trains them. */
+const TRACK_RANK: Record<TreeTrack, number> = { core: 0, advanced: 1, hybrid: 1, legendary: 2 }
+
+/**
+ * The taken Abilities by tree, each tree's in reference order (tier 1, 2, 3),
+ * the trees in training order, then in reference order.
+ */
+function groupAbilityTrees(entries: readonly AbilityEntry[]): AbilityTreeGroup[] {
+  const order = new Map(
+    readReference(
+      'pilotSheetModel.abilityOrder',
+      () => SalvageUnionReference.Abilities.all().map((ability, index) => [ability.id, index]),
+      [] as [string, number][]
+    )
+  )
+  const at = (entry: AbilityEntry) => order.get(entry.ability.id) ?? Number.MAX_SAFE_INTEGER
+  const byTree = new Map<string, AbilityEntry[]>()
+  for (const entry of [...entries].sort((a, b) => at(a) - at(b))) {
+    const group = byTree.get(entry.ability.tree)
+    if (group) group.push(entry)
+    else byTree.set(entry.ability.tree, [entry])
+  }
+  const rank = (group: AbilityTreeGroup) => (group.track ? TRACK_RANK[group.track] : 3)
+  return [...byTree]
+    .map(([tree, abilities]) => ({
+      tree,
+      track: trackForTree(abilities.map((entry) => entry.ability)),
+      abilities,
+    }))
+    .sort((a, b) => rank(a) - rank(b))
+}
 
 type PilotSheetModelOptions = {
   pilot: Pilot
@@ -78,12 +121,12 @@ export type PilotSheetModel = {
   genericInventory: GenericInventoryEntry[]
   /** Trees offerable in the abilities picker; null when it is closed. */
   abilityTrees: Set<string> | null
-  /** The abilities this pilot owns (its class's trees), in stored order: printed first, open. */
+  /** The abilities this pilot owns (its class's trees), in stored order. */
   classAbilities: AbilityEntry[]
-  /** The whole Generic tree, from reference data: printed after them, folded to rows. */
+  /** Those abilities by tree, on their tracks: the Abilities section's trees. */
+  classTrees: AbilityTreeGroup[]
+  /** The whole Generic tree, from reference data: its own section after them, as Tokens. */
   genericAbilities: AbilityEntry[]
-  /** The trees they come from, for the section rule's caption; null with none. */
-  abilityTreeCaption: string | null
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   unresolvedAbilities: string[]
   hpParts: ReturnType<typeof pilotMaxHPParts>
@@ -211,15 +254,8 @@ export function usePilotSheetModel({
     return entries
   }, [pilot.abilities])
 
-  // The trees those abilities come from, in the order the section prints them
-  // (the class's own, then Generic): the section rule's caption ("Forging ·
-  // Generic tree", board 10).
-  const abilityTreeCaption = useMemo(() => {
-    const trees = [
-      ...new Set([...classAbilities, ...genericAbilities].map((entry) => entry.ability.tree)),
-    ]
-    return trees.length === 0 ? null : `${trees.join(' · ')} tree`
-  }, [classAbilities, genericAbilities])
+  // The trees those abilities come from, each on its track (the SRD's Tree view).
+  const classTrees = useMemo(() => groupAbilityTrees(classAbilities), [classAbilities])
 
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   const unresolvedAbilities = pilot.abilities.filter(
@@ -259,8 +295,8 @@ export function usePilotSheetModel({
     genericInventory,
     abilityTrees,
     classAbilities,
+    classTrees,
     genericAbilities,
-    abilityTreeCaption,
     unresolvedAbilities,
     hpParts,
     apParts,
