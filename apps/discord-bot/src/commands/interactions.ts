@@ -65,7 +65,8 @@ export type CommandExecuteInteraction = {
 }
 
 /**
- * What the button router reads off a message-component interaction.
+ * What the button router reads off a message-component interaction (a button,
+ * or the lookup card's linked-entries menu).
  *
  * Narrow for the same reason the command surfaces are: `worker/adapter.ts`
  * (`makeButtonInteraction`) builds it from the raw message-component
@@ -73,6 +74,8 @@ export type CommandExecuteInteraction = {
  */
 export type CommandButtonInteraction = {
   customId: string
+  /** A select menu's picked option values; empty for a button. */
+  values: readonly string[]
   user: { id: string; displayName?: string }
   reply(payload: ReplyPayload): Promise<unknown>
 }

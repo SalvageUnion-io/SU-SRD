@@ -31,6 +31,8 @@ import {
   INDEX_MIN_CHARS,
   lookupCard,
   lookupKey,
+  openCard,
+  patternOf,
   readCard,
 } from '../lookupCard'
 import { cardText } from './cardText'
@@ -59,7 +61,14 @@ const buttonsOf = (data: ContainerData): ButtonSpec[] =>
 const labels = (data: ContainerData): string[] => buttonsOf(data).map((button) => button.label)
 
 /** The card without its controls: what the Component Embed draws. */
-const content = (data: ContainerData) => data.blocks.filter((block) => block.kind !== 'buttons')
+const content = (data: ContainerData) =>
+  data.blocks.filter((block) => block.kind !== 'buttons' && block.kind !== 'select')
+
+/** The linked-entries menu, if the card has one. */
+const menuOf = (data: ContainerData) =>
+  data.blocks.find(
+    (block): block is Extract<ContainerBlock, { kind: 'select' }> => block.kind === 'select'
+  )
 
 /** A long card's index rows: sections carrying a Read button. */
 const readRows = (data: ContainerData) =>
@@ -81,6 +90,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
     let entries = 0
     let patterns = 0
     let indexed = 0
+    let menus = 0
     for (const schema of schemas) {
       const schemaName = schema.id
       if (!isSchemaName(schemaName)) throw new Error(`non-canonical schema id: ${schemaName}`)
@@ -128,6 +138,11 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
               expect(readCard(button.customId.replace(/^su:read:/, '')), label).not.toBeNull()
             }
           }
+          // Every option of the linked-entries menu opens a card.
+          for (const option of menuOf(card)?.options ?? []) {
+            expect(openCard(option.value), `${label}: ${option.value}`).not.toBeNull()
+            menus++
+          }
           if (one.pattern) patterns++
           else entries++
         }
@@ -137,6 +152,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
     expect(entries).toBeGreaterThan(800)
     expect(patterns).toBeGreaterThan(100)
     expect(indexed).toBeGreaterThan(10)
+    expect(menus).toBeGreaterThan(100)
   })
 })
 
@@ -179,6 +195,43 @@ describe('lookupCard — the card', () => {
   test('[[Trait]] references in body text become links', () => {
     const text = cardText(lookupCard(hit('abilities', 'overpower')))
     expect(text).toContain('[Vulnerable](https://salvageunion.io/traits/vulnerable)')
+  })
+})
+
+describe('lookupCard — the linked-entries menu', () => {
+  test('a pattern lists its systems then its modules, each opening that entry', () => {
+    const kelpie = hit('chassis', 'kelpie')
+    const pattern = patternOf(kelpie.entity, 'sifter')
+    if (!pattern) throw new Error('fixture missing: Kelpie Sifter')
+    const menu = menuOf(lookupCard({ ...kelpie, pattern }))
+    expect(menu?.customId).toBe('su:open:chassis::kelpie::sifter')
+    expect(menu?.options.map((option) => option.label)).toEqual([
+      'Nanite Sifter',
+      'Cryopod System',
+      'Floodlights',
+      'Comms Module',
+      'Heating Unit',
+      'Reactor Flare',
+    ])
+    expect(menu?.options[0]).toEqual({
+      label: 'Nanite Sifter',
+      value: 'systems::nanite-sifter',
+      description: 'Systems',
+    })
+    // The menu sits above the buttons, so the card reads card, menu, controls.
+    const kinds = lookupCard({ ...kelpie, pattern }).blocks.map((block) => block.kind)
+    expect(kinds.indexOf('select')).toBeGreaterThan(kinds.lastIndexOf('separator'))
+  })
+
+  test('a card that links nothing has no menu', () => {
+    expect(menuOf(lookupCard(hit('systems', '50-cal-machine-gun')))).toBeUndefined()
+  })
+
+  test('openCard answers with the entry’s own card, and null for one that is gone', () => {
+    expect(cardText(openCard('systems::nanite-sifter') ?? { accent: 0, blocks: [] })).toContain(
+      '## [Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)'
+    )
+    expect(openCard('systems::no-such-system')).toBeNull()
   })
 })
 

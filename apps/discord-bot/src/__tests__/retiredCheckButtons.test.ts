@@ -27,6 +27,13 @@ describe('buttons left behind by the retired /su check', () => {
     expect(parseCustomId('su:peek:chassis::mule')).toBeNull()
   })
 
+  test('the linked-entries menu is a new action, not the retired picker', () => {
+    expect(parseCustomId('su:open:chassis::kelpie::sifter')).toEqual({
+      action: 'open',
+      payload: 'chassis::kelpie::sifter',
+    })
+  })
+
   test('answer with an ephemeral notice rather than failing silently', async () => {
     const { handle, replies } = buttonInteractionHandlerFor('su:check:2d6+3')
     await handle()
