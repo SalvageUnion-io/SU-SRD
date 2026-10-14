@@ -137,11 +137,6 @@
   display: flex;
 }
 
-.su-stat-cell--truncate {
-  flex-shrink: 1;
-  min-width: 0;
-}
-
 /* `wrap`: alone on a line too narrow for it, the cell narrows to the line and
  * its value wraps. */
 .su-stat-cell--wrap {
@@ -151,35 +146,9 @@
   white-space: normal;
 }
 
-/* A cell asked to both truncate and wrap truncates: one line. */
-.su-stat-cell--wrap.su-stat-cell--truncate {
-  white-space: nowrap;
-}
-
-/* `state="modified"`: the heavier frame's 1px ink ring. A class, so the
- * clickable box's focus ring is not masked by an inline box-shadow. */
+/* `state="modified"`: the heavier frame's 1px ink ring. */
 .su-stat--modified {
   box-shadow: 0 0 0 1px var(--color-ink);
-}
-
-/* The clickable value box dims on hover. */
-.su-stat__box--clickable {
-  opacity: 1;
-}
-
-.su-stat__box--clickable:hover {
-  opacity: 0.8;
-}
-
-/* `flash`: the value box's grow/shrink pulse, off under reduced motion. */
-.su-stat__box--flash {
-  animation: growShrink 3s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .su-stat__box--flash {
-    animation: none;
-  }
 }
 
 /* The +/- steppers: a 44px coarse-pointer floor that drops at sm (the box's

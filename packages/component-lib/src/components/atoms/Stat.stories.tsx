@@ -132,14 +132,11 @@ export const ValueBox: Story = () => (
     <Cell label='size="mini"'>
       <Stat label="SP" value={sp} size="mini" />
     </Cell>
-    <Cell label="disabled">
-      <Stat label="SP" value={sp} disabled />
-    </Cell>
     <Cell label="inverse">
       <Stat label="SP" value={sp} inverse />
     </Cell>
-    <Cell label="onClick + bottomLabel">
-      <Stat label="SP" value={sp} onClick={noop} bottomLabel="MAX" />
+    <Cell label="bottomLabel">
+      <Stat label="SP" value={sp} bottomLabel="MAX" />
     </Cell>
     <Cell label="hoverText">
       <Stat label="SP" value={sp} hoverText="Structure Points: the mech's health" />

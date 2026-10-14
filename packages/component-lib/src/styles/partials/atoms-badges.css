@@ -228,15 +228,6 @@
   overflow-wrap: anywhere;
 }
 
-/* A value that may be cut: a block, so the ellipsis applies. */
-.su-stat-plate--truncate {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* The head band's labels (`card/CardLabels.tsx`): the stamps, then the
  * User-made stamp. No stamp is ever cut to "…": short of room, the stamps
  * wrap onto a second line, and the cluster is never narrower than its widest
