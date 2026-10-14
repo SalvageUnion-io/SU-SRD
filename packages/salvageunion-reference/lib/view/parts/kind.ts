@@ -66,13 +66,6 @@ export function tierNumeral(entity: SURefMetaEntity): string | undefined {
   return level != null && Number.isFinite(Number(level)) ? String(level) : undefined
 }
 
-/** An ability's tree and its level as printed ("Hacking", "1"; a Legendary's "L"). */
-export function abilityTree(entity: SURefMetaEntity): { name: string; level: string } | undefined {
-  if (!isAbility(entity) || entity.tree == null || String(entity.tree).length === 0)
-    return undefined
-  return { name: String(entity.tree), level: String(entity.level) }
-}
-
 /** The bare type: "Action", "Crawler Type", else the schema's display name. */
 export function entityTypeLabel(schemaName: SURefEnumSchemaName | 'actions'): string {
   if (schemaName === 'actions') return 'Action'
