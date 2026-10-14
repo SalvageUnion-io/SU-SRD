@@ -71,6 +71,7 @@ const QUOTE = {
 const QUOTE_BY = {
   ...KICKER,
   color: tokens.color.ink,
+  fontStyle: 'italic',
   margin: `${tokens.space[4]} 0 0`,
 } satisfies CSSProperties
 

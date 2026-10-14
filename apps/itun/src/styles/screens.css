@@ -47,8 +47,9 @@
 }
 
 /* The front door's quoted tagline (`components/roster/FrontDoor.tsx`): on the
-   cantina band, right of the name, it is paper; on a phone ChapterBand sets
-   it under the band on the page ground, where it takes the deep crawler pink. */
+   cantina band, at its right end and set right, it is paper; on a phone
+   ChapterBand sets it under the band on the page ground, where it takes the
+   deep crawler pink and sets left. */
 .front-door__quote {
   color: var(--color-sheet-crawler-deep);
   margin: 0;
@@ -58,20 +59,6 @@
 @media (min-width: 40rem) {
   .front-door__quote {
     color: var(--color-paper);
-  }
-
-  /* Right beside the name, not pushed to the band's far end as a show page's
-     stamps are. */
-  .su-chapter-band__row:has(.front-door__quote) {
-    justify-content: flex-start;
-  }
-
-  .su-chapter-band__aside:has(> .front-door__quote) {
-    align-items: flex-start;
-    margin-inline: 0;
-  }
-
-  .su-chapter-band__aside > .front-door__quote {
-    justify-content: flex-start;
+    text-align: right;
   }
 }
