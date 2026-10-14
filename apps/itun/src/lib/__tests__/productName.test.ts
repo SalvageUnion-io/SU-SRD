@@ -29,7 +29,7 @@ describe('the product name outside TypeScript', () => {
   })
 
   test("the manifest's name and short name are PRODUCT's", () => {
-    expect(config).toContain(`name: '${PRODUCT.shortName} — ${PRODUCT.name}',`)
+    expect(config).toContain(`name: '${PRODUCT.name} — ${PRODUCT.descriptor}',`)
     expect(config).toContain(`short_name: '${PRODUCT.shortName}',`)
   })
 })

@@ -45,3 +45,20 @@
 .app-header__drawer-panel {
   width: 18rem;
 }
+
+/* The front door's quoted tagline (`components/roster/FrontDoor.tsx`): on the
+   cantina band, at its right end and set right, it is paper; on a phone
+   ChapterBand sets it under the band on the page ground, where it takes the
+   deep crawler pink and sets left. */
+.front-door__quote {
+  color: var(--color-sheet-crawler-deep);
+  margin: 0;
+  text-align: left;
+}
+
+@media (min-width: 40rem) {
+  .front-door__quote {
+    color: var(--color-paper);
+    text-align: right;
+  }
+}

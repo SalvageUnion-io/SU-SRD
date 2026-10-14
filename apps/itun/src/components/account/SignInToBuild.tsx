@@ -39,7 +39,9 @@ type SignInToBuildProps = {
 export function SignInToBuild({ title, redirectTo }: SignInToBuildProps) {
   return (
     <section aria-label={title}>
-      <ChapterBand measure={MEASURE}>{title}</ChapterBand>
+      <ChapterBand tone="cantina" measure={MEASURE}>
+        {title}
+      </ChapterBand>
       <div style={COLUMN}>
         <Text variant="body">
           Build and run your Salvage Union crew — pilots, mechs and Union Crawlers. Everything you
