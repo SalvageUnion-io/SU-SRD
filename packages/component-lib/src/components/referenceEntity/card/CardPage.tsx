@@ -86,12 +86,7 @@ export function CardPage({
   const { NestedCard } = action
   // `titleAs` is the card title's element: an `h3` only where a section band's
   // `h2` holds the card (`nestedTitleLevel`), else the header's `span`.
-  const actionCard = (
-    data: ReferenceCardEntity,
-    index: number,
-    titleAs: 'h3' | undefined,
-    readable = false
-  ) => (
+  const actionCard = (data: ReferenceCardEntity, index: number, titleAs: 'h3' | undefined) => (
     <NestedCard
       key={cardKey(data, index)}
       data={data}
@@ -100,7 +95,9 @@ export function CardPage({
       size="medium"
       depth={1}
       titleAs={titleAs}
-      readable={readable}
+      // Every action on a page reads at the regular size (14px), the chassis
+      // ability's and the rest alike.
+      readable
       hostDown={action.hostDown}
       hostName={action.hostName}
       chassisName={action.chassisName}
@@ -136,7 +133,7 @@ export function CardPage({
                 {/* No band holds the chassis ability (the page's h1 is the
                     ChapterBand above), so its title stays a span: an h3 here
                     would skip a level. */}
-                {leadActions.map((data, index) => actionCard(data, index, undefined, true))}
+                {leadActions.map((data, index) => actionCard(data, index, undefined))}
               </div>
             )}
             {/* A pattern page's Systems and Modules follow its chassis

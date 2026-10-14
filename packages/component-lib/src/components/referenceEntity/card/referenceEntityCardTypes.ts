@@ -36,7 +36,7 @@ export type ReferenceEntityCardProps = {
    * (e.g. GRANTS) without a separator row. */
   parentSeal?: { label: string; tone: string }
   /** Set the nested card's prose at the regular reading size (14px) instead of
-   * the compact one. The page's chassis ability uses it (board 07). */
+   * the compact one. Every action card on a page uses it. */
   readable?: boolean
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
