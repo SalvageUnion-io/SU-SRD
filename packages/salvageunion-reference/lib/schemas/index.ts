@@ -29,7 +29,6 @@ import type {
   GrantSchema,
   GuideStepSchema,
   PatternSchema,
-  PatternSystemModuleSchema,
   StatsSchema,
   SystemModuleSchema,
   TableContentSchema,
@@ -48,7 +47,6 @@ export type SURefObjectDataValue = z.infer<typeof DataValueSchema>
 export type SURefObjectContentBlock = z.infer<typeof ContentBlockSchema>
 export type SURefObjectTableContent = z.infer<typeof TableContentSchema>
 export type SURefObjectTable = z.infer<typeof TableSchema>
-export type SURefObjectPatternSystemModule = z.infer<typeof PatternSystemModuleSchema>
 export type SURefObjectSystemModule = z.infer<typeof SystemModuleSchema>
 export type SURefObjectChoice = z.infer<typeof ChoiceSchema>
 export type SURefObjectPattern = z.infer<typeof PatternSchema>

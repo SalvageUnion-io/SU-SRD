@@ -11,7 +11,7 @@
  */
 
 import { nameToSlug } from '../nameToSlug'
-import type { SURefChassis, SURefObjectPatternSystemModule } from '../schemas/index'
+import type { SURefChassis } from '../schemas/index'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from './resolveRefs'
 import type { CapacityViolation, MechCapacityResult, MechInput } from './types'
 
@@ -209,7 +209,7 @@ export function computeMechCapacity(mech: MechInput): MechCapacityResult {
 }
 
 /** A pattern list's slugs, one per copy (`count` expanded), sorted. */
-function patternRefs(items: readonly SURefObjectPatternSystemModule[]): string[] {
+function patternRefs(items: SURefChassis['patterns'][number]['systems']): string[] {
   return items.flatMap((item) => Array<string>(item.count ?? 1).fill(nameToSlug(item.name))).sort()
 }
 
