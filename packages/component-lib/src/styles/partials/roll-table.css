@@ -409,14 +409,18 @@
     padding-left: var(--space-8);
   }
 
+  /* The second half's Result sits right, against its numbers, as its text does. */
   .su-roll__bar[data-split] .su-roll__cols--end {
-    justify-content: space-between;
+    gap: var(--space-12);
   }
 
-  /* The second half's text starts past its hairline rule. */
   .su-roll__bar[data-split] .su-roll__col-text--half {
     display: block;
-    padding-left: calc(var(--space-8) + var(--bw-hairline));
+    padding-left: 0;
+  }
+
+  .su-roll__bar[data-split] .su-roll__roll {
+    margin-left: 0;
   }
 
   .su-roll__bands[data-split] {
@@ -442,6 +446,23 @@
   .su-roll__rows[data-side='right'] .su-roll__range {
     border-left: var(--bw-hairline) solid var(--color-ink);
     border-right: 0;
+  }
+
+  /* The second half's text sits right, against its numbers; its rolled
+     pennant moves to the row's far (left) corner, clear of the text. */
+  .su-roll__rows[data-side='right'] .su-roll__body {
+    text-align: right;
+  }
+
+  .su-roll__rows[data-side='right'] .su-roll__head {
+    justify-content: flex-end;
+  }
+
+  .su-roll__rows[data-side='right'] .su-roll__tag {
+    clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%);
+    left: 0;
+    padding: 3px var(--space-12) 3px var(--space-6);
+    right: auto;
   }
 
   .su-roll__bands[data-split] .su-roll__body {
