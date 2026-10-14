@@ -28,9 +28,9 @@ beforeAll(hydrateStores)
 // "Talk Shop" resolves to a fixed AP cost of 3 in reference data.
 const ABILITY_TALK_SHOP = 'talk-shop'
 
-/** Each chip group's text: a read cost is the book's pointy box, "3 AP". */
+/** Each Token's chips' text: a cost is the book's pointy box, "3 AP". */
 const costChips = () =>
-  Array.from(document.querySelectorAll('[data-chip-group]'))
+  Array.from(document.querySelectorAll('.su-entity-token__chips'))
     .map((g) => g.textContent ?? '')
     .join(' ')
 
@@ -71,14 +71,11 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
 }
 
 describe('PilotSheet — ability AP cost (Slice D)', () => {
-  test('displays the ability AP cost on the card', () => {
+  test("displays the ability AP cost on the ability's Token", () => {
     render(<PilotSheet pilot={makePilot()} store={makeStubStore(makePilot())} />)
-    expandCards()
-    // The cost comes from the CARD's own cost box ("3 AP"), not from
-    // a sheet-added "AP Cost" footMeta pair — that footer restated what the card
-    // already rendered, and printed a bare em-dash for variable-cost abilities
-    // where the card says "X AP". Asserting on the card's rendering keeps this
-    // test pointed at what the player reads.
+    // The cost comes from the Token's own cost chip ("3 AP"), not from a
+    // sheet-added "AP Cost" pair, which printed a bare em-dash for
+    // variable-cost abilities where the Token says "X AP".
     expect(costChips()).toContain('3 AP')
     expect(screen.queryByText('AP Cost')).toBeNull()
   })
@@ -183,7 +180,7 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     expect(screen.queryByRole('button', { name: /spend/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /mark .* used/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /recharge/i })).toBeNull()
-    // AP cost still shown read-only (the card's own cost chip), plus a
+    // AP cost still shown read-only (the Token's own cost chip), plus a
     // static Used stamp.
     expect(costChips()).toContain('3 AP')
     expect(screen.getByText('Used')).toBeTruthy()
@@ -215,21 +212,20 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
   })
 })
 
-describe('PilotSheet — the class leads, the Generic tree folds', () => {
-  test("the pilot's own abilities print first, open; the Generic tree after, folded", () => {
+describe('PilotSheet — the class leads, then the Generic tree', () => {
+  test("every ability is a Token, the pilot's own first, the Generic tree after", () => {
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
 
-    // Talk Shop (the pilot's own) is open: its live-play row is in the DOM.
+    const list = screen.getByRole('list', { name: 'Abilities' })
+    const names = Array.from(list.querySelectorAll('.su-entity-token__name')).map(
+      (n) => n.textContent ?? ''
+    )
+    expect(names[0]).toStartWith('Talk Shop')
+    expect(names.some((n) => n.startsWith('Repair'))).toBe(true)
+    // Each carries its live-play toggle on its line.
     expect(screen.getByRole('button', { name: /mark talk shop used/i })).toBeTruthy()
-    // Every Generic card is folded to its header row until the reader opens it.
-    const repair = screen.getByRole('button', { name: 'Repair details' })
-    expect(repair.getAttribute('aria-expanded')).toBe('false')
-    expect(screen.queryByRole('button', { name: /mark repair used/i })).toBeNull()
-
-    // …and reads after the class's own ability.
-    const talkShop = screen.getByRole('button', { name: /mark talk shop used/i })
-    expect(talkShop.compareDocumentPosition(repair) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('button', { name: /mark repair used/i })).toBeTruthy()
   })
 
   test("the section caption names the class's tree before Generic", () => {

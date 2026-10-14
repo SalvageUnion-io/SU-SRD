@@ -12,8 +12,10 @@
  *     Details), each at the same height;
  *   - Remove: a square ✕.
  *
- * A mech's Systems and Modules (`MechItemToken`) and a pilot's equipment
- * (`PilotEquipmentItem`) both draw it, so the two sheets share one control.
+ * A mech's Systems and Modules (`MechItemToken`), a pilot's equipment
+ * (`PilotEquipmentItem`) and a pilot's abilities (`PilotAbilityItem`, which
+ * has no condition: its Read stamp is "Used") all draw it, so the sheets
+ * share one control.
  */
 
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
@@ -31,10 +33,13 @@ type SheetItemLineProps = {
   token: ReactNode
   /** The item's name, for the controls' accessible labels. */
   name: string
-  condition: ItemCondition
+  /** The item's condition; absent for a reference with none (an ability). */
+  condition?: ItemCondition
   readOnly: boolean
   /** Step the condition on (Intact → Damaged → Destroyed). */
-  onConditionCycle: () => void
+  onConditionCycle?: () => void
+  /** Read: a stamp after the Token (an ability's "Used"), beside any condition. */
+  stamp?: string
   /** Uses left out of a max; absent when the item has none. */
   uses?: { remaining: number; max: number; onChange: (next: number) => void }
   /** The caller's own controls, after Uses and before Remove. */
@@ -49,25 +54,30 @@ export function SheetItemLine({
   condition,
   readOnly,
   onConditionCycle,
+  stamp,
   uses,
   actions,
   onRemove,
 }: SheetItemLineProps) {
-  const conditionLabel = CONDITION_LABEL[condition]
+  const conditionLabel = condition && CONDITION_LABEL[condition]
   // Read: the Token alone while intact; a damaged or destroyed one names its
-  // condition as a read-out stamp after it.
+  // condition as a read-out stamp after it, as does any `stamp`.
   if (readOnly) {
-    if (condition === 'intact') return token
+    const damaged = condition !== undefined && condition !== 'intact'
+    if (!damaged && !stamp) return token
     return (
       <div className="su-entity-token-line su-sheet-item">
         {token}
-        <span
-          className="su-sheet-ctl su-sheet-ctl--condition su-sheet-ctl--readout"
-          data-state={condition}
-          title={`${name}: ${conditionLabel}`}
-        >
-          {conditionLabel}
-        </span>
+        {damaged && (
+          <span
+            className="su-sheet-ctl su-sheet-ctl--condition su-sheet-ctl--readout"
+            data-state={condition}
+            title={`${name}: ${conditionLabel}`}
+          >
+            {conditionLabel}
+          </span>
+        )}
+        {stamp && <span className="su-sheet-ctl su-sheet-ctl--readout">{stamp}</span>}
       </div>
     )
   }
@@ -75,15 +85,17 @@ export function SheetItemLine({
   return (
     <div className="su-entity-token-line su-sheet-item">
       {token}
-      <button
-        type="button"
-        className="su-sheet-ctl su-sheet-ctl--condition"
-        data-state={condition}
-        aria-label={`${name} status: ${conditionLabel} — click to change`}
-        onClick={onConditionCycle}
-      >
-        {conditionLabel}
-      </button>
+      {condition && (
+        <button
+          type="button"
+          className="su-sheet-ctl su-sheet-ctl--condition"
+          data-state={condition}
+          aria-label={`${name} status: ${conditionLabel} — click to change`}
+          onClick={onConditionCycle}
+        >
+          {conditionLabel}
+        </button>
+      )}
       {uses && uses.max > 0 && (
         <span className="su-sheet-ctl su-sheet-ctl--uses">
           <button

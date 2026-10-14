@@ -5,7 +5,7 @@
  * owns all persistence.
  */
 
-import type { ChoiceSelections, ReferenceEntityControl } from 'component-lib'
+import type { ChoiceSelections } from 'component-lib'
 import {
   Button,
   Entity,
@@ -32,23 +32,12 @@ import { useEntityChoices } from '../shared/useEntityChoices'
 import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
 
-const HIDE_CHOICES = { choices: true } as const
-
 /** An inventory item in Edit: the pill, its control row, then any details. */
 const ITEM_EDIT = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],
   minWidth: 0,
-} satisfies CSSProperties
-
-/** An ability card's Edit row: Spend AP and the used toggle, under the body. */
-const ABILITY_ACTIONS = {
-  borderTop: `${tokens.borderWidth.chrome} dashed ${tokens.color.ink40}`,
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  paddingTop: tokens.space[8],
 } satisfies CSSProperties
 
 const ROW_TEXT = {
@@ -149,17 +138,15 @@ type PilotAbilityItemProps = {
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
   readOnly: boolean
-  /**
-   * Fold the card to its header row, opened on demand: the Generic tree every
-   * pilot shares, which reads as reference after the class's own abilities.
-   */
-  folded?: boolean
 }
 
 /**
- * One ability card. AP cost resolves from the ability's actions
- * (resolveAbilityApCost): `null` means no FIXED numeric cost (variable 'X' or
- * none) — no spend button renders, we never spend an undefined amount.
+ * One ability: its Token, which Peeks the whole card (owner's call,
+ * 2026-10-14: "all references = peek tokens"), with Spend AP and the used
+ * toggle on its line in Edit, and a "Used" stamp in Read. AP cost resolves
+ * from the ability's actions (resolveAbilityApCost): `null` means no FIXED
+ * numeric cost (variable 'X' or none) — no spend control renders, we never
+ * spend an undefined amount. The cost itself is the Token's own chip.
  */
 export function PilotAbilityItem({
   ability,
@@ -168,65 +155,38 @@ export function PilotAbilityItem({
   onSpend,
   onToggleUsed,
   readOnly,
-  folded = false,
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
-  const canSpend = apCost !== null && currentAP >= apCost
-
-  // No `footMeta` here. ReferenceEntityCard already renders the ability's
-  // activation cost from its own action — "1 AP" for a fixed cost, "X AP" for a
-  // variable one — so an "AP Cost" pair restated it. On the variable abilities
-  // it was worse than redundant: `apCost` is null there, so the footer printed
-  // "AP Cost —" beside a card plainly saying "X AP", replacing the one useful
-  // fact (the cost scales with what you spend) with an em-dash. The cost still
-  // reaches the player as an affordance — the Spend AP control names it.
-  //
-  // Read shows a static Used stamp on the seam. Edit's Spend AP and the used
-  // toggle do NOT ride the seam: there they sat on the "Ability · … tree" label
-  // strip and cut it short. They are the card's own row instead, under the
-  // body, above the source footer.
-  const usedStamp: ReferenceEntityControl[] | undefined =
-    readOnly && used ? [{ key: 'used', badge: 'Used' }] : undefined
-
-  const actionRow = readOnly ? undefined : (
-    <div style={ABILITY_ACTIONS}>
-      {apCost !== null && (
-        <Button
-          size="compact"
-          variant="primary"
-          aria-label={`Spend ${apCost} AP for ${ability.name}`}
-          disabled={!canSpend}
-          onClick={() => {
-            onSpend(apCost)
-          }}
-        >
-          Spend AP
-        </Button>
-      )}
-      <Button
-        size="compact"
-        variant="ghost"
-        aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
-        aria-pressed={used}
-        onClick={() => {
-          onToggleUsed(!used)
-        }}
-      >
-        {used ? 'Recharge' : 'Mark used'}
-      </Button>
-    </div>
-  )
-
   return (
-    <ReferenceEntityCard
-      data={ability}
-      size="medium"
-      extent="full"
-      collapsible={folded}
-      foldChevron={false}
-      hide={HIDE_CHOICES}
-      controls={usedStamp}
-      expand={actionRow}
+    <SheetItemLine
+      token={<Entity form="token" entity={ability} />}
+      name={ability.name}
+      readOnly={readOnly}
+      stamp={used ? 'Used' : undefined}
+      actions={
+        <>
+          {apCost !== null && (
+            <button
+              type="button"
+              className="su-sheet-ctl"
+              aria-label={`Spend ${apCost} AP for ${ability.name}`}
+              disabled={currentAP < apCost}
+              onClick={() => onSpend(apCost)}
+            >
+              Spend AP
+            </button>
+          )}
+          <button
+            type="button"
+            className="su-sheet-ctl"
+            aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
+            aria-pressed={used}
+            onClick={() => onToggleUsed(!used)}
+          >
+            {used ? 'Used' : 'Mark Used'}
+          </button>
+        </>
+      }
     />
   )
 }

@@ -56,11 +56,11 @@
 
 import {
   Conditions,
+  Entity,
   EntitySearcher,
   Field,
   FieldError,
   heatDangerFrom,
-  ReferenceEntityCard,
   SheetSectionSlab,
   StatColumn,
   tokens,
@@ -80,7 +80,6 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
-import { EntityGridRow } from './EntityGrid'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemToken } from './MechItemToken'
@@ -113,13 +112,6 @@ const FIELDS = {
   flexDirection: 'column',
   gap: tokens.space[16],
   height: '100%',
-  minWidth: 0,
-} satisfies CSSProperties
-
-const ABILITIES = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
   minWidth: 0,
 } satisfies CSSProperties
 
@@ -358,34 +350,17 @@ export function MechSheet({
                       as the official mech sheet prints its own block ahead of
                       the Chassis Ability (SU_Char Sheets 2.0, page 2). */}
                     <StatColumn stats={model.chassisStats} label="Chassis stats" />
-                    {/* The chassis's ability: always visible, never folded —
-                      there is nothing to manage or choose here, so a fold would
-                      hide the one thing that distinguishes this chassis from
-                      another. */}
+                    {/* The chassis's ability: a Token that Peeks its card
+                      (owner's call, 2026-10-14: "all references = peek
+                      tokens"). Spending its EP is the Dashboard's (ADR-021). */}
                     {model.chassisAbilities.length > 0 && (
-                      <div style={ABILITIES}>
+                      <ul aria-label="Chassis ability" className="su-entity-token-list">
                         {model.chassisAbilities.map((ability) => (
-                          // Activating an ability (spending its EP) is a
-                          // Guided-Play transaction — it lives on the Dashboard,
-                          // not the Free-Edit Live Sheet (ADR-021). EP is spent
-                          // here by hand-editing the EP gauge (free state).
-                          //
-                          // No `footMeta`: the ability's EP cost is the CARD's to
-                          // render and it already does, as its own "2 EP" box.
-                          <EntityGridRow key={ability.id}>
-                            <ReferenceEntityCard
-                              data={ability}
-                              size="large"
-                              // `[(CHASSIS)]` in the ability's text resolves to
-                              // the PATTERN name, not the chassis's: on a live
-                              // sheet the reader is looking at this machine, and
-                              // "Increases the Cargo Capacity of Bad Penny" is
-                              // what the sentence is actually about.
-                              chassisName={mech.name}
-                            />
-                          </EntityGridRow>
+                          <li key={ability.id}>
+                            <Entity form="token" entity={ability} />
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     )}
                   </>
                 }

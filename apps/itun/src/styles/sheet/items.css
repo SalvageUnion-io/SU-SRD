@@ -48,6 +48,17 @@
   color: var(--color-paper);
 }
 
+/* A toggle that is on (an ability marked Used): inverted, as a condition. */
+.su-sheet-ctl[aria-pressed='true'] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-sheet-ctl:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
 /* Read: print, not pencil, and the Token's own height. */
 .su-sheet-ctl--readout {
   border-style: solid;
@@ -95,7 +106,7 @@
 }
 
 @media (hover: hover) {
-  .su-sheet-ctl:not(.su-sheet-ctl--readout, .su-sheet-ctl--uses):hover,
+  .su-sheet-ctl:not(.su-sheet-ctl--readout, .su-sheet-ctl--uses, :disabled):hover,
   .su-sheet-ctl__step:not(:disabled):hover {
     background-color: var(--color-ink);
     color: var(--color-paper);

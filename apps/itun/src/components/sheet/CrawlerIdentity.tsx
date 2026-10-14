@@ -2,9 +2,8 @@
  * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
  * sibling of PilotIdentityPanel / MechIdentityPanel).
  * Poster identity band: Name + Type as labeled identity fields, then the
- * crawler type's special ability and the type itself as compact
- * ReferenceEntityCard entity cards (max 2 columns), then the Description
- * panel.
+ * crawler type's special ability as a Token that Peeks its card, beside the
+ * type's own internals, then the Description panel.
  *
  * FIELD-section archetype (unified edit language). The parent
  * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
@@ -20,7 +19,7 @@
  * card strips them to avoid double-rendering.
  */
 
-import { Field, ReferenceEntityCard, Stat, tokens } from 'component-lib'
+import { Entity, Field, Stat, tokens } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
@@ -53,9 +52,6 @@ const TYPE_ROW = {
 } satisfies CSSProperties
 
 const ABILITY = { minWidth: 0 } satisfies CSSProperties
-
-/** The standalone ability card never re-renders the action's choice UI. */
-const HIDE_CHOICES = { choices: true } as const
 
 /**
  * Resolve the crawler type's special-ability action refs (names) to their SRD
@@ -167,11 +163,17 @@ export function CrawlerIdentityPanel({
             store={store}
             readOnly={readOnly}
             assigned={typeCrew}
-            ability={abilities.map((ability) => (
-              <div key={ability.id} style={ABILITY}>
-                <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />
-              </div>
-            ))}
+            ability={
+              abilities.length > 0 && (
+                <ul aria-label="Special ability" className="su-entity-token-list" style={ABILITY}>
+                  {abilities.map((ability) => (
+                    <li key={ability.id}>
+                      <Entity form="token" entity={ability} />
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
           />
         )}
 
