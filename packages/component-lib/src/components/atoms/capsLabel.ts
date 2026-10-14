@@ -1,4 +1,4 @@
-import { cva } from 'class-variance-authority'
+import { cn } from '../../utils/cn'
 
 /**
  * The condensed-caps LABEL recipe — the one place that knows what a caps label
@@ -43,54 +43,63 @@ import { cva } from 'class-variance-authority'
  * default for the same reason a `Badge` chip supplies its own: omit it and the
  * recipe emits no size at all.
  */
-export const capsLabel = cva('su-caps', {
-  variants: {
-    /**
-     * Semantic type-ladder rungs only. Omit when the caller already supplies
-     * the size — a `Badge` surface, a `Button` size, or a container-driven step.
-     */
-    size: {
-      badge: 'su-caps--badge',
-      note: 'su-caps--note',
-      caption: 'su-caps--caption',
-      lede: 'su-caps--lede',
-      readout: 'su-caps--readout',
-      title: 'su-caps--title',
-      display: 'su-caps--display',
-    },
-    /**
-     * Caps labels run bold by default; `semibold` is the chip weight.
-     * `inherit` emits NOTHING — it is not a 400 weight. The distinction is
-     * load-bearing: a label with no weight class inherits its container's
-     * weight, and pinning it to 400 would silently un-bold every such label
-     * that happens to sit inside a bold stamp or heading.
-     */
-    weight: {
-      inherit: '',
-      normal: 'su-caps--w-normal',
-      semibold: 'su-caps--w-semibold',
-      bold: 'su-caps--w-bold',
-    },
-    /**
-     * The ratified multi-rung caps ladder (ruleset §4.2). `tight` is the
-     * default; the others exist because they are in deliberate use. `none` is
-     * the normal letter-spacing, for the caps labels that deliberately do not
-     * letterspace (the `Button` mini chip). `inherit` emits nothing, for labels
-     * whose tracking is supplied by the surface around them (a `Badge` surface
-     * picks `caps` or `caps-snug` itself).
-     */
-    tracking: {
-      inherit: '',
-      none: 'su-caps--t-none',
-      tight: 'su-caps--t-tight',
-      snug: 'su-caps--t-snug',
-      caps: 'su-caps--t-caps',
-      wide: 'su-caps--t-wide',
-      eyebrow: 'su-caps--t-eyebrow',
-    },
-  },
-  defaultVariants: {
-    weight: 'bold',
-    tracking: 'tight',
-  },
-})
+/**
+ * Semantic type-ladder rungs only. Omit when the caller already supplies
+ * the size — a `Badge` surface, a `Button` size, or a container-driven step.
+ */
+const SIZE = {
+  badge: 'su-caps--badge',
+  note: 'su-caps--note',
+  caption: 'su-caps--caption',
+  lede: 'su-caps--lede',
+  readout: 'su-caps--readout',
+  title: 'su-caps--title',
+  display: 'su-caps--display',
+} as const
+
+/**
+ * Caps labels run bold by default; `semibold` is the chip weight.
+ * `inherit` emits NOTHING — it is not a 400 weight. The distinction is
+ * load-bearing: a label with no weight class inherits its container's
+ * weight, and pinning it to 400 would silently un-bold every such label
+ * that happens to sit inside a bold stamp or heading.
+ */
+const WEIGHT = {
+  inherit: '',
+  normal: 'su-caps--w-normal',
+  semibold: 'su-caps--w-semibold',
+  bold: 'su-caps--w-bold',
+} as const
+
+/**
+ * The ratified multi-rung caps ladder (ruleset §4.2). `tight` is the
+ * default; the others exist because they are in deliberate use. `none` is
+ * the normal letter-spacing, for the caps labels that deliberately do not
+ * letterspace (the `Button` mini chip). `inherit` emits nothing, for labels
+ * whose tracking is supplied by the surface around them (a `Badge` surface
+ * picks `caps` or `caps-snug` itself).
+ */
+const TRACKING = {
+  inherit: '',
+  none: 'su-caps--t-none',
+  tight: 'su-caps--t-tight',
+  snug: 'su-caps--t-snug',
+  caps: 'su-caps--t-caps',
+  wide: 'su-caps--t-wide',
+  eyebrow: 'su-caps--t-eyebrow',
+} as const
+
+export type CapsLabelProps = {
+  size?: keyof typeof SIZE | null
+  weight?: keyof typeof WEIGHT | null
+  tracking?: keyof typeof TRACKING | null
+}
+
+export function capsLabel({ size, weight, tracking }: CapsLabelProps = {}): string {
+  return cn(
+    'su-caps',
+    size == null ? undefined : SIZE[size],
+    WEIGHT[weight ?? 'bold'],
+    TRACKING[tracking ?? 'tight']
+  )
+}

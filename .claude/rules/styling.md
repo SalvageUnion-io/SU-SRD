@@ -28,7 +28,8 @@ What an editor needs:
     spreading the static object (`style={{ ...NAME, color }}`), or a
     function returning `CSSProperties` when several uses share it;
   - stateful, responsive or repeated → a `.su-*` class, joined with `cn`;
-    a component's class variants are a `cva` class-string export.
+    a component's class variants are a class-string export built from
+    `as const` lookup maps joined with `cn` (`buttonVariants`, `capsLabel`).
 - **The split is per-PROPERTY.** A property with no stateful or responsive
   variant on that element → style object. A property with **any** (`:hover`,
   `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling selectors)

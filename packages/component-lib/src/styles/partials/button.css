@@ -6,7 +6,7 @@
 
 /* ══ Button ═════════════════════════════════════════════════════════════════
  *
- * The `.btn` recipe (design-spec §2.4), ported from the `buttonVariants` cva.
+ * The `.btn` recipe (design-spec §2.4), ported from the `buttonVariants` recipe.
  *
  * ALL of it is here, geometry and type included — not just the stateful half.
  * `buttonVariants` is a public class-string export that both apps put on `<a>`
