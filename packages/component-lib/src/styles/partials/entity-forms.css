@@ -743,9 +743,21 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   gap: var(--space-4);
 }
 
+/* The last line of two is a line of inline boxes ending in the strut, as a
+   balanced block's (below), so it centres on the name and no chip stretches
+   to the strut's height. */
 .su-entity-tile__chips--lines > .su-entity-tile__line:last-child {
-  align-items: center;
-  min-height: var(--su-name-mid-strut);
+  display: block;
+  line-height: 0;
+  white-space: nowrap;
+}
+
+.su-entity-tile__chips--lines > .su-entity-tile__line:last-child::after {
+  content: '';
+  display: inline-block;
+  height: var(--su-name-mid-strut);
+  vertical-align: middle;
+  width: 0;
 }
 
 .su-entity-tile__cells {
@@ -935,11 +947,21 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* A balanced chip block's chips (`.su-entity-row__heading--cut > .su-chips`,
-   `.su-entity-tile__chips`): inline boxes, each centred on its line. Last in
+   `.su-entity-tile__chips`, a two-line tile's last line): inline boxes, each
+   centred on its line. Last in
    the file, after the grid's `> *` rules it outranks. */
 .su-entity-row__heading--cut > .su-chips > *,
 .su-entity-tile__band > .su-entity-tile__chips:not(.su-entity-tile__chips--lines) > * {
   display: inline-flex;
   margin: var(--space-2);
   vertical-align: middle;
+}
+
+.su-entity-tile__chips--lines > .su-entity-tile__line:last-child > * {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.su-entity-tile__chips--lines > .su-entity-tile__line:last-child > * + * {
+  margin-left: var(--space-4);
 }

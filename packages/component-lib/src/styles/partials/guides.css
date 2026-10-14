@@ -563,17 +563,25 @@
    horizontal `Stat` cells drawn at the preview's scale, so nothing reads under
    the 34px source floor at Discord's 400px draw (ruleset §4.6). */
 .su-og-chips {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap-reverse;
-  gap: var(--space-14);
-  justify-content: flex-end;
+  line-height: 0;
+  margin: calc(-1 * var(--space-14)) 0 0 calc(-1 * var(--space-14));
+  text-align: end;
+  text-wrap: balance;
+}
+
+/* Inline boxes in a balanced block, as a show page's chips, so the rows come
+   out even; each chip's top and leading margin is the gap, cancelled at the
+   block's edges (`OgCard` widens the block by one gap). */
+.su-og-chips > * {
+  display: inline-flex;
+  margin: var(--space-14) 0 0 var(--space-14);
+  vertical-align: bottom;
 }
 
 /* The chips ride the band beside the title, as a show page's header chips
-   do: right-aligned on the notch's baseline, extra rows stacking upward
-   (`wrap-reverse`). Their width is set by `ogChipsWidth`, so the title never
-   gives way to them. */
+   do: right-aligned, the last row centred on the notch's capitals
+   (`ogChipsLift`), extra rows stacking upward, even. Their width is set by
+   `ogCardLayout`, so the title never gives way to them. */
 .su-chapter-band[data-scale='og'] .su-chapter-band__aside {
   flex: none;
   margin-left: auto;

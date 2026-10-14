@@ -12,10 +12,12 @@ import {
   footOf,
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
+  OG_CHIP_GAP,
   OG_GUTTER,
   ogCardLayout,
   ogCardPrintedTitle,
   ogCardTitle,
+  ogChipsLift,
   REFERENCE_KINDS,
 } from './ogCardText'
 
@@ -25,8 +27,9 @@ import {
  * that page. The chapter band with its speckle and the notched title
  * (`ChapterBand` at its `og` scale; nothing above the title, EDL E20), the
  * entity's one chip group beside it on the band, right-aligned on the title's
- * baseline as a show page's header chips are (E17: the page's own horizontal
- * `Stat` cells, the cost's pointy box last, extra rows stacking upward). The
+ * capitals' middle as a show page's header chips are (E17: the page's own
+ * horizontal `Stat` cells, the cost's pointy box last, extra rows stacking
+ * upward). The
  * band's colour comes as far down the card as it can; under the notch only a
  * strip of the page ground, or the rules text. The foot is the page's footer:
  * the kind in caps and the cite on the band's colour (E9), then the Union
@@ -226,10 +229,7 @@ const ADDRESS = {
 } satisfies CSSProperties
 
 /** The chips under a name too long to share its line: a left-aligned row on the page ground. */
-const CHIPS_BELOW = { flexWrap: 'wrap', justifyContent: 'flex-start' } satisfies CSSProperties
-
-/** The notch's baseline above the band's foot, as a share of the title's size. */
-const NOTCH_BASELINE = 0.076
+const CHIPS_BELOW = { textAlign: 'start', textWrap: 'wrap' } satisfies CSSProperties
 
 // ── Parts ─────────────────────────────────────────────────────────────────
 
@@ -251,7 +251,8 @@ function Chips({
   baseline: string
 }) {
   // Under the notch the chips read as a line of text: left-aligned, wrapping down.
-  const style = width > 0 ? { paddingBottom: baseline, width } : CHIPS_BELOW
+  // One gap wider: `.su-og-chips` cancels the leading gap of each row.
+  const style = width > 0 ? { paddingBottom: baseline, width: width + OG_CHIP_GAP } : CHIPS_BELOW
   return (
     <div className="su-og-chips" style={style}>
       {userMade && (
@@ -332,9 +333,9 @@ export function OgCard({
         cost={cost}
         userMade={userMade}
         width={layout.chipsWidth}
-        // Beside the title, on its baseline as a show page's header chips sit:
-        // the face's descent less the half-leading of the notch's line.
-        baseline={layout.chips === 'beside' ? `${Math.round(titlePx * NOTCH_BASELINE)}px` : '0px'}
+        // Beside the title, the last row centred on its capitals' middle, as a
+        // show page's header chips sit.
+        baseline={layout.chips === 'beside' ? `${ogChipsLift(titlePx)}px` : '0px'}
       />
     ) : undefined
 
