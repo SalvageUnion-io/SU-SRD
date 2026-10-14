@@ -46,11 +46,16 @@ export type HeaderFill = 'tone' | 'ink'
 /**
  * Which fill a card's header takes, by data shape. Things you do (abilities,
  * actions) are the ink banner on a card; an ability's head-only card is its
- * Row, and wears its tier tone (E12).
+ * Row, and wears its tier tone (E12). So does a PEEK's card: it wears the fill
+ * of the Token, Row or Tile that opened it, never a different one.
  */
-export function resolveHeaderFill(entity: SURefMetaEntity, extent: CardExtent): HeaderFill {
-  // The entity model's rule (E12), with the compact card as its Row.
-  return headerFill(entity, extent === 'head' ? 'row' : 'card')
+export function resolveHeaderFill(
+  entity: SURefMetaEntity,
+  extent: CardExtent,
+  insidePeek = false
+): HeaderFill {
+  // The entity model's rule (E12), with the compact card and the Peek as its Row.
+  return headerFill(entity, extent === 'head' || insidePeek ? 'row' : 'card')
 }
 
 /** Every colour a card's header takes. The frame, the "//" line and the footer
