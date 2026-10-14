@@ -53,7 +53,8 @@ export function resolveHeaderFill(entity: SURefMetaEntity, extent: CardExtent): 
 }
 
 /** Every colour a card's header takes. The frame, the "//" line and the footer
- * are ink on paper on every card, so they need no colour of their own. */
+ * are ink on paper on every card, so they need no colour of their own (a
+ * Peek's footer borrows the band, see `EntityCardIdentityFooter`). */
 export type CardColors = {
   /** The foreground for the header band — see `resolveCardColors`. */
   onBand: Foreground
