@@ -323,10 +323,10 @@ describe('pattern loadout tokens', () => {
       // The kind is never stamped (E9): screen readers hear it after the name.
       expect(pill?.querySelector('.su-entity-token__kind')).toBeNull()
       expect(pill?.querySelector('.su-sr-only')?.textContent).toBe(' (System)')
-      // Its chips follow the name, inside the pill: TL first, then Slots.
+      // Its chips follow the name, inside the pill: TL first, then Slots, each value first.
       const cells = pill?.querySelectorAll(':scope > .su-entity-token__chips > .su-stat-cell')
-      expect(cells?.[0]?.textContent).toMatch(/^TL\s*\d+$/)
-      expect(cells?.[1]?.textContent).toMatch(/^Slots\s*\d+$/)
+      expect(cells?.[0]?.textContent).toMatch(/^\d+\s*TL$/)
+      expect(cells?.[1]?.textContent).toMatch(/^\d+\s*Slots$/)
     }
   })
 

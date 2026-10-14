@@ -129,6 +129,7 @@ type StatPropKey =
   | 'ariaLabel'
   | 'className'
   | 'wrap'
+  | 'lead'
 
 /** `T`, plus every stat prop NOT in `T` forbidden (`?: never`) — the exclusion
  * that makes the anatomies genuinely non-overlapping at the type level. */
@@ -143,12 +144,12 @@ type HorizontalValueProps = Exact<{
   orientation: 'horizontal'
   value?: StatValue
   /**
-   * The cell's MATERIAL — same geometry (`label` then `value`, inline), two
+   * The cell's MATERIAL — same geometry (`value` then `label`, inline), two
    * finishes (canonical primitive language §0: geometry is constant across
    * contexts; only materials, density and interactivity change).
    *
    *   `plate` (default) — the stamp pair on a bordered, rounded cell.
-   *   `plain`           — RUNNING TEXT: `SP 9/13`, no plate, no border, no
+   *   `plain`           — RUNNING TEXT: `9/13 SP`, no plate, no border, no
    *                       radius. The label inherits the surrounding line's
    *                       colour and the reading is a `<b>` so a text container
    *                       can weight it (the sheet rail body does exactly this).
@@ -224,6 +225,9 @@ type HorizontalValueProps = Exact<{
    * is unchanged. The label never wraps.
    */
   wrap?: boolean
+  /** Which half reads first: the value (`1 TL`), or the label where it is the
+   * subject, a trait (`HOT 1`, as the book prints it) or a lead-in (`REQ`). */
+  lead?: 'value' | 'label'
   className?: string
 }>
 
@@ -312,6 +316,7 @@ function HorizontalValue({
   stepperLabel,
   hoverText,
   wrap = false,
+  lead = 'value',
   className,
 }: HorizontalValueProps) {
   const mainSurface: StampSurface = inverse ? 'inverse' : 'on-ink'
@@ -324,28 +329,18 @@ function HorizontalValue({
   const withHover = (node: ReactElement) =>
     hoverText ? <Tooltip content={hoverText}>{node}</Tooltip> : node
 
-  // PLAIN material — running text (`SP 9/13`). No plate, no border, no radius;
-  // an inert inline `<span>` so it neither breaks the line's flow nor changes
-  // how the surrounding sentence wraps. The reading (value AND `/max`) is one
-  // unbroken `<b>`: on a text line the slash belongs to the number, so it is
-  // not split off and muted the way the plate's `/max` suffix is.
-  //
-  // `plain` is a READ finish and returns here: a +/- stepper column belongs to
-  // a cell with an edge, not to a word in a sentence, so `mode="edit"` has no
-  // plain rendering (use the plate material when the stat is editable).
+  // PLAIN material — running text (`9/13 SP`): an inert inline `<span>`, no
+  // plate, border or radius. The reading (value AND `/max`) is one unbroken
+  // `<b>`: on a text line the slash belongs to the number. A READ finish: a
+  // +/- stepper belongs to a cell with an edge, so `mode="edit"` has no plain
+  // rendering (use the plate material when the stat is editable).
   if (surface === 'plain') {
+    const reading = value !== undefined && <b>{max === undefined ? value : `${value}/${max}`}</b>
     return withHover(
       <span className={className}>
-        {label}
-        {value !== undefined && (
-          <>
-            {' '}
-            <b>
-              {value}
-              {max !== undefined && `/${max}`}
-            </b>
-          </>
-        )}
+        {lead === 'label' && label}
+        {reading && (lead === 'value' ? <>{reading} </> : <> {reading}</>)}
+        {lead === 'value' && label}
       </span>
     )
   }
@@ -355,6 +350,56 @@ function HorizontalValue({
   // override the cell's `display` and `flex-shrink` by className (the sheet's
   // condensed bar folds cells with `su-sheet-live-stat-fold`), which an inline
   // style would beat. Only the chip role's tint stays inline.
+  const labelPlate = (
+    <Badge
+      shape="stamp"
+      size="mini"
+      surface={mainSurface}
+      // Stretched to the FULL cell height (over the stamp's inline-block) so
+      // the label's ink covers the whole cell, its text centred even when
+      // the row stretches it; a two-line label (`bottomLabel`) stacks. The
+      // CELL draws the single rounded border, so neither half keeps the
+      // `inverse` plate's inset ring.
+      className={classes(
+        'su-stat-plate',
+        PLATE_RUNG[size],
+        'su-stat-plate--label',
+        bottomLabel !== undefined && 'su-stat-plate--stack'
+      )}
+      style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
+    >
+      {bottomLabel !== undefined ? (
+        <>
+          <span>{label}</span>
+          <span>{bottomLabel}</span>
+        </>
+      ) : (
+        label
+      )}
+    </Badge>
+  )
+  const valuePlate = value !== undefined && (
+    <Badge
+      shape="stamp"
+      size="mini"
+      surface={valueSurface}
+      className={classes(
+        'su-stat-plate',
+        PLATE_RUNG[size],
+        'su-stat-plate--value',
+        // Wrapping, it narrows with its cell; a word longer than the row
+        // breaks rather than being clipped.
+        wrap && 'su-stat-plate--wrap'
+      )}
+    >
+      {value}
+      {max !== undefined && (
+        <span style={{ color: inverse ? color.paper70 : color.wkMuted, fontWeight: weight.normal }}>
+          /{max}
+        </span>
+      )}
+    </Badge>
+  )
   const cell = (
     <span
       className={classes(
@@ -366,56 +411,9 @@ function HorizontalValue({
         className
       )}
     >
-      <Badge
-        shape="stamp"
-        size="mini"
-        surface={mainSurface}
-        // Stretched to the FULL cell height (over the stamp's inline-block) so
-        // the label's ink covers the whole cell, its text centred even when
-        // the row stretches it; a two-line label (`bottomLabel`) stacks. The
-        // CELL draws the single rounded border, so neither half keeps the
-        // `inverse` plate's inset ring.
-        className={classes(
-          'su-stat-plate',
-          PLATE_RUNG[size],
-          'su-stat-plate--label',
-          bottomLabel !== undefined && 'su-stat-plate--stack'
-        )}
-        style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
-      >
-        {bottomLabel !== undefined ? (
-          <>
-            <span>{label}</span>
-            <span>{bottomLabel}</span>
-          </>
-        ) : (
-          label
-        )}
-      </Badge>
-      {value !== undefined && (
-        <Badge
-          shape="stamp"
-          size="mini"
-          surface={valueSurface}
-          className={classes(
-            'su-stat-plate',
-            PLATE_RUNG[size],
-            'su-stat-plate--value',
-            // Wrapping, it narrows with its cell; a word longer than the row
-            // breaks rather than being clipped.
-            wrap && 'su-stat-plate--wrap'
-          )}
-        >
-          {value}
-          {max !== undefined && (
-            <span
-              style={{ color: inverse ? color.paper70 : color.wkMuted, fontWeight: weight.normal }}
-            >
-              /{max}
-            </span>
-          )}
-        </Badge>
-      )}
+      {lead === 'value' && valuePlate}
+      {labelPlate}
+      {lead === 'label' && valuePlate}
     </span>
   )
 

@@ -238,8 +238,8 @@ describe('the card as a page', () => {
       ) ?? undefined,
       'chips on the band'
     )
-    expect(chips.textContent).toBe('HP4')
-    expect(head.textContent).toBe('Chef (NPC)HP4')
+    expect(chips.textContent).toBe('4HP')
+    expect(head.textContent).toBe('Chef (NPC)4HP')
   })
 
   test('"When damaged" is a framed callout, its stamp riding the border', () => {

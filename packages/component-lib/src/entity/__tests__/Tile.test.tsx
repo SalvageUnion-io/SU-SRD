@@ -64,7 +64,7 @@ describe('Tile cells', () => {
     const cyborg = need(SalvageUnionReference.Classes.getByName('Cyborg'), 'cyborg')
     const { container } = render(<Entity form="tile" entity={cyborg} lead />)
     const req = [...chipsOf(container).querySelectorAll('.su-stat-cell')].find(
-      (cell) => cell.firstElementChild?.textContent === 'REQ'
+      (cell) => cell.lastElementChild?.textContent === 'REQ'
     )
     expect(req?.classList.contains('su-stat-cell--wrap')).toBe(true)
   })

@@ -8,7 +8,7 @@ import type { TagItem } from './tagItems'
 
 /**
  * One TAG (E9, E17): a trait as a chip like every other, the horizontal
- * `Stat` cell with its parameter, `[Burn | 2]`. It behaves as a Mention does:
+ * `Stat` cell with its parameter after its name, `[Burn | 2]`. It behaves as a Mention does:
  * where the tag sits outside a link (`linkable`), it opens its glossary
  * entry — the page where the surface has a route (the SRD), else the Page
  * opener (ITUN) — and it Peeks on hover, focus or long-press wherever it names
@@ -38,6 +38,9 @@ export function Tag({
       orientation="horizontal"
       label={tag.name}
       value={tag.param?.trim() ? tag.param : undefined}
+      // A trait keeps its name first, as the book prints it (`HOT 1`); a
+      // measured keyword is a fact like any other, value first (`5 SP DAMAGE`).
+      lead={tag.schemaName === 'keywords' ? 'value' : 'label'}
       size={rung}
       state={tag.modified ? 'modified' : 'default'}
     />

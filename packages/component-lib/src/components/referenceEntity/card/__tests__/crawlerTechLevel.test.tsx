@@ -30,14 +30,14 @@ describe('crawler tech level card', () => {
     expect(text).toContain('SP')
     expect(text).toContain('Upkeep')
     expect(text).toContain('Upgrade')
-    expect(text).toContain('POP100–500')
+    expect(text).toContain('100–500POP')
   })
 
   test('the FULL card carries them in the same value cells', () => {
     const text = textOf(<ReferenceEntityCard data={tier('Town Crawler')} size="large" />)
     expect(text).toContain('Upkeep')
     expect(text).toContain('Upgrade')
-    expect(text).toContain('POP2,000–5,000')
+    expect(text).toContain('2,000–5,000POP')
   })
 
   test('the MAXIMUM tier states no upgrade cost and an open-ended population', () => {
@@ -49,7 +49,7 @@ describe('crawler tech level card', () => {
     )
     expect(text).toContain('Upkeep')
     expect(text).not.toContain('Upgrade')
-    expect(text).toContain('POP25,000+')
+    expect(text).toContain('25,000+POP')
   })
 
   test('every tier in the schema renders more than its bare name', () => {
