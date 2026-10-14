@@ -1,17 +1,19 @@
 /**
- * MechChassisCard — the mech sheet's CHASSIS card, under the hero (owner's
+ * MechChassisCard — the mech sheet's CHASSIS callout, the hero's foot (owner's
  * calls, 2026-10-14: the hero is the player's photo and what they wrote;
  * "Chassis has a reference" — a separate, smaller card with the chassis
  * description, in the standard Info Cutout block the Starter Set and Shelves
  * rows wear).
  *
  * `InfoCutout` in the chassis's tone: its art column (fixed: the player's
- * photo is the hero's), its name on the cut-out, and a paper body holding the
+ * photo is the hero's), its name on the cut-out with a CHASSIS chip beside it
+ * (owner's call, 2026-10-14), and a paper body holding the
  * book's description and — in Edit — CHANGE CHASSIS (destructive; it keeps its
  * own confirm step). The mech's chassis stats and the chassis ability are in
  * the hero (owner's call, 2026-10-14).
  */
 
+import type { StatItem } from 'component-lib'
 import { Button, Content, Field, InfoCutout } from 'component-lib'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { ComponentProps, CSSProperties } from 'react'
@@ -22,6 +24,9 @@ import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
 
 const CONTROLS = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
+
+/** The callout's one chip: a bare label, saying what the block is. */
+const KIND: StatItem[] = [{ key: 'kind', label: 'Chassis', value: undefined }]
 
 type MechChassisCardProps = {
   mech: Mech
@@ -66,7 +71,13 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
 
   return (
     <>
-      <InfoCutout title={chassisName} label="Chassis" fill={model.tone} art={model.art}>
+      <InfoCutout
+        title={chassisName}
+        label="Chassis"
+        fill={model.tone}
+        art={model.art}
+        facts={KIND}
+      >
         {entity?.content && entity.content.length > 0 && (
           <Content
             body={entity.content as ComponentProps<typeof Content>['body']}

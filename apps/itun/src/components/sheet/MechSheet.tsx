@@ -9,8 +9,8 @@
  *   Identity Band: image | text | stats + ability (`MechHeroChassis`) — the
  *       player's photo, what they wrote (the pattern name in Edit only: it is
  *       the band's title), the chassis stats and ability ∥ the vitals rail.
- *   Chassis: its own small reference card under the band (`MechChassisCard`)
- *       — art, name and description, with a Change Chassis control in Edit.
+ *   Chassis: the identity card's foot (`MechChassisCard`) — art, name (with
+ *       a CHASSIS chip) and description, with Change Chassis in Edit.
  *   Systems & Modules — KEPT as two sections (each its own `SheetSectionSlab`,
  *       side by side from 48rem, one Token a line): different collections
  *       with different '+ Add' pickers/slot budgets, so folding them into one
@@ -105,6 +105,8 @@ const FIELDS = {
   height: '100%',
   minWidth: 0,
 } satisfies CSSProperties
+
+const CHASSIS = { marginTop: 'auto', paddingTop: tokens.space[24] } satisfies CSSProperties
 
 /** The gauge stack; the dashed rule between gauges is `.su-sheet-mech-vitals`. */
 const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
@@ -306,48 +308,58 @@ export function MechSheet({
       <SheetHero
         name={mech.name}
         fields={
-          <PhotoBeside
-            photo={
-              <EntityPhoto
-                photo={mech.photo}
-                // The chassis art until the player changes it.
-                fallback={chassisArt(mech.chassisRef)}
-                name={mech.name}
-                onChange={
-                  readOnly
-                    ? undefined
-                    : (photo) =>
-                        useEntityStore
-                          .getState()
-                          .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
-                }
-              />
-            }
-          >
-            <div className="su-sheet-mech-hero-split">
-              <div style={FIELDS}>
-                <MechIdentityPanel
-                  mech={mech}
-                  patch={readOnly ? undefined : actions.patchMech}
-                  after={
-                    <Field
-                      label="Quirk"
-                      value={mech.quirk ?? ''}
-                      onSave={readOnly ? undefined : actions.saveQuirk}
-                      placeholder="No quirk recorded."
-                    />
+          <>
+            <PhotoBeside
+              photo={
+                <EntityPhoto
+                  photo={mech.photo}
+                  // The chassis art until the player changes it.
+                  fallback={chassisArt(mech.chassisRef)}
+                  name={mech.name}
+                  onChange={
+                    readOnly
+                      ? undefined
+                      : (photo) =>
+                          useEntityStore
+                            .getState()
+                            .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
                   }
                 />
+              }
+            >
+              <div className="su-sheet-mech-hero-split">
+                <div style={FIELDS}>
+                  <MechIdentityPanel
+                    mech={mech}
+                    patch={readOnly ? undefined : actions.patchMech}
+                    after={
+                      <Field
+                        label="Quirk"
+                        value={mech.quirk ?? ''}
+                        onSave={readOnly ? undefined : actions.saveQuirk}
+                        placeholder="No quirk recorded."
+                      />
+                    }
+                  />
 
-                <MechProseFields
-                  mech={mech}
-                  saveAppearance={readOnly ? undefined : actions.saveAppearance}
-                  saveDescription={readOnly ? undefined : actions.saveDescription}
-                />
+                  <MechProseFields
+                    mech={mech}
+                    saveAppearance={readOnly ? undefined : actions.saveAppearance}
+                    saveDescription={readOnly ? undefined : actions.saveDescription}
+                  />
+                </div>
+                <MechHeroChassis stats={model.chassisStats} abilities={model.chassisAbilities} />
               </div>
-              <MechHeroChassis stats={model.chassisStats} abilities={model.chassisAbilities} />
+            </PhotoBeside>
+            <div style={CHASSIS}>
+              <MechChassisCard
+                mech={mech}
+                entity={model.chassisEntity}
+                chassisName={model.chassisName}
+                patch={readOnly ? undefined : actions.patchMech}
+              />
             </div>
-          </PhotoBeside>
+          </>
         }
         vitals={
           <div className="su-sheet-mech-vitals" style={VITALS}>
@@ -419,14 +431,6 @@ export function MechSheet({
             )}
           </div>
         }
-      />
-
-      {/* ===== Chassis — its name, art and description, under the hero ===== */}
-      <MechChassisCard
-        mech={mech}
-        entity={model.chassisEntity}
-        chassisName={model.chassisName}
-        patch={readOnly ? undefined : actions.patchMech}
       />
 
       {/* ===== The Hold — ABOVE Systems & Modules =====

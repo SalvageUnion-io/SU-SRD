@@ -183,7 +183,7 @@ describe('MechSheet — the Chassis stats', () => {
 })
 
 describe('MechSheet — the hero and the Chassis card', () => {
-  test('the hero is image | text | stats + ability; the card keeps the chassis prose', () => {
+  test('the hero is image | text | stats + ability, closed by the chassis callout', () => {
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
@@ -202,6 +202,9 @@ describe('MechSheet — the hero and the Chassis card', () => {
     expect(hero?.textContent).not.toContain('Pattern name')
     // The card: the chassis's name, art and description, and nothing the hero has.
     expect(card?.textContent).toContain('Spectrum')
+    // The callout closes the hero, with a CHASSIS chip beside its name.
+    expect(hero?.contains(card ?? null)).toBe(true)
+    expect(card?.querySelector('[data-chip-group]')?.textContent).toMatch(/chassis/i)
     expect(card?.querySelector('img')).not.toBeNull()
     expect(card?.querySelector('dl[aria-label="Chassis stats"]')).toBeNull()
     expect(card?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
