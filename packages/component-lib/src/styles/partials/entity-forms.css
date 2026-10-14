@@ -527,9 +527,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
-/* The chips beside the name (`chipsBeside`, a chassis): the facts and the
-   cost right-aligned on the band's foot. They wrap
-   into rows that grow the band upward, never above the name's own line. */
+/* The chips beside the name: the facts and the cost right-aligned on the
+   band's foot. They wrap into rows that grow the band upward, never above
+   the name's own line. */
 .su-entity-tile__band > .su-entity-tile__chips {
   align-content: flex-end;
   align-self: flex-end;
