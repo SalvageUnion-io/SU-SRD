@@ -261,7 +261,7 @@ export function MechSheet({
     return (
       <ul
         aria-label={kind === 'system' ? 'Systems installed' : 'Modules installed'}
-        className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-mech-items'}
+        className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}
       >
         {slugs.map((slug, index) => (
           <li key={keys[index]}>

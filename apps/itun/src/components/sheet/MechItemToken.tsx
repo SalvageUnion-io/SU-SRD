@@ -4,19 +4,11 @@
  * Units are Tokens that Peek, not cards that expand). Hover, focus or a long
  * press Peeks the whole card; a damaged or destroyed item's pill greys.
  *
- * Its controls sit ON the Token's line (owner's call, 2026-10-14: one
- * consistent control, not a row of mismatched ones), every one the sheet
- * control's height (`.su-sheet-ctl`, `styles/sheet/items.css`):
- *
- *   - the condition, one control naming the state that steps it on
- *     (Intact → Damaged → Destroyed) by hand; Read stamps it only when the
- *     item is not intact;
- *   - Uses `[− USES 3/5 +]`, for systems AND modules that have uses;
- *   - Repair (Damaged only): shows the half-SV scrap cost and opens a MODAL
- *     confirm offering an OPTIONAL crawler scrap-pool deduction. The
- *     no-deduction path is always available — advisory, never blocks, but
- *     never a silent free flip either: the cost is on the control;
- *   - Remove (✕): per-item uninstall (unified edit language archetype B).
+ * Its controls sit ON the Token's line (`SheetItemLine`, which a pilot's
+ * equipment shares): the condition, Uses, Repair (Damaged only: shows the
+ * half-SV scrap cost and opens a MODAL confirm offering an OPTIONAL crawler
+ * scrap-pool deduction; the no-deduction path is always available —
+ * advisory, never blocks, but never a silent free flip either) and Remove.
  *
  * An unresolvable slug falls back to a plain chit (raw slug + status badge)
  * so unknown data never crashes the sheet.
@@ -34,6 +26,7 @@ import {
   repairPoolTl,
   repairScrapCost,
 } from '../../lib/rules/mechItems'
+import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
 
 /** The fallback chit for a slug that does not resolve. */
@@ -63,13 +56,6 @@ const CHIT_END = {
   flexShrink: 0,
   gap: tokens.space[6],
 } satisfies CSSProperties
-
-/** The condition's name on its control. */
-const CONDITION_LABEL: Record<ItemCondition, string> = {
-  intact: 'Intact',
-  damaged: 'Damaged',
-  destroyed: 'Destroyed',
-}
 
 const CONFIRM = {
   backgroundColor: tokens.color.paper,
@@ -210,88 +196,31 @@ export function MechItemToken({
       </ModalShell>
     ) : null
 
-  const pill = <Entity form="token" entity={entity} instance={{ condition }} />
-  const conditionLabel = CONDITION_LABEL[condition]
-  // Read: the Token alone while intact; a damaged or destroyed one names its
-  // condition as a read-out stamp after it.
-  if (readOnly) {
-    if (condition === 'intact') return pill
-    return (
-      <div className="su-entity-token-line su-sheet-item">
-        {pill}
-        <span
-          className="su-sheet-ctl su-sheet-ctl--condition su-sheet-ctl--readout"
-          data-state={condition}
-          title={`${entity.name}: ${conditionLabel}`}
-        >
-          {conditionLabel}
-        </span>
-      </div>
-    )
-  }
-
   return (
-    <div className="su-entity-token-line su-sheet-item">
-      {pill}
-      <button
-        type="button"
-        className="su-sheet-ctl su-sheet-ctl--condition"
-        data-state={condition}
-        aria-label={`${entity.name} status: ${conditionLabel} — click to change`}
-        onClick={onStatusCycle}
-      >
-        {conditionLabel}
-      </button>
-      {maxUses > 0 && (
-        <span className="su-sheet-ctl su-sheet-ctl--uses">
-          <button
-            type="button"
-            className="su-sheet-ctl__step"
-            aria-label={`Remove one ${entity.name}`}
-            disabled={remaining <= 0}
-            onClick={() => onUsesChange(remaining - 1)}
-          >
-            −
-          </button>
-          <span aria-hidden="true" className="su-sheet-ctl__readout">
-            {`Uses ${remaining}/${maxUses}`}
-          </span>
-          <span role="status" aria-live="polite" className="su-sr-only">
-            {entity.name} uses: {remaining}
-          </span>
-          <button
-            type="button"
-            className="su-sheet-ctl__step"
-            aria-label={`Add one ${entity.name}`}
-            disabled={remaining >= maxUses}
-            onClick={() => onUsesChange(remaining + 1)}
-          >
-            +
-          </button>
-        </span>
-      )}
-      {condition === 'damaged' && (
-        <Button
-          size="compact"
-          variant="danger"
-          className="su-sheet-item__repair"
-          aria-label={`Repair ${entity.name}`}
-          onClick={() => setConfirmingRepair(true)}
-        >
-          Repair · {cost} Scrap
-        </Button>
-      )}
-      {onRemove && (
-        <button
-          type="button"
-          className="su-sheet-ctl su-sheet-ctl--square"
-          aria-label={`Remove ${entity.name}`}
-          onClick={onRemove}
-        >
-          ✕
-        </button>
-      )}
+    <>
+      <SheetItemLine
+        token={<Entity form="token" entity={entity} instance={{ condition }} />}
+        name={entity.name}
+        condition={condition}
+        readOnly={readOnly}
+        onConditionCycle={onStatusCycle}
+        uses={maxUses > 0 ? { remaining, max: maxUses, onChange: onUsesChange } : undefined}
+        actions={
+          condition === 'damaged' && (
+            <Button
+              size="compact"
+              variant="danger"
+              className="su-sheet-item__repair"
+              aria-label={`Repair ${entity.name}`}
+              onClick={() => setConfirmingRepair(true)}
+            >
+              Repair · {cost} Scrap
+            </Button>
+          )
+        }
+        onRemove={onRemove}
+      />
       {repairModal}
-    </div>
+    </>
   )
 }

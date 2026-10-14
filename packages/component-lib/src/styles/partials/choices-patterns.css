@@ -124,6 +124,7 @@
 
 .su-entity-token-line > .su-entity-token > .su-entity-token__pill {
   align-self: stretch;
+  flex: 1 1 auto;
 }
 
 @media (min-width: 40rem) {

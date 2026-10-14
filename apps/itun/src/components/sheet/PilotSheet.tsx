@@ -250,12 +250,6 @@ const STACK_12 = {
   gap: tokens.space[12],
 } satisfies CSSProperties
 
-const STACK_16 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
-
 const STACK_20 = {
   display: 'flex',
   flexDirection: 'column',
@@ -278,6 +272,9 @@ const CONDITIONS_CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 const OVER_CAPACITY = { color: tokens.color.statusBad } satisfies CSSProperties
 
 const PILLS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+
+/** The Edit list: one item a line; its gap is `.su-sheet-items`. */
+const EDIT_ITEMS = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
 
 const ADDER_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
 
@@ -610,9 +607,9 @@ export function PilotSheet({
                   )}
                 </div>
               ) : (
-                // Edit: one item to a row, each its pill with the controls under
-                // it — the narrow column has no room for two cards side by side.
-                <div style={STACK_16}>
+                // Edit: one item to a line, its controls on the line beside its
+                // pill (`SheetItemLine`), as a mech's Systems and Modules.
+                <div className="su-sheet-items" style={EDIT_ITEMS}>
                   {model.ordinaryEquipment.map((slug) => (
                     <PilotEquipmentItem
                       key={slug}

@@ -14,7 +14,6 @@ import {
   ReferenceEntityCard,
   Stat,
   StatusBadge,
-  StatusTriState,
   tokens,
 } from 'component-lib'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
@@ -30,6 +29,7 @@ import {
 } from '../../lib/rules/pilotInventory'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
 
 const HIDE_CHOICES = { choices: true } as const
@@ -40,28 +40,6 @@ const ITEM_EDIT = {
   flexDirection: 'column',
   gap: tokens.space[8],
   minWidth: 0,
-} satisfies CSSProperties
-
-const ITEM_CONTROLS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const ITEM_USES = {
-  alignItems: 'center',
-  display: 'inline-flex',
-  fontFamily: tokens.font.cond,
-  fontWeight: tokens.weight.bold,
-  gap: tokens.space[6],
-} satisfies CSSProperties
-
-const ITEM_USES_LABEL = {
-  color: tokens.color.ink75,
-  fontSize: tokens.fontSize.badge,
-  letterSpacing: tokens.tracking.caps,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 /** An ability card's Edit row: Spend AP and the used toggle, under the body. */
@@ -360,68 +338,45 @@ export function PilotEquipmentItem({
   // The shortform pill — the item named, typed and tech-levelled on one line
   // (board 10). It is the item in BOTH states: the name always wins, and is
   // never ellipsized to make room for a control. A damaged item's pill greys,
-  // as its card's header does.
+  // as its card's header does; it Peeks the whole card.
   const pill = <Entity form="token" entity={equipment} instance={{ condition }} />
+  // Only an item with choices opens its card under the line: its choices are
+  // written there. Everything else the Peek already shows.
+  const hasChoices = Array.isArray(equipment.choices) && equipment.choices.length > 0
 
-  // Read state: the pill and nothing else. Uses, condition and choices are
-  // the Edit state's.
+  // Read: the pill alone (the inventory wraps its pills on a line). Edit: the
+  // same line as a mech's Systems and Modules (`SheetItemLine`), Details
+  // where there are choices to make.
   if (readOnly) return pill
 
-  // Edit state: the same pill, with its controls in a row of their own under
-  // it — the condition tri-state, the uses counter, Remove — so nothing rides
-  // above the item or over its neighbour. Details opens the full card (its
-  // text and any choices) under the row.
   return (
     <div style={ITEM_EDIT}>
-      {pill}
-      <div style={ITEM_CONTROLS}>
-        <StatusTriState
-          status={condition}
-          onClick={() => {
-            onConditionChange(slug, CONDITION_CYCLE[condition])
-          }}
-          subject={equipment.name}
-        />
-        {maxUses !== null && uses !== null && (
-          <span style={ITEM_USES}>
-            <span style={ITEM_USES_LABEL}>Uses</span>
-            <span>{`${uses}/${maxUses}`}</span>
-            <Button
-              size="compact"
-              aria-label={`Use ${equipment.name}`}
-              disabled={uses <= 0}
-              onClick={() => {
-                onUsesChange(slug, Math.max(0, uses - 1))
-              }}
+      <SheetItemLine
+        token={pill}
+        name={equipment.name}
+        condition={condition}
+        readOnly={false}
+        onConditionCycle={() => onConditionChange(slug, CONDITION_CYCLE[condition])}
+        uses={
+          maxUses !== null && uses !== null
+            ? { remaining: uses, max: maxUses, onChange: (next) => onUsesChange(slug, next) }
+            : undefined
+        }
+        actions={
+          hasChoices && (
+            <button
+              type="button"
+              className="su-sheet-ctl"
+              aria-expanded={detailsOpen}
+              aria-label={`${detailsOpen ? 'Collapse' : 'Expand'} ${equipment.name}`}
+              onClick={() => setDetailsOpen((open) => !open)}
             >
-              Use
-            </Button>
-            <Button
-              size="compact"
-              variant="ghost"
-              aria-label={`Restock ${equipment.name}`}
-              disabled={uses >= maxUses}
-              onClick={() => {
-                onUsesChange(slug, maxUses)
-              }}
-            >
-              Restock
-            </Button>
-          </span>
-        )}
-        <Button
-          size="compact"
-          variant="ghost"
-          aria-expanded={detailsOpen}
-          aria-label={`${detailsOpen ? 'Collapse' : 'Expand'} ${equipment.name}`}
-          onClick={() => {
-            setDetailsOpen((open) => !open)
-          }}
-        >
-          Details
-        </Button>
-        {onRemove && <CardRemoveButton name={equipment.name} onRemove={onRemove} />}
-      </div>
+              Details
+            </button>
+          )
+        }
+        onRemove={onRemove}
+      />
       {detailsOpen && (
         <ReferenceEntityCard
           data={equipment}

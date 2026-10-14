@@ -257,9 +257,7 @@ export function PartnerCard({
       <div style={ITEMS}>
         <h4 style={ITEMS_HEADING}>{kind === 'system' ? 'Systems' : 'Modules'}</h4>
         {/* One Token a line, each Peeking its whole card. */}
-        <ul
-          className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-mech-items'}
-        >
+        <ul className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}>
           {slugs.map((slug, index) => (
             <li key={keys[index]}>
               <MechItemToken
