@@ -65,12 +65,11 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   await buildIronWagon(page)
 
   // Open the crawler's live sheet from its roster row.
-  // Matched on `href`, not the label. EntityRow's sheet link reads "View" on
-  // every row, so it carries `aria-label="View <name>"` for WCAG 2.4.4 — which
-  // means its ACCESSIBLE NAME is not "View" and `/^View$/` matches nothing.
-  // The locator is already scoped to this entity's row, so the href is the
-  // contract that matters and it survives the next copy change. This is the
-  // same reasoning `openSheetFor` in `_helpers.ts` records.
+  // Matched on `href`, not the label. The shelf item's pill (`ShelfItem`) is
+  // the link to the sheet, and its accessible name is the whole pill (stamp,
+  // name, reading), so no label match is stable. The href is the contract
+  // that matters and it survives the next copy change, as `openSheetFor` in
+  // `_helpers.ts` does.
   await page.locator('li', { hasText: 'Iron Wagon' }).locator('a[href*="/sheet/"]').click()
   await page.waitForURL(/\/sheet\/crawler\//, { timeout: 15_000 })
   await waitForReady(page)

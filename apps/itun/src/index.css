@@ -15,7 +15,7 @@
 /* The Shelves band's paper-on-ink controls. */
 @import './styles/shelves.css';
 /* The stateful halves of ITUN's other components. */
-@import './styles/entityRow.css';
+@import './styles/unitSlot.css';
 @import './styles/routeStates.css';
 @import './styles/screens.css';
 @import './styles/controls.css';
