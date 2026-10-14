@@ -124,17 +124,17 @@ const childRowKey = (block: ContainerBlock | DiscordBlock): string | null => {
   return key && !key.includes('|') ? key : null
 }
 
+// One test per schema, so no one test carries the whole dataset's cost.
 describe('lookupCard — exhaustive across the whole dataset', () => {
-  test('every entry and every pattern renders whole, never in rust, and IS its pasted link’s card', () => {
-    const schemas = getSchemaCatalog().schemas.filter((s) => !s.meta)
-    const { dataMap } = getDataMaps()
-    let entries = 0
-    let patterns = 0
-    let indexed = 0
-    let menus = 0
-    let rows = 0
-    for (const schema of schemas) {
-      const schemaName = schema.id
+  const { dataMap } = getDataMaps()
+  let entries = 0
+  let patterns = 0
+  let indexed = 0
+  let menus = 0
+  let rows = 0
+  for (const schema of getSchemaCatalog().schemas.filter((s) => !s.meta)) {
+    const schemaName = schema.id
+    test(`every ${schemaName} entry and pattern renders whole, never in rust, and IS its pasted link’s card`, () => {
       if (!isSchemaName(schemaName)) throw new Error(`non-canonical schema id: ${schemaName}`)
       for (const raw of (dataMap[schemaName] as SURefEntity[] | undefined) ?? []) {
         const withSchema: Entity = { ...raw, schemaName }
@@ -191,7 +191,9 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
           else entries++
         }
       }
-    }
+    })
+  }
+  test('the loop checked the whole dataset', () => {
     // Guard against the loop silently checking nothing (accessor drift).
     expect(entries).toBeGreaterThan(800)
     expect(patterns).toBeGreaterThan(100)

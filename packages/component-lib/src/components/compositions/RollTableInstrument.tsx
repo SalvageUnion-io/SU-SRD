@@ -277,7 +277,7 @@ function rollLabel(words: string, name: string): string {
  * <table>"); otherwise (no roll here, or static HTML) the plain stamp, in the
  * same place. The host owns the result and its polite live region.
  */
-function RollControl({
+export function RollControl({
   name,
   onRoll,
   children,

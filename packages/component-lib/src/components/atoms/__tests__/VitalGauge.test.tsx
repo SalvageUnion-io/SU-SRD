@@ -20,13 +20,12 @@ function pip(slider: HTMLElement, index: number): HTMLElement {
 }
 
 describe('VitalGauge — render', () => {
-  test('renders label, numeral, max and default caption', () => {
+  test('renders label, numeral and max, and no Current / Max caption even editable', () => {
     render(<VitalGauge label="HP" value={7} max={10} onChange={() => {}} />)
     expect(screen.getByText('HP')).toBeTruthy()
     expect(screen.getByText('7')).toBeTruthy()
     expect(screen.getByText('10')).toBeTruthy()
-    expect(screen.getByText('Current')).toBeTruthy()
-    expect(screen.getByText('Max')).toBeTruthy()
+    expect(screen.queryByText('Current')).toBeNull()
   })
 
   test('editable gauge is a role=group with a summary label', () => {

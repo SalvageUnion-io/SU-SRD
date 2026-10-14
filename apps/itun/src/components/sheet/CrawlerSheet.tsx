@@ -412,7 +412,6 @@ export function CrawlerSheet({
             toned frame — no name pseudoheader stamp. */}
         <SheetHero
           name={crawler.name}
-          surface={readOnly ? 'paper' : 'frame'}
           fields={
             <PhotoBeside
               photo={

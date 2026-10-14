@@ -131,3 +131,8 @@
 .su-sheet-pills .su-entity-token__pill {
   flex: 1 1 auto;
 }
+
+/* A bay's crew Token keeps its Read width in Edit, Details beside it. */
+.su-sheet-crew .su-entity-token-line > .su-entity-token {
+  flex: 0 1 auto;
+}

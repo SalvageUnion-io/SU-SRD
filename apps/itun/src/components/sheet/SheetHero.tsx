@@ -29,17 +29,9 @@ type SheetHeroProps = {
   vitals?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
-  /** `paper` is the printed read state; `frame` the Edit state's card. */
-  surface?: 'frame' | 'paper'
 }
 
-export function SheetHero({
-  name,
-  fields,
-  vitals,
-  fieldsTitle = 'Identity',
-  surface = 'frame',
-}: SheetHeroProps) {
+export function SheetHero({ name, fields, vitals, fieldsTitle = 'Identity' }: SheetHeroProps) {
   return (
     <section
       aria-label={`${name} sheet header`}
@@ -60,14 +52,16 @@ export function SheetHero({
           a card has no chevron, which is exactly right here. */}
       <SheetSectionCard
         title={fieldsTitle}
-        surface={surface}
+        // One surface in Read and Edit (owner's call, 2026-10-14: Edit looks
+        // like Read), so switching modes never reframes the page.
+        surface="paper"
         className="su-sheet-hero-fields"
         bodyClassName="su-sheet-hero-fields-body"
       >
         {fields}
       </SheetSectionCard>
       {vitals && (
-        <SheetSectionCard title="Vitals" surface={surface}>
+        <SheetSectionCard title="Vitals" surface="paper">
           {vitals}
         </SheetSectionCard>
       )}

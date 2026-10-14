@@ -321,6 +321,13 @@
   grid-column-start: 1;
 }
 
+/* The compact column flows straight on, two a line, so a chassis's eight
+   stats fill four even lines rather than leaving holes where a group opens
+   (owner's call, 2026-10-14). The order is the stat order still. */
+.su-stat-column--compact .su-stat-column__cell[data-group-start] {
+  grid-column-start: auto;
+}
+
 .su-chapter-band[data-aside='notch'] .su-stat-column > [data-group-start] {
   margin-inline-start: var(--space-8);
 }
