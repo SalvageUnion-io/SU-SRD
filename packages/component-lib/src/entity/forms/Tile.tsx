@@ -20,8 +20,6 @@ export type TileProps = {
   omit?: readonly EntityOmit[]
   /** The opening prose under the cells, while browsing (E11). */
   lead?: boolean
-  /** The chips beside the name, on the band, in place of under it (a chassis). */
-  chipsBeside?: boolean
 }
 
 type TileMode = Extract<EntityMode, { kind: 'read' | 'link' }>
@@ -30,9 +28,9 @@ const READ: TileMode = { kind: 'read' }
 
 /**
  * The 440 derivative is the tile's own rendition: a catalog column tops out
- * near 18rem, so 440 covers it at 1x–1.5x and 880 at 2x and up.
+ * near 22rem, so 440 covers it at 1x–1.25x and 880 at 2x and up.
  */
-const SIZES = '(min-width: 75rem) 18rem, 50vw'
+const SIZES = '(min-width: 75rem) 22rem, 50vw'
 
 /** The su-assets derivative at one allowlisted width (`assetSrcSet`). */
 function derivative(url: string, width: 440 | 880): string {
@@ -62,18 +60,12 @@ const NAME: CSSProperties = {
  * (the line art multiplied onto it); an entity without art has no art place,
  * so its tile opens on the band. Then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
- * Manual's chapter band at a tile's scale — then the cost and the facts as
- * chips (`EP | 2`, `SLOTS | 1`) and, while browsing, the lead clamped to three
- * lines.
+ * Manual's chapter band at a tile's scale — with the facts and the cost as
+ * chips (`EP | 2`, `SLOTS | 1`) beside the name on the band; then, while
+ * browsing, the lead clamped to three lines.
  * Layout is `index.css`'s `.su-entity-tile*`.
  */
-export function Tile({
-  model,
-  mode = READ,
-  omit = [],
-  lead = false,
-  chipsBeside = false,
-}: TileProps) {
+export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
@@ -123,12 +115,11 @@ export function Tile({
               {model.title}
             </span>
           </span>
-          {chipsBeside && hasChips && <span className="su-entity-tile__chips">{chips}</span>}
+          {hasChips && <span className="su-entity-tile__chips">{chips}</span>}
         </div>
-        {((hasChips && !chipsBeside) || leadText) && (
+        {leadText && (
           <div className="su-entity-tile__cells">
-            {!chipsBeside && chips}
-            {leadText && <Lead text={leadText} />}
+            <Lead text={leadText} />
           </div>
         )}
       </div>

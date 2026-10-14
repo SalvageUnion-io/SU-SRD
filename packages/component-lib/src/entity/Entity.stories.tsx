@@ -139,7 +139,7 @@ export const TileCatalog: Story = () => (
     style={{
       ...GRID,
       gap: space[12],
-      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 17rem), 1fr))',
     }}
   >
     {['Artl', 'Irradiated Scorpion', 'Chimeripede', 'Wasteland Bear'].map((name) => {

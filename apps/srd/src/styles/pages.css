@@ -953,7 +953,7 @@
 .srd-listing {
   --srd-listing-min: 19rem;
   /* A tile's band under its art (the Catalog's placeholders, below). */
-  --srd-tile-band: 9.75rem;
+  --srd-tile-band: 8.3125rem;
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
@@ -964,7 +964,6 @@
 
 .srd-listing[data-wide] {
   --srd-listing-min: 31rem;
-  --srd-tile-band: 10.8125rem;
 }
 
 .srd-listing__groups {
@@ -1067,24 +1066,19 @@
 /*
  * THE CATALOG (`data-view="catalog"`): the Tiles (component-lib's
  * `.su-entity-tile`), every listing's view at every width, one flat grid
- * (`lib/listingView.ts`). It fills its line to the page's margin: as many 13.5rem-or-wider tracks as the measure holds
- * (five or six at the page's), stretched to share the room, the remainder on
- * a shorter last line. Every tile on the page is one width. A tile's art box
- * holds 3:4 before its image loads.
+ * (`lib/listingView.ts`). It fills its line to the page's margin: as many
+ * 17rem-or-wider tracks as the measure holds (four at the page's), stretched
+ * to share the room, the remainder on a shorter last line. Every tile on the
+ * page is one width. A tile's art box holds 3:4 before its image loads.
  */
 .srd-listing__tiles {
   align-items: stretch;
   display: grid;
   gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
-}
-
-/* Chips beside the name (a chassis) need a wider tile to keep to two rows. */
-.srd-listing__tiles--beside {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
 }
 
 .srd-listing__tiles > li {
@@ -1094,12 +1088,12 @@
 }
 
 /* A tile's place while the data loads, in the tile's own structure: its 3:4
-   art box (inside the frame's border), then a fixed band for the tone band,
-   the cells and the lore line's three lines. The band does not scale with the
-   column, so the shape holds at every column width. Measured on the built
-   site at 1280px and 1440px, the band under the art runs 9.75rem in most
-   listings and 10.8125rem in the wide one (chassis, whose cells take two
-   lines); a row whose tiles fall short of that stretches to it. The
+   art box (inside the frame's border), then a fixed band for the tone band
+   (its chips beside the name) and the lore line's three lines. The band does
+   not scale with the column, so the shape holds at every column width.
+   Measured at 1280px and 1440px, the band under the art runs 8.3125rem where
+   the chips keep to two rows (chassis, bio-titans, classes); a row whose
+   tiles fall short of that stretches to it. The
    server-rendered names below take the same shape. */
 .srd-listing__tile-skeleton {
   background-color: var(--color-paper);
@@ -1118,7 +1112,7 @@
 .srd-listing[data-art][data-view='catalog'] .srd-listing__cards {
   gap: var(--space-12);
   grid-auto-rows: auto;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
 }
 
 /* The art box spans the frame (out through the row's side padding), the

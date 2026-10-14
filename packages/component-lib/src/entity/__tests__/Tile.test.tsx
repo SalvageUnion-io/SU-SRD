@@ -1,6 +1,7 @@
 /**
- * A Tile carries the entity's lore line while browsing (`lead`): after the
- * value cells, clamped to three lines, the full text in its tooltip.
+ * A Tile carries its value cells beside the name on the band, and the
+ * entity's lore line while browsing (`lead`): under the band, clamped to
+ * three lines, the full text in its tooltip.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -15,6 +16,12 @@ const need = <T,>(value: T | undefined, label: string): T => {
 const mule = () => need(SalvageUnionReference.Chassis.getByName('Mule'), 'mule')
 const muleLead = () => need(toEntityModel(mule()).lead, 'mule lead')
 
+const chipsOf = (container: HTMLElement) => {
+  const chips = container.querySelector('.su-entity-tile__band > .su-entity-tile__chips')
+  if (!(chips instanceof HTMLElement)) throw new Error('no chips')
+  return chips
+}
+
 const cellsOf = (container: HTMLElement) => {
   const cells = container.querySelector('.su-entity-tile__cells')
   if (!(cells instanceof HTMLElement)) throw new Error('no cells')
@@ -22,13 +29,13 @@ const cellsOf = (container: HTMLElement) => {
 }
 
 describe('Tile lead', () => {
-  test('renders the lore line after the value cells', () => {
+  test('renders the lore line under the band, the value cells beside the name', () => {
     const { container } = render(<Entity form="tile" entity={mule()} lead />)
     const cells = cellsOf(container)
-    const lead = cells.lastElementChild
-    expect(lead?.tagName).toBe('P')
-    expect(lead?.textContent).toBe(muleLead())
-    expect(cells.childElementCount).toBeGreaterThan(1)
+    expect(cells.childElementCount).toBe(1)
+    expect(cells.firstElementChild?.tagName).toBe('P')
+    expect(cells.firstElementChild?.textContent).toBe(muleLead())
+    expect(chipsOf(container).querySelectorAll('.su-stat-cell').length).toBeGreaterThan(1)
   })
 
   // happy-dom drops `-webkit-box` and `-webkit-line-clamp` from a parsed
@@ -56,7 +63,7 @@ describe('Tile cells', () => {
   test("a hybrid's requirements wrap in the tile rather than being clipped", () => {
     const cyborg = need(SalvageUnionReference.Classes.getByName('Cyborg'), 'cyborg')
     const { container } = render(<Entity form="tile" entity={cyborg} lead />)
-    const req = [...cellsOf(container).querySelectorAll('.su-stat-cell')].find(
+    const req = [...chipsOf(container).querySelectorAll('.su-stat-cell')].find(
       (cell) => cell.firstElementChild?.textContent === 'REQ'
     )
     expect(req?.classList.contains('su-stat-cell--wrap')).toBe(true)
