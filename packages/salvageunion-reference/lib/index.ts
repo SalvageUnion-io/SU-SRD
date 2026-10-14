@@ -55,11 +55,9 @@ export {
   getName,
   getPageReference,
   getReferenceEntityName,
-  getSalvageValue,
   getSlotsRequired,
   getSource,
   getTechLevel,
-  getTechLevelNumber,
   getTree,
 } from './entityFields'
 export { isAbility, isBaseAdvancedClass, isCoreClass } from './entityGuards'
@@ -113,7 +111,6 @@ export type {
   SURefObjectDataValue,
   SURefObjectGuideStep,
   SURefObjectPattern,
-  SURefObjectPatternSystemModule,
   SURefObjectTable,
   SURefObjectTrait,
 } from './schemas/index'

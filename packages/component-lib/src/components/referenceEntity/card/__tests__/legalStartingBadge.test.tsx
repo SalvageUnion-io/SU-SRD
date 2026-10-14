@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { SURefChassis } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityCard } from '../../card/ReferenceEntityCard'
+import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /**
  * "Legal Starting Pattern" is an explicit data tag on a pattern (`legalStarting`),

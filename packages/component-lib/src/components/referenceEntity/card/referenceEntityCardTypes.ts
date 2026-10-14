@@ -178,9 +178,7 @@ export type ReferenceEntityCardProps = {
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───
   titleOverride?: string
   statsOverride?: StatItem[]
-  primaryStatsOnly?: boolean
   subtitleExtra?: ReactNode
-  abilitiesSection?: ReactNode
   afterExtraContent?: ReactNode
   /** ASIDE LEAD — opt in when this card's `afterExtraContent` is a SECTION of
    * its own (the class pages' ability trees) rather than trailing body content.

@@ -35,8 +35,6 @@ export type Fact = {
   value: string
   /** What the stat means, for its tooltip. */
   hint?: string
-  /** One of the stats a primary-only cluster keeps. */
-  primary?: true
 }
 
 /** A named rule an entity carries: a trait, or a keyword-typed datavalue. */

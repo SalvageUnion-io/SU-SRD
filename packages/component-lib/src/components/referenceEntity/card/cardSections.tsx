@@ -62,7 +62,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     assetSrcSet,
     sectionAs,
     afterExtraContent,
-    abilitiesSection,
     selections,
     onSelectionChange,
     NestedCard,
@@ -182,8 +181,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
 
   // ACTIONS — inline, flush. Below depth 1 they fold behind a chip.
   const actionsNode: ReactNode =
-    abilitiesSection ??
-    (inlineActionEntities.length > 0 ? (
+    inlineActionEntities.length > 0 ? (
       depth >= 2 ? (
         <ActionsChip count={inlineActionEntities.length} size={size}>
           <InlineActions actions={inlineActionEntities} host={nestedHost} />
@@ -191,7 +189,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       ) : (
         <InlineActions actions={inlineActionEntities} host={nestedHost} />
       )
-    ) : null)
+    ) : null
 
   const bodyContent: ReactNode = (
     <>

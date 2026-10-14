@@ -247,9 +247,7 @@ function ReferenceEntityCardInner({
   onSelectionChange,
   titleOverride,
   statsOverride,
-  primaryStatsOnly,
   subtitleExtra,
-  abilitiesSection,
   afterExtraContent,
   asideLead: asideLeadRequested = false,
   footMeta,
@@ -391,8 +389,6 @@ function ReferenceEntityCardInner({
     schemaName,
     asCompact: true,
     none: isAction || isPatternListing,
-    // A head row keeps every cell: the one-line header sheds the ones that do not fit.
-    primaryOnly: !!primaryStatsOnly,
     techLevel,
     techLevelDisplay,
     techLevelModified,
@@ -618,7 +614,6 @@ function ReferenceEntityCardInner({
     selections,
     onSelectionChange,
     afterExtraContent,
-    abilitiesSection,
     showChassisAbility,
     NestedCard: ReferenceEntityCardInner,
   }
@@ -659,7 +654,6 @@ function ReferenceEntityCardInner({
             : undefined
         }
         table={rollTableNode}
-        abilitiesSection={abilitiesSection}
         guide={guideStepsNode}
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}

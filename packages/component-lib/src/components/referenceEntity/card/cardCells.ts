@@ -168,17 +168,15 @@ export function buildHeaderStats(options: {
   asCompact: boolean
   /** Actions and pattern LISTING rows carry no header stats at all. */
   none: boolean
-  primaryOnly: boolean
   techLevel: number | 'B' | 'N' | undefined
   techLevelDisplay: number | 'B' | 'N' | undefined
   techLevelModified: boolean
 }): StatItem[] {
-  const { entity, schemaName, asCompact, none, primaryOnly, techLevel } = options
+  const { entity, schemaName, asCompact, none, techLevel } = options
   const rawHeaderStats: StatItem[] = none
     ? []
     : buildReferenceEntityStats(entity, {
         compact: asCompact,
-        primaryOnly,
         // Never 'actions' here — an action takes the `none` branch above.
         schemaName: schemaName === 'actions' ? undefined : schemaName,
         techLevel,

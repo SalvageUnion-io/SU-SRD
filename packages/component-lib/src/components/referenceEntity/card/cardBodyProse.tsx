@@ -52,7 +52,6 @@ export type CardBodyInput = Pick<
   | 'selections'
   | 'onSelectionChange'
   | 'afterExtraContent'
-  | 'abilitiesSection'
   | 'showChassisAbility'
 > & {
   data: ReferenceCardEntity

@@ -85,8 +85,6 @@ type StatConfig = {
   key: StatKey
   getter: (data: SURefMetaEntity) => number | undefined
   hint: string
-  /** Kept by a primary-only cluster. */
-  primary?: true
 }
 
 /**
@@ -106,7 +104,6 @@ const STATS: StatConfig[] = [
       { source: 'Salvage Union Workshop Manual', page: 97 },
       'Structure Points represent how tough and sturdy your Mech is, and how much damage it can take. This is an abstract measure representing a broad range of factors ranging from sheer bulk and armour to wider defensive capabilities.'
     ),
-    primary: true,
   },
   {
     key: 'hitPoints',
@@ -123,7 +120,6 @@ const STATS: StatConfig[] = [
       { source: 'Salvage Union Workshop Manual', page: 96 },
       'Energy Points abstractly represents the energy output and efficiency of your Mechs reactor as well as its stored power. You can spend these points to activate your Systems, Modules, and Chassis Abilities.'
     ),
-    primary: true,
   },
   {
     key: 'salvageValue',
@@ -132,13 +128,11 @@ const STATS: StatConfig[] = [
       { source: 'Salvage Union Workshop Manual', page: 97 },
       "Salvage Value represents the sum of a Mech, System, or Module's material components. As such it's the amount of Scrap you receive when breaking down a Chassis, System, or Module, as well as the amount of Scrap required to craft a Mech, System, or Module."
     ),
-    primary: true,
   },
   {
     key: 'bioSalvageValue',
     getter: getBioSalvageValue,
     hint: 'Bio-Salvage Value represents the biological material that can be harvested from this creature or NPC.',
-    primary: true,
   },
   {
     key: 'systemSlots',
@@ -171,7 +165,6 @@ const STATS: StatConfig[] = [
       { source: 'Salvage Union Workshop Manual', page: 97 },
       'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.'
     ),
-    primary: true,
   },
   // A Union Crawler's economy (Workshop Manual p.218): only
   // `crawler-tech-levels` carries these.
@@ -224,7 +217,6 @@ export function entityStats(
         short: bio ? bioNames.short : names.short,
         value,
         hint: config.hint,
-        ...(config.primary ? { primary: true as const } : {}),
       },
     ]
   })

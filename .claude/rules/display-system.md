@@ -52,14 +52,19 @@ They are independent: a `small` card can still show its whole content.
 ## Customisation is by slot, never by schema
 
 Customise with generic slot props and the `hide` config. Never add a
-schema-specific prop to the component — compute overrides in a hook and spread
-them. Read the current props off the component; they are deliberately not
-listed here.
+schema-specific prop to the component — compute overrides in the caller and
+pass them as generic slot props. Read the current props off the component;
+they are deliberately not listed here.
 
 ```tsx
-// Good: a hook computes generic overrides, the consumer spreads them
-const config = useClassTreeConfig(data)
-<ReferenceEntityCard data={data} {...config} />
+// Good: the caller decides, the card takes generic slots
+// (apps/srd/src/components/EntityCardStatic.tsx)
+const classEntity = classOf(item)
+<ReferenceEntityCard
+  data={item}
+  afterExtraContent={classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined}
+  asideLead={!!classEntity}
+/>
 ```
 
 Prefer data-shape checks (`'coreTrees' in data`) over schema-name checks, so the

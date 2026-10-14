@@ -164,7 +164,6 @@ describe('toEntityModel parity, every entity', () => {
         schemaName,
         asCompact: true,
         none: schemaName === 'actions',
-        primaryOnly: false,
         techLevel,
         techLevelDisplay: techLevel,
         techLevelModified: false,

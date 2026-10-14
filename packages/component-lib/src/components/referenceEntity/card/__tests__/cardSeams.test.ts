@@ -53,7 +53,6 @@ describe('cardCells', () => {
     const base = {
       entity: chassis as SURefMetaEntity,
       schemaName: 'chassis' as const,
-      primaryOnly: false,
       techLevel: 2 as const,
       techLevelDisplay: 2 as const,
       techLevelModified: false,

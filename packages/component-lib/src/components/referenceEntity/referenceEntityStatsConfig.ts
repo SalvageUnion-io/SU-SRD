@@ -18,7 +18,6 @@ import type { StatItem } from '../containers/statsBarTypes'
 
 type BuildReferenceEntityStatsOptions = {
   compact: boolean
-  primaryOnly?: boolean
   techLevel?: number | 'B' | 'N'
   /** Schema name of the entity — used to scope schema-specific stat derivations. */
   schemaName?: SURefEnumSchemaName
@@ -33,19 +32,17 @@ export function buildReferenceEntityStats(
   data: SURefMetaEntity | SURefObjectBonusPerTechLevel,
   options: BuildReferenceEntityStatsOptions
 ): StatItem[] {
-  const { compact, primaryOnly = false, techLevel, schemaName } = options
-  return entityStats(data as SURefMetaEntity, { schemaName, techLevel })
-    .filter((fact) => !primaryOnly || fact.primary)
-    .map((fact) => {
-      const [top = fact.label, ...rest] = fact.label.split(' ')
-      return {
-        key: fact.key,
-        label: compact ? fact.short : top,
-        bottomLabel: compact ? undefined : rest.join(' '),
-        value: fact.value,
-        hoverText: fact.hint,
-      }
-    })
+  const { compact, techLevel, schemaName } = options
+  return entityStats(data as SURefMetaEntity, { schemaName, techLevel }).map((fact) => {
+    const [top = fact.label, ...rest] = fact.label.split(' ')
+    return {
+      key: fact.key,
+      label: compact ? fact.short : top,
+      bottomLabel: compact ? undefined : rest.join(' '),
+      value: fact.value,
+      hoverText: fact.hint,
+    }
+  })
 }
 
 /** One cell of the book's stat column: `STRUCTURE POINTS | 14` */
