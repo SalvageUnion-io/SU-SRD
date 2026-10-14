@@ -5,10 +5,10 @@
  * name cannot drift between screens again.
  *
  * - `name` — the character builder & game manager, in copy and titles.
- * - `shortName` — its short form, for the home-screen label and the link
- *   preview's foot, where space is tight.
- * - `descriptor` — what it is, said plainly: under the name wherever the name
- *   is introduced (the front door, the link preview, the manifest).
+ * - `shortName` — its short form, for the installed app's home-screen label.
+ * - `descriptor` — what it is, said plainly, wherever the name is introduced
+ *   (the front door's eyebrow; the manifest and meta descriptions spell it as
+ *   text).
  * - `tagline` — the old name's banner line, kept as the legacy tagline.
  * - `wordmark` — the site's own name, as the reference OG card draws it.
  *
