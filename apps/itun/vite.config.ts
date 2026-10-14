@@ -2,7 +2,7 @@ import { copyFileSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
-import { CHECKOUT_HEADER, CHECKOUT_ROOT } from 'gates/ports'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import { sentrySourcemaps } from 'observability/vite'
 import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
@@ -90,6 +90,22 @@ function shellOrigin(base: string): Plugin {
   }
 }
 
+/**
+ * Links follow the env they are served from (`src/lib/srdOrigin.ts`): the dev
+ * server's SRD links open this checkout's srd dev server (`bun run dev`). A
+ * `config` hook, so it lands before Vite reads the environment; a value given
+ * wins.
+ */
+function devSrdOrigin(): Plugin {
+  return {
+    name: 'itun-dev-srd-origin',
+    apply: 'serve',
+    config() {
+      process.env.VITE_SRD_ORIGIN ||= `http://localhost:${portFor('srd')}`
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   // `/build/`: ITUN at salvageunion.io/build (ADR-048).
@@ -97,6 +113,7 @@ export default defineConfig({
   plugins: [
     requireConvexUrl(),
     shellOrigin(SITE.base),
+    devSrdOrigin(),
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
     // `@vitejs/plugin-react-swc` always uses the automatic JSX runtime, so the
     // explicit `jsxRuntime: 'automatic'` the Babel plugin needed is gone — it

@@ -34,6 +34,9 @@ import { fileURLToPath } from 'node:url'
  * is not on it, and stays on 5173, where its local Convex backend expects it.
  */
 export const BASE_PORTS = { srd: 4321, stories: 61000, itun: 5180 } as const
+
+/** `bun run dev:itun`'s port: Vite's default, where its local Convex backend expects it. */
+export const ITUN_DEV_PORT = 5173
 export type DevServer = keyof typeof BASE_PORTS
 
 /** The response header each dev server names its checkout in. */

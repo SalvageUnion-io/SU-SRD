@@ -10,7 +10,8 @@ function originOr(value: string | undefined, fallback: string): string {
 /**
  * Where this build is served, and every absolute link to a page of it:
  * production's `SRD_SITE_URL`, or a Worker Preview's origin, which
- * `deploy-preview.yml` passes as `VITE_SRD_ORIGIN`. Canonicals, `og:` tags, the
+ * `deploy-preview.yml` passes as `VITE_SRD_ORIGIN` (the dev server sets its
+ * own, `ssg/dev.ts`). Canonicals, `og:` tags, the
  * Discord Component Embed, structured data, the sitemap and llms.txt all follow
  * it, so a Preview names only itself. A Preview answers `noindex`, so its
  * canonicals are never indexed.
