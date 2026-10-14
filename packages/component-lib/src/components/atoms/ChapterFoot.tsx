@@ -14,7 +14,7 @@ import { Speckle } from './Speckle'
  * kind, or the licence) and `end` (the book and page, or the site's own links).
  *
  * The SRD wears it twice: an entity page closes on its kind and citation
- * (`Footer`: "CHASSIS … p.112 | WORKSHOP MANUAL") in its chapter's colour, and the
+ * (`Footer`: "CHASSIS … WORKSHOP MANUAL | p.112") in its chapter's colour, and the
  * site footer's licence row closes every page on the Union bar's ink.
  *
  * A foot band carries TEXT, so its colours are the ones text reads on (ruleset

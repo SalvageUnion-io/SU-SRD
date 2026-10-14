@@ -484,8 +484,8 @@ export function useActionsDeck({
     const pushLocked = !canPush(heatCtx.currentHeat, heatCtx.heatCap)
 
     const cost: string[] = []
-    if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)
-    if (heatApplies && eco.heat > 0) cost.push(`+${eco.heat} Heat`)
+    if (eco.epCost > 0) cost.push(`${effCurrency} ${eco.epCost}`)
+    if (heatApplies && eco.heat > 0) cost.push(`Heat +${eco.heat}`)
     if (eco.maxUses > 0) cost.push(`Uses ${eco.maxUses}`)
 
     return {

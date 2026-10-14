@@ -28,7 +28,7 @@ beforeAll(hydrateStores)
 // "Talk Shop" resolves to a fixed AP cost of 3 in reference data.
 const ABILITY_TALK_SHOP = 'talk-shop'
 
-/** Each chip group's text: a read cost is the book's pointy box, "3 AP". */
+/** Each chip group's text: a read cost is the book's pointy box, "AP 3". */
 const costChips = () =>
   Array.from(document.querySelectorAll('[data-chip-group]'))
     .map((g) => g.textContent ?? '')
@@ -74,12 +74,12 @@ describe('PilotSheet — ability AP cost (Slice D)', () => {
   test('displays the ability AP cost on the card', () => {
     render(<PilotSheet pilot={makePilot()} store={makeStubStore(makePilot())} />)
     expandCards()
-    // The cost comes from the CARD's own cost box ("3 AP"), not from
+    // The cost comes from the CARD's own cost box ("AP 3"), not from
     // a sheet-added "AP Cost" footMeta pair — that footer restated what the card
     // already rendered, and printed a bare em-dash for variable-cost abilities
-    // where the card says "X AP". Asserting on the card's rendering keeps this
+    // where the card says "AP X". Asserting on the card's rendering keeps this
     // test pointed at what the player reads.
-    expect(costChips()).toContain('3 AP')
+    expect(costChips()).toContain('AP 3')
     expect(screen.queryByText('AP Cost')).toBeNull()
   })
 })
@@ -185,7 +185,7 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     expect(screen.queryByRole('button', { name: /recharge/i })).toBeNull()
     // AP cost still shown read-only (the card's own cost chip), plus a
     // static Used stamp.
-    expect(costChips()).toContain('3 AP')
+    expect(costChips()).toContain('AP 3')
     expect(screen.getByText('Used')).toBeTruthy()
   })
 })

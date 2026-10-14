@@ -170,9 +170,9 @@ describe('ClassAbilityTree training brief', () => {
     const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
     expect(cards.map((card) => card.dataset.tier)).toEqual(['core', 'advanced', 'legendary'])
     expect(cards.map((card) => card.querySelector('.srd-class-brief__band')?.textContent)).toEqual([
-      'Core1 TP',
-      'Advanced2 TP',
-      'Legendary3 TP',
+      'CoreTP 1',
+      'AdvancedTP 2',
+      'LegendaryTP 3',
     ])
     expect(brief.textContent).toContain('Up to 10')
     // The Workshop Manual's words (p.23), not a paraphrase.
@@ -184,7 +184,7 @@ describe('ClassAbilityTree training brief', () => {
     const brief = screen.getByRole('complementary', { name: 'Training' })
     const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
     expect(cards.map((card) => card.dataset.tier)).toEqual(['core'])
-    expect(cards[0]?.querySelector('.srd-class-brief__band')?.textContent).toBe('Core1 TP')
+    expect(cards[0]?.querySelector('.srd-class-brief__band')?.textContent).toBe('CoreTP 1')
     expect(cards[0]?.textContent).toContain(
       'You must have the preceding skill in a Core Ability Tree to train the next Ability.'
     )

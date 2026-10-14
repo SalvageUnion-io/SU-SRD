@@ -63,7 +63,7 @@ export function Chips({
 }
 
 /**
- * A read cost ("2 EP") as the book prints it: the ink pointy box
+ * A read cost ("EP 2"), label first like every chip: the ink pointy box
  * (`ActivationCost`), with a paper edge on an ink band. Every form's read cost is this box,
  * last among its chips; the Dashboard's pennant button is the live one.
  */

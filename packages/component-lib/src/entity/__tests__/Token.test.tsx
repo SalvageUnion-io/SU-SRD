@@ -34,7 +34,7 @@ describe('Token chips', () => {
       'TL3',
       'Slots2',
       'Reaction',
-      '2 EP',
+      'EP 2',
     ])
   })
 

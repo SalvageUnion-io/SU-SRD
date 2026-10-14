@@ -5,8 +5,8 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 ## The source: the Workshop Manual
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
-2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind as a stamp and its citation as the head band's stat cells (`p.112 | WORKSHOP MANUAL`, then each reprint).
-3. **Framed numeral + ink stamp** — the stat column (`14 | STRUCTURE PTS.`), label 14px, horizontal, in the book's order: STRUCTURE PTS., ENERGY PTS., HEAT CAP., SYSTEM SLOTS, MODULE SLOTS, CARGO CAP., TECH LEVEL, SALVAGE VALUE.
+2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind as a stamp and its citation as the head band's stat cells (`WORKSHOP MANUAL | p.112`, then each reprint).
+3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE PTS. | 14`), label 14px, horizontal, in the book's order: STRUCTURE PTS., ENERGY PTS., HEAT CAP., SYSTEM SLOTS, MODULE SLOTS, CARGO CAP., TECH LEVEL, SALVAGE VALUE.
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
@@ -38,7 +38,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTable` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only. TL and Salvage are the TL-Salvage badge everywhere.
-   6. **Cost, range, action type** — chips (`RNG | Close`, "Turn Action"), then the cost last in the book's pointy box (`ActivationCost`, `2 EP`); the Dashboard's cost pennant is its action button.
+   6. **Cost, range, action type** — chips (`RNG | Close`, "Turn Action"), then the cost last in the book's pointy box (`ActivationCost`, `EP 2`); the Dashboard's cost pennant is its action button.
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1); a section header is a Slab.
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` (the cost pennant included) and `InlineRef`, and no token aliases it.

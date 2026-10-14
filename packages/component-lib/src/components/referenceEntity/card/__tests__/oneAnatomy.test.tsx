@@ -48,7 +48,7 @@ describe('have vs do', () => {
     expect(screen.getByText('1')).toBeTruthy()
     // A read cost is the book's pointy box, last in the chip group: no pennant.
     expect(container.querySelector('.su-pennant')).toBeNull()
-    expect(container.querySelector('[data-chip-group]')?.textContent).toMatch(/2 AP$/)
+    expect(container.querySelector('[data-chip-group]')?.textContent).toMatch(/AP 2$/)
   })
 
   test('a system is a tone header with no kind stamp: only the footer names the type', () => {
@@ -93,7 +93,7 @@ describe('actions nest', () => {
       // The cost is last: the ink pointy box, edged in paper so it clears the band.
       const edge = group.lastElementChild
       expect(edge?.classList.contains('su-cost-edge')).toBe(true)
-      expect(edge?.querySelector('.su-cost')?.textContent).toBe('1 EP')
+      expect(edge?.querySelector('.su-cost')?.textContent).toBe('EP 1')
     }
   })
 
@@ -223,8 +223,8 @@ describe('contexts', () => {
         controls={[{ key: 'activate', pennant: true, label: 'Activate', onClick: onActivate }]}
       />
     )
-    const button = screen.getByRole('button', { name: 'Activate Auger, spend 1 EP' })
-    expect(button.textContent).toBe('1 EP')
+    const button = screen.getByRole('button', { name: 'Activate Auger, spend EP 1' })
+    expect(button.textContent).toBe('EP 1')
     fireEvent.click(button)
     expect(onActivate).toHaveBeenCalledTimes(1)
   })
