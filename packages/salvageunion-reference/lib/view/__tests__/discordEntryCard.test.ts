@@ -45,6 +45,25 @@ describe('discordEntryCard', () => {
     const own = componentEmbedJson(discordEntryCard(mule, pattern as never))
     expect(own).toContain(pattern.name)
   })
+
+  test('with an SRD origin, every SRD link is on it, and the budget is measured there', () => {
+    const preview = 'https://pr-1-su-srd.example.workers.dev'
+    for (const found of [entry('chassis', 'mule'), entry('roll-tables', 'anomalous-zone')]) {
+      const json = componentEmbedJson(discordEntryCard(found, undefined, { srdOrigin: preview }))
+      expect(json).toContain(`](${preview}/`)
+      expect(json).not.toContain('](https://salvageunion.io')
+      expect(componentEmbedBytes(json)).toBeLessThanOrEqual(COMPONENT_EMBED_MAX_BYTES)
+    }
+  })
+
+  test("production's origin, given, is the card without one", () => {
+    const mule = entry('chassis', 'mule')
+    expect(
+      componentEmbedJson(
+        discordEntryCard(mule, undefined, { srdOrigin: 'https://salvageunion.io' })
+      )
+    ).toBe(componentEmbedJson(discordEntryCard(mule)))
+  })
 })
 
 describe('componentEmbedBytes', () => {

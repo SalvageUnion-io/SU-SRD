@@ -13,13 +13,18 @@
 
 import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { componentEmbedJson, discordEntryCard } from 'salvageunion-reference'
+import { SERVED_SITE_URL } from './constants'
 
 export { COMPONENT_EMBED_MAX_BYTES } from 'salvageunion-reference'
 
-/** The embed's JSON for an entity, or one of its patterns on the pattern's own page. */
+/**
+ * The embed's JSON for an entity, or one of its patterns on the pattern's own
+ * page. Its links are on the origin the page is served from, so a Worker
+ * Preview's pasted link opens that Preview.
+ */
 export function componentEmbedFor(
   entity: SURefMetaEntity,
   pattern?: SURefObjectAnyPattern
 ): string {
-  return componentEmbedJson(discordEntryCard(entity, pattern))
+  return componentEmbedJson(discordEntryCard(entity, pattern, { srdOrigin: SERVED_SITE_URL }))
 }

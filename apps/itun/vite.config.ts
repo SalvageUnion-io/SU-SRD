@@ -66,12 +66,37 @@ function siteLayout(base: string): Plugin {
   }
 }
 
+/**
+ * The shell's default link-preview tags (`index.html`'s `itun:meta` block) name
+ * production's address. A Worker Preview's build is given its own origin as
+ * `VITE_ITUN_ORIGIN` (`deploy-preview.yml`), and its shell names that instead,
+ * so a pasted Preview link unfurls with the Preview's image and address. The
+ * Worker's per-route tags already use the request's origin (`linkPreview.ts`).
+ */
+function shellOrigin(base: string): Plugin {
+  let origin = ''
+  return {
+    name: 'itun-shell-origin',
+    apply: 'build',
+    configResolved({ env }) {
+      origin = (env.VITE_ITUN_ORIGIN ?? '').replace(/\/+$/, '')
+    },
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html) {
+        return origin ? html.replaceAll(`${SITE.origin}${base}`, `${origin}${base}`) : html
+      },
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   // `/build/`: ITUN at salvageunion.io/build (ADR-048).
   base: SITE.base,
   plugins: [
     requireConvexUrl(),
+    shellOrigin(SITE.base),
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
     // `@vitejs/plugin-react-swc` always uses the automatic JSX runtime, so the
     // explicit `jsxRuntime: 'automatic'` the Babel plugin needed is gone — it

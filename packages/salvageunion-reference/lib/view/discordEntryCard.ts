@@ -14,6 +14,7 @@
  * listed on their host's card.
  */
 
+import { SRD_SITE_URL } from '../assets'
 import type { SURefMetaEntity, SURefObjectAnyPattern } from '../schemas/index'
 import type { DiscordBlock, DiscordCard } from './discordCard'
 import { discordAccent, discordCard, discordCardParts } from './discordCard'
@@ -73,15 +74,56 @@ function fitsDiscordEntryBudget(card: DiscordCard): boolean {
   return componentEmbedBytes(componentEmbedJson(card)) <= COMPONENT_EMBED_MAX_BYTES
 }
 
-/** An entry's (or one of its patterns') Discord card, shed to the shared budget. */
+/**
+ * A card with every SRD link moved from {@link SRD_SITE_URL} to `origin`: the
+ * SRD's own Component Embed on a Worker Preview links that Preview. Only the
+ * prose carries SRD links; a thumbnail is artwork on the asset host, which
+ * this prefix cannot match.
+ */
+function withSrdOrigin(card: DiscordCard, origin: string): DiscordCard {
+  const from = `${SRD_SITE_URL}/`
+  const to = `${origin.replace(/\/+$/, '')}/`
+  const rebase = (text: string) => text.replaceAll(from, to)
+  return {
+    ...card,
+    blocks: card.blocks.map((block) => {
+      switch (block.kind) {
+        case 'text':
+          return { ...block, content: rebase(block.content) }
+        case 'section':
+          return { ...block, text: block.text.map(rebase) }
+        default:
+          return block
+      }
+    }),
+  }
+}
+
+/** Where an entry card's SRD links point; production's site unless given. */
+type DiscordEntryCardOptions = {
+  /** The SRD origin to link, without a trailing slash: a Worker Preview's, say. */
+  srdOrigin?: string
+}
+
+/**
+ * An entry's (or one of its patterns') Discord card, shed to the shared budget.
+ * With `srdOrigin`, its links point there, and the budget is measured on those
+ * links, since a longer origin can shed a part production's keeps.
+ */
 export function discordEntryCard(
   entity: SURefMetaEntity,
-  pattern?: SURefObjectAnyPattern
+  pattern?: SURefObjectAnyPattern,
+  options: DiscordEntryCardOptions = {}
 ): DiscordCard {
   const parts = discordCardParts(
     toEntityModel(entity, undefined, pattern ? { pattern } : undefined)
   )
-  return discordCard(parts, { fits: fitsDiscordEntryBudget })
+  const { srdOrigin } = options
+  if (srdOrigin === undefined || srdOrigin === SRD_SITE_URL) {
+    return discordCard(parts, { fits: fitsDiscordEntryBudget })
+  }
+  const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
+  return rebase(discordCard(parts, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
 }
 
 /**

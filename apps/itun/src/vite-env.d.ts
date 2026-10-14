@@ -19,6 +19,18 @@ interface ImportMetaEnv {
    * Unset in local dev — the release tag is simply omitted.
    */
   readonly VITE_COMMIT_REF?: string
+  /**
+   * A Worker Preview's SRD origin (`https://pr-<n>-su-srd.<account>.workers.dev`),
+   * set by `deploy-preview.yml`, so the Preview links its own SRD. Unset →
+   * production's. See `src/lib/srdOrigin.ts`.
+   */
+  readonly VITE_SRD_ORIGIN?: string
+  /**
+   * A Worker Preview's own origin, which the shell's default link-preview
+   * tags are rewritten onto at build time (`vite.config.ts`). Unset →
+   * production's.
+   */
+  readonly VITE_ITUN_ORIGIN?: string
 }
 
 interface ImportMeta {

@@ -3,9 +3,9 @@ import { AppBar, Badge, NavDrawer } from 'component-lib'
 import { borderWidth, color } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { SRD_SITE_URL } from 'salvageunion-reference'
 import { MARK_SRC } from '../../lib/appUrl'
 import { DOC_PAGES } from '../../lib/docPages'
+import { SRD_ORIGIN } from '../../lib/srdOrigin'
 
 /**
  * AppHeader — ITUN's preset of the shared Union bar (`AppBar`, ruleset §3.11):
@@ -127,7 +127,7 @@ export function AppHeader({
   return (
     <AppBar
       product="build"
-      referenceHref={SRD_SITE_URL}
+      referenceHref={SRD_ORIGIN}
       buildHref="/"
       LinkComponent={LinkComponent}
       markSrc={MARK_SRC}

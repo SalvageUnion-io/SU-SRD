@@ -16,7 +16,13 @@ import { color } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta, PageFoot } from '../../ssg/types'
 import { TopNavigation } from '../components/TopNavigation'
-import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL, THEME_COLOR } from '../lib/constants'
+import {
+  DEFAULT_OG_IMAGE,
+  SERVED_SITE_URL,
+  SITE_LINKS,
+  SITE_URL,
+  THEME_COLOR,
+} from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { Island } from '../runtime/Island'
 
@@ -84,7 +90,17 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
   } = meta
 
   const canonicalUrl = canonical || new URL(pathname, SITE_URL).href
-  const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_URL).href
+  // What an unfurl shows is where the link was pasted from: production's page,
+  // or a Worker Preview's (`SERVED_SITE_URL`). The canonical stays production's.
+  const servedUrl = new URL(new URL(canonicalUrl).pathname, SERVED_SITE_URL).href
+  const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SERVED_SITE_URL).href
+  // The trail's links are this site's own pages, so root-relative: a Worker
+  // Preview's trail stays on that Preview.
+  const trail = breadcrumbs?.map((crumb) =>
+    crumb.url.startsWith(SITE_URL)
+      ? { ...crumb, url: crumb.url.slice(SITE_URL.length) || '/' }
+      : crumb
+  )
 
   return (
     <html lang="en">
@@ -107,7 +123,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         {/* Open Graph */}
         <meta property="og:title" content={ogTitle} />
         <meta property="og:description" content={ogDescription} />
-        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:url" content={servedUrl} />
         <meta property="og:type" content={ogType} />
         <meta property="og:site_name" content="Salvage Union SRD" />
         {/* All OG images the site emits are 1200×630 (the default banner). */}
@@ -190,7 +206,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             Skip to content
           </a>
           <TopNavigation
-            breadcrumbs={breadcrumbs}
+            breadcrumbs={trail}
             breadcrumbDescription={breadcrumbDescription}
             pageHasSearch={PAGES_WITH_SEARCH.has(pathname)}
           />

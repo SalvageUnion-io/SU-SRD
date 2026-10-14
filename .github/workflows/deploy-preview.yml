@@ -59,6 +59,13 @@ env:
   # production's (docs/ARCHITECTURE.md#previews).
   STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
   STAGING_CONVEX_URL: https://perfect-donkey-72.convex.cloud
+  # Each Preview's address, known before it exists: `<name>-<worker>.<account
+  # subdomain>`. Both builds take both, so a Preview's links into the other app
+  # and its link previews (og:url, og:image, the Discord Component Embed) name
+  # this PR's Previews, never production. `ship` fails if wrangler reports any
+  # other address. Canonical tags stay production's.
+  PREVIEW_SRD_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
+  PREVIEW_ITUN_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-itun.alxjrvs.workers.dev
 
 jobs:
   build-srd:
@@ -86,6 +93,8 @@ jobs:
       - name: Build srd
         env:
           VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+          VITE_SRD_ORIGIN: ${{ env.PREVIEW_SRD_ORIGIN }}
+          VITE_ITUN_ORIGIN: ${{ env.PREVIEW_ITUN_ORIGIN }}
         run: bun --filter srd build
 
       - name: Upload the srd build
@@ -156,6 +165,8 @@ jobs:
         env:
           VITE_CONVEX_URL: ${{ env.STAGING_CONVEX_URL }}
           VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+          VITE_SRD_ORIGIN: ${{ env.PREVIEW_SRD_ORIGIN }}
+          VITE_ITUN_ORIGIN: ${{ env.PREVIEW_ITUN_ORIGIN }}
         run: bun run build
 
       - name: Upload the itun artifact
@@ -266,6 +277,13 @@ jobs:
               | if type == "object" then .url else . end // empty' "$out")
             if [ -z "$url" ]; then
               echo "FATAL: the $app Preview has no URL." >&2
+              exit 1
+            fi
+            # The builds baked in the address this Preview was predicted at.
+            if [ "$app" = srd ]; then expected="$PREVIEW_SRD_ORIGIN"; else expected="$PREVIEW_ITUN_ORIGIN"; fi
+            if [ "${url%/}" != "$expected" ]; then
+              echo "FATAL: the $app Preview is at ${url%/}, but its links were built for $expected." >&2
+              echo "Fix PREVIEW_SRD_ORIGIN / PREVIEW_ITUN_ORIGIN in this workflow." >&2
               exit 1
             fi
             echo "$app=${url%/}" >> "$GITHUB_OUTPUT"

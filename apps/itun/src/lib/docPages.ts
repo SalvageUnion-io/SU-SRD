@@ -1,4 +1,4 @@
-import { SRD_SITE_URL } from 'salvageunion-reference'
+import { SRD_ORIGIN } from './srdOrigin'
 
 /**
  * The doc pages both tools share. They live on the SRD only; ITUN links to
@@ -6,10 +6,10 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
  * point at these.
  */
 export const DOC_PAGES = {
-  changelog: { label: 'Changelog', href: `${SRD_SITE_URL}/changelog/` },
-  api: { label: 'API', href: `${SRD_SITE_URL}/api/` },
-  discord: { label: 'Discord', href: `${SRD_SITE_URL}/discord/` },
-  about: { label: 'About', href: `${SRD_SITE_URL}/about/` },
+  changelog: { label: 'Changelog', href: `${SRD_ORIGIN}/changelog/` },
+  api: { label: 'API', href: `${SRD_ORIGIN}/api/` },
+  discord: { label: 'Discord', href: `${SRD_ORIGIN}/discord/` },
+  about: { label: 'About', href: `${SRD_ORIGIN}/about/` },
 } as const
 
 /**

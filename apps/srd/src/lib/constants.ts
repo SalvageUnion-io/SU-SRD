@@ -9,12 +9,28 @@ export { SRD_SITE_URL as SITE_URL } from 'salvageunion-reference'
  *  every page that has a trail (never "Home" on some and "Contents" on others). */
 export const CONTENTS_CRUMB = { name: 'Contents', url: `${SRD_SITE_URL}/` } as const
 
+/** An origin from the build's environment, without a trailing slash; `fallback` when unset. */
+function originOr(value: string | undefined, fallback: string): string {
+  return (value || fallback).replace(/\/+$/, '')
+}
+
+/**
+ * Where this build is served: production's `SITE_URL`, or a Worker Preview's
+ * origin, which `deploy-preview.yml` passes as `VITE_SRD_ORIGIN`. What a pasted
+ * link unfurls from (`og:url`, `og:image`, the Discord Component Embed's links)
+ * is built on it, so a Preview's link previews show that Preview. Canonical
+ * tags, structured data, the sitemap and llms.txt stay on `SITE_URL`: they name
+ * the page of record, and a Preview is never it.
+ */
+export const SERVED_SITE_URL = originOr(import.meta.env.VITE_SRD_ORIGIN, SRD_SITE_URL)
+
 /**
  * In The Union Now — the companion character builder & game manager, served
  * beside the SRD at salvageunion.io/build (ADR-048). Absolute, so a link built
- * from it reads the same in llms.txt, a Discord embed or the dev server.
+ * from it reads the same in llms.txt, a Discord embed or the dev server. A
+ * Worker Preview's build links its own ITUN Preview (`VITE_ITUN_ORIGIN`).
  */
-export const ITUN_URL = 'https://salvageunion.io/build/'
+export const ITUN_URL = `${originOr(import.meta.env.VITE_ITUN_ORIGIN, SRD_SITE_URL)}/build/`
 
 /**
  * The SURef Discord bot's install link. The client id is public by design —
