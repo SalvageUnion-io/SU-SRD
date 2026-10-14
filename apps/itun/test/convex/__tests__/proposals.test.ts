@@ -106,7 +106,10 @@ describe('the Mediator proposes; the player writes', () => {
     // player pressed Apply, the number did not move, and nothing said why.
     await expect(
       player.as.mutation(api.proposals.apply, { proposalId: pending?._id as Id<'changeLog'> })
-    ).rejects.toThrow(/does not fit this sheet/i)
+    ).rejects.toMatchObject({
+      name: 'ConvexError',
+      message: expect.stringMatching(/does not fit this sheet/i),
+    })
 
     const mech = await t.run(async (ctx) => await ctx.db.get(mechId as Id<'mechs'>))
     expect((mech?.body as { currentSP: number } | undefined)?.currentSP).toBe(10)

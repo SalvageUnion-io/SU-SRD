@@ -215,7 +215,10 @@ describe('reading is per-game, writing is per-entity', () => {
     // through the MECH endpoint and act on it as if it were one.
     await expect(
       player.as.mutation(api.entities.remove, { table: 'mechs', entityId: pilotId })
-    ).rejects.toThrow(/no longer exists/i)
+    ).rejects.toMatchObject({
+      name: 'ConvexError',
+      message: expect.stringMatching(/no longer exists/i),
+    })
     expect(await t.run(async (ctx) => await ctx.db.get(pilotId))).not.toBeNull()
   })
 
@@ -237,7 +240,10 @@ describe('reading is per-game, writing is per-entity', () => {
 
     await expect(
       player.as.mutation(api.entities.remove, { table: 'mechs', entityId: patternId })
-    ).rejects.toThrow(/no longer exists/i)
+    ).rejects.toMatchObject({
+      name: 'ConvexError',
+      message: expect.stringMatching(/no longer exists/i),
+    })
     expect(await t.run(async (ctx) => await ctx.db.get(patternId))).not.toBeNull()
   })
 })
