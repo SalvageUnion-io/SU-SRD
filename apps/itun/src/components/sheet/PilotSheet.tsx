@@ -5,10 +5,10 @@
  * Two columns, as board 10 prints the pilot sheet; one below the
  * container's 5xl, in this reading order:
  *   - wide: the Identity card (the portrait, else the class's art, beside
- *     fields typeset in Read), then Abilities — Tokens that Peek their card,
- *     the pilot's own class trees first, then the Generic tree — with Spend AP
- *     (fixed costs only) and a used/recharge toggle on each Token's line in
- *     Edit;
+ *     fields typeset in Read), then Abilities — each tree the pilot trained
+ *     in, its taken Abilities as Rows on the SRD's track — then the Generic
+ *     tree as Tokens; each with Spend AP (fixed costs only) and a
+ *     used/recharge toggle on its line in Edit;
  *   - narrow: the Vitals card (HP/AP gauges, TP and Conditions), Inventory
  *     (shortform pills and free-slot boxes in Read; in Edit each pill with its
  *     controls in a row under it) and Assigned Units (one line each in Read).
@@ -54,7 +54,6 @@ import {
   Conditions,
   EmptyState,
   EntitySearcher,
-  Panel,
   SheetSectionCard,
   SheetSectionSlab,
   Stat,
@@ -76,12 +75,8 @@ import { ConditionsEditor } from './ConditionsEditor'
 import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { PilotIdentityPanel } from './PilotIdentity'
-import {
-  GenericEntryAdder,
-  GenericEntryCard,
-  PilotAbilityItem,
-  PilotEquipmentItem,
-} from './PilotSheetItems'
+import { PilotSheetAbilities } from './PilotSheetAbilities'
+import { GenericEntryAdder, GenericEntryCard, PilotEquipmentItem } from './PilotSheetItems'
 import { usePilotSheetModel } from './pilotSheet.model'
 import { usePilotSheetActions } from './pilotSheetActions.model'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
@@ -225,22 +220,10 @@ const REGIONS = {
 
 const MIN_W_0 = { minWidth: 0 } satisfies CSSProperties
 
-const STACK_8 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
 const STACK_12 = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[12],
-} satisfies CSSProperties
-
-const STACK_20 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[20],
 } satisfies CSSProperties
 
 /** The Vitals rows; the dashed rule between them is `.su-sheet-pilot-vitals`. */
@@ -315,24 +298,6 @@ export function PilotSheet({
 
   const { hpParts, apParts, maxHP, maxAP, hp, ap, tp } = model
 
-  /** One learned ability — identical wherever its tree puts it. */
-  function renderAbility({ slug, ability }: { slug: string; ability: SURefAbility }) {
-    return (
-      <PilotAbilityItem
-        ability={ability}
-        currentAP={ap}
-        used={pilot.usedAbilities?.includes(slug) ?? false}
-        onSpend={(cost) => {
-          void actions.handleSpendAP(cost)
-        }}
-        onToggleUsed={(next) => {
-          void actions.handleAbilityUsedChange(slug, next)
-        }}
-        readOnly={readOnly}
-      />
-    )
-  }
-
   return (
     <section
       aria-label={`${pilot.name} pilot details`}
@@ -404,55 +369,23 @@ export function PilotSheet({
               />
             </PhotoBeside>
           </SheetSectionCard>
-          {/* ===== Abilities — the ones this pilot owns, then the Generic tree =====
-              A SLAB, not a card: the grid is entity cards, which carry their own
-              frame. */}
-          <div className="su-sheet-pilot-order-1" style={MIN_W_0}>
-            <SheetSectionSlab
-              title="Abilities"
-              // The rule's caption names the trees the cards come from (board 10).
-              count={model.abilityTreeCaption ?? undefined}
-              controls={
-                readOnly ? undefined : (
-                  <SectionManageButton label="abilities" onClick={() => setPicker('abilities')} />
-                )
-              }
-            >
-              {model.classAbilities.length === 0 &&
-              model.genericAbilities.length === 0 &&
-              model.unresolvedAbilities.length === 0 ? (
-                <EmptyState variant="quiet" body="No abilities learned yet." />
-              ) : (
-                <div style={STACK_20}>
-                  {/* Every ability a Token that Peeks its card (owner's call,
-                    2026-10-14: "all references = peek tokens"): the class's own
-                    first, then the Generic tree every pilot has. One column:
-                    an ability's chips need the width. Edit gives each line its
-                    controls. */}
-                  <ul
-                    aria-label="Abilities"
-                    className={
-                      readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'
-                    }
-                  >
-                    {[...model.classAbilities, ...model.genericAbilities].map((entry) => (
-                      <li key={entry.slug}>{renderAbility(entry)}</li>
-                    ))}
-                  </ul>
-
-                  {model.unresolvedAbilities.length > 0 && (
-                    <div style={STACK_8}>
-                      {model.unresolvedAbilities.map((slug) => (
-                        <Panel key={slug} className="su-sheet-pilot-panel-text">
-                          {slug}
-                        </Panel>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </SheetSectionSlab>
-          </div>
+          {/* ===== Abilities — the trees this pilot trained in, then the
+              Generic tree (`PilotSheetAbilities`) ===== */}
+          <PilotSheetAbilities
+            classTrees={model.classTrees}
+            genericAbilities={model.genericAbilities}
+            unresolvedAbilities={model.unresolvedAbilities}
+            usedAbilities={pilot.usedAbilities}
+            currentAP={ap}
+            readOnly={readOnly}
+            onManage={() => setPicker('abilities')}
+            onSpend={(cost) => {
+              void actions.handleSpendAP(cost)
+            }}
+            onToggleUsed={(slug, next) => {
+              void actions.handleAbilityUsedChange(slug, next)
+            }}
+          />
         </div>
         <div className="su-sheet-pilot-column">
           <SheetSectionCard title="Vitals" surface={readOnly ? 'paper' : 'frame'}>
