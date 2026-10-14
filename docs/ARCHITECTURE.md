@@ -17,7 +17,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
 4. **component-lib** <a id="component-lib"></a>
    TypeScript source, no build; `src/index.ts` barrel; tokens in `src/styles/theme.css`, mirrored by `src/design/tokens.ts`.
-   A composition one app renders lives in that app; `bun run check barrel-consumers` enforces both halves.
+   A composition one app renders lives in that app (`bun run check barrel-consumers`); an export nothing imports is knip's ([dead code](#dead-code)).
 5. **Stylesheet wiring** <a id="stylesheets"></a>
    One entry, `packages/component-lib/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
    App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.

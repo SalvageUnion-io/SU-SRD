@@ -208,8 +208,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'barrel-consumers',
     guards:
-      'every component-lib export has an app importer, and none is a composition only one app renders',
-    fix: "move a single-app composition into that app's src/components/; unexport what no app imports; a single-app helper outside the group directories needs a SINGLE_APP reason",
+      "no component-lib export is a composition only one app renders (an export nothing imports is knip's)",
+    fix: "move a single-app composition into that app's src/components/; a single-app helper outside the group directories needs a SINGLE_APP reason",
     cmd: ['bun', 'tools/check-barrel-consumers.ts'],
     areas: ['code'],
     profiles: ALL,

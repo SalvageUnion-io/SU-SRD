@@ -86,16 +86,9 @@ describe('judge', () => {
     ['heat', apps('itun')],
     ['orphan', apps()],
   ])
-  const direct = new Map([
-    ['Button', apps('srd')],
-    ['Avatar', apps('itun')],
-    ['WizShell', apps('itun')],
-    ['heat', apps('itun')],
-    ['orphan', apps()],
-  ])
 
-  test('fails a single-app composition, an unused export and an unclassified helper', () => {
-    const { verdicts, stale } = judge(exports, reach, direct, {})
+  test("fails a single-app composition and an unclassified helper; an unimported export is knip's", () => {
+    const { verdicts, stale } = judge(exports, reach, {})
     expect(verdicts).toEqual([
       {
         kind: 'composition',
@@ -110,7 +103,6 @@ describe('judge', () => {
         app: 'itun',
         module: `${lib}/components/atoms/heat.ts`,
       },
-      { kind: 'unused', name: 'orphan' },
     ])
     expect(stale).toEqual([])
   })
@@ -119,7 +111,6 @@ describe('judge', () => {
     const { verdicts, stale } = judge(
       exports.filter((e) => e.name !== 'WizShell' && e.name !== 'orphan'),
       reach,
-      direct,
       { heat: 'the gauge reads it', Button: 'two apps render it' }
     )
     expect(verdicts).toEqual([])
@@ -130,7 +121,6 @@ describe('judge', () => {
   const read = (keep: (e: BarrelExport) => boolean) => () => ({
     exports: exports.filter(keep),
     reach,
-    direct,
     workspaces: ['apps/itun', 'apps/srd'],
     scanned: 12,
   })
@@ -158,7 +148,6 @@ describe('judge', () => {
           app: 'itun',
           module: `${lib}/components/atoms/heat.ts`,
         },
-        { kind: 'unused', name: 'orphan' },
       ].map((v) => explain(v as Parameters<typeof explain>[0]).join('\n')),
       '✗ SINGLE_APP lists Gone, which is no longer an unclassified single-app export: remove it.',
     ])
@@ -179,7 +168,6 @@ describe('judge', () => {
 
 describe('explain', () => {
   test('each failure names the export and its fix', () => {
-    expect(explain({ kind: 'unused', name: 'orphan' })[1]).toContain('Unexport it')
     expect(
       explain({
         kind: 'composition',
@@ -208,12 +196,11 @@ describe('census of this repository', () => {
   })
 
   test('reach is transitive: srd reaches ControlButtons through the card it renders', () => {
-    expect(repo.direct.get('ControlButtons')).toEqual(new Set(['itun']))
     expect(repo.reach.get('ControlButtons')).toEqual(new Set(['itun', 'srd']))
   })
 
   test('has no failing verdict and no stale SINGLE_APP entry', () => {
-    expect(judge(repo.exports, repo.reach, repo.direct)).toEqual({
+    expect(judge(repo.exports, repo.reach)).toEqual({
       verdicts: [],
       stale: [],
     })
