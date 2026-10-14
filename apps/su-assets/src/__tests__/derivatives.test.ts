@@ -42,19 +42,22 @@ function get(path: string): Request {
   return new Request(`https://assets.salvageunion.io${path}`)
 }
 
-type Stub = ImagesBinding & { calls: number[] }
+type Stub = ImagesBinding & { calls: number[]; qualities: (number | undefined)[] }
 
 function imagesStub(onTransform?: (width: number) => void): Stub {
   const calls: number[] = []
+  const qualities: (number | undefined)[] = []
   return {
     calls,
+    qualities,
     input(_stream: ReadableStream) {
       return {
         transform({ width }: { width: number }) {
           calls.push(width)
           onTransform?.(width)
           return {
-            async output({ format }: { format: string }) {
+            async output({ format, quality }: { format: string; quality?: number }) {
+              qualities.push(quality)
               return { response: () => new Response(`rendered:${width}:${format}`) }
             },
           }
@@ -87,6 +90,45 @@ describe('asset worker — derivatives', () => {
     expect(res.headers.get('content-type')).toBe('image/webp')
     expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
     expect(bucket.asked).toEqual(['chassis/mule-880.webp', 'chassis/mule.webp'])
+  })
+
+  it('renders a quality-named derivative from the master, at that quality', async () => {
+    // The current grammar: the bare -440/-880 keys hold the near-lossless bakes,
+    // cached immutable everywhere, so pages name the quality to get past them.
+    const bucket = bucketWith({ 'chassis/mule.webp': 'master-bytes' })
+    const images = imagesStub()
+    const res = await makeAssetHandler(() => bucket, images)(get('/chassis/mule-880q80.webp'))
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('rendered:880:image/webp')
+    expect(images.calls).toEqual([880])
+    expect(images.qualities).toEqual([80])
+    expect(bucket.asked).toEqual(['chassis/mule-880q80.webp', 'chassis/mule.webp'])
+  })
+
+  it('renders an old-style derivative at the same quality', async () => {
+    const bucket = bucketWith({ 'chassis/mule.webp': 'master-bytes' })
+    const images = imagesStub()
+    await makeAssetHandler(() => bucket, images)(get('/chassis/mule-440.webp'))
+
+    expect(images.qualities).toEqual([80])
+  })
+
+  it('404s any other quality WITHOUT transforming', async () => {
+    // One quality, like the two widths, so a crawler cannot walk q1, q2, q3
+    // through the account's transformation quota either.
+    const bucket = bucketWith({ 'chassis/mule.webp': 'master-bytes' })
+    const images = imagesStub()
+
+    for (const path of [
+      '/chassis/mule-440q1.webp',
+      '/chassis/mule-880q100.webp',
+      '/chassis/mule-441q80.webp',
+    ]) {
+      const res = await makeAssetHandler(() => bucket, images)(get(path))
+      expect(res.status).toBe(404)
+    }
+    expect(images.calls).toEqual([])
   })
 
   it('404s an un-allowlisted width WITHOUT transforming', async () => {
