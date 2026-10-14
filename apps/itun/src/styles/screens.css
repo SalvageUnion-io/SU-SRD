@@ -13,28 +13,22 @@
  * which is what the overrides above rely on.
  */
 
-/* Sign in / out on the dark masthead: a paper hairline at 40% that goes to full
-   paper with a faint paper wash on hover. Background is restated at rest so the
-   ghost variant's ink-wash hover never shows through. */
+/* Sign in on the dark masthead: dressed as the Union bar's "Buy the game"
+   beside it (`.su-union-bar__buy`), so the bar's outlined controls are one
+   kind: a paper-60 rule that goes to full paper on hover, the same type and
+   padding. Background is restated at rest and on hover so the ghost
+   variant's ink-wash hover never shows through. */
 .sign-in-control--dark {
   background-color: transparent;
-  border-color: color-mix(in srgb, var(--color-paper) 40%, transparent);
+  border-color: var(--color-paper-60);
   color: var(--color-paper);
-}
-@supports (color: color-mix(in lab, red, red)) {
-  .sign-in-control--dark {
-    border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
-  }
+  font-size: var(--text-caption);
+  padding-inline: var(--space-14);
 }
 @media (hover: hover) {
   .sign-in-control--dark:hover {
-    background-color: color-mix(in srgb, var(--color-paper) 10%, transparent);
+    background-color: transparent;
     border-color: var(--color-paper);
-  }
-  @supports (color: color-mix(in lab, red, red)) {
-    .sign-in-control--dark:hover {
-      background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
-    }
   }
 }
 

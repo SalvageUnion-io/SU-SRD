@@ -35,8 +35,9 @@
   padding-inline: var(--space-16);
 }
 
-/* The bar's controls, one height. The search field's height is its border
-   box, so its block padding goes; the hamburger and the phone's icon buttons
+/* The bar's controls, one height and one corner. The search field's height
+   is its border box, so its block padding goes, and it takes the buttons'
+   card radius; the hamburger and the phone's icon buttons
    are squares on it. */
 .su-union-bar__end .su-search-field,
 .su-union-bar__end .su-btn {
@@ -44,6 +45,7 @@
 }
 
 .su-union-bar__end .su-search-field {
+  border-radius: var(--radius-card);
   padding-block: 0;
 }
 
