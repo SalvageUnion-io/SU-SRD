@@ -88,6 +88,17 @@ describe('ClassAbilityTree banners and track', () => {
       tiers.map((tier) => tier.querySelector(':scope > .srd-ability-tree__or')?.textContent)
     ).toEqual(tiers.map((_, index) => (index === tiers.length - 1 ? undefined : 'or')))
   })
+
+  test('every Row on a track Peeks its ability', () => {
+    const { container } = render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const tiers = [
+      ...container.querySelectorAll('.srd-ability-tree__track > .srd-ability-tree__tier'),
+    ]
+    expect(tiers.length).toBeGreaterThan(0)
+    for (const tier of tiers) {
+      expect(tier.querySelector('[data-peek^="abilities:"]')).not.toBeNull()
+    }
+  })
 })
 
 describe('ClassAbilityTree advancement paths', () => {

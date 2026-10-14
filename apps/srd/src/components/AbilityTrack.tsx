@@ -49,8 +49,9 @@ const abilityHref = (ability: SURefAbility) => itemHref('abilities', getEntitySl
  * is a real same-tab link to the ability's page (the listing row's shape,
  * `EntityListingRow`). Its banner wears its tier (EDL E12: Core orange,
  * Advanced and Hybrid rust, Legendary pink), the hue of its track; the
- * Row leaves its numeral to the track. The class page and the abilities
- * listing draw the same track.
+ * Row leaves its numeral to the track, and Peeks the full ability on hover,
+ * focus or a long press. The class page and the abilities listing draw the
+ * same track.
  */
 export function AbilityTrack({
   abilities,
@@ -80,6 +81,7 @@ export function AbilityTrack({
               mode={{ kind: 'link', href: abilityHref(ability) }}
               omit={OMIT_KIND_TIER}
               lead
+              peek
               titleAs={titleAs}
             />
             {pick && index < abilities.length - 1 && (
