@@ -362,7 +362,6 @@ function ChoiceOptionGroup({
             table={table}
             name={`${tableName} Table`}
             size={compact ? 'small' : 'medium'}
-            collapsible
             framed
             disabled={false}
             onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}

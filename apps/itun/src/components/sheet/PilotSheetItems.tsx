@@ -246,7 +246,6 @@ export function PilotAbilityItem({
       extent="full"
       collapsible={folded}
       foldChevron={false}
-      foldTables
       hide={HIDE_CHOICES}
       controls={usedStamp}
       expand={actionRow}
@@ -427,7 +426,6 @@ export function PilotEquipmentItem({
         <ReferenceEntityCard
           data={equipment}
           size="medium"
-          foldTables
           selections={selections}
           onSelectionChange={setSelections}
           scalingParent={scalingParent}

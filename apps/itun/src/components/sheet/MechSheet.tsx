@@ -376,7 +376,6 @@ export function MechSheet({
                             <ReferenceEntityCard
                               data={ability}
                               size="large"
-                              foldTables
                               // `[(CHASSIS)]` in the ability's text resolves to
                               // the PATTERN name, not the chassis's: on a live
                               // sheet the reader is looking at this machine, and

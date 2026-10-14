@@ -6,7 +6,7 @@
  * entities) with the d20 outcomes silently missing.
  */
 import { describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { extractVisibleActions, resolveTable, SalvageUnionReference } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
@@ -14,6 +14,9 @@ import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The stamp is the roll: "Roll the die on <table>". */
 const ROLL_BUTTON = /^Roll the die on /
+
+/** Every table starts hidden: open it to read its rows. */
+const openTable = () => fireEvent.click(screen.getByRole('button', { name: /^Show the .* table$/ }))
 
 const find = <T extends { name?: string }>(items: readonly T[], name: string): T => {
   const match = items.find((item) => item.name === name)
@@ -27,6 +30,7 @@ describe('roll tables reach the card by reference, not just inline', () => {
     render(<ReferenceEntityCard data={ability} />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+    openTable()
     expect(screen.getByText('The System or Module is destroyed.')).toBeTruthy()
   })
 
@@ -35,6 +39,7 @@ describe('roll tables reach the card by reference, not just inline', () => {
     render(<ReferenceEntityCard data={system} />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+    openTable()
     expect(screen.getByText(/The Mechapult explodes and is destroyed\./)).toBeTruthy()
   })
 
@@ -51,6 +56,7 @@ describe('roll tables reach the card by reference, not just inline', () => {
     render(<ReferenceEntityCard data={rollTable} />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+    openTable()
     expect(screen.getByText('An Intact Mech Chassis is available for trade.')).toBeTruthy()
   })
 

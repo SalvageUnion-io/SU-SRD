@@ -392,7 +392,6 @@ export function CrawlerBayCard({
       <ReferenceEntityCard
         data={cardData}
         size="medium"
-        foldTables
         hide={readOnly && !hasPick ? HIDE_DAMAGED_READ : HIDE_DAMAGED}
         // Read draws no controls (board 10): no condition tri-state for an
         // intact bay, no function or Repair. A damaged bay keeps its status,
