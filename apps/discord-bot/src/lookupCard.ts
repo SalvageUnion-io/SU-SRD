@@ -363,6 +363,10 @@ function indexCard(hit: LookupHit, full: CardData): CardData | null {
       blocks.push(block)
     }
   }
+  // The full card's shed link rides along, so the index keeps its Full entry
+  // button whenever the pasted link's card would have lost something.
+  const more = full.blocks.find((block) => block.kind === 'text' && 'more' in block && block.more)
+  if (more) blocks.push(more)
   return rows >= 2 ? { accent: discordAccent(card.tone), blocks } : null
 }
 
