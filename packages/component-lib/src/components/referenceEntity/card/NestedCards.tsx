@@ -181,7 +181,7 @@ function NestedCardList({
  * A DEPTH-2 child: a Row (board E2, entity display language E6), the third
  * level as a link. It opens the entity instead of expanding in place — the
  * detail page where the app links out (srd, an `EntityDetailLinkProvider` and
- * an href), else the detail modal (ITUN). A synthesised entity (no dataset
+ * an href), else the detail dialog's Page (ITUN). A synthesised entity (no dataset
  * row) and a Row inside a tooltip are read-only.
  */
 function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCardHost }) {
@@ -207,8 +207,14 @@ function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCard
     <>
       <Entity form="row" entity={data as SURefMetaEntity} instance={instance} mode={mode} />
       {mode.kind === 'link' && mode.onOpen && (
-        <EntityDetailDialog open={open} onOpenChange={setOpen} title={entityName}>
-          <NestedCard data={data} chassisName={host.chassisName} />
+        // The Page (EDL Form 5): the dialog's band and foot, the card its body.
+        <EntityDetailDialog
+          open={open}
+          onOpenChange={setOpen}
+          entity={data as SURefMetaEntity}
+          title={entityName}
+        >
+          <NestedCard data={data} chassisName={host.chassisName} presentation="page" />
         </EntityDetailDialog>
       )}
     </>

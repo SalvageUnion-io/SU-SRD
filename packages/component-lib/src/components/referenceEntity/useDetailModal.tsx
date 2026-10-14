@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import { DetailIcon } from './DetailIcon'
 import { EntityDetailDialog } from './EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from './entityHrefContext'
+import { quotePatternName } from './pattern/quotePatternName'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 
 type UseDetailModalOptions = {
@@ -44,8 +45,10 @@ export function useDetailModal(
       ? data.schemaName
       : undefined
 
-  const title =
+  // The Page's title: a pattern's quoted name, else the entity's.
+  const name =
     data && 'name' in data && typeof data.name === 'string' ? data.name : 'Entity details'
+  const title = options?.pattern ? quotePatternName(options.pattern.name) : name
 
   const control: ReferenceEntityControl = {
     key: 'detail',
@@ -58,8 +61,21 @@ export function useDetailModal(
 
   const modal =
     !linksOut && data && schemaName ? (
-      <EntityDetailDialog open={open} onOpenChange={setOpen} title={title}>
-        <ReferenceEntityCard data={data} pattern={options?.pattern} disabled={false} />
+      // The detail view is the Page (EDL Form 5, E5): the dialog draws its band
+      // and foot, the card at `presentation="page"` its body.
+      <EntityDetailDialog
+        open={open}
+        onOpenChange={setOpen}
+        entity={data as SURefMetaEntity}
+        pattern={options?.pattern}
+        title={title}
+      >
+        <ReferenceEntityCard
+          data={data}
+          pattern={options?.pattern}
+          presentation="page"
+          disabled={false}
+        />
       </EntityDetailDialog>
     ) : null
 

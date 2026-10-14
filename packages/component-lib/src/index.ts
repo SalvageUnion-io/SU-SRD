@@ -161,6 +161,9 @@ export { Toaster, toast } from './components/containers/Toaster'
 export type { AnnouncedRoll } from './components/containers/toastRoll'
 export { toastRoll } from './components/containers/toastRoll'
 export { Content } from './components/referenceEntity/Content'
+// The band line a Page carries right of its title (EDL E20): the SRD's entity
+// pages and ITUN's detail dialog.
+export { EntityPageStamps } from './components/referenceEntity/card/EntityPageStamps'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './components/referenceEntity/card/entityPage'
