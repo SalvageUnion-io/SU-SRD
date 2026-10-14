@@ -400,16 +400,18 @@
 
 /*
  * An entity page (`EntityPageFrame`): band, then body. The article fills the
- * page so the site footer's citation band closes it at the foot.
+ * page so the site footer's citation band closes it at the foot; a page too
+ * short to fill the screen sits band and body together in the middle of it,
+ * and a long one runs from the bar as before.
  */
 .srd-entity {
   display: flex;
   flex: 1;
   flex-direction: column;
+  justify-content: center;
 }
 
 .srd-entity__body {
-  flex: 1;
   margin-inline: auto;
   padding: var(--space-20) var(--space-16) var(--space-32);
   width: 100%;
@@ -423,18 +425,35 @@
 
 /* An entity page's band line (`EntityPageStamps`). Under the title on a
    phone it wraps down; beside it from `sm` it sits on the title's baseline,
-   every stamp and stat's foot on it, and wraps UP, so its first line keeps
-   that baseline and the rest fill the band above it. */
+   every stamp and stat's foot on it, flush right. The chips are inline boxes
+   in a balanced block rather than flex items, so when they take two rows
+   (or more) the rows come out even instead of one long and one short.
+   Each chip's 4px margin, cancelled at the edges, is the 8px gap. */
 .srd-entity-stamps {
-  align-items: center;
-  flex-wrap: wrap;
+  margin: calc(-1 * var(--space-4));
+  text-wrap: balance;
 }
 
-/* `end`, not `flex-end`: wrap-reverse turns a line's flex-end to its top. */
+.srd-entity-stamps > *,
+.srd-entity-stamps > dl > * {
+  display: inline-flex;
+  margin: var(--space-4);
+  /* The row's balance and alignment are for the chips, not the words in them. */
+  text-align: start;
+  text-wrap: wrap;
+  vertical-align: bottom;
+}
+
+/* The stat column (`StatColumn`, a `dl`): its cells break across rows like
+   the other chips. */
+.srd-entity-stamps > dl {
+  display: inline;
+  margin: 0;
+}
+
 @media (min-width: 40rem) {
   .srd-entity-stamps {
-    align-items: end;
-    flex-wrap: wrap-reverse;
+    text-align: end;
   }
 }
 
