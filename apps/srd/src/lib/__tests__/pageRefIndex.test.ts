@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { pageRefIndexFor } from '../pageRefIndex'
+import { pageRefIndexFor, pageRefsFor } from '../pageRefIndex'
 
 const guide = (name: string) => {
   const found = SalvageUnionReference.Guides.getByName(name)
@@ -28,5 +28,18 @@ describe('pageRefIndexFor', () => {
 
   test('an entity that cites no page has no index', () => {
     expect(pageRefIndexFor(guide('Safety Protocols'))).toBeUndefined()
+  })
+})
+
+describe('pageRefsFor', () => {
+  test("a guide's prose links no page reference", () => {
+    const item = guide('Create a Mech')
+    expect(pageRefIndexFor(item)).toBeDefined()
+    expect(pageRefsFor('guides', item)).toBeUndefined()
+  })
+
+  test('any other entity resolves its references', () => {
+    const item = guide('Heat')
+    expect(pageRefsFor('roll-tables', item)).toEqual(pageRefIndexFor(item))
   })
 })
