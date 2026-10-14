@@ -46,6 +46,13 @@
   # attributes need it, and style injection is not script execution.
   Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
 
+# The production Worker's own workers.dev address serves the same pages as
+# salvageunion.io (it stays on for the smoke check). Its canonicals already name
+# salvageunion.io; noindex keeps the duplicate out of search outright. PR
+# Previews on workers.dev get the same header from Cloudflare automatically.
+https://su-srd.alxjrvs.workers.dev/*
+  X-Robots-Tag: noindex
+
 # Content-hashed bundle output (`ssg/vite.config.ts` uses Vite's default
 # assetsDir). If it ever sets a different build.assetsDir, change this with it,
 # and the Worker's `/assets/` prefix too. A MISS here never sees this rule: the
