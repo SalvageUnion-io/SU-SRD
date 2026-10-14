@@ -191,13 +191,14 @@ describe('release.yml', () => {
   const workflow = Bun.YAML.parse(
     readFileSync(join(ROOT, '.github', 'workflows', 'release.yml'), 'utf-8')
   ) as {
-    on: { push: { branches: string[] } }
+    on: { push: { branches: string[]; paths: string[] } }
     permissions: Record<string, string>
     jobs: Record<string, { permissions?: Record<string, string>; steps: { run?: string }[] }>
   }
 
-  test('runs the script on every push to main, holding only contents: write', () => {
+  test('runs the script when a push to main changes the root package.json, holding only contents: write', () => {
     expect(workflow.on.push.branches).toEqual(['main'])
+    expect(workflow.on.push.paths).toEqual(['package.json'])
     expect(workflow.permissions).toEqual({})
     const jobs = Object.values(workflow.jobs)
     expect(jobs).toHaveLength(1)

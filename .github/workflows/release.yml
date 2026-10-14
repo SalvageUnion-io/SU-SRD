@@ -4,7 +4,8 @@ name: Release
 # `package.json` version: `tools/release.ts` publishes `v<version>` on the
 # merge commit, its notes the merged PR's **What changed** section word for
 # word (no generated notes, no `Closes #N` lines). A merge that did not bump the
-# version finds the tag already there and does nothing.
+# version finds the tag already there and does nothing; the `paths` filter
+# skips merges that leave the root package.json alone.
 #
 # Separate from deploy-cloudflare.yml: a release needs no deploy credentials,
 # and a failed deploy is re-run by hand without re-releasing.
@@ -12,6 +13,7 @@ name: Release
 on:
   push:
     branches: [main]
+    paths: [package.json]
 
 permissions: {}
 
