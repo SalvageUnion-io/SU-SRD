@@ -79,7 +79,12 @@ describe('DowntimeTrack', () => {
   test('the upkeep due is five scrap of the crawler’s tech level, and what it holds', () => {
     setQueryAnswers(state())
     wrap(<DowntimeTrack gameId={'g1' as never} mediator crawler={CRAWLER} />)
-    expect(screen.getByText('Upkeep due: 5 TL1 scrap. The crawler has 5.')).toBeTruthy()
+    // The Scrap tier is a label-first chip, `T1 | 5`, as the crawler sheet's storage.
+    const note = screen.getByText(/Upkeep due:/)
+    expect((note.textContent ?? '').replace(/\s+/g, ' ')).toBe(
+      'Upkeep due: T15. The crawler has T15.'
+    )
+    expect(note.querySelectorAll('.su-stat-cell')).toHaveLength(2)
   })
 
   test('the Mediator begins it', async () => {

@@ -248,7 +248,7 @@ describe('PilotSheet — the class art stands in for a portrait', () => {
 describe("PilotSheet — a read-only sheet's Tokens open their entity", () => {
   test('clicking an ability Token opens its Page (the detail dialog)', () => {
     const pilot = makePilot()
-    const openPage = mock(() => {})
+    const openPage = mock((_ref: unknown) => {})
     render(
       <EntitySurfaceProvider value={{ openPage }}>
         <PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />

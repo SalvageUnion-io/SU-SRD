@@ -30,7 +30,7 @@ export type EconLozItem = {
   /** The stat value. Paired with `max` for N/max readouts. */
   value: number
   max?: number
-  /** Small caption under the stat box, e.g. 'Scrap · Tech 2+'. */
+  /** Small caption under the stat box, e.g. 'T2+ Scrap'. */
   caption?: string
   /**
    * Contribute ONLY this item's action to the foot row — no stat box. For a

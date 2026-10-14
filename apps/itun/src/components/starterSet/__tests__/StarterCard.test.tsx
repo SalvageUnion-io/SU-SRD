@@ -20,7 +20,7 @@ const build = (kind: 'pilot' | 'mech', name: string) => {
 
 describe('StarterCard', () => {
   test("a pilot's class is a linked chip that Peeks and opens the class", () => {
-    const openPage = mock(() => {})
+    const openPage = mock((_ref: unknown) => {})
     render(
       <EntitySurfaceProvider value={{ openPage }}>
         <StarterCard kind="pilot" build={build('pilot', 'Bonesaw')} />

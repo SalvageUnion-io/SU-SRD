@@ -117,6 +117,28 @@ describe('the rail and the table', () => {
   })
 })
 
+describe('the crawler minor', () => {
+  test('its SP, TL and bays intact are label-first chips', async () => {
+    await renderView({
+      crawler: {
+        id: 'tenacity',
+        name: '#430 Tenacity',
+        sp: 18,
+        maxSP: 20,
+        techLevel: 1,
+        bays: 10,
+        baysIntact: 9,
+        scrapAtTl: 5,
+      },
+    })
+    const crawler = screen.getByRole('region', { name: '#430 Tenacity' })
+    const text = (crawler.textContent ?? '').replace(/\s+/g, '')
+    expect(text).toContain('TL1')
+    expect(text).toContain('Bays9/10')
+    expect(crawler.textContent).not.toMatch(/bays intact/)
+  })
+})
+
 describe('the display', () => {
   test('its tabs, Tables between Tell the table and SRD, and Log at the far end', async () => {
     await renderView()

@@ -1,5 +1,14 @@
-import { Callout, FieldError, KvRow, Panel, ReferenceEntityCard, tokens } from 'component-lib'
-import type { CSSProperties } from 'react'
+import {
+  Callout,
+  Entity,
+  FieldError,
+  KvRow,
+  Panel,
+  ReferenceEntityCard,
+  Stat,
+  tokens,
+} from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
 import type { SURefCrawler, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
@@ -14,6 +23,14 @@ const RECAP: CSSProperties = { alignSelf: 'start' }
 
 /** The Augmented reminder's body copy. */
 const REMINDER: CSSProperties = { display: 'block', fontFamily: tokens.font.body }
+
+/** A recap value's chips and Tokens, on one wrapping line. */
+const CHIPS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[6],
+} satisfies CSSProperties
 
 /** The empty-weapons line, in the surrounding text colour. */
 const EMPTY_LINE: CSSProperties = {
@@ -41,9 +58,10 @@ type CrawlerReviewStepProps = {
  * Review (Union Crawler pp.212–213): kv-panel recap
  * of type / ability / weapon(s) / stat block / scrap pool / crew on the left;
  * the chosen type and weapon entity cards stacked on the right (the universal
- * entity-card rule — fresh weapons carry an 'Intact' badge). Structure Points
- * render through the derived-at-read arithmetic (`20 + 5 type bonus = 25` for
- * Battle). The Augmented type re-surfaces its +1 Training Point reminder —
+ * entity-card rule — fresh weapons carry an 'Intact' badge). The type and the
+ * tech level are Tokens (the tech level's own `TL | 1` chip on it); Structure
+ * (`SP | 25/25`, the derived-at-read `20 + 5 type bonus` in its hover) and
+ * each Scrap tier (`T1 | 3`) are label-first chips. The Augmented type re-surfaces its +1 Training Point reminder —
  * TEXT ONLY, never a cross-pilot write (ADR-007).
  */
 export function CrawlerReviewStep({
@@ -54,19 +72,30 @@ export function CrawlerReviewStep({
   bayCount,
   submitError,
 }: CrawlerReviewStepProps) {
+  // Label-first chips (ruleset §3.7): each Scrap tier as `T1 | 3`, the
+  // crawler sheet's storage labels.
   const scrap = toScrapPoolPatch(form.scrapPool)
-  const scrapSummary = Object.entries(scrap)
-    .map(([bucket, qty]) => `T${bucket.slice(2)} ×${qty}`)
-    .join(' · ')
+  const scrapChips = Object.entries(scrap).map(([bucket, qty]) => (
+    <Stat key={bucket} label={`T${bucket.slice(2)}`} value={qty} orientation="horizontal" />
+  ))
 
+  // A crawler starts at full: `SP | 20/20`, the type bonus in its hover.
   const sp = techLevel
     ? crawlerMaxSPParts({ techLevel: `tech-${techLevel.techLevel}`, type: form.type ?? undefined })
     : undefined
-  const spSummary = sp
-    ? sp.typeBonus > 0
-      ? `${sp.base} + ${sp.typeBonus} type bonus = ${sp.total} SP (starts at full)`
-      : `${sp.total} SP (starts at full)`
-    : null
+  const spChip = sp ? (
+    <Stat
+      label="SP"
+      value={sp.total}
+      max={sp.total}
+      orientation="horizontal"
+      hoverText={
+        sp.typeBonus > 0
+          ? `${sp.base} + ${sp.typeBonus} type bonus = ${sp.total}; starts at full`
+          : 'Starts at full'
+      }
+    />
+  ) : null
 
   const crewNames = Object.values(form.crew)
     .map((entry) => entry.name?.trim())
@@ -74,20 +103,29 @@ export function CrawlerReviewStep({
 
   const isAugmented = selectedType?.name === 'Augmented'
 
-  const rows: [string, string | null][] = [
+  const typeToken = selectedType ? (
+    <Entity form="token" entity={selectedType} mode={{ kind: 'link' }} />
+  ) : null
+  // The tech level's Token carries its own `TL | 1` chip.
+  const techLevelToken = techLevel ? (
+    <Entity form="token" entity={techLevel} mode={{ kind: 'link' }} />
+  ) : null
+  const scrapNode = scrapChips.length > 0 ? <span style={CHIPS}>{scrapChips}</span> : '—'
+
+  const rows: [string, ReactNode][] = [
     ['Name', form.name.trim() || null],
-    ['Type', selectedType ? selectedType.name : null],
+    ['Type', typeToken],
     [
       'Ability',
       selectedType?.actions && selectedType.actions.length > 0
         ? selectedType.actions.join(', ')
         : '—',
     ],
-    ['Crawler', techLevel ? `${techLevel.name} · Tech Level ${techLevel.techLevel}` : null],
-    ['Structure', spSummary],
+    ['Crawler', techLevelToken],
+    ['Structure', spChip],
     ['Bays', `Full base set · ${bayCount} bays, seeded automatically · all Intact`],
     ['Weapons', systems.length > 0 ? systems.map((s) => s.name).join(', ') : null],
-    ['Scrap Pool', scrapSummary || '—'],
+    ['Scrap Pool', scrapNode],
     ['Crew', crewNames.length > 0 ? crewNames.join(', ') : 'Unnamed — fill in during play'],
   ]
 

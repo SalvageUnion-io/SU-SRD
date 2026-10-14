@@ -1,7 +1,8 @@
 /**
  * CrawlerMinor — the Game's primary crawler on the Mediator Dashboard (board
  * M1; docs/architecture/mediator-dashboard.md Q6): its name on a crawler-pink
- * band, SP as a `Stat`, its tech level and how many bays are intact, under
+ * band, SP, its tech level and its bays intact as label-first `Stat` chips
+ * (`BAYS | 10/10`), under
  * "Yours to edit: you run the table."
  *
  * The crawler is the Mediator's to run (ADR-038 §5), so its ⤢ opens the
@@ -18,9 +19,14 @@ import { AppLink } from '../shared/AppLink'
 import type { CrawlerReading } from './crawlerReading.model'
 import { BODY, bandTop, HEAD_ROW, HEADING, MUTED } from './mediatorStyles.model'
 
-const { color, space, weight } = tokens
+const { color, weight } = tokens
 
-const STAT_ROW: CSSProperties = { display: 'flex', justifyContent: 'flex-start' }
+const STAT_ROW = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[6],
+  justifyContent: 'flex-start',
+} satisfies CSSProperties
 
 const FOOT: CSSProperties = { ...BODY, marginTop: 'auto', fontWeight: weight.bold }
 
@@ -61,19 +67,23 @@ export function CrawlerMinor({
           <Maximize2 size={14} aria-hidden="true" />
         </AppLink>
       </div>
+      {/* Label-first chips (ruleset §3.7): SP, its tech level, and how many of
+          its bays are intact out of all of them. */}
       <div style={STAT_ROW}>
         <Stat label="SP" value={crawler.sp} max={crawler.maxSP} orientation="horizontal" />
+        {crawler.techLevel !== null && (
+          <Stat label="TL" value={crawler.techLevel} orientation="horizontal" />
+        )}
+        {crawler.bays > 0 && (
+          <Stat
+            label="Bays"
+            value={crawler.baysIntact}
+            max={crawler.bays}
+            orientation="horizontal"
+            hoverText="Bays intact"
+          />
+        )}
       </div>
-      <p style={{ ...MUTED, marginTop: space[2] }}>
-        {[
-          crawler.techLevel === null ? null : `TL ${crawler.techLevel}`,
-          crawler.bays === 0
-            ? null
-            : `${crawler.baysIntact === crawler.bays ? crawler.bays : `${crawler.baysIntact} of ${crawler.bays}`} bays intact`,
-        ]
-          .filter((part) => part !== null)
-          .join(' · ')}
-      </p>
       <p style={FOOT}>Yours to edit: you run the table.</p>
     </section>
   )
