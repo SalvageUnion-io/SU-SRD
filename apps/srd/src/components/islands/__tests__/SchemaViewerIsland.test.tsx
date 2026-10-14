@@ -9,7 +9,6 @@ import {
   getUniqueTechLevels,
   getUniqueTrees,
 } from 'salvageunion-reference'
-import { CATALOG_QUERY } from '../../../lib/listingView'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 const entitySchemas = getEntitySchemas()
@@ -352,10 +351,9 @@ describe('SchemaViewerIsland', () => {
     }
   })
 
-  // The listing draws one Row per entity; where the schema has art, a List |
-  // Catalog toggle swaps in the art-first Tiles, the default at a desktop
-  // measure (`listingView.ts`).
-  describe('the listing (Rows in link mode)', () => {
+  // Every listing is the Catalog: one flat grid of Tiles, no group headings,
+  // at every width, with no toggle (`listingView.ts`).
+  describe('the Catalog', () => {
     const chassisEntities = () => required(getModel('chassis'), 'chassis model').all()
     const renderChassis = () => {
       const entities = chassisEntities()
@@ -369,33 +367,28 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('one Row per entity, each a named link, in a flat list, not a grid', () => {
+    it('one art-first Tile per entity, in one flat grid with no group heading and no toggle', () => {
       const { container } = renderChassis()
-      expect(
-        container.querySelector('.srd-listing[data-view="list"] .srd-listing__cards')
-      ).toBeTruthy()
-      expect(container.querySelector('.srd-listing__cards[data-entity-grid]')).toBeNull()
-      const rows = container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')
-      expect(rows.length).toBe(chassisEntities().length)
-    })
-
-    it('groups the list by tech level, each group under its slab, with no TL cell on the cards', () => {
-      const { container } = renderChassis()
+      expect(container.querySelector('.srd-listing[data-view="catalog"]')).toBeTruthy()
+      expect(container.querySelector('.srd-listing__cards')).toBeNull()
       const groups = container.querySelectorAll('.srd-listing__group')
-      const levels = new Set(chassisEntities().map((e) => String(getTechLevel(e))))
-      expect(groups.length).toBe(levels.size)
-      expect(groups[0]?.getAttribute('aria-label')).toBe('Tech Level 1')
-      // The group heading says the tech level, so no card repeats it.
-      expect(
-        within(container.querySelector('.srd-listing__cards') as HTMLElement).queryByText('TL')
-      ).toBeNull()
+      expect(groups.length).toBe(1)
+      expect(groups[0]?.getAttribute('aria-label')).toBeNull()
+      const tiles = container.querySelectorAll('.srd-listing__tiles > li > a.su-entity-tile')
+      expect(tiles.length).toBe(chassisEntities().length)
+      expect(container.querySelector('.srd-rail__view')).toBeNull()
+      expect(screen.queryByRole('button', { name: 'List' })).toBeNull()
+      // Art from the su-assets 440 derivative, lazy, its box sized before it loads.
+      const img = required(container.querySelector('.su-entity-tile__art img'), 'a tile image')
+      expect(img.getAttribute('src')).toMatch(/^https:\/\/assets\.salvageunion\.io\/.+-440\.webp$/)
+      expect(img.getAttribute('loading')).toBe('lazy')
     })
 
     it('carries each entity’s lore under its cells', () => {
       const { container } = renderChassis()
       const gopher = required(
-        container.querySelector<HTMLElement>('.srd-listing__cards a[aria-label="Gopher"]'),
-        'the Gopher card'
+        container.querySelector<HTMLElement>('.srd-listing__tiles a[aria-label="Gopher"]'),
+        'the Gopher tile'
       )
       expect(gopher.querySelector('p')?.textContent).toStartWith(
         "The 'TC40' Gopher was originally designed"
@@ -409,76 +402,12 @@ describe('SchemaViewerIsland', () => {
       const status = required(container.querySelector('.srd-rail__status'), 'the status line')
       const matching = chassisEntities().filter((e) => getTechLevel(e) === 2)
       expect(status.textContent).toContain(`${matching.length} of ${chassisEntities().length}`)
+      expect(container.querySelectorAll('.srd-listing__tiles > li').length).toBe(matching.length)
       fireEvent.click(screen.getByRole('button', { name: 'Remove Tech Level 2' }))
       expect(container.querySelector('.srd-rail__status')).toBeNull()
     })
 
-    it('below the desktop measure the List is the default, with a List | Catalog toggle', () => {
-      const { container } = renderChassis()
-      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
-      expect(container.querySelector('.srd-listing__tiles')).toBeNull()
-    })
-
-    it('at the desktop measure the Catalog is the default: one art-first Tile per entity', () => {
-      const matchMedia = spyOn(window, 'matchMedia').mockImplementation(
-        (query: string) =>
-          ({
-            matches: query === CATALOG_QUERY,
-            media: query,
-            addEventListener: () => {},
-            removeEventListener: () => {},
-          }) as unknown as MediaQueryList
-      )
-      try {
-        const { container } = renderChassis()
-        expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
-          'true'
-        )
-        expect(container.querySelector('.srd-listing__cards')).toBeNull()
-        const tiles = container.querySelectorAll('.srd-listing__tiles > li > a.su-entity-tile')
-        expect(tiles.length).toBe(chassisEntities().length)
-        // Art from the su-assets 440 derivative, lazy, its box sized before it loads.
-        const img = required(container.querySelector('.su-entity-tile__art img'), 'a tile image')
-        expect(img.getAttribute('src')).toMatch(
-          /^https:\/\/assets\.salvageunion\.io\/.+-440\.webp$/
-        )
-        expect(img.getAttribute('loading')).toBe('lazy')
-        // The Tile carries the lore under its cells, as the Row does.
-        const gopher = required(
-          container.querySelector<HTMLElement>('.srd-listing__tiles a[aria-label="Gopher"]'),
-          'the Gopher tile'
-        )
-        expect(gopher.querySelector('p')?.textContent).toStartWith(
-          "The 'TC40' Gopher was originally designed"
-        )
-        // The reader's choice wins over the measure, and is remembered.
-        fireEvent.click(screen.getByRole('button', { name: 'List' }))
-        expect(container.querySelector('.srd-listing__tiles')).toBeNull()
-        expect(window.localStorage.getItem('srd:listing-view')).toBe('list')
-      } finally {
-        matchMedia.mockRestore()
-      }
-    })
-
-    it('a chosen view rides the URL, and a ?view= link opens on it', () => {
-      const replaceSpy = spyOn(window.history, 'replaceState')
-      try {
-        const { container } = renderChassis()
-        fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-        expect(container.querySelector('.srd-listing__tiles')).toBeTruthy()
-        const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
-        expect(urls.some((u) => u.includes('view=catalog'))).toBe(true)
-      } finally {
-        replaceSpy.mockRestore()
-      }
-      cleanup()
-      window.localStorage.clear()
-      window.location.href = 'http://localhost/chassis/?view=catalog'
-      const { container } = renderChassis()
-      expect(container.querySelector('.srd-listing__tiles')).toBeTruthy()
-    })
-
-    it('a schema with no art opens on the List and still offers its Catalog', () => {
+    it('a schema with no art takes the wider art-less columns', () => {
       const systems = required(getModel('systems'), 'systems model').all()
       const { container } = render(
         <SchemaViewerIsland
@@ -487,35 +416,26 @@ describe('SchemaViewerIsland', () => {
           sources={getUniqueSources(systems)}
         />
       )
-      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
-      expect(screen.queryByRole('button', { name: 'Tree' })).toBeNull()
-      fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-      const tiles = container.querySelectorAll('.srd-listing__tiles > li > a.su-entity-tile')
-      expect(tiles.length).toBe(systems.length)
-      // Art-less tiles take the wider columns.
       expect(container.querySelector('.srd-listing[data-catalog]')).toBeTruthy()
+      expect(container.querySelectorAll('.srd-listing__tiles > li').length).toBe(systems.length)
     })
 
-    it('a Catalog-first listing opens on its Catalog and still offers its List', () => {
-      const factions = required(getModel('factions'), 'factions model').all()
+    it('a ?view=list or ?view=tree link elsewhere is ignored', () => {
+      window.location.href = 'http://localhost/systems/?view=tree'
+      const systems = required(getModel('systems'), 'systems model').all()
       const { container } = render(
-        <SchemaViewerIsland schemaId="factions" techLevels={[]} sources={[]} />
+        <SchemaViewerIsland
+          schemaId="systems"
+          techLevels={getUniqueTechLevels(systems)}
+          sources={getUniqueSources(systems)}
+        />
       )
-      expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
-        'true'
-      )
-      expect(container.querySelectorAll('.srd-listing__tiles > li').length).toBe(factions.length)
-      fireEvent.click(screen.getByRole('button', { name: 'List' }))
-      expect(container.querySelector('.srd-listing__tiles')).toBeNull()
-      expect(container.querySelector('.srd-listing[data-catalog]')).toBeNull()
-      expect(container.querySelectorAll('.srd-listing__cards > li > a[aria-label]').length).toBe(
-        factions.length
-      )
+      expect(container.querySelector('.srd-listing[data-view="catalog"]')).toBeTruthy()
     })
   })
 
   // The abilities open on their Tree (each tree under its heading on its
-  // track); their List and Catalog are flat, by name.
+  // track); their Catalog is flat, by name.
   describe('the abilities’ Tree', () => {
     const abilities = () => required(getModel('abilities'), 'abilities model').all()
     const renderAbilities = () =>
@@ -528,7 +448,7 @@ describe('SchemaViewerIsland', () => {
         />
       )
 
-    it('offers List | Catalog | Tree and opens on the Tree', () => {
+    it('offers Catalog | Tree and opens on the Tree', () => {
       const { container } = renderAbilities()
       const views = required(
         container.querySelector<HTMLElement>('.srd-rail__view'),
@@ -538,57 +458,48 @@ describe('SchemaViewerIsland', () => {
         within(views)
           .getAllByRole('button')
           .map((b) => b.textContent)
-      ).toEqual(['List', 'Catalog', 'Tree'])
+      ).toEqual(['Catalog', 'Tree'])
       expect(screen.getByRole('button', { name: 'Tree' }).getAttribute('aria-pressed')).toBe('true')
       expect(container.querySelector('section[aria-label="Forging Tree"]')).toBeTruthy()
     })
 
-    it('the List is one flat run of Rows, by name, under no tree heading', () => {
+    it('the Catalog is one flat grid of Tiles, by name, under no tree heading', () => {
       const { container } = renderAbilities()
-      fireEvent.click(screen.getByRole('button', { name: 'List' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
       expect(container.querySelector('.srd-ability-tree__track')).toBeNull()
       const groups = container.querySelectorAll('.srd-listing__group')
       expect(groups.length).toBe(1)
       expect(groups[0]?.getAttribute('aria-label')).toBeNull()
-      const names = [...container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')].map(
-        (row) => row.getAttribute('aria-label') ?? ''
+      const names = [...container.querySelectorAll('.srd-listing__tiles > li > a[aria-label]')].map(
+        (tile) => tile.getAttribute('aria-label') ?? ''
       )
       expect(names.length).toBe(abilities().length)
       expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
     })
 
-    it('the Catalog is one flat grid of Tiles', () => {
-      const { container } = renderAbilities()
-      fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-      expect(container.querySelectorAll('.srd-listing__group').length).toBe(1)
-      expect(container.querySelectorAll('.srd-listing__tiles > li').length).toBe(abilities().length)
-    })
-
-    it('keeps its own remembered view: a List picked elsewhere leaves it on the Tree', () => {
-      window.localStorage.setItem('srd:listing-view', 'list')
+    it('remembers the choice, and a chosen view rides the URL', () => {
+      const replaceSpy = spyOn(window.history, 'replaceState')
+      try {
+        renderAbilities()
+        fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
+        expect(window.localStorage.getItem('srd:listing-view:abilities')).toBe('catalog')
+        const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
+        expect(urls.some((u) => u.includes('view=catalog'))).toBe(true)
+      } finally {
+        replaceSpy.mockRestore()
+      }
+      cleanup()
+      window.localStorage.clear()
+      window.location.href = 'http://localhost/abilities/?view=catalog'
       renderAbilities()
-      expect(screen.getByRole('button', { name: 'Tree' }).getAttribute('aria-pressed')).toBe('true')
-      fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-      expect(window.localStorage.getItem('srd:listing-view:abilities')).toBe('catalog')
-      expect(window.localStorage.getItem('srd:listing-view')).toBe('list')
-    })
-
-    it('a ?view=tree link elsewhere is ignored: only the abilities have a Tree', () => {
-      window.location.href = 'http://localhost/systems/?view=tree'
-      const systems = required(getModel('systems'), 'systems model').all()
-      render(
-        <SchemaViewerIsland
-          schemaId="systems"
-          techLevels={getUniqueTechLevels(systems)}
-          sources={getUniqueSources(systems)}
-        />
+      expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
+        'true'
       )
-      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
     })
   })
 
   // The page hands the roll tables their top-level ids (`listingEntries`): the
-  // island lists those, by book, each Row leading with its description.
+  // island lists those, in one flat Catalog, each Tile with its lead.
   describe('the roll tables', () => {
     const tables = () => required(getModel('roll-tables'), 'roll-tables model').all()
     const listed = ['Core Mechanic', 'Callsign Table', 'Meteor Encounter']
@@ -606,16 +517,14 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('lists only the ids it is handed, under a slab per book, each with its lead', () => {
+    it('lists only the ids it is handed, with no book headings, each with its lead', () => {
       const { container } = renderTables()
-      const rows = [...container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')]
-      expect(rows.map((row) => row.getAttribute('aria-label')).sort()).toEqual([...listed].sort())
-      const groups = [...container.querySelectorAll('.srd-listing__group')]
-      expect(groups.map((group) => group.getAttribute('aria-label'))).toEqual([
-        'Workshop Manual',
-        'We Were Here First!',
-      ])
-      for (const row of rows) expect(row.querySelector('p')?.textContent).toBeTruthy()
+      const tiles = [...container.querySelectorAll('.srd-listing__tiles > li > a[aria-label]')]
+      expect(tiles.map((tile) => tile.getAttribute('aria-label')).sort()).toEqual(
+        [...listed].sort()
+      )
+      expect(container.querySelectorAll('.srd-listing__group').length).toBe(1)
+      for (const tile of tiles) expect(tile.querySelector('p')?.textContent).toBeTruthy()
       // The rail counts what the listing lists.
       expect(screen.queryByRole('searchbox', { name: 'Filter items by name' })).toBeNull()
     })

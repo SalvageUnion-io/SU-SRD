@@ -2,12 +2,11 @@
  * `/[schemaId]` — the per-schema listing page (`/chassis/`).
  *
  * Headed by its chapter's band (the schema's plural name notched in), then the
- * listing, in the groups the book prints them in: one Row per entity, or where
- * the schema has art an art-first Tile (the Catalog, the default at a desktop
- * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (a short one with no art)
- * opens on its Catalog at every width, one grid with no groups; the abilities
- * open on their Tree. Every listing's rail offers List | Catalog. It ends on the same
- * chapter's band (`foot`), as an entity page does.
+ * listing: the Catalog, one flat grid of Tiles with no group headings, at
+ * every width (`lib/listingView.ts`). The abilities open on their Tree
+ * instead, each tree under its heading on its track, with Catalog | Tree in
+ * the rail. It ends on the same chapter's band (`foot`), as an entity page
+ * does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
  * `ssg/DESIGN.md`), but what it server-renders is `SchemaItemLinks`, not the
@@ -15,8 +14,8 @@
  * render was nine skeletons. The named rows are the page's content for
  * crawlers, no-JS readers and the moment before the island mounts, laid out as
  * the island lays its grid out: below its rail (`ListingRail`, inert here), in
- * its default groups (`lib/listingGroups.ts`), each row in a tile's shape where
- * the Catalog is the default. The island's skeleton takes the same rail and
+ * its default view's groups (the Tree's, `lib/listingGroups.ts`; the Catalog
+ * has one), each row in a tile's shape where the Catalog is the default. The island's skeleton takes the same rail and
  * groups (its `shape` prop), so neither the mount nor the data arriving moves
  * the grid. Mounting is still `createRoot`, so the rows are discarded on the
  * client and no mismatch is possible.
@@ -34,7 +33,8 @@ import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../lib
 import { listingEntries } from '../../lib/listingEntries'
 import type { ListingGroup, ListingShape, TechLevel } from '../../lib/listingGroups'
 import { defaultGroups, orderTechLevels, WIDE_LISTINGS } from '../../lib/listingGroups'
-import { CATALOG_LISTINGS, listingViews } from '../../lib/listingView'
+import type { ListingView } from '../../lib/listingView'
+import { CATALOG_LISTINGS, defaultListingView, listingViews } from '../../lib/listingView'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../lib/staticPaths'
 import { Island } from '../../runtime/Island'
@@ -58,7 +58,7 @@ function SchemaItemLinks({
   sources,
   trees,
   hasArt,
-  catalogFirst,
+  view,
 }: {
   schemaId: string
   groups: ListingGroup[]
@@ -67,15 +67,15 @@ function SchemaItemLinks({
   sources: string[]
   trees: string[]
   hasArt: boolean
-  catalogFirst: boolean
+  view: ListingView
 }) {
   return (
     <div
       className="srd-listing"
       data-art={hasArt || undefined}
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
-      data-catalog={catalogFirst || undefined}
-      data-view={catalogFirst ? undefined : 'list'}
+      data-catalog={(view === 'catalog' && !hasArt) || undefined}
+      data-view={view}
     >
       <ListingRail
         facets={{
@@ -126,19 +126,21 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
   const description = `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
 
-  // A listing whose tiles are the content opens on its Catalog at every width.
-  const catalogFirst = CATALOG_LISTINGS.has(schemaId)
-  // Pre-compute filter facets at build time. A Catalog-first listing is a
-  // handful of tiles, so it has no TL facet and no TL groups.
-  const techLevels = catalogFirst ? [] : getUniqueTechLevels(data)
+  // Pre-compute filter facets at build time. A `CATALOG_LISTINGS` schema is a
+  // handful of tiles, so it has no TL facet.
+  const techLevels = CATALOG_LISTINGS.has(schemaId) ? [] : getUniqueTechLevels(data)
   const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
   const preloadSchemas = getSchemaPreloadList(schemaId)
-  // A schema with artwork opens on its Catalog at a desktop measure.
+  // Art-less tiles take the Catalog's wider columns.
   const hasArt = data.some((item) => !!getAssetUrl(item))
-  // The island's default grouping, so the server render and the skeleton
-  // set the same headings the grid mounts under.
-  const groups = defaultGroups(data, trees, techLevels, schemaId)
+  // The island's default view and its groups (the Catalog has one), so the
+  // server render and the skeleton set the headings the grid mounts under.
+  const view = defaultListingView(schemaId)
+  const groups: ListingGroup[] =
+    view === 'tree'
+      ? defaultGroups(data, trees, techLevels, schemaId)
+      : [{ key: 'all', label: undefined, items: data }]
   const shape: ListingShape = {
     count: data.length,
     groups: groups.map(({ key, label, items }) => ({ key, label, count: items.length })),
@@ -212,7 +214,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
               sources={sources}
               trees={trees}
               hasArt={hasArt}
-              catalogFirst={catalogFirst}
+              view={view}
             />
           </Island>
         </div>

@@ -22,7 +22,7 @@ type RailFacets = {
   techLevels: TechLevel[]
   sources: string[]
   trees: string[]
-  /** The views it offers (`listingViews`): List | Catalog, and a tree listing's Tree. */
+  /** The views it offers (`listingViews`): a tree listing's Catalog | Tree. */
   views: readonly ListingView[]
 }
 
@@ -33,7 +33,7 @@ type RailFilters = {
   name: string
 }
 
-const VIEW_LABELS: Record<ListingView, string> = { list: 'List', catalog: 'Catalog', tree: 'Tree' }
+const VIEW_LABELS: Record<ListingView, string> = { catalog: 'Catalog', tree: 'Tree' }
 
 const NO_FILTERS: RailFilters = { techLevels: new Set(), source: '', tree: '', name: '' }
 
@@ -82,8 +82,8 @@ type ListingRailProps = {
 
 /**
  * THE RAIL — one row of 44px controls: search, what is filtered, the TL badge,
- * the menus, then the views (List | Catalog, and Tree on the abilities). On a
- * phone the facets fold behind Filters.
+ * the menus, then Catalog | Tree on the abilities. On a phone the facets fold
+ * behind Filters.
  */
 export function ListingRail({
   facets: { count, techLevels, sources, trees, views },

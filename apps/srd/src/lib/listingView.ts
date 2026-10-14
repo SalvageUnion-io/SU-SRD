@@ -1,16 +1,16 @@
-import { useCallback, useState, useSyncExternalStore } from 'react'
+import { useCallback, useState } from 'react'
 
 /**
- * How a listing lays its entities out: `list`, one Row each (the scannable
- * index), `catalog`, the Tiles, or `tree` (a `TREE_LISTINGS` schema only),
- * each tree on its class-page track. Every listing offers List | Catalog.
+ * How a listing lays its entities out: `catalog`, one flat grid of Tiles with
+ * no group headings, or `tree` (a `TREE_LISTINGS` schema only), each tree
+ * under its heading on its class-page track. Every listing is a Catalog; only
+ * a tree listing has a choice, and it opens on its Tree.
  */
-export type ListingView = 'list' | 'catalog' | 'tree'
+export type ListingView = 'catalog' | 'tree'
 
 /**
- * Listings that open on the Catalog at every width: short ones whose entities
- * have no artwork, so each tile is its band, cells and lead, and the tiles are
- * the content. The List is still a click away.
+ * Listings whose entities have no artwork and whose lead is the content: a
+ * handful of tiles, so no TL facet, and wider columns (`data-catalog`).
  */
 export const CATALOG_LISTINGS: ReadonlySet<string> = new Set([
   'tech-levels',
@@ -24,39 +24,31 @@ export const CATALOG_LISTINGS: ReadonlySet<string> = new Set([
 
 /**
  * Listings grouped by ability tree, which open on the Tree: each tree under
- * its heading on its track, as a class page draws it. Their List and Catalog
- * are flat, by name.
+ * its heading on its track, as a class page draws it. Their Catalog is flat,
+ * by name.
  */
 export const TREE_LISTINGS: ReadonlySet<string> = new Set(['abilities'])
 
-const VIEWS: readonly ListingView[] = ['list', 'catalog']
-const TREE_VIEWS: readonly ListingView[] = ['list', 'catalog', 'tree']
+const VIEWS: readonly ListingView[] = ['catalog']
+const TREE_VIEWS: readonly ListingView[] = ['catalog', 'tree']
 
-/** The views a listing offers, in the rail's order. */
+/** The views a listing offers, in the rail's order: one means no toggle. */
 export function listingViews(schemaId: string): readonly ListingView[] {
   return TREE_LISTINGS.has(schemaId) ? TREE_VIEWS : VIEWS
 }
 
-/** A shared link's view: `?view=catalog` or `?view=list`. */
-export const PARAM_VIEW = 'view'
-
-/**
- * The reader's last explicit choice, kept across listings and visits. A
- * `TREE_LISTINGS` schema keeps its own, so a List picked on the chassis does
- * not take the abilities off their Tree.
- */
-const STORAGE_KEY = 'srd:listing-view'
-
-function storageKey(schemaId: string): string {
-  return TREE_LISTINGS.has(schemaId) ? `${STORAGE_KEY}:${schemaId}` : STORAGE_KEY
+/** The view a listing opens on: a tree listing's Tree, every other's Catalog. */
+export function defaultListingView(schemaId: string): ListingView {
+  return TREE_LISTINGS.has(schemaId) ? 'tree' : 'catalog'
 }
 
-/**
- * Where the Catalog is the default: a desktop measure, where a column of
- * tiles still sets four or more across. A phone or a narrow window keeps the
- * List. `pages.css` sizes the pre-mount placeholders on the same query.
- */
-export const CATALOG_QUERY = '(min-width: 75rem)'
+/** A shared link's view: `?view=catalog` or `?view=tree`. */
+export const PARAM_VIEW = 'view'
+
+/** The reader's last explicit choice on a listing, kept across visits. */
+function storageKey(schemaId: string): string {
+  return `srd:listing-view:${schemaId}`
+}
 
 /** `raw` if it names one of `views`, else null. */
 function parseView(
@@ -89,48 +81,14 @@ function storeView(schemaId: string, view: ListingView) {
   }
 }
 
-function subscribeWide(onChange: () => void): () => void {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return () => {
-      // No media queries here (SSR, an old test DOM): nothing to unsubscribe.
-    }
-  }
-  const query = window.matchMedia(CATALOG_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-function isWide(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia(CATALOG_QUERY).matches
-}
-
-/**
- * The view a listing opens on before the reader picks one: a tree listing's
- * Tree, a `CATALOG_LISTINGS` schema's Catalog, a schema with art's Catalog at
- * a desktop measure, and otherwise the List.
- */
-function defaultListingView(schemaId: string, hasArt: boolean, wide: boolean): ListingView {
-  if (TREE_LISTINGS.has(schemaId)) return 'tree'
-  if (CATALOG_LISTINGS.has(schemaId)) return 'catalog'
-  return hasArt && wide ? 'catalog' : 'list'
-}
-
 /**
  * The listing's view. A reader's choice wins — a shared link's `?view=`, then
- * the one they last made — and otherwise `defaultListingView` decides, the
- * Catalog with art following a resize across the desktop measure.
- *
- * The island mounts with `createRoot` (never hydrates), so the media query is
- * read on its very first render: no list-then-catalog flash, no mismatch.
+ * the one they last made on this listing — and otherwise `defaultListingView`.
  *
  * `fromUrl` says whether the view should ride the URL: only once the reader
  * chose it on this page, or arrived on a link that named it.
  */
-export function useListingView(
-  schemaId: string,
-  hasArt: boolean
-): {
+export function useListingView(schemaId: string): {
   view: ListingView
   views: readonly ListingView[]
   setView: (view: ListingView) => void
@@ -142,7 +100,6 @@ export function useListingView(
     () => urlView ?? readStoredView(schemaId, views)
   )
   const [fromUrl, setFromUrl] = useState(urlView !== null)
-  const wide = useSyncExternalStore(subscribeWide, isWide, () => false)
 
   const setView = useCallback(
     (next: ListingView) => {
@@ -153,6 +110,5 @@ export function useListingView(
     [schemaId]
   )
 
-  const view = choice ?? defaultListingView(schemaId, hasArt, wide)
-  return { view, views, setView, fromUrl }
+  return { view: choice ?? defaultListingView(schemaId), views, setView, fromUrl }
 }

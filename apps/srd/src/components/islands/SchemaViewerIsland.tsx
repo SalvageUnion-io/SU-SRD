@@ -95,7 +95,7 @@ export function SchemaViewerIsland({
   ...props
 }: SchemaViewerIslandProps) {
   // Resolved here, above the gate, so the skeletons already take the view's shape.
-  const listingView = useListingView(props.schemaId, hasArt)
+  const listingView = useListingView(props.schemaId)
   return (
     <IslandErrorBoundary>
       <GameDataGate
@@ -188,18 +188,20 @@ function SchemaViewer({
   }, [initialData, techLevelFilters, sourceFilter, treeFilter, nameFilter])
 
   const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
-  // A tree listing's List and Catalog are flat, by name: its Tree is the grouping.
-  const flat = TREE_LISTINGS.has(schemaId) && view !== 'tree'
+  // The Catalog is one flat grid, no group headings (a tree listing's by
+  // name); only the Tree groups.
+  const flat = view === 'catalog'
   const groupBy: GroupBy = flat
     ? 'none'
     : resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
+  const byName = flat && TREE_LISTINGS.has(schemaId)
   const groups = useMemo(
     () =>
       groupEntities(
-        flat ? [...filteredData].sort((a, b) => a.name.localeCompare(b.name)) : filteredData,
+        byName ? [...filteredData].sort((a, b) => a.name.localeCompare(b.name)) : filteredData,
         groupBy
       ),
-    [filteredData, groupBy, flat]
+    [filteredData, groupBy, byName]
   )
   // The Tree draws each tree on its track, as the class page does: a Core,
   // Advanced or Hybrid tree's tiers 1-2-3, a Legendary tree's "or".
@@ -420,12 +422,9 @@ function ListingSkeleton({
   views: readonly ListingView[]
 }) {
   const catalog = view === 'catalog'
-  // The shape is the default view's groups; a tree listing's List and Catalog are one.
-  const flat = TREE_LISTINGS.has(schemaId) && view !== 'tree'
+  // The shape is the default view's groups; the Catalog is one.
   const groups =
-    shape && !flat
-      ? shape.groups
-      : [{ key: 'all', label: undefined, count: shape?.count ?? (catalog ? 12 : 9) }]
+    shape && !catalog ? shape.groups : [{ key: 'all', label: undefined, count: shape?.count ?? 12 }]
   return (
     <div
       className="srd-listing"

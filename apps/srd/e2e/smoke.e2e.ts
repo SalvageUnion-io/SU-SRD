@@ -111,9 +111,9 @@ for (const width of [375, 1440]) {
   })
 }
 
-// A listing row is an index line: the name never loses a character to the cells.
+// A listing tile names its entity: the name never loses a character to the cells.
 for (const width of [375, 1440]) {
-  test(`a chassis listing row at ${width}px shows its name in full`, async ({ page }) => {
+  test(`a chassis listing tile at ${width}px shows its name in full`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/chassis/')
     const row = page.locator('a[aria-label="Scrapper"][href*="/chassis/"]')
@@ -125,14 +125,17 @@ for (const width of [375, 1440]) {
 }
 
 // The long names (Electro-Magnetic Shield Projector, System and Software
-// Hacker): every compact card's head row holds its parts — the name wraps
-// inside it, and its chips stay inside the row instead of being pushed past
-// its edge.
-for (const schema of ['systems', 'abilities']) {
-  test(`every ${schema} listing row at 375px keeps its parts inside the row`, async ({ page }) => {
+// Hacker): every compact card holds its parts — the name wraps inside it, and
+// its chips and cells stay inside instead of being pushed past its edge. A
+// systems Tile's frame; an ability Row's head, on the Tree.
+for (const [schema, part] of [
+  ['systems', '.srd-listing__tiles a[aria-label] .su-entity-tile__frame'],
+  ['abilities', '.srd-listing__cards a[aria-label] [data-fill]'],
+] as const) {
+  test(`every ${schema} listing card at 375px keeps its parts inside it`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 900 })
     await page.goto(`/${schema}/`)
-    const headers = page.locator('.srd-listing__cards a[aria-label] [data-fill]')
+    const headers = page.locator(part)
     await expect(headers.first()).toBeVisible({ timeout: 30_000 })
     const broken = await headers.evaluateAll((rows) =>
       rows.flatMap((header) => {
@@ -164,80 +167,34 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Randsum.dev' })).toBeVisible()
 })
 
-// (g) An index's List is one flat column (the Catalog is the grid): every Row
-// on its own line, spanning the list's full width, at a desktop width and a
-// phone's. These schemas have art, so a desktop opens on the Catalog;
-// `?view=list` asks for the Rows. `data-entity-fit` marks the mounted List,
-// not the server-rendered names that stand in for it (Catalog-shaped at 1440px).
-const LIST = '.srd-listing[data-view="list"] ul.srd-listing__cards[data-entity-fit]'
+// (g) Every listing is the Catalog at every width: one flat grid of Tiles, no
+// group headings and no view toggle, each art box 3:4 before its image loads.
 for (const width of [1440, 390]) {
-  for (const schema of ['bio-titans', 'chassis']) {
-    test(`the /${schema}/ List is one column at ${width}px`, async ({ page }) => {
-      await page.setViewportSize({ width, height: 900 })
-      await page.goto(`/${schema}/?view=list`)
-      await expect(page.locator(`${LIST} a[aria-label]`).first()).toBeVisible({ timeout: 30_000 })
-      const lists = await page.$$eval(LIST, (uls) =>
-        uls.map((ul) => {
-          const list = ul.getBoundingClientRect()
-          return [...ul.children].map((li) => {
-            const row = li.getBoundingClientRect()
-            return { left: row.left - list.left, width: row.width - list.width }
-          })
-        })
-      )
-      expect(lists.length).toBeGreaterThan(0)
-      for (const rows of lists) {
-        expect(rows.length).toBeGreaterThan(0)
-        for (const row of rows) {
-          expect(Math.abs(row.left)).toBeLessThanOrEqual(1)
-          expect(Math.abs(row.width)).toBeLessThanOrEqual(1)
-        }
-      }
-    })
-  }
+  test(`the /chassis/ Catalog is one flat grid at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('/chassis/')
+    const tile = page.locator('.srd-listing__tiles a.su-entity-tile').first()
+    await expect(tile).toBeVisible({ timeout: 30_000 })
+    await expect(page.locator('.srd-listing__group')).toHaveCount(1)
+    await expect(page.locator('.srd-listing__group[aria-label]')).toHaveCount(0)
+    await expect(page.locator('.srd-rail__view')).toHaveCount(0)
+    const box = await tile.locator('.su-entity-tile__art').boundingBox()
+    expect(box).not.toBeNull()
+    if (box) expect(Math.abs(box.width / box.height - 3 / 4)).toBeLessThan(0.02)
+  })
 }
 
-// (h) A listing with art opens on its Catalog at a desktop measure: art-first
-// Tiles, each art box 3:4 before its image loads; a phone keeps the List.
-test('a listing with art opens on the Catalog at 1440px, the List at 390px', async ({ page }) => {
+// (h) The abilities open on their Tree (each tree on its track), one column;
+// their Catalog is one flat grid of Tiles, under no tree heading.
+test('the abilities open on their Tree and offer a flat Catalog', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
-  await page.goto('/chassis/')
-  const tile = page.locator('.srd-listing__tiles a.su-entity-tile').first()
-  await expect(tile).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByRole('button', { name: 'Catalog' })).toHaveAttribute(
-    'aria-pressed',
-    'true'
-  )
-  const box = await tile.locator('.su-entity-tile__art').boundingBox()
-  expect(box).not.toBeNull()
-  if (box) expect(Math.abs(box.width / box.height - 3 / 4)).toBeLessThan(0.02)
-
-  await page.setViewportSize({ width: 390, height: 900 })
-  await page.goto('/chassis/')
-  await expect(page.locator(`${LIST} a[aria-label]`).first()).toBeVisible({
-    timeout: 30_000,
-  })
-  await expect(page.locator('.srd-listing__tiles')).toHaveCount(0)
-})
-
-// (i) Every listing offers List | Catalog, art or none: an art-less listing's
-// Catalog is its Tiles. The abilities add a Tree, which they open on (each
-// tree on its track); their List is one flat run of Rows, under no tree.
-test('an art-less listing offers its Catalog; the abilities open on their Tree', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 900 })
-  await page.goto('/systems/')
-  await page.getByRole('button', { name: 'Catalog' }).click({ timeout: 30_000 })
-  await expect(page.locator('.srd-listing__tiles a.su-entity-tile').first()).toBeVisible()
-  await expect(page).toHaveURL(/view=catalog/)
-
   await page.goto('/abilities/')
   const tree = page.getByRole('button', { name: 'Tree' })
   await expect(tree).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 })
   await expect(page.locator('.srd-ability-tree__track').first()).toBeVisible()
-  await page.getByRole('button', { name: 'List' }).click()
+  await page.getByRole('button', { name: 'Catalog' }).click()
   await expect(page.locator('.srd-ability-tree__track')).toHaveCount(0)
   await expect(page.locator('.srd-listing__group')).toHaveCount(1)
-  await expect(page.locator(`${LIST} a[aria-label]`).first()).toBeVisible()
+  await expect(page.locator('.srd-listing__tiles a.su-entity-tile').first()).toBeVisible()
+  await expect(page).toHaveURL(/view=catalog/)
 })

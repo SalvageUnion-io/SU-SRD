@@ -1021,23 +1021,19 @@
   }
 }
 
-/* An index's List (`data-view="list"`) is one flat column: a Row a line, each
-   its own height; the grid is the Catalog's. The abilities' Tree
-   (`data-view="tree"`) stacks its tracks, and a tree's plain rows, the same
-   way. `:where` keeps this under the desktop pre-mount Catalog columns
-   (`data-art`) and a Catalog-first listing, so the server-rendered names
-   there still take the tiles' shape. */
-:where(.srd-listing:is([data-view='list'], [data-view='tree'])) .srd-listing__cards {
+/* The abilities' Tree (`data-view="tree"`) is one flat column: its tracks,
+   and a tree's plain rows, a Row a line, each its own height. */
+:where(.srd-listing[data-view='tree']) .srd-listing__cards {
   grid-auto-rows: auto;
   grid-template-columns: minmax(0, 1fr);
 }
 
-.srd-listing:is([data-view='list'], [data-view='tree']) .srd-listing__cards[data-entity-fit] {
+.srd-listing[data-view='tree'] .srd-listing__cards[data-entity-fit] {
   flex-direction: column;
   flex-wrap: nowrap;
 }
 
-.srd-listing:is([data-view='list'], [data-view='tree']) .srd-listing__cards[data-entity-fit] > * {
+.srd-listing[data-view='tree'] .srd-listing__cards[data-entity-fit] > * {
   flex: none;
   min-width: 0;
 }
@@ -1069,10 +1065,9 @@
 }
 
 /*
- * THE CATALOG (`data-view="catalog"`): the art-first Tiles (component-lib's
- * `.su-entity-tile`), the default at a desktop measure where the schema has
- * art (`lib/listingView.ts`, `CATALOG_QUERY`). Every group fills its line to
- * the page's margin: as many 13.5rem-or-wider tracks as the measure holds
+ * THE CATALOG (`data-view="catalog"`): the Tiles (component-lib's
+ * `.su-entity-tile`), every listing's view at every width, one flat grid
+ * (`lib/listingView.ts`). It fills its line to the page's margin: as many 13.5rem-or-wider tracks as the measure holds
  * (five or six at the page's), stretched to share the room, the remainder on
  * a shorter last line. Every tile on the page is one width. A tile's art box
  * holds 3:4 before its image loads.
@@ -1119,40 +1114,35 @@
 }
 
 /* Before the island mounts, a listing with art sets its server-rendered names
-   on the Catalog's columns at the same measure, so the mount does not reflow
-   the page from two columns to six. */
-@media (min-width: 75rem) {
-  .srd-listing[data-art] .srd-listing__cards {
-    gap: var(--space-12);
-    grid-auto-rows: auto;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
-  }
+   on the Catalog's columns, so the mount does not reflow the page. */
+.srd-listing[data-art][data-view='catalog'] .srd-listing__cards {
+  gap: var(--space-12);
+  grid-auto-rows: auto;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+}
 
-  /* The art box spans the frame (out through the row's side padding), the
-     name sits in the band below it, as a tile's does. */
-  .srd-listing[data-art] .srd-listing__fallback-row {
-    align-items: center;
-    display: grid;
-    grid-template-rows: auto var(--srd-tile-band);
-    white-space: normal;
-  }
+/* The art box spans the frame (out through the row's side padding), the
+   name sits in the band below it, as a tile's does. */
+.srd-listing[data-art][data-view='catalog'] .srd-listing__fallback-row {
+  align-items: center;
+  display: grid;
+  grid-template-rows: auto var(--srd-tile-band);
+  white-space: normal;
+}
 
-  .srd-listing[data-art] .srd-listing__fallback-row::before {
-    align-self: stretch;
-    aspect-ratio: 3 / 4;
-    content: '';
-    margin: 0 calc(-1 * var(--space-12));
-  }
+.srd-listing[data-art][data-view='catalog'] .srd-listing__fallback-row::before {
+  align-self: stretch;
+  aspect-ratio: 3 / 4;
+  content: '';
+  margin: 0 calc(-1 * var(--space-12));
 }
 
 /*
- * A Catalog of tiles with no art (`data-catalog`: a `CATALOG_LISTINGS`
- * schema's default, or any art-less listing's Catalog): each tile is its
- * band, cells and lead, so wider columns — three across at the page's
- * measure, two on a tablet, one on a phone — hold the lead in two or three
- * lines. 8.25rem on the built site. Before the island mounts, a
- * Catalog-first listing's skeletons and server-rendered names take that shape
- * at every width.
+ * A Catalog of tiles with no art (`data-catalog`): each tile is its band,
+ * cells and lead, so wider columns — three across at the page's measure, two
+ * on a tablet, one on a phone — hold the lead in two or three lines. 8.25rem
+ * on the built site. Before the island mounts, its skeletons and
+ * server-rendered names take that shape.
  */
 .srd-listing[data-catalog] {
   --srd-tile-band: 8.25rem;
@@ -1174,7 +1164,7 @@
   white-space: normal;
 }
 
-/* The List | Catalog (| Tree) toggle sits at the rail's end, beside the facets. */
+/* The abilities' Catalog | Tree toggle sits at the rail's end, beside the facets. */
 .srd-rail__view {
   flex: none;
 }
@@ -1191,8 +1181,9 @@
 
 /*
  * THE RAIL — one row of 44px controls (origin boards S1 and 05): search, the
- * TL badge as a toggle, the Source / Tree menus, then List | Catalog. On a
- * phone the facets fold behind a Filters button that counts the active ones.
+ * TL badge as a toggle, the Source / Tree menus, then Catalog | Tree on the
+ * abilities. On a phone the facets fold behind a Filters button that counts
+ * the active ones.
  */
 .srd-rail {
   align-items: center;
@@ -1417,7 +1408,7 @@
   text-underline-offset: 3px;
 }
 
-/* Phone: search takes the row, then Filters and List | Catalog; the facets open beneath. */
+/* Phone: search takes the row, then Filters and Catalog | Tree; the facets open beneath. */
 @media (max-width: 40rem) {
   .srd-rail .srd-rail__search {
     flex-basis: 100%;

@@ -111,25 +111,16 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html).toContain('srd-listing__fallback-row')
   })
 
-  it('first paints the island’s rail and default groups, so the mount moves nothing', () => {
-    const groups = [...html.matchAll(/class="srd-listing__group" aria-label="([^"]+)"/g)].map(
-      (match) => match[1]
-    )
-    expect(groups).toEqual([
-      'Tech Level 1',
-      'Tech Level 2',
-      'Tech Level 3',
-      'Tech Level 4',
-      'Tech Level 5',
-      'Tech Level 6',
-      'Bio-tech',
-      'Nanite',
-    ])
-    // The rail is its inert placeholder, above the first group.
+  it('first paints the island’s rail and its one flat Catalog, so the mount moves nothing', () => {
+    // The Catalog has one group, with no heading.
+    expect(html.match(/class="srd-listing__group"/g)).toHaveLength(1)
+    expect(html).not.toMatch(/class="srd-listing__group" aria-label=/)
+    expect(html).toContain('data-view="catalog"')
+    // The rail is its inert placeholder, above the group.
     expect(html).toContain('<div class="srd-rail" inert="">')
     expect(html.indexOf('srd-rail')).toBeLessThan(html.indexOf('srd-listing__group'))
-    // The skeleton takes the same groups from the island's props.
-    expect(html).toContain('"groups":[{"key":"1","label":"Tech Level 1","count":')
+    // The skeleton takes the same group from the island's props.
+    expect(html).toContain('"groups":[{"key":"all","count":')
   })
 
   it('trails Contents / Mech Workshop / Chassis', () => {
