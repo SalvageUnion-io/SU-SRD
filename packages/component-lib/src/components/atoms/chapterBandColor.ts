@@ -10,8 +10,8 @@ import { color } from '../../design/tokens'
  * `cantina` is no chapter either: it is The Cantina's own band, the builder's
  * pages that are neither a chapter nor the player's shelves (its front door,
  * Dashboard, Settings, sign-in, invites, the Starter Set), so they stop wearing
- * the SRD's rules-blue. It is the Advanced/Hybrid tier rust, not the action
- * rust (ruleset §3.1), and it carries paper text.
+ * the SRD's rules-blue. It is the Legendary tier pink (the crawler chapter's
+ * colour), and like the crawler band it carries ink text.
  */
 export type ChapterTone = 'rules' | 'pilot' | 'mech' | 'crawler' | 'denizen' | 'ink' | 'cantina'
 
@@ -26,5 +26,5 @@ export const CHAPTER_BAND_COLOR: Record<ChapterTone, string> = {
   crawler: color.crawler,
   denizen: color.denizenBand,
   ink: color.ink,
-  cantina: color.tierHybrid,
+  cantina: color.crawler,
 }

@@ -6,7 +6,7 @@ import { pageTitle } from '../../lib/pageTitle'
 /**
  * `/og/brand` — the render surface of ITUN's own link preview,
  * `public/og-image.png`: the picture every route but a shared sheet or
- * invite unfurls with: "THE CANTINA" on its tier-rust band, under the legacy
+ * invite unfurls with: "THE CANTINA" on its Legendary-pink band, under the legacy
  * tagline.
  * The root draws it without chrome; nothing requests it at runtime.
  */

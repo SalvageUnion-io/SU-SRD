@@ -48,9 +48,7 @@ const COLUMN = {
   width: '100%',
 } satisfies CSSProperties
 
-/** Paper: the cantina band carries paper text (ChapterBand's colour map). */
 const KICKER = {
-  color: tokens.color.paper,
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.caption,
   fontWeight: tokens.weight.bold,

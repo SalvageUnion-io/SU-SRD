@@ -34,7 +34,7 @@ export type BrandCardProps = {
    * "SALVAGE UNION.io".
    */
   title?: readonly [string, string]
-  /** The band's colour. The site's card wears rules-blue; The Cantina's its own. */
+  /** The band's colour. The site's card wears rules-blue; The Cantina's its pink. */
   tone?: ChapterTone
 }
 
