@@ -103,6 +103,9 @@ const TRIGGER = {
   fontSize: fontSize.lede,
   fontWeight: weight.bold,
   gap: space[6],
+  // The Union bar's one control height (`--su-union-bar-control`), so the
+  // account menu matches the search and buttons beside it.
+  height: 'var(--su-union-bar-control, auto)',
   letterSpacing: tracking.capsTight,
   padding: `${space[4]} 0`,
   textTransform: 'uppercase',

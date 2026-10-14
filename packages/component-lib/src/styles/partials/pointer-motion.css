@@ -33,4 +33,10 @@
     transform: translate(-50%, -50%);
     width: max(100%, 44px);
   }
+
+  /* The Union bar's one control height (`shell.css`) is the floor here, so the
+     switcher, search, buttons and icons still match each other. */
+  .su-union-bar {
+    --su-union-bar-control: 44px;
+  }
 }
