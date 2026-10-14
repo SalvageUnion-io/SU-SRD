@@ -15,7 +15,7 @@ import { useShowContainer } from '../useShowContainer'
 /**
  * Where a container is shown: Shelves at `/`, a Game at its own
  * `/games/$gameId`. With a router, showing one is navigating there; with none
- * (a component test, a story) it falls back to picking it in the store.
+ * (a component test) it falls back to picking it in the store.
  */
 
 afterAll(() => setActiveContainer({ kind: 'shelf' }))

@@ -50,7 +50,7 @@ code imports from the module that owns the function — `entityFields.ts`,
 `traitText.ts`, `inventorySlots.ts`, `helpers.ts` — never through the barrel.
 
 To expose a new name, add it to the barrel's list in the same change as its
-first outside consumer. Outside tests and stories count (the exports map blocks
+first outside consumer. Outside tests count (the exports map blocks
 deep imports); knip cannot see a re-export whose original is used internally.
 
 `lib/schemas/objects.ts` is a re-export barrel over

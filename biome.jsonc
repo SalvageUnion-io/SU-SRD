@@ -13,7 +13,7 @@
   "plugins": [
     "./packages/gates/biome/noModelFindByKey.grit",
     // Shipped source in every workspace: `apps/*/src` and `packages/*/src`
-    // match a new workspace without anyone listing it. Tests, stories and
+    // match a new workspace without anyone listing it. Tests and
     // test bootstraps run after a preload, so module-scope access is safe there.
     // A plugin's `includes` is matched against the file's absolute path (unlike
     // `files.includes`), so every positive glob needs its leading `**/`: a bare
@@ -26,7 +26,6 @@
         "**/packages/salvageunion-reference/lib/**",
         "!**/*.test.ts",
         "!**/*.test.tsx",
-        "!**/*.stories.tsx",
         "!**/__tests__/**",
         "!**/test/**",
         "!**/e2e/**",
@@ -41,7 +40,6 @@
         "**/packages/salvageunion-reference/lib/**",
         "!**/*.test.ts",
         "!**/*.test.tsx",
-        "!**/*.stories.tsx",
         "!**/__tests__/**",
         "!**/test/**",
         "!**/e2e/**",
@@ -206,7 +204,7 @@
         // An empty block is either a mistake or a decision with no reason
         // written down, and in a `catch` it is an error nobody will ever hear
         // about. A block holding only a comment passes, so the
-        // fix for a deliberate one is to say why. Off for tests and stories via
+        // fix for a deliberate one is to say why. Off for tests via
         // an override below, where `() => {}` is the idiom for a no-op prop.
         "noEmptyBlockStatements": "error"
       },
@@ -231,10 +229,9 @@
         // "Named exports everywhere except route components" (root AGENTS.md's
         // code conventions) is enforced here, not by prose.
         //
-        // The two exemptions are real framework contracts, not preferences:
-        // TanStack Router route modules, and story `meta` — both are read
-        // as a default export (stories by component-lib's catalog). Cloudflare Workers and
-        // the Convex http router are the same shape. All are listed as
+        // The exemptions are real framework contracts, not preferences:
+        // TanStack Router route modules are read as a default export.
+        // Cloudflare Workers and the Convex http router are the same shape. All are listed as
         // overrides at the bottom rather than suppressed per-file.
         "noDefaultExport": "error",
         // Prefer `const` over `let` where never reassigned, and template
@@ -331,12 +328,7 @@
       // Function-size ratchet for component-lib. The cap is the current largest
       // body, so one more line there fails. Biome counts the whole function
       // without comment lines. Lower it when a seam lands; never raise it.
-      "includes": [
-        "packages/component-lib/**",
-        "!**/*.test.ts",
-        "!**/*.test.tsx",
-        "!**/*.stories.tsx"
-      ],
+      "includes": ["packages/component-lib/**", "!**/*.test.ts", "!**/*.test.tsx"],
       "linter": {
         "rules": {
           "complexity": {
@@ -351,7 +343,7 @@
       // dashboard/Dashboard.tsx), so one more line there, or any longer
       // function anywhere in the app or its Convex backend, fails. Lower it
       // when a split lands; never raise it.
-      "includes": ["apps/itun/**", "!**/*.test.ts", "!**/*.test.tsx", "!**/*.stories.tsx"],
+      "includes": ["apps/itun/**", "!**/*.test.ts", "!**/*.test.tsx"],
       "linter": {
         "rules": {
           "complexity": {
@@ -362,16 +354,9 @@
     },
     {
       // A no-op callback (`onChange={() => {}}`, `mock(() => {})`) is the whole
-      // point in a test or a story, so `noEmptyBlockStatements` — which exists
+      // point in a test, so `noEmptyBlockStatements` — which exists
       // to catch swallowed errors in shipped code — is off here.
-      "includes": [
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "**/__tests__/**",
-        "**/*.stories.tsx",
-        "**/test/**",
-        "**/e2e/**"
-      ],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**", "**/test/**", "**/e2e/**"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -394,28 +379,6 @@
                 "allow": ["warn", "error"]
               }
             }
-          }
-        }
-      }
-    },
-    {
-      // Story files MUST export a `default` meta object alongside their
-      // named story components — it is the required shape, not a smell. The
-      // useComponentExportOnlyModules rule (a React Fast-Refresh guard) does
-      // not apply to a dev-only story catalog, so it is disabled for stories
-      // here rather than suppressed with a per-file `biome-ignore` on every
-      // one of ~100 story files. This override sorts AFTER the block above
-      // that enables the rule, so it wins for the matched paths.
-      "includes": ["**/*.stories.tsx"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useComponentExportOnlyModules": "off",
-            // The catalog (`apps/catalog/src/catalog.tsx`) reads
-            // a story file's `meta` as its DEFAULT export — a contract, not a
-            // style choice. All 107 of the
-            // repo's `export default`s outside `src/routes/` are this.
-            "noDefaultExport": "off"
           }
         }
       }
@@ -608,19 +571,6 @@
     },
     {
       "includes": ["apps/itun/src/routes/**"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useComponentExportOnlyModules": "off"
-          }
-        }
-      }
-    },
-    {
-      // The story catalog's entry is a page entry, not a module: it mounts
-      // its own components and exports nothing, so there is no export for
-      // Fast Refresh to keep.
-      "includes": ["apps/catalog/src/catalog.tsx"],
       "linter": {
         "rules": {
           "style": {

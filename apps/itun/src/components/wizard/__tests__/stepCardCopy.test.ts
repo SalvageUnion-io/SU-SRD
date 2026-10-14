@@ -8,9 +8,7 @@ import { dirname, join, relative } from 'node:path'
  * 3.78 / 3.03 / 2.65:1 on the pilot / mech / crawler card (`contrast.test.ts`,
  * "the wizard step card"). It inherits the card's ink instead.
  *
- * The "Compositions/Wizard/Step Card" stories hold this under axe in a real
- * browser. This is the source-level half, for the steps those stories leave
- * out and for a step added later: every component a wizard renders inside
+ * This is a source-level check, which covers a step added later too: every component a wizard renders inside
  * the card, read from the three wizards' own imports, is checked for
  * - a `Slab` with a `count` that is not `countInk="inherit"`,
  * - a quiet `EmptyState` that is not `bodyInk="inherit"`,

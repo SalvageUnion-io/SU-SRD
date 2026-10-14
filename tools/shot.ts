@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 /**
- * shot — a headless screenshot of a story or an srd page, for an agent that
- * has no browser preview.
+ * shot — a headless screenshot of an srd or ITUN page, for an agent that has
+ * no browser preview.
  *
- *   bun run shot <story-id|/route|itun:/route> [--width phone|column|page] [--out <dir>]
+ *   bun run shot </route|itun:/route> [--width phone|column|page] [--out <dir>]
  *
  * `.claude/launch.json`'s previews exist only in the Desktop app, so a cloud
  * agent restyling a component could not see what it changed (a design audit
@@ -17,17 +17,13 @@
  *   pages that need no account (the front door, the Starter Set, a sign-in
  *   prompt) render, and anything that waits on Convex shows its loading or
  *   offline state. `bun run dev:itun` (a real local backend) is not reused.
- *   Anything else is a story id (`bun run stories:ids [filter]` lists them),
- *   served canvas-only by the story catalog (`bun run stories`).
  * - Each server listens on this checkout's port (`packages/gates/lib/ports.ts`:
- *   4321, 61000 and 5180 in the primary checkout, offset in a linked worktree). One
+ *   4321 and 5180 in the primary checkout, offset in a linked worktree). One
  *   already answering there is reused only when its `x-su-checkout` header
  *   names this checkout; a server from another checkout is refused, never
  *   screenshotted. With none answering, this starts one and stops it
  *   afterwards.
- * - `--width` is the catalog's preset (`WIDTH_PRESETS` in
- *   `apps/catalog/src/catalogRoute.ts`): the viewport width,
- *   and for a story its container width too. The capture is the full page,
+ * - `--width` is the viewport width (`WIDTHS`). The capture is the full page,
  *   scrolled through first so lazy images (`loading="lazy"` art) have loaded.
  * - There is no `--dark`: neither app has a dark theme, so the capture is
  *   always the paper one.
@@ -44,7 +40,7 @@ import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 
 const REPO = resolve(import.meta.dir, '..')
 
-/** Mirrors `WIDTH_PRESETS` in the catalog's `catalogRoute.ts`. */
+/** The viewport widths `--width` names. */
 export const WIDTHS = { phone: 375, column: 480, page: 1200 } as const
 type Width = keyof typeof WIDTHS
 
@@ -61,12 +57,6 @@ export type Server = {
   env?: Readonly<Record<string, string>>
 }
 const SRD: Server = { name: 'srd', port: portFor('srd'), cmd: ['bun', 'run', 'dev'], cwd: REPO }
-const STORIES: Server = {
-  name: 'stories',
-  port: portFor('stories'),
-  cmd: ['bun', 'run', 'stories'],
-  cwd: REPO,
-}
 
 /** The prefix that makes a target an ITUN route. */
 const ITUN_PREFIX = 'itun:'
@@ -96,8 +86,7 @@ const ITUN: Server = {
   env: { VITE_CONVEX_URL: NO_BACKEND },
 }
 
-const USAGE =
-  'usage: bun run shot <story-id|/route|itun:/route> [--width phone|column|page] [--out <dir>]'
+const USAGE = 'usage: bun run shot </route|itun:/route> [--width phone|column|page] [--out <dir>]'
 
 const isWidth = (value: string): value is Width => Object.hasOwn(WIDTHS, value)
 
@@ -126,19 +115,19 @@ export function parseArgs(argv: readonly string[]): ShotArgs {
   if (!target) throw new Error(USAGE)
   if (target.startsWith(ITUN_PREFIX) && !target.startsWith(`${ITUN_PREFIX}/`))
     throw new Error(`an ITUN target is itun:/route, not "${target}"\n${USAGE}`)
+  if (!target.startsWith('/') && !target.startsWith(ITUN_PREFIX))
+    throw new Error(`a target is /route or itun:/route, not "${target}"\n${USAGE}`)
   return { target, width, out }
 }
 
 /** Which server answers for the target, and the path to load on it. */
-export function planShot({ target, width }: Pick<ShotArgs, 'target' | 'width'>): {
+export function planShot({ target }: Pick<ShotArgs, 'target'>): {
   server: Server
   path: string
 } {
-  if (target.startsWith('/')) return { server: SRD, path: target }
   if (target.startsWith(ITUN_PREFIX))
     return { server: ITUN, path: ITUN_BASE + target.slice(ITUN_PREFIX.length) }
-  const params = new URLSearchParams({ story: target, mode: 'canvas', width })
-  return { server: STORIES, path: `/?${params}` }
+  return { server: SRD, path: target }
 }
 
 /** `<target>-<width>.png`, the target reduced to a safe file name. */
@@ -192,7 +181,7 @@ export async function ensureServer(server: Server): Promise<() => void> {
   console.error(`[shot] starting ${server.name} (${server.cmd.join(' ')}) on :${server.port}…`)
   const proc = Bun.spawn([...server.cmd], {
     cwd: server.cwd,
-    // srd and the catalog honour an explicit `PORT`, so pin the one probed
+    // srd honours an explicit `PORT`, so pin the one probed
     // below over any `PORT` this shell inherited.
     env: { ...process.env, ...server.env, PORT: String(server.port) },
     stdout: 'ignore',
@@ -219,22 +208,6 @@ export async function ensureServer(server: Server): Promise<() => void> {
   stop()
   throw new Error(`${server.name} did not answer on :${server.port} within 90s`)
 }
-
-/**
- * The catalog shows its default story for an id it does not know, so a typo
- * would capture the wrong thing silently: check the id against the catalog's
- * own listing first. Returns the message for an id it lacks, else null.
- */
-export function unknownStory(id: string, listing: string): string | null {
-  const ids = listing.split('\n').map((line) => line.split('\t')[0])
-  if (ids.includes(id)) return null
-  const near = ids.filter((known) => known?.includes(id.split('--').at(-1) ?? id)).slice(0, 10)
-  return `[shot] no story "${id}". ${near.length ? `Did you mean:\n  ${near.join('\n  ')}` : 'List them: bun run stories:ids [filter]'}`
-}
-
-/** The catalog's own listing: one `id\ttitle` line per story. */
-const listStories = (): string =>
-  Bun.spawnSync(['bun', 'apps/catalog/listStories.ts'], { cwd: REPO }).stdout.toString()
 
 /**
  * A full-page screenshot captures what is below the fold without scrolling
@@ -273,11 +246,10 @@ export async function launchBrowser() {
   return chromium.launch({ executablePath })
 }
 
-/** The servers, browser and catalog `main` uses, and what it prints through. */
+/** The servers and browser `main` uses, and what it prints through. */
 export type ShotDeps = {
   ensure?: typeof ensureServer
   launch?: typeof launchBrowser
-  stories?: () => string
   log?: (line: string) => void
   error?: (line: string) => void
 }
@@ -288,7 +260,6 @@ export async function main(
   {
     ensure = ensureServer,
     launch = launchBrowser,
-    stories = listStories,
     log = console.log,
     error = console.error,
   }: ShotDeps = {}
@@ -301,13 +272,6 @@ export async function main(
     return 2
   }
   const { server, path } = planShot(args)
-  if (server === STORIES) {
-    const problem = unknownStory(args.target, stories())
-    if (problem) {
-      error(problem)
-      return 2
-    }
-  }
   let stop: () => void
   try {
     stop = await ensure(server)

@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { resolve } from 'node:path'
-import { WIDTH_PRESETS } from 'catalog/src/catalogRoute'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { Server } from '../shot'
 import {
@@ -14,7 +13,6 @@ import {
   parseArgs,
   planShot,
   probe,
-  unknownStory,
   WIDTHS,
 } from '../shot'
 import { fixtureTrees } from './fixtureTree'
@@ -27,8 +25,9 @@ import { fixtureTrees } from './fixtureTree'
 
 describe('parseArgs', () => {
   test('defaults to the page width and .shots/', () => {
-    const args = parseArgs(['atoms--button--primary'])
-    expect(args).toMatchObject({ target: 'atoms--button--primary', width: 'page' })
+    const args = parseArgs(['/chassis/mule/'])
+    expect(args).toMatchObject({ target: '/chassis/mule/', width: 'page' })
+    expect(WIDTHS[args.width]).toBe(1200)
     expect(args.out.endsWith('.shots')).toBe(true)
   })
 
@@ -50,6 +49,8 @@ describe('parseArgs', () => {
     // Neither app has a dark theme, so there is no flag to emulate one.
     [['/a', '--dark']],
     [['itun:starter']],
+    // A target is a route: a bare name is neither an srd nor an ITUN one.
+    [['atoms--button--primary']],
   ])('rejects %p with the usage line', (argv) => {
     expect(() => parseArgs(argv)).toThrow('usage: bun run shot')
   })
@@ -57,14 +58,14 @@ describe('parseArgs', () => {
 
 describe('planShot', () => {
   test("a /route goes to this checkout's srd dev server as is", () => {
-    expect(planShot({ target: '/chassis/mule/', width: 'page' })).toEqual({
+    expect(planShot({ target: '/chassis/mule/' })).toEqual({
       server: expect.objectContaining({ name: 'srd', port: portFor('srd') }),
       path: '/chassis/mule/',
     })
   })
 
   test('itun:/route is an ITUN route under its base, on its own signed-out boot', () => {
-    const { server, path } = planShot({ target: 'itun:/starter', width: 'phone' })
+    const { server, path } = planShot({ target: 'itun:/starter' })
     expect(path).toBe(`${ITUN_BASE}/starter`)
     expect(server.port).toBe(portFor('itun'))
     expect(server.cmd).toEqual([
@@ -77,13 +78,7 @@ describe('planShot', () => {
     ])
     expect(server.cwd.endsWith('apps/itun')).toBe(true)
     expect(server.env).toEqual({ VITE_CONVEX_URL: NO_BACKEND })
-    expect(planShot({ target: 'itun:/', width: 'page' }).path).toBe(`${ITUN_BASE}/`)
-  })
-
-  test('anything else is a story, canvas-only at the preset width', () => {
-    const { server, path } = planShot({ target: 'atoms--button--primary', width: 'phone' })
-    expect(server.port).toBe(portFor('stories'))
-    expect(path).toBe('/?story=atoms--button--primary&mode=canvas&width=phone')
+    expect(planShot({ target: 'itun:/' }).path).toBe(`${ITUN_BASE}/`)
   })
 })
 
@@ -97,13 +92,6 @@ test('fileName slugs the target and marks the width', () => {
   expect(fileName({ target: '/chassis/mule/', width: 'column' })).toBe('chassis-mule-column.png')
   expect(fileName({ target: '/', width: 'page' })).toBe('home-page.png')
   expect(fileName({ target: 'itun:/starter', width: 'page' })).toBe('itun-starter-page.png')
-  expect(fileName({ target: 'atoms--button--primary', width: 'phone' })).toBe(
-    'atoms--button--primary-phone.png'
-  )
-})
-
-test('the widths match the story catalog presets', () => {
-  expect(WIDTHS).toEqual(WIDTH_PRESETS)
 })
 
 describe('the dev server', () => {
@@ -284,23 +272,6 @@ describe('launchBrowser', () => {
   })
 })
 
-describe('unknownStory', () => {
-  const listing = 'atoms--button--primary\tAtoms/Button\natoms--button--ghost\tAtoms/Button\n'
-
-  test('a listed id passes', () => {
-    expect(unknownStory('atoms--button--primary', listing)).toBeNull()
-  })
-
-  test('a typo names the stories it was probably meant to be', () => {
-    expect(unknownStory('atom--button--primary', listing)).toBe(
-      '[shot] no story "atom--button--primary". Did you mean:\n  atoms--button--primary'
-    )
-    expect(unknownStory('nothing-like-it', listing)).toBe(
-      '[shot] no story "nothing-like-it". List them: bun run stories:ids [filter]'
-    )
-  })
-})
-
 describe('main', () => {
   const tree = fixtureTrees('shot-main')
 
@@ -356,12 +327,6 @@ describe('main', () => {
     expect(r.code).toBe(2)
     expect(r.err).toHaveLength(1)
     expect(started).toBe(false)
-  })
-
-  test('an unknown story exits 2 before any server starts', async () => {
-    const r = await run(['atoms--nope'], { stories: () => 'atoms--button\tAtoms/Button\n' })
-    expect(r.code).toBe(2)
-    expect(r.err[0]).toStartWith('[shot] no story "atoms--nope"')
   })
 
   test('a server that cannot start exits 2 with its reason', async () => {

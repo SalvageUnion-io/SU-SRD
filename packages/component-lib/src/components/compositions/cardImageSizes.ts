@@ -6,10 +6,9 @@
  *
  * It lives beside `CardImage` rather than inside it because srd's item pages
  * need the `sizes` string for their `rel="preload"`, and exporting anything
- * from `CardImage.tsx` through the barrel makes `CardImage` itself a public
- * component — which `story-coverage.test.ts` then requires a co-located story
- * for. `CardImage` is deliberately internal; a pure string helper is not a
- * reason to change that.
+ * from `CardImage.tsx` through the barrel would make `CardImage` itself a
+ * public component. `CardImage` is deliberately internal; a pure string helper
+ * is not a reason to change that.
  *
  * ## Why the preload needs the same string
  *

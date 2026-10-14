@@ -25,7 +25,7 @@ import { invalidateSearchIndex } from './search'
 // ---------------------------------------------------------------------------
 // Public API — every name below is re-exported EXPLICITLY, and each one has a
 // consumer outside this package (srd, itun, component-lib or the Discord bot;
-// their tests and stories count, since the exports map blocks deep imports).
+// their tests count, since the exports map blocks deep imports).
 //
 // A wildcard makes the surface whatever the modules happen to export; a list
 // makes adding a name a reviewable decision. To expose

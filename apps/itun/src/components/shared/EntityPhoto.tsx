@@ -73,7 +73,7 @@ const client = async () => (await import('../../lib/connection/convexClient')).c
 /**
  * The upload steps against the app's Convex client, called imperatively (as the
  * stores' writes are) so a sheet renders without a Convex provider in reach, and
- * a story or test without a deployment URL.
+ * a test without a deployment URL.
  */
 const UPLOADER: PhotoUploader = {
   generateUploadUrl: async () => (await client()).mutation(api.photos.generateUploadUrl, {}),

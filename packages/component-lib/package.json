@@ -8,8 +8,6 @@
     ".": "./src/index.ts",
     "./design/tokens": "./src/design/tokens.ts",
     "./product": "./src/product.ts",
-    "./stories/groups": "./src/stories/_groups.ts",
-    "./stories/harness": "./src/stories/_harness.tsx",
     "./styles/entry.css": "./src/styles/entry.css",
     "./styles/theme.css": "./src/styles/theme.css"
   },

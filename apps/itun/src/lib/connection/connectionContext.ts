@@ -40,11 +40,11 @@ export type ConnectionState = {
 }
 
 /**
- * The default is Solo, for a component rendered outside any provider — a test,
- * a story, a stray subtree. The app always mounts `ConnectionProvider`, which
+ * The default is Solo, for a component rendered outside any provider — a test
+ * or a stray subtree. The app always mounts `ConnectionProvider`, which
  * says `canWrite: false` in Solo (signed out is read-only, ADR-034 as amended).
  *
- * `canWrite` is true here on purpose, and only here: it lets a story or a
+ * `canWrite` is true here on purpose, and only here: it lets a
  * component test exercise an editable surface without mounting the auth layer.
  * It grants nothing — the store layer refuses an anonymous write regardless
  * (`requireWritableBackend`), so a test that writes runs signed in
