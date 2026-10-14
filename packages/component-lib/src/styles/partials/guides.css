@@ -15,8 +15,12 @@
  * On an entity page (`presentation="page"`, `CardPage`'s `guide`) the steps
  * take the prose column's measure and reading size, so they continue the
  * introduction above them rather than restarting at card size.
+ *
+ * `.su-guide__flow` is the reading column of a guide on its own page (below):
+ * the same column, so it shares this rule.
  */
-.su-guide {
+.su-guide,
+.su-guide__flow {
   display: flex;
   flex-direction: column;
   gap: var(--space-32);
@@ -83,7 +87,9 @@
   flex: none;
 }
 
-.su-guide__body {
+/* A step's body, and the prose a ladder stands beside (below). */
+.su-guide__body,
+.su-guide__ladder-prose {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
@@ -120,13 +126,6 @@
   flex-direction: column;
   gap: var(--space-20);
   padding-top: var(--space-12);
-}
-
-.su-guide__ladder-prose {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  min-width: 0;
 }
 
 @media (min-width: 48rem) {
@@ -224,13 +223,6 @@
 .su-guide--page .su-guide__section-head,
 .su-guide--page .su-guide__head {
   scroll-margin-top: var(--space-24);
-}
-
-.su-guide__flow {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-32);
-  min-width: 0;
 }
 
 .su-guide__toc-fold {

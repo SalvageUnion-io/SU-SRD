@@ -166,36 +166,39 @@
   font-family: var(--font-body);
 }
 
-.su-text.su-text--body {
-  color: var(--color-ink);
-  font-weight: var(--font-weight-medium);
+/* The three reading variants share their measure; an element wears one. */
+.su-text.su-text--body,
+.su-text.su-text--hint,
+.su-text.su-text--flavor {
   line-height: 1.375;
   overflow-wrap: break-word;
   text-wrap: pretty;
   white-space: normal;
 }
 
+.su-text.su-text--body,
 .su-text.su-text--hint {
   color: var(--color-ink);
+}
+
+.su-text.su-text--hint,
+.su-text.su-text--flavor {
   font-style: italic;
   font-weight: var(--font-weight-normal);
-  line-height: 1.375;
+}
+
+.su-text.su-text--body {
+  font-weight: var(--font-weight-medium);
+}
+
+.su-text.su-text--hint {
   max-width: 100%;
   overflow: hidden;
-  overflow-wrap: break-word;
   text-align: center;
-  text-wrap: pretty;
-  white-space: normal;
 }
 
 .su-text.su-text--flavor {
   color: var(--color-ink-2);
-  font-style: italic;
-  font-weight: var(--font-weight-normal);
-  line-height: 1.375;
-  overflow-wrap: break-word;
-  text-wrap: pretty;
-  white-space: normal;
 }
 
 /* components/atoms/StatProvenance.tsx — the trigger's dotted underline; callers
