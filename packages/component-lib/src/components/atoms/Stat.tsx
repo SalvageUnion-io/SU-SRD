@@ -8,6 +8,7 @@ import type { StampSurface } from './Badge'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
 import { Tooltip } from './Tooltip'
+import { TRANSITION_COLORS } from './transition'
 
 /**
  * The canonical stat/value primitive (canonical primitive language §2). One
@@ -85,14 +86,6 @@ function classes(...names: (string | false | null | undefined)[]): string | unde
   const joined = names.filter(Boolean).join(' ')
   return joined === '' ? undefined : joined
 }
-
-/** The colour transition: the colour properties over 150ms, standard easing. */
-const TRANSITION_COLORS = {
-  transitionDuration: '150ms',
-  transitionProperty:
-    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-} satisfies CSSProperties
 
 /** The inherited `text-xs` / `text-sm` rungs carry their paired line-height. */
 const LINE_HEIGHT_XS = 'calc(1 / 0.75)'

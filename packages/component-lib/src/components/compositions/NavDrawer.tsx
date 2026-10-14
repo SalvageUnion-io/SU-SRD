@@ -17,6 +17,7 @@ import { cn } from '../../utils/cn'
 import { Badge } from '../atoms/Badge'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { FOCUS_RING } from '../atoms/interaction'
+import { TRANSITION_COLORS } from '../atoms/transition'
 
 /**
  * NavDrawer — the shared hamburger + slide-in mobile nav drawer (unifies the
@@ -135,14 +136,6 @@ const VIEWPORT = {
   justifyContent: 'flex-end',
   position: 'fixed',
   zIndex: 50,
-} satisfies CSSProperties
-
-/** The colour transition: the colour properties over 150ms, standard easing. */
-const TRANSITION_COLORS = {
-  transitionDuration: '150ms',
-  transitionProperty:
-    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
 } satisfies CSSProperties
 
 // The hamburger. Its padding and ink are on `.su-nav-drawer__trigger` instead,

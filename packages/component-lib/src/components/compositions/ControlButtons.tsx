@@ -14,6 +14,7 @@ import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { Badge } from '../atoms/Badge'
 import { CountStepper } from '../atoms/CountStepper'
+import { TRANSITION_COLORS } from '../atoms/transition'
 import type {
   ReferenceEntityControl,
   ReferenceEntityControlVariant,
@@ -39,14 +40,6 @@ const VARIANT: Record<
   },
   ghost: { bg: color.paper, text: color.ink, inverseBg: color.ink, inverseText: color.paper },
 }
-
-/** The colour transition: the colour properties over 150ms, standard easing. */
-const TRANSITION_COLORS = {
-  transitionDuration: '150ms',
-  transitionProperty:
-    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-} satisfies CSSProperties
 
 // The navigation link. Its fill and ink flip on hover, so those two live on
 // `.su-control-link` (resting value included); everything else is static.
