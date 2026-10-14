@@ -5,7 +5,7 @@
  * - have vs do picks the header fill by data shape;
  * - every card wears the type stamp in its header; an ability adds its tree and its
  *   tier numeral;
- * - actions sit inline as flush ink bands, with no "Action" stamp;
+ * - actions nest as framed ink-headed cards, with no "Action" stamp;
  * - nested entities stack under their own type stamp with no tray label, depth 2 is a one-line row that
  *   opens the entity, and a child hides prose its parent already prints;
  * - below depth 1 actions fold behind a chip;
@@ -58,9 +58,12 @@ describe('have vs do', () => {
   })
 })
 
-describe('actions sit inline', () => {
-  test("a system's actions are flush ink bands, with no Action stamp", () => {
+describe('actions nest', () => {
+  test("a system's actions are self-contained framed cards, with no Action stamp", () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
+    // Each action is its own frame inset in the system's, never a flush band.
+    expect(container.querySelectorAll('.su-ec-frame .su-ec-frame')).toHaveLength(2)
+    expect(container.querySelector('.su-ec-inline')).toBeNull()
     // The card's own tone header, then one ink band per action.
     expect(fills(container)).toEqual(['tone', 'ink', 'ink'])
     expect(screen.queryByText('Action')).toBeNull()

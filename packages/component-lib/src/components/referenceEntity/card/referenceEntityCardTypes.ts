@@ -61,9 +61,9 @@ export type ReferenceEntityCardProps = {
    */
   showChassisAbility?: boolean
   /**
-   * INLINE — this card is an action sitting inside its host card (board E1): a
-   * flush ink band, its "//" line and body, with no frame, labels or footer.
-   * Set by the host when it lays out its actions; not a consumer prop.
+   * INLINE — this card sits flush inside its host card (board E1): a flush
+   * ink band, its "//" line and body, with no frame, labels or footer. Set by
+   * the host when it lays out a chassis's abilities; not a consumer prop.
    */
   inline?: boolean
   /**

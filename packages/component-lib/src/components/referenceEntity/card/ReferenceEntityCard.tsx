@@ -105,8 +105,8 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  *   Dashboard's pennant button sits at the right.
  *
  * The frame and the footer are ink on paper on every card; the
- * tone lives in the header alone. Actions sit INLINE as flush ink bands; an
- * entity's own roll table sits inline the same way; nested ENTITIES stack in
+ * tone lives in the header alone. An entity's own roll table sits inline as a
+ * flush band; its actions, like nested ENTITIES, stack framed in
  * the frame, one size step per depth (large → medium → a one-line head row), the
  * frame stepping 3 → 2 → 1.5px with them.
  *

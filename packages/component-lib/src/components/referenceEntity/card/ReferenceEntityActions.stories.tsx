@@ -17,8 +17,8 @@ export default {
  *
  * - its header is the book's INK BANNER: the title, the cost pennant at the
  *   right, paper flecks — never a ghost of its host's tone (retired);
- * - INSIDE its host it sits inline: a flush band, its "//" line, its body, no
- *   frame and no "Action" stamp;
+ * - INSIDE its host it nests: a self-contained framed card inset in the
+ *   host's frame, its chips and its body, and no "Action" stamp;
  * - on its own (the Dashboard deck and resolve panel) it is the same banner in
  *   a frame, and in the Dashboard the pennant IS the action button.
  */
@@ -74,13 +74,13 @@ function Labelled({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-/** Inline, in the card that does them: flush ink bands under the system's body. */
+/** In the card that does them: nested framed cards, inset under the system's body. */
 export const Inline: Story = () => (
   <div style={column}>
-    <Labelled label="Salvaging Drill — Auger and Drill sit inline, no tray, no stamp">
+    <Labelled label="Salvaging Drill — Auger and Drill nest, no tray, no stamp">
       <ReferenceEntityCard data={drill} />
     </Labelled>
-    <Labelled label="Scylla — a bio-titan's actions, inline (Titanic Actions included)">
+    <Labelled label="Scylla — a bio-titan's actions, nested (Titanic Actions included)">
       <ReferenceEntityCard data={scylla} size="medium" />
     </Labelled>
   </div>
