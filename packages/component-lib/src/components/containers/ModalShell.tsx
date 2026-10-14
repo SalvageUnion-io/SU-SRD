@@ -22,6 +22,14 @@ type ModalShellProps = {
    */
   description?: string | null
   /**
+   * The (bare) children render a VISIBLE `Dialog.Title` of their own, so the
+   * popup is named by the heading the reader sees rather than by a hidden
+   * restatement of it; `title` is then not rendered. The detail dialog's
+   * band does this (`EntityDetailDialog`), as `ConfirmDialog` does with
+   * `description={null}`.
+   */
+  ownTitle?: boolean
+  /**
    * `'alertdialog'` renders Base UI's AlertDialog instead of Dialog:
    * `role="alertdialog"`, and a backdrop click does NOT dismiss it (Escape and
    * the × still do), because a confirm has to be answered rather than clicked
@@ -138,6 +146,7 @@ export function ModalShell({
   title,
   subtitle,
   description,
+  ownTitle = false,
   role = 'dialog',
   tone,
   maxWidth,
@@ -187,7 +196,7 @@ export function ModalShell({
         className={container || fullscreen ? undefined : maxWidth}
         style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : popupStyle}
       >
-        <Dialog.Title className="su-sr-only">{title}</Dialog.Title>
+        {!ownTitle && <Dialog.Title className="su-sr-only">{title}</Dialog.Title>}
         {description !== null && (
           <Dialog.Description className="su-sr-only">{description ?? title}</Dialog.Description>
         )}

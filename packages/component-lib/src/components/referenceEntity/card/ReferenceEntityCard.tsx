@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useContext, useId, useState } from 'react'
+import { useContext } from 'react'
 import type {
   EntityInstance,
   SURefEntity,
@@ -30,6 +30,7 @@ import { Token } from '../../../entity/forms/Token'
 import { Chips } from '../../../entity/parts/Chips'
 import type { ChipSet } from '../../../entity/parts/chipSet'
 import { InsidePeekContext } from '../../../entity/peekContext'
+import { useDisclosure } from '../../../utils/useDisclosure'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { CardExtent, CardSize } from '../../containers/displayMode'
@@ -778,11 +779,10 @@ export function ReferenceEntityCard({
 }: ReferenceEntityCardWrapperProps): ReactNode {
   // Hook before the nullable-data guard — a conditional hook would break the
   // rules of hooks the first time a caller passed `undefined`.
-  const [collapsed, setCollapsed] = useState(collapsible)
-  const surfaceId = useId()
+  const fold = useDisclosure(!collapsible)
   if (!data) return null
 
-  const folded = collapsible && collapsed
+  const folded = collapsible && !fold.open
   // Folding only overrides the EXTENT axis, so a collapsed card keeps
   // whatever size it was given.
   const display = resolveCardDisplay({ size, extent: folded ? 'head' : extent })
@@ -793,9 +793,7 @@ export function ReferenceEntityCard({
     : [
         foldControl({
           subject: label ?? '',
-          folded,
-          surfaceId,
-          onToggle: () => setCollapsed((c) => !c),
+          disclosure: fold,
           cardClick: true,
           hidden: folded && !foldChevron,
         }),

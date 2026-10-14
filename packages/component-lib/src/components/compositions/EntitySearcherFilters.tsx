@@ -8,6 +8,7 @@
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../design/tokens'
+import type { Disclosure } from '../../utils/useDisclosure'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { FilterRow } from '../containers/FilterRow'
@@ -63,16 +64,13 @@ export function WideSubHeader({
 export function NarrowSubHeader({
   rows,
   activeFilters,
-  open,
-  onToggle,
-  panelId,
+  filters: { open, panelId, toggleProps },
   search,
 }: {
   rows: FacetRowConfig[]
   activeFilters: number
-  open: boolean
-  onToggle: () => void
-  panelId: string
+  /** The Filters disclosure (`useDisclosure`). */
+  filters: Disclosure
   search: ReactNode
 }) {
   return (
@@ -80,13 +78,7 @@ export function NarrowSubHeader({
       <div style={SEARCH_ROW_STYLE}>
         <div style={SEARCH_SLOT_STYLE}>{search}</div>
         {rows.length > 0 && (
-          <Button
-            size="compact"
-            aria-expanded={open}
-            aria-controls={panelId}
-            onClick={onToggle}
-            style={FILTERS_TOGGLE_STYLE}
-          >
+          <Button size="compact" {...toggleProps} style={FILTERS_TOGGLE_STYLE}>
             Filters
             {activeFilters > 0 && (
               <>

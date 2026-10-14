@@ -45,11 +45,12 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { useId, useState, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { color, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
 import { SELECTED_RING } from '../../entity/modes/selectedRing'
 import { cn } from '../../utils/cn'
+import { useDisclosure } from '../../utils/useDisclosure'
 import { BandTitle } from '../atoms/BandTitle'
 import { Button } from '../atoms/Button'
 import { SearchField } from '../atoms/SearchField'
@@ -173,10 +174,9 @@ export function EntitySearcher({
   const wide = useWideLayout()
   // Narrow, the facet rows fold behind a Filters disclosure — and on a phone
   // they start folded: an ability picker's ~30 Tree chips alone outgrow it.
-  const [filtersOpen, setFiltersOpen] = useState(
+  const filters = useDisclosure(
     () => typeof window === 'undefined' || window.matchMedia(ROOMY_QUERY).matches
   )
-  const filtersId = useId()
 
   // ---- Sub-parts of the searcher Card ----
   const searchInput = (
@@ -209,9 +209,7 @@ export function EntitySearcher({
     <NarrowSubHeader
       rows={showRow ? [...facetRows, showRow] : facetRows}
       activeFilters={activeFilters}
-      open={filtersOpen}
-      onToggle={() => setFiltersOpen((v) => !v)}
-      panelId={filtersId}
+      filters={filters}
       search={searchInput}
     />
   )

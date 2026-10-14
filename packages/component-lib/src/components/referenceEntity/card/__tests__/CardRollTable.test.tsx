@@ -69,6 +69,16 @@ describe('CardRollTable', () => {
     expect(document.querySelectorAll('.su-roll li')).toHaveLength(5)
   })
 
+  test('open, the Table toggle names the bands it controls', () => {
+    render(
+      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="medium" disabled={false} />
+    )
+    const toggle = screen.getByRole('button', { name: 'Show the Core Mechanic table' })
+    fireEvent.click(toggle)
+    const bands = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
+    expect(bands?.classList.contains('su-roll__bands')).toBe(true)
+  })
+
   test('nested and folded it is a Token, its buttons beside it; Table reveals the instrument', () => {
     render(
       <CardRollTable

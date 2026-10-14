@@ -1,7 +1,6 @@
-import { Popover } from '@base-ui/react/popover'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
+import { PopoverPanel } from '../containers/PopoverPanel'
 import { capsLabel } from './capsLabel'
 import { INK_POPUP } from './inkPopup'
 import { FOCUS_RING } from './interaction'
@@ -100,10 +99,9 @@ function signed(n: number): string {
  * Opens on **click/tap, keyboard, and hover**. Hover alone is deliberately not
  * enough: a hover-only affordance is unreachable by keyboard and on touch, and
  * the max numeral is exactly the kind of small target a touch user needs this
- * for. Base UI's Popover supplies the accessible core (a real button trigger,
- * Escape to close, focus management, `aria-expanded`/`aria-controls`); the
- * hover open is layered on with controlled state, since Popover has no
- * `openOnHover` in this version.
+ * for. `PopoverPanel` supplies the accessible core (a real button trigger,
+ * Escape to close, focus management, `aria-expanded`/`aria-controls`) and the
+ * immediate hover open (`openOnHover`).
  *
  * Purely presentational — the caller does the arithmetic and hands over a
  * ledger. An override is rendered as the FINAL line on top of the full
@@ -118,74 +116,70 @@ export function StatProvenance({
   children,
   className,
 }: StatProvenanceProps) {
-  const [open, setOpen] = useState(false)
-
+  const title = `${statLabel} · how this is derived`
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger
-        // The dotted underline is `.su-stat-provenance__trigger` (callers
-        // restyle it through `className`). `FOCUS_RING` was the three classes
-        // spelled out by hand; imported so the ring can never drift.
-        className={[TRIGGER_CLASS, className].filter(Boolean).join(' ')}
-        aria-label={`${statLabel}: how this is derived`}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+    <PopoverPanel
+      trigger={
+        <button
+          type="button"
+          // The dotted underline is `.su-stat-provenance__trigger` (callers
+          // restyle it through `className`). `FOCUS_RING` was the three classes
+          // spelled out by hand; imported so the ring can never drift.
+          className={[TRIGGER_CLASS, className].filter(Boolean).join(' ')}
+          aria-label={`${statLabel}: how this is derived`}
+        >
+          {children}
+        </button>
+      }
+      label={title}
+      openOnHover
+      side="top"
+      align="center"
+      panelStyle={POPUP}
+      arrowColor={color.ink}
+    >
+      <div
+        className={capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' })}
+        style={TITLE}
       >
-        {children}
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Positioner side="top" sideOffset={6}>
-          <Popover.Popup
-            style={POPUP}
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
+        {title}
+      </div>
+      <ul style={LEDGER}>
+        {/* Keyed by CONTENT, not by array index. kind+label alone can
+            collide (two +1 bonuses of the same source type); including
+            detail and amount disambiguates those without keying on
+            position. Two lines
+            identical in all four fields render interchangeably, so a
+            collision there is harmless. */}
+        {lines.map((line) => (
+          <li
+            key={`${line.kind}-${line.label}-${line.detail ?? ''}-${line.amount}`}
+            style={rowStyle(line.kind)}
           >
-            <Popover.Title
-              className={capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' })}
-              style={TITLE}
+            <span>
+              {line.label}
+              {line.detail ? <span style={DETAIL}>{line.detail}</span> : null}
+            </span>
+            <span
+              style={{
+                fontWeight: weight.semibold,
+                ...(line.amount < 0 ? { color: color.statusBad } : {}),
+              }}
             >
-              {statLabel} · how this is derived
-            </Popover.Title>
-            <ul style={LEDGER}>
-              {/* Keyed by CONTENT, not by array index. kind+label alone can
-                  collide (two +1 bonuses of the same source type); including
-                  detail and amount disambiguates those without keying on
-                  position. Two lines
-                  identical in all four fields render interchangeably, so a
-                  collision there is harmless. */}
-              {lines.map((line) => (
-                <li
-                  key={`${line.kind}-${line.label}-${line.detail ?? ''}-${line.amount}`}
-                  style={rowStyle(line.kind)}
-                >
-                  <span>
-                    {line.label}
-                    {line.detail ? <span style={DETAIL}>{line.detail}</span> : null}
-                  </span>
-                  <span
-                    style={{
-                      fontWeight: weight.semibold,
-                      ...(line.amount < 0 ? { color: color.statusBad } : {}),
-                    }}
-                  >
-                    {line.kind === 'base' || line.kind === 'derived' || line.kind === 'override'
-                      ? line.amount
-                      : signed(line.amount)}
-                  </span>
-                </li>
-              ))}
-              <li style={{ ...ROW, ...RULED, fontWeight: weight.semibold, paddingBottom: 0 }}>
-                <span>Showing</span>
-                <span>
-                  {total}
-                  {overridden ? ' *' : ''}
-                </span>
-              </li>
-            </ul>
-            <Popover.Arrow style={{ fill: color.ink }} />
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+              {line.kind === 'base' || line.kind === 'derived' || line.kind === 'override'
+                ? line.amount
+                : signed(line.amount)}
+            </span>
+          </li>
+        ))}
+        <li style={{ ...ROW, ...RULED, fontWeight: weight.semibold, paddingBottom: 0 }}>
+          <span>Showing</span>
+          <span>
+            {total}
+            {overridden ? ' *' : ''}
+          </span>
+        </li>
+      </ul>
+    </PopoverPanel>
   )
 }

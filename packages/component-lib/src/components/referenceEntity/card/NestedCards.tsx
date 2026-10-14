@@ -6,6 +6,7 @@ import { space } from '../../../design/tokens'
 import { Entity } from '../../../entity/Entity'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import type { EntityMode } from '../../../entity/types'
+import { useDisclosure } from '../../../utils/useDisclosure'
 import { Button } from '../../atoms/Button'
 import type { CardSize } from '../../containers/displayMode'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
@@ -379,18 +380,18 @@ export function ActionsChip({
   size: CardSize
   children: ReactNode
 }) {
-  const [open, setOpen] = useState(false)
+  const actions = useDisclosure()
   // Terminal in a tooltip popup: no chip to press.
   if (useContext(InsidePeekContext)) return null
   const noun = count === 1 ? 'action' : 'actions'
   return (
     <>
       <div style={{ padding: `${space[8]} ${GUTTER[size]}` }}>
-        <Button size="compact" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-          {open ? `Hide ${count} ${noun}` : `Show ${count} ${noun}`}
+        <Button size="compact" {...actions.toggleProps}>
+          {actions.open ? `Hide ${count} ${noun}` : `Show ${count} ${noun}`}
         </Button>
       </div>
-      {open && children}
+      {actions.open && <div id={actions.panelId}>{children}</div>}
     </>
   )
 }
