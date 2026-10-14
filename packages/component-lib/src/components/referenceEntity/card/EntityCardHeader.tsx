@@ -1,4 +1,3 @@
-import { ChevronRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../../design/tokens'
 import { KindLabel } from '../../../entity/parts/KindLabel'
@@ -45,8 +44,6 @@ type EntityCardHeaderProps = {
   grain?: CardGrain
   /** Draw the 1.5px ink rule that closes the band, when anything follows it. */
   ruled?: boolean
-  /** A clickable listing row: E3's chevron (›) at the far right says it opens. */
-  chevron?: boolean
 }
 
 /** The band's padding by size (board E1). */
@@ -86,8 +83,8 @@ const BAND_PAD: Record<CardSize, string> = {
  * line), so the chips sit right of it where they fit and drop whole onto a
  * line of their own under it where they do not. The title wraps only when it
  * alone is wider than the band, and is never cut (E18). The pennant button
- * and the chevron are the END column, centred on the whole band, so neither
- * is ever left alone on a line.
+ * is the END column, centred on the whole band, so it is never left alone
+ * on a line.
  */
 export function EntityCardHeader({
   title,
@@ -105,7 +102,6 @@ export function EntityCardHeader({
   band = false,
   grain,
   ruled = false,
-  chevron = false,
 }: EntityCardHeaderProps) {
   const TitleTag = titleAs ?? 'span'
   const titleType: CSSProperties = { color: titleColor, fontSize: titleSize }
@@ -134,19 +130,7 @@ export function EntityCardHeader({
         </div>
         {chips}
       </div>
-      {(pennant || chevron) && (
-        <div className="su-ec-band__end">
-          {pennant}
-          {chevron && (
-            <ChevronRight
-              aria-hidden="true"
-              size={20}
-              strokeWidth={3}
-              style={{ flex: 'none', color: titleColor }}
-            />
-          )}
-        </div>
-      )}
+      {pennant && <div className="su-ec-band__end">{pennant}</div>}
     </div>
   )
 }

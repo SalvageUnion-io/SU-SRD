@@ -25,7 +25,7 @@ export type EntityLinkAttrs = Omit<HTMLAttributes<HTMLElement>, 'children' | 'cl
  * slots and never changes its anatomy.
  *
  * - `read`: no affordance.
- * - `link`: the whole surface opens the entity, with a chevron in the head. It
+ * - `link`: the whole surface opens the entity, with no chevron. It
  *   resolves through the surface (`hrefFor`, then `openPage`); `href` or
  *   `onOpen` overrides it for a target the surface cannot name (a search
  *   result's page, ITUN's detail modal).

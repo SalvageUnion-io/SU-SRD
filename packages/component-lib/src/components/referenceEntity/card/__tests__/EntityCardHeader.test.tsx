@@ -79,7 +79,6 @@ describe('EntityCardHeader — two fills', () => {
         pennant={<button type="button">2 AP</button>}
         size="large"
         grain="paper"
-        chevron
       />
     )
     const header = band('Jury Rig')
@@ -91,12 +90,11 @@ describe('EntityCardHeader — two fills', () => {
     expect(numeral.classList).toContain('su-ec-band__title')
     expect(numeral.classList).toContain('su-ec-band__numeral')
     expect(rule('.su-ec-band__numeral')).toContain('opacity: 0.75')
-    // The pennant button and the chevron share the end column, so neither
-    // is ever alone on a wrapped line.
+    // The pennant button ends the band in its own column, never alone on a
+    // wrapped line.
     const end = header.lastElementChild as HTMLElement
     expect(end.classList).toContain('su-ec-band__end')
     expect(end.textContent).toBe('2 AP')
-    expect(end.querySelector('svg')).not.toBeNull()
     expect(rule('.su-ec-band__end')).toContain('flex: none')
   })
 

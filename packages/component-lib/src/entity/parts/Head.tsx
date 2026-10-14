@@ -40,7 +40,7 @@ export type HeadProps = {
   hint?: ReactNode
   /** The pennant button (act): the Dashboard's. A read cost is a chip. */
   pennant?: ReactNode
-  /** The mode's affordance: the link chevron, the "Selected" seal. */
+  /** The mode's affordance: the "Selected" seal, a toggle's check. */
   affordance?: ReactNode
   /** The labels (`CardLabels`): on the name's line, right after the name. */
   labels?: ReactNode

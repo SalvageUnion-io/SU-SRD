@@ -147,8 +147,8 @@
   border-top: var(--bw-chrome) solid var(--color-paper);
 }
 
-/* The end column: the Dashboard's pennant button and the chevron, centred on
- * the whole band so neither is ever left alone on a line. */
+/* The end column: the Dashboard's pennant button, centred on the whole band
+ * so it is never left alone on a line. */
 .su-ec-band__end {
   align-items: center;
   column-gap: var(--space-8);

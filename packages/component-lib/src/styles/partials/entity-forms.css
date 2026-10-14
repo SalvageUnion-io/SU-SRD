@@ -497,9 +497,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex-grow: 0;
 }
 
-/* The band: the tone, with the name's cut-out sitting on its foot and the
-   pennant and chevron at the right. Its top edge rules the art off; a bare
-   tile's frame is its top edge. */
+/* The band: the tone, with the name's cut-out sitting on its foot. Its top
+   edge rules the art off; a bare tile's frame is its top edge. */
 .su-entity-tile__band {
   align-items: flex-end;
   border-top: var(--bw-chrome) solid var(--color-ink);
@@ -526,6 +525,21 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   margin-right: auto;
   min-width: 0;
   padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
+/* The chips beside the name (`chipsBeside`, a chassis): the facts and the
+   cost right-aligned on the band's foot. They wrap
+   into rows that grow the band upward, never above the name's own line. */
+.su-entity-tile__band > .su-entity-tile__chips {
+  align-content: flex-end;
+  align-self: flex-end;
+  display: flex;
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: flex-end;
+  margin-bottom: var(--space-6);
+  min-width: 5.5rem;
 }
 
 .su-entity-tile__cells {
