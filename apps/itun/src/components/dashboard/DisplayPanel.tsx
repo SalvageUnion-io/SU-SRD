@@ -17,7 +17,7 @@
  */
 
 import type { ReferenceEntityControl } from 'component-lib'
-import { ControlButtons, ReferenceEntityCard } from 'component-lib'
+import { ControlButtons, ReferenceEntityCard, Toggle } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
@@ -268,15 +268,9 @@ export function DisplayPicker({
     <div style={PICKER}>
       <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Reference">
         {options.map((o) => (
-          <button
-            key={o.focus}
-            type="button"
-            aria-pressed={focus === o.focus}
-            className={`su-dash-deck-tab${focus === o.focus ? ' is-active' : ''}`}
-            onClick={() => onFocus(o.focus)}
-          >
+          <Toggle key={o.focus} pressed={focus === o.focus} onClick={() => onFocus(o.focus)}>
             {o.label}
-          </button>
+          </Toggle>
         ))}
       </fieldset>
     </div>

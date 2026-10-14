@@ -5,7 +5,7 @@ import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
-import { Tab, TabList, TabPanel, Tabs } from './Tabs'
+import { Tab, TabList, TabPanel, Tabs, Toggle } from './Tabs'
 
 /**
  * Tabs — one panel at a time, with the tabs keyboard model: focus a tab and
@@ -52,6 +52,22 @@ export const Default: Story = () => {
           </TabPanel>
         ))}
       </Tabs>
+    </div>
+  )
+}
+
+const ROW: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: space[4] }
+
+/** The same look as a row of `aria-pressed` toggles: the Dashboard deck's timing filter. */
+export const Toggles: Story = () => {
+  const [timing, setTiming] = useState('All')
+  return (
+    <div style={ROW}>
+      {['All', 'Turn Action', 'Reaction', 'Passive'].map((t) => (
+        <Toggle key={t} pressed={timing === t} onClick={() => setTiming(t)}>
+          {t}
+        </Toggle>
+      ))}
     </div>
   )
 }

@@ -20,8 +20,8 @@
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { InlineRef, Slab } from 'component-lib'
-import { color, font, fontSize, radius, space, tracking, weight } from 'component-lib/design/tokens'
+import { buttonVariants, cn, InlineRef, Slab } from 'component-lib'
+import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
@@ -124,15 +124,9 @@ const LIGHTBOX = {
 
 const RELATIVE = { position: 'relative' } satisfies CSSProperties
 
-/** The close button; its ground, which hovers, is `.srd-about-lightbox__close`. */
+/** The close button: Button's ink icon square, pinned to the image's corner. */
 const LIGHTBOX_CLOSE = {
-  borderRadius: radius.panel,
-  color: color.paper,
   fontSize: fontSize['2xl'],
-  fontWeight: weight.bold,
-  lineHeight: 'calc(2 / 1.5)',
-  paddingBlock: space[4],
-  paddingInline: space[12],
   position: 'absolute',
   right: space[8],
   top: space[8],
@@ -457,7 +451,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           <div style={RELATIVE}>
             <button
               type="button"
-              className="srd-about-lightbox__close srd-print-ink"
+              className={cn(buttonVariants({ variant: 'ink', size: 'iconOnly' }), 'srd-print-ink')}
               style={LIGHTBOX_CLOSE}
               id="close-modal"
               aria-label="Close"

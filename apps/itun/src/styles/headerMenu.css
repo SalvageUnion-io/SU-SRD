@@ -50,17 +50,8 @@
   color: var(--color-paper-70);
 }
 
-/* The overflow trigger (a shelf item's "⋯", board S1): an ink-outlined square
-   on paper, taking the ink wash on hover and the inverse plate while open. */
-.header-menu-trigger--overflow {
-  background-color: var(--color-paper);
-  border-color: var(--color-ink);
-  color: var(--color-ink);
-}
-.header-menu-trigger--overflow:hover {
-  background-color: var(--color-ink-8);
-  color: var(--color-ink);
-}
+/* The overflow trigger (a shelf item's "⋯", board S1) is Button's 40px icon
+   square; while its menu is open it takes the inverse plate. */
 .header-menu-trigger--overflow[data-popup-open] {
   background-color: var(--color-ink);
   color: var(--color-paper);

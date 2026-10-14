@@ -160,16 +160,6 @@ const BRAND_ROW = {
   marginBottom: space[16],
 } satisfies CSSProperties
 
-// Its fill and ink change on hover, so those are on `.su-nav-drawer__close`.
-const CLOSE = {
-  ...TRANSITION_COLORS,
-  alignItems: 'center',
-  borderRadius: radius.panel,
-  display: 'flex',
-  justifyContent: 'center',
-  padding: space[4],
-} satisfies CSSProperties
-
 const BODY = {
   display: 'flex',
   flex: '1 1 0%',
@@ -234,8 +224,7 @@ export function NavDrawer({
                   <button
                     type="button"
                     aria-label="Close menu"
-                    className={cn('su-nav-drawer__close', FOCUS_RING)}
-                    style={CLOSE}
+                    className={buttonVariants({ variant: 'quiet', size: 'iconOnly' })}
                   >
                     <X size={22} aria-hidden="true" />
                   </button>

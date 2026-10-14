@@ -16,14 +16,13 @@ import type { CSSProperties } from 'react'
  * recipe is exported precisely for non-`<button>` elements, and one of these
  * two consumers is a link. Restating it by hand meant every Button change
  * (focus ring, disabled state, radius) silently skipped the app bar. Only the
- * square geometry is layered on top: `.su-page-action`'s height and
- * `.su-sheet-iconbtn`'s matching width (`styles/sheet/mech.css`), classes
- * rather than a style object because this export is a class string.
+ * square geometry is layered on top: the icon rung at `.su-page-action`'s
+ * height, which the library squares to 40px. HeaderMenu's overflow "⋯" is the
+ * same button.
  */
 export const SHEET_ICONBTN_CLASS = cn(
-  buttonVariants({ variant: 'default' }),
-  'su-page-action',
-  'su-sheet-iconbtn'
+  buttonVariants({ variant: 'default', size: 'iconOnly' }),
+  'su-page-action'
 )
 
 /** A public sheet or pattern that cannot be shown: the page and its heading. */

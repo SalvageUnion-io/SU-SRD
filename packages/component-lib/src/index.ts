@@ -64,7 +64,7 @@ export { StatColumn } from './components/atoms/StatColumn'
 export type { ProvenanceLine } from './components/atoms/StatProvenance'
 // STAMP_SEAM — the border-riding stamp placement, as a class string (ruleset §5)
 export { STAMP_SEAM } from './components/atoms/stampSeam'
-export { Tab, TabList, TabPanel, Tabs } from './components/atoms/Tabs'
+export { Tab, TabList, TabPanel, Tabs, Toggle } from './components/atoms/Tabs'
 // Base typography
 export { Text } from './components/atoms/Text'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands

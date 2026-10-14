@@ -30,7 +30,6 @@
  * `:focus-visible`, so a mouse click leaves no ring; the offset keeps it clear
  * of the surface's own border.
  */
-.su-dash-deck-tab:focus-visible,
 .su-dash-deck-range-btn:focus-visible,
 .su-dash-deck-source:focus-visible,
 .su-dash-tablepick-item:focus-visible {
@@ -373,27 +372,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-}
-.su-dash-deck-tab {
-  padding: 5px 10px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  color: var(--color-wk-muted);
-  cursor: pointer;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-note);
-}
-.su-dash-deck-tab:hover {
-  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
-}
-.su-dash-deck-tab.is-active {
-  background: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-paper);
 }
 .su-dash-deck-toolrow {
   display: flex;

@@ -21,7 +21,8 @@
   border-color: var(--color-ink-50);
 }
 
-.su-tab[data-active] {
+.su-tab[data-active],
+.su-tab[aria-pressed='true'] {
   background-color: var(--color-ink);
   border-color: var(--color-ink);
   color: var(--color-paper);

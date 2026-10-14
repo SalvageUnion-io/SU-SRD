@@ -112,17 +112,6 @@
   width: 100%;
 }
 
-/* The close button's fill and ink change on hover. */
-.su-nav-drawer__close {
-  background-color: transparent;
-  color: var(--color-ink-60);
-}
-
-.su-nav-drawer__close:hover {
-  background-color: var(--color-ink-10);
-  color: var(--color-ink);
-}
-
 /* The search slot: its field fills the drawer whatever width the app's own
    field asks for. That width is the app's own rule, which outranks this layer,
    so only `!important` reaches past it from here. */

@@ -2,7 +2,6 @@ import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { color, space } from '../../design/tokens'
-import { cn } from '../../utils/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
 
 type EntityDetailDialogProps = {
@@ -36,8 +35,8 @@ const popupStyle = {
 const shadowTint = 'rgb(0 0 0 / 0.1)' // design-tokens-ignore: the large lift shadow's tint, neutral black
 
 /**
- * The close stamp's static half. Its background (ink, ink-2 on hover) is
- * `.su-detail-dialog__close`, since it has a hover.
+ * The close stamp's placement and paper edge. Its ink fill and hover are
+ * Button's `ink` variant.
  *
  * The shadow is inline on purpose: the `shadow-lg` utility it replaced sat in
  * a layer above `.su-focus-ring:focus-visible`, so the stamp always wore this
@@ -85,15 +84,10 @@ export function EntityDetailDialog({
               The SRD black-stamp square button is kitty-cornered, straddling the
               card's top-right corner. */}
           <div style={{ position: 'relative' }}>
-            {/* The SRD black stamp is not a Button VARIANT (paper hairline on
-                ink, going ink-2 on hover), but its geometry, focus ring and
-                disabled treatment are the shared icon rung's — so it composes
-                `buttonVariants` and re-skins only the colours. */}
+            {/* The SRD black stamp: Button's ink variant at the icon rung, with
+                a paper edge so it reads off the card it straddles. */}
             <Dialog.Close
-              className={cn(
-                buttonVariants({ variant: 'ghost', size: 'iconOnly' }),
-                'su-detail-dialog__close'
-              )}
+              className={buttonVariants({ variant: 'ink', size: 'iconOnly' })}
               style={closeStyle}
             >
               <X style={{ width: space[20], height: space[20] }} aria-hidden="true" />
