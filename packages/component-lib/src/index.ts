@@ -25,7 +25,7 @@ export { Conditions } from './components/atoms/Conditions'
 export { CountStepper } from './components/atoms/CountStepper'
 export type { ChapterTone } from './components/atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './components/atoms/chapterBandColor'
-export { Field, Input, Select } from './components/atoms/Field'
+export { Field, Select } from './components/atoms/Field'
 // FieldError — the one single-message validation line (role="alert", danger tone)
 export { FieldError } from './components/atoms/FieldError'
 // Skeletons
@@ -37,7 +37,7 @@ export { InlineEditField } from './components/atoms/InlineEditField'
 // The one link look (ruleset §3.1): rust is painted only by Button and by
 // InlineRef, so a prose link in either app is an InlineRef.
 export { InlineRef } from './components/atoms/InlineRef'
-export { Textarea } from './components/atoms/inputs'
+export { Input, Textarea } from './components/atoms/inputs'
 // The focus vocabulary — exported so the apps' focus treatment uses these
 // rungs rather than their own.
 export {
