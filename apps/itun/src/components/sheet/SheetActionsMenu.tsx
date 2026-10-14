@@ -10,7 +10,7 @@
  * always-mounted Sheet.
  */
 
-import { cn, PopoverPanel } from 'component-lib'
+import { PopoverPanel } from 'component-lib'
 import { Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { SHEET_ICONBTN_CLASS } from './sheetChrome.model'
@@ -20,10 +20,9 @@ const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 type SheetActionsMenuProps = {
   /** The actions — buttons and controls, not menu items. */
   children: ReactNode
-  className?: string
 }
 
-export function SheetActionsMenu({ children, className }: SheetActionsMenuProps) {
+export function SheetActionsMenu({ children }: SheetActionsMenuProps) {
   return (
     // A disclosure, not a role=menu widget: the panel holds arbitrary controls,
     // and menu semantics would promise menuitem roles and arrow-key navigation
@@ -31,11 +30,7 @@ export function SheetActionsMenu({ children, className }: SheetActionsMenuProps)
     <PopoverPanel
       label="Sheet actions"
       trigger={
-        <button
-          type="button"
-          aria-label="More actions"
-          className={cn(SHEET_ICONBTN_CLASS, className)}
-        >
+        <button type="button" aria-label="More actions" className={SHEET_ICONBTN_CLASS}>
           <Ellipsis style={ICON} aria-hidden="true" />
         </button>
       }

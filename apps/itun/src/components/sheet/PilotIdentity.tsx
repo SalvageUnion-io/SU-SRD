@@ -159,15 +159,9 @@ type PilotIdentityPanelProps = {
   onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
   /** Partial merge on this pilot; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
-  className?: string
 }
 
-export function PilotIdentityPanel({
-  pilot,
-  onToggleUsed,
-  patch,
-  className,
-}: PilotIdentityPanelProps) {
+export function PilotIdentityPanel({ pilot, onToggleUsed, patch }: PilotIdentityPanelProps) {
   const [classPickerOpen, setClassPickerOpen] = useState(false)
   // Class picker holds a pending selection until confirmed (destructive-ish:
   // it re-homes the pilot's class; abilities are intentionally kept).
@@ -232,7 +226,7 @@ export function PilotIdentityPanel({
     // Full height + a flex column: the identity card is stretched to match the
     // vitals card beside it, so the panel spends that height on its fields
     // (the Bio grows into whatever is left) instead of leaving dead paper.
-    <div className={className} style={PANEL}>
+    <div style={PANEL}>
       {/* Poster field grid — left / right columns; single column on mobile in
           the poster's reading order. The columns keep their natural row rhythm
           — spreading them independently pulled Keepsake/Background out of line

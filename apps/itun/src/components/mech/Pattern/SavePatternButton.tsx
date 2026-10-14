@@ -30,7 +30,6 @@ type SavePatternButtonProps = {
   cargoLots: CargoLot[]
   /** Called after the pattern is successfully saved. */
   onSaved?: (patternId: string) => void
-  className?: string
 }
 
 export function SavePatternButton({
@@ -40,7 +39,6 @@ export function SavePatternButton({
   modules,
   cargoLots,
   onSaved,
-  className,
 }: SavePatternButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [patternName, setPatternName] = useState('')
@@ -85,7 +83,7 @@ export function SavePatternButton({
 
   return (
     <>
-      <Button type="button" onClick={handleOpen} className={className} aria-label="Save as pattern">
+      <Button type="button" onClick={handleOpen} aria-label="Save as pattern">
         Save as pattern
       </Button>
 

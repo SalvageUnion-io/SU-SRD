@@ -61,7 +61,6 @@ type StorageManifestProps = {
   /** Crawler name; null when no crawler is linked. */
   crawlerName: string | null
   readOnly?: boolean
-  className?: string
 }
 
 // — The manifest —
@@ -214,7 +213,6 @@ export function StorageManifest({
   mechName,
   crawlerName,
   readOnly = false,
-  className,
 }: StorageManifestProps) {
   const lots = side === 'mech' ? cargo.state.carrierLots : cargo.state.depotLots
   const { used, cap, free, over } = cargo.usage
@@ -227,8 +225,7 @@ export function StorageManifest({
     <div
       className={cn(
         'su-sheet-crawler-manifest',
-        showCounterpart && 'su-sheet-crawler-manifest--split',
-        className
+        showCounterpart && 'su-sheet-crawler-manifest--split'
       )}
       style={MANIFEST}
       data-storage-side={side}

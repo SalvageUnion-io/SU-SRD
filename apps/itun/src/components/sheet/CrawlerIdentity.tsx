@@ -91,7 +91,6 @@ type CrawlerIdentityPanelProps = {
   readOnly?: boolean
   /** The built NPC filling the type's NPC slot, if any (ADR-044). */
   typeCrew?: CrewAssignment
-  className?: string
 }
 
 export function CrawlerIdentityPanel({
@@ -101,7 +100,6 @@ export function CrawlerIdentityPanel({
   patch,
   readOnly = false,
   typeCrew,
-  className,
 }: CrawlerIdentityPanelProps) {
   const [typePickerOpen, setTypePickerOpen] = useState(false)
 
@@ -125,7 +123,7 @@ export function CrawlerIdentityPanel({
   }
 
   return (
-    <section aria-label="Crawler identity" className={className} style={PANEL}>
+    <section aria-label="Crawler identity" style={PANEL}>
       <div style={STACK}>
         {/* Name leads at full prominence (the crawler's own name, like a
             pilot's callsign). Tech Level sits to the LEFT of the type: it is

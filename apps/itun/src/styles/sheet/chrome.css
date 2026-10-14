@@ -2,10 +2,13 @@
 
 /* HButton (`SheetSection.tsx`, design `.hbtn`): display goes in print, the
    44px coarse-pointer floor collapses to the 32px design height at `sm`, and
-   each variant's colours change on hover. */
+   its deep-tone outline fills on hover. */
 .su-sheet-hbtn {
   display: inline-flex;
   min-height: 2.75rem;
+  border-color: var(--tone-deep, var(--color-ink));
+  background-color: var(--color-paper);
+  color: var(--tone-deep, var(--color-ink));
 }
 
 @media (min-width: 40rem) {
@@ -14,36 +17,8 @@
   }
 }
 
-.su-sheet-hbtn--edit {
-  border-color: var(--color-ink);
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-.su-sheet-hbtn--done {
-  border-color: var(--tone-deep, var(--color-ink));
-  background-color: var(--tone-deep, var(--color-ink));
-  color: var(--color-paper);
-}
-
-.su-sheet-hbtn--add {
-  border-color: var(--tone-deep, var(--color-ink));
-  background-color: var(--color-paper);
-  color: var(--tone-deep, var(--color-ink));
-}
-
 @media (hover: hover) {
-  .su-sheet-hbtn--edit:hover {
-    background-color: var(--color-ink);
-    color: var(--color-paper);
-  }
-
-  .su-sheet-hbtn--done:hover {
-    border-color: var(--color-ink);
-    background-color: var(--color-ink);
-  }
-
-  .su-sheet-hbtn--add:hover {
+  .su-sheet-hbtn:hover {
     background-color: var(--tone-deep, var(--color-ink));
     color: var(--color-paper);
   }

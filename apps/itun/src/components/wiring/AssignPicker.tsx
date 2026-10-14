@@ -256,7 +256,6 @@ type AssignPickerProps = {
   /** Inject to avoid the Zustand global in tests. */
   store?: AssignPickerStore
   onAssigned?: () => void
-  className?: string
 }
 
 export function AssignPicker({
@@ -268,7 +267,6 @@ export function AssignPicker({
   size = 'compact',
   store,
   onAssigned,
-  className,
 }: AssignPickerProps) {
   const [open, setOpen] = useState(false)
   const [selectedId, setSelectedId] = useState('')
@@ -343,7 +341,7 @@ export function AssignPicker({
 
   return (
     <>
-      <Button size={size} onClick={openDialog} className={className} aria-label={ariaLabel}>
+      <Button size={size} onClick={openDialog} aria-label={ariaLabel}>
         {label}
       </Button>
 

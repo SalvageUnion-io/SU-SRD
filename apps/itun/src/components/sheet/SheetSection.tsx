@@ -33,17 +33,14 @@ import { cloneElement, isValidElement } from 'react'
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html
-// :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps; the
-// `edit` default hovers to an ink fill, `done` is a filled deep-tone chip, and
-// `add` is a deep-tone outline with a circled-plus that fills on hover. The
-// 44px coarse-pointer floor collapses to the 32px design height at `sm`.
+// :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps: a
+// deep-tone outline with a circled-plus that fills on hover. The 44px
+// coarse-pointer floor collapses to the 32px design height at `sm`.
 //
 // Everything with a hover, breakpoint or print variant — display, min-height
-// and the variant colours — is `.su-sheet-hbtn` in `styles/sheet/chrome.css`;
-// the rest is the style object below.
+// and the colours — is `.su-sheet-hbtn` in `styles/sheet/chrome.css`; the rest
+// is the style object below.
 // ---------------------------------------------------------------------------
-
-type HButtonVariant = 'edit' | 'done' | 'add'
 
 const HBTN = {
   cursor: 'pointer',
@@ -66,26 +63,10 @@ const HBTN = {
   transitionDuration: '150ms',
 } satisfies CSSProperties
 
-type HButtonProps = ComponentPropsWithoutRef<'button'> & {
-  variant?: HButtonVariant
-}
-
 /** Container-header control button (design `.hbtn`). */
-export function HButton({
-  variant = 'edit',
-  className,
-  style,
-  type = 'button',
-  children,
-  ...props
-}: HButtonProps) {
+function HButton({ children, ...props }: ComponentPropsWithoutRef<'button'>) {
   return (
-    <button
-      type={type}
-      className={cn('su-sheet-hbtn', `su-sheet-hbtn--${variant}`, FOCUS_RING, className)}
-      style={{ ...HBTN, ...style }}
-      {...props}
-    >
+    <button type="button" className={cn('su-sheet-hbtn', FOCUS_RING)} style={HBTN} {...props}>
       {children}
     </button>
   )
@@ -99,7 +80,6 @@ type SectionManageButtonProps = {
   /** What gets added, for the accessible label, e.g. 'ability'. */
   label: string
   onClick: () => void
-  className?: string
 }
 
 /** The circled plus: a 16px ring in the button's own colour. */
@@ -120,14 +100,9 @@ const MANAGE_GLYPH = { height: tokens.space[8], width: tokens.space[8] } satisfi
  * // TODO(redesign): rule-gate add/remove (TP / maxAbilities / slots / scrap
  * economy) — deferred; users self-manage for now.
  */
-export function SectionManageButton({ label, onClick, className }: SectionManageButtonProps) {
+export function SectionManageButton({ label, onClick }: SectionManageButtonProps) {
   return (
-    <HButton
-      variant="add"
-      aria-label={`Manage ${label.toLowerCase()}`}
-      onClick={onClick}
-      className={className}
-    >
+    <HButton aria-label={`Manage ${label.toLowerCase()}`} onClick={onClick}>
       <span style={MANAGE_RING}>
         <Glyph name="plus" style={MANAGE_GLYPH} />
       </span>
@@ -146,18 +121,17 @@ type CardRemoveButtonProps = {
   /** The card's entity name, for the accessible label. */
   name: string
   onRemove: () => void
-  className?: string
 }
 
 /** Per-card remove (✕) control — always available; carries the editing cue. */
-export function CardRemoveButton({ name, onRemove, className }: CardRemoveButtonProps) {
+export function CardRemoveButton({ name, onRemove }: CardRemoveButtonProps) {
   return (
     <Button
       size="mini"
       variant="danger"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
-      className={cn('su-sheet-remove', className)}
+      className="su-sheet-remove"
     >
       &#10005; Remove
     </Button>

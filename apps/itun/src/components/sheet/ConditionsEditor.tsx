@@ -62,20 +62,14 @@ const DRAFT_INPUT = {
 type ConditionsEditorProps = {
   conditions: ReadonlyArray<string>
   onChange: (next: string[]) => Promise<void> | void
-  readOnly?: boolean
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function ConditionsEditor({
-  conditions,
-  onChange,
-  readOnly = false,
-}: ConditionsEditorProps) {
+export function ConditionsEditor({ conditions, onChange }: ConditionsEditorProps) {
   const draft = useChipDraft({
-    disabled: readOnly,
     onCommit: async (value) => {
       // Skip case-insensitive duplicates; conditions are a flat string set.
       const exists = conditions.some((c) => c.trim().toLowerCase() === value.toLowerCase())
@@ -87,7 +81,6 @@ export function ConditionsEditor({
 
   /** Remove the first occurrence — identical strings are indistinguishable. */
   async function remove(condition: string) {
-    if (readOnly) return
     const index = conditions.indexOf(condition)
     if (index < 0) return
     await onChange(conditions.filter((_, i) => i !== index))
@@ -99,15 +92,15 @@ export function ConditionsEditor({
 
       {/* Only rendered when it has chips or the '+ Add' affordance to show —
           an empty row would still count as a flex item and double the gap. */}
-      {(conditions.length > 0 || (!readOnly && !draft.adding)) && (
+      {(conditions.length > 0 || !draft.adding) && (
         <Conditions
           conditions={[...conditions]}
-          onRemove={readOnly ? undefined : (condition) => void remove(condition)}
-          onAdd={readOnly || draft.adding ? undefined : draft.startAdd}
+          onRemove={(condition) => void remove(condition)}
+          onAdd={draft.adding ? undefined : draft.startAdd}
         />
       )}
 
-      {!readOnly && draft.adding && (
+      {draft.adding && (
         <input
           {...draft.inputProps}
           aria-label="New condition"

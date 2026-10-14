@@ -5,7 +5,7 @@ import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { CardRemoveButton, HButton, SectionManageButton, SheetPickerModal } from './SheetSection'
+import { CardRemoveButton, SectionManageButton, SheetPickerModal } from './SheetSection'
 
 export default {
   title: 'Compositions/Sheet Section',
@@ -54,11 +54,6 @@ export const Default: Story = () => {
             <CardRemoveButton name={system?.name ?? 'System'} onRemove={() => {}} />
           </div>
         </div>
-      </div>
-
-      <div>
-        <Caption>HButton — the bare section control</Caption>
-        <HButton onClick={() => {}}>Edit</HButton>
       </div>
 
       <SheetPickerModal open={open} onClose={() => setOpen(false)} title="Add a System">

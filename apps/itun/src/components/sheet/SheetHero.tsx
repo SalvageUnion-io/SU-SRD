@@ -8,7 +8,7 @@
  * compose it without forking the frame.
  */
 
-import { cn, SheetSectionCard } from 'component-lib'
+import { SheetSectionCard } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 
 /** The grid's columns and gap step up with the sheet's width (`.su-sheet-hero`). */
@@ -31,7 +31,6 @@ type SheetHeroProps = {
   fieldsTitle?: string
   /** `paper` is the printed read state; `frame` the Edit state's card. */
   surface?: 'frame' | 'paper'
-  className?: string
 }
 
 export function SheetHero({
@@ -40,7 +39,6 @@ export function SheetHero({
   vitals,
   fieldsTitle = 'Identity',
   surface = 'frame',
-  className,
 }: SheetHeroProps) {
   return (
     <section
@@ -53,7 +51,7 @@ export function SheetHero({
       // cards are always the SAME height whichever one is taller. `Card` is a
       // flex column with a growing body, so the shorter card grows its paper body
       // rather than leaving the frame short and the row ragged.
-      className={cn('su-sheet-hero', className)}
+      className="su-sheet-hero"
       style={GRID}
     >
       {/* The OPENING sections are the only ones that keep a card container:

@@ -4,7 +4,7 @@
  * The editor renders ONE list (conditions[] + automation flags merged via
  * unifiedMechConditions) and maps edits back: removing a flag chip clears
  * the boolean flag (the manual clear), adds/removes round-trip
- * conditions[]. readOnly renders plain chips.
+ * conditions[].
  */
 
 import { describe, expect, mock, test } from 'bun:test'
@@ -95,13 +95,5 @@ describe('MechConditionsEditor', () => {
     })
 
     expect(must(captured[0]).patch).toEqual({ conditions: ['Burn 2'] })
-  })
-
-  test('readOnly renders plain chips — no remove, no add', () => {
-    const mech = makeMech({ conditions: ['Prone'], shutdown: true })
-    render(<MechConditionsEditor mech={mech} store={makeStore(mech, [])} readOnly />)
-
-    expect(screen.getByText('Prone')).toBeTruthy()
-    expect(screen.queryByRole('button')).toBeNull()
   })
 })

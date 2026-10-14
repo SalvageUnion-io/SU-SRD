@@ -66,7 +66,6 @@ type MechIdentityPanelProps = {
    * empty rather than spending a whole row on each.
    */
   besideChassis?: ReactNode
-  className?: string
 }
 
 export function MechIdentityPanel({
@@ -75,7 +74,6 @@ export function MechIdentityPanel({
   patch,
   after,
   besideChassis,
-  className,
 }: MechIdentityPanelProps) {
   const [chassisPickerOpen, setChassisPickerOpen] = useState(false)
 
@@ -98,7 +96,7 @@ export function MechIdentityPanel({
   }
 
   return (
-    <section aria-label="Mech identity" className={className} style={PANEL}>
+    <section aria-label="Mech identity" style={PANEL}>
       <div style={STACK}>
         {/* The prominent identity: pattern name (== the mech's name). */}
         <Field

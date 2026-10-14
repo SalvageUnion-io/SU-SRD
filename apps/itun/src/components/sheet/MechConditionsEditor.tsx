@@ -21,14 +21,9 @@ type MechConditionsEditorProps = {
   mech: Mech
   /** Injectable store — defaults to useEntityStore. */
   store?: typeof useEntityStore
-  readOnly?: boolean
 }
 
-export function MechConditionsEditor({
-  mech,
-  store = useEntityStore,
-  readOnly = false,
-}: MechConditionsEditorProps) {
+export function MechConditionsEditor({ mech, store = useEntityStore }: MechConditionsEditorProps) {
   const storeState = store()
 
   async function handleChange(next: string[]) {
@@ -37,11 +32,5 @@ export function MechConditionsEditor({
     await storeState.update('mech', mech.id, mechConditionsPatch(fresh, next), LIVE_SHEET_MANUAL)
   }
 
-  return (
-    <ConditionsEditor
-      conditions={unifiedMechConditions(mech)}
-      onChange={handleChange}
-      readOnly={readOnly}
-    />
-  )
+  return <ConditionsEditor conditions={unifiedMechConditions(mech)} onChange={handleChange} />
 }

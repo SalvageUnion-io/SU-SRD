@@ -1,8 +1,8 @@
 /**
  * The unified edit-language control chrome (clean-edit.html).
  *
- *   - HButton: the container-header control button (`.hbtn`) with edit / done /
- *     add variants.
+ *   - HButton: the container-header control button (`.hbtn`), a deep-tone
+ *     outline.
  *   - the section header row: a solid `Slab` (stamp label + leader rule +
  *     trailing controls) — the shape the sheets' field/collection sections use.
  *   - SectionManageButton: rebuilt on HButton — icon + label,
@@ -12,32 +12,18 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Slab } from 'component-lib'
-import { HButton, SectionManageButton } from '../SheetSection'
+import { SectionManageButton } from '../SheetSection'
 
 describe('HButton', () => {
   test('renders as a button with the design chrome and keeps the tap floor', () => {
-    render(<HButton>Edit</HButton>)
-    const btn = screen.getByRole('button', { name: 'Edit' })
+    render(<SectionManageButton label="Abilities" onClick={() => {}} />)
+    const btn = screen.getByRole('button', { name: 'Manage abilities' })
     expect(btn.getAttribute('type')).toBe('button')
     // The 44px coarse-pointer floor collapsing to the 32px design height at
-    // sm, and the print hide, are `.su-sheet-hbtn` (styles/sheet/chrome.css).
+    // sm, the deep-tone outline filling on hover, and the print hide, are
+    // `.su-sheet-hbtn` (styles/sheet/chrome.css).
     expect(btn.className).toContain('su-sheet-hbtn')
-    expect(btn.className).toContain('su-sheet-hbtn--edit')
     expect(btn.style.borderWidth).toBe('2px')
-  })
-
-  test('done variant fills with the sheet deep tone', () => {
-    render(<HButton variant="done">Done</HButton>)
-    const btn = screen.getByRole('button', { name: 'Done' })
-    // The deep-tone fill and paper text (hovering to ink) are this class's.
-    expect(btn.className).toContain('su-sheet-hbtn--done')
-  })
-
-  test('add variant is a deep-tone outline', () => {
-    render(<HButton variant="add">Add</HButton>)
-    const btn = screen.getByRole('button', { name: 'Add' })
-    // A deep-tone border on paper, filling with the deep tone on hover.
-    expect(btn.className).toContain('su-sheet-hbtn--add')
   })
 })
 
@@ -62,7 +48,7 @@ describe('SectionManageButton', () => {
     // The button opens the picker, which both adds AND removes — "Add" undersold
     // it once the per-card ✕ was retired in favour of that one surface.
     expect(btn.textContent).toContain('Manage abilities')
-    expect(btn.className).toContain('su-sheet-hbtn--add')
+    expect(btn.className).toContain('su-sheet-hbtn')
   })
 
   test('fires onClick when clicked', () => {

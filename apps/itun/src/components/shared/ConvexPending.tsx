@@ -24,14 +24,8 @@ import { Text } from 'component-lib'
 type ConvexPendingProps = {
   /** Subject of the load, e.g. `the crew` → "Loading the crew…". */
   label?: string
-  /** Layout escape hatch (e.g. `text-left` inside a left-aligned panel). */
-  className?: string
 }
 
-export function ConvexPending({ label, className }: ConvexPendingProps) {
-  return (
-    <Text variant="hint" className={className}>
-      {label === undefined ? 'Loading…' : `Loading ${label}…`}
-    </Text>
-  )
+export function ConvexPending({ label }: ConvexPendingProps) {
+  return <Text variant="hint">{label === undefined ? 'Loading…' : `Loading ${label}…`}</Text>
 }

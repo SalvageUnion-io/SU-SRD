@@ -109,7 +109,6 @@ type LiveSheetProps = {
   band?: SheetBand
   /** What it is built as: a pilot's class, a mech's chassis, a crawler's type. */
   kindDetail?: string
-  className?: string
 }
 
 /** The band's provenance line, beside the stamps. */
@@ -262,7 +261,6 @@ export function LiveSheet({
   actions,
   band,
   kindDetail,
-  className,
 }: LiveSheetProps) {
   // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
   // should seam and fill the moment you scroll past IT, rather than waiting for
@@ -280,7 +278,7 @@ export function LiveSheet({
     // (the live, public and Starter Set sheets): none of their routes wraps
     // one, and `Sheet`'s not-found state is itself a `<main>`, so the landmark
     // belongs here rather than around `Sheet`.
-    <main className={cn(`sheet--${variant}`, className)} style={ROOT} data-variant={variant}>
+    <main className={`sheet--${variant}`} style={ROOT} data-variant={variant}>
       {/* Top bar — a labelled section, not a <header>: outside a <main> a
           header is a banner landmark, a second one beside the Union bar. It
           carries `data-print="hide"`, the print stylesheet's chrome rule.

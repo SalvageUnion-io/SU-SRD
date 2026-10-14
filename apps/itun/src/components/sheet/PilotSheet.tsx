@@ -551,7 +551,6 @@ export function PilotSheet({
                     <ConditionsEditor
                       conditions={pilot.conditions}
                       onChange={actions.handleConditionsChange}
-                      readOnly={false}
                     />
                   </div>
                 </div>
