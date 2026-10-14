@@ -137,17 +137,9 @@ export function CrawlerIdentityPanel({
         />
         <div className="su-sheet-crawler-identity-row" style={TYPE_ROW}>
           {/* A STAT, not a Field: the tech level is derived from the crawler's
-              stored rung and never typed into, so it reads as a number plate
-              like the mech's chassis stats — a field box implied an input.
-              Split across the plate's two label lines (Tech / Level) rather
-              than one wide line, which stretched the plate out of square. */}
-          <Stat
-            label="Tech"
-            bottomLabel="Level"
-            value={techLevel ?? '—'}
-            size="compact"
-            ariaLabel={`Tech Level ${techLevel ?? '—'}`}
-          />
+              stored rung and never typed into, so it reads as a `TL | 1` chip
+              like the mech's chassis stats — a field box implied an input. */}
+          <Stat orientation="horizontal" label="TL" value={techLevel ?? '—'} />
           <Field
             label="Type"
             value={type?.name ?? ''}

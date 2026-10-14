@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactElement } from 'react'
-import { useCallback, useEffect, useRef } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { usePeekAttrs } from '../../entity/peekContext'
@@ -11,23 +10,16 @@ import { Tooltip } from './Tooltip'
 import { TRANSITION_COLORS } from './transition'
 
 /**
- * The canonical stat/value primitive (canonical primitive language §2). One
- * prop-controlled component with TWO anatomies — it absorbs the former
- * ValueDisplay (horizontal label|value) and StatControl (box + steppers):
+ * The canonical stat/value primitive (canonical primitive language §2): the
+ * label-first `[label | value]` cell, in either material — `surface="plate"`
+ * (default, the stamp pair: every chip) or `surface="plain"` (running text).
+ * With `mode="edit"` and `onChange` it grows a +/- stepper pair. There is no
+ * other anatomy: the centred square value box was retired for chips.
  *
- *   orientation="horizontal"  -> the horizontal [label | value] cell, in either
- *                                material: `surface="plate"` (default, the
- *                                stamp pair) or `surface="plain"` (running
- *                                text).
- *   (default)                 -> the centred value box with Badge stamps
- *                                above/below; mode="edit" adds +/- steppers.
- *
- * Both anatomies render ONE canonical ink-on-paper cell — no per-stat fill or
- * value colour. State is carried entirely by the BORDER colour via the `state`
- * prop (see StatBorderState); the fill/text/stamp stay constant. A value with a
- * `max` reads as `current /max` (current prominent, /max muted); a bare value
- * centres. Stat has NO pip mode: pip trackers were retired (use the value box; a
- * fill bar is `VitalGauge`).
+ * The plate is ONE canonical ink-on-paper cell — no per-stat fill or value
+ * colour. State is carried entirely by the BORDER colour via the `state` prop
+ * (see StatBorderState). A value with a `max` reads as `current /max` (current
+ * prominent, /max muted). A fill bar is `VitalGauge`.
  */
 
 /** Stat tone (a public alias retained for consumers that key colour by stat). */
@@ -50,18 +42,10 @@ export type StatState = EntityStatus
  */
 export type StatBorderState = 'default' | 'good' | 'modified' | 'caution' | 'critical'
 
-const STATE_BORDER: Record<StatBorderState, string> = {
-  default: color.ink,
-  good: color.mech,
-  modified: color.ink,
-  caution: color.statusWarn,
-  critical: color.statusBad,
-}
-
 /**
  * The horizontal cell's border by state, as a class: the cell repeats on every
  * row of a listing, so its frame is `.su-stat-cell` (ink) plus one of these,
- * not a style object (ADR-046, repeated elements). Mirrors `STATE_BORDER`.
+ * not a style object (ADR-046, repeated elements).
  */
 const STATE_BORDER_CLASS: Record<StatBorderState, string | undefined> = {
   default: undefined,
@@ -93,54 +77,13 @@ const LINE_HEIGHT_SM = 'calc(1.25 / 0.875)'
 
 type StatValue = number | string
 
-/**
- * Stat is a discriminated union over its two mutually-exclusive
- * anatomies, keyed on `orientation`:
- *
- *   { orientation: 'horizontal' } -> HorizontalValue (label|value)
- *   (default)                     -> ValueBox (centred box)
- *
- * Every prop is scoped to the anatomy that reads it. `Exact<>` (below) then
- * forbids every OTHER anatomy's props with `?: never`, so mixing anatomies is a
- * compile error, not a silently-ignored prop.
- */
-
-/** Every prop name any anatomy accepts — the domain `Exact<>` closes over. */
-type StatPropKey =
-  | 'label'
-  | 'value'
-  | 'max'
-  | 'min'
-  | 'bottomLabel'
-  | 'orientation'
-  | 'surface'
-  | 'mode'
-  | 'step'
-  | 'stepperLabel'
-  | 'inverse'
-  | 'size'
-  | 'onChange'
-  | 'hoverText'
-  | 'peek'
-  | 'state'
-  | 'bgColor'
-  | 'textColor'
-  | 'inline'
-  | 'ariaLabel'
-  | 'className'
-  | 'wrap'
-
-/** `T`, plus every stat prop NOT in `T` forbidden (`?: never`) — the exclusion
- * that makes the anatomies genuinely non-overlapping at the type level. */
-type Exact<T extends Partial<Record<StatPropKey, unknown>>> = T &
-  Partial<Record<Exclude<StatPropKey, keyof T>, never>>
-
-/** [horizontal] `orientation="horizontal"`. With
- * `onChange` + `mode="edit"` it grows a compact +/- stepper column. */
-type HorizontalValueProps = Exact<{
+/** The `[label | value]` cell. With `onChange` + `mode="edit"` it grows a
+ * compact +/- stepper pair. */
+type HorizontalValueProps = {
   /** Header code / label ('HP', 'Range', or a numeric tier). */
   label: StatValue
-  orientation: 'horizontal'
+  /** The one anatomy; kept so a call site may still spell it out. */
+  orientation?: 'horizontal'
   value?: StatValue
   /**
    * The cell's MATERIAL — same geometry (`label` then `value`, inline), two
@@ -225,52 +168,9 @@ type HorizontalValueProps = Exact<{
    */
   wrap?: boolean
   className?: string
-}>
+}
 
-/** [box] the default centred value box; `mode="edit"` adds steppers (former StatControl). */
-type ValueBoxProps = Exact<{
-  label: StatValue
-  /**
-   * Accessible-name stem for the +/- buttons, exactly as on the horizontal
-   * anatomy — `Decrease {stepperLabel}` / `Increase {stepperLabel}`, defaulting
-   * to `label`. It was declared on the horizontal anatomy only, so `Exact<>`
-   * forbade it here even though both rungs render steppers; a box whose visible
-   * `label` is one half of a two-line readout ('TRAINING' over 'POINTS') had no
-   * way to name its steppers with the whole phrase.
-   */
-  stepperLabel?: string
-  orientation?: 'vertical'
-  value?: StatValue
-  max?: number
-  /** Minimum for edit-mode steppers. */
-  min?: number
-  /** Bottom stamp. */
-  bottomLabel?: string
-  onChange?: (value: number) => void
-  mode?: 'read' | 'edit'
-  /** State overlay — drives the border colour only (see StatBorderState). */
-  state?: StatBorderState
-  ariaLabel?: string
-  /**
-   * Ladder rung (styles/sizing.ts). The box's resting state is a scan-past
-   * cell, so it defaults to `compact`; `mini` is the dense 32px box (the
-   * former `compact` boolean).
-   *
-   * `full` is the readout-as-destination rung — a 64px box with a
-   * `text-display` (26px) numeral, for figures meant to carry a panel at a
-   * glance (the crawler economy's Scrap / Tech Level / Crew), so a headline
-   * number never hand-assembles its own numeral and `/max` slash.
-   *
-   * One axis: two booleans could contradict each other; a single `size`
-   * cannot.
-   */
-  size?: SizeRung
-  inverse?: boolean
-  hoverText?: string
-  className?: string
-}>
-
-type StatProps = HorizontalValueProps | ValueBoxProps
+type StatProps = HorizontalValueProps
 
 export function Stat(props: StatProps) {
   const inner = renderStat(props)
@@ -285,8 +185,7 @@ export function Stat(props: StatProps) {
 }
 
 function renderStat(props: StatProps) {
-  if (props.orientation === 'horizontal') return <HorizontalValue {...props} />
-  return <ValueBox {...props} />
+  return <HorizontalValue {...props} />
 }
 
 /* ------------------------------------------------------------------ *
@@ -486,256 +385,4 @@ function HorizontalValue({
       </button>
     </span>
   )
-}
-
-/* ------------------------------------------------------------------ *
- * Centred value box; rounded, ink-on-paper.                          *
- * A `max` reads as `current /max`; state rides the border.            *
- * mode="edit" grows the +/- stepper column.                           *
- * ------------------------------------------------------------------ */
-function ValueBox({
-  label,
-  stepperLabel,
-  value,
-  max,
-  min = 0,
-  bottomLabel,
-  onChange,
-  mode = 'read',
-  state = 'default',
-  ariaLabel,
-  size = 'compact',
-  inverse = false,
-  hoverText,
-  className,
-}: ValueBoxProps) {
-  const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
-  const trueBg = inverse ? color.ink : color.paper
-  const trueValueColor = inverse ? color.paper : color.ink
-  const mutedMaxColor = inverse ? color.paper70 : color.wkMuted
-  const trueBorderColor = STATE_BORDER[state]
-
-  const boxRef = useRef<HTMLDivElement>(null)
-  const topLabelRef = useRef<HTMLSpanElement>(null)
-  const bottomLabelRef = useRef<HTMLSpanElement>(null)
-
-  const scaleLabels = useCallback(() => {
-    const box = boxRef.current
-    if (!box) return
-    const boxWidth = box.offsetWidth
-    for (const ref of [topLabelRef, bottomLabelRef]) {
-      const el = ref.current
-      if (!el) continue
-      el.style.transform = ''
-      const labelWidth = el.scrollWidth
-      if (labelWidth > boxWidth) {
-        el.style.transform = `scaleX(${boxWidth / labelWidth})`
-      }
-    }
-  }, [])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: label/bottomLabel/size are intentional extra deps — label scaling must re-measure whenever the rendered text or size changes
-  useEffect(() => {
-    scaleLabels()
-  }, [label, bottomLabel, size, scaleLabels])
-
-  if (value === undefined) return null
-
-  const numericValue = typeof value === 'number' ? value : Number(value)
-  const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
-  const atMin = numericValue <= min
-  const atMax = max !== undefined && numericValue >= max
-
-  const boxSize: CSSProperties =
-    size === 'mini'
-      ? { height: space[32], minWidth: space[32], paddingInline: space[2] }
-      : size === 'full'
-        ? { height: space[64], minWidth: space[64], paddingInline: space[4] }
-        : { height: space[48], width: space[48] }
-  const boxStyle = {
-    ...boxSize,
-    alignItems: 'center',
-    backgroundColor: trueBg,
-    borderColor: trueBorderColor,
-    borderRadius: size === 'mini' ? radius.card : radius.panel,
-    borderStyle: 'solid',
-    borderWidth: size === 'mini' ? borderWidth.hairline : borderWidth.chrome,
-    display: 'flex',
-    justifyContent: 'center',
-  } satisfies CSSProperties
-
-  // The value readout: `current /max` (current prominent, /max muted) when a
-  // max is set, else the bare value. The ink (or paper, inverted) stays on the
-  // wrapper so the fill/value colour is constant across states.
-  const valueReadout = (
-    <span
-      style={{
-        alignItems: 'baseline',
-        color: trueValueColor,
-        display: 'flex',
-        fontSize:
-          size === 'mini' ? fontSize.xs : size === 'full' ? fontSize.display : fontSize.caption,
-        fontWeight: weight.bold,
-        gap: '1px',
-        justifyContent: 'center',
-        ...(size === 'mini' ? { lineHeight: LINE_HEIGHT_XS } : undefined),
-        overflow: 'hidden',
-        textAlign: 'center',
-        whiteSpace: 'nowrap',
-        width: '100%',
-      }}
-    >
-      {value}
-      {max !== undefined && (
-        <span
-          style={{
-            color: mutedMaxColor,
-            fontSize: size === 'full' ? fontSize.caption : fontSize.badge,
-            fontWeight: weight.normal,
-          }}
-        >
-          /{max}
-        </span>
-      )}
-    </span>
-  )
-
-  // The stamps ride the box's top and bottom edges, overlapping it by 8px.
-  const labelStampStyle = {
-    alignSelf: 'center',
-    display: 'block',
-    fontSize: size === 'mini' ? fontSize.badge : fontSize.xs,
-    lineHeight: 1,
-    textTransform: 'uppercase',
-    transformOrigin: 'center',
-    whiteSpace: 'nowrap',
-    zIndex: 1,
-  } satisfies CSSProperties
-
-  const boxClass = state === 'modified' ? STATE_RING_CLASS : undefined
-
-  const box = (
-    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the flex stat-box layout; role="group" carries the same semantics
-    <div
-      role="group"
-      className={className}
-      style={{
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 0,
-        overflow: 'visible',
-        ...(size === 'mini' ? { minWidth: space[32] } : { width: space[48] }),
-      }}
-      aria-label={combinedAriaLabel}
-    >
-      {/*
-       * `topLabelRef` MUST land on this DOM node — the overflow squeeze measures
-       * the stamp's scrollWidth against the box. Badge forwards its ref to the
-       * rendered element for exactly this reason.
-       */}
-      <Badge
-        ref={topLabelRef}
-        shape="stamp"
-        size="mini"
-        style={{ ...labelStampStyle, marginBottom: `-${space[8]}` }}
-      >
-        {label}
-      </Badge>
-      <div ref={boxRef} className={boxClass} style={boxStyle}>
-        {valueReadout}
-      </div>
-      <Badge
-        ref={bottomLabelRef}
-        shape="stamp"
-        size="mini"
-        style={{
-          ...labelStampStyle,
-          marginTop: `-${space[8]}`,
-          ...(bottomLabel ? undefined : { visibility: 'hidden' }),
-        }}
-      >
-        {bottomLabel || ' '}
-      </Badge>
-    </div>
-  )
-
-  // The steppers' resting fill/ink and the coarse-pointer 44px floor live in
-  // classes (they flip on hover / at sm); the rest is static.
-  const stepClass = (atLimit: boolean) =>
-    classes(
-      'su-stat-step su-stat-step--square',
-      inverse ? 'su-stat-step--on-ink' : 'su-stat-step--on-paper',
-      !atLimit && 'su-stat-step--live'
-    )
-  const stepSide = size === 'mini' ? '12px' : size === 'full' ? space[20] : space[16]
-  const stepStyle = (atLimit: boolean) =>
-    ({
-      ...TRANSITION_COLORS,
-      alignItems: 'center',
-      borderRadius: radius.badge,
-      cursor: atLimit ? 'not-allowed' : 'pointer',
-      display: 'flex',
-      fontFamily: font.body,
-      fontSize: size === 'mini' ? fontSize.badge : size === 'full' ? fontSize.sm : fontSize.xs,
-      fontWeight: weight.bold,
-      height: stepSide,
-      justifyContent: 'center',
-      lineHeight: 1,
-      width: stepSide,
-      ...(atLimit ? { opacity: 0.3 } : undefined),
-    }) satisfies CSSProperties
-
-  // The ± column stretches to the box's full height and centres its buttons in
-  // it, so the pair sits on the box's midline whatever the button count or size.
-  //
-  // Centring on the box centres on the value cell: the bottom label Badge is
-  // always rendered (merely hidden when there is no bottom label), so the
-  // box is symmetric about its cell, and no spacer stack has to track it.
-  const content = canEdit ? (
-    <div style={{ alignItems: 'stretch', display: 'flex', gap: space[2] }}>
-      {box}
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: space[2],
-            justifyContent: 'center',
-          }}
-        >
-          <button
-            type="button"
-            aria-label={`Increase ${stepperLabel ?? label}`}
-            onClick={() =>
-              onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
-            }
-            disabled={!!atMax}
-            className={stepClass(!!atMax)}
-            style={stepStyle(!!atMax)}
-          >
-            +
-          </button>
-          <button
-            type="button"
-            aria-label={`Decrease ${stepperLabel ?? label}`}
-            onClick={() => onChange?.(Math.max(min, numericValue - 1))}
-            disabled={atMin}
-            className={stepClass(atMin)}
-            style={stepStyle(atMin)}
-          >
-            −
-          </button>
-        </div>
-      </div>
-    </div>
-  ) : (
-    box
-  )
-
-  if (hoverText) {
-    return <Tooltip content={hoverText}>{content}</Tooltip>
-  }
-
-  return content
 }

@@ -29,10 +29,10 @@ export function GainScrapStep() {
   return (
     <div style={rowStyle}>
       <Stat
+        orientation="horizontal"
         label="SCRAP"
         value={MECH_CREATION_SCRAP_CAP}
         max={MECH_CREATION_SCRAP_CAP}
-        size="mini"
       />
       <p style={briefStyle}>
         Every purchase in this workshop — the Chassis, each System, each Module — debits this one

@@ -328,12 +328,11 @@ export function CrawlerSheet({
           {SCRAP_TLS.map((t) => (
             <Stat
               key={t}
+              orientation="horizontal"
               label={`T${t}`}
               value={scrapPoolBucket(pool, t)}
               min={0}
-              size="mini"
               mode={readOnly ? 'read' : 'edit'}
-              ariaLabel={`Tech ${t} scrap`}
               onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
             />
           ))}

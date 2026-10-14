@@ -109,7 +109,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
     <div style={HOLD}>
       {/* Over-capacity is shown honestly rather than clamped — same rule the
           mech Hold follows. */}
-      <Stat label="Cargo" value={usage.used} max={usage.cap} />
+      <Stat orientation="horizontal" label="Cargo" value={usage.used} max={usage.cap} />
 
       <div>
         <h4 style={SIDE_HEADING}>Carried</h4>
