@@ -72,15 +72,8 @@ jobs:
         with:
           test-auth: 'true'
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/itun
-        run: bunx playwright install chromium
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
 
       # ITUN_E2E_EXPECT_AUTH_SEAM is what keeps this honest. Without it a spec
       # that needs an account SKIPS when the seam is missing (the right call in

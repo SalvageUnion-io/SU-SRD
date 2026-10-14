@@ -71,14 +71,11 @@ jobs:
       - name: Build srd
         run: bun --filter srd build
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # tools/shot.ts asks Playwright for the headed Chromium's path.
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        run: bunx playwright install chromium
+          browser: full
 
       # srd is static files: a plain server answers `/route/` with its
       # index.html. ITUN is a single-page app: `vite preview` falls back to

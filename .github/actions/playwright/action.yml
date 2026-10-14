@@ -1,0 +1,33 @@
+name: Set up Playwright
+description: Restore or install the Playwright Chromium the specs launch
+
+# The one browser install every workflow uses, so the cache key lives in one
+# place and every save serves every job. The specs and the OG render launch
+# Chromium headless, which is Playwright's `chromium-headless-shell`: `shell`
+# installs only that, about half the download and the cache. `full` adds the
+# headed Chromium, for tools/shot.ts (gallery.yml), which asks for its path.
+# Each variant has its own key: a cache saved by one would miss the other's
+# browser. `--with-deps` is not needed on ubuntu-latest.
+inputs:
+  browser:
+    description: '`shell` (headless only) or `full`'
+    default: shell
+runs:
+  using: composite
+  steps:
+    - name: Cache Playwright browsers
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ inputs.browser }}-${{ hashFiles('bun.lock') }}
+
+    - name: Install Playwright Chromium
+      shell: bash
+      env:
+        BROWSER: ${{ inputs.browser }}
+      run: |
+        case "$BROWSER" in
+          shell) bunx playwright install chromium --only-shell ;;
+          full) bunx playwright install chromium ;;
+          *) echo "::error::browser must be shell or full, not '$BROWSER'"; exit 1 ;;
+        esac

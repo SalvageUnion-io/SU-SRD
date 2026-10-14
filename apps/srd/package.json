@@ -7,10 +7,11 @@
   "scripts": {
     "dev": "su-ref-generate && bun ssg/dev.ts",
     "typecheck": "tsc -b",
-    "build": "bun run typecheck && bun ssg/build.ts",
+    "build": "bun run typecheck && bun run build:untyped",
+    "build:untyped": "bun ssg/build.ts",
     "og:generate": "bun ssg/build.ts && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
     "brand": "bun scripts/brand/build.ts",
-    "og:install-browser": "playwright install chromium",
+    "og:install-browser": "playwright install chromium --only-shell",
     "preview": "wrangler dev",
     "test": "bun test --parallel=4 --no-isolate",
     "check:examples": "bun ssg/checkPageExamples.ts",

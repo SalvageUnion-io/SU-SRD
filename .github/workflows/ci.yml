@@ -185,8 +185,10 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
+      # `build:untyped` is `build` without its typecheck: static-checks
+      # typechecks every workspace already (the bot's job skips it likewise).
       - name: Build srd
-        run: bun --filter srd build
+        run: bun --filter srd build:untyped
 
       - name: Check printed examples against the built site
         run: bun --filter srd check:examples
@@ -195,15 +197,8 @@ jobs:
       - name: Bundle the Worker that actually deploys
         run: bun --filter srd worker:bundle --outdir /tmp/srd-worker
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/srd
-        run: bunx playwright install chromium
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
 
       # The PR-blocking browser tier, and srd's whole Playwright suite but the
       # performance budget (perf-srd, below): there is no nightly srd run. Add
@@ -226,13 +221,18 @@ jobs:
   # a few pages under Lighthouse's mobile throttling. Its own job, beside
   # build-srd rather than after it, so it adds its run time to CI's wall time
   # only where it outlasts build-srd. It builds its own `dist`; downloading
-  # build-srd's would put it on the critical path. One worker: measured loads
-  # must not share the CPU.
+  # build-srd's would put it on the critical path. One worker per runner:
+  # measured loads must not share the CPU, so the pages are split across two
+  # runners instead (one page per test, so `--shard` splits by page).
   perf-srd:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -243,27 +243,22 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Build srd
-        run: bun --filter srd build
+        run: bun --filter srd build:untyped
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/srd
-        run: bunx playwright install chromium
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
 
       - name: Run the performance budget
         working-directory: apps/srd
-        run: bunx playwright test perf-budget.e2e.ts --workers=1 --reporter=list,github
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: bunx playwright test perf-budget.e2e.ts --workers=1 --shard="$SHARD/2" --reporter=list,github
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-report-perf-srd
+          name: playwright-report-perf-srd-${{ matrix.shard }}
           path: apps/srd/playwright-report/
           retention-days: 7
 
@@ -293,15 +288,8 @@ jobs:
       - name: Bundle the Worker that actually deploys
         run: bun --filter itun worker:bundle --outdir /tmp/itun-worker
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/itun
-        run: bunx playwright install chromium
+      - name: Set up Playwright
+        uses: ./.github/actions/playwright
 
       # The PR-blocking browser tier. Add a spec to this line; do NOT add a job.
       # `a11y.e2e.ts` is srd's scan, for ITUN: the routes it lists, signed out,
