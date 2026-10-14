@@ -23,8 +23,14 @@
  * or whose PR has no What changed section, fails: a release with empty notes
  * is worse than a red run the owner can re-run after fixing the PR body.
  *
+ * `--check-bump --base <version>` is CI's `version-bump` job on every PR into
+ * `main` (owner's rule, 2026-10-14): it fails unless the root version is a
+ * major, minor or patch bump over `main`'s, so no merge to `main` goes
+ * unreleased.
+ *
  * Usage:
  *   bun tools/release.ts --sha <commit> [--dry-run]
+ *   bun tools/release.ts --check-bump --base <main's version>
  *   (GITHUB_REPOSITORY and GITHUB_TOKEN from the environment)
  */
 
@@ -65,7 +71,50 @@ export function whatChanged(body: string): string {
     .trim()
 }
 
+const SEMVER = /^(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.-]+)?$/
+
+/**
+ * Whether `head` is a major, minor or patch bump over `base`: its
+ * major.minor.patch is strictly greater. A prerelease suffix is ignored, so
+ * `3.0.1-rc.1` over `3.0.0` passes and `3.0.0-rc.1` over `3.0.0` does not.
+ */
+export function isBump(base: string, head: string): boolean {
+  const b = SEMVER.exec(base)
+  const h = SEMVER.exec(head)
+  if (!b || !h) return false
+  for (const i of [1, 2, 3]) {
+    const diff = Number(h[i]) - Number(b[i])
+    if (diff !== 0) return diff > 0
+  }
+  return false
+}
+
+/**
+ * The PR gate (`--check-bump --base <version>`): every PR into `main` must bump
+ * the root `package.json` version over `main`'s, so every merge releases.
+ */
+function checkBump(argv: string[], { version, log, error }: ReleaseDeps): number {
+  const baseAt = argv.indexOf('--base')
+  const base = baseAt === -1 ? undefined : argv[baseAt + 1]
+  if (!base) {
+    error('release: --check-bump needs --base <version>.')
+    return 1
+  }
+  const head = version()
+  if (isBump(base, head)) {
+    log(`release: version ${base} -> ${head}; merging this releases v${head}.`)
+    return 0
+  }
+  error(
+    `release: the root package.json version is ${head}, and main's is ${base}. Every PR into main ` +
+      'releases, so bump it: a patch for a fix, minor for a feature, major for a breaking change. ' +
+      "The PR's **What changed** section becomes the release notes."
+  )
+  return 1
+}
+
 export async function main(argv: string[], deps: ReleaseDeps): Promise<number> {
+  if (argv.includes('--check-bump')) return checkBump(argv, deps)
   const { api, repo, log, error } = deps
   const shaAt = argv.indexOf('--sha')
   const sha = shaAt === -1 ? undefined : argv[shaAt + 1]
@@ -80,7 +129,7 @@ export async function main(argv: string[], deps: ReleaseDeps): Promise<number> {
     log('release: root package.json has no version (0.0.0); nothing to release.')
     return 0
   }
-  if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) {
+  if (!SEMVER.test(version)) {
     error(`release: root package.json version "${version}" is not semver.`)
     return 1
   }
