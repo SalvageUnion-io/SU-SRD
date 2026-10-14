@@ -122,6 +122,20 @@ function ensurePreloaded(key: string, schemas: SchemaList, projection: Projectio
 }
 
 /**
+ * Loads a schema list ahead of an island's first render, for a mounter that
+ * must not commit a fallback over server markup (`islandRegistry`). Shares the
+ * hook's in-flight promise, so the island's own gate then opens at once. A
+ * failure is swallowed and the state reset: the island mounts anyway and its
+ * gate retries, showing its retry affordance if that fails too.
+ */
+export function preloadGameData(schemas: SchemaList, projection: Projection): Promise<void> {
+  const key = keyFor(schemas, projection)
+  return ensurePreloaded(key, schemas, projection).catch(() => {
+    preloadStates.set(key, { promise: null, done: false })
+  })
+}
+
+/**
  * @param options.schemas Which schemas to preload — defaults to `'all'`.
  * Pass the per-route list from `schemaPreloadDeps.ts` to load only what the
  * page actually needs instead of the full corpus.

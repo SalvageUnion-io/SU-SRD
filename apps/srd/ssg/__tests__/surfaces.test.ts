@@ -108,8 +108,12 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html).not.toMatch(/\d+ Chassis/)
   })
 
-  it('first paints the index, not a blank band', () => {
-    expect(html).toContain('srd-listing__fallback-row')
+  it('first paints the listing itself, so the mount draws nothing new', () => {
+    // The island's own cards from build-time data, not a stand-in: one tile
+    // per chassis, each linking to its page.
+    expect(html).not.toContain('srd-listing__fallback-row')
+    expect(html.match(/class="su-entity-tile[ "]/g)?.length).toBeGreaterThan(40)
+    expect(html).toContain('href="/chassis/mule/"')
   })
 
   it('first paints the island’s rail and its one flat Catalog, so the mount moves nothing', () => {

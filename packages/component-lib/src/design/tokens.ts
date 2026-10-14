@@ -18,8 +18,8 @@
  * Condensed for the all-caps chrome (stamps, labels, eyebrows).
  */
 export const font = {
-  body: "'Barlow', system-ui, -apple-system, sans-serif",
-  cond: "'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif",
+  body: "'Barlow', 'Barlow Fallback', system-ui, -apple-system, sans-serif",
+  cond: "'Barlow Semi Condensed', 'Barlow Semi Condensed Fallback', 'Barlow', system-ui, -apple-system, sans-serif",
 } as const
 
 /**

@@ -1107,30 +1107,6 @@
   content: '';
 }
 
-/* Before the island mounts, a listing with art sets its server-rendered names
-   on the Catalog's columns, so the mount does not reflow the page. */
-.srd-listing[data-art][data-view='catalog'] .srd-listing__cards {
-  gap: var(--space-12);
-  grid-auto-rows: auto;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
-}
-
-/* The art box spans the frame (out through the row's side padding), the
-   name sits in the band below it, as a tile's does. */
-.srd-listing[data-art][data-view='catalog'] .srd-listing__fallback-row {
-  align-items: center;
-  display: grid;
-  grid-template-rows: auto var(--srd-tile-band);
-  white-space: normal;
-}
-
-.srd-listing[data-art][data-view='catalog'] .srd-listing__fallback-row::before {
-  align-self: stretch;
-  aspect-ratio: 3 / 4;
-  content: '';
-  margin: 0 calc(-1 * var(--space-12));
-}
-
 /*
  * A Catalog of tiles with no art (`data-catalog`): each tile is its band,
  * cells and lead, so wider columns — three across at the page's measure, two

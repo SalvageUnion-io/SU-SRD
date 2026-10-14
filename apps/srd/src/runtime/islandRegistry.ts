@@ -21,7 +21,11 @@ function asIsland<P>(component: ComponentType<P>): IslandComponent {
   return component as unknown as IslandComponent
 }
 
-export type IslandLoader = () => Promise<IslandComponent>
+/**
+ * Takes the island's props so a loader can finish what its first render needs
+ * before resolving (`SchemaViewerIsland`'s data); most ignore them.
+ */
+export type IslandLoader = (props: Record<string, unknown>) => Promise<IslandComponent>
 
 /**
  * No `Record<string, IslandLoader>` annotation on purpose — that would widen
@@ -35,8 +39,11 @@ export const islandRegistry = {
     import('../components/islands/MobileSearchIsland').then((m) => asIsland(m.MobileSearchIsland)),
   MobileNavIsland: () =>
     import('../components/islands/MobileNavIsland').then((m) => asIsland(m.MobileNavIsland)),
-  SchemaViewerIsland: () =>
-    import('../components/islands/SchemaViewerIsland').then((m) => asIsland(m.SchemaViewerIsland)),
+  SchemaViewerIsland: (props) =>
+    import('../components/islands/SchemaViewerIsland').then(async (m) => {
+      await m.prepareSchemaViewerIsland(props)
+      return asIsland(m.SchemaViewerIsland)
+    }),
   ReferenceEntityIsland: () =>
     import('../components/islands/ReferenceEntityIsland').then((m) =>
       asIsland(m.ReferenceEntityIsland)

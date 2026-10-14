@@ -33,7 +33,7 @@ const VIEWS: readonly ListingView[] = ['catalog']
 const TREE_VIEWS: readonly ListingView[] = ['catalog', 'tree']
 
 /** The views a listing offers, in the rail's order: one means no toggle. */
-export function listingViews(schemaId: string): readonly ListingView[] {
+function listingViews(schemaId: string): readonly ListingView[] {
   return TREE_LISTINGS.has(schemaId) ? TREE_VIEWS : VIEWS
 }
 

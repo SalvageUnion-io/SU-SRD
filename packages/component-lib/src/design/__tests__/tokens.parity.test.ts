@@ -73,7 +73,8 @@ function kebab(key: string): string {
 
 /**
  * Every token-namespaced custom property theme.css declares, comments stripped,
- * keyed by its name without the leading `--`. Sub-properties such as
+ * keyed by its name without the leading `--`, its value's whitespace collapsed
+ * (Biome wraps a long one, the font stacks, over lines). Sub-properties such as
  * `--text-xs--line-height` and the `--animate-*` bindings are not tokens.
  */
 function readDeclarations(): Map<string, string> {
@@ -83,7 +84,7 @@ function readDeclarations(): Map<string, string> {
     const [, name, value] = m
     if (!name || !value || name.includes('--')) continue
     if (!PREFIXES.some((p) => name.startsWith(`${p}-`))) continue
-    out.set(name, value.trim())
+    out.set(name, value.trim().replace(/\s+/g, ' '))
   }
   return out
 }

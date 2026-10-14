@@ -14,7 +14,7 @@ import {
 import type { ListingView } from '../../lib/listingView'
 import { PARAM_VIEW, TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
-import { GameDataGate } from '../../lib/useGameData'
+import { GameDataGate, preloadGameData } from '../../lib/useGameData'
 import { AbilityTrack, trackForTree } from '../AbilityTrack'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
@@ -117,6 +117,35 @@ export function SchemaViewerIsland({
   )
 }
 
+/**
+ * The schemas the island reads, loaded before its first render
+ * (`islandRegistry`): the island mounts with `createRoot`, so a first commit
+ * of the skeleton would replace the server's finished listing with
+ * placeholders, and the listing would paint a second time when the data came.
+ * With the data in hand the first commit draws the same listing over it.
+ */
+export function prepareSchemaViewerIsland(props: Record<string, unknown>): Promise<void> {
+  const schemas = Array.isArray(props.preloadSchemas)
+    ? props.preloadSchemas.filter((schema): schema is string => typeof schema === 'string')
+    : 'all'
+  return preloadGameData(schemas, 'list')
+}
+
+/**
+ * The island's listing as the server renders it, from build-time data and with
+ * the rail inert: the same markup the island's first commit draws over it, so
+ * the mount repaints nothing (and a crawler or a no-JS reader gets the cards).
+ */
+export function SchemaViewerListing({
+  preloadSchemas: _preloadSchemas,
+  hasArt = false,
+  shape: _shape,
+  ...props
+}: SchemaViewerIslandProps) {
+  const listingView = useListingView(props.schemaId)
+  return <SchemaViewer {...props} hasArt={hasArt} listingView={listingView} inert />
+}
+
 /** Rendered only behind the gate: `getModel(…).all()` throws on an unloaded schema. */
 function SchemaViewer({
   schemaId,
@@ -126,8 +155,11 @@ function SchemaViewer({
   trees = [],
   hasArt,
   listingView,
+  inert = false,
 }: Omit<SchemaViewerIslandProps, 'preloadSchemas' | 'shape'> & {
   listingView: ReturnType<typeof useListingView>
+  /** The server render: the rail is its inert placeholder until the island mounts. */
+  inert?: boolean
 }) {
   const { view, views, setView, fromUrl: viewInUrl } = listingView
   const initialData = useMemo(() => {
@@ -277,7 +309,7 @@ function SchemaViewer({
         }}
         facetsOpen={facetsOpen}
         view={view}
-        actions={railActions}
+        actions={inert ? undefined : railActions}
         // What is filtered, only while something is: the count, a token per
         // filter that removes it, and Clear all.
         status={

@@ -10,8 +10,10 @@
   /* === Typography === */
   /* TWO faces, no aliases: Barlow for body/values, Barlow Semi Condensed for
      all-caps chrome. */
-  --font-body: 'Barlow', system-ui, -apple-system, sans-serif;
-  --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
+  --font-body: 'Barlow', 'Barlow Fallback', system-ui, -apple-system, sans-serif;
+  --font-cond:
+    'Barlow Semi Condensed', 'Barlow Semi Condensed Fallback', 'Barlow', system-ui, -apple-system,
+    sans-serif;
 
   /* === Caps tracking steps (canonical primitive language §3) ===
      BOTH apps (and the shared components they render) resolve the same

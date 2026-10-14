@@ -64,7 +64,7 @@ function mountIslands(): void {
     const directive = el.dataset.client ?? 'load'
 
     schedule(directive, el, () => {
-      loader()
+      loader(props)
         .then((Component: IslandComponent | undefined) => {
           // A failed chunk that chunk recovery is reloading for resolves to
           // `undefined`, not a rejection: its `preventDefault()` makes Vite's

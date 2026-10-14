@@ -32,7 +32,7 @@ describe('islandRegistry', () => {
   for (const [name, path] of Object.entries(modulePaths)) {
     test(`${name} loads its module's same-named export`, async () => {
       const loader = islandRegistry[name as keyof typeof islandRegistry]
-      const component = await loader()
+      const component = await loader({})
       const mod: Record<string, unknown> = await import(path)
       expect(typeof component).toBe('function')
       expect(component).toBe(mod[name] as typeof component)
