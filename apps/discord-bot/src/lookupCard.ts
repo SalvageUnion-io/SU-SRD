@@ -20,10 +20,13 @@
  *
  * Otherwise what the bot adds is controls only, all stateless (`customId.ts`): a **Roll
  * button** for the entry's own table and every table its actions roll on, so a
- * chained roll is one tap, and a **Buy link** when the book the entry is
- * printed in is for sale from Leyline Press (`buyLink`). Older messages' `su:view` tabs and `su:peek` picker
- * keep answering (buttons are permanent): a tab redraws this card, the picker
- * answers with the pattern's card.
+ * chained roll is one tap, a **Buy link** when the book the entry is printed in
+ * is for sale from Leyline Press (`buyLink`), and, when the card links other
+ * entries (a pattern's systems and modules, a drone's systems, …), one
+ * **linked-entries menu** (`linkedMenu`): picking an entry answers privately
+ * with that entry's card, so the channel never fills up. A pasted link has no
+ * menu, for the same reason it has no Read buttons. Older messages' `su:view`
+ * tabs and `su:peek` picker are retired and answer "no longer supported".
  */
 
 import { ButtonStyle } from 'discord-api-types/v10'
@@ -140,6 +143,57 @@ export function buyLink(hit: LookupHit): string | null {
   return forSale ? link : null
 }
 
+/**
+ * The linked-entries menu: one option per entry the card links (its children
+ * groups, in the card's order), at most Discord's 25. Each value is the entry's
+ * key, so a pick needs nothing but itself. Null when the card links nothing, or
+ * the menu's id would not fit Discord's cap.
+ */
+function linkedMenu(hit: LookupHit): ContainerBlock | null {
+  const parts = discordCardParts(
+    toEntityModel(
+      hit.entity as SURefMetaEntity,
+      undefined,
+      hit.pattern ? { pattern: hit.pattern } : undefined
+    )
+  )
+  const options: Extract<ContainerBlock, { kind: 'select' }>['options'] = []
+  const seen = new Set<string>()
+  for (const group of parts.children) {
+    for (const item of group.items) {
+      // Linked on the card, so linked here: never a synthetic record or an action.
+      if (item.synthetic || item.schemaName === 'actions' || !isSchemaName(item.schemaName)) {
+        continue
+      }
+      const value = `${item.schemaName}::${item.slug}${item.pattern ? `::${nameToSlug(item.pattern)}` : ''}`
+      if (seen.has(value) || value.length > 100) continue
+      seen.add(value)
+      options.push({
+        label: (item.pattern ?? item.name).slice(0, 100),
+        value,
+        description: group.label.slice(0, 100),
+      })
+    }
+  }
+  const customId = makeCustomId('open', lookupKey(hit))
+  if (options.length === 0 || !customId) return null
+  return {
+    kind: 'select',
+    customId,
+    placeholder: 'Open a linked entry',
+    options: options.slice(0, V2_LIMIT.selectOptions),
+  }
+}
+
+/**
+ * The linked-entries menu's answer: the picked entry's own card, with no
+ * controls (read-only and terminal), or null when the entry is gone.
+ */
+export function openCard(key: string): ContainerData | null {
+  const hit = entityFromKey(key)
+  return hit ? entityCard(hit) : null
+}
+
 /** The entry's one card, as the Component Embed draws it, with no controls. */
 function entityCard(hit: LookupHit): ContainerData {
   const card = discordEntryCard(hit.entity as SURefMetaEntity, hit.pattern)
@@ -217,19 +271,22 @@ export function readCard(payload: string): ContainerData | null {
 
 /**
  * The lookup card: the entry's one card (a long one as its index), then its
- * Roll buttons and Buy link.
+ * linked-entries menu, Roll buttons and Buy link.
  */
 export function lookupCard(hit: LookupHit): ContainerData {
   const full = entityCard(hit)
   const buy = buyLink(hit)
-  const controls: ButtonSpec[] = [
+  const buttons: ButtonSpec[] = [
     ...rollButtons(hit),
     ...(buy ? [{ kind: 'link' as const, url: buy, label: 'Buy' }] : []),
   ]
+  const menu = linkedMenu(hit)
+  const controls: ContainerBlock[] = [
+    ...(menu ? [menu] : []),
+    ...(buttons.length > 0 ? [{ kind: 'buttons' as const, buttons }] : []),
+  ]
   const withControls = (card: ContainerData): ContainerData =>
-    controls.length > 0
-      ? { ...card, blocks: [...card.blocks, { kind: 'buttons', buttons: controls }] }
-      : card
+    controls.length > 0 ? { ...card, blocks: [...card.blocks, ...controls] } : card
   // Each index row costs three components; an index that would pass Discord's
   // ceiling sends the full card instead, which the shared budget already fits.
   const index = indexCard(hit, full)

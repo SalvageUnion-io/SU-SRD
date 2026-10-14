@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
+import { InteractionResponseType, InteractionType, MessageFlags } from 'discord-api-types/v10'
 import worker from '../index'
 
 /**
@@ -339,6 +339,27 @@ describe('interaction dispatch', () => {
     const body = (await res.json()) as { type: number; data?: { content?: string } }
     expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
     expect(body.data?.content).toContain('no longer supported')
+  })
+
+  test('a pick from the linked-entries menu reaches the router with its value', async () => {
+    // A select's pick rides in `data.values`, not the custom id: an adapter
+    // that dropped it would answer every pick "no longer in the reference".
+    const keys = await generateKeyPair()
+    const { ctx, settled } = executionContext()
+    const res = await worker.fetch(
+      await signedRequest(
+        interaction.select('su:open:chassis::kelpie::sifter', ['systems::nanite-sifter']),
+        keys
+      ),
+      envFor(keys),
+      ctx
+    )
+    await settled()
+
+    const body = (await res.json()) as { type: number; data?: { flags?: number } }
+    expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
+    expect(body.data?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+    expect(JSON.stringify(body.data)).toContain('Nanite Sifter')
   })
 
   test('a real /su lookup resolves its nested option and returns a card', async () => {

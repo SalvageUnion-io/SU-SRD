@@ -25,7 +25,11 @@ const CUSTOM_ID_MAX = 100
  * named roll-table (the "See table" button on a roll result); `post`
  * re-renders a PRIVATE roll publicly; `table` answers privately with the
  * whole table, the roll's row marked; `read` answers privately with one action of a long lookup card, whose index
- * row carries the button (`<entry key>|<action slug>`).
+ * row carries the button (`<entry key>|<action slug>`); `open` is a lookup
+ * card's linked-entries menu, which answers privately with the picked entry's
+ * card (the entry key rides in the option's value, the payload names the card
+ * the menu is on). `open` is deliberately not the retired `peek`: an older
+ * message's pattern picker must keep answering "no longer supported".
  *
  * `post` and `table` are the actions whose payload is a RESULT rather than a
  * request (`table` marks the row the roll landed on).
@@ -36,7 +40,7 @@ const CUSTOM_ID_MAX = 100
  * backend — `resultForTable` is pure, so the same table and the same die give
  * the same entry forever.
  */
-export type ButtonAction = 'roll' | 'lookup' | 'post' | 'table' | 'read'
+export type ButtonAction = 'roll' | 'lookup' | 'post' | 'table' | 'read' | 'open'
 
 const ACTIONS: ReadonlySet<string> = new Set<ButtonAction>([
   'roll',
@@ -44,6 +48,7 @@ const ACTIONS: ReadonlySet<string> = new Set<ButtonAction>([
   'post',
   'table',
   'read',
+  'open',
 ])
 
 function isButtonAction(action: string): action is ButtonAction {

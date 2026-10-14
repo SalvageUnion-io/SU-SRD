@@ -18,7 +18,7 @@ import type { ContainerData } from './container'
 import { v2Reply } from './container'
 import { decodeRollRequest, parseCustomId } from './customId'
 import { dieForTable } from './dice'
-import { entityFromKey, readCard } from './lookupCard'
+import { entityFromKey, openCard, readCard } from './lookupCard'
 
 /**
  * A `su:lookup` payload: an entry key (`schemaName::slug`, from "Post to
@@ -74,6 +74,22 @@ export async function handleButtonInteraction(
       return
     }
     await interaction.reply(v2Reply(read, true))
+    return
+  }
+
+  // A lookup card's linked-entries menu: the picked entry's card, privately,
+  // so the channel keeps the one card. Anyone may pick; nothing is recorded.
+  if (parsed.action === 'open') {
+    const picked = interaction.values[0]
+    const open = picked ? openCard(picked) : null
+    if (!open) {
+      await interaction.reply({
+        content: 'That entry is no longer in the reference.',
+        flags: MessageFlags.Ephemeral,
+      })
+      return
+    }
+    await interaction.reply(v2Reply(open, true))
     return
   }
 

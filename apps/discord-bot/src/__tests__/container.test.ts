@@ -116,6 +116,43 @@ describe('limit enforcement', () => {
     expect(containerTextLength(out)).toBeLessThanOrEqual(V2_LIMIT.totalText)
   })
 
+  test('a menu is a control: never shed, and it costs its row and itself', () => {
+    const menu = {
+      kind: 'select' as const,
+      customId: 'su:open:chassis::kelpie::sifter',
+      placeholder: 'Open a linked entry',
+      options: [{ label: 'Floodlights', value: 'systems::floodlights' }],
+    }
+    expect(containerComponentCount({ accent: 0, blocks: [menu] })).toBe(3)
+    const out = enforceContainerLimits({
+      accent: 0,
+      blocks: [{ kind: 'text', content: 'a'.repeat(5000) }, menu],
+    })
+    expect(out.blocks).toContainEqual(menu)
+  })
+
+  test('a menu renders as one string select in its own action row', () => {
+    const json = toContainer({
+      accent: 0,
+      blocks: [
+        {
+          kind: 'select',
+          customId: 'su:open:x',
+          placeholder: 'Open a linked entry',
+          options: Array.from({ length: 30 }, (_, i) => ({ label: `E${i}`, value: `v${i}` })),
+        },
+      ],
+    }).toJSON()
+    const row = json.components[0] as {
+      type: number
+      components: { type: number; options: unknown[] }[]
+    }
+    expect(row.type).toBe(1)
+    expect(row.components[0]?.type).toBe(3)
+    // Discord's cap is 25 options.
+    expect(row.components[0]?.options).toHaveLength(V2_LIMIT.selectOptions)
+  })
+
   test('a section takes at most three text blocks, per the builder predicate', () => {
     const out = enforceContainerLimits({
       accent: 0,

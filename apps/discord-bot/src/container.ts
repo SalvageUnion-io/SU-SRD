@@ -33,6 +33,8 @@ import {
   ContainerBuilder,
   SectionBuilder,
   SeparatorBuilder,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from '@discordjs/builders'
@@ -56,6 +58,8 @@ export const V2_LIMIT = {
   textDisplay: 4000,
   /** Buttons in one action row. */
   rowButtons: 5,
+  /** Options in one select menu. */
+  selectOptions: 25,
 } as const
 
 /** A button that re-invokes the bot, or one that just opens a URL. */
@@ -76,6 +80,13 @@ export type ContainerBlock =
       button?: ButtonSpec
     }
   | { kind: 'buttons'; buttons: ButtonSpec[] }
+  | {
+      kind: 'select'
+      customId: string
+      placeholder: string
+      /** At most {@link V2_LIMIT.selectOptions}; each value at most 100 characters. */
+      options: { label: string; value: string; description?: string }[]
+    }
 
 /** Everything needed to render one container. Pure data — no builders. */
 export type ContainerData = {
@@ -104,6 +115,8 @@ export function containerComponentCount(data: ContainerData): number {
       return 1 + block.text.length + (block.thumbnail || block.button ? 1 : 0)
     }
     if (block.kind === 'buttons') return 1 + block.buttons.length
+    // the row and its one menu
+    if (block.kind === 'select') return 2
     return 1
   }
   // 1 for the container itself.
@@ -114,9 +127,9 @@ export function containerComponentCount(data: ContainerData): number {
  * Trim a container to fit, shedding whole blocks from the end.
  *
  * Shedding from the end is deliberate: the blocks that matter most — the headline and the outcome —
- * are authored first, and half a provenance line is worse than none. Buttons
- * are never shed, because a roll result that loses its "Roll again" stops being
- * the thing people use.
+ * are authored first, and half a provenance line is worse than none. Controls
+ * (buttons and menus) are never shed, because a roll result that loses its
+ * "Roll again" stops being the thing people use.
  */
 export function enforceContainerLimits(data: ContainerData): ContainerData {
   const blocks = data.blocks.map((block) =>
@@ -128,14 +141,14 @@ export function enforceContainerLimits(data: ContainerData): ContainerData {
   )
 
   const trimmed: ContainerData = { ...data, blocks }
-  const isButtons = (b: ContainerBlock): boolean => b.kind === 'buttons'
+  const isControl = (b: ContainerBlock): boolean => b.kind === 'buttons' || b.kind === 'select'
   while (
     (containerTextLength(trimmed) > V2_LIMIT.totalText ||
       containerComponentCount(trimmed) > V2_LIMIT.components) &&
-    trimmed.blocks.some((b) => !isButtons(b))
+    trimmed.blocks.some((b) => !isControl(b))
   ) {
-    // Drop the last non-button block.
-    const index = trimmed.blocks.map(isButtons).lastIndexOf(false)
+    // Drop the last block that is not a control.
+    const index = trimmed.blocks.map(isControl).lastIndexOf(false)
     if (index === -1) break
     trimmed.blocks.splice(index, 1)
   }
@@ -278,6 +291,26 @@ export function toContainer(data: ContainerData): ContainerBuilder {
         if (buttons.length > 0) {
           container.addActionRowComponents(
             new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons)
+          )
+        }
+        break
+      }
+      case 'select': {
+        const options = block.options.slice(0, V2_LIMIT.selectOptions).map((option) => {
+          const built = new StringSelectMenuOptionBuilder()
+            .setLabel(option.label)
+            .setValue(option.value)
+          if (option.description) built.setDescription(option.description)
+          return built
+        })
+        if (options.length > 0) {
+          container.addActionRowComponents(
+            new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+              new StringSelectMenuBuilder()
+                .setCustomId(block.customId)
+                .setPlaceholder(block.placeholder)
+                .addOptions(...options)
+            )
           )
         }
         break

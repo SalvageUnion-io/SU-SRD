@@ -306,12 +306,13 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
   } as CommandExecuteInteraction
 }
 
-/** Build the button surface `handleButtonInteraction` expects. */
+/** Build the component surface (a button or a menu) `handleButtonInteraction` expects. */
 export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInteraction {
-  const raw = ctx.raw as RawActor & { data?: { custom_id?: string } }
+  const raw = ctx.raw as RawActor & { data?: { custom_id?: string; values?: string[] } }
 
   return {
     customId: raw.data?.custom_id ?? '',
+    values: raw.data?.values ?? [],
     ...actorOf(raw),
     ...replyMembers(ctx),
   } as CommandButtonInteraction
