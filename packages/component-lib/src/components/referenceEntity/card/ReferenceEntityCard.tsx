@@ -65,7 +65,6 @@ import type { AxisMarker } from './entityCardTone'
 import {
   resolveAxisMarkers,
   resolveCardTone,
-  resolveEyebrow,
   resolveSeamLabel,
   resolveTierNumeral,
   titleSizeRung,
@@ -348,9 +347,9 @@ function ReferenceEntityCardInner({
   const isTitanicMeta = isAction && isTitanicAction(entity)
   // The KIND ("System", "Ability · Forging Tree") is never stamped (E9): the
   // title carries it for screen readers. A caller's `kicker` that says more
-  // ("From Veteran") is a label.
+  // ("From Veteran") is a label. Nor is it on the foot: only a Page's foot
+  // stamps the kind (E9; ITUN's detail dialog draws its own).
   const kind = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
-  const footerType = isAction || isPattern ? undefined : resolveEyebrow(schemaName).type
   const provenance = resolveFooterProvenance(entity, pattern)
   const axisMarkers: AxisMarker[] = isAction
     ? []
@@ -752,7 +751,7 @@ function ReferenceEntityCardInner({
         {rendersFooter ? (
           // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
           <EntityCardIdentityFooter
-            typeLabel={footerType}
+            typeLabel={undefined}
             source={userMade ? undefined : provenance.source}
             booklet={userMade ? undefined : provenance.booklet}
             page={userMade ? undefined : provenance.page}

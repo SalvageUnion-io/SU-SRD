@@ -98,7 +98,7 @@ function GameDataFallback() {
  * window, rather than threading `showAppHeader` through for a cosmetic fix.
  */
 export function GameDataReady({ children }: { children: ReactNode }) {
-  // App-wide "View in SRD →" cross-link injection: full
+  // App-wide "View in SRD" cross-link injection: full
   // entity cards and detail modals render srdEntityExternalLink in their foot
   // band. Provided here — beside the preload gate that already wraps every
   // route — so the builder only runs once the reference dataset is loaded.

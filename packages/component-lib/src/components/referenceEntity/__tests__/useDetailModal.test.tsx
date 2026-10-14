@@ -8,7 +8,7 @@
  * so it is pinned here alongside the dialog chrome it mounts.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
@@ -53,12 +53,12 @@ describe('useDetailModal — modal mode (no link provider)', () => {
     expect(screen.getByRole('dialog')).toBeTruthy()
   })
 
-  test("the open dialog renders the entity's card and an accessible name", () => {
+  test("the open dialog is the entity's Page, named by the title notched in its band", () => {
     render(<Harness data={system('Red Laser')} />)
     fireEvent.click(screen.getByLabelText('View details'))
-    // The screen-reader-only Dialog.Title carries the entity name; the visible
-    // title comes from the card inside it — hence two matches, not one.
-    expect(screen.getAllByText('Red Laser').length).toBeGreaterThan(1)
+    // The band's title is the Dialog.Title: it names the dialog, kind and all.
+    const dialog = screen.getByRole('dialog', { name: 'Red Laser (System)' })
+    expect(within(dialog).getByRole('heading', { name: 'Red Laser (System)' })).toBeTruthy()
     expect(screen.getByText('Entity display details')).toBeTruthy()
   })
 

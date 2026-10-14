@@ -1,9 +1,8 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { buttonVariants, ChapterBand, cn, KindLabel } from 'component-lib'
+import { buttonVariants, ChapterBand, cn, EntityPageStamps, KindLabel } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { PageFoot } from '../../ssg/types'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
-import { EntityPageStamps } from './EntityPageStamps'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,

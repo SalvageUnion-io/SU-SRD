@@ -1,18 +1,39 @@
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { color, space } from '../../design/tokens'
+import type { SURefEntity, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import { borderWidth, color, space } from '../../design/tokens'
+import { KindLabel } from '../../entity/parts/KindLabel'
 import { buttonVariants } from '../atoms/buttonVariants'
+import { ChapterBand } from '../atoms/ChapterBand'
+import type { ChapterTone } from '../atoms/chapterBandColor'
+import { EntityCardIdentityFooter } from './card/EntityCardIdentityFooter'
+import { EntityPageStamps } from './card/EntityPageStamps'
+import { resolveCardTone } from './card/entityCardTone'
+import { resolveEntityPageMeta } from './card/entityPage'
+import { isLegalStartingPatternOf } from './card/legalStartingPattern'
+import { resolveFooterProvenance } from './card/provenance'
+import { useEntityExternalLink } from './entityHrefContext'
+import { textBand } from './referenceEntityHelpers'
 
 type EntityDetailDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Accessible dialog name (screen-reader only — the card carries the visible title). */
+  /** The entity the Page is of: its band and its foot read it. */
+  entity: SURefMetaEntity
+  /** The Page is of this pattern of `entity` (a chassis's), not of `entity` itself. */
+  pattern?: SURefObjectAnyPattern
+  /**
+   * The Page's title, notched into its band, and the dialog's name: the
+   * entity's name, a pattern's quoted name, an action without its host's
+   * ` (Host)` suffix.
+   */
   title: string
+  /** The Page's body: the card at `presentation="page"`. */
   children: ReactNode
 }
 
-/** Centred in the viewport, as tall as its card, at most 72rem wide. */
+/** Centred in the viewport, as tall as its page, at most 72rem wide. */
 const popupStyle = {
   position: 'fixed',
   inset: 0,
@@ -53,22 +74,110 @@ const closeStyle = {
   boxShadow: `0 10px 15px -3px ${shadowTint}, 0 4px 6px -4px ${shadowTint}`,
 } satisfies CSSProperties
 
-const scrollStyle = {
+/**
+ * The page itself: the page ground the band's notch is cut from, in an ink
+ * frame so it reads off the backdrop, scrolling as one sheet (band, body and
+ * foot together) when it outgrows the viewport.
+ */
+const pageStyle = {
+  backgroundColor: color.wkBg,
+  borderColor: color.ink,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  display: 'flex',
+  flexDirection: 'column',
   maxHeight: 'calc(100vh - 4rem)',
   overflowY: 'auto',
-  paddingTop: space[12],
 } satisfies CSSProperties
 
 /**
- * `EntityDetailDialog` — the shared detail-modal chrome: backdrop, the
- * kitty-cornered SRD black-stamp close button, and the scroll wrapper a full
- * entity card needs. It holds NO card of its own, so both the entity path
- * (`useDetailModal`) and the pattern path (a chassis card's pattern rows) put
- * the same window around whatever they render.
+ * The band a Page wears: the entity's own tone, as its card's head and Row
+ * wear it (a gear's tech level, an ability's tier, the crawler pink's deeper
+ * text band), and the ink band of a thing you do that has no tone (an
+ * action). The SRD's route picks its chapter's band where the entity has no
+ * tone of its own; a dialog has no chapter, so the tone is the band.
+ */
+function pageBand(entity: SURefMetaEntity): { tone: ChapterTone; fill?: string } {
+  const schemaName =
+    'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
+  if (!schemaName || schemaName === 'actions') return { tone: 'ink' }
+  const tone = resolveCardTone(schemaName as Parameters<typeof resolveCardTone>[0], entity)
+  const fill = textBand(tone.bgColor ?? tone.bg)
+  return fill ? { tone: 'rules', fill } : { tone: 'rules' }
+}
+
+/**
+ * The Page inside the dialog (EDL Form 5): the chapter band with the title
+ * notched in and the chips clustered beside it (E20), the body, and the foot's
+ * citation in the card footer's plain text ("Workshop Manual · p.128"). Its own
+ * component so a closed dialog resolves none of it: a list renders a dialog
+ * per Row.
+ */
+function EntityDetailPage({
+  entity,
+  pattern,
+  title,
+  children,
+}: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'>) {
+  const meta = resolveEntityPageMeta(entity, pattern)
+  const band = pageBand(entity)
+  const provenance = resolveFooterProvenance(entity, pattern)
+  // ITUN's "View in SRD": the footer the card drew before the dialog was a Page.
+  const externalLink = useEntityExternalLink(entity as SURefEntity)
+  return (
+    <>
+      <ChapterBand
+        as={Dialog.Title}
+        tone={band.tone}
+        fill={band.fill}
+        aside={
+          <EntityPageStamps
+            meta={meta}
+            name={title}
+            legalStartingPattern={isLegalStartingPatternOf(pattern)}
+          />
+        }
+        asideAt="notch"
+        lead={
+          // An ability's level, left of its title as its Row sets it: just the number.
+          meta.numeral && (
+            <>
+              <span className="su-sr-only">Level </span>
+              {meta.numeral}
+            </>
+          )
+        }
+      >
+        {title}
+        <KindLabel kind={meta.typeLabel} />
+      </ChapterBand>
+      <div className="su-entity-dialog__body">{children}</div>
+      <EntityCardIdentityFooter
+        typeLabel={meta.typeLabel}
+        source={provenance.source}
+        booklet={provenance.booklet}
+        page={provenance.page}
+        additionalSources={provenance.additionalSources}
+        externalLink={externalLink}
+        size="large"
+      />
+    </>
+  )
+}
+
+/**
+ * `EntityDetailDialog` — ITUN's detail view, which is the Page (EDL Form 5,
+ * E5): the backdrop, the kitty-cornered SRD black-stamp close button, and the
+ * Page itself — the entity's band, `children` as its body (the card at
+ * `presentation="page"`) and its foot citation. Both the entity path
+ * (`useDetailModal`) and a depth-2 Row (`NestedCards`) open it, so every
+ * detail view in the app is the same Page.
  */
 export function EntityDetailDialog({
   open,
   onOpenChange,
+  entity,
+  pattern,
   title,
   children,
 }: EntityDetailDialogProps) {
@@ -77,15 +186,12 @@ export function EntityDetailDialog({
       <Dialog.Portal>
         <Dialog.Backdrop className="su-backdrop" />
         <Dialog.Popup style={popupStyle}>
-          {/* Overflow lives on the inner scroll wrapper so the close button
-              (a sibling) isn't clipped by it. The scroll wrapper's pt-3 leaves
-              room for the floating callout row, which straddles ~8px above the
-              card's top edge — without it, overflow-y-auto clips the callout.
-              The SRD black-stamp square button is kitty-cornered, straddling the
-              card's top-right corner. */}
+          {/* Overflow lives on the page so the close button (a sibling) isn't
+              clipped by it. The SRD black-stamp square button is
+              kitty-cornered, straddling the page's top-right corner. */}
           <div style={{ position: 'relative' }}>
             {/* The SRD black stamp: Button's ink variant at the icon rung, with
-                a paper edge so it reads off the card it straddles. */}
+                a paper edge so it reads off the band it straddles. */}
             <Dialog.Close
               className={buttonVariants({ variant: 'ink', size: 'iconOnly' })}
               style={closeStyle}
@@ -93,11 +199,12 @@ export function EntityDetailDialog({
               <X style={{ width: space[20], height: space[20] }} aria-hidden="true" />
               <span className="su-sr-only">Close</span>
             </Dialog.Close>
-            <div style={scrollStyle}>
-              <Dialog.Title className="su-sr-only">{title}</Dialog.Title>
+            <article style={pageStyle}>
               <Dialog.Description className="su-sr-only">Entity display details</Dialog.Description>
-              {children}
-            </div>
+              <EntityDetailPage entity={entity} pattern={pattern} title={title}>
+                {children}
+              </EntityDetailPage>
+            </article>
           </div>
         </Dialog.Popup>
       </Dialog.Portal>

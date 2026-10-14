@@ -14,7 +14,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
  * hero on the left; beside it a chassis's stats, inline and first, then the
  * prose and the chassis ability (every other entity's stats ride the band:
- * srd's `EntityPageStamps`); then everything
+ * `EntityPageStamps`); then everything
  * the entity carries, full width — its table, its other actions, its nested cards and its patterns as
  * link rows. A pattern page leads the right column with the pattern itself
  * (`opening`), then the base chassis's prose under its own slab.

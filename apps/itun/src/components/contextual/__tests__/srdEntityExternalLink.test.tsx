@@ -3,7 +3,7 @@
  *
  * The builder is ITUN's app-wide EntityExternalLinkProvider value: full entity
  * cards + detail modals render its node in their foot band. It must produce a
- * "View in SRD →" link for real catalog entities and nothing for entities whose
+ * same-tab "View in SRD" link for real catalog entities and nothing for entities whose
  * schema has no srd page.
  */
 
@@ -15,7 +15,7 @@ import { must } from '../../__tests__/must'
 import { srdEntityExternalLink } from '../srdEntityExternalLink'
 
 describe('srdEntityExternalLink', () => {
-  it('builds a "View in SRD →" link for a catalog entity', () => {
+  it('builds a same-tab "View in SRD" link for a catalog entity', () => {
     const chassis = must(SalvageUnionReference.Chassis.getByName('Mule'))
     const node = srdEntityExternalLink(chassis)
     expect(node).toBeTruthy()
@@ -23,10 +23,11 @@ describe('srdEntityExternalLink', () => {
     const { container } = render(node)
     const link = container.querySelector('a')
     expect(link?.href).toBe('https://salvageunion.io/chassis/mule')
-    expect(link?.target).toBe('_blank')
-    expect(link?.rel).toBe('noopener noreferrer')
+    // Same tab, no arrow: the SRD is not off-site (ruleset §3.11, EDL E5).
+    expect(link?.hasAttribute('target')).toBe(false)
+    expect(link?.hasAttribute('rel')).toBe(false)
     expect(link?.className).toContain('srd-entity-external-link')
-    expect(link?.textContent).toBe('View in SRD →')
+    expect(link?.textContent).toBe('View in SRD')
     expect(link?.getAttribute('aria-label')).toContain('Mule')
   })
 

@@ -40,3 +40,99 @@
 .su-ec-name-tab {
   width: fit-content;
 }
+
+/* ══ The entity Page's band stamps ═════════════════════════════════════════
+ *
+ * After the badges, stats and tags they resize (`atoms-badges.css`,
+ * `atoms.css`): at one class each, source order decides.
+ */
+/* An entity Page's band line (`EntityPageStamps`: an SRD entity page, ITUN's
+   detail dialog). Under the title on a phone it wraps down; beside it from
+   `sm` it sits on the title's baseline,
+   every stamp and stat's foot on it, flush right. The chips are inline boxes
+   in a balanced block rather than flex items, so when they take two rows
+   (or more) the rows come out even instead of one long and one short.
+   Each chip's 4px margin, cancelled at the edges, is the 8px gap. */
+.su-entity-stamps {
+  margin: calc(-1 * var(--space-4));
+  text-wrap: balance;
+}
+
+.su-entity-stamps > *,
+.su-entity-stamps > dl > * {
+  display: inline-flex;
+  margin: var(--space-4);
+  /* The row's balance and alignment are for the chips, not the words in them. */
+  text-align: start;
+  text-wrap: wrap;
+  vertical-align: bottom;
+}
+
+/* The stat column (`StatColumn`, a `dl`): its cells break across rows like
+   the other chips. */
+.su-entity-stamps > dl {
+  display: inline;
+  margin: 0;
+}
+
+@media (min-width: 40rem) {
+  .su-entity-stamps {
+    text-align: end;
+  }
+}
+
+/*
+ * The type and cost stamps beside an entity page's stats
+ * (`EntityPageStamps`): the height and type of the band's compact stat label
+ * (`.su-stat-column__label` on a `ChapterBand`), so the row reads as one size.
+ */
+.su-entity-stamp {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: 32px;
+  padding-inline: var(--space-8);
+}
+
+/* The facts and traits on the band (`Stat`, `Tag`): each cell at the stamps'
+   height (its plates inside the cell's hairline frame) and type, so every
+   chip on the band reads as one size. */
+.su-entity-stamps .su-stat-plate {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: calc(32px - 2 * var(--bw-hairline));
+  padding-inline: var(--space-8);
+}
+
+/* The SRD page's action on the band ("Build With This"): the chips' height, not
+   `.su-page-action`'s 40px, so every chip and button on the band is one size.
+   A coarse pointer's 44px floor still lifts it. */
+.su-entity-stamps .su-page-action {
+  height: 32px;
+}
+
+/* An ability's cost on its band: the book's pointy box at the stamps'
+   height (it stretches to its flex line), in the stamps' type. */
+.su-entity-cost {
+  align-self: stretch;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: 32px;
+}
+
+/* ══ The detail dialog's Page (`referenceEntity/EntityDetailDialog.tsx`) ════
+ *
+ * ITUN's detail view is the Page (EDL Form 5): its body sits under the band
+ * at the SRD entity page's gutters (`.srd-entity__body`), which change at `sm`.
+ */
+.su-entity-dialog__body {
+  padding: var(--space-20) var(--space-16) var(--space-32);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .su-entity-dialog__body {
+    padding: var(--space-24) var(--space-24) var(--space-32);
+  }
+}
