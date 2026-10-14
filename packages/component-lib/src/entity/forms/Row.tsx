@@ -64,7 +64,7 @@ export type RowSlots = {
    * them lays its surface over the frame and raises them above it.
    */
   controls?: ReactNode
-  /** The host's labels, right of the title after the model's own (an owner stamp). */
+  /** The host's labels (an owner stamp): the first chips, before the model's own labels. */
   extraLabels?: ReactNode
 }
 
@@ -145,10 +145,12 @@ export function Row({
     ) : selected ? (
       <SelectedSeal word={mode.seal} />
     ) : undefined
+  // The model's own labels (a unit's note, the User-made stamp): `CardLabels`
+  // draws them only when there is a note or the Row is user-made.
   const ownLabels =
     slots.labels !== undefined ? (
       slots.labels
-    ) : omit.includes('kind') && !userMade ? null : (
+    ) : userMade || (!omit.includes('kind') && model.kind.note) ? (
       <CardLabels
         seal={undefined}
         note={model.kind.note}
@@ -157,15 +159,20 @@ export function Row({
         userMade={userMade}
         onInk={paint.ink}
       />
-    )
+    ) : null
+  // The host's labels (an owner seal) lead, then the model's own (★ Primary).
   const labels = slots.extraLabels ? (
     <>
-      {ownLabels}
       {slots.extraLabels}
+      {ownLabels}
     </>
   ) : (
     ownLabels
   )
+  // Beside chips, or from the host, the labels are chips: the first items of
+  // the chip group, wrapping and centring with the rest (owner's rule,
+  // 2026-10-14), never a line of their own.
+  const labelsAsChips = !!labels && (chipCount(chips) > 0 || !!slots.extraLabels)
 
   const frame = (
     <div
@@ -187,12 +194,13 @@ export function Row({
           paint={paint}
           tier={omit.includes('tier') ? undefined : model.tier}
           chips={
-            chipCount(chips) > 0 ? (
+            chipCount(chips) > 0 || labelsAsChips ? (
               <Chips
                 chips={chips}
                 rung="compact"
                 onInk={paint.ink}
                 linkable={mode.kind === 'read' && !slots.outer}
+                leading={labelsAsChips ? labels : undefined}
               />
             ) : undefined
           }
@@ -200,7 +208,7 @@ export function Row({
           pennant={slots.pennant}
           affordance={affordance}
           controls={slots.controls}
-          labels={labels}
+          labels={labelsAsChips ? undefined : labels}
           // Every Row wears the cut-out, bodied or not, its chips on the band
           // beside the name (owner's call, 2026-10-13).
           notch

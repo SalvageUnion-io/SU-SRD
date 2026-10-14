@@ -245,10 +245,10 @@ describe('Crew & seats', () => {
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
     const rows = seats.getAllByRole('listitem').map((li) => li.textContent)
     // Join order; a Mediator with no pilot runs the table; an unclaimed pilot is an open seat.
-    // A pilot seat is the pilot's Row (role, then who holds it), its mech a Token.
+    // A pilot seat is the pilot's Row (who holds it, then role), its mech a Token.
     expect(rows).toEqual([
       'MediatorAsh (you)Runs the table',
-      'Pickle (Pilot)PlayerBeefcakeSpectrum (Mech)',
+      'Pickle (Pilot)BeefcakePlayerSpectrum (Mech)',
       'Hotdog (Pilot)OpenWaiting for a player',
     ])
     // The count is the label-first chip, `SEATS | 1/2`.

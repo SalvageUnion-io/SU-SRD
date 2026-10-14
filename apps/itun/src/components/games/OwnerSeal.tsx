@@ -1,9 +1,6 @@
 import { Badge } from 'component-lib'
-import { tracking } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
-
-const STAMP = { letterSpacing: tracking.capsWide } satisfies CSSProperties
 
 /**
  * The pressable seal's bare button. Its cursor, lift and fade change on hover or
@@ -29,9 +26,8 @@ const CLAIM = {
  * single field in two places. A seal that is always present and always in the same place
  * can be read down a list without reading anything else.
  *
- * Stamped rather than chipped for the reason documents are stamped: it is a
- * mark applied ON the record about its status, not a property of the character
- * itself.
+ * On a Row it is a chip like the rest: the first of the Row's chips, wrapping
+ * and centring with them, drawn as their plate (owner's rule, 2026-10-14).
  *
  * ## Why UNCLAIMED is the pressable one
  *
@@ -54,11 +50,9 @@ export function OwnerSeal({
   disabled: boolean
   onClaim: () => void
 }) {
-  // The default stamp plate: ink ground, paper text, at the smallest rung —
-  // a label right of the row's name (ruleset §7.2), subordinate to it, so it
-  // reads as a mark stamped ON the record rather than as another chip.
+  // A Row draws its labels as chips, so the stamp takes the chip's plate there.
   const stamp = (
-    <Badge shape="stamp" size="mini" style={STAMP}>
+    <Badge shape="stamp" size="mini">
       {owner.label}
     </Badge>
   )
