@@ -45,11 +45,11 @@
   # 'unsafe-inline' stays in style-src deliberately: React's inline `style=`
   # attributes need it, and style injection is not script execution.
   #
-  # Cloudflare Web Analytics: BaseLayout loads its beacon by URL from
-  # static.cloudflareinsights.com, and the beacon posts page loads to
-  # cloudflareinsights.com. Automatic setup never injects it into a Worker's
-  # static assets, so it is added by hand; drop either origin and the
-  # dashboard silently records nothing.
+  # Cloudflare Web Analytics: the zone's automatic setup injects
+  # its beacon into every HTML page at the edge (the page source carries none),
+  # loaded from static.cloudflareinsights.com and posting page loads to
+  # cloudflareinsights.com; drop either origin and the dashboard silently
+  # records nothing.
   Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.ingest.de.sentry.io;
 
 # The production Worker's own workers.dev address serves the same pages as
