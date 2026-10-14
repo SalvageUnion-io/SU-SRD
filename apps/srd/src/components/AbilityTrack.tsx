@@ -68,10 +68,6 @@ export function AbilityTrack({
         const tier = pick ? undefined : toEntityModel(ability).tier
         return (
           <li key={ability.id} className="srd-ability-tree__tier">
-            {pick && index > 0 && (
-              // A pick-one tree: an "or" on its track between picks, never a numeral.
-              <span className="srd-ability-tree__or">or</span>
-            )}
             {tier && (
               // The list's order already says the tier; the numeral is the print's mark.
               <span className="srd-ability-tree__numeral" aria-hidden="true">
@@ -86,6 +82,11 @@ export function AbilityTrack({
               lead
               titleAs={titleAs}
             />
+            {pick && index < abilities.length - 1 && (
+              // A pick-one tree: an "or" on its track between this pick and the
+              // next, never a numeral.
+              <span className="srd-ability-tree__or">or</span>
+            )}
           </li>
         )
       })}

@@ -1576,25 +1576,18 @@
   position: absolute;
 }
 
-/* The pipe segment. */
-.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::before {
-  bottom: calc(-1 * var(--srd-track-gap));
+/* The pipe segment: from this tier's stub down to the next tier's, each end
+   flush with the outer edge of its stub, so a corner is one square joint and
+   no step shows where segments meet (they overlap at a middle tier). The last
+   tier draws none, so nothing hangs below the tree. */
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:not(:last-child)::before {
+  bottom: calc(-1 * (var(--srd-track-gap) + var(--srd-track-node) + var(--srd-track-weight) / 2));
   left: calc(var(--srd-track-x) - var(--srd-track-weight) / 2);
-  top: 0;
+  top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
   width: var(--srd-track-weight);
 }
 
-.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child::before {
-  top: var(--srd-track-node);
-}
-
-/* The last segment stops under its numeral: no foot hangs below the tree. */
 .srd-ability-tree__track[data-track] > .srd-ability-tree__tier:last-child::before {
-  bottom: auto;
-  height: var(--srd-track-node);
-}
-
-.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child:last-child::before {
   content: none;
 }
 
@@ -1626,27 +1619,40 @@
   z-index: 1;
 }
 
-/* A pick-one tree's "or", on the pipe in the gap above each pick after the
-   first, where a sequence sets its numerals: the stamp's face in the track's
-   hue, so the bar reads as one choice, not a chain. */
+/* A pick-one tree's "or", on the pipe between each pick and the next: a box
+   over the run from this pick's stub to the next's, the stamp's face (in the
+   track's hue) set across its middle, so the "or" sits at the run's true
+   centre however tall either Row is, and the bar reads as one choice, not a
+   chain. */
 .srd-ability-tree__or {
   align-items: center;
-  background: var(--srd-track-color);
+  bottom: calc(-1 * (var(--srd-track-gap) + var(--srd-track-node)));
   color: var(--srd-track-on);
   display: flex;
   font-family: var(--font-cond);
   font-size: var(--text-badge);
   font-weight: var(--font-weight-extrabold);
-  height: var(--srd-track-numeral);
   justify-content: center;
   left: 0;
   letter-spacing: var(--tracking-caps-tight);
   line-height: 1;
   position: absolute;
   text-transform: uppercase;
-  top: calc(-1 * (var(--srd-track-gap) + var(--srd-track-numeral)) / 2);
+  top: var(--srd-track-node);
   width: var(--srd-track-numeral);
   z-index: 1;
+}
+
+/* The stamp's face, under the "or" (the box is its own stacking context). */
+.srd-ability-tree__or::before {
+  background: var(--srd-track-color);
+  content: '';
+  height: var(--srd-track-numeral);
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: calc(50% - var(--srd-track-numeral) / 2);
+  z-index: -1;
 }
 
 /*

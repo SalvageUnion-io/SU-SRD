@@ -82,11 +82,11 @@ describe('ClassAbilityTree banners and track', () => {
       'legendary'
     )
     expect(legendary.querySelector('.srd-ability-tree__numeral')).toBeNull()
-    // The "or" sits on the track above each pick but the first.
+    // The "or" sits on the track below each pick but the last, centred on the run to the next.
     const tiers = [...legendary.querySelectorAll('.srd-ability-tree__tier')]
     expect(
       tiers.map((tier) => tier.querySelector(':scope > .srd-ability-tree__or')?.textContent)
-    ).toEqual(tiers.map((_, index) => (index === 0 ? undefined : 'or')))
+    ).toEqual(tiers.map((_, index) => (index === tiers.length - 1 ? undefined : 'or')))
   })
 })
 
