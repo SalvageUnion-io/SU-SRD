@@ -16,7 +16,16 @@
  * mode is Connected, so the signed-out hub has no game UI at all.
  */
 
-import { Button, Field, Input, ModalShell, PageHeading, Text, tokens } from 'component-lib'
+import {
+  Button,
+  Field,
+  FieldError,
+  Input,
+  ModalShell,
+  PageHeading,
+  Text,
+  tokens,
+} from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { FunctionArgs } from 'convex/server'
 import type { CSSProperties } from 'react'
@@ -61,8 +70,6 @@ const ROW = {
 const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
-
-const ERROR = { ...HINT, color: tokens.color.rollCascade } satisfies CSSProperties
 
 type NewGameControlProps = {
   /** Extra classes for the trigger (the Shelves band's on-ink outline). */
@@ -175,11 +182,7 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
             Joining a friend’s Game? Open the invite link they sent you.
           </Text>
 
-          {error !== null && (
-            <Text variant="hint" role="alert" style={ERROR}>
-              {error}
-            </Text>
-          )}
+          <FieldError>{error}</FieldError>
         </div>
       </ModalShell>
     </>
