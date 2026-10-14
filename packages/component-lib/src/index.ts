@@ -239,7 +239,6 @@ export { KindLabel } from './entity/parts/KindLabel'
 export type { TagItem } from './entity/parts/tagItems'
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
 export { mentionRef } from './entity/parts/tagItems'
-export { TILE_NAME } from './entity/parts/tileName'
 export { embeddedPeekAddress } from './entity/peekContext'
 export type { EntityMode, EntityRowModel } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and

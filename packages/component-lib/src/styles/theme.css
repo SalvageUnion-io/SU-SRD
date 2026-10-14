@@ -125,9 +125,11 @@
      (ruleset §3.1). It carries paper text (design/__tests__/contrast.test.ts). */
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
 
-  /* Discord's blurple: the SRD home's "Roll on Discord" band only, a one-off
-     exception to the tone palette (owner's call, 2026-10-14). */
-  --color-discord: rgb(88, 101, 242); /* #5865f2 */
+  /* Discord's dark blurple (its own button hover): the SRD home's Discord
+     button only, a one-off exception to the tone palette (owner's call,
+     2026-10-14). Discord's #5865f2 carries paper at 4.4:1, under AA; this
+     carries it at 6:1 (design/__tests__/contrast.test.ts). */
+  --color-discord: rgb(71, 82, 196); /* #4752c4 */
 
   /* Roll result tiers — canonical warm state palette (canonical primitive
      language §3): warm, so damaged/destroyed state (via the --color-status-* aliases below) and the Discord bot's roll
