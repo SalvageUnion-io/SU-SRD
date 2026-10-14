@@ -52,7 +52,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 ```
 
 - **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's, with its command. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
-- **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
+- **Profiling:** `bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>` into the gitignored `.profiles/`; `bun build --metafile-md` needs `--outdir`.
 
 ### Git hooks (Lefthook)
 
@@ -88,6 +88,8 @@ For styling bugs, check the stylesheet wiring (`entry.css`'s `layer(su-reset)` /
 
 ## Merging
 
-`main` requires linear history and status checks; **no merge queue**. Squash-merge: locally `gh pr merge <pr> --squash` (`--auto` too); in cloud, see [cloud sessions](docs/ARCHITECTURE.md#cloud). The squash body is the PR body (`PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
+`main` requires linear history and status checks; **no merge queue**. Squash-merge: locally `gh pr merge <pr> --squash`; in cloud, see [cloud sessions](docs/ARCHITECTURE.md#cloud). The squash body is the PR body (`PR_BODY`); `git log` is the decision record.
+
+**Releasing:** bump the root `package.json` `version`; the merge tags and releases it ([`tools/release.ts`](tools/release.ts)).
 
 Dependent PRs land only as a `gh stack`, local-only: `submit --auto --open`, then `merge --squash`; after a merge beneath you, `gh stack sync`. Never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr>`).
