@@ -11,7 +11,7 @@ import { useLinkTarget } from '../modes/linkTarget'
 import { actionTypeStamps } from '../parts/actionStamps'
 import { CostBox } from '../parts/Chips'
 import { KindLabel } from '../parts/KindLabel'
-import { PAPER_NAME, paintFor } from '../parts/paint'
+import { paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityRowModel } from '../types'
 
@@ -120,9 +120,13 @@ export function Token({
           {model.kind.note}
         </Badge>
       )}
-      <span className="su-entity-token__name">
-        {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
-        <KindLabel kind={slots.kind ?? model.kind.type} />
+      {/* The cut-out: the name on a tab of paper, in ink, notched into the pill
+          from a thin strip of paint to its foot (a Row's head, at Token size). */}
+      <span className="su-entity-token__notch">
+        <span className="su-entity-token__name">
+          {title}
+          <KindLabel kind={slots.kind ?? model.kind.type} />
+        </span>
       </span>
       {slots.pennant}
       {(chips.length > 0 || cost) && (
