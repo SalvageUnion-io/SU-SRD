@@ -120,12 +120,12 @@ describe('Content — datavalues chips', () => {
 
   test('a cost datavalue splits a trailing currency out of its label', () => {
     // "3 AP" arrives as one label with no `value`. ActivationCost always prints
-    // `currency + " " + cost` and defaults the currency to AP, so if the chip
-    // does not split the label itself the pennant reads "AP 3 AP".
+    // `cost + " " + currency` and defaults the currency to AP, so if the chip
+    // does not split the label itself the pennant reads "3 AP AP".
     render(
       <Content body={blocks({ type: 'datavalues', value: [{ type: 'cost', label: '3 AP' }] })} />
     )
-    expect(screen.getByText('AP 3')).toBeTruthy()
+    expect(screen.getByText('3 AP')).toBeTruthy()
   })
 
   test('every recognised currency suffix is split, not just AP', () => {
@@ -135,7 +135,7 @@ describe('Content — datavalues chips', () => {
           body={blocks({ type: 'datavalues', value: [{ type: 'cost', label: `2 ${currency}` }] })}
         />
       )
-      expect(screen.getByText(`${currency} 2`)).toBeTruthy()
+      expect(screen.getByText(`2 ${currency}`)).toBeTruthy()
       cleanup()
     }
   })
@@ -146,7 +146,7 @@ describe('Content — datavalues chips', () => {
         body={blocks({ type: 'datavalues', value: [{ type: 'cost', label: '2', value: 'EP' }] })}
       />
     )
-    expect(screen.getByText('EP 2')).toBeTruthy()
+    expect(screen.getByText('2 EP')).toBeTruthy()
   })
 
   test('a cost label with no recognised currency suffix is left unsplit', () => {
@@ -154,7 +154,7 @@ describe('Content — datavalues chips', () => {
       <Content body={blocks({ type: 'datavalues', value: [{ type: 'cost', label: 'Free' }] })} />
     )
     // Not split — the whole label stays the cost and the AP default applies.
-    expect(screen.getByText('AP Free')).toBeTruthy()
+    expect(screen.getByText('Free AP')).toBeTruthy()
   })
 
   test('a plain datavalue joins its value and unit', () => {

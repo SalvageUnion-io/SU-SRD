@@ -50,7 +50,7 @@ Each is checkable; breaking one needs an amendment here first.
 - **E14** Tables are the Table instrument: a roll bar in a Card, the roll instrument on a Page or panel; its ROLL THE DIE stamp is the roll button.
 - **E15** No hand-built entity markup outside `component-lib/src/entity/`.
 - **E16** A Peek is read-only and terminal.
-- **E17** No "//" line: all chips are one head group: action type as printed ("Turn Action"), facts, traits (`[Burn | 2]`), then the cost, the book's pointy box (`EP 2`; a Dashboard button). Right of the title; on a phone under it; never above it. On ink each chip has a paper rule.
+- **E17** No "//" line: all chips are one head group: action type as printed ("Turn Action"), facts, traits (`[Burn | 2]`), then the cost, the book's pointy box (`2 EP`; a Dashboard button). Right of the title; on a phone under it; never above it. On ink each chip has a paper rule.
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens.
 - **E19** A chassis ability shows only on its chassis's and its patterns' pages (either app) and in ITUN's builder pick cards, where choosing needs it; never in a dialog, Row, Tile, Peek, nested or other Card.
 - **E20** Above a show page's title: only the breadcrumb (ITUN sheet: controls top right, `corner`); stamps, chips, other controls cluster right of it, under it on a phone (`asideAt="notch"`); a chassis's stats lead its body.

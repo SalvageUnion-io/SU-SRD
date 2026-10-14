@@ -1,4 +1,3 @@
-import { costCell } from '../../../entity/parts/chipSet'
 import { cn } from '../../../utils/cn'
 import { buttonVariants } from '../../atoms/buttonVariants'
 import { FOCUS_RING } from '../../atoms/interaction'
@@ -39,13 +38,10 @@ export function CardPennant({
   subject: string
 }) {
   const verb = control?.label ?? 'Use'
-  // Label first, as every chip reads: "2 EP" shows as "EP 2".
-  const cell = cost ? costCell(cost) : undefined
-  const shown = cell && (cell.value ? `${cell.label} ${cell.value}` : cell.label)
-  const label = shown ?? verb
+  const label = cost ?? verb
   // The accessible name says what the tap does and carries the visible text
-  // (WCAG 2.5.3): "Activate Auger, spend EP 1".
-  const name = control?.ariaLabel ?? `${verb} ${subject}${shown ? `, spend ${shown}` : ''}`
+  // (WCAG 2.5.3): "Activate Auger, spend 1 EP".
+  const name = control?.ariaLabel ?? `${verb} ${subject}${cost ? `, spend ${cost}` : ''}`
   if (!control?.onClick) {
     return <span className={cn(pennantClass(size), 'su-pennant--read')}>{label}</span>
   }

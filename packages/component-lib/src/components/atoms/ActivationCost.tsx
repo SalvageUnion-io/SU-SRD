@@ -66,7 +66,7 @@ export function ActivationCost({
   const rung = mini ? BOX_MINI : compact ? BOX_COMPACT : BOX_FULL
   const box = (
     <span className="su-cost" style={{ ...BOX, ...rung, ...(onInk ? EDGED : {}) }}>
-      {currency === '' ? displayCost : `${currency} ${displayCost}`}
+      {currency === '' ? displayCost : `${displayCost} ${currency}`}
     </span>
   )
   // The edge shares the box's type size, so its `em` point matches the box's.
