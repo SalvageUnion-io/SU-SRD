@@ -1,6 +1,6 @@
 /**
- * CrawlerReviewStep — the recap is label-first (ruleset §3.7): the type and
- * the tech level are Tokens, Structure is `SP | 20/20`, TL `TL | 1`, and each
+ * CrawlerReviewStep — the recap is label-first (ruleset §3.7): the type is
+ * a chip that opens it, Structure is `SP | 20/20`, TL `TL | 1`, and each
  * Scrap tier `T1 | 3`, never value-first prose ("20 SP (starts at full)").
  */
 
@@ -39,9 +39,7 @@ describe('CrawlerReviewStep', () => {
     expect(text).toContain('TL1')
     expect(text).toContain('T13')
     expect(seen.textContent).not.toMatch(/starts at full|Tech Level|×/)
-    // The type is a Token that opens it.
-    const tokens = container.querySelectorAll('.su-entity-token')
-    expect(Array.from(tokens).some((t) => t.textContent?.includes('Exploratory'))).toBe(true)
+    // The type is a chip that opens it.
     expect(screen.getAllByText('Exploratory').length).toBeGreaterThan(0)
   })
 })

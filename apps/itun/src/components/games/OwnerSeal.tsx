@@ -20,13 +20,13 @@ const CLAIM = {
 } satisfies CSSProperties
 
 /**
- * The ownership seal: one stamp in the row's top-right corner saying who holds
+ * The ownership seal: one stamp right of the row's name saying who holds
  * this character — `UNCLAIMED`, `YOU`, or a crewmate's name.
  *
  * ## One mark, three states
  *
  * Ownership is one fact, so it gets one mark — never two vocabularies for a
- * single field in two places. A seal that is always present and always in the same corner
+ * single field in two places. A seal that is always present and always in the same place
  * can be read down a list without reading anything else.
  *
  * Stamped rather than chipped for the reason documents are stamped: it is a
@@ -55,9 +55,8 @@ export function OwnerSeal({
   onClaim: () => void
 }) {
   // The default stamp plate: ink ground, paper text, at the smallest rung —
-  // a plate riveted across the row's top border, subordinate to the name it
-  // sits beside, so it reads as a mark stamped ON the record rather than as
-  // another chip floating near the corner.
+  // a label right of the row's name (ruleset §7.2), subordinate to it, so it
+  // reads as a mark stamped ON the record rather than as another chip.
   const stamp = (
     <Badge shape="stamp" size="mini" style={STAMP}>
       {owner.label}

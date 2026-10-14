@@ -5,8 +5,8 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 ## The source: the Workshop Manual
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
-2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind and its citation in the card footer's words, text, never chips (`Workshop Manual · p.112`, then "Also in" each reprint): one citation look on every page, card and Peek.
-3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE PTS. | 14`), label 14px, horizontal, in the book's order: STRUCTURE PTS., ENERGY PTS., HEAT CAP., SYSTEM SLOTS, MODULE SLOTS, CARGO CAP., TECH LEVEL, SALVAGE VALUE.
+2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind and its citation as text, never chips (`Workshop Manual · p.112`, then "Also in" each reprint), as on every card and Peek.
+3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the book's order (`bookStats`), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL).
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
@@ -74,7 +74,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — bordered container, `--bw-*` weights: `Card` / `Panel`.
    3. **Badge** — the stamp-chip family: `Badge`.
-   4. **Well** — labelled value box: `Stat` (vertical).
+   4. **Well** — labelled value: `Stat`, the label-first chip (steppers when edited); no square box.
    5. **Gauge** — segmented current/max: `VitalGauge`.
    6. **Btn** — rust action, the only mutator: `Button` / `buttonVariants`.
    7. **Slab** — section stamp + leader rule: `Slab`.

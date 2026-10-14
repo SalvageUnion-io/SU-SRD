@@ -1,19 +1,13 @@
-import {
-  Callout,
-  Entity,
-  FieldError,
-  KvRow,
-  Panel,
-  ReferenceEntityCard,
-  Stat,
-  tokens,
-} from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
+import { Callout, FieldError, Panel, ReferenceEntityCard, Stat, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { SURefCrawler, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
+import { resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
+import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 import '../../styles/wizard.css'
+import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
 
 /** Recap and cards; the column split is `.wiz-review-grid`. */
 const REVIEW_GRID: CSSProperties = { display: 'grid', gap: tokens.space[24] }
@@ -55,13 +49,14 @@ type CrawlerReviewStepProps = {
 }
 
 /**
- * Review (Union Crawler pp.212–213): kv-panel recap
+ * Review (Union Crawler pp.212–213): recap
  * of type / ability / weapon(s) / stat block / scrap pool / crew on the left;
  * the chosen type and weapon entity cards stacked on the right (the universal
- * entity-card rule — fresh weapons carry an 'Intact' badge). The type and the
- * tech level are Tokens (the tech level's own `TL | 1` chip on it); Structure
+ * entity-card rule — fresh weapons carry an 'Intact' badge). The recap is
+ * label-first chips: the type opens and Peeks it, `TL | 1`, Structure
  * (`SP | 25/25`, the derived-at-read `20 + 5 type bonus` in its hover) and
- * each Scrap tier (`T1 | 3`) are label-first chips. The Augmented type re-surfaces its +1 Training Point reminder —
+ * each Scrap tier (`T1 | 3`). The Augmented type re-surfaces its +1 Training
+ * Point reminder —
  * TEXT ONLY, never a cross-pilot write (ADR-007).
  */
 export function CrawlerReviewStep({
@@ -102,41 +97,28 @@ export function CrawlerReviewStep({
     .filter((name): name is string => !!name && name.length > 0)
 
   const isAugmented = selectedType?.name === 'Augmented'
-
-  const typeToken = selectedType ? (
-    <Entity form="token" entity={selectedType} mode={{ kind: 'link' }} />
-  ) : null
-  // The tech level's Token carries its own `TL | 1` chip.
-  const techLevelToken = techLevel ? (
-    <Entity form="token" entity={techLevel} mode={{ kind: 'link' }} />
-  ) : null
-  const scrapNode = scrapChips.length > 0 ? <span style={CHIPS}>{scrapChips}</span> : '—'
-
-  const rows: [string, ReactNode][] = [
-    ['Name', form.name.trim() || null],
-    ['Type', typeToken],
-    [
-      'Ability',
-      selectedType?.actions && selectedType.actions.length > 0
-        ? selectedType.actions.join(', ')
-        : '—',
-    ],
-    ['Crawler', techLevelToken],
-    ['Structure', spChip],
-    ['Bays', `Full base set · ${bayCount} bays, seeded automatically · all Intact`],
-    ['Weapons', systems.length > 0 ? systems.map((s) => s.name).join(', ') : null],
-    ['Scrap Pool', scrapNode],
-    ['Crew', crewNames.length > 0 ? crewNames.join(', ') : 'Unnamed — fill in during play'],
-  ]
+  const abilities = resolveCrawlerTypeAbilities(form.type ?? undefined)
+  const crew = crewNames.map((name) => unitRowModel({ kind: 'npc', name }))
 
   return (
     <div className="wiz-review-grid" style={REVIEW_GRID}>
-      {/* kv-panel */}
       <div className="wiz-stack wiz-stack--12" style={RECAP}>
         <Panel className="wiz-review-panel">
-          {rows.map(([k, v]) => (
-            <KvRow key={k} label={k} value={v} />
-          ))}
+          {/* The recap: Stats, the type as its chip, the rest as Tokens. */}
+          <Recap>
+            <RecapStat label="Name" value={form.name.trim()} required />
+            <RecapEntity label="Type" entity={selectedType} required />
+            <RecapStat label="TL" value={techLevel?.techLevel} required />
+            {spChip ?? <RecapStat label="SP" value={null} required />}
+            <RecapStat
+              label="Bays"
+              value={`Full base set · ${bayCount} bays, seeded automatically · all Intact`}
+            />
+            {scrapChips.length > 0 && <span style={CHIPS}>{scrapChips}</span>}
+            <RecapTokens label="Ability" entities={abilities} />
+            <RecapTokens label="Weapons" entities={systems} empty="Required" />
+            <RecapTokens label="Crew" models={crew} empty="Unnamed — fill in during play" />
+          </Recap>
           {submitError && <FieldError className="wiz-review-error">{submitError}</FieldError>}
         </Panel>
         {isAugmented && (

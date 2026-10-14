@@ -2,8 +2,8 @@
 
 /* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome, SheetRailParts) ---- */
 
-/* A rail slot's share of the Assigned Units row. `EntityRow` takes a className
-   and no style, so the static `flex` rides a class. */
+/* A rail slot's share of the Assigned Units row: its wrapper (around a
+   `UnitRow` or an `EmptyUnitSlot`) carries the static `flex` as a class. */
 .su-sheet-rail-slot {
   flex: 1 1 0%;
 }
@@ -119,17 +119,6 @@
 /* The repair confirm's width cap (`ModalShell`'s `maxWidth` is a class). */
 .su-sheet-mech-repair-modal {
   max-width: 24rem;
-}
-
-/* MechIdentity: Chassis + Quirk share a row from sm. */
-.su-sheet-mech-chassis-row {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-@media (width >= 40rem) {
-  .su-sheet-mech-chassis-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 /* Systems and Modules: stacked, side by side once the sheet is wide enough

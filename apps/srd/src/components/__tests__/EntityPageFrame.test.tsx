@@ -6,9 +6,10 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import { resolveEntityPageMeta } from 'component-lib'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
 import { ITUN_URL } from '../../lib/constants'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { EntityPageFrame, entityPageFoot } from '../EntityPageFrame'
 
 function must<T>(value: T | undefined | null): T {
@@ -87,24 +88,28 @@ describe('EntityPageFrame', () => {
         title={`"${hauler.name}"`}
         tone="mech"
         meta={resolveEntityPageMeta(mule, hauler)}
-        parent={{ label: 'Pattern of', name: 'Mule', href: '/chassis/mule/' }}
+        parent={{ label: 'Pattern of', entityRef: toEntityModel(mule).ref, href: '/chassis/mule/' }}
       >
         <p>Hauler body</p>
       </EntityPageFrame>
     )
-    const parent = screen.getByRole('link', { name: /Pattern of\s*Mule/ })
+    // The label-first chip (`PATTERN OF | Mule`): it opens the chassis and Peeks it.
+    const parent = screen.getByRole('link', { name: 'Pattern of: Mule' })
     expect(parent.getAttribute('href')).toBe('/chassis/mule/')
+    expect(parent.getAttribute('data-peek')).toBe(`chassis:${mule.id}`)
+    expect(parent.querySelector('.su-stat-plate--label')?.textContent).toBe('Pattern of')
   })
 
-  test('the body runs to the given measure', () => {
+  test('the body is the one page body, on the one measure', () => {
     const item = guide('Heat')
     const { container } = render(
-      <EntityPageFrame title="Heat" tone="rules" meta={resolveEntityPageMeta(item)} measure="90rem">
+      <EntityPageFrame title="Heat" tone="rules" meta={resolveEntityPageMeta(item)}>
         <p>Heat body</p>
       </EntityPageFrame>
     )
     const body = container.querySelector<HTMLElement>('.srd-entity__body')
-    expect(body?.style.maxWidth).toBe('90rem')
+    expect(body?.classList.contains('srd-page-body')).toBe(true)
+    expect(body?.style.maxWidth).toBe('')
   })
 })
 
@@ -116,12 +121,12 @@ describe('entityPageFoot', () => {
       fill: undefined,
       kind: meta.typeLabel,
       printings: meta.printings,
-      measure: '75rem',
+      measure: PAGE_MEASURE,
     })
-    expect(entityPageFoot('mech', meta, '90rem', '#123456')).toMatchObject({
+    expect(entityPageFoot('mech', meta, '#123456')).toMatchObject({
       tone: 'mech',
       fill: '#123456',
-      measure: '90rem',
+      measure: PAGE_MEASURE,
     })
   })
 })

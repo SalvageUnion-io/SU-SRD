@@ -8,7 +8,7 @@
  * so it is pinned here alongside the dialog chrome it mounts.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
@@ -53,12 +53,12 @@ describe('useDetailModal — modal mode (no link provider)', () => {
     expect(screen.getByRole('dialog')).toBeTruthy()
   })
 
-  test("the open dialog renders the entity's card and an accessible name", () => {
+  test("the open dialog is the entity's Page, named by the title notched in its band", () => {
     render(<Harness data={system('Red Laser')} />)
     fireEvent.click(screen.getByLabelText('View details'))
-    // The screen-reader-only Dialog.Title carries the entity name; the visible
-    // title comes from the card inside it — hence two matches, not one.
-    expect(screen.getAllByText('Red Laser').length).toBeGreaterThan(1)
+    // The band's title is the Dialog.Title: it names the dialog, kind and all.
+    const dialog = screen.getByRole('dialog', { name: 'Red Laser (System)' })
+    expect(within(dialog).getByRole('heading', { name: 'Red Laser (System)' })).toBeTruthy()
     expect(screen.getByText('Entity display details')).toBeTruthy()
   })
 
@@ -120,5 +120,27 @@ describe('useDetailModal — link mode (srd)', () => {
     fireEvent.click(screen.getByLabelText('View details'))
     expect(opened).toEqual([])
     expect(screen.getByRole('dialog')).toBeTruthy()
+  })
+})
+
+describe('DetailIcon — the control glyph', () => {
+  function IconHarness({ className }: { className?: string }) {
+    const { control } = useDetailModal(system('Red Laser'))
+    const Icon = control.icon
+    return Icon ? <Icon className={className} /> : null
+  }
+
+  test('paints itself paper when no class is given', () => {
+    const { container } = render(<IconHarness />)
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('aria-hidden')).toBe('true')
+    expect(svg?.getAttribute('style')).toContain('color')
+  })
+
+  test("a caller's class takes the colour over entirely", () => {
+    const { container } = render(<IconHarness className="ink" />)
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('class')).toBe('ink')
+    expect(svg?.getAttribute('style')).toBeNull()
   })
 })

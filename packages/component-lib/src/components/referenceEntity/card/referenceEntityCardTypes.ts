@@ -233,11 +233,6 @@ export type ReferenceEntityCardHideConfig = {
    * sheet, drawn as the SRD's bay Page draws it, wears none.
    */
   axisMarkers?: boolean
-  /**
-   * Suppress the kind on the card's foot ("Crawler Bay"): only a Page's foot
-   * names the kind (EDL E9).
-   */
-  footKind?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

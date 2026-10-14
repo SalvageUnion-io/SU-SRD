@@ -34,6 +34,7 @@ import {
   ChapterBand,
   cn,
   EntityExternalLinkProvider,
+  EntityStat,
   KindLabel,
   Stat,
   tokens,
@@ -41,6 +42,8 @@ import {
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { AppLink } from '../shared/AppLink'
+import type { BandStamp } from './bandStamps.model'
+import { LinkedUnitLink } from './LinkedUnitLink'
 import type { SheetBand } from './sheetViewProps.model'
 
 type SheetVariant = 'pilot' | 'mech' | 'crawler'
@@ -55,6 +58,8 @@ const KIND_LABEL: Record<SheetVariant, string> = {
 export type LiveSheetSegment = {
   key: SheetVariant
   label: string
+  /** The unit's own name: its Token in the condensed bar. */
+  name: string
   href: string
   /** The segment matching the sheet being viewed — rust fill, no nav. */
   active: boolean
@@ -100,10 +105,11 @@ type LiveSheetProps = {
   /** The chapter band's controls (Read | Edit, "Make a copy"), in its corner. */
   band?: SheetBand
   /**
-   * What it is built as: a pilot's class, a mech's chassis, a crawler's type.
-   * Not stamped when it only repeats the name (the Starter Set's Scrapper).
+   * What it is built as: a pilot's class, a mech's chassis, a crawler's type —
+   * a `CLASS | Engineer` chip that opens and Peeks the entity it names. Not
+   * shown when it only repeats the name (the Starter Set's Scrapper).
    */
-  kindDetail?: string
+  kindDetail?: BandStamp
 }
 
 /** The type stamp's line beside the name. */
@@ -193,12 +199,12 @@ const STRIP_HIDDEN = {
   visibility: 'hidden',
 } satisfies CSSProperties
 
+/** The condensed name wraps rather than cutting to "…" (EDL E18). */
 const NAME_STAMP = {
   display: 'block',
   maxWidth: '100%',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  overflowWrap: 'anywhere',
+  whiteSpace: 'normal',
 } satisfies CSSProperties
 
 const BAR_END = {
@@ -209,8 +215,6 @@ const BAR_END = {
   gap: tokens.space[8],
   marginLeft: 'auto',
 } satisfies CSSProperties
-
-const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 /** The phone switch row; its `display` (phones only) is `.su-sheet-live-segments`. */
 const SEGMENTS = {
@@ -266,9 +270,11 @@ export function LiveSheet({
   const topRef = useRef<HTMLDivElement | null>(null)
   const condensed = useCondensed(topRef)
 
-  // A stamp that only repeats the name says nothing (the Starter Set's Scrapper).
+  // A chip that only repeats the name says nothing (the Starter Set's Scrapper).
   const stamp =
-    kindDetail && kindDetail.toLowerCase() !== name.trim().toLowerCase() ? kindDetail : undefined
+    kindDetail && kindDetail.name.toLowerCase() !== name.trim().toLowerCase()
+      ? kindDetail
+      : undefined
 
   const stripItems = strip.map((item) => ({
     ...item,
@@ -341,11 +347,12 @@ export function LiveSheet({
             )}
           </div>
 
-          {/* One badge PER LINKED UNIT, on the right beside the sheet actions —
-            a hop straight to that pilot / mech / crawler, not a jump link to a
-            section at the foot of the page. They ride the condensed state with
-            the name and vitals: at rest the linked units are on screen in their
-            own section, so the bar has nothing to add.
+          {/* One Token PER LINKED UNIT, on the right beside the sheet actions —
+            a hop straight to that pilot / mech / crawler, named and in its own
+            tone, not a jump link to a section at the foot of the page. They
+            ride the condensed state with the name and vitals: at rest the
+            linked units are on screen in their own section, so the bar has
+            nothing to add.
 
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
@@ -354,21 +361,13 @@ export function LiveSheet({
               segments
                 ?.filter((segment) => !segment.active)
                 .map((segment) => (
-                  <AppLink
+                  <LinkedUnitLink
                     key={segment.key}
+                    kind={segment.key}
+                    name={segment.name}
                     href={segment.href}
-                    style={LINK}
-                    aria-label={`Open the assigned ${segment.label.toLowerCase()}`}
-                  >
-                    {/* Tinted with the TARGET's ontology tone, not the current
-                      sheet's: the badge's job is to say where it goes, and a
-                      row of identical outline chips made every destination
-                      look alike. `segment.key` is the target's variant, so the
-                      tone is read straight off it. */}
-                    <Badge shape="chip" surface="tone" tone={segment.key}>
-                      {segment.label}
-                    </Badge>
-                  </AppLink>
+                    stats={[]}
+                  />
                 ))}
           </div>
         </section>
@@ -399,9 +398,11 @@ export function LiveSheet({
           <>
             {stamp && (
               <div style={BAND_LINE}>
-                <Badge shape="stamp" size="full" surface="inverse">
-                  {stamp}
-                </Badge>
+                {stamp.entityRef ? (
+                  <EntityStat label={stamp.label} entityRef={stamp.entityRef} />
+                ) : (
+                  <Stat orientation="horizontal" label={stamp.label} value={stamp.name} wrap />
+                )}
               </div>
             )}
             {/* The phone's segmented Pilot/Mech/Crawler switch, full width
@@ -452,7 +453,7 @@ export function LiveSheet({
           padding. */}
       <div style={BODY_FRAME}>
         <div className="su-sheet-live-body">
-          {/* No "View in SRD →" on a sheet. The app-wide builder is provided at
+          {/* No "View in SRD" on a sheet. The app-wide builder is provided at
               the root (GameDataReady), and every full entity card renders it in
               its foot band — which on a sheet is EVERY installed system, module
               and piece of equipment. A sheet is a play surface you read down,

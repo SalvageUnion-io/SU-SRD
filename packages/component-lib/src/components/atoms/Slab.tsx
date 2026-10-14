@@ -1,6 +1,46 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { isValidElement } from 'react'
 import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { POSTER_STAMP } from './posterStamp'
+import type { StatBorderState } from './Stat'
+import { Stat } from './Stat'
+
+/**
+ * A slab's count when it is a VALUE (`SLOTS | 3/6`, `INTACT | 10/10`): a
+ * label-first horizontal `Stat` chip (ruleset §3.7, EDL E9), never trailing
+ * text ("3/6 slots"). A word ("Choose 1", "Tree") stays a `ReactNode`.
+ */
+export type SlabCount = {
+  /** The chip's label: what is counted ('Slots', 'Intact'). */
+  label: string
+  /** The reading; with `max` it reads `value/max`. */
+  value: number | string
+  max?: number
+  /** The chip's border state: `critical` when the reading is over its cap. */
+  state?: StatBorderState
+  /** A muted word after the chip ("as printed"). */
+  note?: ReactNode
+  /** The chip's hover text (where an "as printed" count is printed). */
+  title?: string
+}
+
+/** A `SlabCount`, not a node: an object with a label and a value. */
+function isSlabCount(count: unknown): count is SlabCount {
+  return (
+    typeof count === 'object' &&
+    count !== null &&
+    !isValidElement(count) &&
+    'label' in count &&
+    'value' in count
+  )
+}
+
+/** One value count or several (a loadout's `SYSTEMS | 3/4`, `MODULES | 2/3`). */
+function slabCounts(count: unknown): readonly SlabCount[] | undefined {
+  if (isSlabCount(count)) return [count]
+  if (Array.isArray(count) && count.length > 0 && count.every(isSlabCount)) return count
+  return undefined
+}
 
 type SlabProps = {
   /** Section label, e.g. 'Systems' */
@@ -15,9 +55,11 @@ type SlabProps = {
   /**
    * A muted note after the label or rule: a choice ('Choose 1'), a state
    * ('5/6 slots'), whose tree it is. Never a tally of the items the section
-   * lists — sections don't count themselves.
+   * lists — sections don't count themselves. A VALUE count is a
+   * `SlabCount`, drawn as a label-first Stat chip (`SLOTS | 3/6`); several
+   * draw side by side.
    */
-  count?: ReactNode
+  count?: ReactNode | SlabCount | readonly SlabCount[]
   /**
    * The count's ink. 'muted' (default) is `wkMuted`, which clears AA on paper
    * and the workshop grounds only. 'inherit' prints it in the surrounding ink
@@ -81,6 +123,14 @@ const COUNT = {
 
 /** `countInk="inherit"`: the count takes the ground's ink. */
 const COUNT_INHERIT = { ...COUNT, color: 'currentcolor' } satisfies CSSProperties
+
+/** A value count: the chip, then its muted note. */
+const COUNT_STAT = {
+  alignItems: 'center',
+  display: 'inline-flex',
+  flexShrink: 0,
+  gap: space[6],
+} satisfies CSSProperties
 
 /** Composed with `POSTER_STAMP`, which supplies face, caps, weight and tracking. */
 const SOLID_LABEL = {
@@ -148,8 +198,26 @@ export function Slab({
   const isSolid = variant === 'solid'
   const countByLabel = !isSolid || countAt === 'label'
   const Label = as ?? 'span'
-  const countNode = count != null && (
-    <span style={countInk === 'inherit' ? COUNT_INHERIT : COUNT}>{count}</span>
+  const countInkStyle = countInk === 'inherit' ? COUNT_INHERIT : COUNT
+  const chips = slabCounts(count)
+  const countNode = chips ? (
+    <span style={COUNT_STAT}>
+      {chips.map((chip) => (
+        <span key={chip.label} style={COUNT_STAT} title={chip.title}>
+          <Stat
+            orientation="horizontal"
+            size="compact"
+            label={chip.label}
+            value={chip.value}
+            max={chip.max}
+            state={chip.state}
+          />
+          {chip.note != null && <span style={countInkStyle}>{chip.note}</span>}
+        </span>
+      ))}
+    </span>
+  ) : (
+    count != null && <span style={countInkStyle}>{count as ReactNode}</span>
   )
   return (
     <div className={className} style={style ? { ...ROW, ...style } : ROW}>

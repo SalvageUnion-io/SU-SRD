@@ -142,12 +142,23 @@ describe('entityTone', () => {
   const base = { id: 'test', name: 'Test', source: 'Salvage Union Workshop Manual', page: 1 }
   const as = (record: object) => record as unknown as SURefMetaEntity
 
-  test('a glossary record without an authored tone is ink-2', () => {
-    expect(entityTone('guides', as({ ...base, blackMarket: false }))).toBe('ink-2')
+  test('a rules entry wears rules blue', () => {
+    for (const schema of [
+      'guides',
+      'keywords',
+      'traits',
+      'distances',
+      'sources',
+      'roll-tables',
+    ] as const) {
+      expect(entityTone(schema, as({ ...base, blackMarket: false }))).toBe('wk-line')
+    }
   })
 
-  test('a guide wears its authored tone', () => {
-    expect(entityTone('guides', as({ ...base, guideTone: 'salvage' }))).toBe('guide-salvage')
+  test('a guide wears rules blue whatever tone its data names', () => {
+    for (const guideTone of ['salvage', 'hazard', 'pilot', 'ink']) {
+      expect(entityTone('guides', as({ ...base, guideTone }))).toBe('wk-line')
+    }
   })
 
   test('black-market goods with no tech level are ink-2', () => {
@@ -206,5 +217,27 @@ describe('headerFill (E12)', () => {
   test('an action is ink everywhere', () => {
     const action = need(SalvageUnionReference.Actions.all()[0], 'an action')
     expect(headerFill(action, 'row')).toBe('ink')
+  })
+})
+
+describe('a vehicle’s systems', () => {
+  const vehicle = (name: string) =>
+    need(SalvageUnionReference.getByNameIn('vehicles', name), name) as SURefMetaEntity
+
+  test('an action name that is a systems entry is a Systems child, the drone way', () => {
+    const model = toEntityModel(vehicle('Fighting Box Wheel'))
+    expect(model.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Locomotion System', '.50 Cal Machine Gun']],
+    ])
+    expect(model.actions).toEqual([])
+  })
+
+  test('a name with no systems entry stays an action', () => {
+    const model = toEntityModel(vehicle('Power Loader'))
+    expect(model.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Locomotion System']],
+    ])
+    // "Rigging Arm (Vehicle)", the vehicle's own action, printed "Rigging Arm".
+    expect(model.actions.map((a) => a.name)).toContain('Rigging Arm')
   })
 })

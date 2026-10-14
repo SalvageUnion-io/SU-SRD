@@ -14,7 +14,7 @@ import { actionTypeStamps } from '../parts/actionStamps'
 import { Chips } from '../parts/Chips'
 import type { ChipSet } from '../parts/chipSet'
 import { chipCount } from '../parts/chipSet'
-import { factCells } from '../parts/factCells'
+import { factCells, formFacts } from '../parts/factCells'
 import { Head } from '../parts/Head'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
@@ -54,6 +54,15 @@ export type RowSlots = {
   /** A row that is its head alone. */
   bodyless?: boolean
   down?: boolean
+  /**
+   * The host's controls (Assign, Unassign, View), the head's trailing mode
+   * slot (E7): at the band's right end, after the affordance. They never
+   * nest inside the surface's own control: a link or select Row that has
+   * them lays its surface over the frame and raises them above it.
+   */
+  controls?: ReactNode
+  /** The host's labels, right of the title after the model's own (an owner stamp). */
+  extraLabels?: ReactNode
 }
 
 export type RowProps = {
@@ -119,7 +128,7 @@ export function Row({
   const chips: ChipSet = {
     durations: slots.durations ?? actionTypeStamps(model.actionType, model.mechActionType),
     ...(cost ? { cost } : {}),
-    facts: slots.facts ?? factCells(model.facts, omit),
+    facts: slots.facts ?? factCells(formFacts(model), omit),
     tags: slots.tags ?? traitTags(model.traits),
   }
   const leadText = lead ? model.lead : undefined
@@ -134,7 +143,7 @@ export function Row({
     ) : selected ? (
       <SelectedSeal word={mode.seal} />
     ) : undefined
-  const labels =
+  const ownLabels =
     slots.labels !== undefined ? (
       slots.labels
     ) : omit.includes('kind') && !userMade ? null : (
@@ -147,6 +156,14 @@ export function Row({
         onInk={paint.ink}
       />
     )
+  const labels = slots.extraLabels ? (
+    <>
+      {ownLabels}
+      {slots.extraLabels}
+    </>
+  ) : (
+    ownLabels
+  )
 
   const frame = (
     <div
@@ -180,6 +197,7 @@ export function Row({
           hint={slots.hint}
           pennant={slots.pennant}
           affordance={affordance}
+          controls={slots.controls}
           labels={labels}
           // Every Row wears the cut-out, bodied or not, its chips on the band
           // beside the name (owner's call, 2026-10-13).
@@ -202,6 +220,32 @@ export function Row({
     </>
   )
 
+  // A Row with controls never nests them in its own control (a link's `<a>`, a
+  // radio): the surface is an empty cover laid over the frame, and the
+  // controls (and a toggle's check) are raised above it (`[data-covered]`).
+  const covered = !!slots.controls && !slots.outer && mode.kind !== 'read'
+  if (covered) {
+    return (
+      <div className="su-entity-row" data-covered="">
+        {parts}
+        {mode.kind === 'select' ? (
+          <SelectSurface mode={mode} label={mode.label ?? title} className="su-entity-row__cover">
+            {null}
+          </SelectSurface>
+        ) : (
+          <LinkSurface
+            target={target}
+            label={title}
+            attrs={mode.kind === 'link' ? mode.attrs : undefined}
+            peek={peekAttrs}
+            className="su-entity-row__cover"
+          >
+            {null}
+          </LinkSurface>
+        )}
+      </div>
+    )
+  }
   if (slots.outer) {
     return (
       <CardOuter {...slots.outer} className={`${slots.outer.className} su-entity-row`}>

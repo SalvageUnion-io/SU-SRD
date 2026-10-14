@@ -378,8 +378,39 @@
   text-decoration: underline;
 }
 
+/* An entity chip (`EntityStat`, `CLASS | Engineer`): the whole cell is the
+   target, and what it opens is the entity its value names, so the value
+   underlines, not the label. Its opener (ITUN's detail dialog) is a
+   `role="button"` div, not a button. */
+.su-chip-link--entity[role='button'],
+.su-chip-link--entity[role='button'] .su-stat-cell {
+  cursor: pointer;
+}
+
+:is(a, [role='button']).su-chip-link--entity:hover .su-stat-plate--value {
+  text-decoration: underline;
+}
+
+a.su-chip-link--entity:hover .su-stat-plate--label {
+  text-decoration: none;
+}
+
 /* The paper body: the facts, the tags, the lead. No rule above it: the
    head's cut-out opens into it. */
+.su-info-cutout__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+  padding: var(--space-12);
+}
+
+.su-info-cutout__body[data-flush] {
+  gap: 0;
+  padding: 0;
+}
+
 .su-entity-row__body {
   align-content: flex-start;
   align-items: center;
@@ -426,6 +457,36 @@
     min-height: var(--su-head-art-min-phone, 4.25rem);
     width: var(--su-head-art-width-phone, 3.5rem);
   }
+}
+
+/* The host's controls (`Head`'s `controls`, Assign / Unassign / View): the
+   band's right end, after the affordance, centred on it; they wrap among
+   themselves, never cut. */
+.su-entity-row__controls {
+  align-items: center;
+  align-self: center;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  justify-content: flex-end;
+  margin-left: auto;
+  min-width: min-content;
+}
+
+/* A link or select Row with controls (`data-covered`): the surface is an
+   empty cover over the whole Row, so the controls never nest inside its
+   `<a>` or radio, and they (and a toggle's check) sit raised above it. */
+.su-entity-row__cover {
+  border-radius: var(--radius-card);
+  inset: 0;
+  position: absolute;
+}
+
+.su-entity-row[data-covered] .su-entity-row__controls,
+.su-entity-row[data-covered] .su-entity-row__line > input {
+  position: relative;
+  z-index: 1;
 }
 
 /* A Row as a listbox option (a search's results): the option the arrow keys
@@ -568,10 +629,10 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] [tier] name [chips]`,
-   dashed when player-made. When the line runs out the chips wrap under the
-   name, so the name always shows (E18). */
+   dashed when player-made, its name on the cut-out (below). When the line
+   runs out the chips wrap under the name, so the name always shows (E18). */
 .su-entity-token__pill {
-  align-items: center;
+  align-items: stretch;
   align-self: flex-start;
   border-color: var(--color-ink);
   border-radius: var(--radius-card);
@@ -587,7 +648,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   line-height: 1.2;
   max-width: 100%;
   overflow: hidden;
-  padding: 3px var(--space-6) 3px var(--space-4);
+  padding: 3px var(--space-6) 0 var(--space-4);
   position: relative;
   text-transform: uppercase;
   white-space: nowrap;
@@ -704,4 +765,29 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 
 [data-entity-fit] .su-entity-row__body {
   contain: inline-size;
+}
+
+/*
+ * THE TOKEN CUT-OUT (`.su-entity-token__notch`): the name sits on a tab of
+ * the paper, in ink, as a Row's and a Tile's head do, but at the Token's one
+ * height: the tab runs from a thin strip of the paint down into the pill's
+ * foot, so the pill grows no taller. Its corners are square. The paint shows
+ * above and left of the tab and behind the chips; the note stamp stays on
+ * the paint, left of the tab, where a Row keeps its tier.
+ */
+.su-entity-token__pill > :not(.su-entity-token__notch) {
+  align-self: center;
+  margin-bottom: 3px;
+}
+
+.su-entity-token__notch {
+  align-items: center;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  display: flex;
+  flex: 0 1 auto;
+  margin-left: calc(-1 * var(--space-2));
+  margin-right: auto;
+  min-width: 0;
+  padding: 1px var(--space-6) 3px;
 }

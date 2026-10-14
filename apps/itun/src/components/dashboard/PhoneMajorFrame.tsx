@@ -41,6 +41,8 @@ import {
 } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef } from 'react'
+import { BandStats } from './BandStats'
+import { DAMAGED } from './bayStats.model'
 import { DashboardGauge } from './DashboardGauge'
 import type { BandBay, BandButton, BandGauge, BandOverlay, MajorModel } from './MajorFrame'
 
@@ -210,6 +212,7 @@ function Track({ gauge }: { gauge: BandGauge }) {
 function cellsOnly(bay: BandBay): boolean {
   return (
     bay.buttons.length === 0 &&
+    !bay.stats?.length &&
     !bay.lines?.length &&
     !bay.chips?.length &&
     bay.control === undefined &&
@@ -232,6 +235,7 @@ function PhoneBay({ bay }: { bay: BandBay }) {
       {tracks.map((g) => (
         <Track key={g.label} gauge={g} />
       ))}
+      {bay.stats && <BandStats stats={bay.stats} />}
       {bay.lines?.map((l) => (
         <p key={l.text} style={l.warn ? WARN : LINE}>
           {l.text}
@@ -242,7 +246,7 @@ function PhoneBay({ bay }: { bay: BandBay }) {
           {bay.chips.map((c) =>
             c.entity ? (
               <li key={c.text}>
-                <Entity form="token" entity={c.entity} />
+                <Entity form="token" entity={c.entity} instance={c.warn ? DAMAGED : undefined} />
               </li>
             ) : (
               <li key={c.text} style={c.warn ? { ...CHIP, ...WARN } : CHIP}>

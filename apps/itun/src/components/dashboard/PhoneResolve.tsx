@@ -38,7 +38,7 @@ import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { PinnedVital } from './PinnedVitals'
 import { PinnedVitals } from './PinnedVitals'
 import type { ResolveModel } from './ResolvePanel'
-import { ResolveCost } from './ResolvePanel'
+import { ResolveCost, ResolveSpend } from './ResolvePanel'
 
 const SCREEN: CSSProperties = {
   display: 'flex',
@@ -187,16 +187,19 @@ function NextStep({
   if (!roll) {
     if (!controls.activated) {
       return (
-        <Button
-          variant="primary"
-          size="full"
-          style={STEP}
-          onClick={controls.onActivate}
-          disabled={controls.activateDisabled}
-          title={controls.activateTitle}
-        >
-          {view.costLabel === 'No cost' ? 'Activate' : `Activate · ${view.costLabel}`}
-        </Button>
+        <>
+          <ResolveSpend cost={view.cost} currency={view.currency} />
+          <Button
+            variant="primary"
+            size="full"
+            style={STEP}
+            onClick={controls.onActivate}
+            disabled={controls.activateDisabled}
+            title={controls.activateTitle}
+          >
+            Activate
+          </Button>
+        </>
       )
     }
     return (

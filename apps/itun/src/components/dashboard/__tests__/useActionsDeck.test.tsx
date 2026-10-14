@@ -703,6 +703,15 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     return { resolve, calls }
   }
 
+  test("the resolve carries the activation's spend as numbers, for its chips", async () => {
+    const { resolve } = await rolledAt(0)
+    const { cost, currency } = resolve()
+    expect(currency).toBe('EP')
+    expect(cost.amount).toBeGreaterThan(0)
+    expect(cost.heat).toBeGreaterThanOrEqual(0)
+    expect(cost.uses).toBeGreaterThanOrEqual(0)
+  })
+
   test('at Heat 17/18 Push is disabled, says why, and writes nothing', async () => {
     const { resolve, calls } = await rolledAt(17)
     const push = resolve().controls.push

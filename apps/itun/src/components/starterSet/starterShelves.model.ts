@@ -16,9 +16,9 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
+import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
-import type { EntityRowStat } from '../shared/EntityRow'
 
 /**
  * One build: its Row model, and the entity it is built on (a pilot's class, a
@@ -50,7 +50,7 @@ function artOf(source: string, entity: () => SURefMetaEntity | null | undefined)
 /** The labels a build's stats name its source entity under: drawn as its linked chip. */
 const SOURCE_LABELS: ReadonlySet<string> = new Set(['Class', 'Chassis'])
 
-function readings(stats: EntityRowStat[] | undefined) {
+function readings(stats: UnitReading[] | undefined) {
   return (stats ?? [])
     .filter((s) => !SOURCE_LABELS.has(String(s.label)))
     .map((s) => ({ label: String(s.label), value: String(s.value) }))

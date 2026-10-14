@@ -137,11 +137,8 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
 function EconLoz({ item }: { item: EconLozItem }) {
   return (
     <div style={LOZ}>
-      {/* `full`: these readouts ARE the panel — the Scrap / Tech Level / Crew
-          figures are meant to be read at a glance, not as annotations. Without
-          the rung they rendered at 13px, which lost the poster weight the
-          hand-rolled lozenge had. */}
-      <Stat size="full" label={item.label} value={item.value} max={item.max} />
+      {/* A label-first chip, as every stat reads; `full` is the reading rung. */}
+      <Stat orientation="horizontal" label={item.label} value={item.value} max={item.max} />
       {item.caption && <span style={CAPTION}>{item.caption}</span>}
     </div>
   )

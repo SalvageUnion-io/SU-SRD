@@ -11,6 +11,7 @@ import { totalLotUnits } from 'itun-domain/schemas/cargoLot'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SURefCrawlerBay } from 'salvageunion-reference'
 import {
   crawlerMaxSPParts,
   mechMaxCargo,
@@ -168,7 +169,11 @@ export function mechMinorModel(
         breakdown: spParts,
       },
     ],
-    lines: [`Heat ${s.heat}/${s.maxHeat} · EP ${s.ep}/${s.maxEP}`],
+    stats: [
+      { label: 'Heat', value: s.heat, max: s.maxHeat },
+      { label: 'EP', value: s.ep, max: s.maxEP },
+    ],
+    lines: [],
     problems,
   }
 }
@@ -198,12 +203,21 @@ export function scrapLine(crawler: Crawler): string {
   return held.length === 0 ? 'No scrap' : `Scrap ${held.map((b) => `T${b.tl}×${b.n}`).join(' · ')}`
 }
 
-/** Each installed bay by name, and whether it is damaged. */
-export function bayConditions(crawler: Crawler): { name: string; damaged: boolean }[] {
-  return (crawler.crawlerBays ?? []).map((bay) => ({
-    name: resolveCrawlerBay(bay.bayRef)?.name ?? bay.bayRef,
-    damaged: (bay.condition ?? 'intact') === 'damaged',
-  }))
+/**
+ * Each installed bay by name, its reference entity when it resolves (its
+ * Token on the Major), and whether it is damaged.
+ */
+export function bayConditions(
+  crawler: Crawler
+): { name: string; entity: SURefCrawlerBay | null; damaged: boolean }[] {
+  return (crawler.crawlerBays ?? []).map((bay) => {
+    const entity = resolveCrawlerBay(bay.bayRef)
+    return {
+      name: entity?.name ?? bay.bayRef,
+      entity,
+      damaged: (bay.condition ?? 'intact') === 'damaged',
+    }
+  })
 }
 
 /** The crawler as a Minor: SP, Tech Level and scrap, with damaged bays in red. */
@@ -212,7 +226,7 @@ export function crawlerMinorModel(crawler: Crawler): MinorModel {
   return {
     fam: 'crawler',
     name: crawler.name,
-    aside: tl === undefined ? undefined : `TL${tl}`,
+    chips: tl === undefined ? [] : [{ label: 'TL', value: tl }],
     gauges: [hullGauge(crawler)],
     lines: [scrapLine(crawler)],
     problems: bayConditions(crawler)

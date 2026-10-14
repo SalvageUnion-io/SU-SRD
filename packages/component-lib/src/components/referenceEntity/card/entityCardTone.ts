@@ -4,7 +4,6 @@ import {
   classKind,
   entityStamp,
   entityTone,
-  entityTypeLabel,
   guideTone,
   isAbility,
   isDoEntity as isDoRecord,
@@ -38,9 +37,9 @@ export type DomainTone = {
 }
 
 /**
- * A guide's own authored tone as a CSS colour, or `undefined` for every other
- * entity. The name → token map is the entity model's (`guideTone`); the
- * colour behind each token lives in `theme.css`.
+ * A guide's tone as a CSS colour — rules blue for every guide, as its page's
+ * band (the entity model's `guideTone`) — or `undefined` for every other
+ * entity. The colour behind the token lives in `theme.css`.
  */
 export function entityGuideToneColor(entity: SURefMetaEntity): string | undefined {
   const token = guideTone(entity)
@@ -58,6 +57,7 @@ const TONE_TOKENS: ReadonlySet<string> = new Set([
   'pilot',
   'tier-hybrid',
   'ink-2',
+  'wk-line',
   'tl-1',
   'tl-2',
   'tl-3',
@@ -165,18 +165,6 @@ export function titleSizeRung(depth: number, size: CardSize = 'large'): TitleRun
  */
 export function nestedChildSize(parentSize: CardSize): CardSize {
   return parentSize === 'small' ? 'small' : 'medium'
-}
-
-export type Eyebrow = { type: string }
-
-/**
- * Eyebrow = the schema TYPE stamp only (e.g. "Ability", "System"). The
- * categorical classification axis (ability tree, tech level) is not in this
- * Stamp — it sits beside it in the header's labels, via
- * {@link resolveAxisMarkers}.
- */
-export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): Eyebrow {
-  return { type: entityTypeLabel(schemaName) }
 }
 
 export type AxisMarker = { label: string; value?: string }

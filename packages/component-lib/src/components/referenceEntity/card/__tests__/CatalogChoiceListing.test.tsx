@@ -1,7 +1,7 @@
 /**
  * The Armament Bay's Weapons System choice — a schema-only catalog ("pick any
- * Mech System that deals SP damage") — renders as an expandable entity listing
- * in the card, static in read-only and a single-select picker when editable.
+ * Mech System that deals SP damage") — renders under a slab in the card: a
+ * "Show options" listing in read-only, a single-select picker when editable.
  */
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -16,21 +16,25 @@ const armamentBay = () => {
 }
 
 describe('Armament Bay — Weapons System catalog listing', () => {
-  test('read-only: shows the choice prompt + a collapsed listing summary', () => {
-    render(<ReferenceEntityCard data={armamentBay()} />)
+  test('read-only: the prompt as a caption, a slab, and no disclosure triangle', () => {
+    const { container } = render(<ReferenceEntityCard data={armamentBay()} />)
     // the choice owns its prompt prose
     expect(screen.getByText(/Choose a Weapons System to mount/i)).toBeTruthy()
-    // the collapsed listing summary names the choice
+    // a slab names the choice; no <details> (no chevron outside Tokens/rows)
     expect(screen.getByText('Armament Bay Weapons System')).toBeTruthy()
-    // collapsed: the collection is NOT resolved yet (no system cards mounted)
+    expect(container.querySelector('details')).toBeNull()
+    // collapsed: the collection is NOT resolved yet (no system Tokens mounted)
     expect(screen.queryByText('Red Laser')).toBeNull()
   })
 
-  test('expanding the listing reveals real Weapons System entity cards', () => {
+  test('"Show options" lists the real Weapons System entities', () => {
     render(<ReferenceEntityCard data={armamentBay()} />)
-    fireEvent.click(screen.getByText('Armament Bay Weapons System'))
+    const toggle = screen.getByRole('button', { name: 'Show options' })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(toggle)
     // a known TL1 weapons system (SP damage) is listed
     expect(screen.getByText('Red Laser')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Hide options' })).toBeTruthy()
   })
 
   test('editable: a Choose button launches the picker modal', () => {

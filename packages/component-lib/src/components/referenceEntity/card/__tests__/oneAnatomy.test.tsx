@@ -51,10 +51,10 @@ describe('have vs do', () => {
     expect(container.querySelector('[data-chip-group]')?.textContent).toMatch(/2 AP$/)
   })
 
-  test('a system is a tone header with no kind stamp: only the footer names the type', () => {
+  test('a system is a tone header with no kind stamp, nor a kind on its foot (E9: only a Page foot)', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
     expect(fills(container)[0]).toBe('tone')
-    expect(screen.getAllByText('System')).toHaveLength(1)
+    expect(screen.queryByText('System')).toBeNull()
   })
 })
 

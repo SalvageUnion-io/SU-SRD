@@ -1,6 +1,8 @@
+import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useSyncExternalStore } from 'react'
 import { Button } from '../atoms/Button'
+import { FOCUS_RING_ON_TONE } from '../atoms/interaction'
 import type { CardSize } from '../containers/displayMode'
 import { rollBandColor, rollRangeLabel } from './rollTableBands'
 
@@ -27,6 +29,10 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  *   corner, over the row rather than in its flow, so rolling never changes the
  *   row's height; the same mark whatever the outcome (ruleset §3.4). The other
  *   rows keep their ink, so every band reads at full contrast.
+ * - A host that shows one of many tables (ITUN's Dashboard Tables tab) makes
+ *   the bar's title its PICKER (`titleSelect`): the title IS the trigger, one
+ *   name, one control, with no second bar repeating it. The host owns what
+ *   opening means and renders its own picker.
  * - A COLUMNS table (Callsign, a d20 × d20) is the same instrument: its rows
  *   banded the same way, the columns' ranges across an ink head and the entry
  *   numbers down both outer edges; the rolled column head and cell are marked.
@@ -47,6 +53,20 @@ type RollInstrumentColumn = {
 
 /** How tightly a wide screen sets a page's table (the SRD's `rollTableDensity`). */
 type RollInstrumentDensity = 'roomy' | 'compact' | 'dense'
+
+/**
+ * The bar's title as the trigger of the host's table picker. Typed rather than
+ * a `title` node, so the bar keeps its own affordance (chevron, hit area,
+ * focus ring, aria) and every host gets the same one.
+ */
+export type RollTableTitleSelect = {
+  /** Open the host's picker. */
+  onOpen: () => void
+  /** Whether that picker is open: drives `aria-expanded` and the chevron. */
+  open?: boolean
+  /** The trigger's accessible name (default: names the current table). */
+  ariaLabel?: string
+}
 
 type BandsTable = {
   kind: 'bands'
@@ -80,6 +100,8 @@ export type RollTableInstrumentProps = {
   onRoll?: () => void
   /** The bar's title (a card's table name). */
   title?: ReactNode
+  /** Makes the title the trigger of the host's table picker (`RollTableTitleSelect`). */
+  titleSelect?: RollTableTitleSelect
   /** A quieter line in the bar (the page's, which has no title there). */
   hint?: ReactNode
   /** The host's controls, before the roll at the bar's far end. */
@@ -111,6 +133,7 @@ export function RollTableInstrument({
   stamp = 'Roll the Die:',
   onRoll,
   title,
+  titleSelect,
   hint,
   actions,
   open = true,
@@ -123,7 +146,7 @@ export function RollTableInstrument({
     </RollControl>
   )
   // A bar with nothing of the host's in it (a page's table) labels the bands' columns.
-  const labelled = table.kind === 'bands' && !title && !hint && !actions
+  const labelled = table.kind === 'bands' && !title && !titleSelect && !hint && !actions
   const split = table.kind === 'bands' && !!table.split
   return (
     <div
@@ -150,7 +173,11 @@ export function RollTableInstrument({
         </div>
       ) : (
         <div className="su-roll__bar">
-          {title && <span className="su-roll__title">{title}</span>}
+          {titleSelect ? (
+            <TitleSelect title={title ?? name} select={titleSelect} />
+          ) : (
+            title && <span className="su-roll__title">{title}</span>
+          )}
           {hint && <span className="su-roll__hint">{hint}</span>}
           {actions}
           {roll}
@@ -163,6 +190,38 @@ export function RollTableInstrument({
           <Columns name={name} table={table} />
         ))}
     </div>
+  )
+}
+
+/**
+ * The title as the picker's trigger: the title's own type, a hairline paper
+ * plate and a chevron marking it choosable, and the on-tone focus ring (the
+ * rust ring would vanish on the ink bar). It wraps like the title (E18).
+ */
+function TitleSelect({ title, select }: { title: ReactNode; select: RollTableTitleSelect }) {
+  const named = typeof title === 'string' ? title : undefined
+  return (
+    <span className="su-roll__title">
+      <button
+        type="button"
+        className={`su-roll__title-select ${FOCUS_RING_ON_TONE}`}
+        onClick={select.onOpen}
+        aria-haspopup="dialog"
+        aria-expanded={select.open ?? false}
+        aria-label={
+          select.ariaLabel ??
+          (named ? `Choose a roll table (current: ${named})` : 'Choose a roll table')
+        }
+      >
+        <span>{title}</span>
+        <ChevronDown
+          aria-hidden="true"
+          size={14}
+          className="su-roll__title-chevron"
+          data-open={select.open ? 'true' : undefined}
+        />
+      </button>
+    </span>
   )
 }
 
@@ -215,43 +274,6 @@ function RollControl({
     >
       {children.replace(/:\s*$/, '')}
     </Button>
-  )
-}
-
-/**
- * The "ROLL THE DIE:" stamp, and the roll itself (ruleset §2.4): with
- * `onRoll`, once the script runs, a real button in the stamp's look, named
- * "Roll the die on <table>"; otherwise (no roll here, or static HTML) the
- * plain label. The host owns the result and its polite live region.
- */
-export function RollStamp({
-  name,
-  onRoll,
-  children = 'Roll the Die:',
-  onInk = false,
-}: {
-  /** The table's name, for the button's accessible name. */
-  name: string
-  onRoll?: () => void
-  /** The stamp's words ("Roll the Die:", "Roll twice:"). */
-  children?: string
-  /** On an ink band (ITUN's Dashboard table head): the button wears a paper plate. */
-  onInk?: boolean
-}) {
-  const live = useLive()
-  const cls = onInk ? 'su-roll__stamp su-roll__stamp--on-ink' : 'su-roll__stamp'
-  if (!onRoll || !live) return <span className={cls}>{children}</span>
-  // The name starts with the stamp's own words (WCAG 2.5.3).
-  const label = rollLabel(children, name)
-  return (
-    <button
-      type="button"
-      className={`${cls} su-roll__stamp--button su-focus-ring`}
-      onClick={onRoll}
-      aria-label={label}
-    >
-      {children}
-    </button>
   )
 }
 

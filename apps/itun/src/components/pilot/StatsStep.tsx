@@ -19,13 +19,13 @@ const STAT_ROW: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: tokens
 export function StatsStep() {
   return (
     <div style={STAT_ROW}>
-      <Stat label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} size="mini" />
-      <Stat label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} size="mini" />
+      <Stat orientation="horizontal" label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} />
+      <Stat orientation="horizontal" label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} />
       <Stat
+        orientation="horizontal"
         label="INV"
         value={PILOT_BASE_INVENTORY_SLOTS}
         max={PILOT_BASE_INVENTORY_SLOTS}
-        size="mini"
       />
     </div>
   )

@@ -48,5 +48,5 @@ export function buildReferenceEntityStats(
     })
 }
 
-/** One cell of the book's stat column: `STRUCTURE PTS. | 14` */
+/** One cell of the book's stat column: `STRUCTURE POINTS | 14` */
 export type BookStat = StatColumnCell

@@ -1,14 +1,12 @@
-import type { ElementType, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useContext } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
-import { Badge } from '../../atoms/Badge'
 import { Slab } from '../../atoms/Slab'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
-import { grainClass } from './cardGrain'
 import { cardKey } from './cardHelpers'
 import { EntityTokenList } from './EntityTokenList'
 import { chunkGuideStepProse } from './guideStepProse'
@@ -44,11 +42,10 @@ function GuideAside({ text, flavor }: { text: string; flavor: boolean }) {
  * was a heading and a source line with all 3.7k characters of its rules
  * missing.
  *
- * The procedure is a real ordered list, drawn the way the book draws a
- * how-to: each step opens on an ink banner with a rounded tail — its numeral,
- * then its name (ruleset §4.4 names "the how-to cards on Guides" as one of the
- * two places rounding copies the book) — the same device as the home page's
- * "New to the Union?" steps. A `section` (the book's major divisions,
+ * The procedure is a real ordered list: each step opens on a solid `Slab` —
+ * its numeral, then its name, in the stamp; "Optional" at the rule's end — as
+ * every section heading does (ruleset §3.2: slabs section), the home page's
+ * "Start here" steps included. A `section` (the book's major divisions,
  * "Post-Session") opens a solid `Slab` above the steps it holds, and numbering
  * restarts inside it. Under each banner: the step's prose, its page pointers
  * as left-aligned notes, its asides (a tip, a worked example) as framed
@@ -60,9 +57,8 @@ function GuideAside({ text, flavor }: { text: string; flavor: boolean }) {
  * Layout is `index.css`'s `.su-guide*`. On a page (`CardPage`'s `guide`) the
  * steps stand beside the prose rather than inside the card body, and take the
  * page's reading size and measure there. There (`page`) a long guide also gets
- * its hierarchy and its way around: a section opens on an H2-scale head (the
- * book's division, not a 12px stamp), every section and step is an anchor, and
- * an "On this page" rail lists them — sticky beside the whole page (the
+ * its hierarchy and its way around: a section's slab is the page's H2, every
+ * section and step is an anchor, and an "On this page" rail lists them — sticky beside the whole page (the
  * introduction too: the page is `.su-entity-page--guide`'s grid) on a wide
  * screen, a folded disclosure above the steps on a phone. Its prose takes a
  * book measure and leading, and a run-in head's stamp the full rung.
@@ -206,16 +202,15 @@ export function GuideSteps({
     if (group.section === undefined) {
       return <div key={group.key}>{list}</div>
     }
-    const SectionHead = sectionAs ?? 'div'
     return (
       <section key={group.key} className="su-guide__section">
-        {page ? (
-          <SectionHead id={anchors?.get(sectionKey(group))} className="su-guide__section-head">
-            {group.section}
-          </SectionHead>
-        ) : (
-          <Slab variant="solid" label={group.section} as={sectionAs} />
-        )}
+        <Slab
+          variant="solid"
+          label={group.section}
+          as={sectionAs}
+          id={anchors?.get(sectionKey(group))}
+          className="su-guide__section-head"
+        />
         {list}
       </section>
     )
@@ -305,7 +300,10 @@ function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<
   )
 }
 
-/** A step's banner: the ink how-to head, its numeral, then its name. */
+/** A step's slab sits flush: the step's own gap spaces it, not the slab's margin. */
+const STEP_SLAB = { marginBottom: 0 } satisfies CSSProperties
+
+/** A step's slab: its numeral, then its name, in the stamp; "Optional" at the rule's end. */
 function StepHead({
   as,
   id,
@@ -319,17 +317,21 @@ function StepHead({
   name: string
   optional: boolean | undefined
 }) {
-  const Heading = as ?? 'div'
   return (
-    <Heading id={id} className={`su-guide__head ${grainClass('paper')}`}>
-      <span className="su-guide__num">{number}</span>
-      <span className="su-guide__name">{name}</span>
-      {optional && (
-        <Badge shape="stamp" surface="inverse" size="compact">
-          Optional
-        </Badge>
-      )}
-    </Heading>
+    <Slab
+      variant="solid"
+      as={as ?? 'div'}
+      id={id}
+      className="su-guide__head"
+      style={STEP_SLAB}
+      label={
+        <>
+          <span className="su-guide__num">{number}</span>{' '}
+          <span className="su-guide__name">{name}</span>
+        </>
+      }
+      count={optional ? 'Optional' : undefined}
+    />
   )
 }
 

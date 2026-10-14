@@ -18,6 +18,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { LinkedCrewInset } from '../npc/LinkedCrewInset'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { LinkedUnitLink } from './LinkedUnitLink'
 import { NpcInset } from './NpcInset'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
@@ -39,12 +40,12 @@ const BAY_FUNCTIONS: Record<string, string> = {
 
 /**
  * A bay on the sheet is drawn as the SRD's bay Page draws it: no kind pill
- * right of its title, and no kind on its foot (EDL E9: only a Page's foot names
- * it). An INTACT bay shows its "When Damaged" callout, as the book prints it;
- * a DAMAGED bay re-renders the clause as a centred callout over the dimmed
- * card instead, so the card's own is held back then.
+ * right of its title (its foot names no kind off a Page, EDL E9). An INTACT
+ * bay shows its "When Damaged" callout, as the book prints it; a DAMAGED bay
+ * re-renders the clause as a centred callout over the dimmed card instead, so
+ * the card's own is held back then.
  */
-const HIDE_INTACT = { axisMarkers: true, footKind: true } as const
+const HIDE_INTACT = { axisMarkers: true } as const
 const HIDE_DAMAGED = { ...HIDE_INTACT, damagedEffect: true } as const
 /**
  * Read draws no unchosen pick: a "Choose a …" disclosure is a write cue (board
@@ -70,17 +71,17 @@ const UNKNOWN_BAY = {
   color: tokens.color.wkMuted,
 } satisfies CSSProperties
 
+/** "Docks [mech]": the word, then the docked mech's Token. */
 const DOCKS = {
-  margin: `0 0 ${tokens.space[6]}`,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  alignItems: 'center',
+  color: tokens.color.ink,
+  display: 'flex',
+  flexWrap: 'wrap',
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
-  color: tokens.color.ink,
+  gap: tokens.space[6],
+  margin: `0 0 ${tokens.space[6]}`,
 } satisfies CSSProperties
-
-const BOLD = { fontWeight: tokens.weight.bold } satisfies CSSProperties
 
 const EXPAND_STACK = {
   display: 'flex',
@@ -175,9 +176,10 @@ type CrawlerBayCardProps = {
   readOnly: boolean
   /**
    * Docked-mech one-liner (poster: "Docks <mech>") — set on the Mech Bay when
-   * the composition has a docked mech; renders above the crew inset.
+   * the composition has a docked mech; renders above the crew inset, the mech
+   * as its Token, linking to its sheet where it has one.
    */
-  dockedMechName?: string
+  dockedMech?: { name: string; href: string | undefined }
   /**
    * Contents this bay HOLDS, rendered inside it above the crew inset — the
    * Armament Bay's mounted weapons. A bay's contents belong in the bay, not in
@@ -222,7 +224,7 @@ export function CrawlerBayCard({
   seedSelections,
   store,
   readOnly,
-  dockedMechName,
+  dockedMech,
   contents,
   onFunction,
   assigned,
@@ -319,10 +321,11 @@ export function CrawlerBayCard({
   )
   const crew = (
     <>
-      {dockedMechName && (
-        <p style={DOCKS}>
-          Docks <span style={BOLD}>{dockedMechName}</span>
-        </p>
+      {dockedMech && (
+        <div style={DOCKS}>
+          Docks
+          <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} stats={[]} />
+        </div>
       )}
       {assigned ? (
         <LinkedCrewInset slotName={bay.name} assignment={assigned} fallback={inlineCrew} />

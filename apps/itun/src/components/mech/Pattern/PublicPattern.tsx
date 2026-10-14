@@ -21,9 +21,11 @@ import {
   Button,
   ChapterBand,
   Entity,
+  EntityStat,
   quotePatternName,
   ReferenceEntityCard,
   Slab,
+  Stat,
   Text,
   toast,
   tokens,
@@ -76,8 +78,6 @@ const MEASURE = '75rem'
 
 const PAGE = { backgroundColor: tokens.color.wkBg } satisfies CSSProperties
 
-const STAMP_LINK = { textDecoration: 'none' } satisfies CSSProperties
-
 /** The line of stamps right of the title (EDL E20), below it on a phone. */
 const HEAD_LINE = {
   alignItems: 'center',
@@ -85,29 +85,6 @@ const HEAD_LINE = {
   flexWrap: 'wrap',
   gap: tokens.space[8],
 } satisfies CSSProperties
-
-/** A dark `[label | value]` stamp pair, as the band's stamps are set. */
-const PAIR = {
-  alignItems: 'stretch',
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
-  color: tokens.color.ink,
-  display: 'inline-flex',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const PAIR_LABEL = {
-  backgroundColor: tokens.color.ink,
-  color: tokens.color.paper,
-  padding: `${tokens.space[2]} ${tokens.space[6]}`,
-} satisfies CSSProperties
-
-const PAIR_VALUE = { padding: `${tokens.space[2]} ${tokens.space[6]}` } satisfies CSSProperties
 
 /** The maker banner: paper, closed by a dashed rule (ruleset §3.9). */
 const BANNER = {
@@ -271,15 +248,6 @@ const ACTIONS = {
   gap: tokens.space[12],
 } satisfies CSSProperties
 
-const LOADOUT = {
-  display: 'grid',
-  gap: tokens.space[12],
-  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
 const FOOT = {
   backgroundColor: tokens.color.mech,
   backgroundImage: USER_MADE_HATCH,
@@ -386,22 +354,21 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         aside={
           <div style={HEAD_LINE}>
             <UserMadeStamp label="User-made pattern" />
+            {/* Label-first chips (EDL E9): the chassis opens its reference
+                page and Peeks it; then its tech level. */}
             {chassis && (
-              <a
+              <EntityStat
+                label="Chassis"
+                entityRef={{
+                  schemaName: 'chassis',
+                  id: chassis.id,
+                  slug: getEntitySlug(chassis),
+                  name: chassis.name,
+                }}
                 href={deepLinkTo({ schemaName: 'chassis', slug: getEntitySlug(chassis) })}
-                style={{ ...PAIR, ...STAMP_LINK }}
-                aria-label={`Chassis: ${chassis.name}, in the reference`}
-              >
-                <span style={PAIR_LABEL}>Chassis</span>
-                <span style={PAIR_VALUE}>{chassis.name} ›</span>
-              </a>
+              />
             )}
-            {chassis && (
-              <span style={PAIR}>
-                <span style={PAIR_LABEL}>TL</span>
-                <span style={PAIR_VALUE}>{chassis.techLevel}</span>
-              </span>
-            )}
+            {chassis && <Stat orientation="horizontal" label="TL" value={chassis.techLevel} />}
           </div>
         }
       >
@@ -523,16 +490,29 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             label="Loadout"
             count={
               chassis
-                ? `${slotsUsed(loadout.systems)}/${chassis.systemSlots} systems · ${slotsUsed(loadout.modules)}/${chassis.moduleSlots} modules`
+                ? [
+                    {
+                      label: 'Systems',
+                      value: slotsUsed(loadout.systems),
+                      max: chassis.systemSlots,
+                    },
+                    {
+                      label: 'Modules',
+                      value: slotsUsed(loadout.modules),
+                      max: chassis.moduleSlots,
+                    },
+                  ]
                 : undefined
             }
           />
-          <ul style={LOADOUT}>
+          {/* A pattern's loadout is Tokens, one a line (EDL "Which form,
+              where" 1), as the save page lists it. */}
+          <ul aria-label="Loadout" className="su-entity-token-list">
             {parts.map((part, index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice
               <li key={`${part.id}-${index}`}>
                 <Entity
-                  form="row"
+                  form="token"
                   entity={part}
                   mode={{ kind: 'link', href: itunEntityHref(part) }}
                 />

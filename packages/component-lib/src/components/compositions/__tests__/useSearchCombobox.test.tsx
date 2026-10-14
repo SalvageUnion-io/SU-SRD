@@ -19,7 +19,7 @@ function must<T>(value: T | null | undefined): T {
 
 // The debounce is driven, not slept through: a fixed real-time margin over a
 // real timer is a latent flake on a loaded runner and pure dead wall-clock
-// everywhere else. Same approach as RollTable.test.tsx.
+// everywhere else. Same approach as ITUN's GlobalSearch.test.tsx.
 beforeEach(() => {
   jest.useFakeTimers()
 })

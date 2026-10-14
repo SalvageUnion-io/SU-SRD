@@ -86,11 +86,16 @@ beforeEach(() => {
 describe('the slots', () => {
   test('the type first, then one per bay, each keeping the book’s line', async () => {
     await renderBoard('c1')
-    expect(
-      screen.getByRole('button', { name: 'Type · Augmented: Union Crawler A.I.' })
-    ).toBeTruthy()
-    expect(screen.getByText(/Old Mags ·/)).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Design Med Bay crew' })).toBeTruthy()
+    // Each slot is a Row in select mode: picking it opens the slot.
+    expect(screen.getByRole('radio', { name: 'Type · Augmented: Union Crawler A.I.' })).toBeTruthy()
+    // The book's crew line: its name on the Row, its HP a label-first chip.
+    const mags = screen.getByText('Old Mags').closest('.su-entity-row')
+    if (!(mags instanceof HTMLElement)) throw new Error('no Old Mags row')
+    expect(within(mags).getByText('Book’s crew line')).toBeTruthy()
+    expect(within(mags).getByText('HP')).toBeTruthy()
+    // Design is the Row's control, never inside its radio.
+    const design = screen.getByRole('button', { name: 'Design Med Bay crew' })
+    expect(design.closest('[role="radio"]')).toBeNull()
   })
 })
 
@@ -136,9 +141,9 @@ describe('design, assign, unassign', () => {
     expect(JSON.stringify(useEntityStore.getState().crawlers[0])).toBe(before)
 
     // The slot now shows the NPC, dashed and stamped.
-    expect(screen.getByRole('button', { name: 'Med Bay: Doc Ambrose' })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: 'Med Bay: Doc Ambrose' })).toBeTruthy()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Med Bay: Doc Ambrose' }))
+      fireEvent.click(screen.getByRole('radio', { name: 'Med Bay: Doc Ambrose' }))
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Unassign Doc Ambrose from Med Bay' }))
@@ -149,7 +154,7 @@ describe('design, assign, unassign', () => {
     expect(useEntityStore.getState().npcs).toHaveLength(1)
     expect(JSON.stringify(useEntityStore.getState().crawlers[0])).toBe(before)
     // The slot closes in the write's success callback, a tick after the store empties.
-    await waitFor(() => expect(screen.getByText(/Old Mags ·/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText('Old Mags')).toBeTruthy())
   })
 
   test('the Augmented A.I. rolls its personality, because its data has a table (D1)', async () => {

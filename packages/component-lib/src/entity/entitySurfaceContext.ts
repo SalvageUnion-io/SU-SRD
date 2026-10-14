@@ -27,6 +27,9 @@ import type { PageRefIndex } from './pageRefs'
  * - `pageRefs`: the entities on each Workshop Manual page the prose cites, so a
  *   "p. 235" links to the page that covers it (`pageRefs.ts`). Absent, a
  *   reference stays text.
+ * - `appliesRules`: the app applies the rules the data encodes (ITUN, ADR-029
+ *   §6), so a rules-bearing paragraph wears the AUTO stamp. Absent (the SRD,
+ *   which applies nothing), the same paragraph is plain prose.
  */
 export type EntitySurfaceValue = {
   hrefFor: (ref: EntityRef) => string | undefined
@@ -34,6 +37,7 @@ export type EntitySurfaceValue = {
   linkAs?: EntityLinkComponent
   texture: boolean
   pageRefs?: PageRefIndex
+  appliesRules?: boolean
 }
 
 /** A router link: an anchor's attributes, a concrete `href`, its children. */
@@ -46,6 +50,14 @@ export type EntityLinkComponent = ComponentType<
 >
 
 export const EntitySurfaceContext = createContext<Partial<EntitySurfaceValue>>({})
+
+/**
+ * Whether the app applies the rules the data encodes (`appliesRules`): read
+ * per paragraph, so it reads the one context rather than the whole surface.
+ */
+export function useAppliesRules(): boolean {
+  return useContext(EntitySurfaceContext).appliesRules === true
+}
 
 /** The dataset record a ref names, when its schema is loaded. */
 function recordOf(ref: EntityRef): SURefEntity | undefined {
@@ -92,6 +104,7 @@ export function useEntitySurface(): EntitySurfaceValue {
       ...(own.linkAs ? { linkAs: own.linkAs } : {}),
       texture: own.texture ?? legacyTexture,
       ...(own.pageRefs ? { pageRefs: own.pageRefs } : {}),
+      ...(own.appliesRules ? { appliesRules: true } : {}),
     }),
     [own, entityHref, patternHref, linksOut, legacyTexture]
   )

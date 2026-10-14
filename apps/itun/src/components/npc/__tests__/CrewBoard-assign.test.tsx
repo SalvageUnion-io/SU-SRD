@@ -266,7 +266,7 @@ describe('a Game crawler, crewed by its table runner', () => {
     })
     await renderBoard('c1', 'command-bay')
     // The slot shows the member's NPC, read live from the Game.
-    expect(screen.getByRole('button', { name: /Command Bay: Rook/ })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: /Command Bay: Rook/ })).toBeTruthy()
     expect(screen.getByText('Made by Sam')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Open Rook' })).toBeTruthy()
     // Unassign is offered to the runner.

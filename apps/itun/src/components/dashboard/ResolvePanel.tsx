@@ -10,8 +10,8 @@
  */
 
 import type { ReferenceCardEntity } from 'component-lib'
-import { Button, ReferenceEntityCard } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
+import { ActivationCost, Button, ReferenceEntityCard, Stat } from 'component-lib'
+import { color, font, fontSize, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
 export type ResolveModel =
@@ -24,7 +24,11 @@ export type ResolveModel =
   | {
       kind: 'resolve'
       onBack: () => void
-      costLabel: string
+      /**
+       * What activating spends, each 0 when it spends none: `amount` of the
+       * `currency`, the Heat it adds, and its uses. Drawn by `ResolveSpend`.
+       */
+      cost: { amount: number; heat: number; uses: number }
       /** What this activation spends: the mech's EP or the pilot's AP. */
       currency: 'EP' | 'AP'
       entity: ReferenceCardEntity
@@ -98,6 +102,45 @@ const IDLE: CSSProperties = {
   justifyContent: 'center',
   gap: space[8],
   height: '100%',
+}
+
+const SPEND = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: space[6],
+} satisfies CSSProperties
+
+const NO_COST = {
+  fontFamily: font.cond,
+  fontWeight: weight.bold,
+  fontSize: fontSize.note,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+/**
+ * What activating spends, label-first: `HEAT | +1` and `USES | 3` chips, then
+ * the activation cost ("2 EP") last — the one count that reads value-first.
+ * The Resolve tab's head and the phone's bottom bar both draw it.
+ */
+export function ResolveSpend({
+  cost,
+  currency,
+}: Pick<Extract<ResolveModel, { kind: 'resolve' }>, 'cost' | 'currency'>) {
+  if (cost.amount <= 0 && cost.heat <= 0 && cost.uses <= 0) {
+    return <span style={NO_COST}>No cost</span>
+  }
+  return (
+    <span style={SPEND}>
+      {cost.heat > 0 && (
+        <Stat orientation="horizontal" size="compact" label="Heat" value={`+${cost.heat}`} />
+      )}
+      {cost.uses > 0 && (
+        <Stat orientation="horizontal" size="compact" label="Uses" value={cost.uses} />
+      )}
+      {cost.amount > 0 && <ActivationCost cost={cost.amount} currency={currency} compact />}
+    </span>
+  )
 }
 
 /**
@@ -208,7 +251,7 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
           <Button variant="ghost" size="compact" onClick={view.onBack}>
             ◀ Back
           </Button>
-          <span className="su-dash-deck-cost">{view.costLabel}</span>
+          <ResolveSpend cost={view.cost} currency={view.currency} />
         </div>
 
         {/* The card being resolved prints its READ pennant (board D1): the

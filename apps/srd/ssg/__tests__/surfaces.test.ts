@@ -143,10 +143,11 @@ describe('an entity page (boards 07, 08)', () => {
     expect(h1s(html)).toEqual(['Gopher (Chassis)'])
   })
 
-  it('sets the stats in the book’s stat column, in its words', () => {
+  it('sets the stats in the book’s stat column, under their full names', () => {
     expect(html).toContain('su-stat-column')
-    expect(html).toContain('Structure Pts.')
-    expect(html).toContain('Heat Cap.')
+    expect(html).toContain('Structure Points')
+    expect(html).toContain('Heat Capacity')
+    expect(html).not.toContain('Structure Pts.')
   })
 
   it('lists its patterns as link rows, and cites its page on the foot band', () => {
@@ -160,9 +161,9 @@ describe('a pattern page names and links its base chassis', () => {
   const html = page('/chassis/mazona/pattern/buzzard')
 
   it('links back to the chassis in the band, beside the title and never above it', () => {
-    const link = html.indexOf('<a class="srd-parent-link" href="/chassis/mazona/">')
+    const link = html.indexOf('href="/chassis/mazona/" aria-label="Pattern of: Mazona"')
     expect(link).toBeGreaterThan(-1)
-    expect(html.slice(link, link + 300)).toContain('Pattern of')
+    expect(html.slice(link, link + 600)).toContain('su-stat-plate--label')
     // The title leads the heading order; the band's cluster follows it.
     expect(link).toBeGreaterThan(html.indexOf('<h1'))
     expect(html.indexOf('su-chapter-band__eyebrow')).toBe(-1)
@@ -170,7 +171,7 @@ describe('a pattern page names and links its base chassis', () => {
   })
 
   it('wears no standalone "Pattern" stamp', () => {
-    expect(html).not.toMatch(/srd-entity-stamp"[^>]*>Pattern</)
+    expect(html).not.toMatch(/su-entity-stamp"[^>]*>Pattern</)
   })
 
   it('leads with the pattern, then the base chassis under its own slab', () => {
@@ -193,7 +194,7 @@ describe('a pattern page names and links its base chassis', () => {
   })
 
   it('stamps a legal starting pattern in the band, and offers to build it', () => {
-    expect(html).toMatch(/<span class="[^"]*srd-entity-stamp"[^>]*>Legal Starting Pattern<\/span>/)
+    expect(html).toMatch(/<span class="[^"]*su-entity-stamp"[^>]*>Legal Starting Pattern<\/span>/)
     expect(html).toMatch(
       /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build With This<\/a>/
     )

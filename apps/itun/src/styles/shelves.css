@@ -45,14 +45,13 @@
 }
 
 /* Under a coarse pointer every control on the page is at least 44px tall
-   (ruleset §4.6): the band's and the shelves' buttons, the Starter Set's
-   entries, the "⋯" triggers and the menu rows. `theme.css` floors `button` and
+   (ruleset §4.6): the band's and the shelves' buttons, the "⋯" triggers and
+   the menu rows (the Starter Set's entries are Tokens, as every shelf's are). `theme.css` floors `button` and
    `.su-btn`; this names the ones whose own 40px would otherwise sit under it,
    and the menu rows, which are neither. */
 @media (pointer: coarse) {
   .shelves-band__btn,
   .shelves-action,
-  .shelves-starter__btn,
   .shelves-toggle__option,
   .header-menu-trigger--overflow,
   .header-menu-item {

@@ -12,8 +12,10 @@
  * here has a hover or focus state of its own; ⤢ is the shared `Button`.
  */
 
-import { Button } from 'component-lib'
+import { Button, Stat } from 'component-lib'
 import type { CSSProperties } from 'react'
+import type { BandStat } from './BandStats'
+import { BandStats } from './BandStats'
 import { DashboardGauge } from './DashboardGauge'
 import type { BandGauge } from './MajorFrame'
 import { slotRule } from './slotLayout.model'
@@ -22,10 +24,14 @@ export type MinorModel = {
   fam: 'mech' | 'pilot' | 'crawler'
   /** The entity's name, the Minor's heading. */
   name: string
-  /** A short qualifier beside the name: "boarded", "parked", "TL2". */
+  /** A short qualifier beside the name: "boarded", "parked". */
   aside?: string
+  /** Numbers beside the name, as label-first chips (`TL | 2`). */
+  chips?: { label: string; value: string | number }[]
   gauges: BandGauge[]
-  /** One-line readouts that don't earn a gauge (Heat and EP while parked). */
+  /** Counts that don't earn a gauge, as label-first chips (Heat and EP). */
+  stats?: BandStat[]
+  /** One-line readouts that are not counts (the scrap pool). */
   lines: string[]
   /** What needs attention: an injury, a damaged system, a damaged bay. */
   problems: string[]
@@ -49,12 +55,11 @@ const FRAME: CSSProperties = {
 
 const HEAD: CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }
 
+// A long name wraps rather than cutting to "…" (E18).
 const NAME: CSSProperties = {
   margin: 0,
   minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  overflowWrap: 'anywhere',
   fontFamily: 'var(--font-cond)',
   fontWeight: 700,
   textTransform: 'uppercase',
@@ -124,6 +129,15 @@ export function MinorFrame({
       <div style={HEAD}>
         <h3 style={NAME}>{view.name}</h3>
         {view.aside ? <span style={ASIDE}>{view.aside}</span> : null}
+        {view.chips?.map((chip) => (
+          <Stat
+            key={chip.label}
+            label={chip.label}
+            value={chip.value}
+            orientation="horizontal"
+            size="mini"
+          />
+        ))}
         <Button
           variant="ghost"
           size="mini"
@@ -152,6 +166,7 @@ export function MinorFrame({
           ))}
         </div>
       )}
+      {view.stats && <BandStats stats={view.stats} />}
       {view.lines.map((line) => (
         <p key={line} style={TEXT}>
           {line}

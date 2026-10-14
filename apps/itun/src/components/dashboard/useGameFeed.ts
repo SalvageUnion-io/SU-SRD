@@ -60,6 +60,11 @@ export type CrewLine = {
    */
   unit: string
   /**
+   * The mech assigned to them, as its Token reads it: its name, its SP
+   * (`6/9`) and whether they are aboard. Null with none.
+   */
+  unitMech: { name: string; sp: string; boarded: boolean } | null
+  /**
    * Their mech: its SP and Heat while their seat has them aboard, else one
    * line for the mech assigned to them, parked, with what is wrong with it.
    * Null with neither.
@@ -224,6 +229,10 @@ export function crewLines(
       hp,
       ap,
       unit,
+      unitMech:
+        mech === undefined
+          ? null
+          : { name: mech.name, sp: pool(mech.currentSP, mech.maxSP), boarded: p.boarded },
       mech: mechLine,
       mechAttention: !p.boarded && (mech?.attention ?? false),
       problems: [

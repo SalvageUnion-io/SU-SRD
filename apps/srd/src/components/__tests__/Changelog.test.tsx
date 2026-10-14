@@ -22,18 +22,16 @@ describe('Changelog', () => {
     expect(screen.getByText('Fixed a typo')).toBeTruthy()
   })
 
-  test('each entry is a Card, not a bespoke panel', () => {
-    // The listing composes the shared card shell, so it inherits the card
-    // language (seam stamp, frame weight, header band) instead of restating it.
+  test('each entry wears the cut-out head: the date on a paper tab in the band', () => {
     const entries: ChangelogEntry[] = [
       { date: '2026-07-20', area: 'Site', items: ['Added a chassis'] },
     ]
     const { container } = render(<Changelog entries={entries} />)
-    const frame = container.querySelector('li > div')
-    expect(frame?.className).toContain('su-card')
-    // Card draws its frame as longhand inline style off the border glossary;
-    // `chrome` is the sub-panel weight this listing asks for.
-    expect(frame?.getAttribute('style')).toContain('var(--bw-chrome)')
+    const band = container.querySelector('.srd-changelog__entry > .srd-changelog__band')
+    expect(band?.getAttribute('style')).toContain('background-color')
+    // The date is the notch, and the area stamp sits beside it on the band.
+    expect(band?.querySelector('h2.srd-changelog__date time')).not.toBeNull()
+    expect(band?.querySelector('.srd-changelog__area')?.textContent).toBe('Site')
   })
 
   test('renders inline markdown links in a bullet item as anchors', () => {

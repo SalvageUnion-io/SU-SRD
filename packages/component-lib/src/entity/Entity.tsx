@@ -1,4 +1,4 @@
-import type { ElementType } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { EntityInstance, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
@@ -32,6 +32,13 @@ export type EntityProps = EntitySource & {
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
   titleAs?: ElementType
   /**
+   * Row only: the host's controls (Assign, Unassign, View), the head's
+   * trailing mode slot (E7). They never nest in a link or select surface.
+   */
+  controls?: ReactNode
+  /** Row only: the host's labels, right of the title after the model's own (an owner stamp). */
+  labels?: ReactNode
+  /**
    * Row only: linked chips after its traits — the entities a player unit is
    * built on (`CLASS | Engineer`, `CHASSIS | Mule`), each a Tag that Peeks and
    * opens its entity where the Row is not itself a link.
@@ -47,7 +54,8 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, peek, priority, titleAs, links } = props
+  const { form, instance, mode, lead, omit, peek, priority, titleAs, controls, labels, links } =
+    props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -66,9 +74,11 @@ export function Entity(props: EntityProps) {
           omit={omit}
           peek={peek}
           slots={
-            titleAs || links
+            titleAs || controls || labels || links
               ? {
                   ...(titleAs ? { titleAs } : {}),
+                  ...(controls ? { controls } : {}),
+                  ...(labels ? { extraLabels: labels } : {}),
                   ...(links ? { tags: [...traitTags(model.traits), ...links] } : {}),
                 }
               : undefined

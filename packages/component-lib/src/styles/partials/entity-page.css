@@ -73,7 +73,7 @@
   }
 }
 
-/* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
+/* The stats on a band (`ChapterBand asideAt="notch"`, `EntityPageStamps`)
    carry every entity's stats, a chassis's eight too, so they are the column's
    compact cells: a smaller framed numeral and label, a row of cells sized to
    their labels that wraps, not a grid whose empty columns would push the

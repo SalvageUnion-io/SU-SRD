@@ -1,7 +1,8 @@
 /**
  * StarterShelf — the Starter Set as a read-only shelf, in the rules blue
  * (Shelves, board S1): the book's ready-made pilots, mechs and crawler, one
- * button each. They are read like the reference — each opens its read-only
+ * Token each, as a shelf draws its units (`ShelfPill`). They are read like
+ * the reference — each opens its read-only
  * sheet (`/starter/:kind/:id`) — and kept by making a copy there ("Make a
  * copy"), never by editing the book's.
  *
@@ -10,10 +11,10 @@
  * source").
  */
 
-import { buttonVariants, Text, tokens } from 'component-lib'
+import { Entity, Text, tokens } from 'component-lib'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
-import { AppLink } from '../shared/AppLink'
+import { unitRowModel } from '../../lib/units/unitModel'
 
 const SECTION = {
   display: 'flex',
@@ -74,12 +75,10 @@ const LIST = {
   padding: 0,
 } satisfies CSSProperties
 
-const LINK = { textDecoration: 'none' } satisfies CSSProperties
-
-const UNITS = [
-  ...STARTER_PILOTS.map((p) => ({ kind: 'pilot', id: p.id, name: p.name })),
-  ...STARTER_MECHS.map((m) => ({ kind: 'mech', id: m.id, name: m.name })),
-  ...STARTER_CRAWLERS.map((c) => ({ kind: 'crawler', id: c.id, name: c.name })),
+const UNITS: { kind: 'pilot' | 'mech' | 'crawler'; id: string; name: string }[] = [
+  ...STARTER_PILOTS.map((p) => ({ kind: 'pilot' as const, id: p.id, name: p.name })),
+  ...STARTER_MECHS.map((m) => ({ kind: 'mech' as const, id: m.id, name: m.name })),
+  ...STARTER_CRAWLERS.map((c) => ({ kind: 'crawler' as const, id: c.id, name: c.name })),
 ]
 
 export function StarterShelf() {
@@ -99,14 +98,15 @@ export function StarterShelf() {
       <ul style={LIST}>
         {UNITS.map((unit) => (
           <li key={unit.id}>
-            <AppLink
-              href={`/starter/${unit.kind}/${unit.id}`}
-              aria-label={`Read ${unit.name}`}
-              className={`${buttonVariants({ size: 'compact' })} shelves-starter__btn`}
-              style={LINK}
-            >
-              {unit.name}
-            </AppLink>
+            <Entity
+              form="token"
+              model={unitRowModel({ kind: unit.kind, name: unit.name })}
+              mode={{
+                kind: 'link',
+                href: `/starter/${unit.kind}/${unit.id}`,
+                attrs: { 'aria-label': `Read ${unit.name}` },
+              }}
+            />
           </li>
         ))}
       </ul>

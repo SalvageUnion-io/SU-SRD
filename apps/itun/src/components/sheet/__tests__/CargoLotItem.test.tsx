@@ -1,12 +1,13 @@
 /**
  * One lot in The Hold, on either side of the mech ⇄ crawler boundary.
  *
- *  - The crawler's Storage Bay tile: its tag (×N for bulk, TL for scrap, U
- *    otherwise), a cap-checked **← Load** that partial-fills a bulk lot to the
- *    mech's free slots and refuses what does not fit with the reason, and
- *    **Unstow**.
- *  - The mech chit: **Stow →**, closed with a reason when no crawler is linked,
- *    and **Unload**.
+ *  - Both sides draw the one lot row (`CargoLotRow`): the name, then
+ *    `UNITS | n` and `TL | n` where the lot has one.
+ *  - The crawler's Storage Bay: a cap-checked **← Load** that partial-fills a
+ *    bulk lot to the mech's free slots and refuses what does not fit with the
+ *    reason, and **Unstow**.
+ *  - The mech hold: **Stow →**, closed with a reason when no crawler is
+ *    linked, and **Unload**.
  *  - Read-only, no move or remove at all; a refused move is said as a toast.
  */
 
@@ -126,12 +127,19 @@ afterEach(() => {
   toast.dismiss()
 })
 
-describe("the crawler's Storage Bay tile", () => {
-  test('a bulk lot reads ×N, and loads whole when it fits', async () => {
+/** The lot row's label-first chips, as `LABEL value` strings. */
+function chips(): string[] {
+  return [...screen.getByRole('listitem').querySelectorAll('.su-stat-cell')].map((cell) =>
+    [...cell.children].map((part) => part.textContent).join(' ')
+  )
+}
+
+describe("the crawler's Storage Bay", () => {
+  test('a bulk lot reads its name and chips, and loads whole when it fits', async () => {
     const { cargo, moves } = cargoWith({ free: 10 })
     const tile = await renderLot({ lot: scrap, side: 'crawler', cargo })
     expect(tile.getByText('T2 Scrap')).toBeTruthy()
-    expect(tile.getByText('×')).toBeTruthy()
+    expect(chips()).toEqual(['Units 6', 'TL 2'])
     const load = tile.getByRole('button', { name: 'Load T2 Scrap' })
     expect(load.textContent).toBe('← Load')
     expect((load as HTMLButtonElement).disabled).toBe(false)
@@ -154,7 +162,7 @@ describe("the crawler's Storage Bay tile", () => {
       side: 'crawler',
       cargo: cargoWith({ free: 2 }).cargo,
     })
-    expect(tile.getByText('U')).toBeTruthy()
+    expect(chips()).toEqual(['Units 3'])
     const load = tile.getByRole('button', { name: 'Load Sealed Crate' }) as HTMLButtonElement
     expect(load.disabled).toBe(true)
     expect(load.title).toBe('"Sealed Crate" does not fit — 2 slots free.')
@@ -162,9 +170,8 @@ describe("the crawler's Storage Bay tile", () => {
   })
 
   test('a unit scrap lot reads its Tech Level', async () => {
-    const tile = await renderLot({ lot: relic, side: 'crawler' })
-    expect(tile.getByText('TL')).toBeTruthy()
-    expect(tile.getByText('3')).toBeTruthy()
+    await renderLot({ lot: relic, side: 'crawler' })
+    expect(chips()).toEqual(['Units 1', 'TL 3'])
   })
 
   test('with no mech docked, Load is closed and says why', async () => {
@@ -189,7 +196,7 @@ describe("the crawler's Storage Bay tile", () => {
     expect(removed).toBe(1)
   })
 
-  test('read-only, the tile has no buttons', async () => {
+  test('read-only, the row has no buttons', async () => {
     const tile = await renderLot({
       lot: scrap,
       side: 'crawler',
@@ -207,13 +214,12 @@ describe("the crawler's Storage Bay tile", () => {
   })
 })
 
-describe("the mech hold's chit", () => {
-  test('reads kind, quantity, category, Tech Level and code; Stow sends it to the crawler', async () => {
+describe("the mech hold's lot", () => {
+  test('reads the same row as the bay; Stow sends it to the crawler', async () => {
     const { cargo, moves } = cargoWith()
     const chit = await renderLot({ lot: scrap, side: 'mech', cargo })
-    expect(chit.getByText('Bulk')).toBeTruthy()
-    expect(chit.getByText('×6')).toBeTruthy()
-    expect(chit.getByText(/SCRAP T2 · T2/)).toBeTruthy()
+    expect(chit.getByText('T2 Scrap')).toBeTruthy()
+    expect(chips()).toEqual(['Units 6', 'TL 2'])
     const stow = chit.getByRole('button', { name: 'Stow T2 Scrap' })
     expect(stow.textContent).toBe('Stow →')
     await click(stow)
@@ -228,7 +234,6 @@ describe("the mech hold's chit", () => {
       linked: false,
       onRemove: () => (removed += 1),
     })
-    expect(chit.getByText('Unit')).toBeTruthy()
     const stow = chit.getByRole('button', { name: 'Stow Sealed Crate' }) as HTMLButtonElement
     expect(stow.disabled).toBe(true)
     expect(stow.title).toBe('No crawler assigned — nothing to stow to.')
@@ -236,7 +241,7 @@ describe("the mech hold's chit", () => {
     expect(removed).toBe(1)
   })
 
-  test('read-only, the chit has no buttons', async () => {
+  test('read-only, the row has no buttons', async () => {
     const chit = await renderLot({ lot: crate, side: 'mech', readOnly: true, onRemove: () => {} })
     expect(chit.queryAllByRole('button')).toHaveLength(0)
   })

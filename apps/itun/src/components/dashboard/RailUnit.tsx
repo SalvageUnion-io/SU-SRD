@@ -5,21 +5,16 @@
  * link with their pips, which opens their full controls over the display (the
  * ⤢ overlay), since Restore, Customise your Mech and Train your Pilot need them.
  *
- * A reading with `pips` draws its track as fixed-size pips; the rest are
- * `[label | value]` cells.
+ * A reading with `pips` draws the Dashboard's gauge (`DashboardGauge`, the
+ * compact `VitalGauge`); the rest are `[label | value]` cells.
  */
 
-import { Badge, Stat, tokens } from 'component-lib'
+import { Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { DashboardGauge } from './DashboardGauge'
 import type { SlotKind } from './slotLayout.model'
 
 type RailReading = { label: string; value: number; max?: number; pips?: boolean }
-
-const TONE: Record<SlotKind, string> = {
-  pilot: tokens.color.pilot,
-  mech: tokens.color.mech,
-  crawler: tokens.color.crawler,
-}
 
 const BUTTON = {
   alignItems: 'center',
@@ -32,16 +27,6 @@ const BUTTON = {
   padding: `${tokens.space[2]} ${tokens.space[4]}`,
 } satisfies CSSProperties
 
-const SWATCH = {
-  borderColor: tokens.color.ink,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.hairline,
-  display: 'inline-block',
-  flexShrink: 0,
-  height: '22px',
-  width: '12px',
-} satisfies CSSProperties
-
 const LABEL = {
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.lede,
@@ -51,50 +36,19 @@ const LABEL = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-const TRACK = { display: 'inline-flex', gap: '2px' } satisfies CSSProperties
+/** The gauge's width on the rail: six pips a row (§4.5), each a steady size. */
+const GAUGE = { flexShrink: 0, width: '6.5rem' } satisfies CSSProperties
 
-const PIP = {
-  borderColor: tokens.color.ink,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.hairline,
-  display: 'inline-block',
-  height: '12px',
-  width: '6px',
-} satisfies CSSProperties
-
-const VALUE = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontVariantNumeric: 'tabular-nums',
-  fontWeight: tokens.weight.bold,
-} satisfies CSSProperties
-
-const READING = {
-  alignItems: 'center',
-  display: 'inline-flex',
-  gap: tokens.space[4],
-} satisfies CSSProperties
-
-function Reading({ reading, tone }: { reading: RailReading; tone: string }) {
-  const shown = reading.max === undefined ? `${reading.value}` : `${reading.value}/${reading.max}`
+function Reading({ reading, kind }: { reading: RailReading; kind: SlotKind }) {
   if (!reading.pips || reading.max === undefined) {
+    const shown = reading.max === undefined ? `${reading.value}` : `${reading.value}/${reading.max}`
     return <Stat label={reading.label} value={shown} orientation="horizontal" size="mini" />
   }
+  // The Dashboard's one gauge, at its compact rung: the §4.5 pip split, in
+  // the unit's own tone.
   return (
-    <span style={READING}>
-      <Badge shape="stamp" size="mini">
-        {reading.label}
-      </Badge>
-      <span style={TRACK} aria-hidden="true">
-        {Array.from({ length: reading.max }, (_, i) => (
-          <span
-            // biome-ignore lint/suspicious/noArrayIndexKey: a pip is its position
-            key={i}
-            style={{ ...PIP, backgroundColor: i < reading.value ? tone : tokens.color.paper }}
-          />
-        ))}
-      </span>
-      <span style={VALUE}>{shown}</span>
+    <span style={GAUGE}>
+      <DashboardGauge label={reading.label} value={reading.value} max={reading.max} tone={kind} />
     </span>
   )
 }
@@ -122,10 +76,9 @@ export function RailUnit({ kind, label, readings, onOpen }: RailUnitProps) {
       aria-label={`Open ${label}: ${summary}`}
       onClick={(event) => onOpen(event.currentTarget)}
     >
-      <span aria-hidden="true" style={{ ...SWATCH, backgroundColor: TONE[kind] }} />
       <span style={LABEL}>{label}</span>
       {readings.map((reading) => (
-        <Reading key={reading.label} reading={reading} tone={TONE[kind]} />
+        <Reading key={reading.label} reading={reading} kind={kind} />
       ))}
     </button>
   )

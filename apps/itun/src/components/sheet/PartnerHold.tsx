@@ -3,11 +3,12 @@
  * Storage Bay.
  *
  * A deliberately smaller surface than `StorageManifest`, which renders the
- * mech⇄crawler boundary. That component is built around two named sides with
- * two distinct presentations (a linear chit list and a poster tile grid) and a
- * scrap-pool round trip; a partner carries between 1 and 3 slots, so a third
- * side there would have cost far more than it returned. The transfer semantics
- * are not duplicated — both go through the same `cargoTransfer` reducer.
+ * mech⇄crawler boundary. That component is built around two named sides, a
+ * counterpart panel and a scrap-pool round trip; a partner carries between 1
+ * and 3 slots, so a third side there would have cost far more than it
+ * returned. The transfer semantics
+ * are not duplicated — both go through the same `cargoTransfer` reducer — and
+ * nor is the lot: every lot is the one `CargoLotRow`.
  *
  * Vocabulary matches the mech hold, because a partner "uses the same rules as
  * Mechs": Load in, Unload out, Stow across to the Storage Bay. The Bay keeps
@@ -20,11 +21,11 @@
  * dropping it left the player with a button that appeared to do nothing.
  */
 
-import { Button, EmptyState, Stat, tokens } from 'component-lib'
-import type { CargoLot } from 'itun-domain/schemas/cargoLot'
-import type { CSSProperties, ReactNode } from 'react'
+import { Button, EmptyState, Slab, Stat, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
+import { CargoLotRow } from '../shared/CargoLotRow'
 
 type PartnerHoldProps = {
   cargo: UsePartnerCargoResult
@@ -39,15 +40,8 @@ const HOLD = {
   gap: tokens.space[16],
 } satisfies CSSProperties
 
-const SIDE_HEADING = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.caps,
-  marginBottom: tokens.space[4],
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+/** A side's Slab, close over its lots. */
+const SIDE_SLAB = { marginBottom: tokens.space[4] } satisfies CSSProperties
 
 const LOCKED_NOTE = {
   color: tokens.color.wkMuted,
@@ -57,46 +51,6 @@ const LOCKED_NOTE = {
 } satisfies CSSProperties
 
 const LOT_LIST = { listStyleType: 'none' } satisfies CSSProperties
-
-/** A lot row; its rule's width drops on the last row (`.su-sheet-partner-lot`). */
-const LOT = {
-  alignItems: 'center',
-  borderBottomColor: tokens.color.ink10,
-  borderBottomStyle: 'solid',
-  display: 'flex',
-  gap: tokens.space[8],
-  paddingBlock: tokens.space[6],
-} satisfies CSSProperties
-
-const LOT_NAME = {
-  color: tokens.color.ink,
-  flex: '1 1 0%',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-const LOT_UNITS = {
-  color: tokens.color.wkMuted,
-  flexShrink: 0,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontVariantNumeric: 'tabular-nums',
-} satisfies CSSProperties
-
-function LotRow({ lot, children }: { lot: CargoLot; children?: ReactNode }) {
-  return (
-    <li className="su-sheet-partner-lot" style={LOT}>
-      <span style={LOT_NAME}>{lot.name}</span>
-      <span style={LOT_UNITS}>{lot.units}</span>
-      {children}
-    </li>
-  )
-}
 
 export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerHoldProps) {
   const { state, usage, crawlerLocked } = cargo
@@ -109,16 +63,16 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
     <div style={HOLD}>
       {/* Over-capacity is shown honestly rather than clamped — same rule the
           mech Hold follows. */}
-      <Stat label="Cargo" value={usage.used} max={usage.cap} />
+      <Stat orientation="horizontal" label="Cargo" value={usage.used} max={usage.cap} />
 
       <div>
-        <h4 style={SIDE_HEADING}>Carried</h4>
+        <Slab as="h4" label="Carried" style={SIDE_SLAB} />
         {state.carrierLots.length === 0 ? (
           <EmptyState variant="quiet" body="Nothing carried." />
         ) : (
           <ul style={LOT_LIST}>
             {state.carrierLots.map((lot) => (
-              <LotRow key={lot.id} lot={lot}>
+              <CargoLotRow key={lot.id} lot={lot}>
                 {editable && (
                   <>
                     <Button
@@ -139,7 +93,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                     </Button>
                   </>
                 )}
-              </LotRow>
+              </CargoLotRow>
             ))}
           </ul>
         )}
@@ -149,14 +103,14 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           an empty "no crawler" panel would be noise on a partner sheet. */}
       {crawlerLinked && (
         <div>
-          <h4 style={SIDE_HEADING}>Storage Bay</h4>
+          <Slab as="h4" label="Storage Bay" style={SIDE_SLAB} />
           {editable && crawlerLocked !== null && <p style={LOCKED_NOTE}>{crawlerLocked}</p>}
           {state.depotLots.length === 0 ? (
             <EmptyState variant="quiet" body="The Storage Bay is empty." />
           ) : (
             <ul style={LOT_LIST}>
               {state.depotLots.map((lot) => (
-                <LotRow key={lot.id} lot={lot}>
+                <CargoLotRow key={lot.id} lot={lot}>
                   {editable && (
                     <Button
                       variant="ghost"
@@ -168,7 +122,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                       ← Load
                     </Button>
                   )}
-                </LotRow>
+                </CargoLotRow>
               ))}
             </ul>
           )}

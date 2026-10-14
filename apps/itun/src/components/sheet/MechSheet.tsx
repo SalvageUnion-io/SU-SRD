@@ -6,15 +6,12 @@
  * `SheetHero` as its first region. Region order mirrors the
  * printed mech sheet:
  *
- *   Identity Band: edge wordmark ∥ the chassis art beside the pattern-name/
- *       chassis fields and the Chassis Stats strip (its own block, as the
- *       official sheet's page 2 prints it) ∥ SP/EP/Heat `VitalGauge`s +
- *       Conditions vitals rail — one toned frame (the printed top band).
- *   Chassis Ability + Quirk & Appearance live INSIDE the identity card: the
- *       chassis's ability is what the chassis IS (always visible, no fold), and
- *       quirk/appearance are two more identity Fields under the same Edit
- *       toggle. Tech Level is NOT a field — it is chassis-derived and reads off
- *       the static-stats strip.
+ *   Identity Band: the player's photo (the chassis art until changed) beside what they wrote (pattern
+ *       name, quirk, appearance) ∥ SP/EP/Heat `VitalGauge`s + Conditions
+ *       vitals rail.
+ *   Chassis: its own small reference card under the band (`MechChassisCard`)
+ *       — art, description, the mech's chassis stats and the chassis ability,
+ *       with a Change Chassis control in Edit.
  *   Systems & Modules — KEPT as two sections (each its own `SheetSectionSlab`,
  *       side by side from 48rem, one Token a line): different collections
  *       with different '+ Add' pickers/slot budgets, so folding them into one
@@ -25,9 +22,8 @@
  *   Assigned Units closes the sheet.
  *
  * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
- * inputs/gauges get a CARD (the identity band, Quirk & Appearance, The Hold),
- * entity-card collections get a SLAB (Chassis Ability, Systems, Modules,
- * Assigned Units) — cards already carry their own frame, so a second frame
+ * inputs/gauges get a CARD (the identity band, the Chassis card), entity-card
+ * collections get a SLAB (The Hold, Systems, Modules, Assigned Units) — cards already carry their own frame, so a second frame
  * around them reads as one opaque block.
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
@@ -54,6 +50,7 @@
  * readOnly suppresses every edit affordance.
  */
 
+import type { SlabCount } from 'component-lib'
 import {
   Conditions,
   EntitySearcher,
@@ -61,7 +58,6 @@ import {
   FieldError,
   heatDangerFrom,
   SheetSectionSlab,
-  StatColumn,
   tokens,
   VitalGauge,
 } from 'component-lib'
@@ -79,7 +75,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
-import { MechChassisAbilities } from './MechChassisAbilities'
+import { MechChassisCard } from './MechChassisCard'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemToken } from './MechItemToken'
@@ -134,8 +130,6 @@ const CONDITIONS_LABEL = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-const COUNT = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
-
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
 type AsPrinted = { pattern: string; cite: string } | undefined
 
@@ -147,14 +141,22 @@ function overAsPrinted(used: number, max: number, asPrinted: AsPrinted): boolean
   return asPrinted !== undefined && used > max
 }
 
-/** A section's "used/max slots", noted "as printed" (with its cite) when it is the book's. */
-function SlotCount({ used, max, asPrinted }: { used: number; max: number; asPrinted: AsPrinted }) {
+/**
+ * A section's `SLOTS | used/max` chip, noted "as printed" (with its cite) when
+ * an over-slot count is the book's; any other over-slot count is critical.
+ */
+function slotCount(used: number, max: number, asPrinted: AsPrinted): SlabCount {
   const printed = overAsPrinted(used, max, asPrinted) ? asPrinted : undefined
-  return (
-    <span style={COUNT} title={printed ? `${printed.pattern}, ${printed.cite}` : undefined}>
-      {used}/{max} slots{printed ? ' · as printed' : ''}
-    </span>
-  )
+  if (printed) {
+    return {
+      label: 'Slots',
+      value: used,
+      max,
+      note: 'as printed',
+      title: `${printed.pattern}, ${printed.cite}`,
+    }
+  }
+  return { label: 'Slots', value: used, max, ...(used > max ? { state: 'critical' } : {}) }
 }
 
 const PARTNERS = {
@@ -188,6 +190,8 @@ type MechSheetProps = {
    * repair's scrap-pool deduction; the mech's own edits stay open.
    */
   crawlerReadOnly?: boolean
+  /** The linked crawler's sheet: The Hold's stow target Token opens it. */
+  crawlerHref?: string
   /**
    * The Assigned Units rail content (pilot + crawler rail row/RailEmpty), built
    * by SheetMech from `composition` — MechSheet has no composition access of
@@ -210,18 +214,13 @@ export function MechSheet({
   readOnly = false,
   crawler = null,
   crawlerReadOnly = false,
+  crawlerHref,
   linkedUnits,
   pilotAbilities,
 }: MechSheetProps) {
   const storeState = store()
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available, never rule-gated for now).
-  // Identity / Quirk+Appearance are FIELD sections (unified edit language
-  // archetype A): their own Edit/Done toggle, rendered in the
-  // SheetSectionCard header.
-  // Quirk & Appearance now live inside the identity card, so they follow ITS
-  // Edit toggle — a second Edit button inside the same frame would have been
-  // two switches for one section.
   const [picker, setPicker] = useState<ItemKind | null>(null)
 
   const model = useMechSheetModel({
@@ -305,19 +304,16 @@ export function MechSheet({
       )}
 
       {/* ===== Identity Band (Workshop-Manual mech sheet top region) =====
-          Edge wordmark ∥ Chassis/Pattern fields + Chassis-Stats strip ∥
-          SP/EP/Heat + Conditions vitals rail, in one toned frame. */}
+          Photo + the player's fields ∥ SP/EP/Heat + Conditions vitals rail. */}
       <SheetHero
         name={mech.name}
         surface={readOnly ? 'paper' : 'frame'}
-        // On a mech this region IS the chassis: its name, its stats, its
-        // ability, its quirk. "Identity" named the shape, not the subject.
-        fieldsTitle="Chassis"
         fields={
           <PhotoBeside
             photo={
               <EntityPhoto
                 photo={mech.photo}
+                // The chassis art until the player changes it.
                 fallback={chassisArt(mech.chassisRef)}
                 name={mech.name}
                 onChange={
@@ -334,27 +330,14 @@ export function MechSheet({
             <div style={FIELDS}>
               <MechIdentityPanel
                 mech={mech}
-                chassisName={model.chassisName}
                 patch={readOnly ? undefined : actions.patchMech}
-                besideChassis={
+                after={
                   <Field
                     label="Quirk"
                     value={mech.quirk ?? ''}
                     onSave={readOnly ? undefined : actions.saveQuirk}
                     placeholder="No quirk recorded."
                   />
-                }
-                after={
-                  <>
-                    {/* The Chassis Stats, their own strip under the chassis name,
-                      as the official mech sheet prints its own block ahead of
-                      the Chassis Ability (SU_Char Sheets 2.0, page 2). */}
-                    <StatColumn stats={model.chassisStats} label="Chassis stats" />
-                    <MechChassisAbilities
-                      abilities={model.chassisAbilities}
-                      chassisName={model.chassisName}
-                    />
-                  </>
                 }
               />
 
@@ -447,23 +430,37 @@ export function MechSheet({
         }
       />
 
+      {/* ===== Chassis — its own small card under the hero =====
+          The hero is the photo and what the player wrote; the chassis's name,
+          stats and ability are its reference card (owner's call, 2026-10-14). */}
+      <MechChassisCard
+        mech={mech}
+        entity={model.chassisEntity}
+        chassisName={model.chassisName}
+        stats={model.chassisStats}
+        abilities={model.chassisAbilities}
+        patch={readOnly ? undefined : actions.patchMech}
+      />
+
       {/* ===== The Hold — ABOVE Systems & Modules =====
           Cargo is the thing a crew reaches for mid-session, and the printed
           sheet's bottom-of-page-2 placement buried it under two long loadout
           lists. It reads before them here. */}
       <SheetSectionSlab
         title="The Hold"
-        count={
-          <span style={COUNT}>
-            {cargo.usage.used}/{cargo.usage.cap} slots
-          </span>
-        }
+        count={{
+          label: 'Slots',
+          value: cargo.usage.used,
+          max: cargo.usage.cap,
+          ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
+        }}
       >
         <StorageManifest
           side="mech"
           cargo={cargo}
           mechName={mech.name}
           crawlerName={crawler?.name ?? null}
+          counterpartHref={crawlerHref}
           readOnly={readOnly}
         />
       </SheetSectionSlab>
@@ -472,13 +469,7 @@ export function MechSheet({
       <div className="su-sheet-mech-loadout">
         <SheetSectionSlab
           title="Systems"
-          count={
-            <SlotCount
-              used={capacity.systemSlotsUsed}
-              max={capacity.systemSlotsMax}
-              asPrinted={capacity.asPrinted}
-            />
-          }
+          count={slotCount(capacity.systemSlotsUsed, capacity.systemSlotsMax, capacity.asPrinted)}
           controls={
             readOnly ? undefined : (
               <SectionManageButton label="systems" onClick={() => setPicker('system')} />
@@ -490,13 +481,7 @@ export function MechSheet({
 
         <SheetSectionSlab
           title="Modules"
-          count={
-            <SlotCount
-              used={capacity.moduleSlotsUsed}
-              max={capacity.moduleSlotsMax}
-              asPrinted={capacity.asPrinted}
-            />
-          }
+          count={slotCount(capacity.moduleSlotsUsed, capacity.moduleSlotsMax, capacity.asPrinted)}
           controls={
             readOnly ? undefined : (
               <SectionManageButton label="modules" onClick={() => setPicker('module')} />

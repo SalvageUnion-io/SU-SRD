@@ -52,11 +52,11 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   return (
     <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
       <div style={statRowStyle}>
-        <Stat label="TL" value={techLevel.techLevel} size="mini" />
-        <Stat label="SP" value={sp.total} max={sp.total} size="mini" />
-        <Stat label="UPKEEP" value={techLevel.upkeepCost ?? 0} size="mini" />
-        <Stat label="UPG" value={techLevel.upgradeCost ?? 0} size="mini" />
-        <Stat label="POOL" value={0} size="mini" />
+        <Stat orientation="horizontal" label="TL" value={techLevel.techLevel} />
+        <Stat orientation="horizontal" label="SP" value={sp.total} max={sp.total} />
+        <Stat orientation="horizontal" label="UPKEEP" value={techLevel.upkeepCost ?? 0} />
+        <Stat orientation="horizontal" label="UPG" value={techLevel.upgradeCost ?? 0} />
+        <Stat orientation="horizontal" label="POOL" value={0} />
       </div>
 
       <div className="wiz-stack wiz-stack--6" style={proseStyle}>

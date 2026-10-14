@@ -1,106 +1,64 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
-import { Badge } from '../atoms/Badge'
-import { Card } from './Card'
-
-/** Ontological tone for the head-bar tag (pilot orange / mech green / crawler pink). */
-type InsetTone = 'pilot' | 'mech' | 'crawler'
+import { useEntitySurface } from '../../entity/entitySurfaceContext'
+import { Head } from '../../entity/parts/Head'
+import { paintFor } from '../../entity/parts/paint'
 
 type InsetProps = {
-  /** Head-bar title — condensed caps, paper on the ink bar. */
-  label: ReactNode
-  /** Colours the head-bar tag; omit for a paper (untoned) tag. */
-  tone?: InsetTone
-  /** Short keyword stamped at the head-bar's left edge, e.g. 'CREW'. */
-  tag?: string
-  /** Right-edge head-bar slot — a subtitle, meta readout, or actions. */
-  headRight?: ReactNode
-  /** Inline style on the padded body wrapper (e.g. a flex layout). */
+  /** The name on the cut-out; it also names the head. */
+  title: string
+  /** What the cut-out shows in place of `title`'s text: a live sheet's inline-edit field. */
+  titleContent?: ReactNode
+  /** The band's tone token (`--color-<tone>`): an NPC's `adversary`. */
+  tone: string
+  /** The chips (horizontal `Stat` cells, E17), one group on the band right of the name. */
+  chips?: ReactNode
+  /** Inline style on the paper body (e.g. a grid of id lines). */
   bodyStyle?: CSSProperties
-  children: ReactNode
+  children?: ReactNode
 }
 
-const HEAD = {
-  display: 'flex',
-  width: '100%',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: space[8],
-} satisfies CSSProperties
-
-const TITLE = {
-  minWidth: 0,
-  fontFamily: font.cond,
-  fontSize: fontSize.lede,
-  fontWeight: weight.bold,
-  textTransform: 'uppercase',
-  lineHeight: 1,
-  letterSpacing: tracking.capsTight,
-  color: color.paper,
-} satisfies CSSProperties
-
-const HEAD_RIGHT = {
-  marginLeft: 'auto',
-  display: 'flex',
-  flexShrink: 0,
-  alignItems: 'center',
-  gap: space[6],
-} satisfies CSSProperties
-
-const FRAME = { style: { backgroundColor: color.paper } }
-
 /**
- * Inset — a boxed sub-panel meant to sit inside a parent card's expand slot
- * (the frame `NpcInset`'s crew-lead card and `CrawlerEconFrame`'s economy
- * panel compose).
+ * Inset — a nested entity a live sheet writes into, drawn as the SRD draws
+ * the same entity nested in a Card (`NpcInset`'s crew lead, a crawler bay's
+ * NPC): the cut-out head in the entity's tone, the name on the paper tab and
+ * its chips on the band right of it, over a paper body. It is the Row's frame
+ * and `Head`, so a sheet's crew lead and the SRD's matching NPC read the same
+ * (entity display language E15: no hand-built entity markup).
  *
- * Anatomy: a chrome-weight ink frame on paper, an ink head bar carrying an
- * optional tone tag + a title (+ an optional right-edge subtitle/actions slot),
- * over a padded body (`children`). It is the closed, self-contained counterpart
- * to `Slab`'s open in-flow section leader — use Inset when an expanded entity
- * needs a bordered tracked-detail card, not a page-flow section.
- *
- * It is `Card`, configured — NOT a second frame implementation (ruleset §0: one
- * kind × one context = one primitive). A container with a header band over a
- * body band IS Card; the head bar is Card's header at the `small` density rung,
- * materialised ink (`headerBgColor` ink, which also inks the frame), and drawn
- * at the nested `chrome` frame weight (Card's `frame`).
- *
- * What Inset still owns, and why it is not a bare `Card` call at each site: the
- * head-bar VOCABULARY. The tone tag / paper condensed-caps title / right-edge
- * slot triple is a fixed composition its consumers share, and inlining it would
- * duplicate that markup at every call site — the thing this file exists to
- * prevent.
+ * The body holds what the sheet tracks (keepsake, motto, detail, facts), which
+ * no reference model carries; that is why this is not a `Row` over a model.
  */
-export function Inset({ label, tone, tag, headRight, bodyStyle, children }: InsetProps) {
-  // An inset with nothing to say below its head bar is just the bar: no empty
-  // padded strip under it (a read-state crew lead with every field blank).
+export function Inset({ title, titleContent, tone, chips, bodyStyle, children }: InsetProps) {
+  const surface = useEntitySurface()
+  const paint = paintFor(tone, { texture: surface.texture })
+  // An inset with nothing to say below its head is just the head: no empty
+  // paper strip under it (a read-state crew lead with every field blank).
   const hasBody = children !== null && children !== undefined && children !== false
   return (
-    <Card
-      size="small"
-      frame="chrome"
-      headerBgColor="var(--color-ink)"
-      cardStyle={FRAME}
-      bodyStyle={hasBody ? { padding: space[10] } : undefined}
-      headerContent={
-        <div style={HEAD}>
-          {tag && (
-            <Badge surface={tone ? 'tone' : 'ghost'} tone={tone}>
-              {tag}
-            </Badge>
+    <div className="su-entity-row">
+      <div className="su-entity-row__frame" data-bodyless={hasBody ? undefined : true}>
+        <div className="su-entity-row__main">
+          <Head
+            title={title}
+            titleContent={titleContent}
+            paint={paint}
+            chips={
+              chips ? (
+                <div data-chip-group="" className="su-chips">
+                  {chips}
+                </div>
+              ) : undefined
+            }
+            notch
+            chipsBeside
+          />
+          {hasBody && (
+            <div className="su-entity-row__body" style={bodyStyle}>
+              {children}
+            </div>
           )}
-          <span style={TITLE}>{label}</span>
-          {headRight != null && <span style={HEAD_RIGHT}>{headRight}</span>}
         </div>
-      }
-    >
-      {/* The body layout stays on its own element rather than merging into
-          Card's body classes: Card's body is a `flex-col` stack, and merging a
-          consumer's row layout (`flex flex-wrap items-start`) into it would
-          leave `flex-col` standing — silently turning NpcInset's row into a
-          column. Layering keeps every consumer's child layout exactly as it was. */}
-      {hasBody && <div style={bodyStyle}>{children}</div>}
-    </Card>
+      </div>
+    </div>
   )
 }

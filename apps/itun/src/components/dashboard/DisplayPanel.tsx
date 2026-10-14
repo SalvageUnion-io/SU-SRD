@@ -4,7 +4,7 @@
  *
  * `DisplayPanel` resolves the chosen `DisplayFocus` (+ the seat and the
  * rules) into a discriminated `DisplayContent`; `DisplayPanelFrame` renders it — the faithful
- * light SRD reference document (reused ReferenceEntityCard / RollTable), the
+ * light SRD reference document (reused ReferenceEntityCard / RollTableInstrument), the
  * Tables picker or the SRD Explorer. Entity focuses resolve the entity's
  * reference data and build the entity-level controls (Load Into Mech / Full
  * sheet →). Downtime is the Game's, started by the Mediator from the rail
@@ -17,7 +17,7 @@
  */
 
 import type { ReferenceEntityControl } from 'component-lib'
-import { ControlButtons, ReferenceEntityCard, Toggle } from 'component-lib'
+import { CHAPTER_BAND_COLOR, ControlButtons, ReferenceEntityCard, Toggle } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
@@ -27,8 +27,8 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { DashboardRollTable } from './DashboardRollTable'
 import { recordRoll } from './dashboardRolls.model'
-import { RollTable } from './RollTable'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
 import type { PickableTable } from './tableCategories.model'
@@ -36,22 +36,24 @@ import type { MountState, SeatHandle } from './useSeat'
 
 const HIDE_CHOICES = { choices: true } as const
 
-/** A roll-table entity: its `table` is the actual RollTable payload. */
+/** A roll-table entity: its `table` is the actual roll-table payload. */
 type RollTableEntity = PickableTable & {
-  table: Parameters<typeof RollTable>[0]['table']
+  table: Parameters<typeof DashboardRollTable>[0]['table']
 }
 
 /** A table roll, by table, the row it landed on and that row's text. */
 type TableRoll = (tableName: string, key: string, text: string) => void
 
 /**
- * TablesView — the Tables tab: the selected table rendered via the reused
- * `RollTable`, whose header TITLE is the trigger for the 5-column category
- * picker overlay. Self-contained (reads the ORM roll tables). Its rolls go to
- * `onRoll`, which writes them to the Game's log (the Log tab).
+ * TablesView — the Tables tab: the selected table, drawn by the shared roll
+ * instrument (`DashboardRollTable`) banded in the roll tables' chapter tone
+ * (Rules & Reference, as on their SRD pages), whose bar TITLE is the trigger
+ * for the 5-column category picker overlay. Self-contained (reads the ORM roll
+ * tables). Its rolls go to `onRoll`, which writes them to the Game's log (the
+ * Log tab).
  *
- * The header title is the trigger (`titleSelect`, see `RollTable`), so no
- * separate bar repeats the name the header band prints.
+ * The bar's title is the trigger (`titleSelect`), so no separate bar repeats
+ * the name the instrument's bar prints.
  */
 function TablesView({ onRoll }: { onRoll?: TableRoll }) {
   const tables: RollTableEntity[] = SalvageUnionReference.RollTables.all()
@@ -71,9 +73,10 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
   return (
     <div ref={pickerHost} className="su-dash-display-scroll su-dash-tables">
       {selected ? (
-        <RollTable
+        <DashboardRollTable
           table={selected.table}
-          tableName={selected.name}
+          name={selected.name}
+          tone={CHAPTER_BAND_COLOR.rules}
           titleSelect={{ onOpen: () => setPickerOpen(true), open: pickerOpen }}
           onRollResult={(text, key) => onRoll?.(selected.name, key, text)}
         />

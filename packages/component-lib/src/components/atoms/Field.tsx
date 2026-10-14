@@ -52,6 +52,12 @@ type FieldStaticProps = FieldCommon & {
 type FieldEditableProps = FieldCommon & {
   /** Current stored value. */
   value: string
+  /**
+   * The read state's value when the field names an entity (a mech's chassis,
+   * a crawler's type): its Token, set under the label in place of the text.
+   * Edit keeps `value` in the picker box.
+   */
+  readValue?: ReactNode
   /** Persist a freetext value — enables edit-in-place via `InlineEditField`. */
   onSave?: (next: string) => Promise<void> | void
   /**
@@ -111,6 +117,13 @@ const TYPESET_VALUE = {
 const TYPESET_PROSE = { ...TYPESET_VALUE, whiteSpace: 'pre-line' } satisfies CSSProperties
 
 const TYPESET_PROMINENT = { ...TYPESET_VALUE, fontSize: fontSize.title } satisfies CSSProperties
+
+/** A read value that is a node (a Token), not text: the value's top margin only. */
+const TYPESET_NODE = {
+  display: 'flex',
+  margin: `${space[4]} 0 0`,
+  minWidth: 0,
+} satisfies CSSProperties
 
 /**
  * The ink `Input` skin as a value-box shell (1.5px ink border, 3px radius) for
@@ -222,22 +235,27 @@ export function Field(props: FieldProps) {
     ariaLabel,
     fill = false,
     prominent = false,
+    readValue,
   } = props
   const labelText = ariaLabel ?? (typeof label === 'string' ? label : '')
 
   // ---- Typeset: the read state. Nothing to write, so nothing that looks like
   // a form: the label over the value, and no row at all for an empty one. ------
   if (onSave === undefined && onEditClick === undefined) {
-    if (value.trim() === '') return null
+    if (value.trim() === '' && readValue == null) return null
     return (
       <div className={className}>
         <div style={TYPESET_LABEL}>
           {label}
           {labelAction}
         </div>
-        <p style={prominent ? TYPESET_PROMINENT : multiline ? TYPESET_PROSE : TYPESET_VALUE}>
-          {value}
-        </p>
+        {readValue != null ? (
+          <div style={TYPESET_NODE}>{readValue}</div>
+        ) : (
+          <p style={prominent ? TYPESET_PROMINENT : multiline ? TYPESET_PROSE : TYPESET_VALUE}>
+            {value}
+          </p>
+        )}
       </div>
     )
   }

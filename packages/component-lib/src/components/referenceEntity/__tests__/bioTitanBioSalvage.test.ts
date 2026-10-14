@@ -12,7 +12,7 @@ describe('Bio-Titan bio-salvage derivation', () => {
   const bioTitan = { id: 'x', name: 'Scylla', structurePoints: 39 } as SURefMetaEntity
 
   const findBioSalvage = (stats: ReturnType<typeof buildReferenceEntityStats>) =>
-    stats.find((s) => s.label === 'Bio' && s.bottomLabel === 'SV')
+    stats.find((s) => s.label === 'Bio-Salvage' && s.bottomLabel === 'Value')
 
   it('derives a Bio SV stat equal to structurePoints for bio-titans', () => {
     const stats = buildReferenceEntityStats(bioTitan, { compact: false, schemaName: 'bio-titans' })

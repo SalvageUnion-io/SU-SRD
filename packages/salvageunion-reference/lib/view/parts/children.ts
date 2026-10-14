@@ -122,16 +122,36 @@ export function resolveLoadout(
   return { systems, modules }
 }
 
-/** A drone's OWN systems/modules loadout, from its name arrays. */
+const stringsOf = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((n): n is string => typeof n === 'string') : []
+
+/**
+ * A vehicle's SYSTEMS: the names in its `actions` that name a systems entry
+ * (the Fighting Box Wheel's Locomotion System and .50 Cal Machine Gun). The
+ * data lists a vehicle's equipment as action names; where that name is a
+ * system it is drawn as one, as a drone's systems are. A name with no systems
+ * entry (the Power Loader's "Rigging Arm (Vehicle)") stays an action.
+ */
+export function vehicleSystemNames(entity: SURefMetaEntity): string[] {
+  if (!('schemaName' in entity) || entity.schemaName !== 'vehicles') return []
+  return stringsOf('actions' in entity ? entity.actions : undefined).filter(
+    (name) => SalvageUnionReference.getByNameIn('systems', name) !== undefined
+  )
+}
+
+/**
+ * A drone's or vehicle's OWN systems/modules loadout: a drone's from its name
+ * arrays, a vehicle's from the action names that are systems
+ * (`vehicleSystemNames`).
+ */
 export function droneOwnLoadout(entity: SURefMetaEntity): {
   systems: SURefEntity[]
   modules: SURefEntity[]
 } {
-  const names = (value: unknown): string[] =>
-    Array.isArray(value) ? value.filter((n): n is string => typeof n === 'string') : []
+  const systems = stringsOf('systems' in entity ? entity.systems : undefined)
   return resolveLoadout(
-    names('systems' in entity ? entity.systems : undefined),
-    names('modules' in entity ? entity.modules : undefined)
+    systems.length > 0 ? systems : vehicleSystemNames(entity),
+    stringsOf('modules' in entity ? entity.modules : undefined)
   )
 }
 
@@ -167,7 +187,9 @@ export function entityActions(
 ): { folded: SURefMetaAction | undefined; others: SURefMetaAction[] } {
   if ('actionSource' in entity || isGrantingAbility(entity))
     return { folded: undefined, others: [] }
-  const visible = extractVisibleActions(entity) ?? []
+  // A vehicle's systems are its children, not its actions.
+  const systems = new Set(vehicleSystemNames(entity))
+  const visible = (extractVisibleActions(entity) ?? []).filter((a) => !systems.has(a.name))
   const folded = foldedActionOf(
     visible.filter((a) => !isTitanicAction(a)),
     entityName

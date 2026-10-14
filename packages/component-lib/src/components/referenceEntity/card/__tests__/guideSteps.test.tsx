@@ -1,9 +1,9 @@
 /**
  * GUIDE STEPS — a guide's procedure rendered through the real card with real
  * SRD data:
- * - the steps are an ordered list whose every item opens on the how-to banner
- *   (numeral, then name) as a real heading;
- * - a `section` is a heading over its own list (on a page, the H2-scale head),
+ * - the steps are an ordered list whose every item opens on a solid Slab
+ *   (numeral, then name, in the stamp) as a real heading;
+ * - a `section` is a solid Slab heading its own list (on a page, the H2),
  *   the steps one heading level below it, numbering restarting inside it;
  * - on a page every section and step is an anchor, listed in an "On this
  *   page" rail (and its phone fold), and a "p. N" the surface can resolve
@@ -131,7 +131,7 @@ describe('chunkGuideStepProse', () => {
 })
 
 describe('GuideSteps on the page', () => {
-  test('the steps are an ordered list of how-to banners, numbered from 1', () => {
+  test('the steps are an ordered list, each opening on its slab, numbered from 1', () => {
     const pilot = guide('Create a Pilot')
     const { container } = render(<ReferenceEntityCard data={pilot} presentation="page" />)
     const list = container.querySelector('ol.su-guide__steps')
@@ -139,13 +139,13 @@ describe('GuideSteps on the page', () => {
     const items = list?.querySelectorAll(':scope > li.su-guide__step') ?? []
     expect(items).toHaveLength(pilot.steps.length)
 
-    const heads = [...container.querySelectorAll('h2.su-guide__head')]
+    const heads = [...container.querySelectorAll('.su-guide__head h2')]
     expect(heads).toHaveLength(pilot.steps.length)
     expect(heads[0]?.querySelector('.su-guide__num')?.textContent).toBe('1')
     expect(heads[0]?.querySelector('.su-guide__name')?.textContent).toBe(pilot.steps[0]?.name)
   })
 
-  test('an optional step says so on its banner', () => {
+  test('an optional step says so on its slab', () => {
     const { container } = render(
       <ReferenceEntityCard data={guide('Create a Pilot')} presentation="page" />
     )
@@ -196,11 +196,11 @@ describe('GuideSteps on the page', () => {
     const labels = downtime.steps.flatMap((step) => (step.section ? [step.section] : []))
     expect(sections).toHaveLength(labels.length)
     sections.forEach((section, index) => {
-      expect(section.querySelector('h2.su-guide__section-head')?.textContent).toBe(labels[index])
+      expect(section.querySelector('.su-guide__section-head h2')?.textContent).toBe(labels[index])
       // Numbering restarts in every section.
-      expect(section.querySelector('h3.su-guide__head .su-guide__num')?.textContent).toBe('1')
+      expect(section.querySelector('.su-guide__head h3 .su-guide__num')?.textContent).toBe('1')
     })
-    expect(container.querySelectorAll('h3.su-guide__head')).toHaveLength(downtime.steps.length)
+    expect(container.querySelectorAll('.su-guide__head h3')).toHaveLength(downtime.steps.length)
   })
 
   test('the steps stand as a page section at the reading size, not inside the prose', () => {
@@ -250,7 +250,7 @@ describe('GuideSteps on the page', () => {
   test('a card has no rail and no anchors', () => {
     const { container } = render(<ReferenceEntityCard data={guide('Crawler Downtime')} />)
     expect(container.querySelector('.su-guide__rail')).toBeNull()
-    expect(container.querySelector('.su-guide__head[id]')).toBeNull()
+    expect(container.querySelector('.su-guide__head [id]')).toBeNull()
   })
 
   test('a "p. N" the surface resolves links to its page; the rest stay text', () => {
