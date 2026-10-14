@@ -21,9 +21,10 @@ test('the roster loads and asks a signed-out visitor to sign in', async ({ page 
   // App title is present
   await expect(page).toHaveTitle(/The Cantina/i)
 
-  // The front door's chapter band, and nothing to build with until they sign in.
+  // The front door's chapter band and Start here, and nothing to build with
+  // until they sign in (the header's control; a phone's is in the menu).
   await expect(page.getByRole('heading', { level: 1, name: /^The Cantina$/i })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Sign in to build' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Start here' })).toBeVisible()
   await expect(
     page.getByRole('link', { name: /Build your first pilot|Create Pilot/i })
   ).toHaveCount(0)

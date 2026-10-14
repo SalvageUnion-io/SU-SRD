@@ -83,10 +83,6 @@ function page(): PageResult {
             measure={PAGE_MEASURE}
             aside={
               <div className="srd-home__lede">
-                <p>
-                  The Salvage Union System Reference Document. Every chassis, ability, crawler and
-                  denizen from the Workshop Manual, searchable and linkable.
-                </p>
                 <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'hero' }}>
                   <HeroSearchStatic />
                 </Island>

@@ -22,8 +22,7 @@
   width: 100%;
 }
 
-/* The home and not-found pages share the lede's type and the body's frame. */
-.srd-home__lede p,
+/* The not-found page's lede type. */
 .srd-not-found__lede p {
   font-size: var(--text-readout);
   line-height: 1.5;
@@ -53,6 +52,22 @@
   .srd-home__band .su-chapter-band__aside {
     margin-inline: calc(-1 * var(--space-24));
     padding-inline: var(--space-24);
+  }
+}
+
+/* The home band holds only the title and the search (owner, 2026-10-14) and
+   is as tall as the Cantina's front-door band: its title opens where the
+   Cantina's does under that band's eyebrow (the eyebrow's top padding, its
+   caption line, then 12px). */
+@media (max-width: 39.99rem) {
+  .srd-home__band .su-chapter-band__row {
+    padding-top: calc(var(--space-48) + var(--space-8));
+  }
+}
+
+@media (min-width: 40rem) {
+  .srd-home__band .su-chapter-band__row {
+    padding-top: var(--space-64);
   }
 }
 
