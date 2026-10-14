@@ -264,12 +264,14 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
 
   // NESTED ENTITIES — each group stacked in the frame, on a card or a page
   // alike; every child wears its own type stamp, so no group is labelled.
-  // Null when there are none, so a header-only card grows no empty strip.
+  // Nothing to nest is `null`, not an empty fragment: the card's lead gap
+  // (`CardLead`) opens only for nested content, so a head-only card (a
+  // creature's Stinger) closes on its head with no paper strip under it.
   const hasNestedGroups =
     droneInfos.length > 0 ||
     droneSystems.length > 0 ||
     droneModules.length > 0 ||
-    (!isPattern && inFlowGroups.length > 0)
+    (!isPattern && inFlowGroups.some((group) => group.entities.length > 0))
   const nestedGroupsNode = hasNestedGroups ? (
     <>
       <DroneCards drones={droneInfos} host={nestedHost} />

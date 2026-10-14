@@ -33,6 +33,8 @@ export type Fact = {
   /** The short form a compact cell prints ("SP"). */
   short: string
   value: string
+  /** The value a compact cell prints, where it has a short form ("C/M" for "Close / Medium"). */
+  shortValue?: string
   /** What the stat means, for its tooltip. */
   hint?: string
 }

@@ -27,11 +27,11 @@
 
 /* The frame: ink on paper, dashed when player-made (ruleset §3.9). A
    surrounding diagram may recolour it through `--su-row-frame` (srd's ability
-   tracks frame their Rows in the track's hue). */
+   tracks frame their Rows in the track's hue). Square-cornered, as a show
+   page's band (owner's call, 2026-10-14). */
 .su-entity-row__frame {
   background-color: var(--color-paper);
   border-color: var(--su-row-frame, var(--color-ink));
-  border-radius: var(--radius-card);
   border-style: solid;
   border-width: var(--bw-entity-compact);
   display: flex;
@@ -184,7 +184,6 @@
 .su-entity-row__notch {
   align-items: baseline;
   background-color: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
   color: var(--color-ink);
   column-gap: var(--space-8);
   display: flex;
@@ -492,7 +491,6 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 /* A Row as a listbox option (a search's results): the option the arrow keys
    highlight wears the ink selection ring, as a selected Row does. */
 .su-entity-row[aria-selected='true'] {
-  border-radius: var(--radius-card);
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
@@ -515,7 +513,6 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 .su-entity-tile__frame {
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
-  border-radius: var(--radius-card);
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -590,7 +587,6 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 /* The notch: a cut-out of the paper below, its foot open into the cells. */
 .su-entity-tile__notch {
   background-color: var(--color-paper);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
   flex: 0 1 auto;
   margin-right: auto;
   min-width: 0;
@@ -610,6 +606,23 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   justify-content: flex-end;
   margin-bottom: var(--space-6);
   min-width: 5.5rem;
+}
+
+/* A system's or module's chips keep to two lines (`--lines`): each line
+   whole, the block its widest line, so the name wraps and then ends in "…"
+   rather than the chips stacking a third row. */
+.su-entity-tile__band > .su-entity-tile__chips--lines {
+  align-items: flex-end;
+  flex: none;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.su-entity-tile__line {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-4);
 }
 
 .su-entity-tile__cells {
@@ -635,7 +648,6 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   align-items: stretch;
   align-self: flex-start;
   border-color: var(--color-ink);
-  border-radius: var(--radius-card);
   border-style: solid;
   border-width: var(--bw-chrome);
   display: inline-flex;

@@ -1,8 +1,8 @@
 /**
  * A Token carries a short chip set after its name (E17's order): its one
  * action's type or how many it lists (`ACTIONS | 3`, its folded self-action
- * not counted), TL, its slots, HP or SP, then the cost box, the same in every
- * context. A chassis keeps its one chip set in every form. An ability's tier
+ * not counted), TL, its slots, HP or SP, its range's code
+ * (`RNG | C`), then the cost box, the same in every context. A chassis keeps its one chip set in every form. An ability's tier
  * numeral leads its name instead of a chip.
  */
 import { describe, expect, test } from 'bun:test'
@@ -40,6 +40,7 @@ describe('Token chips', () => {
       'Reaction',
       'TL3',
       'Slots2',
+      'RNGC',
       '2 EP',
     ])
   })
@@ -57,6 +58,10 @@ describe('Token chips', () => {
     expect(chipsOf('abilities', 'Tip Top Shape').some((chip) => chip.startsWith('Legendary'))).toBe(
       false
     )
+  })
+
+  test("a range is the book's code", () => {
+    expect(chipsOf('systems', 'Red Laser')).toEqual(['Turn Action', 'TL1', 'Slots3', 'RNGC'])
   })
 
   test('a chassis shows its one chip set: TL, SP, EP, SV, SYS, MODS', () => {

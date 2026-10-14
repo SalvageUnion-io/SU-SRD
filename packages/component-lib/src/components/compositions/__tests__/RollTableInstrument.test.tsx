@@ -5,8 +5,9 @@
  * static HTML never carries a dead button. A rolled row's pennant is pinned
  * out of the flow, so the row's content is the same rolled or not.
  */
-import { describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { RollTableInstrument } from '../RollTableInstrument'
 
@@ -170,5 +171,88 @@ describe('RollTableInstrument — the title as a table picker', () => {
     expect(container.querySelector('.su-roll__title-chevron')?.getAttribute('data-open')).toBe(
       'true'
     )
+  })
+})
+
+describe('RollTableInstrument — a roll brings its row on screen', () => {
+  const realScroll = Element.prototype.scrollIntoView
+  const realRect = Element.prototype.getBoundingClientRect
+  let scrolled: Element[] = []
+
+  beforeEach(() => {
+    scrolled = []
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this)
+    }
+    // Every row sits below the fold.
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      const top = this.tagName === 'LI' ? window.innerHeight + 500 : 0
+      return { top, bottom: top + 40 } as DOMRect
+    }
+  })
+
+  afterEach(() => {
+    Element.prototype.scrollIntoView = realScroll
+    Element.prototype.getBoundingClientRect = realRect
+  })
+
+  function Host({ start, open }: { start?: string; open?: boolean }) {
+    const [key, setKey] = useState(start)
+    return (
+      <RollTableInstrument
+        name="Core Mechanic"
+        size="large"
+        open={open}
+        onRoll={() => setKey('1-19')}
+        table={{ kind: 'bands', rows, mark: key ? { key, roll: 7 } : undefined }}
+      />
+    )
+  }
+
+  const roll = () =>
+    fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
+
+  test('the rolled row scrolls into view, and focus stays on the Roll', () => {
+    render(<Host />)
+    const button = screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })
+    button.focus()
+    roll()
+    expect(scrolled).toHaveLength(1)
+    expect(scrolled[0]?.getAttribute('data-rolled')).toBe('true')
+    expect(document.activeElement).toBe(button)
+  })
+
+  test('a re-roll waits for its own mark, not the old one a re-render still shows', async () => {
+    function Late() {
+      const [key, setKey] = useState('20')
+      const [, setTick] = useState(0)
+      return (
+        <RollTableInstrument
+          name="Core Mechanic"
+          size="large"
+          onRoll={() => {
+            setTick((tick) => tick + 1)
+            setTimeout(() => setKey('1-19'), 0)
+          }}
+          table={{ kind: 'bands', rows, mark: { key, roll: 7 } }}
+        />
+      )
+    }
+    render(<Late />)
+    roll()
+    expect(scrolled).toEqual([])
+    await waitFor(() => expect(scrolled).toHaveLength(1))
+    expect(scrolled[0]?.textContent).toContain('Not quite')
+  })
+
+  test('a restored roll does not move the page on load', () => {
+    render(<Host start="20" />)
+    expect(scrolled).toEqual([])
+  })
+
+  test('a folded table rolls without scrolling', () => {
+    render(<Host open={false} />)
+    roll()
+    expect(scrolled).toEqual([])
   })
 })

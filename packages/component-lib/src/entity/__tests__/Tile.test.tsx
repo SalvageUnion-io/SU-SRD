@@ -119,3 +119,35 @@ describe('Tile art', () => {
     expect(container.querySelector('.su-entity-tile__art img')).not.toBeNull()
   })
 })
+
+describe('Tile chips for systems and modules', () => {
+  const lines = (schema: string, name: string) => {
+    const entity = need(SalvageUnionReference.getByNameIn(schema as never, name), name)
+    const { container } = render(<Entity form="tile" entity={entity as never} />)
+    return Array.from(chipsOf(container).querySelectorAll('.su-entity-tile__line')).map((line) =>
+      Array.from(line.children).map((chip) => (chip.textContent ?? '').replace(/\s+/g, ' ').trim())
+    )
+  }
+
+  test("a system's chips keep to two lines, without SV, its range as the book's code", () => {
+    expect(lines('systems', 'Red Laser')).toEqual([
+      ['TL1', 'Slots3'],
+      ['RNGC', 'DMG3 SP'],
+    ])
+  })
+
+  test("a module's salvage value stays off its tile; its cost ends the second line", () => {
+    const [first = [], second = []] = lines('modules', 'Laser Guidance')
+    expect([...first, ...second].some((chip) => chip.startsWith('SV'))).toBe(false)
+    expect(second.at(-1)).toBe('3 EP')
+  })
+
+  test('two chips or fewer stay on one line', () => {
+    expect(lines('systems', 'Cargo Pod')).toEqual([])
+  })
+
+  test('other tiles keep their chips as they are', () => {
+    const { container } = render(<Entity form="tile" entity={mule()} />)
+    expect(chipsOf(container).querySelector('.su-entity-tile__line')).toBeNull()
+  })
+})

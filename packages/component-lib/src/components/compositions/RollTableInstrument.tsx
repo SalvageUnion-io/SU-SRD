@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useSyncExternalStore } from 'react'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { revealRolled } from '../../utils/revealRolled'
 import { Button } from '../atoms/Button'
 import { FOCUS_RING_ON_TONE } from '../atoms/interaction'
 import type { CardSize } from '../containers/displayMode'
@@ -21,7 +22,8 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  *   The bar is an ink HEAD; with nothing of the host's in it (a page's
  *   bands) it labels the columns, d20 over the ranges and Result over the text.
  * - No readout: every roll's result is a toast (`toastRoll`), raised by the
- *   host; the table only marks where the roll landed.
+ *   host; the table only marks where the roll landed, and a Roll on an open
+ *   table brings the marked row (or cell) on screen (`revealRolled`).
  * - The BANDS: banded d20 rows in the SURFACE TONE (`tone`, the colour of the
  *   page or guide the table sits on): paper, then the tone's band
  *   (`rollBandColor`), in turn; a surface with no tone bands in cream. The
@@ -140,8 +142,29 @@ export function RollTableInstrument({
   frame = 'box',
   density,
 }: RollTableInstrumentProps) {
+  const root = useRef<HTMLDivElement>(null)
+  // A Roll on an open table notes the mark it leaves; the first render that
+  // marks anew reveals it. The host may mark later (its die loads first), and
+  // may re-render before then, so the old mark is never what is revealed.
+  const reveal = useRef<{ before: string } | null>(null)
+  const marked = () => root.current?.querySelector('[aria-current="true"]')
+  // A row's text carries its pennant, "Rolled N", so a new roll reads anew.
+  const markOf = (at: Element | null | undefined) => at?.textContent ?? ''
+  useEffect(() => {
+    if (!reveal.current) return
+    const rolled = marked()
+    if (!rolled || markOf(rolled) === reveal.current.before) return
+    reveal.current = null
+    revealRolled(rolled)
+  })
+  const rollAndReveal = onRoll
+    ? () => {
+        reveal.current = open ? { before: markOf(marked()) } : null
+        onRoll()
+      }
+    : undefined
   const roll = (
-    <RollControl name={name} onRoll={onRoll}>
+    <RollControl name={name} onRoll={rollAndReveal}>
       {stamp}
     </RollControl>
   )
@@ -150,6 +173,7 @@ export function RollTableInstrument({
   const split = table.kind === 'bands' && !!table.split
   return (
     <div
+      ref={root}
       className="su-roll"
       data-size={size}
       data-frame={frame}

@@ -21,12 +21,13 @@ type TokenChip = { label: string; value?: string }
 
 /**
  * The facts a Token keeps, by their chip label (owner's set, 2026-10-14): Tech
- * Level, the slots it takes or has, and its hit or structure points, a
- * player unit's live reading (`SP 7/9`) included. Everything else (SV, EP,
- * RNG, DMG, traits) is the Row's and the Page's, but a chassis keeps its one
- * chip set (TL, SP, EP, SV, SYS, MODS) in every form (`formFacts`).
+ * Level, the slots it takes or has, its hit or structure points, a player
+ * unit's live reading (`SP 7/9`) included, and its range as the book's code
+ * (`RNG | C`). Everything else (SV, EP, DMG, traits) is the Row's and the
+ * Page's, but a chassis keeps its one chip set (TL, SP, EP, SV, SYS, MODS)
+ * in every form (`formFacts`).
  */
-const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP'])
+const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP', 'RNG'])
 
 /**
  * A Token's own chips, in E17's order: its one action's type or, with two or
@@ -51,7 +52,7 @@ function tokenChips(model: EntityRowModel): TokenChip[] {
   const chassis = model.ref.schemaName === 'chassis' && !model.ref.synthetic
   for (const fact of formFacts(model)) {
     if (chassis || TOKEN_FACTS.has(fact.short)) {
-      chips.push({ label: fact.short, value: fact.value })
+      chips.push({ label: fact.short, value: fact.shortValue ?? fact.value })
     }
   }
   if (chips.length === 0 && model.kind.classKind) chips.push({ label: model.kind.classKind })

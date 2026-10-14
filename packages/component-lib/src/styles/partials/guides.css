@@ -431,7 +431,6 @@
 .su-pattern-rows__item {
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink);
-  border-radius: var(--radius-card);
   display: flex;
   flex-direction: column;
   min-width: 0;
