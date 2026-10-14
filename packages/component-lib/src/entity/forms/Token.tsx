@@ -25,10 +25,13 @@ type TokenChip = { label: string; value?: string }
  * Level, the slots it takes or has, its hit or structure points, a player
  * unit's live reading (`SP 7/9`) included, and its range as the book's code
  * (`RNG | C`). Everything else (SV, EP, DMG, traits) is the Row's and the
- * Page's, but a chassis keeps its one chip set (TL, SV, SP, EP, SYS, MODS:
- * the model's `entityStats`) in every form.
+ * Page's, but a chassis keeps its chip set (the model's `entityStats`) less
+ * its SYS and MODS (owner, 2026-10-14): TL, SV, SP, EP.
  */
 const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP', 'RNG'])
+
+/** The chassis facts a Token drops: its slot capacities are the Row's and the Page's. */
+const CHASSIS_DROPPED: ReadonlySet<string> = new Set(['SYS', 'MODS'])
 
 /**
  * A Token's own chips, in the stat order (E17): the kept stats (TL first),
@@ -42,7 +45,7 @@ function tokenChips(model: EntityRowModel): TokenChip[] {
   const chassis = model.ref.schemaName === 'chassis' && !model.ref.synthetic
   const kept = (facts: readonly Fact[]): TokenChip[] =>
     facts
-      .filter((fact) => chassis || TOKEN_FACTS.has(fact.short))
+      .filter((fact) => (chassis ? !CHASSIS_DROPPED.has(fact.short) : TOKEN_FACTS.has(fact.short)))
       .map((fact) => ({ label: fact.short, value: fact.shortValue ?? fact.value }))
   const { stats, action } = splitStatLine(model.facts)
   const chips: TokenChip[] = kept(stats)
