@@ -44,6 +44,10 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * the cluster follows the title, below the band on the page ground. The
  * notch stays on the band's foot either way.
  *
+ * `corner` sits in the band's top-right corner, above the title row, at every
+ * width: a page's own controls where they are not the entity's stamps (an
+ * ITUN sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
+ *
  * ## Colour map
  *
  * `tone` is the book's colour map (ruleset, "The source"): `rules` is the
@@ -95,6 +99,8 @@ export type ChapterBandProps = {
    * title from `sm` (each child a right-aligned line) and below it on a phone.
    */
   asideAt?: 'end' | 'notch'
+  /** Controls in the band's top-right corner, above the title row. */
+  corner?: ReactNode
   /**
    * The inner row's max inline size — the width of the content column under
    * the band, so the notch starts where the text does. Unset, the row spans
@@ -158,6 +164,16 @@ const userMadeTitle = (dash: string) =>
     borderTopWidth: dash,
   }) satisfies CSSProperties
 
+// Its padding is the stylesheet's (`.su-chapter-band__corner`): it changes at `sm`.
+const CORNER = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[8],
+  justifyContent: 'flex-end',
+  marginInline: 'auto',
+} satisfies CSSProperties
+
 const EYEBROW = {
   alignItems: 'center',
   display: 'flex',
@@ -203,6 +219,7 @@ export function ChapterBand({
   lead,
   aside,
   asideAt = 'end',
+  corner,
   measure,
   id,
   eyebrow,
@@ -242,6 +259,14 @@ export function ChapterBand({
       }}
     >
       <Speckle grain={grain ?? (tone === 'ink' ? 'paper' : 'ink')} />
+      {corner && (
+        <div
+          className="su-chapter-band__corner"
+          style={measure ? { ...CORNER, maxWidth: measure } : CORNER}
+        >
+          {corner}
+        </div>
+      )}
       {eyebrow && (
         <div
           className="su-chapter-band__eyebrow"

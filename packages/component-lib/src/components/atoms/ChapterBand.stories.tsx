@@ -6,6 +6,7 @@ import { Caption } from '../../stories/_harness'
 import { PageShell } from '../containers/PageShell'
 import { UserMadeStamp } from '../referenceEntity/card/UserMadeStamp'
 import { Badge } from './Badge'
+import { Button } from './Button'
 import { ChapterBand } from './ChapterBand'
 import { Text } from './Text'
 
@@ -69,20 +70,23 @@ export const Default: Story = () => (
       <ChapterBand tone="pilot">{pilotClass?.name ?? 'Pilot Bay'}</ChapterBand>
     </div>
     <div style={PAGE}>
-      <Caption>pilot — a sheet's stamps and provenance beside the name (board 10)</Caption>
+      <Caption>
+        pilot — a sheet: its stamp beside the name, its controls in the corner (board 10)
+      </Caption>
       <ChapterBand
         tone="pilot"
         measure="80rem"
         asideAt="notch"
+        corner={
+          <Button variant="primary" size="full">
+            Make a copy
+          </Button>
+        }
         aside={
           <span style={STAMPS}>
-            <Badge shape="stamp" size="full">
-              Pilot
-            </Badge>
             <Badge shape="stamp" size="full" surface="inverse">
               {pilotClass?.name ?? 'Engineer'}
             </Badge>
-            <span>Starter Set · Leyline Press · read-only</span>
           </span>
         }
       >

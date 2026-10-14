@@ -97,19 +97,6 @@ describe('Print markup — PilotSheet', () => {
     expect(bar?.getAttribute('data-print')).toBe('hide')
   })
 
-  test('top-bar back-link is inside the print-hidden bar', () => {
-    const { container } = render(
-      <Sheet
-        kind="pilot"
-        id="print-pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock()}
-      />
-    )
-    const backLink = container.querySelector('[data-print="hide"] a[aria-label="Back to shelves"]')
-    expect(backLink).toBeTruthy()
-  })
-
   /**
    * Regression. A picker `Field` renders its VALUE *inside* the button
    * rather than beside it, so the print rule `button:not([data-print='keep'])`

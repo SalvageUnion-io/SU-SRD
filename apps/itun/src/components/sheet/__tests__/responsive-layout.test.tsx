@@ -129,8 +129,9 @@ describe('Sheet responsive layout — single entity', () => {
       />
     )
     expect(container.querySelector('.sheet--mech')).toBeTruthy()
+    // The bar rides a sticky anchor with no height: nothing above the band at rest.
     const bar = container.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
-    expect(bar?.style.position).toBe('sticky')
+    expect(bar?.parentElement?.style.position).toBe('sticky')
   })
 
   test('pilot-only Sheet renders the pilot-toned shell with a sticky bar', () => {
@@ -143,8 +144,9 @@ describe('Sheet responsive layout — single entity', () => {
       />
     )
     expect(container.querySelector('.sheet--pilot')).toBeTruthy()
+    // The bar rides a sticky anchor with no height: nothing above the band at rest.
     const bar = container.querySelector<HTMLElement>('section[aria-label="Sheet controls"]')
-    expect(bar?.style.position).toBe('sticky')
+    expect(bar?.parentElement?.style.position).toBe('sticky')
   })
 })
 

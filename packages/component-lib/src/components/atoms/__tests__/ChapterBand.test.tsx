@@ -59,6 +59,19 @@ describe('ChapterBand', () => {
     expect(heading.compareDocumentPosition(stamp) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
+  test('`corner` sits above the title row, right-aligned, and is absent when unset', () => {
+    const { container } = render(
+      <ChapterBand corner={<button type="button">Make a copy</button>}>Bonesaw</ChapterBand>
+    )
+    const corner = container.querySelector<HTMLElement>('.su-chapter-band__corner')
+    expect(corner?.style.justifyContent).toBe('flex-end')
+    expect(corner?.nextElementSibling?.className).toBe('su-chapter-band__row')
+    expect(screen.getByRole('button', { name: 'Make a copy' })).toBeTruthy()
+
+    const { container: bare } = render(<ChapterBand>Keywords</ChapterBand>)
+    expect(bare.querySelector('.su-chapter-band__corner')).toBeNull()
+  })
+
   test('the aside sits at the far end by default', () => {
     const { container } = render(
       <ChapterBand tone="mech" aside={<span>Chassis</span>}>

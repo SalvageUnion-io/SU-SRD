@@ -107,10 +107,11 @@ type SheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * Where the sheet's back link goes. Defaults to the Shelves.
+   * Where the not-found state's exit link goes. Defaults to the Shelves. The
+   * sheet itself has no back link (the band starts the page).
    *
    * A sheet reached from a Game's crew list belongs to that game for the length
-   * of the visit, and sending its back link to the personal Shelves would strand
+   * of the visit, and sending its exit link to the personal Shelves would strand
    * the viewer one surface away from the crew they were reading.
    */
   back?: { href: string; label: string }
@@ -141,12 +142,6 @@ type SheetProps = {
   hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
   /** Assigned units to name without reading — a public sheet's private assignments. */
   withheld?: readonly WithheldUnit[]
-  /**
-   * Where the sheet comes from, on its band beside the type stamps ("Starter
-   * Set · Leyline Press · read-only"). A read-only sheet says "read-only" when
-   * the caller names nothing.
-   */
-  provenance?: string
   /** Controls on the band (the Starter Set's "Make a copy"). */
   bandActions?: ReactNode
 }
@@ -178,7 +173,6 @@ export function Sheet({
   others,
   hrefFor = liveSheetHref,
   withheld = NONE_WITHHELD,
-  provenance,
   bandActions,
 }: SheetProps) {
   const storeState = store()
@@ -373,7 +367,6 @@ export function Sheet({
       <SheetModeToggle mode={sheetMode} kind={kind} />
     ) : null
   const band: SheetBand = {
-    provenance: provenance ?? (readOnlyProp ? 'read-only' : undefined),
     actions:
       modeToggle === null && bandActions === undefined ? undefined : (
         <>
@@ -386,7 +379,6 @@ export function Sheet({
   const common = {
     band,
     composition,
-    back,
     actions,
     segments,
     editable: !readOnly,

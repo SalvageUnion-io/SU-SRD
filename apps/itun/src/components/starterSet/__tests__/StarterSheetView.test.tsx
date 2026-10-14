@@ -24,7 +24,7 @@ const { StarterSheetView } = await import('../StarterSheetView')
 beforeAll(hydrateStores)
 
 describe('a Starter Set sheet', () => {
-  test('is the template’s own sheet, read-only, its band naming Leyline Press', () => {
+  test('is the template’s own sheet, read-only, with "Make a copy" in its band’s corner', () => {
     render(
       <ConnectionProvider>
         <StarterSheetView kind="pilot" id="starter-pilot-bonesaw" />
@@ -32,7 +32,9 @@ describe('a Starter Set sheet', () => {
     )
 
     expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw (Pilot)' })).toBeTruthy()
-    expect(screen.getByText('Starter Set · Leyline Press · read-only')).toBeTruthy()
+    // No back link, and no provenance line: the band says only the name.
+    expect(screen.queryByRole('link', { name: /back to/i })).toBeNull()
+    expect(screen.queryByText(/Leyline Press/)).toBeNull()
     // Read-only: no edit affordance at all, so nothing can reach a template —
     // not even a disabled Read | Edit, which could only say no.
     expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
@@ -42,6 +44,7 @@ describe('a Starter Set sheet', () => {
     // target, not the 30px compact one).
     const copy = screen.getByRole('button', { name: 'Sign in to make a copy' })
     expect(copy.className).toContain('su-btn--full')
+    expect(copy.closest('.su-chapter-band__corner')).not.toBeNull()
     // The band names the class and Bonesaw's callsign is the title, so the
     // identity card repeats neither under it.
     expect(screen.getAllByText('Engineer')).toHaveLength(1)
