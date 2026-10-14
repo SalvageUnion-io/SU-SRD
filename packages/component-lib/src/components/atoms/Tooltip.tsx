@@ -2,8 +2,8 @@ import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import type { CSSProperties } from 'react'
 import { useContext } from 'react'
 import { color, fontSize, space } from '../../design/tokens'
-import { InsidePeekContext } from '../../entity/peekContext'
 import { INK_POPUP } from './inkPopup'
+import { InsidePeekContext } from './insidePeek'
 
 type TooltipProps = {
   children: React.ReactNode

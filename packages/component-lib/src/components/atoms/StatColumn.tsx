@@ -1,5 +1,3 @@
-import type { BookStat } from '../referenceEntity/referenceEntityStatsConfig'
-
 /**
  * StatColumn — the Workshop Manual's stat column at page scale (ruleset, "The
  * source": the ink stamp + framed numeral): each stat is a framed numeral
@@ -15,8 +13,16 @@ import type { BookStat } from '../referenceEntity/referenceEntityStatsConfig'
  * order it is drawn: label first, as every chip and stat reads.
  */
 
+/** One cell: the book's label, its value, and the stat's glossary line on hover. */
+export type StatColumnCell = {
+  key: string
+  label: string
+  value: string
+  hoverText?: string
+}
+
 type StatColumnProps = {
-  stats: BookStat[]
+  stats: StatColumnCell[]
   /** Names the list (`aria-label`), e.g. "Gopher stats". */
   label: string
 }

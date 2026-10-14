@@ -1,12 +1,8 @@
-import { createContext, useContext } from 'react'
+import { useContext } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import { InsidePeekContext } from '../components/atoms/insidePeek'
 
-/**
- * Whether the subtree is INSIDE a Peek. A Peek is read-only and terminal (E16):
- * no links, no modes, no Peek inside it, and no tooltip primitive arming a
- * popup of its own. The Peek provides it; every form, part and tooltip reads it.
- */
-export const InsidePeekContext = createContext(false)
+export { InsidePeekContext }
 
 /** Whether the subtree is inside a Peek (`InsidePeekContext`). */
 export function useInsidePeek(): boolean {
