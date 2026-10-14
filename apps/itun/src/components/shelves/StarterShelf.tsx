@@ -1,17 +1,16 @@
 /**
- * StarterShelf — the Starter Set as a read-only shelf, in the rules blue
- * (Shelves, board S1): the book's ready-made pilots, mechs and crawler, one
- * Token each, as a shelf draws its units (`ShelfPill`). They are read like
- * the reference — each opens its read-only
+ * StarterShelf — the Starter Set as a read-only shelf (Shelves, board S1): the
+ * book's ready-made pilots, mechs and crawler, one Token each, as the SRD
+ * lists the book's things. Your own units on the shelves above are Rows
+ * (`ShelfPill`). They are read like the reference — each opens its read-only
  * sheet (`/starter/:kind/:id`) — and kept by making a copy there ("Make a
  * copy"), never by editing the book's.
  *
- * The stamp is rules blue rather than ink because these are the book's, not
- * yours: the same colour map that bands the SRD's rules pages (ruleset, "The
- * source").
+ * Its head is every shelf's `Slab`, "read-only" beside the stamp where a
+ * shelf of yours says "Yours".
  */
 
-import { Entity, Text, tokens } from 'component-lib'
+import { Entity, Slab, Text, tokens } from 'component-lib'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import { unitRowModel } from '../../lib/units/unitModel'
@@ -23,46 +22,8 @@ const SECTION = {
   minWidth: 0,
 } satisfies CSSProperties
 
-const HEAD = {
-  alignItems: 'center',
-  display: 'flex',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-/** The section stamp in the rules blue: ink on blue, as the rules band carries it. */
-const STAMP = {
-  backgroundColor: tokens.color.wkLine,
-  borderColor: tokens.color.ink,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.hairline,
-  color: tokens.color.ink,
-  flexShrink: 0,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.sm,
-  fontWeight: tokens.weight.extrabold,
-  letterSpacing: tokens.tracking.capsTight,
-  lineHeight: 1.6,
-  margin: 0,
-  padding: `2px ${tokens.space[8]} 3px`,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const READ_ONLY = {
-  color: tokens.color.wkMuted,
-  flexShrink: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
-  fontWeight: tokens.weight.bold,
-} satisfies CSSProperties
-
-const RULE = {
-  borderTopColor: tokens.color.ink50,
-  borderTopStyle: 'dashed',
-  borderTopWidth: tokens.borderWidth.hairline,
-  flex: '1 1 auto',
-  height: 0,
-  minWidth: tokens.space[12],
-} satisfies CSSProperties
+/** The Slab's own foot margin gives way to the section's gap. */
+const SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 const LEAD = { textAlign: 'left' } satisfies CSSProperties
 
@@ -84,13 +45,15 @@ const UNITS: { kind: 'pilot' | 'mech' | 'crawler'; id: string; name: string }[] 
 export function StarterShelf() {
   return (
     <section aria-labelledby="shelf-starter" style={SECTION}>
-      <div style={HEAD}>
-        <h2 id="shelf-starter" style={STAMP}>
-          Starter Set
-        </h2>
-        <span style={READ_ONLY}>read-only</span>
-        <span aria-hidden="true" style={RULE} />
-      </div>
+      <Slab
+        variant="solid"
+        as="h2"
+        id="shelf-starter"
+        label="Starter Set"
+        count="read-only"
+        countAt="label"
+        style={SLAB}
+      />
       <Text variant="body" style={LEAD}>
         The book&rsquo;s ready-made pilots, mechs and crawler. Browse them like the reference; make
         a copy to put one on your own shelf.

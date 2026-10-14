@@ -17,7 +17,7 @@
  * shared `Button`.
  */
 
-import { Button } from 'component-lib'
+import { Button, EmptyState } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import type { BoardMenu, BoardOption } from './boardMenu.model'
@@ -176,7 +176,7 @@ export function BoardMenuList({
   }, [])
 
   if (options.length === 0) {
-    return <p style={NOTE}>No mechs to board. Assign one on the pilot’s sheet.</p>
+    return <EmptyState variant="quiet" body="No mechs to board. Assign one on the pilot’s sheet." />
   }
   return (
     <ul style={LIST}>

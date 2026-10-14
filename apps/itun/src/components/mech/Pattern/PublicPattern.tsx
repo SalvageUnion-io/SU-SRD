@@ -26,6 +26,7 @@ import {
   ReferenceEntityCard,
   Slab,
   Stat,
+  StatColumn,
   Text,
   toast,
   tokens,
@@ -178,51 +179,6 @@ const NOTES_TEXT = {
   margin: 0,
 } satisfies CSSProperties
 
-/** The stat column: a two-column grid of plates, as the board draws it. */
-const STATS = {
-  display: 'grid',
-  gap: tokens.space[8],
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-} satisfies CSSProperties
-
-/** One stat plate: a large framed numeral beside an ink label at 14px (ruleset §2). */
-const PLATE = {
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
-  display: 'flex',
-  minHeight: '3.25rem',
-} satisfies CSSProperties
-
-const PLATE_VALUE = {
-  alignItems: 'center',
-  borderRight: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
-  color: tokens.color.ink,
-  display: 'flex',
-  flexShrink: 0,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.display,
-  fontWeight: tokens.weight.extrabold,
-  justifyContent: 'center',
-  width: '4rem',
-} satisfies CSSProperties
-
-const PLATE_LABEL = {
-  alignItems: 'center',
-  backgroundColor: tokens.color.ink,
-  color: tokens.color.paper,
-  display: 'flex',
-  flex: 1,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.sm,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsSnug,
-  minWidth: 0,
-  padding: `0 ${tokens.space[8]}`,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
 /** The note under the stats: a 13px grey caption, aligned left. */
 const STATS_NOTE = {
   color: tokens.color.ink2,
@@ -309,7 +265,11 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const loadout = patternLoadout(pattern)
   const parts = [...loadout.systems, ...loadout.modules]
   const art = chassis ? getAssetUrl(chassis) : undefined
-  const stats = chassis ? extractStaticEntitySummary(chassis).stats : []
+  const stats = (chassis ? extractStaticEntitySummary(chassis).stats : []).map((stat) => ({
+    key: stat.label,
+    label: stat.label,
+    value: String(stat.value),
+  }))
   const abilities = chassis ? (getChassisAbilities(chassis) ?? []) : []
 
   async function build() {
@@ -408,14 +368,13 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           </section>
 
           <section style={COLUMN} aria-label="Stats and actions">
-            <div style={STATS}>
-              {stats.map((s) => (
-                <div key={s.label} style={PLATE}>
-                  <span style={PLATE_VALUE}>{s.value}</span>
-                  <span style={PLATE_LABEL}>{s.label}</span>
-                </div>
-              ))}
-            </div>
+            {stats.length > 0 && (
+              <StatColumn
+                stats={stats}
+                label={chassis ? `${chassis.name} stats` : 'Chassis stats'}
+                compact
+              />
+            )}
             {chassis && (
               <p style={STATS_NOTE}>
                 Stats come from the {chassis.name} chassis in the Workshop Manual.

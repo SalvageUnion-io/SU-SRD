@@ -27,8 +27,10 @@ const SHELF_VALUE = 'shelf'
 
 const ROW = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
 
+// Paper: the select sits on the Game page's band (`GameBand`), whose
+// controls are paper on the deeper crawler pink.
 const LABEL = {
-  color: color.ink,
+  color: color.paper,
   fontFamily: font.cond,
   fontSize: fontSize.caption,
   fontWeight: weight.semibold,

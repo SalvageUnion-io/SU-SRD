@@ -124,6 +124,13 @@ const COUNT = {
 /** `countInk="inherit"`: the count takes the ground's ink. */
 const COUNT_INHERIT = { ...COUNT, color: 'currentcolor' } satisfies CSSProperties
 
+/**
+ * A hint at the rule's end ("The Mediator runs it; …") wraps rather than
+ * squeezing the stamp: it gives way first, right-aligned under itself.
+ */
+const HINT = { ...COUNT, flexShrink: 1, minWidth: 0, textAlign: 'right' } satisfies CSSProperties
+const HINT_INHERIT = { ...HINT, color: 'currentcolor' } satisfies CSSProperties
+
 /** A value count: the chip, then its muted note. */
 const COUNT_STAT = {
   alignItems: 'center',
@@ -133,10 +140,11 @@ const COUNT_STAT = {
 } satisfies CSSProperties
 
 /** Composed with `POSTER_STAMP`, which supplies face, caps, weight and tracking. */
-/* A label longer than its row wraps (`minWidth: 0`) rather than pushing the rule off the page. */
+/* A label longer than its row wraps between its words rather than pushing the
+   rule off the page; a word is never cut (`min-content`). */
 const SOLID_LABEL = {
   flexShrink: 1,
-  minWidth: 0,
+  minWidth: 'min-content',
   fontSize: fontSize.sm,
   lineHeight: 1.625,
   paddingBottom: '3px',
@@ -147,7 +155,7 @@ const SOLID_LABEL = {
 const DASHED_LABEL = {
   color: 'var(--tone-deep, var(--color-ink))',
   flexShrink: 1,
-  minWidth: 0,
+  minWidth: 'min-content',
   fontFamily: font.cond,
   fontSize: fontSize.sm,
   fontWeight: weight.bold,
@@ -220,7 +228,9 @@ export function Slab({
       ))}
     </span>
   ) : (
-    count != null && <span style={countInkStyle}>{count as ReactNode}</span>
+    count != null && (
+      <span style={countInk === 'inherit' ? HINT_INHERIT : HINT}>{count as ReactNode}</span>
+    )
   )
   return (
     <div className={className} style={style ? { ...ROW, ...style } : ROW}>

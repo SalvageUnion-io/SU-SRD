@@ -11,13 +11,13 @@
  * Presentational: `readCrawler()` reads the listing's body.
  */
 
-import { Entity, tokens } from 'component-lib'
+import { EmptyState, Entity, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { AppLink } from '../shared/AppLink'
 import type { CrawlerReading } from './crawlerReading.model'
 import { crawlerReadings } from './crawlerReading.model'
-import { BODY, bandTop, HEADING, MUTED } from './mediatorStyles.model'
+import { BODY, bandTop, HEADING } from './mediatorStyles.model'
 
 const { color, weight } = tokens
 
@@ -37,7 +37,7 @@ export function CrawlerMinor({
         <h2 id="mediator-crawler" style={HEADING}>
           Crawler
         </h2>
-        <p style={MUTED}>This Game has no Union Crawler yet.</p>
+        <EmptyState variant="quiet" body="This Game has no Union Crawler yet." />
         <AppLink href={`/games/${gameId}`} style={{ ...BODY, marginTop: 'auto' }}>
           Raise one from the Game page
         </AppLink>

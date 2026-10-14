@@ -2,13 +2,13 @@
  * Shelf — one kind of thing you keep (Shelves, board S1): the section stamp
  * with its count beside it, a dashed rule running to the shelf's "+ New…"
  * control, a line saying what the shelf is for where it needs one, and the
- * items, or a line saying there are none.
+ * items, or the shared empty state saying there are none.
  *
  * The region is named by its stamp, so "Pilots" is both what a reader sees and
  * what a screen reader lands on.
  */
 
-import { Slab, Text, tokens } from 'component-lib'
+import { EmptyState, Slab, Text, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 
 const SECTION = {
@@ -29,8 +29,6 @@ const LIST = {
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
-
-const EMPTY = { textAlign: 'left' } satisfies CSSProperties
 
 type ShelfProps = {
   /** The stamp, and the region's name: "Pilots". */
@@ -68,13 +66,7 @@ export function Shelf({ title, id, aside, action, note, empty, children, isEmpty
           {note}
         </Text>
       )}
-      {isEmpty ? (
-        <Text variant="hint" style={EMPTY}>
-          {empty}
-        </Text>
-      ) : (
-        <ul style={LIST}>{children}</ul>
-      )}
+      {isEmpty ? <EmptyState variant="quiet" body={empty} /> : <ul style={LIST}>{children}</ul>}
     </section>
   )
 }

@@ -1,20 +1,19 @@
 /**
- * CrawlerEconomyControl — the crawler-economy actions behind the hero's
- * UPKEEP / UPGRADE / TRADE spec lozenges (Core Book
- * p.218-223): Pay Upkeep (with the failed-Upkeep Deterioration roll),
- * Upgrade Crawler, the fixed-rate Scrap exchange, and the Trading Bay
- * availability roll.
+ * CrawlerEconomyControl — the crawler-economy actions behind the hero's UPKEEP
+ * / UPGRADE / TRADE spec lozenges (Core Book p.218-223): Pay Upkeep (with the
+ * failed-Upkeep Deterioration roll), Upgrade Crawler, the fixed-rate Scrap
+ * exchange, and the Trading Bay availability roll.
  *
  * WHY A LIFECYCLE TRANSACTION LIVES ON A FREE-EDIT SURFACE. ADR-021 puts
- * lifecycle transactions on the guided modes, so this control is an exception
- * — a **sanctioned** one, recorded in the "Sanctioned Live-Sheet transactions"
- * table in `docs/ARCHITECTURE.md#live-sheet`, which is the
- * authoritative placement doc. The short version: the crawler has no Dashboard
- * presence, the whole economy hangs off the crawler hero's lozenges, nothing
- * here blocks (every gate is a disabled button plus a visible advisory), and
- * `scrapPool` stays hand-editable on the same sheet, so this is a convenience
- * rather than the only door. If the crawler ever gets a Dashboard presence,
- * these three dialogs move there and retag `DASHBOARD_TXN`.
+ * lifecycle transactions on the guided modes, so this control is an exception —
+ * a **sanctioned** one, recorded in the "Sanctioned Live-Sheet transactions"
+ * table in `docs/ARCHITECTURE.md#live-sheet`, the authoritative placement doc.
+ * The short version: the crawler has no Dashboard presence, the whole economy
+ * hangs off the crawler hero's lozenges, nothing here blocks (every gate is a
+ * disabled button plus a visible advisory), and `scrapPool` stays hand-editable
+ * on the same sheet, so this is a convenience rather than the only door. If the
+ * crawler ever gets a Dashboard presence, these three dialogs move there and
+ * retag `DASHBOARD_TXN`.
  *
  * Its writes are therefore `LIVE_SHEET_TXN`, not `LIVE_SHEET_MANUAL`: a rolled
  * Deterioration is not somebody typing in a box.
@@ -26,15 +25,16 @@
  * only shows an advisory; the availability roll is informational — buying the
  * sourced wares stays a table call.
  *
- * Rolls are ephemeral (nothing persists but the applied bookkeeping), so
- * snapshots have nothing to show; the control mounts only on editable
- * sheets. Pure logic lives in lib/rules/crawlerEconomy.ts (injectable d20);
- * the Upkeep and Trading Bay dialogs' UI state is a pair of pure reducers in
+ * Rolls are ephemeral (nothing persists but the applied bookkeeping); the
+ * control mounts only on editable sheets. Pure logic lives in
+ * lib/rules/crawlerEconomy.ts (injectable d20); the Upkeep and Trading Bay
+ * dialogs' UI state is a pair of pure reducers in
  * `crawlerEconomyDialogState.model.ts`.
  */
 
 import {
   Button,
+  EmptyState,
   FieldError,
   ModalShell,
   rollForTable,
@@ -565,7 +565,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
       maxWidth={DIALOG_WIDTH}
     >
       <div style={BODY}>
-        {!gate.present && <p style={MUTED}>No Trading Bay is installed on this crawler.</p>}
+        {!gate.present && <EmptyState variant="quiet" body="This crawler has no Trading Bay." />}
         {gate.damaged && (
           <FieldError>
             The Trading Bay is Damaged — Scrap cannot be traded and the Trading Bay Table cannot be

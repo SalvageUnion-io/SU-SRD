@@ -13,19 +13,16 @@
  * query, drawn as its own read-only page (`NpcSheet`).
  */
 
-import { buttonVariants, tokens } from 'component-lib'
 import { PRODUCT } from 'component-lib/product'
 import { useQuery } from 'convex/react'
 import { NpcSchema } from 'itun-domain/schemas/npc'
 import { MechPatternSchema } from 'itun-domain/schemas/pattern'
-import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { NpcSheet } from '../npc/NpcSheet'
-import { AppLink } from '../shared/AppLink'
+import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { PublicSheet } from './PublicSheet'
 import { SheetSkeleton } from './SheetSkeleton'
-import { UNAVAILABLE_PAGE, UNAVAILABLE_TITLE } from './sheetChrome.model'
 
 const KINDS = ['pilot', 'mech', 'crawler'] as const
 type PublicKind = (typeof KINDS)[number]
@@ -34,28 +31,13 @@ function isPublicKind(value: string): value is PublicKind {
   return (KINDS as readonly string[]).includes(value)
 }
 
-const NOTE = {
-  marginBottom: tokens.space[16],
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
-
-const LINK = { textDecoration: 'none' } satisfies CSSProperties
-
 function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' | 'NPC' }) {
   return (
-    <main style={UNAVAILABLE_PAGE}>
-      <h1 style={UNAVAILABLE_TITLE}>This {what} isn&rsquo;t available</h1>
-      <p style={NOTE}>The link may be wrong, or its owner may have stopped sharing it.</p>
-      <AppLink
-        href="/"
-        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-        style={LINK}
-      >
-        &larr; {PRODUCT.name}
-      </AppLink>
-    </main>
+    <NotFoundPanel
+      title={<>This {what} isn&rsquo;t available</>}
+      message="The link may be wrong, or its owner may have stopped sharing it."
+      back={{ href: '/', label: PRODUCT.name }}
+    />
   )
 }
 

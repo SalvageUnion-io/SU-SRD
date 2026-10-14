@@ -18,7 +18,7 @@
  * affordance — facts render as plain chips (published snapshots).
  */
 
-import { Conditions, INPUT_FOCUS, tokens } from 'component-lib'
+import { Conditions, EmptyState, INPUT_FOCUS, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useChipDraft } from './useChipDraft'
 
@@ -33,13 +33,6 @@ const WELL = {
   gap: tokens.space[6],
   minHeight: '2.5rem',
   padding: tokens.space[8],
-} satisfies CSSProperties
-
-const EMPTY = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 
 /** The new-fact input, set in the quiet chip's prose-cased type. */
@@ -84,7 +77,7 @@ export function NpcFactsEditor({
 
   return (
     <div style={WELL}>
-      {facts.length === 0 && !draft.adding && <span style={EMPTY}>No facts yet</span>}
+      {facts.length === 0 && !draft.adding && <EmptyState variant="quiet" body="No facts yet" />}
 
       {/* Only rendered when it has chips or the '+ Add' affordance to show —
           an empty row would still count as a flex item and double the gap. */}

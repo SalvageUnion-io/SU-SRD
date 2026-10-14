@@ -1,27 +1,24 @@
 /**
- * AnyNpcDesigner — board N1: design an NPC from a reference template, in the
- * five steps of `docs/architecture/npc-builder.md` §4.1 (Template, Stats,
- * Actions & traits, Identity, Review), beside a live preview of the finished
- * card.
+ * AnyNpcDesigner — board N1: design an NPC from a reference template in the five
+ * steps of `docs/architecture/npc-builder.md` §4.1 (Template, Stats, Actions &
+ * traits, Identity, Review), beside a live preview of its card.
  *
  * - The template is a reference NPC (`npcs.json`) or "Start blank" (D4). It
  *   fills Stats and Actions & traits and keeps Identity; changing it asks
  *   first only when those were edited since it last filled them.
- * - Actions and traits are the reference's, never text (D6): each is a
- *   header-only card with a checkbox, opening its full rules in the detail
- *   modal, and a search adds more.
+ * - Actions and traits are the reference's, never text (D6): each a header-only
+ *   card with a checkbox that opens its full rules; a search adds more.
  * - The only hard gates are a name and HP ≥ 1 (`npcCreationStepGate`).
- * - The preview is the card as it will look on a shelf and in a Game: dashed,
- *   User-made, "Made by [maker]" (D9). The template's description pre-fills
- *   Identity, and the player's edits to it win (D5).
+ * - The preview is the card on a shelf or in a Game: dashed, User-made, "Made by
+ *   [maker]" (D9). The template's description pre-fills Identity; edits win (D5).
  *
- * The step machine and the create are `useWizardFlow`'s, as for the other
- * three wizards; the draft persists through `wizardDraft.ts`.
+ * The step machine and create are `useWizardFlow`'s; drafts go through `wizardDraft.ts`.
  */
 
 import {
   Button,
   ConfirmDialog,
+  EmptyState,
   Entity,
   Field,
   FieldError,
@@ -511,7 +508,10 @@ function ActionsStep({
   return (
     <>
       {form.offeredActions.length === 0 && form.offeredTraits.length === 0 ? (
-        <p style={HINT}>No actions yet. An NPC may carry none; add any from the reference below.</p>
+        <EmptyState
+          variant="quiet"
+          body="No actions yet. An NPC may carry none; add any from the reference below."
+        />
       ) : (
         <ul style={LIST} aria-label="Actions and traits">
           {form.offeredActions.map((slug) => (

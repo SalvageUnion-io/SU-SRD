@@ -2,7 +2,7 @@
  * HoldAdder — a Hold container's own intake form (`StorageManifest`).
  */
 
-import { Badge, Button, Input, tokens } from 'component-lib'
+import { Button, Input, Segmented, SegmentedOption, tokens } from 'component-lib'
 import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot } from 'itun-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
@@ -25,12 +25,6 @@ const ADDER = {
   borderRadius: tokens.radius.card,
   border: `${tokens.borderWidth.chrome} dashed ${tokens.color.wkFaint}`,
   padding: tokens.space[10],
-} satisfies CSSProperties
-
-const KIND_TOGGLE = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: tokens.space[4],
 } satisfies CSSProperties
 
 const ADDER_LABEL = {
@@ -109,20 +103,13 @@ export function HoldAdder({
   return (
     <div style={ADDER}>
       {/* Kind toggle — Cargo (named lot) vs Scrap (TL bulk lot). */}
-      {/* biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this inline add-row; role="group" + aria-label conveys the same semantics (matches FilterRow/Stat) */}
-      <div style={KIND_TOGGLE} role="group" aria-label="Cargo kind">
+      <Segmented label="Cargo kind" size="page">
         {(['cargo', 'scrap'] as const).map((k) => (
-          <Badge
-            key={k}
-            as="button"
-            surface={kind === k ? 'solid' : 'ghost'}
-            aria-pressed={kind === k}
-            onClick={() => setKind(k)}
-          >
+          <SegmentedOption key={k} pressed={kind === k} onClick={() => setKind(k)}>
             {k === 'cargo' ? 'Cargo' : 'Scrap'}
-          </Badge>
+          </SegmentedOption>
         ))}
-      </div>
+      </Segmented>
 
       {kind === 'cargo' ? (
         <Input

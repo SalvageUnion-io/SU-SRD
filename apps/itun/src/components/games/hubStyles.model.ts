@@ -9,6 +9,21 @@ import type { CSSProperties } from 'react'
 
 const { color, font, fontSize, space } = tokens
 
+/** The page's measure under its band: Shelves', and the SRD's. */
+export const GAME_MEASURE = '75rem'
+
+/**
+ * The page body under the band. Its side padding and centring are
+ * `.su-page-column`'s, the band's row padding; the height reserves a stable
+ * footprint, so the roster replacing the skeleton does not shift the page.
+ */
+export const GAME_BODY: CSSProperties = {
+  maxWidth: GAME_MEASURE,
+  minHeight: '60vh',
+  paddingBottom: space[48],
+  paddingTop: space[20],
+}
+
 /** The two columns of sections under the roster. */
 export const HUB_COLUMNS: CSSProperties = {
   alignItems: 'start',

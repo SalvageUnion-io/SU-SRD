@@ -11,6 +11,7 @@
  * Presentational: `useGameFeed` reads both and hands them in.
  */
 
+import { EmptyState } from 'component-lib'
 import {
   borderWidth,
   color,
@@ -107,7 +108,7 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
         {rolls === null ? (
           <p style={NOTE}>The Game's rolls appear here.</p>
         ) : rolls.length === 0 ? (
-          <p style={NOTE}>No rolls yet. Every roll at this table lands here.</p>
+          <EmptyState variant="quiet" body="No rolls yet. Every roll at this table lands here." />
         ) : (
           <ul style={LIST}>
             {rolls.map((r) => (

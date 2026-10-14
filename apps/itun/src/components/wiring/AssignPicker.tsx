@@ -40,7 +40,7 @@
  * and replaced by generic copy rather than its raw message.
  */
 
-import { Button, Entity, FieldError, ModalShell, RadioCardGroup } from 'component-lib'
+import { Button, EmptyState, Entity, FieldError, ModalShell, RadioCardGroup } from 'component-lib'
 import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { Container, ContainerFields } from 'itun-domain/container'
 import { containerOf, sameContainer } from 'itun-domain/container'
@@ -72,13 +72,6 @@ const BODY = {
   flexDirection: 'column',
   gap: space[16],
   padding: space[20],
-} satisfies CSSProperties
-
-const EMPTY = {
-  color: color.wkMuted,
-  fontFamily: font.body,
-  fontSize: fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
 
 const NOTE = {
@@ -359,7 +352,7 @@ export function AssignPicker({
       >
         <div style={BODY}>
           {candidates.length === 0 ? (
-            <p style={EMPTY}>{emptyCopy(pick, scope, inScope > 0)}</p>
+            <EmptyState variant="quiet" body={emptyCopy(pick, scope, inScope > 0)} />
           ) : (
             <RadioCardGroup label={copy.title} className="assign-picker__candidates">
               {candidates.map((c) => (

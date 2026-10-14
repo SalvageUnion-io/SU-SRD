@@ -23,15 +23,13 @@
 
 /* ---- Keyboard focus: the canonical ink ring ----
  *
- * Every interactive surface here is a native <button> that sets its own border
+ * The table picker's items are native <button>s that set their own border
  * and background, so each takes the canonical ring (`--focus-ring-shadow`, the
  * two-ring construction that holds on paper and on the `.is-active` ink fill;
  * see `.su-focus-ring` in component-lib's `styles/partials/foundation.css`).
  * `:focus-visible`, so a mouse click leaves no ring; the offset keeps it clear
  * of the surface's own border.
  */
-.su-dash-deck-range-btn:focus-visible,
-.su-dash-deck-source:focus-visible,
 .su-dash-tablepick-item:focus-visible {
   outline: 3px solid transparent;
   outline-offset: 1px;
@@ -379,23 +377,6 @@
   align-items: center;
   gap: 4px;
 }
-.su-dash-deck-range-btn {
-  width: 26px;
-  height: 26px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  color: var(--color-wk-muted);
-  cursor: pointer;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-size: var(--text-note);
-}
-.su-dash-deck-range-btn.is-active {
-  background: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-paper);
-}
 .su-dash-deck-reach {
   margin-left: 6px;
   font-family: var(--font-cond);
@@ -410,32 +391,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-}
-.su-dash-deck-source {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
-  border-radius: var(--radius-badge);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  cursor: pointer;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-size: var(--text-note);
-  max-width: 100%;
-}
-.su-dash-deck-source:hover {
-  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
-}
-.su-dash-deck-fam-mech .su-dash-deck-source.is-active {
-  border-color: var(--color-sheet-mech-deep);
-  box-shadow: inset 0 0 0 1px var(--color-sheet-mech-deep);
-}
-.su-dash-deck-fam-pilot .su-dash-deck-source.is-active {
-  border-color: var(--color-sheet-pilot-deep);
-  box-shadow: inset 0 0 0 1px var(--color-sheet-pilot-deep);
 }
 /* ---- Crawler focus → Enter Downtime (light display) ---- */
 .su-dash-crawler-focus-note {

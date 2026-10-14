@@ -53,6 +53,7 @@ export { Panel } from './components/atoms/Panel'
 export { linesFromBreakdown, summarizeBreakdown } from './components/atoms/provenanceLines'
 export { Radio } from './components/atoms/Radio'
 export { SearchField, SearchFieldTrigger } from './components/atoms/SearchField'
+export { Segmented, SegmentedOption } from './components/atoms/Segmented'
 export type { SlabCount } from './components/atoms/Slab'
 export { Slab } from './components/atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)

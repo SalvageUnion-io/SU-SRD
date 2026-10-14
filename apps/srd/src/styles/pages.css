@@ -925,56 +925,8 @@
   color: var(--color-paper);
 }
 
-/* The segmented control (Shelves' toggle, on paper): an ink-ruled group, the pressed option inverse ink. */
-.srd-seg {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  display: inline-flex;
-  margin: 0;
-  max-width: 100%;
-  min-inline-size: 0;
-  overflow-x: auto;
-  padding: 0;
-}
-
-.srd-seg__option {
-  background-color: transparent;
-  border: 0;
-  color: var(--color-ink);
-  cursor: pointer;
-  flex: none;
-  font-family: var(--font-cond);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  min-height: 41px;
-  padding: 0 var(--space-12);
-  text-transform: uppercase;
-}
-
-.srd-seg__option + .srd-seg__option {
-  border-left: 1px solid var(--color-ink-30);
-}
-
-.srd-seg__option[data-numeral] {
-  font-size: var(--text-base);
-  min-width: 38px;
-  padding: 0 var(--space-8);
-}
-
-.srd-seg__option:hover {
-  background-color: var(--color-band-cream);
-}
-
-.srd-seg__option[aria-pressed='true'],
-.srd-seg__option[aria-pressed='true']:hover {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-/* The TL badge: its ink stamp leads the toggle, as `[TL | 2]` reads on a card. */
-.srd-seg__stamp {
+/* The TL badge: its ink stamp leads the Tech Level `Segmented`, as `[TL | 2]` reads on a card. */
+.srd-rail__stamp {
   align-items: center;
   background-color: var(--color-ink);
   color: var(--color-paper);

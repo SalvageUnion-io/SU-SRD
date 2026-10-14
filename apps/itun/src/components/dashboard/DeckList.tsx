@@ -12,7 +12,7 @@
  */
 
 import type { ReferenceCardEntity } from 'component-lib'
-import { Badge, ReferenceEntityCard, Toggle } from 'component-lib'
+import { Badge, EmptyState, ReferenceEntityCard, Toggle } from 'component-lib'
 import { fontSize, radius, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
@@ -48,7 +48,6 @@ export type DeckListModel =
       sources: { label: string; stamp: string }[]
       sourceFilter: string | null
       onSourceFilter: (source: string | null) => void
-      familyClass: string
       /** The whole deck, flat — one grid, no source/timing headings above it. */
       rows: DeckRow[]
       onOpen: (key: string) => void
@@ -62,6 +61,14 @@ export type DeckListModel =
 /** A bare fieldset: the group, without the browser's frame around it. */
 const GROUP: CSSProperties = { border: 0, margin: 0, padding: 0, minInlineSize: 0 }
 
+/** A source toggle carries its stamp before its label. */
+const SOURCE = {
+  alignItems: 'center',
+  display: 'inline-flex',
+  gap: space[4],
+  maxWidth: '100%',
+} satisfies CSSProperties
+
 const STAMP: CSSProperties = {
   borderRadius: radius.card,
   paddingInline: space[4],
@@ -73,7 +80,7 @@ export function DeckList({ view }: { view: DeckListModel }) {
   if (view.kind === 'empty') {
     return (
       <div className="su-dash-display-scroll">
-        <div className="su-dash-deck-empty">{view.text}</div>
+        <EmptyState variant="quiet" body={view.text} />
       </div>
     )
   }
@@ -90,56 +97,53 @@ export function DeckList({ view }: { view: DeckListModel }) {
         </fieldset>
 
         <div className="su-dash-deck-toolrow">
-          <div className="su-dash-deck-range">
+          <fieldset className="su-dash-deck-range" style={GROUP} aria-label="Engagement Range">
             {view.rangeBands.map((band) => (
-              <button
+              <Toggle
                 key={band}
-                type="button"
-                aria-pressed={view.activeRange === band}
-                className={`su-dash-deck-range-btn${view.activeRange === band ? ' is-active' : ''}`}
+                pressed={view.activeRange === band}
                 onClick={() => view.onRange(band)}
+                aria-label={`Range ${band}`}
                 title={`Set engagement range to ${band}`}
               >
                 {band[0]}
-              </button>
+              </Toggle>
             ))}
             <span className="su-dash-deck-reach">{view.reachText}</span>
-          </div>
+          </fieldset>
         </div>
 
         {view.sources.length > 1 && (
-          <div className={`su-dash-deck-sources ${view.familyClass}`}>
-            <button
-              type="button"
-              aria-pressed={view.sourceFilter === null}
-              className={`su-dash-deck-source${view.sourceFilter === null ? ' is-active' : ''}`}
-              onClick={() => view.onSourceFilter(null)}
-            >
+          <fieldset
+            className="su-dash-deck-sources"
+            style={GROUP}
+            aria-label="Filter actions by source"
+          >
+            <Toggle pressed={view.sourceFilter === null} onClick={() => view.onSourceFilter(null)}>
               All
-            </button>
+            </Toggle>
             {view.sources.map((src) => (
-              <button
+              <Toggle
                 key={`${src.stamp}:${src.label}`}
-                type="button"
-                aria-pressed={view.sourceFilter === src.label}
-                className={`su-dash-deck-source${view.sourceFilter === src.label ? ' is-active' : ''}`}
+                pressed={view.sourceFilter === src.label}
                 onClick={() =>
                   view.onSourceFilter(view.sourceFilter === src.label ? null : src.label)
                 }
                 title={`Filter the deck to “${src.label}” actions.`}
+                style={SOURCE}
               >
                 <Badge shape="stamp" size="mini" style={STAMP}>
                   {src.stamp}
                 </Badge>
                 {src.label}
-              </button>
+              </Toggle>
             ))}
-          </div>
+          </fieldset>
         )}
       </div>
 
       {view.rows.length === 0 ? (
-        <div className="su-dash-deck-empty">No actions match this filter.</div>
+        <EmptyState variant="quiet" body="No actions match this filter." />
       ) : (
         <div className="su-dash-deck">
           {/*

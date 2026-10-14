@@ -1,9 +1,10 @@
 /**
- * ShelfPill — an item on a shelf as one line (Shelves, board S1): the entity
- * display language's TOKEN (`<Entity form="token">`) for things a player
- * keeps. A tone fill in the unit's colour, an ink stamp with its defining
- * fact ("ENGINEER"; never its kind, EDL E9), its name, and one reading
- * (`HP 8/10`), framed in ink; the whole line opens it.
+ * ShelfPill — an item on a shelf (Shelves, board S1): the library Row
+ * (`<Entity form="row">`), as a Game's roster draws the same units. The band
+ * in the unit's colour, its name on the paper cut-out, and right of it the
+ * defining fact (never its kind, EDL E9) and one reading as label-first chips
+ * (`CLASS | ENGINEER`, `HP | 8/10`), the way a Game's roster labels the same
+ * units (`rosterRowStats`); the whole Row opens it.
  *
  * A pilot, mech or crawler on a shelf is the player's own build, which no
  * reference record describes, so its model is `unitRowModel` rather than
@@ -33,11 +34,22 @@ type ShelfPillProps = {
   userMade?: boolean
 }
 
+/** What the defining fact is, per kind; an NPC's position goes unlabelled. */
+const FACT_LABEL: Partial<Record<ShelfKind, string>> = {
+  crawler: 'Type',
+  mech: 'Chassis',
+  pattern: 'Chassis',
+  pilot: 'Class',
+}
+
 export function ShelfPill({ kind, note, name, reading, href, userMade = false }: ShelfPillProps) {
+  const factLabel = FACT_LABEL[kind]
+  const fact = note && factLabel ? { label: factLabel, value: note } : undefined
+  const readings = [fact, reading].filter((r) => r !== undefined)
   return (
     <Entity
-      form="token"
-      model={unitRowModel({ kind, note, name, userMade, readings: reading ? [reading] : [] })}
+      form="row"
+      model={unitRowModel({ kind, note: fact ? undefined : note, name, userMade, readings })}
       mode={href === undefined ? { kind: 'read' } : { kind: 'link', href }}
     />
   )

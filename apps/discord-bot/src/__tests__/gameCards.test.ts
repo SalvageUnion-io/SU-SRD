@@ -9,7 +9,7 @@ import {
   sheetUrl,
 } from '../gameCards'
 import type { EntityBody, SheetResult } from '../itun/types'
-import { cardText } from './cardText'
+import { cardText, cardUrl } from './cardText'
 
 /**
  * Card builders for the ITUN Game commands.
@@ -151,6 +151,10 @@ describe('deep links', () => {
 describe('gamesCard', () => {
   test('an empty game list is stated, not implied', () => {
     expect(cardText(gamesCard([]))).toContain('No Games yet')
+  })
+
+  test('links to the Shelves, since ITUN has no /games page', () => {
+    expect(cardUrl(gamesCard([]))).toBe(`${WEB}/`)
   })
 
   test('roles read as base role plus modifier, never as three roles', () => {

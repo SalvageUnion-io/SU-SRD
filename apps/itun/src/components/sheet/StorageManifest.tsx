@@ -44,7 +44,7 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
-import { BandTitle, cn, InfoCutout, SlotGrid, Stat, tokens } from 'component-lib'
+import { BandTitle, cn, EmptyState, InfoCutout, SlotGrid, Stat, tokens } from 'component-lib'
 import { totalLotUnits } from 'itun-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
@@ -89,13 +89,6 @@ const SMALL_TEXT = {
 const MUTED_TEXT = { ...SMALL_TEXT, color: tokens.color.wkMuted } satisfies CSSProperties
 
 const OVER_TEXT = { ...SMALL_TEXT, color: tokens.color.statusBad } satisfies CSSProperties
-
-const EMPTY = {
-  ...MUTED_TEXT,
-  margin: 0,
-  padding: `${tokens.space[16]} ${tokens.space[12]}`,
-  textAlign: 'center',
-} satisfies CSSProperties
 
 const LOT_LIST = {
   margin: 0,
@@ -216,7 +209,7 @@ export function StorageManifest({
         </div>
 
         {lots.length === 0 ? (
-          <p style={EMPTY}>Hold empty.</p>
+          <EmptyState variant="quiet" body="Hold empty." />
         ) : (
           <ul style={LOT_LIST}>
             {lots.map((lot) => (

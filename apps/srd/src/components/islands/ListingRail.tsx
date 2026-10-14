@@ -1,4 +1,4 @@
-import { SearchField, Select } from 'component-lib'
+import { SearchField, Segmented, SegmentedOption, Select } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { TechLevel } from '../../lib/listingGroups'
 import { tlName } from '../../lib/listingGroups'
@@ -152,51 +152,40 @@ export function ListingRail({
       {status}
       <span className="srd-rail__spring" />
       {views.length > 1 && (
-        <fieldset className="srd-seg srd-rail__view">
-          <legend className="su-sr-only">View</legend>
+        <Segmented label="View" className="srd-rail__view">
           {views.map((option) => (
-            <button
+            <SegmentedOption
               key={option}
-              type="button"
-              className="srd-seg__option su-focus-ring"
-              aria-pressed={view === option}
+              pressed={view === option}
               onClick={() => on.setView(option)}
             >
               {VIEW_LABELS[option]}
-            </button>
+            </SegmentedOption>
           ))}
-        </fieldset>
+        </Segmented>
       )}
       {hasFacets && (
         <div className="srd-rail__facets" id="srd-rail-facets">
           {hasTechLevels && (
-            <fieldset className="srd-seg srd-seg--tl">
-              <legend className="su-sr-only">Tech Level</legend>
-              <span className="srd-seg__stamp" aria-hidden="true">
+            <Segmented label="Tech Level">
+              <span className="srd-rail__stamp" aria-hidden="true">
                 TL
               </span>
-              <button
-                type="button"
-                className="srd-seg__option su-focus-ring"
-                aria-pressed={filters.techLevels.size === 0}
-                onClick={on.clearTechLevels}
-              >
+              <SegmentedOption pressed={filters.techLevels.size === 0} onClick={on.clearTechLevels}>
                 All
-              </button>
+              </SegmentedOption>
               {techLevels.map((level) => (
-                <button
+                <SegmentedOption
                   key={String(level)}
-                  type="button"
-                  className="srd-seg__option su-focus-ring"
-                  data-numeral={typeof level === 'number' || undefined}
-                  aria-pressed={filters.techLevels.has(String(level))}
+                  numeral={typeof level === 'number'}
+                  pressed={filters.techLevels.has(String(level))}
                   aria-label={tlName(level)}
                   onClick={() => on.toggleTechLevel(level)}
                 >
                   {tlButtonLabel(level)}
-                </button>
+                </SegmentedOption>
               ))}
-            </fieldset>
+            </Segmented>
           )}
           {hasSources && (
             <Select

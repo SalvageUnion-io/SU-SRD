@@ -7,7 +7,7 @@
  * Presentational: the Dashboard sends, and says why when the server refuses.
  */
 
-import { Button, Field, Input, tokens } from 'component-lib'
+import { Button, EmptyState, Field, Input, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { AlertLine } from '../dashboard/useGameFeed'
@@ -103,7 +103,7 @@ export function TellTheTable({
         </Button>
       </div>
       {alerts.length === 0 ? (
-        <p style={MUTED}>Nothing sent yet.</p>
+        <EmptyState variant="quiet" body="Nothing sent yet." />
       ) : (
         <ul style={LIST} aria-label="Sent to the table">
           {alerts.slice(0, 5).map((a) => (

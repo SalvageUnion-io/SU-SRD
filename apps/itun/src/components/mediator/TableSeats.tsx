@@ -20,12 +20,12 @@
  * Presentational: `tableSeats()` builds the seats.
  */
 
-import { buttonVariants } from 'component-lib'
+import { buttonVariants, EmptyState } from 'component-lib'
 import { space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { CrewRow } from '../dashboard/CrewRow'
 import { AppLink } from '../shared/AppLink'
-import { EYEBROW, HEAD_ROW, HEADING, MUTED, PANEL } from './mediatorStyles.model'
+import { EYEBROW, HEAD_ROW, HEADING, PANEL } from './mediatorStyles.model'
 import type { SeatCard } from './seatCards.model'
 
 const LIST: CSSProperties = {
@@ -80,9 +80,10 @@ export function TableSeats({
         <span style={EYEBROW}>Every seat, live</span>
       </div>
       {seats.length === 0 ? (
-        <p style={MUTED}>
-          No one has a seat yet. A player takes one by claiming a pilot in this Game.
-        </p>
+        <EmptyState
+          variant="quiet"
+          body="No one has a seat yet. A player takes one by claiming a pilot in this Game."
+        />
       ) : (
         <ul style={stacked ? LIST_STACKED : LIST} aria-label="Seats">
           {seats.map((seat) => (
