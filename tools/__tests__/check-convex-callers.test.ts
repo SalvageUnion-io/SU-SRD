@@ -4,12 +4,14 @@ import {
   codegenDrift,
   internalFunctionsIn,
   internalReferencesIn,
+  main,
   publicFunctionsIn,
   reExportsIn,
   referencesIn,
   registeredModules,
   uncalled,
 } from '../check-convex-callers'
+import { captured, fixtureTrees } from './fixtureTree'
 
 /**
  * `tools/check-convex-callers.ts` gates merges, so its parsing is pinned here:
@@ -162,4 +164,72 @@ test('the repository passes', async () => {
   expect(stdout).toMatch(
     /all \d+ public functions have a caller, all \d+ internal functions are called/
   )
+})
+
+describe('main', () => {
+  const tree = fixtureTrees('convex-callers')
+  const api = (...modules: string[]) =>
+    modules.map((m, i) => `import type * as m${i} from "../${m}.js";`).join('\n')
+
+  /** A deployment where every function is called and api.d.ts registers each module. */
+  const healthy: Record<string, string> = {
+    'apps/itun/convex/games.ts': [
+      'export const list = query({ handler: async () => [] })',
+      'export const prune = internalMutation({ handler: async () => {} })',
+      '/** @operator run once by hand */',
+      'export const backfill = internalMutation({ handler: async () => {} })',
+    ].join('\n'),
+    'apps/itun/convex/crons.ts': 'crons.daily("prune", {}, internal.games.prune)\n',
+    'apps/itun/convex/schema.ts': 'export default defineSchema({})\n',
+    'apps/itun/convex/_generated/api.d.ts': api('crons', 'games'),
+    'apps/itun/src/Games.tsx': 'useQuery(api.games.list)\n',
+    'apps/itun/src/__tests__/Games.test.tsx': 'useQuery(api.games.unused)\n',
+  }
+
+  test('passes and counts what it checked when every function is called and registered', () => {
+    const io = captured()
+    expect(main(tree(healthy), io.log, io.error)).toBe(0)
+    expect(io.err).toEqual([])
+    expect(io.out).toEqual([
+      '✓ Convex callers: all 1 public functions have a caller, all 1 internal functions are called, and api.d.ts registers all 2 modules.',
+    ])
+  })
+
+  test('fails on codegen drift, an uncalled public function and an uncalled internal one', () => {
+    const root = tree({
+      ...healthy,
+      'apps/itun/convex/games.ts': `${healthy['apps/itun/convex/games.ts']}\nexport const rename = mutation({ handler: async () => {} })\nexport const sweep = internalAction({ handler: async () => {} })`,
+      // `entities` re-exports `rename`, so it is public under both names.
+      'apps/itun/convex/entities.ts': "export { rename as retitle } from './games'\n",
+      'apps/itun/convex/_generated/api.d.ts': api('crons', 'games', 'gone'),
+    })
+    const io = captured()
+    expect(main(root, io.log, io.error)).toBe(1)
+    expect(io.out).toEqual([])
+    expect(io.err.join('\n')).toBe(
+      [
+        '✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.',
+        '    convex/entities.ts exists on disk but is NOT registered in api.d.ts',
+        '    api.d.ts registers convex/gone.ts, which no longer exists',
+        '  → Regenerate with `bunx convex dev` (needs a CONVEX_DEPLOYMENT); never hand-edit\n    convex/_generated/.',
+        '✗ Public Convex functions with no caller in the client:',
+        '    entities.retitle',
+        '    games.rename',
+        '  → Delete it, make it internal, or call it. A public function nobody calls is\n    reachable surface that nothing exercises.',
+        '✗ Internal Convex functions nothing calls:',
+        '    games.sweep',
+        '  → Delete it, or tag its doc comment `@operator` if it is a one-off run by hand\n    from the dashboard (and delete it once it has run).',
+      ].join('\n')
+    )
+  })
+
+  test('a caller only a test references still counts as uncalled', () => {
+    const root = tree({
+      ...healthy,
+      'apps/itun/src/Games.tsx': '// api.games.list is mentioned only in a comment\n',
+    })
+    const io = captured()
+    expect(main(root, io.log, io.error)).toBe(1)
+    expect(io.err).toContain('    games.list')
+  })
 })

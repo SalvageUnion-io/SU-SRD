@@ -413,6 +413,53 @@ describe('styling rule set', () => {
     expect(found['package-stylesheet-import']?.[0]?.detail).toContain('WITHOUT a cascade layer')
   })
 
+  test('an entry missing either import is found, naming what then renders wrong', () => {
+    const noIndex = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        [ENTRY]: "@layer su-reset, su-base;\n@import './reset.css' layer(su-reset);\n",
+      })
+    )
+    expect(noIndex['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
+      "does not import './index.css' — every `.su-*` component renders unstyled",
+    ])
+    const noReset = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        [ENTRY]: "@layer su-reset, su-base;\n@import './index.css' layer(su-base);\n",
+      })
+    )
+    expect(noReset['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
+      "does not import './reset.css' — every element loses its reset",
+    ])
+  })
+
+  test('an import into a layer no @layer declaration names is found on its line', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        [ENTRY]:
+          "@layer su-reset;\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
+      })
+    )
+    expect(
+      found['package-stylesheet-import']?.map((f) => `${f.line} ${f.detail.split(' —')[0]}`)
+    ).toEqual(['3 imports into layer(su-base) but no @layer declaration names it'])
+  })
+
+  test('every class of a selector list split across lines is harvested as dead CSS', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/srd/src/styles/extra.css': '.multi-a,\n.multi-b {\n  color: red;\n}\n',
+      })
+    )
+    expect(found['dead-app-css']?.map((f) => `${f.line} ${f.detail}`)).toEqual([
+      '1 .multi-a defined but never referenced in app source',
+      '2 .multi-b defined but never referenced in app source',
+    ])
+  })
+
   test('a reset layered after the package stylesheet is found', () => {
     const found = stylingOwnership.scan(
       fixture({

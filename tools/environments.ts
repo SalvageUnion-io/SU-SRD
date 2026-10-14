@@ -528,30 +528,45 @@ export function apply(api: GhApi = gh): string[] {
   return done
 }
 
-function main() {
-  const args = new Set(process.argv.slice(2))
+/** Compare (and with `--apply`, set) the live settings; returns the exit code. */
+export function main(
+  argv: readonly string[] = process.argv.slice(2),
+  {
+    api = gh,
+    env = process.env,
+    log = console.log,
+    error = console.error,
+  }: {
+    api?: GhApi
+    env?: Record<string, string | undefined>
+    log?: (line: string) => void
+    error?: (line: string) => void
+  } = {}
+): number {
+  const args = new Set(argv)
   for (const a of args) {
     if (!['--apply', '--secrets-from-env'].includes(a)) {
-      console.error(`unknown argument ${a}`)
-      process.exit(2)
+      error(`unknown argument ${a}`)
+      return 2
     }
   }
   if (args.has('--apply')) {
-    for (const line of apply()) console.log(`applied  ${line}`)
+    for (const line of apply(api)) log(`applied  ${line}`)
   }
   const verdicts = [
-    compare(ENVIRONMENTS, REPOSITORY_SECRETS, readLive(args.has('--secrets-from-env'))),
-    compareRuleset(MAIN_RULESET, readRuleset(MAIN_RULESET.name)),
+    compare(ENVIRONMENTS, REPOSITORY_SECRETS, readLive(args.has('--secrets-from-env'), api, env)),
+    compareRuleset(MAIN_RULESET, readRuleset(MAIN_RULESET.name, api)),
   ]
   const failures = verdicts.flatMap((v) => v.failures)
-  for (const line of verdicts.flatMap((v) => v.ran)) console.log(`checked  ${line}`)
-  for (const line of verdicts.flatMap((v) => v.notRun)) console.log(`not run  ${line}`)
+  for (const line of verdicts.flatMap((v) => v.ran)) log(`checked  ${line}`)
+  for (const line of verdicts.flatMap((v) => v.notRun)) log(`not run  ${line}`)
   if (failures.length) {
-    console.error(`\n${failures.length} drift(s) from tools/environments.ts:`)
-    for (const f of failures) console.error(`  - ${f}`)
-    process.exit(1)
+    error(`\n${failures.length} drift(s) from tools/environments.ts:`)
+    for (const f of failures) error(`  - ${f}`)
+    return 1
   }
-  console.log(`\n${REPO}: Environments and the \`main\` ruleset match tools/environments.ts`)
+  log(`\n${REPO}: Environments and the \`main\` ruleset match tools/environments.ts`)
+  return 0
 }
 
-if (import.meta.main) main()
+if (import.meta.main) process.exit(main())

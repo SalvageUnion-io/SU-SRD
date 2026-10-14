@@ -7,9 +7,11 @@ import {
   GENERATED_PATHS,
   GENERATORS,
   inputHash,
+  main,
   parsePorcelain,
   runGenerators,
 } from '../check-generated'
+import { captured } from './fixtureTree'
 
 describe('check-generated', () => {
   test('a modified file and an untracked NEW file are both drift', () => {
@@ -156,6 +158,26 @@ describe('the cache key', () => {
   })
 })
 
+describe('the cache key on an unreadable input', () => {
+  const root = mkdtempSync(join(tmpdir(), 'check-generated-unreadable-'))
+  afterAll(() => rmSync(root, { recursive: true, force: true }))
+
+  test('throws rather than hashing it as absent', () => {
+    // `blocker` is a file, so `blocker/inner` fails with ENOTDIR, not ENOENT: a
+    // path that exists but cannot be read must not pass for "unchanged".
+    writeFileSync(join(root, 'blocker'), 'x')
+    const spec: GeneratorSpec = {
+      label: 'fixture',
+      cmd: ['true'],
+      cwd: '.',
+      outputs: [],
+      inputs: ['blocker/inner'],
+      tools: [],
+    }
+    expect(() => inputHash(spec, root)).toThrow(/ENOTDIR/)
+  })
+})
+
 describe('runGenerators', () => {
   const root = mkdtempSync(join(tmpdir(), 'run-generators-'))
   const cacheFile = join(root, 'cache/check-generated.json')
@@ -218,5 +240,91 @@ describe('runGenerators', () => {
     const before = runs()
     expect((await go([counting]))[0]?.skipped).toBe(false)
     expect(runs()).toBe(before + 1)
+  })
+})
+
+describe('main', () => {
+  const root = mkdtempSync(join(tmpdir(), 'check-generated-main-'))
+  afterAll(() => rmSync(root, { recursive: true, force: true }))
+  // Strip a hook's GIT_DIR and friends, or git would act on the real repo.
+  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_')))
+  const git = (...args: string[]) =>
+    Bun.spawnSync(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], {
+      cwd: root,
+      env,
+    })
+  git('init', '--quiet')
+  writeFileSync(join(root, 'in.txt'), 'v1')
+  writeFileSync(join(root, 'out.txt'), 'v1')
+  git('add', '-A')
+  git('commit', '--quiet', '--no-gpg-sign', '-m', 'init')
+
+  const gen = (label: string, script: string): GeneratorSpec => ({
+    label,
+    cmd: ['sh', '-c', script],
+    cwd: '.',
+    outputs: ['out.txt'] as unknown as GeneratorSpec['outputs'],
+    inputs: ['in.txt'],
+    tools: [],
+  })
+  const go = async (generators: GeneratorSpec[], argv: string[] = [], ci = false) => {
+    const io = captured()
+    const code = await main(argv, {
+      generators,
+      paths: ['out.txt', 'new'],
+      root,
+      cacheFile: join(root, 'node_modules/.cache/gen.json'),
+      ci,
+      ...io,
+    })
+    return { code, ...io }
+  }
+
+  test('passes when the generators reproduce what is committed, then skips on the cache', async () => {
+    const copy = gen('copy', 'cat in.txt > out.txt')
+    expect(await go([copy])).toMatchObject({
+      code: 0,
+      out: ['✓ generated files: 1 generators re-run, 2 paths match what is committed'],
+    })
+    expect((await go([copy])).out).toEqual([
+      '✓ generated files: 0 generators re-run (1 skipped, inputs unchanged; --force re-runs), 2 paths match what is committed',
+    ])
+    expect((await go([copy], ['--force'])).out[0]).toContain('1 generators re-run,')
+  })
+
+  test('a failing generator fails with its exit and output', async () => {
+    const r = await go([gen('broken', 'echo no tool >&2; exit 4')], [], true)
+    expect(r.code).toBe(1)
+    expect(r.err).toEqual([
+      '✗ generated files: the broken generator failed (exit 4)\n',
+      'no tool\n',
+    ])
+  })
+
+  test('a changed and a new output fail as stale, listing each', async () => {
+    const r = await go(
+      [gen('drift', 'echo v2 > out.txt; mkdir -p new; echo x > new/file.txt')],
+      [],
+      true
+    )
+    expect(r.code).toBe(1)
+    expect(r.err).toEqual([
+      '✗ generated files are stale — the generators produced a different tree:\n',
+      '    changed    out.txt',
+      '    untracked  new/file.txt   (a new file nothing committed)',
+      '\n  They were regenerated in place just now; review the diff and commit it.\n  Never hand-edit these — change the generator or its source instead.',
+    ])
+  })
+
+  test('a git status that fails is reported, not read as clean', async () => {
+    const io = captured()
+    const outside = mkdtempSync(join(tmpdir(), 'check-generated-nogit-'))
+    try {
+      const code = await main([], { generators: [], paths: ['x'], root: outside, ci: true, ...io })
+      expect(code).toBe(1)
+      expect(io.err[0]).toStartWith('✗ generated files: git status failed\n')
+    } finally {
+      rmSync(outside, { recursive: true, force: true })
+    }
   })
 })

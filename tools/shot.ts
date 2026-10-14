@@ -223,21 +223,18 @@ export async function ensureServer(server: Server): Promise<() => void> {
 /**
  * The catalog shows its default story for an id it does not know, so a typo
  * would capture the wrong thing silently: check the id against the catalog's
- * own listing first.
+ * own listing first. Returns the message for an id it lacks, else null.
  */
-async function assertStory(id: string) {
-  const list = Bun.spawnSync(['bun', 'apps/catalog/listStories.ts'], { cwd: REPO })
-  const ids = list.stdout
-    .toString()
-    .split('\n')
-    .map((line) => line.split('\t')[0])
-  if (ids.includes(id)) return
+export function unknownStory(id: string, listing: string): string | null {
+  const ids = listing.split('\n').map((line) => line.split('\t')[0])
+  if (ids.includes(id)) return null
   const near = ids.filter((known) => known?.includes(id.split('--').at(-1) ?? id)).slice(0, 10)
-  console.error(
-    `[shot] no story "${id}". ${near.length ? `Did you mean:\n  ${near.join('\n  ')}` : 'List them: bun run stories:ids [filter]'}`
-  )
-  process.exit(2)
+  return `[shot] no story "${id}". ${near.length ? `Did you mean:\n  ${near.join('\n  ')}` : 'List them: bun run stories:ids [filter]'}`
 }
+
+/** The catalog's own listing: one `id\ttitle` line per story. */
+const listStories = (): string =>
+  Bun.spawnSync(['bun', 'apps/catalog/listStories.ts'], { cwd: REPO }).stdout.toString()
 
 /**
  * A full-page screenshot captures what is below the fold without scrolling
@@ -276,33 +273,57 @@ export async function launchBrowser() {
   return chromium.launch({ executablePath })
 }
 
-async function main() {
+/** The servers, browser and catalog `main` uses, and what it prints through. */
+export type ShotDeps = {
+  ensure?: typeof ensureServer
+  launch?: typeof launchBrowser
+  stories?: () => string
+  log?: (line: string) => void
+  error?: (line: string) => void
+}
+
+/** Take the screenshot `argv` asks for and print its path; returns the exit code. */
+export async function main(
+  argv: readonly string[] = process.argv.slice(2),
+  {
+    ensure = ensureServer,
+    launch = launchBrowser,
+    stories = listStories,
+    log = console.log,
+    error = console.error,
+  }: ShotDeps = {}
+): Promise<number> {
   let args: ShotArgs
   try {
-    args = parseArgs(process.argv.slice(2))
-  } catch (error) {
-    console.error((error as Error).message)
-    process.exit(2)
+    args = parseArgs([...argv])
+  } catch (caught) {
+    error((caught as Error).message)
+    return 2
   }
   const { server, path } = planShot(args)
-  if (server === STORIES) await assertStory(args.target)
+  if (server === STORIES) {
+    const problem = unknownStory(args.target, stories())
+    if (problem) {
+      error(problem)
+      return 2
+    }
+  }
   let stop: () => void
   try {
-    stop = await ensureServer(server)
-  } catch (error) {
-    console.error(`[shot] ${(error as Error).message}`)
-    process.exit(2)
+    stop = await ensure(server)
+  } catch (caught) {
+    error(`[shot] ${(caught as Error).message}`)
+    return 2
   }
   try {
-    const browser = await launchBrowser()
+    const browser = await launch()
     try {
       const page = await browser.newPage({
         viewport: { width: WIDTHS[args.width], height: 800 },
       })
       const url = `http://localhost:${server.port}${path}`
       const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 })
-      if (response && !response.ok())
-        console.error(`[shot] warning: ${url} answered ${response.status()}`)
+      if (response && !response.ok()) error(`[shot] warning: ${url} answered ${response.status()}`)
       await page.evaluate('document.fonts.ready')
       await page.evaluate(SCROLL_THROUGH)
       // What the scroll started loading, then a frame for it to paint.
@@ -311,13 +332,14 @@ async function main() {
       mkdirSync(args.out, { recursive: true })
       const file = join(args.out, fileName(args))
       await page.screenshot({ path: file, fullPage: true })
-      console.log(file)
+      log(file)
     } finally {
       await browser.close()
     }
   } finally {
     stop()
   }
+  return 0
 }
 
-if (import.meta.main) await main()
+if (import.meta.main) process.exit(await main())

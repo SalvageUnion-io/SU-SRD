@@ -11,7 +11,10 @@ import {
   parseLockEntry,
   proseHash,
   pruneLock,
+  readLockFile,
   serializeLock,
+  toLockFile,
+  writeLockFile,
 } from '../lib/proseFidelity'
 
 /**
@@ -241,4 +244,34 @@ test('serializeLock sorts keys and writes one entry per line', () => {
   expect(out.indexOf('"a#1.name"')).toBeLessThan(out.indexOf('"z#1.name"'))
   expect(out).toContain('\n    "a#1.name": "y",\n')
   expect(out.endsWith('}\n')).toBe(true)
+})
+
+describe('the lock file on disk', () => {
+  test('a missing or unparseable lock reads as absent, not as an empty lock', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'fidelity-lock-'))
+    fixtures.push(dir)
+    expect(readLockFile(join(dir, 'missing.json'))).toBeUndefined()
+    writeFileSync(join(dir, 'broken.json'), '{ not json')
+    expect(readLockFile(join(dir, 'broken.json'))).toBeUndefined()
+  })
+
+  test('a lock round-trips through toLockFile, writeLockFile and readLockFile', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'fidelity-lock-'))
+    fixtures.push(dir)
+    const path = join(dir, 'fidelity.lock.json')
+    const entries = new Map([
+      ['systems/b@stat', { hash: 'bbbbbbbbbbbb', verdict: 'verbatim' as const }],
+      ['abilities/a', { hash: 'aaaaaaaaaaaa', verdict: 'verbatim' as const }],
+    ])
+    writeLockFile(toLockFile({ editions: { 'Core Book': 'Edition 2.0a' }, entries }), path)
+    const read = readLockFile(path)
+    expect(read?.editions).toEqual({ 'Core Book': 'Edition 2.0a' })
+    expect(read?.entries).toEqual({
+      'abilities/a': 'aaaaaaaaaaaa verbatim',
+      'systems/b@stat': 'bbbbbbbbbbbb verbatim',
+    })
+    // Written sorted, so the committed file diffs one entry at a time.
+    const keys = Object.keys(read?.entries ?? {})
+    expect(keys).toEqual([...keys].sort())
+  })
 })

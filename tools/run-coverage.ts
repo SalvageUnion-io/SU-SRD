@@ -28,17 +28,17 @@ import { assertCoversWorkspaces } from 'gates/lib/workspaceCoverage'
  * gain; lowering one is a decision to state in the PR, not a way to go green.
  */
 const FLOORS: Readonly<Record<string, number>> = {
-  'packages/salvageunion-reference': 96,
-  'packages/component-lib': 92.5,
+  'packages/salvageunion-reference': 96.5,
+  'packages/component-lib': 95.5,
   'apps/catalog': 100,
-  'apps/srd': 96.5,
-  'apps/itun': 91.5,
-  'apps/discord-bot': 95,
-  'apps/su-assets': 89.5,
+  'apps/srd': 99,
+  'apps/itun': 97,
+  'apps/discord-bot': 96.5,
+  'apps/su-assets': 98,
   'packages/observability': 99.5,
-  'packages/itun-domain': 96,
-  'packages/gates': 91,
-  tools: 79.5,
+  'packages/itun-domain': 97,
+  'packages/gates': 99,
+  tools: 99,
 }
 
 /**
@@ -147,24 +147,45 @@ export async function runJob(name: string, floor: number, options: JobOptions): 
   return { name, ok, verdict, output: `\n━━━━ ${name}: ${verdict} ━━━━\n${stdout.trimEnd()}` }
 }
 
-async function main(): Promise<void> {
-  assertCoversWorkspaces('coverage floors', Object.keys(FLOORS))
-  const root = join(import.meta.dir, '..')
+/** What `main` runs and where it reports; the defaults are the repo's and CI's. */
+export type CoverageOptions = {
+  floors?: Readonly<Record<string, number>>
+  shards?: Readonly<Record<string, number>>
+  root?: string
+  bun?: readonly string[]
+  /** Fails when a workspace has no floor (every workspace must be gated). */
+  coversWorkspaces?: (names: string[]) => void
+  /** GitHub's job summary file, when set. */
+  summaryPath?: string
+  log?: (text: string) => void
+}
+
+/** Every workspace's suite against its floor; returns the exit code. */
+export async function main({
+  floors = FLOORS,
+  shards = SHARDS,
+  root = join(import.meta.dir, '..'),
+  bun,
+  coversWorkspaces = (names) => assertCoversWorkspaces('coverage floors', names),
+  summaryPath = process.env.GITHUB_STEP_SUMMARY,
+  log = console.log,
+}: CoverageOptions = {}): Promise<number> {
+  coversWorkspaces(Object.keys(floors))
   const results = await Promise.all(
-    Object.entries(FLOORS).map(async ([dir, floor]) => {
-      const result = await runJob(dir, floor, { root, shards: SHARDS[dir] })
-      console.log(result.output)
+    Object.entries(floors).map(async ([dir, floor]) => {
+      const result = await runJob(dir, floor, { root, shards: shards[dir], bun })
+      log(result.output)
       return result
     })
   )
   const width = Math.max(...results.map((r) => r.name.length))
   const summary = results.map((r) => `${r.ok ? '✓' : '✗'} ${r.name.padEnd(width)}  ${r.verdict}`)
-  console.log(`\n${summary.join('\n')}`)
-  if (process.env.GITHUB_STEP_SUMMARY) {
+  log(`\n${summary.join('\n')}`)
+  if (summaryPath) {
     const block = `## Tests and coverage\n\n\`\`\`\n${summary.join('\n')}\n\`\`\`\n`
-    appendFileSync(process.env.GITHUB_STEP_SUMMARY, block)
+    appendFileSync(summaryPath, block)
   }
-  if (results.some((r) => !r.ok)) process.exit(1)
+  return results.some((r) => !r.ok) ? 1 : 0
 }
 
-if (import.meta.main) await main()
+if (import.meta.main) process.exit(await main())

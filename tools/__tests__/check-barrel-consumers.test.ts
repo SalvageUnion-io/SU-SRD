@@ -5,11 +5,13 @@ import {
   census,
   explain,
   judge,
+  main,
   metaTitle,
   namesImportedFromLib,
   parseBarrel,
   storyFor,
 } from '../check-barrel-consumers'
+import { captured } from './fixtureTree'
 
 /**
  * `tools/check-barrel-consumers.ts` gates merges, so its parsing and its
@@ -153,6 +155,52 @@ describe('judge', () => {
     )
     expect(verdicts).toEqual([])
     expect(stale).toEqual(['Button'])
+  })
+
+  const floors = { exports: 1, workspaces: 1, scanned: 1 }
+  const read = (keep: (e: BarrelExport) => boolean) => () => ({
+    exports: exports.filter(keep),
+    reach,
+    direct,
+    stories,
+    workspaces: ['apps/itun', 'apps/srd'],
+    scanned: 12,
+  })
+
+  test('main reports every verdict and stale listing with its fix, and fails', () => {
+    const io = captured()
+    const code = main(
+      read(() => true),
+      { allowed: { Gone: 'was listed' }, floors, ...io }
+    )
+    expect(code).toBe(1)
+    expect(io.out).toEqual([])
+    expect(io.err).toEqual([
+      ...[
+        {
+          kind: 'composition',
+          name: 'WizShell',
+          app: 'itun',
+          module: `${lib}/shared/WizShell.tsx`,
+          title: 'Compositions/Wizard/Wiz Shell',
+        },
+        { kind: 'unclassified', name: 'heat', app: 'itun', module: `${lib}/stat/heat.ts` },
+        { kind: 'unused', name: 'orphan' },
+      ].map((v) => explain(v as Parameters<typeof explain>[0]).join('\n')),
+      '✗ SINGLE_APP lists Gone, which is no longer a storyless single-app export: remove it.',
+    ])
+  })
+
+  test('main passes and counts the single-app exports when nothing fails', () => {
+    const io = captured()
+    const code = main(
+      read((e) => e.name === 'Button' || e.name === 'Avatar'),
+      { allowed: {}, floors, ...io }
+    )
+    expect(code).toBe(0)
+    expect(io.out).toEqual([
+      "✓ barrel consumers: 2 exports, 2 consuming workspaces (12 files); 1 single-app, none an app's composition.",
+    ])
   })
 })
 

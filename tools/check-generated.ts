@@ -304,43 +304,71 @@ export async function runGenerators(
   return results
 }
 
-async function main(): Promise<void> {
-  const results = await runGenerators(GENERATORS, {
-    useCache: !process.env.CI && !process.argv.includes('--force'),
+/** What `main` regenerates and compares, and where; the defaults are the repo's. */
+export type GeneratedOptions = {
+  generators?: GeneratorSpec[]
+  /** The paths `git status` must find unchanged after the run. */
+  paths?: readonly string[]
+  root?: string
+  cacheFile?: string
+  /** Off in CI, where every run starts cold. */
+  ci?: boolean
+  log?: (line: string) => void
+  error?: (line: string) => void
+}
+
+/** Re-run every generator and compare the tree with git; returns the exit code. */
+export async function main(
+  argv: readonly string[] = process.argv,
+  {
+    generators = GENERATORS,
+    paths = GENERATED_PATHS,
+    root = ROOT,
+    cacheFile = join(root, 'node_modules/.cache/check-generated.json'),
+    ci = Boolean(process.env.CI),
+    log = console.log,
+    error = console.error,
+  }: GeneratedOptions = {}
+): Promise<number> {
+  const results = await runGenerators(generators, {
+    root,
+    cacheFile,
+    useCache: !ci && !argv.includes('--force'),
   })
   const failed = results.filter((r) => r.status !== 0)
   for (const r of failed) {
-    console.error(`✗ generated files: the ${r.gen.label} generator failed (exit ${r.status})\n`)
-    console.error(r.output)
+    error(`✗ generated files: the ${r.gen.label} generator failed (exit ${r.status})\n`)
+    error(r.output)
   }
-  if (failed.length > 0) process.exit(1)
+  if (failed.length > 0) return 1
 
   const status = await run(
-    ['git', 'status', '--porcelain', '--untracked-files=all', '--', ...GENERATED_PATHS],
-    '.'
+    ['git', 'status', '--porcelain', '--untracked-files=all', '--', ...paths],
+    '.',
+    root
   )
   if (status.status !== 0) {
-    console.error(`✗ generated files: git status failed\n${status.output}`)
-    process.exit(1)
+    error(`✗ generated files: git status failed\n${status.output}`)
+    return 1
   }
   const { changed, untracked } = parsePorcelain(status.output)
   if (changed.length === 0 && untracked.length === 0) {
     const skipped = results.filter((r) => r.skipped).length
-    console.log(
-      `✓ generated files: ${GENERATORS.length - skipped} generators re-run` +
+    log(
+      `✓ generated files: ${generators.length - skipped} generators re-run` +
         (skipped > 0 ? ` (${skipped} skipped, inputs unchanged; --force re-runs)` : '') +
-        `, ${GENERATED_PATHS.length} paths match what is committed`
+        `, ${paths.length} paths match what is committed`
     )
-    return
+    return 0
   }
-  console.error('✗ generated files are stale — the generators produced a different tree:\n')
-  for (const p of changed) console.error(`    changed    ${p}`)
-  for (const p of untracked) console.error(`    untracked  ${p}   (a new file nothing committed)`)
-  console.error(
+  error('✗ generated files are stale — the generators produced a different tree:\n')
+  for (const p of changed) error(`    changed    ${p}`)
+  for (const p of untracked) error(`    untracked  ${p}   (a new file nothing committed)`)
+  error(
     '\n  They were regenerated in place just now; review the diff and commit it.\n' +
       '  Never hand-edit these — change the generator or its source instead.'
   )
-  process.exit(1)
+  return 1
 }
 
-if (import.meta.main) await main()
+if (import.meta.main) process.exit(await main())

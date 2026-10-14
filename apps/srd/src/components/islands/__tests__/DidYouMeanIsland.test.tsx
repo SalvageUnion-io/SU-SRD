@@ -23,6 +23,10 @@ describe('queryFromPathname', () => {
   test('decodes the path and drops an .html suffix', () => {
     expect(queryFromPathname('/bio%20titan.html')).toBe('bio titan')
   })
+
+  test('keeps a segment with a malformed escape as it came, rather than throwing', () => {
+    expect(queryFromPathname('/chassis/mule%E0%A4%A/')).toBe('mule%E0%A4%A')
+  })
 })
 
 describe('guessesFor', () => {
@@ -79,5 +83,32 @@ describe('DidYouMeanIsland', () => {
     const { container } = render(<DidYouMeanIsland pathname="/" />)
     expect(container.innerHTML).toBe('')
     expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  test('without a pathname prop it reads the missed URL from the location', async () => {
+    window.location.href = 'http://localhost/chassis/gophr/'
+    try {
+      render(<DidYouMeanIsland />)
+      expect(await screen.findByRole('heading', { name: 'Did you mean' })).toBeTruthy()
+      expect(screen.getByRole('link', { name: /Search the SRD for “gophr”/ })).toBeTruthy()
+    } finally {
+      window.location.href = 'http://localhost/'
+    }
+  })
+
+  test('an index entry without a Row model is offered as a plain link to its page', async () => {
+    const slim = index.map(({ model: _model, ...entry }) => entry)
+    fetchSpy?.mockImplementation(
+      Object.assign(
+        async () =>
+          new Response(JSON.stringify(slim), { headers: { 'Content-Type': 'application/json' } }),
+        { preconnect: fetch.preconnect }
+      )
+    )
+    const { container } = render(<DidYouMeanIsland pathname="/chassis/gophr/" />)
+    const link = await screen.findByRole('link', { name: 'Gopher' })
+    expect(link.getAttribute('href')).toBe('/chassis/gopher/')
+    expect(link.className).toBe('srd-not-found__link')
+    expect(container.querySelector('.su-entity-row')).toBeNull()
   })
 })

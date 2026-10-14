@@ -88,4 +88,33 @@ describe('the columns table’s page', () => {
     const cell = screen.getByRole('cell', { name: 'Silverback' })
     expect(cell.getAttribute('aria-current')).toBe('true')
   })
+
+  test('a second roll moves the first into the earlier rolls, read by its callsign', async () => {
+    const { container } = render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7, 1, 1)} />)
+    const roll = screen.getByRole('button', { name: 'Roll twice on Callsign Table' })
+    expect(container.querySelector('.srd-roll__earlier-list')).toBeNull()
+    await act(async () => {
+      fireEvent.click(roll)
+    })
+    await act(async () => {
+      fireEvent.click(roll)
+    })
+    const earlier = container.querySelector<HTMLElement>('.srd-roll__earlier-list')
+    if (!earlier) throw new Error('no earlier rolls')
+    const items = within(earlier).getAllByRole('listitem')
+    expect(items).toHaveLength(1)
+    expect(items[0]?.textContent).toContain('7')
+    expect(items[0]?.textContent).toContain('Silverback')
+  })
+
+  test('an earlier roll that lands on no entry reads "No entry"', () => {
+    const { container } = render(
+      <ColumnsTableView
+        data={callsigns()}
+        state={{ roll: { column: 11, entry: 7 }, history: [{ column: 11, entry: 99 }] }}
+      />
+    )
+    const earlier = container.querySelector<HTMLElement>('.srd-roll__earlier-list')
+    expect(earlier?.textContent).toContain('No entry')
+  })
 })

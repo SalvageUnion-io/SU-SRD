@@ -100,6 +100,15 @@ describe('listObjects', () => {
     expect(objects.map((o) => o.key)).toEqual(['a.webp', 'b.webp'])
   })
 
+  test('a truncated page with no continuation token throws instead of ending the listing', async () => {
+    // Stopping here would read as a complete listing and export a partial backup.
+    respond = () =>
+      xml('<Contents><Key>a.webp</Key><Size>1</Size></Contents><IsTruncated>true</IsTruncated>')
+    await expect(listObjects(client())).rejects.toThrow(
+      'truncated listing with no continuation token'
+    )
+  })
+
   test('an empty bucket lists nothing rather than throwing', async () => {
     respond = () => xml('<IsTruncated>false</IsTruncated>')
     expect(await listObjects(client())).toEqual([])

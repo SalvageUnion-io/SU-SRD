@@ -1056,21 +1056,21 @@ const CHECKS = [
   checkCommentHistory,
 ] as const
 
-if (import.meta.main) {
-  // A collapsed corpus (a renamed doc directory) would pass every check: floor(0.65 × 21).
-  const liveDocs = liveInstructionDocs(repoRoot)
+/** Run every check over the docs under `root` (floored: a collapsed corpus passes all); exit code. */
+export function main(root = repoRoot, checks: readonly ((r: string) => CheckResult)[] = CHECKS) {
+  const liveDocs = liveInstructionDocs(root)
   assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 13)
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
   const failures: string[] = []
-  for (const check of CHECKS) {
-    const result = check(repoRoot)
+  for (const check of checks) {
+    const result = check(root)
     if (result.failures.length === 0) console.log(`✓ ${result.ok}`)
     failures.push(...result.failures)
   }
   for (const message of failures) console.error(`✗ ${message}`)
-  if (failures.length > 0) {
-    console.error(`\n${failures.length} doc-drift failure(s)`)
-    process.exit(1)
-  }
+  if (failures.length > 0) console.error(`\n${failures.length} doc-drift failure(s)`)
+  return failures.length > 0 ? 1 : 0
 }
+
+if (import.meta.main) process.exit(main())

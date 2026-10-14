@@ -369,14 +369,29 @@ export async function fetchOgImage(url: string, file: string): Promise<boolean> 
   return true
 }
 
-async function run(args: GalleryArgs): Promise<number> {
+/** The browser and clock `run` uses, and where its progress dots go; the defaults are real. */
+export type GalleryDeps = {
+  launch?: () => Promise<Browser>
+  now?: () => Date
+  progress?: (dot: string) => void
+}
+
+/** Shoot every page into `args.out` and write the gallery; returns the exit code. */
+async function run(
+  args: GalleryArgs,
+  {
+    launch = launchBrowser,
+    now = () => new Date(),
+    progress = (dot) => process.stdout.write(dot),
+  }: GalleryDeps = {}
+): Promise<number> {
   const shots = join(args.out, 'shots')
   mkdirSync(shots, { recursive: true })
   const shot = new Set<string>()
   const og = new Map<string, OgMeta>()
   const failures: string[] = []
   const file = (slug: string) => (view: string) => join(shots, `${slug}-${view}.jpg`)
-  const browser: Browser = await launchBrowser()
+  const browser: Browser = await launch()
   try {
     const context = await browser.newContext()
     const page = await context.newPage()
@@ -396,7 +411,7 @@ async function run(args: GalleryArgs): Promise<number> {
       } catch (error) {
         failures.push(failureLine(`${t.page.site} ${t.page.path}`, error))
       }
-      process.stdout.write('.')
+      progress('.')
     }
     await context.close()
 
@@ -418,23 +433,30 @@ async function run(args: GalleryArgs): Promise<number> {
         } catch (error) {
           failures.push(failureLine(`itun ${t.page.path}`, error))
         }
-        process.stdout.write('.')
+        progress('.')
       }
       await signed.close()
     }
   } finally {
     await browser.close()
   }
-  return writeGallery(args, { shot, og, failures }, capturedAtStamp(new Date()))
+  return writeGallery(args, { shot, og, failures }, capturedAtStamp(now()))
 }
 
-if (import.meta.main) {
+/** Parse `argv` and run; a bad argument is exit 2. */
+export async function main(
+  argv: readonly string[] = process.argv.slice(2),
+  deps: GalleryDeps & { error?: (line: string) => void } = {}
+): Promise<number> {
   let args: GalleryArgs
   try {
-    args = parseGalleryArgs(process.argv.slice(2))
+    args = parseGalleryArgs(argv)
   } catch (error) {
-    console.error((error as Error).message)
-    process.exit(2)
+    const report = deps.error ?? console.error
+    report((error as Error).message)
+    return 2
   }
-  process.exit(await run(args))
+  return run(args, deps)
 }
+
+if (import.meta.main) process.exit(await main())

@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'bun:test'
-import { readFileSync } from 'node:fs'
+import { describe, expect, it, spyOn, test } from 'bun:test'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { Contract, ValidatorJSON } from '../check-client-contract'
-import { breaksBetween, refusals, SNAPSHOT_PATH, verdict } from '../check-client-contract'
+import { breaksBetween, main, refusals, SNAPSHOT_PATH, verdict } from '../check-client-contract'
+import { captured, fixtureTrees } from './fixtureTree'
 
 const str: ValidatorJSON = { type: 'string' }
 const num: ValidatorJSON = { type: 'number' }
@@ -83,6 +85,39 @@ describe('refusals', () => {
   })
 })
 
+describe('refusals on records and rendered messages', () => {
+  const rec = (keys: ValidatorJSON, value: ValidatorJSON): ValidatorJSON => ({
+    type: 'record',
+    keys,
+    values: { fieldType: value, optional: false },
+  })
+
+  it("checks a record's keys and values separately, naming which one narrowed", () => {
+    expect(refusals(rec(str, num), rec(str, union(num, nul)), 'f')).toEqual([])
+    expect(refusals(rec(str, num), rec(lit('a'), str), 'f')).toEqual([
+      'f{key}: string is no longer accepted (now "a")',
+      'f{value}: number is no longer accepted (now string)',
+    ])
+  })
+
+  it('refuses a record that became something else', () => {
+    expect(refusals(rec(str, num), obj({}), 'f')).toEqual([
+      'f: record is no longer accepted (now object)',
+    ])
+  })
+
+  it('renders a bigint literal with its n suffix and accepts it as a bigint', () => {
+    const big = lit({ $integer: '5' })
+    expect(refusals(big, { type: 'bigint' }, 'f')).toEqual([])
+    expect(refusals(big, str, 'f')).toEqual(['f: 5n is no longer accepted (now string)'])
+  })
+
+  it('renders a nested union and a non-string literal in the message', () => {
+    const arr: ValidatorJSON = { type: 'array', value: union(lit(1), lit(true)) }
+    expect(refusals(arr, str, 'f')).toEqual(['f: 1 | true[] is no longer accepted (now string)'])
+  })
+})
+
 describe('breaksBetween', () => {
   it('refuses a deleted function and allows a new one', () => {
     const prev: Contract = { 'games:rename': obj({}) }
@@ -128,6 +163,10 @@ describe('verdict', () => {
     })
   })
 
+  it('records a first snapshot when none exists', () => {
+    expect(verdict(null, prev, 10)).toEqual({ ok: true, write: true, message: 'no snapshot yet' })
+  })
+
   it('refuses a lowered floor', () => {
     expect(verdict({ floor: 10, functions: prev }, prev, 5).ok).toBe(false)
   })
@@ -138,5 +177,89 @@ describe('the committed snapshot', () => {
     const snapshot = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'))
     const args = snapshot.functions['entities:upsertByAppId']
     expect(args.value.expectedUpdatedAt.optional).toBe(false)
+  })
+})
+
+describe('main', () => {
+  const tree = fixtureTrees('client-contract')
+  /** A Convex-registered function as the import sees it: public, with serialized args. */
+  const fn = (args: ValidatorJSON, isPublic = true) =>
+    `{ isPublic: ${isPublic}, exportArgs: () => ${JSON.stringify(JSON.stringify(args))} }`
+  const deployment = (floor: number, gamesArgs: ValidatorJSON) =>
+    tree({
+      'apps/itun/convex/_generated/api.d.ts': [
+        'import type * as games from "../games.js";',
+        'import type * as model_x from "../model/x.js";',
+      ].join('\n'),
+      'apps/itun/convex/buildFloor.ts': `export const BUILD_FLOOR = ${floor}\n`,
+      'apps/itun/convex/games.ts': [
+        `export const rename = ${fn(gamesArgs)}`,
+        `export const sweep = ${fn(obj({}), false)}`,
+        'export const helper = 3',
+        'export const nothing = null',
+      ].join('\n'),
+      'apps/itun/convex/model/x.ts': `export const read = ${fn(obj({ id: str }))}\n`,
+    })
+  const run = async (root: string, argv: string[] = []) => {
+    const io = captured()
+    const snapshotPath = join(root, 'snapshot.json')
+    const code = await main(argv, { root, snapshotPath, functionFloor: 2, ...io })
+    return { code, ...io, snapshotPath }
+  }
+
+  test('with no snapshot, refuses without --write and records one with it', async () => {
+    const root = deployment(10, obj({ name: str }))
+    const first = await run(root)
+    expect(first.code).toBe(1)
+    expect(first.err[0]).toContain('convex-client-contract.json is out of date (no snapshot yet)')
+    expect(existsSync(first.snapshotPath)).toBe(false)
+
+    const written = await run(root, ['--write'])
+    expect(written).toMatchObject({ code: 0, err: [] })
+    expect(written.out).toEqual([
+      '✓ client contract: recorded 2 public functions (no snapshot yet)',
+    ])
+    expect(JSON.parse(readFileSync(written.snapshotPath, 'utf8'))).toEqual({
+      floor: 10,
+      functions: { 'games:rename': obj({ name: str }), 'model/x:read': obj({ id: str }) },
+    })
+
+    const again = await run(root)
+    expect(again.out).toEqual([
+      '✓ client contract: 2 public functions in 2 modules match the snapshot (floor 10)',
+    ])
+  })
+
+  test('a breaking change under the same floor fails, naming the field', async () => {
+    const root = deployment(10, obj({ name: str, by: str }))
+    writeFileSync(
+      join(root, 'snapshot.json'),
+      JSON.stringify({
+        floor: 10,
+        functions: { 'games:rename': obj({ name: str }), 'model/x:read': obj({ id: str }) },
+      })
+    )
+    const result = await run(root, ['--write'])
+    expect(result.code).toBe(1)
+    expect(result.err[0]).toContain(
+      'games:rename.by: new required argument, which an older tab never sends'
+    )
+  })
+
+  test('too few public functions trips the scan floor', async () => {
+    const root = deployment(10, obj({}))
+    const exit = spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`exit ${code}`)
+    })
+    const quiet = spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      await expect(
+        main([], { root, snapshotPath: join(root, 's.json'), functionFloor: 3, ...captured() })
+      ).rejects.toThrow('exit 1')
+      expect(String(quiet.mock.calls[0]?.[0])).toContain('scanned 2 files, expected at least 3')
+    } finally {
+      exit.mockRestore()
+      quiet.mockRestore()
+    }
   })
 })
