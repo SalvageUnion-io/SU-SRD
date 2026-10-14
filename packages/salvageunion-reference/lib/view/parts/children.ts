@@ -3,17 +3,19 @@
  * pattern's loadout) — and its ACTIONS.
  */
 
-import { extractVisibleActions } from '../../actionResolution'
+import { extractVisibleActions, getChassisAbilities } from '../../actionResolution'
 import { isAbility } from '../../entityGuards'
 import { resolveGrantedEntities } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
-import { isBioTitanPattern } from '../../patterns'
+import { getPatterns, isBioTitanPattern } from '../../patterns'
 import type {
   SURefEntity,
   SURefMetaAction,
   SURefMetaEntity,
   SURefObjectAnyPattern,
 } from '../../schemas/index'
+import { getEntitySlug } from '../../slug'
+import type { EntityRef } from '../types'
 
 /** A labelled group of nested entities. */
 export type NestedGroup = { label: string; entities: SURefEntity[] }
@@ -76,6 +78,34 @@ export function nestedEntityGroups(entity: SURefMetaEntity): NestedGroup[] {
   }
 
   return [...groups.entries()].map(([label, entities]) => ({ label, entities }))
+}
+
+/**
+ * What a chassis's Discord card nests beyond its model's children: DRONES its
+ * abilities name (the Little Sestra's Sestra Drone), once each, and its
+ * PATTERNS, each a link to its own page and nothing more.
+ */
+export function chassisCardGroups(chassis: EntityRef): { label: string; items: EntityRef[] }[] {
+  const record = SalvageUnionReference.get('chassis', chassis.id)
+  if (!record) return []
+  const drones: EntityRef[] = []
+  for (const ability of getChassisAbilities(record) ?? []) {
+    const name = 'drone' in ability ? ability.drone : undefined
+    const drone =
+      typeof name === 'string' ? SalvageUnionReference.getByNameIn('drones', name) : null
+    if (!drone || drones.some((one) => one.id === drone.id)) continue
+    const slug = getEntitySlug(drone as SURefEntity)
+    drones.push({ schemaName: 'drones', id: drone.id, slug, name: drone.name })
+  }
+  const patterns = (getPatterns(record) ?? []).map((pattern) => ({
+    ...chassis,
+    name: pattern.name,
+    pattern: pattern.name,
+  }))
+  return [
+    ...(drones.length > 0 ? [{ label: 'Drones', items: drones }] : []),
+    ...(patterns.length > 0 ? [{ label: 'Patterns', items: patterns }] : []),
+  ]
 }
 
 /**

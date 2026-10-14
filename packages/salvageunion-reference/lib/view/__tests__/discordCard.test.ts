@@ -69,6 +69,27 @@ describe('discordCardParts', () => {
     )
   })
 
+  test('a chassis carries its abilities as actions, and the drones they name', () => {
+    expect(partsFor('chassis', 'mule').actions.map((action) => action.name)).toEqual([
+      'Integrated Cargo Bay',
+    ])
+    const sestra = partsFor('chassis', 'little-sestra')
+    expect(sestra.actions.map((action) => action.name)).toEqual(['Sestra Drone Controller'])
+    expect(sestra.children.map((group) => group.label)).toEqual(['Drones', 'Patterns'])
+    expect(sestra.children[0]?.line).toBe(
+      '[Sestra Drone](https://salvageunion.io/drones/sestra-drone)'
+    )
+  })
+
+  test('a chassis links its patterns by name and nothing more', () => {
+    const patterns = need(
+      partsFor('chassis', 'mule').children.find((group) => group.label === 'Patterns'),
+      'patterns'
+    )
+    expect(patterns.line).toContain('[Hauler](https://salvageunion.io/chassis/mule/pattern/hauler)')
+    expect(patterns.items.every((item) => item.pattern === item.name)).toBe(true)
+  })
+
   test('an ability leads with its tier; its chips run type, facts, traits, cost last', () => {
     const parts = partsFor('abilities', 'counter-hacking')
     expect(parts.head[0]).toStartWith('## 2 · [Counter-Hacking](')
@@ -123,7 +144,7 @@ describe('discordCardParts', () => {
     )
     expect(systems.count).toBe(7)
     expect(systems.line).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
-    // The chassis ability shows only on the chassis and pattern pages.
+    // Its host's ability is the host card's, never repeated here.
     expect(parts.actions).toEqual([])
   })
 
