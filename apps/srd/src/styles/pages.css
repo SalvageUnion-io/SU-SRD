@@ -128,6 +128,22 @@
   }
 }
 
+/* Once the index runs its three columns (an index of at least 3 × 15rem plus
+   its gaps, which an 80rem viewport guarantees), "Start here" alone is
+   shorter than the index, and the bot under it ran the sidebar far past the
+   index's foot. So the bot leaves the sidebar for a band across the whole
+   body, under both. */
+@media (min-width: 80rem) {
+  .srd-home__index {
+    grid-row: 1;
+  }
+
+  .srd-home__discord {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
 /* The hero search on the Contents band (`HeroSearch.tsx`). */
 .srd-hero-search {
   display: flex;
@@ -368,6 +384,35 @@
   font-family: var(--font-cond);
   font-weight: var(--font-weight-semibold);
   text-underline-offset: 3px;
+}
+
+/* The bot as the home page's foot band (`.srd-home__discord` at 80rem and
+   up): the words on the left, the buttons on the right. */
+@media (min-width: 80rem) {
+  .srd-home__discord .srd-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr;
+  }
+
+  .srd-home__discord .srd-panel__heading {
+    grid-column: 1;
+  }
+
+  .srd-home__discord .srd-panel__body {
+    grid-column: 1;
+    padding-block-end: var(--space-12);
+  }
+
+  .srd-home__discord .srd-panel__foot {
+    align-content: center;
+    border-left: var(--bw-hairline) solid var(--color-ink-20);
+    border-top: 0;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0;
+    padding: var(--space-12) var(--space-14);
+  }
 }
 
 /*

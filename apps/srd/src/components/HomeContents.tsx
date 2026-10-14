@@ -7,9 +7,10 @@ import type { ComponentProps } from 'react'
  * as an index, each opened by a band in its colour, then its name and real
  * entry count — no artwork: the index is a contents page, not a gallery; then the
  * rules a table reaches for under an ink band, set as CSS columns (a masonry
- * that leaves no hole under a short chapter); and "Start here" and the Discord
- * bot in a right-hand sidebar. On a phone "Start here" leads the stack and the
- * Discord bot follows the index. Server-rendered and
+ * that leaves no hole under a short chapter); "Start here" in a right-hand
+ * sidebar; and the Discord bot under "Start here" while the index runs two
+ * columns, or as a band across the foot once it runs three. On a phone "Start
+ * here" leads the stack and the Discord bot follows the index. Server-rendered and
  * static: every row is a plain link.
  *
  * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
