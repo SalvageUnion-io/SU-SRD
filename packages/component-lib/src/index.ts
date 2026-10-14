@@ -62,8 +62,6 @@ export type { StatState, StatTone } from './components/atoms/Stat'
 export { Stat } from './components/atoms/Stat'
 export { StatColumn } from './components/atoms/StatColumn'
 export type { ProvenanceLine } from './components/atoms/StatProvenance'
-// STAMP_SEAM — the border-riding stamp placement, as a class string (ruleset §5)
-export { STAMP_SEAM } from './components/atoms/stampSeam'
 export { Tab, TabList, TabPanel, Tabs, Toggle } from './components/atoms/Tabs'
 // Base typography
 export { Text } from './components/atoms/Text'
