@@ -46,6 +46,11 @@ export type EntityProps = EntitySource & {
    * opens its entity where the Row is not itself a link.
    */
   links?: TagItem[]
+  /**
+   * Token only: the host's chip, last in its chip group — a damaged thing's
+   * condition `StatusBadge` on a surface that only reads it (a crawler bay).
+   */
+  trailing?: ReactNode
 }
 
 /**
@@ -69,6 +74,7 @@ export function Entity(props: EntityProps) {
     controls,
     labels,
     links,
+    trailing,
   } = props
   const { entity, pattern } = props
   const ownModel = props.model
@@ -100,7 +106,14 @@ export function Entity(props: EntityProps) {
         />
       )
     case 'token':
-      return <Token model={model} instance={instance} mode={mode} />
+      return (
+        <Token
+          model={model}
+          instance={instance}
+          mode={mode}
+          slots={trailing ? { trailing } : undefined}
+        />
+      )
     case 'tile':
       return (
         <Tile

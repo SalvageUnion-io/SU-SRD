@@ -4,12 +4,14 @@
  * `presentation="page"` as its body (a chassis's stats leading it, the art its
  * hero), and the foot's citation in the card footer's plain text. Never a
  * framed card. Both openers draw it: `useDetailModal` and a
- * depth-2 Row.
+ * depth-2 Row. A pattern's Page links its chassis (`PATTERN OF | Mule`)
+ * through the surface's Page opener, as the SRD's pattern page does.
  */
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { EntityRef, SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { EntityExternalLinkProvider } from '../entityHrefContext'
 import { useDetailModal } from '../useDetailModal'
@@ -112,6 +114,38 @@ describe('the detail dialog is the Page', () => {
     const dialog = openPage(chassis, pattern)
     const heading = within(dialog).getAllByRole('heading')[0]
     expect(heading?.textContent).toContain(`“${pattern.name}”`)
+  })
+
+  test("a pattern's Page leads its chips with PATTERN OF, which opens its chassis", () => {
+    const chassis = mule()
+    const pattern = need(
+      'patterns' in chassis && Array.isArray(chassis.patterns) ? chassis.patterns[0] : undefined,
+      'mule pattern'
+    ) as SURefObjectAnyPattern
+    const opener = mock((_ref: EntityRef) => {})
+    render(
+      <EntitySurfaceProvider value={{ openPage: opener }}>
+        <Harness data={chassis} pattern={pattern} />
+      </EntitySurfaceProvider>
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'open' }))
+    const stamps = screen.getByRole('dialog').querySelector<HTMLElement>('.su-entity-stamps')
+    if (!stamps) throw new Error('no band stamps')
+    const chip = within(stamps).getByRole('button', { name: 'Pattern of: Mule' })
+    // It leads the cluster, as on the SRD's pattern page.
+    expect(stamps.firstElementChild?.contains(chip)).toBe(true)
+    fireEvent.click(chip)
+    expect(opener).toHaveBeenCalledTimes(1)
+    const ref = opener.mock.calls[0]?.[0]
+    expect(ref?.schemaName).toBe('chassis')
+    expect(ref?.id).toBe(chassis.id)
+    // The chassis itself, not the pattern again.
+    expect(ref?.pattern).toBeUndefined()
+  })
+
+  test("an entity's own Page has no PATTERN OF chip", () => {
+    const dialog = openPage(mule())
+    expect(within(dialog).queryByText('Pattern of')).toBeNull()
   })
 
   test('a depth-2 Row opens the same Page', () => {

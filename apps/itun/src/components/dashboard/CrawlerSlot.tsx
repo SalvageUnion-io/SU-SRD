@@ -356,8 +356,8 @@ export function CrawlerMajor({
   const bays = bayConditions(crawler)
   const bayBay: BandBay = {
     label: 'Bays',
-    // Each bay is its Token, greyed when damaged; a bay that does not resolve
-    // keeps a named tile that says so.
+    // Each bay is its Token, greyed and ending in a DAMAGED badge when damaged;
+    // a bay that does not resolve keeps a named tile that says so.
     chips: bays.map((b) =>
       b.entity
         ? { text: b.name, entity: b.entity, warn: b.damaged }
