@@ -348,6 +348,34 @@ jobs:
         run: bun --filter su-assets worker:bundle --outdir /tmp/su-assets-worker
 
   # ---------------------------------------------------------------------------
+  # Every PR into `main` releases (release.yml), so it must bump the root
+  # package.json version over main's: major, minor or patch. Skipped (a pass)
+  # on PRs into any other branch.
+  # ---------------------------------------------------------------------------
+  version-bump:
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The PR's merge commit and its first parent, main's tip.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+
+      # tools/release.ts imports nothing installed, so no `bun install`.
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - name: Require a version bump over main
+        run: |
+          base=$(git show HEAD^1:package.json | bun -e 'console.log(JSON.parse(await Bun.stdin.text()).version)')
+          bun tools/release.ts --check-bump --base "$base"
+
+  # ---------------------------------------------------------------------------
   # The single required check. Fails if any job failed or was cancelled; a
   # path-filtered skip passes. EVERY job above must be in `needs:` —
   # tools/check-workflows.ts (aggregator) enforces it. CodeQL and the PR title
@@ -365,6 +393,7 @@ jobs:
       - build-itun
       - build-discord-bot
       - build-su-assets
+      - version-bump
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

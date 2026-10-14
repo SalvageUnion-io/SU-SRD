@@ -90,6 +90,6 @@ For styling bugs, check the stylesheet wiring (`entry.css`'s `layer(su-reset)` /
 
 `main` requires linear history and status checks; **no merge queue**. Squash-merge: locally `gh pr merge <pr> --squash`; in cloud, see [cloud sessions](docs/ARCHITECTURE.md#cloud). The squash body is the PR body (`PR_BODY`); `git log` is the decision record.
 
-**Releasing:** bump the root `package.json` `version`; the merge tags and releases it ([`tools/release.ts`](tools/release.ts)).
+**Releasing:** each PR into `main` bumps the root `package.json` version (CI-enforced); merging releases it (`tools/release.ts`).
 
 Dependent PRs land only as a `gh stack`, local-only: `submit --auto --open`, then `merge --squash`; after a merge beneath you, `gh stack sync`. Never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr>`).
