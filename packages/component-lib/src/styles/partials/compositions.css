@@ -208,6 +208,17 @@
   top: calc(var(--su-track-node) - var(--su-track-weight) / 2);
 }
 
+/* A Legendary pick takes no stub (owner's call, 2026-10-14): its pipe and
+   "or" run beside the picks, unjoined; a lone pick (a pilot's one Legendary
+   Ability) has no pipe either, so it sits flush. */
+.su-ability-track[data-track='legendary'] > .su-ability-track__tier::after {
+  content: none;
+}
+
+.su-ability-track[data-track='legendary'] > .su-ability-track__tier:only-child {
+  padding-left: 0;
+}
+
 /* A Row on a track is framed in the track's hue (component-lib's
    `--su-row-frame`), so the stub runs into a border of its own colour. */
 .su-ability-track[data-track] > .su-ability-track__tier {
