@@ -105,6 +105,14 @@
   flex: 1 1 auto;
 }
 
+/* A big grouping's Tokens (`EntityTokenList`): as many full-width columns as
+   the measure holds, one on a phone. */
+.su-entity-token-list--grid {
+  column-gap: var(--space-12);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+}
+
 @media (pointer: coarse) {
   .su-entity-token-list .su-entity-token__pill {
     min-height: 44px;

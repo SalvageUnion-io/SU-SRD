@@ -7,6 +7,7 @@ import { color, font, fontSize, space, tracking } from '../../../design/tokens'
 import { Button } from '../../atoms/Button'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
+import { EntityTokenList } from './EntityTokenList'
 
 /** `ink/70` — no ink-opacity rung sits at 70%. */
 const ink70 = `color-mix(in oklab, ${color.ink} 70%, transparent)`
@@ -46,7 +47,7 @@ const chooseButtonStyle = {
  *   rail) via a "Choose…" button, and shows the current pick as a real listing
  *   card. Single-select — the modal owns the pool (filtered to the catalog).
  * - **Read-only** is a static reference: an expandable listing of the qualifying
- *   entities, each a real `ReferenceEntityCard` (listing/header-only).
+ *   entities, each a Token (`EntityTokenList`).
  *
  * The collection is resolved LAZILY — only when the picker/listing is opened —
  * so the default render touches no cross-schema collection (the target schema,
@@ -54,7 +55,7 @@ const chooseButtonStyle = {
  * Resolution is guarded: an unloaded target schema resolves to empty, never a
  * throw.
  *
- * Rendering a resolved entity goes through the `renderEntity` callback the
+ * Rendering the editable pick goes through the `renderEntity` callback the
  * (recursive) card supplies — this file never imports the card back.
  */
 export function CatalogChoiceListing({
@@ -137,13 +138,10 @@ export function CatalogChoiceListing({
       <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} style={textXs}>
         <summary style={summaryStyle}>{summary}</summary>
         {open && (
-          <div style={{ ...stackStyle, marginTop: space[8] }}>
-            {entities.map((entity, index) => {
-              const name = typeof entity.name === 'string' ? entity.name : ''
-              const key =
-                'id' in entity && typeof entity.id === 'string' ? entity.id : `${name}-${index}`
-              return renderEntity(entity, key)
-            })}
+          // The whole qualifying collection is a big grouping: Tokens
+          // (owner's call, 2026-10-14).
+          <div style={{ marginTop: space[8] }}>
+            <EntityTokenList entities={entities} label={choice.name} />
           </div>
         )}
       </details>
