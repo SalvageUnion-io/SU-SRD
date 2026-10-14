@@ -103,7 +103,8 @@ describe('mech sheet', () => {
     })
     const systems = blockStarting(card, '**Systems')
     expect(systems).toContain('Armour Plating')
-    expect(systems).toContain('damaged')
+    // The condition word as the book capitalises it (Workshop Manual pp.244-245).
+    expect(systems).toContain('· Damaged')
   })
 
   test('strikes through a destroyed system', () => {
@@ -115,7 +116,7 @@ describe('mech sheet', () => {
     })
     const systems = blockStarting(card, '**Systems')
     expect(systems).toContain('~~')
-    expect(systems).toContain('destroyed')
+    expect(systems).toContain('· Destroyed')
   })
 
   test('surfaces shutdown and vulnerable as status chips', () => {
@@ -145,6 +146,26 @@ describe('crawler sheet', () => {
     expect(bays?.split('\n')[0]).toContain('2')
     expect(bays).toContain('Command Bay')
     expect(bays).toContain('Mech Bay')
+  })
+
+  test('derives its SP max, absent current SP reading full', () => {
+    // Tech Level 1's 20 SP: the max is derived, never only the override.
+    const card = sheet('crawlers', { name: 'The Ossuary', techLevel: '1', type: 'exploratory' })
+    const sp = cardText(card)
+      .split('\n')
+      .find((line) => line.startsWith('**SP** '))
+    expect(sp).toStartWith('**SP** 20/20')
+    expect(cardText(card)).toContain('**TL** 1')
+  })
+
+  test('reads its Scrap Pool label first, T1 | 3', () => {
+    const card = sheet('crawlers', {
+      name: 'The Ossuary',
+      techLevel: '1',
+      scrapPool: { tl1: 3, tl2: 0, tl4: 1 },
+    })
+    expect(blockStarting(card, '**Scrap Pool')).toContain('**T1** 3 · **T4** 1')
+    expect(cardText(card)).not.toContain('×')
   })
 
   test('is communal, so it never claims an owner', () => {

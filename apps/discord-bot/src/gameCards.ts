@@ -13,6 +13,7 @@ import {
   srdEntityUrl,
 } from 'salvageunion-reference'
 import {
+  crawlerMaxSP,
   mechMaxHeat,
   mechMaxSP,
   pilotMaxAP,
@@ -77,6 +78,7 @@ const FOOTER = PRODUCT.name
 const HP = STAT_LABELS.hitPoints.short
 const SP = STAT_LABELS.structurePoints.short
 const HEAT = STAT_LABELS.heatCapacity.short
+const TL = 'TL'
 
 /**
  * A field name off one of the entity schemas.
@@ -451,7 +453,7 @@ function collectionLines(
       const link = refLink(schemaName, slug)
       if (body === undefined || conditionKey === undefined) return link
       const condition = conditionOf(body, conditionKey, slug)
-      const word = CONDITION_LABELS[condition].toLowerCase()
+      const word = CONDITION_LABELS[condition]
       if (condition === 'damaged') return `${link} · ${word}`
       if (condition === 'destroyed') return `~~${link}~~ · ${word}`
       return link
@@ -584,14 +586,23 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   const techLevel = str(body, 'techLevel')
   const fields: CardField[] = []
 
-  const sp = num(body, 'currentSP')
-  const maxSp = num(body, 'maxSpOverride')
+  // The max is derived, as a mech's is: the tech level's SP, the type's bonus,
+  // the modifier, or the override when one is set. An unresolvable tech level
+  // derives 0, which has no gauge to draw, so the current value stands alone.
+  const maxSp = crawlerMaxSP({
+    techLevel: techLevel ?? '',
+    type: typeRef ?? undefined,
+    maxSpModifier: num(body, 'maxSpModifier') ?? undefined,
+    maxSpOverride: num(body, 'maxSpOverride') ?? undefined,
+  })
+  const sp =
+    maxSp > 0 ? resolvePool(num(body, 'currentSP') ?? undefined, maxSp) : num(body, 'currentSP')
   fields.push({
     name: SP,
-    value: maxSp === null ? (sp === null ? '—' : String(sp)) : gauge(sp, maxSp),
+    value: maxSp > 0 ? gauge(sp, maxSp) : sp === null ? '—' : String(sp),
     inline: true,
   })
-  fields.push({ name: 'Tech Level', value: techLevel ?? '—', inline: true })
+  fields.push({ name: TL, value: techLevel ?? '—', inline: true })
 
   const bayRefs = Array.isArray(body.crawlerBays)
     ? (body.crawlerBays as unknown[]).flatMap((bay) => {
@@ -617,7 +628,8 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   if (pool !== null && typeof pool === 'object') {
     const entries = Object.entries(pool as Record<string, unknown>)
       .filter(([, v]) => typeof v === 'number' && v > 0)
-      .map(([tier, v]) => `${tier.toUpperCase()} ×${String(v)}`)
+      // Label first, as every chip reads: `**T1** 3`.
+      .map(([tier, v]) => `**${tier.replace(/^tl/i, 'T')}** ${String(v)}`)
     const run = chipRun(entries)
     if (run !== null) fields.push({ name: 'Scrap Pool', value: run })
   }
