@@ -38,7 +38,8 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * the notch. Below `sm` it stacks above the notch, where the band has room
  * for it. A show page passes `asideAt="notch"` (EDL E20: nothing above
  * a show page's title): its stamps and controls are one cluster beside the
- * title from `sm`, top-aligned with it and after it in reading order as in
+ * title from `sm`, its last line on the title's baseline (a wrap grows up the
+ * band) and after it in reading order as in
  * the DOM, each child of `aside` a right-aligned line that wraps; on a phone
  * the cluster follows the title, below the band on the page ground. The
  * notch stays on the band's foot either way.

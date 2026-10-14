@@ -443,6 +443,23 @@
   }
 }
 
+/* An entity page's band line (`EntityPageStamps`). Under the title on a
+   phone it wraps down; beside it from `sm` it sits on the title's baseline,
+   every stamp and stat's foot on it, and wraps UP, so its first line keeps
+   that baseline and the rest fill the band above it. */
+.srd-entity-stamps {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* `end`, not `flex-end`: wrap-reverse turns a line's flex-end to its top. */
+@media (min-width: 40rem) {
+  .srd-entity-stamps {
+    align-items: end;
+    flex-wrap: wrap-reverse;
+  }
+}
+
 /*
  * The type and cost stamps beside an entity page's stats
  * (`EntityPageStamps`): the height and type of the band's compact stat label

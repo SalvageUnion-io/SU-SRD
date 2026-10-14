@@ -40,10 +40,10 @@ type EntityPageStampsProps = {
   end?: ReactNode
 }
 
+// Its wrap and alignment are `.srd-entity-stamps`': from `sm` a second line
+// goes above.
 const ROW = {
-  alignItems: 'center',
   display: 'flex',
-  flexWrap: 'wrap',
   gap: space[8],
 } satisfies CSSProperties
 
@@ -55,7 +55,7 @@ export function EntityPageStamps({
   end,
 }: EntityPageStampsProps) {
   return (
-    <div style={ROW}>
+    <div className="srd-entity-stamps" style={ROW}>
       {lead}
       {legalStartingPattern && (
         <Badge

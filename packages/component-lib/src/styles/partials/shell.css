@@ -438,9 +438,10 @@
 }
 
 /* `asideAt="notch"`: a show page's stamps and controls, never above the
-   title (EDL E20). From `sm` they are one cluster at the row's far end,
-   top-aligned with the notch, which keeps the band's foot; each child of the
-   aside is a line of it, right-aligned and wrapping. A phone has no room
+   title (EDL E20). From `sm` they are one cluster at the row's far end, its
+   last line flat on the title's baseline, so a cluster that wraps grows up
+   the band, never down past the name; each child of the aside is a line of
+   it, right-aligned and wrapping. A phone has no room
    beside the name, so the cluster follows it: below the band, on a strip of
    the page ground the width of the band. */
 .su-chapter-band[data-aside='notch'] .su-chapter-band__row {
@@ -468,7 +469,7 @@
 
 @media (min-width: 40rem) {
   .su-chapter-band[data-aside='notch'] .su-chapter-band__row {
-    align-items: flex-start;
+    align-items: flex-end;
     column-gap: var(--space-24);
     flex-direction: row;
   }
@@ -486,7 +487,9 @@
     flex: 0 1 auto;
     margin-inline: auto 0;
     max-width: 60%;
-    padding: 0 0 var(--space-12);
+    /* The notch's baseline sits this far above the band's foot: Barlow Semi
+       Condensed's descent less the half-leading of its 0.92 line. */
+    padding: 0 0 calc(var(--text-chapter) * 0.076);
   }
 
   .su-chapter-band[data-aside='notch'] .su-chapter-band__aside > * {
