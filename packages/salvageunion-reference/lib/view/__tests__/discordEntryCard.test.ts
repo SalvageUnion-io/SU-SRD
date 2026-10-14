@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
+import { nameToSlug } from '../../nameToSlug'
 import type { SURefMetaEntity } from '../../schemas/index'
 import {
   COMPONENT_EMBED_MAX_BYTES,
@@ -36,12 +37,14 @@ describe('discordEntryCard', () => {
     expect(json).not.toContain('ROLL THE DIE')
   })
 
-  test('a pattern is its own card, never listed on its host', () => {
+  test('a pattern is its own card; its host only links it', () => {
     const mule = entry('chassis', 'mule')
     const [pattern] = (mule as { patterns?: { name: string }[] }).patterns ?? []
     if (!pattern) throw new Error('the Mule has no pattern')
     const host = componentEmbedJson(discordEntryCard(mule))
-    expect(host).not.toContain(`[${pattern.name}](`)
+    expect(host).toContain(
+      `[${pattern.name}](https://salvageunion.io/chassis/mule/pattern/${nameToSlug(pattern.name)})`
+    )
     const own = componentEmbedJson(discordEntryCard(mule, pattern as never))
     expect(own).toContain(pattern.name)
   })

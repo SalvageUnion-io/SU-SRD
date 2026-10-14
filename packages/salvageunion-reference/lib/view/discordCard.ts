@@ -30,6 +30,8 @@ import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { chipLines, costChip, factChips } from './discordChips'
+import { chassisCardGroups } from './parts/children'
+import { rangeStart, stripOwnerSuffix } from './parts/discordText'
 import { opensGroup, splitStatLine } from './parts/facts'
 import { splitParagraph } from './parts/paragraphs'
 import { formatActionType } from './parts/traits'
@@ -331,19 +333,6 @@ function actionBand(ref: EntityRef, ownName: string, chassisName?: string): Disc
   return { name, text, summary, ...(tableName ? { tableName } : {}) }
 }
 
-/** "Chassis Repair (Fabrication Arm)" inside Fabrication Arm → "Chassis Repair". */
-function stripOwnerSuffix(name: string, ownName: string): string {
-  const match = name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/)
-  if (!match?.[1] || !match[2]) return name
-  return match[2].trim().toLowerCase() === ownName.trim().toLowerCase() ? match[1] : name
-}
-
-/** The first number of a range key: "11-19" → 11. */
-function rangeStart(key: string): number {
-  const n = Number.parseInt(key, 10)
-  return Number.isNaN(n) ? 0 : n
-}
-
 /**
  * A table's rows. A banded table prints one row per band, highest first, as the
  * book does. A two-roll (columns) table prints one row per column, its entries
@@ -403,9 +392,11 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
     ...contentMarkdown(foldedProse, chassisName).filter((paragraph) => !ownSet.has(paragraph)),
   ]
 
-  // A chassis ability shows only on the chassis and pattern PAGES; a card in
-  // Discord is a card, so it carries the other actions alone.
-  const actions = model.actions.flatMap((ref) => {
+  // A chassis's card carries its abilities, ahead of any other action, and
+  // links its patterns. A pattern's card is its own entry and never repeats them.
+  const isHost = model.ref.schemaName === 'chassis' && !model.parent
+  const abilities = isHost ? model.abilities : []
+  const actions = [...abilities, ...model.actions].flatMap((ref) => {
     const band = actionBand(ref, model.title, chassisName)
     return band ? [band] : []
   })
@@ -413,9 +404,11 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
   const table = model.table ? tableParts(model.table) : undefined
 
   // A class's Core trees and its Advancement: bare links.
-  const children = [...model.children, ...(model.links ?? [])].map((group) =>
-    discordChildGroup(group.label, group.items)
-  )
+  const children = [
+    ...model.children,
+    ...(model.links ?? []),
+    ...(isHost ? chassisCardGroups(model.ref) : []),
+  ].map((group) => discordChildGroup(group.label, group.items))
 
   return {
     tone: model.tone,
