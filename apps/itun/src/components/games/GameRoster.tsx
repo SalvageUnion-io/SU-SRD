@@ -29,7 +29,8 @@
  *
  * ## What a row opens
  *
- * Every row has one View, to the live sheet (`rosterSheetHref`). It opens
+ * Every row is a link to the live sheet (`rosterSheetHref`), its other verbs
+ * in a ⋯ menu beside it, as a shelf item's (`ShelfItem`). The sheet opens
  * editable when the row is yours to edit — your own pilots and mechs, and the
  * crawler when you run the table (ADR-038 §5) — and read-only and live
  * otherwise; `entities.locate` decides and `SheetView` renders it. No row
@@ -45,7 +46,7 @@
  * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
  */
 
-import { Badge, Button, buttonVariants, Text, tokens } from 'component-lib'
+import { Badge, buttonVariants, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
@@ -68,8 +69,11 @@ import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import type { HeaderMenuItem } from '../shared/HeaderMenu'
+import { HeaderMenu } from '../shared/HeaderMenu'
 import { UnitRow } from '../shared/UnitRow'
 import { useConfirm } from '../shared/useConfirm'
+import { useGo } from '../shared/useGo'
 import { OwnerSeal } from './OwnerSeal'
 import { useRowActions } from './useRowActions'
 
@@ -149,7 +153,14 @@ const GROUP = {
   gap: tokens.space[10],
 } satisfies CSSProperties
 
-const ITEM = { listStyle: 'none' } satisfies CSSProperties
+/** A Row and its ⋯ menu at the column's edge, as a shelf item (`ShelfItem`). */
+const ITEM = {
+  alignItems: 'start',
+  display: 'grid',
+  gap: tokens.space[8],
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  listStyle: 'none',
+} satisfies CSSProperties
 
 /** Stamps sit at their own width, not stretched across the group. */
 const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
@@ -160,6 +171,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const rowActions = useRowActions(confirm)
+  const go = useGo()
 
   const me = useQuery(api.account.me, {})
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
@@ -209,6 +221,64 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     }),
   }
 
+  /**
+   * A row's verbs, in its ⋯ menu as a shelf item's are (Shelves): the Row
+   * itself opens the sheet, so its band carries only its name and chips.
+   */
+  function rowMenu(row: RosterRow): HeaderMenuItem[][] {
+    const act = (run: () => void) => (busy ? undefined : run)
+    const verbs: HeaderMenuItem[] = [
+      { id: 'open', label: 'Open', onSelect: () => go(rosterSheetHref(row)) },
+    ]
+    // Picking up is the SEAL's job, not a menu row's (`OwnerSeal`). Any owner
+    // may hand back, not just the table runner: ADR-030 §4 makes ownership
+    // voluntary outward, and the pick-up confirm promises this way back out.
+    if (row.can.release) {
+      verbs.push({
+        id: 'offer',
+        label: 'Offer to the crew',
+        onSelect: act(() => rowActions.offer(row)),
+      })
+    }
+    // Pilots and mechs only: copying the crawler, the crew's shared home, is
+    // a product choice nobody has made yet.
+    if (row.kind !== 'crawler') {
+      verbs.push({ id: 'copy', label: 'Make a copy', onSelect: act(() => rowActions.copy(row)) })
+    }
+    if (row.can.makePrimary) {
+      verbs.push({
+        id: 'primary',
+        label: 'Make primary',
+        onSelect: act(
+          () =>
+            void makePrimary.run({
+              gameId: gameId as Id<'games'>,
+              crawlerId: row.serverId as Id<'crawlers'>,
+            })
+        ),
+      })
+    }
+    // The move out (ADR-037): your own pilot or mech, or (for the table
+    // runner) a crawler, once this browser holds the copy the move is made on.
+    if (row.can.removeFromGame && row.localId !== null) {
+      verbs.push({
+        id: 'remove',
+        label: 'Remove from Game',
+        onSelect: act(() => rowActions.removeFromGame(row, gameName)),
+      })
+    }
+    const danger: HeaderMenuItem[] = []
+    if (row.can.delete || row.can.scrap) {
+      danger.push({
+        id: 'delete',
+        label: 'Delete…',
+        tone: 'danger',
+        onSelect: act(() => (row.can.delete ? rowActions.remove(row) : rowActions.scrap(row))),
+      })
+    }
+    return [verbs, danger]
+  }
+
   function renderRow(row: RosterRow): ReactNode {
     return (
       <li key={row.serverId} style={ITEM}>
@@ -219,10 +289,10 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
              the roster says which one it is. */
           note={row.primary ? '★ Primary' : undefined}
           readings={rosterRowStats(row)}
-          /* Every row is a door, and there is one: View, to the live sheet —
-             editable when the row is yours to edit (`row.can.openSheet`),
-             read-only when it is a crewmate's (`SheetView`). */
-          href={rosterSheetHref(row)}
+          /* The Row is the door to the live sheet: editable when the row is
+             yours to edit (`row.can.openSheet`), read-only when it is a
+             crewmate's (`SheetView`). */
+          mode={{ kind: 'link', href: rosterSheetHref(row) }}
           /* Who holds it sits right of the name, a label (ruleset §7.2):
              never a stamp riding the frame. */
           labels={
@@ -235,86 +305,12 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
               />
             )
           }
-          controls={
-            <>
-              {/* Picking up is the SEAL's job, not a button's — see
-                  `OwnerSeal`. Any owner may hand back, not just the table
-                  runner: ADR-030 §4 makes ownership voluntary outward, and the
-                  pick-up confirm promises exactly this as the way back out. */}
-              {row.can.release && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy}
-                  onClick={() => rowActions.offer(row)}
-                >
-                  Offer to the crew
-                </Button>
-              )}
-              {/* Pilots and mechs only. Copying the crawler is a product choice
-                  nobody has made yet: it is the crew's shared home rather than
-                  a character somebody keeps. */}
-              {row.kind !== 'crawler' && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy}
-                  onClick={() => rowActions.copy(row)}
-                >
-                  Make a copy
-                </Button>
-              )}
-              {/* The move out (ADR-037): your own pilot or mech, or — for the
-                  table runner — a crawler. Offered once this browser holds the
-                  copy the move is made on; `ShelfSync` and `WiringSync` bring
-                  it in moments after it appears here. */}
-              {row.can.removeFromGame && row.localId !== null && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy}
-                  onClick={() => rowActions.removeFromGame(row, gameName)}
-                >
-                  Remove from Game
-                </Button>
-              )}
-              {row.can.delete && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy}
-                  onClick={() => rowActions.remove(row)}
-                >
-                  Delete
-                </Button>
-              )}
-              {row.can.makePrimary && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy}
-                  onClick={() =>
-                    void makePrimary.run({
-                      gameId: gameId as Id<'games'>,
-                      crawlerId: row.serverId as Id<'crawlers'>,
-                    })
-                  }
-                >
-                  Make primary
-                </Button>
-              )}
-              {row.can.scrap && (
-                <Button
-                  variant="ghost"
-                  size="mini"
-                  disabled={busy}
-                  onClick={() => rowActions.scrap(row)}
-                >
-                  Delete
-                </Button>
-              )}
-            </>
-          }
+        />
+        <HeaderMenu
+          variant="overflow"
+          trigger={null}
+          label={`More for ${row.name}`}
+          sections={rowMenu(row)}
         />
       </li>
     )
@@ -361,12 +357,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
 
   return (
     <>
-      <Text variant="hint" style={HINT}>
-        {caps.tableRunner
-          ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
-          : 'Everything the crew has brought to this Game. Pick up anything nobody holds.'}
-      </Text>
-
       {error !== null && (
         <Text variant="hint" role="alert" style={ERROR}>
           {error}

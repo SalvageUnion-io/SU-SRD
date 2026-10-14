@@ -207,7 +207,7 @@ const TP_AND_CONDITIONS = {
 
 const CONDITIONS_CELL = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties // wraps under TP
 
-const PILLS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+const PILLS = { display: 'grid', gap: tokens.space[8] } satisfies CSSProperties
 
 /** The Edit list: one item a line; its gap is `.su-sheet-items`. */
 const EDIT_ITEMS = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
@@ -452,7 +452,7 @@ export function PilotSheet({
                 // Read (board 10): the shortform pills, then the SlotGrid of
                 // every slot, filled and free, so capacity reads at a glance.
                 <>
-                  <div style={PILLS}>
+                  <div className="su-sheet-pills" style={PILLS}>
                     {model.ordinaryEquipment.map((slug) => (
                       <PilotEquipmentItem
                         key={slug}

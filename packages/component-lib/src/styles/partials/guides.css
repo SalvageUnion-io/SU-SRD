@@ -49,6 +49,19 @@
   min-width: 0;
 }
 
+/* A step's head is a two-cell chip, as a stat's `label | value`: the numeral
+   on the slab's ink, the name on a paper cell that runs to the stamp's edges,
+   inside its ink rule (`GuideSteps`'s `StepHead`). */
+.su-guide__step-name {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
+  color: var(--color-ink);
+  display: inline-block;
+  margin-block: calc(-1 * var(--space-2)) -3px;
+  margin-inline: var(--space-4) calc(-1 * var(--space-8));
+  padding: var(--space-2) var(--space-8) 3px;
+}
+
 /* A step's body, and the prose a ladder stands beside (below). */
 .su-guide__body,
 .su-guide__ladder-prose {

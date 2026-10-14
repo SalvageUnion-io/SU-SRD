@@ -1,10 +1,12 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { useRef } from 'react'
 import { grainClass } from '../../components/referenceEntity/card/cardGrain'
 import { font } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { KindLabel } from './KindLabel'
 import type { Paint } from './paint'
 import { PAPER_NAME } from './paint'
+import { useChipsFit } from './useChipsFit'
 
 /** A one-line hint on the band (a pattern row's description), truncated. */
 const HINT: CSSProperties = {
@@ -61,8 +63,8 @@ export type HeadProps = {
   notch?: boolean
   /**
    * Keep the cut-out with chips: the chips stay on the band right of the
-   * name, and on a phone flow under it onto the paper, never above it
-   * (every Row and Card head).
+   * name, and on a phone flow under it onto the paper when they do not fit
+   * beside it (`useChipsFit`), never above it (every Row and Card head).
    */
   chipsBeside?: boolean
 }
@@ -93,6 +95,8 @@ export function Head({
   chipsBeside = false,
 }: HeadProps) {
   const cut = notch && (!chips || chipsBeside)
+  const headingRef = useRef<HTMLDivElement>(null)
+  useChipsFit(headingRef, cut && !!chips)
   const tierNode = tier && <span className="su-entity-row__tier">{tier}</span>
   const titleNode = (
     <TitleTag
@@ -131,7 +135,10 @@ export function Head({
       <div className="su-entity-row__line">
         {tierNode}
         {chips ? (
-          <div className={cn('su-entity-row__heading', cut && 'su-entity-row__heading--cut')}>
+          <div
+            ref={headingRef}
+            className={cn('su-entity-row__heading', cut && 'su-entity-row__heading--cut')}
+          >
             {name}
             {labelsWithChips ? (
               <div className="su-entity-row__chip-group">

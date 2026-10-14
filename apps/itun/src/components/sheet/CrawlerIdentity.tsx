@@ -1,7 +1,7 @@
 /**
  * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
  * sibling of PilotIdentityPanel / MechIdentityPanel).
- * Poster identity band: Name + Type as labeled identity fields, then the
+ * Poster identity band: Tech Level + Type (Name too, in Edit), then the
  * crawler type's special ability as a library Row (its lead, a Peek of its
  * card) beside the type's crew NPC, then the Description panel.
  *
@@ -46,6 +46,14 @@ const TYPE_ROW = {
   alignItems: 'end',
   columnGap: tokens.space[16],
   rowGap: tokens.space[12],
+} satisfies CSSProperties
+
+/** Read's TL chip and type Token on one line, the chip as tall as the Token. */
+const TYPE_LINE = {
+  display: 'flex',
+  alignItems: 'stretch',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 /** The special-ability Rows: a bare list, each Row the column's full width. */
@@ -94,6 +102,10 @@ export function CrawlerIdentityPanel({
   // type rather than in the economy rail.
   const techLevel = parseCrawlerTechLevel(crawler.techLevel)
   const abilities = resolveCrawlerTypeAbilities(crawler.type)
+  const tlValue = techLevel ?? '—'
+  // Read names the type as its Token, which opens and Peeks it.
+  const readType =
+    !canEdit && type ? <Entity form="token" entity={type} mode={{ kind: 'link' }} /> : null
 
   /** Persist the crawler name (required — never write empty). */
   function saveName(next: string) {
@@ -109,29 +121,28 @@ export function CrawlerIdentityPanel({
   return (
     <section aria-label="Crawler identity" style={PANEL}>
       <div style={STACK}>
-        {/* Name leads at full prominence (the crawler's own name, like a
-            pilot's callsign). Tech Level sits to the LEFT of the type: it is
-            the crawler's rung, read alongside what kind of crawler it is,
-            rather than buried in the economy rail. */}
-        <Field
-          label="Name"
-          value={crawler.name}
-          onSave={canEdit ? saveName : undefined}
-          prominent
-        />
+        {/* The band already names the crawler, so Read never repeats it;
+            Edit keeps the field to rename it, as a pilot's Name. Tech Level
+            sits to the LEFT of the type: the crawler's rung, read alongside
+            what kind of crawler it is. */}
+        {canEdit && <Field label="Name" value={crawler.name} onSave={saveName} prominent />}
         <div className="su-sheet-crawler-identity-row" style={TYPE_ROW}>
           {/* A STAT, not a Field: the tech level is derived from the crawler's
               stored rung and never typed into, so it reads as a `TL | 1` chip
-              like the mech's chassis stats — a field box implied an input. */}
-          <Stat orientation="horizontal" label="TL" value={techLevel ?? '—'} />
-          {/* Read names the type as its Token, which opens and Peeks it. */}
+              like the mech's chassis stats — a field box implied an input.
+              Read sets it on the type's line, stretched to its Token's
+              height, so the two read as one pair of the same size. */}
+          {readType === null && <Stat orientation="horizontal" label="TL" value={tlValue} />}
           <Field
             label="Type"
             value={type?.name ?? ''}
             readValue={
-              !canEdit && type ? (
-                <Entity form="token" entity={type} mode={{ kind: 'link' }} />
-              ) : undefined
+              readType && (
+                <span style={TYPE_LINE}>
+                  <Stat orientation="horizontal" label="TL" value={tlValue} />
+                  {readType}
+                </span>
+              )
             }
             onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
           />

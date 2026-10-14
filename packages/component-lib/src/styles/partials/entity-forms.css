@@ -327,18 +327,21 @@
   border-color: var(--color-paper);
 }
 
-/* On a phone the chips flow UNDER the name, never above it (owner's rule,
-   2026-10-13): their own line on the paper below the tab, the head of the
-   body, so the tab still opens into the paper. The strip is painted the
-   band's full width by a clipped shadow, since the heading sits inset. */
+/* On a phone the chips stay right of the name when they fit on one line
+   beside it, and otherwise flow UNDER it, never above it (owner's rules,
+   2026-10-13 and 2026-10-14): their own line on the paper below the tab, the
+   head of the body, so the tab still opens into the paper. `useChipsFit`
+   measures the fit and marks the heading `data-chips="beside"`; with no
+   script (or before it runs) they drop. The strip is painted the band's full
+   width by a clipped shadow, since the heading sits inset. */
 @media (max-width: 40rem) {
-  .su-entity-row__heading--cut {
+  .su-entity-row__heading--cut:not([data-chips='beside']) {
     flex-wrap: wrap;
     row-gap: 0;
   }
 
-  .su-entity-row__heading--cut > .su-chips,
-  .su-entity-row__heading--cut > .su-entity-row__chip-group {
+  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-chips,
+  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-entity-row__chip-group {
     background-color: var(--color-paper);
     box-shadow: 0 0 0 100vmax var(--color-paper);
     clip-path: inset(0 -100vmax -1px);
@@ -351,12 +354,12 @@
   /* The tier, pennant and affordance stay on the band, by the name, and
      paint over the strip (its clip makes it a stacking context). */
   /* On the paper strip an ink band's chips drop their paper rule. */
-  .su-entity-row__heading--cut .su-chips--on-ink .su-stat-cell {
+  .su-entity-row__heading--cut:not([data-chips='beside']) .su-chips--on-ink .su-stat-cell {
     border-color: var(--color-ink);
   }
 
   .su-entity-row__head[data-fill='ink']
-    .su-entity-row__heading--cut
+    .su-entity-row__heading--cut:not([data-chips='beside'])
     .su-entity-row__chip-group
     .su-ec-labels__stamps
     > .su-badge-stamp {
@@ -366,7 +369,7 @@
   }
 
   .su-entity-row__head[data-notch]
-    .su-entity-row__line:has(> .su-entity-row__heading--cut)
+    .su-entity-row__line:has(> .su-entity-row__heading--cut:not([data-chips='beside']))
     > :not(.su-entity-row__heading--cut) {
     align-self: flex-start;
     margin-block: var(--space-6) 0;
@@ -526,6 +529,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 }
 
 .su-entity-row[data-covered] .su-entity-row__controls,
+.su-entity-row[data-covered] .su-entity-row__labels,
 .su-entity-row[data-covered] .su-entity-row__line > input {
   position: relative;
   z-index: 1;

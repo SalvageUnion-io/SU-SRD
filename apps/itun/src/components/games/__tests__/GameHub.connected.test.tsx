@@ -428,10 +428,10 @@ describe('Launch Dashboard', () => {
     expect(launcher()).toBeTruthy()
   })
 
-  test('a Game with no Mediator has nothing to launch, and says so', async () => {
+  test('a Game with no Mediator has nothing to launch, and no note about it', async () => {
     await renderHub()
     expect(launcher()).toBeNull()
-    expect(screen.getByText('The Dashboard opens once this Game has a Mediator.')).toBeTruthy()
+    expect(screen.queryByText(/opens once this Game has a Mediator/)).toBeNull()
   })
 
   test('nothing shows while the crew is still loading', async () => {
