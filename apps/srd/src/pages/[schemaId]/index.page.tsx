@@ -123,7 +123,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         <div className="srd-listing-page">
           <Island
             name="SchemaViewerIsland"
-            client="visible"
+            client="interaction"
             ssr
             props={{
               schemaId,

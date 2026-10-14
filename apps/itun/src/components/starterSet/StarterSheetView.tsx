@@ -1,8 +1,8 @@
 /**
  * StarterSheetView — one Starter Set build's sheet: the real `<Sheet>`, read
- * only, over the templates themselves. Its band says where it comes from
- * ("Starter Set · Leyline Press · read-only") and offers "Make a copy" (board
- * 10).
+ * only, over the templates themselves. Its band offers "Make a copy" (board
+ * 10) in its top-right corner, and says nothing else: the page is plainly the
+ * Starter Set's, and a sheet with no edit controls is plainly read-only.
  *
  * The store is `makeReadOnlySheetStore` over the whole Starter Set, so the
  * sheet resolves the build's mech, pilot and crawler from the same crew and its
@@ -22,7 +22,7 @@ import {
 } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
-import { STARTER_SET_PUBLISHER, starterTemplate } from '../../lib/starterSet/copyStarter'
+import { starterTemplate } from '../../lib/starterSet/copyStarter'
 import { AppLink } from '../shared/AppLink'
 import { useConfirm } from '../shared/useConfirm'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
@@ -82,7 +82,6 @@ export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
         hrefFor={starterHref}
         back={{ href: '/starter', label: 'Starter Set' }}
         readOnly
-        provenance={`Starter Set · ${STARTER_SET_PUBLISHER} · read-only`}
         bandActions={
           <MakeACopy kind={kind} templateId={id} name={template.name} confirm={confirm} />
         }

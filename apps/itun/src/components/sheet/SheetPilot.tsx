@@ -32,7 +32,6 @@ type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
 export function SheetPilot({
   pilot,
   composition,
-  back,
   actions,
   segments,
   band,
@@ -224,7 +223,6 @@ export function SheetPilot({
       variant="pilot"
       name={pilot.name}
       strip={strip}
-      back={back}
       segments={segments}
       band={band}
       kindDetail={pilotStamp(pilot.classRef)}

@@ -6,16 +6,40 @@
  * + mobile nav are slotted in as independently-mounted islands so the shared
  * component ships no client JS of its own.
  *
- * All the chrome islands are `client="idle"`, `ssr={false}` and take **no
- * props** — they are chrome with no SEO value, and `MobileNavIsland` computing
- * its own catalog is what removes 17.3 MB of duplicated props from the build.
- * `WikiLinkIsland` is mounted twice (desktop cluster and phone cluster) and
- * shows its link on one page load in a hundred.
+ * The chrome islands are server-rendered and `client="interaction"`: the
+ * field and the two phone buttons are in the HTML, and React loads only when a
+ * reader reaches for one (`runtime/interaction.ts`), so a page read and left
+ * runs none. They take **no props**: `MobileNavIsland` computing its own
+ * catalog is what removes 17.3 MB of duplicated props from the build.
+ * `WikiLink` is served twice (desktop cluster and phone cluster), hidden; the
+ * client entry reveals both on one page load in a hundred.
  */
 
-import { AppBar } from 'component-lib'
+import { AppBar, FOCUS_RING } from 'component-lib'
 import { ITUN_URL } from '../lib/constants'
+import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
+import { MobileNavIsland } from './islands/MobileNavIsland'
+import { MobileSearchIsland } from './islands/MobileSearchIsland'
+import { SearchIsland } from './islands/SearchIsland'
+
+/**
+ * The quiet "WIKI" link to the `/greembeem` easter egg, served hidden: the
+ * client entry rolls once per page load and shows every copy on one in a
+ * hundred (`lib/wikiLink.ts`).
+ */
+function WikiLink() {
+  return (
+    <a
+      href="/greembeem"
+      className={`su-union-bar__quiet ${FOCUS_RING}`}
+      hidden
+      {...{ [WIKI_LINK_ATTRIBUTE]: '' }}
+    >
+      WIKI
+    </a>
+  )
+}
 
 type BreadcrumbItem = {
   name: string
@@ -54,15 +78,23 @@ export function TopNavigation({
       // stays when the page carries its own search.
       search={
         <>
-          <Island name="WikiLinkIsland" client="idle" />
-          {pageHasSearch ? null : <Island name="SearchIsland" client="idle" />}
+          <WikiLink />
+          {pageHasSearch ? null : (
+            <Island name="SearchIsland" client="interaction" ssr>
+              <SearchIsland />
+            </Island>
+          )}
         </>
       }
       mobile={
         <>
-          <Island name="WikiLinkIsland" client="idle" />
-          <Island name="MobileSearchIsland" client="idle" />
-          <Island name="MobileNavIsland" client="idle" />
+          <WikiLink />
+          <Island name="MobileSearchIsland" client="interaction" ssr>
+            <MobileSearchIsland />
+          </Island>
+          <Island name="MobileNavIsland" client="interaction" ssr>
+            <MobileNavIsland />
+          </Island>
         </>
       }
     />

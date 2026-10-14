@@ -15,17 +15,22 @@
  * replaced. `ssr` is therefore purely an SEO / no-JS decision and can never
  * produce a hydration mismatch.
  *
- * This module is shared by the SSR pass and the client bundle, so it must stay
- * free of `.css` imports and of anything under `ssg/`.
+ * Pages import it, never the client entry (the mounter reads the placeholder's
+ * attributes, not this module), so `react-dom/server` stays out of the client
+ * bundle. It must stay free of `.css` imports and of anything under `ssg/`.
  */
 
 import type { ReactNode } from 'react'
+import { renderToString } from 'react-dom/server'
 // Type-only: erased before Bun resolves anything, so the SSR pass never pulls
 // the client registry (or the island components, or their css) into its graph.
 import type { IslandName } from './islandRegistry'
 
-/** When the client mounts an island (see `islands.client.ts`). */
-type IslandClientDirective = 'load' | 'idle' | 'visible' | 'only'
+/**
+ * When the client mounts an island (see `islands.client.ts`). `interaction`
+ * waits for the reader to reach for it (`interaction.ts`).
+ */
+type IslandClientDirective = 'load' | 'idle' | 'visible' | 'only' | 'interaction'
 
 export type IslandProps = {
   /**
@@ -51,6 +56,22 @@ export type IslandProps = {
    * never pulls it into the SSR pass at all.
    */
   children?: ReactNode
+  /**
+   * Adopt the server markup with `hydrateRoot` instead of replacing it. Only
+   * for an `ssr` island whose children are the island itself, from the same
+   * props, and which reads no game data (`useGameData` has no server snapshot).
+   * Its children are rendered as their own root with `renderToString`, which
+   * keeps the text-node markers and `useId` values a hydrating root matches;
+   * the page's `renderToStaticMarkup` drops the first and numbers the second
+   * from the whole page.
+   */
+  hydrate?: boolean
+  /**
+   * With `client="interaction"`: the selector of the page-wide elements whose
+   * hover, press or focus wakes the island, for an island that serves the
+   * whole page (the Peek) rather than its own placeholder.
+   */
+  trigger?: string
 }
 
 /** Props for every island rendered during one page render, by `data-island-id`. */
@@ -77,7 +98,15 @@ export function endIslandCollection(): CollectedIslandProps {
   return collected
 }
 
-export function Island({ name, client = 'load', props, ssr = false, children }: IslandProps) {
+export function Island({
+  name,
+  client = 'load',
+  props,
+  ssr = false,
+  children,
+  hydrate = false,
+  trigger,
+}: IslandProps) {
   if (!active) {
     throw new Error(
       `<Island name="${name}"> rendered outside an island collection window. ` +
@@ -90,8 +119,15 @@ export function Island({ name, client = 'load', props, ssr = false, children }: 
   if (props && Object.keys(props).length > 0) active.props[id] = props
 
   return (
-    <div data-island={name} data-client={client} data-island-id={id}>
-      {ssr ? children : null}
+    <div
+      data-island={name}
+      data-client={client}
+      data-island-id={id}
+      data-hydrate={hydrate ? '' : undefined}
+      data-trigger={trigger}
+      {...(ssr && hydrate ? { dangerouslySetInnerHTML: { __html: renderToString(children) } } : {})}
+    >
+      {ssr && !hydrate ? children : null}
     </div>
   )
 }

@@ -89,7 +89,7 @@ function page(): PageResult {
                   The Salvage Union System Reference Document. Every chassis, ability, crawler and
                   denizen from the Workshop Manual, searchable and linkable.
                 </p>
-                <Island name="SearchIsland" client="idle" ssr props={{ variant: 'hero' }}>
+                <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'hero' }}>
                   <HeroSearchStatic />
                 </Island>
               </div>

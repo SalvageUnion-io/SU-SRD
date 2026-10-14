@@ -402,6 +402,16 @@
   padding-top: var(--space-12);
 }
 
+/* The corner (a page's controls) takes the band's top padding, at its right,
+   so the title row under it closes up to it. */
+.su-chapter-band__corner {
+  padding: var(--space-12) var(--space-16) 0;
+}
+
+.su-chapter-band__corner + .su-chapter-band__row {
+  padding-top: var(--space-12);
+}
+
 @media (min-width: 40rem) {
   .su-chapter-band__row {
     align-items: flex-end;
@@ -424,6 +434,14 @@
   }
 
   .su-chapter-band__eyebrow + .su-chapter-band__row {
+    padding-top: var(--space-12);
+  }
+
+  .su-chapter-band__corner {
+    padding: var(--space-16) var(--space-24) 0;
+  }
+
+  .su-chapter-band__corner + .su-chapter-band__row {
     padding-top: var(--space-12);
   }
 }

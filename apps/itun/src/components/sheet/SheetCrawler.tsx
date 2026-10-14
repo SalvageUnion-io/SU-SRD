@@ -59,7 +59,6 @@ const UPGRADE_POOL_MAX = 30
 export function SheetCrawler({
   crawler,
   composition,
-  back,
   actions,
   segments,
   band,
@@ -435,7 +434,6 @@ export function SheetCrawler({
         variant="crawler"
         name={crawler.name}
         strip={strip}
-        back={back}
         segments={segments}
         band={band}
         kindDetail={crawlerStamp(crawler.type)}

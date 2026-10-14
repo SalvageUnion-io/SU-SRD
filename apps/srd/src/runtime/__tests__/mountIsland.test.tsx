@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act } from '@testing-library/react'
 import { useState } from 'react'
 import type { Root } from 'react-dom/client'
-import { renderToStaticMarkup } from 'react-dom/server'
+import { renderToStaticMarkup, renderToString } from 'react-dom/server'
 import { HeroSearchStatic } from '../../components/HeroSearch'
 import { SearchIsland } from '../../components/islands/SearchIsland'
 import { resetSearchIndexForTests } from '../../lib/useSearchIndex'
@@ -112,6 +112,58 @@ describe('mountIsland', () => {
       expect(document.activeElement).toBe(input)
       expect(input?.selectionStart).toBe(6)
     })
+  })
+})
+
+/** A counter whose label is two text nodes, which a hydrating root must match. */
+function Counter({ start = 0 }: { start?: number }) {
+  const [count, setCount] = useState(start)
+  return (
+    <button type="button" onClick={() => setCount(count + 1)}>
+      Rolled {count}
+    </button>
+  )
+}
+
+describe('mountIsland with hydrate', () => {
+  test('adopts the server markup instead of drawing it again, and makes it live', async () => {
+    host.innerHTML = renderToString(<Counter start={2} />)
+    const served = host.querySelector('button')
+    await act(async () => {
+      root = mountIsland(host, Counter as IslandComponent, { start: 2 }, { hydrate: true })
+    })
+    const button = host.querySelector('button')
+    expect(button).toBe(served)
+    await act(async () => {
+      button?.click()
+    })
+    expect(button?.textContent).toBe('Rolled 3')
+  })
+})
+
+describe('mountIsland onCommit', () => {
+  test('runs once the first commit is on the page, with the island listening', async () => {
+    serve('<input name="q" />')
+    const seen: (string | undefined)[] = []
+    const committed = new Promise<void>((resolve) => {
+      act(() => {
+        root = mountIsland(
+          host,
+          Field as IslandComponent,
+          {},
+          {
+            onCommit: () => {
+              seen.push(host.querySelector('output')?.tagName)
+              resolve()
+            },
+          }
+        )
+      })
+    })
+    await act(async () => {
+      await committed
+    })
+    expect(seen).toEqual(['OUTPUT'])
   })
 })
 

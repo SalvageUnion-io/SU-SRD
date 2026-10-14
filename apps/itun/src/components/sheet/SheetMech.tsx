@@ -50,7 +50,6 @@ export function SheetMech({
   mech,
   pilotAbilitiesOverride,
   composition,
-  back,
   actions,
   segments,
   band,
@@ -259,7 +258,6 @@ export function SheetMech({
       variant="mech"
       name={mech.name}
       strip={strip}
-      back={back}
       segments={segments}
       band={band}
       kindDetail={mechStamp(mech.chassisRef)}
