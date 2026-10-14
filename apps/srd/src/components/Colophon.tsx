@@ -1,6 +1,7 @@
 import { KofiButton, MarkdownSection, Slab } from 'component-lib'
-import { fontSize, space } from 'component-lib/design/tokens'
+import { space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { column, proseColumn } from '../lib/docPageStyles'
 
 type ColophonProps = {
   /** Raw contents of the repo-root `ABOUT_JRVS.md` (left column, top). */
@@ -18,18 +19,11 @@ type ColophonProps = {
 // static.
 const ROOT = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
-const COLUMN = { display: 'flex', flexDirection: 'column', gap: space[32] } satisfies CSSProperties
+const COLUMN = column(space[32])
 
 const SUPPORT_SLAB = { marginBottom: 0, width: '100%' } satisfies CSSProperties
 
-const SUPPORT = {
-  alignItems: 'flex-start',
-  display: 'flex',
-  flexDirection: 'column',
-  fontSize: fontSize.sm,
-  gap: space[12],
-  lineHeight: 1.625,
-} satisfies CSSProperties
+const SUPPORT = { ...proseColumn(space[12]), alignItems: 'flex-start' } satisfies CSSProperties
 
 /**
  * Colophon — who made this, how, and how to support it, on the About page

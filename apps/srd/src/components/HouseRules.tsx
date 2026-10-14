@@ -1,16 +1,11 @@
 import { Slab } from 'component-lib'
-import { fontSize, space, weight } from 'component-lib/design/tokens'
+import { fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { HOUSE_RULES } from 'salvageunion-reference/rules'
+import { BOLD, proseColumn } from '../lib/docPageStyles'
 
 // Colour and face inherit from the page, so each app's About page sets them.
-const ROOT = {
-  display: 'flex',
-  flexDirection: 'column',
-  fontSize: fontSize.sm,
-  gap: space[12],
-  lineHeight: 1.625,
-} satisfies CSSProperties
+const ROOT = proseColumn(space[12])
 
 const LIST = {
   display: 'flex',
@@ -20,8 +15,6 @@ const LIST = {
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
-
-const TITLE = { fontWeight: weight.bold } satisfies CSSProperties
 
 const CITE = { fontSize: fontSize.xs, fontStyle: 'normal', opacity: 0.75 } satisfies CSSProperties
 
@@ -44,7 +37,7 @@ export function HouseRules() {
       <ul style={LIST}>
         {HOUSE_RULES.map((rule) => (
           <li key={rule.id}>
-            <p style={TITLE}>{rule.title}</p>
+            <p style={BOLD}>{rule.title}</p>
             <p>{rule.deviation}</p>
             <cite style={CITE}>{rule.cite}</cite>
           </li>

@@ -25,7 +25,9 @@
   width: 100%;
 }
 
-.srd-home__lede p {
+/* The home and not-found pages share the lede's type and the body's frame. */
+.srd-home__lede p,
+.srd-not-found__lede p {
   font-size: var(--text-readout);
   line-height: 1.5;
   margin: 0;
@@ -71,7 +73,8 @@
 /* The aside, the index, then the Discord bot: one stack on a phone, the aside
    first so a first-timer meets "Start here" before the index, and the
    bot after it so the index is not pushed a screen down. */
-.srd-home__body {
+.srd-home__body,
+.srd-not-found__body {
   display: flex;
   flex-direction: column;
   gap: var(--space-24);
@@ -102,7 +105,8 @@
 }
 
 @media (min-width: 40rem) {
-  .srd-home__body {
+  .srd-home__body,
+  .srd-not-found__body {
     padding-inline: var(--space-24);
   }
 }
@@ -170,12 +174,6 @@
   width: 100%;
 }
 
-.srd-not-found__lede p {
-  font-size: var(--text-readout);
-  line-height: 1.5;
-  margin: 0;
-}
-
 @media (min-width: 40rem) and (max-width: 63.99rem) {
   .srd-not-found__band .su-chapter-band__row {
     align-items: flex-start;
@@ -195,18 +193,7 @@
 }
 
 .srd-not-found__body {
-  display: flex;
-  flex-direction: column;
   gap: var(--space-28);
-  margin-inline: auto;
-  padding: var(--space-24) var(--space-16) var(--space-32);
-  width: 100%;
-}
-
-@media (min-width: 40rem) {
-  .srd-not-found__body {
-    padding-inline: var(--space-24);
-  }
 }
 
 .srd-not-found__guesses,

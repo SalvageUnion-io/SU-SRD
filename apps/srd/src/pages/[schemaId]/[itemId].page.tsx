@@ -168,28 +168,20 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       rollPage ? ROLL_TABLE_PAGE_MEASURE : undefined,
       fill?.foot
     ),
-    children: rollPage ? (
+    // A roll table has no build link or guide exits: both are null for it.
+    children: (
       <EntityPageFrame
         title={itemName}
         tone={chapter.tone}
         fill={fill?.band}
         meta={pageMeta}
-        measure={ROLL_TABLE_PAGE_MEASURE}
-      >
-        {rollPage}
-      </EntityPageFrame>
-    ) : (
-      <EntityPageFrame
-        title={itemName}
-        tone={chapter.tone}
-        fill={fill?.band}
-        meta={pageMeta}
+        measure={rollPage ? ROLL_TABLE_PAGE_MEASURE : undefined}
         build={buildLinkFor(schemaId, item)}
         exits={guideExitsFor(schemaId, item)}
       >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}
-        <EntityView item={item} schemaId={schemaId} />
+        {rollPage ?? <EntityView item={item} schemaId={schemaId} />}
       </EntityPageFrame>
     ),
   }
