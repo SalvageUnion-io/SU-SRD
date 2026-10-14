@@ -81,7 +81,7 @@ describe('Mech Major cargo hold', () => {
     fireEvent.click(screen.getByText('Storage'))
     expect(screen.getByLabelText('Jettison Sealed Crate')).toBeTruthy()
     expect(screen.getByLabelText('Jettison Tech 3 Scrap')).toBeTruthy()
-    expect(screen.getByText('Hold 5/6')).toBeTruthy()
+    expect(document.querySelector('.su-dash-cargo-usage')?.textContent).toBe('Units5/6')
   })
 
   test('Jettison writes cargoLots without the discarded lot', () => {

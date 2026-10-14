@@ -91,17 +91,6 @@
   }
 }
 
-/* — PartnerHold — */
-
-/* A lot row's rule, dropped on the last row. */
-.su-sheet-partner-lot {
-  border-bottom-width: var(--bw-hairline);
-}
-
-.su-sheet-partner-lot:last-child {
-  border-bottom-width: 0;
-}
-
 /* — NpcInset — */
 
 /* The id lines split in two from the bay card's `md` (container query). */

@@ -11,9 +11,6 @@ export type { BadgeTone } from './components/atoms/Badge'
 // `surface="quiet"`, the status badge is StatusBadge (domain vocabulary), and a
 // pill is `Badge surface="outline"`/`"tone"`.
 export { Badge } from './components/atoms/Badge'
-// BandTitle — the paper-on-tone title inside a Card's header band. NOT a
-// stamp: it fills its track and truncates, where a stamp sizes to its text.
-export { BandTitle } from './components/atoms/BandTitle'
 export { Button } from './components/atoms/Button'
 export { buttonVariants } from './components/atoms/buttonVariants'
 export { CatalogTile } from './components/atoms/CatalogTile'

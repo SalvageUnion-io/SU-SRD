@@ -12,12 +12,13 @@
  */
 
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, Button, Entity } from 'component-lib'
+import { Badge, Button, Entity, Stat } from 'component-lib'
 import { radius } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
+import { CargoLotRow } from '../shared/CargoLotRow'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
 import { useDashboardForm } from './dashboardForm.model'
@@ -334,11 +335,16 @@ export type StorageLot = {
   code: string
   name: string
   kind: string
+  tl?: number
   qty?: number
   units: number
 }
 
-/** The cargo-hold list used inside the Storage overlay (Jettison is destructive). */
+/**
+ * The cargo-hold list used inside the Storage overlay (Jettison is destructive):
+ * the hold's `UNITS | used/cap`, then each lot as the one lot row
+ * (`CargoLotRow`), as every hold draws it.
+ */
 export function StorageBay({
   lots,
   used,
@@ -352,21 +358,22 @@ export function StorageBay({
 }) {
   return (
     <div className="su-dash-cargo">
-      <p className="su-dash-cargo-usage">
-        Hold {used}/{cap}
-      </p>
+      <span className="su-dash-cargo-usage">
+        <Stat
+          orientation="horizontal"
+          size="compact"
+          label="Units"
+          value={used}
+          max={cap}
+          state={used > cap ? 'critical' : undefined}
+        />
+      </span>
       {lots.length === 0 ? (
         <p className="su-dash-resolve-log">Cargo hold is empty.</p>
       ) : (
         <ul className="su-dash-cargo-list">
           {lots.map((lot) => (
-            <li key={lot.id} className="su-dash-cargo-row">
-              <span className="su-dash-cargo-name">
-                <span className="su-dash-cargo-code">{lot.code}</span>
-                {lot.name}
-                {lot.kind === 'bulk' && lot.qty !== undefined ? ` ×${lot.qty}` : ''}
-                <span className="su-dash-cargo-units">{lot.units}u</span>
-              </span>
+            <CargoLotRow key={lot.id} lot={lot}>
               <Button
                 variant="danger"
                 size="compact"
@@ -375,7 +382,7 @@ export function StorageBay({
               >
                 Jettison
               </Button>
-            </li>
+            </CargoLotRow>
           ))}
         </ul>
       )}

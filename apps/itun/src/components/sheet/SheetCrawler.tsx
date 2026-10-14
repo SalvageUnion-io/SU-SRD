@@ -442,6 +442,7 @@ export function SheetCrawler({
           <CrawlerSheet
             crawler={crawler}
             mech={composition.mech}
+            mechHref={composition.mech ? hrefFor('mech', composition.mech.id) : undefined}
             store={store}
             readOnly={readOnly}
             economy={economy}

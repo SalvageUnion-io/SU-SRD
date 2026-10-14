@@ -12,6 +12,7 @@
  *     line's spacing (`FieldError` takes no style).
  *   - wiring/AssignPicker.tsx — the dialog's width cap (`ModalShell` takes a
  *     class) and the candidate list's stacking.
+ *   - shared/CargoLotRow.tsx — a lot row's hairline, dropped on the last row.
  *
  * Every rule keeps its RESTING value beside the state or breakpoint that
  * changes it (the per-property split rule).
@@ -113,4 +114,15 @@
 :where(.assign-picker__candidates > :not(:last-child)) {
   margin-block-end: 8px;
   margin-block-start: 0;
+}
+
+/* ── CargoLotRow ── */
+
+/* A lot row's rule, dropped on the last row (a sibling selector, so a class). */
+.su-cargo-lot {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-10);
+}
+
+.su-cargo-lot:last-child {
+  border-bottom-width: 0;
 }

@@ -543,54 +543,18 @@
   width: 100%;
   min-height: 0;
 }
+/* The hold's `UNITS | used/cap` chip, centred over the lots. */
 .su-dash-cargo-usage {
-  margin: 0;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-badge);
-  color: var(--color-wk-muted);
-  text-align: center;
+  display: flex;
+  justify-content: center;
 }
+/* The lots, each the one lot row (`CargoLotRow`), parted by its hairline. */
 .su-dash-cargo-list {
   list-style: none;
   margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  padding: 0 8px;
   overflow-y: auto;
-}
-.su-dash-cargo-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 6px 8px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
-  border-radius: var(--radius-card);
   background: var(--color-paper);
-}
-.su-dash-cargo-name {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-  font-family: var(--font-body);
-  font-size: var(--text-caption);
-  color: var(--color-ink);
-}
-.su-dash-cargo-code {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-size: var(--text-badge);
-  letter-spacing: var(--tracking-caps-tight);
-  color: var(--color-wk-muted);
-}
-.su-dash-cargo-units {
-  font-size: var(--text-badge);
-  color: var(--color-wk-muted);
 }
 /* ------------------------------------------------------------------------
  * The Tables tab: 5-column category picker (its rolls go to the Log tab).
