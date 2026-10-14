@@ -118,13 +118,13 @@ const BANG = {
   width: '1.75rem',
 } satisfies CSSProperties
 
+// Its side padding and centring are `.su-page-column`'s: the band's row padding.
 const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[32],
-  margin: '0 auto',
   maxWidth: MEASURE,
-  padding: `${tokens.space[24]} ${tokens.space[16]} ${tokens.space[48]}`,
+  paddingBlock: `${tokens.space[24]} ${tokens.space[48]}`,
 } satisfies CSSProperties
 
 const COLUMNS = {
@@ -381,7 +381,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         </div>
       </div>
 
-      <div style={BODY}>
+      <div className="su-page-column" style={BODY}>
         <div style={COLUMNS}>
           <section style={COLUMN} aria-label="Chassis">
             {/* The maker's photo where they gave one, else the chassis art. */}

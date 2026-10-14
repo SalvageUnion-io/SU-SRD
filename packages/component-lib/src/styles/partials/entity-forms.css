@@ -500,6 +500,22 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   min-width: min-content;
 }
 
+/* A narrow Row with controls (a Game's roster column, ~25rem): beside the
+   name they took the whole line and squeezed the name and its chips to
+   nothing. Under 40rem the controls take their own line on the band, above
+   the name, and the name keeps the band's foot. */
+@container (max-width: 40rem) {
+  .su-entity-row__line:has(> .su-entity-row__controls) {
+    flex-wrap: wrap;
+    row-gap: var(--space-6);
+  }
+
+  .su-entity-row__line > .su-entity-row__controls {
+    flex-basis: 100%;
+    order: -1;
+  }
+}
+
 /* A link or select Row with controls (`data-covered`): the surface is an
    empty cover over the whole Row, so the controls never nest inside its
    `<a>` or radio, and they (and a toggle's check) sit raised above it. */

@@ -166,7 +166,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   }
 
   return (
-    <div>
+    <div className="su-page-gutters">
       {/* Saying WHY it is read-only matters more than saying that it is: a
           player who cannot edit a crewmate's pilot should read that as the rule
           of the table, not as something broken. */}

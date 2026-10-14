@@ -1,5 +1,5 @@
 import type { SearchComboboxResult } from 'component-lib'
-import { Entity, SearchField, useSearchCombobox } from 'component-lib'
+import { Entity, SearchField, useModKeyHint, useSearchCombobox } from 'component-lib'
 import { borderWidth, color, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -198,6 +198,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   // Search container — .srd-search treatment via the shared SearchField. The
   // inner input keeps focus:outline-none, so the container carries the
   // visible keyboard-focus indicator via focus-within (WCAG 2.4.7).
+  const shortcut = useModKeyHint()
   const field = (
     <SearchField
       ref={inputRef}
@@ -207,7 +208,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       // caret, onto this one (`mountIsland`).
       name={hero ? 'q' : 'srd-search'}
       placeholder={hero ? HERO_SEARCH_PLACEHOLDER : 'Search the SRD'}
-      shortcut="⌘K"
+      shortcut={shortcut}
       value={query}
       onChange={(e) => onInput(e.target.value)}
       onKeyDown={onKeyDown}

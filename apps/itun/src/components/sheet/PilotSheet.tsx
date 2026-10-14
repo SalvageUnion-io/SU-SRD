@@ -200,12 +200,12 @@ const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satis
 const TP_AND_CONDITIONS = {
   alignItems: 'flex-start',
   display: 'flex',
+  flexWrap: 'wrap',
   gap: tokens.space[12],
   minWidth: 0,
-  width: '100%',
 } satisfies CSSProperties
 
-const CONDITIONS_CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+const CONDITIONS_CELL = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties // wraps under TP
 
 const PILLS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 

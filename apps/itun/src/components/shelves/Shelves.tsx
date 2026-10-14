@@ -101,7 +101,7 @@ import { StarterShelf } from './StarterShelf'
 // Layout
 // ---------------------------------------------------------------------------
 
-const MEASURE = '80rem'
+const MEASURE = '75rem'
 
 const PAGE = {
   backgroundColor: tokens.color.wkBg,
@@ -156,13 +156,13 @@ const TOGGLE_OPTION = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
+// Its side padding and centring are `.su-page-column`'s: the band's row padding.
 const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[24],
-  margin: '0 auto',
   maxWidth: MEASURE,
-  padding: `${tokens.space[20]} ${tokens.space[16]} 0`,
+  paddingTop: tokens.space[20],
 } satisfies CSSProperties
 
 /** Two columns where there is room — your units, then what you made and the book's. */
@@ -493,7 +493,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         Shelves
       </ChapterBand>
 
-      <div style={BODY}>
+      <div className="su-page-column" style={BODY}>
         {!ready ? (
           <RosterSkeleton />
         ) : (

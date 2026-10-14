@@ -8,23 +8,21 @@
   flex: 1 1 0%;
 }
 
-/* The sheet's page gutter — the sticky bar and the read-only crew banner. */
+/* The sheet's page gutter — the sticky bar and the read-only crew banner —
+   is every page's (`.su-page-gutters` on the sheet's main, component-lib's
+   shell.css), so the band's cut-out and the body share one left edge. */
 .su-sheet-gutter {
-  padding-inline: var(--space-16);
+  padding-inline: var(--su-page-gutter-inline);
 }
 
 /* The body column under the chapter band. */
 .su-sheet-live-body {
-  padding: var(--space-16) var(--space-16) 34px;
+  padding: var(--space-16) var(--su-page-gutter-inline) 34px;
 }
 
 @media (width >= 40rem) {
-  .su-sheet-gutter {
-    padding-inline: 30px;
-  }
-
   .su-sheet-live-body {
-    padding: 22px 30px 60px;
+    padding-block: 22px 60px;
   }
 }
 
