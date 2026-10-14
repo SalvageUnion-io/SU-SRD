@@ -73,7 +73,30 @@
   }
 }
 
-/* The stats on a band (`ChapterBand asideAt="notch"`, `EntityPageStamps`)
+/* The compact column (`StatColumn compact`): the band's smaller cells, two a
+   line at every width, for a narrow column beside other content (the ITUN mech
+   sheet's hero, beside the player's fields). */
+.su-stat-column.su-stat-column--compact {
+  gap: var(--space-4) var(--space-6);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.su-stat-column--compact .su-stat-column__cell {
+  min-height: 32px;
+}
+
+.su-stat-column--compact .su-stat-column__value {
+  font-size: var(--text-readout);
+  width: 36px;
+}
+
+.su-stat-column--compact .su-stat-column__label {
+  flex: 1 1 auto;
+  font-size: var(--text-badge);
+  padding: 0 var(--space-8);
+}
+
+/* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
    carry every entity's stats, a chassis's eight too, so they are the column's
    compact cells: a smaller framed numeral and label, a row of cells sized to
    their labels that wraps, not a grid whose empty columns would push the

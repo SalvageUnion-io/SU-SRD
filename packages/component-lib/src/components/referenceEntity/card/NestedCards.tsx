@@ -70,12 +70,17 @@ const STACK_MARGIN: Record<CardSize, string> = {
  * A bare stack of nested cards, inset from the frame: no ground and no head.
  * A flex box is its own formatting context, so beside a page's floated art it
  * narrows rather than running under the image.
+ *
+ * On a page (`flush`) the stack sets no margin at all: the page's own rhythm
+ * (`.su-entity-page`'s gap, `--flow`'s `* + *` margin) spaces it from the
+ * prose and from the next stack, and an inline `margin: 0` would beat that
+ * rule and butt the cards together. Its cards keep the same page rhythm.
  */
 const stack = (size: CardSize, flush: boolean): CSSProperties => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: space[14],
-  margin: flush ? 0 : STACK_MARGIN[size],
+  gap: flush ? space[24] : space[14],
+  ...(flush ? {} : { margin: STACK_MARGIN[size] }),
 })
 
 /**

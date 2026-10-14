@@ -10,7 +10,12 @@
  * pick by hand.
  */
 import { describe, expect, test } from 'bun:test'
-import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import type {
+  DiscordBlock,
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefMetaEntity,
+} from 'salvageunion-reference'
 import {
   discordEntryCard,
   discordEntryIndexCard,
@@ -60,28 +65,64 @@ const buttonsOf = (data: ContainerData): ButtonSpec[] =>
 
 const labels = (data: ContainerData): string[] => buttonsOf(data).map((button) => button.label)
 
-/** The card without its controls: what the Component Embed draws. */
-const content = (data: ContainerData) =>
-  data.blocks.filter((block) => block.kind !== 'buttons' && block.kind !== 'select')
-
 /** The linked-entries menu, if the card has one. */
 const menuOf = (data: ContainerData) =>
   data.blocks.find(
     (block): block is Extract<ContainerBlock, { kind: 'select' }> => block.kind === 'select'
   )
 
-/** A long card's index rows: sections carrying a Read button. */
+/** A section carrying a Read button, and the key that button reads. */
+const readKey = (block: ContainerBlock): string | null =>
+  block.kind === 'section' && block.button?.kind === 'action'
+    ? block.button.customId.replace(/^su:read:/, '')
+    : null
+
+/** A long card's index rows: an action's Read button names the action after a `|`. */
 const readRows = (data: ContainerData) =>
   data.blocks.filter(
     (block): block is Extract<ContainerBlock, { kind: 'section' }> =>
-      block.kind === 'section' && block.button !== undefined
+      readKey(block)?.includes('|') === true
   )
 
-/** The index card as the bot draws it: each index row's `action` is its Read button. */
-const indexBlocks = (card: ContainerData): unknown[] =>
-  content(card).map((block) =>
-    block.kind === 'section' && block.button ? { kind: 'section', text: block.text } : block
+/** A card's nested systems and modules as rows: Read buttons that name a whole entry. */
+const childRows = (data: ContainerData) =>
+  data.blocks.filter(
+    (block): block is Extract<ContainerBlock, { kind: 'section' }> =>
+      readKey(block) !== null && readKey(block)?.includes('|') === false
   )
+
+/** A nested-entity stamp (`-# SYSTEMS (3)`), and the names under it. */
+const isStamp = (block: { kind: string; content?: string }): boolean =>
+  block.kind === 'text' && /^-# [A-Z][^\n]* \(\d+\)/.test(block.content ?? '')
+
+/**
+ * A card with its nested entities and its shed link set aside, as plain
+ * blocks: the bot draws those as rows and a button, the pasted link as text.
+ */
+const cardBody = (blocks: readonly (ContainerBlock | DiscordBlock)[]): unknown[] =>
+  blocks
+    .filter(
+      (block) =>
+        !isStamp(block) &&
+        childRowKey(block) === null &&
+        !(block.kind === 'text' && 'more' in block && block.more) &&
+        block.kind !== 'buttons' &&
+        block.kind !== 'select'
+    )
+    .map((block) => {
+      if (block.kind === 'text') return { kind: 'text', content: block.content }
+      if (block.kind === 'section' && ('action' in block || 'button' in block)) {
+        return { kind: 'section', text: block.text }
+      }
+      return block
+    })
+
+/** A child row's key, or null for any other block. */
+const childRowKey = (block: ContainerBlock | DiscordBlock): string | null => {
+  const key =
+    'button' in block || block.kind !== 'section' ? readKey(block as ContainerBlock) : null
+  return key && !key.includes('|') ? key : null
+}
 
 describe('lookupCard — exhaustive across the whole dataset', () => {
   test('every entry and every pattern renders whole, never in rust, and IS its pasted link’s card', () => {
@@ -91,6 +132,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
     let patterns = 0
     let indexed = 0
     let menus = 0
+    let rows = 0
     for (const schema of schemas) {
       const schemaName = schema.id
       if (!isSchemaName(schemaName)) throw new Error(`non-canonical schema id: ${schemaName}`)
@@ -111,12 +153,13 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
           // Rust means action, and only action (ruleset §3.1).
           expect(card.accent).not.toBe(NEUTRAL_ACCENT)
           expect(cardText(card)).not.toContain('[[')
-          // The pasted link's card, block for block; a long card is the index
-          // of that card, every row a Read button that answers.
+          // The pasted link's card, block for block, but for its nested
+          // systems and modules (Read rows here) and its shed link (a button);
+          // a long card is the index of that card, every row a Read button.
           const embed = discordEntryCard(withSchema as SURefMetaEntity, one.pattern)
           if (readRows(card).length === 0) {
-            expect(content(card), `${label}: differs from its Component Embed`).toEqual(
-              embed.blocks
+            expect(cardBody(card.blocks), `${label}: differs from its Component Embed`).toEqual(
+              cardBody(embed.blocks)
             )
           } else {
             indexed++
@@ -125,19 +168,20 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
               `${label}: indexed a short card`
             ).toBeGreaterThan(INDEX_MIN_CHARS)
             const index = discordEntryIndexCard(withSchema as SURefMetaEntity, one.pattern)
-            expect(indexBlocks(card), `${label}: differs from its index card`).toEqual(
-              index.blocks.map((block) =>
-                block.kind === 'section' && block.action !== undefined
-                  ? { kind: 'section', text: block.text }
-                  : block
-              )
+            expect(cardBody(card.blocks), `${label}: differs from its index card`).toEqual(
+              cardBody(index.blocks)
             )
-            for (const row of readRows(card)) {
-              const button = row.button
-              if (button?.kind !== 'action') throw new Error(`${label}: Read is not an action`)
-              expect(readCard(button.customId.replace(/^su:read:/, '')), label).not.toBeNull()
-            }
           }
+          for (const row of [...readRows(card), ...childRows(card)]) {
+            expect(readCard(readKey(row) ?? ''), label).not.toBeNull()
+            rows++
+          }
+          // A shed card's link is the Full entry (or Whole table) button.
+          const more = embed.blocks.some((block) => block.kind === 'text' && block.more)
+          expect(
+            labels(card).some((name) => name === 'Full entry' || name === 'Whole table'),
+            `${label}: full-entry button`
+          ).toBe(more)
           // Every option of the linked-entries menu opens a card.
           for (const option of menuOf(card)?.options ?? []) {
             expect(openCard(option.value), `${label}: ${option.value}`).not.toBeNull()
@@ -153,6 +197,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
     expect(patterns).toBeGreaterThan(100)
     expect(indexed).toBeGreaterThan(10)
     expect(menus).toBeGreaterThan(100)
+    expect(rows).toBeGreaterThan(500)
   })
 })
 
@@ -200,28 +245,53 @@ describe('lookupCard — the card', () => {
 })
 
 describe('lookupCard — the linked-entries menu', () => {
-  test('a pattern lists its systems then its modules, each opening that entry', () => {
+  test('a pattern draws its systems then its modules as rows, each Read opening that entry', () => {
     const kelpie = hit('chassis', 'kelpie')
     const pattern = patternOf(kelpie.entity, 'sifter')
     if (!pattern) throw new Error('fixture missing: Kelpie Sifter')
-    const menu = menuOf(lookupCard({ ...kelpie, pattern }))
-    expect(menu?.customId).toBe('su:open:chassis::kelpie::sifter')
-    expect(menu?.options.map((option) => option.label)).toEqual([
-      'Nanite Sifter',
-      'Cryopod System',
-      'Floodlights',
-      'Comms Module',
-      'Heating Unit',
-      'Reactor Flare',
+    const card = lookupCard({ ...kelpie, pattern })
+    expect(childRows(card).map(readKey)).toEqual([
+      'systems::nanite-sifter',
+      'systems::cryopod-system',
+      'systems::floodlights',
+      'modules::comms-module',
+      'modules::heating-unit',
+      'modules::reactor-flare',
     ])
-    expect(menu?.options[0]).toEqual({
-      label: 'Nanite Sifter',
-      value: 'systems::nanite-sifter',
-      description: 'Systems',
-    })
-    // The menu sits above the buttons, so the card reads card, menu, controls.
-    const kinds = lookupCard({ ...kelpie, pattern }).blocks.map((block) => block.kind)
-    expect(kinds.indexOf('select')).toBeGreaterThan(kinds.lastIndexOf('separator'))
+    expect(childRows(card)[0]?.text[0]).toStartWith(
+      '**[Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)**'
+    )
+    expect(cardText(card)).toContain('-# SYSTEMS (3)')
+    expect(cardText(readCard('systems::nanite-sifter') ?? { accent: 0, blocks: [] })).toContain(
+      '## [Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)'
+    )
+    // Every linked entry is a row, so the menu has nothing left to open.
+    expect(menuOf(card)).toBeUndefined()
+  })
+
+  test('rows stop at Discord’s ceiling; the rest stay linked and in the menu', () => {
+    const cerberus = hit('chassis', 'cerberus')
+    const pattern = patternOf(cerberus.entity, 'tac-os')
+    if (!pattern) throw new Error('fixture missing: Cerberus Tac-Os')
+    const card = lookupCard({ ...cerberus, pattern })
+    assertFits(card, 'Tac-Os')
+    const drawn = childRows(card).map(readKey)
+    expect(drawn.length).toBeGreaterThan(3)
+    const rest = menuOf(card)?.options.map((option) => option.value) ?? []
+    expect(rest.length).toBeGreaterThan(0)
+    expect(rest.filter((key) => drawn.includes(key))).toEqual([])
+    // Each entry left over is still a link on the card.
+    for (const key of rest) {
+      expect(cardText(card)).toContain(`https://salvageunion.io/${key.replace('::', '/')})`)
+    }
+  })
+
+  test('a menu answers for linked entries that are not systems or modules', () => {
+    const card = lookupCard(hit('abilities', 'teleport-beacon'))
+    expect(menuOf(card)?.options.map((option) => option.value)).toEqual([
+      'equipment::teleport-beacon',
+    ])
+    expect(childRows(card)).toEqual([])
   })
 
   test('a card that links nothing has no menu', () => {

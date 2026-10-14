@@ -16,7 +16,7 @@ import { linesFromBreakdown } from 'component-lib'
 import { pilotingContext } from 'itun-domain/rules/pilotingContext'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
-import { SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
+import { parseContentBlockString, SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
 import {
   computeMechCapacity,
   mechMaxEPParts,
@@ -124,10 +124,20 @@ export function useMechSheetModel({
   // Value) come from the FULL reference chassis — the injectable `chassis`
   // override only carries the narrow stat subset above.
   const chassisEntity = resolveChassisRef(mech.chassisRef)
-  const chassisAbilities = chassisEntity
-    ? (SalvageUnionReference.resolveActions(chassisEntity) ?? [])
-    : []
   const chassisName = chassisEntity?.name ?? chassis?.name ?? mech.chassisRef
+  // The book writes a chassis ability once for every chassis that has it, with
+  // "[(CHASSIS)]" where it names the chassis; the hero's Row leads with that
+  // prose, so it reads "The Mazona has…".
+  const chassisAbilities = (
+    chassisEntity ? (SalvageUnionReference.resolveActions(chassisEntity) ?? []) : []
+  ).map((ability) => ({
+    ...ability,
+    content: ability.content?.map((block) =>
+      typeof block.value === 'string'
+        ? { ...block, value: parseContentBlockString(block, chassisName) }
+        : block
+    ),
+  }))
 
   // Stat provenance ledgers (ADR-029). The installed line is a single aggregate
   // until the contribution model can attribute it per item.

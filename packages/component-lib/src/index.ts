@@ -59,6 +59,7 @@ export { SlotGrid } from './components/atoms/SlotGrid'
 export { SRDLink } from './components/atoms/SRDLink'
 export type { StatState, StatTone } from './components/atoms/Stat'
 export { Stat } from './components/atoms/Stat'
+export { StatColumn } from './components/atoms/StatColumn'
 export type { ProvenanceLine } from './components/atoms/StatProvenance'
 export { Tab, TabList, TabPanel, Tabs, Toggle } from './components/atoms/Tabs'
 // Base typography

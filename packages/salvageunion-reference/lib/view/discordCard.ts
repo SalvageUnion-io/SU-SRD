@@ -29,6 +29,7 @@ import { nameToSlug } from '../nameToSlug'
 import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
+import { chipLines, costChip, factChips } from './discordChips'
 import { formatActionType } from './parts/traits'
 import { toEntityModel } from './toEntityModel'
 import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
@@ -70,7 +71,14 @@ export function discordAccent(tone: string): number {
 
 /** One block of a Discord container, in render order. */
 export type DiscordBlock =
-  | { kind: 'text'; content: string }
+  | {
+      kind: 'text'
+      content: string
+      /** The nested-entity block: the groups it lists, for the bot to draw as rows. */
+      children?: DiscordChildGroup[]
+      /** A shed card's closing link, for the bot to draw as a button. */
+      more?: { label: string; url: string }
+    }
   | { kind: 'separator' }
   | {
       kind: 'section'
@@ -97,7 +105,7 @@ type DiscordTableRow = { key: string; line: string }
 type DiscordAction = { name: string; text: string; summary: string; tableName?: string }
 
 /** A group of nested entities: its stamp, and the names as links. */
-type DiscordChildGroup = { label: string; count: number; line: string; items: EntityRef[] }
+export type DiscordChildGroup = { label: string; count: number; line: string; items: EntityRef[] }
 
 /** Everything a card can show, rendered; consumers choose and order. */
 export type DiscordCardParts = {
@@ -121,7 +129,7 @@ function escapeMarkdownLabel(text: string): string {
 }
 
 /** `[label](url)`, or the escaped label alone when there is nowhere to go. */
-function link(label: string, url: string | undefined): string {
+export function link(label: string, url: string | undefined): string {
   const escaped = escapeMarkdownLabel(label)
   return url ? `[${escaped}](${url})` : escaped
 }
@@ -130,7 +138,7 @@ function link(label: string, url: string | undefined): string {
  * Where a ref links: its SRD page, a pattern's own page under its chassis, and
  * nothing for a synthetic record or an action (actions have no page).
  */
-function discordRefUrl(ref: EntityRef): string | undefined {
+export function discordRefUrl(ref: EntityRef): string | undefined {
   if (ref.synthetic || ref.schemaName === 'actions') return undefined
   const base = srdEntityUrl(ref.schemaName, ref.slug)
   return ref.pattern ? `${base}/pattern/${nameToSlug(ref.pattern)}` : base
@@ -222,29 +230,10 @@ function contentMarkdown(
   return out
 }
 
-/** A fact as a chip, label first in the web cards' short label: `**SP** 12`. */
-function factChip(fact: Fact): string {
-  return `**${fact.short}** ${fact.value}`
-}
-
-/** Chips, three to a line: `**TL** 1 · **SP** 12 · **EP** 4`. */
-function chipLines(chips: string[], perLine = 3): string[] {
-  const lines: string[] = []
-  for (let i = 0; i < chips.length; i += perLine) {
-    lines.push(chips.slice(i, i + perLine).join(' · '))
-  }
-  return lines
-}
-
 /** The facets in the web cards' order, then any book stat they lack. */
 function cellFacts(model: EntityModel): Fact[] {
   const shown = new Set(model.facts.map((fact) => fact.short))
   return [...model.facts, ...model.bookStats.filter((fact) => !shown.has(fact.short))]
-}
-
-/** The cost as the book's pointy box: `` `1 AP` ``. */
-function costChip(model: EntityModel): string | undefined {
-  return model.cost ? `\`${model.cost}\`` : undefined
 }
 
 /**
@@ -255,10 +244,7 @@ function costChip(model: EntityModel): string | undefined {
 function chipGroup(model: EntityModel, facts: Fact[], perLine = 3): string[] {
   const actionType = actionTypeLine(model)
   const lines = chipLines(
-    [
-      ...(actionType ? [`**${actionType}**`] : []),
-      ...facts.filter((fact) => fact.value !== '').map(factChip),
-    ],
+    [...(actionType ? [`**${actionType}**`] : []), ...factChips(facts)],
     perLine
   )
   if (model.traits.length > 0) lines.push(traitTags(model.traits))
@@ -272,7 +258,7 @@ function chipGroup(model: EntityModel, facts: Fact[], perLine = 3): string[] {
 }
 
 /** Traits as linked tags: `[Hacking](…) · [Burn](…) 2`. */
-function traitTags(traits: TraitMention[]): string {
+export function traitTags(traits: TraitMention[]): string {
   return traits
     .map((trait) => {
       const label = link(
@@ -285,7 +271,7 @@ function traitTags(traits: TraitMention[]): string {
 }
 
 /** An action's type as the book prints it, a split one Mech first. */
-function actionTypeLine(model: EntityModel): string | undefined {
+export function actionTypeLine(model: EntityModel): string | undefined {
   if (!model.actionType) return undefined
   const own = formatActionType(model.actionType)
   return model.mechActionType
@@ -419,12 +405,7 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
 
   const table = model.table ? tableParts(model.table) : undefined
 
-  const children = model.children.map((group) => ({
-    label: group.label,
-    count: group.items.length,
-    line: group.items.map((item) => link(item.name, discordRefUrl(item))).join(' · '),
-    items: group.items,
-  }))
+  const children = model.children.map((group) => discordChildGroup(group.label, group.items))
 
   return {
     tone: model.tone,
@@ -481,11 +462,33 @@ type CardContent = {
   otherShed: boolean
 }
 
-/** The link a shed card closes on: the whole table when that is all it lost. */
-function shedLink(content: CardContent, url: string): string {
-  return content.tableShed && !content.otherShed
-    ? `[See the whole table on salvageunion.io](${url})`
-    : `[The full entry on salvageunion.io](${url})`
+/**
+ * The link a shed card closes on: the whole table when that is all it lost.
+ * `label` is the bot's button for it; a Component Embed has no buttons, so
+ * `content` is the same link as text.
+ */
+function shedLink(content: CardContent, url: string): DiscordBlock {
+  const tableOnly = content.tableShed && !content.otherShed
+  const text = tableOnly
+    ? 'See the whole table on salvageunion.io'
+    : 'The full entry on salvageunion.io'
+  const label = tableOnly ? 'Whole table' : 'Full entry'
+  return { kind: 'text', content: `[${text}](${url})`, more: { label, url } }
+}
+
+/** A group of nested entries: its label, its count, and the names as links. */
+export function discordChildGroup(label: string, items: EntityRef[]): DiscordChildGroup {
+  return {
+    label,
+    count: items.length,
+    line: items.map((item) => link(item.name, discordRefUrl(item))).join(' · '),
+    items,
+  }
+}
+
+/** A group as its counted stamp over its linked names: `-# SYSTEMS (2)` then the line. */
+export function childStamp(group: DiscordChildGroup): string {
+  return `-# ${group.label.toUpperCase()} (${group.count})\n${group.line}`
 }
 
 function build(
@@ -523,14 +526,13 @@ function build(
   if (content.children.length > 0) {
     blocks.push({
       kind: 'text',
-      content: content.children
-        .map((group) => `-# ${group.label.toUpperCase()} (${group.count})\n${group.line}`)
-        .join('\n'),
+      content: content.children.map(childStamp).join('\n'),
+      children: [...content.children],
     })
   }
 
   if ((content.tableShed || content.otherShed) && parts.url) {
-    blocks.push({ kind: 'text', content: shedLink(content, parts.url) })
+    blocks.push(shedLink(content, parts.url))
   }
   blocks.push({ kind: 'separator' })
   blocks.push({ kind: 'text', content: parts.cite })

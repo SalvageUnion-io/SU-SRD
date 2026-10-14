@@ -6,12 +6,11 @@
  * `SheetHero` as its first region. Region order mirrors the
  * printed mech sheet:
  *
- *   Identity Band: the player's photo (the chassis art until changed) beside what they wrote (pattern
- *       name, quirk, appearance, description) ∥ SP/EP/Heat `VitalGauge`s + Conditions
- *       vitals rail.
+ *   Identity Band: image | text | stats + ability (`MechHeroChassis`) — the
+ *       player's photo, what they wrote (the pattern name in Edit only: it is
+ *       the band's title), the chassis stats and ability ∥ the vitals rail.
  *   Chassis: its own small reference card under the band (`MechChassisCard`)
- *       — art, description, the mech's chassis stats and the chassis ability,
- *       with a Change Chassis control in Edit.
+ *       — art, name and description, with a Change Chassis control in Edit.
  *   Systems & Modules — KEPT as two sections (each its own `SheetSectionSlab`,
  *       side by side from 48rem, one Token a line): different collections
  *       with different '+ Add' pickers/slot budgets, so folding them into one
@@ -77,6 +76,7 @@ import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { MechChassisCard } from './MechChassisCard'
 import { MechConditionsEditor } from './MechConditionsEditor'
+import { MechHeroChassis } from './MechHeroChassis'
 import { MechIdentityPanel, MechProseFields } from './MechIdentity'
 import { MechItemToken } from './MechItemToken'
 import type { ChassisLike } from './mechSheet.model'
@@ -327,25 +327,28 @@ export function MechSheet({
               />
             }
           >
-            <div style={FIELDS}>
-              <MechIdentityPanel
-                mech={mech}
-                patch={readOnly ? undefined : actions.patchMech}
-                after={
-                  <Field
-                    label="Quirk"
-                    value={mech.quirk ?? ''}
-                    onSave={readOnly ? undefined : actions.saveQuirk}
-                    placeholder="No quirk recorded."
-                  />
-                }
-              />
+            <div className="su-sheet-mech-hero-split">
+              <div style={FIELDS}>
+                <MechIdentityPanel
+                  mech={mech}
+                  patch={readOnly ? undefined : actions.patchMech}
+                  after={
+                    <Field
+                      label="Quirk"
+                      value={mech.quirk ?? ''}
+                      onSave={readOnly ? undefined : actions.saveQuirk}
+                      placeholder="No quirk recorded."
+                    />
+                  }
+                />
 
-              <MechProseFields
-                mech={mech}
-                saveAppearance={readOnly ? undefined : actions.saveAppearance}
-                saveDescription={readOnly ? undefined : actions.saveDescription}
-              />
+                <MechProseFields
+                  mech={mech}
+                  saveAppearance={readOnly ? undefined : actions.saveAppearance}
+                  saveDescription={readOnly ? undefined : actions.saveDescription}
+                />
+              </div>
+              <MechHeroChassis stats={model.chassisStats} abilities={model.chassisAbilities} />
             </div>
           </PhotoBeside>
         }
@@ -421,15 +424,11 @@ export function MechSheet({
         }
       />
 
-      {/* ===== Chassis — its own small card under the hero =====
-          The hero is the photo and what the player wrote; the chassis's name,
-          stats and ability are its reference card (owner's call, 2026-10-14). */}
+      {/* ===== Chassis — its name, art and description, under the hero ===== */}
       <MechChassisCard
         mech={mech}
         entity={model.chassisEntity}
         chassisName={model.chassisName}
-        stats={model.chassisStats}
-        abilities={model.chassisAbilities}
         patch={readOnly ? undefined : actions.patchMech}
       />
 

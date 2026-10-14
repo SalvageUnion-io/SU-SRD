@@ -255,6 +255,7 @@ export function SheetMech({
     <LiveSheet
       variant="mech"
       name={mech.name}
+      quoted
       strip={strip}
       segments={segments}
       band={band}

@@ -25,12 +25,20 @@ type StatColumnProps = {
   stats: StatColumnCell[]
   /** Names the list (`aria-label`), e.g. "Gopher stats". */
   label: string
+  /**
+   * The compact cells, two a line, for a narrow column beside other content
+   * (the ITUN mech sheet's hero).
+   */
+  compact?: boolean
 }
 
-export function StatColumn({ stats, label }: StatColumnProps) {
+export function StatColumn({ stats, label, compact = false }: StatColumnProps) {
   if (stats.length === 0) return null
   return (
-    <dl className="su-stat-column" aria-label={label}>
+    <dl
+      className={compact ? 'su-stat-column su-stat-column--compact' : 'su-stat-column'}
+      aria-label={label}
+    >
       {stats.map((stat) => (
         <div key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
           <dt className="su-stat-column__label">{stat.label}</dt>
