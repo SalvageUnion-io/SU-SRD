@@ -47,12 +47,12 @@ describe('CrewSeats', () => {
     expect(screen.getByText('1 of 2 seats')).toBeTruthy()
   })
 
-  test('the crawler card carries its name, tech level, SP and bays', () => {
+  test('the crawler card carries its name, tech level and SP, never a bay count', () => {
     render(<CrewSeats crawler={CRAWLER} rows={[]} claimed={0} total={1} />)
     expect(screen.getByText('Tenacity')).toBeTruthy()
     expect(screen.getByText('TL')).toBeTruthy()
     expect(screen.getByText('14/20')).toBeTruthy()
-    expect(screen.getByText('Bays')).toBeTruthy()
+    expect(screen.queryByText('Bays')).toBeNull()
     // One seat is a seat.
     expect(screen.getByText('0 of 1 seat')).toBeTruthy()
   })

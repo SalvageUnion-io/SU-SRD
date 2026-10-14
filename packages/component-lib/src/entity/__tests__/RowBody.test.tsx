@@ -7,6 +7,7 @@ import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { readPackageStylesheet } from '../../styles/__tests__/packageStylesheet'
 import { Entity } from '../Entity'
 
 const need = <T,>(value: T | undefined, label: string): T => {
@@ -27,5 +28,12 @@ describe('Row body', () => {
     const { container } = render(<Entity form="row" entity={table('Core Mechanic')} lead />)
     expect(container.querySelector('.su-entity-row__body')).not.toBeNull()
     expect(container.querySelector('.su-entity-row__frame[data-bodyless]')).toBeNull()
+  })
+
+  test('a bodyless Row taller than its head fills with its band and sets its name at the foot', () => {
+    const css = readPackageStylesheet().replace(/\s+/g, ' ')
+    expect(css).toContain(
+      '.su-entity-row__frame[data-bodyless] > .su-entity-row__main > .su-entity-row__head { flex: 1 1 auto; justify-content: flex-end; }'
+    )
   })
 })

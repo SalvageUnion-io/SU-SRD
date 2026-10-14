@@ -109,7 +109,6 @@ function CrawlerCard({ crawler }: { crawler: CrawlerReading }) {
               orientation="horizontal"
               size="mini"
             />
-            <Stat label="Bays" value={crawler.bays} orientation="horizontal" size="mini" />
           </span>
         </div>
       }
