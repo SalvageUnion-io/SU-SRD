@@ -214,32 +214,27 @@ describe('the card as a page', () => {
     expect(screen.getByRole('heading', { name: 'Tail Sweep (Action)', level: 3 })).toBeTruthy()
   })
 
-  test('a stacked nested card is an h2 of its own: no "NPC" band repeats its stamp', () => {
-    const bay = need(SalvageUnionReference.CrawlerBays.getByName('Command Bay'), 'command bay')
-    render(<ReferenceEntityCard data={bay} presentation="page" />)
-    expect(screen.queryByRole('heading', { name: 'NPC' })).toBeNull()
-    const npc = need(bay.npc && 'position' in bay.npc ? bay.npc.position : undefined, 'npc')
-    // Its kind ends its name, for screen readers only (E9).
-    expect(screen.getByRole('heading', { name: new RegExp(`^${npc} \\(`), level: 2 })).toBeTruthy()
-  })
-
-  test('a bay’s crew NPC wears the cut-out head, its HP a chip right of the name', () => {
+  test('a bay’s crew NPC is a Token that Peeks its card through the bay', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
     render(<ReferenceEntityCard data={bay} presentation="page" />)
-    const title = screen.getByRole('heading', { name: 'Chef (NPC)', level: 2 })
-    const head = need(title.closest('.su-entity-row__head') ?? undefined, 'cut-out head')
-    expect(head.getAttribute('data-notch')).toBe('true')
-    expect(head.querySelector('.su-entity-row__notch')?.contains(title)).toBe(true)
-    // The HP chip sits on the band beside the name, not on the tab.
-    const heading = need(head.querySelector('.su-entity-row__heading--cut') ?? undefined, 'heading')
-    const chips = need(
-      heading.querySelector(
-        ':scope > .su-chips, :scope > .su-entity-row__chip-group > .su-chips'
-      ) ?? undefined,
-      'chips on the band'
+    // No nested NPC card, so no heading of its own…
+    expect(screen.queryByRole('heading', { name: 'Chef (NPC)' })).toBeNull()
+    // …but a Token, its Peek addressed through the bay.
+    const token = need(
+      Array.from(document.querySelectorAll('.su-entity-token')).find((t) =>
+        t.textContent?.startsWith('Chef')
+      ),
+      'crew token'
     )
-    expect(chips.textContent).toBe('HP4')
-    expect(head.textContent).toBe('Chef (NPC)HP4')
+    expect(token.getAttribute('data-peek')).toBe(`crawler-bays:${bay.id}/npc`)
+  })
+
+  test('a picker still makes the crew’s choices on a nested NPC card', () => {
+    const bay = need(SalvageUnionReference.CrawlerBays.getByName('Command Bay'), 'command bay')
+    render(<ReferenceEntityCard data={bay} selections={{}} onSelectionChange={() => {}} />)
+    const npc = need(bay.npc && 'position' in bay.npc ? bay.npc.position : undefined, 'npc')
+    expect(screen.getAllByText(npc).length).toBeGreaterThan(0)
+    expect(document.querySelector('.su-entity-token')).toBeNull()
   })
 
   test('"When damaged" is a framed callout, its stamp riding the border', () => {

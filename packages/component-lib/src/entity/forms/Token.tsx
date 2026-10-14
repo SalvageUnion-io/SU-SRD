@@ -54,6 +54,8 @@ function tokenChips(model: EntityRowModel): TokenChip[] {
 /** The adapter's resolved parts (`ReferenceEntityCard` `size="small" extent="head"`). */
 export type TokenSlots = {
   outer?: CardOuterProps
+  /** Peek this address in place of the entity's own (`embeddedPeekAddress`). */
+  peekAt?: string
   frameStyle?: CSSProperties
   /** The kind, for screen readers (`KindLabel`). */
   kind?: string
@@ -96,7 +98,7 @@ export function Token({
   slots?: TokenSlots
 }) {
   const target = useLinkTarget(mode, model.ref)
-  const peek = usePeekAttrs(model.ref)
+  const peek = usePeekAttrs(model.ref, slots.peekAt)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
   const paint = paintFor(model.tone, { down, texture: false })

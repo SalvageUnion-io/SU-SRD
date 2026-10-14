@@ -5,11 +5,19 @@
  */
 
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
-import { Content, foldControl, ReferenceEntityCard, tokens, useDetailModal } from 'component-lib'
+import {
+  Content,
+  Entity,
+  embeddedPeekAddress,
+  foldControl,
+  ReferenceEntityCard,
+  tokens,
+  useDetailModal,
+} from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import { useId, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { BAY_REPAIR_COST, bayTechLines } from '../../lib/rules/crawlerItems'
@@ -323,6 +331,22 @@ export function CrawlerBayCard({
       )}
       {assigned ? (
         <LinkedCrewInset slotName={bay.name} assignment={assigned} fallback={inlineCrew} />
+      ) : readOnly && npc ? (
+        // Read: the crew is a Token named for them, Peeking the bay's NPC card
+        // (owner's call, 2026-10-14). Edit keeps the inset and its fields.
+        <ul className="su-entity-token-list">
+          <li>
+            <Entity
+              form="token"
+              // The embedded crew, as its bay card nests it (`nestedEntityGroups`).
+              entity={
+                { ...npc, name: npc.position, schemaName: 'npcs' } as unknown as SURefMetaEntity
+              }
+              instance={{ title: entry.npcName?.trim() || npc.position }}
+              peekAt={embeddedPeekAddress('crawler-bays', bay.id, 'npc')}
+            />
+          </li>
+        </ul>
       ) : (
         inlineCrew
       )}
@@ -330,12 +354,9 @@ export function CrawlerBayCard({
   )
 
   const functionLabel = BAY_FUNCTIONS[entry.bayRef] ?? 'Use'
-  const inlineLead = entry.npcName?.trim() ? entry.npcName : (npc?.position ?? '—')
-  const leadName = assigned?.npc?.name ?? inlineLead
-  const footMeta: CardFootMeta[] = [
-    { label: 'Lead', value: leadName },
-    ...(damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []),
-  ]
+  // No crew lead in the footer (owner's call, 2026-10-14): the crew is in the
+  // card already, so naming them again only repeated it.
+  const footMeta: CardFootMeta[] = damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []
 
   // Damaged disables the function action and promotes Repair. Both ride the
   // standard controls overlay — no footer.

@@ -5,12 +5,13 @@
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { EntityRef } from 'salvageunion-reference'
+import type { EntityRef, SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Entity } from '../Entity'
 import { EntitySurfaceProvider } from '../EntitySurface'
 import { Mention } from '../forms/Mention'
 import { PeekHost } from '../Peek'
+import { embeddedPeekAddress } from '../peekContext'
 
 const refOf = (schema: 'traits' | 'systems', name: string): EntityRef => {
   const entity = SalvageUnionReference.getByNameIn(schema, name)
@@ -113,5 +114,29 @@ describe('PeekHost', () => {
     // More than the token says: the card's rules text, not just its name.
     await waitFor(() => expect(peek.textContent?.length ?? 0).toBeGreaterThan(100))
     expect(token.getAttribute('aria-describedby')).toBe(peek.id)
+  })
+
+  test("an embedded record Peeks through its host: a bay's crew NPC", async () => {
+    const bay = SalvageUnionReference.getByNameIn('crawler-bays', 'Cantina')
+    if (!bay?.npc) throw new Error('Cantina fixture missing')
+    const npc = { ...bay.npc, name: bay.npc.position, schemaName: 'npcs' }
+    render(
+      <>
+        <Entity
+          form="token"
+          entity={npc as unknown as SURefMetaEntity}
+          peekAt={embeddedPeekAddress('crawler-bays', bay.id, 'npc')}
+        />
+        <PeekHost />
+      </>
+    )
+    const token = document.querySelector('.su-entity-token')
+    if (!token) throw new Error('no token')
+    expect(token.getAttribute('data-peek')).toBe(`crawler-bays:${bay.id}/npc`)
+    act(() => {
+      fireEvent.pointerOver(token, { pointerType: 'mouse' })
+    })
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.textContent).toContain('Chef'))
   })
 })
