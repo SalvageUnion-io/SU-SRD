@@ -25,3 +25,11 @@ export function downloadJson(filename: string, data: unknown): void {
   // Revoke after a short delay so Safari has time to start the download.
   setTimeout(() => URL.revokeObjectURL(url), 100)
 }
+
+/** A file-safe stem for an export: "itun-pilot-bonesaw.json". */
+export function fileStem(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .slice(0, 40)
+}

@@ -171,7 +171,7 @@ export function Token({
     return (
       <CardOuter
         {...slots.outer}
-        className={`${slots.outer.className} su-entity-token`}
+        className={cn(slots.outer.className, 'su-entity-token')}
         peek={peek}
       >
         {pill}

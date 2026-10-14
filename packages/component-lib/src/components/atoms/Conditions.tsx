@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { borderWidth, font, radius, space } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { Badge } from './Badge'
 import { capsLabel } from './capsLabel'
 
@@ -167,7 +168,10 @@ export function Conditions({
           type="button"
           aria-label={addLabel ?? 'Add condition'}
           onClick={onAdd}
-          className={`${capsLabel({ size: 'badge', weight: 'semibold', tracking: 'caps' })} su-conditions__add`}
+          className={cn(
+            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'caps' }),
+            'su-conditions__add'
+          )}
           style={ADD_BUTTON}
         >
           + Add

@@ -112,6 +112,21 @@ describe('ModeDoor', () => {
     expect(onSelect).toHaveBeenCalled()
   })
 
+  test('joins its variant class and a caller class with cn (no stray space)', () => {
+    const { rerender } = render(
+      <ModeDoor variant="guided" tab="▶" headline="Guided">
+        Body
+      </ModeDoor>
+    )
+    expect(screen.getByRole('button').className).toBe('su-mode-door su-mode-door--guided')
+    rerender(
+      <ModeDoor variant="guided" tab="▶" headline="Guided" className="extra">
+        Body
+      </ModeDoor>
+    )
+    expect(screen.getByRole('button').className).toBe('su-mode-door su-mode-door--guided extra')
+  })
+
   test('guided prints the sheet’s onTone pair, not paper on the bare tone', () => {
     // Paper on `--tone` measured 2.4:1 on pilot; theme.css sets the pair per
     // sheet and contrast.test.ts holds it to onTone.

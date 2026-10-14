@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { capsLabel } from './capsLabel'
 
 type ModeDoorProps = {
@@ -120,7 +121,7 @@ export function ModeDoor({
     <button
       type="button"
       onClick={onSelect}
-      className={`su-mode-door su-mode-door--${variant}${className ? ` ${className}` : ''}`}
+      className={cn('su-mode-door', `su-mode-door--${variant}`, className)}
       style={{ ...DOOR, ...(guided ? GUIDED : BLANK) }}
     >
       <span style={TAB} aria-hidden="true">

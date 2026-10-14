@@ -1,5 +1,5 @@
 import { Drawer } from '@base-ui/react/drawer'
-import { buttonVariants } from 'component-lib'
+import { buttonVariants, cn } from 'component-lib'
 import { color, font, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import { Search, X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
@@ -88,7 +88,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           // supplies the focus ring this trigger simply did not have.
           <button
             type="button"
-            className={`${iconButtonClass} srd-mobile-search__trigger`}
+            className={cn(iconButtonClass, 'srd-mobile-search__trigger')}
             style={TRIGGER}
             aria-label="Search the SRD"
           >
