@@ -76,6 +76,8 @@ export type MechSheetModel = {
   currentHeat: number
   capacity: ReturnType<typeof computeMechCapacity>
   chassisName: string
+  /** The chassis's reference entry, or null when the ref does not resolve. */
+  chassisEntity: ReturnType<typeof resolveChassisRef>
   chassisAbilities: NonNullable<ReturnType<typeof SalvageUnionReference.resolveActions>>
   spLines: ProvenanceLine[]
   epLines: ProvenanceLine[]
@@ -199,6 +201,7 @@ export function useMechSheetModel({
     currentHeat,
     capacity,
     chassisName,
+    chassisEntity,
     chassisAbilities,
     spLines,
     epLines,

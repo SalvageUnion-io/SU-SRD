@@ -14,7 +14,7 @@ Status: agreed. Code: `packages/component-lib/src/entity/`.
 ## Forms
 
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
-2. **Token** — `name [chips]`, one line; opens its entity; Peeks on hover or long-press.
+2. **Token** — `name [chips]`, one line, name cut out; links and Peeks as a Mention.
 3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it, as on a Card), a paper body only for a lead or stamp.
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
    **Tile** — the SRD Catalog's Row: 3:4 art, name notched into the band, compact facts, lead; link only.
