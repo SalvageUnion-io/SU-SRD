@@ -67,6 +67,12 @@ describe('formFacts — one chassis chip set in every form', () => {
     ])
   })
 
+  test("a player's mech (a synthetic chassis ref) keeps its live readings", () => {
+    const facts = [{ key: 'SP', label: 'SP', short: 'SP', value: '6/9' }]
+    const unit = { ref: { schemaName: 'chassis', synthetic: true as const }, facts }
+    expect(formFacts(unit)).toEqual(facts)
+  })
+
   test('any other entity keeps every fact', () => {
     const model = toEntityModel(get('systems', 'Electro-Magnetic Shield Projector'))
     expect(formFacts(model)).toEqual(model.facts)

@@ -134,7 +134,7 @@ describe('what it reads', () => {
     for (const call of queryCalls()) {
       expect((call.args as { gameId: string }).gameId).toBe('g1')
     }
-    expect(screen.getByRole('heading', { name: '#430 Tenacity' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /^#430 Tenacity/ })).toBeTruthy()
     expect(
       screen.getByRole('link', { name: "Open #430 Tenacity's sheet" }).getAttribute('href')
     ).toBe('/sheet/crawler/tenacity')
@@ -146,7 +146,7 @@ describe('what it reads', () => {
     await renderDashboard({
       'entities:listForGame': { crawlers: listing.crawlers, primaryCrawlerId: null },
     })
-    expect(screen.getByRole('heading', { name: 'Spare Crawler' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /^Spare Crawler/ })).toBeTruthy()
   })
 
   test('with no crawler, it says the Game has none', async () => {
@@ -275,7 +275,7 @@ describe('the tray', () => {
 describe('proposals and alerts', () => {
   test('Propose sends the change for the picked seat', async () => {
     await renderDashboard()
-    await click(screen.getByRole('button', { name: /^Judge, / }))
+    await click(screen.getByRole('radio', { name: /^Judge, / }))
     fireEvent.change(screen.getByLabelText('To'), { target: { value: '2' } })
     await click(screen.getByRole('button', { name: 'Propose' }))
     expect(sent).toEqual([
@@ -289,7 +289,7 @@ describe('proposals and alerts', () => {
   test('a refused proposal is said, and anything else gets the fallback line', async () => {
     refusals = { 'proposals:propose': new Error('socket closed') }
     await renderDashboard()
-    await click(screen.getByRole('button', { name: /^Judge, / }))
+    await click(screen.getByRole('radio', { name: /^Judge, / }))
     fireEvent.change(screen.getByLabelText('To'), { target: { value: '2' } })
     await click(screen.getByRole('button', { name: 'Propose' }))
     expect(await screen.findByText('That did not reach the table. Try again.')).toBeTruthy()

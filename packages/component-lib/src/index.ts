@@ -60,10 +60,7 @@ export { SlotGrid } from './components/atoms/SlotGrid'
 export { SRDLink } from './components/atoms/SRDLink'
 export type { StatState, StatTone } from './components/atoms/Stat'
 export { Stat } from './components/atoms/Stat'
-export { StatColumn } from './components/atoms/StatColumn'
 export type { ProvenanceLine } from './components/atoms/StatProvenance'
-// STAMP_SEAM — the border-riding stamp placement, as a class string (ruleset §5)
-export { STAMP_SEAM } from './components/atoms/stampSeam'
 export { Tab, TabList, TabPanel, Tabs, Toggle } from './components/atoms/Tabs'
 // Base typography
 export { Text } from './components/atoms/Text'
@@ -230,7 +227,7 @@ export { KindLabel } from './entity/parts/KindLabel'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
 export { mentionRef } from './entity/parts/tagItems'
-export type { EntityRowModel } from './entity/types'
+export type { EntityMode, EntityRowModel } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and
 // links) as a section; InlineMarkdown — one line of it, links only
 export { InlineMarkdown } from './markdownSection/InlineMarkdown'

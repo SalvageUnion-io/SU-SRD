@@ -1,7 +1,7 @@
 /* The crawler sheet group's rules: only what a style object cannot express. */
 
-/* ── SheetCrawler: a rail row's share of the Assigned Units stack. `EntityRow`
-      takes a class and no style, so the one property rides here. ── */
+/* ── SheetCrawler: a rail row's share of the Assigned Units stack, on its
+      wrapper (around a `UnitRow` or an `EmptyUnitSlot`). ── */
 .su-sheet-crawler-grow {
   flex: 1 1 0%;
 }

@@ -45,7 +45,7 @@ function tokenChips(model: EntityRowModel): TokenChip[] {
   }
   if (model.tree) chips.push({ label: model.tree.name, value: model.tree.level })
   // A chassis keeps its one chip set in every form (`formFacts`).
-  const chassis = model.ref.schemaName === 'chassis'
+  const chassis = model.ref.schemaName === 'chassis' && !model.ref.synthetic
   for (const fact of formFacts(model)) {
     if (chassis || TOKEN_FACTS.has(fact.short)) {
       chips.push({ label: fact.short, value: fact.value })

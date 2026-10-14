@@ -86,6 +86,13 @@ async function click(el: HTMLElement) {
   })
 }
 
+/** The Hull bay's chips, label then value. */
+function hullCells(): string[] {
+  const hull = screen.getByText('Hull').parentElement
+  if (!hull) throw new Error('no Hull bay')
+  return [...hull.querySelectorAll('.su-stat-cell')].map((c) => c.textContent ?? '')
+}
+
 function overlay(title: string) {
   return within(screen.getByRole('dialog', { name: title }))
 }
@@ -104,9 +111,9 @@ afterEach(() => {
 })
 
 describe('the bays', () => {
-  test('Hull reads the Tech Level; Upgrade reads the pool against the next one', async () => {
+  test('Hull reads the Tech Level as a chip; Upgrade reads the pool against the next one', async () => {
     await renderMajor()
-    expect(screen.getByText('Tech Level 2')).toBeTruthy()
+    expect(hullCells()).toContain('TL2')
     expect(screen.getByText(/^Pool 4\/\d+ to Tech 3$/)).toBeTruthy()
     expect(screen.getByText('5 Tech 2 Scrap per Downtime')).toBeTruthy()
     expect(screen.getByText('No bays installed.')).toBeTruthy()
@@ -114,9 +121,27 @@ describe('the bays', () => {
 
   test('an unreadable Tech Level is said as unknown, and the Upkeep line drops it', async () => {
     await renderMajor({ crawler: { ...hen, techLevel: 'not-a-level' } })
-    expect(screen.getByText('Tech Level ?')).toBeTruthy()
+    expect(hullCells()).toContain('TL?')
     expect(screen.getByText('5 Scrap per Downtime')).toBeTruthy()
     expect(screen.getByText('No further Tech Level')).toBeTruthy()
+  })
+
+  test('each bay is its Token; a damaged one greys, and a bay that does not resolve says so', async () => {
+    await renderMajor({
+      crawler: {
+        ...hen,
+        crawlerBays: [
+          { bayRef: 'mech-bay', condition: 'damaged' },
+          { bayRef: 'not-a-bay', condition: 'damaged' },
+        ],
+      },
+    })
+    const bays = screen.getByText('Bays').parentElement
+    if (!bays) throw new Error('no Bays bay')
+    const token = bays.querySelector('.su-entity-token__pill')
+    expect(token?.textContent).toContain('Mech Bay')
+    expect(within(bays).queryByText('Mech Bay damaged')).toBeNull()
+    expect(within(bays).getByText('not-a-bay damaged')).toBeTruthy()
   })
 
   test('with no mech to break down, there is no Break down', async () => {

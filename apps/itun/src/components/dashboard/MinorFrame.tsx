@@ -12,7 +12,7 @@
  * here has a hover or focus state of its own; ⤢ is the shared `Button`.
  */
 
-import { Button } from 'component-lib'
+import { Button, Stat } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { DashboardGauge } from './DashboardGauge'
 import type { BandGauge } from './MajorFrame'
@@ -22,8 +22,10 @@ export type MinorModel = {
   fam: 'mech' | 'pilot' | 'crawler'
   /** The entity's name, the Minor's heading. */
   name: string
-  /** A short qualifier beside the name: "boarded", "parked", "TL2". */
+  /** A short qualifier beside the name: "boarded", "parked". */
   aside?: string
+  /** Numbers beside the name, as label-first chips (`TL | 2`). */
+  chips?: { label: string; value: string | number }[]
   gauges: BandGauge[]
   /** One-line readouts that don't earn a gauge (Heat and EP while parked). */
   lines: string[]
@@ -124,6 +126,15 @@ export function MinorFrame({
       <div style={HEAD}>
         <h3 style={NAME}>{view.name}</h3>
         {view.aside ? <span style={ASIDE}>{view.aside}</span> : null}
+        {view.chips?.map((chip) => (
+          <Stat
+            key={chip.label}
+            label={chip.label}
+            value={chip.value}
+            orientation="horizontal"
+            size="mini"
+          />
+        ))}
         <Button
           variant="ghost"
           size="mini"

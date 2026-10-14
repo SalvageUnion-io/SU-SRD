@@ -16,9 +16,9 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
+import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
-import type { EntityRowStat } from '../shared/EntityRow'
 
 export type StarterBuild = { id: string; name: string; model: EntityRowModel }
 
@@ -43,7 +43,7 @@ function artOf(source: string, entity: () => SURefMetaEntity | null | undefined)
   )
 }
 
-function readings(stats: EntityRowStat[] | undefined) {
+function readings(stats: UnitReading[] | undefined) {
   return (stats ?? []).map((s) => ({ label: String(s.label), value: String(s.value) }))
 }
 

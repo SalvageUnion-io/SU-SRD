@@ -5,7 +5,7 @@
  * not Rows). The pill is the unit's own tone with its name, its first
  * reading (`SP 9/9`) its chip, and the whole Token opens that unit's sheet.
  *
- * Edit state keeps the full `EntityRow`, whose Assign and Unassign controls
+ * Edit state keeps the full Row (`UnitRow`), whose Assign and Unassign controls
  * are writes. Reading a sheet only needs to know what is linked and how it is
  * doing, so the Token carries nothing else.
  */

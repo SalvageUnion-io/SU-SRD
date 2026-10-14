@@ -1,30 +1,27 @@
 /**
  * CrawlerMinor — the Game's primary crawler on the Mediator Dashboard (board
- * M1; docs/architecture/mediator-dashboard.md Q6): its name on a crawler-pink
- * band, SP as a `Stat`, its tech level and how many bays are intact, under
- * "Yours to edit: you run the table."
+ * M1; docs/architecture/mediator-dashboard.md Q6): the crawler as the Row
+ * every crew list draws it as, its readings label-first chips (`TL | 3`,
+ * `SP | 14/20`, `BAYS | 4/5`), under "Yours to edit: you run the table."
  *
- * The crawler is the Mediator's to run (ADR-038 §5), so its ⤢ opens the
+ * The crawler is the Mediator's to run (ADR-038 §5), so the Row opens the
  * crawler's live sheet, which the server lets the table runner write
  * (`assertMayEditCrawler`). With no crawler, it says where to raise one.
  *
  * Presentational: `readCrawler()` reads the listing's body.
  */
 
-import { buttonVariants, Stat, tokens } from 'component-lib'
-import { Maximize2 } from 'lucide-react'
+import { Entity, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { unitRowModel } from '../../lib/units/unitModel'
 import { AppLink } from '../shared/AppLink'
 import type { CrawlerReading } from './crawlerReading.model'
-import { BODY, bandTop, HEAD_ROW, HEADING, MUTED } from './mediatorStyles.model'
+import { crawlerReadings } from './crawlerReading.model'
+import { BODY, bandTop, HEADING, MUTED } from './mediatorStyles.model'
 
-const { color, space, weight } = tokens
-
-const STAT_ROW: CSSProperties = { display: 'flex', justifyContent: 'flex-start' }
+const { color, weight } = tokens
 
 const FOOT: CSSProperties = { ...BODY, marginTop: 'auto', fontWeight: weight.bold }
-
-const NAME: CSSProperties = { ...HEADING, minWidth: 0, overflowWrap: 'anywhere' }
 
 export function CrawlerMinor({
   crawler,
@@ -48,32 +45,21 @@ export function CrawlerMinor({
     )
   }
   return (
-    <section aria-labelledby="mediator-crawler" style={panel}>
-      <div style={HEAD_ROW}>
-        <h2 id="mediator-crawler" style={NAME}>
-          {crawler.name}
-        </h2>
-        <AppLink
-          href={`/sheet/crawler/${crawler.id}`}
-          aria-label={`Open ${crawler.name}'s sheet`}
-          className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'iconOnly' })}
-        >
-          <Maximize2 size={14} aria-hidden="true" />
-        </AppLink>
-      </div>
-      <div style={STAT_ROW}>
-        <Stat label="SP" value={crawler.sp} max={crawler.maxSP} orientation="horizontal" />
-      </div>
-      <p style={{ ...MUTED, marginTop: space[2] }}>
-        {[
-          crawler.techLevel === null ? null : `TL ${crawler.techLevel}`,
-          crawler.bays === 0
-            ? null
-            : `${crawler.baysIntact === crawler.bays ? crawler.bays : `${crawler.baysIntact} of ${crawler.bays}`} bays intact`,
-        ]
-          .filter((part) => part !== null)
-          .join(' · ')}
-      </p>
+    <section aria-label="Crawler" style={panel}>
+      <Entity
+        form="row"
+        model={unitRowModel({
+          kind: 'crawler',
+          name: crawler.name,
+          readings: crawlerReadings(crawler),
+        })}
+        titleAs="h2"
+        mode={{
+          kind: 'link',
+          href: `/sheet/crawler/${crawler.id}`,
+          attrs: { 'aria-label': `Open ${crawler.name}'s sheet` },
+        }}
+      />
       <p style={FOOT}>Yours to edit: you run the table.</p>
     </section>
   )

@@ -326,12 +326,10 @@ export function CrawlerMajor({
   const hull: BandBay = {
     label: 'Hull',
     gauges: [hullGauge(crawler)],
-    lines: [
-      {
-        text: [type?.name, crawlerTl === undefined ? 'Tech Level ?' : `Tech Level ${crawlerTl}`]
-          .filter(Boolean)
-          .join(' · '),
-      },
+    // Label-first chips, never a joined line: `TYPE | Augmented`, `TL | 3`.
+    stats: [
+      ...(type ? [{ label: 'Type', value: type.name }] : []),
+      { label: 'TL', value: crawlerTl ?? '?' },
     ],
     buttons: [],
   }
@@ -358,7 +356,13 @@ export function CrawlerMajor({
   const bays = bayConditions(crawler)
   const bayBay: BandBay = {
     label: 'Bays',
-    chips: bays.map((b) => ({ text: b.damaged ? `${b.name} damaged` : b.name, warn: b.damaged })),
+    // Each bay is its Token, greyed when damaged; a bay that does not resolve
+    // keeps a named tile that says so.
+    chips: bays.map((b) =>
+      b.entity
+        ? { text: b.name, entity: b.entity, warn: b.damaged }
+        : { text: b.damaged ? `${b.name} damaged` : b.name, warn: b.damaged }
+    ),
     lines: bays.length === 0 ? [{ text: 'No bays installed.' }] : undefined,
     buttons: [],
   }

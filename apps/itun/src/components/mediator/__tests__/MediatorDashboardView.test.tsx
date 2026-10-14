@@ -107,13 +107,17 @@ describe('the rail and the table', () => {
 
   test('a seat with a problem names it beside the ▲, so colour is never the only signal', async () => {
     await renderView()
-    const pickle = screen.getByRole('button', { name: /^Pickle, / })
-    expect(pickle.textContent).toContain('Overheating')
-    expect(pickle.textContent).toContain('▲')
-    // The callsign is a link to the read-only sheet, apart from the button.
-    expect(screen.getByRole('link', { name: 'Pickle' }).getAttribute('href')).toBe(
-      '/sheet/pilot/pickle'
-    )
+    // The seat is a Row in select mode; its foot names the problem.
+    const pickle = screen.getByRole('radio', { name: /^Pickle, / }).closest('li')
+    expect(pickle?.textContent).toContain('Overheating')
+    expect(pickle?.textContent).toContain('▲')
+    // HP and AP are label-first chips on the Row.
+    const cells = [...(pickle?.querySelectorAll('.su-entity-row .su-stat-cell') ?? [])]
+    expect(cells.map((c) => c.firstElementChild?.textContent)).toEqual(['HP', 'AP'])
+    // View opens the read-only sheet, a control apart from the radio.
+    const view = screen.getByRole('link', { name: 'View Pickle' })
+    expect(view.getAttribute('href')).toBe('/sheet/pilot/pickle')
+    expect(view.closest('[role="radio"]')).toBeNull()
   })
 })
 
@@ -144,9 +148,9 @@ describe('see the problem, propose the fix', () => {
   test('tapping a seat aims the dock at that pilot and moves focus to To', async () => {
     const toRef = await renderView()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /^Judge, / }))
+      fireEvent.click(screen.getByRole('radio', { name: /^Judge, / }))
     })
-    expect(screen.getByRole('button', { name: /^Judge, / }).getAttribute('aria-pressed')).toBe(
+    expect(screen.getByRole('radio', { name: /^Judge, / }).getAttribute('aria-checked')).toBe(
       'true'
     )
     expect((screen.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-judge')
@@ -156,7 +160,7 @@ describe('see the problem, propose the fix', () => {
   test('the preview shows before → after, and Propose sends the value and the reason', async () => {
     await renderView()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /^Judge, / }))
+      fireEvent.click(screen.getByRole('radio', { name: /^Judge, / }))
     })
     fireEvent.change(screen.getByLabelText('To'), { target: { value: '2' } })
     fireEvent.change(screen.getByLabelText('Reason (optional)'), {
@@ -282,6 +286,6 @@ describe('offline or outdated', () => {
     expect(within(hp).queryByRole('slider')).toBeNull()
     expect(within(hp).getByRole('img', { name: 'HP 7 of 10' })).toBeTruthy()
     // The table is still there to read.
-    expect(screen.getByRole('button', { name: /^Pickle, / })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: /^Pickle, / })).toBeTruthy()
   })
 })
