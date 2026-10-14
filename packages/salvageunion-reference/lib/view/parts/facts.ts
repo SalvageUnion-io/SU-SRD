@@ -213,7 +213,7 @@ export function entityStats(
   options: { schemaName?: SURefEnumSchemaName | 'actions'; techLevel?: number | 'B' | 'N' }
 ): Fact[] {
   const isBio = options.techLevel === 'B'
-  return STATS.flatMap((config, index): Fact[] => {
+  return STATS.flatMap((config): Fact[] => {
     const value = statValue(config, entity, options.schemaName)
     if (value === undefined) return []
     const bio = isBio && config.getter === getSalvageValue
@@ -221,7 +221,7 @@ export function entityStats(
     const bioNames = STAT_LABELS.bioSalvageValue
     return [
       {
-        key: `ref-stat-${index}`,
+        key: `ref-stat-${config.key}`,
         label: bio ? bioNames.book.toUpperCase() : names.label,
         short: bio ? bioNames.short : names.short,
         value,

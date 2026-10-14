@@ -28,6 +28,8 @@ export type EntityProps = EntitySource & {
   fact?: TokenFact | null
   /** Row only: hover, focus or a long press Peeks it (a Token always does). */
   peek?: boolean
+  /** Tile only: the chips beside the name, on the band, rather than under it. */
+  chipsBeside?: boolean
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
   titleAs?: ElementType
 }
@@ -40,7 +42,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, fact, peek, titleAs } = props
+  const { form, instance, mode, lead, omit, fact, peek, titleAs, chipsBeside } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -70,6 +72,7 @@ export function Entity(props: EntityProps) {
           mode={mode?.kind === 'link' || mode?.kind === 'read' ? mode : undefined}
           omit={omit}
           lead={lead}
+          chipsBeside={chipsBeside}
         />
       )
     default: {

@@ -20,6 +20,8 @@ export type TileProps = {
   omit?: readonly EntityOmit[]
   /** The opening prose under the cells, while browsing (E11). */
   lead?: boolean
+  /** The chips beside the name, on the band, in place of under it (a chassis). */
+  chipsBeside?: boolean
 }
 
 type TileMode = Extract<EntityMode, { kind: 'read' | 'link' }>
@@ -65,13 +67,26 @@ const NAME: CSSProperties = {
  * lines.
  * Layout is `index.css`'s `.su-entity-tile*`.
  */
-export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps) {
+export function Tile({
+  model,
+  mode = READ,
+  omit = [],
+  lead = false,
+  chipsBeside = false,
+}: TileProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
   const facts = factCells(model.facts, omit)
   const { art } = model
   const leadText = lead ? model.lead : undefined
+  const hasChips = Boolean(model.cost) || facts.length > 0
+  const chips = (
+    <>
+      <Facts cells={facts} size="compact" />
+      {model.cost && <CostBox cost={model.cost} rung="compact" />}
+    </>
+  )
 
   return (
     <LinkSurface
@@ -108,12 +123,13 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
               {model.title}
             </span>
           </span>
-          {(target.href || target.onOpen) && <LinkChevron />}
+          {chipsBeside
+            ? hasChips && <span className="su-entity-tile__chips">{chips}</span>
+            : (target.href || target.onOpen) && <LinkChevron />}
         </div>
-        {(model.cost || facts.length > 0 || leadText) && (
+        {((hasChips && !chipsBeside) || leadText) && (
           <div className="su-entity-tile__cells">
-            <Facts cells={facts} size="compact" />
-            {model.cost && <CostBox cost={model.cost} rung="compact" />}
+            {!chipsBeside && chips}
             {leadText && <Lead text={leadText} />}
           </div>
         )}
