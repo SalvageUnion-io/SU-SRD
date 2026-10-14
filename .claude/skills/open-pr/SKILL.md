@@ -29,9 +29,12 @@ in order, each short:
 - **Summary** — what this PR does, in a sentence or two.
 - **Why** — the problem or decision; cite the ADR or issue (`#123`).
 - **What changed** — the change by area, not by file.
-  A PR that bumps the root `package.json` `version` is a release: this
-  section, word for word and minus `Closes #N` lines, becomes the GitHub
-  release notes when it merges to `main` (`tools/release.ts`).
+  Every PR into `main` is a release: it must bump the root `package.json`
+  `version` over `main`'s (patch for a fix, minor for a feature, major for a
+  breaking change; CI's `version-bump` job fails otherwise), and this section,
+  word for word and minus `Closes #N` lines, becomes the GitHub release notes
+  when it merges (`tools/release.ts`). Open PRs into `main` each need their own
+  version; after another one merges, update the branch and bump past it.
 - **Verification** — what you ran (`bun run check`, a `bun run shot`) and what
   you looked at.
 - **Follow-ups** — what is left. Ideas you did not build go here,

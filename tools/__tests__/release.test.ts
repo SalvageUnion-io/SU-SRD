@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { ReleaseDeps } from '../release'
-import { githubApi, liveDeps, main, whatChanged } from '../release'
+import { githubApi, isBump, liveDeps, main, whatChanged } from '../release'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const SHA = 'abc123'
@@ -152,6 +152,45 @@ describe('main', () => {
   })
 })
 
+describe('isBump', () => {
+  test.each([
+    ['3.0.1', '3.0.2', true],
+    ['3.0.1', '3.1.0', true],
+    ['3.0.1', '4.0.0', true],
+    ['3.9.9', '3.10.0', true],
+    ['3.0.0', '3.0.1-rc.1', true],
+    ['3.0.1', '3.0.1', false],
+    ['3.0.1', '3.0.0', false],
+    ['3.1.0', '3.0.9', false],
+    ['3.0.0', '3.0.0-rc.1', false],
+    ['3.0.0', 'three', false],
+    ['nope', '3.0.0', false],
+  ] as const)('%s -> %s is %p', (base, head, expected) => {
+    expect(isBump(base, head)).toBe(expected)
+  })
+})
+
+describe('main --check-bump', () => {
+  test('passes a bump over main and calls no API', async () => {
+    const { deps, calls, out } = harness({}, '3.0.2')
+    expect(await main(['--check-bump', '--base', '3.0.1'], deps)).toBe(0)
+    expect(calls).toHaveLength(0)
+    expect(out.join('\n')).toContain('3.0.1 -> 3.0.2')
+  })
+
+  test('fails an unbumped version with how to fix it', async () => {
+    const { deps, err } = harness({}, '3.0.1')
+    expect(await main(['--check-bump', '--base', '3.0.1'], deps)).toBe(1)
+    expect(err.join('\n')).toContain('bump it')
+  })
+
+  test('fails without --base', async () => {
+    const { deps, err } = harness({}, '3.0.2')
+    expect(await main(['--check-bump'], deps)).toBe(1)
+    expect(err.join('\n')).toContain('--base <version>')
+  })
+})
+
 describe('githubApi', () => {
   const fake = (status: number, payload: unknown, seen: Request[] = []) =>
     (async (url: string, init: RequestInit) => {
@@ -209,5 +248,22 @@ describe('release.yml', () => {
       'if [ "$REF" = refs/heads/main ]; then\n  bun tools/release.ts --sha "$SHA"\nelse'
     )
     expect(run).toContain('bun tools/release.ts --sha "$SHA" --dry-run')
+  })
+})
+
+describe("ci.yml's version-bump job", () => {
+  const ci = Bun.YAML.parse(
+    readFileSync(join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf-8')
+  ) as {
+    jobs: Record<string, { if?: string; needs?: string[]; steps?: { run?: string }[] }>
+  }
+
+  test('runs the gate on PRs into main and blocks CI Success', () => {
+    const job = ci.jobs['version-bump']
+    expect(job?.if).toBe("github.base_ref == 'main'")
+    expect(
+      job?.steps?.some((s) => s.run?.includes('bun tools/release.ts --check-bump --base'))
+    ).toBe(true)
+    expect(ci.jobs['quality-checks']?.needs).toContain('version-bump')
   })
 })

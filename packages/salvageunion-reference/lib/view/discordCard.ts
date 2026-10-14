@@ -15,8 +15,8 @@
  * - a parent → a `-#` caps kicker (`PATTERN OF MULE`), never the entity's kind;
  * - the head → `## Name` as a link to its page, an ability's tier numeral first;
  * - the chips under it, one head group in E17's order: the action type as the
- *   book prints it, the facts label first in the web cards' short labels
- *   (`**SP** 12`, three to a line), the traits as linked tags with their
+ *   book prints it, the facts label first and spelled out
+ *   (`**Structure Points** 12`, three to a line), the traits as linked tags with their
  *   parameter, then the cost last (`` `1 AP` ``, the book's pointy box);
  * - a table → `ROLL THE DIE:` over one banded row per line;
  * - children → a counted stamp over linked names (E6: a link, never a card).
@@ -33,7 +33,7 @@ import { chipLines, costChip, factChips } from './discordChips'
 import { chassisCardGroups } from './parts/children'
 import { rangeStart, stripOwnerSuffix } from './parts/discordText'
 import { opensGroup, splitStatLine } from './parts/facts'
-import { splitParagraph } from './parts/paragraphs'
+import { splitSentences } from './parts/paragraphs'
 import { formatActionType } from './parts/traits'
 import { toEntityModel } from './toEntityModel'
 import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
@@ -78,10 +78,6 @@ export type DiscordBlock =
   | {
       kind: 'text'
       content: string
-      /** The nested-entity block: the groups it lists, for the bot to draw as rows. */
-      children?: DiscordChildGroup[]
-      /** A shed card's closing link, for the bot to draw as a button. */
-      more?: { label: string; url: string }
     }
   | { kind: 'separator' }
   | {
@@ -89,11 +85,6 @@ export type DiscordBlock =
       /** 1–3 text blocks, Discord's own limit. */
       text: string[]
       thumbnail?: { url: string; description: string }
-      /**
-       * An action's index row (`indexActions`): the action's name, for the bot
-       * to hang its Read button on. Never set on a Component Embed's card.
-       */
-      action?: string
     }
 
 /** A rendered card: the tone key for the accent, and its blocks. */
@@ -102,14 +93,11 @@ export type DiscordCard = { tone: string; blocks: DiscordBlock[] }
 /** A row of a table, ready to print: its range and its line. */
 type DiscordTableRow = { key: string; line: string }
 
-/**
- * An action band inside a card, and the table it rolls on, if any. `summary`
- * is the band without its rules: the name, its stat line and its traits.
- */
-type DiscordAction = { name: string; text: string; summary: string; tableName?: string }
+/** An action band inside a card, and the table it rolls on, if any. */
+type DiscordAction = { name: string; text: string; tableName?: string }
 
 /** A group of nested entities: its stamp, and the names as links. */
-export type DiscordChildGroup = { label: string; count: number; line: string; items: EntityRef[] }
+type DiscordChildGroup = { label: string; count: number; line: string; items: EntityRef[] }
 
 /** Everything a card can show, rendered; consumers choose and order. */
 export type DiscordCardParts = {
@@ -133,7 +121,7 @@ function escapeMarkdownLabel(text: string): string {
 }
 
 /** `[label](url)`, or the escaped label alone when there is nowhere to go. */
-export function link(label: string, url: string | undefined): string {
+function link(label: string, url: string | undefined): string {
   const escaped = escapeMarkdownLabel(label)
   return url ? `[${escaped}](${url})` : escaped
 }
@@ -142,7 +130,7 @@ export function link(label: string, url: string | undefined): string {
  * Where a ref links: its SRD page, a pattern's own page under its chassis, and
  * nothing for a synthetic record or an action (actions have no page).
  */
-export function discordRefUrl(ref: EntityRef): string | undefined {
+function discordRefUrl(ref: EntityRef): string | undefined {
   if (ref.synthetic || ref.schemaName === 'actions') return undefined
   const base = srdEntityUrl(ref.schemaName, ref.slug)
   return ref.pattern ? `${base}/pattern/${nameToSlug(ref.pattern)}` : base
@@ -220,9 +208,8 @@ function contentMarkdown(
           line = `*${body}*`
           break
         default:
-          // A long paragraph reads as shorter ones in Discord's narrow column.
-          out.push(...splitParagraph(body))
-          continue
+          // One sentence to a line reads easily in Discord's narrow column.
+          line = splitSentences(body).join('\n')
       }
     } else if (block.label) {
       line = `**${block.label}**`
@@ -267,7 +254,7 @@ function chipGroup(model: EntityModel, facts: Fact[], perLine = 3): string[] {
 }
 
 /** Traits as linked tags: `[Hacking](…) · [Burn](…) 2`. */
-export function traitTags(traits: TraitMention[]): string {
+function traitTags(traits: TraitMention[]): string {
   return traits
     .map((trait) => {
       const label = link(
@@ -280,7 +267,7 @@ export function traitTags(traits: TraitMention[]): string {
 }
 
 /** An action's type as the book prints it, a split one Mech first. */
-export function actionTypeLine(model: EntityModel): string | undefined {
+function actionTypeLine(model: EntityModel): string | undefined {
   if (!model.actionType) return undefined
   const own = formatActionType(model.actionType)
   return model.mechActionType
@@ -328,9 +315,8 @@ function actionBand(ref: EntityRef, ownName: string, chassisName?: string): Disc
   const stats = chips ? [`-# ${chips}`] : []
   const label = escapeMarkdownLabel(name)
   const text = [`### ${label}`, ...stats, ...contentMarkdown(model.prose, chassisName)].join('\n')
-  const summary = [`**${label}**`, ...stats].join('\n')
   const tableName = model.table?.name
-  return { name, text, summary, ...(tableName ? { tableName } : {}) }
+  return { name, text, ...(tableName ? { tableName } : {}) }
 }
 
 /**
@@ -433,11 +419,6 @@ export type DiscordCardOptions = {
   markedNote?: string
   /** Fits the budget? Parts are shed from the end until it does. */
   fits?: (card: DiscordCard) => boolean
-  /**
-   * Draw each action as an index row (its name and stat line, no rules), for
-   * the bot's long cards, whose Read button answers with the whole action.
-   */
-  indexActions?: boolean
 }
 
 /** The table's rows, the marked one quoted with its note. */
@@ -465,22 +446,17 @@ type CardContent = {
   otherShed: boolean
 }
 
-/**
- * The link a shed card closes on: the whole table when that is all it lost.
- * `label` is the bot's button for it; a Component Embed has no buttons, so
- * `content` is the same link as text.
- */
+/** The link a shed card closes on: the whole table when that is all it lost. */
 function shedLink(content: CardContent, url: string): DiscordBlock {
   const tableOnly = content.tableShed && !content.otherShed
   const text = tableOnly
     ? 'See the whole table on salvageunion.io'
     : 'The full entry on salvageunion.io'
-  const label = tableOnly ? 'Whole table' : 'Full entry'
-  return { kind: 'text', content: `[${text}](${url})`, more: { label, url } }
+  return { kind: 'text', content: `[${text}](${url})` }
 }
 
 /** A group of nested entries: its label, its count, and the names as links. */
-export function discordChildGroup(label: string, items: EntityRef[]): DiscordChildGroup {
+function discordChildGroup(label: string, items: EntityRef[]): DiscordChildGroup {
   return {
     label,
     count: items.length,
@@ -490,7 +466,7 @@ export function discordChildGroup(label: string, items: EntityRef[]): DiscordChi
 }
 
 /** A group as its counted stamp over its linked names: `-# SYSTEMS (2)` then the line. */
-export function childStamp(group: DiscordChildGroup): string {
+function childStamp(group: DiscordChildGroup): string {
   return `-# ${group.label.toUpperCase()} (${group.count})\n${group.line}`
 }
 
@@ -507,17 +483,10 @@ function build(
       : { kind: 'text', content: head }
   )
 
-  const index = options.indexActions === true
-  const body = [...content.prose, ...(index ? [] : content.actions.map((action) => action.text))]
+  const body = [...content.prose, ...content.actions.map((action) => action.text)]
   if (body.length > 0) {
     blocks.push({ kind: 'separator' })
     blocks.push({ kind: 'text', content: body.join('\n\n') })
-  }
-  if (index && content.actions.length > 0) {
-    blocks.push({ kind: 'separator' })
-    for (const action of content.actions) {
-      blocks.push({ kind: 'section', text: [action.summary], action: action.name })
-    }
   }
 
   if (parts.table && content.rows.length > 0) {
@@ -527,11 +496,7 @@ function build(
   }
 
   if (content.children.length > 0) {
-    blocks.push({
-      kind: 'text',
-      content: content.children.map(childStamp).join('\n'),
-      children: [...content.children],
-    })
+    blocks.push({ kind: 'text', content: content.children.map(childStamp).join('\n') })
   }
 
   if ((content.tableShed || content.otherShed) && parts.url) {
