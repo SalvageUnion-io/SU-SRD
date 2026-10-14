@@ -71,6 +71,31 @@ describe('Token chips', () => {
   test('an NPC shows its HP and its action count', () => {
     expect(chipsOf('npcs', 'Saboteur')).toEqual(['Actions8', 'HP6'])
   })
+
+  test("a host's trailing chip comes last, after the cost box", () => {
+    const { container } = render(
+      <Entity
+        form="token"
+        entity={get('systems', 'Electro-Magnetic Shield Projector')}
+        trailing={<span>Damaged</span>}
+      />
+    )
+    const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
+    expect(chips?.children[chips.children.length - 2]?.textContent).toBe('2 EP')
+    expect(chips?.lastElementChild?.textContent).toBe('Damaged')
+  })
+
+  test('a trailing chip alone still draws the chip group', () => {
+    const { container } = render(
+      <Entity
+        form="token"
+        entity={get('crawler-bays', 'Mech Bay')}
+        trailing={<span>Damaged</span>}
+      />
+    )
+    const chips = container.querySelector('.su-entity-token__chips')
+    expect(chips?.lastElementChild?.textContent).toBe('Damaged')
+  })
 })
 
 describe('formFacts — one chassis chip set in every form', () => {

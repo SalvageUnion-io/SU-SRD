@@ -141,7 +141,7 @@ describe('the bays', () => {
     expect(screen.getByText('No further Tech Level')).toBeTruthy()
   })
 
-  test('each bay is its Token; a damaged one greys, and a bay that does not resolve says so', async () => {
+  test('each bay is its Token; a damaged one greys and says DAMAGED, and a bay that does not resolve says so', async () => {
     await renderMajor({
       crawler: {
         ...hen,
@@ -155,6 +155,9 @@ describe('the bays', () => {
     if (!bays) throw new Error('no Bays bay')
     const token = bays.querySelector('.su-entity-token__pill')
     expect(token?.textContent).toContain('Mech Bay')
+    // The grey is joined by the condition chip an item line shows, last in the pill's chips.
+    const chips = token?.querySelector('.su-entity-token__chips')
+    expect(chips?.lastElementChild?.textContent).toBe('Damaged')
     expect(within(bays).queryByText('Mech Bay damaged')).toBeNull()
     expect(within(bays).getByText('not-a-bay damaged')).toBeTruthy()
   })

@@ -70,6 +70,8 @@ export type TokenSlots = {
   /** A read cost ("1 EP"), as its chip. */
   cost?: string
   down?: boolean
+  /** The host's chip, last in the chip group after the cost box (a damaged thing's condition). */
+  trailing?: ReactNode
 }
 
 /*
@@ -141,7 +143,7 @@ export function Token({
         </span>
       </span>
       {slots.pennant}
-      {(chips.length > 0 || cost) && (
+      {(chips.length > 0 || cost || slots.trailing) && (
         <span className="su-entity-token__chips">
           {chips.map((chip) => (
             <Stat
@@ -154,6 +156,7 @@ export function Token({
             />
           ))}
           {cost && <CostBox cost={cost} rung="mini" onInk={paint.ink} />}
+          {slots.trailing}
         </span>
       )}
     </span>

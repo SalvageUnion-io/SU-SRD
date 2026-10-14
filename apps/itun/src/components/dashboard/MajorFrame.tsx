@@ -12,7 +12,7 @@
  */
 
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, Button, Entity, Stat } from 'component-lib'
+import { Badge, Button, Entity, Stat, StatusBadge } from 'component-lib'
 import { radius } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
@@ -84,7 +84,8 @@ export type BandBay = {
   lines?: BandText[]
   /**
    * Names shown as chips (the pilot's Kit and Abilities, the crawler's bays).
-   * One with an entity is its Token; `warn` greys it as damaged.
+   * One with an entity is its Token; `warn` greys it as damaged and ends it
+   * in the DAMAGED `StatusBadge`.
    */
   chips?: BandText[]
   buttons: BandButton[]
@@ -311,7 +312,12 @@ function BayBody({ bay }: { bay: BandBay }) {
           {bay.chips.map((c) =>
             c.entity ? (
               <li key={c.text}>
-                <Entity form="token" entity={c.entity} instance={c.warn ? DAMAGED : undefined} />
+                <Entity
+                  form="token"
+                  entity={c.entity}
+                  instance={c.warn ? DAMAGED : undefined}
+                  trailing={c.warn ? <StatusBadge status={DAMAGED.condition} /> : undefined}
+                />
               </li>
             ) : (
               <li

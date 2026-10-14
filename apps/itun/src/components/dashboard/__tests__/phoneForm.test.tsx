@@ -312,6 +312,37 @@ describe('a MajorModel renders through both forms', () => {
   }
 
   for (const form of ['canvas', 'phone'] as const) {
+    test(`${form}: a damaged entity chip greys and ends in the DAMAGED badge; an intact one has none`, () => {
+      const bay = (name: string) => {
+        const entity = SalvageUnionReference.getByNameIn('crawler-bays', name)
+        if (!entity) throw new Error(`fixture missing: ${name}`)
+        return entity
+      }
+      const view: MajorModel = {
+        fam: 'crawler',
+        stampLabel: 'Parked',
+        bays: [
+          {
+            label: 'Bays',
+            chips: [
+              { text: 'Mech Bay', entity: bay('Mech Bay'), warn: true },
+              { text: 'Storage Bay', entity: bay('Storage Bay') },
+            ],
+            buttons: [],
+          },
+        ],
+      }
+      const frame = <MajorFrame view={view} />
+      const { container } = render(form === 'phone' ? <Phone>{frame}</Phone> : frame)
+      const pills = Array.from(container.querySelectorAll('.su-entity-token__pill'))
+      const pill = (name: string) => pills.find((p) => p.textContent?.includes(name))
+      const damaged = pill('Mech Bay')?.querySelector('.su-entity-token__chips')
+      expect(damaged?.lastElementChild?.textContent).toBe('Damaged')
+      expect(pill('Storage Bay')?.textContent).not.toContain('Damaged')
+    })
+  }
+
+  for (const form of ['canvas', 'phone'] as const) {
     test(`${form}: a prompt takes focus at its title, covers the bays, speaks, and gives focus back`, () => {
       function Prompted() {
         const [open, setOpen] = useState(false)
