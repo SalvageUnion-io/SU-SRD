@@ -485,7 +485,7 @@ export function useActionsDeck({
 
     const cost: string[] = []
     if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)
-    if (heatApplies && eco.heat > 0) cost.push(`+${eco.heat} Heat`)
+    if (heatApplies && eco.heat > 0) cost.push(`Heat +${eco.heat}`)
     if (eco.maxUses > 0) cost.push(`Uses ${eco.maxUses}`)
 
     return {

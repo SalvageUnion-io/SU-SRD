@@ -82,7 +82,11 @@ function fitsDiscordEntryBudget(card: DiscordCard): boolean {
  */
 function withSrdOrigin(card: DiscordCard, origin: string): DiscordCard {
   const from = `${SRD_SITE_URL}/`
-  const to = `${origin.replace(/\/+$/, '')}/`
+  // Trailing slashes trimmed by a scan, not `/\/+$/`: that regex backtracks
+  // quadratically on a run of slashes (CodeQL js/polynomial-redos).
+  let end = origin.length
+  while (end > 0 && origin[end - 1] === '/') end--
+  const to = `${origin.slice(0, end)}/`
   const rebase = (text: string) => text.replaceAll(from, to)
   return {
     ...card,

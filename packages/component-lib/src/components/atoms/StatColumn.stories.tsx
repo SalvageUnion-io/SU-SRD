@@ -30,8 +30,8 @@ function Column({ entity, name }: { entity: SURefMetaEntity | undefined; name: s
 }
 
 /**
- * The book's stat column at page scale: a framed numeral beside an ink stamp
- * in the manual's own words — `14 | STRUCTURE PTS.` — two to a row, in the
+ * The book's stat column at page scale: an ink stamp, then a framed numeral
+ * in the manual's own words — `STRUCTURE PTS. | 14` — two to a row, in the
  * book's order (board 07). It replaced the entity page's header cells, whose
  * labels clipped on a phone. Real stats, through `resolveEntityPageMeta`
  * (the entity model's `bookStats`), as the SRD page feeds them.
