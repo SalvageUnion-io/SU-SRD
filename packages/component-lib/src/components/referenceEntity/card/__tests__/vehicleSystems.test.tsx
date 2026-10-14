@@ -49,5 +49,8 @@ describe('a vehicle page draws every item it lists as a card', () => {
     const boat = pageOf('E-Boat').text
     expect(boat).toContain('Integrated Amphibious Locomotion System')
     expect(boat).not.toContain('Actions')
+    // The item reuses the Kraken's chassis text; its placeholder names the vehicle.
+    expect(boat).not.toContain('[(CHASSIS)]')
+    expect(boat).toContain('E-Boat has an integral')
   })
 })

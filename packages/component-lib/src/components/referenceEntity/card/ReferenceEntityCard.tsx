@@ -57,7 +57,7 @@ import {
   resolveHeaderHint,
 } from './cardChrome'
 import type { CardGrain } from './cardGrain'
-import { MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
+import { chassisTokenName, MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
 import { resolveCardSections } from './cardSections'
 import { CardTextureContext } from './cardTexture'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
@@ -327,7 +327,7 @@ function ReferenceEntityCardInner({
         ? stripHostParenthetical(entityName, hostName)
         : entityName)
   // `[(CHASSIS)]` content tokens resolve to the owning chassis name.
-  const resolvedChassisName = chassisName ?? (schemaName === 'chassis' ? entityName : undefined)
+  const resolvedChassisName = chassisName ?? chassisTokenName(schemaName, entityName)
 
   const action = isAction ? (entity as ActionFields) : undefined
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
