@@ -159,7 +159,7 @@ export function PilotAbilityItem({
   const apCost = resolveAbilityApCost(ability)
   return (
     <SheetItemLine
-      token={<Entity form="token" entity={ability} />}
+      token={<Entity form="token" entity={ability} mode={{ kind: 'link' }} />}
       name={ability.name}
       readOnly={readOnly}
       stamp={used ? 'Used' : undefined}
@@ -299,7 +299,9 @@ export function PilotEquipmentItem({
   // (board 10). It is the item in BOTH states: the name always wins, and is
   // never ellipsized to make room for a control. A damaged item's pill greys,
   // as its card's header does; it Peeks the whole card.
-  const pill = <Entity form="token" entity={equipment} instance={{ condition }} />
+  const pill = (
+    <Entity form="token" entity={equipment} instance={{ condition }} mode={{ kind: 'link' }} />
+  )
   // Only an item with choices opens its card under the line: its choices are
   // written there. Everything else the Peek already shows.
   const hasChoices = Array.isArray(equipment.choices) && equipment.choices.length > 0

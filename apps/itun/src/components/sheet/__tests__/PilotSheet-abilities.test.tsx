@@ -14,6 +14,7 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { EntitySurfaceProvider } from 'component-lib'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -241,5 +242,23 @@ describe('PilotSheet — the class art stands in for a portrait', () => {
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
     const art = screen.getByRole<HTMLImageElement>('img', { name: 'Hacker artwork' })
     expect(art.src).toContain('/classes/hacker.webp')
+  })
+})
+
+describe("PilotSheet — a read-only sheet's Tokens open their entity", () => {
+  test('clicking an ability Token opens its Page (the detail dialog)', () => {
+    const pilot = makePilot()
+    const openPage = mock(() => {})
+    render(
+      <EntitySurfaceProvider value={{ openPage }}>
+        <PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />
+      </EntitySurfaceProvider>
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Talk Shop' }))
+    expect(openPage).toHaveBeenCalledTimes(1)
+    expect(openPage.mock.calls[0]?.[0]).toMatchObject({
+      schemaName: 'abilities',
+      name: 'Talk Shop',
+    })
   })
 })
