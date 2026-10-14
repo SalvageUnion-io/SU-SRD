@@ -16,7 +16,7 @@
  * live — and hands the views resolved data via props.
  */
 
-import { buttonVariants, cn, tokens } from 'component-lib'
+import { Button, buttonVariants, tokens } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { EntityRef, SheetEntityKind } from 'itun-domain/schemas/entity'
 import type { Mech } from 'itun-domain/schemas/mech'
@@ -252,14 +252,9 @@ export function Sheet({
   // print) turns the live sheet into a clean paper layout; "Save as PDF"
   // in the browser dialog covers the PDF ask without a rendering dep.
   const printButton = (
-    <button
-      type="button"
-      aria-label={`Print this ${kind} sheet`}
-      onClick={() => window.print()}
-      className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-    >
+    <Button variant="ghost" aria-label={`Print this ${kind} sheet`} onClick={() => window.print()}>
       Print
-    </button>
+    </Button>
   )
   // Entity-level admin affordances relocated from the (removed) detail page:
   // single-entity JSON export + container move. Unassigning a linked entity
@@ -272,14 +267,13 @@ export function Sheet({
   // inline on the sheet body (ADR-022). Its open-state lives here, on the
   // always-mounted Sheet, because the menu unmounts its children when closed.
   const changeLogButton = (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       aria-label={`View the change log for this ${kind}`}
       onClick={() => setChangeLogOpen(true)}
-      className={buttonVariants({ variant: 'ghost', size: 'compact' })}
     >
       Change Log
-    </button>
+    </Button>
   )
   // A mech saves as a pattern on its own page (board P1): a write, so it
   // is offered only where this sheet can write.
@@ -309,14 +303,13 @@ export function Sheet({
       {writesBlocked ? (
         <WritesBlockedNotice />
       ) : (
-        <button
-          type="button"
+        <Button
           aria-label={`Share this ${kind}`}
           onClick={() => setShareOpen(true)}
-          className={cn(buttonVariants({ size: 'compact' }), 'su-page-action')}
+          className="su-page-action"
         >
           Share
-        </button>
+        </Button>
       )}
       <SheetActionsMenu>
         {printButton}

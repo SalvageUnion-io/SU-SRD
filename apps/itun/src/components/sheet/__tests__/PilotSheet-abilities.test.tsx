@@ -127,6 +127,24 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     })
     expect(updateSpy).not.toHaveBeenCalled()
   })
+
+  test("the sheet's item controls are the shared Button in the sheet skin", () => {
+    const pilot = makePilot()
+    render(
+      <PilotSheet
+        pilot={pilot}
+        store={makeStubStore(
+          pilot,
+          mock(async () => pilot)
+        )}
+      />
+    )
+    expandCards()
+
+    const spendBtn = screen.getByRole('button', { name: /spend 3 ap for talk shop/i })
+    expect(spendBtn.classList.contains('su-btn')).toBe(true)
+    expect(spendBtn.classList.contains('su-sheet-ctl')).toBe(true)
+  })
 })
 
 describe('PilotSheet — used/recharge toggle (Slice D)', () => {

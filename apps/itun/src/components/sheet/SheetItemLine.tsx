@@ -19,7 +19,7 @@
  * share one control.
  */
 
-import { Stat, StatusBadge } from 'component-lib'
+import { Button, Stat, StatusBadge } from 'component-lib'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { ReactNode } from 'react'
 
@@ -102,14 +102,13 @@ export function SheetItemLine({
       )}
       {actions}
       {onRemove && (
-        <button
-          type="button"
+        <Button
           className="su-sheet-ctl su-sheet-ctl--square"
           aria-label={`Remove ${name}`}
           onClick={onRemove}
         >
           ✕
-        </button>
+        </Button>
       )}
     </div>
   )

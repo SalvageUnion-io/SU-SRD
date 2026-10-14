@@ -23,7 +23,7 @@
  * hook always has a provider.
  */
 
-import { Badge, buttonVariants, Text, tokens } from 'component-lib'
+import { Badge, Button, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { Container } from 'itun-domain/container'
 import { SHELF } from 'itun-domain/container'
@@ -114,10 +114,9 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
   const pick = useShowContainer()
 
   const row = (entry: Entry) => (
-    <button
+    <Button
       key={entry.id}
-      type="button"
-      className={buttonVariants({ variant: 'ghost' })}
+      variant="ghost"
       style={ROW}
       onClick={() => {
         pick(entry.container)
@@ -126,7 +125,7 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
     >
       {entry.label}
       {entry.hint && <span style={ROLE}> · {entry.hint}</span>}
-    </button>
+    </Button>
   )
 
   return (

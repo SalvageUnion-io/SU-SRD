@@ -19,15 +19,7 @@
  * section-edit fields and per-card controls (StatBlocks carry no cue).
  */
 
-import {
-  Button,
-  cn,
-  FOCUS_RING,
-  Glyph,
-  ModalShell,
-  PICKER_MODAL_WIDTH,
-  tokens,
-} from 'component-lib'
+import { Button, Glyph, ModalShell, PICKER_MODAL_WIDTH, tokens } from 'component-lib'
 import type { ComponentPropsWithoutRef, CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
 
@@ -39,7 +31,7 @@ import { cloneElement, isValidElement } from 'react'
 //
 // Everything with a hover, breakpoint or print variant — display, min-height
 // and the colours — is `.su-sheet-hbtn` in `styles/sheet/chrome.css`; the rest
-// is the style object below.
+// is the style object below, which sits over `Button`'s own geometry.
 // ---------------------------------------------------------------------------
 
 const HBTN = {
@@ -49,6 +41,7 @@ const HBTN = {
   borderRadius: tokens.radius.card,
   borderStyle: 'solid',
   borderWidth: tokens.borderWidth.pill,
+  paddingBlock: 0,
   paddingInline: tokens.space[12],
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.badge,
@@ -66,9 +59,9 @@ const HBTN = {
 /** Container-header control button (design `.hbtn`). */
 function HButton({ children, ...props }: ComponentPropsWithoutRef<'button'>) {
   return (
-    <button type="button" className={cn('su-sheet-hbtn', FOCUS_RING)} style={HBTN} {...props}>
+    <Button className="su-sheet-hbtn" style={HBTN} {...props}>
       {children}
-    </button>
+    </Button>
   )
 }
 
