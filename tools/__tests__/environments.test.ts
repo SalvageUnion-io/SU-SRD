@@ -165,11 +165,11 @@ describe('compare', () => {
 })
 
 describe('the declaration', () => {
-  test('production admits main alone, unreviewed, and holds the three deploy secrets', () => {
+  test('production admits main alone, unreviewed, and holds the four deploy secrets', () => {
     expect(ENVIRONMENTS[0]).toEqual({
       name: 'production',
       branches: ['main'],
-      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
+      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN', 'SENTRY_AUTH_TOKEN'],
     })
   })
 

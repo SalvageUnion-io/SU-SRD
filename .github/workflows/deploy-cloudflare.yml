@@ -653,10 +653,10 @@ jobs:
   # shipped actually answers.
   # ===========================================================================
   #
-  # Deliberately includes the rotated-chunk 404: in single-page-application
-  # mode only itun's Worker stops a missing hashed chunk answering
-  # `200 text/html`, which the `immutable` header would pin into the HTTP
-  # cache for a year.
+  # Deliberately includes the rotated-chunk 404: each app's Worker (srd's
+  # and, in single-page-application mode, itun's) stops a missing hashed chunk
+  # answering `200 text/html`, which the `immutable` header would pin into the
+  # HTTP cache for a year.
   # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run
   # the same checks on a schedule, catching a regression that happens
   # between deploys (a DNS record, a Redirect Rule, a rotated bot token).

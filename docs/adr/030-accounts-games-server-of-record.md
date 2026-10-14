@@ -237,8 +237,8 @@ tray is absorbed into it and `/encounter` retires. The player Dashboard's locked
 ([ADR-038](038-dashboard-game-surface.md) §4).
 
 **A Game's crew is rendered as the Roster renders a shelf.** `/games/:id` (any
-member) opens with the same three ontology-toned columns of `EntityRow`s the
-home Roster uses, with a create CTA per column. The Mediator's instruments are
+member) opens with the same three ontology-toned columns of Rows (`UnitRow`)
+Shelves uses, with a create CTA per column. The Mediator's instruments are
 `/mediator/:id`, a 1280×800 canvas
 ([mediator-dashboard.md](../architecture/mediator-dashboard.md)). A Game asks "what have we got and what can I do with it"
 of a different container, and answering it in a second visual vocabulary is how

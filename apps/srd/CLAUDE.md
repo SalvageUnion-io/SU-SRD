@@ -67,7 +67,7 @@ wired through `ssg/endpoints.ts` — **endpoints are not routes.**
 ## Verification
 
 There is no output snapshot. CI's `build-srd` job builds once, then runs
-`bun run check:examples` (`ssg/checkPageExamples.ts`), then the Playwright
+`bun --filter srd check:examples` (`ssg/checkPageExamples.ts`), then the Playwright
 smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
 `dist`.
 `ssg/__tests__/routes.test.ts` asserts every registered route emits a page.

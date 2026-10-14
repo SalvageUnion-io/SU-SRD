@@ -123,11 +123,11 @@ thin `.total` wrappers so no call site changes when this lands.
 
 Any surface that renders a derived value can render its breakdown. Concretely:
 Live Sheet, Dashboard, partner cards, Frozen
-snapshot, wizard previews, and entity reference cards.
+(public) sheet, wizard previews, and entity reference cards.
 
 - The panel opens on **hover, focus _and_ tap**. Hover alone is unreachable by
   keyboard and on touch, and is not acceptable.
-- **Frozen** shows the breakdown and never the revert — a published snapshot has
+- **Frozen** shows the breakdown and never the revert — a public sheet has
   no editing affordance ([ADR-010](../ARCHITECTURE.md#decisions)).
 - **The Dashboard carries it.** `DashboardGauge` takes `provenance` and
   `breakdown`: the "teach as they enforce" affordance
