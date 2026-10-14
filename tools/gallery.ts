@@ -1,15 +1,15 @@
 #!/usr/bin/env bun
 /**
- * gallery — the PR screenshot gallery: every page in `GALLERY_SECTIONS` at
+ * gallery — the screenshot gallery: every page in `GALLERY_SECTIONS` at
  * desktop (1440×900) and phone (390×844), each srd page's link preview, and
  * ITUN signed in, written as `index.html` beside its shots.
  *
  *   bun run gallery --srd <url> [--itun <url>] [--signed-in] [--out <dir>]
  *                   [--sha <sha>] [--pr <n>] [--linkable]
  *
- * `pr-gallery.yml` runs it on every PR to main against the PR's own builds,
+ * `gallery.yml` (dispatched by hand) runs it against a branch's own builds,
  * served on localhost (srd's `dist`, ITUN's `dist` built against a throwaway
- * Convex backend with the test sign-in), and `pr-gallery-pages.yml` publishes
+ * Convex backend with the test sign-in), and `gallery-pages.yml` publishes
  * the result to GitHub Pages. It replaced a
  * hand-run Playwright loop over the old shared preview deploy.
  *

@@ -1,17 +1,17 @@
-name: PR gallery
+name: Screenshot gallery
 
 # Screenshots of the PR's own srd and ITUN builds — every page in
 # packages/gates/lib/galleryPages.ts at desktop and phone, each srd page's link
-# preview, and ITUN signed in — uploaded as the `pr-gallery-<n>` artifact.
-# `pr-gallery-pages.yml` publishes the artifact to GitHub Pages at
+# preview, and ITUN signed in — uploaded as the `gallery-<n>` artifact.
+# `gallery-pages.yml` publishes the artifact to GitHub Pages at
 # /<owner>.github.io/<repo>/<n>/ once this run completes.
 #
 # BY HAND ONLY, like the preview deploy. Dispatch it on a PR's branch with the
 # PR's number, or on main with none for the PREVIEW TOUR (`preview-tour`,
 # published at /<owner>.github.io/<repo>/tour/):
 #
-#   gh workflow run pr-gallery.yml --ref <branch> -f pr=<n>
-#   gh workflow run pr-gallery.yml --ref main
+#   gh workflow run gallery.yml --ref <branch> -f pr=<n>
+#   gh workflow run gallery.yml --ref main
 #
 # READ-ONLY on purpose: this runs the branch's code, so it holds no write token
 # and no secret. ITUN is built against a THROWAWAY self-hosted Convex backend
@@ -32,13 +32,13 @@ on:
 permissions: {}
 
 concurrency:
-  group: pr-gallery-${{ inputs.pr || 'tour' }}
+  group: gallery-${{ inputs.pr || 'tour' }}
   cancel-in-progress: true
 
 jobs:
   shoot:
-    name: Shoot the PR gallery
-    # A tour is main's alone; a PR gallery names its PR by number.
+    name: Shoot the screenshot gallery
+    # A tour is main's alone; a screenshot gallery names its PR by number.
     if: inputs.pr != '' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -117,7 +117,7 @@ jobs:
         if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ inputs.pr != '' && format('pr-gallery-{0}', inputs.pr) || 'preview-tour' }}
+          name: ${{ inputs.pr != '' && format('gallery-{0}', inputs.pr) || 'preview-tour' }}
           path: gallery
           retention-days: ${{ inputs.pr != '' && 30 || 90 }}
 
@@ -130,14 +130,14 @@ jobs:
         run: |
           owner=$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')
           if [ -n "$PR_NUMBER" ]; then
-            title="PR gallery" path="$PR_NUMBER" artifact="pr-gallery-$PR_NUMBER"
+            title="screenshot gallery" path="$PR_NUMBER" artifact="gallery-$PR_NUMBER"
           else
             title="Preview tour" path="tour" artifact="preview-tour"
           fi
           {
             echo "### $title"
             echo ""
-            echo "Published by **PR gallery pages** once this run completes:"
+            echo "Published by **Screenshot gallery pages** once this run completes:"
             echo "https://${owner}.github.io/${REPO}/${path}/"
             echo ""
             echo "The \`${artifact}\` artifact above holds the same files."
