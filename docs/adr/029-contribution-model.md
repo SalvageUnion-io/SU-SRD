@@ -25,6 +25,12 @@ cells to prose is a heavier solid ink mark (see the amendment in
 [ADR-026](026-entity-card-design-rules.md)), not rust and not dashed; the rules-bearing prose span
 carries a solid ink rail.
 
+**Amended (owner's call, 2026-10-14):** the rail is gone. In ITUN, which applies
+the rules, a rules-bearing paragraph leads with a mini ink AUTO stamp whose
+title (and screen-reader text) says the app applies the rule; the SRD, which
+applies nothing, prints the same paragraph as plain prose. The app opts in
+through the entity surface's `appliesRules`.
+
 ## Context
 
 Two problems were found together, and they share one cause.
