@@ -191,18 +191,6 @@
   min-width: 0;
 }
 
-.srd-not-found__heading {
-  border-top: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.1;
-  margin: 0;
-  padding-top: var(--space-6);
-  text-transform: uppercase;
-}
-
 /* The guesses: search-result Rows. */
 .srd-not-found__results {
   display: flex;
@@ -225,33 +213,30 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
 }
 
+/* A chapter as the home index opens one: its colour band on top
+   (`.srd-contents__band`), then its name under an ink rule. */
 .srd-not-found__chapter {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
   color: var(--color-ink);
   display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-12);
-  min-height: 44px;
-  overflow: hidden;
-  padding-right: var(--space-12);
+  flex-direction: column;
   text-decoration: none;
 }
 
-.srd-not-found__chapter:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.srd-not-found__chapter-name {
+  align-items: center;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  min-height: 44px;
+  padding: var(--space-6) 0;
 }
 
-.srd-not-found__swatch {
-  align-self: stretch;
-  border-right: var(--bw-chrome) solid var(--color-ink);
-  flex: none;
-  width: var(--space-16);
+.srd-not-found__chapter:hover .srd-not-found__chapter-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* A chapter of the index: its colour band, its name and count, its rows. */
