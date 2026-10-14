@@ -238,9 +238,8 @@
   --color-status-warn: var(--color-roll-failure);
   --color-status-bad: var(--color-roll-cascade);
 
-  /* Cargo (storage) accent triplet */
+  /* Cargo (storage) accent pair */
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
-  --color-cargo-deep: rgb(111, 85, 39); /* #6f5527 */
   --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
 
   /* Sheet tones (Header C live sheets) — base + deep pairs */

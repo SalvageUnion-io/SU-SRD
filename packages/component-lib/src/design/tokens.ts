@@ -303,9 +303,8 @@ const base = {
   /** Banner's caution wash — the advisory fill behind its caution border. */
   caution25: 'rgb(215 195 125 / 0.25)',
 
-  // — Cargo (storage) accent triplet —
+  // — Cargo (storage) accent pair —
   cargo: 'rgb(156, 122, 62)',
-  cargoDeep: 'rgb(111, 85, 39)',
   cargoPale: 'rgb(239, 230, 212)',
 
   // — Sheet "deep" tones that are literals rather than aliases —
