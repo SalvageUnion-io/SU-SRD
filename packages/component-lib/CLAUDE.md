@@ -24,7 +24,7 @@ import): [component-lib](../../docs/ARCHITECTURE.md#component-lib).
 
 Forms per the [entity display language](../../docs/design-system/entity-display-language.md): Row, Tile, Token, Mention and Peek in `src/entity/`; Card and Page are `ReferenceEntityCard`.
 
-Apps inject their renderers through **generic slot props** (`afterExtraContent`, `abilitiesSection`, `titleOverride`, …), so the library knows nothing app-specific. Schema-specific logic lives in helper hooks that return generic override props; a pattern is the card's own `pattern` prop.
+Apps inject their renderers through **generic slot props** (`afterExtraContent`, `abilitiesSection`, `titleOverride`, …), so the library knows nothing app-specific. Schema-specific logic lives in hooks returning generic override props.
 
 ## Groups
 
