@@ -1630,6 +1630,6 @@
     "page": 2,
     "name": "Steel Billy Club",
     "techLevel": 1,
-    "actions": []
+    "actions": ["Melee Armament"]
   }
 ]

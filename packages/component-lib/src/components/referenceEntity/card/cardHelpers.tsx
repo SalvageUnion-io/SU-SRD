@@ -65,7 +65,7 @@ export function isRulesBearing(data: unknown): boolean {
  *   `ReferenceEntityCardInner` whose `titleAs` is at most `h3`, so this returns
  *   `undefined` for it without any depth check — the level follows the
  *   CONTENT, not the render tree.
- * - **The `parentSeal` stamp** (e.g. "Chassis Ability"). It reads like a
+ * - **The `parentSeal` stamp** (e.g. "Grants"). It reads like a
  *   section title but is passed INTO each nested card as its own badge, so
  *   promoting it would emit one heading per card on top of the card's title.
  *

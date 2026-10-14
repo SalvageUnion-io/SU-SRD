@@ -100,13 +100,7 @@ const SCRAPPER: MajorModel = {
       label: `Chassis Ability: ${ability.name}`,
       buttons: [],
       card: (
-        <ReferenceEntityCard
-          data={ability}
-          size="medium"
-          texture={false}
-          parentSeal={{ label: 'Chassis Ability', tone: 'var(--color-ink)' }}
-          chassisName="Scrapper"
-        />
+        <ReferenceEntityCard data={ability} size="medium" texture={false} chassisName="Scrapper" />
       ),
     })),
     {
