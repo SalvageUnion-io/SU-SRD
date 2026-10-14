@@ -42,8 +42,8 @@ import {
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef } from 'react'
 import { BandStats } from './BandStats'
-import { DAMAGED } from './bayStats.model'
 import { DashboardGauge } from './DashboardGauge'
+import { DAMAGED } from './damaged.model'
 import type { BandBay, BandButton, BandGauge, BandOverlay, MajorModel } from './MajorFrame'
 
 const COLUMN: CSSProperties = {
