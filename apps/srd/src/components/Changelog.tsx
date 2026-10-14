@@ -1,12 +1,6 @@
-import { CHAPTER_BAND_COLOR, Head, InlineMarkdown, Stat } from 'component-lib'
+import { CHAPTER_BAND_COLOR, EmptyState, Head, InlineMarkdown, Stat } from 'component-lib'
 import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
-
-const EMPTY = {
-  color: color.wkMuted,
-  fontFamily: font.body,
-  fontSize: fontSize.caption,
-} satisfies CSSProperties
 
 const LIST = {
   display: 'flex',
@@ -62,7 +56,7 @@ const BAND = {
  */
 export function Changelog({ entries }: ChangelogProps) {
   if (entries.length === 0) {
-    return <p style={EMPTY}>No changelog entries yet.</p>
+    return <EmptyState variant="quiet" body="No changelog entries yet." />
   }
 
   return (

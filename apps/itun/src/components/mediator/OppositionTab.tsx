@@ -24,6 +24,7 @@ import type { CSSVarStyle } from 'component-lib'
 import {
   Button,
   ConfirmDialog,
+  EmptyState,
   Entity,
   EntitySearcher,
   Select,
@@ -284,10 +285,10 @@ export function OppositionTab({
       {npcs === null ? (
         <p style={MUTED}>The tray is on its way.</p>
       ) : npcs.length === 0 ? (
-        <p style={MUTED}>
-          No opposition yet. Add squads, NPCs and creatures from the reference; players never see
-          this tab.
-        </p>
+        <EmptyState
+          variant="quiet"
+          body="No opposition yet. Add squads, NPCs and creatures from the reference; players never see this tab."
+        />
       ) : (
         <ul style={LIST} aria-label="Opposition">
           {npcs.map((npc) => (

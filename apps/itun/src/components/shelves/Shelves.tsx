@@ -14,9 +14,9 @@
  *    table.
  *  - **One shelf per kind**: Pilots, Mechs and Crawlers; Patterns and NPCs,
  *    which are user-made and so dashed (ruleset §3.9); and the Starter Set,
- *    read-only in the rules blue (`StarterShelf`).
+ *    read-only (`StarterShelf`).
  *
- * Each item is one line (`ShelfPill`) with its chips and a ⋯ menu: Open, Move
+ * Each item is a library Row (`ShelfPill`) with its chips and a ⋯ menu: Open, Move
  * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. Every
  * verb that changes what you have asks first, through the page's one confirm,
  * which has to outlive the menu that asked.
@@ -37,7 +37,15 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { buttonVariants, ChapterBand, RosterSkeleton, toast, tokens } from 'component-lib'
+import {
+  buttonVariants,
+  ChapterBand,
+  RosterSkeleton,
+  Segmented,
+  SegmentedOption,
+  toast,
+  tokens,
+} from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { MechPattern } from 'itun-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
@@ -131,29 +139,6 @@ const BAND_CONTROLS = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[12],
-} satisfies CSSProperties
-
-const TOGGLE = {
-  borderColor: tokens.color.paper,
-  margin: 0,
-  minInlineSize: 0,
-  padding: 0,
-  borderRadius: tokens.radius.card,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
-  display: 'inline-flex',
-  overflow: 'hidden',
-} satisfies CSSProperties
-
-const TOGGLE_OPTION = {
-  border: 0,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsTight,
-  minHeight: '40px',
-  padding: `0 ${tokens.space[14]}`,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 // Its side padding and centring are `.su-page-column`'s: the band's row padding.
@@ -464,20 +449,17 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               Everything you keep, on your account. Units in a Game stay on your shelf too.
             </p>
             <div style={BAND_CONTROLS}>
-              <fieldset aria-label="Showing" style={TOGGLE}>
+              <Segmented label="Showing" ground="ink" size="page">
                 {FILTERS.map((option) => (
-                  <button
+                  <SegmentedOption
                     key={option.value}
-                    type="button"
-                    className="shelves-toggle__option su-focus-ring"
-                    aria-pressed={filter === option.value}
+                    pressed={filter === option.value}
                     onClick={() => setFilter(option.value)}
-                    style={TOGGLE_OPTION}
                   >
                     {option.label}
-                  </button>
+                  </SegmentedOption>
                 ))}
-              </fieldset>
+              </Segmented>
               {canWrite && (
                 <ImportButton className={ON_INK_BUTTON} onInk onResult={setImportResult} />
               )}
@@ -577,7 +559,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 id="shelf-patterns"
                 title="Patterns"
                 aside="Yours"
-                note="User-made: dashed, like everything players make."
+                note="Your patterns, ready to build a Mech from."
                 action={
                   canWrite ? (
                     <HeaderMenu

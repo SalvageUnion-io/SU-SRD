@@ -298,11 +298,11 @@ export function meCard(me: MeResult): ContainerData {
   })
 }
 
-/** `/su games` — every Game you belong to. */
+/** `/su games` — every Game you belong to, linked to Shelves: ITUN has no `/games` page. */
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
-    url: `${ITUN_ORIGIN}/games`,
+    url: `${ITUN_ORIGIN}/`,
     accent: NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],

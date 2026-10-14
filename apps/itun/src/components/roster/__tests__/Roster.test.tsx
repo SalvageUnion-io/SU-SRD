@@ -260,7 +260,7 @@ describe('Shelves — one shelf per kind', () => {
 
   test('patterns are user-made, and the NPC shelf offers the designer', async () => {
     await renderShelves()
-    expect(screen.getByText('User-made: dashed, like everything players make.')).toBeTruthy()
+    expect(screen.getByText('Your patterns, ready to build a Mech from.')).toBeTruthy()
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     expect(within(npcs).getByText(/No NPCs yet/)).toBeTruthy()
     expect(within(npcs).queryByText(/on its way/)).toBeNull()

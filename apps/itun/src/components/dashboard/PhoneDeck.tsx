@@ -18,7 +18,7 @@
  */
 
 import type { ReferenceEntityControl } from 'component-lib'
-import { ReferenceEntityCard, Toggle } from 'component-lib'
+import { EmptyState, ReferenceEntityCard, Toggle } from 'component-lib'
 import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import type { DeckListModel } from './DeckList'
@@ -70,8 +70,6 @@ const LOCK_NOTE: CSSProperties = {
   color: color.ink,
 }
 
-const EMPTY: CSSProperties = { ...REACH, margin: 0 }
-
 export function PhoneDeck({
   view,
   onOpen,
@@ -89,7 +87,7 @@ export function PhoneDeck({
         <h3 id="dash-phone-deck" style={HEADING}>
           Actions
         </h3>
-        <p style={EMPTY}>{view.text}</p>
+        <EmptyState variant="quiet" body={view.text} />
       </section>
     )
   }
@@ -137,7 +135,7 @@ export function PhoneDeck({
         </fieldset>
       )}
       {view.rows.length === 0 ? (
-        <p style={EMPTY}>No actions match this filter.</p>
+        <EmptyState variant="quiet" body="No actions match this filter." />
       ) : (
         <ul style={ROWS}>
           {view.rows.map((row) => {

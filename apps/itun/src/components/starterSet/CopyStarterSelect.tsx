@@ -71,7 +71,13 @@ function ConnectedCopyStarterSelect({ kind, templateId, name, confirm }: CopySta
   }
 
   return (
-    <Select value={NONE} onChange={handleChange} aria-label={`Copy ${name} to…`} style={SELECT}>
+    <Select
+      chevron
+      value={NONE}
+      onChange={handleChange}
+      aria-label={`Copy ${name} to…`}
+      style={SELECT}
+    >
       <option value={NONE} disabled>
         Copy to…
       </option>

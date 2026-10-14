@@ -52,6 +52,7 @@
 import type { SlabCount } from 'component-lib'
 import {
   Conditions,
+  EmptyState,
   EntitySearcher,
   Field,
   FieldError,
@@ -88,12 +89,6 @@ import { PhotoBeside } from './PhotoBeside'
 import { SheetHero } from './SheetHero'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
-
-const EMPTY = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-} satisfies CSSProperties
 
 /** The sheet column: an inline-size container (the poster regions query it). */
 const SHEET = {
@@ -242,7 +237,10 @@ export function MechSheet({
     const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
     if (slugs.length === 0) {
       return (
-        <p style={EMPTY}>{kind === 'system' ? 'No systems installed.' : 'No modules installed.'}</p>
+        <EmptyState
+          variant="quiet"
+          body={kind === 'system' ? 'No systems installed.' : 'No modules installed.'}
+        />
       )
     }
     // Keyed by occurrence, not index: removing one item must not remount (and

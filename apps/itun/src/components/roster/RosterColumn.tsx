@@ -12,7 +12,7 @@
  * switching between Games.
  */
 
-import { Button, buttonVariants, EmptyState, Slab } from 'component-lib'
+import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from 'component-lib'
 import { color, space } from 'component-lib/design/tokens'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
@@ -29,22 +29,11 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 /** The column's create CTA. `onClick` runs before the wizard opens. */
 export type ColumnCreate = { href: string; label: string; onClick?: () => void }
 
-/**
- * The selected segment is an INK plate, never rust: rust is the one action
- * colour, and a selected state is ink (as the Dashboard's deck chips and the
- * sheet's Read | Edit draw it).
- */
-const SELECTED: CSSProperties = {
-  backgroundColor: 'var(--color-ink)',
-  borderColor: 'var(--color-ink)',
-  color: 'var(--color-paper)',
-}
-
-/** A segment fills its share of the row, at the 44px touch target. */
-const SEGMENT = { flex: 1, minHeight: '2.75rem' } satisfies CSSProperties
-
 /** The switch row; it hides from `md` up (`.segment-switch`, styles/controls.css). */
-const SWITCH = { gap: space[8], marginTop: space[20] } satisfies CSSProperties
+const SWITCH = { marginTop: space[20] } satisfies CSSProperties
+
+/** The switch spans the row: each segment takes its share. */
+const FILL = { width: '100%' } satisfies CSSProperties
 
 /** The grid's gutter; its columns and top margin change at `md` (`.roster-grid`). */
 const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
@@ -68,17 +57,17 @@ export function SegmentSwitch({
 }) {
   return (
     <div className="segment-switch" style={SWITCH}>
-      {SEGMENTS.map((seg) => (
-        <Button
-          key={seg.kind}
-          size="compact"
-          aria-pressed={active === seg.kind}
-          style={active === seg.kind ? { ...SEGMENT, ...SELECTED } : SEGMENT}
-          onClick={() => onChange(seg.kind)}
-        >
-          {seg.label}
-        </Button>
-      ))}
+      <Segmented label="Show" fill style={FILL}>
+        {SEGMENTS.map((seg) => (
+          <SegmentedOption
+            key={seg.kind}
+            pressed={active === seg.kind}
+            onClick={() => onChange(seg.kind)}
+          >
+            {seg.label}
+          </SegmentedOption>
+        ))}
+      </Segmented>
     </div>
   )
 }

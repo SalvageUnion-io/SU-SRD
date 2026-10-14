@@ -11,13 +11,18 @@ export const Route = createFileRoute('/mechs/patterns/')({
   component: MechPatternsPage,
 })
 
-const PAGE = {
+/** Shelves' measure, and the SRD's: the band's row and the body under it. */
+const MEASURE = '75rem'
+
+const PAGE = { backgroundColor: color.wkBg, minHeight: '100%' } satisfies CSSProperties
+
+// Its side padding and centring are `.su-page-column`'s: the band's row padding.
+const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[24],
-  marginInline: 'auto',
-  maxWidth: '64rem',
-  padding: space[24],
+  maxWidth: MEASURE,
+  paddingBlock: `${space[20]} ${space[48]}`,
 } satisfies CSSProperties
 
 const LEDE = {
@@ -25,7 +30,7 @@ const LEDE = {
   fontFamily: font.body,
   fontSize: fontSize.sm,
   lineHeight: '1.25rem',
-  marginTop: space[4],
+  margin: 0,
 } satisfies CSSProperties
 
 function MechPatternsPage() {
@@ -33,19 +38,20 @@ function MechPatternsPage() {
 
   return (
     <main style={PAGE}>
-      <div>
-        <ChapterBand tone="mech">Mech Patterns</ChapterBand>
+      <ChapterBand tone="mech" measure={MEASURE}>
+        Mech Patterns
+      </ChapterBand>
+      <div className="su-page-column" style={BODY}>
         <p style={LEDE}>
           A pattern keeps a chassis and its loadout. A mech built from one starts fresh.
         </p>
+        <PatternList
+          onInstantiated={() => {
+            void navigate({ to: '/' })
+          }}
+        />
+        <CrewPatterns />
       </div>
-
-      <PatternList
-        onInstantiated={() => {
-          void navigate({ to: '/' })
-        }}
-      />
-      <CrewPatterns />
     </main>
   )
 }

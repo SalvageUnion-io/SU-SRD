@@ -19,14 +19,13 @@
  * republishes, your crewmate's.
  */
 
-import { tokens } from 'component-lib'
 import type { EntityRef } from 'itun-domain/schemas/entity'
-import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
+import { NotFoundPanel } from '../shared/RouteFallbacks'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
-import { READ_ONLY_BANNER, UNAVAILABLE_PAGE, UNAVAILABLE_TITLE } from './sheetChrome.model'
+import { READ_ONLY_BANNER } from './sheetChrome.model'
 
 type PublicSheetProps = {
   /** The app id the page is addressed by — the published entity's own id. */
@@ -44,13 +43,6 @@ type PublicSheetProps = {
     pilotAbilities?: string[]
   }
 }
-
-const UNRENDERABLE_NOTE = {
-  marginBottom: tokens.space[4],
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
 
 export function PublicSheet({ appId, answer }: PublicSheetProps) {
   const { data, withheld, published } = useMemo(
@@ -75,13 +67,15 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     // publishes precisely so the owner meets this first, but a schema that
     // moves afterwards can still land somebody here.
     return (
-      <main style={UNAVAILABLE_PAGE}>
-        <h1 style={UNAVAILABLE_TITLE}>Could not render this sheet</h1>
-        <p style={UNRENDERABLE_NOTE}>
-          This build&rsquo;s data doesn&rsquo;t match anything this app knows how to show. It may
-          have been made with a newer or older version.
-        </p>
-      </main>
+      <NotFoundPanel
+        title="Could not render this sheet"
+        message={
+          <>
+            This build&rsquo;s data doesn&rsquo;t match anything this app knows how to show. It may
+            have been made with a newer or older version.
+          </>
+        }
+      />
     )
   }
 

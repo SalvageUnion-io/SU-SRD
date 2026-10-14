@@ -12,7 +12,6 @@
  * the sheet need no account; "Make a copy" (signed in) is the way to play one.
  */
 
-import { buttonVariants, tokens } from 'component-lib'
 import type { EntityRef } from 'itun-domain/schemas/entity'
 import {
   STARTER_CRAWLERS,
@@ -20,10 +19,9 @@ import {
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
 } from 'itun-domain/starterSet/starterSet'
-import type { CSSProperties } from 'react'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { starterTemplate } from '../../lib/starterSet/copyStarter'
-import { AppLink } from '../shared/AppLink'
+import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { useConfirm } from '../shared/useConfirm'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
 import { Sheet } from '../sheet/Sheet'
@@ -40,16 +38,6 @@ const STARTER_STORE = makeReadOnlySheetStore({
 
 const starterHref = (kind: EntityRef['type'], id: string) => `/starter/${kind}/${id}`
 
-const NOT_FOUND = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: tokens.space[12],
-  padding: tokens.space[24],
-} satisfies CSSProperties
-
-const LINK = { textDecoration: 'none' } satisfies CSSProperties
-
 function isStarterKind(value: string): value is StarterKind {
   return value === 'pilot' || value === 'mech' || value === 'crawler'
 }
@@ -60,16 +48,11 @@ export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
 
   if (!isStarterKind(kind) || template === null) {
     return (
-      <main style={NOT_FOUND}>
-        <h1>That isn&rsquo;t in the Starter Set</h1>
-        <AppLink
-          href="/starter"
-          className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-          style={LINK}
-        >
-          &larr; Starter Set
-        </AppLink>
-      </main>
+      <NotFoundPanel
+        title={<>That isn&rsquo;t in the Starter Set</>}
+        message="No Starter Set build lives at this address."
+        back={{ href: '/starter', label: 'Starter Set' }}
+      />
     )
   }
 

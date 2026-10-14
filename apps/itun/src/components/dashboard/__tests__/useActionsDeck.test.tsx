@@ -332,7 +332,8 @@ describe('the Actions deck', () => {
     fireEvent.click(timing('React'))
     const reactItems = container.querySelectorAll('.su-dash-deck-grid > li').length
     // Either the deck filtered down, or it shows the no-match note.
-    const emptied = reactItems < before || container.querySelector('.su-dash-deck-empty') !== null
+    const emptied =
+      reactItems < before || (container.textContent ?? '').includes('No actions match this filter.')
     expect(emptied).toBe(true)
     // Back to All restores the full deck.
     fireEvent.click(timing('All'))

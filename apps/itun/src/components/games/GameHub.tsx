@@ -5,7 +5,8 @@
  * and puts everything you can do about the table below the lists, as board M2
  * draws it (docs/architecture/mediator-dashboard.md Q10–Q13):
  *
- *  0. **The band** (`GameBand`): the Game's name on the crawler's pink, and
+ *  0. **The band** (`GameBand`): the page's controls (`Roster`'s), the
+ *     Game's name on the crawler's pink, and
  *     for its Mediator a YOU MEDIATE stamp and **Open the Mediator
  *     dashboard** (`/mediator/$gameId`), where the Mediator's instruments
  *     live now.
@@ -30,7 +31,7 @@ import { Button, Card, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { SHELF } from 'itun-domain/container'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -45,7 +46,7 @@ import { DowntimeTrack } from './DowntimeTrack'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { HubSection } from './HubSection'
-import { HUB_COLUMN, HUB_COLUMNS, HUB_COPY } from './hubStyles.model'
+import { GAME_BODY, HUB_COLUMN, HUB_COLUMNS, HUB_COPY } from './hubStyles.model'
 import { LaunchDashboard } from './LaunchDashboard'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
@@ -56,6 +57,8 @@ type Game = NonNullable<FunctionReturnType<typeof api.games.get>>
 
 type GameHubProps = {
   gameId: string
+  /** The page's controls, on the band above the Game's name (`Roster`'s). */
+  controls?: ReactNode
   activeSegment: SegmentKind
   onSegmentChange: (kind: SegmentKind) => void
 }
@@ -76,9 +79,6 @@ const INVITE_ACTIONS = {
 } satisfies CSSProperties
 
 const NOT_IN_CARD = { marginTop: tokens.space[24] } satisfies CSSProperties
-
-/** The band sits a step below the hub's header row. */
-const BAND = { marginTop: tokens.space[20], marginBottom: tokens.space[8] } satisfies CSSProperties
 
 /**
  * A Game the viewer is not in: they left, it ended, or a stale selection
@@ -179,33 +179,39 @@ function GameSections({ game }: { game: Game }) {
   )
 }
 
-export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps) {
+export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: GameHubProps) {
   // `games.get` rather than listMine-and-find: it distinguishes "still
   // loading" from "not a member" without fetching every table you are in.
   const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
 
-  if (game === undefined) {
-    return (
-      <div style={PENDING}>
-        <ConvexPending label="this Game" />
-      </div>
-    )
-  }
-  if (game === null) return <NotInGame />
-
   return (
     <>
-      <div style={BAND}>
-        <GameBand gameId={gameId} name={game.name} mediator={game.mediator} />
-      </div>
-      <LaunchDashboard gameId={gameId} />
-      <GameRoster
+      <GameBand
         gameId={gameId}
-        gameName={game.name}
-        activeSegment={activeSegment}
-        onSegmentChange={onSegmentChange}
+        name={game ? game.name : 'Game'}
+        mediator={game?.mediator}
+        controls={controls}
       />
-      <GameSections game={game} />
+      <div className="su-page-column" style={GAME_BODY}>
+        {game === undefined ? (
+          <div style={PENDING}>
+            <ConvexPending label="this Game" />
+          </div>
+        ) : game === null ? (
+          <NotInGame />
+        ) : (
+          <>
+            <LaunchDashboard gameId={gameId} />
+            <GameRoster
+              gameId={gameId}
+              gameName={game.name}
+              activeSegment={activeSegment}
+              onSegmentChange={onSegmentChange}
+            />
+            <GameSections game={game} />
+          </>
+        )}
+      </div>
     </>
   )
 }

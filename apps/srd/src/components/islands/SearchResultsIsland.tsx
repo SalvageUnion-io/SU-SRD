@@ -1,4 +1,12 @@
-import { EmptyState, Entity, SearchField, Skeleton, schemaPluralLabel } from 'component-lib'
+import {
+  EmptyState,
+  Entity,
+  SearchField,
+  Segmented,
+  SegmentedOption,
+  Skeleton,
+  schemaPluralLabel,
+} from 'component-lib'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
@@ -131,28 +139,20 @@ function SearchResults({
   const rail = (
     <SearchRail query={query} setQuery={setQuery}>
       {facets.length > 1 && (
-        <fieldset className="srd-seg">
-          <legend className="su-sr-only">Type</legend>
-          <button
-            type="button"
-            className="srd-seg__option su-focus-ring"
-            aria-pressed={activeFacet === null}
-            onClick={() => setSchemaFacet(null)}
-          >
+        <Segmented label="Type">
+          <SegmentedOption pressed={activeFacet === null} onClick={() => setSchemaFacet(null)}>
             All
-          </button>
+          </SegmentedOption>
           {facets.map((f) => (
-            <button
+            <SegmentedOption
               key={f.schemaName}
-              type="button"
-              className="srd-seg__option su-focus-ring"
-              aria-pressed={activeFacet === f.schemaName}
+              pressed={activeFacet === f.schemaName}
               onClick={() => setSchemaFacet(f.schemaName)}
             >
               {`${f.label} (${f.count})`}
-            </button>
+            </SegmentedOption>
           ))}
-        </fieldset>
+        </Segmented>
       )}
     </SearchRail>
   )

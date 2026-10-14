@@ -9,7 +9,7 @@
  * opens the page's one confirm, which has to outlive the menu that asked.
  */
 
-import { tokens } from 'component-lib'
+import { Badge, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { ShelfChip, ShelfReading } from '../../lib/shelves/shelfItems'
 import type { HeaderMenuItem } from '../shared/HeaderMenu'
@@ -39,26 +39,6 @@ const CHIPS = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
-} satisfies CSSProperties
-
-/** A chip: a small paper pill in ink, sentence case — it is a note, not a stamp. */
-const CHIP = {
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink,
-  borderRadius: tokens.radius.full,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
-  color: tokens.color.ink,
-  display: 'inline-block',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.note,
-  fontWeight: tokens.weight.semibold,
-  lineHeight: 1.3,
-  maxWidth: '100%',
-  overflow: 'hidden',
-  padding: `1px ${tokens.space[8]}`,
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
 type ShelfItemProps = {
@@ -98,8 +78,8 @@ export function ShelfItem({
         {chips.length > 0 && (
           <ul style={CHIPS} aria-label={`About ${name}`}>
             {chips.map((chip) => (
-              <li key={chip.key} style={CHIP}>
-                {chip.label}
+              <li key={chip.key}>
+                <Badge surface="outline">{chip.label}</Badge>
               </li>
             ))}
           </ul>

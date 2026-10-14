@@ -74,7 +74,7 @@
 
 /* ── ContainerSwitcher, MoveToContainerControl ── */
 
-/* The container selects step down from `Select`'s 44px to 36px from `sm`. The
+/* The container selects step down from `Select`'s 44px to 40px from `sm`. The
    coarse-pointer floor (theme.css) is restated here, after the step, so it
    keeps winning on touch. */
 .container-select {
@@ -82,7 +82,7 @@
 }
 @media (width >= 40rem) {
   .container-select {
-    min-height: 2.25rem;
+    min-height: 2.5rem; /* 40px: the band buttons beside it (`.shelves-band__btn`) */
   }
 }
 @media (pointer: coarse) {

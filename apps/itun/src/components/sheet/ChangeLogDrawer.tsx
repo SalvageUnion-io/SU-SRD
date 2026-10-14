@@ -10,7 +10,7 @@
  */
 
 import type { BadgeTone } from 'component-lib'
-import { Badge, ModalShell, tokens } from 'component-lib'
+import { Badge, EmptyState, ModalShell, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { ChangeLogKind } from 'itun-domain/schemas/changeLog'
 import type { EntityRef } from 'itun-domain/schemas/entity'
@@ -138,7 +138,12 @@ function ChangeLogEntries({
 
   if (entries === undefined) return <p style={NOTE}>Loading…</p>
   if (entries.length === 0) {
-    return <p style={NOTE}>No changes recorded yet. Edits to this {entityType} will appear here.</p>
+    return (
+      <EmptyState
+        variant="quiet"
+        body={`No changes recorded yet. Edits to this ${entityType} will appear here.`}
+      />
+    )
   }
   return (
     <ul style={LIST}>

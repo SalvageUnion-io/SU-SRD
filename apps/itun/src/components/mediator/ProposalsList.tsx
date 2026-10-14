@@ -9,7 +9,7 @@
  * twenty when **Show more** is pressed.
  */
 
-import { Button, tokens } from 'component-lib'
+import { Button, EmptyState, tokens } from 'component-lib'
 import { PROPOSALS_PAGE } from 'itun-domain/games/proposals'
 import type { CSSProperties } from 'react'
 import { MUTED } from './mediatorStyles.model'
@@ -39,7 +39,7 @@ export function ProposalsList({
   empty?: string
 }) {
   if (proposals === null) return <p style={MUTED}>Proposals are on their way.</p>
-  if (proposals.length === 0) return <p style={MUTED}>{empty}</p>
+  if (proposals.length === 0) return <EmptyState variant="quiet" body={empty} />
   return (
     <div style={COLUMN}>
       <ul style={PROPOSAL_LIST} aria-label="Proposals">
