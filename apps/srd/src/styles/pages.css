@@ -1060,6 +1060,28 @@
   min-width: 0;
 }
 
+/* The browser skips laying out and painting a tile until it nears the
+   viewport: an index ships every tile as HTML (200–290 KB), and laying them
+   all out was most of what still blocked the main thread on load. The
+   reserved height is a tile's (3:4 art over its band) until it has been
+   laid out once, then its own (`auto`). Off-screen only, so the opening row
+   and anything in view are unaffected; find-in-page still reaches them.
+   `content-visibility` also contains paint, which would clip the focus
+   ring's 4px drawn outside the tile, so the item reaches 4px past its grid
+   area on every side and pads the tile back into place: the ring paints
+   inside it. (`overflow-clip-margin` would do it, but Safari ignores it.) */
+.srd-listing__tiles > li:nth-child(n + 5) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto calc(36rem + 8px);
+  margin: -4px;
+  padding: 4px;
+}
+
+/* An art-less Catalog's tile is its band and lead alone (`data-catalog`). */
+.srd-listing[data-catalog] .srd-listing__tiles > li:nth-child(n + 5) {
+  contain-intrinsic-size: auto calc(9rem + 8px);
+}
+
 /* A tile's place while the data loads, in the tile's own structure: its 3:4
    art box (inside the frame's border), then a fixed band for the tone band
    (its chips beside the name) and the lore line's three lines. The band does
