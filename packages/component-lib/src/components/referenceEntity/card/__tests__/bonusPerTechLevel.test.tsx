@@ -1,7 +1,7 @@
 /**
  * BONUS PER TECH LEVEL — one row of label-first ink `Stat` chips (ruleset
  * §3.7): the "Bonus per Tech Level" chip leading, then each "+N" delta, the
- * label before the value; no tinted label plate.
+ * label before the value.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -32,12 +32,11 @@ describe('BonusPerTechLevel', () => {
     }
   })
 
-  test('no chip wears a tinted plate', () => {
+  test('a compact card sets every chip at the compact rung', () => {
     const { container } = render(<BonusPerTechLevel cells={cells} compact />)
-    for (const plate of container.querySelectorAll('.su-stat-plate--label')) {
-      expect(plate.getAttribute('style') ?? '').not.toContain('background')
-    }
-    expect(container.querySelector('.su-stat-plate--compact')).not.toBeNull()
+    const labels = [...container.querySelectorAll('.su-stat-plate--label')]
+    expect(labels).toHaveLength(3)
+    for (const plate of labels) expect(plate.className).toContain('su-stat-plate--compact')
   })
 
   test('a Damage cell carries its unit in the value', () => {

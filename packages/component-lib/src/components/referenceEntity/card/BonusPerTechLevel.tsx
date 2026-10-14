@@ -15,7 +15,7 @@ const CELLS = {
  * (choice-plan): one wrapping row of label-first `Stat` chips (ruleset §3.7),
  * the ink "Bonus per Tech Level" chip leading, then each "+N" delta
  * (`Damage | +1 SP`, `Structure Points | +3`). Every chip is the same ink
- * plate: no tinted label, no value box.
+ * plate.
  */
 export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; compact: boolean }) {
   const size = compact ? 'compact' : 'full'
