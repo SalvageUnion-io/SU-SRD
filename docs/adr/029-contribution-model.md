@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-029: Unified Contribution Model & Stat Provenance
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 29, which summarises it.

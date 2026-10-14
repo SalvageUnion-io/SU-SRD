@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-030: Accounts, Games, and a Server of Record
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 30, which summarises it.
