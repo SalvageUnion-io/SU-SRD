@@ -198,7 +198,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted: signed out is read-only, every record is Convex-backed, both apps are PWAs; the pre-account migration is gone.
     Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022. [No device cache](#no-device-cache) followed.
 35. **ADR-035 No isolated local-only data**
-    Partly superseded, amended: anonymous visitors get the `signedOut` backend; no legacy claim.
+    Partly superseded by its 2026-10-08 amendment and by [no device cache](#no-device-cache): anonymous visitors get the `signedOut` backend; no legacy claim.
 36. **ADR-036 Retire snapshot shares**
     Accepted: the public sheet is the only account-free share; no `/api/snapshots`.
     Supersedes ADR-004; amends ADR-032.
