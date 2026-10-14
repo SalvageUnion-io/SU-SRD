@@ -260,7 +260,11 @@ jobs:
               --message "$PREVIEW_NAME@${SHA:0:12}" \
               --var "SENTRY_RELEASE:$SHA" \
               --var "SENTRY_ENVIRONMENT:preview" \
-              --json > "$RUNNER_TEMP/$app.json")
+              --json > "$RUNNER_TEMP/$app.json") || {
+              # With --json, wrangler writes its error into that file.
+              cat "$RUNNER_TEMP/$app.json" >&2
+              exit 1
+            }
             url=$(jq -r '.preview.urls[0] // empty' "$RUNNER_TEMP/$app.json")
             if [ -z "$url" ]; then
               echo "FATAL: the $app Preview has no URL." >&2
