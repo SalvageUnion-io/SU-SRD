@@ -35,7 +35,7 @@ async function roll(): Promise<void> {
 describe('the roll-table page, before a roll (the server markup)', () => {
   test('prints every band for a crawler, under the ROLL THE DIE stamp', () => {
     const data = coreMechanic()
-    render(<RollTableView data={data} state={{ roll: null, history: [] }} />)
+    render(<RollTableView data={data} roll={null} />)
     expect(screen.getByText('Roll the Die:')).toBeTruthy()
     const table = screen.getByRole('list', { name: 'Core Mechanic table' })
     expect(within(table).getAllByRole('listitem')).toHaveLength(data.rows.length)
@@ -43,13 +43,7 @@ describe('the roll-table page, before a roll (the server markup)', () => {
   })
 
   test('is the shared instrument, banded in the page’s tone', () => {
-    render(
-      <RollTableView
-        data={coreMechanic()}
-        tone="var(--color-wk-line)"
-        state={{ roll: null, history: [] }}
-      />
-    )
+    render(<RollTableView data={coreMechanic()} tone="var(--color-wk-line)" roll={null} />)
     const table = screen.getByRole('list', { name: 'Core Mechanic table' })
     const instrument = table.closest('.su-roll') as HTMLElement
     expect(instrument.style.getPropertyValue('--su-roll-band')).toBe(
@@ -62,7 +56,7 @@ describe('the roll-table page, before a roll (the server markup)', () => {
   })
 
   test('has no button until the island mounts: the stamp is a plain label', () => {
-    render(<RollTableView data={coreMechanic()} state={{ roll: null, history: [] }} />)
+    render(<RollTableView data={coreMechanic()} roll={null} />)
     expect(screen.queryAllByRole('button')).toHaveLength(0)
     expect(screen.getByText('Roll the Die:').tagName).toBe('SPAN')
   })
@@ -71,7 +65,7 @@ describe('the roll-table page, before a roll (the server markup)', () => {
     const table = SalvageUnionReference.RollTables.getByName('Mechapult') as SURefEntity | undefined
     const data = table ? rollTablePageData(table) : null
     if (!data) throw new Error('fixture missing: Mechapult')
-    const { container } = render(<RollTableView data={data} state={{ roll: null, history: [] }} />)
+    const { container } = render(<RollTableView data={data} roll={null} />)
     expect(container.querySelector('.srd-roll')?.getAttribute('data-density')).toBe('dense')
     const left = screen.getByRole('list', { name: 'Mechapult table' })
     const right = screen.getByRole('list', { name: 'Mechapult table, continued' })
@@ -81,19 +75,21 @@ describe('the roll-table page, before a roll (the server markup)', () => {
   })
 
   test('a short table stays one column at the board’s setting', () => {
-    const { container } = render(
-      <RollTableView data={coreMechanic()} state={{ roll: null, history: [] }} />
-    )
+    const { container } = render(<RollTableView data={coreMechanic()} roll={null} />)
     expect(container.querySelector('.srd-roll')?.getAttribute('data-density')).toBe('roomy')
     expect(screen.getAllByRole('list', { name: /^Core Mechanic table/ })).toHaveLength(1)
   })
 
   test('credits Randsum under the table', () => {
-    render(<RollTableView data={coreMechanic()} state={{ roll: null, history: [] }} />)
+    render(<RollTableView data={coreMechanic()} roll={null} />)
     const credit = screen.getByRole('link', { name: 'Randsum.dev' })
     expect(credit.getAttribute('href')).toBe('https://randsum.dev')
-    // Out of the panel: it sits under the table, at the main column's foot.
-    expect(screen.getByRole('region', { name: 'You rolled' }).contains(credit)).toBe(false)
+  })
+
+  test('draws no result panel: a roll’s result is a toast', () => {
+    render(<RollTableView data={coreMechanic()} roll={14} />)
+    expect(screen.queryByRole('region', { name: 'You rolled' })).toBeNull()
+    expect(screen.queryByText('Earlier rolls')).toBeNull()
   })
 })
 
@@ -106,17 +102,14 @@ describe('RollTableIsland', () => {
     expect(controls[0]?.textContent).toBe('Roll the Die')
   })
 
-  test('the button reads the result in the panel and marks the row it lands on', async () => {
+  test('the button raises the result as a toast and marks the row it lands on', async () => {
     render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
     await roll()
 
-    const panel = screen.getByRole('region', { name: 'You rolled' })
-    // Announced in the panel's polite live region.
-    const live = panel.querySelector('[aria-live="polite"]') as HTMLElement
-    expect(within(live).getByText('Success')).toBeTruthy()
-    expect(within(panel).getByText('14')).toBeTruthy()
-    expect(within(panel).getByText('Success')).toBeTruthy()
-    expect(within(panel).getByText('11–19')).toBeTruthy()
+    // The result, the band it lands on, then the outcome and its text.
+    const title = await screen.findByText('Core Mechanic: rolled 14 (11–19)')
+    const toast = title.closest('[data-sonner-toast]')
+    expect(toast?.querySelector('[data-description]')?.textContent).toMatch(/^Success: .+/)
 
     const rolled = screen.getByText('Rolled 14').closest('li')
     expect(rolled?.getAttribute('aria-current')).toBe('true')
@@ -137,16 +130,17 @@ describe('RollTableIsland', () => {
     )
     await roll()
     expect(asked).toEqual(['Core Mechanic'])
+    // Let the toast land, so its Toaster settles inside the test.
+    await screen.findByText('Core Mechanic: rolled 14 (11–19)')
   })
 
-  test('pressing the button again keeps the earlier rolls, newest first', async () => {
-    render(<RollTableIsland data={coreMechanic()} dieFor={dice(7, 20, 3)} />)
+  test('pressing the button again replaces the toast rather than stacking another', async () => {
+    render(<RollTableIsland data={coreMechanic()} dieFor={dice(7, 20)} />)
     await roll()
+    await screen.findByText('Core Mechanic: rolled 7 (6–10)')
     await roll()
-    await roll()
-
-    const earlier = screen.getByRole('heading', { name: 'Earlier rolls' }).parentElement
-    const items = within(earlier as HTMLElement).getAllByRole('listitem')
-    expect(items.map((item) => item.textContent)).toEqual(['20Nailed it', '7Tough Choice'])
+    await screen.findByText('Core Mechanic: rolled 20 (20)')
+    expect(screen.queryByText('Core Mechanic: rolled 7 (6–10)')).toBeNull()
+    expect(screen.getByText('Rolled 20').closest('li')?.getAttribute('aria-current')).toBe('true')
   })
 })

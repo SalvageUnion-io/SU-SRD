@@ -1,28 +1,20 @@
 import { RollTableInstrument } from 'component-lib'
-import { NO_EFFECT } from 'salvageunion-reference'
-import type { RollState, RollTablePageData } from '../lib/rollTablePage'
-import {
-  outcomeLabel,
-  rangeLabel,
-  rollTableDensity,
-  rowForRoll,
-  splitRows,
-} from '../lib/rollTablePage'
+import type { RollTablePageData } from '../lib/rollTablePage'
+import { rollTableDensity, rowForRoll, splitRows } from '../lib/rollTablePage'
 import { MentionProse } from './MentionProse'
-import { RollPanel, RollReadout } from './RollPanel'
+import { RollPageFrame } from './RollPageFrame'
 
 /**
  * RollTableView — a roll table's page, rolled and read (board 08b).
  *
  * The table is the shared `RollTableInstrument`, the same one every card and
  * guide step draws: its ink head (d20 and Result over the columns, the Roll the
- * Die button at its right), then the bands, banded in the page's tone. The page adds only its READOUT: the
- * "You rolled" panel with the number, the range it lands on, the outcome and
- * its text, and the earlier rolls. The table's Roll the Die button is the roll
- * (press it again to roll again); the panel has no button of its own. The die is not named: it is always a d20. A long or wordy table
- * (`splitRows`) sets its bands in two halves on a wide screen, the ranges on
- * the outer edges, and a wordy page sets tighter (`rollTableDensity`), so the
- * page fits one screen.
+ * Die button at its right), then the bands, banded in the page's tone. A roll
+ * marks its row; its result (the number, the range it lands on, the outcome
+ * and its text) is a toast, as every roll's is (`RollTableIsland`). The die is
+ * not named: it is always a d20. A long or wordy table (`splitRows`) sets its
+ * bands in two halves on a wide screen, the ranges on the outer edges, and a
+ * wordy page sets tighter (`rollTableDensity`), so the page fits one screen.
  *
  * Presentational, so the server and the island draw the same page: the server
  * renders it with no roll and no handlers (the bands are real content for a
@@ -33,40 +25,18 @@ type RollTableViewProps = {
   data: RollTablePageData
   /** The page's band colour, which the table's rows band in. */
   tone?: string
-  state: RollState
+  /** The roll the table marks, or `null` before the first. */
+  roll: number | null
   /** Roll the die. Absent on the server, where the stamp is a plain label. */
   onRoll?: () => void
 }
 
-export function RollTableView({ data, tone, state, onRoll }: RollTableViewProps) {
-  const { roll, history } = state
+export function RollTableView({ data, tone, roll, onRoll }: RollTableViewProps) {
   const hit = roll === null ? undefined : rowForRoll(data.table, data.rows, roll)
   const density = rollTableDensity(data.rows, data.description)
 
   return (
-    <RollPanel
-      name={data.name}
-      prompt="Roll the die, and the result is marked in the table."
-      result={
-        roll === null ? undefined : (
-          <>
-            <RollReadout
-              n={roll}
-              lands={hit && { label: 'Lands on', range: rangeLabel(hit.key) }}
-              title={hit ? (hit.label ?? `Roll ${roll}`) : NO_EFFECT}
-            />
-            {hit && (
-              <p className="srd-roll__text">
-                <MentionProse parts={hit.value} />
-              </p>
-            )}
-          </>
-        )
-      }
-      history={history.map((n) => ({ n, label: outcomeLabel(data.table, data.rows, n) }))}
-      density={density}
-      description={data.description}
-    >
+    <RollPageFrame density={density} description={data.description}>
       <RollTableInstrument
         name={data.name}
         size="large"
@@ -80,6 +50,6 @@ export function RollTableView({ data, tone, state, onRoll }: RollTableViewProps)
           split: splitRows(data.rows),
         }}
       />
-    </RollPanel>
+    </RollPageFrame>
   )
 }

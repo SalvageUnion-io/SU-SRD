@@ -6,8 +6,7 @@
 /* ── compositions/RollTableInstrument ── */
 
 /*
- * THE roll table (`RollTableInstrument`, EDL E14): the bar, the host's
- * readout, then the bands. Classes rather than style objects because the
+ * THE roll table (`RollTableInstrument`, EDL E14): the bar, then the bands. Classes rather than style objects because the
  * page's split and density answer to the viewport. The row fills (paper, the
  * surface tone's band, the rolled row's ink) are the component's own inline
  * style, so a test reads them straight off the row.

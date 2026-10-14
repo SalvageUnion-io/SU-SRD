@@ -7,9 +7,9 @@
  * island itself, from the same props, inside its placeholder, so the bands are
  * in the HTML for a crawler or a no-JS reader, and the island hydrates that
  * markup rather than drawing it again: React adopts the bands as they are and
- * only the roll stamp becomes a button (`RollTableInstrument`'s `useLive`). The table is the shared
- * `RollTableInstrument`, as in every card and guide; the page adds only its
- * readout.
+ * only the roll stamp becomes a button (`RollTableInstrument`'s `useLive`).
+ * The table is the shared `RollTableInstrument`, as in every card and guide;
+ * a roll's result is a toast, as on every card.
  */
 
 import { digestColumnsTable, digestRollTable, mentionRef } from 'component-lib'

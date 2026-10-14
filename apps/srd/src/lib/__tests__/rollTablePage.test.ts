@@ -2,13 +2,12 @@ import { describe, expect, test } from 'bun:test'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../components/RollTablePage'
-import type { RollState, RollTableRow } from '../rollTablePage'
+import type { RollTableRow } from '../rollTablePage'
 import {
-  outcomeLabel,
   plainText,
   rangeLabel,
-  recordRoll,
   refText,
+  rollAnnouncement,
   rollTableDensity,
   rowForRoll,
   splitRows,
@@ -131,39 +130,32 @@ describe('rowForRoll', () => {
   })
 })
 
-describe('outcomeLabel — the earlier rolls', () => {
-  test('a table with no row labels reads "Roll N" for a hit, not a miss', () => {
-    const data = need(rollTablePageData(tableNamed('Crawler Damage')) ?? undefined, 'data')
-    expect(data.rows.some((row) => row.label === null)).toBe(true)
-    for (const roll of [9, 13, 15]) {
-      const row = rowForRoll(data.table, data.rows, roll)
-      expect(row).toBeDefined()
-      if (row?.label === null)
-        expect(outcomeLabel(data.table, data.rows, roll)).toBe(`Roll ${roll}`)
-    }
-  })
-
-  test('a labelled row reads its label; a roll with no row reads "No effect"', () => {
+describe('rollAnnouncement — what a roll’s toast reads', () => {
+  test('the die, the range it lands on, the outcome’s name and text', () => {
     const core = need(rollTablePageData(tableNamed('Core Mechanic')) ?? undefined, 'core')
-    expect(outcomeLabel(core.table, core.rows, 20)).toBe('Nailed it')
+    const announced = rollAnnouncement(core, 14)
+    expect(announced).toMatchObject({ table: 'Core Mechanic', roll: 14, range: '11–19' })
+    expect(announced.label).toBe('Success')
+    expect(announced.text.length).toBeGreaterThan(0)
+  })
+
+  test('a row with no name reads its text alone', () => {
+    const data = need(rollTablePageData(tableNamed('Crawler Damage')) ?? undefined, 'data')
+    const row = data.rows.find((r) => r.label === null)
+    if (!row) throw new Error('fixture: an unlabelled Crawler Damage row')
+    const roll = Number(row.key.split('-')[0])
+    const announced = rollAnnouncement(data, roll)
+    expect(announced.label).toBeUndefined()
+    expect(announced.text).toBe(plainText(row.value))
+  })
+
+  test('a roll with no row lands on no range and reads "No effect"', () => {
     const dramatic = need(rollTablePageData(firstOfType('dramatic')) ?? undefined, 'dramatic')
-    expect(outcomeLabel(dramatic.table, dramatic.rows, 5)).toBe('No effect')
-  })
-})
-
-describe('the roll log', () => {
-  test('a new roll pushes the previous one onto the earlier rolls, newest first', () => {
-    let state: RollState = recordRoll({ roll: null, history: [] }, 7)
-    expect(state).toEqual({ roll: 7, history: [] })
-    state = recordRoll(state, 20)
-    state = recordRoll(state, 3)
-    expect(state).toEqual({ roll: 3, history: [20, 7] })
-  })
-
-  test('keeps the last five earlier rolls', () => {
-    let state = { roll: null as number | null, history: [] as number[] }
-    for (const n of [1, 2, 3, 4, 5, 6, 7, 8]) state = recordRoll(state, n)
-    expect(state.history).toEqual([7, 6, 5, 4, 3])
+    expect(rollAnnouncement(dramatic, 5)).toEqual({
+      table: dramatic.name,
+      roll: 5,
+      text: 'No effect',
+    })
   })
 })
 

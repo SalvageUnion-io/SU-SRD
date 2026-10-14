@@ -26,28 +26,18 @@ function callsigns(): ColumnsTablePageData | null {
  */
 export const BeforeRolling = () => {
   const data = callsigns()
-  return data ? <ColumnsTableView data={data} state={{ roll: null, history: [] }} /> : null
+  return data ? <ColumnsTableView data={data} roll={null} /> : null
 }
 
-/** Rolled 11 then 7: column 9–12, entry 7, Silverback, with earlier rolls. */
+/** Rolled 11 then 7: column 9–12, entry 7, Silverback, its cell marked. */
 export const Rolled = () => {
   const data = callsigns()
   return data ? (
-    <ColumnsTableView
-      data={data}
-      state={{
-        roll: { column: 11, entry: 7 },
-        history: [
-          { column: 2, entry: 14 },
-          { column: 18, entry: 20 },
-        ],
-      }}
-      onRoll={() => {}}
-    />
+    <ColumnsTableView data={data} roll={{ column: 11, entry: 7 }} onRoll={() => {}} />
   ) : null
 }
 
-/** Live: Roll rolls the column's d20, then the entry's. */
+/** Live: Roll rolls the column's d20, then the entry's; the result is a toast. */
 export const Live = () => {
   const data = callsigns()
   return data ? <ColumnsTableIsland data={data} /> : null

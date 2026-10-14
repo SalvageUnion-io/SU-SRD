@@ -11,9 +11,9 @@ export default {
 }
 
 /**
- * The roll table an entity owns, inline in its card (board E4). Two switches —
- * shown or hidden, rolled or not — give four states; the bar holds its place in
- * every one, and the result is a readout under it, open or not. Real data: the
+ * The roll table an entity owns, inline in its card (board E4): hidden, open,
+ * and open with a roll marked. The bar holds its place in every state; the
+ * result itself is a toast (`toastRoll`), as every roll's is. Real data: the
  * Core Mechanic table, rolled at 14 (Success).
  */
 const coreMechanic = SalvageUnionReference.RollTables.getByName('Core Mechanic')
@@ -46,7 +46,7 @@ const column = {
   padding: space[16],
 } as const
 
-/** All four states, plus the table as the roll-tables entity's own card renders it. */
+/** All three states, plus the table as the roll-tables entity's own card renders it. */
 export const Default: Story = () => (
   <div style={column}>
     <InCard label="1 · Hidden — the default everywhere">
@@ -61,16 +61,7 @@ export const Default: Story = () => (
         disabled={false}
       />
     </InCard>
-    <InCard label="3 · Rolled, collapsed — the result without the table">
-      <CardRollTable
-        table={table}
-        name="Core Mechanic"
-        size="medium"
-        disabled={false}
-        defaultRoll={14}
-      />
-    </InCard>
-    <InCard label="4 · Rolled, expanded — the readout plus the marked row">
+    <InCard label="3 · Rolled, expanded — the marked row">
       <CardRollTable
         table={table}
         name="Core Mechanic"
