@@ -13,7 +13,7 @@ Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITEC
 9. **NPCs** — [npc-builder.md](architecture/npc-builder.md); ADR-044.
 10. **Sharing** — ADR-032, ADR-036.
 11. **Accounts, Games, Convex** — ADR-030; [deployments](ARCHITECTURE.md#deployments) to [conventions](ARCHITECTURE.md#convex-conventions); procedures: the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill.
-12. **Invites, links between entities** — ADR-039, ADR-037.
+12. **Invites, links between entities** — ADR-030, ADR-037.
 13. **Feature names in copy (Game, Shelf, assign)** — [glossary.md](architecture/glossary.md).
 14. **Discord bot** — [Game client](ARCHITECTURE.md#bot-game-client); [its CLAUDE.md](../apps/discord-bot/CLAUDE.md)
 15. **Package API, public dataset** — [packages](ARCHITECTURE.md#packages) to [dataset API](ARCHITECTURE.md#dataset-api); ADR-040, ADR-043.
