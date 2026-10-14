@@ -57,6 +57,7 @@ import {
   Panel,
   SheetSectionCard,
   SheetSectionSlab,
+  SlotGrid,
   Stat,
   tokens,
   VitalGauge,
@@ -125,12 +126,6 @@ function TpBlock({
   )
 }
 
-const TP_ROW = {
-  alignItems: 'baseline',
-  display: 'flex',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
 /** A Vitals caps label: the badge rung, set solid. */
 const CAPS_LABEL = {
   fontFamily: tokens.font.cond,
@@ -139,18 +134,6 @@ const CAPS_LABEL = {
   letterSpacing: tokens.tracking.caps,
   lineHeight: 1,
   textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const TP_LABEL = { ...CAPS_LABEL, color: tokens.color.wkMuted } satisfies CSSProperties
-
-const TP_VALUE = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.displayLg,
-  fontVariantNumeric: 'tabular-nums',
-  fontWeight: tokens.weight.bold,
-  lineHeight: 1,
-  marginLeft: 'auto',
 } satisfies CSSProperties
 
 /** The Conditions label over the chip row, in the sheet's deep tone. */
@@ -162,35 +145,20 @@ const CONDITIONS_LABEL = {
 } satisfies CSSProperties
 
 /**
- * TP in the read state (board 10): a typeset row, the same anatomy as the HP
- * and AP rows above it — stamp, label, then the value at the right. No
- * stepper; Edit gives the stepper box back (`TpBlock`).
+ * TP in the read state (board 10): a counter, not a gauge (ruleset §2.1: no
+ * cap, no track), so the label-first `TRAINING POINTS | 2` chip. No stepper;
+ * Edit gives the stepper box back (`TpBlock`).
  */
 function TpReadRow({ value }: { value: number }) {
   return (
-    <div role="img" aria-label={`Training Points ${value}`} style={TP_ROW}>
-      <Badge shape="stamp" size="full">
-        TP
-      </Badge>
-      <span style={TP_LABEL}>Training Points</span>
-      <b style={TP_VALUE}>{value}</b>
+    <div>
+      <Stat orientation="horizontal" label="Training Points" value={value} />
     </div>
   )
 }
 
-/** A free inventory slot in the read state: an empty dashed box (board 10). */
-const FREE_SLOT = {
-  borderColor: tokens.color.ink40,
-  borderRadius: tokens.radius.badge,
-  borderStyle: 'dashed',
-  borderWidth: tokens.borderWidth.hairline,
-  display: 'inline-block',
-  height: '30px',
-  width: '64px',
-} satisfies CSSProperties
-
-/** No more boxes than fit a line or two of the narrow column. */
-const FREE_SLOT_BOXES = 8
+/** The inventory's slots under its pills: the SlotGrid, set to the left. */
+const SLOTS = { display: 'flex', marginTop: tokens.space[8] } satisfies CSSProperties
 
 /** The sheet body; `container-type` scopes the region grid to its own width. */
 const BODY = {
@@ -266,8 +234,6 @@ const TP_AND_CONDITIONS = {
 } satisfies CSSProperties
 
 const CONDITIONS_CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
-
-const OVER_CAPACITY = { color: tokens.color.statusBad } satisfies CSSProperties
 
 const PILLS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
@@ -546,11 +512,12 @@ export function PilotSheet({
           <div className="su-sheet-pilot-order-2" style={MIN_W_0}>
             <SheetSectionSlab
               title="Inventory"
-              count={
-                <span style={model.overCapacity ? OVER_CAPACITY : undefined}>
-                  {model.slotsUsed} / {model.slotsCap} slots
-                </span>
-              }
+              count={{
+                label: 'Slots',
+                value: model.slotsUsed,
+                max: model.slotsCap,
+                state: model.overCapacity ? 'critical' : undefined,
+              }}
               controls={
                 readOnly ? undefined : (
                   <SectionManageButton label="equipment" onClick={() => setPicker('equipment')} />
@@ -560,40 +527,38 @@ export function PilotSheet({
               {pilot.equipment.length === 0 && model.genericInventory.length === 0 ? (
                 <EmptyState variant="quiet" body="Nothing carried." />
               ) : readOnly ? (
-                // Read (board 10): the shortform pills, then a dashed box per
-                // slot still free, so capacity reads at a glance.
-                <div style={PILLS}>
-                  {model.ordinaryEquipment.map((slug) => (
-                    <PilotEquipmentItem
-                      key={slug}
-                      slug={slug}
-                      pilotId={pilot.id}
-                      seedSelections={pilot.equipmentChoices?.[slug]}
-                      condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                      usesLeft={pilot.equipmentUses?.[slug]}
-                      onConditionChange={() => undefined}
-                      onUsesChange={() => undefined}
+                // Read (board 10): the shortform pills, then the SlotGrid of
+                // every slot, filled and free, so capacity reads at a glance.
+                <>
+                  <div style={PILLS}>
+                    {model.ordinaryEquipment.map((slug) => (
+                      <PilotEquipmentItem
+                        key={slug}
+                        slug={slug}
+                        pilotId={pilot.id}
+                        seedSelections={pilot.equipmentChoices?.[slug]}
+                        condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                        usesLeft={pilot.equipmentUses?.[slug]}
+                        onConditionChange={() => undefined}
+                        onUsesChange={() => undefined}
+                        readOnly
+                        scalingParent={model.scalingParent}
+                        store={store}
+                      />
+                    ))}
+                    {model.genericInventory.map((entry) => (
+                      <GenericEntryCard key={entry.id} entry={entry} />
+                    ))}
+                  </div>
+                  <div style={SLOTS}>
+                    <SlotGrid
+                      used={model.slotsUsed}
+                      cap={model.slotsCap}
+                      label={`Inventory: ${model.slotsUsed} of ${model.slotsCap} slots filled${model.overCapacity ? ' — over capacity' : ''}`}
                       readOnly
-                      scalingParent={model.scalingParent}
-                      store={store}
                     />
-                  ))}
-                  {model.genericInventory.map((entry) => (
-                    <GenericEntryCard key={entry.id} entry={entry} />
-                  ))}
-                  {Array.from(
-                    {
-                      length: Math.min(
-                        FREE_SLOT_BOXES,
-                        Math.max(0, model.slotsCap - model.slotsUsed)
-                      ),
-                    },
-                    (_, index) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: identical empty boxes; position is the only identity
-                      <span key={index} aria-hidden="true" style={FREE_SLOT} />
-                    )
-                  )}
-                </div>
+                  </div>
+                </>
               ) : (
                 // Edit: one item to a line, its controls on the line beside its
                 // pill (`SheetItemLine`), as a mech's Systems and Modules.

@@ -21,6 +21,7 @@ import type { Mech } from 'itun-domain/schemas/mech'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import { slabChip } from '../../__tests__/slabChip'
 import { MechSheet } from '../MechSheet'
 
 function makeMech(overrides: Partial<Mech>): Mech {
@@ -183,7 +184,7 @@ describe('MechSheet — The Hold (Stow →)', () => {
     })
     render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    expect(screen.getByText(/^3\/6 slots$/i)).toBeTruthy()
+    expect(must(slabChip('The Hold')).textContent).toBe('Slots3/6')
     expect(screen.queryByText(/2 lots/i)).toBeNull()
   })
 })

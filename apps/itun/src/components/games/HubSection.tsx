@@ -1,13 +1,14 @@
 /**
  * HubSection — one section of a Game's own page (board M2): the
  * solid section stamp of the refresh, a dashed rule to a count or a hint at
- * the far end ("CREW & SEATS ┄┄┄ 5 of 6 seats"), then its content.
+ * the far end ("CREW & SEATS ┄┄┄ SEATS | 5/6"), then its content.
  *
  * The page sets them in two columns (`HUB_COLUMNS`) that become one on a
  * phone without a media query: `min(100%, 26rem)` is what keeps a 390px
  * screen from scrolling sideways.
  */
 
+import type { SlabCount } from 'component-lib'
 import { Slab, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 
@@ -24,8 +25,8 @@ type HubSectionProps = {
   /** The heading's id, which names the section (`aria-labelledby`). */
   id: string
   title: string
-  /** A count or a hint at the end of the rule. */
-  aside?: ReactNode
+  /** A hint at the end of the rule, or a value count as its chip (`SEATS | 5/6`). */
+  aside?: ReactNode | SlabCount
   children: ReactNode
 }
 

@@ -132,7 +132,7 @@ export function CrewSeats({
     <HubSection
       id="crew-seats-heading"
       title="Crew & seats"
-      aside={`${claimed} of ${total} ${total === 1 ? 'seat' : 'seats'}`}
+      aside={{ label: 'Seats', value: claimed, max: total }}
     >
       {crawler !== null && <CrawlerCard crawler={crawler} />}
       <ul style={LIST} aria-label="Seats">

@@ -12,6 +12,8 @@ import { render, screen } from '@testing-library/react'
 import type { Mech } from 'itun-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { must } from '../../__tests__/must'
+import { slabChip } from '../../__tests__/slabChip'
 import { MechSheet } from '../MechSheet'
 
 const MANIC_MINER_SYSTEMS = [
@@ -52,17 +54,23 @@ function renderSheet(mech: Mech) {
 describe('MechSheet — patterns printed over their slots', () => {
   test('the printed loadout reads as printed, with its cite', () => {
     renderSheet(makeMech(MANIC_MINER_SYSTEMS))
-    const systems = screen.getByText('14/13 slots · as printed')
-    expect(systems.getAttribute('title')).toBe(
+    const systems = must(slabChip('Systems'))
+    expect(systems.textContent).toBe('Slots14/13')
+    expect(systems.classList.contains('su-stat-cell--critical')).toBe(false)
+    const noted = must(systems.parentElement)
+    expect(noted.textContent).toBe('Slots14/13as printed')
+    expect(noted.getAttribute('title')).toBe(
       'Manic Miner, Salvage Union Starter Set, Parts Catalogue p.11'
     )
     // Its modules fit, so they carry no note.
-    expect(screen.getByText('2/2 slots')).toBeTruthy()
+    expect(must(slabChip('Modules')).parentElement?.textContent).toBe('Slots2/2')
   })
 
   test('a loadout past the printed one is a plain over-slot count', () => {
     renderSheet(makeMech([...MANIC_MINER_SYSTEMS, 'cargo-pod']))
-    expect(screen.getByText('15/13 slots')).toBeTruthy()
+    const systems = must(slabChip('Systems'))
+    expect(systems.textContent).toBe('Slots15/13')
+    expect(systems.classList.contains('su-stat-cell--critical')).toBe(true)
     expect(screen.queryByText(/as printed/)).toBeNull()
   })
 })

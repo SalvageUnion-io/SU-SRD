@@ -20,7 +20,7 @@
  * dropping it left the player with a button that appeared to do nothing.
  */
 
-import { Button, EmptyState, Stat, tokens } from 'component-lib'
+import { Button, EmptyState, Slab, Stat, tokens } from 'component-lib'
 import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import type { CSSProperties, ReactNode } from 'react'
 import { reportCargo } from '../../lib/cargo/reportCargo'
@@ -39,15 +39,8 @@ const HOLD = {
   gap: tokens.space[16],
 } satisfies CSSProperties
 
-const SIDE_HEADING = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.caps,
-  marginBottom: tokens.space[4],
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+/** A side's Slab, close over its lots. */
+const SIDE_SLAB = { marginBottom: tokens.space[4] } satisfies CSSProperties
 
 const LOCKED_NOTE = {
   color: tokens.color.wkMuted,
@@ -112,7 +105,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
       <Stat label="Cargo" value={usage.used} max={usage.cap} />
 
       <div>
-        <h4 style={SIDE_HEADING}>Carried</h4>
+        <Slab as="h4" label="Carried" style={SIDE_SLAB} />
         {state.carrierLots.length === 0 ? (
           <EmptyState variant="quiet" body="Nothing carried." />
         ) : (
@@ -149,7 +142,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           an empty "no crawler" panel would be noise on a partner sheet. */}
       {crawlerLinked && (
         <div>
-          <h4 style={SIDE_HEADING}>Storage Bay</h4>
+          <Slab as="h4" label="Storage Bay" style={SIDE_SLAB} />
           {editable && crawlerLocked !== null && <p style={LOCKED_NOTE}>{crawlerLocked}</p>}
           {state.depotLots.length === 0 ? (
             <EmptyState variant="quiet" body="The Storage Bay is empty." />

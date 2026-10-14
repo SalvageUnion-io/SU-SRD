@@ -151,8 +151,6 @@ const POOL_LABEL = {
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
-const TABULAR = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
-
 const CREW_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 const STORAGE_BAY = { marginTop: tokens.space[24], minWidth: 0 } satisfies CSSProperties
@@ -196,6 +194,8 @@ type CrawlerSheetProps = {
    * crawler (D8). Omitted, there is no link.
    */
   crewHref?: string
+  /** The docked mech's sheet, for its Token in the Mech Bay. */
+  mechHref?: string
 }
 
 export function CrawlerSheet({
@@ -207,6 +207,7 @@ export function CrawlerSheet({
   linkedUnits,
   crew,
   crewHref,
+  mechHref,
 }: CrawlerSheetProps) {
   const storeState = store()
   const cargo = useCargo({ mech, crawler, store, readOnly })
@@ -379,7 +380,7 @@ export function CrawlerSheet({
         seedSelections={crawler.bayChoices?.[entry.bayRef]}
         store={store}
         readOnly={readOnly}
-        dockedMechName={kind === 'mech' && mech ? mech.name : undefined}
+        dockedMech={kind === 'mech' && mech ? { name: mech.name, href: mechHref } : undefined}
         // "Mount" opens the weapons picker — the thing the verb means — rather
         // than the bay's rules text.
         onFunction={kind === 'armament' && !readOnly ? () => setSystemsModalOpen(true) : undefined}
@@ -452,11 +453,7 @@ export function CrawlerSheet({
           {bays.length > 0 && (
             <SheetSectionSlab
               title="Bays"
-              count={
-                <span style={TABULAR}>
-                  {intactBays}/{bays.length} intact
-                </span>
-              }
+              count={{ label: 'Intact', value: intactBays, max: bays.length }}
               controls={
                 crewHref === undefined ? undefined : (
                   <AppLink

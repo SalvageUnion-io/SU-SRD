@@ -44,7 +44,8 @@ describe('CrewSeats', () => {
       ['Player', 'Sam', 'Ghost · Iron Jaw'],
       ['Open', '—', 'Rook · waiting for a player'],
     ])
-    expect(screen.getByText('1 of 2 seats')).toBeTruthy()
+    // The count is the label-first chip, `SEATS | 1/2`.
+    expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
   })
 
   test('the crawler card carries its name, tech level, SP and bays', () => {
@@ -53,8 +54,7 @@ describe('CrewSeats', () => {
     expect(screen.getByText('TL')).toBeTruthy()
     expect(screen.getByText('14/20')).toBeTruthy()
     expect(screen.getByText('Bays')).toBeTruthy()
-    // One seat is a seat.
-    expect(screen.getByText('0 of 1 seat')).toBeTruthy()
+    expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats0/1')
   })
 
   test('a crawler with no readable tech level shows no TL; no crawler, no card', () => {
