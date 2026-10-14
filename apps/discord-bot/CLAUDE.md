@@ -36,7 +36,7 @@ cannot run on workerd.
 ```bash
 bun --filter discord-bot test      # the loop: unit tests plus the signed replay harness
 bun run deploy-commands            # a test guild
-bun run deploy-commands:global     # production. Credentials: op run, .env.example's header
+bun run deploy-commands:global     # production; a bot deploy runs it too. Credentials: op run
 ```
 
 ## In the Union now

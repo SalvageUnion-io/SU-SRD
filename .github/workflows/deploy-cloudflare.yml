@@ -279,6 +279,23 @@ jobs:
           fi
           echo "OK: the token reads $ZONE and its Workers routes."
 
+      # The bot leg registers the slash commands after its Worker ships (see
+      # `deploy`), with the bot token. Without it the Worker would ship command
+      # handlers Discord never offers, so a run that ships the bot needs the
+      # token before anything is built. The bot's Worker holds its own copy as a
+      # wrangler secret; this one is the GitHub Environment's.
+      - name: Refuse to deploy the bot without a Discord bot token
+        if: contains(fromJSON(steps.surfaces.outputs.deploy), 'discord-bot')
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        run: |
+          if [ -z "$DISCORD_TOKEN" ]; then
+            echo "FATAL: the bot ships in this run but DISCORD_TOKEN is not set," >&2
+            echo "       so its slash commands could not be registered." >&2
+            echo "Set it in Settings > Environments > production > Environment secrets." >&2
+            exit 1
+          fi
+
       # A DSN gets events to Sentry; source maps make them readable. Both apps'
       # Vite builds take `sentrySourcemaps()` from
       # `packages/observability/src/vite.ts`, which gates BOTH the plugin and
@@ -535,7 +552,8 @@ jobs:
   # script here; su-assets and the bot have no other build. Discord's
   # Interactions Endpoint URL points at the bot's Worker, so this is the bot's
   # only deploy path; its secrets (DISCORD_TOKEN and friends) are wrangler
-  # secrets set out of band, and a deploy does not touch them.
+  # secrets set out of band, and a deploy does not touch them. The bot leg
+  # also registers the slash commands, with the Environment's DISCORD_TOKEN.
   deploy-srd:
     needs: [plan, build-srd, og-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'srd') }}
@@ -613,6 +631,22 @@ jobs:
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
         run: bunx convex env set SITE_URL "$ITUN_SITE_URL"
+
+      # Every bot deploy, once its Worker is live, so Discord never offers a
+      # command the Worker cannot answer. A bulk overwrite (commands/index.ts),
+      # so it is idempotent and a removed command disappears; global commands
+      # can take up to an hour to show in every client. The application id is
+      # public and read from wrangler.jsonc, the one place it is written.
+      - name: Register the slash commands
+        if: matrix.app == 'discord-bot'
+        working-directory: apps/discord-bot
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        run: |
+          set -euo pipefail
+          DISCORD_CLIENT_ID=$(grep -oE '"DISCORD_APPLICATION_ID": *"[0-9]+"' wrangler.jsonc | grep -oE '[0-9]+')
+          export DISCORD_CLIENT_ID
+          bun run deploy-commands:global
 
   # ===========================================================================
   # Post-deploy smoke. Cheap, and it is the only thing that knows whether what
