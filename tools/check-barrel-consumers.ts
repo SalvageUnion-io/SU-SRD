@@ -358,25 +358,43 @@ export function explain(v: ExportVerdict): [string, string] {
   ]
 }
 
-function main(): void {
-  const { exports, reach, direct, stories, workspaces, scanned } = census()
-  assertScanFloor('barrel-consumers (barrel exports)', exports.length, 60)
-  assertScanFloor('barrel-consumers (consuming workspaces)', workspaces.length, 2)
-  assertScanFloor('barrel-consumers (app source files)', scanned, 270)
+/** The scan floors `main` holds a census to: exports, consuming workspaces, app files. */
+const FLOORS = { exports: 60, workspaces: 2, scanned: 270 }
 
-  const { verdicts, stale } = judge(exports, reach, direct, stories)
-  for (const v of verdicts) console.error(explain(v).join('\n'))
+/** Judge a census and report; returns the exit code. */
+export function main(
+  read: () => Census = census,
+  {
+    allowed = SINGLE_APP,
+    floors = FLOORS,
+    log = console.log,
+    error = console.error,
+  }: {
+    allowed?: Readonly<Record<string, string>>
+    floors?: typeof FLOORS
+    log?: (line: string) => void
+    error?: (line: string) => void
+  } = {}
+): number {
+  const { exports, reach, direct, stories, workspaces, scanned } = read()
+  assertScanFloor('barrel-consumers (barrel exports)', exports.length, floors.exports)
+  assertScanFloor('barrel-consumers (consuming workspaces)', workspaces.length, floors.workspaces)
+  assertScanFloor('barrel-consumers (app source files)', scanned, floors.scanned)
+
+  const { verdicts, stale } = judge(exports, reach, direct, stories, allowed)
+  for (const v of verdicts) error(explain(v).join('\n'))
   for (const name of stale) {
-    console.error(
+    error(
       `✗ SINGLE_APP lists ${name}, which is no longer a storyless single-app export: remove it.`
     )
   }
-  if (verdicts.length > 0 || stale.length > 0) process.exit(1)
+  if (verdicts.length > 0 || stale.length > 0) return 1
 
   const single = exports.filter((e) => reach.get(e.name)?.size === 1).length
-  console.log(
+  log(
     `✓ barrel consumers: ${exports.length} exports, ${workspaces.length} consuming workspaces (${scanned} files); ${single} single-app, none an app's composition.`
   )
+  return 0
 }
 
-if (import.meta.main) main()
+if (import.meta.main) process.exit(main())

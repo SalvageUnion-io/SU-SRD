@@ -8,12 +8,16 @@ import {
   fileName,
   ITUN_BASE,
   isOwnServer,
+  launchBrowser,
+  main,
   NO_BACKEND,
   parseArgs,
   planShot,
   probe,
+  unknownStory,
   WIDTHS,
 } from '../shot'
+import { fixtureTrees } from './fixtureTree'
 
 /**
  * `tools/shot.ts` — argument parsing and the target → server/path/file plan.
@@ -190,6 +194,43 @@ describe('the dev server', () => {
   )
 
   test(
+    'gives up on a server that never answers, stopping it even when its group cannot be signalled',
+    async () => {
+      const log = quietly()
+      // Every clock read lands 91 s after the last, so the 90 s deadline passes at once.
+      const start = Date.now()
+      let reads = 0
+      const clock = spyOn(Date, 'now').mockImplementation(() => start + 91_000 * reads++)
+      const realKill = process.kill.bind(process)
+      const killed: number[] = []
+      const kill = spyOn(process, 'kill').mockImplementation(((pid: number, signal?: string) => {
+        killed.push(pid)
+        if (pid < 0) throw new Error('ESRCH')
+        return realKill(pid, signal)
+      }) as typeof process.kill)
+      try {
+        const port = closedPort()
+        const server: Server = {
+          name: 'silent',
+          port,
+          cmd: [process.execPath, '-e', 'setTimeout(() => {}, 30_000)'],
+          cwd: CHECKOUT_ROOT,
+        }
+        await expect(ensureServer(server)).rejects.toThrow(
+          `silent did not answer on :${port} within 90s`
+        )
+        // The group signal was tried first and refused; the fallback killed the child itself.
+        expect(killed[0]).toBeLessThan(0)
+      } finally {
+        clock.mockRestore()
+        kill.mockRestore()
+        log.mockRestore()
+      }
+    },
+    { timeout: 30_000 }
+  )
+
+  test(
     'reports a server that exits before it answers, with its stderr',
     async () => {
       const log = quietly()
@@ -209,4 +250,159 @@ describe('the dev server', () => {
     },
     { timeout: 30_000 }
   )
+})
+
+describe('launchBrowser', () => {
+  /** Launches with Playwright's `launch` stubbed, returning the options it was given. */
+  async function launchOptions(own: string, envPath: string | undefined) {
+    const { chromium } = await import('@playwright/test')
+    const executable = spyOn(chromium, 'executablePath').mockReturnValue(own)
+    const launch = spyOn(chromium, 'launch').mockImplementation(
+      (async (options: unknown) => options) as unknown as typeof chromium.launch
+    )
+    const saved = process.env.SHOT_CHROME_PATH
+    if (envPath === undefined) delete process.env.SHOT_CHROME_PATH
+    else process.env.SHOT_CHROME_PATH = envPath
+    try {
+      return (await launchBrowser()) as unknown
+    } finally {
+      if (saved === undefined) delete process.env.SHOT_CHROME_PATH
+      else process.env.SHOT_CHROME_PATH = saved
+      executable.mockRestore()
+      launch.mockRestore()
+    }
+  }
+
+  test("uses Playwright's own Chromium when it is installed", async () => {
+    expect(await launchOptions(process.execPath, undefined)).toEqual({ executablePath: undefined })
+  })
+
+  test('SHOT_CHROME_PATH overrides every other choice', async () => {
+    expect(await launchOptions(process.execPath, '/custom/chrome')).toEqual({
+      executablePath: '/custom/chrome',
+    })
+  })
+})
+
+describe('unknownStory', () => {
+  const listing = 'atoms--button--primary\tAtoms/Button\natoms--button--ghost\tAtoms/Button\n'
+
+  test('a listed id passes', () => {
+    expect(unknownStory('atoms--button--primary', listing)).toBeNull()
+  })
+
+  test('a typo names the stories it was probably meant to be', () => {
+    expect(unknownStory('atom--button--primary', listing)).toBe(
+      '[shot] no story "atom--button--primary". Did you mean:\n  atoms--button--primary'
+    )
+    expect(unknownStory('nothing-like-it', listing)).toBe(
+      '[shot] no story "nothing-like-it". List them: bun run stories:ids [filter]'
+    )
+  })
+})
+
+describe('main', () => {
+  const tree = fixtureTrees('shot-main')
+
+  /** A stand-in browser recording each page call; `status` is what the page answers. */
+  function fakeBrowser(status = 200) {
+    const calls: string[] = []
+    const page = {
+      goto: async (url: string) => {
+        calls.push(`goto ${url}`)
+        return { ok: () => status < 400, status: () => status }
+      },
+      evaluate: async (script: string) => {
+        calls.push(`evaluate ${script.slice(0, 20)}`)
+      },
+      waitForLoadState: async () => {
+        calls.push('settle')
+      },
+      screenshot: async ({ path }: { path: string }) => {
+        calls.push(`screenshot ${path}`)
+      },
+    }
+    const browser = {
+      newPage: async ({ viewport }: { viewport: { width: number } }) => {
+        calls.push(`page ${viewport.width}`)
+        return page
+      },
+      close: async () => {
+        calls.push('close')
+      },
+    }
+    const launch = (async () => browser) as unknown as typeof launchBrowser
+    return { calls, launch }
+  }
+  const run = async (argv: string[], deps: Parameters<typeof main>[1]) => {
+    const out: string[] = []
+    const err: string[] = []
+    const code = await main(argv, {
+      log: (l) => out.push(l),
+      error: (l) => err.push(l),
+      ...deps,
+    })
+    return { code, out, err }
+  }
+
+  test('a bad argument exits 2 before any server starts', async () => {
+    let started = false
+    const r = await run(['/x', '--width', 'huge'], {
+      ensure: async () => {
+        started = true
+        return () => {}
+      },
+    })
+    expect(r.code).toBe(2)
+    expect(r.err).toHaveLength(1)
+    expect(started).toBe(false)
+  })
+
+  test('an unknown story exits 2 before any server starts', async () => {
+    const r = await run(['atoms--nope'], { stories: () => 'atoms--button\tAtoms/Button\n' })
+    expect(r.code).toBe(2)
+    expect(r.err[0]).toStartWith('[shot] no story "atoms--nope"')
+  })
+
+  test('a server that cannot start exits 2 with its reason', async () => {
+    const r = await run(['/x'], {
+      ensure: async () => {
+        throw new Error('srd did not answer on :1 within 90s')
+      },
+    })
+    expect(r).toMatchObject({ code: 2, err: ['[shot] srd did not answer on :1 within 90s'] })
+  })
+
+  test('shoots the route at the width, scrolls lazy art in, prints the file and cleans up', async () => {
+    const out = tree({})
+    const { calls, launch } = fakeBrowser(404)
+    let stopped = 0
+    const r = await run(['/chassis/mule/', '--width', 'phone', '--out', out], {
+      ensure: async () => () => stopped++,
+      launch,
+    })
+    expect(r.code).toBe(0)
+    const file = `${out}/chassis-mule-phone.png`
+    expect(r.out).toEqual([file])
+    const url = `http://localhost:${portFor('srd')}/chassis/mule/`
+    expect(r.err).toEqual([`[shot] warning: ${url} answered 404`])
+    expect(calls[0]).toBe('page 375')
+    expect(calls[1]).toBe(`goto ${url}`)
+    expect(calls).toContain('settle')
+    expect(calls.slice(-2)).toEqual([`screenshot ${file}`, 'close'])
+    expect(stopped).toBe(1)
+  })
+
+  test('a browser that fails still stops the server it started', async () => {
+    let stopped = 0
+    await expect(
+      run(['/x'], {
+        ensure: async () => () => stopped++,
+        launch: (async () => {
+          throw new Error('no chrome')
+        }) as unknown as typeof launchBrowser,
+      })
+    ).rejects.toThrow('no chrome')
+    expect(stopped).toBe(1)
+  })
 })

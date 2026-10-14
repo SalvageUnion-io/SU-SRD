@@ -3,7 +3,7 @@
  * fixture tree; the repo's own state is what `bun run check doc-drift` asserts.
  */
 
-import { afterAll, describe, expect, it } from 'bun:test'
+import { afterAll, describe, expect, it, spyOn } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -19,6 +19,7 @@ import {
   checkTerseShape,
   citationReadsAsHistoryOrProposal,
   headingSlug,
+  main,
   pathCandidate,
   sentenceBounds,
   splitMarkdownBlocks,
@@ -38,6 +39,22 @@ function fixture(files: Record<string, string>): string {
     const full = join(root, relPath)
     mkdirSync(dirname(full), { recursive: true })
     writeFileSync(full, contents)
+  }
+  return root
+}
+
+/** `fixture`, made a git repo with every file but `untracked` staged, for the git-listing defaults. */
+function gitFixture(files: Record<string, string>, untracked: Record<string, string> = {}): string {
+  const root = fixture(files)
+  const git = (...args: string[]) => {
+    const proc = Bun.spawnSync(['git', ...args], { cwd: root, stderr: 'pipe' })
+    if (proc.exitCode !== 0) throw new Error(proc.stderr.toString())
+  }
+  git('init', '--quiet')
+  git('add', '--all')
+  for (const [relPath, contents] of Object.entries(untracked)) {
+    mkdirSync(dirname(join(root, relPath)), { recursive: true })
+    writeFileSync(join(root, relPath), contents)
   }
   return root
 }
@@ -200,6 +217,16 @@ describe('checkBacktickedPathsExist', () => {
     expect(failures).toHaveLength(1)
     expect(failures[0]).toContain('.claude/rules/x.md:1')
     expect(failures[0]).toContain('`.claude/skills/gone/SKILL.md`')
+  })
+
+  it('resolves a bare workflow file name against .github/workflows/', () => {
+    const root = fixture({
+      '.github/workflows/deploy.yml': '',
+      '.claude/rules/x.md': 'Ship through `deploy.yml`; never through `gone.yml`.\n',
+    })
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('cites `gone.yml`, which does not exist')
   })
 
   it('resolves a workspace-relative path under any workspace, with or without src/', () => {
@@ -505,6 +532,26 @@ describe('checkMarkdownLinks', () => {
   })
 })
 
+describe('checkMarkdownLinks over the tracked markdown', () => {
+  it('reads every git-tracked .md by default and skips untracked ones', () => {
+    const root = gitFixture(
+      {
+        'docs/README.md': '[ok](guide.md) [broken](gone.md)\n',
+        'docs/guide.md': '# Guide\n',
+      },
+      { 'scratch/notes.md': '[untracked](nowhere.md)\n' }
+    )
+    expect(checkMarkdownLinks(root).failures).toEqual([
+      expect.stringContaining('docs/README.md:1 links to `gone.md`'),
+    ])
+  })
+
+  it('throws, rather than passing on zero docs, outside a git checkout', () => {
+    const root = fixture({ 'docs/README.md': '[broken](gone.md)\n' })
+    expect(() => checkMarkdownLinks(root)).toThrow(/git ls-files failed/)
+  })
+})
+
 describe('checkAreaCitations', () => {
   const doc = (areas: string): string =>
     ['# Architecture', '', '## Areas', '', areas, '## Decisions', ''].join('\n')
@@ -558,6 +605,23 @@ describe('checkAreaCitations', () => {
     ])
   })
 
+  it('greps the tracked files citing an Area by default, exempting the checker and its tests', () => {
+    const root = gitFixture({
+      'docs/ARCHITECTURE.md': doc('1. **CI** <a id="ci"></a>\n'),
+      'docs/README.md': 'See ARCHITECTURE.md#gone.\n',
+      'notes.txt': 'Nothing to see.\n',
+      'tools/check-doc-drift.ts': '// ARCHITECTURE.md#also-gone is a fixture.\n',
+    })
+    expect(checkAreaCitations(root).failures).toEqual([
+      'docs/README.md:1 cites ARCHITECTURE.md#gone, which is no heading or anchor in docs/ARCHITECTURE.md.',
+    ])
+  })
+
+  it('throws when git grep itself fails, rather than reading it as no matches', () => {
+    const root = fixture({ 'docs/ARCHITECTURE.md': doc('1. **CI** <a id="ci"></a>\n') })
+    expect(() => checkAreaCitations(root)).toThrow(/git grep failed/)
+  })
+
   it('fails a doc with no Areas', () => {
     const root = fixture({ 'docs/ARCHITECTURE.md': doc('') })
     expect(checkAreaCitations(root, []).failures).toEqual([
@@ -582,6 +646,13 @@ describe('checkDecisions', () => {
   const doc = (entries: string): string => `# Architecture\n\n## Decisions\n\n${entries}`
   const entry = (n: number, text: string): string =>
     `${n}. **ADR-${String(n).padStart(3, '0')} Title**\n   ${text}\n`
+
+  it('fails, and stops, when the doc that holds the ADRs is missing', () => {
+    expect(checkDecisions(fixture({}), 2)).toEqual({
+      ok: '',
+      failures: ['docs/ARCHITECTURE.md, which holds the ADRs, does not exist.'],
+    })
+  })
 
   it('passes ADR-001 to the floor, entry N naming ADR-N under ## Decisions', () => {
     const root = fixture({
@@ -730,5 +801,47 @@ describe('checkDocSizes', () => {
     expect(checkDocSizes(root, {}, { 'docs/GONE.md': 1 }).failures).toEqual([
       'COLLAPSED_DOCS names docs/GONE.md, which does not exist. Remove the entry.',
     ])
+  })
+})
+
+describe('main', () => {
+  const pass = (ok: string) => () => ({ ok, failures: [] })
+  const fail =
+    (...failures: string[]) =>
+    () => ({ ok: 'unused', failures })
+  const run = (
+    root: string,
+    checks: Array<(root: string) => { ok: string; failures: string[] }>
+  ) => {
+    const out = spyOn(console, 'log').mockImplementation(() => {})
+    const err = spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const code = main(root, checks)
+      const lines = (spy: typeof out) => spy.mock.calls.map((c) => String(c[0]))
+      return { code, out: lines(out), err: lines(err) }
+    } finally {
+      out.mockRestore()
+      err.mockRestore()
+    }
+  }
+  // The scan floor is 13 live-instruction docs.
+  const docs = Object.fromEntries(
+    Array.from({ length: 13 }, (_, i) => [`.claude/rules/r${i}.md`, `# rule ${i}\n`])
+  )
+
+  it('prints the corpus size and each passing check', () => {
+    const r = run(fixture(docs), [pass('links resolve'), pass('ADRs numbered')])
+    expect(r).toEqual({
+      code: 0,
+      out: ['  (13 live-instruction docs scanned)', '✓ links resolve', '✓ ADRs numbered'],
+      err: [],
+    })
+  })
+
+  it('reports every failure of every check, then the count', () => {
+    const r = run(fixture(docs), [pass('fine'), fail('a.md:1 is stale', 'b.md:2 too'), fail('c')])
+    expect(r.code).toBe(1)
+    expect(r.out).toEqual(['  (13 live-instruction docs scanned)', '✓ fine'])
+    expect(r.err).toEqual(['✗ a.md:1 is stale', '✗ b.md:2 too', '✗ c', '\n3 doc-drift failure(s)'])
   })
 })

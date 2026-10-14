@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runJob, shardTestFiles } from '../run-coverage'
+import { main, runJob, shardTestFiles } from '../run-coverage'
 
 const root = mkdtempSync(join(tmpdir(), 'run-coverage-'))
 afterAll(() => rmSync(root, { recursive: true, force: true }))
@@ -100,5 +100,54 @@ describe('runJob', () => {
       expect(result.ok).toBe(false)
       expect(result.verdict).toStartWith('NO COVERAGE')
     }
+  })
+})
+
+describe('main', () => {
+  for (const path of [
+    'm-pass/a.test.ts',
+    'm-pass/b.test.ts',
+    'm-also/a.test.ts',
+    'm-broken/a.test.ts',
+    'm-broken/STUB_EXIT',
+  ])
+    write(path)
+  const run = async (floors: Record<string, number>) => {
+    const logged: string[] = []
+    const covered: string[][] = []
+    const summaryPath = join(root, `summary-${Object.keys(floors).join('-')}.md`)
+    const code = await main({
+      floors,
+      shards: { 'm-pass': 2 },
+      root,
+      bun,
+      coversWorkspaces: (names) => covered.push(names),
+      summaryPath,
+      log: (t) => logged.push(t),
+    })
+    return { code, logged, covered, summary: readFileSync(summaryPath, 'utf8') }
+  }
+
+  test('runs every workspace, prints each output whole, then an aligned summary', async () => {
+    const r = await run({ 'm-pass': 100, 'm-also': 0 })
+    expect(r.code).toBe(0)
+    expect(r.covered).toEqual([['m-pass', 'm-also']])
+    expect(r.logged.slice(0, 2).sort()).toEqual([
+      expect.stringMatching(/^\n━━━━ m-also: 100\.00% of lines.*\nstub ran everything$/),
+      expect.stringMatching(
+        /^\n━━━━ m-pass: 100\.00% of lines.*── shard 2\/2 ──\nstub ran \.\/b\.test\.ts$/s
+      ),
+    ])
+    const summary = r.logged.at(-1) ?? ''
+    expect(summary).toMatch(
+      /^\n✓ m-pass {2}100\.00% of lines, floor 100%.*\(2 shards\)\n✓ m-also {2}100\.00% of lines/
+    )
+    expect(r.summary).toBe(`## Tests and coverage\n\n\`\`\`\n${summary.slice(1)}\n\`\`\`\n`)
+  })
+
+  test('one workspace under its floor fails the run', async () => {
+    const r = await run({ 'm-also': 0, 'm-broken': 0 })
+    expect(r.code).toBe(1)
+    expect(r.logged.at(-1)).toMatch(/\n✗ m-broken {2}TESTS FAILED \(exit 3\)/)
   })
 })

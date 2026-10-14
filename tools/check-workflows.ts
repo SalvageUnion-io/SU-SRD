@@ -779,7 +779,7 @@ export function loadContext(root: string): WorkflowContext {
   }
 }
 
-function main(argv: readonly string[]): void {
+export function main(argv: string[], load = () => loadContext(join(import.meta.dir, '..'))) {
   const only = argv
     .find((a) => a.startsWith('--only='))
     ?.slice('--only='.length)
@@ -789,9 +789,9 @@ function main(argv: readonly string[]): void {
     console.error(
       `✗ unknown check(s): ${unknown.join(', ')}. Known: ${WORKFLOW_CHECKS.map((c) => c.id).join(', ')}`
     )
-    process.exit(2)
+    return 2
   }
-  const ctx = loadContext(join(import.meta.dir, '..'))
+  const ctx = load()
   let failed = false
   for (const check of WORKFLOW_CHECKS) {
     if (only && !only.includes(check.id)) continue
@@ -804,7 +804,7 @@ function main(argv: readonly string[]): void {
     console.error(`✗ ${check.label}:`)
     for (const f of failures) console.error(`    • ${f}`)
   }
-  if (failed) process.exit(1)
+  return failed ? 1 : 0
 }
 
-if (import.meta.main) main(process.argv.slice(2))
+if (import.meta.main) process.exit(main(process.argv.slice(2)))

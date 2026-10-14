@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { decideSurfaces, planDeploy, SURFACES } from '../deploy-surfaces'
+import { decideSurfaces, main, planDeploy, SURFACES } from '../deploy-surfaces'
 
 const EVERYTHING = { assets: true, srd: true, itun: true, bot: true }
 const NOTHING = { assets: false, srd: false, itun: false, bot: false }
@@ -172,24 +172,22 @@ describe('deploy-surfaces — script against a real git history', () => {
     `${b}:refs/tags/deployed/cloudflare`
   )
 
-  const decide = (sha: string, ...flags: string[]) => {
+  /** Run the decision in-process at `sha`; returns `$GITHUB_OUTPUT` and what it logged. */
+  const decideLogged = (sha: string, ...flags: string[]) => {
     git(work, 'checkout', '--quiet', '--detach', sha)
     const out = join(root, `out-${sha}-${flags.join('')}`)
     writeFileSync(out, '')
-    const proc = Bun.spawnSync(['bun', SCRIPT, ...flags], {
-      cwd: work,
-      stdout: 'pipe',
-      stderr: 'pipe',
-      env: { ...cleanEnv, GITHUB_OUTPUT: out },
-    })
-    expect(proc.exitCode).toBe(0)
-    return Object.fromEntries(
+    const lines: string[] = []
+    main(flags, { cwd: work, env: { ...cleanEnv, GITHUB_OUTPUT: out } }, (l) => lines.push(l))
+    const output = Object.fromEntries(
       readFileSync(out, 'utf8')
         .trim()
         .split('\n')
         .map((line) => line.split('='))
     )
+    return { output, lines }
   }
+  const decide = (sha: string, ...flags: string[]) => decideLogged(sha, ...flags).output
 
   test('an older commit finishing CI after the recorded deploy is stale', () => {
     expect(decide(a)).toEqual({ stale: 'true', deploy: '[]' })
@@ -208,5 +206,46 @@ describe('deploy-surfaces — script against a real git history', () => {
     git(work, 'checkout', '--quiet', '--detach', b)
     const c = commit('apps/srd/page.tsx')
     expect(decide(c)).toEqual({ stale: 'false', deploy: '["srd"]' })
+  })
+  test('says why it ships what it ships', () => {
+    const stale = decideLogged(a).lines
+    expect(stale[0]).toBe(`last recorded deploy: ${b}`)
+    expect(stale[1]).toContain(`HEAD is older than the recorded deploy ${b}`)
+    expect(stale.slice(2)).toEqual([
+      '  skip   su-assets',
+      '  skip   srd',
+      '  skip   itun',
+      '  skip   discord-bot',
+    ])
+    expect(decideLogged(b, '--force-all').lines.slice(1)).toEqual([
+      'force_all — deploying every surface',
+      '  deploy su-assets',
+      '  deploy srd',
+      '  deploy itun',
+      '  deploy discord-bot',
+    ])
+  })
+
+  test('with no record to fetch it deploys everything', () => {
+    const lonely = join(root, 'lonely')
+    git(root, 'init', '--quiet', lonely)
+    const lines: string[] = []
+    main([], { cwd: lonely, env: cleanEnv }, (l) => lines.push(l))
+    expect(lines[0]).toBe('no usable deployed/cloudflare record — deploying every surface')
+    expect(lines).toHaveLength(5)
+  })
+
+  test('the CLI entry runs the same decision and writes $GITHUB_OUTPUT', () => {
+    git(work, 'checkout', '--quiet', '--detach', b)
+    const out = join(root, 'out-cli')
+    writeFileSync(out, '')
+    const proc = Bun.spawnSync(['bun', SCRIPT], {
+      cwd: work,
+      stdout: 'pipe',
+      stderr: 'pipe',
+      env: { ...cleanEnv, GITHUB_OUTPUT: out },
+    })
+    expect(proc.exitCode).toBe(0)
+    expect(readFileSync(out, 'utf8')).toBe('stale=false\ndeploy=[]\n')
   })
 })

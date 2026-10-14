@@ -414,57 +414,82 @@ export function formatTable(results: readonly CheckResult[]): string {
   return [...rows, '', `  ${summary}`].join('\n')
 }
 
-async function main(argv: readonly string[]): Promise<number> {
+/** What `main` runs and prints through; the defaults are the repo's. */
+export type MainOptions = {
+  registry?: readonly CheckSpec[]
+  root?: string
+  /** The command that brings the reference package's generated files current. */
+  generate?: string[]
+  /** True in GitHub Actions: failures also print as annotations and groups. */
+  ci?: boolean
+  log?: (line: string) => void
+  error?: (line: string) => void
+  /** Raw output of a failed `generate`. */
+  stderr?: (chunk: Uint8Array) => void
+}
+
+/** Run the selected checks; returns the exit code (2 for a usage error). */
+export async function main(
+  argv: readonly string[],
+  {
+    registry = CHECKS,
+    root = join(import.meta.dir, '..'),
+    generate = [join(import.meta.dir, 'node_modules/.bin/su-ref-generate')],
+    ci = process.env.GITHUB_ACTIONS === 'true',
+    log = console.log,
+    error = console.error,
+    stderr = (chunk) => process.stderr.write(chunk),
+  }: MainOptions = {}
+): Promise<number> {
   let opts: Options
   try {
     opts = parseArgs(argv)
-  } catch (error) {
-    if (!(error instanceof UsageError)) throw error
-    console.error(`✗ ${error.message}`)
+  } catch (caught) {
+    if (!(caught instanceof UsageError)) throw caught
+    error(`✗ ${caught.message}`)
     return 2
   }
   if (opts.list) {
-    const width = Math.max(...CHECKS.map((c) => c.id.length))
-    for (const c of CHECKS) {
-      console.log(`${c.id.padEnd(width)}  [${c.profiles.join(' ')}]  ${c.guards}`)
-      console.log(`${' '.repeat(width)}  cmd: ${c.cmd.join(' ')}`)
-      console.log(`${' '.repeat(width)}  fix: ${c.fix}`)
+    const width = Math.max(...registry.map((c) => c.id.length))
+    for (const c of registry) {
+      log(`${c.id.padEnd(width)}  [${c.profiles.join(' ')}]  ${c.guards}`)
+      log(`${' '.repeat(width)}  cmd: ${c.cmd.join(' ')}`)
+      log(`${' '.repeat(width)}  fix: ${c.fix}`)
     }
     return 0
   }
-  const specs = selectChecks(CHECKS, opts)
+  const specs = selectChecks(registry, opts)
   if (specs.length === 0) {
-    console.error('✗ no checks selected')
+    error('✗ no checks selected')
     return 2
   }
   const label = opts.ids.length > 0 ? opts.ids.join(' ') : `profile ${opts.profile}`
   const areas = opts.areas === null ? '' : ` (areas: ${opts.areas.join(', ') || 'none'})`
-  console.log(`Running ${specs.length} check(s) — ${label}${areas}`)
+  log(`Running ${specs.length} check(s) — ${label}${areas}`)
 
   // The reference package's generated files are gitignored build output that
   // half the checks read. Bring them current once, here, rather than letting
   // parallel checks race to do it, through the package's `su-ref-generate` bin
   // (this workspace declares the package, so bun links the bin here).
-  const generate = Bun.spawnSync([join(import.meta.dir, 'node_modules/.bin/su-ref-generate')])
-  if (generate.exitCode !== 0) {
-    process.stderr.write(generate.stdout)
-    process.stderr.write(generate.stderr)
-    console.error('✗ su-ref-generate failed: the checks read lib/generated/ and schemas/')
+  const generated = Bun.spawnSync(generate)
+  if (generated.exitCode !== 0) {
+    stderr(generated.stdout)
+    stderr(generated.stderr)
+    error('✗ su-ref-generate failed: the checks read lib/generated/ and schemas/')
     return 1
   }
 
   // Nothing streams on success: the table at the end is the whole report.
-  const ci = process.env.GITHUB_ACTIONS === 'true'
   const results = await runChecks(specs, {
-    root: join(import.meta.dir, '..'),
+    root,
     jobs: opts.jobs,
     onDone: (r) => {
       if (r.code !== 0 || !r.output) return
-      if (opts.verbose) console.log(`${r.id}:\n${indent(r.output)}`)
+      if (opts.verbose) log(`${r.id}:\n${indent(r.output)}`)
       if (ci) {
-        console.log(`::group::${r.id} output`)
-        console.log(r.output)
-        console.log('::endgroup::')
+        log(`::group::${r.id} output`)
+        log(r.output)
+        log('::endgroup::')
       }
     },
   })
@@ -472,10 +497,10 @@ async function main(argv: readonly string[]): Promise<number> {
   const fixOf = new Map(specs.map((s) => [s.id, s.fix]))
   for (const r of results.filter((x) => x.code !== 0)) {
     const fix = fixOf.get(r.id) ?? ''
-    if (ci) console.log(`::error title=check ${r.id} failed::${fix}`)
-    console.log(`\n${formatFailure(r, fix)}`)
+    if (ci) log(`::error title=check ${r.id} failed::${fix}`)
+    log(`\n${formatFailure(r, fix)}`)
   }
-  console.log(`\n${formatTable(results)}`)
+  log(`\n${formatTable(results)}`)
   return results.every((r) => r.code === 0) ? 0 : 1
 }
 

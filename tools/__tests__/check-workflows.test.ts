@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, spyOn, test } from 'bun:test'
 import { join } from 'node:path'
 import type { WorkflowContext, WorkflowFile } from '../check-workflows'
 import {
@@ -9,6 +9,7 @@ import {
   checkSecretsEnv,
   GUARD_STEP,
   loadContext,
+  main,
   runnerCalls,
   toolIsPinned,
   WORKFLOW_CHECKS,
@@ -315,6 +316,40 @@ describe('path-filters', () => {
     c.manifests.set('apps/new-app/package.json', { name: 'new-app' })
     expect(checkPathFilters(c).failures.join('\n')).toContain('apps/new-app has no filter group')
   })
+
+  test('a ci.yml whose paths-filter step moved or is not a mapping trips the scan floor', () => {
+    const noStep = CI_TEXT.replace(/ {6}- uses: dorny\/paths-filter@[\s\S]*?(?= {2}build:)/, '')
+    expect(checkPathFilters(ctx({ ci: noStep })).failures[0]).toBe(
+      'parsed 0 filter group(s) from .github/workflows/ci.yml; expected at least 4 — the block moved.'
+    )
+    const listed = CI_TEXT.replace(
+      /filters: \|\n[\s\S]*?(?= {2}build:)/,
+      "filters: |\n            - 'apps/**'\n"
+    )
+    expect(checkPathFilters(ctx({ ci: listed })).failures[0]).toContain('parsed 0 filter group(s)')
+  })
+
+  test('an app mapped to a group ci.yml does not define fails, naming the group', () => {
+    const c = ctx({})
+    c.manifests.set('apps/su-assets/package.json', {
+      name: 'su-assets',
+      dependencies: { ref: 'workspace:*' },
+    })
+    expect(checkPathFilters(c).failures).toContain(
+      'apps/su-assets maps to filter group `assets`, which .github/workflows/ci.yml does not define.'
+    )
+  })
+
+  test('a workspace: dependency no workspace declares fails rather than passing as covered', () => {
+    const c = ctx({})
+    c.manifests.set('apps/discord-bot/package.json', {
+      name: 'discord-bot',
+      dependencies: { ref: 'workspace:*', ghost: 'workspace:*', zod: '4.0.0' },
+    })
+    expect(checkPathFilters(c).failures).toContain(
+      'apps/discord-bot depends on workspace `ghost`, which no workspace declares.'
+    )
+  })
 })
 
 describe('pinning', () => {
@@ -363,6 +398,14 @@ describe('pinning', () => {
       yaml('.github/workflows/r.yml', 'jobs:\n  a:\n    steps:\n      - run: bunx auth init\n')
     )
     expect(checkPinning(c).failures[0]).toContain('bunx auth')
+  })
+
+  test('scanning fewer than five workflow files fails the scan floor', () => {
+    const c = ctx({})
+    c.files.splice(2)
+    expect(checkPinning(c).failures).toEqual([
+      'only 2 workflow file(s) scanned — expected at least 5.',
+    ])
   })
 
   test('runnerCalls ignores shell comments and sees npx and bun x', () => {
@@ -719,5 +762,44 @@ describe('secrets-env', () => {
         ),
       ])
     })
+  })
+})
+
+describe('main', () => {
+  const run = (argv: string[], c: WorkflowContext = ctx({})) => {
+    const out = spyOn(console, 'log').mockImplementation(() => {})
+    const err = spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const code = main(argv, () => c)
+      const lines = (spy: typeof out) => spy.mock.calls.map((call) => String(call[0]))
+      return { code, out: lines(out), err: lines(err) }
+    } finally {
+      out.mockRestore()
+      err.mockRestore()
+    }
+  }
+
+  test('an unknown --only id exits 2, listing the known ones', () => {
+    const r = run(['--only=pinning,bogus'])
+    expect(r.code).toBe(2)
+    expect(r.err[0]).toStartWith('✗ unknown check(s): bogus. Known: aggregator, ')
+  })
+
+  test('--only runs just those checks and passes when they do', () => {
+    const r = run(['--only=aggregator'])
+    expect(r).toEqual({
+      code: 0,
+      out: [expect.stringMatching(/^✓ .*: `quality-checks` gates all 2 jobs/)],
+      err: [],
+    })
+  })
+
+  test('every failure is listed under its check, and the run fails', () => {
+    const r = run(['--only=aggregator,path-filters'])
+    expect(r.code).toBe(1)
+    expect(r.out).toHaveLength(1)
+    expect(r.err[0]).toMatch(/^✗ .*:$/)
+    expect(r.err.slice(1).every((l) => l.startsWith('    • '))).toBe(true)
+    expect(r.err.join('\n')).toContain('apps/itun depends on `lib`')
   })
 })

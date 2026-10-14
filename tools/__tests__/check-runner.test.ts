@@ -5,6 +5,7 @@ import {
   CHECKS,
   formatFailure,
   formatTable,
+  main,
   parseArgs,
   runChecks,
   selectChecks,
@@ -75,6 +76,15 @@ describe('selection', () => {
   test('positional ids override the profile; --skip removes', () => {
     expect(ids(['audit', 'styling'])).toEqual(['styling', 'audit'])
     expect(ids(['--skip=test,audit'])).not.toContain('test')
+  })
+
+  test('--jobs caps the parallelism, and --list / --verbose are switches', () => {
+    expect(parseArgs(['--jobs=3', '--list', '--verbose'])).toMatchObject({
+      jobs: 3,
+      list: true,
+      verbose: true,
+    })
+    expect(() => parseArgs(['--jobs=1.5'])).toThrow('--jobs needs a positive integer, got "1.5"')
   })
 
   test('unknown ids, profiles, areas and flags are usage errors', () => {
@@ -163,5 +173,104 @@ describe('runChecks', () => {
       ['ok', 0],
     ])
     expect(results[0]?.output).toContain('could not spawn')
+  })
+})
+
+describe('main', () => {
+  const sh = (script: string) => ['sh', '-c', script]
+  const spec = (id: string, cmd: string[], over: Partial<CheckSpec> = {}): CheckSpec => ({
+    id,
+    guards: `${id} guards`,
+    fix: `fix ${id}`,
+    cmd,
+    profiles: ['fast'],
+    ...over,
+  })
+  const REGISTRY = [
+    spec('quiet', sh('exit 0')),
+    spec('chatty', sh('echo found it; exit 0')),
+    spec('broken', sh('echo bad line >&2; exit 3')),
+    spec('slow-only', sh('exit 0'), { profiles: ['full'] }),
+  ]
+  const run = async (argv: string[], over: Parameters<typeof main>[1] = {}) => {
+    const out: string[] = []
+    const err: string[] = []
+    const raw: string[] = []
+    const code = await main(argv, {
+      registry: REGISTRY,
+      root: '.',
+      generate: ['true'],
+      ci: false,
+      log: (l) => out.push(l),
+      error: (l) => err.push(l),
+      stderr: (chunk) => raw.push(new TextDecoder().decode(chunk)),
+      ...over,
+    })
+    return { code, out: out.join('\n'), err, raw: raw.join('') }
+  }
+  const time = (text: string) => text.replace(/\d+\.\ds/g, 'N.Ns')
+
+  test('a usage error exits 2 before running anything', async () => {
+    expect(await run(['--frobnicate'])).toMatchObject({
+      code: 2,
+      err: ['✗ unknown flag --frobnicate'],
+    })
+  })
+
+  test('--list prints every check with its profiles, command and fix', async () => {
+    const r = await run(['--list'])
+    expect(r.code).toBe(0)
+    expect(r.out.split('\n').slice(0, 3)).toEqual([
+      'quiet      [fast]  quiet guards',
+      '           cmd: sh -c exit 0',
+      '           fix: fix quiet',
+    ])
+  })
+
+  test('a selection with no checks exits 2', async () => {
+    const r = await run(['--fast'], { registry: [REGISTRY[3] as CheckSpec] })
+    expect(r).toMatchObject({ code: 2, err: ['✗ no checks selected'] })
+  })
+
+  test('runs the profile, reports each failure with its fix, then the table', async () => {
+    const r = await run(['--fast', '--areas=code'])
+    expect(r.code).toBe(1)
+    expect(time(r.out)).toBe(
+      [
+        'Running 3 check(s) — profile fast (areas: code)',
+        '',
+        '━━━ broken failed (exit 3) ━━━',
+        'fix: fix broken',
+        '',
+        'bad line',
+        '',
+        '  ✓ quiet     N.Ns',
+        '  ✓ chatty    N.Ns',
+        '  ✗ broken    N.Ns',
+        '',
+        '  1 of 3 FAILED',
+      ].join('\n')
+    )
+  })
+
+  test('--verbose and CI print passing output; CI annotates each failure', async () => {
+    const r = await run(['--fast', '--verbose'], { ci: true })
+    expect(r.out).toContain('chatty:\n    found it')
+    expect(r.out).toContain('::group::chatty output\nfound it\n::endgroup::')
+    expect(r.out).toContain('::error title=check broken failed::fix broken')
+  })
+
+  test('all passing exits 0', async () => {
+    const r = await run(['--fast'], { registry: REGISTRY.slice(0, 2) })
+    expect(r.code).toBe(0)
+    expect(r.out.endsWith('  all 2 passed')).toBe(true)
+  })
+
+  test('a failed generate step stops the run before any check, printing its output', async () => {
+    const r = await run(['--fast'], { generate: sh('echo gen out; echo gen err >&2; exit 1') })
+    expect(r.code).toBe(1)
+    expect(r.raw).toBe('gen out\ngen err\n')
+    expect(r.err).toEqual(['✗ su-ref-generate failed: the checks read lib/generated/ and schemas/'])
+    expect(r.out).toBe('Running 3 check(s) — profile fast')
   })
 })

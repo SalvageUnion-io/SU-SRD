@@ -58,17 +58,18 @@ import { join, relative } from 'node:path'
 import { walk } from 'gates/lib/walk'
 
 const ROOT = join(import.meta.dir, '..')
-const CONVEX_DIR = join(ROOT, 'apps/itun/convex')
-const API_PATH = join(CONVEX_DIR, '_generated/api.d.ts')
+
+/** The deployment's modules, under the repo root. */
+const convexDir = (root: string) => join(root, 'apps/itun/convex')
 
 /**
  * Where callers live: the ITUN client's non-test sources. The bot reaches
  * Convex over HTTP (`botHttp.ts`), never through `api`.
  */
-const CALLER_DIRS = [join(ROOT, 'apps/itun/src')]
+const callerDirs = (root: string) => [join(root, 'apps/itun/src')]
 
 /** Where internal functions' callers live: the client and the deployment itself. */
-const INTERNAL_CALLER_DIRS = [...CALLER_DIRS, CONVEX_DIR]
+const internalCallerDirs = (root: string) => [...callerDirs(root), convexDir(root)]
 
 /** Modules whose exports are not ordinary builder calls. See the header. */
 const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])
@@ -192,7 +193,9 @@ function isTest(path: string): boolean {
   return /[\\/]__tests__[\\/]/.test(path) || /\.test\.tsx?$/.test(path)
 }
 
-function main(): void {
+/** Run the gate over the repo at `root`; returns the exit code. */
+export function main(root = ROOT, log = console.log, error = console.error): number {
+  const CONVEX_DIR = convexDir(root)
   const defined: string[] = []
   const definedInternal: string[] = []
   const modules = walk(CONVEX_DIR, (p) => p.endsWith('.ts') && !p.endsWith('.d.ts'), SKIP_DIRS)
@@ -223,14 +226,14 @@ function main(): void {
   }
 
   const referenced = new Set<string>()
-  for (const dir of CALLER_DIRS) {
+  for (const dir of callerDirs(root)) {
     for (const file of walk(dir, (p) => /\.tsx?$/.test(p) && !isTest(p), SKIP_DIRS)) {
       for (const ref of referencesIn(readFileSync(file, 'utf-8'))) referenced.add(ref)
     }
   }
 
   const referencedInternal = new Set<string>()
-  for (const dir of INTERNAL_CALLER_DIRS) {
+  for (const dir of internalCallerDirs(root)) {
     for (const file of walk(dir, (p) => /\.tsx?$/.test(p) && !isTest(p), SKIP_DIRS)) {
       for (const ref of internalReferencesIn(readFileSync(file, 'utf-8'))) {
         referencedInternal.add(ref)
@@ -240,46 +243,50 @@ function main(): void {
 
   const missing = uncalled(defined, referenced)
   const missingInternal = uncalled(definedInternal, referencedInternal)
-  const drift = codegenDrift(onDisk, registeredModules(readFileSync(API_PATH, 'utf-8')))
+  const drift = codegenDrift(
+    onDisk,
+    registeredModules(readFileSync(join(CONVEX_DIR, '_generated/api.d.ts'), 'utf-8'))
+  )
   const drifted = drift.missing.length > 0 || drift.extra.length > 0
 
   if (missing.length > 0 || missingInternal.length > 0 || drifted) {
     if (drifted) {
-      console.error('✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.')
+      error('✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.')
       for (const m of drift.missing) {
-        console.error(`    convex/${m}.ts exists on disk but is NOT registered in api.d.ts`)
+        error(`    convex/${m}.ts exists on disk but is NOT registered in api.d.ts`)
       }
       for (const m of drift.extra) {
-        console.error(`    api.d.ts registers convex/${m}.ts, which no longer exists`)
+        error(`    api.d.ts registers convex/${m}.ts, which no longer exists`)
       }
-      console.error(
+      error(
         '  → Regenerate with `bunx convex dev` (needs a CONVEX_DEPLOYMENT); never hand-edit\n' +
           '    convex/_generated/.'
       )
     }
     if (missing.length > 0) {
-      console.error('✗ Public Convex functions with no caller in the client:')
-      for (const fn of missing) console.error(`    ${fn.replace(':', '.')}`)
-      console.error(
+      error('✗ Public Convex functions with no caller in the client:')
+      for (const fn of missing) error(`    ${fn.replace(':', '.')}`)
+      error(
         '  → Delete it, make it internal, or call it. A public function nobody calls is\n' +
           '    reachable surface that nothing exercises.'
       )
     }
     if (missingInternal.length > 0) {
-      console.error('✗ Internal Convex functions nothing calls:')
-      for (const fn of missingInternal) console.error(`    ${fn.replace(':', '.')}`)
-      console.error(
+      error('✗ Internal Convex functions nothing calls:')
+      for (const fn of missingInternal) error(`    ${fn.replace(':', '.')}`)
+      error(
         '  → Delete it, or tag its doc comment `@operator` if it is a one-off run by hand\n' +
           '    from the dashboard (and delete it once it has run).'
       )
     }
-    process.exit(1)
+    return 1
   }
 
-  console.log(
+  log(
     `✓ Convex callers: all ${defined.length} public functions have a caller, ` +
       `all ${definedInternal.length} internal functions are called, and api.d.ts registers all ${onDisk.size} modules.`
   )
+  return 0
 }
 
-if (import.meta.main) main()
+if (import.meta.main) process.exit(main())
