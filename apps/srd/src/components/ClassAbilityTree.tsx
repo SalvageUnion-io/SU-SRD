@@ -1,9 +1,9 @@
 import { ActivationCost, Badge, Slab, Stat } from 'component-lib'
-import { Fragment, useMemo } from 'react'
+import { useMemo } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/classPaths'
-import { resolveClassPlan, treeOwner } from '../lib/classPaths'
+import { resolveClassPlan } from '../lib/classPaths'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
 import type { TreeTrack } from './AbilityTrack'
@@ -158,49 +158,25 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   )
 }
 
-/** "or" between the trees that open a path, a quiet caps label like a lone-label badge. */
-function Or({ children = 'or' }: { children?: string }) {
+/** "Engineer only" by the requirement, a quiet caps label like a lone-label badge. */
+function Or({ children }: { children: string }) {
   return <span className="srd-class-path__or">{children}</span>
 }
 
 /**
- * What opens a path, as value cells: the class's own path names its tree and
- * that only this class walks it ("REQ | MECH-TECH · ENGINEER ONLY"); a hybrid
- * names the tree this class trains first, then each other tree that also
- * opens it under the class that owns it, that class's cell in paper so it
- * reads at a glance on the pilot band ("REQ | FORGING or HACKER | ELECTRONICS").
+ * What opens a path, as one chip: the trees any one of which opens it
+ * ("REQ | FORGING or ELECTRONICS"), the tree this class trains first leading.
+ * The class's own path adds that only this class walks it ("ENGINEER ONLY").
  */
 function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
-  if (!path.hybrid || !path.via) {
-    return (
-      <span className="srd-class-path__req">
-        <Stat
-          orientation="horizontal"
-          label="REQ"
-          value={path.requirement.join(' or ')}
-          size="compact"
-        />
-        <Or>{`${classEntity.name} only`}</Or>
-      </span>
-    )
-  }
-  const others = path.requirement.filter((tree) => tree !== path.via)
+  const own = !path.hybrid || !path.via
+  const trees = own
+    ? path.requirement
+    : [path.via, ...path.requirement.filter((tree) => tree !== path.via)]
   return (
     <span className="srd-class-path__req">
-      <Stat orientation="horizontal" label="REQ" value={path.via} size="compact" />
-      {others.map((tree) => (
-        <Fragment key={tree}>
-          <Or />
-          <Stat
-            orientation="horizontal"
-            label={treeOwner(tree)?.name ?? 'Tree'}
-            value={tree}
-            size="compact"
-            bgColor="var(--color-paper)"
-            textColor="var(--color-ink)"
-          />
-        </Fragment>
-      ))}
+      <Stat orientation="horizontal" label="REQ" value={trees.join(' or ')} size="compact" />
+      {own && <Or>{`${classEntity.name} only`}</Or>}
     </span>
   )
 }

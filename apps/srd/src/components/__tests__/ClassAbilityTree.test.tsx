@@ -109,6 +109,18 @@ describe('ClassAbilityTree advancement paths', () => {
     )
   })
 
+  test('a Hybrid Class’s requirement is one chip naming its trees, no owning class', () => {
+    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const hybrids = [...document.querySelectorAll('.srd-class-path[data-kind="hybrid"]')]
+    expect(hybrids.length).toBeGreaterThan(0)
+    for (const hybrid of hybrids) {
+      const req = hybrid.querySelector('.srd-class-path__req')
+      expect(req?.childElementCount).toBe(1)
+      expect(req?.textContent).toMatch(/^REQ.+ or .+$/)
+      expect(req?.textContent).not.toMatch(/Hacker|Soldier|Scout|Engineer/)
+    }
+  })
+
   test('the class’s own path sits beside its Core trees; each Hybrid Class runs below', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const split = document.querySelector('.srd-ability-tree__split')

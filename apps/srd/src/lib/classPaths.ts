@@ -71,7 +71,7 @@ function pathFor(
 }
 
 /** The Core class that owns a tree: one that advances, so never the Salvager. */
-export function treeOwner(tree: string): SURefClass | undefined {
+function treeOwner(tree: string): SURefClass | undefined {
   return SalvageUnionReference.Classes.all().find((c) => {
     if (!isCoreClass(c) || !c.advanceable) return false
     const trees: readonly string[] = c.coreTrees
