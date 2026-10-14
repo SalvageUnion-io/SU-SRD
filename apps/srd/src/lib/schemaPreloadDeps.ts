@@ -49,7 +49,7 @@
  *   CONTENT_BUNDLE schema the same shared list rather than a bespoke
  *   per-schema subset.
  * - CHASSIS_BUNDLE — `chassis` patterns embed systems/modules *by name*
- *   (useChassisPatternConfig -> `SalvageUnionReference.Systems.find` /
+ *   (the pattern loadout -> `SalvageUnionReference.Systems.find` /
  *   `.Modules.find`, both LazyModel access) — needs those two schemas
  *   (themselves CONTENT_BUNDLE members, so also need `actions`). A chassis
  *   ability can also carry a `.drone` reference, resolved via

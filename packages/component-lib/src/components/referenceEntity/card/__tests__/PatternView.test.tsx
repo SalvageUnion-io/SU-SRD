@@ -29,7 +29,6 @@ import {
   EntityHrefProvider,
   PatternHrefProvider,
 } from '../../entityHrefContext'
-import { useChassisPatternConfig } from '../../pattern/useChassisPatternConfig'
 import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -151,16 +150,13 @@ describe('the chassis ability shows only on a page', () => {
 
   /** The builder's pattern pick card, as `MechChassisStep` renders it. */
   function PatternPick({ showChassisAbility }: { showChassisAbility?: boolean }) {
-    const { name, systems, modules } = hauler()
-    const config = useChassisPatternConfig(mule(), { name, systems, modules }, true, {
-      showChassisAbility,
-    })
     return (
       <ReferenceEntityCard
         data={mule()}
+        pattern={hauler()}
         size="medium"
         hide={{ actions: true, choices: true }}
-        {...(config ?? {})}
+        showChassisAbility={showChassisAbility}
       />
     )
   }
@@ -170,7 +166,7 @@ describe('the chassis ability shows only on a page', () => {
     expect(abilityCount(container)).toBe(1)
   })
 
-  test('a pattern config card without the opt-in does not show it', () => {
+  test('a pattern card without the opt-in does not show it', () => {
     const { container } = render(<PatternPick />)
     expect(abilityCount(container)).toBe(0)
   })

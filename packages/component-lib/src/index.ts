@@ -192,7 +192,6 @@ export {
 // Entity controls: the live presets (navigateControl, foldControl).
 export { foldControl } from './components/referenceEntity/foldControl'
 export { quotePatternName } from './components/referenceEntity/pattern/quotePatternName'
-export { useChassisPatternConfig } from './components/referenceEntity/pattern/useChassisPatternConfig'
 export { navigateControl } from './components/referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
 export { useDetailModal } from './components/referenceEntity/useDetailModal'

@@ -1,11 +1,4 @@
-import {
-  MasonryColumns,
-  ReferenceEntityCard,
-  Sel,
-  Slab,
-  tokens,
-  useChassisPatternConfig,
-} from 'component-lib'
+import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import type { SURefChassis } from 'salvageunion-reference'
@@ -74,11 +67,10 @@ type MechChassisStepProps = {
 }
 
 /**
- * One pattern option as the SRD pattern reference card (the universal
- * entity-card rule): the chassis entity rendered through
- * `useChassisPatternConfig`, which supplies the quoted pattern title and the
- * stored-flag `LEGAL STARTING PATTERN` badge. A component (not an inline
- * map) because the config is a hook.
+ * One pattern option as the pattern reference card (the universal entity-card
+ * rule): the chassis rendered in its PATTERN view, as everywhere else a
+ * pattern is drawn — the quoted pattern title, the `Legal Starting Pattern`
+ * label and the loadout as Tokens.
  */
 function PatternSelCard({
   chassis,
@@ -91,23 +83,18 @@ function PatternSelCard({
   selected: boolean
   onToggle: () => void
 }) {
-  const config = useChassisPatternConfig(
-    chassis,
-    { name: pattern.name, systems: pattern.systems, modules: pattern.modules },
-    true,
-    // Choosing a pattern needs its chassis ability (E19's builder exception).
-    { showChassisAbility: true }
-  )
   return (
     <ReferenceEntityCard
       data={chassis}
+      pattern={pattern}
       size="medium"
       selected={selected}
       selectionRole="radio"
       cardClickLabel={`${pattern.name} pattern`}
       onCardClick={onToggle}
       hide={{ actions: true, choices: true }}
-      {...(config ?? {})}
+      // Choosing a pattern needs its chassis ability (E19's builder exception).
+      showChassisAbility
     />
   )
 }

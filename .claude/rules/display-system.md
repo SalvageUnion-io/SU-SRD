@@ -58,7 +58,7 @@ listed here.
 
 ```tsx
 // Good: a hook computes generic overrides, the consumer spreads them
-const config = useChassisPatternConfig(data, pattern)
+const config = useClassTreeConfig(data)
 <ReferenceEntityCard data={data} {...config} />
 ```
 

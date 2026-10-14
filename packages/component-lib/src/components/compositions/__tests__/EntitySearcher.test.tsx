@@ -48,7 +48,7 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
       )
       const entry = screen.getByTestId('rail-entry')
       expect(within(entry).getByText(eq.name)).toBeTruthy()
-      expect(screen.getByText(/Equipped ✓/)).toBeTruthy()
+      expect(screen.getByText('Equipped', { selector: '.su-badge-stamp' })).toBeTruthy()
     },
     POOL_RENDER_MS
   )

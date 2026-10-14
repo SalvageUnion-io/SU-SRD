@@ -1,7 +1,7 @@
 /**
  * `useDetailModal` is the one place that decides what "View details" DOES: open
- * the in-place `EntityDetailDialog`, or navigate to the entity's show page in a
- * new tab. Two apps depend on opposite answers — srd sets link mode (its
+ * the in-place `EntityDetailDialog`, or navigate to the entity's show page in
+ * this tab (EDL E5: never a new-tab `window.open`). Two apps depend on opposite answers — srd sets link mode (its
  * entities have real URLs), ITUN leaves it off (its href would deep-link out of
  * the app) — and `forceModal` overrides link mode for views with no standalone
  * URL (chassis patterns). Nothing about that routing is visible to typecheck,
@@ -13,7 +13,6 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
 import { EntityDetailLinkProvider, EntityHrefProvider } from '../entityHrefContext'
-import { PatternEquipmentItem } from '../pattern/PatternEquipmentItem'
 import { useDetailModal } from '../useDetailModal'
 
 const system = (name: string): SURefEntity => {
@@ -37,13 +36,13 @@ function Harness({ data, forceModal }: { data: SURefEntity | undefined; forceMod
   )
 }
 
-/** Captured before any test can swap it. Link-mode tests stub `window.open` to
- *  observe the navigation; restoring in an `afterEach` rather than at the end of
- *  each test body means a failing assertion cannot leak the stub into every
- *  later test in the process. */
-const REAL_WINDOW_OPEN = window.open
+/** Captured before any test can swap it. Link-mode tests stub
+ *  `location.assign` to observe the navigation; restoring in an `afterEach`
+ *  rather than at the end of each test body means a failing assertion cannot
+ *  leak the stub into every later test in the process. */
+const REAL_ASSIGN = window.location.assign
 afterEach(() => {
-  window.open = REAL_WINDOW_OPEN
+  window.location.assign = REAL_ASSIGN
 })
 
 describe('useDetailModal — modal mode (no link provider)', () => {
@@ -88,11 +87,9 @@ describe('useDetailModal — modal mode (no link provider)', () => {
 
 describe('useDetailModal — link mode (srd)', () => {
   const renderLinked = (opts: { forceModal?: boolean; noHref?: boolean } = {}) => {
-    const opened: Array<[string?, string?, string?]> = []
-    // biome-ignore lint/suspicious/noExplicitAny: test double for window.open
-    ;(window as any).open = (...args: [string?, string?, string?]) => {
-      opened.push(args)
-      return null
+    const opened: string[] = []
+    window.location.assign = (url: string | URL) => {
+      opened.push(String(url))
     }
     const result = render(
       <EntityHrefProvider value={() => (opts.noHref ? undefined : '/systems/red-laser')}>
@@ -104,10 +101,10 @@ describe('useDetailModal — link mode (srd)', () => {
     return { opened, ...result }
   }
 
-  test('clicking navigates to the show page in a new tab instead of opening a dialog', () => {
+  test('clicking goes to the show page in this tab instead of opening a dialog', () => {
     const { opened } = renderLinked()
     fireEvent.click(screen.getByLabelText('View details'))
-    expect(opened).toEqual([['/systems/red-laser', '_blank', 'noopener,noreferrer']])
+    expect(opened).toEqual(['/systems/red-laser'])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -122,16 +119,6 @@ describe('useDetailModal — link mode (srd)', () => {
     const { opened } = renderLinked({ noHref: true })
     fireEvent.click(screen.getByLabelText('View details'))
     expect(opened).toEqual([])
-    expect(screen.getByRole('dialog')).toBeTruthy()
-  })
-})
-
-describe('PatternEquipmentItem — the hook wired into a real card', () => {
-  test('exposes a visible detail control on the head listing that opens the card', () => {
-    render(<PatternEquipmentItem data={system('Red Laser')} />)
-    // The listing itself shows the name once; the modal is not mounted yet.
-    expect(screen.queryByRole('dialog')).toBeNull()
-    fireEvent.click(screen.getByLabelText('View details'))
     expect(screen.getByRole('dialog')).toBeTruthy()
   })
 })

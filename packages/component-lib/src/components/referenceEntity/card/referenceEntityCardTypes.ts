@@ -189,7 +189,7 @@ export type ReferenceEntityCardProps = {
    *
    * Explicit, NOT inferred from `afterExtraContent`: that slot is generic, and
    * its other producer is a pattern's Systems/Modules loadout
-   * (`useChassisPatternConfig`). A pattern card renders with the CHASSIS as its
+   * (`PatternLoadout`). A pattern card renders with the CHASSIS as its
    * `data`, so it inherits the chassis artwork and would otherwise satisfy an
    * inferred gate — flipping every ITUN mech-wizard pattern card on an
    * artwork-bearing chassis to a layout meant only for class pages. Only the

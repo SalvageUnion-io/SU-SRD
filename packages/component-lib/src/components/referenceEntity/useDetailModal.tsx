@@ -31,12 +31,13 @@ export function useDetailModal(
   const [open, setOpen] = useState(false)
 
   // When the consuming app opts into link mode (srd) and the entity
-  // resolves to an href, "View details" navigates to the entity's show page in
-  // a new tab instead of opening the in-place modal. ITUN leaves link mode off,
-  // so it keeps the modal (its href would deep-link out to srd).
+  // resolves to an href, "View details" goes to the entity's show page, in
+  // this tab (EDL E5: the detail view is a Page, never a new-tab
+  // `window.open`), instead of opening the in-place modal. ITUN leaves link
+  // mode off, so it keeps the modal (its href would deep-link out to srd).
   const href = useEntityHref(data)
   const linkMode = useEntityDetailLink()
-  const openInNewTab = !options?.forceModal && linkMode && !!href
+  const linksOut = !options?.forceModal && linkMode && !!href
 
   const schemaName =
     data && 'schemaName' in data && typeof data.schemaName === 'string'
@@ -49,16 +50,14 @@ export function useDetailModal(
   const control: ReferenceEntityControl = {
     key: 'detail',
     icon: DetailIcon,
-    onClick: openInNewTab
-      ? () => window.open(href, '_blank', 'noopener,noreferrer')
-      : () => setOpen(true),
+    onClick: linksOut ? () => window.location.assign(href) : () => setOpen(true),
     ariaLabel: 'View details',
     hidden: true,
     cardClick: true,
   }
 
   const modal =
-    !openInNewTab && data && schemaName ? (
+    !linksOut && data && schemaName ? (
       <EntityDetailDialog open={open} onOpenChange={setOpen} title={title}>
         <ReferenceEntityCard data={data} pattern={options?.pattern} disabled={false} />
       </EntityDetailDialog>

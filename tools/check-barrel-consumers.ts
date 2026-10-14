@@ -75,12 +75,10 @@ const SINGLE_APP: Readonly<Record<string, string>> = {
   summarizeBreakdown: "the one-line text form of the same ledger, for `Stat`'s `hoverText`",
   navigateControl:
     "the `ReferenceEntityControl` preset for the card shells' `controls` overlay, carrying the library's detail icon",
-  useChassisPatternConfig:
-    'entity display system: returns the generic override props a chassis pattern hands `ReferenceEntityCard`',
   buildCatalogSections:
     "binds the library's catalog categories and tile colours (`catalogColors`) to the reference ORM, for ITUN's SRD Explorer",
   useDetailModal:
-    'the reference card shells\' "View details" control (modal, or a link out under `EntityDetailLinkProvider`), which the library\'s own `PatternEquipmentItem` renders too',
+    'the reference card shells\' "View details" control (modal, or a link out under `EntityDetailLinkProvider`)',
   ogCardForEntity:
     "a reference entity's `OgCard` props, read through the entity card's own internal tone, stat, cost and provenance helpers so the link preview says what the card says (issue 1280)",
 }
