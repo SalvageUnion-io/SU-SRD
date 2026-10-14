@@ -227,6 +227,7 @@ export { findPageRefs } from './entity/pageRefs'
 export { KindLabel } from './entity/parts/KindLabel'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
 export { Tag } from './entity/parts/Tags'
+export type { TagItem } from './entity/parts/tagItems'
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
 export { mentionRef } from './entity/parts/tagItems'
 export type { EntityRowModel } from './entity/types'

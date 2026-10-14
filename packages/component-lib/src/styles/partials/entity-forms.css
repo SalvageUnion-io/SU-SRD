@@ -153,6 +153,13 @@
   padding: var(--space-8) var(--space-10) 0;
 }
 
+/* Beside an art column taller than the head (a Starter mech's chassis), the
+   band runs the art's height, its cut-out on the band's foot: a Row has a
+   paper body only for a lead or stamp, never an empty one. */
+.su-entity-row__frame[data-bodyless] .su-entity-row__head {
+  flex: 1 1 auto;
+}
+
 /* Not the heading: it holds the tab, which must reach the band's foot so it
    opens into the body with no band showing under it. */
 .su-entity-row__head[data-notch]
