@@ -98,12 +98,6 @@ export function slotsUsed(items: SURefEntity[]): number {
   }, 0)
 }
 
-/** The SLOTS chip every system and module wears in a loadout listing. */
-export function slotsFact(item: SURefEntity): { label: string; value: string } {
-  const slots = 'slotsRequired' in item ? Number(item.slotsRequired) : Number.NaN
-  return { label: 'SLOTS', value: String(Number.isFinite(slots) ? slots : 1) }
-}
-
 /**
  * A saved pattern as the reference's pattern shape, so it renders through the
  * same `ReferenceEntityCard` pattern view as a book pattern — named, with its

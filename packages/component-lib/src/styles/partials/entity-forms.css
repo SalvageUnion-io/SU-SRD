@@ -558,7 +558,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   text-decoration: none;
 }
 
-/* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] name [fact]`, dashed
+/* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] name [chips]`, dashed
    when player-made. It wraps as a whole, never mid-token. */
 .su-entity-token__pill {
   align-items: center;
@@ -601,12 +601,22 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   border-color: var(--color-paper);
 }
 
-/* The name wins: it wraps onto a second line rather than being clipped. */
+/* One line: the name takes what the chips leave and ends in "…" only when
+   they need the room (E18's Token exception). */
 .su-entity-token__name {
   flex: 1 1 auto;
   min-width: 0;
-  overflow-wrap: break-word;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The chips (`tokenChips`, then the cost box) never shrink or wrap. */
+.su-entity-token__chips {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--space-4);
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option

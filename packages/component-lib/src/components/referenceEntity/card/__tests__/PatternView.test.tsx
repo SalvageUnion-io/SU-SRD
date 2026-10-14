@@ -308,7 +308,7 @@ describe('pattern loadout tokens', () => {
     expect(opened.map((ref) => ref.name)).toEqual(['.50 Cal Machine Gun'])
   })
 
-  test('each entry is one full-width Token: its name (its kind read out), its TL cell', () => {
+  test('each entry is one full-width Token: its name (its kind read out), then TL and Slots', () => {
     const { chassis, pattern } = thunderStorm()
     render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
     const systems = screen.getByRole('list', { name: 'Systems installed' })
@@ -323,8 +323,10 @@ describe('pattern loadout tokens', () => {
       // The kind is never stamped (E9): screen readers hear it after the name.
       expect(pill?.querySelector('.su-entity-token__kind')).toBeNull()
       expect(pill?.querySelector('.su-sr-only')?.textContent).toBe(' (System)')
-      // The TL is a Stat cell after the name, inside the pill.
-      expect(pill?.querySelector(':scope > .su-stat-cell')?.textContent).toMatch(/^TL\s*\d+$/)
+      // Its chips follow the name, inside the pill: TL first, then Slots.
+      const cells = pill?.querySelectorAll(':scope > .su-entity-token__chips > .su-stat-cell')
+      expect(cells?.[0]?.textContent).toMatch(/^TL\s*\d+$/)
+      expect(cells?.[1]?.textContent).toMatch(/^Slots\s*\d+$/)
     }
   })
 

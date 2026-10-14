@@ -82,6 +82,7 @@ export function CostBox({
       cost={cell.value ?? cell.label}
       currency={cell.value ? cell.label : ''}
       compact={rung !== 'full'}
+      mini={rung === 'mini'}
       onInk={onInk}
     />
   )

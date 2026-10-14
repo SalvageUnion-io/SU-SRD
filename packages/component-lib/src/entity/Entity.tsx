@@ -4,7 +4,6 @@ import type { EntityInstance, SURefMetaEntity, SURefObjectAnyPattern } from 'sal
 import { toEntityModel } from 'salvageunion-reference'
 import { Row } from './forms/Row'
 import { Tile } from './forms/Tile'
-import type { TokenFact } from './forms/Token'
 import { Token } from './forms/Token'
 import type { EntityForm, EntityMode, EntityOmit, EntityRowModel } from './types'
 
@@ -24,8 +23,6 @@ export type EntityProps = EntitySource & {
   lead?: boolean
   /** Facts the context already states, by key, `kind` under a slab that names it, or `tier`. */
   omit?: readonly EntityOmit[]
-  /** Token only: the fact the context counts, in place of its default. */
-  fact?: TokenFact | null
   /** Row only: hover, focus or a long press Peeks it (a Token always does). */
   peek?: boolean
   /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
@@ -40,7 +37,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, fact, peek, titleAs } = props
+  const { form, instance, mode, lead, omit, peek, titleAs } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -62,7 +59,7 @@ export function Entity(props: EntityProps) {
         />
       )
     case 'token':
-      return <Token model={model} instance={instance} mode={mode} fact={fact} />
+      return <Token model={model} instance={instance} mode={mode} />
     case 'tile':
       return (
         <Tile
