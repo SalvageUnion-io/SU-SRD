@@ -208,7 +208,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
     Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
-39. **ADR-039 Addressed invites by Discord account** · [full text](adr/039-addressed-invites.md)
+39. **ADR-039 Addressed invites by Discord account**
     Retired with `/su invite`: a Game joins only through its one invite URL (ADR-030), and an addressed row opens nothing.
     Amended ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).
 40. **ADR-040 The dataset is served verbatim with no release stream**
