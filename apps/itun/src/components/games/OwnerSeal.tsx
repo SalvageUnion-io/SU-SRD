@@ -7,7 +7,7 @@ const STAMP = { letterSpacing: tracking.capsWide } satisfies CSSProperties
 
 /**
  * The pressable seal's bare button. Its cursor, lift and fade change on hover or
- * when disabled, so they are `.owner-seal__claim`'s (styles/controls.css).
+ * when disabled, so they are `.su-owner-seal__claim`'s (styles/controls.css).
  */
 const CLAIM = {
   backgroundColor: 'transparent',
@@ -74,7 +74,7 @@ export function OwnerSeal({
       onClick={onClaim}
       disabled={disabled}
       aria-label={`${owner.label} — pick this up`}
-      className="owner-seal__claim"
+      className="su-owner-seal__claim"
       style={CLAIM}
     >
       {stamp}

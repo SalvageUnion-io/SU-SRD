@@ -21,22 +21,22 @@
 /* ── RosterColumn ── */
 
 /* The Pilot/Mech/Crawler switch shows only below `md`. */
-.segment-switch {
+.su-segment-switch {
   display: flex;
 }
 @media (width >= 48rem) {
-  .segment-switch {
+  .su-segment-switch {
     display: none;
   }
 }
 
 /* One column on a phone, three from `md` up. */
-.roster-grid {
+.su-roster-grid {
   grid-template-columns: repeat(1, minmax(0, 1fr));
   margin-top: 20px;
 }
 @media (width >= 48rem) {
-  .roster-grid {
+  .su-roster-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 24px;
   }
@@ -44,11 +44,11 @@
 
 /* A column that is not the active phone segment: hidden below `md`, shown from
    it (all three columns stand side by side). */
-.roster-column--inactive {
+.su-roster-column--inactive {
   display: none;
 }
 @media (width >= 48rem) {
-  .roster-column--inactive {
+  .su-roster-column--inactive {
     display: block;
   }
 }
@@ -57,17 +57,17 @@
 
 /* The claimable seal lifts a pixel on hover; disabled, it fades and stops
    looking pressable. */
-.owner-seal__claim {
+.su-owner-seal__claim {
   cursor: pointer;
   opacity: 1;
   translate: none;
 }
 @media (hover: hover) {
-  .owner-seal__claim:hover {
+  .su-owner-seal__claim:hover {
     translate: 0 -1px;
   }
 }
-.owner-seal__claim:disabled {
+.su-owner-seal__claim:disabled {
   cursor: default;
   opacity: 50%;
 }
@@ -77,41 +77,41 @@
 /* The container selects step down from `Select`'s 44px to 40px from `sm`. The
    coarse-pointer floor (theme.css) is restated here, after the step, so it
    keeps winning on touch. */
-.container-select {
+.su-container-select {
   min-height: 2.75rem;
 }
 @media (width >= 40rem) {
-  .container-select {
-    min-height: 2.5rem; /* 40px: the band buttons beside it (`.shelves-band__btn`) */
+  .su-container-select {
+    min-height: 2.5rem; /* 40px: the band buttons beside it (`.su-shelves-band__btn`) */
   }
 }
 @media (pointer: coarse) {
-  .container-select {
+  .su-container-select {
     min-height: 44px;
   }
 }
 
-.move-to-container__select {
+.su-move-to-container__select {
   opacity: 1;
 }
-.move-to-container__select:disabled {
+.su-move-to-container__select:disabled {
   opacity: 50%;
 }
 
 /* `FieldError` takes call-site spacing as a class only. */
-.move-to-container__error {
+.su-move-to-container__error {
   margin-top: 4px;
 }
 
 /* ── AssignPicker ── */
 
 /* The dialog's width cap: `ModalShell`'s `maxWidth` is a class. */
-.assign-picker__dialog {
+.su-assign-picker__dialog {
   max-width: 28rem;
 }
 
 /* The candidate Rows (select mode, one radio group), 8px apart. */
-:where(.assign-picker__candidates > :not(:last-child)) {
+:where(.su-assign-picker__candidates > :not(:last-child)) {
   margin-block-end: 8px;
   margin-block-start: 0;
 }

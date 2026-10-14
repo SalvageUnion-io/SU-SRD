@@ -6,17 +6,21 @@ import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import '../../styles/wizard.css'
 import { fullWidthStyle } from './wizardStyles.model'
 
-const statRowStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[16] }
+const statRowStyle = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
-const proseStyle: CSSProperties = {
+const proseStyle = {
   color: 'currentcolor',
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 1.625,
   maxWidth: '64ch',
-}
+} satisfies CSSProperties
 
-const paragraphStyle: CSSProperties = { margin: 0 }
+const paragraphStyle = { margin: 0 } satisfies CSSProperties
 
 type CrawlerStatsStepProps = {
   /** The Tech Level 1 (Hamlet Crawler) entity — creation is fixed there. */
@@ -50,7 +54,7 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   })
 
   return (
-    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <div style={statRowStyle}>
         <Stat orientation="horizontal" label="TL" value={techLevel.techLevel} />
         <Stat orientation="horizontal" label="SP" value={sp.total} max={sp.total} />
@@ -59,7 +63,7 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
         <Stat orientation="horizontal" label="POOL" value={0} />
       </div>
 
-      <div className="wiz-stack wiz-stack--6" style={proseStyle}>
+      <div className="su-wiz-stack su-wiz-stack--6" style={proseStyle}>
         {sp.typeBonus > 0 && selectedType ? (
           <p style={paragraphStyle} data-testid="sp-breakdown">
             Structure Points: {sp.base} + {sp.typeBonus} type bonus ({selectedType.name}) ={' '}

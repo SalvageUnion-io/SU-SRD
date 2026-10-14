@@ -16,78 +16,78 @@
 /* — Stacks: a child-selector vertical rhythm.
    `:where()` keeps it at zero specificity, so a child's
    own margin still wins. — */
-:where(.wiz-stack > :not(:last-child)) {
+:where(.su-wiz-stack > :not(:last-child)) {
   margin-block-start: 0;
 }
 
-:where(.wiz-stack--6 > :not(:last-child)) {
+:where(.su-wiz-stack--6 > :not(:last-child)) {
   margin-block-end: var(--space-6);
 }
 
-:where(.wiz-stack--8 > :not(:last-child)) {
+:where(.su-wiz-stack--8 > :not(:last-child)) {
   margin-block-end: var(--space-8);
 }
 
-:where(.wiz-stack--12 > :not(:last-child)) {
+:where(.su-wiz-stack--12 > :not(:last-child)) {
   margin-block-end: var(--space-12);
 }
 
-:where(.wiz-stack--16 > :not(:last-child)) {
+:where(.su-wiz-stack--16 > :not(:last-child)) {
   margin-block-end: var(--space-16);
 }
 
-:where(.wiz-stack--20 > :not(:last-child)) {
+:where(.su-wiz-stack--20 > :not(:last-child)) {
   margin-block-end: var(--space-20);
 }
 
 /* — OffRulesEscape: the escape link brightens on hover. — */
-.wiz-off-rules {
+.su-wiz-off-rules {
   color: var(--color-paper-70);
 }
 
-.wiz-off-rules:hover {
+.su-wiz-off-rules:hover {
   color: var(--color-paper);
 }
 
 /* — ModalShell widths. `maxWidth` takes a class (a style object there would
    be overridden by the popup's own inline default): 28rem and 64rem. — */
-.wiz-modal-md {
+.su-wiz-modal-md {
   max-width: 28rem;
 }
 
-.wiz-modal-5xl {
+.su-wiz-modal-5xl {
   max-width: 64rem;
 }
 
 /* — CreateModeChooser — */
 
 /* The doors' column. */
-.wiz-chooser-body {
+.su-wiz-chooser-body {
   padding: var(--space-32) var(--space-24);
 }
 
 /* The two doors: stacked on a phone, side by side from sm. */
-.wiz-chooser-doors {
+.su-wiz-chooser-doors {
   display: grid;
   gap: var(--space-24);
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
 /* The mech-only "Instantiate from Pattern" door dims on hover. */
-.wiz-chooser-pattern {
+.su-wiz-chooser-pattern {
   background-color: var(--color-ink);
 }
 
-.wiz-chooser-pattern:hover {
+.su-wiz-chooser-pattern:hover {
   background-color: var(--color-ink-85);
 }
 
 @media (min-width: 40rem) {
-  .wiz-chooser-body {
+  .su-wiz-chooser-body {
     padding: var(--space-40) var(--space-32);
   }
 
-  .wiz-chooser-doors {
+  .su-wiz-chooser-doors {
     gap: var(--space-20);
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -96,18 +96,18 @@
 /* — WizShell — */
 
 /* Rail and main pane: stacked, then side by side at lg. */
-.wiz-body {
+.su-wiz-body {
   flex-direction: column;
 }
 
 /* The stepper rail: a ruled strip above the pane, then the 196px column. */
-.wiz-rail {
+.su-wiz-rail {
   border-bottom: var(--bw-chrome) solid var(--color-ink);
   flex-shrink: 0;
   padding: var(--space-16);
 }
 
-.wiz-rail-nav {
+.su-wiz-rail-nav {
   display: flex;
   flex-flow: row wrap;
   gap: var(--space-8) var(--space-12);
@@ -115,41 +115,41 @@
 }
 
 /* The pipe and its arrow-capped stub exist only beside the lg column. */
-.wiz-rail-pipe,
-.wiz-rail-stub {
+.su-wiz-rail-pipe,
+.su-wiz-rail-stub {
   display: none;
 }
 
-.wiz-rail-step:disabled {
+.su-wiz-rail-step:disabled {
   pointer-events: none;
 }
 
 /* The step labels show from 721px. */
-.wiz-rail-label {
+.su-wiz-rail-label {
   display: none;
 }
 
 @media (min-width: 721px) {
-  .wiz-rail-label {
+  .su-wiz-rail-label {
     display: block;
   }
 }
 
-.wiz-main {
+.su-wiz-main {
   padding: var(--space-20);
 }
 
 /* The tinted step card's frame, its number tab, and the tab's gutter. */
-.wiz-step-tab {
+.su-wiz-step-tab {
   display: none;
 }
 
-.wiz-step-card {
+.su-wiz-step-card {
   padding-left: var(--space-20);
 }
 
 /* The action bar: a flat ink card, stacked on a phone, one row from sm. */
-.wiz-pill {
+.su-wiz-pill {
   align-items: stretch;
   border-radius: var(--radius-card);
   flex-direction: column;
@@ -158,54 +158,54 @@
   width: 100%;
 }
 
-.wiz-pill-start {
+.su-wiz-pill-start {
   justify-content: center;
 }
 
-.wiz-pill-note {
+.su-wiz-pill-note {
   text-align: center;
 }
 
-.wiz-pill-nav {
+.su-wiz-pill-nav {
   display: flex;
 }
 
-.wiz-pill-cta {
+.su-wiz-pill-cta {
   width: 100%;
 }
 
 /* Back / Cancel on the ink pill: paper ghosts. */
-.wiz-pill-ghost {
+.su-wiz-pill-ghost {
   border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
   color: var(--color-paper);
 }
 
 @media (hover: hover) {
-  .wiz-pill-ghost:hover {
+  .su-wiz-pill-ghost:hover {
     background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
   }
 }
 
 @media (min-width: 40rem) {
-  .wiz-step-tab {
+  .su-wiz-step-tab {
     display: grid;
   }
 
-  .wiz-step-frame {
+  .su-wiz-step-frame {
     padding-left: var(--space-20);
   }
 
-  /* The 48px gutter is LOAD-BEARING: the number tab (`.wiz-step-tab`,
+  /* The 48px gutter is LOAD-BEARING: the number tab (`.su-wiz-step-tab`,
      `stepTabStyle` in WizShell.tsx) is 56px wide at -20px, so its right edge
      lands 36px inside the card. 48px clears it by 12px; at 32px the tab would
      print over the step title's first glyph and the RuleBrief panel's left
      edge. Same overhang-plus-clearance relationship as `ModeDoor`'s tab. Move
      one of the three numbers and you must move the others. */
-  .wiz-step-card {
+  .su-wiz-step-card {
     padding-left: var(--space-48);
   }
 
-  .wiz-pill {
+  .su-wiz-pill {
     align-items: center;
     flex-direction: row;
     gap: var(--space-12);
@@ -213,58 +213,58 @@
     width: auto;
   }
 
-  .wiz-pill-start {
+  .su-wiz-pill-start {
     justify-content: flex-start;
   }
 
-  .wiz-pill-note {
+  .su-wiz-pill-note {
     text-align: left;
   }
 
-  .wiz-pill-nav {
+  .su-wiz-pill-nav {
     display: contents;
   }
 
-  .wiz-pill-cta {
+  .su-wiz-pill-cta {
     width: auto;
   }
 }
 
 @media (min-width: 64rem) {
-  .wiz-body {
+  .su-wiz-body {
     flex-direction: row;
   }
 
-  .wiz-rail {
+  .su-wiz-rail {
     border-bottom-width: 0;
     padding: var(--space-28) var(--space-16);
     width: 196px;
   }
 
-  .wiz-rail-nav {
+  .su-wiz-rail-nav {
     flex-direction: column;
     gap: 0;
     padding-bottom: var(--space-64);
     padding-left: var(--space-4);
   }
 
-  .wiz-rail-pipe {
+  .su-wiz-rail-pipe {
     display: block;
   }
 
-  .wiz-rail-stub {
+  .su-wiz-rail-stub {
     display: flex;
   }
 
-  .wiz-rail-step {
+  .su-wiz-rail-step {
     margin-block: 6px;
   }
 
-  .wiz-rail-tab--active {
+  .su-wiz-rail-tab--active {
     margin-left: -5px;
   }
 
-  .wiz-main {
+  .su-wiz-main {
     padding: 30px var(--space-40);
   }
 }
@@ -272,103 +272,103 @@
 /* — The builders' steps (crawler, pilot, mech) — */
 /* CrawlerBuilder, PilotWizard, MechWizard: the gap under each step's RuleBrief.
    A class, not a style object: RuleBrief takes no `style`. */
-.wiz-rule-brief {
+.su-wiz-rule-brief {
   margin-bottom: var(--space-20);
 }
 
 /* CrawlerCrewStep: an open crew row's fields, one column, two from sm. */
-.wiz-crew-fields {
+.su-wiz-crew-fields {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
 @media (min-width: 40rem) {
-  .wiz-crew-fields {
+  .su-wiz-crew-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 /* CrawlerIdentityStep: the Scrap Pool panel's padding. A class:
    Panel takes no `style`. */
-.wiz-scrap-panel {
+.su-wiz-scrap-panel {
   padding: var(--space-16);
 }
 
 /* CrawlerIdentityStep: the six scrap buckets, three across, six from md. */
-.wiz-scrap-grid {
+.su-wiz-scrap-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 @media (min-width: 48rem) {
-  .wiz-scrap-grid {
+  .su-wiz-scrap-grid {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
 /* CrawlerReviewStep, pilot and MechReviewStep: recap left, cards right from lg. */
-.wiz-review-grid {
+.su-wiz-review-grid {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
 @media (min-width: 64rem) {
-  .wiz-review-grid {
+  .su-wiz-review-grid {
     grid-template-columns: 1.1fr 1fr;
   }
 }
 
 /* CrawlerReviewStep, pilot ReviewStep: the kv-panel. A class:
    Panel takes no `style`. */
-.wiz-review-panel {
+.su-wiz-review-panel {
   padding: var(--space-16);
   font-size: var(--text-sm);
   line-height: calc(1.25 / 0.875);
 }
 
 /* Pilot ReviewStep: its kv-panel is itself the grid item, aligned to the start. */
-.wiz-review-panel--start {
+.su-wiz-review-panel--start {
   align-self: start;
 }
 
 /* CrawlerReviewStep, pilot and MechReviewStep: the submit error under the kv rows.
    A class: FieldError takes no `style`. */
-.wiz-review-error {
+.su-wiz-review-error {
   margin-top: var(--space-12);
 }
 
 /* ClassPathPicker: the class list, with the consequences beside it from sm. */
-.wiz-class-path {
+.su-wiz-class-path {
   grid-template-columns: none;
 }
 
 @media (min-width: 40rem) {
-  .wiz-class-path {
+  .su-wiz-class-path {
     grid-template-columns: minmax(0, 320px) 1fr;
   }
 }
 
 /* ClassPathPicker: the gap under each class card. A class:
    ReferenceEntityCard takes no `style`. */
-.wiz-class-card {
+.su-wiz-class-card {
   margin-bottom: var(--space-4);
 }
 
 /* MechChassisStep: the Custom-build door's double-ink halo when chosen (Sel
    takes no `style`). Unlayered, so it beats Sel's layered
    `.su-selection-ring` and `.su-focus-ring:focus-visible`. */
-.wiz-custom-build-ring {
+.su-wiz-custom-build-ring {
   box-shadow:
     0 0 0 3px var(--ground),
     0 0 0 6px var(--color-ink);
 }
 
 /* MechReviewStep: the kv-panel (Panel takes no `style`). */
-.wiz-mech-review-kv {
+.su-wiz-mech-review-kv {
   padding: var(--space-16) var(--space-24);
   font-size: var(--text-sm);
   line-height: calc(1.25 / 0.875);
 }
 
 /* MechReviewStep: the scrap banking callout (Panel takes no `style`). */
-.wiz-mech-banking {
+.su-wiz-mech-banking {
   margin-top: var(--space-12);
   padding: var(--space-12) var(--space-16);
   font-family: var(--font-cond);

@@ -51,50 +51,50 @@ export type TrayWrites = {
   remove: (npc: TrayNpc) => Promise<unknown>
 }
 
-const SCROLL: CSSProperties = {
+const SCROLL = {
   height: '100%',
   overflowY: 'auto',
   padding: space[12],
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
-}
+} satisfies CSSProperties
 
-const LIST: CSSProperties = {
+const LIST = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[10],
-}
+} satisfies CSSProperties
 
 /** The gauge's bay: wide enough for six pips a row at a legible size. */
 const GAUGE_WIDTH = '8rem'
 
 /** The fieldset that names a gauge, without the browser's frame. */
-const GAUGE_GROUP: CSSProperties = { border: 0, margin: 0, minWidth: 0, padding: 0 }
+const GAUGE_GROUP = { border: 0, margin: 0, minWidth: 0, padding: 0 } satisfies CSSProperties
 
 /** The gauge lights in the opposition's own tone, the one its Row's band wears. */
 const ADVERSARY_TONE: CSSVarStyle = { '--tone': color.adversary, '--tone-deep': color.adversary }
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'grid',
   gridTemplateColumns: `minmax(0, 1fr) ${GAUGE_WIDTH} auto`,
   alignItems: 'center',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const DOWN: CSSProperties = { textDecoration: 'line-through' }
+const DOWN = { textDecoration: 'line-through' } satisfies CSSProperties
 
-const RESULT: CSSProperties = { ...BODY, ...NUMBERS, padding: `${space[4]} ${space[2]} 0` }
+const RESULT = { ...BODY, ...NUMBERS, padding: `${space[4]} ${space[2]} 0` } satisfies CSSProperties
 
-const RESULT_HEAD: CSSProperties = { fontWeight: weight.bold }
+const RESULT_HEAD = { fontWeight: weight.bold } satisfies CSSProperties
 
-const ACTIONS: CSSProperties = { display: 'flex', alignItems: 'center', gap: space[6] }
+const ACTIONS = { display: 'flex', alignItems: 'center', gap: space[6] } satisfies CSSProperties
 
 /** A row whose reference no longer resolves: its name, plainly. */
-const PLAIN: CSSProperties = {
+const PLAIN = {
   padding: `${space[10]} ${space[12]}`,
   fontFamily: font.cond,
   fontWeight: weight.bold,
@@ -103,9 +103,13 @@ const PLAIN: CSSProperties = {
   background: color.paper,
   border: `${borderWidth.entityCompact} solid ${color.ink}`,
   borderRadius: radius.card,
-}
+} satisfies CSSProperties
 
-const PICKER_RAIL: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[6] }
+const PICKER_RAIL = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
 
 function NpcRow({
   npc,

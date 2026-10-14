@@ -22,6 +22,14 @@ type ModalShellProps = {
    */
   description?: string | null
   /**
+   * The (bare) children render a VISIBLE `Dialog.Title` of their own, so the
+   * popup is named by the heading the reader sees rather than by a hidden
+   * restatement of it; `title` is then not rendered. The detail dialog's
+   * band does this (`EntityDetailDialog`), as `ConfirmDialog` does with
+   * `description={null}`.
+   */
+  ownTitle?: boolean
+  /**
    * `'alertdialog'` renders Base UI's AlertDialog instead of Dialog:
    * `role="alertdialog"`, and a backdrop click does NOT dismiss it (Escape and
    * the × still do), because a confirm has to be answered rather than clicked
@@ -73,16 +81,16 @@ type ModalShellProps = {
 }
 
 /** A contained modal fills its container: the scrim behind, the popup over it. */
-const CONTAINED_BACKDROP: CSSProperties = { position: 'absolute' }
-const CONTAINED_POPUP: CSSProperties = {
+const CONTAINED_BACKDROP = { position: 'absolute' } satisfies CSSProperties
+const CONTAINED_POPUP = {
   position: 'absolute',
   inset: 0,
   zIndex: 50,
   outline: 'none',
-}
+} satisfies CSSProperties
 
 /** The default popup: a fit-height box centred over the scrim. */
-const POPUP: CSSProperties = {
+const POPUP = {
   position: 'fixed',
   inset: 0,
   zIndex: 50,
@@ -91,7 +99,7 @@ const POPUP: CSSProperties = {
   width: '100%',
   backgroundColor: 'transparent',
   outline: 'none',
-}
+} satisfies CSSProperties
 
 const HEAD = {
   display: 'flex',
@@ -124,13 +132,13 @@ const SUBTITLE = {
 const CLOSE_ICON = { width: space[20], height: space[20] } satisfies CSSProperties
 
 /** A full-screen popup covers the viewport and scrolls inside itself. */
-const FULLSCREEN_POPUP: CSSProperties = {
+const FULLSCREEN_POPUP = {
   position: 'fixed',
   inset: 0,
   zIndex: 50,
   overflowY: 'auto',
   outline: 'none',
-}
+} satisfies CSSProperties
 
 export function ModalShell({
   open,
@@ -138,6 +146,7 @@ export function ModalShell({
   title,
   subtitle,
   description,
+  ownTitle = false,
   role = 'dialog',
   tone,
   maxWidth,
@@ -156,13 +165,13 @@ export function ModalShell({
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
   // any internal scroll. Default: a scrolling popup wrapping the Card.
-  const popupStyle: CSSProperties = {
+  const popupStyle = {
     ...POPUP,
     ...(bare ? { overflow: 'hidden' } : { overflowY: 'auto' }),
     // A caller's `maxWidth` class sets the cap; inline, the default would beat it.
     ...(maxWidth ? {} : { maxWidth: role === 'alertdialog' ? '28rem' : '48rem' }),
     margin: align === 'center' ? 'auto' : `${space[32]} auto auto`,
-  }
+  } satisfies CSSProperties
 
   // An Escape something inside the dialog already handled (an inline edit
   // cancelling, the Dashboard Major's own Take Damage prompt closing) is not a
@@ -187,7 +196,7 @@ export function ModalShell({
         className={container || fullscreen ? undefined : maxWidth}
         style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : popupStyle}
       >
-        <Dialog.Title className="su-sr-only">{title}</Dialog.Title>
+        {!ownTitle && <Dialog.Title className="su-sr-only">{title}</Dialog.Title>}
         {description !== null && (
           <Dialog.Description className="su-sr-only">{description ?? title}</Dialog.Description>
         )}

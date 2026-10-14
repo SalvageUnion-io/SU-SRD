@@ -39,7 +39,7 @@
  * string itself — the class-string exemption in `.claude/rules/styling.md`.
  *
  * The two invariants live on the base; the three genuinely-varying decisions
- * are modifiers, exactly as the cva had them. `inherit` on weight or tracking
+ * are modifiers, exactly as the `capsLabel` recipe has them. `inherit` on weight or tracking
  * emits NO class, which is load-bearing: a label with no weight class inherits
  * its container's, and pinning it to 400 would silently un-bold every such
  * label sitting inside a bold stamp or heading.

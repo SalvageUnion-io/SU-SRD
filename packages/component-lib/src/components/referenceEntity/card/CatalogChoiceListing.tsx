@@ -4,6 +4,7 @@ import type { SURefEntity, SURefMetaEntity, SURefObjectChoice } from 'salvageuni
 import { firstParagraphText } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { color, font, fontSize, space } from '../../../design/tokens'
+import { useDisclosure } from '../../../utils/useDisclosure'
 import { Button } from '../../atoms/Button'
 import { Slab } from '../../atoms/Slab'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
@@ -72,7 +73,7 @@ export function CatalogChoiceListing({
   /** Renders one resolved entity as a listing card (key included by the caller). */
   renderEntity: (entity: SURefEntity | SURefMetaEntity, key: string) => ReactNode
 }): ReactNode {
-  const [open, setOpen] = useState(false)
+  const options = useDisclosure()
   const [modalOpen, setModalOpen] = useState(false)
   const editable = !!onSelectionChange
   const chosen = selections?.[choice.id]?.[0]
@@ -122,7 +123,7 @@ export function CatalogChoiceListing({
   // READ-ONLY — a static reference listing under its slab, resolved lazily
   // when the reader asks for it.
   let entities: SURefMetaEntity[] = []
-  if (open) {
+  if (options.open) {
     try {
       entities = resolveCatalogChoiceEntities(
         choice,
@@ -138,13 +139,13 @@ export function CatalogChoiceListing({
       {prompt && <p style={promptStyle}>{prompt}</p>}
       <div>
         <Slab variant="solid" label={label} style={SLAB} />
-        <Button size="compact" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-          {open ? 'Hide options' : 'Show options'}
+        <Button size="compact" {...options.toggleProps}>
+          {options.open ? 'Hide options' : 'Show options'}
         </Button>
-        {open && (
+        {options.open && (
           // The whole qualifying collection is a big grouping: Tokens
           // (owner's call, 2026-10-14).
-          <div style={LIST}>
+          <div id={options.panelId} style={LIST}>
             <EntityTokenList entities={entities} label={choice.name} />
           </div>
         )}

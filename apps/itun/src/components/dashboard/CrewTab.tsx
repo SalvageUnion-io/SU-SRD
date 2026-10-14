@@ -28,34 +28,34 @@ import { CrewRow } from './CrewRow'
 import { crewProblem } from './crewProblem.model'
 import type { CrewLine } from './useGameFeed'
 
-const SCROLL: CSSProperties = {
+const SCROLL = {
   height: '100%',
   overflowY: 'auto',
   padding: space[12],
   display: 'flex',
   flexDirection: 'column',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const LIST: CSSProperties = {
+const LIST = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
-}
+} satisfies CSSProperties
 
-const TEXT: CSSProperties = {
+const TEXT = {
   fontFamily: font.body,
   fontSize: fontSize.caption,
   color: color.ink,
   fontVariantNumeric: 'tabular-nums',
-}
+} satisfies CSSProperties
 
-const RESOLVING: CSSProperties = { ...TEXT, paddingInline: space[2] }
+const RESOLVING = { ...TEXT, paddingInline: space[2] } satisfies CSSProperties
 
-const FOOT: CSSProperties = {
+const FOOT = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -63,9 +63,14 @@ const FOOT: CSSProperties = {
   gap: space[12],
   marginTop: 'auto',
   paddingTop: space[8],
-}
+} satisfies CSSProperties
 
-const NOTE: CSSProperties = { ...TEXT, margin: 0, color: color.ink75, fontSize: fontSize.note }
+const NOTE = {
+  ...TEXT,
+  margin: 0,
+  color: color.ink75,
+  fontSize: fontSize.note,
+} satisfies CSSProperties
 
 type CrewTabProps = {
   crew: CrewLine[]

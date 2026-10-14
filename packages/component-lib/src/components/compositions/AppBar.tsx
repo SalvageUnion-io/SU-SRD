@@ -1,6 +1,7 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
 
@@ -177,7 +178,7 @@ function NavLink({ item, className, LinkComponent }: NavLinkProps) {
   return (
     <Link
       href={item.href}
-      className={`${className} ${FOCUS_RING}`}
+      className={cn(className, FOCUS_RING)}
       {...(item.external
         ? { target: '_blank', rel: 'noopener noreferrer' }
         : { 'aria-current': item.active ? ('page' as const) : undefined })}
@@ -211,7 +212,7 @@ function Trail({
                   {item.name}
                 </span>
               ) : (
-                <a href={item.url} className={`su-crumbs__link ${FOCUS_RING}`}>
+                <a href={item.url} className={cn('su-crumbs__link', FOCUS_RING)}>
                   {item.name}
                 </a>
               )}
@@ -275,7 +276,7 @@ export function AppBar({
         <Speckle grain="paper" />
         <div className="su-union-bar__row">
           {/* The lockup is the mark alone; its alt names the link. */}
-          <LinkComponent href="/" className={`su-union-bar__brand ${FOCUS_RING}`} style={BRAND}>
+          <LinkComponent href="/" className={cn('su-union-bar__brand', FOCUS_RING)} style={BRAND}>
             <img
               src={markSrc}
               alt="Salvage Union"
@@ -294,7 +295,7 @@ export function AppBar({
                 <Link
                   key={tab.key}
                   href={tab.href}
-                  className={`su-union-bar__tab ${FOCUS_RING}`}
+                  className={cn('su-union-bar__tab', FOCUS_RING)}
                   aria-current={here ? 'true' : undefined}
                 >
                   {tab.label}
@@ -323,7 +324,7 @@ export function AppBar({
                 href={buyHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`su-union-bar__buy ${FOCUS_RING}`}
+                className={cn('su-union-bar__buy', FOCUS_RING)}
               >
                 Buy the game <span aria-hidden="true">↗</span>
               </a>

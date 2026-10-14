@@ -10,7 +10,7 @@
  */
 
 import type { ReferenceCardEntity } from 'component-lib'
-import { ActivationCost, Button, ReferenceEntityCard, Stat } from 'component-lib'
+import { ActivationCost, Button, cn, ReferenceEntityCard, Stat } from 'component-lib'
 import { color, font, fontSize, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
@@ -91,18 +91,18 @@ export type ResolveModel =
       applyRouted: boolean
     }
 
-const GROW: CSSProperties = { flex: 1 }
+const GROW = { flex: 1 } satisfies CSSProperties
 
-const STEP: CSSProperties = { minWidth: 0, paddingInline: space[8] }
+const STEP = { minWidth: 0, paddingInline: space[8] } satisfies CSSProperties
 
-const IDLE: CSSProperties = {
+const IDLE = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
   gap: space[8],
   height: '100%',
-}
+} satisfies CSSProperties
 
 const SPEND = {
   display: 'flex',
@@ -213,7 +213,12 @@ export function ResolveCost({
               +
             </Button>
           </div>
-          <span className={`su-dash-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
+          <span
+            className={cn(
+              'su-dash-deck-hotx-proj',
+              variableHot.over && 'su-dash-deck-hotx-proj--over'
+            )}
+          >
             {variableHot.projText}
           </span>
         </div>

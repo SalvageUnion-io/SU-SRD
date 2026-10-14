@@ -14,12 +14,12 @@ import type { CSSProperties, ReactNode } from 'react'
 
 const { space } = tokens
 
-const SECTION: CSSProperties = {
+const SECTION = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[8],
   minWidth: 0,
-}
+} satisfies CSSProperties
 
 type HubSectionProps = {
   /** The heading's id, which names the section (`aria-labelledby`). */

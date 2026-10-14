@@ -254,7 +254,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
 
           {!gate.ok && gate.reason && <p style={HINT}>{gate.reason}</p>}
           {submitError && <FieldError>{submitError}</FieldError>}
-          <div className="npc-nav" style={ROW}>
+          <div className="su-npc-nav" style={ROW}>
             <Button
               variant="default"
               onClick={
@@ -279,7 +279,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
             {step !== 'review' && (
               <Button
                 variant="ghost"
-                className="npc-preview-toggle"
+                className="su-npc-preview-toggle"
                 onClick={() => setPreviewOpen(true)}
               >
                 Preview
@@ -288,7 +288,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
           </div>
         </section>
 
-        <section className="npc-preview" aria-label="Live preview">
+        <section className="su-npc-preview" aria-label="Live preview">
           <p style={CAPS}>Live preview · how it will look on your shelf and in a Game</p>
           {preview}
           <p style={NOTE}>
@@ -363,12 +363,12 @@ function StepStrip({
   const active = NPC_STEPS.indexOf(step)
   return (
     <nav aria-label="Design steps" style={{ gridColumn: '1 / -1' }}>
-      <ol className="npc-steps">
+      <ol className="su-npc-steps">
         {NPC_STEPS.map((s, i) => (
           <li key={s}>
             <button
               type="button"
-              className="npc-step"
+              className="su-npc-step"
               aria-current={i === active ? 'step' : undefined}
               disabled={i !== active && !reachable(i)}
               onClick={() => onStepClick(i)}
@@ -379,7 +379,7 @@ function StepStrip({
           </li>
         ))}
       </ol>
-      <p className="npc-steps__compact" style={CAPS}>
+      <p className="su-npc-steps__compact" style={CAPS}>
         {active + 1} / {NPC_STEPS.length} · {NPC_STEP_LABELS[step]}
       </p>
     </nav>
@@ -556,7 +556,7 @@ function PickRow({
   children: ReactNode
 }) {
   return (
-    <li className="npc-pick" style={PICK_ROW}>
+    <li className="su-npc-pick" style={PICK_ROW}>
       <label style={CHECK_HIT}>
         <input
           type="checkbox"

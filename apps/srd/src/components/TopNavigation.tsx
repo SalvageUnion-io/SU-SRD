@@ -15,7 +15,7 @@
  * client entry reveals both on one page load in a hundred.
  */
 
-import { AppBar, FOCUS_RING } from 'component-lib'
+import { AppBar, cn, FOCUS_RING } from 'component-lib'
 import { ITUN_URL } from '../lib/constants'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
@@ -32,7 +32,7 @@ function WikiLink() {
   return (
     <a
       href="/greembeem"
-      className={`su-union-bar__quiet ${FOCUS_RING}`}
+      className={cn('su-union-bar__quiet', FOCUS_RING)}
       hidden
       {...{ [WIKI_LINK_ATTRIBUTE]: '' }}
     >

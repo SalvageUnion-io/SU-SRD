@@ -19,13 +19,14 @@
  * rather than keeping a second list.
  *
  * Fails:
- *   1. an export that no app's shipped source imports (a test does not
- *      count): unexport it, or delete it;
- *   2. a component only one app reaches that sits under
+ *   1. a component only one app reaches that sits under
  *      `components/compositions/`: move it into `apps/<app>/src/components/`;
- *   3. a single-app export no group directory classifies (a helper, a hook,
+ *   2. a single-app export no group directory classifies (a helper, a hook,
  *      a `.ts` module) that `SINGLE_APP` does not list with a reason;
- *   4. a `SINGLE_APP` entry that no longer names an unclassified single-app export.
+ *   3. a `SINGLE_APP` entry that no longer names an unclassified single-app export.
+ *
+ * An export nothing imports at all is knip's to report (`includeEntryExports`,
+ * docs/ARCHITECTURE.md#dead-code), not this check's: one owner per finding.
  *
  * "Reaches" is transitive. An app reaches an export when it imports any export
  * whose module graph inside the library contains that export's module: srd
@@ -88,7 +89,6 @@ const SINGLE_APP: Readonly<Record<string, string>> = {
 export type BarrelExport = { name: string; module: string }
 
 export type ExportVerdict =
-  | { kind: 'unused'; name: string }
   | { kind: 'composition'; name: string; app: string; module: string; group: string }
   | { kind: 'unclassified'; name: string; app: string; module: string }
 
@@ -153,22 +153,17 @@ export function groupOf(module: string): string | null {
 }
 
 /**
- * The failing verdicts, given which apps reach each export (transitively) and
- * which import it by name, plus the `allowed` entries that have gone stale.
+ * The failing verdicts, given which apps reach each export (transitively),
+ * plus the `allowed` entries that have gone stale.
  */
 export function judge(
   exports: readonly BarrelExport[],
   reach: ReadonlyMap<string, ReadonlySet<string>>,
-  direct: ReadonlyMap<string, ReadonlySet<string>>,
   allowed: Readonly<Record<string, string>> = SINGLE_APP
 ): { verdicts: ExportVerdict[]; stale: string[] } {
   const verdicts: ExportVerdict[] = []
   const unclassifiedSingle = new Set<string>()
   for (const exp of exports) {
-    if ((direct.get(exp.name)?.size ?? 0) === 0) {
-      verdicts.push({ kind: 'unused', name: exp.name })
-      continue
-    }
     const apps = [...(reach.get(exp.name) ?? [])]
     if (apps.length !== 1) continue
     const app = apps[0] ?? ''
@@ -216,8 +211,6 @@ export type Census = {
   exports: BarrelExport[]
   /** Export name → apps that reach it through the library's import graph. */
   reach: Map<string, Set<string>>
-  /** Export name → apps whose shipped source imports it by name. */
-  direct: Map<string, Set<string>>
   workspaces: string[]
   /** App source files read. */
   scanned: number
@@ -260,7 +253,6 @@ export function census(): Census {
 
   const workspaces = consumingWorkspaces()
   const reach = new Map(exports.map((e) => [e.name, new Set<string>()]))
-  const direct = new Map(exports.map((e) => [e.name, new Set<string>()]))
   let scanned = 0
   for (const workspace of workspaces) {
     const app = basename(workspace)
@@ -270,7 +262,6 @@ export function census(): Census {
         for (const name of namesImportedFromLib(readFileSync(file, 'utf-8'))) {
           const module = moduleOf.get(name)
           if (!module) continue
-          direct.get(name)?.add(app)
           for (const reached of closure(module)) {
             for (const n of exportsByModule.get(reached) ?? []) reach.get(n)?.add(app)
           }
@@ -279,17 +270,11 @@ export function census(): Census {
     }
   }
 
-  return { exports, reach, direct, workspaces, scanned }
+  return { exports, reach, workspaces, scanned }
 }
 
 /** A failing verdict as the two lines the gate prints: what is wrong, and the fix. */
 export function explain(v: ExportVerdict): [string, string] {
-  if (v.kind === 'unused') {
-    return [
-      `✗ ${v.name}: no app's shipped source imports it (tests do not count).`,
-      '  → Unexport it from packages/component-lib/src/index.ts, or delete it.',
-    ]
-  }
   if (v.kind === 'composition') {
     return [
       `✗ ${v.name} (${v.module}): only ${v.app} renders it, and its directory files it under '${v.group}'.`,
@@ -320,12 +305,12 @@ export function main(
     error?: (line: string) => void
   } = {}
 ): number {
-  const { exports, reach, direct, workspaces, scanned } = read()
+  const { exports, reach, workspaces, scanned } = read()
   assertScanFloor('barrel-consumers (barrel exports)', exports.length, floors.exports)
   assertScanFloor('barrel-consumers (consuming workspaces)', workspaces.length, floors.workspaces)
   assertScanFloor('barrel-consumers (app source files)', scanned, floors.scanned)
 
-  const { verdicts, stale } = judge(exports, reach, direct, allowed)
+  const { verdicts, stale } = judge(exports, reach, allowed)
   for (const v of verdicts) error(explain(v).join('\n'))
   for (const name of stale) {
     error(

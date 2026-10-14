@@ -1,4 +1,13 @@
-import { Badge, Button, Card, ChapterBand, PageShell, Text, tokens } from 'component-lib'
+import {
+  Badge,
+  Button,
+  Card,
+  ChapterBand,
+  FieldError,
+  PageShell,
+  Text,
+  tokens,
+} from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
@@ -47,8 +56,6 @@ const BODY = {
 const PAD = { ...BODY, padding: tokens.space[16] } satisfies CSSProperties
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
-
-const ERROR = { ...HINT, color: tokens.color.rollCascade } satisfies CSSProperties
 
 /** The page column: an invitation is a short read, so it does not span the hub's width. */
 const COLUMN = { maxWidth: '36rem', width: '100%' } satisfies CSSProperties
@@ -167,11 +174,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
             Join this Game
           </Button>
         </div>
-        {join.error !== null && (
-          <Text variant="hint" role="alert" style={ERROR}>
-            {join.error}
-          </Text>
-        )}
+        <FieldError>{join.error}</FieldError>
       </div>
     </Card>
   )

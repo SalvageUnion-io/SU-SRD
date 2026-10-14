@@ -29,13 +29,13 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 /** The column's create CTA. `onClick` runs before the wizard opens. */
 export type ColumnCreate = { href: string; label: string; onClick?: () => void }
 
-/** The switch row; it hides from `md` up (`.segment-switch`, styles/controls.css). */
+/** The switch row; it hides from `md` up (`.su-segment-switch`, styles/controls.css). */
 const SWITCH = { marginTop: space[20] } satisfies CSSProperties
 
 /** The switch spans the row: each segment takes its share. */
 const FILL = { width: '100%' } satisfies CSSProperties
 
-/** The grid's gutter; its columns and top margin change at `md` (`.roster-grid`). */
+/** The grid's gutter; its columns and top margin change at `md` (`.su-roster-grid`). */
 const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
 const LIST = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
@@ -56,7 +56,7 @@ export function SegmentSwitch({
   onChange: (kind: SegmentKind) => void
 }) {
   return (
-    <div className="segment-switch" style={SWITCH}>
+    <div className="su-segment-switch" style={SWITCH}>
       <Segmented label="Show" fill style={FILL}>
         {SEGMENTS.map((seg) => (
           <SegmentedOption
@@ -75,7 +75,7 @@ export function SegmentSwitch({
 /** One column on a phone, three from `md` up. */
 export function RosterGrid({ children }: { children: ReactNode }) {
   return (
-    <div className="roster-grid" style={GRID}>
+    <div className="su-roster-grid" style={GRID}>
       {children}
     </div>
   )
@@ -124,7 +124,10 @@ export function RosterColumn({
 }: RosterColumnProps) {
   const headingId = `${kind}s-heading`
   return (
-    <section aria-labelledby={headingId} className={active ? undefined : 'roster-column--inactive'}>
+    <section
+      aria-labelledby={headingId}
+      className={active ? undefined : 'su-roster-column--inactive'}
+    >
       {/* The column heading is the ink section stamp (`Slab`), its controls at
           the end of the leader rule. */}
       <Slab

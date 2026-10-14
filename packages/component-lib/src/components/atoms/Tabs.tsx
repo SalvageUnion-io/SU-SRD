@@ -1,6 +1,7 @@
 import { Tabs as BaseTabs } from '@base-ui/react/tabs'
 import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
 import { borderWidth, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
+import { cn } from '../../utils/cn'
 import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
@@ -49,12 +50,12 @@ export function Tabs<Value extends string>({
   )
 }
 
-const LIST: CSSProperties = {
+const LIST = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: space[4],
-}
+} satisfies CSSProperties
 
 export function TabList({
   label,
@@ -73,7 +74,7 @@ export function TabList({
   )
 }
 
-const TAB: CSSProperties = {
+const TAB = {
   padding: `5px ${space[10]}`,
   borderRadius: radius.card,
   borderStyle: 'solid',
@@ -85,7 +86,7 @@ const TAB: CSSProperties = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
 export function Tab({
   value,
@@ -131,7 +132,7 @@ export function Toggle({
     <button
       type="button"
       aria-pressed={pressed}
-      className={`su-tab ${FOCUS_RING} ${DISABLED}`}
+      className={cn('su-tab', FOCUS_RING, DISABLED)}
       style={{ ...TAB, ...style }}
       onClick={onClick}
       {...rest}

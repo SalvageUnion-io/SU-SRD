@@ -286,10 +286,10 @@ export function MechSheet({
   return (
     <section
       aria-labelledby="mech-sheet-heading"
-      // `.sheet-section` is a print-stylesheet target (page-break rules);
+      // `.su-sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
-      className="sheet-section"
+      className="su-sheet-section"
       style={SHEET}
     >
       {/* The hero already shows the name — this heading is for a11y/print. */}

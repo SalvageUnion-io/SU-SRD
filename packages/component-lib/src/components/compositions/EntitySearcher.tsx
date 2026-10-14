@@ -44,12 +44,14 @@
  * the rail (`EntitySearcherRail`) and its budgets (`EntitySearcherBudget`).
  */
 
+import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useId, useState, useSyncExternalStore } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { color, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
 import { SELECTED_RING } from '../../entity/modes/selectedRing'
 import { cn } from '../../utils/cn'
+import { useDisclosure } from '../../utils/useDisclosure'
+import { useMediaQuery } from '../../utils/useMediaQuery'
 import { BandTitle } from '../atoms/BandTitle'
 import { Button } from '../atoms/Button'
 import { SearchField } from '../atoms/SearchField'
@@ -170,13 +172,14 @@ export function EntitySearcher({
     showRow,
     activeFilters,
   } = useSearcherPool({ schema, selected, idOf, filter, facets, browse, chosenLabel })
-  const wide = useWideLayout()
+  // The server snapshot is the band — the narrow default, like MasonryColumns'
+  // one-column SSR snapshot — so a server render never commits to the column.
+  const wide = useMediaQuery(WIDE_QUERY, false)
   // Narrow, the facet rows fold behind a Filters disclosure — and on a phone
   // they start folded: an ability picker's ~30 Tree chips alone outgrow it.
-  const [filtersOpen, setFiltersOpen] = useState(
+  const filters = useDisclosure(
     () => typeof window === 'undefined' || window.matchMedia(ROOMY_QUERY).matches
   )
-  const filtersId = useId()
 
   // ---- Sub-parts of the searcher Card ----
   const searchInput = (
@@ -209,9 +212,7 @@ export function EntitySearcher({
     <NarrowSubHeader
       rows={showRow ? [...facetRows, showRow] : facetRows}
       activeFilters={activeFilters}
-      open={filtersOpen}
-      onToggle={() => setFiltersOpen((v) => !v)}
-      panelId={filtersId}
+      filters={filters}
       search={searchInput}
     />
   )
@@ -325,7 +326,7 @@ export function EntitySearcher({
               aria-label="Close"
               style={CLOSE_STYLE}
             >
-              ✕
+              <X aria-hidden="true" size={16} />
             </Button>
           )}
         </div>
@@ -365,20 +366,6 @@ const WIDE_QUERY = '(min-width: 80rem)'
  * OPEN. A phone, in portrait (too narrow) or landscape (too short), starts it
  * folded. Only the initial state — not a layout breakpoint. */
 const ROOMY_QUERY = '(min-width: 40rem) and (min-height: 40rem)'
-
-function subscribeWide(onChange: () => void): () => void {
-  const query = window.matchMedia(WIDE_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-const isWide = () => window.matchMedia(WIDE_QUERY).matches
-
-/** The server snapshot is the band — the narrow default, like MasonryColumns'
- * one-column SSR snapshot — so a server render never commits to the column. */
-function useWideLayout(): boolean {
-  return useSyncExternalStore(subscribeWide, isWide, () => false)
-}
 
 // Static properties only — every property that changes with the breakpoint
 // lives in the `.su-searcher*` classes (the split rule; see styles/index.css).

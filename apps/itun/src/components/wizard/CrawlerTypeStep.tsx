@@ -13,7 +13,7 @@ import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/ru
 import '../../styles/wizard.css'
 import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 
-const bonusStyle: CSSProperties = { display: 'block', fontFamily: tokens.font.body }
+const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 
 type CrawlerTypeSelectStepProps = {
   types: SURefCrawler[]
@@ -47,7 +47,7 @@ export function CrawlerTypeSelectStep({
   const isAugmented = selected?.id === AUGMENTED_CRAWLER_ID
 
   return (
-    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
+    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <Slab variant="solid" label="Crawler Types" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Crawler type">
         {types.map((type) => {
@@ -80,7 +80,7 @@ export function CrawlerTypeSelectStep({
             count={selected.name}
             countInk="inherit"
           />
-          <div className="wiz-stack wiz-stack--12" style={stepColumnStyle}>
+          <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
             <ReferenceEntityCard data={selected} />
             {isAugmented && (
               <Callout label="Augmented Bonus" tone="crawler">

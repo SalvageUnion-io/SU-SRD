@@ -7,7 +7,11 @@ import {
 } from 'salvageunion-reference/rules'
 
 /** The three stat lozenges, wrapping on a narrow column. */
-const STAT_ROW: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[16] }
+const STAT_ROW = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
 /**
  * Step 1 · Your Stats (Pilot Bay p.18) — display-only briefing step. Every

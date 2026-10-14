@@ -24,34 +24,34 @@ import { UnitRow } from '../shared/UnitRow'
 import { HubSection } from './HubSection'
 import type { SeatRow } from './seatRows.model'
 
-const LIST: CSSProperties = {
+const LIST = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
-}
+} satisfies CSSProperties
 
-const ENTRY: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[4] }
+const ENTRY = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
 
-const FOOT: CSSProperties = {
+const FOOT = {
   alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
   gap: `${space[4]} ${space[8]}`,
   paddingInline: space[2],
-}
+} satisfies CSSProperties
 
-const TEXT: CSSProperties = {
+const TEXT = {
   color: color.ink,
   fontFamily: font.body,
   fontSize: fontSize.sm,
   overflowWrap: 'anywhere',
-}
+} satisfies CSSProperties
 
 /** A member with no pilot: no entity to draw, so a plain line. */
-const PLAIN: CSSProperties = { ...FOOT, minHeight: '2.75rem', paddingInline: 0 }
+const PLAIN = { ...FOOT, minHeight: '2.75rem', paddingInline: 0 } satisfies CSSProperties
 
 function stamp(text: string) {
   return (

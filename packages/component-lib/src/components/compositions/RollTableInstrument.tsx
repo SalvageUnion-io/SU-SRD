@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { cn } from '../../utils/cn'
 import { revealRolled } from '../../utils/revealRolled'
 import { Button } from '../atoms/Button'
 import { FOCUS_RING_ON_TONE } from '../atoms/interaction'
@@ -110,6 +111,8 @@ export type RollTableInstrumentProps = {
   actions?: ReactNode
   /** Whether the bands show (a card folds them behind its Table toggle). */
   open?: boolean
+  /** The bands' DOM id: what that toggle's `aria-controls` names. */
+  panelId?: string
   /** `box`: its own ink frame (a page, a guide step); `rule`: flush in a card. */
   frame?: 'box' | 'rule'
   density?: RollInstrumentDensity
@@ -139,6 +142,7 @@ export function RollTableInstrument({
   hint,
   actions,
   open = true,
+  panelId,
   frame = 'box',
   density,
 }: RollTableInstrumentProps) {
@@ -209,9 +213,9 @@ export function RollTableInstrument({
       )}
       {open &&
         (table.kind === 'bands' ? (
-          <Bands name={name} table={table} />
+          <Bands id={panelId} name={name} table={table} />
         ) : (
-          <Columns name={name} table={table} />
+          <Columns id={panelId} name={name} table={table} />
         ))}
     </div>
   )
@@ -228,7 +232,7 @@ function TitleSelect({ title, select }: { title: ReactNode; select: RollTableTit
     <span className="su-roll__title">
       <button
         type="button"
-        className={`su-roll__title-select ${FOCUS_RING_ON_TONE}`}
+        className={cn('su-roll__title-select', FOCUS_RING_ON_TONE)}
         onClick={select.onOpen}
         aria-haspopup="dialog"
         aria-expanded={select.open ?? false}
@@ -301,12 +305,13 @@ export function RollControl({
   )
 }
 
-function Bands({ name, table }: { name: string; table: BandsTable }) {
+function Bands({ id, name, table }: { id?: string; name: string; table: BandsTable }) {
   const { rows, mark, split } = table
   const half = Math.ceil(rows.length / 2)
   const halves = split ? [rows.slice(0, half), rows.slice(half)] : [rows]
   return (
     <div
+      id={id}
       className="su-roll__bands"
       data-split={halves.length > 1 ? 'true' : undefined}
       // The halves share one row track per pair (`grid-template-rows: subgrid`),
@@ -352,12 +357,12 @@ function Bands({ name, table }: { name: string; table: BandsTable }) {
   )
 }
 
-function Columns({ name, table }: { name: string; table: ColumnsTable }) {
+function Columns({ id, name, table }: { id?: string; name: string; table: ColumnsTable }) {
   const { columns, mark } = table
   // The entry numbers down the edges are the first column's, as the book prints them.
   const entryKeys = columns[0]?.entries.map((entry) => entry.key) ?? []
   return (
-    <div className="su-roll__grid">
+    <div id={id} className="su-roll__grid">
       <table className="su-roll__table">
         <caption className="su-sr-only">{name}</caption>
         <thead>

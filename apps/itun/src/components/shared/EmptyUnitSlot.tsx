@@ -128,7 +128,7 @@ export function EmptyUnitSlot({
         <p style={EMPTY_MESSAGE}>{message}</p>
       </div>
       {actions && (
-        <div className="empty-unit-slot__actions" style={EMPTY_FOOT}>
+        <div className="su-empty-unit-slot__actions" style={EMPTY_FOOT}>
           {actions}
         </div>
       )}

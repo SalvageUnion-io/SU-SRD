@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-033: Hosting Moves to Cloudflare
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 33, which summarises it.

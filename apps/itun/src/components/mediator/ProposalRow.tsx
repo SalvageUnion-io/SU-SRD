@@ -18,7 +18,7 @@ import { ago, proposalLine } from './proposalLine.model'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) auto auto',
   alignItems: 'center',
@@ -27,9 +27,9 @@ const ROW: CSSProperties = {
   background: color.paper,
   border: `${borderWidth.chrome} solid ${color.ink20}`,
   borderRadius: radius.card,
-}
+} satisfies CSSProperties
 
-const WHAT: CSSProperties = {
+const WHAT = {
   ...NUMBERS,
   minWidth: 0,
   fontFamily: font.body,
@@ -38,17 +38,17 @@ const WHAT: CSSProperties = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
-const WHEN: CSSProperties = {
+const WHEN = {
   ...NUMBERS,
   fontFamily: font.body,
   fontSize: fontSize.note,
   color: color.ink75,
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
-const STATE: CSSProperties = {
+const STATE = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.badge,
@@ -56,7 +56,7 @@ const STATE: CSSProperties = {
   textTransform: 'uppercase',
   color: color.ink,
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
 export function ProposalRow({
   proposal,

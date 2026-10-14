@@ -154,7 +154,7 @@
   /* -------------------------------------------------------------------------
    * Page-break rules
    *
-   * .sheet-section:  top-level sections (PilotSheet/MechSheet/CrawlerSheet)
+   * .su-sheet-section:  top-level sections (PilotSheet/MechSheet/CrawlerSheet)
    *                  each render as <section> with aria-labelledby; we target
    *                  the rendered <section> element directly as well.
    * dl:              the stats <dl> in MechSheet
@@ -162,13 +162,13 @@
    * img:             never break inside an image
    * ------------------------------------------------------------------------- */
   section[aria-labelledby],
-  .sheet-section {
+  .su-sheet-section {
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
   section[aria-labelledby]:not(:first-child),
-  .sheet-section:not(:first-child) {
+  .su-sheet-section:not(:first-child) {
     page-break-before: auto;
     break-before: auto;
   }

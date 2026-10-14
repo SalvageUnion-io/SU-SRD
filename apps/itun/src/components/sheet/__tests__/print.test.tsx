@@ -79,8 +79,8 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    // PilotSheet renders <section class="sheet-section"> (print page-break target)
-    const section = container.querySelector('section.sheet-section')
+    // PilotSheet renders <section class="su-sheet-section"> (print page-break target)
+    const section = container.querySelector('section.su-sheet-section')
     expect(section).toBeTruthy()
   })
 

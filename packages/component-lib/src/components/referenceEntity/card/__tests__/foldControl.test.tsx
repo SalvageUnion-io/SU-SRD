@@ -82,21 +82,22 @@ describe('a folded card with no chevron (foldChevron={false})', () => {
 })
 
 describe('foldControl', () => {
+  const disclosure = (open: boolean) => ({ open, panelId: 'bay', toggle: () => {} })
+
   test('folded, it makes the card a pointer target only when asked', () => {
-    const base = { subject: 'Pilot Bay', surfaceId: 'bay', onToggle: () => {} }
-    expect(foldControl({ ...base, folded: true, cardClick: true }).cardClick).toBe(true)
-    expect(foldControl({ ...base, folded: true }).cardClick).toBeUndefined()
+    const base = { subject: 'Pilot Bay' }
+    expect(foldControl({ ...base, disclosure: disclosure(false), cardClick: true }).cardClick).toBe(
+      true
+    )
+    expect(foldControl({ ...base, disclosure: disclosure(false) }).cardClick).toBeUndefined()
     // Open, the chevron is only a chevron.
-    expect(foldControl({ ...base, folded: false, cardClick: true }).cardClick).toBeUndefined()
+    expect(
+      foldControl({ ...base, disclosure: disclosure(true), cardClick: true }).cardClick
+    ).toBeUndefined()
   })
 
   test('names its subject and the surface it controls', () => {
-    const control = foldControl({
-      subject: 'Pilot Bay',
-      folded: true,
-      surfaceId: 'bay',
-      onToggle: () => {},
-    })
+    const control = foldControl({ subject: 'Pilot Bay', disclosure: disclosure(false) })
     expect(control.ariaLabel).toBe('Pilot Bay details')
     expect(control.ariaExpanded).toBe(false)
     expect(control.ariaControls).toBe('bay')

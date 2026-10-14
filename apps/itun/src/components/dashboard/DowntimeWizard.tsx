@@ -66,14 +66,14 @@ const DOWNTIME_GUIDE_TYPE = 'downtime'
 const PHASE_STAMP_BG = 'var(--color-crawler-band)'
 
 /** The phase stamp: paper caption type at a 9×5 inset on the crawler band. */
-const PHASE_STAMP: CSSProperties = {
+const PHASE_STAMP = {
   backgroundColor: PHASE_STAMP_BG,
   color: 'var(--color-paper)',
   fontSize: 'var(--text-caption)',
   lineHeight: 'inherit',
   paddingBlock: '5px',
   paddingInline: '9px',
-}
+} satisfies CSSProperties
 
 /**
  * SRD roll tables associated with a Downtime step (keyed by the guide step's
@@ -90,31 +90,31 @@ const STEP_ROLL_TABLE: Record<string, string> = {
  * the book's: each phase's label over its steps, the steps behind the table
  * struck through with a ✓, the one it is on an ink plate.
  */
-const SPLIT: CSSProperties = {
+const SPLIT = {
   display: 'grid',
   gridTemplateColumns: '300px minmax(0, 1fr)',
   height: '100%',
   minHeight: 0,
-}
+} satisfies CSSProperties
 
-const STEPS_COLUMN: CSSProperties = {
+const STEPS_COLUMN = {
   minHeight: 0,
   overflowY: 'auto',
   padding: '16px 10px',
   background: 'var(--color-wk-bg)',
   borderRight: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-}
+} satisfies CSSProperties
 
-const TRACK: CSSProperties = {
+const TRACK = {
   display: 'flex',
   flexDirection: 'column',
   gap: '2px',
   margin: 0,
   padding: 0,
   listStyle: 'none',
-}
+} satisfies CSSProperties
 
-const SECTION_LABEL: CSSProperties = {
+const SECTION_LABEL = {
   display: 'block',
   padding: '8px 6px 4px',
   fontFamily: 'var(--font-cond)',
@@ -123,9 +123,9 @@ const SECTION_LABEL: CSSProperties = {
   letterSpacing: 'var(--tracking-caps)',
   textTransform: 'uppercase',
   color: 'var(--color-ink)',
-}
+} satisfies CSSProperties
 
-const MARK: CSSProperties = {
+const MARK = {
   display: 'flex',
   alignItems: 'baseline',
   gap: '10px',
@@ -134,69 +134,69 @@ const MARK: CSSProperties = {
   fontFamily: 'var(--font-body)',
   fontSize: 'var(--text-caption)',
   color: 'var(--color-ink)',
-}
+} satisfies CSSProperties
 
-const MARK_NUMBER: CSSProperties = {
+const MARK_NUMBER = {
   width: '1.2em',
   flexShrink: 0,
   fontFamily: 'var(--font-cond)',
   fontWeight: 700,
   fontVariantNumeric: 'tabular-nums',
-}
+} satisfies CSSProperties
 
 /** A step the table has passed: struck through, with a ✓ in its number's place. */
-const MARK_PAST: CSSProperties = {
+const MARK_PAST = {
   ...MARK,
   color: 'var(--color-ink-75)',
   textDecoration: 'line-through',
-}
+} satisfies CSSProperties
 
 /** The step the table is on: the ink plate. */
-const MARK_NOW: CSSProperties = {
+const MARK_NOW = {
   ...MARK,
   background: 'var(--color-ink)',
   color: 'var(--color-paper)',
   fontWeight: 600,
-}
+} satisfies CSSProperties
 
 /** A step still to come. */
-const MARK_NEXT: CSSProperties = MARK
+const MARK_NEXT = MARK
 
 /**
  * The step column: the step itself scrolls (`STEP_SCROLL`) and the controls sit
  * in a footer below it (`STEP_FOOT`), so "I'm done" is in view however long the
  * step runs. At the end of the scroll it was clipped by the panel's foot.
  */
-const STEP_COLUMN: CSSProperties = {
+const STEP_COLUMN = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: 0,
-}
+} satisfies CSSProperties
 
-const STEP_SCROLL: CSSProperties = {
+const STEP_SCROLL = {
   display: 'flex',
   flexDirection: 'column',
   flex: '1 1 auto',
   minHeight: 0,
   overflowY: 'auto',
-}
+} satisfies CSSProperties
 
-const STEP_FOOT: CSSProperties = {
+const STEP_FOOT = {
   flexShrink: 0,
   padding: '10px 18px 14px',
   borderTop: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-}
+} satisfies CSSProperties
 
 /** The step's band, in crawler pink (board D3): the step name notched into its foot. */
-const STEP_BAND: CSSProperties = {
+const STEP_BAND = {
   padding: '14px 18px 0',
   background: 'var(--color-crawler)',
-}
+} satisfies CSSProperties
 
-const STEP_BODY: CSSProperties = { padding: '14px 18px' }
+const STEP_BODY = { padding: '14px 18px' } satisfies CSSProperties
 
 /** The ready pips: who has finished this step. */
-const READY: CSSProperties = {
+const READY = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
@@ -207,24 +207,24 @@ const READY: CSSProperties = {
   fontFamily: 'var(--font-body)',
   fontSize: 'var(--text-note)',
   color: 'var(--color-ink)',
-}
+} satisfies CSSProperties
 
-const READY_ITEM: CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px' }
+const READY_ITEM = { display: 'flex', alignItems: 'center', gap: '5px' } satisfies CSSProperties
 
-const PIP: CSSProperties = {
+const PIP = {
   width: '10px',
   height: '10px',
   flexShrink: 0,
   borderRadius: 'var(--radius-full)',
   border: 'var(--bw-chrome) solid var(--color-ink)',
-}
+} satisfies CSSProperties
 
 /** Done is a fill AND a ✓ in the label, never colour alone. */
-const PIP_DONE: CSSProperties = { ...PIP, background: 'var(--color-status-ok)' }
+const PIP_DONE = { ...PIP, background: 'var(--color-status-ok)' } satisfies CSSProperties
 
-const PIP_WAITING: CSSProperties = { ...PIP, background: 'transparent' }
+const PIP_WAITING = { ...PIP, background: 'transparent' } satisfies CSSProperties
 
-const CONTROL: CSSProperties = { flex: 1 }
+const CONTROL = { flex: 1 } satisfies CSSProperties
 
 /** One member's ready pip. */
 type ReadyPip = { userId: string; name: string; done: boolean }

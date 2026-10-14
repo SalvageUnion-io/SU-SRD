@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactElement } from 'react'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import type { SizeRung } from '../../styles/sizing'
+import { cn } from '../../utils/cn'
 import type { StampSurface } from './Badge'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
@@ -62,12 +63,6 @@ const PLATE_RUNG: Record<SizeRung, string> = {
 
 /** `modified`'s extra 1px ink ring rides a class, not the style object. */
 const STATE_RING_CLASS = 'su-stat--modified'
-
-/** Joins the truthy class names (the plain-concatenation half of `cn`). */
-function classes(...names: (string | false | null | undefined)[]): string | undefined {
-  const joined = names.filter(Boolean).join(' ')
-  return joined === '' ? undefined : joined
-}
 
 /** The inherited `text-xs` / `text-sm` rungs carry their paired line-height. */
 const LINE_HEIGHT_XS = 'calc(1 / 0.75)'
@@ -232,7 +227,7 @@ function HorizontalValue({
   // style would beat. Only the chip role's tint stays inline.
   const cell = (
     <span
-      className={classes(
+      className={cn(
         'su-stat-cell',
         STATE_BORDER_CLASS[state],
         !inline && 'su-stat-cell--block',
@@ -250,7 +245,7 @@ function HorizontalValue({
         // the row stretches it; a two-line label (`bottomLabel`) stacks. The
         // CELL draws the single rounded border, so neither half keeps the
         // `inverse` plate's inset ring.
-        className={classes(
+        className={cn(
           'su-stat-plate',
           PLATE_RUNG[size],
           'su-stat-plate--label',
@@ -271,7 +266,7 @@ function HorizontalValue({
           shape="stamp"
           size="mini"
           surface={valueSurface}
-          className={classes(
+          className={cn(
             'su-stat-plate',
             PLATE_RUNG[size],
             'su-stat-plate--value',
@@ -306,7 +301,7 @@ function HorizontalValue({
   // the stepper adds no vertical height to the row. The resting fill/ink and
   // the coarse-pointer 44px floor live in classes (they flip on hover / at sm).
   const stepClass = (atLimit: boolean) =>
-    classes(
+    cn(
       'su-stat-step',
       inverse ? 'su-stat-step--on-ink' : 'su-stat-step--on-paper',
       !atLimit && 'su-stat-step--live'

@@ -8,7 +8,7 @@
  * `search` slot, shown from `lg`); `variant="icon"` is the phone's icon button
  * (the bar's mobile cluster, as the SRD's). Their `open` state is lifted to the
  * root, so they share it, and only the trigger that is on screen at the current
- * width opens the panel — a Base UI Popover, non-modal, hanging under its
+ * width opens the panel — a `PopoverPanel`, non-modal, hanging under its
  * trigger. Escape or a press outside closes it, focus back on the trigger.
  *
  * The combobox logic (debounce, category+entity blending, keyboard
@@ -28,18 +28,19 @@
  *   `ready` and holds a query typed early until it is.
  */
 
-import { Popover } from '@base-ui/react/popover'
 import type { EntitySurfaceValue, SearchComboboxResult } from 'component-lib'
 import {
-  buttonVariants,
+  Button,
   EmptyState,
   Entity,
   EntityExternalLinkProvider,
   EntitySurfaceProvider,
+  PopoverPanel,
   SearchField,
   SearchFieldTrigger,
   tokens,
   useDetailModal,
+  useMediaQuery,
   useModKeyHint,
   useSearchCombobox,
 } from 'component-lib'
@@ -49,7 +50,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { useGameDataLoaded } from '../../hooks/useGameDataLoaded'
-import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 
@@ -132,8 +132,6 @@ const OPTION_GROUP = {
   lineHeight: '1rem',
   textTransform: 'uppercase',
 } satisfies CSSProperties
-
-const POSITIONER = { zIndex: 60 } satisfies CSSProperties
 
 const PANEL = {
   backgroundColor: tokens.color.paper,
@@ -261,118 +259,116 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
         labelClassName="su-union-bar__search-input"
       />
     ) : (
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="iconOnly"
         aria-label={LABEL}
-        className={`${buttonVariants({ variant: 'ghost', size: 'iconOnly' })} global-search-icon`}
+        className="su-global-search-icon"
         style={TRIGGER_ICON}
       >
         <Search size={22} aria-hidden="true" />
-      </button>
+      </Button>
     )
 
   return (
     <>
-      <Popover.Root open={shown} onOpenChange={(next) => onOpenChange(next)}>
-        <Popover.Trigger render={trigger} />
-        <Popover.Portal>
-          <Popover.Positioner
-            side="bottom"
-            align="end"
-            sideOffset={8}
-            collisionPadding={16}
-            style={POSITIONER}
-          >
-            <Popover.Popup aria-label={LABEL} style={PANEL} initialFocus={inputRef}>
-              <div style={BODY}>
-                <div className="su-sr-only" aria-live="polite">
-                  {announcement}
-                </div>
+      <PopoverPanel
+        trigger={trigger}
+        label={LABEL}
+        open={shown}
+        onOpenChange={onOpenChange}
+        sideOffset={8}
+        collisionPadding={16}
+        layer="masthead"
+        panelStyle={PANEL}
+        initialFocus={inputRef}
+      >
+        <div style={BODY}>
+          <div className="su-sr-only" aria-live="polite">
+            {announcement}
+          </div>
 
-                <SearchField
-                  ref={inputRef}
-                  type="text"
-                  name="reference-search"
-                  placeholder="Search chassis, equipment, abilities…"
-                  autoComplete="off"
-                  value={query}
-                  onChange={(e) => handleInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onFocus={(e) => {
-                    if (!selectOnFocus.current) return
-                    selectOnFocus.current = false
-                    e.currentTarget.select()
-                  }}
-                  {...inputProps}
-                  aria-label={LABEL}
-                  aria-expanded={hasSearched && results.length > 0}
-                />
+          <SearchField
+            ref={inputRef}
+            type="text"
+            name="reference-search"
+            placeholder="Search chassis, equipment, abilities…"
+            autoComplete="off"
+            value={query}
+            onChange={(e) => handleInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={(e) => {
+              if (!selectOnFocus.current) return
+              selectOnFocus.current = false
+              e.currentTarget.select()
+            }}
+            {...inputProps}
+            aria-label={LABEL}
+            aria-expanded={hasSearched && results.length > 0}
+          />
 
-                {hasSearched &&
-                  (results.length > 0 ? (
-                    <div
-                      ref={listRef}
-                      id={listboxId}
-                      role="listbox"
-                      aria-label="Search results"
-                      style={LISTBOX}
+          {hasSearched &&
+            (results.length > 0 ? (
+              <div
+                ref={listRef}
+                id={listboxId}
+                role="listbox"
+                aria-label="Search results"
+                style={LISTBOX}
+              >
+                {results.map((result, index) =>
+                  // SEARCH (entity display language §7): an entity result
+                  // is a Row in link mode, without the lead; a category
+                  // row opens the SRD site.
+                  result.kind === 'entity' ? (
+                    <EntitySurfaceProvider
+                      key={result.id}
+                      value={{ openPage: openerFor(result.entity, openEntity) }}
                     >
-                      {results.map((result, index) =>
-                        // SEARCH (entity display language §7): an entity result
-                        // is a Row in link mode, without the lead; a category
-                        // row opens the SRD site.
-                        result.kind === 'entity' ? (
-                          <EntitySurfaceProvider
-                            key={result.id}
-                            value={{ openPage: openerFor(result.entity, openEntity) }}
-                          >
-                            <Entity
-                              form="row"
-                              model={toEntityModel(result.entity)}
-                              mode={{
-                                kind: 'link',
-                                attrs: {
-                                  id: optionId(index),
-                                  role: 'option',
-                                  tabIndex: -1,
-                                  'aria-selected': index === selectedIndex,
-                                },
-                              }}
-                            />
-                          </EntitySurfaceProvider>
-                        ) : (
-                          <button
-                            key={result.id}
-                            id={optionId(index)}
-                            type="button"
-                            role="option"
-                            aria-selected={index === selectedIndex}
-                            onClick={() => submit(result)}
-                            className="global-search-option"
-                            style={OPTION}
-                          >
-                            <span style={OPTION_TITLE}>{result.title}</span>
-                            <span style={OPTION_GROUP}>
-                              {result.group}
-                              <span aria-hidden="true"> &#8599;</span>
-                            </span>
-                          </button>
-                        )
-                      )}
-                    </div>
+                      <Entity
+                        form="row"
+                        model={toEntityModel(result.entity)}
+                        mode={{
+                          kind: 'link',
+                          attrs: {
+                            id: optionId(index),
+                            role: 'option',
+                            tabIndex: -1,
+                            'aria-selected': index === selectedIndex,
+                          },
+                        }}
+                      />
+                    </EntitySurfaceProvider>
                   ) : (
-                    <EmptyState variant="quiet" body="No results found" />
-                  ))}
-
-                <p style={HINT}>
-                  &#8593;&#8595; to move &middot; Enter to open &middot; Esc to close &middot;
-                  category rows open the SRD site in a new tab
-                </p>
+                    <button
+                      key={result.id}
+                      id={optionId(index)}
+                      type="button"
+                      role="option"
+                      aria-selected={index === selectedIndex}
+                      onClick={() => submit(result)}
+                      className="su-global-search-option"
+                      style={OPTION}
+                    >
+                      <span style={OPTION_TITLE}>{result.title}</span>
+                      <span style={OPTION_GROUP}>
+                        {result.group}
+                        <span aria-hidden="true"> &#8599;</span>
+                      </span>
+                    </button>
+                  )
+                )}
               </div>
-            </Popover.Popup>
-          </Popover.Positioner>
-        </Popover.Portal>
-      </Popover.Root>
+            ) : (
+              <EmptyState variant="quiet" body="No results found" />
+            ))}
+
+          <p style={HINT}>
+            &#8593;&#8595; to move &middot; Enter to open &middot; Esc to close &middot; category
+            rows open the SRD site in a new tab
+          </p>
+        </div>
+      </PopoverPanel>
 
       {/* The bar sits outside GameDataReady, so the detail modal brings the
           cross-link provider that gate would otherwise have supplied. */}

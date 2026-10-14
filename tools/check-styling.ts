@@ -2,12 +2,13 @@
 /**
  * Styling gates — `bun run check styling`.
  *
- * One engine (`packages/gates/lib/ruleEngine.ts`), four rule sets:
+ * One engine (`packages/gates/lib/ruleEngine.ts`), five rule sets:
  *
  *   - `tokens`   — design-token laws (packages/gates/rules/designTokens.ts)
  *   - `styling`  — component-lib owns shared styling (packages/gates/rules/stylingOwnership.ts)
  *   - `srd-css`  — srd's single stylesheet entry (packages/gates/rules/srdCss.ts)
  *   - `tone-ground` — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
+ *   - `class-prefix` — every package and ITUN class is `su-*` (packages/gates/rules/classPrefix.ts)
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
  * a test. A deleted token leaves its `var()` resolving to nothing, a stray app
@@ -39,6 +40,7 @@ import {
   ratchetCounts,
   readBaseline,
 } from 'gates/lib/ruleEngine'
+import { classPrefix } from 'gates/rules/classPrefix'
 import { designTokens } from 'gates/rules/designTokens'
 import { srdCss } from 'gates/rules/srdCss'
 import { stylingOwnership } from 'gates/rules/stylingOwnership'
@@ -48,7 +50,13 @@ const ROOT = join(import.meta.dir, '..')
 const BASELINE_PATH = join(import.meta.dir, 'baselines', 'styling-baseline.json')
 const UPDATE = 'bun tools/check-styling.ts --update-baseline'
 
-const RULE_SETS: readonly RuleSet[] = [designTokens, stylingOwnership, srdCss, toneGround]
+const RULE_SETS: readonly RuleSet[] = [
+  designTokens,
+  stylingOwnership,
+  srdCss,
+  toneGround,
+  classPrefix,
+]
 
 function selectedSets(argv: readonly string[]): RuleSet[] {
   const only = argv.find((a) => a.startsWith('--only='))?.slice('--only='.length)

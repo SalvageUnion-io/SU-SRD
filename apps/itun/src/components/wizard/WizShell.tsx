@@ -4,11 +4,11 @@ import { useState } from 'react'
 import '../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
-/** Sheet tone context — picks the `.sheet--{kind}` poster theming. */
+/** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */
 type WizKind = 'pilot' | 'mech' | 'crawler'
 
 type WizShellProps = {
-  /** Sheet tone context (`.sheet--{kind}`) — themes ground, band, and rail. */
+  /** Sheet tone context (`.su-sheet--{kind}`) — themes ground, band, and rail. */
   kind: WizKind
   /** Poster band banner, e.g. 'New Pilot' / 'Edit Pilot'. */
   eyebrow: string
@@ -55,7 +55,7 @@ type WizShellProps = {
   submitLabel: string
 }
 
-const trackerStyle: CSSProperties = {
+const trackerStyle = {
   alignItems: 'baseline',
   backgroundColor: tokens.color.ink,
   borderRadius: tokens.radius.badge,
@@ -71,13 +71,13 @@ const trackerStyle: CSSProperties = {
   padding: `0.375rem ${tokens.space[12]}`,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
-const trackerValueStyle: CSSProperties = {
+const trackerValueStyle = {
   color: tokens.color.pilot,
   fontSize: tokens.fontSize.lede,
   letterSpacing: tokens.tracking.capsTight,
-}
+} satisfies CSSProperties
 
 /**
  * Black tracker tab: condensed-caps label
@@ -94,29 +94,29 @@ export function WizTracker({ label, value }: { label: string; value: ReactNode }
 }
 
 /** Its vertical margin opens at lg, and a disabled tab ignores the pointer
- *  (`.wiz-rail-step`). */
-const railStepStyle: CSSProperties = {
+ *  (`.su-wiz-rail-step`). */
+const railStepStyle = {
   alignItems: 'center',
   display: 'flex',
   gap: tokens.space[10],
   position: 'relative',
   textAlign: 'left',
   zIndex: 1,
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-const railStepClickableStyle: CSSProperties = { ...railStepStyle, cursor: 'pointer' }
+const railStepClickableStyle = { ...railStepStyle, cursor: 'pointer' } satisfies CSSProperties
 
-const railTabStyle: CSSProperties = {
+const railTabStyle = {
   borderRadius: tokens.radius.badge,
   display: 'grid',
   flexShrink: 0,
   fontFamily: tokens.font.cond,
   fontWeight: tokens.weight.bold,
   placeItems: 'center',
-}
+} satisfies CSSProperties
 
-/** Its lg pull-left is `.wiz-rail-tab--active`. */
-const railTabActiveStyle: CSSProperties = {
+/** Its lg pull-left is `.su-wiz-rail-tab--active`. */
+const railTabActiveStyle = {
   ...railTabStyle,
   backgroundColor: tokens.color.ink,
   boxShadow: '0 0 0 4px var(--tone)',
@@ -125,18 +125,18 @@ const railTabActiveStyle: CSSProperties = {
   height: '2.75rem',
   lineHeight: 1,
   width: '2.75rem',
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-const railTabDoneStyle: CSSProperties = {
+const railTabDoneStyle = {
   ...railTabStyle,
   backgroundColor: tokens.color.ink,
   color: tokens.color.pilot,
   fontSize: tokens.fontSize.readout,
   height: '34px',
   width: '34px',
-}
+} satisfies CSSProperties
 
-const railTabFutureStyle: CSSProperties = {
+const railTabFutureStyle = {
   ...railTabStyle,
   backgroundColor: tokens.color.paper,
   boxShadow: 'inset 0 0 0 2.5px var(--color-ink)',
@@ -144,33 +144,36 @@ const railTabFutureStyle: CSSProperties = {
   fontSize: tokens.fontSize.readout,
   height: '34px',
   width: '34px',
-}
+} satisfies CSSProperties
 
 /**
- * Hidden until 721px (`.wiz-rail-label`). No lineHeight: the label inherits
+ * Hidden until 721px (`.su-wiz-rail-label`). No lineHeight: the label inherits
  * its line height, and that is the rendered look. Don't add one.
  */
-const railLabelStyle: CSSProperties = {
+const railLabelStyle = {
   color: tokens.color.ink,
   fontFamily: tokens.font.cond,
   fontWeight: tokens.weight.bold,
   letterSpacing: tokens.tracking.capsSnug,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const railLabelActiveStyle: CSSProperties = { ...railLabelStyle, fontSize: tokens.fontSize.caption }
+const railLabelActiveStyle = {
+  ...railLabelStyle,
+  fontSize: tokens.fontSize.caption,
+} satisfies CSSProperties
 
-const railLabelDoneStyle: CSSProperties = {
+const railLabelDoneStyle = {
   ...railLabelStyle,
   fontSize: tokens.fontSize.note,
   opacity: 0.8,
-}
+} satisfies CSSProperties
 
-const railLabelFutureStyle: CSSProperties = {
+const railLabelFutureStyle = {
   ...railLabelStyle,
   fontSize: tokens.fontSize.note,
   opacity: 0.66,
-}
+} satisfies CSSProperties
 
 /** Connector-pipe rail entry — one step tab + label. */
 function RailStep({
@@ -194,20 +197,20 @@ function RailStep({
       disabled={!clickable && !active}
       aria-current={active ? 'step' : undefined}
       onClick={clickable ? onClick : undefined}
-      className="wiz-rail-step"
+      className="su-wiz-rail-step"
       style={clickable ? railStepClickableStyle : railStepStyle}
     >
       {/* Sharp ink number tab: done = amber check, active = enlarged + tone
           ring, future = hollow ink-outlined block (never opacity-faded). */}
       <span
         aria-hidden="true"
-        className={active ? 'wiz-rail-tab--active' : undefined}
+        className={active ? 'su-wiz-rail-tab--active' : undefined}
         style={active ? railTabActiveStyle : done ? railTabDoneStyle : railTabFutureStyle}
       >
         {done ? '✓' : index + 1}
       </span>
       <span
-        className="wiz-rail-label"
+        className="su-wiz-rail-label"
         style={active ? railLabelActiveStyle : done ? railLabelDoneStyle : railLabelFutureStyle}
       >
         {label}
@@ -216,23 +219,23 @@ function RailStep({
   )
 }
 
-/** Its direction, alignment, gap and padding change at sm (`.wiz-pill`). */
-const pillStyle: CSSProperties = {
+/** Its direction, alignment, gap and padding change at sm (`.su-wiz-pill`). */
+const pillStyle = {
   backgroundColor: tokens.color.ink,
   display: 'flex',
   pointerEvents: 'auto',
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-/** Centred on a phone, start-aligned from sm (`.wiz-pill-start`). */
-const pillTrackersStyle: CSSProperties = {
+/** Centred on a phone, start-aligned from sm (`.su-wiz-pill-start`). */
+const pillTrackersStyle = {
   alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[8],
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-/** Centred on a phone, left-aligned from sm (`.wiz-pill-note`). */
-const pillNoteStyle: CSSProperties = {
+/** Centred on a phone, left-aligned from sm (`.su-wiz-pill-note`). */
+const pillNoteStyle = {
   color: tokens.color.pilot,
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.xs,
@@ -242,22 +245,22 @@ const pillNoteStyle: CSSProperties = {
   margin: 0,
   paddingInline: tokens.space[8],
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-const pillEscapeStyle: CSSProperties = { display: 'flex', paddingInline: tokens.space[8] }
+const pillEscapeStyle = { display: 'flex', paddingInline: tokens.space[8] } satisfies CSSProperties
 
-/** A row on a phone, `display: contents` from sm (`.wiz-pill-nav`). */
-const pillNavStyle: CSSProperties = {
+/** A row on a phone, `display: contents` from sm (`.su-wiz-pill-nav`). */
+const pillNavStyle = {
   alignItems: 'center',
   gap: tokens.space[8],
   justifyContent: 'flex-end',
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-/** Full width on a phone, its own width from sm (`.wiz-pill-cta`). */
-const ctaStyle: CSSProperties = { borderRadius: tokens.radius.card }
+/** Full width on a phone, its own width from sm (`.su-wiz-pill-cta`). */
+const ctaStyle = { borderRadius: tokens.radius.card } satisfies CSSProperties
 
 /** Locked: hollow, dashed, at full opacity though disabled. */
-const ctaLockedStyle: CSSProperties = {
+const ctaLockedStyle = {
   ...ctaStyle,
   backgroundColor: 'transparent',
   borderColor: 'color-mix(in oklab, var(--color-paper) 55%, transparent)',
@@ -267,19 +270,19 @@ const ctaLockedStyle: CSSProperties = {
   color: tokens.color.paper60,
   fontWeight: tokens.weight.normal,
   opacity: 1,
-}
+} satisfies CSSProperties
 
-const shellStyle: CSSProperties = {
+const shellStyle = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100dvh',
-}
+} satisfies CSSProperties
 
-/** A column on a phone, a row from lg (`.wiz-body`). */
-const bodyStyle: CSSProperties = { display: 'flex', flex: '1 1 0%' }
+/** A column on a phone, a row from lg (`.su-wiz-body`). */
+const bodyStyle = { display: 'flex', flex: '1 1 0%' } satisfies CSSProperties
 
-/** Shown from lg (`.wiz-rail-pipe`). */
-const pipeStyle: CSSProperties = {
+/** Shown from lg (`.su-wiz-rail-pipe`). */
+const pipeStyle = {
   backgroundColor: tokens.color.ink,
   borderTopLeftRadius: '0.75rem',
   borderTopRightRadius: '0.75rem',
@@ -288,10 +291,10 @@ const pipeStyle: CSSProperties = {
   position: 'absolute',
   top: tokens.space[4],
   width: tokens.space[28],
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-/** Shown from lg (`.wiz-rail-stub`). */
-const pipeStubStyle: CSSProperties = {
+/** Shown from lg (`.su-wiz-rail-stub`). */
+const pipeStubStyle = {
   backgroundColor: tokens.color.ink,
   borderBottomLeftRadius: '0.5rem',
   borderBottomRightRadius: '0.5rem',
@@ -301,38 +304,38 @@ const pipeStubStyle: CSSProperties = {
   left: tokens.space[4],
   position: 'absolute',
   width: tokens.space[28],
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-const arrowheadStyle: CSSProperties = {
+const arrowheadStyle = {
   borderLeft: '9px solid transparent',
   borderRight: '9px solid transparent',
   borderTop: `14px solid ${tokens.color.paper}`,
   height: 0,
   marginTop: tokens.space[10],
   width: 0,
-}
+} satisfies CSSProperties
 
-/** Its padding grows at lg (`.wiz-main`). */
-const mainStyle: CSSProperties = {
+/** Its padding grows at lg (`.su-wiz-main`). */
+const mainStyle = {
   display: 'flex',
   flex: '1 1 0%',
   flexDirection: 'column',
   minWidth: 0,
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-const fillStyle: CSSProperties = { flex: '1 1 0%', minHeight: 0 }
+const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
 
-/** Its left padding — the number tab's gutter — opens at sm (`.wiz-step-card`). */
-const stepCardStyle: CSSProperties = {
+/** Its left padding — the number tab's gutter — opens at sm (`.su-wiz-step-card`). */
+const stepCardStyle = {
   borderRadius: tokens.radius.card,
   paddingBottom: tokens.space[24],
   paddingRight: tokens.space[20],
   paddingTop: tokens.space[20],
   position: 'relative',
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-/** Shown from sm (`.wiz-step-tab`). */
-const stepTabStyle: CSSProperties = {
+/** Shown from sm (`.su-wiz-step-tab`). */
+const stepTabStyle = {
   backgroundColor: tokens.color.ink,
   borderRadius: tokens.radius.badge,
   color: tokens.color.paper,
@@ -346,9 +349,9 @@ const stepTabStyle: CSSProperties = {
   position: 'absolute',
   top: tokens.space[24],
   width: '3.5rem',
-}
+} satisfies CSSProperties satisfies CSSProperties
 
-const stepCardTitleStyle: CSSProperties = {
+const stepCardTitleStyle = {
   color: 'currentcolor',
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.display,
@@ -356,11 +359,11 @@ const stepCardTitleStyle: CSSProperties = {
   lineHeight: 1.05,
   margin: 0,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const stepCardBodyStyle: CSSProperties = { marginTop: tokens.space[16] }
+const stepCardBodyStyle = { marginTop: tokens.space[16] } satisfies CSSProperties
 
-const footerPillStyle: CSSProperties = {
+const footerPillStyle = {
   bottom: tokens.space[16],
   display: 'flex',
   justifyContent: 'flex-end',
@@ -368,10 +371,10 @@ const footerPillStyle: CSSProperties = {
   pointerEvents: 'none',
   position: 'sticky',
   zIndex: 40,
-}
+} satisfies CSSProperties
 
 /**
- * Shared wizard skeleton, a poster sibling: the `.sheet--{kind}` tone context
+ * Shared wizard skeleton, a poster sibling: the `.su-sheet--{kind}` tone context
  * on the `var(--ground)` page, a tone band banner up top, the manual's
  * connector-pipe stepper rail (196px) and a flex-1 main pane holding the
  * tinted step card, with a floating ink action pill (ghost Back/Cancel +
@@ -406,26 +409,26 @@ export function WizShell({
   // The ink action pill: trackers + gate note + escape + nav buttons + CTA.
   // Its own dark ground keeps the ghost buttons legible.
   const actionPill = (
-    <div className="wiz-pill" style={pillStyle}>
+    <div className="su-wiz-pill" style={pillStyle}>
       {trackers && (
-        <div className="wiz-pill-start" style={pillTrackersStyle}>
+        <div className="su-wiz-pill-start" style={pillTrackersStyle}>
           {trackers}
         </div>
       )}
       {footerNote && (
-        <p role="status" className="wiz-pill-note" style={pillNoteStyle}>
+        <p role="status" className="su-wiz-pill-note" style={pillNoteStyle}>
           {footerNote}
         </p>
       )}
       {escapeAction && (
-        <div className="wiz-pill-start" style={pillEscapeStyle}>
+        <div className="su-wiz-pill-start" style={pillEscapeStyle}>
           {escapeAction}
         </div>
       )}
       {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
-      <div className="wiz-pill-nav" style={pillNavStyle}>
+      <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
-          <Button variant="ghost" onClick={onBack} disabled={busy} className="wiz-pill-ghost">
+          <Button variant="ghost" onClick={onBack} disabled={busy} className="su-wiz-pill-ghost">
             Back
           </Button>
         )}
@@ -433,7 +436,7 @@ export function WizShell({
           variant="ghost"
           onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
           disabled={busy}
-          className="wiz-pill-ghost"
+          className="su-wiz-pill-ghost"
         >
           Cancel
         </Button>
@@ -444,7 +447,7 @@ export function WizShell({
           }}
           title="Discard this draft?"
           tone="danger"
-          maxWidth="wiz-modal-md"
+          maxWidth="su-wiz-modal-md"
         >
           <div style={dialogBodyStyle}>
             <div style={dialogNoteStyle}>Your unsaved changes will be lost.</div>
@@ -471,7 +474,7 @@ export function WizShell({
       <Button
         variant="primary"
         size="full"
-        className="wiz-pill-cta"
+        className="su-wiz-pill-cta"
         style={nextDisabled && !busy ? ctaLockedStyle : ctaStyle}
         onClick={onNext}
         disabled={nextDisabled || busy}
@@ -482,21 +485,21 @@ export function WizShell({
   )
 
   return (
-    <div className={`sheet--${kind}`} style={shellStyle}>
+    <div className={`su-sheet--${kind}`} style={shellStyle}>
       {/* The page title as every other page sets it. A paragraph: the step
           card's title is the page's h1. */}
       <ChapterBand tone={kind} as="p">
         {eyebrow}
       </ChapterBand>
 
-      <div className="wiz-body" style={bodyStyle}>
+      <div className="su-wiz-body" style={bodyStyle}>
         {/* (a) 196px connector-pipe stepper rail: a thick ink
             pipe with an arrow-capped end runs behind the step tabs on lg;
             mobile keeps the horizontal wrap without the pipe. */}
-        <aside className="wiz-rail">
-          <nav aria-label="Steps" className="wiz-rail-nav">
+        <aside className="su-wiz-rail">
+          <nav aria-label="Steps" className="su-wiz-rail-nav">
             {/* The pipe — thick, runs behind the tabs (lg only). */}
-            <span aria-hidden="true" className="wiz-rail-pipe" style={pipeStyle} />
+            <span aria-hidden="true" className="su-wiz-rail-pipe" style={pipeStyle} />
             {steps.map((label, i) => (
               <RailStep
                 key={label}
@@ -509,21 +512,21 @@ export function WizShell({
               />
             ))}
             {/* Black stub at the pipe's end with a chunky white arrowhead. */}
-            <span aria-hidden="true" className="wiz-rail-stub" style={pipeStubStyle}>
+            <span aria-hidden="true" className="su-wiz-rail-stub" style={pipeStubStyle}>
               <span style={arrowheadStyle} />
             </span>
           </nav>
         </aside>
 
         {/* (b) flex-1 main pane — always owns the step heading */}
-        <main className="wiz-main" style={mainStyle}>
+        <main className="su-wiz-main" style={mainStyle}>
           {/* Tinted step card: tone-card fill, flush ink number tab, condensed
               step head in the card ink. */}
           {/* The sticky footer overlaps content when pinned, so the frame
               reserves scroll room beneath it. */}
-          <div className="wiz-step-frame" style={{ ...fillStyle, paddingBottom: '6rem' }}>
+          <div className="su-wiz-step-frame" style={{ ...fillStyle, paddingBottom: '6rem' }}>
             <article
-              className="wiz-step-card"
+              className="su-wiz-step-card"
               style={{
                 ...stepCardStyle,
                 background: 'var(--tone-card, var(--tone))',
@@ -534,7 +537,7 @@ export function WizShell({
                 color: 'var(--tone-card-ink, var(--color-ink))',
               }}
             >
-              <span aria-hidden="true" className="wiz-step-tab" style={stepTabStyle}>
+              <span aria-hidden="true" className="su-wiz-step-tab" style={stepTabStyle}>
                 {active + 1}
               </span>
               <header>

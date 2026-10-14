@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { color, font, fontSize, tracking, weight } from '../../design/tokens'
 import type { CSSVarStyle } from '../../styles/cssVars'
+import { cn } from '../../utils/cn'
 import { FOCUS_RING } from './interaction'
 
 /**
@@ -72,7 +73,7 @@ export function CatalogTile({ onActivate, name, catalogBg, catalogLabel }: Catal
     <button
       type="button"
       onClick={onActivate}
-      className={`su-catalog-tile ${FOCUS_RING}`}
+      className={cn('su-catalog-tile', FOCUS_RING)}
       style={style}
     >
       <span

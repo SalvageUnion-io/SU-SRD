@@ -9,24 +9,24 @@ import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawl
 import '../../styles/wizard.css'
 
 /** The step's column, capped at 48rem. */
-const COLUMN: CSSProperties = { maxWidth: '48rem' }
+const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 
 /** The step's lede, in the surrounding text colour. */
-const LEDE: CSSProperties = {
+const LEDE = {
   margin: 0,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',
   color: 'currentcolor',
-}
+} satisfies CSSProperties
 
-/** An open row's crew fields; the column count is `.wiz-crew-fields`. */
-const CREW_FIELDS: CSSProperties = {
+/** An open row's crew fields; the column count is `.su-wiz-crew-fields`. */
+const CREW_FIELDS = {
   display: 'grid',
   gap: tokens.space[12],
   paddingBottom: tokens.space[8],
   paddingLeft: tokens.space[12],
-}
+} satisfies CSSProperties satisfies CSSProperties
 
 type NpcSource = {
   /** Stable key — the bay slug or the type slug. */
@@ -100,7 +100,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
   }
 
   return (
-    <div className="wiz-stack wiz-stack--12" style={COLUMN}>
+    <div className="su-wiz-stack su-wiz-stack--12" style={COLUMN}>
       <p style={LEDE}>
         Each crewed Bay is run by its own lead, and your Crawler type brings a special NPC. Open a
         row to name and detail them now, or leave them blank and fill them in during play.
@@ -112,7 +112,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
         const showKeepsake = findNpcChoiceByName(source.npc, 'Keepsake') !== undefined
         const showMotto = findNpcChoiceByName(source.npc, 'Motto') !== undefined
         return (
-          <section key={source.ref} className="wiz-stack wiz-stack--12">
+          <section key={source.ref} className="su-wiz-stack su-wiz-stack--12">
             <ReferenceEntityCard
               data={source.entity}
               size="medium"
@@ -121,7 +121,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
               controls={[navigateControl(() => toggle(source.ref))]}
             />
             {isOpen && (
-              <div className="wiz-crew-fields" style={CREW_FIELDS}>
+              <div className="su-wiz-crew-fields" style={CREW_FIELDS}>
                 <Field
                   label="Name"
                   value={value.name ?? ''}

@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-026: Entity Card Design Rules (the single reference-entity renderer)
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 26, which summarises it.

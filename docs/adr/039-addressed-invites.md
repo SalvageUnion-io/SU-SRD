@@ -1,7 +1,3 @@
----
-status: accepted
----
-
 # ADR-039: Addressed Invites — by Discord Account
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 39, which summarises it.

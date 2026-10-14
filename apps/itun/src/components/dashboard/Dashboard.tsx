@@ -55,7 +55,6 @@ import { ChevronLeft } from 'lucide-react'
 // the one app that renders a dashboard loads it here, and it lands in this
 // route's chunk rather than in every page's stylesheet.
 import '../../styles/dashboard.css'
-import { borderWidth, color } from 'component-lib/design/tokens'
 import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import { downtimeStepCount, isUpkeepStep } from 'itun-domain/rules/downtime'
 import { pilotingContext } from 'itun-domain/rules/pilotingContext'
@@ -82,6 +81,7 @@ import type { DisplayTab } from './DisplayTabs'
 import { DisplayTabs } from './DisplayTabs'
 import { DowntimeWizard } from './DowntimeWizard'
 import { DashboardFormContext, useUnitTab } from './dashboardForm.model'
+import { DECK, DECK_AND_TABS, DISPLAY, TABS_ALONE } from './displayRegion.model'
 import { LogTab } from './LogTab'
 import { PhoneDeck } from './PhoneDeck'
 import type { PhoneMenuView } from './PhoneMenu'
@@ -138,51 +138,15 @@ export function Dashboard({ pilotId, mediator = false }: DashboardProps) {
 
 const SLOT_LABEL: Record<SlotKind, string> = { pilot: 'Pilot', mech: 'Mech', crawler: 'Crawler' }
 
-/**
- * The display region: the deck beside the tabs, over the strip. The ⤢ overlay
- * covers all of it.
- */
-const DISPLAY: CSSProperties = {
-  position: 'relative',
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-}
-
-/**
- * Deck and tabs side by side, the deck a little wider (its tiles pack in
- * columns). The one row is pinned to the region's height, not its content's,
- * so each side scrolls inside itself rather than pushing the strip off the
- * canvas.
- */
-const DECK_AND_TABS: CSSProperties = {
-  flex: 1,
-  minHeight: 0,
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)',
-  gridTemplateRows: 'minmax(0, 1fr)',
-}
-
-/**
- * The Crew tab takes the whole display (board D2): a table of the crew's
- * vitals and status needs the width, and the deck has nothing to say to it.
- */
-const TABS_ALONE: CSSProperties = { ...DECK_AND_TABS, gridTemplateColumns: 'minmax(0, 1fr)' }
-
-const DECK: CSSProperties = {
-  minHeight: 0,
-  borderRight: `${borderWidth.chrome} solid ${color.ink20}`,
-}
-
 /** The Reference tab: its entity picker over the card. */
-const REFERENCE: CSSProperties = {
+const REFERENCE = {
   height: '100%',
   minHeight: 0,
   display: 'flex',
   flexDirection: 'column',
-}
+} satisfies CSSProperties
 
-const DISPLAY_BODY: CSSProperties = { flex: 1, minHeight: 0 }
+const DISPLAY_BODY = { flex: 1, minHeight: 0 } satisfies CSSProperties
 
 /** The Major a ⤢ opened, and the ⤢ to hand focus back to. */
 type Expanded = { kind: SlotKind; trigger: HTMLButtonElement }

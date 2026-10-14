@@ -54,20 +54,20 @@ type EntityCardIdentityFooterProps = {
 
 const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
 
-const capsLabel: CSSProperties = {
+const capsLabel = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   letterSpacing: tracking.capsTight,
   lineHeight: 1,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const truncate: CSSProperties = {
+const truncate = {
   minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-}
+} satisfies CSSProperties
 
 /**
  * EntityCardIdentityFooter — the card's FOOTER (depth-0 / full cards only):

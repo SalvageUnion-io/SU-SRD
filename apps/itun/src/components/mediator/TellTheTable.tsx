@@ -16,32 +16,32 @@ import { ago } from './proposalLine.model'
 
 const { borderWidth, color, radius, space } = tokens
 
-const SCROLL: CSSProperties = {
+const SCROLL = {
   height: '100%',
   overflowY: 'auto',
   padding: space[12],
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
-}
+} satisfies CSSProperties
 
-const FORM: CSSProperties = {
+const FORM = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) auto',
   gap: space[8],
   alignItems: 'end',
-}
+} satisfies CSSProperties
 
-const LIST: CSSProperties = {
+const LIST = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[6],
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'flex',
   justifyContent: 'space-between',
   gap: space[12],
@@ -49,9 +49,9 @@ const ROW: CSSProperties = {
   background: color.paper,
   border: `${borderWidth.chrome} solid ${color.ink20}`,
   borderRadius: radius.card,
-}
+} satisfies CSSProperties
 
-const WHEN: CSSProperties = { ...MUTED, ...NUMBERS, whiteSpace: 'nowrap' }
+const WHEN = { ...MUTED, ...NUMBERS, whiteSpace: 'nowrap' } satisfies CSSProperties
 
 export function TellTheTable({
   alerts,

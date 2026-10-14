@@ -43,7 +43,7 @@ export type ProposeArgs = {
   reason?: string
 }
 
-const DOCK: CSSProperties = {
+const DOCK = {
   height: '100%',
   minHeight: 0,
   overflowY: 'auto',
@@ -52,23 +52,23 @@ const DOCK: CSSProperties = {
   gap: space[12],
   padding: space[12],
   background: color.wkBg,
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(4.5rem, 0.5fr)',
   gap: space[8],
   alignItems: 'end',
-}
+} satisfies CSSProperties
 
-const SEND_ROW: CSSProperties = {
+const SEND_ROW = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: space[12],
-}
+} satisfies CSSProperties
 
-const PREVIEW: CSSProperties = { ...MUTED, ...NUMBERS, minWidth: 0 }
+const PREVIEW = { ...MUTED, ...NUMBERS, minWidth: 0 } satisfies CSSProperties
 
 export function ProposeDock({
   targets,

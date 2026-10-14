@@ -129,9 +129,17 @@ export function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; ho
   )
 }
 
-const LOADOUT_PAGE: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[16] }
+const LOADOUT_PAGE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+} satisfies CSSProperties
 
-const LOADOUT_GROUP: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[8] }
+const LOADOUT_GROUP = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+} satisfies CSSProperties
 
 /**
  * A pattern PAGE's loadout, under its chassis ability: each group (Systems,

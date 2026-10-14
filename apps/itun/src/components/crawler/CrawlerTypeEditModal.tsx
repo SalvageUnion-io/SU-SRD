@@ -25,28 +25,28 @@ import type { EntityState } from '../../stores/entityStore'
 import '../../styles/wizard.css'
 
 /** The confirm dialog's body. */
-const CONFIRM_BODY: CSSProperties = {
+const CONFIRM_BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[16],
   backgroundColor: tokens.color.paper,
   padding: tokens.space[20],
-}
+} satisfies CSSProperties
 
 /** The confirm dialog's consequence copy. */
-const CONFIRM_COPY: CSSProperties = {
+const CONFIRM_COPY = {
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',
   color: tokens.color.wkMuted,
-}
+} satisfies CSSProperties
 
 /** Cancel / confirm, right-aligned. */
-const CONFIRM_ACTIONS: CSSProperties = {
+const CONFIRM_ACTIONS = {
   display: 'flex',
   justifyContent: 'flex-end',
   gap: tokens.space[8],
-}
+} satisfies CSSProperties
 
 type CrawlerTypeEditModalProps = {
   open: boolean
@@ -111,7 +111,7 @@ export function CrawlerTypeEditModal({
           if (!next) onClose()
         }}
         title="Change Crawler Type"
-        maxWidth="wiz-modal-5xl"
+        maxWidth="su-wiz-modal-5xl"
         bare
       >
         <EntitySearcher
@@ -157,7 +157,7 @@ export function CrawlerTypeEditModal({
         }}
         title="Change crawler type?"
         tone="danger"
-        maxWidth="wiz-modal-md"
+        maxWidth="su-wiz-modal-md"
       >
         <div style={CONFIRM_BODY}>
           <div style={CONFIRM_COPY}>

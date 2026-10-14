@@ -25,16 +25,16 @@ import { HubSection } from './HubSection'
 
 const { borderWidth, color, font, fontSize, radius, space, weight } = tokens
 
-const LIST: CSSProperties = {
+const LIST = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[10],
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
@@ -44,9 +44,9 @@ const ROW: CSSProperties = {
   background: color.paper,
   border: `${borderWidth.chrome} solid ${color.ink}`,
   borderRadius: radius.card,
-}
+} satisfies CSSProperties
 
-const WHAT: CSSProperties = {
+const WHAT = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[2],
@@ -55,13 +55,13 @@ const WHAT: CSSProperties = {
   fontSize: fontSize.sm,
   color: color.ink,
   fontVariantNumeric: 'tabular-nums',
-}
+} satisfies CSSProperties
 
-const HEAD: CSSProperties = { fontWeight: weight.bold, fontSize: fontSize.lede }
+const HEAD = { fontWeight: weight.bold, fontSize: fontSize.lede } satisfies CSSProperties
 
-const REASON: CSSProperties = { color: color.wkMuted }
+const REASON = { color: color.wkMuted } satisfies CSSProperties
 
-const ACTIONS: CSSProperties = { display: 'flex', gap: space[6] }
+const ACTIONS = { display: 'flex', gap: space[6] } satisfies CSSProperties
 
 export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
   const pending = useQuery(api.proposals.pending, { gameId })

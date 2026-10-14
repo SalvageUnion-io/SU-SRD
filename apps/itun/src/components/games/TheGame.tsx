@@ -26,50 +26,50 @@ import { HubSection } from './HubSection'
 
 const { color, font, fontSize, space, tracking, weight } = tokens
 
-const LIST: CSSProperties = {
+const LIST = {
   margin: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: space[10],
-}
+} satisfies CSSProperties
 
-const ROW: CSSProperties = {
+const ROW = {
   display: 'grid',
   gridTemplateColumns: '7rem minmax(0, 1fr)',
   alignItems: 'center',
   gap: space[12],
-}
+} satisfies CSSProperties
 
-const VALUE_ROW: CSSProperties = {
+const VALUE_ROW = {
   margin: 0,
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const TERM: CSSProperties = {
+const TERM = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.badge,
   letterSpacing: tracking.caps,
   textTransform: 'uppercase',
   color: color.ink,
-}
+} satisfies CSSProperties
 
-const VALUE: CSSProperties = {
+const VALUE = {
   margin: 0,
   minWidth: 0,
   overflowWrap: 'anywhere',
   fontFamily: font.body,
   fontSize: fontSize.lede,
   color: color.ink,
-}
+} satisfies CSSProperties
 
-const NONE: CSSProperties = { ...VALUE, color: color.wkMuted }
+const NONE = { ...VALUE, color: color.wkMuted } satisfies CSSProperties
 
-const ACTIONS: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: space[8] }
+const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: space[8] } satisfies CSSProperties
 
 export function TheGame({
   gameId,

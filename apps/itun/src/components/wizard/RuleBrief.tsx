@@ -15,14 +15,14 @@ type RuleBriefProps = StepRule & {
   className?: string
 }
 
-const ruleStyle: CSSProperties = {
+const ruleStyle = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 1.625,
   margin: 0,
   maxWidth: '70ch',
-}
+} satisfies CSSProperties
 
 /**
  * RuleBrief — the "THE RULE" callout heading every wizard step

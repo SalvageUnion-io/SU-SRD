@@ -25,7 +25,7 @@ import { createBlank } from '../../lib/wizard/blankCreate'
 import '../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
-const noteStyle: CSSProperties = { ...dialogNoteStyle, margin: 0 }
+const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties
 
 type BlankCreateDialogProps = {
   kind: BlankCreateKind
@@ -129,7 +129,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
         if (!next) onClose()
       }}
       title={`Blank ${label}`}
-      maxWidth="wiz-modal-md"
+      maxWidth="su-wiz-modal-md"
     >
       <div style={dialogBodyStyle}>
         <p style={noteStyle}>

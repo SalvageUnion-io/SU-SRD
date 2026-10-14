@@ -17,10 +17,10 @@ import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath
 import '../../styles/wizard.css'
 
 /** An unreachable (off-ring) class, demoted but still pickable. */
-const DIMMED: CSSProperties = { opacity: 0.7 }
+const DIMMED = { opacity: 0.7 } satisfies CSSProperties
 
 /** The caps note under a class card ("current", "via Hacker", …). */
-const OPTION_NOTE: CSSProperties = {
+const OPTION_NOTE = {
   margin: `0 0 ${tokens.space[8]}`,
   paddingLeft: tokens.space[4],
   fontFamily: tokens.font.cond,
@@ -29,7 +29,7 @@ const OPTION_NOTE: CSSProperties = {
   textTransform: 'uppercase',
   letterSpacing: tokens.tracking.caps,
   color: tokens.color.wkMuted,
-}
+} satisfies CSSProperties
 
 /** The gain / lose / keep lists. */
 const LEDGER = {
@@ -48,29 +48,29 @@ const LEDGER_LINE = {
   lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
 
-/** List and consequences; the column split is `.wiz-class-path`. */
-const PICKER: CSSProperties = { display: 'grid', gap: tokens.space[16] }
+/** List and consequences; the column split is `.su-wiz-class-path`. */
+const PICKER = { display: 'grid', gap: tokens.space[16] } satisfies CSSProperties
 
 /** One ring group (Core, Advanced, …) in the class list. */
-const GROUP: CSSProperties = { marginBottom: tokens.space[16] }
+const GROUP = { marginBottom: tokens.space[16] } satisfies CSSProperties
 
 /** The consequences column. */
-const CONSEQUENCES: CSSProperties = {
+const CONSEQUENCES = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[12],
-}
+} satisfies CSSProperties
 
 /** The origin question's copy, above its cards. */
-const ORIGIN_COPY: CSSProperties = { margin: `0 0 ${tokens.space[8]}` }
+const ORIGIN_COPY = { margin: `0 0 ${tokens.space[8]}` } satisfies CSSProperties
 
 /** The derived-origin note. */
-const IMPLIED_ORIGIN: CSSProperties = {
+const IMPLIED_ORIGIN = {
   margin: 0,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
   color: tokens.color.wkMuted,
-}
+} satisfies CSSProperties
 
 type ClassPathPickerProps = {
   allClasses: readonly SURefClass[]
@@ -101,7 +101,7 @@ function OptionCard({
         data={cls}
         size="medium"
         extent="catalog"
-        className="wiz-class-card"
+        className="su-wiz-class-card"
         selected={selected}
         selectionRole="radio"
         cardClickLabel={note === undefined ? cls.name : `${cls.name}, ${note}`}
@@ -176,7 +176,7 @@ export function ClassPathPicker({
     .filter((c): c is SURefClass => c !== undefined)
 
   return (
-    <div className="wiz-class-path" style={PICKER}>
+    <div className="su-wiz-class-path" style={PICKER}>
       <RadioCardGroup label="Class">
         {groups.map((group) => (
           <div key={group.kind} style={GROUP}>
@@ -220,7 +220,7 @@ export function ClassPathPicker({
                       data={cls}
                       size="small"
                       extent="head"
-                      className="wiz-class-card"
+                      className="su-wiz-class-card"
                       selected={cls.id === answeredOrigin}
                       selectionRole="radio"
                       cardClickLabel={`Came from ${cls.name}`}

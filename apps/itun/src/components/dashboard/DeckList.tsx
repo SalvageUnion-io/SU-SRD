@@ -59,7 +59,7 @@ export type DeckListModel =
     }
 
 /** A bare fieldset: the group, without the browser's frame around it. */
-const GROUP: CSSProperties = { border: 0, margin: 0, padding: 0, minInlineSize: 0 }
+const GROUP = { border: 0, margin: 0, padding: 0, minInlineSize: 0 } satisfies CSSProperties
 
 /** A source toggle carries its stamp before its label. */
 const SOURCE = {
@@ -69,12 +69,12 @@ const SOURCE = {
   maxWidth: '100%',
 } satisfies CSSProperties
 
-const STAMP: CSSProperties = {
+const STAMP = {
   borderRadius: radius.card,
   paddingInline: space[4],
   paddingBlock: '1px',
   fontSize: fontSize.badge,
-}
+} satisfies CSSProperties
 
 export function DeckList({ view }: { view: DeckListModel }) {
   if (view.kind === 'empty') {

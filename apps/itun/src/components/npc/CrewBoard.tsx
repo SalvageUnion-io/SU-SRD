@@ -35,6 +35,7 @@ import {
   Textarea,
   toast,
   tokens,
+  useMediaQuery,
 } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { containerOf, sameContainer } from 'itun-domain/container'
@@ -48,7 +49,6 @@ import { nameToSlug } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../hooks/entities'
-import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { assignCrew } from '../../lib/links/assignLink'

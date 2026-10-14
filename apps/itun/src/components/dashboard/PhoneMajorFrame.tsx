@@ -46,18 +46,18 @@ import { DashboardGauge } from './DashboardGauge'
 import { DAMAGED } from './damaged.model'
 import type { BandBay, BandButton, BandGauge, BandOverlay, MajorModel } from './MajorFrame'
 
-const COLUMN: CSSProperties = {
+const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
   minWidth: 0,
-}
+} satisfies CSSProperties
 
-const STAMP_ROW: CSSProperties = { display: 'flex', justifyContent: 'flex-end' }
+const STAMP_ROW = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
 
-const STAMP: CSSProperties = { fontSize: fontSize.badge }
+const STAMP = { fontSize: fontSize.badge } satisfies CSSProperties
 
-const BAY: CSSProperties = {
+const BAY = {
   display: 'flex',
   minInlineSize: 0,
   margin: 0,
@@ -68,9 +68,9 @@ const BAY: CSSProperties = {
   background: color.paper,
   border: `${borderWidth.chrome} solid ${color.ink}`,
   borderRadius: radius.badge,
-}
+} satisfies CSSProperties
 
-const LABEL: CSSProperties = {
+const LABEL = {
   margin: 0,
   fontFamily: font.cond,
   fontWeight: weight.bold,
@@ -78,34 +78,38 @@ const LABEL: CSSProperties = {
   letterSpacing: tracking.caps,
   textTransform: 'uppercase',
   color: color.ink75,
-}
+} satisfies CSSProperties
 
-const CELLS: CSSProperties = {
+const CELLS = {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const LINE: CSSProperties = {
+const LINE = {
   margin: 0,
   fontFamily: font.body,
   fontSize: fontSize.caption,
   lineHeight: 1.4,
   color: color.ink,
-}
+} satisfies CSSProperties
 
-const WARN: CSSProperties = { ...LINE, color: color.statusBad, fontWeight: weight.semibold }
+const WARN = {
+  ...LINE,
+  color: color.statusBad,
+  fontWeight: weight.semibold,
+} satisfies CSSProperties
 
-const CHIPS: CSSProperties = {
+const CHIPS = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: space[6],
   listStyle: 'none',
   margin: 0,
   padding: 0,
-}
+} satisfies CSSProperties
 
-const CHIP: CSSProperties = {
+const CHIP = {
   padding: `${space[2]} ${space[10]}`,
   border: `${borderWidth.chrome} solid ${color.ink30}`,
   borderRadius: radius.full,
@@ -113,39 +117,39 @@ const CHIP: CSSProperties = {
   fontFamily: font.cond,
   fontWeight: weight.semibold,
   fontSize: fontSize.caption,
-}
+} satisfies CSSProperties
 
-const BUTTONS: CSSProperties = {
+const BUTTONS = {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const BUTTON: CSSProperties = { width: '100%', minHeight: '44px' }
+const BUTTON = { width: '100%', minHeight: '44px' } satisfies CSSProperties
 
-const OVERLAY: CSSProperties = {
+const OVERLAY = {
   ...BAY,
   gap: space[12],
   scrollMarginTop: '120px',
-}
+} satisfies CSSProperties
 
-const OVERLAY_HEAD: CSSProperties = {
+const OVERLAY_HEAD = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: space[8],
-}
+} satisfies CSSProperties
 
-const OVERLAY_TITLE: CSSProperties = {
+const OVERLAY_TITLE = {
   margin: 0,
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.readout,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
-}
+} satisfies CSSProperties
 
-const ACTIONS: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[8] }
+const ACTIONS = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
 
 /** The bays while a prompt covers them. */
 const COVERED = { display: 'none' } satisfies CSSProperties
