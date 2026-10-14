@@ -576,7 +576,6 @@ function ReferenceEntityCardInner({
           leading: suggestedNode,
           hint: headerHint,
           pennant: pennantNode,
-          chevron: !inline && (!!onCardClick || !!cardClickable),
           art: !(isPattern || inline || hide?.image),
           bodyless: inline || isPatternListing,
         }}

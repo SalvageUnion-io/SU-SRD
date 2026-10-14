@@ -4,7 +4,6 @@ import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { firstParagraphText, normalizePatternName, toEntityModel } from 'salvageunion-reference'
 import { radius, space } from '../../../design/tokens'
 import { useEntitySurface } from '../../../entity/entitySurfaceContext'
-import { LinkChevron } from '../../../entity/modes/link'
 import { Head } from '../../../entity/parts/Head'
 import { Lead } from '../../../entity/parts/Lead'
 import { paintFor } from '../../../entity/parts/paint'
@@ -127,7 +126,7 @@ export function PatternList({
 /**
  * PAGE view — one pattern as a CARD in the Row's language (entity display
  * language, Row): the host's tone in the head with the pattern's quoted name
- * and the chevron, then a paper body with the pattern's opening paragraph
+ * as the link, then a paper body with the pattern's opening paragraph
  * clamped as a lead, and under it what the pattern changes: its loadout,
  * Systems beside Modules, one full-width Token a line with its TL at the
  * column's edge (`PatternLoadout`), or the actions a Bio-Titan pattern adds
@@ -160,15 +159,7 @@ function PatternLinkRow({
     <CardLabels seal={undefined} axisMarkers={[]} legalStartingPattern onInk={paint.ink} />
   ) : undefined
   // The name on the paper cut-out (Head's `notch`): the body below is paper.
-  const head = (
-    <Head
-      title={`“${name}”`}
-      notch
-      paint={paint}
-      labels={labels}
-      affordance={href ? <LinkChevron /> : undefined}
-    />
-  )
+  const head = <Head title={`“${name}”`} notch paint={paint} labels={labels} />
   return (
     <li className="su-pattern-rows__item">
       {href ? (

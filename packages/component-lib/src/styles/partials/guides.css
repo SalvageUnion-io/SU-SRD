@@ -489,7 +489,7 @@
 
 /* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
  * Each pattern is a card in the Row's language: its host's tone in the head
- * (the link, with the chevron), a paper body with the pattern's opening as a
+ * (the link), a paper body with the pattern's opening as a
  * clamped lead and its loadout, Systems beside Modules, one full-width Token
  * a line (links of their own, so outside the head's anchor). One card a line.
  * On a phone only two show until "Show all" targets the list (`:target`),

@@ -1,4 +1,3 @@
-import { ChevronRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { activateOnKey, FOCUS_RING } from '../../components/atoms/interaction'
 import type { PeekAttrs } from '../peekContext'
@@ -6,11 +5,6 @@ import type { EntityLinkAttrs, EntityMode } from '../types'
 import type { LinkTarget } from './linkTarget'
 
 type LinkMode = Extract<EntityMode, { kind: 'link' }>
-
-/** LINK's head affordance: the chevron (›) that says the surface opens. */
-export function LinkChevron() {
-  return <ChevronRight aria-hidden="true" size={20} strokeWidth={3} style={{ flex: 'none' }} />
-}
 
 /**
  * LINK's surface: the whole form is the target — a real `<a href>` for a

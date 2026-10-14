@@ -126,8 +126,8 @@ for (const width of [375, 1440]) {
 
 // The long names (Electro-Magnetic Shield Projector, System and Software
 // Hacker): every compact card's head row holds its parts — the name wraps
-// inside it, and the chevron stays inside the row instead of being pushed
-// past its edge.
+// inside it, and its chips stay inside the row instead of being pushed past
+// its edge.
 for (const schema of ['systems', 'abilities']) {
   test(`every ${schema} listing row at 375px keeps its parts inside the row`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 900 })
@@ -138,12 +138,12 @@ for (const schema of ['systems', 'abilities']) {
       rows.flatMap((header) => {
         const name = header.closest('a')?.getAttribute('aria-label') ?? '?'
         const box = header.getBoundingClientRect()
-        const chevron = header.querySelector('svg.lucide-chevron-right')?.getBoundingClientRect()
         const problems: string[] = []
         if (header.scrollWidth > header.clientWidth) problems.push('scrolls')
-        if (!chevron) problems.push('no chevron')
-        else if (chevron.left < box.left || chevron.right > box.right + 0.5)
-          problems.push('chevron outside')
+        for (const part of header.children) {
+          const edge = part.getBoundingClientRect()
+          if (edge.left < box.left || edge.right > box.right + 0.5) problems.push('part outside')
+        }
         return problems.length ? [`${name}: ${problems.join(', ')}`] : []
       })
     )

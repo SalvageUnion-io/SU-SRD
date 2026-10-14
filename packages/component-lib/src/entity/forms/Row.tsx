@@ -5,7 +5,7 @@ import { CardLabels } from '../../components/referenceEntity/card/CardLabels'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import { useEntitySurface } from '../entitySurfaceContext'
-import { LinkChevron, LinkSurface } from '../modes/link'
+import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { SelectCheck, SelectedSeal, SelectSurface } from '../modes/select'
 import { SELECTED_RING } from '../modes/selectedRing'
@@ -49,7 +49,6 @@ export type RowSlots = {
   hint?: ReactNode
   /** The Dashboard's pennant button (a read cost is a chip). */
   pennant?: ReactNode
-  chevron?: boolean
   /** `false` drops the art column (a pattern row, `hide.image`). */
   art?: boolean
   /** A row that is its head alone. */
@@ -126,9 +125,7 @@ export function Row({
   const leadText = lead ? model.lead : undefined
   const hasBody = !slots.bodyless && (!!slots.leading || !!leadText)
   const affordance =
-    slots.chevron || target.href || target.onOpen ? (
-      <LinkChevron />
-    ) : mode.kind === 'select' && mode.role === 'toggle' && !slots.outer ? (
+    mode.kind === 'select' && mode.role === 'toggle' && !slots.outer ? (
       // A toggle's control is a real checkbox; the seal still marks the pick.
       <>
         {selected && <SelectedSeal word={mode.seal} />}

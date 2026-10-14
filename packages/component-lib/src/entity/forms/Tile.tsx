@@ -4,7 +4,7 @@ import { grainClass } from '../../components/referenceEntity/card/cardGrain'
 import { font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
-import { LinkChevron, LinkSurface } from '../modes/link'
+import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { CostBox } from '../parts/Chips'
 import { Facts } from '../parts/Facts'
@@ -123,9 +123,7 @@ export function Tile({
               {model.title}
             </span>
           </span>
-          {chipsBeside
-            ? hasChips && <span className="su-entity-tile__chips">{chips}</span>
-            : (target.href || target.onOpen) && <LinkChevron />}
+          {chipsBeside && hasChips && <span className="su-entity-tile__chips">{chips}</span>}
         </div>
         {((hasChips && !chipsBeside) || leadText) && (
           <div className="su-entity-tile__cells">

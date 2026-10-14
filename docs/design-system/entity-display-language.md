@@ -26,7 +26,7 @@ Status: agreed. Code: `packages/component-lib/src/entity/`.
 ## Modes
 
 1. **read** — no affordance; all forms (Peek, page bodies, reviews).
-2. **link** — whole surface plus a head chevron; Mention, Token, Row.
+2. **link** — the whole surface, no chevron; Mention, Token, Row.
 3. **select** — ink ring and "Selected" seal; Row, Card (pickers, wizards).
 
 ## Hard rules
