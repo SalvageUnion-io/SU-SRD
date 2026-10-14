@@ -6,7 +6,7 @@
  * The 10 steps are NOT hard-coded — they are driven from the real "Crawler
  * Downtime" Guide in the reference ORM (`SalvageUnionReference.Guides`, faithful
  * SRD p.227-228), one step at a time, rendered through the reused `Content` so it
- * matches the book verbatim, with the relevant SRD roll tables via `RollTable`.
+ * matches the book verbatim, with the relevant SRD roll tables via `DashboardRollTable`.
  *
  * **The step is the Game's, not this device's** (ADR-038 §5). It is
  * the `downtime` row's `stepIndex`, read through `useDowntime`, so every
@@ -35,7 +35,7 @@
  * Upkeep bay (`CrawlerSlot.tsx`), once per Downtime.
  */
 
-import { Badge, Button, Content } from 'component-lib'
+import { Badge, Button, CHAPTER_BAND_COLOR, Content } from 'component-lib'
 import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import {
   allDowntimeSteps,
@@ -56,7 +56,7 @@ import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import { RollTable } from './RollTable'
+import { DashboardRollTable } from './DashboardRollTable'
 import type { DowntimeHandle } from './useDowntime'
 
 /** The guideType that identifies the Union Crawler Downtime procedure. */
@@ -78,7 +78,7 @@ const PHASE_STAMP: CSSProperties = {
 /**
  * SRD roll tables associated with a Downtime step (keyed by the guide step's
  * name). The guide content describes the roll but does not link the table
- * entity, so this presentation glue resolves it for the reused RollTable.
+ * entity, so this presentation glue resolves it for the reused roll table.
  */
 const STEP_ROLL_TABLE: Record<string, string> = {
   'Upkeep & Upgrade': 'Crawler Deterioration',
@@ -329,9 +329,14 @@ function DowntimeWizardFrame({
 
             {renderStepGate?.(step)}
 
-            {table && (
+            {table && tableName && (
               <div className="su-dash-dt-table">
-                <RollTable table={table} tableName={tableName} size="compact" />
+                <DashboardRollTable
+                  table={table}
+                  name={tableName}
+                  size="small"
+                  tone={CHAPTER_BAND_COLOR.crawler}
+                />
               </div>
             )}
 

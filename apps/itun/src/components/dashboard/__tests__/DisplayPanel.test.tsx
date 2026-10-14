@@ -2,7 +2,7 @@
  * Tests for DisplayPanel — what the display's Reference, Tables and SRD tabs
  * show. Verifies each focus renders without throwing and reuses the real
  * reference components: a resolvable chassis → a ReferenceEntityCard card;
- * Tables → a RollTable whose rolls are handed on for the Game's log;
+ * Tables → the roll instrument, whose rolls are handed on for the Game's log;
  * unresolvable slugs → a graceful note (never a crash).
  *
  * Reference content needs the ORM, so preload('all') runs once. A real chassis
@@ -81,22 +81,24 @@ describe('DisplayPanel', () => {
 
   const tablesFocus: DisplayFocus = 'tables'
 
-  test('Tables focus → a RollTable whose title is the picker trigger', () => {
+  test('Tables focus → the roll instrument, whose title is the picker trigger', () => {
     const { container } = renderDV(tablesFocus)
     expect(container.querySelector('.su-dash-display-scroll')).toBeTruthy()
-    // The trigger lives IN the RollTable header band — the band that also
-    // carries the Roll control — rather than in a bar above it repeating the
-    // name that band already prints.
+    // The trigger lives IN the instrument's bar — the bar that also carries
+    // the Roll control — rather than in a bar above it repeating the name that
+    // bar already prints.
     const trigger = container.querySelector('[aria-haspopup="dialog"]')
     expect(trigger).toBeTruthy()
     expect(
-      trigger?.closest('div')?.querySelector('button[aria-label="Roll the die on Core Mechanic"]')
+      trigger
+        ?.closest('.su-roll__bar')
+        ?.querySelector('button[aria-label="Roll the die on Core Mechanic"]')
     ).toBeTruthy()
     expect(trigger?.textContent).toContain('Core Mechanic')
     expect(trigger?.getAttribute('aria-expanded')).toBe('false')
     expect(container.querySelector('select')).toBeNull()
-    // The reused RollTable renders a real table (not the fallback note).
-    expect(container.querySelector('table')).toBeTruthy()
+    // The instrument renders the table's bands (not the fallback note).
+    expect(container.querySelector('ol[aria-label="Core Mechanic table"]')).toBeTruthy()
     expect(container.querySelector('.su-dash-display-note')).toBeNull()
   })
 
@@ -143,7 +145,7 @@ describe('DisplayPanel', () => {
     expect(container.querySelector('[aria-haspopup="dialog"]')?.textContent).toContain(
       'Group Initiative'
     )
-    expect(container.querySelector('caption')?.textContent).toBe('Group Initiative')
+    expect(container.querySelector('ol[aria-label="Group Initiative table"]')).toBeTruthy()
   })
 
   test('Tables → a roll is handed on for the Game log, and kept nowhere here', async () => {
