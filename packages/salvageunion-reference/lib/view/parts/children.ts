@@ -126,33 +126,53 @@ const stringsOf = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((n): n is string => typeof n === 'string') : []
 
 /**
- * A vehicle's SYSTEMS: the names in its `actions` that name a systems entry
- * (the Fighting Box Wheel's Locomotion System and .50 Cal Machine Gun). The
- * data lists a vehicle's equipment as action names; where that name is a
- * system it is drawn as one, as a drone's systems are. A name with no systems
- * entry (the Power Loader's "Rigging Arm (Vehicle)") stays an action.
+ * One item a vehicle lists, as the record it draws as: the systems entry of
+ * that name (the Tank's 120mm Cannon), else the vehicle's own action of that
+ * name (the Power Loader's "Rigging Arm (Vehicle)", the Tombstone Trackbox's
+ * Shanty Home), which carries its own range, damage, traits and prose.
+ */
+function vehicleItem(name: string): SURefEntity | undefined {
+  const system = SalvageUnionReference.getByNameIn('systems', name)
+  if (system) return system
+  // An action is not in the `SURefEntity` union, but it draws as a card all the
+  // same, as a chassis ability or a Bio-Titan pattern's action does.
+  return SalvageUnionReference.getByNameIn('actions', name) as SURefEntity | undefined
+}
+
+/**
+ * A vehicle's SYSTEMS: every item it lists, in the book's order and count (the
+ * Power Loader's "Locomotion System / Rigging Arm x 2"). The book prints a
+ * vehicle's equipment as one list, so each draws as a card the drone way,
+ * whether the data names a systems entry or the vehicle's own action; a
+ * vehicle has no ACTIONS slab. A name that resolves to neither is dropped.
  */
 export function vehicleSystemNames(entity: SURefMetaEntity): string[] {
   if (!('schemaName' in entity) || entity.schemaName !== 'vehicles') return []
   return stringsOf('actions' in entity ? entity.actions : undefined).filter(
-    (name) => SalvageUnionReference.getByNameIn('systems', name) !== undefined
+    (name) => vehicleItem(name) !== undefined
   )
 }
 
 /**
  * A drone's or vehicle's OWN systems/modules loadout: a drone's from its name
- * arrays, a vehicle's from the action names that are systems
- * (`vehicleSystemNames`).
+ * arrays, a vehicle's from every item it lists (`vehicleSystemNames`).
  */
 export function droneOwnLoadout(entity: SURefMetaEntity): {
   systems: SURefEntity[]
   modules: SURefEntity[]
 } {
   const systems = stringsOf('systems' in entity ? entity.systems : undefined)
-  return resolveLoadout(
-    systems.length > 0 ? systems : vehicleSystemNames(entity),
-    stringsOf('modules' in entity ? entity.modules : undefined)
-  )
+  const modules = stringsOf('modules' in entity ? entity.modules : undefined)
+  if (systems.length === 0) {
+    const items = vehicleSystemNames(entity)
+    if (items.length > 0) {
+      return {
+        systems: items.flatMap((name) => vehicleItem(name) ?? []),
+        modules: resolveLoadout([], modules).modules,
+      }
+    }
+  }
+  return resolveLoadout(systems, modules)
 }
 
 /** The "Titanic Actions" meta-descriptor and its kin: always their own row. */

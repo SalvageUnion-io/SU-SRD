@@ -246,12 +246,42 @@ describe('a vehicle’s systems', () => {
     expect(model.actions).toEqual([])
   })
 
-  test('a name with no systems entry stays an action', () => {
+  test("a name with no systems entry is a Systems child too: the vehicle's own action", () => {
     const model = toEntityModel(vehicle('Power Loader'))
+    // The book's "Locomotion System / Rigging Arm x 2", in its order and count;
+    // "Rigging Arm (Vehicle)" is the vehicle's own action, printed "Rigging Arm".
     expect(model.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
-      ['Systems', ['Locomotion System']],
+      ['Systems', ['Locomotion System', 'Rigging Arm', 'Rigging Arm']],
     ])
-    // "Rigging Arm (Vehicle)", the vehicle's own action, printed "Rigging Arm".
-    expect(model.actions.map((a) => a.name)).toContain('Rigging Arm')
+    expect(model.children[0]?.items.map((i) => i.schemaName)).toEqual([
+      'systems',
+      'actions',
+      'actions',
+    ])
+    // No ACTIONS slab: every item is a card.
+    expect(model.actions).toEqual([])
+  })
+
+  test('a vehicle with only its own actions draws them all as Systems children', () => {
+    const boat = toEntityModel(vehicle('E-Boat'))
+    expect(boat.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Integrated Amphibious Locomotion System']],
+    ])
+    expect(boat.actions).toEqual([])
+    const trackbox = toEntityModel(vehicle('Tombstone Trackbox'))
+    expect(trackbox.children.map((g) => [g.label, g.items.map((i) => i.name)])).toEqual([
+      ['Systems', ['Locomotion System', 'Shanty Home']],
+    ])
+    expect(trackbox.actions).toEqual([])
+  })
+
+  test('every vehicle draws every item it lists as a card, with no ACTIONS left', () => {
+    for (const v of SalvageUnionReference.Vehicles.all()) {
+      const model = toEntityModel(v as SURefMetaEntity)
+      const listed = 'actions' in v && Array.isArray(v.actions) ? v.actions.length : 0
+      const items = model.children.find((g) => g.label === 'Systems')?.items ?? []
+      expect([v.name, items.length]).toEqual([v.name, listed])
+      expect([v.name, model.actions.length]).toEqual([v.name, 0])
+    }
   })
 })
