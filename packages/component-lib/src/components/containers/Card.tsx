@@ -18,6 +18,9 @@ type CardProps = {
    * painted — a card that has nothing to put in the band shouldn't render an
    * empty one. (The sub-header band is independent of this.) */
   headerContent?: ReactNode
+  /** A whole head in place of the header bar (`CutOutHead`, the standard
+   * cut-out); `headerContent` is ignored when it is set. */
+  head?: ReactNode
   /** Content rendered inside the footer bar (optional) */
   footerContent?: ReactNode
   /** Main body content */
@@ -99,6 +102,7 @@ const FULL_WIDTH = { width: '100%' } satisfies CSSProperties
 export function Card({
   headerBgColor,
   headerContent,
+  head,
   footerContent,
   children,
   label,
@@ -205,7 +209,8 @@ export function Card({
         {/* Header wrapper — contains the content row. */}
         <div style={FULL_WIDTH}>
           {/* Content row — existing header layout */}
-          {headerContent != null && (
+          {head}
+          {head == null && headerContent != null && (
             <div
               // `.su-card-head` (`styles/index.css`) is a class, not a style
               // object, so a caller's `headerStyle.className` can override it

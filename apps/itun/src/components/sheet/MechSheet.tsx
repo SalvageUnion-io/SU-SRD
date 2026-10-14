@@ -6,13 +6,12 @@
  * `SheetHero` as its first region. Region order mirrors the
  * printed mech sheet:
  *
- *   Identity Band: the mech's photo beside what the player wrote (pattern
+ *   Identity Band: the player's photo (the chassis art until changed) beside what they wrote (pattern
  *       name, quirk, appearance) ∥ SP/EP/Heat `VitalGauge`s + Conditions
  *       vitals rail.
- *   Chassis: its own small card under the band (`MechChassisCard`) — the
- *       chassis's name (picker-backed), its Chassis Stats as compact cells and
- *       its ability as a Peek Token. Tech Level is NOT a field: it is
- *       chassis-derived and reads off the stats.
+ *   Chassis: its own small reference card under the band (`MechChassisCard`)
+ *       — art, description, the mech's chassis stats and the chassis ability,
+ *       with a Change Chassis control in Edit.
  *   Systems & Modules — KEPT as two sections (each its own `SheetSectionSlab`,
  *       side by side from 48rem, one Token a line): different collections
  *       with different '+ Add' pickers/slot budgets, so folding them into one
@@ -68,6 +67,7 @@ import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
+import { chassisArt } from '../../lib/photos/defaultArt'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
@@ -308,8 +308,9 @@ export function MechSheet({
           <PhotoBeside
             photo={
               <EntityPhoto
-                // No stock-art fallback: the chassis art is the Chassis card's.
                 photo={mech.photo}
+                // The chassis art until the player changes it.
+                fallback={chassisArt(mech.chassisRef)}
                 name={mech.name}
                 onChange={
                   readOnly
@@ -427,15 +428,14 @@ export function MechSheet({
 
       {/* ===== Chassis — its own small card under the hero =====
           The hero is the photo and what the player wrote; the chassis's name,
-          stats and ability are read off the book, so they sit apart (owner's
-          call, 2026-10-14). */}
+          stats and ability are its reference card (owner's call, 2026-10-14). */}
       <MechChassisCard
         mech={mech}
+        entity={model.chassisEntity}
         chassisName={model.chassisName}
         stats={model.chassisStats}
         abilities={model.chassisAbilities}
         patch={readOnly ? undefined : actions.patchMech}
-        surface={readOnly ? 'paper' : 'frame'}
       />
 
       {/* ===== The Hold — ABOVE Systems & Modules =====

@@ -156,23 +156,17 @@ describe('MechSheet — readOnly', () => {
   })
 })
 
-describe('MechSheet — the Chassis Stats strip', () => {
-  test("prints the chassis stats as their own block, in the official sheet's words", () => {
+describe('MechSheet — the Chassis stats', () => {
+  test("print on the Chassis card's head, in the official sheet's words", () => {
     // A real chassis, so every figure resolves from the reference data.
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
     )
-    // Its own strip (SU_Char Sheets 2.0, page 2), not a banner on the chassis
-    // ability: the numbers belong to the machine, in the sheet's order.
-    const strip = container.querySelector('dl[aria-label="Chassis stats"]')
-    expect(strip).not.toBeNull()
-    const pairs = [...(strip?.querySelectorAll('dt') ?? [])].map(
-      (dt) => `${dt.textContent} ${dt.nextElementSibling?.textContent}`
-    )
-    // The machine's figures: capacities, not what is in use (the Systems and
-    // Modules counts and The Hold say that).
-    expect(pairs).toEqual([
+    const text = container.querySelector('section[aria-label="Chassis"]')?.textContent ?? ''
+    // The machine's figures, in the sheet's order: capacities, not what is in
+    // use (the Systems and Modules counts and The Hold say that).
+    const pairs = [
       'Structure Pts. 17',
       'Energy Pts. 11',
       'Heat Cap. 3',
@@ -181,12 +175,15 @@ describe('MechSheet — the Chassis Stats strip', () => {
       'Cargo Cap. 6',
       'Tech Level 1',
       'Salvage Value 10',
-    ])
+    ]
+    const at = pairs.map((pair) => text.indexOf(pair.replace(/ (\d+)$/, '$1')))
+    expect(at.every((index) => index >= 0)).toBe(true)
+    expect([...at].sort((x, y) => x - y)).toEqual(at)
   })
 })
 
 describe('MechSheet — the Chassis card', () => {
-  test('the chassis reads in its own card, apart from the identity hero', () => {
+  test("the chassis is its own reference card, apart from the player's hero", () => {
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
@@ -195,18 +192,15 @@ describe('MechSheet — the Chassis card', () => {
     const card = container.querySelector('section[aria-label="Chassis"]')
     expect(hero).not.toBeNull()
     expect(card).not.toBeNull()
-    // The hero is the photo and what the player wrote; nothing chassis-derived.
+    // The hero is the player's photo (the chassis art until changed) and what
+    // they wrote; nothing read off the chassis.
+    expect(hero?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
     expect(hero?.querySelector('dl[aria-label="Chassis stats"]')).toBeNull()
     expect(hero?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
     expect(hero?.textContent).not.toContain('Spectrum')
-    // The card holds the chassis's name, its stats as compact cells, its ability.
+    // The card: the chassis's name, art and description, with its ability a Token.
     expect(card?.textContent).toContain('Spectrum')
-    const strip = card?.querySelector('dl[aria-label="Chassis stats"]')
-    expect(strip?.getAttribute('data-compact')).toBe('true')
+    expect(card?.querySelector('img')).not.toBeNull()
     expect(card?.querySelector('ul[aria-label="Chassis ability"] li')).not.toBeNull()
-    // The stock art is the card's, small and fixed; with no photo of its own
-    // the hero shows no picture.
-    expect(card?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
-    expect(hero?.querySelector('img')).toBeNull()
   })
 })

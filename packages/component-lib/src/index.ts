@@ -225,6 +225,7 @@ export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
+export { CutOutHead } from './entity/parts/CutOutHead'
 export { KindLabel } from './entity/parts/KindLabel'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
 export { Tag } from './entity/parts/Tags'

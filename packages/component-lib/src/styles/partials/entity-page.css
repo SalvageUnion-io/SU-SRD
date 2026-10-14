@@ -78,11 +78,8 @@
    compact cells: a smaller framed numeral and label, a row of cells sized to
    their labels that wraps, not a grid whose empty columns would push the
    aside off the notch. On a phone (the cluster under the title) five or more
-   take two cells a line; from `sm` they take four, two lines at most.
-   `StatColumn compact` (`[data-compact]`, a sheet's small Chassis card) is
-   the same cells as one wrapping row. */
-.su-chapter-band[data-aside='notch'] .su-stat-column,
-.su-stat-column[data-compact] {
+   take two cells a line; from `sm` they take four, two lines at most. */
+.su-chapter-band[data-aside='notch'] .su-stat-column {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-4) var(--space-6);
@@ -93,19 +90,16 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.su-chapter-band[data-aside='notch'] .su-stat-column__cell,
-.su-stat-column[data-compact] .su-stat-column__cell {
+.su-chapter-band[data-aside='notch'] .su-stat-column__cell {
   min-height: 32px;
 }
 
-.su-chapter-band[data-aside='notch'] .su-stat-column__value,
-.su-stat-column[data-compact] .su-stat-column__value {
+.su-chapter-band[data-aside='notch'] .su-stat-column__value {
   font-size: var(--text-readout);
   width: 36px;
 }
 
-.su-chapter-band[data-aside='notch'] .su-stat-column__label,
-.su-stat-column[data-compact] .su-stat-column__label {
+.su-chapter-band[data-aside='notch'] .su-stat-column__label {
   font-size: var(--text-badge);
   padding: 0 var(--space-8);
 }

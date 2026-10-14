@@ -43,7 +43,7 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
-import { Badge, BandTitle, Card, cn, SlotGrid, tokens } from 'component-lib'
+import { Badge, BandTitle, Card, CutOutHead, cn, SlotGrid, tokens } from 'component-lib'
 import { totalLotUnits } from 'itun-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
@@ -69,17 +69,6 @@ type StorageManifestProps = {
 const MANIFEST = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
 
 const HOLD_CARD = { boxShadow: '0 2px 8px -3px var(--color-ink-50)' } satisfies CSSProperties
-
-const HOLD_TITLE = {
-  margin: 0,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.xs,
-  lineHeight: 1 / 0.75,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.caps,
-  color: tokens.color.paper,
-} satisfies CSSProperties
 
 const STRIP = {
   display: 'flex',
@@ -233,11 +222,12 @@ export function StorageManifest({
       {/* Hold panel */}
       <Card
         headerBgColor="var(--color-ink)"
-        headerContent={
-          <>
-            <span style={HOLD_TITLE}>{side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}</span>
-            <BandTitle variant="mute">{side === 'mech' ? mechName : crawlerName}</BandTitle>
-          </>
+        // The standard cut-out card head (owner's call, 2026-10-14).
+        head={
+          <CutOutHead
+            title={side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
+            aside={<BandTitle variant="mute">{side === 'mech' ? mechName : crawlerName}</BandTitle>}
+          />
         }
         cardStyle={{ style: HOLD_CARD }}
       >

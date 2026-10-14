@@ -15,13 +15,7 @@ describe('StatColumn', () => {
       (dt) => `${dt.textContent} ${dt.nextElementSibling?.textContent}`
     )
     expect(pairs).toEqual(['Structure Pts. 12', 'Energy Pts. 4'])
-    expect(list?.hasAttribute('data-compact')).toBe(false)
     expect(list?.children[1]?.getAttribute('title')).toBe('Energy')
-  })
-
-  test('compact marks the list for the compact cells', () => {
-    const { container } = render(<StatColumn stats={STATS} label="Mule stats" compact />)
-    expect(container.querySelector('dl')?.getAttribute('data-compact')).toBe('true')
   })
 
   test('renders nothing with no stats', () => {

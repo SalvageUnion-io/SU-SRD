@@ -68,6 +68,8 @@ const PRIMITIVE_GROUPS = new Set(['Atoms', 'Containers'])
  * classified by its directory's group, never by an entry in this list.
  */
 const SINGLE_APP: Readonly<Record<string, string>> = {
+  CutOutHead:
+    "the entity card's cut-out head (`entity/parts/Head` with `notch`) for a non-entity `Card`'s `head` slot: one head shape, owned where the entity forms own it",
   heatDangerFrom:
     "the pip index where a heat track turns red: the input to `VitalGauge`'s `danger` prop",
   linesFromBreakdown:

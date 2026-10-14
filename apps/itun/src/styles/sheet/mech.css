@@ -121,44 +121,6 @@
   max-width: 24rem;
 }
 
-/* MechChassisCard: the stock chassis art, small and fixed. On a narrow card
-   it sits beside the chassis name and the stats and ability run full width
-   under both; from a 30rem sheet it runs down the card's left beside all three. */
-.su-sheet-mech-chassis {
-  align-items: start;
-  display: grid;
-  gap: var(--space-12) var(--space-16);
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.su-sheet-mech-chassis:has(> .su-sheet-mech-chassis-art) {
-  grid-template-columns: 4rem minmax(0, 1fr);
-}
-
-.su-sheet-mech-chassis:has(> .su-sheet-mech-chassis-art) > :nth-child(n + 3) {
-  grid-column: 1 / -1;
-}
-
-.su-sheet-mech-chassis-art {
-  height: auto;
-  object-fit: contain;
-  width: 100%;
-}
-
-@container (width >= 30rem) {
-  .su-sheet-mech-chassis:has(> .su-sheet-mech-chassis-art) {
-    grid-template-columns: 6rem minmax(0, 1fr);
-  }
-
-  .su-sheet-mech-chassis-art {
-    grid-row: 1 / span 3;
-  }
-
-  .su-sheet-mech-chassis:has(> .su-sheet-mech-chassis-art) > :nth-child(n + 3) {
-    grid-column: 2;
-  }
-}
-
 /* Systems and Modules: stacked, side by side once the sheet is wide enough
    (each a list of Tokens, `.su-entity-token-list`). */
 .su-sheet-mech-loadout {
