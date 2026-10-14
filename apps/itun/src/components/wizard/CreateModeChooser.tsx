@@ -2,17 +2,16 @@
  * CreateModeChooser — the "which door?" screen every /new opens on
  * (mockup Screen 04).
  *
- * Two manual-style doors under a poster band: GUIDED (primary — the existing
+ * Two manual-style doors under the page's ChapterBand: GUIDED (primary — the existing
  * step wizard) and BLANK (the escape hatch — an empty sheet, no steps, no
  * limits). For mechs a third door joins the Blank family: Instantiate from
  * Pattern, which links to the existing /mechs/patterns flow.
  *
- * Styling reuses the live sheets' poster language — the `.sheet--{kind}` tone
- * ground, ink stamps, and the hero band idiom from LiveSheet/SheetHero — so
- * the chooser reads as a sibling surface, not a bolted-on screen.
+ * The title is the ChapterBand every page wears; the `.sheet--{kind}` tone
+ * context colours the Guided door.
  */
 
-import { ModeDoor, tokens } from 'component-lib'
+import { ChapterBand, ModeDoor, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { AppLink } from '../shared/AppLink'
@@ -48,32 +47,7 @@ const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
   },
 }
 
-const screenStyle: CSSProperties = { background: 'var(--ground)', minHeight: '100dvh' }
-
-/** Its inline padding widens at `sm` (`.wiz-chooser-band`). */
-const bandStyle: CSSProperties = {
-  background: 'var(--tone-band)',
-  borderBottom: `4px solid color-mix(in oklab, var(--color-paper) 95%, transparent)`,
-  paddingBottom: tokens.space[14],
-  paddingTop: tokens.space[28],
-}
-
-/**
- * Banner text on the tone takes the sheet's `onTone` pair (`--tone-band` /
- * `--on-tone-band`, theme.css): paper on the bare tone measured 2.4:1 on pilot.
- */
-const bannerStyle: CSSProperties = {
-  color: 'var(--on-tone-band)',
-  fontFamily: tokens.font.cond,
-  fontSize: 'clamp(34px, 5.2vw, 54px)',
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsTight,
-  lineHeight: 0.98,
-  margin: 0,
-  textTransform: 'uppercase',
-}
-
-const bandTailStyle: CSSProperties = { background: 'var(--tone-band)', height: tokens.space[10] }
+const screenStyle = { minHeight: '100dvh' } satisfies CSSProperties
 
 /** Its padding grows at `sm` (`.wiz-chooser-body`). */
 const bodyStyle: CSSProperties = { marginInline: 'auto', maxWidth: '56rem', width: '100%' }
@@ -110,12 +84,9 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
       style={screenStyle}
       aria-label={`New ${label.toLowerCase()} — choose how to create`}
     >
-      {/* Poster band (mockup `.band` + `.banner`): the sheet's text band,
-          its on-tone condensed banner, a white rule then a bandtail below it. */}
-      <header className="wiz-band" style={bandStyle}>
-        <h1 style={bannerStyle}>New {label}</h1>
-      </header>
-      <div style={bandTailStyle} aria-hidden="true" />
+      {/* The page title as every other page sets it: the notched ChapterBand
+          in the kind's chapter colour. */}
+      <ChapterBand tone={kind}>New {label}</ChapterBand>
 
       <div className="wiz-chooser-body" style={bodyStyle}>
         {/* The two doors (mockup `.choosegrid`). */}

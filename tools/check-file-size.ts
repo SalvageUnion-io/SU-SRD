@@ -55,7 +55,6 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/itun/src/components/sheet/MechSheet.tsx': 671,
   'apps/itun/src/components/sheet/PilotSheet.tsx': 766,
   'apps/itun/src/components/shelves/Shelves.tsx': 670,
-  'apps/itun/src/components/wizard/WizShell.tsx': 604,
   'apps/itun/src/lib/rules/creation.ts': 722,
   'apps/itun/src/stores/entityStore.ts': 715,
   'packages/component-lib/src/components/atoms/Stat.tsx': 816,

@@ -1,4 +1,4 @@
-import { Button, ModalShell, tokens } from 'component-lib'
+import { Button, ChapterBand, ModalShell, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import '../../styles/wizard.css'
@@ -271,39 +271,9 @@ const ctaLockedStyle: CSSProperties = {
 }
 
 const shellStyle: CSSProperties = {
-  background: 'var(--ground)',
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100dvh',
-}
-
-/** Its inline padding widens at sm (`.wiz-band`). */
-const bandStyle: CSSProperties = {
-  background: 'var(--tone-band)',
-  borderBottom: '4px solid color-mix(in oklab, var(--color-paper) 95%, transparent)',
-  paddingBottom: tokens.space[10],
-  paddingTop: tokens.space[20],
-}
-
-/**
- * Banner text on the tone takes the sheet's `onTone` pair (`--tone-band` /
- * `--on-tone-band`, theme.css): paper on the bare tone measured 2.4:1 on pilot.
- */
-const bannerStyle: CSSProperties = {
-  color: 'var(--on-tone-band)',
-  fontFamily: tokens.font.cond,
-  fontSize: 'clamp(26px, 4vw, 40px)',
-  fontWeight: tokens.weight.bold,
-  letterSpacing: '0em',
-  lineHeight: 0.98,
-  margin: 0,
-  textTransform: 'uppercase',
-}
-
-const bandTailStyle: CSSProperties = {
-  background: 'var(--tone-band)',
-  flexShrink: 0,
-  height: tokens.space[8],
 }
 
 /** A column on a phone, a row from lg (`.wiz-body`). */
@@ -516,12 +486,11 @@ export function WizShell({
 
   return (
     <div className={`sheet--${kind}`} style={shellStyle}>
-      {/* Poster band: the sheet's text band, its
-          on-tone condensed banner, a white rule then a thin bandtail below it. */}
-      <header className="wiz-band" style={bandStyle}>
-        <p style={bannerStyle}>{eyebrow}</p>
-      </header>
-      <div style={bandTailStyle} aria-hidden="true" />
+      {/* The page title as every other page sets it. A paragraph: the step
+          card's title is the page's h1. */}
+      <ChapterBand tone={kind} as="p">
+        {eyebrow}
+      </ChapterBand>
 
       <div className="wiz-body" style={bodyStyle}>
         {/* (a) 196px connector-pipe stepper rail: a thick ink

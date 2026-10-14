@@ -36,6 +36,7 @@ export function MediatorGate({ gameId }: { gameId: string }) {
   if (mode === 'solo') {
     return (
       <DashboardRefusal
+        page="Mediator Dashboard"
         title="Sign in to run your Game"
         body="The Mediator Dashboard runs a Game you mediate. Sign in, open the Game, and press Open the Mediator dashboard."
         link={{ href: '/', label: '← Back to the roster' }}
@@ -68,6 +69,7 @@ function SignedInMediatorGate({ gameId }: { gameId: string }) {
   if (game === null || mediates !== true) {
     return (
       <DashboardRefusal
+        page="Mediator Dashboard"
         title="Only this Game's Mediator runs this screen"
         body="The Mediator Dashboard is for whoever mediates the Game. Its players run their pilots from the Game page's Launch Dashboard."
         link={{ href: `/games/${gameId}`, label: '← Back to the Game' }}

@@ -95,12 +95,7 @@
   }
 }
 
-/* — WizShell (and CreateModeChooser's band) — */
-
-/* The poster band's inline padding. */
-.wiz-band {
-  padding-inline: var(--space-20);
-}
+/* — WizShell — */
 
 /* Rail and main pane: stacked, then side by side at lg. */
 .wiz-body {
@@ -194,10 +189,6 @@
 }
 
 @media (min-width: 40rem) {
-  .wiz-band {
-    padding-inline: var(--space-28);
-  }
-
   .wiz-step-tab {
     display: grid;
   }

@@ -47,17 +47,25 @@ const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
 
 const PENDING = { padding: tokens.space[24] } satisfies CSSProperties
 
+const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSProperties
+
 type RefusalProps = {
+  /** The page's name, the band's title: "Dashboard" unless a screen says otherwise. */
+  page?: string
+  /** What is missing, as the heading under the band. */
   title: string
   body: string
   link: { href: string; label: string }
 }
 
-/** The shell every refusal renders: what is missing, and where to go instead. */
-export function DashboardRefusal({ title, body, link }: RefusalProps) {
+/** The shell every refusal renders: the page's name, what is missing, and where to go instead. */
+export function DashboardRefusal({ page = 'Dashboard', title, body, link }: RefusalProps) {
   return (
     <PageShell>
-      <ChapterBand>{title}</ChapterBand>
+      <ChapterBand>{page}</ChapterBand>
+      <Text as="h2" style={REASON}>
+        {title}
+      </Text>
       <Text variant="hint" style={BODY}>
         {body}
       </Text>

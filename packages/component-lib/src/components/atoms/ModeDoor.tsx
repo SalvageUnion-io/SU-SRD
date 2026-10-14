@@ -4,7 +4,7 @@ import { capsLabel } from './capsLabel'
 
 type ModeDoorProps = {
   /**
-   * `guided` — the filled-tone primary with a permanent double-ink halo.
+   * `guided` — the filled-tone primary in a solid ink frame.
    * `blank` — the dashed paper escape hatch. Default `guided`.
    */
   variant?: 'guided' | 'blank'
@@ -19,14 +19,12 @@ type ModeDoorProps = {
 }
 
 /**
- * The door's static frame. Its transition and hover lift are `.su-mode-door`
- * (a `:hover` rule cannot be inline), and so is every `box-shadow`: the halo
- * and drop shadows share the property with the `:focus-visible` ring, so they
- * live in `.su-mode-door--guided` / `--blank`, resting value included. Inline,
- * they out-ranked any focus ring and the door showed none.
+ * The door's static frame: flat on the page like every card, the card radius
+ * and no shadow (ruleset §3.5, §4.4). Its focus ring is `.su-mode-door`'s, as
+ * a `:focus-visible` rule cannot be inline.
  */
 const DOOR = {
-  borderRadius: '0.75rem',
+  borderRadius: radius.card,
   cursor: 'pointer',
   minHeight: '170px',
   paddingBottom: space[20],
@@ -37,13 +35,16 @@ const DOOR = {
   textAlign: 'left',
 } satisfies CSSProperties
 
-/** guided emphasis: a ground gap, a 3px ink ring, then a soft drop shadow.
+/** guided emphasis: a 3px solid ink frame, the full card's weight.
  *  The plate fills with the sheet's text band and prints its foreground —
  *  the `onTone` rule as `.sheet--*` sets it (`--tone-band` / `--on-tone-band`
  *  in theme.css). Paper on the bare tone measured 2.4:1 on pilot, and ink
  *  4.17:1 on crawler pink. Headline, body and cite all inherit the colour. */
 const GUIDED = {
   background: 'var(--tone-band)',
+  borderColor: color.ink,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.entity,
   color: 'var(--on-tone-band)',
 } satisfies CSSProperties
 
@@ -58,7 +59,6 @@ const BLANK = {
 const TAB = {
   backgroundColor: color.ink,
   borderRadius: radius.badge,
-  boxShadow: '0 8px 14px -8px var(--color-ink-50)',
   color: color.paper,
   display: 'grid',
   fontFamily: font.cond,
