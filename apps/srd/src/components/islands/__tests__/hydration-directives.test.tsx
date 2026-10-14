@@ -167,8 +167,8 @@ describe('hydration directives', () => {
     })
   })
 
-  describe('below-fold islands use client="visible"', () => {
-    it('SchemaViewerIsland on the schema listing page is client="visible"', () => {
+  describe('a listing waits for its reader', () => {
+    it('SchemaViewerIsland on the schema listing page is client="interaction"', () => {
       const paths = schemaListingPage.getStaticPaths?.() ?? []
       const path = paths.find((p) => p.params.schemaId === 'keywords')
       if (!path) throw new Error('no static path for /keywords')
@@ -184,24 +184,24 @@ describe('hydration directives', () => {
 
       const island = onlyIsland(renderIslands(result.children).islands)
       expect(island.name).toBe('SchemaViewerIsland')
-      expect(island.client).toBe('visible')
+      expect(island.client).toBe('interaction')
       // `ssr` is true here — the entity grid is this page's SEO content — so the
       // placeholder must NOT be empty.
       expect(island.inner.length).toBeGreaterThan(0)
     })
   })
 
-  describe('above-fold critical islands retain client="idle"', () => {
-    it('the chrome islands in TopNavigation are all client="idle"', () => {
+  describe('the chrome islands wait for the reader', () => {
+    it('the chrome islands in TopNavigation are server-rendered and client="interaction"', () => {
       const { islands, props } = renderIslands(<TopNavigation />)
 
       expect(islands.map((i) => `${i.name}:${i.client}`)).toEqual([
-        'WikiLinkIsland:idle',
-        'SearchIsland:idle',
-        'WikiLinkIsland:idle',
-        'MobileSearchIsland:idle',
-        'MobileNavIsland:idle',
+        'SearchIsland:interaction',
+        'MobileSearchIsland:interaction',
+        'MobileNavIsland:interaction',
       ])
+      // Each one's control is in the HTML, so there is something to reach for.
+      for (const island of islands) expect(island.inner.length).toBeGreaterThan(0)
       // Chrome takes no props at all. `MobileNavIsland` computing its own
       // catalog instead of receiving one is what keeps 17.3 MB of duplicated
       // props out of the build (ssg/DESIGN.md, "props designed out").

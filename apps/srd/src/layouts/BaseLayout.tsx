@@ -219,8 +219,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           />
         </div>
         {/* The page's one Peek: every Mention and Tag above carries only its
-            entity's address, and this host shows it (no props, no SSR). */}
-        <Island name="PeekIsland" client="idle" />
+            entity's address, and this host shows it (no props, no SSR). It
+            mounts on the first hover, press or focus on one. */}
+        <Island name="PeekIsland" client="interaction" trigger="[data-peek]" />
       </body>
     </html>
   )

@@ -16,9 +16,15 @@ test('landing page loads and search returns results', async ({ page, isMobile })
   if (isMobile) await page.getByRole('button', { name: /search the srd/i }).click()
   const nav = isMobile ? page.getByRole('dialog') : page
 
-  // The combobox lives in the top nav; it lazily loads game data on first
-  // intent (focus/type), then renders result options.
-  const search = nav.getByRole('combobox', { name: /search the srd/i }).first()
+  // The field is served as plain HTML (the home page's is a GET form) and
+  // becomes the combobox when a reader reaches for it; what they type before
+  // it mounts is carried over. It loads the search index on first intent,
+  // then renders result options.
+  const name = /search the srd/i
+  const search = nav
+    .getByRole('combobox', { name })
+    .or(nav.getByRole('searchbox', { name }))
+    .first()
   await search.click()
   await search.fill('Mule')
 
