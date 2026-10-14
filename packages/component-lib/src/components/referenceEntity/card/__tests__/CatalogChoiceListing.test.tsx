@@ -1,7 +1,7 @@
 /**
  * The Armament Bay's Weapons System choice — a schema-only catalog ("pick any
- * Mech System that deals SP damage") — renders as an expandable entity listing
- * in the card, static in read-only and a single-select picker when editable.
+ * Mech System that deals SP damage") — renders as an entity listing under a
+ * slab in the card, static in read-only and a single-select picker when editable.
  */
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -16,20 +16,14 @@ const armamentBay = () => {
 }
 
 describe('Armament Bay — Weapons System catalog listing', () => {
-  test('read-only: shows the choice prompt + a collapsed listing summary', () => {
-    render(<ReferenceEntityCard data={armamentBay()} />)
+  test('read-only: the prompt as a caption, then the listing under its slab, always open', () => {
+    const { container } = render(<ReferenceEntityCard data={armamentBay()} />)
     // the choice owns its prompt prose
     expect(screen.getByText(/Choose a Weapons System to mount/i)).toBeTruthy()
-    // the collapsed listing summary names the choice
+    // a slab names the choice; no disclosure (no chevron outside Tokens/rows)
     expect(screen.getByText('Armament Bay Weapons System')).toBeTruthy()
-    // collapsed: the collection is NOT resolved yet (no system cards mounted)
-    expect(screen.queryByText('Red Laser')).toBeNull()
-  })
-
-  test('expanding the listing reveals real Weapons System entity cards', () => {
-    render(<ReferenceEntityCard data={armamentBay()} />)
-    fireEvent.click(screen.getByText('Armament Bay Weapons System'))
-    // a known TL1 weapons system (SP damage) is listed
+    expect(container.querySelector('details')).toBeNull()
+    // a known TL1 weapons system (SP damage) is listed without a click
     expect(screen.getByText('Red Laser')).toBeTruthy()
   })
 
