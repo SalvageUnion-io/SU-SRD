@@ -197,7 +197,7 @@ describe('a Discordbot fetch of an invite', () => {
     expect(meta(html, 'og:title')).not.toContain('K7QR2XA')
     expect(meta(html, 'og:description')).not.toContain('K7QR2XA')
     expect(meta(html, 'og:url')).toBe('https://salvageunion.io/build/invite/K7QR2XA')
-    expect(meta(html, 'theme-color')).toBe(color.crawler)
+    expect(meta(html, 'theme-color')).toBe(color.crawlerBand)
     expect(html).toContain('<title>Reclamation of the Wastes</title>')
   })
 

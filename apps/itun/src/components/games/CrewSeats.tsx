@@ -84,7 +84,7 @@ const CRAWLER_NAME: CSSProperties = {
   fontSize: fontSize.title,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
-  color: color.ink,
+  color: color.paper,
 }
 
 const STATS: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: space[6] }
@@ -94,7 +94,8 @@ function CrawlerCard({ crawler }: { crawler: CrawlerReading }) {
     <Card
       size="medium"
       extent="head"
-      headerBgColor={color.crawler}
+      // The name sits on the band, so the band is the crawler band pink carries paper on (§3.8).
+      headerBgColor={color.crawlerBand}
       headerContent={
         <div style={CRAWLER_HEAD}>
           <span style={CRAWLER_NAME}>{crawler.name}</span>

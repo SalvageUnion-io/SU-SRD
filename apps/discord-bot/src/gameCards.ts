@@ -5,6 +5,7 @@ import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { ItemCondition, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
+  discordAccent,
   findEntityBySlug,
   getAssetUrl,
   getEntitySlug,
@@ -359,8 +360,7 @@ function mechCritical(stats: { sp: number | null }): boolean {
 }
 
 /**
- * One accent per sheet, mirroring `.sheet--{pilot,mech,crawler}` in
- * `component-lib`'s `theme.css` (`--color-sheet-*`).
+ * One accent per sheet: its unit's tone, as a reference card's (`discordAccent`).
  *
  * This is a deliberate amendment to "colour carries one meaning only, and that
  * meaning is rust". The strip down a container's left edge is the one thing
@@ -370,9 +370,9 @@ function mechCritical(stats: { sp: number | null }): boolean {
  * wrecked mech before it is a mech.
  */
 const SHEET_ACCENT = {
-  pilots: 0xef894f,
-  mechs: 0x7a978a,
-  crawlers: 0xce5898,
+  pilots: discordAccent('pilot'),
+  mechs: discordAccent('mech'),
+  crawlers: discordAccent('crawler'),
 } as const
 
 /** What a sheet renderer produces, before the shared shell is wrapped round it. */

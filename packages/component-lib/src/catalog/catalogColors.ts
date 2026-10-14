@@ -15,9 +15,9 @@ const techLevelBg = `linear-gradient(to right, ${techLevelGradient})`
 const abilityGradient =
   'linear-gradient(to right, var(--color-pilot) 0%, var(--color-pilot) 33%, var(--color-tier-hybrid) 33%, var(--color-tier-hybrid) 66%, var(--color-crawler) 66%, var(--color-crawler) 100%)'
 
-/** Core classes vs the hybrid classes they branch into. */
+/** Core classes vs the hybrid classes they branch into: Hybrid is rust, as its tier is. */
 const classGradient =
-  'linear-gradient(to right, var(--color-pilot) 0%, var(--color-pilot) 60%, var(--color-crawler) 60%, var(--color-crawler) 100%)'
+  'linear-gradient(to right, var(--color-pilot) 0%, var(--color-pilot) 60%, var(--color-tier-hybrid) 60%, var(--color-tier-hybrid) 100%)'
 
 /**
  * Catalog tile background PER DOMAIN. The schema → domain grouping itself is

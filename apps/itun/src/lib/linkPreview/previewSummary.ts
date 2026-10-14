@@ -125,7 +125,8 @@ export function sheetCard(answer: PreviewAnswer, nameOf: NameOf, address: string
         kind: 'userMade',
         kicker: joinParts(['NPC', text(body, 'position')]),
         title: text(body, 'name') ?? 'NPC',
-        tone: color.denizenBand,
+        // Adversary brown, as a reference NPC's card and a built NPC's row wear it.
+        tone: color.adversary,
         stats: [],
         madeBy: ownerName ?? 'a player',
         address,
@@ -167,6 +168,11 @@ export function inviteCard(answer: InvitePreviewAnswer, address: string): Previe
  * (`previewSummary.test.ts` holds them equal); this copy exists so the Worker
  * does not bundle the component.
  */
+/** The band a tone paints under text (`OgCard`'s `bandColor`): crawler pink → the crawler band. */
+function bandOf(tone: string): string {
+  return tone === color.crawler ? color.crawlerBand : tone
+}
+
 export function previewWords(card: PreviewCard): {
   title: string
   description: string
@@ -183,19 +189,19 @@ export function previewWords(card: PreviewCard): {
       return {
         title: card.title,
         description: joinParts([card.kicker, card.byline]),
-        themeColor: card.tone,
+        themeColor: bandOf(card.tone),
       }
     case 'userMade':
       return {
         title: card.title,
         description: joinParts([card.kicker, `Made by ${card.madeBy}`]),
-        themeColor: card.tone,
+        themeColor: bandOf(card.tone),
       }
     case 'invite':
       return {
         title: card.title,
         description: joinParts([card.kicker, card.summary]),
-        themeColor: card.tone,
+        themeColor: bandOf(card.tone),
       }
   }
 }

@@ -105,7 +105,7 @@ describe('sheetCard', () => {
       kind: 'userMade',
       title: 'Old Mags',
       kicker: 'NPC · Medic',
-      tone: color.denizenBand,
+      tone: color.adversary,
       madeBy: 'Rosa',
     })
   })

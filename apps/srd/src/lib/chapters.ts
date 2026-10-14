@@ -23,6 +23,7 @@ import {
   getSchemaCatalog,
   getTechLevel,
   SalvageUnionReference,
+  schemaDomain,
 } from 'salvageunion-reference'
 import { schemaHref } from './entityHref'
 import { listingEntries } from './listingEntries'
@@ -165,9 +166,6 @@ export type BandFill = {
   foot: string
 }
 
-/** The schemas whose show pages wear the entity's tech-level blue. */
-const TECH_LEVEL_PAGES: ReadonlySet<string> = new Set(['systems', 'modules', 'equipment'])
-
 /**
  * Tech level 3's foot band, which carries the citation, takes tech level 4's
  * blue beneath it (as a Union Crawler foot takes the deeper `crawlerBand`).
@@ -192,13 +190,14 @@ function abilityBandFill(entity: SURefEntity): BandFill | undefined {
 }
 
 /**
- * The bands a system's, module's or pilot equipment's show page wears: its tech level's blue,
- * head and foot, as its card's header does; an ability's, its tier's colour.
+ * The bands a piece of gear's show page wears (systems, modules, equipment,
+ * drones, vehicles: `schemaDomain` 'gear'): its tech level's colour, head and
+ * foot, as its card's header and Row do; an ability's, its tier's colour.
  * Every other page, the listings included, wears its chapter's band (`undefined`).
  */
 export function bandFillFor(schemaId: string, entity: SURefEntity): BandFill | undefined {
   if (schemaId === 'abilities') return abilityBandFill(entity)
-  if (!TECH_LEVEL_PAGES.has(schemaId)) return undefined
+  if (schemaDomain(schemaId) !== 'gear') return undefined
   const techLevel = getTechLevel(entity)
   if (techLevel == null) return undefined
   const band = `var(--color-tl-${String(techLevel).toLowerCase()})`

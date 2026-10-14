@@ -1,4 +1,5 @@
 import { color } from '../../design/tokens'
+import { textBand } from '../referenceEntity/referenceEntityHelpers'
 
 /**
  * The words and sizes of an `OgCard`: its props, the canvas, and
@@ -84,11 +85,14 @@ export const REFERENCE_KINDS: ReadonlySet<OgCardKind> = new Set(['thing', 'do'])
 /**
  * The band's colour for a card — the entity's tone, the ink of a thing you do,
  * or the ink-deep of a private card. Also the page's `theme-color`, so
- * Discord's side bar matches the band: see `ogCardThemeColor`.
+ * Discord's side bar matches the band: see `ogCardThemeColor`. The kicker
+ * sits on the band, so a tone that carries no text paints its deeper band
+ * (ruleset §3.8), as an entity card's header does: crawler pink → the
+ * crawler band.
  */
 export function bandColor(props: OgCardProps): string {
   if (props.kind === 'do' || props.kind === 'private') return color.inkDeep
-  return props.tone
+  return textBand(props.tone) ?? props.tone
 }
 
 /**

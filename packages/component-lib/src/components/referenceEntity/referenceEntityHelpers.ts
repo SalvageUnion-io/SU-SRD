@@ -1,5 +1,6 @@
 import type { Foreground } from '../../design/contrast'
 import { foregroundOn } from '../../design/contrast'
+import { color } from '../../design/tokens'
 
 /**
  * Deeper (darker) tint of the card's accent (header) colour — the "deep" variant:
@@ -23,6 +24,8 @@ const TEXT_BAND: Partial<Record<string, string>> = {
   'var(--color-crawler)': 'var(--color-crawler-band)',
   // The crawler sheet's tone is the same pink under its sheet alias.
   'var(--color-sheet-crawler)': 'var(--color-crawler-band)',
+  // And as the literal a surface with no stylesheet (the link preview card) is handed.
+  [color.crawler]: color.crawlerBand,
 }
 
 /**
