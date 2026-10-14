@@ -353,3 +353,31 @@ describe('the card as a page', () => {
     expect(container.querySelector('.su-entity-page')).toBeNull()
   })
 })
+
+describe('nested cards read at one body size, their host’s', () => {
+  /** Every prose size set inside the page's framed (nested) cards. */
+  const nestedProseSizes = (container: HTMLElement): Set<string> =>
+    new Set(
+      Array.from(
+        container.querySelectorAll<HTMLElement>(
+          '.su-ec-frame .su-ec-block, .su-ec-frame .su-ec-block *'
+        )
+      )
+        .map((el) => el.style.fontSize)
+        .filter(Boolean)
+    )
+
+  test('a crawler page: its ability card and its NPC card alike (14px)', () => {
+    const battle = SalvageUnionReference.getByNameIn('crawlers', 'Battle')
+    if (!battle) throw new Error('fixture missing: Battle')
+    const { container } = render(<ReferenceEntityCard data={battle} presentation="page" />)
+    expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
+  })
+
+  test('a drone page: its systems read at the page’s card size too', () => {
+    const drone = SalvageUnionReference.getByNameIn('drones', 'Combat Drone')
+    if (!drone) throw new Error('fixture missing: Combat Drone')
+    const { container } = render(<ReferenceEntityCard data={drone} presentation="page" />)
+    expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
+  })
+})

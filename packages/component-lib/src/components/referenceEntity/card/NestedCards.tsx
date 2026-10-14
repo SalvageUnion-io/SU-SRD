@@ -30,6 +30,12 @@ export type NestedCardHost = {
   isDown: boolean
   /** The host IS the page: its stacks drop the frame inset (see `CardStack`). */
   onPage?: boolean
+  /**
+   * The host's prose reads at the regular size (a page, a large card, a
+   * `readable` card): its depth-1 children then read at it too, so every
+   * nested card in one host has one body size, the host's.
+   */
+  readableProse?: boolean
   /** The host's display name (lets a nested action drop its ` (Host)` suffix). */
   entityName: string
   chassisName: string | undefined
@@ -165,6 +171,7 @@ function NestedCardList({
         hostDown={host.isDown}
         data={nested}
         parentSeal={seal}
+        readable={host.readableProse}
         // On a page, a section heading of its own: no band stands above it.
         titleAs={stackedTitleLevel(host.onPage)}
         hostName={host.entityName}
@@ -269,6 +276,7 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
       // trait and content block below.
       titleOverride={droneInfo.instanceName}
       titleAs={stackedTitleLevel(host.onPage)}
+      readable={host.readableProse}
       droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
     />
   ))
@@ -303,6 +311,7 @@ export function InlineActions({
           depth={host.depth + 1}
           hostDown={host.isDown}
           data={action}
+          readable={host.readableProse}
           hostName={host.entityName}
           chassisName={host.chassisName}
         />
