@@ -1,10 +1,9 @@
 /**
- * `/changelog` — the history of both tools, the one changelog they share
- * (The Cantina links here and keeps no copy).
+ * `/changelog` — the app's history, the reference pages and the Cantina in one
+ * stream (ADR-041, ADR-050).
  *
  * Rendered at BUILD time from `main`'s history: `readChangelog` keeps the
- * `feat`/`fix`/`perf` squash titles scoped `srd` (the Site) and `cantina` (the
- * App), each day's entries stamped with their area (ADR-041). Never a client
+ * app's `feat`/`fix`/`perf` squash titles, one entry per day. Never a client
  * fetch — only the rendered entries ship.
  */
 
@@ -22,10 +21,7 @@ const TITLE = `Changelog${TITLE_SUFFIX}`
 const DESCRIPTION = `Changes to the salvageunion.io reference site and ${PRODUCT.name} over time.`
 
 function page(): PageResult {
-  // Newest day first; on a day both changed, the Site's entry comes first.
-  const entries = [...readChangelog('srd', 'Site'), ...readChangelog('cantina', 'App')].sort(
-    (a, b) => b.date.localeCompare(a.date)
-  )
+  const entries = readChangelog()
 
   return {
     meta: {

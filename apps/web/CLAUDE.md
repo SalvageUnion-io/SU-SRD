@@ -70,7 +70,7 @@ lower a budget when a page gets faster.
 - Search: build-time `/search-index.json`, matched in the browser by
   `src/lib/searchCompactIndex.ts`; Cmd+K / Ctrl+K focuses it.
 - Entity pages carry a Discord Component Embed (`src/lib/componentEmbed.ts`).
-- A `feat|fix|perf(srd|cantina):` PR title reaches the shared `/changelog` (Site or App entries).
+- A `feat|fix|perf(web):` PR title reaches `/changelog`; the older `srd`, `cantina` and `itun` scopes still read.
 
 ## The Cantina
 

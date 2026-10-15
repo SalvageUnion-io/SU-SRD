@@ -44,8 +44,8 @@ adds what is particular to it. [docs/README.md](docs/README.md) maps a task to
 its doc, and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) records what is true
 and why.
 
-Commits are conventional, with a scope (`feat(cantina):`, `fix(bot):`, `ci:`):
-the squash title becomes each site's changelog. Report security issues through
+Commits are conventional, with a scope (`feat(web):`, `fix(bot):`, `ci:`):
+the squash title becomes the changelog. Report security issues through
 [SECURITY.md](SECURITY.md).
 
 ## Licence and credits

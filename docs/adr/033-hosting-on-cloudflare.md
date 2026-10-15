@@ -16,7 +16,7 @@ Worker; `intheunionnow.com` is a zone Redirect Rule to the same page there. **AD
 accepted, not built.
 
 **Amended by ADR-050:** one workspace, `apps/web`, builds both apps into one
-`dist/` that `su-srd` ships in one deploy leg ([full text](050-one-app-two-render-modes.md)).
+`dist/` that `su-srd` ships in one deploy leg ([full text](050-one-app.md)).
 
 **Amended — srd answers misses.** `src/worker/index.ts` runs for every miss and
 answers it with `no-store` (see Configuration outside the repo). §Credentials

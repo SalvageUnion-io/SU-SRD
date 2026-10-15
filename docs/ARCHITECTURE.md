@@ -215,7 +215,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, built: `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`.
     Supersedes ADR-025; amends ADR-014 and ADR-024; amended by ADR-043.
 41. **ADR-041 The deployed commit is the release**
-    Accepted, built: no app versions; one changelog (srd's, Cantina links it): `main`'s first-parent history by scope.
+    Accepted, built: no app versions; one changelog, `/changelog`: `main`'s first-parent history by scope.
     Supersedes ADR-024.
 42. **ADR-042 Mid-tab updates**
     Accepted, built: `convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
@@ -238,6 +238,6 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, built: su-srd serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050.
 49. **ADR-049 Workers Issues, not Sentry**
     Accepted, built: no SDK; browsers and Convex report via the Workers; browser stacks minified.
-50. **ADR-050 One app, two render modes** · [full text](adr/050-one-app-two-render-modes.md)
-    Accepted, built: `apps/web` holds the pre-rendered SRD and the client-only Cantina at `/build/`; one Vite pass, Worker, header and manifest.
+50. **ADR-050 One app** · [full text](adr/050-one-app.md)
+    Accepted, built: `apps/web` is one app, the pre-rendered reference and the client-rendered Cantina at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
     Amends ADR-011, ADR-031, ADR-033 and ADR-048.

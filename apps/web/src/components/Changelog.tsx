@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { color, font, fontSize, space } from '../design/tokens'
-import { CHAPTER_BAND_COLOR, EmptyState, Head, InlineMarkdown, Stat } from './index'
+import { CHAPTER_BAND_COLOR, EmptyState, Head, InlineMarkdown } from './index'
 
 const LIST = {
   display: 'flex',
@@ -20,12 +20,10 @@ const ITEMS = {
   marginLeft: space[16],
 } satisfies CSSProperties
 
-/** One day of `main`'s history for one app (`gitChangelog.ts`). */
+/** One day of `main`'s history (`gitChangelog.ts`). */
 export type ChangelogEntry = {
   /** YYYY-MM-DD. */
   date: string
-  /** Which app's stream this is: the chip right of the date. */
-  area: string
   /** The day's squash titles, inline markdown (a PR link). */
   items: string[]
 }
@@ -44,14 +42,11 @@ const BAND = {
 } as const
 
 /**
- * Presentational, data-source-agnostic changelog renderer for the changelog
- * both tools share (the SRD's `/changelog`).
+ * Presentational, data-source-agnostic renderer for `/changelog`.
  *
  * Each entry is a framed card with the cut-out head every other card wears
  * (the shared `Head`): a band in the page's rules blue, the date notched into
- * its foot on a tab of the paper below (in ink), and the area ("Site", "App")
- * as a chip right of it, as an entity's chips sit in its cut-out head (E17).
- * The bullets are the paper body the tab opens into. The frame is
+ * its foot on a tab of the paper below (in ink). The bullets are the paper body the tab opens into. The frame is
  * `.srd-changelog__entry`.
  */
 export function Changelog({ entries }: ChangelogProps) {
@@ -62,7 +57,7 @@ export function Changelog({ entries }: ChangelogProps) {
   return (
     <ol style={LIST}>
       {entries.map((entry) => (
-        <li key={`${entry.area}-${entry.date}`}>
+        <li key={entry.date}>
           <article className="srd-changelog__entry">
             {/* `h2`: each entry is a direct division of the changelog, under
                 its one `h1`. */}
@@ -71,13 +66,7 @@ export function Changelog({ entries }: ChangelogProps) {
               titleContent={<time dateTime={entry.date}>{entry.date}</time>}
               titleAs="h2"
               paint={BAND}
-              chips={
-                <div className="su-chips">
-                  <Stat orientation="horizontal" label={entry.area} size="compact" />
-                </div>
-              }
               notch
-              chipsBeside
             />
             <ul className="srd-changelog__items" style={ITEMS}>
               {entry.items.map((item) => (
