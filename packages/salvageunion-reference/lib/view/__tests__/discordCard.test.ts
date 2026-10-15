@@ -152,7 +152,7 @@ describe('discordCardParts', () => {
     expect(parts.actions).toEqual([])
   })
 
-  test('a class lists its Core trees in level order, then its Advancement as links', () => {
+  test('a class lists its Core trees in level order', () => {
     const engineer = discordCardParts(
       toEntityModel(need(findEntityBySlug('classes', 'engineer'), 'engineer'))
     )
@@ -160,7 +160,6 @@ describe('discordCardParts', () => {
       'Mechanical Knowledge',
       'Forging',
       'Mech-Tech',
-      'Advancement',
     ])
     expect(engineer.children[0]?.items.map((item) => item.name)).toEqual([
       'Engineering Expertise',
@@ -170,19 +169,31 @@ describe('discordCardParts', () => {
     expect(engineer.children[0]?.line).toStartWith(
       '[Engineering Expertise](https://salvageunion.io/abilities/engineering-expertise)'
     )
-    const advancement = need(engineer.children.at(-1), 'advancement')
-    expect(advancement.items.every((item) => item.schemaName === 'classes')).toBe(true)
-    expect(advancement.line).toContain('[Fabricator](https://salvageunion.io/classes/fabricator)')
     // A Hybrid Class: its own tree; never its Legendary tree.
     const fabricator = discordCardParts(
       toEntityModel(need(findEntityBySlug('classes', 'fabricator'), 'fabricator'))
     )
     expect(fabricator.children.map((group) => group.label)).toEqual(['Fabricator'])
+  })
+
+  test('a class heads its card with its ability limit, then the classes it advances into', () => {
+    const parts = (slug: string) =>
+      discordCardParts(toEntityModel(need(findEntityBySlug('classes', slug), slug)))
+    const engineer = parts('engineer')
+    expect(engineer.head.slice(1)).toEqual([
+      '**Abilities** Up to 10',
+      '**Advances into** [Fabricator](https://salvageunion.io/classes/fabricator) · [Union Rep](https://salvageunion.io/classes/union-rep)',
+    ])
+    expect(engineer.headLinks.map((ref) => ref.name)).toEqual(['Fabricator', 'Union Rep'])
+    // A Hybrid Class: its requirement, then its limit; it advances no further.
+    const fabricator = parts('fabricator')
+    expect(fabricator.head.slice(1)).toEqual([
+      '**Requires** Forging or Electronics',
+      '**Abilities** Up to 10',
+    ])
+    expect(fabricator.headLinks).toEqual([])
     // The Salvager advances into nothing.
-    const salvager = discordCardParts(
-      toEntityModel(need(findEntityBySlug('classes', 'salvager'), 'salvager'))
-    )
-    expect(salvager.children.map((group) => group.label)).not.toContain('Advancement')
+    expect(parts('salvager').head.slice(1)).toEqual(['**Abilities** Up to 12'])
   })
 
   test('a paragraph prints one sentence to a line, the words unchanged', () => {

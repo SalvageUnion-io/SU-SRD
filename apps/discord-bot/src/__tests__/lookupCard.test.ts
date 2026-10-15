@@ -142,6 +142,20 @@ describe('lookupCard — the card', () => {
     )
   })
 
+  test('a class heads with the classes it advances into, and the menu opens them', () => {
+    const card = lookupCard(hit('classes', 'engineer'))
+    expect(cardText(card)).toContain(
+      '**Abilities** Up to 10\n**Advances into** [Fabricator](https://salvageunion.io/classes/fabricator)'
+    )
+    expect(cardText(card)).not.toContain('-# ADVANCEMENT')
+    const options = menuOf(card)?.options ?? []
+    expect(options.at(-1)).toEqual({
+      label: 'Union Rep',
+      value: 'classes::union-rep',
+      description: 'Advances into',
+    })
+  })
+
   test('a weapon system prints its facets as label-first chips and its traits as links', () => {
     const text = cardText(lookupCard(hit('systems', '50-cal-machine-gun')))
     expect(text).toContain(
