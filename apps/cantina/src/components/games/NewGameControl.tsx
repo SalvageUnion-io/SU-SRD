@@ -1,5 +1,7 @@
 /**
- * "+ New Game" — the top of the hub, and the way to start a Game (ADR-030).
+ * "+ New Game" — the way to start a Game (ADR-030): a button on Shelves' band,
+ * and an entry in a Game page's Games select (`ContainerSwitcher`), which
+ * opens the same dialog (`NewGameDialog`).
  *
  * One dialog with two ways to start a table: by name, or from a template.
  * Joining somebody else's Game is not here: a Game is joined from an invite
@@ -29,7 +31,7 @@ import {
 import { useMutation, useQuery } from 'convex/react'
 import type { FunctionArgs } from 'convex/server'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
@@ -76,8 +78,12 @@ type NewGameControlProps = {
   className?: string
 }
 
-function ConnectedNewGameControl({ className }: NewGameControlProps) {
-  const [open, setOpen] = useState(false)
+type NewGameDialogProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   // Read only while the dialog is open: the list is for choosing from, and a
   // subscription held for every visit to the hub would serve nobody.
   const templates = useQuery(api.templates.list, open ? {} : 'skip')
@@ -93,16 +99,17 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
   )
   const { pending: busy, error } = start
 
-  function openDialog(next: boolean) {
-    setOpen(next)
-    if (next) start.clearError()
-  }
+  // A dialog opened afresh shows no failure from the last time.
+  const { clearError } = start
+  useEffect(() => {
+    if (open) clearError()
+  }, [open, clearError])
 
   /** Open the new Game's own page; the dialog has done its job. */
   function enter(gameId: string) {
     showContainer({ kind: 'game', gameId })
     setName('')
-    setOpen(false)
+    onOpenChange(false)
   }
 
   async function startGame(from: { name: string } | { templateId: TemplateId }) {
@@ -111,80 +118,89 @@ function ConnectedNewGameControl({ className }: NewGameControlProps) {
   }
 
   return (
+    <ModalShell open={open} onOpenChange={onOpenChange} title="New Game">
+      <div style={BODY}>
+        <section aria-labelledby="new-game-start" style={SECTION}>
+          <PageHeading variant="section" as="h3" id="new-game-start">
+            Start a Game
+          </PageHeading>
+          <div style={ROW}>
+            <div style={GROW}>
+              <Field label="Name">
+                <Input
+                  aria-label="New Game name"
+                  placeholder="Union Crawler #430"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </Field>
+            </div>
+            <Button
+              variant="primary"
+              size="compact"
+              disabled={busy || name.trim().length === 0}
+              onClick={() => void startGame({ name })}
+            >
+              Create
+            </Button>
+          </div>
+        </section>
+
+        <section aria-labelledby="new-game-template" style={RULED}>
+          <PageHeading variant="section" as="h3" id="new-game-template">
+            From a template
+          </PageHeading>
+          {templates === undefined && (
+            <Text variant="hint" style={HINT}>
+              Loading templates…
+            </Text>
+          )}
+          {templates?.map((t) => (
+            <div key={t.id} style={SECTION}>
+              <PageHeading as="h4">{t.name}</PageHeading>
+              <Text variant="hint" style={HINT}>
+                {t.description}
+              </Text>
+              <div>
+                <Button
+                  variant="default"
+                  size="compact"
+                  disabled={busy}
+                  // `t.id`, not a hardcoded template id — see `templates.list`.
+                  onClick={() => void startGame({ templateId: t.id })}
+                >
+                  Start this Game
+                </Button>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <Text variant="hint" style={HINT}>
+          Joining a friend’s Game? Open the invite link they sent you.
+        </Text>
+
+        <FieldError>{error}</FieldError>
+      </div>
+    </ModalShell>
+  )
+}
+
+/** The New Game dialog, opened by its host; nothing at all outside Connected mode. */
+export function NewGameDialog(props: NewGameDialogProps) {
+  const { mode } = useConnection()
+  if (mode !== 'connected') return null
+  return <ConnectedNewGameDialog {...props} />
+}
+
+function ConnectedNewGameControl({ className }: NewGameControlProps) {
+  const [open, setOpen] = useState(false)
+  return (
     <>
-      <Button
-        variant="default"
-        size="compact"
-        onClick={() => openDialog(true)}
-        className={className}
-      >
+      <Button variant="default" size="compact" onClick={() => setOpen(true)} className={className}>
         + New Game
       </Button>
-      <ModalShell open={open} onOpenChange={openDialog} title="New Game">
-        <div style={BODY}>
-          <section aria-labelledby="new-game-start" style={SECTION}>
-            <PageHeading variant="section" as="h3" id="new-game-start">
-              Start a Game
-            </PageHeading>
-            <div style={ROW}>
-              <div style={GROW}>
-                <Field label="Name">
-                  <Input
-                    aria-label="New Game name"
-                    placeholder="Union Crawler #430"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </Field>
-              </div>
-              <Button
-                variant="primary"
-                size="compact"
-                disabled={busy || name.trim().length === 0}
-                onClick={() => void startGame({ name })}
-              >
-                Create
-              </Button>
-            </div>
-          </section>
-
-          <section aria-labelledby="new-game-template" style={RULED}>
-            <PageHeading variant="section" as="h3" id="new-game-template">
-              From a template
-            </PageHeading>
-            {templates === undefined && (
-              <Text variant="hint" style={HINT}>
-                Loading templates…
-              </Text>
-            )}
-            {templates?.map((t) => (
-              <div key={t.id} style={SECTION}>
-                <PageHeading as="h4">{t.name}</PageHeading>
-                <Text variant="hint" style={HINT}>
-                  {t.description}
-                </Text>
-                <div>
-                  <Button
-                    variant="default"
-                    size="compact"
-                    disabled={busy}
-                    // `t.id`, not a hardcoded template id — see `templates.list`.
-                    onClick={() => void startGame({ templateId: t.id })}
-                  >
-                    Start this Game
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </section>
-
-          <Text variant="hint" style={HINT}>
-            Joining a friend’s Game? Open the invite link they sent you.
-          </Text>
-
-          <FieldError>{error}</FieldError>
-        </div>
-      </ModalShell>
+      <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />
     </>
   )
 }

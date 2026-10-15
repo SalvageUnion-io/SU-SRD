@@ -3,15 +3,15 @@
  * (`ShelfPill`), whose chip group leads with this item's chips — the Game it
  * is in, the units linked to it, and for a pattern or NPC who can see it — as
  * label-only chips, the way a Game's Row leads with its owner chip
- * (never boxes under the card; owner's rule, 2026-10-14) — and its "⋯" menu at
- * the shelf's edge.
+ * (never boxes under the card; owner's rule, 2026-10-14) — and its "⋯" menu,
+ * an action chip, last on the name's line.
  *
  * The menu's rows are the caller's (`menu`): what an item may do depends on its
  * kind and on whether this session can write, and every verb that asks first
  * opens the page's one confirm, which has to outlive the menu that asked.
  */
 
-import { Stat, tokens } from 'component-lib'
+import { Stat } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { ShelfChip, ShelfReading } from '../../lib/shelves/shelfItems'
 import type { HeaderMenuItem } from '../shared/HeaderMenu'
@@ -19,15 +19,7 @@ import { HeaderMenu } from '../shared/HeaderMenu'
 import type { ShelfKind } from './ShelfPill'
 import { ShelfPill } from './ShelfPill'
 
-const ITEM = {
-  alignItems: 'start',
-  display: 'grid',
-  gap: tokens.space[12],
-  gridTemplateColumns: 'minmax(0, 1fr) auto',
-  listStyle: 'none',
-} satisfies CSSProperties
-
-const BODY = { minWidth: 0 } satisfies CSSProperties
+const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
 type ShelfItemProps = {
   kind: ShelfKind
@@ -54,26 +46,31 @@ export function ShelfItem({
   const hasMenu = menu.some((section) => section.length > 0)
   return (
     <li style={ITEM}>
-      <div style={BODY}>
-        <ShelfPill
-          kind={kind}
-          note={note}
-          name={name}
-          reading={reading}
-          href={href}
-          userMade={userMade}
-          labels={
-            chips.length > 0
-              ? chips.map((chip) => (
-                  <Stat key={chip.key} orientation="horizontal" label={chip.label} size="compact" />
-                ))
-              : undefined
-          }
-        />
-      </div>
-      {hasMenu && (
-        <HeaderMenu variant="overflow" trigger={null} label={`More for ${name}`} sections={menu} />
-      )}
+      <ShelfPill
+        kind={kind}
+        note={note}
+        name={name}
+        reading={reading}
+        href={href}
+        userMade={userMade}
+        labels={
+          chips.length > 0
+            ? chips.map((chip) => (
+                <Stat key={chip.key} orientation="horizontal" label={chip.label} size="compact" />
+              ))
+            : undefined
+        }
+        trailing={
+          hasMenu ? (
+            <HeaderMenu
+              variant="overflow"
+              trigger={null}
+              label={`More for ${name}`}
+              sections={menu}
+            />
+          ) : undefined
+        }
+      />
     </li>
   )
 }

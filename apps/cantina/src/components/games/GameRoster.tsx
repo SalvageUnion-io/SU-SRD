@@ -4,7 +4,7 @@
  * ## Why this looks like Shelves
  *
  * `/` shows one container at a time (`Roster`): Shelves, or a Game picked in
- * its "Showing" select. Both ask "what have we got and what can I do with it",
+ * its Games select. Both ask "what have we got and what can I do with it",
  * so both answer in the same three ontology-toned columns of Rows (`UnitRow`)
  * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
  * seal on every row, a way to pick up what nobody holds, and creation gated by
@@ -30,7 +30,9 @@
  * ## What a row opens
  *
  * Every row is a link to the live sheet (`rosterSheetHref`), its other verbs
- * in a ⋯ menu beside it, as a shelf item's (`ShelfItem`). The sheet opens
+ * in a ⋯ menu, its last chip, as a shelf item's (`ShelfItem`). A row's only
+ * other chip is who holds it (and ★ Primary on the crawler): what a unit IS
+ * is on its sheet, and the crew's state is in Crew & seats. The sheet opens
  * editable when the row is yours to edit — your own pilots and mechs, and the
  * crawler when you run the table (ADR-038 §5) — and read-only and live
  * otherwise; `entities.locate` decides and `SheetView` renders it. No row
@@ -64,7 +66,6 @@ import {
   rosterSheetHref,
   tableCapabilities,
 } from '../../lib/games/gameRoster'
-import { rosterRowStats } from '../../lib/games/rosterRowStats'
 import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
@@ -121,13 +122,6 @@ const STACK = {
 
 const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
 
-const FOOTNOTE = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
-  marginTop: tokens.space[24],
-} satisfies CSSProperties
-
 /**
  * The YOURS group: framed in ink on the warm band ground, so your own rows read
  * as a set at a glance. Not rust — rust is the action colour, and this marks a
@@ -151,14 +145,7 @@ const GROUP = {
   gap: tokens.space[10],
 } satisfies CSSProperties
 
-/** A Row and its ⋯ menu at the column's edge, as a shelf item (`ShelfItem`). */
-const ITEM = {
-  alignItems: 'start',
-  display: 'grid',
-  gap: tokens.space[8],
-  gridTemplateColumns: 'minmax(0, 1fr) auto',
-  listStyle: 'none',
-} satisfies CSSProperties
+const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
 /** Stamps sit at their own width, not stretched across the group. */
 const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
@@ -286,7 +273,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
           /* The primary crawler is where new crew is assigned (ADR-037), so
              the roster says which one it is. */
           note={row.primary ? '★ Primary' : undefined}
-          readings={rosterRowStats(row)}
           /* The Row is the door to the live sheet: editable when the row is
              yours to edit (`row.can.openSheet`), read-only when it is a
              crewmate's (`SheetView`). */
@@ -303,12 +289,14 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
               />
             )
           }
-        />
-        <HeaderMenu
-          variant="overflow"
-          trigger={null}
-          label={`More for ${row.name}`}
-          sections={rowMenu(row)}
+          trailing={
+            <HeaderMenu
+              variant="overflow"
+              trigger={null}
+              label={`More for ${row.name}`}
+              sections={rowMenu(row)}
+            />
+          }
         />
       </li>
     )
@@ -396,7 +384,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                     column.kind === 'mech' ? (
                       <AppLink
                         href="/mechs/patterns"
-                        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+                        className={buttonVariants({ variant: 'ghost', size: 'mini' })}
                         style={PATTERNS_LINK}
                       >
                         Patterns
@@ -412,11 +400,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
           </RosterGrid>
         </>
       )}
-
-      <p style={FOOTNOTE}>
-        What you can edit opens to edit; a crewmate&rsquo;s pilot or mech opens read-only, as it
-        stands right now.
-      </p>
 
       {confirmDialog}
     </>

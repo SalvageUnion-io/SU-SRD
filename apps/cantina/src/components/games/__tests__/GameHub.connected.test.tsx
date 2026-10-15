@@ -160,7 +160,8 @@ describe('the sections under the roster (board M2)', () => {
 
     // The buttons are `CopyInviteLink`'s and `ResetInviteLink`'s, mounted only when Connected.
     expect(heading('Invite link')).toBeTruthy()
-    expect(screen.getByText(/joins as a player/)).toBeTruthy()
+    // Its buttons alone: no copy explaining them.
+    expect(screen.queryByText(/joins as a player/)).toBeNull()
     // Nobody mediates yet, so the Organizer appoints — themselves or anyone.
     // This is the ONLY way the Mediator flag is ever set.
     expect(screen.getByText('Nobody yet')).toBeTruthy()
@@ -244,12 +245,12 @@ describe('Crew & seats', () => {
 
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
     const rows = seats.getAllByRole('listitem').map((li) => li.textContent)
-    // Join order; a Mediator with no pilot runs the table; an unclaimed pilot is an open seat.
-    // A pilot seat is the pilot's Row (who holds it, then role), its mech a Token.
+    // Join order; a Mediator with no pilot is their name alone; an unclaimed pilot is an open seat.
+    // A pilot seat is the pilot's Row: who holds it, its mech as a chip, then role.
     expect(rows).toEqual([
-      'MediatorAsh (you)Runs the table',
-      'Pickle (Pilot)BeefcakePlayerSpectrum (Mech)',
-      'Hotdog (Pilot)OpenWaiting for a player',
+      'Ash (you)',
+      'Pickle (Pilot)BeefcakeMechSpectrumPlayer',
+      'Hotdog (Pilot)Open',
     ])
     // The count is the label-first chip, `SEATS | 1/2`.
     expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')

@@ -8,8 +8,8 @@
  *    to: with no live Game to show, the whole cached pile is the only rendering
  *    that cannot lose a build.
  *  - **A Game** — that table's own page, drawn as Shelves is: a full-width
- *    band carrying the page's controls (the "Showing" select, import, backup,
- *    the Starter Set, "+ New game") above the Game's notched name, any
+ *    band carrying the page's controls (the Games select, whose last entry is
+ *    "+ New Game", import and backup) above the Game's notched name, any
  *    invitation, and `GameHub` — its roster, yours first, with every player and
  *    Mediator action below the lists. Connected only; while the connection is
  *    still being worked out, a remembered Game shows a skeleton rather than
@@ -20,7 +20,7 @@
  * kept here so it survives switching between Games.
  */
 
-import { buttonVariants, cn, RosterSkeleton, tokens } from 'component-lib'
+import { RosterSkeleton, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -32,8 +32,6 @@ import { ImportButton } from '../export/ImportButton'
 import { GameBand } from '../games/GameBand'
 import { GameHub } from '../games/GameHub'
 import { GAME_BODY } from '../games/hubStyles.model'
-import { NewGameControl } from '../games/NewGameControl'
-import { AppLink } from '../shared/AppLink'
 import { Shelves } from '../shelves/Shelves'
 import { FrontDoor } from './FrontDoor'
 import type { SegmentKind } from './RosterColumn'
@@ -43,31 +41,15 @@ const PAGE = {
   minHeight: '100%',
 } satisfies CSSProperties
 
-/** The band's controls row, as Shelves sets its own: the note, then the controls. */
-const BAND_ROW = {
+/** The band's controls, at its end. */
+const BAND_CONTROLS = {
   alignItems: 'center',
   display: 'flex',
   flex: '1 1 100%',
   flexWrap: 'wrap',
-  gap: tokens.space[16],
-  justifyContent: 'space-between',
-} satisfies CSSProperties
-
-const BAND_NOTE = {
-  color: tokens.color.paper,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  margin: 0,
-} satisfies CSSProperties
-
-const BAND_CONTROLS = {
-  alignItems: 'flex-start',
-  display: 'flex',
-  flexWrap: 'wrap',
   gap: tokens.space[12],
+  justifyContent: 'flex-end',
 } satisfies CSSProperties
-
-const NO_UNDERLINE = { textDecorationLine: 'none' } satisfies CSSProperties
 
 /** The paper outline Shelves' band buttons wear (`styles/shelves.css`). */
 const ON_BAND_BUTTON = 'su-shelves-band__btn'
@@ -93,36 +75,18 @@ export function Roster() {
 
 /** A Game's own page; `gameId` null while the connection settles. */
 function GamePage({ gameId }: { gameId: string | null }) {
-  const { mode } = useConnection()
   const activeContainer = useActiveContainer()
   const showContainer = useShowContainer()
   /** Mobile-endpoint segmented switch — which column shows ≤ md */
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
   const controls = (
-    <div style={BAND_ROW}>
-      <p style={BAND_NOTE}>
-        {mode === 'connecting'
-          ? 'Download a backup any time to keep a copy yourself.'
-          : 'Saved to your account. A downloaded backup is still yours to keep.'}
-      </p>
-      <div style={BAND_CONTROLS}>
-        {/* Where else to go: the select lists Shelves and every Game. It
-            renders nothing outside Connected, as "+ New Game" does. */}
-        <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />
-        <ImportButton className={ON_BAND_BUTTON} onInk />
-        <ExportAllButton className={ON_BAND_BUTTON} onInk />
-        {/* The Starter Set: Leyline Press's pre-generated crew, read-only
-            reference you copy from rather than builds of your own. */}
-        <AppLink
-          href="/starter"
-          className={cn(buttonVariants({ size: 'compact' }), ON_BAND_BUTTON)}
-          style={NO_UNDERLINE}
-        >
-          Starter Set
-        </AppLink>
-        <NewGameControl className={ON_BAND_BUTTON} />
-      </div>
+    <div style={BAND_CONTROLS}>
+      {/* Where else to go: the select lists Shelves and every Game, and ends
+          with "+ New Game". It renders nothing outside Connected. */}
+      <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />
+      <ImportButton className={ON_BAND_BUTTON} onInk />
+      <ExportAllButton className={ON_BAND_BUTTON} onInk />
     </div>
   )
 

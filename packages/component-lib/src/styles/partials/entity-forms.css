@@ -599,7 +599,8 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 
 /* A link or select Row with controls (`data-covered`): the surface is an
    empty cover over the whole Row, so the controls never nest inside its
-   `<a>` or radio, and they (and a toggle's check) sit raised above it. */
+   `<a>` or radio, and they, any button among the chips (an owner seal that
+   claims, a "⋯" menu) and a toggle's check sit raised above it. */
 .su-entity-row__cover {
   border-radius: var(--radius-card);
   inset: 0;
@@ -608,6 +609,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 
 .su-entity-row[data-covered] .su-entity-row__controls,
 .su-entity-row[data-covered] .su-entity-row__labels,
+.su-entity-row[data-covered] .su-chips :is(a, button),
 .su-entity-row[data-covered] .su-entity-row__line > input {
   position: relative;
   z-index: 1;

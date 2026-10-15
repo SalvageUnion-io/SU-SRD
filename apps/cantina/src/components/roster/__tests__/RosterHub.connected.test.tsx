@@ -14,8 +14,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  *  - "Move to a Game…" moves the same record into a Game, and back out again
  *    behind a confirm; it never copies
  *  - a pattern's chips say who can see it and how often it has been built
- *  - a Game's page carries "+ New Game" and the "Showing" select, which lists
- *    Shelves and then every Game, and shows that Game's roster, yours first
+ *  - a Game's page carries the Games select, which lists Shelves, every Game
+ *    and "+ New Game", and shows that Game's roster, yours first
  *  - a remembered Game (the `/games/:id` redirect, a reload) opens straight
  *    into it
  *
@@ -309,19 +309,23 @@ describe('Move to a Game…', () => {
 })
 
 describe('a Game’s page', () => {
-  const showing = () => screen.getByLabelText('Showing') as HTMLSelectElement
+  const showing = () => screen.getByLabelText('Games') as HTMLSelectElement
 
-  test('"+ New Game" and "Showing", which lists Shelves and then every Game', async () => {
+  test('the Games select lists Shelves, every Game and "+ New Game"; the band nothing else but Import and Export all', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g1' })
     await renderHub()
 
-    expect(screen.getByRole('button', { name: '+ New Game' })).toBeTruthy()
     expect([...showing().options].map((o) => o.textContent)).toEqual([
       'Shelves',
       'Union Crawler #430',
       'The Long Haul',
+      '+ New Game',
     ])
     expect(showing().value).toBe('game:g1')
+    // "+ New Game" is the select's entry, not a button; the Starter Set is the masthead's.
+    expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Starter Set' })).toBeNull()
+    expect(screen.queryByText(/Saved to your account/)).toBeNull()
   })
 
   test('shows that Game’s roster, yours first, then the Game section', async () => {
@@ -341,7 +345,7 @@ describe('a Game’s page', () => {
     expect(screen.queryByRole('link', { name: 'Open the Mediator dashboard' })).toBeNull()
   })
 
-  test('picking Shelves in "Showing" goes back to the shelf', async () => {
+  test('picking Shelves in the Games select goes back to the shelf', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g1' })
     await renderHub()
     await act(async () => {

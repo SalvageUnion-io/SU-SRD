@@ -1,6 +1,6 @@
 /**
  * CrewSeats — "Crew & seats" on a Game's page: the crawler as a Row, one Row
- * per member's pilot (its mech a Token), then the open seats.
+ * per member's pilot (its mech a chip), then the open seats.
  *
  * Pins what each seat says (role, who, what they have), how an open seat
  * reads, the seat count's grammar, and the crawler Row's chips — including a
@@ -27,6 +27,13 @@ const CRAWLER: CrawlerReading = {
 const ROWS: SeatRow[] = [
   { key: 'm', role: 'Mediator', who: 'alxjrvs', unit: 'Runs the table', pilot: null },
   {
+    key: 'mp',
+    role: 'Mediator',
+    who: 'alxjrvs',
+    unit: 'Bonesaw · on foot',
+    pilot: { name: 'Bonesaw', mech: null },
+  },
+  {
     key: 'p',
     role: 'Player',
     who: 'Sam',
@@ -50,22 +57,26 @@ const cellsOf = (el: Element) =>
   [...el.querySelectorAll('.su-entity-row .su-stat-cell')].map((c) => c.textContent)
 
 describe('CrewSeats', () => {
-  test('each seat says its role, who holds it and what they have; an open one who waits', () => {
+  test('each seat says who holds it, their mech as a chip, and its role; the Mediator only their name', () => {
     render(<CrewSeats crawler={CRAWLER} rows={ROWS} claimed={1} total={2} />)
-    const [mediator, player, open] = seats()
-    // A member with no pilot has no entity to draw: a plain line.
-    expect(mediator?.textContent).toBe('MediatoralxjrvsRuns the table')
+    const [mediator, mediatorPilot, player, open] = seats()
+    // A member with no pilot has no entity to draw: a plain line. The
+    // Mediator's is their name alone; the band says who mediates.
+    expect(mediator?.textContent).toBe('alxjrvs')
     expect(mediator?.querySelector('.su-entity-row')).toBeNull()
-    // A pilot is a Row (its role and who holds it right of the name), its mech a Token.
+    // The Mediator's pilot carries no MEDIATOR chip, and on foot no mech.
+    if (!mediatorPilot) throw new Error('missing seats')
+    expect(cellsOf(mediatorPilot)).toEqual(['alxjrvs'])
+    // A pilot is a Row: who holds it, then `MECH | name`, then its role, right of the name.
     if (!player || !open) throw new Error('missing seats')
     expect(within(player).getByText('Ghost')).toBeTruthy()
-    expect(within(player).getByText('Player')).toBeTruthy()
-    expect(within(player).getByText('Sam')).toBeTruthy()
-    expect(player.querySelector('.su-entity-token')?.textContent).toContain('Iron Jaw')
-    // An open seat waits for a player.
+    expect(cellsOf(player)).toEqual(['Sam', 'MechIron Jaw', 'Player'])
+    expect(player.querySelector('.su-entity-token')).toBeNull()
+    // An open seat is its OPEN chip, with no line of text under it.
     expect(within(open).getByText('Rook')).toBeTruthy()
     expect(within(open).getByText('Open')).toBeTruthy()
-    expect(within(open).getByText('Waiting for a player')).toBeTruthy()
+    expect(within(open).queryByText('Waiting for a player')).toBeNull()
+    expect(screen.queryByText('On foot')).toBeNull()
     // The count is the label-first chip, `SEATS | 1/2`.
     expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
   })

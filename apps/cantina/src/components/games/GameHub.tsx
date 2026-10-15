@@ -19,7 +19,7 @@
  *     Invite link (copy and reset) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`).
  *
- * Starting a Game is "+ New Game" at the top of the hub (`NewGameControl`), and
+ * Starting a Game is "+ New Game" in the band's Games select (`ContainerSwitcher`), and
  * joining one is an invite link (`InviteScreen`), so nothing here is about
  * choosing a table.
  *
@@ -46,7 +46,7 @@ import { DowntimeTrack } from './DowntimeTrack'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { HubSection } from './HubSection'
-import { GAME_BODY, HUB_COLUMN, HUB_COLUMNS, HUB_COPY } from './hubStyles.model'
+import { GAME_BODY, HUB_COLUMN, HUB_COLUMNS } from './hubStyles.model'
 import { LaunchDashboard } from './LaunchDashboard'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
@@ -148,10 +148,6 @@ function GameSections({ game }: { game: Game }) {
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
             <HubSection id="invite-link-heading" title="Invite link">
-              <p style={HUB_COPY}>
-                Anyone signed in who opens this link joins as a player. Resetting it makes a new
-                link; the old one stops working.
-              </p>
               <div style={INVITE_ACTIONS}>
                 <CopyInviteLink gameId={gameId} />
                 <ResetInviteLink gameId={gameId} />

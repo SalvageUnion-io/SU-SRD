@@ -3,7 +3,8 @@
  * Assign / Unassign / View sit on the band's right end. They never nest in
  * the Row's own control: a link or select Row lays its surface over the frame
  * as an empty cover and raises the controls above it. A host's labels sit
- * right of the title, after the model's own.
+ * right of the title, after the model's own; its trailing chip (a "⋯" menu)
+ * ends the chip group.
  */
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -69,6 +70,38 @@ describe('Row controls', () => {
     const link = screen.getByRole('link', { name: 'Ace' })
     expect(link.className).toContain('su-entity-row__cover')
     expect(screen.getByRole('button', { name: 'Claim' }).closest('a')).toBeNull()
+  })
+
+  test('link with a trailing chip: it ends the chip group, outside the link', () => {
+    render(
+      <Entity
+        form="row"
+        model={MODEL}
+        mode={{ kind: 'link', href: '/sheet/pilot/ace' }}
+        trailing={
+          <button type="button" onClick={() => undefined}>
+            More for Ace
+          </button>
+        }
+      />
+    )
+    const link = screen.getByRole('link', { name: 'Ace' })
+    expect(link.className).toContain('su-entity-row__cover')
+    const more = screen.getByRole('button', { name: 'More for Ace' })
+    expect(more.closest('a')).toBeNull()
+    // The last chip, after the model's own (`HP | 8/10`), on the name's line.
+    expect(more.closest('.su-chips')?.lastElementChild).toBe(more)
+  })
+
+  test('a trailing chip alone still draws the chip group', () => {
+    render(
+      <Entity
+        form="row"
+        model={{ ...MODEL, facts: [] }}
+        trailing={<button type="button">More for Ace</button>}
+      />
+    )
+    expect(screen.getByRole('button', { name: 'More for Ace' }).closest('.su-chips')).not.toBeNull()
   })
 
   test('select: the radio covers the Row, and pressing a control does not select', () => {

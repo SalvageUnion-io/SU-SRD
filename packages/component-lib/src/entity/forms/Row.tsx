@@ -67,6 +67,11 @@ export type RowSlots = {
   controls?: ReactNode
   /** The host's labels (an owner stamp): the first chips, before the model's own labels. */
   extraLabels?: ReactNode
+  /**
+   * The host's last chip (a "⋯" menu): after the cost, on the name's line.
+   * Raised above a link or select surface, as the controls are.
+   */
+  trailing?: ReactNode
 }
 
 export type RowProps = {
@@ -168,7 +173,8 @@ export function Row({
   // then the note as a label-only chip (★ Primary), then User-made, a
   // label-only chip too (the dashed frame already says pencil, not print).
   const labelsAsChips =
-    (!!ownLabels || !!slots.extraLabels) && (chipCount(chips) > 0 || !!slots.extraLabels)
+    (!!ownLabels || !!slots.extraLabels) &&
+    (chipCount(chips) > 0 || !!slots.extraLabels || !!slots.trailing)
   const ownChips =
     slots.labels !== undefined ? (
       slots.labels
@@ -205,13 +211,14 @@ export function Row({
           paint={paint}
           tier={omit.includes('tier') ? undefined : model.tier}
           chips={
-            chipCount(chips) > 0 || labelsAsChips ? (
+            chipCount(chips) > 0 || labelsAsChips || slots.trailing ? (
               <Chips
                 chips={chips}
                 rung="compact"
                 onInk={paint.ink}
                 linkable={mode.kind === 'read' && !slots.outer}
                 leading={leading}
+                trailing={slots.trailing}
               />
             ) : undefined
           }
@@ -241,14 +248,15 @@ export function Row({
     </>
   )
 
-  // A Row with controls, or a link Row with host labels that may be one (an
-  // owner seal that claims), never nests them in its own control (a link's `<a>`, a
-  // radio): the surface is an empty cover laid over the frame, and the
-  // controls, labels (and a toggle's check) are raised above it
-  // (`[data-covered]`).
+  // A Row with controls, or a link Row with host labels or a trailing chip that
+  // may be one (an owner seal that claims, a "⋯" menu), never nests them in its
+  // own control (a link's `<a>`, a radio): the surface is an empty cover laid
+  // over the frame, and the controls, the chips' own controls (and a toggle's
+  // check) are raised above it (`[data-covered]`).
   const covered =
     !slots.outer &&
-    ((!!slots.controls && mode.kind !== 'read') || (!!slots.extraLabels && mode.kind === 'link'))
+    ((!!slots.controls && mode.kind !== 'read') ||
+      ((!!slots.extraLabels || !!slots.trailing) && mode.kind === 'link'))
   if (covered) {
     return (
       <div className="su-entity-row" data-covered="">
