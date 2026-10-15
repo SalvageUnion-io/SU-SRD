@@ -35,7 +35,7 @@ initBrowserObservability()
 
 // Before any island is scheduled: a `load` island imports its chunk the moment
 // `mountIslands` runs, and on a page older than the deploy that import is the
-// first thing to fail. See `installChunkRecovery` in observability/browser.
+// first thing to fail. See `installChunkRecovery` in lib/browserObservability.ts.
 installChunkRecovery()
 
 // Before the islands: Sign in hides and the account islands mount only while

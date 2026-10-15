@@ -8,6 +8,7 @@
  * templates and the title format: never a store, the reference or Convex.
  */
 
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
@@ -25,7 +26,7 @@ export const STARTER_SET_PUBLISHER = 'Leyline Press'
 export const STARTER_SET_ADVENTURE = 'Reclamation of the Wastes'
 
 /** The kinds of build the Starter Set holds. */
-export type StarterKind = 'pilot' | 'mech' | 'crawler'
+export type StarterKind = SheetKind
 
 const STARTER_KINDS: readonly StarterKind[] = ['pilot', 'mech', 'crawler']
 

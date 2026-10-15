@@ -46,7 +46,7 @@ initBrowserObservability()
 
 // Installed BEFORE render, because the failure it recovers from — a lazy chunk
 // whose build no longer exists on the server — can be thrown by the very first
-// route the router resolves. See `installChunkRecovery` in observability/browser.
+// route the router resolves. See `installChunkRecovery` in lib/browserObservability.ts.
 installChunkRecovery()
 
 // Until `ConnectionProvider` reports, nobody knows yet whether there is a

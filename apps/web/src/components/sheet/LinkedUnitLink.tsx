@@ -10,12 +10,12 @@
  * doing, so the Token carries nothing else.
  */
 
-import type { SheetEntityKind } from 'cantina-domain/schemas/entity'
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { Entity } from '../index'
 
 type LinkedUnitLinkProps = {
-  kind: SheetEntityKind
+  kind: SheetKind
   name: string
   /** The unit's sheet; without one the Token is not a link. */
   href: string | undefined

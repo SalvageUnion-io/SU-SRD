@@ -32,8 +32,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       web: ${{ steps.filter.outputs.web }}
-      bot: ${{ steps.filter.outputs.bot }}
-      assets: ${{ steps.filter.outputs.assets }}
+      workers: ${{ steps.filter.outputs.workers }}
       code: ${{ steps.filter.outputs.code }}
       docs: ${{ steps.filter.outputs.docs }}
       deps: ${{ steps.filter.outputs.deps }}
@@ -42,11 +41,10 @@ jobs:
         id: filter
         with:
           filters: |
+            # tools/check-workflows.ts (path-filters) holds this list and
+            # tools/deploy-surfaces.ts SHARED_PATHS to each other.
             shared: &shared
               - 'packages/salvageunion-reference/**'
-              # a `workspace:*` dependency of all four apps; asserted from the
-              # manifests by tools/check-workflows.ts (path-filters)
-              - 'packages/observability/**'
               - 'package.json'
               - 'bun.lock'
               - 'knip.json'
@@ -55,16 +53,15 @@ jobs:
               - 'lefthook.yml'
               - '.github/workflows/**'
               - '.github/actions/**'
-              # every workspace's test preloads and linker config
-              - 'test/**'
+              # the linker config
               - 'bunfig.toml'
-              # root prose rendered by srd + cantina and asserted on by
+              # root prose rendered by the site and asserted on by
               # src/components tests
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
-            # srd and the Cantina, one workspace and one build: build-web and
-            # perf both key on it.
+            # The site (the reference pages and the Cantina), one workspace and
+            # one build: build-web and perf both key on it.
             web:
               - *shared
               - 'apps/web/**'
@@ -72,16 +69,15 @@ jobs:
               - 'packages/cantina-domain/**'
               # the build jobs' Playwright configs and axe scan
               - 'packages/gates/**'
-            bot:
+            # The two Worker-only apps, bundled together by bundle-workers.
+            workers:
               - *shared
               - 'apps/discord-bot/**'
+              - 'apps/su-assets/**'
               # the bot's wire types (`cantina-domain/botWire`, `import type`)
               - 'packages/cantina-domain/**'
-              # the theme its colours mirror (themeLockstep.test.ts)
+              # the theme the bot's colours mirror (themeLockstep.test.ts)
               - 'apps/web/src/styles/theme.css'
-            assets:
-              - *shared
-              - 'apps/su-assets/**'
             code:
               - *shared
               - 'apps/**'
@@ -124,7 +120,7 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # Every gate except the test suite and the srd build (their own jobs
+      # Every gate except the test suite and the site build (their own jobs
       # below), from the ONE registry in tools/check.ts — the same list
       # `bun run check` and pre-push run. Add a gate THERE, never as a step
       # here. The areas decide which checks a diff needs: always-on checks
@@ -166,7 +162,7 @@ jobs:
 
   # The build jobs need only `changes`: they take no artifact from the check
   # jobs, and `CI Success` already fails on any of them.
-  # The site's one build (`bun run build`: srd, then the Cantina into
+  # The site's one build (`bun run build`: the reference pages, then the Cantina into
   # `dist/build/`, ADR-050), then both apps' PR-blocking browser tiers against
   # it. The Cantina is compiled against a Convex URL, the variant production
   # ships, so the specs and the scans see the signed-out read-only UI players
@@ -187,8 +183,7 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # `build:untyped`, `build` without its typecheck: static-checks
-      # typechecks every workspace already (the bot's job skips it likewise).
+      # `build` does not typecheck: static-checks typechecks every workspace.
       - name: Start a throwaway Convex backend and build the site against it
         uses: ./.github/actions/convex-backend
 
@@ -197,7 +192,7 @@ jobs:
 
       # The build emits the assets; this bundles the Worker `main` that ships.
       - name: Bundle the Worker that actually deploys
-        run: bun --filter web worker:bundle --outdir /tmp/srd-worker
+        run: bun --filter web worker:bundle --outdir /tmp/web-worker
 
       - name: Set up Playwright
         uses: ./.github/actions/playwright
@@ -226,7 +221,7 @@ jobs:
         if: failure()
         run: docker logs convex-e2e || true
 
-  # srd's performance budget (`e2e/perf-budget.e2e.ts`): LCP, TBT and CLS on
+  # The site's performance budget (`e2e/perf-budget.e2e.ts`): LCP, TBT and CLS on
   # a few pages under Lighthouse's mobile throttling. Its own job, beside
   # build-web rather than after it, so it adds its run time to CI's wall time
   # only where it outlasts build-web. It builds its own `dist`; downloading
@@ -272,11 +267,17 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
-  build-discord-bot:
+  # The Worker-only apps have no build but wrangler's bundle, which is what
+  # deploys; their typecheck already runs in static-checks. One leg each.
+  bundle-workers:
     needs: [changes]
-    if: needs.changes.outputs.bot == 'true'
+    if: needs.changes.outputs.workers == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [discord-bot, su-assets]
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -286,27 +287,10 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # Its `build` is typecheck + this bundle; the typecheck already runs in
-      # static-checks, so only the bundle here.
       - name: Bundle the Worker that actually deploys
-        run: bun --filter discord-bot worker:bundle --outdir /tmp/bot-worker
-
-  build-su-assets:
-    needs: [changes]
-    if: needs.changes.outputs.assets == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Bundle the Worker
-        run: bun --filter su-assets worker:bundle --outdir /tmp/su-assets-worker
+        env:
+          APP: ${{ matrix.app }}
+        run: bun --filter "$APP" worker:bundle --outdir "/tmp/$APP-worker"
 
   # ---------------------------------------------------------------------------
   # Every PR into `main` releases (release.yml), so it must bump the root
@@ -327,9 +311,9 @@ jobs:
 
       # tools/release.ts imports nothing installed, so no `bun install`.
       - name: Set up Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        uses: ./.github/actions/setup-bun
         with:
-          bun-version-file: package.json
+          install: 'false'
 
       - name: Require a version bump over main
         run: |
@@ -351,8 +335,7 @@ jobs:
       - coverage
       - build-web
       - perf
-      - build-discord-bot
-      - build-su-assets
+      - bundle-workers
       - version-bump
     runs-on: ubuntu-latest
     timeout-minutes: 15

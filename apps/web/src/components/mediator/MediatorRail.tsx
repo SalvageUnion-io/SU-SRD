@@ -9,6 +9,7 @@
  * Presentational; the region wrapper is `DashboardGrid`'s `.su-dash-rail`.
  */
 
+import { gamePath } from 'cantina-domain/entityKinds'
 import { ChevronLeft } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { MARK_SRC } from '../../lib/documentHead'
@@ -57,7 +58,7 @@ export function MediatorRail({
   return (
     <>
       <AppLink
-        href={`/games/${gameId}`}
+        href={gamePath(gameId)}
         aria-label={`Back to ${gameName}`}
         className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'iconOnly' })}
       >

@@ -38,7 +38,24 @@
  * so shared code and its tests import it directly.
  */
 export function reportError(error: unknown, context?: Record<string, unknown>): void {
-  console.error(error, context ?? {})
+  // The error's first line rides along as `message`, which Workers Logs shows
+  // as the event's message. Logged bare, an error whose message spans lines
+  // (a Discord `DiscordAPIError[50035]: Invalid Form Body` and its field
+  // list) showed only its stack frames: the reason was nowhere in the log.
+  // The caller's own `message`, if it passes one, wins.
+  const headline = error instanceof Error ? { message: headlineOf(error) } : {}
+  console.error(error, { ...headline, ...context })
+}
+
+/** `${name}: ${message}` on one line, as a stack would open with it. */
+function headlineOf(error: Error): string {
+  // Split and trimmed rather than a whitespace regex, which backtracks on
+  // long runs of spaces in a message this Worker does not control.
+  const text = `${error.name}: ${error.message}`
+    .split('\n')
+    .map((line) => line.trim())
+    .join(' ')
+  return text.length > 1_000 ? `${text.slice(0, 1_000)}…` : text
 }
 
 /** A Workers rate limiting binding (`ratelimits` in `wrangler.jsonc`). */
@@ -61,7 +78,7 @@ export const CONVEX_LOG_STREAM_PATH = '/__convex-logs'
  */
 const MAX_REPORT_BYTES = 16 * 1024
 
-/** What a browser app posts: `observability/browser`'s `ErrorReport`. */
+/** What a browser app posts: the `ErrorReport` `src/lib/browserObservability.ts` sends. */
 export type ErrorReport = {
   name: string
   message: string
@@ -101,7 +118,7 @@ function optionalString(value: unknown): string | undefined {
 }
 
 /** A posted body as an {@link ErrorReport}, or null when it is not one. */
-export function parseErrorReport(value: unknown): ErrorReport | null {
+function parseErrorReport(value: unknown): ErrorReport | null {
   if (!isRecord(value)) return null
   if (typeof value.message !== 'string') return null
   const fingerprint = Array.isArray(value.fingerprint)
@@ -131,7 +148,7 @@ function remoteError(name: string, message: string, stack: string | undefined): 
 }
 
 /** The error a report is logged as: by its fingerprint when it has one. */
-export function errorOfReport(report: ErrorReport): Error {
+function errorOfReport(report: ErrorReport): Error {
   if (report.fingerprint) {
     return remoteError(report.name, report.fingerprint.join(' '), undefined)
   }

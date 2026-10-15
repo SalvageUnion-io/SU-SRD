@@ -1,3 +1,4 @@
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { LucideIcon } from 'lucide-react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
@@ -12,7 +13,7 @@ import { Badge } from '../index'
  * filled slot is the library Row (`UnitRow`).
  */
 
-type SlotKind = 'pilot' | 'mech' | 'crawler'
+type SlotKind = SheetKind
 
 type EmptyUnitSlotProps = {
   kind: SlotKind

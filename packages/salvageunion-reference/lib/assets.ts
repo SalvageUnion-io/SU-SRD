@@ -12,6 +12,7 @@
  * consumers import.
  */
 
+import { SRD_SITE_URL } from './origin'
 import type { RefMetaEntity } from './schemas/index'
 import { getEntitySlug } from './slug'
 
@@ -56,15 +57,6 @@ export function getAssetUrl(entity: RefMetaEntity): string | undefined {
 export function assetUrl(path: string): string {
   return `${ASSET_BASE_URL}/${path}`
 }
-
-/**
- * Origin of the public Salvage Union reference site (`apps/web`). Every deep
- * link into the SRD — from the Cantina, from the Discord bot, from the site's own
- * canonical/OG tags — is this base plus {@link srdEntityPath},
- * so the host is named once here rather than retyped per surface.
- */
-
-export const SRD_SITE_URL = 'https://salvageunion.io'
 
 /**
  * The reference site's ROOT-RELATIVE path for one entity's page.

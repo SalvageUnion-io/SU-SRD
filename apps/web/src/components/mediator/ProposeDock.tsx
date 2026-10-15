@@ -17,6 +17,7 @@
  * write.
  */
 
+import type { OwnableKind } from 'cantina-domain/entityKinds'
 import type { ProposalField, ProposalTarget } from 'cantina-domain/games/proposals'
 import {
   clampProposalValue,
@@ -37,7 +38,7 @@ const { color, space } = tokens
 
 export type ProposeArgs = {
   entityId: string
-  entityType: 'pilot' | 'mech'
+  entityType: OwnableKind
   field: ProposalField
   after: number
   reason?: string

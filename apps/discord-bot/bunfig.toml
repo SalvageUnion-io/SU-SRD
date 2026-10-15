@@ -1,8 +1,8 @@
 [test]
-# `../../test/reference-preload.ts` loads every schema once for the whole
+# `salvageunion-reference/tools/testPreload.ts` loads every schema once for the whole
 # workspace, the same way web/salvageunion-reference do.
 # No DOM preload here: the bot has no DOM.
-preload = ["../../test/reference-preload.ts"]
+preload = ["../../packages/salvageunion-reference/tools/testPreload.ts"]
 
 # Coverage counts this workspace's own files, not the other workspaces'
 # sources its tests load (tools/run-coverage.ts gates on this total).

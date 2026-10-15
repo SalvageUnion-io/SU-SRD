@@ -90,10 +90,10 @@ describe('the cache key', () => {
     return g
   }
   const ref = gen('salvageunion-reference build')
-  const routes = gen('cantina route tree')
+  const routes = gen('apps/web route tree')
   const assets = gen('apps/su-assets worker types')
   const bot = gen('apps/discord-bot worker types')
-  const srd = gen('apps/web worker types')
+  const web = gen('apps/web worker types')
 
   /** Touch `rel` and report which generators' keys moved. */
   const moved = (rel: string, content = `changed ${Math.random()}`) => {
@@ -127,10 +127,10 @@ describe('the cache key', () => {
     ['apps/su-assets/worker-configuration.d.ts', [assets.label]],
     ['apps/discord-bot/wrangler.jsonc', [bot.label]],
     ['apps/discord-bot/worker-configuration.d.ts', [bot.label]],
-    ['apps/web/wrangler.jsonc', [srd.label]],
-    ['apps/web/worker-configuration.d.ts', [srd.label]],
+    ['apps/web/wrangler.jsonc', [web.label]],
+    ['apps/web/worker-configuration.d.ts', [web.label]],
     ['apps/web/src/main.tsx', []],
-    ['node_modules/wrangler/package.json', [srd.label, assets.label, bot.label]],
+    ['node_modules/wrangler/package.json', [assets.label, web.label, bot.label]],
     ['bun.lock', ALL],
     ['package.json', ALL],
     ['biome.jsonc', ALL],

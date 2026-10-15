@@ -8,15 +8,15 @@
  * compile error there too. A hand-copied shape would let a `botClient` change
  * compile cleanly on both sides and drift silently.
  *
- * ## Why this module imports NOTHING
+ * ## Why this module imports nothing but `entityKinds`
  *
  * That is the whole reason it is separate from `apps/web/convex/model/bot.ts`.
  * Every file the bot imports is type-checked under the bot's settings —
  * including this one. `model/bot.ts` imports `_generated/*`, which would drag
  * Convex's generated data model (and the `convex` package the bot does not
- * depend on) into the bot's program. A leaf module with no imports is valid in
- * both programs and costs the bot nothing at runtime: `import type` is erased,
- * so no Convex or React code can reach the Worker bundle through it.
+ * depend on) into the bot's program. A leaf module (and `entityKinds.ts`, a
+ * leaf too) is valid in both programs and costs the bot nothing at runtime, so
+ * no Convex or React code can reach the Worker bundle through it.
  *
  * Keep it that way. Ids are plain `string` here — a Convex `Id<'games'>` is a
  * branded string and assigns to it, and on the wire it is only ever a string.
@@ -26,6 +26,17 @@
  * deployment older than its own types. Shared declarations remove drift between
  * the two sources; they do not make a payload validated.
  */
+
+import type { SheetTable } from './entityKinds'
+
+/** Where the bot's HTTP door is mounted on the deployment: `/bot/<op>`. */
+export const BOT_PATH_PREFIX = '/bot/'
+
+/** Every operation the bot may invoke through that door. */
+export const BOT_OP_NAMES = ['me', 'games', 'sheet', 'mine'] as const
+
+/** One of {@link BOT_OP_NAMES}. */
+export type BotOpName = (typeof BOT_OP_NAMES)[number]
 
 /**
  * Why the bot could not act, when it could not: no Cantina account carries this
@@ -82,9 +93,6 @@ export type MineResult = {
   mechs: ShelfEntity[]
   crawlers: ShelfEntity[]
 }
-
-/** The tables `/su sheet` can open. The crawler is communal and has no owner. */
-export type SheetTable = 'pilots' | 'mechs' | 'crawlers'
 
 export type SheetResult = {
   table: SheetTable

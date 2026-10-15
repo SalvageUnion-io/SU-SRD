@@ -1,55 +1,11 @@
 /**
  * Width-constrained artwork candidates, derived from a master asset URL.
  *
- * ## Why this lives here and not in `salvageunion-reference`
- *
- * The widths are a decision about a *render slot*, not about the *game data*.
- * They belong to whoever owns the slot, which is this package. The
- * dataset's job ends at `getAssetUrl`: it knows an entity has artwork and where
- * the master is, and nothing about how large anyone draws it.
- *
- * ## Why these two numbers
- *
- * `CardImage` sizes artwork into 220 CSS px, so 440 covers a 2x display and 880
- * a 4x one. The masters are print scans — measured across all 57, 30.9 MB total,
- * up to 1,295,746 B and 6098x7016 — so serving one whole into a 220px slot is a
- * ~28x linear oversample and made an illustrated entity page ~1.3 MB for a
- * thumbnail. That is the regression this exists to prevent.
- *
- * ## The contract with the origin
- *
- * `assets.salvageunion.io` renders these on demand through Cloudflare Images,
- * from the master, and **allowlists exactly these two widths** — an open range
- * on an unauthenticated public URL would let a crawler walking `-1`, `-2`, `-3`
- * exhaust the account's monthly transformation quota in a single pass.
- *
- * So this list and `ALLOWED_WIDTHS` in `apps/su-assets/src/worker/index.ts` must move
- * together. A width added here and not there is a 404, which browsers resolve by
- * quietly falling back rather than by telling anyone.
+ * The widths, the quality and the derivative URL are the artwork CDN's
+ * contract, owned by `salvageunion-reference/assetDerivatives` and read by the
+ * CDN (`apps/su-assets`) too, so the two cannot drift.
  */
-
-/** The rendered widths `assets.salvageunion.io` will serve. Mirrors the origin's allowlist. */
-export const ASSET_RENDER_WIDTHS = [440, 880] as const
-
-/**
- * The WebP quality the origin renders at, named in the URL (`mule-440q80.webp`).
- * Mirrors `RENDER_QUALITY` in `apps/su-assets/src/worker/index.ts`.
- *
- * In the URL because the bare `-440`/`-880` names are spent: the first ones
- * were baked into the bucket close to lossless (Engineer's 880 was 595 KB, its
- * 3496px master 607 KB) and the edge and every browser hold them `immutable`
- * for a year. A new name is the only way past both. At 80 the same Engineer
- * 880 is 104 KB, with no difference visible at 2x.
- */
-export const ASSET_RENDER_QUALITY = 80
-
-/** The rendered derivative of a master at one of {@link ASSET_RENDER_WIDTHS}. */
-export function assetDerivativeUrl(
-  masterUrl: string,
-  width: (typeof ASSET_RENDER_WIDTHS)[number]
-): string {
-  return masterUrl.replace(/\.webp$/, `-${width}q${ASSET_RENDER_QUALITY}.webp`)
-}
+import { ASSET_RENDER_WIDTHS, assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 
 /**
  * An artwork `srcset` for a master URL, or undefined when there is no artwork.

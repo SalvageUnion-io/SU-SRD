@@ -28,7 +28,6 @@
   "references": [
     { "path": "../../packages/cantina-domain" },
     { "path": "../../packages/gates" },
-    { "path": "../../packages/observability" },
     { "path": "../../packages/salvageunion-reference" }
   ]
 }

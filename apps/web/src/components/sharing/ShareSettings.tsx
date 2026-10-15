@@ -23,6 +23,7 @@
  * them.
  */
 
+import { publicPath } from 'cantina-domain/entityKinds'
 import { useMutation, useQuery } from 'convex/react'
 import { Check, Copy } from 'lucide-react'
 import type { CSSProperties } from 'react'
@@ -31,12 +32,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
-import {
-  patternChoices,
-  sharePath,
-  sheetChoices,
-  sheetVisibility,
-} from '../../lib/sharing/visibility'
+import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
 import { Button, Field, FieldError, Select, tokens } from '../index'
 import { LinkQr } from './LinkQr'
@@ -130,7 +126,7 @@ function SheetShareSettings({
         disabled={busy}
       />
       {value === 'link' && (
-        <ShareLink url={appUrl(sharePath(kind, appId))} clipboardWriter={clipboardWriter} />
+        <ShareLink url={appUrl(publicPath(kind, appId))} clipboardWriter={clipboardWriter} />
       )}
       {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
     </div>
@@ -193,7 +189,7 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
         )}
       </WhoCanSee>
       {value === 'link' && (
-        <ShareLink url={appUrl(sharePath('pattern', appId))} clipboardWriter={clipboardWriter} />
+        <ShareLink url={appUrl(publicPath('pattern', appId))} clipboardWriter={clipboardWriter} />
       )}
       {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
     </div>

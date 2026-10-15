@@ -1,5 +1,5 @@
 /**
- * The tech-level ground rule — the `tone-ground` rule set of `tools/check-styling.ts`.
+ * The tech-level ground rule — the `tone-ground` rule set of `tools/check-rule-sets.ts`.
  *
  * Ruleset §3.8: **TL is the framed ink-on-paper badge, never a text ground.** A
  * tech-level blue (`--color-tl-1`…`-6`, `-b`, `-n`) is the badge's ramp; no

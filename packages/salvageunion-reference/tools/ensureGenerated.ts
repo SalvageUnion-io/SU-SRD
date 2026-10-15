@@ -12,7 +12,7 @@
  *     and deploy, and the IDE, which typechecks whatever is on disk)
  *   - the root `typecheck`, `test` and `build`, once before they fan out over
  *     the workspaces, and each app's `dev`
- *   - `test/reference-preload.ts`, so a bare `bun test` works too
+ *   - `tools/testPreload.ts`, so a bare `bun test` works too
  *   - `tools/check.ts`, before it launches checks in parallel
  *
  * ## Why a stamp, not "always regenerate"

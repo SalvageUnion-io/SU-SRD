@@ -14,10 +14,11 @@
  * a chassis's card only links by name.
  */
 
-import { SRD_SITE_URL } from '../assets'
+import { SRD_SITE_URL } from '../origin'
 import type { RefMetaEntity, RefObjectAnyPattern } from '../schemas/index'
+import { discordAccent } from './discordAccents'
 import type { DiscordBlock, DiscordCard } from './discordCard'
-import { discordAccent, discordCard, discordCardParts } from './discordCard'
+import { discordCard, discordCardParts } from './discordCard'
 import { toEntityModel } from './toEntityModel'
 
 /** Discord's ceiling for a Component Embed's whole payload, in UTF-8 bytes. */

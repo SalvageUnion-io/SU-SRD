@@ -27,6 +27,7 @@
  * usage) onto matching strip keys.
  */
 
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatTone } from '../index'
@@ -46,7 +47,7 @@ import type { BandStamp } from './bandStamps.model'
 import { LinkedUnitLink } from './LinkedUnitLink'
 import type { SheetBand } from './sheetViewProps.model'
 
-type SheetVariant = 'pilot' | 'mech' | 'crawler'
+type SheetVariant = SheetKind
 
 /** Each sheet's kind, for its h1's screen-reader text (never a stamp, EDL E9). */
 const KIND_LABEL: Record<SheetVariant, string> = {

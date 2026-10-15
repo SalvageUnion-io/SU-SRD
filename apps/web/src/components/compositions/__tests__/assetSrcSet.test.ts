@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 import { getAssetUrl, SalvageUnionReference } from 'salvageunion-reference'
-import { ASSET_RENDER_QUALITY, ASSET_RENDER_WIDTHS, assetSrcSetFor } from '../assetSrcSet'
+import { ASSET_RENDER_QUALITY, ASSET_RENDER_WIDTHS } from 'salvageunion-reference/assetDerivatives'
+import { assetSrcSetFor } from '../assetSrcSet'
 
 /**
  * Artwork `srcset`.
  *
- * Moved here from `salvageunion-reference/lib/assets.test.ts` along with the
- * code it covers — the widths describe a render slot this package owns, not a
- * property of the game data.
+ * The widths and quality are the artwork CDN's contract
+ * (`salvageunion-reference/assetDerivatives`, tested there).
  *
  * The masters are print scans — 57 objects, 30.9 MB total, up to 1,295,746 B and
  * 6098x7016 — and they were delivered whole into a 220 CSS px slot. Measured on
@@ -67,20 +67,5 @@ describe('assetSrcSetFor', () => {
       expect(assetSrcSetFor(master)).not.toContain(`${master} `)
       expect((assetSrcSetFor(master) ?? '').endsWith(master)).toBe(false)
     }
-  })
-
-  test('every width is one the origin will actually render', () => {
-    // The contract this file shares with `ALLOWED_WIDTHS` in
-    // apps/su-assets/src/worker/index.ts. A width added here and not there is a 404,
-    // which browsers resolve by quietly falling back to the master rather than
-    // by telling anyone — so the two lists drifting apart is silent, and this
-    // is the only place it can be caught.
-    expect([...ASSET_RENDER_WIDTHS]).toEqual([440, 880])
-  })
-
-  test('the quality is the one the origin renders at', () => {
-    // Shared with `RENDER_QUALITY` in apps/su-assets/src/worker/index.ts, the
-    // same way as the widths: any other quality in the URL is a 404.
-    expect(ASSET_RENDER_QUALITY).toBe(80)
   })
 })

@@ -1,3 +1,4 @@
+import type { EntityKind } from 'cantina-domain/entityKinds'
 import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
 import { useEncounterStore } from '../../stores/encounterStore'
@@ -95,7 +96,7 @@ export async function buildExportBundle(
  * mechs. Including deep transitive closure would make the export ambiguous.
  */
 export async function buildEntityExport(
-  type: 'pilot' | 'mech' | 'crawler' | 'npc',
+  type: EntityKind,
   id: string,
   entityStore: ExportStore
 ): Promise<ExportBundle> {

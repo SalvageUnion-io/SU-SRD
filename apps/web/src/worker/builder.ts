@@ -43,7 +43,7 @@
  * rejected on MIME type and the `immutable` header pinned that HTML into the
  * HTTP cache **for a year** under the chunk's URL. An honest 404 makes the
  * failed import surface as `vite:preloadError`, which `installChunkRecovery`
- * (`observability/browser`) recovers from with a single reload. A client route
+ * (`lib/browserObservability.ts`) recovers from with a single reload. A client route
  * never has a file extension, so a dot in the last segment means a FILE.
  */
 

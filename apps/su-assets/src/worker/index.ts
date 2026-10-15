@@ -25,7 +25,12 @@
  * silently breaks entity artwork in both srd and cantina at once.
  */
 
-import { reportError } from 'observability/cloudflare'
+import {
+  ASSET_RENDER_QUALITY,
+  isServedDerivative,
+  parseAssetDerivative,
+} from 'salvageunion-reference/assetDerivatives'
+import { reportError } from './reportError'
 
 /** The slice of an R2 bucket binding this Worker uses. */
 export type AssetBucket = {
@@ -38,50 +43,6 @@ export type ImagesBinding = {
     transform(options: { width: number }): {
       output(options: { format: string; quality?: number }): Promise<{ response(): Response }>
     }
-  }
-}
-
-/**
- * Widths this origin will render, and the reason it is an allowlist.
- *
- * Cloudflare Images bills by UNIQUE transformation, and the Free plan stops at
- * 5,000 per month. The width arrives in a public URL on an unauthenticated
- * origin, so an open range is an open invitation: a crawler walking
- * `-1.webp`, `-2.webp`, `-3.webp` would exhaust a month's quota in one pass and
- * every subsequent transformation on the account would fail with `9422`.
- *
- * Two entries, matching the render slot they exist for: `CardImage` sizes
- * artwork into 220 CSS px, so 440 covers a 2x display and 880 a 4x one.
- */
-const ALLOWED_WIDTHS = new Set([440, 880])
-
-/**
- * The WebP quality every derivative renders at, and the only one a URL may
- * name (`mule-440q80.webp`): one value, so the quality, like the width, cannot
- * be walked. Mirrors `ASSET_RENDER_QUALITY` in the UI library's `assetSrcSet.ts`.
- *
- * Named in the URL because the bare `-440`/`-880` keys are spent: the first ones
- * were baked into the bucket close to lossless, and the edge and every browser
- * hold them `immutable` for a year. Those keys still serve (a stored object
- * wins), so a page built before the change keeps its artwork.
- */
-const RENDER_QUALITY = 80
-
-/**
- * `chassis/mule-440q80.webp` -> `{ masterKey: 'chassis/mule.webp', width: 440, quality: 80 }`,
- * and the older `chassis/mule-440.webp` the same with no quality named.
- */
-function parseDerivative(
-  key: string
-): { masterKey: string; width: number; quality: number | undefined } | null {
-  const match = /^(.*)-(\d+)(?:q(\d+))?(\.[a-z0-9]+)$/i.exec(key)
-  if (!match) return null
-  const [, stem, digits, quality, ext] = match
-  if (stem === undefined || digits === undefined || ext === undefined) return null
-  return {
-    masterKey: `${stem}${ext}`,
-    width: Number(digits),
-    quality: quality === undefined ? undefined : Number(quality),
   }
 }
 
@@ -220,14 +181,15 @@ export function makeAssetHandler(openBucket: () => AssetBucket, images?: ImagesB
 
     // No stored object. If the key names a derivative, render it from the master
     // rather than 404ing.
-    const derivative = parseDerivative(key)
+    // The widths and the quality are an allowlist owned by the reference
+    // package (`salvageunion-reference/assetDerivatives`), which the app's
+    // `srcset` reads too: an open range would let a crawler exhaust the
+    // Cloudflare Images quota.
+    const derivative = parseAssetDerivative(key)
     if (!derivative) {
       return plain('Not found', 404)
     }
-    if (
-      !ALLOWED_WIDTHS.has(derivative.width) ||
-      (derivative.quality !== undefined && derivative.quality !== RENDER_QUALITY)
-    ) {
+    if (!isServedDerivative(derivative)) {
       // Not an error and deliberately not reported: an unallowed width or
       // quality is a scanner or a stale link, and this origin is crawler-visible.
       return plain('Not found', 404)
@@ -254,7 +216,7 @@ export function makeAssetHandler(openBucket: () => AssetBucket, images?: ImagesB
       const rendered = await images
         .input(master.body)
         .transform({ width: derivative.width })
-        .output({ format: contentType, quality: RENDER_QUALITY })
+        .output({ format: contentType, quality: ASSET_RENDER_QUALITY })
       return imageResponse(rendered.response().body as ReadableStream, contentType)
     } catch (error) {
       // A transformation failure IS worth reporting — unlike a 404 it means the

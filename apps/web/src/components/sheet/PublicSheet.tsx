@@ -19,6 +19,7 @@
  * republishes, your crewmate's.
  */
 
+import { publicPath } from 'cantina-domain/entityKinds'
 import type { EntityRef } from 'cantina-domain/schemas/entity'
 import { useMemo } from 'react'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
@@ -53,7 +54,7 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
   // Only a published entity has a page a reader can open.
   const hrefFor = useMemo(
     () => (kind: EntityRef['type'], id: string) =>
-      published.has(id) ? `/p/${kind}/${id}` : undefined,
+      published.has(id) ? publicPath(kind, id) : undefined,
     [published]
   )
   const kind = answer.kind

@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 /**
- * check-workers — the three Cloudflare Workers keep one shape (`bun run check workers`).
+ * check-workers — the three Cloudflare Workers keep one shape (`bun run check workers`),
+ * and `WORKERS` is the one list of them.
  *
  * The Workers grew apart one at a time: three entry layouts (`src/worker.ts`,
  * `src/http/worker.ts`, `src/worker/index.ts`), `workers_dev` true, false or
@@ -8,8 +9,10 @@
  * typechecking build in one. Each difference is a question a
  * reader has to answer per app. This gate fails when one comes back:
  *
- *   1. every `apps/<app>/wrangler.jsonc` is one of `WORKER_APPS`, and the
- *      reverse, so a fourth Worker cannot skip the gate or the type generator;
+ *   1. every `apps/<app>/wrangler.jsonc` is one of `WORKERS`, and the
+ *      reverse, so a fourth Worker cannot skip the gate, the type generator
+ *      (tools/check-generated.ts), the deploy (tools/deploy-surfaces.ts) or
+ *      CI's path filters (tools/check-workflows.ts), which all read it;
  *   2. `main` is `src/worker/index.ts`, and that file exists;
  *   3. `workers_dev` is an explicit boolean: unset, `routes` silently decides
  *      whether the workers.dev address is live;
@@ -17,7 +20,13 @@
  *      `SAME_SCRIPTS` read the same in every app;
  *   5. `worker-configuration.d.ts` is committed (the `generated` check keeps it
  *      current);
- *   6. the keys in `SHARED_KEYS` are equal across all three, printed as a diff.
+ *   6. the keys in `SHARED_KEYS` are equal across all three, printed as a diff;
+ *   7. every config turns on Workers Logs, Workers Issues and
+ *      `upload_source_maps`. Workers Issues is the error tracker
+ *      (apps/web/src/worker/errorReports.ts) and needs nothing in a
+ *      Worker's code, so a Worker that never turned it on looks exactly like
+ *      a healthy one with no errors. The browser half of that wiring is the
+ *      `observability` check's.
  *
  * `wrangler.jsonc` goes through Bun's JSONC loader, never a text match: the
  * configs are heavily commented.
@@ -27,10 +36,24 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { WORKER_APPS } from './check-generated'
+
+/**
+ * Every Cloudflare Worker: its directory under `apps/` (what the deploy ships,
+ * the `deploy` matrix entry) and the ci.yml filter group that gates its CI
+ * build. The one list: the type generator, the deploy decision and CI's
+ * path-filter check derive theirs from it. In the deploy's order.
+ */
+export const WORKERS = [
+  { app: 'su-assets', ciFilter: 'workers' },
+  { app: 'web', ciFilter: 'web' },
+  { app: 'discord-bot', ciFilter: 'workers' },
+] as const
+
+/** `WORKERS` as repo-relative app directories, e.g. `apps/web`. */
+export const WORKER_APPS = WORKERS.map(({ app }) => `apps/${app}` as const)
 
 /** The scripts every Worker app has. */
-export const SCRIPTS = ['dev', 'build', 'test', 'typecheck', 'deploy', 'worker:bundle'] as const
+export const SCRIPTS = ['dev', 'test', 'typecheck', 'deploy', 'worker:bundle'] as const
 
 /** Scripts whose command is the same everywhere; the rest are per-app. */
 const SAME_SCRIPTS = ['deploy', 'worker:bundle'] as const
@@ -64,12 +87,10 @@ export function shapeProblems(
   const problems: string[] = []
   const found = workers.map((w) => w.app)
   for (const app of found.filter((a) => !expected.includes(a))) {
-    problems.push(
-      `${app}: has a wrangler.jsonc but is not in WORKER_APPS (tools/check-generated.ts)`
-    )
+    problems.push(`${app}: has a wrangler.jsonc but is not in WORKERS (tools/check-workers.ts)`)
   }
   for (const app of expected.filter((a) => !found.includes(a))) {
-    problems.push(`${app}: in WORKER_APPS but has no wrangler.jsonc`)
+    problems.push(`${app}: in WORKERS but has no wrangler.jsonc`)
   }
 
   for (const w of workers) {
@@ -87,6 +108,7 @@ export function shapeProblems(
     if (!w.present.has(`${w.app}/${TYPES_FILE}`)) {
       problems.push(`${w.app}: no ${TYPES_FILE}; run \`bun run check generated\``)
     }
+    problems.push(...observabilityProblems(w))
   }
 
   const differ = (label: string, read: (w: WorkerApp) => unknown) => {
@@ -98,6 +120,34 @@ export function shapeProblems(
   }
   for (const key of SHARED_KEYS) differ(`wrangler.jsonc "${key}"`, (w) => w.config[key])
   for (const script of SAME_SCRIPTS) differ(`script "${script}"`, (w) => w.scripts[script])
+  return problems
+}
+
+/** The slice of a `wrangler.jsonc` rule 7 reads. */
+type Observability = {
+  observability?: { enabled?: boolean; issues?: { enabled?: boolean } }
+  upload_source_maps?: boolean
+}
+
+/** Rule 7: a Worker whose errors would reach nothing, one line per missing setting. */
+function observabilityProblems(w: WorkerApp): string[] {
+  const config = w.config as Observability
+  const problems: string[] = []
+  if (config.observability?.enabled !== true) {
+    problems.push(`${w.app}: wrangler.jsonc does not turn on "observability" (Workers Logs)`)
+  }
+  if (config.observability?.issues?.enabled !== true) {
+    problems.push(
+      `${w.app}: wrangler.jsonc does not turn on "observability.issues" — this Worker's ` +
+        'errors would be logged and grouped by nothing'
+    )
+  }
+  if (config.upload_source_maps !== true) {
+    problems.push(
+      `${w.app}: wrangler.jsonc does not set "upload_source_maps" — its issues would ` +
+        'point at the bundle, not the source'
+    )
+  }
   return problems
 }
 

@@ -24,8 +24,9 @@
  * SoftLink list (orphaned links resolve to null entities and are skipped).
  */
 
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EntityRef, SheetEntityKind } from 'cantina-domain/schemas/entity'
+import type { EntityRef } from 'cantina-domain/schemas/entity'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { SoftLink } from 'cantina-domain/schemas/softLink'
@@ -63,7 +64,7 @@ export type SheetComposition = {
 }
 
 type ResolveArgs = {
-  kind: SheetEntityKind
+  kind: SheetKind
   id: string
   links: SoftLink[]
   store: EntityLookup

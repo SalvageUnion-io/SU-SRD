@@ -90,10 +90,14 @@ const OK_SHEET = {
 describe('an ephemeral command', () => {
   test('renders as an ephemeral follow-up, and resolves the placeholder', async () => {
     connect(OK_ME)
-    const { interaction, edits, followUps, deferred } = fakeExecute({ subcommand: 'me' })
+    const { interaction, edits, followUps, sent, deferred } = fakeExecute({ subcommand: 'me' })
     await meCommand.execute(interaction)
 
     expect(deferred.ephemeral).toBe(true)
+    // The placeholder is resolved BEFORE the follow-up: sent while it is still
+    // "thinking…", Discord turns the follow-up into the placeholder itself,
+    // and the edit after it is refused.
+    expect(sent).toEqual(['edit', 'followUp'])
     // A follow-up, not an edit: a container needs the V2 flag, and Discord
     // refuses to toggle that onto a placeholder created without it.
     expectContainer(followUps[0], { ephemeral: true })

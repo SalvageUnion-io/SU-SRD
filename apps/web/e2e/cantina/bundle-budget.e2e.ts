@@ -40,7 +40,7 @@ test.use({ account: 'anonymous' })
  * ## How the ceilings were set
  *
  * From the bundle CI's `build-web` job builds and serves: `bunx convex deploy
- * --cmd "bun run build:untyped"`, which compiles the client against a Convex URL — the
+ * --cmd "bun run build"`, which compiles the client against a Convex URL — the
  * variant production ships, Convex client included. Every ceiling sits ~20%
  * above its measured value (the table below). A budget pinned at today's size
  * is a tripwire, not a budget; 20% absorbs dependency churn while still

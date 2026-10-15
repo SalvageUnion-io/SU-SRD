@@ -1,3 +1,4 @@
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
@@ -25,7 +26,7 @@ import { grainClass } from '../referenceEntity/card/cardGrain'
  * `.su-start-here__steps` container query.
  */
 
-type StartHereStepKey = 'pilot' | 'mech' | 'crawler'
+type StartHereStepKey = SheetKind
 
 /** Each step wears its chapter's tone: Pilot Bay, Mech Workshop, Union Crawler. */
 type StartHereStep = { key: StartHereStepKey; title: string; body: string; tone: string }

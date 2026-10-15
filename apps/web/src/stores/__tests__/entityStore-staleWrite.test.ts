@@ -10,7 +10,7 @@
  */
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
-import { staleWriteError } from 'cantina-domain/connection/staleWrite'
+import { staleWriteError } from '../../../convex/model/staleWrite'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { withSignedInBackend } from './signedInBackend'
 

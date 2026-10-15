@@ -15,6 +15,7 @@
  */
 
 import { moveTo, SHELF } from 'cantina-domain/container'
+import type { OwnableTable } from 'cantina-domain/entityKinds'
 import { useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -27,7 +28,7 @@ import { toast } from '../index'
 import type { Confirm } from '../shared/useConfirm'
 
 /** The table a pilot or mech row's ownership mutations address. */
-function ownableTable(row: RosterRow): 'pilots' | 'mechs' {
+function ownableTable(row: RosterRow): OwnableTable {
   return row.kind === 'pilot' ? 'pilots' : 'mechs'
 }
 

@@ -34,6 +34,7 @@ import type * as model_permissions from "../model/permissions.js";
 import type * as model_photos from "../model/photos.js";
 import type * as model_referenceData from "../model/referenceData.js";
 import type * as model_seats from "../model/seats.js";
+import type * as model_staleWrite from "../model/staleWrite.js";
 import type * as ownership from "../ownership.js";
 import type * as photos from "../photos.js";
 import type * as proposals from "../proposals.js";
@@ -75,6 +76,7 @@ declare const fullApi: ApiFromModules<{
   "model/photos": typeof model_photos;
   "model/referenceData": typeof model_referenceData;
   "model/seats": typeof model_seats;
+  "model/staleWrite": typeof model_staleWrite;
   ownership: typeof ownership;
   photos: typeof photos;
   proposals: typeof proposals;

@@ -1,3 +1,4 @@
+import type { EntityTable } from 'cantina-domain/entityKinds'
 import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
 import type { EncounterNpcCreateInput } from '../../stores/encounterStore'
@@ -139,7 +140,7 @@ export async function mergeImport(
   async function importKind<T extends AssignableType>(
     type: T,
     records: EntityForType<T>[],
-    countKey: 'pilots' | 'mechs' | 'crawlers' | 'npcs'
+    countKey: EntityTable
   ): Promise<void> {
     const existing = new Set(entityStore.list(type).map((e) => e.id))
     for (const record of records) {

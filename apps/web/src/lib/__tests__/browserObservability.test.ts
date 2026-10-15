@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import type { ErrorReport } from '../browser'
-import { createBrowserObservability, ERROR_REPORT_PATH, MAX_REPORTS_PER_PAGE } from '../browser'
+import type { ErrorReport } from '../browserObservability'
+import {
+  createBrowserObservability,
+  ERROR_REPORT_PATH,
+  MAX_REPORTS_PER_PAGE,
+} from '../browserObservability'
 
 /** A recording transport: every report that would leave the page. */
 function recorder() {
@@ -70,6 +74,16 @@ describe('createBrowserObservability', () => {
     const obs = createBrowserObservability({ transport, ignoreErrors: ['Transition was skipped'] })
     obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
     obs.captureException(Object.assign(new Error('Transition was skipped'), { name: 'AbortError' }))
+    obs.captureException(new Error('a real one'))
+    expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
+  })
+
+  test('the ResizeObserver loop notice is dropped with no ignoreErrors of the app’s own', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException('ResizeObserver loop completed with undelivered notifications.')
+    obs.captureException(new Error('ResizeObserver loop limit exceeded'))
     obs.captureException(new Error('a real one'))
     expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
   })

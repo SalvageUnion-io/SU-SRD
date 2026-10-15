@@ -42,9 +42,9 @@ const SCAN_FLOOR = 630
  * within MAX_LINES.
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
-  'apps/discord-bot/src/gameCards.ts': 670,
+  'apps/discord-bot/src/gameCards.ts': 667,
   'apps/web/convex/entities.ts': 852,
-  'apps/web/convex/model/entities.ts': 929,
+  'apps/web/convex/model/entities.ts': 912,
   'apps/web/convex/schema.ts': 726,
   'apps/web/src/components/dashboard/Dashboard.tsx': 639,
   'apps/web/src/components/npc/AnyNpcDesigner.tsx': 781,
@@ -57,11 +57,11 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/web/src/components/atoms/VitalGauge.tsx': 714,
   'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 817,
   'packages/gates/lib/statFidelity.ts': 780,
-  'packages/gates/rules/stylingOwnership.ts': 629,
+  'packages/gates/rules/stylingOwnership.ts': 627,
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 652,
   'tools/check-doc-drift.ts': 1_063,
   'tools/check-rules-fidelity.ts': 1_014,
-  'tools/check-workflows.ts': 809,
+  'tools/check-workflows.ts': 797,
 }
 
 const SOURCE = /\.(tsx?|m?js)$/
