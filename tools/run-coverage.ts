@@ -128,6 +128,16 @@ function lineCoverage(lcov: string): number | undefined {
   return found > 0 ? (hit / found) * 100 : undefined
 }
 
+/** A file's text, or undefined when there is none: one read, no separate existence check. */
+function readIfPresent(path: string): string | undefined {
+  try {
+    return readFileSync(path, 'utf-8')
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
+    throw error
+  }
+}
+
 type Result = { name: string; ok: boolean; verdict: string; output: string }
 
 /** Where a job runs, and the `bun` it runs (a stub, in the script's tests). */
@@ -176,11 +186,13 @@ export async function runJob(name: string, floor: number, options: JobOptions): 
     }
   }
   const lcovPath = join(cwd, coverage, 'lcov.info')
-  if (ok && part && existsSync(lcovPath)) {
-    writeFileSync(lcovPath, lcovFor(readFileSync(lcovPath, 'utf-8'), part.owns))
+  let lcov = ok ? readIfPresent(lcovPath) : undefined
+  if (lcov !== undefined && part) {
+    lcov = lcovFor(lcov, part.owns)
+    writeFileSync(lcovPath, lcov)
   }
   if (ok) {
-    const pct = existsSync(lcovPath) ? lineCoverage(readFileSync(lcovPath, 'utf-8')) : undefined
+    const pct = lcov === undefined ? undefined : lineCoverage(lcov)
     ok = pct !== undefined && pct >= floor
     verdict =
       pct === undefined
