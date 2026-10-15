@@ -110,6 +110,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false, joinedAt: 2 },
     ],
     'entities:listForGame': { pilots: [], mechs: [], crawlers: [], softLinks: [] },
+    'crew:vitals': undefined,
     'proposals:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
@@ -241,6 +242,15 @@ describe('Crew & seats', () => {
           { type: 'mech-to-pilot', from: { id: 'a-m1' }, to: { id: 'a-p1' }, gameId: 'g1' },
         ],
       },
+      // The server's derived maxima; an absent current HP is full.
+      'crew:vitals': {
+        viewerId: 'u1',
+        mechs: [],
+        pilots: [
+          { _id: 'p1', currentHP: 4, maxHP: 10 },
+          { _id: 'p2', currentHP: null, maxHP: 8 },
+        ],
+      },
     })
 
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
@@ -249,8 +259,8 @@ describe('Crew & seats', () => {
     // A pilot seat is the pilot's Row: who holds it, its mech as a chip, then role.
     expect(rows).toEqual([
       'Ash (you)',
-      'Pickle (Pilot)BeefcakeMechSpectrumPlayer',
-      'Hotdog (Pilot)Open',
+      'Pickle (Pilot)BeefcakeMechSpectrumPlayerHP4/10',
+      'Hotdog (Pilot)OpenHP8/8',
     ])
     // The count is the label-first chip, `SEATS | 1/2`.
     expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')

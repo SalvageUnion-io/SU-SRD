@@ -25,13 +25,14 @@ const CRAWLER: CrawlerReading = {
 }
 
 const ROWS: SeatRow[] = [
-  { key: 'm', role: 'Mediator', who: 'alxjrvs', unit: 'Runs the table', pilot: null },
+  { key: 'm', role: 'Mediator', who: 'alxjrvs', unit: 'Runs the table', pilot: null, hp: null },
   {
     key: 'mp',
     role: 'Mediator',
     who: 'alxjrvs',
     unit: 'Bonesaw · on foot',
     pilot: { name: 'Bonesaw', mech: null },
+    hp: null,
   },
   {
     key: 'p',
@@ -39,6 +40,7 @@ const ROWS: SeatRow[] = [
     who: 'Sam',
     unit: 'Ghost · Iron Jaw',
     pilot: { name: 'Ghost', mech: 'Iron Jaw' },
+    hp: '7/10',
   },
   {
     key: 'o',
@@ -46,6 +48,7 @@ const ROWS: SeatRow[] = [
     who: 'Rook',
     unit: 'Waiting for a player',
     pilot: { name: 'Rook', mech: null },
+    hp: '10/10',
   },
 ]
 
@@ -70,11 +73,11 @@ describe('CrewSeats', () => {
     // A pilot is a Row: who holds it, then `MECH | name`, then its role, right of the name.
     if (!player || !open) throw new Error('missing seats')
     expect(within(player).getByText('Ghost')).toBeTruthy()
-    expect(cellsOf(player)).toEqual(['Sam', 'MechIron Jaw', 'Player'])
+    expect(cellsOf(player)).toEqual(['Sam', 'MechIron Jaw', 'Player', 'HP7/10'])
     expect(player.querySelector('.su-entity-token')).toBeNull()
     // An open seat is its OPEN chip, with no line of text under it.
     expect(within(open).getByText('Rook')).toBeTruthy()
-    expect(within(open).getByText('Open')).toBeTruthy()
+    expect(cellsOf(open)).toEqual(['Open', 'HP10/10'])
     expect(within(open).queryByText('Waiting for a player')).toBeNull()
     expect(screen.queryByText('On foot')).toBeNull()
     // The count is the label-first chip, `SEATS | 1/2`.

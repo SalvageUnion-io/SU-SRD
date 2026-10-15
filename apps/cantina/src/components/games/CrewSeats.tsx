@@ -3,7 +3,8 @@
  * docs/architecture/mediator-dashboard.md Q11): the crawler as a Row, then
  * one entry per member's pilot, then the open seats, drawn as every crew list
  * draws them: the pilot's Row with, right of the name, who holds the seat, its
- * assigned mech as a `MECH | name` chip, and the seat's role (PLAYER or OPEN).
+ * assigned mech as a `MECH | name` chip, the seat's role (PLAYER or OPEN) and
+ * the pilot's `HP | current/max` (`crew.vitals`).
  * The Mediator's seat carries no role chip: the page's band already says who
  * mediates. (The Mediator Dashboard shows where they **are**.) A member with
  * no pilot is a plain line. An open seat is an unclaimed pilot. The
@@ -73,6 +74,7 @@ function Seat({ row }: { row: SeatRow }) {
       kind="pilot"
       name={row.pilot.name}
       note={row.role === 'Mediator' ? undefined : row.role}
+      readings={row.hp === null ? undefined : [{ label: 'HP', value: row.hp }]}
       // Who holds the seat, then their mech: the Row's first chips.
       labels={
         row.role === 'Open' && mech === null ? undefined : (

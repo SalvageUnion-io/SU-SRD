@@ -112,6 +112,8 @@ function GameSections({ game }: { game: Game }) {
   const showContainer = useShowContainer()
   const listing = useQuery(api.entities.listForGame, { gameId })
   const members = useQuery(api.games.members, { gameId })
+  // The seats' HP: the server derives every crewmate's max (ADR-038 §4).
+  const vitals = useQuery(api.crew.vitals, { gameId })
   const me = useQuery(api.account.me, {})
   const viewerId = me?._id ?? null
 
@@ -121,7 +123,9 @@ function GameSections({ game }: { game: Game }) {
     null
   const crawler = primary === null ? null : readCrawler(primary)
   const seats =
-    listing === undefined || members === undefined ? null : seatRows(listing, members, viewerId)
+    listing === undefined || members === undefined
+      ? null
+      : seatRows(listing, members, viewerId, vitals)
 
   return (
     <>

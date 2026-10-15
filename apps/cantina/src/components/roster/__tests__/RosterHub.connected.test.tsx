@@ -106,6 +106,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       { userId: 'u-bly', displayName: 'Bly', mediator: false, organizer: false },
     ],
     'entities:listForGame': LISTING,
+    'crew:vitals': undefined,
     'proposals:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
