@@ -14,7 +14,7 @@
  * a `bun test` file it could only fail there or — worse — skip, and a check
  * that skips when the build is missing reads as a pass while asserting nothing.
  *
- * CI's `build-srd` job runs it via `check:examples` right after the build that
+ * CI's `build-web` job runs it via `check:examples` right after the build that
  * produces its input, so it runs where `dist` is guaranteed.
  */
 

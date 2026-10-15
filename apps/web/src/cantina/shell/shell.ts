@@ -4,7 +4,7 @@
  *
  * Vite takes it as the app's HTML entry (`cantinaShell` in
  * `vite.cantina.config.ts`): the build injects the hashed entry, its CSS and
- * modulepreloads and writes `dist-cantina/build/index.html`, which the Worker
+ * modulepreloads and writes `dist/build/index.html`, which the Worker
  * serves and the service worker precaches; the dev server answers navigations
  * with it. Plain `createElement`, no JSX and only relative imports, because the
  * Vite config loads this module itself.

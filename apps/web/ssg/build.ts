@@ -1,5 +1,5 @@
 /**
- * build — the SSG orchestrator.
+ * build — the site's one build: srd's pages and the Cantina, into one `dist/`.
  *
  *   1. `vite build` (client only): the islands entry, the css entry and the
  *      static-asset entry, with a manifest. It also copies `public/` and
@@ -8,6 +8,10 @@
  *      url of every asset under `src/assets/`.
  *   3. enumerate `ssg/routes.ts` and render each route.
  *   4. write endpoints and the sitemap.
+ *   5. the Cantina's client build (`vite.cantina.config.ts`) into `dist/build/`
+ *      (ADR-050), in a child process (`ssg/buildCantina.ts` says why). Last,
+ *      because srd's `vite build` empties `dist/` and its service worker must
+ *      not precache the Cantina. It needs `VITE_CONVEX_URL`.
  *
  * ## The css/SSR hazard
  *
@@ -39,6 +43,7 @@ import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const distDir = join(appRoot, 'dist')
 const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
+const cantinaBuildFile = fileURLToPath(new URL('./buildCantina.ts', import.meta.url))
 const navCatalogFile = fileURLToPath(new URL('../src/generated/navCatalog.ts', import.meta.url))
 
 plugin({
@@ -266,6 +271,15 @@ async function main(): Promise<void> {
   // reads it has already run by here (readAssets above, and the service worker
   // globs only js/css/woff2/svg, so it was never precached).
   await rm(join(distDir, '.vite'), { recursive: true, force: true })
+
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
+  console.log('[ssg] vite build (cantina)')
+  const cantina = Bun.spawn([process.execPath, cantinaBuildFile], {
+    cwd: appRoot,
+    stdout: 'inherit',
+    stderr: 'inherit',
+  })
+  if ((await cantina.exited) !== 0) throw new Error('[ssg] the Cantina build failed (above).')
 
   // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log(`[ssg] done in ${((Date.now() - started) / 1000).toFixed(1)}s`)

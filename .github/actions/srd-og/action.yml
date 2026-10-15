@@ -1,7 +1,7 @@
 name: Render srd OG images
 description: Provision Chromium and render srd's per-entity OG images into apps/web/dist
 
-# The one OG pass, run by the `build-srd` jobs of deploy-cloudflare.yml
+# The one OG pass, run by the `build-web` jobs of deploy-cloudflare.yml
 # (production) and deploy-preview.yml (a PR's Worker Preview) after their
 # build, with `continue-on-error`. The caller has built srd into
 # apps/web/dist and uploads the result. The render never fails: a missing

@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
@@ -7,11 +7,11 @@ import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
-import { basePathOf, headersForBase, SITE } from './src/cantina/lib/site'
+import { basePathOf, SITE } from './src/cantina/lib/site'
 import { WORKBOX_OPTIONS } from './src/cantina/lib/sw/workbox'
 // The shell renders the Union bar from the UI library's TypeScript source, which
-// only Vite's module runner resolves: load this file with `--configLoader runner`
-// (`build:cantina`, `ssg/dev.ts`); the default loader leaves the package to Node.
+// only Vite's module runner resolves: load this file with `configLoader: 'runner'`
+// (`ssg/build.ts`, `ssg/dev.ts`); the default loader leaves the package to Node.
 import { renderShell } from './src/cantina/shell/shell'
 import { publicShells, sitemapXml } from './src/cantina/worker/publicPages'
 import { SITE_MANIFEST } from './src/pwa'
@@ -43,41 +43,29 @@ function requireConvexUrl(): Plugin {
 
 /**
  * The Cantina's Vite root, `src/cantina/` (its `main.tsx` and `public/`), and
- * where its build lands: `dist-cantina/`, beside srd's `dist/`, which
- * `tools/merge-dist.sh` copies its `build/` into for the deploy. Everything else
- * this config names is relative to the workspace, `apps/web/`.
+ * the site's one output, `dist/`: `ssg/build.ts` runs this build after srd's,
+ * into `dist/build/`. Everything else this config names is relative to the
+ * workspace, `apps/web/`.
  */
 const HERE = import.meta.dirname
 const ROOT = join(HERE, 'src/cantina')
-const DIST = join(HERE, 'dist-cantina')
+const DIST = join(HERE, 'dist')
 
 /**
- * The Cantina is served under `SITE.base`, `/build/` (ADR-048, `src/cantina/lib/site.ts`). The
- * build lands in `dist-cantina/build/` so a file's path on disk is its URL path, and two
- * files move up to `dist-cantina/`, the asset root:
- *
- * - `_headers`, which Static Assets reads only there, with its `/assets/*`
- *   rule scoped to the base;
- * - a copy of `index.html`, because `single-page-application` mode answers a
- *   navigation miss with `/index.html` at the root, whatever the path.
+ * The Cantina is served under `SITE.base`, `/build/` (ADR-048, `src/cantina/lib/site.ts`),
+ * from `dist/build/`, so a file's path on disk is its URL path. Its
+ * `public/_headers` does not ship: Static Assets reads `_headers` only at the
+ * asset root, which is srd's (`public/_headers` covers `/build/assets/*`), and
+ * the Worker sets the Cantina's CSP from it on every `/build` answer
+ * (`src/worker/build.ts`).
  */
 function siteLayout(base: string): Plugin {
-  const prefix = basePathOf(base)
+  const out = join(DIST, basePathOf(base))
   return {
     name: 'cantina-site-layout',
     apply: 'build',
-    // `emptyOutDir` clears only `dist-cantina/build/`: files from an older
-    // layout must not linger beside it, where Static Assets would serve them.
-    buildStart() {
-      rmSync(DIST, { recursive: true, force: true })
-    },
     closeBundle() {
-      const root = DIST
-      const out = join(root, prefix)
-      copyFileSync(join(out, 'index.html'), join(root, 'index.html'))
-      const headers = readFileSync(join(out, '_headers'), 'utf8')
-      writeFileSync(join(root, '_headers'), headersForBase(headers, base))
-      rmSync(join(out, '_headers'))
+      rmSync(join(out, '_headers'), { force: true })
     },
   }
 }
@@ -133,9 +121,10 @@ const UNFETCHED_SUBSET = /-(latin-ext|vietnamese)-/
 /**
  * The base stylesheet both apps link (`src/styles/baseStylesheet.ts`): the fonts and the
  * package stylesheet, at `/assets/base-<hash>.css`, ahead of the Cantina's own
- * CSS. The build writes its files to `dist-cantina/assets/`, the asset root, not
- * `build/`: merge-dist leaves them behind, and the deploy serves srd's identical
- * copy. The dev server links the source, which srd's Vite server answers.
+ * CSS. srd's build, which runs first, already wrote those files to
+ * `dist/assets/`; this one refuses to finish unless they are byte for byte the
+ * files it links, or the Cantina would link a file the site does not serve.
+ * The dev server links the source, which srd's Vite server answers.
  */
 function baseStylesheet(): Plugin {
   let href = DEV_BASE_STYLESHEET
@@ -163,9 +152,19 @@ function baseStylesheet(): Plugin {
     async closeBundle() {
       if (!build) return
       for (const { fileName, source } of (await buildBaseStylesheet()).files) {
-        const target = join(DIST, fileName)
-        mkdirSync(dirname(target), { recursive: true })
-        writeFileSync(target, source)
+        const served = join(DIST, fileName)
+        const same =
+          existsSync(served) &&
+          Buffer.compare(
+            readFileSync(served),
+            typeof source === 'string' ? Buffer.from(source) : source
+          ) === 0
+        if (!same) {
+          throw new Error(
+            `[cantina] srd's build did not write the base stylesheet's ${fileName} as the ` +
+              'Cantina links it. Build both with `bun run build` (ssg/build.ts), srd first.'
+          )
+        }
       }
     },
   }
@@ -302,7 +301,8 @@ export default defineConfig({
     siteLayout(SITE.base),
   ],
   build: {
-    // `dist-cantina/build/`, so a file's path on disk is its URL path.
+    // `dist/build/`, so a file's path on disk is its URL path. Clears only
+    // that folder: the rest of `dist` is srd's.
     outDir: join(DIST, basePathOf(SITE.base)),
     emptyOutDir: true,
     rolldownOptions: {
