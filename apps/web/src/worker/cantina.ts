@@ -163,7 +163,10 @@ function indexable(path: string): boolean {
 
 /** A shell answer for a route search should not list, marked `noindex`. */
 function robotsFor(path: string, res: Response): Response {
-  if (indexable(path)) return res
+  return indexable(path) ? res : noindexed(res)
+}
+
+function noindexed(res: Response): Response {
   const marked = new Response(res.body, res)
   marked.headers.set('x-robots-tag', 'noindex')
   return marked
@@ -212,8 +215,9 @@ async function sharedShell(
   const shell = await shellOf(url, env, base)
   if (!shell.ok) return shell
   const meta = await metaFor(route, url, env, fetch, base)
-  if (meta === null) return shell
-  return rewritten(shell, (html) => applyMeta(html, meta))
+  const res = meta === null ? shell : await rewritten(shell, (html) => applyMeta(html, meta))
+  // A missing or private sheet answers like a page: search must not list it.
+  return meta?.canonical === undefined ? noindexed(res) : res
 }
 
 /**

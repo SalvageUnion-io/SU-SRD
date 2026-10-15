@@ -63,6 +63,13 @@ describe('GET /llms.txt', () => {
     expect(text).not.toContain('fonts.googleapis.com')
   })
 
+  it('names the site and its character manager', () => {
+    const text = render()
+    expect(text.startsWith('# SalvageUnion.io\n')).toBe(true)
+    expect(text).toContain('## Character Manager')
+    expect(text).toContain('https://salvageunion.io/build/')
+  })
+
   it('includes the standard Other Pages section', () => {
     const text = render()
     expect(text).toContain('## Other Pages')

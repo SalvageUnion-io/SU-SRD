@@ -52,7 +52,7 @@ const STARTER_SET: PublicPage = {
   path: '/starter',
   words: {
     title: STARTER_SET_TITLE,
-    description: `The Salvage Union Starter Set's pre-generated crew from ${STARTER_SET_ADVENTURE}, by ${STARTER_SET_PUBLISHER}: six Pilots, their Mechs and the Union Crawler they call home. Read every sheet free; copy one to play.`,
+    description: `The Salvage Union Starter Set crew from ${STARTER_SET_ADVENTURE}, by ${STARTER_SET_PUBLISHER}: six Pilots, their Mechs and their Union Crawler. Read every sheet free; copy one to play.`,
     themeColor: color.crawlerBand,
   },
 }

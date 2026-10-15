@@ -218,9 +218,15 @@ export async function metaFor(
   const card = cardOf(resolved, url.origin, base)
   if (card === null) return null
   const words = previewWords(card)
+  // Only a public sheet is a page search should list, at one address.
+  const canonical =
+    resolved.kind === 'sheet' && resolved.answer
+      ? `${url.origin}${base}/p/${resolved.route.kind}/${resolved.route.id}`
+      : undefined
   return {
     ...words,
     url: `${url.origin}${url.pathname}`,
+    ...(canonical ? { canonical } : {}),
     ...(canRender(env)
       ? { image: { url: `${url.origin}${base}${imagePathOf(resolved)}`, alt: words.title } }
       : {}),

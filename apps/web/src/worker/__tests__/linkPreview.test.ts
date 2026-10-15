@@ -104,10 +104,14 @@ const discordbot = (path: string) =>
   })
 
 async function unfurl(path: string, e: Env = env()): Promise<string> {
+  return (await crawl(path, e)).text()
+}
+
+async function crawl(path: string, e: Env = env()): Promise<Response> {
   globalThis.fetch = fakeFetch() as typeof fetch
   const res = await worker.fetch(discordbot(path), e)
   expect(res.status).toBe(200)
-  return res.text()
+  return res
 }
 
 function meta(html: string, key: string): string | undefined {
@@ -151,6 +155,24 @@ describe('a Discordbot fetch of a pilot sheet', () => {
     )
     expect(meta(html, 'theme-color')).toBe(color.pilot)
     expect(meta(html, 'og:image')).toStartWith('https://salvageunion.io/build/og/pilot/p-1.png?v=')
+  })
+})
+
+describe('search and a shared sheet', () => {
+  it('lists a public sheet at its one address', async () => {
+    const res = await crawl('/p/pilot/p-1')
+    expect(res.headers.get('x-robots-tag')).toBeNull()
+    expect(await res.text()).toContain(
+      '<link rel="canonical" href="https://salvageunion.io/build/p/pilot/p-1" />'
+    )
+  })
+
+  it('never lists a private or missing one', async () => {
+    for (const path of ['/p/pilot/p-2', '/p/pilot/nobody']) {
+      const res = await crawl(path)
+      expect(res.headers.get('x-robots-tag')).toBe('noindex')
+      expect(await res.text()).not.toContain('rel="canonical"')
+    }
   })
 })
 

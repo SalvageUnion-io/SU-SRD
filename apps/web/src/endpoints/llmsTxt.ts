@@ -23,11 +23,11 @@ function body(): string {
 
   const sampleSlug = getEntitySlug(apiSampleChassis())
 
-  return `# Salvage Union System Reference Document (SRD)
+  return `# SalvageUnion.io
 
-> An open-source, searchable reference for the Salvage Union tabletop RPG by Leyline Press.
+> An open-source, searchable rules reference and character manager for the Salvage Union tabletop RPG by Leyline Press.
 
-salvageunion.io is a community-built System Reference Document (SRD) for Salvage Union, a post-apocalyptic mech TTRPG. It provides stats, descriptions, abilities, and rules for game text and mechanics released under the Salvage Union Open Game Licence.
+SalvageUnion.io is a community-built site for Salvage Union, a post-apocalyptic mech TTRPG. Its System Reference Document (SRD) provides stats, descriptions, abilities, and rules for game text and mechanics released under the Salvage Union Open Game Licence. Its character manager, The Cantina, builds and keeps Pilot, Mech and Crawler sheets.
 
 ## Content Categories
 
@@ -69,6 +69,12 @@ The following schema IDs can be used in the endpoint patterns above:
 ${schemaIds}
 
 Full API documentation: ${SITE_URL}/api/
+
+## Character Manager
+
+The Cantina builds Pilot, Mech and Crawler sheets from the same game data: ${SITE_URL}/build/
+The Starter Set's pre-generated crew, free to read: ${SITE_URL}/build/starter
+Shared sheets are public pages at ${SITE_URL}/build/p/{kind}/{id}
 
 ## Other Pages
 
